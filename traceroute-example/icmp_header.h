@@ -1,3 +1,6 @@
+// Example source:
+// http://web.archive.org/web/20150922093308/https://svn.boost.org/trac/boost/attachment/ticket/4529/program.cpp
+
 //
 // icmp_header.hpp
 // ~~~~~~~~~~~~~~~
