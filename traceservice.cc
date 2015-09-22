@@ -120,7 +120,8 @@ void Traceroute::run()
    // ====== Bind ICMP socket to given source address =======================
    ICMPSocket.bind(SourceEndpoint, errorCode);
    if(errorCode !=  boost::system::errc::success) {
-      std::cerr << "ERROR: Unable to bind to source address " << SourceAddress << "!" << std::endl;
+      std::cerr << "ERROR: Unable to bind to source address "
+                << SourceAddress << "!" << std::endl;
       return;
    }
 
@@ -132,8 +133,8 @@ void Traceroute::run()
       ICMP6_FILTER_SETPASS(ICMP6_DST_UNREACH, &filter);
       ICMP6_FILTER_SETPASS(ICMP6_PACKET_TOO_BIG, &filter);
       ICMP6_FILTER_SETPASS(ICMP6_TIME_EXCEEDED, &filter);
-      int sd = ICMPSocket.native();
-      if(setsockopt(sd, IPPROTO_ICMPV6, ICMP6_FILTER, &filter, sizeof(struct icmp6_filter)) < 0) {
+      if(setsockopt(ICMPSocket.native(), IPPROTO_ICMPV6, ICMP6_FILTER,
+                    &filter, sizeof(struct icmp6_filter)) < 0) {
          std::cerr << "WARNING: Unable to set ICMP6_FILTER!" << std::endl;
       }
    }
