@@ -28,6 +28,8 @@
 #include <boost/asio.hpp>
 
 #include "icmpheader.h"
+#include "ipv4header.h"
+#include "ipv6header.h"
 
 
 std::set<boost::asio::ip::address> sourceArray;

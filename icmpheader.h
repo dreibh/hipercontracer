@@ -39,34 +39,34 @@
 
 class ICMPHeader
 {
-public:
-  enum {
-     IPv4EchoRequest  = 8,
-     IPv4EchoReply    = 0,
-     IPv4TimeExceeded = 11,
-     IPv4Unreachable  = 3,
+   public:
+   enum {
+      IPv4EchoRequest  = 8,
+      IPv4EchoReply    = 0,
+      IPv4TimeExceeded = 11,
+      IPv4Unreachable  = 3,
 
-     IPv6EchoRequest  = 129,
-     IPv6EchoReply    = 128,
-     IPv6TimeExceeded = 3,
-     IPv6Unreachable  = 1
-  };
+      IPv6EchoRequest  = 129,
+      IPv6EchoReply    = 128,
+      IPv6TimeExceeded = 3,
+      IPv6Unreachable  = 1
+   };
 
-  ICMPHeader() {
-     std::fill(data, data + sizeof(data), 0);
-  }
+   ICMPHeader() {
+      std::fill(data, data + sizeof(data), 0);
+   }
 
-  inline unsigned char type()        const { return data[0];      }
-  inline unsigned char code()        const { return data[1];      }
-  inline unsigned short checksum()   const { return decode(2, 3); }
-  inline unsigned short identifier() const { return decode(4, 5); }
-  inline unsigned short seqNumber()  const { return decode(6, 7); }
+   inline unsigned char type()        const { return data[0];      }
+   inline unsigned char code()        const { return data[1];      }
+   inline unsigned short checksum()   const { return decode(2, 3); }
+   inline unsigned short identifier() const { return decode(4, 5); }
+   inline unsigned short seqNumber()  const { return decode(6, 7); }
 
-  inline void type(unsigned char type)          { data[0] = type;         }
-  inline void code(unsigned char code)          { data[1] = code;         }
-  inline void checksum(unsigned short checksum) { encode(2, 3, checksum); }
-  inline void identifier(unsigned short id)     { encode(4, 5, id);       }
-  inline void seqNumber(unsigned short seqNum)  { encode(6, 7, seqNum);   }
+   inline void type(unsigned char type)          { data[0] = type;         }
+   inline void code(unsigned char code)          { data[1] = code;         }
+   inline void checksum(unsigned short checksum) { encode(2, 3, checksum); }
+   inline void identifier(unsigned short id)     { encode(4, 5, id);       }
+   inline void seqNumber(unsigned short seqNum)  { encode(6, 7, seqNum);   }
 
    inline friend std::istream& operator>>(std::istream& is, ICMPHeader& header) {
       return is.read(reinterpret_cast<char*>(header.data), 8);
