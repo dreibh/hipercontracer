@@ -63,12 +63,12 @@ class IPv4Header
    inline unsigned char protocol()        const { return(data[9]); }
    inline unsigned short headerChecksum() const { return(decode(10, 11)); }
 
-   inline boost::asio::ip::address_v4 source_address() const {
+   inline boost::asio::ip::address_v4 sourceAddress() const {
       const boost::asio::ip::address_v4::bytes_type bytes = { { data[12], data[13], data[14], data[15] } };
       return(boost::asio::ip::address_v4(bytes));
     }
 
-   inline boost::asio::ip::address_v4 destination_address() const {
+   inline boost::asio::ip::address_v4 destinationAddress() const {
       const boost::asio::ip::address_v4::bytes_type bytes = { { data[16], data[17], data[18], data[19] } };
       return(boost::asio::ip::address_v4(bytes));
    }

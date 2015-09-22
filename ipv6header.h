@@ -64,12 +64,12 @@ class IPv6Header
    inline unsigned char  nextHeader()    const { return data[6]; }
    inline unsigned int   timeToLive()    const { return data[7]; }
 
-   inline boost::asio::ip::address_v4 source_address() const {
+   inline boost::asio::ip::address_v4 sourceAddress() const {
       const boost::asio::ip::address_v4::bytes_type bytes = { { data[12], data[13], data[14], data[15] } };
       return(boost::asio::ip::address_v4(bytes));
     }
 
-   inline boost::asio::ip::address_v4 destination_address() const {
+   inline boost::asio::ip::address_v4 destinationAddress() const {
       const boost::asio::ip::address_v4::bytes_type bytes = { { data[16], data[17], data[18], data[19] } };
       return(boost::asio::ip::address_v4(bytes));
    }
@@ -77,13 +77,15 @@ class IPv6Header
    friend std::istream& operator>>(std::istream& is, IPv6Header& header) {
       is.read(reinterpret_cast<char*>(header.data), 40);
       if (header.version() != 6) {
+         printf("VERSION=%d\n",header.version());
          is.setstate(std::ios::failbit);
       }
+      else   puts("is v6version!");
       return(is);
    }
 
    private:
-   unsigned short decode(int a, int b) const { return (data[a] << 8) + data[b]; }
+   unsigned short decode(int a, int b) const { return((data[a] << 8) + data[b]); }
    unsigned char data[40];
 };
 

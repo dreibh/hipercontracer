@@ -55,13 +55,16 @@ class Traceroute : public boost::noncopyable
    Traceroute(const boost::asio::ip::address& source,
               const boost::asio::ip::address& destination,
               const unsigned int              packetsPerHop = 3,
-              const unsigned int              maxTTL        = 35);
+              const unsigned int              maxTTL        = 12);
    ~Traceroute();
    void run();
 
    inline bool isIPv6() const {
       return(SourceAddress.is_v6());
    }
+
+   void handleTimeout();
+   void handleMessage(std::size_t length);
 
    private:
    const unsigned int              PacketsPerHop;
@@ -72,6 +75,10 @@ class Traceroute : public boost::noncopyable
    boost::asio::ip::address        DestinationAddress;
    boost::asio::ip::icmp::endpoint DestinationEndpoint;
    boost::asio::ip::icmp::socket   ICMPSocket;
+   boost::asio::streambuf          ReplyBuffer;
+   boost::asio::deadline_timer     TimeoutTimer;
+   boost::asio::ip::icmp::endpoint ReplyEndpoint;          // Store ICMP reply's source
+   unsigned int                    Identifier;
 };
 
 
@@ -86,8 +93,10 @@ Traceroute::Traceroute(const boost::asio::ip::address& source,
      SourceEndpoint(SourceAddress, 0),
      DestinationAddress(destination),
      DestinationEndpoint(DestinationAddress, 0),
-     ICMPSocket(IO, (isIPv6() == true) ? boost::asio::ip::icmp::v6() : boost::asio::ip::icmp::v4())
+     ICMPSocket(IO, (isIPv6() == true) ? boost::asio::ip::icmp::v6() : boost::asio::ip::icmp::v4()),
+     TimeoutTimer(IO)
 {
+   Identifier = 0;
 }
 
 
@@ -98,21 +107,33 @@ Traceroute::~Traceroute()
 
 void Traceroute::run()
 {
-   unsigned int   identifier = ::getpid();
-   unsigned short seqNumber  = 0;
+   boost::system::error_code errorCode;
+   unsigned short            seqNumber  = 0;
+
+   Identifier = ::getpid();
 
    ICMPSocket.non_blocking(true);
+
+   ICMPSocket.bind(SourceEndpoint, errorCode);
+   if(errorCode !=  boost::system::errc::success) {
+      std::cerr << "ERROR: Unable to bind to source address " << SourceAddress << "!" << std::endl;
+      return;
+   }
 
    puts("s1");
    for(unsigned int ttl = 1; ttl <= MaxTTL; ttl++) {
       const boost::asio::ip::unicast::hops option(ttl);
-      ICMPSocket.set_option(option);
+      ICMPSocket.set_option(option, errorCode);
+      if(errorCode !=  boost::system::errc::success) {
+         std::cerr << "ERROR: Unable to set TTL!" << std::endl;
+         return;
+      }
 
       // Create an ICMP header for an echo request.
       ICMPHeader echoRequest;
       echoRequest.type((isIPv6() == true) ? ICMPHeader::IPv6EchoRequest : ICMPHeader::IPv4EchoRequest);
       echoRequest.code(0);
-      echoRequest.identifier(identifier);
+      echoRequest.identifier(Identifier);
       echoRequest.seqNumber(++seqNumber);
       const std::string body("");
       computeInternet16(echoRequest, body.begin(), body.end());
@@ -124,44 +145,70 @@ void Traceroute::run()
 
       // Send the request.
       size_t s = ICMPSocket.send_to(request_buffer.data(), DestinationEndpoint);
-//       printf("s=%d\n",(int)s);
+      if(s < 1) {  // FIXME!
+         printf("s=%d\n",(int)s);
+      }
    }
 
-   ICMPSocket.non_blocking(false);
+//    ICMPSocket.non_blocking(false);
 
-   for(unsigned int ttl = 1; ttl <= MaxTTL; ttl++) {
+puts("t1");
+   TimeoutTimer.expires_at(boost::posix_time::microsec_clock::universal_time() + boost::posix_time::seconds(3));
+   TimeoutTimer.async_wait(boost::bind(&Traceroute::handleTimeout, this));
 
-             // Recieve some data and parse it.
-            std::vector<boost::uint8_t> data(1500,0);
-            const std::size_t nr(
-               ICMPSocket.receive(
-                  boost::asio::buffer(data) ) );
-            printf("nr=%d\n",(int)nr);
-            if( nr < 16 )
-            {
-               throw std::runtime_error("To few bytes returned.");
-            }
-            boost::asio::ip::address address;
-            if(isIPv6()) {
-               boost::asio::ip::address_v6::bytes_type v6address;
-               for(size_t i = 0;i < 16; i++) {
-                  v6address[i] = data[16 + i];
-               }
-               address = boost::asio::ip::address_v6(v6address, 0);
-            }
-            else {
-               boost::asio::ip::address_v4::bytes_type v4address;
-               for(size_t i = 0;i < 4; i++) {
-                  v4address[i] = data[12 + i];
-               }
-               address = boost::asio::ip::address_v4(v4address);
-            }
-            std::cout << address.to_string() << '\n';
-            if( address == DestinationAddress )
-            {
-               break;
-            }
+puts("t2");
+   ReplyBuffer.consume(ReplyBuffer.size());
+   ICMPSocket.async_receive_from(ReplyBuffer.prepare(65536), ReplyEndpoint,
+                            boost::bind(&Traceroute::handleMessage, this, _2));
+
+puts("t3");
+   IO.run();
+}
+
+
+void Traceroute::handleTimeout()
+{
+   std::cout << "Timeout" << std::endl;
+}
+
+
+void Traceroute::handleMessage(std::size_t length)
+{
+   const boost::posix_time::ptime now = boost::posix_time::microsec_clock::universal_time();
+   ReplyBuffer.commit(length);
+   std::istream is(&ReplyBuffer);
+printf("r=%d\n",(int)length);
+
+   IPv4Header ipv4Header;
+   IPv6Header ipv6Header;
+   ICMPHeader icmpHeader;
+   if(isIPv6()) {
+      is >> icmpHeader >> ipv6Header;
+      if(is) {
+
+         std::cout << "A=" << ipv4Header.sourceAddress().to_string() << std::endl;
+      }
    }
+   else {
+      is >> ipv4Header >> icmpHeader;
+      if(is) {
+         if(icmpHeader.identifier() == Identifier) {
+            std::cout << "Good: from " << ReplyEndpoint.address().to_string()
+                     << " ID=" << (int)icmpHeader.identifier() <<" t=" << (int)icmpHeader.type() << " c=" << (int)icmpHeader.code() << " #=" << (int)icmpHeader.seqNumber() << std::endl;
+
+   //          std::cout << "A=" << ipv4Header.sourceAddress().to_string() << std::endl;
+         }
+         else {
+            printf("wrong ID %d from %s\n", icmpHeader.identifier(),ReplyEndpoint.address().to_string().c_str());
+            std::cout << "BAD: from " << ReplyEndpoint.address().to_string()
+                     << " ID=" << (int)icmpHeader.identifier() <<" t=" << (int)icmpHeader.type() << " c=" << (int)icmpHeader.code() << " #=" << (int)icmpHeader.seqNumber() << std::endl;
+         }
+      }
+
+   }
+
+   ICMPSocket.async_receive_from(ReplyBuffer.prepare(65536), ReplyEndpoint,
+                                 boost::bind(&Traceroute::handleMessage, this, _2));
 }
 
 
