@@ -69,11 +69,11 @@ class ICMPHeader
    inline void seqNumber(unsigned short seqNum)  { encode(6, 7, seqNum);   }
 
    inline friend std::istream& operator>>(std::istream& is, ICMPHeader& header) {
-      return is.read(reinterpret_cast<char*>(header.data), 8);
+      return(is.read(reinterpret_cast<char*>(header.data), 8));
    }
 
    inline friend std::ostream& operator<<(std::ostream& os, const ICMPHeader& header) {
-      return os.write(reinterpret_cast<const char*>(header.data), 8);
+      return(os.write(reinterpret_cast<const char*>(header.data), 8));
    }
 
    private:
