@@ -41,15 +41,20 @@ class ICMPHeader
 {
    public:
    enum {
-      IPv4EchoRequest  = 8,
-      IPv4EchoReply    = 0,
-      IPv4TimeExceeded = 11,
-      IPv4Unreachable  = 3,
+      IPv4EchoRequest           = 8,
+      IPv4EchoReply             = 0,
+      IPv4TimeExceeded          = 11,
+      IPv4Unreachable           = 3,
 
-      IPv6EchoRequest  = 129,
-      IPv6EchoReply    = 128,
-      IPv6TimeExceeded = 3,
-      IPv6Unreachable  = 1
+      IPv6EchoRequest           = 128,
+      IPv6EchoReply             = 129,
+      IPv6TimeExceeded          = 3,
+      IPv6Unreachable           = 1,
+
+      IPv6NeighborSolicitation  = 135,
+      IPv6NeighborAdvertisement = 136,
+      IPv6RouterSolicitation    = 133,
+      IPv6RouterAdvertisement   = 134
    };
 
    ICMPHeader() {

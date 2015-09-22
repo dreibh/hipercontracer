@@ -22,6 +22,8 @@
 #include <unistd.h>
 #include <string.h>
 
+#include <netinet/icmp6.h>
+
 #include <set>
 #include <iostream>
 #include <boost/thread.hpp>
@@ -30,7 +32,6 @@
 #include "icmpheader.h"
 #include "ipv4header.h"
 #include "ipv6header.h"
-
 
 #include <boost/interprocess/streams/bufferstream.hpp> // ???????????
 
@@ -116,16 +117,31 @@ void Traceroute::run()
 
    Identifier = ::getpid();
 
-   ICMPSocket.non_blocking(true);
-
+   // ====== Bind ICMP socket to given source address =======================
    ICMPSocket.bind(SourceEndpoint, errorCode);
    if(errorCode !=  boost::system::errc::success) {
       std::cerr << "ERROR: Unable to bind to source address " << SourceAddress << "!" << std::endl;
       return;
    }
 
-   puts("s1");
-   for(unsigned int ttl = 1; ttl <= MaxTTL; ttl++) {
+   // ====== Set filter (not required, but much more efficient) =============
+   if(isIPv6()) {
+      struct icmp6_filter filter;
+      ICMP6_FILTER_SETBLOCKALL(&filter);
+      ICMP6_FILTER_SETPASS(ICMP6_ECHO_REPLY, &filter);
+      ICMP6_FILTER_SETPASS(ICMP6_DST_UNREACH, &filter);
+      ICMP6_FILTER_SETPASS(ICMP6_PACKET_TOO_BIG, &filter);
+      ICMP6_FILTER_SETPASS(ICMP6_TIME_EXCEEDED, &filter);
+      int sd = ICMPSocket.native();
+      if(setsockopt(sd, IPPROTO_ICMPV6, ICMP6_FILTER, &filter, sizeof(struct icmp6_filter)) < 0) {
+         std::cerr << "WARNING: Unable to set ICMP6_FILTER!" << std::endl;
+      }
+   }
+
+
+   // ====== Send Echo Requests =============================================
+   for(unsigned int ttl = MaxTTL; ttl > 0; ttl--) {
+      // ------ Set TTL ----------------------------------------
       const boost::asio::ip::unicast::hops option(ttl);
       ICMPSocket.set_option(option, errorCode);
       if(errorCode !=  boost::system::errc::success) {
@@ -133,7 +149,7 @@ void Traceroute::run()
          return;
       }
 
-      // Create an ICMP header for an echo request.
+      // ------ Create an ICMP header for an echo request ------
       ICMPHeader echoRequest;
       echoRequest.type((isIPv6() == true) ? ICMPHeader::IPv6EchoRequest : ICMPHeader::IPv4EchoRequest);
       echoRequest.code(0);
@@ -142,25 +158,23 @@ void Traceroute::run()
       const std::string body("----TEST!!!!----");
       computeInternet16(echoRequest, body.begin(), body.end());
 
-      // Encode the request packet.
+      // ------ Encode the request packet ----------------------
       boost::asio::streambuf request_buffer;
       std::ostream os(&request_buffer);
       os << echoRequest << body;
 
-      // Send the request.
+      // ------ Send the request -------------------------------
       size_t s = ICMPSocket.send_to(request_buffer.data(), DestinationEndpoint);
       if(s < 1) {  // FIXME!
          printf("s=%d\n",(int)s);
       }
    }
 
-//    ICMPSocket.non_blocking(false);
-
-puts("t1");
+   // ====== Set timeout timer ==============================================
    TimeoutTimer.expires_at(boost::posix_time::microsec_clock::universal_time() + boost::posix_time::seconds(3));
    TimeoutTimer.async_wait(boost::bind(&Traceroute::handleTimeout, this));
 
-puts("t2");
+   // ====== Get handler for response messages ==============================
    ReplyBuffer.consume(ReplyBuffer.size());
    ICMPSocket.async_receive_from(boost::asio::buffer(buf),
 //       ReplyBuffer.prepare(65536),
@@ -181,62 +195,65 @@ void Traceroute::handleTimeout()
 void Traceroute::handleMessage(std::size_t length)
 {
    const boost::posix_time::ptime now = boost::posix_time::microsec_clock::universal_time();
-   ReplyBuffer.commit(length);
+//    ReplyBuffer.commit(length);
 
    boost::interprocess::bufferstream is(buf, length);
-//    in.
-printf("r=%d\n",(int)length);
 
-   IPv4Header ipv4Header;
-   IPv6Header ipv6Header;
+   printf("r=%d\n",(int)length);
+
    ICMPHeader icmpHeader;
    if(isIPv6()) {
-      is >> icmpHeader >> ipv6Header;
+      is >> icmpHeader;
       if(is) {
+         if( (icmpHeader.type() == ICMPHeader::IPv6NeighborSolicitation)  ||
+             (icmpHeader.type() == ICMPHeader::IPv6NeighborAdvertisement) ||
+             (icmpHeader.type() == ICMPHeader::IPv6RouterAdvertisement)   ||
+             (icmpHeader.type() == ICMPHeader::IPv6RouterAdvertisement) ) {
+            // just ignore ...
+         }
+         else if(icmpHeader.type() == ICMPHeader::IPv6EchoReply) {
+            puts("REPLY");
+            if(icmpHeader.identifier() == Identifier) {
+               std::cout << "@@@@@@@ Good REPLY: from " << ReplyEndpoint.address().to_string()
+                           << " ID=" << (int)icmpHeader.identifier() <<" t=" << (int)icmpHeader.type() << " c=" << (int)icmpHeader.code() << " #=" << (int)icmpHeader.seqNumber() << std::endl;
+            }
+         }
+         else if( (icmpHeader.type() == ICMPHeader::IPv6TimeExceeded) ||
+                  (icmpHeader.type() == ICMPHeader::IPv6Unreachable) ) {
+            IPv6Header ipv6Header;
+            is >> ipv6Header;
+            if(is) {
+               std::cout << "@@@@@@@ Good ICMP of router: from " << ReplyEndpoint.address().to_string()
+                         << " ID=" << (int)icmpHeader.identifier() <<" t=" << (int)icmpHeader.type() << " c=" << (int)icmpHeader.code() << " #=" << (int)icmpHeader.seqNumber() << std::endl;
+            }
+         }
+         else          printf("  => T=%d\n",icmpHeader.type());
 
-         std::cout << "A=" << ipv4Header.sourceAddress().to_string() << std::endl;
-      }
+      } else puts("not ICMP!");
    }
    else {
+      IPv4Header ipv4Header;
       is >> ipv4Header;
       if(is) {
          is >> icmpHeader;
          if(is) {
-            if(ReplyEndpoint.address() != ipv4Header.sourceAddress()) {
-               puts("ADDR MITMATCH!");
-            }
-
             if(icmpHeader.type() == ICMPHeader::IPv4EchoReply) {
-
                if(icmpHeader.identifier() == Identifier) {
                   std::cout << "@@@@@@@ Good REPLY: from " << ReplyEndpoint.address().to_string()
                             << " ID=" << (int)icmpHeader.identifier() <<" t=" << (int)icmpHeader.type() << " c=" << (int)icmpHeader.code() << " #=" << (int)icmpHeader.seqNumber() << std::endl;
-
-         //          std::cout << "A=" << ipv4Header.sourceAddress().to_string() << std::endl;
-               }
-               else {
-                  printf("wrong ID %d from %s\n", icmpHeader.identifier(),ReplyEndpoint.address().to_string().c_str());
-                  std::cout << "BAD: from " << ReplyEndpoint.address().to_string()
-                           << " ID=" << (int)icmpHeader.identifier() <<" t=" << (int)icmpHeader.type() << " c=" << (int)icmpHeader.code() << " #=" << (int)icmpHeader.seqNumber() << std::endl;
-                  std::cout << "src=" << ipv4Header.sourceAddress().to_string() << std::endl;
-                  std::cout << "dst=" << ipv4Header.destinationAddress().to_string() << std::endl;
                }
             }
             else if(icmpHeader.type() == ICMPHeader::IPv4TimeExceeded) {
                IPv4Header innerIPv4Header;
                ICMPHeader innerICMPHeader;
-               puts("ttl");
                is >> innerIPv4Header >> innerICMPHeader;
                if(is) {
-                  puts("ok-1");
-                  printf(" T=%d\n",innerICMPHeader.type());
-                  if(innerICMPHeader.type() == ICMPHeader::IPv4EchoRequest) {
-                     puts("ok-2");
+                  if( (icmpHeader.type() == ICMPHeader::IPv4TimeExceeded) ||
+                      (icmpHeader.type() == ICMPHeader::IPv4Unreachable) ) {
                      if(innerICMPHeader.identifier() == Identifier) {
-                        puts("ok-3");
-                        std::cout << "@@@@@@@ Good TTL EXCEEDED: from " << ReplyEndpoint.address().to_string()
-                                 << " ID=" << (int)icmpHeader.identifier() <<" t=" << (int)icmpHeader.type() << " c=" << (int)icmpHeader.code() << " #=" << (int)icmpHeader.seqNumber() << std::endl;
-                    }
+                        std::cout << "@@@@@@@ Good ICMP of router: from " << ReplyEndpoint.address().to_string()
+                                  << " ID=" << (int)icmpHeader.identifier() <<" t=" << (int)icmpHeader.type() << " c=" << (int)icmpHeader.code() << " #=" << (int)icmpHeader.seqNumber() << std::endl;
+                     }
                   }
                }
             }

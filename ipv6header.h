@@ -64,23 +64,29 @@ class IPv6Header
    inline unsigned char  nextHeader()    const { return data[6]; }
    inline unsigned int   timeToLive()    const { return data[7]; }
 
-   inline boost::asio::ip::address_v4 sourceAddress() const {
-      const boost::asio::ip::address_v4::bytes_type bytes = { { data[12], data[13], data[14], data[15] } };
-      return(boost::asio::ip::address_v4(bytes));
-    }
+   inline boost::asio::ip::address_v6 sourceAddress() const {
+      boost::asio::ip::address_v6::bytes_type v6address;
+      for(size_t i = 0;i < 16; i++) {
+         v6address[i] = data[8 + i];
+      }
+      const boost::asio::ip::address_v6 address = boost::asio::ip::address_v6(v6address, 0);
+      return(address);
+   }
 
-   inline boost::asio::ip::address_v4 destinationAddress() const {
-      const boost::asio::ip::address_v4::bytes_type bytes = { { data[16], data[17], data[18], data[19] } };
-      return(boost::asio::ip::address_v4(bytes));
+   inline boost::asio::ip::address_v6 destinationAddress() const {
+      boost::asio::ip::address_v6::bytes_type v6address;
+      for(size_t i = 0;i < 16; i++) {
+         v6address[i] = data[24 + i];
+      }
+      const boost::asio::ip::address_v6 address = boost::asio::ip::address_v6(v6address, 0);
+      return(address);
    }
 
    friend std::istream& operator>>(std::istream& is, IPv6Header& header) {
       is.read(reinterpret_cast<char*>(header.data), 40);
       if (header.version() != 6) {
-         printf("VERSION=%d\n",header.version());
          is.setstate(std::ios::failbit);
       }
-      else   puts("is v6version!");
       return(is);
    }
 
