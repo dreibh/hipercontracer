@@ -164,6 +164,8 @@ class Traceroute : public boost::noncopyable
    virtual void handleMessage(std::size_t length);
 
    private:
+   void sendRequest(const boost::asio::ip::icmp::endpoint& destinationEndpoint,
+                    const unsigned int                     ttl);
    void recordResult(const boost::posix_time::ptime& receiveTime,
                      const ICMPHeader&               icmpHeader,
                      const unsigned short            seqNumber);
@@ -264,45 +266,52 @@ void Traceroute::expectNextReply()
 }
 
 
+void Traceroute::sendRequest(const boost::asio::ip::icmp::endpoint& destinationEndpoint,
+                             const unsigned int                     ttl)
+{
+   // ------ Set TTL ----------------------------------------
+   const boost::asio::ip::unicast::hops option(ttl);
+   ICMPSocket.set_option(option);
+
+   // ------ Create an ICMP header for an echo request ------
+   SeqNumber++;
+   ICMPHeader echoRequest;
+   echoRequest.type((isIPv6() == true) ? ICMPHeader::IPv6EchoRequest : ICMPHeader::IPv4EchoRequest);
+   echoRequest.code(0);
+   echoRequest.identifier(Identifier);
+   echoRequest.seqNumber(SeqNumber);
+   const boost::posix_time::ptime sendTime = boost::posix_time::microsec_clock::universal_time();
+   TraceServiceHeader tsHeader;
+   tsHeader.magicNumber(MagicNumber);
+   tsHeader.sendTTL(ttl);
+   tsHeader.sendTimeStamp(ptimeToMircoTime(sendTime));
+   const std::vector<unsigned char> tsHeaderContents = tsHeader.contents();
+   computeInternet16(echoRequest, tsHeaderContents.begin(), tsHeaderContents.end());
+
+   // ------ Encode the request packet ----------------------
+   boost::asio::streambuf request_buffer;
+   std::ostream os(&request_buffer);
+   os << echoRequest << tsHeader;
+
+   // ------ Send the request -------------------------------
+
+   size_t s = ICMPSocket.send_to(request_buffer.data(), destinationEndpoint);
+   if(s < 1) {  // FIXME!
+      printf("s=%d\n",(int)s);
+   }
+
+   // ------ Record the request -----------------------------
+   ResultEntry resultEntry(SeqNumber, ttl, destinationEndpoint.address(), HopStatus::Unknown, sendTime);
+   auto result = ResultsMap.insert(std::pair<unsigned short, ResultEntry>(SeqNumber,resultEntry));
+   assert(result.second == true);
+}
+
+
 void Traceroute::sendRequests()
 {
    // ====== Send Echo Requests =============================================
    for(unsigned int ttl = MaxTTL; ttl > 0; ttl--) {
-      // ------ Set TTL ----------------------------------------
-      const boost::asio::ip::unicast::hops option(ttl);
-      ICMPSocket.set_option(option);
-
-      // ------ Create an ICMP header for an echo request ------
-      SeqNumber++;
-      ICMPHeader echoRequest;
-      echoRequest.type((isIPv6() == true) ? ICMPHeader::IPv6EchoRequest : ICMPHeader::IPv4EchoRequest);
-      echoRequest.code(0);
-      echoRequest.identifier(Identifier);
-      echoRequest.seqNumber(SeqNumber);
-      const boost::posix_time::ptime sendTime = boost::posix_time::microsec_clock::universal_time();
-      TraceServiceHeader tsHeader;
-      tsHeader.magicNumber(MagicNumber);
-      tsHeader.sendTTL(ttl);
-      tsHeader.sendTimeStamp(ptimeToMircoTime(sendTime));
-      const std::vector<unsigned char> tsHeaderContents = tsHeader.contents();
-      computeInternet16(echoRequest, tsHeaderContents.begin(), tsHeaderContents.end());
-
-      // ------ Encode the request packet ----------------------
-      boost::asio::streambuf request_buffer;
-      std::ostream os(&request_buffer);
-      os << echoRequest << tsHeader;
-
-      // ------ Send the request -------------------------------
-
-      size_t s = ICMPSocket.send_to(request_buffer.data(), DestinationEndpoint);
-      if(s < 1) {  // FIXME!
-         printf("s=%d\n",(int)s);
-      }
-
-      // ------ Record the request -----------------------------
-      ResultEntry resultEntry(SeqNumber, ttl, DestinationEndpoint.address(), HopStatus::Unknown, sendTime);
-      auto result = ResultsMap.insert(std::pair<unsigned short, ResultEntry>(SeqNumber,resultEntry));
-      assert(result.second == true);
+      sendRequest(DestinationEndpoint, ttl);
    }
 
    scheduleTimeout();
@@ -423,8 +432,6 @@ void Traceroute::handleMessage(std::size_t length)
 
    expectNextReply();
 }
-
-
 
 
 void Traceroute::recordResult(const boost::posix_time::ptime& receiveTime,
