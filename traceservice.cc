@@ -83,13 +83,12 @@ enum HopStatus {
 class ResultEntry {
    public:
    ResultEntry(const unsigned short           seqNumber,
-               const unsigned int             sendTTL,
+               const unsigned int             hop,
                boost::asio::ip::address       address,
                const HopStatus                status,
                const boost::posix_time::ptime sendTime);
 
    inline unsigned int seqNumber()               const { return(SeqNumber);   }
-   inline unsigned int sendTTL()                 const { return(SendTTL);     }
    inline unsigned int hop()                     const { return(Hop);         }
    inline HopStatus    status()                  const { return(Status);      }
    inline boost::posix_time::ptime sendTime()    const { return(SendTime);    }
@@ -99,7 +98,6 @@ class ResultEntry {
    }
 
    inline void receiveTime(const boost::posix_time::ptime receiveTime) { ReceiveTime = receiveTime; }
-   inline void hop(const unsigned int hopNumber)                       { Hop = hopNumber;           }
    inline void status(const HopStatus status)                          { Status = status;           }
    inline void address(const boost::asio::ip::address address)         { Address = address;         }
 
@@ -110,37 +108,34 @@ class ResultEntry {
 
    private:
    const unsigned short             SeqNumber;
-   const unsigned int               SendTTL;
+   const unsigned int               Hop;
    boost::asio::ip::address         Address;
    HopStatus                        Status;
    const boost::posix_time::ptime   SendTime;
    boost::posix_time::ptime         ReceiveTime;
-   unsigned int                     Hop;
 };
 
 
 ResultEntry::ResultEntry(const unsigned short           seqNumber,
-                         const unsigned int             sendTTL,
+                         const unsigned int             hop,
                          boost::asio::ip::address       address,
                          const HopStatus                status,
                          const boost::posix_time::ptime sendTime)
    : SeqNumber(seqNumber),
-     SendTTL(sendTTL),
+     Hop(hop),
      Address(address),
      Status(status),
      SendTime(sendTime)
 {
-   Hop = 0xffffffff;
 }
 
 std::ostream& operator<<(std::ostream& os, const ResultEntry& resultEntry)
 {
-   os << resultEntry.SeqNumber
+   os << "#" << resultEntry.SeqNumber
       << "\t" << resultEntry.Hop
-      << "\t" << resultEntry.SendTTL
-      << "\t" << resultEntry.Address
+      << "\t" << resultEntry.rtt().total_microseconds() / 1000.0 << "ms"
       << "\t" << resultEntry.Status
-      << "\t" << resultEntry.rtt().total_microseconds() / 1000.0 << "ms";
+      << "\t" << resultEntry.Address;
    return(os);
 }
 
@@ -165,7 +160,8 @@ class Traceroute : public boost::noncopyable
 
    private:
    void recordResult(const boost::posix_time::ptime& receiveTime,
-                     const ICMPHeader&               icmpHeader);
+                     const ICMPHeader&               icmpHeader,
+                     const unsigned short            seqNumber);
 
    const unsigned int                    PacketsPerHop;
    const unsigned int                    MaxTTL;
@@ -204,7 +200,7 @@ Traceroute::Traceroute(const boost::asio::ip::address& source,
      TimeoutTimer(IO)
 {
    Identifier  = 0;
-   SeqNumber   = 0;
+   SeqNumber   = (unsigned short)(std::rand() & 0xffff);
    MagicNumber = ((std::rand() & 0xffff) << 16) | (std::rand() & 0xffff);
    LastHop     = 0xffffffff;
 }
@@ -281,7 +277,7 @@ void Traceroute::run()
       }
 
       // ------ Record the request -----------------------------
-      ResultEntry resultEntry(ttl, SeqNumber, DestinationAddress, HopStatus::Unknown, sendTime);
+      ResultEntry resultEntry(SeqNumber, ttl, DestinationAddress, HopStatus::Unknown, sendTime);
       ResultsMap.insert(std::pair<unsigned short, ResultEntry>(SeqNumber,resultEntry));
    }
 
@@ -314,18 +310,24 @@ void Traceroute::handleTimeout()
    });
 
    for(auto iterator = resultsVector.begin(); iterator != resultsVector.end(); iterator++) {
-      std::cout << *(*iterator) << std::endl;
+      ResultEntry* resultEntry = *iterator;
+      std::cout << *resultEntry << std::endl;
+      if(resultEntry->status() == HopStatus::Success) {
+         std::cout << "BREAK" << std::endl;
+         break;
+      }
    }
 }
 
 
 void Traceroute::recordResult(const boost::posix_time::ptime& receiveTime,
-                              const ICMPHeader&               icmpHeader)
+                              const ICMPHeader&               icmpHeader,
+                              const unsigned short            seqNumber)
 {
    // ====== Find corresponding request =====================================
-   std::map<unsigned short, ResultEntry>::iterator found = ResultsMap.find(icmpHeader.seqNumber());
+   std::map<unsigned short, ResultEntry>::iterator found = ResultsMap.find(seqNumber);
    if(found == ResultsMap.end()) {
-      printf("F=%d\n",icmpHeader.seqNumber());
+      printf("F=%d\n",seqNumber);
       puts("NOT FOUND!");
       return;
    }
@@ -333,13 +335,12 @@ void Traceroute::recordResult(const boost::posix_time::ptime& receiveTime,
 
    // ====== Get status =====================================================
    if(resultEntry.status() == HopStatus::Unknown) {
-      resultEntry.hop(resultEntry.sendTTL());
       resultEntry.receiveTime(receiveTime);
       resultEntry.address(ReplyEndpoint.address());
 
       HopStatus status = HopStatus::Unknown;
       if( (icmpHeader.type() == ICMPHeader::IPv6TimeExceeded) ||
-         (icmpHeader.type() == ICMPHeader::IPv4TimeExceeded) ) {
+          (icmpHeader.type() == ICMPHeader::IPv4TimeExceeded) ) {
          status = HopStatus::TimeExceeded;
       }
       else if( (icmpHeader.type() == ICMPHeader::IPv6Unreachable) ||
@@ -429,7 +430,7 @@ void Traceroute::handleMessage(std::size_t length)
                   if(tsHeader.magicNumber() == MagicNumber) {
                      std::cout << "@@@@@@@ Good REPLY: from " << ReplyEndpoint.address().to_string()
                                  << " ID=" << (int)icmpHeader.identifier() <<" t=" << (int)icmpHeader.type() << " c=" << (int)icmpHeader.code() << " #=" << (int)icmpHeader.seqNumber() << std::endl;
-                     recordResult(receiveTime, icmpHeader);
+                     recordResult(receiveTime, icmpHeader, icmpHeader.seqNumber());
                   }
                }
             }
@@ -452,7 +453,7 @@ void Traceroute::handleMessage(std::size_t length)
                      if(tsHeader.magicNumber() == MagicNumber) {
                         std::cout << "@@@@@@@ Good ICMP of router: from " << ReplyEndpoint.address().to_string()
                                  << " ID=" << (int)icmpHeader.identifier() <<" t=" << (int)icmpHeader.type() << " c=" << (int)icmpHeader.code() << " #=" << (int)icmpHeader.seqNumber() << std::endl;
-                        recordResult(receiveTime, innerICMPHeader);
+                        recordResult(receiveTime, icmpHeader, innerICMPHeader.seqNumber());
                      }
                   }
                }
@@ -476,7 +477,7 @@ void Traceroute::handleMessage(std::size_t length)
                      if(tsHeader.magicNumber() == MagicNumber) {
                         std::cout << "@@@@@@@ Good REPLY: from " << ReplyEndpoint.address().to_string()
                                  << " ID=" << (int)icmpHeader.identifier() <<" t=" << (int)icmpHeader.type() << " c=" << (int)icmpHeader.code() << " #=" << (int)icmpHeader.seqNumber() << std::endl;
-                        recordResult(receiveTime, icmpHeader);
+                        recordResult(receiveTime, icmpHeader, icmpHeader.seqNumber());
                      }
                   }
                }
@@ -496,7 +497,7 @@ void Traceroute::handleMessage(std::size_t length)
                         }
                            std::cout << "@@@@@@@ Good ICMP of router: from " << ReplyEndpoint.address().to_string()
                                     << " ID=" << (int)icmpHeader.identifier() <<" t=" << (int)icmpHeader.type() << " c=" << (int)icmpHeader.code() << " #=" << (int)icmpHeader.seqNumber() << std::endl;
-                           recordResult(receiveTime, icmpHeader);
+                           recordResult(receiveTime, icmpHeader, innerICMPHeader.seqNumber());
 //                         }
                      }
                   }
