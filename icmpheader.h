@@ -19,6 +19,9 @@
 #ifndef ICMPHEADER_H
 #define ICMPHEADER_H
 
+#include <netinet/icmp6.h>
+#include <netinet/ip_icmp.h>
+
 #include <algorithm>
 
 
@@ -41,20 +44,20 @@ class ICMPHeader
 {
    public:
    enum {
-      IPv4EchoRequest           = 8,
-      IPv4EchoReply             = 0,
-      IPv4TimeExceeded          = 11,
-      IPv4Unreachable           = 3,
+      IPv4EchoRequest           = ICMP_ECHO,
+      IPv4EchoReply             = ICMP_ECHOREPLY,
+      IPv4TimeExceeded          = ICMP_TIME_EXCEEDED,
+      IPv4Unreachable           = ICMP_DEST_UNREACH,
 
-      IPv6EchoRequest           = 128,
-      IPv6EchoReply             = 129,
-      IPv6TimeExceeded          = 3,
-      IPv6Unreachable           = 1,
+      IPv6EchoRequest           = ICMP6_ECHO_REQUEST,
+      IPv6EchoReply             = ICMP6_ECHO_REPLY,
+      IPv6TimeExceeded          = ICMP6_TIME_EXCEEDED,
+      IPv6Unreachable           = ICMP6_DST_UNREACH,
 
-      IPv6NeighborSolicitation  = 135,
-      IPv6NeighborAdvertisement = 136,
-      IPv6RouterSolicitation    = 133,
-      IPv6RouterAdvertisement   = 134
+      IPv6NeighborSolicitation  = ND_NEIGHBOR_SOLICIT,
+      IPv6NeighborAdvertisement = ND_NEIGHBOR_ADVERT,
+      IPv6RouterSolicitation    = ND_ROUTER_SOLICIT,
+      IPv6RouterAdvertisement   = ND_ROUTER_ADVERT
    };
 
    ICMPHeader() {

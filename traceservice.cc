@@ -146,32 +146,35 @@ class Traceroute : public boost::noncopyable
    public:
    Traceroute(const boost::asio::ip::address& source,
               const boost::asio::ip::address& destination,
-              const unsigned int              packetsPerHop = 3,
-              const unsigned int              maxTTL        = 12);
-   ~Traceroute();
+              const unsigned int              duration = 3000,
+              const unsigned int              maxTTL   = 12);
+   virtual ~Traceroute();
    void run();
 
    inline bool isIPv6() const {
-      return(SourceAddress.is_v6());
+      return(SourceEndpoint.address().is_v6());
    }
 
-   void handleTimeout();
-   void handleMessage(std::size_t length);
+   protected:
+   virtual bool prepareSocket();
+   virtual void prepareRun();
+   virtual void scheduleTimeout();
+   virtual void expectNextReply();
+   virtual void sendRequests();
+   virtual void handleTimeout(const boost::system::error_code& errorCode);
+   virtual void handleMessage(std::size_t length);
 
    private:
    void recordResult(const boost::posix_time::ptime& receiveTime,
                      const ICMPHeader&               icmpHeader,
                      const unsigned short            seqNumber);
 
-   const unsigned int                    PacketsPerHop;
+   const unsigned int                    Duration;
    const unsigned int                    MaxTTL;
    boost::asio::io_service               IO;
-   boost::asio::ip::address              SourceAddress;
    boost::asio::ip::icmp::endpoint       SourceEndpoint;
-   boost::asio::ip::address              DestinationAddress;
    boost::asio::ip::icmp::endpoint       DestinationEndpoint;
    boost::asio::ip::icmp::socket         ICMPSocket;
-   boost::asio::streambuf                ReplyBuffer;
    boost::asio::deadline_timer           TimeoutTimer;
    boost::asio::ip::icmp::endpoint       ReplyEndpoint;          // Store ICMP reply's source
 
@@ -181,21 +184,19 @@ class Traceroute : public boost::noncopyable
    unsigned int                          LastHop;
    std::map<unsigned short, ResultEntry> ResultsMap;
 
-   char buf[65536];  // FIXME! ?????
+   char                                  MessageBuffer[65536 + 40];
 };
 
 
-Traceroute::Traceroute(const boost::asio::ip::address& source,
-                       const boost::asio::ip::address& destination,
-                       const unsigned int              packetsPerHop,
+Traceroute::Traceroute(const boost::asio::ip::address& sourceAddress,
+                       const boost::asio::ip::address& destinationAddress,
+                       const unsigned int              duration,
                        const unsigned int              maxTTL)
-   : PacketsPerHop(packetsPerHop),
+   : Duration(duration),
      MaxTTL(maxTTL),
      IO(),
-     SourceAddress(source),
-     SourceEndpoint(SourceAddress, 0),
-     DestinationAddress(destination),
-     DestinationEndpoint(DestinationAddress, 0),
+     SourceEndpoint(sourceAddress, 0),
+     DestinationEndpoint(destinationAddress, 0),
      ICMPSocket(IO, (isIPv6() == true) ? boost::asio::ip::icmp::v6() : boost::asio::ip::icmp::v4()),
      TimeoutTimer(IO)
 {
@@ -211,17 +212,15 @@ Traceroute::~Traceroute()
 }
 
 
-void Traceroute::run()
+bool Traceroute::prepareSocket()
 {
-   Identifier = ::getpid();
-
    // ====== Bind ICMP socket to given source address =======================
    boost::system::error_code errorCode;
    ICMPSocket.bind(SourceEndpoint, errorCode);
    if(errorCode !=  boost::system::errc::success) {
       std::cerr << "ERROR: Unable to bind to source address "
-                << SourceAddress << "!" << std::endl;
-      return;
+                << SourceEndpoint.address() << "!" << std::endl;
+      return(false);
    }
 
    // ====== Set filter (not required, but much more efficient) =============
@@ -237,17 +236,38 @@ void Traceroute::run()
          std::cerr << "WARNING: Unable to set ICMP6_FILTER!" << std::endl;
       }
    }
+   return(true);
+}
 
 
+void Traceroute::prepareRun()
+{
+   ResultsMap.clear();
+}
+
+
+void Traceroute::scheduleTimeout()
+{
+   TimeoutTimer.expires_at(boost::posix_time::microsec_clock::universal_time() + boost::posix_time::milliseconds(Duration));
+   TimeoutTimer.async_wait(boost::bind(&Traceroute::handleTimeout, this, _1));
+}
+
+
+void Traceroute::expectNextReply()
+{
+   ICMPSocket.async_receive_from(boost::asio::buffer(MessageBuffer),
+                                 ReplyEndpoint,
+                                 boost::bind(&Traceroute::handleMessage, this, _2));
+}
+
+
+void Traceroute::sendRequests()
+{
    // ====== Send Echo Requests =============================================
    for(unsigned int ttl = MaxTTL; ttl > 0; ttl--) {
       // ------ Set TTL ----------------------------------------
       const boost::asio::ip::unicast::hops option(ttl);
-      ICMPSocket.set_option(option, errorCode);
-      if(errorCode !=  boost::system::errc::success) {
-         std::cerr << "ERROR: Unable to set TTL!" << std::endl;
-         return;
-      }
+      ICMPSocket.set_option(option);
 
       // ------ Create an ICMP header for an echo request ------
       SeqNumber++;
@@ -277,27 +297,31 @@ void Traceroute::run()
       }
 
       // ------ Record the request -----------------------------
-      ResultEntry resultEntry(SeqNumber, ttl, DestinationAddress, HopStatus::Unknown, sendTime);
+      ResultEntry resultEntry(SeqNumber, ttl, DestinationEndpoint.address(), HopStatus::Unknown, sendTime);
       ResultsMap.insert(std::pair<unsigned short, ResultEntry>(SeqNumber,resultEntry));
    }
 
-   // ====== Set timeout timer ==============================================
-   TimeoutTimer.expires_at(boost::posix_time::microsec_clock::universal_time() + boost::posix_time::seconds(3));
-   TimeoutTimer.async_wait(boost::bind(&Traceroute::handleTimeout, this));
+   scheduleTimeout();
+   expectNextReply();
+}
 
-   // ====== Get handler for response messages ==============================
-   ReplyBuffer.consume(ReplyBuffer.size());
-   ICMPSocket.async_receive_from(boost::asio::buffer(buf),
-//       ReplyBuffer.prepare(65536),
-                                 ReplyEndpoint,
-                            boost::bind(&Traceroute::handleMessage, this, _2));
 
-puts("t3");
+void Traceroute::run()
+{
+   // ====== Prepare run ====================================================
+   Identifier = ::getpid();
+   if(!prepareSocket()) {
+      return;
+   }
+
+   prepareRun();
+   sendRequests();
+
    IO.run();
 }
 
 
-void Traceroute::handleTimeout()
+void Traceroute::handleTimeout(const boost::system::error_code& errorCode)
 {
    std::cout << "Timeout" << std::endl;
 
@@ -317,7 +341,98 @@ void Traceroute::handleTimeout()
          break;
       }
    }
+
+   prepareRun();
+   sendRequests();
 }
+
+
+void Traceroute::handleMessage(std::size_t length)
+{
+   const boost::posix_time::ptime receiveTime = boost::posix_time::microsec_clock::universal_time();
+   boost::interprocess::bufferstream is(MessageBuffer, length);
+
+   printf("r=%d\n",(int)length);
+
+   ICMPHeader icmpHeader;
+   if(isIPv6()) {
+      is >> icmpHeader;
+      if(is) {
+         if(icmpHeader.type() == ICMPHeader::IPv6EchoReply) {
+            if(icmpHeader.identifier() == Identifier) {
+               TraceServiceHeader tsHeader;
+               is >> tsHeader;
+               if(is) {
+                  if(tsHeader.magicNumber() == MagicNumber) {
+                     recordResult(receiveTime, icmpHeader, icmpHeader.seqNumber());
+                  }
+               }
+            }
+         }
+         else if( (icmpHeader.type() == ICMPHeader::IPv6TimeExceeded) ||
+                  (icmpHeader.type() == ICMPHeader::IPv6Unreachable) ) {
+            IPv6Header innerIPv6Header;
+            ICMPHeader innerICMPHeader;
+            TraceServiceHeader tsHeader;
+            is >> innerIPv6Header >> innerICMPHeader >> tsHeader;
+            if(is) {
+               if(tsHeader.magicNumber() == MagicNumber) {
+                  recordResult(receiveTime, icmpHeader, innerICMPHeader.seqNumber());
+               }
+            }
+         }
+      }
+   }
+   else {
+      IPv4Header ipv4Header;
+      is >> ipv4Header;
+      if(is) {
+         is >> icmpHeader;
+         if(is) {
+            if(icmpHeader.type() == ICMPHeader::IPv4EchoReply) {
+               if(icmpHeader.identifier() == Identifier) {
+                  TraceServiceHeader tsHeader;
+                  is >> tsHeader;
+                  if(is) {
+                     if(tsHeader.magicNumber() == MagicNumber) {
+                        std::cout << "@@@@@@@ Good REPLY: from " << ReplyEndpoint.address().to_string()
+                                 << " ID=" << (int)icmpHeader.identifier() <<" t=" << (int)icmpHeader.type() << " c=" << (int)icmpHeader.code() << " #=" << (int)icmpHeader.seqNumber() << std::endl;
+                        recordResult(receiveTime, icmpHeader, icmpHeader.seqNumber());
+                     }
+                  }
+               }
+            }
+            else if(icmpHeader.type() == ICMPHeader::IPv4TimeExceeded) {
+               IPv4Header innerIPv4Header;
+               ICMPHeader innerICMPHeader;
+               is >> innerIPv4Header >> innerICMPHeader;
+               if(is) {
+                  if( (icmpHeader.type() == ICMPHeader::IPv4TimeExceeded) ||
+                      (icmpHeader.type() == ICMPHeader::IPv4Unreachable) ) {
+                     if(innerICMPHeader.identifier() == Identifier) {
+                        TraceServiceHeader tsHeader;
+                        is >> tsHeader;
+                        if(!is) {
+                           puts("====== BAD!");
+                        }
+                           std::cout << "@@@@@@@ Good ICMP of router: from " << ReplyEndpoint.address().to_string()
+                                    << " ID=" << (int)icmpHeader.identifier() <<" t=" << (int)icmpHeader.type() << " c=" << (int)icmpHeader.code() << " #=" << (int)icmpHeader.seqNumber() << std::endl;
+                           recordResult(receiveTime, icmpHeader, innerICMPHeader.seqNumber());
+//                         }
+                     }
+                  }
+               }
+            }
+
+         } else puts("--- ICMP is bad!");
+      } else puts("--- IP is bad!");
+
+   }
+
+   expectNextReply();
+}
+
+
 
 
 void Traceroute::recordResult(const boost::posix_time::ptime& receiveTime,
@@ -399,118 +514,6 @@ void Traceroute::recordResult(const boost::posix_time::ptime& receiveTime,
    }
 
    // ====== Get hop ========================================================
-}
-
-
-void Traceroute::handleMessage(std::size_t length)
-{
-   const boost::posix_time::ptime receiveTime = boost::posix_time::microsec_clock::universal_time();
-//    ReplyBuffer.commit(length);
-
-   boost::interprocess::bufferstream is(buf, length);
-
-   printf("r=%d\n",(int)length);
-
-   ICMPHeader icmpHeader;
-   if(isIPv6()) {
-      is >> icmpHeader;
-      if(is) {
-         if( (icmpHeader.type() == ICMPHeader::IPv6NeighborSolicitation)  ||
-             (icmpHeader.type() == ICMPHeader::IPv6NeighborAdvertisement) ||
-             (icmpHeader.type() == ICMPHeader::IPv6RouterAdvertisement)   ||
-             (icmpHeader.type() == ICMPHeader::IPv6RouterAdvertisement) ) {
-            // just ignore ...
-         }
-         else if(icmpHeader.type() == ICMPHeader::IPv6EchoReply) {
-            puts("REPLY");
-            if(icmpHeader.identifier() == Identifier) {
-               TraceServiceHeader tsHeader;
-               is >> tsHeader;
-               if(is) {
-                  if(tsHeader.magicNumber() == MagicNumber) {
-                     std::cout << "@@@@@@@ Good REPLY: from " << ReplyEndpoint.address().to_string()
-                                 << " ID=" << (int)icmpHeader.identifier() <<" t=" << (int)icmpHeader.type() << " c=" << (int)icmpHeader.code() << " #=" << (int)icmpHeader.seqNumber() << std::endl;
-                     recordResult(receiveTime, icmpHeader, icmpHeader.seqNumber());
-                  }
-               }
-            }
-         }
-         else if( (icmpHeader.type() == ICMPHeader::IPv6TimeExceeded) ||
-                  (icmpHeader.type() == ICMPHeader::IPv6Unreachable) ) {
-            puts("x1");
-            IPv6Header innerIPv6Header;
-            is >> innerIPv6Header;
-            if(is) {
-               puts("x2");
-               ICMPHeader innerICMPHeader;
-               is >> innerICMPHeader;
-               if(is) {
-                  puts("x3");
-                  TraceServiceHeader tsHeader;
-                  is >> tsHeader;
-                  if(is) {
-                     puts("x4");
-                     if(tsHeader.magicNumber() == MagicNumber) {
-                        std::cout << "@@@@@@@ Good ICMP of router: from " << ReplyEndpoint.address().to_string()
-                                 << " ID=" << (int)icmpHeader.identifier() <<" t=" << (int)icmpHeader.type() << " c=" << (int)icmpHeader.code() << " #=" << (int)icmpHeader.seqNumber() << std::endl;
-                        recordResult(receiveTime, icmpHeader, innerICMPHeader.seqNumber());
-                     }
-                  }
-               }
-            }
-         }
-         else          printf("  => T=%d\n",icmpHeader.type());
-
-      } else puts("not ICMP!");
-   }
-   else {
-      IPv4Header ipv4Header;
-      is >> ipv4Header;
-      if(is) {
-         is >> icmpHeader;
-         if(is) {
-            if(icmpHeader.type() == ICMPHeader::IPv4EchoReply) {
-               if(icmpHeader.identifier() == Identifier) {
-                  TraceServiceHeader tsHeader;
-                  is >> tsHeader;
-                  if(is) {
-                     if(tsHeader.magicNumber() == MagicNumber) {
-                        std::cout << "@@@@@@@ Good REPLY: from " << ReplyEndpoint.address().to_string()
-                                 << " ID=" << (int)icmpHeader.identifier() <<" t=" << (int)icmpHeader.type() << " c=" << (int)icmpHeader.code() << " #=" << (int)icmpHeader.seqNumber() << std::endl;
-                        recordResult(receiveTime, icmpHeader, icmpHeader.seqNumber());
-                     }
-                  }
-               }
-            }
-            else if(icmpHeader.type() == ICMPHeader::IPv4TimeExceeded) {
-               IPv4Header innerIPv4Header;
-               ICMPHeader innerICMPHeader;
-               is >> innerIPv4Header >> innerICMPHeader;
-               if(is) {
-                  if( (icmpHeader.type() == ICMPHeader::IPv4TimeExceeded) ||
-                      (icmpHeader.type() == ICMPHeader::IPv4Unreachable) ) {
-                     if(innerICMPHeader.identifier() == Identifier) {
-                        TraceServiceHeader tsHeader;
-                        is >> tsHeader;
-                        if(!is) {
-                           puts("====== BAD!");
-                        }
-                           std::cout << "@@@@@@@ Good ICMP of router: from " << ReplyEndpoint.address().to_string()
-                                    << " ID=" << (int)icmpHeader.identifier() <<" t=" << (int)icmpHeader.type() << " c=" << (int)icmpHeader.code() << " #=" << (int)icmpHeader.seqNumber() << std::endl;
-                           recordResult(receiveTime, icmpHeader, innerICMPHeader.seqNumber());
-//                         }
-                     }
-                  }
-               }
-            }
-
-         } else puts("--- ICMP is bad!");
-      } else puts("--- IP is bad!");
-
-   }
-
-   ICMPSocket.async_receive_from(boost::asio::buffer(buf), ReplyEndpoint,
-                                 boost::bind(&Traceroute::handleMessage, this, _2));
 }
 
 
