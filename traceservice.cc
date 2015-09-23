@@ -25,16 +25,20 @@
 #include <netinet/icmp6.h>
 #include <netinet/ip_icmp.h>
 
+#include <ctime>
+#include <cstdlib>
+#include <iostream>
 #include <map>
 #include <vector>
-#include <iostream>
 #include <boost/thread.hpp>
 #include <boost/asio.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
+// #include <boost/date_time/local_time/local_time.hpp>
 
 #include "icmpheader.h"
 #include "ipv4header.h"
 #include "ipv6header.h"
+#include "traceserviceheader.h"
 
 #include <boost/interprocess/streams/bufferstream.hpp> // ???????????
 
@@ -52,6 +56,13 @@ void addAddress(std::set<boost::asio::ip::address>& array,
       ::exit(1);
    }
    array.insert(address);
+}
+
+unsigned long long ptimeToMircoTime(const boost::posix_time::ptime t)
+{
+   static const boost::posix_time::ptime myEpoch(boost::gregorian::date(1976,9,29));
+   boost::posix_time::time_duration difference = t - myEpoch;
+   return(difference.ticks());
 }
 
 
@@ -145,6 +156,7 @@ class Traceroute : public boost::noncopyable
    boost::asio::ip::icmp::endpoint   ReplyEndpoint;          // Store ICMP reply's source
 
    unsigned int                      Identifier;
+   unsigned int                      MagicNumber;
    int                               LastHop;
    std::map<unsigned int, HopResult> HopResultsMap;
 
@@ -181,7 +193,8 @@ void Traceroute::run()
    boost::system::error_code errorCode;
    unsigned short            seqNumber  = 0;
 
-   Identifier = ::getpid();
+   MagicNumber = ((std::rand() & 0xffff) << 16) | (std::rand() & 0xffff);
+   Identifier  = ::getpid();
 
    // ====== Bind ICMP socket to given source address =======================
    ICMPSocket.bind(SourceEndpoint, errorCode);
@@ -223,13 +236,17 @@ void Traceroute::run()
       echoRequest.identifier(Identifier);
       echoRequest.seqNumber(++seqNumber);
       const boost::posix_time::ptime sendTime = boost::posix_time::microsec_clock::universal_time();
-      const std::string body = boost::posix_time::to_iso_string(sendTime);
-      computeInternet16(echoRequest, body.begin(), body.end());
+      TraceServiceHeader tsHeader;
+      tsHeader.magicNumber(MagicNumber);
+      tsHeader.sendTTL(ttl);
+      tsHeader.sendTimeStamp(ptimeToMircoTime(sendTime));
+      const std::vector<unsigned char> tsHeaderContents = tsHeader.contents();
+      computeInternet16(echoRequest, tsHeaderContents.begin(), tsHeaderContents.end());
 
       // ------ Encode the request packet ----------------------
       boost::asio::streambuf request_buffer;
       std::ostream os(&request_buffer);
-      os << echoRequest << body;
+      os << echoRequest << tsHeader;
 
       // ------ Send the request -------------------------------
 
@@ -414,6 +431,8 @@ void Traceroute::handleMessage(std::size_t length)
 
 int main(int argc, char** argv)
 {
+   std::srand(std::time(0));
+
    for(int i = 1; i < argc; i++) {
       if(strncmp(argv[i], "-source=", 8) == 0) {
          addAddress(sourceArray, (const char*)&argv[i][8]);
