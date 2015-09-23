@@ -395,8 +395,6 @@ void Traceroute::handleMessage(std::size_t length)
                   is >> tsHeader;
                   if(is) {
                      if(tsHeader.magicNumber() == MagicNumber) {
-                        std::cout << "@@@@@@@ Good REPLY: from " << ReplyEndpoint.address().to_string()
-                                 << " ID=" << (int)icmpHeader.identifier() <<" t=" << (int)icmpHeader.type() << " c=" << (int)icmpHeader.code() << " #=" << (int)icmpHeader.seqNumber() << std::endl;
                         recordResult(receiveTime, icmpHeader, icmpHeader.seqNumber());
                      }
                   }
@@ -410,15 +408,10 @@ void Traceroute::handleMessage(std::size_t length)
                   if( (icmpHeader.type() == ICMPHeader::IPv4TimeExceeded) ||
                       (icmpHeader.type() == ICMPHeader::IPv4Unreachable) ) {
                      if(innerICMPHeader.identifier() == Identifier) {
-                        TraceServiceHeader tsHeader;
-                        is >> tsHeader;
-                        if(!is) {
-                           puts("====== BAD!");
-                        }
-                           std::cout << "@@@@@@@ Good ICMP of router: from " << ReplyEndpoint.address().to_string()
-                                    << " ID=" << (int)icmpHeader.identifier() <<" t=" << (int)icmpHeader.type() << " c=" << (int)icmpHeader.code() << " #=" << (int)icmpHeader.seqNumber() << std::endl;
-                           recordResult(receiveTime, icmpHeader, innerICMPHeader.seqNumber());
-//                         }
+                        // Unfortunately, ICMPv4 does not return the full TraceServiceHeader here!
+                        std::cout << "@@@@@@@ Good ICMP of router: from " << ReplyEndpoint.address().to_string()
+                                 << " ID=" << (int)icmpHeader.identifier() <<" t=" << (int)icmpHeader.type() << " c=" << (int)icmpHeader.code() << " #=" << (int)icmpHeader.seqNumber() << std::endl;
+                        recordResult(receiveTime, icmpHeader, innerICMPHeader.seqNumber());
                      }
                   }
                }
