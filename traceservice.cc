@@ -183,6 +183,7 @@ class Traceroute : public boost::noncopyable
    unsigned int                          LastHop;
    std::map<unsigned short, ResultEntry> ResultsMap;
 
+   bool                                  ExpectingReply;
    char                                  MessageBuffer[65536 + 40];
 };
 
@@ -199,10 +200,11 @@ Traceroute::Traceroute(const boost::asio::ip::address& sourceAddress,
      ICMPSocket(IO, (isIPv6() == true) ? boost::asio::ip::icmp::v6() : boost::asio::ip::icmp::v4()),
      TimeoutTimer(IO)
 {
-   Identifier  = 0;
-   SeqNumber   = (unsigned short)(std::rand() & 0xffff);
-   MagicNumber = ((std::rand() & 0xffff) << 16) | (std::rand() & 0xffff);
-   LastHop     = 0xffffffff;
+   Identifier     = 0;
+   SeqNumber      = (unsigned short)(std::rand() & 0xffff);
+   MagicNumber    = ((std::rand() & 0xffff) << 16) | (std::rand() & 0xffff);
+   LastHop        = 0xffffffff;
+   ExpectingReply = false;
 }
 
 
@@ -254,9 +256,11 @@ void Traceroute::scheduleTimeout()
 
 void Traceroute::expectNextReply()
 {
+   assert(ExpectingReply == false);
    ICMPSocket.async_receive_from(boost::asio::buffer(MessageBuffer),
                                  ReplyEndpoint,
                                  boost::bind(&Traceroute::handleMessage, this, _2));
+   ExpectingReply = true;
 }
 
 
@@ -297,11 +301,11 @@ void Traceroute::sendRequests()
 
       // ------ Record the request -----------------------------
       ResultEntry resultEntry(SeqNumber, ttl, DestinationEndpoint.address(), HopStatus::Unknown, sendTime);
-      ResultsMap.insert(std::pair<unsigned short, ResultEntry>(SeqNumber,resultEntry));
+      auto result = ResultsMap.insert(std::pair<unsigned short, ResultEntry>(SeqNumber,resultEntry));
+      assert(result.second == true);
    }
 
    scheduleTimeout();
-   expectNextReply();
 }
 
 
@@ -315,6 +319,7 @@ void Traceroute::run()
 
    prepareRun();
    sendRequests();
+   expectNextReply();
 
    IO.run();
 }
@@ -336,7 +341,6 @@ void Traceroute::handleTimeout(const boost::system::error_code& errorCode)
       ResultEntry* resultEntry = *iterator;
       std::cout << *resultEntry << std::endl;
       if(resultEntry->status() == HopStatus::Success) {
-         std::cout << "BREAK" << std::endl;
          break;
       }
    }
@@ -350,8 +354,7 @@ void Traceroute::handleMessage(std::size_t length)
 {
    const boost::posix_time::ptime receiveTime = boost::posix_time::microsec_clock::universal_time();
    boost::interprocess::bufferstream is(MessageBuffer, length);
-
-   printf("r=%d\n",(int)length);
+   ExpectingReply = false;   // Need to call expectNextReply() to get next message!
 
    ICMPHeader icmpHeader;
    if(isIPv6()) {
@@ -408,16 +411,13 @@ void Traceroute::handleMessage(std::size_t length)
                       (icmpHeader.type() == ICMPHeader::IPv4Unreachable) ) {
                      if(innerICMPHeader.identifier() == Identifier) {
                         // Unfortunately, ICMPv4 does not return the full TraceServiceHeader here!
-                        std::cout << "@@@@@@@ Good ICMP of router: from " << ReplyEndpoint.address().to_string()
-                                 << " ID=" << (int)icmpHeader.identifier() <<" t=" << (int)icmpHeader.type() << " c=" << (int)icmpHeader.code() << " #=" << (int)icmpHeader.seqNumber() << std::endl;
                         recordResult(receiveTime, icmpHeader, innerICMPHeader.seqNumber());
                      }
                   }
                }
             }
-
-         } else puts("--- ICMP is bad!");
-      } else puts("--- IP is bad!");
+         }
+      }
 
    }
 
@@ -502,7 +502,6 @@ void Traceroute::recordResult(const boost::posix_time::ptime& receiveTime,
          LastHop = std::max(LastHop, resultEntry.hop());
       }
       resultEntry.status(status);
-   printf("STATUS: %d   body=%d\n",(int)status,0);
    }
 
    // ====== Get hop ========================================================
@@ -530,8 +529,8 @@ int main(int argc, char** argv)
       ::exit(1);
    }
 
-   for(std::set<boost::asio::ip::address>::iterator sourceIterator = sourceArray.begin(); sourceIterator != sourceArray.end(); sourceIterator++) {
-      for(std::set<boost::asio::ip::address>::iterator destinationIterator = destinationArray.begin(); destinationIterator != destinationArray.end(); destinationIterator++) {
+   for(auto sourceIterator = sourceArray.begin(); sourceIterator != sourceArray.end(); sourceIterator++) {
+      for(auto destinationIterator = destinationArray.begin(); destinationIterator != destinationArray.end(); destinationIterator++) {
          Traceroute t(*sourceIterator, *destinationIterator);
          t.run();
       }
