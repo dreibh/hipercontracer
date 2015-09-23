@@ -129,7 +129,8 @@ class Traceroute : public boost::noncopyable
    void handleMessage(std::size_t length);
 
    private:
-   void recordResult(const ICMPHeader& icmpHeader);
+   void recordResult(const boost::posix_time::ptime& receiveTime,
+                     const ICMPHeader&               icmpHeader);
 
    const unsigned int                PacketsPerHop;
    const unsigned int                MaxTTL;
@@ -264,7 +265,8 @@ void Traceroute::handleTimeout()
 }
 
 
-void Traceroute::recordResult(const ICMPHeader& icmpHeader)
+void Traceroute::recordResult(const boost::posix_time::ptime& receiveTime,
+                              const ICMPHeader&               icmpHeader)
 {
    // ====== Find corresponding request =====================================
 
@@ -326,13 +328,13 @@ void Traceroute::recordResult(const ICMPHeader& icmpHeader)
    }
 
    // ====== Get hop ========================================================
-
+   printf("STATUS: %d   body=%d\n",(int)status,0);
 }
 
 
 void Traceroute::handleMessage(std::size_t length)
 {
-   const boost::posix_time::ptime now = boost::posix_time::microsec_clock::universal_time();
+   const boost::posix_time::ptime receiveTime = boost::posix_time::microsec_clock::universal_time();
 //    ReplyBuffer.commit(length);
 
    boost::interprocess::bufferstream is(buf, length);
@@ -354,7 +356,7 @@ void Traceroute::handleMessage(std::size_t length)
             if(icmpHeader.identifier() == Identifier) {
                std::cout << "@@@@@@@ Good REPLY: from " << ReplyEndpoint.address().to_string()
                            << " ID=" << (int)icmpHeader.identifier() <<" t=" << (int)icmpHeader.type() << " c=" << (int)icmpHeader.code() << " #=" << (int)icmpHeader.seqNumber() << std::endl;
-               recordResult(icmpHeader);
+               recordResult(receiveTime, icmpHeader);
             }
          }
          else if( (icmpHeader.type() == ICMPHeader::IPv6TimeExceeded) ||
@@ -364,7 +366,7 @@ void Traceroute::handleMessage(std::size_t length)
             if(is) {
                std::cout << "@@@@@@@ Good ICMP of router: from " << ReplyEndpoint.address().to_string()
                          << " ID=" << (int)icmpHeader.identifier() <<" t=" << (int)icmpHeader.type() << " c=" << (int)icmpHeader.code() << " #=" << (int)icmpHeader.seqNumber() << std::endl;
-               recordResult(icmpHeader);
+               recordResult(receiveTime, icmpHeader);
             }
          }
          else          printf("  => T=%d\n",icmpHeader.type());
@@ -381,7 +383,7 @@ void Traceroute::handleMessage(std::size_t length)
                if(icmpHeader.identifier() == Identifier) {
                   std::cout << "@@@@@@@ Good REPLY: from " << ReplyEndpoint.address().to_string()
                             << " ID=" << (int)icmpHeader.identifier() <<" t=" << (int)icmpHeader.type() << " c=" << (int)icmpHeader.code() << " #=" << (int)icmpHeader.seqNumber() << std::endl;
-                  recordResult(icmpHeader);
+                  recordResult(receiveTime, icmpHeader);
                }
             }
             else if(icmpHeader.type() == ICMPHeader::IPv4TimeExceeded) {
@@ -394,7 +396,7 @@ void Traceroute::handleMessage(std::size_t length)
                      if(innerICMPHeader.identifier() == Identifier) {
                         std::cout << "@@@@@@@ Good ICMP of router: from " << ReplyEndpoint.address().to_string()
                                   << " ID=" << (int)icmpHeader.identifier() <<" t=" << (int)icmpHeader.type() << " c=" << (int)icmpHeader.code() << " #=" << (int)icmpHeader.seqNumber() << std::endl;
-                        recordResult(icmpHeader);
+                        recordResult(receiveTime, icmpHeader);
                      }
                   }
                }
