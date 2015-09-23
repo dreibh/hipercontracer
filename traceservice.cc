@@ -587,7 +587,6 @@ int main(int argc, char** argv)
        traceroute->start();
        tracerouteSet.insert(traceroute);
    }
-   puts("up");
 
 
    boost::asio::io_service ioService;
