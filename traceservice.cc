@@ -63,6 +63,12 @@ unsigned long long ptimeToMircoTime(const boost::posix_time::ptime t)
    return(difference.ticks());
 }
 
+void signalHandler(const boost::system::error_code& error, int signal_number)
+{
+   puts("SIGNAL!");
+}
+
+
 
 enum HopStatus {
    Unknown                = 0,
@@ -139,7 +145,7 @@ std::ostream& operator<<(std::ostream& os, const ResultEntry& resultEntry)
 
 
 
-class Traceroute : public boost::noncopyable
+class Traceroute
 {
    public:
    Traceroute(const boost::asio::ip::address&          sourceAddress,
@@ -147,7 +153,18 @@ class Traceroute : public boost::noncopyable
               const unsigned int                       duration = 3000,
               const unsigned int                       maxTTL   = 12);
    virtual ~Traceroute();
+
    void run();
+   void operator()() {
+      run();
+   }
+
+   void start() {
+      Thread = boost::thread(&Traceroute::run, this);
+   }
+   void join() {
+      Thread.join();
+   }
 
    inline bool isIPv6() const {
       return(SourceEndpoint.address().is_v6());
@@ -178,6 +195,7 @@ class Traceroute : public boost::noncopyable
    boost::asio::deadline_timer               TimeoutTimer;
    boost::asio::ip::icmp::endpoint           ReplyEndpoint;          // Store ICMP reply's source
 
+   boost::thread                             Thread;
    unsigned int                              Identifier;
    unsigned short                            SeqNumber;
    unsigned int                              MagicNumber;
@@ -348,6 +366,9 @@ void Traceroute::run()
    if(!prepareSocket()) {
       return;
    }
+
+//    boost::asio::signal_set signals(IO, SIGINT, SIGTERM);
+//    signals.async_wait(signalHandler);
 
    prepareRun();
    sendRequests();
@@ -552,8 +573,17 @@ int main(int argc, char** argv)
       ::exit(1);
    }
 
+
+   std::set<Traceroute*> tracerouteSet;
    for(auto sourceIterator = sourceArray.begin(); sourceIterator != sourceArray.end(); sourceIterator++) {
-       Traceroute t(*sourceIterator, destinationArray);
-       t.run();
+       Traceroute* traceroute = new Traceroute(*sourceIterator, destinationArray);
+       traceroute->start();
+       tracerouteSet.insert(traceroute);
+   }
+   puts("up");
+   for(auto iterator = tracerouteSet.begin(); iterator != tracerouteSet.end(); iterator++) {
+      Traceroute* traceroute = *iterator;
+      puts("join...");
+      traceroute->join();
    }
 }
