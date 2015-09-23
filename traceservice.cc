@@ -65,9 +65,7 @@ unsigned long long ptimeToMircoTime(const boost::posix_time::ptime t)
 
 void signalHandler(const boost::system::error_code& error, int signal_number)
 {
-   puts("SIGNAL!");
 }
-
 
 
 enum HopStatus {
@@ -154,16 +152,18 @@ class Traceroute
               const unsigned int                       maxTTL   = 12);
    virtual ~Traceroute();
 
-   void run();
-   void operator()() {
-      run();
+   inline void start() {
+      StopRequested = false;
+      Thread        = boost::thread(&Traceroute::run, this);
    }
 
-   void start() {
-      Thread = boost::thread(&Traceroute::run, this);
+   inline void requestStop() {
+      StopRequested = true;
    }
-   void join() {
+
+   inline void join() {
       Thread.join();
+      StopRequested = false;
    }
 
    inline bool isIPv6() const {
@@ -180,6 +180,7 @@ class Traceroute
    virtual void handleMessage(std::size_t length);
 
    private:
+   void run();
    void sendRequest(const boost::asio::ip::icmp::endpoint& destinationEndpoint,
                     const unsigned int                     ttl);
    void recordResult(const boost::posix_time::ptime& receiveTime,
@@ -188,7 +189,7 @@ class Traceroute
 
    const unsigned int                        Duration;
    const unsigned int                        MaxTTL;
-   boost::asio::io_service                   IO;
+   boost::asio::io_service                   IOService;
    boost::asio::ip::icmp::endpoint           SourceEndpoint;
    std::set<boost::asio::ip::icmp::endpoint> DestinationEndpointArray;
    boost::asio::ip::icmp::socket             ICMPSocket;
@@ -196,6 +197,7 @@ class Traceroute
    boost::asio::ip::icmp::endpoint           ReplyEndpoint;          // Store ICMP reply's source
 
    boost::thread                             Thread;
+   bool                                      StopRequested;
    unsigned int                              Identifier;
    unsigned short                            SeqNumber;
    unsigned int                              MagicNumber;
@@ -214,10 +216,10 @@ Traceroute::Traceroute(const boost::asio::ip::address&          sourceAddress,
                        const unsigned int                       maxTTL)
    : Duration(duration),
      MaxTTL(maxTTL),
-     IO(),
+     IOService(),
      SourceEndpoint(sourceAddress, 0),
-     ICMPSocket(IO, (isIPv6() == true) ? boost::asio::ip::icmp::v6() : boost::asio::ip::icmp::v4()),
-     TimeoutTimer(IO)
+     ICMPSocket(IOService, (isIPv6() == true) ? boost::asio::ip::icmp::v6() : boost::asio::ip::icmp::v4()),
+     TimeoutTimer(IOService)
 {
    // ====== Some initialisations ===========================================
    Identifier     = 0;
@@ -225,6 +227,7 @@ Traceroute::Traceroute(const boost::asio::ip::address&          sourceAddress,
    MagicNumber    = ((std::rand() & 0xffff) << 16) | (std::rand() & 0xffff);
    LastHop        = 0xffffffff;
    ExpectingReply = false;
+   StopRequested  = false;
 
    // ====== Prepare destination endpoints ==================================
    for(auto destinationIterator = destinationAddressArray.begin();
@@ -304,7 +307,9 @@ void Traceroute::sendRequests()
 
 void Traceroute::scheduleTimeout()
 {
-   TimeoutTimer.expires_at(boost::posix_time::microsec_clock::universal_time() + boost::posix_time::milliseconds(Duration));
+   const unsigned int deviation = std::max(10U, Duration / 5);   // 20% deviation
+   const unsigned int duration  = Duration + (std::rand() % deviation);
+   TimeoutTimer.expires_at(boost::posix_time::microsec_clock::universal_time() + boost::posix_time::milliseconds(duration));
    TimeoutTimer.async_wait(boost::bind(&Traceroute::handleTimeout, this, _1));
 }
 
@@ -347,8 +352,8 @@ void Traceroute::sendRequest(const boost::asio::ip::icmp::endpoint& destinationE
    os << echoRequest << tsHeader;
 
    // ====== Send the request ==============================-
-   const size_t s = ICMPSocket.send_to(request_buffer.data(), destinationEndpoint);
-   if(s < 1) {  // FIXME!
+   const size_t sent = ICMPSocket.send_to(request_buffer.data(), destinationEndpoint);
+   if(sent < 1) {
       std::cerr << "WARNING: send_to() failed!" << std::endl;
    }
 
@@ -367,14 +372,11 @@ void Traceroute::run()
       return;
    }
 
-//    boost::asio::signal_set signals(IO, SIGINT, SIGTERM);
-//    signals.async_wait(signalHandler);
-
    prepareRun();
    sendRequests();
    expectNextReply();
 
-   IO.run();
+   IOService.run();
 }
 
 
@@ -396,8 +398,13 @@ void Traceroute::handleTimeout(const boost::system::error_code& errorCode)
       }
    }
 
-   prepareRun();
-   sendRequests();
+   if(!StopRequested) {
+      prepareRun();
+      sendRequests();
+   }
+   else {
+      IOService.stop();
+   }
 }
 
 
@@ -581,9 +588,22 @@ int main(int argc, char** argv)
        tracerouteSet.insert(traceroute);
    }
    puts("up");
+
+
+   boost::asio::io_service ioService;
+   boost::asio::signal_set signals(ioService, SIGINT, SIGTERM);
+   signals.async_wait(signalHandler);
+   ioService.run();
+
+   std::cout << std::endl << "*** Shutting down! ***" << std::endl;
+
    for(auto iterator = tracerouteSet.begin(); iterator != tracerouteSet.end(); iterator++) {
       Traceroute* traceroute = *iterator;
-      puts("join...");
+      traceroute->requestStop();
+   }
+
+   for(auto iterator = tracerouteSet.begin(); iterator != tracerouteSet.end(); iterator++) {
+      Traceroute* traceroute = *iterator;
       traceroute->join();
    }
 }
