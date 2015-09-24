@@ -16,7 +16,6 @@
 //
 // Contact: dreibh@simula.no
 
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -69,18 +68,19 @@ void signalHandler(const boost::system::error_code& error, int signal_number)
 
 
 enum HopStatus {
-   Unknown                = 0,
-   TimeExceeded           = 1,
-   UnreachableScope       = 100,
-   UnreachableNetwork     = 101,
-   UnreachableHost        = 102,
-   UnreachableProtocol    = 103,
-   UnreachablePort        = 104,
-   UnreachableProhibited  = 105,
-   UnreachableUnknown     = 110,
-   Timeout                = 200,
-   Success                = 255
+   Unknown               = 0,
+   TimeExceeded          = 1,
+   UnreachableScope      = 100,
+   UnreachableNetwork    = 101,
+   UnreachableHost       = 102,
+   UnreachableProtocol   = 103,
+   UnreachablePort       = 104,
+   UnreachableProhibited = 105,
+   UnreachableUnknown    = 110,
+   Timeout               = 200,
+   Success               = 255
 };
+
 
 class ResultEntry {
    public:
@@ -93,12 +93,10 @@ class ResultEntry {
    inline unsigned int seqNumber()               const { return(SeqNumber);   }
    inline unsigned int hop()                     const { return(Hop);         }
    const boost::asio::ip::address& address()     const { return(Address);     }
-   inline HopStatus    status()                  const { return(Status);      }
+   inline HopStatus status()                     const { return(Status);      }
    inline boost::posix_time::ptime sendTime()    const { return(SendTime);    }
    inline boost::posix_time::ptime receiveTime() const { return(ReceiveTime); }
-   inline boost::posix_time::time_duration rtt() const {
-      return(ReceiveTime - SendTime);
-   }
+   inline boost::posix_time::time_duration rtt() const { return(ReceiveTime - SendTime); }
 
    inline void address(const boost::asio::ip::address address)         { Address = address;         }
    inline void status(const HopStatus status)                          { Status = status;           }
@@ -110,12 +108,12 @@ class ResultEntry {
    friend std::ostream& operator<<(std::ostream& os, const ResultEntry& resultEntry);
 
    private:
-   const unsigned short             SeqNumber;
-   const unsigned int               Hop;
-   boost::asio::ip::address         Address;
-   HopStatus                        Status;
-   const boost::posix_time::ptime   SendTime;
-   boost::posix_time::ptime         ReceiveTime;
+   const unsigned short           SeqNumber;
+   const unsigned int             Hop;
+   boost::asio::ip::address       Address;
+   HopStatus                      Status;
+   const boost::posix_time::ptime SendTime;
+   boost::posix_time::ptime       ReceiveTime;
 };
 
 
@@ -143,8 +141,26 @@ std::ostream& operator<<(std::ostream& os, const ResultEntry& resultEntry)
 }
 
 
+class Service
+{
+   public:
+   virtual bool start() = 0;
+   virtual void requestStop() = 0;
+   virtual void join() = 0;
+   virtual bool prepareSocket() = 0;
+   virtual void prepareRun() = 0;
+   virtual void scheduleTimeout() = 0;
+   virtual void expectNextReply() = 0;
+   virtual void noMoreOutstandingRequests() = 0;
+   virtual bool notReachedWithCurrentTTL() = 0;
+   virtual void processResults() = 0;
+   virtual void sendRequests() = 0;
+   virtual void handleTimeout(const boost::system::error_code& errorCode) = 0;
+   virtual void handleMessage(std::size_t length) = 0;
+};
 
-class Traceroute
+
+class Traceroute : virtual public Service
 {
    public:
    Traceroute(const boost::asio::ip::address&          sourceAddress,
@@ -155,12 +171,9 @@ class Traceroute
               const unsigned int                       incrementMaxTTL = 2);
    virtual ~Traceroute();
 
-   bool start();
-   void join();
-
-   inline void requestStop() {
-      StopRequested = true;
-   }
+   virtual bool start();
+   virtual void requestStop();
+   virtual void join();
 
    inline bool isIPv6() const {
       return(SourceAddress.is_v6());
@@ -264,6 +277,11 @@ bool Traceroute::start()
    StopRequested = false;
    Thread        = boost::thread(&Traceroute::run, this);
    return(prepareSocket());
+}
+
+
+void Traceroute::requestStop() {
+   StopRequested = true;
 }
 
 
@@ -840,9 +858,9 @@ int main(int argc, char** argv)
 
 
    // ====== Start service threads ==========================================
-   std::set<Traceroute*> serviceSet;
+   std::set<Service*> serviceSet;
    for(auto sourceIterator = sourceArray.begin(); sourceIterator != sourceArray.end(); sourceIterator++) {
-       Traceroute* service = NULL;
+       Service* service = NULL;
        switch(serviceType) {
           case TST_Ping:
              service = new Ping(*sourceIterator, destinationArray,
@@ -872,11 +890,11 @@ int main(int argc, char** argv)
 
    // ====== Shut down service threads ======================================
    for(auto iterator = serviceSet.begin(); iterator != serviceSet.end(); iterator++) {
-      Traceroute* service = *iterator;
+      Service* service = *iterator;
       service->requestStop();
    }
    for(auto iterator = serviceSet.begin(); iterator != serviceSet.end(); iterator++) {
-      Traceroute* service = *iterator;
+      Service* service = *iterator;
       service->join();
    }
 }
