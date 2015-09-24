@@ -92,6 +92,7 @@ class ResultEntry {
 
    inline unsigned int seqNumber()               const { return(SeqNumber);   }
    inline unsigned int hop()                     const { return(Hop);         }
+   const boost::asio::ip::address& address()     const { return(Address);     }
    inline HopStatus    status()                  const { return(Status);      }
    inline boost::posix_time::ptime sendTime()    const { return(SendTime);    }
    inline boost::posix_time::ptime receiveTime() const { return(ReceiveTime); }
@@ -99,9 +100,9 @@ class ResultEntry {
       return(ReceiveTime - SendTime);
    }
 
-   inline void receiveTime(const boost::posix_time::ptime receiveTime) { ReceiveTime = receiveTime; }
-   inline void status(const HopStatus status)                          { Status = status;           }
    inline void address(const boost::asio::ip::address address)         { Address = address;         }
+   inline void status(const HopStatus status)                          { Status = status;           }
+   inline void receiveTime(const boost::posix_time::ptime receiveTime) { ReceiveTime = receiveTime; }
 
    inline friend bool operator<(const ResultEntry& resultEntry1, const ResultEntry& resultEntry2) {
       return(resultEntry1.SeqNumber < resultEntry2.SeqNumber);
@@ -148,22 +149,17 @@ class Traceroute
    public:
    Traceroute(const boost::asio::ip::address&          sourceAddress,
               const std::set<boost::asio::ip::address> destinationAddressArray,
-              const unsigned int                       duration = 3000,
-              const unsigned int                       maxTTL   = 12);
+              const unsigned int                       duration        = 3000,
+              const unsigned int                       initialMaxTTL   =  5,
+              const unsigned int                       finalMaxTTL     = 35,
+              const unsigned int                       incrementMaxTTL = 2);
    virtual ~Traceroute();
 
-   inline void start() {
-      StopRequested = false;
-      Thread        = boost::thread(&Traceroute::run, this);
-   }
+   bool start();
+   void join();
 
    inline void requestStop() {
       StopRequested = true;
-   }
-
-   inline void join() {
-      Thread.join();
-      StopRequested = false;
    }
 
    inline bool isIPv6() const {
@@ -175,36 +171,46 @@ class Traceroute
    virtual void prepareRun();
    virtual void scheduleTimeout();
    virtual void expectNextReply();
+   virtual void noMoreOutstandingRequests();
+   virtual bool notReachedWithCurrentTTL();
+   virtual void processResults();
    virtual void sendRequests();
    virtual void handleTimeout(const boost::system::error_code& errorCode);
    virtual void handleMessage(std::size_t length);
 
-   private:
    void run();
-   void sendRequest(const boost::asio::ip::address& destinationAddress,
-                    const unsigned int              ttl);
+   void sendICMPRequest(const boost::asio::ip::address& destinationAddress,
+                        const unsigned int              ttl);
    void recordResult(const boost::posix_time::ptime& receiveTime,
                      const ICMPHeader&               icmpHeader,
                      const unsigned short            seqNumber);
+   unsigned int getInitialTTL(const boost::asio::ip::address& destinationAddress) const;
 
    const unsigned int                    Duration;
-   const unsigned int                    MaxTTL;
+   const unsigned int                    InitialMaxTTL;
+   const unsigned int                    FinalMaxTTL;
+   const unsigned int                    IncrementMaxTTL;
    boost::asio::io_service               IOService;
    boost::asio::ip::address              SourceAddress;
    std::set<boost::asio::ip::address>    DestinationAddressArray;
    boost::asio::ip::icmp::socket         ICMPSocket;
    boost::asio::deadline_timer           TimeoutTimer;
-   boost::asio::ip::icmp::endpoint       ReplyEndpoint;          // Store ICMP reply's source
+   boost::asio::ip::icmp::endpoint       ReplyEndpoint;    // Store ICMP reply's source
 
    boost::thread                         Thread;
    bool                                  StopRequested;
    unsigned int                          Identifier;
    unsigned short                        SeqNumber;
    unsigned int                          MagicNumber;
+   unsigned int                          OutstandingRequests;
    unsigned int                          LastHop;
    std::map<unsigned short, ResultEntry> ResultsMap;
+   std::map<boost::asio::ip::address,
+            unsigned int>                TTLCache;
    bool                                  ExpectingReply;
    char                                  MessageBuffer[65536 + 40];
+   unsigned int                          MinTTL;
+   unsigned int                          MaxTTL;
 
    std::set<boost::asio::ip::address>::iterator DestinationAddressIterator;
 };
@@ -213,21 +219,28 @@ class Traceroute
 Traceroute::Traceroute(const boost::asio::ip::address&          sourceAddress,
                        const std::set<boost::asio::ip::address> destinationAddressArray,
                        const unsigned int                       duration,
-                       const unsigned int                       maxTTL)
+                       const unsigned int                       initialMaxTTL,
+                       const unsigned int                       finalMaxTTL,
+                       const unsigned int                       incrementMaxTTL)
    : Duration(duration),
-     MaxTTL(maxTTL),
+     InitialMaxTTL(initialMaxTTL),
+     FinalMaxTTL(finalMaxTTL),
+     IncrementMaxTTL(incrementMaxTTL),
      IOService(),
      SourceAddress(sourceAddress),
      ICMPSocket(IOService, (isIPv6() == true) ? boost::asio::ip::icmp::v6() : boost::asio::ip::icmp::v4()),
      TimeoutTimer(IOService)
 {
    // ====== Some initialisations ===========================================
-   Identifier     = 0;
-   SeqNumber      = (unsigned short)(std::rand() & 0xffff);
-   MagicNumber    = ((std::rand() & 0xffff) << 16) | (std::rand() & 0xffff);
-   LastHop        = 0xffffffff;
-   ExpectingReply = false;
-   StopRequested  = false;
+   Identifier          = 0;
+   SeqNumber           = (unsigned short)(std::rand() & 0xffff);
+   MagicNumber         = ((std::rand() & 0xffff) << 16) | (std::rand() & 0xffff);
+   OutstandingRequests = 0;
+   LastHop             = 0xffffffff;
+   ExpectingReply      = false;
+   StopRequested       = false;
+   MinTTL              = 1;
+   MaxTTL              = InitialMaxTTL;
 
    // ====== Prepare destination endpoints ==================================
    for(auto destinationIterator = destinationAddressArray.begin();
@@ -243,6 +256,21 @@ Traceroute::Traceroute(const boost::asio::ip::address&          sourceAddress,
 
 Traceroute::~Traceroute()
 {
+}
+
+
+bool Traceroute::start()
+{
+   StopRequested = false;
+   Thread        = boost::thread(&Traceroute::run, this);
+   return(prepareSocket());
+}
+
+
+void Traceroute::join()
+{
+   Thread.join();
+   StopRequested = false;
 }
 
 
@@ -276,14 +304,21 @@ bool Traceroute::prepareSocket()
 
 void Traceroute::prepareRun()
 {
-   ResultsMap.clear();
+   // ====== Get next destination address ===================================
+   if(DestinationAddressIterator != DestinationAddressArray.end()) {
+      DestinationAddressIterator++;
+   }
    if(DestinationAddressIterator == DestinationAddressArray.end()) {
       // Rewind ...
       DestinationAddressIterator = DestinationAddressArray.begin();
    }
-   else {
-      DestinationAddressIterator++;
-   }
+
+   // ====== Clear results ==================================================
+   ResultsMap.clear();
+   MinTTL              = 1;
+   MaxTTL              = (DestinationAddressIterator != DestinationAddressArray.end()) ? getInitialTTL(*DestinationAddressIterator) : InitialMaxTTL;
+   LastHop             = 0xffffffff;
+   OutstandingRequests = 0;
 }
 
 
@@ -296,8 +331,9 @@ void Traceroute::sendRequests()
                 << " to " << destinationAddress << " ... " << std::endl;
 
       // ====== Send Echo Requests =============================================
-      for(unsigned int ttl = MaxTTL; ttl > 0; ttl--) {
-         sendRequest(destinationAddress, ttl);
+      assert(MinTTL > 0);
+      for(int ttl = (int)MaxTTL; ttl >= (int)MinTTL; ttl--) {
+         sendICMPRequest(destinationAddress, (unsigned int)ttl);
       }
    }
 
@@ -324,8 +360,25 @@ void Traceroute::expectNextReply()
 }
 
 
-void Traceroute::sendRequest(const boost::asio::ip::address& destinationAddress,
-                             const unsigned int              ttl)
+void Traceroute::noMoreOutstandingRequests()
+{
+   puts("COMPLETED!");
+   TimeoutTimer.cancel();
+}
+
+
+unsigned int Traceroute::getInitialTTL(const boost::asio::ip::address& destinationAddress) const
+{
+   auto found = TTLCache.find(destinationAddress);
+   if(found != TTLCache.end()) {
+      return(std::min(found->second, FinalMaxTTL));
+   }
+   return(InitialMaxTTL);
+}
+
+
+void Traceroute::sendICMPRequest(const boost::asio::ip::address& destinationAddress,
+                                 const unsigned int              ttl)
 {
    // ====== Set TTL ========================================
    const boost::asio::ip::unicast::hops option(ttl);
@@ -351,26 +404,25 @@ void Traceroute::sendRequest(const boost::asio::ip::address& destinationAddress,
    std::ostream os(&request_buffer);
    os << echoRequest << tsHeader;
 
-   // ====== Send the request ==============================-
+   // ====== Send the request ===============================
    const size_t sent = ICMPSocket.send_to(request_buffer.data(), boost::asio::ip::icmp::endpoint(destinationAddress, 0));
    if(sent < 1) {
-      std::cerr << "WARNING: send_to() failed!" << std::endl;
+      std::cerr << "WARNING: ICMP send_to() failed!" << std::endl;
    }
+   else {
+      // ====== Record the request ==========================
+      OutstandingRequests++;
 
-   // ====== Record the request ============================-
-   ResultEntry resultEntry(SeqNumber, ttl, destinationAddress, HopStatus::Unknown, sendTime);
-   auto result = ResultsMap.insert(std::pair<unsigned short, ResultEntry>(SeqNumber,resultEntry));
-   assert(result.second == true);
+      ResultEntry resultEntry(SeqNumber, ttl, destinationAddress, HopStatus::Unknown, sendTime);
+      auto result = ResultsMap.insert(std::pair<unsigned short, ResultEntry>(SeqNumber,resultEntry));
+      assert(result.second == true);
+   }
 }
 
 
 void Traceroute::run()
 {
-   // ====== Prepare run ====================================================
    Identifier = ::getpid();
-   if(!prepareSocket()) {
-      return;
-   }
 
    prepareRun();
    sendRequests();
@@ -380,7 +432,19 @@ void Traceroute::run()
 }
 
 
-void Traceroute::handleTimeout(const boost::system::error_code& errorCode)
+bool Traceroute::notReachedWithCurrentTTL()
+{
+   if(MaxTTL < FinalMaxTTL) {
+      MinTTL = MaxTTL + 1;
+      MaxTTL = std::min(MaxTTL + IncrementMaxTTL, FinalMaxTTL);
+      printf("TRYING: %d -- %d\n",MinTTL, MaxTTL);
+      return(true);
+   }
+   return(false);
+}
+
+
+void Traceroute::processResults()
 {
    std::vector<ResultEntry*> resultsVector;
    for(auto iterator = ResultsMap.begin(); iterator != ResultsMap.end(); iterator++) {
@@ -397,14 +461,33 @@ void Traceroute::handleTimeout(const boost::system::error_code& errorCode)
          break;
       }
    }
+}
 
-   if(!StopRequested) {
-      prepareRun();
-      sendRequests();
-   }
-   else {
+
+void Traceroute::handleTimeout(const boost::system::error_code& errorCode)
+{
+   // ====== Stop requested? ================================================
+   if(StopRequested) {
       IOService.stop();
    }
+
+   // ====== Has destination been reached with current TTL? =================
+   TTLCache[*DestinationAddressIterator] = LastHop;
+   if(LastHop == 0xffffffff) {
+      printf("not found with %d\n", MaxTTL);
+      if(notReachedWithCurrentTTL()) {
+         // Try another round ...
+         sendRequests();
+         return;
+      }
+   }
+
+   // ====== Create results output ==========================================
+   processResults();
+
+   // ====== Prepare new run ================================================
+   prepareRun();
+   sendRequests();
 }
 
 
@@ -478,6 +561,9 @@ void Traceroute::handleMessage(std::size_t length)
       }
    }
 
+   if(OutstandingRequests == 0) {
+      noMoreOutstandingRequests();
+   }
    expectNextReply();
 }
 
@@ -552,17 +638,132 @@ void Traceroute::recordResult(const boost::posix_time::ptime& receiveTime,
       else if( (icmpHeader.type() == ICMPHeader::IPv6EchoReply) ||
                (icmpHeader.type() == ICMPHeader::IPv4EchoReply) ) {
          status  = HopStatus::Success;
-         LastHop = std::max(LastHop, resultEntry.hop());
+         LastHop = std::min(LastHop, resultEntry.hop());
       }
       resultEntry.status(status);
+      if(OutstandingRequests > 0) {
+         OutstandingRequests--;
+      }
    }
+}
+
+
+class Ping : public Traceroute
+{
+   public:
+   Ping(const boost::asio::ip::address&          sourceAddress,
+        const std::set<boost::asio::ip::address> destinationAddressArray,
+        const unsigned int                       interval   =  1000,
+        const unsigned int                       expiration = 10000,
+        const unsigned int                       ttl        =    64);
+   virtual ~Ping();
+
+   protected:
+   virtual void prepareRun();
+   virtual void noMoreOutstandingRequests();
+   virtual bool notReachedWithCurrentTTL();
+   virtual void processResults();
+   virtual void sendRequests();
+
+   const unsigned int Expiration;
+};
+
+
+Ping::Ping(const boost::asio::ip::address&          sourceAddress,
+           const std::set<boost::asio::ip::address> destinationAddressArray,
+           const unsigned int                       interval,
+           const unsigned int                       expiration,
+           const unsigned int                       ttl)
+   : Traceroute(sourceAddress, destinationAddressArray, interval, ttl, ttl, ttl),
+     Expiration(expiration)
+{
+}
+
+
+Ping::~Ping()
+{
+}
+
+
+void Ping::noMoreOutstandingRequests()
+{
+   // Nothing to do for Ping!
+}
+
+
+void Ping::prepareRun()
+{
+   // Nothing to do for Ping!
+}
+
+
+bool Ping::notReachedWithCurrentTTL()
+{
+   // Nothing to do for Ping!
+   return(false);
+}
+
+
+void Ping::processResults()
+{
+   std::vector<ResultEntry*> resultsVector;
+   for(auto iterator = ResultsMap.begin(); iterator != ResultsMap.end(); iterator++) {
+      resultsVector.push_back(&iterator->second);
+   }
+   std::sort(resultsVector.begin(), resultsVector.end(), [](ResultEntry* a, ResultEntry* b) {
+        return(a->address() < b->address());
+   });
+
+   const boost::posix_time::ptime now = boost::posix_time::microsec_clock::universal_time();
+   for(auto iterator = resultsVector.begin(); iterator != resultsVector.end(); iterator++) {
+      ResultEntry* resultEntry = *iterator;
+      std::cout << *resultEntry << std::endl;
+
+      if( (resultEntry->status() != HopStatus::Unknown) ||
+          ((now - resultEntry->sendTime()).total_milliseconds() >= Expiration) ) {
+         assert(ResultsMap.erase(resultEntry->seqNumber()) == 1);
+         if(resultEntry->status() == HopStatus::Unknown) {
+            if(OutstandingRequests > 0) {
+               OutstandingRequests--;
+            }
+         }
+      }
+   }
+}
+
+
+void Ping::sendRequests()
+{
+   for(auto destinationIterator = DestinationAddressArray.begin();
+       destinationIterator != DestinationAddressArray.end(); destinationIterator++) {
+      const boost::asio::ip::address& destinationAddress = *destinationIterator;
+      sendICMPRequest(destinationAddress, FinalMaxTTL);
+   }
+
+   scheduleTimeout();
 }
 
 
 int main(int argc, char** argv)
 {
-   std::srand(std::time(0));
+   // ====== Initialize =====================================================
+   enum ServiceType {
+      TST_Ping       = 1,
+      TST_Traceroute = 2
+   };
+   ServiceType  serviceType               = TST_Traceroute;
 
+   unsigned int tracerouteDuration        = 3000;
+   unsigned int tracerouteInitialMaxTTL   = 6;
+   unsigned int tracerouteFinalMaxTTL     = 36;
+   unsigned int tracerouteIncrementMaxTTL = 6;
+
+   unsigned int pingInterval              = 1000;
+   unsigned int pingExpiration            = 30000;
+   unsigned int pingTTL                   = 64;
+
+
+   // ====== Handle arguments ===============================================
    for(int i = 1; i < argc; i++) {
       if(strncmp(argv[i], "-source=", 8) == 0) {
          addAddress(sourceArray, (const char*)&argv[i][8]);
@@ -570,39 +771,112 @@ int main(int argc, char** argv)
       else if(strncmp(argv[i], "-destination=", 13) == 0) {
          addAddress(destinationArray, (const char*)&argv[i][13]);
       }
+      else if(strcmp(argv[i], "-ping") == 0) {
+         serviceType = TST_Ping;
+      }
+      else if(strcmp(argv[i], "-traceroute") == 0) {
+         serviceType = TST_Traceroute;
+      }
+      else if(strncmp(argv[i], "-tracerouteduration=", 20) == 0) {
+         tracerouteDuration = atol((const char*)&argv[i][20]);
+      }
+      else if(strncmp(argv[i], "-tracerouteinitialmaxttl=", 25) == 0) {
+         tracerouteInitialMaxTTL = atol((const char*)&argv[i][25]);
+      }
+      else if(strncmp(argv[i], "-traceroutefinalmaxttl=", 23) == 0) {
+         tracerouteFinalMaxTTL = atol((const char*)&argv[i][23]);
+      }
+      else if(strncmp(argv[i], "-tracerouteincrementmaxttl=", 28) == 0) {
+         tracerouteIncrementMaxTTL = atol((const char*)&argv[i][28]);
+      }
+      else if(strncmp(argv[i], "-pinginterval=", 14) == 0) {
+         pingInterval = atol((const char*)&argv[i][14]);
+      }
+      else if(strncmp(argv[i], "-pingexpiration=", 16) == 0) {
+         pingExpiration = atol((const char*)&argv[i][16]);
+      }
+      else if(strncmp(argv[i], "-pingttl=", 9) == 0) {
+         pingTTL = atol((const char*)&argv[i][9]);
+      }
       else {
          std::cerr << "Usage: " << argv[0] << " -source=source ... -destination=destination ..." << std::endl;
       }
    }
+
+
+   // ====== Initialize =====================================================
    if( (sourceArray.size() < 1) ||
        (destinationArray.size() < 1) ) {
       std::cerr << "ERROR: At least one source and destination are needed!" << std::endl;
       ::exit(1);
    }
 
+   std::srand(std::time(0));
+   tracerouteDuration        = std::min(std::max(1000U, tracerouteDuration),     60000U);
+   tracerouteInitialMaxTTL   = std::min(std::max(1U, tracerouteInitialMaxTTL),   255U);
+   tracerouteFinalMaxTTL     = std::min(std::max(1U, tracerouteFinalMaxTTL),     255U);
+   tracerouteIncrementMaxTTL = std::min(std::max(1U, tracerouteIncrementMaxTTL), 255U);
+   pingInterval              = std::min(std::max(100U, pingInterval),            3600U*60000U);
+   pingExpiration            = std::min(std::max(100U, pingExpiration),          3600U*60000U);
+   pingTTL                   = std::min(std::max(1U, pingTTL),                   255U);
 
-   std::set<Traceroute*> tracerouteSet;
-   for(auto sourceIterator = sourceArray.begin(); sourceIterator != sourceArray.end(); sourceIterator++) {
-       Traceroute* traceroute = new Traceroute(*sourceIterator, destinationArray);
-       traceroute->start();
-       tracerouteSet.insert(traceroute);
+   switch(serviceType) {
+      case TST_Ping:
+         std::cout << "Traceroute Service:" << std:: endl
+               << "* Interval   = " << pingInterval   << " ms" << std::endl
+               << "* Expiration = " << pingExpiration << " ms" << std::endl
+               << "* TTL        = " << pingTTL        << std::endl
+               << std::endl;
+       break;
+      case TST_Traceroute:
+         std::cout << "Traceroute Service:" << std:: endl
+               << "* Duration         = " << tracerouteDuration        << " ms" << std::endl
+               << "* Initial MaxTTL   = " << tracerouteInitialMaxTTL   << std::endl
+               << "* Final MaxTTL     = " << tracerouteFinalMaxTTL     << std::endl
+               << "* Increment MaxTTL = " << tracerouteIncrementMaxTTL << std::endl
+               << std::endl;
+       break;
    }
 
 
+   // ====== Start service threads ==========================================
+   std::set<Traceroute*> serviceSet;
+   for(auto sourceIterator = sourceArray.begin(); sourceIterator != sourceArray.end(); sourceIterator++) {
+       Traceroute* service = NULL;
+       switch(serviceType) {
+          case TST_Ping:
+             service = new Ping(*sourceIterator, destinationArray,
+                                pingInterval, pingExpiration, pingTTL);
+           break;
+          case TST_Traceroute:
+             service = new Traceroute(*sourceIterator, destinationArray,
+                                      tracerouteDuration,
+                                      tracerouteInitialMaxTTL, tracerouteFinalMaxTTL, tracerouteIncrementMaxTTL);
+           break;
+       }
+       if(service->start() == false) {
+          std::cerr << "exiting!" << std::endl;
+          ::exit(1);
+       }
+       serviceSet.insert(service);
+   }
+
+
+   // ====== Wait for termination signal ====================================
    boost::asio::io_service ioService;
    boost::asio::signal_set signals(ioService, SIGINT, SIGTERM);
    signals.async_wait(signalHandler);
    ioService.run();
-
    std::cout << std::endl << "*** Shutting down! ***" << std::endl;
 
-   for(auto iterator = tracerouteSet.begin(); iterator != tracerouteSet.end(); iterator++) {
-      Traceroute* traceroute = *iterator;
-      traceroute->requestStop();
-   }
 
-   for(auto iterator = tracerouteSet.begin(); iterator != tracerouteSet.end(); iterator++) {
-      Traceroute* traceroute = *iterator;
-      traceroute->join();
+   // ====== Shut down service threads ======================================
+   for(auto iterator = serviceSet.begin(); iterator != serviceSet.end(); iterator++) {
+      Traceroute* service = *iterator;
+      service->requestStop();
+   }
+   for(auto iterator = serviceSet.begin(); iterator != serviceSet.end(); iterator++) {
+      Traceroute* service = *iterator;
+      service->join();
    }
 }
