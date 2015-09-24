@@ -52,34 +52,6 @@
 #include "traceserviceheader.h"
 
 
-std::set<boost::asio::ip::address> sourceArray;
-std::set<boost::asio::ip::address> destinationArray;
-
-
-void addAddress(std::set<boost::asio::ip::address>& array,
-                const std::string&                  addressString)
-{
-   boost::system::error_code errorCode;
-   boost::asio::ip::address address = boost::asio::ip::address::from_string(addressString, errorCode);
-   if(errorCode != boost::system::errc::success) {
-      std::cerr << "ERROR: Bad address " << addressString << "!" << std::endl;
-      ::exit(1);
-   }
-   array.insert(address);
-}
-
-unsigned long long ptimeToMircoTime(const boost::posix_time::ptime t)
-{
-   static const boost::posix_time::ptime myEpoch(boost::gregorian::date(1976,9,29));
-   boost::posix_time::time_duration difference = t - myEpoch;
-   return(difference.ticks());
-}
-
-void signalHandler(const boost::system::error_code& error, int signal_number)
-{
-}
-
-
 enum HopStatus {
    Unknown               = 0,
    TimeExceeded          = 1,
@@ -178,7 +150,8 @@ class Traceroute : virtual public Service
    public:
    Traceroute(const boost::asio::ip::address&          sourceAddress,
               const std::set<boost::asio::ip::address> destinationAddressArray,
-              const unsigned int                       duration        = 3000,
+              const unsigned long long                 interval        = 30*60000ULL,
+              const unsigned int                       expiration      = 3000,
               const unsigned int                       initialMaxTTL   =  5,
               const unsigned int                       finalMaxTTL     = 35,
               const unsigned int                       incrementMaxTTL = 2);
@@ -211,8 +184,10 @@ class Traceroute : virtual public Service
                      const ICMPHeader&               icmpHeader,
                      const unsigned short            seqNumber);
    unsigned int getInitialTTL(const boost::asio::ip::address& destinationAddress) const;
+   static unsigned long long ptimeToMircoTime(const boost::posix_time::ptime t);
 
-   const unsigned int                    Duration;
+   const unsigned long long              Interval;
+   const unsigned int                    Expiration;
    const unsigned int                    InitialMaxTTL;
    const unsigned int                    FinalMaxTTL;
    const unsigned int                    IncrementMaxTTL;
@@ -237,6 +212,7 @@ class Traceroute : virtual public Service
    char                                  MessageBuffer[65536 + 40];
    unsigned int                          MinTTL;
    unsigned int                          MaxTTL;
+   boost::posix_time::ptime              RunStartTimeStamp;
 
    std::set<boost::asio::ip::address>::iterator DestinationAddressIterator;
 };
@@ -244,11 +220,13 @@ class Traceroute : virtual public Service
 
 Traceroute::Traceroute(const boost::asio::ip::address&          sourceAddress,
                        const std::set<boost::asio::ip::address> destinationAddressArray,
-                       const unsigned int                       duration,
+                       const unsigned long long                 interval,
+                       const unsigned int                       expiration,
                        const unsigned int                       initialMaxTTL,
                        const unsigned int                       finalMaxTTL,
                        const unsigned int                       incrementMaxTTL)
-   : Duration(duration),
+   : Interval(interval),
+     Expiration(expiration),
      InitialMaxTTL(initialMaxTTL),
      FinalMaxTTL(finalMaxTTL),
      IncrementMaxTTL(incrementMaxTTL),
@@ -350,6 +328,7 @@ void Traceroute::prepareRun()
    MaxTTL              = (DestinationAddressIterator != DestinationAddressArray.end()) ? getInitialTTL(*DestinationAddressIterator) : InitialMaxTTL;
    LastHop             = 0xffffffff;
    OutstandingRequests = 0;
+   RunStartTimeStamp   = boost::posix_time::microsec_clock::universal_time();
 }
 
 
@@ -374,8 +353,8 @@ void Traceroute::sendRequests()
 
 void Traceroute::scheduleTimeout()
 {
-   const unsigned int deviation = std::max(10U, Duration / 5);   // 20% deviation
-   const unsigned int duration  = Duration + (std::rand() % deviation);
+   const unsigned int deviation = std::max(10U, Expiration / 5);   // 20% deviation
+   const unsigned int duration  = Expiration + (std::rand() % deviation);
    TimeoutTimer.expires_at(boost::posix_time::microsec_clock::universal_time() + boost::posix_time::milliseconds(duration));
    TimeoutTimer.async_wait(boost::bind(&Traceroute::handleTimeout, this, _1));
 }
@@ -679,34 +658,41 @@ void Traceroute::recordResult(const boost::posix_time::ptime& receiveTime,
 }
 
 
+unsigned long long Traceroute::ptimeToMircoTime(const boost::posix_time::ptime t)
+{
+   static const boost::posix_time::ptime myEpoch(boost::gregorian::date(1976,9,29));
+   boost::posix_time::time_duration difference = t - myEpoch;
+   return(difference.ticks());
+}
+
+
 class Ping : public Traceroute
 {
    public:
    Ping(const boost::asio::ip::address&          sourceAddress,
         const std::set<boost::asio::ip::address> destinationAddressArray,
-        const unsigned int                       interval   =  1000,
+        const unsigned long long                 interval   =  1000,
         const unsigned int                       expiration = 10000,
         const unsigned int                       ttl        =    64);
    virtual ~Ping();
 
    protected:
    virtual void prepareRun();
+   virtual void scheduleTimeout();
    virtual void noMoreOutstandingRequests();
    virtual bool notReachedWithCurrentTTL();
    virtual void processResults();
    virtual void sendRequests();
 
-   const unsigned int Expiration;
 };
 
 
 Ping::Ping(const boost::asio::ip::address&          sourceAddress,
            const std::set<boost::asio::ip::address> destinationAddressArray,
-           const unsigned int                       interval,
+           const unsigned long long                 interval,
            const unsigned int                       expiration,
            const unsigned int                       ttl)
-   : Traceroute(sourceAddress, destinationAddressArray, interval, ttl, ttl, ttl),
-     Expiration(expiration)
+   : Traceroute(sourceAddress, destinationAddressArray, interval, expiration, ttl, ttl, ttl)
 {
 }
 
@@ -732,6 +718,15 @@ bool Ping::notReachedWithCurrentTTL()
 {
    // Nothing to do for Ping!
    return(false);
+}
+
+
+void Ping::scheduleTimeout()
+{
+   const unsigned long long deviation = std::max(10ULL, Interval / 5ULL);   // 20% deviation
+   const unsigned long long duration  = Interval + (std::rand() % deviation);
+   TimeoutTimer.expires_at(boost::posix_time::microsec_clock::universal_time() + boost::posix_time::milliseconds(duration));
+   TimeoutTimer.async_wait(boost::bind(&Ping::handleTimeout, this, _1));
 }
 
 
@@ -775,6 +770,28 @@ void Ping::sendRequests()
 }
 
 
+
+std::set<boost::asio::ip::address> sourceArray;
+std::set<boost::asio::ip::address> destinationArray;
+
+
+void addAddress(std::set<boost::asio::ip::address>& array,
+                const std::string&                  addressString)
+{
+   boost::system::error_code errorCode;
+   boost::asio::ip::address address = boost::asio::ip::address::from_string(addressString, errorCode);
+   if(errorCode != boost::system::errc::success) {
+      std::cerr << "ERROR: Bad address " << addressString << "!" << std::endl;
+      ::exit(1);
+   }
+   array.insert(address);
+}
+
+void signalHandler(const boost::system::error_code& error, int signal_number)
+{
+}
+
+
 int main(int argc, char** argv)
 {
    // ====== Initialize =====================================================
@@ -784,14 +801,15 @@ int main(int argc, char** argv)
    };
    ServiceType  serviceType               = TST_Traceroute;
 
-   unsigned int tracerouteDuration        = 3000;
-   unsigned int tracerouteInitialMaxTTL   = 6;
-   unsigned int tracerouteFinalMaxTTL     = 36;
-   unsigned int tracerouteIncrementMaxTTL = 6;
+   unsigned long long tracerouteInterval        = 10000;
+   unsigned int       tracerouteExpiration        = 3000;
+   unsigned int       tracerouteInitialMaxTTL   = 6;
+   unsigned int       tracerouteFinalMaxTTL     = 36;
+   unsigned int       tracerouteIncrementMaxTTL = 6;
 
-   unsigned int pingInterval              = 1000;
-   unsigned int pingExpiration            = 30000;
-   unsigned int pingTTL                   = 64;
+   unsigned long long pingInterval              = 1000;
+   unsigned int       pingExpiration            = 30000;
+   unsigned int       pingTTL                   = 64;
 
 
    // ====== Handle arguments ===============================================
@@ -808,8 +826,11 @@ int main(int argc, char** argv)
       else if(strcmp(argv[i], "-traceroute") == 0) {
          serviceType = TST_Traceroute;
       }
+      else if(strncmp(argv[i], "-tracerouteinterval=", 20) == 0) {
+         pingInterval = atol((const char*)&argv[i][20]);
+      }
       else if(strncmp(argv[i], "-tracerouteduration=", 20) == 0) {
-         tracerouteDuration = atol((const char*)&argv[i][20]);
+         tracerouteExpiration = atol((const char*)&argv[i][20]);
       }
       else if(strncmp(argv[i], "-tracerouteinitialmaxttl=", 25) == 0) {
          tracerouteInitialMaxTTL = atol((const char*)&argv[i][25]);
@@ -843,11 +864,12 @@ int main(int argc, char** argv)
    }
 
    std::srand(std::time(0));
-   tracerouteDuration        = std::min(std::max(1000U, tracerouteDuration),     60000U);
+   tracerouteInterval        = std::min(std::max(1000ULL, tracerouteInterval),   3600U*60000ULL);
+   tracerouteExpiration        = std::min(std::max(1000U, tracerouteExpiration),     60000U);
    tracerouteInitialMaxTTL   = std::min(std::max(1U, tracerouteInitialMaxTTL),   255U);
    tracerouteFinalMaxTTL     = std::min(std::max(1U, tracerouteFinalMaxTTL),     255U);
    tracerouteIncrementMaxTTL = std::min(std::max(1U, tracerouteIncrementMaxTTL), 255U);
-   pingInterval              = std::min(std::max(100U, pingInterval),            3600U*60000U);
+   pingInterval              = std::min(std::max(100ULL, pingInterval),          3600U*60000ULL);
    pingExpiration            = std::min(std::max(100U, pingExpiration),          3600U*60000U);
    pingTTL                   = std::min(std::max(1U, pingTTL),                   255U);
 
@@ -861,7 +883,8 @@ int main(int argc, char** argv)
        break;
       case TST_Traceroute:
          std::cout << "Traceroute Service:" << std:: endl
-               << "* Duration         = " << tracerouteDuration        << " ms" << std::endl
+               << "* Interval         = " << tracerouteInterval        << " ms" << std::endl
+               << "* Expiration       = " << tracerouteExpiration      << " ms" << std::endl
                << "* Initial MaxTTL   = " << tracerouteInitialMaxTTL   << std::endl
                << "* Final MaxTTL     = " << tracerouteFinalMaxTTL     << std::endl
                << "* Increment MaxTTL = " << tracerouteIncrementMaxTTL << std::endl
@@ -881,7 +904,7 @@ int main(int argc, char** argv)
            break;
           case TST_Traceroute:
              service = new Traceroute(*sourceIterator, destinationArray,
-                                      tracerouteDuration,
+                                      tracerouteInterval, tracerouteExpiration,
                                       tracerouteInitialMaxTTL, tracerouteFinalMaxTTL, tracerouteIncrementMaxTTL);
            break;
        }
