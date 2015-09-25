@@ -11,7 +11,7 @@
 //                       https://www.nntb.no
 // =================================================================
 //
-// NorNet High-Performance Trace Service
+// High-Performance Connectivity Tracer (HiPerConTracer)
 // Copyright (C) 2015 by Thomas Dreibholz
 //
 // This program is free software: you can redistribute it and/or modify
@@ -35,7 +35,9 @@
 #include <string.h>
 
 #include <set>
+#include <algorithm>
 
+#include "service.h"
 #include "traceroute.h"
 #include "ping.h"
 

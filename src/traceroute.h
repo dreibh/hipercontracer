@@ -11,7 +11,7 @@
 //                       https://www.nntb.no
 // =================================================================
 //
-// NorNet High-Performance Connectivity Tracer
+// High-Performance Connectivity Tracer (HiPerConTracer)
 // Copyright (C) 2015 by Thomas Dreibholz
 //
 // This program is free software: you can redistribute it and/or modify
@@ -33,6 +33,7 @@
 #define TRACEROUTE_H
 
 #include "service.h"
+#include "icmpheader.h"
 
 #include <boost/asio.hpp>
 #include <boost/thread.hpp>

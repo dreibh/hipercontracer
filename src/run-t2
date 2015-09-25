@@ -1,7 +1,7 @@
 #!/bin/sh
 
-make && \
-sudo ./traceservice \
+make -j8 && \
+sudo ./hipercontracer \
    -source=10.1.1.51 \
    -destination=10.1.1.3 \
    -traceroute \

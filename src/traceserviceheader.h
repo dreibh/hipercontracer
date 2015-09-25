@@ -1,4 +1,17 @@
-// NorNet Trace Service
+// =================================================================
+//          #     #                 #     #
+//          ##    #   ####   #####  ##    #  ######   #####
+//          # #   #  #    #  #    # # #   #  #          #
+//          #  #  #  #    #  #    # #  #  #  #####      #
+//          #   # #  #    #  #####  #   # #  #          #
+//          #    ##  #    #  #   #  #    ##  #          #
+//          #     #   ####   #    # #     #  ######     #
+//
+//       ---   The NorNet Testbed for Multi-Homed Systems  ---
+//                       https://www.nntb.no
+// =================================================================
+//
+// High-Performance Connectivity Tracer (HiPerConTracer)
 // Copyright (C) 2015 by Thomas Dreibholz
 //
 // This program is free software: you can redistribute it and/or modify

@@ -1,5 +1,5 @@
 #!/bin/sh
 
 ./bootstrap && \
-./configure --with-geoip $@ && \
+./configure --enable-colorgcc $@ && \
 ( gmake || make )
