@@ -37,6 +37,8 @@
 #include <set>
 #include <algorithm>
 
+#include <boost/asio/basic_signal_set.hpp>
+
 #include "service.h"
 #include "traceroute.h"
 #include "ping.h"
