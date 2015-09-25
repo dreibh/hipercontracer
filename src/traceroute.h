@@ -160,6 +160,9 @@ class Traceroute : virtual public Service
    boost::posix_time::ptime              RunStartTimeStamp;
 
    std::set<boost::asio::ip::address>::iterator DestinationAddressIterator;
+
+   private:
+   static int compareTracerouteResults(const ResultEntry* a, const ResultEntry* b);
 };
 
 #endif

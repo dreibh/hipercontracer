@@ -94,7 +94,7 @@ Traceroute::Traceroute(const boost::asio::ip::address&          sourceAddress,
    MaxTTL              = InitialMaxTTL;
 
    // ====== Prepare destination endpoints ==================================
-   for(auto destinationIterator = destinationAddressArray.begin();
+   for(std::set<boost::asio::ip::address>::const_iterator destinationIterator = destinationAddressArray.begin();
        destinationIterator != destinationAddressArray.end(); destinationIterator++) {
       const boost::asio::ip::address& destinationAddress = *destinationIterator;
       if(destinationAddress.is_v6() == sourceAddress.is_v6()) {
@@ -226,7 +226,7 @@ void Traceroute::noMoreOutstandingRequests()
 
 unsigned int Traceroute::getInitialTTL(const boost::asio::ip::address& destinationAddress) const
 {
-   auto found = TTLCache.find(destinationAddress);
+   const std::map<boost::asio::ip::address, unsigned int>::const_iterator found = TTLCache.find(destinationAddress);
    if(found != TTLCache.end()) {
       return(std::min(found->second, FinalMaxTTL));
    }
@@ -270,8 +270,8 @@ void Traceroute::sendICMPRequest(const boost::asio::ip::address& destinationAddr
       // ====== Record the request ==========================
       OutstandingRequests++;
 
-      ResultEntry resultEntry(SeqNumber, ttl, destinationAddress, HopStatus::Unknown, sendTime);
-      auto result = ResultsMap.insert(std::pair<unsigned short, ResultEntry>(SeqNumber,resultEntry));
+      ResultEntry resultEntry(SeqNumber, ttl, destinationAddress, Unknown, sendTime);
+      std::pair<std::map<unsigned short, ResultEntry>::iterator, bool> result = ResultsMap.insert(std::pair<unsigned short, ResultEntry>(SeqNumber,resultEntry));
       assert(result.second == true);
    }
 }
@@ -301,20 +301,24 @@ bool Traceroute::notReachedWithCurrentTTL()
 }
 
 
+int Traceroute::compareTracerouteResults(const ResultEntry* a, const ResultEntry* b)
+{
+  return(a->hop() < b->hop());
+}
+
+
 void Traceroute::processResults()
 {
    std::vector<ResultEntry*> resultsVector;
-   for(auto iterator = ResultsMap.begin(); iterator != ResultsMap.end(); iterator++) {
+   for(std::map<unsigned short, ResultEntry>::iterator iterator = ResultsMap.begin(); iterator != ResultsMap.end(); iterator++) {
       resultsVector.push_back(&iterator->second);
    }
-   std::sort(resultsVector.begin(), resultsVector.end(), [](ResultEntry* a, ResultEntry* b) {
-        return(a->hop() < b->hop());
-   });
+   std::sort(resultsVector.begin(), resultsVector.end(), &compareTracerouteResults);
 
-   for(auto iterator = resultsVector.begin(); iterator != resultsVector.end(); iterator++) {
+   for(std::vector<ResultEntry*>::iterator iterator = resultsVector.begin(); iterator != resultsVector.end(); iterator++) {
       ResultEntry* resultEntry = *iterator;
       std::cout << *resultEntry << std::endl;
-      if(resultEntry->status() == HopStatus::Success) {
+      if(resultEntry->status() == Success) {
          break;
       }
    }
@@ -437,64 +441,64 @@ void Traceroute::recordResult(const boost::posix_time::ptime& receiveTime,
    ResultEntry& resultEntry = found->second;
 
    // ====== Get status =====================================================
-   if(resultEntry.status() == HopStatus::Unknown) {
+   if(resultEntry.status() == Unknown) {
       resultEntry.receiveTime(receiveTime);
       resultEntry.address(ReplyEndpoint.address());
 
-      HopStatus status = HopStatus::Unknown;
+      HopStatus status = Unknown;
       if( (icmpHeader.type() == ICMPHeader::IPv6TimeExceeded) ||
           (icmpHeader.type() == ICMPHeader::IPv4TimeExceeded) ) {
-         status = HopStatus::TimeExceeded;
+         status = TimeExceeded;
       }
       else if( (icmpHeader.type() == ICMPHeader::IPv6Unreachable) ||
                (icmpHeader.type() == ICMPHeader::IPv4Unreachable) ) {
          if(isIPv6()) {
             switch(icmpHeader.code()) {
                case ICMP6_DST_UNREACH_ADMIN:
-                  status = HopStatus::UnreachableProhibited;
+                  status = UnreachableProhibited;
                break;
                case ICMP6_DST_UNREACH_BEYONDSCOPE:
-                  status = HopStatus::UnreachableScope;
+                  status = UnreachableScope;
                break;
                case ICMP6_DST_UNREACH_NOROUTE:
-                  status = HopStatus::UnreachableNetwork;
+                  status = UnreachableNetwork;
                break;
                case ICMP6_DST_UNREACH_ADDR:
-                  status = HopStatus::UnreachableHost;
+                  status = UnreachableHost;
                break;
                case ICMP6_DST_UNREACH_NOPORT:
-                  status = HopStatus::UnreachablePort;
+                  status = UnreachablePort;
                break;
                default:
-                  status = HopStatus::UnreachableUnknown;
+                  status = UnreachableUnknown;
                break;
             }
          }
          else {
             switch(icmpHeader.code()) {
                case ICMP_PKT_FILTERED:
-                  status = HopStatus::UnreachableProhibited;
+                  status = UnreachableProhibited;
                break;
                case ICMP_NET_UNREACH:
                case ICMP_NET_UNKNOWN:
-                  status = HopStatus::UnreachableNetwork;
+                  status = UnreachableNetwork;
                break;
                case ICMP_HOST_UNREACH:
                case ICMP_HOST_UNKNOWN:
-                  status = HopStatus::UnreachableHost;
+                  status = UnreachableHost;
                break;
                case ICMP_PORT_UNREACH:
-                  status = HopStatus::UnreachablePort;
+                  status = UnreachablePort;
                break;
                default:
-                  status = HopStatus::UnreachableUnknown;
+                  status = UnreachableUnknown;
                break;
             }
          }
       }
       else if( (icmpHeader.type() == ICMPHeader::IPv6EchoReply) ||
                (icmpHeader.type() == ICMPHeader::IPv4EchoReply) ) {
-         status  = HopStatus::Success;
+         status  = Success;
          LastHop = std::min(LastHop, resultEntry.hop());
       }
       resultEntry.status(status);

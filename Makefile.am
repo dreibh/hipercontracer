@@ -1,3 +1,3 @@
 SUBDIRS = src
 
-EXTRA_DIST = AUTHORS BUGS COPYING ChangeLog INSTALL NEWS README bootstrap traceservice.lsm
+EXTRA_DIST = AUTHORS BUGS COPYING ChangeLog INSTALL NEWS README bootstrap hipercontracer.lsm

@@ -75,25 +75,29 @@ void Ping::scheduleTimeout()
 }
 
 
+int Ping::comparePingResults(const ResultEntry* a, const ResultEntry* b)
+{
+   return(a->address() < b->address());
+}
+
+
 void Ping::processResults()
 {
    std::vector<ResultEntry*> resultsVector;
-   for(auto iterator = ResultsMap.begin(); iterator != ResultsMap.end(); iterator++) {
+   for(std::map<unsigned short, ResultEntry>::iterator iterator = ResultsMap.begin(); iterator != ResultsMap.end(); iterator++) {
       resultsVector.push_back(&iterator->second);
    }
-   std::sort(resultsVector.begin(), resultsVector.end(), [](ResultEntry* a, ResultEntry* b) {
-        return(a->address() < b->address());
-   });
+   std::sort(resultsVector.begin(), resultsVector.end(), &comparePingResults);
 
    const boost::posix_time::ptime now = boost::posix_time::microsec_clock::universal_time();
-   for(auto iterator = resultsVector.begin(); iterator != resultsVector.end(); iterator++) {
+   for(std::vector<ResultEntry*>::iterator iterator = resultsVector.begin(); iterator != resultsVector.end(); iterator++) {
       ResultEntry* resultEntry = *iterator;
       std::cout << *resultEntry << std::endl;
 
-      if( (resultEntry->status() != HopStatus::Unknown) ||
+      if( (resultEntry->status() != Unknown) ||
           ((now - resultEntry->sendTime()).total_milliseconds() >= Expiration) ) {
          assert(ResultsMap.erase(resultEntry->seqNumber()) == 1);
-         if(resultEntry->status() == HopStatus::Unknown) {
+         if(resultEntry->status() == Unknown) {
             if(OutstandingRequests > 0) {
                OutstandingRequests--;
             }
@@ -105,7 +109,7 @@ void Ping::processResults()
 
 void Ping::sendRequests()
 {
-   for(auto destinationIterator = DestinationAddressArray.begin();
+   for(std::set<boost::asio::ip::address>::const_iterator destinationIterator = DestinationAddressArray.begin();
        destinationIterator != DestinationAddressArray.end(); destinationIterator++) {
       const boost::asio::ip::address& destinationAddress = *destinationIterator;
       sendICMPRequest(destinationAddress, FinalMaxTTL);

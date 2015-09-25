@@ -4,12 +4,12 @@ Priority: optional
 Maintainer: Thomas Dreibholz <dreibh@simula.no>
 Homepage: https://www.nntb.no
 Build-Depends: debhelper (>= 7.0.50~),
-               libfile-fcntllock-perl,
-               python (>= 2.7),
-               python-support,
                libboost-date-time-dev,
                libboost-system-dev,
-               libboost-thread-dev
+               libboost-thread-dev,
+               libfile-fcntllock-perl,
+               python (>= 2.7),
+               python-support
 Standards-Version: 3.9.6
 
 Package: hipercontracer
@@ -17,7 +17,6 @@ Architecture: any
 Depends: ${misc:Depends},
          ${python:Depends},
          ${shlibs:Depends}
-Description: High-Performance Connectivity Tracer (HiPerConTracer)
- Trace Service is a ping/traceroute service for the NorNet testbed.
- It performs regular ping and traceroute runs among sites and can
- export the results into an SQL database.
+Description: High-Performance Connectivity Tracer (HiPerConTracer)is a
+ ping/traceroute service. It performs regular ping and traceroute runs
+ among sites and can export the results into an SQL database.

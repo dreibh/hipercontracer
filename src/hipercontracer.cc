@@ -167,7 +167,7 @@ int main(int argc, char** argv)
 
    // ====== Start service threads ==========================================
    std::set<Service*> serviceSet;
-   for(auto sourceIterator = sourceArray.begin(); sourceIterator != sourceArray.end(); sourceIterator++) {
+   for(std::set<boost::asio::ip::address>::iterator sourceIterator = sourceArray.begin(); sourceIterator != sourceArray.end(); sourceIterator++) {
        Service* service = NULL;
        switch(serviceType) {
           case TST_Ping:
@@ -197,12 +197,12 @@ int main(int argc, char** argv)
 
 
    // ====== Shut down service threads ======================================
-   for(auto iterator = serviceSet.begin(); iterator != serviceSet.end(); iterator++) {
-      Service* service = *iterator;
+   for(std::set<Service*>::iterator serviceIterator = serviceSet.begin(); serviceIterator != serviceSet.end(); serviceIterator++) {
+      Service* service = *serviceIterator;
       service->requestStop();
    }
-   for(auto iterator = serviceSet.begin(); iterator != serviceSet.end(); iterator++) {
-      Service* service = *iterator;
+   for(std::set<Service*>::iterator serviceIterator = serviceSet.begin(); serviceIterator != serviceSet.end(); serviceIterator++) {
+      Service* service = *serviceIterator;
       service->join();
    }
 }

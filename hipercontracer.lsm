@@ -1,0 +1,17 @@
+Begin4
+Title:          hipercontracer
+Version:        0.0.0
+Entered-date:   2015-09-25
+Description:    High-Performance Connectivity Tracer (HiPerConTracer) is a
+                ping/traceroute service. It performs regular ping and
+                traceroute runs among sites and can export the results into
+                an SQL database.
+Keywords:       IPv4, IPv6, Address, Subnet
+Author:         dreibh@simula.no (Thomas Dreibholz)
+Maintained-by:  dreibh@simula.no (Thomas Dreibholz)
+Primary-site:   http://www.iem.uni-due.de/~dreibh/hipercontracer
+                0 kB download/hipercontracer-0.0.0.tar.gz
+Original-site:  http://www.iem.uni-due.de/~dreibh/hipercontracer
+Platforms:      Linux, FreeBSD, MacOS, Solaris
+Copying-policy: GPL
+End

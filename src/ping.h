@@ -52,6 +52,8 @@ class Ping : public Traceroute
    virtual void processResults();
    virtual void sendRequests();
 
+   private:
+   static int comparePingResults(const ResultEntry* a, const ResultEntry* b);
 };
 
 #endif
