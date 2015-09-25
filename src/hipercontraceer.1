@@ -1,0 +1,87 @@
+.\" $Id: subnetcalc.1 1966 2015-03-01 10:42:18Z dreibh $
+.\"
+.\" IPv4/IPv6 Subnet Calculator
+.\" Copyright (C) 2002-2015 by Thomas Dreibholz
+.\"
+.\" This program is free software: you can redistribute it and/or modify
+.\" it under the terms of the GNU General Public License as published by
+.\" the Free Software Foundation, either version 3 of the License, or
+.\" (at your option) any later version.
+.\"
+.\" This program is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\" GNU General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU General Public License
+.\" along with this program.  If not, see <http://www.gnu.org/licenses/>.
+.\"
+.\" Contact: dreibh@iem.uni-due.de
+.\"
+.\" ###### Setup ############################################################
+.Dd July 24, 2014
+.Dt subnetcalc 1
+.Os subnetcalc
+.\" ###### Name #############################################################
+.Sh NAME
+.Nm subnetcalc
+.Nd IPv4/IPv6 Subnet Calculator
+.\" ###### Synopsis #########################################################
+.Sh SYNOPSIS
+.Nm subnetcalc
+.Op Address
+.Op Netmask/Prefix
+.Op Fl n
+.Op Fl uniquelocal
+.Op Fl uniquelocalhq
+.Op Fl nocolour|\-nocolor
+.\" ###### Description ######################################################
+.Sh DESCRIPTION
+.Nm subnetcalc
+is an IPv4/IPv6 subnet address calculator. For given IPv4 or IPv6 address and netmask or prefix length, it calculates network address, broadcast address, maximum number of hosts and host address range. Also, it prints the addresses in binary format for better understandability. Furthermore, it prints useful information on specific address types (e.g. type, scope, interface ID, etc.).
+.Pp
+.\" ###### Arguments ########################################################
+.Sh ARGUMENTS
+The following arguments have to be provided:
+.Bl -tag -width indent
+.It Address
+The IP address. If a hostname is provided here, it is tried to resolve the address by a DNS server and the first returned address is used. Internationalized Domain Names (IDN) are supported.
+.It Netmask/Prefix
+The netmask or prefix length (0-32 for IPv4; 0-128 for IPv6).
+.It Fl n
+Skip trying a reverse DNS lookup.
+.It Fl uniquelocal
+Given an IPv6 address, the first 48 bits of the address are replaced by a randomly chosen IPv6 Unique Local prefix in fc00::/7 (see also RFC 4193). Under Linux, /dev/urandom is used for random number generation.
+.It Fl uniquelocalhq
+Like \-uniquelocal, but using /dev/random instead on Linux systems for highest-quality random number generation. On other systems, this option is equal to \-uniquelocal. Note, that reading from /dev/random may take some time. You can speed up this process by delivering random input e.g. by pressing keys or moving the mouse.
+.It Fl nocolour|\-nocolor
+Turns colourised output off.
+.El
+.\" ###### Arguments ########################################################
+.Sh EXAMPLES
+.Bl -tag -width indent
+.It subnetcalc 132.252.250.0 255.255.255.0
+.It subnetcalc 132.252.250.0/255.255.255.0 -nocolor
+.It subnetcalc 132.252.250.0 24
+.It subnetcalc 132.252.250.0/24 -nocolour
+.It subnetcalc fec0:2345:6789:1111:221:6aff:fe0b:2674 56
+.It subnetcalc 2a00:1450:8007::69 64
+.It subnetcalc ff08::1:2:3
+.It subnetcalc 131.220.6.5/24
+.It subnetcalc 132.252.181.87 \-n
+.It subnetcalc www.iem.uni-due.de 24
+.It subnetcalc www.six.heise.de
+.It subnetcalc fd00:: 64 \-uniquelocal
+.It subnetcalc fd00::9876:256:7bff:fe1b:3255 56 \-uniquelocalhq
+.It subnetcalc düsseldorf.de 28
+.It subnetcalc www.köln.de
+.It subnetcalc räksmörgås.josefsson.org 24
+.El
+.\" ###### Authors ##########################################################
+.Sh AUTHORS
+Thomas Dreibholz
+.br
+http://www.iem.uni-due.de/~dreibh/subnetcalc
+.br
+mailto://dreibh@iem.uni-due.de
+.br
