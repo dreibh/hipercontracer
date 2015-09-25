@@ -77,10 +77,10 @@ int main(int argc, char** argv)
       TST_Ping       = 1,
       TST_Traceroute = 2
    };
-   ServiceType  serviceType               = TST_Traceroute;
+   ServiceType        serviceType               = TST_Traceroute;
 
    unsigned long long tracerouteInterval        = 10000;
-   unsigned int       tracerouteExpiration        = 3000;
+   unsigned int       tracerouteExpiration      = 3000;
    unsigned int       tracerouteInitialMaxTTL   = 6;
    unsigned int       tracerouteFinalMaxTTL     = 36;
    unsigned int       tracerouteIncrementMaxTTL = 6;
