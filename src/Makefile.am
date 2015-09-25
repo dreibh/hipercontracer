@@ -12,4 +12,6 @@ ping.cc \
 ping.h
 hipercontracer_LDADD = -lboost_system -lboost_thread -lboost_date_time -lpthread
 
-dist_man_MANS = hipercontracer.1
+EXTRA_DIST = tracedataimporter trace-configuration
+
+dist_man_MANS = hipercontracer.1 tracedataimporter.1
