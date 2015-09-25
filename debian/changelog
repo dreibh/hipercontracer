@@ -1,4 +1,4 @@
-nornet-trace-service (0.0.0~alpha0.0-1ubuntu1) precise; urgency=low
+trace-service (0.0.0~alpha0.0-1ubuntu1) precise; urgency=low
 
   * Initial package version.
 
