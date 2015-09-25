@@ -1,0 +1,89 @@
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
+#
+#  =================================================================
+#           #     #                 #     #
+#           ##    #   ####   #####  ##    #  ######   #####
+#           # #   #  #    #  #    # # #   #  #          #
+#           #  #  #  #    #  #    # #  #  #  #####      #
+#           #   # #  #    #  #####  #   # #  #          #
+#           #    ##  #    #  #   #  #    ##  #          #
+#           #     #   ####   #    # #     #  ######     #
+#
+#        ---   The NorNet Testbed for Multi-Homed Systems  ---
+#                        https://www.nntb.no
+#  =================================================================
+#
+#  High-Performance Connectivity Tracer (HiPerConTracer)
+#  Copyright (C) 2015 by Thomas Dreibholz
+#
+#  This program is free software: you can redistribute it and/or modify
+#  it under the terms of the GNU General Public License as published by
+#  the Free Software Foundation, either version 3 of the License, or
+#  (at your option) any later version.
+#
+#  This program is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
+#
+#  You should have received a copy of the GNU General Public License
+#  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+#  Contact: dreibh@simula.no
+
+import psycopg2;
+import time;
+import os;
+import re;
+import sys;
+import datetime;
+import subprocess;
+import ConfigParser;
+import StringIO;
+import shutil;
+
+
+# ###### Main program #######################################################
+if len(sys.argv) < 1:
+   error('Usage: ' + sys.argv[0] + ' configuration')
+
+configFileName  = sys.argv[1]
+resultFilePath  = None
+badFilePath     = None
+dbServer        = 'localhost'
+dbPort          = 5432
+dbUser          = None
+dbPassword      = None
+tablePing       = 'Ping'
+tableTraceroute = 'Traceroute'
+
+
+parsedConfigFile = ConfigParser.RawConfigParser()
+parsedConfigFile.optionxform = str   # Make it case-sensitive!
+try:
+   parsedConfigFile.readfp(StringIO.StringIO('[root]\n' + open(configFileName, 'r').read()))
+except:
+    error("I am not be able to connect to the database!")
+    sys.exit(1)
+
+for parameterName in parsedConfigFile.options('root'):
+   parameterValue = parsedConfigFile.get('root', parameterName)
+   if parameterName == 'result_file_path':
+      resultFilePath = parameterValue
+   elif parameterName == 'bad_file_path':
+      badFilePath = parameterValue
+   elif parameterName == 'dbserver':
+      dbServer = parameterValue
+   elif parameterName == 'dbport':
+      dbPort = parameterValue
+   elif parameterName == 'dbuser':
+      dbUser = parameterValue
+   elif parameterName == 'dbpassword':
+      dbPassword = parameterValue
+   elif parameterName == 'table_ping':
+      tablePing = parameterValue
+   elif parameterName == 'table_traceroute':
+      tableTraceroute = parameterValue
+   else:
+      error('Unknown parameter ' + parameterName + ' in ' + conf_path)

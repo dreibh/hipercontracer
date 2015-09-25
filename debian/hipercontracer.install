@@ -1,2 +1,2 @@
-src/tracedataimporter   /usr/bin
-src/traceservice        /usr/bin
+src/tracedataimporter /usr/bin
+src/hipercontracer    /usr/bin
