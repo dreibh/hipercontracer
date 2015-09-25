@@ -4,9 +4,9 @@ Priority: optional
 Maintainer: Thomas Dreibholz <dreibh@simula.no>
 Homepage: https://www.nntb.no
 Build-Depends: debhelper (>= 7.0.50~),
-               libboost-date-time-dev,
-               libboost-system-dev,
-               libboost-thread-dev,
+               libboost-date-time1.48-dev | libboost-date-time-dev (>= 1.48.0),
+               libboost-system1.48-dev | libboost-system-dev (>= 1.48.0),
+               libboost-thread1.48-dev | libboost-thread-dev (>= 1.48.0),
                libfile-fcntllock-perl,
                python (>= 2.7),
                python-support
@@ -17,6 +17,6 @@ Architecture: any
 Depends: ${misc:Depends},
          ${python:Depends},
          ${shlibs:Depends}
-Description: High-Performance Connectivity Tracer (HiPerConTracer)is a
+Description: High-Performance Connectivity Tracer (HiPerConTracer) is a
  ping/traceroute service. It performs regular ping and traceroute runs
  among sites and can export the results into an SQL database.
