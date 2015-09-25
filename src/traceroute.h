@@ -130,7 +130,7 @@ class Traceroute : virtual public Service
    void recordResult(const boost::posix_time::ptime& receiveTime,
                      const ICMPHeader&               icmpHeader,
                      const unsigned short            seqNumber);
-   unsigned int getInitialTTL(const boost::asio::ip::address& destinationAddress) const;
+   unsigned int getInitialMaxTTL(const boost::asio::ip::address& destinationAddress) const;
    static unsigned long long ptimeToMircoTime(const boost::posix_time::ptime t);
 
    const unsigned long long              Interval;

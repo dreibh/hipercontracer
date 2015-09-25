@@ -32,6 +32,7 @@
 #include "ping.h"
 
 
+// ###### Constructor #######################################################
 Ping::Ping(const boost::asio::ip::address&          sourceAddress,
            const std::set<boost::asio::ip::address> destinationAddressArray,
            const unsigned long long                 interval,
@@ -42,23 +43,27 @@ Ping::Ping(const boost::asio::ip::address&          sourceAddress,
 }
 
 
+// ###### Destructor ########################################################
 Ping::~Ping()
 {
 }
 
 
+// ###### All requests have received a response #############################
 void Ping::noMoreOutstandingRequests()
 {
    // Nothing to do for Ping!
 }
 
 
+// ###### Prepare a new run #################################################
 void Ping::prepareRun()
 {
    // Nothing to do for Ping!
 }
 
 
+// ###### The destination has not been reached with the current TTL #########
 bool Ping::notReachedWithCurrentTTL()
 {
    // Nothing to do for Ping!
@@ -66,6 +71,7 @@ bool Ping::notReachedWithCurrentTTL()
 }
 
 
+// ###### Schedule timer ####################################################
 void Ping::scheduleTimeout()
 {
    const unsigned long long deviation = std::max(10ULL, Interval / 5ULL);   // 20% deviation
@@ -75,12 +81,14 @@ void Ping::scheduleTimeout()
 }
 
 
+// ###### Comparison function for results output ############################
 int Ping::comparePingResults(const ResultEntry* a, const ResultEntry* b)
 {
    return(a->address() < b->address());
 }
 
 
+// ###### Process results ###################################################
 void Ping::processResults()
 {
    std::vector<ResultEntry*> resultsVector;
@@ -107,6 +115,7 @@ void Ping::processResults()
 }
 
 
+// ###### Send requests to all destinations #################################
 void Ping::sendRequests()
 {
    for(std::set<boost::asio::ip::address>::const_iterator destinationIterator = DestinationAddressArray.begin();

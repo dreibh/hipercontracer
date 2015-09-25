@@ -44,12 +44,13 @@
 #include "ping.h"
 
 
-std::set<boost::asio::ip::address> sourceArray;
-std::set<boost::asio::ip::address> destinationArray;
+static std::set<boost::asio::ip::address> sourceArray;
+static std::set<boost::asio::ip::address> destinationArray;
 
 
-void addAddress(std::set<boost::asio::ip::address>& array,
-                const std::string&                  addressString)
+// ###### Add address to set ################################################
+static void addAddress(std::set<boost::asio::ip::address>& array,
+                       const std::string&                  addressString)
 {
    boost::system::error_code errorCode;
    boost::asio::ip::address address = boost::asio::ip::address::from_string(addressString, errorCode);
@@ -61,11 +62,14 @@ void addAddress(std::set<boost::asio::ip::address>& array,
 }
 
 
+// ###### Signal handler ####################################################
 void signalHandler(const boost::system::error_code& error, int signal_number)
 {
+   // Nothing to do here!
 }
 
 
+// ###### Main program ######################################################
 int main(int argc, char** argv)
 {
    // ====== Initialize =====================================================
@@ -207,4 +211,6 @@ int main(int argc, char** argv)
       Service* service = *serviceIterator;
       service->join();
    }
+
+   return(0);
 }

@@ -40,6 +40,7 @@
 #include <boost/interprocess/streams/bufferstream.hpp>
 
 
+// ###### Constructor #######################################################
 ResultEntry::ResultEntry(const unsigned short           seqNumber,
                          const unsigned int             hop,
                          boost::asio::ip::address       address,
@@ -54,6 +55,7 @@ ResultEntry::ResultEntry(const unsigned short           seqNumber,
 }
 
 
+// ###### Output operator ###################################################
 std::ostream& operator<<(std::ostream& os, const ResultEntry& resultEntry)
 {
    os << boost::format("#%5d")            % resultEntry.SeqNumber
@@ -65,6 +67,7 @@ std::ostream& operator<<(std::ostream& os, const ResultEntry& resultEntry)
 }
 
 
+// ###### Constructor #######################################################
 Traceroute::Traceroute(const boost::asio::ip::address&          sourceAddress,
                        const std::set<boost::asio::ip::address> destinationAddressArray,
                        const unsigned long long                 interval,
@@ -105,11 +108,13 @@ Traceroute::Traceroute(const boost::asio::ip::address&          sourceAddress,
 }
 
 
+// ###### Destructor ########################################################
 Traceroute::~Traceroute()
 {
 }
 
 
+// ###### Start thread ######################################################
 bool Traceroute::start()
 {
    StopRequested = false;
@@ -118,11 +123,13 @@ bool Traceroute::start()
 }
 
 
+// ###### Request stop of thread ############################################
 void Traceroute::requestStop() {
    StopRequested = true;
 }
 
 
+// ###### Join thread #######################################################
 void Traceroute::join()
 {
    Thread.join();
@@ -130,6 +137,7 @@ void Traceroute::join()
 }
 
 
+// ###### Prepare ICMP socket ###############################################
 bool Traceroute::prepareSocket()
 {
    // ====== Bind ICMP socket to given source address =======================
@@ -158,6 +166,7 @@ bool Traceroute::prepareSocket()
 }
 
 
+// ###### Prepare a new run #################################################
 void Traceroute::prepareRun()
 {
    // ====== Get next destination address ===================================
@@ -172,13 +181,14 @@ void Traceroute::prepareRun()
    // ====== Clear results ==================================================
    ResultsMap.clear();
    MinTTL              = 1;
-   MaxTTL              = (DestinationAddressIterator != DestinationAddressArray.end()) ? getInitialTTL(*DestinationAddressIterator) : InitialMaxTTL;
+   MaxTTL              = (DestinationAddressIterator != DestinationAddressArray.end()) ? getInitialMaxTTL(*DestinationAddressIterator) : InitialMaxTTL;
    LastHop             = 0xffffffff;
    OutstandingRequests = 0;
    RunStartTimeStamp   = boost::posix_time::microsec_clock::universal_time();
 }
 
 
+// ###### Send requests to all destinations #################################
 void Traceroute::sendRequests()
 {
    if(DestinationAddressIterator != DestinationAddressArray.end()) {
@@ -187,7 +197,7 @@ void Traceroute::sendRequests()
       std::cout << "Traceroute from " << SourceAddress
                 << " to " << destinationAddress << " ... " << std::endl;
 
-      // ====== Send Echo Requests =============================================
+      // ====== Send Echo Requests ==========================================
       assert(MinTTL > 0);
       for(int ttl = (int)MaxTTL; ttl >= (int)MinTTL; ttl--) {
          sendICMPRequest(destinationAddress, (unsigned int)ttl);
@@ -198,6 +208,7 @@ void Traceroute::sendRequests()
 }
 
 
+// ###### Schedule timer ####################################################
 void Traceroute::scheduleTimeout()
 {
    const unsigned int deviation = std::max(10U, Expiration / 5);   // 20% deviation
@@ -207,6 +218,7 @@ void Traceroute::scheduleTimeout()
 }
 
 
+// ###### Expect next ICMP message ##########################################
 void Traceroute::expectNextReply()
 {
    assert(ExpectingReply == false);
@@ -217,6 +229,7 @@ void Traceroute::expectNextReply()
 }
 
 
+// ###### All requests have received a response #############################
 void Traceroute::noMoreOutstandingRequests()
 {
    puts("COMPLETED!");
@@ -224,7 +237,8 @@ void Traceroute::noMoreOutstandingRequests()
 }
 
 
-unsigned int Traceroute::getInitialTTL(const boost::asio::ip::address& destinationAddress) const
+// ###### Get value for initial MaxTTL ######################################
+unsigned int Traceroute::getInitialMaxTTL(const boost::asio::ip::address& destinationAddress) const
 {
    const std::map<boost::asio::ip::address, unsigned int>::const_iterator found = TTLCache.find(destinationAddress);
    if(found != TTLCache.end()) {
@@ -234,6 +248,7 @@ unsigned int Traceroute::getInitialTTL(const boost::asio::ip::address& destinati
 }
 
 
+// ###### Send one ICMP request to given destination ########################
 void Traceroute::sendICMPRequest(const boost::asio::ip::address& destinationAddress,
                                  const unsigned int              ttl)
 {
@@ -277,9 +292,11 @@ void Traceroute::sendICMPRequest(const boost::asio::ip::address& destinationAddr
 }
 
 
+// ###### Run the measurement ###############################################
 void Traceroute::run()
 {
-   Identifier = ::getpid();
+   Identifier = ::getpid();   // Identifier is the process ID
+   // NOTE: Assuming 16-bit PID, and one PID per thread!
 
    prepareRun();
    sendRequests();
@@ -289,6 +306,7 @@ void Traceroute::run()
 }
 
 
+// ###### The destination has not been reached with the current TTL #########
 bool Traceroute::notReachedWithCurrentTTL()
 {
    if(MaxTTL < FinalMaxTTL) {
@@ -301,12 +319,14 @@ bool Traceroute::notReachedWithCurrentTTL()
 }
 
 
+// ###### Comparison function for results output ############################
 int Traceroute::compareTracerouteResults(const ResultEntry* a, const ResultEntry* b)
 {
   return(a->hop() < b->hop());
 }
 
 
+// ###### Process results ###################################################
 void Traceroute::processResults()
 {
    std::vector<ResultEntry*> resultsVector;
@@ -325,6 +345,7 @@ void Traceroute::processResults()
 }
 
 
+// ###### Handle timer event ################################################
 void Traceroute::handleTimeout(const boost::system::error_code& errorCode)
 {
    // ====== Stop requested? ================================================
@@ -352,6 +373,7 @@ void Traceroute::handleTimeout(const boost::system::error_code& errorCode)
 }
 
 
+// ###### Handle incoming ICMP message ######################################
 void Traceroute::handleMessage(std::size_t length)
 {
    const boost::posix_time::ptime receiveTime = boost::posix_time::microsec_clock::universal_time();
@@ -429,6 +451,7 @@ void Traceroute::handleMessage(std::size_t length)
 }
 
 
+// ###### Record result from response message ###############################
 void Traceroute::recordResult(const boost::posix_time::ptime& receiveTime,
                               const ICMPHeader&               icmpHeader,
                               const unsigned short            seqNumber)
@@ -509,6 +532,7 @@ void Traceroute::recordResult(const boost::posix_time::ptime& receiveTime,
 }
 
 
+// ###### Convert ptime to microseconds #####################################
 unsigned long long Traceroute::ptimeToMircoTime(const boost::posix_time::ptime t)
 {
    static const boost::posix_time::ptime myEpoch(boost::gregorian::date(1976,9,29));
