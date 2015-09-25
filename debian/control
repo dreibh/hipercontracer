@@ -1,0 +1,24 @@
+Source: nornet-trace-service
+Section: net
+Priority: optional
+Maintainer: Thomas Dreibholz <dreibh@iem.uni-due.de>
+Homepage: https://www.nntb.no
+Build-Depends: debhelper (>= 7.0.50~),
+               libfile-fcntllock-perl,
+               python (>= 2.7),
+               python-support
+Standards-Version: 3.9.6
+
+Package: nornet-trace-service
+Architecture: any
+Depends: nornet-api,
+         python-ipaddr,
+         python-psycopg2,
+         traceroute,
+         ${misc:Depends},
+         ${python:Depends},
+         ${shlibs:Depends}
+Description: NorNet Trace Service
+ NorNet Trace Service is the traceroute service for the NorNet testbed.
+ It performs regular traceroute/traceroute6 runs among all sites and
+ imports the results into an SQL database.
