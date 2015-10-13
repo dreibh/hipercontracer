@@ -1,3 +1,7 @@
+-- STEP 2: Create Schema
+-- sudo -u postgres psql pingtraceroutedb <schema.sql
+--
+--
 -- =================================================================
 --          #     #                 #     #
 --          ##    #   ####   #####  ##    #  ######   #####
