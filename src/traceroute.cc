@@ -283,7 +283,7 @@ void Traceroute::sendICMPRequest(const boost::asio::ip::address& destinationAddr
    // ====== Send the request ===============================
    const size_t sent = ICMPSocket.send_to(request_buffer.data(), boost::asio::ip::icmp::endpoint(destinationAddress, 0));
    if(sent < 1) {
-      std::cerr << "WARNING: ICMP send_to() failed!" << std::endl;
+      std::cerr << "WARNING: Traceroute::sendICMPRequest() - ICMP send_to() failed!" << std::endl;
    }
    else {
       // ====== Record the request ==========================
@@ -339,9 +339,36 @@ void Traceroute::processResults()
    }
    std::sort(resultsVector.begin(), resultsVector.end(), &compareTracerouteResults);
 
+   // ====== Count hops =====================================================
+   size_t totalHops = 0;
+   for(std::vector<ResultEntry*>::iterator iterator = resultsVector.begin(); iterator != resultsVector.end(); iterator++) {
+      ResultEntry* resultEntry = *iterator;
+      assert(resultEntry->hop() > totalHops);
+      totalHops = resultEntry->hop();
+      if(resultEntry->status() == Success) {
+         break;
+      }
+   }
+
+   std::cout << "TotalHops=" << totalHops << std::endl;
    for(std::vector<ResultEntry*>::iterator iterator = resultsVector.begin(); iterator != resultsVector.end(); iterator++) {
       ResultEntry* resultEntry = *iterator;
       std::cout << *resultEntry << std::endl;
+
+      if(SQLOutput) {
+         SQLOutput->insert(
+            str(boost::format("'%s','%s','%s',%d,%d,%d,%d,'%s'")
+               % boost::posix_time::to_iso_extended_string(resultEntry->sendTime())
+               % SourceAddress.to_string()
+               % (*DestinationAddressIterator).to_string()
+               % resultEntry->hop()
+               % totalHops
+               % resultEntry->status()
+               % (resultEntry->receiveTime() - resultEntry->sendTime()).total_microseconds()
+               % resultEntry->address().to_string()
+         ));
+      }
+
       if(resultEntry->status() == Success) {
          break;
       }

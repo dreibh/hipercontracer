@@ -117,7 +117,7 @@ void Ping::processResults()
 
       // ====== Print completed elements ====================================
       if(resultEntry->status() != Unknown) {
-      std::cout << *resultEntry << std::endl;
+         std::cout << *resultEntry << std::endl;
          if(SQLOutput) {
             SQLOutput->insert(
                str(boost::format("'%s','%s','%s',%d,%d")
@@ -125,7 +125,7 @@ void Ping::processResults()
                   % SourceAddress.to_string()
                   % resultEntry->address().to_string()
                   % resultEntry->status()
-                  % (resultEntry->receiveTime() - resultEntry->sendTime()).total_milliseconds()
+                  % (resultEntry->receiveTime() - resultEntry->sendTime()).total_microseconds()
             ));
          }
       }

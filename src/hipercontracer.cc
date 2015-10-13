@@ -204,6 +204,7 @@ int main(int argc, char** argv)
       SQLWriter* sqlWriter = NULL;
       if(!sqlTable.empty()) {
          std::string uniqueID =
+            sqlTable + "-" +
             (*sourceIterator).to_string() + "-" +
             boost::posix_time::to_iso_string(boost::posix_time::microsec_clock::universal_time());
          replace(uniqueID.begin(), uniqueID.end(), ' ', '-');
