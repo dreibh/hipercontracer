@@ -36,6 +36,7 @@
 #include <fstream>
 
 #include <boost/filesystem.hpp>
+#include <boost/iostreams/filtering_stream.hpp>
 
 
 class SQLWriter
@@ -51,14 +52,15 @@ class SQLWriter
    void insert(const std::string& tuple);
 
    protected:
-   const boost::filesystem::path Directory;
-   const std::string             UniqueID;
-   const std::string             TableName;
-   boost::filesystem::path       TempFileName;
-   boost::filesystem::path       TargetFileName;
-   std::ofstream                 OutputFile;
-   size_t                        Inserts;
-   unsigned long long            SeqNumber;
+   const boost::filesystem::path       Directory;
+   const std::string                   UniqueID;
+   const std::string                   TableName;
+   boost::filesystem::path             TempFileName;
+   boost::filesystem::path             TargetFileName;
+   size_t                              Inserts;
+   unsigned long long                  SeqNumber;
+   std::ofstream                       OutputFile;
+   boost::iostreams::filtering_ostream OutputStream;
 };
 
 #endif

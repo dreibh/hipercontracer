@@ -32,6 +32,8 @@
 #include "sqlwriter.h"
 
 #include <boost/format.hpp>
+#include <boost/iostreams/filtering_streambuf.hpp>
+#include <boost/iostreams/filter/bzip2.hpp>
 
 
 // ###### Constructor #######################################################
@@ -74,7 +76,8 @@ bool SQLWriter::changeFile(const bool createNewFile)
 {
    // ====== Close current file =============================================
    if(OutputFile.is_open()) {
-      OutputFile << "COMMIT TRANSACTION" << std::endl;
+      OutputStream << "COMMIT TRANSACTION" << std::endl;
+      OutputStream.reset();
       OutputFile.close();
       try {
          if(Inserts == 0) {
@@ -96,12 +99,14 @@ bool SQLWriter::changeFile(const bool createNewFile)
    SeqNumber++;
    if(createNewFile) {
       try {
-         const std::string name = UniqueID + str(boost::format("-%09d.sql") % SeqNumber);
+         const std::string name = UniqueID + str(boost::format("-%09d.sql.bz2") % SeqNumber);
          TempFileName   = Directory / "tmp" / name;
          TargetFileName = Directory / name;
-         OutputFile.open(TempFileName.c_str());
-         OutputFile << "START TRANSACTION" << std::endl;
-         return(OutputFile.good());
+         OutputFile.open(TempFileName.c_str(), std::ios_base::out | std::ios_base::binary);
+         OutputStream.push(boost::iostreams::bzip2_compressor());
+         OutputStream.push(OutputFile);
+         OutputStream << "START TRANSACTION" << std::endl;
+         return(OutputStream.good());
       }
       catch(std::exception const& e) {
          std::cerr << "ERROR: SQLWriter::changeFile() - " << e.what() << std::endl;
@@ -115,7 +120,7 @@ bool SQLWriter::changeFile(const bool createNewFile)
 // ###### Generate INSERT statement #########################################
 void SQLWriter::insert(const std::string& tuple)
 {
-   OutputFile << "INSERT INTO " << TableName << " VALUES ("
+   OutputStream << "INSERT INTO " << TableName << " VALUES ("
               << tuple
               << ");" << std::endl;
    Inserts++;
