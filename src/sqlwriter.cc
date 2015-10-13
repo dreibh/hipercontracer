@@ -1,39 +1,37 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <string.h>
+// =================================================================
+//          #     #                 #     #
+//          ##    #   ####   #####  ##    #  ######   #####
+//          # #   #  #    #  #    # # #   #  #          #
+//          #  #  #  #    #  #    # #  #  #  #####      #
+//          #   # #  #    #  #####  #   # #  #          #
+//          #    ##  #    #  #   #  #    ##  #          #
+//          #     #   ####   #    # #     #  ######     #
+//
+//       ---   The NorNet Testbed for Multi-Homed Systems  ---
+//                       https://www.nntb.no
+// =================================================================
+//
+// High-Performance Connectivity Tracer (HiPerConTracer)
+// Copyright (C) 2015 by Thomas Dreibholz
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <http://www.gnu.org/licenses/>.
+//
+// Contact: dreibh@simula.no
 
-#include <string>
-#include <fstream>
-#include <set>
-#include <algorithm>
+#include "sqlwriter.h"
 
-#include <boost/filesystem.hpp>
 #include <boost/format.hpp>
-
-
-class SQLWriter
-{
-   public:
-   SQLWriter(const std::string& directory,
-             const std::string& uniqueID,
-             const std::string& tableName);
-   virtual ~SQLWriter();
-
-   bool prepare();
-   bool changeFile(const bool createNewFile = true);
-   void insert(const std::string& tuple);
-
-   protected:
-   const boost::filesystem::path Directory;
-   const std::string             UniqueID;
-   const std::string             TableName;
-   boost::filesystem::path       TempFileName;
-   boost::filesystem::path       TargetFileName;
-   std::ofstream                 OutputFile;
-   size_t                        Inserts;
-   unsigned long long            SeqNumber;
-};
 
 
 // ###### Constructor #######################################################
@@ -121,23 +119,4 @@ void SQLWriter::insert(const std::string& tuple)
               << tuple
               << ");" << std::endl;
    Inserts++;
-}
-
-
-int main(int argc, char** argv)
-{
-   std::string sqlDirectory = "/storage/xy";
-
-   // ====== Initialize =====================================================
-   SQLWriter w(sqlDirectory, "UniqueID", "TracerouteTable");
-   if(!w.prepare()) {
-      return 1;
-   }
-
-   w.insert("1,2,3,4");
-   w.changeFile();
-   w.insert("5,6,7,8");
-   w.changeFile();
-   w.insert("8,8,8,8");
-   w.changeFile();
 }
