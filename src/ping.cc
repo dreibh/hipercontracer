@@ -120,7 +120,10 @@ void Ping::processResults()
 
       // ====== Print completed entries =====================================
       if(resultEntry->status() != Unknown) {
-         std::cout << *resultEntry << std::endl;
+         if(VerboseMode) {
+            std::cout << *resultEntry << std::endl;
+         }
+
          if(SQLOutput) {
             SQLOutput->insert(
                str(boost::format("'%s','%s','%s',%d,%d")

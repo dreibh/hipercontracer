@@ -179,7 +179,7 @@ int main(int argc, char** argv)
    }
    switch(serviceType) {
       case TST_Ping:
-         std::cout << "Traceroute Service:" << std:: endl
+         std::cout << "Ping Service:" << std:: endl
                    << "* Interval   = " << pingInterval   << " ms" << std::endl
                    << "* Expiration = " << pingExpiration << " ms" << std::endl
                    << "* TTL        = " << pingTTL        << std::endl
