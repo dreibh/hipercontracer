@@ -37,6 +37,7 @@
 class Service
 {
    public:
+   virtual ~Service() {};
    virtual bool start() = 0;
    virtual void requestStop() = 0;
    virtual void join() = 0;

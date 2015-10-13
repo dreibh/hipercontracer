@@ -133,10 +133,8 @@ void Ping::processResults()
       // ====== Remove completed entries ====================================
       if(resultEntry->status() != Unknown) {
          assert(ResultsMap.erase(resultEntry->seqNumber()) == 1);
-         if(resultEntry->status() == Unknown) {
-            if(OutstandingRequests > 0) {
-               OutstandingRequests--;
-            }
+         if(OutstandingRequests > 0) {
+            OutstandingRequests--;
          }
       }
    }

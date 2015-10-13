@@ -254,6 +254,7 @@ int main(int argc, char** argv)
    for(std::set<Service*>::iterator serviceIterator = serviceSet.begin(); serviceIterator != serviceSet.end(); serviceIterator++) {
       Service* service = *serviceIterator;
       service->join();
+      delete service;
    }
    for(std::set<SQLWriter*>::iterator sqlWriterIterator = sqlWriterSet.begin(); sqlWriterIterator != sqlWriterSet.end(); sqlWriterIterator++) {
       delete *sqlWriterIterator;
