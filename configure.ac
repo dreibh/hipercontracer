@@ -45,6 +45,21 @@ else
 fi
 
 
+# ###### libboost ###########################################################
+AC_LANG_PUSH([C++])
+AC_CHECK_HEADERS([boost/asio/basic_signal_set.hpp], [],
+                 [AC_MSG_ERROR(You need the Boost system libraries.)])
+AC_CHECK_HEADERS([boost/thread.hpp], [],
+                 [AC_MSG_ERROR(You need the Boost thread libraries.)])
+AC_CHECK_HEADERS([boost/filesystem.hpp], [],
+                 [AC_MSG_ERROR(You need the Boost filesystem libraries.)])
+AC_CHECK_HEADERS([boost/date_time/posix_time/posix_time.hpp], [],
+                 [AC_MSG_ERROR(You need the Boost data/time libraries.)])
+AC_CHECK_HEADERS([boost/iostreams/filter/bzip2.hpp], [],
+                 [AC_MSG_ERROR(You need the Boost iostream libraries.)])
+AC_LANG_POP([C++])
+
+
 # ###### Operating system checks ############################################
 case $host_os in
 freebsd*)
