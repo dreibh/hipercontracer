@@ -131,7 +131,6 @@ bool Traceroute::start()
 // ###### Request stop of thread ############################################
 void Traceroute::requestStop() {
    StopRequested = true;
-   puts("r1");
    IntervalTimer.get_io_service().post(boost::bind(&Traceroute::cancelIntervalTimer, this));
 }
 
@@ -195,10 +194,7 @@ bool Traceroute::prepareRun(const bool newRound)
    OutstandingRequests = 0;
    RunStartTimeStamp   = boost::posix_time::microsec_clock::universal_time();
 
-   if(DestinationAddressIterator == DestinationAddressArray.end()) {
-      puts("--- REWIND ---");
-   }
-
+   // Return whether end of the list is reached. Then, a rewind is necessary.
    return(DestinationAddressIterator == DestinationAddressArray.end());
 }
 
@@ -209,8 +205,10 @@ void Traceroute::sendRequests()
    if(DestinationAddressIterator != DestinationAddressArray.end()) {
       const boost::asio::ip::address& destinationAddress = *DestinationAddressIterator;
 
-      std::cout << "Traceroute from " << SourceAddress
-                << " to " << destinationAddress << " ... " << std::endl;
+      if(VerboseMode) {
+         std::cout << "Traceroute from " << SourceAddress
+                   << " to " << destinationAddress << " ... " << std::endl;
+      }
 
       // ====== Send Echo Requests ==========================================
       assert(MinTTL > 0);
@@ -248,11 +246,13 @@ void Traceroute::scheduleIntervalEvent()
    IntervalTimer.expires_at(RunStartTimeStamp + boost::posix_time::milliseconds(duration));
    IntervalTimer.async_wait(boost::bind(&Traceroute::handleIntervalEvent, this, _1));
 
-   const boost::posix_time::time_duration howLong =
-      RunStartTimeStamp + boost::posix_time::milliseconds(duration) -
-      boost::posix_time::microsec_clock::universal_time();
-
-   std::cout << "Waiting " << howLong.total_milliseconds() << " ms before next round ..." << std::endl;
+   if(VerboseMode) {
+      const boost::posix_time::time_duration howLong =
+         RunStartTimeStamp + boost::posix_time::milliseconds(duration) -
+         boost::posix_time::microsec_clock::universal_time();
+      std::cout << "Waiting " << howLong.total_milliseconds() / 1000.0
+                << "s before next round ..." << std::endl;
+   }
 }
 
 
@@ -277,7 +277,7 @@ void Traceroute::expectNextReply()
 // ###### All requests have received a response #############################
 void Traceroute::noMoreOutstandingRequests()
 {
-   puts("COMPLETED!");
+   // std::cout << "Completed!" << std::endl;
    cancelTimeoutTimer();
 }
 
@@ -357,7 +357,11 @@ bool Traceroute::notReachedWithCurrentTTL()
    if(MaxTTL < FinalMaxTTL) {
       MinTTL = MaxTTL + 1;
       MaxTTL = std::min(MaxTTL + IncrementMaxTTL, FinalMaxTTL);
-      printf("TRYING: %d -- %d\n",MinTTL, MaxTTL);
+      if(VerboseMode) {
+         std::cout << "Cannot reach " << *DestinationAddressIterator
+                   << " with TTL " << MinTTL - 1 << ", now trying TTLs "
+                   << MinTTL << " to " << MaxTTL << " ..." << std::endl;
+      }
       return(true);
    }
    return(false);
@@ -374,6 +378,7 @@ int Traceroute::compareTracerouteResults(const ResultEntry* a, const ResultEntry
 // ###### Process results ###################################################
 void Traceroute::processResults()
 {
+   // ====== Sort results ===================================================
    std::vector<ResultEntry*> resultsVector;
    for(std::map<unsigned short, ResultEntry>::iterator iterator = ResultsMap.begin(); iterator != ResultsMap.end(); iterator++) {
       resultsVector.push_back(&iterator->second);
@@ -397,10 +402,13 @@ void Traceroute::processResults()
       }
    }
 
-   std::cout << "TotalHops=" << totalHops << std::endl;
+   // ====== Print traceroute entries =======================================
+   // std::cout << "TotalHops=" << totalHops << std::endl;
    for(std::vector<ResultEntry*>::iterator iterator = resultsVector.begin(); iterator != resultsVector.end(); iterator++) {
       ResultEntry* resultEntry = *iterator;
-      std::cout << *resultEntry << std::endl;
+      if(VerboseMode) {
+         std::cout << *resultEntry << std::endl;
+      }
 
       if(SQLOutput) {
          SQLOutput->insert(
@@ -429,12 +437,12 @@ void Traceroute::handleTimeoutEvent(const boost::system::error_code& errorCode)
    // ====== Stop requested? ================================================
    if(StopRequested) {
       IOService.stop();
+      return;
    }
 
    // ====== Has destination been reached with current TTL? =================
    TTLCache[*DestinationAddressIterator] = LastHop;
    if(LastHop == 0xffffffff) {
-      printf("not found with %d\n", MaxTTL);
       if(notReachedWithCurrentTTL()) {
          // Try another round ...
          sendRequests();
@@ -459,13 +467,16 @@ void Traceroute::handleTimeoutEvent(const boost::system::error_code& errorCode)
 // ###### Handle timer event ################################################
 void Traceroute::handleIntervalEvent(const boost::system::error_code& errorCode)
 {
-   puts("--- NEW INTERVAL! ---");
    // ====== Stop requested? ================================================
    if(StopRequested) {
       IOService.stop();
+      return;
    }
 
    // ====== Prepare new run ================================================
+   if(VerboseMode) {
+      std::cout << "Starting new round ..." << std::endl;
+   }
    prepareRun(true);
    sendRequests();
 }

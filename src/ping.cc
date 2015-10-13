@@ -99,12 +99,14 @@ int Ping::comparePingResults(const ResultEntry* a, const ResultEntry* b)
 // ###### Process results ###################################################
 void Ping::processResults()
 {
+   // ====== Sort results ===================================================
    std::vector<ResultEntry*> resultsVector;
    for(std::map<unsigned short, ResultEntry>::iterator iterator = ResultsMap.begin(); iterator != ResultsMap.end(); iterator++) {
       resultsVector.push_back(&iterator->second);
    }
    std::sort(resultsVector.begin(), resultsVector.end(), &comparePingResults);
 
+   // ====== Process results ================================================
    const boost::posix_time::ptime now = boost::posix_time::microsec_clock::universal_time();
    for(std::vector<ResultEntry*>::iterator iterator = resultsVector.begin(); iterator != resultsVector.end(); iterator++) {
       ResultEntry* resultEntry = *iterator;
@@ -116,7 +118,7 @@ void Ping::processResults()
          resultEntry->receiveTime(resultEntry->sendTime() + boost::posix_time::milliseconds(Expiration));
       }
 
-      // ====== Print completed elements ====================================
+      // ====== Print completed entries =====================================
       if(resultEntry->status() != Unknown) {
          std::cout << *resultEntry << std::endl;
          if(SQLOutput) {

@@ -51,3 +51,28 @@ CREATE TABLE Traceroute (
    HopIP     INET     NOT NULL,                      -- Router or Destination IP address
    PRIMARY KEY(Date,FromIP,ToIP,HopNumber)
 );
+
+DROP TABLE AddressInfo;
+CREATE TABLE AddressInfo (
+   IP         INET NOT NULL,                         -- IP address
+   TimeStamp  DATE NOT NULL,                         -- Time stamp for information
+   SiteID     SHORTINT,                              -- NorNet Site ID
+   ProviderID SHORTINT,                              -- NorNet Provider ID
+   ASNumber   INTEGER,                               -- Autonomous System number
+   FQDN       CHAR(253),                             -- Fully-qualified domain name
+   PRIMARY KEY (IP)
+);
+
+DROP TABLE SiteInfo;
+CREATE TABLE SiteInfo (
+   SiteID  SHORTINT NOT NULL,
+   Name    CHAR(64),
+   PRIMARY KEY (SiteID)
+);
+
+DROP TABLE ProviderInfo;
+CREATE TABLE ProviderInfo (
+   ProviderID  SHORTINT NOT NULL,
+   Name    CHAR(64),
+   PRIMARY KEY (ProviderID)
+);

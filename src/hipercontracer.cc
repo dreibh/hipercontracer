@@ -208,7 +208,6 @@ int main(int argc, char** argv)
             (*sourceIterator).to_string() + "-" +
             boost::posix_time::to_iso_string(boost::posix_time::microsec_clock::universal_time());
          replace(uniqueID.begin(), uniqueID.end(), ' ', '-');
-         std::cout << "uniqueID=" << uniqueID << std::endl;
          sqlWriter = new SQLWriter(sqlDirectory, uniqueID, sqlTable);
          if(sqlWriter->prepare() == false) {
             return(1);
