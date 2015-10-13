@@ -36,6 +36,7 @@ class SQLWriter
 };
 
 
+// ###### Constructor #######################################################
 SQLWriter::SQLWriter(const std::string& directory,
                      const std::string& uniqueID,
                      const std::string& tableName)
@@ -48,12 +49,14 @@ SQLWriter::SQLWriter(const std::string& directory,
 }
 
 
+// ###### Destructor ########################################################
 SQLWriter::~SQLWriter()
 {
    changeFile(false);
 }
 
 
+// ###### Prepare directories ###############################################
 bool SQLWriter::prepare()
 {
    try {
@@ -68,8 +71,10 @@ bool SQLWriter::prepare()
 }
 
 
+// ###### Change output file ################################################
 bool SQLWriter::changeFile(const bool createNewFile)
 {
+   // ====== Close current file =============================================
    if(OutputFile.is_open()) {
       OutputFile << "COMMIT TRANSACTION" << std::endl;
       OutputFile.close();
@@ -87,8 +92,8 @@ bool SQLWriter::changeFile(const bool createNewFile)
          std::cerr << "ERROR: SQLWriter::changeFile() - " << e.what() << std::endl;
       }
    }
-   else puts("nothing");
 
+   // ====== Create new file ================================================
    Inserts = 0;
    SeqNumber++;
    if(createNewFile) {
@@ -96,9 +101,6 @@ bool SQLWriter::changeFile(const bool createNewFile)
          const std::string name = UniqueID + str(boost::format("-%09d.sql") % SeqNumber);
          TempFileName   = Directory / "tmp" / name;
          TargetFileName = Directory / name;
-         std::cout << "t=" << TempFileName << std::endl;
-
-
          OutputFile.open(TempFileName.c_str());
          OutputFile << "START TRANSACTION" << std::endl;
          return(OutputFile.good());
@@ -112,13 +114,13 @@ bool SQLWriter::changeFile(const bool createNewFile)
 }
 
 
+// ###### Generate INSERT statement #########################################
 void SQLWriter::insert(const std::string& tuple)
 {
    OutputFile << "INSERT INTO " << TableName << " VALUES ("
               << tuple
               << ");" << std::endl;
    Inserts++;
-   printf("i=%d\n",(int)Inserts);
 }
 
 
