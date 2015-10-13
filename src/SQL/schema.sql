@@ -31,17 +31,17 @@
 
 DROP TABLE Ping;
 CREATE TABLE Ping (
-   Date   TIMESTAMP NOT NULL,
-   FromIP INET      NOT NULL,
-   ToIP   INET      NOT NULL,
-   Status INT       NOT NULL,
-   RTT    REAL,
-   PRIMARY KEY(Date,FromIP,ToIP)
+   Date   TIMESTAMP WITHOUT TIME ZONE NOT NULL,   -- Time stamp (always UTC!)
+   FromIP INET      NOT NULL,                     -- Source IP address
+   ToIP   INET      NOT NULL,                     -- Destination IP address
+   Status INT       NOT NULL,                     -- Status
+   RTT    INTEGER,                                -- microseconds (max. 2147s)
+   PRIMARY KEY (Date,FromIP,ToIP)
 );
 
 DROP TABLE Traceroute;
 CREATE TABLE Traceroute (
-   Date TIMESTAMP NOT NULL,
+   Date   TIMESTAMP WITHOUT TIME ZONE NOT NULL,   -- Time stamp (always UTC!)
    Version    INT  NOT NULL,
    FromSI     INT  NOT NULL,
    FromPI     INT  NOT NULL,
