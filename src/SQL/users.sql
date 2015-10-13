@@ -5,7 +5,7 @@ REVOKE ALL ON DATABASE pingtraceroutedb FROM importer;
 REVOKE ALL ON Ping FROM importer;
 REVOKE ALL ON Traceroute FROM importer;
 DROP ROLE importer;
-CREATE ROLE importer WITH LOGIN ENCRYPTED PASSWORD '!import!';
+CREATE ROLE importer WITH LOGIN ENCRYPTED PASSWORD '!importer!';
 GRANT CONNECT ON DATABASE pingtraceroutedb TO importer;
 GRANT INSERT ON TABLE Ping TO importer;
 GRANT INSERT ON TABLE Traceroute TO importer;
