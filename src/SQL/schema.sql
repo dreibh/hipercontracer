@@ -1,7 +1,6 @@
 -- STEP 2: Create Schema
 -- sudo -u postgres psql pingtraceroutedb <schema.sql
 --
---
 -- =================================================================
 --          #     #                 #     #
 --          ##    #   ####   #####  ##    #  ######   #####
@@ -33,7 +32,7 @@
 --
 -- Contact: dreibh@simula.no
 
-DROP TABLE Ping;
+DROP TABLE IF EXISTS Ping;
 CREATE TABLE Ping (
    Date   TIMESTAMP WITHOUT TIME ZONE NOT NULL,      -- Time stamp (always UTC!)
    FromIP INET     NOT NULL,                         -- Source IP address
@@ -43,40 +42,40 @@ CREATE TABLE Ping (
    PRIMARY KEY (Date,FromIP,ToIP)
 );
 
-DROP TABLE Traceroute;
+DROP TABLE IF EXISTS Traceroute;
 CREATE TABLE Traceroute (
    Date      TIMESTAMP WITHOUT TIME ZONE NOT NULL,   -- Time stamp (always UTC!)
    FromIP    INET NOT NULL,                          -- Source IP address
    ToIP      INET NOT NULL,                          -- Destination IP address
-   HopNumber SMALLINT(0..255) NOT NULL,              -- Current hop number
-   TotalHops SMALLINT(0..255) NOT NULL,              -- Total number of hops
+   HopNumber SMALLINT NOT NULL,                      -- Current hop number
+   TotalHops SMALLINT NOT NULL,                      -- Total number of hops
    Status    SMALLINT NOT NULL,                      -- Status
    RTT       INTEGER  NOT NULL,                      -- microseconds (max. 2147s)
    HopIP     INET     NOT NULL,                      -- Router or Destination IP address
    PRIMARY KEY(Date,FromIP,ToIP,HopNumber)
 );
 
-DROP TABLE AddressInfo;
+DROP TABLE IF EXISTS AddressInfo;
 CREATE TABLE AddressInfo (
    IP         INET NOT NULL,                         -- IP address
    TimeStamp  DATE NOT NULL,                         -- Time stamp for information
-   SiteID     SHORTINT,                              -- NorNet Site ID
-   ProviderID SHORTINT,                              -- NorNet Provider ID
+   SiteID     SMALLINT,                              -- NorNet Site ID
+   ProviderID SMALLINT,                              -- NorNet Provider ID
    ASNumber   INTEGER,                               -- Autonomous System number
    FQDN       CHAR(253),                             -- Fully-qualified domain name
    PRIMARY KEY (IP)
 );
 
-DROP TABLE SiteInfo;
+DROP TABLE IF EXISTS SiteInfo;
 CREATE TABLE SiteInfo (
-   SiteID  SHORTINT NOT NULL,
+   SiteID  SMALLINT NOT NULL,
    Name    CHAR(64),
    PRIMARY KEY (SiteID)
 );
 
-DROP TABLE ProviderInfo;
+DROP TABLE IF EXISTS ProviderInfo;
 CREATE TABLE ProviderInfo (
-   ProviderID  SHORTINT NOT NULL,
+   ProviderID  SMALLINT NOT NULL,
    Name    CHAR(64),
    PRIMARY KEY (ProviderID)
 );
