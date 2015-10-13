@@ -348,6 +348,12 @@ void Traceroute::processResults()
       if(resultEntry->status() == Success) {
          break;
       }
+
+      // ====== Time-out entries ============================================
+      else if(resultEntry->status() == Unknown) {
+         resultEntry->status(Timeout);
+         resultEntry->receiveTime(resultEntry->sendTime() + boost::posix_time::milliseconds(Expiration));
+      }
    }
 
    std::cout << "TotalHops=" << totalHops << std::endl;
