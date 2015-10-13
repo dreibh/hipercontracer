@@ -243,7 +243,7 @@ int main(int argc, char** argv)
    boost::asio::signal_set signals(ioService, SIGINT, SIGTERM);
    signals.async_wait(signalHandler);
    ioService.run();
-   std::cout << std::endl << "*** Shutting down! ***" << std::endl;
+   puts("\n*** Shutting down! ***\n");   // Avoids a false positive from Helgrind.
 
 
    // ====== Shut down service threads ======================================

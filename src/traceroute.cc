@@ -87,7 +87,8 @@ Traceroute::Traceroute(SQLWriter*                               sqlWriter,
      IOService(),
      SourceAddress(sourceAddress),
      ICMPSocket(IOService, (isIPv6() == true) ? boost::asio::ip::icmp::v6() : boost::asio::ip::icmp::v4()),
-     TimeoutTimer(IOService)
+     TimeoutTimer(IOService),
+     IntervalTimer(IOService)
 {
    // ====== Some initialisations ===========================================
    Identifier          = 0;
@@ -130,6 +131,8 @@ bool Traceroute::start()
 // ###### Request stop of thread ############################################
 void Traceroute::requestStop() {
    StopRequested = true;
+   puts("r1");
+   IntervalTimer.get_io_service().post(boost::bind(&Traceroute::cancelIntervalTimer, this));
 }
 
 
@@ -171,15 +174,17 @@ bool Traceroute::prepareSocket()
 
 
 // ###### Prepare a new run #################################################
-void Traceroute::prepareRun()
+bool Traceroute::prepareRun(const bool newRound)
 {
-   // ====== Get next destination address ===================================
-   if(DestinationAddressIterator != DestinationAddressArray.end()) {
-      DestinationAddressIterator++;
-   }
-   if(DestinationAddressIterator == DestinationAddressArray.end()) {
-      // Rewind ...
+   if(newRound) {
+      // ====== Rewind ======================================================
       DestinationAddressIterator = DestinationAddressArray.begin();
+   }
+   else {
+      // ====== Get next destination address ===================================
+      if(DestinationAddressIterator != DestinationAddressArray.end()) {
+         DestinationAddressIterator++;
+      }
    }
 
    // ====== Clear results ==================================================
@@ -189,6 +194,12 @@ void Traceroute::prepareRun()
    LastHop             = 0xffffffff;
    OutstandingRequests = 0;
    RunStartTimeStamp   = boost::posix_time::microsec_clock::universal_time();
+
+   if(DestinationAddressIterator == DestinationAddressArray.end()) {
+      puts("--- REWIND ---");
+   }
+
+   return(DestinationAddressIterator == DestinationAddressArray.end());
 }
 
 
@@ -208,17 +219,42 @@ void Traceroute::sendRequests()
       }
    }
 
-   scheduleTimeout();
+   scheduleTimeoutEvent();
 }
 
 
-// ###### Schedule timer ####################################################
-void Traceroute::scheduleTimeout()
+// ###### Schedule timeout timer ############################################
+void Traceroute::scheduleTimeoutEvent()
 {
    const unsigned int deviation = std::max(10U, Expiration / 5);   // 20% deviation
    const unsigned int duration  = Expiration + (std::rand() % deviation);
    TimeoutTimer.expires_at(boost::posix_time::microsec_clock::universal_time() + boost::posix_time::milliseconds(duration));
-   TimeoutTimer.async_wait(boost::bind(&Traceroute::handleTimeout, this, _1));
+   TimeoutTimer.async_wait(boost::bind(&Traceroute::handleTimeoutEvent, this, _1));
+}
+
+
+// ###### Cancel timeout timer ##############################################
+void Traceroute::cancelTimeoutTimer()
+{
+   TimeoutTimer.cancel();
+}
+
+
+// ###### Schedule interval timer ###########################################
+void Traceroute::scheduleIntervalEvent()
+{
+   const unsigned long long deviation = std::max(10ULL, Interval / 5);   // 20% deviation
+   const unsigned long long duration  = Interval + (std::rand() % deviation);
+   IntervalTimer.expires_at(RunStartTimeStamp + boost::posix_time::milliseconds(duration));
+   IntervalTimer.async_wait(boost::bind(&Traceroute::handleIntervalEvent, this, _1));
+   std::cout << "Waiting for next round ..." << std::endl;
+}
+
+
+// ###### Cancel interval timer #############################################
+void Traceroute::cancelIntervalTimer()
+{
+   IntervalTimer.cancel();
 }
 
 
@@ -237,7 +273,7 @@ void Traceroute::expectNextReply()
 void Traceroute::noMoreOutstandingRequests()
 {
    puts("COMPLETED!");
-   TimeoutTimer.cancel();
+   cancelTimeoutTimer();
 }
 
 
@@ -302,7 +338,7 @@ void Traceroute::run()
    Identifier = ::getpid();   // Identifier is the process ID
    // NOTE: Assuming 16-bit PID, and one PID per thread!
 
-   prepareRun();
+   prepareRun(true);
    sendRequests();
    expectNextReply();
 
@@ -383,7 +419,7 @@ void Traceroute::processResults()
 
 
 // ###### Handle timer event ################################################
-void Traceroute::handleTimeout(const boost::system::error_code& errorCode)
+void Traceroute::handleTimeoutEvent(const boost::system::error_code& errorCode)
 {
    // ====== Stop requested? ================================================
    if(StopRequested) {
@@ -405,7 +441,27 @@ void Traceroute::handleTimeout(const boost::system::error_code& errorCode)
    processResults();
 
    // ====== Prepare new run ================================================
-   prepareRun();
+   if(prepareRun() == false) {
+      sendRequests();
+   }
+   else {
+      // Done with this round -> schedule next round!
+      scheduleIntervalEvent();
+   }
+}
+
+
+// ###### Handle timer event ################################################
+void Traceroute::handleIntervalEvent(const boost::system::error_code& errorCode)
+{
+   puts("--- NEW INTERVAL! ---");
+   // ====== Stop requested? ================================================
+   if(StopRequested) {
+      IOService.stop();
+   }
+
+   // ====== Prepare new run ================================================
+   prepareRun(true);
    sendRequests();
 }
 

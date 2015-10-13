@@ -64,9 +64,10 @@ void Ping::noMoreOutstandingRequests()
 
 
 // ###### Prepare a new run #################################################
-void Ping::prepareRun()
+bool Ping::prepareRun(const bool newRound)
 {
    // Nothing to do for Ping!
+   return(false);
 }
 
 
@@ -78,13 +79,13 @@ bool Ping::notReachedWithCurrentTTL()
 }
 
 
-// ###### Schedule timer ####################################################
-void Ping::scheduleTimeout()
+// ###### Schedule timeout timer ############################################
+void Ping::scheduleTimeoutEvent()
 {
    const unsigned long long deviation = std::max(10ULL, Interval / 5ULL);   // 20% deviation
    const unsigned long long duration  = Interval + (std::rand() % deviation);
    TimeoutTimer.expires_at(boost::posix_time::microsec_clock::universal_time() + boost::posix_time::milliseconds(duration));
-   TimeoutTimer.async_wait(boost::bind(&Ping::handleTimeout, this, _1));
+   TimeoutTimer.async_wait(boost::bind(&Ping::handleTimeoutEvent, this, _1));
 }
 
 
@@ -150,5 +151,5 @@ void Ping::sendRequests()
       sendICMPRequest(destinationAddress, FinalMaxTTL);
    }
 
-   scheduleTimeout();
+   scheduleTimeoutEvent();
 }

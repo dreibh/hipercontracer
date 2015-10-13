@@ -121,15 +121,20 @@ class Traceroute : virtual public Service
 
    protected:
    virtual bool prepareSocket();
-   virtual void prepareRun();
-   virtual void scheduleTimeout();
+   virtual bool prepareRun(const bool newRound = false);
+   virtual void scheduleTimeoutEvent();
+   virtual void scheduleIntervalEvent();
    virtual void expectNextReply();
    virtual void noMoreOutstandingRequests();
    virtual bool notReachedWithCurrentTTL();
    virtual void processResults();
    virtual void sendRequests();
-   virtual void handleTimeout(const boost::system::error_code& errorCode);
+   virtual void handleTimeoutEvent(const boost::system::error_code& errorCode);
+   virtual void handleIntervalEvent(const boost::system::error_code& errorCode);
    virtual void handleMessage(std::size_t length);
+
+   void cancelTimeoutTimer();
+   void cancelIntervalTimer();
 
    void run();
    void sendICMPRequest(const boost::asio::ip::address& destinationAddress,
@@ -152,10 +157,11 @@ class Traceroute : virtual public Service
    std::set<boost::asio::ip::address>    DestinationAddressArray;
    boost::asio::ip::icmp::socket         ICMPSocket;
    boost::asio::deadline_timer           TimeoutTimer;
+   boost::asio::deadline_timer           IntervalTimer;
    boost::asio::ip::icmp::endpoint       ReplyEndpoint;    // Store ICMP reply's source
 
    boost::thread                         Thread;
-   bool                                  StopRequested;
+   volatile bool                         StopRequested;
    unsigned int                          Identifier;
    unsigned short                        SeqNumber;
    unsigned int                          MagicNumber;

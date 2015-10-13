@@ -47,8 +47,8 @@ class Ping : public Traceroute
    virtual ~Ping();
 
    protected:
-   virtual void prepareRun();
-   virtual void scheduleTimeout();
+   virtual bool prepareRun(const bool newRound = false);
+   virtual void scheduleTimeoutEvent();
    virtual void noMoreOutstandingRequests();
    virtual bool notReachedWithCurrentTTL();
    virtual void processResults();

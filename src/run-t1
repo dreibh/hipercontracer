@@ -4,7 +4,7 @@ make -j8 && \
 sudo ./hipercontracer \
    -source=172.16.0.127 \
    -destination=8.8.8.8 -destination=193.99.144.80 -destination=132.252.181.87 -destination=172.31.255.254 \
-   -ping \
+   -traceroute \
    -tracerouteduration=1000 \
    -tracerouteinitialmaxttl=4 \
    -traceroutefinalmaxttl=32 \

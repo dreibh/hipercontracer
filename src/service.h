@@ -42,14 +42,16 @@ class Service
    virtual void requestStop() = 0;
    virtual void join() = 0;
    virtual bool prepareSocket() = 0;
-   virtual void prepareRun() = 0;
-   virtual void scheduleTimeout() = 0;
+   virtual bool prepareRun(const bool newRound = false) = 0;
+   virtual void scheduleTimeoutEvent() = 0;
+   virtual void scheduleIntervalEvent() = 0;
    virtual void expectNextReply() = 0;
    virtual void noMoreOutstandingRequests() = 0;
    virtual bool notReachedWithCurrentTTL() = 0;
    virtual void processResults() = 0;
    virtual void sendRequests() = 0;
-   virtual void handleTimeout(const boost::system::error_code& errorCode) = 0;
+   virtual void handleTimeoutEvent(const boost::system::error_code& errorCode) = 0;
+   virtual void handleIntervalEvent(const boost::system::error_code& errorCode) = 0;
    virtual void handleMessage(std::size_t length) = 0;
 };
 
