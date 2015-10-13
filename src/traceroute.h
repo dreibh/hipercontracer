@@ -34,6 +34,7 @@
 
 #include "service.h"
 #include "icmpheader.h"
+#include "sqlwriter.h"
 
 #include <set>
 
@@ -44,7 +45,9 @@
 
 enum HopStatus {
    Unknown               = 0,
+   // ------ TTL/Hop Count --------------------------------
    TimeExceeded          = 1,
+   // ------ Reported as "unreachable" --------------------
    UnreachableScope      = 100,
    UnreachableNetwork    = 101,
    UnreachableHost       = 102,
@@ -52,7 +55,9 @@ enum HopStatus {
    UnreachablePort       = 104,
    UnreachableProhibited = 105,
    UnreachableUnknown    = 110,
+   // ------ Timed out ------------------------------------
    Timeout               = 200,
+   // ------ Response received ----------------------------
    Success               = 255
 };
 
@@ -95,7 +100,9 @@ class ResultEntry {
 class Traceroute : virtual public Service
 {
    public:
-   Traceroute(const boost::asio::ip::address&          sourceAddress,
+   Traceroute(SQLWriter*                               sqlWriter,
+              const bool                               verboseMode,
+              const boost::asio::ip::address&          sourceAddress,
               const std::set<boost::asio::ip::address> destinationAddressArray,
               const unsigned long long                 interval        = 30*60000ULL,
               const unsigned int                       expiration      = 3000,
@@ -114,15 +121,20 @@ class Traceroute : virtual public Service
 
    protected:
    virtual bool prepareSocket();
-   virtual void prepareRun();
-   virtual void scheduleTimeout();
+   virtual bool prepareRun(const bool newRound = false);
+   virtual void scheduleTimeoutEvent();
+   virtual void scheduleIntervalEvent();
    virtual void expectNextReply();
    virtual void noMoreOutstandingRequests();
    virtual bool notReachedWithCurrentTTL();
    virtual void processResults();
    virtual void sendRequests();
-   virtual void handleTimeout(const boost::system::error_code& errorCode);
+   virtual void handleTimeoutEvent(const boost::system::error_code& errorCode);
+   virtual void handleIntervalEvent(const boost::system::error_code& errorCode);
    virtual void handleMessage(std::size_t length);
+
+   void cancelTimeoutTimer();
+   void cancelIntervalTimer();
 
    void run();
    void sendICMPRequest(const boost::asio::ip::address& destinationAddress,
@@ -133,6 +145,8 @@ class Traceroute : virtual public Service
    unsigned int getInitialMaxTTL(const boost::asio::ip::address& destinationAddress) const;
    static unsigned long long ptimeToMircoTime(const boost::posix_time::ptime t);
 
+   SQLWriter*                            SQLOutput;
+   const bool                            VerboseMode;
    const unsigned long long              Interval;
    const unsigned int                    Expiration;
    const unsigned int                    InitialMaxTTL;
@@ -143,10 +157,11 @@ class Traceroute : virtual public Service
    std::set<boost::asio::ip::address>    DestinationAddressArray;
    boost::asio::ip::icmp::socket         ICMPSocket;
    boost::asio::deadline_timer           TimeoutTimer;
+   boost::asio::deadline_timer           IntervalTimer;
    boost::asio::ip::icmp::endpoint       ReplyEndpoint;    // Store ICMP reply's source
 
    boost::thread                         Thread;
-   bool                                  StopRequested;
+   volatile bool                         StopRequested;
    unsigned int                          Identifier;
    unsigned short                        SeqNumber;
    unsigned int                          MagicNumber;

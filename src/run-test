@@ -1,10 +1,11 @@
 #!/bin/sh
 
 make -j8 && \
+# sudo ./debug.memcheck ./hipercontracer \
 sudo ./hipercontracer \
-   -source=172.16.0.122 \
-   -destination=8.8.8.8 -destination=193.99.144.80 -destination=132.252.181.87 \
-   -source=2a02:270:2014:40:b0f0:7e4c:29:c96 \
+   -source=172.16.0.127 \
+   -destination=8.8.8.8 -destination=193.99.144.80 -destination=132.252.181.87 -destination=10.254.254.254 \
+   -source=2a02:270:2014:40:92e2:baff:fe48:bde1 \
    -destination=2400:cb00:2048:1::6814:155 -destination=2a02:2e0:3fe:1001:7777:772e:2:85 -destination=2a00:1450:400f:805::2004 \
    -traceroute \
    -tracerouteduration=1000 \
@@ -13,4 +14,6 @@ sudo ./hipercontracer \
    -tracerouteincrementmaxttl=4 \
    -pinginterval=1000 \
    -pingexpiration=7500 \
-   -pingttl=56
+   -pingttl=56 \
+   -sqltable=TracerouteTable \
+   -sqldirectory=/tmp/xy

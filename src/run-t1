@@ -2,7 +2,7 @@
 
 make -j8 && \
 sudo ./hipercontracer \
-   -source=172.16.0.122 \
+   -source=172.16.0.127 \
    -destination=8.8.8.8 -destination=193.99.144.80 -destination=132.252.181.87 -destination=172.31.255.254 \
    -ping \
    -tracerouteduration=1000 \
@@ -11,4 +11,8 @@ sudo ./hipercontracer \
    -tracerouteincrementmaxttl=4 \
    -pinginterval=1000 \
    -pingexpiration=7500 \
-   -pingttl=56
+   -pingttl=56 \
+   -sqltable=TracerouteTable \
+   -sqldirectory=/tmp/xy \
+   -sqltransactionlength=20 \
+   -quiet

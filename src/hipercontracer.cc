@@ -39,6 +39,7 @@
 
 #include <boost/asio/basic_signal_set.hpp>
 
+#include "sqlwriter.h"
 #include "service.h"
 #include "traceroute.h"
 #include "ping.h"
@@ -89,6 +90,10 @@ int main(int argc, char** argv)
    unsigned int       pingExpiration            = 30000;
    unsigned int       pingTTL                   = 64;
 
+   bool               verboseMode               = true;
+   unsigned int       sqlTransactionLength      = 60;
+   std::string        sqlDirectory              = "hipercontracer-output";
+   std::string        sqlTable;
 
    // ====== Handle arguments ===============================================
    for(int i = 1; i < argc; i++) {
@@ -104,6 +109,12 @@ int main(int argc, char** argv)
       else if(strcmp(argv[i], "-traceroute") == 0) {
          serviceType = TST_Traceroute;
       }
+      else if(strcmp(argv[i], "-quiet") == 0) {
+         verboseMode = false;
+      }
+      else if(strcmp(argv[i], "-verbose") == 0) {
+         verboseMode = true;
+      }
       else if(strncmp(argv[i], "-tracerouteinterval=", 20) == 0) {
          pingInterval = atol((const char*)&argv[i][20]);
       }
@@ -116,8 +127,8 @@ int main(int argc, char** argv)
       else if(strncmp(argv[i], "-traceroutefinalmaxttl=", 23) == 0) {
          tracerouteFinalMaxTTL = atol((const char*)&argv[i][23]);
       }
-      else if(strncmp(argv[i], "-tracerouteincrementmaxttl=", 28) == 0) {
-         tracerouteIncrementMaxTTL = atol((const char*)&argv[i][28]);
+      else if(strncmp(argv[i], "-tracerouteincrementmaxttl=", 27) == 0) {
+         tracerouteIncrementMaxTTL = atol((const char*)&argv[i][27]);
       }
       else if(strncmp(argv[i], "-pinginterval=", 14) == 0) {
          pingInterval = atol((const char*)&argv[i][14]);
@@ -128,8 +139,19 @@ int main(int argc, char** argv)
       else if(strncmp(argv[i], "-pingttl=", 9) == 0) {
          pingTTL = atol((const char*)&argv[i][9]);
       }
+      else if(strncmp(argv[i], "-sqltable=", 10) == 0) {
+         sqlTable = (const char*)&argv[i][10];
+      }
+      else if(strncmp(argv[i], "-sqldirectory=", 14) == 0) {
+         sqlDirectory = (const char*)&argv[i][14];
+      }
+      else if(strncmp(argv[i], "-sqltransactionlength=", 22) == 0) {
+         sqlTransactionLength = atol((const char*)&argv[i][22]);
+      }
       else {
-         std::cerr << "Usage: " << argv[0] << " -source=source ... -destination=destination ..." << std::endl;
+         std::cerr << "ERROR: Unknown parameter " << argv[i] << std::endl
+                   << "Usage: " << argv[0] << " -source=source ... -destination=destination ..." << std::endl;
+         return(1);
       }
    }
 
@@ -151,37 +173,63 @@ int main(int argc, char** argv)
    pingExpiration            = std::min(std::max(100U, pingExpiration),          3600U*60000U);
    pingTTL                   = std::min(std::max(1U, pingTTL),                   255U);
 
+   std::cout << "SQL Output:" << std::endl;
+   if(!sqlTable.empty()) {
+      std::cout << "* SQL Directory      = " << sqlDirectory << std::endl
+                << "* Table              = " << sqlTable     << std::endl
+                << "* Transaction Length = " << sqlTransactionLength     << "s" << std::endl;
+   }
+   else {
+      std::cout << "-- turned off--" << std::endl;
+   }
    switch(serviceType) {
       case TST_Ping:
-         std::cout << "Traceroute Service:" << std:: endl
-               << "* Interval   = " << pingInterval   << " ms" << std::endl
-               << "* Expiration = " << pingExpiration << " ms" << std::endl
-               << "* TTL        = " << pingTTL        << std::endl
-               << std::endl;
+         std::cout << "Ping Service:" << std:: endl
+                   << "* Interval           = " << pingInterval   << " ms" << std::endl
+                   << "* Expiration         = " << pingExpiration << " ms" << std::endl
+                   << "* TTL                = " << pingTTL        << std::endl
+                   << std::endl;
        break;
       case TST_Traceroute:
          std::cout << "Traceroute Service:" << std:: endl
-               << "* Interval         = " << tracerouteInterval        << " ms" << std::endl
-               << "* Expiration       = " << tracerouteExpiration      << " ms" << std::endl
-               << "* Initial MaxTTL   = " << tracerouteInitialMaxTTL   << std::endl
-               << "* Final MaxTTL     = " << tracerouteFinalMaxTTL     << std::endl
-               << "* Increment MaxTTL = " << tracerouteIncrementMaxTTL << std::endl
-               << std::endl;
+                   << "* Interval           = " << tracerouteInterval        << " ms" << std::endl
+                   << "* Expiration         = " << tracerouteExpiration      << " ms" << std::endl
+                   << "* Initial MaxTTL     = " << tracerouteInitialMaxTTL   << std::endl
+                   << "* Final MaxTTL       = " << tracerouteFinalMaxTTL     << std::endl
+                   << "* Increment MaxTTL   = " << tracerouteIncrementMaxTTL << std::endl
+                   << std::endl;
        break;
    }
 
 
    // ====== Start service threads ==========================================
-   std::set<Service*> serviceSet;
+   std::set<SQLWriter*> sqlWriterSet;
+   std::set<Service*>   serviceSet;
    for(std::set<boost::asio::ip::address>::iterator sourceIterator = sourceArray.begin(); sourceIterator != sourceArray.end(); sourceIterator++) {
+      SQLWriter* sqlWriter = NULL;
+      if(!sqlTable.empty()) {
+         std::string uniqueID =
+            sqlTable + "-" +
+            (*sourceIterator).to_string() + "-" +
+            boost::posix_time::to_iso_string(boost::posix_time::microsec_clock::universal_time());
+         replace(uniqueID.begin(), uniqueID.end(), ' ', '-');
+         sqlWriter = new SQLWriter(sqlDirectory, uniqueID, sqlTable, sqlTransactionLength);
+         if(sqlWriter->prepare() == false) {
+            return(1);
+         }
+         sqlWriterSet.insert(sqlWriter);
+      }
+
        Service* service = NULL;
        switch(serviceType) {
           case TST_Ping:
-             service = new Ping(*sourceIterator, destinationArray,
+             service = new Ping(sqlWriter, verboseMode,
+                                *sourceIterator, destinationArray,
                                 pingInterval, pingExpiration, pingTTL);
            break;
           case TST_Traceroute:
-             service = new Traceroute(*sourceIterator, destinationArray,
+             service = new Traceroute(sqlWriter, verboseMode,
+                                      *sourceIterator, destinationArray,
                                       tracerouteInterval, tracerouteExpiration,
                                       tracerouteInitialMaxTTL, tracerouteFinalMaxTTL, tracerouteIncrementMaxTTL);
            break;
@@ -199,7 +247,7 @@ int main(int argc, char** argv)
    boost::asio::signal_set signals(ioService, SIGINT, SIGTERM);
    signals.async_wait(signalHandler);
    ioService.run();
-   std::cout << std::endl << "*** Shutting down! ***" << std::endl;
+   puts("\n*** Shutting down! ***\n");   // Avoids a false positive from Helgrind.
 
 
    // ====== Shut down service threads ======================================
@@ -210,6 +258,10 @@ int main(int argc, char** argv)
    for(std::set<Service*>::iterator serviceIterator = serviceSet.begin(); serviceIterator != serviceSet.end(); serviceIterator++) {
       Service* service = *serviceIterator;
       service->join();
+      delete service;
+   }
+   for(std::set<SQLWriter*>::iterator sqlWriterIterator = sqlWriterSet.begin(); sqlWriterIterator != sqlWriterSet.end(); sqlWriterIterator++) {
+      delete *sqlWriterIterator;
    }
 
    return(0);

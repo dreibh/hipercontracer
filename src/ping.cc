@@ -31,14 +31,21 @@
 
 #include "ping.h"
 
+#include <boost/format.hpp>
+#include <boost/date_time/posix_time/posix_time.hpp>
+
 
 // ###### Constructor #######################################################
-Ping::Ping(const boost::asio::ip::address&          sourceAddress,
+Ping::Ping(SQLWriter*                               sqlWriter,
+           const bool                               verboseMode,
+           const boost::asio::ip::address&          sourceAddress,
            const std::set<boost::asio::ip::address> destinationAddressArray,
            const unsigned long long                 interval,
            const unsigned int                       expiration,
            const unsigned int                       ttl)
-   : Traceroute(sourceAddress, destinationAddressArray, interval, expiration, ttl, ttl, ttl)
+   : Traceroute(sqlWriter, verboseMode,
+                sourceAddress, destinationAddressArray,
+                interval, expiration, ttl, ttl, ttl)
 {
 }
 
@@ -57,9 +64,10 @@ void Ping::noMoreOutstandingRequests()
 
 
 // ###### Prepare a new run #################################################
-void Ping::prepareRun()
+bool Ping::prepareRun(const bool newRound)
 {
    // Nothing to do for Ping!
+   return(false);
 }
 
 
@@ -71,13 +79,19 @@ bool Ping::notReachedWithCurrentTTL()
 }
 
 
-// ###### Schedule timer ####################################################
-void Ping::scheduleTimeout()
+// ###### Schedule timeout timer ############################################
+void Ping::scheduleTimeoutEvent()
 {
+   // ====== Schedule event =================================================
    const unsigned long long deviation = std::max(10ULL, Interval / 5ULL);   // 20% deviation
    const unsigned long long duration  = Interval + (std::rand() % deviation);
    TimeoutTimer.expires_at(boost::posix_time::microsec_clock::universal_time() + boost::posix_time::milliseconds(duration));
-   TimeoutTimer.async_wait(boost::bind(&Ping::handleTimeout, this, _1));
+   TimeoutTimer.async_wait(boost::bind(&Ping::handleTimeoutEvent, this, _1));
+
+   // ====== Check, whether it is time for starting a new transaction =======
+   if(SQLOutput) {
+      SQLOutput->mayStartNewTransaction();
+   }
 }
 
 
@@ -91,24 +105,48 @@ int Ping::comparePingResults(const ResultEntry* a, const ResultEntry* b)
 // ###### Process results ###################################################
 void Ping::processResults()
 {
+   // ====== Sort results ===================================================
    std::vector<ResultEntry*> resultsVector;
    for(std::map<unsigned short, ResultEntry>::iterator iterator = ResultsMap.begin(); iterator != ResultsMap.end(); iterator++) {
       resultsVector.push_back(&iterator->second);
    }
    std::sort(resultsVector.begin(), resultsVector.end(), &comparePingResults);
 
+   // ====== Process results ================================================
    const boost::posix_time::ptime now = boost::posix_time::microsec_clock::universal_time();
    for(std::vector<ResultEntry*>::iterator iterator = resultsVector.begin(); iterator != resultsVector.end(); iterator++) {
       ResultEntry* resultEntry = *iterator;
-      std::cout << *resultEntry << std::endl;
 
-      if( (resultEntry->status() != Unknown) ||
+      // ====== Time-out entries ============================================
+      if( (resultEntry->status() == Unknown) &&
           ((now - resultEntry->sendTime()).total_milliseconds() >= Expiration) ) {
+         resultEntry->status(Timeout);
+         resultEntry->receiveTime(resultEntry->sendTime() + boost::posix_time::milliseconds(Expiration));
+      }
+
+      // ====== Print completed entries =====================================
+      if(resultEntry->status() != Unknown) {
+         if(VerboseMode) {
+            std::cout << *resultEntry << std::endl;
+         }
+
+         if(SQLOutput) {
+            SQLOutput->insert(
+               str(boost::format("'%s','%s','%s',%d,%d")
+                  % boost::posix_time::to_iso_extended_string(resultEntry->sendTime())
+                  % SourceAddress.to_string()
+                  % resultEntry->address().to_string()
+                  % resultEntry->status()
+                  % (resultEntry->receiveTime() - resultEntry->sendTime()).total_microseconds()
+            ));
+         }
+      }
+
+      // ====== Remove completed entries ====================================
+      if(resultEntry->status() != Unknown) {
          assert(ResultsMap.erase(resultEntry->seqNumber()) == 1);
-         if(resultEntry->status() == Unknown) {
-            if(OutstandingRequests > 0) {
-               OutstandingRequests--;
-            }
+         if(OutstandingRequests > 0) {
+            OutstandingRequests--;
          }
       }
    }
@@ -124,5 +162,5 @@ void Ping::sendRequests()
       sendICMPRequest(destinationAddress, FinalMaxTTL);
    }
 
-   scheduleTimeout();
+   scheduleTimeoutEvent();
 }

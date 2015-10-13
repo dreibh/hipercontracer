@@ -35,36 +35,48 @@
 
 DROP TABLE Ping;
 CREATE TABLE Ping (
-   Date   TIMESTAMP NOT NULL,
-   FromIP INET      NOT NULL,
-   ToIP   INET      NOT NULL,
-   Status INT       NOT NULL,
-   RTT    REAL,
-   PRIMARY KEY(Date,FromIP,ToIP)
+   Date   TIMESTAMP WITHOUT TIME ZONE NOT NULL,      -- Time stamp (always UTC!)
+   FromIP INET     NOT NULL,                         -- Source IP address
+   ToIP   INET     NOT NULL,                         -- Destination IP address
+   Status SMALLINT NOT NULL,                         -- Status
+   RTT    INTEGER  NOT NULL,                         -- microseconds (max. 2147s)
+   PRIMARY KEY (Date,FromIP,ToIP)
 );
 
 DROP TABLE Traceroute;
 CREATE TABLE Traceroute (
-   Date TIMESTAMP NOT NULL,
-   Version    INT  NOT NULL,
-   FromSI     INT  NOT NULL,
-   FromPI     INT  NOT NULL,
-   FromIP     INET NOT NULL,
-   ToSI       INT  NOT NULL,
-   ToPI       INT  NOT NULL,
-   ToIP       INET NOT NULL,
-   Path       TEXT NOT NULL,
-   PathID     TEXT NOT NULL,
-   HopNumber  INT  NOT NULL,
-   PingNumber INT  NOT NULL,
-   Min        TEXT NOT NULL,
-   Avg        TEXT NOT NULL,
-   Max        TEXT NOT NULL,
-   Std        TEXT NOT NULL,
-   Scheme     INT  NOT NULL,
-   TotalMin   REAL NOT NULL,
-   TotalAvg   REAL NOT NULL,
-   TotalMax   REAL NOT NULL,
-   TotalStd   REAL NOT NULL,
-   PRIMARY KEY(Date,Version,FromSI,FromPI,ToSI,ToPI,Scheme)
+   Date      TIMESTAMP WITHOUT TIME ZONE NOT NULL,   -- Time stamp (always UTC!)
+   FromIP    INET NOT NULL,                          -- Source IP address
+   ToIP      INET NOT NULL,                          -- Destination IP address
+   HopNumber SMALLINT(0..255) NOT NULL,              -- Current hop number
+   TotalHops SMALLINT(0..255) NOT NULL,              -- Total number of hops
+   Status    SMALLINT NOT NULL,                      -- Status
+   RTT       INTEGER  NOT NULL,                      -- microseconds (max. 2147s)
+   HopIP     INET     NOT NULL,                      -- Router or Destination IP address
+   PRIMARY KEY(Date,FromIP,ToIP,HopNumber)
+);
+
+DROP TABLE AddressInfo;
+CREATE TABLE AddressInfo (
+   IP         INET NOT NULL,                         -- IP address
+   TimeStamp  DATE NOT NULL,                         -- Time stamp for information
+   SiteID     SHORTINT,                              -- NorNet Site ID
+   ProviderID SHORTINT,                              -- NorNet Provider ID
+   ASNumber   INTEGER,                               -- Autonomous System number
+   FQDN       CHAR(253),                             -- Fully-qualified domain name
+   PRIMARY KEY (IP)
+);
+
+DROP TABLE SiteInfo;
+CREATE TABLE SiteInfo (
+   SiteID  SHORTINT NOT NULL,
+   Name    CHAR(64),
+   PRIMARY KEY (SiteID)
+);
+
+DROP TABLE ProviderInfo;
+CREATE TABLE ProviderInfo (
+   ProviderID  SHORTINT NOT NULL,
+   Name    CHAR(64),
+   PRIMARY KEY (ProviderID)
 );
