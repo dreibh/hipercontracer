@@ -39,10 +39,12 @@
 // ###### Constructor #######################################################
 SQLWriter::SQLWriter(const std::string& directory,
                      const std::string& uniqueID,
-                     const std::string& tableName)
+                     const std::string& tableName,
+                     const unsigned int transactionLength)
    : Directory(directory),
      UniqueID(uniqueID),
-     TableName(tableName)
+     TableName(tableName),
+     TransactionLength(transactionLength)
 {
    Inserts   = 0;
    SeqNumber = 0;
@@ -106,12 +108,24 @@ bool SQLWriter::changeFile(const bool createNewFile)
          OutputStream.push(boost::iostreams::bzip2_compressor());
          OutputStream.push(OutputFile);
          OutputStream << "START TRANSACTION" << std::endl;
+         OutputCreationTime = boost::posix_time::microsec_clock::universal_time();
          return(OutputStream.good());
       }
       catch(std::exception const& e) {
          std::cerr << "ERROR: SQLWriter::changeFile() - " << e.what() << std::endl;
          return(false);
       }
+   }
+   return(true);
+}
+
+
+// ###### Start new transaction, if transaction length has been reached #####
+bool SQLWriter::mayStartNewTransaction()
+{
+   const boost::posix_time::ptime now = boost::posix_time::microsec_clock::universal_time();
+   if((unsigned int)(now - OutputCreationTime).total_seconds() > TransactionLength) {
+      return(changeFile());
    }
    return(true);
 }

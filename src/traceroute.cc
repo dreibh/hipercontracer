@@ -241,6 +241,7 @@ void Traceroute::cancelTimeoutTimer()
 // ###### Schedule interval timer ###########################################
 void Traceroute::scheduleIntervalEvent()
 {
+   // ====== Schedule event =================================================
    const unsigned long long deviation = std::max(10ULL, Interval / 5);   // 20% deviation
    const unsigned long long duration  = Interval + (std::rand() % deviation);
    IntervalTimer.expires_at(RunStartTimeStamp + boost::posix_time::milliseconds(duration));
@@ -252,6 +253,11 @@ void Traceroute::scheduleIntervalEvent()
          boost::posix_time::microsec_clock::universal_time();
       std::cout << "Waiting " << howLong.total_milliseconds() / 1000.0
                 << "s before next round ..." << std::endl;
+   }
+
+   // ====== Check, whether it is time for starting a new transaction =======
+   if(SQLOutput) {
+      SQLOutput->mayStartNewTransaction();
    }
 }
 

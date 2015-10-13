@@ -14,4 +14,5 @@ sudo ./hipercontracer \
    -pingttl=56 \
    -sqltable=TracerouteTable \
    -sqldirectory=/tmp/xy \
+   -sqltransactionlength=20 \
    -quiet

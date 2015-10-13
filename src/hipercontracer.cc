@@ -91,6 +91,7 @@ int main(int argc, char** argv)
    unsigned int       pingTTL                   = 64;
 
    bool               verboseMode               = true;
+   unsigned int       sqlTransactionLength      = 60;
    std::string        sqlDirectory              = "hipercontracer-output";
    std::string        sqlTable;
 
@@ -144,6 +145,9 @@ int main(int argc, char** argv)
       else if(strncmp(argv[i], "-sqldirectory=", 14) == 0) {
          sqlDirectory = (const char*)&argv[i][14];
       }
+      else if(strncmp(argv[i], "-sqltransactionlength=", 22) == 0) {
+         sqlTransactionLength = atol((const char*)&argv[i][22]);
+      }
       else {
          std::cerr << "ERROR: Unknown parameter " << argv[i] << std::endl
                    << "Usage: " << argv[0] << " -source=source ... -destination=destination ..." << std::endl;
@@ -171,8 +175,9 @@ int main(int argc, char** argv)
 
    std::cout << "SQL Output:" << std::endl;
    if(!sqlTable.empty()) {
-      std::cout << "* SQL Directory = " << sqlDirectory << std::endl
-                << "* Table         = " << sqlTable     << std::endl;
+      std::cout << "* SQL Directory      = " << sqlDirectory << std::endl
+                << "* Table              = " << sqlTable     << std::endl
+                << "* Transaction Length = " << sqlTransactionLength     << "s" << std::endl;
    }
    else {
       std::cout << "-- turned off--" << std::endl;
@@ -180,18 +185,18 @@ int main(int argc, char** argv)
    switch(serviceType) {
       case TST_Ping:
          std::cout << "Ping Service:" << std:: endl
-                   << "* Interval   = " << pingInterval   << " ms" << std::endl
-                   << "* Expiration = " << pingExpiration << " ms" << std::endl
-                   << "* TTL        = " << pingTTL        << std::endl
+                   << "* Interval           = " << pingInterval   << " ms" << std::endl
+                   << "* Expiration         = " << pingExpiration << " ms" << std::endl
+                   << "* TTL                = " << pingTTL        << std::endl
                    << std::endl;
        break;
       case TST_Traceroute:
          std::cout << "Traceroute Service:" << std:: endl
-                   << "* Interval         = " << tracerouteInterval        << " ms" << std::endl
-                   << "* Expiration       = " << tracerouteExpiration      << " ms" << std::endl
-                   << "* Initial MaxTTL   = " << tracerouteInitialMaxTTL   << std::endl
-                   << "* Final MaxTTL     = " << tracerouteFinalMaxTTL     << std::endl
-                   << "* Increment MaxTTL = " << tracerouteIncrementMaxTTL << std::endl
+                   << "* Interval           = " << tracerouteInterval        << " ms" << std::endl
+                   << "* Expiration         = " << tracerouteExpiration      << " ms" << std::endl
+                   << "* Initial MaxTTL     = " << tracerouteInitialMaxTTL   << std::endl
+                   << "* Final MaxTTL       = " << tracerouteFinalMaxTTL     << std::endl
+                   << "* Increment MaxTTL   = " << tracerouteIncrementMaxTTL << std::endl
                    << std::endl;
        break;
    }
@@ -208,7 +213,7 @@ int main(int argc, char** argv)
             (*sourceIterator).to_string() + "-" +
             boost::posix_time::to_iso_string(boost::posix_time::microsec_clock::universal_time());
          replace(uniqueID.begin(), uniqueID.end(), ' ', '-');
-         sqlWriter = new SQLWriter(sqlDirectory, uniqueID, sqlTable);
+         sqlWriter = new SQLWriter(sqlDirectory, uniqueID, sqlTable, sqlTransactionLength);
          if(sqlWriter->prepare() == false) {
             return(1);
          }
