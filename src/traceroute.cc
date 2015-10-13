@@ -247,7 +247,12 @@ void Traceroute::scheduleIntervalEvent()
    const unsigned long long duration  = Interval + (std::rand() % deviation);
    IntervalTimer.expires_at(RunStartTimeStamp + boost::posix_time::milliseconds(duration));
    IntervalTimer.async_wait(boost::bind(&Traceroute::handleIntervalEvent, this, _1));
-   std::cout << "Waiting for next round ..." << std::endl;
+
+   const boost::posix_time::time_duration howLong =
+      RunStartTimeStamp + boost::posix_time::milliseconds(duration) -
+      boost::posix_time::microsec_clock::universal_time();
+
+   std::cout << "Waiting " << howLong.total_milliseconds() << " ms before next round ..." << std::endl;
 }
 
 
