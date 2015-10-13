@@ -1,5 +1,5 @@
 -- STEP 3: Create Users
--- sudo -u postgres psql pingtraceroutedb <users.postgres
+-- sudo -u postgres psql pingtraceroutedb <users.sql
 
 REVOKE ALL ON DATABASE pingtraceroutedb FROM importer;
 REVOKE ALL ON Ping FROM importer;
