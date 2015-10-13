@@ -34,6 +34,7 @@
 
 #include "service.h"
 #include "icmpheader.h"
+#include "sqlwriter.h"
 
 #include <set>
 
@@ -44,7 +45,9 @@
 
 enum HopStatus {
    Unknown               = 0,
+   // ------ TTL/Hop Count --------------------------------
    TimeExceeded          = 1,
+   // ------ Reported as "unreachable" --------------------
    UnreachableScope      = 100,
    UnreachableNetwork    = 101,
    UnreachableHost       = 102,
@@ -52,7 +55,9 @@ enum HopStatus {
    UnreachablePort       = 104,
    UnreachableProhibited = 105,
    UnreachableUnknown    = 110,
+   // ------ Timed out ------------------------------------
    Timeout               = 200,
+   // ------ Response received ----------------------------
    Success               = 255
 };
 
@@ -95,7 +100,9 @@ class ResultEntry {
 class Traceroute : virtual public Service
 {
    public:
-   Traceroute(const boost::asio::ip::address&          sourceAddress,
+   Traceroute(SQLWriter*                               sqlWriter,
+              const bool                               verboseMode,
+              const boost::asio::ip::address&          sourceAddress,
               const std::set<boost::asio::ip::address> destinationAddressArray,
               const unsigned long long                 interval        = 30*60000ULL,
               const unsigned int                       expiration      = 3000,
@@ -133,6 +140,8 @@ class Traceroute : virtual public Service
    unsigned int getInitialMaxTTL(const boost::asio::ip::address& destinationAddress) const;
    static unsigned long long ptimeToMircoTime(const boost::posix_time::ptime t);
 
+   SQLWriter*                            SQLOutput;
+   const bool                            VerboseMode;
    const unsigned long long              Interval;
    const unsigned int                    Expiration;
    const unsigned int                    InitialMaxTTL;

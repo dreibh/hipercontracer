@@ -68,14 +68,18 @@ std::ostream& operator<<(std::ostream& os, const ResultEntry& resultEntry)
 
 
 // ###### Constructor #######################################################
-Traceroute::Traceroute(const boost::asio::ip::address&          sourceAddress,
+Traceroute::Traceroute(SQLWriter*                               sqlWriter,
+                       const bool                               verboseMode,
+                       const boost::asio::ip::address&          sourceAddress,
                        const std::set<boost::asio::ip::address> destinationAddressArray,
                        const unsigned long long                 interval,
                        const unsigned int                       expiration,
                        const unsigned int                       initialMaxTTL,
                        const unsigned int                       finalMaxTTL,
                        const unsigned int                       incrementMaxTTL)
-   : Interval(interval),
+   : SQLOutput(sqlWriter),
+     VerboseMode(verboseMode),
+     Interval(interval),
      Expiration(expiration),
      InitialMaxTTL(initialMaxTTL),
      FinalMaxTTL(finalMaxTTL),

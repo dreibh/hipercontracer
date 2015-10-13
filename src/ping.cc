@@ -31,14 +31,21 @@
 
 #include "ping.h"
 
+#include <boost/format.hpp>
+#include <boost/date_time/posix_time/posix_time.hpp>
+
 
 // ###### Constructor #######################################################
-Ping::Ping(const boost::asio::ip::address&          sourceAddress,
+Ping::Ping(SQLWriter*                               sqlWriter,
+           const bool                               verboseMode,
+           const boost::asio::ip::address&          sourceAddress,
            const std::set<boost::asio::ip::address> destinationAddressArray,
            const unsigned long long                 interval,
            const unsigned int                       expiration,
            const unsigned int                       ttl)
-   : Traceroute(sourceAddress, destinationAddressArray, interval, expiration, ttl, ttl, ttl)
+   : Traceroute(sqlWriter, verboseMode,
+                sourceAddress, destinationAddressArray,
+                interval, expiration, ttl, ttl, ttl)
 {
 }
 
@@ -100,10 +107,31 @@ void Ping::processResults()
    const boost::posix_time::ptime now = boost::posix_time::microsec_clock::universal_time();
    for(std::vector<ResultEntry*>::iterator iterator = resultsVector.begin(); iterator != resultsVector.end(); iterator++) {
       ResultEntry* resultEntry = *iterator;
-      std::cout << *resultEntry << std::endl;
 
-      if( (resultEntry->status() != Unknown) ||
+      // ====== Time-out entries ============================================
+      if( (resultEntry->status() == Unknown) &&
           ((now - resultEntry->sendTime()).total_milliseconds() >= Expiration) ) {
+         resultEntry->status(Timeout);
+         resultEntry->receiveTime(resultEntry->sendTime() + boost::posix_time::milliseconds(Expiration));
+      }
+
+      // ====== Print completed elements ====================================
+      if(resultEntry->status() != Unknown) {
+      std::cout << *resultEntry << std::endl;
+         if(SQLOutput) {
+            SQLOutput->insert(
+               str(boost::format("'%s','%s','%s',%d,%d")
+                  % boost::posix_time::to_iso_extended_string(resultEntry->sendTime())
+                  % SourceAddress.to_string()
+                  % resultEntry->address().to_string()
+                  % resultEntry->status()
+                  % (resultEntry->receiveTime() - resultEntry->sendTime()).total_milliseconds()
+            ));
+         }
+      }
+
+      // ====== Remove completed entries ====================================
+      if(resultEntry->status() != Unknown) {
          assert(ResultsMap.erase(resultEntry->seqNumber()) == 1);
          if(resultEntry->status() == Unknown) {
             if(OutstandingRequests > 0) {
