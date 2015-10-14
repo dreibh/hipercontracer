@@ -32,6 +32,8 @@
 --
 -- Contact: dreibh@simula.no
 
+
+-- ###### Ping ##############################################################
 DROP TABLE IF EXISTS Ping;
 CREATE TABLE Ping (
    Date   TIMESTAMP WITHOUT TIME ZONE NOT NULL,      -- Time stamp (always UTC!)
@@ -42,6 +44,8 @@ CREATE TABLE Ping (
    PRIMARY KEY (Date,FromIP,ToIP)
 );
 
+
+-- ###### Traceroute ########################################################
 DROP TABLE IF EXISTS Traceroute;
 CREATE TABLE Traceroute (
    Date      TIMESTAMP WITHOUT TIME ZONE NOT NULL,   -- Time stamp (always UTC!)
@@ -52,9 +56,15 @@ CREATE TABLE Traceroute (
    Status    SMALLINT NOT NULL,                      -- Status
    RTT       INTEGER  NOT NULL,                      -- microseconds (max. 2147s)
    HopIP     INET     NOT NULL,                      -- Router or Destination IP address
+   PathHash  BIGINT   NOT NULL,                      -- Hash over full path
    PRIMARY KEY(Date,FromIP,ToIP,HopNumber)
 );
 
+DROP INDEX IF EXISTS TraceroutePathHashIndex;
+CREATE INDEX TraceroutePathHashIndex ON Traceroute (PathHash) ASC;
+
+
+-- ###### Additional Information ############################################
 DROP TABLE IF EXISTS AddressInfo;
 CREATE TABLE AddressInfo (
    IP         INET NOT NULL,                         -- IP address
