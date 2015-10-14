@@ -38,6 +38,7 @@
 
 #include <boost/format.hpp>
 #include <boost/interprocess/streams/bufferstream.hpp>
+#include <boost/uuid/sha1.hpp>
 
 
 // ###### Constructor #######################################################
@@ -392,21 +393,50 @@ void Traceroute::processResults()
    std::sort(resultsVector.begin(), resultsVector.end(), &compareTracerouteResults);
 
    // ====== Count hops =====================================================
-   size_t totalHops = 0;
+   size_t      totalHops          = 0;
+   size_t      currentHop         = 0;
+   bool        completeTraceroute = true;   // all hops have responded
+   std::string pathString         = SourceAddress.to_string();
    for(std::vector<ResultEntry*>::iterator iterator = resultsVector.begin(); iterator != resultsVector.end(); iterator++) {
       ResultEntry* resultEntry = *iterator;
       assert(resultEntry->hop() > totalHops);
+      currentHop++;
       totalHops = resultEntry->hop();
+
+      // ====== We have reached the destination =============================
       if(resultEntry->status() == Success) {
-         break;
+         pathString += "-" + resultEntry->address().to_string();
+         break;   // done!
       }
 
       // ====== Time-out entries ============================================
       else if(resultEntry->status() == Unknown) {
          resultEntry->status(Timeout);
          resultEntry->receiveTime(resultEntry->sendTime() + boost::posix_time::milliseconds(Expiration));
+         pathString += "-*";
+         completeTraceroute = false;   // at least one hop has not sent a response :-(
+      }
+
+      // ====== Some other response (usually TTL exceeded) ==================
+      else {
+         pathString += "-" + resultEntry->address().to_string();
       }
    }
+   assert(currentHop == totalHops);
+
+   // ====== Compute path hash ==============================================
+   // Checksum details:
+   // If complete traceroute: first 64 bits of the SHA-1 sum over path string
+   // Otherwise:              0 (zero)
+   uint64_t checksum = 0;
+   if(completeTraceroute) {
+      boost::uuids::detail::sha1 sha1Hash;
+      sha1Hash.process_bytes(pathString.c_str(), pathString.length());
+      uint32_t digest[5];
+      sha1Hash.get_digest(digest);
+      checksum =  ((uint64_t)digest[0] << 32) | (uint64_t)digest[1];
+   }
+   std::cout << "P=" << (int)completeTraceroute << " " << checksum << " -> " << pathString << std::endl;
 
    // ====== Print traceroute entries =======================================
    // std::cout << "TotalHops=" << totalHops << std::endl;
@@ -418,7 +448,7 @@ void Traceroute::processResults()
 
       if(SQLOutput) {
          SQLOutput->insert(
-            str(boost::format("'%s','%s','%s',%d,%d,%d,%d,'%s'")
+            str(boost::format("'%s','%s','%s',%d,%d,%d,%d,'%s',0x%x")
                % boost::posix_time::to_iso_extended_string(resultEntry->sendTime())
                % SourceAddress.to_string()
                % (*DestinationAddressIterator).to_string()
@@ -427,6 +457,7 @@ void Traceroute::processResults()
                % resultEntry->status()
                % (resultEntry->receiveTime() - resultEntry->sendTime()).total_microseconds()
                % resultEntry->address().to_string()
+               % checksum
          ));
       }
 
