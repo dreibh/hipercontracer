@@ -72,12 +72,27 @@ CREATE INDEX TracerouteToIPIndex ON Traceroute (ToIP ASC);
 -- ###### Additional Information ############################################
 DROP TABLE IF EXISTS AddressInfo;
 CREATE TABLE AddressInfo (
-   IP         INET NOT NULL,                         -- IP address
-   TimeStamp  DATE NOT NULL,                         -- Time stamp for information
-   SiteID     SMALLINT,                              -- NorNet Site ID
-   ProviderID SMALLINT,                              -- NorNet Provider ID
-   ASNumber   INTEGER,                               -- Autonomous System number
-   FQDN       CHAR(253),                             -- Fully-qualified domain name
+   IP          INET NOT NULL,                        -- IP address
+   TimeStamp   DATE NOT NULL,                        -- Time stamp for information
+
+   -- ------ NorNet ---------------------------------------------------------
+   SiteID      SMALLINT,                             -- NorNet Site ID
+   ProviderID  SMALLINT,                             -- NorNet Provider ID
+
+   -- ----- Autonomous System -----------------------------------------------
+   ASNumber    INTEGER,                              -- Autonomous System number
+
+   -- ------ GeoIP ----------------------------------------------------------
+   Latitude    FLOAT,
+   Longitude   FLOAT,
+   CountryCode CHAR(2),
+   PostalCode  INTEGER,
+   Country     VARCHAR(30),
+   Region      VARCHAR(30),
+   City        VARCHAR(30),
+
+   -- ------ DNS ------------------------------------------------------------
+   FQDN        VARCHAR(253),                         -- Fully-qualified domain name
    PRIMARY KEY (IP)
 );
 
