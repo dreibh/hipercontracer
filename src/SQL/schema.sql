@@ -44,6 +44,10 @@ CREATE TABLE Ping (
    PRIMARY KEY (Date,FromIP,ToIP)
 );
 
+CREATE INDEX PingFromIPIndex ON Ping (FromIP ASC);
+CREATE INDEX PingToIPIndex ON Ping (ToIP ASC);
+CREATE INDEX PingStatusIndex ON Ping (Status ASC);
+
 
 -- ###### Traceroute ########################################################
 DROP TABLE IF EXISTS Traceroute;
@@ -60,8 +64,9 @@ CREATE TABLE Traceroute (
    PRIMARY KEY(Date,FromIP,ToIP,HopNumber)
 );
 
-DROP INDEX IF EXISTS TraceroutePathHashIndex;
-CREATE INDEX TraceroutePathHashIndex ON Traceroute (PathHash) ASC;
+CREATE INDEX TraceroutePathHashIndex ON Traceroute (PathHash ASC);
+CREATE INDEX TracerouteFromIPIndex ON Traceroute (FromIP ASC);
+CREATE INDEX TracerouteToIPIndex ON Traceroute (ToIP ASC);
 
 
 -- ###### Additional Information ############################################
