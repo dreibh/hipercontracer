@@ -184,6 +184,7 @@ def initGeoIP(database, databaseType = GeoIP.GEOIP_STANDARD):
 geo4 = initGeoIP("/usr/share/GeoIP/GeoLiteCity.dat")
 geo6 = initGeoIP("/usr/share/GeoIP/GeoLiteCityv6.dat")
 
+inserts = 0
 dbCursor.execute(
    """SELECT IP FROM AddressInfo a WHERE a.Country IS NULL;"""
 )
@@ -220,9 +221,13 @@ for row in rows:
       try:
          dbCursor.execute(sqlStatement)
          dbConnection.commit()
-      except:
+         inserts = inserts + 1
+      except Exception as e:
          log('Update failed: ' + str(e))
          sys.exit(1)
+
+if inserts > 0:
+   sys.stdout.write('Added ' + str(inserts) + ' entries.\n')
 
 
 # ====== GeoIP AS Numbers ===================================================
@@ -231,6 +236,7 @@ log('Trying to look up AS number information ...')
 asnum4 = initGeoIP("/usr/share/GeoIP/GeoIPASNum.dat")
 asnum6 = initGeoIP("/usr/share/GeoIP/GeoIPASNumv6.dat")
 
+inserts = 0
 dbCursor.execute(
    """SELECT IP FROM AddressInfo a WHERE a.ASNumber IS NULL;"""
 )
@@ -261,14 +267,18 @@ for row in rows:
          try:
             dbCursor.execute(sqlStatement)
             dbConnection.commit()
-         except:
+            inserts = inserts + 1
+         except Exception as e:
             log('Update failed: ' + str(e))
             sys.exit(1)
 
+if inserts > 0:
+   sys.stdout.write('Added ' + str(inserts) + ' entries.\n')
 
 
 # ====== Get FQDN ===========================================================
 log('Trying to resolve missing FQDNs ...')
+inserts = 0
 dbCursor.execute(
    """SELECT IP FROM AddressInfo a WHERE a.FQDN IS NULL;"""
 )
@@ -291,6 +301,23 @@ for row in rows:
                WHERE IP='""" + address + """'"""
          )
          dbConnection.commit()
+         inserts = inserts + 1
       except:
          log('Update failed: ' + str(e))
          sys.exit(1)
+
+if inserts > 0:
+   sys.stdout.write('Added ' + str(inserts) + ' entries.\n')
+
+
+# ====== Vacuum table========================================================
+log('Vacuuming table AddressInfo ...')
+try:
+   old_isolation_level = dbConnection.isolation_level
+   dbConnection.set_isolation_level(0)
+   dbCursor.execute("""VACUUM FULL AddressInfo""")
+   dbConnection.commit()
+   dbConnection.set_isolation_level(old_isolation_level)
+except Exception as e:
+   log('Optimisation failed: ' + str(e))
+   sys.exit(1)
