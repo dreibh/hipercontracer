@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 # -*- coding: utf-8 -*-
 #
 #  =================================================================
@@ -34,12 +34,12 @@
 
 import os
 import sys
+import io
 import datetime
-import shutil
 import bz2
+import shutil
 import psycopg2
-import ConfigParser
-import StringIO
+import configparser
 
 
 # ###### Print log message ##################################################
@@ -70,12 +70,12 @@ dbName          = 'pingtraceroutedb'
 
 
 # ====== Get parameters =====================================================
-parsedConfigFile = ConfigParser.RawConfigParser()
+parsedConfigFile = configparser.RawConfigParser()
 parsedConfigFile.optionxform = str   # Make it case-sensitive!
 try:
-   parsedConfigFile.readfp(StringIO.StringIO('[root]\n' + open(configFileName, 'r').read()))
-except:
-    error('Unable to read configuration file' +  sys.argv[1])
+   parsedConfigFile.readfp(io.StringIO(u'[root]\n' + open(configFileName, 'r').read()))
+except Exception as e:
+    error('Unable to read configuration file' +  sys.argv[1] + ': ' + str(e))
     sys.exit(1)
 
 for parameterName in parsedConfigFile.options('root'):
@@ -139,7 +139,7 @@ for transactionFile in transactionFileList:
                dbCursor.execute(transactionCommand)
             dbConnection.commit()
             goodTransactions = goodTransactions + 1
-         except Exception, e:
+         except Exception as e:
             if dbConnection.closed:
                log('The database connection seems to be closed. Aborting import!')
                break
