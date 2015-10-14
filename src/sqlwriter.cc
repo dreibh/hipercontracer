@@ -135,7 +135,7 @@ bool SQLWriter::mayStartNewTransaction()
 void SQLWriter::insert(const std::string& tuple)
 {
    OutputStream << "INSERT INTO " << TableName << " VALUES ("
-              << tuple
-              << ");" << std::endl;
+                << tuple
+                << ");" << std::endl;
    Inserts++;
 }

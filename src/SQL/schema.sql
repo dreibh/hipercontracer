@@ -53,8 +53,8 @@ CREATE INDEX PingStatusIndex ON Ping (Status ASC);
 DROP TABLE IF EXISTS Traceroute;
 CREATE TABLE Traceroute (
    Date      TIMESTAMP WITHOUT TIME ZONE NOT NULL,   -- Time stamp (always UTC!)
-   FromIP    INET NOT NULL,                          -- Source IP address
-   ToIP      INET NOT NULL,                          -- Destination IP address
+   FromIP    INET     NOT NULL,                      -- Source IP address
+   ToIP      INET     NOT NULL,                      -- Destination IP address
    HopNumber SMALLINT NOT NULL,                      -- Current hop number
    TotalHops SMALLINT NOT NULL,                      -- Total number of hops
    Status    SMALLINT NOT NULL,                      -- Status
@@ -104,13 +104,13 @@ CREATE INDEX AddressInfoASNumberIndex ON AddressInfo (ASNumber ASC NULLS LAST);
 DROP TABLE IF EXISTS SiteInfo;
 CREATE TABLE SiteInfo (
    SiteID  SMALLINT NOT NULL,
-   Name    CHAR(64),
+   Name    CHAR(64) NOT NULL,
    PRIMARY KEY (SiteID)
 );
 
 DROP TABLE IF EXISTS ProviderInfo;
 CREATE TABLE ProviderInfo (
    ProviderID  SMALLINT NOT NULL,
-   Name    CHAR(64),
+   Name        CHAR(64) NOT NULL,
    PRIMARY KEY (ProviderID)
 );
