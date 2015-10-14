@@ -1,1 +1,4 @@
 src/trace-configuration
+src/SQL/*.sql
+src/SQL/README
+src/SQL/install-database-and-users

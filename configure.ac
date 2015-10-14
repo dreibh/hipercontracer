@@ -77,5 +77,5 @@ esac
 
 
 # ###### Makefiles ##########################################################
-AC_CONFIG_FILES([Makefile src/Makefile])
+AC_CONFIG_FILES([Makefile src/Makefile src/SQL/Makefile])
 AC_OUTPUT
