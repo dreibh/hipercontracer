@@ -69,7 +69,7 @@ CREATE INDEX TracerouteFromIPIndex ON Traceroute (FromIP ASC);
 CREATE INDEX TracerouteToIPIndex ON Traceroute (ToIP ASC);
 
 
--- ###### Additional Information ############################################
+-- ###### Address Information ###############################################
 DROP TABLE IF EXISTS AddressInfo;
 CREATE TABLE AddressInfo (
    IP           INET NOT NULL,                       -- IP address
@@ -97,6 +97,10 @@ CREATE TABLE AddressInfo (
    PRIMARY KEY (IP)
 );
 
+CREATE INDEX AddressInfoASNumberIndex ON AddressInfo (ASNumber ASC NULLS LAST);
+
+
+-- ###### Additional Information ############################################
 DROP TABLE IF EXISTS SiteInfo;
 CREATE TABLE SiteInfo (
    SiteID  SMALLINT NOT NULL,
