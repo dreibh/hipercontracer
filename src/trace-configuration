@@ -1,14 +1,13 @@
 # ====== Trace configuration ================================================
-result_file_path = /var/hipercontrace/results
-bad_file_path    = /var/hipercontrace/bad-files
+result_file_path = /tmp/xy
+#/var/hipercontrace/results
+bad_file_path    = /tmp/xy/bad
 
 # ====== Database server ====================================================
-dbserver         = localhost
+dbserver         = 10.1.1.39
 dbport           = 5432
-dbuser           = postgres
-dbpassword       = #####
+dbuser           = importer
+dbpassword       = !importer!
 
 # ====== Database configuration =============================================
-database         = NorNet-Trace
-table_traceroute = Traceroute
-table_ping       = Ping
+database         = pingtraceroutedb

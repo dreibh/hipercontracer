@@ -32,45 +32,56 @@
 #
 #  Contact: dreibh@simula.no
 
-import psycopg2;
-import time;
-import os;
-import re;
-import sys;
-import datetime;
-import subprocess;
-import ConfigParser;
-import StringIO;
-import shutil;
+import os
+import sys
+import datetime
+import shutil
+import bz2
+import psycopg2
+import ConfigParser
+import StringIO
+
+
+# ###### Print log message ##################################################
+def log(logstring):
+   print('\x1b[32m' + datetime.datetime.now().strftime('%Y-%m-%dT%H:%M:%S') + ': ' + logstring + '\x1b[0m');
+
+
+# ###### Abort with error ###################################################
+def error(logstring):
+   sys.stderr.write(datetime.datetime.now().isoformat() + \
+                    ' ===== ERROR: ' + logstring + ' =====\n')
+   sys.exit(1)
+
 
 
 # ###### Main program #######################################################
-if len(sys.argv) < 1:
+if len(sys.argv) < 2:
    error('Usage: ' + sys.argv[0] + ' configuration')
 
 configFileName  = sys.argv[1]
-resultFilePath  = None
+resultsFilePath  = None
 badFilePath     = None
 dbServer        = 'localhost'
 dbPort          = 5432
-dbUser          = None
+dbUser          = 'importer'
 dbPassword      = None
-tablePing       = 'Ping'
-tableTraceroute = 'Traceroute'
+dbName          = 'pingtraceroutedb'
 
 
+# ====== Get parameters =====================================================
 parsedConfigFile = ConfigParser.RawConfigParser()
 parsedConfigFile.optionxform = str   # Make it case-sensitive!
 try:
    parsedConfigFile.readfp(StringIO.StringIO('[root]\n' + open(configFileName, 'r').read()))
 except:
-    error("I am not be able to connect to the database!")
+    error('Unable to read configuration file' +  sys.argv[1])
     sys.exit(1)
 
 for parameterName in parsedConfigFile.options('root'):
    parameterValue = parsedConfigFile.get('root', parameterName)
    if parameterName == 'result_file_path':
-      resultFilePath = parameterValue
+      resultsFilePath = parameterValue
    elif parameterName == 'bad_file_path':
       badFilePath = parameterValue
    elif parameterName == 'dbserver':
@@ -81,9 +92,59 @@ for parameterName in parsedConfigFile.options('root'):
       dbUser = parameterValue
    elif parameterName == 'dbpassword':
       dbPassword = parameterValue
-   elif parameterName == 'table_ping':
-      tablePing = parameterValue
-   elif parameterName == 'table_traceroute':
-      tableTraceroute = parameterValue
+   elif parameterName == 'database':
+      dbName = parameterValue
    else:
-      error('Unknown parameter ' + parameterName + ' in ' + conf_path)
+      error('Unknown parameter ' + parameterName + ' in ' + sys.argv[1] + '!')
+
+if not os.path.exists(resultsFilePath):
+   error('Invalid result file path: ' + resultsFilePath + '!')
+if not os.path.exists(badFilePath):
+   error('Invalid bad file path: ' + badFilePath + '!')
+
+
+# ====== Connect to the database ============================================
+try:
+   dbConnection = psycopg2.connect(host=str(dbServer), port=str(dbPort),
+                                   user=str(dbUser), password=str(dbPassword),
+                                   dbname=str(dbName))
+   dbConnection.autocommit = False
+except:
+    log('Unable to connect to the database!')
+    sys.exit(1)
+
+dbCursor = dbConnection.cursor()
+
+
+# ====== Import transactions ================================================
+goodTransactions = 0
+badTransactions  = 0
+
+transactionFileList = sorted(os.listdir(resultsFilePath))
+for transactionFile in transactionFileList:
+   absTransactionFile = os.path.join(resultsFilePath, transactionFile)
+   if os.path.isfile(absTransactionFile):
+      log('Processing ' + transactionFile)
+      transactionContent = None
+      try:
+         inputFile = bz2.BZ2File(absTransactionFile, 'r')
+         transactionContent = inputFile.read().splitlines()
+      except:
+         log('Transaction ' + transactionFile + ' cannot be read -> moving it to bad file directory')
+         shutil.move(absTransactionFile, badFilePath)
+
+      if transactionContent != None:
+         try:
+            for transactionCommand in transactionContent:
+               dbCursor.execute(transactionCommand)
+            dbConnection.commit()
+            goodTransactions = goodTransactions + 1
+         except Exception, e:
+            log('Transaction ' + transactionFile + ' cannot be committed: ' + str(e) + ' -> moving it to bad file directory')
+            dbConnection.rollback()
+            shutil.move(absTransactionFile, badFilePath)
+            badTransactions = badTransactions + 1
+
+      os.remove(absTransactionFile)
+
+log('Done: ' + str(goodTransactions) + ' transactions committed, ' + str(badTransactions) + ' were bad.')
