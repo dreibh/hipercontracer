@@ -45,8 +45,10 @@
 #include "ping.h"
 
 
-static std::set<boost::asio::ip::address> sourceArray;
-static std::set<boost::asio::ip::address> destinationArray;
+static std::set<boost::asio::ip::address> SourceArray;
+static std::set<boost::asio::ip::address> DestinationArray;
+static std::set<SQLWriter*>               SqlWriterSet;
+static std::set<Service*>                 ServiceSet;
 
 
 // ###### Add address to set ################################################
@@ -70,15 +72,35 @@ void signalHandler(const boost::system::error_code& error, int signal_number)
 }
 
 
+// ###### Prepare SQL writer ################################################
+static SQLWriter* makeSQLWriter(const boost::asio::ip::address& sourceAddress,
+                                const std::string&              sqlTable,
+                                const std::string&              sqlDirectory,
+                                const unsigned int              sqlTransactionLength)
+{
+   SQLWriter* sqlWriter = NULL;
+   if(!sqlTable.empty()) {
+      std::string uniqueID =
+         sqlTable + "-" +
+         sourceAddress.to_string() + "-" +
+         boost::posix_time::to_iso_string(boost::posix_time::microsec_clock::universal_time());
+      replace(uniqueID.begin(), uniqueID.end(), ' ', '-');
+      sqlWriter = new SQLWriter(sqlDirectory, uniqueID, sqlTable, sqlTransactionLength);
+      if(sqlWriter->prepare() == false) {
+         ::exit(1);
+      }
+      SqlWriterSet.insert(sqlWriter);
+   }
+   return(sqlWriter);
+}
+
+
 // ###### Main program ######################################################
 int main(int argc, char** argv)
 {
    // ====== Initialize =====================================================
-   enum ServiceType {
-      TST_Ping       = 1,
-      TST_Traceroute = 2
-   };
-   ServiceType        serviceType               = TST_Traceroute;
+   bool               servicePing               = false;
+   bool               serviceTraceroute         = false;
 
    unsigned long long tracerouteInterval        = 10000;
    unsigned int       tracerouteExpiration      = 3000;
@@ -93,21 +115,22 @@ int main(int argc, char** argv)
    bool               verboseMode               = true;
    unsigned int       sqlTransactionLength      = 60;
    std::string        sqlDirectory              = "hipercontracer-output";
-   std::string        sqlTable;
+   std::string        sqlPingTable;
+   std::string        sqlTracerouteTable;
 
    // ====== Handle arguments ===============================================
    for(int i = 1; i < argc; i++) {
       if(strncmp(argv[i], "-source=", 8) == 0) {
-         addAddress(sourceArray, (const char*)&argv[i][8]);
+         addAddress(SourceArray, (const char*)&argv[i][8]);
       }
       else if(strncmp(argv[i], "-destination=", 13) == 0) {
-         addAddress(destinationArray, (const char*)&argv[i][13]);
+         addAddress(DestinationArray, (const char*)&argv[i][13]);
       }
       else if(strcmp(argv[i], "-ping") == 0) {
-         serviceType = TST_Ping;
+         servicePing = true;
       }
       else if(strcmp(argv[i], "-traceroute") == 0) {
-         serviceType = TST_Traceroute;
+         serviceTraceroute = true;
       }
       else if(strcmp(argv[i], "-quiet") == 0) {
          verboseMode = false;
@@ -139,8 +162,11 @@ int main(int argc, char** argv)
       else if(strncmp(argv[i], "-pingttl=", 9) == 0) {
          pingTTL = atol((const char*)&argv[i][9]);
       }
-      else if(strncmp(argv[i], "-sqltable=", 10) == 0) {
-         sqlTable = (const char*)&argv[i][10];
+      else if(strncmp(argv[i], "-sqlpingtable=", 14) == 0) {
+         sqlPingTable = (const char*)&argv[i][14];
+      }
+      else if(strncmp(argv[i], "-sqltraceroutetable=", 20) == 0) {
+         sqlTracerouteTable = (const char*)&argv[i][20];
       }
       else if(strncmp(argv[i], "-sqldirectory=", 14) == 0) {
          sqlDirectory = (const char*)&argv[i][14];
@@ -157,15 +183,19 @@ int main(int argc, char** argv)
 
 
    // ====== Initialize =====================================================
-   if( (sourceArray.size() < 1) ||
-       (destinationArray.size() < 1) ) {
+   if( (SourceArray.size() < 1) ||
+       (DestinationArray.size() < 1) ) {
       std::cerr << "ERROR: At least one source and destination are needed!" << std::endl;
-      ::exit(1);
+      return(1);
+   }
+   if((servicePing == false) && (serviceTraceroute == false)) {
+      std::cerr << "ERROR: Enable at least on service (Ping or Traceroute)!" << std::endl;
+      return(1);
    }
 
    std::srand(std::time(0));
    tracerouteInterval        = std::min(std::max(1000ULL, tracerouteInterval),   3600U*60000ULL);
-   tracerouteExpiration        = std::min(std::max(1000U, tracerouteExpiration),     60000U);
+   tracerouteExpiration      = std::min(std::max(1000U, tracerouteExpiration),   60000U);
    tracerouteInitialMaxTTL   = std::min(std::max(1U, tracerouteInitialMaxTTL),   255U);
    tracerouteFinalMaxTTL     = std::min(std::max(1U, tracerouteFinalMaxTTL),     255U);
    tracerouteIncrementMaxTTL = std::min(std::max(1U, tracerouteIncrementMaxTTL), 255U);
@@ -174,71 +204,57 @@ int main(int argc, char** argv)
    pingTTL                   = std::min(std::max(1U, pingTTL),                   255U);
 
    std::cout << "SQL Output:" << std::endl;
-   if(!sqlTable.empty()) {
-      std::cout << "* SQL Directory      = " << sqlDirectory << std::endl
-                << "* Table              = " << sqlTable     << std::endl
-                << "* Transaction Length = " << sqlTransactionLength     << "s" << std::endl;
+   if( (!sqlPingTable.empty()) || (!sqlTracerouteTable.empty()) ) {
+      std::cout << "* SQL Directory      = " << sqlDirectory         << std::endl
+                << "* Transaction Length = " << sqlTransactionLength << " s" << std::endl;
    }
    else {
       std::cout << "-- turned off--" << std::endl;
    }
-   switch(serviceType) {
-      case TST_Ping:
-         std::cout << "Ping Service:" << std:: endl
-                   << "* Interval           = " << pingInterval   << " ms" << std::endl
-                   << "* Expiration         = " << pingExpiration << " ms" << std::endl
-                   << "* TTL                = " << pingTTL        << std::endl
-                   << std::endl;
-       break;
-      case TST_Traceroute:
-         std::cout << "Traceroute Service:" << std:: endl
-                   << "* Interval           = " << tracerouteInterval        << " ms" << std::endl
-                   << "* Expiration         = " << tracerouteExpiration      << " ms" << std::endl
-                   << "* Initial MaxTTL     = " << tracerouteInitialMaxTTL   << std::endl
-                   << "* Final MaxTTL       = " << tracerouteFinalMaxTTL     << std::endl
-                   << "* Increment MaxTTL   = " << tracerouteIncrementMaxTTL << std::endl
-                   << std::endl;
-       break;
+   if(servicePing) {
+      std::cout << "Ping Service:" << std:: endl
+                << "* Interval           = " << pingInterval   << " ms" << std::endl
+                << "* Expiration         = " << pingExpiration << " ms" << std::endl
+                << "* TTL                = " << pingTTL        << std::endl
+                << "* Ping Table         = " << sqlPingTable   << std::endl
+                << std::endl;
+   }
+   if(serviceTraceroute) {
+      std::cout << "Traceroute Service:" << std:: endl
+                << "* Interval           = " << tracerouteInterval        << " ms" << std::endl
+                << "* Expiration         = " << tracerouteExpiration      << " ms" << std::endl
+                << "* Initial MaxTTL     = " << tracerouteInitialMaxTTL   << std::endl
+                << "* Final MaxTTL       = " << tracerouteFinalMaxTTL     << std::endl
+                << "* Increment MaxTTL   = " << tracerouteIncrementMaxTTL << std::endl
+                << "* Traceroute Table   = " << sqlTracerouteTable        << std::endl
+                << std::endl;
    }
 
 
    // ====== Start service threads ==========================================
-   std::set<SQLWriter*> sqlWriterSet;
-   std::set<Service*>   serviceSet;
-   for(std::set<boost::asio::ip::address>::iterator sourceIterator = sourceArray.begin(); sourceIterator != sourceArray.end(); sourceIterator++) {
-      SQLWriter* sqlWriter = NULL;
-      if(!sqlTable.empty()) {
-         std::string uniqueID =
-            sqlTable + "-" +
-            (*sourceIterator).to_string() + "-" +
-            boost::posix_time::to_iso_string(boost::posix_time::microsec_clock::universal_time());
-         replace(uniqueID.begin(), uniqueID.end(), ' ', '-');
-         sqlWriter = new SQLWriter(sqlDirectory, uniqueID, sqlTable, sqlTransactionLength);
-         if(sqlWriter->prepare() == false) {
-            return(1);
+   for(std::set<boost::asio::ip::address>::iterator sourceIterator = SourceArray.begin(); sourceIterator != SourceArray.end(); sourceIterator++) {
+      if(servicePing) {
+         Service* service = new Ping(makeSQLWriter(*sourceIterator, sqlPingTable, sqlDirectory, sqlTransactionLength),
+                                     verboseMode,
+                                     *sourceIterator, DestinationArray,
+                                     pingInterval, pingExpiration, pingTTL);
+         if(service->start() == false) {
+            ::exit(1);
          }
-         sqlWriterSet.insert(sqlWriter);
+         ServiceSet.insert(service);
       }
-
-       Service* service = NULL;
-       switch(serviceType) {
-          case TST_Ping:
-             service = new Ping(sqlWriter, verboseMode,
-                                *sourceIterator, destinationArray,
-                                pingInterval, pingExpiration, pingTTL);
-           break;
-          case TST_Traceroute:
-             service = new Traceroute(sqlWriter, verboseMode,
-                                      *sourceIterator, destinationArray,
-                                      tracerouteInterval, tracerouteExpiration,
-                                      tracerouteInitialMaxTTL, tracerouteFinalMaxTTL, tracerouteIncrementMaxTTL);
-           break;
+      if(serviceTraceroute) {
+         Service* service = new Traceroute(makeSQLWriter(*sourceIterator, sqlTracerouteTable, sqlDirectory, sqlTransactionLength),
+                                           verboseMode,
+                                           *sourceIterator, DestinationArray,
+                                           tracerouteInterval, tracerouteExpiration,
+                                           tracerouteInitialMaxTTL, tracerouteFinalMaxTTL,
+                                           tracerouteIncrementMaxTTL);
+         if(service->start() == false) {
+            ::exit(1);
+         }
+         ServiceSet.insert(service);
        }
-       if(service->start() == false) {
-          std::cerr << "exiting!" << std::endl;
-          ::exit(1);
-       }
-       serviceSet.insert(service);
    }
 
 
@@ -251,16 +267,16 @@ int main(int argc, char** argv)
 
 
    // ====== Shut down service threads ======================================
-   for(std::set<Service*>::iterator serviceIterator = serviceSet.begin(); serviceIterator != serviceSet.end(); serviceIterator++) {
+   for(std::set<Service*>::iterator serviceIterator = ServiceSet.begin(); serviceIterator != ServiceSet.end(); serviceIterator++) {
       Service* service = *serviceIterator;
       service->requestStop();
    }
-   for(std::set<Service*>::iterator serviceIterator = serviceSet.begin(); serviceIterator != serviceSet.end(); serviceIterator++) {
+   for(std::set<Service*>::iterator serviceIterator = ServiceSet.begin(); serviceIterator != ServiceSet.end(); serviceIterator++) {
       Service* service = *serviceIterator;
       service->join();
       delete service;
    }
-   for(std::set<SQLWriter*>::iterator sqlWriterIterator = sqlWriterSet.begin(); sqlWriterIterator != sqlWriterSet.end(); sqlWriterIterator++) {
+   for(std::set<SQLWriter*>::iterator sqlWriterIterator = SqlWriterSet.begin(); sqlWriterIterator != SqlWriterSet.end(); sqlWriterIterator++) {
       delete *sqlWriterIterator;
    }
 

@@ -8,6 +8,7 @@ sudo ./hipercontracer \
    -source=2a02:270:2014:40:92e2:baff:fe48:bde1 \
    -destination=2400:cb00:2048:1::6814:155 -destination=2a02:2e0:3fe:1001:7777:772e:2:85 -destination=2a00:1450:400f:805::2004 \
    -traceroute \
+   -ping \
    -tracerouteduration=1000 \
    -tracerouteinitialmaxttl=4 \
    -traceroutefinalmaxttl=32 \
@@ -15,5 +16,6 @@ sudo ./hipercontracer \
    -pinginterval=1000 \
    -pingexpiration=7500 \
    -pingttl=56 \
-   -sqltable=Traceroute \
+   -sqlpingtable=Ping \
+   -sqltraceroutetable=Traceroute \
    -sqldirectory=/tmp/xy
