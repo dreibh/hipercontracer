@@ -35,6 +35,7 @@
 import os
 import sys
 import io
+import re
 import datetime
 import bz2
 import shutil
@@ -168,9 +169,8 @@ except:
    sys.exit(1)
 
 
-# ====== GeoIP ==============================================================
+# ====== GeoIP Location =====================================================
 log('Trying to look up GeoIP information ...')
-#geoIPSet = []
 
 def initGeoIP(database, databaseType = GeoIP.GEOIP_STANDARD):
    gi = None
@@ -179,18 +179,10 @@ def initGeoIP(database, databaseType = GeoIP.GEOIP_STANDARD):
    except Exception as e:
       sys.stdout.write('GeoIP database ' + database + ' is not available: ' + str(e))
       pass
-   #geoIPSet.append(gi)
    return gi
 
-#def lookupGeoIP(address):
-   #for gi in geoIPSet:
-      #gir = gi.record_by_addr(address)
-      #if gir != None:
-         #return gir
-   #return None
-
 geo4 = initGeoIP("/usr/share/GeoIP/GeoLiteCity.dat")
-geo6 = initGeoIP("/usr/share/GeoIP/GeoLiteCityv6.dat", GeoIP.GEOIP_STANDARD)
+geo6 = initGeoIP("/usr/share/GeoIP/GeoLiteCityv6.dat")
 
 dbCursor.execute(
    """SELECT IP FROM AddressInfo a WHERE a.Country IS NULL;"""
@@ -198,21 +190,19 @@ dbCursor.execute(
 rows = dbCursor.fetchall()
 for row in rows:
    address  = ipaddress.ip_address(row[0])
-   print(address, address.version)
    result = None
    try:
       if address.version == 6:
-         result = geo6.record_by_addr(str(address))
+         result = geo6.record_by_addr_v6(str(address))
       else:
          result = geo4.record_by_addr(str(address))
-      if result != None:
-         print(result)
    except:
       continue
 
    if result != None:
       sqlStatement = """UPDATE AddressInfo
-                        SET Country='""" + result['country_name'] + """'
+                        SET TimeStamp=NOW()
+                            ,Country='""" + result['country_name'] + """'
                             ,CountryCode='""" + result['country_code'] + """'"""
       if result['region_name'] != None:
          sqlStatement = sqlStatement + """,Region='"""     + result['region_name'] + """'"""
@@ -226,14 +216,54 @@ for row in rows:
          sqlStatement = sqlStatement + """,Longitude="""   + str(result['longitude'])
       sqlStatement = sqlStatement + """ WHERE IP='""" + str(address) + """'"""
 
-      print(sqlStatement)
-
+      # print(sqlStatement)
       try:
          dbCursor.execute(sqlStatement)
          dbConnection.commit()
       except:
          log('Update failed: ' + str(e))
          sys.exit(1)
+
+
+# ====== GeoIP AS Numbers ===================================================
+log('Trying to look up AS number information ...')
+
+asnum4 = initGeoIP("/usr/share/GeoIP/GeoIPASNum.dat")
+asnum6 = initGeoIP("/usr/share/GeoIP/GeoIPASNumv6.dat")
+
+dbCursor.execute(
+   """SELECT IP FROM AddressInfo a WHERE a.ASNumber IS NULL;"""
+)
+rows = dbCursor.fetchall()
+for row in rows:
+   address  = ipaddress.ip_address(row[0])
+   result = None
+   try:
+      if address.version == 6:
+         result = asnum6.org_by_addr_v6(str(address))
+      else:
+         result = asnum4.org_by_addr(str(address))
+   except:
+      continue
+
+   if result != None:
+      m = re.match(r'^AS([0-9]+) (.*)$', result)
+      if m != None:
+         asNumber     = int(m.group(1))
+         organisation = m.group(2)
+
+         sqlStatement = """UPDATE AddressInfo
+                           SET TimeStamp=NOW()
+                              ,ASNumber=""" + str(asNumber) + """
+                              ,Organisation='""" + organisation + """'
+                           WHERE IP='""" + str(address) + """'"""
+         # print(sqlStatement)
+         try:
+            dbCursor.execute(sqlStatement)
+            dbConnection.commit()
+         except:
+            log('Update failed: ' + str(e))
+            sys.exit(1)
 
 
 
@@ -249,7 +279,7 @@ for row in rows:
    try:
       result = socket.gethostbyaddr(address)
       hostname = result[0]
-      sys.stdout.write('DNS lookup for ' + str(address) + ' -> ' + hostname + '\n')
+      # sys.stdout.write('DNS lookup for ' + str(address) + ' -> ' + hostname + '\n')
    except:
       continue
 
@@ -257,7 +287,7 @@ for row in rows:
       try:
          dbCursor.execute(
             """UPDATE AddressInfo
-               SET FQDN='""" + hostname + """'
+               SET TimeStamp=NOW(), FQDN='""" + hostname + """'
                WHERE IP='""" + address + """'"""
          )
          dbConnection.commit()

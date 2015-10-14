@@ -72,27 +72,28 @@ CREATE INDEX TracerouteToIPIndex ON Traceroute (ToIP ASC);
 -- ###### Additional Information ############################################
 DROP TABLE IF EXISTS AddressInfo;
 CREATE TABLE AddressInfo (
-   IP          INET NOT NULL,                        -- IP address
-   TimeStamp   DATE NOT NULL,                        -- Time stamp for information
+   IP           INET NOT NULL,                       -- IP address
+   TimeStamp    DATE NOT NULL,                       -- Time stamp for information
 
    -- ------ NorNet ---------------------------------------------------------
-   SiteID      SMALLINT,                             -- NorNet Site ID
-   ProviderID  SMALLINT,                             -- NorNet Provider ID
+   SiteID       SMALLINT,                            -- NorNet Site ID
+   ProviderID   SMALLINT,                            -- NorNet Provider ID
 
    -- ----- Autonomous System -----------------------------------------------
-   ASNumber    INTEGER,                              -- Autonomous System number
+   ASNumber     INTEGER,                             -- Autonomous System number
 
    -- ------ GeoIP ----------------------------------------------------------
-   Latitude    FLOAT,
-   Longitude   FLOAT,
-   CountryCode CHAR(2),
-   PostalCode  INTEGER,
-   Country     VARCHAR(30),
-   Region      VARCHAR(30),
-   City        VARCHAR(30),
+   Latitude     FLOAT,                               -- Latitude
+   Longitude    FLOAT,                               -- Longitude
+   CountryCode  CHAR(2),                             -- Country code, e.g.DE
+   PostalCode   INTEGER,                             -- Postal code, e.g. 45326
+   Country      VARCHAR(30),                         -- Country
+   Region       VARCHAR(30),                         -- Region
+   City         VARCHAR(30),                         -- City
+   Organisation VARCHAR(80),                         -- Organisation
 
    -- ------ DNS ------------------------------------------------------------
-   FQDN        VARCHAR(253),                         -- Fully-qualified domain name
+   FQDN        VARCHAR(253),                        -- Fully-qualified domain name
    PRIMARY KEY (IP)
 );
 
