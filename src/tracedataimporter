@@ -140,11 +140,17 @@ for transactionFile in transactionFileList:
             dbConnection.commit()
             goodTransactions = goodTransactions + 1
          except Exception, e:
+            if dbConnection.closed:
+               log('The database connection seems to be closed. Aborting import!')
+               break
             log('Transaction ' + transactionFile + ' cannot be committed: ' + str(e) + ' -> moving it to bad file directory')
             dbConnection.rollback()
             shutil.move(absTransactionFile, badFilePath)
             badTransactions = badTransactions + 1
 
-      os.remove(absTransactionFile)
+      try:
+         os.remove(absTransactionFile)
+      except:
+         pass
 
 log('Done: ' + str(goodTransactions) + ' transactions committed, ' + str(badTransactions) + ' were bad.')
