@@ -60,4 +60,4 @@ REVOKE ALL ON DATABASE pingtraceroutedb FROM maintainer;
 DROP ROLE maintainer;
 CREATE ROLE maintainer WITH LOGIN ENCRYPTED PASSWORD '!maintainer!';
 GRANT CONNECT ON DATABASE pingtraceroutedb TO maintainer;
-GRANT ALL PRIVILEGES ON DATABASE pingtraceroutedb TO maintainer;
+GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO maintainer;
