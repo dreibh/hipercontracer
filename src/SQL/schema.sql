@@ -85,15 +85,15 @@ CREATE TABLE AddressInfo (
    -- ------ GeoIP ----------------------------------------------------------
    Latitude     FLOAT,                               -- Latitude
    Longitude    FLOAT,                               -- Longitude
-   CountryCode  CHAR(2),                             -- Country code, e.g.DE
+   CountryCode  CHAR(2),                             -- Country code, e.g. DE
    PostalCode   INTEGER,                             -- Postal code, e.g. 45326
-   Country      VARCHAR(30),                         -- Country
-   Region       VARCHAR(30),                         -- Region
-   City         VARCHAR(30),                         -- City
-   Organisation VARCHAR(80),                         -- Organisation
+   Country      VARCHAR(30),                         -- Country name
+   Region       VARCHAR(30),                         -- Region name
+   City         VARCHAR(30),                         -- City name
+   Organisation VARCHAR(80),                         -- Organisation name
 
    -- ------ DNS ------------------------------------------------------------
-   FQDN        VARCHAR(253),                        -- Fully-qualified domain name
+   FQDN        VARCHAR(253),                         -- Fully-qualified domain name
    PRIMARY KEY (IP)
 );
 
