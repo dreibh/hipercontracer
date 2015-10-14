@@ -38,8 +38,11 @@ import io
 import datetime
 import bz2
 import shutil
+import socket
+import ipaddress
 import psycopg2
 import configparser
+import GeoIP
 
 
 # ###### Print log message ##################################################
@@ -124,3 +127,140 @@ try:
 except:
    log('Transaction ' + transactionFile + ' cannot be committed: ' + str(e))
    sys.exit(1)
+
+log('Adding new addresses from Traceroute sources to AddressInfo table ...')
+try:
+   dbCursor.execute(
+      """INSERT INTO AddressInfo ( IP, TimeStamp )
+         SELECT DISTINCT t.FromIP, NOW()
+         FROM Traceroute t LEFT JOIN AddressInfo a ON t.FromIP = a.IP
+         WHERE a.IP IS NULL;"""
+   )
+   dbConnection.commit()
+except:
+   log('Transaction ' + transactionFile + ' cannot be committed: ' + str(e))
+   sys.exit(1)
+
+log('Adding new addresses from Ping sources to AddressInfo table ...')
+try:
+   dbCursor.execute(
+      """INSERT INTO AddressInfo ( IP, TimeStamp )
+         SELECT DISTINCT p.FromIP, NOW()
+         FROM Ping p LEFT JOIN AddressInfo a ON p.FromIP = a.IP
+         WHERE a.IP IS NULL;"""
+   )
+   dbConnection.commit()
+except:
+   log('Transaction ' + transactionFile + ' cannot be committed: ' + str(e))
+   sys.exit(1)
+
+log('Adding new addresses from Ping destinations to AddressInfo table ...')
+try:
+   dbCursor.execute(
+      """INSERT INTO AddressInfo ( IP, TimeStamp )
+         SELECT DISTINCT p.ToIP, NOW()
+         FROM Ping p LEFT JOIN AddressInfo a ON p.ToIP = a.IP
+         WHERE a.IP IS NULL;"""
+   )
+   dbConnection.commit()
+except:
+   log('Transaction ' + transactionFile + ' cannot be committed: ' + str(e))
+   sys.exit(1)
+
+
+# ====== GeoIP ==============================================================
+log('Trying to look up GeoIP information ...')
+#geoIPSet = []
+
+def initGeoIP(database, databaseType = GeoIP.GEOIP_STANDARD):
+   gi = None
+   try:
+      gi = GeoIP.open(database, databaseType)
+   except Exception as e:
+      sys.stdout.write('GeoIP database ' + database + ' is not available: ' + str(e))
+      pass
+   #geoIPSet.append(gi)
+   return gi
+
+#def lookupGeoIP(address):
+   #for gi in geoIPSet:
+      #gir = gi.record_by_addr(address)
+      #if gir != None:
+         #return gir
+   #return None
+
+geo4 = initGeoIP("/usr/share/GeoIP/GeoLiteCity.dat")
+geo6 = initGeoIP("/usr/share/GeoIP/GeoLiteCityv6.dat", GeoIP.GEOIP_STANDARD)
+
+dbCursor.execute(
+   """SELECT IP FROM AddressInfo a WHERE a.Country IS NULL;"""
+)
+rows = dbCursor.fetchall()
+for row in rows:
+   address  = ipaddress.ip_address(row[0])
+   print(address, address.version)
+   result = None
+   try:
+      if address.version == 6:
+         result = geo6.record_by_addr(str(address))
+      else:
+         result = geo4.record_by_addr(str(address))
+      if result != None:
+         print(result)
+   except:
+      continue
+
+   if result != None:
+      sqlStatement = """UPDATE AddressInfo
+                        SET Country='""" + result['country_name'] + """'
+                            ,CountryCode='""" + result['country_code'] + """'"""
+      if result['region_name'] != None:
+         sqlStatement = sqlStatement + """,Region='"""     + result['region_name'] + """'"""
+      if result['city'] != None:
+         sqlStatement = sqlStatement + """,City='"""       + result['city']        + """'"""
+      if result['postal_code'] != None:
+         sqlStatement = sqlStatement + """,PostalCode='""" + result['postal_code'] + """'"""
+      if result['latitude'] != None:
+         sqlStatement = sqlStatement + """,Latitude="""    + str(result['latitude'])
+      if result['longitude'] != None:
+         sqlStatement = sqlStatement + """,Longitude="""   + str(result['longitude'])
+      sqlStatement = sqlStatement + """ WHERE IP='""" + str(address) + """'"""
+
+      print(sqlStatement)
+
+      try:
+         dbCursor.execute(sqlStatement)
+         dbConnection.commit()
+      except:
+         log('Update failed: ' + str(e))
+         sys.exit(1)
+
+
+
+# ====== Get FQDN ===========================================================
+log('Trying to resolve missing FQDNs ...')
+dbCursor.execute(
+   """SELECT IP FROM AddressInfo a WHERE a.FQDN IS NULL;"""
+)
+rows = dbCursor.fetchall()
+for row in rows:
+   address  = row[0]
+   hostname = None
+   try:
+      result = socket.gethostbyaddr(address)
+      hostname = result[0]
+      sys.stdout.write('DNS lookup for ' + str(address) + ' -> ' + hostname + '\n')
+   except:
+      continue
+
+   if hostname != None:
+      try:
+         dbCursor.execute(
+            """UPDATE AddressInfo
+               SET FQDN='""" + hostname + """'
+               WHERE IP='""" + address + """'"""
+         )
+         dbConnection.commit()
+      except:
+         log('Update failed: ' + str(e))
+         sys.exit(1)
