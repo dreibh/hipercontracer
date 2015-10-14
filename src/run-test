@@ -15,5 +15,5 @@ sudo ./hipercontracer \
    -pinginterval=1000 \
    -pingexpiration=7500 \
    -pingttl=56 \
-   -sqltable=TracerouteTable \
+   -sqltable=Traceroute \
    -sqldirectory=/tmp/xy

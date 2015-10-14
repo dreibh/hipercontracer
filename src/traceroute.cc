@@ -448,7 +448,7 @@ void Traceroute::processResults()
 
       if(SQLOutput) {
          SQLOutput->insert(
-            str(boost::format("'%s','%s','%s',%d,%d,%d,%d,'%s',0x%x")
+            str(boost::format("'%s','%s','%s',%d,%d,%d,%d,'%s',%d")
                % boost::posix_time::to_iso_extended_string(resultEntry->sendTime())
                % SourceAddress.to_string()
                % (*DestinationAddressIterator).to_string()
@@ -457,7 +457,7 @@ void Traceroute::processResults()
                % resultEntry->status()
                % (resultEntry->receiveTime() - resultEntry->sendTime()).total_microseconds()
                % resultEntry->address().to_string()
-               % checksum
+               % (int64_t)checksum
          ));
       }
 

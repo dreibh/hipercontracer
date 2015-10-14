@@ -1,0 +1,13 @@
+PostgreSQL Setup
+================
+
+Package installation:
+sudo apt-get install postgresql postgresql-contrib
+
+In /etc/postgresql/9.3/main/postgresql.conf:
+listen_addresses = '*'
+
+In /etc/postgresql/9.3/main/pg_hba.conf:
+# ====== NorNet =============================================================
+hostssl all             all             10.0.0.0/8              md5
+hostssl all             all             2001:700:4100::/48      md5
