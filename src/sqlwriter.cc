@@ -78,6 +78,7 @@ bool SQLWriter::changeFile(const bool createNewFile)
 {
    // ====== Close current file =============================================
    if(OutputFile.is_open()) {
+      OutputStream << ";" << std::endl;
       OutputStream.reset();
       OutputFile.close();
       try {
@@ -132,8 +133,9 @@ bool SQLWriter::mayStartNewTransaction()
 // ###### Generate INSERT statement #########################################
 void SQLWriter::insert(const std::string& tuple)
 {
-   OutputStream << "INSERT INTO " << TableName << " VALUES ("
-                << tuple
-                << ");" << std::endl;
+   if(Inserts == 0) {
+      OutputStream << "INSERT INTO " << TableName << " VALUES";
+   }
+   OutputStream << ((Inserts > 0) ? "," : " ") << "(" << tuple << ")";
    Inserts++;
 }

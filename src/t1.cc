@@ -21,8 +21,10 @@ int main(int argc, char** argv)
    w.insert("1,2,3,4");
    w.changeFile();
    w.insert("5,6,7,8");
+   w.insert("5,6,7,7");
    w.changeFile();
    w.insert("8,8,8,8");
+   w.insert("8,8,9,9");
    w.mayStartNewTransaction();
 
 
