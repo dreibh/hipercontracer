@@ -125,5 +125,10 @@ DROP TABLE IF EXISTS ProviderInfo;
 CREATE TABLE ProviderInfo (
    ProviderIndex SMALLINT NOT NULL,                   -- NorNet Provider Index
    TimeStamp     TIMESTAMP WITHOUT TIME ZONE NOT NULL,-- Time stamp for information
+
+   -- ------ Name -----------------------------------------------------------
+   FullName      CHAR(64),                           -- Full name
+   ShortName     CHAR(16),                           -- Short name, e.g. BKK
+
    PRIMARY KEY (ProviderIndex)
 );
