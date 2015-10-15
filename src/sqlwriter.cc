@@ -78,7 +78,6 @@ bool SQLWriter::changeFile(const bool createNewFile)
 {
    // ====== Close current file =============================================
    if(OutputFile.is_open()) {
-      OutputStream << "COMMIT TRANSACTION" << std::endl;
       OutputStream.reset();
       OutputFile.close();
       try {
@@ -107,7 +106,6 @@ bool SQLWriter::changeFile(const bool createNewFile)
          OutputFile.open(TempFileName.c_str(), std::ios_base::out | std::ios_base::binary);
          OutputStream.push(boost::iostreams::bzip2_compressor());
          OutputStream.push(OutputFile);
-         OutputStream << "START TRANSACTION" << std::endl;
          OutputCreationTime = boost::posix_time::microsec_clock::universal_time();
          return(OutputStream.good());
       }
