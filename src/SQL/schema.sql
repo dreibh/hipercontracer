@@ -73,44 +73,57 @@ CREATE INDEX TracerouteToIPIndex ON Traceroute (ToIP ASC);
 DROP TABLE IF EXISTS AddressInfo;
 CREATE TABLE AddressInfo (
    IP           INET NOT NULL,                       -- IP address
-   TimeStamp    DATE NOT NULL,                       -- Time stamp for information
+   TimeStamp    TIMESTAMP WITHOUT TIME ZONE NOT NULL,-- Time stamp for information
 
    -- ------ NorNet ---------------------------------------------------------
-   SiteID       SMALLINT,                            -- NorNet Site ID
-   ProviderID   SMALLINT,                            -- NorNet Provider ID
+   SiteIndex     SMALLINT,                           -- NorNet Site ID
+   ProviderIndex SMALLINT,                           -- NorNet Provider ID
 
    -- ----- Autonomous System -----------------------------------------------
-   ASNumber     INTEGER,                             -- Autonomous System number
+   ASNumber      INTEGER,                            -- Autonomous System number
 
    -- ------ GeoIP ----------------------------------------------------------
-   Latitude     FLOAT,                               -- Latitude
-   Longitude    FLOAT,                               -- Longitude
-   CountryCode  CHAR(2),                             -- Country code, e.g. DE
-   PostalCode   CHAR(8),                             -- Postal code, e.g. 45326
-   Country      VARCHAR(30),                         -- Country name
-   Region       VARCHAR(30),                         -- Region name
-   City         VARCHAR(30),                         -- City name
-   Organisation VARCHAR(80),                         -- Organisation name
+   Latitude      FLOAT,                              -- Latitude
+   Longitude     FLOAT,                              -- Longitude
+   CountryCode   CHAR(2),                            -- Country code, e.g. DE
+   PostalCode    CHAR(8),                            -- Postal code, e.g. 45326
+   Country       VARCHAR(30),                        -- Country name
+   Region        VARCHAR(30),                        -- Region name
+   City          VARCHAR(30),                        -- City name
+   Organisation  VARCHAR(80),                        -- Organisation name
 
    -- ------ DNS ------------------------------------------------------------
-   FQDN        VARCHAR(253),                         -- Fully-qualified domain name
+   FQDN         VARCHAR(253),                        -- Fully-qualified domain name
    PRIMARY KEY (IP)
 );
 
 CREATE INDEX AddressInfoASNumberIndex ON AddressInfo (ASNumber ASC NULLS LAST);
 
 
--- ###### Additional Information ############################################
+-- ###### NorNet Information ################################################
 DROP TABLE IF EXISTS SiteInfo;
 CREATE TABLE SiteInfo (
-   SiteID  SMALLINT NOT NULL,
-   Name    CHAR(64) NOT NULL,
-   PRIMARY KEY (SiteID)
+   SiteIndex    SMALLINT NOT NULL,                   -- NorNet Site Index
+   TimeStamp    TIMESTAMP WITHOUT TIME ZONE NOT NULL,-- Time stamp for information
+
+   -- ------ Name -----------------------------------------------------------
+   FullName      CHAR(64),                           -- Full name
+   ShortName     CHAR(8),                            -- Short name, e.g. SRL
+
+   -- ------ Location -------------------------------------------------------
+   Latitude      FLOAT,                              -- Latitude
+   Longitude     FLOAT,                              -- Longitude
+   CountryCode   CHAR(2),                            -- Country code, e.g. DE
+   Country       VARCHAR(30),                        -- Country name
+   Region        VARCHAR(30),                        -- Region name
+   City          VARCHAR(30),                        -- City name
+
+   PRIMARY KEY (SiteIndex)
 );
 
 DROP TABLE IF EXISTS ProviderInfo;
 CREATE TABLE ProviderInfo (
-   ProviderID  SMALLINT NOT NULL,
-   Name        CHAR(64) NOT NULL,
-   PRIMARY KEY (ProviderID)
+   ProviderIndex SMALLINT NOT NULL,                   -- NorNet Provider Index
+   TimeStamp     TIMESTAMP WITHOUT TIME ZONE NOT NULL,-- Time stamp for information
+   PRIMARY KEY (ProviderIndex)
 );
