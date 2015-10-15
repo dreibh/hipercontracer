@@ -436,7 +436,6 @@ void Traceroute::processResults()
       sha1Hash.get_digest(digest);
       checksum =  ((uint64_t)digest[0] << 32) | (uint64_t)digest[1];
    }
-   std::cout << "P=" << (int)completeTraceroute << " " << checksum << " -> " << pathString << std::endl;
 
    // ====== Print traceroute entries =======================================
    // std::cout << "TotalHops=" << totalHops << std::endl;
