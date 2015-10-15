@@ -27,24 +27,80 @@
 .\" ###### Synopsis #########################################################
 .Sh SYNOPSIS
 .Nm hipercontracer
-.Op ...
+.Op \-ping
+.Op \-traceroute
+.Op \-quiet
+.Op \-verbose
+.Op \-source=address
+.Op \-destination=address
+.Op \-tracerouteinterval=milliseconds
+.Op \-tracerouteduration=milliseconds
+.Op \-tracerouteinitialmaxttl=value
+.Op \-traceroutefinalmaxttl=value
+.Op \-tracerouteincrementmaxttl=value
+.Op \-pinginterval=milliseconds
+.Op \-pingexpiration=milliseconds
+.Op \-pingttl=value
+.Op \-sqlpingtable=name
+.Op \-sqltraceroutetable=name
+.Op \-sqldirectory=directory
+.Op \-sqltransactionlength=seconds
 .\" ###### Description ######################################################
 .Sh DESCRIPTION
 .Nm hipercontracer
 is a ping/traceroute service. It performs regular ping and traceroute runs
-among sites and can export the results into an SQL database.
+among sites and can export the results into SQL statements for import into
+a database.
 .Pp
 .\" ###### Arguments ########################################################
 .Sh ARGUMENTS
-The following arguments have to be provided:
+The following arguments may be provided:
 .Bl -tag -width indent
-.It ...
-TBD
+.It ping
+Start the ping service.
+.It traceroute
+Start the traceroute service.
+.It quiet
+Do not print the results to standard output. This is only useful when
+exporting into SQL statement files.
+.It verbose
+Print the results to standard output.
+.It source=address
+Adds the given source address.
+.It destination=address
+Adds the given destination address.
+.It tracerouteinterval=milliseconds
+Sets the traceroute interval (time for each full round of destinations).
+.It tracerouteduration=milliseconds
+Sets the traceroute duration (timeout for each destination).
+.It tracerouteinitialmaxttl=value
+Start with the given maximum TTL.
+.It traceroutefinalmaxttl=value
+Finish with the given maximum TTL
+(when destination is not reached with current TTL setting).
+.It tracerouteincrementmaxttl=value
+Increase the maximum TTL by the given value
+(when destination is not reached with current TTL setting).
+.It pinginterval=milliseconds
+Sets the ping interval (time for each full round of destinations).
+.It pingexpiration=milliseconds
+Sets the ping duration (timeout for each destination).
+.It pingttl=value
+Sets the ping TTL value.
+.It sqlpingtable=name
+Specifies the SQL table name for the ping results.
+.It sqltraceroutetable=name
+Specifies the SQL table name for the traceroute results.
+.It sqldirectory=directory
+Sets the SQL files directory. The results will be stored there.
+.It sqltransactionlength=seconds
+After a given number of seconds, begin a new SQL file.
 .El
 .\" ###### Arguments ########################################################
 .Sh EXAMPLES
 .Bl -tag -width indent
-.It ...
+.It hipercontracer \-source=10.1.1.51 \-destination=10.1.1.6 \-destination=10.1.1.7 \-destination=10.1.1.8 \-traceroute \-tracerouteinterval=10000 \-tracerouteduration=1000
+.It hipercontracer \-source=172.16.0.127 \-destination=8.8.8.8 \-destination=193.99.144.80 \-destination=132.252.181.87 \-destination=10.254.254.254 \-destination=91.189.93.5 \-destination=128.112.139.90 \-destination=4.31.198.44 \-destination=136.186.1.10 \-destination=101.4.112.170 \-destination=77.36.144.2 \-source=2a02:270:2014:40:92e2:baff:fe48:bde1 \-destination=2400:cb00:2048:1::6814:155 \-destination=2a02:2e0:3fe:1001:7777:772e:2:85 \-destination=2a00:1450:400f:805::2004 \-traceroute \-ping \-tracerouteduration=1000 \-tracerouteinitialmaxttl=4 \-traceroutefinalmaxttl=32 \-tracerouteincrementmaxttl=4 \-pinginterval=1000 \-pingexpiration=7500 \-pingttl=56 \-sqlpingtable=Ping \-sqltraceroutetable=Traceroute \-sqldirectory=results
 .El
 .\" ###### Authors ##########################################################
 .Sh AUTHORS
