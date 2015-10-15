@@ -73,7 +73,7 @@ dbName           = 'pingtraceroutedb'
 parsedConfigFile = configparser.RawConfigParser()
 parsedConfigFile.optionxform = str   # Make it case-sensitive!
 try:
-   parsedConfigFile.readfp(io.StringIO(u'[root]\n' + open(configFileName, 'r').read()))
+   parsedConfigFile.readfp(io.StringIO('[root]\n' + open(configFileName, 'r').read()))
 except Exception as e:
     error('Unable to read database configuration file' +  sys.argv[1] + ': ' + str(e))
     sys.exit(1)
@@ -99,6 +99,10 @@ for parameterName in parsedConfigFile.options('root'):
 
 if not os.path.exists(transactionsPath):
    error('Invalid transactions path: ' + transactionsPath + '!')
+try:
+   os.mkdir(badFilePath)
+except:
+   pass
 if not os.path.exists(badFilePath):
    error('Invalid bad file path: ' + badFilePath + '!')
 

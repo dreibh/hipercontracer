@@ -75,7 +75,7 @@ dbName         = 'pingtraceroutedb'
 parsedConfigFile = configparser.RawConfigParser()
 parsedConfigFile.optionxform = str   # Make it case-sensitive!
 try:
-   parsedConfigFile.readfp(io.StringIO(u'[root]\n' + open(configFileName, 'r').read()))
+   parsedConfigFile.readfp(io.StringIO('[root]\n' + open(configFileName, 'r').read()))
 except Exception as e:
     error('Unable to read database configuration file' +  sys.argv[1] + ': ' + str(e))
     sys.exit(1)

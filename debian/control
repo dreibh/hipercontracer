@@ -18,7 +18,9 @@ Standards-Version: 3.9.6
 
 Package: hipercontracer
 Architecture: any
-Depends: ${misc:Depends},
+Depends: python3,
+         python3-psycopg2,
+         ${misc:Depends},
          ${python:Depends},
          ${shlibs:Depends}
 Recommends: python3-geoip
