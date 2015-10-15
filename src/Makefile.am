@@ -21,7 +21,7 @@ hipercontracer_LDADD = -lboost_system -lboost_filesystem -lboost_thread -lboost_
 # t1_LDADD = -lboost_system -lboost_filesystem -lboost_thread -lboost_date_time -lboost_iostreams -lpthread
 
 
-EXTRA_DIST = tracedataimporter addressinfogenerator trace-configuration
+EXTRA_DIST = tracedataimporter addressinfogenerator hipercontracer-database-configuration
 
 dist_man_MANS = hipercontracer.1 tracedataimporter.1
 

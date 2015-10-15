@@ -61,7 +61,7 @@ def error(logstring):
 
 # ###### Main program #######################################################
 if len(sys.argv) < 2:
-   error('Usage: ' + sys.argv[0] + ' configuration')
+   error('Usage: ' + sys.argv[0] + ' database_configuration')
 
 configFileName = sys.argv[1]
 dbServer       = 'localhost'
@@ -77,7 +77,7 @@ parsedConfigFile.optionxform = str   # Make it case-sensitive!
 try:
    parsedConfigFile.readfp(io.StringIO(u'[root]\n' + open(configFileName, 'r').read()))
 except Exception as e:
-    error('Unable to read configuration file' +  sys.argv[1] + ': ' + str(e))
+    error('Unable to read database configuration file' +  sys.argv[1] + ': ' + str(e))
     sys.exit(1)
 
 for parameterName in parsedConfigFile.options('root'):
