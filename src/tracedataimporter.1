@@ -18,39 +18,42 @@
 .\"
 .\" ###### Setup ############################################################
 .Dd September 25, 2015
-.Dt hipercontracer 1
-.Os hipercontracer
+.Dt tracedataimporter 1
+.Os tracedataimporter
 .\" ###### Name #############################################################
 .Sh NAME
-.Nm hipercontracer
-.Nd High-Performance Connectivity Tracer (HiPerConTracer)
+.Nm tracedataimporter
+.Nd High-Performance Connectivity Tracer (HiPerConTracer) Trace Data Importer
 .\" ###### Synopsis #########################################################
 .Sh SYNOPSIS
-.Nm hipercontracer
-.Op ...
+.Nm tracedataimporter
+database_configuration
 .\" ###### Description ######################################################
 .Sh DESCRIPTION
-.Nm hipercontracer
-is a ping/traceroute service. It performs regular ping and traceroute runs
-among sites and can export the results into an SQL database.
+.Nm tracedataimporter
+imports the SQL statements written by HiPerConTracer into a PostgreSQL
+database. If a file has been imported successfully, it is deleted. In case of
+an import failure, the file is moved to a "bad file" directory.
 .Pp
 .\" ###### Arguments ########################################################
 .Sh ARGUMENTS
-The following arguments have to be provided:
+The following argument has to be provided:
 .Bl -tag -width indent
-.It ...
-TBD
+.It database_configuration
+Specifies the database configuration file. See
+/usr/share/doc/hipercontracer/examples/hipercontracer-database-configuration
+for an example.
 .El
 .\" ###### Arguments ########################################################
 .Sh EXAMPLES
 .Bl -tag -width indent
-.It ...
+.It tracedataimporter hipercontracer-database-configuration
 .El
 .\" ###### Authors ##########################################################
 .Sh AUTHORS
 Thomas Dreibholz
 .br
-http://www.iem.uni-due.de/~dreibh/hipercontracer
+http://www.iem.uni-due.de/~dreibh/tracedataimporter
 .br
 mailto://dreibh@iem.uni-due.de
 .br
