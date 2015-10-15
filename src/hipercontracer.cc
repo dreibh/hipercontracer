@@ -174,6 +174,8 @@ int main(int argc, char** argv)
       else if(strncmp(argv[i], "-sqltransactionlength=", 22) == 0) {
          sqlTransactionLength = atol((const char*)&argv[i][22]);
       }
+      else if(strcmp(argv[i], "--") == 0) {
+      }
       else {
          std::cerr << "ERROR: Unknown parameter " << argv[i] << std::endl
                    << "Usage: " << argv[0] << " -source=source ... -destination=destination ..." << std::endl;
