@@ -33,6 +33,40 @@
 -- Contact: dreibh@simula.no
 
 
+-- ###### NorNet Information ################################################
+DROP TABLE IF EXISTS SiteInfo;
+CREATE TABLE SiteInfo (
+   SiteIndex    SMALLINT NOT NULL,                   -- NorNet Site Index
+   TimeStamp    TIMESTAMP WITHOUT TIME ZONE NOT NULL,-- Time stamp for information
+
+   -- ------ Name -----------------------------------------------------------
+   FullName      CHAR(64),                           -- Full name
+   ShortName     CHAR(8),                            -- Short name, e.g. SRL
+
+   -- ------ Location -------------------------------------------------------
+   Latitude      FLOAT,                              -- Latitude
+   Longitude     FLOAT,                              -- Longitude
+   CountryCode   CHAR(2),                            -- Country code, e.g. DE
+   Country       VARCHAR(30),                        -- Country name
+   Region        VARCHAR(30),                        -- Region name
+   City          VARCHAR(30),                        -- City name
+
+   PRIMARY KEY (SiteIndex)
+);
+
+DROP TABLE IF EXISTS ProviderInfo;
+CREATE TABLE ProviderInfo (
+   ProviderIndex SMALLINT NOT NULL,                   -- NorNet Provider Index
+   TimeStamp     TIMESTAMP WITHOUT TIME ZONE NOT NULL,-- Time stamp for information
+
+   -- ------ Name -----------------------------------------------------------
+   FullName      CHAR(64),                           -- Full name
+   ShortName     CHAR(16),                           -- Short name, e.g. BKK
+
+   PRIMARY KEY (ProviderIndex)
+);
+
+
 -- ###### Ping ##############################################################
 DROP TABLE IF EXISTS Ping;
 CREATE TABLE Ping (
@@ -76,8 +110,8 @@ CREATE TABLE AddressInfo (
    TimeStamp    TIMESTAMP WITHOUT TIME ZONE NOT NULL,-- Time stamp for information
 
    -- ------ NorNet ---------------------------------------------------------
-   SiteIndex     SMALLINT,                           -- NorNet Site ID
-   ProviderIndex SMALLINT,                           -- NorNet Provider ID
+   SiteIndex     SMALLINT REFERENCES SiteInfo(SiteIndex),         -- NorNet Site ID
+   ProviderIndex SMALLINT REFERENCES ProviderInfo(ProviderIndex), -- NorNet Provider ID
 
    -- ----- Autonomous System -----------------------------------------------
    ASNumber      INTEGER,                            -- Autonomous System number
@@ -98,37 +132,3 @@ CREATE TABLE AddressInfo (
 );
 
 CREATE INDEX AddressInfoASNumberIndex ON AddressInfo (ASNumber ASC NULLS LAST);
-
-
--- ###### NorNet Information ################################################
-DROP TABLE IF EXISTS SiteInfo;
-CREATE TABLE SiteInfo (
-   SiteIndex    SMALLINT NOT NULL,                   -- NorNet Site Index
-   TimeStamp    TIMESTAMP WITHOUT TIME ZONE NOT NULL,-- Time stamp for information
-
-   -- ------ Name -----------------------------------------------------------
-   FullName      CHAR(64),                           -- Full name
-   ShortName     CHAR(8),                            -- Short name, e.g. SRL
-
-   -- ------ Location -------------------------------------------------------
-   Latitude      FLOAT,                              -- Latitude
-   Longitude     FLOAT,                              -- Longitude
-   CountryCode   CHAR(2),                            -- Country code, e.g. DE
-   Country       VARCHAR(30),                        -- Country name
-   Region        VARCHAR(30),                        -- Region name
-   City          VARCHAR(30),                        -- City name
-
-   PRIMARY KEY (SiteIndex)
-);
-
-DROP TABLE IF EXISTS ProviderInfo;
-CREATE TABLE ProviderInfo (
-   ProviderIndex SMALLINT NOT NULL,                   -- NorNet Provider Index
-   TimeStamp     TIMESTAMP WITHOUT TIME ZONE NOT NULL,-- Time stamp for information
-
-   -- ------ Name -----------------------------------------------------------
-   FullName      CHAR(64),                           -- Full name
-   ShortName     CHAR(16),                           -- Short name, e.g. BKK
-
-   PRIMARY KEY (ProviderIndex)
-);
