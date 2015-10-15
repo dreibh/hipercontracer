@@ -1,4 +1,4 @@
-src/hipercontracer-database-configuration
 src/SQL/*.sql
 src/SQL/README
 src/SQL/install-database-and-users
+src/hipercontracer-database-configuration
