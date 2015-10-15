@@ -18,22 +18,22 @@
 .\"
 .\" ###### Setup ############################################################
 .Dd September 25, 2015
-.Dt tracedataimporter 1
-.Os tracedataimporter
+.Dt addressinfogenerator 1
+.Os addressinfogenerator
 .\" ###### Name #############################################################
 .Sh NAME
-.Nm tracedataimporter
-.Nd HiPerConTracer Trace Data Importer
+.Nm addressinfogenerator
+.Nd HiPerConTracer Address Info Generator
 .\" ###### Synopsis #########################################################
 .Sh SYNOPSIS
-.Nm tracedataimporter
+.Nm addressinfogenerator
 database_configuration
 .\" ###### Description ######################################################
 .Sh DESCRIPTION
-.Nm tracedataimporter
-imports the SQL statements written by HiPerConTracer into a PostgreSQL
-database. If a file has been imported successfully, it is deleted. In case of
-an import failure, the file is moved to a "bad file" directory.
+.Nm addressinfogenerator
+updates the HiPerConTracer PostgreSQL database with additional information
+on observed IP addresses: geo location (obtained by GeoIP), Autonomous System
+(ASN) information (obtained by GeoIP) and a DNS reverse lookup.
 .Pp
 .\" ###### Arguments ########################################################
 .Sh ARGUMENTS
@@ -47,13 +47,13 @@ for an example.
 .\" ###### Arguments ########################################################
 .Sh EXAMPLES
 .Bl -tag -width indent
-.It tracedataimporter hipercontracer-database-configuration
+.It addressinfogenerator hipercontracer-database-configuration
 .El
 .\" ###### Authors ##########################################################
 .Sh AUTHORS
 Thomas Dreibholz
 .br
-http://www.iem.uni-due.de/~dreibh/tracedataimporter
+http://www.iem.uni-due.de/~dreibh/addressinfogenerator
 .br
 mailto://dreibh@iem.uni-due.de
 .br
