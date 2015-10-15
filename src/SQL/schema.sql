@@ -86,7 +86,7 @@ CREATE TABLE AddressInfo (
    Latitude     FLOAT,                               -- Latitude
    Longitude    FLOAT,                               -- Longitude
    CountryCode  CHAR(2),                             -- Country code, e.g. DE
-   PostalCode   INTEGER,                             -- Postal code, e.g. 45326
+   PostalCode   CHAR(8),                             -- Postal code, e.g. 45326
    Country      VARCHAR(30),                         -- Country name
    Region       VARCHAR(30),                         -- Region name
    City         VARCHAR(30),                         -- City name

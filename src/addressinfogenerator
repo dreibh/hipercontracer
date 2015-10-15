@@ -100,7 +100,7 @@ try:
                                    user=str(dbUser), password=str(dbPassword),
                                    dbname=str(dbName))
    dbConnection.autocommit = False
-except:
+except Exception as e:
     log('Unable to connect to the database!')
     sys.exit(1)
 
@@ -117,8 +117,8 @@ try:
          WHERE a.IP IS NULL;"""
    )
    dbConnection.commit()
-except:
-   log('Transaction ' + transactionFile + ' cannot be committed: ' + str(e))
+except Exception as e:
+   log('Update failed: ' + str(e))
    sys.exit(1)
 
 log('Adding new addresses from Traceroute sources to AddressInfo table ...')
@@ -130,8 +130,8 @@ try:
          WHERE a.IP IS NULL;"""
    )
    dbConnection.commit()
-except:
-   log('Transaction ' + transactionFile + ' cannot be committed: ' + str(e))
+except Exception as e:
+   log('Update failed: ' + str(e))
    sys.exit(1)
 
 log('Adding new addresses from Ping sources to AddressInfo table ...')
@@ -143,8 +143,8 @@ try:
          WHERE a.IP IS NULL;"""
    )
    dbConnection.commit()
-except:
-   log('Transaction ' + transactionFile + ' cannot be committed: ' + str(e))
+except Exception as e:
+   log('Update failed: ' + str(e))
    sys.exit(1)
 
 log('Adding new addresses from Ping destinations to AddressInfo table ...')
@@ -156,8 +156,8 @@ try:
          WHERE a.IP IS NULL;"""
    )
    dbConnection.commit()
-except:
-   log('Transaction ' + transactionFile + ' cannot be committed: ' + str(e))
+except Exception as e:
+   log('Update failed: ' + str(e))
    sys.exit(1)
 
 
@@ -294,7 +294,7 @@ for row in rows:
          )
          dbConnection.commit()
          inserts = inserts + 1
-      except:
+      except Exception as e:
          log('Update failed: ' + str(e))
          sys.exit(1)
 
