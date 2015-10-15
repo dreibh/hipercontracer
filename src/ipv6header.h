@@ -32,6 +32,7 @@
 #ifndef IPV6HEADER_H
 #define IPV6HEADER_H
 
+#include <istream>
 #include <algorithm>
 #include <boost/asio/ip/address_v6.hpp>
 

@@ -1,5 +1,5 @@
-hipercontracer (0.0.0~alpha0.0-1ubuntu1) precise; urgency=low
+hipercontracer (0.0.1~alpha0.0-1ubuntu1) precise; urgency=low
 
   * Initial package version.
 
- -- Thomas Dreibholz <dreibh@iem.uni-due.de>  Fri, 25 Sep 2015 11:11:11 +0200
+ -- Thomas Dreibholz <dreibh@iem.uni-due.de>  Oct, 15 Sep 2015 11:11:11 +0200

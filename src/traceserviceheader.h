@@ -32,6 +32,8 @@
 #ifndef TRACESERVICEHEADER_H
 #define TRACESERVICEHEADER_H
 
+#include <istream>
+
 
 // ==========================================================================
 // Format:

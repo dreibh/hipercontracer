@@ -32,6 +32,7 @@
 #ifndef IPV4HEADER_H
 #define IPV4HEADER_H
 
+#include <istream>
 #include <algorithm>
 #include <boost/asio/ip/address_v4.hpp>
 
