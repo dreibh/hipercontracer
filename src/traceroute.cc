@@ -440,6 +440,7 @@ void Traceroute::processResults()
 
    // ====== Print traceroute entries =======================================
    // std::cout << "TotalHops=" << totalHops << std::endl;
+   std::string timeStamp;
    for(std::vector<ResultEntry*>::iterator iterator = resultsVector.begin(); iterator != resultsVector.end(); iterator++) {
       ResultEntry* resultEntry = *iterator;
       if(VerboseMode) {
@@ -447,9 +448,14 @@ void Traceroute::processResults()
       }
 
       if(SQLOutput) {
+         if(timeStamp.empty()) {
+            // Time stamp for this traceroute run is the first entry's send time!
+            // => Necessary, in order to ensure that all entries have the same time stamp.
+            timeStamp = boost::posix_time::to_iso_extended_string(resultEntry->sendTime());
+         }
          SQLOutput->insert(
             str(boost::format("'%s','%s','%s',%d,%d,%d,%d,'%s',%d")
-               % boost::posix_time::to_iso_extended_string(resultEntry->sendTime())
+               % timeStamp
                % SourceAddress.to_string()
                % (*DestinationAddressIterator).to_string()
                % resultEntry->hop()
