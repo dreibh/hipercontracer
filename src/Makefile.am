@@ -23,6 +23,6 @@ hipercontracer_LDADD = -lboost_system -lboost_filesystem -lboost_thread -lboost_
 
 EXTRA_DIST = tracedataimporter addressinfogenerator hipercontracer-database-configuration
 
-dist_man_MANS = hipercontracer.1 tracedataimporter.1
+dist_man_MANS = hipercontracer.1 tracedataimporter.1 addressinfogenerator.1
 
 SUBDIRS = SQL
