@@ -302,14 +302,14 @@ if inserts > 0:
    sys.stdout.write('Added ' + str(inserts) + ' entries.\n')
 
 
-# ====== Vacuum table========================================================
-log('Vacuuming table AddressInfo ...')
-try:
-   old_isolation_level = dbConnection.isolation_level
-   dbConnection.set_isolation_level(0)
-   dbCursor.execute("""VACUUM FULL AddressInfo""")
-   dbConnection.commit()
-   dbConnection.set_isolation_level(old_isolation_level)
-except Exception as e:
-   log('Optimisation failed: ' + str(e))
-   sys.exit(1)
+## ====== Vacuum table========================================================
+#log('Vacuuming table AddressInfo ...')
+#try:
+   #old_isolation_level = dbConnection.isolation_level
+   #dbConnection.set_isolation_level(0)
+   #dbCursor.execute("""VACUUM FULL AddressInfo""")
+   #dbConnection.commit()
+   #dbConnection.set_isolation_level(old_isolation_level)
+#except Exception as e:
+   #log('Optimisation failed: ' + str(e))
+   #sys.exit(1)
