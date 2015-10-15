@@ -20,4 +20,6 @@ sudo ./hipercontracer \
    -pingttl=56 \
    -sqlpingtable=Ping \
    -sqltraceroutetable=Traceroute \
-   -sqldirectory=/tmp/xy
+   -sqldirectory=/tmp/xy \
+   $@
+

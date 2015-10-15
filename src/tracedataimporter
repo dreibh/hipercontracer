@@ -123,12 +123,16 @@ dbCursor = dbConnection.cursor()
 # ====== Import transactions ================================================
 goodTransactions = 0
 badTransactions  = 0
+firstTransaction = True
 
 transactionFileList = sorted(os.listdir(transactionsPath))
 for transactionFile in transactionFileList:
    absTransactionFile = os.path.join(transactionsPath, transactionFile)
    if os.path.isfile(absTransactionFile):
-      log('Processing ' + transactionFile)
+      if firstTransaction:
+         firstTransaction = False
+         log('Starting import of new transactions ...')
+
       transactionContent = None
       try:
          inputFile = bz2.BZ2File(absTransactionFile, 'r')
@@ -164,4 +168,4 @@ for transactionFile in transactionFileList:
       except Exception as e:
          error('Unable to remove completed transaction ' + absTransactionFile + ': ' + str(e))
 
-log('Done: ' + str(goodTransactions) + ' transactions committed, ' + str(badTransactions) + ' were bad.')
+log(str(goodTransactions) + ' transactions committed, ' + str(badTransactions) + ' were bad.')
