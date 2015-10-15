@@ -218,8 +218,7 @@ int main(int argc, char** argv)
                 << "* Interval           = " << pingInterval   << " ms" << std::endl
                 << "* Expiration         = " << pingExpiration << " ms" << std::endl
                 << "* TTL                = " << pingTTL        << std::endl
-                << "* Ping Table         = " << sqlPingTable   << std::endl
-                << std::endl;
+                << "* Ping Table         = " << sqlPingTable   << std::endl;
    }
    if(serviceTraceroute) {
       std::cout << "Traceroute Service:" << std:: endl
@@ -228,8 +227,7 @@ int main(int argc, char** argv)
                 << "* Initial MaxTTL     = " << tracerouteInitialMaxTTL   << std::endl
                 << "* Final MaxTTL       = " << tracerouteFinalMaxTTL     << std::endl
                 << "* Increment MaxTTL   = " << tracerouteIncrementMaxTTL << std::endl
-                << "* Traceroute Table   = " << sqlTracerouteTable        << std::endl
-                << std::endl;
+                << "* Traceroute Table   = " << sqlTracerouteTable        << std::endl;
    }
 
 
