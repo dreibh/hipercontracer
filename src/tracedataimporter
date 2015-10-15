@@ -59,14 +59,14 @@ def error(logstring):
 if len(sys.argv) < 2:
    error('Usage: ' + sys.argv[0] + ' configuration')
 
-configFileName  = sys.argv[1]
-resultsFilePath  = None
-badFilePath     = None
-dbServer        = 'localhost'
-dbPort          = 5432
-dbUser          = 'importer'
-dbPassword      = None
-dbName          = 'pingtraceroutedb'
+configFileName   = sys.argv[1]
+transactionsPath = None
+badFilePath      = None
+dbServer         = 'localhost'
+dbPort           = 5432
+dbUser           = 'importer'
+dbPassword       = None
+dbName           = 'pingtraceroutedb'
 
 
 # ====== Get parameters =====================================================
@@ -80,8 +80,8 @@ except Exception as e:
 
 for parameterName in parsedConfigFile.options('root'):
    parameterValue = parsedConfigFile.get('root', parameterName)
-   if parameterName == 'result_file_path':
-      resultsFilePath = parameterValue
+   if parameterName == 'transactions_path':
+      transactionsPath = parameterValue
    elif parameterName == 'bad_file_path':
       badFilePath = parameterValue
    elif parameterName == 'dbserver':
@@ -97,8 +97,8 @@ for parameterName in parsedConfigFile.options('root'):
    else:
       error('Unknown parameter ' + parameterName + ' in ' + sys.argv[1] + '!')
 
-if not os.path.exists(resultsFilePath):
-   error('Invalid result file path: ' + resultsFilePath + '!')
+if not os.path.exists(transactionsPath):
+   error('Invalid transactions path: ' + transactionsPath + '!')
 if not os.path.exists(badFilePath):
    error('Invalid bad file path: ' + badFilePath + '!')
 
@@ -120,9 +120,9 @@ dbCursor = dbConnection.cursor()
 goodTransactions = 0
 badTransactions  = 0
 
-transactionFileList = sorted(os.listdir(resultsFilePath))
+transactionFileList = sorted(os.listdir(transactionsPath))
 for transactionFile in transactionFileList:
-   absTransactionFile = os.path.join(resultsFilePath, transactionFile)
+   absTransactionFile = os.path.join(transactionsPath, transactionFile)
    if os.path.isfile(absTransactionFile):
       log('Processing ' + transactionFile)
       transactionContent = None
@@ -131,7 +131,10 @@ for transactionFile in transactionFileList:
          transactionContent = inputFile.read().splitlines()
       except:
          log('Transaction ' + transactionFile + ' cannot be read -> moving it to bad file directory')
-         shutil.move(absTransactionFile, badFilePath)
+         try:
+            shutil.move(absTransactionFile, badFilePath)
+         except Exception as e:
+            error('Unable to move bad transaction ' + absTransactionFile + ' to ' + badFilePath + ': ' + str(e))
 
       if transactionContent != None:
          try:
@@ -145,12 +148,16 @@ for transactionFile in transactionFileList:
                break
             log('Transaction ' + transactionFile + ' cannot be committed: ' + str(e) + ' -> moving it to bad file directory')
             dbConnection.rollback()
-            shutil.move(absTransactionFile, badFilePath)
+            try:
+               shutil.move(absTransactionFile, badFilePath)
+            except Exception as e:
+               error('Unable to move bad transaction ' + absTransactionFile + ' to ' + badFilePath + ': ' + str(e))
             badTransactions = badTransactions + 1
 
       try:
-         os.remove(absTransactionFile)
-      except:
-         pass
+         if os.path.exists(absTransactionFile):
+            os.remove(absTransactionFile)
+      except Exception as e:
+         error('Unable to remove completed transaction ' + absTransactionFile + ': ' + str(e))
 
 log('Done: ' + str(goodTransactions) + ' transactions committed, ' + str(badTransactions) + ' were bad.')

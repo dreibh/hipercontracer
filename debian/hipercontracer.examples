@@ -1,4 +1,4 @@
-src/trace-configuration
+src/hipercontracer-configuration
 src/SQL/*.sql
 src/SQL/README
 src/SQL/install-database-and-users
