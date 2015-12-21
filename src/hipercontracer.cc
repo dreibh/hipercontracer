@@ -139,7 +139,7 @@ int main(int argc, char** argv)
          verboseMode = true;
       }
       else if(strncmp(argv[i], "-tracerouteinterval=", 20) == 0) {
-         pingInterval = atol((const char*)&argv[i][20]);
+         tracerouteInterval = atol((const char*)&argv[i][20]);
       }
       else if(strncmp(argv[i], "-tracerouteduration=", 20) == 0) {
          tracerouteExpiration = atol((const char*)&argv[i][20]);
