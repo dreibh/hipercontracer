@@ -112,58 +112,58 @@ except Exception as e:
 dbCursor = dbConnection.cursor()
 
 
-## ====== Add all new addresses to AddressInfo table =========================
-#log('Adding new addresses from Traceroute hops to AddressInfo table ...')
-#try:
-   #dbCursor.execute(
-      #"""INSERT INTO AddressInfo ( IP, TimeStamp )
-         #SELECT DISTINCT t.HopIP, NOW()
-         #FROM Traceroute t LEFT JOIN AddressInfo a ON t.HopIP = a.IP
-         #WHERE a.IP IS NULL;"""
-   #)
-   #dbConnection.commit()
-#except Exception as e:
-   #log('Update failed: ' + str(e))
-   #sys.exit(1)
+# ====== Add all new addresses to AddressInfo table =========================
+log('Adding new addresses from Traceroute hops to AddressInfo table ...')
+try:
+   dbCursor.execute(
+      """INSERT INTO AddressInfo ( IP, TimeStamp )
+         SELECT DISTINCT t.HopIP, NOW()
+         FROM Traceroute t LEFT JOIN AddressInfo a ON t.HopIP = a.IP
+         WHERE a.IP IS NULL;"""
+   )
+   dbConnection.commit()
+except Exception as e:
+   log('Update failed: ' + str(e))
+   sys.exit(1)
 
-#log('Adding new addresses from Traceroute sources to AddressInfo table ...')
-#try:
-   #dbCursor.execute(
-      #"""INSERT INTO AddressInfo ( IP, TimeStamp )
-         #SELECT DISTINCT t.FromIP, NOW()
-         #FROM Traceroute t LEFT JOIN AddressInfo a ON t.FromIP = a.IP
-         #WHERE a.IP IS NULL;"""
-   #)
-   #dbConnection.commit()
-#except Exception as e:
-   #log('Update failed: ' + str(e))
-   #sys.exit(1)
+log('Adding new addresses from Traceroute sources to AddressInfo table ...')
+try:
+   dbCursor.execute(
+      """INSERT INTO AddressInfo ( IP, TimeStamp )
+         SELECT DISTINCT t.FromIP, NOW()
+         FROM Traceroute t LEFT JOIN AddressInfo a ON t.FromIP = a.IP
+         WHERE a.IP IS NULL;"""
+   )
+   dbConnection.commit()
+except Exception as e:
+   log('Update failed: ' + str(e))
+   sys.exit(1)
 
-#log('Adding new addresses from Ping sources to AddressInfo table ...')
-#try:
-   #dbCursor.execute(
-      #"""INSERT INTO AddressInfo ( IP, TimeStamp )
-         #SELECT DISTINCT p.FromIP, NOW()
-         #FROM Ping p LEFT JOIN AddressInfo a ON p.FromIP = a.IP
-         #WHERE a.IP IS NULL;"""
-   #)
-   #dbConnection.commit()
-#except Exception as e:
-   #log('Update failed: ' + str(e))
-   #sys.exit(1)
+log('Adding new addresses from Ping sources to AddressInfo table ...')
+try:
+   dbCursor.execute(
+      """INSERT INTO AddressInfo ( IP, TimeStamp )
+         SELECT DISTINCT p.FromIP, NOW()
+         FROM Ping p LEFT JOIN AddressInfo a ON p.FromIP = a.IP
+         WHERE a.IP IS NULL;"""
+   )
+   dbConnection.commit()
+except Exception as e:
+   log('Update failed: ' + str(e))
+   sys.exit(1)
 
-#log('Adding new addresses from Ping destinations to AddressInfo table ...')
-#try:
-   #dbCursor.execute(
-      #"""INSERT INTO AddressInfo ( IP, TimeStamp )
-         #SELECT DISTINCT p.ToIP, NOW()
-         #FROM Ping p LEFT JOIN AddressInfo a ON p.ToIP = a.IP
-         #WHERE a.IP IS NULL;"""
-   #)
-   #dbConnection.commit()
-#except Exception as e:
-   #log('Update failed: ' + str(e))
-   #sys.exit(1)
+log('Adding new addresses from Ping destinations to AddressInfo table ...')
+try:
+   dbCursor.execute(
+      """INSERT INTO AddressInfo ( IP, TimeStamp )
+         SELECT DISTINCT p.ToIP, NOW()
+         FROM Ping p LEFT JOIN AddressInfo a ON p.ToIP = a.IP
+         WHERE a.IP IS NULL;"""
+   )
+   dbConnection.commit()
+except Exception as e:
+   log('Update failed: ' + str(e))
+   sys.exit(1)
 
 
 # ====== GeoIP Location =====================================================
@@ -244,7 +244,6 @@ for row in rows:
       latitude     = str(result['lat'])
       longitude    = str(result['lon'])
       updated      = True
-      print(result,organisation,"A=",asNumber)
 
 
    # ====== Update database =================================================
@@ -269,7 +268,7 @@ for row in rows:
          sqlStatement = sqlStatement + """,Longitude="""     + longitude
       sqlStatement = sqlStatement + """ WHERE IP='""" + str(address) + """'"""
 
-      # print(sqlStatement)
+      print(sqlStatement)
       try:
          dbCursor.execute(sqlStatement)
          dbConnection.commit()
