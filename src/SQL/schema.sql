@@ -126,7 +126,7 @@ CREATE TABLE AddressInfo (
    PostalCode    CHAR(8),                            -- Postal code, e.g. 45326
    Country       VARCHAR(30),                        -- Country name
    Region        VARCHAR(30),                        -- Region name
-   City          VARCHAR(30),                        -- City name
+   City          VARCHAR(48),                        -- City name
    Organisation  VARCHAR(80),                        -- Organisation name
 
    -- ------ DNS ------------------------------------------------------------
