@@ -205,7 +205,7 @@ for row in rows:
       continue
 
    if result != None:
-      country      = result['country']
+      country      = result['country_name']
       countryCode  = result['country_code']
       region       = result['region_name']
       city         = result['city']
@@ -232,13 +232,13 @@ for row in rows:
 
    if ((result != None) and (result['status'] == 'success')):
       country      = result['country']
-      countryCode  = result['country_code']
-      region       = result['region']
+      countryCode  = result['countryCode']
+      region       = result['regionName']
       city         = result['city']
       postalCode   = result['zip']
       organisation = result['org']
       asNumber     = None
-      m = re.match(r'^AS([0-9]+)', result)
+      m = re.match(r'^AS([0-9]+)', result['as'])
       if m != None:
          asNumber = str(int(m.group(1)))
       latitude     = str(result['lat'])
