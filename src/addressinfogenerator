@@ -43,7 +43,12 @@ import socket
 import ipaddress
 import psycopg2
 import configparser
+
 import GeoIP
+
+import urllib3
+import json
+import time
 
 
 # ###### Print log message ##################################################
@@ -107,58 +112,58 @@ except Exception as e:
 dbCursor = dbConnection.cursor()
 
 
-# ====== Add all new addresses to AddressInfo table =========================
-log('Adding new addresses from Traceroute hops to AddressInfo table ...')
-try:
-   dbCursor.execute(
-      """INSERT INTO AddressInfo ( IP, TimeStamp )
-         SELECT DISTINCT t.HopIP, NOW()
-         FROM Traceroute t LEFT JOIN AddressInfo a ON t.HopIP = a.IP
-         WHERE a.IP IS NULL;"""
-   )
-   dbConnection.commit()
-except Exception as e:
-   log('Update failed: ' + str(e))
-   sys.exit(1)
+## ====== Add all new addresses to AddressInfo table =========================
+#log('Adding new addresses from Traceroute hops to AddressInfo table ...')
+#try:
+   #dbCursor.execute(
+      #"""INSERT INTO AddressInfo ( IP, TimeStamp )
+         #SELECT DISTINCT t.HopIP, NOW()
+         #FROM Traceroute t LEFT JOIN AddressInfo a ON t.HopIP = a.IP
+         #WHERE a.IP IS NULL;"""
+   #)
+   #dbConnection.commit()
+#except Exception as e:
+   #log('Update failed: ' + str(e))
+   #sys.exit(1)
 
-log('Adding new addresses from Traceroute sources to AddressInfo table ...')
-try:
-   dbCursor.execute(
-      """INSERT INTO AddressInfo ( IP, TimeStamp )
-         SELECT DISTINCT t.FromIP, NOW()
-         FROM Traceroute t LEFT JOIN AddressInfo a ON t.FromIP = a.IP
-         WHERE a.IP IS NULL;"""
-   )
-   dbConnection.commit()
-except Exception as e:
-   log('Update failed: ' + str(e))
-   sys.exit(1)
+#log('Adding new addresses from Traceroute sources to AddressInfo table ...')
+#try:
+   #dbCursor.execute(
+      #"""INSERT INTO AddressInfo ( IP, TimeStamp )
+         #SELECT DISTINCT t.FromIP, NOW()
+         #FROM Traceroute t LEFT JOIN AddressInfo a ON t.FromIP = a.IP
+         #WHERE a.IP IS NULL;"""
+   #)
+   #dbConnection.commit()
+#except Exception as e:
+   #log('Update failed: ' + str(e))
+   #sys.exit(1)
 
-log('Adding new addresses from Ping sources to AddressInfo table ...')
-try:
-   dbCursor.execute(
-      """INSERT INTO AddressInfo ( IP, TimeStamp )
-         SELECT DISTINCT p.FromIP, NOW()
-         FROM Ping p LEFT JOIN AddressInfo a ON p.FromIP = a.IP
-         WHERE a.IP IS NULL;"""
-   )
-   dbConnection.commit()
-except Exception as e:
-   log('Update failed: ' + str(e))
-   sys.exit(1)
+#log('Adding new addresses from Ping sources to AddressInfo table ...')
+#try:
+   #dbCursor.execute(
+      #"""INSERT INTO AddressInfo ( IP, TimeStamp )
+         #SELECT DISTINCT p.FromIP, NOW()
+         #FROM Ping p LEFT JOIN AddressInfo a ON p.FromIP = a.IP
+         #WHERE a.IP IS NULL;"""
+   #)
+   #dbConnection.commit()
+#except Exception as e:
+   #log('Update failed: ' + str(e))
+   #sys.exit(1)
 
-log('Adding new addresses from Ping destinations to AddressInfo table ...')
-try:
-   dbCursor.execute(
-      """INSERT INTO AddressInfo ( IP, TimeStamp )
-         SELECT DISTINCT p.ToIP, NOW()
-         FROM Ping p LEFT JOIN AddressInfo a ON p.ToIP = a.IP
-         WHERE a.IP IS NULL;"""
-   )
-   dbConnection.commit()
-except Exception as e:
-   log('Update failed: ' + str(e))
-   sys.exit(1)
+#log('Adding new addresses from Ping destinations to AddressInfo table ...')
+#try:
+   #dbCursor.execute(
+      #"""INSERT INTO AddressInfo ( IP, TimeStamp )
+         #SELECT DISTINCT p.ToIP, NOW()
+         #FROM Ping p LEFT JOIN AddressInfo a ON p.ToIP = a.IP
+         #WHERE a.IP IS NULL;"""
+   #)
+   #dbConnection.commit()
+#except Exception as e:
+   #log('Update failed: ' + str(e))
+   #sys.exit(1)
 
 
 # ====== GeoIP Location =====================================================
@@ -175,14 +180,21 @@ def initGeoIP(database, databaseType = GeoIP.GEOIP_STANDARD):
 
 geo4 = initGeoIP("/usr/share/GeoIP/GeoLiteCity.dat")
 geo6 = initGeoIP("/usr/share/GeoIP/GeoLiteCityv6.dat")
+http = urllib3.PoolManager()
+
 
 inserts = 0
 dbCursor.execute(
-   """SELECT IP FROM AddressInfo a WHERE a.Country IS NULL;"""
+   """SELECT IP FROM AddressInfo a WHERE a.Country IS NULL OR a.City IS NULL;"""
 )
 rows = dbCursor.fetchall()
 for row in rows:
+   updated  = False
    address  = ipaddress.ip_address(row[0])
+
+
+   # ====== Try MaxMind GeoIP database ======================================
+   print('Trying MaxMindGeoIP for ' + str(address) + ' ...')
    result = None
    try:
       if address.version == 6:
@@ -193,20 +205,68 @@ for row in rows:
       continue
 
    if result != None:
+      country      = result['country']
+      countryCode  = result['country_code']
+      region       = result['region_name']
+      city         = result['city']
+      postalCode   = result['postal_code']
+      organisation = None
+      asNumber     = None
+      latitude     = str(result['latitude'])
+      longitude    = str(result['longitude'])
+      updated      = True
+
+
+   # ====== Try IP-API ======================================================
+   if ((result == None) or (city == None) or (city == "")):
+      print('Trying IP-API for ' + str(address) + ' ...')
+      url = 'http://ip-api.com/json/' + str(address)
+      result = None
+      try:
+         request = http.request('GET', url)
+         result = json.loads(request.data.decode('utf8'))
+      except Exception as e:
+          print("Location could not be determined automatically: " + str(e))
+
+      time.sleep(60/120)   # max. 150/min are allowed! -> 120 should be fine.
+
+   if ((result != None) and (result['status'] == 'success')):
+      country      = result['country']
+      countryCode  = result['country_code']
+      region       = result['region']
+      city         = result['city']
+      postalCode   = result['zip']
+      organisation = result['org']
+      asNumber     = None
+      m = re.match(r'^AS([0-9]+)', result)
+      if m != None:
+         asNumber = str(int(m.group(1)))
+      latitude     = str(result['lat'])
+      longitude    = str(result['lon'])
+      updated      = True
+      print(result,organisation,"A=",asNumber)
+
+
+   # ====== Update database =================================================
+   if updated == True:
       sqlStatement = """UPDATE AddressInfo
                         SET TimeStamp=NOW()
-                            ,Country='""" + result['country_name'] + """'
-                            ,CountryCode='""" + result['country_code'] + """'"""
-      if result['region_name'] != None:
-         sqlStatement = sqlStatement + """,Region='"""     + result['region_name'] + """'"""
-      if result['city'] != None:
-         sqlStatement = sqlStatement + """,City='"""       + result['city']        + """'"""
-      if result['postal_code'] != None:
-         sqlStatement = sqlStatement + """,PostalCode='""" + result['postal_code'] + """'"""
-      if result['latitude'] != None:
-         sqlStatement = sqlStatement + """,Latitude="""    + str(result['latitude'])
-      if result['longitude'] != None:
-         sqlStatement = sqlStatement + """,Longitude="""   + str(result['longitude'])
+                            ,Country='"""     + country     + """'
+                            ,CountryCode='""" + countryCode + """'"""
+      if region != None:
+         sqlStatement = sqlStatement + """,Region='"""       + region       + """'"""
+      if city != None:
+         sqlStatement = sqlStatement + """,City='"""         + city         + """'"""
+      if postalCode != None:
+         sqlStatement = sqlStatement + """,PostalCode='"""   + postalCode   + """'"""
+      if organisation != None:
+         sqlStatement = sqlStatement + """,Organisation='""" + organisation + """'"""
+      if asNumber != None:
+         sqlStatement = sqlStatement + """,ASNumber="""      + asNumber
+      if latitude != None:
+         sqlStatement = sqlStatement + """,Latitude="""      + latitude
+      if longitude != None:
+         sqlStatement = sqlStatement + """,Longitude="""     + longitude
       sqlStatement = sqlStatement + """ WHERE IP='""" + str(address) + """'"""
 
       # print(sqlStatement)

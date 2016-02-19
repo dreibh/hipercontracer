@@ -78,6 +78,7 @@ CREATE TABLE Ping (
    PRIMARY KEY (TimeStamp,FromIP,ToIP)
 );
 
+CREATE INDEX PingTimeStampIndex ON Ping (TimeStamp ASC);
 CREATE INDEX PingFromIPIndex ON Ping (FromIP ASC);
 CREATE INDEX PingToIPIndex ON Ping (ToIP ASC);
 CREATE INDEX PingStatusIndex ON Ping (Status ASC);
@@ -98,9 +99,11 @@ CREATE TABLE Traceroute (
    PRIMARY KEY(TimeStamp,FromIP,ToIP,HopNumber)
 );
 
+CREATE INDEX TracerouteTimeStampIndex ON Traceroute (TimeStamp ASC);
 CREATE INDEX TraceroutePathHashIndex ON Traceroute (PathHash ASC);
 CREATE INDEX TracerouteFromIPIndex ON Traceroute (FromIP ASC);
 CREATE INDEX TracerouteToIPIndex ON Traceroute (ToIP ASC);
+CREATE INDEX TracerouteHopIPIndex ON Traceroute (HopIP ASC);
 
 
 -- ###### Address Information ###############################################
