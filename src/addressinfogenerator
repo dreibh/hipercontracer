@@ -167,7 +167,7 @@ except Exception as e:
 
 
 # ====== GeoIP Location =====================================================
-log('Trying to look up GeoIP information ...')
+log('Trying to look up geo-location information ...')
 
 def initGeoIP(database, databaseType = GeoIP.GEOIP_STANDARD):
    gi = None
@@ -194,7 +194,7 @@ for row in rows:
 
 
    # ====== Try MaxMind GeoIP database ======================================
-   print('Trying MaxMindGeoIP for ' + str(address) + ' ...')
+   # print('Trying MaxMindGeoIP for ' + str(address) + ' ...')
    result = None
    try:
       if address.version == 6:
@@ -219,46 +219,55 @@ for row in rows:
 
    # ====== Try IP-API ======================================================
    if ((result == None) or (city == None) or (city == "")):
-      print('Trying IP-API for ' + str(address) + ' ...')
+      # print('Trying IP-API for ' + str(address) + ' ...')
       url = 'http://ip-api.com/json/' + str(address)
       result = None
       try:
          request = http.request('GET', url)
          result = json.loads(request.data.decode('utf8'))
+
+         try:
+            if result['status'] == 'success':
+               country      = result['country']
+               countryCode  = result['countryCode']
+               region       = result['regionName']
+               city         = result['city']
+               postalCode   = result['zip']
+               organisation = result['org']
+               asNumber     = None
+               m = re.match(r'^AS([0-9]+)', result['as'])
+               if m != None:
+                  asNumber = str(int(m.group(1)))
+               latitude     = str(result['lat'])
+               longitude    = str(result['lon'])
+               updated      = True
+         except Exception as e:
+            print("Could not get a useful result: " + str(e))
+            print(result)
+
       except Exception as e:
           print("Location could not be determined automatically: " + str(e))
 
-      time.sleep(60/120)   # max. 150/min are allowed! -> 120 should be fine.
-
-   if ((result != None) and (result['status'] == 'success')):
-      country      = result['country']
-      countryCode  = result['countryCode']
-      region       = result['regionName']
-      city         = result['city']
-      postalCode   = result['zip']
-      organisation = result['org']
-      asNumber     = None
-      m = re.match(r'^AS([0-9]+)', result['as'])
-      if m != None:
-         asNumber = str(int(m.group(1)))
-      latitude     = str(result['lat'])
-      longitude    = str(result['lon'])
-      updated      = True
+      time.sleep(60/140)   # max. 150/min are allowed! -> 140 should be fine.
 
 
    # ====== Update database =================================================
    if updated == True:
+      country      = country.replace("'","''")
       sqlStatement = """UPDATE AddressInfo
                         SET TimeStamp=NOW()
                             ,Country='"""     + country     + """'
                             ,CountryCode='""" + countryCode + """'"""
       if region != None:
+         region       = region.replace("'","''")
          sqlStatement = sqlStatement + """,Region='"""       + region       + """'"""
       if city != None:
+         city         = city.replace("'","''")
          sqlStatement = sqlStatement + """,City='"""         + city         + """'"""
       if postalCode != None:
          sqlStatement = sqlStatement + """,PostalCode='"""   + postalCode   + """'"""
       if organisation != None:
+         organisation = organisation.replace("'","''")
          sqlStatement = sqlStatement + """,Organisation='""" + organisation + """'"""
       if asNumber != None:
          sqlStatement = sqlStatement + """,ASNumber="""      + asNumber
@@ -268,7 +277,7 @@ for row in rows:
          sqlStatement = sqlStatement + """,Longitude="""     + longitude
       sqlStatement = sqlStatement + """ WHERE IP='""" + str(address) + """'"""
 
-      print(sqlStatement)
+      # print(sqlStatement)
       try:
          dbCursor.execute(sqlStatement)
          dbConnection.commit()
@@ -361,14 +370,14 @@ if inserts > 0:
    sys.stdout.write('Added ' + str(inserts) + ' entries.\n')
 
 
-## ====== Vacuum table========================================================
-#log('Vacuuming table AddressInfo ...')
-#try:
-   #old_isolation_level = dbConnection.isolation_level
-   #dbConnection.set_isolation_level(0)
-   #dbCursor.execute("""VACUUM FULL AddressInfo""")
-   #dbConnection.commit()
-   #dbConnection.set_isolation_level(old_isolation_level)
-#except Exception as e:
-   #log('Optimisation failed: ' + str(e))
-   #sys.exit(1)
+# ====== Vacuum table========================================================
+log('Vacuuming table AddressInfo ...')
+try:
+   old_isolation_level = dbConnection.isolation_level
+   dbConnection.set_isolation_level(0)
+   dbCursor.execute("""VACUUM FULL AddressInfo""")
+   dbConnection.commit()
+   dbConnection.set_isolation_level(old_isolation_level)
+except Exception as e:
+   log('Optimisation failed: ' + str(e))
+   sys.exit(1)
