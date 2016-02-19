@@ -268,6 +268,7 @@ for row in rows:
          sqlStatement = sqlStatement + """,PostalCode='"""   + postalCode   + """'"""
       if organisation != None:
          organisation = organisation.replace("'","''")
+         organisation = organisation[:80]
          sqlStatement = sqlStatement + """,Organisation='""" + organisation + """'"""
       if asNumber != None:
          sqlStatement = sqlStatement + """,ASNumber="""      + asNumber
@@ -318,12 +319,13 @@ for row in rows:
          asNumber     = int(m.group(1))
          organisation = m.group(2)
 
+         organisation = organisation[:80]
          sqlStatement = """UPDATE AddressInfo
                            SET TimeStamp=NOW()
                               ,ASNumber=""" + str(asNumber) + """
                               ,Organisation='""" + organisation + """'
                            WHERE IP='""" + str(address) + """'"""
-         # print(sqlStatement)
+         print(sqlStatement)
          try:
             dbCursor.execute(sqlStatement)
             dbConnection.commit()
