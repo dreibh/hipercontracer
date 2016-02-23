@@ -1,4 +1,4 @@
-AC_INIT([HiPerConTracer], [0.9.2~rc1], [dreib@simula.no])
+AC_INIT([HiPerConTracer], [0.9.2~rc2], [dreib@simula.no])
 
 AM_INIT_AUTOMAKE
 AC_PREREQ(2.60)
