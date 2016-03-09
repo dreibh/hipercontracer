@@ -425,17 +425,19 @@ void Traceroute::processResults()
    assert(currentHop == totalHops);
 
    // ====== Compute path hash ==============================================
-   // Checksum details:
-   // If complete traceroute: first 64 bits of the SHA-1 sum over path string
-   // Otherwise:              0 (zero)
-   uint64_t checksum = 0;
-   if(completeTraceroute) {
-      boost::uuids::detail::sha1 sha1Hash;
-      sha1Hash.process_bytes(pathString.c_str(), pathString.length());
-      uint32_t digest[5];
-      sha1Hash.get_digest(digest);
-      checksum =  ((uint64_t)digest[0] << 32) | (uint64_t)digest[1];
+   // Checksum: the first 64 bits of the SHA-1 sum over path string
+   boost::uuids::detail::sha1 sha1Hash;
+   sha1Hash.process_bytes(pathString.c_str(), pathString.length());
+   uint32_t digest[5];
+   sha1Hash.get_digest(digest);
+   const uint64_t checksum    = ((uint64_t)digest[0] << 32) | (uint64_t)digest[1];
+   unsigned int   statusFlags = 0x00;
+   if(!completeTraceroute) {
+      std::cout << "STAR=" << pathString << std::endl;
+      statusFlags |= Flag_StarredRoute;
    }
+   else
+      std::cout << "full=" << pathString << std::endl;
 
    // ====== Print traceroute entries =======================================
    // std::cout << "TotalHops=" << totalHops << std::endl;
@@ -452,6 +454,7 @@ void Traceroute::processResults()
             // => Necessary, in order to ensure that all entries have the same time stamp.
             timeStamp = boost::posix_time::to_iso_extended_string(resultEntry->sendTime());
          }
+         printf("S=0x%x\n", (resultEntry->status() | statusFlags));
          SQLOutput->insert(
             str(boost::format("'%s','%s','%s',%d,%d,%d,%d,'%s',%d")
                % timeStamp
@@ -459,7 +462,7 @@ void Traceroute::processResults()
                % (*DestinationAddressIterator).to_string()
                % resultEntry->hop()
                % totalHops
-               % resultEntry->status()
+               % (resultEntry->status() | statusFlags)
                % (resultEntry->receiveTime() - resultEntry->sendTime()).total_microseconds()
                % resultEntry->address().to_string()
                % (int64_t)checksum

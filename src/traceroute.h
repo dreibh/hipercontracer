@@ -44,6 +44,7 @@
 
 
 enum HopStatus {
+   // ====== Status byte ==================================
    Unknown               = 0,
    // ------ TTL/Hop Count --------------------------------
    TimeExceeded          = 1,
@@ -58,7 +59,10 @@ enum HopStatus {
    // ------ Timed out ------------------------------------
    Timeout               = 200,
    // ------ Response received ----------------------------
-   Success               = 255
+   Success               = 255,
+
+   // ------ Response received ----------------------------
+   Flag_StarredRoute     = (1<<8)   // Route with * (router did not respond)
 };
 
 
