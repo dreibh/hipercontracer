@@ -433,11 +433,8 @@ void Traceroute::processResults()
    const uint64_t checksum    = ((uint64_t)digest[0] << 32) | (uint64_t)digest[1];
    unsigned int   statusFlags = 0x00;
    if(!completeTraceroute) {
-      std::cout << "STAR=" << pathString << std::endl;
       statusFlags |= Flag_StarredRoute;
    }
-   else
-      std::cout << "full=" << pathString << std::endl;
 
    // ====== Print traceroute entries =======================================
    // std::cout << "TotalHops=" << totalHops << std::endl;
@@ -454,7 +451,6 @@ void Traceroute::processResults()
             // => Necessary, in order to ensure that all entries have the same time stamp.
             timeStamp = boost::posix_time::to_iso_extended_string(resultEntry->sendTime());
          }
-         printf("S=0x%x\n", (resultEntry->status() | statusFlags));
          SQLOutput->insert(
             str(boost::format("'%s','%s','%s',%d,%d,%d,%d,'%s',%d")
                % timeStamp
