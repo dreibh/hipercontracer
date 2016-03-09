@@ -5,29 +5,31 @@
 #include <unistd.h>
 #include <string.h>
 
-#include <boost/date_time/posix_time/posix_time.hpp>
+#include <boost/format.hpp>
+#include <boost/interprocess/streams/bufferstream.hpp>
+#include <boost/uuid/sha1.hpp>
 
 
 int main(int argc, char** argv)
 {
-   std::string sqlDirectory = "/storage/xy";
+   std::string pathString = "172.16.0.240-172.16.0.1-77.88.125.170-81.175.33.17-81.175.32.241-81.175.32.226-62.115.12.37-62.115.139.200-80.91.253.227-62.115.61.30-74.125.37.237-72.14.236.133-8.8.8.8";
 
-   // ====== Initialize =====================================================
-   SQLWriter w(sqlDirectory, "UniqueID", "TracerouteTable", 60);
-   if(!w.prepare()) {
-      return 1;
-   }
+   boost::uuids::detail::sha1 sha1Hash;
+   sha1Hash.process_bytes(pathString.c_str(), pathString.length());
+   uint32_t digest[5];
+   sha1Hash.get_digest(digest);
+   const uint64_t newHash = ((uint64_t)digest[0] << 32) | (uint64_t)digest[1];
+/*
+a = newHash[0:8]
+b = newHash[8:16]
+c = (int(a, 16) << 32) | int(b, 16)*/
 
-   w.insert("1,2,3,4");
-   w.changeFile();
-   w.insert("5,6,7,8");
-   w.insert("5,6,7,7");
-   w.changeFile();
-   w.insert("8,8,8,8");
-   w.insert("8,8,9,9");
-   w.mayStartNewTransaction();
+   const uint64_t a = (uint64_t)digest[0];
+   const uint64_t b = (uint64_t)digest[1];
+   const uint64_t c = (a << 32) | b;
 
-
-   const boost::posix_time::ptime now = boost::posix_time::microsec_clock::universal_time();
-   std::cout << "now=" << boost::posix_time::to_simple_string(now) << std::endl;
+   printf("%s\n", pathString.c_str());
+   printf("%llx %llx %llx %llx\n",
+          (long long int)newHash,
+          (long long int)a, (long long int)b, (long long int)c);
 }

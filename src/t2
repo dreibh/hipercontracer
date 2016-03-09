@@ -1,0 +1,180 @@
+#!/usr/bin/python3
+# -*- coding: utf-8 -*-
+#
+#  =================================================================
+#           #     #                 #     #
+#           ##    #   ####   #####  ##    #  ######   #####
+#           # #   #  #    #  #    # # #   #  #          #
+#           #  #  #  #    #  #    # #  #  #  #####      #
+#           #   # #  #    #  #####  #   # #  #          #
+#           #    ##  #    #  #   #  #    ##  #          #
+#           #     #   ####   #    # #     #  ######     #
+#
+#        ---   The NorNet Testbed for Multi-Homed Systems  ---
+#                        https://www.nntb.no
+#  =================================================================
+#
+#  High-Performance Connectivity Tracer (HiPerConTracer)
+#  Copyright (C) 2015-2016 by Thomas Dreibholz
+#
+#  This program is free software: you can redistribute it and/or modify
+#  it under the terms of the GNU General Public License as published by
+#  the Free Software Foundation, either version 3 of the License, or
+#  (at your option) any later version.
+#
+#  This program is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
+#
+#  You should have received a copy of the GNU General Public License
+#  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+#  Contact: dreibh@simula.no
+
+import os
+import sys
+import io
+import datetime
+import bz2
+import shutil
+import psycopg2
+import configparser
+import hashlib
+
+
+# ###### Print log message ##################################################
+def log(logstring):
+   print('\x1b[32m' + datetime.datetime.now().strftime('%Y-%m-%dT%H:%M:%S') + ': ' + logstring + '\x1b[0m');
+
+
+# ###### Abort with error ###################################################
+def error(logstring):
+   sys.stderr.write(datetime.datetime.now().isoformat() + \
+                    ' ===== ERROR: ' + logstring + ' =====\n')
+   sys.exit(1)
+
+
+
+# ###### Main program #######################################################
+if len(sys.argv) < 2:
+   error('Usage: ' + sys.argv[0] + ' database_configuration')
+
+configFileName   = sys.argv[1]
+transactionsPath = None
+badFilePath      = None
+dbServer         = 'localhost'
+dbPort           = 5432
+dbUser           = 'importer'
+dbPassword       = None
+dbName           = 'pingtraceroutedb'
+
+
+# ====== Get parameters =====================================================
+parsedConfigFile = configparser.RawConfigParser()
+parsedConfigFile.optionxform = str   # Make it case-sensitive!
+try:
+   parsedConfigFile.readfp(io.StringIO('[root]\n' + open(configFileName, 'r').read()))
+except Exception as e:
+    error('Unable to read database configuration file' +  sys.argv[1] + ': ' + str(e))
+    sys.exit(1)
+
+for parameterName in parsedConfigFile.options('root'):
+   parameterValue = parsedConfigFile.get('root', parameterName)
+   if parameterName == 'transactions_path':
+      transactionsPath = parameterValue
+   elif parameterName == 'bad_file_path':
+      badFilePath = parameterValue
+   elif parameterName == 'dbserver':
+      dbServer = parameterValue
+   elif parameterName == 'dbport':
+      dbPort = parameterValue
+   elif parameterName == 'dbuser':
+      dbUser = parameterValue
+   elif parameterName == 'dbpassword':
+      dbPassword = parameterValue
+   elif parameterName == 'database':
+      dbName = parameterValue
+   else:
+      error('Unknown parameter ' + parameterName + ' in ' + sys.argv[1] + '!')
+
+if not os.path.exists(transactionsPath):
+   error('Invalid transactions path: ' + transactionsPath + '!')
+try:
+   os.mkdir(badFilePath)
+except:
+   pass
+if not os.path.exists(badFilePath):
+   error('Invalid bad file path: ' + badFilePath + '!')
+
+
+# ====== Connect to the database ============================================
+try:
+   dbConnection = psycopg2.connect(host=str(dbServer), port=str(dbPort),
+                                   user=str(dbUser), password=str(dbPassword),
+                                   dbname=str(dbName))
+   dbConnection.autocommit = False
+except:
+    log('Unable to connect to the database!')
+    sys.exit(1)
+
+dbCursor = dbConnection.cursor()
+
+
+# ====== Run ================================================================
+dbCursor.execute("""
+   select t.TimeStamp, t.FromIP, t.ToIP, t.HopNumber, t.HopIP, t.PathHash, t.Status
+   from Traceroute t
+   where
+      t.TimeStamp >= (select max(TimeStamp) from Traceroute) - interval '1 hour' and
+      t.TimeStamp <= (select max(TimeStamp) from Traceroute)
+   order by t.TimeStamp asc, t.fromIP, t.toIP, t.HopNumber, t.HopIP;
+""")
+
+rows = dbCursor.fetchall()
+
+
+pathString = ""
+for row in rows:
+   timeStamp = row[0]
+   fromIP    = row[1]
+   toIP      = row[2]
+   hopNumber = row[3]
+   hopIP     = row[4]
+   pathHash  = row[5]
+   status    = row[6]
+
+   # ====== One path is finished ============================================
+   if hopNumber == 1:
+      # ------ Finished a path ----------------------------
+      if pathString != "":
+         print(pathString)
+
+         m = hashlib.sha1()
+         m.update(pathString.encode('ascii'))
+         digest = m.hexdigest()[0:16]
+
+         a = int(digest[0:8], 16)
+         b = int(digest[8:16], 16)
+         c = (a << 32) | b
+         if c > 0x7FFFFFFFFFFFFFFF:
+             c -= 0x10000000000000000
+         newHash = c
+
+         print(pathHash, digest, a, b, c)
+         if (pathHash != 0) and (pathHash != newHash):
+            print('differ!!!')
+
+      # ------ Start next path ----------------------------
+      pathString = fromIP
+
+
+   # ====== Add a router or the destination =================================
+   statusFlags = 0x0000
+   if (status & 0xff) == 0x00:
+      pathString = pathString + '-*'
+      statusFlags = statusFlags | 0x0100
+   else:
+      pathString = pathString + '-' + hopIP
+
+   print(timeStamp,fromIP,toIP,hopNumber,hopIP,pathHash,status)

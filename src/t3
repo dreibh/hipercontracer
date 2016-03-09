@@ -1,0 +1,22 @@
+#!/usr/bin/python3
+# -*- coding: utf-8 -*-
+
+import hashlib
+
+
+pathString = "172.16.0.240-172.16.0.1-77.88.125.170-81.175.33.17-81.175.32.241-81.175.32.226-62.115.12.37-62.115.139.200-80.91.253.227-62.115.61.30-74.125.37.237-72.14.236.133-8.8.8.8"
+
+m = hashlib.sha1()
+m.update(pathString.encode('ascii'))
+newHash = m.hexdigest()[0:16]
+
+a = int(newHash[0:8], 16)
+b = int(newHash[8:16], 16)
+c = (a << 32) | b
+
+
+newHashValue = c
+if c > 0x7FFFFFFFFFFFFFFF:
+    c -= 0x10000000000000000
+
+print(newHash, newHashValue, format(a, 'x'), format(b, 'x'), format(c, 'x'))
