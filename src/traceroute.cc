@@ -396,6 +396,7 @@ void Traceroute::processResults()
    size_t      totalHops          = 0;
    size_t      currentHop         = 0;
    bool        completeTraceroute = true;   // all hops have responded
+   bool        destinationReached = false;  // destination has responded
    std::string pathString         = SourceAddress.to_string();
    for(std::vector<ResultEntry*>::iterator iterator = resultsVector.begin(); iterator != resultsVector.end(); iterator++) {
       ResultEntry* resultEntry = *iterator;
@@ -406,6 +407,7 @@ void Traceroute::processResults()
       // ====== We have reached the destination =============================
       if(resultEntry->status() == Success) {
          pathString += "-" + resultEntry->address().to_string();
+         destinationReached = true;
          break;   // done!
       }
 
@@ -434,6 +436,9 @@ void Traceroute::processResults()
    unsigned int   statusFlags = 0x00;
    if(!completeTraceroute) {
       statusFlags |= Flag_StarredRoute;
+   }
+   if(destinationReached) {
+      statusFlags |= Flag_DestinationReached;
    }
 
    // ====== Print traceroute entries =======================================

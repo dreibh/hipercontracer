@@ -46,6 +46,10 @@
 enum HopStatus {
    // ====== Status byte ==================================
    Unknown               = 0,
+
+   // NOTE: Status values from 1 to 199 have a given
+   //       router IP in their HopIP result!
+
    // ------ TTL/Hop Count --------------------------------
    TimeExceeded          = 1,
    // ------ Reported as "unreachable" --------------------
@@ -56,13 +60,18 @@ enum HopStatus {
    UnreachablePort       = 104,
    UnreachableProhibited = 105,
    UnreachableUnknown    = 110,
+
+   // NOTE: The following values have the destination IP
+   //       in their HopIP field -> no response from a router!
+
    // ------ Timed out ------------------------------------
    Timeout               = 200,
    // ------ Response received ----------------------------
    Success               = 255,
 
    // ------ Response received ----------------------------
-   Flag_StarredRoute     = (1<<8)   // Route with * (router did not respond)
+   Flag_StarredRoute       = (1 << 8)   // Route with * (router did not respond)
+   Flag_DestinationReached = (1 << 9)   // Destination has responded
 };
 
 

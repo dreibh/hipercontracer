@@ -123,10 +123,10 @@ dbCursor = dbConnection.cursor()
 
 # ====== Run ================================================================
 dbCursor.execute("""
-   select t.TimeStamp, t.FromIP, t.ToIP, t.HopNumber, t.HopIP, t.PathHash, t.Status
+   select t.TimeStamp, t.FromIP, t.ToIP, t.HopNumber, t.HopIP, t.PathHash, t.Status, t.RTT
    from Traceroute t
    where
-      t.TimeStamp >= (select max(TimeStamp) from Traceroute) - interval '7 days' and
+      t.TimeStamp >= (select max(TimeStamp) from Traceroute) - interval '3 days' and
       t.TimeStamp <= (select max(TimeStamp) from Traceroute) - interval '0 day'
    order by t.TimeStamp asc, t.fromIP, t.toIP, t.HopNumber, t.HopIP;
 """)
@@ -146,6 +146,7 @@ for row in rows:
    hopIP     = row[4]
    pathHash  = row[5]
    status    = row[6]
+   rtt       = row[7]
 
    # ====== One path is finished ============================================
    if hopNumber == 1:
@@ -190,8 +191,10 @@ for row in rows:
    statusFlags = 0x0000
    if (status & 0xff) == 0x00:
       pathString = pathString + '-*'
-      statusFlags = statusFlags | 0x0100
+      statusFlags = statusFlags | 0x0100   # Route with * (router did not respond)
    else:
+      if (status & 0xff) == 0xff:
+         statusFlags = statusFlags | 0x0200   # Destination has responded
       pathString = pathString + '-' + hopIP
 
-   print(timeStamp,fromIP,toIP,hopNumber,hopIP,pathHash,status)
+   print(timeStamp,fromIP,toIP,hopNumber,hopIP,pathHash,status,rtt)
