@@ -170,19 +170,24 @@ for row in rows:
              newHash -= 0x10000000000000000
 
          #print(newHash, format(a, 'x'), format(b, 'x'), newHash, "OLD:", oldPathHash)
-         if (oldPathHash != 0) and (oldPathHash != newHash):
-            sys.stderr.write('ERROR: Hash values differ!\n')
-            sys.exit(1)
+         #if (oldPathHash != 0) and (oldPathHash != newHash):
+            #sys.stderr.write('ERROR: Hash values differ!\n')
+            #sys.exit(1)
 
-         sql = """UPDATE Traceroute SET PathHash = """ + str(newHash) + """, Status = Status | """ + str(statusFlags) + """ WHERE TimeStamp='""" + str(timeStamp) + """' AND FromIP='""" + fromIP + """' AND ToIP='""" + toIP + """' and HopNumber=""" + str(hopNumber) + """ and HopIP='""" + hopIP + """';"""
-         print(sql)
+         if ((statusFlags != oldStatusFlags) or
+             (newHash != oldPathHash)):
+            sql = """UPDATE Traceroute SET PathHash = """ + str(newHash) + """, Status = Status | """ + str(statusFlags) + """ WHERE TimeStamp='""" + str(timeStamp) + """' AND FromIP='""" + fromIP + """' AND ToIP='""" + toIP + """';"""
+            print(sql)
+         else:
+            print('ok')
 
 
       # ------ Start next path ----------------------------
       #print("-----")
-      pathString  = fromIP
-      oldPathHash = pathHash
-      statusFlags = 0x0000
+      oldPathHash    = pathHash
+      oldStatusFlags = status & 0xff
+      pathString     = fromIP
+      statusFlags    = 0x0000
 
    # ====== Set status ======================================================
    if (((status & 0xff) >= 200) and ((status & 0xff) <= 254)):
