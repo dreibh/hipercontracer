@@ -7,8 +7,8 @@ Description:    High-Performance Connectivity Tracer (HiPerConTracer) is a
                 traceroute runs among sites and can export the results into
                 an SQL database.
 Keywords:       IPv4, IPv6, Address, Subnet
-Author:         dreibh@simula.no (Thomas Dreibholz)
-Maintained-by:  dreibh@simula.no (Thomas Dreibholz)
+Author:         dreibh@iem.uni-due.de (Thomas Dreibholz)
+Maintained-by:  dreibh@iem.uni-due.de (Thomas Dreibholz)
 Primary-site:   http://www.iem.uni-due.de/~dreibh/hipercontracer
                 0 kB download/hipercontracer-0.0.0.tar.gz
 Original-site:  http://www.iem.uni-due.de/~dreibh/hipercontracer
