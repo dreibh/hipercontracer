@@ -45,32 +45,34 @@
 
 enum HopStatus {
    // ====== Status byte ==================================
-   Unknown               = 0,
+   Unknown                 = 0,
 
+   // ====== ICMP responses (from routers) ================
    // NOTE: Status values from 1 to 199 have a given
    //       router IP in their HopIP result!
 
    // ------ TTL/Hop Count --------------------------------
-   TimeExceeded          = 1,
+   TimeExceeded            = 1,     // ICMP response
    // ------ Reported as "unreachable" --------------------
-   UnreachableScope      = 100,
-   UnreachableNetwork    = 101,
-   UnreachableHost       = 102,
-   UnreachableProtocol   = 103,
-   UnreachablePort       = 104,
-   UnreachableProhibited = 105,
-   UnreachableUnknown    = 110,
+   UnreachableScope        = 100,   // ICMP response
+   UnreachableNetwork      = 101,   // ICMP response
+   UnreachableHost         = 102,   // ICMP response
+   UnreachableProtocol     = 103,   // ICMP response
+   UnreachablePort         = 104,   // ICMP response
+   UnreachableProhibited   = 105,   // ICMP response
+   UnreachableUnknown      = 110,   // ICMP response
 
-   // NOTE: The following values have the destination IP
-   //       in their HopIP field -> no response from a router!
+   // ====== No response  =================================
+   // NOTE: Status values from 200 to 254 have the destination
+   //       IP in their HopIP field. However, there is no response!
+   Timeout                 = 200,
 
-   // ------ Timed out ------------------------------------
-   Timeout               = 200,
+   // ====== Destination's response (from destination) ====
+   // NOTE: Successful response, destination is in HopIP field.
+   Success                 = 255,   // Success!
+
    // ------ Response received ----------------------------
-   Success               = 255,
-
-   // ------ Response received ----------------------------
-   Flag_StarredRoute       = (1 << 8)   // Route with * (router did not respond)
+   Flag_StarredRoute       = (1 << 8),  // Route with * (router did not respond)
    Flag_DestinationReached = (1 << 9)   // Destination has responded
 };
 
