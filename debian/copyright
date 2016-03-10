@@ -1,3 +1,8 @@
+Format: http://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+Upstream-Name: HiPerConTracer
+Upstream-Contact: Thomas Dreibholz <dreibh@iem.uni-due.de>
+Source: http://www.iem.uni-due.de/~dreibh/hipercontracer
+
 Files: *
 Copyright: 2015-2016 Thomas Dreibholz
 License: GPL-3+
@@ -15,3 +20,7 @@ License: GPL-3+
  .
  You should have received a copy of the GNU General Public License
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ .
+ On Debian systems, the full text of the GNU General Public
+ License version 3 can be found in the file
+ `/usr/share/common-licenses/GPL-3'.
