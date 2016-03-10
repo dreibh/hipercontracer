@@ -14,6 +14,7 @@ AC_PROG_CXX
 
 # ###### Compiler settings ##################################################
 # CXXFLAGS="$CXXFLAGS -std=c++11"
+CXXFLAGS="$CXXFLAGS -D_FORTIFY_SOURCE=2 -O2 -Wformat -Wformat-security -pie -fPIE -Wl,-z,relro"
 
 
 # ###### colorgcc ###########################################################
