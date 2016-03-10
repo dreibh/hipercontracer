@@ -153,49 +153,51 @@ for row in rows:
    if hopNumber == 1:
       # ------ Finished a path ----------------------------
       if pathString != "":
-         #print(pathString)
-
          m = hashlib.sha1()
          m.update(pathString.encode('ascii'))
          digest = m.hexdigest()[0:16]
 
          m = hashlib.sha1()
          m.update(pathString.encode('ascii'))
-         newHash = m.hexdigest()[0:16]
+         digest = m.hexdigest()[0:16]
 
-         a = int(newHash[0:8], 16)
-         b = int(newHash[8:16], 16)
-         newHash = (a << 32) | b
-         if newHash > 0x7FFFFFFFFFFFFFFF:
-             newHash -= 0x10000000000000000
+         a = int(digest[0:8], 16)
+         b = int(digest[8:16], 16)
+         newPathHash = (a << 32) | b
+         if newPathHash > 0x7FFFFFFFFFFFFFFF:
+             newPathHash -= 0x10000000000000000
 
-         #print(newHash, format(a, 'x'), format(b, 'x'), newHash, "OLD:", oldPathHash)
-         #if (oldPathHash != 0) and (oldPathHash != newHash):
-            #sys.stderr.write('ERROR: Hash values differ!\n')
-            #sys.exit(1)
+         #print(pathString)
+         #print(newPathHash, format(a, 'x'), format(b, 'x'), newPathHash, "OLD:", oldPathHash)
 
-         if ((statusFlags != oldStatusFlags) or
-             (newHash != oldPathHash)):
-            sql = """UPDATE Traceroute SET PathHash = """ + str(newHash) + """, Status = Status | """ + str(statusFlags) + """ WHERE TimeStamp='""" + str(timeStamp) + """' AND FromIP='""" + fromIP + """' AND ToIP='""" + toIP + """';"""
+         if (oldPathHash != 0) and (oldPathHash != newPathHash):
+            sys.stderr.write('ERROR: Hash values differ!\n')
+            sys.exit(1)
+
+         if ((newStatusFlags != oldStatusFlags) or
+             (newPathHash != oldPathHash)):
+            #print(oldPathHash, newPathHash, oldStatusFlags, newStatusFlags)
+            sql = """UPDATE Traceroute SET PathHash = """ + str(newPathHash) + """, Status = (Status & 255) | """ + str(newStatusFlags) + """ WHERE TimeStamp='""" + str(oldTimeStamp) + """' AND FromIP='""" + oldFromIP + """' AND ToIP='""" + oldToIP + """';"""
             print(sql)
-         else:
-            print('ok')
 
 
       # ------ Start next path ----------------------------
       #print("-----")
+      oldTimeStamp   = timeStamp
+      oldFromIP      = fromIP
+      oldToIP        = toIP
       oldPathHash    = pathHash
-      oldStatusFlags = status & 0xff
+      oldStatusFlags = status & ~0xff
       pathString     = fromIP
-      statusFlags    = 0x0000
+      newStatusFlags = 0x0000
 
    # ====== Set status ======================================================
    if (((status & 0xff) >= 200) and ((status & 0xff) <= 254)):
       pathString = pathString + '-*'
-      statusFlags = statusFlags | 0x0100   # Route with * (router did not respond)
+      newStatusFlags = newStatusFlags | 0x0100   # Route with * (router did not respond)
    else:
       if (status & 0xff) == 0xff:
-         statusFlags = statusFlags | 0x0200   # Destination has responded
+         newStatusFlags = newStatusFlags | 0x0200   # Destination has responded
       pathString = pathString + '-' + hopIP
 
 

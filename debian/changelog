@@ -1,8 +1,8 @@
-hipercontracer (0.9.2~rc2-1ubuntu1) xenial; urgency=low
+hipercontracer (0.9.2~rc3-1ubuntu1) xenial; urgency=low
 
   * New upstream version.
 
- -- Thomas Dreibholz <dreibh@iem.uni-due.de>  Tue, 23 Feb 2016 08:08:08 +0200
+ -- Thomas Dreibholz <dreibh@iem.uni-due.de>  Thu, 10 Mar 2016 08:08:08 +0200
 
 hipercontracer (0.9.1-1ubuntu1) xenial; urgency=low
 
