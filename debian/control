@@ -2,19 +2,19 @@ Source: hipercontracer
 Section: net
 Priority: optional
 Maintainer: Thomas Dreibholz <dreibh@simula.no>
-Homepage: https://www.nntb.no
+Homepage: https://www.iem.uni-due.de/~dreibh/hipercontracer
 Build-Depends: debhelper (>= 7.0.50~),
+               dh-python | python-support,
                libboost-date-time1.48-dev | libboost-date-time-dev (>= 1.48.0),
                libboost-filesystem1.48-dev | libboost-filesystem-dev (>= 1.48.0),
                libboost-iostreams1.48-dev | libboost-iostreams-dev (>= 1.48.0),
                libboost-system1.48-dev | libboost-system-dev (>= 1.48.0),
                libboost-thread1.48-dev | libboost-thread-dev (>= 1.48.0),
                libfile-fcntllock-perl,
-               python-all,
-               python-support,
                python3,
                python3-psycopg2
-Standards-Version: 3.9.6
+Standards-Version: 3.9.7
+X-Python3-Version: >= 3.1
 
 Package: hipercontracer
 Architecture: any
