@@ -58,16 +58,16 @@ def error(logstring):
 
 # ###### Main program #######################################################
 if len(sys.argv) < 3:
-   error('Usage: ' + sys.argv[0] + ' database_configuration weeks_in_past')
+   error('Usage: ' + sys.argv[0] + ' database_configuration days_in_past')
 
-configFileName   = sys.argv[1]
-weeksInPast      = int(sys.argv[2])
-badFilePath      = None
-dbServer         = 'localhost'
-dbPort           = 5432
-dbUser           = 'importer'
-dbPassword       = None
-dbName           = 'pingtraceroutedb'
+configFileName = sys.argv[1]
+daysInPast     = int(sys.argv[2])
+badFilePath    = None
+dbServer       = 'localhost'
+dbPort         = 5432
+dbUser         = 'importer'
+dbPassword     = None
+dbName         = 'pingtraceroutedb'
 
 
 # ====== Get parameters =====================================================
@@ -117,8 +117,8 @@ dbCursor.execute("""
    select t.TimeStamp, t.FromIP, t.ToIP, t.HopNumber, t.HopIP, t.PathHash, t.Status, t.RTT
    from Traceroute t
    where
-      t.TimeStamp >= (select max(TimeStamp) from Traceroute) - interval '""" + str(weeksInPast + 1) + """ weeks' and
-      t.TimeStamp <= (select max(TimeStamp) from Traceroute) - interval '""" + str(weeksInPast) + """ weeks'
+      t.TimeStamp >= (select max(TimeStamp) from Traceroute) - interval '""" + str(daysInPast + 1) + """ days' and
+      t.TimeStamp <= (select max(TimeStamp) from Traceroute) - interval '""" + str(daysInPast) + """ days'
    order by t.TimeStamp asc, t.fromIP, t.toIP, t.HopNumber, t.HopIP;
 """)
 
