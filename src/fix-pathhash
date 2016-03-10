@@ -171,7 +171,7 @@ for row in rows:
 
          #print(newHash, format(a, 'x'), format(b, 'x'), newHash, "OLD:", oldPathHash)
          if (oldPathHash != 0) and (oldPathHash != newHash):
-            print('ERROR: Hash values differ!')
+            sys.stderr.write('ERROR: Hash values differ!\n')
             sys.exit(1)
 
          sql = """UPDATE Traceroute SET PathHash = """ + str(newHash) + """, Status = Status | """ + str(statusFlags) + """ WHERE TimeStamp='""" + str(timeStamp) + """' AND FromIP='""" + fromIP + """' AND ToIP='""" + toIP + """' and HopNumber=""" + str(hopNumber) + """ and HopIP='""" + hopIP + """';"""
