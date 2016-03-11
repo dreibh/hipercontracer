@@ -456,7 +456,7 @@ void Traceroute::processResults()
             // => Necessary, in order to ensure that all entries have the same time stamp.
             timeStamp = boost::posix_time::to_iso_extended_string(resultEntry->sendTime());
          }
-         // assert(((unsigned int)resultEntry->status() | statusFlags) >= 0x100);
+         assert(((unsigned int)resultEntry->status() | statusFlags) >= 0x100);
          SQLOutput->insert(
             str(boost::format("'%s','%s','%s',%d,%d,%d,%d,'%s',%d")
                % timeStamp
