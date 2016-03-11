@@ -433,7 +433,7 @@ void Traceroute::processResults()
    uint32_t digest[5];
    sha1Hash.get_digest(digest);
    const uint64_t checksum    = ((uint64_t)digest[0] << 32) | (uint64_t)digest[1];
-   unsigned int   statusFlags = 0x00;
+   unsigned int   statusFlags = 0x0000;
    if(!completeTraceroute) {
       statusFlags |= Flag_StarredRoute;
    }
@@ -456,6 +456,7 @@ void Traceroute::processResults()
             // => Necessary, in order to ensure that all entries have the same time stamp.
             timeStamp = boost::posix_time::to_iso_extended_string(resultEntry->sendTime());
          }
+         // assert(((unsigned int)resultEntry->status() | statusFlags) >= 0x100);
          SQLOutput->insert(
             str(boost::format("'%s','%s','%s',%d,%d,%d,%d,'%s',%d")
                % timeStamp
@@ -463,7 +464,7 @@ void Traceroute::processResults()
                % (*DestinationAddressIterator).to_string()
                % resultEntry->hop()
                % totalHops
-               % (resultEntry->status() | statusFlags)
+               % ((unsigned int)resultEntry->status() | statusFlags)
                % (resultEntry->receiveTime() - resultEntry->sendTime()).total_microseconds()
                % resultEntry->address().to_string()
                % (int64_t)checksum
