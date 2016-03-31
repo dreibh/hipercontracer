@@ -75,7 +75,7 @@ CREATE TABLE Ping (
    ToIP      INET     NOT NULL,                      -- Destination IP address
    Status    SMALLINT NOT NULL,                      -- Status
    RTT       INTEGER  NOT NULL,                      -- microseconds (max. 2147s)
-   PRIMARY KEY (TimeStamp,FromIP,ToIP)
+   PRIMARY KEY (FromIP ASC, ToIP ASC, TimeStamp ASC)
 );
 
 CREATE INDEX PingTimeStampIndex ON Ping (TimeStamp ASC);
