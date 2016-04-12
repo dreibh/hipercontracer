@@ -57,7 +57,7 @@ def error(logstring):
 
 # ###### Main program #######################################################
 if len(sys.argv) < 2:
-   error('Usage: ' + sys.argv[0] + ' database_configuration')
+   error('Usage: ' + sys.argv[0] + ' database_configuration [-verbose]')
 
 configFileName   = sys.argv[1]
 transactionsPath = None
@@ -67,6 +67,15 @@ dbPort           = 5432
 dbUser           = 'importer'
 dbPassword       = None
 dbName           = 'pingtraceroutedb'
+verboseMode      = False
+
+i = 2
+while i < len(sys.argv):
+   if sys.argv[i] == '-verbose':
+      verboseMode = True
+   else:
+      error('Bad argument: ' + sys.argv[i])
+   i = i + 1
 
 
 # ====== Get parameters =====================================================
@@ -121,6 +130,7 @@ dbCursor = dbConnection.cursor()
 
 
 # ====== Import transactions ================================================
+fileNumber       = 0
 goodTransactions = 0
 badTransactions  = 0
 firstTransaction = True
@@ -134,6 +144,11 @@ for transactionFile in transactionFileList:
          log('Starting import of new transactions ...')
 
       # ------ Read transactions from file ----------------------------------
+      fileNumber = fileNumber + 1
+      if verboseMode == True:
+         log('Importing ' + absTransactionFile +
+             ' (' + str(fileNumber) + ' of ' + str(len(transactionFileList)) + ') ...')
+
       transactionContent = None
       try:
          inputFile = bz2.BZ2File(absTransactionFile, 'r')
