@@ -28,6 +28,7 @@
 .Sh SYNOPSIS
 .Nm tracedataimporter
 database_configuration
+.Op \-verbose
 .\" ###### Description ######################################################
 .Sh DESCRIPTION
 .Nm tracedataimporter
@@ -43,6 +44,8 @@ The following argument has to be provided:
 Specifies the database configuration file. See
 /usr/share/doc/hipercontracer/examples/hipercontracer-database-configuration
 for an example.
+.It \-verbose
+Print the name of each transaction file before importing it.
 .El
 .\" ###### Arguments ########################################################
 .Sh EXAMPLES
