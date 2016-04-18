@@ -1,5 +1,5 @@
 -- STEP 3: Create Procedures
--- sudo -u postgres psql pingtraceroutedb procedures.sql
+-- sudo -u postgres psql pingtraceroutedb <procedures.sql
 --
 -- =================================================================
 --          #     #                 #     #
@@ -35,7 +35,8 @@
 
 -- ###### Median calculation ################################################
 -- From: https://wiki.postgresql.org/wiki/Aggregate_Median
-CREATE OR REPLACE FUNCTION _final_median(NUMERIC[])
+DROP FUNCTION IF EXISTS _final_median(NUMERIC[]) CASCADE;
+CREATE FUNCTION _final_median(NUMERIC[])
    RETURNS NUMERIC AS
 $$
    SELECT AVG(val)
@@ -49,6 +50,7 @@ $$
 $$
 LANGUAGE 'sql' IMMUTABLE;
 
+DROP AGGREGATE IF EXISTS median(NUMERIC);
 CREATE AGGREGATE median(NUMERIC) (
   SFUNC=array_append,
   STYPE=NUMERIC[],
