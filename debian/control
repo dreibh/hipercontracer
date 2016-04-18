@@ -3,7 +3,8 @@ Section: net
 Priority: optional
 Maintainer: Thomas Dreibholz <dreibh@iem.uni-due.de>
 Homepage: https://www.iem.uni-due.de/~dreibh/hipercontracer
-Build-Depends: debhelper (>= 7.0.50~),
+Build-Depends: debhelper (>= 9),
+               dpkg-dev (>= 1.16.1~),
                libboost-date-time1.48-dev | libboost-date-time-dev (>= 1.48.0),
                libboost-filesystem1.48-dev | libboost-filesystem-dev (>= 1.48.0),
                libboost-iostreams1.48-dev | libboost-iostreams-dev (>= 1.48.0),
