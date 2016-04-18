@@ -1,5 +1,5 @@
--- STEP 4: Create Users
--- sudo -u postgres psql pingtraceroutedb <users.sql
+-- STEP 3: Create Procedures
+-- sudo -u postgres psql pingtraceroutedb procedures.sql
 --
 -- =================================================================
 --          #     #                 #     #
@@ -33,31 +33,25 @@
 -- Contact: dreibh@simula.no
 
 
--- ##########################################################
--- !!! IMPORTANT: Change the passwords before deployment! !!!
--- ##########################################################
+-- ###### Median calculation ################################################
+-- From: https://wiki.postgresql.org/wiki/Aggregate_Median
+CREATE OR REPLACE FUNCTION _final_median(NUMERIC[])
+   RETURNS NUMERIC AS
+$$
+   SELECT AVG(val)
+   FROM (
+     SELECT val
+     FROM unnest($1) val
+     ORDER BY 1
+     LIMIT  2 - MOD(array_upper($1, 1), 2)
+     OFFSET CEIL(array_upper($1, 1) / 2.0) - 1
+   ) sub;
+$$
+LANGUAGE 'sql' IMMUTABLE;
 
-
-REVOKE ALL ON DATABASE pingtraceroutedb FROM importer;
-REVOKE ALL ON Ping FROM importer;
-REVOKE ALL ON Traceroute FROM importer;
-DROP ROLE importer;
-CREATE ROLE importer WITH LOGIN ENCRYPTED PASSWORD '!importer!';
-GRANT CONNECT ON DATABASE pingtraceroutedb TO importer;
-GRANT INSERT ON TABLE Ping TO importer;
-GRANT INSERT ON TABLE Traceroute TO importer;
-
-
-REVOKE ALL ON DATABASE pingtraceroutedb FROM researcher;
-REVOKE ALL ON ALL TABLES IN SCHEMA public FROM researcher;
-DROP ROLE researcher;
-CREATE ROLE researcher WITH LOGIN ENCRYPTED PASSWORD '!researcher!';
-GRANT CONNECT ON DATABASE pingtraceroutedb TO researcher;
-GRANT SELECT ON ALL TABLES IN SCHEMA public TO researcher;
-
-
-REVOKE ALL ON DATABASE pingtraceroutedb FROM maintainer;
-DROP ROLE maintainer;
-CREATE ROLE maintainer WITH LOGIN ENCRYPTED PASSWORD '!maintainer!';
-GRANT CONNECT ON DATABASE pingtraceroutedb TO maintainer;
-GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO maintainer;
+CREATE AGGREGATE median(NUMERIC) (
+  SFUNC=array_append,
+  STYPE=NUMERIC[],
+  FINALFUNC=_final_median,
+  INITCOND='{}'
+);
