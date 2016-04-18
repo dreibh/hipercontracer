@@ -57,3 +57,13 @@ CREATE AGGREGATE median(NUMERIC) (
   FINALFUNC=_final_median,
   INITCOND='{}'
 );
+
+
+-- ###### Round timestamp down into given n-minute bucket ###################
+DROP FUNCTION IF EXISTS dateToBucket(TIMESTAMP WITHOUT TIME ZONE, INTEGER) CASCADE;
+CREATE FUNCTION dateToBucket(TIMESTAMP WITHOUT TIME ZONE, INTEGER)
+   RETURNS TIMESTAMP WITHOUT TIME ZONE AS
+$$
+   SELECT date_trunc('hour', $1) + ((date_part('minute', $1)::integer / $2) * $2) * interval '1 min';
+$$
+LANGUAGE 'sql' IMMUTABLE;
