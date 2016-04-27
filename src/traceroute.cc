@@ -411,7 +411,13 @@ void Traceroute::processResults()
          break;   // done!
       }
 
-      // ====== Time-out entries ============================================
+      // ====== Unreachable (as reported by router) =========================
+      else if(statusIsUnreachable(resultEntry->status())) {
+         pathString += "-" + resultEntry->address().to_string();
+         break;   // we can stop here!
+      }
+
+      // ====== Time-out ====================================================
       else if(resultEntry->status() == Unknown) {
          resultEntry->status(Timeout);
          resultEntry->receiveTime(resultEntry->sendTime() + boost::posix_time::milliseconds(Expiration));
@@ -456,7 +462,7 @@ void Traceroute::processResults()
             // => Necessary, in order to ensure that all entries have the same time stamp.
             timeStamp = boost::posix_time::to_iso_extended_string(resultEntry->sendTime());
          }
-         assert(((unsigned int)resultEntry->status() | statusFlags) >= 0x100);
+
          SQLOutput->insert(
             str(boost::format("'%s','%s','%s',%d,%d,%d,%d,'%s',%d")
                % timeStamp
@@ -471,7 +477,8 @@ void Traceroute::processResults()
          ));
       }
 
-      if(resultEntry->status() == Success) {
+      if( (resultEntry->status() == Success) ||
+          (statusIsUnreachable(resultEntry->status())) ) {
          break;
       }
    }

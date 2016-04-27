@@ -54,6 +54,7 @@ enum HopStatus {
    // ------ TTL/Hop Count --------------------------------
    TimeExceeded            = 1,     // ICMP response
    // ------ Reported as "unreachable" --------------------
+   // NOTE: Status values from 100 to 199 denote unreachability
    UnreachableScope        = 100,   // ICMP response
    UnreachableNetwork      = 101,   // ICMP response
    UnreachableHost         = 102,   // ICMP response
@@ -75,6 +76,15 @@ enum HopStatus {
    Flag_StarredRoute       = (1 << 8),  // Route with * (router did not respond)
    Flag_DestinationReached = (1 << 9)   // Destination has responded
 };
+
+// ###### Is destination not reachable? #####################################
+inline bool statusIsUnreachable(const HopStatus hopStatus)
+{
+   // Values 100 to 199 => the destination cannot be reached any more, since
+   // a router on the way reported unreachability.
+   return( (hopStatus >= UnreachableScope) &&
+           (hopStatus < Timeout) );
+}
 
 
 class ResultEntry {
