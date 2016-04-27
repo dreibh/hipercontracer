@@ -234,26 +234,38 @@ int main(int argc, char** argv)
    // ====== Start service threads ==========================================
    for(std::set<boost::asio::ip::address>::iterator sourceIterator = SourceArray.begin(); sourceIterator != SourceArray.end(); sourceIterator++) {
       if(servicePing) {
-         Service* service = new Ping(makeSQLWriter(*sourceIterator, sqlPingTable, sqlDirectory, sqlTransactionLength),
-                                     verboseMode,
-                                     *sourceIterator, DestinationArray,
-                                     pingInterval, pingExpiration, pingTTL);
-         if(service->start() == false) {
+         try {
+            Service* service = new Ping(makeSQLWriter(*sourceIterator, sqlPingTable, sqlDirectory, sqlTransactionLength),
+                                        verboseMode,
+                                        *sourceIterator, DestinationArray,
+                                        pingInterval, pingExpiration, pingTTL);
+            if(service->start() == false) {
+               ::exit(1);
+            }
+            ServiceSet.insert(service);
+         }
+         catch (std::exception& e) {
+            std::cerr << "ERROR: Cannot create Ping service - " << e.what() << std::endl;
             ::exit(1);
          }
-         ServiceSet.insert(service);
       }
       if(serviceTraceroute) {
-         Service* service = new Traceroute(makeSQLWriter(*sourceIterator, sqlTracerouteTable, sqlDirectory, sqlTransactionLength),
-                                           verboseMode,
-                                           *sourceIterator, DestinationArray,
-                                           tracerouteInterval, tracerouteExpiration,
-                                           tracerouteInitialMaxTTL, tracerouteFinalMaxTTL,
-                                           tracerouteIncrementMaxTTL);
-         if(service->start() == false) {
+         try {
+            Service* service = new Traceroute(makeSQLWriter(*sourceIterator, sqlTracerouteTable, sqlDirectory, sqlTransactionLength),
+                                              verboseMode,
+                                              *sourceIterator, DestinationArray,
+                                              tracerouteInterval, tracerouteExpiration,
+                                              tracerouteInitialMaxTTL, tracerouteFinalMaxTTL,
+                                              tracerouteIncrementMaxTTL);
+            if(service->start() == false) {
+               ::exit(1);
+            }
+            ServiceSet.insert(service);
+         }
+         catch (std::exception& e) {
+            std::cerr << "ERROR: Cannot create Traceroute service - " << e.what() << std::endl;
             ::exit(1);
          }
-         ServiceSet.insert(service);
        }
    }
 
