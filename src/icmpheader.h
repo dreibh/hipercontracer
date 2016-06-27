@@ -112,8 +112,8 @@ class ICMPHeader
 };
 
 
-// Internet-16 checksum according to RFC 1071
-template <typename Iterator> void computeInternet16(ICMPHeader& header, Iterator bodyBegin, Iterator bodyEnd)
+// Internet-16 checksum according to RFC 1071, part 1
+template <typename Iterator> uint32_t computeInternet16_A(ICMPHeader& header, Iterator bodyBegin, Iterator bodyEnd)
 {
    uint32_t sum =
       (header.type() << 8) +
@@ -128,10 +128,23 @@ template <typename Iterator> void computeInternet16(ICMPHeader& header, Iterator
          sum += static_cast<unsigned char>(*body_iter++);
       }
    }
+   return(sum);
+}
 
+
+// Internet-16 checksum according to RFC 1071, part 2
+inline void computeInternet16_B(ICMPHeader& header, uint32_t sum)
+{
    sum = (sum >> 16) + (sum & 0xFFFF);
    sum += (sum >> 16);
    header.checksum(static_cast<unsigned short>(~sum));
+}
+
+// Internet-16 checksum according to RFC 1071
+template <typename Iterator> void computeInternet16(ICMPHeader& header, Iterator bodyBegin, Iterator bodyEnd)
+{
+   const uint32_t sum = computeInternet16_A<Iterator>(header, bodyBegin, bodyEnd);
+   computeInternet16_B(header, sum);
 }
 
 #endif

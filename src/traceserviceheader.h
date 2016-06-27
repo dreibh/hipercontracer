@@ -32,6 +32,9 @@
 #ifndef TRACESERVICEHEADER_H
 #define TRACESERVICEHEADER_H
 
+#include <stdint.h>
+
+#include <vector>
 #include <istream>
 
 

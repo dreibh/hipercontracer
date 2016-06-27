@@ -333,19 +333,27 @@ void Traceroute::sendICMPRequest(const boost::asio::ip::address& destinationAddr
    tsHeader.checksumTweak(0);
    tsHeader.sendTimeStamp(ptimeToMircoTime(sendTime));
    std::vector<unsigned char> tsHeaderContents = tsHeader.contents();
-   computeInternet16(echoRequest, tsHeaderContents.begin(), tsHeaderContents.end());
 
-   if(targetChecksum == ~((uint32_t)0)) {   // No target checksum
-      targetChecksum = echoRequest.checksum();
+   // ------ No given target checksum ---------------------
+   if(targetChecksum == ~((uint32_t)0)) {
+      targetChecksum = computeInternet16_A(echoRequest, tsHeaderContents.begin(), tsHeaderContents.end());
+      computeInternet16_B(echoRequest, targetChecksum);
    }
+   // ------ Target checksum given ------------------------
    else {
-      const uint16_t diff = echoRequest.checksum() - (uint16_t)targetChecksum;
+      const uint32_t originalChecksum = computeInternet16_A(echoRequest, tsHeaderContents.begin(), tsHeaderContents.end());
+      const uint32_t diff = (targetChecksum - originalChecksum) & 0xffff;
       tsHeader.checksumTweak( diff );
       tsHeaderContents = tsHeader.contents();
-      computeInternet16(echoRequest, tsHeaderContents.begin(), tsHeaderContents.end());
-      if(echoRequest.checksum() != (uint16_t)targetChecksum) {
+      const uint32_t newChecksum = computeInternet16_A(echoRequest, tsHeaderContents.begin(), tsHeaderContents.end());
+      if(newChecksum != targetChecksum) {
          std::cerr << "WARNING: Traceroute::sendICMPRequest() - Checksum differs from target checksum!" << std::endl;
+         printf("OLD=%x\n", originalChecksum);
+         printf("NEW=%x\n", newChecksum);
+         printf("TARGET=%x\n", targetChecksum);
+         printf("diff=%x\n", diff);
       }
+      computeInternet16_B(echoRequest, newChecksum);
    }
 
    // ====== Encode the request packet ======================

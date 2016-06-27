@@ -1,4 +1,4 @@
-bin_PROGRAMS = hipercontracer   # t1
+bin_PROGRAMS = hipercontracer   t1
 
 hipercontracer_SOURCES = hipercontracer.cc \
 icmpheader.h \
@@ -15,10 +15,12 @@ ping.h
 hipercontracer_LDADD = -lboost_system -lboost_filesystem -lboost_thread -lboost_date_time -lboost_iostreams -lpthread
 
 
-# t1_SOURCES = t1.cc \
-# sqlwriter.cc \
-# sqlwriter.h
-# t1_LDADD = -lboost_system -lboost_filesystem -lboost_thread -lboost_date_time -lboost_iostreams -lpthread
+t1_SOURCES = t1.cc \
+icmpheader.h \
+ipv4header.h \
+ipv6header.h \
+traceserviceheader.h
+t1_LDADD = -lboost_system -lboost_filesystem -lboost_thread -lboost_date_time -lboost_iostreams -lpthread
 
 
 EXTRA_DIST = tracedataimporter addressinfogenerator hipercontracer-database-configuration
