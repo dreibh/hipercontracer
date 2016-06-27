@@ -219,7 +219,7 @@ void Traceroute::sendRequests()
       // ====== Send Echo Requests ==========================================
       assert(MinTTL > 0);
       for(unsigned int round = 0; round < Rounds; round++) {
-         uint32_t targetChecksum = ~0U);
+         uint32_t targetChecksum = ~0U;
          for(int ttl = (int)MaxTTL; ttl >= (int)MinTTL; ttl--) {
             sendICMPRequest(destinationAddress, (unsigned int)ttl, round, targetChecksum);
          }
