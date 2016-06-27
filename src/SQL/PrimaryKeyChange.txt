@@ -1,0 +1,3 @@
+pingtraceroutedb=# ALTER TABLE Traceroute DROP CONSTRAINT traceroute_pkey;
+pingtraceroutedb=# ALTER TABLE Traceroute ADD COLUMN Round INTEGER NOT NULL DEFAULT 0;
+pingtraceroutedb=# ALTER TABLE Traceroute ADD PRIMARY KEY(TimeStamp,FromIP,ToIP,Round,HopNumber);
