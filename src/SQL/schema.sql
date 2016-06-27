@@ -97,7 +97,7 @@ CREATE TABLE Traceroute (
    HopIP     INET     NOT NULL,                      -- Router or Destination IP address
    PathHash  BIGINT   NOT NULL,                      -- Hash over full path
    Round     INTEGER  NOT NULL DEFAULT 0,            -- Round number
-   PRIMARY KEY(TimeStamp,FromIP,ToIP,HopNumber)
+   PRIMARY KEY(TimeStamp,FromIP,ToIP,Round,HopNumber)
 );
 
 CREATE INDEX TracerouteTimeStampIndex ON Traceroute (TimeStamp ASC);
