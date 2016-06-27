@@ -159,7 +159,7 @@ void Ping::sendRequests()
    for(std::set<boost::asio::ip::address>::const_iterator destinationIterator = DestinationAddressArray.begin();
        destinationIterator != DestinationAddressArray.end(); destinationIterator++) {
       const boost::asio::ip::address& destinationAddress = *destinationIterator;
-      uint32_t targetChecksum = ~((uint32_t)0);
+      uint32_t targetChecksum = ~0U);
       sendICMPRequest(destinationAddress, FinalMaxTTL, 0, targetChecksum);
    }
 

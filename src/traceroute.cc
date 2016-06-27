@@ -219,7 +219,7 @@ void Traceroute::sendRequests()
       // ====== Send Echo Requests ==========================================
       assert(MinTTL > 0);
       for(unsigned int round = 0; round < Rounds; round++) {
-         uint32_t targetChecksum = ~((uint32_t)0);
+         uint32_t targetChecksum = ~0U);
          for(int ttl = (int)MaxTTL; ttl >= (int)MinTTL; ttl--) {
             sendICMPRequest(destinationAddress, (unsigned int)ttl, round, targetChecksum);
          }
@@ -334,26 +334,29 @@ void Traceroute::sendICMPRequest(const boost::asio::ip::address& destinationAddr
    tsHeader.sendTimeStamp(ptimeToMircoTime(sendTime));
    std::vector<unsigned char> tsHeaderContents = tsHeader.contents();
 
+   // ====== Tweak checksum ===============================
    // ------ No given target checksum ---------------------
-   if(targetChecksum == ~((uint32_t)0)) {
-      targetChecksum = computeInternet16_A(echoRequest, tsHeaderContents.begin(), tsHeaderContents.end());
-      computeInternet16_B(echoRequest, targetChecksum);
+   if(targetChecksum == ~0U) {
+      computeInternet16(echoRequest, tsHeaderContents.begin(), tsHeaderContents.end());
+      targetChecksum = echoRequest.checksum();
    }
    // ------ Target checksum given ------------------------
    else {
-      const uint32_t originalChecksum = computeInternet16_A(echoRequest, tsHeaderContents.begin(), tsHeaderContents.end());
-      const uint32_t diff = (targetChecksum - originalChecksum) & 0xffff;
-      tsHeader.checksumTweak( diff );
-      tsHeaderContents = tsHeader.contents();
-      const uint32_t newChecksum = computeInternet16_A(echoRequest, tsHeaderContents.begin(), tsHeaderContents.end());
-      if(newChecksum != targetChecksum) {
-         std::cerr << "WARNING: Traceroute::sendICMPRequest() - Checksum differs from target checksum!" << std::endl;
-         printf("OLD=%x\n", originalChecksum);
-         printf("NEW=%x\n", newChecksum);
-         printf("TARGET=%x\n", targetChecksum);
-         printf("diff=%x\n", diff);
+      // Compute current checksum
+      computeInternet16(echoRequest, tsHeaderContents.begin(), tsHeaderContents.end());
+      const uint16_t originalChecksum = echoRequest.checksum();
+
+      // Compute value to tweak checksum to target value
+      uint16_t diff = 0xffff - (targetChecksum - originalChecksum);
+      if(originalChecksum > targetChecksum) {    // Handle necessary sum wrap!
+         diff++;
       }
-      computeInternet16_B(echoRequest, newChecksum);
+      tsHeader.checksumTweak(diff);
+
+      // Compute new checksum (must be equal to target checksum!)
+      tsHeaderContents = tsHeader.contents();
+      computeInternet16(echoRequest, tsHeaderContents.begin(), tsHeaderContents.end());
+      assert(echoRequest.checksum() == targetChecksum);
    }
 
    // ====== Encode the request packet ======================
