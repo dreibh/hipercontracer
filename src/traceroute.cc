@@ -213,9 +213,12 @@ void Traceroute::sendRequests()
 
       // ====== Send Echo Requests ==========================================
       assert(MinTTL > 0);
-      for(int ttl = (int)MaxTTL; ttl >= (int)MinTTL; ttl--) {
-         sendICMPRequest(destinationAddress, (unsigned int)ttl);
-      }
+//       for(int round = 0; round < Rounds; round++) {
+         uint32_t targetChecksum = ~((uint32_t)0);
+         for(int ttl = (int)MaxTTL; ttl >= (int)MinTTL; ttl--) {
+            sendICMPRequest(destinationAddress, (unsigned int)ttl, targetChecksum);
+         }
+//       }
    }
 
    scheduleTimeoutEvent();
@@ -302,7 +305,8 @@ unsigned int Traceroute::getInitialMaxTTL(const boost::asio::ip::address& destin
 
 // ###### Send one ICMP request to given destination ########################
 void Traceroute::sendICMPRequest(const boost::asio::ip::address& destinationAddress,
-                                 const unsigned int              ttl)
+                                 const unsigned int              ttl,
+                                 uint32_t&                       targetChecksum)
 {
    // ====== Set TTL ========================================
    const boost::asio::ip::unicast::hops option(ttl);
@@ -319,9 +323,26 @@ void Traceroute::sendICMPRequest(const boost::asio::ip::address& destinationAddr
    TraceServiceHeader tsHeader;
    tsHeader.magicNumber(MagicNumber);
    tsHeader.sendTTL(ttl);
+   tsHeader.checksumTweak(0);
    tsHeader.sendTimeStamp(ptimeToMircoTime(sendTime));
-   const std::vector<unsigned char> tsHeaderContents = tsHeader.contents();
+   std::vector<unsigned char> tsHeaderContents = tsHeader.contents();
    computeInternet16(echoRequest, tsHeaderContents.begin(), tsHeaderContents.end());
+   printf("C=%x\tT=%x\n", echoRequest.checksum(), targetChecksum);
+
+   if(targetChecksum == ~((uint32_t)0)) {   // No target checksum
+      targetChecksum = echoRequest.checksum();
+   }
+   else {
+      uint16_t diff = echoRequest.checksum() - (uint16_t)targetChecksum;
+      printf("diff=%x\n",diff);
+      tsHeader.checksumTweak( diff );
+      printf("   t=%x   (tweak=%x)\t->\t",  echoRequest.checksum(), tsHeader.checksumTweak());
+      tsHeaderContents = tsHeader.contents();
+      computeInternet16(echoRequest, tsHeaderContents.begin(), tsHeaderContents.end());
+      if(echoRequest.checksum() != (uint16_t)targetChecksum) {
+         std::cerr << "WARNING: Traceroute::sendICMPRequest() - Checksum differs from target checksum!" << std::endl;
+      }
+   }
 
    // ====== Encode the request packet ======================
    boost::asio::streambuf request_buffer;

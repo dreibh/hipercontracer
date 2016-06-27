@@ -163,7 +163,8 @@ class Traceroute : virtual public Service
 
    void run();
    void sendICMPRequest(const boost::asio::ip::address& destinationAddress,
-                        const unsigned int              ttl);
+                        const unsigned int              ttl,
+                        uint32_t&                       targetChecksum);
    void recordResult(const boost::posix_time::ptime& receiveTime,
                      const ICMPHeader&               icmpHeader,
                      const unsigned short            seqNumber);
