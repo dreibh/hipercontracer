@@ -39,7 +39,7 @@
 // Format:
 // 00 4 MagicNumber
 // 04 1 SendTTL
-// 05 1 (padding)
+// 05 1 Round
 // 06 2 Checksum Tweak
 // 08 8 Send Time Stamp
 // ==========================================================================
@@ -67,6 +67,9 @@ class TraceServiceHeader
 
    inline unsigned char sendTTL() const       { return data[4];    }
    inline void sendTTL(unsigned char sendTTL) { data[4] = sendTTL; }
+
+   inline unsigned char round() const         { return data[5];    }
+   inline void round(unsigned char round)     { data[5] = round;   }
 
    inline uint16_t checksumTweak() const {
       return ( ((uint16_t)data[6] << 8)  |

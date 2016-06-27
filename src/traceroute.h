@@ -89,12 +89,14 @@ inline bool statusIsUnreachable(const HopStatus hopStatus)
 
 class ResultEntry {
    public:
-   ResultEntry(const unsigned short           seqNumber,
+   ResultEntry(const unsigned short           round,
+               const unsigned short           seqNumber,
                const unsigned int             hop,
                boost::asio::ip::address       address,
                const HopStatus                status,
                const boost::posix_time::ptime sendTime);
 
+   inline unsigned int round()                   const { return(Round);       }
    inline unsigned int seqNumber()               const { return(SeqNumber);   }
    inline unsigned int hop()                     const { return(Hop);         }
    const boost::asio::ip::address& address()     const { return(Address);     }
@@ -113,6 +115,7 @@ class ResultEntry {
    friend std::ostream& operator<<(std::ostream& os, const ResultEntry& resultEntry);
 
    private:
+   const unsigned int             Round;
    const unsigned short           SeqNumber;
    const unsigned int             Hop;
    boost::asio::ip::address       Address;
@@ -164,6 +167,7 @@ class Traceroute : virtual public Service
    void run();
    void sendICMPRequest(const boost::asio::ip::address& destinationAddress,
                         const unsigned int              ttl,
+                        const unsigned int              round,
                         uint32_t&                       targetChecksum);
    void recordResult(const boost::posix_time::ptime& receiveTime,
                      const ICMPHeader&               icmpHeader,
@@ -175,6 +179,7 @@ class Traceroute : virtual public Service
    const bool                            VerboseMode;
    const unsigned long long              Interval;
    const unsigned int                    Expiration;
+   const unsigned int                    Rounds;
    const unsigned int                    InitialMaxTTL;
    const unsigned int                    FinalMaxTTL;
    const unsigned int                    IncrementMaxTTL;

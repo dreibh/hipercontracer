@@ -42,12 +42,14 @@
 
 
 // ###### Constructor #######################################################
-ResultEntry::ResultEntry(const unsigned short           seqNumber,
+ResultEntry::ResultEntry(const unsigned short           round,
+                         const unsigned short           seqNumber,
                          const unsigned int             hop,
                          boost::asio::ip::address       address,
                          const HopStatus                status,
                          const boost::posix_time::ptime sendTime)
-   : SeqNumber(seqNumber),
+   : Round(round),
+     SeqNumber(seqNumber),
      Hop(hop),
      Address(address),
      Status(status),
@@ -59,7 +61,8 @@ ResultEntry::ResultEntry(const unsigned short           seqNumber,
 // ###### Output operator ###################################################
 std::ostream& operator<<(std::ostream& os, const ResultEntry& resultEntry)
 {
-   os << boost::format("#%5d")            % resultEntry.SeqNumber
+   os << boost::format("R%d")             % resultEntry.Round
+      << "\t" << boost::format("#%05d")   % resultEntry.SeqNumber
       << "\t" << boost::format("%2d")     % resultEntry.Hop
       << "\t" << boost::format("%9.3fms") % (resultEntry.rtt().total_microseconds() / 1000.0)
       << "\t" << boost::format("%3d")     % resultEntry.Status
@@ -82,6 +85,7 @@ Traceroute::Traceroute(SQLWriter*                               sqlWriter,
      VerboseMode(verboseMode),
      Interval(interval),
      Expiration(expiration),
+     Rounds(3),
      InitialMaxTTL(initialMaxTTL),
      FinalMaxTTL(finalMaxTTL),
      IncrementMaxTTL(incrementMaxTTL),
@@ -213,12 +217,12 @@ void Traceroute::sendRequests()
 
       // ====== Send Echo Requests ==========================================
       assert(MinTTL > 0);
-//       for(int round = 0; round < Rounds; round++) {
+      for(unsigned int round = 0; round < Rounds; round++) {
          uint32_t targetChecksum = ~((uint32_t)0);
          for(int ttl = (int)MaxTTL; ttl >= (int)MinTTL; ttl--) {
-            sendICMPRequest(destinationAddress, (unsigned int)ttl, targetChecksum);
+            sendICMPRequest(destinationAddress, (unsigned int)ttl, round, targetChecksum);
          }
-//       }
+      }
    }
 
    scheduleTimeoutEvent();
@@ -306,6 +310,7 @@ unsigned int Traceroute::getInitialMaxTTL(const boost::asio::ip::address& destin
 // ###### Send one ICMP request to given destination ########################
 void Traceroute::sendICMPRequest(const boost::asio::ip::address& destinationAddress,
                                  const unsigned int              ttl,
+                                 const unsigned int              round,
                                  uint32_t&                       targetChecksum)
 {
    // ====== Set TTL ========================================
@@ -323,20 +328,18 @@ void Traceroute::sendICMPRequest(const boost::asio::ip::address& destinationAddr
    TraceServiceHeader tsHeader;
    tsHeader.magicNumber(MagicNumber);
    tsHeader.sendTTL(ttl);
+   tsHeader.round((unsigned char)round);
    tsHeader.checksumTweak(0);
    tsHeader.sendTimeStamp(ptimeToMircoTime(sendTime));
    std::vector<unsigned char> tsHeaderContents = tsHeader.contents();
    computeInternet16(echoRequest, tsHeaderContents.begin(), tsHeaderContents.end());
-   printf("C=%x\tT=%x\n", echoRequest.checksum(), targetChecksum);
 
    if(targetChecksum == ~((uint32_t)0)) {   // No target checksum
       targetChecksum = echoRequest.checksum();
    }
    else {
-      uint16_t diff = echoRequest.checksum() - (uint16_t)targetChecksum;
-      printf("diff=%x\n",diff);
+      const uint16_t diff = echoRequest.checksum() - (uint16_t)targetChecksum;
       tsHeader.checksumTweak( diff );
-      printf("   t=%x   (tweak=%x)\t->\t",  echoRequest.checksum(), tsHeader.checksumTweak());
       tsHeaderContents = tsHeader.contents();
       computeInternet16(echoRequest, tsHeaderContents.begin(), tsHeaderContents.end());
       if(echoRequest.checksum() != (uint16_t)targetChecksum) {
@@ -358,7 +361,7 @@ void Traceroute::sendICMPRequest(const boost::asio::ip::address& destinationAddr
       // ====== Record the request ==========================
       OutstandingRequests++;
 
-      ResultEntry resultEntry(SeqNumber, ttl, destinationAddress, Unknown, sendTime);
+      ResultEntry resultEntry(round, SeqNumber, ttl, destinationAddress, Unknown, sendTime);
       std::pair<std::map<unsigned short, ResultEntry>::iterator, bool> result = ResultsMap.insert(std::pair<unsigned short, ResultEntry>(SeqNumber,resultEntry));
       assert(result.second == true);
    }
@@ -406,6 +409,8 @@ int Traceroute::compareTracerouteResults(const ResultEntry* a, const ResultEntry
 // ###### Process results ###################################################
 void Traceroute::processResults()
 {
+   std::string timeStamp;
+
    // ====== Sort results ===================================================
    std::vector<ResultEntry*> resultsVector;
    for(std::map<unsigned short, ResultEntry>::iterator iterator = ResultsMap.begin(); iterator != ResultsMap.end(); iterator++) {
@@ -413,94 +418,105 @@ void Traceroute::processResults()
    }
    std::sort(resultsVector.begin(), resultsVector.end(), &compareTracerouteResults);
 
-   // ====== Count hops =====================================================
-   size_t      totalHops          = 0;
-   size_t      currentHop         = 0;
-   bool        completeTraceroute = true;   // all hops have responded
-   bool        destinationReached = false;  // destination has responded
-   std::string pathString         = SourceAddress.to_string();
-   for(std::vector<ResultEntry*>::iterator iterator = resultsVector.begin(); iterator != resultsVector.end(); iterator++) {
-      ResultEntry* resultEntry = *iterator;
-      assert(resultEntry->hop() > totalHops);
-      currentHop++;
-      totalHops = resultEntry->hop();
+   // ====== Handle the results of each round ===============================
+   for(unsigned int round = 0; round < Rounds; round++) {
 
-      // ====== We have reached the destination =============================
-      if(resultEntry->status() == Success) {
-         pathString += "-" + resultEntry->address().to_string();
-         destinationReached = true;
-         break;   // done!
-      }
+      // ====== Count hops ==================================================
+      size_t      totalHops          = 0;
+      size_t      currentHop         = 0;
+      bool        completeTraceroute = true;   // all hops have responded
+      bool        destinationReached = false;  // destination has responded
+      std::string pathString         = SourceAddress.to_string();
+      for(std::vector<ResultEntry*>::iterator iterator = resultsVector.begin(); iterator != resultsVector.end(); iterator++) {
+         ResultEntry* resultEntry = *iterator;
+         if(resultEntry->round() == round) {
+            assert(resultEntry->hop() > totalHops);
+            currentHop++;
+            totalHops = resultEntry->hop();
 
-      // ====== Unreachable (as reported by router) =========================
-      else if(statusIsUnreachable(resultEntry->status())) {
-         pathString += "-" + resultEntry->address().to_string();
-         break;   // we can stop here!
-      }
+            // ====== We have reached the destination =======================
+            if(resultEntry->status() == Success) {
+               pathString += "-" + resultEntry->address().to_string();
+               destinationReached = true;
+               break;   // done!
+            }
 
-      // ====== Time-out ====================================================
-      else if(resultEntry->status() == Unknown) {
-         resultEntry->status(Timeout);
-         resultEntry->receiveTime(resultEntry->sendTime() + boost::posix_time::milliseconds(Expiration));
-         pathString += "-*";
-         completeTraceroute = false;   // at least one hop has not sent a response :-(
-      }
+            // ====== Unreachable (as reported by router) ===================
+            else if(statusIsUnreachable(resultEntry->status())) {
+               pathString += "-" + resultEntry->address().to_string();
+               break;   // we can stop here!
+            }
 
-      // ====== Some other response (usually TTL exceeded) ==================
-      else {
-         pathString += "-" + resultEntry->address().to_string();
-      }
-   }
-   assert(currentHop == totalHops);
+            // ====== Time-out ==============================================
+            else if(resultEntry->status() == Unknown) {
+               resultEntry->status(Timeout);
+               resultEntry->receiveTime(resultEntry->sendTime() + boost::posix_time::milliseconds(Expiration));
+               pathString += "-*";
+               completeTraceroute = false;   // at least one hop has not sent a response :-(
+            }
 
-   // ====== Compute path hash ==============================================
-   // Checksum: the first 64 bits of the SHA-1 sum over path string
-   boost::uuids::detail::sha1 sha1Hash;
-   sha1Hash.process_bytes(pathString.c_str(), pathString.length());
-   uint32_t digest[5];
-   sha1Hash.get_digest(digest);
-   const uint64_t checksum    = ((uint64_t)digest[0] << 32) | (uint64_t)digest[1];
-   unsigned int   statusFlags = 0x0000;
-   if(!completeTraceroute) {
-      statusFlags |= Flag_StarredRoute;
-   }
-   if(destinationReached) {
-      statusFlags |= Flag_DestinationReached;
-   }
-
-   // ====== Print traceroute entries =======================================
-   // std::cout << "TotalHops=" << totalHops << std::endl;
-   std::string timeStamp;
-   for(std::vector<ResultEntry*>::iterator iterator = resultsVector.begin(); iterator != resultsVector.end(); iterator++) {
-      ResultEntry* resultEntry = *iterator;
-      if(VerboseMode) {
-         std::cout << *resultEntry << std::endl;
-      }
-
-      if(SQLOutput) {
-         if(timeStamp.empty()) {
-            // Time stamp for this traceroute run is the first entry's send time!
-            // => Necessary, in order to ensure that all entries have the same time stamp.
-            timeStamp = boost::posix_time::to_iso_extended_string(resultEntry->sendTime());
+            // ====== Some other response (usually TTL exceeded) ============
+            else {
+               pathString += "-" + resultEntry->address().to_string();
+            }
          }
+      }
+      assert(currentHop == totalHops);
 
-         SQLOutput->insert(
-            str(boost::format("'%s','%s','%s',%d,%d,%d,%d,'%s',%d")
-               % timeStamp
-               % SourceAddress.to_string()
-               % (*DestinationAddressIterator).to_string()
-               % resultEntry->hop()
-               % totalHops
-               % ((unsigned int)resultEntry->status() | statusFlags)
-               % (resultEntry->receiveTime() - resultEntry->sendTime()).total_microseconds()
-               % resultEntry->address().to_string()
-               % (int64_t)checksum
-         ));
+      // ====== Compute path hash ===========================================
+      // Checksum: the first 64 bits of the SHA-1 sum over path string
+      boost::uuids::detail::sha1 sha1Hash;
+      sha1Hash.process_bytes(pathString.c_str(), pathString.length());
+      uint32_t digest[5];
+      sha1Hash.get_digest(digest);
+      const uint64_t checksum    = ((uint64_t)digest[0] << 32) | (uint64_t)digest[1];
+      unsigned int   statusFlags = 0x0000;
+      if(!completeTraceroute) {
+         statusFlags |= Flag_StarredRoute;
+      }
+      if(destinationReached) {
+         statusFlags |= Flag_DestinationReached;
       }
 
-      if( (resultEntry->status() == Success) ||
-          (statusIsUnreachable(resultEntry->status())) ) {
-         break;
+      // ====== Print traceroute entries =======================================
+      if(VerboseMode) {
+         std::cout << "Round " << round << ":" << std::endl;
+      }
+
+      for(std::vector<ResultEntry*>::iterator iterator = resultsVector.begin(); iterator != resultsVector.end(); iterator++) {
+         ResultEntry* resultEntry = *iterator;
+         if(resultEntry->round() == round) {
+            if(VerboseMode) {
+               std::cout << *resultEntry << std::endl;
+            }
+
+            if(SQLOutput) {
+               if(timeStamp.empty()) {
+                  // Time stamp for this traceroute run is the first entry's send time!
+                  // => Necessary, in order to ensure that all entries have the same time stamp.
+                  timeStamp = boost::posix_time::to_iso_extended_string(resultEntry->sendTime());
+               }
+
+               SQLOutput->insert(
+                  str(boost::format("'%s','%s','%s',%d,%d,%d,%d,'%s',%d,%d")
+                     % timeStamp
+                     % SourceAddress.to_string()
+                     % (*DestinationAddressIterator).to_string()
+                     % resultEntry->hop()
+                     % totalHops
+                     % ((unsigned int)resultEntry->status() | statusFlags)
+                     % (resultEntry->receiveTime() - resultEntry->sendTime()).total_microseconds()
+                     % resultEntry->address().to_string()
+                     % (int64_t)checksum
+                     % round
+               ));
+            }
+
+            if( (resultEntry->status() == Success) ||
+                (statusIsUnreachable(resultEntry->status())) ) {
+               break;
+            }
+         }
       }
    }
 }

@@ -160,7 +160,7 @@ void Ping::sendRequests()
        destinationIterator != DestinationAddressArray.end(); destinationIterator++) {
       const boost::asio::ip::address& destinationAddress = *destinationIterator;
       uint32_t targetChecksum = ~((uint32_t)0);
-      sendICMPRequest(destinationAddress, FinalMaxTTL, targetChecksum);
+      sendICMPRequest(destinationAddress, FinalMaxTTL, 0, targetChecksum);
    }
 
    scheduleTimeoutEvent();
