@@ -80,7 +80,7 @@ CREATE TABLE Ping (
 
 CREATE INDEX PingTimeStampIndex ON Ping (TimeStamp ASC);
 -- CREATE INDEX PingFromIPIndex ON Ping (FromIP ASC);
-CREATE INDEX PingToIPIndex ON Ping (ToIP ASC);
+-- CREATE INDEX PingToIPIndex ON Ping (ToIP ASC);
 -- CREATE INDEX PingStatusIndex ON Ping (Status ASC);
 
 
