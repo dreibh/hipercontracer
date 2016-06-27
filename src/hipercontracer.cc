@@ -104,6 +104,7 @@ int main(int argc, char** argv)
 
    unsigned long long tracerouteInterval        = 10000;
    unsigned int       tracerouteExpiration      = 3000;
+   unsigned int       tracerouteRounds          = 1;
    unsigned int       tracerouteInitialMaxTTL   = 6;
    unsigned int       tracerouteFinalMaxTTL     = 36;
    unsigned int       tracerouteIncrementMaxTTL = 6;
@@ -143,6 +144,9 @@ int main(int argc, char** argv)
       }
       else if(strncmp(argv[i], "-tracerouteduration=", 20) == 0) {
          tracerouteExpiration = atol((const char*)&argv[i][20]);
+      }
+      else if(strncmp(argv[i], "-tracerouterounds=", 18) == 0) {
+         tracerouteRounds = atol((const char*)&argv[i][18]);
       }
       else if(strncmp(argv[i], "-tracerouteinitialmaxttl=", 25) == 0) {
          tracerouteInitialMaxTTL = atol((const char*)&argv[i][25]);
@@ -224,6 +228,7 @@ int main(int argc, char** argv)
       std::cout << "Traceroute Service:" << std:: endl
                 << "* Interval           = " << tracerouteInterval        << " ms" << std::endl
                 << "* Expiration         = " << tracerouteExpiration      << " ms" << std::endl
+                << "* Rounds             = " << tracerouteRounds          << std::endl
                 << "* Initial MaxTTL     = " << tracerouteInitialMaxTTL   << std::endl
                 << "* Final MaxTTL       = " << tracerouteFinalMaxTTL     << std::endl
                 << "* Increment MaxTTL   = " << tracerouteIncrementMaxTTL << std::endl
@@ -255,6 +260,7 @@ int main(int argc, char** argv)
                                               verboseMode,
                                               *sourceIterator, DestinationArray,
                                               tracerouteInterval, tracerouteExpiration,
+                                              tracerouteRounds,
                                               tracerouteInitialMaxTTL, tracerouteFinalMaxTTL,
                                               tracerouteIncrementMaxTTL);
             if(service->start() == false) {

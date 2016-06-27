@@ -1,0 +1,17 @@
+#!/bin/sh
+
+make -j8 && \
+# sudo ./hipercontracer \
+sudo ./debug.memcheck ./hipercontracer \
+   -verbose \
+   -source=172.16.0.240 \
+   -destination=104.20.0.85 \
+   -traceroute \
+   -tracerouteduration=2000 \
+   -tracerouterounds=5 \
+   -tracerouteinitialmaxttl=4 \
+   -traceroutefinalmaxttl=32 \
+   -tracerouteincrementmaxttl=4 \
+   -sqltraceroutetable=Traceroute \
+   -sqldirectory=/tmp/xy \
+   $@
