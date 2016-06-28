@@ -14,4 +14,5 @@ sudo ./debug.memcheck ./hipercontracer \
    -tracerouteincrementmaxttl=4 \
    -sqltraceroutetable=Traceroute \
    -sqldirectory=/tmp/xy \
+   -sqltransactionlength=20 \
    $@

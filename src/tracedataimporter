@@ -152,7 +152,7 @@ for transactionFile in transactionFileList:
       transactionContent = None
       try:
          inputFile = bz2.BZ2File(absTransactionFile, 'r')
-         transactionContent = inputFile.read().splitlines()
+         transactionContent = inputFile.read()
       except:
          log('Transaction ' + transactionFile + ' cannot be read -> moving it to bad file directory')
          try:
@@ -163,8 +163,8 @@ for transactionFile in transactionFileList:
       if transactionContent != None:
          # ------ Commit transactions ---------------------------------------
          try:
-            for transactionCommand in transactionContent:
-               dbCursor.execute(transactionCommand)
+            # print(transactionContent)
+            dbCursor.execute(transactionContent)
             dbConnection.commit()
             goodTransactions = goodTransactions + 1
 

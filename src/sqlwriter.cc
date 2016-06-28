@@ -136,6 +136,6 @@ void SQLWriter::insert(const std::string& tuple)
    if(Inserts == 0) {
       OutputStream << "INSERT INTO " << TableName << " VALUES";
    }
-   OutputStream << ((Inserts > 0) ? "," : " ") << "(" << tuple << ")";
+   OutputStream << ((Inserts > 0) ? ",\n" : "\n") << "(" << tuple << ")";
    Inserts++;
 }
