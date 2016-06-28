@@ -17,7 +17,7 @@
 .\" Contact: dreibh@iem.uni-due.de
 .\"
 .\" ###### Setup ############################################################
-.Dd September 25, 2015
+.Dd June 28, 2016
 .Dt hipercontracer 1
 .Os hipercontracer
 .\" ###### Name #############################################################
@@ -35,6 +35,7 @@
 .Op \-destination=address
 .Op \-tracerouteinterval=milliseconds
 .Op \-tracerouteduration=milliseconds
+.Op \-tracerouterounds=rounds
 .Op \-tracerouteinitialmaxttl=value
 .Op \-traceroutefinalmaxttl=value
 .Op \-tracerouteincrementmaxttl=value
@@ -73,6 +74,13 @@ Adds the given destination address.
 Sets the traceroute interval (time for each full round of destinations).
 .It tracerouteduration=milliseconds
 Sets the traceroute duration (timeout for each destination).
+.It -tracerouterounds=rounds
+For each traceroute measurement, perform the given number of rounds simultaneously.
+Default is 1 round.
+Each TTL test of a round will have the same ICMP checksum value ("Oslo Traceroute"),
+in order to deal with load balancing in the Internet.
+Different rounds will have different checksums. That is, different rounds may
+experience different paths in the network.
 .It tracerouteinitialmaxttl=value
 Start with the given maximum TTL.
 .It traceroutefinalmaxttl=value
