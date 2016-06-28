@@ -34,7 +34,7 @@ int main(int argc, char** argv)
 
    for(unsigned int i = 0; i < 1000000; i++) {
 //       printf("------ i=%d ------\n", i);
-      for(unsigned int ttl = 1; ttl < 34; ttl++) {
+      for(unsigned int ttl = 1; ttl < 42; ttl++) {
 //          printf("------ i=%d\tttl=%d ------\n", i, ttl);
 
          ICMPHeader echoRequest;

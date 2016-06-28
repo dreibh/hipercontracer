@@ -1,8 +1,8 @@
 #!/bin/sh
 
 make -j8 && \
-# sudo ./hipercontracer \
-sudo ./debug.memcheck ./hipercontracer \
+# sudo ./debug.memcheck ./hipercontracer \
+sudo ./hipercontracer \
    -verbose \
    -source=172.16.0.240 \
    -destination=104.20.0.85 \
