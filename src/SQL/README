@@ -7,17 +7,17 @@ Partitioning:
 Package installation:
 sudo apt-get install postgresql postgresql-contrib
 
-In /etc/postgresql/9.3/main/pg_hba.conf:
+In /etc/postgresql/*/main/pg_hba.conf:
 # ====== NorNet =============================================================
 hostssl all             all             10.0.0.0/8                      md5
 hostssl all             all             2001:700:4100::/48              md5
 hostssl all             all             192.168.0.0/16                  md5
 hostssl all             all             2001:700:4100:ff:ffff::/80      md5
 
-In /etc/postgresql/9.3/main/postgresql.conf:
+In /etc/postgresql/*/main/postgresql.conf:
 listen_addresses = '*'
 
-Fine tuning; add to /etc/postgresql/9.3/main/postgresql.conf:
+Fine tuning; add to /etc/postgresql/*/main/postgresql.conf:
 # ====== NorNet =============================================================
 # Tuning: https://wiki.postgresql.org/wiki/Tuning_Your_PostgreSQL_Server
 # Assuming 8192MB RAM here!
