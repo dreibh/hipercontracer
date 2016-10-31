@@ -135,7 +135,7 @@ goodTransactions = 0
 badTransactions  = 0
 firstTransaction = True
 
-transactionFileList = sorted(os.listdir(transactionsPath))
+transactionFileList = sorted([ file for file in os.listdir(transactionsPath) if os.path.isfile(os.path.join(transactionsPath, file)) ])
 for transactionFile in transactionFileList:
    absTransactionFile = os.path.join(transactionsPath, transactionFile)
    if os.path.isfile(absTransactionFile):
