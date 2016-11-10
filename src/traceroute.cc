@@ -365,9 +365,15 @@ void Traceroute::sendICMPRequest(const boost::asio::ip::address& destinationAddr
    os << echoRequest << tsHeader;
 
    // ====== Send the request ===============================
-   const size_t sent = ICMPSocket.send_to(request_buffer.data(), boost::asio::ip::icmp::endpoint(destinationAddress, 0));
+   size_t sent;
+   try {
+      sent = ICMPSocket.send_to(request_buffer.data(), boost::asio::ip::icmp::endpoint(destinationAddress, 0));
+   }
+   catch (boost::system::system_error const& e) {
+      sent = -1;
+   }    
    if(sent < 1) {
-      std::cerr << "WARNING: Traceroute::sendICMPRequest() - ICMP send_to() failed!" << std::endl;
+      std::cerr << "WARNING: Traceroute::sendICMPRequest() - ICMP send_to(" << SourceAddress << "->" << destinationAddress << ") failed!" << std::endl;
    }
    else {
       // ====== Record the request ==========================
