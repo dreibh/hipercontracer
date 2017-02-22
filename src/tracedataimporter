@@ -130,11 +130,85 @@ dbCursor = dbConnection.cursor()
 
 
 # ====== Import transactions ================================================
-fileNumber       = 0
-goodTransactions = 0
-badTransactions  = 0
-firstTransaction = True
+fileNumber             = 0
+goodTransactions       = 0
+badTransactions        = 0
+firstTransaction       = True
+transactionPackageSize = 1
+notYetCommitted        = []
 
+
+TDI_Bad     = 0
+TDI_Aborted = 1
+TDI_Good    = 1
+
+def performLoadAndExecute(transactionFile):
+   transactionContent = None
+   try:
+      inputFile = bz2.BZ2File(transactionFile, 'r')
+      transactionContent = inputFile.read()
+   except:
+      log('Transaction ' + transactionFile + ' cannot be read -> moving it to bad file directory')
+      try:
+         shutil.move(transactionFile, badFilePath)
+      except Exception as e:
+         error('Unable to move bad transaction ' + transactionFile + ' to ' + badFilePath + ': ' + str(e))
+
+   # ------ Execute transaction ---------------------------------------------
+   if transactionContent != None:
+      # print(transactionContent)
+      try:
+         dbCursor.execute(transactionContent)
+
+      # ------ Handle exception -> rollback ---------------------------------
+      except Exception as e:
+         # ------ Connection is broken --------------------------------------
+         if ( (dbConnection.closed) or ("SSL SYSCALL error" in str(e)) ):
+            # Need to check for "SSL SYSCALL errors", since psycopg2
+            # does not detect connection breaks properly.
+            # See https://bitbucket.org/zzzeek/sqlalchemy/issues/3021/ssl-eof-not-detected-as-disconnect-in
+            log('The database connection seems to be closed. Aborting import!')
+            return TDI_Aborted
+
+         # ------ Other problem (e.g. bad SQL statements, etc. --------------
+         log('Transaction cannot be committed: ' + str(e))
+         dbConnection.rollback()
+         return TDI_Bad
+
+   return TDI_Good
+
+def performRemoval(completedTransactionFiles):
+   for completedTransactionFile in completedTransactionFiles:
+      try:
+         if os.path.exists(completedTransactionFile):
+            os.remove(completedTransactionFile)
+      except Exception as e:
+         error('Unable to remove completed transaction ' + completedTransactionFile + ': ' + str(e))
+
+def performCommit():
+   # ------ Commit transaction ----------------------------------------------
+   try:
+      dbConnection.commit()
+
+   # ------ Handle exception -> rollback ------------------------------------
+   except Exception as e:
+      # ------ Connection is broken -----------------------------------------
+      if ( (dbConnection.closed) or ("SSL SYSCALL error" in str(e)) ):
+         # Need to check for "SSL SYSCALL errors", since psycopg2
+         # does not detect connection breaks properly.
+         # See https://bitbucket.org/zzzeek/sqlalchemy/issues/3021/ssl-eof-not-detected-as-disconnect-in
+         log('The database connection seems to be closed. Aborting import!')
+         return TDI_Aborted
+
+      # ------ Other problem (e.g. bad SQL statements, etc. -----------------
+      log('Transaction cannot be committed: ' + str(e))
+      dbConnection.rollback()
+      return TDI_Bad
+
+   return TDI_Good
+
+
+# ###### Main program #######################################################
 transactionFileList = sorted([ file for file in os.listdir(transactionsPath) if os.path.isfile(os.path.join(transactionsPath, file)) ])
 for transactionFile in transactionFileList:
    absTransactionFile = os.path.join(transactionsPath, transactionFile)
@@ -147,52 +221,56 @@ for transactionFile in transactionFileList:
       fileNumber = fileNumber + 1
       if verboseMode == True:
          log('Importing ' + absTransactionFile +
-             ' (' + str(fileNumber) + ' of ' + str(len(transactionFileList)) + ') ...')
+             ' (' + str(fileNumber) + ' of ' + str(len(transactionFileList)) + ') as #' + str(len(notYetCommitted)) + ' in package ...')
 
-      transactionContent = None
-      try:
-         inputFile = bz2.BZ2File(absTransactionFile, 'r')
-         transactionContent = inputFile.read()
-      except:
-         log('Transaction ' + transactionFile + ' cannot be read -> moving it to bad file directory')
-         try:
-            shutil.move(absTransactionFile, badFilePath)
-         except Exception as e:
-            error('Unable to move bad transaction ' + absTransactionFile + ' to ' + badFilePath + ': ' + str(e))
+      notYetCommitted = notYetCommitted.append([ absTransactionFile ])
 
-      if transactionContent != None:
-         # ------ Commit transactions ---------------------------------------
-         try:
-            # print(transactionContent)
-            dbCursor.execute(transactionContent)
-            dbConnection.commit()
-            goodTransactions = goodTransactions + 1
-
-         # ------ Handle exceptions -> rollback -----------------------------
-         except Exception as e:
-            # ------ Connection is broken -----------------------------------
-            if ( (dbConnection.closed) or
-                 ("SSL SYSCALL error" in str(e)) ):
-               # Need to check for "SSL SYSCALL errors", since psycopg2
-               # does not detect connection breaks properly.
-               # See https://bitbucket.org/zzzeek/sqlalchemy/issues/3021/ssl-eof-not-detected-as-disconnect-in
-               log('The database connection seems to be closed. Aborting import!')
+      executeStatus = performLoadAndExecute(absTransactionFile)
+      commitStatus  = TDI_Good
+      # ------ Aborted -----------------------------------------
+      if executeStatus == TDI_Abort:
+         break
+      # ------ Good --------------------------------------------
+      elif executeStatus == TDI_Good:
+         if ((len(notYetCommitted) >= transactionPackageSize) or
+             (fileNumber >= len(transactionFileList))):
+            commitStatus = performCommit()
+            if commitStatus == TDI_Abort:
                break
+            elif commitStatus == TDI_Good:
+               goodTransactions = goodTransactions + len(notYetCommitted)
+               performRemoval(notYetCommitted)
+               notYetCommitted = []
+               if verboseMode == True:
+                  log('Committed transaction package.')
 
-            # ------ Other problem (e.g. bad SQL statements, etc. -----------
-            log('Transaction ' + transactionFile + ' cannot be committed: ' + str(e) + ' -> moving it to bad file directory')
-            dbConnection.rollback()
-            try:
-               shutil.move(absTransactionFile, badFilePath)
-            except Exception as e:
-               error('Unable to move bad transaction ' + absTransactionFile + ' to ' + badFilePath + ': ' + str(e))
-            badTransactions = badTransactions + 1
+      # ------ Error -------------------------------------------
+      if ((executeStatus == TDI_Bad) or (commitStatus == TDI_Bad)):
+         log('Entering single-transaction mode!')
+         for transactionFile in notYetCommitted:
+            executeStatus = performLoadAndExecute(transactionFile)
+            commitStatus  = TDI_Good
+            # ------ Aborted -----------------------------------
+            if executeStatus == TDI_Abort:
+               break
+            # ------ Good --------------------------------------
+            if executeStatus == TDI_Good:
+               commitStatus = performCommit()
+               if commitStatus == TDI_Abort:
+                  break
+               elif commitStatus == TDI_Good:
+                  goodTransactions = goodTransactions + 1
+                  performRemoval([ transactionFile ])
+               else:
+                  log('Transaction ' + transactionFile + ' cannot be performed -> moving it to bad file directory')
+                  try:
+                     shutil.move(transactionFile, badFilePath)
+                  except Exception as e:
+                     error('Unable to move bad transaction ' + transactionFile + ' to ' + badFilePath + ': ' + str(e))
+                  badTransactions = badTransactions + 1
+         log('Leaving single-transaction mode!')
 
-      try:
-         if os.path.exists(absTransactionFile):
-            os.remove(absTransactionFile)
-      except Exception as e:
-         error('Unable to remove completed transaction ' + absTransactionFile + ': ' + str(e))
+         notYetCommitted = []
 
 
 # ====== All done! ==========================================================
