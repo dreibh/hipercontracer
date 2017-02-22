@@ -134,13 +134,13 @@ fileNumber             = 0
 goodTransactions       = 0
 badTransactions        = 0
 firstTransaction       = True
-transactionPackageSize = 1
+transactionPackageSize = 8
 notYetCommitted        = []
 
 
 TDI_Bad     = 0
 TDI_Aborted = 1
-TDI_Good    = 1
+TDI_Good    = 2
 
 def performLoadAndExecute(transactionFile):
    transactionContent = None
@@ -161,6 +161,11 @@ def performLoadAndExecute(transactionFile):
          dbCursor.execute(transactionContent)
 
       # ------ Handle exception -> rollback ---------------------------------
+      except KeyboardInterrupt:
+         # ------ Interrupted by user ---------------------------------------
+         log('Interrupted by user.')
+         return TDI_Aborted
+
       except Exception as e:
          # ------ Connection is broken --------------------------------------
          if ( (dbConnection.closed) or ("SSL SYSCALL error" in str(e)) ):
@@ -171,19 +176,11 @@ def performLoadAndExecute(transactionFile):
             return TDI_Aborted
 
          # ------ Other problem (e.g. bad SQL statements, etc. --------------
-         log('Transaction cannot be committed: ' + str(e))
+         log('Transaction cannot be executed: ' + str(e))
          dbConnection.rollback()
          return TDI_Bad
 
    return TDI_Good
-
-def performRemoval(completedTransactionFiles):
-   for completedTransactionFile in completedTransactionFiles:
-      try:
-         if os.path.exists(completedTransactionFile):
-            os.remove(completedTransactionFile)
-      except Exception as e:
-         error('Unable to remove completed transaction ' + completedTransactionFile + ': ' + str(e))
 
 def performCommit():
    # ------ Commit transaction ----------------------------------------------
@@ -191,7 +188,13 @@ def performCommit():
       dbConnection.commit()
 
    # ------ Handle exception -> rollback ------------------------------------
+   except KeyboardInterrupt:
+      # ------ Interrupted by user ---------------------------------------
+      log('Interrupted by user.')
+      return TDI_Aborted
+
    except Exception as e:
+
       # ------ Connection is broken -----------------------------------------
       if ( (dbConnection.closed) or ("SSL SYSCALL error" in str(e)) ):
          # Need to check for "SSL SYSCALL errors", since psycopg2
@@ -208,7 +211,17 @@ def performCommit():
    return TDI_Good
 
 
-# ###### Main program #######################################################
+def performRemoval(completedTransactionFiles):
+   for completedTransactionFile in completedTransactionFiles:
+      try:
+         if os.path.exists(completedTransactionFile):
+            os.remove(completedTransactionFile)
+      except Exception as e:
+         error('Unable to remove completed transaction ' + completedTransactionFile + ': ' + str(e))
+
+
+# ====== Perform import =====================================================
+notYetCommitted     = []
 transactionFileList = sorted([ file for file in os.listdir(transactionsPath) if os.path.isfile(os.path.join(transactionsPath, file)) ])
 for transactionFile in transactionFileList:
    absTransactionFile = os.path.join(transactionsPath, transactionFile)
@@ -218,24 +231,23 @@ for transactionFile in transactionFileList:
          log('Starting import of new transactions ...')
 
       # ------ Read transactions from file ----------------------------------
+      notYetCommitted.append(absTransactionFile)
       fileNumber = fileNumber + 1
       if verboseMode == True:
          log('Importing ' + absTransactionFile +
              ' (' + str(fileNumber) + ' of ' + str(len(transactionFileList)) + ') as #' + str(len(notYetCommitted)) + ' in package ...')
 
-      notYetCommitted = notYetCommitted.append([ absTransactionFile ])
-
       executeStatus = performLoadAndExecute(absTransactionFile)
       commitStatus  = TDI_Good
       # ------ Aborted -----------------------------------------
-      if executeStatus == TDI_Abort:
+      if executeStatus == TDI_Aborted:
          break
       # ------ Good --------------------------------------------
       elif executeStatus == TDI_Good:
          if ((len(notYetCommitted) >= transactionPackageSize) or
              (fileNumber >= len(transactionFileList))):
             commitStatus = performCommit()
-            if commitStatus == TDI_Abort:
+            if commitStatus == TDI_Aborted:
                break
             elif commitStatus == TDI_Good:
                goodTransactions = goodTransactions + len(notYetCommitted)
@@ -251,26 +263,29 @@ for transactionFile in transactionFileList:
             executeStatus = performLoadAndExecute(transactionFile)
             commitStatus  = TDI_Good
             # ------ Aborted -----------------------------------
-            if executeStatus == TDI_Abort:
+            if executeStatus == TDI_Aborted:
+               log('Aborted.')
                break
             # ------ Good --------------------------------------
             if executeStatus == TDI_Good:
                commitStatus = performCommit()
-               if commitStatus == TDI_Abort:
+               if commitStatus == TDI_Aborted:
+                  log('Aborted.')
                   break
                elif commitStatus == TDI_Good:
                   goodTransactions = goodTransactions + 1
                   performRemoval([ transactionFile ])
-               else:
-                  log('Transaction ' + transactionFile + ' cannot be performed -> moving it to bad file directory')
-                  try:
-                     shutil.move(transactionFile, badFilePath)
-                  except Exception as e:
-                     error('Unable to move bad transaction ' + transactionFile + ' to ' + badFilePath + ': ' + str(e))
-                  badTransactions = badTransactions + 1
-         log('Leaving single-transaction mode!')
+
+            if ((executeStatus == TDI_Bad) or (commitStatus == TDI_Bad)):
+               log('Transaction ' + transactionFile + ' cannot be performed -> moving it to bad file directory')
+               try:
+                  shutil.move(transactionFile, badFilePath)
+               except Exception as e:
+                  error('Unable to move bad transaction ' + transactionFile + ' to ' + badFilePath + ': ' + str(e))
+               badTransactions = badTransactions + 1
 
          notYetCommitted = []
+         log('Leaving single-transaction mode!')
 
 
 # ====== All done! ==========================================================
