@@ -134,7 +134,7 @@ fileNumber             = 0
 goodTransactions       = 0
 badTransactions        = 0
 firstTransaction       = True
-transactionPackageSize = 8
+transactionPackageSize = 1
 notYetCommitted        = []
 
 
@@ -258,34 +258,50 @@ for transactionFile in transactionFileList:
 
       # ------ Error -------------------------------------------
       if ((executeStatus == TDI_Bad) or (commitStatus == TDI_Bad)):
-         log('Entering single-transaction mode!')
-         for transactionFile in notYetCommitted:
-            executeStatus = performLoadAndExecute(transactionFile)
-            commitStatus  = TDI_Good
-            # ------ Aborted -----------------------------------
-            if executeStatus == TDI_Aborted:
-               log('Aborted.')
-               break
-            # ------ Good --------------------------------------
-            if executeStatus == TDI_Good:
-               commitStatus = performCommit()
-               if commitStatus == TDI_Aborted:
+         if len(notYetCommitted) == 1:
+            # ------ Move bad transaction file -----------------
+            log('Transaction ' + notYetCommitted[0] + ' cannot be performed -> moving it to bad file directory')
+            try:
+               shutil.move(notYetCommitted[0], badFilePath)
+            except Exception as e:
+               error('Unable to move bad transaction ' + notYetCommitted[0] + ' to ' + badFilePath + ': ' + str(e))
+            badTransactions = badTransactions + 1
+            notYetCommitted = []
+
+         else:
+            # ------ Repeat transactions to find problem -------
+            if verboseMode == True:
+               log('Entering single-transaction mode!')
+            for transactionFile in notYetCommitted:
+               if verboseMode == True:
+                  log('Retrying to import ' + transactionFile + ' ...')
+               executeStatus = performLoadAndExecute(transactionFile)
+               commitStatus  = TDI_Good
+               # ------ Aborted --------------------------------
+               if executeStatus == TDI_Aborted:
                   log('Aborted.')
                   break
-               elif commitStatus == TDI_Good:
-                  goodTransactions = goodTransactions + 1
-                  performRemoval([ transactionFile ])
+               # ------ Good -----------------------------------
+               if executeStatus == TDI_Good:
+                  commitStatus = performCommit()
+                  if commitStatus == TDI_Aborted:
+                     log('Aborted.')
+                     break
+                  elif commitStatus == TDI_Good:
+                     goodTransactions = goodTransactions + 1
+                     performRemoval([ transactionFile ])
 
-            if ((executeStatus == TDI_Bad) or (commitStatus == TDI_Bad)):
-               log('Transaction ' + transactionFile + ' cannot be performed -> moving it to bad file directory')
-               try:
-                  shutil.move(transactionFile, badFilePath)
-               except Exception as e:
-                  error('Unable to move bad transaction ' + transactionFile + ' to ' + badFilePath + ': ' + str(e))
-               badTransactions = badTransactions + 1
+               if ((executeStatus == TDI_Bad) or (commitStatus == TDI_Bad)):
+                  log('Transaction ' + transactionFile + ' cannot be performed -> moving it to bad file directory')
+                  try:
+                     shutil.move(transactionFile, badFilePath)
+                  except Exception as e:
+                     error('Unable to move bad transaction ' + transactionFile + ' to ' + badFilePath + ': ' + str(e))
+                  badTransactions = badTransactions + 1
 
-         notYetCommitted = []
-         log('Leaving single-transaction mode!')
+            notYetCommitted = []
+            if verboseMode == True:
+               log('Leaving single-transaction mode!')
 
 
 # ====== All done! ==========================================================
