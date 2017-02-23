@@ -134,7 +134,7 @@ fileNumber             = 0
 goodTransactions       = 0
 badTransactions        = 0
 firstTransaction       = True
-transactionPackageSize = 1
+transactionPackageSize = 64
 notYetCommitted        = []
 
 
@@ -142,7 +142,11 @@ TDI_Bad     = 0
 TDI_Aborted = 1
 TDI_Good    = 2
 
+_joinedTransaction = b''
+
 def performLoadAndExecute(transactionFile):
+   global _joinedTransaction
+
    transactionContent = None
    try:
       inputFile = bz2.BZ2File(transactionFile, 'r')
@@ -156,41 +160,25 @@ def performLoadAndExecute(transactionFile):
 
    # ------ Execute transaction ---------------------------------------------
    if transactionContent != None:
-      # print(transactionContent)
-      try:
-         dbCursor.execute(transactionContent)
-
-      # ------ Handle exception -> rollback ---------------------------------
-      except KeyboardInterrupt:
-         # ------ Interrupted by user ---------------------------------------
-         log('Interrupted by user.')
-         return TDI_Aborted
-
-      except Exception as e:
-         # ------ Connection is broken --------------------------------------
-         if ( (dbConnection.closed) or ("SSL SYSCALL error" in str(e)) ):
-            # Need to check for "SSL SYSCALL errors", since psycopg2
-            # does not detect connection breaks properly.
-            # See https://bitbucket.org/zzzeek/sqlalchemy/issues/3021/ssl-eof-not-detected-as-disconnect-in
-            log('The database connection seems to be closed. Aborting import!')
-            return TDI_Aborted
-
-         # ------ Other problem (e.g. bad SQL statements, etc. --------------
-         log('Transaction cannot be executed: ' + str(e))
-         dbConnection.rollback()
-         return TDI_Bad
+      _joinedTransaction = _joinedTransaction + transactionContent
+      # print("T="+str(len(_joinedTransaction.decode("utf-8"))))
 
    return TDI_Good
 
 def performCommit():
+   global _joinedTransaction
+
    # ------ Commit transaction ----------------------------------------------
    try:
+      # print("X="+str(len(_joinedTransaction.decode("utf-8"))))
+      dbCursor.execute(b'BEGIN TRANSACTION;\n' + _joinedTransaction + b'\nEND TRANSACTION;\n')
       dbConnection.commit()
 
    # ------ Handle exception -> rollback ------------------------------------
    except KeyboardInterrupt:
       # ------ Interrupted by user ---------------------------------------
       log('Interrupted by user.')
+      dbConnection.rollback()
       return TDI_Aborted
 
    except Exception as e:
@@ -204,10 +192,12 @@ def performCommit():
          return TDI_Aborted
 
       # ------ Other problem (e.g. bad SQL statements, etc. -----------------
-      log('Transaction cannot be committed: ' + str(e))
+      log('Transaction cannot be executed or committed: ' + str(e))
       dbConnection.rollback()
+      _joinedTransaction = b''
       return TDI_Bad
 
+   _joinedTransaction = b''
    return TDI_Good
 
 
@@ -222,7 +212,8 @@ def performRemoval(completedTransactionFiles):
 
 # ====== Perform import =====================================================
 notYetCommitted     = []
-transactionFileList = sorted([ file for file in os.listdir(transactionsPath) if os.path.isfile(os.path.join(transactionsPath, file)) ])
+transactionFileList = [ file for file in os.listdir(transactionsPath) if os.path.isfile(os.path.join(transactionsPath, file)) ]
+transactionFileList.sort()   # (key = lambda x: os.path.getmtime(x))
 for transactionFile in transactionFileList:
    absTransactionFile = os.path.join(transactionsPath, transactionFile)
    if os.path.isfile(absTransactionFile):
