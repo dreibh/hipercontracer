@@ -1,7 +1,7 @@
 Name: hipercontracer
 Version: 1.1.0~rc1.0
 Release: 1
-Summary: IPv4/IPv6 Subnet Calculator
+Summary: High-Performance Connectivity Tracer (HiPerConTracer)
 Group: Applications/Internet
 License: GPLv3
 URL: http://www.iem.uni-due.de/~dreibh/hipercontracer/
