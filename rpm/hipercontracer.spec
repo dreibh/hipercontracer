@@ -11,6 +11,7 @@ AutoReqProv: on
 BuildRequires: autoconf
 BuildRequires: automake
 BuildRequires: libtool
+BuildRequires: boost-devel
 BuildRoot: %{_tmppath}/%{name}-%{version}-build
 
 %define _unpackaged_files_terminate_build 0
