@@ -35,6 +35,7 @@
 import os
 import sys
 import io
+import re
 import datetime
 import bz2
 import shutil
@@ -134,7 +135,7 @@ fileNumber             = 0
 goodTransactions       = 0
 badTransactions        = 0
 firstTransaction       = True
-transactionPackageSize = 64
+transactionPackageSize = 1
 notYetCommitted        = []
 
 
@@ -213,7 +214,10 @@ def performRemoval(completedTransactionFiles):
 # ====== Perform import =====================================================
 notYetCommitted     = []
 transactionFileList = [ file for file in os.listdir(transactionsPath) if os.path.isfile(os.path.join(transactionsPath, file)) ]
-transactionFileList.sort()   # (key = lambda x: os.path.getmtime(x))
+transactionFileList.sort(key = lambda x: re.sub(r'.*-([0-9]*T[0-9\.]*-[0-9]*)\..*', r'\1', x))
+# (key = lambda x: os.path.getmtime(x))
+# (key = lambda x: re.sub(r'.*-([0-9]*T[0-9\.]*-[0-9]*)\..*', r'\1', x))
+
 for transactionFile in transactionFileList:
    absTransactionFile = os.path.join(transactionsPath, transactionFile)
    if os.path.isfile(absTransactionFile):
@@ -244,7 +248,7 @@ for transactionFile in transactionFileList:
                goodTransactions = goodTransactions + len(notYetCommitted)
                performRemoval(notYetCommitted)
                notYetCommitted = []
-               if verboseMode == True:
+               if ((verboseMode == True) and (transactionPackageSize > 1)):
                   log('Committed transaction package.')
 
       # ------ Error -------------------------------------------
