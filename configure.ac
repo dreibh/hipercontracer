@@ -1,4 +1,4 @@
-AC_INIT([HiPerConTracer], [1.0.2], [dreibh@iem.uni-due.de])
+AC_INIT([HiPerConTracer], [1.1.0~rc1.0], [dreibh@iem.uni-due.de])
 
 AM_INIT_AUTOMAKE
 AC_PREREQ(2.60)
