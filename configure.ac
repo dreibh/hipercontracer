@@ -6,8 +6,8 @@ AC_PREREQ(2.60)
 AC_CONFIG_HEADERS([config.h:config.in])
 AC_CONFIG_SRCDIR([src/hipercontracer.cc])
 
-LT_INIT
-AC_PROG_LIBTOOL
+# LT_INIT
+# AC_PROG_LIBTOOL
 AC_PROG_CC
 AC_PROG_CXX
 
