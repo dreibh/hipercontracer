@@ -10,7 +10,6 @@ Source: http://www.iem.uni-due.de/~dreibh/hipercontracer/download/%{name}-%{vers
 AutoReqProv: on
 BuildRequires: autoconf
 BuildRequires: automake
-BuildRequires: libtool
 BuildRequires: boost-devel
 BuildRoot: %{_tmppath}/%{name}-%{version}-build
 
