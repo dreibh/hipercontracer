@@ -1,8 +1,8 @@
-hipercontracer (1.1.0~rc1.0-1ubuntu1) zesty; urgency=medium
+hipercontracer (1.1.0~rc1.1-1ubuntu1) zesty; urgency=medium
 
   * New upstream version.
 
- -- Thomas Dreibholz <dreibh@iem.uni-due.de>  Tue, 28 Feb 2016 08:08:08 +0200
+ -- Thomas Dreibholz <dreibh@iem.uni-due.de>  Wed, 01 Mar 2017 08:08:08 +0200
 
 hipercontracer (1.0.2-1ubuntu1) zesty; urgency=medium
 
