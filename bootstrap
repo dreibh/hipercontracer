@@ -6,14 +6,14 @@ set -x
 rm -rf admin
 mkdir admin
 
-if glibtoolize --version >/dev/null; then
-    LIBTOOLIZE=glibtoolize
-elif libtoolize --version >/dev/null; then
-    LIBTOOLIZE=libtoolize
-else
-   echo "ERROR: I cannot find libtoolize or glibtoolize!"
-   exit 1
-fi
+#if glibtoolize --version >/dev/null; then
+#    LIBTOOLIZE=glibtoolize
+#elif libtoolize --version >/dev/null; then
+#    LIBTOOLIZE=libtoolize
+#else
+#   echo "ERROR: I cannot find libtoolize or glibtoolize!"
+#   exit 1
+#fi
 
 ACLOCALDIR=
 if [ -e /usr/local/share/aclocal ] ; then
