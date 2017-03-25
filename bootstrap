@@ -1,5 +1,4 @@
 #! /bin/sh
-# $Id: bootstrap 2008 2015-06-04 14:32:56Z dreibh $
 
 set -x
 
@@ -30,7 +29,7 @@ AUTOHEADER=${AUTOHEADER:-autoheader}
 AUTOMAKE=${AUTOMAKE:-automake}
 AUTOCONF=${AUTOCONF:-autoconf}
 
-"$LIBTOOLIZE" --force
+# "$LIBTOOLIZE" --force
 "$ACLOCAL" -I "$ACLOCALDIR"
 "$AUTOHEADER"
 "$AUTOMAKE" --gnu --add-missing --copy

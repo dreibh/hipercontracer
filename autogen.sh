@@ -1,5 +1,5 @@
 #!/bin/sh
 
 ./bootstrap && \
-./configure --enable-colorgcc $@ && \
+./configure $@ && \
 ( gmake || make )
