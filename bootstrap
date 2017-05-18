@@ -6,9 +6,9 @@ set -x
 rm -rf admin
 mkdir admin
 
-if glibtoolize --version >/dev/null; then
+if glibtoolize --version >/dev/null 2>&1 ; then
     LIBTOOLIZE=glibtoolize
-elif libtoolize --version >/dev/null; then
+elif libtoolize --version >/dev/null 2>&1 ; then
     LIBTOOLIZE=libtoolize
 else
    echo "ERROR: I cannot find libtoolize or glibtoolize!"

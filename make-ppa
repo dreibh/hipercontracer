@@ -1,5 +1,4 @@
 #!/bin/bash -e
-# $Id: make-deb 2770 2013-05-30 08:46:46Z dreibh $
 #
 # Debian Packaging Scripts
 # Copyright (C) 2002-2017 by Thomas Dreibholz
@@ -20,7 +19,7 @@
 # Contact: dreibh@iem.uni-due.de
 
 ./clean-deb
-./make-deb precise trusty vivid wily xenial yakkety zesty unstable
+./make-deb precise trusty vivid xenial yakkety zesty artful unstable
 changeFiles=`ls *.changes`
 for changeFile in $changeFiles ; do
    if [[ $changeFile =~ .*[0-9](ppa|ubuntu)[0-9].* ]] ; then
