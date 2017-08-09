@@ -1,1 +1,1227 @@
-.
+commit fff973fdfdfe2c6f6e40282d546e0a03ce5f3c6d
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Sat Mar 25 15:20:27 2017 +0100
+
+    A fix.
+
+commit 70f035819481b47f1c87396bfce7046e8c3a49cf
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Sat Mar 25 15:09:23 2017 +0100
+
+    Some build script fixes.
+
+commit 96d8c8c536461254de21f7607bcd00b1f860f85a
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Mar 1 17:51:39 2017 +0100
+
+    Script update.
+
+commit b17cc528577d82bb4243bc58902fda7b68b39a31
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Mar 1 17:38:20 2017 +0100
+
+    No need to call libtoolize.
+
+commit c2fb5f4fd4192b9fa3a88e3645702c9e08159fff
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Mar 1 17:37:18 2017 +0100
+
+    Version bump.
+
+commit 5c1462809f5c8485bc0dce294b1bb568cfd2507e
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Mar 1 17:22:42 2017 +0100
+
+    No need for libtool.
+
+commit 6cb3a56821d51e37ee260c0fbdd79e04478b57bb
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Mar 1 12:59:08 2017 +0100
+
+    Some updates.
+
+commit 2349890cb2eab82de41a9ed2510550737df6b2d4
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Feb 28 17:36:28 2017 +0100
+
+    Dependency fix.
+
+commit bb0ea81c911a581edade07be14ad1aba46b019fa
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Feb 28 17:27:26 2017 +0100
+
+    An update.
+
+commit 8cc2d427ca0c75f33f00c6550a65a96701d7ba37
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Feb 28 17:26:21 2017 +0100
+
+    Added RPM packaging files.
+
+commit efb62465471c0d7e64e3e52150919e021eb747be
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Feb 9 11:13:56 2017 +0100
+
+    New release.
+
+commit 6b0c145cfbb5c8b102aa9c3679167c58d2c87381
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Nov 23 14:17:44 2016 +0100
+
+    URL fix.
+
+commit 1737650e3423593586c2ca072cd1a1c0d6f47bd5
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Nov 10 16:26:24 2016 +0100
+
+    Version bump.
+
+commit a799eea2ace477ca715e4b05d1a619e437c3c633
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Nov 10 16:25:09 2016 +0100
+
+    Fixed exception handling for send_to().
+
+commit eccddb6d6fad927bf59dea493f8420b4dacb32d2
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Mon Oct 31 15:29:54 2016 +0100
+
+    A fix.
+
+commit aa6022b7cdcad0f781306b932024a56a141ed342
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Mon Oct 31 15:28:21 2016 +0100
+
+    Packaging file update.
+
+commit b9537f52ddc277203bf14a0b0c25be0af9f6e6a9
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Mon Oct 31 15:26:17 2016 +0100
+
+    Fix for importer: only count files of os.listdir() to get total number of transactions.
+
+commit 119676e31ef01cbaead7ce36b255e496311d497c
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Fri Aug 5 16:30:33 2016 +0200
+
+    Updated README.
+
+commit dc68476f23306d4ac3af74fbbaf3fd2975d8ca17
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Jun 29 10:48:09 2016 +0200
+
+    Version bump.
+
+commit 5b280f203808c49b864c8667673ce75d63384ffb
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Jun 28 10:37:25 2016 +0200
+
+    Minor updates.
+
+commit 384b2c557c69b1ddd1855706f95fca579aa0f282
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Jun 28 10:17:37 2016 +0200
+
+    Updated manpage.
+
+commit 94c635af44165df70643a23e1910eb2b18b1feb1
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Jun 28 10:13:12 2016 +0200
+
+    Made transaction content more readable by using one line per tuple.
+
+commit df5b5bdef32e209775eeec3ca49111bd08495490
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Mon Jun 27 21:05:57 2016 +0200
+
+    Typo fixes.
+
+commit 04b49a251fef1aab420b45ebde4bb7453fe9d2ef
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Mon Jun 27 21:01:52 2016 +0200
+
+    Improved checksum tweak code.
+
+commit ffdbf36ee9787e45793b93b7c803dc003db72104
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Mon Jun 27 20:58:01 2016 +0200
+
+    Simplified checksum code.
+
+commit 0b198c0831b4d003a8222a053d5481ee2f9769c3
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Mon Jun 27 20:54:58 2016 +0200
+
+    A fix.
+
+commit c4e5c62a908ffcf5d555e7cba70402b19fdf5a47
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Mon Jun 27 16:45:44 2016 +0200
+
+    Updated test.
+
+commit d78760502cd15af15e66faeb3b1f438f8810767d
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Mon Jun 27 16:18:42 2016 +0200
+
+    Checksum handling improvements.
+
+commit b20d2809eaf85241656b95ecbede735311c84f71
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Mon Jun 27 15:24:05 2016 +0200
+
+    Some refinements.
+
+commit c23b68b0a8e67e0f601fe4b226c78b761f0fbe89
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Mon Jun 27 15:15:32 2016 +0200
+
+    Updated note.
+
+commit da5599ab73f2868b8777e3fd6e1e8f92b369c339
+Merge: 9c6622e 6a696db
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Mon Jun 27 15:10:38 2016 +0200
+
+    Merge remote-tracking branch 'origin/master' into oslo-traceroute
+
+commit 6a696db66627f19f313f3a46fe2d2dd8376bb3cb
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Mon Jun 27 15:05:25 2016 +0200
+
+    Added note.
+
+commit 9c6622ecb5e1fad0c0d4f174b950fc893d690e39
+Merge: 6e66ccf 4b40cc7
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Mon Jun 27 15:01:50 2016 +0200
+
+    Merge remote-tracking branch 'origin/master' into oslo-traceroute
+
+commit 6e66ccf1efccc373b1db619b3f03bf5f93d75785
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Mon Jun 27 15:01:43 2016 +0200
+
+    Updated Traceroute table.
+
+commit 4b40cc7b7394916c0661c13c0b092756157e5a54
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Mon Jun 27 15:00:46 2016 +0200
+
+    A fix.
+
+commit c21310b4c5cdc2901837ecc97b410ab4b1c7bb4d
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Mon Jun 27 14:33:03 2016 +0200
+
+    Added support for multiple rounds ("Oslo Traceroute").
+
+commit 847f479da2b54bbedfeef5ae07294556089f3dab
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Mon Jun 27 13:33:43 2016 +0200
+
+    Send all ICMP Echo request of a run with the same checksum, to avoid load balancing effects.
+
+commit e3496f3d08b116ad647f225cf84c175abc6c458a
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Mon Jun 27 11:09:12 2016 +0200
+
+    Another update.
+
+commit 1ca31cafc07aa542c47139c2d71c0828c71557eb
+Merge: b0e9db3 3040d05
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Mon Jun 20 16:46:07 2016 +0200
+
+    Merge branch 'master' of github.com:dreibh/hipercontracer
+
+commit b0e9db3b4e88a75fdd16fa43ba55840cda23a1b2
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Mon Jun 20 16:45:52 2016 +0200
+
+    Commented out unused indices.
+
+commit 3040d05d88dc9eea42fe177b484b1013c5337429
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Sun May 8 19:04:57 2016 +0200
+
+    Updated README.
+
+commit 580724a352d666c99335cd1c4a36b3039bc0c77f
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Apr 27 11:49:03 2016 +0200
+
+    Properly catch exception to print error message in case of unprivileged socket calls (raw ICMP sockets need superuser permissions).
+
+commit 6be1aac333586e2a95b6e58d8d7c091095c49cc6
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Apr 27 11:27:21 2016 +0200
+
+    Version bump.
+
+commit 8644061df97cc1610f5ad521271c81af74615e00
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Apr 27 11:25:22 2016 +0200
+
+    Fixed a bug that may caused an assertion in case of ICMP Unreachables from routers.
+
+commit 74306e6d762fdf76238683729688f2185498f340
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Mon Apr 18 14:58:35 2016 +0200
+
+    Version bump.
+
+commit e386e23724c24915ce8eabeeead53e5a85a33d14
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Mon Apr 18 14:44:24 2016 +0200
+
+    Added helper function.
+
+commit 36bc3273d45cbd3a836aa1d0051c6f061e946dec
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Mon Apr 18 14:09:41 2016 +0200
+
+    Some fixes.
+
+commit 00c8076e9ab26d3d1b3b2806c2b2ca48e1e8effe
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Mon Apr 18 14:02:46 2016 +0200
+
+    Added stored procedures.
+
+commit dc7363484737cec7d737c52ace3ed63ddb15dbaf
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Mon Apr 18 12:55:14 2016 +0200
+
+    Updated debhelper version to 9.
+
+commit 36ddae458d9a48b875ae80d6edec4f33461c74e8
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Apr 12 16:42:35 2016 +0200
+
+    Updated manpage.
+
+commit 725f27ad105518d583e01c71f8aee97dc09424d1
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Apr 12 16:40:47 2016 +0200
+
+    Improved importer script.
+
+commit fcc1416b3c99afa1b12878671e890b5969f03b0f
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Mar 31 09:42:46 2016 +0200
+
+    Schema update.
+
+commit fc6bee0a78aa0b16f1b2297b051c4e79d880a092
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Fri Mar 11 12:17:40 2016 +0100
+
+    Some updates.
+
+commit 20643d805ce0a28e3c41e1e56cbd40c22d21ec86
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Fri Mar 11 10:31:02 2016 +0100
+
+    Minor code improvements.
+
+commit 9419af6d7dfa4bbf57f2b3140dbac4130e5c557d
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Mar 10 13:40:43 2016 +0100
+
+    Minor improvements for fix-hashpath script.
+
+commit 05c7fde0568ce6c92a5ae86a1d8288c2e1c735be
+Merge: ac532b7 f3082e3
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Mar 10 13:06:32 2016 +0100
+
+    Merge branch 'master' of github.com:dreibh/hipercontracer
+
+commit ac532b786aba0ebb9f13757c9a1e64740ee073cf
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Mar 10 13:06:11 2016 +0100
+
+    Updated compiler flags.
+
+commit f3082e38639f37b32d8975eed33349f359df21fc
+Author: Priv.-Doz. Dr. Thomas Dreibholz <dreibh@iem.uni-due.de>
+Date:   Thu Mar 10 13:05:45 2016 +0100
+
+    Packaging file updates.
+
+commit 7115a4bf2359ffd286a50b668fd9ca43650d6729
+Merge: 79abb06 8cd787c
+Author: Priv.-Doz. Dr. Thomas Dreibholz <dreibh@iem.uni-due.de>
+Date:   Thu Mar 10 12:53:29 2016 +0100
+
+    Merge branch 'master' of github.com:dreibh/hipercontracer
+
+commit 8cd787c289dd2d41753ddd8516eb79cc4b7f7228
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Mar 10 12:45:39 2016 +0100
+
+    Minor improvements.
+
+commit 79abb06d2913d846686be4c258a7b014a1ed1be3
+Merge: 779a5d0 9f38775
+Author: Priv.-Doz. Dr. Thomas Dreibholz <dreibh@iem.uni-due.de>
+Date:   Thu Mar 10 12:27:17 2016 +0100
+
+    Merge branch 'master' of github.com:dreibh/hipercontracer
+
+commit 779a5d00065e2d53eccb3b6858590cd3372b66d7
+Author: Priv.-Doz. Dr. Thomas Dreibholz <dreibh@iem.uni-due.de>
+Date:   Thu Mar 10 12:26:04 2016 +0100
+
+    Packaging fixes for Ubuntu 16.04.
+
+commit 9f387755ba559d0fa9b6a2e4a362d28d8485fc78
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Mar 10 12:25:19 2016 +0100
+
+    Some fixes and improvements.
+
+commit f7dea08c5f2fa466401013b0f6d5d7b5bb84f732
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Mar 10 11:12:59 2016 +0100
+
+    Some fixes and improvements.
+
+commit 4c3a7b5f05ff24686a026159a0873125e017edb4
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Mar 10 10:52:22 2016 +0100
+
+    Write error to stderr, not to stdout.
+
+commit 42952f4b9e81eb7b6f157372fe216e1348ab6fa6
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Mar 10 10:50:46 2016 +0100
+
+    Properly handle "SSL SYSCALL error" -> possible to try importing later.
+
+commit b7c2b8c75836e2d4e8a788d3ee105e7640ce9605
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Mar 10 10:19:23 2016 +0100
+
+    Renamed tests.
+
+commit d738d7d6e1ce9be03e0909eeaeeec2131c4d3c2a
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Mar 10 10:17:15 2016 +0100
+
+    Helper script updates.
+
+commit 7e3fa1e41fe16f75c6d5718bfc0a6ad25000320b
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Mar 9 17:55:08 2016 +0100
+
+    Some more updates.
+
+commit 4cd3490725bd550e7913ddfd38f372a50248ad67
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Mar 9 17:23:28 2016 +0100
+
+    Some more fixes in the test scripts.
+
+commit 81f538d8a006726110ff0f45d7d0e88e1c0f5bac
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Mar 9 16:21:04 2016 +0100
+
+    Added some test scripts.
+
+commit 770a0987a02018c1dd034660d7a29648f4b57c23
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Mar 9 15:21:05 2016 +0100
+
+    Removed debug output.
+
+commit 74a67a709398318948af4703d8f8fe30d2895d37
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Mar 9 15:19:49 2016 +0100
+
+    Added flag for paths with non-responding routers.
+
+commit 64b1533bf64b4640ceeb25ef40d9702da6b3599f
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Feb 23 10:58:51 2016 +0100
+
+    Some clean-ups.
+
+commit c34b09e2f5bf68a0ef807c25781a0efc30a9142d
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Fri Feb 19 17:29:26 2016 +0100
+
+    Some fixes.
+
+commit f2b30e20bd07d616c8ee97776cad344d36e82555
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Fri Feb 19 16:15:29 2016 +0100
+
+    Some improvements for geo-location handling.
+
+commit a961f0505afdad16e40524e3a3995948470ff3cf
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Fri Feb 19 14:44:36 2016 +0100
+
+    Updated schema.
+
+commit 6340609dab8535b866ce1facbbf141a658df3b27
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Fri Feb 19 14:42:59 2016 +0100
+
+    Updated dependencies.
+
+commit 1e437b32403d25156f77e88465edfaa189423053
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Fri Feb 19 14:42:52 2016 +0100
+
+    Removed debug code.
+
+commit 64177fedd25fa17575f8ab2e8046f9d085d05f1f
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Fri Feb 19 14:41:14 2016 +0100
+
+    Some improvements.
+
+commit 623fc5229ffb1fa1d47207a07ecc06193f50c2c7
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Fri Feb 19 14:16:04 2016 +0100
+
+    Updated address info script.
+
+commit 690b341a5fc2d049543fb8901c4c450342e5af63
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Mon Feb 15 11:31:00 2016 +0100
+
+    Some clean-ups.
+
+commit ee794fcf5376d919ad33c58356e234c1ae19facb
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Mon Dec 21 17:13:59 2015 +0100
+
+    Script update.
+
+commit c77192def9e1b8422cf13db04c3fb6a67b98434d
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Mon Dec 21 16:57:53 2015 +0100
+
+    Version bump.
+
+commit 8ed7fcf43045ecbd03474dc526f7be91de939577
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Mon Dec 21 16:54:57 2015 +0100
+
+    Parameter handling fix.
+
+commit 633a34f0aebb8bfaf77bcf29641c5b276feaed21
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Fri Oct 16 15:36:38 2015 +0200
+
+    Importer cron job is installed by the NorNet Trace package.
+
+commit d175705996686ab01b766a713055d620191dfacf
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Fri Oct 16 11:09:01 2015 +0200
+
+    Release candidate.
+
+commit b7ca1bdd6eb6d03553e4f65ba4342b72364dd553
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Fri Oct 16 11:08:56 2015 +0200
+
+    Updated schema.
+
+commit 9cd9e0511812df23e8f641b5a05cef7e09743a15
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Oct 15 17:06:14 2015 +0200
+
+    Packaging update.
+
+commit 9db754749797b52ee4ab27e3edcd20cdeaf1c579
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Oct 15 16:56:56 2015 +0200
+
+    Added manpage.
+
+commit b495d0774ac903662aa02c2e4d9ac3b643f24ae8
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Oct 15 16:54:13 2015 +0200
+
+    Updated manpage.
+
+commit 93f6c75dfa808207a854262083c11e05dbbb03d6
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Oct 15 16:49:32 2015 +0200
+
+    Updated manpage.
+
+commit f207ceaf0850dcab3947146e08e67df6d1b3f28f
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Oct 15 16:06:44 2015 +0200
+
+    Improved schema: using foreign keys for ProviderIndex and SiteIndex.
+
+commit f0a0b00251b7061eb15304f45b98902e89296184
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Oct 15 15:41:31 2015 +0200
+
+    Added provider information.
+
+commit 765802087c886874288108d2e579eb9d20b12e49
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Oct 15 15:06:37 2015 +0200
+
+    Added NorNet information generator for nornet-trace package.
+
+commit 781de9596356ffd48bec59631755dfe55cd34c97
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Oct 15 14:06:00 2015 +0200
+
+    Output improvement.
+
+commit c0d3601e5508c35f4d6ed3fa8c9a68eb85278fe2
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Oct 15 13:48:26 2015 +0200
+
+    Set SQL transaction length to 5 min.
+
+commit 829bf167e8c18c184a1e5bc07860ed96da442d60
+Author: Priv.-Doz. Dr. Thomas Dreibholz <dreibh@iem.uni-due.de>
+Date:   Thu Oct 15 13:41:33 2015 +0200
+
+    Version bump.
+
+commit ed21eebfc9119170c8647297be62f23c05658357
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Oct 15 13:11:12 2015 +0200
+
+    Added compatibility option.
+
+commit 99e4d758bacb502c1d4f68dc49f975e036f2a448
+Merge: b644106 d6c7862
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Oct 15 12:51:51 2015 +0200
+
+    Merge branch 'traceservice' of github.com:simula/nornet-control into traceservice
+
+commit b644106040aa396b0a13cc881153062e782a9054
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Oct 15 12:51:40 2015 +0200
+
+    Output improvements.
+
+commit d6c7862e4a2cff9f8d625aedd0678291c5b7c8ef
+Author: Priv.-Doz. Dr. Thomas Dreibholz <dreibh@iem.uni-due.de>
+Date:   Thu Oct 15 12:03:10 2015 +0200
+
+    Packaging file updates.
+
+commit 290d5b78d4f802709851a3addba2dc0e821a2f8f
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Oct 15 11:57:38 2015 +0200
+
+    VACUUM is only possible by table owner.
+
+commit 7d3321b72d5dfe7fdf4baa438babc953e2d9d3d1
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Oct 15 11:51:45 2015 +0200
+
+    Swedish postcodes use a whitespace -> changed PostalCode from INTEGER to CHAR(8).
+    Some fixes for addressinfogenerator.
+
+commit 8f26c9b76979a2ce91ac7de7099f8bfc54fd9d41
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Oct 15 11:41:04 2015 +0200
+
+    Multiple values per INSERT statement.
+
+commit 6aa68e108f0fdc83e9fc5b5dab7d83aab2d910da
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Oct 15 11:40:48 2015 +0200
+
+    PostgreSQL configuration update.
+
+commit e5a5cb32aa9f8f0cbfc27b408c872d421ea766ce
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Oct 15 11:20:29 2015 +0200
+
+    Transactions are started/committed already by psycopg2.
+
+commit c3e17773ff55e5bc445d2b9aba21abce95735743
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Oct 15 11:12:22 2015 +0200
+
+    Fixes for importer.
+
+commit b5a0740bf30f333b2ac600a8b8f47b23188b8862
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Oct 15 10:59:59 2015 +0200
+
+    Removed debug output.
+
+commit b4641f8879b8b6d0115823cf46d02845540835ba
+Author: Priv.-Doz. Dr. Thomas Dreibholz <dreibh@iem.uni-due.de>
+Date:   Thu Oct 15 10:45:56 2015 +0200
+
+    A small fix for Ubuntu Wily.
+
+commit 8b0e7885d5d69a26f18df91549462c36bc1b34ec
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Oct 15 10:25:01 2015 +0200
+
+    Added packaging files for nornet-trace-service.
+
+commit 2e9d33b9fd94fe41b0b98b625a44924c36f2d865
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Oct 15 10:00:22 2015 +0200
+
+    Some improvements for the results importer.
+
+commit ac6dedb403ca775d855ca6dddafd8a5895995a6f
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Oct 15 09:46:38 2015 +0200
+
+    Fix for Traceroute timestamp handling.
+
+commit 8f5866fbcfb17749ec7d9600538bffe49c76bd4e
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Oct 14 17:37:02 2015 +0200
+
+    Packaging updates. Renamed script.
+
+commit 5a05cdf0cc41d73bb4fb6d663b15ad8c33222e48
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Oct 14 16:58:12 2015 +0200
+
+    Some more small updates.
+
+commit dd629980b7089738cfc724c82cc30cb8204bf32d
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Oct 14 16:56:33 2015 +0200
+
+    Minor updates.
+
+commit faad5371231201b067dc4668c71c168d60a7b02a
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Oct 14 16:51:22 2015 +0200
+
+    Metadata handling improvements.
+
+commit 47aeb1262b9e0d15628b99ccd0739cc92593d310
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Oct 14 16:51:17 2015 +0200
+
+    Schema update.
+
+commit c6c918e77e3db09619023f3dde0a3da5f6f72d58
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Oct 14 16:23:21 2015 +0200
+
+    Improved metadata.
+
+commit 1b2b532640660a6d39bec37e6c0107ef3fa6b375
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Oct 14 15:34:55 2015 +0200
+
+    Improved metadata generator.
+
+commit 8b1e7ba9c264743cb4bdbf782a97703b4de315ed
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Oct 14 15:34:50 2015 +0200
+
+    Schema update.
+
+commit afdcc2276aaee63a14e658a3947c1cfc66d400ed
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Oct 14 13:57:15 2015 +0200
+
+    Added meta data generator.
+
+commit badc4811f66a03769b366a986eccb001114a7ae9
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Oct 14 13:28:38 2015 +0200
+
+    Phython 3 compatibility.
+
+commit efe3d594dbc5844f7582968bd138e8efabe8fd36
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Oct 14 13:10:16 2015 +0200
+
+    Importer improvements.
+
+commit bdc4a6a34c5fdc6bf6a4497dd68088de6ea00f04
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Oct 14 12:28:36 2015 +0200
+
+    Improved importer.
+
+commit c788e8e879ff5170f0e59707b847db7d78034014
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Oct 14 11:17:06 2015 +0200
+
+    Configuration update.
+
+commit 080e35467b0bcc31025ae043bbfb7d4ed816239e
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Oct 14 11:12:13 2015 +0200
+
+    Parametrisation improvements.
+
+commit 852cac1be997314f4b0efed3efd7769164fe214f
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Oct 14 10:49:44 2015 +0200
+
+    Updated schema.
+
+commit 6340d2c85108baaad3bb4f17038d7ca755265d11
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Oct 14 10:48:59 2015 +0200
+
+    Updated schema.
+
+commit d48e838e1b2d581a60b8e0b69101af88be26d192
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Oct 14 10:23:22 2015 +0200
+
+    Added path hash feature.
+
+commit f1e6e469dfd140b32dc1eaddf5bdc3587168fc0c
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Oct 14 10:23:15 2015 +0200
+
+    Updated schema.
+
+commit cf7fc90c28d7698ebfe477455fd94097fb7c849d
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Oct 13 21:30:00 2015 +0200
+
+    Added libboost detection in configure.ac.
+
+commit 7a10a3271d3334b424be64755aa560e7914cf5d0
+Merge: 46c0111 6b3af09
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Oct 13 21:20:31 2015 +0200
+
+    Merge branch 'traceservice' of github.com:simula/nornet-control into traceservice
+
+commit 46c01116e401d0e18c27a0c1a14c17abfe96ecff
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Oct 13 21:20:22 2015 +0200
+
+    Added test program.
+
+commit 6b3af091f9a7e53e819c305ecf40923aa971e6b7
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Oct 13 21:17:52 2015 +0200
+
+    Updated Makefile.am.
+
+commit e89aa39babf50d5d6ee6182af0b265c4e95f66ab
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Oct 13 21:17:14 2015 +0200
+
+    Updated helper scripts.
+
+commit 4b85dbbbc9d0d3f8fd292b6a0d3431bfb5a66c21
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Oct 13 21:02:58 2015 +0200
+
+    Updated scripts.
+
+commit 97cbbb25f09409cab48f3147db77389ec3787e23
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Oct 13 20:59:50 2015 +0200
+
+    Added SQL scripts.
+
+commit 008c50e63cb28584ba6457f5d3ce70ca1e345aff
+Merge: 50f0c08 6e184bc
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Oct 13 20:19:05 2015 +0200
+
+    Merge branch 'traceservice' of github.com:simula/nornet-control into traceservice
+
+commit 50f0c087d5fa963c5ea1eaf1a3f5406c18e8c897
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Oct 13 20:18:59 2015 +0200
+
+    Some updates.
+
+commit 6e184bc9271b26b13b310049b9eeb1029d0a29cb
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Oct 13 17:06:19 2015 +0200
+
+    Added SQL file change configuration.
+
+commit 09d59940a2766ca0daa0eff04e170f41d1ae58cf
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Oct 13 16:46:06 2015 +0200
+
+    Another output improvement.
+
+commit 08c324ca0f824a43f596bb81021e35d92ecb4514
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Oct 13 16:43:04 2015 +0200
+
+    Some more output improvements.
+
+commit c7d3989249b99f9ed894c3549e5168735ac82868
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Oct 13 16:20:29 2015 +0200
+
+    Output improvement.
+
+commit 18681aa4e0ac5fae7ca70b718e581dabe7368579
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Oct 13 16:16:48 2015 +0200
+
+    Improved interval handling.
+
+commit 912496febfdb441c8d9f00bcf66ca47f64491d6d
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Oct 13 14:54:14 2015 +0200
+
+    Marking entries without response as timed-out for Traceroute.
+
+commit c4fe8c3bd38c984d949bff6cdcf399855a1cc50b
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Oct 13 14:45:13 2015 +0200
+
+    Added Valgrind script.
+
+commit 7c041b92f9753c757c84a9d30820f9d48866d329
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Oct 13 14:44:25 2015 +0200
+
+    Some fixes for issues found by Valgrind.
+
+commit 0bea5ded67f43c94fd69f87c8e576eeb895a26ff
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Oct 13 14:30:46 2015 +0200
+
+    Directly produce BZip2-compressed output to save disk space.
+
+commit 74eaba95b9835a92b931d1a9dc1a7564b134f06e
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Oct 13 14:30:41 2015 +0200
+
+    Updated schema.
+
+commit fdc62859f6d30f6513399d5c657b787b30ec1033
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Oct 13 14:30:27 2015 +0200
+
+    Implemented traceroute SQL output.
+
+commit 958d3d039dc9e091f658e96dd051400422e1847b
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Oct 13 13:35:14 2015 +0200
+
+    Implemented SQL output for Ping.
+
+commit 2fb4a10672d337887dba0b3a02182676af7e1d34
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Oct 13 11:33:48 2015 +0200
+
+    Schema update.
+
+commit 0eeb8dc377c2b2bb4efb2b9118fccee783c8a568
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Oct 13 11:15:34 2015 +0200
+
+    Code clean-ups.
+
+commit e52070198d8dc1d757d86657c5f025542d0a5fe4
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Oct 13 11:10:54 2015 +0200
+
+    Removed some test code.
+
+commit 3be04244cf7a793150d33d427782b925715e3958
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Oct 13 11:04:40 2015 +0200
+
+    Added test.
+
+commit 898a7c4c5d42075d8011d744cedf678adc17631c
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Oct 13 09:45:12 2015 +0200
+
+    Updated test scripts.
+
+commit cf0dc6c95ff9be3f78d444d9e42c8e3a91837a96
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Fri Sep 25 15:36:52 2015 +0200
+
+    Some build file updates.
+
+commit 22fe3516fe230b0c238ac5f437039a84ba0e8efa
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Fri Sep 25 15:12:12 2015 +0200
+
+    Added importer script.
+
+commit 12b2610403de2393b941f55379a3296a03157cb0
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Fri Sep 25 15:10:15 2015 +0200
+
+    Added missing file.
+
+commit e588996cb7398e5038dbf43b5c664d7297044ad1
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Fri Sep 25 15:07:46 2015 +0200
+
+    Added initial version of results importer (not working yet).
+
+commit 7fa80787ba3ad5a855cacbd174b611299b638946
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Fri Sep 25 14:12:52 2015 +0200
+
+    Minor improvements.
+
+commit 255fa9f5b2dba6f1787da71a6318b76626154a08
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Fri Sep 25 14:11:16 2015 +0200
+
+    Some clean-ups.
+
+commit a9c37f5a4f7fba8bda95528c4a1d904cc61c532a
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Fri Sep 25 13:57:55 2015 +0200
+
+    Started to write SQL schema.
+
+commit 455eba1d09514192abc8fde5b2f1c74ae6b73482
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Fri Sep 25 13:42:13 2015 +0200
+
+    Build file fix for Ubuntu 12.04.
+
+commit ed2b0d48a2146c7cdde323685763fc82db4c2d1e
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Fri Sep 25 13:20:59 2015 +0200
+
+    Another include file.
+
+commit d539ff1c77998ef110588743e168a01089fc4a88
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Fri Sep 25 13:18:12 2015 +0200
+
+    Added missing include file.
+
+commit 8b94c5614e686e6af96b900779760597aaf229d8
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Fri Sep 25 13:15:39 2015 +0200
+
+    Added automake file.
+
+commit 4f688d96b1efc2e3ed4ae8052356dacc95e6c25a
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Fri Sep 25 12:10:28 2015 +0200
+
+    Replaced usage of C++11 features to also work under Ubuntu 12.04.
+
+commit 6a5178b02f7e74e1ddcc4cc84858af870c76df4a
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Fri Sep 25 09:37:36 2015 +0200
+
+    Using autoconf/automake build system.
+
+commit a35e5f412fdb8b746ff4fe2d5e5e5439b4482687
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Fri Sep 25 09:18:57 2015 +0200
+
+    Directory clean-up.
+
+commit d2aa47eb33389194a30d177a013a4dda4065a080
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Fri Sep 25 08:52:06 2015 +0200
+
+    Packaging file updates.
+
+commit 87eeabdcb55df406e3e0022f0974fe6956fb178c
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Fri Sep 25 08:39:45 2015 +0200
+
+    Added initial packaging files.
+
+commit f5edd5f71fcf5c3e5f8529fd4073175595f9a354
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Sep 24 16:02:54 2015 +0200
+
+    Some improvements.
+
+commit 6d24d8aa47e1195e1c517f6c4af0021b1da6f427
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Sep 24 15:31:41 2015 +0200
+
+    Minor updates.
+
+commit cb1df0533f6e1598495fcad7cd7a998f7635b83c
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Sep 24 15:26:42 2015 +0200
+
+    Some clean-ups.
+
+commit fb6fe917471eeb3e19357618bd261f9822ba74ab
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Sep 24 15:17:15 2015 +0200
+
+    Added another test.
+
+commit 094c26c7d25775cf23d9e1109e67274c8f30e1c2
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Sep 24 15:16:40 2015 +0200
+
+    Ping and traceroute are now working.
+
+commit 68de03c3ac79bd71042575482def008982d529ed
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Sep 24 11:04:59 2015 +0200
+
+    Code improvement: replaced ICMP endpoint objects by IP address objects.
+
+commit 4099499d1ce969e60b78104796229b9024c63b86
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Sep 23 17:46:05 2015 +0200
+
+    Removed debug output.
+
+commit 17033bd893451e02dd52eb15f380fd1ee5cee431
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Sep 23 17:42:49 2015 +0200
+
+    Implemented signal handling for controlled shutdown.
+
+commit 0f1764062da8fbe05522be2e59d2dc461cef4079
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Sep 23 17:18:57 2015 +0200
+
+    Using multi-threading.
+
+commit c8ab0f6922850291b90c659f32587eb2b9a9b3bb
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Sep 23 16:35:57 2015 +0200
+
+    Some more improvements.
+
+commit e2bf9944f352a513fed2fbef1e193d5a3e7b69dd
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Sep 23 15:49:06 2015 +0200
+
+    Some more improvements.
+
+commit a33abdc4351f9f6a1dd812f5d846ad68bc9c246a
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Sep 23 15:45:03 2015 +0200
+
+    Some small improvements.
+
+commit 152b51e7f689761ba999676bf906126127d5589a
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Sep 23 15:06:22 2015 +0200
+
+    Another update.
+
+commit 51cc986cdb71bbbc93004e57d643e8c7971e964f
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Sep 23 15:04:02 2015 +0200
+
+    Some code clean-ups.
+
+commit 9820e9b3f097cc3c92287f9a5b5991f691f23fc3
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Sep 23 14:55:49 2015 +0200
+
+    Some code improvements.
+
+commit 390e5be34713b6425f3bff33037a0a3b2a57319b
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Sep 23 14:04:20 2015 +0200
+
+    Initial IPv6 traceroute is working now.
+
+commit 28c3dc55b20b903e3347ee5d72b3158bab7b8f64
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Sep 23 13:43:44 2015 +0200
+
+    Some more updates.
+
+commit 2593faa6efa951c10fdeed210c1828f28dc33810
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Sep 23 12:30:04 2015 +0200
+
+    Some more updates. Added basic Makefile.
+
+commit ef5ac1d51243511a143e8730a2a800cc36ff8396
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Sep 23 11:27:32 2015 +0200
+
+    Some more updates.
+
+commit 1d68dfd2fa324e90ea3de43245ce29a032dc0b24
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Sep 23 10:42:24 2015 +0200
+
+    Some more updates.
+
+commit 0c4bca34ac649ea1e32c7cca375246f2348205cd
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Sep 23 10:24:23 2015 +0200
+
+    Some more work on the trace service.
+
+commit e2bb9fb4904d8451c0f8f35b0e50f489b9e67686
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Sep 22 20:00:40 2015 +0200
+
+    Minor updates.
+
+commit 0711a19ebf23fb783dcf80a7ccf2f86e4449febf
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Sep 22 19:38:55 2015 +0200
+
+    Basic IPv4 and IPv6 traceroute are working now.
+
+commit 8b7fbde672ec0879fd156b512fdd295c0a6e8809
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Sep 22 18:26:21 2015 +0200
+
+    Making progress.
+
+commit fc4337570059b7459348b163f5071b59cf028c94
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Sep 22 17:32:14 2015 +0200
+
+    Some updates.
+
+commit a4fbed5b03f87300ae8bec172f698f30fe1ce1eb
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Sep 22 15:30:10 2015 +0200
+
+    Added protocol header classes.
+
+commit 6674f8429b76bc7926906d22259056ba941f388e
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Sep 22 14:56:56 2015 +0200
+
+    Started to write Traceroute for IPv6.
+
+commit 4505da33094376010c278f8dbb516badadce8b76
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Sep 22 12:03:41 2015 +0200
+
+    Started to write Trace Service.
+
+commit ff43cbb0756e576b11c92a965d6f5d5953e19512
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Sep 22 11:34:38 2015 +0200
+
+    Updated example.
+
+commit f28c9a078ca43aa01a792ce0c960777c2be11bd6
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Sep 22 11:32:28 2015 +0200
+
+    Added Boost example for IPv4 traceroute.

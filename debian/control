@@ -2,7 +2,7 @@ Source: hipercontracer
 Section: net
 Priority: optional
 Maintainer: Thomas Dreibholz <dreibh@iem.uni-due.de>
-Homepage: http://www.iem.uni-due.de/~dreibh/hipercontracer
+Homepage: https://www.uni-due.de/~be0001/hipercontracer
 Build-Depends: debhelper (>= 9),
                dpkg-dev (>= 1.16.1~),
                libboost-date-time1.48-dev | libboost-date-time-dev (>= 1.48.0),
