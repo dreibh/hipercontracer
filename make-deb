@@ -1,8 +1,7 @@
 #!/bin/bash -e
-# $Id: make-deb 2770 2013-05-30 08:46:46Z dreibh $
 #
 # Debian Packaging Scripts
-# Copyright (C) 2002-2017 by Thomas Dreibholz
+# Copyright (C) 2002-2018 by Thomas Dreibholz
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
