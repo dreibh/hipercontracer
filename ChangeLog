@@ -1,3 +1,15 @@
+commit 5ab37e26ee88fa163697365ac3815b6dc6419927
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Sun Nov 5 16:02:15 2017 +0100
+
+    Build script update.
+
+commit 8c815f20ae63b4f8fe978ca76d099c2bc2768f52
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Sun Nov 5 16:02:07 2017 +0100
+
+    Header updates.
+
 commit 6e1d9a9bc936095369f07c67a73635c994314737
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Sun Nov 5 15:59:42 2017 +0100

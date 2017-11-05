@@ -1,3 +1,9 @@
+hipercontracer (1.1.2-1ubuntu1) bionic; urgency=medium
+
+  * New upstream version.
+
+ -- Thomas Dreibholz <dreibh@iem.uni-due.de>  Sun, 05 Nov 2017 08:08:08 +0200
+
 hipercontracer (1.1.1-1ubuntu1) zesty; urgency=medium
 
   * New upstream version.
