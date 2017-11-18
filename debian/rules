@@ -1,7 +1,7 @@
 #!/usr/bin/make -f
 
 %:
-	dh $@ --with python3
+	dh $@ --buildsystem=cmake --parallel --with python3
 
 # Use upstream ChangeLog for installation
 override_dh_installchangelogs:

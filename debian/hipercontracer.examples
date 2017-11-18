@@ -1,4 +1,6 @@
 src/SQL/*.sql
 src/SQL/README
 src/SQL/install-database-and-users
+src/SQL/login-as-importer
+src/SQL/login-as-researcher
 src/hipercontracer-database-configuration

@@ -1,3 +1,3 @@
-src/addressinfogenerator /usr/bin
-src/hipercontracer       /usr/bin
-src/tracedataimporter    /usr/bin
+debian/hipercontracer/usr/bin/addressinfogenerator
+debian/hipercontracer/usr/bin/hipercontracer
+debian/hipercontracer/usr/bin/tracedataimporter

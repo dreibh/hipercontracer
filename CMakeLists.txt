@@ -156,9 +156,6 @@ IF(Boost_FOUND)
 ENDIF()
 ADD_DEFINITIONS(-DBOOST_ALL_DYN_LINK)   # <<-- Required to handle BOOST Log link problem!
 
-# ###### BZip2 ##############################################################
-find_package(BZip2 REQUIRED)
-
 
 #################################################
 # COMPILER FLAGS
