@@ -1,10 +1,10 @@
 CMAKE_MINIMUM_REQUIRED(VERSION 2.6)
 PROJECT(hipercontracer)
 
-set(BUILD_MAJOR "1")
-set(BUILD_MINOR "1")
-set(BUILD_PATCH "3~b1")
-set(BUILD_VERSION ${BUILD_MAJOR}.${BUILD_MINOR}.${BUILD_PATCH})
+SET(BUILD_MAJOR "1")
+SET(BUILD_MINOR "1")
+SET(BUILD_PATCH "3~b2")
+SET(BUILD_VERSION ${BUILD_MAJOR}.${BUILD_MINOR}.${BUILD_PATCH})
 
 
 #################################################
@@ -42,14 +42,14 @@ SET(CMAKE_INSTALL_MANDIR "share/man"
 # PACKAGING
 #################################################
 
-set(CPACK_SOURCE_GENERATOR "TGZ")
-set(CPACK_SOURCE_PACKAGE_FILE_NAME
+SET(CPACK_SOURCE_GENERATOR "TGZ")
+SET(CPACK_SOURCE_PACKAGE_FILE_NAME
    "${CMAKE_PROJECT_NAME}-${BUILD_MAJOR}.${BUILD_MINOR}.${BUILD_PATCH}")
-set(CPACK_SOURCE_IGNORE_FILES
+SET(CPACK_SOURCE_IGNORE_FILES
    "${PROJECT_SOURCE_DIR}/${CMAKE_PROJECT_NAME}-*;${PROJECT_SOURCE_DIR}/${CMAKE_PROJECT_NAME}_*;/build/;/.git/;/config.log;/CMakeFiles/;CMakeCache.txt$;.cmake$;.tar.gz$;/_CPack_Packages;/Makefile$;~$;/build-deb;/clean-deb;/filter-empty-entries;/make-symbols;/make-ppa;/make-deb;/debian.conf;/make-rpm;/rpm.conf;${CPACK_SOURCE_IGNORE_FILES}")
-include(CPack)
+INCLUDE(CPack)
 
-add_custom_target(dist COMMAND ${CMAKE_MAKE_PROGRAM} clean package_source)
+ADD_CUSTOM_TARGET(dist COMMAND ${CMAKE_MAKE_PROGRAM} clean package_source)
 
 
 INCLUDE(CheckIncludeFile)
@@ -138,11 +138,11 @@ ENDIF()
 
 # Debug build type as default
 IF (NOT CMAKE_BUILD_TYPE)
-    message(STATUS "No build type selected, using DEBUG")
-    set(CMAKE_BUILD_TYPE "DEBUG")
+    MESSAGE(STATUS "No build type selected, using DEBUG")
+    SET(CMAKE_BUILD_TYPE "DEBUG")
     # _FORTIFY_SOURCE requires compiling with optimization
     SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O")
-endif()
+ENDIF()
 
 
 #################################################
@@ -151,7 +151,9 @@ endif()
 
 # ###### Boost ##############################################################
 FIND_PACKAGE(Boost REQUIRED COMPONENTS date_time system thread iostreams filesystem)
-IF(Boost_FOUND)
+IF (NOT Boost_FOUND)
+   MESSAGE(FATAL_ERROR "Cannot find Boost libraries!")
+ELSE()
   INCLUDE_DIRECTORIES(${Boost_INCLUDE_DIRS})
 ENDIF()
 ADD_DEFINITIONS(-DBOOST_ALL_DYN_LINK)   # <<-- Required to handle BOOST Log link problem!

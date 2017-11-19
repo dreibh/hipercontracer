@@ -1,3 +1,58 @@
+commit 0b513531e8598e5014ac1cab0ea56fc2ed7e7817
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Sun Nov 19 10:54:57 2017 +0100
+
+    Created FreeBSD packaging files.
+
+commit e06ba24d2302a5319e86a78e2d1b85c2c2a259b4
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Sun Nov 19 10:47:56 2017 +0100
+
+    Updated flags.
+
+commit 1ca226e5fc17412df42d9bbb6b37e85cbfdab063
+Merge: 9df48bb 705ecc9
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Sun Nov 19 10:43:19 2017 +0100
+
+    Merge branch 'freebsd'
+
+commit 9df48bb6ef9b71a5799011faaa15265bf54bcfd9
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Sun Nov 19 10:41:11 2017 +0100
+
+    Package has to be signed.
+
+commit 705ecc932cd78671712a7327a54ed56698505fb2
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Sun Nov 19 10:40:00 2017 +0100
+
+    Building under FreeBSD.
+
+commit d4b6edf0481e7001461fd12d7ede9eecea7ffb82
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Sat Nov 18 19:27:45 2017 +0100
+
+    Ubuntu package now building.
+
+commit 57cf25fed074e28e1df4d62df53a34a969dd0e59
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Sat Nov 18 11:53:17 2017 +0100
+
+    Changed build system to CMake.
+
+commit 7a49cef31a1f3ddcaaa9d488758a4dc8ba534ac6
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Sun Nov 5 16:47:53 2017 +0100
+
+    Updatd LSM entry.
+
+commit f8095a911923cb7e0a94be24b493b6d9d5c8ee08
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Sun Nov 5 16:34:32 2017 +0100
+
+    Version bump.
+
 commit 5ab37e26ee88fa163697365ac3815b6dc6419927
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Sun Nov 5 16:02:15 2017 +0100
