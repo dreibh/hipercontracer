@@ -34,6 +34,9 @@
 #include <unistd.h>
 #include <string.h>
 
+#include <netinet/in.h>
+#include <netinet/ip.h>
+
 #include <set>
 #include <algorithm>
 

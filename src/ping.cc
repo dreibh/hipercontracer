@@ -31,6 +31,9 @@
 
 #include "ping.h"
 
+#include <netinet/in.h>
+#include <netinet/ip.h>
+
 #include <boost/format.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
 
