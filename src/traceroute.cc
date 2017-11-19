@@ -36,6 +36,9 @@
 #include "ipv6header.h"
 #include "traceserviceheader.h"
 
+#include <netinet/in.h>
+#include <netinet/ip.h>
+
 #include <boost/format.hpp>
 #include <boost/interprocess/streams/bufferstream.hpp>
 #include <boost/uuid/sha1.hpp>
@@ -717,18 +720,18 @@ void Traceroute::recordResult(const boost::posix_time::ptime& receiveTime,
          }
          else {
             switch(icmpHeader.code()) {
-               case ICMP_PKT_FILTERED:
+               case ICMP_UNREACH_FILTER_PROHIB:
                   status = UnreachableProhibited;
                break;
-               case ICMP_NET_UNREACH:
-               case ICMP_NET_UNKNOWN:
+               case ICMP_UNREACH_NET:
+               case ICMP_UNREACH_NET_UNKNOWN:
                   status = UnreachableNetwork;
                break;
-               case ICMP_HOST_UNREACH:
-               case ICMP_HOST_UNKNOWN:
+               case ICMP_UNREACH_HOST:
+               case ICMP_UNREACH_HOST_UNKNOWN:
                   status = UnreachableHost;
                break;
-               case ICMP_PORT_UNREACH:
+               case ICMP_UNREACH_PORT:
                   status = UnreachablePort;
                break;
                default:

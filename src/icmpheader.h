@@ -32,6 +32,9 @@
 #ifndef ICMPHEADER_H
 #define ICMPHEADER_H
 
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <netinet/ip.h>
 #include <netinet/icmp6.h>
 #include <netinet/ip_icmp.h>
 
@@ -60,8 +63,8 @@ class ICMPHeader
    enum {
       IPv4EchoRequest           = ICMP_ECHO,
       IPv4EchoReply             = ICMP_ECHOREPLY,
-      IPv4TimeExceeded          = ICMP_TIME_EXCEEDED,
-      IPv4Unreachable           = ICMP_DEST_UNREACH,
+      IPv4TimeExceeded          = ICMP_TIMXCEED,
+      IPv4Unreachable           = ICMP_UNREACH,
 
       IPv6EchoRequest           = ICMP6_ECHO_REQUEST,
       IPv6EchoReply             = ICMP6_ECHO_REPLY,
