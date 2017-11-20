@@ -8,8 +8,7 @@ URL: https://www.uni-due.de/~be0001/hipercontracer/
 Source: https://www.uni-due.de/~be0001/hipercontracer/download/%{name}-%{version}.tar.gz
 
 AutoReqProv: on
-BuildRequires: autoconf
-BuildRequires: automake
+BuildRequires: cmake
 BuildRequires: boost-devel
 BuildRoot: %{_tmppath}/%{name}-%{version}-build
 
@@ -22,13 +21,11 @@ High-Performance Connectivity Tracer (HiPerConTracer) is a ping/traceroute servi
 %setup -q
 
 %build
-autoreconf -if
-
-%configure
+%cmake -DCMAKE_INSTALL_PREFIX=/usr .
 make %{?_smp_mflags}
 
 %install
-make DESTDIR=%{buildroot} install
+make install DESTDIR=%{buildroot}
 
 %files
 %{_bindir}/addressinfogenerator
@@ -37,6 +34,15 @@ make DESTDIR=%{buildroot} install
 %{_datadir}/man/man1/addressinfogenerator.1.gz
 %{_datadir}/man/man1/hipercontracer.1.gz
 %{_datadir}/man/man1/tracedataimporter.1.gz
+#%{_datadir}/doc/hipercontracer/examples/README
+#%{_datadir}/doc/hipercontracer/examples/database.sql
+#%{_datadir}/doc/hipercontracer/examples/hipercontracer-database-configuration
+#%{_datadir}/doc/hipercontracer/examples/install-database-and-users
+#%{_datadir}/doc/hipercontracer/examples/login-as-importer
+#%{_datadir}/doc/hipercontracer/examples/login-as-researcher
+#%{_datadir}/doc/hipercontracer/examples/procedures.sql
+#%{_datadir}/doc/hipercontracer/examples/schema.sql
+#%{_datadir}/doc/hipercontracer/examples/users.sql
 
 %doc
 
