@@ -1,3 +1,21 @@
+commit 47a8d7c968b8bff89525fe8e38b9bae59e3d934b
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Mon Nov 20 15:40:19 2017 +0100
+
+    Some clean-ups.
+
+commit 88f5c93e25cb4512b9745dbddb310d7fd8d4a394
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Sun Nov 19 19:39:52 2017 +0100
+
+    Minor updates.
+
+commit 31113addfb6eeb00395df4071ddab3d65372ee57
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Sun Nov 19 11:23:31 2017 +0100
+
+    Minor fixes.
+
 commit 0b513531e8598e5014ac1cab0ea56fc2ed7e7817
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Sun Nov 19 10:54:57 2017 +0100
