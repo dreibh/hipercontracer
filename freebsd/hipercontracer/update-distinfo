@@ -1,0 +1,20 @@
+#!/bin/bash -e
+
+PORTNAME=`grep "PORTNAME=" Makefile | gsed -e 's/^.*=//g' -e 's/[ \t]*//g'`
+PORTVERSION=`grep "PORTVERSION=" Makefile | gsed -e 's/^.*=//g' -e 's/[ \t]*//g'`
+LOCATION=`grep "MASTER_SITES=" Makefile | gsed -e 's/^.*=//g' -e 's/[ \t]*//g'`
+
+echo "PORTNAME:    $PORTNAME"
+echo "PORTVERSION: $PORTVERSION"
+echo "LOCATION:    $LOCATION"
+
+if [ ! -e "/usr/ports/distfiles/$PORTNAME-$PORTVERSION.tar.gz" ] ; then
+   wget "$LOCATION/$PORTNAME-$PORTVERSION.tar.gz"
+   echo "Copying $PORTNAME-$PORTVERSION.tar.gz to /usr/ports/distfiles/ ..."
+   sudo mv "$PORTNAME-$PORTVERSION.tar.gz" /usr/ports/distfiles/
+fi
+
+echo "Updating checksum ..."
+make makesum
+
+echo "Done!"
