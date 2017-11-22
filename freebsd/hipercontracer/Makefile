@@ -2,9 +2,9 @@
 # $FreeBSD$
 
 PORTNAME=	hipercontracer
-PORTVERSION=	1.1.3
+PORTVERSION=	1.1.4
 CATEGORIES=	benchmarks
-MASTER_SITES=	http://www.uni-due.de/~be0001/hipercontracer/download/
+MASTER_SITES=	https://www.uni-due.de/~be0001/hipercontracer/download/
 
 MAINTAINER=	dreibh@iem.uni-due.de
 COMMENT=	High-Performance Connectivity Tracer (HiPerConTracer)
