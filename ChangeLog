@@ -1,3 +1,40 @@
+commit 72f51f312ed16d9b2da10ce4038d35bfc4724bfd
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Nov 22 16:32:27 2017 +0100
+
+    Fedora build fixes.
+
+commit d081dec4848b42fc12b97ba35f22d69993cebb13
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Mon Nov 20 18:35:24 2017 +0100
+
+    Updated RPM spec file.
+
+commit 1d8a03f6b507a327a6daf52d6eb2901416fb8daf
+Merge: 4082fc7 b835b56
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Mon Nov 20 18:26:41 2017 +0100
+
+    Merge branch 'freebsd'
+
+commit b835b56b612eb8dabd177aa72536d2dc12b918c2
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Mon Nov 20 18:26:15 2017 +0100
+
+    Updated FreeBSD port.
+
+commit 4082fc75fca1922bdfbb4f38295f590ca8d95dbf
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Mon Nov 20 16:33:03 2017 +0100
+
+    Updated LSM entry.
+
+commit a1019467666cb0ea760644dd9ebf9476c1a268ca
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Mon Nov 20 16:31:07 2017 +0100
+
+    Version bump.
+
 commit 47a8d7c968b8bff89525fe8e38b9bae59e3d934b
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Mon Nov 20 15:40:19 2017 +0100
