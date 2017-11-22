@@ -157,7 +157,7 @@ for DISTRIBUTION in $DISTRIBUTIONS ; do
    mock -r $DISTRIBUTION --init
    mock -r $DISTRIBUTION --installdeps $PACKAGE_SRPM
    mock -r $DISTRIBUTION --install openssl pesign
-   mock -r $DISTRIBUTION --no-clean --rebuild $PACKAGE_SRPM
+   mock -r $DISTRIBUTION --no-clean --no-cleanup-after --rebuild $PACKAGE_SRPM
 
    # Check whether files are at the right location
    PACKAGE_RPMS=`find /var/lib/mock/$DISTRIBUTION/result -name "$PACKAGE-*$PACKAGE_VERSION*-*.rpm" | grep -v "$PACKAGE-*$PACKAGE_VERSION*-*.src.rpm" || true`

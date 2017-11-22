@@ -53,7 +53,7 @@ INSTALL(FILES tracedataimporter.1 addressinfogenerator.1
 #################################################
 
 INSTALL(FILES hipercontracer-database-configuration
-        DESTINATION ${CMAKE_INSTALL_DATADIR_DOC}/doc/hipercontracer/examples)
+        DESTINATION ${CMAKE_INSTALL_DATADIR}/doc/hipercontracer/examples)
 
 
 #################################################
