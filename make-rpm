@@ -36,7 +36,7 @@ while [ x$1 != "x" ] ; do \
 done \
 ) | sort -u`
 if [ "$DISTRIBUTIONS" == "" ] ; then
-   DISTRIBUTIONS="fedora-26-x86_64"
+   DISTRIBUTIONS="fedora-27-x86_64"
 fi
 
 PACKAGE=`grep "^Name:" rpm/*.spec | head -n1 | sed -e "s/Name://g" -e "s/[ \t]*//g"`
