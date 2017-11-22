@@ -1,7 +1,7 @@
 Begin4
 Title:          hipercontracer
-Version:        1.1.3
-Entered-date:   2017-11-20
+Version:        1.1.4
+Entered-date:   2017-11-22
 Description:    High-Performance Connectivity Tracer (HiPerConTracer) is a
                 ping/traceroute service. It performs regular ping and
                 traceroute runs among sites and can export the results into
@@ -10,7 +10,7 @@ Keywords:       Ping, Traceroute, Connectivity, Measurements
 Author:         dreibh@iem.uni-due.de (Thomas Dreibholz)
 Maintained-by:  dreibh@iem.uni-due.de (Thomas Dreibholz)
 Primary-site:   https://www.uni-due.de/~be0001/hipercontracer
-                83 kB download/hipercontracer-1.1.3.tar.gz
+                83 kB download/hipercontracer-1.1.4.tar.gz
 Original-site:  https://www.uni-due.de/~be0001/hipercontracer
 Platforms:      Linux
 Copying-policy: GPL
