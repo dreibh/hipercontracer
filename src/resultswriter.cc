@@ -78,7 +78,6 @@ bool ResultsWriter::changeFile(const bool createNewFile)
 {
    // ====== Close current file =============================================
    if(OutputFile.is_open()) {
-      OutputStream << ";" << std::endl;
       OutputStream.reset();
       OutputFile.close();
       try {

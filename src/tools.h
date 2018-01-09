@@ -35,7 +35,7 @@
 #include <boost/date_time/posix_time/posix_time.hpp>
 
 
-uint64_t secondsSinceEpoch(const boost::posix_time::ptime& time);
+uint64_t usSinceEpoch(const boost::posix_time::ptime& time);
 
 
 #endif

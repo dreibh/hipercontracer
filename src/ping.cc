@@ -135,10 +135,10 @@ void Ping::processResults()
 
          if(ResultsOutput) {
             ResultsOutput->insert(
-               str(boost::format("#P %s %s %s %d %d")
+               str(boost::format("#P %s %s %x %d %d")
                   % SourceAddress.to_string()
                   % resultEntry->address().to_string()
-                  % secondsSinceEpoch(resultEntry->sendTime())
+                  % usSinceEpoch(resultEntry->sendTime())
                   % resultEntry->status()
                   % (resultEntry->receiveTime() - resultEntry->sendTime()).total_microseconds()
             ));

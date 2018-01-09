@@ -33,7 +33,7 @@
 
 
 // ###### Convert ptime to microseconds since the epoch #####################
-uint64_t secondsSinceEpoch(const boost::posix_time::ptime& time)
+uint64_t usSinceEpoch(const boost::posix_time::ptime& time)
 {
    const static boost::posix_time::ptime epoch     = boost::posix_time::from_time_t(0);
    const boost::posix_time::time_duration duration = time - epoch;

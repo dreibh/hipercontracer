@@ -30,6 +30,7 @@
 // Contact: dreibh@simula.no
 
 #include "traceroute.h"
+#include "tools.h"
 
 #include "icmpheader.h"
 #include "ipv4header.h"
@@ -430,7 +431,7 @@ int Traceroute::compareTracerouteResults(const ResultEntry* a, const ResultEntry
 // ###### Process results ###################################################
 void Traceroute::processResults()
 {
-   std::string timeStamp;
+   uint64_t timeStamp = 0;
 
    // ====== Sort results ===================================================
    std::vector<ResultEntry*> resultsVector;
@@ -504,6 +505,7 @@ void Traceroute::processResults()
          std::cout << "Round " << round << ":" << std::endl;
       }
 
+      bool writeHeader = true;
       for(std::vector<ResultEntry*>::iterator iterator = resultsVector.begin(); iterator != resultsVector.end(); iterator++) {
          ResultEntry* resultEntry = *iterator;
          if(resultEntry->round() == round) {
@@ -512,24 +514,30 @@ void Traceroute::processResults()
             }
 
             if(ResultsOutput) {
-               if(timeStamp.empty()) {
+               if(timeStamp == 0) {
                   // Time stamp for this traceroute run is the first entry's send time!
                   // => Necessary, in order to ensure that all entries have the same time stamp.
-                  timeStamp = boost::posix_time::to_iso_extended_string(resultEntry->sendTime());
+                  timeStamp = usSinceEpoch(resultEntry->sendTime());
+               }
+
+               if(writeHeader) {
+                  ResultsOutput->insert(
+                     str(boost::format("#T %s %s %x %d")
+                        % SourceAddress.to_string()
+                        % (*DestinationAddressIterator).to_string()
+                        % timeStamp
+                        % round
+                  ));
+                  writeHeader = false;
                }
 
                ResultsOutput->insert(
-                  str(boost::format("'%s','%s','%s',%d,%d,%d,%d,'%s',%d,%d")
-                     % timeStamp
-                     % SourceAddress.to_string()
-                     % (*DestinationAddressIterator).to_string()
+                  str(boost::format("\t %d %d %d %s %x")
                      % resultEntry->hop()
-                     % totalHops
                      % ((unsigned int)resultEntry->status() | statusFlags)
                      % (resultEntry->receiveTime() - resultEntry->sendTime()).total_microseconds()
                      % resultEntry->address().to_string()
                      % (int64_t)checksum
-                     % round
                ));
             }
 
