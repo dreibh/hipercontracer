@@ -37,7 +37,7 @@
 class Ping : public Traceroute
 {
    public:
-   Ping(SQLWriter*                               sqlWriter,
+   Ping(ResultsWriter*                           resultsWriter,
         const bool                               verboseMode,
         const boost::asio::ip::address&          sourceAddress,
         const std::set<boost::asio::ip::address> destinationAddressArray,

@@ -36,7 +36,7 @@ INCLUDE_DIRECTORIES(.)
 # PROGRAMS
 #############################################################################
 
-ADD_EXECUTABLE(hipercontracer hipercontracer.cc traceroute.cc sqlwriter.cc ping.cc)
+ADD_EXECUTABLE(hipercontracer hipercontracer.cc traceroute.cc resultswriter.cc ping.cc)
 TARGET_LINK_LIBRARIES(hipercontracer ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
 INSTALL(TARGETS hipercontracer RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
 INSTALL(FILES hipercontracer.1 DESTINATION ${CMAKE_INSTALL_MANDIR}/man1)

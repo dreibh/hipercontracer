@@ -12,7 +12,6 @@ sudo ./hipercontracer \
    -tracerouteinitialmaxttl=4 \
    -traceroutefinalmaxttl=32 \
    -tracerouteincrementmaxttl=4 \
-   -sqltraceroutetable=Traceroute \
-   -sqldirectory=/tmp/xy \
-   -sqltransactionlength=20 \
+   -resultsdirectory=/tmp/xy \
+   -resultstransactionlength=20 \
    $@

@@ -29,8 +29,8 @@
 //
 // Contact: dreibh@simula.no
 
-#ifndef SQLWRITER_H
-#define SQLWRITER_H
+#ifndef RESULTSWRITER_H
+#define RESULTSWRITER_H
 
 #include <string>
 #include <fstream>
@@ -40,14 +40,14 @@
 #include <boost/iostreams/filtering_stream.hpp>
 
 
-class SQLWriter
+class ResultsWriter
 {
    public:
-   SQLWriter(const std::string& directory,
-             const std::string& uniqueID,
-             const std::string& tableName,
-             const unsigned int transactionLength);
-   virtual ~SQLWriter();
+   ResultsWriter(const std::string& directory,
+                 const std::string& uniqueID,
+                 const std::string& formatName,
+                 const unsigned int transactionLength);
+   virtual ~ResultsWriter();
 
    bool prepare();
    bool changeFile(const bool createNewFile = true);
@@ -57,7 +57,7 @@ class SQLWriter
    protected:
    const boost::filesystem::path       Directory;
    const std::string                   UniqueID;
-   const std::string                   TableName;
+   const std::string                   FormatName;
    const unsigned int                  TransactionLength;
    boost::filesystem::path             TempFileName;
    boost::filesystem::path             TargetFileName;

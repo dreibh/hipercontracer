@@ -29,7 +29,7 @@
 //
 // Contact: dreibh@simula.no
 
-#include "sqlwriter.h"
+#include "resultswriter.h"
 
 #include <boost/format.hpp>
 #include <boost/iostreams/filtering_streambuf.hpp>
@@ -37,13 +37,13 @@
 
 
 // ###### Constructor #######################################################
-SQLWriter::SQLWriter(const std::string& directory,
-                     const std::string& uniqueID,
-                     const std::string& tableName,
-                     const unsigned int transactionLength)
+ResultsWriter::ResultsWriter(const std::string& directory,
+                             const std::string& uniqueID,
+                             const std::string& formatName,
+                             const unsigned int transactionLength)
    : Directory(directory),
      UniqueID(uniqueID),
-     TableName(tableName),
+     FormatName(formatName),
      TransactionLength(transactionLength)
 {
    Inserts   = 0;
@@ -52,14 +52,14 @@ SQLWriter::SQLWriter(const std::string& directory,
 
 
 // ###### Destructor ########################################################
-SQLWriter::~SQLWriter()
+ResultsWriter::~ResultsWriter()
 {
    changeFile(false);
 }
 
 
 // ###### Prepare directories ###############################################
-bool SQLWriter::prepare()
+bool ResultsWriter::prepare()
 {
    try {
       boost::filesystem::create_directory(Directory);
@@ -74,7 +74,7 @@ bool SQLWriter::prepare()
 
 
 // ###### Change output file ################################################
-bool SQLWriter::changeFile(const bool createNewFile)
+bool ResultsWriter::changeFile(const bool createNewFile)
 {
    // ====== Close current file =============================================
    if(OutputFile.is_open()) {
@@ -92,7 +92,7 @@ bool SQLWriter::changeFile(const bool createNewFile)
          }
       }
       catch(std::exception const& e) {
-         std::cerr << "ERROR: SQLWriter::changeFile() - " << e.what() << std::endl;
+         std::cerr << "ERROR: ResultsWriter::changeFile() - " << e.what() << std::endl;
       }
    }
 
@@ -101,7 +101,7 @@ bool SQLWriter::changeFile(const bool createNewFile)
    SeqNumber++;
    if(createNewFile) {
       try {
-         const std::string name = UniqueID + str(boost::format("-%09d.sql.bz2") % SeqNumber);
+         const std::string name = UniqueID + str(boost::format("-%09d.results.bz2") % SeqNumber);
          TempFileName   = Directory / "tmp" / name;
          TargetFileName = Directory / name;
          OutputFile.open(TempFileName.c_str(), std::ios_base::out | std::ios_base::binary);
@@ -111,7 +111,7 @@ bool SQLWriter::changeFile(const bool createNewFile)
          return(OutputStream.good());
       }
       catch(std::exception const& e) {
-         std::cerr << "ERROR: SQLWriter::changeFile() - " << e.what() << std::endl;
+         std::cerr << "ERROR: ResultsWriter::changeFile() - " << e.what() << std::endl;
          return(false);
       }
    }
@@ -120,7 +120,7 @@ bool SQLWriter::changeFile(const bool createNewFile)
 
 
 // ###### Start new transaction, if transaction length has been reached #####
-bool SQLWriter::mayStartNewTransaction()
+bool ResultsWriter::mayStartNewTransaction()
 {
    const boost::posix_time::ptime now = boost::posix_time::microsec_clock::universal_time();
    if((unsigned int)(now - OutputCreationTime).total_seconds() > TransactionLength) {
@@ -131,10 +131,10 @@ bool SQLWriter::mayStartNewTransaction()
 
 
 // ###### Generate INSERT statement #########################################
-void SQLWriter::insert(const std::string& tuple)
+void ResultsWriter::insert(const std::string& tuple)
 {
    if(Inserts == 0) {
-      OutputStream << "INSERT INTO " << TableName << " VALUES";
+      OutputStream << "INSERT INTO " << FormatName << " VALUES";
    }
    OutputStream << ((Inserts > 0) ? ",\n" : "\n") << "(" << tuple << ")";
    Inserts++;

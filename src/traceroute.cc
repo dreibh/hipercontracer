@@ -75,7 +75,7 @@ std::ostream& operator<<(std::ostream& os, const ResultEntry& resultEntry)
 
 
 // ###### Constructor #######################################################
-Traceroute::Traceroute(SQLWriter*                               sqlWriter,
+Traceroute::Traceroute(ResultsWriter*                           resultsWriter,
                        const bool                               verboseMode,
                        const boost::asio::ip::address&          sourceAddress,
                        const std::set<boost::asio::ip::address> destinationAddressArray,
@@ -85,7 +85,7 @@ Traceroute::Traceroute(SQLWriter*                               sqlWriter,
                        const unsigned int                       initialMaxTTL,
                        const unsigned int                       finalMaxTTL,
                        const unsigned int                       incrementMaxTTL)
-   : SQLOutput(sqlWriter),
+   : ResultsOutput(resultsWriter),
      VerboseMode(verboseMode),
      Interval(interval),
      Expiration(expiration),
@@ -268,8 +268,8 @@ void Traceroute::scheduleIntervalEvent()
    }
 
    // ====== Check, whether it is time for starting a new transaction =======
-   if(SQLOutput) {
-      SQLOutput->mayStartNewTransaction();
+   if(ResultsOutput) {
+      ResultsOutput->mayStartNewTransaction();
    }
 }
 
@@ -511,14 +511,14 @@ void Traceroute::processResults()
                std::cout << *resultEntry << std::endl;
             }
 
-            if(SQLOutput) {
+            if(ResultsOutput) {
                if(timeStamp.empty()) {
                   // Time stamp for this traceroute run is the first entry's send time!
                   // => Necessary, in order to ensure that all entries have the same time stamp.
                   timeStamp = boost::posix_time::to_iso_extended_string(resultEntry->sendTime());
                }
 
-               SQLOutput->insert(
+               ResultsOutput->insert(
                   str(boost::format("'%s','%s','%s',%d,%d,%d,%d,'%s',%d,%d")
                      % timeStamp
                      % SourceAddress.to_string()

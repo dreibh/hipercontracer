@@ -34,7 +34,7 @@
 
 #include "service.h"
 #include "icmpheader.h"
-#include "sqlwriter.h"
+#include "resultswriter.h"
 
 #include <set>
 
@@ -128,7 +128,7 @@ class ResultEntry {
 class Traceroute : virtual public Service
 {
    public:
-   Traceroute(SQLWriter*                               sqlWriter,
+   Traceroute(ResultsWriter*                           resultsWriter,
               const bool                               verboseMode,
               const boost::asio::ip::address&          sourceAddress,
               const std::set<boost::asio::ip::address> destinationAddressArray,
@@ -176,7 +176,7 @@ class Traceroute : virtual public Service
    unsigned int getInitialMaxTTL(const boost::asio::ip::address& destinationAddress) const;
    static unsigned long long ptimeToMircoTime(const boost::posix_time::ptime t);
 
-   SQLWriter*                            SQLOutput;
+   ResultsWriter*                        ResultsOutput;
    const bool                            VerboseMode;
    const unsigned long long              Interval;
    const unsigned int                    Expiration;

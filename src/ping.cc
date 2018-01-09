@@ -39,14 +39,14 @@
 
 
 // ###### Constructor #######################################################
-Ping::Ping(SQLWriter*                               sqlWriter,
+Ping::Ping(ResultsWriter*                           resultsWriter,
            const bool                               verboseMode,
            const boost::asio::ip::address&          sourceAddress,
            const std::set<boost::asio::ip::address> destinationAddressArray,
            const unsigned long long                 interval,
            const unsigned int                       expiration,
            const unsigned int                       ttl)
-   : Traceroute(sqlWriter, verboseMode,
+   : Traceroute(resultsWriter, verboseMode,
                 sourceAddress, destinationAddressArray,
                 interval, expiration, ttl, ttl, ttl)
 {
@@ -92,8 +92,8 @@ void Ping::scheduleTimeoutEvent()
    TimeoutTimer.async_wait(boost::bind(&Ping::handleTimeoutEvent, this, _1));
 
    // ====== Check, whether it is time for starting a new transaction =======
-   if(SQLOutput) {
-      SQLOutput->mayStartNewTransaction();
+   if(ResultsOutput) {
+      ResultsOutput->mayStartNewTransaction();
    }
 }
 
@@ -133,8 +133,8 @@ void Ping::processResults()
             std::cout << *resultEntry << std::endl;
          }
 
-         if(SQLOutput) {
-            SQLOutput->insert(
+         if(ResultsOutput) {
+            ResultsOutput->insert(
                str(boost::format("'%s','%s','%s',%d,%d")
                   % boost::posix_time::to_iso_extended_string(resultEntry->sendTime())
                   % SourceAddress.to_string()
