@@ -18,114 +18,147 @@ def error(logstring):
    sys.exit(1)
 
 
-#inputFile = bz2.open('/tmp/xy/Ping-172.16.0.206-20180109T132910.765228-000000001.results.bz2', 'rt')
-inputFile = bz2.open('/tmp/xy/Traceroute-172.16.0.206-20180109T150554.750443-000000002.results.bz2', 'rt')
 
-output = {}
-
+# ###### Read input and prepare output ######################################
 
 # Input types:
 IT_NONE       = 0
 IT_PING       = 1
 IT_TRACEROUTE = 2
 
+# Output types:
+OT_POSTGRES   = 1
+OT_MONGODB    = 2
 
-inputType = IT_NONE
-lineNumber = 0
-for inputLine in inputFile.readlines():
-   lineNumber = lineNumber + 1
-   tuples = inputLine.rstrip().split(' ')
-   if len(tuples) > 0:
-      # ====== Ping =========================================================
-      if tuples[0] == '#P':
-         if len(tuples) >= 6:
-            if inputType == IT_NONE:
-               inputType = IT_PING
-            elif inputType != IT_PING:
-               error('Multiple input types in the same file?!')
+def processInput(inputFile, outputType):
+   inputType  = IT_NONE
+   lineNumber = 0
+   output     = {}
+   for inputLine in inputFile.readlines():
+      lineNumber = lineNumber + 1
+      tuples = inputLine.rstrip().split(' ')
+      if len(tuples) > 0:
+         # ====== Ping ======================================================
+         if tuples[0] == '#P':
+            if len(tuples) >= 6:
+               # ------ Handle input ----------------------------------------
+               if inputType == IT_NONE:
+                  inputType = IT_PING
+               elif inputType != IT_PING:
+                  error('Multiple input types in the same file?!')
 
-            sourceIP      = ip_address(tuples[1])
-            destinationIP = ip_address(tuples[2])
-            timeStamp     = int(tuples[3], 16)
-            status        = int(tuples[4])
-            rtt           = int(tuples[5])
+               sourceIP      = ip_address(tuples[1])
+               destinationIP = ip_address(tuples[2])
+               timeStamp     = int(tuples[3], 16)
+               status        = int(tuples[4])
+               rtt           = int(tuples[5])
 
-            assert ('0x' + tuples[3]) == hex(timeStamp)
-            timeStampDT  = datetime.datetime(1970, 1, 1, 0, 0, 0, 0) +  datetime.timedelta(microseconds = timeStamp)
-            timeStampStr = timeStampDT.strftime("%Y%m%dT%H%M%S.%f")
-            # print('ping', sourceIP, destinationIP, timeStampStr, status, rtt)
+               assert ('0x' + tuples[3]) == hex(timeStamp)
+               timeStampDT  = datetime.datetime(1970, 1, 1, 0, 0, 0, 0) +  datetime.timedelta(microseconds = timeStamp)
+               timeStampStr = timeStampDT.strftime("%Y%m%dT%H%M%S.%f")
+               # print('ping', sourceIP, destinationIP, timeStampStr, status, rtt)
 
-            output[str(sourceIP) + '-' + str(destinationIP) + '-' + str(timeStamp)] = '(' + \
-               '\'' + timeStampStr       + '\',' + \
-               '\'' + str(sourceIP)      + '\',' + \
-               '\'' + str(destinationIP) + '\',' + \
-               str(status) + ',' + \
-               str(rtt) + \
-               ')'
+               # ------ Generate output -------------------------------------
+               if outputType == OT_POSTGRES:
+                  output[str(sourceIP) + '-' + str(destinationIP) + '-' + str(timeStamp)] = '(' + \
+                     '\'' + timeStampStr       + '\',' + \
+                     '\'' + str(sourceIP)      + '\',' + \
+                     '\'' + str(destinationIP) + '\',' + \
+                     str(status) + ',' + \
+                     str(rtt) + \
+                     ')'
+
+            else:
+               error('Bad input for Ping in line ' + str(lineNumber))
+
+
+         # ====== Traceroute ================================================
+         elif tuples[0] == '#T':
+            if len(tuples) >= 7:
+               # ------ Handle input ----------------------------------------
+               if inputType == IT_NONE:
+                  inputType = IT_TRACEROUTE
+               elif inputType != IT_TRACEROUTE:
+                  error('Multiple input types in the same file?!')
+
+               sourceIP      = ip_address(tuples[1])
+               destinationIP = ip_address(tuples[2])
+               timeStamp     = int(tuples[3], 16)
+               roundNumber   = int(tuples[4])
+               totalHops     = int(tuples[5])
+               pathHash      = int(tuples[6], 16)
+
+               assert ('0x' + tuples[3]) == hex(timeStamp)
+               assert ('0x' + tuples[6]) == hex(pathHash)
+               timeStampDT  = datetime.datetime(1970, 1, 1, 0, 0, 0, 0) +  datetime.timedelta(microseconds = timeStamp)
+               timeStampStr = timeStampDT.strftime("%Y%m%dT%H%M%S.%f")
+               # print('traceroute', sourceIP, destinationIP, timeStampStr, roundNumber, pathHash)
+
+            else:
+               error('Bad input for Traceroute in line ' + str(lineNumber))
+
+
+         elif ((tuples[0] == '\t') and (inputType == IT_TRACEROUTE)):
+            if len(tuples) >= 4:
+               # ------ Handle input ----------------------------------------
+               hopNumber = int(tuples[1])
+               status    = int(tuples[2])
+               rtt       = int(tuples[3])
+               hopIP     = ip_address(tuples[4])
+
+               assert hopNumber <= totalHops
+               # print('\t', hopNumber, status, rtt, hopIP)
+
+               # ------ Generate output -------------------------------------
+               if outputType == OT_POSTGRES:
+                  output[str(sourceIP) + '-' + str(destinationIP) + '-' + str(timeStamp) + '-' + str(roundNumber) + str(hopNumber)] = '(' + \
+                     '\'' + timeStampStr       + '\',' + \
+                     '\'' + str(sourceIP)      + '\',' + \
+                     '\'' + str(destinationIP) + '\',' + \
+                     str(hopNumber) + ',' + \
+                     str(totalHops) + ',' + \
+                     str(status) + ',' + \
+                     str(rtt) + ',' + \
+                     '\'' + str(hopIP) + '\',' + \
+                     hex(pathHash) + ',' + \
+                     str(roundNumber) + \
+                     ')'
+
+            else:
+               error('Bad input for Traceroute in line ' + str(lineNumber))
+
+         # ====== Error =====================================================
          else:
-            error('Bad input for Ping in line ' + str(lineNumber))
+            error('Unexpected input in line ' + str(lineNumber))
 
 
-      # ====== Traceroute ===================================================
-      elif tuples[0] == '#T':
-         if len(tuples) >= 7:
-            if inputType == IT_NONE:
-               inputType = IT_TRACEROUTE
-            elif inputType != IT_TRACEROUTE:
-               error('Multiple input types in the same file?!')
+   # ====== Sort result =====================================================
+   resultsList = sorted(output.items(), key=operator.itemgetter(0))
 
-            sourceIP      = ip_address(tuples[1])
-            destinationIP = ip_address(tuples[2])
-            timeStamp     = int(tuples[3], 16)
-            roundNumber   = int(tuples[4])
-            totalHops     = int(tuples[5])
-            pathHash      = int(tuples[6], 16)
+   # ====== Generate output string ==========================================
+   outputString = ""
+   if outputType == OT_POSTGRES:
+      if inputType == IT_PING:
+         outputString = 'INSERT INTO Ping VALUES '
+      elif inputType == IT_TRACEROUTE:
+         outputString = 'INSERT INTO Traceroute VALUES '
 
-            assert ('0x' + tuples[3]) == hex(timeStamp)
-            assert ('0x' + tuples[6]) == hex(pathHash)
-            timeStampDT  = datetime.datetime(1970, 1, 1, 0, 0, 0, 0) +  datetime.timedelta(microseconds = timeStamp)
-            timeStampStr = timeStampDT.strftime("%Y%m%dT%H%M%S.%f")
-            print('traceroute', sourceIP, destinationIP, timeStampStr, roundNumber, pathHash)
-
+      firstItem = True
+      for result in resultsList:
+         if firstItem:
+            outputString = outputString + '\n' + result[1]
+            firstItem = False
          else:
-            error('Bad input for Traceroute in line ' + str(lineNumber))
+            outputString = outputString + ',\n' + result[1]
 
-          
-      elif ((tuples[0] == '\t') and (inputType == IT_TRACEROUTE)):
-         if len(tuples) >= 4:
-            hopNumber = int(tuples[1])
-            status    = int(tuples[2])
-            rtt       = int(tuples[3])
-            hopIP     = ip_address(tuples[4])
-            
-            assert hopNumber <= totalHops
-            print('\t', hopNumber, status, rtt, hopIP)
+      outputString = outputString + ';'
 
-            output[str(sourceIP) + '-' + str(destinationIP) + '-' + str(timeStamp) + '-' + str(roundNumber) + str(hopNumber)] = '(' + \
-               '\'' + timeStampStr       + '\',' + \
-               '\'' + str(sourceIP)      + '\',' + \
-               '\'' + str(destinationIP) + '\',' + \
-               str(hopNumber) + ',' + \
-               str(totalHops) + ',' + \
-               str(status) + ',' + \
-               str(rtt) + ',' + \
-               '\'' + str(hopIP) + '\',' + \
-               hex(pathHash) + ',' + \
-               str(roundNumber) + \
-               ')'
-
-         else:
-            error('Bad input for Traceroute in line ' + str(lineNumber))
-          
-      # ====== Error ========================================================
-      else:
-         print("xx"+tuples[0]+'YY')
-         error('Unexpected input in line ' + str(lineNumber))
+   print(outputString)
 
 
-#if inputType == 'Ping':
-   
 
-result = sorted(output.items(), key=operator.itemgetter(0))
-for r in result:
-   print(r[1])
+#inputFile = bz2.open('/tmp/xy/Ping-172.16.0.206-20180109T132910.765228-000000001.results.bz2', 'rt')
+inputFile = bz2.open('/tmp/xy/Traceroute-172.16.0.206-20180109T150554.750443-000000002.results.bz2', 'rt')
+
+
+processInput(inputFile, OT_POSTGRES)
