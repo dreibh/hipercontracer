@@ -30,12 +30,12 @@
 // Contact: dreibh@simula.no
 
 #include "ping.h"
+#include "tools.h"
 
 #include <netinet/in.h>
 #include <netinet/ip.h>
 
 #include <boost/format.hpp>
-#include <boost/date_time/posix_time/posix_time.hpp>
 
 
 // ###### Constructor #######################################################
@@ -135,10 +135,10 @@ void Ping::processResults()
 
          if(ResultsOutput) {
             ResultsOutput->insert(
-               str(boost::format("'%s','%s','%s',%d,%d")
-                  % boost::posix_time::to_iso_extended_string(resultEntry->sendTime())
+               str(boost::format("#P %s %s %s %d %d")
                   % SourceAddress.to_string()
                   % resultEntry->address().to_string()
+                  % secondsSinceEpoch(resultEntry->sendTime())
                   % resultEntry->status()
                   % (resultEntry->receiveTime() - resultEntry->sendTime()).total_microseconds()
             ));

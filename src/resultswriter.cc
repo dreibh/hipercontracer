@@ -133,9 +133,6 @@ bool ResultsWriter::mayStartNewTransaction()
 // ###### Generate INSERT statement #########################################
 void ResultsWriter::insert(const std::string& tuple)
 {
-   if(Inserts == 0) {
-      OutputStream << "INSERT INTO " << FormatName << " VALUES";
-   }
-   OutputStream << ((Inserts > 0) ? ",\n" : "\n") << "(" << tuple << ")";
+   OutputStream << tuple << std::endl;
    Inserts++;
 }
