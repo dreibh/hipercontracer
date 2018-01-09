@@ -522,22 +522,23 @@ void Traceroute::processResults()
 
                if(writeHeader) {
                   ResultsOutput->insert(
-                     str(boost::format("#T %s %s %x %d")
+                     str(boost::format("#T %s %s %x %d %d %x")
                         % SourceAddress.to_string()
                         % (*DestinationAddressIterator).to_string()
                         % timeStamp
                         % round
+                        % totalHops
+                        % (int64_t)checksum
                   ));
                   writeHeader = false;
                }
 
                ResultsOutput->insert(
-                  str(boost::format("\t %d %d %d %s %x")
+                  str(boost::format("\t %d %d %d %s")
                      % resultEntry->hop()
                      % ((unsigned int)resultEntry->status() | statusFlags)
                      % (resultEntry->receiveTime() - resultEntry->sendTime()).total_microseconds()
                      % resultEntry->address().to_string()
-                     % (int64_t)checksum
                ));
             }
 
