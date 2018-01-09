@@ -54,6 +54,143 @@ def error(logstring):
    sys.exit(1)
 
 
+# ###### Read input and prepare output ######################################
+
+# Input types:
+IT_NONE       = 0
+IT_PING       = 1
+IT_TRACEROUTE = 2
+
+# Output types:
+OT_POSTGRES   = 1
+OT_MONGODB    = 2
+
+def processInput(inputFile, outputType):
+   inputType  = IT_NONE
+   lineNumber = 0
+   output     = {}
+   for inputLine in inputFile.readlines():
+      lineNumber = lineNumber + 1
+      tuples = inputLine.rstrip().split(' ')
+      if len(tuples) > 0:
+         # ====== Ping ======================================================
+         if tuples[0] == '#P':
+            if len(tuples) >= 6:
+               # ------ Handle input ----------------------------------------
+               if inputType == IT_NONE:
+                  inputType = IT_PING
+               elif inputType != IT_PING:
+                  raise Exception('Multiple input types in the same file?!')
+
+               sourceIP      = ip_address(tuples[1])
+               destinationIP = ip_address(tuples[2])
+               timeStamp     = int(tuples[3], 16)
+               status        = int(tuples[4])
+               rtt           = int(tuples[5])
+
+               assert ('0x' + tuples[3]) == hex(timeStamp)
+               timeStampDT  = datetime.datetime(1970, 1, 1, 0, 0, 0, 0) +  datetime.timedelta(microseconds = timeStamp)
+               timeStampStr = timeStampDT.strftime("%Y%m%dT%H%M%S.%f")
+               # print('ping', sourceIP, destinationIP, timeStampStr, status, rtt)
+
+               # ------ Generate output -------------------------------------
+               if outputType == OT_POSTGRES:
+                  output[str(sourceIP) + '-' + str(destinationIP) + '-' + str(timeStamp)] = '(' + \
+                     '\'' + timeStampStr       + '\',' + \
+                     '\'' + str(sourceIP)      + '\',' + \
+                     '\'' + str(destinationIP) + '\',' + \
+                     str(status) + ',' + \
+                     str(rtt) + \
+                     ')'
+
+            else:
+               raise Exception('Bad input for Ping in line ' + str(lineNumber))
+
+
+         # ====== Traceroute ================================================
+         elif tuples[0] == '#T':
+            if len(tuples) >= 7:
+               # ------ Handle input ----------------------------------------
+               if inputType == IT_NONE:
+                  inputType = IT_TRACEROUTE
+               elif inputType != IT_TRACEROUTE:
+                  raise Exception('Multiple input types in the same file?!')
+
+               sourceIP      = ip_address(tuples[1])
+               destinationIP = ip_address(tuples[2])
+               timeStamp     = int(tuples[3], 16)
+               roundNumber   = int(tuples[4])
+               totalHops     = int(tuples[5])
+               pathHash      = int(tuples[6], 16)
+
+               assert ('0x' + tuples[3]) == hex(timeStamp)
+               assert ('0x' + tuples[6]) == hex(pathHash)
+               timeStampDT  = datetime.datetime(1970, 1, 1, 0, 0, 0, 0) +  datetime.timedelta(microseconds = timeStamp)
+               timeStampStr = timeStampDT.strftime("%Y%m%dT%H%M%S.%f")
+               # print('traceroute', sourceIP, destinationIP, timeStampStr, roundNumber, pathHash)
+
+            else:
+               raise Exception('Bad input for Traceroute in line ' + str(lineNumber))
+
+
+         elif ((tuples[0] == '\t') and (inputType == IT_TRACEROUTE)):
+            if len(tuples) >= 4:
+               # ------ Handle input ----------------------------------------
+               hopNumber = int(tuples[1])
+               status    = int(tuples[2])
+               rtt       = int(tuples[3])
+               hopIP     = ip_address(tuples[4])
+
+               assert hopNumber <= totalHops
+               # print('\t', hopNumber, status, rtt, hopIP)
+
+               # ------ Generate output -------------------------------------
+               if outputType == OT_POSTGRES:
+                  output[str(sourceIP) + '-' + str(destinationIP) + '-' + str(timeStamp) + '-' + str(roundNumber) + str(hopNumber)] = '(' + \
+                     '\'' + timeStampStr       + '\',' + \
+                     '\'' + str(sourceIP)      + '\',' + \
+                     '\'' + str(destinationIP) + '\',' + \
+                     str(hopNumber) + ',' + \
+                     str(totalHops) + ',' + \
+                     str(status) + ',' + \
+                     str(rtt) + ',' + \
+                     '\'' + str(hopIP) + '\',' + \
+                     hex(pathHash) + ',' + \
+                     str(roundNumber) + \
+                     ')'
+
+            else:
+               raise Exception('Bad input for Traceroute in line ' + str(lineNumber))
+
+         # ====== Error =====================================================
+         else:
+            raise Exception('Unexpected input in line ' + str(lineNumber))
+
+
+   # ====== Sort result =====================================================
+   resultsList = sorted(output.items(), key=operator.itemgetter(0))
+
+   # ====== Generate output string ==========================================
+   outputString = ""
+   if outputType == OT_POSTGRES:
+      if inputType == IT_PING:
+         outputString = 'INSERT INTO Ping VALUES '
+      elif inputType == IT_TRACEROUTE:
+         outputString = 'INSERT INTO Traceroute VALUES '
+
+      firstItem = True
+      for result in resultsList:
+         if firstItem:
+            outputString = outputString + '\n' + result[1]
+            firstItem = False
+         else:
+            outputString = outputString + ',\n' + result[1]
+
+      outputString = outputString + ';'
+
+   return outputString
+
+
 
 # ###### Main program #######################################################
 if len(sys.argv) < 2:
@@ -152,7 +289,7 @@ for transactionFile in transactionFileList:
       transactionContent = None
       try:
          inputFile = bz2.BZ2File(absTransactionFile, 'r')
-         transactionContent = inputFile.read()
+         transactionContent = processInput(inputFile, OT_POSTGRES)
       except:
          log('Transaction ' + transactionFile + ' cannot be read -> moving it to bad file directory')
          try:
