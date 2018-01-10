@@ -98,6 +98,42 @@ Sets the results files directory. The results will be stored there. If not speci
 .It resultstransactionlength=seconds
 After a given number of seconds, begin a new results file.
 .El
+.\" ###### Output format ####################################################
+.Sh OUTPUT FORMAT
+.Bl -tag -width indent
+.It Ping
+Each Ping entry consists of a #P line.
+.Bl -tag -width indent
+.It #P sourceIP destinationIP timestamp status rtt
+.Bl -tag -width indent
+.It * sourceIP: Source IP address.
+.It * destinationIP: Destination IP address.
+.It * timestamp: Timestamp (microseconds since the UTC epoch).
+.It * status: Status code (hexadecimal; see "HopStatus" in traceroute.h).
+.It * rtt: RTT (milliseconds).
+.El
+.El
+.It Traceroute
+Each Traceroute entry begins with a #T line, plus one TAB-started line per hop.
+.Bl -tag -width indent
+.It #T sourceIP destinationIP timestamp round totalHops statusFlags pathHash
+.Bl -tag -width indent
+.It * sourceIP: Source IP address.
+.It * destinationIP: Destination IP address.
+.It * timestamp: Timestamp (microseconds since the UTC epoch).
+.It * round: Round number.
+.It * totalHops: Total hops.
+.It * statusFlags: Status flags (hexadecimal; see "HopStatus" in traceroute.h).
+.It * pathHash: Hash of the path (hexadecimal).
+.El
+.It (TAB) hopNumber status rtt hopIP
+.Bl -tag -width indent
+.It * hopNumber: Number of the hop.
+.It * status: Status code (hexadecimal; see "HopStatus" in traceroute.h).
+.It * rtt: RTT (milliseconds).
+.It * hopIP: Hop IP address (or destination IP, if there was no response).
+.El
+.El
 .\" ###### Arguments ########################################################
 .Sh EXAMPLES
 .Bl -tag -width indent
