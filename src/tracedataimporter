@@ -152,7 +152,7 @@ def processInput(inputFile, outputType):
 
                # ------ Generate output -------------------------------------
                if outputType == OT_POSTGRES:
-                  output[str(sourceIP) + '-' + str(destinationIP) + '-' + str(timeStamp) + '-' + str(roundNumber) + str(hopNumber)] = '(' + \
+                  output[str(sourceIP) + '-' + str(destinationIP) + '-' + str(timeStamp) + '-' + str(roundNumber).zfill(3) + str(hopNumber).zfill(3)] = '(' + \
                      '\'' + timeStampStr       + '\',' + \
                      '\'' + str(sourceIP)      + '\',' + \
                      '\'' + str(destinationIP) + '\',' + \
