@@ -1,0 +1,10 @@
+#!/bin/sh
+
+echo "###### Creating database #############################################"
+mongo --quiet <database.ms
+
+echo "###### Creating users ################################################"
+mongo --quiet <users.ms
+
+echo "###### Creating collections ##########################################"
+mongo --quiet <schema.ms
