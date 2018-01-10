@@ -123,11 +123,13 @@ def processInput(inputFile, outputType):
                timeStamp     = int(tuples[3], 16)
                roundNumber   = int(tuples[4])
                totalHops     = int(tuples[5])
-               pathHashStr   = tuples[6]
+               statusFlags   = int(tuples[6], 16)
+               pathHashStr   = tuples[7]
                pathHash      = int(pathHashStr, 16)
 
                assert ('0x' + tuples[3]) == hex(timeStamp)
-               assert ('0x' + tuples[6]) == hex(pathHash)
+               assert ('0x' + tuples[6]) == hex(statusFlags)
+               assert ('0x' + tuples[7]) == hex(pathHash)
                timeStampDT  = datetime.datetime(1970, 1, 1, 0, 0, 0, 0) +  datetime.timedelta(microseconds = timeStamp)
                timeStampStr = timeStampDT.strftime("%Y%m%dT%H%M%S.%f")
                # print('traceroute', sourceIP, destinationIP, timeStampStr, roundNumber, pathHash)
@@ -140,11 +142,12 @@ def processInput(inputFile, outputType):
             if len(tuples) >= 4:
                # ------ Handle input ----------------------------------------
                hopNumber = int(tuples[1])
-               status    = int(tuples[2])
+               status    = int(tuples[2], 16)
                rtt       = int(tuples[3])
                hopIP     = ip_address(tuples[4])
 
                assert hopNumber <= totalHops
+               assert ('0x' + tuples[2]) == hex(status)
                # print('\t', hopNumber, status, rtt, hopIP)
 
                # ------ Generate output -------------------------------------
