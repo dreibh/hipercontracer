@@ -1,31 +1,21 @@
-PostgreSQL Setup
-================
+MongoDB 3.x Setup
+=================
 
 Partitioning:
-/var/lib/postgresql is the storage place of the database files.
+/var/lib/mongodb is the storage place of the database files.
+
 
 Package installation:
-sudo apt-get install postgresql postgresql-contrib
+MongoDB is old in Ubuntu 16.04, etc. -> custom repository is needed:
 
-In /etc/postgresql/*/main/pg_hba.conf:
-# ====== NorNet =============================================================
-hostssl all             all             10.0.0.0/8                      md5
-hostssl all             all             2001:700:4100::/48              md5
-hostssl all             all             192.168.0.0/16                  md5
-hostssl all             all             2001:700:4100:ff:ffff::/80      md5
+sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv 2930ADAE8CAF5059EE73BB4B58712A2291FA4AD5
+echo "deb [ arch=amd64,arm64 ] https://repo.mongodb.org/apt/ubuntu xenial/mongodb-org/3.6 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-3.6.list
 
-In /etc/postgresql/*/main/postgresql.conf:
-listen_addresses = '*'
+sudo apt-get install mongodb-org
 
-Fine tuning; add to /etc/postgresql/*/main/postgresql.conf:
-# ====== NorNet =============================================================
-# Tuning: https://wiki.postgresql.org/wiki/Tuning_Your_PostgreSQL_Server
-# Assuming 8192MB RAM here!
-shared_buffers       = 2048MB   # 1/4 of RAM
-effective_cache_size = 4096MB   # 1/2 of RAM
-checkpoint_segments  = 32       # each is 16 MB => 512 MB
-checkpoint_timeout   = 15min
-autovacuum           = on
 
-work_mem             = 32MB
-maintenance_work_mem = 64MB
+In /etc/mongod.conf:
+# network interfaces
+net:
+  port: 27017
+  bindIp: 0.0.0.0
