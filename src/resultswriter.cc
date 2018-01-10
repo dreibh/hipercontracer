@@ -132,6 +132,7 @@ bool ResultsWriter::mayStartNewTransaction()
 // ###### Generate INSERT statement #########################################
 void ResultsWriter::insert(const std::string& tuple)
 {
+   // std::cout << tuple << std::endl;
    OutputStream << tuple << std::endl;
    Inserts++;
 }

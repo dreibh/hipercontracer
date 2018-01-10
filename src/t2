@@ -40,7 +40,7 @@ def processInput(inputFile, outputType):
       if len(tuples) > 0:
          # ====== Ping ======================================================
          if tuples[0] == '#P':
-            if len(tuples) >= 6:
+            if len(tuples) >= 7:
                # ------ Handle input ----------------------------------------
                if inputType == IT_NONE:
                   inputType = IT_PING
@@ -50,10 +50,12 @@ def processInput(inputFile, outputType):
                sourceIP      = ip_address(tuples[1])
                destinationIP = ip_address(tuples[2])
                timeStamp     = int(tuples[3], 16)
-               status        = int(tuples[4])
-               rtt           = int(tuples[5])
+               checksum      = int(tuples[4], 16)
+               status        = int(tuples[5])
+               rtt           = int(tuples[6])
 
                assert ('0x' + tuples[3]) == hex(timeStamp)
+               assert ('0x' + tuples[4]) == hex(checksum)
                timeStampDT  = datetime.datetime(1970, 1, 1, 0, 0, 0, 0) +  datetime.timedelta(microseconds = timeStamp)
                timeStampStr = timeStampDT.strftime("%Y-%m-%dT%H:%M:%S.%f")
                # print('ping', sourceIP, destinationIP, timeStampStr, status, rtt)
@@ -74,7 +76,7 @@ def processInput(inputFile, outputType):
 
          # ====== Traceroute ================================================
          elif tuples[0] == '#T':
-            if len(tuples) >= 7:
+            if len(tuples) >= 9:
                # ------ Handle input ----------------------------------------
                if inputType == IT_NONE:
                   inputType = IT_TRACEROUTE
@@ -85,15 +87,19 @@ def processInput(inputFile, outputType):
                destinationIP = ip_address(tuples[2])
                timeStamp     = int(tuples[3], 16)
                roundNumber   = int(tuples[4])
-               totalHops     = int(tuples[5])
-               pathHashStr   = tuples[6]
+               checksum      = int(tuples[5], 16)
+               totalHops     = int(tuples[6])
+               statusFlags   = int(tuples[7], 16)
+               pathHashStr   = tuples[8]
                pathHash      = int(pathHashStr, 16)
 
                assert ('0x' + tuples[3]) == hex(timeStamp)
-               assert ('0x' + tuples[6]) == hex(pathHash)
+               assert ('0x' + tuples[5]) == hex(checksum)
+               assert ('0x' + tuples[7]) == hex(statusFlags)
+               assert ('0x' + tuples[8]) == hex(pathHash)
                timeStampDT  = datetime.datetime(1970, 1, 1, 0, 0, 0, 0) +  datetime.timedelta(microseconds = timeStamp)
                timeStampStr = timeStampDT.strftime("%Y%m%dT%H%M%S.%f")
-               # print('traceroute', sourceIP, destinationIP, timeStampStr, roundNumber, pathHash)
+               # print('traceroute', sourceIP, destinationIP, timeStampStr, roundNumber, checksum, totalHops, statusFlags, pathHash)
 
             else:
                raise Exception('Bad input for Traceroute in line ' + str(lineNumber))
@@ -103,22 +109,23 @@ def processInput(inputFile, outputType):
             if len(tuples) >= 4:
                # ------ Handle input ----------------------------------------
                hopNumber = int(tuples[1])
-               status    = int(tuples[2])
+               status    = int(tuples[2], 16)
                rtt       = int(tuples[3])
                hopIP     = ip_address(tuples[4])
 
                assert hopNumber <= totalHops
+               assert ('0x' + tuples[2]) == hex(status)
                # print('\t', hopNumber, status, rtt, hopIP)
 
                # ------ Generate output -------------------------------------
                if outputType == OT_POSTGRES:
-                  output[str(sourceIP) + '-' + str(destinationIP) + '-' + str(timeStamp) + '-' + str(roundNumber) + str(hopNumber)] = '(' + \
+                  output[str(sourceIP) + '-' + str(destinationIP) + '-' + str(timeStamp) + '-' + str(roundNumber).zfill(3) + str(hopNumber).zfill(3)] = '(' + \
                      '\'' + timeStampStr       + '\',' + \
                      '\'' + str(sourceIP)      + '\',' + \
                      '\'' + str(destinationIP) + '\',' + \
                      str(hopNumber) + ',' + \
                      str(totalHops) + ',' + \
-                     str(status) + ',' + \
+                     str(status | statusFlags) + ',' + \
                      str(rtt) + ',' + \
                      '\'' + str(hopIP) + '\',' + \
                      'CAST(X\'' + pathHashStr + '\' AS BIGINT),' + \
@@ -159,8 +166,8 @@ def processInput(inputFile, outputType):
 
 
 
-#inputFile = bz2.open('/tmp/xy/Ping-172.16.0.206-20180109T132910.765228-000000001.results.bz2', 'rt')
-inputFile = bz2.open('/tmp/xy/Traceroute-172.16.0.206-20180109T150554.750443-000000002.results.bz2', 'rt')
+inputFile = bz2.open('/tmp/xy/Ping-2a02:270:2014:40:92e2:baff:fe48:bde1-20180110T171605.272348-000000001.results.bz2', 'rt')
+#inputFile = bz2.open('/tmp/xy/Traceroute-172.16.0.206-20180110T171525.311687-000000001.results.bz2', 'rt')
 
 
 outputString = processInput(inputFile, OT_POSTGRES)

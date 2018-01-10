@@ -89,12 +89,13 @@ inline bool statusIsUnreachable(const HopStatus hopStatus)
 
 class ResultEntry {
    public:
-   ResultEntry(const unsigned short           round,
-               const unsigned short           seqNumber,
-               const unsigned int             hop,
-               boost::asio::ip::address       address,
-               const HopStatus                status,
-               const boost::posix_time::ptime sendTime);
+   ResultEntry(const unsigned short            round,
+               const unsigned short            seqNumber,
+               const unsigned int              hop,
+               const uint16_t                  checksum,
+               const boost::posix_time::ptime  sendTime,
+               const boost::asio::ip::address& address,
+               const HopStatus                 status);
 
    inline unsigned int round()                   const { return(Round);       }
    inline unsigned int seqNumber()               const { return(SeqNumber);   }
@@ -104,6 +105,7 @@ class ResultEntry {
    inline boost::posix_time::ptime sendTime()    const { return(SendTime);    }
    inline boost::posix_time::ptime receiveTime() const { return(ReceiveTime); }
    inline boost::posix_time::time_duration rtt() const { return(ReceiveTime - SendTime); }
+   inline uint16_t checksum()                    const { return(Checksum);    }
 
    inline void address(const boost::asio::ip::address address)         { Address = address;         }
    inline void status(const HopStatus status)                          { Status = status;           }
@@ -118,9 +120,11 @@ class ResultEntry {
    const unsigned int             Round;
    const unsigned short           SeqNumber;
    const unsigned int             Hop;
+   const uint16_t                 Checksum;
+   const boost::posix_time::ptime SendTime;
+
    boost::asio::ip::address       Address;
    HopStatus                      Status;
-   const boost::posix_time::ptime SendTime;
    boost::posix_time::ptime       ReceiveTime;
 };
 
@@ -207,6 +211,7 @@ class Traceroute : virtual public Service
    unsigned int                          MinTTL;
    unsigned int                          MaxTTL;
    boost::posix_time::ptime              RunStartTimeStamp;
+   uint32_t*                             TargetChecksumArray;
 
    std::set<boost::asio::ip::address>::iterator DestinationAddressIterator;
 

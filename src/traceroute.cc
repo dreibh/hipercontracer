@@ -46,18 +46,20 @@
 
 
 // ###### Constructor #######################################################
-ResultEntry::ResultEntry(const unsigned short           round,
-                         const unsigned short           seqNumber,
-                         const unsigned int             hop,
-                         boost::asio::ip::address       address,
-                         const HopStatus                status,
-                         const boost::posix_time::ptime sendTime)
+ResultEntry::ResultEntry(const unsigned short            round,
+                         const unsigned short            seqNumber,
+                         const unsigned int              hop,
+                         const uint16_t                  checksum,
+                         const boost::posix_time::ptime  sendTime,
+                         const boost::asio::ip::address& address,
+                         const HopStatus                 status)
    : Round(round),
      SeqNumber(seqNumber),
      Hop(hop),
+     Checksum(checksum),
+     SendTime(sendTime),
      Address(address),
-     Status(status),
-     SendTime(sendTime)
+     Status(status)
 {
 }
 
@@ -70,6 +72,7 @@ std::ostream& operator<<(std::ostream& os, const ResultEntry& resultEntry)
       << "\t" << boost::format("%2d")     % resultEntry.Hop
       << "\t" << boost::format("%9.3fms") % (resultEntry.rtt().total_microseconds() / 1000.0)
       << "\t" << boost::format("%3d")     % resultEntry.Status
+      << "\t" << boost::format("%04x")    % resultEntry.Checksum
       << "\t" << resultEntry.Address;
    return(os);
 }
@@ -110,7 +113,9 @@ Traceroute::Traceroute(ResultsWriter*                           resultsWriter,
    StopRequested       = false;
    MinTTL              = 1;
    MaxTTL              = InitialMaxTTL;
-
+   TargetChecksumArray = new uint32_t[Rounds];
+   assert(TargetChecksumArray != NULL);
+   
    // ====== Prepare destination endpoints ==================================
    for(std::set<boost::asio::ip::address>::const_iterator destinationIterator = destinationAddressArray.begin();
        destinationIterator != destinationAddressArray.end(); destinationIterator++) {
@@ -126,6 +131,8 @@ Traceroute::Traceroute(ResultsWriter*                           resultsWriter,
 // ###### Destructor ########################################################
 Traceroute::~Traceroute()
 {
+   delete TargetChecksumArray;
+   TargetChecksumArray = NULL;
 }
 
 
@@ -188,6 +195,9 @@ bool Traceroute::prepareRun(const bool newRound)
    if(newRound) {
       // ====== Rewind ======================================================
       DestinationAddressIterator = DestinationAddressArray.begin();
+      for(unsigned int i = 0; i < Rounds; i++) {
+         TargetChecksumArray[i] = ~0U;   // Use a new target checksum!
+      }
    }
    else {
       // ====== Get next destination address ===================================
@@ -223,9 +233,9 @@ void Traceroute::sendRequests()
       // ====== Send Echo Requests ==========================================
       assert(MinTTL > 0);
       for(unsigned int round = 0; round < Rounds; round++) {
-         uint32_t targetChecksum = ~0U;
          for(int ttl = (int)MaxTTL; ttl >= (int)MinTTL; ttl--) {
-            sendICMPRequest(destinationAddress, (unsigned int)ttl, round, targetChecksum);
+            sendICMPRequest(destinationAddress, (unsigned int)ttl, round,
+                            TargetChecksumArray[round]);
          }
       }
    }
@@ -383,7 +393,9 @@ void Traceroute::sendICMPRequest(const boost::asio::ip::address& destinationAddr
       // ====== Record the request ==========================
       OutstandingRequests++;
 
-      ResultEntry resultEntry(round, SeqNumber, ttl, destinationAddress, Unknown, sendTime);
+      assert((targetChecksum & ~0xffff) == 0);
+      ResultEntry resultEntry(round, SeqNumber, ttl, (uint16_t)targetChecksum, sendTime,
+                              destinationAddress, Unknown);
       std::pair<std::map<unsigned short, ResultEntry>::iterator, bool> result = ResultsMap.insert(std::pair<unsigned short, ResultEntry>(SeqNumber,resultEntry));
       assert(result.second == true);
    }
@@ -491,7 +503,7 @@ void Traceroute::processResults()
       sha1Hash.process_bytes(pathString.c_str(), pathString.length());
       uint32_t digest[5];
       sha1Hash.get_digest(digest);
-      const uint64_t checksum    = ((uint64_t)digest[0] << 32) | (uint64_t)digest[1];
+      const uint64_t pathHash    = ((uint64_t)digest[0] << 32) | (uint64_t)digest[1];
       unsigned int   statusFlags = 0x0000;
       if(!completeTraceroute) {
          statusFlags |= Flag_StarredRoute;
@@ -505,7 +517,8 @@ void Traceroute::processResults()
          std::cout << "Round " << round << ":" << std::endl;
       }
 
-      bool writeHeader = true;
+      bool     writeHeader   = true;
+      uint16_t checksumCheck = 0;
       for(std::vector<ResultEntry*>::iterator iterator = resultsVector.begin(); iterator != resultsVector.end(); iterator++) {
          ResultEntry* resultEntry = *iterator;
          if(resultEntry->round() == round) {
@@ -522,16 +535,18 @@ void Traceroute::processResults()
 
                if(writeHeader) {
                   ResultsOutput->insert(
-                     str(boost::format("#T %s %s %x %d %d %x %x")
+                     str(boost::format("#T %s %s %x %d %x %d %x %x")
                         % SourceAddress.to_string()
                         % (*DestinationAddressIterator).to_string()
                         % timeStamp
                         % round
+                        % resultEntry->checksum()
                         % totalHops
                         % statusFlags
-                        % (int64_t)checksum
+                        % (int64_t)pathHash
                   ));
                   writeHeader = false;
+                  checksumCheck = resultEntry->checksum();
                }
 
                ResultsOutput->insert(
@@ -541,6 +556,7 @@ void Traceroute::processResults()
                      % (resultEntry->receiveTime() - resultEntry->sendTime()).total_microseconds()
                      % resultEntry->address().to_string()
                ));
+               assert(resultEntry->checksum() == checksumCheck);
             }
 
             if( (resultEntry->status() == Success) ||
