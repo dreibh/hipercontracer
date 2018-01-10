@@ -537,7 +537,7 @@ void Traceroute::processResults()
                ResultsOutput->insert(
                   str(boost::format("\t %d %x %d %s")
                      % resultEntry->hop()
-                     % ((unsigned int)resultEntry->status() | statusFlags)
+                     % (unsigned int)resultEntry->status()
                      % (resultEntry->receiveTime() - resultEntry->sendTime()).total_microseconds()
                      % resultEntry->address().to_string()
                ));

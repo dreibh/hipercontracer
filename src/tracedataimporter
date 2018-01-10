@@ -158,7 +158,7 @@ def processInput(inputFile, outputType):
                      '\'' + str(destinationIP) + '\',' + \
                      str(hopNumber) + ',' + \
                      str(totalHops) + ',' + \
-                     str(status) + ',' + \
+                     str(status | statusFlags) + ',' + \
                      str(rtt) + ',' + \
                      '\'' + str(hopIP) + '\',' + \
                      'CAST(X\'' + pathHashStr + '\' AS BIGINT),' + \
