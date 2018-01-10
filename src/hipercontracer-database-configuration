@@ -3,7 +3,8 @@ transactions_path = /tmp/xy
 bad_file_path     = /tmp/xy/bad
 
 # ====== Database server ====================================================
-dbserver          = 10.1.1.48
+dbbackend         = PostgreSQL
+dbserver          = 10.1.1.40
 dbport            = 5432
 dbuser            = maintainer
 dbpassword        = !maintainer!
