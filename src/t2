@@ -61,14 +61,25 @@ def processInput(inputFile, outputType):
                # print('ping', sourceIP, destinationIP, timeStampStr, status, rtt)
 
                # ------ Generate output -------------------------------------
+               label = str(sourceIP) + '-' + str(destinationIP) + '-' + str(timeStamp)
                if outputType == OT_POSTGRES:
-                  output[str(sourceIP) + '-' + str(destinationIP) + '-' + str(timeStamp)] = '(' + \
+                  output[label] = '(' + \
                      '\'' + timeStampStr       + '\',' + \
                      '\'' + str(sourceIP)      + '\',' + \
                      '\'' + str(destinationIP) + '\',' + \
                      str(status) + ',' + \
                      str(rtt) + \
                      ')'
+
+               elif outputType == OT_MONGODB:
+                  output[label] = '{ ' + \
+                                  'source: \"'             + str(sourceIP)      + '\", ' + \
+                                  'destination: \"'        + str(destinationIP) + '\", ' + \
+                                  'timestamp: NumberLong(' + hex(timeStamp)     + '), '  + \
+                                  'checksum: NumberInt('   + hex(checksum)      + '), '  + \
+                                  'status: NumberInt('     + hex(status)        + '), '  + \
+                                  'rtt: NumberInt('        + str(rtt)           + ') '  + \
+                                  '}'
 
             else:
                raise Exception('Bad input for Ping in line ' + str(lineNumber))
@@ -101,6 +112,10 @@ def processInput(inputFile, outputType):
                timeStampStr = timeStampDT.strftime("%Y%m%dT%H%M%S.%f")
                # print('traceroute', sourceIP, destinationIP, timeStampStr, roundNumber, checksum, totalHops, statusFlags, pathHash)
 
+               if outputType == OT_MONGODB:
+                  label = str(sourceIP) + '-' + str(destinationIP) + '-' + str(timeStamp) + '-' + str(roundNumber).zfill(3)
+                  output[label] = 'y'
+
             else:
                raise Exception('Bad input for Traceroute in line ' + str(lineNumber))
 
@@ -119,7 +134,8 @@ def processInput(inputFile, outputType):
 
                # ------ Generate output -------------------------------------
                if outputType == OT_POSTGRES:
-                  output[str(sourceIP) + '-' + str(destinationIP) + '-' + str(timeStamp) + '-' + str(roundNumber).zfill(3) + str(hopNumber).zfill(3)] = '(' + \
+                  label = str(sourceIP) + '-' + str(destinationIP) + '-' + str(timeStamp) + '-' + str(roundNumber).zfill(3) + str(hopNumber).zfill(3)
+                  output[label] = '(' + \
                      '\'' + timeStampStr       + '\',' + \
                      '\'' + str(sourceIP)      + '\',' + \
                      '\'' + str(destinationIP) + '\',' + \
@@ -131,6 +147,10 @@ def processInput(inputFile, outputType):
                      'CAST(X\'' + pathHashStr + '\' AS BIGINT),' + \
                      str(roundNumber) + \
                      ')'
+
+               elif outputType == OT_MONGODB:
+                  label = str(sourceIP) + '-' + str(destinationIP) + '-' + str(timeStamp) + '-' + str(roundNumber).zfill(3)
+                  output[label] = output[label] + 'Y'
 
             else:
                raise Exception('Bad input for Traceroute in line ' + str(lineNumber))
@@ -161,6 +181,22 @@ def processInput(inputFile, outputType):
 
       outputString = outputString + ';'
 
+   elif outputType == OT_MONGODB:
+      firstItem = True
+      for result in resultsList:
+         if firstItem:
+            outputString = outputString + result[1]
+            firstItem = False
+         else:
+            outputString = outputString + ',\n' + result[1]
+
+      if inputType == IT_PING:
+         outputString = 'use pingtraceroutedb\ndb.ping.insert([\n' + outputString + '\n])'
+      elif inputType == IT_TRACEROUTE:
+         outputString = 'use pingtraceroutedb\ndb.traceroute.insert([\n' + outputString + '\n])'
+
+
+   # ====== Return result ===================================================
    # print(outputString)
    return outputString
 
@@ -170,5 +206,5 @@ inputFile = bz2.open('/tmp/xy/Ping-2a02:270:2014:40:92e2:baff:fe48:bde1-20180110
 #inputFile = bz2.open('/tmp/xy/Traceroute-172.16.0.206-20180110T171525.311687-000000001.results.bz2', 'rt')
 
 
-outputString = processInput(inputFile, OT_POSTGRES)
+outputString = processInput(inputFile, OT_MONGODB)   # OT_POSTGRES OT_MONGODB 
 print(outputString)
