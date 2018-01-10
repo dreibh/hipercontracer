@@ -14,8 +14,25 @@ echo "deb [ arch=amd64,arm64 ] https://repo.mongodb.org/apt/ubuntu xenial/mongod
 sudo apt-get install mongodb-org
 
 
+Create user:
+# mongo
+use admin
+db.createUser(
+   {
+      user: "root",
+      pwd: "SET-A-PASSWORD-HERE",
+      roles: [ { role: "userAdminAnyDatabase", db: "admin" } ]
+   }
+)
+
+# mongo --port 27017 -u "root" -p "SET-A-PASSWORD-HERE" --authenticationDatabase "admin"
+
+
 In /etc/mongod.conf:
-# network interfaces
+
 net:
   port: 27017
   bindIp: 0.0.0.0
+
+security:
+  authorization: enabled
