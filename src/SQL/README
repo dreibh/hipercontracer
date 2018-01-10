@@ -14,18 +14,14 @@ echo "deb [ arch=amd64,arm64 ] https://repo.mongodb.org/apt/ubuntu xenial/mongod
 sudo apt-get install mongodb-org
 
 
-Create user:
-# mongo
-use admin
-db.createUser(
-   {
-      user: "root",
-      pwd: "SET-A-PASSWORD-HERE",
-      roles: [ { role: "userAdminAnyDatabase", db: "admin" } ]
-   }
-)
+Initialize database:
+./install-database-and-users
 
-# mongo --port 27017 -u "root" -p "SET-A-PASSWORD-HERE" --authenticationDatabase "admin"
+#############################################################################
+!!! MongoDB my default does not check any authentication!
+!!! The following configuration changes this, and allows remote logins.
+!!! Make sure that passwords are set properly!
+#############################################################################
 
 
 In /etc/mongod.conf:
@@ -36,3 +32,7 @@ net:
 
 security:
   authorization: enabled
+
+
+Login:
+mongo -u maintainer -p '!maintainer!' --authenticationDatabase "admin"
