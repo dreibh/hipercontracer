@@ -208,12 +208,12 @@ def processInput(inputFile, outputType):
       outputList = []
       for result in resultsList:
             outputList.append(result[1])
-      return outputList
+      return [ inputType, outputList ]
 
 
 
-#inputFile = bz2.open('/tmp/xy/Ping-172.16.0.206-20180111T105853.509369-000000001.results.bz2', 'rt')
-inputFile = bz2.open('/tmp/xy/Traceroute-172.16.0.206-20180111T105853.648711-000000001.results.bz2', 'rt')
+inputFile = bz2.open('/tmp/xy/Ping-172.16.0.206-20180111T124131.681518-000000014.results.bz2', 'rt')
+#inputFile = bz2.open('/tmp/xy/Traceroute-172.16.0.206-20180111T105853.648711-000000001.results.bz2', 'rt')
 
 
 outputString = processInput(inputFile, OT_MONGODB)   # OT_POSTGRES OT_MONGODB 

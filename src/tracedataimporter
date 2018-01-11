@@ -246,7 +246,7 @@ def processInput(inputFile, outputType):
       outputList = []
       for result in resultsList:
             outputList.append(result[1])
-      return outputList
+      return [ inputType, outputList ]
 
 
 
@@ -381,8 +381,12 @@ for transactionFile in transactionFileList:
                dbConnection.commit()
 
             elif outputType == OT_MONGODB:
-               print(transactionContent)
-               db.ping.insert(transactionContent)
+               if transactionContent[0] == IT_PING:
+                  db['ping'].insert(transactionContent[1])
+               elif transactionContent[0] == IT_TRACEROUTE:
+                  db['traceroute'].insert(transactionContent[1])
+               else:
+                  error('Something went wrong!')
 
             goodTransactions = goodTransactions + 1
 
