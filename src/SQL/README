@@ -26,6 +26,12 @@ Initialize database:
 
 In /etc/mongod.conf:
 
+storage:
+  directoryPerDB: true
+  wiredTiger:
+    engineConfig:
+      directoryForIndexes: true
+
 net:
   port: 27017
   bindIp: 0.0.0.0
