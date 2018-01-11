@@ -160,15 +160,15 @@ def processInput(inputFile, outputType):
                      pathHash -= 0x10000000000000000
                   hopCheck[label] = 0
                   output[label] = OrderedDict([
-                                     ( 'source',                   str(sourceIP)),
-                                     ( 'destination',              str(destinationIP)),
-                                     ( 'timestamp',                int(timeStamp)),
-                                     ( 'round',                    int(roundNumber)),
-                                     ( 'checksum',                 int(checksum)),
-                                     ( 'totalHops',                int(totalHops)),
-                                     ( 'statusflags',              int(statusFlags)),
-                                     ( 'pathhash',                 int(pathHash)),
-                                     ( 'hops',                     [] ) ])
+                                     ( 'source',      str(sourceIP)),
+                                     ( 'destination', str(destinationIP)),
+                                     ( 'timestamp',   int(timeStamp)),
+                                     ( 'round',       int(roundNumber)),
+                                     ( 'checksum',    int(checksum)),
+                                     ( 'totalHops',   int(totalHops)),
+                                     ( 'statusFlags', int(statusFlags)),
+                                     ( 'pathHash',    int(pathHash)),
+                                     ( 'hops',        [] ) ])
 
             else:
                raise Exception('Bad input for Traceroute in line ' + str(lineNumber))
