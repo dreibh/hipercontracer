@@ -34,6 +34,7 @@ def processInput(inputFile, outputType):
    inputType  = IT_NONE
    lineNumber = 0
    output     = {}
+   hopCheck   = {}
    for inputLine in inputFile.readlines():
       lineNumber = lineNumber + 1
       tuples = inputLine.rstrip().split(' ')
@@ -114,7 +115,20 @@ def processInput(inputFile, outputType):
 
                if outputType == OT_MONGODB:
                   label = str(sourceIP) + '-' + str(destinationIP) + '-' + str(timeStamp) + '-' + str(roundNumber).zfill(3)
-                  output[label] = 'y'
+                  # MongoDB only supports signed integers:
+                  if pathHash > 0x7FFFFFFFFFFFFFFF:
+                     pathHash -= 0x10000000000000000
+                  hopCheck[label] = 0
+                  output[label] = '{ ' + \
+                                  'source: \"'              + str(sourceIP)      + '\", ' + \
+                                  'destination: \"'         + str(destinationIP) + '\", ' + \
+                                  'timestamp: NumberLong('  + hex(timeStamp)     + '), '  + \
+                                  'round: NumberInt('       + str(roundNumber)   + '), '  + \
+                                  'checksum: NumberInt('    + hex(checksum)      + '), '  + \
+                                  'totalHops: NumberInt('   + str(totalHops)     + '), '  + \
+                                  'statusflags: NumberInt(' + hex(statusFlags)   + '), '  + \
+                                  'pathhash: NumberLong('   + str(pathHash)      + '), '  + \
+                                  'hops: [ '
 
             else:
                raise Exception('Bad input for Traceroute in line ' + str(lineNumber))
@@ -150,7 +164,20 @@ def processInput(inputFile, outputType):
 
                elif outputType == OT_MONGODB:
                   label = str(sourceIP) + '-' + str(destinationIP) + '-' + str(timeStamp) + '-' + str(roundNumber).zfill(3)
-                  output[label] = output[label] + 'Y'
+                  assert(hopCheck[label] + 1 == hopNumber)   # Make sure that all hops are in order!
+                  hopCheck[label] = hopNumber
+
+                  output[label] = output[label] + \
+                                    '{ ' + \
+                                    'status: NumberInt(' + hex(status) + '), ' + \
+                                    'rtt: NumberInt('    + str(rtt)    + '), ' + \
+                                    'hop: \"'            + str(hopIP)  + '\" ' + \
+                                    '}'
+
+                  if hopNumber < totalHops:
+                     output[label] = output[label] + ', '
+                  else:
+                     output[label] = output[label] + '] }'
 
             else:
                raise Exception('Bad input for Traceroute in line ' + str(lineNumber))
@@ -202,8 +229,8 @@ def processInput(inputFile, outputType):
 
 
 
-inputFile = bz2.open('/tmp/xy/Ping-2a02:270:2014:40:92e2:baff:fe48:bde1-20180110T171605.272348-000000001.results.bz2', 'rt')
-#inputFile = bz2.open('/tmp/xy/Traceroute-172.16.0.206-20180110T171525.311687-000000001.results.bz2', 'rt')
+#inputFile = bz2.open('/tmp/xy/Ping-2a02:270:2014:40:92e2:baff:fe48:bde1-20180110T171605.272348-000000001.results.bz2', 'rt')
+inputFile = bz2.open('/tmp/xy/Traceroute-172.16.0.206-20180110T171525.311687-000000001.results.bz2', 'rt')
 
 
 outputString = processInput(inputFile, OT_MONGODB)   # OT_POSTGRES OT_MONGODB 
