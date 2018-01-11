@@ -38,10 +38,12 @@ import io
 import datetime
 import bz2
 import shutil
-import psycopg2
 import configparser
 import operator
-from ipaddress import ip_address
+import psycopg2
+from collections import OrderedDict
+from pymongo     import MongoClient
+from ipaddress   import ip_address
 
 
 # ###### Print log message ##################################################
@@ -71,6 +73,7 @@ def processInput(inputFile, outputType):
    inputType  = IT_NONE
    lineNumber = 0
    output     = {}
+   hopCheck   = {}
    for inputLine in inputFile.readlines():
       lineNumber = lineNumber + 1
       tuples = inputLine.rstrip().split(' ')
@@ -93,19 +96,29 @@ def processInput(inputFile, outputType):
 
                assert ('0x' + tuples[3]) == hex(timeStamp)
                assert ('0x' + tuples[4]) == hex(checksum)
-               timeStampDT  = datetime.datetime(1970, 1, 1, 0, 0, 0, 0) +  datetime.timedelta(microseconds = timeStamp)
-               timeStampStr = timeStampDT.strftime("%Y-%m-%dT%H:%M:%S.%f")
-               # print('ping', sourceIP, destinationIP, timeStampStr, status, rtt)
+               # print('ping', sourceIP, destinationIP, timeStamp, status, rtt)
 
                # ------ Generate output -------------------------------------
+               label = str(sourceIP) + '-' + str(destinationIP) + '-' + str(timeStamp)
                if outputType == OT_POSTGRES:
-                  output[str(sourceIP) + '-' + str(destinationIP) + '-' + str(timeStamp)] = '(' + \
+                  timeStampDT  = datetime.datetime(1970, 1, 1, 0, 0, 0, 0) +  datetime.timedelta(microseconds = timeStamp)
+                  timeStampStr = timeStampDT.strftime("%Y-%m-%dT%H:%M:%S.%f")
+                  output[label] = '(' + \
                      '\'' + timeStampStr       + '\',' + \
                      '\'' + str(sourceIP)      + '\',' + \
                      '\'' + str(destinationIP) + '\',' + \
                      str(status) + ',' + \
                      str(rtt) + \
                      ')'
+
+               elif outputType == OT_MONGODB:
+                  output[label] = OrderedDict([
+                                     ( 'source',      str(sourceIP)),
+                                     ( 'destination', str(destinationIP)),
+                                     ( 'timestamp',   int(timeStamp)),
+                                     ( 'checksum',    int(checksum)),
+                                     ( 'status',      int(status)),
+                                     ( 'rtt',         int(rtt)) ])
 
             else:
                raise Exception('Bad input for Ping in line ' + str(lineNumber))
@@ -134,9 +147,28 @@ def processInput(inputFile, outputType):
                assert ('0x' + tuples[5]) == hex(checksum)
                assert ('0x' + tuples[7]) == hex(statusFlags)
                assert ('0x' + tuples[8]) == hex(pathHash)
-               timeStampDT  = datetime.datetime(1970, 1, 1, 0, 0, 0, 0) +  datetime.timedelta(microseconds = timeStamp)
-               timeStampStr = timeStampDT.strftime("%Y%m%dT%H%M%S.%f")
-               # print('traceroute', sourceIP, destinationIP, timeStampStr, roundNumber, checksum, totalHops, statusFlags, pathHash)
+               # print('traceroute', sourceIP, destinationIP, timeStamp, roundNumber, checksum, totalHops, statusFlags, pathHash)
+
+               if outputType == OT_POSTGRES:
+                  timeStampDT  = datetime.datetime(1970, 1, 1, 0, 0, 0, 0) +  datetime.timedelta(microseconds = timeStamp)
+                  timeStampStr = timeStampDT.strftime("%Y%m%dT%H%M%S.%f")
+
+               elif outputType == OT_MONGODB:
+                  label = str(sourceIP) + '-' + str(destinationIP) + '-' + str(timeStamp) + '-' + str(roundNumber).zfill(3)
+                  # MongoDB only supports signed integers:
+                  if pathHash > 0x7FFFFFFFFFFFFFFF:
+                     pathHash -= 0x10000000000000000
+                  hopCheck[label] = 0
+                  output[label] = OrderedDict([
+                                     ( 'source',                   str(sourceIP)),
+                                     ( 'destination',              str(destinationIP)),
+                                     ( 'timestamp',                int(timeStamp)),
+                                     ( 'round',                    int(roundNumber)),
+                                     ( 'checksum',                 int(checksum)),
+                                     ( 'totalHops',                int(totalHops)),
+                                     ( 'statusflags',              int(statusFlags)),
+                                     ( 'pathhash',                 int(pathHash)),
+                                     ( 'hops',                     [] ) ])
 
             else:
                raise Exception('Bad input for Traceroute in line ' + str(lineNumber))
@@ -156,7 +188,8 @@ def processInput(inputFile, outputType):
 
                # ------ Generate output -------------------------------------
                if outputType == OT_POSTGRES:
-                  output[str(sourceIP) + '-' + str(destinationIP) + '-' + str(timeStamp) + '-' + str(roundNumber).zfill(3) + str(hopNumber).zfill(3)] = '(' + \
+                  label = str(sourceIP) + '-' + str(destinationIP) + '-' + str(timeStamp) + '-' + str(roundNumber).zfill(3) + str(hopNumber).zfill(3)
+                  output[label] = '(' + \
                      '\'' + timeStampStr       + '\',' + \
                      '\'' + str(sourceIP)      + '\',' + \
                      '\'' + str(destinationIP) + '\',' + \
@@ -168,6 +201,16 @@ def processInput(inputFile, outputType):
                      'CAST(X\'' + pathHashStr + '\' AS BIGINT),' + \
                      str(roundNumber) + \
                      ')'
+
+               elif outputType == OT_MONGODB:
+                  label = str(sourceIP) + '-' + str(destinationIP) + '-' + str(timeStamp) + '-' + str(roundNumber).zfill(3)
+                  assert(hopCheck[label] + 1 == hopNumber)   # Make sure that all hops are in order!
+                  hopCheck[label] = hopNumber
+
+                  output[label]['hops'].append(OrderedDict([
+                     ( 'status', int(status)),
+                     ( 'rtt',    int(rtt)),
+                     ( 'hop',    str(hopIP)) ]))
 
             else:
                raise Exception('Bad input for Traceroute in line ' + str(lineNumber))
@@ -181,8 +224,8 @@ def processInput(inputFile, outputType):
    resultsList = sorted(output.items(), key=operator.itemgetter(0))
 
    # ====== Generate output string ==========================================
-   outputString = ""
    if outputType == OT_POSTGRES:
+      outputString = ""
       if inputType == IT_PING:
          outputString = 'INSERT INTO Ping VALUES '
       elif inputType == IT_TRACEROUTE:
@@ -197,9 +240,13 @@ def processInput(inputFile, outputType):
             outputString = outputString + ',\n' + result[1]
 
       outputString = outputString + ';'
+      return outputString
 
-   # print(outputString)
-   return outputString
+   elif outputType == OT_MONGODB:
+      outputList = []
+      for result in resultsList:
+            outputList.append(result[1])
+      return outputList
 
 
 
@@ -280,12 +327,17 @@ if outputType == OT_POSTGRES:
                                     dbname=str(dbName))
       dbConnection.autocommit = False
    except:
-      log('Unable to connect to the database!')
+      log('Unable to connect to the PostgreSQL database!')
       sys.exit(1)
    dbCursor = dbConnection.cursor()
 
 elif outputType == OT_MONGODB:
-   print("???")
+   try:
+      dbConnection = MongoClient('mongodb://' + str(dbServer) + ':' + str(dbPort))
+   except:
+      log('Unable to connect to the MongoDB database!')
+      sys.exit(1)
+   db = dbConnection[str(dbName)]
 
 
 # ====== Import transactions ================================================
@@ -329,7 +381,8 @@ for transactionFile in transactionFileList:
                dbConnection.commit()
 
             elif outputType == OT_MONGODB:
-               print("???")
+               print(transactionContent)
+               db.ping.insert(transactionContent)
 
             goodTransactions = goodTransactions + 1
 

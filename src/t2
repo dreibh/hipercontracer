@@ -8,7 +8,8 @@ import datetime
 import bz2
 import shutil
 import operator
-from ipaddress import ip_address
+from collections import OrderedDict
+from ipaddress   import ip_address
 
 
 # ###### Abort with error ###################################################
@@ -57,13 +58,13 @@ def processInput(inputFile, outputType):
 
                assert ('0x' + tuples[3]) == hex(timeStamp)
                assert ('0x' + tuples[4]) == hex(checksum)
-               timeStampDT  = datetime.datetime(1970, 1, 1, 0, 0, 0, 0) +  datetime.timedelta(microseconds = timeStamp)
-               timeStampStr = timeStampDT.strftime("%Y-%m-%dT%H:%M:%S.%f")
-               # print('ping', sourceIP, destinationIP, timeStampStr, status, rtt)
+               # print('ping', sourceIP, destinationIP, timeStamp, status, rtt)
 
                # ------ Generate output -------------------------------------
                label = str(sourceIP) + '-' + str(destinationIP) + '-' + str(timeStamp)
                if outputType == OT_POSTGRES:
+                  timeStampDT  = datetime.datetime(1970, 1, 1, 0, 0, 0, 0) +  datetime.timedelta(microseconds = timeStamp)
+                  timeStampStr = timeStampDT.strftime("%Y-%m-%dT%H:%M:%S.%f")
                   output[label] = '(' + \
                      '\'' + timeStampStr       + '\',' + \
                      '\'' + str(sourceIP)      + '\',' + \
@@ -73,14 +74,13 @@ def processInput(inputFile, outputType):
                      ')'
 
                elif outputType == OT_MONGODB:
-                  output[label] = '{ ' + \
-                                  'source: \"'             + str(sourceIP)      + '\", ' + \
-                                  'destination: \"'        + str(destinationIP) + '\", ' + \
-                                  'timestamp: NumberLong(' + hex(timeStamp)     + '), '  + \
-                                  'checksum: NumberInt('   + hex(checksum)      + '), '  + \
-                                  'status: NumberInt('     + hex(status)        + '), '  + \
-                                  'rtt: NumberInt('        + str(rtt)           + ') '  + \
-                                  '}'
+                  output[label] = OrderedDict([
+                                     ( 'source',      str(sourceIP)),
+                                     ( 'destination', str(destinationIP)),
+                                     ( 'timestamp',   int(timeStamp)),
+                                     ( 'checksum',    int(checksum)),
+                                     ( 'status',      int(status)),
+                                     ( 'rtt',         int(rtt)) ])
 
             else:
                raise Exception('Bad input for Ping in line ' + str(lineNumber))
@@ -109,26 +109,28 @@ def processInput(inputFile, outputType):
                assert ('0x' + tuples[5]) == hex(checksum)
                assert ('0x' + tuples[7]) == hex(statusFlags)
                assert ('0x' + tuples[8]) == hex(pathHash)
-               timeStampDT  = datetime.datetime(1970, 1, 1, 0, 0, 0, 0) +  datetime.timedelta(microseconds = timeStamp)
-               timeStampStr = timeStampDT.strftime("%Y%m%dT%H%M%S.%f")
-               # print('traceroute', sourceIP, destinationIP, timeStampStr, roundNumber, checksum, totalHops, statusFlags, pathHash)
+               # print('traceroute', sourceIP, destinationIP, timeStamp, roundNumber, checksum, totalHops, statusFlags, pathHash)
 
-               if outputType == OT_MONGODB:
+               if outputType == OT_POSTGRES:
+                  timeStampDT  = datetime.datetime(1970, 1, 1, 0, 0, 0, 0) +  datetime.timedelta(microseconds = timeStamp)
+                  timeStampStr = timeStampDT.strftime("%Y%m%dT%H%M%S.%f")
+
+               elif outputType == OT_MONGODB:
                   label = str(sourceIP) + '-' + str(destinationIP) + '-' + str(timeStamp) + '-' + str(roundNumber).zfill(3)
                   # MongoDB only supports signed integers:
                   if pathHash > 0x7FFFFFFFFFFFFFFF:
                      pathHash -= 0x10000000000000000
                   hopCheck[label] = 0
-                  output[label] = '{ ' + \
-                                  'source: \"'              + str(sourceIP)      + '\", ' + \
-                                  'destination: \"'         + str(destinationIP) + '\", ' + \
-                                  'timestamp: NumberLong('  + hex(timeStamp)     + '), '  + \
-                                  'round: NumberInt('       + str(roundNumber)   + '), '  + \
-                                  'checksum: NumberInt('    + hex(checksum)      + '), '  + \
-                                  'totalHops: NumberInt('   + str(totalHops)     + '), '  + \
-                                  'statusflags: NumberInt(' + hex(statusFlags)   + '), '  + \
-                                  'pathhash: NumberLong('   + str(pathHash)      + '), '  + \
-                                  'hops: [ '
+                  output[label] = OrderedDict([
+                                     ( 'source',                   str(sourceIP)),
+                                     ( 'destination',              str(destinationIP)),
+                                     ( 'timestamp',                int(timeStamp)),
+                                     ( 'round',                    int(roundNumber)),
+                                     ( 'checksum',                 int(checksum)),
+                                     ( 'totalHops',                int(totalHops)),
+                                     ( 'statusflags',              int(statusFlags)),
+                                     ( 'pathhash',                 int(pathHash)),
+                                     ( 'hops',                     [] ) ])
 
             else:
                raise Exception('Bad input for Traceroute in line ' + str(lineNumber))
@@ -167,17 +169,10 @@ def processInput(inputFile, outputType):
                   assert(hopCheck[label] + 1 == hopNumber)   # Make sure that all hops are in order!
                   hopCheck[label] = hopNumber
 
-                  output[label] = output[label] + \
-                                    '{ ' + \
-                                    'status: NumberInt(' + hex(status) + '), ' + \
-                                    'rtt: NumberInt('    + str(rtt)    + '), ' + \
-                                    'hop: \"'            + str(hopIP)  + '\" ' + \
-                                    '}'
-
-                  if hopNumber < totalHops:
-                     output[label] = output[label] + ', '
-                  else:
-                     output[label] = output[label] + '] }'
+                  output[label]['hops'].append(OrderedDict([
+                     ( 'status', int(status)),
+                     ( 'rtt',    int(rtt)),
+                     ( 'hop',    str(hopIP)) ]))
 
             else:
                raise Exception('Bad input for Traceroute in line ' + str(lineNumber))
@@ -191,8 +186,8 @@ def processInput(inputFile, outputType):
    resultsList = sorted(output.items(), key=operator.itemgetter(0))
 
    # ====== Generate output string ==========================================
-   outputString = ""
    if outputType == OT_POSTGRES:
+      outputString = ""
       if inputType == IT_PING:
          outputString = 'INSERT INTO Ping VALUES '
       elif inputType == IT_TRACEROUTE:
@@ -207,30 +202,18 @@ def processInput(inputFile, outputType):
             outputString = outputString + ',\n' + result[1]
 
       outputString = outputString + ';'
+      return outputString
 
    elif outputType == OT_MONGODB:
-      firstItem = True
+      outputList = []
       for result in resultsList:
-         if firstItem:
-            outputString = outputString + result[1]
-            firstItem = False
-         else:
-            outputString = outputString + ',\n' + result[1]
-
-      if inputType == IT_PING:
-         outputString = 'use pingtraceroutedb\ndb.ping.insert([\n' + outputString + '\n])'
-      elif inputType == IT_TRACEROUTE:
-         outputString = 'use pingtraceroutedb\ndb.traceroute.insert([\n' + outputString + '\n])'
-
-
-   # ====== Return result ===================================================
-   # print(outputString)
-   return outputString
+            outputList.append(result[1])
+      return outputList
 
 
 
-#inputFile = bz2.open('/tmp/xy/Ping-2a02:270:2014:40:92e2:baff:fe48:bde1-20180110T171605.272348-000000001.results.bz2', 'rt')
-inputFile = bz2.open('/tmp/xy/Traceroute-172.16.0.206-20180110T171525.311687-000000001.results.bz2', 'rt')
+#inputFile = bz2.open('/tmp/xy/Ping-172.16.0.206-20180111T105853.509369-000000001.results.bz2', 'rt')
+inputFile = bz2.open('/tmp/xy/Traceroute-172.16.0.206-20180111T105853.648711-000000001.results.bz2', 'rt')
 
 
 outputString = processInput(inputFile, OT_MONGODB)   # OT_POSTGRES OT_MONGODB 
