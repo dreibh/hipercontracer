@@ -131,7 +131,7 @@ Traceroute::Traceroute(ResultsWriter*                           resultsWriter,
 // ###### Destructor ########################################################
 Traceroute::~Traceroute()
 {
-   delete TargetChecksumArray;
+   delete [] TargetChecksumArray;
    TargetChecksumArray = NULL;
 }
 
