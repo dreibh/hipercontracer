@@ -1,21 +1,20 @@
 MongoDB 3.x Setup
 =================
 
-Partitioning:
+1. Partitioning:
 /var/lib/mongodb is the storage place of the database files.
 
 
-Package installation:
+2. Package installation:
 MongoDB is old in Ubuntu 16.04, etc. -> custom repository is needed:
 
 sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv 2930ADAE8CAF5059EE73BB4B58712A2291FA4AD5
 echo "deb [ arch=amd64,arm64 ] https://repo.mongodb.org/apt/ubuntu xenial/mongodb-org/3.6 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-3.6.list
-
+sudo apt update
 sudo apt-get install mongodb-org
 
 
-Initialize database:
-./install-database-and-users
+3. Configuration:
 
 #############################################################################
 !!! MongoDB my default does not check any authentication!
@@ -42,3 +41,16 @@ security:
 
 Login:
 mongo -u maintainer -p '!maintainer!' --authenticationDatabase "admin"
+
+
+
+4. Initialize database:
+
+* Comment out "security:" block in /etc/mongod.conf
+sudo service mongod restart
+./install-database-and-users
+* Reactivate "security:" block in /etc/mongod.conf
+sudo service mongod restart
+
+!!! IMPORTANT: !!!
+Make sure that the database is only accessible for authenticated users!
