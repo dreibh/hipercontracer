@@ -113,12 +113,12 @@ def processInput(inputFile, outputType):
 
                elif outputType == OT_MONGODB:
                   output[label] = OrderedDict([
-                                     ( 'source',      str(sourceIP)),
-                                     ( 'destination', str(destinationIP)),
-                                     ( 'timestamp',   int(timeStamp)),
-                                     ( 'checksum',    int(checksum)),
-                                     ( 'status',      int(status)),
-                                     ( 'rtt',         int(rtt)) ])
+                                     ( 'source',      sourceIP.packed      ),
+                                     ( 'destination', destinationIP.packed ),
+                                     ( 'timestamp',   int(timeStamp)       ),
+                                     ( 'checksum',    int(checksum)        ),
+                                     ( 'status',      int(status)          ),
+                                     ( 'rtt',         int(rtt)             ) ])
 
             else:
                raise Exception('Bad input for Ping in line ' + str(lineNumber))
@@ -160,15 +160,15 @@ def processInput(inputFile, outputType):
                      pathHash -= 0x10000000000000000
                   hopCheck[label] = 0
                   output[label] = OrderedDict([
-                                     ( 'source',      str(sourceIP)),
-                                     ( 'destination', str(destinationIP)),
-                                     ( 'timestamp',   int(timeStamp)),
-                                     ( 'round',       int(roundNumber)),
-                                     ( 'checksum',    int(checksum)),
-                                     ( 'totalHops',   int(totalHops)),
-                                     ( 'statusFlags', int(statusFlags)),
-                                     ( 'pathHash',    int(pathHash)),
-                                     ( 'hops',        [] ) ])
+                                     ( 'source',      sourceIP.packed      ),
+                                     ( 'destination', destinationIP.packed ),
+                                     ( 'timestamp',   int(timeStamp)       ),
+                                     ( 'round',       int(roundNumber)     ),
+                                     ( 'checksum',    int(checksum)        ),
+                                     ( 'totalHops',   int(totalHops)       ),
+                                     ( 'statusFlags', int(statusFlags)     ),
+                                     ( 'pathHash',    int(pathHash)        ),
+                                     ( 'hops',        []                   ) ])
 
             else:
                raise Exception('Bad input for Traceroute in line ' + str(lineNumber))
@@ -208,9 +208,9 @@ def processInput(inputFile, outputType):
                   hopCheck[label] = hopNumber
 
                   output[label]['hops'].append(OrderedDict([
-                     ( 'status', int(status)),
-                     ( 'rtt',    int(rtt)),
-                     ( 'hop',    str(hopIP)) ]))
+                     ( 'hop',    hopIP.packed ),
+                     ( 'status', int(status)  ),
+                     ( 'rtt',    int(rtt)     ) ]))
 
             else:
                raise Exception('Bad input for Traceroute in line ' + str(lineNumber))
@@ -375,7 +375,7 @@ for transactionFile in transactionFileList:
       if transactionContent != None:
          # ------ Commit transactions ---------------------------------------
          try:
-            # print(transactionContent)
+            print(transactionContent)
 
             if outputType == OT_POSTGRES:
                dbCursor.execute(transactionContent)
