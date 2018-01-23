@@ -1,5 +1,8 @@
 #!/bin/sh
 
+echo "###### Creating administrator ########################################"
+mongo --quiet <admin.ms
+
 echo "###### Creating database #############################################"
 mongo --quiet <database.ms
 
