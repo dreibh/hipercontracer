@@ -23,6 +23,12 @@ sudo apt-get install mongodb-org
 #############################################################################
 
 
+NOTE:
+The example below assumes hostname rolfsbukta.alpha.test, the TLS certificate
+is in /etc/ssl/rolfsbukta.alpha.test.pem!
+(cat rolfsbukta.alpha.test.key rolfsbukta.alpha.test.crt >rolfsbukta.alpha.test.pem)
+
+
 In /etc/mongod.conf:
 
 storage:
@@ -34,14 +40,20 @@ storage:
 net:
   port: 27017
   bindIp: 0.0.0.0
+  compression:
+    compressors: zlib,snappy
+  ssl:
+    mode: requireSSL
+    PEMKeyFile: /etc/ssl/rolfsbukta.alpha.test.pem
+    disabledProtocols: TLS1_0,TLS1_1
 
 security:
   authorization: enabled
 
 
 Login:
-mongo -u maintainer -p '!maintainer!' --authenticationDatabase "admin"
-
+mongo --host rolfsbukta.alpha.test -u maintainer -p '!maintainer!' --authenticationDatabase "admin" --ssl --sslCAFile ~/NorNet-CA-Test-Alpha-chain.pem
+(without TLS configuration: mongo -u maintainer -p '!maintainer!' --authenticationDatabase "admin")
 
 
 4. Initialize database:
