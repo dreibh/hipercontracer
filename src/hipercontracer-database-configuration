@@ -1,22 +1,25 @@
+#!/usr/bin/python3
+# -*- coding: utf-8 -*-
+
 # ====== Trace configuration ================================================
 transactions_path = /tmp/xy
 bad_file_path     = /tmp/xy/bad
 
+# ====== Database configuration =============================================
+database          = pingtraceroutedb
+dbuser            = importer
+dbpassword        = !importer!
+
 # ====== Database server ====================================================
-# Configuration with MongoDB server:
+# ****** Configuration with MongoDB server: ******
 dbbackend         = MongoDB
 dbserver          = rolfsbukta.alpha.test
 dbport            = 27017
-dbuser            = importer
-dbpassword        = !importer!
 dbcafile          = IGNORE
 
-# Configuration with PostgreSQL server:
+# ****** Configuration with PostgreSQL server: ******
 # dbbackend         = PostgreSQL
 # dbserver          = rolfsbukta.alpha.test
 # dbport            = 5432
-# dbuser            = importer
-# dbpassword        = !importer!
+# dbcafile          = IGNORE
 
-# ====== Database configuration =============================================
-database          = pingtraceroutedb
