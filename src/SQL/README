@@ -18,6 +18,7 @@ hostssl all             all             2001:700:4100::/48              md5
 hostssl all             all             192.168.0.0/16                  md5
 hostssl all             all             2001:700:4100:ff:ffff::/80      md5
 
+
 In /etc/postgresql/*/main/postgresql.conf:
 listen_addresses = '*'
 
