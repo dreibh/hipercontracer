@@ -323,7 +323,7 @@ if not os.path.exists(badFilePath):
 if outputType == OT_POSTGRES:
    try:
       dbConnection = psycopg2.connect(host=str(dbServer), port=str(dbPort),
-                                      user=str(dbUser), password=str(dbPassword),
+                                      user=str(dbUser),   password=str(dbPassword),
                                       dbname=str(dbName))
       dbConnection.autocommit = False
    except Exception as e:
