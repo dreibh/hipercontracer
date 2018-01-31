@@ -5,14 +5,15 @@ bad_file_path     = /tmp/xy/bad
 # ====== Database server ====================================================
 # Configuration with MongoDB server:
 dbbackend         = MongoDB
-dbserver          = 10.1.1.47
+dbserver          = rolfsbukta.alpha.test
 dbport            = 27017
 dbuser            = importer
 dbpassword        = !importer!
+dbcafile          = IGNORE
 
 # Configuration with PostgreSQL server:
 # dbbackend         = PostgreSQL
-# dbserver          = 10.1.1.40
+# dbserver          = rolfsbukta.alpha.test
 # dbport            = 5432
 # dbuser            = importer
 # dbpassword        = !importer!

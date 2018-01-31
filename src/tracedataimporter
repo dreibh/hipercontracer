@@ -41,6 +41,7 @@ import shutil
 import configparser
 import operator
 import psycopg2
+import ssl
 from collections import OrderedDict
 from pymongo     import MongoClient
 from ipaddress   import ip_address
@@ -262,7 +263,9 @@ dbServer         = 'localhost'
 dbPort           = 5432
 dbUser           = 'importer'
 dbPassword       = None
+dbCAFile         = None
 dbName           = 'pingtraceroutedb'
+
 verboseMode      = False
 
 i = 2
@@ -304,6 +307,8 @@ for parameterName in parsedConfigFile.options('root'):
       dbUser = parameterValue
    elif parameterName == 'dbpassword':
       dbPassword = parameterValue
+   elif parameterName == 'dbcafile':
+      dbCAFile = parameterValue
    elif parameterName == 'database':
       dbName = parameterValue
    else:
@@ -333,7 +338,17 @@ if outputType == OT_POSTGRES:
 
 elif outputType == OT_MONGODB:
    try:
-      dbConnection = MongoClient(host=str(dbServer), port=int(dbPort))
+      if dbCAFile == "IGNORE":   # ------ Ignore TLS certificate ------------
+         log('WARNING: TLS certificate check is turned off!')
+         dbConnection = MongoClient(host=str(dbServer), port=int(dbPort),
+                                    ssl=True, ssl_cert_reqs=ssl.CERT_NONE)
+      elif dbCAFile == None:     # ------ Use default CA settings -----------
+         dbConnection = MongoClient(host=str(dbServer), port=int(dbPort),
+                                    ssl=True, ssl_cert_reqs=ssl.CERT_REQUIRED)
+      else:   # ------ Use given CA, requires PyMongo >= 3.4! ---------------
+         dbConnection = MongoClient(host=str(dbServer), port=int(dbPort),
+                                    ssl=True, ssl_cert_reqs=ssl.CERT_REQUIRED,
+                                    ssl_ca_certs=dbCAFile)
       db = dbConnection[str(dbName)]
       db.authenticate(str(dbUser), str(dbPassword), mechanism='SCRAM-SHA-1')
    except Exception as e:
@@ -375,7 +390,7 @@ for transactionFile in transactionFileList:
       if transactionContent != None:
          # ------ Commit transactions ---------------------------------------
          try:
-            print(transactionContent)
+            # print(transactionContent)
 
             if outputType == OT_POSTGRES:
                dbCursor.execute(transactionContent)
