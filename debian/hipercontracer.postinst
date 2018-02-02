@@ -1,0 +1,31 @@
+#!/bin/sh
+
+set -e
+
+if [ "$1" = configure ]; then
+   # Make sure the administrative user exists
+   if ! getent passwd hipercontracer > /dev/null; then
+      adduser --system $quiet --home /tmp --no-create-home \
+              --shell /bin/bash --group --gecos "HiPerConTracer user" hipercontracer
+   fi
+   # Make sure the group is there as well
+   if ! getent group hipercontracer > /dev/null; then
+      addgroup --system $quiet hipercontracer
+   fi
+   # Make sure hipercontracer is in the hipercontracer group
+   if ! id -Gn hipercontracer | grep -qw hipercontracer; then
+      adduser $quiet hipercontracer hipercontracer
+   fi
+
+   # check validity of hipercontracer user and group
+   if [ "`id -u hipercontracer`" -eq 0 ]; then
+      echo "The hipercontracer system user must not have uid 0 (root).
+Please fix this and reinstall this package." >&2
+      exit 1
+   fi
+   if [ "`id -g hipercontracer`" -eq 0 ]; then
+      echo "The hipercontracer system user must not have root as primary group.
+Please fix this and reinstall this package." >&2
+      exit 1
+   fi
+fi
