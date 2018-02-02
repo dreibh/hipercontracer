@@ -1,3 +1,6 @@
+src/NoSQL/*.ms
+src/NoSQL/README
+src/NoSQL/install-database-and-users
 src/SQL/*.sql
 src/SQL/README
 src/SQL/install-database-and-users

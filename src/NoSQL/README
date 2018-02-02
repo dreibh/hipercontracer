@@ -1,0 +1,68 @@
+MongoDB 3.x Setup
+=================
+
+1. Partitioning:
+/var/lib/mongodb is the storage place of the database files.
+
+
+2. Package installation:
+MongoDB is old in Ubuntu 16.04, etc. -> custom repository is needed:
+
+sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv 2930ADAE8CAF5059EE73BB4B58712A2291FA4AD5
+echo "deb [ arch=amd64,arm64 ] https://repo.mongodb.org/apt/ubuntu xenial/mongodb-org/3.6 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-3.6.list
+sudo apt update
+sudo apt-get install mongodb-org
+
+
+3. Configuration:
+
+#############################################################################
+!!! MongoDB my default does not check any authentication!
+!!! The following configuration changes this, and allows remote logins.
+!!! Make sure that passwords are set properly!
+#############################################################################
+
+
+NOTE:
+The example below assumes hostname rolfsbukta.alpha.test, the TLS certificate
+is in /etc/ssl/rolfsbukta.alpha.test.pem!
+(cat rolfsbukta.alpha.test.key rolfsbukta.alpha.test.crt >rolfsbukta.alpha.test.pem)
+
+
+In /etc/mongod.conf:
+
+storage:
+  directoryPerDB: true
+  wiredTiger:
+    engineConfig:
+      directoryForIndexes: true
+
+net:
+  port: 27017
+  bindIp: 0.0.0.0
+  compression:
+    compressors: zlib,snappy
+  ssl:
+    mode: requireSSL
+    PEMKeyFile: /etc/ssl/rolfsbukta.alpha.test.pem
+    disabledProtocols: TLS1_0,TLS1_1
+
+security:
+  authorization: enabled
+
+
+Login:
+mongo --host rolfsbukta.alpha.test -u maintainer -p '!maintainer!' --authenticationDatabase "admin" --ssl --sslCAFile ~/NorNet-CA-Test-Alpha-chain.pem
+(without TLS configuration: mongo -u maintainer -p '!maintainer!' --authenticationDatabase "admin")
+
+
+4. Initialize database:
+
+* Comment out "security:" block in /etc/mongod.conf
+sudo service mongod restart
+./install-database-and-users
+* Reactivate "security:" block in /etc/mongod.conf
+sudo service mongod restart
+
+!!! IMPORTANT: !!!
+Make sure that the database is only accessible for authenticated users!

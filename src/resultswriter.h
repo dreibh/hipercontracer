@@ -29,33 +29,43 @@
 //
 // Contact: dreibh@simula.no
 
-#ifndef PING_H
-#define PING_H
+#ifndef RESULTSWRITER_H
+#define RESULTSWRITER_H
 
-#include "traceroute.h"
+#include <string>
+#include <fstream>
 
-class Ping : public Traceroute
+#include <boost/filesystem.hpp>
+#include <boost/date_time/posix_time/posix_time.hpp>
+#include <boost/iostreams/filtering_stream.hpp>
+
+
+class ResultsWriter
 {
    public:
-   Ping(ResultsWriter*                           resultsWriter,
-        const bool                               verboseMode,
-        const boost::asio::ip::address&          sourceAddress,
-        const std::set<boost::asio::ip::address> destinationAddressArray,
-        const unsigned long long                 interval   =  1000,
-        const unsigned int                       expiration = 10000,
-        const unsigned int                       ttl        =    64);
-   virtual ~Ping();
+   ResultsWriter(const std::string& directory,
+                 const std::string& uniqueID,
+                 const std::string& formatName,
+                 const unsigned int transactionLength);
+   virtual ~ResultsWriter();
+
+   bool prepare();
+   bool changeFile(const bool createNewFile = true);
+   bool mayStartNewTransaction();
+   void insert(const std::string& tuple);
 
    protected:
-   virtual bool prepareRun(const bool newRound = false);
-   virtual void scheduleTimeoutEvent();
-   virtual void noMoreOutstandingRequests();
-   virtual bool notReachedWithCurrentTTL();
-   virtual void processResults();
-   virtual void sendRequests();
-
-   private:
-   static int comparePingResults(const ResultEntry* a, const ResultEntry* b);
+   const boost::filesystem::path       Directory;
+   const std::string                   UniqueID;
+   const std::string                   FormatName;
+   const unsigned int                  TransactionLength;
+   boost::filesystem::path             TempFileName;
+   boost::filesystem::path             TargetFileName;
+   size_t                              Inserts;
+   unsigned long long                  SeqNumber;
+   std::ofstream                       OutputFile;
+   boost::iostreams::filtering_ostream OutputStream;
+   boost::posix_time::ptime            OutputCreationTime;
 };
 
 #endif

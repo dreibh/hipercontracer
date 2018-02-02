@@ -29,33 +29,13 @@
 //
 // Contact: dreibh@simula.no
 
-#ifndef PING_H
-#define PING_H
+#ifndef TOOLS_H
+#define TOOLS_H
 
-#include "traceroute.h"
+#include <boost/date_time/posix_time/posix_time.hpp>
 
-class Ping : public Traceroute
-{
-   public:
-   Ping(ResultsWriter*                           resultsWriter,
-        const bool                               verboseMode,
-        const boost::asio::ip::address&          sourceAddress,
-        const std::set<boost::asio::ip::address> destinationAddressArray,
-        const unsigned long long                 interval   =  1000,
-        const unsigned int                       expiration = 10000,
-        const unsigned int                       ttl        =    64);
-   virtual ~Ping();
 
-   protected:
-   virtual bool prepareRun(const bool newRound = false);
-   virtual void scheduleTimeoutEvent();
-   virtual void noMoreOutstandingRequests();
-   virtual bool notReachedWithCurrentTTL();
-   virtual void processResults();
-   virtual void sendRequests();
+uint64_t usSinceEpoch(const boost::posix_time::ptime& time);
 
-   private:
-   static int comparePingResults(const ResultEntry* a, const ResultEntry* b);
-};
 
 #endif

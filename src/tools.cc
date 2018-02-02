@@ -29,43 +29,13 @@
 //
 // Contact: dreibh@simula.no
 
-#ifndef SQLWRITER_H
-#define SQLWRITER_H
-
-#include <string>
-#include <fstream>
-
-#include <boost/filesystem.hpp>
-#include <boost/date_time/posix_time/posix_time.hpp>
-#include <boost/iostreams/filtering_stream.hpp>
+#include "tools.h"
 
 
-class SQLWriter
+// ###### Convert ptime to microseconds since the epoch #####################
+uint64_t usSinceEpoch(const boost::posix_time::ptime& time)
 {
-   public:
-   SQLWriter(const std::string& directory,
-             const std::string& uniqueID,
-             const std::string& tableName,
-             const unsigned int transactionLength);
-   virtual ~SQLWriter();
-
-   bool prepare();
-   bool changeFile(const bool createNewFile = true);
-   bool mayStartNewTransaction();
-   void insert(const std::string& tuple);
-
-   protected:
-   const boost::filesystem::path       Directory;
-   const std::string                   UniqueID;
-   const std::string                   TableName;
-   const unsigned int                  TransactionLength;
-   boost::filesystem::path             TempFileName;
-   boost::filesystem::path             TargetFileName;
-   size_t                              Inserts;
-   unsigned long long                  SeqNumber;
-   std::ofstream                       OutputFile;
-   boost::iostreams::filtering_ostream OutputStream;
-   boost::posix_time::ptime            OutputCreationTime;
-};
-
-#endif
+   const static boost::posix_time::ptime epoch     = boost::posix_time::from_time_t(0);
+   const boost::posix_time::time_duration duration = time - epoch;
+   return duration.total_microseconds();
+}

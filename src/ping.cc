@@ -30,23 +30,23 @@
 // Contact: dreibh@simula.no
 
 #include "ping.h"
+#include "tools.h"
 
 #include <netinet/in.h>
 #include <netinet/ip.h>
 
 #include <boost/format.hpp>
-#include <boost/date_time/posix_time/posix_time.hpp>
 
 
 // ###### Constructor #######################################################
-Ping::Ping(SQLWriter*                               sqlWriter,
+Ping::Ping(ResultsWriter*                           resultsWriter,
            const bool                               verboseMode,
            const boost::asio::ip::address&          sourceAddress,
            const std::set<boost::asio::ip::address> destinationAddressArray,
            const unsigned long long                 interval,
            const unsigned int                       expiration,
            const unsigned int                       ttl)
-   : Traceroute(sqlWriter, verboseMode,
+   : Traceroute(resultsWriter, verboseMode,
                 sourceAddress, destinationAddressArray,
                 interval, expiration, ttl, ttl, ttl)
 {
@@ -92,8 +92,8 @@ void Ping::scheduleTimeoutEvent()
    TimeoutTimer.async_wait(boost::bind(&Ping::handleTimeoutEvent, this, _1));
 
    // ====== Check, whether it is time for starting a new transaction =======
-   if(SQLOutput) {
-      SQLOutput->mayStartNewTransaction();
+   if(ResultsOutput) {
+      ResultsOutput->mayStartNewTransaction();
    }
 }
 
@@ -133,12 +133,13 @@ void Ping::processResults()
             std::cout << *resultEntry << std::endl;
          }
 
-         if(SQLOutput) {
-            SQLOutput->insert(
-               str(boost::format("'%s','%s','%s',%d,%d")
-                  % boost::posix_time::to_iso_extended_string(resultEntry->sendTime())
+         if(ResultsOutput) {
+            ResultsOutput->insert(
+               str(boost::format("#P %s %s %x %x %d %d")
                   % SourceAddress.to_string()
                   % resultEntry->address().to_string()
+                  % usSinceEpoch(resultEntry->sendTime())
+                  % resultEntry->checksum()
                   % resultEntry->status()
                   % (resultEntry->receiveTime() - resultEntry->sendTime()).total_microseconds()
             ));
@@ -159,10 +160,12 @@ void Ping::processResults()
 // ###### Send requests to all destinations #################################
 void Ping::sendRequests()
 {
+   // All packets of this request block (for each destination) use the same checksum.
+   // The next block of requests may then use another checksum.
+   uint32_t targetChecksum = ~0U;
    for(std::set<boost::asio::ip::address>::const_iterator destinationIterator = DestinationAddressArray.begin();
        destinationIterator != DestinationAddressArray.end(); destinationIterator++) {
       const boost::asio::ip::address& destinationAddress = *destinationIterator;
-      uint32_t targetChecksum = ~0U;
       sendICMPRequest(destinationAddress, FinalMaxTTL, 0, targetChecksum);
    }
 

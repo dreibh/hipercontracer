@@ -43,7 +43,7 @@
 
 #include <boost/asio/basic_signal_set.hpp>
 
-#include "sqlwriter.h"
+#include "resultswriter.h"
 #include "service.h"
 #include "traceroute.h"
 #include "ping.h"
@@ -51,7 +51,7 @@
 
 static std::set<boost::asio::ip::address> SourceArray;
 static std::set<boost::asio::ip::address> DestinationArray;
-static std::set<SQLWriter*>               SqlWriterSet;
+static std::set<ResultsWriter*>           ResultsWriterSet;
 static std::set<Service*>                 ServiceSet;
 
 
@@ -76,26 +76,26 @@ void signalHandler(const boost::system::error_code& error, int signal_number)
 }
 
 
-// ###### Prepare SQL writer ################################################
-static SQLWriter* makeSQLWriter(const boost::asio::ip::address& sourceAddress,
-                                const std::string&              sqlTable,
-                                const std::string&              sqlDirectory,
-                                const unsigned int              sqlTransactionLength)
+// ###### Prepare results writer ############################################
+static ResultsWriter* makeResultsWriter(const boost::asio::ip::address& sourceAddress,
+                                        const std::string&              resultsFormat,
+                                        const std::string&              resultsDirectory,
+                                        const unsigned int              resultsTransactionLength)
 {
-   SQLWriter* sqlWriter = NULL;
-   if(!sqlTable.empty()) {
+   ResultsWriter* resultsWriter = NULL;
+   if(!resultsDirectory.empty()) {
       std::string uniqueID =
-         sqlTable + "-" +
+         resultsFormat + "-" +
          sourceAddress.to_string() + "-" +
          boost::posix_time::to_iso_string(boost::posix_time::microsec_clock::universal_time());
       replace(uniqueID.begin(), uniqueID.end(), ' ', '-');
-      sqlWriter = new SQLWriter(sqlDirectory, uniqueID, sqlTable, sqlTransactionLength);
-      if(sqlWriter->prepare() == false) {
+      resultsWriter = new ResultsWriter(resultsDirectory, uniqueID, resultsFormat, resultsTransactionLength);
+      if(resultsWriter->prepare() == false) {
          ::exit(1);
       }
-      SqlWriterSet.insert(sqlWriter);
+      ResultsWriterSet.insert(resultsWriter);
    }
-   return(sqlWriter);
+   return(resultsWriter);
 }
 
 
@@ -120,10 +120,8 @@ int main(int argc, char** argv)
    unsigned int       pingTTL                   = 64;
 
    bool               verboseMode               = true;
-   unsigned int       sqlTransactionLength      = 60;
-   std::string        sqlDirectory              = "hipercontracer-output";
-   std::string        sqlPingTable;
-   std::string        sqlTracerouteTable;
+   unsigned int       resultsTransactionLength  = 60;
+   std::string        resultsDirectory;
 
    // ====== Handle arguments ===============================================
    for(int i = 1; i < argc; i++) {
@@ -175,17 +173,11 @@ int main(int argc, char** argv)
       else if(strncmp(argv[i], "-pingttl=", 9) == 0) {
          pingTTL = atol((const char*)&argv[i][9]);
       }
-      else if(strncmp(argv[i], "-sqlpingtable=", 14) == 0) {
-         sqlPingTable = (const char*)&argv[i][14];
+      else if(strncmp(argv[i], "-resultsdirectory=", 18) == 0) {
+         resultsDirectory = (const char*)&argv[i][18];
       }
-      else if(strncmp(argv[i], "-sqltraceroutetable=", 20) == 0) {
-         sqlTracerouteTable = (const char*)&argv[i][20];
-      }
-      else if(strncmp(argv[i], "-sqldirectory=", 14) == 0) {
-         sqlDirectory = (const char*)&argv[i][14];
-      }
-      else if(strncmp(argv[i], "-sqltransactionlength=", 22) == 0) {
-         sqlTransactionLength = atol((const char*)&argv[i][22]);
+      else if(strncmp(argv[i], "-resultstransactionlength=", 26) == 0) {
+         resultsTransactionLength = atol((const char*)&argv[i][26]);
       }
       else if(strcmp(argv[i], "--") == 0) {
       }
@@ -228,10 +220,10 @@ int main(int argc, char** argv)
    pingExpiration            = std::min(std::max(100U, pingExpiration),          3600U*60000U);
    pingTTL                   = std::min(std::max(1U, pingTTL),                   255U);
 
-   std::cout << "SQL Output:" << std::endl;
-   if( (!sqlPingTable.empty()) || (!sqlTracerouteTable.empty()) ) {
-      std::cout << "* SQL Directory      = " << sqlDirectory         << std::endl
-                << "* Transaction Length = " << sqlTransactionLength << " s" << std::endl;
+   std::cout << "Results Output:" << std::endl;
+   if(!resultsDirectory.empty()) {
+      std::cout << "* Results Directory  = " << resultsDirectory         << std::endl
+                << "* Transaction Length = " << resultsTransactionLength << " s" << std::endl;
    }
    else {
       std::cout << "-- turned off--" << std::endl;
@@ -240,8 +232,7 @@ int main(int argc, char** argv)
       std::cout << "Ping Service:" << std:: endl
                 << "* Interval           = " << pingInterval   << " ms" << std::endl
                 << "* Expiration         = " << pingExpiration << " ms" << std::endl
-                << "* TTL                = " << pingTTL        << std::endl
-                << "* Ping Table         = " << sqlPingTable   << std::endl;
+                << "* TTL                = " << pingTTL        << std::endl;
    }
    if(serviceTraceroute) {
       std::cout << "Traceroute Service:" << std:: endl
@@ -250,8 +241,7 @@ int main(int argc, char** argv)
                 << "* Rounds             = " << tracerouteRounds          << std::endl
                 << "* Initial MaxTTL     = " << tracerouteInitialMaxTTL   << std::endl
                 << "* Final MaxTTL       = " << tracerouteFinalMaxTTL     << std::endl
-                << "* Increment MaxTTL   = " << tracerouteIncrementMaxTTL << std::endl
-                << "* Traceroute Table   = " << sqlTracerouteTable        << std::endl;
+                << "* Increment MaxTTL   = " << tracerouteIncrementMaxTTL << std::endl;
    }
 
 
@@ -259,7 +249,7 @@ int main(int argc, char** argv)
    for(std::set<boost::asio::ip::address>::iterator sourceIterator = SourceArray.begin(); sourceIterator != SourceArray.end(); sourceIterator++) {
       if(servicePing) {
          try {
-            Service* service = new Ping(makeSQLWriter(*sourceIterator, sqlPingTable, sqlDirectory, sqlTransactionLength),
+            Service* service = new Ping(makeResultsWriter(*sourceIterator, "Ping", resultsDirectory, resultsTransactionLength),
                                         verboseMode,
                                         *sourceIterator, DestinationArray,
                                         pingInterval, pingExpiration, pingTTL);
@@ -275,7 +265,7 @@ int main(int argc, char** argv)
       }
       if(serviceTraceroute) {
          try {
-            Service* service = new Traceroute(makeSQLWriter(*sourceIterator, sqlTracerouteTable, sqlDirectory, sqlTransactionLength),
+            Service* service = new Traceroute(makeResultsWriter(*sourceIterator, "Traceroute", resultsDirectory, resultsTransactionLength),
                                               verboseMode,
                                               *sourceIterator, DestinationArray,
                                               tracerouteInterval, tracerouteExpiration,
@@ -335,8 +325,8 @@ puts("x2");
       service->join();
       delete service;
    }
-   for(std::set<SQLWriter*>::iterator sqlWriterIterator = SqlWriterSet.begin(); sqlWriterIterator != SqlWriterSet.end(); sqlWriterIterator++) {
-      delete *sqlWriterIterator;
+   for(std::set<ResultsWriter*>::iterator resultsWriterIterator = ResultsWriterSet.begin(); resultsWriterIterator != ResultsWriterSet.end(); resultsWriterIterator++) {
+      delete *resultsWriterIterator;
    }
 
    return(0);
