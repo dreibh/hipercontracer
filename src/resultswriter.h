@@ -46,7 +46,9 @@ class ResultsWriter
    ResultsWriter(const std::string& directory,
                  const std::string& uniqueID,
                  const std::string& formatName,
-                 const unsigned int transactionLength);
+                 const unsigned int transactionLength,
+                 const uid_t        uid,
+                 const gid_t        gid);
    virtual ~ResultsWriter();
 
    bool prepare();
@@ -59,6 +61,8 @@ class ResultsWriter
    const std::string                   UniqueID;
    const std::string                   FormatName;
    const unsigned int                  TransactionLength;
+   const uid_t                         UID;
+   const gid_t                         GID;
    boost::filesystem::path             TempFileName;
    boost::filesystem::path             TargetFileName;
    size_t                              Inserts;

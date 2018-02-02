@@ -40,11 +40,15 @@
 ResultsWriter::ResultsWriter(const std::string& directory,
                              const std::string& uniqueID,
                              const std::string& formatName,
-                             const unsigned int transactionLength)
+                             const unsigned int transactionLength,
+                             const uid_t        uid,
+                             const gid_t        gid)
    : Directory(directory),
      UniqueID(uniqueID),
      FormatName(formatName),
-     TransactionLength(transactionLength)
+     TransactionLength(transactionLength),
+     UID(uid),
+     GID(gid)
 {
    Inserts   = 0;
    SeqNumber = 0;
@@ -62,8 +66,16 @@ ResultsWriter::~ResultsWriter()
 bool ResultsWriter::prepare()
 {
    try {
+      const boost::filesystem::path tempDirectory = Directory / "tmp";
       boost::filesystem::create_directory(Directory);
-      boost::filesystem::create_directory(Directory / "tmp");
+      boost::filesystem::create_directory(tempDirectory);
+      const int r1 = chown(Directory.string().c_str(), UID, GID);
+      const int r2 = chown(tempDirectory.string().c_str(), UID, GID);
+      if(r1 || r2) {
+         std::cerr << "WARNING: Setting ownership of " << Directory << " or "
+                   << tempDirectory << " to UID " << UID << ", GID " << GID
+                   << " failed: " << strerror(errno) << std::endl;
+      }
    }
    catch(std::exception const& e) {
       std::cerr << "ERROR: Unable to prepare directories - " << e.what() << std::endl;
@@ -107,6 +119,11 @@ bool ResultsWriter::changeFile(const bool createNewFile)
          OutputStream.push(boost::iostreams::bzip2_compressor());
          OutputStream.push(OutputFile);
          OutputCreationTime = boost::posix_time::microsec_clock::universal_time();
+         if( (OutputStream.good()) && (chown(TempFileName.c_str(), UID, GID) != 0) ) {
+            std::cerr << "WARNING: Setting ownership of " << TempFileName
+                     << " to UID " << UID << ", GID " << GID
+                     << " failed: " << strerror(errno) << std::endl;
+         }
          return(OutputStream.good());
       }
       catch(std::exception const& e) {

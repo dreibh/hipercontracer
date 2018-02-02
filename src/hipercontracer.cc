@@ -80,7 +80,9 @@ void signalHandler(const boost::system::error_code& error, int signal_number)
 static ResultsWriter* makeResultsWriter(const boost::asio::ip::address& sourceAddress,
                                         const std::string&              resultsFormat,
                                         const std::string&              resultsDirectory,
-                                        const unsigned int              resultsTransactionLength)
+                                        const unsigned int              resultsTransactionLength,
+                                        const uid_t                     uid,
+                                        const gid_t                     gid)
 {
    ResultsWriter* resultsWriter = NULL;
    if(!resultsDirectory.empty()) {
@@ -89,7 +91,8 @@ static ResultsWriter* makeResultsWriter(const boost::asio::ip::address& sourceAd
          sourceAddress.to_string() + "-" +
          boost::posix_time::to_iso_string(boost::posix_time::microsec_clock::universal_time());
       replace(uniqueID.begin(), uniqueID.end(), ' ', '-');
-      resultsWriter = new ResultsWriter(resultsDirectory, uniqueID, resultsFormat, resultsTransactionLength);
+      resultsWriter = new ResultsWriter(resultsDirectory, uniqueID, resultsFormat, resultsTransactionLength,
+                                        uid, gid);
       if(resultsWriter->prepare() == false) {
          ::exit(1);
       }
@@ -249,7 +252,8 @@ int main(int argc, char** argv)
    for(std::set<boost::asio::ip::address>::iterator sourceIterator = SourceArray.begin(); sourceIterator != SourceArray.end(); sourceIterator++) {
       if(servicePing) {
          try {
-            Service* service = new Ping(makeResultsWriter(*sourceIterator, "Ping", resultsDirectory, resultsTransactionLength),
+            Service* service = new Ping(makeResultsWriter(*sourceIterator, "Ping", resultsDirectory, resultsTransactionLength,
+                                                          (pw != NULL) ? pw->pw_uid : 0, (pw != NULL) ? pw->pw_gid : 0),
                                         verboseMode,
                                         *sourceIterator, DestinationArray,
                                         pingInterval, pingExpiration, pingTTL);
@@ -265,7 +269,8 @@ int main(int argc, char** argv)
       }
       if(serviceTraceroute) {
          try {
-            Service* service = new Traceroute(makeResultsWriter(*sourceIterator, "Traceroute", resultsDirectory, resultsTransactionLength),
+            Service* service = new Traceroute(makeResultsWriter(*sourceIterator, "Traceroute", resultsDirectory, resultsTransactionLength,
+                                                                (pw != NULL) ? pw->pw_uid : 0, (pw != NULL) ? pw->pw_gid : 0),
                                               verboseMode,
                                               *sourceIterator, DestinationArray,
                                               tracerouteInterval, tracerouteExpiration,
@@ -286,9 +291,7 @@ int main(int argc, char** argv)
 
 
    // ====== Reduce permissions =============================================
-puts("x1");
    if((pw != NULL) || (pw->pw_uid == 0)) {
-puts("x2");
       if(verboseMode) {
          std::cerr << "NOTE: Using UID " << pw->pw_uid
                    << ", GID " << pw->pw_gid << std::endl;
