@@ -33,6 +33,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
+#include <pwd.h>
 
 #include <netinet/in.h>
 #include <netinet/ip.h>
@@ -102,6 +103,8 @@ static SQLWriter* makeSQLWriter(const boost::asio::ip::address& sourceAddress,
 int main(int argc, char** argv)
 {
    // ====== Initialize =====================================================
+   const char*        user                      = NULL;
+   passwd*            pw                        = NULL;
    bool               servicePing               = false;
    bool               serviceTraceroute         = false;
 
@@ -141,6 +144,9 @@ int main(int argc, char** argv)
       }
       else if(strcmp(argv[i], "-verbose") == 0) {
          verboseMode = true;
+      }
+      else if(strncmp(argv[i], "-user=", 6) == 0) {
+         user = (const char*)&argv[i][6];
       }
       else if(strncmp(argv[i], "-tracerouteinterval=", 20) == 0) {
          tracerouteInterval = atol((const char*)&argv[i][20]);
@@ -200,6 +206,16 @@ int main(int argc, char** argv)
    if((servicePing == false) && (serviceTraceroute == false)) {
       std::cerr << "ERROR: Enable at least on service (Ping or Traceroute)!" << std::endl;
       return(1);
+   }
+   if(user != NULL) {
+      pw = getpwnam(user);
+      if(pw == NULL) {
+         pw = getpwuid(atoi(user));
+         if(pw == NULL) {
+            std::cerr << "ERROR: Provided user " << user << " is not a user name or UID!" << std::endl;
+            return(1);
+         }
+      }
    }
 
    std::srand(std::time(0));
@@ -276,6 +292,28 @@ int main(int argc, char** argv)
             ::exit(1);
          }
        }
+   }
+
+
+   // ====== Reduce permissions =============================================
+puts("x1");
+   if((pw != NULL) || (pw->pw_uid == 0)) {
+puts("x2");
+      if(verboseMode) {
+         std::cerr << "NOTE: Using UID " << pw->pw_uid
+                   << ", GID " << pw->pw_gid << std::endl;
+      }
+      if(setgid(pw->pw_gid) != 0) {
+         std::cerr << "ERROR: setgid(" << pw->pw_gid << ") failed: " << strerror(errno) << std::endl;
+         ::exit(1);
+      }
+      if(setuid(pw->pw_uid) != 0) {
+         std::cerr << "ERROR: setuid(" << pw->pw_uid << ") failed: " << strerror(errno) << std::endl;
+         ::exit(1);
+      }
+   }
+   else {
+      std::cerr << "NOTE: Working as root (uid 0). This is not recommended!" << std::endl;
    }
 
 
