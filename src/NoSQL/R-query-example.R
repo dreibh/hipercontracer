@@ -8,7 +8,7 @@
 #          #     #   ####   #    # #     #  ######     #
 #
 #       ---   The NorNet Testbed for Multi-Homed Systems  ---
-#                       https:#www.nntb.no
+#                       https://www.nntb.no
 # =================================================================
 #
 # High-Performance Connectivity Tracer (HiPerConTracer)
@@ -50,7 +50,7 @@ dbpassword <- "!researcher!"
 database   <- "pingtraceroutedb"
 
 
-# See https:#jeroen.github.io/mongolite/connecting-to-mongodb.html#authentication
+# See https://jeroen.github.io/mongolite/connecting-to-mongodb.html#authentication
 URL     <- sprintf("mongodb://%s:%s@%s:%d/%s?ssl=true",
                    dbuser, dbpassword, dbserver, dbport, database)
 options <- ssl_options(weak_cert_validation=TRUE, allow_invalid_hostname=TRUE)

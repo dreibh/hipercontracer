@@ -1,4 +1,5 @@
 src/NoSQL/*.ms
+src/NoSQL/R-query-example.R
 src/NoSQL/README
 src/NoSQL/install-database-and-users
 src/SQL/*.sql
