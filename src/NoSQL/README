@@ -66,3 +66,8 @@ sudo service mongod restart
 
 !!! IMPORTANT: !!!
 Make sure that the database is only accessible for authenticated users!
+
+
+4. Query example:
+
+See R-query-example.R for an example of how to query the results from MongoDB in GNU R.
