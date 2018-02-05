@@ -1,9 +1,13 @@
 # install.packages("mongolite")
 # install.packages("data.table")
 # install.packages("iptools")
+# install.packages("Rcpp")   # Needed by "anytime"; preinstalled version is too old.
+# install.packages("anytime")
 
 library(mongolite)
 library(data.table)
+library(iptools)
+library(anytime)
 
 
 dbserver   <- "10.1.1.47"   # rolfsbukta.alpha.test"
@@ -17,7 +21,7 @@ database   <- "pingtraceroutedb"
 URL     <- sprintf("mongodb://%s:%s@%s:%d/%s?ssl=true",
                    dbuser, dbpassword, dbserver, dbport, database)
 options <- ssl_options(weak_cert_validation=TRUE, allow_invalid_hostname=TRUE)
-print(URL)
+# print(URL)
 
 
 ping <- mongo("ping", url = URL, options = options)
@@ -26,23 +30,82 @@ traceroute <- mongo("traceroute", url = URL, options = options)
 
 
 
-binary_ip_to_string <- function(binaryIP)
+# ###### Convert binary IP address from MongoDB to string ###################
+binary_ip_to_string <- function(ipAddress)
 {
+   binaryIP <- as.numeric(unlist(ipAddress[1]))
    if(length(binaryIP) == 4) {
-      return("0.0.0.0")
+      a <- as.numeric(binaryIP[1])
+      b <- binaryIP[2]
+      c <- binaryIP[3]
+      d <- binaryIP[4]
+      n <- bitwShiftL(a, 24) + bitwShiftL(b, 16) + bitwShiftL(c, 8) + d
+      return(numeric_to_ip(n))
    }
    else if(length(binaryIP) == 16) {
-      return("::")
+      s <- ""
+      for(i in 0:7) {
+         n <- bitwShiftL(binaryIP[1 + (2*i)], 8) + binaryIP[1 + (2*i + 1)]
+         v <- sprintf("%x", n)
+         if(s == "") {
+            s <- v
+         }
+         else {
+            s <- paste(sep=":", s, v)
+         }
+      }      
+      return(s)
    }
    stop("Not an IPv4 or IPv6 address!")
 }
 
 
-tracerouteData <- data.table(traceroute$find('{ "timestamp" : 16777216 }'))
-print(tracerouteData)
+# ###### Convert Unix time in microseconds to string ########################
+unix_time_to_string <- function(timeStamp)
+{
+   s <- as.character(anytime(timeStamp / 1000000), asUTC=TRUE, tz="UTC")
+   u <- as.character(timeStamp %% 1000000)
+   return(paste(sep=".", s, u))
+}
 
+
+cat("###### Ping ######\n")
+pingData <- data.table(ping$find('{ "timestamp" : 16777216 }', limit=32))
+for(i in 1:length(pingData$timestamp)) {
+   pingResult <- pingData[i]
+   
+   timestamp   <- unix_time_to_string(pingResult$timestamp)
+   source      <- binary_ip_to_string(pingResult$source)
+   destination <- binary_ip_to_string(pingResult$destination)
+   
+   cat(sep="", sprintf("%4d", i), ": ", timestamp, "\t",
+       source, " -> ", destination,
+       "\t(", pingResult$rtt, " ms, csum ", sprintf("0x%x", pingResult$checksum),
+       ", flags ", pingResult$status, ")\n")
+}
+
+
+cat("###### Traceroute ######\n")
+tracerouteData <- data.table(traceroute$find('{ "timestamp" : 16777216 }'))
 for(i in 1:length(tracerouteData$timestamp)) {
-   print(paste0("==== ", as.character(i), " ===="))
    tracerouteResult <- tracerouteData[i]
-   print(tracerouteResult)
+   
+   timestamp   <- unix_time_to_string(tracerouteResult$timestamp)
+   source      <- binary_ip_to_string(tracerouteResult$source)
+   destination <- binary_ip_to_string(tracerouteResult$destination)
+   
+   cat(sep="", sprintf("%4d", i), ": ", timestamp, "\t",
+       source, " -> ", destination,
+       " (round ", tracerouteResult$round,
+       ", csum ", sprintf("0x%x", tracerouteResult$checksum),
+       ", flags ", tracerouteResult$statusFlags,
+       ")\n")
+
+       cat(length(tracerouteResult$hops),"\n")
+#    for(j in 1:10) {
+#       hopResult <- (tracerouteResult$hops)[[j]][[1]]
+#       print(hopResult)
+#       hop <- binary_ip_to_string(hopResult$hop)
+#       cat(sep="", "\t", hop, " ", hopResult$status, " ", hopResult$rtt, " ms\n")
+#    }
 }
