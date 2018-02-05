@@ -1,5 +1,5 @@
 Name: hipercontracer
-Version: 1.1.4
+Version: 1.2.0~alpha1.0
 Release: 1
 Summary: High-Performance Connectivity Tracer (HiPerConTracer)
 Group: Applications/Internet
@@ -44,6 +44,7 @@ make install DESTDIR=%{buildroot}
 %{_datadir}/doc/hipercontracer/examples/SQL/schema.sql
 %{_datadir}/doc/hipercontracer/examples/SQL/users.sql
 %{_datadir}/doc/hipercontracer/examples/NoSQL/*.ms
+%{_datadir}/doc/hipercontracer/examples/NoSQL/R-query-example.R
 %{_datadir}/doc/hipercontracer/examples/NoSQL/README
 %{_datadir}/doc/hipercontracer/examples/NoSQL/install-database-and-users
 
