@@ -1,7 +1,7 @@
 # install.packages("mongolite")
 # install.packages("data.table")
 # install.packages("iptools")
-# install.packages("Rcpp")   # Needed by "anytime"; preinstalled version is too old.
+# install.packages("Rcpp")   # Needed by "anytime"; pre-installed version is too old!
 # install.packages("anytime")
 
 library(mongolite)
@@ -10,7 +10,7 @@ library(iptools)
 library(anytime)
 
 
-dbserver   <- "10.1.1.47"   # rolfsbukta.alpha.test"
+dbserver   <- "rolfsbukta.alpha.test"
 dbport     <- 27017
 dbuser     <- "researcher"
 dbpassword <- "!researcher!"
@@ -81,12 +81,12 @@ for(i in 1:length(pingData$timestamp)) {
    cat(sep="", sprintf("%4d", i), ": ", timestamp, "\t",
        source, " -> ", destination,
        "\t(", pingResult$rtt, " ms, csum ", sprintf("0x%x", pingResult$checksum),
-       ", flags ", pingResult$status, ")\n")
+       ", status ", pingResult$status, ")\n")
 }
 
 
 cat("###### Traceroute ######\n")
-tracerouteData <- data.table(traceroute$find('{ "timestamp" : 16777216 }'))
+tracerouteData <- data.table(traceroute$find('{ "timestamp" : 16777217 }', limit=4))
 for(i in 1:length(tracerouteData$timestamp)) {
    tracerouteResult <- tracerouteData[i]
    
@@ -101,11 +101,12 @@ for(i in 1:length(tracerouteData$timestamp)) {
        ", flags ", tracerouteResult$statusFlags,
        ")\n")
 
-       cat(length(tracerouteResult$hops),"\n")
-#    for(j in 1:10) {
-#       hopResult <- (tracerouteResult$hops)[[j]][[1]]
-#       print(hopResult)
-#       hop <- binary_ip_to_string(hopResult$hop)
-#       cat(sep="", "\t", hop, " ", hopResult$status, " ", hopResult$rtt, " ms\n")
-#    }
+   hopTable <- tracerouteResult$hops[[1]]
+   for(j in 1:length(hopTable$hop)) {
+      hop    <- binary_ip_to_string(hopTable$hop[j])
+      status <- hopTable$status[j]
+      rtt    <- hopTable$rtt[j]
+
+      cat(sep="", "\t", sprintf("%2d", j), ":\t", hop, "\t(rtt ", rtt, " ms, status ", status, ")\n")
+   }
 }
