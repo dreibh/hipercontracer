@@ -34,19 +34,22 @@ make install DESTDIR=%{buildroot}
 %{_datadir}/man/man1/addressinfogenerator.1.gz
 %{_datadir}/man/man1/hipercontracer.1.gz
 %{_datadir}/man/man1/tracedataimporter.1.gz
+%{_datadir}/doc/hipercontracer/examples/hipercontracer-database-configuration
 %{_datadir}/doc/hipercontracer/examples/SQL/README
 %{_datadir}/doc/hipercontracer/examples/SQL/database.sql
-%{_datadir}/doc/hipercontracer/examples/SQL/hipercontracer-database-configuration
 %{_datadir}/doc/hipercontracer/examples/SQL/install-database-and-users
 %{_datadir}/doc/hipercontracer/examples/SQL/login-as-importer
 %{_datadir}/doc/hipercontracer/examples/SQL/login-as-researcher
 %{_datadir}/doc/hipercontracer/examples/SQL/procedures.sql
 %{_datadir}/doc/hipercontracer/examples/SQL/schema.sql
 %{_datadir}/doc/hipercontracer/examples/SQL/users.sql
-%{_datadir}/doc/hipercontracer/examples/NoSQL/*.ms
+%{_datadir}/doc/hipercontracer/examples/NoSQL/admin.ms
+%{_datadir}/doc/hipercontracer/examples/NoSQL/database.ms
+%{_datadir}/doc/hipercontracer/examples/NoSQL/install-database-and-users
+%{_datadir}/doc/hipercontracer/examples/NoSQL/schema.ms
+%{_datadir}/doc/hipercontracer/examples/NoSQL/users.ms
 %{_datadir}/doc/hipercontracer/examples/NoSQL/R-query-example.R
 %{_datadir}/doc/hipercontracer/examples/NoSQL/README
-%{_datadir}/doc/hipercontracer/examples/NoSQL/install-database-and-users
 
 %doc
 
