@@ -60,4 +60,5 @@ INSTALL(FILES hipercontracer-database-configuration
 # SUBDIRECTORIES
 #################################################
 
-ADD_SUBDIRECTORY(SQL NoSQL)
+ADD_SUBDIRECTORY(SQL)
+ADD_SUBDIRECTORY(NoSQL)
