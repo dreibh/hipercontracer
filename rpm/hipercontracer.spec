@@ -24,6 +24,10 @@ High-Performance Connectivity Tracer (HiPerConTracer) is a ping/traceroute servi
 %cmake -DCMAKE_INSTALL_PREFIX=/usr .
 make %{?_smp_mflags}
 
+%pre
+/usr/sbin/groupadd -g 888 -r hipercontracer >/dev/null 2>&1 || :
+/usr/sbin/useradd -M -N -g hipercontracer -o -r -d /tmp -s /bin/bash -c "HiPerConTracer User" -u 888 hipercontracer >/dev/null 2>&1 || :
+
 %install
 make install DESTDIR=%{buildroot}
 
