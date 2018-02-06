@@ -4,18 +4,8 @@ set -e
 
 if [ "$1" = configure ]; then
    # Make sure the administrative user exists
-   if ! getent passwd hipercontracer > /dev/null; then
-      adduser --system $quiet --home /tmp --no-create-home \
-              --shell /bin/bash --group --gecos "HiPerConTracer user" hipercontracer
-   fi
-   # Make sure the group is there as well
-   if ! getent group hipercontracer > /dev/null; then
-      addgroup --system $quiet hipercontracer
-   fi
-   # Make sure hipercontracer is in the hipercontracer group
-   if ! id -Gn hipercontracer | grep -qw hipercontracer; then
-      adduser $quiet hipercontracer hipercontracer
-   fi
+   /usr/sbin/groupadd -g 888 -r hipercontracer >/dev/null 2>&1 || :
+   /usr/sbin/useradd -M -N -g hipercontracer -o -r -d /tmp -s /bin/bash -c "HiPerConTracer User" -u 888 hipercontracer >/dev/null 2>&1 || :
 
    # check validity of hipercontracer user and group
    if [ "`id -u hipercontracer`" -eq 0 ]; then
