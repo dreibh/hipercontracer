@@ -291,7 +291,7 @@ int main(int argc, char** argv)
 
 
    // ====== Reduce permissions =============================================
-   if((pw != NULL) && (pw->pw_uid == 0)) {
+   if((pw != NULL) && (pw->pw_uid != 0)) {
       if(verboseMode) {
          std::cerr << "NOTE: Using UID " << pw->pw_uid
                    << ", GID " << pw->pw_gid << std::endl;
@@ -306,7 +306,7 @@ int main(int argc, char** argv)
       }
    }
    else {
-      std::cerr << "NOTE: Working as root (uid 0). This is not recommended!" << std::endl;
+      std::cerr << "NOTE: Working as root (uid 0; user " << user << "). This is not recommended!" << std::endl;
    }
 
 
