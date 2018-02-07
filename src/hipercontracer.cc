@@ -291,7 +291,7 @@ int main(int argc, char** argv)
 
 
    // ====== Reduce permissions =============================================
-   if((pw != NULL) || (pw->pw_uid == 0)) {
+   if((pw != NULL) && (pw->pw_uid == 0)) {
       if(verboseMode) {
          std::cerr << "NOTE: Using UID " << pw->pw_uid
                    << ", GID " << pw->pw_gid << std::endl;
