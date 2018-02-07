@@ -149,6 +149,7 @@ bool Traceroute::start()
 void Traceroute::requestStop() {
    StopRequested = true;
    IntervalTimer.get_io_service().post(boost::bind(&Traceroute::cancelIntervalTimer, this));
+   IntervalTimer.get_io_service().post(boost::bind(&Traceroute::cancelTimeoutTimer, this));
 }
 
 
