@@ -45,7 +45,6 @@ net:
   ssl:
     mode: requireSSL
     PEMKeyFile: /etc/ssl/rolfsbukta.alpha.test.pem
-    CAFile: <PATH TO CA CHAIN FILE>
     disabledProtocols: TLS1_0,TLS1_1
 
 security:
