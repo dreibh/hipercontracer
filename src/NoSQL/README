@@ -52,8 +52,11 @@ security:
 
 
 Login:
-mongo --host rolfsbukta.alpha.test -u maintainer -p '!maintainer!' --authenticationDatabase "admin" --ssl --sslCAFile ~/NorNet-CA-Test-Alpha-chain.pem
-(without TLS configuration: mongo -u maintainer -p '!maintainer!' --authenticationDatabase "admin")
+* Maintainer:
+ mongo --host rolfsbukta.alpha.test -u maintainer -p '!maintainer!' --authenticationDatabase "admin" --ssl --sslCAFile ~/NorNet-CA-Test-Alpha-chain.pem
+ (without TLS configuration: mongo -u maintainer -p '!maintainer!' --authenticationDatabase "admin")
+* Researcher:
+ mongo --host rolfsbukta.alpha.test -u researcher -p '!researcher!' --authenticationDatabase "pingtraceroutedb" --ssl --sslCAFile ~/NorNet-CA-Test-Alpha-chain.pem
 
 
 4. Initialize database:
@@ -68,6 +71,6 @@ sudo service mongod restart
 Make sure that the database is only accessible for authenticated users!
 
 
-4. Query example:
+5. Query example:
 
 See R-query-example.R for an example of how to query the results from MongoDB in GNU R.
