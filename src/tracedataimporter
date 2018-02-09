@@ -335,16 +335,16 @@ if outputType == OT_POSTGRES:
       if dbCAFile == "IGNORE":   # ------ Ignore TLS certificate ------------
          warning('TLS certificate check is turned off!')
          dbConnection = psycopg2.connect(host=str(dbServer), port=str(dbPort),
-                                       user=str(dbUser),   password=str(dbPassword),
-                                       dbname=str(dbName), sslmode='require')
+                                         user=str(dbUser),   password=str(dbPassword),
+                                         dbname=str(dbName), sslmode='require')
       elif dbCAFile == "None":   # ------ Use default CA settings -----------
          dbConnection = psycopg2.connect(host=str(dbServer), port=str(dbPort),
-                                       user=str(dbUser),   password=str(dbPassword),
-                                       dbname=str(dbName), sslmode='verify-ca')
+                                         user=str(dbUser),   password=str(dbPassword),
+                                         dbname=str(dbName), sslmode='verify-ca')
       else:   # ------ Use given CA, requires PyMongo >= 3.4! ---------------
          dbConnection = psycopg2.connect(host=str(dbServer), port=str(dbPort),
-                                       user=str(dbUser),   password=str(dbPassword),
-                                       dbname=str(dbName), sslmode='verify-ca', sslrootcert=dbCAFile)
+                                         user=str(dbUser),   password=str(dbPassword),
+                                         dbname=str(dbName), sslmode='verify-ca', sslrootcert=dbCAFile)
       dbConnection.autocommit = False
    except Exception as e:
       log('Unable to connect to the PostgreSQL database: ' + str(e))
