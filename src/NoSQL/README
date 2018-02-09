@@ -51,6 +51,9 @@ security:
   authorization: enabled
 
 
+Create PEM key file:
+cat rolfsbukta.alpha.test.key rolfsbukta.alpha.test.crt NorNet-CA-Test-Alpha-chain.pem >rolfsbukta.alpha.test.pem
+
 Login:
 * Maintainer:
  mongo --host rolfsbukta.alpha.test -u maintainer -p '!maintainer!' --authenticationDatabase "admin" --ssl --sslCAFile ~/NorNet-CA-Test-Alpha-chain.pem
