@@ -1,8 +1,9 @@
-hipercontracer (1.2.0~alpha2.0-1ubuntu1) bionic; urgency=medium
+hipercontracer (1.2.0~rc1-1ubuntu1) bionic; urgency=medium
 
   * New upstream version.
+  * debian/hipercontracer.postinst: Added missing #DEBHELPER# tag.
 
- -- Thomas Dreibholz <dreibh@iem.uni-due.de>  Wed, 22 Nov 2017 08:08:08 +0200
+ -- Thomas Dreibholz <dreibh@iem.uni-due.de>  Wed, 11 Apr 2018 08:08:08 +0200
 
 hipercontracer (1.1.4-1ubuntu1) bionic; urgency=medium
 
