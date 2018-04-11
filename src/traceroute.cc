@@ -115,7 +115,7 @@ Traceroute::Traceroute(ResultsWriter*                           resultsWriter,
    MaxTTL              = InitialMaxTTL;
    TargetChecksumArray = new uint32_t[Rounds];
    assert(TargetChecksumArray != NULL);
-   
+
    // ====== Prepare destination endpoints ==================================
    for(std::set<boost::asio::ip::address>::const_iterator destinationIterator = destinationAddressArray.begin();
        destinationIterator != destinationAddressArray.end(); destinationIterator++) {
@@ -181,7 +181,7 @@ bool Traceroute::prepareSocket()
       ICMP6_FILTER_SETPASS(ICMP6_DST_UNREACH, &filter);
       ICMP6_FILTER_SETPASS(ICMP6_PACKET_TOO_BIG, &filter);
       ICMP6_FILTER_SETPASS(ICMP6_TIME_EXCEEDED, &filter);
-      if(setsockopt(ICMPSocket.native(), IPPROTO_ICMPV6, ICMP6_FILTER,
+      if(setsockopt(ICMPSocket.native_handle(), IPPROTO_ICMPV6, ICMP6_FILTER,
                     &filter, sizeof(struct icmp6_filter)) < 0) {
          std::cerr << "WARNING: Unable to set ICMP6_FILTER!" << std::endl;
       }
@@ -386,7 +386,7 @@ void Traceroute::sendICMPRequest(const boost::asio::ip::address& destinationAddr
    }
    catch (boost::system::system_error const& e) {
       sent = -1;
-   }    
+   }
    if(sent < 1) {
       std::cerr << "WARNING: Traceroute::sendICMPRequest() - ICMP send_to(" << SourceAddress << "->" << destinationAddress << ") failed!" << std::endl;
    }
