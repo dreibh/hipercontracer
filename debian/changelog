@@ -1,6 +1,7 @@
-hipercontracer (1.2.0~rc2-1ubuntu1) bionic; urgency=medium
+hipercontracer (1.2.0~rc2.1-1ubuntu1) bionic; urgency=medium
 
   * New upstream version.
+  * debian/control: Dependency fixes.
   * debian/hipercontracer.postinst: Added missing #DEBHELPER# tag.
 
  -- Thomas Dreibholz <dreibh@iem.uni-due.de>  Wed, 11 Apr 2018 08:08:08 +0200
