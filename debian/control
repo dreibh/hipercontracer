@@ -5,7 +5,7 @@ Maintainer: Thomas Dreibholz <dreibh@iem.uni-due.de>
 Homepage: https://www.uni-due.de/~be0001/hipercontracer
 Build-Depends: cmake,
                debhelper (>= 9),
-               dh-python | debhelper,
+               dh-python,
                libboost-date-time-dev (>= 1.48.0) | libboost-date-time1.48-dev,
                libboost-filesystem-dev (>= 1.48.0) | libboost-filesystem1.48-dev,
                libboost-iostreams-dev (>= 1.48.0) | libboost-iostreams1.48-dev,
@@ -14,7 +14,7 @@ Build-Depends: cmake,
                pkg-config,
                python3,
                python3-psycopg2
-Standards-Version: 4.1.1
+Standards-Version: 4.1.4
 X-Python3-Version: >= 3.1
 
 Package: hipercontracer
