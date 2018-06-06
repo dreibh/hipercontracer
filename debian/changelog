@@ -1,4 +1,4 @@
-hipercontracer (1.2.0~rc2.2-1ubuntu1) cosmic; urgency=medium
+hipercontracer (1.2.0~rc2.5-1ubuntu1) cosmic; urgency=medium
 
   * New upstream version.
   * debian/control: Dependency fixes.
