@@ -30,11 +30,25 @@
 # Contact: dreibh@simula.no
 
 
+# ###### Requirements #######################################################
+
+# Up-to-date GNU R installation:
+#
+# sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys E084DAB9
+# Add to /etc/apt/sources.list:
+#    deb https://cran.r-project.org/bin/linux/ubuntu xenial/
+#    deb-src https://cran.r-project.org/bin/linux/ubuntu xenial/
+# Replace "xenial" by actual Ubuntu variant!
+
+# Install additional GNU R packages (into user's directory):
+#
+# options(repos = "https://cran.ms.unimelb.edu.au")
 # install.packages("mongolite")
 # install.packages("data.table")
 # install.packages("iptools")
 # install.packages("Rcpp")   # Needed by "anytime"; pre-installed version is too old!
 # install.packages("anytime")
+# update.packages(ask=FALSE)
 
 
 library(mongolite)
@@ -118,7 +132,14 @@ string_to_unix_time <- function(timeString)
 
 
 cat("###### Ping ######\n")
-pingData <- data.table(ping$find('{ }', limit=16))
+dateStart <- string_to_unix_time('2018-06-01 11:11:11.000000')
+dateEnd   <- string_to_unix_time('2018-06-01 11:11:12.000000')
+filterStart <- paste(sep="", '{ "timestamp": { "$gte" : ', sprintf("%1.0f", dateStart), ' } }')
+filterEnd   <- paste(sep="", '{ "timestamp": { "$lt" : ',  sprintf("%1.0f", dateEnd), ' } }')
+filter <- paste(sep="", '{ "$and" : [ ', filterStart, ', ', filterEnd, ' ] }')
+cat(sep="", "Filter: ", filter, "\n")
+
+pingData <- data.table(ping$find(filter, limit=16))
 for(i in 1:length(pingData$timestamp)) {
    pingResult <- pingData[i]
 
@@ -126,7 +147,7 @@ for(i in 1:length(pingData$timestamp)) {
    source      <- binary_ip_to_string(pingResult$source)
    destination <- binary_ip_to_string(pingResult$destination)
 
-   cat(sep="", sprintf("%4d", i), ": ", timestamp, " (", sprintf("%1.1f", pingResult$timestamp), ")\t",
+   cat(sep="", sprintf("%4d", i), ": ", timestamp, " (", sprintf("%1.0f", pingResult$timestamp), ")\t",
        source, " -> ", destination,
        "\t(", pingResult$rtt, " ms, csum ", sprintf("0x%x", pingResult$checksum),
        ", status ", pingResult$status, ")\n")
@@ -134,7 +155,15 @@ for(i in 1:length(pingData$timestamp)) {
 
 
 cat("###### Traceroute ######\n")
-tracerouteData <- data.table(traceroute$find('{ }', limit=4))
+
+dateStart <- string_to_unix_time('2018-06-01 10:00:00.000000')
+dateEnd   <- string_to_unix_time('2018-06-01 10:00:01.000000')
+filterStart <- paste(sep="", '{ "timestamp": { "$gte" : ', sprintf("%1.0f", dateStart), ' } }')
+filterEnd   <- paste(sep="", '{ "timestamp": { "$lt" : ',  sprintf("%1.0f", dateEnd), ' } }')
+filter <- paste(sep="", '{ "$and" : [ ', filterStart, ', ', filterEnd, ' ] }')
+cat(sep="", "Filter: ", filter, "\n")
+
+tracerouteData <- data.table(traceroute$find(filter))
 for(i in 1:length(tracerouteData$timestamp)) {
    tracerouteResult <- tracerouteData[i]
 
@@ -142,7 +171,7 @@ for(i in 1:length(tracerouteData$timestamp)) {
    source      <- binary_ip_to_string(tracerouteResult$source)
    destination <- binary_ip_to_string(tracerouteResult$destination)
 
-   cat(sep="", sprintf("%4d", i), ": ", timestamp, " (", sprintf("%1.1f", pingResult$timestamp), ")\t",
+   cat(sep="", sprintf("%4d", i), ": ", timestamp, " (", sprintf("%1.0f", pingResult$timestamp), ")\t",
        source, " -> ", destination,
        " (round ", tracerouteResult$round,
        ", csum ", sprintf("0x%x", tracerouteResult$checksum),
