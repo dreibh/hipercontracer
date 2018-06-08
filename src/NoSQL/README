@@ -39,7 +39,10 @@ storage:
 
 net:
   port: 27017
-  bindIp: 0.0.0.0
+  bindIpAll: true
+  # Bind for IPv4 + IPv6:
+  bindIpAll: true
+  # Alternatively for IPv4 only: bindIp: 0.0.0.0
   compression:
     compressors: zlib,snappy
   ssl:
