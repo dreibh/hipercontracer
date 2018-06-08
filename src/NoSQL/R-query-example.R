@@ -43,23 +43,23 @@ library(iptools)
 library(anytime)
 
 
-dbserver   <- "rolfsbukta.alpha.test"
-dbport     <- 27017
-dbuser     <- "researcher"
-dbpassword <- "!researcher!"
-database   <- "pingtraceroutedb"
+# dbserver   <- "rolfsbukta.alpha.test"
+# dbport     <- 27017
+# dbuser     <- "researcher"
+# dbpassword <- "!researcher!"
+# database   <- "pingtraceroutedb"
+source("~/.hipercontracer-db-access")
 
 
 # See https://jeroen.github.io/mongolite/connecting-to-mongodb.html#authentication
 URL     <- sprintf("mongodb://%s:%s@%s:%d/%s?ssl=true",
                    dbuser, dbpassword, dbserver, dbport, database)
-options <- ssl_options(weak_cert_validation=TRUE, allow_invalid_hostname=TRUE)
+options <- ssl_options(weak_cert_validation=FALSE, allow_invalid_hostname=TRUE)
 # print(URL)
 
 
 ping <- mongo("ping", url = URL, options = options)
 traceroute <- mongo("traceroute", url = URL, options = options)
-# print(ping)
 
 
 
@@ -67,6 +67,8 @@ traceroute <- mongo("traceroute", url = URL, options = options)
 binary_ip_to_string <- function(ipAddress)
 {
    binaryIP <- as.numeric(unlist(ipAddress[1]))
+
+   # ====== IPv4 ============================================================
    if(length(binaryIP) == 4) {
       a <- as.numeric(binaryIP[1])
       b <- binaryIP[2]
@@ -75,6 +77,8 @@ binary_ip_to_string <- function(ipAddress)
       n <- bitwShiftL(a, 24) + bitwShiftL(b, 16) + bitwShiftL(c, 8) + d
       return(numeric_to_ip(n))
    }
+
+   # ====== IPv6 ============================================================
    else if(length(binaryIP) == 16) {
       s <- ""
       for(i in 0:7) {
@@ -86,9 +90,11 @@ binary_ip_to_string <- function(ipAddress)
          else {
             s <- paste(sep=":", s, v)
          }
-      }      
+      }
       return(s)
    }
+
+   # ====== Error ===========================================================
    stop("Not an IPv4 or IPv6 address!")
 }
 
@@ -96,22 +102,31 @@ binary_ip_to_string <- function(ipAddress)
 # ###### Convert Unix time in microseconds to string ########################
 unix_time_to_string <- function(timeStamp)
 {
-   s <- as.character(anytime(timeStamp / 1000000), asUTC=TRUE, tz="UTC")
-   u <- as.character(timeStamp %% 1000000)
-   return(paste(sep=".", s, u))
+   seconds      <- as.character(anytime(timeStamp / 1000000), asUTC=TRUE, tz="UTC")
+   microseconds <- sprintf("%06d", timeStamp %% 1000000)
+   timeString <- paste(sep=".", seconds, microseconds)
 }
 
 
+# ###### Convert strong to Unix time in microseconds ########################
+string_to_unix_time <- function(timeString)
+{
+   timeStamp <- 1000000.0 * as.numeric(anytime(timeString, asUTC=TRUE))
+   return(timeStamp)
+}
+
+
+
 cat("###### Ping ######\n")
-pingData <- data.table(ping$find('{ "timestamp" : 16777216 }', limit=32))
+pingData <- data.table(ping$find('{ }', limit=16))
 for(i in 1:length(pingData$timestamp)) {
    pingResult <- pingData[i]
-   
+
    timestamp   <- unix_time_to_string(pingResult$timestamp)
    source      <- binary_ip_to_string(pingResult$source)
    destination <- binary_ip_to_string(pingResult$destination)
-   
-   cat(sep="", sprintf("%4d", i), ": ", timestamp, "\t",
+
+   cat(sep="", sprintf("%4d", i), ": ", timestamp, " (", sprintf("%1.1f", pingResult$timestamp), ")\t",
        source, " -> ", destination,
        "\t(", pingResult$rtt, " ms, csum ", sprintf("0x%x", pingResult$checksum),
        ", status ", pingResult$status, ")\n")
@@ -119,15 +134,15 @@ for(i in 1:length(pingData$timestamp)) {
 
 
 cat("###### Traceroute ######\n")
-tracerouteData <- data.table(traceroute$find('{ "timestamp" : 16777217 }', limit=4))
+tracerouteData <- data.table(traceroute$find('{ }', limit=4))
 for(i in 1:length(tracerouteData$timestamp)) {
    tracerouteResult <- tracerouteData[i]
-   
+
    timestamp   <- unix_time_to_string(tracerouteResult$timestamp)
    source      <- binary_ip_to_string(tracerouteResult$source)
    destination <- binary_ip_to_string(tracerouteResult$destination)
-   
-   cat(sep="", sprintf("%4d", i), ": ", timestamp, "\t",
+
+   cat(sep="", sprintf("%4d", i), ": ", timestamp, " (", sprintf("%1.1f", pingResult$timestamp), ")\t",
        source, " -> ", destination,
        " (round ", tracerouteResult$round,
        ", csum ", sprintf("0x%x", tracerouteResult$checksum),
