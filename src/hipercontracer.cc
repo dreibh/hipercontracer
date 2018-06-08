@@ -306,7 +306,7 @@ int main(int argc, char** argv)
       }
    }
    else {
-      std::cerr << "NOTE: Working as root (uid 0; user " << user << "). This is not recommended!" << std::endl;
+      std::cerr << "NOTE: Working as root (uid 0). This is not recommended!" << std::endl;
    }
 
 

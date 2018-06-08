@@ -1,0 +1,19 @@
+#!/bin/sh
+
+make -j8 && \
+sudo ./hipercontracer \
+   -source=158.36.99.232 \
+   -destination=8.8.8.8 \
+   -destination=132.252.150.154 \
+   -destination=2.2.2.2 \
+   -ping -traceroute \
+   -tracerouteduration=1000 \
+   -tracerouteinitialmaxttl=4 \
+   -traceroutefinalmaxttl=32 \
+   -tracerouteincrementmaxttl=4 \
+   -pinginterval=1000 \
+   -pingexpiration=7500 \
+   -pingttl=56 \
+   -resultsdirectory=/tmp/xy \
+   -resultstransactionlength=20 \
+   -quiet
