@@ -34,11 +34,13 @@
 
 # Up-to-date GNU R installation:
 #
-# sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys E084DAB9
 # Add to /etc/apt/sources.list:
 #    deb https://cran.r-project.org/bin/linux/ubuntu xenial/
 #    deb-src https://cran.r-project.org/bin/linux/ubuntu xenial/
 # Replace "xenial" by actual Ubuntu variant!
+# sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys E084DAB9
+# sudo apt-get update
+# sudo apt-get dist-upgrade
 
 # Install additional GNU R packages (into user's directory):
 #
