@@ -50,13 +50,17 @@
 # install.packages("iptools")
 # install.packages("Rcpp")   # Needed by "anytime"; pre-installed version is too old!
 # install.packages("anytime")
+# install.packages("assertthat")
+# install.packages("bitops")
 # update.packages(ask=FALSE)
 
 
-library(mongolite)
-library(data.table)
-library(iptools)
-library(anytime)
+library("mongolite")
+library("data.table")
+library("iptools")
+library("anytime")
+library("assertthat")
+library("bitops")
 
 
 # dbserver   <- "rolfsbukta.alpha.test"
@@ -87,18 +91,21 @@ binary_ip_to_string <- function(ipAddress)
    # ====== IPv4 ============================================================
    if(length(binaryIP) == 4) {
       a <- as.numeric(binaryIP[1])
-      b <- binaryIP[2]
-      c <- binaryIP[3]
-      d <- binaryIP[4]
-      n <- bitwShiftL(a, 24) + bitwShiftL(b, 16) + bitwShiftL(c, 8) + d
-      return(numeric_to_ip(n))
+      b <- as.numeric(binaryIP[2])
+      c <- as.numeric(binaryIP[3])
+      d <- as.numeric(binaryIP[4])
+      n <- bitShiftL(a, 24) + bitShiftL(b, 16) + bitShiftL(c, 8) + d
+      assert_that(!is.na(n))
+      assert_that(is.numeric(n))
+      s <- numeric_to_ip(n)
+      return(s)
    }
 
    # ====== IPv6 ============================================================
    else if(length(binaryIP) == 16) {
       s <- ""
       for(i in 0:7) {
-         n <- bitwShiftL(binaryIP[1 + (2*i)], 8) + binaryIP[1 + (2*i + 1)]
+         n <- bitShiftL(binaryIP[1 + (2*i)], 8) + binaryIP[1 + (2*i + 1)]
          v <- sprintf("%x", n)
          if(s == "") {
             s <- v
