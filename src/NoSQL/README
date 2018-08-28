@@ -67,10 +67,10 @@ Login:
 
 4. Initialize database:
 
-* Comment out "security:" block in /etc/mongod.conf
+* Comment out "security:" and "ssl:" blocks in /etc/mongod.conf
 sudo service mongod restart
 ./install-database-and-users
-* Reactivate "security:" block in /etc/mongod.conf
+* Reactivate "security:" and "ssl:" blocks in /etc/mongod.conf
 sudo service mongod restart
 
 !!! IMPORTANT: !!!
