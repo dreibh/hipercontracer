@@ -44,43 +44,78 @@ binary_ip_to_string <- function(ipAddress)
 # ###### Extract colon-separated 16-bit hex values to 8-bit values ##########
 get_blocks <- function(input)
 {
-   blocks <- strsplit(input, ':')[[1]]
-   tuple <- rep(NA, 2 * length(blocks))
-   for(i in 1:length(blocks)) {
-      value <- strtoi(paste(sep="", '0x', as.character(blocks[i])))      
-      if( (value < 0) || (value > 0xffff)) {
-         return(NA)
+   if(input != "") {
+      blocks <- strsplit(input, ":", fixed=TRUE)[[1]]
+      tuple <- rep(NA, 2 * length(blocks))
+      for(i in 1:length(blocks)) {
+         value <- strtoi(paste(sep="", "0x", as.character(blocks[i])))      
+         if( (value < 0) || (value > 0xffff)) {
+            return(NA)
+         }
+         tuple[2*(i - 1) + 1] <- bitShiftR(bitAnd(value, 0xff00), 8)
+         tuple[2*(i - 1) + 2] <- bitAnd(value, 0xff)
       }
-      tuple[2*(i - 1) + 1] <- bitShiftR(bitAnd(value, 0xff00), 8)
-      tuple[2*(i - 1) + 2] <- bitAnd(value, 0xff)
+      return(tuple)
    }
-   return(tuple)
+   else {
+      return(c())   # Return empty list in case of empty input!
+   }
 }
 
 
 # ###### Convert string to numeric IPv4/IPv6 address ########################
 string_to_numeric_ip <- function(address)
 {
+   # ====== IPv4 ============================================================
    ipv4 <- strsplit(address, ".", fixed=TRUE)[[1]]
    if(length(ipv4) == 4) {
       tuple <- as.numeric(ipv4)
       return(as.raw(tuple))
    }
-   else {
-      ipv6 <- strsplit(address, '::')
-      blocks <- ipv6[[1]]
-      if(length(blocks) == 2) {   # compressed format
-         front <- get_blocks(blocks[1])
-         back  <- get_blocks(blocks[2])
-         if(length(front) + length(back) <= 16) {
-            middle <- rep(0, 16 - (length(front) + length(back)))
-            tuple <- c(front, middle, back)
-            return(as.raw(tuple))
-         }
 
+   # ====== IPv6 ============================================================
+   else {
+      # ------ Case #1: compressed format, :: at the beginning --------------
+      if(grepl("^::", address)[[1]] == TRUE) {
+         blocks <- strsplit(address, '::', fixed=TRUE)[[1]]
+         if( (length(blocks) == 1) || (length(blocks) == 2) ) {
+            # This also handles "::", where blocks[1]==""!
+            back <- get_blocks(blocks[length(blocks)])
+            if(length(back) < 16) {
+               front <- rep(0, 16 - length(back))
+               tuple <- c(front, back)
+               return(as.raw(tuple))
+            }
+         }
       }
-      else if(length(blocks) == 1) {   # uncompressed format
-         cat("U\n")
+      # ------ Case #2: compressed format, :: at the end --------------------
+      else if(grepl("::$", address)[[1]] == TRUE) {
+         blocks <- strsplit(address, '::', fixed=TRUE)[[1]]
+         if(length(blocks) == 2) {
+            front <- get_blocks(blocks[1])
+            if(length(front) < 16) {
+               back <- rep(0, 16 - length(front))
+               tuple <- c(front, back)
+               return(as.raw(tuple))
+            }
+         }
+      }
+      # ------ Case #3: compressed format, :: in the middle -----------------
+      else if(grepl("::", address)[[1]] == TRUE) {
+         blocks <- strsplit(address, '::', fixed=TRUE)[[1]]
+         if(length(blocks) == 2) {
+            front <- get_blocks(blocks[1])
+            back  <- get_blocks(blocks[2])
+            if(length(front) + length(back) <= 16) {
+               middle <- rep(0, 16 - (length(front) + length(back)))
+               tuple <- c(front, middle, back)
+               return(as.raw(tuple))
+            }
+
+         }
+      }
+      # ------ Case #4: uncompressed format ---------------------------------
+      else {   # uncompressed format
          tuple <- get_blocks(address)
          if(length(tuple) == 16) {
             return(as.raw(tuple))
@@ -105,10 +140,10 @@ string_to_base64_ip <- function(address)
 tests <- c(
  "192.168.1.1",
  "fd00:16:1:0:0:0:0:1",
- "fd55:66::1"
-#  "::1",
-#  "::",
-#  "fd55:66::2::"
+ "fd55:66::1",
+ "::1",
+ "::",
+ "fd55:66::2::"
 )
 
 for(test in tests) {
