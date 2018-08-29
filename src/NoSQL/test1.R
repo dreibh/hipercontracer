@@ -119,9 +119,18 @@ printTracerouteResults(tracerouteResults)
 # ====== Ping with Address Search Example ===================================
 cat("###### Ping with Address Search ######\n")
 
-filter <- paste(sep="", '{ "source": { "$type": "0", "$binary": "/QAAFgABAAAAAAAAAAAAAg==" } }')
+dateStart <- string_to_unix_time('2018-02-07 17:07:00.000000')
+dateEnd   <- string_to_unix_time('2018-02-07 17:07:02.000000')
+address2 <- string_to_base64_ip("172.16.1.2")
+address1 <- string_to_base64_ip("fd00:16:1:0:0:0:0:2")
+
+filterStart <- paste(sep="", '{ "timestamp": { "$gte" : ', sprintf("%1.0f", dateStart), ' } }')
+filterEnd   <- paste(sep="", '{ "timestamp": { "$lt" : ',  sprintf("%1.0f", dateEnd), ' } }')
+filterA1       <- paste(sep="", '{ "source": { "$type": "0", "$binary": "', address1, '" } }')
+filterA2       <- paste(sep="", '{ "source": { "$type": "0", "$binary": "', address2, '" } }')
+filterA1orA2   <- paste(sep="", '{ "$or" : [ ', filterA1, ', ', filterA2, ' ] }')
+filter <- paste(sep="", '{ "$and" : [ ', filterStart, ', ', filterEnd, ', ', filterA1orA2, ' ] }')
 cat(sep="", "Filter: ", filter, "\n")
 
-q <- NA
-pingResults <- data.table(ping$find(filter, limit=4))
+pingResults <- data.table(ping$find(filter, limit=1000))
 printPingResults(pingResults)
