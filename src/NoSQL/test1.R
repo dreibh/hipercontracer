@@ -45,6 +45,7 @@
 # Install additional GNU R packages (into user's directory):
 #
 # options(repos = "https://cran.ms.unimelb.edu.au")
+#
 # install.packages("mongolite")    # MongoDB access
 # install.packages("data.table")   # Efficient handling of big tables
 # install.packages("Rcpp")         # Needed by "anytime"; pre-installed version is too old!
@@ -52,6 +53,7 @@
 # install.packages("assertthat")   # assertions
 # install.packages("bitops")       # bit operations 
 # install.packages("openssl")      # base64 encode/decode 
+#
 # update.packages(ask=FALSE)
 
 
@@ -62,7 +64,10 @@ library("assertthat")
 library("bitops")
 library("openssl")
 
+source("nornet-tools.R")
 
+
+# ====== Connect to MongoDB =================================================
 # dbserver   <- "rolfsbukta.alpha.test"
 # dbport     <- 27017
 # dbuser     <- "researcher"
@@ -71,80 +76,19 @@ library("openssl")
 # cafile     <- NULL
 source("~/.hipercontracer-db-access")
 
-
 # See https://jeroen.github.io/mongolite/connecting-to-mongodb.html#authentication
-URL     <- sprintf("mongodb://%s:%s@%s:%d/%s?ssl=true",
-                   dbuser, dbpassword, dbserver, dbport, database)
 options <- ssl_options(weak_cert_validation=FALSE,
                        allow_invalid_hostname=TRUE,
                        ca=cafile)
+URL     <- sprintf("mongodb://%s:%s@%s:%d/%s?ssl=true",
+                   dbuser, dbpassword, dbserver, dbport, database)
 # print(URL)
-
 
 ping <- mongo("ping", url = URL, options = options)
 traceroute <- mongo("traceroute", url = URL, options = options)
 
 
-
-# ###### Convert binary IP address from MongoDB to string ###################
-binary_ip_to_string <- function(ipAddress)
-{
-   binaryIP <- as.numeric(unlist(ipAddress[1]))
-   # base64IP <- base64_encode( as.raw(unlist(ipAddress[1])) )
-
-   # ====== IPv4 ============================================================
-   if(length(binaryIP) == 4) {
-      a <- as.numeric(binaryIP[1])
-      b <- as.numeric(binaryIP[2])
-      c <- as.numeric(binaryIP[3])
-      d <- as.numeric(binaryIP[4])
-      n <- bitShiftL(a, 24) + bitShiftL(b, 16) + bitShiftL(c, 8) + d
-      assert_that(!is.na(n))
-      assert_that(is.numeric(n))
-      s <- paste(sep=".", a, b, c, d)
-      return(s)
-   }
-
-   # ====== IPv6 ============================================================
-   else if(length(binaryIP) == 16) {
-      s <- ""
-      for(i in 0:7) {
-         n <- bitShiftL(binaryIP[1 + (2*i)], 8) + binaryIP[1 + (2*i + 1)]
-         v <- sprintf("%x", n)
-         if(s == "") {
-            s <- v
-         }
-         else {
-            s <- paste(sep=":", s, v)
-         }
-      }
-      # s <- paste(sep="", s, " (", base64IP, ")")
-      return(s)
-   }
-
-   # ====== Error ===========================================================
-   stop("Not an IPv4 or IPv6 address!")
-}
-
-
-# ###### Convert Unix time in microseconds to string ########################
-unix_time_to_string <- function(timeStamp)
-{
-   seconds      <- as.character(anytime(timeStamp / 1000000), asUTC=TRUE, tz="UTC")
-   microseconds <- sprintf("%06d", timeStamp %% 1000000)
-   timeString <- paste(sep=".", seconds, microseconds)
-}
-
-
-# ###### Convert strong to Unix time in microseconds ########################
-string_to_unix_time <- function(timeString)
-{
-   timeStamp <- 1000000.0 * as.numeric(anytime(timeString, asUTC=TRUE))
-   return(timeStamp)
-}
-
-
-
+# ====== Ping Example =======================================================
 cat("###### Ping ######\n")
 
 dateStart <- string_to_unix_time('2018-06-01 11:11:11.000000')
@@ -154,25 +98,11 @@ filterEnd   <- paste(sep="", '{ "timestamp": { "$lt" : ',  sprintf("%1.0f", date
 filter <- paste(sep="", '{ "$and" : [ ', filterStart, ', ', filterEnd, ' ] }')
 cat(sep="", "Filter: ", filter, "\n")
 
-pingData <- data.table(ping$find(filter, limit=16))
-if(length(pingData) > 0) {
-   for(i in 1:length(pingData$timestamp)) {
-      pingResult <- pingData[i]
-
-      timestamp   <- unix_time_to_string(pingResult$timestamp)
-      source      <- binary_ip_to_string(pingResult$source)
-      destination <- binary_ip_to_string(pingResult$destination)
-
-      cat(sep="", sprintf("%4d", i), ": ", timestamp, " (", sprintf("%1.0f", pingResult$timestamp), ")\t",
-         source, " -> ", destination,
-         "\t(", pingResult$rtt, " ms, csum ", sprintf("0x%x", pingResult$checksum),
-         ", status ", pingResult$status, ")\n")
-   }
-} else {
-   cat("(nothing found!)\n")
-}
+pingResults <- data.table(ping$find(filter, limit=16))
+printPingResults(pingResults)
 
 
+# ====== Traceroute Example =================================================
 cat("###### Traceroute ######\n")
 
 dateStart <- string_to_unix_time('2018-06-01 10:00:00.000000')
@@ -182,57 +112,16 @@ filterEnd   <- paste(sep="", '{ "timestamp": { "$lt" : ',  sprintf("%1.0f", date
 filter <- paste(sep="", '{ "$and" : [ ', filterStart, ', ', filterEnd, ' ] }')
 cat(sep="", "Filter: ", filter, "\n")
 
-tracerouteData <- data.table(traceroute$find(filter))
-if(length(tracerouteData) > 0) {
-   for(i in 1:length(tracerouteData$timestamp)) {
-      tracerouteResult <- tracerouteData[i]
-
-      timestamp   <- unix_time_to_string(tracerouteResult$timestamp)
-      source      <- binary_ip_to_string(tracerouteResult$source)
-      destination <- binary_ip_to_string(tracerouteResult$destination)
-
-      cat(sep="", sprintf("%4d", i), ": ", timestamp, " (", sprintf("%1.0f", pingResult$timestamp), ")\t",
-         source, " -> ", destination,
-         " (round ", tracerouteResult$round,
-         ", csum ", sprintf("0x%x", tracerouteResult$checksum),
-         ", flags ", tracerouteResult$statusFlags,
-         ")\n")
-
-      hopTable <- tracerouteResult$hops[[1]]
-      for(j in 1:length(hopTable$hop)) {
-         hop    <- binary_ip_to_string(hopTable$hop[j])
-         status <- hopTable$status[j]
-         rtt    <- hopTable$rtt[j]
-
-         cat(sep="", "\t", sprintf("%2d", j), ":\t", hop, "\t(rtt ", rtt, " ms, status ", status, ")\n")
-      }
-   }
-} else {
-   cat("(nothing found!)\n")
-}
+tracerouteResults <- data.table(traceroute$find(filter))
+printTracerouteResults(tracerouteResults)
 
 
-cat("###### Ping, Address Search ######\n")
+# ====== Ping with Address Search Example ===================================
+cat("###### Ping with Address Search ######\n")
 
-filter <- paste(sep="", '{ "source": { "$type": "0", "$binary": "rBABAg==" } }')
+filter <- paste(sep="", '{ "source": { "$type": "0", "$binary": "/QAAFgABAAAAAAAAAAAAAg==" } }')
 cat(sep="", "Filter: ", filter, "\n")
 
 q <- NA
-pingData <- data.table(ping$find(filter, limit=4))
-if(length(pingData) > 0) {
-   for(i in 1:length(pingData$timestamp)) {
-      pingResult <- pingData[i]
-
-      timestamp   <- unix_time_to_string(pingResult$timestamp)
-      source      <- binary_ip_to_string(pingResult$source)
-      destination <- binary_ip_to_string(pingResult$destination)
-q<-pingResult$source[1]
-      
-      cat(sep="", sprintf("%4d", i), ": ", timestamp, " (", sprintf("%1.0f", pingResult$timestamp), ")\t",
-         source, " -> ", destination,
-         "\t(", pingResult$rtt, " ms, csum ", sprintf("0x%x", pingResult$checksum),
-         ", status ", pingResult$status, ")\n")
-   }
-} else {
-   cat("(nothing found!)\n")
-}
+pingResults <- data.table(ping$find(filter, limit=4))
+printPingResults(pingResults)
