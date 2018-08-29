@@ -45,22 +45,22 @@
 # Install additional GNU R packages (into user's directory):
 #
 # options(repos = "https://cran.ms.unimelb.edu.au")
-# install.packages("mongolite")
-# install.packages("data.table")
-# install.packages("iptools")
-# install.packages("Rcpp")   # Needed by "anytime"; pre-installed version is too old!
-# install.packages("anytime")
-# install.packages("assertthat")
-# install.packages("bitops")
+# install.packages("mongolite")    # MongoDB access
+# install.packages("data.table")   # Efficient handling of big tables
+# install.packages("Rcpp")         # Needed by "anytime"; pre-installed version is too old!
+# install.packages("anytime")      # time conversion
+# install.packages("assertthat")   # assertions
+# install.packages("bitops")       # bit operations 
+# install.packages("openssl")      # base64 encode/decode 
 # update.packages(ask=FALSE)
 
 
 library("mongolite")
 library("data.table")
-library("iptools")
 library("anytime")
 library("assertthat")
 library("bitops")
+library("openssl")
 
 
 # dbserver   <- "rolfsbukta.alpha.test"
@@ -90,6 +90,7 @@ traceroute <- mongo("traceroute", url = URL, options = options)
 binary_ip_to_string <- function(ipAddress)
 {
    binaryIP <- as.numeric(unlist(ipAddress[1]))
+   # base64IP <- base64_encode( as.raw(unlist(ipAddress[1])) )
 
    # ====== IPv4 ============================================================
    if(length(binaryIP) == 4) {
@@ -100,7 +101,7 @@ binary_ip_to_string <- function(ipAddress)
       n <- bitShiftL(a, 24) + bitShiftL(b, 16) + bitShiftL(c, 8) + d
       assert_that(!is.na(n))
       assert_that(is.numeric(n))
-      s <- numeric_to_ip(n)
+      s <- paste(sep=".", a, b, c, d)
       return(s)
    }
 
@@ -117,6 +118,7 @@ binary_ip_to_string <- function(ipAddress)
             s <- paste(sep=":", s, v)
          }
       }
+      # s <- paste(sep="", s, " (", base64IP, ")")
       return(s)
    }
 
@@ -210,14 +212,27 @@ if(length(tracerouteData) > 0) {
 }
 
 
-cat("###### Ping ######\n")
+cat("###### Ping, Address Search ######\n")
 
 filter <- paste(sep="", '{ "source": { "$type": "0", "$binary": "rBABAg==" } }')
 cat(sep="", "Filter: ", filter, "\n")
 
+q <- NA
 pingData <- data.table(ping$find(filter, limit=4))
 if(length(pingData) > 0) {
-   print(pingData)
+   for(i in 1:length(pingData$timestamp)) {
+      pingResult <- pingData[i]
+
+      timestamp   <- unix_time_to_string(pingResult$timestamp)
+      source      <- binary_ip_to_string(pingResult$source)
+      destination <- binary_ip_to_string(pingResult$destination)
+q<-pingResult$source[1]
+      
+      cat(sep="", sprintf("%4d", i), ": ", timestamp, " (", sprintf("%1.0f", pingResult$timestamp), ")\t",
+         source, " -> ", destination,
+         "\t(", pingResult$rtt, " ms, csum ", sprintf("0x%x", pingResult$checksum),
+         ", status ", pingResult$status, ")\n")
+   }
 } else {
    cat("(nothing found!)\n")
 }
