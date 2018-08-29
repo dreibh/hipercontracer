@@ -68,13 +68,16 @@ library("bitops")
 # dbuser     <- "researcher"
 # dbpassword <- "!researcher!"
 # database   <- "pingtraceroutedb"
+# cafile     <- NULL
 source("~/.hipercontracer-db-access")
 
 
 # See https://jeroen.github.io/mongolite/connecting-to-mongodb.html#authentication
 URL     <- sprintf("mongodb://%s:%s@%s:%d/%s?ssl=true",
                    dbuser, dbpassword, dbserver, dbport, database)
-options <- ssl_options(weak_cert_validation=FALSE, allow_invalid_hostname=TRUE)
+options <- ssl_options(weak_cert_validation=FALSE,
+                       allow_invalid_hostname=TRUE,
+                       ca=cafile)
 # print(URL)
 
 
@@ -141,6 +144,7 @@ string_to_unix_time <- function(timeString)
 
 
 cat("###### Ping ######\n")
+
 dateStart <- string_to_unix_time('2018-06-01 11:11:11.000000')
 dateEnd   <- string_to_unix_time('2018-06-01 11:11:12.000000')
 filterStart <- paste(sep="", '{ "timestamp": { "$gte" : ', sprintf("%1.0f", dateStart), ' } }')
@@ -149,17 +153,21 @@ filter <- paste(sep="", '{ "$and" : [ ', filterStart, ', ', filterEnd, ' ] }')
 cat(sep="", "Filter: ", filter, "\n")
 
 pingData <- data.table(ping$find(filter, limit=16))
-for(i in 1:length(pingData$timestamp)) {
-   pingResult <- pingData[i]
+if(length(pingData) > 0) {
+   for(i in 1:length(pingData$timestamp)) {
+      pingResult <- pingData[i]
 
-   timestamp   <- unix_time_to_string(pingResult$timestamp)
-   source      <- binary_ip_to_string(pingResult$source)
-   destination <- binary_ip_to_string(pingResult$destination)
+      timestamp   <- unix_time_to_string(pingResult$timestamp)
+      source      <- binary_ip_to_string(pingResult$source)
+      destination <- binary_ip_to_string(pingResult$destination)
 
-   cat(sep="", sprintf("%4d", i), ": ", timestamp, " (", sprintf("%1.0f", pingResult$timestamp), ")\t",
-       source, " -> ", destination,
-       "\t(", pingResult$rtt, " ms, csum ", sprintf("0x%x", pingResult$checksum),
-       ", status ", pingResult$status, ")\n")
+      cat(sep="", sprintf("%4d", i), ": ", timestamp, " (", sprintf("%1.0f", pingResult$timestamp), ")\t",
+         source, " -> ", destination,
+         "\t(", pingResult$rtt, " ms, csum ", sprintf("0x%x", pingResult$checksum),
+         ", status ", pingResult$status, ")\n")
+   }
+} else {
+   cat("(nothing found!)\n")
 }
 
 
@@ -173,26 +181,30 @@ filter <- paste(sep="", '{ "$and" : [ ', filterStart, ', ', filterEnd, ' ] }')
 cat(sep="", "Filter: ", filter, "\n")
 
 tracerouteData <- data.table(traceroute$find(filter))
-for(i in 1:length(tracerouteData$timestamp)) {
-   tracerouteResult <- tracerouteData[i]
+if(length(tracerouteData) > 0) {
+   for(i in 1:length(tracerouteData$timestamp)) {
+      tracerouteResult <- tracerouteData[i]
 
-   timestamp   <- unix_time_to_string(tracerouteResult$timestamp)
-   source      <- binary_ip_to_string(tracerouteResult$source)
-   destination <- binary_ip_to_string(tracerouteResult$destination)
+      timestamp   <- unix_time_to_string(tracerouteResult$timestamp)
+      source      <- binary_ip_to_string(tracerouteResult$source)
+      destination <- binary_ip_to_string(tracerouteResult$destination)
 
-   cat(sep="", sprintf("%4d", i), ": ", timestamp, " (", sprintf("%1.0f", pingResult$timestamp), ")\t",
-       source, " -> ", destination,
-       " (round ", tracerouteResult$round,
-       ", csum ", sprintf("0x%x", tracerouteResult$checksum),
-       ", flags ", tracerouteResult$statusFlags,
-       ")\n")
+      cat(sep="", sprintf("%4d", i), ": ", timestamp, " (", sprintf("%1.0f", pingResult$timestamp), ")\t",
+         source, " -> ", destination,
+         " (round ", tracerouteResult$round,
+         ", csum ", sprintf("0x%x", tracerouteResult$checksum),
+         ", flags ", tracerouteResult$statusFlags,
+         ")\n")
 
-   hopTable <- tracerouteResult$hops[[1]]
-   for(j in 1:length(hopTable$hop)) {
-      hop    <- binary_ip_to_string(hopTable$hop[j])
-      status <- hopTable$status[j]
-      rtt    <- hopTable$rtt[j]
+      hopTable <- tracerouteResult$hops[[1]]
+      for(j in 1:length(hopTable$hop)) {
+         hop    <- binary_ip_to_string(hopTable$hop[j])
+         status <- hopTable$status[j]
+         rtt    <- hopTable$rtt[j]
 
-      cat(sep="", "\t", sprintf("%2d", j), ":\t", hop, "\t(rtt ", rtt, " ms, status ", status, ")\n")
+         cat(sep="", "\t", sprintf("%2d", j), ":\t", hop, "\t(rtt ", rtt, " ms, status ", status, ")\n")
+      }
    }
+} else {
+   cat("(nothing found!)\n")
 }
