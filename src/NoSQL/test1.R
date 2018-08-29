@@ -51,8 +51,8 @@
 # install.packages("Rcpp")         # Needed by "anytime"; pre-installed version is too old!
 # install.packages("anytime")      # time conversion
 # install.packages("assertthat")   # assertions
-# install.packages("bitops")       # bit operations 
-# install.packages("openssl")      # base64 encode/decode 
+# install.packages("bitops")       # bit operations
+# install.packages("openssl")      # base64 encode/decode
 #
 # update.packages(ask=FALSE)
 
@@ -119,10 +119,10 @@ printTracerouteResults(tracerouteResults)
 # ====== Ping with Address Search Example ===================================
 cat("###### Ping with Address Search ######\n")
 
-dateStart <- string_to_unix_time('2018-02-07 17:07:00.000000')
-dateEnd   <- string_to_unix_time('2018-02-07 17:07:02.000000')
-address2  <- string_to_base64_ip("172.16.1.2")
-address1  <- string_to_base64_ip("fd00:16:1:0:0:0:0:2")
+dateStart <- string_to_unix_time('2018-08-01 11:11:11.000000')
+dateEnd   <- string_to_unix_time('2018-08-01 11:11:12.000000')
+address2  <- string_to_base64_ip("152.94.120.6")
+address1  <- string_to_base64_ip("2001:700:300:2211:0:0:0:128")
 
 filterStart  <- paste(sep="", '{ "timestamp": { "$gte" : ', sprintf("%1.0f", dateStart), ' } }')
 filterEnd    <- paste(sep="", '{ "timestamp": { "$lt" : ',  sprintf("%1.0f", dateEnd), ' } }')

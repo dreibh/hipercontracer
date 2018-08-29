@@ -100,7 +100,7 @@ get_blocks <- function(input)
       blocks <- strsplit(input, ":", fixed=TRUE)[[1]]
       tuple <- rep(NA, 2 * length(blocks))
       for(i in 1:length(blocks)) {
-         value <- strtoi(paste(sep="", "0x", as.character(blocks[i])))      
+         value <- strtoi(paste(sep="", "0x", as.character(blocks[i])))
          if( (value < 0) || (value > 0xffff)) {
             return(NA)
          }
@@ -222,7 +222,7 @@ printTracerouteResults <- function(tracerouteResults)
          source      <- binary_ip_to_string(tracerouteResult$source)
          destination <- binary_ip_to_string(tracerouteResult$destination)
 
-         cat(sep="", sprintf("%4d", i), ": ", timestamp, " (", sprintf("%1.0f", pingResult$timestamp), ")\t",
+         cat(sep="", sprintf("%4d", i), ": ", timestamp, " (", sprintf("%1.0f", tracerouteResult$timestamp), ")\t",
             source, " -> ", destination,
             " (round ", tracerouteResult$round,
             ", csum ", sprintf("0x%x", tracerouteResult$checksum),
