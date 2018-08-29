@@ -73,7 +73,7 @@ source("nornet-tools.R")
 # dbuser     <- "researcher"
 # dbpassword <- "!researcher!"
 # database   <- "pingtraceroutedb"
-# cafile     <- NULL
+cafile <- NULL
 source("~/.hipercontracer-db-access")
 
 # See https://jeroen.github.io/mongolite/connecting-to-mongodb.html#authentication
