@@ -140,4 +140,7 @@ script:
        sudo docker exec -t ubuntu-test bash -c "echo OPTIONS: CC=$COMPILER_C CXX=$COMPILER_CXX"
        sudo docker exec -t ubuntu-test bash -c "env CC=$COMPILER_C CXX=$COMPILER_CXX cmake -DCMAKE_INSTALL_PREFIX=/usr ."
        sudo docker exec -t ubuntu-test bash -c "make VERBOSE=1"
+    elif [ "$TRAVIS_OS_NAME" = "osx" ] ; then
+       cmake -DCMAKE_INSTALL_PREFIX=/usr .
+       make VERBOSE=1
     fi
