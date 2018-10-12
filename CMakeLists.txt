@@ -35,7 +35,7 @@ PROJECT(hipercontracer)
 
 SET(BUILD_MAJOR "1")
 SET(BUILD_MINOR "2")
-SET(BUILD_PATCH "0~alpha1.0")
+SET(BUILD_PATCH "0")
 SET(BUILD_VERSION ${BUILD_MAJOR}.${BUILD_MINOR}.${BUILD_PATCH})
 
 
@@ -209,8 +209,8 @@ ADD_DEFINITIONS(-DBOOST_ALL_DYN_LINK)   # <<-- Required to handle BOOST Log link
 # COMPILER FLAGS
 #################################################
 
-SET(CMAKE_C_FLAGS   "${CMAKE_C_FLAGS}   -std=c14    -Wall -D_FORTIFY_SOURCE=2 -O2 -Wformat -Wformat-security")
-SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14  -Wall -D_FORTIFY_SOURCE=2 -O2 -Wformat -Wformat-security")
+SET(CMAKE_C_FLAGS   "${CMAKE_C_FLAGS}   -Wall -D_FORTIFY_SOURCE=2 -O2 -Wformat -Wformat-security")
+SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -D_FORTIFY_SOURCE=2 -O2 -Wformat -Wformat-security")
 
 IF (CMAKE_BUILD_TYPE MATCHES DEBUG)
     MESSAGE(STATUS "Building in DEBUG mode")

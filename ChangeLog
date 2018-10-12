@@ -1,3 +1,661 @@
+commit b4a8e4ae293bcf5813f1f0e71c4d0a19640d210c
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Mon Jun 11 11:26:05 2018 +0200
+
+    Some fixes for the example.
+
+commit 195cf14bf8a41066f50c0bc9e140f7aba1659d99
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Mon Jun 11 09:53:00 2018 +0200
+
+    A fix.
+
+commit e38ebbe0c3cc29af5ad6353a3e9826f827d09ffd
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Fri Jun 8 13:36:07 2018 +0200
+
+    Script update.
+
+commit 004db7d584f61ebdd7e5931e4f241e4775eced5f
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Fri Jun 8 13:20:07 2018 +0200
+
+    Updated README.
+
+commit 9a656563727058d9c815b80d69ab45dad995a334
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Fri Jun 8 13:17:14 2018 +0200
+
+    Improved error handling.
+
+commit a1b62f3c7c8baf94e8a7e3d2dc3c3cc450931b06
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Fri Jun 8 13:17:08 2018 +0200
+
+    Updated example.
+
+commit 2857c6364c7fd5e3e7a4f63d65fbae6eec1c0a5a
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Fri Jun 8 11:32:04 2018 +0200
+
+    Improved example.
+
+commit 9c84860e0a59ca1093490dd56efb721554324512
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Fri Jun 8 11:31:57 2018 +0200
+
+    Updated README.
+
+commit c2d96e6c5ca1fdbfaca551d7e80bc8dc9e7ebef0
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Jun 6 14:01:42 2018 +0200
+
+    Script updates.
+
+commit 38095bbedb959e94179dddfafc58310d891b7307
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Jun 6 12:08:37 2018 +0200
+
+    Build script updates.
+
+commit 0c94c5dffcee1c2c6b5329f2d814000167b81ee1
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Jun 6 10:03:58 2018 +0200
+
+    Another dependency fix. Now building under Ubuntu Cosmic.
+
+commit bd0035abed72eff06b7237bfaa2f122f78a3600a
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Jun 6 09:07:22 2018 +0200
+
+    Dependency fixes for building package for Ubuntu Cosmic.
+
+commit 3d0fe303a67cf5a395c4906bb6d6b06d30f73e94
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Mon Jun 4 15:49:04 2018 +0200
+
+    Script updates.
+
+commit 4742927e9839da4016df9d6045668e5e44808431
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Apr 11 14:11:59 2018 +0200
+
+    Version bump.
+
+commit 22351d061c9b2818afce1f0815bcd1dcc5b18841
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Apr 11 14:11:12 2018 +0200
+
+    Added missing #DEBHELPER# tag.
+
+commit 6cc9403c4ced81ccfab8cdba736c5d4d72d157d9
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Apr 11 13:58:00 2018 +0200
+
+    Fix: use native_handle() instead of deprecated name native().
+
+commit 186021193c9bce31c9a245b4f75f1890e0634126
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Fri Feb 9 14:31:56 2018 +0100
+
+    Updated README.
+
+commit 77377ae13bc35f60b29cf20559188b807f1fba5c
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Fri Feb 9 11:06:45 2018 +0100
+
+    Formatting changes.
+
+commit 56534dc7de85e4b5ef2ba7cb3f964d1bc769dfe0
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Feb 8 18:44:57 2018 +0100
+
+    Dependency update.
+
+commit 552c40007bdc82680e7227bb84f621ac12ebb669
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Feb 8 16:22:48 2018 +0100
+
+    Some more fixes.
+
+commit 2807c91e90abb08290686e5de71daac774d17125
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Feb 8 16:20:12 2018 +0100
+
+    Fixed README.
+
+commit df80ca6cdde150394fde3f4806d76de8ad91b6da
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Feb 8 15:02:04 2018 +0100
+
+    Updated README.
+
+commit 3f10734b3cfcf1f11596c96c87bdfe4fd27c6c0b
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Feb 7 15:57:13 2018 +0100
+
+    User handling improvements.
+
+commit 624e4a5319baa8a04f652b1a7902c58930b3d663
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Feb 7 15:49:02 2018 +0100
+
+    Bugfix: also need to cancel timeout timer on shutdown. Otherwise, Ping will not stop before expiration of configured interval.
+
+commit db558c5f20fd6a95a93032c17e5f181980b806b2
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Feb 7 15:28:53 2018 +0100
+
+    A fix.
+
+commit 126bbb4848db4e897e07a68c55643624d8556abd
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Feb 6 17:14:40 2018 +0100
+
+    Improved postinstall script.
+
+commit 72da9157955c7a17b0aadc30c5d4f36c10e65b89
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Feb 6 17:13:39 2018 +0100
+
+    Updated RPM packaging.
+
+commit eb46ee79e6c638ad1a8afd5f22770414b7dceba6
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Feb 6 16:20:34 2018 +0100
+
+    Makefile fix.
+
+commit d930c4ae7ecc360775563c5ec198c46a8f4b4092
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Feb 6 15:58:43 2018 +0100
+
+    Added "uninstall" target to CMakeLists.txt.
+
+commit e50dc0ad4da1d0dfde1a398fb80ed4196821d118
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Feb 6 15:56:22 2018 +0100
+
+    A fix.
+
+commit 497708622b8388e3625a7b53027c9d884098bda8
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Feb 6 09:06:01 2018 +0100
+
+    Packaging updates.
+
+commit d8c649fb270fa7c9567b93b0e21eec110bd8452e
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Mon Feb 5 16:59:10 2018 +0100
+
+    Updated RPM packaging.
+
+commit 226f024b99fe430ab997f2b8a3258e506f7d79cf
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Mon Feb 5 16:43:52 2018 +0100
+
+    Updated README.
+
+commit 6ba3ca9ab76c5e832beef00116d3e0c515a21da8
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Mon Feb 5 16:42:27 2018 +0100
+
+    Updated example script.
+
+commit 92f19f339d8e8ee2f2255e0c032af3d99b868355
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Mon Feb 5 16:39:33 2018 +0100
+
+    Moved example.
+
+commit 541230321f3a997f5199e8092539ab686933a220
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Mon Feb 5 16:37:19 2018 +0100
+
+    Updated example.
+
+commit 067e6341d121f9a577b0509090b6cb0e5ea0708e
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Mon Feb 5 16:19:33 2018 +0100
+
+    Updated test.
+
+commit 3eecb97501945ca4a64b5e56a3358d898958a229
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Mon Feb 5 10:44:21 2018 +0100
+
+    Added indices.
+
+commit fee0113e7625d5a05bce43065059f1ebf353b1a5
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Fri Feb 2 22:33:51 2018 +0100
+
+    Added post-install file.
+
+commit 277c17b1af690e47439b1b931212e0f5e884b7da
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Fri Feb 2 22:03:33 2018 +0100
+
+    Updated manpage.
+
+commit c54bc50d2fde1c0997065d042c00df86aaee7aa4
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Fri Feb 2 22:00:23 2018 +0100
+
+    Handling file ownership with UID/GID.
+
+commit 9976179997fa5224fd3feebd2c7aa2cc456c356c
+Merge: 1942500 a487429
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Fri Feb 2 21:44:07 2018 +0100
+
+    Merge branch 'multi-db' into uid-gid-settings
+
+commit 1942500b763fd73efe22a7fa35abf9c6eb152704
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Fri Feb 2 21:43:57 2018 +0100
+
+    Added setuid/setgid.
+
+commit a487429727ec43084e97db244b4cbe8d8a46af6b
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Feb 1 20:48:21 2018 +0100
+
+    Updated test script.
+
+commit 8fe1036dd5fe2c8d9fd51418b832da98f5478fe5
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Jan 31 18:23:21 2018 +0100
+
+    Updated test.
+
+commit 7fe80e5b6bd17110eb7a11fa58ad41110889159f
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Jan 31 18:14:43 2018 +0100
+
+    Added GNU R MongoDB test script.
+
+commit acdfe73954275aae6497e81ac928ead8ef5cc058
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Jan 31 17:22:45 2018 +0100
+
+    Updated configuration example.
+
+commit 7897fbea320b9d7c9d3440305f2b610680c28e8e
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Jan 31 17:22:35 2018 +0100
+
+    Some improvements.
+
+commit db840318375156aa768141c0d1e4bb13d4d8d282
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Jan 31 17:18:17 2018 +0100
+
+    Improved PostgreSQL export.
+
+commit 78c735616f9b47c825b6afabf1dbb5c8eb3ce0b4
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Jan 31 17:17:54 2018 +0100
+
+    Updated PostgreSQL TLS configuration description.
+
+commit 85a3e37d57a9f489b90bce5e8b4bef30835cec93
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Jan 31 16:42:09 2018 +0100
+
+    Updated documentation.
+
+commit 164c4a53b5498cf827a4c811e102fb4195df6093
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Jan 31 16:16:40 2018 +0100
+
+    Updated documentation.
+
+commit 0008d4faf56b071059a9097d532b10bd202535a1
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Jan 31 16:16:32 2018 +0100
+
+    Added TLS configuration.
+
+commit 00eb9ba6f26552e1e928a750991f483291a70b52
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Jan 31 11:10:12 2018 +0100
+
+    Formatting improvement.
+
+commit a00e578a67c01d1ba74d4e44fcab532bba3b5cdc
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Jan 31 11:09:57 2018 +0100
+
+    Checksum handling improvement for Ping.
+
+commit d4b8ff9ca231c26231c207cc3a6373a8073a2223
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Jan 23 14:16:38 2018 +0100
+
+    Improved output for MongoDB: binary format for IP addresses.
+
+commit d563d8bae5b91a7c6b4a9ed56c6c7e456f4332b3
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Jan 23 14:15:30 2018 +0100
+
+    Added some test data.
+
+commit 134d921c0f38bafe891fd1b2d5bd21a202dfacb7
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Jan 23 12:20:01 2018 +0100
+
+    Minor update.
+
+commit f762ef70d7a6797d0725b75089d5442c738a8af9
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Jan 23 12:19:37 2018 +0100
+
+    RPM packaging update.
+
+commit 7be2d40e034715e07f907fa0b23974ce21d91262
+Merge: ba6d7c7 49847dd
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Jan 23 12:17:54 2018 +0100
+
+    Merge branch 'multi-db' of github.com:dreibh/hipercontracer into multi-db
+
+commit ba6d7c731f50214c2b30822e86a131bb612c9a68
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Jan 23 12:17:47 2018 +0100
+
+    Packaging update.
+
+commit 49847ddce0894e989b02a31d64e8c8fb2aec29be
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Jan 23 12:16:46 2018 +0100
+
+    Script updates.
+
+commit 4338e6c455fd1fe2d5ce5ef74be39f636e26b25c
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Jan 23 12:16:32 2018 +0100
+
+    Added MongoDB authentication handling.
+
+commit d1df94d5a545a43c26f393e782d0c45ef4781f7d
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Jan 11 15:12:04 2018 +0100
+
+    Documentation fix.
+
+commit 9c8549f6d37b43509975eaeaf955074c3d7d584c
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Jan 11 15:11:15 2018 +0100
+
+    Minor update.
+
+commit b7b332cb83ca9ff84ba2230afc890fa58c51f555
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Jan 11 15:11:07 2018 +0100
+
+    Updated documentation.
+
+commit 235b28c8c9d8afd739d7f0e8fe450dbdb39def87
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Jan 11 13:52:02 2018 +0100
+
+    Using zlib compression for the MongoDB results collections.
+
+commit 1e2b04e31fa939e61b49dd0427e85d09a66b8009
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Jan 11 13:51:44 2018 +0100
+
+    Some improvements.
+
+commit 6079f436907af356dd428351c2acb4884b4f5073
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Jan 11 13:36:05 2018 +0100
+
+    Updated dependencies.
+
+commit bdd7828096cd2d9c4b2dd0c2a374660cd3b14ec5
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Jan 11 13:35:28 2018 +0100
+
+    Updated importer with MongoDB support.
+
+commit d775368af71038c51b35b1059a970c969030d630
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Jan 11 13:35:17 2018 +0100
+
+    Fixed delete mismatch.
+
+commit b399ca9c77957f64b41e429c0d4c8193b73f2f00
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Jan 11 11:00:26 2018 +0100
+
+    More work on Traceroute output to MongoDB.
+
+commit 793b424cc701d737a60e27fa9b17970798b3b8ad
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Jan 10 18:53:39 2018 +0100
+
+    Added some MongoDB output.
+
+commit 9cbcf8345495873c6f61b0ee447e1b8e41a4602c
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Jan 10 18:17:10 2018 +0100
+
+    Improved Traceroute target checksum handling.
+    Write the checksums for Traceroute and Ping results.
+
+commit eaac2f35234cc23df8e1bedfaf8ed3377f102e21
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Jan 10 17:52:59 2018 +0100
+
+    Added test.
+
+commit 4ae708d9917d31cdaf5f4a8b0f4de91d619faafc
+Merge: 35633ce 0e3f085
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Jan 10 12:44:59 2018 +0100
+
+    Merge branch 'multi-db' of github.com:dreibh/hipercontracer into multi-db
+
+commit 0e3f085db4172a1c38615023accae69a1e20594e
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Jan 10 12:44:35 2018 +0100
+
+    Added helper scripts.
+
+commit 35633ce19be594a1c0a0d44dc39585b0ea407cc8
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Jan 10 12:44:27 2018 +0100
+
+    Updated documentation.
+
+commit f8224764f9ce852649132616875d25a1cc6c5b5d
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Jan 10 12:06:09 2018 +0100
+
+    An update.
+
+commit 1a0abc9bfaafb8cac2621397f97d59a31dcf3720
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Jan 10 11:38:18 2018 +0100
+
+    Updated compiler options.
+
+commit 57749b349cc99d482b6a17662226d30789d534cd
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Jan 10 11:30:24 2018 +0100
+
+    Updated documentation.
+
+commit efc69cbdc6b4edfcd3516c13bc6e628878fe2985
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Jan 10 11:05:43 2018 +0100
+
+    Packaging updates.
+
+commit 0ff6818712b7bd41351d68431fa2cc745390caa4
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Jan 10 11:03:04 2018 +0100
+
+    Improved importer.
+
+commit ec7438e90d663bf3d45ed7066558676ca7c99da7
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Jan 10 10:51:25 2018 +0100
+
+    Documentation fix.
+
+commit 5f32cde872bf3dafdbb7518e4968658d60503d6b
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Jan 10 10:36:23 2018 +0100
+
+    A fix.
+
+commit 8bd4170684f87a31a4b37c66f36c92c77dc3a7b1
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Jan 10 10:20:26 2018 +0100
+
+    Minor update.
+
+commit 2398e69123c26521a7050118bb9fc6a4f1b46d5e
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Jan 10 10:16:25 2018 +0100
+
+    Updated documentation (manpage).
+
+commit 7b4b3e46f782145ee0e438a223240831260d2578
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Jan 10 09:59:26 2018 +0100
+
+    Improved status handling.
+
+commit b4b8b02235cf266ee1caf84e89ffa7326c328f7c
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Jan 10 09:55:54 2018 +0100
+
+    Improved Traceroute output format.
+
+commit d10f6962a09d4fb96738759e74176cf63ee783f9
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Jan 9 17:45:31 2018 +0100
+
+    Updated test script.
+
+commit fa80d1dda6b03f2623f9767075e65cac4f0b1ec6
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Jan 9 17:43:10 2018 +0100
+
+    Some fixes for the new input converter.
+
+commit 3fd127a59f9f296b0b1b0208ad77746db231f9a7
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Jan 9 17:01:40 2018 +0100
+
+    Updated importer.
+
+commit 118d2adf548bcec028e37ed31495173da66c36f6
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Jan 9 17:01:33 2018 +0100
+
+    Updated script.
+
+commit 1e67f6bda46e4ce98c60720f4f282cc9104d0c63
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Jan 9 16:28:59 2018 +0100
+
+    Improved script.
+
+commit 6843876c2faa71766791e6ee3c42b645d5919e35
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Jan 9 16:28:17 2018 +0100
+
+    Some improvements.
+
+commit 46953545672a22ab8c537818bd3af380c4fa83c6
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Jan 9 16:09:30 2018 +0100
+
+    Improved Traceroute output.
+
+commit 404c22ace11b0f5518b9630b3853b4c555e7c037
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Jan 9 16:09:24 2018 +0100
+
+    Updated test script.
+
+commit cf2e5f9e9f49c34ae23fa0bc6ab6f9b6d871776b
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Jan 9 15:36:28 2018 +0100
+
+    Added test script.
+
+commit 9ac2b2f1d00225e4d515562daf6f1798b79bf896
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Jan 9 14:22:03 2018 +0100
+
+    Improved Traceroute output.
+
+commit 2365de7f59aa75c95b365b7dc21bf5fbf4b582ee
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Jan 9 13:57:55 2018 +0100
+
+    Improved Ping output.
+
+commit 8b387ad84d2212aa4a40cc625edc1eab06a3a7e2
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Jan 9 13:30:14 2018 +0100
+
+    Replaced SQLWriter.
+
+commit f134b72e5c695af65d9a2c5ccaaa3ca3720ae392
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Nov 22 20:27:22 2017 +0100
+
+    Build script update.
+
+commit 4bb92cff16f87d69685f08ef02918d7d389ee5a9
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Nov 22 20:08:21 2017 +0100
+
+    Updated standards version.
+
+commit 36cbd6aac536065a1e3ea0bca34bb02c5a3b27b1
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Nov 22 19:50:07 2017 +0100
+
+    Updated build scripts.
+
+commit f70481f97c3e04bee662f0ec63a2ed22c9bd7f28
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Nov 22 19:17:12 2017 +0100
+
+    Updated FreeBSD port's description.
+
+commit 49cfd32dd3bd8733c046f9a759485fe99fedeccd
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Nov 22 19:14:53 2017 +0100
+
+    Updated FreeBSD port.
+
+commit ee5801408ad8eb0fe753692063ae4387730d2828
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Nov 22 19:14:08 2017 +0100
+
+    Added helper script.
+
+commit 57525e3c863e3043320fc69342652db5ef043b73
+Author: Thomas Dreibholz <dreibh@iem.uni-due.de>
+Date:   Wed Nov 22 16:40:57 2017 +0100
+
+    Updated LSM entry.
+
+commit 3cbdd388ebbabeb3b3e0f1539186e2b85eebbb93
+Author: Thomas Dreibholz <dreibh@iem.uni-due.de>
+Date:   Wed Nov 22 16:38:10 2017 +0100
+
+    Version bump.
+
 commit 72f51f312ed16d9b2da10ce4038d35bfc4724bfd
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Wed Nov 22 16:32:27 2017 +0100

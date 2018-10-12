@@ -5,17 +5,16 @@ Maintainer: Thomas Dreibholz <dreibh@iem.uni-due.de>
 Homepage: https://www.uni-due.de/~be0001/hipercontracer
 Build-Depends: cmake,
                debhelper (>= 9),
-               libboost-date-time1.48-dev | libboost-date-time-dev (>= 1.48.0),
-               libboost-filesystem1.48-dev | libboost-filesystem-dev (>= 1.48.0),
-               libboost-iostreams1.48-dev | libboost-iostreams-dev (>= 1.48.0),
-               libboost-system1.48-dev | libboost-system-dev (>= 1.48.0),
-               libboost-thread1.48-dev | libboost-thread-dev (>= 1.48.0),
-               libfile-fcntllock-perl,
+               dh-python,
+               libboost-date-time-dev (>= 1.48.0) | libboost-date-time1.48-dev,
+               libboost-filesystem-dev (>= 1.48.0) | libboost-filesystem1.48-dev,
+               libboost-iostreams-dev (>= 1.48.0) | libboost-iostreams1.48-dev,
+               libboost-system-dev (>= 1.48.0) | libboost-system1.48-dev,
+               libboost-thread-dev (>= 1.48.0) | libboost-thread1.48-dev,
                pkg-config,
                python3,
-               python3-psycopg2,
-               python3-pymongo
-Standards-Version: 4.1.1
+               python3-psycopg2
+Standards-Version: 4.1.4
 X-Python3-Version: >= 3.1
 
 Package: hipercontracer
@@ -25,6 +24,7 @@ Depends: ${misc:Depends},
 Recommends: python3,
             python3-geoip,
             python3-psycopg2,
+            python3-pymongo,
             python3-urllib3
 Description: High-Performance Connectivity Tracer (HiPerConTracer) is a
  ping/traceroute service. It performs regular ping and traceroute runs
