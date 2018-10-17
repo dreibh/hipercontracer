@@ -119,17 +119,17 @@ printTracerouteResults(tracerouteResults)
 # ====== Ping with Address Search Example ===================================
 cat("###### Ping with Address Search ######\n")
 
-dateStart <- string_to_unix_time('2018-08-01 11:11:11.095640')
-dateEnd   <- string_to_unix_time('2018-08-01 11:11:11.967201')
-address2  <- string_to_base64_ip("152.94.120.6")
-address1  <- string_to_base64_ip("2001:700:300:2211:0:0:0:128")
+dateStart <- string_to_unix_time('2018-08-01 11:11:10.000000')
+dateEnd   <- string_to_unix_time('2018-08-01 11:11:15.000000')
+address2  <- string_to_base64_ip("158.39.4.2")
+address1  <- string_to_base64_ip("2001:700:4100:4::2")
 
 filterStart  <- paste(sep="", '{ "timestamp": { "$gte" : ', sprintf("%1.0f", dateStart), ' } }')
 filterEnd    <- paste(sep="", '{ "timestamp": { "$lt" : ',  sprintf("%1.0f", dateEnd), ' } }')
 filterA1     <- paste(sep="", '{ "source": { "$type": "0", "$binary": "', address1, '" } }')
 filterA2     <- paste(sep="", '{ "source": { "$type": "0", "$binary": "', address2, '" } }')
 filterA1orA2 <- paste(sep="", '{ "$or" : [ ', filterA1, ', ', filterA2, ' ] }')
-filter <- paste(sep="", '{ "$and" : [ ', filterStart, ', ', filterEnd, ', ', filterA1orA2, ' ] }')
+filter <- paste(sep="", '{ "$and" : [ ', filterStart, ', ', filterEnd, ', ', filterA1orA2 , ' ] }')
 cat(sep="", "Filter: ", filter, "\n")
 
 pingResults <- data.table(ping$find(filter))
