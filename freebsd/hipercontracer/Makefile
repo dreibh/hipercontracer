@@ -14,6 +14,7 @@ LICENSE_FILE=	${WRKSRC}/COPYING
 
 GNU_CONFIGURE=	yes
 USES=		cmake shebangfix
+CMAKE_ARGS+=    -DCMAKE_INSTALL_MANDIR=${PREFIX}/man
 SHEBANG_FILES=	src/addressinfogenerator src/tracedataimporter
 
 .include <bsd.port.mk>
