@@ -46,17 +46,17 @@ INSTALL(FILES tracedataimporter.1 addressinfogenerator.1
         DESTINATION ${CMAKE_INSTALL_MANDIR}/man1)
 
 
-#################################################
+#############################################################################
 # EXAMPLES
-#################################################
+#############################################################################
 
 INSTALL(FILES hipercontracer-database-configuration
         DESTINATION ${CMAKE_INSTALL_DATADIR}/doc/hipercontracer/examples)
 
 
-#################################################
+#############################################################################
 # SUBDIRECTORIES
-#################################################
+#############################################################################
 
 ADD_SUBDIRECTORY(SQL)
 ADD_SUBDIRECTORY(NoSQL)
