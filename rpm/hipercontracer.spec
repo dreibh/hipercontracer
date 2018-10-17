@@ -9,6 +9,8 @@ Source: https://www.uni-due.de/~be0001/hipercontracer/download/%{name}-%{version
 
 AutoReqProv: on
 BuildRequires: cmake
+BuildRequires: gcc
+BuildRequires: gcc-c++
 BuildRequires: boost-devel
 BuildRoot: %{_tmppath}/%{name}-%{version}-build
 
