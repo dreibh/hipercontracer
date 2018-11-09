@@ -14,7 +14,7 @@ Build-Depends: cmake,
                pkg-config,
                python3,
                python3-psycopg2
-Standards-Version: 4.1.4
+Standards-Version: 4.2.1
 X-Python3-Version: >= 3.1
 
 Package: hipercontracer
