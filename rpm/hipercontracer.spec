@@ -57,7 +57,6 @@ make install DESTDIR=%{buildroot}
 %{_datadir}/doc/hipercontracer/examples/NoSQL/R-query-example.R
 %{_datadir}/doc/hipercontracer/examples/NoSQL/README
 
-%doc
 
 %changelog
 * Tue Feb 28 2017 Thomas Dreibholz <dreibh@iem.uni-due.de> - 1.1.0
