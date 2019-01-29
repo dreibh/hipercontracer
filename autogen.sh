@@ -1,11 +1,10 @@
-#!/bin/bash
+#!/bin/bash -e
 
 rm -f CMakeCache.txt
-cmake -DCMAKE_INSTALL_PREFIX=/usr $@ .
 
 # ------ Obtain number of cores ---------------------------------------------
 # Try Linux
-cores=`getconf _NPROCESSORS_ONLN 2>/dev/null`
+cores=`getconf _NPROCESSORS_ONLN 2>/dev/null || true`
 if [ "$cores" == "" ] ; then
    # Try FreeBSD
    cores=`sysctl -a | grep 'hw.ncpu' | cut -d ':' -f2 | tr -d ' '`
@@ -14,4 +13,6 @@ if [ "$cores" == "" ] ; then
    cores="1"
 fi
 
-gmake -j$cores || make -j$cores
+# ------ Configure and build ------------------------------------------------
+cmake -DCMAKE_INSTALL_PREFIX=/usr $@ .
+make -j$cores
