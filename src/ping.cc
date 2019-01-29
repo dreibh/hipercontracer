@@ -70,8 +70,13 @@ void Ping::noMoreOutstandingRequests()
 // ###### Prepare a new run #################################################
 bool Ping::prepareRun(const bool newRound)
 {
-   // Nothing to do for Ping!
-   return(false);
+   LoopNumber++;
+   if((Loops > 0) && (LoopNumber > Loops)) {
+       // ====== Done -> exit! ==============================================
+       StopRequested = true;
+       IOService.stop();
+   }
+   return(false);   // No scheduling necessary for Ping!
 }
 
 
