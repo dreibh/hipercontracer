@@ -53,6 +53,10 @@ static std::set<boost::asio::ip::address> SourceArray;
 static std::set<boost::asio::ip::address> DestinationArray;
 static std::set<ResultsWriter*>           ResultsWriterSet;
 static std::set<Service*>                 ServiceSet;
+static boost::asio::io_service            IOService;
+static boost::asio::signal_set            Signals(IOService, SIGINT, SIGTERM);
+static boost::posix_time::milliseconds    CleanupTimerInterval(250);
+static boost::asio::deadline_timer        CleanupTimer(IOService, CleanupTimerInterval);
 
 
 // ###### Add address to set ################################################
@@ -70,9 +74,37 @@ static void addAddress(std::set<boost::asio::ip::address>& array,
 
 
 // ###### Signal handler ####################################################
-void signalHandler(const boost::system::error_code& error, int signal_number)
+static void signalHandler(const boost::system::error_code& error, int signal_number)
 {
-   // Nothing to do here!
+   if(error != boost::asio::error::operation_aborted) {
+      puts("\n*** Shutting down! ***\n");   // Avoids a false positive from Helgrind.
+      for(std::set<Service*>::iterator serviceIterator = ServiceSet.begin(); serviceIterator != ServiceSet.end(); serviceIterator++) {
+         Service* service = *serviceIterator;
+         service->requestStop();
+      }
+   }
+}
+
+
+// ###### Check whether services can be cleaned up ##########################
+static void tryCleanup(const boost::system::error_code& errorCode)
+{
+   bool finished = true;
+   for(std::set<Service*>::iterator serviceIterator = ServiceSet.begin(); serviceIterator != ServiceSet.end(); serviceIterator++) {
+      Service* service = *serviceIterator;
+      if(!service->joinable()) {
+         finished = false;
+         break;
+      }
+   }
+
+   if(!finished) {
+      CleanupTimer.expires_at(CleanupTimer.expires_at() + CleanupTimerInterval);
+      CleanupTimer.async_wait(tryCleanup);
+   }
+   else {
+      Signals.cancel();
+   }
 }
 
 
@@ -110,6 +142,7 @@ int main(int argc, char** argv)
    passwd*            pw                        = NULL;
    bool               servicePing               = false;
    bool               serviceTraceroute         = false;
+   unsigned int       loops                     = 0;
 
    unsigned long long tracerouteInterval        = 10000;
    unsigned int       tracerouteExpiration      = 3000;
@@ -145,6 +178,12 @@ int main(int argc, char** argv)
       }
       else if(strcmp(argv[i], "-verbose") == 0) {
          verboseMode = true;
+      }
+      else if(strcmp(argv[i], "-noloop") == 0) {
+         loops = 0;
+      }
+      else if(strncmp(argv[i], "-loops=", 7) == 0) {
+         loops = atol((const char*)&argv[i][7]);
       }
       else if(strncmp(argv[i], "-user=", 6) == 0) {
          user = (const char*)&argv[i][6];
@@ -254,7 +293,7 @@ int main(int argc, char** argv)
          try {
             Service* service = new Ping(makeResultsWriter(*sourceIterator, "Ping", resultsDirectory, resultsTransactionLength,
                                                           (pw != NULL) ? pw->pw_uid : 0, (pw != NULL) ? pw->pw_gid : 0),
-                                        verboseMode,
+                                        loops, verboseMode,
                                         *sourceIterator, DestinationArray,
                                         pingInterval, pingExpiration, pingTTL);
             if(service->start() == false) {
@@ -271,7 +310,7 @@ int main(int argc, char** argv)
          try {
             Service* service = new Traceroute(makeResultsWriter(*sourceIterator, "Traceroute", resultsDirectory, resultsTransactionLength,
                                                                 (pw != NULL) ? pw->pw_uid : 0, (pw != NULL) ? pw->pw_gid : 0),
-                                              verboseMode,
+                                              loops, verboseMode,
                                               *sourceIterator, DestinationArray,
                                               tracerouteInterval, tracerouteExpiration,
                                               tracerouteRounds,
@@ -311,18 +350,12 @@ int main(int argc, char** argv)
 
 
    // ====== Wait for termination signal ====================================
-   boost::asio::io_service ioService;
-   boost::asio::signal_set signals(ioService, SIGINT, SIGTERM);
-   signals.async_wait(signalHandler);
-   ioService.run();
-   puts("\n*** Shutting down! ***\n");   // Avoids a false positive from Helgrind.
+   Signals.async_wait(signalHandler);
+   CleanupTimer.async_wait(tryCleanup);
+   IOService.run();
 
 
    // ====== Shut down service threads ======================================
-   for(std::set<Service*>::iterator serviceIterator = ServiceSet.begin(); serviceIterator != ServiceSet.end(); serviceIterator++) {
-      Service* service = *serviceIterator;
-      service->requestStop();
-   }
    for(std::set<Service*>::iterator serviceIterator = ServiceSet.begin(); serviceIterator != ServiceSet.end(); serviceIterator++) {
       Service* service = *serviceIterator;
       service->join();

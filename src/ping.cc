@@ -40,13 +40,14 @@
 
 // ###### Constructor #######################################################
 Ping::Ping(ResultsWriter*                           resultsWriter,
+           const unsigned int                       loops,
            const bool                               verboseMode,
            const boost::asio::ip::address&          sourceAddress,
            const std::set<boost::asio::ip::address> destinationAddressArray,
            const unsigned long long                 interval,
            const unsigned int                       expiration,
            const unsigned int                       ttl)
-   : Traceroute(resultsWriter, verboseMode,
+   : Traceroute(resultsWriter, loops, verboseMode,
                 sourceAddress, destinationAddressArray,
                 interval, expiration, ttl, ttl, ttl)
 {

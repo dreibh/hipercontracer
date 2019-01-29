@@ -133,6 +133,7 @@ class Traceroute : virtual public Service
 {
    public:
    Traceroute(ResultsWriter*                           resultsWriter,
+              const unsigned int                       loops,
               const bool                               verboseMode,
               const boost::asio::ip::address&          sourceAddress,
               const std::set<boost::asio::ip::address> destinationAddressArray,
@@ -146,6 +147,7 @@ class Traceroute : virtual public Service
 
    virtual bool start();
    virtual void requestStop();
+   virtual bool joinable();
    virtual void join();
 
    inline bool isIPv6() const {
@@ -181,6 +183,7 @@ class Traceroute : virtual public Service
    static unsigned long long ptimeToMircoTime(const boost::posix_time::ptime t);
 
    ResultsWriter*                        ResultsOutput;
+   const unsigned int                    Loops;
    const bool                            VerboseMode;
    const unsigned long long              Interval;
    const unsigned int                    Expiration;
@@ -198,6 +201,7 @@ class Traceroute : virtual public Service
 
    boost::thread                         Thread;
    volatile bool                         StopRequested;
+   unsigned int                          LoopNumber;
    unsigned int                          Identifier;
    unsigned short                        SeqNumber;
    unsigned int                          MagicNumber;

@@ -80,6 +80,7 @@ std::ostream& operator<<(std::ostream& os, const ResultEntry& resultEntry)
 
 // ###### Constructor #######################################################
 Traceroute::Traceroute(ResultsWriter*                           resultsWriter,
+                       const unsigned int                       loops,
                        const bool                               verboseMode,
                        const boost::asio::ip::address&          sourceAddress,
                        const std::set<boost::asio::ip::address> destinationAddressArray,
@@ -90,6 +91,7 @@ Traceroute::Traceroute(ResultsWriter*                           resultsWriter,
                        const unsigned int                       finalMaxTTL,
                        const unsigned int                       incrementMaxTTL)
    : ResultsOutput(resultsWriter),
+     Loops(loops),
      VerboseMode(verboseMode),
      Interval(interval),
      Expiration(expiration),
@@ -111,6 +113,7 @@ Traceroute::Traceroute(ResultsWriter*                           resultsWriter,
    LastHop             = 0xffffffff;
    ExpectingReply      = false;
    StopRequested       = false;
+   LoopNumber          = 0;
    MinTTL              = 1;
    MaxTTL              = InitialMaxTTL;
    TargetChecksumArray = new uint32_t[Rounds];
@@ -156,8 +159,17 @@ void Traceroute::requestStop() {
 // ###### Join thread #######################################################
 void Traceroute::join()
 {
+   requestStop();
    Thread.join();
    StopRequested = false;
+}
+
+
+// ###### Is thread joinable? ###############################################
+bool Traceroute::joinable()
+{
+   // Joinable, if stop is requested *and* the thread is joinable!
+   return(StopRequested && Thread.joinable());
 }
 
 
@@ -194,6 +206,8 @@ bool Traceroute::prepareSocket()
 bool Traceroute::prepareRun(const bool newRound)
 {
    if(newRound) {
+      LoopNumber++;
+
       // ====== Rewind ======================================================
       DestinationAddressIterator = DestinationAddressArray.begin();
       for(unsigned int i = 0; i < Rounds; i++) {
@@ -265,23 +279,30 @@ void Traceroute::cancelTimeoutTimer()
 // ###### Schedule interval timer ###########################################
 void Traceroute::scheduleIntervalEvent()
 {
-   // ====== Schedule event =================================================
-   const unsigned long long deviation = std::max(10ULL, Interval / 5);   // 20% deviation
-   const unsigned long long duration  = Interval + (std::rand() % deviation);
-   IntervalTimer.expires_at(RunStartTimeStamp + boost::posix_time::milliseconds(duration));
-   IntervalTimer.async_wait(boost::bind(&Traceroute::handleIntervalEvent, this, _1));
+   if((Loops == 0) || (LoopNumber < Loops)) {
+      // ====== Schedule event ==============================================
+      const unsigned long long deviation = std::max(10ULL, Interval / 5);   // 20% deviation
+      const unsigned long long duration  = Interval + (std::rand() % deviation);
+      IntervalTimer.expires_at(RunStartTimeStamp + boost::posix_time::milliseconds(duration));
+      IntervalTimer.async_wait(boost::bind(&Traceroute::handleIntervalEvent, this, _1));
 
-   if(VerboseMode) {
-      const boost::posix_time::time_duration howLong =
-         RunStartTimeStamp + boost::posix_time::milliseconds(duration) -
-         boost::posix_time::microsec_clock::universal_time();
-      std::cout << "Waiting " << howLong.total_milliseconds() / 1000.0
-                << "s before next round ..." << std::endl;
+      if(VerboseMode) {
+         const boost::posix_time::time_duration howLong =
+            RunStartTimeStamp + boost::posix_time::milliseconds(duration) -
+            boost::posix_time::microsec_clock::universal_time();
+         std::cout << "Waiting " << howLong.total_milliseconds() / 1000.0
+                   << "s before next loop iteration ..." << std::endl;
+      }
+
+      // ====== Check, whether it is time for starting a new transaction ====
+      if(ResultsOutput) {
+         ResultsOutput->mayStartNewTransaction();
+      }
    }
-
-   // ====== Check, whether it is time for starting a new transaction =======
-   if(ResultsOutput) {
-      ResultsOutput->mayStartNewTransaction();
+   else {
+       // ====== Done -> exit! ==============================================
+       StopRequested = true;
+       IOService.stop();
    }
 }
 
