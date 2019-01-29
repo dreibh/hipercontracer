@@ -142,7 +142,7 @@ int main(int argc, char** argv)
    passwd*            pw                        = NULL;
    bool               servicePing               = false;
    bool               serviceTraceroute         = false;
-   unsigned int       loops                     = 0;
+   unsigned int       iterations                = 0;
 
    unsigned long long tracerouteInterval        = 10000;
    unsigned int       tracerouteExpiration      = 3000;
@@ -179,11 +179,8 @@ int main(int argc, char** argv)
       else if(strcmp(argv[i], "-verbose") == 0) {
          verboseMode = true;
       }
-      else if(strcmp(argv[i], "-noloop") == 0) {
-         loops = 0;
-      }
-      else if(strncmp(argv[i], "-loops=", 7) == 0) {
-         loops = atol((const char*)&argv[i][7]);
+      else if(strncmp(argv[i], "-iterations=", 12) == 0) {
+         iterations = atol((const char*)&argv[i][12]);
       }
       else if(strncmp(argv[i], "-user=", 6) == 0) {
          user = (const char*)&argv[i][6];
@@ -293,7 +290,7 @@ int main(int argc, char** argv)
          try {
             Service* service = new Ping(makeResultsWriter(*sourceIterator, "Ping", resultsDirectory, resultsTransactionLength,
                                                           (pw != NULL) ? pw->pw_uid : 0, (pw != NULL) ? pw->pw_gid : 0),
-                                        loops, verboseMode,
+                                        iterations, verboseMode,
                                         *sourceIterator, DestinationArray,
                                         pingInterval, pingExpiration, pingTTL);
             if(service->start() == false) {
@@ -310,7 +307,7 @@ int main(int argc, char** argv)
          try {
             Service* service = new Traceroute(makeResultsWriter(*sourceIterator, "Traceroute", resultsDirectory, resultsTransactionLength,
                                                                 (pw != NULL) ? pw->pw_uid : 0, (pw != NULL) ? pw->pw_gid : 0),
-                                              loops, verboseMode,
+                                              iterations, verboseMode,
                                               *sourceIterator, DestinationArray,
                                               tracerouteInterval, tracerouteExpiration,
                                               tracerouteRounds,
