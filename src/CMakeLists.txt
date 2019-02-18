@@ -31,11 +31,44 @@
 
 
 #############################################################################
+# LIBRARIES
+#############################################################################
+
+# ====== liblibhipercontracer ==============================================
+LIST(APPEND libhipercontracer_headers
+   ping.h
+   resultswriter.h
+   service.h
+   traceroute.h
+)
+LIST(APPEND libhipercontracer_sources
+   ping.cc
+   resultswriter.cc
+   traceroute.cc
+   tools.cc
+)
+
+INSTALL(FILES ${libhipercontracer_headers} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/hipercontracer)
+
+ADD_LIBRARY(libhipercontracer-shared SHARED ${libhipercontracer_sources})
+ADD_LIBRARY(libhipercontracer-static STATIC ${libhipercontracer_sources})
+FOREACH(TYPE shared;static)
+   SET_TARGET_PROPERTIES(libhipercontracer-${TYPE} PROPERTIES OUTPUT_NAME hipercontracer CLEAN_DIRECT_OUTPUT 1)
+   SET_TARGET_PROPERTIES(libhipercontracer-${TYPE} PROPERTIES
+      VERSION   ${BUILD_VERSION}
+      SOVERSION ${BUILD_MAJOR}
+   )
+   TARGET_LINK_LIBRARIES (libhipercontracer-${TYPE} ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
+   INSTALL(TARGETS libhipercontracer-${TYPE} DESTINATION ${CMAKE_INSTALL_LIBDIR})
+ENDFOREACH()
+
+
+#############################################################################
 # PROGRAMS
 #############################################################################
 
-ADD_EXECUTABLE(hipercontracer hipercontracer.cc resultswriter.cc ping.cc tools.cc traceroute.cc)
-TARGET_LINK_LIBRARIES(hipercontracer ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
+ADD_EXECUTABLE(hipercontracer hipercontracer.cc)
+TARGET_LINK_LIBRARIES(hipercontracer libhipercontracer-shared ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
 INSTALL(TARGETS hipercontracer RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
 INSTALL(FILES hipercontracer.1 DESTINATION ${CMAKE_INSTALL_MANDIR}/man1)
 
