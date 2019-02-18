@@ -78,6 +78,7 @@ The HiPerConTracer library is provided by this package.
 Summary: HiPerConTracer library development files
 Group: Development/Libraries
 Requires: %{name}-libhipercontracer = %{version}-%{release}
+Requires: boost-devel
 
 %description libhipercontracer-devel
 High-Performance Connectivity Tracer (HiPerConTracer) is a
