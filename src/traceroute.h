@@ -33,7 +33,6 @@
 #define TRACEROUTE_H
 
 #include "service.h"
-#include "icmpheader.h"
 #include "resultswriter.h"
 
 #include <set>
@@ -42,6 +41,8 @@
 #include <boost/thread.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
 
+
+class ICMPHeader;
 
 enum HopStatus {
    // ====== Status byte ==================================

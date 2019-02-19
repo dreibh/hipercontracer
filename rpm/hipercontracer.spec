@@ -13,6 +13,7 @@ BuildRequires: gcc
 BuildRequires: gcc-c++
 BuildRequires: boost-devel
 BuildRoot: %{_tmppath}/%{name}-%{version}-build
+Requires: %{name}-libhipercontracer = %{version}-%{release}
 
 %define _unpackaged_files_terminate_build 0
 
@@ -56,6 +57,44 @@ make install DESTDIR=%{buildroot}
 %{_datadir}/doc/hipercontracer/examples/NoSQL/users.ms
 %{_datadir}/doc/hipercontracer/examples/NoSQL/R-query-example.R
 %{_datadir}/doc/hipercontracer/examples/NoSQL/README
+
+
+%package libhipercontracer
+Summary: HiPerConTracer library
+Group: System Environment/Libraries
+Requires: %{name}-libhipercontracer = %{version}-%{release}
+
+%description libhipercontracer
+High-Performance Connectivity Tracer (HiPerConTracer) is a
+ping/traceroute service. It performs regular ping and traceroute runs
+among sites and can export the results into an SQL or Non-SQL database.
+The HiPerConTracer library is provided by this package.
+
+%files libhipercontracer
+/usr/lib/*/libhipercontracer.so.*
+
+
+%package libhipercontracer-devel
+Summary: HiPerConTracer library development files
+Group: Development/Libraries
+Requires: %{name}-libhipercontracer = %{version}-%{release}
+Requires: boost-devel
+
+%description libhipercontracer-devel
+High-Performance Connectivity Tracer (HiPerConTracer) is a
+ping/traceroute service. It performs regular ping and traceroute runs
+among sites and can export the results into an SQL or Non-SQL database.
+This package provides header files for the HiPerConTracer library. You need them
+to integrate HiPerConTracer into own programs.
+
+
+%files libhipercontracer-devel
+/usr/include/hipercontracer/ping.h
+/usr/include/hipercontracer/resultswriter.h
+/usr/include/hipercontracer/service.h
+/usr/include/hipercontracer/traceroute.h
+/usr/lib/*/libhipercontracer*.so
+/usr/lib/*/libhipercontracer.a
 
 
 %changelog
