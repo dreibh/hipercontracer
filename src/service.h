@@ -40,6 +40,7 @@ class Service
    virtual ~Service() {};
    virtual bool start() = 0;
    virtual void requestStop() = 0;
+   virtual bool joinable() = 0;
    virtual void join() = 0;
    virtual bool prepareSocket() = 0;
    virtual bool prepareRun(const bool newRound = false) = 0;

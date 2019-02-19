@@ -40,13 +40,14 @@
 
 // ###### Constructor #######################################################
 Ping::Ping(ResultsWriter*                           resultsWriter,
+           const unsigned int                       iterations,
            const bool                               verboseMode,
            const boost::asio::ip::address&          sourceAddress,
            const std::set<boost::asio::ip::address> destinationAddressArray,
            const unsigned long long                 interval,
            const unsigned int                       expiration,
            const unsigned int                       ttl)
-   : Traceroute(resultsWriter, verboseMode,
+   : Traceroute(resultsWriter, iterations, verboseMode,
                 sourceAddress, destinationAddressArray,
                 interval, expiration, ttl, ttl, ttl)
 {
@@ -69,8 +70,13 @@ void Ping::noMoreOutstandingRequests()
 // ###### Prepare a new run #################################################
 bool Ping::prepareRun(const bool newRound)
 {
-   // Nothing to do for Ping!
-   return(false);
+   IterationNumber++;
+   if((Iterations > 0) && (IterationNumber > Iterations)) {
+       // ====== Done -> exit! ==============================================
+       StopRequested = true;
+       IOService.stop();
+   }
+   return(false);   // No scheduling necessary for Ping!
 }
 
 

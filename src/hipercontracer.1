@@ -34,6 +34,7 @@
 .Op \-user=user|uid
 .Op \-source=address
 .Op \-destination=address
+.Op \-iterations=number_of_iterations
 .Op \-tracerouteinterval=milliseconds
 .Op \-tracerouteduration=milliseconds
 .Op \-tracerouterounds=rounds
@@ -73,6 +74,10 @@ files will be set accordingly.
 Adds the given source address.
 .It destination=address
 Adds the given destination address.
+.It \-iterations=number_of_iterations
+Limit the number of measurement iterations (measurement for all source/destination
+pairs) to the given number of iterations. The default 0 lets HiPerConTracer run
+continuously.
 .It tracerouteinterval=milliseconds
 Sets the traceroute interval (time for each full round of destinations).
 .It tracerouteduration=milliseconds
