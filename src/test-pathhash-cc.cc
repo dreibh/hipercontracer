@@ -7,7 +7,11 @@
 
 #include <boost/format.hpp>
 #include <boost/interprocess/streams/bufferstream.hpp>
+#if BOOST_VERSION >= 106600
+#include <boost/uuid/detail/sha1.hpp>
+#else
 #include <boost/uuid/sha1.hpp>
+#endif
 
 
 int main(int argc, char** argv)
