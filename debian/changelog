@@ -1,9 +1,9 @@
-hipercontracer (1.2.2~rc1.0-1ubuntu1) disco; urgency=medium
+hipercontracer (1.2.2~rc1.1-1ubuntu1) disco; urgency=medium
 
   * New upstream version.
   * debian/control: updated standards version.
 
- -- Thomas Dreibholz <dreibh@iem.uni-due.de>  Fri, 09 Nov 2018 08:08:08 +0200
+ -- Thomas Dreibholz <dreibh@iem.uni-due.de>  Tue, 19 Feb 2019 08:08:08 +0200
 
 hipercontracer (1.2.1-1ubuntu1) cosmic; urgency=medium
 
