@@ -1,4 +1,4 @@
-hipercontracer (1.2.2~rc1.1-1ubuntu1) disco; urgency=medium
+hipercontracer (1.2.2~rc1.2-1ubuntu1) disco; urgency=medium
 
   * New upstream version.
   * debian/control: updated standards version.
