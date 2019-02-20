@@ -41,6 +41,7 @@
 #include <netinet/ip.h>
 
 #include <boost/format.hpp>
+#include <boost/version.hpp>
 #include <boost/interprocess/streams/bufferstream.hpp>
 #if BOOST_VERSION >= 106600
 #include <boost/uuid/detail/sha1.hpp>
