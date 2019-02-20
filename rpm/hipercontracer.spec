@@ -71,7 +71,7 @@ among sites and can export the results into an SQL or Non-SQL database.
 The HiPerConTracer library is provided by this package.
 
 %files libhipercontracer
-/usr/lib/*/libhipercontracer.so.*
+/usr/lib*/libhipercontracer.so.*
 
 
 %package libhipercontracer-devel
@@ -93,8 +93,8 @@ to integrate HiPerConTracer into own programs.
 /usr/include/hipercontracer/resultswriter.h
 /usr/include/hipercontracer/service.h
 /usr/include/hipercontracer/traceroute.h
-/usr/lib/*/libhipercontracer*.so
-/usr/lib/*/libhipercontracer.a
+/usr/lib*/libhipercontracer*.so
+/usr/lib*/libhipercontracer.a
 
 
 %changelog
