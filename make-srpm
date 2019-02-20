@@ -69,7 +69,7 @@ echo -e ""
 echo -e "\x1b[34m`date +%FT%H:%M:%S`: ====== Creating upstream package ======================================\x1b[0m"
 echo -e ""
 if [ "${SKIP_PACKAGE_SIGNING}" != "" -a ${SKIP_PACKAGE_SIGNING} -eq 1 ] ; then
-   ./make-upstream-package ${PACKAGE} ${PACKAGE_VERSION} -skip-signing
+   ./make-upstream-package ${PACKAGE} ${PACKAGE_VERSION} "${MAKE_DIST}" -skip-signing
 else
    ./make-upstream-package ${PACKAGE} ${PACKAGE_VERSION} "${MAKE_DIST}"
 fi
