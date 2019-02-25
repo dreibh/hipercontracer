@@ -118,7 +118,7 @@ Traceroute::Traceroute(ResultsWriter*                            resultsWriter,
    LastHop             = 0xffffffff;
    ExpectingReply      = false;
    StopRequested       = false;
-   IterationNumber          = 0;
+   IterationNumber     = 0;
    MinTTL              = 1;
    MaxTTL              = InitialMaxTTL;
    TargetChecksumArray = new uint32_t[Rounds];
@@ -134,6 +134,20 @@ Traceroute::Traceroute(ResultsWriter*                            resultsWriter,
       }
    }
    DestinationAddressIterator = DestinationAddresses.end();
+}
+
+
+// ###### Add destination address ###########################################
+bool Traceroute::addDestination(const boost::asio::ip::address& destinationAddress)
+{
+   std::lock_guard<std::recursive_mutex> lock(DestinationAddressMutex);
+
+   const std::set<boost::asio::ip::address>::const_iterator destinationIterator = DestinationAddresses.find(destinationAddress);
+   if(destinationIterator != DestinationAddresses.end()) {
+      return false;   // Already there -> nothing to do.
+   }
+   DestinationAddresses.insert(destinationAddress);
+   return true;
 }
 
 

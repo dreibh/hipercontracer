@@ -152,6 +152,7 @@ class Traceroute : virtual public Service
    virtual bool joinable();
    virtual void join();
 
+   bool addDestination(const boost::asio::ip::address& destinationAddress);
    inline bool isIPv6() const {
       return(SourceAddress.is_v6());
    }
