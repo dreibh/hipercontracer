@@ -183,42 +183,40 @@ class Traceroute : virtual public Service
    unsigned int getInitialMaxTTL(const boost::asio::ip::address& destinationAddress) const;
    static unsigned long long ptimeToMircoTime(const boost::posix_time::ptime t);
 
-   ResultsWriter*                        ResultsOutput;
-   const unsigned int                    Iterations;
-   const bool                            VerboseMode;
-   const unsigned long long              Interval;
-   const unsigned int                    Expiration;
-   const unsigned int                    Rounds;
-   const unsigned int                    InitialMaxTTL;
-   const unsigned int                    FinalMaxTTL;
-   const unsigned int                    IncrementMaxTTL;
-   boost::asio::io_service               IOService;
-   boost::asio::ip::address              SourceAddress;
-   std::set<boost::asio::ip::address>    DestinationAddressArray;
-   boost::asio::ip::icmp::socket         ICMPSocket;
-   boost::asio::deadline_timer           TimeoutTimer;
-   boost::asio::deadline_timer           IntervalTimer;
-   boost::asio::ip::icmp::endpoint       ReplyEndpoint;    // Store ICMP reply's source
+   ResultsWriter*                                   ResultsOutput;
+   const unsigned int                               Iterations;
+   const bool                                       VerboseMode;
+   const unsigned long long                         Interval;
+   const unsigned int                               Expiration;
+   const unsigned int                               Rounds;
+   const unsigned int                               InitialMaxTTL;
+   const unsigned int                               FinalMaxTTL;
+   const unsigned int                               IncrementMaxTTL;
+   boost::asio::io_service                          IOService;
+   boost::asio::ip::address                         SourceAddress;
+   std::set<boost::asio::ip::address>               DestinationAddressArray;
+   std::set<boost::asio::ip::address>::iterator     DestinationAddressIterator;
+   boost::asio::ip::icmp::socket                    ICMPSocket;
+   boost::asio::deadline_timer                      TimeoutTimer;
+   boost::asio::deadline_timer                      IntervalTimer;
+   boost::asio::ip::icmp::endpoint                  ReplyEndpoint;    // Store ICMP reply's source
 
-   boost::thread                         Thread;
-   volatile bool                         StopRequested;
-   unsigned int                          IterationNumber;
-   unsigned int                          Identifier;
-   unsigned short                        SeqNumber;
-   unsigned int                          MagicNumber;
-   unsigned int                          OutstandingRequests;
-   unsigned int                          LastHop;
-   std::map<unsigned short, ResultEntry> ResultsMap;
-   std::map<boost::asio::ip::address,
-            unsigned int>                TTLCache;
-   bool                                  ExpectingReply;
-   char                                  MessageBuffer[65536 + 40];
-   unsigned int                          MinTTL;
-   unsigned int                          MaxTTL;
-   boost::posix_time::ptime              RunStartTimeStamp;
-   uint32_t*                             TargetChecksumArray;
-
-   std::set<boost::asio::ip::address>::iterator DestinationAddressIterator;
+   boost::thread                                    Thread;
+   volatile bool                                    StopRequested;
+   unsigned int                                     IterationNumber;
+   unsigned int                                     Identifier;
+   unsigned short                                   SeqNumber;
+   unsigned int                                     MagicNumber;
+   unsigned int                                     OutstandingRequests;
+   unsigned int                                     LastHop;
+   std::map<unsigned short, ResultEntry>            ResultsMap;
+   std::map<boost::asio::ip::address, unsigned int> TTLCache;
+   bool                                             ExpectingReply;
+   char                                             MessageBuffer[65536 + 40];
+   unsigned int                                     MinTTL;
+   unsigned int                                     MaxTTL;
+   boost::posix_time::ptime                         RunStartTimeStamp;
+   uint32_t*                                        TargetChecksumArray;
 
    private:
    static int compareTracerouteResults(const ResultEntry* a, const ResultEntry* b);
