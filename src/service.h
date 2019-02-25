@@ -39,11 +39,15 @@ class Service
 {
    public:
    virtual ~Service() {};
+
+   virtual const boost::asio::ip::address& getSource() = 0;
    virtual bool addDestination(const boost::asio::ip::address& destinationAddress) = 0;
+
    virtual bool start() = 0;
    virtual void requestStop() = 0;
    virtual bool joinable() = 0;
    virtual void join() = 0;
+
    virtual bool prepareSocket() = 0;
    virtual bool prepareRun(const bool newRound = false) = 0;
    virtual void scheduleTimeoutEvent() = 0;

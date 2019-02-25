@@ -149,7 +149,9 @@ class Traceroute : virtual public Service
               const unsigned int                        incrementMaxTTL = 2);
    virtual ~Traceroute();
 
+   virtual const boost::asio::ip::address& getSource();
    virtual bool addDestination(const boost::asio::ip::address& destinationAddress);
+
    virtual bool start();
    virtual void requestStop();
    virtual bool joinable();

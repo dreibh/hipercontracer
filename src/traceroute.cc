@@ -139,6 +139,13 @@ Traceroute::Traceroute(ResultsWriter*                            resultsWriter,
 }
 
 
+// ###### Get source address ################################################
+const boost::asio::ip::address& Traceroute::getSource()
+{
+    return(SourceAddress);
+}
+
+
 // ###### Add destination address ###########################################
 bool Traceroute::addDestination(const boost::asio::ip::address& destinationAddress)
 {
