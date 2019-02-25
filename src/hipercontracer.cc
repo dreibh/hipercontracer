@@ -35,7 +35,6 @@
 #include <string.h>
 #include <pwd.h>
 
-#include <netinet/in.h>
 #include <netinet/ip.h>
 
 #include <set>
