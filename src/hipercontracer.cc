@@ -107,31 +107,6 @@ static void tryCleanup(const boost::system::error_code& errorCode)
 }
 
 
-// ###### Prepare results writer ############################################
-static ResultsWriter* makeResultsWriter(const boost::asio::ip::address& sourceAddress,
-                                        const std::string&              resultsFormat,
-                                        const std::string&              resultsDirectory,
-                                        const unsigned int              resultsTransactionLength,
-                                        const uid_t                     uid,
-                                        const gid_t                     gid)
-{
-   ResultsWriter* resultsWriter = NULL;
-   if(!resultsDirectory.empty()) {
-      std::string uniqueID =
-         resultsFormat + "-" +
-         sourceAddress.to_string() + "-" +
-         boost::posix_time::to_iso_string(boost::posix_time::microsec_clock::universal_time());
-      replace(uniqueID.begin(), uniqueID.end(), ' ', '-');
-      resultsWriter = new ResultsWriter(resultsDirectory, uniqueID, resultsFormat, resultsTransactionLength,
-                                        uid, gid);
-      if(resultsWriter->prepare() == false) {
-         ::exit(1);
-      }
-      ResultsWriterSet.insert(resultsWriter);
-   }
-   return(resultsWriter);
-}
-
 
 // ###### Main program ######################################################
 int main(int argc, char** argv)
@@ -287,8 +262,10 @@ int main(int argc, char** argv)
    for(std::set<boost::asio::ip::address>::iterator sourceIterator = SourceArray.begin(); sourceIterator != SourceArray.end(); sourceIterator++) {
       if(servicePing) {
          try {
-            Service* service = new Ping(makeResultsWriter(*sourceIterator, "Ping", resultsDirectory, resultsTransactionLength,
-                                                          (pw != NULL) ? pw->pw_uid : 0, (pw != NULL) ? pw->pw_gid : 0),
+            Service* service = new Ping(ResultsWriter::makeResultsWriter(
+                                           ResultsWriterSet,
+                                           *sourceIterator, "Ping", resultsDirectory, resultsTransactionLength,
+                                           (pw != NULL) ? pw->pw_uid : 0, (pw != NULL) ? pw->pw_gid : 0),
                                         iterations, verboseMode,
                                         *sourceIterator, DestinationArray,
                                         pingInterval, pingExpiration, pingTTL);
@@ -304,8 +281,10 @@ int main(int argc, char** argv)
       }
       if(serviceTraceroute) {
          try {
-            Service* service = new Traceroute(makeResultsWriter(*sourceIterator, "Traceroute", resultsDirectory, resultsTransactionLength,
-                                                                (pw != NULL) ? pw->pw_uid : 0, (pw != NULL) ? pw->pw_gid : 0),
+            Service* service = new Traceroute(ResultsWriter::makeResultsWriter(
+                                                 ResultsWriterSet,
+                                                 *sourceIterator, "Traceroute", resultsDirectory, resultsTransactionLength,
+                                                 (pw != NULL) ? pw->pw_uid : 0, (pw != NULL) ? pw->pw_gid : 0),
                                               iterations, verboseMode,
                                               *sourceIterator, DestinationArray,
                                               tracerouteInterval, tracerouteExpiration,
