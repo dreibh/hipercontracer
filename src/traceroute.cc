@@ -316,7 +316,7 @@ void Traceroute::scheduleTimeoutEvent()
 {
    const unsigned int deviation = std::max(10U, Expiration / 5);   // 20% deviation
    const unsigned int duration  = Expiration + (std::rand() % deviation);
-   TimeoutTimer.expires_at(boost::posix_time::microsec_clock::universal_time() + boost::posix_time::milliseconds(duration));
+   TimeoutTimer.expires_from_now(boost::posix_time::milliseconds(duration));
    TimeoutTimer.async_wait(boost::bind(&Traceroute::handleTimeoutEvent, this, _1));
 }
 
