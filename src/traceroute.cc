@@ -128,9 +128,12 @@ Traceroute::Traceroute(ResultsWriter*                            resultsWriter,
 
    // ====== Prepare destination endpoints ==================================
    std::lock_guard<std::recursive_mutex> lock(DestinationAddressMutex);
-   for(std::set<boost::asio::ip::address>::const_iterator destinationIterator = destinationAddressArray.begin();
-       destinationIterator != destinationAddressArray.end(); destinationIterator++) {
-      addDestination(*destinationIterator);
+   for(std::set<boost::asio::ip::address>::const_iterator destinationAddressIterator = destinationAddressArray.begin();
+       destinationAddressIterator != destinationAddressArray.end(); destinationAddressIterator++) {
+      const boost::asio::ip::address destinationAddress = *destinationAddressIterator;
+      if(destinationAddress.is_v6() == SourceAddress.is_v6()) {
+         DestinationAddresses.insert(destinationAddress);
+      }
    }
    DestinationAddressIterator = DestinationAddresses.end();
 }
@@ -143,10 +146,17 @@ bool Traceroute::addDestination(const boost::asio::ip::address& destinationAddre
       std::lock_guard<std::recursive_mutex> lock(DestinationAddressMutex);
       const std::set<boost::asio::ip::address>::const_iterator destinationIterator =
          DestinationAddresses.find(destinationAddress);
+
       if(destinationIterator == DestinationAddresses.end()) {
+         if(DestinationAddressIterator == DestinationAddresses.end()) {
+            // Address will be the first destination in list -> abort interval timer
+            IntervalTimer.expires_from_now(boost::posix_time::milliseconds(0));
+            IntervalTimer.async_wait(boost::bind(&Traceroute::handleIntervalEvent, this, _1));
+         }
          DestinationAddresses.insert(destinationAddress);
          return true;
       }
+
       // Already there -> nothing to do.
    }
    return false;
@@ -274,6 +284,7 @@ void Traceroute::sendRequests()
 {
    std::lock_guard<std::recursive_mutex> lock(DestinationAddressMutex);
 
+   // ====== Send requests, if there are destination addresses ==============
    if(DestinationAddressIterator != DestinationAddresses.end()) {
       const boost::asio::ip::address& destinationAddress = *DestinationAddressIterator;
 
@@ -290,9 +301,13 @@ void Traceroute::sendRequests()
                             TargetChecksumArray[round]);
          }
       }
+      scheduleTimeoutEvent();
    }
 
-   scheduleTimeoutEvent();
+   // ====== No destination addresses -> wait ===============================
+   else {
+      scheduleIntervalEvent();
+   }
 }
 
 
@@ -633,7 +648,7 @@ void Traceroute::processResults()
 // ###### Handle timer event ################################################
 void Traceroute::handleTimeoutEvent(const boost::system::error_code& errorCode)
 {
-    std::lock_guard<std::recursive_mutex> lock(DestinationAddressMutex);
+   std::lock_guard<std::recursive_mutex> lock(DestinationAddressMutex);
 
    // ====== Stop requested? ================================================
    if(StopRequested) {
@@ -642,6 +657,7 @@ void Traceroute::handleTimeoutEvent(const boost::system::error_code& errorCode)
    }
 
    // ====== Has destination been reached with current TTL? =================
+   assert(DestinationAddressIterator != DestinationAddresses.end());
    TTLCache[*DestinationAddressIterator] = LastHop;
    if(LastHop == 0xffffffff) {
       if(notReachedWithCurrentTTL()) {
@@ -675,11 +691,13 @@ void Traceroute::handleIntervalEvent(const boost::system::error_code& errorCode)
    }
 
    // ====== Prepare new run ================================================
-   if(VerboseMode) {
-      std::cout << "Starting iteration " << (IterationNumber + 1) << " ..." << std::endl;
+   if(errorCode != boost::asio::error::operation_aborted) {
+      if(VerboseMode) {
+         std::cout << "Starting iteration " << (IterationNumber + 1) << " ..." << std::endl;
+      }
+      prepareRun(true);
+      sendRequests();
    }
-   prepareRun(true);
-   sendRequests();
 }
 
 

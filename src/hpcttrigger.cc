@@ -170,10 +170,10 @@ static void handlePing(const ICMPHeader& header, const size_t payloadLength)
 
 
 // ###### Decode raw ICMP packet ############################################
-static void receivedPingV4(const boost::system::error_code& error, size_t length)
+static void receivedPingV4(const boost::system::error_code& errorCode, size_t length)
 {
-   if(error != boost::asio::error::operation_aborted) {
-      if( (!error) && (length >= sizeof(iphdr)) ) {
+   if(errorCode != boost::asio::error::operation_aborted) {
+      if( (!errorCode) && (length >= sizeof(iphdr)) ) {
          // ====== Decode IPv4 packet =======================================
          // NOTE: raw socket for IPv4 delivers IPv4 header as well!
          const iphdr* ipHeader = (const iphdr*)IncomingPingMessageBuffer;
@@ -199,10 +199,10 @@ static void receivedPingV4(const boost::system::error_code& error, size_t length
 
 
 // ###### Decode raw ICMPv6 packet ##########################################
-static void receivedPingV6(const boost::system::error_code& error, size_t length)
+static void receivedPingV6(const boost::system::error_code& errorCode, size_t length)
 {
-   if(error != boost::asio::error::operation_aborted) {
-      if( (!error) && (length >= 8) ) {
+   if(errorCode != boost::asio::error::operation_aborted) {
+      if( (!errorCode) && (length >= 8) ) {
          // ====== Decode ICMPv6 message ====================================
          // NOTE: raw socket for IPv6 just delivery the IPv6 payload!
          if(length >= 8) {
