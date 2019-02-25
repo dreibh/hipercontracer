@@ -36,7 +36,7 @@
 #include <pwd.h>
 
 #include <netinet/in.h>
-#include <netinet/ip.h>
+#include <netinet/ip6.h>
 
 #include <set>
 #include <algorithm>
@@ -47,83 +47,8 @@
 #include "service.h"
 #include "traceroute.h"
 #include "ping.h"
+#include "icmpheader.h"
 
-
-// #include <boost/asio/basic_raw_socket.hpp>
-// #include <boost/asio/ip/basic_endpoint.hpp>
-//
-// class raw
-// {
-// public:
-//   /// The type of a RAW endpoint.
-//   typedef boost::asio::ip::basic_endpoint<raw> endpoint;
-//
-//   /// Construct to represent the IPv4 RAW protocol.
-//   static raw v4()
-//   {
-//     return raw(IPPROTO_ICMP, PF_INET);
-//   }
-//
-//   /// Construct to represent the IPv6 RAW protocol.
-//   static raw v6()
-//   {
-//     return raw(IPPROTO_ICMP, PF_INET6);
-//   }
-//
-//   // Default construction, compiler complains otherwise
-//   explicit raw()
-//     : protocol_(IPPROTO_ICMP),
-//       family_(PF_INET)
-//   {
-//   }
-//
-//   /// Obtain an identifier for the type of the protocol.
-//   int type() const
-//   {
-//     return SOCK_RAW;
-//   }
-//
-//   /// Obtain an identifier for the protocol.
-//   int protocol() const
-//   {
-//     return protocol_;
-//   }
-//
-//   /// Obtain an identifier for the protocol family.
-//   int family() const
-//   {
-//     return family_;
-//   }
-//
-//   /// The RAW socket type.
-//   typedef boost::asio::basic_raw_socket<raw> socket;
-//
-//   /// The RAW resolver type.
-//   typedef boost::asio::ip::basic_resolver<raw> resolver;
-//
-//   /// Compare two protocols for equality.
-//   friend bool operator==(const raw& p1, const raw& p2)
-//   {
-//     return p1.protocol_ == p2.protocol_ && p1.family_ == p2.family_;
-//   }
-//
-//   /// Compare two protocols for inequality.
-//   friend bool operator!=(const raw& p1, const raw& p2)
-//   {
-//     return p1.protocol_ != p2.protocol_ || p1.family_ != p2.family_;
-//   }
-//
-// private:
-//   explicit raw(int protocol_id, int protocol_family)
-//     : protocol_(protocol_id),
-//       family_(protocol_family)
-//   {
-//   }
-//
-//   int protocol_;
-//   int family_;
-// };
-//
 
 static std::set<boost::asio::ip::address>                   SourceArray;
 static std::set<boost::asio::ip::address>                   DestinationArray;
@@ -132,6 +57,8 @@ static std::set<Service*>                                   ServiceSet;
 static boost::asio::io_service                              IOService;
 static boost::asio::basic_raw_socket<boost::asio::ip::icmp> SnifferSocketV4(IOService);
 static boost::asio::basic_raw_socket<boost::asio::ip::icmp> SnifferSocketV6(IOService);
+static boost::asio::ip::icmp::endpoint                      IncomingPingSource;
+static char                                                 IncomingPingMessageBuffer[4096];
 static boost::asio::signal_set                              Signals(IOService, SIGINT, SIGTERM);
 static boost::posix_time::milliseconds                      CleanupTimerInterval(250);
 static boost::asio::deadline_timer                          CleanupTimer(IOService, CleanupTimerInterval);
@@ -156,10 +83,11 @@ static void signalHandler(const boost::system::error_code& error, int signal_num
 {
    if(error != boost::asio::error::operation_aborted) {
       puts("\n*** Shutting down! ***\n");   // Avoids a false positive from Helgrind.
-      for(std::set<Service*>::iterator serviceIterator = ServiceSet.begin(); serviceIterator != ServiceSet.end(); serviceIterator++) {
-         Service* service = *serviceIterator;
-         service->requestStop();
-      }
+      IOService.stop();
+//       for(std::set<Service*>::iterator serviceIterator = ServiceSet.begin(); serviceIterator != ServiceSet.end(); serviceIterator++) {
+//          Service* service = *serviceIterator;
+//          service->requestStop();
+//       }
    }
 }
 
@@ -167,43 +95,85 @@ static void signalHandler(const boost::system::error_code& error, int signal_num
 // ###### Check whether services can be cleaned up ##########################
 static void tryCleanup(const boost::system::error_code& errorCode)
 {
-   bool finished = true;
-   for(std::set<Service*>::iterator serviceIterator = ServiceSet.begin(); serviceIterator != ServiceSet.end(); serviceIterator++) {
-      Service* service = *serviceIterator;
-      if(!service->joinable()) {
-         finished = false;
-         break;
-      }
-   }
-
-   if(!finished) {
-      CleanupTimer.expires_at(CleanupTimer.expires_at() + CleanupTimerInterval);
-      CleanupTimer.async_wait(tryCleanup);
-   }
-   else {
-      Signals.cancel();
-   }
+//    bool finished = true;
+//    for(std::set<Service*>::iterator serviceIterator = ServiceSet.begin(); serviceIterator != ServiceSet.end(); serviceIterator++) {
+//       Service* service = *serviceIterator;
+//       if(!service->joinable()) {
+//          finished = false;
+//          break;
+//       }
+//    }
+//
+//    if(!finished) {
+//       CleanupTimer.expires_at(CleanupTimer.expires_at() + CleanupTimerInterval);
+//       CleanupTimer.async_wait(tryCleanup);
+//    }
+//    else {
+//       Signals.cancel();
+//    }
 }
 
 
+static void handlePing(const ICMPHeader& header, const size_t payloadLength)
+{
+    std::cout << "Ping from " << IncomingPingSource << ", payload " << payloadLength << std::endl;
+}
 
-static boost::asio::ip::icmp::endpoint IncomingPingSource;
-// static raw::endpoint IncomingPingSource;
-static char                            IncomingPingMessageBuffer[4096];
 
+// ###### Decode raw ICMP packet ############################################
 static void receivedPingV4(const boost::system::error_code& error, size_t length)
 {
-   std::cout << "PINGv4? e=" << error << " l=" << length << std::endl;
+//    std::cout << "PINGv4? e=" << error << " l=" << length << std::endl;
+   if( (!error) && (length >= 8) ) {
+//       unsigned char* p = (unsigned char*)&IncomingPingMessageBuffer;
+//       for(size_t i = 0;i < length; i++) {
+//          printf("%02x ", p[i]);
+//       }
+//       puts("");
+
+      // ====== Decode packet ===============================================
+      if(length >= sizeof(iphdr)) {
+         const iphdr* ipHeader = (const iphdr*)IncomingPingMessageBuffer;
+         if( (ipHeader->version == 4) &&
+             (ntohs(ipHeader->tot_len) == length) ) {
+             const size_t headerLength = ipHeader->ihl << 2;
+//              puts("IPv4");
+//              printf("T=%d   ihl=%d\n", ntohs(ipHeader->tot_len), (int)headerLength);
+             if( (headerLength + 8 <= length) &&
+                 (ipHeader->protocol == IPPROTO_ICMP) ) {
+//                  puts("ICMP!");
+                 ICMPHeader header((const char*)&IncomingPingMessageBuffer[headerLength], length - headerLength);
+//                  printf("T=%d\n", (int)header.type());
+                 if(header.type() == ICMPHeader::IPv4EchoRequest) {
+                    handlePing(header, length - headerLength - 8);
+                 }
+             }
+         }
+      }
+
+//       ICMPHeader header(IncomingPingMessageBuffer, length);
+//       printf("T=%d\n", (int)header.type());
+//       if(header.type() == ICMPHeader::IPv4EchoRequest) {
+//          handlePing(header);
+//       }
+   }
    SnifferSocketV4.async_receive_from(boost::asio::buffer(IncomingPingMessageBuffer, sizeof(IncomingPingMessageBuffer)),
-                                    IncomingPingSource, receivedPingV4);
+                                      IncomingPingSource, receivedPingV4);
 }
 
 
+// ###### Decode raw ICMPv6 packet ##########################################
 static void receivedPingV6(const boost::system::error_code& error, size_t length)
 {
    std::cout << "PINGv6? e=" << error << " l=" << length << std::endl;
+   if( (!error) && (length >= 8) ) {
+      ICMPHeader header(IncomingPingMessageBuffer, length);
+      if(header.type() == ICMPHeader::IPv6EchoRequest) {
+//          handlePing(header);
+      }
+   }
    SnifferSocketV6.async_receive_from(boost::asio::buffer(IncomingPingMessageBuffer, sizeof(IncomingPingMessageBuffer)),
-                                    IncomingPingSource, receivedPingV6);
+                                      IncomingPingSource, receivedPingV6);
 }
 
 
@@ -457,15 +427,15 @@ int main(int argc, char** argv)
    IOService.run();
 
 
-   // ====== Shut down service threads ======================================
-   for(std::set<Service*>::iterator serviceIterator = ServiceSet.begin(); serviceIterator != ServiceSet.end(); serviceIterator++) {
-      Service* service = *serviceIterator;
-      service->join();
-      delete service;
-   }
-   for(std::set<ResultsWriter*>::iterator resultsWriterIterator = ResultsWriterSet.begin(); resultsWriterIterator != ResultsWriterSet.end(); resultsWriterIterator++) {
-      delete *resultsWriterIterator;
-   }
+//    // ====== Shut down service threads ======================================
+//    for(std::set<Service*>::iterator serviceIterator = ServiceSet.begin(); serviceIterator != ServiceSet.end(); serviceIterator++) {
+//       Service* service = *serviceIterator;
+//       service->join();
+//       delete service;
+//    }
+//    for(std::set<ResultsWriter*>::iterator resultsWriterIterator = ResultsWriterSet.begin(); resultsWriterIterator != ResultsWriterSet.end(); resultsWriterIterator++) {
+//       delete *resultsWriterIterator;
+//    }
 
    return(0);
 }

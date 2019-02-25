@@ -78,40 +78,43 @@ class ICMPHeader
    };
 
    ICMPHeader() {
-      std::fill(data, data + sizeof(data), 0);
+      std::fill(Data, Data + sizeof(Data), 0);
+   }
+   ICMPHeader(const char* inputData, const size_t length) {
+      memcpy(Data, inputData, std::min(length, (size_t)8));
    }
 
-   inline unsigned char type()        const { return data[0];      }
-   inline unsigned char code()        const { return data[1];      }
+   inline unsigned char type()        const { return Data[0];      }
+   inline unsigned char code()        const { return Data[1];      }
    inline unsigned short checksum()   const { return decode(2, 3); }
    inline unsigned short identifier() const { return decode(4, 5); }
    inline unsigned short seqNumber()  const { return decode(6, 7); }
 
-   inline void type(unsigned char type)          { data[0] = type;         }
-   inline void code(unsigned char code)          { data[1] = code;         }
+   inline void type(unsigned char type)          { Data[0] = type;         }
+   inline void code(unsigned char code)          { Data[1] = code;         }
    inline void checksum(unsigned short checksum) { encode(2, 3, checksum); }
    inline void identifier(unsigned short id)     { encode(4, 5, id);       }
    inline void seqNumber(unsigned short seqNum)  { encode(6, 7, seqNum);   }
 
    inline friend std::istream& operator>>(std::istream& is, ICMPHeader& header) {
-      return(is.read(reinterpret_cast<char*>(header.data), 8));
+      return(is.read(reinterpret_cast<char*>(header.Data), 8));
    }
 
    inline friend std::ostream& operator<<(std::ostream& os, const ICMPHeader& header) {
-      return(os.write(reinterpret_cast<const char*>(header.data), 8));
+      return(os.write(reinterpret_cast<const char*>(header.Data), 8));
    }
 
    private:
    inline unsigned short decode(int a, int b) const {
-      return((data[a] << 8) + data[b]);
+      return((Data[a] << 8) + Data[b]);
    }
 
    inline void encode(int a, int b, unsigned short n) {
-      data[a] = static_cast<unsigned char>(n >> 8);
-      data[b] = static_cast<unsigned char>(n & 0xFF);
+      Data[a] = static_cast<unsigned char>(n >> 8);
+      Data[b] = static_cast<unsigned char>(n & 0xFF);
    }
 
-   unsigned char data[8];
+   unsigned char Data[8];
 };
 
 
@@ -131,7 +134,7 @@ template <typename Iterator> void computeInternet16(ICMPHeader& header, Iterator
          sum += static_cast<unsigned char>(*body_iter++);
       }
    }
-   
+
    sum = (sum >> 16) + (sum & 0xFFFF);
    sum += (sum >> 16);
    header.checksum(static_cast<uint16_t>(~sum));
