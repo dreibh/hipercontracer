@@ -39,6 +39,7 @@
 #include <netinet/ip6.h>
 
 #include <set>
+#include <queue>
 #include <algorithm>
 
 #include <boost/asio/basic_signal_set.hpp>
@@ -50,8 +51,18 @@
 #include "icmpheader.h"
 
 
+struct TargetInfo
+{
+   unsigned int TriggerCounter;
+   bool         IsQueued;
+};
+
+
 static std::set<boost::asio::ip::address>                   SourceArray;
 static std::set<boost::asio::ip::address>                   DestinationArray;
+static std::map<boost::asio::ip::address, TargetInfo*>      TargetMap;
+static std::queue<boost::asio::ip::address>                 TargetQueue;
+static unsigned int                                         PingsBeforeQueuing = 3;
 static std::set<ResultsWriter*>                             ResultsWriterSet;
 static std::set<Service*>                                   ServiceSet;
 static boost::asio::io_service                              IOService;
@@ -114,66 +125,83 @@ static void tryCleanup(const boost::system::error_code& errorCode)
 }
 
 
+// ###### Handle Ping #######################################################
 static void handlePing(const ICMPHeader& header, const size_t payloadLength)
 {
-    std::cout << "Ping from " << IncomingPingSource << ", payload " << payloadLength << std::endl;
+   std::cout << "Ping from " << IncomingPingSource.address().to_string()
+             << ", payload " << payloadLength << std::endl;
+
+   std::map<boost::asio::ip::address, TargetInfo*>::iterator found =
+      TargetMap.find(IncomingPingSource.address());
+   if(found != TargetMap.end()) {
+      TargetInfo* targetInfo = found->second;
+      targetInfo->TriggerCounter++;
+      if( (!targetInfo->IsQueued) &&
+          (targetInfo->TriggerCounter >= PingsBeforeQueuing) ) {
+         TargetQueue.push(IncomingPingSource.address());
+         targetInfo->IsQueued       = true;
+         targetInfo->TriggerCounter = 0;
+         std::cout << "Queued!" << std::endl;
+      }
+      else {
+         std::cout << "Triggered: " <<  targetInfo->TriggerCounter << std::endl;
+      }
+   }
+   else {
+      TargetInfo* targetInfo = new TargetInfo;
+      if(targetInfo != NULL) {
+         targetInfo->TriggerCounter = 0;
+         targetInfo->IsQueued       = false;
+         TargetMap.insert(std::pair<boost::asio::ip::address, TargetInfo*>(
+                             IncomingPingSource.address(), targetInfo));
+      }
+   }
 }
 
 
 // ###### Decode raw ICMP packet ############################################
 static void receivedPingV4(const boost::system::error_code& error, size_t length)
 {
-//    std::cout << "PINGv4? e=" << error << " l=" << length << std::endl;
-   if( (!error) && (length >= 8) ) {
-//       unsigned char* p = (unsigned char*)&IncomingPingMessageBuffer;
-//       for(size_t i = 0;i < length; i++) {
-//          printf("%02x ", p[i]);
-//       }
-//       puts("");
-
-      // ====== Decode packet ===============================================
-      if(length >= sizeof(iphdr)) {
-         const iphdr* ipHeader = (const iphdr*)IncomingPingMessageBuffer;
-         if( (ipHeader->version == 4) &&
-             (ntohs(ipHeader->tot_len) == length) ) {
-             const size_t headerLength = ipHeader->ihl << 2;
-//              puts("IPv4");
-//              printf("T=%d   ihl=%d\n", ntohs(ipHeader->tot_len), (int)headerLength);
-             if( (headerLength + 8 <= length) &&
-                 (ipHeader->protocol == IPPROTO_ICMP) ) {
-//                  puts("ICMP!");
-                 ICMPHeader header((const char*)&IncomingPingMessageBuffer[headerLength], length - headerLength);
-//                  printf("T=%d\n", (int)header.type());
-                 if(header.type() == ICMPHeader::IPv4EchoRequest) {
-                    handlePing(header, length - headerLength - 8);
-                 }
-             }
-         }
+   if( (!error) && (length >= sizeof(iphdr)) ) {
+      // ====== Decode IPv4 packet ==========================================
+      // NOTE: raw socket for IPv4 delivers IPv4 header as well!
+      const iphdr* ipHeader = (const iphdr*)IncomingPingMessageBuffer;
+      if( (ipHeader->version == 4) &&
+          (ntohs(ipHeader->tot_len) == length) ) {
+          const size_t headerLength = ipHeader->ihl << 2;
+          // ====== Decode ICMP message =====================================
+          if( (headerLength + 8 <= length) &&
+              (ipHeader->protocol == IPPROTO_ICMP) ) {
+              ICMPHeader header((const char*)&IncomingPingMessageBuffer[headerLength],
+                                length - headerLength);
+              if(header.type() == ICMPHeader::IPv4EchoRequest) {
+                 handlePing(header, length - headerLength - 8);
+              }
+          }
       }
-
-//       ICMPHeader header(IncomingPingMessageBuffer, length);
-//       printf("T=%d\n", (int)header.type());
-//       if(header.type() == ICMPHeader::IPv4EchoRequest) {
-//          handlePing(header);
-//       }
    }
-   SnifferSocketV4.async_receive_from(boost::asio::buffer(IncomingPingMessageBuffer, sizeof(IncomingPingMessageBuffer)),
-                                      IncomingPingSource, receivedPingV4);
+   SnifferSocketV4.async_receive_from(
+      boost::asio::buffer(IncomingPingMessageBuffer, sizeof(IncomingPingMessageBuffer)),
+                          IncomingPingSource, receivedPingV4);
 }
 
 
 // ###### Decode raw ICMPv6 packet ##########################################
 static void receivedPingV6(const boost::system::error_code& error, size_t length)
 {
-   std::cout << "PINGv6? e=" << error << " l=" << length << std::endl;
    if( (!error) && (length >= 8) ) {
-      ICMPHeader header(IncomingPingMessageBuffer, length);
-      if(header.type() == ICMPHeader::IPv6EchoRequest) {
-//          handlePing(header);
+      // ====== Decode ICMPv6 message =======================================
+      // NOTE: raw socket for IPv6 just delivery the IPv6 payload!
+      if(length >= 8) {
+         ICMPHeader header((const char*)&IncomingPingMessageBuffer, length);
+         if(header.type() == ICMPHeader::IPv6EchoRequest) {
+            handlePing(header, length - 8);
+         }
       }
    }
-   SnifferSocketV6.async_receive_from(boost::asio::buffer(IncomingPingMessageBuffer, sizeof(IncomingPingMessageBuffer)),
-                                      IncomingPingSource, receivedPingV6);
+   SnifferSocketV6.async_receive_from(
+      boost::asio::buffer(IncomingPingMessageBuffer, sizeof(IncomingPingMessageBuffer)),
+                          IncomingPingSource, receivedPingV6);
 }
 
 
