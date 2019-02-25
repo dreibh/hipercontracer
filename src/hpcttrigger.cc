@@ -54,7 +54,6 @@
 struct TargetInfo
 {
    unsigned int TriggerCounter;
-   bool         IsQueued;
 };
 
 
@@ -62,7 +61,6 @@ static bool                                                 VerboseMode = true;
 static std::set<boost::asio::ip::address>                   SourceArray;
 static std::set<boost::asio::ip::address>                   DestinationArray;
 static std::map<boost::asio::ip::address, TargetInfo*>      TargetMap;
-static std::queue<boost::asio::ip::address>                 TargetQueue;
 static unsigned int                                         PingsBeforeQueuing = 3;
 static unsigned int                                         PingTriggerLength  = 53;
 static std::set<ResultsWriter*>                             ResultsWriterSet;
@@ -144,16 +142,14 @@ static void handlePing(const ICMPHeader& header, const size_t payloadLength)
          TargetInfo* targetInfo = found->second;
          targetInfo->TriggerCounter++;
          if(targetInfo->TriggerCounter >= PingsBeforeQueuing) {
-            TargetQueue.push(IncomingPingSource.address());
-            targetInfo->IsQueued       = true;
-            targetInfo->TriggerCounter = 0;
-
             for(std::set<Service*>::iterator serviceIterator = ServiceSet.begin(); serviceIterator != ServiceSet.end(); serviceIterator++) {
                Service* service = *serviceIterator;
                if(service->addDestination(IncomingPingSource.address())) {
                    if(VerboseMode) {
-                      std::cout << "Queued " << IncomingPingSource.address() << std::endl;
+                      std::cout << "Queued " << IncomingPingSource.address()
+                                << " from " << service->getSource() << std::endl;
                    }
+                   targetInfo->TriggerCounter = 0;
                }
             }
          }
@@ -168,7 +164,6 @@ static void handlePing(const ICMPHeader& header, const size_t payloadLength)
          TargetInfo* targetInfo = new TargetInfo;
          if(targetInfo != NULL) {
             targetInfo->TriggerCounter = 0;
-            targetInfo->IsQueued       = false;
             TargetMap.insert(std::pair<boost::asio::ip::address, TargetInfo*>(
                                 IncomingPingSource.address(), targetInfo));
          }
