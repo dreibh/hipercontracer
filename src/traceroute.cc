@@ -664,13 +664,14 @@ void Traceroute::handleTimeoutEvent(const boost::system::error_code& errorCode)
    }
 
    // ====== Has destination been reached with current TTL? =================
-   assert(DestinationAddressIterator != DestinationAddresses.end());
-   TTLCache[*DestinationAddressIterator] = LastHop;
-   if(LastHop == 0xffffffff) {
-      if(notReachedWithCurrentTTL()) {
-         // Try another round ...
-         sendRequests();
-         return;
+   if(DestinationAddressIterator != DestinationAddresses.end()) {
+      TTLCache[*DestinationAddressIterator] = LastHop;
+      if(LastHop == 0xffffffff) {
+         if(notReachedWithCurrentTTL()) {
+            // Try another round ...
+            sendRequests();
+            return;
+         }
       }
    }
 

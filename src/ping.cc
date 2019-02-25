@@ -48,7 +48,7 @@ Ping::Ping(ResultsWriter*                           resultsWriter,
            const unsigned long long                 interval,
            const unsigned int                       expiration,
            const unsigned int                       ttl)
-   : Traceroute(resultsWriter, iterations, removeDestinationAfterRun, verboseMode,
+   : Traceroute(resultsWriter, iterations, false, verboseMode,
                 sourceAddress, destinationAddressArray,
                 interval, expiration, ttl, ttl, ttl)
 {
@@ -169,14 +169,23 @@ void Ping::sendRequests()
 {
    std::lock_guard<std::recursive_mutex> lock(DestinationAddressMutex);
 
-   // All packets of this request block (for each destination) use the same checksum.
-   // The next block of requests may then use another checksum.
-   uint32_t targetChecksum = ~0U;
-   for(std::set<boost::asio::ip::address>::const_iterator destinationIterator = DestinationAddresses.begin();
-       destinationIterator != DestinationAddresses.end(); destinationIterator++) {
-      const boost::asio::ip::address& destinationAddress = *destinationIterator;
-      sendICMPRequest(destinationAddress, FinalMaxTTL, 0, targetChecksum);
+   // ====== Send requests, if there are destination addresses ==============
+   if(DestinationAddresses.begin() != DestinationAddresses.end()) {
+      // All packets of this request block (for each destination) use the same checksum.
+      // The next block of requests may then use another checksum.
+      uint32_t targetChecksum = ~0U;
+      for(std::set<boost::asio::ip::address>::const_iterator destinationIterator = DestinationAddresses.begin();
+          destinationIterator != DestinationAddresses.end(); destinationIterator++) {
+         const boost::asio::ip::address& destinationAddress = *destinationIterator;
+         sendICMPRequest(destinationAddress, FinalMaxTTL, 0, targetChecksum);
+      }
+
+      scheduleTimeoutEvent();
    }
 
-   scheduleTimeoutEvent();
+   // ====== No destination addresses -> wait ===============================
+   else {
+      puts("EMPTY!");
+      scheduleIntervalEvent();
+   }
 }
