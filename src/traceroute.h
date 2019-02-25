@@ -133,17 +133,17 @@ class ResultEntry {
 class Traceroute : virtual public Service
 {
    public:
-   Traceroute(ResultsWriter*                           resultsWriter,
-              const unsigned int                       iterations,
-              const bool                               verboseMode,
-              const boost::asio::ip::address&          sourceAddress,
-              const std::set<boost::asio::ip::address> destinationAddressArray,
-              const unsigned long long                 interval        = 30*60000ULL,
-              const unsigned int                       expiration      = 3000,
-              const unsigned int                       rounds          = 1,
-              const unsigned int                       initialMaxTTL   = 5,
-              const unsigned int                       finalMaxTTL     = 35,
-              const unsigned int                       incrementMaxTTL = 2);
+   Traceroute(ResultsWriter*                            resultsWriter,
+              const unsigned int                        iterations,
+              const bool                                verboseMode,
+              const boost::asio::ip::address&           sourceAddress,
+              const std::set<boost::asio::ip::address>& destinationAddressArray,
+              const unsigned long long                  interval        = 30*60000ULL,
+              const unsigned int                        expiration      = 3000,
+              const unsigned int                        rounds          = 1,
+              const unsigned int                        initialMaxTTL   = 5,
+              const unsigned int                        finalMaxTTL     = 35,
+              const unsigned int                        incrementMaxTTL = 2);
    virtual ~Traceroute();
 
    virtual bool start();

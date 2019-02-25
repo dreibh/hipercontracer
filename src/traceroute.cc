@@ -84,17 +84,17 @@ std::ostream& operator<<(std::ostream& os, const ResultEntry& resultEntry)
 
 
 // ###### Constructor #######################################################
-Traceroute::Traceroute(ResultsWriter*                           resultsWriter,
-                       const unsigned int                       iterations,
-                       const bool                               verboseMode,
-                       const boost::asio::ip::address&          sourceAddress,
-                       const std::set<boost::asio::ip::address> destinationAddressArray,
-                       const unsigned long long                 interval,
-                       const unsigned int                       expiration,
-                       const unsigned int                       rounds,
-                       const unsigned int                       initialMaxTTL,
-                       const unsigned int                       finalMaxTTL,
-                       const unsigned int                       incrementMaxTTL)
+Traceroute::Traceroute(ResultsWriter*                            resultsWriter,
+                       const unsigned int                        iterations,
+                       const bool                                verboseMode,
+                       const boost::asio::ip::address&           sourceAddress,
+                       const std::set<boost::asio::ip::address>& destinationAddressArray,
+                       const unsigned long long                  interval,
+                       const unsigned int                        expiration,
+                       const unsigned int                        rounds,
+                       const unsigned int                        initialMaxTTL,
+                       const unsigned int                        finalMaxTTL,
+                       const unsigned int                        incrementMaxTTL)
    : ResultsOutput(resultsWriter),
      Iterations(iterations),
      VerboseMode(verboseMode),
