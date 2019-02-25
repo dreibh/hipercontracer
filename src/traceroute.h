@@ -35,6 +35,7 @@
 #include "service.h"
 #include "resultswriter.h"
 
+#include <mutex>
 #include <set>
 
 #include <boost/asio.hpp>
@@ -194,7 +195,8 @@ class Traceroute : virtual public Service
    const unsigned int                               IncrementMaxTTL;
    boost::asio::io_service                          IOService;
    boost::asio::ip::address                         SourceAddress;
-   std::set<boost::asio::ip::address>               DestinationAddressArray;
+   std::recursive_mutex                             DestinationAddressMutex;
+   std::set<boost::asio::ip::address>               DestinationAddresses;
    std::set<boost::asio::ip::address>::iterator     DestinationAddressIterator;
    boost::asio::ip::icmp::socket                    ICMPSocket;
    boost::asio::deadline_timer                      TimeoutTimer;

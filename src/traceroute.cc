@@ -125,14 +125,15 @@ Traceroute::Traceroute(ResultsWriter*                            resultsWriter,
    assert(TargetChecksumArray != NULL);
 
    // ====== Prepare destination endpoints ==================================
+   std::lock_guard<std::recursive_mutex> lock(DestinationAddressMutex);
    for(std::set<boost::asio::ip::address>::const_iterator destinationIterator = destinationAddressArray.begin();
        destinationIterator != destinationAddressArray.end(); destinationIterator++) {
       const boost::asio::ip::address& destinationAddress = *destinationIterator;
       if(destinationAddress.is_v6() == sourceAddress.is_v6()) {
-         DestinationAddressArray.insert(destinationAddress);
+         DestinationAddresses.insert(destinationAddress);
       }
    }
-   DestinationAddressIterator = DestinationAddressArray.end();
+   DestinationAddressIterator = DestinationAddresses.end();
 }
 
 
@@ -210,18 +211,20 @@ bool Traceroute::prepareSocket()
 // ###### Prepare a new run #################################################
 bool Traceroute::prepareRun(const bool newRound)
 {
+   std::lock_guard<std::recursive_mutex> lock(DestinationAddressMutex);
+
    if(newRound) {
       IterationNumber++;
 
       // ====== Rewind ======================================================
-      DestinationAddressIterator = DestinationAddressArray.begin();
+      DestinationAddressIterator = DestinationAddresses.begin();
       for(unsigned int i = 0; i < Rounds; i++) {
          TargetChecksumArray[i] = ~0U;   // Use a new target checksum!
       }
    }
    else {
       // ====== Get next destination address ===================================
-      if(DestinationAddressIterator != DestinationAddressArray.end()) {
+      if(DestinationAddressIterator != DestinationAddresses.end()) {
          DestinationAddressIterator++;
       }
    }
@@ -229,20 +232,22 @@ bool Traceroute::prepareRun(const bool newRound)
    // ====== Clear results ==================================================
    ResultsMap.clear();
    MinTTL              = 1;
-   MaxTTL              = (DestinationAddressIterator != DestinationAddressArray.end()) ? getInitialMaxTTL(*DestinationAddressIterator) : InitialMaxTTL;
+   MaxTTL              = (DestinationAddressIterator != DestinationAddresses.end()) ? getInitialMaxTTL(*DestinationAddressIterator) : InitialMaxTTL;
    LastHop             = 0xffffffff;
    OutstandingRequests = 0;
    RunStartTimeStamp   = boost::posix_time::microsec_clock::universal_time();
 
    // Return whether end of the list is reached. Then, a rewind is necessary.
-   return(DestinationAddressIterator == DestinationAddressArray.end());
+   return(DestinationAddressIterator == DestinationAddresses.end());
 }
 
 
 // ###### Send requests to all destinations #################################
 void Traceroute::sendRequests()
 {
-   if(DestinationAddressIterator != DestinationAddressArray.end()) {
+   std::lock_guard<std::recursive_mutex> lock(DestinationAddressMutex);
+
+   if(DestinationAddressIterator != DestinationAddresses.end()) {
       const boost::asio::ip::address& destinationAddress = *DestinationAddressIterator;
 
       if(VerboseMode) {
@@ -446,6 +451,8 @@ void Traceroute::run()
 // ###### The destination has not been reached with the current TTL #########
 bool Traceroute::notReachedWithCurrentTTL()
 {
+   std::lock_guard<std::recursive_mutex> lock(DestinationAddressMutex);
+
    if(MaxTTL < FinalMaxTTL) {
       MinTTL = MaxTTL + 1;
       MaxTTL = std::min(MaxTTL + IncrementMaxTTL, FinalMaxTTL);
@@ -599,6 +606,8 @@ void Traceroute::processResults()
 // ###### Handle timer event ################################################
 void Traceroute::handleTimeoutEvent(const boost::system::error_code& errorCode)
 {
+    std::lock_guard<std::recursive_mutex> lock(DestinationAddressMutex);
+
    // ====== Stop requested? ================================================
    if(StopRequested) {
       IOService.stop();
