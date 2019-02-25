@@ -32,11 +32,13 @@
 #ifndef RESULTSWRITER_H
 #define RESULTSWRITER_H
 
+#include <set>
 #include <string>
 #include <fstream>
 
-#include <boost/filesystem.hpp>
+#include <boost/asio/ip/address.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
+#include <boost/filesystem.hpp>
 #include <boost/iostreams/filtering_stream.hpp>
 
 
@@ -55,6 +57,14 @@ class ResultsWriter
    bool changeFile(const bool createNewFile = true);
    bool mayStartNewTransaction();
    void insert(const std::string& tuple);
+
+   static ResultsWriter* makeResultsWriter(std::set<ResultsWriter*>&       resultsWriterSet,
+                                           const boost::asio::ip::address& sourceAddress,
+                                           const std::string&              resultsFormat,
+                                           const std::string&              resultsDirectory,
+                                           const unsigned int              resultsTransactionLength,
+                                           const uid_t                     uid,
+                                           const gid_t                     gid);
 
    protected:
    const boost::filesystem::path       Directory;

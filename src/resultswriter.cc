@@ -153,3 +153,30 @@ void ResultsWriter::insert(const std::string& tuple)
    OutputStream << tuple << std::endl;
    Inserts++;
 }
+
+
+// ###### Prepare results writer ############################################
+ResultsWriter* ResultsWriter::makeResultsWriter(std::set<ResultsWriter*>&       resultsWriterSet,
+                                                const boost::asio::ip::address& sourceAddress,
+                                                const std::string&              resultsFormat,
+                                                const std::string&              resultsDirectory,
+                                                const unsigned int              resultsTransactionLength,
+                                                const uid_t                     uid,
+                                                const gid_t                     gid)
+{
+   ResultsWriter* resultsWriter = NULL;
+   if(!resultsDirectory.empty()) {
+      std::string uniqueID =
+         resultsFormat + "-" +
+         sourceAddress.to_string() + "-" +
+         boost::posix_time::to_iso_string(boost::posix_time::microsec_clock::universal_time());
+      replace(uniqueID.begin(), uniqueID.end(), ' ', '-');
+      resultsWriter = new ResultsWriter(resultsDirectory, uniqueID, resultsFormat, resultsTransactionLength,
+                                        uid, gid);
+      if(resultsWriter->prepare() == false) {
+         ::exit(1);
+      }
+      resultsWriterSet.insert(resultsWriter);
+   }
+   return(resultsWriter);
+}
