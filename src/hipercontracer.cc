@@ -266,7 +266,7 @@ int main(int argc, char** argv)
                                            ResultsWriterSet,
                                            *sourceIterator, "Ping", resultsDirectory, resultsTransactionLength,
                                            (pw != NULL) ? pw->pw_uid : 0, (pw != NULL) ? pw->pw_gid : 0),
-                                        iterations, verboseMode,
+                                        iterations, false, verboseMode,
                                         *sourceIterator, DestinationArray,
                                         pingInterval, pingExpiration, pingTTL);
             if(service->start() == false) {
@@ -285,7 +285,7 @@ int main(int argc, char** argv)
                                                  ResultsWriterSet,
                                                  *sourceIterator, "Traceroute", resultsDirectory, resultsTransactionLength,
                                                  (pw != NULL) ? pw->pw_uid : 0, (pw != NULL) ? pw->pw_gid : 0),
-                                              iterations, verboseMode,
+                                              iterations, false, verboseMode,
                                               *sourceIterator, DestinationArray,
                                               tracerouteInterval, tracerouteExpiration,
                                               tracerouteRounds,

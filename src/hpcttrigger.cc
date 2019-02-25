@@ -140,12 +140,17 @@ static void handlePing(const ICMPHeader& header, const size_t payloadLength)
       if(found != TargetMap.end()) {
          TargetInfo* targetInfo = found->second;
          targetInfo->TriggerCounter++;
-         if( (!targetInfo->IsQueued) &&
-             (targetInfo->TriggerCounter >= PingsBeforeQueuing) ) {
+         if(targetInfo->TriggerCounter >= PingsBeforeQueuing) {
             TargetQueue.push(IncomingPingSource.address());
             targetInfo->IsQueued       = true;
             targetInfo->TriggerCounter = 0;
-            std::cout << "Queued!" << std::endl;
+
+            for(std::set<Service*>::iterator serviceIterator = ServiceSet.begin(); serviceIterator != ServiceSet.end(); serviceIterator++) {
+               Service* service = *serviceIterator;
+               if(service->addDestination(IncomingPingSource.address())) {
+                   std::cout << "Queued!" << std::endl;
+               }
+            }
          }
          else {
             std::cout << "Triggered: " <<  targetInfo->TriggerCounter << std::endl;
@@ -369,7 +374,7 @@ int main(int argc, char** argv)
                                            ResultsWriterSet,
                                            *sourceIterator, "Ping", resultsDirectory, resultsTransactionLength,
                                            (pw != NULL) ? pw->pw_uid : 0, (pw != NULL) ? pw->pw_gid : 0),
-                                        0, verboseMode,
+                                        0, true, verboseMode,
                                         *sourceIterator, DestinationArray,
                                         pingInterval, pingExpiration, pingTTL);
             if(service->start() == false) {
@@ -388,7 +393,7 @@ int main(int argc, char** argv)
                                                  ResultsWriterSet,
                                                  *sourceIterator, "Traceroute", resultsDirectory, resultsTransactionLength,
                                                  (pw != NULL) ? pw->pw_uid : 0, (pw != NULL) ? pw->pw_gid : 0),
-                                              0, verboseMode,
+                                              0, true, verboseMode,
                                               *sourceIterator, DestinationArray,
                                               tracerouteInterval, tracerouteExpiration,
                                               tracerouteRounds,

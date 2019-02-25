@@ -86,6 +86,7 @@ std::ostream& operator<<(std::ostream& os, const ResultEntry& resultEntry)
 // ###### Constructor #######################################################
 Traceroute::Traceroute(ResultsWriter*                            resultsWriter,
                        const unsigned int                        iterations,
+                       const bool                                removeDestinationAfterRun,
                        const bool                                verboseMode,
                        const boost::asio::ip::address&           sourceAddress,
                        const std::set<boost::asio::ip::address>& destinationAddressArray,
@@ -97,6 +98,7 @@ Traceroute::Traceroute(ResultsWriter*                            resultsWriter,
                        const unsigned int                        incrementMaxTTL)
    : ResultsOutput(resultsWriter),
      Iterations(iterations),
+     RemoveDestinationAfterRun(removeDestinationAfterRun),
      VerboseMode(verboseMode),
      Interval(interval),
      Expiration(expiration),
@@ -128,10 +130,7 @@ Traceroute::Traceroute(ResultsWriter*                            resultsWriter,
    std::lock_guard<std::recursive_mutex> lock(DestinationAddressMutex);
    for(std::set<boost::asio::ip::address>::const_iterator destinationIterator = destinationAddressArray.begin();
        destinationIterator != destinationAddressArray.end(); destinationIterator++) {
-      const boost::asio::ip::address& destinationAddress = *destinationIterator;
-      if(destinationAddress.is_v6() == sourceAddress.is_v6()) {
-         DestinationAddresses.insert(destinationAddress);
-      }
+      addDestination(*destinationIterator);
    }
    DestinationAddressIterator = DestinationAddresses.end();
 }
@@ -140,14 +139,17 @@ Traceroute::Traceroute(ResultsWriter*                            resultsWriter,
 // ###### Add destination address ###########################################
 bool Traceroute::addDestination(const boost::asio::ip::address& destinationAddress)
 {
-   std::lock_guard<std::recursive_mutex> lock(DestinationAddressMutex);
-
-   const std::set<boost::asio::ip::address>::const_iterator destinationIterator = DestinationAddresses.find(destinationAddress);
-   if(destinationIterator != DestinationAddresses.end()) {
-      return false;   // Already there -> nothing to do.
+   if(destinationAddress.is_v6() == SourceAddress.is_v6()) {
+      std::lock_guard<std::recursive_mutex> lock(DestinationAddressMutex);
+      const std::set<boost::asio::ip::address>::const_iterator destinationIterator =
+         DestinationAddresses.find(destinationAddress);
+      if(destinationIterator == DestinationAddresses.end()) {
+         DestinationAddresses.insert(destinationAddress);
+         return true;
+      }
+      // Already there -> nothing to do.
    }
-   DestinationAddresses.insert(destinationAddress);
-   return true;
+   return false;
 }
 
 
@@ -239,14 +241,25 @@ bool Traceroute::prepareRun(const bool newRound)
    else {
       // ====== Get next destination address ===================================
       if(DestinationAddressIterator != DestinationAddresses.end()) {
-         DestinationAddressIterator++;
+         if(RemoveDestinationAfterRun == false) {
+            DestinationAddressIterator++;
+         }
+         else {
+            std::set<boost::asio::ip::address>::iterator toBeDeleted = DestinationAddressIterator;
+            DestinationAddressIterator++;
+            if(VerboseMode) {
+               std::cout << "Removing " << *toBeDeleted << std::endl;
+            }
+            DestinationAddresses.erase(toBeDeleted);
+         }
       }
    }
 
    // ====== Clear results ==================================================
    ResultsMap.clear();
    MinTTL              = 1;
-   MaxTTL              = (DestinationAddressIterator != DestinationAddresses.end()) ? getInitialMaxTTL(*DestinationAddressIterator) : InitialMaxTTL;
+   MaxTTL              = (DestinationAddressIterator != DestinationAddresses.end()) ?
+                            getInitialMaxTTL(*DestinationAddressIterator) : InitialMaxTTL;
    LastHop             = 0xffffffff;
    OutstandingRequests = 0;
    RunStartTimeStamp   = boost::posix_time::microsec_clock::universal_time();

@@ -39,6 +39,7 @@ class Ping : public Traceroute
    public:
    Ping(ResultsWriter*                           resultsWriter,
         const unsigned int                       iterations,
+        const bool                               removeDestinationAfterRun,
         const bool                               verboseMode,
         const boost::asio::ip::address&          sourceAddress,
         const std::set<boost::asio::ip::address> destinationAddressArray,

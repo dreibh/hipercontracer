@@ -79,6 +79,7 @@ enum HopStatus {
    Flag_DestinationReached = (1 << 9)   // Destination has responded
 };
 
+
 // ###### Is destination not reachable? #####################################
 inline bool statusIsUnreachable(const HopStatus hopStatus)
 {
@@ -136,6 +137,7 @@ class Traceroute : virtual public Service
    public:
    Traceroute(ResultsWriter*                            resultsWriter,
               const unsigned int                        iterations,
+              const bool                                removeDestinationAfterRun,
               const bool                                verboseMode,
               const boost::asio::ip::address&           sourceAddress,
               const std::set<boost::asio::ip::address>& destinationAddressArray,
@@ -147,12 +149,12 @@ class Traceroute : virtual public Service
               const unsigned int                        incrementMaxTTL = 2);
    virtual ~Traceroute();
 
+   virtual bool addDestination(const boost::asio::ip::address& destinationAddress);
    virtual bool start();
    virtual void requestStop();
    virtual bool joinable();
    virtual void join();
 
-   bool addDestination(const boost::asio::ip::address& destinationAddress);
    inline bool isIPv6() const {
       return(SourceAddress.is_v6());
    }
@@ -187,6 +189,7 @@ class Traceroute : virtual public Service
 
    ResultsWriter*                                   ResultsOutput;
    const unsigned int                               Iterations;
+   const bool                                       RemoveDestinationAfterRun;
    const bool                                       VerboseMode;
    const unsigned long long                         Interval;
    const unsigned int                               Expiration;

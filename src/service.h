@@ -32,12 +32,14 @@
 #ifndef SERVICE_H
 #define SERVICE_H
 
+#include <boost/asio/ip/address.hpp>
 #include <boost/system/error_code.hpp>
 
 class Service
 {
    public:
    virtual ~Service() {};
+   virtual bool addDestination(const boost::asio::ip::address& destinationAddress) = 0;
    virtual bool start() = 0;
    virtual void requestStop() = 0;
    virtual bool joinable() = 0;
