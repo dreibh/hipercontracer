@@ -1,0 +1,84 @@
+.\" High-Performance Connectivity Tracer (HiPerConTracer)
+.\" Copyright (C) 2015-2019 by Thomas Dreibholz
+.\"
+.\" This program is free software: you can redistribute it and/or modify
+.\" it under the terms of the GNU General Public License as published by
+.\" the Free Software Foundation, either version 3 of the License, or
+.\" (at your option) any later version.
+.\"
+.\" This program is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\" GNU General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU General Public License
+.\" along with this program.  If not, see <http://www.gnu.org/licenses/>.
+.\"
+.\" Contact: dreibh@iem.uni-due.de
+.\"
+.\" ###### Setup ############################################################
+.Dd February 26, 2019
+.Dt hpcttrigger 1
+.Os hpcttrigger
+.\" ###### Name #############################################################
+.Sh NAME
+.Nm hpcttrigger
+.Nd High-Performance Connectivity Tracer (HiPerConTracer) Trigger Tool
+.\" ###### Synopsis #########################################################
+.Sh SYNOPSIS
+.Nm hpcttrigger
+.Op \-ping
+.Op \-traceroute
+.Op \-quiet
+.Op \-verbose
+.Op \-user=user|uid
+.Op \-source=address
+.Op \-tracerouteinterval=milliseconds
+.Op \-tracerouteduration=milliseconds
+.Op \-tracerouterounds=rounds
+.Op \-tracerouteinitialmaxttl=value
+.Op \-traceroutefinalmaxttl=value
+.Op \-tracerouteincrementmaxttl=value
+.Op \-pinginterval=milliseconds
+.Op \-pingexpiration=milliseconds
+.Op \-pingttl=value
+.Op \-resultsdirectory=directory
+.Op \-resultstransactionlength=seconds
+.Op \-pingsbeforequeuing=count
+.Op \-pingtriggerlength=payload_length
+.\" ###### Description ######################################################
+.Sh DESCRIPTION
+.Nm hpcttrigger
+is a tool to trigger HiPerConTracer runs, based on observed incoming "Ping"
+packets. Once the given number of such packets with a given size has been
+observed from a source, a Ping or Traceroute is triggered to the corresponding
+address.
+.Pp
+.\" ###### Arguments ########################################################
+.Sh ARGUMENTS
+The following arguments may be provided:
+.Bl -tag -width indent
+.It \-pingsbeforequeuing=count
+Sets the number of observed "Ping" packets before triggering HiPerConTracer
+(default: 3).
+.It \-pingtriggerlength=payload_length
+Sets the "Ping" payload length to trigger HiPerConTracer (default: 53).
+.El
+
+See the manual page of HiPerConTracer for the other arguments and the output
+format.
+.\" ###### Arguments ########################################################
+.Sh EXAMPLES
+.Bl -tag -width indent
+.It hpcttrigger \-source=10.1.1.51 \-traceroute \-verbose \-pingsbeforequeuing=2 \-pingtriggerlength=88
+.It hpcttrigger \-source=10.1.1.51 \-ping \-verbose
+.It hpcttrigger \-source=10.1.1.51 \-traceroute \-resultsdirectory=/tmp/results \-resultstransactionlength=60
+.El
+.\" ###### Authors ##########################################################
+.Sh AUTHORS
+Thomas Dreibholz
+.br
+https://www.uni-due.de/~be0001/hipercontracer
+.br
+mailto://dreibh@iem.uni-due.de
+.br

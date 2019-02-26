@@ -75,7 +75,7 @@ INSTALL(FILES hipercontracer.1 DESTINATION ${CMAKE_INSTALL_MANDIR}/man1)
 ADD_EXECUTABLE(hpcttrigger hpcttrigger.cc)
 TARGET_LINK_LIBRARIES(hpcttrigger libhipercontracer-shared ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
 INSTALL(TARGETS hpcttrigger RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
-# INSTALL(FILES hpcttrigger.1 DESTINATION ${CMAKE_INSTALL_MANDIR}/man1)
+INSTALL(FILES hpcttrigger.1 DESTINATION ${CMAKE_INSTALL_MANDIR}/man1)
 
 INSTALL(FILES tracedataimporter addressinfogenerator
         DESTINATION ${CMAKE_INSTALL_BINDIR})
@@ -84,8 +84,8 @@ INSTALL(FILES tracedataimporter.1 addressinfogenerator.1
 
 
 # Test only:
-ADD_EXECUTABLE(t1 t1.cc)
-ADD_EXECUTABLE(t2 t2.cc)
+# ADD_EXECUTABLE(t1 t1.cc)
+# ADD_EXECUTABLE(t2 t2.cc)
 
 
 #############################################################################
