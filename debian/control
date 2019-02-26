@@ -52,7 +52,8 @@ Architecture: any
 Depends: libhipercontracer1 (= ${binary:Version}),
          ${misc:Depends},
          ${shlibs:Depends}
-Recommends: python3,
+Recommends: hipercontracer-trigger,
+            python3,
             python3-geoip,
             python3-psycopg2,
             python3-pymongo,
@@ -61,3 +62,20 @@ Description: HiPerConTracer command-line programs
  High-Performance Connectivity Tracer (HiPerConTracer) is a
  ping/traceroute service. It performs regular ping and traceroute runs
  among sites and can export the results into an SQL or Non-SQL database.
+
+Package: hipercontracer-trigger
+Architecture: any
+Depends: hipercontracer (= ${binary:Version}),
+         libhipercontracer1 (= ${binary:Version}),
+         ${misc:Depends},
+         ${shlibs:Depends}
+Recommends: python3,
+            python3-geoip,
+            python3-psycopg2,
+            python3-pymongo,
+            python3-urllib3
+Description: HiPerConTracer trigger tool
+ High-Performance Connectivity Tracer (HiPerConTracer) is a
+ ping/traceroute service. It performs regular ping and traceroute runs
+ among sites and can export the results into an SQL or Non-SQL database.
+ This tool triggers HiPerConTracer by incoming "Ping" packets.
