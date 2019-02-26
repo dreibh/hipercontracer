@@ -32,10 +32,14 @@
 #ifndef TOOLS_H
 #define TOOLS_H
 
+#include <pwd.h>
+
 #include <boost/date_time/posix_time/posix_time.hpp>
 
 
 uint64_t usSinceEpoch(const boost::posix_time::ptime& time);
+passwd* getUser(const char* user);
+bool reducePermissions(const passwd* pw, const bool verboseMode);
 
 
 #endif

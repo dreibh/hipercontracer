@@ -39,3 +39,48 @@ uint64_t usSinceEpoch(const boost::posix_time::ptime& time)
    const boost::posix_time::time_duration duration = time - epoch;
    return duration.total_microseconds();
 }
+
+
+// ###### Reduce permissions of process #####################################
+passwd* getUser(const char* user)
+{
+   passwd* pw = NULL;
+   if(user != NULL) {
+      pw = getpwnam(user);
+      if(pw == NULL) {
+         pw = getpwuid(atoi(user));
+         if(pw == NULL) {
+            std::cerr << "ERROR: Provided user " << user << " is not a user name or UID!" << std::endl;
+            ::exit(1);
+         }
+      }
+   }
+   return pw;
+}
+
+
+// ###### Reduce permissions of process #####################################
+bool reducePermissions(const passwd* pw, const bool verboseMode)
+{
+   // ====== Reduce permissions =============================================
+   if((pw != NULL) && (pw->pw_uid != 0)) {
+      if(verboseMode) {
+         std::cerr << "NOTE: Using UID " << pw->pw_uid
+                   << ", GID " << pw->pw_gid << std::endl;
+      }
+      if(setgid(pw->pw_gid) != 0) {
+         std::cerr << "ERROR: setgid(" << pw->pw_gid << ") failed: " << strerror(errno) << std::endl;
+         ::exit(1);
+      }
+      if(setuid(pw->pw_uid) != 0) {
+         std::cerr << "ERROR: setuid(" << pw->pw_uid << ") failed: " << strerror(errno) << std::endl;
+         ::exit(1);
+      }
+   }
+   else {
+      std::cerr << "NOTE: Working as root (uid 0). This is not recommended!" << std::endl;
+      return false;
+   }
+
+   return true;
+}

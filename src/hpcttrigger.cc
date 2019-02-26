@@ -33,17 +33,9 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
-#include <pwd.h>
-
 #include <netinet/in.h>
-#include <netinet/ip6.h>
 
-#include <set>
-#include <queue>
-#include <algorithm>
-
-#include <boost/asio/basic_signal_set.hpp>
-
+#include "tools.h"
 #include "resultswriter.h"
 #include "service.h"
 #include "traceroute.h"
@@ -53,16 +45,13 @@
 
 struct TargetInfo
 {
-   unsigned int TriggerCounter;
+   boost::posix_time::ptime LastSeen;
+   unsigned int             TriggerCounter;
 };
 
-
-static bool                                                 VerboseMode = true;
 static std::set<boost::asio::ip::address>                   SourceArray;
 static std::set<boost::asio::ip::address>                   DestinationArray;
 static std::map<boost::asio::ip::address, TargetInfo*>      TargetMap;
-static unsigned int                                         PingsBeforeQueuing = 3;
-static unsigned int                                         PingTriggerLength  = 53;
 static std::set<ResultsWriter*>                             ResultsWriterSet;
 static std::set<Service*>                                   ServiceSet;
 static boost::asio::io_service                              IOService;
@@ -71,8 +60,12 @@ static boost::asio::basic_raw_socket<boost::asio::ip::icmp> SnifferSocketV6(IOSe
 static boost::asio::ip::icmp::endpoint                      IncomingPingSource;
 static char                                                 IncomingPingMessageBuffer[4096];
 static boost::asio::signal_set                              Signals(IOService, SIGINT, SIGTERM);
-static boost::posix_time::milliseconds                      CleanupTimerInterval(250);
+static boost::posix_time::milliseconds                      CleanupTimerInterval(1000);
 static boost::asio::deadline_timer                          CleanupTimer(IOService, CleanupTimerInterval);
+
+static bool                                                 VerboseMode        = true;
+static unsigned int                                         PingsBeforeQueuing = 3;
+static unsigned int                                         PingTriggerLength  = 53;
 
 
 // ###### Add address to set ################################################
@@ -118,6 +111,18 @@ static void tryCleanup(const boost::system::error_code& errorCode)
    if(!finished) {
       CleanupTimer.expires_at(CleanupTimer.expires_at() + CleanupTimerInterval);
       CleanupTimer.async_wait(tryCleanup);
+
+      const boost::posix_time::ptime now = boost::posix_time::microsec_clock::universal_time();
+      std::map<boost::asio::ip::address, TargetInfo*>::iterator iterator = TargetMap.begin();
+      while(iterator != TargetMap.end()) {
+         std::map<boost::asio::ip::address, TargetInfo*>::iterator current = iterator;
+         iterator++;
+         TargetInfo* targetInfo = current->second;
+         if(now - targetInfo->LastSeen >= boost::posix_time::seconds(30)) {
+            TargetMap.erase(current);
+            delete targetInfo;
+         }
+      }
    }
    else {
       SnifferSocketV4.cancel();
@@ -141,6 +146,7 @@ static void handlePing(const ICMPHeader& header, const size_t payloadLength)
       if(found != TargetMap.end()) {
          TargetInfo* targetInfo = found->second;
          targetInfo->TriggerCounter++;
+         targetInfo->LastSeen = boost::posix_time::microsec_clock::universal_time();
          if(targetInfo->TriggerCounter >= PingsBeforeQueuing) {
             for(std::set<Service*>::iterator serviceIterator = ServiceSet.begin(); serviceIterator != ServiceSet.end(); serviceIterator++) {
                Service* service = *serviceIterator;
@@ -164,6 +170,7 @@ static void handlePing(const ICMPHeader& header, const size_t payloadLength)
          TargetInfo* targetInfo = new TargetInfo;
          if(targetInfo != NULL) {
             targetInfo->TriggerCounter = 0;
+            targetInfo->LastSeen       = boost::posix_time::microsec_clock::universal_time();
             TargetMap.insert(std::pair<boost::asio::ip::address, TargetInfo*>(
                                 IncomingPingSource.address(), targetInfo));
          }
@@ -228,7 +235,6 @@ int main(int argc, char** argv)
 {
    // ====== Initialize =====================================================
    const char*        user                      = NULL;
-   passwd*            pw                        = NULL;
    bool               servicePing               = false;
    bool               serviceTraceroute         = false;
 
@@ -328,16 +334,7 @@ int main(int argc, char** argv)
       std::cerr << "ERROR: Enable at least on service (Ping or Traceroute)!" << std::endl;
       return(1);
    }
-   if(user != NULL) {
-      pw = getpwnam(user);
-      if(pw == NULL) {
-         pw = getpwuid(atoi(user));
-         if(pw == NULL) {
-            std::cerr << "ERROR: Provided user " << user << " is not a user name or UID!" << std::endl;
-            return(1);
-         }
-      }
-   }
+   const passwd* pw = getUser(user);
 
    std::srand(std::time(0));
    tracerouteInterval        = std::min(std::max(1000ULL, tracerouteInterval),   3600U*60000ULL);
@@ -428,23 +425,7 @@ int main(int argc, char** argv)
 
 
    // ====== Reduce permissions =============================================
-   if((pw != NULL) && (pw->pw_uid != 0)) {
-      if(VerboseMode) {
-         std::cerr << "NOTE: Using UID " << pw->pw_uid
-                   << ", GID " << pw->pw_gid << std::endl;
-      }
-      if(setgid(pw->pw_gid) != 0) {
-         std::cerr << "ERROR: setgid(" << pw->pw_gid << ") failed: " << strerror(errno) << std::endl;
-         ::exit(1);
-      }
-      if(setuid(pw->pw_uid) != 0) {
-         std::cerr << "ERROR: setuid(" << pw->pw_uid << ") failed: " << strerror(errno) << std::endl;
-         ::exit(1);
-      }
-   }
-   else {
-      std::cerr << "NOTE: Working as root (uid 0). This is not recommended!" << std::endl;
-   }
+   reducePermissions(pw, VerboseMode);
 
 
    // ====== Wait for termination signal ====================================
@@ -461,6 +442,12 @@ int main(int argc, char** argv)
    }
    for(std::set<ResultsWriter*>::iterator resultsWriterIterator = ResultsWriterSet.begin(); resultsWriterIterator != ResultsWriterSet.end(); resultsWriterIterator++) {
       delete *resultsWriterIterator;
+   }
+   std::map<boost::asio::ip::address, TargetInfo*>::iterator iterator = TargetMap.begin();
+   while(iterator != TargetMap.end()) {
+      delete iterator->second;
+      TargetMap.erase(iterator);
+      iterator = TargetMap.begin();
    }
 
    return(0);
