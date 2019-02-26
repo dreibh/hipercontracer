@@ -302,6 +302,12 @@ int main(int argc, char** argv)
       else if(strncmp(argv[i], "-resultstransactionlength=", 26) == 0) {
          resultsTransactionLength = atol((const char*)&argv[i][26]);
       }
+      else if(strncmp(argv[i], "-pingsbeforequeuing=", 20) == 0) {
+         PingsBeforeQueuing = atol((const char*)&argv[i][20]);
+      }
+      else if(strncmp(argv[i], "-pingtriggerlength=", 19) == 0) {
+         PingTriggerLength = atol((const char*)&argv[i][19]);
+      }
       else if(strcmp(argv[i], "--") == 0) {
       }
       else {
