@@ -2,7 +2,7 @@
 
 make -j8 && \
 sudo ./hipercontracer \
-   -source=158.36.99.232 \
+   -source=158.36.79.183 \
    -destination=8.8.8.8 \
    -destination=132.252.150.154 \
    -destination=2.2.2.2 \
