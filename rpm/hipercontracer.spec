@@ -97,6 +97,23 @@ to integrate HiPerConTracer into own programs.
 /usr/lib*/libhipercontracer.a
 
 
+%package hipercontracer-trigger
+Summary: HiPerConTracer trigger tool
+Group: Applications/Internet
+Requires: %{name} = %{version}-%{release}
+Requires: %{name}-libhipercontracer = %{version}-%{release}
+
+%description hipercontracer-trigger
+High-Performance Connectivity Tracer (HiPerConTracer) is a
+ping/traceroute service. It performs regular ping and traceroute runs
+among sites and can export the results into an SQL or Non-SQL database.
+This tool triggers HiPerConTracer by incoming "Ping" packets.
+
+%files hipercontracer-trigger
+/usr/bin/hpcttrigger
+%{_datadir}/man/man1/hpcttrigger.1.gz
+
+
 %changelog
 * Tue Feb 28 2017 Thomas Dreibholz <dreibh@iem.uni-due.de> - 1.1.0
 - Created RPM package.
