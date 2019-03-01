@@ -193,7 +193,8 @@ bool Traceroute::start()
 void Traceroute::requestStop() {
    StopRequested = true;
    IntervalTimer.get_io_service().post(boost::bind(&Traceroute::cancelIntervalTimer, this));
-   IntervalTimer.get_io_service().post(boost::bind(&Traceroute::cancelTimeoutTimer, this));
+   TimeoutTimer.get_io_service().post(boost::bind(&Traceroute::cancelTimeoutTimer, this));
+   ICMPSocket.get_io_service().post(boost::bind(&Traceroute::cancelSocket, this));
 }
 
 
@@ -240,6 +241,13 @@ bool Traceroute::prepareSocket()
       }
    }
    return(true);
+}
+
+
+// ###### Cancel socket operations ##########################################
+void Traceroute::cancelSocket()
+{
+   ICMPSocket.cancel();
 }
 
 
