@@ -3,91 +3,50 @@
 #include <unistd.h>
 #include <string.h>
 #include <assert.h>
+#include <time.h>
 
+#include <chrono>
 #include <iostream>
 
-#include "icmpheader.h"
-#include "traceserviceheader.h"
+#include <boost/date_time/posix_time/posix_time.hpp>
 
 
-// #include <boost/date_time/posix_time/posix_time.hpp>
-//
-// // ###### Convert ptime to microseconds #####################################
-// unsigned long long ptimeToMircoTime(const boost::posix_time::ptime t)
-// {
-//    static const boost::posix_time::ptime myEpoch(boost::gregorian::date(1976,9,29));
-//    boost::posix_time::time_duration difference = t - myEpoch;
-//    return(difference.ticks());
-// }
+// ###### Convert chrono time to string with given format ###################
+template<typename T> std::string getTimeString(const typename T::time_point& time,
+                                               const char*                   format = "%F %T")
+{
+   const std::time_t timeInTimeT = T::to_time_t(time);
+   std::tm           timeInTM;
+   std::stringstream ss;
+
+   gmtime_r(&timeInTimeT, &timeInTM);
+   ss << std::put_time(&timeInTM, format);
+   return ss.str();
+}
 
 
 // ###### Main program ######################################################
 int main(int argc, char** argv)
 {
-   uint16_t Identifier  = 1234;
-   uint16_t SeqNumber   = 61000;
-   uint32_t MagicNumber = 0xcafe2909;
-   unsigned int round   = 1;
-//    unsigned int ttl     = 34;
 
-   uint32_t targetChecksum = ~0;
+   std::cout << "A=" << boost::posix_time::to_iso_string(boost::posix_time::microsec_clock::universal_time()) << std::endl;
 
-   for(unsigned int i = 0; i < 1000000; i++) {
-//       printf("------ i=%d ------\n", i);
-      for(unsigned int ttl = 1; ttl < 42; ttl++) {
-//          printf("------ i=%d\tttl=%d ------\n", i, ttl);
 
-         ICMPHeader echoRequest;
-         echoRequest.type(ICMPHeader::IPv4EchoRequest);
-         echoRequest.code(0);
-         echoRequest.identifier(Identifier);
-         echoRequest.seqNumber(SeqNumber);
-         TraceServiceHeader tsHeader;
-         tsHeader.magicNumber(MagicNumber);
-         tsHeader.sendTTL(ttl);
-         tsHeader.round((unsigned char)round);
-         tsHeader.checksumTweak(0);
-         // const boost::posix_time::ptime sendTime = boost::posix_time::microsec_clock::universal_time();
-         tsHeader.sendTimeStamp(0x474b7f7648180ULL + random());   // ptimeToMircoTime(sendTime));
-         std::vector<unsigned char> tsHeaderContents = tsHeader.contents();
+   const std::chrono::system_clock::time_point now = std::chrono::system_clock::now();
 
-         // ------ No given target checksum ---------------------
-         if(targetChecksum == ~0U) {
-            computeInternet16(echoRequest, tsHeaderContents.begin(), tsHeaderContents.end());
-            targetChecksum = echoRequest.checksum();
-         }
-         // ------ Target checksum given ------------------------
-         else {
-            // Compute current checksum
-            computeInternet16(echoRequest, tsHeaderContents.begin(), tsHeaderContents.end());
-            const uint16_t originalChecksum = echoRequest.checksum();
+   std::time_t tt = std::chrono::system_clock::to_time_t(now);
+   std::cout << "B=" << std::put_time(std::localtime(&tt), "%Y/%m/%d %T") << std::endl;
 
-            // Compute value to tweak checksum to target value
-            uint16_t diff = 0xffff - (targetChecksum - originalChecksum);
-            if(originalChecksum > targetChecksum) {    // Handle necessary sum wrap!
-               diff++;
-            }
-            tsHeader.checksumTweak(diff);
+   std::cout << "C1=" << getTimeString<std::chrono::system_clock>(now) << std::endl;
+   std::cout << "C2=" << getTimeString<std::chrono::system_clock>(now, "%Y%m%dT%H%M%S") << std::endl;
 
-            // Compute new checksum (must be equal to target checksum!)
-            tsHeaderContents = tsHeader.contents();
-            computeInternet16(echoRequest, tsHeaderContents.begin(), tsHeaderContents.end());
-            assert(echoRequest.checksum() == targetChecksum);
 
-//             const uint16_t newChecksum = echoRequest.checksum();
-//             if(newChecksum != targetChecksum) {
-//                std::cerr << "ERROR: Traceroute::sendICMPRequest() - Checksum differs from target checksum!" << std::endl;
-//                // printf("ORIGIN=%x\n", originalChecksum);
-//                // printf("TARGET=%x\n", targetChecksum);
-//                // printf("NEW=   %x\n", newChecksum);
-//                // printf("diff=%x\n", diff);
-//                ::abort();
-//             }
-         }
-      }
+   const std::chrono::steady_clock::time_point t1 = std::chrono::steady_clock::now();
+   usleep(1234567);
+   const std::chrono::steady_clock::time_point t2 = std::chrono::steady_clock::now();
+   unsigned long long diff = std::chrono::duration_cast<std::chrono::microseconds>(t2 - t1).count();
 
-      SeqNumber++;
-   }
+   std::cout << "d=" << diff << std::endl;
 
    return(0);
 }
