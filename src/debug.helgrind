@@ -1,0 +1,4 @@
+#!/bin/sh -e
+
+echo "valgrind $@"
+G_SLICE=always-malloc valgrind --tool=helgrind $@
