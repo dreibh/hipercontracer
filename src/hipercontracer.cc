@@ -29,10 +29,7 @@
 //
 // Contact: dreibh@simula.no
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <string.h>
+#include <iostream>
 
 #include "tools.h"
 #include "resultswriter.h"

@@ -32,8 +32,7 @@
 #include "ping.h"
 #include "tools.h"
 
-#include <netinet/in.h>
-#include <netinet/ip.h>
+#include <iostream>
 
 #include <boost/bind.hpp>
 #include <boost/format.hpp>

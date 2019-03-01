@@ -29,17 +29,13 @@
 //
 // Contact: dreibh@simula.no
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <string.h>
-#include <netinet/in.h>
+#include <iostream>
 
 #include "tools.h"
-#include "resultswriter.h"
 #include "service.h"
 #include "traceroute.h"
 #include "ping.h"
+#include "resultswriter.h"
 #include "icmpheader.h"
 
 

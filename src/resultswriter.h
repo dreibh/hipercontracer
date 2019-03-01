@@ -33,7 +33,6 @@
 #define RESULTSWRITER_H
 
 #include <chrono>
-#include <fstream>
 #include <set>
 #include <string>
 
