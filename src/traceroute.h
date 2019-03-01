@@ -36,6 +36,7 @@
 #include "resultswriter.h"
 
 #include <atomic>
+#include <chrono>
 #include <mutex>
 #include <set>
 #include <thread>
@@ -93,27 +94,27 @@ inline bool statusIsUnreachable(const HopStatus hopStatus)
 
 class ResultEntry {
    public:
-   ResultEntry(const unsigned short            round,
-               const unsigned short            seqNumber,
-               const unsigned int              hop,
-               const uint16_t                  checksum,
-               const boost::posix_time::ptime  sendTime,
-               const boost::asio::ip::address& address,
-               const HopStatus                 status);
+   ResultEntry(const unsigned short                        round,
+               const unsigned short                        seqNumber,
+               const unsigned int                          hop,
+               const uint16_t                              checksum,
+               const std::chrono::system_clock::time_point sendTime,
+               const boost::asio::ip::address&             address,
+               const HopStatus                             status);
 
-   inline unsigned int round()                   const { return(Round);       }
-   inline unsigned int seqNumber()               const { return(SeqNumber);   }
-   inline unsigned int hop()                     const { return(Hop);         }
-   const boost::asio::ip::address& address()     const { return(Address);     }
-   inline HopStatus status()                     const { return(Status);      }
-   inline boost::posix_time::ptime sendTime()    const { return(SendTime);    }
-   inline boost::posix_time::ptime receiveTime() const { return(ReceiveTime); }
-   inline boost::posix_time::time_duration rtt() const { return(ReceiveTime - SendTime); }
-   inline uint16_t checksum()                    const { return(Checksum);    }
+   inline unsigned int round()               const { return(Round);     }
+   inline unsigned int seqNumber()           const { return(SeqNumber); }
+   inline unsigned int hop()                 const { return(Hop);       }
+   const boost::asio::ip::address& address() const { return(Address);   }
+   inline HopStatus status()                 const { return(Status);    }
+   inline uint16_t checksum()                const { return(Checksum);  }
+   inline std::chrono::system_clock::time_point sendTime()    const { return(SendTime);    }
+   inline std::chrono::system_clock::time_point receiveTime() const { return(ReceiveTime); }
+   inline std::chrono::system_clock::duration   rtt()         const { return(ReceiveTime - SendTime); }
 
-   inline void address(const boost::asio::ip::address address)         { Address = address;         }
-   inline void status(const HopStatus status)                          { Status = status;           }
-   inline void receiveTime(const boost::posix_time::ptime receiveTime) { ReceiveTime = receiveTime; }
+   inline void address(const boost::asio::ip::address address)                      { Address = address;         }
+   inline void status(const HopStatus status)                                       { Status = status;           }
+   inline void receiveTime(const std::chrono::system_clock::time_point receiveTime) { ReceiveTime = receiveTime; }
 
    inline friend bool operator<(const ResultEntry& resultEntry1, const ResultEntry& resultEntry2) {
       return(resultEntry1.SeqNumber < resultEntry2.SeqNumber);
@@ -121,15 +122,15 @@ class ResultEntry {
    friend std::ostream& operator<<(std::ostream& os, const ResultEntry& resultEntry);
 
    private:
-   const unsigned int             Round;
-   const unsigned short           SeqNumber;
-   const unsigned int             Hop;
-   const uint16_t                 Checksum;
-   const boost::posix_time::ptime SendTime;
+   const unsigned int                          Round;
+   const unsigned short                        SeqNumber;
+   const unsigned int                          Hop;
+   const uint16_t                              Checksum;
+   const std::chrono::system_clock::time_point SendTime;
 
-   boost::asio::ip::address       Address;
-   HopStatus                      Status;
-   boost::posix_time::ptime       ReceiveTime;
+   boost::asio::ip::address                    Address;
+   HopStatus                                   Status;
+   std::chrono::system_clock::time_point       ReceiveTime;
 };
 
 
@@ -186,11 +187,12 @@ class Traceroute : virtual public Service
                         const unsigned int              ttl,
                         const unsigned int              round,
                         uint32_t&                       targetChecksum);
-   void recordResult(const boost::posix_time::ptime& receiveTime,
-                     const ICMPHeader&               icmpHeader,
-                     const unsigned short            seqNumber);
+   void recordResult(const std::chrono::system_clock::time_point& receiveTime,
+                     const ICMPHeader&                           icmpHeader,
+                     const unsigned short                        seqNumber);
    unsigned int getInitialMaxTTL(const boost::asio::ip::address& destinationAddress) const;
-   static unsigned long long ptimeToMircoTime(const boost::posix_time::ptime& time);
+
+   static unsigned long long makePacketTimeStamp(const std::chrono::system_clock::time_point& time);
 
    ResultsWriter*                                   ResultsOutput;
    const unsigned int                               Iterations;
@@ -226,7 +228,7 @@ class Traceroute : virtual public Service
    char                                             MessageBuffer[65536 + 40];
    unsigned int                                     MinTTL;
    unsigned int                                     MaxTTL;
-   boost::posix_time::ptime                         RunStartTimeStamp;
+   std::chrono::steady_clock::time_point            RunStartTimeStamp;
    uint32_t*                                        TargetChecksumArray;
 
    private:

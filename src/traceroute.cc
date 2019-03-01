@@ -52,13 +52,13 @@
 
 
 // ###### Constructor #######################################################
-ResultEntry::ResultEntry(const unsigned short            round,
-                         const unsigned short            seqNumber,
-                         const unsigned int              hop,
-                         const uint16_t                  checksum,
-                         const boost::posix_time::ptime  sendTime,
-                         const boost::asio::ip::address& address,
-                         const HopStatus                 status)
+ResultEntry::ResultEntry(const unsigned short                        round,
+                         const unsigned short                        seqNumber,
+                         const unsigned int                          hop,
+                         const uint16_t                              checksum,
+                         const std::chrono::system_clock::time_point sendTime,
+                         const boost::asio::ip::address&             address,
+                         const HopStatus                             status)
    : Round(round),
      SeqNumber(seqNumber),
      Hop(hop),
@@ -76,7 +76,7 @@ std::ostream& operator<<(std::ostream& os, const ResultEntry& resultEntry)
    os << boost::format("R%d")             % resultEntry.Round
       << "\t" << boost::format("#%05d")   % resultEntry.SeqNumber
       << "\t" << boost::format("%2d")     % resultEntry.Hop
-      << "\t" << boost::format("%9.3fms") % (resultEntry.rtt().total_microseconds() / 1000.0)
+      << "\t" << boost::format("%9.3fms") % (std::chrono::duration_cast<std::chrono::microseconds>(resultEntry.rtt()).count() / 1000.0)
       << "\t" << boost::format("%3d")     % resultEntry.Status
       << "\t" << boost::format("%04x")    % resultEntry.Checksum
       << "\t" << resultEntry.Address;
@@ -289,7 +289,7 @@ bool Traceroute::prepareRun(const bool newRound)
                             getInitialMaxTTL(*DestinationAddressIterator) : InitialMaxTTL;
    LastHop             = 0xffffffff;
    OutstandingRequests = 0;
-   RunStartTimeStamp   = boost::posix_time::microsec_clock::universal_time();
+   RunStartTimeStamp   = std::chrono::steady_clock::now();
 
    // Return whether end of the list is reached. Then, a rewind is necessary.
    return(DestinationAddressIterator == DestinationAddresses.end());
@@ -351,17 +351,20 @@ void Traceroute::scheduleIntervalEvent()
 {
    if((Iterations == 0) || (IterationNumber < Iterations)) {
       // ====== Schedule event ==============================================
-      const unsigned long long deviation = std::max(10ULL, Interval / 5);   // 20% deviation
-      const unsigned long long duration  = Interval + (std::rand() % deviation);
-      IntervalTimer.expires_at(RunStartTimeStamp + boost::posix_time::milliseconds(duration));
+      const unsigned long long deviation       = std::max(10ULL, Interval / 5);   // 20% deviation
+      const unsigned long long waitingDuration = Interval + (std::rand() % deviation);
+
+      const std::chrono::steady_clock::duration howLongToWait =
+         (RunStartTimeStamp + std::chrono::milliseconds(waitingDuration)) - std::chrono::steady_clock::now();
+      const long long millisecondsToWait =
+         std::max(0LL, (long long)std::chrono::duration_cast<std::chrono::milliseconds>(howLongToWait).count());
+
+      IntervalTimer.expires_from_now(boost::posix_time::milliseconds(millisecondsToWait));
       IntervalTimer.async_wait(boost::bind(&Traceroute::handleIntervalEvent, this,
                                            boost::asio::placeholders::error));
 
       if(VerboseMode) {
-         const boost::posix_time::time_duration howLong =
-            RunStartTimeStamp + boost::posix_time::milliseconds(duration) -
-            boost::posix_time::microsec_clock::universal_time();
-         std::cout << "Waiting " << howLong.total_milliseconds() / 1000.0
+         std::cout << "Waiting " << millisecondsToWait / 1000.0
                    << "s before iteration " << (IterationNumber + 1) << " ..." << std::endl;
       }
 
@@ -434,13 +437,13 @@ void Traceroute::sendICMPRequest(const boost::asio::ip::address& destinationAddr
    echoRequest.code(0);
    echoRequest.identifier(Identifier);
    echoRequest.seqNumber(SeqNumber);
-   const boost::posix_time::ptime sendTime = boost::posix_time::microsec_clock::universal_time();
    TraceServiceHeader tsHeader;
    tsHeader.magicNumber(MagicNumber);
    tsHeader.sendTTL(ttl);
    tsHeader.round((unsigned char)round);
    tsHeader.checksumTweak(0);
-   tsHeader.sendTimeStamp(ptimeToMircoTime(sendTime));
+   const std::chrono::system_clock::time_point sendTime = std::chrono::system_clock::now();
+   tsHeader.sendTimeStamp(makePacketTimeStamp(sendTime));
    std::vector<unsigned char> tsHeaderContents = tsHeader.contents();
 
    // ====== Tweak checksum ===============================
@@ -581,7 +584,7 @@ void Traceroute::processResults()
             // ====== Time-out ==============================================
             else if(resultEntry->status() == Unknown) {
                resultEntry->status(Timeout);
-               resultEntry->receiveTime(resultEntry->sendTime() + boost::posix_time::milliseconds(Expiration));
+               resultEntry->receiveTime(resultEntry->sendTime() + std::chrono::milliseconds(Expiration));
                pathString += "-*";
                completeTraceroute = false;   // at least one hop has not sent a response :-(
             }
@@ -650,7 +653,7 @@ void Traceroute::processResults()
                   str(boost::format("\t %d %x %d %s")
                      % resultEntry->hop()
                      % (unsigned int)resultEntry->status()
-                     % (resultEntry->receiveTime() - resultEntry->sendTime()).total_microseconds()
+                     % std::chrono::duration_cast<std::chrono::microseconds>(resultEntry->receiveTime() - resultEntry->sendTime()).count()
                      % resultEntry->address().to_string()
                ));
                assert(resultEntry->checksum() == checksumCheck);
@@ -729,7 +732,7 @@ void Traceroute::handleMessage(const boost::system::error_code& errorCode,
 {
    if(errorCode != boost::asio::error::operation_aborted) {
       if(!errorCode) {
-         const boost::posix_time::ptime receiveTime = boost::posix_time::microsec_clock::universal_time();
+         const std::chrono::system_clock::time_point receiveTime = std::chrono::system_clock::now();
          boost::interprocess::bufferstream is(MessageBuffer, length);
          ExpectingReply = false;   // Need to call expectNextReply() to get next message!
 
@@ -807,7 +810,7 @@ void Traceroute::handleMessage(const boost::system::error_code& errorCode,
 
 
 // ###### Record result from response message ###############################
-void Traceroute::recordResult(const boost::posix_time::ptime& receiveTime,
+void Traceroute::recordResult(const std::chrono::system_clock::time_point& receiveTime,
                               const ICMPHeader&               icmpHeader,
                               const unsigned short            seqNumber)
 {
@@ -888,10 +891,10 @@ void Traceroute::recordResult(const boost::posix_time::ptime& receiveTime,
 
 
 // ###### Convert ptime to microseconds #####################################
-unsigned long long Traceroute::ptimeToMircoTime(const boost::posix_time::ptime& time)
+unsigned long long Traceroute::makePacketTimeStamp(const std::chrono::system_clock::time_point& time)
 {
    // For HiPerConTracer packets: time stamp is microseconds since 1976-09-26.
-   static const boost::posix_time::ptime myEpoch(boost::gregorian::date(1976,9,29));
-   boost::posix_time::time_duration difference = time - myEpoch;
-   return(difference.total_microseconds());
+   static const std::chrono::system_clock::time_point epoch =
+      std::chrono::system_clock::from_time_t(212803200);
+   return std::chrono::duration_cast<std::chrono::microseconds>(time - epoch).count();
 }

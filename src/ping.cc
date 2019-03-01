@@ -96,7 +96,7 @@ void Ping::scheduleTimeoutEvent()
    // ====== Schedule event =================================================
    const unsigned long long deviation = std::max(10ULL, Interval / 5ULL);   // 20% deviation
    const unsigned long long duration  = Interval + (std::rand() % deviation);
-   TimeoutTimer.expires_at(boost::posix_time::microsec_clock::universal_time() + boost::posix_time::milliseconds(duration));
+   TimeoutTimer.expires_from_now(boost::posix_time::milliseconds(duration));
    TimeoutTimer.async_wait(boost::bind(&Ping::handleTimeoutEvent, this,
                                        boost::asio::placeholders::error));
 
@@ -125,15 +125,15 @@ void Ping::processResults()
    std::sort(resultsVector.begin(), resultsVector.end(), &comparePingResults);
 
    // ====== Process results ================================================
-   const boost::posix_time::ptime now = boost::posix_time::microsec_clock::universal_time();
+   const std::chrono::system_clock::time_point now = std::chrono::system_clock::now();
    for(std::vector<ResultEntry*>::iterator iterator = resultsVector.begin(); iterator != resultsVector.end(); iterator++) {
       ResultEntry* resultEntry = *iterator;
 
       // ====== Time-out entries ============================================
       if( (resultEntry->status() == Unknown) &&
-          ((now - resultEntry->sendTime()).total_milliseconds() >= Expiration) ) {
+          (std::chrono::duration_cast<std::chrono::milliseconds>(now - resultEntry->sendTime()).count() >= Expiration) ) {
          resultEntry->status(Timeout);
-         resultEntry->receiveTime(resultEntry->sendTime() + boost::posix_time::milliseconds(Expiration));
+         resultEntry->receiveTime(resultEntry->sendTime() + std::chrono::milliseconds(Expiration));
       }
 
       // ====== Print completed entries =====================================
@@ -150,7 +150,7 @@ void Ping::processResults()
                   % usSinceEpoch(resultEntry->sendTime())
                   % resultEntry->checksum()
                   % resultEntry->status()
-                  % (resultEntry->receiveTime() - resultEntry->sendTime()).total_microseconds()
+                  % std::chrono::duration_cast<std::chrono::microseconds>(resultEntry->receiveTime() - resultEntry->sendTime()).count()
             ));
          }
       }

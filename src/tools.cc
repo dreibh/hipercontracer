@@ -31,13 +31,17 @@
 
 #include "tools.h"
 
+#include <string.h>
+#include <unistd.h>
 
-// ###### Convert ptime to microseconds since the epoch #####################
-uint64_t usSinceEpoch(const boost::posix_time::ptime& time)
+#include <iostream>
+
+
+// ###### Convert time to microseconds since the epoch ######################
+uint64_t usSinceEpoch(const std::chrono::system_clock::time_point& time)
 {
-   const static boost::posix_time::ptime epoch     = boost::posix_time::from_time_t(0);
-   const boost::posix_time::time_duration duration = time - epoch;
-   return duration.total_microseconds();
+   const std::chrono::system_clock::duration          duration = time.time_since_epoch();
+   return std::chrono::duration_cast<std::chrono::microseconds>(duration).count();
 }
 
 
