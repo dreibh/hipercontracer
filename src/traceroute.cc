@@ -727,78 +727,82 @@ void Traceroute::handleIntervalEvent(const boost::system::error_code& errorCode)
 void Traceroute::handleMessage(const boost::system::error_code& errorCode,
                                std::size_t                      length)
 {
-   const boost::posix_time::ptime receiveTime = boost::posix_time::microsec_clock::universal_time();
-   boost::interprocess::bufferstream is(MessageBuffer, length);
-   ExpectingReply = false;   // Need to call expectNextReply() to get next message!
+   if(errorCode != boost::asio::error::operation_aborted) {
+      if(!errorCode) {
+         const boost::posix_time::ptime receiveTime = boost::posix_time::microsec_clock::universal_time();
+         boost::interprocess::bufferstream is(MessageBuffer, length);
+         ExpectingReply = false;   // Need to call expectNextReply() to get next message!
 
-   ICMPHeader icmpHeader;
-   if(isIPv6()) {
-      is >> icmpHeader;
-      if(is) {
-         if(icmpHeader.type() == ICMPHeader::IPv6EchoReply) {
-            if(icmpHeader.identifier() == Identifier) {
-               TraceServiceHeader tsHeader;
-               is >> tsHeader;
-               if(is) {
-                  if(tsHeader.magicNumber() == MagicNumber) {
-                     recordResult(receiveTime, icmpHeader, icmpHeader.seqNumber());
-                  }
-               }
-            }
-         }
-         else if( (icmpHeader.type() == ICMPHeader::IPv6TimeExceeded) ||
-                  (icmpHeader.type() == ICMPHeader::IPv6Unreachable) ) {
-            IPv6Header innerIPv6Header;
-            ICMPHeader innerICMPHeader;
-            TraceServiceHeader tsHeader;
-            is >> innerIPv6Header >> innerICMPHeader >> tsHeader;
+         ICMPHeader icmpHeader;
+         if(isIPv6()) {
+            is >> icmpHeader;
             if(is) {
-               if(tsHeader.magicNumber() == MagicNumber) {
-                  recordResult(receiveTime, icmpHeader, innerICMPHeader.seqNumber());
-               }
-            }
-         }
-      }
-   }
-   else {
-      IPv4Header ipv4Header;
-      is >> ipv4Header;
-      if(is) {
-         is >> icmpHeader;
-         if(is) {
-            if(icmpHeader.type() == ICMPHeader::IPv4EchoReply) {
-               if(icmpHeader.identifier() == Identifier) {
-                  TraceServiceHeader tsHeader;
-                  is >> tsHeader;
-                  if(is) {
-                     if(tsHeader.magicNumber() == MagicNumber) {
-                        recordResult(receiveTime, icmpHeader, icmpHeader.seqNumber());
+               if(icmpHeader.type() == ICMPHeader::IPv6EchoReply) {
+                  if(icmpHeader.identifier() == Identifier) {
+                     TraceServiceHeader tsHeader;
+                     is >> tsHeader;
+                     if(is) {
+                        if(tsHeader.magicNumber() == MagicNumber) {
+                           recordResult(receiveTime, icmpHeader, icmpHeader.seqNumber());
+                        }
                      }
                   }
                }
-            }
-            else if(icmpHeader.type() == ICMPHeader::IPv4TimeExceeded) {
-               IPv4Header innerIPv4Header;
-               ICMPHeader innerICMPHeader;
-               is >> innerIPv4Header >> innerICMPHeader;
-               if(is) {
-                  if( (icmpHeader.type() == ICMPHeader::IPv4TimeExceeded) ||
-                      (icmpHeader.type() == ICMPHeader::IPv4Unreachable) ) {
-                     if(innerICMPHeader.identifier() == Identifier) {
-                        // Unfortunately, ICMPv4 does not return the full TraceServiceHeader here!
+               else if( (icmpHeader.type() == ICMPHeader::IPv6TimeExceeded) ||
+                        (icmpHeader.type() == ICMPHeader::IPv6Unreachable) ) {
+                  IPv6Header innerIPv6Header;
+                  ICMPHeader innerICMPHeader;
+                  TraceServiceHeader tsHeader;
+                  is >> innerIPv6Header >> innerICMPHeader >> tsHeader;
+                  if(is) {
+                     if(tsHeader.magicNumber() == MagicNumber) {
                         recordResult(receiveTime, icmpHeader, innerICMPHeader.seqNumber());
                      }
                   }
                }
             }
          }
+         else {
+            IPv4Header ipv4Header;
+            is >> ipv4Header;
+            if(is) {
+               is >> icmpHeader;
+               if(is) {
+                  if(icmpHeader.type() == ICMPHeader::IPv4EchoReply) {
+                     if(icmpHeader.identifier() == Identifier) {
+                        TraceServiceHeader tsHeader;
+                        is >> tsHeader;
+                        if(is) {
+                           if(tsHeader.magicNumber() == MagicNumber) {
+                              recordResult(receiveTime, icmpHeader, icmpHeader.seqNumber());
+                           }
+                        }
+                     }
+                  }
+                  else if(icmpHeader.type() == ICMPHeader::IPv4TimeExceeded) {
+                     IPv4Header innerIPv4Header;
+                     ICMPHeader innerICMPHeader;
+                     is >> innerIPv4Header >> innerICMPHeader;
+                     if(is) {
+                        if( (icmpHeader.type() == ICMPHeader::IPv4TimeExceeded) ||
+                            (icmpHeader.type() == ICMPHeader::IPv4Unreachable) ) {
+                           if(innerICMPHeader.identifier() == Identifier) {
+                              // Unfortunately, ICMPv4 does not return the full TraceServiceHeader here!
+                              recordResult(receiveTime, icmpHeader, innerICMPHeader.seqNumber());
+                           }
+                        }
+                     }
+                  }
+               }
+            }
+         }
       }
-   }
 
-   if(OutstandingRequests == 0) {
-      noMoreOutstandingRequests();
+      if(OutstandingRequests == 0) {
+         noMoreOutstandingRequests();
+      }
+      expectNextReply();
    }
-   expectNextReply();
 }
 
 
