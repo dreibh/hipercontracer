@@ -133,7 +133,7 @@ static void tryCleanup(const boost::system::error_code& errorCode)
 
 
 // ###### Handle Ping #######################################################
-static void handlePing(const ICMPHeader& header, const size_t payloadLength)
+static void handlePing(const ICMPHeader& header, const std::size_t payloadLength)
 {
    if(VerboseMode) {
       std::cout << "Ping from " << IncomingPingSource.address()
@@ -180,7 +180,7 @@ static void handlePing(const ICMPHeader& header, const size_t payloadLength)
 
 
 // ###### Decode raw ICMP packet ############################################
-static void receivedPingV4(const boost::system::error_code& errorCode, size_t length)
+static void receivedPingV4(const boost::system::error_code& errorCode, std::size_t length)
 {
    if(errorCode != boost::asio::error::operation_aborted) {
       if( (!errorCode) && (length >= sizeof(iphdr)) ) {
@@ -189,7 +189,7 @@ static void receivedPingV4(const boost::system::error_code& errorCode, size_t le
          const iphdr* ipHeader = (const iphdr*)IncomingPingMessageBuffer;
          if( (ipHeader->version == 4) &&
              (ntohs(ipHeader->tot_len) == length) ) {
-             const size_t headerLength = ipHeader->ihl << 2;
+             const std::size_t headerLength = ipHeader->ihl << 2;
              // ====== Decode ICMP message ==================================
              if( (headerLength + 8 <= length) &&
                  (ipHeader->protocol == IPPROTO_ICMP) ) {
@@ -209,7 +209,7 @@ static void receivedPingV4(const boost::system::error_code& errorCode, size_t le
 
 
 // ###### Decode raw ICMPv6 packet ##########################################
-static void receivedPingV6(const boost::system::error_code& errorCode, size_t length)
+static void receivedPingV6(const boost::system::error_code& errorCode, std::size_t length)
 {
    if(errorCode != boost::asio::error::operation_aborted) {
       if( (!errorCode) && (length >= 8) ) {
