@@ -39,6 +39,7 @@
 #include <set>
 
 #include <boost/asio.hpp>
+#include <boost/atomic.hpp>
 #include <boost/thread.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
 
@@ -210,7 +211,7 @@ class Traceroute : virtual public Service
    boost::asio::ip::icmp::endpoint                  ReplyEndpoint;    // Store ICMP reply's source
 
    boost::thread                                    Thread;
-   volatile bool                                    StopRequested;
+   boost::atomic<bool>                              StopRequested;
    unsigned int                                     IterationNumber;
    unsigned int                                     Identifier;
    unsigned short                                   SeqNumber;
