@@ -40,6 +40,7 @@
 #include <netinet/in.h>
 #include <netinet/ip.h>
 
+#include <boost/bind.hpp>
 #include <boost/format.hpp>
 #include <boost/version.hpp>
 #include <boost/interprocess/streams/bufferstream.hpp>
@@ -182,7 +183,7 @@ Traceroute::~Traceroute()
 bool Traceroute::start()
 {
    StopRequested = false;
-   Thread        = boost::thread(&Traceroute::run, this);
+   Thread        = std::thread(&Traceroute::run, this);
    return(prepareSocket());
 }
 

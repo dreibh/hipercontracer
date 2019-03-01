@@ -35,6 +35,7 @@
 #include <netinet/in.h>
 #include <netinet/ip.h>
 
+#include <boost/bind.hpp>
 #include <boost/format.hpp>
 
 
