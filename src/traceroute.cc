@@ -466,7 +466,7 @@ void Traceroute::sendICMPRequest(const boost::asio::ip::address& destinationAddr
    os << echoRequest << tsHeader;
 
    // ====== Send the request ===============================
-   size_t sent;
+   std::size_t sent;
    try {
       sent = ICMPSocket.send_to(request_buffer.data(), boost::asio::ip::icmp::endpoint(destinationAddress, 0));
    }
@@ -545,8 +545,8 @@ void Traceroute::processResults()
    for(unsigned int round = 0; round < Rounds; round++) {
 
       // ====== Count hops ==================================================
-      size_t      totalHops          = 0;
-      size_t      currentHop         = 0;
+      std::size_t totalHops          = 0;
+      std::size_t currentHop         = 0;
       bool        completeTraceroute = true;   // all hops have responded
       bool        destinationReached = false;  // destination has responded
       std::string pathString         = SourceAddress.to_string();
