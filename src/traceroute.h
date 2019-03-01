@@ -174,7 +174,8 @@ class Traceroute : virtual public Service
    virtual void sendRequests();
    virtual void handleTimeoutEvent(const boost::system::error_code& errorCode);
    virtual void handleIntervalEvent(const boost::system::error_code& errorCode);
-   virtual void handleMessage(std::size_t length);
+   virtual void handleMessage(const boost::system::error_code& errorCode,
+                              std::size_t                      length);
 
    void cancelTimeoutTimer();
    void cancelIntervalTimer();

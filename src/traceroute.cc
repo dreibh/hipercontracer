@@ -159,7 +159,8 @@ bool Traceroute::addDestination(const boost::asio::ip::address& destinationAddre
          if(DestinationAddressIterator == DestinationAddresses.end()) {
             // Address will be the first destination in list -> abort interval timer
             IntervalTimer.expires_from_now(boost::posix_time::milliseconds(0));
-            IntervalTimer.async_wait(boost::bind(&Traceroute::handleIntervalEvent, this, _1));
+            IntervalTimer.async_wait(boost::bind(&Traceroute::handleIntervalEvent, this,
+                                                 boost::asio::placeholders::error));
          }
          DestinationAddresses.insert(destinationAddress);
          return true;
@@ -325,7 +326,8 @@ void Traceroute::scheduleTimeoutEvent()
    const unsigned int deviation = std::max(10U, Expiration / 5);   // 20% deviation
    const unsigned int duration  = Expiration + (std::rand() % deviation);
    TimeoutTimer.expires_from_now(boost::posix_time::milliseconds(duration));
-   TimeoutTimer.async_wait(boost::bind(&Traceroute::handleTimeoutEvent, this, _1));
+   TimeoutTimer.async_wait(boost::bind(&Traceroute::handleTimeoutEvent, this,
+                                       boost::asio::placeholders::error));
 }
 
 
@@ -344,7 +346,8 @@ void Traceroute::scheduleIntervalEvent()
       const unsigned long long deviation = std::max(10ULL, Interval / 5);   // 20% deviation
       const unsigned long long duration  = Interval + (std::rand() % deviation);
       IntervalTimer.expires_at(RunStartTimeStamp + boost::posix_time::milliseconds(duration));
-      IntervalTimer.async_wait(boost::bind(&Traceroute::handleIntervalEvent, this, _1));
+      IntervalTimer.async_wait(boost::bind(&Traceroute::handleIntervalEvent, this,
+                                           boost::asio::placeholders::error));
 
       if(VerboseMode) {
          const boost::posix_time::time_duration howLong =
@@ -380,7 +383,9 @@ void Traceroute::expectNextReply()
    assert(ExpectingReply == false);
    ICMPSocket.async_receive_from(boost::asio::buffer(MessageBuffer),
                                  ReplyEndpoint,
-                                 boost::bind(&Traceroute::handleMessage, this, _2));
+                                 boost::bind(&Traceroute::handleMessage, this,
+                                             boost::asio::placeholders::error,
+                                             boost::asio::placeholders::bytes_transferred));
    ExpectingReply = true;
 }
 
@@ -711,7 +716,8 @@ void Traceroute::handleIntervalEvent(const boost::system::error_code& errorCode)
 
 
 // ###### Handle incoming ICMP message ######################################
-void Traceroute::handleMessage(std::size_t length)
+void Traceroute::handleMessage(const boost::system::error_code& errorCode,
+                               std::size_t                      length)
 {
    const boost::posix_time::ptime receiveTime = boost::posix_time::microsec_clock::universal_time();
    boost::interprocess::bufferstream is(MessageBuffer, length);

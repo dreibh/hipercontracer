@@ -97,7 +97,8 @@ void Ping::scheduleTimeoutEvent()
    const unsigned long long deviation = std::max(10ULL, Interval / 5ULL);   // 20% deviation
    const unsigned long long duration  = Interval + (std::rand() % deviation);
    TimeoutTimer.expires_at(boost::posix_time::microsec_clock::universal_time() + boost::posix_time::milliseconds(duration));
-   TimeoutTimer.async_wait(boost::bind(&Ping::handleTimeoutEvent, this, _1));
+   TimeoutTimer.async_wait(boost::bind(&Ping::handleTimeoutEvent, this,
+                                       boost::asio::placeholders::error));
 
    // ====== Check, whether it is time for starting a new transaction =======
    if(ResultsOutput) {
