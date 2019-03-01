@@ -190,7 +190,7 @@ class Traceroute : virtual public Service
                      const ICMPHeader&               icmpHeader,
                      const unsigned short            seqNumber);
    unsigned int getInitialMaxTTL(const boost::asio::ip::address& destinationAddress) const;
-   static unsigned long long ptimeToMircoTime(const boost::posix_time::ptime t);
+   static unsigned long long ptimeToMircoTime(const boost::posix_time::ptime& time);
 
    ResultsWriter*                                   ResultsOutput;
    const unsigned int                               Iterations;

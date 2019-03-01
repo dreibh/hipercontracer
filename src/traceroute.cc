@@ -888,9 +888,10 @@ void Traceroute::recordResult(const boost::posix_time::ptime& receiveTime,
 
 
 // ###### Convert ptime to microseconds #####################################
-unsigned long long Traceroute::ptimeToMircoTime(const boost::posix_time::ptime t)
+unsigned long long Traceroute::ptimeToMircoTime(const boost::posix_time::ptime& time)
 {
+   // For HiPerConTracer packets: time stamp is microseconds since 1976-09-26.
    static const boost::posix_time::ptime myEpoch(boost::gregorian::date(1976,9,29));
-   boost::posix_time::time_duration difference = t - myEpoch;
-   return(difference.ticks());
+   boost::posix_time::time_duration difference = time - myEpoch;
+   return(difference.total_microseconds());
 }
