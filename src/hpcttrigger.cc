@@ -45,8 +45,8 @@
 
 struct TargetInfo
 {
-   boost::posix_time::ptime LastSeen;
-   unsigned int             TriggerCounter;
+   std::chrono::steady_clock::time_point LastSeen;
+   unsigned int                          TriggerCounter;
 };
 
 static std::set<boost::asio::ip::address>                   SourceArray;
@@ -112,13 +112,13 @@ static void tryCleanup(const boost::system::error_code& errorCode)
       CleanupTimer.expires_at(CleanupTimer.expires_at() + CleanupTimerInterval);
       CleanupTimer.async_wait(tryCleanup);
 
-      const boost::posix_time::ptime now = boost::posix_time::microsec_clock::universal_time();
+      const std::chrono::steady_clock::time_point now = std::chrono::steady_clock::now();
       std::map<boost::asio::ip::address, TargetInfo*>::iterator iterator = TargetMap.begin();
       while(iterator != TargetMap.end()) {
          std::map<boost::asio::ip::address, TargetInfo*>::iterator current = iterator;
          iterator++;
          TargetInfo* targetInfo = current->second;
-         if(now - targetInfo->LastSeen >= boost::posix_time::seconds(30)) {
+         if(now - targetInfo->LastSeen >= std::chrono::seconds(30)) {
             TargetMap.erase(current);
             delete targetInfo;
          }
@@ -146,7 +146,7 @@ static void handlePing(const ICMPHeader& header, const std::size_t payloadLength
       if(found != TargetMap.end()) {
          TargetInfo* targetInfo = found->second;
          targetInfo->TriggerCounter++;
-         targetInfo->LastSeen = boost::posix_time::microsec_clock::universal_time();
+         targetInfo->LastSeen = std::chrono::steady_clock::now();
          if(targetInfo->TriggerCounter >= PingsBeforeQueuing) {
             for(std::set<Service*>::iterator serviceIterator = ServiceSet.begin(); serviceIterator != ServiceSet.end(); serviceIterator++) {
                Service* service = *serviceIterator;
@@ -170,7 +170,7 @@ static void handlePing(const ICMPHeader& header, const std::size_t payloadLength
          TargetInfo* targetInfo = new TargetInfo;
          if(targetInfo != NULL) {
             targetInfo->TriggerCounter = 0;
-            targetInfo->LastSeen       = boost::posix_time::microsec_clock::universal_time();
+            targetInfo->LastSeen       = std::chrono::steady_clock::now();
             TargetMap.insert(std::pair<boost::asio::ip::address, TargetInfo*>(
                                 IncomingPingSource.address(), targetInfo));
          }
