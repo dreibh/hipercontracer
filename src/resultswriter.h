@@ -32,12 +32,12 @@
 #ifndef RESULTSWRITER_H
 #define RESULTSWRITER_H
 
+#include <chrono>
+#include <fstream>
 #include <set>
 #include <string>
-#include <fstream>
 
 #include <boost/asio/ip/address.hpp>
-#include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/iostreams/filtering_stream.hpp>
 
@@ -67,19 +67,19 @@ class ResultsWriter
                                            const gid_t                     gid);
 
    protected:
-   const boost::filesystem::path       Directory;
-   const std::string                   UniqueID;
-   const std::string                   FormatName;
-   const unsigned int                  TransactionLength;
-   const uid_t                         UID;
-   const gid_t                         GID;
-   boost::filesystem::path             TempFileName;
-   boost::filesystem::path             TargetFileName;
-   size_t                              Inserts;
-   unsigned long long                  SeqNumber;
-   std::ofstream                       OutputFile;
-   boost::iostreams::filtering_ostream OutputStream;
-   boost::posix_time::ptime            OutputCreationTime;
+   const boost::filesystem::path         Directory;
+   const std::string                     UniqueID;
+   const std::string                     FormatName;
+   const unsigned int                    TransactionLength;
+   const uid_t                           UID;
+   const gid_t                           GID;
+   boost::filesystem::path               TempFileName;
+   boost::filesystem::path               TargetFileName;
+   size_t                                Inserts;
+   unsigned long long                    SeqNumber;
+   std::ofstream                         OutputFile;
+   boost::iostreams::filtering_ostream   OutputStream;
+   std::chrono::steady_clock::time_point OutputCreationTime;
 };
 
 #endif

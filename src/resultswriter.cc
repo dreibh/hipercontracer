@@ -31,7 +31,10 @@
 
 #include "resultswriter.h"
 
+#include <iostream>
+
 #include <boost/format.hpp>
+#include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/iostreams/filtering_streambuf.hpp>
 #include <boost/iostreams/filter/bzip2.hpp>
 
@@ -118,7 +121,7 @@ bool ResultsWriter::changeFile(const bool createNewFile)
          OutputFile.open(TempFileName.c_str(), std::ios_base::out | std::ios_base::binary);
          OutputStream.push(boost::iostreams::bzip2_compressor());
          OutputStream.push(OutputFile);
-         OutputCreationTime = boost::posix_time::microsec_clock::universal_time();
+         OutputCreationTime = std::chrono::steady_clock::now();
          if( (OutputStream.good()) && (chown(TempFileName.c_str(), UID, GID) != 0) ) {
             std::cerr << "WARNING: Setting ownership of " << TempFileName
                      << " to UID " << UID << ", GID " << GID
@@ -138,8 +141,8 @@ bool ResultsWriter::changeFile(const bool createNewFile)
 // ###### Start new transaction, if transaction length has been reached #####
 bool ResultsWriter::mayStartNewTransaction()
 {
-   const boost::posix_time::ptime now = boost::posix_time::microsec_clock::universal_time();
-   if((unsigned int)(now - OutputCreationTime).total_seconds() > TransactionLength) {
+   const std::chrono::steady_clock::time_point now = std::chrono::steady_clock::now();
+   if(std::chrono::duration_cast<std::chrono::microseconds>(now - OutputCreationTime).count() > TransactionLength) {
       return(changeFile());
    }
    return(true);
