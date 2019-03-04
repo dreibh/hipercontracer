@@ -31,13 +31,13 @@
 
 #include "logger.h"
 
+#include <boost/shared_ptr.hpp>
+#include <boost/core/null_deleter.hpp>
 #include <boost/log/expressions.hpp>
 #include <boost/log/sinks/sync_frontend.hpp>
 #include <boost/log/sinks/text_ostream_backend.hpp>
 #include <boost/log/support/date_time.hpp>
-#include <boost/core/null_deleter.hpp>
 #include <boost/log/utility/setup/common_attributes.hpp>
-#include <boost/shared_ptr.hpp>
 
 
 boost::shared_ptr<boost::log::sinks::synchronous_sink<boost::log::sinks::text_ostream_backend>>
