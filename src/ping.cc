@@ -75,7 +75,9 @@ bool Ping::prepareRun(const bool newRound)
    if((Iterations > 0) && (IterationNumber > Iterations)) {
        // ====== Done -> exit! ==============================================
        StopRequested = true;
-       IOService.stop();
+       cancelIntervalTimer();
+       cancelTimeoutTimer();
+       cancelSocket();
    }
    return(false);   // No scheduling necessary for Ping!
 }
@@ -186,7 +188,6 @@ void Ping::sendRequests()
 
    // ====== No destination addresses -> wait ===============================
    else {
-      puts("EMPTY!");
       scheduleIntervalEvent();
    }
 }

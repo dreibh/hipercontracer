@@ -378,7 +378,9 @@ void Traceroute::scheduleIntervalEvent()
    else {
        // ====== Done -> exit! ==============================================
        StopRequested = true;
-       IOService.stop();
+       cancelIntervalTimer();
+       cancelTimeoutTimer();
+       cancelSocket();
    }
 }
 
@@ -678,7 +680,6 @@ void Traceroute::handleTimeoutEvent(const boost::system::error_code& errorCode)
 
    // ====== Stop requested? ================================================
    if(StopRequested) {
-      IOService.stop();
       return;
    }
 
@@ -713,7 +714,6 @@ void Traceroute::handleIntervalEvent(const boost::system::error_code& errorCode)
 {
    // ====== Stop requested? ================================================
    if(StopRequested) {
-      IOService.stop();
       return;
    }
 
