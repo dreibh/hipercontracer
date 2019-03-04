@@ -146,7 +146,7 @@ void Ping::processResults()
 
       // ====== Print completed entries =====================================
       if(resultEntry->status() != Unknown) {
-         HPCT_LOG(debug) << getName() << ": " << *resultEntry;
+         HPCT_LOG(trace) << getName() << ": " << *resultEntry;
 
          if(ResultsOutput) {
             ResultsOutput->insert(

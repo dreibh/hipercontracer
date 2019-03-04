@@ -144,7 +144,7 @@ int main(int argc, char** argv)
          logLevel = boost::log::trivial::severity_level::warning;
       }
       else if(strcmp(argv[i], "-verbose") == 0) {
-         logLevel = boost::log::trivial::severity_level::debug;
+         logLevel = boost::log::trivial::severity_level::trace;
       }
       else if(strncmp(argv[i], "-user=", 6) == 0) {
          user = (const char*)&argv[i][6];

@@ -404,7 +404,7 @@ void Traceroute::expectNextReply()
 // ###### All requests have received a response #############################
 void Traceroute::noMoreOutstandingRequests()
 {
-   HPCT_LOG(trace) << getName() << ": Completed!";
+   // HPCT_LOG(trace) << getName() << ": Completed!";
    cancelTimeoutTimer();
 }
 
@@ -612,14 +612,14 @@ void Traceroute::processResults()
       }
 
       // ====== Print traceroute entries =======================================
-      HPCT_LOG(debug) << getName() << ": Round " << round << ":";
+      HPCT_LOG(trace) << getName() << ": Round " << round << ":";
 
       bool     writeHeader   = true;
       uint16_t checksumCheck = 0;
       for(std::vector<ResultEntry*>::iterator iterator = resultsVector.begin(); iterator != resultsVector.end(); iterator++) {
          ResultEntry* resultEntry = *iterator;
          if(resultEntry->round() == round) {
-            HPCT_LOG(debug) << getName() << ": " << *resultEntry;
+            HPCT_LOG(trace) << getName() << ": " << *resultEntry;
 
             if(ResultsOutput) {
                if(timeStamp == 0) {
