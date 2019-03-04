@@ -81,7 +81,7 @@ bool Ping::prepareRun(const bool newRound)
    IterationNumber++;
    if((Iterations > 0) && (IterationNumber > Iterations)) {
        // ====== Done -> exit! ==============================================
-       StopRequested = true;
+       StopRequested.exchange(true);
        cancelIntervalTimer();
        cancelTimeoutTimer();
        cancelSocket();

@@ -113,13 +113,13 @@ Traceroute::Traceroute(ResultsWriter*                            resultsWriter,
      IntervalTimer(IOService)
 {
    // ====== Some initialisations ===========================================
+   StopRequested.exchange(false);
    Identifier          = 0;
    SeqNumber           = (unsigned short)(std::rand() & 0xffff);
    MagicNumber         = ((std::rand() & 0xffff) << 16) | (std::rand() & 0xffff);
    OutstandingRequests = 0;
    LastHop             = 0xffffffff;
    ExpectingReply      = false;
-   StopRequested       = false;
    IterationNumber     = 0;
    MinTTL              = 1;
    MaxTTL              = InitialMaxTTL;
@@ -189,15 +189,15 @@ const std::string& Traceroute::getName() const
 // ###### Start thread ######################################################
 bool Traceroute::start()
 {
-   StopRequested = false;
-   Thread        = std::thread(&Traceroute::run, this);
+   StopRequested.exchange(false);
+   Thread = std::thread(&Traceroute::run, this);
    return(prepareSocket());
 }
 
 
 // ###### Request stop of thread ############################################
 void Traceroute::requestStop() {
-   StopRequested = true;
+   StopRequested.exchange(true);
    IntervalTimer.get_io_service().post(boost::bind(&Traceroute::cancelIntervalTimer, this));
    TimeoutTimer.get_io_service().post(boost::bind(&Traceroute::cancelTimeoutTimer, this));
    ICMPSocket.get_io_service().post(boost::bind(&Traceroute::cancelSocket, this));
@@ -209,7 +209,7 @@ void Traceroute::join()
 {
    requestStop();
    Thread.join();
-   StopRequested = false;
+   StopRequested.exchange(false);
 }
 
 
@@ -217,7 +217,7 @@ void Traceroute::join()
 bool Traceroute::joinable()
 {
    // Joinable, if stop is requested *and* the thread is joinable!
-   return(StopRequested && Thread.joinable());
+   return ((StopRequested == true) && Thread.joinable());
 }
 
 
@@ -373,7 +373,7 @@ void Traceroute::scheduleIntervalEvent()
    }
    else {
        // ====== Done -> exit! ==============================================
-       StopRequested = true;
+       StopRequested.exchange(true);
        cancelIntervalTimer();
        cancelTimeoutTimer();
        cancelSocket();
@@ -667,35 +667,32 @@ void Traceroute::processResults()
 // ###### Handle timer event ################################################
 void Traceroute::handleTimeoutEvent(const boost::system::error_code& errorCode)
 {
-   std::lock_guard<std::recursive_mutex> lock(DestinationAddressMutex);
+   if(StopRequested == false) {
+      std::lock_guard<std::recursive_mutex> lock(DestinationAddressMutex);
 
-   // ====== Stop requested? ================================================
-   if(StopRequested) {
-      return;
-   }
-
-   // ====== Has destination been reached with current TTL? =================
-   if(DestinationAddressIterator != DestinationAddresses.end()) {
-      TTLCache[*DestinationAddressIterator] = LastHop;
-      if(LastHop == 0xffffffff) {
-         if(notReachedWithCurrentTTL()) {
-            // Try another round ...
-            sendRequests();
-            return;
+      // ====== Has destination been reached with current TTL? ==============
+      if(DestinationAddressIterator != DestinationAddresses.end()) {
+         TTLCache[*DestinationAddressIterator] = LastHop;
+         if(LastHop == 0xffffffff) {
+            if(notReachedWithCurrentTTL()) {
+               // Try another round ...
+               sendRequests();
+               return;
+            }
          }
       }
-   }
 
-   // ====== Create results output ==========================================
-   processResults();
+      // ====== Create results output =======================================
+      processResults();
 
-   // ====== Prepare new run ================================================
-   if(prepareRun() == false) {
-      sendRequests();
-   }
-   else {
-      // Done with this round -> schedule next round!
-      scheduleIntervalEvent();
+      // ====== Prepare new run =============================================
+      if(prepareRun() == false) {
+         sendRequests();
+      }
+      else {
+         // Done with this round -> schedule next round!
+         scheduleIntervalEvent();
+      }
    }
 }
 
@@ -703,16 +700,13 @@ void Traceroute::handleTimeoutEvent(const boost::system::error_code& errorCode)
 // ###### Handle timer event ################################################
 void Traceroute::handleIntervalEvent(const boost::system::error_code& errorCode)
 {
-   // ====== Stop requested? ================================================
-   if(StopRequested) {
-      return;
-   }
-
-   // ====== Prepare new run ================================================
-   if(errorCode != boost::asio::error::operation_aborted) {
-      HPCT_LOG(debug) << getName() << ": Starting iteration " << (IterationNumber + 1) << " ...";
-      prepareRun(true);
-      sendRequests();
+   if(StopRequested == false) {
+      // ====== Prepare new run =============================================
+      if(errorCode != boost::asio::error::operation_aborted) {
+         HPCT_LOG(debug) << getName() << ": Starting iteration " << (IterationNumber + 1) << " ...";
+         prepareRun(true);
+         sendRequests();
+      }
    }
 }
 
