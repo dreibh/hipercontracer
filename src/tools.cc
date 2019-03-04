@@ -66,14 +66,12 @@ passwd* getUser(const char* user)
 
 
 // ###### Reduce permissions of process #####################################
-bool reducePermissions(const passwd* pw, const bool verboseMode)
+bool reducePermissions(const passwd* pw)
 {
    // ====== Reduce permissions =============================================
    if((pw != NULL) && (pw->pw_uid != 0)) {
-      if(verboseMode) {
-         HPCT_LOG(info) << "Using UID " << pw->pw_uid
-                        << ", GID " << pw->pw_gid << std::endl;
-      }
+      HPCT_LOG(info) << "Using UID " << pw->pw_uid
+                     << ", GID " << pw->pw_gid << std::endl;
       if(setgid(pw->pw_gid) != 0) {
          HPCT_LOG(fatal) << "setgid(" << pw->pw_gid << ") failed: " << strerror(errno) << std::endl;
          ::exit(1);

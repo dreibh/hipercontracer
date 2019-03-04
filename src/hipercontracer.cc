@@ -120,7 +120,6 @@ int main(int argc, char** argv)
    unsigned int       pingExpiration            = 30000;
    unsigned int       pingTTL                   = 64;
 
-   bool               verboseMode               = true;
    unsigned int       resultsTransactionLength  = 60;
    std::string        resultsDirectory;
 
@@ -139,10 +138,10 @@ int main(int argc, char** argv)
          serviceTraceroute = true;
       }
       else if(strcmp(argv[i], "-quiet") == 0) {
-         verboseMode = false;
+         logLevel = boost::log::trivial::severity_level::info;
       }
       else if(strcmp(argv[i], "-verbose") == 0) {
-         verboseMode = true;
+         logLevel = boost::log::trivial::severity_level::debug;
       }
       else if(strncmp(argv[i], "-user=", 6) == 0) {
          user = (const char*)&argv[i][6];
@@ -252,7 +251,7 @@ int main(int argc, char** argv)
                                            ResultsWriterSet,
                                            *sourceIterator, "Ping", resultsDirectory, resultsTransactionLength,
                                            (pw != NULL) ? pw->pw_uid : 0, (pw != NULL) ? pw->pw_gid : 0),
-                                        iterations, false, verboseMode,
+                                        iterations, false,
                                         *sourceIterator, DestinationArray,
                                         pingInterval, pingExpiration, pingTTL);
             if(service->start() == false) {
@@ -271,7 +270,7 @@ int main(int argc, char** argv)
                                                  ResultsWriterSet,
                                                  *sourceIterator, "Traceroute", resultsDirectory, resultsTransactionLength,
                                                  (pw != NULL) ? pw->pw_uid : 0, (pw != NULL) ? pw->pw_gid : 0),
-                                              iterations, false, verboseMode,
+                                              iterations, false,
                                               *sourceIterator, DestinationArray,
                                               tracerouteInterval, tracerouteExpiration,
                                               tracerouteRounds,
@@ -291,7 +290,7 @@ int main(int argc, char** argv)
 
 
    // ====== Reduce permissions =============================================
-   reducePermissions(pw, verboseMode);
+   reducePermissions(pw);
 
 
    // ====== Wait for termination signal ====================================

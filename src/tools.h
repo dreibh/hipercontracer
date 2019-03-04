@@ -40,7 +40,7 @@
 uint64_t usSinceEpoch(const std::chrono::system_clock::time_point& time);
 
 passwd* getUser(const char* user);
-bool reducePermissions(const passwd* pw, const bool verboseMode);
+bool reducePermissions(const passwd* pw);
 
 
 #endif

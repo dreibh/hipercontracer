@@ -41,13 +41,12 @@
 Ping::Ping(ResultsWriter*                           resultsWriter,
            const unsigned int                       iterations,
            const bool                               removeDestinationAfterRun,
-           const bool                               verboseMode,
            const boost::asio::ip::address&          sourceAddress,
            const std::set<boost::asio::ip::address> destinationAddressArray,
            const unsigned long long                 interval,
            const unsigned int                       expiration,
            const unsigned int                       ttl)
-   : Traceroute(resultsWriter, iterations, false, verboseMode,
+   : Traceroute(resultsWriter, iterations, false,
                 sourceAddress, destinationAddressArray,
                 interval, expiration, ttl, ttl, ttl)
 {
