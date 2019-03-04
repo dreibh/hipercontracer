@@ -875,11 +875,12 @@ void Traceroute::recordResult(const std::chrono::system_clock::time_point& recei
 }
 
 
-// ###### Convert ptime to microseconds #####################################
+// For HiPerConTracer packets: time stamp is microseconds since 1976-09-26.
+static const std::chrono::system_clock::time_point MyEpoch =
+   std::chrono::system_clock::from_time_t(212803200);
+
+// ###### Get timestamp for outgoing HiPerConTracer packets #################
 unsigned long long Traceroute::makePacketTimeStamp(const std::chrono::system_clock::time_point& time)
 {
-   // For HiPerConTracer packets: time stamp is microseconds since 1976-09-26.
-   static const std::chrono::system_clock::time_point epoch =
-      std::chrono::system_clock::from_time_t(212803200);
-   return std::chrono::duration_cast<std::chrono::microseconds>(time - epoch).count();
+   return std::chrono::duration_cast<std::chrono::microseconds>(time - MyEpoch).count();
 }
