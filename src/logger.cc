@@ -89,12 +89,14 @@ void initialiseLogger(const unsigned int logLevel)
    // ====== Set filter ====================================================
    MySink->set_filter(boost::log::trivial::severity >= logLevel);
 
-/*
+   HPCT_LOG(trace) << "Initialised logger";
+
+#if 0
    HPCT_LOG(fatal)   << "FATAL";
    HPCT_LOG(error)   << "Error";
-   HPCT_LOG(warning) << "Warnig";
+   HPCT_LOG(warning) << "Warning";
    HPCT_LOG(info)    << "Info";
    HPCT_LOG(debug)   << "Debug";
    HPCT_LOG(trace)   << "Trace";
-*/
+#endif
 }
