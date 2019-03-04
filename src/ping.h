@@ -47,6 +47,8 @@ class Ping : public Traceroute
         const unsigned int                       ttl        =    64);
    virtual ~Ping();
 
+   virtual const std::string& getName() const;
+
    protected:
    virtual bool prepareRun(const bool newRound = false);
    virtual void scheduleTimeoutEvent();
@@ -57,6 +59,8 @@ class Ping : public Traceroute
 
    private:
    static int comparePingResults(const ResultEntry* a, const ResultEntry* b);
+
+   const std::string PingInstanceName;
 };
 
 #endif

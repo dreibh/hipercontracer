@@ -96,7 +96,8 @@ Traceroute::Traceroute(ResultsWriter*                            resultsWriter,
                        const unsigned int                        initialMaxTTL,
                        const unsigned int                        finalMaxTTL,
                        const unsigned int                        incrementMaxTTL)
-   : ResultsOutput(resultsWriter),
+   : TracerouteInstanceName(std::string("Traceroute(") + sourceAddress.to_string() + std::string(")")),
+     ResultsOutput(resultsWriter),
      Iterations(iterations),
      RemoveDestinationAfterRun(removeDestinationAfterRun),
      Interval(interval),
@@ -179,6 +180,13 @@ Traceroute::~Traceroute()
 
 
 // ###### Start thread ######################################################
+const std::string& Traceroute::getName() const
+{
+   return TracerouteInstanceName;
+}
+
+
+// ###### Start thread ######################################################
 bool Traceroute::start()
 {
    StopRequested = false;
@@ -220,7 +228,7 @@ bool Traceroute::prepareSocket()
    boost::system::error_code errorCode;
    ICMPSocket.bind(boost::asio::ip::icmp::endpoint(SourceAddress, 0), errorCode);
    if(errorCode !=  boost::system::errc::success) {
-      HPCT_LOG(error) << "Unable to bind ICMP socket to source address "
+      HPCT_LOG(error) << getName() << ": Unable to bind ICMP socket to source address "
                       << SourceAddress << "!";
       return(false);
    }
@@ -272,7 +280,7 @@ bool Traceroute::prepareRun(const bool newRound)
          else {
             std::set<boost::asio::ip::address>::iterator toBeDeleted = DestinationAddressIterator;
             DestinationAddressIterator++;
-            HPCT_LOG(debug) << "Removing " << *toBeDeleted;
+            HPCT_LOG(debug) << getName() << ": Removing " << *toBeDeleted;
             DestinationAddresses.erase(toBeDeleted);
          }
       }
@@ -300,7 +308,7 @@ void Traceroute::sendRequests()
    // ====== Send requests, if there are destination addresses ==============
    if(DestinationAddressIterator != DestinationAddresses.end()) {
       const boost::asio::ip::address& destinationAddress = *DestinationAddressIterator;
-      HPCT_LOG(debug) << "Traceroute from " << SourceAddress
+      HPCT_LOG(debug) << getName() << ": Traceroute from " << SourceAddress
                       << " to " << destinationAddress << " ...";
 
       // ====== Send Echo Requests ==========================================
@@ -355,7 +363,7 @@ void Traceroute::scheduleIntervalEvent()
       IntervalTimer.expires_from_now(boost::posix_time::milliseconds(millisecondsToWait));
       IntervalTimer.async_wait(boost::bind(&Traceroute::handleIntervalEvent, this,
                                            boost::asio::placeholders::error));
-      HPCT_LOG(debug) << "Waiting " << millisecondsToWait / 1000.0
+      HPCT_LOG(debug) << getName() << ": Waiting " << millisecondsToWait / 1000.0
                       << "s before iteration " << (IterationNumber + 1) << " ...";
 
       // ====== Check, whether it is time for starting a new transaction ====
@@ -396,7 +404,7 @@ void Traceroute::expectNextReply()
 // ###### All requests have received a response #############################
 void Traceroute::noMoreOutstandingRequests()
 {
-   HPCT_LOG(trace) << "Completed!";
+   HPCT_LOG(trace) << getName() << ": Completed!";
    cancelTimeoutTimer();
 }
 
@@ -477,7 +485,7 @@ void Traceroute::sendICMPRequest(const boost::asio::ip::address& destinationAddr
       sent = -1;
    }
    if(sent < 1) {
-      HPCT_LOG(warning) << "Traceroute::sendICMPRequest() - ICMP send_to("
+      HPCT_LOG(warning) << getName() << ": Traceroute::sendICMPRequest() - ICMP send_to("
                         << SourceAddress << "->" << destinationAddress << ") failed!";
    }
    else {
@@ -515,7 +523,7 @@ bool Traceroute::notReachedWithCurrentTTL()
    if(MaxTTL < FinalMaxTTL) {
       MinTTL = MaxTTL + 1;
       MaxTTL = std::min(MaxTTL + IncrementMaxTTL, FinalMaxTTL);
-      HPCT_LOG(debug) << "Cannot reach " << *DestinationAddressIterator
+      HPCT_LOG(debug) << getName() << ": Cannot reach " << *DestinationAddressIterator
                       << " with TTL " << MinTTL - 1 << ", now trying TTLs "
                       << MinTTL << " to " << MaxTTL << " ...";
       return(true);
@@ -604,14 +612,14 @@ void Traceroute::processResults()
       }
 
       // ====== Print traceroute entries =======================================
-      HPCT_LOG(debug) << "Round " << round << ":";
+      HPCT_LOG(debug) << getName() << ": Round " << round << ":";
 
       bool     writeHeader   = true;
       uint16_t checksumCheck = 0;
       for(std::vector<ResultEntry*>::iterator iterator = resultsVector.begin(); iterator != resultsVector.end(); iterator++) {
          ResultEntry* resultEntry = *iterator;
          if(resultEntry->round() == round) {
-            HPCT_LOG(debug) << *resultEntry;
+            HPCT_LOG(debug) << getName() << ": " << *resultEntry;
 
             if(ResultsOutput) {
                if(timeStamp == 0) {
@@ -702,7 +710,7 @@ void Traceroute::handleIntervalEvent(const boost::system::error_code& errorCode)
 
    // ====== Prepare new run ================================================
    if(errorCode != boost::asio::error::operation_aborted) {
-      HPCT_LOG(debug) << "Starting iteration " << (IterationNumber + 1) << " ...";
+      HPCT_LOG(debug) << getName() << ": Starting iteration " << (IterationNumber + 1) << " ...";
       prepareRun(true);
       sendRequests();
    }

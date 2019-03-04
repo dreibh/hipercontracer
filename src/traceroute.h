@@ -152,6 +152,7 @@ class Traceroute : virtual public Service
    virtual const boost::asio::ip::address& getSource();
    virtual bool addDestination(const boost::asio::ip::address& destinationAddress);
 
+   virtual const std::string& getName() const;
    virtual bool start();
    virtual void requestStop();
    virtual bool joinable();
@@ -192,6 +193,7 @@ class Traceroute : virtual public Service
 
    static unsigned long long makePacketTimeStamp(const std::chrono::system_clock::time_point& time);
 
+   const std::string                                TracerouteInstanceName;
    ResultsWriter*                                   ResultsOutput;
    const unsigned int                               Iterations;
    const bool                                       RemoveDestinationAfterRun;

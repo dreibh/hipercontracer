@@ -48,7 +48,9 @@ Ping::Ping(ResultsWriter*                           resultsWriter,
            const unsigned int                       ttl)
    : Traceroute(resultsWriter, iterations, false,
                 sourceAddress, destinationAddressArray,
-                interval, expiration, ttl, ttl, ttl)
+                interval, expiration, ttl, ttl, ttl),
+     PingInstanceName(std::string("Ping(") + sourceAddress.to_string() + std::string(")"))
+
 {
 }
 
@@ -56,6 +58,13 @@ Ping::Ping(ResultsWriter*                           resultsWriter,
 // ###### Destructor ########################################################
 Ping::~Ping()
 {
+}
+
+
+// ###### Start thread ######################################################
+const std::string& Ping::getName() const
+{
+   return PingInstanceName;
 }
 
 
@@ -137,7 +146,7 @@ void Ping::processResults()
 
       // ====== Print completed entries =====================================
       if(resultEntry->status() != Unknown) {
-         HPCT_LOG(debug) << *resultEntry;
+         HPCT_LOG(debug) << getName() << ": " << *resultEntry;
 
          if(ResultsOutput) {
             ResultsOutput->insert(
