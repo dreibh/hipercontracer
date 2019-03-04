@@ -344,28 +344,28 @@ int main(int argc, char** argv)
    pingExpiration            = std::min(std::max(100U, pingExpiration),          3600U*60000U);
    pingTTL                   = std::min(std::max(1U, pingTTL),                   255U);
 
-   std::cout << "Results Output:" << std::endl;
+   HPCT_LOG(info) << "Results Output:";
    if(!resultsDirectory.empty()) {
-      std::cout << "* Results Directory  = " << resultsDirectory         << std::endl
-                << "* Transaction Length = " << resultsTransactionLength << " s" << std::endl;
+      HPCT_LOG(info) << "* Results Directory  = " << resultsDirectory         << std::endl
+                     << "* Transaction Length = " << resultsTransactionLength << " s";
    }
    else {
-      std::cout << "-- turned off--" << std::endl;
+      HPCT_LOG(info) << "-- turned off--" << std::endl;
    }
    if(servicePing) {
-      std::cout << "Ping Service:" << std:: endl
-                << "* Interval           = " << pingInterval   << " ms" << std::endl
-                << "* Expiration         = " << pingExpiration << " ms" << std::endl
-                << "* TTL                = " << pingTTL        << std::endl;
+      HPCT_LOG(info) << "Ping Service:" << std:: endl
+                     << "* Interval           = " << pingInterval   << " ms" << std::endl
+                     << "* Expiration         = " << pingExpiration << " ms" << std::endl
+                     << "* TTL                = " << pingTTL;
    }
    if(serviceTraceroute) {
-      std::cout << "Traceroute Service:" << std:: endl
-                << "* Interval           = " << tracerouteInterval        << " ms" << std::endl
-                << "* Expiration         = " << tracerouteExpiration      << " ms" << std::endl
-                << "* Rounds             = " << tracerouteRounds          << std::endl
-                << "* Initial MaxTTL     = " << tracerouteInitialMaxTTL   << std::endl
-                << "* Final MaxTTL       = " << tracerouteFinalMaxTTL     << std::endl
-                << "* Increment MaxTTL   = " << tracerouteIncrementMaxTTL << std::endl;
+      HPCT_LOG(info) << "Traceroute Service:" << std:: endl
+                     << "* Interval           = " << tracerouteInterval        << " ms" << std::endl
+                     << "* Expiration         = " << tracerouteExpiration      << " ms" << std::endl
+                     << "* Rounds             = " << tracerouteRounds          << std::endl
+                     << "* Initial MaxTTL     = " << tracerouteInitialMaxTTL   << std::endl
+                     << "* Final MaxTTL       = " << tracerouteFinalMaxTTL     << std::endl
+                     << "* Increment MaxTTL   = " << tracerouteIncrementMaxTTL;
    }
 
 
