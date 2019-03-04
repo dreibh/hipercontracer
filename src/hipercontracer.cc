@@ -201,11 +201,11 @@ int main(int argc, char** argv)
    if( (SourceArray.size() < 1) ||
        (DestinationArray.size() < 1) ) {
       HPCT_LOG(fatal) << "ERROR: At least one source and destination are needed!" << std::endl;
-      return(1);
+      ::exit(1);
    }
    if((servicePing == false) && (serviceTraceroute == false)) {
       HPCT_LOG(fatal) << "ERROR: Enable at least on service (Ping or Traceroute)!" << std::endl;
-      return(1);
+      ::exit(1);
    }
 
    std::srand(std::time(0));
