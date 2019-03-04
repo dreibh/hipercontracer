@@ -36,13 +36,11 @@
 #include <string.h>
 #include <unistd.h>
 
-#include <iostream>
-
 
 // ###### Convert time to microseconds since the epoch ######################
 uint64_t usSinceEpoch(const std::chrono::system_clock::time_point& time)
 {
-   const std::chrono::system_clock::duration          duration = time.time_since_epoch();
+   const std::chrono::system_clock::duration duration = time.time_since_epoch();
    return std::chrono::duration_cast<std::chrono::microseconds>(duration).count();
 }
 
@@ -56,7 +54,7 @@ passwd* getUser(const char* user)
       if(pw == NULL) {
          pw = getpwuid(atoi(user));
          if(pw == NULL) {
-            HPCT_LOG(fatal) << "Provided user " << user << " is not a user name or UID!" << std::endl;
+            HPCT_LOG(fatal) << "Provided user " << user << " is not a user name or UID!";
             ::exit(1);
          }
       }
@@ -70,19 +68,18 @@ bool reducePermissions(const passwd* pw)
 {
    // ====== Reduce permissions =============================================
    if((pw != NULL) && (pw->pw_uid != 0)) {
-      HPCT_LOG(info) << "Using UID " << pw->pw_uid
-                     << ", GID " << pw->pw_gid << std::endl;
+      HPCT_LOG(info) << "Using UID " << pw->pw_uid << ", GID " << pw->pw_gid;
       if(setgid(pw->pw_gid) != 0) {
-         HPCT_LOG(fatal) << "setgid(" << pw->pw_gid << ") failed: " << strerror(errno) << std::endl;
+         HPCT_LOG(fatal) << "setgid(" << pw->pw_gid << ") failed: " << strerror(errno);
          ::exit(1);
       }
       if(setuid(pw->pw_uid) != 0) {
-         HPCT_LOG(fatal) << "setuid(" << pw->pw_uid << ") failed: " << strerror(errno) << std::endl;
+         HPCT_LOG(fatal) << "setuid(" << pw->pw_uid << ") failed: " << strerror(errno);
          ::exit(1);
       }
    }
    else {
-      HPCT_LOG(info) << "Working as root (uid 0). This is not recommended!" << std::endl;
+      HPCT_LOG(info) << "Working as root (uid 0). This is not recommended!";
       return false;
    }
 

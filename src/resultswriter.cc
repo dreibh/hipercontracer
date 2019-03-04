@@ -30,8 +30,7 @@
 // Contact: dreibh@simula.no
 
 #include "resultswriter.h"
-
-#include <iostream>
+#include "logger.h"
 
 #include <boost/format.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
@@ -75,13 +74,13 @@ bool ResultsWriter::prepare()
       const int r1 = chown(Directory.string().c_str(), UID, GID);
       const int r2 = chown(tempDirectory.string().c_str(), UID, GID);
       if(r1 || r2) {
-         std::cerr << "WARNING: Setting ownership of " << Directory << " or "
-                   << tempDirectory << " to UID " << UID << ", GID " << GID
-                   << " failed: " << strerror(errno) << std::endl;
+         HPCT_LOG(warning) << "Setting ownership of " << Directory << " or "
+                           << tempDirectory << " to UID " << UID << ", GID " << GID
+                           << " failed: " << strerror(errno);
       }
    }
    catch(std::exception const& e) {
-      std::cerr << "ERROR: Unable to prepare directories - " << e.what() << std::endl;
+      HPCT_LOG(error) << "Unable to prepare directories - " << e.what();
       return(false);
    }
    return(changeFile());
@@ -106,7 +105,7 @@ bool ResultsWriter::changeFile(const bool createNewFile)
          }
       }
       catch(std::exception const& e) {
-         std::cerr << "ERROR: ResultsWriter::changeFile() - " << e.what() << std::endl;
+         HPCT_LOG(warning) << "ResultsWriter::changeFile() - " << e.what();
       }
    }
 
@@ -123,14 +122,14 @@ bool ResultsWriter::changeFile(const bool createNewFile)
          OutputStream.push(OutputFile);
          OutputCreationTime = std::chrono::steady_clock::now();
          if( (OutputStream.good()) && (chown(TempFileName.c_str(), UID, GID) != 0) ) {
-            std::cerr << "WARNING: Setting ownership of " << TempFileName
-                     << " to UID " << UID << ", GID " << GID
-                     << " failed: " << strerror(errno) << std::endl;
+            HPCT_LOG(warning) << "Setting ownership of " << TempFileName
+                              << " to UID " << UID << ", GID " << GID
+                              << " failed: " << strerror(errno);
          }
          return(OutputStream.good());
       }
       catch(std::exception const& e) {
-         std::cerr << "ERROR: ResultsWriter::changeFile() - " << e.what() << std::endl;
+         HPCT_LOG(error) << "ResultsWriter::changeFile() - " << e.what();
          return(false);
       }
    }
@@ -152,7 +151,6 @@ bool ResultsWriter::mayStartNewTransaction()
 // ###### Generate INSERT statement #########################################
 void ResultsWriter::insert(const std::string& tuple)
 {
-   // std::cout << tuple << std::endl;
    OutputStream << tuple << std::endl;
    Inserts++;
 }

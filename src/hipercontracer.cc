@@ -103,7 +103,7 @@ static void tryCleanup(const boost::system::error_code& errorCode)
 int main(int argc, char** argv)
 {
    // ====== Initialize =====================================================
-   unsigned int       logLevel                  = 0;
+   unsigned int       logLevel                  = boost::log::trivial::severity_level::info;
    const char*        user                      = NULL;
    bool               servicePing               = false;
    bool               serviceTraceroute         = false;
@@ -137,17 +137,17 @@ int main(int argc, char** argv)
       else if(strcmp(argv[i], "-traceroute") == 0) {
          serviceTraceroute = true;
       }
+      else if(strncmp(argv[i], "-loglevel=", 10) == 0) {
+         logLevel = std::strtoul((const char*)&argv[i][10], NULL, 10);
+      }
       else if(strcmp(argv[i], "-quiet") == 0) {
-         logLevel = boost::log::trivial::severity_level::info;
+         logLevel = boost::log::trivial::severity_level::warning;
       }
       else if(strcmp(argv[i], "-verbose") == 0) {
          logLevel = boost::log::trivial::severity_level::debug;
       }
       else if(strncmp(argv[i], "-user=", 6) == 0) {
          user = (const char*)&argv[i][6];
-      }
-      else if(strncmp(argv[i], "-loglevel=", 10) == 0) {
-         logLevel = std::strtoul((const char*)&argv[i][10], NULL, 10);
       }
       else if(strncmp(argv[i], "-iterations=", 12) == 0) {
          iterations = std::strtoul((const char*)&argv[i][12], NULL, 10);

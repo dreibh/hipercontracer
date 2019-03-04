@@ -29,6 +29,7 @@
 .Nm hipercontracer
 .Op \-ping
 .Op \-traceroute
+.Op \-loglevel level
 .Op \-quiet
 .Op \-verbose
 .Op \-user=user|uid
@@ -61,11 +62,12 @@ The following arguments may be provided:
 Start the ping service.
 .It traceroute
 Start the traceroute service.
+.It loglevel level
+Sets the minimum logging level to the provided value: 0=trace, 1=debug, 2=info, 3=warning, 4=error, 5=fatal.
 .It quiet
-Do not print the results to standard output. This is only useful when
-exporting into results statement files.
+Sets the minimum logging level to 3 (warning).
 .It verbose
-Print the results to standard output.
+Sets the minimum logging level to 1 (debug).
 .It user=user|uid
 After startup, HiPerConTracer uses UID and GID of the given user (by name or GID).
 The output directory's ownership as well as the ownership of the created results
