@@ -6,6 +6,7 @@ Homepage: https://www.uni-due.de/~be0001/hipercontracer/
 Build-Depends: cmake (>= 3.0.2) | cmake3,
                debhelper (>= 9),
                libboost-date-time-dev (>= 1.48.0) | libboost-date-time1.48-dev,
+               libboost-log-dev (>= 1.48.0) |  libboost-log1.48-dev,
                libboost-filesystem-dev (>= 1.48.0) | libboost-filesystem1.48-dev,
                libboost-iostreams-dev (>= 1.48.0) | libboost-iostreams1.48-dev,
                libboost-system-dev (>= 1.48.0) | libboost-system1.48-dev,
@@ -33,6 +34,7 @@ Section: libdevel
 Architecture: any
 Depends: libboost-date-time-dev (>= 1.48.0) | libboost-date-time1.48-dev,
          libboost-filesystem-dev (>= 1.48.0) | libboost-filesystem1.48-dev,
+         libboost-log-dev (>= 1.48.0) |  libboost-log1.48-dev,
          libboost-iostreams-dev (>= 1.48.0) | libboost-iostreams1.48-dev,
          libboost-system-dev (>= 1.48.0) | libboost-system1.48-dev,
          libboost-thread-dev (>= 1.48.0) | libboost-thread1.48-dev,

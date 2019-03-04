@@ -32,6 +32,7 @@
 #include <iostream>
 
 #include "tools.h"
+#include "logger.h"
 #include "resultswriter.h"
 #include "service.h"
 #include "traceroute.h"
@@ -102,6 +103,7 @@ static void tryCleanup(const boost::system::error_code& errorCode)
 int main(int argc, char** argv)
 {
    // ====== Initialize =====================================================
+   unsigned int       logLevel                  = 0;
    const char*        user                      = NULL;
    bool               servicePing               = false;
    bool               serviceTraceroute         = false;
@@ -142,44 +144,47 @@ int main(int argc, char** argv)
       else if(strcmp(argv[i], "-verbose") == 0) {
          verboseMode = true;
       }
-      else if(strncmp(argv[i], "-iterations=", 12) == 0) {
-         iterations = atol((const char*)&argv[i][12]);
-      }
       else if(strncmp(argv[i], "-user=", 6) == 0) {
          user = (const char*)&argv[i][6];
       }
+      else if(strncmp(argv[i], "-loglevel=", 10) == 0) {
+         logLevel = std::strtoul((const char*)&argv[i][10], NULL, 10);
+      }
+      else if(strncmp(argv[i], "-iterations=", 12) == 0) {
+         iterations = std::strtoul((const char*)&argv[i][12], NULL, 10);
+      }
       else if(strncmp(argv[i], "-tracerouteinterval=", 20) == 0) {
-         tracerouteInterval = atol((const char*)&argv[i][20]);
+         tracerouteInterval = std::strtoul((const char*)&argv[i][20], NULL, 10);
       }
       else if(strncmp(argv[i], "-tracerouteduration=", 20) == 0) {
-         tracerouteExpiration = atol((const char*)&argv[i][20]);
+         tracerouteExpiration = std::strtoul((const char*)&argv[i][20], NULL, 10);
       }
       else if(strncmp(argv[i], "-tracerouterounds=", 18) == 0) {
-         tracerouteRounds = atol((const char*)&argv[i][18]);
+         tracerouteRounds = std::strtoul((const char*)&argv[i][18], NULL, 10);
       }
       else if(strncmp(argv[i], "-tracerouteinitialmaxttl=", 25) == 0) {
-         tracerouteInitialMaxTTL = atol((const char*)&argv[i][25]);
+         tracerouteInitialMaxTTL = std::strtoul((const char*)&argv[i][25], NULL, 10);
       }
       else if(strncmp(argv[i], "-traceroutefinalmaxttl=", 23) == 0) {
-         tracerouteFinalMaxTTL = atol((const char*)&argv[i][23]);
+         tracerouteFinalMaxTTL = std::strtoul((const char*)&argv[i][23], NULL, 10);
       }
       else if(strncmp(argv[i], "-tracerouteincrementmaxttl=", 27) == 0) {
-         tracerouteIncrementMaxTTL = atol((const char*)&argv[i][27]);
+         tracerouteIncrementMaxTTL = std::strtoul((const char*)&argv[i][27], NULL, 10);
       }
       else if(strncmp(argv[i], "-pinginterval=", 14) == 0) {
-         pingInterval = atol((const char*)&argv[i][14]);
+         pingInterval = std::strtoul((const char*)&argv[i][14], NULL, 10);
       }
       else if(strncmp(argv[i], "-pingexpiration=", 16) == 0) {
-         pingExpiration = atol((const char*)&argv[i][16]);
+         pingExpiration = std::strtoul((const char*)&argv[i][16], NULL, 10);
       }
       else if(strncmp(argv[i], "-pingttl=", 9) == 0) {
-         pingTTL = atol((const char*)&argv[i][9]);
+         pingTTL = std::strtoul((const char*)&argv[i][9], NULL, 10);
       }
       else if(strncmp(argv[i], "-resultsdirectory=", 18) == 0) {
          resultsDirectory = (const char*)&argv[i][18];
       }
       else if(strncmp(argv[i], "-resultstransactionlength=", 26) == 0) {
-         resultsTransactionLength = atol((const char*)&argv[i][26]);
+         resultsTransactionLength = std::strtoul((const char*)&argv[i][26], NULL, 10);
       }
       else if(strcmp(argv[i], "--") == 0) {
       }
@@ -192,16 +197,17 @@ int main(int argc, char** argv)
 
 
    // ====== Initialize =====================================================
+   initialiseLogger(logLevel);
+   const passwd* pw = getUser(user);
    if( (SourceArray.size() < 1) ||
        (DestinationArray.size() < 1) ) {
-      std::cerr << "ERROR: At least one source and destination are needed!" << std::endl;
+      HPCT_LOG(fatal) << "ERROR: At least one source and destination are needed!" << std::endl;
       return(1);
    }
    if((servicePing == false) && (serviceTraceroute == false)) {
-      std::cerr << "ERROR: Enable at least on service (Ping or Traceroute)!" << std::endl;
+      HPCT_LOG(fatal) << "ERROR: Enable at least on service (Ping or Traceroute)!" << std::endl;
       return(1);
    }
-   const passwd* pw = getUser(user);
 
    std::srand(std::time(0));
    tracerouteInterval        = std::min(std::max(1000ULL, tracerouteInterval),   3600U*60000ULL);
@@ -255,7 +261,7 @@ int main(int argc, char** argv)
             ServiceSet.insert(service);
          }
          catch (std::exception& e) {
-            std::cerr << "ERROR: Cannot create Ping service - " << e.what() << std::endl;
+            HPCT_LOG(fatal) << "ERROR: Cannot create Ping service - " << e.what() << std::endl;
             ::exit(1);
          }
       }
@@ -277,7 +283,7 @@ int main(int argc, char** argv)
             ServiceSet.insert(service);
          }
          catch (std::exception& e) {
-            std::cerr << "ERROR: Cannot create Traceroute service - " << e.what() << std::endl;
+            HPCT_LOG(fatal) << "ERROR: Cannot create Traceroute service - " << e.what() << std::endl;
             ::exit(1);
          }
        }

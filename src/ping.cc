@@ -31,8 +31,7 @@
 
 #include "ping.h"
 #include "tools.h"
-
-#include <iostream>
+#include "logger.h"
 
 #include <boost/bind.hpp>
 #include <boost/format.hpp>
@@ -139,9 +138,7 @@ void Ping::processResults()
 
       // ====== Print completed entries =====================================
       if(resultEntry->status() != Unknown) {
-         if(VerboseMode) {
-            std::cout << *resultEntry << std::endl;
-         }
+         HPCT_LOG(debug) << *resultEntry;
 
          if(ResultsOutput) {
             ResultsOutput->insert(

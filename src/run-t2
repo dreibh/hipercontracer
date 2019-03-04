@@ -1,9 +1,11 @@
 #!/bin/sh
 
+# ./debug.helgrind
+
 make -j8 && \
-sudo ./hipercontracer \
+sudo ./debug.memcheck ./hipercontracer \
    -source=158.36.79.183 -user=dreibh -verbose \
-   -destination=8.8.8.8 -destination=193.99.144.80 -destination=132.252.181.87 -destination=172.31.255.254 -destination=210.37.45.148 \
+   -destination=8.8.8.8 \
    -ping -traceroute \
    -tracerouteduration=1000 \
    -tracerouteinitialmaxttl=4 \
@@ -13,5 +15,7 @@ sudo ./hipercontracer \
    -pingexpiration=7500 \
    -pingttl=56 \
    -resultsdirectory=/tmp/xy \
-   -resultstransactionlength=20 \
-   -quiet
+   -resultstransactionlength=20
+
+#    -quiet
+# -destination=193.99.144.80 -destination=132.252.181.87 -destination=172.31.255.254 -destination=210.37.45.148

@@ -176,7 +176,7 @@ ENDIF()
 FIND_PACKAGE(Threads REQUIRED)
 
 # ###### Boost ##############################################################
-FIND_PACKAGE(Boost REQUIRED COMPONENTS date_time system thread iostreams filesystem)
+FIND_PACKAGE(Boost REQUIRED COMPONENTS log date_time system thread iostreams filesystem)
 IF (NOT Boost_FOUND)
    MESSAGE(FATAL_ERROR "Cannot find Boost libraries!")
 ELSE()

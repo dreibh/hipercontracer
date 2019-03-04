@@ -36,12 +36,14 @@
 
 # ====== liblibhipercontracer ==============================================
 LIST(APPEND libhipercontracer_headers
+   logger.h
    ping.h
    resultswriter.h
    service.h
    traceroute.h
 )
 LIST(APPEND libhipercontracer_sources
+   logger.cc
    ping.cc
    resultswriter.cc
    traceroute.cc
