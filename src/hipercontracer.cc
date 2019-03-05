@@ -218,9 +218,9 @@ int main(int argc, char** argv)
    pingExpiration            = std::min(std::max(100U, pingExpiration),          3600U*60000U);
    pingTTL                   = std::min(std::max(1U, pingTTL),                   255U);
 
-   HPCT_LOG(info) << "Results Output:";
    if(!resultsDirectory.empty()) {
-      HPCT_LOG(info) << "* Results Directory  = " << resultsDirectory         << std::endl
+      HPCT_LOG(info) << "Results Output:" << std::endl
+                     << "* Results Directory  = " << resultsDirectory         << std::endl
                      << "* Transaction Length = " << resultsTransactionLength << " s";
    }
    else {
