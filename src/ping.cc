@@ -86,6 +86,7 @@ bool Ping::prepareRun(const bool newRound)
        cancelTimeoutTimer();
        cancelSocket();
    }
+   RunStartTimeStamp = std::chrono::steady_clock::now();
    return(false);   // No scheduling necessary for Ping!
 }
 
