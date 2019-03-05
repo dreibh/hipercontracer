@@ -324,8 +324,7 @@ int main(int argc, char** argv)
    // ====== Initialize =====================================================
    initialiseLogger(logLevel);
    const passwd* pw = getUser(user);
-   if( (SourceArray.size() < 1) ||
-       (DestinationArray.size() < 1) ) {
+   if(SourceArray.size() < 1) {
       HPCT_LOG(fatal) << "ERROR: At least one source is needed!";
       ::exit(1);
    }
