@@ -62,6 +62,7 @@ static boost::asio::deadline_timer                          CleanupTimer(IOServi
 
 static unsigned int                                         PingsBeforeQueuing = 3;
 static unsigned int                                         PingTriggerLength  = 53;
+static unsigned int                                         PingTriggerAge     = 300;
 
 
 // ###### Add address to set ################################################
@@ -114,7 +115,7 @@ static void tryCleanup(const boost::system::error_code& errorCode)
          std::map<boost::asio::ip::address, TargetInfo*>::iterator current = iterator;
          iterator++;
          TargetInfo* targetInfo = current->second;
-         if(now - targetInfo->LastSeen >= std::chrono::seconds(30)) {
+         if(now - targetInfo->LastSeen >= std::chrono::seconds(PingTriggerAge)) {
             TargetMap.erase(current);
             delete targetInfo;
          }
@@ -305,11 +306,14 @@ int main(int argc, char** argv)
       else if(strncmp(argv[i], "-resultstransactionlength=", 26) == 0) {
          resultsTransactionLength = std::strtoul((const char*)&argv[i][26], NULL, 10);
       }
-      else if(strncmp(argv[i], "-pingsbeforequeuing=", 20) == 0) {
-         PingsBeforeQueuing = std::strtoul((const char*)&argv[i][20], NULL, 10);
+      else if(strncmp(argv[i], "-pingtriggerage=", 16) == 0) {
+         PingTriggerAge = std::strtoul((const char*)&argv[i][16], NULL, 10);
       }
       else if(strncmp(argv[i], "-pingtriggerlength=", 19) == 0) {
          PingTriggerLength = std::strtoul((const char*)&argv[i][19], NULL, 10);
+      }
+      else if(strncmp(argv[i], "-pingsbeforequeuing=", 20) == 0) {
+         PingsBeforeQueuing = std::strtoul((const char*)&argv[i][20], NULL, 10);
       }
       else if(strcmp(argv[i], "--") == 0) {
       }
@@ -367,8 +371,9 @@ int main(int argc, char** argv)
                      << "* Increment MaxTTL   = " << tracerouteIncrementMaxTTL;
    }
    HPCT_LOG(info) << "Trigger:" << std::endl
-                  << "* Pings before Queuing  = " << PingsBeforeQueuing << std::endl
-                  << "* Ping Trigger Length   = " << PingTriggerLength;
+                  << "* Ping Trigger Age     = " << PingTriggerAge << " s" << std::endl
+                  << "* Ping Trigger Length  = " << PingTriggerLength      << std::endl
+                  << "* Pings before Queuing = " << PingsBeforeQueuing;
 
 
    // ====== Start service threads ==========================================

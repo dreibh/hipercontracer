@@ -45,8 +45,9 @@
 .Op \-pingttl=value
 .Op \-resultsdirectory=directory
 .Op \-resultstransactionlength=seconds
-.Op \-pingsbeforequeuing=count
+.Op \-pingtriggerage=seconds
 .Op \-pingtriggerlength=payload_length
+.Op \-pingsbeforequeuing=count
 .\" ###### Description ######################################################
 .Sh DESCRIPTION
 .Nm hpcttrigger
@@ -59,11 +60,13 @@ address.
 .Sh ARGUMENTS
 The following arguments may be provided:
 .Bl -tag -width indent
+.It \-pingtriggerage=seconds
+Sets the maximum number of seconds between two trigger "Pings" (default: 300).
+.It \-pingtriggerlength=payload_length
+Sets the "Ping" payload length to trigger HiPerConTracer (default: 53).
 .It \-pingsbeforequeuing=count
 Sets the number of observed "Ping" packets before triggering HiPerConTracer
 (default: 3).
-.It \-pingtriggerlength=payload_length
-Sets the "Ping" payload length to trigger HiPerConTracer (default: 53).
 .El
 
 See the manual page of HiPerConTracer for the other arguments and the output
@@ -72,7 +75,7 @@ format.
 .Sh EXAMPLES
 .Bl -tag -width indent
 .It hpcttrigger \-source=10.1.1.51 \-traceroute \-verbose \-pingsbeforequeuing=2 \-pingtriggerlength=88
-.It hpcttrigger \-source=10.1.1.51 \-ping \-verbose
+.It hpcttrigger \-source=10.1.1.51 \-pingtriggerage=1800 \-ping \-verbose
 .It hpcttrigger \-source=10.1.1.51 \-traceroute \-resultsdirectory=/tmp/results \-resultstransactionlength=60
 .El
 .\" ###### Authors ##########################################################
