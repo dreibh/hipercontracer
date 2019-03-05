@@ -366,6 +366,9 @@ int main(int argc, char** argv)
                      << "* Final MaxTTL       = " << tracerouteFinalMaxTTL     << std::endl
                      << "* Increment MaxTTL   = " << tracerouteIncrementMaxTTL;
    }
+   HPCT_LOG(info) << "Trigger:" << std::endl
+                  << "* Pings before Queuing  = " << PingsBeforeQueuing << std::endl
+                  << "* Ping Trigger Length   = " << PingTriggerLength;
 
 
    // ====== Start service threads ==========================================
