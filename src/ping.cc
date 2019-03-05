@@ -46,7 +46,7 @@ Ping::Ping(ResultsWriter*                           resultsWriter,
            const unsigned long long                 interval,
            const unsigned int                       expiration,
            const unsigned int                       ttl)
-   : Traceroute(resultsWriter, iterations, false,
+   : Traceroute(resultsWriter, iterations, removeDestinationAfterRun,
                 sourceAddress, destinationAddressArray,
                 interval, expiration, ttl, ttl, ttl),
      PingInstanceName(std::string("Ping(") + sourceAddress.to_string() + std::string(")"))
@@ -86,6 +86,16 @@ bool Ping::prepareRun(const bool newRound)
        cancelTimeoutTimer();
        cancelSocket();
    }
+
+   if(RemoveDestinationAfterRun == true) {
+      std::lock_guard<std::recursive_mutex> lock(DestinationAddressMutex);
+      DestinationAddressIterator = DestinationAddresses.begin();
+      while(DestinationAddressIterator != DestinationAddresses.end()) {
+         DestinationAddresses.erase(DestinationAddressIterator);
+         DestinationAddressIterator = DestinationAddresses.begin();
+      }
+   }
+
    RunStartTimeStamp = std::chrono::steady_clock::now();
    return(false);   // No scheduling necessary for Ping!
 }
