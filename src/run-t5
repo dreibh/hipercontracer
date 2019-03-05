@@ -4,9 +4,9 @@
 # ./debug.memcheck
 
 make -j8 && \
-sudo ./hpcttrigger \
+sudo ./debug.helgrind ./hpcttrigger \
    -source=158.36.79.183 \
-   -traceroute \
+   -ping -traceroute \
    -tracerouteduration=1000 \
    -tracerouteinitialmaxttl=4 \
    -traceroutefinalmaxttl=32 \

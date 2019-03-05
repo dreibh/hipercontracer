@@ -141,7 +141,7 @@ bool ResultsWriter::changeFile(const bool createNewFile)
 bool ResultsWriter::mayStartNewTransaction()
 {
    const std::chrono::steady_clock::time_point now = std::chrono::steady_clock::now();
-   if(std::chrono::duration_cast<std::chrono::microseconds>(now - OutputCreationTime).count() > TransactionLength) {
+   if(std::chrono::duration_cast<std::chrono::seconds>(now - OutputCreationTime).count() > TransactionLength) {
       return(changeFile());
    }
    return(true);

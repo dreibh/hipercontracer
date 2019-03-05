@@ -71,13 +71,22 @@ const std::string& Ping::getName() const
 // ###### All requests have received a response #############################
 void Ping::noMoreOutstandingRequests()
 {
-   // Nothing to do for Ping!
+   if(RemoveDestinationAfterRun == true) {
+      std::lock_guard<std::recursive_mutex> lock(DestinationAddressMutex);
+      DestinationAddressIterator = DestinationAddresses.begin();
+      while(DestinationAddressIterator != DestinationAddresses.end()) {
+         DestinationAddresses.erase(DestinationAddressIterator);
+         DestinationAddressIterator = DestinationAddresses.begin();
+      }
+   }
 }
 
 
 // ###### Prepare a new run #################################################
 bool Ping::prepareRun(const bool newRound)
 {
+   std::lock_guard<std::recursive_mutex> lock(DestinationAddressMutex);
+
    IterationNumber++;
    if((Iterations > 0) && (IterationNumber > Iterations)) {
        // ====== Done -> exit! ==============================================
@@ -87,17 +96,8 @@ bool Ping::prepareRun(const bool newRound)
        cancelSocket();
    }
 
-   if(RemoveDestinationAfterRun == true) {
-      std::lock_guard<std::recursive_mutex> lock(DestinationAddressMutex);
-      DestinationAddressIterator = DestinationAddresses.begin();
-      while(DestinationAddressIterator != DestinationAddresses.end()) {
-         DestinationAddresses.erase(DestinationAddressIterator);
-         DestinationAddressIterator = DestinationAddresses.begin();
-      }
-   }
-
    RunStartTimeStamp = std::chrono::steady_clock::now();
-   return(false);   // No scheduling necessary for Ping!
+   return(DestinationAddresses.begin() == DestinationAddresses.end());
 }
 
 

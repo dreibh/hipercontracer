@@ -272,7 +272,7 @@ bool Traceroute::prepareRun(const bool newRound)
       }
    }
    else {
-      // ====== Get next destination address ===================================
+      // ====== Get next destination address ================================
       if(DestinationAddressIterator != DestinationAddresses.end()) {
          if(RemoveDestinationAfterRun == false) {
             DestinationAddressIterator++;
@@ -351,14 +351,21 @@ void Traceroute::cancelTimeoutTimer()
 void Traceroute::scheduleIntervalEvent()
 {
    if((Iterations == 0) || (IterationNumber < Iterations)) {
-      // ====== Schedule event ==============================================
-      const unsigned long long deviation       = std::max(10ULL, Interval / 5);   // 20% deviation
-      const unsigned long long waitingDuration = Interval + (std::rand() % deviation);
+      std::lock_guard<std::recursive_mutex> lock(DestinationAddressMutex);
 
-      const std::chrono::steady_clock::duration howLongToWait =
-         (RunStartTimeStamp + std::chrono::milliseconds(waitingDuration)) - std::chrono::steady_clock::now();
-      const long long millisecondsToWait =
-         std::max(0LL, (long long)std::chrono::duration_cast<std::chrono::milliseconds>(howLongToWait).count());
+      // ====== Schedule event ==============================================
+      long long millisecondsToWait;
+      if(DestinationAddresses.begin() == DestinationAddresses.end()) {
+          // Nothing to do -> wait 1 day
+          millisecondsToWait = 24*3600*1000;
+      }
+      else {
+         const unsigned long long deviation       = std::max(10ULL, Interval / 5);   // 20% deviation
+         const unsigned long long waitingDuration = Interval + (std::rand() % deviation);
+         const std::chrono::steady_clock::duration howLongToWait =
+            (RunStartTimeStamp + std::chrono::milliseconds(waitingDuration)) - std::chrono::steady_clock::now();
+         millisecondsToWait = std::max(0LL, (long long)std::chrono::duration_cast<std::chrono::milliseconds>(howLongToWait).count());
+      }
 
       IntervalTimer.expires_from_now(boost::posix_time::milliseconds(millisecondsToWait));
       IntervalTimer.async_wait(boost::bind(&Traceroute::handleIntervalEvent, this,
