@@ -71,14 +71,7 @@ const std::string& Ping::getName() const
 // ###### All requests have received a response #############################
 void Ping::noMoreOutstandingRequests()
 {
-   if(RemoveDestinationAfterRun == true) {
-      std::lock_guard<std::recursive_mutex> lock(DestinationAddressMutex);
-      DestinationAddressIterator = DestinationAddresses.begin();
-      while(DestinationAddressIterator != DestinationAddresses.end()) {
-         DestinationAddresses.erase(DestinationAddressIterator);
-         DestinationAddressIterator = DestinationAddresses.begin();
-      }
-   }
+   // Nothing to do for Ping!
 }
 
 
@@ -178,6 +171,15 @@ void Ping::processResults()
          if(OutstandingRequests > 0) {
             OutstandingRequests--;
          }
+      }
+   }
+
+   if(RemoveDestinationAfterRun == true) {
+      std::lock_guard<std::recursive_mutex> lock(DestinationAddressMutex);
+      DestinationAddressIterator = DestinationAddresses.begin();
+      while(DestinationAddressIterator != DestinationAddresses.end()) {
+         DestinationAddresses.erase(DestinationAddressIterator);
+         DestinationAddressIterator = DestinationAddresses.begin();
       }
    }
 }
