@@ -36,6 +36,7 @@
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/iostreams/filtering_streambuf.hpp>
 #include <boost/iostreams/filter/bzip2.hpp>
+#include <boost/process/environment.hpp>
 
 
 // ###### Constructor #######################################################
@@ -169,6 +170,7 @@ ResultsWriter* ResultsWriter::makeResultsWriter(std::set<ResultsWriter*>&       
    if(!resultsDirectory.empty()) {
       std::string uniqueID =
          resultsFormat + "-" +
+         str(boost::format("P%d") %  boost::this_process::get_id()) + "-" +
          sourceAddress.to_string() + "-" +
          boost::posix_time::to_iso_string(boost::posix_time::microsec_clock::universal_time());
       replace(uniqueID.begin(), uniqueID.end(), ' ', '-');
