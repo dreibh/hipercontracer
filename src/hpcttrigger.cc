@@ -142,6 +142,8 @@ static void handlePing(const ICMPHeader& header, const std::size_t payloadLength
          TargetInfo* targetInfo = found->second;
          targetInfo->TriggerCounter++;
          targetInfo->LastSeen = std::chrono::steady_clock::now();
+         HPCT_LOG(trace) << "Triggered: " <<  IncomingPingSource.address()
+                         << ", n=" << targetInfo->TriggerCounter;
          if(targetInfo->TriggerCounter >= PingsBeforeQueuing) {
             for(std::set<Service*>::iterator serviceIterator = ServiceSet.begin(); serviceIterator != ServiceSet.end(); serviceIterator++) {
                Service* service = *serviceIterator;
@@ -152,18 +154,15 @@ static void handlePing(const ICMPHeader& header, const std::size_t payloadLength
                }
             }
          }
-         else {
-            HPCT_LOG(trace) << "Triggered: " <<  IncomingPingSource.address()
-                            << ", n=" << targetInfo->TriggerCounter;
-         }
       }
       else {
          TargetInfo* targetInfo = new TargetInfo;
          if(targetInfo != NULL) {
-            targetInfo->TriggerCounter = 0;
+            targetInfo->TriggerCounter = 1;
             targetInfo->LastSeen       = std::chrono::steady_clock::now();
             TargetMap.insert(std::pair<boost::asio::ip::address, TargetInfo*>(
                                 IncomingPingSource.address(), targetInfo));
+            HPCT_LOG(trace) << "Triggered: " <<  IncomingPingSource.address();
          }
       }
    }
@@ -381,8 +380,8 @@ int main(int argc, char** argv)
       if(servicePing) {
          try {
             Service* service = new Ping(ResultsWriter::makeResultsWriter(
-                                           ResultsWriterSet,
-                                           *sourceIterator, "Ping", resultsDirectory, resultsTransactionLength,
+                                           ResultsWriterSet, *sourceIterator, "TriggeredPing",
+                                           resultsDirectory, resultsTransactionLength,
                                            (pw != NULL) ? pw->pw_uid : 0, (pw != NULL) ? pw->pw_gid : 0),
                                         0, true,
                                         *sourceIterator, DestinationArray,
@@ -400,8 +399,8 @@ int main(int argc, char** argv)
       if(serviceTraceroute) {
          try {
             Service* service = new Traceroute(ResultsWriter::makeResultsWriter(
-                                                 ResultsWriterSet,
-                                                 *sourceIterator, "Traceroute", resultsDirectory, resultsTransactionLength,
+                                                 ResultsWriterSet, *sourceIterator, "TriggeredTraceroute",
+                                                 resultsDirectory, resultsTransactionLength,
                                                  (pw != NULL) ? pw->pw_uid : 0, (pw != NULL) ? pw->pw_gid : 0),
                                               0, true,
                                               *sourceIterator, DestinationArray,
