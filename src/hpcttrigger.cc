@@ -46,7 +46,7 @@ struct TargetInfo
    unsigned int                          TriggerCounter;
 };
 
-static std::set<boost::asio::ip::address>                   SourceArray;
+static std::set<std::pair<boost::asio::ip::address,uint8_t>> SourceArray;
 static std::set<boost::asio::ip::address>                   DestinationArray;
 static std::map<boost::asio::ip::address, TargetInfo*>      TargetMap;
 static std::set<ResultsWriter*>                             ResultsWriterSet;
@@ -63,20 +63,6 @@ static boost::asio::deadline_timer                          CleanupTimer(IOServi
 static unsigned int                                         PingsBeforeQueuing = 3;
 static unsigned int                                         PingTriggerLength  = 53;
 static unsigned int                                         PingTriggerAge     = 300;
-
-
-// ###### Add address to set ################################################
-static void addAddress(std::set<boost::asio::ip::address>& array,
-                       const std::string&                  addressString)
-{
-   boost::system::error_code errorCode;
-   boost::asio::ip::address address = boost::asio::ip::address::from_string(addressString, errorCode);
-   if(errorCode != boost::system::errc::success) {
-      std::cerr << "ERROR: Bad address " << addressString << "!" << std::endl;
-      ::exit(1);
-   }
-   array.insert(address);
-}
 
 
 // ###### Signal handler ####################################################
@@ -246,10 +232,10 @@ int main(int argc, char** argv)
    // ====== Handle arguments ===============================================
    for(int i = 1; i < argc; i++) {
       if(strncmp(argv[i], "-source=", 8) == 0) {
-         addAddress(SourceArray, (const char*)&argv[i][8]);
+         addSourceAddress(SourceArray, (const char*)&argv[i][8]);
       }
       else if(strncmp(argv[i], "-destination=", 13) == 0) {
-         addAddress(DestinationArray, (const char*)&argv[i][13]);
+         addDestinationAddress(DestinationArray, (const char*)&argv[i][13]);
       }
       else if(strcmp(argv[i], "-ping") == 0) {
          servicePing = true;
@@ -376,15 +362,16 @@ int main(int argc, char** argv)
 
 
    // ====== Start service threads ==========================================
-   for(std::set<boost::asio::ip::address>::iterator sourceIterator = SourceArray.begin(); sourceIterator != SourceArray.end(); sourceIterator++) {
+   for(std::set<std::pair<boost::asio::ip::address,uint8_t>>::iterator sourceIterator = SourceArray.begin(); sourceIterator != SourceArray.end(); sourceIterator++) {
       if(servicePing) {
          try {
             Service* service = new Ping(ResultsWriter::makeResultsWriter(
-                                           ResultsWriterSet, *sourceIterator, "TriggeredPing",
-                                           resultsDirectory, resultsTransactionLength,
+                                           ResultsWriterSet,
+                                           sourceIterator->first, sourceIterator->second,
+                                           "TriggeredPing", resultsDirectory, resultsTransactionLength,
                                            (pw != NULL) ? pw->pw_uid : 0, (pw != NULL) ? pw->pw_gid : 0),
                                         0, true,
-                                        *sourceIterator, DestinationArray,
+                                        sourceIterator->first, sourceIterator->second, DestinationArray,
                                         pingInterval, pingExpiration, pingTTL);
             if(service->start() == false) {
                ::exit(1);
@@ -399,11 +386,12 @@ int main(int argc, char** argv)
       if(serviceTraceroute) {
          try {
             Service* service = new Traceroute(ResultsWriter::makeResultsWriter(
-                                                 ResultsWriterSet, *sourceIterator, "TriggeredTraceroute",
-                                                 resultsDirectory, resultsTransactionLength,
+                                                 ResultsWriterSet,
+                                                 sourceIterator->first, sourceIterator->second,
+                                                 "TriggeredTraceroute", resultsDirectory, resultsTransactionLength,
                                                  (pw != NULL) ? pw->pw_uid : 0, (pw != NULL) ? pw->pw_gid : 0),
                                               0, true,
-                                              *sourceIterator, DestinationArray,
+                                              sourceIterator->first, sourceIterator->second, DestinationArray,
                                               tracerouteInterval, tracerouteExpiration,
                                               tracerouteRounds,
                                               tracerouteInitialMaxTTL, tracerouteFinalMaxTTL,
