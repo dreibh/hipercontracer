@@ -30,11 +30,14 @@
 // Contact: dreibh@simula.no
 
 #include "tools.h"
-
 #include "logger.h"
 
 #include <string.h>
 #include <unistd.h>
+
+#include <iostream>
+
+#include <boost/algorithm/string.hpp>
 
 
 // ###### Convert time to microseconds since the epoch ######################
@@ -84,4 +87,49 @@ bool reducePermissions(const passwd* pw)
    }
 
    return true;
+}
+
+
+// ###### Add source address to set #########################################
+void addSourceAddress(std::set<std::pair<boost::asio::ip::address,uint8_t>>& array,
+                      const std::string&                                     addressString)
+{
+   boost::system::error_code errorCode;
+
+   std::vector<std::string> addressParameters;
+   boost::split(addressParameters, addressString, boost::is_any_of(","));
+   if(addressParameters.size() > 0) {
+      unsigned int trafficClass = 0x00;
+      if(addressParameters.size() > 1) {
+         trafficClass = std::strtoul(addressParameters[1].c_str(), NULL, 16);
+         if(trafficClass > 0xff) {
+            std::cerr << "ERROR: Bad traffic class " << addressParameters[1] << "!" << std::endl;
+            ::exit(1);
+         }
+      }
+      boost::asio::ip::address address = boost::asio::ip::address::from_string(addressParameters[0], errorCode);
+      if(errorCode != boost::system::errc::success) {
+         std::cerr << "ERROR: Bad source address " << addressParameters[0] << "!" << std::endl;
+         ::exit(1);
+      }
+      array.insert(std::pair<boost::asio::ip::address,uint8_t>(address, trafficClass));
+   }
+   else {
+      std::cerr << "ERROR: Invalid source address specification " << addressString << std::endl;
+      ::exit(1);
+   }
+}
+
+
+// ###### Add destination address to set ####################################
+void addDestinationAddress(std::set<boost::asio::ip::address>& array,
+                           const std::string&                  addressString)
+{
+   boost::system::error_code errorCode;
+   boost::asio::ip::address address = boost::asio::ip::address::from_string(addressString, errorCode);
+   if(errorCode != boost::system::errc::success) {
+      std::cerr << "ERROR: Bad destination address " << addressString << "!" << std::endl;
+      ::exit(1);
+   }
+   array.insert(address);
 }
