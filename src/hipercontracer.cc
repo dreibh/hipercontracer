@@ -282,10 +282,11 @@ int main(int argc, char** argv)
          try {
             Service* service = new Ping(ResultsWriter::makeResultsWriter(
                                            ResultsWriterSet,
-                                           sourceIterator->first, "Ping", resultsDirectory, resultsTransactionLength,
+                                           sourceIterator->first, sourceIterator->second,
+                                           "Ping", resultsDirectory, resultsTransactionLength,
                                            (pw != NULL) ? pw->pw_uid : 0, (pw != NULL) ? pw->pw_gid : 0),
                                         iterations, false,
-                                        sourceIterator->first, DestinationArray,
+                                        sourceIterator->first, sourceIterator->second, DestinationArray,
                                         pingInterval, pingExpiration, pingTTL);
             if(service->start() == false) {
                ::exit(1);
@@ -301,10 +302,11 @@ int main(int argc, char** argv)
          try {
             Service* service = new Traceroute(ResultsWriter::makeResultsWriter(
                                                  ResultsWriterSet,
-                                                 sourceIterator->first, "Traceroute", resultsDirectory, resultsTransactionLength,
+                                                 sourceIterator->first, sourceIterator->second,
+                                                 "Traceroute", resultsDirectory, resultsTransactionLength,
                                                  (pw != NULL) ? pw->pw_uid : 0, (pw != NULL) ? pw->pw_gid : 0),
                                               iterations, false,
-                                              sourceIterator->first, DestinationArray,
+                                              sourceIterator->first, sourceIterator->second, DestinationArray,
                                               tracerouteInterval, tracerouteExpiration,
                                               tracerouteRounds,
                                               tracerouteInitialMaxTTL, tracerouteFinalMaxTTL,

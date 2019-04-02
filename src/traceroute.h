@@ -140,6 +140,7 @@ class Traceroute : virtual public Service
               const unsigned int                        iterations,
               const bool                                removeDestinationAfterRun,
               const boost::asio::ip::address&           sourceAddress,
+              const uint8_t                             trafficClass,
               const std::set<boost::asio::ip::address>& destinationAddressArray,
               const unsigned long long                  interval        = 30*60000ULL,
               const unsigned int                        expiration      = 3000,
@@ -205,6 +206,7 @@ class Traceroute : virtual public Service
    const unsigned int                               IncrementMaxTTL;
    boost::asio::io_service                          IOService;
    boost::asio::ip::address                         SourceAddress;
+   const uint8_t                                    TrafficClass;
    std::recursive_mutex                             DestinationAddressMutex;
    std::set<boost::asio::ip::address>               DestinationAddresses;
    std::set<boost::asio::ip::address>::iterator     DestinationAddressIterator;

@@ -42,12 +42,13 @@ Ping::Ping(ResultsWriter*                           resultsWriter,
            const unsigned int                       iterations,
            const bool                               removeDestinationAfterRun,
            const boost::asio::ip::address&          sourceAddress,
+           const uint8_t                            trafficClass,
            const std::set<boost::asio::ip::address> destinationAddressArray,
            const unsigned long long                 interval,
            const unsigned int                       expiration,
            const unsigned int                       ttl)
    : Traceroute(resultsWriter, iterations, removeDestinationAfterRun,
-                sourceAddress, destinationAddressArray,
+                sourceAddress, trafficClass, destinationAddressArray,
                 interval, expiration, ttl, ttl, ttl),
      PingInstanceName(std::string("Ping(") + sourceAddress.to_string() + std::string(")"))
 

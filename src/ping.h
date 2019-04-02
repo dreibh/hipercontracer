@@ -41,6 +41,7 @@ class Ping : public Traceroute
         const unsigned int                       iterations,
         const bool                               removeDestinationAfterRun,
         const boost::asio::ip::address&          sourceAddress,
+        const uint8_t                            trafficClass,
         const std::set<boost::asio::ip::address> destinationAddressArray,
         const unsigned long long                 interval   =  1000,
         const unsigned int                       expiration = 10000,

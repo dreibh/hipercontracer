@@ -162,6 +162,7 @@ void ResultsWriter::insert(const std::string& tuple)
 // ###### Prepare results writer ############################################
 ResultsWriter* ResultsWriter::makeResultsWriter(std::set<ResultsWriter*>&       resultsWriterSet,
                                                 const boost::asio::ip::address& sourceAddress,
+                                                const uint8_t                   trafficClass,
                                                 const std::string&              resultsFormat,
                                                 const std::string&              resultsDirectory,
                                                 const unsigned int              resultsTransactionLength,
@@ -172,8 +173,8 @@ ResultsWriter* ResultsWriter::makeResultsWriter(std::set<ResultsWriter*>&       
    if(!resultsDirectory.empty()) {
       std::string uniqueID =
          resultsFormat + "-" +
-         str(boost::format("P%d") %  getpid()) + "-" +   /* Better: boost::this_process::get_id() */
-         sourceAddress.to_string() + "-" +
+         str(boost::format("P%d") % getpid()) + "-" +   /* Better: boost::this_process::get_id() */
+         sourceAddress.to_string() + "/" + str(boost::format("%02x") % trafficClass) + "-" +
          boost::posix_time::to_iso_string(boost::posix_time::microsec_clock::universal_time());
       replace(uniqueID.begin(), uniqueID.end(), ' ', '-');
       resultsWriter = new ResultsWriter(resultsDirectory, uniqueID, resultsFormat, resultsTransactionLength,
