@@ -4,8 +4,8 @@
 # ./debug.memcheck
 
 make -j8 && \
-sudo ./debug.helgrind ./hipercontracer \
-   -source=158.36.79.183 -user=dreibh -verbose \
+sudo ./hipercontracer \
+   -source=158.36.79.183,0x1a -user=dreibh -verbose \
    -destination=8.8.8.8 -destination=193.99.144.80 -destination=132.252.181.87 -destination=172.31.255.254 -destination=210.37.45.148 \
    -ping -traceroute \
    -tracerouteduration=1000 \
