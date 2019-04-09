@@ -1,5 +1,5 @@
 Name: hipercontracer
-Version: 1.3.0~rc1.0
+Version: 1.3.0~rc1.3
 Release: 1
 Summary: High-Performance Connectivity Tracer (HiPerConTracer)
 Group: Applications/Internet
@@ -38,9 +38,9 @@ make install DESTDIR=%{buildroot}
 %{_bindir}/addressinfogenerator
 %{_bindir}/hipercontracer
 %{_bindir}/tracedataimporter
-%{_datadir}/man/man1/addressinfogenerator.1.gz
-%{_datadir}/man/man1/hipercontracer.1.gz
-%{_datadir}/man/man1/tracedataimporter.1.gz
+%{_mandir}/man1/addressinfogenerator.1.gz
+%{_mandir}/man1/hipercontracer.1.gz
+%{_mandir}/man1/tracedataimporter.1.gz
 %{_datadir}/doc/hipercontracer/examples/hipercontracer-database-configuration
 %{_datadir}/doc/hipercontracer/examples/SQL/README
 %{_datadir}/doc/hipercontracer/examples/SQL/database.sql
@@ -111,8 +111,8 @@ among sites and can export the results into an SQL or Non-SQL database.
 This tool triggers HiPerConTracer by incoming "Ping" packets.
 
 %files hipercontracer-trigger
-/usr/bin/hpcttrigger
-%{_datadir}/man/man1/hpcttrigger.1.gz
+%{_bindir}/hpcttrigger
+%{_mandir}/man1/hpcttrigger.1.gz
 
 
 %changelog
