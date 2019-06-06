@@ -60,7 +60,6 @@ class ResultsWriter
 
    static ResultsWriter* makeResultsWriter(std::set<ResultsWriter*>&       resultsWriterSet,
                                            const boost::asio::ip::address& sourceAddress,
-                                           const uint8_t                   trafficClass,
                                            const std::string&              resultsFormat,
                                            const std::string&              resultsDirectory,
                                            const unsigned int              resultsTransactionLength,

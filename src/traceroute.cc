@@ -57,14 +57,14 @@ ResultEntry::ResultEntry(const unsigned short                        round,
                          const unsigned int                          hop,
                          const uint16_t                              checksum,
                          const std::chrono::system_clock::time_point sendTime,
-                         const boost::asio::ip::address&             address,
+                         const AddressWithTrafficClass&              destination,
                          const HopStatus                             status)
    : Round(round),
      SeqNumber(seqNumber),
      Hop(hop),
      Checksum(checksum),
      SendTime(sendTime),
-     Address(address),
+     Destination(destination),
      Status(status)
 {
 }
@@ -79,24 +79,23 @@ std::ostream& operator<<(std::ostream& os, const ResultEntry& resultEntry)
       << "\t" << boost::format("%9.3fms") % (std::chrono::duration_cast<std::chrono::microseconds>(resultEntry.rtt()).count() / 1000.0)
       << "\t" << boost::format("%3d")     % resultEntry.Status
       << "\t" << boost::format("%04x")    % resultEntry.Checksum
-      << "\t" << resultEntry.Address;
+      << "\t" << resultEntry.Destination;
    return(os);
 }
 
 
 // ###### Constructor #######################################################
-Traceroute::Traceroute(ResultsWriter*                            resultsWriter,
-                       const unsigned int                        iterations,
-                       const bool                                removeDestinationAfterRun,
-                       const boost::asio::ip::address&           sourceAddress,
-                       const uint8_t                             trafficClass,
-                       const std::set<boost::asio::ip::address>& destinationAddressArray,
-                       const unsigned long long                  interval,
-                       const unsigned int                        expiration,
-                       const unsigned int                        rounds,
-                       const unsigned int                        initialMaxTTL,
-                       const unsigned int                        finalMaxTTL,
-                       const unsigned int                        incrementMaxTTL)
+Traceroute::Traceroute(ResultsWriter*                           resultsWriter,
+                       const unsigned int                       iterations,
+                       const bool                               removeDestinationAfterRun,
+                       const boost::asio::ip::address&          sourceAddress,
+                       const std::set<AddressWithTrafficClass>& destinationArray,
+                       const unsigned long long                 interval,
+                       const unsigned int                       expiration,
+                       const unsigned int                       rounds,
+                       const unsigned int                       initialMaxTTL,
+                       const unsigned int                       finalMaxTTL,
+                       const unsigned int                       incrementMaxTTL)
    : TracerouteInstanceName(std::string("Traceroute(") + sourceAddress.to_string() + std::string(")")),
      ResultsOutput(resultsWriter),
      Iterations(iterations),
@@ -109,7 +108,6 @@ Traceroute::Traceroute(ResultsWriter*                            resultsWriter,
      IncrementMaxTTL(incrementMaxTTL),
      IOService(),
      SourceAddress(sourceAddress),
-     TrafficClass(trafficClass),
      ICMPSocket(IOService, (isIPv6() == true) ? boost::asio::ip::icmp::v6() : boost::asio::ip::icmp::v4()),
      TimeoutTimer(IOService),
      IntervalTimer(IOService)
@@ -129,15 +127,15 @@ Traceroute::Traceroute(ResultsWriter*                            resultsWriter,
    assert(TargetChecksumArray != NULL);
 
    // ====== Prepare destination endpoints ==================================
-   std::lock_guard<std::recursive_mutex> lock(DestinationAddressMutex);
-   for(std::set<boost::asio::ip::address>::const_iterator destinationAddressIterator = destinationAddressArray.begin();
-       destinationAddressIterator != destinationAddressArray.end(); destinationAddressIterator++) {
-      const boost::asio::ip::address destinationAddress = *destinationAddressIterator;
-      if(destinationAddress.is_v6() == SourceAddress.is_v6()) {
-         DestinationAddresses.insert(destinationAddress);
+   std::lock_guard<std::recursive_mutex> lock(DestinationMutex);
+   for(std::set<AddressWithTrafficClass>::const_iterator destinationIterator = destinationArray.begin();
+       destinationIterator != destinationArray.end(); destinationIterator++) {
+      const AddressWithTrafficClass& destination = *destinationIterator;
+      if(destination.address().is_v6() == SourceAddress.is_v6()) {
+         Destinations.insert(destination);
       }
    }
-   DestinationAddressIterator = DestinationAddresses.end();
+   DestinationIterator = Destinations.end();
 }
 
 
@@ -149,21 +147,21 @@ const boost::asio::ip::address& Traceroute::getSource()
 
 
 // ###### Add destination address ###########################################
-bool Traceroute::addDestination(const boost::asio::ip::address& destinationAddress)
+bool Traceroute::addDestination(const AddressWithTrafficClass& destination)
 {
-   if(destinationAddress.is_v6() == SourceAddress.is_v6()) {
-      std::lock_guard<std::recursive_mutex> lock(DestinationAddressMutex);
-      const std::set<boost::asio::ip::address>::const_iterator destinationIterator =
-         DestinationAddresses.find(destinationAddress);
+   if(destination.address().is_v6() == SourceAddress.is_v6()) {
+      std::lock_guard<std::recursive_mutex> lock(DestinationMutex);
+      const std::set<AddressWithTrafficClass>::const_iterator destinationIterator =
+         Destinations.find(destination);
 
-      if(destinationIterator == DestinationAddresses.end()) {
-         if(DestinationAddressIterator == DestinationAddresses.end()) {
+      if(destinationIterator == Destinations.end()) {
+         if(DestinationIterator == Destinations.end()) {
             // Address will be the first destination in list -> abort interval timer
             IntervalTimer.expires_from_now(boost::posix_time::milliseconds(0));
             IntervalTimer.async_wait(boost::bind(&Traceroute::handleIntervalEvent, this,
                                                  boost::asio::placeholders::error));
          }
-         DestinationAddresses.insert(destinationAddress);
+         Destinations.insert(destination);
          return true;
       }
 
@@ -262,28 +260,28 @@ void Traceroute::cancelSocket()
 // ###### Prepare a new run #################################################
 bool Traceroute::prepareRun(const bool newRound)
 {
-   std::lock_guard<std::recursive_mutex> lock(DestinationAddressMutex);
+   std::lock_guard<std::recursive_mutex> lock(DestinationMutex);
 
    if(newRound) {
       IterationNumber++;
 
       // ====== Rewind ======================================================
-      DestinationAddressIterator = DestinationAddresses.begin();
+      DestinationIterator = Destinations.begin();
       for(unsigned int i = 0; i < Rounds; i++) {
          TargetChecksumArray[i] = ~0U;   // Use a new target checksum!
       }
    }
    else {
       // ====== Get next destination address ================================
-      if(DestinationAddressIterator != DestinationAddresses.end()) {
+      if(DestinationIterator != Destinations.end()) {
          if(RemoveDestinationAfterRun == false) {
-            DestinationAddressIterator++;
+            DestinationIterator++;
          }
          else {
-            std::set<boost::asio::ip::address>::iterator toBeDeleted = DestinationAddressIterator;
-            DestinationAddressIterator++;
+            std::set<AddressWithTrafficClass>::iterator toBeDeleted = DestinationIterator;
+            DestinationIterator++;
             HPCT_LOG(debug) << getName() << ": Removing " << *toBeDeleted;
-            DestinationAddresses.erase(toBeDeleted);
+            Destinations.erase(toBeDeleted);
          }
       }
    }
@@ -291,33 +289,33 @@ bool Traceroute::prepareRun(const bool newRound)
    // ====== Clear results ==================================================
    ResultsMap.clear();
    MinTTL              = 1;
-   MaxTTL              = (DestinationAddressIterator != DestinationAddresses.end()) ?
-                            getInitialMaxTTL(*DestinationAddressIterator) : InitialMaxTTL;
+   MaxTTL              = (DestinationIterator != Destinations.end()) ?
+                            getInitialMaxTTL(*DestinationIterator) : InitialMaxTTL;
    LastHop             = 0xffffffff;
    OutstandingRequests = 0;
    RunStartTimeStamp   = std::chrono::steady_clock::now();
 
    // Return whether end of the list is reached. Then, a rewind is necessary.
-   return(DestinationAddressIterator == DestinationAddresses.end());
+   return(DestinationIterator == Destinations.end());
 }
 
 
 // ###### Send requests to all destinations #################################
 void Traceroute::sendRequests()
 {
-   std::lock_guard<std::recursive_mutex> lock(DestinationAddressMutex);
+   std::lock_guard<std::recursive_mutex> lock(DestinationMutex);
 
    // ====== Send requests, if there are destination addresses ==============
-   if(DestinationAddressIterator != DestinationAddresses.end()) {
-      const boost::asio::ip::address& destinationAddress = *DestinationAddressIterator;
+   if(DestinationIterator != Destinations.end()) {
+      const AddressWithTrafficClass& destination = *DestinationIterator;
       HPCT_LOG(debug) << getName() << ": Traceroute from " << SourceAddress
-                      << " to " << destinationAddress << " ...";
+                      << " to " << destination << " ...";
 
       // ====== Send Echo Requests ==========================================
       assert(MinTTL > 0);
       for(unsigned int round = 0; round < Rounds; round++) {
          for(int ttl = (int)MaxTTL; ttl >= (int)MinTTL; ttl--) {
-            sendICMPRequest(destinationAddress, (unsigned int)ttl, round,
+            sendICMPRequest(destination, (unsigned int)ttl, round,
                             TargetChecksumArray[round]);
          }
       }
@@ -353,11 +351,11 @@ void Traceroute::cancelTimeoutTimer()
 void Traceroute::scheduleIntervalEvent()
 {
    if((Iterations == 0) || (IterationNumber < Iterations)) {
-      std::lock_guard<std::recursive_mutex> lock(DestinationAddressMutex);
+      std::lock_guard<std::recursive_mutex> lock(DestinationMutex);
 
       // ====== Schedule event ==============================================
       long long millisecondsToWait;
-      if(DestinationAddresses.begin() == DestinationAddresses.end()) {
+      if(Destinations.begin() == Destinations.end()) {
           // Nothing to do -> wait 1 day
           millisecondsToWait = 24*3600*1000;
       }
@@ -419,9 +417,9 @@ void Traceroute::noMoreOutstandingRequests()
 
 
 // ###### Get value for initial MaxTTL ######################################
-unsigned int Traceroute::getInitialMaxTTL(const boost::asio::ip::address& destinationAddress) const
+unsigned int Traceroute::getInitialMaxTTL(const AddressWithTrafficClass& destination) const
 {
-   const std::map<boost::asio::ip::address, unsigned int>::const_iterator found = TTLCache.find(destinationAddress);
+   const std::map<AddressWithTrafficClass, unsigned int>::const_iterator found = TTLCache.find(destination);
    if(found != TTLCache.end()) {
       return(std::min(found->second, FinalMaxTTL));
    }
@@ -430,10 +428,10 @@ unsigned int Traceroute::getInitialMaxTTL(const boost::asio::ip::address& destin
 
 
 // ###### Send one ICMP request to given destination ########################
-void Traceroute::sendICMPRequest(const boost::asio::ip::address& destinationAddress,
-                                 const unsigned int              ttl,
-                                 const unsigned int              round,
-                                 uint32_t&                       targetChecksum)
+void Traceroute::sendICMPRequest(const AddressWithTrafficClass& destination,
+                                 const unsigned int             ttl,
+                                 const unsigned int             round,
+                                 uint32_t&                      targetChecksum)
 {
    // ====== Set TTL ========================================
    const boost::asio::ip::unicast::hops option(ttl);
@@ -488,14 +486,15 @@ void Traceroute::sendICMPRequest(const boost::asio::ip::address& destinationAddr
    // ====== Send the request ===============================
    std::size_t sent;
    try {
-      sent = ICMPSocket.send_to(request_buffer.data(), boost::asio::ip::icmp::endpoint(destinationAddress, 0));
+abort(); // FIIXME! TOS setting!
+      sent = ICMPSocket.send_to(request_buffer.data(), boost::asio::ip::icmp::endpoint(destination.address(), 0));
    }
    catch (boost::system::system_error const& e) {
       sent = -1;
    }
    if(sent < 1) {
       HPCT_LOG(warning) << getName() << ": Traceroute::sendICMPRequest() - ICMP send_to("
-                        << SourceAddress << "->" << destinationAddress << ") failed!";
+                        << SourceAddress << "->" << destination << ") failed!";
    }
    else {
       // ====== Record the request ==========================
@@ -503,7 +502,7 @@ void Traceroute::sendICMPRequest(const boost::asio::ip::address& destinationAddr
 
       assert((targetChecksum & ~0xffff) == 0);
       ResultEntry resultEntry(round, SeqNumber, ttl, (uint16_t)targetChecksum, sendTime,
-                              destinationAddress, Unknown);
+                              destination, Unknown);
       std::pair<std::map<unsigned short, ResultEntry>::iterator, bool> result = ResultsMap.insert(std::pair<unsigned short, ResultEntry>(SeqNumber,resultEntry));
       assert(result.second == true);
    }
@@ -527,12 +526,12 @@ void Traceroute::run()
 // ###### The destination has not been reached with the current TTL #########
 bool Traceroute::notReachedWithCurrentTTL()
 {
-   std::lock_guard<std::recursive_mutex> lock(DestinationAddressMutex);
+   std::lock_guard<std::recursive_mutex> lock(DestinationMutex);
 
    if(MaxTTL < FinalMaxTTL) {
       MinTTL = MaxTTL + 1;
       MaxTTL = std::min(MaxTTL + IncrementMaxTTL, FinalMaxTTL);
-      HPCT_LOG(debug) << getName() << ": Cannot reach " << *DestinationAddressIterator
+      HPCT_LOG(debug) << getName() << ": Cannot reach " << *DestinationIterator
                       << " with TTL " << MinTTL - 1 << ", now trying TTLs "
                       << MinTTL << " to " << MaxTTL << " ...";
       return(true);
@@ -578,14 +577,14 @@ void Traceroute::processResults()
 
             // ====== We have reached the destination =======================
             if(resultEntry->status() == Success) {
-               pathString += "-" + resultEntry->address().to_string();
+               pathString += "-" + resultEntry->destination().address().to_string();
                destinationReached = true;
                break;   // done!
             }
 
             // ====== Unreachable (as reported by router) ===================
             else if(statusIsUnreachable(resultEntry->status())) {
-               pathString += "-" + resultEntry->address().to_string();
+               pathString += "-" + resultEntry->destination().address().to_string();
                break;   // we can stop here!
             }
 
@@ -599,7 +598,7 @@ void Traceroute::processResults()
 
             // ====== Some other response (usually TTL exceeded) ============
             else {
-               pathString += "-" + resultEntry->address().to_string();
+               pathString += "-" + resultEntry->destination().address().to_string();
             }
          }
       }
@@ -639,15 +638,16 @@ void Traceroute::processResults()
 
                if(writeHeader) {
                   ResultsOutput->insert(
-                     str(boost::format("#T %s %s %x %d %x %d %x %x")
+                     str(boost::format("#T %s %s %x %d %x %d %x %x %x")
                         % SourceAddress.to_string()
-                        % (*DestinationAddressIterator).to_string()
+                        % (*DestinationIterator).address().to_string()
                         % timeStamp
                         % round
                         % resultEntry->checksum()
                         % totalHops
                         % statusFlags
                         % (int64_t)pathHash
+                        % (*DestinationIterator).trafficClass()
                   ));
                   writeHeader = false;
                   checksumCheck = resultEntry->checksum();
@@ -658,7 +658,7 @@ void Traceroute::processResults()
                      % resultEntry->hop()
                      % (unsigned int)resultEntry->status()
                      % std::chrono::duration_cast<std::chrono::microseconds>(resultEntry->receiveTime() - resultEntry->sendTime()).count()
-                     % resultEntry->address().to_string()
+                     % resultEntry->destination().address().to_string()
                ));
                assert(resultEntry->checksum() == checksumCheck);
             }
@@ -677,11 +677,11 @@ void Traceroute::processResults()
 void Traceroute::handleTimeoutEvent(const boost::system::error_code& errorCode)
 {
    if(StopRequested == false) {
-      std::lock_guard<std::recursive_mutex> lock(DestinationAddressMutex);
+      std::lock_guard<std::recursive_mutex> lock(DestinationMutex);
 
       // ====== Has destination been reached with current TTL? ==============
-      if(DestinationAddressIterator != DestinationAddresses.end()) {
-         TTLCache[*DestinationAddressIterator] = LastHop;
+      if(DestinationIterator != Destinations.end()) {
+         TTLCache[*DestinationIterator] = LastHop;
          if(LastHop == 0xffffffff) {
             if(notReachedWithCurrentTTL()) {
                // Try another round ...
@@ -805,8 +805,8 @@ void Traceroute::handleMessage(const boost::system::error_code& errorCode,
 
 // ###### Record result from response message ###############################
 void Traceroute::recordResult(const std::chrono::system_clock::time_point& receiveTime,
-                              const ICMPHeader&               icmpHeader,
-                              const unsigned short            seqNumber)
+                              const ICMPHeader&                            icmpHeader,
+                              const unsigned short                         seqNumber)
 {
    // ====== Find corresponding request =====================================
    std::map<unsigned short, ResultEntry>::iterator found = ResultsMap.find(seqNumber);
@@ -818,7 +818,9 @@ void Traceroute::recordResult(const std::chrono::system_clock::time_point& recei
    // ====== Get status =====================================================
    if(resultEntry.status() == Unknown) {
       resultEntry.receiveTime(receiveTime);
-      resultEntry.address(ReplyEndpoint.address());
+puts("CHECKME!");
+      resultEntry.destination(AddressWithTrafficClass(ReplyEndpoint.address(),
+                                                      resultEntry.destination().trafficClass()));
 
       HopStatus status = Unknown;
       if( (icmpHeader.type() == ICMPHeader::IPv6TimeExceeded) ||

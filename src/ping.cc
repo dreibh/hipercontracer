@@ -42,13 +42,12 @@ Ping::Ping(ResultsWriter*                           resultsWriter,
            const unsigned int                       iterations,
            const bool                               removeDestinationAfterRun,
            const boost::asio::ip::address&          sourceAddress,
-           const uint8_t                            trafficClass,
-           const std::set<boost::asio::ip::address> destinationAddressArray,
+           const std::set<AddressWithTrafficClass>& destinationArray,
            const unsigned long long                 interval,
            const unsigned int                       expiration,
            const unsigned int                       ttl)
    : Traceroute(resultsWriter, iterations, removeDestinationAfterRun,
-                sourceAddress, trafficClass, destinationAddressArray,
+                sourceAddress, destinationArray,
                 interval, expiration, ttl, ttl, ttl),
      PingInstanceName(std::string("Ping(") + sourceAddress.to_string() + std::string(")"))
 
@@ -79,7 +78,7 @@ void Ping::noMoreOutstandingRequests()
 // ###### Prepare a new run #################################################
 bool Ping::prepareRun(const bool newRound)
 {
-   std::lock_guard<std::recursive_mutex> lock(DestinationAddressMutex);
+   std::lock_guard<std::recursive_mutex> lock(DestinationMutex);
 
    IterationNumber++;
    if((Iterations > 0) && (IterationNumber > Iterations)) {
@@ -91,7 +90,7 @@ bool Ping::prepareRun(const bool newRound)
    }
 
    RunStartTimeStamp = std::chrono::steady_clock::now();
-   return(DestinationAddresses.begin() == DestinationAddresses.end());
+   return(Destinations.begin() == Destinations.end());
 }
 
 
@@ -123,7 +122,7 @@ void Ping::scheduleTimeoutEvent()
 // ###### Comparison function for results output ############################
 int Ping::comparePingResults(const ResultEntry* a, const ResultEntry* b)
 {
-   return(a->address() < b->address());
+   return(a->destination() < b->destination());
 }
 
 
@@ -155,13 +154,14 @@ void Ping::processResults()
 
          if(ResultsOutput) {
             ResultsOutput->insert(
-               str(boost::format("#P %s %s %x %x %d %d")
+               str(boost::format("#P %s %s %x %x %d %d %x")
                   % SourceAddress.to_string()
-                  % resultEntry->address().to_string()
+                  % resultEntry->destination().address().to_string()
                   % usSinceEpoch(resultEntry->sendTime())
                   % resultEntry->checksum()
                   % resultEntry->status()
                   % std::chrono::duration_cast<std::chrono::microseconds>(resultEntry->receiveTime() - resultEntry->sendTime()).count()
+                  % resultEntry->destination().trafficClass()
             ));
          }
       }
@@ -176,11 +176,11 @@ void Ping::processResults()
    }
 
    if(RemoveDestinationAfterRun == true) {
-      std::lock_guard<std::recursive_mutex> lock(DestinationAddressMutex);
-      DestinationAddressIterator = DestinationAddresses.begin();
-      while(DestinationAddressIterator != DestinationAddresses.end()) {
-         DestinationAddresses.erase(DestinationAddressIterator);
-         DestinationAddressIterator = DestinationAddresses.begin();
+      std::lock_guard<std::recursive_mutex> lock(DestinationMutex);
+      DestinationIterator = Destinations.begin();
+      while(DestinationIterator != Destinations.end()) {
+         Destinations.erase(DestinationIterator);
+         DestinationIterator = Destinations.begin();
       }
    }
 }
@@ -189,17 +189,17 @@ void Ping::processResults()
 // ###### Send requests to all destinations #################################
 void Ping::sendRequests()
 {
-   std::lock_guard<std::recursive_mutex> lock(DestinationAddressMutex);
+   std::lock_guard<std::recursive_mutex> lock(DestinationMutex);
 
    // ====== Send requests, if there are destination addresses ==============
-   if(DestinationAddresses.begin() != DestinationAddresses.end()) {
+   if(Destinations.begin() != Destinations.end()) {
       // All packets of this request block (for each destination) use the same checksum.
       // The next block of requests may then use another checksum.
       uint32_t targetChecksum = ~0U;
-      for(std::set<boost::asio::ip::address>::const_iterator destinationIterator = DestinationAddresses.begin();
-          destinationIterator != DestinationAddresses.end(); destinationIterator++) {
-         const boost::asio::ip::address& destinationAddress = *destinationIterator;
-         sendICMPRequest(destinationAddress, FinalMaxTTL, 0, targetChecksum);
+      for(std::set<AddressWithTrafficClass>::const_iterator destinationIterator = Destinations.begin();
+          destinationIterator != Destinations.end(); destinationIterator++) {
+         const AddressWithTrafficClass& destination = *destinationIterator;
+         sendICMPRequest(destination, FinalMaxTTL, 0, targetChecksum);
       }
 
       scheduleTimeoutEvent();

@@ -29,41 +29,48 @@
 //
 // Contact: dreibh@simula.no
 
-#ifndef SERVICE_H
-#define SERVICE_H
-
 #include "destination.h"
 
-#include <boost/system/error_code.hpp>
+#include <boost/format.hpp>
 
 
-class Service
+// ###### Constructor #######################################################
+AddressWithTrafficClass::AddressWithTrafficClass()
+   : Address(), TrafficClass(0x00)
 {
-   public:
-   virtual ~Service() {};
+}
 
-   virtual const boost::asio::ip::address& getSource() = 0;
-   virtual bool addDestination(const AddressWithTrafficClass& destination) = 0;
 
-   virtual const std::string& getName() const = 0;
-   virtual bool start() = 0;
-   virtual void requestStop() = 0;
-   virtual bool joinable() = 0;
-   virtual void join() = 0;
+// ###### Constructor #######################################################
+AddressWithTrafficClass::AddressWithTrafficClass(const AddressWithTrafficClass& addressWithTrafficClass)
+   : Address(addressWithTrafficClass.address()), TrafficClass(addressWithTrafficClass.trafficClass())
+{
+}
 
-//    virtual bool prepareSocket() = 0;
-//    virtual bool prepareRun(const bool newRound = false) = 0;
-//    virtual void scheduleTimeoutEvent() = 0;
-//    virtual void scheduleIntervalEvent() = 0;
-//    virtual void expectNextReply() = 0;
-//    virtual void noMoreOutstandingRequests() = 0;
-//    virtual bool notReachedWithCurrentTTL() = 0;
-//    virtual void processResults() = 0;
-//    virtual void sendRequests() = 0;
-//    virtual void handleTimeoutEvent(const boost::system::error_code& errorCode) = 0;
-//    virtual void handleIntervalEvent(const boost::system::error_code& errorCode) = 0;
-//    virtual void handleMessage(const boost::system::error_code& errorCode,
-//                               std::size_t                      length) = 0;
-};
 
-#endif
+// ###### Constructor #######################################################
+AddressWithTrafficClass::AddressWithTrafficClass(boost::asio::ip::address address, const uint8_t trafficClassValue)
+   : Address(address), TrafficClass(trafficClassValue)
+{
+}
+
+
+// ###### Output operator ###################################################
+std::ostream& operator<<(std::ostream& os, const AddressWithTrafficClass& addressWithTrafficClass)
+{
+   os << addressWithTrafficClass.address() << "/"
+      << str(boost::format("0x%02x") % addressWithTrafficClass.trafficClass());
+   return os;
+}
+
+
+// ###### Comparison operator ###############################################
+int operator<(const AddressWithTrafficClass& d1, const AddressWithTrafficClass& d2)
+{
+   if(d1.address() < d2.address()) {
+      if(d1.trafficClass() < d2.trafficClass()) {
+         return 1;
+      }
+   }
+   return 0;
+}

@@ -98,21 +98,21 @@ class ResultEntry {
                const unsigned int                          hop,
                const uint16_t                              checksum,
                const std::chrono::system_clock::time_point sendTime,
-               const boost::asio::ip::address&             address,
+               const AddressWithTrafficClass&              destination,
                const HopStatus                             status);
 
-   inline unsigned int round()               const { return(Round);     }
-   inline unsigned int seqNumber()           const { return(SeqNumber); }
-   inline unsigned int hop()                 const { return(Hop);       }
-   const boost::asio::ip::address& address() const { return(Address);   }
-   inline HopStatus status()                 const { return(Status);    }
-   inline uint16_t checksum()                const { return(Checksum);  }
+   inline unsigned int round()                  const { return(Round);       }
+   inline unsigned int seqNumber()              const { return(SeqNumber);   }
+   inline unsigned int hop()                    const { return(Hop);         }
+   const AddressWithTrafficClass& destination() const { return(Destination); }
+   inline HopStatus status()                    const { return(Status);      }
+   inline uint16_t checksum()                   const { return(Checksum);    }
    inline std::chrono::system_clock::time_point sendTime()    const { return(SendTime);    }
    inline std::chrono::system_clock::time_point receiveTime() const { return(ReceiveTime); }
    inline std::chrono::system_clock::duration   rtt()         const { return(ReceiveTime - SendTime); }
 
-   inline void address(const boost::asio::ip::address address)                      { Address = address;         }
-   inline void status(const HopStatus status)                                       { Status = status;           }
+   inline void destination(const AddressWithTrafficClass& destination)              { Destination = destination; }
+   inline void status(const HopStatus status)                                       { Status      = status;      }
    inline void receiveTime(const std::chrono::system_clock::time_point receiveTime) { ReceiveTime = receiveTime; }
 
    inline friend bool operator<(const ResultEntry& resultEntry1, const ResultEntry& resultEntry2) {
@@ -127,7 +127,7 @@ class ResultEntry {
    const uint16_t                              Checksum;
    const std::chrono::system_clock::time_point SendTime;
 
-   boost::asio::ip::address                    Address;
+   AddressWithTrafficClass                     Destination;
    HopStatus                                   Status;
    std::chrono::system_clock::time_point       ReceiveTime;
 };
@@ -136,22 +136,21 @@ class ResultEntry {
 class Traceroute : virtual public Service
 {
    public:
-   Traceroute(ResultsWriter*                            resultsWriter,
-              const unsigned int                        iterations,
-              const bool                                removeDestinationAfterRun,
-              const boost::asio::ip::address&           sourceAddress,
-              const uint8_t                             trafficClass,
-              const std::set<boost::asio::ip::address>& destinationAddressArray,
-              const unsigned long long                  interval        = 30*60000ULL,
-              const unsigned int                        expiration      = 3000,
-              const unsigned int                        rounds          = 1,
-              const unsigned int                        initialMaxTTL   = 5,
-              const unsigned int                        finalMaxTTL     = 35,
-              const unsigned int                        incrementMaxTTL = 2);
+   Traceroute(ResultsWriter*                           resultsWriter,
+              const unsigned int                       iterations,
+              const bool                               removeAddressWithTrafficClassAfterRun,
+              const boost::asio::ip::address&          sourceAddress,
+              const std::set<AddressWithTrafficClass>& destinationArray,
+              const unsigned long long                 interval        = 30*60000ULL,
+              const unsigned int                       expiration      = 3000,
+              const unsigned int                       rounds          = 1,
+              const unsigned int                       initialMaxTTL   = 5,
+              const unsigned int                       finalMaxTTL     = 35,
+              const unsigned int                       incrementMaxTTL = 2);
    virtual ~Traceroute();
 
    virtual const boost::asio::ip::address& getSource();
-   virtual bool addDestination(const boost::asio::ip::address& destinationAddress);
+   virtual bool addDestination(const AddressWithTrafficClass& destination);
 
    virtual const std::string& getName() const;
    virtual bool start();
@@ -183,54 +182,53 @@ class Traceroute : virtual public Service
    void cancelIntervalTimer();
 
    void run();
-   void sendICMPRequest(const boost::asio::ip::address& destinationAddress,
-                        const unsigned int              ttl,
-                        const unsigned int              round,
-                        uint32_t&                       targetChecksum);
+   void sendICMPRequest(const AddressWithTrafficClass& destination,
+                        const unsigned int             ttl,
+                        const unsigned int             round,
+                        uint32_t&                      targetChecksum);
    void recordResult(const std::chrono::system_clock::time_point& receiveTime,
-                     const ICMPHeader&                           icmpHeader,
-                     const unsigned short                        seqNumber);
-   unsigned int getInitialMaxTTL(const boost::asio::ip::address& destinationAddress) const;
+                     const ICMPHeader&                            icmpHeader,
+                     const unsigned short                         seqNumber);
+   unsigned int getInitialMaxTTL(const AddressWithTrafficClass&   destination) const;
 
    static unsigned long long makePacketTimeStamp(const std::chrono::system_clock::time_point& time);
 
-   const std::string                                TracerouteInstanceName;
-   ResultsWriter*                                   ResultsOutput;
-   const unsigned int                               Iterations;
-   const bool                                       RemoveDestinationAfterRun;
-   const unsigned long long                         Interval;
-   const unsigned int                               Expiration;
-   const unsigned int                               Rounds;
-   const unsigned int                               InitialMaxTTL;
-   const unsigned int                               FinalMaxTTL;
-   const unsigned int                               IncrementMaxTTL;
-   boost::asio::io_service                          IOService;
-   boost::asio::ip::address                         SourceAddress;
-   const uint8_t                                    TrafficClass;
-   std::recursive_mutex                             DestinationAddressMutex;
-   std::set<boost::asio::ip::address>               DestinationAddresses;
-   std::set<boost::asio::ip::address>::iterator     DestinationAddressIterator;
-   boost::asio::ip::icmp::socket                    ICMPSocket;
-   boost::asio::deadline_timer                      TimeoutTimer;
-   boost::asio::deadline_timer                      IntervalTimer;
-   boost::asio::ip::icmp::endpoint                  ReplyEndpoint;    // Store ICMP reply's source
+   const std::string                               TracerouteInstanceName;
+   ResultsWriter*                                  ResultsOutput;
+   const unsigned int                              Iterations;
+   const bool                                      RemoveDestinationAfterRun;
+   const unsigned long long                        Interval;
+   const unsigned int                              Expiration;
+   const unsigned int                              Rounds;
+   const unsigned int                              InitialMaxTTL;
+   const unsigned int                              FinalMaxTTL;
+   const unsigned int                              IncrementMaxTTL;
+   boost::asio::io_service                         IOService;
+   boost::asio::ip::address                        SourceAddress;
+   std::recursive_mutex                            DestinationMutex;
+   std::set<AddressWithTrafficClass>               Destinations;
+   std::set<AddressWithTrafficClass>::iterator     DestinationIterator;
+   boost::asio::ip::icmp::socket                   ICMPSocket;
+   boost::asio::deadline_timer                     TimeoutTimer;
+   boost::asio::deadline_timer                     IntervalTimer;
+   boost::asio::ip::icmp::endpoint                 ReplyEndpoint;    // Store ICMP reply's source
 
-   std::thread                                      Thread;
-   std::atomic<bool>                                StopRequested;
-   unsigned int                                     IterationNumber;
-   unsigned int                                     Identifier;
-   unsigned short                                   SeqNumber;
-   unsigned int                                     MagicNumber;
-   unsigned int                                     OutstandingRequests;
-   unsigned int                                     LastHop;
-   std::map<unsigned short, ResultEntry>            ResultsMap;
-   std::map<boost::asio::ip::address, unsigned int> TTLCache;
-   bool                                             ExpectingReply;
-   char                                             MessageBuffer[65536 + 40];
-   unsigned int                                     MinTTL;
-   unsigned int                                     MaxTTL;
-   std::chrono::steady_clock::time_point            RunStartTimeStamp;
-   uint32_t*                                        TargetChecksumArray;
+   std::thread                                     Thread;
+   std::atomic<bool>                               StopRequested;
+   unsigned int                                    IterationNumber;
+   unsigned int                                    Identifier;
+   unsigned short                                  SeqNumber;
+   unsigned int                                    MagicNumber;
+   unsigned int                                    OutstandingRequests;
+   unsigned int                                    LastHop;
+   std::map<unsigned short, ResultEntry>           ResultsMap;
+   std::map<AddressWithTrafficClass, unsigned int> TTLCache;
+   bool                                            ExpectingReply;
+   char                                            MessageBuffer[65536 + 40];
+   unsigned int                                    MinTTL;
+   unsigned int                                    MaxTTL;
+   std::chrono::steady_clock::time_point           RunStartTimeStamp;
+   uint32_t*                                       TargetChecksumArray;
 
    private:
    static int compareTracerouteResults(const ResultEntry* a, const ResultEntry* b);
