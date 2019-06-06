@@ -39,7 +39,7 @@
 #include "ping.h"
 
 
-static std::set<std::pair<boost::asio::ip::address,uint8_t>> SourceArray;
+static std::map<boost::asio::ip::address, std::set<uint8_t>> SourceArray;
 static std::set<boost::asio::ip::address> DestinationArray;
 static std::set<ResultsWriter*>           ResultsWriterSet;
 static std::set<Service*>                 ServiceSet;
@@ -230,16 +230,38 @@ int main(int argc, char** argv)
 
 
    // ====== Start service threads ==========================================
-   for(std::set<std::pair<boost::asio::ip::address,uint8_t>>::iterator sourceIterator = SourceArray.begin(); sourceIterator != SourceArray.end(); sourceIterator++) {
+   for(std::map<boost::asio::ip::address, std::set<uint8_t>>::iterator sourceIterator = SourceArray.begin();
+      sourceIterator != SourceArray.end(); sourceIterator++) {
+      const boost::asio::ip::address& sourceAddress = sourceIterator->first;
+
+      std::set<AddressWithTrafficClass> destinationsForSource;
+      for(std::set<boost::asio::ip::address>::iterator destinationIterator = DestinationArray.begin();
+          destinationIterator != DestinationArray.end(); destinationIterator++) {
+         const boost::asio::ip::address& destinationAddress = *destinationIterator;
+         for(std::set<uint8_t>::iterator trafficClassIterator = sourceIterator->second.begin();
+             trafficClassIterator != sourceIterator->second.end(); trafficClassIterator++) {
+            const uint8_t trafficClass = *trafficClassIterator;
+            std::cout << destinationAddress << " " << (unsigned int)trafficClass << std::endl;
+            destinationsForSource.insert(AddressWithTrafficClass(destinationAddress, trafficClass));
+         }
+      }
+
+
+      for(std::set<AddressWithTrafficClass>::iterator iterator = destinationsForSource.begin();
+          iterator != destinationsForSource.end(); iterator++) {
+         std::cout << " -> " << *iterator << std::endl;
+      }
+
+
       if(servicePing) {
          try {
             Service* service = new Ping(ResultsWriter::makeResultsWriter(
                                            ResultsWriterSet,
-                                           sourceIterator->first, sourceIterator->second,
+                                           sourceAddress,
                                            "Ping", resultsDirectory, resultsTransactionLength,
                                            (pw != NULL) ? pw->pw_uid : 0, (pw != NULL) ? pw->pw_gid : 0),
                                         iterations, false,
-                                        sourceIterator->first, sourceIterator->second, DestinationArray,
+                                        sourceAddress, destinationsForSource,
                                         pingInterval, pingExpiration, pingTTL);
             if(service->start() == false) {
                ::exit(1);
@@ -255,11 +277,11 @@ int main(int argc, char** argv)
          try {
             Service* service = new Traceroute(ResultsWriter::makeResultsWriter(
                                                  ResultsWriterSet,
-                                                 sourceIterator->first, sourceIterator->second,
+                                                 sourceAddress,
                                                  "Traceroute", resultsDirectory, resultsTransactionLength,
                                                  (pw != NULL) ? pw->pw_uid : 0, (pw != NULL) ? pw->pw_gid : 0),
                                               iterations, false,
-                                              sourceIterator->first, sourceIterator->second, DestinationArray,
+                                              sourceAddress, destinationsForSource,
                                               tracerouteInterval, tracerouteExpiration,
                                               tracerouteRounds,
                                               tracerouteInitialMaxTTL, tracerouteFinalMaxTTL,
@@ -273,7 +295,7 @@ int main(int argc, char** argv)
             HPCT_LOG(fatal) << "ERROR: Cannot create Traceroute service - " << e.what() << std::endl;
             ::exit(1);
          }
-       }
+      }
    }
 
 

@@ -36,7 +36,7 @@
 
 # ====== liblibhipercontracer ==============================================
 LIST(APPEND libhipercontracer_headers
-   destination.h
+   address-with-trafficclass.h
    logger.h
    ping.h
    resultswriter.h
@@ -44,7 +44,7 @@ LIST(APPEND libhipercontracer_headers
    traceroute.h
 )
 LIST(APPEND libhipercontracer_sources
-   destination.cc
+   address-with-trafficclass.cc
    logger.cc
    ping.cc
    resultswriter.cc
@@ -76,10 +76,10 @@ TARGET_LINK_LIBRARIES(hipercontracer libhipercontracer-shared ${Boost_LIBRARIES}
 INSTALL(TARGETS hipercontracer RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
 INSTALL(FILES hipercontracer.1 DESTINATION ${CMAKE_INSTALL_MANDIR}/man1)
 
-ADD_EXECUTABLE(hpcttrigger hpcttrigger.cc)
-TARGET_LINK_LIBRARIES(hpcttrigger libhipercontracer-shared ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
-INSTALL(TARGETS hpcttrigger RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
-INSTALL(FILES hpcttrigger.1 DESTINATION ${CMAKE_INSTALL_MANDIR}/man1)
+# ADD_EXECUTABLE(hpcttrigger hpcttrigger.cc)
+# TARGET_LINK_LIBRARIES(hpcttrigger libhipercontracer-shared ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
+# INSTALL(TARGETS hpcttrigger RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
+# INSTALL(FILES hpcttrigger.1 DESTINATION ${CMAKE_INSTALL_MANDIR}/man1)
 
 INSTALL(FILES tracedataimporter addressinfogenerator
         DESTINATION ${CMAKE_INSTALL_BINDIR})

@@ -29,7 +29,7 @@
 //
 // Contact: dreibh@simula.no
 
-#include "destination.h"
+#include "address-with-trafficclass.h"
 
 #include <boost/format.hpp>
 
@@ -59,7 +59,7 @@ AddressWithTrafficClass::AddressWithTrafficClass(boost::asio::ip::address addres
 std::ostream& operator<<(std::ostream& os, const AddressWithTrafficClass& addressWithTrafficClass)
 {
    os << addressWithTrafficClass.address() << "/"
-      << str(boost::format("0x%02x") % addressWithTrafficClass.trafficClass());
+      << str(boost::format("%02x") % (unsigned int)addressWithTrafficClass.trafficClass());
    return os;
 }
 
@@ -67,10 +67,14 @@ std::ostream& operator<<(std::ostream& os, const AddressWithTrafficClass& addres
 // ###### Comparison operator ###############################################
 int operator<(const AddressWithTrafficClass& d1, const AddressWithTrafficClass& d2)
 {
-   if(d1.address() < d2.address()) {
-      if(d1.trafficClass() < d2.trafficClass()) {
-         return 1;
-      }
-   }
-   return 0;
+   return ( (d1.address() < d2.address()) ||
+            ( (d1.address() == d2.address()) && (d1.trafficClass() < d2.trafficClass()) ) );
+}
+
+
+// ###### Comparison operator ###############################################
+int operator==(const AddressWithTrafficClass& d1, const AddressWithTrafficClass& d2)
+{
+   return ( (d1.address() == d2.address()) &&
+            (d1.trafficClass() == d2.trafficClass()) );
 }

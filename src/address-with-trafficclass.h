@@ -56,5 +56,7 @@ class AddressWithTrafficClass {
 
 std::ostream& operator<<(std::ostream& os, const AddressWithTrafficClass& addressWithTrafficClass);
 int operator<(const AddressWithTrafficClass& d1, const AddressWithTrafficClass& d2);
+// int operator<=(const AddressWithTrafficClass& d1, const AddressWithTrafficClass& d2);
+int operator==(const AddressWithTrafficClass& d1, const AddressWithTrafficClass& d2);
 
 #endif

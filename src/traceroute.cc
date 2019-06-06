@@ -486,8 +486,26 @@ void Traceroute::sendICMPRequest(const AddressWithTrafficClass& destination,
    // ====== Send the request ===============================
    std::size_t sent;
    try {
-abort(); // FIIXME! TOS setting!
-      sent = ICMPSocket.send_to(request_buffer.data(), boost::asio::ip::icmp::endpoint(destination.address(), 0));
+      int level;
+      int option;
+      int trafficClass = destination.trafficClass();
+      if(destination.address().is_v6()) {
+         level  = IPPROTO_IPV6;
+         option = IPV6_TCLASS;
+      }
+      else {
+         level  = IPPROTO_IP;
+         option = IP_TOS;
+      }
+
+      if(setsockopt(ICMPSocket.native_handle(), level, option,
+                    &trafficClass, sizeof(trafficClass)) < 0) {
+         HPCT_LOG(warning) << "Unable to set Traffic Class!";
+         sent = -1;
+      }
+      else {
+         sent = ICMPSocket.send_to(request_buffer.data(), boost::asio::ip::icmp::endpoint(destination.address(), 0));
+      }
    }
    catch (boost::system::system_error const& e) {
       sent = -1;
@@ -818,7 +836,7 @@ void Traceroute::recordResult(const std::chrono::system_clock::time_point& recei
    // ====== Get status =====================================================
    if(resultEntry.status() == Unknown) {
       resultEntry.receiveTime(receiveTime);
-puts("CHECKME!");
+      // Just set address, keep traffic class setting:
       resultEntry.destination(AddressWithTrafficClass(ReplyEndpoint.address(),
                                                       resultEntry.destination().trafficClass()));
 

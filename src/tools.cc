@@ -91,7 +91,7 @@ bool reducePermissions(const passwd* pw)
 
 
 // ###### Add source address to set #########################################
-void addSourceAddress(std::set<std::pair<boost::asio::ip::address,uint8_t>>& array,
+void addSourceAddress(std::map<boost::asio::ip::address, std::set<uint8_t>>& array,
                       const std::string&                                     addressString)
 {
    boost::system::error_code errorCode;
@@ -99,20 +99,30 @@ void addSourceAddress(std::set<std::pair<boost::asio::ip::address,uint8_t>>& arr
    std::vector<std::string> addressParameters;
    boost::split(addressParameters, addressString, boost::is_any_of(","));
    if(addressParameters.size() > 0) {
-      unsigned int trafficClass = 0x00;
-      if(addressParameters.size() > 1) {
-         trafficClass = std::strtoul(addressParameters[1].c_str(), NULL, 16);
-         if(trafficClass > 0xff) {
-            std::cerr << "ERROR: Bad traffic class " << addressParameters[1] << "!" << std::endl;
-            ::exit(1);
-         }
-      }
-      boost::asio::ip::address address = boost::asio::ip::address::from_string(addressParameters[0], errorCode);
+      const boost::asio::ip::address address = boost::asio::ip::address::from_string(addressParameters[0], errorCode);
       if(errorCode != boost::system::errc::success) {
          std::cerr << "ERROR: Bad source address " << addressParameters[0] << "!" << std::endl;
          ::exit(1);
       }
-      array.insert(std::pair<boost::asio::ip::address,uint8_t>(address, trafficClass));
+      std::map<boost::asio::ip::address, std::set<uint8_t>>::iterator found = array.find(address);
+      if(found == array.end()) {
+         array.insert(std::pair<boost::asio::ip::address, std::set<uint8_t>>(address, std::set<uint8_t>()));
+         found = array.find(address);
+         assert(found != array.end());
+      }
+      if(addressParameters.size() > 1) {
+         for(size_t i = 1; i  < addressParameters.size(); i++) {
+            const unsigned int trafficClass = std::strtoul(addressParameters[i].c_str(), NULL, 16);
+            if(trafficClass > 0xff) {
+               std::cerr << "ERROR: Bad traffic class " << addressParameters[i] << "!" << std::endl;
+               ::exit(1);
+            }
+            array[address].insert(trafficClass);
+         }
+      }
+      else {
+         array[address].insert(0x00);
+      }
    }
    else {
       std::cerr << "ERROR: Invalid source address specification " << addressString << std::endl;
