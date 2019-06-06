@@ -73,9 +73,10 @@ CREATE TABLE Ping (
    TimeStamp TIMESTAMP WITHOUT TIME ZONE NOT NULL,   -- Time stamp (always UTC!)
    FromIP    INET     NOT NULL,                      -- Source IP address
    ToIP      INET     NOT NULL,                      -- Destination IP address
+   TC        SMALLINT NOT NULL DEFAULT 0,            -- Traffic Class
    Status    SMALLINT NOT NULL,                      -- Status
    RTT       INTEGER  NOT NULL,                      -- microseconds (max. 2147s)
-   PRIMARY KEY (FromIP, ToIP, TimeStamp)
+   PRIMARY KEY (FromIP, ToIP, TC, TimeStamp)
 );
 
 CREATE INDEX PingTimeStampIndex ON Ping (TimeStamp ASC);
@@ -90,6 +91,7 @@ CREATE TABLE Traceroute (
    TimeStamp TIMESTAMP WITHOUT TIME ZONE NOT NULL,   -- Time stamp (always UTC!)
    FromIP    INET     NOT NULL,                      -- Source IP address
    ToIP      INET     NOT NULL,                      -- Destination IP address
+   TC        SMALLINT NOT NULL DEFAULT 0,            -- Traffic Class
    HopNumber SMALLINT NOT NULL,                      -- Current hop number
    TotalHops SMALLINT NOT NULL,                      -- Total number of hops
    Status    SMALLINT NOT NULL,                      -- Status
@@ -97,7 +99,7 @@ CREATE TABLE Traceroute (
    HopIP     INET     NOT NULL,                      -- Router or Destination IP address
    PathHash  BIGINT   NOT NULL,                      -- Hash over full path
    Round     INTEGER  NOT NULL DEFAULT 0,            -- Round number
-   PRIMARY KEY(FromIP,ToIP,TimeStamp,Round,HopNumber)
+   PRIMARY KEY (FromIP,ToIP,TC,TimeStamp,Round,HopNumber)
 );
 
 CREATE INDEX TracerouteTimeStampIndex ON Traceroute (TimeStamp ASC);

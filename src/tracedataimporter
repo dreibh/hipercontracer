@@ -99,6 +99,9 @@ def processInput(inputFile, outputType):
                checksum      = int(tuples[4], 16)
                status        = int(tuples[5])
                rtt           = int(tuples[6])
+               trafficClass  = 0
+               if len(tuples) >= 8:   # TrafficClass was added in HiPerConTracer 1.4.0!
+                  trafficClass  = int(tuples[7], 16)
 
                assert ('0x' + tuples[3]) == hex(timeStamp)
                assert ('0x' + tuples[4]) == hex(checksum)
@@ -113,6 +116,7 @@ def processInput(inputFile, outputType):
                      '\'' + timeStampStr       + '\',' + \
                      '\'' + str(sourceIP)      + '\',' + \
                      '\'' + str(destinationIP) + '\',' + \
+                     str(trafficClass) + ',' + \
                      str(status) + ',' + \
                      str(rtt) + \
                      ')'
@@ -121,6 +125,7 @@ def processInput(inputFile, outputType):
                   output[label] = OrderedDict([
                                      ( 'source',      sourceIP.packed      ),
                                      ( 'destination', destinationIP.packed ),
+                                     ( 'tc',          int(trafficClass)    ),
                                      ( 'timestamp',   int(timeStamp)       ),
                                      ( 'checksum',    int(checksum)        ),
                                      ( 'status',      int(status)          ),
@@ -148,6 +153,9 @@ def processInput(inputFile, outputType):
                statusFlags   = int(tuples[7], 16)
                pathHashStr   = tuples[8]
                pathHash      = int(pathHashStr, 16)
+               trafficClass  = 0
+               if len(tuples) >= 10:   # TrafficClass was added in HiPerConTracer 1.4.0!
+                  trafficClass  = int(tuples[9], 16)
 
                assert ('0x' + tuples[3]) == hex(timeStamp)
                assert ('0x' + tuples[5]) == hex(checksum)
@@ -168,6 +176,7 @@ def processInput(inputFile, outputType):
                   output[label] = OrderedDict([
                                      ( 'source',      sourceIP.packed      ),
                                      ( 'destination', destinationIP.packed ),
+                                     ( 'tc',          int(trafficClass)    ),
                                      ( 'timestamp',   int(timeStamp)       ),
                                      ( 'round',       int(roundNumber)     ),
                                      ( 'checksum',    int(checksum)        ),
@@ -199,6 +208,7 @@ def processInput(inputFile, outputType):
                      '\'' + timeStampStr       + '\',' + \
                      '\'' + str(sourceIP)      + '\',' + \
                      '\'' + str(destinationIP) + '\',' + \
+                     str(trafficClass) + ',' + \
                      str(hopNumber) + ',' + \
                      str(totalHops) + ',' + \
                      str(status | statusFlags) + ',' + \
@@ -233,9 +243,9 @@ def processInput(inputFile, outputType):
    if outputType == OT_POSTGRES:
       outputString = ""
       if inputType == IT_PING:
-         outputString = 'INSERT INTO Ping VALUES '
+         outputString = 'INSERT INTO Ping (TimeStamp,FromIP,ToIP,TC,Status,RTT) VALUES '
       elif inputType == IT_TRACEROUTE:
-         outputString = 'INSERT INTO Traceroute VALUES '
+         outputString = 'INSERT INTO Traceroute (TimeStamp,FromIP,ToIP,TC,HopNumber,TotalHops,Status,RTT,HopIP,PathHash,Round) VALUES '
 
       firstItem = True
       for result in resultsList:
