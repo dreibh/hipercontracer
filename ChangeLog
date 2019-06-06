@@ -1,3 +1,21 @@
+commit cbed076b1c6b8957d30de50a71c379967a6d7a91
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Jun 6 14:11:36 2019 +0200
+
+    CMakeFiles.txt fix: Scripts must be installed as programs (executable), not as files (not executable).
+
+commit 0cb07c12ebab67ced70cddc132263a1b5d1e756b
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Jun 6 13:44:25 2019 +0200
+
+    Improved importer.
+
+commit 50a13e75bb9bba5ab4726f6fb26a200e6765d438
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue May 21 16:51:34 2019 +0200
+
+    New release 1.3.0.
+
 commit e853d6a9c71982a1bd5c2e7e79a2fb0d37562559
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Tue May 21 16:40:24 2019 +0200
