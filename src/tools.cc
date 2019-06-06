@@ -90,6 +90,36 @@ bool reducePermissions(const passwd* pw)
 }
 
 
+struct DSCPValue
+{
+    const char* Name;
+    uint8_t    Value;
+};
+
+#define DSCP_TO_TRAFFICCLASS(x) ((uint8_t)(x) << 2)
+DSCPValue DSCPValuesTable[] = {
+   { "BE",   DSCP_TO_TRAFFICCLASS(0x00) },
+
+   { "EF",   DSCP_TO_TRAFFICCLASS(0x2e) },
+
+   { "AF11", DSCP_TO_TRAFFICCLASS(0x0a) },
+   { "AF12", DSCP_TO_TRAFFICCLASS(0x0c) },
+   { "AF13", DSCP_TO_TRAFFICCLASS(0x0e) },
+
+   { "AF21", DSCP_TO_TRAFFICCLASS(0x12) },
+   { "AF22", DSCP_TO_TRAFFICCLASS(0x14) },
+   { "AF23", DSCP_TO_TRAFFICCLASS(0x16) },
+
+   { "AF31", DSCP_TO_TRAFFICCLASS(0x1a) },
+   { "AF32", DSCP_TO_TRAFFICCLASS(0x1c) },
+   { "AF33", DSCP_TO_TRAFFICCLASS(0x1e) },
+
+   { "AF41", DSCP_TO_TRAFFICCLASS(0x22) },
+   { "AF42", DSCP_TO_TRAFFICCLASS(0x24) },
+   { "AF43", DSCP_TO_TRAFFICCLASS(0x26) }
+};
+
+
 // ###### Add source address to set #########################################
 void addSourceAddress(std::map<boost::asio::ip::address, std::set<uint8_t>>& array,
                       const std::string&                                     addressString)
@@ -112,10 +142,20 @@ void addSourceAddress(std::map<boost::asio::ip::address, std::set<uint8_t>>& arr
       }
       if(addressParameters.size() > 1) {
          for(size_t i = 1; i  < addressParameters.size(); i++) {
-            const unsigned int trafficClass = std::strtoul(addressParameters[i].c_str(), NULL, 16);
-            if(trafficClass > 0xff) {
-               std::cerr << "ERROR: Bad traffic class " << addressParameters[i] << "!" << std::endl;
-               ::exit(1);
+            unsigned int trafficClass = ~0U;
+            for(size_t j = 0; j < sizeof(DSCPValuesTable) / sizeof(DSCPValue); j++) {
+               if(strcmp(DSCPValuesTable[j].Name, addressParameters[i].c_str()) == 0) {
+                  trafficClass = DSCPValuesTable[j].Value;
+                  break;
+               }
+            }
+
+            if(trafficClass == ~0U) {
+               trafficClass = std::strtoul(addressParameters[i].c_str(), NULL, 16);
+               if(trafficClass > 0xff) {
+                  std::cerr << "ERROR: Bad traffic class " << addressParameters[i] << "!" << std::endl;
+                  ::exit(1);
+               }
             }
             array[address].insert(trafficClass);
          }
