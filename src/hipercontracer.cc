@@ -256,9 +256,8 @@ int main(int argc, char** argv)
       if(servicePing) {
          try {
             Service* service = new Ping(ResultsWriter::makeResultsWriter(
-                                           ResultsWriterSet,
-                                           sourceAddress,
-                                           "Ping", resultsDirectory, resultsTransactionLength,
+                                           ResultsWriterSet, sourceAddress, "Ping",
+                                           resultsDirectory, resultsTransactionLength,
                                            (pw != NULL) ? pw->pw_uid : 0, (pw != NULL) ? pw->pw_gid : 0),
                                         iterations, false,
                                         sourceAddress, destinationsForSource,
@@ -276,9 +275,8 @@ int main(int argc, char** argv)
       if(serviceTraceroute) {
          try {
             Service* service = new Traceroute(ResultsWriter::makeResultsWriter(
-                                                 ResultsWriterSet,
-                                                 sourceAddress,
-                                                 "Traceroute", resultsDirectory, resultsTransactionLength,
+                                                 ResultsWriterSet, sourceAddress, "Traceroute",
+                                                 resultsDirectory, resultsTransactionLength,
                                                  (pw != NULL) ? pw->pw_uid : 0, (pw != NULL) ? pw->pw_gid : 0),
                                               iterations, false,
                                               sourceAddress, destinationsForSource,
