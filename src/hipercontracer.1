@@ -33,7 +33,7 @@
 .Op \-quiet
 .Op \-verbose
 .Op \-user=user|uid
-.Op \-source=address
+.Op \-source=address[,traffic_class[,...]]
 .Op \-destination=address
 .Op \-iterations=number_of_iterations
 .Op \-tracerouteinterval=milliseconds
@@ -72,8 +72,10 @@ Sets the minimum logging level to 1 (debug).
 After startup, HiPerConTracer uses UID and GID of the given user (by name or GID).
 The output directory's ownership as well as the ownership of the created results
 files will be set accordingly.
-.It source=address
+.It source=address[,traffic_class[,...]]
 Adds the given source address.
+If no traffic class is given, Best Effort (00) is used. Otherwise, the list of given traffic classes (in hexadecimal) is used. Alternatively, a traffic class can be specified by PHB name (BE, EF, AF11, AF12, AF13, AF21, AF22, AF23, AF31, AF32, AF33, AF41, AF42, AF43, CS1, CS2, CS3, CS4, CS5, CS6, CS7). In this case, the corresponding traffic class with ECN bits set to 0 is used.
+Note: use lower-case hexadecimal letters to avoid ambiguities with PHB name (e.g. be for 0xbe instead of BE PHB)!
 .It destination=address
 Adds the given destination address.
 .It \-iterations=number_of_iterations
