@@ -79,7 +79,7 @@ TARGET_LINK_LIBRARIES(hpcttrigger libhipercontracer-shared ${Boost_LIBRARIES} ${
 INSTALL(TARGETS hpcttrigger RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
 INSTALL(FILES hpcttrigger.1 DESTINATION ${CMAKE_INSTALL_MANDIR}/man1)
 
-INSTALL(FILES tracedataimporter addressinfogenerator
+INSTALL(PROGRAMS tracedataimporter addressinfogenerator
         DESTINATION ${CMAKE_INSTALL_BINDIR})
 INSTALL(FILES tracedataimporter.1 addressinfogenerator.1
         DESTINATION ${CMAKE_INSTALL_MANDIR}/man1)
