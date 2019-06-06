@@ -126,6 +126,7 @@ Each Ping entry consists of a #P line.
 .It * timestamp: Timestamp (microseconds since the UTC epoch).
 .It * status: Status code (hexadecimal; see "HopStatus" in traceroute.h).
 .It * rtt: RTT (milliseconds).
+.It * traffic_class: Outgoing Traffic Class value (this entry has been added with HiPerConTracer 1.4.0!)
 .El
 .El
 .It Traceroute
@@ -140,6 +141,7 @@ Each Traceroute entry begins with a #T line, plus one TAB-started line per hop.
 .It * totalHops: Total hops.
 .It * statusFlags: Status flags (hexadecimal; see "HopStatus" in traceroute.h).
 .It * pathHash: Hash of the path (hexadecimal).
+.It * traffic_class: Outgoing Traffic Class value (this entry has been added with HiPerConTracer 1.4.0!)
 .El
 .It (TAB) hopNumber status rtt hopIP
 .Bl -tag -width indent
@@ -154,6 +156,7 @@ Each Traceroute entry begins with a #T line, plus one TAB-started line per hop.
 .Bl -tag -width indent
 .It hipercontracer \-source=10.1.1.51 \-destination=10.1.1.6 \-destination=10.1.1.7 \-destination=10.1.1.8 \-traceroute \-tracerouteinterval=10000 \-tracerouteduration=1000
 .It hipercontracer \-source=172.16.0.127 \-destination=8.8.8.8 \-destination=193.99.144.80 \-destination=132.252.181.87 \-destination=10.254.254.254 \-destination=91.189.93.5 \-destination=128.112.139.90 \-destination=4.31.198.44 \-destination=136.186.1.10 \-destination=101.4.112.170 \-destination=77.36.144.2 \-source=2a02:270:2014:40:92e2:baff:fe48:bde1 \-destination=2400:cb00:2048:1::6814:155 \-destination=2a02:2e0:3fe:1001:7777:772e:2:85 \-destination=2a00:1450:400f:805::2004 \-traceroute \-ping \-tracerouteduration=1000 \-tracerouteinitialmaxttl=4 \-traceroutefinalmaxttl=32 \-tracerouteincrementmaxttl=4 \-pinginterval=1000 \-pingexpiration=7500 \-pingttl=56 \-resultsdirectory=results
+.It hipercontracer \-source=158.36.79.183,00,AF11 \-source=2001:700:1234:5:92e2:ac7e:fe48:cafe,BE,EF,AF11 \-destination=8.8.8.8 \-destination=2606:4700:10::6814:155 \-ping \-traceroute \-tracerouteduration=1000 \-tracerouteinitialmaxttl=4 \-traceroutefinalmaxttl=32 \-tracerouteincrementmaxttl=4 \-pinginterval=1000 \-pingexpiration=7500 \-pingttl=56 \-resultsdirectory=/storage/hpct-results \-resultstransactionlength=20 \-quiet
 .It hipercontracer \-user=hipercontracer \-source=10.1.1.51 \-destination=10.1.1.6 \-destination=10.1.1.7 \-destination=10.1.1.8 \-traceroute \-tracerouteinterval=10000 \-tracerouteduration=1000
 .El
 .\" ###### Authors ##########################################################

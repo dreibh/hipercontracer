@@ -161,7 +161,7 @@ void Ping::processResults()
                   % resultEntry->checksum()
                   % resultEntry->status()
                   % std::chrono::duration_cast<std::chrono::microseconds>(resultEntry->receiveTime() - resultEntry->sendTime()).count()
-                  % resultEntry->destination().trafficClass()
+                  % (unsigned int)resultEntry->destination().trafficClass()
             ));
          }
       }

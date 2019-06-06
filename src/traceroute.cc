@@ -665,7 +665,7 @@ void Traceroute::processResults()
                         % totalHops
                         % statusFlags
                         % (int64_t)pathHash
-                        % (*DestinationIterator).trafficClass()
+                        % (unsigned int)(*DestinationIterator).trafficClass()
                   ));
                   writeHeader = false;
                   checksumCheck = resultEntry->checksum();
