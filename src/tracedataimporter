@@ -233,9 +233,9 @@ def processInput(inputFile, outputType):
    if outputType == OT_POSTGRES:
       outputString = ""
       if inputType == IT_PING:
-         outputString = 'INSERT INTO Ping VALUES '
+         outputString = 'INSERT INTO Ping (TimeStamp,FromIP,ToIP,Status,RTT) VALUES '
       elif inputType == IT_TRACEROUTE:
-         outputString = 'INSERT INTO Traceroute VALUES '
+         outputString = 'INSERT INTO Traceroute (TimeStamp,FromIP,ToIP,HopNumber,TotalHops,Status,RTT,HopIP,PathHash,Round) VALUES '
 
       firstItem = True
       for result in resultsList:
