@@ -46,23 +46,23 @@ struct TargetInfo
    unsigned int                          TriggerCounter;
 };
 
-static std::set<std::pair<boost::asio::ip::address,uint8_t>> SourceArray;
-static std::set<boost::asio::ip::address>                   DestinationArray;
-static std::map<boost::asio::ip::address, TargetInfo*>      TargetMap;
-static std::set<ResultsWriter*>                             ResultsWriterSet;
-static std::set<Service*>                                   ServiceSet;
-static boost::asio::io_service                              IOService;
-static boost::asio::basic_raw_socket<boost::asio::ip::icmp> SnifferSocketV4(IOService);
-static boost::asio::basic_raw_socket<boost::asio::ip::icmp> SnifferSocketV6(IOService);
-static boost::asio::ip::icmp::endpoint                      IncomingPingSource;
-static char                                                 IncomingPingMessageBuffer[4096];
-static boost::asio::signal_set                              Signals(IOService, SIGINT, SIGTERM);
-static boost::posix_time::milliseconds                      CleanupTimerInterval(1000);
-static boost::asio::deadline_timer                          CleanupTimer(IOService, CleanupTimerInterval);
+static std::map<boost::asio::ip::address, std::set<uint8_t>> SourceArray;
+static std::set<boost::asio::ip::address>                    DestinationArray;
+static std::map<boost::asio::ip::address, TargetInfo*>       TargetMap;
+static std::set<ResultsWriter*>                              ResultsWriterSet;
+static std::set<Service*>                                    ServiceSet;
+static boost::asio::io_service                               IOService;
+static boost::asio::basic_raw_socket<boost::asio::ip::icmp>  SnifferSocketV4(IOService);
+static boost::asio::basic_raw_socket<boost::asio::ip::icmp>  SnifferSocketV6(IOService);
+static boost::asio::ip::icmp::endpoint                       IncomingPingSource;
+static char                                                  IncomingPingMessageBuffer[4096];
+static boost::asio::signal_set                               Signals(IOService, SIGINT, SIGTERM);
+static boost::posix_time::milliseconds                       CleanupTimerInterval(1000);
+static boost::asio::deadline_timer                           CleanupTimer(IOService, CleanupTimerInterval);
 
-static unsigned int                                         PingsBeforeQueuing = 3;
-static unsigned int                                         PingTriggerLength  = 53;
-static unsigned int                                         PingTriggerAge     = 300;
+static unsigned int                                          PingsBeforeQueuing = 3;
+static unsigned int                                          PingTriggerLength  = 53;
+static unsigned int                                          PingTriggerAge     = 300;
 
 
 // ###### Signal handler ####################################################
@@ -133,10 +133,19 @@ static void handlePing(const ICMPHeader& header, const std::size_t payloadLength
          if(targetInfo->TriggerCounter >= PingsBeforeQueuing) {
             for(std::set<Service*>::iterator serviceIterator = ServiceSet.begin(); serviceIterator != ServiceSet.end(); serviceIterator++) {
                Service* service = *serviceIterator;
-               if(service->addDestination(IncomingPingSource.address())) {
-                   HPCT_LOG(debug) << "Queued " << IncomingPingSource.address()
-                                   << " from " << service->getSource();
-                   targetInfo->TriggerCounter = 0;
+
+               const boost::asio::ip::address sourceAddress = service->getSource();
+               assert(SourceArray.find(sourceAddress) != SourceArray.end());
+               for(std::set<uint8_t>::iterator trafficClassIterator = SourceArray[sourceAddress].begin();
+                   trafficClassIterator != SourceArray[sourceAddress].end(); trafficClassIterator++) {
+                  const uint8_t trafficClass = *trafficClassIterator;
+                  const AddressWithTrafficClass destination(IncomingPingSource.address(), trafficClass);
+
+                  if(service->addDestination(destination)) {
+                      HPCT_LOG(debug) << "Queued " << destination
+                                      << " from " << service->getSource();
+                      targetInfo->TriggerCounter = 0;
+                  }
                }
             }
          }
@@ -362,16 +371,37 @@ int main(int argc, char** argv)
 
 
    // ====== Start service threads ==========================================
-   for(std::set<std::pair<boost::asio::ip::address,uint8_t>>::iterator sourceIterator = SourceArray.begin(); sourceIterator != SourceArray.end(); sourceIterator++) {
+   for(std::map<boost::asio::ip::address, std::set<uint8_t>>::iterator sourceIterator = SourceArray.begin();
+      sourceIterator != SourceArray.end(); sourceIterator++) {
+      const boost::asio::ip::address& sourceAddress = sourceIterator->first;
+
+      std::set<AddressWithTrafficClass> destinationsForSource;
+      for(std::set<boost::asio::ip::address>::iterator destinationIterator = DestinationArray.begin();
+          destinationIterator != DestinationArray.end(); destinationIterator++) {
+         const boost::asio::ip::address& destinationAddress = *destinationIterator;
+         for(std::set<uint8_t>::iterator trafficClassIterator = sourceIterator->second.begin();
+             trafficClassIterator != sourceIterator->second.end(); trafficClassIterator++) {
+            const uint8_t trafficClass = *trafficClassIterator;
+            std::cout << destinationAddress << " " << (unsigned int)trafficClass << std::endl;
+            destinationsForSource.insert(AddressWithTrafficClass(destinationAddress, trafficClass));
+         }
+      }
+
+
+      for(std::set<AddressWithTrafficClass>::iterator iterator = destinationsForSource.begin();
+          iterator != destinationsForSource.end(); iterator++) {
+         std::cout << " -> " << *iterator << std::endl;
+      }
+
+
       if(servicePing) {
          try {
             Service* service = new Ping(ResultsWriter::makeResultsWriter(
-                                           ResultsWriterSet,
-                                           sourceIterator->first, sourceIterator->second,
-                                           "TriggeredPing", resultsDirectory, resultsTransactionLength,
+                                           ResultsWriterSet, sourceAddress, "TriggeredPing",
+                                           resultsDirectory, resultsTransactionLength,
                                            (pw != NULL) ? pw->pw_uid : 0, (pw != NULL) ? pw->pw_gid : 0),
                                         0, true,
-                                        sourceIterator->first, sourceIterator->second, DestinationArray,
+                                        sourceAddress, destinationsForSource,
                                         pingInterval, pingExpiration, pingTTL);
             if(service->start() == false) {
                ::exit(1);
@@ -386,12 +416,11 @@ int main(int argc, char** argv)
       if(serviceTraceroute) {
          try {
             Service* service = new Traceroute(ResultsWriter::makeResultsWriter(
-                                                 ResultsWriterSet,
-                                                 sourceIterator->first, sourceIterator->second,
-                                                 "TriggeredTraceroute", resultsDirectory, resultsTransactionLength,
+                                                 ResultsWriterSet, sourceAddress, "TriggeredTraceroute",
+                                                 resultsDirectory, resultsTransactionLength,
                                                  (pw != NULL) ? pw->pw_uid : 0, (pw != NULL) ? pw->pw_gid : 0),
                                               0, true,
-                                              sourceIterator->first, sourceIterator->second, DestinationArray,
+                                              sourceAddress, destinationsForSource,
                                               tracerouteInterval, tracerouteExpiration,
                                               tracerouteRounds,
                                               tracerouteInitialMaxTTL, tracerouteFinalMaxTTL,
@@ -405,7 +434,7 @@ int main(int argc, char** argv)
             HPCT_LOG(fatal) << "ERROR: Cannot create Traceroute service - " << e.what();
             ::exit(1);
          }
-       }
+      }
    }
 
 

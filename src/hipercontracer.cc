@@ -40,13 +40,13 @@
 
 
 static std::map<boost::asio::ip::address, std::set<uint8_t>> SourceArray;
-static std::set<boost::asio::ip::address> DestinationArray;
-static std::set<ResultsWriter*>           ResultsWriterSet;
-static std::set<Service*>                 ServiceSet;
-static boost::asio::io_service            IOService;
-static boost::asio::signal_set            Signals(IOService, SIGINT, SIGTERM);
-static boost::posix_time::milliseconds    CleanupTimerInterval(250);
-static boost::asio::deadline_timer        CleanupTimer(IOService, CleanupTimerInterval);
+static std::set<boost::asio::ip::address>                    DestinationArray;
+static std::set<ResultsWriter*>                              ResultsWriterSet;
+static std::set<Service*>                                    ServiceSet;
+static boost::asio::io_service                               IOService;
+static boost::asio::signal_set                               Signals(IOService, SIGINT, SIGTERM);
+static boost::posix_time::milliseconds                       CleanupTimerInterval(250);
+static boost::asio::deadline_timer                           CleanupTimer(IOService, CleanupTimerInterval);
 
 
 // ###### Signal handler ####################################################
@@ -269,7 +269,7 @@ int main(int argc, char** argv)
             ServiceSet.insert(service);
          }
          catch (std::exception& e) {
-            HPCT_LOG(fatal) << "ERROR: Cannot create Ping service - " << e.what() << std::endl;
+            HPCT_LOG(fatal) << "ERROR: Cannot create Ping service - " << e.what();
             ::exit(1);
          }
       }
@@ -292,7 +292,7 @@ int main(int argc, char** argv)
             ServiceSet.insert(service);
          }
          catch (std::exception& e) {
-            HPCT_LOG(fatal) << "ERROR: Cannot create Traceroute service - " << e.what() << std::endl;
+            HPCT_LOG(fatal) << "ERROR: Cannot create Traceroute service - " << e.what();
             ::exit(1);
          }
       }
