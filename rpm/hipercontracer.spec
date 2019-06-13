@@ -1,11 +1,11 @@
 Name: hipercontracer
-Version: 1.3.1
+Version: 1.3.2~rc1.0
 Release: 1
 Summary: High-Performance Connectivity Tracer (HiPerConTracer)
 Group: Applications/Internet
 License: GPLv3
 URL: https://www.uni-due.de/~be0001/hipercontracer/
-Source: https://www.uni-due.de/~be0001/hipercontracer/download/%{name}-%{version}.tar.gz
+Source: https://www.uni-due.de/~be0001/hipercontracer/download/%{name}-%{version}.tar.xz
 
 AutoReqProv: on
 BuildRequires: cmake
@@ -31,7 +31,8 @@ High-Performance Connectivity Tracer (HiPerConTracer) is a ping/traceroute servi
 %setup -q
 
 %build
-%cmake -DCMAKE_INSTALL_PREFIX=/usr .
+# NOTE: CMAKE_VERBOSE_MAKEFILE=OFF for reduced log output!
+%cmake -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_VERBOSE_MAKEFILE=OFF .
 make %{?_smp_mflags}
 
 %pre
