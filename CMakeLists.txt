@@ -35,7 +35,7 @@ PROJECT(hipercontracer LANGUAGES C CXX)
 
 SET(BUILD_MAJOR "1")
 SET(BUILD_MINOR "3")
-SET(BUILD_PATCH "1")
+SET(BUILD_PATCH "2~rc1.0")
 SET(BUILD_VERSION ${BUILD_MAJOR}.${BUILD_MINOR}.${BUILD_PATCH})
 
 SET(CMAKE_CXX_STANDARD 14)
@@ -151,19 +151,6 @@ ENDIF()
 
 
 #############################################################################
-# CHECK OPTIONS
-#############################################################################
-
-# Debug build type as default
-IF (NOT CMAKE_BUILD_TYPE)
-    MESSAGE(STATUS "No build type selected, using DEBUG")
-    SET(CMAKE_BUILD_TYPE "DEBUG")
-    # _FORTIFY_SOURCE requires compiling with optimization
-    SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O")
-ENDIF()
-
-
-#############################################################################
 # REQUIREMENTS
 #############################################################################
 
@@ -178,20 +165,6 @@ ELSE()
   INCLUDE_DIRECTORIES(${Boost_INCLUDE_DIRS})
 ENDIF()
 ADD_DEFINITIONS(-DBOOST_ALL_DYN_LINK)   # <<-- Required to handle BOOST Log link problem!
-
-
-#############################################################################
-# COMPILER FLAGS
-#############################################################################
-
-SET(CMAKE_C_FLAGS   "${CMAKE_C_FLAGS}   -Wall -D_FORTIFY_SOURCE=2 -O2 -Wformat -Wformat-security")
-SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -D_FORTIFY_SOURCE=2 -O2 -Wformat -Wformat-security")
-
-IF (CMAKE_BUILD_TYPE MATCHES DEBUG)
-    MESSAGE(STATUS "Building in DEBUG mode")
-    # _FORTIFY_SOURCE requires compiling with optimization
-    SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O")
-ENDIF()
 
 
 #############################################################################
