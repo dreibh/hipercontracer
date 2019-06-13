@@ -1,4 +1,121 @@
+commit e6c23a4c2515b97b85523689e6acee4cacc78313
+Merge: f5bbb34 a899614
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Jun 13 12:35:29 2019 +0200
+
+    Merge branch 'master' into dreibh/dscp
+
+commit a8996148700498ee4f7f971aaa706e4f88dfaa96
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Jun 13 12:34:52 2019 +0200
+
+    Reduced build log output.
+
+commit 6b13591b6c7bc83884e709db8f5955b8ced8c51c
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Jun 13 12:34:02 2019 +0200
+
+    Simplified CMakeLists.txt.
+
+commit 0a5740560b2d730a6e55665f6b62dee1ad207c6d
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Jun 13 12:33:34 2019 +0200
+
+    Improved build script.
+
+commit 4623ec1af7987a987828b20dbd3bb7205d561781
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Jun 13 12:06:20 2019 +0200
+
+    A fix.
+
+commit 8772c3c6bcc32aa9be574fd21170ec4179b85744
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Jun 13 11:56:03 2019 +0200
+
+    Simplified CMakeLists.txt.
+
+commit f5bbb341bb4792d568bddd686e08f1b1cace95a7
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Jun 13 11:56:03 2019 +0200
+
+    Simplified CMakeLists.txt.
+
+commit 9aecb16bf89be2f03708e9443471e6f186307cee
+Merge: 9be140b 34fd7f1
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Jun 13 11:48:15 2019 +0200
+
+    Merge branch 'master' into dreibh/dscp
+
+commit 34fd7f101b23d28d84a3f2584af57371f65abd61
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Jun 13 11:47:46 2019 +0200
+
+    Updated RPM spec file.
+
+commit 3f41bb6bb9397dc6fdb82995ff95eff0088b51ea
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Jun 13 11:46:25 2019 +0200
+
+    Using .tar.xz as tarball format.
+
+commit 9be140b3d8b209629c6cc75d0252e14718059f97
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Jun 13 11:45:34 2019 +0200
+
+    Using macros instead of hard-coded path names.
+
+commit 3892af1d75a2dd0cb9875611b9bf8ecb1b66a90f
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Jun 13 11:28:20 2019 +0200
+
+    Packaging fix: added missing file.
+
+commit ea7b88ada239dd606f4b3740c0b22262e25a11e3
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Jun 13 11:16:15 2019 +0200
+
+    Build script update.
+
+commit e6c3e4b572f584117f10ac732b72ea1a2f9a685a
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Jun 13 11:08:43 2019 +0200
+
+    Dependency fix.
+
+commit 89b24187945176af03bab9f69642a8aadf3e4f9d
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Jun 6 15:23:14 2019 +0200
+
+    Updated documentation in manpages.
+
+commit e034fb394b3b14269369924c8e1e7775427c4056
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Jun 6 15:15:36 2019 +0200
+
+    Minor clean-ups.
+
+commit c645a55c117c3d85296b0c24cd04a446c8a69471
+Merge: 29bbd18 2a2b2c3
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Jun 6 15:14:16 2019 +0200
+
+    Merge branch 'master' into dreibh/dscp
+
+commit 2a2b2c31637957c8158a8c17f0411fb5c2976a86
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Jun 6 14:31:03 2019 +0200
+
+    New release 1.3.1.
+
 commit cbed076b1c6b8957d30de50a71c379967a6d7a91
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Jun 6 14:11:36 2019 +0200
+
+    CMakeFiles.txt fix: Scripts must be installed as programs (executable), not as files (not executable).
+
+commit 29bbd182194ec90b2c7559476d93f9c5242d04a0
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Thu Jun 6 14:11:36 2019 +0200
 
@@ -9,6 +126,49 @@ Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Thu Jun 6 13:44:25 2019 +0200
 
     Improved importer.
+
+commit 97fb848cb6baf1d5f2ca36e320b81a012f79885b
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Jun 6 13:42:34 2019 +0200
+
+    Updated importer.
+
+commit 5f755ad932b1581a1fd024bfc3574417459ca719
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Jun 6 13:26:48 2019 +0200
+
+    Some updates.
+
+commit 4f6e78a425801ca64dd04a1104cee1d85fc4431c
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Jun 6 13:17:09 2019 +0200
+
+    Improved traffic class configuration with further PHBs.
+
+commit e5d6e662b91631cf43cf12b8084127ab73296c6a
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Jun 6 13:00:47 2019 +0200
+
+    Improved Traffic Class configurability by support of PHB names.
+
+commit 54caebeea24ad7a5e5cac7f74fc4fd4898b33ee4
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Jun 6 12:45:16 2019 +0200
+
+    Added Traffic Class setting.
+
+commit 9d8cb5b32e291ebb6115da389376d86ca7233aee
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Jun 6 11:31:36 2019 +0200
+
+    Restructured Traffic Class handling code.
+
+commit 31ca9a7ddd803bd0187a95d08ded7e1d08b542df
+Merge: d0dcf3f 50a13e7
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Jun 6 09:23:26 2019 +0200
+
+    Merge branch 'master' into dreibh/dscp
 
 commit 50a13e75bb9bba5ab4726f6fb26a200e6765d438
 Author: Thomas Dreibholz <dreibh@simula.no>
@@ -52,6 +212,42 @@ Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Tue Apr 9 20:49:53 2019 +0200
 
     Updated CI scripts.
+
+commit d0dcf3f6e7b86bcf08363a8527619393f9b7ff13
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Apr 9 13:59:07 2019 +0200
+
+    A fix.
+
+commit 5de71adf54f07db823d25926b6c807fb7edcd12e
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Apr 9 12:53:12 2019 +0200
+
+    Improved CI scripts.
+
+commit a7134cb7f7da3e32dc540044c3c6a6ff9f76eb23
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Apr 2 11:07:42 2019 +0200
+
+    Updated hpcttrigger as well.
+
+commit cd5db4fd0cc0d1e8e70ce2d17afc9fefe4f51203
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Apr 2 10:59:55 2019 +0200
+
+    Moved functions to tools library.
+
+commit d8b9194e91a5986af8c0a6f8e3ecb804ff431901
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Apr 2 10:52:15 2019 +0200
+
+    Passing traffic class value to Ping/Traceroute and ResultsWriter.
+
+commit 176fa84a5c332a9bd323a8da4f976ddb5de14d18
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Apr 2 10:45:06 2019 +0200
+
+    Parsing traffic class as source address parameter.
 
 commit cedfa024bb100b8b414ed20e7240c52b0ad1effb
 Author: Thomas Dreibholz <dreibh@simula.no>
