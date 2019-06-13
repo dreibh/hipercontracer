@@ -5,7 +5,7 @@ Summary: High-Performance Connectivity Tracer (HiPerConTracer)
 Group: Applications/Internet
 License: GPLv3
 URL: https://www.uni-due.de/~be0001/hipercontracer/
-Source: https://www.uni-due.de/~be0001/hipercontracer/download/%{name}-%{version}.tar.xz
+Source: https://www.uni-due.de/~be0001/hipercontracer/download/%{name}-%{version}.tar.gz
 
 AutoReqProv: on
 BuildRequires: cmake
@@ -14,8 +14,15 @@ BuildRequires: gcc-c++
 BuildRequires: boost-devel
 BuildRoot: %{_tmppath}/%{name}-%{version}-build
 Requires: %{name}-libhipercontracer = %{version}-%{release}
+Recommends: python3-psycopg2
+Recommends: python3-pymongo
+Recommends: python3-urllib3
+Recommends: python3-GeoIP
 
-%define _unpackaged_files_terminate_build 0
+
+# TEST ONLY:
+# define _unpackaged_files_terminate_build 0
+
 
 %description
 High-Performance Connectivity Tracer (HiPerConTracer) is a ping/traceroute service. It performs regular ping and traceroute runs among sites and can export the results into an SQL database.
@@ -71,7 +78,7 @@ among sites and can export the results into an SQL or Non-SQL database.
 The HiPerConTracer library is provided by this package.
 
 %files libhipercontracer
-/usr/lib*/libhipercontracer.so.*
+%{_libdir}/libhipercontracer.so.*
 
 
 %package libhipercontracer-devel
@@ -89,13 +96,13 @@ to integrate HiPerConTracer into own programs.
 
 
 %files libhipercontracer-devel
-/usr/include/hipercontracer/logger.h
-/usr/include/hipercontracer/ping.h
-/usr/include/hipercontracer/resultswriter.h
-/usr/include/hipercontracer/service.h
-/usr/include/hipercontracer/traceroute.h
-/usr/lib*/libhipercontracer*.so
-/usr/lib*/libhipercontracer.a
+%{_includedir}/hipercontracer/logger.h
+%{_includedir}/hipercontracer/ping.h
+%{_includedir}/hipercontracer/resultswriter.h
+%{_includedir}/hipercontracer/service.h
+%{_includedir}/hipercontracer/traceroute.h
+%{_libdir}/libhipercontracer*.so
+%{_libdir}/libhipercontracer.a
 
 
 %package hipercontracer-trigger
@@ -103,6 +110,10 @@ Summary: HiPerConTracer trigger tool
 Group: Applications/Internet
 Requires: %{name} = %{version}-%{release}
 Requires: %{name}-libhipercontracer = %{version}-%{release}
+Recommends: python3-psycopg2
+Recommends: python3-pymongo
+Recommends: python3-urllib3
+Recommends: python3-GeoIP
 
 %description hipercontracer-trigger
 High-Performance Connectivity Tracer (HiPerConTracer) is a
