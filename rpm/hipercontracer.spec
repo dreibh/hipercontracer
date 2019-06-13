@@ -5,7 +5,7 @@ Summary: High-Performance Connectivity Tracer (HiPerConTracer)
 Group: Applications/Internet
 License: GPLv3
 URL: https://www.uni-due.de/~be0001/hipercontracer/
-Source: https://www.uni-due.de/~be0001/hipercontracer/download/%{name}-%{version}.tar.gz
+Source: https://www.uni-due.de/~be0001/hipercontracer/download/%{name}-%{version}.tar.xz
 
 AutoReqProv: on
 BuildRequires: cmake
