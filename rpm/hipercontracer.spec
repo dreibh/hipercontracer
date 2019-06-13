@@ -14,8 +14,15 @@ BuildRequires: gcc-c++
 BuildRequires: boost-devel
 BuildRoot: %{_tmppath}/%{name}-%{version}-build
 Requires: %{name}-libhipercontracer = %{version}-%{release}
+Recommends: python3-psycopg2
+Recommends: python3-pymongo
+Recommends: python3-urllib3
+Recommends: python3-GeoIP
 
-%define _unpackaged_files_terminate_build 0
+
+# TEST ONLY:
+# define _unpackaged_files_terminate_build 0
+
 
 %description
 High-Performance Connectivity Tracer (HiPerConTracer) is a ping/traceroute service. It performs regular ping and traceroute runs among sites and can export the results into an SQL database.
@@ -103,6 +110,10 @@ Summary: HiPerConTracer trigger tool
 Group: Applications/Internet
 Requires: %{name} = %{version}-%{release}
 Requires: %{name}-libhipercontracer = %{version}-%{release}
+Recommends: python3-psycopg2
+Recommends: python3-pymongo
+Recommends: python3-urllib3
+Recommends: python3-GeoIP
 
 %description hipercontracer-trigger
 High-Performance Connectivity Tracer (HiPerConTracer) is a
