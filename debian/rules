@@ -4,7 +4,8 @@
 	dh $@ --buildsystem=cmake --parallel
 
 override_dh_auto_configure:
-	dh_auto_configure --
+	# NOTE: CMAKE_VERBOSE_MAKEFILE=OFF for reduced log output!
+	dh_auto_configure -- -DCMAKE_VERBOSE_MAKEFILE=OFF
 
 # Use upstream ChangeLog for installation
 override_dh_installchangelogs:

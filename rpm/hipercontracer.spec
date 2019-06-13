@@ -31,7 +31,8 @@ High-Performance Connectivity Tracer (HiPerConTracer) is a ping/traceroute servi
 %setup -q
 
 %build
-%cmake -DCMAKE_INSTALL_PREFIX=/usr .
+# NOTE: CMAKE_VERBOSE_MAKEFILE=OFF for reduced log output!
+%cmake -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_VERBOSE_MAKEFILE=OFF .
 make %{?_smp_mflags}
 
 %pre
