@@ -1,3 +1,9 @@
+commit d48c46068987bdf535eedb1832fbab265f0667ff
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Jun 13 13:03:48 2019 +0200
+
+    New release 1.3.2.
+
 commit e6c23a4c2515b97b85523689e6acee4cacc78313
 Merge: f5bbb34 a899614
 Author: Thomas Dreibholz <dreibh@simula.no>
