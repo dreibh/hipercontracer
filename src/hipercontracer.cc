@@ -119,13 +119,6 @@ int main(int argc, char** argv)
       ( "help,h",
            "Print help message" )
 
-      ( "source,S",
-           boost::program_options::value<std::vector<std::string>>(),
-           "Source address" )
-      ( "destination,D",
-           boost::program_options::value<std::vector<std::string>>(),
-           "Destination address" )
-
       ( "loglevel,L",
            boost::program_options::value<unsigned int>(&logLevel)->default_value(boost::log::trivial::severity_level::info),
            "Set logging level" )
@@ -138,6 +131,13 @@ int main(int argc, char** argv)
       ( "user,U",
            boost::program_options::value<std::string>(&user),
            "User" )
+
+      ( "source,S",
+           boost::program_options::value<std::vector<std::string>>(),
+           "Source address" )
+      ( "destination,D",
+           boost::program_options::value<std::vector<std::string>>(),
+           "Destination address" )
 
       ( "ping,P",
            boost::program_options::value<bool>(&servicePing)->default_value(false)->implicit_value(true),
