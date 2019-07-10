@@ -49,7 +49,7 @@ uint64_t usSinceEpoch(const std::chrono::system_clock::time_point& time)
 
 
 // ###### Reduce permissions of process #####################################
-passwd* getUser(const char* user)
+const passwd* getUser(const char* user)
 {
    passwd* pw = NULL;
    if(user != NULL) {

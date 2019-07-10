@@ -41,7 +41,7 @@
 
 uint64_t usSinceEpoch(const std::chrono::system_clock::time_point& time);
 
-passwd* getUser(const char* user);
+const passwd* getUser(const char* user);
 bool reducePermissions(const passwd* pw);
 
 void addSourceAddress(std::map<boost::asio::ip::address, std::set<uint8_t>>& array,
