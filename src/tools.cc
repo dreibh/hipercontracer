@@ -52,7 +52,7 @@ uint64_t usSinceEpoch(const std::chrono::system_clock::time_point& time)
 const passwd* getUser(const char* user)
 {
    passwd* pw = NULL;
-   if(user != NULL) {
+   if((user != NULL) && (strlen(user) > 0)) {
       pw = getpwnam(user);
       if(pw == NULL) {
          int userID = -1;
