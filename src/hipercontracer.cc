@@ -376,17 +376,17 @@ int main(int argc, char** argv)
          for(std::set<uint8_t>::iterator trafficClassIterator = sourceIterator->second.begin();
              trafficClassIterator != sourceIterator->second.end(); trafficClassIterator++) {
             const uint8_t trafficClass = *trafficClassIterator;
-            std::cout << destinationAddress << " " << (unsigned int)trafficClass << std::endl;
+            // std::cout << destinationAddress << " " << (unsigned int)trafficClass << std::endl;
             destinationsForSource.insert(AddressWithTrafficClass(destinationAddress, trafficClass));
          }
       }
 
-
+/*
       for(std::set<AddressWithTrafficClass>::iterator iterator = destinationsForSource.begin();
           iterator != destinationsForSource.end(); iterator++) {
          std::cout << " -> " << *iterator << std::endl;
       }
-
+*/
 
       if(servicePing) {
          try {
