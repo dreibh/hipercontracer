@@ -77,9 +77,8 @@ bool ResultsWriter::prepare()
       const int r1 = chown(Directory.string().c_str(), UID, GID);
       const int r2 = chown(tempDirectory.string().c_str(), UID, GID);
       if(r1 || r2) {
-         HPCT_LOG(warning) << "Setting ownership of " << Directory << " or "
-                           << tempDirectory << " to UID " << UID << ", GID " << GID
-                           << " failed: " << strerror(errno);
+         HPCT_LOG(warning) << "Setting ownership of " << Directory << " and " << tempDirectory
+                           << " to UID " << UID << ", GID " << GID << " failed: " << strerror(errno);
       }
    }
    catch(std::exception const& e) {
