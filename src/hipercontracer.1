@@ -27,26 +27,26 @@
 .\" ###### Synopsis #########################################################
 .Sh SYNOPSIS
 .Nm hipercontracer
-.Op \--ping
-.Op \--traceroute
-.Op \--loglevel level
-.Op \--quiet
-.Op \--verbose
-.Op \--user=user|uid
-.Op \--source=address[,traffic_class[,...]]
-.Op \--destination=address
-.Op \--iterations=number_of_iterations
-.Op \--tracerouteinterval=milliseconds
-.Op \--tracerouteduration=milliseconds
-.Op \--tracerouterounds=rounds
-.Op \--tracerouteinitialmaxttl=value
-.Op \--traceroutefinalmaxttl=value
-.Op \--tracerouteincrementmaxttl=value
-.Op \--pinginterval=milliseconds
-.Op \--pingexpiration=milliseconds
-.Op \--pingttl=value
-.Op \--resultsdirectory=directory
-.Op \--resultstransactionlength=seconds
+.Op \-P|--ping
+.Op \-T|--traceroute
+.Op \-L|--loglevel level
+.Op \-q|--quiet
+.Op \-v|--verbose
+.Op \-U|--user=user|uid
+.Op \-S|--source=address[,traffic_class[,...]]
+.Op \-D|--destination address
+.Op \--iterations number_of_iterations
+.Op \--tracerouteinterval milliseconds
+.Op \--tracerouteduration milliseconds
+.Op \--tracerouterounds rounds
+.Op \--tracerouteinitialmaxttl value
+.Op \--traceroutefinalmaxttl value
+.Op \--tracerouteincrementmaxttl value
+.Op \--pinginterval milliseconds
+.Op \--pingexpiration milliseconds
+.Op \--pingttl value
+.Op \-R|--resultsdirectory directory
+.Op \--resultstransactionlength seconds
 .\" ###### Description ######################################################
 .Sh DESCRIPTION
 .Nm hipercontracer
@@ -58,58 +58,58 @@ a database.
 .Sh ARGUMENTS
 The following arguments may be provided:
 .Bl -tag -width indent
-.It ping
+.It \-P|\--ping
 Start the ping service.
-.It traceroute
+.It \-T|\--traceroute
 Start the traceroute service.
-.It loglevel level
+.It \-L|\--loglevel level
 Sets the minimum logging level to the provided value: 0=trace, 1=debug, 2=info, 3=warning, 4=error, 5=fatal.
-.It quiet
+.It \-q|\--quiet
 Sets the minimum logging level to 3 (warning).
-.It verbose
+.It \-v|\--verbose
 Sets the minimum logging level to 0 (trace).
-.It user=user|uid
+.It \-U|\--user user|uid
 After startup, HiPerConTracer uses UID and GID of the given user (by name or GID).
 The output directory's ownership as well as the ownership of the created results
 files will be set accordingly.
-.It source=address[,traffic_class[,...]]
+.It \-S|\--source address[,traffic_class[,...]]
 Adds the given source address.
 If no traffic class is given, Best Effort (00) is used. Otherwise, the list of given traffic classes (in hexadecimal) is used. Alternatively, a traffic class can be specified by PHB name (BE, EF, AF11, AF12, AF13, AF21, AF22, AF23, AF31, AF32, AF33, AF41, AF42, AF43, CS1, CS2, CS3, CS4, CS5, CS6, CS7). In this case, the corresponding traffic class with ECN bits set to 0 is used.
 Note: use lower-case hexadecimal letters to avoid ambiguities with PHB name (e.g. be for 0xbe instead of BE PHB)!
-.It destination=address
+.It \-D|\--destination address
 Adds the given destination address.
-.It \--iterations=number_of_iterations
+.It \--iterations number_of_iterations
 Limit the number of measurement iterations (measurement for all source/destination
 pairs) to the given number of iterations. The default 0 lets HiPerConTracer run
 continuously.
-.It tracerouteinterval=milliseconds
+.It \--tracerouteinterval milliseconds
 Sets the traceroute interval (time for each full round of destinations).
-.It tracerouteduration=milliseconds
+.It \--tracerouteduration milliseconds
 Sets the traceroute duration (timeout for each destination).
-.It -tracerouterounds=rounds
+.It \--tracerouterounds rounds
 For each traceroute measurement, perform the given number of rounds simultaneously.
 Default is 1 round.
 Each TTL test of a round will have the same ICMP checksum value ("Oslo Traceroute"),
 in order to deal with load balancing in the Internet.
 Different rounds will have different checksums. That is, different rounds may
 experience different paths in the network.
-.It tracerouteinitialmaxttl=value
+.It \--tracerouteinitialmaxttl value
 Start with the given maximum TTL.
-.It traceroutefinalmaxttl=value
+.It \--traceroutefinalmaxttl value
 Finish with the given maximum TTL
 (when destination is not reached with current TTL setting).
-.It tracerouteincrementmaxttl=value
+.It \--tracerouteincrementmaxttl value
 Increase the maximum TTL by the given value
 (when destination is not reached with current TTL setting).
-.It pinginterval=milliseconds
+.It \--pinginterval milliseconds
 Sets the ping interval (time for each full round of destinations).
-.It pingexpiration=milliseconds
+.It \--pingexpiration milliseconds
 Sets the ping duration (timeout for each destination).
-.It pingttl=value
+.It \--pingttl value
 Sets the ping TTL value.
-.It resultsdirectory=directory
+.It \-R|\--resultsdirectory directory
 Sets the results files directory. The results will be stored there. If not specified, to results will be stored.
-.It resultstransactionlength=seconds
+.It \--resultstransactionlength seconds
 After a given number of seconds, begin a new results file.
 .El
 .\" ###### Output format ####################################################
@@ -154,8 +154,9 @@ Each Traceroute entry begins with a #T line, plus one TAB-started line per hop.
 .\" ###### Arguments ########################################################
 .Sh EXAMPLES
 .Bl -tag -width indent
-.It hipercontracer \--source=10.1.1.51 \--destination=10.1.1.6 \--destination=10.1.1.7 \--destination=10.1.1.8 \--traceroute \--tracerouteinterval=10000 \--tracerouteduration=1000
-.It hipercontracer \--source=172.16.0.127 \--destination=8.8.8.8 \--destination=193.99.144.80 \--destination=132.252.181.87 \--destination=10.254.254.254 \--destination=91.189.93.5 \--destination=128.112.139.90 \--destination=4.31.198.44 \--destination=136.186.1.10 \--destination=101.4.112.170 \--destination=77.36.144.2 \--source=2a02:270:2014:40:92e2:baff:fe48:bde1 \--destination=2400:cb00:2048:1::6814:155 \--destination=2a02:2e0:3fe:1001:7777:772e:2:85 \--destination=2a00:1450:400f:805::2004 \--traceroute \--ping \--tracerouteduration=1000 \--tracerouteinitialmaxttl=4 \--traceroutefinalmaxttl=32 \--tracerouteincrementmaxttl=4 \--pinginterval=1000 \--pingexpiration=7500 \--pingttl=56 \--resultsdirectory=results
+.It hipercontracer \-S 10.1.1.51 \-D 10.1.1.6 \-D 10.1.1.7 \-D 10.1.1.8 \-T \--tracerouteinterval 10000 \--tracerouteduration 1000 \-v
+.It hipercontracer \--source 10.1.1.51 \--destination 10.1.1.6 \--destination 10.1.1.7 \--destination 10.1.1.8 \--traceroute \--tracerouteinterval 10000 \--tracerouteduration 1000
+.It hipercontracer \--source 172.16.0.127 \--destination 8.8.8.8 \--destination 193.99.144.80 \--destination 132.252.181.87 \--destination 10.254.254.254 \--destination 91.189.93.5 \--destination 128.112.139.90 \--destination 4.31.198.44 \--destination 136.186.1.10 \--destination 101.4.112.170 \--destination 77.36.144.2 \--source 2a02:270:2014:40:92e2:baff:fe48:bde1 \--destination 2400:cb00:2048:1::6814:155 \--destination 2a02:2e0:3fe:1001:7777:772e:2:85 \--destination 2a00:1450:400f:805::2004 \--traceroute \--ping \--tracerouteduration 1000 \--tracerouteinitialmaxttl 4 \--traceroutefinalmaxttl 32 \--tracerouteincrementmaxttl 4 \--pinginterval 1000 \--pingexpiration 7500 \--pingttl 56 \--resultsdirectory results
 .It hipercontracer \--source=158.36.79.183,00,AF11 \--source=2001:700:1234:5:92e2:ac7e:fe48:cafe,BE,EF,AF11 \--destination=8.8.8.8 \--destination=2606:4700:10::6814:155 \--ping \--traceroute \--tracerouteduration=1000 \--tracerouteinitialmaxttl=4 \--traceroutefinalmaxttl=32 \--tracerouteincrementmaxttl=4 \--pinginterval=1000 \--pingexpiration=7500 \--pingttl=56 \--resultsdirectory=/storage/hpct-results \--resultstransactionlength=20 \--quiet
 .It hipercontracer \--user=hipercontracer \--source=10.1.1.51 \--destination=10.1.1.6 \--destination=10.1.1.7 \--destination=10.1.1.8 \--traceroute \--tracerouteinterval=10000 \--tracerouteduration=1000
 .El
