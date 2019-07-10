@@ -389,7 +389,8 @@ int main(int argc, char** argv)
                      << "* Transaction Length = " << resultsTransactionLength << " s";
    }
    else {
-      HPCT_LOG(info) << "-- turned off--" << std::endl;
+      HPCT_LOG(info) << "Results Output:" << std::endl
+                     << "-- turned off--" << std::endl;
    }
    if(servicePing) {
       HPCT_LOG(info) << "Ping Service:" << std:: endl
