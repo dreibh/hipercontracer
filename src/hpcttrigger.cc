@@ -309,10 +309,10 @@ int main(int argc, char** argv)
            "Pings before queuing" )
       ( "pingtriggerlength",
            boost::program_options::value<unsigned int>(&PingTriggerLength)->default_value(53),
-           "Pings trigger length in B" )
+           "Ping trigger length in B" )
       ( "pingtriggerage",
            boost::program_options::value<unsigned int>(&PingTriggerAge)->default_value(300),
-           "Pings trigger age in s" )
+           "Ping trigger age in s" )
 
       ( "resultsdirectory,R",
            boost::program_options::value<std::string>(&resultsDirectory)->default_value(std::string()),
