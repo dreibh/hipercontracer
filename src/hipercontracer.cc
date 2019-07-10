@@ -94,97 +94,6 @@ static void tryCleanup(const boost::system::error_code& errorCode)
 int main(int argc, char** argv)
 {
    // ====== Initialize =====================================================
-//    unsigned int       logLevel                  = boost::log::trivial::severity_level::info;
-//    const char*        user                      = NULL;
-//    bool               servicePing               = false;
-//    bool               serviceTraceroute         = false;
-//    unsigned int       iterations                = 0;
-//
-//    unsigned long long tracerouteInterval        = 10000;
-//    unsigned int       tracerouteExpiration      = 3000;
-//    unsigned int       tracerouteRounds          = 1;
-//    unsigned int       tracerouteInitialMaxTTL   = 6;
-//    unsigned int       tracerouteFinalMaxTTL     = 36;
-//    unsigned int       tracerouteIncrementMaxTTL = 6;
-
-//    unsigned long long pingInterval              = 1000;
-//    unsigned int       pingExpiration            = 30000;
-//    unsigned int       pingTTL                   = 64;
-
-//    unsigned int       resultsTransactionLength  = 60;
-//    std::string        resultsDirectory;
-
-   // ====== Handle arguments ===============================================
-//    for(int i = 1; i < argc; i++) {
-//       if(strncmp(argv[i], "-source=", 8) == 0) {
-//          addSourceAddress(SourceArray, (const char*)&argv[i][8]);
-//       }
-//       else if(strncmp(argv[i], "-destination=", 13) == 0) {
-//          addDestinationAddress(DestinationArray, (const char*)&argv[i][13]);
-//       }
-//       else if(strcmp(argv[i], "-ping") == 0) {
-//          servicePing = true;
-//       }
-//       else if(strcmp(argv[i], "-traceroute") == 0) {
-//          serviceTraceroute = true;
-//       }
-//       else if(strncmp(argv[i], "-loglevel=", 10) == 0) {
-//          logLevel = std::strtoul((const char*)&argv[i][10], NULL, 10);
-//       }
-//       else if(strcmp(argv[i], "-quiet") == 0) {
-//          logLevel = boost::log::trivial::severity_level::warning;
-//       }
-//       else if(strcmp(argv[i], "-verbose") == 0) {
-//          logLevel = boost::log::trivial::severity_level::trace;
-//       }
-//       else if(strncmp(argv[i], "-user=", 6) == 0) {
-//          user = (const char*)&argv[i][6];
-//       }
-//       else if(strncmp(argv[i], "-iterations=", 12) == 0) {
-//          iterations = std::strtoul((const char*)&argv[i][12], NULL, 10);
-//       }
-//       else if(strncmp(argv[i], "-tracerouteinterval=", 20) == 0) {
-//          tracerouteInterval = std::strtoul((const char*)&argv[i][20], NULL, 10);
-//       }
-//       else if(strncmp(argv[i], "-tracerouteduration=", 20) == 0) {
-//          tracerouteExpiration = std::strtoul((const char*)&argv[i][20], NULL, 10);
-//       }
-//       else if(strncmp(argv[i], "-tracerouterounds=", 18) == 0) {
-//          tracerouteRounds = std::strtoul((const char*)&argv[i][18], NULL, 10);
-//       }
-//       else if(strncmp(argv[i], "-tracerouteinitialmaxttl=", 25) == 0) {
-//          tracerouteInitialMaxTTL = std::strtoul((const char*)&argv[i][25], NULL, 10);
-//       }
-//       else if(strncmp(argv[i], "-traceroutefinalmaxttl=", 23) == 0) {
-//          tracerouteFinalMaxTTL = std::strtoul((const char*)&argv[i][23], NULL, 10);
-//       }
-//       else if(strncmp(argv[i], "-tracerouteincrementmaxttl=", 27) == 0) {
-//          tracerouteIncrementMaxTTL = std::strtoul((const char*)&argv[i][27], NULL, 10);
-//       }
-//       else if(strncmp(argv[i], "-pinginterval=", 14) == 0) {
-//          pingInterval = std::strtoul((const char*)&argv[i][14], NULL, 10);
-//       }
-//       else if(strncmp(argv[i], "-pingexpiration=", 16) == 0) {
-//          pingExpiration = std::strtoul((const char*)&argv[i][16], NULL, 10);
-//       }
-//       else if(strncmp(argv[i], "-pingttl=", 9) == 0) {
-//          pingTTL = std::strtoul((const char*)&argv[i][9], NULL, 10);
-//       }
-//       else if(strncmp(argv[i], "-resultsdirectory=", 18) == 0) {
-//          resultsDirectory = (const char*)&argv[i][18];
-//       }
-//       else if(strncmp(argv[i], "-resultstransactionlength=", 26) == 0) {
-//          resultsTransactionLength = std::strtoul((const char*)&argv[i][26], NULL, 10);
-//       }
-//       else if(strcmp(argv[i], "--") == 0) {
-//       }
-//       else {
-//          std::cerr << "ERROR: Unknown parameter " << argv[i] << std::endl
-//                    << "Usage: " << argv[0] << " -source=source ... -destination=destination ..." << std::endl;
-//          return(1);
-//       }
-//    }
-
    unsigned int       logLevel;
    std::string        user;
    std::string        configurationFileName;
@@ -237,7 +146,7 @@ int main(int argc, char** argv)
       ( "traceroute,T",
            boost::program_options::value<bool>(&serviceTraceroute)->default_value(false)->implicit_value(true),
            "Start Traceroute service" )
-      ( "iterations",
+      ( "iterations,I",
            boost::program_options::value<unsigned int>(&iterations)->default_value(0),
            "Iterations" )
 
