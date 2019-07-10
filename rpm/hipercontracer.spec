@@ -102,6 +102,7 @@ to integrate HiPerConTracer into own programs.
 %{_includedir}/hipercontracer/ping.h
 %{_includedir}/hipercontracer/resultswriter.h
 %{_includedir}/hipercontracer/service.h
+%{_includedir}/hipercontracer/tools.h
 %{_includedir}/hipercontracer/traceroute.h
 %{_libdir}/libhipercontracer*.so
 %{_libdir}/libhipercontracer.a

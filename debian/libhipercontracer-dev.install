@@ -3,6 +3,7 @@
 /usr/include/hipercontracer/ping.h
 /usr/include/hipercontracer/resultswriter.h
 /usr/include/hipercontracer/service.h
+/usr/include/hipercontracer/tools.h
 /usr/include/hipercontracer/traceroute.h
 /usr/lib/*/libhipercontracer*.so
 /usr/lib/*/libhipercontracer.a
