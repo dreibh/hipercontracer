@@ -33,7 +33,6 @@
 #include <vector>
 
 #include <boost/program_options.hpp>
-// #include <boost/program_options/cmdline.hpp>
 #include <boost/asio/ip/address.hpp>
 
 #include "tools.h"
@@ -128,7 +127,7 @@ int main(int argc, char** argv)
            "Destination address" )
 
       ( "loglevel,L",
-           boost::program_options::value<unsigned int>(&logLevel)->default_value(boost::log::trivial::severity_level::trace),
+           boost::program_options::value<unsigned int>(&logLevel)->default_value(boost::log::trivial::severity_level::info),
            "Set logging level" )
       ( "verbose,v",
            boost::program_options::value<unsigned int>(&logLevel)->implicit_value(boost::log::trivial::severity_level::trace),
@@ -254,7 +253,8 @@ int main(int argc, char** argv)
                      << "* Transaction Length = " << resultsTransactionLength << " s";
    }
    else {
-      HPCT_LOG(info) << "-- turned off--" << std::endl;
+      HPCT_LOG(info) << "Results Output:" << std::endl
+                     << "-- turned off--" << std::endl;
    }
    if(servicePing) {
       HPCT_LOG(info) << "Ping Service:" << std:: endl
