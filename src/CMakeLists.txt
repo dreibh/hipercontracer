@@ -41,6 +41,7 @@ LIST(APPEND libhipercontracer_headers
    ping.h
    resultswriter.h
    service.h
+   tools.h
    traceroute.h
 )
 LIST(APPEND libhipercontracer_sources
