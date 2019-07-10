@@ -7,6 +7,7 @@ make -j8 && \
 sudo ./hipercontracer \
    -source=158.36.79.183,00,AF11 -source=2001:700:700:2:92e2:baff:fe48:bde1,BE,EF,AF11 \
    -destination=8.8.8.8 -destination=2606:4700:10::6814:155 \
+   -user dreibh \
    -ping -traceroute \
    -tracerouteduration=1000 \
    -tracerouteinitialmaxttl=4 \
