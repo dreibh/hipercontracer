@@ -67,8 +67,8 @@ const passwd* getUser(const char* user)
 }
 
 
-// ###### Reduce permissions of process #####################################
-bool reducePermissions(const passwd* pw)
+// ###### Reduce privileges of process ######################################
+bool reducePrivileges(const passwd* pw)
 {
    // ====== Reduce permissions =============================================
    if((pw != NULL) && (pw->pw_uid != 0)) {

@@ -488,8 +488,8 @@ int main(int argc, char** argv)
    SnifferSocketV6.async_receive_from(boost::asio::buffer(IncomingPingMessageBuffer), IncomingPingSource, receivedPingV6);
 
 
-   // ====== Reduce permissions =============================================
-   reducePermissions(pw);
+   // ====== Reduce privileges ==============================================
+   reducePrivileges(pw);
 
 
    // ====== Wait for termination signal ====================================

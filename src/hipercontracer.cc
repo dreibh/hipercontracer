@@ -341,8 +341,8 @@ int main(int argc, char** argv)
    }
 
 
-   // ====== Reduce permissions =============================================
-   reducePermissions(pw);
+   // ====== Reduce privileges ==============================================
+   reducePrivileges(pw);
 
 
    // ====== Wait for termination signal ====================================
