@@ -304,13 +304,13 @@ int main(int argc, char** argv)
            boost::program_options::value<unsigned int>(&pingTTL)->default_value(64),
            "Ping initial maximum TTL value" )
 
-      ( "PingsBeforeQueuing",
+      ( "pingsbeforequeuing",
            boost::program_options::value<unsigned int>(&PingsBeforeQueuing)->default_value(3),
            "Pings before queuing" )
-      ( "PingTriggerLength",
+      ( "pingtriggerlength",
            boost::program_options::value<unsigned int>(&PingTriggerLength)->default_value(53),
            "Pings trigger length in B" )
-      ( "PingTriggerAge",
+      ( "pingtriggerage",
            boost::program_options::value<unsigned int>(&PingTriggerAge)->default_value(300),
            "Pings trigger age in s" )
 
