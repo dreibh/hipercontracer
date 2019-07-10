@@ -55,9 +55,10 @@ passwd* getUser(const char* user)
    if(user != NULL) {
       pw = getpwnam(user);
       if(pw == NULL) {
-         pw = getpwuid(atoi(user));
-         if(pw == NULL) {
-            HPCT_LOG(fatal) << "Provided user " << user << " is not a user name or UID!";
+         int userID = -1;
+         if( (sscanf(user, "%d", &userID) != 1) ||
+             ( (pw = getpwuid(userID)) == NULL) ) {
+            HPCT_LOG(fatal) << "Provided user \"" << user << "\" is not a user name or UID!";
             ::exit(1);
          }
       }
