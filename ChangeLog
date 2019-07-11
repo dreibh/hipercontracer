@@ -1,3 +1,177 @@
+commit e280d3a85008e89226cfb5e5c120237e51ba16ba
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Jul 11 09:31:50 2019 +0200
+
+    Version bump.
+
+commit 963b072b5123188d10d0f79b8f46fc44ce2259b2
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Jul 10 16:39:47 2019 +0200
+
+    Minor improvement of error message.
+
+commit 99402a005149595df65cd3301ac8b66cd3b56216
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Jul 10 16:09:51 2019 +0200
+
+    Minor clean-ups.
+
+commit 2c38e017f7fb0276961ef77228b60059f32dbd55
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Jul 10 16:08:04 2019 +0200
+
+    Renamed function.
+
+commit 5267742f0ae5c038651c82abf29a9e245b8d5626
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Jul 10 16:04:02 2019 +0200
+
+    Further clean-ups.
+
+commit a41fcc6dc7270daaf66458cf1b9a0eec30c6ab4f
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Jul 10 15:38:23 2019 +0200
+
+    Minor fixes.
+
+commit 6787e7bac947ff6ff5db741c8760c9a3e9a1a394
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Jul 10 15:38:15 2019 +0200
+
+    Updated test script.
+
+commit cb4c9525d58425a7a9667506bf45d09e8b09251e
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Jul 10 15:38:06 2019 +0200
+
+    Improved manpages.
+
+commit 4ed9f119f068674e3d3a45fa793c5b0ccf3d5ea5
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Jul 10 15:25:59 2019 +0200
+
+    A fix.
+
+commit 7e8b052067436fe8d9b2c4c49d8b649090a2da67
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Jul 10 15:25:07 2019 +0200
+
+    Minor update.
+
+commit d55717233fb6d379f12d52ff0eb6bb578ca45e1f
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Jul 10 15:08:36 2019 +0200
+
+    Updated hpcttrigger to use BOOST program_options as well.
+
+commit ce908c57c049f5c52694985baef11f4d7344bf6a
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Jul 10 15:08:26 2019 +0200
+
+    A fix.
+
+commit 7c15f5ca218d6951c88d9acaa1a61a24aa489f30
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Jul 10 15:00:49 2019 +0200
+
+    Updated manpages.
+
+commit 6d19efcfa73b54cf1e7fddeb898aaa5d40954920
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Jul 10 14:54:15 2019 +0200
+
+    A fix.
+
+commit dda9c5106ac72f7a9a7708f9a5e3abfb070ba450
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Jul 10 14:51:58 2019 +0200
+
+    Some clean-ups.
+
+commit 43353b1955d4fcc8a50eecda3f7e7ea6a58289e6
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Jul 10 14:45:22 2019 +0200
+
+    Updated script.
+
+commit 0a229708af4efcb8322ada0d8e62897b889fe7d4
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Jul 10 14:37:26 2019 +0200
+
+    Updated CMakeLists.txt.
+
+commit 7ef7be8f7a0cd609bc12fa2a9d045c994106b165
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Jul 10 14:37:13 2019 +0200
+
+    Updated packaging files.
+
+commit 86828ea1e40f5da61426c67449732883a2473bbb
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Jul 10 14:24:56 2019 +0200
+
+    Some clean-ups.
+
+commit 479d830b9d43dbf61f3156c79865f5b42198b158
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Jul 10 14:22:39 2019 +0200
+
+    Bugfix: Use sscanf to try parsing a user ID => fail on empty string.
+
+commit adb12c998627a9e9e80942c7da727beecdc54089
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Jul 10 13:55:26 2019 +0200
+
+    Commented out debug output.
+
+commit 5224d17bbc18b58ee038c5f4fed591d933678adc
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Jul 10 13:51:52 2019 +0200
+
+    Using BOOST program_options to handle command-line arguments.
+
+commit fffaaeaa64b811872ed7e9def037846b81e1d41f
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Fri Jul 5 15:33:43 2019 +0200
+
+    Fix for MongoDB setup script.
+
+commit bbf107d3d6524c58ec1183133e3c1c0b4e3e42c8
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Jun 27 21:35:43 2019 +0200
+
+    CI script update.
+
+commit 0d29e112f06c77b64b4a6b9af741b858005e3fb3
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Jun 27 21:34:54 2019 +0200
+
+    Build script update.
+
+commit c67df065c8aca01cde21b70b2772ec9cdee16e6c
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Mon Jun 24 17:24:16 2019 +0200
+
+    Updated build scripts.
+
+commit 608eac908be7ceacc8983b8adfa6b41626e8a08e
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Mon Jun 24 11:35:17 2019 +0200
+
+    Small clean-ups.
+
+commit db163ff31c81071585e643505410ac2cb9d64ae3
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Fri Jun 14 13:15:32 2019 +0200
+
+    Updated LSM entry.
+
+commit 267ddd786a6918b2e018fbca3f56ea25b83f47ef
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Fri Jun 14 13:12:45 2019 +0200
+
+    New release 1.4.0.
+
 commit d48c46068987bdf535eedb1832fbab265f0667ff
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Thu Jun 13 13:03:48 2019 +0200
