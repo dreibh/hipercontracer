@@ -39,9 +39,9 @@ class DestinationInfo {
    public:
    DestinationInfo();
    DestinationInfo(const DestinationInfo& destinationInfo);
-   DestinationInfo(boost::asio::ip::address address,
-                   const uint8_t            trafficClassValue,
-                   const uint32_t           identifier = 0);
+   DestinationInfo(const boost::asio::ip::address& address,
+                   const uint8_t                   trafficClassValue,
+                   const uint32_t                  identifier = 0);
 
    inline uint32_t identifier() const {
       return(Identifier);

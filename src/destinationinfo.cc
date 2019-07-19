@@ -53,9 +53,9 @@ DestinationInfo::DestinationInfo(const DestinationInfo& destinationInfo)
 
 
 // ###### Constructor #######################################################
-DestinationInfo::DestinationInfo(boost::asio::ip::address address,
-                                 const uint8_t            trafficClassValue,
-                                 const uint32_t           identifier)
+DestinationInfo::DestinationInfo(const boost::asio::ip::address& address,
+                                 const uint8_t                   trafficClassValue,
+                                 const uint32_t                  identifier)
    : Identifier(identifier),
      Address(address),
      TrafficClass(trafficClassValue)
