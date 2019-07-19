@@ -810,7 +810,7 @@ void Traceroute::recordResult(const std::chrono::system_clock::time_point& recei
    // ====== Get status =====================================================
    if(resultEntry.status() == Unknown) {
       resultEntry.setReceiveTime(receiveTime);
-      // Just set address, keep traffic class setting:
+      // Just set address, keep traffic class and identifier settings:
       resultEntry.setDestinationAddress(ReplyEndpoint.address());
 
       HopStatus status = Unknown;
