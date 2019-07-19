@@ -49,6 +49,7 @@ LIST(APPEND libhipercontracer_sources
    logger.cc
    ping.cc
    resultswriter.cc
+   service.cc
    traceroute.cc
    tools.cc
 )

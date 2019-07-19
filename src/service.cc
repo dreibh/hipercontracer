@@ -29,25 +29,10 @@
 //
 // Contact: dreibh@simula.no
 
-#ifndef SERVICE_H
-#define SERVICE_H
-
-#include "destinationinfo.h"
+#include "service.h"
 
 
-class Service
+// ###### Destructor ########################################################
+Service::~Service()
 {
-   public:
-   virtual ~Service();
-
-   virtual const boost::asio::ip::address& getSource() = 0;
-   virtual bool addDestination(const DestinationInfo& destination) = 0;
-
-   virtual const std::string& getName() const = 0;
-   virtual bool start() = 0;
-   virtual void requestStop() = 0;
-   virtual bool joinable() = 0;
-   virtual void join() = 0;
-};
-
-#endif
+}
