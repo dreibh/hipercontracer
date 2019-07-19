@@ -93,19 +93,21 @@ class ResultEntry {
                const HopStatus                             status);
    ~ResultEntry();
 
-   inline unsigned int round()                  const { return(Round);       }
-   inline unsigned int seqNumber()              const { return(SeqNumber);   }
-   inline unsigned int hop()                    const { return(Hop);         }
-   const DestinationInfo& destination() const { return(Destination); }
-   inline HopStatus status()                    const { return(Status);      }
-   inline uint16_t checksum()                   const { return(Checksum);    }
-   inline std::chrono::system_clock::time_point sendTime()    const { return(SendTime);    }
-   inline std::chrono::system_clock::time_point receiveTime() const { return(ReceiveTime); }
+   inline unsigned int round()                                const { return(Round);                  }
+   inline unsigned int seqNumber()                            const { return(SeqNumber);              }
+   inline unsigned int hop()                                  const { return(Hop);                    }
+   const DestinationInfo& destination()                       const { return(Destination);            }
+   const boost::asio::ip::address& destinationAddress()       const { return(Destination.address());  }
+   inline HopStatus status()                                  const { return(Status);                 }
+   inline uint16_t checksum()                                 const { return(Checksum);               }
+   inline std::chrono::system_clock::time_point sendTime()    const { return(SendTime);               }
+   inline std::chrono::system_clock::time_point receiveTime() const { return(ReceiveTime);            }
    inline std::chrono::system_clock::duration   rtt()         const { return(ReceiveTime - SendTime); }
 
-   inline void destination(const DestinationInfo& destination)                      { Destination = destination; }
-   inline void status(const HopStatus status)                                       { Status      = status;      }
-   inline void receiveTime(const std::chrono::system_clock::time_point receiveTime) { ReceiveTime = receiveTime; }
+   inline void setDestination(const DestinationInfo& destination)                      { Destination = destination;       }
+   inline void setDestinationAddress(const boost::asio::ip::address& address)          { Destination.setAddress(address); }
+   inline void setStatus(const HopStatus status)                                       { Status      = status;            }
+   inline void setReceiveTime(const std::chrono::system_clock::time_point receiveTime) { ReceiveTime = receiveTime;       }
 
    inline friend bool operator<(const ResultEntry& resultEntry1, const ResultEntry& resultEntry2) {
       return(resultEntry1.SeqNumber < resultEntry2.SeqNumber);

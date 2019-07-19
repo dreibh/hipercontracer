@@ -575,8 +575,8 @@ void Traceroute::processResults()
 
             // ====== Time-out ==============================================
             else if(resultEntry->status() == Unknown) {
-               resultEntry->status(Timeout);
-               resultEntry->receiveTime(resultEntry->sendTime() + std::chrono::milliseconds(Expiration));
+               resultEntry->setStatus(Timeout);
+               resultEntry->setReceiveTime(resultEntry->sendTime() + std::chrono::milliseconds(Expiration));
                pathString += "-*";
                completeTraceroute = false;   // at least one hop has not sent a response :-(
             }
@@ -809,10 +809,10 @@ void Traceroute::recordResult(const std::chrono::system_clock::time_point& recei
 
    // ====== Get status =====================================================
    if(resultEntry.status() == Unknown) {
-      resultEntry.receiveTime(receiveTime);
+      resultEntry.setReceiveTime(receiveTime);
       // Just set address, keep traffic class setting:
-      resultEntry.destination(DestinationInfo(ReplyEndpoint.address(),
-                                              resultEntry.destination().trafficClass()));
+      resultEntry.setDestination(DestinationInfo(ReplyEndpoint.address(),
+                                                 resultEntry.destination().trafficClass()));
 
       HopStatus status = Unknown;
       if( (icmpHeader.type() == ICMPHeader::IPv6TimeExceeded) ||
@@ -870,7 +870,7 @@ void Traceroute::recordResult(const std::chrono::system_clock::time_point& recei
          status  = Success;
          LastHop = std::min(LastHop, resultEntry.hop());
       }
-      resultEntry.status(status);
+      resultEntry.setStatus(status);
       if(OutstandingRequests > 0) {
          OutstandingRequests--;
       }
