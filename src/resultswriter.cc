@@ -36,20 +36,24 @@
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/iostreams/filtering_streambuf.hpp>
 #include <boost/iostreams/filter/bzip2.hpp>
+#include <boost/iostreams/filter/gzip.hpp>
+// #include <boost/iostreams/filter/lzma.hpp>   -- Currently not provided by the Debian/Ubuntu packages!
 #include <boost/process/environment.hpp>
 
 
 // ###### Constructor #######################################################
-ResultsWriter::ResultsWriter(const std::string& directory,
-                             const std::string& uniqueID,
-                             const std::string& formatName,
-                             const unsigned int transactionLength,
-                             const uid_t        uid,
-                             const gid_t        gid)
+ResultsWriter::ResultsWriter(const std::string&            directory,
+                             const std::string&            uniqueID,
+                             const std::string&            formatName,
+                             const unsigned int            transactionLength,
+                             const uid_t                   uid,
+                             const gid_t                   gid,
+                             const ResultsWriterCompressor compressor)
    : Directory(directory),
      UniqueID(uniqueID),
      FormatName(formatName),
      TransactionLength(transactionLength),
+     Compressor(compressor),
      UID(uid),
      GID(gid)
 {
@@ -114,11 +118,41 @@ bool ResultsWriter::changeFile(const bool createNewFile)
    SeqNumber++;
    if(createNewFile) {
       try {
-         const std::string name = UniqueID + str(boost::format("-%09d.results.bz2") % SeqNumber);
+         const char* extension = "";
+         switch(Compressor) {
+            /*
+            case XZ:
+               extension = ".xz";
+             break;
+            */
+            case BZip2:
+               extension = ".bz2";
+             break;
+            case GZip:
+               extension = ".gz";
+             break;
+            default:
+             break;
+         }
+         const std::string name = UniqueID + str(boost::format("-%09d.results.%s") % SeqNumber % extension);
          TempFileName   = Directory / "tmp" / name;
          TargetFileName = Directory / name;
          OutputFile.open(TempFileName.c_str(), std::ios_base::out | std::ios_base::binary);
-         OutputStream.push(boost::iostreams::bzip2_compressor());
+         switch(Compressor) {
+            /*
+            case XZ:
+               OutputStream.push(boost::iostreams::lzma_compressor());
+             break;
+            */
+            case BZip2:
+               OutputStream.push(boost::iostreams::bzip2_compressor());
+             break;
+            case GZip:
+               OutputStream.push(boost::iostreams::gzip_compressor());
+             break;
+            default:
+             break;
+         }
          OutputStream.push(OutputFile);
          OutputCreationTime = std::chrono::steady_clock::now();
          if( (OutputStream.good()) && (chown(TempFileName.c_str(), UID, GID) != 0) ) {
@@ -163,7 +197,8 @@ ResultsWriter* ResultsWriter::makeResultsWriter(std::set<ResultsWriter*>&       
                                                 const std::string&              resultsDirectory,
                                                 const unsigned int              resultsTransactionLength,
                                                 const uid_t                     uid,
-                                                const gid_t                     gid)
+                                                const gid_t                     gid,
+                                                const ResultsWriterCompressor   compressor)
 {
    ResultsWriter* resultsWriter = nullptr;
    if(!resultsDirectory.empty()) {
@@ -174,7 +209,7 @@ ResultsWriter* ResultsWriter::makeResultsWriter(std::set<ResultsWriter*>&       
          boost::posix_time::to_iso_string(boost::posix_time::microsec_clock::universal_time());
       replace(uniqueID.begin(), uniqueID.end(), ' ', '-');
       resultsWriter = new ResultsWriter(resultsDirectory, uniqueID, resultsFormat, resultsTransactionLength,
-                                        uid, gid);
+                                        uid, gid, compressor);
       if(resultsWriter->prepare() == false) {
          ::exit(1);
       }

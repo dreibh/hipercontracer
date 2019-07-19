@@ -42,15 +42,24 @@
 #include <boost/iostreams/filtering_stream.hpp>
 
 
+enum ResultsWriterCompressor {
+   None  = 0,
+   GZip  = 1,
+   BZip2 = 2
+   // XZ = 3
+};
+
+
 class ResultsWriter
 {
    public:
-   ResultsWriter(const std::string& directory,
-                 const std::string& uniqueID,
-                 const std::string& formatName,
-                 const unsigned int transactionLength,
-                 const uid_t        uid,
-                 const gid_t        gid);
+   ResultsWriter(const std::string&            directory,
+                 const std::string&            uniqueID,
+                 const std::string&            formatName,
+                 const unsigned int            transactionLength,
+                 const uid_t                   uid,
+                 const gid_t                   gid,
+                 const ResultsWriterCompressor compressor);
    virtual ~ResultsWriter();
 
    bool prepare();
@@ -64,12 +73,14 @@ class ResultsWriter
                                            const std::string&              resultsDirectory,
                                            const unsigned int              resultsTransactionLength,
                                            const uid_t                     uid,
-                                           const gid_t                     gid);
+                                           const gid_t                     gid,
+                                           const ResultsWriterCompressor   compressor = BZip2);
 
    protected:
    const boost::filesystem::path         Directory;
    const std::string                     UniqueID;
    const std::string                     FormatName;
+   const ResultsWriterCompressor         Compressor;
    const unsigned int                    TransactionLength;
    const uid_t                           UID;
    const gid_t                           GID;
