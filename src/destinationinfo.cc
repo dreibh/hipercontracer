@@ -67,7 +67,7 @@ DestinationInfo::DestinationInfo(const boost::asio::ip::address& address,
 std::ostream& operator<<(std::ostream& os, const DestinationInfo& destinationInfo)
 {
    os << destinationInfo.address() << "/"
-      << str(boost::format("%02x") % (unsigned int)destinationInfo.trafficClass());
+      << str(boost::format("0x%02x") % (unsigned int)destinationInfo.trafficClass());
    return os;
 }
 
