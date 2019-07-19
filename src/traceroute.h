@@ -159,7 +159,7 @@ class Traceroute : virtual public Service
    virtual bool joinable();
    virtual void join();
 
-   inline void setResultCallback(std::function<void(Service* service, const ResultEntry* resultEntry)>& resultCallback) {
+   inline void setResultCallback(const std::function<void(Service* service, const ResultEntry* resultEntry)>& resultCallback) {
       ResultCallback = resultCallback;
    }
 
