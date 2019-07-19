@@ -37,6 +37,7 @@
 
 #include <atomic>
 #include <chrono>
+#include <functional>
 #include <mutex>
 #include <set>
 #include <thread>
@@ -158,7 +159,7 @@ class Traceroute : virtual public Service
    virtual bool joinable();
    virtual void join();
 
-   inline void setResultCallback(void (*resultCallback)(Service* service, const ResultEntry* resultEntry)) {
+   inline void setResultCallback(std::function<void(Service* service, const ResultEntry* resultEntry)>& resultCallback) {
       ResultCallback = resultCallback;
    }
 
@@ -233,7 +234,9 @@ class Traceroute : virtual public Service
    unsigned int                            MaxTTL;
    std::chrono::steady_clock::time_point   RunStartTimeStamp;
    uint32_t*                               TargetChecksumArray;
-   void                                    (*ResultCallback)(Service* service, const ResultEntry* resultEntry);
+   std::function<
+      void(Service* service, const ResultEntry* resultEntry)
+   >                                       ResultCallback;
 
    private:
    static int compareTracerouteResults(const ResultEntry* a, const ResultEntry* b);
