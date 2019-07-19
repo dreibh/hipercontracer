@@ -52,39 +52,6 @@
 
 
 // ###### Constructor #######################################################
-ResultEntry::ResultEntry(const unsigned short                        round,
-                         const unsigned short                        seqNumber,
-                         const unsigned int                          hop,
-                         const uint16_t                              checksum,
-                         const std::chrono::system_clock::time_point sendTime,
-                         const DestinationInfo&                      destination,
-                         const HopStatus                             status)
-   : Round(round),
-     SeqNumber(seqNumber),
-     Hop(hop),
-     Checksum(checksum),
-     SendTime(sendTime),
-     Destination(destination),
-     Status(status)
-{
-}
-
-
-// ###### Output operator ###################################################
-std::ostream& operator<<(std::ostream& os, const ResultEntry& resultEntry)
-{
-   os << boost::format("R%d")             % resultEntry.Round
-      << "\t" << boost::format("#%05d")   % resultEntry.SeqNumber
-      << "\t" << boost::format("%2d")     % resultEntry.Hop
-      << "\t" << boost::format("%9.3fms") % (std::chrono::duration_cast<std::chrono::microseconds>(resultEntry.rtt()).count() / 1000.0)
-      << "\t" << boost::format("%3d")     % resultEntry.Status
-      << "\t" << boost::format("%04x")    % resultEntry.Checksum
-      << "\t" << resultEntry.Destination;
-   return(os);
-}
-
-
-// ###### Constructor #######################################################
 Traceroute::Traceroute(ResultsWriter*                   resultsWriter,
                        const unsigned int               iterations,
                        const bool                       removeDestinationAfterRun,
