@@ -50,7 +50,7 @@ static std::set<ResultsWriter*>                              ResultsWriterSet;
 static std::set<Service*>                                    ServiceSet;
 static boost::asio::io_service                               IOService;
 static boost::asio::signal_set                               Signals(IOService, SIGINT, SIGTERM);
-static boost::posix_time::milliseconds                       CleanupTimerInterval(250);
+static boost::posix_time::milliseconds                       CleanupTimerInterval(1000);
 static boost::asio::deadline_timer                           CleanupTimer(IOService, CleanupTimerInterval);
 
 
