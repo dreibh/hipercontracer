@@ -53,6 +53,16 @@ class DestinationInfo {
       return(TrafficClass);
    }
 
+   inline void setIdentifier(const uint8_t identifier) {
+      Identifier = identifier;
+   }
+   inline void setAddress(const boost::asio::ip::address& address) {
+      Address = address;
+   }
+   inline void setTrafficClass(const uint8_t trafficClass) {
+      TrafficClass = trafficClass;
+   }
+
    private:
    uint32_t                 Identifier;
    boost::asio::ip::address Address;
