@@ -32,9 +32,7 @@
 #ifndef SERVICE_H
 #define SERVICE_H
 
-#include "address-with-trafficclass.h"
-
-#include <boost/system/error_code.hpp>
+#include "destinationinfo.h"
 
 
 class Service

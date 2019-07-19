@@ -29,8 +29,8 @@
 //
 // Contact: dreibh@simula.no
 
-#ifndef DESTINATION_H
-#define DESTINATION_H
+#ifndef DESTINATIONINFO_H
+#define DESTINATIONINFO_H
 
 #include <boost/asio/ip/address.hpp>
 

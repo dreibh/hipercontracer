@@ -29,7 +29,7 @@
 //
 // Contact: dreibh@simula.no
 
-#include "address-with-trafficclass.h"
+#include "destinationinfo.h"
 
 #include <boost/format.hpp>
 

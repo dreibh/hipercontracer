@@ -36,7 +36,7 @@
 
 # ====== liblibhipercontracer ==============================================
 LIST(APPEND libhipercontracer_headers
-   address-with-trafficclass.h
+   destinationinfo.h
    logger.h
    ping.h
    resultswriter.h
@@ -45,7 +45,7 @@ LIST(APPEND libhipercontracer_headers
    traceroute.h
 )
 LIST(APPEND libhipercontracer_sources
-   address-with-trafficclass.cc
+   destinationinfo.cc
    logger.cc
    ping.cc
    resultswriter.cc

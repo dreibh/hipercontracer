@@ -97,7 +97,7 @@ to integrate HiPerConTracer into own programs.
 
 
 %files libhipercontracer-devel
-%{_includedir}/hipercontracer/address-with-trafficclass.h
+%{_includedir}/hipercontracer/destinationinfo.h
 %{_includedir}/hipercontracer/logger.h
 %{_includedir}/hipercontracer/ping.h
 %{_includedir}/hipercontracer/resultswriter.h
