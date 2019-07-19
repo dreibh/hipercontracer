@@ -83,7 +83,7 @@ bool reducePrivileges(const passwd* pw)
       }
    }
    else {
-      HPCT_LOG(info) << "Working as root (uid 0). This is not recommended!";
+      HPCT_LOG(warning) << "Working as root (uid 0). This is not recommended!";
       return false;
    }
 
