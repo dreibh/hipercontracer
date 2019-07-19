@@ -40,7 +40,7 @@
 #include <netinet/in.h>
 #include <netinet/ip.h>
 
-#include <boost/bind.hpp>
+#include <functional>
 #include <boost/format.hpp>
 #include <boost/version.hpp>
 #include <boost/interprocess/streams/bufferstream.hpp>
@@ -158,8 +158,8 @@ bool Traceroute::addDestination(const DestinationInfo& destination)
          if(DestinationIterator == Destinations.end()) {
             // Address will be the first destination in list -> abort interval timer
             IntervalTimer.expires_from_now(boost::posix_time::milliseconds(0));
-            IntervalTimer.async_wait(boost::bind(&Traceroute::handleIntervalEvent, this,
-                                                 boost::asio::placeholders::error));
+            IntervalTimer.async_wait(std::bind(&Traceroute::handleIntervalEvent, this,
+                                               std::placeholders::_1));
          }
          Destinations.insert(destination);
          return true;
@@ -198,9 +198,9 @@ bool Traceroute::start()
 // ###### Request stop of thread ############################################
 void Traceroute::requestStop() {
    StopRequested.exchange(true);
-   IntervalTimer.get_io_service().post(boost::bind(&Traceroute::cancelIntervalTimer, this));
-   TimeoutTimer.get_io_service().post(boost::bind(&Traceroute::cancelTimeoutTimer, this));
-   ICMPSocket.get_io_service().post(boost::bind(&Traceroute::cancelSocket, this));
+   IntervalTimer.get_io_service().post(std::bind(&Traceroute::cancelIntervalTimer, this));
+   TimeoutTimer.get_io_service().post(std::bind(&Traceroute::cancelTimeoutTimer, this));
+   ICMPSocket.get_io_service().post(std::bind(&Traceroute::cancelSocket, this));
 }
 
 
@@ -335,8 +335,8 @@ void Traceroute::scheduleTimeoutEvent()
    const unsigned int deviation = std::max(10U, Expiration / 5);   // 20% deviation
    const unsigned int duration  = Expiration + (std::rand() % deviation);
    TimeoutTimer.expires_from_now(boost::posix_time::milliseconds(duration));
-   TimeoutTimer.async_wait(boost::bind(&Traceroute::handleTimeoutEvent, this,
-                                       boost::asio::placeholders::error));
+   TimeoutTimer.async_wait(std::bind(&Traceroute::handleTimeoutEvent, this,
+                                     std::placeholders::_1));
 }
 
 
@@ -368,8 +368,8 @@ void Traceroute::scheduleIntervalEvent()
       }
 
       IntervalTimer.expires_from_now(boost::posix_time::milliseconds(millisecondsToWait));
-      IntervalTimer.async_wait(boost::bind(&Traceroute::handleIntervalEvent, this,
-                                           boost::asio::placeholders::error));
+      IntervalTimer.async_wait(std::bind(&Traceroute::handleIntervalEvent, this,
+                                         std::placeholders::_1));
       HPCT_LOG(debug) << getName() << ": Waiting " << millisecondsToWait / 1000.0
                       << "s before iteration " << (IterationNumber + 1) << " ...";
 
@@ -401,9 +401,9 @@ void Traceroute::expectNextReply()
    assert(ExpectingReply == false);
    ICMPSocket.async_receive_from(boost::asio::buffer(MessageBuffer),
                                  ReplyEndpoint,
-                                 boost::bind(&Traceroute::handleMessage, this,
-                                             boost::asio::placeholders::error,
-                                             boost::asio::placeholders::bytes_transferred));
+                                 std::bind(&Traceroute::handleMessage, this,
+                                           std::placeholders::_1,
+                                           std::placeholders::_2));
    ExpectingReply = true;
 }
 
