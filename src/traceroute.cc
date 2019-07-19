@@ -810,9 +810,10 @@ void Traceroute::recordResult(const std::chrono::system_clock::time_point& recei
    // ====== Get status =====================================================
    if(resultEntry.status() == Unknown) {
       resultEntry.receiveTime(receiveTime);
-      // Just set address, keep traffic class setting:
+      // Just set address, keep traffic class and identifier settings:
       resultEntry.destination(DestinationInfo(ReplyEndpoint.address(),
-                                              resultEntry.destination().trafficClass()));
+                                              resultEntry.destination().trafficClass(),
+                                              resultEntry.destination().identifier()));
 
       HopStatus status = Unknown;
       if( (icmpHeader.type() == ICMPHeader::IPv6TimeExceeded) ||
