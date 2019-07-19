@@ -48,7 +48,7 @@
 
 class ICMPHeader;
 
-class Traceroute : virtual public Service
+class Traceroute : public Service
 {
    public:
    Traceroute(ResultsWriter*                   resultsWriter,
@@ -72,10 +72,6 @@ class Traceroute : virtual public Service
    virtual void requestStop();
    virtual bool joinable();
    virtual void join();
-
-   inline void setResultCallback(const std::function<void(Service* service, const ResultEntry* resultEntry)>& resultCallback) {
-      ResultCallback = resultCallback;
-   }
 
    inline bool isIPv6() const {
       return(SourceAddress.is_v6());
@@ -148,9 +144,6 @@ class Traceroute : virtual public Service
    unsigned int                            MaxTTL;
    std::chrono::steady_clock::time_point   RunStartTimeStamp;
    uint32_t*                               TargetChecksumArray;
-   std::function<
-      void(Service* service, const ResultEntry* resultEntry)
-   >                                       ResultCallback;
 
    private:
    static int compareTracerouteResults(const ResultEntry* a, const ResultEntry* b);

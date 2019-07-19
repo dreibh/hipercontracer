@@ -33,21 +33,34 @@
 #define SERVICE_H
 
 #include "destinationinfo.h"
+#include "resultentry.h"
+
+#include <functional>
+
+
+class Service;
+
+typedef std::function<void(Service* service, const ResultEntry* resultEntry)> ResultCallbackType;
 
 
 class Service
 {
    public:
+   Service();
    virtual ~Service();
 
    virtual const boost::asio::ip::address& getSource() = 0;
    virtual bool addDestination(const DestinationInfo& destination) = 0;
+   virtual void setResultCallback(const ResultCallbackType& resultCallback);
 
    virtual const std::string& getName() const = 0;
    virtual bool start() = 0;
    virtual void requestStop() = 0;
    virtual bool joinable() = 0;
    virtual void join() = 0;
+
+   protected:
+   ResultCallbackType ResultCallback;
 };
 
 #endif

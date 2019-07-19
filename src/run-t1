@@ -4,7 +4,7 @@
 # -destination 193.99.144.80 -destination 132.252.181.87 -destination 172.31.255.254 -destination 210.37.45.148
 
 make -j8 && \
-sudo ./hipercontracer \
+sudo ./debug.memcheck ./hipercontracer \
    -S 158.36.79.183,00,AF11 -S 2001:700:700:2:92e2:baff:fe48:bde1,BE,EF,AF11 \
    -D 8.8.8.8 -D 2606:4700:10::6814:155 \
    -user dreibh \

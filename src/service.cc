@@ -32,7 +32,21 @@
 #include "service.h"
 
 
+// ###### Constructor #######################################################
+Service::Service()
+{
+   ResultCallback = nullptr;
+}
+
+
 // ###### Destructor ########################################################
 Service::~Service()
 {
+}
+
+
+// ###### Set result callback ###############################################
+void Service::setResultCallback(const ResultCallbackType& resultCallback)
+{
+   ResultCallback = resultCallback;
 }
