@@ -303,7 +303,7 @@ int main(int argc, char** argv)
             Service* service = new Ping(ResultsWriter::makeResultsWriter(
                                            ResultsWriterSet, sourceAddress, "Ping",
                                            resultsDirectory, resultsTransactionLength,
-                                           (pw != NULL) ? pw->pw_uid : 0, (pw != NULL) ? pw->pw_gid : 0),
+                                           (pw != nullptr) ? pw->pw_uid : 0, (pw != nullptr) ? pw->pw_gid : 0),
                                         iterations, false,
                                         sourceAddress, destinationsForSource,
                                         pingInterval, pingExpiration, pingTTL);
@@ -322,7 +322,7 @@ int main(int argc, char** argv)
             Service* service = new Traceroute(ResultsWriter::makeResultsWriter(
                                                  ResultsWriterSet, sourceAddress, "Traceroute",
                                                  resultsDirectory, resultsTransactionLength,
-                                                 (pw != NULL) ? pw->pw_uid : 0, (pw != NULL) ? pw->pw_gid : 0),
+                                                 (pw != nullptr) ? pw->pw_uid : 0, (pw != nullptr) ? pw->pw_gid : 0),
                                               iterations, false,
                                               sourceAddress, destinationsForSource,
                                               tracerouteInterval, tracerouteExpiration,

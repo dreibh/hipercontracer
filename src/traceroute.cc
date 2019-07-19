@@ -124,7 +124,7 @@ Traceroute::Traceroute(ResultsWriter*                   resultsWriter,
    MinTTL              = 1;
    MaxTTL              = InitialMaxTTL;
    TargetChecksumArray = new uint32_t[Rounds];
-   assert(TargetChecksumArray != NULL);
+   assert(TargetChecksumArray != nullptr);
 
    // ====== Prepare destination endpoints ==================================
    std::lock_guard<std::recursive_mutex> lock(DestinationMutex);
@@ -175,7 +175,7 @@ bool Traceroute::addDestination(const DestinationInfo& destination)
 Traceroute::~Traceroute()
 {
    delete [] TargetChecksumArray;
-   TargetChecksumArray = NULL;
+   TargetChecksumArray = nullptr;
 }
 
 

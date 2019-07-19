@@ -156,7 +156,7 @@ static void handlePing(const ICMPHeader& header, const std::size_t payloadLength
       }
       else {
          TargetInfo* targetInfo = new TargetInfo;
-         if(targetInfo != NULL) {
+         if(targetInfo != nullptr) {
             targetInfo->TriggerCounter = 1;
             targetInfo->LastSeen       = std::chrono::steady_clock::now();
             TargetMap.insert(std::pair<boost::asio::ip::address, TargetInfo*>(
@@ -442,7 +442,7 @@ int main(int argc, char** argv)
             Service* service = new Ping(ResultsWriter::makeResultsWriter(
                                            ResultsWriterSet, sourceAddress, "TriggeredPing",
                                            resultsDirectory, resultsTransactionLength,
-                                           (pw != NULL) ? pw->pw_uid : 0, (pw != NULL) ? pw->pw_gid : 0),
+                                           (pw != nullptr) ? pw->pw_uid : 0, (pw != nullptr) ? pw->pw_gid : 0),
                                         0, true,
                                         sourceAddress, destinationsForSource,
                                         pingInterval, pingExpiration, pingTTL);
@@ -461,7 +461,7 @@ int main(int argc, char** argv)
             Service* service = new Traceroute(ResultsWriter::makeResultsWriter(
                                                  ResultsWriterSet, sourceAddress, "TriggeredTraceroute",
                                                  resultsDirectory, resultsTransactionLength,
-                                                 (pw != NULL) ? pw->pw_uid : 0, (pw != NULL) ? pw->pw_gid : 0),
+                                                 (pw != nullptr) ? pw->pw_uid : 0, (pw != nullptr) ? pw->pw_gid : 0),
                                               0, true,
                                               sourceAddress, destinationsForSource,
                                               tracerouteInterval, tracerouteExpiration,

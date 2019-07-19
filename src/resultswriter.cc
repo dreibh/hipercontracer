@@ -167,7 +167,7 @@ ResultsWriter* ResultsWriter::makeResultsWriter(std::set<ResultsWriter*>&       
                                                 const uid_t                     uid,
                                                 const gid_t                     gid)
 {
-   ResultsWriter* resultsWriter = NULL;
+   ResultsWriter* resultsWriter = nullptr;
    if(!resultsDirectory.empty()) {
       std::string uniqueID =
          resultsFormat + "-" +

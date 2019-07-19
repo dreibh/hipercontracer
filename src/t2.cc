@@ -32,7 +32,7 @@ int main(int argc, char** argv)
    ssize_t r = recvfrom(sd, (char*)&buffer, sizeof(buffer), 0, (sockaddr*)&sa, &salen);
    while(r > 0) {
       char address[256];
-      if(getnameinfo((const sockaddr*)&sa, salen, (char*)&address, sizeof(address), NULL, 0, NI_NUMERICHOST) != 0) {
+      if(getnameinfo((const sockaddr*)&sa, salen, (char*)&address, sizeof(address), nullptr, 0, NI_NUMERICHOST) != 0) {
           snprintf((char*)&address, sizeof(address), "(invalid)");
       }
       printf("r=%d from %s\n", (int)r, address);

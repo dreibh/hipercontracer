@@ -51,13 +51,13 @@ uint64_t usSinceEpoch(const std::chrono::system_clock::time_point& time)
 // ###### Reduce permissions of process #####################################
 const passwd* getUser(const char* user)
 {
-   passwd* pw = NULL;
-   if((user != NULL) && (strlen(user) > 0)) {
+   passwd* pw = nullptr;
+   if((user != nullptr) && (strlen(user) > 0)) {
       pw = getpwnam(user);
-      if(pw == NULL) {
+      if(pw == nullptr) {
          int userID = -1;
          if( (sscanf(user, "%d", &userID) != 1) ||
-             ( (pw = getpwuid(userID)) == NULL) ) {
+             ( (pw = getpwuid(userID)) == nullptr) ) {
             HPCT_LOG(fatal) << "Provided user \"" << user << "\" is not a user name or UID!";
             ::exit(1);
          }
@@ -71,7 +71,7 @@ const passwd* getUser(const char* user)
 bool reducePrivileges(const passwd* pw)
 {
    // ====== Reduce permissions =============================================
-   if((pw != NULL) && (pw->pw_uid != 0)) {
+   if((pw != nullptr) && (pw->pw_uid != 0)) {
       HPCT_LOG(info) << "Using UID " << pw->pw_uid << ", GID " << pw->pw_gid;
       if(setgid(pw->pw_gid) != 0) {
          HPCT_LOG(fatal) << "setgid(" << pw->pw_gid << ") failed: " << strerror(errno);
@@ -160,7 +160,7 @@ void addSourceAddress(std::map<boost::asio::ip::address, std::set<uint8_t>>& arr
             }
 
             if(trafficClass == ~0U) {
-               trafficClass = std::strtoul(addressParameters[i].c_str(), NULL, 16);
+               trafficClass = std::strtoul(addressParameters[i].c_str(), nullptr, 16);
                if(trafficClass > 0xff) {
                   std::cerr << "ERROR: Bad traffic class " << addressParameters[i] << "!" << std::endl;
                   ::exit(1);
