@@ -161,7 +161,7 @@ void Ping::processResults()
             ResultsOutput->insert(
                str(boost::format("#P %s %s %x %x %d %d %x")
                   % SourceAddress.to_string()
-                  % resultEntry->destination().address().to_string()
+                  % resultEntry->destinationAddress().to_string()
                   % usSinceEpoch(resultEntry->sendTime())
                   % resultEntry->checksum()
                   % resultEntry->status()

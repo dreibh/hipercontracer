@@ -562,14 +562,14 @@ void Traceroute::processResults()
 
             // ====== We have reached the destination =======================
             if(resultEntry->status() == Success) {
-               pathString += "-" + resultEntry->destination().address().to_string();
+               pathString += "-" + resultEntry->destinationAddress().to_string();
                destinationReached = true;
                break;   // done!
             }
 
             // ====== Unreachable (as reported by router) ===================
             else if(statusIsUnreachable(resultEntry->status())) {
-               pathString += "-" + resultEntry->destination().address().to_string();
+               pathString += "-" + resultEntry->destinationAddress().to_string();
                break;   // we can stop here!
             }
 
@@ -583,7 +583,7 @@ void Traceroute::processResults()
 
             // ====== Some other response (usually TTL exceeded) ============
             else {
-               pathString += "-" + resultEntry->destination().address().to_string();
+               pathString += "-" + resultEntry->destinationAddress().to_string();
             }
          }
       }
@@ -650,7 +650,7 @@ void Traceroute::processResults()
                      % resultEntry->hop()
                      % (unsigned int)resultEntry->status()
                      % std::chrono::duration_cast<std::chrono::microseconds>(resultEntry->receiveTime() - resultEntry->sendTime()).count()
-                     % resultEntry->destination().address().to_string()
+                     % resultEntry->destinationAddress().to_string()
                ));
                assert(resultEntry->checksum() == checksumCheck);
             }
