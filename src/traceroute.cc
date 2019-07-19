@@ -653,8 +653,11 @@ void Traceroute::processResults()
 
             if(ResultsOutput) {
                if(timeStamp == 0) {
-                  // Time stamp for this traceroute run is the first entry's send time!
-                  // => Necessary, in order to ensure that all entries have the same time stamp.
+                  // NOTE:
+                  // - The time stamp for this traceroute run is the first entry's send time!
+                  //   This is necessary, in order to ensure that all entries use the same
+                  //   time stamp for identification!
+                  // - Also, entries of additional rounds are using this time stamp!
                   timeStamp = usSinceEpoch(resultEntry->sendTime());
                }
 

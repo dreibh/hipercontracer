@@ -111,7 +111,7 @@ class ResultEntry {
    inline std::chrono::system_clock::time_point receiveTime() const { return(ReceiveTime); }
    inline std::chrono::system_clock::duration   rtt()         const { return(ReceiveTime - SendTime); }
 
-   inline void destination(const DestinationInfo& destination)              { Destination = destination; }
+   inline void destination(const DestinationInfo& destination)                      { Destination = destination; }
    inline void status(const HopStatus status)                                       { Status      = status;      }
    inline void receiveTime(const std::chrono::system_clock::time_point receiveTime) { ReceiveTime = receiveTime; }
 
