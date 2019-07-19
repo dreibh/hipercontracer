@@ -279,7 +279,7 @@ int main(int argc, char** argv)
       sourceIterator != SourceArray.end(); sourceIterator++) {
       const boost::asio::ip::address& sourceAddress = sourceIterator->first;
 
-      std::set<AddressWithTrafficClass> destinationsForSource;
+      std::set<DestinationInfo> destinationsForSource;
       for(std::set<boost::asio::ip::address>::iterator destinationIterator = DestinationArray.begin();
           destinationIterator != DestinationArray.end(); destinationIterator++) {
          const boost::asio::ip::address& destinationAddress = *destinationIterator;
@@ -287,12 +287,12 @@ int main(int argc, char** argv)
              trafficClassIterator != sourceIterator->second.end(); trafficClassIterator++) {
             const uint8_t trafficClass = *trafficClassIterator;
             // std::cout << destinationAddress << " " << (unsigned int)trafficClass << std::endl;
-            destinationsForSource.insert(AddressWithTrafficClass(destinationAddress, trafficClass));
+            destinationsForSource.insert(DestinationInfo(destinationAddress, trafficClass));
          }
       }
 
 /*
-      for(std::set<AddressWithTrafficClass>::iterator iterator = destinationsForSource.begin();
+      for(std::set<DestinationInfo>::iterator iterator = destinationsForSource.begin();
           iterator != destinationsForSource.end(); iterator++) {
          std::cout << " -> " << *iterator << std::endl;
       }

@@ -35,46 +35,57 @@
 
 
 // ###### Constructor #######################################################
-AddressWithTrafficClass::AddressWithTrafficClass()
-   : Address(), TrafficClass(0x00)
+DestinationInfo::DestinationInfo()
+   : Identifier(0),
+     Address(),
+     TrafficClass(0x00)
 {
 }
 
 
 // ###### Constructor #######################################################
-AddressWithTrafficClass::AddressWithTrafficClass(const AddressWithTrafficClass& addressWithTrafficClass)
-   : Address(addressWithTrafficClass.address()), TrafficClass(addressWithTrafficClass.trafficClass())
+DestinationInfo::DestinationInfo(const DestinationInfo& destinationInfo)
+   : Identifier(destinationInfo.identifier()),
+     Address(destinationInfo.address()),
+     TrafficClass(destinationInfo.trafficClass())
 {
 }
 
 
 // ###### Constructor #######################################################
-AddressWithTrafficClass::AddressWithTrafficClass(boost::asio::ip::address address, const uint8_t trafficClassValue)
-   : Address(address), TrafficClass(trafficClassValue)
+DestinationInfo::DestinationInfo(boost::asio::ip::address address,
+                                 const uint8_t            trafficClassValue,
+                                 const uint32_t           identifier)
+   : Identifier(identifier),
+     Address(address),
+     TrafficClass(trafficClassValue)
 {
 }
 
 
 // ###### Output operator ###################################################
-std::ostream& operator<<(std::ostream& os, const AddressWithTrafficClass& addressWithTrafficClass)
+std::ostream& operator<<(std::ostream& os, const DestinationInfo& destinationInfo)
 {
-   os << addressWithTrafficClass.address() << "/"
-      << str(boost::format("%02x") % (unsigned int)addressWithTrafficClass.trafficClass());
+   os << destinationInfo.address() << "/"
+      << str(boost::format("%02x") % (unsigned int)destinationInfo.trafficClass());
    return os;
 }
 
 
 // ###### Comparison operator ###############################################
-int operator<(const AddressWithTrafficClass& d1, const AddressWithTrafficClass& d2)
+int operator<(const DestinationInfo& destinationInfo1,
+              const DestinationInfo& destinationInfo2)
 {
-   return ( (d1.address() < d2.address()) ||
-            ( (d1.address() == d2.address()) && (d1.trafficClass() < d2.trafficClass()) ) );
+   return ( (destinationInfo1.address() < destinationInfo2.address()) ||
+            ( (destinationInfo1.address() == destinationInfo2.address()) &&
+              (destinationInfo1.trafficClass() < destinationInfo2.trafficClass()) ) );
 }
 
 
 // ###### Comparison operator ###############################################
-int operator==(const AddressWithTrafficClass& d1, const AddressWithTrafficClass& d2)
+int operator==(const DestinationInfo& destinationInfo1,
+               const DestinationInfo& destinationInfo2)
 {
-   return ( (d1.address() == d2.address()) &&
-            (d1.trafficClass() == d2.trafficClass()) );
+   return ( (destinationInfo1.address()      == destinationInfo2.address()) &&
+            (destinationInfo1.trafficClass() == destinationInfo2.trafficClass()) );
 }

@@ -38,14 +38,14 @@
 
 
 // ###### Constructor #######################################################
-Ping::Ping(ResultsWriter*                           resultsWriter,
-           const unsigned int                       iterations,
-           const bool                               removeDestinationAfterRun,
-           const boost::asio::ip::address&          sourceAddress,
-           const std::set<AddressWithTrafficClass>& destinationArray,
-           const unsigned long long                 interval,
-           const unsigned int                       expiration,
-           const unsigned int                       ttl)
+Ping::Ping(ResultsWriter*                   resultsWriter,
+           const unsigned int               iterations,
+           const bool                       removeDestinationAfterRun,
+           const boost::asio::ip::address&  sourceAddress,
+           const std::set<DestinationInfo>& destinationArray,
+           const unsigned long long         interval,
+           const unsigned int               expiration,
+           const unsigned int               ttl)
    : Traceroute(resultsWriter, iterations, removeDestinationAfterRun,
                 sourceAddress, destinationArray,
                 interval, expiration, ttl, ttl, ttl),
@@ -152,6 +152,10 @@ void Ping::processResults()
       if(resultEntry->status() != Unknown) {
          HPCT_LOG(trace) << getName() << ": " << *resultEntry;
 
+         if(ResultCallback) {
+            ResultCallback(this, resultEntry);
+         }
+
          if(ResultsOutput) {
             ResultsOutput->insert(
                str(boost::format("#P %s %s %x %x %d %d %x")
@@ -196,9 +200,9 @@ void Ping::sendRequests()
       // All packets of this request block (for each destination) use the same checksum.
       // The next block of requests may then use another checksum.
       uint32_t targetChecksum = ~0U;
-      for(std::set<AddressWithTrafficClass>::const_iterator destinationIterator = Destinations.begin();
+      for(std::set<DestinationInfo>::const_iterator destinationIterator = Destinations.begin();
           destinationIterator != Destinations.end(); destinationIterator++) {
-         const AddressWithTrafficClass& destination = *destinationIterator;
+         const DestinationInfo& destination = *destinationIterator;
          sendICMPRequest(destination, FinalMaxTTL, 0, targetChecksum);
       }
 

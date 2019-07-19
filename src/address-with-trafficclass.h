@@ -35,12 +35,17 @@
 #include <boost/asio/ip/address.hpp>
 
 
-class AddressWithTrafficClass {
+class DestinationInfo {
    public:
-   AddressWithTrafficClass();
-   AddressWithTrafficClass(const AddressWithTrafficClass& addressWithTrafficClass);
-   AddressWithTrafficClass(boost::asio::ip::address address, const uint8_t trafficClassValue);
+   DestinationInfo();
+   DestinationInfo(const DestinationInfo& destinationInfo);
+   DestinationInfo(boost::asio::ip::address address,
+                   const uint8_t            trafficClassValue,
+                   const uint32_t           identifier = 0);
 
+   inline uint32_t identifier() const {
+      return(Identifier);
+   }
    inline const boost::asio::ip::address& address() const {
       return(Address);
    }
@@ -49,14 +54,14 @@ class AddressWithTrafficClass {
    }
 
    private:
+   uint32_t                 Identifier;
    boost::asio::ip::address Address;
    uint8_t                  TrafficClass;
 };
 
 
-std::ostream& operator<<(std::ostream& os, const AddressWithTrafficClass& addressWithTrafficClass);
-int operator<(const AddressWithTrafficClass& d1, const AddressWithTrafficClass& d2);
-// int operator<=(const AddressWithTrafficClass& d1, const AddressWithTrafficClass& d2);
-int operator==(const AddressWithTrafficClass& d1, const AddressWithTrafficClass& d2);
+std::ostream& operator<<(std::ostream& os, const DestinationInfo& destinationInfo);
+int operator<(const DestinationInfo& destinationInfo1, const DestinationInfo& destinationInfo2);
+int operator==(const DestinationInfo& destinationInfo1, const DestinationInfo& destinationInfo2);
 
 #endif

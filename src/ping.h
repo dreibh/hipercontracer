@@ -37,14 +37,14 @@
 class Ping : public Traceroute
 {
    public:
-   Ping(ResultsWriter*                           resultsWriter,
-        const unsigned int                       iterations,
-        const bool                               removeDestinationAfterRun,
-        const boost::asio::ip::address&          sourceAddress,
-        const std::set<AddressWithTrafficClass>& destinationArray,
-        const unsigned long long                 interval   =  1000,
-        const unsigned int                       expiration = 10000,
-        const unsigned int                       ttl        =    64);
+   Ping(ResultsWriter*                   resultsWriter,
+        const unsigned int               iterations,
+        const bool                       removeDestinationAfterRun,
+        const boost::asio::ip::address&  sourceAddress,
+        const std::set<DestinationInfo>& destinationArray,
+        const unsigned long long         interval   =  1000,
+        const unsigned int               expiration = 10000,
+        const unsigned int               ttl        =    64);
    virtual ~Ping();
 
    virtual const std::string& getName() const;
