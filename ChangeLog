@@ -1,3 +1,161 @@
+commit fe693cf2384f102e182bc9b8c964a21d76e4d0a8
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Fri Jul 19 17:30:08 2019 +0200
+
+    Log warning instead of info, if working as root.
+
+commit ad2ef352c97d10f65a3dc9c1e2f17be25a8ac851
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Fri Jul 19 17:20:20 2019 +0200
+
+    Name fix.
+
+commit 6f24acea730a46bec6f93d339368223d1bfe508e
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Fri Jul 19 15:14:50 2019 +0200
+
+    Improved log output.
+
+commit 5d81881dae091c04071f800780d33e6873f5482b
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Fri Jul 19 15:13:39 2019 +0200
+
+    Further clean-ups.
+
+commit f8bcf411fd69ed58b0869fa6dc33cd8c1e547656
+Merge: afa8aa2 8032d08
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Fri Jul 19 15:12:01 2019 +0200
+
+    Merge branch 'dreibh/callback' of github.com:dreibh/hipercontracer into dreibh/callback
+
+commit afa8aa2a057925063a524f993c9493049322b6ef
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Fri Jul 19 15:10:44 2019 +0200
+
+    Fixed DestinationInfo handling.
+
+commit 7254dc9170c75673f71010b1e75ae8c7019b963b
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Fri Jul 19 15:08:54 2019 +0200
+
+    Improved method names.
+
+commit 8032d08c0ce3be6d2dee1d3d29444dbe0f61f186
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Fri Jul 19 15:05:05 2019 +0200
+
+    An update.
+
+commit 23f6ea0480f71de67e9eca945a517bf294c54a9d
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Fri Jul 19 15:02:44 2019 +0200
+
+    Some more clean-ups.
+
+commit 0880c77d061e4d17f5dc04173063cf1823b81484
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Fri Jul 19 15:00:19 2019 +0200
+
+    Some clean-ups.
+
+commit a11647ce5111e4ee7fc1af51a37376928a821caf
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Fri Jul 19 14:37:47 2019 +0200
+
+    Cleaned up callback handling.
+
+commit 8226dde2faece5a5ac6576dfc389a40e3b41c455
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Fri Jul 19 14:28:12 2019 +0200
+
+    Moved ResultEntry into separate files.
+
+commit 0c71cbe6f5539d9fb562cbe234818a7c275f293e
+Merge: 78e44cc ca2af81
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Fri Jul 19 14:13:41 2019 +0200
+
+    Merge branch 'dreibh/callback' of github.com:dreibh/hipercontracer into dreibh/callback
+
+commit 78e44cc2a4b567fb9dce2990f9f4b0ff0340ef41
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Fri Jul 19 14:13:15 2019 +0200
+
+    Reverted change of commit 74eeddb65325a1f43c7d14eb046583eda9f2c83c, since it is not compatible with Ubuntu 16.04.
+
+commit ca2af819abbdcc73109ee308585a33cb1bb3bd7d
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Fri Jul 19 14:09:07 2019 +0200
+
+    A fix.
+
+commit a4532b760fccbde03d1b030651624cb037e569e0
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Fri Jul 19 14:00:27 2019 +0200
+
+    First part of configurable output compression.
+
+commit cb6eddada3c523c8ad60f2e431ef6eb8a28778fd
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Fri Jul 19 13:23:08 2019 +0200
+
+    Some clean-ups.
+
+commit c2f9e9d9b8cdeae27ab3c572c082b451cf3426f7
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Fri Jul 19 13:19:23 2019 +0200
+
+    Using std::function for callback.
+
+commit 5587f416f8d07696e1cc75621dc04643a568e011
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Fri Jul 19 13:09:49 2019 +0200
+
+    boost::bind -> std::bind.
+
+commit 3b70a480bf26b962bebbd84990adb8f37643f2ea
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Fri Jul 19 13:08:43 2019 +0200
+
+    Some clean-ups.
+
+commit 74eeddb65325a1f43c7d14eb046583eda9f2c83c
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Fri Jul 19 12:38:33 2019 +0200
+
+    Minor clean-ups.
+
+commit 9def8d0749a312323bc3d8e1c668c74e5354e377
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Fri Jul 19 11:18:16 2019 +0200
+
+    NULL -> nullptr.
+
+commit 150043a33b938d71c787e3b42086230505c210bf
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Fri Jul 19 11:13:43 2019 +0200
+
+    Increased clean-up timer interval.
+
+commit 86febf87ddacb37abce22d9118851e6e8073a8d4
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Fri Jul 19 09:51:22 2019 +0200
+
+    Renamed address-with-trafficclass.* to destinationinfo.*.
+
+commit 83a746108bf1a45d6cd6301751e819e183a8576d
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Fri Jul 19 09:47:52 2019 +0200
+
+    Added results callback and renamed the AddressWithTrafficClass class.
+
+commit 1d8173c6eb400d42d03d1e1a69234f57a0d5e8f3
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Jul 11 09:32:49 2019 +0200
+
+    New release hipercontracer-1.4.1.
+
 commit e280d3a85008e89226cfb5e5c120237e51ba16ba
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Thu Jul 11 09:31:50 2019 +0200

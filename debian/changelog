@@ -1,3 +1,9 @@
+hipercontracer (1.4.2-1ubuntu1) disco; urgency=medium
+
+  * New upstream release.
+
+ -- Thomas Dreibholz <dreibh@iem.uni-due.de>  Tue, 23 Jul 2019 11:32:12 +0200
+
 hipercontracer (1.4.1-1ubuntu1) disco; urgency=medium
 
   * New upstream release.
