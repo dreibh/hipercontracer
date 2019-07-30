@@ -406,6 +406,7 @@ for transactionFile in transactionFileList:
          inputFileStatus = os.stat(absTransactionFile)
          if inputFileStatus.st_size == 0:
             log('Transaction ' + transactionFile + ' is empty -> nothing to do')
+            os.remove(absTransactionFile)
             continue
       except:
          pass
