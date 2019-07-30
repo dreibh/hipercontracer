@@ -403,6 +403,14 @@ for transactionFile in transactionFileList:
 
       transactionContent = None
       try:
+         inputFileStatus = os.stat(absTransactionFile)
+         if inputFileStatus.st_size == 0:
+            log('Transaction ' + transactionFile + ' is empty -> nothing to do')
+            continue
+      except:
+         pass
+
+      try:
          inputFile = bz2.open(absTransactionFile, 'rt')
          transactionContent = processInput(inputFile, outputType)
       except Exception as e:
