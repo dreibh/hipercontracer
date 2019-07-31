@@ -18,13 +18,13 @@
 #
 # Contact: dreibh@iem.uni-due.de
 
-PORTNAME=`grep "PORTNAME=" Makefile | gsed -e 's/^.*=//g' -e 's/[ \t]*//g'`
-PORTVERSION=`grep "PORTVERSION=" Makefile | gsed -e 's/^.*=//g' -e 's/[ \t]*//g'`
-LOCATION=`grep "MASTER_SITES=" Makefile | gsed -e 's/^.*=//g' -e 's/[ \t]*//g'`
+PORTNAME=`grep "PORTNAME=" Makefile | awk '{ print $2 }'`
+PORTVERSION=`grep "PORTVERSION=" Makefile | awk '{ print $2 }'`
+LOCATION=`grep "MASTER_SITES=" Makefile | awk '{ print $2 }'`
 
-echo "PORTNAME:    $PORTNAME"
-echo "PORTVERSION: $PORTVERSION"
-echo "LOCATION:    $LOCATION"
+echo "PORTNAME:    <$PORTNAME>"
+echo "PORTVERSION: <$PORTVERSION>"
+echo "LOCATION:    <$LOCATION>"
 
 if [ ! -e "/usr/ports/distfiles/$PORTNAME-$PORTVERSION.tar.gz" ] ; then
    wget "$LOCATION/$PORTNAME-$PORTVERSION.tar.gz"
