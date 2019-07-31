@@ -1,0 +1,58 @@
+.\" High-Performance Connectivity Tracer (HiPerConTracer)
+.\" Copyright (C) 2015-2019 by Thomas Dreibholz
+.\"
+.\" This program is free software: you can redistribute it and/or modify
+.\" it under the terms of the GNU General Public License as published by
+.\" the Free Software Foundation, either version 3 of the License, or
+.\" (at your option) any later version.
+.\"
+.\" This program is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\" GNU General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU General Public License
+.\" along with this program.  If not, see <http://www.gnu.org/licenses/>.
+.\"
+.\" Contact: dreibh@iem.uni-due.de
+.\"
+.\" ###### Setup ############################################################
+.Dd July 31, 2019
+.Dt get-default-ips 1
+.Os get-default-ips
+.\" ###### Name #############################################################
+.Sh NAME
+.Nm get-default-ips
+.Nd List all IP source addresses of interfaces with default routes.
+.\" ###### Synopsis #########################################################
+.Sh SYNOPSIS
+.Nm get-default-ips
+database_configuration
+.\" ###### Description ######################################################
+.Sh DESCRIPTION
+.Nm get-default-ips
+lists all IP source addresses of interfaces with default routes. Only
+non-dynamic, global-scoped addresses ("nodad" flagged, "scope global") are
+returned. That is, 127.0.0.1, ::1, link-local addresses, IPv6-autoconfigured
+addresses, etc. are omitted.
+.Pp
+.\" .\" ###### Arguments ########################################################
+.\" .Sh ARGUMENTS
+.\" The following argument has to be provided:
+.\" .Bl -tag -width indent
+.\" .It ...
+.\" ...
+.\" .El
+.\" ###### Arguments ########################################################
+.Sh EXAMPLES
+.Bl -tag -width indent
+.It get-default-ips
+.El
+.\" ###### Authors ##########################################################
+.Sh AUTHORS
+Thomas Dreibholz
+.br
+https://www.uni-due.de/~be0001/hipercontracer
+.br
+mailto://dreibh@iem.uni-due.de
+.br
