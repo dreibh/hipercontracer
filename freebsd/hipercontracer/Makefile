@@ -5,6 +5,7 @@ PORTNAME=	hipercontracer
 PORTVERSION=	1.4.2
 CATEGORIES=	benchmarks
 MASTER_SITES=	https://www.uni-due.de/~be0001/hipercontracer/download/
+EXTRACT_SUFX=	.tar.xz
 
 MAINTAINER=	dreibh@iem.uni-due.de
 COMMENT=	High-Performance Connectivity Tracer (HiPerConTracer)
