@@ -37,14 +37,14 @@ OS=`uname`
 if [ "${OS}" == "Linux" ] ; then
    INTERFACES_WITH_DEFAULT_ROUTE_IPv4=`( /bin/ip -4 route show default ) | (
       while read line ; do
-         if [[ "${line}" =~ ^(default)([ \t]*)(.*)(dev)([ \t]*)([^[:space:]]*)([ \t]*) ]] ; then
+         if [[ "${line}" =~ ^(default)([[:space:]]*)(.*)(dev)([[:space:]]*)([^[:space:]]*)([[:space:]]*) ]] ; then
             echo "${BASH_REMATCH[6]}"
          fi
       done
    ) | sort -u | xargs`
    INTERFACES_WITH_DEFAULT_ROUTE_IPv6=`( /bin/ip -6 route show default ) | (
       while read line ; do
-         if [[ "${line}" =~ ^(default)([ \t]*)(.*)(dev)([ \t]*)([^[:space:]]*)([ \t]*) ]] ; then
+         if [[ "${line}" =~ ^(default)([[:space:]]*)(.*)(dev)([[:space:]]*)([^[:space:]]*)([[:space:]]*) ]] ; then
             echo "${BASH_REMATCH[6]}"
          fi
       done
@@ -66,7 +66,7 @@ if [ "${OS}" == "Linux" ] ; then
       for interface in ${INTERFACES_WITH_DEFAULT_ROUTE_IPv4} ; do
          ip -4 addr show dev ${interface} scope global | (
             while read line ; do
-               if [[ "${line}" =~ ^([ \t]*)(inet)([ \t]*)([^[:space:]]*)/ ]] ; then
+               if [[ "${line}" =~ ^([[:space:]]*)(inet)([[:space:]]*)([^[:space:]]*)/ ]] ; then
                   address="${BASH_REMATCH[4]}"
                   if [[ ! "${line}" =~ mngtmpaddr ]] ; then
                      echo "${address}"
@@ -80,7 +80,7 @@ if [ "${OS}" == "Linux" ] ; then
       for interface in ${INTERFACES_WITH_DEFAULT_ROUTE_IPv6} ; do
          ip -6 addr show dev ${interface} scope global | (
             while read line ; do
-               if [[ "${line}" =~ ^([ \t]*)(inet6)([ \t]*)([^[:space:]]*)/ ]] ; then
+               if [[ "${line}" =~ ^([[:space:]]*)(inet6)([[:space:]]*)([^[:space:]]*)/ ]] ; then
                   address="${BASH_REMATCH[4]}"
                   if [[ ! "${line}" =~ mngtmpaddr ]] ; then
                      echo "${address}"
@@ -95,7 +95,7 @@ elif [ "${OS}" == "FreeBSD" ] ; then
       for interface in ${INTERFACES_WITH_DEFAULT_ROUTE_IPv4} ; do
          ifconfig ${interface} | (
             while read line ; do
-               if [[ "${line}" =~ ^([ \t]*)(inet)([ \t]*)([^[:space:]]*)([ \t]*) ]] ; then
+               if [[ "${line}" =~ ^([[:space:]]*)(inet)([[:space:]]*)([^[:space:]]*)([[:space:]]*) ]] ; then
                   address="${BASH_REMATCH[4]}"
                   if [[ ! "${line}" =~ scopeid ]] ; then   # FIXME! Is this sufficient in all cases?
                      echo "${address}"
@@ -109,7 +109,7 @@ elif [ "${OS}" == "FreeBSD" ] ; then
       for interface in ${INTERFACES_WITH_DEFAULT_ROUTE_IPv6} ; do
          ifconfig ${interface} | (
             while read line ; do
-               if [[ "${line}" =~ ^([ \t]*)(inet6)([ \t]*)([^[:space:]]*)([ \t]*) ]] ; then
+               if [[ "${line}" =~ ^([[:space:]]*)(inet6)([[:space:]]*)([^[:space:]]*)([[:space:]]*) ]] ; then
                   address="${BASH_REMATCH[6]}"
                   if [[ ! "${line}" =~ scopeid ]] ; then   # FIXME! Is this sufficient in all cases?
                      echo "${address}"
