@@ -2,7 +2,7 @@
 # $FreeBSD$
 
 PORTNAME=	hipercontracer
-PORTVERSION=	1.2.1
+PORTVERSION=	1.4.2
 CATEGORIES=	benchmarks
 MASTER_SITES=	https://www.uni-due.de/~be0001/hipercontracer/download/
 
@@ -15,6 +15,6 @@ LICENSE_FILE=	${WRKSRC}/COPYING
 GNU_CONFIGURE=	yes
 USES=		cmake shebangfix
 CMAKE_ARGS+=    -DCMAKE_INSTALL_MANDIR=${PREFIX}/man
-SHEBANG_FILES=	src/addressinfogenerator src/tracedataimporter
+SHEBANG_FILES=	src/addressinfogenerator src/get-default-ips src/tracedataimporter
 
 .include <bsd.port.mk>
