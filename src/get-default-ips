@@ -110,7 +110,7 @@ elif [ "${OS}" == "FreeBSD" ] ; then
          ifconfig ${interface} | (
             while read line ; do
                if [[ "${line}" =~ ^([[:space:]]*)(inet6)([[:space:]]*)([^[:space:]]*)([[:space:]]*) ]] ; then
-                  address="${BASH_REMATCH[6]}"
+                  address="${BASH_REMATCH[4]}"
                   if [[ ! "${line}" =~ scopeid ]] ; then   # FIXME! Is this sufficient in all cases?
                      echo "${address}"
                   fi
