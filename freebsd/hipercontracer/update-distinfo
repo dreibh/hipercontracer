@@ -21,15 +21,22 @@
 PORTNAME=`grep "PORTNAME=" Makefile | awk '{ print $2 }'`
 PORTVERSION=`grep "PORTVERSION=" Makefile | awk '{ print $2 }'`
 LOCATION=`grep "MASTER_SITES=" Makefile | awk '{ print $2 }'`
+EXTRACT_SUFX=`grep "EXTRACT_SUFX=" Makefile | awk '{ print $2 }'`
+if [ "${EXTRACT_SUFX}" == "" ] ; then
+   EXTRACT_SUFX=".tar.gz"
+fi
 
-echo "PORTNAME:    <$PORTNAME>"
-echo "PORTVERSION: <$PORTVERSION>"
-echo "LOCATION:    <$LOCATION>"
+echo "PORTNAME:     ${PORTNAME}"
+echo "PORTVERSION : ${PORTVERSION}"
+echo "LOCATION:     ${LOCATION}"
+echo "EXTRACT_SUFX: ${EXTRACT_SUFX}"
 
-if [ ! -e "/usr/ports/distfiles/$PORTNAME-$PORTVERSION.tar.gz" ] ; then
-   wget "$LOCATION/$PORTNAME-$PORTVERSION.tar.gz"
-   echo "Copying $PORTNAME-$PORTVERSION.tar.gz to /usr/ports/distfiles/ ..."
-   sudo mv "$PORTNAME-$PORTVERSION.tar.gz" /usr/ports/distfiles/
+if [ ! -e "/usr/ports/distfiles/${PORTNAME}-${PORTVERSION}.${EXTRACT_SUFX}" ] ; then   
+   echo "Downloading ${LOCATION}/${PORTNAME}-${PORTVERSION}.${EXTRACT_SUFX}"
+   rm -f ${PORTNAME}-${PORTVERSION}.${EXTRACT_SUFX}
+   wget "${LOCATION}/${PORTNAME}-${PORTVERSION}.${EXTRACT_SUFX}"
+   echo "Copying ${PORTNAME}-${PORTVERSION}.${EXTRACT_SUFX} to /usr/ports/distfiles/ ..."
+   sudo mv "${PORTNAME}-${PORTVERSION}.${EXTRACT_SUFX}" /usr/ports/distfiles/
 fi
 
 echo "Updating checksum ..."
