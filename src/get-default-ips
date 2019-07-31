@@ -38,7 +38,7 @@ if [ "${OS}" == "Linux" ] ; then
    INTERFACES_WITH_DEFAULT_ROUTE=`( /bin/ip -4 route show default ; /bin/ip -6 route show default ) | (
       while read line ; do
          if [[ "${line}" =~ ^(default)([ \t]*)(.*)(dev)([ \t]*)([^[:space:]]*)([ \t]*) ]] ; then
-            echo "${BASH_REMATCH[6]}" 
+            echo "${BASH_REMATCH[6]}"
          fi
       done
    ) | sort -u | xargs`
@@ -59,7 +59,10 @@ if [ "${OS}" == "Linux" ] ; then
          ( ip -4 addr show dev ${interface} scope global ; ip -6 addr show dev ${interface} scope global ) | (
             while read line ; do
                if [[ "${line}" =~ ^([ \t]*)(inet|inet6)([ \t]*)([^[:space:]]*)/ ]] ; then
-                  echo "${BASH_REMATCH[4]}"
+                  address="${BASH_REMATCH[4]}"
+                  if [[ ! "${line}" =~ mngtmpaddr ]] ; then
+                     echo "${address}"
+                  fi
                fi
             done
          )
