@@ -1,3 +1,141 @@
+commit adbf665c6584cfa662196e9247e4a74f7d48bb3b
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Jul 31 16:28:56 2019 +0200
+
+    Updated FreeBSD ports files.
+
+commit 0759d7a5040462c392d80539754f1d49992a10c9
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Jul 31 16:00:31 2019 +0200
+
+    Removed obsolete script.
+
+commit 82179574aba4e546a86e4d0163641c4bdd776624
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Jul 31 15:29:39 2019 +0200
+
+    Improved script.
+
+commit 9fa17c63481e460de5b884fdc18ca7fadbdda22f
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Jul 31 15:18:14 2019 +0200
+
+    Updated FreeBSD ports files.
+
+commit c61e2de10f67acc133c7effad3d0f75264588a2f
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Jul 31 15:16:18 2019 +0200
+
+    Improved script.
+
+commit fff2b8ccd9e0077be5f424de532e5103768f7537
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Jul 31 15:20:29 2019 +0200
+
+    Updated FreeBSD ports Makefile.
+
+commit f486110cd81fa32a592887cb83e560df1ed48f30
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Jul 31 14:41:53 2019 +0200
+
+    Fixed comments.
+
+commit 939746be44a610e910a8eab0e038f987f16070e5
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Jul 31 13:43:49 2019 +0200
+
+    Fix for FreeBSD.
+
+commit c6ddb9b2f331014101474f87e29d7976e5327bed
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Jul 31 14:02:42 2019 +0200
+
+    Some clean-ups.
+
+commit 197dd546b5acfb40171fdb13dca95e69da5e01a3
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Jul 31 14:00:02 2019 +0200
+
+    Handle IPv4 and IPv6 separately.
+
+commit c2324dc81224af058055a252712605583c232e96
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Jul 31 13:22:05 2019 +0200
+
+    Improved directory handling.
+
+commit 3d8d2e34e686e915bbf8abdf886982248858cd15
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Jul 31 12:29:05 2019 +0200
+
+    Further improvements.
+
+commit fe38399d5975ac55d2ab5318eb7ab641d2cd13ce
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Jul 31 12:26:24 2019 +0200
+
+    A fix.
+
+commit 778e1462b55a2d1dbe4426cc187161a5e683cf35
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Jul 31 11:48:50 2019 +0200
+
+    Also support FreeBSD systems.
+
+commit 52f2856e179b2b8c9b011dfc61e53e70bab70edc
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Jul 31 11:54:28 2019 +0200
+
+    Improved script.
+
+commit 4e168557dde71764364a2c938e95e4b89094b1dd
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Jul 31 11:47:06 2019 +0200
+
+    Updated packaging files.
+
+commit 7866e3c72d019383c99b030eadca7673c863b0eb
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Jul 31 11:43:11 2019 +0200
+
+    Added script.
+
+commit 6d240960f912bf10ce455c4fcaed7b2b1bb044e8
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Jul 30 11:24:05 2019 +0200
+
+    Updated README.
+
+commit 9d9abf4ee42581407f8c53e8e59664b144456cdc
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Jul 30 11:02:27 2019 +0200
+
+    Improved README.
+
+commit 517a3e82c1809dd8a2eaa10f945255550bc457c3
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Jul 30 10:30:31 2019 +0200
+
+    Remove empty files instead of moving them to bad transactions directory.
+
+commit 2a7d81677dd257a96c35869df1093c7ce0fa1ebe
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Jul 30 10:23:28 2019 +0200
+
+    Check for empty transaction files.
+
+commit f92530d80ac8b5e745f452308ae1f4d65488f38f
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Jul 23 11:33:40 2019 +0200
+
+    Updated LSM entry.
+
+commit 2842f49b703a3b4119ab042799450333a70d7922
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Jul 23 11:32:18 2019 +0200
+
+    New release hipercontracer-1.4.2.
+
 commit fe693cf2384f102e182bc9b8c964a21d76e4d0a8
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Fri Jul 19 17:30:08 2019 +0200
