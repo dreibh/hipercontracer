@@ -33,33 +33,55 @@
 
 
 # ###### Find all interfaces with configured default route ##################
-INTERFACES_WITH_DEFAULT_ROUTE=`
-( /bin/ip -4 route show default ; /bin/ip -6 route show default ) | (
-   while read line ; do
-      if [[ "${line}" =~ ^(default)([ \t]*)(.*)(dev)([ \t]*)([^[:space:]]*)([ \t]*) ]] ; then
-         echo "${BASH_REMATCH[6]}" 
-      fi
-   done
-) | sort -u | xargs
-`
+OS=`uname`
+if [ "${OS}" == "Linux" ] ; then
+   INTERFACES_WITH_DEFAULT_ROUTE=`( /bin/ip -4 route show default ; /bin/ip -6 route show default ) | (
+      while read line ; do
+         if [[ "${line}" =~ ^(default)([ \t]*)(.*)(dev)([ \t]*)([^[:space:]]*)([ \t]*) ]] ; then
+            echo "${BASH_REMATCH[6]}" 
+         fi
+      done
+   ) | sort -u | xargs`
+elif [ "${OS}" == "FreeBSD" ] ; then
+   INTERFACES_WITH_DEFAULT_ROUTE=`netstat -rn | grep ^default | awk '{ print $4 }' | sort -u | xargs`
+else
+   echo >&2 "ERROR: Unsupported operating system ${OS}!"
+   exit 1
+fi
+
 # echo "I: ${INTERFACES_WITH_DEFAULT_ROUTE}"
 
 
 # ###### Get addresses of these interfaces with global scope ################
-ADDRESSES_WITH_DEFAULT_ROUTE=`
-(
-   for interface in ${INTERFACES_WITH_DEFAULT_ROUTE} ; do
-      ( ip -4 addr show dev ${interface} scope global ; ip -6 addr show dev ${interface} scope global nodad ) | (
-         while read line ; do
-            if [[ "${line}" =~ ^([ \t]*)(inet|inet6)([ \t]*)([^[:space:]]*)/ ]] ; then
-               echo "${BASH_REMATCH[4]}"
-            fi
-         done
-      )
-   done
-) | sort -u | xargs
-`
-# echo "A: ${ADDRESSES_WITH_DEFAULT_ROUTE}"
+if [ "${OS}" == "Linux" ] ; then
+   ADDRESSES_WITH_DEFAULT_ROUTE=`(
+      for interface in ${INTERFACES_WITH_DEFAULT_ROUTE} ; do
+         ( ip -4 addr show dev ${interface} scope global ; ip -6 addr show dev ${interface} scope global nodad ) | (
+            while read line ; do
+               if [[ "${line}" =~ ^([ \t]*)(inet|inet6)([ \t]*)([^[:space:]]*)/ ]] ; then
+                  echo "${BASH_REMATCH[4]}"
+               fi
+            done
+         )
+      done
+   ) | sort -u | xargs`
+elif [ "${OS}" == "FreeBSD" ] ; then
+   ADDRESSES_WITH_DEFAULT_ROUTE=`(
+      for interface in ${INTERFACES_WITH_DEFAULT_ROUTE} ; do
+         ifconfig ${interface} | (
+            while read line ; do
+               if [[ "${line}" =~ ^([ \t]*)(inet|inet6)([ \t]*)([^[:space:]]*)([ \t]*) ]] ; then
+                  address="${BASH_REMATCH[4]}"
+                  if [[ ! "${line}" =~ scopeid ]] ; then   # FIXME! Is this sufficient in all cases?
+                     echo "${address}"
+                  fi
+               fi
+            done
+         )
+      done
+   ) | sort -u | xargs`
+fi
 
+# echo "A: ${ADDRESSES_WITH_DEFAULT_ROUTE}"
 
 echo "${ADDRESSES_WITH_DEFAULT_ROUTE}"
