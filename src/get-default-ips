@@ -56,7 +56,7 @@ fi
 if [ "${OS}" == "Linux" ] ; then
    ADDRESSES_WITH_DEFAULT_ROUTE=`(
       for interface in ${INTERFACES_WITH_DEFAULT_ROUTE} ; do
-         ( ip -4 addr show dev ${interface} scope global ; ip -6 addr show dev ${interface} scope global nodad ) | (
+         ( ip -4 addr show dev ${interface} scope global ; ip -6 addr show dev ${interface} scope global ) | (
             while read line ; do
                if [[ "${line}" =~ ^([ \t]*)(inet|inet6)([ \t]*)([^[:space:]]*)/ ]] ; then
                   echo "${BASH_REMATCH[4]}"
