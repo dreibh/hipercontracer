@@ -330,13 +330,11 @@ for parameterName in parsedConfigFile.options('root'):
       error('Unknown parameter ' + parameterName + ' in ' + sys.argv[1] + '!')
 
 if not os.path.exists(transactionsPath):
-   error('Invalid transactions path: ' + transactionsPath + '!')
+   error('Invalid transactions path ' + transactionsPath + '!')
 try:
-   os.mkdir(badFilePath)
-except:
-   pass
-if not os.path.exists(badFilePath):
-   error('Invalid bad file path: ' + badFilePath + '!')
+   os.makedirs(badFilePath, exist_ok=True)
+except Exception as e:
+   error('Unable to create bad file directory ' + badFilePath + ': ' + str(e))
 
 
 # ====== Connect to the database ============================================
