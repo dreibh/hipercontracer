@@ -36,13 +36,12 @@
 INTERFACES_WITH_DEFAULT_ROUTE=`
 ( /bin/ip -4 route show default ; /bin/ip -6 route show default ) | (
    while read line ; do
-      if [[ "${line}" =~ ^(default)([ \t]*)(.*)(dev)([ \t]*)([^ \t]*)([ \t]*) ]] ; then
-         echo "${BASH_REMATCH[6]}"
+      if [[ "${line}" =~ ^(default)([ \t]*)(.*)(dev)([ \t]*)([^[:space:]]*)([ \t]*) ]] ; then
+         echo "${BASH_REMATCH[6]}" 
       fi
    done
 ) | sort -u | xargs
 `
-
 # echo "I: ${INTERFACES_WITH_DEFAULT_ROUTE}"
 
 
@@ -52,7 +51,7 @@ ADDRESSES_WITH_DEFAULT_ROUTE=`
    for interface in ${INTERFACES_WITH_DEFAULT_ROUTE} ; do
       ( ip -4 addr show dev ${interface} scope global ; ip -6 addr show dev ${interface} scope global nodad ) | (
          while read line ; do
-            if [[ "${line}" =~ ^([ \t]*)(inet|inet6)([ \t]*)([^ \t]*)/ ]] ; then
+            if [[ "${line}" =~ ^([ \t]*)(inet|inet6)([ \t]*)([^[:space:]]*)/ ]] ; then
                echo "${BASH_REMATCH[4]}"
             fi
          done
@@ -60,7 +59,6 @@ ADDRESSES_WITH_DEFAULT_ROUTE=`
    done
 ) | sort -u | xargs
 `
-
 # echo "A: ${ADDRESSES_WITH_DEFAULT_ROUTE}"
 
 
