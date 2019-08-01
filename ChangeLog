@@ -1,3 +1,33 @@
+commit db0e554826a457ef3e4cc92e3ebc2ce6577e117d
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Aug 1 09:02:56 2019 +0200
+
+    Updated README.
+
+commit 8d7b8ed014cc731c069ab8aaf8682616d8295df8
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Aug 1 08:44:33 2019 +0200
+
+    RPM spec fix.
+
+commit d87412aa44fbc0263011853621f721438e224110
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Jul 31 16:31:17 2019 +0200
+
+    Updated distinfo.
+
+commit a562d80eee61ce9f254c719bd816a00125b1a7b5
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Jul 31 16:31:10 2019 +0200
+
+    Updated LSM entry.
+
+commit 86b0275a1be8114364847e788eb2f1a7b6d1154b
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Jul 31 16:29:58 2019 +0200
+
+    New release hipercontracer-1.4.3.
+
 commit adbf665c6584cfa662196e9247e4a74f7d48bb3b
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Wed Jul 31 16:28:56 2019 +0200
