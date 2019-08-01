@@ -38,6 +38,7 @@ storage:
       directoryForIndexes: true
 
 net:
+  ipv6: true   # Enable IPv6
   port: 27017
   bindIpAll: true
   # Bind for IPv4 + IPv6:
