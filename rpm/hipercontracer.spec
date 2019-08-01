@@ -48,7 +48,7 @@ make install DESTDIR=%{buildroot}
 %{_bindir}/hipercontracer
 %{_bindir}/tracedataimporter
 %{_mandir}/man1/addressinfogenerator.1.gz
-%{_mandir}/get-default-ips.1.gz
+%{_mandir}/man1/get-default-ips.1.gz
 %{_mandir}/man1/hipercontracer.1.gz
 %{_mandir}/man1/tracedataimporter.1.gz
 %{_datadir}/doc/hipercontracer/examples/hipercontracer-database-configuration
