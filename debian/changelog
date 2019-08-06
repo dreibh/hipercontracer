@@ -1,10 +1,10 @@
-hipercontracer (1.4.5~rc2-1ubuntu1) unstable; urgency=medium
+hipercontracer (1.4.5~rc3-1ubuntu1) unstable; urgency=medium
 
   * New upstream release.
   * debian/control: Updated standards version to 4.4.0.1.
-  * Closes: #934057
+  * Closes: #934057 (ITP).
 
- -- Thomas Dreibholz <dreibh@iem.uni-due.de>  Tue, 06 Aug 2019 17:40:45 +0200
+ -- Thomas Dreibholz <dreibh@iem.uni-due.de>  Tue, 06 Aug 2019 17:52:12 +0200
 
 hipercontracer (1.4.4-1ubuntu1) disco; urgency=medium
 
