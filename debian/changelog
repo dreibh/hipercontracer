@@ -1,3 +1,11 @@
+hipercontracer (1.4.5~rc0-1ubuntu1) unstable; urgency=medium
+
+  * New upstream release.
+  * Debian packaging ITP (Closes: #934057).
+  * debian/control: Updated standards version to 4.4.0.1.
+
+-- Thomas Dreibholz <dreibh@iem.uni-due.de>  Tue, 06 Aug 2019 16:12:48 +0200
+
 hipercontracer (1.4.4-1ubuntu1) disco; urgency=medium
 
   * New upstream release.

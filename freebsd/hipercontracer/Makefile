@@ -2,7 +2,7 @@
 # $FreeBSD$
 
 PORTNAME=	hipercontracer
-PORTVERSION=	1.4.4
+PORTVERSION=	1.4.5~rc0
 CATEGORIES=	benchmarks
 MASTER_SITES=	https://www.uni-due.de/~be0001/hipercontracer/download/
 EXTRACT_SUFX=	.tar.xz
