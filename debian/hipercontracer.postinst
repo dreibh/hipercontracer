@@ -4,8 +4,8 @@ set -e
 
 if [ "$1" = configure ]; then
    # Make sure the administrative user exists
-   /usr/sbin/groupadd -g 888 -r hipercontracer >/dev/null 2>&1 || :
-   /usr/sbin/useradd -M -N -g hipercontracer -o -r -d /tmp -s /bin/bash -c "HiPerConTracer User" -u 888 hipercontracer >/dev/null 2>&1 || :
+   groupadd -g 888 -r hipercontracer >/dev/null 2>&1 || :
+   useradd -M -N -g hipercontracer -o -r -d /tmp -s /bin/bash -c "HiPerConTracer User" -u 888 hipercontracer >/dev/null 2>&1 || :
 
    # check validity of hipercontracer user and group
    if [ "`id -u hipercontracer`" -eq 0 ]; then
