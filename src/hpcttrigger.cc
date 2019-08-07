@@ -366,15 +366,15 @@ int main(int argc, char** argv)
    const passwd* pw = getUser(user.c_str());
    if(pw == nullptr) {
       HPCT_LOG(fatal) << "Cannot find user!";
-      exit(1);
+      return 1;
    }
    if(SourceArray.size() < 1) {
       HPCT_LOG(fatal) << "At least one source is needed!";
-      exit(1);
+      return 1;
    }
    if((servicePing == false) && (serviceTraceroute == false)) {
       HPCT_LOG(fatal) << "Enable at least on service (Ping or Traceroute)!";
-      exit(1);
+      return 1;
    }
 
    std::srand(std::time(0));
@@ -451,20 +451,20 @@ int main(int argc, char** argv)
                                   (pw != nullptr) ? pw->pw_uid : 0, (pw != nullptr) ? pw->pw_gid : 0);
                if(resultsWriter == nullptr) {
                   HPCT_LOG(fatal) << "Cannot initialise results directory " << resultsDirectory << "!";
-                  exit(1);
+                  return 1;
                }
             }
             Service* service = new Ping(resultsWriter, 0, true,
                                         sourceAddress, destinationsForSource,
                                         pingInterval, pingExpiration, pingTTL);
             if(service->start() == false) {
-               exit(1);
+               return 1;
             }
             ServiceSet.insert(service);
          }
          catch (std::exception& e) {
             HPCT_LOG(fatal) << "Cannot create Ping service - " << e.what();
-            exit(1);
+            return 1;
          }
       }
       if(serviceTraceroute) {
@@ -477,7 +477,7 @@ int main(int argc, char** argv)
                                   (pw != nullptr) ? pw->pw_uid : 0, (pw != nullptr) ? pw->pw_gid : 0);
                if(resultsWriter == nullptr) {
                   HPCT_LOG(fatal) << "Cannot initialise results directory " << resultsDirectory << "!";
-                  exit(1);
+                  return 1;
                }
             }
             Service* service = new Traceroute(resultsWriter, 0, true,
@@ -487,13 +487,13 @@ int main(int argc, char** argv)
                                               tracerouteInitialMaxTTL, tracerouteFinalMaxTTL,
                                               tracerouteIncrementMaxTTL);
             if(service->start() == false) {
-               exit(1);
+               return 1;
             }
             ServiceSet.insert(service);
          }
          catch (std::exception& e) {
             HPCT_LOG(fatal) << "Cannot create Traceroute service - " << e.what();
-            exit(1);
+            return 1;
          }
       }
    }
@@ -509,7 +509,7 @@ int main(int argc, char** argv)
    // ====== Reduce privileges ==============================================
    if(reducePrivileges(pw) == false) {
       HPCT_LOG(fatal) << "Failed to reduce privileges!";
-      exit(1);
+      return 1;
    }
 
 

@@ -130,18 +130,18 @@ DSCPValue DSCPValuesTable[] = {
 
 
 // ###### Add source address to set #########################################
-void addSourceAddress(std::map<boost::asio::ip::address, std::set<uint8_t>>& array,
+bool addSourceAddress(std::map<boost::asio::ip::address, std::set<uint8_t>>& array,
                       const std::string&                                     addressString)
 {
    boost::system::error_code errorCode;
+   std::vector<std::string>  addressParameters;
 
-   std::vector<std::string> addressParameters;
    boost::split(addressParameters, addressString, boost::is_any_of(","));
    if(addressParameters.size() > 0) {
       const boost::asio::ip::address address = boost::asio::ip::address::from_string(addressParameters[0], errorCode);
       if(errorCode != boost::system::errc::success) {
          std::cerr << "ERROR: Bad source address " << addressParameters[0] << "!" << std::endl;
-         ::exit(1);
+         return false;
       }
       std::map<boost::asio::ip::address, std::set<uint8_t>>::iterator found = array.find(address);
       if(found == array.end()) {
@@ -163,7 +163,7 @@ void addSourceAddress(std::map<boost::asio::ip::address, std::set<uint8_t>>& arr
                trafficClass = std::strtoul(addressParameters[i].c_str(), nullptr, 16);
                if(trafficClass > 0xff) {
                   std::cerr << "ERROR: Bad traffic class " << addressParameters[i] << "!" << std::endl;
-                  ::exit(1);
+                  return false;
                }
             }
             array[address].insert(trafficClass);
@@ -175,20 +175,22 @@ void addSourceAddress(std::map<boost::asio::ip::address, std::set<uint8_t>>& arr
    }
    else {
       std::cerr << "ERROR: Invalid source address specification " << addressString << std::endl;
-      ::exit(1);
+      return false;
    }
+   return true;
 }
 
 
 // ###### Add destination address to set ####################################
-void addDestinationAddress(std::set<boost::asio::ip::address>& array,
+bool addDestinationAddress(std::set<boost::asio::ip::address>& array,
                            const std::string&                  addressString)
 {
    boost::system::error_code errorCode;
-   boost::asio::ip::address address = boost::asio::ip::address::from_string(addressString, errorCode);
+   boost::asio::ip::address  address = boost::asio::ip::address::from_string(addressString, errorCode);
    if(errorCode != boost::system::errc::success) {
       std::cerr << "ERROR: Bad destination address " << addressString << "!" << std::endl;
-      ::exit(1);
+      return false;
    }
    array.insert(address);
+   return true;
 }

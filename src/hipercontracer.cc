@@ -214,14 +214,18 @@ int main(int argc, char** argv)
       const std::vector<std::string>& sourceAddressVector = vm["source"].as<std::vector<std::string>>();
       for(std::vector<std::string>::const_iterator iterator = sourceAddressVector.begin();
           iterator != sourceAddressVector.end(); iterator++) {
-         addSourceAddress(SourceArray, iterator->c_str());
+         if(!addSourceAddress(SourceArray, iterator->c_str())) {
+            return 1;
+         }
       }
    }
    if(vm.count("destination")) {
       const std::vector<std::string>& destinationAddressVector = vm["destination"].as<std::vector<std::string>>();
       for(std::vector<std::string>::const_iterator iterator = destinationAddressVector.begin();
           iterator != destinationAddressVector.end(); iterator++) {
-         addDestinationAddress(DestinationArray, iterator->c_str());
+         if(!addDestinationAddress(DestinationArray, iterator->c_str())) {
+            return 1;
+         }
       }
    }
 
@@ -231,15 +235,15 @@ int main(int argc, char** argv)
    const passwd* pw = getUser(user.c_str());
    if(pw == nullptr) {
       HPCT_LOG(fatal) << "Cannot find user!";
-      exit(1);
+      return 1;
    }
    if( (SourceArray.size() < 1) || (DestinationArray.size() < 1) ) {
       HPCT_LOG(fatal) << "At least one source and one destination are needed!";
-      exit(1);
+      return 1;
    }
    if((servicePing == false) && (serviceTraceroute == false)) {
       HPCT_LOG(fatal) << "Enable at least on service (Ping or Traceroute)!";
-      exit(1);
+      return 1;
    }
 
    std::srand(std::time(0));
@@ -311,20 +315,20 @@ int main(int argc, char** argv)
                                                                 (pw != nullptr) ? pw->pw_uid : 0, (pw != nullptr) ? pw->pw_gid : 0);
                if(resultsWriter == nullptr) {
                   HPCT_LOG(fatal) << "Cannot initialise results directory " << resultsDirectory << "!";
-                  exit(1);
+                  return 1;
                }
             }
             Service* service = new Ping(resultsWriter, iterations, false,
                                         sourceAddress, destinationsForSource,
                                         pingInterval, pingExpiration, pingTTL);
             if(service->start() == false) {
-               exit(1);
+               return 1;
             }
             ServiceSet.insert(service);
          }
          catch (std::exception& e) {
             HPCT_LOG(fatal) << "Cannot create Ping service - " << e.what();
-            exit(1);
+            return 1;
          }
       }
       if(serviceTraceroute) {
@@ -337,10 +341,9 @@ int main(int argc, char** argv)
                                   (pw != nullptr) ? pw->pw_uid : 0, (pw != nullptr) ? pw->pw_gid : 0);
                if(resultsWriter == nullptr) {
                   HPCT_LOG(fatal) << "Cannot initialise results directory " << resultsDirectory << "!";
-                  exit(1);
+                  return 1;
                }
             }
-            printf("W=%p\n", resultsWriter);
             Service* service = new Traceroute(resultsWriter, iterations, false,
                                               sourceAddress, destinationsForSource,
                                               tracerouteInterval, tracerouteExpiration,
@@ -348,13 +351,13 @@ int main(int argc, char** argv)
                                               tracerouteInitialMaxTTL, tracerouteFinalMaxTTL,
                                               tracerouteIncrementMaxTTL);
             if(service->start() == false) {
-               exit(1);
+               return 1;
             }
             ServiceSet.insert(service);
          }
          catch (std::exception& e) {
             HPCT_LOG(fatal) << "Cannot create Traceroute service - " << e.what();
-            exit(1);
+            return 1;
          }
       }
    }
@@ -363,7 +366,7 @@ int main(int argc, char** argv)
    // ====== Reduce privileges ==============================================
    if(reducePrivileges(pw) == false) {
       HPCT_LOG(fatal) << "Failed to reduce privileges!";
-      exit(1);
+      return 1;
    }
 
 
