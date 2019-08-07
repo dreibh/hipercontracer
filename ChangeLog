@@ -1,3 +1,153 @@
+commit 4e429213cedef57563fd078da4f2e553edb80b42
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Aug 7 10:33:04 2019 +0200
+
+    Fixed some inconsistencies in different packaging files.
+
+commit ef2973d992fb80101ba467ed5c4bca1ea7eb23fa
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Aug 7 10:10:17 2019 +0200
+
+    Version bump.
+
+commit 4c1533b57d3c5f0e9b23208b7a56ea0dff2cd6d2
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Aug 7 09:51:41 2019 +0200
+
+    Build script update.
+
+commit d3a069e058f02eac368664b521a4b3cc86cd872d
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Aug 7 09:50:40 2019 +0200
+
+    Improved error handling.
+
+commit 66fff898e46a4772a977f323ac9e0d97bd9eba6d
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Aug 7 09:42:33 2019 +0200
+
+    Further API handling improvements.
+
+commit b87fafcf8265ecaae7c5423a5742a320d9fe2f0c
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Aug 7 09:14:15 2019 +0200
+
+    Removed exit() call from library.
+
+commit 6bc939e6ab291d80a76b161cc883088421c532e2
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Aug 6 23:35:49 2019 +0200
+
+    hipercontracer is compiled with -D_FORTIFY_SOURCE=2 -> lintian false positive.
+
+commit f9248acaa9758cdda507669c6b80bbb542a86b85
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Aug 6 23:23:15 2019 +0200
+
+    Some clean-ups.
+
+commit 6e659cb5e4deac556118efb0c664e970c4e37baf
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Aug 6 22:41:52 2019 +0200
+
+    Some improvements.
+
+commit f0164390413260089f0abea235c5354771564c99
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Aug 6 22:40:53 2019 +0200
+
+    Build script updates.
+
+commit 650a7125cc7d0ae4c621a69e840503bb884fd53f
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Aug 6 22:18:46 2019 +0200
+
+    Fixed issues in manpages.
+
+commit e77e0db5575cead03e70f40c3402ebccba01553b
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Aug 6 22:01:54 2019 +0200
+
+    Fixed path for groupadd and useradd in postinst script.
+
+commit f0a6c4335e6b0d3da932c4a7b8329471e586d0d5
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Aug 6 22:00:42 2019 +0200
+
+    Added missing hardening option.
+
+commit 14ee1e4431e7eb28db8a743d6f6388379961a193
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Aug 6 17:58:44 2019 +0200
+
+    An update.
+
+commit c3fb959d0832816897b447ca7b7b363673453da6
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Aug 6 17:44:31 2019 +0200
+
+    Version bump.
+
+commit d6ee01e5a61712fafdeaa72dfa7b7b106a6cc45e
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Aug 6 17:44:21 2019 +0200
+
+    Improved build script.
+
+commit ef1c5319a7eb5bdc8cf46f691b3b3dbe3e67d0c3
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Aug 6 16:53:02 2019 +0200
+
+    Added ITP.
+
+commit 1f6f9e188bfe2be58da30ca10196496944869697
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Aug 6 16:50:36 2019 +0200
+
+    Removed leading / from Ubuntu/Debian install files.
+
+commit 484debd281fa4b022c8b631c2e3c62901bfba854
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Mon Aug 5 22:06:50 2019 +0200
+
+    Updated CI scripts.
+
+commit aba8e2952e630f898b7c857d4bc1008e592d1ba4
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Mon Aug 5 17:00:41 2019 +0200
+
+    Updated Debian Standards version.
+
+commit 73b7f7f2f5255e40c671439f6bccc82cba6cb9a5
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Mon Aug 5 15:11:17 2019 +0200
+
+    Updated Travis CI configuration.
+
+commit d61e4f1c51644f950b0f0bfd0c3bdc2b1afef1cc
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Mon Aug 5 15:05:27 2019 +0200
+
+    Build script updates.
+
+commit 640598fa383276b97c1abb06cead9b6ec67e00d6
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Aug 1 11:25:46 2019 +0200
+
+    Updated FreeBSD port files.
+
+commit ea2ad0219a84f2330887da2f445c0c4777698000
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Aug 1 11:23:43 2019 +0200
+
+    Updated LSM entry.
+
+commit 216e0eecd11bce9e7317b0b097762085934937a3
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Aug 1 11:22:33 2019 +0200
+
+    New release hipercontracer-1.4.4.
+
 commit db0e554826a457ef3e4cc92e3ebc2ce6577e117d
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Thu Aug 1 09:02:56 2019 +0200
