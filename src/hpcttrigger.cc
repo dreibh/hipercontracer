@@ -366,11 +366,11 @@ int main(int argc, char** argv)
    const passwd* pw = getUser(user.c_str());
    if(SourceArray.size() < 1) {
       HPCT_LOG(fatal) << "ERROR: At least one source is needed!";
-      ::exit(1);
+      exit(1);
    }
    if((servicePing == false) && (serviceTraceroute == false)) {
       HPCT_LOG(fatal) << "ERROR: Enable at least on service (Ping or Traceroute)!";
-      ::exit(1);
+      exit(1);
    }
 
    std::srand(std::time(0));
@@ -439,43 +439,49 @@ int main(int argc, char** argv)
 
       if(servicePing) {
          try {
-            Service* service = new Ping(ResultsWriter::makeResultsWriter(
-                                           ResultsWriterSet, sourceAddress, "TriggeredPing",
-                                           resultsDirectory, resultsTransactionLength,
-                                           (pw != nullptr) ? pw->pw_uid : 0, (pw != nullptr) ? pw->pw_gid : 0),
-                                        0, true,
+            ResultsWriter* resultsWriter = ResultsWriter::makeResultsWriter(
+                                              ResultsWriterSet, sourceAddress, "TriggeredPing",
+                                              resultsDirectory, resultsTransactionLength,
+                                              (pw != nullptr) ? pw->pw_uid : 0, (pw != nullptr) ? pw->pw_gid : 0);
+            if(resultsWriter == nullptr) {
+               exit(1);
+            }
+            Service* service = new Ping(resultsWriter, 0, true,
                                         sourceAddress, destinationsForSource,
                                         pingInterval, pingExpiration, pingTTL);
             if(service->start() == false) {
-               ::exit(1);
+               exit(1);
             }
             ServiceSet.insert(service);
          }
          catch (std::exception& e) {
             HPCT_LOG(fatal) << "ERROR: Cannot create Ping service - " << e.what();
-            ::exit(1);
+            exit(1);
          }
       }
       if(serviceTraceroute) {
          try {
-            Service* service = new Traceroute(ResultsWriter::makeResultsWriter(
-                                                 ResultsWriterSet, sourceAddress, "TriggeredTraceroute",
-                                                 resultsDirectory, resultsTransactionLength,
-                                                 (pw != nullptr) ? pw->pw_uid : 0, (pw != nullptr) ? pw->pw_gid : 0),
-                                              0, true,
+            ResultsWriter* resultsWriter = ResultsWriter::makeResultsWriter(
+                                              ResultsWriterSet, sourceAddress, "TriggeredTraceroute",
+                                              resultsDirectory, resultsTransactionLength,
+                                              (pw != nullptr) ? pw->pw_uid : 0, (pw != nullptr) ? pw->pw_gid : 0);
+            if(resultsWriter == nullptr) {
+               exit(1);
+            }
+            Service* service = new Traceroute(resultsWriter, 0, true,
                                               sourceAddress, destinationsForSource,
                                               tracerouteInterval, tracerouteExpiration,
                                               tracerouteRounds,
                                               tracerouteInitialMaxTTL, tracerouteFinalMaxTTL,
                                               tracerouteIncrementMaxTTL);
             if(service->start() == false) {
-               ::exit(1);
+               exit(1);
             }
             ServiceSet.insert(service);
          }
          catch (std::exception& e) {
             HPCT_LOG(fatal) << "ERROR: Cannot create Traceroute service - " << e.what();
-            ::exit(1);
+            exit(1);
          }
       }
    }

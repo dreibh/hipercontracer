@@ -213,7 +213,7 @@ ResultsWriter* ResultsWriter::makeResultsWriter(std::set<ResultsWriter*>&       
       resultsWriter = new ResultsWriter(resultsDirectory, uniqueID, resultsFormat, resultsTransactionLength,
                                         uid, gid, compressor);
       if(resultsWriter->prepare() == false) {
-         ::exit(1);
+         return(nullptr);
       }
       resultsWriterSet.insert(resultsWriter);
    }
