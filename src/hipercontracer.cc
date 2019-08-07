@@ -229,12 +229,16 @@ int main(int argc, char** argv)
    // ====== Initialize =====================================================
    initialiseLogger(logLevel);
    const passwd* pw = getUser(user.c_str());
+   if(pw == nullptr) {
+      HPCT_LOG(fatal) << "Cannot find user!";
+      exit(1);
+   }
    if( (SourceArray.size() < 1) || (DestinationArray.size() < 1) ) {
-      HPCT_LOG(fatal) << "ERROR: At least one source and one destination are needed!";
+      HPCT_LOG(fatal) << "At least one source and one destination are needed!";
       exit(1);
    }
    if((servicePing == false) && (serviceTraceroute == false)) {
-      HPCT_LOG(fatal) << "ERROR: Enable at least on service (Ping or Traceroute)!";
+      HPCT_LOG(fatal) << "Enable at least on service (Ping or Traceroute)!";
       exit(1);
    }
 
@@ -300,12 +304,15 @@ int main(int argc, char** argv)
 
       if(servicePing) {
          try {
-            ResultsWriter* resultsWriter = ResultsWriter::makeResultsWriter(
-                                              ResultsWriterSet, sourceAddress, "Ping",
-                                              resultsDirectory, resultsTransactionLength,
-                                              (pw != nullptr) ? pw->pw_uid : 0, (pw != nullptr) ? pw->pw_gid : 0);
-            if(resultsWriter == nullptr) {
-               exit(1);
+            ResultsWriter* resultsWriter = nullptr;
+            if(!resultsDirectory.empty()) {
+               resultsWriter = ResultsWriter::makeResultsWriter(ResultsWriterSet, sourceAddress, "Ping",
+                                                                resultsDirectory, resultsTransactionLength,
+                                                                (pw != nullptr) ? pw->pw_uid : 0, (pw != nullptr) ? pw->pw_gid : 0);
+               if(resultsWriter == nullptr) {
+                  HPCT_LOG(fatal) << "Cannot initialise results directory " << resultsDirectory << "!";
+                  exit(1);
+               }
             }
             Service* service = new Ping(resultsWriter, iterations, false,
                                         sourceAddress, destinationsForSource,
@@ -316,19 +323,24 @@ int main(int argc, char** argv)
             ServiceSet.insert(service);
          }
          catch (std::exception& e) {
-            HPCT_LOG(fatal) << "ERROR: Cannot create Ping service - " << e.what();
+            HPCT_LOG(fatal) << "Cannot create Ping service - " << e.what();
             exit(1);
          }
       }
       if(serviceTraceroute) {
          try {
-            ResultsWriter* resultsWriter = ResultsWriter::makeResultsWriter(
-                                              ResultsWriterSet, sourceAddress, "Traceroute",
-                                              resultsDirectory, resultsTransactionLength,
-                                              (pw != nullptr) ? pw->pw_uid : 0, (pw != nullptr) ? pw->pw_gid : 0);
-            if(resultsWriter == nullptr) {
-               exit(1);
+            ResultsWriter* resultsWriter = nullptr;
+            if(!resultsDirectory.empty()) {
+               resultsWriter = ResultsWriter::makeResultsWriter(
+                                  ResultsWriterSet, sourceAddress, "Traceroute",
+                                  resultsDirectory, resultsTransactionLength,
+                                  (pw != nullptr) ? pw->pw_uid : 0, (pw != nullptr) ? pw->pw_gid : 0);
+               if(resultsWriter == nullptr) {
+                  HPCT_LOG(fatal) << "Cannot initialise results directory " << resultsDirectory << "!";
+                  exit(1);
+               }
             }
+            printf("W=%p\n", resultsWriter);
             Service* service = new Traceroute(resultsWriter, iterations, false,
                                               sourceAddress, destinationsForSource,
                                               tracerouteInterval, tracerouteExpiration,
@@ -341,7 +353,7 @@ int main(int argc, char** argv)
             ServiceSet.insert(service);
          }
          catch (std::exception& e) {
-            HPCT_LOG(fatal) << "ERROR: Cannot create Traceroute service - " << e.what();
+            HPCT_LOG(fatal) << "Cannot create Traceroute service - " << e.what();
             exit(1);
          }
       }
@@ -349,7 +361,10 @@ int main(int argc, char** argv)
 
 
    // ====== Reduce privileges ==============================================
-   reducePrivileges(pw);
+   if(reducePrivileges(pw) == false) {
+      HPCT_LOG(fatal) << "Failed to reduce privileges!";
+      exit(1);
+   }
 
 
    // ====== Wait for termination signal ====================================

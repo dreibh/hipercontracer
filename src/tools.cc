@@ -58,8 +58,8 @@ const passwd* getUser(const char* user)
          int userID = -1;
          if( (sscanf(user, "%d", &userID) != 1) ||
              ( (pw = getpwuid(userID)) == nullptr) ) {
-            HPCT_LOG(fatal) << "Provided user \"" << user << "\" is not a user name or UID!";
-            ::exit(1);
+            HPCT_LOG(error) << "Provided user \"" << user << "\" is not a user name or UID!";
+            return nullptr;
          }
       }
    }
@@ -74,17 +74,17 @@ bool reducePrivileges(const passwd* pw)
    if((pw != nullptr) && (pw->pw_uid != 0)) {
       HPCT_LOG(info) << "Using UID " << pw->pw_uid << ", GID " << pw->pw_gid;
       if(setgid(pw->pw_gid) != 0) {
-         HPCT_LOG(fatal) << "setgid(" << pw->pw_gid << ") failed: " << strerror(errno);
-         ::exit(1);
+         HPCT_LOG(error) << "setgid(" << pw->pw_gid << ") failed: " << strerror(errno);
+         return false;
       }
       if(setuid(pw->pw_uid) != 0) {
-         HPCT_LOG(fatal) << "setuid(" << pw->pw_uid << ") failed: " << strerror(errno);
-         ::exit(1);
+         HPCT_LOG(error) << "setuid(" << pw->pw_uid << ") failed: " << strerror(errno);
+         return false;
       }
    }
    else {
       HPCT_LOG(warning) << "Working as root (uid 0). This is not recommended!";
-      return false;
+      return true;
    }
 
    return true;

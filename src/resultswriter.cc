@@ -202,7 +202,6 @@ ResultsWriter* ResultsWriter::makeResultsWriter(std::set<ResultsWriter*>&       
                                                 const gid_t                     gid,
                                                 const ResultsWriterCompressor   compressor)
 {
-   ResultsWriter* resultsWriter = nullptr;
    if(!resultsDirectory.empty()) {
       std::string uniqueID =
          resultsFormat + "-" +
@@ -210,12 +209,15 @@ ResultsWriter* ResultsWriter::makeResultsWriter(std::set<ResultsWriter*>&       
          sourceAddress.to_string() + "-" +
          boost::posix_time::to_iso_string(boost::posix_time::microsec_clock::universal_time());
       replace(uniqueID.begin(), uniqueID.end(), ' ', '-');
-      resultsWriter = new ResultsWriter(resultsDirectory, uniqueID, resultsFormat, resultsTransactionLength,
-                                        uid, gid, compressor);
-      if(resultsWriter->prepare() == false) {
-         return(nullptr);
+
+      ResultsWriter* resultsWriter =
+         new ResultsWriter(resultsDirectory, uniqueID, resultsFormat, resultsTransactionLength,
+                           uid, gid, compressor);
+      if(resultsWriter->prepare() == true) {
+         resultsWriterSet.insert(resultsWriter);
+         return(resultsWriter);
       }
-      resultsWriterSet.insert(resultsWriter);
+      delete resultsWriter;
    }
-   return(resultsWriter);
+   return(nullptr);
 }

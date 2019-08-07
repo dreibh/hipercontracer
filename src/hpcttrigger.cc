@@ -364,12 +364,16 @@ int main(int argc, char** argv)
    // ====== Initialize =====================================================
    initialiseLogger(logLevel);
    const passwd* pw = getUser(user.c_str());
+   if(pw == nullptr) {
+      HPCT_LOG(fatal) << "Cannot find user!";
+      exit(1);
+   }
    if(SourceArray.size() < 1) {
-      HPCT_LOG(fatal) << "ERROR: At least one source is needed!";
+      HPCT_LOG(fatal) << "At least one source is needed!";
       exit(1);
    }
    if((servicePing == false) && (serviceTraceroute == false)) {
-      HPCT_LOG(fatal) << "ERROR: Enable at least on service (Ping or Traceroute)!";
+      HPCT_LOG(fatal) << "Enable at least on service (Ping or Traceroute)!";
       exit(1);
    }
 
@@ -439,12 +443,16 @@ int main(int argc, char** argv)
 
       if(servicePing) {
          try {
-            ResultsWriter* resultsWriter = ResultsWriter::makeResultsWriter(
-                                              ResultsWriterSet, sourceAddress, "TriggeredPing",
-                                              resultsDirectory, resultsTransactionLength,
-                                              (pw != nullptr) ? pw->pw_uid : 0, (pw != nullptr) ? pw->pw_gid : 0);
-            if(resultsWriter == nullptr) {
-               exit(1);
+            ResultsWriter* resultsWriter = nullptr;
+            if(!resultsDirectory.empty()) {
+               resultsWriter = ResultsWriter::makeResultsWriter(
+                                  ResultsWriterSet, sourceAddress, "TriggeredPing",
+                                  resultsDirectory, resultsTransactionLength,
+                                  (pw != nullptr) ? pw->pw_uid : 0, (pw != nullptr) ? pw->pw_gid : 0);
+               if(resultsWriter == nullptr) {
+                  HPCT_LOG(fatal) << "Cannot initialise results directory " << resultsDirectory << "!";
+                  exit(1);
+               }
             }
             Service* service = new Ping(resultsWriter, 0, true,
                                         sourceAddress, destinationsForSource,
@@ -455,18 +463,22 @@ int main(int argc, char** argv)
             ServiceSet.insert(service);
          }
          catch (std::exception& e) {
-            HPCT_LOG(fatal) << "ERROR: Cannot create Ping service - " << e.what();
+            HPCT_LOG(fatal) << "Cannot create Ping service - " << e.what();
             exit(1);
          }
       }
       if(serviceTraceroute) {
          try {
-            ResultsWriter* resultsWriter = ResultsWriter::makeResultsWriter(
-                                              ResultsWriterSet, sourceAddress, "TriggeredTraceroute",
-                                              resultsDirectory, resultsTransactionLength,
-                                              (pw != nullptr) ? pw->pw_uid : 0, (pw != nullptr) ? pw->pw_gid : 0);
-            if(resultsWriter == nullptr) {
-               exit(1);
+            ResultsWriter* resultsWriter = nullptr;
+            if(!resultsDirectory.empty()) {
+               resultsWriter = ResultsWriter::makeResultsWriter(
+                                  ResultsWriterSet, sourceAddress, "TriggeredTraceroute",
+                                  resultsDirectory, resultsTransactionLength,
+                                  (pw != nullptr) ? pw->pw_uid : 0, (pw != nullptr) ? pw->pw_gid : 0);
+               if(resultsWriter == nullptr) {
+                  HPCT_LOG(fatal) << "Cannot initialise results directory " << resultsDirectory << "!";
+                  exit(1);
+               }
             }
             Service* service = new Traceroute(resultsWriter, 0, true,
                                               sourceAddress, destinationsForSource,
@@ -480,7 +492,7 @@ int main(int argc, char** argv)
             ServiceSet.insert(service);
          }
          catch (std::exception& e) {
-            HPCT_LOG(fatal) << "ERROR: Cannot create Traceroute service - " << e.what();
+            HPCT_LOG(fatal) << "Cannot create Traceroute service - " << e.what();
             exit(1);
          }
       }
@@ -495,7 +507,10 @@ int main(int argc, char** argv)
 
 
    // ====== Reduce privileges ==============================================
-   reducePrivileges(pw);
+   if(reducePrivileges(pw) == false) {
+      HPCT_LOG(fatal) << "Failed to reduce privileges!";
+      exit(1);
+   }
 
 
    // ====== Wait for termination signal ====================================
