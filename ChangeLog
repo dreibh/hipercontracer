@@ -1,3 +1,71 @@
+commit 8fb89344baa070c092047837b4840ae0a1d7cd57
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Mon Aug 12 12:32:40 2019 +0200
+
+    Made code platform-independent.
+
+commit 7ddca62f35747b04fb37a1a8b9106d8cb08adbc0
+Merge: df655d1 0c95c8a
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Mon Aug 12 12:11:53 2019 +0200
+
+    Merge branch 'master' of github.com:dreibh/hipercontracer
+
+commit df655d132aafe6e8a82b6cd532e8159d2887af05
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Mon Aug 12 12:10:32 2019 +0200
+
+    Fixed build issue with latest BOOST libraries (usage of deprecated method).
+
+commit 0c95c8a453e9a34603c2d383f4818717dd43e826
+Merge: 16c6889 10d6d44
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Mon Aug 12 10:59:30 2019 +0200
+
+    Merge branch 'master' of https://github.com/dreibh/hipercontracer
+
+commit 16c6889ba9e987c0f76bb4925e18f2c755cf9094
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Mon Aug 12 10:58:42 2019 +0200
+
+    Updated FreeBSD port files.
+
+commit 10d6d44e45974c73102253759b8956dcbcccdca7
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Mon Aug 12 10:41:08 2019 +0200
+
+    Ubuntu build fix.
+
+commit 610a890d834b125203e6781a9b0cfd43dc0ade25
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Mon Aug 12 09:05:37 2019 +0200
+
+    Improved Travis CI configuration.
+
+commit 0a3cf7e5fb5a5049ce4dda6f738926f9a4d76f44
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Aug 8 14:05:25 2019 +0200
+
+    Build script update.
+
+commit 9303c54b2b986aad1f9aed22471373f596ab234e
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Aug 7 18:22:33 2019 +0200
+
+    Updated distinfo.
+
+commit 2ff32e8099c9baa8cbd132e6b6c50b217dbe4e83
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Aug 7 18:22:03 2019 +0200
+
+    Updated LSM entry.
+
+commit a9cdcf3eb2d7b37f83165274ff30222733c3d32c
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Aug 7 17:41:09 2019 +0200
+
+    New release hipercontracer-1.4.5.
+
 commit 4e429213cedef57563fd078da4f2e553edb80b42
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Wed Aug 7 10:33:04 2019 +0200
