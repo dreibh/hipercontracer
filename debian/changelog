@@ -1,4 +1,4 @@
-hipercontracer (1.4.5-1ubuntu1) unstable; urgency=medium
+hipercontracer (1.4.5-1ubuntu1) eoan; urgency=medium
 
   * New upstream release.
   * debian/control: Updated standards version to 4.4.0.1.
