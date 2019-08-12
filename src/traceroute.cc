@@ -165,9 +165,9 @@ bool Traceroute::start()
 // ###### Request stop of thread ############################################
 void Traceroute::requestStop() {
    StopRequested.exchange(true);
-   IntervalTimer.get_io_service().post(std::bind(&Traceroute::cancelIntervalTimer, this));
-   TimeoutTimer.get_io_service().post(std::bind(&Traceroute::cancelTimeoutTimer, this));
-   ICMPSocket.get_io_service().post(std::bind(&Traceroute::cancelSocket, this));
+   IOService.post(std::bind(&Traceroute::cancelIntervalTimer, this));
+   IOService.post(std::bind(&Traceroute::cancelTimeoutTimer, this));
+   IOService.post(std::bind(&Traceroute::cancelSocket, this));
 }
 
 
