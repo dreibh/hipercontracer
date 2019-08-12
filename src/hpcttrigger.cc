@@ -172,16 +172,16 @@ static void handlePing(const ICMPHeader& header, const std::size_t payloadLength
 static void receivedPingV4(const boost::system::error_code& errorCode, std::size_t length)
 {
    if(errorCode != boost::asio::error::operation_aborted) {
-      if( (!errorCode) && (length >= sizeof(iphdr)) ) {
+      if( (!errorCode) && (length >= sizeof(ip)) ) {
          // ====== Decode IPv4 packet =======================================
          // NOTE: raw socket for IPv4 delivers IPv4 header as well!
-         const iphdr* ipHeader = (const iphdr*)IncomingPingMessageBuffer;
-         if( (ipHeader->version == 4) &&
-             (ntohs(ipHeader->tot_len) == length) ) {
-             const std::size_t headerLength = ipHeader->ihl << 2;
+         const ip* ipHeader = (const ip*)IncomingPingMessageBuffer;
+         if( (ipHeader->ip_v == 4) &&
+             (ntohs(ipHeader->ip_len) == length) ) {
+             const std::size_t headerLength = ipHeader->ip_hl << 2;
+             const uint8_t     protocol     = ipHeader->ip_p;
              // ====== Decode ICMP message ==================================
-             if( (headerLength + 8 <= length) &&
-                 (ipHeader->protocol == IPPROTO_ICMP) ) {
+             if( (headerLength + 8 <= length) && (protocol == IPPROTO_ICMP) ) {
                  ICMPHeader header((const char*)&IncomingPingMessageBuffer[headerLength],
                                    length - headerLength);
                  if(header.type() == ICMPHeader::IPv4EchoRequest) {
