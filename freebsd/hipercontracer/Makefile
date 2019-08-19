@@ -14,6 +14,14 @@ LICENSE_FILE=	${WRKSRC}/COPYING
 
 USES=		tar:xz cmake shebangfix
 
+LIB_DEPENDS=    libboost_date-time.so:devel/boost-libs \
+                libboost_filesystem.so:devel/boost-libs \
+                libboost_iostreams.so:devel/boost-libs \
+                libboost_log.so:devel/boost-libs \
+                libboost_program-options.so:devel/boost-libs \
+                libboost_system.so:devel/boost-libs \
+                libboost_thread.so:devel/boost-libs
+
 CMAKE_ARGS+=    -DCMAKE_INSTALL_MANDIR=${PREFIX}/man
 SHEBANG_FILES=	src/addressinfogenerator src/get-default-ips src/tracedataimporter
 
