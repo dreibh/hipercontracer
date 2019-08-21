@@ -1,4 +1,4 @@
-#!/bin/bash -e
+#!/usr/bin/env bash
 #
 #  =================================================================
 #           #     #                 #     #
@@ -30,6 +30,9 @@
 #  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 #  Contact: dreibh@simula.no
+
+# Bash options:
+set -e
 
 
 # ###### Find all interfaces with configured default route ##################
