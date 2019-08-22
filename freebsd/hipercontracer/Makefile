@@ -12,7 +12,7 @@ COMMENT=	High-Performance Connectivity Tracer (HiPerConTracer)
 LICENSE=	GPLv3+
 LICENSE_FILE=	${WRKSRC}/COPYING
 
-USES=		tar:xz cmake shebangfix
+USES=		tar:xz cmake
 
 LIB_DEPENDS=    libboost_date-time.so:devel/boost-libs \
                 libboost_filesystem.so:devel/boost-libs \
@@ -23,6 +23,7 @@ LIB_DEPENDS=    libboost_date-time.so:devel/boost-libs \
                 libboost_thread.so:devel/boost-libs
 
 CMAKE_ARGS+=    -DCMAKE_INSTALL_MANDIR=${PREFIX}/man
-SHEBANG_FILES=	src/addressinfogenerator src/get-default-ips src/tracedataimporter
+
+PLIST_SUB=      VERSION=${PORTVERSION}
 
 .include <bsd.port.mk>
