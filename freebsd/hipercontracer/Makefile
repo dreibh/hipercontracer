@@ -13,8 +13,9 @@ LICENSE=	GPLv3+
 LICENSE_FILE=	${WRKSRC}/COPYING
 
 USES=		tar:xz cmake
+USE_LDCONFIG=	yes
 
-LIB_DEPENDS=    libboost_date-time.so:devel/boost-libs \
+LIB_DEPENDS=    libboost_date_time.so:devel/boost-libs \
                 libboost_filesystem.so:devel/boost-libs \
                 libboost_iostreams.so:devel/boost-libs \
                 libboost_log.so:devel/boost-libs \
