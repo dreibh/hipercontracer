@@ -55,9 +55,9 @@ ResultsWriter::ResultsWriter(const std::string&            directory,
      UniqueID(uniqueID),
      FormatName(formatName),
      TransactionLength(transactionLength),
-     Compressor(compressor),
      UID(uid),
-     GID(gid)
+     GID(gid),
+     Compressor(compressor)
 {
    Inserts   = 0;
    SeqNumber = 0;

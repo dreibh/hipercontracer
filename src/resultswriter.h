@@ -80,10 +80,11 @@ class ResultsWriter
    const boost::filesystem::path         Directory;
    const std::string                     UniqueID;
    const std::string                     FormatName;
-   const ResultsWriterCompressor         Compressor;
    const unsigned int                    TransactionLength;
    const uid_t                           UID;
    const gid_t                           GID;
+   const ResultsWriterCompressor         Compressor;
+
    boost::filesystem::path               TempFileName;
    boost::filesystem::path               TargetFileName;
    size_t                                Inserts;
