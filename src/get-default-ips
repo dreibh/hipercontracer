@@ -71,9 +71,7 @@ if [ "${OS}" == "Linux" ] ; then
             while read line ; do
                if [[ "${line}" =~ ^([[:space:]]*)(inet)([[:space:]]*)([^[:space:]]*)/ ]] ; then
                   address="${BASH_REMATCH[4]}"
-                  if [[ ! "${line}" =~ mngtmpaddr ]] ; then
-                     echo "${address}"
-                  fi
+                  echo "${address}"
                fi
             done
          )
@@ -85,9 +83,7 @@ if [ "${OS}" == "Linux" ] ; then
             while read line ; do
                if [[ "${line}" =~ ^([[:space:]]*)(inet6)([[:space:]]*)([^[:space:]]*)/ ]] ; then
                   address="${BASH_REMATCH[4]}"
-                  if [[ ! "${line}" =~ mngtmpaddr ]] ; then
-                     echo "${address}"
-                  fi
+                  echo "${address}"
                fi
             done
          )
