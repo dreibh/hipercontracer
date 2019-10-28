@@ -1,8 +1,8 @@
-hipercontracer (1.4.7~rc1-1ubuntu1) eoan; urgency=medium
+hipercontracer (1.4.7~rc2-1ubuntu1) focal; urgency=medium
 
   * New upstream release.
 
- -- Thomas Dreibholz <dreibh@iem.uni-due.de>  Thu, 26 Sep 2019 15:28:01 +0200
+ -- Thomas Dreibholz <dreibh@iem.uni-due.de>  Mon, 28 Oct 2019 14:29:57 +0100
 
 hipercontracer (1.4.6-1ubuntu1) eoan; urgency=medium
 
