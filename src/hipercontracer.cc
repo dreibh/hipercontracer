@@ -154,7 +154,7 @@ int main(int argc, char** argv)
       ( "iterations,I",
            boost::program_options::value<unsigned int>(&iterations)->default_value(0),
            "Iterations" )
-      ( "Burstping,B",
+      ( "burstping,B",
            boost::program_options::value<bool>(&serviceBurstping)->default_value(false)->implicit_value(true),
            "Start Burstping service" )
 
