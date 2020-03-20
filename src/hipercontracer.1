@@ -29,6 +29,7 @@
 .Nm hipercontracer
 .Op \-P|--ping
 .Op \-T|--traceroute
+.Op \-B|--burstping
 .Op \-L|--loglevel level
 .Op \-q|--quiet
 .Op \-v|--verbose
@@ -45,6 +46,8 @@
 .Op \--pinginterval milliseconds
 .Op \--pingexpiration milliseconds
 .Op \--pingttl value
+.Op \--pingburst value
+.Op \--pingpayload value
 .Op \-R|--resultsdirectory directory
 .Op \--resultstransactionlength seconds
 .\" ###### Description ######################################################
@@ -62,6 +65,8 @@ The following arguments may be provided:
 Start the ping service.
 .It \-T|\--traceroute
 Start the traceroute service.
+.It \-B|\--burstping
+Start the Burstping service.
 .It \-L|\--loglevel level
 Sets the minimum logging level to the provided value: 0=trace, 1=debug, 2=info, 3=warning, 4=error, 5=fatal.
 .It \-q|\--quiet
@@ -107,6 +112,10 @@ Sets the ping interval (time for each full round of destinations).
 Sets the ping duration (timeout for each destination).
 .It \--pingttl value
 Sets the ping TTL value.
+.It \--pingburst value
+Sets the burstping number of burst (packets) value.
+.It \--pingpayload value
+Sets the burstping payload value.
 .It \-R|\--resultsdirectory directory
 Sets the results files directory. The results will be stored there. If not specified, to results will be stored.
 .It \--resultstransactionlength seconds
@@ -116,8 +125,8 @@ After a given number of seconds, begin a new results file.
 .Sh OUTPUT FORMAT
 The output file is a BZip2-compressed text file. The format is as follows, depending on the measurement type:
 .Bl -tag -width indent
-.It Ping
-Each Ping entry consists of a #P line.
+.It Ping or Burstping
+Each Ping/Burstping entry consists of a #P line.
 .Bl -tag -width indent
 .It #P sourceIP destinationIP timestamp status rtt
 .Bl -tag -width indent
@@ -160,6 +169,8 @@ Each Traceroute entry begins with a #T line, plus one TAB-started line per hop.
 .It hipercontracer \--source 172.16.0.127 \--destination 8.8.8.8 \--destination 193.99.144.80 \--destination 132.252.181.87 \--destination 10.254.254.254 \--destination 91.189.93.5 \--destination 128.112.139.90 \--destination 4.31.198.44 \--destination 136.186.1.10 \--destination 101.4.112.170 \--destination 77.36.144.2 \--source 2a02:270:2014:40:92e2:baff:fe48:bde1 \--destination 2400:cb00:2048:1::6814:155 \--destination 2a02:2e0:3fe:1001:7777:772e:2:85 \--destination 2a00:1450:400f:805::2004 \--traceroute \--ping \--tracerouteduration 1000 \--tracerouteinitialmaxttl 4 \--traceroutefinalmaxttl 32 \--tracerouteincrementmaxttl 4 \--pinginterval 1000 \--pingexpiration 7500 \--pingttl 56 \--resultsdirectory results
 .It hipercontracer \--source=158.36.79.183,00,AF11 \--source=2001:700:1234:5:92e2:ac7e:fe48:cafe,BE,EF,AF11 \--destination=8.8.8.8 \--destination=2606:4700:10::6814:155 \--ping \--traceroute \--tracerouteduration=1000 \--tracerouteinitialmaxttl=4 \--traceroutefinalmaxttl=32 \--tracerouteincrementmaxttl=4 \--pinginterval=1000 \--pingexpiration=7500 \--pingttl=56 \--resultsdirectory=/storage/hpct-results \--resultstransactionlength=20 \--quiet
 .It hipercontracer \--user=hipercontracer \--source=10.1.1.51 \--destination=10.1.1.6 \--destination=10.1.1.7 \--destination=10.1.1.8 \--traceroute \--tracerouteinterval=10000 \--tracerouteduration=1000
+.It hipercontracer \--source=158.36.79.183,00,AF11 \--source=2001:700:1234:5:92e2:ac7e:fe48:cafe,BE,EF,AF11 \--destination=8.8.8.8 \--destination=2606:4700:10::6814:155 \--burstping \--traceroute \--tracerouteduration=1000 \--tracerouteinitialmaxttl=4 \--traceroutefinalmaxttl=32 \--tracerouteincrementmaxttl=4 \--pinginterval=1000 \--pingexpiration=7500 \--pingttl=56 \--pingburst=9  \--pingpayload=100 \--resultsdirectory=/storage/hpct-results \--resultstransactionlength=20 \--quiet
+
 .El
 .\" ###### Authors ##########################################################
 .Sh AUTHORS

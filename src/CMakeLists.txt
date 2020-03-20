@@ -44,6 +44,7 @@ LIST(APPEND libhipercontracer_headers
    service.h
    tools.h
    traceroute.h
+   burstping.h
 )
 LIST(APPEND libhipercontracer_sources
    destinationinfo.cc
@@ -54,6 +55,7 @@ LIST(APPEND libhipercontracer_sources
    service.cc
    traceroute.cc
    tools.cc
+   burstping.cc
 )
 
 INSTALL(FILES ${libhipercontracer_headers} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/hipercontracer)
