@@ -42,6 +42,7 @@
 #include "service.h"
 #include "tools.h"
 #include "traceroute.h"
+#include "burstping.h"
 
 
 static std::map<boost::asio::ip::address, std::set<uint8_t>> SourceArray;
@@ -99,6 +100,7 @@ int main(int argc, char** argv)
    std::string        configurationFileName;
    bool               servicePing;
    bool               serviceTraceroute;
+   bool               serviceBurstping;
    unsigned int       iterations;
 
    unsigned long long tracerouteInterval;
@@ -111,6 +113,8 @@ int main(int argc, char** argv)
    unsigned long long pingInterval;
    unsigned int       pingExpiration;
    unsigned int       pingTTL;
+   unsigned int       pingPayload;
+   unsigned int       pingBurst;
 
    unsigned int       resultsTransactionLength;
    std::string        resultsDirectory;
@@ -146,6 +150,9 @@ int main(int argc, char** argv)
       ( "traceroute,T",
            boost::program_options::value<bool>(&serviceTraceroute)->default_value(false)->implicit_value(true),
            "Start Traceroute service" )
+      ( "burstping,B",
+           boost::program_options::value<bool>(&serviceBurstping)->default_value(false)->implicit_value(true),
+           "Start Burstping service" )
       ( "iterations,I",
            boost::program_options::value<unsigned int>(&iterations)->default_value(0),
            "Iterations" )
@@ -178,6 +185,12 @@ int main(int argc, char** argv)
       ( "pingttl",
            boost::program_options::value<unsigned int>(&pingTTL)->default_value(64),
            "Ping initial maximum TTL value" )
+      ( "pingpayload",
+           boost::program_options::value<unsigned int>(&pingPayload)->default_value(56),
+           "Burstping initial payloadvalue" )
+      ( "pingburst",
+           boost::program_options::value<unsigned int>(&pingBurst)->default_value(1),
+           "Burstping initial burst value" )
 
       ( "resultsdirectory,R",
            boost::program_options::value<std::string>(&resultsDirectory)->default_value(std::string()),
@@ -241,8 +254,8 @@ int main(int argc, char** argv)
       HPCT_LOG(fatal) << "At least one source and one destination are needed!";
       return 1;
    }
-   if((servicePing == false) && (serviceTraceroute == false)) {
-      HPCT_LOG(fatal) << "Enable at least on service (Ping or Traceroute)!";
+   if((servicePing == false) && (serviceTraceroute == false) && (serviceBurstping == false)) {
+      HPCT_LOG(fatal) << "Enable at least on service (Ping, Burstping or Traceroute)!";
       return 1;
    }
 
@@ -255,6 +268,8 @@ int main(int argc, char** argv)
    pingInterval              = std::min(std::max(100ULL, pingInterval),          3600U*60000ULL);
    pingExpiration            = std::min(std::max(100U, pingExpiration),          3600U*60000U);
    pingTTL                   = std::min(std::max(1U, pingTTL),                   255U);
+   pingPayload               = std::min(std::max(1U, pingPayload),               1500U);
+   pingBurst                 = std::min(std::max(1U, pingBurst),                 1000U);
 
    if(!resultsDirectory.empty()) {
       HPCT_LOG(info) << "Results Output:" << std::endl
@@ -280,7 +295,14 @@ int main(int argc, char** argv)
                      << "* Final MaxTTL       = " << tracerouteFinalMaxTTL     << std::endl
                      << "* Increment MaxTTL   = " << tracerouteIncrementMaxTTL;
    }
-
+   if(serviceBurstping) {
+      HPCT_LOG(info) << "Ping Service:" << std:: endl
+                     << "* Interval           = " << pingInterval   << " ms" << std::endl
+                     << "* Expiration         = " << pingExpiration << " ms" << std::endl
+                     << "* TTL                = " << pingTTL << std::endl
+                     << "* Busrt              = " << pingBurst << std::endl
+                     << "* Payload            = " << pingPayload;
+   }
 
    // ====== Start service threads ==========================================
    for(std::map<boost::asio::ip::address, std::set<uint8_t>>::iterator sourceIterator = SourceArray.begin();
@@ -357,6 +379,31 @@ int main(int argc, char** argv)
          }
          catch (std::exception& e) {
             HPCT_LOG(fatal) << "Cannot create Traceroute service - " << e.what();
+            return 1;
+         }
+      }
+      if(serviceBurstping) {
+         try {
+            ResultsWriter* resultsWriter = nullptr;
+            if(!resultsDirectory.empty()) {
+               resultsWriter = ResultsWriter::makeResultsWriter(ResultsWriterSet, sourceAddress, "Burstping",
+                                                                resultsDirectory, resultsTransactionLength,
+                                                                (pw != nullptr) ? pw->pw_uid : 0, (pw != nullptr) ? pw->pw_gid : 0);
+               if(resultsWriter == nullptr) {
+                  HPCT_LOG(fatal) << "Cannot initialise results directory " << resultsDirectory << "!";
+                  return 1;
+               }
+            }
+            Service* service = new Burstping(resultsWriter, iterations, false,
+                                        sourceAddress, destinationsForSource,
+                                        pingInterval, pingExpiration, pingTTL, pingPayload, pingBurst);
+            if(service->start() == false) {
+               return 1;
+            }
+            ServiceSet.insert(service);
+         }
+         catch (std::exception& e) {
+            HPCT_LOG(fatal) << "Cannot create Burstping service - " << e.what();
             return 1;
          }
       }
