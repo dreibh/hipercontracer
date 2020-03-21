@@ -29,6 +29,7 @@
 .Nm hipercontracer
 .Op \-P|--ping
 .Op \-T|--traceroute
+.Op \-B|--burstping
 .Op \-L|--loglevel level
 .Op \-q|--quiet
 .Op \-v|--verbose
@@ -45,12 +46,14 @@
 .Op \--pinginterval milliseconds
 .Op \--pingexpiration milliseconds
 .Op \--pingttl value
+.Op \--pingburst value
+.Op \--pingpayload value
 .Op \-R|--resultsdirectory directory
 .Op \--resultstransactionlength seconds
 .\" ###### Description ######################################################
 .Sh DESCRIPTION
 .Nm hipercontracer
-is a ping/traceroute service. It performs regular ping and traceroute runs
+is a ping/burstping/traceroute service. It performs regular ping and traceroute runs
 among sites and can export the results into results statements for import into
 a database.
 .Pp
@@ -60,6 +63,8 @@ The following arguments may be provided:
 .Bl -tag -width indent
 .It \-P|\--ping
 Start the ping service.
+.It \-B|\--burstping
+Start the burstping service.
 .It \-T|\--traceroute
 Start the traceroute service.
 .It \-L|\--loglevel level
@@ -107,6 +112,10 @@ Sets the ping interval (time for each full round of destinations).
 Sets the ping duration (timeout for each destination).
 .It \--pingttl value
 Sets the ping TTL value.
+.It \--pingburst value
+Sets the burst count for ping.
+.It \--pingpayload value
+Sets the burst payload for ping.
 .It \-R|\--resultsdirectory directory
 Sets the results files directory. The results will be stored there. If not specified, to results will be stored.
 .It \--resultstransactionlength seconds
@@ -116,8 +125,8 @@ After a given number of seconds, begin a new results file.
 .Sh OUTPUT FORMAT
 The output file is a BZip2-compressed text file. The format is as follows, depending on the measurement type:
 .Bl -tag -width indent
-.It Ping
-Each Ping entry consists of a #P line.
+.It Ping/Burstping
+Each Ping/Burstping entry consists of a #P line.
 .Bl -tag -width indent
 .It #P sourceIP destinationIP timestamp status rtt
 .Bl -tag -width indent
