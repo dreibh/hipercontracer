@@ -300,7 +300,7 @@ int main(int argc, char** argv)
                      << "* Interval           = " << pingInterval   << " ms" << std::endl
                      << "* Expiration         = " << pingExpiration << " ms" << std::endl
                      << "* TTL                = " << pingTTL << std::endl
-                     << "* Busrt              = " << pingBurst << std::endl
+                     << "* Burst              = " << pingBurst << std::endl
                      << "* Payload            = " << pingPayload;
    }
 
