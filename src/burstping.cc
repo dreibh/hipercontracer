@@ -62,23 +62,48 @@ void Burstping::sendBurstICMPRequest(const DestinationInfo& destination,
    echoRequest.code(0);
    echoRequest.identifier(Identifier);
    echoRequest.seqNumber(SeqNumber);
-   
-   const std::chrono::system_clock::time_point sendTime = std::chrono::system_clock::now();
 
-   // ======== Payload ========================
-   std::vector<unsigned char> contents(payload, ~0);
-   
+   TraceServiceHeader tsHeader;
+   tsHeader.magicNumber(MagicNumber);
+   tsHeader.sendTTL(ttl);
+   tsHeader.round((unsigned char)round);
+   tsHeader.checksumTweak(0);
+   const std::chrono::system_clock::time_point sendTime = std::chrono::system_clock::now();
+   tsHeader.sendTimeStamp(makePacketTimeStamp(sendTime));
+   std::vector<unsigned char> tsHeaderContents = tsHeader.contents();
+
    // ====== Tweak checksum ===============================
-   computeInternet16(echoRequest, contents.begin(), contents.end());
+   computeInternet16(echoRequest, tsHeaderContents.begin(), tsHeaderContents.end());
    targetChecksum = echoRequest.checksum();
-   
+
    // ====== Encode the request packet ======================
    boost::asio::streambuf request_buffer;
    std::ostream os(&request_buffer);
-   os << echoRequest;
-   os.write(reinterpret_cast<char const*>(contents.data()), contents.size());
+   os << echoRequest << tsHeader;
+   int missing_data = payload - request_buffer.size();
+   if (missing_data > 0){
+      std::vector<unsigned char> contents(missing_data, ~0);
+      os.write(reinterpret_cast<char const*>(contents.data()), contents.size());
+   }
    HPCT_LOG(info) << "Request size: " << request_buffer.size() << std::endl;
    
+   //const std::chrono::system_clock::time_point sendTime = std::chrono::system_clock::now();
+
+   // ======== Payload ========================
+   //
+   
+   // ====== Tweak checksum ===============================
+   //computeInternet16(echoRequest, contents.begin(), contents.end());
+   //targetChecksum = echoRequest.checksum();
+   
+   // ====== Encode the request packet ======================
+   //boost::asio::streambuf request_buffer;
+   //std::ostream os(&request_buffer);
+   //os << echoRequest;
+   //os.write(reinterpret_cast<char const*>(contents.data()), contents.size());
+   //HPCT_LOG(info) << "Request size: " << request_buffer.size() << std::endl;
+
+
    // ====== Send the request ===============================
    std::size_t sent;
    try {
