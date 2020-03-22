@@ -296,7 +296,7 @@ int main(int argc, char** argv)
                      << "* Increment MaxTTL   = " << tracerouteIncrementMaxTTL;
    }
    if(serviceBurstping) {
-      HPCT_LOG(info) << "Ping Service:" << std:: endl
+      HPCT_LOG(info) << "Burstping Service:" << std:: endl
                      << "* Interval           = " << pingInterval   << " ms" << std::endl
                      << "* Expiration         = " << pingExpiration << " ms" << std::endl
                      << "* TTL                = " << pingTTL << std::endl
