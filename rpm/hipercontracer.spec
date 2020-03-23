@@ -99,6 +99,7 @@ to integrate HiPerConTracer into own programs.
 
 
 %files libhipercontracer-devel
+%{_includedir}/hipercontracer/burstping.h
 %{_includedir}/hipercontracer/destinationinfo.h
 %{_includedir}/hipercontracer/logger.h
 %{_includedir}/hipercontracer/ping.h

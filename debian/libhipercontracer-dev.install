@@ -1,3 +1,4 @@
+usr/include/hipercontracer/burstping.h
 usr/include/hipercontracer/destinationinfo.h
 usr/include/hipercontracer/logger.h
 usr/include/hipercontracer/ping.h
