@@ -1,3 +1,34 @@
+// =================================================================
+//          #     #                 #     #
+//          ##    #   ####   #####  ##    #  ######   #####
+//          # #   #  #    #  #    # # #   #  #          #
+//          #  #  #  #    #  #    # #  #  #  #####      #
+//          #   # #  #    #  #####  #   # #  #          #
+//          #    ##  #    #  #   #  #    ##  #          #
+//          #     #   ####   #    # #     #  ######     #
+//
+//       ---   The NorNet Testbed for Multi-Homed Systems  ---
+//                       https://www.nntb.no
+// =================================================================
+//
+// High-Performance Connectivity Tracer (HiPerConTracer)
+// Copyright (C) 2015-2020 by Thomas Dreibholz
+// Copyright (C) 2020 Alfred Arouna
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <http://www.gnu.org/licenses/>.
+//
+// Contact: alfred@simula.no
 
 #include "burstping.h"
 #include "icmpheader.h"
@@ -19,13 +50,13 @@ Burstping::Burstping(ResultsWriter*         resultsWriter,
            const unsigned int               ttl,
            const unsigned int               payload,
            const unsigned int               burst)
-   :  payload(payload), 
+   :  payload(payload),
       burst(burst),
       Ping(resultsWriter, iterations, removeDestinationAfterRun,
                 sourceAddress, destinationArray,
                 interval, expiration, ttl),
       BurstpingInstanceName(std::string("Burstping(") + sourceAddress.to_string() + std::string(")"))
-   
+
 
 {
 }
@@ -50,7 +81,7 @@ void Burstping::sendBurstICMPRequest(const DestinationInfo& destination,
                                  uint32_t&              targetChecksum,
                                  const unsigned int     payload)
 {
-   
+
    // ====== Set TTL ========================================
    const boost::asio::ip::unicast::hops option(ttl);
    ICMPSocket.set_option(option);
@@ -86,16 +117,16 @@ void Burstping::sendBurstICMPRequest(const DestinationInfo& destination,
       os.write(reinterpret_cast<char const*>(contents.data()), contents.size());
    }
    HPCT_LOG(info) << "Request size: " << request_buffer.size() << std::endl;
-   
+
    //const std::chrono::system_clock::time_point sendTime = std::chrono::system_clock::now();
 
    // ======== Payload ========================
    //
-   
+
    // ====== Tweak checksum ===============================
    //computeInternet16(echoRequest, contents.begin(), contents.end());
    //targetChecksum = echoRequest.checksum();
-   
+
    // ====== Encode the request packet ======================
    //boost::asio::streambuf request_buffer;
    //std::ostream os(&request_buffer);
@@ -165,7 +196,7 @@ void Burstping::sendRequests()
             HPCT_LOG(info) << "Burst No. " << i << " of payload " << Burstping::payload << std::endl;
             sendBurstICMPRequest(destination, FinalMaxTTL, 0, targetChecksum, Burstping::payload);
          }
-         
+
       }
 
       scheduleTimeoutEvent();
