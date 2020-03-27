@@ -147,6 +147,65 @@ void Burstping::sendBurstICMPRequest(const DestinationInfo& destination,
    }
 }
 
+// ###### Handle timer event ################################################
+void Burstping::handleIntervalEvent(const boost::system::error_code& errorCode)
+{
+   if(StopRequested == false) {
+      // ====== Prepare new run =============================================
+      if(errorCode != boost::asio::error::operation_aborted) {
+         HPCT_LOG(debug) << getName() << ": Starting iteration " << (IterationNumber + 1) << " ...";
+         prepareRun(true);
+         sendRequests();
+      }
+   }
+}
+
+// ###### Schedule interval timer ###########################################
+void Burstping::scheduleIntervalEvent()
+{
+   if((Iterations == 0) || (IterationNumber < Iterations)) {
+      std::lock_guard<std::recursive_mutex> lock(DestinationMutex);
+
+      /***
+      // ====== Schedule event ==============================================
+      long long millisecondsToWait;
+      
+      const unsigned long long deviation       = std::max(10ULL, Interval / 5);   // 20% deviation
+      const unsigned long long waitingDuration = Interval + (std::rand() % deviation);
+      const std::chrono::steady_clock::duration howLongToWait =
+         (RunStartTimeStamp + std::chrono::milliseconds(waitingDuration)) - std::chrono::steady_clock::now();
+      millisecondsToWait = std::max(0LL, (long long)std::chrono::duration_cast<std::chrono::milliseconds>(howLongToWait).count());
+      
+
+      //IntervalTimer.expires_from_now(boost::posix_time::milliseconds(millisecondsToWait));
+      IntervalTimer.expires_from_now(boost::posix_time::milliseconds(0));
+      IntervalTimer.async_wait(std::bind(&Burstping::handleIntervalEvent, this,
+                                         std::placeholders::_1));
+      HPCT_LOG(debug) << getName() << ": Waiting " << millisecondsToWait / 1000.0
+                      << "s before iteration " << (IterationNumber + 1) << " ...";
+
+      **/
+
+      const unsigned long long deviation = std::max(10ULL, Interval / 5ULL);   // 20% deviation
+      const unsigned long long duration  = Interval + (std::rand() % deviation);
+      TimeoutTimer.expires_from_now(boost::posix_time::milliseconds(duration));
+      TimeoutTimer.async_wait(std::bind(&Burstping::handleTimeoutEvent, this,
+                                     std::placeholders::_1));
+      // ====== Check, whether it is time for starting a new transaction ====
+      if(ResultsOutput) {
+         ResultsOutput->mayStartNewTransaction();
+      }
+   }
+   else {
+       // ====== Done -> exit! ==============================================
+       StopRequested.exchange(true);
+       cancelIntervalTimer();
+       cancelTimeoutTimer();
+       cancelSocket();
+   }
+}
+
+
 // ###### Send requests to all destinations #################################
 void Burstping::sendRequests()
 {
@@ -167,12 +226,8 @@ void Burstping::sendRequests()
          }
          
       }
-
-      scheduleTimeoutEvent();
-   }
-
-   // ====== No destination addresses -> wait ===============================
-   else {
       scheduleIntervalEvent();
+
    }
+
 }
