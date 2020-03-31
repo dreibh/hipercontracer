@@ -43,6 +43,7 @@ const std::string& Burstping::getName() const
    return BurstpingInstanceName;
 }
 
+
 // ###### Send one ICMP request to given destination ########################
 void Burstping::sendBurstICMPRequest(const DestinationInfo& destination,
                                  const unsigned int     ttl,
@@ -186,9 +187,9 @@ void Burstping::scheduleIntervalEvent()
 
       **/
 
-      const unsigned long long deviation = std::max(10ULL, Interval / 5ULL);   // 20% deviation
-      const unsigned long long duration  = Interval + (std::rand() % deviation);
-      TimeoutTimer.expires_from_now(boost::posix_time::milliseconds(duration));
+      // const unsigned long long deviation = std::max(10ULL, Interval / 5ULL);   // 20% deviation
+      // const unsigned long long duration  = Interval + (std::rand() % deviation);
+      TimeoutTimer.expires_from_now(boost::posix_time::microseconds(Interval));
       TimeoutTimer.async_wait(std::bind(&Burstping::handleTimeoutEvent, this,
                                      std::placeholders::_1));
       // ====== Check, whether it is time for starting a new transaction ====
