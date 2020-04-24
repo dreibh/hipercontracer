@@ -1,3 +1,10 @@
+hipercontracer (1.4.8-1ubuntu1) focal; urgency=medium
+
+  * New upstream release.
+  * debian/control: Updated standards version to 4.5.0.1.
+
+ -- Thomas Dreibholz <dreibh@iem.uni-due.de>  Fri, 24 Apr 2020 12:38:46 +0200
+
 hipercontracer (1.4.7-1ubuntu1) focal; urgency=medium
 
   * New upstream release.
