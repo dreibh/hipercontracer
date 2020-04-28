@@ -271,6 +271,16 @@ def processInput(inputFile, outputType):
 
 
 # ###### Main program #######################################################
+
+# TEST:
+#for absTransactionFile in [ 'x.bz2', 'y.bz2' ] :
+   #inputFile = bz2.open(absTransactionFile, 'rt')
+   #transactionContent = processInput(inputFile, OT_MONGODB)
+   #print(transactionContent)
+#sys.exit(1)
+
+
+# ====== Handle arguments ===================================================
 if len(sys.argv) < 2:
    error('Usage: ' + sys.argv[0] + ' database_configuration [-verbose]')
 
@@ -296,7 +306,7 @@ while i < len(sys.argv):
    i = i + 1
 
 
-# ====== Get parameters =====================================================
+# ====== Get configuration ==================================================
 parsedConfigFile = configparser.RawConfigParser()
 parsedConfigFile.optionxform = str   # Make it case-sensitive!
 try:
