@@ -108,7 +108,7 @@ void Ping::scheduleTimeoutEvent()
 {
    // ====== Schedule event =================================================
    const unsigned long long deviation = std::max(10ULL, Interval / 5ULL);   // 20% deviation
-   const unsigned long long duration  = Interval + (std::rand() % deviation);
+   const unsigned long long duration  = Interval + (RandomNumberDistribution(RandomNumberGenerator) % deviation);
    TimeoutTimer.expires_from_now(boost::posix_time::milliseconds(duration));
    TimeoutTimer.async_wait(std::bind(&Ping::handleTimeoutEvent, this,
                                      std::placeholders::_1));

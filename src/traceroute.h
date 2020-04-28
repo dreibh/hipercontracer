@@ -44,6 +44,8 @@
 #include <thread>
 
 #include <boost/asio.hpp>
+#include <boost/random/random_device.hpp>
+#include <boost/random/uniform_int_distribution.hpp>
 
 
 class ICMPHeader;
@@ -107,6 +109,9 @@ class Traceroute : public Service
    unsigned int getInitialMaxTTL(const DestinationInfo&   destination) const;
 
    static unsigned long long makePacketTimeStamp(const std::chrono::system_clock::time_point& time);
+
+   boost::random::random_device                      RandomNumberGenerator;
+   boost::random::uniform_int_distribution<uint32_t> RandomNumberDistribution;
 
    const std::string                       TracerouteInstanceName;
    ResultsWriter*                          ResultsOutput;

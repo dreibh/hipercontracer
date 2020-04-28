@@ -82,8 +82,8 @@ Traceroute::Traceroute(ResultsWriter*                   resultsWriter,
    // ====== Some initialisations ===========================================
    StopRequested.exchange(false);
    Identifier          = 0;
-   SeqNumber           = (unsigned short)(std::rand() & 0xffff);
-   MagicNumber         = ((std::rand() & 0xffff) << 16) | (std::rand() & 0xffff);
+   SeqNumber           = (unsigned short)(RandomNumberDistribution(RandomNumberGenerator) & 0xffff);
+   MagicNumber         = RandomNumberDistribution(RandomNumberGenerator);
    OutstandingRequests = 0;
    LastHop             = 0xffffffff;
    ExpectingReply      = false;
@@ -300,7 +300,7 @@ void Traceroute::sendRequests()
 void Traceroute::scheduleTimeoutEvent()
 {
    const unsigned int deviation = std::max(10U, Expiration / 5);   // 20% deviation
-   const unsigned int duration  = Expiration + (std::rand() % deviation);
+   const unsigned int duration  = Expiration + (RandomNumberDistribution(RandomNumberGenerator) % deviation);
    TimeoutTimer.expires_from_now(boost::posix_time::milliseconds(duration));
    TimeoutTimer.async_wait(std::bind(&Traceroute::handleTimeoutEvent, this,
                                      std::placeholders::_1));
@@ -328,7 +328,7 @@ void Traceroute::scheduleIntervalEvent()
       }
       else {
          const unsigned long long deviation       = std::max(10ULL, Interval / 5);   // 20% deviation
-         const unsigned long long waitingDuration = Interval + (std::rand() % deviation);
+         const unsigned long long waitingDuration = Interval + (RandomNumberDistribution(RandomNumberGenerator) % deviation);
          const std::chrono::steady_clock::duration howLongToWait =
             (RunStartTimeStamp + std::chrono::milliseconds(waitingDuration)) - std::chrono::steady_clock::now();
          millisecondsToWait = std::max(0LL, (long long)std::chrono::duration_cast<std::chrono::milliseconds>(howLongToWait).count());
