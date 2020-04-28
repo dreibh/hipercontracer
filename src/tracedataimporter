@@ -240,6 +240,10 @@ def processInput(inputFile, outputType):
    resultsList = sorted(output.items(), key=operator.itemgetter(0))
 
    # ====== Generate output string ==========================================
+   if len(resultsList) == 0:
+      # There are no results => nothing to do!
+      return None
+
    if outputType == OT_POSTGRES:
       outputString = ""
       if inputType == IT_PING:
@@ -261,7 +265,7 @@ def processInput(inputFile, outputType):
    elif outputType == OT_MONGODB:
       outputList = []
       for result in resultsList:
-            outputList.append(result[1])
+         outputList.append(result[1])
       return [ inputType, outputList ]
 
 
