@@ -1,3 +1,51 @@
+commit d69d4923b6e5f6502c538f62a7371ffd0965c2a8
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Fri Apr 17 11:30:57 2020 +0200
+
+    Updated Travis CI configuration for Ubuntu builds.
+
+commit deb7ee01be5daa293360074d09445ce6f83e426d
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Apr 16 11:42:56 2020 +0200
+
+    Updated Travis CI configuration: Ubuntu 19.04 (Disco Dingo) is now obsolete.
+
+commit 82415d60c30bfe9c9db57e324c438104d85ebbfa
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Apr 14 19:04:43 2020 +0200
+
+    Updated build scripts
+
+commit 88c785e594e19a40f878ffd830d3918f0abb88cf
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Mon Mar 23 21:02:50 2020 +0100
+
+    Fixed manpage.
+
+commit f685af4fccc847f1214764187e6952d7fee67a89
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Fri Mar 20 20:45:00 2020 +0100
+
+    Fedora CI build fix.
+
+commit 1bdda936ff1c124f2a6f7d1a10044e6c47e65c41
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Fri Mar 20 19:29:17 2020 +0100
+
+    FreeBSD CI build fix.
+
+commit 4960de944eae1f6ea6badbf91fdbd765f841aed9
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Fri Feb 7 13:27:57 2020 +0100
+
+    Updated LSM entry.
+
+commit fea1ca898cfb744c41ef41aa34993a81caf6a5c9
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Fri Feb 7 13:21:56 2020 +0100
+
+    New release hipercontracer-1.4.7.
+
 commit fa09d83c22bc20ad44c5a69b281158031395da84
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Fri Feb 7 13:18:53 2020 +0100

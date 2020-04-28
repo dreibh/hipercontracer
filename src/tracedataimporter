@@ -240,6 +240,10 @@ def processInput(inputFile, outputType):
    resultsList = sorted(output.items(), key=operator.itemgetter(0))
 
    # ====== Generate output string ==========================================
+   if len(resultsList) == 0:
+      # There are no results => nothing to do!
+      return None
+
    if outputType == OT_POSTGRES:
       outputString = ""
       if inputType == IT_PING:
@@ -261,7 +265,7 @@ def processInput(inputFile, outputType):
    elif outputType == OT_MONGODB:
       outputList = []
       for result in resultsList:
-            outputList.append(result[1])
+         outputList.append(result[1])
       return [ inputType, outputList ]
 
 
@@ -434,7 +438,7 @@ for transactionFile in transactionFileList:
                elif transactionContent[0] == IT_TRACEROUTE:
                   db['traceroute'].insert(transactionContent[1])
                else:
-                  error('Something went wrong!')
+                  raise Exception('Content type ' + str(transactionContent[0]) + ' is unknown!')
 
             goodTransactions = goodTransactions + 1
 
@@ -459,6 +463,9 @@ for transactionFile in transactionFileList:
             except Exception as e:
                error('Unable to move bad transaction ' + absTransactionFile + ' to ' + badFilePath + ': ' + str(e))
             badTransactions = badTransactions + 1
+
+      else:
+         log('Empty transaction file: ' + absTransactionFile)
 
       try:
          if os.path.exists(absTransactionFile):
