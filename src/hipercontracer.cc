@@ -95,7 +95,7 @@ int main(int argc, char** argv)
 {
    // ====== Initialize =====================================================
    unsigned int       logLevel;
-   std::string        user;
+   std::string        user(getlogin());
    std::string        configurationFileName;
    bool               servicePing;
    bool               serviceTraceroute;
@@ -234,7 +234,7 @@ int main(int argc, char** argv)
    initialiseLogger(logLevel);
    const passwd* pw = getUser(user.c_str());
    if(pw == nullptr) {
-      HPCT_LOG(fatal) << "Cannot find user!";
+      HPCT_LOG(fatal) << "Cannot find user \"" << user << "\"!";
       return 1;
    }
    if( (SourceArray.size() < 1) || (DestinationArray.size() < 1) ) {
