@@ -464,6 +464,9 @@ for transactionFile in transactionFileList:
                error('Unable to move bad transaction ' + absTransactionFile + ' to ' + badFilePath + ': ' + str(e))
             badTransactions = badTransactions + 1
 
+      else:
+         log('Empty transaction file: ' + absTransactionFile)
+
       try:
          if os.path.exists(absTransactionFile):
             os.remove(absTransactionFile)
