@@ -434,7 +434,7 @@ for transactionFile in transactionFileList:
                elif transactionContent[0] == IT_TRACEROUTE:
                   db['traceroute'].insert(transactionContent[1])
                else:
-                  error('Something went wrong!')
+                  raise Exception('Content type ' + str(transactionContent[0]) + ' is unknown!')
 
             goodTransactions = goodTransactions + 1
 
