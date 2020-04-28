@@ -1,3 +1,9 @@
+hipercontracer (1.4.9-1ubuntu1) focal; urgency=medium
+
+  * New upstream release.
+
+ -- Thomas Dreibholz <dreibh@iem.uni-due.de>  Tue, 28 Apr 2020 12:15:42 +0200
+
 hipercontracer (1.4.8-1ubuntu1) focal; urgency=medium
 
   * New upstream release.
