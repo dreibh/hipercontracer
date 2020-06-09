@@ -8,6 +8,9 @@
 
 #include <iostream>
 
+#include "tools.h"
+#include <boost/format.hpp>
+
 // ###### Constructor #######################################################
 Burstping::Burstping(ResultsWriter*         resultsWriter,
            const unsigned int               iterations,
@@ -86,7 +89,7 @@ void Burstping::sendBurstICMPRequest(const DestinationInfo& destination,
       std::vector<unsigned char> contents(missing_data, ~0);
       os.write(reinterpret_cast<char const*>(contents.data()), contents.size());
    }
-   HPCT_LOG(info) << "Request size: " << request_buffer.size() << std::endl;
+   //HPCT_LOG(info) << "Request size: " << request_buffer.size() << std::endl;
    
    //const std::chrono::system_clock::time_point sendTime = std::chrono::system_clock::now();
 
@@ -222,7 +225,7 @@ void Burstping::sendRequests()
          const DestinationInfo& destination = *destinationIterator;
          for(int i=1; i<=Burstping::burst; i++)
          {
-            HPCT_LOG(info) << "Burst No. " << i << " of payload " << Burstping::payload << std::endl;
+            // HPCT_LOG(info) << "Burst No. " << i << " of payload " << Burstping::payload << std::endl;
             sendBurstICMPRequest(destination, FinalMaxTTL, 0, targetChecksum, Burstping::payload);
          }
          
@@ -231,4 +234,94 @@ void Burstping::sendRequests()
 
    }
 
+}
+
+// ###### Comparison function for results output ############################
+int Burstping::comparePingResults(const ResultEntry* a, const ResultEntry* b)
+{
+   return(a->destination() < b->destination());
+}
+
+// ###### Process results ###################################################
+void Burstping::processResults()
+{
+   // ====== Sort results ===================================================
+   std::vector<ResultEntry*> resultsVector;
+   for(std::map<unsigned short, ResultEntry>::iterator iterator = ResultsMap.begin(); iterator != ResultsMap.end(); iterator++) {
+      resultsVector.push_back(&iterator->second);
+   }
+   std::sort(resultsVector.begin(), resultsVector.end(), &comparePingResults);
+
+   // ====== Process results ================================================
+   const std::chrono::system_clock::time_point now = std::chrono::system_clock::now();
+   for(std::vector<ResultEntry*>::iterator iterator = resultsVector.begin(); iterator != resultsVector.end(); iterator++) {
+      ResultEntry* resultEntry = *iterator;
+      totalPackets++;
+
+      // ====== Time-out entries ============================================
+      if( (resultEntry->status() == Unknown) &&
+          (std::chrono::duration_cast<std::chrono::milliseconds>(now - resultEntry->sendTime()).count() >= Expiration) ) {
+         resultEntry->setStatus(Timeout);
+         resultEntry->setReceiveTime(resultEntry->sendTime() + std::chrono::milliseconds(Expiration));
+      }
+      //HPCT_LOG(warning) << "resultEntry->status() " << resultEntry->status() ;
+      //HPCT_LOG(warning) << "Unknown " << Unknown ;
+      // ====== Print completed entries =====================================
+      if(resultEntry->status() != Unknown) {
+         HPCT_LOG(trace) << getName() << ": " << *resultEntry;
+
+         if(ResultCallback) {
+            ResultCallback(this, resultEntry);
+         }
+
+         if(ResultsOutput) {
+            totalResponses++;
+            ResultsOutput->insert(
+               str(boost::format("#P %s %s %x %x %d %d %x")
+                  % SourceAddress.to_string()
+                  % resultEntry->destinationAddress().to_string()
+                  % usSinceEpoch(resultEntry->sendTime())
+                  % resultEntry->checksum()
+                  % resultEntry->status()
+                  % std::chrono::duration_cast<std::chrono::microseconds>(resultEntry->receiveTime() - resultEntry->sendTime()).count()
+                  % (unsigned int)resultEntry->destination().trafficClass()
+            ));
+         }
+      }
+
+      // ====== Remove completed entries ====================================
+      if(resultEntry->status() != Unknown) {
+         assert(ResultsMap.erase(resultEntry->seqNumber()) == 1);
+         if(OutstandingRequests > 0) {
+            OutstandingRequests--;
+         }
+      }
+   }
+
+   if(RemoveDestinationAfterRun == true) {
+      std::lock_guard<std::recursive_mutex> lock(DestinationMutex);
+      DestinationIterator = Destinations.begin();
+      while(DestinationIterator != Destinations.end()) {
+         Destinations.erase(DestinationIterator);
+         DestinationIterator = Destinations.begin();
+      }
+   }
+}
+
+// ###### Request stop of thread ############################################
+void Burstping::requestStop() {
+   Traceroute::requestStop();
+   std::cout << std::endl;
+   HPCT_LOG(info) << "Burstping icmp results:" << std:: endl
+                     << "* ICMP ECHO REQUEST = " << totalPackets   << " packets" << std::endl
+                     << "* ICMP ECHO REPLY   = " << totalResponses << " responses" << std::endl;
+
+   // HPCT_LOG(info) << "Total ICMP ECHO REQUEST: " << totalPackets << std::endl;
+   // HPCT_LOG(info) << "Total ICMP ECHO REPLY: " << totalResponses << std::endl;
+   
+   // std::cout << "Requests " << totalPackets << std::endl;
+   // std::cout << "Responses " << totalResponses << std::endl;
+ 
+   //std::cout << Ping::ResultsMap.size() << std::endl;
+   //HPCT_LOG(warning) << "resultsVector " << resultEntry.size() ;
 }

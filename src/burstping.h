@@ -20,10 +20,12 @@ class Burstping : public Ping
    virtual ~Burstping();
 
    virtual const std::string& getName() const;
+   virtual void requestStop();
 
    protected:
    virtual void sendRequests();
    virtual void scheduleIntervalEvent();
+   virtual void processResults();
    virtual void handleIntervalEvent(const boost::system::error_code& errorCode);
    virtual void sendBurstICMPRequest(const DestinationInfo& destination,
                         const unsigned int             ttl,
@@ -35,6 +37,9 @@ class Burstping : public Ping
    const std::string BurstpingInstanceName;
    const unsigned int payload;
    const unsigned int burst;
+   unsigned int totalPackets;
+   unsigned int totalResponses;
+   static int comparePingResults(const ResultEntry* a, const ResultEntry* b);
 };
 
 #endif
