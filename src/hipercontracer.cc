@@ -102,6 +102,7 @@ int main(int argc, char** argv)
    bool               serviceTraceroute;
    bool               serviceBurstping;
    unsigned int       iterations;
+   unsigned int       priority;
 
    unsigned long long tracerouteInterval;
    unsigned int       tracerouteExpiration;
@@ -136,6 +137,9 @@ int main(int argc, char** argv)
       ( "user,U",
            boost::program_options::value<std::string>(&user),
            "User" )
+      ( "priority,p",
+           boost::program_options::value<unsigned int>(&priority)->default_value(20),
+           "Set priority level" )
 
       ( "source,S",
            boost::program_options::value<std::vector<std::string>>(),
@@ -270,6 +274,8 @@ int main(int argc, char** argv)
    pingTTL                   = std::min(std::max(1U, pingTTL),                   255U);
    pingPayload               = std::min(std::max(1U, pingPayload),               1500U);
    pingBurst                 = std::min(std::max(1U, pingBurst),                 1000U);
+   // $ chrt -m 
+   priority                  = std::min(std::max(1U, priority),                  99U);
 
    if(!resultsDirectory.empty()) {
       HPCT_LOG(info) << "Results Output:" << std::endl
@@ -411,7 +417,7 @@ int main(int argc, char** argv)
 
 
    // ====== Reduce privileges ==============================================
-   if(reducePrivileges(pw) == false) {
+   if(reducePrivileges(pw, priority) == false) {
       HPCT_LOG(fatal) << "Failed to reduce privileges!";
       return 1;
    }

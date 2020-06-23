@@ -224,6 +224,7 @@ int main(int argc, char** argv)
 {
    // ====== Initialize =====================================================
    unsigned int       logLevel;
+   unsigned int       priority;
    std::string        user;
    std::string        configurationFileName;
    bool               servicePing;
@@ -260,6 +261,9 @@ int main(int argc, char** argv)
       ( "user,U",
            boost::program_options::value<std::string>(&user),
            "User" )
+      ( "priority,p",
+           boost::program_options::value<unsigned int>(&priority)->default_value(20),
+           "Set priority level" )
 
       ( "source,S",
            boost::program_options::value<std::vector<std::string>>(),
@@ -386,6 +390,7 @@ int main(int argc, char** argv)
    pingInterval              = std::min(std::max(100ULL, pingInterval),          3600U*60000ULL);
    pingExpiration            = std::min(std::max(100U, pingExpiration),          3600U*60000U);
    pingTTL                   = std::min(std::max(1U, pingTTL),                   255U);
+   priority                  = std::min(std::max(1U, priority),                  99U);
 
    if(!resultsDirectory.empty()) {
       HPCT_LOG(info) << "Results Output:" << std::endl
@@ -507,7 +512,7 @@ int main(int argc, char** argv)
 
 
    // ====== Reduce privileges ==============================================
-   if(reducePrivileges(pw) == false) {
+   if(reducePrivileges(pw, priority) == false) {
       HPCT_LOG(fatal) << "Failed to reduce privileges!";
       return 1;
    }
