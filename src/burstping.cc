@@ -22,8 +22,8 @@ Burstping::Burstping(ResultsWriter*         resultsWriter,
            const unsigned int               ttl,
            const unsigned int               payload,
            const unsigned int               burst)
-   :  payload(payload), 
-      burst(burst),
+   :  Payload(payload), 
+      Burst(burst),
       Ping(resultsWriter, iterations, removeDestinationAfterRun,
                 sourceAddress, destinationArray,
                 interval, expiration, ttl),
@@ -170,29 +170,31 @@ void Burstping::scheduleIntervalEvent()
    if((Iterations == 0) || (IterationNumber < Iterations)) {
       std::lock_guard<std::recursive_mutex> lock(DestinationMutex);
 
-      /***
+      /**
       // ====== Schedule event ==============================================
       long long millisecondsToWait;
-      
-      const unsigned long long deviation       = std::max(10ULL, Interval / 5);   // 20% deviation
-      const unsigned long long waitingDuration = Interval + (std::rand() % deviation);
-      const std::chrono::steady_clock::duration howLongToWait =
-         (RunStartTimeStamp + std::chrono::milliseconds(waitingDuration)) - std::chrono::steady_clock::now();
-      millisecondsToWait = std::max(0LL, (long long)std::chrono::duration_cast<std::chrono::milliseconds>(howLongToWait).count());
-      
+      if(Destinations.begin() == Destinations.end()) {
+          // Nothing to do -> wait 1 day
+          millisecondsToWait = 24*3600*1000;
+      }
+      else {
+         const unsigned long long deviation       = std::max(10ULL, Interval / 5);   // 20% deviation
+         const unsigned long long waitingDuration = Interval + (std::rand() % deviation);
+         const std::chrono::steady_clock::duration howLongToWait =
+            (RunStartTimeStamp + std::chrono::milliseconds(waitingDuration)) - std::chrono::steady_clock::now();
+         millisecondsToWait = std::max(0LL, (long long)std::chrono::duration_cast<std::chrono::milliseconds>(howLongToWait).count());
+      }
 
-      //IntervalTimer.expires_from_now(boost::posix_time::milliseconds(millisecondsToWait));
-      IntervalTimer.expires_from_now(boost::posix_time::milliseconds(0));
+      IntervalTimer.expires_from_now(boost::posix_time::milliseconds(millisecondsToWait));
       IntervalTimer.async_wait(std::bind(&Burstping::handleIntervalEvent, this,
                                          std::placeholders::_1));
       HPCT_LOG(debug) << getName() << ": Waiting " << millisecondsToWait / 1000.0
                       << "s before iteration " << (IterationNumber + 1) << " ...";
-
+      
       **/
-
       // const unsigned long long deviation = std::max(10ULL, Interval / 5ULL);   // 20% deviation
       // const unsigned long long duration  = Interval + (std::rand() % deviation);
-      TimeoutTimer.expires_from_now(boost::posix_time::microseconds(Interval));
+      TimeoutTimer.expires_from_now(boost::posix_time::milliseconds(Interval));
       TimeoutTimer.async_wait(std::bind(&Burstping::handleTimeoutEvent, this,
                                      std::placeholders::_1));
       // ====== Check, whether it is time for starting a new transaction ====
@@ -223,10 +225,10 @@ void Burstping::sendRequests()
       for(std::set<DestinationInfo>::const_iterator destinationIterator = Destinations.begin();
           destinationIterator != Destinations.end(); destinationIterator++) {
          const DestinationInfo& destination = *destinationIterator;
-         for(int i=1; i<=Burstping::burst; i++)
+         for(int i=1; i<=Burstping::Burst; i++)
          {
-            // HPCT_LOG(info) << "Burst No. " << i << " of payload " << Burstping::payload << std::endl;
-            sendBurstICMPRequest(destination, FinalMaxTTL, 0, targetChecksum, Burstping::payload);
+            // HPCT_LOG(info) << "Burst No. " << i << " of payload " << Burstping::Payload << std::endl;
+            sendBurstICMPRequest(destination, FinalMaxTTL, 0, targetChecksum, Burstping::Payload);
          }
          
       }
@@ -256,7 +258,7 @@ void Burstping::processResults()
    const std::chrono::system_clock::time_point now = std::chrono::system_clock::now();
    for(std::vector<ResultEntry*>::iterator iterator = resultsVector.begin(); iterator != resultsVector.end(); iterator++) {
       ResultEntry* resultEntry = *iterator;
-      totalPackets++;
+      TotalPackets++;
 
       // ====== Time-out entries ============================================
       if( (resultEntry->status() == Unknown) &&
@@ -275,7 +277,7 @@ void Burstping::processResults()
          }
 
          if(ResultsOutput) {
-            totalResponses++;
+            TotalResponses++;
             ResultsOutput->insert(
                str(boost::format("#P %s %s %x %x %d %d %x")
                   % SourceAddress.to_string()
@@ -313,8 +315,8 @@ void Burstping::requestStop() {
    Traceroute::requestStop();
    std::cout << std::endl;
    HPCT_LOG(info) << "Burstping icmp results:" << std:: endl
-                     << "* ICMP ECHO REQUEST = " << totalPackets   << " packets" << std::endl
-                     << "* ICMP ECHO REPLY   = " << totalResponses << " responses" << std::endl;
+                     << "* ICMP ECHO REQUEST = " << TotalPackets   << " packets" << std::endl
+                     << "* ICMP ECHO REPLY   = " << TotalResponses << " responses" << std::endl;
 
    // HPCT_LOG(info) << "Total ICMP ECHO REQUEST: " << totalPackets << std::endl;
    // HPCT_LOG(info) << "Total ICMP ECHO REPLY: " << totalResponses << std::endl;

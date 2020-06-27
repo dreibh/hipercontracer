@@ -35,10 +35,10 @@ class Burstping : public Ping
 
    private:
    const std::string BurstpingInstanceName;
-   const unsigned int payload;
-   const unsigned int burst;
-   unsigned int totalPackets;
-   unsigned int totalResponses;
+   const unsigned int Payload;
+   const unsigned int Burst;
+   unsigned int TotalPackets;
+   unsigned int TotalResponses;
    static int comparePingResults(const ResultEntry* a, const ResultEntry* b);
 };
 
