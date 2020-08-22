@@ -348,7 +348,7 @@ int main(int argc, char** argv)
             }
             Service* service = new Ping(resultsWriter, iterations, false,
                                         sourceAddress, destinationsForSource,
-                                        pingInterval, pingExpiration, pingTTL);
+                                        pingInterval, pingExpiration, pingTTL, priority);
             if(service->start() == false) {
                return 1;
             }
@@ -377,7 +377,7 @@ int main(int argc, char** argv)
                                               tracerouteInterval, tracerouteExpiration,
                                               tracerouteRounds,
                                               tracerouteInitialMaxTTL, tracerouteFinalMaxTTL,
-                                              tracerouteIncrementMaxTTL);
+                                              tracerouteIncrementMaxTTL, priority);
             if(service->start() == false) {
                return 1;
             }
@@ -402,7 +402,7 @@ int main(int argc, char** argv)
             }
             Service* service = new Burstping(resultsWriter, iterations, false,
                                         sourceAddress, destinationsForSource,
-                                        pingInterval, pingExpiration, pingTTL, pingPayload, pingBurst);
+                                        pingInterval, pingExpiration, pingTTL, pingPayload, pingBurst, priority);
             if(service->start() == false) {
                return 1;
             }
@@ -417,7 +417,7 @@ int main(int argc, char** argv)
 
 
    // ====== Reduce privileges ==============================================
-   if(reducePrivileges(pw, priority) == false) {
+   if(reducePrivileges(pw) == false) {
       HPCT_LOG(fatal) << "Failed to reduce privileges!";
       return 1;
    }

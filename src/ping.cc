@@ -46,10 +46,11 @@ Ping::Ping(ResultsWriter*                   resultsWriter,
            const std::set<DestinationInfo>& destinationArray,
            const unsigned long long         interval,
            const unsigned int               expiration,
-           const unsigned int               ttl)
+           const unsigned int               ttl,
+           const unsigned int               priority)
    : Traceroute(resultsWriter, iterations, removeDestinationAfterRun,
                 sourceAddress, destinationArray,
-                interval, expiration, ttl, ttl, ttl),
+                interval, expiration, ttl, ttl, ttl, priority),
      PingInstanceName(std::string("Ping(") + sourceAddress.to_string() + std::string(")"))
 
 {

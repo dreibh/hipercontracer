@@ -16,17 +16,20 @@ class Burstping : public Ping
         const unsigned int               expiration = 10000,
         const unsigned int               ttl        =    64,
         const unsigned int               payload    =    56,
-        const unsigned int               burst      =    1);
+        const unsigned int               burst      =    1,
+        const unsigned int               priority   =    20);
    virtual ~Burstping();
 
    virtual const std::string& getName() const;
    virtual void requestStop();
+   virtual bool start();
 
    protected:
    virtual void sendRequests();
    virtual void scheduleIntervalEvent();
    virtual void processResults();
    virtual void handleIntervalEvent(const boost::system::error_code& errorCode);
+   void run();
    virtual void sendBurstICMPRequest(const DestinationInfo& destination,
                         const unsigned int             ttl,
                         const unsigned int             round,
@@ -37,6 +40,7 @@ class Burstping : public Ping
    const std::string BurstpingInstanceName;
    const unsigned int Payload;
    const unsigned int Burst;
+   const unsigned int Priority;
    unsigned int TotalPackets;
    unsigned int TotalResponses;
    static int comparePingResults(const ResultEntry* a, const ResultEntry* b);

@@ -21,12 +21,14 @@ Burstping::Burstping(ResultsWriter*         resultsWriter,
            const unsigned int               expiration,
            const unsigned int               ttl,
            const unsigned int               payload,
-           const unsigned int               burst)
+           const unsigned int               burst,
+           const unsigned int               priority)
    :  Payload(payload), 
       Burst(burst),
+      Priority(priority),
       Ping(resultsWriter, iterations, removeDestinationAfterRun,
                 sourceAddress, destinationArray,
-                interval, expiration, ttl),
+                interval, expiration, ttl, priority),
       BurstpingInstanceName(std::string("Burstping(") + sourceAddress.to_string() + std::string(")"))
    
 
@@ -326,4 +328,63 @@ void Burstping::requestStop() {
  
    //std::cout << Ping::ResultsMap.size() << std::endl;
    //HPCT_LOG(warning) << "resultsVector " << resultEntry.size() ;
+}
+
+
+// ###### Start thread ######################################################
+bool Burstping::start()
+{
+   StopRequested.exchange(false);
+   Thread = std::thread(&Burstping::run, this);
+   return(Traceroute::prepareSocket());
+}
+
+// ###### Run the measurement ###############################################
+void Burstping::run()
+{
+   Identifier = ::getpid();   // Identifier is the process ID
+   // NOTE: Assuming 16-bit PID, and one PID per thread!
+
+   // ====== Set  priority =============================================
+   
+   int policy, res;
+
+   struct sched_param param;
+
+   std::cout << " ORIGINAL: ";
+   std::cout << "policy=" << ((policy == SCHED_FIFO)  ? "SCHED_FIFO" :
+                              (policy == SCHED_RR)    ? "SCHED_RR" :
+                              (policy == SCHED_OTHER) ? "SCHED_OTHER" :
+                                                         "???")
+            << ", priority=" << param.sched_priority << std::endl;
+
+   // #################################################
+   // ##### SCHED_FIFO    a first-in, first-out policy; and
+   // ##### SCHED_RR      a round-robin policy
+   // #################################################
+   // policy = SCHED_RR;
+   policy = SCHED_FIFO;
+   param.sched_priority = Burstping::Priority;
+
+   // std::cout << sched_get_priority_max(Identifier) << std::endl;
+
+   if ((res = sched_setscheduler(Identifier, policy, &param)) == -1)
+   {
+      perror("sched_setscheduler");
+      return;
+   }
+
+   std::cout << " CHANGED: ";
+   std::cout << "policy=" << ((policy == SCHED_FIFO)  ? "SCHED_FIFO" :
+                                 (policy == SCHED_RR)    ? "SCHED_RR" :
+                                 (policy == SCHED_OTHER) ? "SCHED_OTHER" :
+                                                            "???")
+               << ", RT priority=" << sched_getparam(Identifier, &param) 
+               << ", priority=" << param.sched_priority << std::endl;
+
+   prepareRun(true);
+   sendRequests();
+   expectNextReply();
+
+   IOService.run();
 }

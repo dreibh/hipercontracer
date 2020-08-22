@@ -512,7 +512,7 @@ int main(int argc, char** argv)
 
 
    // ====== Reduce privileges ==============================================
-   if(reducePrivileges(pw, priority) == false) {
+   if(reducePrivileges(pw) == false) {
       HPCT_LOG(fatal) << "Failed to reduce privileges!";
       return 1;
    }

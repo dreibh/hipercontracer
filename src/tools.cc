@@ -68,45 +68,8 @@ const passwd* getUser(const char* user)
 
 
 // ###### Reduce privileges of process ######################################
-bool reducePrivileges(const passwd* pw, unsigned int priority)
+bool reducePrivileges(const passwd* pw)
 {
-   
-   // ====== Set  priority =============================================
-   
-   int policy, res;
-
-   struct sched_param param;
-
-   std::cout << " ORIGINAL: ";
-   std::cout << "policy=" << ((policy == SCHED_FIFO)  ? "SCHED_FIFO" :
-                              (policy == SCHED_RR)    ? "SCHED_RR" :
-                              (policy == SCHED_OTHER) ? "SCHED_OTHER" :
-                                                         "???")
-            << ", priority=" << param.sched_priority << std::endl;
-
-   // #################################################
-   // ##### SCHED_FIFO    a first-in, first-out policy; and
-   // ##### SCHED_RR      a round-robin policy
-   // #################################################
-   policy = SCHED_RR;
-   // policy = SCHED_FIFO;
-   param.sched_priority = priority;
-
-   if ((res = sched_setscheduler(getpid(), policy, &param)) == -1)
-   {
-      perror("sched_setscheduler");
-      return false;
-   }
-
-   std::cout << " CHANGED: ";
-   std::cout << "policy=" << ((policy == SCHED_FIFO)  ? "SCHED_FIFO" :
-                                 (policy == SCHED_RR)    ? "SCHED_RR" :
-                                 (policy == SCHED_OTHER) ? "SCHED_OTHER" :
-                                                            "???")
-               << ", priority=" << param.sched_priority << std::endl;
-
-      
-
    // ====== Reduce permissions =============================================
    if((pw != nullptr) && (pw->pw_uid != 0)) {
       HPCT_LOG(info) << "Using UID " << pw->pw_uid << ", GID " << pw->pw_gid;

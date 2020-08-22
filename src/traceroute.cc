@@ -43,6 +43,7 @@
 #include <functional>
 #include <boost/format.hpp>
 #include <boost/version.hpp>
+#include <iostream>
 #include <boost/interprocess/streams/bufferstream.hpp>
 #if BOOST_VERSION >= 106600
 #include <boost/uuid/detail/sha1.hpp>
@@ -62,7 +63,8 @@ Traceroute::Traceroute(ResultsWriter*                   resultsWriter,
                        const unsigned int               rounds,
                        const unsigned int               initialMaxTTL,
                        const unsigned int               finalMaxTTL,
-                       const unsigned int               incrementMaxTTL)
+                       const unsigned int               incrementMaxTTL,
+                       const unsigned int               priority)
    : TracerouteInstanceName(std::string("Traceroute(") + sourceAddress.to_string() + std::string(")")),
      ResultsOutput(resultsWriter),
      Iterations(iterations),
@@ -77,7 +79,8 @@ Traceroute::Traceroute(ResultsWriter*                   resultsWriter,
      SourceAddress(sourceAddress),
      ICMPSocket(IOService, (isIPv6() == true) ? boost::asio::ip::icmp::v6() : boost::asio::ip::icmp::v4()),
      TimeoutTimer(IOService),
-     IntervalTimer(IOService)
+     IntervalTimer(IOService),
+     Priority(priority)
 {
    // ====== Some initialisations ===========================================
    StopRequested.exchange(false);

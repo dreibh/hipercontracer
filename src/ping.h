@@ -45,7 +45,8 @@ class Ping : public Traceroute
         const std::set<DestinationInfo>& destinationArray,
         const unsigned long long         interval   =  1000,
         const unsigned int               expiration = 10000,
-        const unsigned int               ttl        =    64);
+        const unsigned int               ttl        =    64,
+        const unsigned int               priority   =    20);
    virtual ~Ping();
 
    virtual const std::string& getName() const;

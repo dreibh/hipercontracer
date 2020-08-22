@@ -61,7 +61,8 @@ class Traceroute : public Service
               const unsigned int               rounds          = 1,
               const unsigned int               initialMaxTTL   = 5,
               const unsigned int               finalMaxTTL     = 35,
-              const unsigned int               incrementMaxTTL = 2);
+              const unsigned int               incrementMaxTTL = 2,
+              const unsigned int               priority        = 20);
    virtual ~Traceroute();
 
    virtual const boost::asio::ip::address& getSource();
@@ -144,6 +145,7 @@ class Traceroute : public Service
    unsigned int                            MaxTTL;
    std::chrono::steady_clock::time_point   RunStartTimeStamp;
    uint32_t*                               TargetChecksumArray;
+   unsigned int                            Priority;
 
    private:
    static int compareTracerouteResults(const ResultEntry* a, const ResultEntry* b);
