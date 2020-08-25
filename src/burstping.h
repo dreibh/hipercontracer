@@ -26,9 +26,9 @@ class Burstping : public Ping
 
    protected:
    virtual void sendRequests();
-   virtual void scheduleIntervalEvent();
+   // virtual void scheduleIntervalEvent();
    virtual void processResults();
-   virtual void handleIntervalEvent(const boost::system::error_code& errorCode);
+   // virtual void handleIntervalEvent(const boost::system::error_code& errorCode);
    void run();
    virtual void sendBurstICMPRequest(const DestinationInfo& destination,
                         const unsigned int             ttl,
