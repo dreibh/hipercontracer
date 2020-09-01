@@ -417,10 +417,10 @@ int main(int argc, char** argv)
 
 
    // ====== Reduce privileges ==============================================
-   if(reducePrivileges(pw) == false) {
-      HPCT_LOG(fatal) << "Failed to reduce privileges!";
-      return 1;
-   }
+   // if(reducePrivileges(pw) == false) {
+   //    HPCT_LOG(fatal) << "Failed to reduce privileges!";
+   //    return 1;
+   // }
 
 
    // ====== Wait for termination signal ====================================
