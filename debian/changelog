@@ -1,4 +1,4 @@
-hipercontracer (1.4.10~rc1-1ubuntu1) focal; urgency=medium
+hipercontracer (1.4.10~rc1-1ubuntu1) hirsute; urgency=medium
 
   * New upstream release.
   * debian/control: Updated standards version to 4.5.0.3.
