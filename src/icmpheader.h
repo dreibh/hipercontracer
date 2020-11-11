@@ -84,17 +84,17 @@ class ICMPHeader
       memcpy(Data, inputData, std::min(length, (size_t)8));
    }
 
-   inline unsigned char type()        const { return Data[0];      }
-   inline unsigned char code()        const { return Data[1];      }
-   inline unsigned short checksum()   const { return decode(2, 3); }
-   inline unsigned short identifier() const { return decode(4, 5); }
-   inline unsigned short seqNumber()  const { return decode(6, 7); }
+   inline uint8_t type()        const { return Data[0];      }
+   inline uint8_t code()        const { return Data[1];      }
+   inline uint16_t checksum()   const { return decode(2, 3); }
+   inline uint16_t identifier() const { return decode(4, 5); }
+   inline uint16_t seqNumber()  const { return decode(6, 7); }
 
-   inline void type(unsigned char type)          { Data[0] = type;         }
-   inline void code(unsigned char code)          { Data[1] = code;         }
-   inline void checksum(unsigned short checksum) { encode(2, 3, checksum); }
-   inline void identifier(unsigned short id)     { encode(4, 5, id);       }
-   inline void seqNumber(unsigned short seqNum)  { encode(6, 7, seqNum);   }
+   inline void type(uint8_t type)          { Data[0] = type;         }
+   inline void code(uint8_t code)          { Data[1] = code;         }
+   inline void checksum(uint16_t checksum) { encode(2, 3, checksum); }
+   inline void identifier(uint16_t id)     { encode(4, 5, id);       }
+   inline void seqNumber(uint16_t seqNum)  { encode(6, 7, seqNum);   }
 
    inline friend std::istream& operator>>(std::istream& is, ICMPHeader& header) {
       return(is.read(reinterpret_cast<char*>(header.Data), 8));
@@ -105,16 +105,16 @@ class ICMPHeader
    }
 
    private:
-   inline unsigned short decode(int a, int b) const {
+   inline uint16_t decode(const uint8_t a, const uint8_t b) const {
       return((Data[a] << 8) + Data[b]);
    }
 
-   inline void encode(int a, int b, unsigned short n) {
-      Data[a] = static_cast<unsigned char>(n >> 8);
-      Data[b] = static_cast<unsigned char>(n & 0xFF);
+   inline void encode(const uint8_t a, const uint8_t b, const uint16_t n) {
+      Data[a] = static_cast<uint8_t>(n >> 8);
+      Data[b] = static_cast<uint8_t>(n & 0xFF);
    }
 
-   unsigned char Data[8];
+   uint8_t Data[8];
 };
 
 
@@ -129,9 +129,9 @@ template <typename Iterator> void computeInternet16(ICMPHeader& header, Iterator
 
    Iterator body_iter = bodyBegin;
    while (body_iter != bodyEnd) {
-      sum += (static_cast<unsigned char>(*body_iter++) << 8);
+      sum += (static_cast<uint8_t>(*body_iter++) << 8);
       if (body_iter != bodyEnd) {
-         sum += static_cast<unsigned char>(*body_iter++);
+         sum += static_cast<uint8_t>(*body_iter++);
       }
    }
 

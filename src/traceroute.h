@@ -131,9 +131,9 @@ class Traceroute : public Service
    std::thread                             Thread;
    std::atomic<bool>                       StopRequested;
    unsigned int                            IterationNumber;
-   unsigned int                            Identifier;
-   unsigned short                          SeqNumber;
-   unsigned int                            MagicNumber;
+   uint16_t                                Identifier;
+   uint16_t                                SeqNumber;
+   uint32_t                                MagicNumber;
    unsigned int                            OutstandingRequests;
    unsigned int                            LastHop;
    std::map<unsigned short, ResultEntry>   ResultsMap;

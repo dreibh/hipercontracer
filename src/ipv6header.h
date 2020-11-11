@@ -71,12 +71,12 @@ class IPv6Header
       std::fill(data, data + sizeof(data), 0);
    }
 
-   inline unsigned char  version()       const { return((data[0] >> 4) & 0x0f);             }
-   inline unsigned char  trafficClass()  const { return((data[1] & 0x0f) | (data[2] >> 4)); }
-   inline unsigned int   flowLabel()     const { return( (((unsigned int)data[2] & 0x0f) << 16) | ((unsigned int)data[3] << 8) | (unsigned int)data[4] ); }
-   inline unsigned short payloadLength() const { return(decode(4, 5)); }
-   inline unsigned char  nextHeader()    const { return data[6]; }
-   inline unsigned int   timeToLive()    const { return data[7]; }
+   inline uint8_t  version()       const { return((data[0] >> 4) & 0x0f);             }
+   inline uint8_t  trafficClass()  const { return((data[1] & 0x0f) | (data[2] >> 4)); }
+   inline uint32_t flowLabel()     const { return( (((uint32_t)data[2] & 0x0f) << 16) | ((uint32_t)data[3] << 8) | (uint32_t)data[4] ); }
+   inline uint16_t payloadLength() const { return(decode(4, 5)); }
+   inline uint8_t  nextHeader()    const { return data[6]; }
+   inline uint32_t timeToLive()    const { return data[7]; }
 
    inline boost::asio::ip::address_v6 sourceAddress() const {
       boost::asio::ip::address_v6::bytes_type v6address;
@@ -105,8 +105,8 @@ class IPv6Header
    }
 
    private:
-   unsigned short decode(int a, int b) const { return((data[a] << 8) + data[b]); }
-   unsigned char data[40];
+   uint16_t decode(const uint8_t a, const uint8_t b) const { return((data[a] << 8) + data[b]); }
+   uint8_t  data[40];
 };
 
 #endif
