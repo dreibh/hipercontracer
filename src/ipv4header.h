@@ -103,7 +103,7 @@ class IPv4Header
    }
 
    private:
-   uint16_t decode(const uint8_t a, const uint8_t b) const { return((data[a] << 8) + data[b]); }
+   uint16_t decode(const unsigned int a, const unsigned int b) const { return(((uint16_t)data[a] << 8) + data[b]); }
    uint8_t  data[20 + 40];
 };
 

@@ -105,11 +105,11 @@ class ICMPHeader
    }
 
    private:
-   inline uint16_t decode(const uint8_t a, const uint8_t b) const {
-      return((Data[a] << 8) + Data[b]);
+   inline uint16_t decode(const unsigned int a, const unsigned int b) const {
+      return(((uint16_t)Data[a] << 8) + Data[b]);
    }
 
-   inline void encode(const uint8_t a, const uint8_t b, const uint16_t n) {
+   inline void encode(const unsigned int a, const unsigned int b, const uint16_t n) {
       Data[a] = static_cast<uint8_t>(n >> 8);
       Data[b] = static_cast<uint8_t>(n & 0xFF);
    }
