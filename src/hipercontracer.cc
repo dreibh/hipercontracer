@@ -95,7 +95,7 @@ int main(int argc, char** argv)
 {
    // ====== Initialize =====================================================
    unsigned int       logLevel;
-   std::string        user(getlogin());
+   std::string        user((getlogin() != nullptr) ? getlogin() : "");
    std::string        configurationFileName;
    bool               servicePing;
    bool               serviceTraceroute;
