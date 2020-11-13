@@ -1,3 +1,202 @@
+commit 9904de3d42c6a397cdbbcf9cfa2e2e0b02e6d28a
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Fri Nov 13 10:24:50 2020 +0100
+
+    Updated Travis CI configuration.
+
+commit 8bc6fb06aa80bd0c638526ac52be29dca95c1c98
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Nov 12 22:57:43 2020 +0100
+
+    getlogin() seems to be unable to determine user when called from systemd script. Make sure to not try to initialise string from nullptr.
+
+commit 83bbaf98a2918f13e7932a22508c839054e644cf
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Nov 12 22:31:39 2020 +0100
+
+    Minor update.
+
+commit ef4c0c3a73f77e0d07d1abf0af905f0de9aff3d0
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Nov 12 22:18:49 2020 +0100
+
+    Version bump.
+
+commit d1a8dc60bd1171441f2982db84d2291798544c71
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Nov 11 22:25:44 2020 +0100
+
+    Version bump.
+
+commit f6a33cbdc34831cdfc2b2bf8f4ec14b6e5a7a04f
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Nov 11 21:06:30 2020 +0100
+
+    Updated build scripts
+
+commit 168452053dca56695db3eacc4c0c25c88dab5d0f
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Nov 11 20:06:45 2020 +0100
+
+    Fix in manpage.
+
+commit 59ec03d4511d921c054f7353924f01ca84c06c8f
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Nov 11 12:34:53 2020 +0100
+
+    Updated build scripts
+
+commit 43454a3c9dff483c0057745d0dfcc40b9112ceff
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Nov 11 12:33:19 2020 +0100
+
+    Improved Ubuntu/Debian packaging.
+
+commit 7cbb70cd61ebd9670f964a1209816e9317d0caf6
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Nov 11 12:33:06 2020 +0100
+
+    Added symbols file.
+
+commit 2123aa5bb1974b3f08a97d0ad1e5d47baf12d297
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Nov 11 10:33:15 2020 +0100
+
+    Using uint8_t, uint16_t and uint32_t in the header files, to avoid possible problems on new architectures.
+
+commit 7c27c10a2a322a9e9192829d198672499d803df3
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Nov 10 14:50:11 2020 +0100
+
+    Version bump.
+
+commit f9bc5ae59c7a389f00571d847338203159ecd6dd
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Nov 10 14:35:19 2020 +0100
+
+    Updated watch file version.
+
+commit d21d3649082d95a75bc83f4ae5ac14f4783d2fb9
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Nov 5 19:41:20 2020 +0100
+
+    Version bump.
+
+commit 0ad750ffa350b2c83b1a88079d94321acbf17d95
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Nov 5 19:07:53 2020 +0100
+
+    Strip binaries in debian/rules.
+
+commit ded87aa4275c4502df04f7c9b1769313c58cad37
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Nov 5 18:54:04 2020 +0100
+
+    Packaging updates.
+
+commit 9e2d75adde21c35f1849979e24c3f8489fc2c079
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Nov 5 17:09:54 2020 +0100
+
+    Updated build scripts
+
+commit 89f6c01490441f312bd06a093eb2bf3af497798f
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Sep 30 17:04:55 2020 +0200
+
+    Updated RPM spec file.
+
+commit d0a5c110e8265d05f5839232c6fddeb105490072
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Sep 30 16:55:42 2020 +0200
+
+    Updated build scripts
+
+commit 7ae4ad6a0612d6df63d6c5d4f5593630445c6ab7
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Sep 10 12:41:21 2020 +0200
+
+    Updated build scripts
+
+commit 60dd3abe25cd9b7b593af22f6f5d449a5869e96b
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Sep 10 12:41:11 2020 +0200
+
+    Updated packaging configuration.
+
+commit ee87431b3ff705b4b494e4ebc3b7ffa8cbfb3d31
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Sep 10 12:36:39 2020 +0200
+
+    Updated signing key.
+
+commit 42d8d2595abc483b145a1d89fcc6a3529e049d52
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Fri Sep 4 14:15:28 2020 +0200
+
+    Updated build scripts
+
+commit ed2746ce4a8b50453349c9f8494647767ad2db25
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Fri Sep 4 14:11:58 2020 +0200
+
+    Updated Travis CI configuration.
+
+commit 4f2bc0c023a24946e4b889f453efa055d8113ae7
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Fri Sep 4 14:09:51 2020 +0200
+
+    Updated build scripts
+
+commit a704a2c2fbca0b542b89832176377651e9178150
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Sat Jul 18 15:55:56 2020 +0200
+
+    Updated build scripts
+
+commit eacbfaa4c863c89660b0a5d190ae0f6269d50eb5
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed May 6 22:02:24 2020 +0200
+
+    Updated build scripts
+
+commit 07838c77a76fcdcf3d825b2e5f9b4d873525040e
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Apr 28 16:32:43 2020 +0200
+
+    Improved user handling for reducing privileges after startup.
+
+commit 4fba848f6fd92bb348bbda4bd80ece4af6a14ad3
+Merge: d9bc780 6a85394
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Apr 28 15:33:15 2020 +0200
+
+    Merge branch 'master' of https://github.com/dreibh/hipercontracer
+
+commit d9bc780b5c3b99fe868523e03b47029d24738e89
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Apr 28 15:33:10 2020 +0200
+
+    Some clean-ups.
+
+commit 6a8539474b2de6373a66edbf584a5b785f1973a0
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Apr 28 15:32:38 2020 +0200
+
+    Added some test code.
+
+commit a0ff43f361bfd024f935f4ec69edd51cab9a133e
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Apr 28 12:16:47 2020 +0200
+
+    Updated build scripts
+
+commit df64a6d650acb2df98a5b3eec038eb6dc8ed9403
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Apr 28 12:15:48 2020 +0200
+
+    New release hipercontracer-1.4.9.
+
 commit 5415ecc49ba6312f134df1ab173f83eb2edbf339
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Tue Apr 28 11:33:06 2020 +0200

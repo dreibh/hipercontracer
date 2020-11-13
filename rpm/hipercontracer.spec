@@ -1,5 +1,5 @@
 Name: hipercontracer
-Version: 1.4.10~rc3
+Version: 1.4.10
 Release: 1
 Summary: High-Performance Connectivity Tracer (HiPerConTracer)
 Group: Applications/Internet
@@ -133,6 +133,8 @@ This tool triggers HiPerConTracer by incoming "Ping" packets.
 
 
 %changelog
+* Fri Nov 13 2020 Thomas Dreibholz <dreibh@iem.uni-due.de> - 1.4.10
+- New upstream release.
 * Tue Apr 28 2020 Thomas Dreibholz <dreibh@iem.uni-due.de> - 1.4.9
 - New upstream release.
 * Fri Apr 24 2020 Thomas Dreibholz <dreibh@iem.uni-due.de> - 1.4.8
