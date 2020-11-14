@@ -1,3 +1,15 @@
+commit d49e0350a884615084d8d7cda77b0f8a8e8c6629
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Fri Nov 13 19:47:56 2020 +0100
+
+    Updated LSM entry.
+
+commit 45476646614f151a9bf9da3ff05fe51ab2360933
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Fri Nov 13 19:00:10 2020 +0100
+
+    New release hipercontracer-1.4.10.
+
 commit 9904de3d42c6a397cdbbcf9cfa2e2e0b02e6d28a
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Fri Nov 13 10:24:50 2020 +0100
