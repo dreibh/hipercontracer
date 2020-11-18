@@ -1,3 +1,9 @@
+hipercontracer (1.4.12-1ubuntu1) hirsute; urgency=medium
+
+  * New upstream release.
+
+ -- Thomas Dreibholz <dreibh@iem.uni-due.de>  Wed, 18 Nov 2020 14:48:14 +0100
+
 hipercontracer (1.4.11-1ubuntu1) hirsute; urgency=medium
 
   * New upstream release.

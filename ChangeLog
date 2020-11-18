@@ -1,3 +1,21 @@
+commit 9d4aab68a349c67e4ec2cef420f5c1e1d1ca9a92
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Nov 18 12:45:34 2020 +0100
+
+    A fix.
+
+commit 578497015ae319729887696ea0eff7cd115bb9cc
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Nov 18 12:40:38 2020 +0100
+
+    Improved manpage.
+
+commit 7adb72c2f10ffba8d137a6b8e5b2d050cb16365c
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Sat Nov 14 15:38:42 2020 +0100
+
+    New release hipercontracer-1.4.11.
+
 commit d49e0350a884615084d8d7cda77b0f8a8e8c6629
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Fri Nov 13 19:47:56 2020 +0100
