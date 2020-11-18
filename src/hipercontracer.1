@@ -124,7 +124,21 @@ Each Ping entry consists of a #P line.
 .It * sourceIP: Source IP address.
 .It * destinationIP: Destination IP address.
 .It * timestamp: Timestamp (microseconds since the UTC epoch).
-.It * status: Status code (hexadecimal; see "HopStatus" in traceroute.h).
+.It * status: Status code (hexadecimal):
+.Bl -tag -width indent
+.It - 1 = ICMP response: Time Exceeded
+.It - 100 = ICMP response: Unreachable scope
+.It - 101 = ICMP response: Unreachable network
+.It - 102 = ICMP response: Unreachable host
+.It - 103 = ICMP response: Unreachable protocol
+.It - 104 = ICMP response: Unreachable port
+.It - 105 = ICMP response: Unreachable, prohibited (firewall)
+.It - 110 = ICMP response: Unreachable, unknown reason
+.It - 200 = Timeout (no response from a router)
+.It - 255 = Success (destination has responded)
+.El
+Status values from 100 to 199 denote unreachability, as reported by ICMP error from a router. The rtt field contains the response time of the corresponding router.
+Status values from 200 to 254 have the destination IP in their destinationIP field. However, there was no response from a router, so the rtt field will be the configured timeout value!
 .It * rtt: RTT (microseconds).
 .It * traffic_class: Outgoing Traffic Class value (this entry has been added with HiPerConTracer 1.4.0!)
 .El
@@ -139,14 +153,19 @@ Each Traceroute entry begins with a #T line, plus one TAB-started line per hop.
 .It * timestamp: Timestamp (microseconds since the UTC epoch).
 .It * round: Round number.
 .It * totalHops: Total hops.
-.It * statusFlags: Status flags (hexadecimal; see "HopStatus" in traceroute.h).
+.It * statusFlags: Status flags (hexadecimal; see "HopStatus" in resultentry.h).
+See the she status code for for Ping above for the lower 8 bits. Additionally:
+.Bl -tag -width indent
+.It - 0x100 = Route with * (at least one router did not respond)
+.It - 0x200 = Destination has responded
+.El
 .It * pathHash: Hash of the path (hexadecimal).
 .It * traffic_class: Outgoing Traffic Class value (this entry has been added with HiPerConTracer 1.4.0!)
 .El
 .It (TAB) hopNumber status rtt hopIP
 .Bl -tag -width indent
 .It * hopNumber: Number of the hop.
-.It * status: Status code (hexadecimal; see "HopStatus" in traceroute.h).
+.It * status: Status code (hexadecimal; same as for Ping, see above).
 .It * rtt: RTT (microseconds).
 .It * hopIP: Hop IP address (or destination IP, if there was no response).
 .El
