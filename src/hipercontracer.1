@@ -153,7 +153,7 @@ Each Traceroute entry begins with a #T line, plus one TAB-started line per hop.
 .It * timestamp: Timestamp (microseconds since the UTC epoch).
 .It * round: Round number.
 .It * totalHops: Total hops.
-.It * statusFlags: Status flags (hexadecimal; see "HopStatus" in resultentry.h).
+.It * statusFlags: Status flags (hexadecimal):
 See the she status code for for Ping above for the lower 8 bits. Additionally:
 .Bl -tag -width indent
 .It - 0x100 = Route with * (at least one router did not respond)
