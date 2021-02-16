@@ -724,6 +724,8 @@ void Traceroute::handleMessage(const boost::system::error_code& errorCode,
 
          // ====== Optain reception time ====================================
          std::chrono::system_clock::time_point receiveTime;
+#ifdef __linux__
+#warning Using SIOCGSTAMP!
          struct timeval                        tv;
          if(ioctl(ICMPSocket.native_handle(), SIOCGSTAMP, &tv) == 0) {
             // Got reception time from kernel via SIOCGSTAMP
@@ -732,9 +734,12 @@ void Traceroute::handleMessage(const boost::system::error_code& errorCode,
                              std::chrono::microseconds(tv.tv_usec));
          }
          else {
+#endif
             // Fallback: SIOCGSTAMP did not return a result
             receiveTime = std::chrono::system_clock::now();
+#ifdef __linux__
          }
+#endif
 
          // ====== Handle ICMP header =======================================
          boost::interprocess::bufferstream is(MessageBuffer, length);
