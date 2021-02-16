@@ -50,6 +50,9 @@
 #include <boost/uuid/sha1.hpp>
 #endif
 
+#include <linux/sockios.h>
+
+
 
 // ###### Constructor #######################################################
 Traceroute::Traceroute(ResultsWriter*                   resultsWriter,
@@ -718,7 +721,22 @@ void Traceroute::handleMessage(const boost::system::error_code& errorCode,
 {
    if(errorCode != boost::asio::error::operation_aborted) {
       if(!errorCode) {
-         const std::chrono::system_clock::time_point receiveTime = std::chrono::system_clock::now();
+
+         // ====== Optain reception time ====================================
+         std::chrono::system_clock::time_point receiveTime;
+         struct timeval                        tv;
+         if(ioctl(ICMPSocket.native_handle(), SIOCGSTAMP, &tv) == 0) {
+            // Got reception time from kernel via SIOCGSTAMP
+            receiveTime = std::chrono::system_clock::time_point(
+                             std::chrono::seconds(tv.tv_sec) +
+                             std::chrono::microseconds(tv.tv_usec));
+         }
+         else {
+            // Fallback: SIOCGSTAMP did not return a result
+            receiveTime = std::chrono::system_clock::now();
+         }
+
+         // ====== Handle ICMP header =======================================
          boost::interprocess::bufferstream is(MessageBuffer, length);
          ExpectingReply = false;   // Need to call expectNextReply() to get next message!
 
