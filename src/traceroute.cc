@@ -50,7 +50,9 @@
 #include <boost/uuid/sha1.hpp>
 #endif
 
+#ifdef __linux__
 #include <linux/sockios.h>
+#endif
 
 
 
