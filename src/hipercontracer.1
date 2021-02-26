@@ -123,9 +123,9 @@ Each Ping entry consists of a #P line.
 .Bl -tag -width indent
 .It * sourceIP: Source IP address.
 .It * destinationIP: Destination IP address.
-.It * timestamp: Timestamp (microseconds since the UTC epoch).
-.It * checksum: The checksum of the ICMP Echo Request packets.
-.It * status: Status code (hexadecimal):
+.It * timestamp: Timestamp (microseconds since the UTC epoch, hexadecimal).
+.It * checksum: The checksum of the ICMP Echo Request packets (hexadecimal).
+.It * status: Status code (decimal):
 .Bl -tag -width indent
 .It - 1 = ICMP response: Time Exceeded
 .It - 100 = ICMP response: Unreachable scope
@@ -140,8 +140,8 @@ Each Ping entry consists of a #P line.
 .El
 Status values from 100 to 199 denote unreachability, as reported by ICMP error from a router. The rtt field contains the response time of the corresponding router.
 Status values from 200 to 254 have the destination IP in their destinationIP field. However, there was no response from a router, so the rtt field will be the configured timeout value!
-.It * rtt: The measured RTT (microseconds).
-.It * traffic_class: The outgoing IP Traffic Class/Type of Service value of the ICMP Echo Request packets. This entry has been added with HiPerConTracer 1.4.0!
+.It * rtt: The measured RTT (microseconds, decimal).
+.It * traffic_class: The outgoing IP Traffic Class/Type of Service value of the ICMP Echo Request packets (hexadecimal). This entry has been added with HiPerConTracer 1.4.0!
 .El
 .El
 .It Traceroute
@@ -151,25 +151,25 @@ Each Traceroute entry begins with a #T line, plus one TAB-started line per hop.
 .Bl -tag -width indent
 .It * sourceIP: Source IP address.
 .It * destinationIP: Destination IP address.
-.It * timestamp: Timestamp (microseconds since the UTC epoch).
+.It * timestamp: Timestamp (microseconds since the UTC epoch, hexadecimal).
 .It * round: Round number.
-.It * checksum: The checksum of the ICMP Echo Request packets.
+.It * checksum: The checksum of the ICMP Echo Request packets (hexadecimal).
 .It * totalHops: Total hops.
 .It * statusFlags: Status flags (hexadecimal):
-See the she status code for for Ping above for the lower 8 bits. Additionally:
+See the status code for Ping above for the lower 8 bits. Additionally:
 .Bl -tag -width indent
 .It - 0x100 = Route with * (at least one router did not respond)
 .It - 0x200 = Destination has responded
 .El
 .It * pathHash: Hash of the path (hexadecimal).
-.It * traffic_class: The outgoing IP Traffic Class/Type of Service value of the ICMP Echo Request packets. This entry has been added with HiPerConTracer 1.4.0!
+.It * traffic_class: The outgoing IP Traffic Class/Type of Service value of the ICMP Echo Request packets (hexadecimal). This entry has been added with HiPerConTracer 1.4.0!
 .El
 .It (TAB) hopNumber status rtt hopIP
 .Bl -tag -width indent
 .It * hopNumber: Number of the hop.
-.It * status: Status code (hexadecimal; same as for Ping, see above).
-.It * rtt: The measured RTT (microseconds).
-.It * hopIP: Hop IP address (or destination IP, if there was no response).
+.It * status: Status code (hexadecimal here(!); the values are the same as for Ping, see above).
+.It * rtt: The measured RTT (microseconds, decimal).
+.It * hopIP: Hop IP address.
 .El
 .El
 .El
