@@ -17,7 +17,7 @@
 .\" Contact: dreibh@iem.uni-due.de
 .\"
 .\" ###### Setup ############################################################
-.Dd June 6, 2019
+.Dd February 26, 2021
 .Dt hipercontracer 1
 .Os hipercontracer
 .\" ###### Name #############################################################
@@ -73,7 +73,7 @@ After startup, HiPerConTracer uses UID and GID of the given user (by name or GID
 The output directory's ownership as well as the ownership of the created results
 files will be set accordingly.
 .It \-S|\--source address[,traffic_class[,...]]
-Adds the given source address.
+Adds the given source address. It is possible to use the ANY address (0.0.0.0 or ::), in order to just use the default route.
 If no traffic class is given, Best Effort (00) is used. Otherwise, the list of given traffic classes (in hexadecimal) is used. Alternatively, a traffic class can be specified by PHB name (BE, EF, AF11, AF12, AF13, AF21, AF22, AF23, AF31, AF32, AF33, AF41, AF42, AF43, CS1, CS2, CS3, CS4, CS5, CS6, CS7). In this case, the corresponding traffic class with ECN bits set to 0 is used.
 Note: use lower-case hexadecimal letters to avoid ambiguities with PHB name (e.g. be for 0xbe instead of BE PHB)!
 .It \-D|\--destination address
@@ -119,11 +119,12 @@ The output file is a BZip2-compressed text file. The format is as follows, depen
 .It Ping
 Each Ping entry consists of a #P line.
 .Bl -tag -width indent
-.It #P sourceIP destinationIP timestamp status rtt traffic_class
+.It #P sourceIP destinationIP timestamp checksum status rtt traffic_class
 .Bl -tag -width indent
 .It * sourceIP: Source IP address.
 .It * destinationIP: Destination IP address.
 .It * timestamp: Timestamp (microseconds since the UTC epoch).
+.It * checksum: The checksum of the ICMP Echo Request packets.
 .It * status: Status code (hexadecimal):
 .Bl -tag -width indent
 .It - 1 = ICMP response: Time Exceeded
@@ -139,8 +140,8 @@ Each Ping entry consists of a #P line.
 .El
 Status values from 100 to 199 denote unreachability, as reported by ICMP error from a router. The rtt field contains the response time of the corresponding router.
 Status values from 200 to 254 have the destination IP in their destinationIP field. However, there was no response from a router, so the rtt field will be the configured timeout value!
-.It * rtt: RTT (microseconds).
-.It * traffic_class: Outgoing Traffic Class value (this entry has been added with HiPerConTracer 1.4.0!)
+.It * rtt: The measured RTT (microseconds).
+.It * traffic_class: The outgoing IP Traffic Class/Type of Service value of the ICMP Echo Request packets. This entry has been added with HiPerConTracer 1.4.0!
 .El
 .El
 .It Traceroute
@@ -152,6 +153,7 @@ Each Traceroute entry begins with a #T line, plus one TAB-started line per hop.
 .It * destinationIP: Destination IP address.
 .It * timestamp: Timestamp (microseconds since the UTC epoch).
 .It * round: Round number.
+.It * checksum: The checksum of the ICMP Echo Request packets.
 .It * totalHops: Total hops.
 .It * statusFlags: Status flags (hexadecimal):
 See the she status code for for Ping above for the lower 8 bits. Additionally:
@@ -160,13 +162,13 @@ See the she status code for for Ping above for the lower 8 bits. Additionally:
 .It - 0x200 = Destination has responded
 .El
 .It * pathHash: Hash of the path (hexadecimal).
-.It * traffic_class: Outgoing Traffic Class value (this entry has been added with HiPerConTracer 1.4.0!)
+.It * traffic_class: The outgoing IP Traffic Class/Type of Service value of the ICMP Echo Request packets. This entry has been added with HiPerConTracer 1.4.0!
 .El
 .It (TAB) hopNumber status rtt hopIP
 .Bl -tag -width indent
 .It * hopNumber: Number of the hop.
 .It * status: Status code (hexadecimal; same as for Ping, see above).
-.It * rtt: RTT (microseconds).
+.It * rtt: The measured RTT (microseconds).
 .It * hopIP: Hop IP address (or destination IP, if there was no response).
 .El
 .El
@@ -177,8 +179,9 @@ See the she status code for for Ping above for the lower 8 bits. Additionally:
 .It hipercontracer \-S 10.1.1.51 \-D 10.1.1.6 \-D 10.1.1.7 \-D 10.1.1.8 \-T \--tracerouteinterval 10000 \--tracerouteduration 1000 \-v
 .It hipercontracer \--source 10.1.1.51 \--destination 10.1.1.6 \--destination 10.1.1.7 \--destination 10.1.1.8 \--traceroute \--tracerouteinterval 10000 \--tracerouteduration 1000
 .It hipercontracer \--source 172.16.0.127 \--destination 8.8.8.8 \--destination 193.99.144.80 \--destination 132.252.181.87 \--destination 10.254.254.254 \--destination 91.189.93.5 \--destination 128.112.139.90 \--destination 4.31.198.44 \--destination 136.186.1.10 \--destination 101.4.112.170 \--destination 77.36.144.2 \--source 2a02:270:2014:40:92e2:baff:fe48:bde1 \--destination 2400:cb00:2048:1::6814:155 \--destination 2a02:2e0:3fe:1001:7777:772e:2:85 \--destination 2a00:1450:400f:805::2004 \--traceroute \--ping \--tracerouteduration 1000 \--tracerouteinitialmaxttl 4 \--traceroutefinalmaxttl 32 \--tracerouteincrementmaxttl 4 \--pinginterval 1000 \--pingexpiration 7500 \--pingttl 56 \--resultsdirectory results
-.It hipercontracer \--source=158.36.79.183,00,AF11 \--source=2001:700:1234:5:92e2:ac7e:fe48:cafe,BE,EF,AF11 \--destination=8.8.8.8 \--destination=2606:4700:10::6814:155 \--ping \--traceroute \--tracerouteduration=1000 \--tracerouteinitialmaxttl=4 \--traceroutefinalmaxttl=32 \--tracerouteincrementmaxttl=4 \--pinginterval=1000 \--pingexpiration=7500 \--pingttl=56 \--resultsdirectory=/storage/hpct-results \--resultstransactionlength=20 \--quiet
+.It hipercontracer \--source=0.0.0.0,00,AF11 \--source=::,BE,EF,AF11 \--destination=8.8.8.8 \--destination=2606:4700:10::6814:155 \--ping \--traceroute \--tracerouteduration=1000 \--tracerouteinitialmaxttl=4 \--traceroutefinalmaxttl=32 \--tracerouteincrementmaxttl=4 \--pinginterval=1000 \--pingexpiration=7500 \--pingttl=56 \--resultsdirectory=/storage/hpct-results \--resultstransactionlength=20 \--quiet
 .It hipercontracer \--user=hipercontracer \--source=10.1.1.51 \--destination=10.1.1.6 \--destination=10.1.1.7 \--destination=10.1.1.8 \--traceroute \--tracerouteinterval=10000 \--tracerouteduration=1000
+.It hipercontracer \--user=hipercontracer \--source=0.0.0.0 \--destination=8.8.8.8 \--ping \--verbose
 .El
 .\" ###### Authors ##########################################################
 .Sh AUTHORS
