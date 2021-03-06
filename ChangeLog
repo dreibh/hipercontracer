@@ -1,3 +1,129 @@
+commit 76152f42505d160fb23e729691f0e93018fbbee0
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Fri Mar 5 18:52:37 2021 +0100
+
+    Updated Travis CI configuration
+
+commit ebe0a7d6062f2cb6ab40168ecf532dd126f4536f
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Fri Mar 5 16:01:45 2021 +0100
+
+    Updated build scripts
+
+commit 1fc0ebabc722e10366b143f5982285791f0b042e
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Mar 3 19:41:47 2021 +0100
+
+    Updated script.
+
+commit 341b010a3b178989ce42c146f6c1e9b35e92540a
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Mon Mar 1 21:20:30 2021 +0100
+
+    Updated build scripts
+
+commit d5c94cb21170e464de2298c6117a9ceed9f13b2a
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Mon Mar 1 16:30:36 2021 +0100
+
+    Updated build scripts
+
+commit c055f243ecf702157d5183feb320b832f7a8e869
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Mon Mar 1 11:23:53 2021 +0100
+
+    Improved autogen.sh script.
+
+commit 9ac265feff94a90372ced1533765dc44b9060fd1
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Fri Feb 26 12:39:24 2021 +0100
+
+    Further manpage fixes.
+
+commit 501f9ffd5b1a6620de7a22faa0543d5c842eb443
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Fri Feb 26 12:22:29 2021 +0100
+
+    Version bump.
+
+commit 38baab81fd3ac594a3e1f6c977ee7bb4a3568c4d
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Fri Feb 26 12:21:03 2021 +0100
+
+    Removed debug statement.
+
+commit b8698da21ccd064ab2a1c2d0460a7e0f779f3fc3
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Fri Feb 26 12:18:28 2021 +0100
+
+    Bugfix: Fixed missing documentation of "checksum" field in manpage.
+
+commit 7badb35dc2a0cbd2c66fe92023cf8cf43c930eb8
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Feb 17 17:57:12 2021 +0100
+
+    Cleaned up CMakeLists.txt.
+
+commit b34dc91291e25e20ab290478d468d6f5dbcd040a
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Feb 17 15:19:07 2021 +0100
+
+    Updated build scripts
+
+commit c2b21e155c7cf9355423ae1c8b85e822d8fd19a6
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Feb 17 15:19:06 2021 +0100
+
+    Updated build scripts
+
+commit 34d59be93f45770a04f7a4e3c3d79f90375be09c
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Feb 16 21:02:28 2021 +0100
+
+    A fix.
+
+commit 59b0204021ac751b6a48e91ce6566bee81fdb451
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Feb 16 21:00:30 2021 +0100
+
+    Minor update to work under FreeBSD.
+
+commit 2ee7829a7a33efaf5f8d5a305b19267c62b3bafc
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Feb 16 20:45:53 2021 +0100
+
+    Added usage of SIOCGSTAMP to get higher accuracy for reception time stamp.
+
+commit 25c56d85f3d6a70bd590a80a3261bd07ad9ab8ee
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Feb 16 20:18:25 2021 +0100
+
+    Header updates.
+
+commit 2ed2111c0cbb6a9d0692b8ac390ae6c3ee4dcba3
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Sat Jan 30 07:40:00 2021 +0100
+
+    Updated Travis CI configuration
+
+commit b652399e5e5749a1481523bc764ff63064b30f3e
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Dec 16 09:58:23 2020 +0100
+
+    CMakeLists.txt improvements.
+
+commit 1c7eedc4a6e80e530acbe002fbf0ca58f579c697
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Nov 18 14:51:23 2020 +0100
+
+    Updated LSM entry.
+
+commit 707ddd464352232f329657f32f70ea4bae17d938
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Nov 18 14:48:17 2020 +0100
+
+    New release hipercontracer-1.4.12.
+
 commit 9d4aab68a349c67e4ec2cef420f5c1e1d1ca9a92
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Wed Nov 18 12:45:34 2020 +0100
