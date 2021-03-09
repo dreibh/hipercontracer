@@ -409,14 +409,12 @@ void Traceroute::sendICMPRequest(const DestinationInfo& destination,
 {
    // ====== Compute payload size and packet size ===========================
    const size_t payloadSize =
-      (size_t)std::max((ssize_t)0,
+      (size_t)std::max((ssize_t)MIN_TRACESERVICE_HEADER_SIZE,
                        (ssize_t)PacketSize -
                           (ssize_t)((isIPv6() == true) ? 40 : 20) -
-                          (ssize_t)sizeof(ICMPHeader) -
-                          (ssize_t)sizeof(TraceServiceHeader));
+                          (ssize_t)sizeof(ICMPHeader));
    const size_t actualPacketSize = ((isIPv6() == true) ? 40 : 20) +
                                       sizeof(ICMPHeader) +
-                                      sizeof(TraceServiceHeader) +
                                       payloadSize;
 
    // ====== Set TTL ========================================================
@@ -430,7 +428,7 @@ void Traceroute::sendICMPRequest(const DestinationInfo& destination,
    echoRequest.code(0);
    echoRequest.identifier(Identifier);
    echoRequest.seqNumber(SeqNumber);
-   TraceServiceHeader tsHeader;
+   TraceServiceHeader tsHeader(payloadSize);
    tsHeader.magicNumber(MagicNumber);
    tsHeader.sendTTL(ttl);
    tsHeader.round((unsigned char)round);
