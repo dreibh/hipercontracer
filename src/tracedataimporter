@@ -103,7 +103,7 @@ def processInput(inputFile, outputType):
                if len(tuples) >= 8:   # TrafficClass was added in HiPerConTracer 1.4.0!
                   trafficClass  = int(tuples[7], 16)
                packetSize = 0
-               if len(tuples) >= 9:   # PacketSize was added in HiPerConTracer 1.8.0!
+               if len(tuples) >= 9:   # PacketSize was added in HiPerConTracer 1.6.0!
                   packetSize  = int(tuples[8])
 
                assert ('0x' + tuples[3]) == hex(timeStamp)
@@ -162,7 +162,7 @@ def processInput(inputFile, outputType):
                if len(tuples) >= 10:   # TrafficClass was added in HiPerConTracer 1.4.0!
                   trafficClass  = int(tuples[9], 16)
                packetSize = 0
-               if len(tuples) >= 11:   # PacketSize was added in HiPerConTracer 1.8.0!
+               if len(tuples) >= 11:   # PacketSize was added in HiPerConTracer 1.6.0!
                   packetSize  = int(tuples[10])
 
                assert ('0x' + tuples[3]) == hex(timeStamp)
