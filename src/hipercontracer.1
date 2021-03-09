@@ -42,15 +42,17 @@
 .Op \--tracerouteinitialmaxttl value
 .Op \--traceroutefinalmaxttl value
 .Op \--tracerouteincrementmaxttl value
+.Op \--traceroutepacketsize bytes
 .Op \--pinginterval milliseconds
 .Op \--pingexpiration milliseconds
 .Op \--pingttl value
+.Op \--pingpacketsize bytes
 .Op \-R|--resultsdirectory directory
 .Op \--resultstransactionlength seconds
 .\" ###### Description ######################################################
 .Sh DESCRIPTION
 .Nm hipercontracer
-is a ping/traceroute service. It performs regular ping and traceroute runs
+is a Ping/Traceroute service. It performs regular Ping and Traceroute runs
 among sites and can export the results into results statements for import into
 a database.
 .Pp
@@ -59,9 +61,9 @@ a database.
 The following arguments may be provided:
 .Bl -tag -width indent
 .It \-P|\--ping
-Start the ping service.
+Start the Ping service.
 .It \-T|\--traceroute
-Start the traceroute service.
+Start the Traceroute service.
 .It \-L|\--loglevel level
 Sets the minimum logging level to the provided value: 0=trace, 1=debug, 2=info, 3=warning, 4=error, 5=fatal.
 .It \-q|\--quiet
@@ -83,11 +85,11 @@ Limit the number of measurement iterations (measurement for all source/destinati
 pairs) to the given number of iterations. The default 0 lets HiPerConTracer run
 continuously.
 .It \--tracerouteinterval milliseconds
-Sets the traceroute interval (time for each full round of destinations).
+Sets the Traceroute interval (time for each full round of destinations).
 .It \--tracerouteduration milliseconds
-Sets the traceroute duration (timeout for each destination).
+Sets the Traceroute duration (timeout for each destination).
 .It \--tracerouterounds rounds
-For each traceroute measurement, perform the given number of rounds simultaneously.
+For each Traceroute measurement, perform the given number of rounds simultaneously.
 Default is 1 round.
 Each TTL test of a round will have the same ICMP checksum value ("Oslo Traceroute"),
 in order to deal with load balancing in the Internet.
@@ -101,12 +103,16 @@ Finish with the given maximum TTL
 .It \--tracerouteincrementmaxttl value
 Increase the maximum TTL by the given value
 (when destination is not reached with current TTL setting).
+.It \--traceroutepacketsize bytes
+Sets the Traceroute packet size, that is IP header (20 for IPv4/40 for IPv6) + ICMP header (8) + HiPerConTracer header (16) + payload, in bytes.
 .It \--pinginterval milliseconds
-Sets the ping interval (time for each full round of destinations).
+Sets the Ping interval (time for each full round of destinations).
 .It \--pingexpiration milliseconds
-Sets the ping duration (timeout for each destination).
+Sets the Ping duration (timeout for each destination).
 .It \--pingttl value
-Sets the ping TTL value.
+Sets the Ping TTL value.
+.It \--pingpacketsize bytes
+Sets the Ping packet size, that is IP header (20 for IPv4/40 for IPv6) + ICMP header (8) + HiPerConTracer header (16) + payload, in bytes.
 .It \-R|\--resultsdirectory directory
 Sets the results files directory. The results will be stored there. If not specified, to results will be stored.
 .It \--resultstransactionlength seconds
