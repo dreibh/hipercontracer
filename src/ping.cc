@@ -46,12 +46,13 @@ Ping::Ping(ResultsWriter*                   resultsWriter,
            const std::set<DestinationInfo>& destinationArray,
            const unsigned long long         interval,
            const unsigned int               expiration,
-           const unsigned int               ttl)
+           const unsigned int               ttl,
+           const unsigned int               packetSize)
    : Traceroute(resultsWriter, iterations, removeDestinationAfterRun,
                 sourceAddress, destinationArray,
-                interval, expiration, ttl, ttl, ttl),
+                interval, expiration, ttl, ttl, ttl, 1,
+                packetSize),
      PingInstanceName(std::string("Ping(") + sourceAddress.to_string() + std::string(")"))
-
 {
 }
 
@@ -159,7 +160,7 @@ void Ping::processResults()
 
          if(ResultsOutput) {
             ResultsOutput->insert(
-               str(boost::format("#P %s %s %x %x %d %d %x")
+               str(boost::format("#P %s %s %x %x %d %d %x %d")
                   % SourceAddress.to_string()
                   % resultEntry->destinationAddress().to_string()
                   % usSinceEpoch(resultEntry->sendTime())
@@ -167,6 +168,7 @@ void Ping::processResults()
                   % resultEntry->status()
                   % std::chrono::duration_cast<std::chrono::microseconds>(resultEntry->receiveTime() - resultEntry->sendTime()).count()
                   % (unsigned int)resultEntry->destination().trafficClass()
+                  % resultEntry->packetSize()
             ));
          }
       }

@@ -107,10 +107,12 @@ int main(int argc, char** argv)
    unsigned int       tracerouteInitialMaxTTL;
    unsigned int       tracerouteFinalMaxTTL;
    unsigned int       tracerouteIncrementMaxTTL;
+   unsigned int       traceroutePacketSize;
 
    unsigned long long pingInterval;
    unsigned int       pingExpiration;
    unsigned int       pingTTL;
+   unsigned int       pingPacketSize;
 
    unsigned int       resultsTransactionLength;
    std::string        resultsDirectory;
@@ -168,6 +170,9 @@ int main(int argc, char** argv)
       ( "tracerouteincrementmaxttl",
            boost::program_options::value<unsigned int>(&tracerouteIncrementMaxTTL)->default_value(6),
            "Traceroute increment maximum TTL value" )
+      ( "traceroutepacketsize",
+           boost::program_options::value<unsigned int>(&traceroutePacketSize)->default_value(0),
+           "Traceroute packet size in B" )
 
       ( "pinginterval",
            boost::program_options::value<unsigned long long>(&pingInterval)->default_value(1000),
@@ -178,6 +183,9 @@ int main(int argc, char** argv)
       ( "pingttl",
            boost::program_options::value<unsigned int>(&pingTTL)->default_value(64),
            "Ping initial maximum TTL value" )
+      ( "pingpacketsize",
+           boost::program_options::value<unsigned int>(&pingPacketSize)->default_value(0),
+           "Ping packet size in B" )
 
       ( "resultsdirectory,R",
            boost::program_options::value<std::string>(&resultsDirectory)->default_value(std::string()),
@@ -186,7 +194,6 @@ int main(int argc, char** argv)
            boost::program_options::value<unsigned int>(&resultsTransactionLength)->default_value(60),
            "Results directory in s" )
     ;
-
 
    // ====== Handle command-line arguments ==================================
    boost::program_options::variables_map vm;
@@ -252,9 +259,11 @@ int main(int argc, char** argv)
    tracerouteInitialMaxTTL   = std::min(std::max(1U, tracerouteInitialMaxTTL),   255U);
    tracerouteFinalMaxTTL     = std::min(std::max(1U, tracerouteFinalMaxTTL),     255U);
    tracerouteIncrementMaxTTL = std::min(std::max(1U, tracerouteIncrementMaxTTL), 255U);
+   traceroutePacketSize      = std::min(65535U, traceroutePacketSize);
    pingInterval              = std::min(std::max(100ULL, pingInterval),          3600U*60000ULL);
    pingExpiration            = std::min(std::max(100U, pingExpiration),          3600U*60000U);
    pingTTL                   = std::min(std::max(1U, pingTTL),                   255U);
+   pingPacketSize            = std::min(65535U, pingPacketSize);
 
    if(!resultsDirectory.empty()) {
       HPCT_LOG(info) << "Results Output:" << std::endl
@@ -269,7 +278,8 @@ int main(int argc, char** argv)
       HPCT_LOG(info) << "Ping Service:" << std:: endl
                      << "* Interval           = " << pingInterval   << " ms" << std::endl
                      << "* Expiration         = " << pingExpiration << " ms" << std::endl
-                     << "* TTL                = " << pingTTL;
+                     << "* TTL                = " << pingTTL                 << std::endl
+                     << "* Packet Size        = " << pingPacketSize << " B"  << std::endl;
    }
    if(serviceTraceroute) {
       HPCT_LOG(info) << "Traceroute Service:" << std:: endl
@@ -278,7 +288,8 @@ int main(int argc, char** argv)
                      << "* Rounds             = " << tracerouteRounds          << std::endl
                      << "* Initial MaxTTL     = " << tracerouteInitialMaxTTL   << std::endl
                      << "* Final MaxTTL       = " << tracerouteFinalMaxTTL     << std::endl
-                     << "* Increment MaxTTL   = " << tracerouteIncrementMaxTTL;
+                     << "* Increment MaxTTL   = " << tracerouteIncrementMaxTTL << std::endl
+                     << "* Packet Size        = " << traceroutePacketSize      << " B" << std::endl;
    }
 
 
@@ -320,7 +331,8 @@ int main(int argc, char** argv)
             }
             Service* service = new Ping(resultsWriter, iterations, false,
                                         sourceAddress, destinationsForSource,
-                                        pingInterval, pingExpiration, pingTTL);
+                                        pingInterval, pingExpiration, pingTTL,
+                                        pingPacketSize);
             if(service->start() == false) {
                return 1;
             }
@@ -349,7 +361,8 @@ int main(int argc, char** argv)
                                               tracerouteInterval, tracerouteExpiration,
                                               tracerouteRounds,
                                               tracerouteInitialMaxTTL, tracerouteFinalMaxTTL,
-                                              tracerouteIncrementMaxTTL);
+                                              tracerouteIncrementMaxTTL,
+                                              traceroutePacketSize);
             if(service->start() == false) {
                return 1;
             }
