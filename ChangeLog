@@ -1,3 +1,88 @@
+commit c77b04b6de55683cad2ab62c4ba8e4a228bb97a2
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Mon May 3 14:22:50 2021 +0200
+
+    Version bump.
+
+commit 021a6df881096548c2db827f54d3c6f11717ba41
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Mon May 3 14:22:00 2021 +0200
+
+    Updated build scripts
+
+commit 181ce2311429858421f72dd1058ffbc5c724171c
+Merge: ce70858 a316796
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Mon May 3 14:21:20 2021 +0200
+
+    Merge branch 'dreibh/packet-size-option'
+
+commit ce7085831a663a63bb54d3c68d961bec11fe5bfd
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Mon May 3 12:19:51 2021 +0000
+
+    Improved FreeBSD packaging.
+
+commit 7e729d7b0a35b6e59f9bea8ce66ee7ab4f80df23
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Mon May 3 12:19:40 2021 +0000
+
+    Improved script.
+
+commit a316796239ac2529be4f57821c6483c382899740
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Mar 9 22:40:17 2021 +0100
+
+    Documentation fix.
+
+commit c7561636e7e1f09ea89092d265b27b085f658b90
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Mar 9 22:32:04 2021 +0100
+
+    Formatting fix.
+
+commit abf8b29a72b02f723e5ab53f3d751676ed3028f2
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Mar 9 22:30:02 2021 +0100
+
+    Updated SQL schema and importer.
+
+commit 43a90b39fc5341b3144918c98d62f1a50b60ab9d
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Mar 9 22:19:36 2021 +0100
+
+    Updated manpage.
+
+commit 3f54895e877a34c675f62bd3e7b351e78b0b4bc9
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Mar 9 22:07:17 2021 +0100
+
+    Actually adjusting payload size.
+
+commit 613c8a1028b6cd3b523c98f88ebc16df3df62660
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Mar 9 21:49:31 2021 +0100
+
+    Updated manpage.
+
+commit f04b8370c8b31f711b468c9ff9cbec0981f14bbb
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Mar 9 21:49:01 2021 +0100
+
+    Added configuration option for packet size.
+
+commit c2057a8ae4a65ab170e5cdfa9ba87920d62d593b
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Sun Mar 7 00:00:41 2021 +0100
+
+    Updated LSM entry.
+
+commit 9d0e76f620b95cecb593375f7ee1f5080fbf0dd4
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Sat Mar 6 23:41:22 2021 +0100
+
+    New release hipercontracer-1.5.0.
+
 commit 76152f42505d160fb23e729691f0e93018fbbee0
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Fri Mar 5 18:52:37 2021 +0100

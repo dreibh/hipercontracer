@@ -1,8 +1,9 @@
-hipercontracer (1.6.0~rc0-1ubuntu1) hirsute; urgency=medium
+hipercontracer (1.6.0-1ubuntu1) hirsute; urgency=medium
 
   * New upstream release.
+  * Closes Debian ITP bug (Closes: #987996).
 
- -- Thomas Dreibholz <dreibh@iem.uni-due.de>  Mon, 03 May 2021 14:21:39 +0200
+ -- Thomas Dreibholz <dreibh@iem.uni-due.de>  Mon, 03 May 2021 14:48:43 +0200
 
 hipercontracer (1.5.0-1ubuntu1) hirsute; urgency=medium
 
