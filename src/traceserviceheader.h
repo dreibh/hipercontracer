@@ -47,78 +47,84 @@
 // 08 8 Send Time Stamp
 // ==========================================================================
 
+#define MIN_TRACESERVICE_HEADER_SIZE    16
+#define MAX_TRACESERVICE_HEADER_SIZE 65536
 
 class TraceServiceHeader
 {
    public:
-   TraceServiceHeader() {
-      std::fill(data, data + sizeof(data), 0);
+   TraceServiceHeader(const size_t size = MIN_TRACESERVICE_HEADER_SIZE)
+      : Size(size)
+   {
+      assert((Size >= MIN_TRACESERVICE_HEADER_SIZE) && (Size <= MAX_TRACESERVICE_HEADER_SIZE));
+      std::fill(Data, Data + Size, 0);
    }
 
    inline uint32_t magicNumber() const {
-      return ( ((uint32_t)data[0] << 24) |
-               ((uint32_t)data[1] << 16) |
-               ((uint32_t)data[2] << 8)  |
-               (uint32_t)data[3] );
+      return ( ((uint32_t)Data[0] << 24) |
+               ((uint32_t)Data[1] << 16) |
+               ((uint32_t)Data[2] << 8)  |
+               (uint32_t)Data[3] );
    }
    inline void magicNumber(const uint32_t number) {
-      data[0] = static_cast<uint8_t>( (number >> 24) & 0xff );
-      data[1] = static_cast<uint8_t>( (number >> 16) & 0xff );
-      data[2] = static_cast<uint8_t>( (number >> 8)  & 0xff );
-      data[3] = static_cast<uint8_t>( number & 0xff );
+      Data[0] = static_cast<uint8_t>( (number >> 24) & 0xff );
+      Data[1] = static_cast<uint8_t>( (number >> 16) & 0xff );
+      Data[2] = static_cast<uint8_t>( (number >> 8)  & 0xff );
+      Data[3] = static_cast<uint8_t>( number & 0xff );
    }
 
-   inline uint8_t sendTTL() const       { return data[4];    }
-   inline void sendTTL(uint8_t sendTTL) { data[4] = sendTTL; }
+   inline uint8_t sendTTL() const       { return Data[4];    }
+   inline void sendTTL(uint8_t sendTTL) { Data[4] = sendTTL; }
 
-   inline uint8_t round() const         { return data[5];    }
-   inline void round(uint8_t round)     { data[5] = round;   }
+   inline uint8_t round() const         { return Data[5];    }
+   inline void round(uint8_t round)     { Data[5] = round;   }
 
    inline uint16_t checksumTweak() const {
-      return ( ((uint16_t)data[6] << 8)  |
-               (uint16_t)data[7] );
+      return ( ((uint16_t)Data[6] << 8)  |
+               (uint16_t)Data[7] );
    }
    inline void checksumTweak(const uint16_t value) {
-      data[6] = static_cast<uint8_t>( (value >> 8)  & 0xff );
-      data[7] = static_cast<uint8_t>( value & 0xff );
+      Data[6] = static_cast<uint8_t>( (value >> 8)  & 0xff );
+      Data[7] = static_cast<uint8_t>( value & 0xff );
    }
 
    inline uint64_t sendTimeStamp() const {
-      return ( ((uint64_t)data[8] << 56)  |
-               ((uint64_t)data[9] << 48)  |
-               ((uint64_t)data[10] << 40) |
-               ((uint64_t)data[11] << 32) |
-               ((uint64_t)data[12] << 24) |
-               ((uint64_t)data[13] << 16) |
-               ((uint64_t)data[14] << 8)  |
-               (uint64_t)data[15] );
+      return ( ((uint64_t)Data[8] << 56)  |
+               ((uint64_t)Data[9] << 48)  |
+               ((uint64_t)Data[10] << 40) |
+               ((uint64_t)Data[11] << 32) |
+               ((uint64_t)Data[12] << 24) |
+               ((uint64_t)Data[13] << 16) |
+               ((uint64_t)Data[14] << 8)  |
+               (uint64_t)Data[15] );
    }
    inline void sendTimeStamp(const uint64_t timeStamp) {
-      data[8]  = static_cast<uint8_t>( (timeStamp >> 56) & 0xff );
-      data[9]  = static_cast<uint8_t>( (timeStamp >> 48) & 0xff );
-      data[10] = static_cast<uint8_t>( (timeStamp >> 40) & 0xff );
-      data[11] = static_cast<uint8_t>( (timeStamp >> 32) & 0xff );
-      data[12] = static_cast<uint8_t>( (timeStamp >> 24) & 0xff );
-      data[13] = static_cast<uint8_t>( (timeStamp >> 16) & 0xff );
-      data[14] = static_cast<uint8_t>( (timeStamp >> 8) & 0xff );
-      data[15] = static_cast<uint8_t>( timeStamp & 0xff );
+      Data[8]  = static_cast<uint8_t>( (timeStamp >> 56) & 0xff );
+      Data[9]  = static_cast<uint8_t>( (timeStamp >> 48) & 0xff );
+      Data[10] = static_cast<uint8_t>( (timeStamp >> 40) & 0xff );
+      Data[11] = static_cast<uint8_t>( (timeStamp >> 32) & 0xff );
+      Data[12] = static_cast<uint8_t>( (timeStamp >> 24) & 0xff );
+      Data[13] = static_cast<uint8_t>( (timeStamp >> 16) & 0xff );
+      Data[14] = static_cast<uint8_t>( (timeStamp >> 8) & 0xff );
+      Data[15] = static_cast<uint8_t>( timeStamp & 0xff );
    }
 
    inline friend std::istream& operator>>(std::istream& is, TraceServiceHeader& header) {
-      return(is.read(reinterpret_cast<char*>(header.data), sizeof(header.data)));
+      return(is.read(reinterpret_cast<char*>(header.Data), header.Size));
    }
 
    inline friend std::ostream& operator<<(std::ostream& os, const TraceServiceHeader& header) {
-      return(os.write(reinterpret_cast<const char*>(header.data), sizeof(header.data)));
+      return(os.write(reinterpret_cast<const char*>(header.Data), header.Size));
    }
 
    inline std::vector<uint8_t> contents() const {
-      std::vector<uint8_t> contents((uint8_t*)&data, (uint8_t*)&data[sizeof(data)]);
+      std::vector<uint8_t> contents((uint8_t*)&Data, (uint8_t*)&Data[Size]);
       return(contents);
    }
 
    private:
-   uint8_t data[16];
+   const size_t Size;
+   uint8_t      Data[MAX_TRACESERVICE_HEADER_SIZE];
 };
 
 #endif

@@ -67,7 +67,8 @@ Traceroute::Traceroute(ResultsWriter*                   resultsWriter,
                        const unsigned int               rounds,
                        const unsigned int               initialMaxTTL,
                        const unsigned int               finalMaxTTL,
-                       const unsigned int               incrementMaxTTL)
+                       const unsigned int               incrementMaxTTL,
+                       const unsigned int               packetSize)
    : TracerouteInstanceName(std::string("Traceroute(") + sourceAddress.to_string() + std::string(")")),
      ResultsOutput(resultsWriter),
      Iterations(iterations),
@@ -78,6 +79,7 @@ Traceroute::Traceroute(ResultsWriter*                   resultsWriter,
      InitialMaxTTL(initialMaxTTL),
      FinalMaxTTL(finalMaxTTL),
      IncrementMaxTTL(incrementMaxTTL),
+     PacketSize(packetSize),
      IOService(),
      SourceAddress(sourceAddress),
      ICMPSocket(IOService, (isIPv6() == true) ? boost::asio::ip::icmp::v6() : boost::asio::ip::icmp::v4()),
@@ -405,18 +407,28 @@ void Traceroute::sendICMPRequest(const DestinationInfo& destination,
                                  const unsigned int     round,
                                  uint32_t&              targetChecksum)
 {
-   // ====== Set TTL ========================================
+   // ====== Compute payload size and packet size ===========================
+   const size_t payloadSize =
+      (size_t)std::max((ssize_t)MIN_TRACESERVICE_HEADER_SIZE,
+                       (ssize_t)PacketSize -
+                          (ssize_t)((isIPv6() == true) ? 40 : 20) -
+                          (ssize_t)sizeof(ICMPHeader));
+   const size_t actualPacketSize = ((isIPv6() == true) ? 40 : 20) +
+                                      sizeof(ICMPHeader) +
+                                      payloadSize;
+
+   // ====== Set TTL ========================================================
    const boost::asio::ip::unicast::hops option(ttl);
    ICMPSocket.set_option(option);
 
-   // ====== Create an ICMP header for an echo request ======
+   // ====== Create an ICMP header for an echo request ======================
    SeqNumber++;
    ICMPHeader echoRequest;
    echoRequest.type((isIPv6() == true) ? ICMPHeader::IPv6EchoRequest : ICMPHeader::IPv4EchoRequest);
    echoRequest.code(0);
    echoRequest.identifier(Identifier);
    echoRequest.seqNumber(SeqNumber);
-   TraceServiceHeader tsHeader;
+   TraceServiceHeader tsHeader(payloadSize);
    tsHeader.magicNumber(MagicNumber);
    tsHeader.sendTTL(ttl);
    tsHeader.round((unsigned char)round);
@@ -425,7 +437,7 @@ void Traceroute::sendICMPRequest(const DestinationInfo& destination,
    tsHeader.sendTimeStamp(makePacketTimeStamp(sendTime));
    std::vector<unsigned char> tsHeaderContents = tsHeader.contents();
 
-   // ====== Tweak checksum ===============================
+   // ====== Tweak checksum =================================================
    // ------ No given target checksum ---------------------
    if(targetChecksum == ~0U) {
       computeInternet16(echoRequest, tsHeaderContents.begin(), tsHeaderContents.end());
@@ -450,12 +462,12 @@ void Traceroute::sendICMPRequest(const DestinationInfo& destination,
       assert(echoRequest.checksum() == targetChecksum);
    }
 
-   // ====== Encode the request packet ======================
+   // ====== Encode the request packet ======================================
    boost::asio::streambuf request_buffer;
    std::ostream os(&request_buffer);
    os << echoRequest << tsHeader;
 
-   // ====== Send the request ===============================
+   // ====== Send the request ===============================================
    std::size_t sent;
    try {
       int level;
@@ -487,11 +499,12 @@ void Traceroute::sendICMPRequest(const DestinationInfo& destination,
                         << SourceAddress << "->" << destination << ") failed!";
    }
    else {
-      // ====== Record the request ==========================
+      // ====== Record the request ==========================================
       OutstandingRequests++;
 
       assert((targetChecksum & ~0xffff) == 0);
-      ResultEntry resultEntry(round, SeqNumber, ttl, (uint16_t)targetChecksum, sendTime,
+      ResultEntry resultEntry(round, SeqNumber, ttl, actualPacketSize,
+                              (uint16_t)targetChecksum, sendTime,
                               destination, Unknown);
       std::pair<std::map<unsigned short, ResultEntry>::iterator, bool> result = ResultsMap.insert(std::pair<unsigned short, ResultEntry>(SeqNumber,resultEntry));
       assert(result.second == true);
@@ -635,7 +648,7 @@ void Traceroute::processResults()
 
                if(writeHeader) {
                   ResultsOutput->insert(
-                     str(boost::format("#T %s %s %x %d %x %d %x %x %x")
+                     str(boost::format("#T %s %s %x %d %x %d %x %x %x %d")
                         % SourceAddress.to_string()
                         % (*DestinationIterator).address().to_string()
                         % timeStamp
@@ -645,6 +658,7 @@ void Traceroute::processResults()
                         % statusFlags
                         % (int64_t)pathHash
                         % (unsigned int)(*DestinationIterator).trafficClass()
+                        % resultEntry->packetSize()
                   ));
                   writeHeader = false;
                   checksumCheck = resultEntry->checksum();

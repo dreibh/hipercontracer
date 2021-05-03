@@ -73,6 +73,7 @@ CREATE TABLE Ping (
    TimeStamp TIMESTAMP WITHOUT TIME ZONE NOT NULL,   -- Time stamp (always UTC!)
    FromIP    INET     NOT NULL,                      -- Source IP address
    ToIP      INET     NOT NULL,                      -- Destination IP address
+   PktSize   INTEGER  NOT NULL DEFAULT 0,            -- Packet size
    TC        SMALLINT NOT NULL DEFAULT 0,            -- Traffic Class
    Status    SMALLINT NOT NULL,                      -- Status
    RTT       INTEGER  NOT NULL,                      -- microseconds (max. 2147s)
@@ -91,6 +92,7 @@ CREATE TABLE Traceroute (
    TimeStamp TIMESTAMP WITHOUT TIME ZONE NOT NULL,   -- Time stamp (always UTC!)
    FromIP    INET     NOT NULL,                      -- Source IP address
    ToIP      INET     NOT NULL,                      -- Destination IP address
+   PktSize   INTEGER  NOT NULL DEFAULT 0,            -- Packet size
    TC        SMALLINT NOT NULL DEFAULT 0,            -- Traffic Class
    HopNumber SMALLINT NOT NULL,                      -- Current hop number
    TotalHops SMALLINT NOT NULL,                      -- Total number of hops

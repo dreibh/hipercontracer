@@ -61,7 +61,8 @@ class Traceroute : public Service
               const unsigned int               rounds          = 1,
               const unsigned int               initialMaxTTL   = 5,
               const unsigned int               finalMaxTTL     = 35,
-              const unsigned int               incrementMaxTTL = 2);
+              const unsigned int               incrementMaxTTL = 2,
+              const unsigned int               packetSize      = 0);
    virtual ~Traceroute();
 
    virtual const boost::asio::ip::address& getSource();
@@ -118,6 +119,7 @@ class Traceroute : public Service
    const unsigned int                      InitialMaxTTL;
    const unsigned int                      FinalMaxTTL;
    const unsigned int                      IncrementMaxTTL;
+   const unsigned int                      PacketSize;
    boost::asio::io_service                 IOService;
    boost::asio::ip::address                SourceAddress;
    std::recursive_mutex                    DestinationMutex;

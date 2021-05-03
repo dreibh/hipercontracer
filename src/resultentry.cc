@@ -38,6 +38,7 @@
 ResultEntry::ResultEntry(const unsigned short                        round,
                          const unsigned short                        seqNumber,
                          const unsigned int                          hop,
+                         const unsigned int                          packetSize,
                          const uint16_t                              checksum,
                          const std::chrono::system_clock::time_point sendTime,
                          const DestinationInfo&                      destination,
@@ -45,6 +46,7 @@ ResultEntry::ResultEntry(const unsigned short                        round,
    : Round(round),
      SeqNumber(seqNumber),
      Hop(hop),
+     PacketSize(packetSize),
      Checksum(checksum),
      SendTime(sendTime),
      Destination(destination),
@@ -68,6 +70,7 @@ std::ostream& operator<<(std::ostream& os, const ResultEntry& resultEntry)
       << "\t" << boost::format("%9.3fms") % (std::chrono::duration_cast<std::chrono::microseconds>(resultEntry.rtt()).count() / 1000.0)
       << "\t" << boost::format("%3d")     % resultEntry.Status
       << "\t" << boost::format("%04x")    % resultEntry.Checksum
+      << "\t" << boost::format("%d")      % resultEntry.PacketSize
       << "\t" << resultEntry.Destination;
    return(os);
 }

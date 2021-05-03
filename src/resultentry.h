@@ -87,6 +87,7 @@ class ResultEntry {
    ResultEntry(const unsigned short                        round,
                const unsigned short                        seqNumber,
                const unsigned int                          hop,
+               const unsigned int                          packetSize,
                const uint16_t                              checksum,
                const std::chrono::system_clock::time_point sendTime,
                const DestinationInfo&                      destination,
@@ -96,6 +97,7 @@ class ResultEntry {
    inline unsigned int round()                                const { return(Round);                  }
    inline unsigned int seqNumber()                            const { return(SeqNumber);              }
    inline unsigned int hop()                                  const { return(Hop);                    }
+   inline unsigned int packetSize()                           const { return(PacketSize);             }
    const DestinationInfo& destination()                       const { return(Destination);            }
    const boost::asio::ip::address& destinationAddress()       const { return(Destination.address());  }
    inline HopStatus status()                                  const { return(Status);                 }
@@ -118,6 +120,7 @@ class ResultEntry {
    const unsigned int                          Round;
    const unsigned short                        SeqNumber;
    const unsigned int                          Hop;
+   const unsigned int                          PacketSize;
    const uint16_t                              Checksum;
    const std::chrono::system_clock::time_point SendTime;
 
