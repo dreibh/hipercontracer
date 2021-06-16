@@ -122,7 +122,7 @@ class TraceServiceHeader
       return(contents);
    }
 
-   private:
+//    private:
    const size_t Size;
    uint8_t      Data[MAX_TRACESERVICE_HEADER_SIZE];
 };

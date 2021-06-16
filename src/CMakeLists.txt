@@ -94,6 +94,7 @@ INSTALL(FILES tracedataimporter.1 get-default-ips.1 addressinfogenerator.1
 # Test only:
 # ADD_EXECUTABLE(t1 t1.cc)
 # ADD_EXECUTABLE(t2 t2.cc)
+ADD_EXECUTABLE(t3 t3.cc)
 
 
 #############################################################################
