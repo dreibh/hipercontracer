@@ -1,3 +1,27 @@
+commit 438638646b49bd2509f78a2c4b97a31507db0810
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Jun 16 15:39:50 2021 +0200
+
+    Added test code.
+
+commit a74ae0f25a290e6d9999557500f0d5a06d57605b
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Mon May 3 14:56:02 2021 +0200
+
+    Updated LSM entry.
+
+commit b9d8414974d628e2c66fa10637588d618894b395
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Mon May 3 12:55:25 2021 +0000
+
+    Updated FreeBSD package.
+
+commit 3959fc15ee1bc9e3ba4c56857683f6b02beda11b
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Mon May 3 14:48:47 2021 +0200
+
+    New release hipercontracer-1.6.0.
+
 commit c77b04b6de55683cad2ab62c4ba8e4a228bb97a2
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Mon May 3 14:22:50 2021 +0200

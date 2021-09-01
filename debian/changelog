@@ -1,3 +1,10 @@
+hipercontracer (1.6.1-1ubuntu1) hirsute; urgency=medium
+
+  * New upstream release.
+  * debian/control: Updated standards version to 4.6.0.1.
+
+ -- Thomas Dreibholz <dreibh@iem.uni-due.de>  Wed, 01 Sep 2021 11:07:55 +0200
+
 hipercontracer (1.6.0-1ubuntu1) hirsute; urgency=medium
 
   * New upstream release.
