@@ -18,43 +18,57 @@
 #
 # Contact: dreibh@iem.uni-due.de
 
+
+# This script filters debian/changelog entries:
+# Usage: filter-empty-entries [regexp_for_last_entry|FIRST]
+# * Empty entries get dropped.
+# * Stop, if entry matches regexp_for_last_entry argument.
+# * Stop after first entry, if regexp_for_last_entry = FIRST.
+
+
 use warnings;
 use strict;
 
-my $mode=0;
-my $entryLines=0;
-my $entry="";
+my $entries           = 0;
+my $entryContentLines = 0;
+my $entryContent      = "";
 
 while (my $text = <STDIN>) {
    chomp $text;
 
-   if($entryLines == 0) {
+   # ====== Begin of entry ==================================================
+   if($entryContentLines == 0) {
       if($text =~ /^[a-zA-Z].*$/) {
-         $entry      = "$text\n\n";
-         $entryLines = 1;
+         $entryContent      = "$text\n\n";
+         $entryContentLines = 1;
       }
    }
+
+   # ====== Within entry ====================================================
    else {
-      if($text =~ /^[ \t]*$/) {
-         # Remove empty line.
-      }
-      elsif($text =~ /^ --.*$/) {
-         $entry  = "$entry\n$text\n";
-         if($entryLines > 1) {
-            print "$entry\n";
+      # ------ End of entry -------------------------------------------------
+      if($text =~ /^ --.*$/) {
+         $entryContent  = "$entryContent\n$text\n";
+         if($entryContentLines > 1) {
+            $entries = $entries + 1;
+            print "$entryContent\n";
          }
 
+         # ------ Check for match with last entry regexp in argument --------
          if($ARGV[0] !~ /^$/) {
-            if($text =~ /($ARGV[0])/) {
+            if( ($ARGV[0] =~ "FIRST") || ($text =~ /($ARGV[0])/) ) {
                exit;
             }
          }
 
-         $entryLines = 0;
+         $entryContentLines = 0;
       }
+      # ------ Part of entry ------------------------------------------------
       else {
-         $entry      = "$entry$text\n";
-         $entryLines = $entryLines + 1;
+         if($text !~ /^[ \t]*$/) {   # Not an empty line
+            $entryContent      = "$entryContent$text\n";
+            $entryContentLines = $entryContentLines + 1;
+         }
       }
    }
 }

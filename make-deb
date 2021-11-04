@@ -157,12 +157,19 @@ for DISTRIBUTION in ${DISTRIBUTIONS} ; do
    cd ${PACKAGE}-${UPSTREAM_VERSION}
 
    if [ "${DISTRIBUTION}" != "default" ] ; then
-      if [ "${DISTRIBUTION}" == "unstable" -o "${DISTRIBUTION}" == "testing" -o "${DISTRIBUTION}" == "stable" ] ; then
+      if [ "${DISTRIBUTION}" == "unstable" -o "${DISTRIBUTION}" == "testing" -o "${DISTRIBUTION}" == "stable" -o "${DISTRIBUTION}" == "oldstable" ] ; then
+         # Fetch debian/changelog from Debian, if available.
+         # If there is a Debian changelog, merge new entries.
+         if ../fetch-debian-changelog ${PACKAGE} ${DISTRIBUTION} >debian/changelog.dist ; then
+            ../merge-debian-changelogs debian/changelog debian/changelog.dist >debian/changelog.merged && \
+               mv debian/changelog.merged debian/changelog
+         fi
+
          # Debian: Also remove Launchpad Bug IDs.
          sed -e "s/${PACKAGE_DISTRIBUTION};/${DISTRIBUTION};/1" \
              -e "s/\(ubuntu\|ppa\)[0-9]//1" \
              -e "/(LP: #/D" \
-             <debian/changelog | ../filter-empty-entries "$DEBIAN_LAST_ENTRY" >debian/changelog.new
+             <debian/changelog | ../filter-empty-entries "${DEBIAN_LAST_ENTRY}" >debian/changelog.new
       else
          # Ubuntu PPA
          # Naming example: 2.7.7-1ubuntu~focal1
@@ -170,7 +177,7 @@ for DISTRIBUTION in ${DISTRIBUTIONS} ; do
          sed -e "s/${PACKAGE_DISTRIBUTION};/${DISTRIBUTION};/1" \
              -e "s/${PACKAGE_VERSION}/${OUTPUT_VERSION}~${DISTRIBUTION}1/1" \
              -e "/(Closes: #/D" \
-             <debian/changelog | ../filter-empty-entries "$UBUNTU_LAST_ENTRY" >debian/changelog.new
+             <debian/changelog | ../filter-empty-entries "${UBUNTU_LAST_ENTRY}" >debian/changelog.new
 
          # ------ Old distributions not supporting c++/regex style symbols --
          if [ "${DISTRIBUTION}" == "dapper"   -o \
