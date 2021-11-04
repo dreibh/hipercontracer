@@ -1,5 +1,5 @@
 Name: hipercontracer
-Version: 1.6.2
+Version: 1.6.3~test0
 Release: 1
 Summary: High-Performance Connectivity Tracer (HiPerConTracer)
 Group: Applications/Internet
@@ -36,8 +36,16 @@ High-Performance Connectivity Tracer (HiPerConTracer) is a ping/traceroute servi
 %cmake_build
 
 %pre
-/usr/sbin/groupadd -g 888 -r hipercontracer >/dev/null 2>&1 || :
-/usr/sbin/useradd -M -N -g hipercontracer -o -r -d /tmp -s /bin/bash -c "HiPerConTracer User" -u 888 hipercontracer >/dev/null 2>&1 || :
+if ! getent group hipercontracer >/dev/null 2>&1; then
+   groupadd -r hipercontracer
+fi
+if ! getent passwd hipercontracer >/dev/null 2>&1; then
+   useradd -M -g hipercontracer -r -d / -s /sbin/nologin -c "HiPerConTracer User" hipercontracer
+fi
+
+%postun
+userdel hipercontracer >/dev/null 2>&1 || true
+groupdel hipercontracer >/dev/null 2>&1 || true
 
 %install
 %cmake_install

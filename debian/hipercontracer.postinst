@@ -2,22 +2,16 @@
 
 set -e
 
-if [ "$1" = configure ]; then
-   # Make sure the administrative user exists
-   groupadd -g 888 -r hipercontracer >/dev/null 2>&1 || :
-   useradd -M -N -g hipercontracer -o -r -d /tmp -s /bin/bash -c "HiPerConTracer User" -u 888 hipercontracer >/dev/null 2>&1 || :
+if [ "$1" = "configure" ]; then
 
-   # check validity of hipercontracer user and group
-   if [ "`id -u hipercontracer`" -eq 0 ]; then
-      echo "The hipercontracer system user must not have uid 0 (root).
-Please fix this and reinstall this package." >&2
-      exit 1
+  # Make sure the administrative user exists
+   if ! getent group hipercontracer >/dev/null 2>&1; then
+      groupadd -r hipercontracer
    fi
-   if [ "`id -g hipercontracer`" -eq 0 ]; then
-      echo "The hipercontracer system user must not have root as primary group.
-Please fix this and reinstall this package." >&2
-      exit 1
+   if ! getent passwd hipercontracer >/dev/null 2>&1; then
+      useradd -M -g hipercontracer -r -d / -s /sbin/nologin -c "HiPerConTracer User" hipercontracer
    fi
+
 fi
 
 #DEBHELPER#
