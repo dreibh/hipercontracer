@@ -209,7 +209,7 @@ for DISTRIBUTION in ${DISTRIBUTIONS} ; do
       fi
 
       # ------ Use latest Debhelper for Debian ------------------------------
-      if [ "${DISTRIBUTION}" == "unstable" -o "${DISTRIBUTION}" == "testing" -o "${DISTRIBUTION}" == "stable" ] ; then
+      if [ "${DISTRIBUTION}" == "unstable" -o "${DISTRIBUTION}" == "testing" -o "${DISTRIBUTION}" == "stable" -o "${DISTRIBUTION}" == "oldstable" ] ; then
          # Update debhelper version:
          # Also get rid of legacy cmake3 dependency alternative.
          sed -e "s/debhelper (.* [0-9]*)/debhelper-compat (= ${DEBHELPER_LATEST_VERSION})/g" \
@@ -281,9 +281,10 @@ for DISTRIBUTION in ${DISTRIBUTIONS} ; do
 
    cd ..
 
-   if [ "${DISTRIBUTION}" == "unstable" -o \
-        "${DISTRIBUTION}" == "testing"  -o \
-        "${DISTRIBUTION}" == "stable"   -o \
+   if [ "${DISTRIBUTION}" == "unstable"  -o \
+        "${DISTRIBUTION}" == "testing"   -o \
+        "${DISTRIBUTION}" == "stable"    -o \
+        "${DISTRIBUTION}" == "oldstable" -o \
         "${DISTRIBUTION}" == "default" ] ; then
       if [ "${DISTRIBUTION}" == "default" ] ; then
          version=${PACKAGE_VERSION}
@@ -309,9 +310,10 @@ echo -e ""
 
 echo -e "\x1b[34mUpload to PPA:\x1b[0m"
 for DISTRIBUTION in ${DISTRIBUTIONS} ; do
-   if [ "${DISTRIBUTION}" == "unstable" -o \
-        "${DISTRIBUTION}" == "testing"  -o \
-        "${DISTRIBUTION}" == "stable"   -o \
+   if [ "${DISTRIBUTION}" == "unstable"  -o \
+        "${DISTRIBUTION}" == "testing"   -o \
+        "${DISTRIBUTION}" == "stable"    -o \
+        "${DISTRIBUTION}" == "oldstable" -o \
         "${DISTRIBUTION}" == "default" ] ; then
       if [ "${DISTRIBUTION}" == "default" ] ; then
          ppa="revu"
@@ -338,9 +340,10 @@ fi
 
 echo -e "\x1b[34mBuild Test Commands:\x1b[0m"
 for DISTRIBUTION in ${DISTRIBUTIONS} ; do
-   if [ "${DISTRIBUTION}" == "unstable" -o \
-        "${DISTRIBUTION}" == "testing"  -o \
-        "${DISTRIBUTION}" == "stable"   -o \
+   if [ "${DISTRIBUTION}" == "unstable"  -o \
+        "${DISTRIBUTION}" == "testing"   -o \
+        "${DISTRIBUTION}" == "stable"    -o \
+        "${DISTRIBUTION}" == "oldstable" -o \
         "${DISTRIBUTION}" == "default" ] ; then
       if [ "${DISTRIBUTION}" == "default" ] ; then
          version=${PACKAGE_VERSION}
@@ -356,7 +359,8 @@ for DISTRIBUTION in ${DISTRIBUTIONS} ; do
    profile="ubuntu"
    if [ "${DISTRIBUTION}" == "unstable" -o \
         "${DISTRIBUTION}" == "testing"  -o \
-        "${DISTRIBUTION}" == "stable" ] ; then
+        "${DISTRIBUTION}" == "stable"   -o \
+        "${DISTRIBUTION}" == "oldstable" ] ; then
       profile="debian"
    fi
    echo -e "\x1b[34m   sudo pbuilder build ${dscFile} && lintian -iIEv --profile ${profile} --pedantic /var/cache/pbuilder/result/$changesFilesPattern\x1b[0m"
