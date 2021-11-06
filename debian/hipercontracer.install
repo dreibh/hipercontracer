@@ -2,16 +2,6 @@ usr/bin/addressinfogenerator
 usr/bin/get-default-ips
 usr/bin/hipercontracer
 usr/bin/tracedataimporter
-usr/share/doc/hipercontracer/examples/NoSQL/*.ms
-usr/share/doc/hipercontracer/examples/NoSQL/R-query-example.R
-usr/share/doc/hipercontracer/examples/NoSQL/README
-usr/share/doc/hipercontracer/examples/NoSQL/install-database-and-users
-usr/share/doc/hipercontracer/examples/SQL/*.sql
-usr/share/doc/hipercontracer/examples/SQL/README
-usr/share/doc/hipercontracer/examples/SQL/install-database-and-users
-usr/share/doc/hipercontracer/examples/SQL/login-as-importer
-usr/share/doc/hipercontracer/examples/SQL/login-as-researcher
-usr/share/doc/hipercontracer/examples/hipercontracer-database-configuration
 usr/share/man/man1/addressinfogenerator.1
 usr/share/man/man1/get-default-ips.1
 usr/share/man/man1/hipercontracer.1
