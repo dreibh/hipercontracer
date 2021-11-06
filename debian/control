@@ -5,13 +5,13 @@ Maintainer: Thomas Dreibholz <dreibh@iem.uni-due.de>
 Homepage: https://www.uni-due.de/~be0001/hipercontracer/
 Build-Depends: cmake (>= 3.0.2) | cmake3,
                debhelper (>= 9),
-               libboost-date-time-dev (>= 1.58.0),
-               libboost-filesystem-dev (>= 1.58.0),
-               libboost-iostreams-dev (>= 1.58.0),
-               libboost-log-dev (>= 1.58.0),
-               libboost-program-options-dev (>= 1.58.0),
-               libboost-system-dev (>= 1.58.0),
-               libboost-thread-dev (>= 1.58.0),
+               libboost-date-time-dev,
+               libboost-filesystem-dev,
+               libboost-iostreams-dev,
+               libboost-log-dev,
+               libboost-program-options-dev,
+               libboost-system-dev,
+               libboost-thread-dev,
                pkg-config,
                python3
 Standards-Version: 4.6.0.1
@@ -34,12 +34,12 @@ Description: API library of HiPerConTracer
 Package: libhipercontracer-dev
 Section: libdevel
 Architecture: any
-Depends: libboost-date-time-dev (>= 1.58.0) | libboost-date-time1.58-dev,
-         libboost-filesystem-dev (>= 1.58.0) | libboost-filesystem1.58-dev,
-         libboost-iostreams-dev (>= 1.58.0) | libboost-iostreams1.58-dev,
-         libboost-log-dev (>= 1.58.0) | libboost-log1.58-dev,
-         libboost-system-dev (>= 1.58.0) | libboost-system1.58-dev,
-         libboost-thread-dev (>= 1.58.0) | libboost-thread1.58-dev,
+Depends: libboost-date-time-dev,
+         libboost-filesystem-dev,
+         libboost-iostreams-dev,
+         libboost-log-dev,
+         libboost-system-dev,
+         libboost-thread-dev,
          libhipercontracer1 (= ${binary:Version}),
          ${misc:Depends}
 Description: Development files for HiPerConTracer API library
