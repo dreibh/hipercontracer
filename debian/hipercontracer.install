@@ -2,7 +2,3 @@ usr/bin/addressinfogenerator
 usr/bin/get-default-ips
 usr/bin/hipercontracer
 usr/bin/tracedataimporter
-usr/share/man/man1/addressinfogenerator.1
-usr/share/man/man1/get-default-ips.1
-usr/share/man/man1/hipercontracer.1
-usr/share/man/man1/tracedataimporter.1

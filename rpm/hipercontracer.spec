@@ -1,5 +1,5 @@
 Name: hipercontracer
-Version: 1.6.3~test0
+Version: 1.6.3~test2
 Release: 1
 Summary: High-Performance Connectivity Tracer (HiPerConTracer)
 Group: Applications/Internet
