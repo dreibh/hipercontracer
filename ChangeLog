@@ -1,3 +1,130 @@
+commit c36b5e39ae141d0b7a9cfe91135ce059c002addc
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Sun Nov 7 19:00:41 2021 +0100
+
+    Updated build scripts
+
+commit ef4f9b399a677446c661494932962e98aa0b5e28
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Sun Nov 7 18:50:58 2021 +0100
+
+    Version update.
+
+commit a5c145351dea9eeb26be224c7ebffb93b5eb9cd8
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Sat Nov 6 20:43:11 2021 +0100
+
+    Updated build scripts
+
+commit f9d8aed93f41ca9722b31ad0a76f450408f9c097
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Sat Nov 6 20:40:28 2021 +0100
+
+    Using dh_installman for the manpages in the Debian/Ubuntu package.
+
+commit ad008ea4b9f2965cd2bd0a11151f3d129386172b
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Sat Nov 6 20:39:39 2021 +0100
+
+    Removed empty file.
+
+commit a4382592c488fdc61ab53ad5ff6392565cc0b39c
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Sat Nov 6 18:33:04 2021 +0100
+
+    Do not build test code.
+
+commit b936a8490f42ba2f01baf584dbf02ffd55ad2e88
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Sat Nov 6 18:31:24 2021 +0100
+
+    Define BOOST_BIND_GLOBAL_PLACEHOLDERS due to warning in new BOOST versions.
+
+commit 21e0f4529bf23001a518d35aaa1f38f57753b95e
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Sat Nov 6 17:55:04 2021 +0100
+
+    Using dh_installexamples for the examples in the Debian/Ubuntu package.
+
+commit 1adc1ea1786d869410446115e1b4bb680fc741c4
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Sat Nov 6 17:06:29 2021 +0100
+
+    Updated build scripts
+
+commit a295c531ee14ebe4db7f8a60509dd633d29a3359
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Sat Nov 6 16:09:52 2021 +0100
+
+    Got rid of versioned BOOST dependencies. All relevant Debian/Ubuntu versions support at least the required version.
+
+commit b430d4d5494a75830f947a55c674b5dfdfbb9301
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Nov 4 18:28:38 2021 +0100
+
+    Updated build scripts
+
+commit aadb7ecce088091ec4a90e754f84a15df36b7659
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Nov 4 18:22:48 2021 +0100
+
+    BOOST dependency update.
+
+commit 9f7336c26dda7d8d965780c61ea9becbf0926faf
+Merge: 71d2b4e 4147de8
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Nov 4 18:16:02 2021 +0100
+
+    Merge branch 'master' of github.com:dreibh/hipercontracer
+
+commit 71d2b4e7c63d18b65355e32b32edd0589fbb4d97
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Nov 4 18:15:41 2021 +0100
+
+    Added comment.
+
+commit 4147de8b76c8f32bf92d0a94351a320cab955d26
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Nov 4 17:31:26 2021 +0100
+
+    Test version.
+
+commit f5cd6cce38e54eab800a1e3193a6cd20e95fd3a0
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Nov 4 17:30:45 2021 +0100
+
+    Updated build scripts
+
+commit fb1800fb381d84ab7967e29495ab01ac8c771bdf
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Nov 4 17:26:52 2021 +0100
+
+    Improved postinst/postrm scripts.
+
+commit 5b48a5db5a69e6cd1cc77365a0b3300fa5b6500f
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Nov 4 15:54:29 2021 +0100
+
+    Configuration update.
+
+commit 52e78b7dd5873493031866620ceb34731b4e0db8
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Nov 4 15:51:20 2021 +0100
+
+    Fixed use of substitution variable ${shlibs:Depends}.
+
+commit 6ad35916a50ae968ddd1267bb5f961b169cf9149
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Nov 4 15:45:17 2021 +0100
+
+    Updated build scripts
+
+commit a82350ee9dc3332db8d0cc2f524e42465e915826
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Nov 3 22:56:20 2021 +0100
+
+    New release hipercontracer-1.6.2.
+
 commit 60005a74447f07ef48e8d172820f32836ab1c6b4
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Wed Nov 3 18:20:41 2021 +0100

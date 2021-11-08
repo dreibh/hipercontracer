@@ -1,9 +1,9 @@
-hipercontracer (1.6.3~test3-1ubuntu1) jammy; urgency=medium
+hipercontracer (1.6.3-1ubuntu1) jammy; urgency=medium
 
   * New upstream release.
   * Closes: #997090 (ITP).
 
- -- Thomas Dreibholz <dreibh@iem.uni-due.de>  Sat, 06 Nov 2021 20:43:21 +0100
+ -- Thomas Dreibholz <dreibh@iem.uni-due.de>  Mon, 08 Nov 2021 20:11:16 +0100
 
 hipercontracer (1.6.2-1ubuntu1) jammy; urgency=medium
 
