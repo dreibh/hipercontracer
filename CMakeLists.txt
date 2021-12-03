@@ -30,7 +30,7 @@
 #  Contact: dreibh@simula.no
 
 
-CMAKE_MINIMUM_REQUIRED(VERSION 3.0.2)
+CMAKE_MINIMUM_REQUIRED(VERSION 3.2)
 PROJECT(hipercontracer LANGUAGES C CXX)
 
 SET(BUILD_MAJOR "1")
@@ -156,6 +156,15 @@ IF (HAVE_SS_LEN)
     MESSAGE(STATUS "HAVE_SS_LEN")
     ADD_DEFINITIONS(-DHAVE_SS_LEN)
 ENDIF()
+
+
+#############################################################################
+# COMPILER FLAGS
+#############################################################################
+
+SET(CMAKE_CXX_STANDARD 14)
+SET(CMAKE_CXX_STANDARD_REQUIRED ON)
+SET(CMAKE_CXX_EXTENSIONS OFF)
 
 
 #############################################################################
