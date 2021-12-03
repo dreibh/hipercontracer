@@ -1,3 +1,70 @@
+commit 11be880ce22e7b2704b10a7325cc6b5eed323eef
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Fri Dec 3 19:18:04 2021 +0100
+
+    * Build fix for RISC-V: -latomic is required.
+    * Improved CMakeLists.txt.
+
+commit a3a1b805376393f0764e99dfe184ae824043fb24
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Nov 30 15:29:03 2021 +0100
+
+    Removed invalid field "Homepage" from debian/upstream/metadata
+
+commit 2a8c720168e411955615f5d1ae3436f26c383883
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Fri Nov 26 21:50:56 2021 +0100
+
+    Improved CI workflows.
+
+commit 004d3629754ef93c0efccc04ddd896bc9a8689c7
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Fri Nov 26 21:49:00 2021 +0100
+
+    Updated build scripts
+
+commit 1201874c78675d33da8bbeee61112d21213d1c86
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Fri Nov 26 16:02:35 2021 +0100
+
+    Updated workflows.
+
+commit be9e960a2f4a593efa35ba6f958795abd5988155
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Fri Nov 26 15:51:39 2021 +0100
+
+    Added CI workflows.
+
+commit 365d9bf610227e2cf801db66a1e05d37af4f22b0
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Fri Nov 26 15:51:12 2021 +0100
+
+    Updated CI scripts
+
+commit 26cf32ea3ed2a4ce205109138627627284ba1d11
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Fri Nov 26 15:51:12 2021 +0100
+
+    Travis CI is dead. Removed obsolete Travis CI scripts and configuration.
+
+commit 9cb28fac5fd508abc4fbc9afd3b86b83c5198e83
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Fri Nov 26 15:51:12 2021 +0100
+
+    Updated build scripts
+
+commit 223ca8d509c85d9b3af8c569dd5ed86f817eb26d
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Mon Nov 8 20:39:03 2021 +0100
+
+    Updated LSM entry.
+
+commit 35d5e1913a6d743afc3efed5dfc5bbef4f286187
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Mon Nov 8 20:11:31 2021 +0100
+
+    New release hipercontracer-1.6.3.
+
 commit c36b5e39ae141d0b7a9cfe91135ce059c002addc
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Sun Nov 7 19:00:41 2021 +0100
