@@ -30,7 +30,7 @@
 #  Contact: dreibh@simula.no
 
 
-CMAKE_MINIMUM_REQUIRED(VERSION 3.0.2)
+CMAKE_MINIMUM_REQUIRED(VERSION 3.5.1)
 PROJECT(hipercontracer LANGUAGES C CXX)
 
 SET(BUILD_MAJOR "1")
@@ -155,6 +155,20 @@ CHECK_STRUCT_HAS_MEMBER("struct sockaddr_storage" "ss_len" "sys/types.h;sys/sock
 IF (HAVE_SS_LEN)
     MESSAGE(STATUS "HAVE_SS_LEN")
     ADD_DEFINITIONS(-DHAVE_SS_LEN)
+ENDIF()
+
+
+#############################################################################
+# COMPILER FLAGS
+#############################################################################
+
+SET(CMAKE_CXX_STANDARD 14)
+SET(CMAKE_CXX_STANDARD_REQUIRED ON)
+SET(CMAKE_CXX_EXTENSIONS OFF)
+
+IF(CMAKE_SYSTEM_PROCESSOR STREQUAL "riscv64")
+  STRING(APPEND CMAKE_C_STANDARD_LIBRARIES " -latomic")
+  STRING(APPEND CMAKE_CXX_STANDARD_LIBRARIES " -latomic")
 ENDIF()
 
 
