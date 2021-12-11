@@ -9,6 +9,8 @@
 #include <iostream>
 
 #include <boost/date_time/posix_time/posix_time.hpp>
+#include <boost/asio.hpp>
+#include <boost/asio/ip/basic_resolver.hpp>
 
 
 // ###### Convert chrono time to string with given format ###################
@@ -28,6 +30,19 @@ template<typename T> std::string getTimeString(const typename T::time_point& tim
 // ###### Main program ######################################################
 int main(int argc, char** argv)
 {
+
+   boost::asio::io_service io_service;
+
+   boost::asio::ip::tcp::resolver resolver(io_service);
+   boost::asio::ip::tcp::resolver::results_type endpoints = resolver.resolve("www.ietf.org", "http");
+   for(boost::asio::ip::tcp::resolver::iterator iterator = endpoints.begin(); iterator != endpoints.end(); iterator++) {
+       const boost::asio::ip::tcp::endpoint& endpoint = *iterator;
+       std::cout << endpoint.address() << std::endl;
+   }
+
+   return 0;
+
+
 
    std::cout << "A=" << boost::posix_time::to_iso_string(boost::posix_time::microsec_clock::universal_time()) << std::endl;
 
