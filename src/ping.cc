@@ -108,9 +108,16 @@ bool Ping::notReachedWithCurrentTTL()
 void Ping::scheduleTimeoutEvent()
 {
    // ====== Schedule event =================================================
-   const unsigned long long deviation = std::max(10ULL, Interval / 5ULL);   // 20% deviation
-   const unsigned long long duration  = Interval + (std::rand() % deviation);
-   TimeoutTimer.expires_from_now(boost::posix_time::milliseconds(duration));
+   if((Iterations == 0) || (IterationNumber < Iterations)) {
+      // Deviate next send interval by 20%, to avoid synchronisation!
+      const unsigned long long deviation = std::max(10ULL, Interval / 5ULL);   // 20% deviation
+      const unsigned long long duration  = Interval + (std::rand() % deviation);
+      TimeoutTimer.expires_from_now(boost::posix_time::milliseconds(duration));
+   }
+   else {
+      // Last ping run: no need to wait for interval, just wait for expiration!
+      TimeoutTimer.expires_from_now(boost::posix_time::milliseconds(Expiration));
+   }
    TimeoutTimer.async_wait(std::bind(&Ping::handleTimeoutEvent, this,
                                      std::placeholders::_1));
 
@@ -196,24 +203,26 @@ void Ping::processResults()
 // ###### Send requests to all destinations #################################
 void Ping::sendRequests()
 {
-   std::lock_guard<std::recursive_mutex> lock(DestinationMutex);
+   if((Iterations == 0) || (IterationNumber <= Iterations)) {
+      std::lock_guard<std::recursive_mutex> lock(DestinationMutex);
 
-   // ====== Send requests, if there are destination addresses ==============
-   if(Destinations.begin() != Destinations.end()) {
-      // All packets of this request block (for each destination) use the same checksum.
-      // The next block of requests may then use another checksum.
-      uint32_t targetChecksum = ~0U;
-      for(std::set<DestinationInfo>::const_iterator destinationIterator = Destinations.begin();
-          destinationIterator != Destinations.end(); destinationIterator++) {
-         const DestinationInfo& destination = *destinationIterator;
-         sendICMPRequest(destination, FinalMaxTTL, 0, targetChecksum);
+      // ====== Send requests, if there are destination addresses ===========
+      if(Destinations.begin() != Destinations.end()) {
+         // All packets of this request block (for each destination) use the same checksum.
+         // The next block of requests may then use another checksum.
+         uint32_t targetChecksum = ~0U;
+         for(std::set<DestinationInfo>::const_iterator destinationIterator = Destinations.begin();
+            destinationIterator != Destinations.end(); destinationIterator++) {
+            const DestinationInfo& destination = *destinationIterator;
+            sendICMPRequest(destination, FinalMaxTTL, 0, targetChecksum);
+         }
+
+         scheduleTimeoutEvent();
       }
 
-      scheduleTimeoutEvent();
-   }
-
-   // ====== No destination addresses -> wait ===============================
-   else {
-      scheduleIntervalEvent();
+      // ====== No destination addresses -> wait ============================
+      else {
+         scheduleIntervalEvent();
+      }
    }
 }
