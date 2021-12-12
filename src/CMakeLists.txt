@@ -111,3 +111,4 @@ INSTALL(FILES hipercontracer-database-configuration
 
 ADD_SUBDIRECTORY(SQL)
 ADD_SUBDIRECTORY(NoSQL)
+ADD_SUBDIRECTORY(examples)
