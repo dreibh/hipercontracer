@@ -51,7 +51,7 @@ readHiPerConTracerResults <- function(name)
       "TrafficClass",  # Traffic Class setting (hexadeciaml)
       "PacketSize"     # Packet size, in bytes (decimal)
    )
-   data <- fread(name, col.names = columns)
+   data <- fread(name, col.names = columns, header = FALSE)
 
    # Convert time stamp with anytime() (time is in UTC!):
    data$TimeStamp <- anytime(as.numeric(paste(sep="", "0x", data$TimeStamp)) / 1000000.0, tz="UTC")
