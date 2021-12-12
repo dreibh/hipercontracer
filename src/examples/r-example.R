@@ -76,7 +76,8 @@ if( (length(commandArgs()) >= 1) && ((commandArgs()[2] == "--slave") || (command
    }
    name <- args[1]
 } else {
-   name <- "xy/Ping-P256751-0.0.0.0-20211212T125352.632431-000000001.results.bz2"
+   # !!! NOTE: Set name here, for testing interactively in R! !!!
+   name <- "Ping-P256751-0.0.0.0-20211212T125352.632431-000000001.results.bz2"
 }
 
 data <- readHiPerConTracerResults(name)
