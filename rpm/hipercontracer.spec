@@ -60,6 +60,9 @@ groupdel hipercontracer >/dev/null 2>&1 || true
 %{_mandir}/man1/hipercontracer.1.gz
 %{_mandir}/man1/tracedataimporter.1.gz
 %{_datadir}/doc/hipercontracer/examples/hipercontracer-database-configuration
+%{_datadir}/doc/hipercontracer/examples/Ping-P256751-0.0.0.0-20211212T125352.632431-000000001.results.bz2
+%{_datadir}/doc/hipercontracer/examples/r-example.R
+%{_datadir}/doc/hipercontracer/examples/Traceroute-P258235-0.0.0.0-20211212T132253.414640-000000001.results.bz2
 %{_datadir}/doc/hipercontracer/examples/SQL/README
 %{_datadir}/doc/hipercontracer/examples/SQL/database.sql
 %{_datadir}/doc/hipercontracer/examples/SQL/install-database-and-users
