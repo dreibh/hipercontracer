@@ -33,8 +33,8 @@
 .Op \-q|--quiet
 .Op \-v|--verbose
 .Op \-U|--user=user|uid
-.Op \-S|--source=address[,traffic_class[,...]]
-.Op \-D|--destination address
+.Op \-S|--source=address|hostname[,traffic_class[,...]]
+.Op \-D|--destination address|hostname
 .Op \--iterations number_of_iterations
 .Op \--tracerouteinterval milliseconds
 .Op \--tracerouteduration milliseconds
@@ -74,12 +74,14 @@ Sets the minimum logging level to 0 (trace).
 After startup, HiPerConTracer uses UID and GID of the given user (by name or GID).
 The output directory's ownership as well as the ownership of the created results
 files will be set accordingly.
-.It \-S|\--source address[,traffic_class[,...]]
-Adds the given source address. It is possible to use the ANY address (0.0.0.0 or ::), in order to just use the default route.
+.It \-S|\--source address|hostname[,traffic_class[,...]]
+Adds the given source address or hostname. It is possible to use the ANY address (0.0.0.0 or ::), in order to just use the default route.
 If no traffic class is given, Best Effort (00) is used. Otherwise, the list of given traffic classes (in hexadecimal) is used. Alternatively, a traffic class can be specified by PHB name (BE, EF, AF11, AF12, AF13, AF21, AF22, AF23, AF31, AF32, AF33, AF41, AF42, AF43, CS1, CS2, CS3, CS4, CS5, CS6, CS7). In this case, the corresponding traffic class with ECN bits set to 0 is used.
 Note: use lower-case hexadecimal letters to avoid ambiguities with PHB name (e.g. be for 0xbe instead of BE PHB)!
-.It \-D|\--destination address
-Adds the given destination address.
+If a hostname is provided, a DNS resolution is performed and all returned addresses are added.
+.It \-D|\--destination address|hostname
+Adds the given destination address or hostname.
+If a hostname is provided, a DNS resolution is performed and all returned addresses are added.
 .It \--iterations number_of_iterations
 Limit the number of measurement iterations (measurement for all source/destination
 pairs) to the given number of iterations. The default 0 lets HiPerConTracer run
@@ -195,6 +197,7 @@ This entry has been added with HiPerConTracer 1.6.0!
 .It hipercontracer \--source=0.0.0.0,00,AF11 \--source=::,BE,EF,AF11 \--destination=8.8.8.8 \--destination=2606:4700:10::6814:155 \--ping \--traceroute \--tracerouteduration=1000 \--tracerouteinitialmaxttl=4 \--traceroutefinalmaxttl=32 \--tracerouteincrementmaxttl=4 \--pinginterval=1000 \--pingexpiration=7500 \--pingttl=56 \--resultsdirectory=/storage/hpct-results \--resultstransactionlength=20 \--quiet
 .It hipercontracer \--user=hipercontracer \--source=10.1.1.51 \--destination=10.1.1.6 \--destination=10.1.1.7 \--destination=10.1.1.8 \--traceroute \--tracerouteinterval=10000 \--tracerouteduration=1000
 .It hipercontracer \--user=hipercontracer \--source=0.0.0.0 \--destination=8.8.8.8 \--ping \--verbose
+.It hipercontracer \--user=hipercontracer \--source=0.0.0.0 \--source=::\--destination=www.ietf.org \--ping \--verbose
 .El
 .\" ###### Authors ##########################################################
 .Sh AUTHORS
