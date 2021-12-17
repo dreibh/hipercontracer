@@ -8,6 +8,7 @@
 #include <chrono>
 #include <iostream>
 
+#include <boost/asio.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
 
 
@@ -28,25 +29,41 @@ template<typename T> std::string getTimeString(const typename T::time_point& tim
 // ###### Main program ######################################################
 int main(int argc, char** argv)
 {
+   boost::asio::io_service ios;
 
-   std::cout << "A=" << boost::posix_time::to_iso_string(boost::posix_time::microsec_clock::universal_time()) << std::endl;
+   boost::asio::ip::tcp::resolver::query resolver_query("www.ietf.org", "443", boost::asio::ip::tcp::resolver::query::numeric_service);
+   boost::asio::ip::tcp::resolver resolver(ios);
+   boost::system::error_code ec;
+   boost::asio::ip::tcp::resolver::results_type endpoints =
+      resolver.resolve(resolver_query, ec);
+   if(ec) {
+      std::cerr << "Failed to resolve a DNS name." << "Error code = " << ec.value() << ". Message = " << ec.message();
+      exit(1);
+   }
 
+   for (boost::asio::ip::tcp::resolver::iterator it = endpoints.cbegin(); it != endpoints.cend(); it++) {
+      const boost::asio::ip::tcp::endpoint endpoint = *it;
+      std::cout << endpoint << '\n';
+   }
 
-   const std::chrono::system_clock::time_point now = std::chrono::system_clock::now();
-
-   std::time_t tt = std::chrono::system_clock::to_time_t(now);
-   std::cout << "B=" << std::put_time(std::localtime(&tt), "%Y/%m/%d %T") << std::endl;
-
-   std::cout << "C1=" << getTimeString<std::chrono::system_clock>(now) << std::endl;
-   std::cout << "C2=" << getTimeString<std::chrono::system_clock>(now, "%Y%m%dT%H%M%S") << std::endl;
-
-
-   const std::chrono::steady_clock::time_point t1 = std::chrono::steady_clock::now();
-   usleep(1234567);
-   const std::chrono::steady_clock::time_point t2 = std::chrono::steady_clock::now();
-   unsigned long long diff = std::chrono::duration_cast<std::chrono::microseconds>(t2 - t1).count();
-
-   std::cout << "d=" << diff << std::endl;
+//    std::cout << "A=" << boost::posix_time::to_iso_string(boost::posix_time::microsec_clock::universal_time()) << std::endl;
+//
+//
+//    const std::chrono::system_clock::time_point now = std::chrono::system_clock::now();
+//
+//    std::time_t tt = std::chrono::system_clock::to_time_t(now);
+//    std::cout << "B=" << std::put_time(std::localtime(&tt), "%Y/%m/%d %T") << std::endl;
+//
+//    std::cout << "C1=" << getTimeString<std::chrono::system_clock>(now) << std::endl;
+//    std::cout << "C2=" << getTimeString<std::chrono::system_clock>(now, "%Y%m%dT%H%M%S") << std::endl;
+//
+//
+//    const std::chrono::steady_clock::time_point t1 = std::chrono::steady_clock::now();
+//    usleep(1234567);
+//    const std::chrono::steady_clock::time_point t2 = std::chrono::steady_clock::now();
+//    unsigned long long diff = std::chrono::duration_cast<std::chrono::microseconds>(t2 - t1).count();
+//
+//    std::cout << "d=" << diff << std::endl;
 
    return(0);
 }
