@@ -131,7 +131,8 @@ DSCPValue DSCPValuesTable[] = {
 
 // ###### Add source address to set #########################################
 bool addSourceAddress(std::map<boost::asio::ip::address, std::set<uint8_t>>& array,
-                      const std::string&                                     addressString)
+                      const std::string&                                     addressString,
+                      bool                                                   tryToResolve)
 {
    boost::system::error_code errorCode;
    std::vector<std::string>  addressParameters;
@@ -140,6 +141,25 @@ bool addSourceAddress(std::map<boost::asio::ip::address, std::set<uint8_t>>& arr
    if(addressParameters.size() > 0) {
       const boost::asio::ip::address address = boost::asio::ip::address::from_string(addressParameters[0], errorCode);
       if(errorCode != boost::system::errc::success) {
+         if(tryToResolve) {
+            boost::asio::io_service ios;
+            boost::asio::ip::tcp::resolver::query resolver_query(
+               addressString, "0", boost::asio::ip::tcp::resolver::query::numeric_service);
+            boost::asio::ip::tcp::resolver resolver(ios);
+            boost::system::error_code ec;
+            const boost::asio::ip::tcp::resolver::results_type endpoints =
+               resolver.resolve(resolver_query, ec);
+            if(ec) {
+               std::cerr << "Failed to resolve a DNS name " << addressString << ": " << ec.message() << std::endl;
+               exit(1);
+            }
+            for (boost::asio::ip::tcp::resolver::iterator it = endpoints.cbegin(); it != endpoints.cend(); it++) {
+               const boost::asio::ip::tcp::endpoint endpoint = *it;
+               HPCT_LOG(info) << addressString << " -> " << endpoint.address().to_string();
+               addSourceAddress(array, endpoint.address().to_string(), false);
+            }
+            return true;
+         }
          std::cerr << "ERROR: Bad source address " << addressParameters[0] << "!" << std::endl;
          return false;
       }
@@ -183,11 +203,31 @@ bool addSourceAddress(std::map<boost::asio::ip::address, std::set<uint8_t>>& arr
 
 // ###### Add destination address to set ####################################
 bool addDestinationAddress(std::set<boost::asio::ip::address>& array,
-                           const std::string&                  addressString)
+                           const std::string&                  addressString,
+                           bool                                tryToResolve)
 {
    boost::system::error_code errorCode;
    boost::asio::ip::address  address = boost::asio::ip::address::from_string(addressString, errorCode);
    if(errorCode != boost::system::errc::success) {
+      if(tryToResolve) {
+         boost::asio::io_service ios;
+         boost::asio::ip::tcp::resolver::query resolver_query(
+            addressString, "0", boost::asio::ip::tcp::resolver::query::numeric_service);
+         boost::asio::ip::tcp::resolver resolver(ios);
+         boost::system::error_code ec;
+         const boost::asio::ip::tcp::resolver::results_type endpoints =
+            resolver.resolve(resolver_query, ec);
+         if(ec) {
+            std::cerr << "Failed to resolve a DNS name " << addressString << ": " << ec.message() << std::endl;
+            exit(1);
+         }
+         for (boost::asio::ip::tcp::resolver::iterator it = endpoints.cbegin(); it != endpoints.cend(); it++) {
+            const boost::asio::ip::tcp::endpoint endpoint = *it;
+            HPCT_LOG(info) << addressString << " -> " << endpoint.address().to_string();
+            addDestinationAddress(array, endpoint.address().to_string(), false);
+         }
+         return true;
+      }
       std::cerr << "ERROR: Bad destination address " << addressString << "!" << std::endl;
       return false;
    }

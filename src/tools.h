@@ -45,8 +45,10 @@ const passwd* getUser(const char* user);
 bool reducePrivileges(const passwd* pw);
 
 bool addSourceAddress(std::map<boost::asio::ip::address, std::set<uint8_t>>& array,
-                      const std::string&                                     addressString);
+                      const std::string&                                     addressString,
+                      bool                                                   tryToResolve = true);
 bool addDestinationAddress(std::set<boost::asio::ip::address>& array,
-                           const std::string&                  addressString);
+                           const std::string&                  addressString,
+                           bool                                tryToResolve = true);
 
 #endif

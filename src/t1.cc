@@ -31,10 +31,11 @@ int main(int argc, char** argv)
 {
    boost::asio::io_service ios;
 
-   boost::asio::ip::tcp::resolver::query resolver_query("www.ietf.org", "443", boost::asio::ip::tcp::resolver::query::numeric_service);
+   boost::asio::ip::tcp::resolver::query resolver_query(
+      "www.ietf.org", "0", boost::asio::ip::tcp::resolver::query::numeric_service);
    boost::asio::ip::tcp::resolver resolver(ios);
    boost::system::error_code ec;
-   boost::asio::ip::tcp::resolver::results_type endpoints =
+   const boost::asio::ip::tcp::resolver::results_type endpoints =
       resolver.resolve(resolver_query, ec);
    if(ec) {
       std::cerr << "Failed to resolve a DNS name." << "Error code = " << ec.value() << ". Message = " << ec.message();
