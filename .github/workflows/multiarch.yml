@@ -61,6 +61,18 @@ jobs:
             cc: clang
             cxx: clang++
 
+          - label: "Debian Unstable: GCC/ARMv5"
+            arch: arm32v5
+            distro: unstable
+            cc: gcc
+            cxx: g++
+          - label: "Debian Unstable: GCC/MIPS"
+            arch: mips64le
+            distro: unstable
+            cc: gcc
+            cxx: g++
+
+
           # ====== Fedora Linux =============================================
           - label: "Fedora 35: GCC/PPC64"
             arch: ppc64le

@@ -1,3 +1,10 @@
+hipercontracer (1.6.5~rc0-1ubuntu1) jammy; urgency=medium
+
+  * New upstream release.
+  * CMakeLists.txt fix for reproducible Debian build (Closes: #1003995).
+
+ -- Thomas Dreibholz <dreibh@iem.uni-due.de>  Thu, 20 Jan 2022 15:57:48 +0100
+
 hipercontracer (1.6.4-1ubuntu1) jammy; urgency=medium
 
   * New upstream release.

@@ -12,7 +12,7 @@
 #  =================================================================
 #
 #  High-Performance Connectivity Tracer (HiPerConTracer)
-#  Copyright (C) 2015-2020 by Thomas Dreibholz
+#  Copyright (C) 2015-2022 by Thomas Dreibholz
 #
 #  This program is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -35,7 +35,7 @@ PROJECT(hipercontracer LANGUAGES C CXX)
 
 SET(BUILD_MAJOR "1")
 SET(BUILD_MINOR "6")
-SET(BUILD_PATCH "4")
+SET(BUILD_PATCH "5~rc0")
 SET(BUILD_VERSION ${BUILD_MAJOR}.${BUILD_MINOR}.${BUILD_PATCH})
 
 SET(CMAKE_CXX_STANDARD 14)
