@@ -1,3 +1,95 @@
+commit d2f6d55910b8960f283a84d33428f13d87209173
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Feb 16 12:21:37 2022 +0100
+
+    Updated build scripts
+
+commit 6cba709fe12ca7a53ba0f4d9c9ce03e9f6a19dce
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Jan 20 16:04:17 2022 +0100
+
+    Updated workflow.
+
+commit c8de6dd39cedfa5c3b4084efcd9750f7e22b0a3c
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Jan 20 16:03:50 2022 +0100
+
+    Header updates.
+
+commit 30f9fe67fce05c65e1ef99a0f92570c13fe5607b
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Jan 20 16:03:02 2022 +0100
+
+    CMakeLists.txt fix for reproducible Debian build.
+
+commit 4631a6355d233375121d9ffe871bae20df8123db
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Dec 14 19:27:47 2021 +0100
+
+    Added Lintian override for manpage line length.
+
+commit fe8a34b4c17b791d53f097f4b5ce143f11449f3e
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Dec 14 17:42:46 2021 +0100
+
+    Updated packaging files.
+
+commit d5631ae268ec58ff70761a34fedf8c7122cbda5d
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Dec 14 17:38:54 2021 +0100
+
+    Minor update.
+
+commit 3f2f3b385d5d795c37621be89128b7dc5e96d942
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Sun Dec 12 15:54:04 2021 +0100
+
+    A fix.
+
+commit 07c9bb3fc8fda0d5abb4cd8a1d75fe7d952df443
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Sun Dec 12 14:26:48 2021 +0100
+
+    Added another example file.
+
+commit a1ee556863fb5cec511f1a8ea335d5b3874ee8f9
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Sun Dec 12 14:25:21 2021 +0100
+
+    Updated CMakeLists.txt.
+
+commit 974210bc5c08d0113bf0ae31624dd9f3a485b781
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Sun Dec 12 14:18:35 2021 +0100
+
+    Some clean-ups.
+
+commit ea8087bb06715127e8dccdd30f0345c069a5842d
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Sun Dec 12 14:16:16 2021 +0100
+
+    Added example.
+
+commit 927d97ffe4a5a930ebd317a2975b68799de5a33c
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Sun Dec 12 00:13:05 2021 +0100
+
+    Bugfixes:
+    * Handle Ping iterations correctly: There were n+1 iterations instead of n.
+    * Last Ping run: just wait for expiration, not for next interval.
+
+commit 8b8922450e86b8a2e00375255c17f381e3ffbe75
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Fri Dec 3 20:06:28 2021 +0100
+
+    Updated LSM entry.
+
+commit 4db6f3fca23ee78f1046eb6f720ee6c6a5708d81
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Fri Dec 3 20:02:59 2021 +0100
+
+    New release hipercontracer-1.6.4.
+
 commit 11be880ce22e7b2704b10a7325cc6b5eed323eef
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Fri Dec 3 19:18:04 2021 +0100
