@@ -14,7 +14,7 @@ Build-Depends: cmake (>= 3.0.2) | cmake3,
                libboost-thread-dev,
                pkg-config,
                python3
-Standards-Version: 4.6.0.1
+Standards-Version: 4.6.1
 Rules-Requires-Root: no
 
 Package: libhipercontracer1

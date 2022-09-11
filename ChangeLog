@@ -1,8 +1,72 @@
+commit 1ef81a3ad6c957e1882e31eda1950f45c3e80a41
+Merge: 0642920 acba95d
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Aug 31 21:39:48 2022 +0200
+
+    Merge branch 'master' of github.com:dreibh/hipercontracer
+
+commit acba95d30a1c8acfa267ee534ac5746253eeb5c5
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Aug 31 11:47:06 2022 +0200
+
+    Removed Vcs-* fields from debian/control.
+
+commit 9181aa25cdbd9d22b9605bc39f974464e9c48dee
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Aug 31 11:18:43 2022 +0200
+
+    Updated CI scripts
+
+commit bc03f2c22a6d245e020e1a94e231ed719836e06f
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Aug 31 11:18:41 2022 +0200
+
+    Updated build scripts
+
+commit 06429201189cc21e420f51ad75ebf8f221696ef0
+Merge: 63a2933 36d9438
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Aug 30 09:07:41 2022 +0200
+
+    Merge branch 'master' of github.com:dreibh/hipercontracer
+
+commit 36d94382155b5df13b63696c84c6b22808e4072c
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Fri Aug 26 15:10:43 2022 +0200
+
+    Some clean-ups.
+
+commit 63a29337520b446e4c5a53377c099e8de8200f1a
+Merge: bd3e1fa bca8c9b
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Feb 16 18:57:26 2022 +0100
+
+    Merge branch 'master' of github.com:dreibh/hipercontracer
+
+commit bca8c9ba333099af523a5b702899749600a66019
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Feb 16 12:56:41 2022 +0100
+
+    Updated LSM entry.
+
+commit fa9ba87de153b1c92f0546858782a8b56296d578
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Feb 16 12:47:40 2022 +0100
+
+    New release hipercontracer-1.6.5.
+
 commit d2f6d55910b8960f283a84d33428f13d87209173
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Wed Feb 16 12:21:37 2022 +0100
 
     Updated build scripts
+
+commit bd3e1fa41c49697acb7b7584dff2286f4b3a3ff7
+Merge: 69d9ccc 6cba709
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Fri Jan 21 15:06:30 2022 +0100
+
+    Merge remote-tracking branch 'origin/master' into dreibh/name-resolving
 
 commit 6cba709fe12ca7a53ba0f4d9c9ce03e9f6a19dce
 Author: Thomas Dreibholz <dreibh@simula.no>
@@ -21,6 +85,30 @@ Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Thu Jan 20 16:03:02 2022 +0100
 
     CMakeLists.txt fix for reproducible Debian build.
+
+commit 69d9ccc8cfccca5beeff8278084e21099330dad3
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Fri Dec 17 16:16:59 2021 +0100
+
+    Some clean-ups.
+
+commit 54594966287a4cc730f01a878c6ca6cac556755f
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Fri Dec 17 16:16:31 2021 +0100
+
+    Updated manpage.
+
+commit 447207c7c4946e0af838eff849c3014a8552c08e
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Fri Dec 17 16:13:18 2021 +0100
+
+    Added support to specify source and destination by hostname (DNS resolution).
+
+commit adb86b47a4b932b2a613a9bfd7d1cc753e6a6ad7
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Fri Dec 17 15:55:47 2021 +0100
+
+    Some testing.
 
 commit 4631a6355d233375121d9ffe871bae20df8123db
 Author: Thomas Dreibholz <dreibh@simula.no>
