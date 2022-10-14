@@ -43,10 +43,10 @@ void DNSReverseLookup::addAddress(boost::asio::ip::address address)
    std::cout << "add: " << endpoint << "\n";
 
    Resolver.async_resolve(endpoint,
-            boost::bind(&DNSReverseLookup::handleResult, this,
-                        boost::asio::placeholders::error,
-                        boost::asio::placeholders::iterator,
-                        endpoint));
+                          boost::bind(&DNSReverseLookup::handleResult, this,
+                                      boost::asio::placeholders::error,
+                                      boost::asio::placeholders::iterator,
+                                      endpoint));
 }
 
 
