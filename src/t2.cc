@@ -1,46 +1,141 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <string.h>
-#include <assert.h>
-
+#include <string>
 #include <iostream>
+#include <functional> //std::bind
 
-#include <sys/types.h>
-#include <sys/socket.h>
-// #include <linux/if_ether.h>
-#include <netdb.h>
+#include <boost/asio.hpp>
+#include <boost/bind.hpp>
+
+#include <ares.h>
+// Examples: http://blog.gerryyang.com/tcp/ip/2022/05/12/c-ares-in-action.html
 
 
-// ###### Main program ######################################################
-int main(int argc, char** argv)
+class DNSReverseLookup
 {
-   int sd;
-   // sd = socket(AF_PACKET, SOCK_RAW, htons(ETH_P_ALL));
-   sd = socket(AF_INET, SOCK_RAW, IPPROTO_ICMP);
-   if(sd < 0) {
-      perror("socket()");
-      exit(1);
+   public:
+   DNSReverseLookup();
+   ~DNSReverseLookup();
+
+   void addAddress(boost::asio::ip::address address);
+
+   void run();
+
+   private:
+   static void handleResult(void* arg, int status, int timeouts, struct hostent* host);
+
+   ares_channel Channel;
+};
+
+
+DNSReverseLookup::DNSReverseLookup()
+{
+   int result = ares_init(&Channel);
+   if(result != ARES_SUCCESS) {
+      std::cerr << "ERROR: Unable to initialise C-ARES: " << ares_strerror(result) << std::endl;
+      ::exit(1);
    }
 
-   char buffer[65536];
-   memset((char*)&buffer, 0 , sizeof(buffer));
-   struct sockaddr_storage sa;
-   memset((char*)&sa, 0 , sizeof(sa));
-   socklen_t salen = sizeof(sa);
+//    result = ares_set_servers_ports_csv(Channel, "10.193.4.20,10.193.4.21");
+//    if(result != ARES_SUCCESS) {
+//       std::cerr << "ERROR: Unable to set DNS server addresses: " << ares_strerror(result) << std::endl;
+//    }
+}
 
-   ssize_t r = recvfrom(sd, (char*)&buffer, sizeof(buffer), 0, (sockaddr*)&sa, &salen);
-   while(r > 0) {
-      char address[256];
-      if(getnameinfo((const sockaddr*)&sa, salen, (char*)&address, sizeof(address), nullptr, 0, NI_NUMERICHOST) != 0) {
-          snprintf((char*)&address, sizeof(address), "(invalid)");
+
+DNSReverseLookup::~DNSReverseLookup()
+{
+   if(Channel) {
+      ares_destroy(Channel);
+   }
+}
+
+
+void DNSReverseLookup::addAddress(boost::asio::ip::address address)
+{
+   boost::asio::ip::tcp::endpoint endpoint;
+   endpoint.address(address);
+   std::cout << "add: " << endpoint << "\n";
+
+   const uint8_t* ip;
+   size_t   ip_size;
+   int      ip_family;
+   if(address.is_v4()) {
+      const boost::asio::ip::address_v4::bytes_type& v4 = address.to_v4().to_bytes();
+      ip        = (const uint8_t*)&v4;
+      ip_size   = 4;
+      ip_family = AF_INET;
+      // printf("=> %u.%u.%u.%u\n", ip[0], ip[1], ip[2], ip[3]);
+   }
+   else {
+      assert(address.is_v6());
+      const boost::asio::ip::address_v6::bytes_type& v6 = address.to_v6().to_bytes();
+      ip        = (const uint8_t*)&v6;
+      ip_size   = 16;
+      ip_family = AF_INET6;
+   }
+
+   ares_gethostbyaddr(Channel, ip, ip_size, ip_family,
+                      &DNSReverseLookup::handleResult, this);
+}
+
+
+void DNSReverseLookup::handleResult(void* arg, int status, int timeouts, struct hostent* host)
+{
+   // DNSReverseLookup* drl = (DNSReverseLookup*)arg;
+
+   if(status == ARES_SUCCESS) {
+      boost::asio::ip::address address;
+      if(host->h_length == 4) {
+         boost::asio::ip::address_v4::bytes_type v4;
+         v4.fill(*((unsigned char*)&host->h_addr));
+         address = boost::asio::ip::address_v4(v4);
       }
-      printf("r=%d from %s\n", (int)r, address);
-      
-      r = recvfrom(sd, (char*)&buffer, sizeof(buffer), 0, (sockaddr*)&sa, &salen);
+      else {
+         assert(host->h_length == 16);
+         boost::asio::ip::address_v6::bytes_type v6;
+         v6.fill(*((unsigned char*)&host->h_addr));
+         address = boost::asio::ip::address_v6(v6);
+      }
+
+      std::cout << address << ": " << host->h_name << "\n";
    }
-   
-   perror("RESULT");
-   puts("Done!");
-   return(0);
+   else {
+      std::cout << "Error: " << status << "\n";
+   }
+}
+
+
+void DNSReverseLookup::run()
+{
+    int nfds;
+    fd_set readers, writers;
+    timeval tv, *tvp;
+    while (1) {
+        FD_ZERO(&readers);
+        FD_ZERO(&writers);
+        nfds = ares_fds(Channel, &readers, &writers);
+        if (nfds == 0)
+          break;
+        tvp = ares_timeout(Channel, NULL, &tv);
+        select(nfds, &readers, &writers, NULL, tvp);
+        ares_process(Channel, &readers, &writers);
+     }
+}
+
+
+
+int main() {
+   DNSReverseLookup drl;
+
+   drl.addAddress(boost::asio::ip::address_v4::from_string("224.244.244.224"));
+   drl.addAddress(boost::asio::ip::address_v4::from_string("8.8.8.8"));
+   drl.addAddress(boost::asio::ip::address_v4::from_string("9.9.9.9"));
+   drl.addAddress(boost::asio::ip::address_v4::from_string("99.99.99.99"));
+   drl.addAddress(boost::asio::ip::address_v4::from_string("193.99.144.80"));
+   drl.addAddress(boost::asio::ip::address_v4::from_string("1.1.1.1"));
+   drl.addAddress(boost::asio::ip::address_v4::from_string("2.2.2.2"));
+   drl.addAddress(boost::asio::ip::address_v6::from_string("2a02:2e0:3fe:1001:7777:772e:2:85"));
+   drl.addAddress(boost::asio::ip::address_v6::from_string("2606:4700::6810:2c63"));
+
+   drl.run();
+   return 0;
 }
