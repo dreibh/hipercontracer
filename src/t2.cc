@@ -37,7 +37,6 @@ struct AddressInfo {
    boost::asio::ip::address         Address;
    unsigned int                     Flags;
    int                              Status;
-   std::string                      Name;
    TimeRecord                       Validity;
    std::map<std::string, NameInfo*> NameInfoMap;
 };
@@ -101,7 +100,7 @@ DNSLookup::DNSLookup()
    int result = ares_init_options(&Channel, &options, optmask);
    if(result != ARES_SUCCESS) {
       std::cerr << "ERROR: Unable to initialise C-ARES: " << ares_strerror(result) << std::endl;
-      ::exit(1);
+      exit(1);
    }
 
    result = ares_set_servers_ports_csv(Channel, "10.193.4.20,10.193.4.21");
@@ -175,10 +174,13 @@ void DNSLookup::updateNameToAddressMapping(NameInfo*                       nameI
                                            const boost::asio::ip::address& address)
 {
    assert(nameInfo != nullptr);
+   const std::string fqdn = makeFQDN(name);
 
    AddressInfo* addressInfo = getOrCreateAddressInfo(address);
    assert(addressInfo != nullptr);
    nameInfo->AddressInfoMap.insert(std::pair<boost::asio::ip::address, AddressInfo*>(address, addressInfo));
+
+   addressInfo->NameInfoMap.insert(std::pair<std::string, NameInfo*>(fqdn, nameInfo));
 }
 
 
@@ -187,11 +189,12 @@ void DNSLookup::updateAddressToNameMapping(AddressInfo*                    addre
                                            const std::string&              name)
 {
    assert(addressInfo != nullptr);
-   addressInfo->Name = makeFQDN(name);
+   const std::string fqdn = makeFQDN(name);
 
-   NameInfo* nameInfo = getOrCreateNameInfo(addressInfo->Name);
+   NameInfo* nameInfo = getOrCreateNameInfo(fqdn);
    assert(nameInfo != nullptr);
-   addressInfo->NameInfoMap.insert(std::pair<std::string, NameInfo*>(name, nameInfo));
+
+   addressInfo->NameInfoMap.insert(std::pair<std::string, NameInfo*>(fqdn, nameInfo));
 }
 
 
@@ -220,15 +223,20 @@ void DNSLookup::dumpNameInfoMap(std::ostream& os) const
 
 void DNSLookup::dumpAddressInfoMap(std::ostream& os) const
 {
-   std::cout << "AddressInfoMap:" << std::endl;
+   os << "AddressInfoMap:" << std::endl;
    unsigned int n = 1;
    for(std::map<boost::asio::ip::address, AddressInfo*>::const_iterator addressInfoIterator = AddressInfoMap.begin();
        addressInfoIterator != AddressInfoMap.end(); addressInfoIterator++) {
       const AddressInfo* addressInfo = addressInfoIterator->second;
-      std::cout << n++ << ":\t" << addressInfoIterator->first << " -> "
-                << addressInfo->Name
-                << " (status " << addressInfo->Status << ")"
-                << std::endl;
+      os << n++ << ":\t" << addressInfoIterator->first << " -> ";
+
+      for(std::map<std::string, NameInfo*>::const_iterator nameInfoIterator = addressInfo->NameInfoMap.begin();
+          nameInfoIterator != addressInfo->NameInfoMap.end(); nameInfoIterator++) {
+         // const NameInfo* nameInfo = nameInfoIterator->second;
+         os << nameInfoIterator->first << " ";
+      }
+      os  << " (status " << addressInfo->Status << ")"
+          << std::endl;
    }
 }
 
@@ -279,7 +287,7 @@ void DNSLookup::handlePtrResult(void* arg, int status, int timeouts, struct host
    addressInfo->Flags |= IQF_RESPONSE_RECEIVED;
    if(host != nullptr) {
       dnsLookup->updateAddressToNameMapping(addressInfo, addressInfo->Address, host->h_name);
-      dnsLookup->queryName(addressInfo->Name);
+      dnsLookup->queryName(host->h_name);
    }
 }
 
@@ -497,17 +505,14 @@ int main() {
    drl.queryAddress(boost::asio::ip::address_v6::from_string("2a02:2e0:3fe:1001:7777:772e:2:85"));
    drl.queryAddress(boost::asio::ip::address_v6::from_string("2a02:26f0:5200::b81f:f78"));
 
-   drl.queryName("ringnes.fire.smil.",   ns_c_in, ns_t_aaaa);
-   drl.queryName("ringnes.fire.smil.",   ns_c_in, ns_t_a);
-   drl.queryName("ringnes.fire.smil.",   ns_c_in, ns_t_loc);
+   drl.queryName("ringnes.fire.smil.",   ns_c_in, ns_t_any);
 
-   drl.queryName("oslo-gw1.uninett.no.", ns_c_in, ns_t_a);
-   drl.queryName("oslo-gw1.uninett.no.", ns_c_in, ns_t_loc);
+   drl.queryName("oslo-gw1.uninett.no.", ns_c_in, ns_t_any);
 
    drl.queryName("mack.fire.smil.",      ns_c_in, ns_t_any);
    drl.queryName("hansa.fire.smil.",     ns_c_in, ns_t_any);
-   drl.queryName("oslo-gw1.uninett.no.", ns_c_in, ns_t_aaaa);
-   drl.queryName("www.nntb.no.",         ns_c_in, ns_t_any);
+   drl.queryName("www.ietf.org.",        ns_c_in, ns_t_aaaa);
+   drl.queryName("www.nntb.no.",         ns_c_in, ns_t_a);
 
    drl.run();
    return 0;
