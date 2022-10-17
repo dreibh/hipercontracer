@@ -14,6 +14,28 @@
 
 // Examples: http://blog.gerryyang.com/tcp/ip/2022/05/12/c-ares-in-action.html
 
+class DNSLookup;
+
+struct TimeRecord {
+   std::chrono::system_clock::time_point FirstSeen;
+   std::chrono::system_clock::time_point LastUpdate;
+   std::chrono::system_clock::time_point ValidUntil;   // LastUpdate + TTL
+//       sendTime = std::chrono::system_clock::now();
+};
+
+struct AddressInfo {
+   DNSLookup*        Owner;
+   int               Status;
+   std::string       Name;
+   TimeRecord        Validity;
+};
+
+struct NameInfo {
+   DNSLookup*                                       Owner;
+   int                                              Status;
+   std::string                                      Location;
+   std::map<boost::asio::ip::address, AddressInfo*> Addresses;
+};
 
 class DNSLookup
 {
@@ -21,40 +43,34 @@ class DNSLookup
    DNSLookup();
    ~DNSLookup();
 
-   void addAddress(const boost::asio::ip::address& address);
-
-   void queryRR(const char* name, int dnsclass, int type);
+   void queryName(const std::string& name,
+                  const unsigned int dnsclass = ns_c_in,
+                  const unsigned int type     = ns_t_a);
+   void queryAddress(const boost::asio::ip::address& address);
 
    void run();
 
    private:
+   AddressInfo* getOrCreateAddressInfo(const boost::asio::ip::address& address,
+                                       const bool                      mustBeNew = false);
+   NameInfo* getOrCreateNameInfo(const std::string& name,
+                                 const bool         mustBeNew = false);
+   void updateNameToAddressMapping(NameInfo*                       nameInfo,
+                                   const std::string&              name,
+                                   const boost::asio::ip::address& address);
+   void updateAddressToNameMapping(AddressInfo*                    addressInfo,
+                                   const boost::asio::ip::address& address,
+                                   const std::string&              name);
+
    static void handlePtrResult(void* arg, int status, int timeouts, struct hostent* host);
    static void handleGenericResult(void* arg, int status, int timeouts, unsigned char* abuf, int alen);
-//    void updateAddressInfo(const boost::asio::ip::address& address,
-//                           const int                       status,
-//                           const hostent*                  host);
 
    static double rfc1867_size(const uint8_t* aptr);
    static double rfc1867_angle(const uint8_t* aptr);
 
-   struct AddressInfo {
-      // DNSLookup* Owner;
-      int               Status;
-      std::string       Name;
-   };
+
    std::map<boost::asio::ip::address, AddressInfo*> AddressInfoMap;
-
-   struct TTLRecord {
-      unsigned int TTL;
-   };
-
-   struct NameInfo {
-      // DNSLookup* Owner;
-      int                                            Status;
-      std::string                                    Location;
-      std::map<boost::asio::ip::address, TTLRecord*> Addresses;
-   };
-   std::map<std::string, NameInfo*> NameInfoMap;
+   std::map<std::string, NameInfo*>                 NameInfoMap;
 
    ares_channel Channel;
 };
@@ -63,7 +79,11 @@ class DNSLookup
 
 DNSLookup::DNSLookup()
 {
-   int result = ares_init(&Channel);
+   ares_options options;
+   options.flags = ARES_FLAG_USEVC;   // DNS over TCP
+   int optmask = ARES_OPT_FLAGS;
+
+   int result = ares_init_options(&Channel, &options, optmask);
    if(result != ARES_SUCCESS) {
       std::cerr << "ERROR: Unable to initialise C-ARES: " << ares_strerror(result) << std::endl;
       ::exit(1);
@@ -107,18 +127,92 @@ DNSLookup::~DNSLookup()
 }
 
 
-void DNSLookup::addAddress(const boost::asio::ip::address& address)
+AddressInfo* DNSLookup::getOrCreateAddressInfo(const boost::asio::ip::address& address,
+                                               const bool                      mustBeNew)
 {
    std::map<boost::asio::ip::address, AddressInfo*>::iterator found = AddressInfoMap.find(address);
    if(found == AddressInfoMap.end()) {
-      std::cout << "add: " << address << std::endl;
-
       // ====== Create AddressInfo ==========================================
       AddressInfo* addressInfo = new AddressInfo;
       assert(addressInfo != nullptr);
-      // addressInfo->Owner  = this;
+      addressInfo->Owner  = this;
       addressInfo->Status = -1;
 
+      AddressInfoMap.insert(std::pair<boost::asio::ip::address, AddressInfo*>(address, addressInfo));
+      return addressInfo;
+   }
+   else {
+      if(!mustBeNew) {
+         return found->second;
+      }
+   }
+   return nullptr;
+}
+
+
+NameInfo* DNSLookup::getOrCreateNameInfo(const std::string& name,
+                                         const bool         mustBeNew)
+{
+   std::map<std::string, NameInfo*>::iterator found = NameInfoMap.find(name);
+   if(found == NameInfoMap.end()) {
+      // ====== Create NameInfo ==========================================
+      NameInfo* nameInfo = new NameInfo;
+      assert(nameInfo != nullptr);
+      nameInfo->Owner  = this;
+      nameInfo->Status = -1;
+
+      NameInfoMap.insert(std::pair<std::string, NameInfo*>(name, nameInfo));
+      return nameInfo;
+   }
+   else {
+      if(!mustBeNew) {
+         return found->second;
+      }
+   }
+   return nullptr;
+}
+
+
+void DNSLookup::updateNameToAddressMapping(NameInfo*                       nameInfo,
+                                           const std::string&              name,
+                                           const boost::asio::ip::address& address)
+{
+   if(nameInfo == nullptr) {
+    abort(); //??? FIXME!
+      nameInfo = getOrCreateNameInfo(name);
+   }
+   AddressInfo* addressInfo = getOrCreateAddressInfo(address);
+}
+
+
+void DNSLookup::updateAddressToNameMapping(AddressInfo*                    addressInfo,
+                                           const boost::asio::ip::address& address,
+                                           const std::string&              name)
+{
+   if(addressInfo == nullptr) {
+    abort(); //??? FIXME!
+      addressInfo = getOrCreateAddressInfo(address);
+   }
+   NameInfo* nameInfo = getOrCreateNameInfo(name);
+
+}
+
+
+void DNSLookup::queryName(const std::string& name, const unsigned int dnsclass, const unsigned int type)
+{
+   NameInfo* nameInfo = getOrCreateNameInfo(name, true);
+   if(nameInfo) {
+      // ====== Query DNS ===================================================
+      ares_query(Channel, name.c_str(), dnsclass, type,
+                 &DNSLookup::handleGenericResult, nameInfo);
+   }
+}
+
+
+void DNSLookup::queryAddress(const boost::asio::ip::address& address)
+{
+   AddressInfo* addressInfo = getOrCreateAddressInfo(address, true);
+   if(addressInfo) {
       // ====== Query DNS ===================================================
       if(address.is_v4()) {
          const boost::asio::ip::address_v4::bytes_type& v4 = address.to_v4().to_bytes();
@@ -131,86 +225,29 @@ void DNSLookup::addAddress(const boost::asio::ip::address& address)
          ares_gethostbyaddr(Channel, v6.data(), 16, AF_INET6,
                             &DNSLookup::handlePtrResult, addressInfo);
       }
-
-      AddressInfoMap.insert(std::pair<boost::asio::ip::address, AddressInfo*>(address, addressInfo));
-   }
-   else {
-      std::cout << "Already there: " << address << std::endl;
    }
 }
 
 
 void DNSLookup::handlePtrResult(void* arg, int status, int timeouts, struct hostent* host)
 {
-   AddressInfo*  addressInfo = (AddressInfo*)arg;
-   // DNSLookup* drl         = addressInfo->Owner;
+   AddressInfo* addressInfo = (AddressInfo*)arg;
+   DNSLookup*   dnsLookup   = addressInfo->Owner;
 
    addressInfo->Status = status;
    if(host != nullptr) {
       addressInfo->Name = host->h_name;
-/*
-      if(host->h_length == 4) {
-         boost::asio::ip::address_v4::bytes_type v4;
-         std::copy((uint8_t*)&host->h_addr_list[0][0], (uint8_t*)&host->h_addr_list[0][4], v4.begin());
-         drl->updateAddressInfo(boost::asio::ip::address_v4(v4), status, host);
-      }
-      else {
-         assert(host->h_length == 16);
-         boost::asio::ip::address_v6::bytes_type v6;
-         std::copy((uint8_t*)&host->h_addr_list[0][0], (uint8_t*)&host->h_addr_list[0][16], v6.begin());
-         drl->updateAddressInfo(boost::asio::ip::address_v6(v6), status, host);
-      }
-*/
-   }
-}
 
-
-// void DNSLookup::updateAddressInfo(const boost::asio::ip::address& address,
-//                                          const int                       status,
-//                                          const hostent*                  host)
-// {
-//    std::map<boost::asio::ip::address, AddressInfo*>::iterator found = AddressInfoMap.find(address);
-//    if(found != AddressInfoMap.end()) {
-//       AddressInfo* addressInfo = found->second;
-//       addressInfo->Status = status;
-//       addressInfo->Name   = host->h_name;
-//
-//       std::cout << address << ": " << addressInfo->Name << std::endl;
-//    }
-//    else {
-//       std::cout << "Update for unknwon address " << address << "!" << std::endl;
-//    }
-// }
-
-
-double DNSLookup::rfc1867_size(const uint8_t* aptr)
-{
-  const uint8_t value    = *aptr;
-  double        size     = (value & 0xF0) >> 4;
-  unsigned int  exponent = (value & 0x0F);
-  while(exponent != 0) {
-    size *= 10;
-    exponent--;
-  }
-  return size / 100;  /* return size in meters, not cm */
-}
-
-
-double DNSLookup::rfc1867_angle(const uint8_t* aptr)
-{
-   const uint32_t angle = DNS__32BIT(aptr);
-   if(angle < 0x80000000U) {   // West
-      return -(double)(0x80000000U - angle) /  (1000 * 60 * 60);
-   }
-   else {   // East
-      return (double)(angle - 0x80000000U) /  (1000 * 60 * 60);
+      NameInfo* nameInfo = dnsLookup->getOrCreateNameInfo(addressInfo->Name);
+      assert(nameInfo != nullptr);
    }
 }
 
 
 void DNSLookup::handleGenericResult(void* arg, int status, int timeouts, unsigned char* abuf, int alen)
 {
-   NameInfo* nameInfo = (NameInfo*)arg;
+   NameInfo*  nameInfo  = (NameInfo*)arg;
+   DNSLookup* dnsLookup = nameInfo->Owner;
 
    nameInfo->Status = status;
    if(status == ARES_SUCCESS) {
@@ -284,6 +321,7 @@ void DNSLookup::handleGenericResult(void* arg, int status, int timeouts, unsigne
                   std::copy((uint8_t*)&aptr[0], (uint8_t*)&aptr[4], v4.begin());
                   const boost::asio::ip::address_v4 a4(v4);
                   printf("A for %s: %s\n", name, a4.to_string().c_str());
+                  dnsLookup->updateNameToAddressMapping(nameInfo, name, a4);
                 }
                 break;
                // ------ AAAA RR --------------------------------------------
@@ -295,6 +333,7 @@ void DNSLookup::handleGenericResult(void* arg, int status, int timeouts, unsigne
                    std::copy((uint8_t*)&aptr[0], (uint8_t*)&aptr[16], v6.begin());
                    const boost::asio::ip::address_v6 a6(v6);
                    printf("AAAA for %s: %s\n", name, a6.to_string().c_str());
+                   dnsLookup->updateNameToAddressMapping(nameInfo, name, a6);
                 }
                 break;
                // ------ LOC RR ---------------------------------------------
@@ -345,44 +384,48 @@ done:
    }
 }
 
-void DNSLookup::queryRR(const char* name, int dnsclass, int type)
+
+double DNSLookup::rfc1867_size(const uint8_t* aptr)
 {
-   NameInfo*                                            nameInfo;
-   std::map<std::string, NameInfo*>::iterator found = NameInfoMap.find(name);
-   if(found == NameInfoMap.end()) {
-      std::cout << "add: " << name << std::endl;
+  const uint8_t value    = *aptr;
+  double        size     = (value & 0xF0) >> 4;
+  unsigned int  exponent = (value & 0x0F);
+  while(exponent != 0) {
+    size *= 10;
+    exponent--;
+  }
+  return size / 100;  /* return size in meters, not cm */
+}
 
-      // ====== Create NameInfo =============================================
-      nameInfo = new NameInfo;
-      assert(nameInfo != nullptr);
-      // nameInfo->Owner  = this;
-      nameInfo->Status = -1;
+
+double DNSLookup::rfc1867_angle(const uint8_t* aptr)
+{
+   const uint32_t angle = DNS__32BIT(aptr);
+   if(angle < 0x80000000U) {   // West
+      return -(double)(0x80000000U - angle) /  (1000 * 60 * 60);
    }
-   else {
-      nameInfo = found->second;
+   else {   // East
+      return (double)(angle - 0x80000000U) /  (1000 * 60 * 60);
    }
-
-   ares_query(Channel, name, dnsclass, type, &DNSLookup::handleGenericResult, nameInfo);
-
-   NameInfoMap.insert(std::pair<std::string, NameInfo*>(name, nameInfo));
 }
 
 
 void DNSLookup::run()
 {
-    int nfds;
-    fd_set readers, writers;
-    timeval tv, *tvp;
-    while (1) {
-        FD_ZERO(&readers);
-        FD_ZERO(&writers);
-        nfds = ares_fds(Channel, &readers, &writers);
-        if (nfds == 0)
-          break;
-        tvp = ares_timeout(Channel, nullptr, &tv);
-        select(nfds, &readers, &writers, nullptr, tvp);
-        ares_process(Channel, &readers, &writers);
-     }
+   int nfds;
+   fd_set readers, writers;
+   timeval tv, *tvp;
+   while(true) {
+      FD_ZERO(&readers);
+      FD_ZERO(&writers);
+      nfds = ares_fds(Channel, &readers, &writers);
+      if(nfds == 0) {
+         break;
+      }
+      tvp = ares_timeout(Channel, nullptr, &tv);
+      select(nfds, &readers, &writers, nullptr, tvp);
+      ares_process(Channel, &readers, &writers);
+    }
 }
 
 
@@ -390,26 +433,26 @@ void DNSLookup::run()
 int main() {
    DNSLookup drl;
 
-   drl.addAddress(boost::asio::ip::address_v4::from_string("224.244.244.224"));
-   drl.addAddress(boost::asio::ip::address_v4::from_string("8.8.4.4"));
-   drl.addAddress(boost::asio::ip::address_v4::from_string("8.8.8.8"));
-   drl.addAddress(boost::asio::ip::address_v4::from_string("9.9.9.9"));
-   drl.addAddress(boost::asio::ip::address_v4::from_string("99.99.99.99"));
-   drl.addAddress(boost::asio::ip::address_v4::from_string("193.99.144.80"));
-   drl.addAddress(boost::asio::ip::address_v4::from_string("1.1.1.1"));
-   drl.addAddress(boost::asio::ip::address_v4::from_string("2.2.2.2"));
-   drl.addAddress(boost::asio::ip::address_v4::from_string("158.37.0.1"));
-   drl.addAddress(boost::asio::ip::address_v4::from_string("128.39.0.1"));
-   drl.addAddress(boost::asio::ip::address_v6::from_string("2606:4700::6810:2c63"));
-   drl.addAddress(boost::asio::ip::address_v6::from_string("2a02:2e0:3fe:1001:7777:772e:2:85"));
-   drl.addAddress(boost::asio::ip::address_v6::from_string("2a02:26f0:5200::b81f:f78"));
+   drl.queryAddress(boost::asio::ip::address_v4::from_string("224.244.244.224"));
+   drl.queryAddress(boost::asio::ip::address_v4::from_string("8.8.4.4"));
+   drl.queryAddress(boost::asio::ip::address_v4::from_string("8.8.8.8"));
+   drl.queryAddress(boost::asio::ip::address_v4::from_string("9.9.9.9"));
+   drl.queryAddress(boost::asio::ip::address_v4::from_string("99.99.99.99"));
+   drl.queryAddress(boost::asio::ip::address_v4::from_string("193.99.144.80"));
+   drl.queryAddress(boost::asio::ip::address_v4::from_string("1.1.1.1"));
+   drl.queryAddress(boost::asio::ip::address_v4::from_string("2.2.2.2"));
+   drl.queryAddress(boost::asio::ip::address_v4::from_string("158.37.0.1"));
+   drl.queryAddress(boost::asio::ip::address_v4::from_string("128.39.0.1"));
+   drl.queryAddress(boost::asio::ip::address_v6::from_string("2606:4700::6810:2c63"));
+   drl.queryAddress(boost::asio::ip::address_v6::from_string("2a02:2e0:3fe:1001:7777:772e:2:85"));
+   drl.queryAddress(boost::asio::ip::address_v6::from_string("2a02:26f0:5200::b81f:f78"));
 
-   drl.queryRR("ringnes.fire.smil.",   ns_c_in, ns_t_loc);
-   drl.queryRR("oslo-gw1.uninett.no.", ns_c_in, ns_t_loc);
+   drl.queryName("ringnes.fire.smil.",   ns_c_in, ns_t_loc);
+   drl.queryName("oslo-gw1.uninett.no.", ns_c_in, ns_t_loc);
 
-   drl.queryRR("ringnes.fire.smil.",   ns_c_in, ns_t_any);
-   drl.queryRR("oslo-gw1.uninett.no.", ns_c_in, ns_t_a);
-   drl.queryRR("www.nntb.no.",         ns_c_in, ns_t_any);
+   drl.queryName("ringnes.fire.smil.",   ns_c_in, ns_t_any);
+   drl.queryName("oslo-gw1.uninett.no.", ns_c_in, ns_t_a);
+   drl.queryName("www.nntb.no.",         ns_c_in, ns_t_any);
 
    drl.run();
    return 0;
