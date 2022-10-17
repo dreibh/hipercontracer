@@ -22,7 +22,8 @@ enum QueryFlags
 {
    IQF_NONE              = 0,
    IQF_QUERY_SENT        = (1 << 0),
-   IQF_RESPONSE_RECEIVED = (1 << 1)
+   IQF_RESPONSE_RECEIVED = (1 << 1),
+   IQF_VALID             = (1 << 2)
 };
 
 struct TimeRecord {
@@ -45,6 +46,7 @@ struct NameInfo {
    DNSLookup*                                       Owner;
    unsigned int                                     Flags;
    int                                              Status;
+   TimeRecord                                       Validity;
    std::string                                      Location;
    std::map<boost::asio::ip::address, AddressInfo*> AddressInfoMap;
 };
@@ -63,16 +65,16 @@ class DNSLookup
    void run();
 
    private:
-   AddressInfo* getOrCreateAddressInfo(const boost::asio::ip::address& address,
-                                       const bool                      mustBeNew = false);
-   NameInfo* getOrCreateNameInfo(const std::string& name,
-                                 const bool         mustBeNew = false);
+   AddressInfo* getOrCreateAddressInfo(const boost::asio::ip::address& address);
+   NameInfo* getOrCreateNameInfo(const std::string& name);
    void updateNameToAddressMapping(NameInfo*                       nameInfo,
                                    const std::string&              name,
-                                   const boost::asio::ip::address& address);
+                                   const boost::asio::ip::address& address,
+                                   const unsigned int              ttl);
    void updateAddressToNameMapping(AddressInfo*                    addressInfo,
                                    const boost::asio::ip::address& address,
-                                   const std::string&              name);
+                                   const std::string&              name,
+                                   const unsigned int              ttl);
    void dumpNameInfoMap(std::ostream& os) const;
    void dumpAddressInfoMap(std::ostream& os) const;
 
@@ -120,50 +122,44 @@ DNSLookup::~DNSLookup()
 }
 
 
-AddressInfo* DNSLookup::getOrCreateAddressInfo(const boost::asio::ip::address& address,
-                                               const bool                      mustBeNew)
+AddressInfo* DNSLookup::getOrCreateAddressInfo(const boost::asio::ip::address& address)
 {
    std::map<boost::asio::ip::address, AddressInfo*>::iterator found = AddressInfoMap.find(address);
    if(found == AddressInfoMap.end()) {
       // ====== Create AddressInfo ==========================================
       AddressInfo* addressInfo = new AddressInfo;
       assert(addressInfo != nullptr);
-      addressInfo->Owner   = this;
-      addressInfo->Address = address;
-      addressInfo->Status  = -1;
-      addressInfo->Flags   = IQF_NONE;
-
+      addressInfo->Owner              = this;
+      addressInfo->Address            = address;
+      addressInfo->Status             = -1;
+      addressInfo->Flags              = IQF_NONE;
+      addressInfo->Validity.FirstSeen = std::chrono::system_clock::now();
       AddressInfoMap.insert(std::pair<boost::asio::ip::address, AddressInfo*>(address, addressInfo));
       return addressInfo;
    }
    else {
-      if(!mustBeNew) {
-         return found->second;
-      }
+      return found->second;
    }
    return nullptr;
 }
 
 
-NameInfo* DNSLookup::getOrCreateNameInfo(const std::string& name,
-                                         const bool         mustBeNew)
+NameInfo* DNSLookup::getOrCreateNameInfo(const std::string& name)
 {
    std::map<std::string, NameInfo*>::iterator found = NameInfoMap.find(name);
    if(found == NameInfoMap.end()) {
       // ====== Create NameInfo ==========================================
       NameInfo* nameInfo = new NameInfo;
       assert(nameInfo != nullptr);
-      nameInfo->Owner  = this;
-      nameInfo->Status = -1;
-      nameInfo->Flags  = IQF_NONE;
-
+      nameInfo->Owner              = this;
+      nameInfo->Status             = -1;
+      nameInfo->Flags              = IQF_NONE;
+      nameInfo->Validity.FirstSeen = std::chrono::system_clock::now();
       NameInfoMap.insert(std::pair<std::string, NameInfo*>(name, nameInfo));
       return nameInfo;
    }
    else {
-      if(!mustBeNew) {
-         return found->second;
-      }
+      return found->second;
    }
    return nullptr;
 }
@@ -171,10 +167,15 @@ NameInfo* DNSLookup::getOrCreateNameInfo(const std::string& name,
 
 void DNSLookup::updateNameToAddressMapping(NameInfo*                       nameInfo,
                                            const std::string&              name,
-                                           const boost::asio::ip::address& address)
+                                           const boost::asio::ip::address& address,
+                                           const unsigned int              ttl)
 {
    assert(nameInfo != nullptr);
    const std::string fqdn = makeFQDN(name);
+
+   nameInfo->Validity.LastUpdate = std::chrono::system_clock::now();
+   // nameInfo->Validity.ValidUntil =
+   nameInfo->Flags |= IQF_VALID;
 
    AddressInfo* addressInfo = getOrCreateAddressInfo(address);
    assert(addressInfo != nullptr);
@@ -186,10 +187,13 @@ void DNSLookup::updateNameToAddressMapping(NameInfo*                       nameI
 
 void DNSLookup::updateAddressToNameMapping(AddressInfo*                    addressInfo,
                                            const boost::asio::ip::address& address,
-                                           const std::string&              name)
+                                           const std::string&              name,
+                                           const unsigned int              ttl)
 {
    assert(addressInfo != nullptr);
    const std::string fqdn = makeFQDN(name);
+
+   addressInfo->Validity.LastUpdate = std::chrono::system_clock::now();
 
    NameInfo* nameInfo = getOrCreateNameInfo(fqdn);
    assert(nameInfo != nullptr);
@@ -286,7 +290,7 @@ void DNSLookup::handlePtrResult(void* arg, int status, int timeouts, struct host
    addressInfo->Status = status;
    addressInfo->Flags |= IQF_RESPONSE_RECEIVED;
    if(host != nullptr) {
-      dnsLookup->updateAddressToNameMapping(addressInfo, addressInfo->Address, host->h_name);
+      dnsLookup->updateAddressToNameMapping(addressInfo, addressInfo->Address, host->h_name, 0);
       dnsLookup->queryName(host->h_name);
    }
 }
@@ -370,7 +374,7 @@ void DNSLookup::handleGenericResult(void* arg, int status, int timeouts, unsigne
                   std::copy((uint8_t*)&aptr[0], (uint8_t*)&aptr[4], v4.begin());
                   const boost::asio::ip::address_v4 a4(v4);
                   printf("A for %s: %s\n", name, a4.to_string().c_str());
-                  dnsLookup->updateNameToAddressMapping(nameInfo, name, a4);
+                  dnsLookup->updateNameToAddressMapping(nameInfo, name, a4, ttl);
                 }
                 break;
                // ------ AAAA RR --------------------------------------------
@@ -382,7 +386,7 @@ void DNSLookup::handleGenericResult(void* arg, int status, int timeouts, unsigne
                    std::copy((uint8_t*)&aptr[0], (uint8_t*)&aptr[16], v6.begin());
                    const boost::asio::ip::address_v6 a6(v6);
                    printf("AAAA for %s: %s\n", name, a6.to_string().c_str());
-                   dnsLookup->updateNameToAddressMapping(nameInfo, name, a6);
+                   dnsLookup->updateNameToAddressMapping(nameInfo, name, a6, ttl);
                 }
                 break;
                // ------ LOC RR ---------------------------------------------

@@ -179,6 +179,9 @@ ENDIF()
 # ###### Threads ############################################################
 FIND_PACKAGE(Threads REQUIRED)
 
+# ###### C-ARES #############################################################
+FIND_LIBRARY(CARES_LIBRARY NAMES cares libcares-2)
+
 # ###### Boost ##############################################################
 FIND_PACKAGE(Boost REQUIRED COMPONENTS log date_time system thread iostreams filesystem program_options)
 IF (NOT Boost_FOUND)
