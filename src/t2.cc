@@ -23,7 +23,9 @@ enum QueryFlags
    IQF_NONE              = 0,
    IQF_QUERY_SENT        = (1 << 0),
    IQF_RESPONSE_RECEIVED = (1 << 1),
-   IQF_VALID             = (1 << 2)
+   IQF_VALID             = (1 << 2),
+   IQF_HAS_LOC           = (1 << 3),
+   IQF_HAS_HINFO         = (1 << 4)
 };
 
 struct TimeRecord {
@@ -31,6 +33,20 @@ struct TimeRecord {
    std::chrono::system_clock::time_point LastUpdate;
    std::chrono::system_clock::time_point ValidUntil;   // LastUpdate + TTL
 //       sendTime = std::chrono::system_clock::now();
+};
+
+struct LocationRecord {
+   double Latitude;
+   double Longitude;
+   double Altitude;
+   double Size;
+   double HPrecision;
+   double VPrecision;
+};
+
+struct HostInfoRecord {
+   std::string Hardware;
+   std::string Software;
 };
 
 struct AddressInfo {
@@ -47,7 +63,8 @@ struct NameInfo {
    unsigned int                                     Flags;
    int                                              Status;
    TimeRecord                                       Validity;
-   std::string                                      Location;
+   LocationRecord                                   Location;
+   HostInfoRecord                                   HostInfo;
    std::map<boost::asio::ip::address, AddressInfo*> AddressInfoMap;
 };
 
@@ -75,6 +92,12 @@ class DNSLookup
                                    const boost::asio::ip::address& address,
                                    const std::string&              name,
                                    const unsigned int              ttl);
+   void updateLocation(NameInfo*             nameInfo,
+                       const LocationRecord& location,
+                       const unsigned int    ttl);
+   void updateHostInfo(NameInfo*             nameInfo,
+                       const HostInfoRecord& hostInfo,
+                       const unsigned int    ttl);
    void dumpNameInfoMap(std::ostream& os) const;
    void dumpAddressInfoMap(std::ostream& os) const;
 
@@ -202,6 +225,24 @@ void DNSLookup::updateAddressToNameMapping(AddressInfo*                    addre
 }
 
 
+void DNSLookup::updateLocation(NameInfo*             nameInfo,
+                               const LocationRecord& location,
+                               const unsigned int    ttl)
+{
+   nameInfo->Location = location;
+   nameInfo->Flags |= IQF_HAS_LOC;
+}
+
+
+void DNSLookup::updateHostInfo(NameInfo*             nameInfo,
+                               const HostInfoRecord& hostInfo,
+                               const unsigned int    ttl)
+{
+   nameInfo->HostInfo = hostInfo;
+   nameInfo->Flags |= IQF_HAS_HINFO;
+}
+
+
 void DNSLookup::dumpNameInfoMap(std::ostream& os) const
 {
    os << "NameInfoMap:" << std::endl;
@@ -209,18 +250,25 @@ void DNSLookup::dumpNameInfoMap(std::ostream& os) const
    for(std::map<std::string, NameInfo*>::const_iterator nameInfoIterator = NameInfoMap.begin();
        nameInfoIterator != NameInfoMap.end(); nameInfoIterator++) {
       const NameInfo* nameInfo = nameInfoIterator->second;
-      os << n++ << ":\t" << nameInfoIterator->first << " -> "
-         << nameInfo->Location;
+      os << n++ << ":\t" << nameInfoIterator->first << " -> ";
 
       for(std::map<boost::asio::ip::address, AddressInfo*>::const_iterator addressInfoIterator = nameInfo->AddressInfoMap.begin();
           addressInfoIterator != nameInfo->AddressInfoMap.end(); addressInfoIterator++) {
          // const AddressInfo* addressInfo = addressInfoIterator->second;
          os << addressInfoIterator->first << " ";
-         // os << " (ttl=" << addressInfo->Validity
       }
-
       os << " (status " << nameInfo->Status << ")"
          << std::endl;
+
+      if(nameInfo->Flags & IQF_HAS_LOC) {
+         os << "\t\tLocation: " << nameInfo->Location.Latitude << ", "
+             << nameInfo->Location.Longitude << std::endl;
+      }
+      if(nameInfo->Flags & IQF_HAS_HINFO) {
+          os << "\t\tHardware: " << nameInfo->HostInfo.Hardware
+             << ", Software: " << nameInfo->HostInfo.Software
+             << std::endl;
+      }
    }
 }
 
@@ -373,7 +421,7 @@ void DNSLookup::handleGenericResult(void* arg, int status, int timeouts, unsigne
                   boost::asio::ip::address_v4::bytes_type v4;
                   std::copy((uint8_t*)&aptr[0], (uint8_t*)&aptr[4], v4.begin());
                   const boost::asio::ip::address_v4 a4(v4);
-                  printf("A for %s: %s\n", name, a4.to_string().c_str());
+                  // printf("A for %s: %s\n", name, a4.to_string().c_str());
                   dnsLookup->updateNameToAddressMapping(nameInfo, name, a4, ttl);
                 }
                 break;
@@ -385,7 +433,7 @@ void DNSLookup::handleGenericResult(void* arg, int status, int timeouts, unsigne
                    boost::asio::ip::address_v6::bytes_type v6;
                    std::copy((uint8_t*)&aptr[0], (uint8_t*)&aptr[16], v6.begin());
                    const boost::asio::ip::address_v6 a6(v6);
-                   printf("AAAA for %s: %s\n", name, a6.to_string().c_str());
+                   // printf("AAAA for %s: %s\n", name, a6.to_string().c_str());
                    dnsLookup->updateNameToAddressMapping(nameInfo, name, a6, ttl);
                 }
                 break;
@@ -396,14 +444,59 @@ void DNSLookup::handleGenericResult(void* arg, int status, int timeouts, unsigne
                   }
                   const uint8_t version = *(aptr + 0x00);
                    if(version == 0) {
-                      const double size       = rfc1867_size(aptr + 0x01);
-                      const double hprecision = rfc1867_size(aptr + 0x02);
-                      const double vprecision = rfc1867_size(aptr + 0x03);
-                      const double latitude   = rfc1867_angle(aptr + 0x04);
-                      const double longitude  = rfc1867_angle(aptr + 0x08);
-                      printf("LOC for %s: lat=%f, lon=%f, size=%f, hp=%f, vp=%f\n",
-                             name, latitude, longitude, size, hprecision, vprecision);
+                      LocationRecord location;
+                      location.Latitude = rfc1867_angle(aptr + 0x04);
+                      if( (location.Latitude >= -90.0) && (location.Latitude <= 90.0) ) {
+                         location.Longitude = rfc1867_angle(aptr + 0x08);
+                         if( (location.Longitude >= -180.0) && (location.Longitude <= 180.0) ) {
+                            location.Altitude   = (DNS__32BIT(aptr + 0x0c) - 10000000) / 100.0;
+                            location.Size       = rfc1867_size(aptr + 0x01);
+                            location.HPrecision = rfc1867_size(aptr + 0x02);
+                            location.VPrecision = rfc1867_size(aptr + 0x03);
+
+                            // printf("LOC for %s: lat=%f, lon=%f, alt=%f, size=%f, hp=%f, vp=%f\n",
+                            //        name, location.Latitude, location.Longitude, location.Altitude,
+                            //        location.Size, location.HPrecision, location.VPrecision);
+                            dnsLookup->updateLocation(nameInfo, location, ttl);
+                         }
+                      }
+                   }
+                }
+                break;
+               // ------ HINFO RR -------------------------------------------
+               case ns_t_hinfo: {
+                  const unsigned char* p = aptr;
+                  long hinfohwlen = *p;
+                  if(p + hinfohwlen + 1 > aptr + dlen) {
+                     goto done;
                   }
+
+                  HostInfoRecord hostInfo;
+
+                  unsigned char* hinfohw;
+                  status = ares_expand_string(p, abuf, alen, &hinfohw, &hinfohwlen);
+                  if(status != ARES_SUCCESS) {
+                     goto done;
+                  }
+                  hostInfo.Hardware = (const char*)hinfohw;
+                  ares_free_string(hinfohw);
+
+                  p += hinfohwlen;
+                  long hinfoswlen = *p;
+                  if(p + hinfoswlen + 1 > aptr + dlen) {
+                     goto done;
+                  }
+                  unsigned char* hinfosw;
+                  status = ares_expand_string(p, abuf, alen, &hinfosw, &hinfoswlen);
+                  if(status != ARES_SUCCESS) {
+                     goto done;
+                  }
+                  hostInfo.Software = std::string((const char*)hinfosw);
+                  ares_free_string(hinfosw);
+
+                  // printf("HINFO for %s: <%s> <%s>\n",
+                  //        name, hostInfo.Hardware.c_str(), hostInfo.Software.c_str());
+                  dnsLookup->updateHostInfo(nameInfo, hostInfo, ttl);
                 }
                 break;
                // ------ CNAME RR -------------------------------------------
