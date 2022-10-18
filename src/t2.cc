@@ -1,6 +1,6 @@
 #include <string>
+#include <fstream>
 #include <iostream>
-#include <set>
 #include <map>
 
 #include <boost/asio.hpp>
@@ -119,7 +119,7 @@ class DNSLookup
 DNSLookup::DNSLookup()
 {
    ares_options options;
-   options.flags = ARES_FLAG_USEVC;   // DNS over TCP
+   options.flags = ARES_FLAG_USEVC;   // ARES_FLAG_USEVC = DNS over TCP
    int optmask = ARES_OPT_FLAGS;
 
    int result = ares_init_options(&Channel, &options, optmask);
@@ -197,11 +197,11 @@ void DNSLookup::updateNameToAddressMapping(NameInfo*                       nameI
    const std::string fqdn = makeFQDN(name);
 
    nameInfo->Validity.LastUpdate = std::chrono::system_clock::now();
-   // nameInfo->Validity.ValidUntil =
    nameInfo->Flags |= IQF_VALID;
 
    AddressInfo* addressInfo = getOrCreateAddressInfo(address);
    assert(addressInfo != nullptr);
+   addressInfo->Flags |= IQF_VALID;
    nameInfo->AddressInfoMap.insert(std::pair<boost::asio::ip::address, AddressInfo*>(address, addressInfo));
 
    addressInfo->NameInfoMap.insert(std::pair<std::string, NameInfo*>(fqdn, nameInfo));
@@ -217,9 +217,11 @@ void DNSLookup::updateAddressToNameMapping(AddressInfo*                    addre
    const std::string fqdn = makeFQDN(name);
 
    addressInfo->Validity.LastUpdate = std::chrono::system_clock::now();
+   addressInfo->Flags |= IQF_VALID;
 
    NameInfo* nameInfo = getOrCreateNameInfo(fqdn);
    assert(nameInfo != nullptr);
+   nameInfo->Flags |= IQF_VALID;
 
    addressInfo->NameInfoMap.insert(std::pair<std::string, NameInfo*>(fqdn, nameInfo));
 }
@@ -250,24 +252,26 @@ void DNSLookup::dumpNameInfoMap(std::ostream& os) const
    for(std::map<std::string, NameInfo*>::const_iterator nameInfoIterator = NameInfoMap.begin();
        nameInfoIterator != NameInfoMap.end(); nameInfoIterator++) {
       const NameInfo* nameInfo = nameInfoIterator->second;
-      os << n++ << ":\t" << nameInfoIterator->first << " -> ";
+      if(nameInfo->Flags & IQF_VALID) {
+         os << n++ << ":\t" << nameInfoIterator->first << " -> ";
 
-      for(std::map<boost::asio::ip::address, AddressInfo*>::const_iterator addressInfoIterator = nameInfo->AddressInfoMap.begin();
-          addressInfoIterator != nameInfo->AddressInfoMap.end(); addressInfoIterator++) {
-         // const AddressInfo* addressInfo = addressInfoIterator->second;
-         os << addressInfoIterator->first << " ";
-      }
-      os << " (status " << nameInfo->Status << ")"
-         << std::endl;
+         for(std::map<boost::asio::ip::address, AddressInfo*>::const_iterator addressInfoIterator = nameInfo->AddressInfoMap.begin();
+             addressInfoIterator != nameInfo->AddressInfoMap.end(); addressInfoIterator++) {
+            // const AddressInfo* addressInfo = addressInfoIterator->second;
+            os << addressInfoIterator->first << " ";
+         }
+         os << " (status " << nameInfo->Status << ")"
+            << std::endl;
 
-      if(nameInfo->Flags & IQF_HAS_LOC) {
-         os << "\t\tLocation: " << nameInfo->Location.Latitude << ", "
-             << nameInfo->Location.Longitude << std::endl;
-      }
-      if(nameInfo->Flags & IQF_HAS_HINFO) {
-          os << "\t\tHardware: " << nameInfo->HostInfo.Hardware
-             << ", Software: " << nameInfo->HostInfo.Software
-             << std::endl;
+         if(nameInfo->Flags & IQF_HAS_LOC) {
+            os << "\t\tLocation: " << nameInfo->Location.Latitude << ", "
+                << nameInfo->Location.Longitude << std::endl;
+         }
+         if(nameInfo->Flags & IQF_HAS_HINFO) {
+             os << "\t\tHardware: " << nameInfo->HostInfo.Hardware
+                << ", Software: " << nameInfo->HostInfo.Software
+                << std::endl;
+         }
       }
    }
 }
@@ -280,15 +284,17 @@ void DNSLookup::dumpAddressInfoMap(std::ostream& os) const
    for(std::map<boost::asio::ip::address, AddressInfo*>::const_iterator addressInfoIterator = AddressInfoMap.begin();
        addressInfoIterator != AddressInfoMap.end(); addressInfoIterator++) {
       const AddressInfo* addressInfo = addressInfoIterator->second;
-      os << n++ << ":\t" << addressInfoIterator->first << " -> ";
+      if(addressInfo->Flags & IQF_VALID) {
+         os << n++ << ":\t" << addressInfoIterator->first << " -> ";
 
-      for(std::map<std::string, NameInfo*>::const_iterator nameInfoIterator = addressInfo->NameInfoMap.begin();
-          nameInfoIterator != addressInfo->NameInfoMap.end(); nameInfoIterator++) {
-         // const NameInfo* nameInfo = nameInfoIterator->second;
-         os << nameInfoIterator->first << " ";
+         for(std::map<std::string, NameInfo*>::const_iterator nameInfoIterator = addressInfo->NameInfoMap.begin();
+             nameInfoIterator != addressInfo->NameInfoMap.end(); nameInfoIterator++) {
+            // const NameInfo* nameInfo = nameInfoIterator->second;
+            os << nameInfoIterator->first << " ";
+         }
+         os  << " (status " << addressInfo->Status << ")"
+             << std::endl;
       }
-      os  << " (status " << addressInfo->Status << ")"
-          << std::endl;
    }
 }
 
@@ -299,9 +305,9 @@ void DNSLookup::queryName(const std::string& name, const unsigned int dnsclass, 
    NameInfo*         nameInfo = getOrCreateNameInfo(fqdn);
    if( (nameInfo) && (!(nameInfo->Flags & IQF_QUERY_SENT)) ) {
       // ====== Query DNS ===================================================
+      nameInfo->Flags |= IQF_QUERY_SENT;
       ares_query(Channel, fqdn.c_str(), dnsclass, type,
                  &DNSLookup::handleGenericResult, nameInfo);
-      nameInfo->Flags |= IQF_QUERY_SENT;
    }
    else {
       std::cout << "Already queried " << fqdn << std::endl;
@@ -314,6 +320,7 @@ void DNSLookup::queryAddress(const boost::asio::ip::address& address)
    AddressInfo* addressInfo = getOrCreateAddressInfo(address);
    if( (addressInfo) && (!(addressInfo->Flags & IQF_QUERY_SENT)) ) {
       // ====== Query DNS ===================================================
+      addressInfo->Flags |= IQF_QUERY_SENT;
       if(address.is_v4()) {
          const boost::asio::ip::address_v4::bytes_type& v4 = address.to_v4().to_bytes();
          ares_gethostbyaddr(Channel, v4.data(), 4, AF_INET,
@@ -325,7 +332,6 @@ void DNSLookup::queryAddress(const boost::asio::ip::address& address)
          ares_gethostbyaddr(Channel, v6.data(), 16, AF_INET6,
                             &DNSLookup::handlePtrResult, addressInfo);
       }
-      addressInfo->Flags |= IQF_QUERY_SENT;
    }
 }
 
@@ -336,11 +342,18 @@ void DNSLookup::handlePtrResult(void* arg, int status, int timeouts, struct host
    DNSLookup*   dnsLookup   = addressInfo->Owner;
 
    addressInfo->Status = status;
-   addressInfo->Flags |= IQF_RESPONSE_RECEIVED;
-   if(host != nullptr) {
-      dnsLookup->updateAddressToNameMapping(addressInfo, addressInfo->Address, host->h_name, 0);
-      dnsLookup->queryName(host->h_name);
+   if(status == ARES_SUCCESS) {
+      addressInfo->Flags |= IQF_RESPONSE_RECEIVED;
+      if(host != nullptr) {
+         dnsLookup->updateAddressToNameMapping(addressInfo, addressInfo->Address, host->h_name, 0);
+
+         // Query the name as well, to get additional addresses, location, hinfo, etc.:
+         dnsLookup->queryName(host->h_name, ns_c_in, ns_t_any);
+      }
    }
+//    else {
+//       printf("status=%d\n", status);
+//    }
 }
 
 
@@ -401,18 +414,19 @@ void DNSLookup::handleGenericResult(void* arg, int status, int timeouts, unsigne
                goto done;
             }
             const unsigned int type     = DNS_RR_TYPE(aptr);
-            const unsigned int dnsclass = DNS_RR_CLASS(aptr);
+            // const unsigned int dnsclass = DNS_RR_CLASS(aptr);
             const unsigned int ttl      = DNS_RR_TTL(aptr);
             const unsigned int dlen     = DNS_RR_LEN(aptr);
             aptr += RRFIXEDSZ;
-            printf("Answer %u/%u for %s: class=%u, type=%u, dlen=%u, ttl=%u\n", i + 1,
-                   answers, name, dnsclass, type, dlen, ttl);
+            // printf("Answer %u/%u for %s: class=%u, type=%u, dlen=%u, ttl=%u\n", i + 1,
+            //        answers, name, dnsclass, type, dlen, ttl);
             if(aptr + dlen > abuf + alen) {
                goto done;
             }
 
             // ====== Parse RR contents =====================================
             switch (type) {
+
                // ------ A RR -----------------------------------------------
                case ns_t_a: {
                   if(dlen < 4) {
@@ -425,6 +439,7 @@ void DNSLookup::handleGenericResult(void* arg, int status, int timeouts, unsigne
                   dnsLookup->updateNameToAddressMapping(nameInfo, name, a4, ttl);
                 }
                 break;
+
                // ------ AAAA RR --------------------------------------------
                case ns_t_aaaa: {
                   if(dlen < 16) {
@@ -437,6 +452,7 @@ void DNSLookup::handleGenericResult(void* arg, int status, int timeouts, unsigne
                    dnsLookup->updateNameToAddressMapping(nameInfo, name, a6, ttl);
                 }
                 break;
+
                // ------ LOC RR ---------------------------------------------
                case ns_t_loc: {
                   if(dlen < 16) {
@@ -463,6 +479,7 @@ void DNSLookup::handleGenericResult(void* arg, int status, int timeouts, unsigne
                    }
                 }
                 break;
+
                // ------ HINFO RR -------------------------------------------
                case ns_t_hinfo: {
                   const unsigned char* p = aptr;
@@ -499,6 +516,7 @@ void DNSLookup::handleGenericResult(void* arg, int status, int timeouts, unsigne
                   dnsLookup->updateHostInfo(nameInfo, hostInfo, ttl);
                 }
                 break;
+
                // ------ CNAME RR -------------------------------------------
                case ns_t_cname: {
                   char* cname;
@@ -510,6 +528,11 @@ void DNSLookup::handleGenericResult(void* arg, int status, int timeouts, unsigne
                   printf("CNAME for %s: %s\n", name, cname);
                   ares_free_string(cname);
                 }
+                break;
+
+               // ------ Other RR -------------------------------------------
+               default:
+                  printf("RR Type %u for %s\n", type, name);
                 break;
             }
 
@@ -570,14 +593,18 @@ void DNSLookup::run()
    int nfds;
    fd_set readers, writers;
    timeval tv, *tvp;
+
+   puts("Running ...");
    while(true) {
       FD_ZERO(&readers);
       FD_ZERO(&writers);
       nfds = ares_fds(Channel, &readers, &writers);
+      // printf("nfds=%d\n", nfds);
       if(nfds == 0) {
          break;
       }
       tvp = ares_timeout(Channel, nullptr, &tv);
+
       select(nfds, &readers, &writers, nullptr, tvp);
       ares_process(Channel, &readers, &writers);
     }
@@ -602,9 +629,22 @@ int main() {
    drl.queryAddress(boost::asio::ip::address_v6::from_string("2a02:2e0:3fe:1001:7777:772e:2:85"));
    drl.queryAddress(boost::asio::ip::address_v6::from_string("2a02:26f0:5200::b81f:f78"));
 
+//    std::ifstream input("t2.txt");
+//    unsigned int n = 0;
+//    while( (!input.eof()) && (n++ < 1500) ) {
+//       std::string address;
+//       input >> address;
+//       if(address != "") {
+//          const boost::asio::ip::address a = boost::asio::ip::address::from_string(address);
+//          drl.queryAddress(a);
+//       }
+//    }
+
    drl.queryName("ringnes.fire.smil.",   ns_c_in, ns_t_any);
 
+   drl.queryName("se-tug.nordu.net.",    ns_c_in, ns_t_any);
    drl.queryName("oslo-gw1.uninett.no.", ns_c_in, ns_t_any);
+   drl.queryName("bergen-gw3.uninett.no.", ns_c_in, ns_t_any);
 
    drl.queryName("mack.fire.smil.",      ns_c_in, ns_t_any);
    drl.queryName("hansa.fire.smil.",     ns_c_in, ns_t_any);
