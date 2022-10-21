@@ -8,7 +8,11 @@
 #include <cassert>
 #include <condition_variable>
 
+#include <unistd.h>
+
+
 // g++ t5.cc -o t5 -std=c++17
+// g++ t5.cc -o t5 -std=c++17 -O0 -g -Wall -lpthread && rm -f core && ./t5
 
 
 class DatabaseClientBase
@@ -29,7 +33,7 @@ class DatabaseClientBase
    virtual bool beginTransaction() = 0;
    virtual bool endTransaction(const bool commit) = 0;
 
-   inline bool commit() { return endTransaction(true); }
+   inline bool commit()   { return endTransaction(true);  }
    inline bool rollback() { return endTransaction(false); }
 };
 
@@ -38,7 +42,7 @@ class MariaDBClient : public virtual  DatabaseClientBase
 {
    public:
    MariaDBClient();
-   ~MariaDBClient();
+   virtual ~MariaDBClient();
 
    virtual const DatabaseType getType() const;
    virtual bool beginTransaction();
@@ -84,8 +88,8 @@ class BasicReader
 
    virtual const std::string& getIdentification() const = 0;
    virtual const std::regex& getFileNameRegExp() const = 0;
-   virtual void addFile(const std::filesystem::path& dataFile,
-                        const std::smatch            match) = 0;
+   virtual int addFile(const std::filesystem::path& dataFile,
+                       const std::smatch            match) = 0;
    virtual void printStatus(std::ostream& os = std::cout) = 0;
    virtual unsigned int fetchFiles(std::list<const std::filesystem::path*>& dataFileList,
                                    const unsigned int                       worker,
@@ -134,19 +138,6 @@ class HiPerConTracerPingReader : public BasicReader
       std::string           TimeStamp;
       unsigned int          SeqNumber;
       std::filesystem::path DataFile;
-
-      inline bool operator<(const InputFileEntry& cmp) {
-         if(Source < cmp.Source) {
-            return true;
-         }
-         if(TimeStamp < cmp.TimeStamp) {
-            return true;
-         }
-         if(SeqNumber < cmp.SeqNumber) {
-            return true;
-         }
-         return false;
-      }
    };
    friend bool operator<(const HiPerConTracerPingReader::InputFileEntry& a,
                          const HiPerConTracerPingReader::InputFileEntry& b);
@@ -259,8 +250,8 @@ class NorNetEdgePingReader : public BasicReader
 
    virtual const std::string& getIdentification() const;
    virtual const std::regex& getFileNameRegExp() const;
-   virtual void addFile(const std::filesystem::path& dataFile,
-                        const std::smatch            match);
+   virtual int addFile(const std::filesystem::path& dataFile,
+                       const std::smatch            match);
    virtual unsigned int fetchFiles(std::list<const std::filesystem::path*>& dataFileList,
                                    const unsigned int                       worker,
                                    const unsigned int                       limit = 1);
@@ -277,7 +268,8 @@ class NorNetEdgePingReader : public BasicReader
 
    static const std::string  Identification;
    static const std::regex   FileNameRegExp;
-   std::set<InputFileEntry>* InputFileSet;
+   std::mutex                Mutex;
+   std::set<InputFileEntry>* DataFileSet;
 };
 
 
@@ -304,15 +296,15 @@ NorNetEdgePingReader::NorNetEdgePingReader(const unsigned int workers,
                                            const unsigned int maxTransactionSize)
    : BasicReader(workers, maxTransactionSize)
 {
-   InputFileSet = new std::set<InputFileEntry>[Workers];
-   assert(InputFileSet != nullptr);
+   DataFileSet = new std::set<InputFileEntry>[Workers];
+   assert(DataFileSet != nullptr);
 }
 
 
 NorNetEdgePingReader::~NorNetEdgePingReader()
 {
-   delete [] InputFileSet;
-   InputFileSet = nullptr;
+   delete [] DataFileSet;
+   DataFileSet = nullptr;
 }
 
 
@@ -328,21 +320,22 @@ const std::regex& NorNetEdgePingReader::getFileNameRegExp() const
 }
 
 
-void NorNetEdgePingReader::addFile(const std::filesystem::path& dataFile,
-                                   const std::smatch            match)
+int NorNetEdgePingReader::addFile(const std::filesystem::path& dataFile,
+                                  const std::smatch            match)
 {
    if(match.size() == 3) {
       InputFileEntry inputFileEntry;
       inputFileEntry.MeasurementID = atol(match[1].str().c_str());
       inputFileEntry.TimeStamp     = match[2];
       inputFileEntry.DataFile      = dataFile;
-
-//       std::cout << "  t=" << inputFileEntry.TimeStamp << std::endl;
-//       std::cout << "  m=" << inputFileEntry.MeasurementID << std::endl;
-
       const unsigned int worker = inputFileEntry.MeasurementID % Workers;
-      InputFileSet[worker].insert(inputFileEntry);
+
+      std::unique_lock lock(Mutex);
+      DataFileSet[worker].insert(inputFileEntry);
+
+      return (int)worker;
    }
+   return -1;
 }
 
 
@@ -352,8 +345,10 @@ unsigned int NorNetEdgePingReader::fetchFiles(std::list<const std::filesystem::p
 {
    assert(worker < Workers);
 
+   std::unique_lock lock(Mutex);
    unsigned int n = 0;
-   for(const InputFileEntry& inputFileEntry : InputFileSet[worker]) {
+
+   for(const InputFileEntry& inputFileEntry : DataFileSet[worker]) {
       dataFileList.push_back(&inputFileEntry.DataFile);
       n++;
       if(n >= limit) {
@@ -369,8 +364,8 @@ void NorNetEdgePingReader::printStatus(std::ostream& os)
 {
    os << "NorNetEdgePing:" << std::endl;
    for(unsigned int w = 0; w < Workers; w++) {
-      os << " - Worker #" << w + 1 << ": " << InputFileSet[w].size() << std::endl;
-//       for(const InputFileEntry& inputFileEntry : InputFileSet[w]) {
+      os << " - Work Queue #" << w + 1 << ": " << DataFileSet[w].size() << std::endl;
+//       for(const InputFileEntry& inputFileEntry : DataFileSet[w]) {
 //          os << "  - " <<  inputFileEntry.DataFile << std::endl;
 //       }
    }
@@ -384,6 +379,8 @@ class Worker
           BasicReader*        reader,
           DatabaseClientBase* databaseClient);
    ~Worker();
+
+   void wakeUp();
 
    inline const std::string& getIdentification() const { return Identification; }
 
@@ -409,6 +406,7 @@ Worker::Worker(const unsigned int  workerID,
      DatabaseClient(databaseClient),
      Identification(reader->getIdentification() + "/" + std::to_string(WorkerID))
 {
+   Thread = std::thread(&Worker::run, this);
 }
 
 
@@ -417,13 +415,24 @@ Worker::~Worker()
 }
 
 
+void Worker::wakeUp()
+{
+   Notification.notify_one();
+}
+
+
 void Worker::run()
 {
    std::unique_lock lock(Mutex);
 
-   std::cout << "Worker running!" << std::endl;
+   std::cout << getIdentification() << ": sleeping ..." << std::endl;
+   Notification.wait(lock);
    while(Reader != nullptr) {
       std::list<const std::filesystem::path*> dataFileList;
+
+      std::cout << getIdentification() << ": Check ..." << std::endl;
+
+      usleep(500000);
 
       // ====== Fast import: try to combine files ===========================
       const unsigned int files = Reader->fetchFiles(dataFileList, WorkerID, Reader->getMaxTransactionSize());
@@ -434,6 +443,7 @@ void Worker::run()
       }
 
       // ====== Wait for new data ===========================================
+      std::cout << getIdentification() << ": sleeping ..." << std::endl;
       Notification.wait(lock);
    }
 }
@@ -447,7 +457,7 @@ class Collector
              const unsigned int           maxDepth = 5);
    ~Collector();
 
-   void addReader(BasicReader*      reader,
+   void addReader(BasicReader*         reader,
                   DatabaseClientBase** databaseClientArray,
                   const size_t         databaseClients);
    void lookForFiles();
@@ -458,11 +468,30 @@ class Collector
                      const unsigned int           maxDepth);
    void addFile(const std::filesystem::path& dataFile);
 
-   std::list<BasicReader*>     ReaderList;
-   std::list<Worker*>          WorkerList;
-   const std::filesystem::path DataDirectory;
-   const unsigned int          MaxDepth;
+   struct WorkerMapping {
+      BasicReader* Reader;
+      unsigned int WorkerID;
+   };
+   friend bool operator<(const Collector::WorkerMapping& a,
+                         const Collector::WorkerMapping& b);
+
+   std::list<BasicReader*>                ReaderList;
+   std::map<const WorkerMapping, Worker*> WorkerMap;
+   const std::filesystem::path            DataDirectory;
+   const unsigned int                     MaxDepth;
 };
+
+
+bool operator<(const Collector::WorkerMapping& a,
+               const Collector::WorkerMapping& b) {
+   if(a.Reader < b.Reader) {
+      return true;
+   }
+   if(a.WorkerID < b.WorkerID) {
+      return true;
+   }
+   return false;
+}
 
 
 Collector::Collector(const std::filesystem::path& dataDirectory,
@@ -485,7 +514,11 @@ void Collector::addReader(BasicReader*         reader,
    ReaderList.push_back(reader);
    for(unsigned int w = 0; w < databaseClients; w++) {
       Worker* worker = new Worker(w, reader, databaseClientArray[w]);
-      WorkerList.push_back(worker);
+      assert(worker != nullptr);
+      WorkerMapping workerMapping;
+      workerMapping.Reader  = reader;
+      workerMapping.WorkerID = w;
+      WorkerMap.insert(std::pair<const WorkerMapping, Worker*>(workerMapping, worker));
    }
 }
 
@@ -521,7 +554,17 @@ void Collector::addFile(const std::filesystem::path& dataFile)
    const std::string& filename = dataFile.filename().string();
    for(BasicReader* reader : ReaderList) {
       if(std::regex_match(filename, match, reader->getFileNameRegExp())) {
-         reader->addFile(dataFile, match);
+         const int worker = reader->addFile(dataFile, match);
+         if(worker >= 0) {
+            WorkerMapping workerMapping;
+            workerMapping.Reader   = reader;
+            workerMapping.WorkerID = worker;
+            std::map<const WorkerMapping, Worker*>::iterator found = WorkerMap.find(workerMapping);
+            if(found != WorkerMap.end()) {
+               Worker* worker = found->second;
+               worker->wakeUp();
+            }
+         }
       }
    }
 }
