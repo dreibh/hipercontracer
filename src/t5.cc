@@ -30,11 +30,12 @@ class DatabaseClientBase
    };
 
    virtual const DatabaseClientBase::DatabaseType getType() const = 0;
-   virtual bool beginTransaction() = 0;
-   virtual bool endTransaction(const bool commit) = 0;
+   virtual void beginTransaction() = 0;
+   virtual void execute(const std::string& statement) = 0;
+   virtual void endTransaction(const bool commit) = 0;
 
-   inline bool commit()   { return endTransaction(true);  }
-   inline bool rollback() { return endTransaction(false); }
+   inline void commit()   { endTransaction(true);  }
+   inline void rollback() { endTransaction(false); }
 };
 
 
@@ -45,8 +46,9 @@ class MariaDBClient : public virtual  DatabaseClientBase
    virtual ~MariaDBClient();
 
    virtual const DatabaseType getType() const;
-   virtual bool beginTransaction();
-   virtual bool endTransaction(const bool commit);
+   virtual void beginTransaction();
+   virtual void execute(const std::string& statement);
+   virtual void endTransaction(const bool commit);
 };
 
 
@@ -66,15 +68,20 @@ const DatabaseClientBase::DatabaseType MariaDBClient::getType() const
 }
 
 
-bool MariaDBClient::beginTransaction()
+void MariaDBClient::beginTransaction()
 {
-   return false;
 }
 
 
-bool MariaDBClient::endTransaction(const bool commit)
+void MariaDBClient::endTransaction(const bool commit)
 {
-   return false;
+}
+
+
+void MariaDBClient::execute(const std::string& statement)
+{
+   std::cout << statement;
+   throw std::runtime_error("TEST EXCEPTION!");
 }
 
 
@@ -386,6 +393,8 @@ class Worker
 
 
    private:
+   void processFile(std::string&                 statement,
+                    const std::filesystem::path* dataFile);
    void run();
 
    const unsigned int      WorkerID;
@@ -412,12 +421,24 @@ Worker::Worker(const unsigned int  workerID,
 
 Worker::~Worker()
 {
+   Mutex.lock();
+   Reader = nullptr;
+   Mutex.unlock();
+   wakeUp();
+   Thread.join();
 }
 
 
 void Worker::wakeUp()
 {
    Notification.notify_one();
+}
+
+
+void Worker::processFile(std::string&                 statement,
+                         const std::filesystem::path* dataFile)
+{
+
 }
 
 
@@ -437,8 +458,43 @@ void Worker::run()
       // ====== Fast import: try to combine files ===========================
       const unsigned int files = Reader->fetchFiles(dataFileList, WorkerID, Reader->getMaxTransactionSize());
       if(files > 0) {
-         if(DatabaseClient->beginTransaction()) {
+         std::string statement;
+         printf("f=%d\n", files);
 
+         try {
+
+            DatabaseClient->beginTransaction();
+            unsigned int n = 1;
+            for(const std::filesystem::path* dataFile : dataFileList) {
+               std::cout << getIdentification() << ": n=" << n << " -> " << dataFile << std::endl;
+
+                processFile(statement, dataFile);
+
+               n++;
+            }
+            DatabaseClient->execute(statement);
+            DatabaseClient->commit();
+         }
+         catch(const std::exception& exception) {
+            DatabaseClient->rollback();
+            std::cerr << "DB transaction failed: " << exception.what() << std::endl;
+
+
+            // ====== Slow import: handle files sequentially ================
+            if(files > 1) {
+//                files = 1;
+//
+//                const std::filesystem::path* dataFile = dataFileList.front();
+//                statement = "";
+//
+//                try {
+//                   DatabaseClient->beginTransaction();
+//                   processFile(statement, dataFile);
+//                   DatabaseClient->execute(statement);
+//                   DatabaseClient->commit();
+//
+
+            }
          }
       }
 
@@ -460,7 +516,10 @@ class Collector
    void addReader(BasicReader*         reader,
                   DatabaseClientBase** databaseClientArray,
                   const size_t         databaseClients);
+   void removeReader(BasicReader* reader);
    void lookForFiles();
+   void start();
+   void stop();
    void printStatus(std::ostream& os = std::cout);
 
    private:
@@ -504,6 +563,21 @@ Collector::Collector(const std::filesystem::path& dataDirectory,
 
 Collector::~Collector()
 {
+   stop();
+}
+
+
+void Collector::start()
+{
+}
+
+
+void Collector::stop()
+{
+   for(std::list<BasicReader*>::iterator readerIterator = ReaderList.begin(); readerIterator != ReaderList.end(); ) {
+      removeReader(*readerIterator);
+      readerIterator = ReaderList.begin();
+   }
 }
 
 
@@ -519,6 +593,30 @@ void Collector::addReader(BasicReader*         reader,
       workerMapping.Reader  = reader;
       workerMapping.WorkerID = w;
       WorkerMap.insert(std::pair<const WorkerMapping, Worker*>(workerMapping, worker));
+   }
+}
+
+
+void Collector::removeReader(BasicReader* reader)
+{
+   for(std::list<BasicReader*>::iterator readerIterator = ReaderList.begin();
+       readerIterator != ReaderList.end();
+       readerIterator++) {
+      if(*readerIterator == reader) {
+         ReaderList.erase(readerIterator);
+         break;
+      }
+   }
+
+   for(std::map<const WorkerMapping, Worker*>::iterator workerMappingIterator = WorkerMap.begin();
+       workerMappingIterator != WorkerMap.end(); ) {
+      if(workerMappingIterator->first.Reader == reader) {
+         delete workerMappingIterator->second;
+         workerMappingIterator = WorkerMap.erase(workerMappingIterator);
+      }
+      else {
+         workerMappingIterator++;
+      }
    }
 }
 
@@ -594,14 +692,19 @@ int main(int argc, char** argv)
       pingDatabaseClients[i] = new MariaDBClient();
    }
 
+   NorNetEdgePingReader nnePingReader(pingWorkers);
+
    Collector collector("data", 5);
 
-   NorNetEdgePingReader nnePingReader(pingWorkers);
    collector.addReader(&nnePingReader,
                        (DatabaseClientBase**)&pingDatabaseClients, pingWorkers);
 
    collector.lookForFiles();
    collector.printStatus();
+
+   collector.start();
+
+   collector.stop();
 
    for(unsigned int i = 0; i < pingWorkers; i++) {
       delete pingDatabaseClients[i];
