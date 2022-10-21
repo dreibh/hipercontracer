@@ -1,12 +1,19 @@
 #include <filesystem>
+#include <fstream>
 #include <iostream>
 #include <regex>
 #include <set>
 #include <list>
 #include <mutex>
+#include <vector>
 #include <thread>
 #include <cassert>
 #include <condition_variable>
+
+#include <boost/iostreams/filtering_stream.hpp>
+#include <boost/iostreams/filter/bzip2.hpp>
+#include <boost/iostreams/filter/gzip.hpp>
+#include <boost/iostreams/filter/lzma.hpp>
 
 #include <unistd.h>
 
@@ -15,21 +22,22 @@
 // g++ t5.cc -o t5 -std=c++17 -O0 -g -Wall -lpthread && rm -f core && ./t5
 
 
+enum DatabaseType {
+   SQL_Generic    = (1 << 0),
+   NoSQL_Generic  = (1 << 1),
+
+   SQL_MariaDB    = SQL_Generic | (1 << 16),
+   SQL_PostgreSQL = SQL_Generic | (1 << 17),
+   SQL_Cassandra  = SQL_Generic | (1 << 18),
+
+   NoSQL_MongoDB  = NoSQL_Generic | (1 << 24)
+};
+
+
 class DatabaseClientBase
 {
    public:
-   enum DatabaseType {
-      SQL_Generic    = (1 << 0),
-      NoSQL_Generic  = (1 << 1),
-
-      SQL_MariaDB    = SQL_Generic | (1 << 16),
-      SQL_PostgreSQL = SQL_Generic | (1 << 17),
-      SQL_Cassandra  = SQL_Generic | (1 << 18),
-
-      NoSQL_MongoDB  = NoSQL_Generic | (1 << 24)
-   };
-
-   virtual const DatabaseClientBase::DatabaseType getType() const = 0;
+   virtual const DatabaseType getType() const = 0;
    virtual void beginTransaction() = 0;
    virtual void execute(const std::string& statement) = 0;
    virtual void endTransaction(const bool commit) = 0;
@@ -62,9 +70,9 @@ MariaDBClient::~MariaDBClient()
 }
 
 
-const DatabaseClientBase::DatabaseType MariaDBClient::getType() const
+const DatabaseType MariaDBClient::getType() const
 {
-   return DatabaseClientBase::DatabaseType::SQL_MariaDB;
+   return DatabaseType::SQL_MariaDB;
 }
 
 
@@ -80,7 +88,7 @@ void MariaDBClient::endTransaction(const bool commit)
 
 void MariaDBClient::execute(const std::string& statement)
 {
-   std::cout << statement;
+   std::cout << "S=" << statement << "\n";
    throw std::runtime_error("TEST EXCEPTION!");
 }
 
@@ -97,10 +105,13 @@ class BasicReader
    virtual const std::regex& getFileNameRegExp() const = 0;
    virtual int addFile(const std::filesystem::path& dataFile,
                        const std::smatch            match) = 0;
-   virtual void printStatus(std::ostream& os = std::cout) = 0;
    virtual unsigned int fetchFiles(std::list<const std::filesystem::path*>& dataFileList,
                                    const unsigned int                       worker,
                                    const unsigned int                       limit = 1) = 0;
+   virtual unsigned long long readContents(std::stringstream&                   statement,
+                                           boost::iostreams::filtering_istream& inputStream,
+                                           const DatabaseType                   outputFormat) = 0;
+   virtual void printStatus(std::ostream& os = std::cout) = 0;
 
    inline const unsigned int getWorkers() const { return Workers; }
    inline const unsigned int getMaxTransactionSize() const { return MaxTransactionSize; }
@@ -262,6 +273,9 @@ class NorNetEdgePingReader : public BasicReader
    virtual unsigned int fetchFiles(std::list<const std::filesystem::path*>& dataFileList,
                                    const unsigned int                       worker,
                                    const unsigned int                       limit = 1);
+   virtual unsigned long long readContents(std::stringstream&                   statement,
+                                           boost::iostreams::filtering_istream& inputStream,
+                                           const DatabaseType                   outputFormat);
    virtual void printStatus(std::ostream& os = std::cout);
 
    private:
@@ -367,6 +381,66 @@ unsigned int NorNetEdgePingReader::fetchFiles(std::list<const std::filesystem::p
 }
 
 
+unsigned long long NorNetEdgePingReader::readContents(
+                      std::stringstream&                   statement,
+                      boost::iostreams::filtering_istream& inputStream,
+                      const DatabaseType                   outputFormat)
+
+{
+   static const unsigned int NorNetEdgePingColumns   = 4;
+   static const char         NorNetEdgePingDelimiter = '\t';
+
+   unsigned long long rows = 0;
+   std::string        inputLine;
+   std::string        tuple[NorNetEdgePingColumns];
+
+   while(std::getline(inputStream, inputLine)) {
+      size_t columns = 0;
+      size_t start;
+      size_t end = 0;
+      while((start = inputLine.find_first_not_of(NorNetEdgePingDelimiter, end)) != std::string::npos) {
+         end = inputLine.find(NorNetEdgePingDelimiter, start);
+
+         if(columns == NorNetEdgePingColumns) {
+            throw std::range_error("Too many columns in input file");
+         }
+         tuple[columns++] = inputLine.substr(start, end - start);
+      }
+      if(columns != NorNetEdgePingColumns) {
+         throw std::range_error("Too few columns in input file");
+      }
+
+      if(outputFormat & DatabaseType::SQL_Generic) {
+         if(rows == 0) {
+            statement << "INSERT INTO measurement_generic_data ("
+                         "ts, mi_id, seq, xml_data, crc, stats"
+                         ") VALUES (\n";
+         }
+         else {
+            statement << ",\n";
+         }
+         statement << " ("
+                   << "'" << tuple[0] << "', "
+                   << std::stoul(tuple[1]) << ", "
+                   << std::stoul(tuple[2]) << ", "
+                   << "'" << tuple[3] << "', crc32(xml_data), 10 + mi_id MOD 10)";
+         rows++;
+      }
+      else {
+         throw std::runtime_error("Unknown output format");
+      }
+   }
+
+   if(outputFormat & DatabaseType::SQL_Generic) {
+      if(rows > 0) {
+         statement << "\n) ON DUPLICATE KEY UPDATE stats=stats;\n";
+      }
+   }
+
+   return rows;
+}
+
+
 void NorNetEdgePingReader::printStatus(std::ostream& os)
 {
    os << "NorNetEdgePing:" << std::endl;
@@ -393,8 +467,8 @@ class Worker
 
 
    private:
-   void processFile(std::string&                 statement,
-                    const std::filesystem::path* dataFile);
+   unsigned long long processFile(std::stringstream&           statement,
+                                  const std::filesystem::path* dataFile);
    void run();
 
    const unsigned int      WorkerID;
@@ -435,10 +509,27 @@ void Worker::wakeUp()
 }
 
 
-void Worker::processFile(std::string&                 statement,
-                         const std::filesystem::path* dataFile)
+unsigned long long Worker::processFile(std::stringstream&           statement,
+                                       const std::filesystem::path* dataFile)
 {
+   std::ifstream                       inputFile;
+   boost::iostreams::filtering_istream inputStream;
 
+   // ====== Prepare input stream ===========================================
+   inputFile.open(dataFile->string(), std::ios_base::in | std::ios_base::binary);
+   if(dataFile->extension() == ".xz") {
+      inputStream.push(boost::iostreams::lzma_decompressor());
+   }
+   else if(dataFile->extension() == ".bz2") {
+      inputStream.push(boost::iostreams::bzip2_decompressor());
+   }
+   else if(dataFile->extension() == ".gz") {
+      inputStream.push(boost::iostreams::gzip_decompressor());
+   }
+   inputStream.push(inputFile);
+
+   // ====== Read contents ==================================================
+   return Reader->readContents(statement, inputStream, DatabaseClient->getType());
 }
 
 
@@ -458,22 +549,21 @@ void Worker::run()
       // ====== Fast import: try to combine files ===========================
       const unsigned int files = Reader->fetchFiles(dataFileList, WorkerID, Reader->getMaxTransactionSize());
       if(files > 0) {
-         std::string statement;
-         printf("f=%d\n", files);
-
+         std::stringstream  statement;
+         unsigned long long rows = 0;
          try {
-
-            DatabaseClient->beginTransaction();
             unsigned int n = 1;
             for(const std::filesystem::path* dataFile : dataFileList) {
-               std::cout << getIdentification() << ": n=" << n << " -> " << dataFile << std::endl;
-
-                processFile(statement, dataFile);
-
+               std::cout << getIdentification() << ": n=" << n << " -> " << *dataFile << std::endl;
+               rows += processFile(statement, dataFile);
                n++;
             }
-            DatabaseClient->execute(statement);
-            DatabaseClient->commit();
+            printf("=> %llu\n", rows);
+            if(rows > 0) {
+               DatabaseClient->beginTransaction();
+               DatabaseClient->execute(statement.str());
+               DatabaseClient->commit();
+            }
          }
          catch(const std::exception& exception) {
             DatabaseClient->rollback();
