@@ -213,16 +213,6 @@ void NorNetEdgeMetadataReader::beginParsing(std::stringstream&  statement,
 {
    rows = 0;
    statement.str(std::string());
-
-//    // ====== Generate import statement ======================================
-//    if(outputFormat & DatabaseType::SQL_Generic) {
-//       statement << "INSERT INTO measurement_generic_data ("
-//                    "ts, mi_id, seq, xml_data, crc, stats"
-//                    ") VALUES (\n";
-//    }
-//    else {
-//       throw std::invalid_argument("Unknown output format");
-//    }
 }
 
 
@@ -232,15 +222,6 @@ bool NorNetEdgeMetadataReader::finishParsing(std::stringstream&  statement,
                                          const DatabaseType  outputFormat)
 {
    if(rows > 0) {
-//       // ====== Generate import statement ===================================
-//       if(outputFormat & DatabaseType::SQL_Generic) {
-//          if(rows > 0) {
-//             statement << "\n) ON DUPLICATE KEY UPDATE stats=stats;\n";
-//          }
-//       }
-//       else {
-//          throw std::invalid_argument("Unknown output format");
-//       }
       return true;
    }
    statement.str(std::string());
@@ -397,54 +378,10 @@ void NorNetEdgeMetadataReader::parseContents(
       else {
          throw std::invalid_argument("Got unknown metadata type " + itemType);
       }
-      std::cerr << "c=" << itemType << "\n";
    }
-
-
 
    std::cerr << statement.str();
    exit(1);
-
-//    static const unsigned int NorNetEdgeMetadataColumns   = 4;
-//    static const char         NorNetEdgeMetadataDelimiter = '\t';
-//
-//
-//
-//    std::string inputLine;
-//    std::string tuple[NorNetEdgeMetadataColumns];
-//    while(std::getline(inputStream, inputLine)) {
-//       // ====== Parse line ==================================================
-//       size_t columns = 0;
-//       size_t start;
-//       size_t end = 0;
-//       while((start = inputLine.find_first_not_of(NorNetEdgeMetadataDelimiter, end)) != std::string::npos) {
-//          end = inputLine.find(NorNetEdgeMetadataDelimiter, start);
-//
-//          if(columns == NorNetEdgeMetadataColumns) {
-//             throw std::invalid_argument("Too many columns in input file");
-//          }
-//          tuple[columns++] = inputLine.substr(start, end - start);
-//       }
-//       if(columns != NorNetEdgeMetadataColumns) {
-//          throw std::invalid_argument("Too few columns in input file");
-//       }
-/*
-      // ====== Generate import statement ===================================
-      if(outputFormat & DatabaseType::SQL_Generic) {
-//          if(rows > 0) {
-//             statement << ",\n";
-//          }
-//          statement << " ("
-//                    << "'" << tuple[0] << "', "
-//                    << std::stoul(tuple[1]) << ", "
-//                    << std::stoul(tuple[2]) << ", "
-//                    << "'" << tuple[3] << "', crc32(xml_data), 10 + mi_id MOD 10)";
-//          rows++;
-      }
-      else {
-         throw std::invalid_argument("Unknown output format");
-      }*/
-//    }
 }
 
 
