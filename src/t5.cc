@@ -12,12 +12,16 @@
 #include <cassert>
 #include <condition_variable>
 
+#include <boost/asio.hpp>
+#include <boost/bind.hpp>
 #include <boost/iostreams/filtering_stream.hpp>
 #include <boost/iostreams/filter/bzip2.hpp>
 #include <boost/iostreams/filter/gzip.hpp>
 #include <boost/iostreams/filter/lzma.hpp>
 
 #include <unistd.h>
+#include <sys/signalfd.h>
+#include <sys/inotify.h>
 
 
 // g++ t5.cc -o t5 -std=c++17
@@ -716,8 +720,9 @@ class UniversalImporter
                   const size_t         databaseClients);
    void removeReader(BasicReader* reader);
    void lookForFiles();
-   void start();
+   bool start();
    void stop();
+   void run();
    void printStatus(std::ostream& os = std::cout);
 
    private:
@@ -736,6 +741,15 @@ class UniversalImporter
    std::map<const WorkerMapping, Worker*> WorkerMap;
    const std::filesystem::path            DataDirectory;
    const unsigned int                     MaxDepth;
+
+   boost::asio::io_service                IOService;
+   int                                    SignalFD;
+   boost::asio::posix::stream_descriptor  SignalStream;
+#ifdef __linux__
+   int                                    INotifyFD;
+   int                                    INotifyWatchDescriptor;
+   boost::asio::posix::stream_descriptor  INotifyStream;
+#endif
 };
 
 
@@ -756,8 +770,14 @@ bool operator<(const UniversalImporter::WorkerMapping& a,
 UniversalImporter::UniversalImporter(const std::filesystem::path& dataDirectory,
                                      const unsigned int           maxDepth)
  : DataDirectory(dataDirectory),
-   MaxDepth(maxDepth)
+   MaxDepth(maxDepth),
+   SignalStream(IOService),
+   INotifyStream(IOService)
 {
+#ifdef __linux__
+   INotifyWatchDescriptor = -1;
+   INotifyFD              = -1;
+#endif
 }
 
 
@@ -769,8 +789,37 @@ UniversalImporter::~UniversalImporter()
 
 
 // ###### Start importer ####################################################
-void UniversalImporter::start()
+bool UniversalImporter::start()
 {
+   // ====== Intercept signals ==============================================
+   sigset_t signalMask;
+   sigemptyset(&signalMask);
+   sigaddset(&signalMask, SIGINT);
+   sigaddset(&signalMask, SIGTERM);
+   sigprocmask(SIG_BLOCK, &signalMask, nullptr);
+   SignalFD = signalfd(-1, &signalMask, SFD_NONBLOCK|SFD_CLOEXEC);
+   assert(SignalFD > 0);
+   SignalStream.assign(SignalFD);
+
+   // ====== Set up INotify =================================================
+#ifdef __linux__
+   INotifyFD = inotify_init();
+   assert(INotifyFD > 0);
+   INotifyStream.assign(INotifyFD);
+   INotifyWatchDescriptor = inotify_add_watch(INotifyFD, DataDirectory.c_str(), IN_CREATE | IN_DELETE | IN_DELETE_SELF | IN_MOVE_SELF | IN_MODIFY);
+   if(INotifyWatchDescriptor < 0) {
+      HPCT_LOG(error) << "Unable to configure inotify: " <<strerror(errno);
+      return false;
+   }
+#else
+#error FIXME!
+#endif
+
+   // ====== Look for files =================================================
+   lookForFiles();
+   printStatus();
+
+   return true;
 }
 
 
@@ -913,10 +962,9 @@ int main(int argc, char** argv)
    importer.addReader(&nnePingReader,
                        (DatabaseClientBase**)&pingDatabaseClients, pingWorkers);
 
-   importer.lookForFiles();
-   importer.printStatus();
-
-   importer.start();
+   if(importer.start() == false) {
+      exit(1);
+   }
 
    importer.stop();
 
