@@ -1,3 +1,5 @@
+#include "logger.h"
+
 #include <filesystem>
 #include <fstream>
 #include <iostream>
@@ -47,6 +49,7 @@ class DatabaseClientBase
 };
 
 
+
 class MariaDBClient : public virtual  DatabaseClientBase
 {
    public:
@@ -60,11 +63,13 @@ class MariaDBClient : public virtual  DatabaseClientBase
 };
 
 
+// ###### Constructor #######################################################
 MariaDBClient::MariaDBClient()
 {
 }
 
 
+// ###### Destructor ########################################################
 MariaDBClient::~MariaDBClient()
 {
 }
@@ -103,15 +108,24 @@ class BasicReader
 
    virtual const std::string& getIdentification() const = 0;
    virtual const std::regex& getFileNameRegExp() const = 0;
+
    virtual int addFile(const std::filesystem::path& dataFile,
                        const std::smatch            match) = 0;
    virtual unsigned int fetchFiles(std::list<const std::filesystem::path*>& dataFileList,
                                    const unsigned int                       worker,
                                    const unsigned int                       limit = 1) = 0;
-   virtual unsigned long long readContents(std::stringstream&                   statement,
-                                           boost::iostreams::filtering_istream& inputStream,
-                                           const DatabaseType                   outputFormat) = 0;
    virtual void printStatus(std::ostream& os = std::cout) = 0;
+
+   virtual void beginParsing(std::stringstream&  statement,
+                             unsigned long long& rows,
+                             const DatabaseType  outputFormat) = 0;
+   virtual bool finishParsing(std::stringstream&  statement,
+                              unsigned long long& rows,
+                              const DatabaseType  outputFormat) = 0;
+   virtual void parseContents(std::stringstream&                   statement,
+                              unsigned long long&                  rows,
+                              boost::iostreams::filtering_istream& inputStream,
+                              const DatabaseType                   outputFormat) = 0;
 
    inline const unsigned int getWorkers() const { return Workers; }
    inline const unsigned int getMaxTransactionSize() const { return MaxTransactionSize; }
@@ -122,6 +136,7 @@ class BasicReader
 };
 
 
+// ###### Constructor #######################################################
 BasicReader::BasicReader(const unsigned int workers,
                          const unsigned int maxTransactionSize)
    : Workers(workers),
@@ -132,6 +147,7 @@ BasicReader::BasicReader(const unsigned int workers,
 }
 
 
+// ###### Destructor ########################################################
 BasicReader::~BasicReader()
 {
 }
@@ -186,11 +202,13 @@ bool operator<(const HiPerConTracerPingReader::InputFileEntry& a,
 }
 
 
+// ###### Constructor #######################################################
 HiPerConTracerPingReader::HiPerConTracerPingReader()
 {
 }
 
 
+// ###### Destructor ########################################################
 HiPerConTracerPingReader::~HiPerConTracerPingReader()
 {
 }
@@ -246,6 +264,7 @@ HiPerConTracerTracerouteReader::HiPerConTracerTracerouteReader()
 }
 
 
+// ###### Destructor ########################################################
 HiPerConTracerTracerouteReader::~HiPerConTracerTracerouteReader()
 {
 }
@@ -259,6 +278,7 @@ const std::regex& HiPerConTracerTracerouteReader::getFileNameRegExp() const
 #endif
 
 
+
 class NorNetEdgePingReader : public BasicReader
 {
    public:
@@ -268,15 +288,24 @@ class NorNetEdgePingReader : public BasicReader
 
    virtual const std::string& getIdentification() const;
    virtual const std::regex& getFileNameRegExp() const;
+
    virtual int addFile(const std::filesystem::path& dataFile,
                        const std::smatch            match);
    virtual unsigned int fetchFiles(std::list<const std::filesystem::path*>& dataFileList,
                                    const unsigned int                       worker,
                                    const unsigned int                       limit = 1);
-   virtual unsigned long long readContents(std::stringstream&                   statement,
-                                           boost::iostreams::filtering_istream& inputStream,
-                                           const DatabaseType                   outputFormat);
    virtual void printStatus(std::ostream& os = std::cout);
+
+   virtual void beginParsing(std::stringstream&  statement,
+                             unsigned long long& rows,
+                             const DatabaseType  outputFormat);
+   virtual bool finishParsing(std::stringstream&  statement,
+                              unsigned long long& rows,
+                              const DatabaseType  outputFormat);
+   virtual void parseContents(std::stringstream&                   statement,
+                              unsigned long long&                  rows,
+                              boost::iostreams::filtering_istream& inputStream,
+                              const DatabaseType                   outputFormat);
 
    private:
    struct InputFileEntry {
@@ -301,6 +330,7 @@ const std::regex NorNetEdgePingReader::FileNameRegExp = std::regex(
 );
 
 
+// ###### < operator for sorting ############################################
 bool operator<(const NorNetEdgePingReader::InputFileEntry& a,
                const NorNetEdgePingReader::InputFileEntry& b) {
    if(a.TimeStamp < b.TimeStamp) {
@@ -313,6 +343,7 @@ bool operator<(const NorNetEdgePingReader::InputFileEntry& a,
 }
 
 
+// ###### Constructor #######################################################
 NorNetEdgePingReader::NorNetEdgePingReader(const unsigned int workers,
                                            const unsigned int maxTransactionSize)
    : BasicReader(workers, maxTransactionSize)
@@ -322,6 +353,7 @@ NorNetEdgePingReader::NorNetEdgePingReader(const unsigned int workers,
 }
 
 
+// ###### Destructor ########################################################
 NorNetEdgePingReader::~NorNetEdgePingReader()
 {
    delete [] DataFileSet;
@@ -329,18 +361,21 @@ NorNetEdgePingReader::~NorNetEdgePingReader()
 }
 
 
+// ###### Get identification of reader ######################################
 const std::string& NorNetEdgePingReader::getIdentification() const
 {
    return Identification;
 }
 
 
+// ###### Get input file name regular expression ############################
 const std::regex& NorNetEdgePingReader::getFileNameRegExp() const
 {
    return(FileNameRegExp);
 }
 
 
+// ###### Add input file to reader ##########################################
 int NorNetEdgePingReader::addFile(const std::filesystem::path& dataFile,
                                   const std::smatch            match)
 {
@@ -360,6 +395,7 @@ int NorNetEdgePingReader::addFile(const std::filesystem::path& dataFile,
 }
 
 
+// ###### Fetch list of input files #########################################
 unsigned int NorNetEdgePingReader::fetchFiles(std::list<const std::filesystem::path*>& dataFileList,
                                               const unsigned int                       worker,
                                               const unsigned int                       limit)
@@ -367,8 +403,8 @@ unsigned int NorNetEdgePingReader::fetchFiles(std::list<const std::filesystem::p
    assert(worker < Workers);
 
    std::unique_lock lock(Mutex);
-   unsigned int n = 0;
 
+   unsigned int n = 0;
    for(const InputFileEntry& inputFileEntry : DataFileSet[worker]) {
       dataFileList.push_back(&inputFileEntry.DataFile);
       n++;
@@ -376,25 +412,66 @@ unsigned int NorNetEdgePingReader::fetchFiles(std::list<const std::filesystem::p
          break;
       }
    }
-
    return n;
 }
 
 
-unsigned long long NorNetEdgePingReader::readContents(
-                      std::stringstream&                   statement,
-                      boost::iostreams::filtering_istream& inputStream,
-                      const DatabaseType                   outputFormat)
+// ###### Begin parsing #####################################################
+void NorNetEdgePingReader::beginParsing(std::stringstream&  statement,
+                                        unsigned long long& rows,
+                                        const DatabaseType  outputFormat)
+{
+   rows = 0;
+   statement.str(std::string());
 
+   // ====== Generate import statement ======================================
+   if(outputFormat & DatabaseType::SQL_Generic) {
+      statement << "INSERT INTO measurement_generic_data ("
+                   "ts, mi_id, seq, xml_data, crc, stats"
+                   ") VALUES (\n";
+   }
+   else {
+      throw std::runtime_error("Unknown output format");
+   }
+}
+
+
+// ###### Finish parsing ####################################################
+bool NorNetEdgePingReader::finishParsing(std::stringstream&  statement,
+                                         unsigned long long& rows,
+                                         const DatabaseType  outputFormat)
+{
+   if(rows > 0) {
+      // ====== Generate import statement ===================================
+      if(outputFormat & DatabaseType::SQL_Generic) {
+         if(rows > 0) {
+            statement << "\n) ON DUPLICATE KEY UPDATE stats=stats;\n";
+         }
+      }
+      else {
+         throw std::runtime_error("Unknown output format");
+      }
+      return true;
+   }
+   statement.str(std::string());
+   return false;
+}
+
+
+// ###### Parse input file ##################################################
+void NorNetEdgePingReader::parseContents(
+        std::stringstream&                   statement,
+        unsigned long long&                  rows,
+        boost::iostreams::filtering_istream& inputStream,
+        const DatabaseType                   outputFormat)
 {
    static const unsigned int NorNetEdgePingColumns   = 4;
    static const char         NorNetEdgePingDelimiter = '\t';
 
-   unsigned long long rows = 0;
-   std::string        inputLine;
-   std::string        tuple[NorNetEdgePingColumns];
-
+   std::string inputLine;
+   std::string tuple[NorNetEdgePingColumns];
    while(std::getline(inputStream, inputLine)) {
+      // ====== Parse line ==================================================
       size_t columns = 0;
       size_t start;
       size_t end = 0;
@@ -410,13 +487,9 @@ unsigned long long NorNetEdgePingReader::readContents(
          throw std::range_error("Too few columns in input file");
       }
 
+      // ====== Generate import statement ===================================
       if(outputFormat & DatabaseType::SQL_Generic) {
-         if(rows == 0) {
-            statement << "INSERT INTO measurement_generic_data ("
-                         "ts, mi_id, seq, xml_data, crc, stats"
-                         ") VALUES (\n";
-         }
-         else {
+         if(rows > 0) {
             statement << ",\n";
          }
          statement << " ("
@@ -430,14 +503,6 @@ unsigned long long NorNetEdgePingReader::readContents(
          throw std::runtime_error("Unknown output format");
       }
    }
-
-   if(outputFormat & DatabaseType::SQL_Generic) {
-      if(rows > 0) {
-         statement << "\n) ON DUPLICATE KEY UPDATE stats=stats;\n";
-      }
-   }
-
-   return rows;
 }
 
 
@@ -446,11 +511,12 @@ void NorNetEdgePingReader::printStatus(std::ostream& os)
    os << "NorNetEdgePing:" << std::endl;
    for(unsigned int w = 0; w < Workers; w++) {
       os << " - Work Queue #" << w + 1 << ": " << DataFileSet[w].size() << std::endl;
-//       for(const InputFileEntry& inputFileEntry : DataFileSet[w]) {
-//          os << "  - " <<  inputFileEntry.DataFile << std::endl;
-//       }
+      // for(const InputFileEntry& inputFileEntry : DataFileSet[w]) {
+      //    os << "  - " <<  inputFileEntry.DataFile << std::endl;
+      // }
    }
 }
+
 
 
 class Worker
@@ -467,8 +533,10 @@ class Worker
 
 
    private:
-   unsigned long long processFile(std::stringstream&           statement,
-                                  const std::filesystem::path* dataFile);
+   void processFile(std::stringstream&           statement,
+                    unsigned long long&          rows,
+                    const std::filesystem::path* dataFile);
+   void finishedFile(const std::filesystem::path& dataFile);
    void run();
 
    const unsigned int      WorkerID;
@@ -481,6 +549,7 @@ class Worker
 };
 
 
+// ###### Constructor #######################################################
 Worker::Worker(const unsigned int  workerID,
                BasicReader*        reader,
                DatabaseClientBase* databaseClient)
@@ -493,6 +562,7 @@ Worker::Worker(const unsigned int  workerID,
 }
 
 
+// ###### Destructor ########################################################
 Worker::~Worker()
 {
    Mutex.lock();
@@ -503,14 +573,17 @@ Worker::~Worker()
 }
 
 
+// ###### Wake up worker loop ###############################################
 void Worker::wakeUp()
 {
    Notification.notify_one();
 }
 
 
-unsigned long long Worker::processFile(std::stringstream&           statement,
-                                       const std::filesystem::path* dataFile)
+// ###### Get list of input files ###########################################
+void Worker::processFile(std::stringstream&           statement,
+                         unsigned long long&          rows,
+                         const std::filesystem::path* dataFile)
 {
    std::ifstream                       inputFile;
    boost::iostreams::filtering_istream inputStream;
@@ -529,10 +602,18 @@ unsigned long long Worker::processFile(std::stringstream&           statement,
    inputStream.push(inputFile);
 
    // ====== Read contents ==================================================
-   return Reader->readContents(statement, inputStream, DatabaseClient->getType());
+   Reader->parseContents(statement, rows, inputStream, DatabaseClient->getType());
 }
 
 
+// ====== Delete finished input file ========================================
+void Worker::finishedFile(const std::filesystem::path& dataFile)
+{
+   HPCT_LOG(trace) << "Deleting " << dataFile;
+}
+
+
+// ###### Worker loop #######################################################
 void Worker::run()
 {
    std::unique_lock lock(Mutex);
@@ -540,68 +621,95 @@ void Worker::run()
    std::cout << getIdentification() << ": sleeping ..." << std::endl;
    Notification.wait(lock);
    while(Reader != nullptr) {
+      // ====== Look for new input files ====================================
+      HPCT_LOG(trace) << getIdentification() << ": Looking for new input files ...";
       std::list<const std::filesystem::path*> dataFileList;
-
-      std::cout << getIdentification() << ": Check ..." << std::endl;
-
-      usleep(500000);
+      const unsigned int files = Reader->fetchFiles(dataFileList, WorkerID, Reader->getMaxTransactionSize());
 
       // ====== Fast import: try to combine files ===========================
-      const unsigned int files = Reader->fetchFiles(dataFileList, WorkerID, Reader->getMaxTransactionSize());
       if(files > 0) {
+         HPCT_LOG(debug) << getIdentification() << ": Trying to import " << files << " files in fast mode ...";
+
          std::stringstream  statement;
          unsigned long long rows = 0;
          try {
-            unsigned int n = 1;
+            // ====== Import multiple input files in one transaction ========
+            Reader->beginParsing(statement, rows, DatabaseClient->getType());
             for(const std::filesystem::path* dataFile : dataFileList) {
-               std::cout << getIdentification() << ": n=" << n << " -> " << *dataFile << std::endl;
-               rows += processFile(statement, dataFile);
-               n++;
+               HPCT_LOG(trace) << getIdentification() << ": Parsing " << *dataFile << " ...";
+               processFile(statement, rows, dataFile);
             }
-            printf("=> %llu\n", rows);
-            if(rows > 0) {
+            if(Reader->finishParsing(statement, rows, DatabaseClient->getType())) {
                DatabaseClient->beginTransaction();
                DatabaseClient->execute(statement.str());
                DatabaseClient->commit();
+               HPCT_LOG(debug) << getIdentification() << ": Committed " << rows << " rows";
+            }
+            else {
+               std::cout << "Nothing to do!" << std::endl;
+               HPCT_LOG(debug) << getIdentification() << ": Nothing to import!";
+            }
+
+            // ====== Delete input files ====================================
+            HPCT_LOG(debug) << getIdentification() << ": Deleting " << files << " input files ...";
+            for(const std::filesystem::path* dataFile : dataFileList) {
+               finishedFile(*dataFile);
             }
          }
          catch(const std::exception& exception) {
+            HPCT_LOG(warning) << getIdentification() << ": Import in fast mode failed: "
+                              << exception.what() << std::endl;
             DatabaseClient->rollback();
-            std::cerr << "DB transaction failed: " << exception.what() << std::endl;
-
 
             // ====== Slow import: handle files sequentially ================
             if(files > 1) {
-//                files = 1;
-//
-//                const std::filesystem::path* dataFile = dataFileList.front();
-//                statement = "";
-//
-//                try {
-//                   DatabaseClient->beginTransaction();
-//                   processFile(statement, dataFile);
-//                   DatabaseClient->execute(statement);
-//                   DatabaseClient->commit();
-//
+               HPCT_LOG(debug) << getIdentification() << ": Trying to import " << files << " files in slow mode ...";
 
+               for(const std::filesystem::path* dataFile : dataFileList) {
+                  try {
+                     // ====== Import one input file in one transaction =====
+                     Reader->beginParsing(statement, rows, DatabaseClient->getType());
+                     HPCT_LOG(trace) << getIdentification() << ": Parsing " << *dataFile << " ...";
+                     processFile(statement, rows, dataFile);
+                     if(Reader->finishParsing(statement, rows, DatabaseClient->getType())) {
+                        DatabaseClient->beginTransaction();
+                        DatabaseClient->execute(statement.str());
+                        DatabaseClient->commit();
+                        HPCT_LOG(debug) << getIdentification() << ": Committed " << rows
+                                        << " rows from " << *dataFile;
+                     }
+                     else {
+                        std::cout << "Nothing to do!" << std::endl;
+                        HPCT_LOG(debug) << getIdentification() << ": Nothing to import!";
+                     }
+
+                     // ====== Delete input file ============================
+                     finishedFile(*dataFile);
+                  }
+                  catch(const std::exception& exception) {
+                     DatabaseClient->rollback();
+                     HPCT_LOG(warning) << getIdentification() << ": Importing " << *dataFile << " in slow mode failed: "
+                                       << exception.what() << std::endl;
+                  }
+               }
             }
          }
       }
 
       // ====== Wait for new data ===========================================
-      std::cout << getIdentification() << ": sleeping ..." << std::endl;
+      HPCT_LOG(trace) << getIdentification() << ": sleeping ...";
       Notification.wait(lock);
    }
 }
 
 
 
-class Collector
+class UniversalImporter
 {
    public:
-   Collector(const std::filesystem::path& dataDirectory,
-             const unsigned int           maxDepth = 5);
-   ~Collector();
+   UniversalImporter(const std::filesystem::path& dataDirectory,
+                     const unsigned int           maxDepth = 5);
+   ~UniversalImporter();
 
    void addReader(BasicReader*         reader,
                   DatabaseClientBase** databaseClientArray,
@@ -621,8 +729,8 @@ class Collector
       BasicReader* Reader;
       unsigned int WorkerID;
    };
-   friend bool operator<(const Collector::WorkerMapping& a,
-                         const Collector::WorkerMapping& b);
+   friend bool operator<(const UniversalImporter::WorkerMapping& a,
+                         const UniversalImporter::WorkerMapping& b);
 
    std::list<BasicReader*>                ReaderList;
    std::map<const WorkerMapping, Worker*> WorkerMap;
@@ -631,8 +739,9 @@ class Collector
 };
 
 
-bool operator<(const Collector::WorkerMapping& a,
-               const Collector::WorkerMapping& b) {
+// ###### < operator for sorting ########################################################
+bool operator<(const UniversalImporter::WorkerMapping& a,
+               const UniversalImporter::WorkerMapping& b) {
    if(a.Reader < b.Reader) {
       return true;
    }
@@ -643,26 +752,30 @@ bool operator<(const Collector::WorkerMapping& a,
 }
 
 
-Collector::Collector(const std::filesystem::path& dataDirectory,
-                     const unsigned int           maxDepth)
+// ###### Constructor #######################################################
+UniversalImporter::UniversalImporter(const std::filesystem::path& dataDirectory,
+                                     const unsigned int           maxDepth)
  : DataDirectory(dataDirectory),
    MaxDepth(maxDepth)
 {
 }
 
 
-Collector::~Collector()
+// ###### Destructor ########################################################
+UniversalImporter::~UniversalImporter()
 {
    stop();
 }
 
 
-void Collector::start()
+// ###### Start importer ####################################################
+void UniversalImporter::start()
 {
 }
 
 
-void Collector::stop()
+// ###### Stop importer #####################################################
+void UniversalImporter::stop()
 {
    for(std::list<BasicReader*>::iterator readerIterator = ReaderList.begin(); readerIterator != ReaderList.end(); ) {
       removeReader(*readerIterator);
@@ -671,9 +784,10 @@ void Collector::stop()
 }
 
 
-void Collector::addReader(BasicReader*         reader,
-                          DatabaseClientBase** databaseClientArray,
-                          const size_t         databaseClients)
+// ###### Add reader ########################################################
+void UniversalImporter::addReader(BasicReader*         reader,
+                                  DatabaseClientBase** databaseClientArray,
+                                  const size_t         databaseClients)
 {
    ReaderList.push_back(reader);
    for(unsigned int w = 0; w < databaseClients; w++) {
@@ -687,7 +801,8 @@ void Collector::addReader(BasicReader*         reader,
 }
 
 
-void Collector::removeReader(BasicReader* reader)
+// ###### Remove reader #####################################################
+void UniversalImporter::removeReader(BasicReader* reader)
 {
    for(std::list<BasicReader*>::iterator readerIterator = ReaderList.begin();
        readerIterator != ReaderList.end();
@@ -711,14 +826,16 @@ void Collector::removeReader(BasicReader* reader)
 }
 
 
-void Collector::lookForFiles()
+// ###### Look for input files (full directory traversal) ###################
+void UniversalImporter::lookForFiles()
 {
    lookForFiles(DataDirectory, MaxDepth);
 }
 
 
-void Collector::lookForFiles(const std::filesystem::path& dataDirectory,
-                             const unsigned int           maxDepth)
+// ###### Look for input files (limited directory traversal) ################
+void UniversalImporter::lookForFiles(const std::filesystem::path& dataDirectory,
+                                     const unsigned int           maxDepth)
 {
    for(const std::filesystem::directory_entry& dirEntry : std::filesystem::directory_iterator(dataDirectory)) {
       if(dirEntry.is_regular_file()) {
@@ -733,7 +850,8 @@ void Collector::lookForFiles(const std::filesystem::path& dataDirectory,
 }
 
 
-void Collector::addFile(const std::filesystem::path& dataFile)
+// ###### Add input file ####################################################
+void UniversalImporter::addFile(const std::filesystem::path& dataFile)
 {
    // const std::filesystem::path& subdir = std::filesystem::relative(dataFile, DataDirectory).parent_path();
    // const std::string& filename = dataFile.filename();
@@ -758,7 +876,8 @@ void Collector::addFile(const std::filesystem::path& dataFile)
 }
 
 
-void Collector::printStatus(std::ostream& os)
+// ###### Print importer status #############################################
+void UniversalImporter::printStatus(std::ostream& os)
 {
    for(BasicReader* reader : ReaderList) {
       reader->printStatus(os);
@@ -769,14 +888,19 @@ void Collector::printStatus(std::ostream& os)
 
 int main(int argc, char** argv)
 {
-//    Collector collector(".", 5);
+//    UniversalImporter importer(".", 5);
 //
 //    HiPerConTracerPingReader pingReader;
-//    collector.addReader(&pingReader);
+//    importer.addReader(&pingReader);
 //    HiPerConTracerTracerouteReader tracerouteReader;
-//    collector.addReader(&tracerouteReader);
+//    importer.addReader(&tracerouteReader);
 
-   const unsigned int pingWorkers = 4;
+   unsigned int logLevel = boost::log::trivial::severity_level::trace;
+
+   initialiseLogger(logLevel);
+
+
+   const unsigned int pingWorkers = 1;
    MariaDBClient* pingDatabaseClients[pingWorkers];
    for(unsigned int i = 0; i < pingWorkers; i++) {
       pingDatabaseClients[i] = new MariaDBClient();
@@ -784,17 +908,17 @@ int main(int argc, char** argv)
 
    NorNetEdgePingReader nnePingReader(pingWorkers);
 
-   Collector collector("data", 5);
+   UniversalImporter importer("data", 5);
 
-   collector.addReader(&nnePingReader,
+   importer.addReader(&nnePingReader,
                        (DatabaseClientBase**)&pingDatabaseClients, pingWorkers);
 
-   collector.lookForFiles();
-   collector.printStatus();
+   importer.lookForFiles();
+   importer.printStatus();
 
-   collector.start();
+   importer.start();
 
-   collector.stop();
+   importer.stop();
 
    for(unsigned int i = 0; i < pingWorkers; i++) {
       delete pingDatabaseClients[i];
