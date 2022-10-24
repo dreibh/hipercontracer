@@ -20,8 +20,9 @@
 #include <boost/iostreams/filter/lzma.hpp>
 
 #include <unistd.h>
-#include <sys/signalfd.h>
+#ifdef __linux__
 #include <sys/inotify.h>
+#endif
 
 
 // g++ t5.cc -o t5 -std=c++17
@@ -115,6 +116,8 @@ class BasicReader
 
    virtual int addFile(const std::filesystem::path& dataFile,
                        const std::smatch            match) = 0;
+   virtual void removeFile(const std::filesystem::path& dataFile,
+                           const std::smatch            match) = 0;
    virtual unsigned int fetchFiles(std::list<const std::filesystem::path*>& dataFileList,
                                    const unsigned int                       worker,
                                    const unsigned int                       limit = 1) = 0;
@@ -295,6 +298,8 @@ class NorNetEdgePingReader : public BasicReader
 
    virtual int addFile(const std::filesystem::path& dataFile,
                        const std::smatch            match);
+   virtual void removeFile(const std::filesystem::path& dataFile,
+                           const std::smatch            match);
    virtual unsigned int fetchFiles(std::list<const std::filesystem::path*>& dataFileList,
                                    const unsigned int                       worker,
                                    const unsigned int                       limit = 1);
@@ -390,12 +395,30 @@ int NorNetEdgePingReader::addFile(const std::filesystem::path& dataFile,
       inputFileEntry.DataFile      = dataFile;
       const unsigned int worker = inputFileEntry.MeasurementID % Workers;
 
+      HPCT_LOG(trace) << Identification << ": Adding data file " << dataFile;
       std::unique_lock lock(Mutex);
       DataFileSet[worker].insert(inputFileEntry);
 
       return (int)worker;
    }
    return -1;
+}
+
+
+// ###### Remove input file from reader #####################################
+void NorNetEdgePingReader::removeFile(const std::filesystem::path& dataFile,
+                                      const std::smatch            match)
+{
+   if(match.size() == 3) {
+      InputFileEntry inputFileEntry;
+      inputFileEntry.MeasurementID = atol(match[1].str().c_str());
+      inputFileEntry.TimeStamp     = match[2];
+      inputFileEntry.DataFile      = dataFile;
+      const unsigned int worker = inputFileEntry.MeasurementID % Workers;
+
+      std::unique_lock lock(Mutex);
+      DataFileSet[worker].erase(inputFileEntry);
+   }
 }
 
 
@@ -510,6 +533,7 @@ void NorNetEdgePingReader::parseContents(
 }
 
 
+// ###### Print reader status ###############################################
 void NorNetEdgePingReader::printStatus(std::ostream& os)
 {
    os << "NorNetEdgePing:" << std::endl;
@@ -727,9 +751,16 @@ class UniversalImporter
    void printStatus(std::ostream& os = std::cout);
 
    private:
+   void handleSignalEvent(const boost::system::error_code& ec,
+                          const int                        signalNumber);
+#ifdef __linux__
+   void handleINotifyEvent(const boost::system::error_code& ec,
+                           const std::size_t                length);
+#endif
    void lookForFiles(const std::filesystem::path& dataDirectory,
                      const unsigned int           maxDepth);
    void addFile(const std::filesystem::path& dataFile);
+   void removeFile(const std::filesystem::path& dataFile);
 
    struct WorkerMapping {
       BasicReader* Reader;
@@ -739,17 +770,16 @@ class UniversalImporter
                          const UniversalImporter::WorkerMapping& b);
 
    boost::asio::io_service&               IOService;
+   boost::asio::signal_set                Signals;
    std::list<BasicReader*>                ReaderList;
    std::map<const WorkerMapping, Worker*> WorkerMap;
    const std::filesystem::path            DataDirectory;
    const unsigned int                     MaxDepth;
-
-   int                                    SignalFD;
-   boost::asio::posix::stream_descriptor  SignalStream;
 #ifdef __linux__
    int                                    INotifyFD;
-   int                                    INotifyWatchDescriptor;
+   std::set<int>                          INotifyWatchDescriptors;
    boost::asio::posix::stream_descriptor  INotifyStream;
+   char                                   INotifyEventBuffer[65536 * sizeof(inotify_event)];
 #endif
 };
 
@@ -772,14 +802,13 @@ UniversalImporter::UniversalImporter(boost::asio::io_service&     ioService,
                                      const std::filesystem::path& dataDirectory,
                                      const unsigned int           maxDepth)
  : IOService(ioService),
+   Signals(IOService, SIGINT, SIGTERM),
    DataDirectory(dataDirectory),
    MaxDepth(maxDepth),
-   SignalStream(IOService),
    INotifyStream(IOService)
 {
 #ifdef __linux__
-   INotifyWatchDescriptor = -1;
-   INotifyFD              = -1;
+   INotifyFD = -1;
 #endif
 }
 
@@ -795,25 +824,27 @@ UniversalImporter::~UniversalImporter()
 bool UniversalImporter::start()
 {
    // ====== Intercept signals ==============================================
-   sigset_t signalMask;
-   sigemptyset(&signalMask);
-   sigaddset(&signalMask, SIGINT);
-   sigaddset(&signalMask, SIGTERM);
-   sigprocmask(SIG_BLOCK, &signalMask, nullptr);
-   SignalFD = signalfd(-1, &signalMask, SFD_NONBLOCK|SFD_CLOEXEC);
-   assert(SignalFD > 0);
-   SignalStream.assign(SignalFD);
+   Signals.async_wait(std::bind(&UniversalImporter::handleSignalEvent, this,
+                                std::placeholders::_1,
+                                std::placeholders::_2));
 
    // ====== Set up INotify =================================================
 #ifdef __linux__
-   INotifyFD = inotify_init();
+   INotifyFD = inotify_init1(IN_NONBLOCK|IN_CLOEXEC);
    assert(INotifyFD > 0);
    INotifyStream.assign(INotifyFD);
-   INotifyWatchDescriptor = inotify_add_watch(INotifyFD, DataDirectory.c_str(), IN_CREATE | IN_DELETE | IN_DELETE_SELF | IN_MOVE_SELF | IN_MODIFY);
-   if(INotifyWatchDescriptor < 0) {
+   int wd = inotify_add_watch(INotifyFD, DataDirectory.c_str(),
+                              IN_CREATE | IN_DELETE | IN_CLOSE_WRITE | IN_MOVED_TO);
+   if(wd < 0) {
       HPCT_LOG(error) << "Unable to configure inotify: " <<strerror(errno);
       return false;
    }
+   INotifyWatchDescriptors.insert(wd);
+
+   INotifyStream.async_read_some(boost::asio::buffer(&INotifyEventBuffer, sizeof(INotifyEventBuffer)),
+                                 std::bind(&UniversalImporter::handleINotifyEvent, this,
+                                           std::placeholders::_1,
+                                           std::placeholders::_2));
 #else
 #error FIXME!
 #endif
@@ -829,11 +860,89 @@ bool UniversalImporter::start()
 // ###### Stop importer #####################################################
 void UniversalImporter::stop()
 {
+   // ====== Remove INotify =================================================
+#ifdef __linux__
+   if(INotifyFD >= 0) {
+      std::set<int>::iterator iterator = INotifyWatchDescriptors.begin();
+      while(iterator != INotifyWatchDescriptors.end()) {
+         inotify_rm_watch(INotifyFD, *iterator);
+         INotifyWatchDescriptors.erase(iterator);
+         iterator = INotifyWatchDescriptors.begin();
+      }
+      close(INotifyFD);
+      INotifyFD = -1;
+   }
+#endif
+
+   // ====== Remove readers =================================================
    for(std::list<BasicReader*>::iterator readerIterator = ReaderList.begin(); readerIterator != ReaderList.end(); ) {
       removeReader(*readerIterator);
       readerIterator = ReaderList.begin();
    }
 }
+
+
+// ###### Handle signal #####################################################
+void UniversalImporter::handleSignalEvent(const boost::system::error_code& ec,
+                                          const int                        signalNumber)
+{
+   if(ec != boost::asio::error::operation_aborted) {
+      puts("\n*** Shutting down! ***\n");   // Avoids a false positive from Helgrind.
+      IOService.stop();
+   }
+}
+
+
+#ifdef __linux
+// ###### Handle signal #####################################################
+void UniversalImporter::handleINotifyEvent(const boost::system::error_code& ec,
+                                           const std::size_t                length)
+{
+   // ====== Handle events ==================================================
+   unsigned long p = 0;
+   while(p < length) {
+      const inotify_event* event = (const inotify_event*)&INotifyEventBuffer[p];
+
+      // ====== Event for directory =========================================
+      if(event->mask & IN_ISDIR) {
+         if(event->mask & IN_CREATE) {
+            const std::filesystem::path dataDirectory = DataDirectory / event->name;
+            HPCT_LOG(trace) << "INotify for new data directory: " << dataDirectory;
+            const int wd = inotify_add_watch(INotifyFD, dataDirectory.c_str(),
+                                             IN_CREATE | IN_DELETE | IN_CLOSE_WRITE | IN_MOVED_TO);
+            INotifyWatchDescriptors.insert(wd);
+         }
+         else if(event->mask & IN_DELETE) {
+            const std::filesystem::path dataDirectory = DataDirectory / event->name;
+            HPCT_LOG(trace) << "INotify for deleted data directory: " << dataDirectory;
+            INotifyWatchDescriptors.erase(event->wd);
+         }
+      }
+
+      // ====== Event for file ==============================================
+      else {
+         if(event->mask & (IN_CLOSE_WRITE | IN_MOVED_TO)) {
+            const std::filesystem::path dataFile(event->name);
+            HPCT_LOG(trace) << "INotify event for new file " << dataFile;
+            addFile(dataFile);
+         }
+         else if(event->mask & IN_DELETE) {
+            const std::filesystem::path dataFile(event->name);
+            HPCT_LOG(trace) << "INotify event for deleted file " << dataFile;
+            removeFile(dataFile);
+         }
+      }
+
+      p += sizeof(inotify_event) + event->len;
+   }
+
+   // ====== Wait for more events ===========================================
+   INotifyStream.async_read_some(boost::asio::buffer(&INotifyEventBuffer, sizeof(INotifyEventBuffer)),
+                                 std::bind(&UniversalImporter::handleINotifyEvent, this,
+                                           std::placeholders::_1,
+                                           std::placeholders::_2));
+}
+#endif
 
 
 // ###### Add reader ########################################################
@@ -894,6 +1003,11 @@ void UniversalImporter::lookForFiles(const std::filesystem::path& dataDirectory,
          addFile(dirEntry.path());
       }
       else if(dirEntry.is_directory()) {
+#ifdef __linux
+         const int wd = inotify_add_watch(INotifyFD, dirEntry.path().c_str(),
+                                          IN_CREATE | IN_DELETE | IN_CLOSE_WRITE | IN_MOVED_TO);
+         INotifyWatchDescriptors.insert(wd);
+#endif
          if(maxDepth > 1) {
             lookForFiles(dirEntry, maxDepth - 1);
          }
@@ -905,9 +1019,6 @@ void UniversalImporter::lookForFiles(const std::filesystem::path& dataDirectory,
 // ###### Add input file ####################################################
 void UniversalImporter::addFile(const std::filesystem::path& dataFile)
 {
-   // const std::filesystem::path& subdir = std::filesystem::relative(dataFile, DataDirectory).parent_path();
-   // const std::string& filename = dataFile.filename();
-
    std::smatch        match;
    const std::string& filename = dataFile.filename().string();
    for(BasicReader* reader : ReaderList) {
@@ -923,6 +1034,20 @@ void UniversalImporter::addFile(const std::filesystem::path& dataFile)
                worker->wakeUp();
             }
          }
+      }
+   }
+}
+
+
+// ###### Add input file ####################################################
+void UniversalImporter::removeFile(const std::filesystem::path& dataFile)
+{
+   std::smatch        match;
+   const std::string& filename = dataFile.filename().string();
+   for(BasicReader* reader : ReaderList) {
+      if(std::regex_match(filename, match, reader->getFileNameRegExp())) {
+         reader->removeFile(dataFile, match);
+         break;
       }
    }
 }
@@ -971,6 +1096,7 @@ int main(int argc, char** argv)
    if(importer.start() == false) {
       exit(1);
    }
+
    ioService.run();
    importer.stop();
 
