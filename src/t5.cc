@@ -711,7 +711,8 @@ void Worker::run()
 class UniversalImporter
 {
    public:
-   UniversalImporter(const std::filesystem::path& dataDirectory,
+   UniversalImporter(boost::asio::io_service&     ioService,
+                     const std::filesystem::path& dataDirectory,
                      const unsigned int           maxDepth = 5);
    ~UniversalImporter();
 
@@ -737,12 +738,12 @@ class UniversalImporter
    friend bool operator<(const UniversalImporter::WorkerMapping& a,
                          const UniversalImporter::WorkerMapping& b);
 
+   boost::asio::io_service&               IOService;
    std::list<BasicReader*>                ReaderList;
    std::map<const WorkerMapping, Worker*> WorkerMap;
    const std::filesystem::path            DataDirectory;
    const unsigned int                     MaxDepth;
 
-   boost::asio::io_service                IOService;
    int                                    SignalFD;
    boost::asio::posix::stream_descriptor  SignalStream;
 #ifdef __linux__
@@ -767,9 +768,11 @@ bool operator<(const UniversalImporter::WorkerMapping& a,
 
 
 // ###### Constructor #######################################################
-UniversalImporter::UniversalImporter(const std::filesystem::path& dataDirectory,
+UniversalImporter::UniversalImporter(boost::asio::io_service&     ioService,
+                                     const std::filesystem::path& dataDirectory,
                                      const unsigned int           maxDepth)
- : DataDirectory(dataDirectory),
+ : IOService(ioService),
+   DataDirectory(dataDirectory),
    MaxDepth(maxDepth),
    SignalStream(IOService),
    INotifyStream(IOService)
@@ -937,6 +940,12 @@ void UniversalImporter::printStatus(std::ostream& os)
 
 int main(int argc, char** argv)
 {
+   boost::asio::io_service ioService;
+
+   unsigned int logLevel    = boost::log::trivial::severity_level::trace;
+   unsigned int pingWorkers = 1;
+
+
 //    UniversalImporter importer(".", 5);
 //
 //    HiPerConTracerPingReader pingReader;
@@ -944,31 +953,30 @@ int main(int argc, char** argv)
 //    HiPerConTracerTracerouteReader tracerouteReader;
 //    importer.addReader(&tracerouteReader);
 
-   unsigned int logLevel = boost::log::trivial::severity_level::trace;
 
+   // ====== Initialise importer ============================================
    initialiseLogger(logLevel);
+   UniversalImporter importer(ioService, "data", 5);
 
-
-   const unsigned int pingWorkers = 1;
+   // ====== Initialise database clients and readers ========================
    MariaDBClient* pingDatabaseClients[pingWorkers];
    for(unsigned int i = 0; i < pingWorkers; i++) {
       pingDatabaseClients[i] = new MariaDBClient();
    }
-
    NorNetEdgePingReader nnePingReader(pingWorkers);
-
-   UniversalImporter importer("data", 5);
-
    importer.addReader(&nnePingReader,
-                       (DatabaseClientBase**)&pingDatabaseClients, pingWorkers);
+                      (DatabaseClientBase**)&pingDatabaseClients, pingWorkers);
 
+   // ====== Main loop ======================================================
    if(importer.start() == false) {
       exit(1);
    }
-
+   ioService.run();
    importer.stop();
 
+   // ====== Clean up =======================================================
    for(unsigned int i = 0; i < pingWorkers; i++) {
       delete pingDatabaseClients[i];
    }
+   return 0;
 }
