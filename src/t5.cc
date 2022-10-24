@@ -416,6 +416,7 @@ void NorNetEdgePingReader::removeFile(const std::filesystem::path& dataFile,
       inputFileEntry.DataFile      = dataFile;
       const unsigned int worker = inputFileEntry.MeasurementID % Workers;
 
+      HPCT_LOG(trace) << Identification << ": Removing data file " << dataFile;
       std::unique_lock lock(Mutex);
       DataFileSet[worker].erase(inputFileEntry);
    }
@@ -686,7 +687,7 @@ void Worker::run()
          }
          catch(const std::exception& exception) {
             HPCT_LOG(warning) << getIdentification() << ": Import in fast mode failed: "
-                              << exception.what() << std::endl;
+                              << exception.what();
             DatabaseClient->rollback();
 
             // ====== Slow import: handle files sequentially ================
@@ -717,7 +718,7 @@ void Worker::run()
                   catch(const std::exception& exception) {
                      DatabaseClient->rollback();
                      HPCT_LOG(warning) << getIdentification() << ": Importing " << *dataFile << " in slow mode failed: "
-                                       << exception.what() << std::endl;
+                                       << exception.what();
                   }
                }
             }
@@ -1063,12 +1064,17 @@ void UniversalImporter::printStatus(std::ostream& os)
 
 
 
+#include "t4.h"
+
+
+
 int main(int argc, char** argv)
 {
    boost::asio::io_service ioService;
 
-   unsigned int logLevel    = boost::log::trivial::severity_level::trace;
-   unsigned int pingWorkers = 1;
+   unsigned int logLevel        = boost::log::trivial::severity_level::trace;
+//    unsigned int pingWorkers     = 1;
+   unsigned int metadataWorkers = 1;
 
 
 //    UniversalImporter importer(".", 5);
@@ -1084,13 +1090,23 @@ int main(int argc, char** argv)
    UniversalImporter importer(ioService, "data", 5);
 
    // ====== Initialise database clients and readers ========================
-   MariaDBClient* pingDatabaseClients[pingWorkers];
-   for(unsigned int i = 0; i < pingWorkers; i++) {
-      pingDatabaseClients[i] = new MariaDBClient();
+   // ------ NorNet Edge Ping -----------------------------
+//    MariaDBClient* pingDatabaseClients[pingWorkers];
+//    for(unsigned int i = 0; i < pingWorkers; i++) {
+//       pingDatabaseClients[i] = new MariaDBClient();
+//    }
+//    NorNetEdgePingReader nnePingReader(pingWorkers);
+//    importer.addReader(&nnePingReader,
+//                       (DatabaseClientBase**)&pingDatabaseClients, pingWorkers);
+
+   // ------ NorNet Edge Metadata -------------------------
+   MariaDBClient* metadataDatabaseClients[metadataWorkers];
+   for(unsigned int i = 0; i < metadataWorkers; i++) {
+      metadataDatabaseClients[i] = new MariaDBClient();
    }
-   NorNetEdgePingReader nnePingReader(pingWorkers);
-   importer.addReader(&nnePingReader,
-                      (DatabaseClientBase**)&pingDatabaseClients, pingWorkers);
+   NorNetEdgeMetadataReader nneMetadataReader(metadataWorkers);
+   importer.addReader(&nneMetadataReader,
+                      (DatabaseClientBase**)&metadataDatabaseClients, metadataWorkers);
 
    // ====== Main loop ======================================================
    if(importer.start() == false) {
@@ -1101,8 +1117,8 @@ int main(int argc, char** argv)
    importer.stop();
 
    // ====== Clean up =======================================================
-   for(unsigned int i = 0; i < pingWorkers; i++) {
-      delete pingDatabaseClients[i];
-   }
+//    for(unsigned int i = 0; i < pingWorkers; i++) {
+//       delete pingDatabaseClients[i];
+//    }
    return 0;
 }
