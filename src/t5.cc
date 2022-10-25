@@ -1,4 +1,5 @@
 #include "logger.h"
+#include "tools.h"
 
 #include <filesystem>
 #include <fstream>
@@ -292,7 +293,7 @@ class NorNetEdgePingReader : public BasicReader
    NorNetEdgePingReader(const unsigned int workers                        = 1,
                         const unsigned int maxTransactionSize             = 4,
                         const std::string& table_measurement_generic_data = "measurement_generic_data");
-   ~NorNetEdgePingReader();
+   virtual ~NorNetEdgePingReader();
 
    virtual const std::string& getIdentification() const;
    virtual const std::regex& getFileNameRegExp() const;
@@ -459,7 +460,7 @@ void NorNetEdgePingReader::beginParsing(std::stringstream&  statement,
    // ====== Generate import statement ======================================
    if(outputFormat & DatabaseType::SQL_Generic) {
       statement << "INSERT INTO " << Table_measurement_generic_data
-                << "(ts, mi_id, seq, xml_data, crc, stats) VALUES (\n";
+                << "(ts, mi_id, seq, xml_data, crc, stats) VALUES \n";
    }
    else {
       throw std::runtime_error("Unknown output format");
@@ -476,7 +477,7 @@ bool NorNetEdgePingReader::finishParsing(std::stringstream&  statement,
       // ====== Generate import statement ===================================
       if(outputFormat & DatabaseType::SQL_Generic) {
          if(rows > 0) {
-            statement << "\n) ON DUPLICATE KEY UPDATE stats=stats;\n";
+            statement << "\nON DUPLICATE KEY UPDATE stats=stats;\n";
          }
       }
       else {
@@ -523,11 +524,11 @@ void NorNetEdgePingReader::parseContents(
          if(rows > 0) {
             statement << ",\n";
          }
-         statement << " ("
-                   << "'" << tuple[0] << "', "
+         statement << "("
+                   << "\"" << tuple[0] << "\", "
                    << std::stoul(tuple[1]) << ", "
                    << std::stoul(tuple[2]) << ", "
-                   << "'" << tuple[3] << "', crc32(xml_data), 10 + mi_id MOD 10)";
+                   << "\"" << tuple[3] << "\", CRC32(xml_data), 10 + mi_id MOD 10)";
          rows++;
       }
       else {
@@ -1076,7 +1077,7 @@ int main(int argc, char** argv)
    boost::asio::io_service ioService;
 
    unsigned int logLevel        = boost::log::trivial::severity_level::trace;
-//    unsigned int pingWorkers     = 1;
+   unsigned int pingWorkers     = 1;
    unsigned int metadataWorkers = 1;
 
 
@@ -1094,22 +1095,30 @@ int main(int argc, char** argv)
 
    // ====== Initialise database clients and readers ========================
    // ------ NorNet Edge Ping -----------------------------
-//    MariaDBClient* pingDatabaseClients[pingWorkers];
-//    for(unsigned int i = 0; i < pingWorkers; i++) {
-//       pingDatabaseClients[i] = new MariaDBClient();
-//    }
-//    NorNetEdgePingReader nnePingReader(pingWorkers);
-//    importer.addReader(&nnePingReader,
-//                       (DatabaseClientBase**)&pingDatabaseClients, pingWorkers);
+   MariaDBClient*        pingDatabaseClients[pingWorkers];
+   NorNetEdgePingReader* nnePingReader = nullptr;
+   if(pingWorkers > 0) {
+      for(unsigned int i = 0; i < pingWorkers; i++) {
+         pingDatabaseClients[i] = new MariaDBClient();
+      }
+      nnePingReader = new NorNetEdgePingReader(pingWorkers);
+      assert(nnePingReader != nullptr);
+      importer.addReader(nnePingReader,
+                         (DatabaseClientBase**)&pingDatabaseClients, pingWorkers);
+   }
 
    // ------ NorNet Edge Metadata -------------------------
-   MariaDBClient* metadataDatabaseClients[metadataWorkers];
-   for(unsigned int i = 0; i < metadataWorkers; i++) {
-      metadataDatabaseClients[i] = new MariaDBClient();
+   MariaDBClient*            metadataDatabaseClients[metadataWorkers];
+   NorNetEdgeMetadataReader* nneMetadataReader = nullptr;
+   if(metadataWorkers > 0) {
+      for(unsigned int i = 0; i < metadataWorkers; i++) {
+         metadataDatabaseClients[i] = new MariaDBClient();
+      }
+      nneMetadataReader = new NorNetEdgeMetadataReader(metadataWorkers);
+      assert(nneMetadataReader != nullptr);
+      importer.addReader(nneMetadataReader,
+                         (DatabaseClientBase**)&metadataDatabaseClients, metadataWorkers);
    }
-   NorNetEdgeMetadataReader nneMetadataReader(metadataWorkers);
-   importer.addReader(&nneMetadataReader,
-                      (DatabaseClientBase**)&metadataDatabaseClients, metadataWorkers);
 
    // ====== Main loop ======================================================
    if(importer.start() == false) {
@@ -1120,8 +1129,21 @@ int main(int argc, char** argv)
    importer.stop();
 
    // ====== Clean up =======================================================
-//    for(unsigned int i = 0; i < pingWorkers; i++) {
-//       delete pingDatabaseClients[i];
-//    }
+   if(metadataWorkers > 0) {
+      delete nnePingReader;
+      nnePingReader = nullptr;
+      for(unsigned int i = 0; i < metadataWorkers; i++) {
+         delete metadataDatabaseClients[i];
+         metadataDatabaseClients[i] = nullptr;
+      }
+   }
+   if(pingWorkers > 0) {
+      delete nnePingReader;
+      nnePingReader = nullptr;
+      for(unsigned int i = 0; i < pingWorkers; i++) {
+         delete pingDatabaseClients[i];
+         pingDatabaseClients[i] = nullptr;
+      }
+   }
    return 0;
 }

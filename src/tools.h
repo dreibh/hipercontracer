@@ -34,8 +34,10 @@
 
 #include <pwd.h>
 
-#include <set>
 #include <chrono>
+#include <iomanip>
+#include <set>
+
 #include <boost/asio.hpp>
 
 
@@ -50,5 +52,49 @@ bool addSourceAddress(std::map<boost::asio::ip::address, std::set<uint8_t>>& arr
 bool addDestinationAddress(std::set<boost::asio::ip::address>& array,
                            const std::string&                  addressString,
                            bool                                tryToResolve = true);
+
+
+// ###### Convert microseconds since the epoch to time point ################
+template<class Clock> std::chrono::time_point<Clock> microsecondsToTimePoint(const unsigned long long microTime)
+{
+   const std::chrono::microseconds      us(microTime);
+   const std::chrono::time_point<Clock> timePoint(us);
+   return timePoint;
+}
+
+
+// ###### Convert microseconds since the epoch to time point ################
+template<class Clock> unsigned long long timePointToMicroseconds(const std::chrono::time_point<Clock>& timePoint)
+{
+   const std::chrono::microseconds us =
+      std::chrono::duration_cast<std::chrono::microseconds>(timePoint.time_since_epoch());
+   return us.count();
+}
+
+
+// ###### Convert time point to local time string ###########################
+template<class Clock> std::string timePointToLocalTimeString(const std::chrono::time_point<Clock>& timePoint)
+{
+   const time_t      tt = std::chrono::system_clock::to_time_t(timePoint);
+   tm                localTime;
+   std::stringstream ss;
+
+   localtime_r(&tt, &localTime);
+   ss << std::put_time(&localTime, "%F %T") << std::put_time(&localTime, " %Z");
+   return ss.str();
+}
+
+
+// ###### Convert time point to UTC time string #############################
+template<class Clock> std::string timePointToUTCTimeString(const std::chrono::time_point<Clock>& timePoint)
+{
+   const time_t      tt = Clock::to_time_t(timePoint);
+   tm                gmTime;
+   std::stringstream ss;
+
+   gmtime_r(&tt, &gmTime);
+   ss << std::put_time(&gmTime, "%F %T");
+   return ss.str();
+}
 
 #endif
