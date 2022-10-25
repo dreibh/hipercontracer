@@ -289,8 +289,9 @@ const std::regex& HiPerConTracerTracerouteReader::getFileNameRegExp() const
 class NorNetEdgePingReader : public BasicReader
 {
    public:
-   NorNetEdgePingReader(const unsigned int workers            = 1,
-                        const unsigned int maxTransactionSize = 4);
+   NorNetEdgePingReader(const unsigned int workers                        = 1,
+                        const unsigned int maxTransactionSize             = 4,
+                        const std::string& table_measurement_generic_data = "measurement_generic_data");
    ~NorNetEdgePingReader();
 
    virtual const std::string& getIdentification() const;
@@ -327,6 +328,7 @@ class NorNetEdgePingReader : public BasicReader
 
    static const std::string  Identification;
    static const std::regex   FileNameRegExp;
+   const std::string         Table_measurement_generic_data;
    std::mutex                Mutex;
    std::set<InputFileEntry>* DataFileSet;
 };
@@ -354,8 +356,10 @@ bool operator<(const NorNetEdgePingReader::InputFileEntry& a,
 
 // ###### Constructor #######################################################
 NorNetEdgePingReader::NorNetEdgePingReader(const unsigned int workers,
-                                           const unsigned int maxTransactionSize)
-   : BasicReader(workers, maxTransactionSize)
+                                           const unsigned int maxTransactionSize,
+                                           const std::string& table_measurement_generic_data)
+   : BasicReader(workers, maxTransactionSize),
+     Table_measurement_generic_data(Table_measurement_generic_data)
 {
    DataFileSet = new std::set<InputFileEntry>[Workers];
    assert(DataFileSet != nullptr);
@@ -454,9 +458,8 @@ void NorNetEdgePingReader::beginParsing(std::stringstream&  statement,
 
    // ====== Generate import statement ======================================
    if(outputFormat & DatabaseType::SQL_Generic) {
-      statement << "INSERT INTO measurement_generic_data ("
-                   "ts, mi_id, seq, xml_data, crc, stats"
-                   ") VALUES (\n";
+      statement << "INSERT INTO " << Table_measurement_generic_data
+                << "(ts, mi_id, seq, xml_data, crc, stats) VALUES (\n";
    }
    else {
       throw std::runtime_error("Unknown output format");

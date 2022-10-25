@@ -42,7 +42,9 @@ class NorNetEdgeMetadataReader : public BasicReader
 {
    public:
    NorNetEdgeMetadataReader(const unsigned int workers            = 1,
-                            const unsigned int maxTransactionSize = 4);
+                            const unsigned int maxTransactionSize = 4,
+                            const std::string& table_bins1min     = "node_metadata_bins1min",
+                            const std::string& table_event        = "node_metadata_event");
    ~NorNetEdgeMetadataReader();
 
    virtual const std::string& getIdentification() const;
@@ -88,13 +90,15 @@ class NorNetEdgeMetadataReader : public BasicReader
 
    static const std::string  Identification;
    static const std::regex   FileNameRegExp;
+   const std::string         Table_bins1min;
+   const std::string         Table_event;
    std::mutex                Mutex;
    std::set<InputFileEntry>* DataFileSet;
 };
 
 
-const std::string  NorNetEdgeMetadataReader::Identification = "Metadata";
-const std::regex NorNetEdgeMetadataReader::FileNameRegExp = std::regex(
+const std::string NorNetEdgeMetadataReader::Identification = "Metadata";
+const std::regex  NorNetEdgeMetadataReader::FileNameRegExp = std::regex(
    // Format: nne<NodeID>-metadatacollector-<YYYYMMDD>T<HHMMSS>.json
    "^nne([0-9]+)-metadatacollector-([0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]T[0-9][0-9][0-9][0-9][0-9][0-9])\\.json$"
 );
@@ -115,8 +119,12 @@ bool operator<(const NorNetEdgeMetadataReader::InputFileEntry& a,
 
 // ###### Constructor #######################################################
 NorNetEdgeMetadataReader::NorNetEdgeMetadataReader(const unsigned int workers,
-                                                   const unsigned int maxTransactionSize)
-   : BasicReader(workers, maxTransactionSize)
+                                                   const unsigned int maxTransactionSize,
+                                                   const std::string& table_bins1min,
+                                                   const std::string& table_event)
+   : BasicReader(workers, maxTransactionSize),
+     Table_bins1min(table_bins1min),
+     Table_event(table_event)
 {
    DataFileSet = new std::set<InputFileEntry>[Workers];
    assert(DataFileSet != nullptr);
@@ -351,7 +359,8 @@ void NorNetEdgeMetadataReader::parseContents(
          const std::string  metadataKey   = parseMetadataKey(item);
          const std::string  metadataValue = parseMetadataValue(item);
          if(outputFormat & DatabaseType::SQL_Generic) {
-            statement << "INSERT INTO node_metadata_bins1min (ts, delta, node_id, network_id, metadata_key, metadata_value) VALUES ("
+            statement << "INSERT INTO " << Table_bins1min
+                      << "(ts, delta, node_id, network_id, metadata_key, metadata_value) VALUES ("
                       << "\"" << ts << "\", " << delta << ", " << nodeID << ", " << networkID << ", "
                       << "\"" << metadataKey   << "\", "
                       << "\"" << metadataValue << "\" );" << std::endl;
@@ -366,7 +375,8 @@ void NorNetEdgeMetadataReader::parseContents(
          const std::string  metadataValue = parseMetadataValue(item);
          const std::string  extra         = parseExtra(item);
          if(outputFormat & DatabaseType::SQL_Generic) {
-            statement << "INSERT INTO node_metadata_event (ts, node_id, network_id, metadata_key, metadata_value, extra, min) VALUES ("
+            statement << "INSERT INTO " << Table_event
+                      << "(ts, node_id, network_id, metadata_key, metadata_value, extra, min) VALUES ("
                       << "\"" << ts << "\", " << nodeID << ", " << networkID << ", "
                       << "\"" << metadataKey   << "\", "
                       << "\"" << metadataValue << "\", "
