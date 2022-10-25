@@ -19,6 +19,7 @@
 #include <boost/iostreams/filter/bzip2.hpp>
 #include <boost/iostreams/filter/gzip.hpp>
 #include <boost/iostreams/filter/lzma.hpp>
+#include <boost/program_options.hpp>
 
 #include <unistd.h>
 #ifdef __linux__
@@ -30,22 +31,28 @@
 // g++ t5.cc -o t5 -std=c++17 -O0 -g -Wall -lpthread && rm -f core && ./t5
 
 
-enum DatabaseType {
+enum DatabaseBackend {
+   Invalid        = 0,
+
    SQL_Generic    = (1 << 0),
    NoSQL_Generic  = (1 << 1),
 
-   SQL_MariaDB    = SQL_Generic | (1 << 16),
-   SQL_PostgreSQL = SQL_Generic | (1 << 17),
-   SQL_Cassandra  = SQL_Generic | (1 << 18),
+   SQL_Debug      = SQL_Generic | (1 << 16),
+   SQL_MariaDB    = SQL_Generic | (1 << 17),
+   SQL_PostgreSQL = SQL_Generic | (1 << 18),
+   SQL_Cassandra  = SQL_Generic | (1 << 19),
 
-   NoSQL_MongoDB  = NoSQL_Generic | (1 << 24)
+   NoSQL_Debug    = NoSQL_Generic | (1 << 24),
+   NoSQL_MongoDB  = NoSQL_Generic | (1 << 25)
 };
 
 
 class DatabaseClientBase
 {
    public:
-   virtual const DatabaseType getType() const = 0;
+   virtual ~DatabaseClientBase() = 0;
+
+   virtual const DatabaseBackend getBackend() const = 0;
    virtual void beginTransaction() = 0;
    virtual void execute(const std::string& statement) = 0;
    virtual void endTransaction(const bool commit) = 0;
@@ -55,14 +62,75 @@ class DatabaseClientBase
 };
 
 
+// ###### Destructor ########################################################
+DatabaseClientBase::~DatabaseClientBase()
+{
+}
 
-class MariaDBClient : public virtual  DatabaseClientBase
+
+
+class DebugClient : public  DatabaseClientBase
+{
+   public:
+   DebugClient(const DatabaseBackend backend);
+   virtual ~DebugClient();
+
+   virtual const DatabaseBackend getBackend() const;
+   virtual void beginTransaction();
+   virtual void execute(const std::string& statement);
+   virtual void endTransaction(const bool commit);
+
+   private:
+   const DatabaseBackend Backend;
+};
+
+
+// ###### Constructor #######################################################
+DebugClient::DebugClient(const DatabaseBackend backend)
+   : Backend(backend)
+{
+}
+
+
+// ###### Destructor ########################################################
+DebugClient::~DebugClient()
+{
+}
+
+
+const DatabaseBackend DebugClient::getBackend() const
+{
+   return Backend;
+}
+
+
+void DebugClient::beginTransaction()
+{
+}
+
+
+void DebugClient::endTransaction(const bool commit)
+{
+   if(commit) {
+      throw std::runtime_error("DEBUG CLIENT ONLY");
+   }
+}
+
+
+void DebugClient::execute(const std::string& statement)
+{
+   std::cout << statement << std::endl;
+}
+
+
+
+class MariaDBClient : public  DatabaseClientBase
 {
    public:
    MariaDBClient();
    virtual ~MariaDBClient();
 
-   virtual const DatabaseType getType() const;
+   virtual const DatabaseBackend getBackend() const;
    virtual void beginTransaction();
    virtual void execute(const std::string& statement);
    virtual void endTransaction(const bool commit);
@@ -81,9 +149,9 @@ MariaDBClient::~MariaDBClient()
 }
 
 
-const DatabaseType MariaDBClient::getType() const
+const DatabaseBackend MariaDBClient::getBackend() const
 {
-   return DatabaseType::SQL_MariaDB;
+   return DatabaseBackend::SQL_MariaDB;
 }
 
 
@@ -105,12 +173,127 @@ void MariaDBClient::execute(const std::string& statement)
 
 
 
+class DatabaseConfiguration
+{
+   public:
+   DatabaseConfiguration();
+   ~DatabaseConfiguration();
+
+   bool readConfiguration(const std::filesystem::path& configurationFile);
+   void printConfiguration(std::ostream& os) const;
+   DatabaseClientBase* createClient();
+
+   private:
+   boost::program_options::options_description OptionsDescription;
+   std::string           BackendName;
+   DatabaseBackend          Backend;
+   std::string           Server;
+   uint16_t              Port;
+   std::string           User;
+   std::string           Password;
+   std::string           CAFile;
+   std::string           Database;
+   std::filesystem::path TransactionsPath;
+   std::filesystem::path BadFilePath;
+};
+
+
+// ###### Constructor #######################################################
+DatabaseConfiguration::DatabaseConfiguration()
+   : OptionsDescription("Options")
+{
+   OptionsDescription.add_options()
+      ("dbserver",          boost::program_options::value<std::string>(&Server),      "database server")
+      ("dbport",            boost::program_options::value<uint16_t>(&Port),           "database port")
+      ("dbuser",            boost::program_options::value<std::string>(&User),        "database username")
+      ("dbpassword",        boost::program_options::value<std::string>(&Password),    "database password")
+      ("dbcafile",          boost::program_options::value<std::string>(&CAFile),      "database CA file")
+      ("database",          boost::program_options::value<std::string>(&Database),    "database name")
+      ("dbbackend",         boost::program_options::value<std::string>(&BackendName), "database backend")
+      ("transactions_path", boost::program_options::value<std::filesystem::path>(&TransactionsPath), "path for input data")
+      ("bad_file_path",     boost::program_options::value<std::filesystem::path>(&TransactionsPath), "path for bad files")
+   ;
+   BackendName = "Invalid";
+   Backend     = DatabaseBackend::Invalid;
+}
+
+
+// ###### Destructor ########################################################
+DatabaseConfiguration::~DatabaseConfiguration()
+{
+}
+
+
+// ###### Read database configuration #######################################
+bool DatabaseConfiguration::readConfiguration(const std::filesystem::path& configurationFile)
+{
+   std::ifstream                         configurationInputStream(configurationFile);
+   boost::program_options::variables_map vm = boost::program_options::variables_map();
+
+   boost::program_options::store(boost::program_options::parse_config_file(configurationInputStream , OptionsDescription), vm);
+   boost::program_options::notify(vm);
+
+   if( (BackendName == "MySQL") || (BackendName == "MariaDB") ) {
+      Backend = DatabaseBackend::SQL_MariaDB;
+   }
+   else if(BackendName == "PostgreSQL") {
+      Backend = DatabaseBackend::SQL_PostgreSQL;
+   }
+   else if(BackendName == "MongoDB") {
+      Backend = DatabaseBackend::NoSQL_MongoDB;
+   }
+   else {
+      std::cerr << "ERROR: Invalid backend name " << Backend << std::endl;
+      return false;
+   }
+
+   return true;
+}
+
+
+// ###### Print reader status ###############################################
+void DatabaseConfiguration::printConfiguration(std::ostream& os) const
+{
+   os << "Database configuration:"    << std::endl
+      << "Backend  = " << BackendName << std::endl
+      << "Server   = " << Server      << std::endl
+      << "Port     = " << Port        << std::endl
+      << "User     = " << User        << std::endl
+      << "Password = " << ((Password.size() > 0) ? "****************" : "(none)") << std::endl
+      << "CA File  = " << CAFile      << std::endl
+      << "Databsee = " << Database    << std::endl;
+}
+
+
+// ###### Create new database client instance ###############################
+DatabaseClientBase* DatabaseConfiguration::createClient()
+{
+   DatabaseClientBase* databaseClient = nullptr;
+
+   switch(Backend) {
+      case SQL_Debug:
+      case NoSQL_Debug:
+          databaseClient = new DebugClient(Backend);
+       break;
+      case SQL_MariaDB:
+          databaseClient = new MariaDBClient;
+       break;
+      default:
+       break;
+   }
+
+   return databaseClient;
+}
+
+
+
+
 class BasicReader
 {
    public:
    BasicReader(const unsigned int workers,
                const unsigned int maxTransactionSize);
-   ~BasicReader();
+   virtual ~BasicReader();
 
    virtual const std::string& getIdentification() const = 0;
    virtual const std::regex& getFileNameRegExp() const = 0;
@@ -126,14 +309,14 @@ class BasicReader
 
    virtual void beginParsing(std::stringstream&  statement,
                              unsigned long long& rows,
-                             const DatabaseType  outputFormat) = 0;
+                             const DatabaseBackend  outputFormat) = 0;
    virtual bool finishParsing(std::stringstream&  statement,
                               unsigned long long& rows,
-                              const DatabaseType  outputFormat) = 0;
+                              const DatabaseBackend  outputFormat) = 0;
    virtual void parseContents(std::stringstream&                   statement,
                               unsigned long long&                  rows,
                               boost::iostreams::filtering_istream& inputStream,
-                              const DatabaseType                   outputFormat) = 0;
+                              const DatabaseBackend                   outputFormat) = 0;
 
    inline const unsigned int getWorkers() const { return Workers; }
    inline const unsigned int getMaxTransactionSize() const { return MaxTransactionSize; }
@@ -309,14 +492,14 @@ class NorNetEdgePingReader : public BasicReader
 
    virtual void beginParsing(std::stringstream&  statement,
                              unsigned long long& rows,
-                             const DatabaseType  outputFormat);
+                             const DatabaseBackend  outputFormat);
    virtual bool finishParsing(std::stringstream&  statement,
                               unsigned long long& rows,
-                              const DatabaseType  outputFormat);
+                              const DatabaseBackend  outputFormat);
    virtual void parseContents(std::stringstream&                   statement,
                               unsigned long long&                  rows,
                               boost::iostreams::filtering_istream& inputStream,
-                              const DatabaseType                   outputFormat);
+                              const DatabaseBackend                   outputFormat);
 
    private:
    struct InputFileEntry {
@@ -452,13 +635,13 @@ unsigned int NorNetEdgePingReader::fetchFiles(std::list<const std::filesystem::p
 // ###### Begin parsing #####################################################
 void NorNetEdgePingReader::beginParsing(std::stringstream&  statement,
                                         unsigned long long& rows,
-                                        const DatabaseType  outputFormat)
+                                        const DatabaseBackend  outputFormat)
 {
    rows = 0;
    statement.str(std::string());
 
    // ====== Generate import statement ======================================
-   if(outputFormat & DatabaseType::SQL_Generic) {
+   if(outputFormat & DatabaseBackend::SQL_Generic) {
       statement << "INSERT INTO " << Table_measurement_generic_data
                 << "(ts, mi_id, seq, xml_data, crc, stats) VALUES \n";
    }
@@ -471,11 +654,11 @@ void NorNetEdgePingReader::beginParsing(std::stringstream&  statement,
 // ###### Finish parsing ####################################################
 bool NorNetEdgePingReader::finishParsing(std::stringstream&  statement,
                                          unsigned long long& rows,
-                                         const DatabaseType  outputFormat)
+                                         const DatabaseBackend  outputFormat)
 {
    if(rows > 0) {
       // ====== Generate import statement ===================================
-      if(outputFormat & DatabaseType::SQL_Generic) {
+      if(outputFormat & DatabaseBackend::SQL_Generic) {
          if(rows > 0) {
             statement << "\nON DUPLICATE KEY UPDATE stats=stats;\n";
          }
@@ -495,7 +678,7 @@ void NorNetEdgePingReader::parseContents(
         std::stringstream&                   statement,
         unsigned long long&                  rows,
         boost::iostreams::filtering_istream& inputStream,
-        const DatabaseType                   outputFormat)
+        const DatabaseBackend                   outputFormat)
 {
    static const unsigned int NorNetEdgePingColumns   = 4;
    static const char         NorNetEdgePingDelimiter = '\t';
@@ -520,7 +703,7 @@ void NorNetEdgePingReader::parseContents(
       }
 
       // ====== Generate import statement ===================================
-      if(outputFormat & DatabaseType::SQL_Generic) {
+      if(outputFormat & DatabaseBackend::SQL_Generic) {
          if(rows > 0) {
             statement << ",\n";
          }
@@ -635,7 +818,7 @@ void Worker::processFile(std::stringstream&           statement,
    inputStream.push(inputFile);
 
    // ====== Read contents ==================================================
-   Reader->parseContents(statement, rows, inputStream, DatabaseClient->getType());
+   Reader->parseContents(statement, rows, inputStream, DatabaseClient->getBackend());
 }
 
 
@@ -667,12 +850,12 @@ void Worker::run()
          unsigned long long rows = 0;
          try {
             // ====== Import multiple input files in one transaction ========
-            Reader->beginParsing(statement, rows, DatabaseClient->getType());
+            Reader->beginParsing(statement, rows, DatabaseClient->getBackend());
             for(const std::filesystem::path* dataFile : dataFileList) {
                HPCT_LOG(trace) << getIdentification() << ": Parsing " << *dataFile << " ...";
                processFile(statement, rows, dataFile);
             }
-            if(Reader->finishParsing(statement, rows, DatabaseClient->getType())) {
+            if(Reader->finishParsing(statement, rows, DatabaseClient->getBackend())) {
                DatabaseClient->beginTransaction();
                DatabaseClient->execute(statement.str());
                DatabaseClient->commit();
@@ -701,10 +884,10 @@ void Worker::run()
                for(const std::filesystem::path* dataFile : dataFileList) {
                   try {
                      // ====== Import one input file in one transaction =====
-                     Reader->beginParsing(statement, rows, DatabaseClient->getType());
+                     Reader->beginParsing(statement, rows, DatabaseClient->getBackend());
                      HPCT_LOG(trace) << getIdentification() << ": Parsing " << *dataFile << " ...";
                      processFile(statement, rows, dataFile);
-                     if(Reader->finishParsing(statement, rows, DatabaseClient->getType())) {
+                     if(Reader->finishParsing(statement, rows, DatabaseClient->getBackend())) {
                         DatabaseClient->beginTransaction();
                         DatabaseClient->execute(statement.str());
                         DatabaseClient->commit();
@@ -1074,11 +1257,21 @@ void UniversalImporter::printStatus(std::ostream& os)
 
 int main(int argc, char** argv)
 {
+   // ====== Initialize =====================================================
    boost::asio::io_service ioService;
 
-   unsigned int logLevel        = boost::log::trivial::severity_level::trace;
-   unsigned int pingWorkers     = 1;
-   unsigned int metadataWorkers = 1;
+   unsigned int          logLevel                  = boost::log::trivial::severity_level::trace;
+   unsigned int          pingWorkers               = 1;
+   unsigned int          metadataWorkers           = 1;
+   std::filesystem::path databaseConfigurationFile = "nne-database-configuration";
+
+
+   // ====== Read database configuration ====================================
+   DatabaseConfiguration databaseConfiguration;
+   if(!databaseConfiguration.readConfiguration(databaseConfigurationFile)) {
+      exit(1);
+   }
+   databaseConfiguration.printConfiguration(std::cout);
 
 
 //    UniversalImporter importer(".", 5);
@@ -1093,13 +1286,15 @@ int main(int argc, char** argv)
    initialiseLogger(logLevel);
    UniversalImporter importer(ioService, "data", 5);
 
+
    // ====== Initialise database clients and readers ========================
    // ------ NorNet Edge Ping -----------------------------
-   MariaDBClient*        pingDatabaseClients[pingWorkers];
+   DatabaseClientBase*   pingDatabaseClients[pingWorkers];
    NorNetEdgePingReader* nnePingReader = nullptr;
    if(pingWorkers > 0) {
       for(unsigned int i = 0; i < pingWorkers; i++) {
-         pingDatabaseClients[i] = new MariaDBClient();
+         pingDatabaseClients[i] = databaseConfiguration.createClient();
+         assert(pingDatabaseClients[i] != nullptr);
       }
       nnePingReader = new NorNetEdgePingReader(pingWorkers);
       assert(nnePingReader != nullptr);
@@ -1108,11 +1303,12 @@ int main(int argc, char** argv)
    }
 
    // ------ NorNet Edge Metadata -------------------------
-   MariaDBClient*            metadataDatabaseClients[metadataWorkers];
+   DatabaseClientBase*       metadataDatabaseClients[metadataWorkers];
    NorNetEdgeMetadataReader* nneMetadataReader = nullptr;
    if(metadataWorkers > 0) {
       for(unsigned int i = 0; i < metadataWorkers; i++) {
-         metadataDatabaseClients[i] = new MariaDBClient();
+         metadataDatabaseClients[i] = databaseConfiguration.createClient();
+         assert(metadataDatabaseClients[i] != nullptr);
       }
       nneMetadataReader = new NorNetEdgeMetadataReader(metadataWorkers);
       assert(nneMetadataReader != nullptr);
@@ -1120,13 +1316,14 @@ int main(int argc, char** argv)
                          (DatabaseClientBase**)&metadataDatabaseClients, metadataWorkers);
    }
 
+
    // ====== Main loop ======================================================
    if(importer.start() == false) {
       exit(1);
    }
-
    ioService.run();
    importer.stop();
+
 
    // ====== Clean up =======================================================
    if(metadataWorkers > 0) {
