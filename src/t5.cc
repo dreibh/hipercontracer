@@ -800,18 +800,17 @@ unsigned int NorNetEdgePingReader::fetchFiles(std::list<const std::filesystem::p
                                               const unsigned int                       limit)
 {
    assert(worker < Workers);
+   dataFileList.clear();
 
    std::unique_lock lock(Mutex);
 
-   unsigned int n = 0;
    for(const InputFileEntry& inputFileEntry : DataFileSet[worker]) {
       dataFileList.push_back(&inputFileEntry.DataFile);
-      n++;
-      if(n >= limit) {
+      if(dataFileList.size() >= limit) {
          break;
       }
    }
-   return n;
+   return dataFileList.size();
 }
 
 
@@ -1009,6 +1008,13 @@ void Worker::processFile(std::stringstream&           statement,
 void Worker::finishedFile(const std::filesystem::path& dataFile)
 {
    HPCT_LOG(trace) << "Deleting " << dataFile;
+
+   // ====== Remove file from the reader ====================================
+   // Need to extract the file name parts again, in order to find the entry:
+   std::smatch match;
+   const std::string& filename = dataFile.filename().string();
+   assert(std::regex_match(filename, match, Reader->getFileNameRegExp()));
+   Reader->removeFile(dataFile, match);
 }
 
 
@@ -1094,9 +1100,10 @@ void Worker::run()
             }
          }
 
-puts("????");
-//         files = Reader->fetchFiles(dataFileList, WorkerID, Reader->getMaxTransactionSize());
-         files = 0;
+        files = Reader->fetchFiles(dataFileList, WorkerID, Reader->getMaxTransactionSize());
+
+        puts("????");
+        files = 0;
       }
 
       // ====== Wait for new data ===========================================
