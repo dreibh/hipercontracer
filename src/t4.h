@@ -282,7 +282,7 @@ template<class Clock> std::chrono::time_point<Clock> NorNetEdgeMetadataReader::p
    const std::chrono::time_point<Clock> timeStamp = microsecondsToTimePoint<Clock>(ts);
    if( (timeStamp < now - std::chrono::hours(365 * 24)) ||   /* 1 year in the past  */
        (timeStamp > now + std::chrono::hours(24)) ) {        /* 1 day in the future */
-      throw std::invalid_argument("Bad time stamp " + std::to_string(ts));
+      throw ImporterReaderException("Bad time stamp " + std::to_string(ts));
    }
    return timeStamp; // std::to_string(ts); // timePointToUTCTimeString<Clock>(timeStamp);
 }
@@ -293,7 +293,7 @@ long long NorNetEdgeMetadataReader::parseDelta(const boost::property_tree::ptree
 {
    const unsigned int delta = round(item.get<double>("delta"));
    if( (delta < 0) || (delta > 4294967295.0) ) {
-      throw std::invalid_argument("Bad delta " + delta);
+      throw ImporterReaderException("Bad delta " + delta);
    }
    return delta;
 }
@@ -304,11 +304,11 @@ unsigned int NorNetEdgeMetadataReader::parseNodeID(const boost::property_tree::p
 {
    const std::string& nodeName = item.get<std::string>("node");
    if(nodeName.substr(0, 3) != "nne") {
-      throw std::invalid_argument("Bad node name " + nodeName);
+      throw ImporterReaderException("Bad node name " + nodeName);
    }
    const unsigned int nodeID = atol(nodeName.substr(3, nodeName.size() -3).c_str());
    if( (nodeID < 1) || (nodeID > 9999) ) {
-      throw std::invalid_argument("Bad node ID " + nodeID);
+      throw ImporterReaderException("Bad node ID " + nodeID);
    }
    return nodeID;
 }
@@ -319,7 +319,7 @@ unsigned int NorNetEdgeMetadataReader::parseNetworkID(const boost::property_tree
 {
    const unsigned int networkID = item.get<unsigned int>("network_id");
    if(networkID > 99) {   // MNC is a two-digit number
-      throw std::invalid_argument("Bad network ID " + networkID);
+      throw ImporterReaderException("Bad network ID " + networkID);
    }
    return networkID;
 }
@@ -330,7 +330,7 @@ std::string NorNetEdgeMetadataReader::parseMetadataKey(const boost::property_tre
 {
    const std::string& metadataKey = item.get<std::string>("key");
    if(metadataKey.size() > 45) {
-      throw std::invalid_argument("Too long metadata key " + metadataKey);
+      throw ImporterReaderException("Too long metadata key " + metadataKey);
    }
    return metadataKey;
 }
@@ -341,7 +341,7 @@ std::string NorNetEdgeMetadataReader::parseMetadataValue(const boost::property_t
 {
    const std::string& metadataValue = item.get<std::string>("value");
    if(metadataValue.size() > 500) {
-      throw std::invalid_argument("Too long metadata value " + metadataValue);
+      throw ImporterReaderException("Too long metadata value " + metadataValue);
    }
    return metadataValue;
 }
@@ -352,7 +352,7 @@ std::string NorNetEdgeMetadataReader::parseExtra(const boost::property_tree::ptr
 {
    const std::string& extra = item.get<std::string>("extra");
    if(extra.size() > 500) {
-      throw std::invalid_argument("Too long extra " + extra);
+      throw ImporterReaderException("Too long extra " + extra);
    }
    return extra;
 }
@@ -419,7 +419,7 @@ void NorNetEdgeMetadataReader::parseContents(
          }
       }
       else {
-         throw std::invalid_argument("Got unknown metadata type " + itemType);
+         throw ImporterReaderException("Got unknown metadata type " + itemType);
       }
    }
 }

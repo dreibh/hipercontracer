@@ -26,9 +26,45 @@
 #include <sys/inotify.h>
 #endif
 
+// Ubuntu: libmysqlcppconn-dev
+#include <cppconn/driver.h>
+#include <cppconn/exception.h>
+#include <cppconn/resultset.h>
+#include <cppconn/statement.h>
+
 
 // g++ t5.cc -o t5 -std=c++17
 // g++ t5.cc -o t5 -std=c++17 -O0 -g -Wall -lpthread && rm -f core && ./t5
+
+
+
+class ImporterException : public std::runtime_error
+{
+   public:
+   ImporterException(const std::string& error) : std::runtime_error(error) { }
+};
+
+
+class ImporterLogicException : public ImporterException
+{
+   public:
+   ImporterLogicException(const std::string& error) : ImporterException(error) { }
+};
+
+
+class ImporterReaderException : public ImporterException
+{
+   public:
+   ImporterReaderException(const std::string& error) : ImporterException(error) { }
+};
+
+
+class ImporterDatabaseException : public ImporterException
+{
+   public:
+   ImporterDatabaseException(const std::string& error) : ImporterException(error) { }
+};
+
 
 
 enum DatabaseBackend {
@@ -47,19 +83,71 @@ enum DatabaseBackend {
 };
 
 
+
+class DatabaseClientBase;
+
+class DatabaseConfiguration
+{
+   public:
+   DatabaseConfiguration();
+   ~DatabaseConfiguration();
+
+   inline DatabaseBackend getBackend()     const { return Backend;  }
+   inline const std::string& getServer()   const { return Server;   }
+   inline const uint16_t     getPort()     const { return Port;     }
+   inline const std::string& getUser()     const { return User;     }
+   inline const std::string& getPassword() const { return Password; }
+   inline const std::string& getCAFile()   const { return CAFile;   }
+   inline const std::string& getDatabase() const { return Database; }
+   inline const std::filesystem::path& getTransactionsPath() const { return TransactionsPath; }
+   inline const std::filesystem::path& getBadFilePath()      const { return BadFilePath;      }
+
+   bool readConfiguration(const std::filesystem::path& configurationFile);
+   void printConfiguration(std::ostream& os) const;
+   DatabaseClientBase* createClient();
+
+   private:
+   boost::program_options::options_description OptionsDescription;
+   std::string           BackendName;
+   DatabaseBackend       Backend;
+   std::string           Server;
+   uint16_t              Port;
+   std::string           User;
+   std::string           Password;
+   std::string           CAFile;
+   std::string           Database;
+   std::filesystem::path TransactionsPath;
+   std::filesystem::path BadFilePath;
+};
+
+
 class DatabaseClientBase
 {
    public:
-   virtual ~DatabaseClientBase() = 0;
+   DatabaseClientBase(const DatabaseConfiguration& configuration);
+   virtual ~DatabaseClientBase();
 
    virtual const DatabaseBackend getBackend() const = 0;
+   virtual bool prepare() = 0;
+   virtual void finish() = 0;
+
    virtual void beginTransaction() = 0;
    virtual void execute(const std::string& statement) = 0;
    virtual void endTransaction(const bool commit) = 0;
 
    inline void commit()   { endTransaction(true);  }
    inline void rollback() { endTransaction(false); }
+
+   protected:
+   const DatabaseConfiguration& Configuration;
 };
+
+
+// ###### Constructor #######################################################
+DatabaseClientBase::DatabaseClientBase(const DatabaseConfiguration& configuration)
+   : Configuration(configuration)
+{
+}
 
 
 // ###### Destructor ########################################################
@@ -72,22 +160,22 @@ DatabaseClientBase::~DatabaseClientBase()
 class DebugClient : public  DatabaseClientBase
 {
    public:
-   DebugClient(const DatabaseBackend backend);
+   DebugClient(const DatabaseConfiguration& configuration);
    virtual ~DebugClient();
 
    virtual const DatabaseBackend getBackend() const;
+   virtual bool prepare();
+   virtual void finish();
+
    virtual void beginTransaction();
    virtual void execute(const std::string& statement);
    virtual void endTransaction(const bool commit);
-
-   private:
-   const DatabaseBackend Backend;
 };
 
 
 // ###### Constructor #######################################################
-DebugClient::DebugClient(const DatabaseBackend backend)
-   : Backend(backend)
+DebugClient::DebugClient(const DatabaseConfiguration& configuration)
+   : DatabaseClientBase(configuration)
 {
 }
 
@@ -98,25 +186,47 @@ DebugClient::~DebugClient()
 }
 
 
+// ###### Get backend #######################################################
 const DatabaseBackend DebugClient::getBackend() const
 {
-   return Backend;
+   return Configuration.getBackend();
 }
 
 
-void DebugClient::beginTransaction()
+// ###### Prepare connection to database ####################################
+bool DebugClient::prepare()
+{
+   return true;
+}
+
+
+// ###### Finish connection to database #####################################
+void DebugClient::finish()
 {
 }
 
 
+// ###### Begin transaction #################################################
+void DebugClient::beginTransaction()
+{
+   std::cout << "START TRANSACTION;" << std::endl;
+}
+
+
+// ###### End transaction ###################################################
 void DebugClient::endTransaction(const bool commit)
 {
    if(commit) {
-      throw std::runtime_error("DEBUG CLIENT ONLY");
+      std::cout << "COMMIT;" << std::endl;
+      throw ImporterDatabaseException("DEBUG CLIENT ONLY");
+   }
+   else {
+      std::cout << "ROLLBACK;" << std::endl;
    }
 }
 
 
+// ###### Execute statement #################################################
 void DebugClient::execute(const std::string& statement)
 {
    std::cout << statement << std::endl;
@@ -124,78 +234,152 @@ void DebugClient::execute(const std::string& statement)
 
 
 
-class MariaDBClient : public  DatabaseClientBase
+class MariaDBClient : public DatabaseClientBase
 {
    public:
-   MariaDBClient();
+   MariaDBClient(const DatabaseConfiguration& databaseConfiguration);
    virtual ~MariaDBClient();
 
    virtual const DatabaseBackend getBackend() const;
+   virtual bool prepare();
+   virtual void finish();
+
    virtual void beginTransaction();
    virtual void execute(const std::string& statement);
    virtual void endTransaction(const bool commit);
+
+    private:
+    sql::Driver*     Driver;
+    sql::Connection* Connection;
+    sql::Statement*  Statement;
 };
 
 
 // ###### Constructor #######################################################
-MariaDBClient::MariaDBClient()
+MariaDBClient::MariaDBClient(const DatabaseConfiguration& configuration)
+   : DatabaseClientBase(configuration)
 {
+   Driver = get_driver_instance();
+   assert(Driver != nullptr);
+   Connection = nullptr;
+   Statement  = nullptr;
 }
 
 
 // ###### Destructor ########################################################
 MariaDBClient::~MariaDBClient()
 {
+   finish();
 }
 
 
+// ###### Get backend #######################################################
 const DatabaseBackend MariaDBClient::getBackend() const
 {
    return DatabaseBackend::SQL_MariaDB;
 }
 
 
+// ###### Prepare connection to database ####################################
+bool MariaDBClient::prepare()
+{
+   const std::string url = "tcp://" + Configuration.getServer() + ":" + std::to_string(Configuration.getPort());
+
+   assert(Connection == nullptr);
+   try {
+      // ====== Connect to database =========================================
+      Connection = Driver->connect(url.c_str(),
+                                   Configuration.getUser().c_str(),
+                                   Configuration.getPassword().c_str());
+      assert(Connection != nullptr);
+      Connection->setSchema(Configuration.getDatabase().c_str());
+
+      // ====== Create statement ============================================
+      Statement = Connection->createStatement();
+      assert(Statement != nullptr);
+      Statement->execute("SET SESSION TRANSACTION ISOLATION LEVEL READ COMMITTED;");
+   }
+   catch(const sql::SQLException& e) {
+      HPCT_LOG(error) << "Unable to connect MariaDB client to " << url << ": " << e.what();
+      finish();
+      return false;
+   }
+
+   return true;
+}
+
+
+// ###### Finish connection to database #####################################
+void MariaDBClient::finish()
+{
+   if(Statement) {
+      delete Statement;
+      Statement = nullptr;
+   }
+   if(Connection != nullptr) {
+      delete Connection;
+      Connection = nullptr;
+   }
+}
+
+
+// ###### Begin transaction #################################################
 void MariaDBClient::beginTransaction()
 {
+   try {
+      Statement->execute("START TRANSACTION;");
+   }
+   catch(const sql::SQLException& e) {
+      HPCT_LOG(error) << "Begin failed: " << e.what();
+      finish();
+      throw ImporterDatabaseException(std::string("Begin failed: ") + e.what());
+   }
 }
 
 
+// ###### End transaction ###################################################
 void MariaDBClient::endTransaction(const bool commit)
 {
+   // ====== Commit transaction =============================================
+   if(commit) {
+      try {
+         Statement->execute("COMMIT;");
+      }
+      catch(const sql::SQLException& e) {
+         HPCT_LOG(error) << "Commmit failed: " << e.what();
+         // No call to finish(); database connection should still be okay here!
+         throw ImporterDatabaseException(std::string("Commmit failed: ") + e.what());
+      }
+   }
+
+   // ====== Commit transaction =============================================
+   else {
+      try {
+         Statement->execute("ROLLBACK;");
+      }
+      catch(const sql::SQLException& e) {
+         HPCT_LOG(error) << "Rollback failed: " << e.what();
+         finish();
+         throw ImporterDatabaseException(std::string("Rollback failed: ") + e.what());
+      }
+   }
 }
 
 
+// ###### Execute statement #################################################
 void MariaDBClient::execute(const std::string& statement)
 {
-   std::cout << "S=" << statement << "\n";
-   throw std::runtime_error("TEST EXCEPTION!");
+   try {
+      Statement->execute(statement);
+   }
+   catch(const sql::SQLException& e) {
+      HPCT_LOG(error) << "Statement failed: " << e.what();
+      std::cerr << statement;
+      abort();
+      throw ImporterDatabaseException(std::string("Statement failed: ") + e.what());
+   }
 }
 
-
-
-class DatabaseConfiguration
-{
-   public:
-   DatabaseConfiguration();
-   ~DatabaseConfiguration();
-
-   bool readConfiguration(const std::filesystem::path& configurationFile);
-   void printConfiguration(std::ostream& os) const;
-   DatabaseClientBase* createClient();
-
-   private:
-   boost::program_options::options_description OptionsDescription;
-   std::string           BackendName;
-   DatabaseBackend          Backend;
-   std::string           Server;
-   uint16_t              Port;
-   std::string           User;
-   std::string           Password;
-   std::string           CAFile;
-   std::string           Database;
-   std::filesystem::path TransactionsPath;
-   std::filesystem::path BadFilePath;
-};
 
 
 // ###### Constructor #######################################################
@@ -273,10 +457,10 @@ DatabaseClientBase* DatabaseConfiguration::createClient()
    switch(Backend) {
       case SQL_Debug:
       case NoSQL_Debug:
-          databaseClient = new DebugClient(Backend);
+          databaseClient = new DebugClient(*this);
        break;
       case SQL_MariaDB:
-          databaseClient = new MariaDBClient;
+          databaseClient = new MariaDBClient(*this);
        break;
       default:
        break;
@@ -284,7 +468,6 @@ DatabaseClientBase* DatabaseConfiguration::createClient()
 
    return databaseClient;
 }
-
 
 
 
@@ -646,7 +829,7 @@ void NorNetEdgePingReader::beginParsing(std::stringstream&  statement,
                 << "(ts, mi_id, seq, xml_data, crc, stats) VALUES \n";
    }
    else {
-      throw std::runtime_error("Unknown output format");
+      throw ImporterLogicException("Unknown output format");
    }
 }
 
@@ -664,7 +847,7 @@ bool NorNetEdgePingReader::finishParsing(std::stringstream&  statement,
          }
       }
       else {
-         throw std::runtime_error("Unknown output format");
+         throw ImporterLogicException("Unknown output format");
       }
       return true;
    }
@@ -694,12 +877,12 @@ void NorNetEdgePingReader::parseContents(
          end = inputLine.find(NorNetEdgePingDelimiter, start);
 
          if(columns == NorNetEdgePingColumns) {
-            throw std::range_error("Too many columns in input file");
+            throw ImporterReaderException("Too many columns in input file");
          }
          tuple[columns++] = inputLine.substr(start, end - start);
       }
       if(columns != NorNetEdgePingColumns) {
-         throw std::range_error("Too few columns in input file");
+         throw ImporterReaderException("Too few columns in input file");
       }
 
       // ====== Generate import statement ===================================
@@ -708,14 +891,14 @@ void NorNetEdgePingReader::parseContents(
             statement << ",\n";
          }
          statement << "("
-                   << "\"" << tuple[0] << "\", "
+                   << "'" << tuple[0] << "', "
                    << std::stoul(tuple[1]) << ", "
                    << std::stoul(tuple[2]) << ", "
-                   << "\"" << tuple[3] << "\", CRC32(xml_data), 10 + mi_id MOD 10)";
+                   << "'" << tuple[3] << "', CRC32(xml_data), 10 + mi_id MOD 10)";
          rows++;
       }
       else {
-         throw std::runtime_error("Unknown output format");
+         throw ImporterLogicException("Unknown output format");
       }
    }
 }
@@ -840,10 +1023,10 @@ void Worker::run()
       // ====== Look for new input files ====================================
       HPCT_LOG(trace) << getIdentification() << ": Looking for new input files ...";
       std::list<const std::filesystem::path*> dataFileList;
-      const unsigned int files = Reader->fetchFiles(dataFileList, WorkerID, Reader->getMaxTransactionSize());
 
       // ====== Fast import: try to combine files ===========================
-      if(files > 0) {
+      unsigned int files = Reader->fetchFiles(dataFileList, WorkerID, Reader->getMaxTransactionSize());
+      while(files > 0) {
          HPCT_LOG(debug) << getIdentification() << ": Trying to import " << files << " files in fast mode ...";
 
          std::stringstream  statement;
@@ -910,6 +1093,10 @@ void Worker::run()
                }
             }
          }
+
+puts("????");
+//         files = Reader->fetchFiles(dataFileList, WorkerID, Reader->getMaxTransactionSize());
+         files = 0;
       }
 
       // ====== Wait for new data ===========================================
@@ -1262,7 +1449,7 @@ int main(int argc, char** argv)
 
    unsigned int          logLevel                  = boost::log::trivial::severity_level::trace;
    unsigned int          pingWorkers               = 1;
-   unsigned int          metadataWorkers           = 1;
+   unsigned int          metadataWorkers           = 0;
    std::filesystem::path databaseConfigurationFile = "/home/dreibh/soyuz.conf";
 
 
@@ -1295,6 +1482,9 @@ int main(int argc, char** argv)
       for(unsigned int i = 0; i < pingWorkers; i++) {
          pingDatabaseClients[i] = databaseConfiguration.createClient();
          assert(pingDatabaseClients[i] != nullptr);
+         if(!pingDatabaseClients[i]->prepare()) {
+            exit(1);
+         }
       }
       nnePingReader = new NorNetEdgePingReader(pingWorkers);
       assert(nnePingReader != nullptr);
@@ -1309,6 +1499,9 @@ int main(int argc, char** argv)
       for(unsigned int i = 0; i < metadataWorkers; i++) {
          metadataDatabaseClients[i] = databaseConfiguration.createClient();
          assert(metadataDatabaseClients[i] != nullptr);
+         if(!metadataDatabaseClients[i]->prepare()) {
+            exit(1);
+         }
       }
       nneMetadataReader = new NorNetEdgeMetadataReader(metadataWorkers);
       assert(nneMetadataReader != nullptr);

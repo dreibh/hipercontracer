@@ -180,7 +180,8 @@ ENDIF()
 FIND_PACKAGE(Threads REQUIRED)
 
 # ###### C-ARES #############################################################
-FIND_LIBRARY(CARES_LIBRARY NAMES cares libcares-2)
+FIND_LIBRARY(CARES_LIBRARY        NAMES cares        libcares-2)
+FIND_LIBRARY(MYSQLCPPCONN_LIBRARY NAMES mysqlcppconn libmysqlcppconn)
 
 # ###### Boost ##############################################################
 FIND_PACKAGE(Boost REQUIRED COMPONENTS log date_time system thread iostreams filesystem program_options)
