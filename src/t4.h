@@ -59,16 +59,16 @@ class NorNetEdgeMetadataReader : public BasicReader
                                    const unsigned int                       limit = 1);
    virtual void printStatus(std::ostream& os = std::cout);
 
-   virtual void beginParsing(std::stringstream&  statement,
-                             unsigned long long& rows,
-                             const DatabaseType  outputFormat);
-   virtual bool finishParsing(std::stringstream&  statement,
-                              unsigned long long& rows,
-                              const DatabaseType  outputFormat);
+   virtual void beginParsing(std::stringstream&     statement,
+                             unsigned long long&    rows,
+                             const DatabaseBackend  outputFormat);
+   virtual bool finishParsing(std::stringstream&     statement,
+                              unsigned long long&    rows,
+                              const DatabaseBackend  outputFormat);
    virtual void parseContents(std::stringstream&                   statement,
                               unsigned long long&                  rows,
                               boost::iostreams::filtering_istream& inputStream,
-                              const DatabaseType                   outputFormat);
+                              const DatabaseBackend                outputFormat);
 
    private:
    template<class Clock> static std::chrono::time_point<Clock> makeMin(std::chrono::time_point<Clock> timePoint);
@@ -244,7 +244,7 @@ unsigned int NorNetEdgeMetadataReader::fetchFiles(std::list<const std::filesyste
 // ###### Begin parsing #####################################################
 void NorNetEdgeMetadataReader::beginParsing(std::stringstream&  statement,
                                         unsigned long long& rows,
-                                        const DatabaseType  outputFormat)
+                                        const DatabaseBackend  outputFormat)
 {
    rows = 0;
    statement.str(std::string());
@@ -254,7 +254,7 @@ void NorNetEdgeMetadataReader::beginParsing(std::stringstream&  statement,
 // ###### Finish parsing ####################################################
 bool NorNetEdgeMetadataReader::finishParsing(std::stringstream&  statement,
                                          unsigned long long& rows,
-                                         const DatabaseType  outputFormat)
+                                         const DatabaseBackend  outputFormat)
 {
    if(rows > 0) {
       return true;
@@ -363,7 +363,7 @@ void NorNetEdgeMetadataReader::parseContents(
         std::stringstream&                   statement,
         unsigned long long&                  rows,
         boost::iostreams::filtering_istream& inputStream,
-        const DatabaseType                   outputFormat)
+        const DatabaseBackend                   outputFormat)
 {
    boost::property_tree::ptree propertyTreeRoot;
    boost::property_tree::read_json(inputStream, propertyTreeRoot);
@@ -384,7 +384,7 @@ void NorNetEdgeMetadataReader::parseContents(
          const unsigned int networkID     = parseNetworkID(item);
          const std::string  metadataKey   = parseMetadataKey(item);
          const std::string  metadataValue = parseMetadataValue(item);
-         if(outputFormat & DatabaseType::SQL_Generic) {
+         if(outputFormat & DatabaseBackend::SQL_Generic) {
             statement << "INSERT INTO " << Table_bins1min
                       << "(ts, delta, node_id, network_id, metadata_key, metadata_value) VALUES ("
                       << "\"" << timePointToUTCTimeString<std::chrono::system_clock>(ts) << "\", "
@@ -404,7 +404,7 @@ void NorNetEdgeMetadataReader::parseContents(
          const std::string  metadataKey   = parseMetadataKey(item);
          const std::string  metadataValue = parseMetadataValue(item);
          const std::string  extra         = parseExtra(item);
-         if(outputFormat & DatabaseType::SQL_Generic) {
+         if(outputFormat & DatabaseBackend::SQL_Generic) {
             statement << "INSERT INTO " << Table_event
                       << "(ts, node_id, network_id, metadata_key, metadata_value, extra, min) VALUES ("
                       << "\"" << timePointToUTCTimeString<std::chrono::system_clock>(ts) << "\", "

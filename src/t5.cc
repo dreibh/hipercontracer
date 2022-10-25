@@ -1263,7 +1263,7 @@ int main(int argc, char** argv)
    unsigned int          logLevel                  = boost::log::trivial::severity_level::trace;
    unsigned int          pingWorkers               = 1;
    unsigned int          metadataWorkers           = 1;
-   std::filesystem::path databaseConfigurationFile = "nne-database-configuration";
+   std::filesystem::path databaseConfigurationFile = "/home/dreibh/soyuz.conf";
 
 
    // ====== Read database configuration ====================================
