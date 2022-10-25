@@ -359,7 +359,7 @@ NorNetEdgePingReader::NorNetEdgePingReader(const unsigned int workers,
                                            const unsigned int maxTransactionSize,
                                            const std::string& table_measurement_generic_data)
    : BasicReader(workers, maxTransactionSize),
-     Table_measurement_generic_data(Table_measurement_generic_data)
+     Table_measurement_generic_data(table_measurement_generic_data)
 {
    DataFileSet = new std::set<InputFileEntry>[Workers];
    assert(DataFileSet != nullptr);
