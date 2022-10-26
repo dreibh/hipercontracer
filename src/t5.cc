@@ -483,7 +483,7 @@ class BasicReader
 
    virtual int addFile(const std::filesystem::path& dataFile,
                        const std::smatch            match) = 0;
-   virtual void removeFile(const std::filesystem::path& dataFile,
+   virtual bool removeFile(const std::filesystem::path& dataFile,
                            const std::smatch            match) = 0;
    virtual unsigned int fetchFiles(std::list<const std::filesystem::path*>& dataFileList,
                                    const unsigned int                       worker,
@@ -666,7 +666,7 @@ class NorNetEdgePingReader : public BasicReader
 
    virtual int addFile(const std::filesystem::path& dataFile,
                        const std::smatch            match);
-   virtual void removeFile(const std::filesystem::path& dataFile,
+   virtual bool removeFile(const std::filesystem::path& dataFile,
                            const std::smatch            match);
    virtual unsigned int fetchFiles(std::list<const std::filesystem::path*>& dataFileList,
                                    const unsigned int                       worker,
@@ -692,6 +692,7 @@ class NorNetEdgePingReader : public BasicReader
    };
    friend bool operator<(const NorNetEdgePingReader::InputFileEntry& a,
                          const NorNetEdgePingReader::InputFileEntry& b);
+   friend std::ostream& operator<<(std::ostream& os, const InputFileEntry& entry);
 
    static const std::string  Identification;
    static const std::regex   FileNameRegExp;
@@ -701,23 +702,43 @@ class NorNetEdgePingReader : public BasicReader
 };
 
 
-const std::string  NorNetEdgePingReader::Identification = "UDPPing";
-const std::regex NorNetEdgePingReader::FileNameRegExp = std::regex(
+const std::string NorNetEdgePingReader::Identification = "UDPPing";
+const std::regex  NorNetEdgePingReader::FileNameRegExp = std::regex(
    // Format: uping_<MeasurementID>.dat.<YYYY-MM-DD-HH-MM-SS>.xz
    "^uping_([0-9]+)\\.dat\\.([0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]_[0-9][0-9]-[0-9][0-9]-[0-9][0-9])\\.xz$"
 );
 
 
 // ###### < operator for sorting ############################################
+// NOTE: find() will assume equality for: !(a < b) && !(b < a)
 bool operator<(const NorNetEdgePingReader::InputFileEntry& a,
-               const NorNetEdgePingReader::InputFileEntry& b) {
+               const NorNetEdgePingReader::InputFileEntry& b)
+{
+   // ====== Level 1: TimeStamp =============================================
    if(a.TimeStamp < b.TimeStamp) {
       return true;
    }
-   if(a.MeasurementID < b.MeasurementID) {
-      return true;
+   else if(a.TimeStamp == b.TimeStamp) {
+      // ====== Level 2: MeasurementID ======================================
+      if(a.MeasurementID < b.MeasurementID) {
+         return true;
+      }
+      else if(a.MeasurementID == b.MeasurementID) {
+         // ====== Level 3: DataFile ========================================
+         if(a.DataFile < b.DataFile) {
+            return true;
+         }
+      }
    }
    return false;
+}
+
+
+// ###### Output operator ###################################################
+std::ostream& operator<<(std::ostream& os, const NorNetEdgePingReader::InputFileEntry& entry)
+{
+   os << "(" << entry.TimeStamp << ", " << entry.MeasurementID << ", " << entry.DataFile << ")";
+   return os;
 }
 
 
@@ -759,25 +780,32 @@ const std::regex& NorNetEdgePingReader::getFileNameRegExp() const
 int NorNetEdgePingReader::addFile(const std::filesystem::path& dataFile,
                                   const std::smatch            match)
 {
+ static int n=0;n++;
+ if(n>2) {
+  puts("??????");
+  return -1;  // ??????
+ }
+
+
    if(match.size() == 3) {
       InputFileEntry inputFileEntry;
       inputFileEntry.MeasurementID = atol(match[1].str().c_str());
       inputFileEntry.TimeStamp     = match[2];
       inputFileEntry.DataFile      = dataFile;
-      const unsigned int worker = inputFileEntry.MeasurementID % Workers;
+      const int workerID = inputFileEntry.MeasurementID % Workers;
 
       HPCT_LOG(trace) << Identification << ": Adding data file " << dataFile;
       std::unique_lock lock(Mutex);
-      DataFileSet[worker].insert(inputFileEntry);
+      DataFileSet[workerID].insert(inputFileEntry);
 
-      return (int)worker;
+      return workerID;
    }
    return -1;
 }
 
 
 // ###### Remove input file from reader #####################################
-void NorNetEdgePingReader::removeFile(const std::filesystem::path& dataFile,
+bool NorNetEdgePingReader::removeFile(const std::filesystem::path& dataFile,
                                       const std::smatch            match)
 {
    if(match.size() == 3) {
@@ -789,8 +817,9 @@ void NorNetEdgePingReader::removeFile(const std::filesystem::path& dataFile,
 
       HPCT_LOG(trace) << Identification << ": Removing data file " << dataFile;
       std::unique_lock lock(Mutex);
-      DataFileSet[worker].erase(inputFileEntry);
+      return (DataFileSet[worker].erase(inputFileEntry) == 1);
    }
+   return 0;
 }
 
 
@@ -909,9 +938,9 @@ void NorNetEdgePingReader::printStatus(std::ostream& os)
    os << "NorNetEdgePing:" << std::endl;
    for(unsigned int w = 0; w < Workers; w++) {
       os << " - Work Queue #" << w + 1 << ": " << DataFileSet[w].size() << std::endl;
-      // for(const InputFileEntry& inputFileEntry : DataFileSet[w]) {
-      //    os << "  - " <<  inputFileEntry.DataFile << std::endl;
-      // }
+      for(const InputFileEntry& inputFileEntry : DataFileSet[w]) {
+         os << "  - " <<  inputFileEntry << std::endl;
+      }
    }
 }
 
@@ -925,6 +954,8 @@ class Worker
           DatabaseClientBase* databaseClient);
    ~Worker();
 
+   void start();
+   void requestStop();
    void wakeUp();
 
    inline const std::string& getIdentification() const { return Identification; }
@@ -937,6 +968,7 @@ class Worker
    void finishedFile(const std::filesystem::path& dataFile);
    void run();
 
+   std::atomic<bool>       StopRequested;
    const unsigned int      WorkerID;
    BasicReader*            Reader;
    DatabaseClientBase*     DatabaseClient;
@@ -956,18 +988,33 @@ Worker::Worker(const unsigned int  workerID,
      DatabaseClient(databaseClient),
      Identification(reader->getIdentification() + "/" + std::to_string(WorkerID))
 {
-   Thread = std::thread(&Worker::run, this);
+   StopRequested.exchange(false);
 }
 
 
 // ###### Destructor ########################################################
 Worker::~Worker()
 {
-   Mutex.lock();
-   Reader = nullptr;
-   Mutex.unlock();
+   requestStop();
+   if(Thread.joinable()) {
+      Thread.join();
+   }
+}
+
+
+// ###### Start worker ######################################################
+void Worker::start()
+{
+   StopRequested.exchange(false);
+   Thread = std::thread(&Worker::run, this);
+}
+
+
+// ###### Stop worker #######################################################
+void Worker::requestStop()
+{
+   StopRequested.exchange(true);
    wakeUp();
-   Thread.join();
 }
 
 
@@ -1014,7 +1061,7 @@ void Worker::finishedFile(const std::filesystem::path& dataFile)
    std::smatch match;
    const std::string& filename = dataFile.filename().string();
    assert(std::regex_match(filename, match, Reader->getFileNameRegExp()));
-   Reader->removeFile(dataFile, match);
+   assert(Reader->removeFile(dataFile, match) == 1);
 }
 
 
@@ -1023,16 +1070,14 @@ void Worker::run()
 {
    std::unique_lock lock(Mutex);
 
-   std::cout << getIdentification() << ": sleeping ..." << std::endl;
-   Notification.wait(lock);
-   while(Reader != nullptr) {
+   while(!StopRequested) {
       // ====== Look for new input files ====================================
       HPCT_LOG(trace) << getIdentification() << ": Looking for new input files ...";
       std::list<const std::filesystem::path*> dataFileList;
 
       // ====== Fast import: try to combine files ===========================
       unsigned int files = Reader->fetchFiles(dataFileList, WorkerID, Reader->getMaxTransactionSize());
-      while(files > 0) {
+      while( (files > 0) && (!StopRequested) ) {
          HPCT_LOG(debug) << getIdentification() << ": Trying to import " << files << " files in fast mode ...";
 
          std::stringstream  statement;
@@ -1109,6 +1154,7 @@ void Worker::run()
       // ====== Wait for new data ===========================================
       HPCT_LOG(trace) << getIdentification() << ": sleeping ...";
       Notification.wait(lock);
+      HPCT_LOG(trace) << getIdentification() << ": wakeup!";
    }
 }
 
@@ -1232,8 +1278,18 @@ bool UniversalImporter::start()
 #endif
 
    // ====== Look for files =================================================
+   HPCT_LOG(info) << "Looking for input files ...";
    lookForFiles();
    printStatus();
+
+   // ====== Start workers ==================================================
+   HPCT_LOG(info) << "Starting " << WorkerMap.size() << " worker threads ...";
+   for(std::map<const WorkerMapping, Worker*>::iterator workerMappingIterator = WorkerMap.begin();
+       workerMappingIterator != WorkerMap.end(); workerMappingIterator++) {
+      Worker* worker = workerMappingIterator->second;
+      worker->start();
+   }
+
 
    return true;
 }

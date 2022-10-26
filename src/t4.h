@@ -52,7 +52,7 @@ class NorNetEdgeMetadataReader : public BasicReader
 
    virtual int addFile(const std::filesystem::path& dataFile,
                        const std::smatch            match);
-   virtual void removeFile(const std::filesystem::path& dataFile,
+   virtual bool removeFile(const std::filesystem::path& dataFile,
                            const std::smatch            match);
    virtual unsigned int fetchFiles(std::list<const std::filesystem::path*>& dataFileList,
                                    const unsigned int                       worker,
@@ -88,6 +88,7 @@ class NorNetEdgeMetadataReader : public BasicReader
    };
    friend bool operator<(const NorNetEdgeMetadataReader::InputFileEntry& a,
                          const NorNetEdgeMetadataReader::InputFileEntry& b);
+   friend std::ostream& operator<<(std::ostream& os, const InputFileEntry& entry);
 
    static const std::string  Identification;
    static const std::regex   FileNameRegExp;
@@ -106,15 +107,29 @@ const std::regex  NorNetEdgeMetadataReader::FileNameRegExp = std::regex(
 
 
 // ###### < operator for sorting ############################################
+// NOTE: find() will assume equality for: !(a < b) && !(b < a)
 bool operator<(const NorNetEdgeMetadataReader::InputFileEntry& a,
-               const NorNetEdgeMetadataReader::InputFileEntry& b) {
+               const NorNetEdgeMetadataReader::InputFileEntry& b)
+{
+   // ====== Level 1: TimeStamp =============================================
    if(a.TimeStamp < b.TimeStamp) {
       return true;
    }
-   if(a.NodeID < b.NodeID) {
-      return true;
+   else if(a.TimeStamp == b.TimeStamp) {
+      // ====== Level 2: NodeID =============================================
+      if(a.NodeID < b.NodeID) {
+         return true;
+      }
    }
    return false;
+}
+
+
+// ###### Output operator ###################################################
+std::ostream& operator<<(std::ostream& os, const NorNetEdgeMetadataReader::InputFileEntry& entry)
+{
+   os << "(" << entry.TimeStamp << ", " << entry.NodeID << ", " << entry.DataFile << ")";
+   return os;
 }
 
 
@@ -189,20 +204,20 @@ int NorNetEdgeMetadataReader::addFile(const std::filesystem::path& dataFile,
       inputFileEntry.TimeStamp  = match[2];
       inputFileEntry.NodeID     = atol(match[1].str().c_str());
       inputFileEntry.DataFile   = dataFile;
-      const unsigned int worker = inputFileEntry.NodeID % Workers;
+      const int workerID = inputFileEntry.NodeID % Workers;
 
       HPCT_LOG(trace) << Identification << ": Adding data file " << dataFile;
       std::unique_lock lock(Mutex);
-      DataFileSet[worker].insert(inputFileEntry);
+      DataFileSet[workerID].insert(inputFileEntry);
 
-      return (int)worker;
+      return workerID;
    }
    return -1;
 }
 
 
 // ###### Remove input file from reader #####################################
-void NorNetEdgeMetadataReader::removeFile(const std::filesystem::path& dataFile,
+bool NorNetEdgeMetadataReader::removeFile(const std::filesystem::path& dataFile,
                                           const std::smatch            match)
 {
    assert(false);
@@ -215,8 +230,9 @@ void NorNetEdgeMetadataReader::removeFile(const std::filesystem::path& dataFile,
 
       HPCT_LOG(trace) << Identification << ": Removing data file " << dataFile;
       std::unique_lock lock(Mutex);
-      DataFileSet[worker].erase(inputFileEntry);
+      return (DataFileSet[worker].erase(inputFileEntry) == 1);
    }
+   return 0;
 }
 
 
@@ -392,7 +408,7 @@ void NorNetEdgeMetadataReader::parseContents(
                       << nodeID                << ", "
                       << networkID             << ", "
                       << "\"" << metadataKey   << "\", "
-                      << "\"" << metadataValue << "\" );" << std::endl;
+                      << "\"" << metadataValue << "\" );\n";
             rows++;
          }
       }
@@ -413,8 +429,7 @@ void NorNetEdgeMetadataReader::parseContents(
                       << "\"" << metadataKey   << "\", "
                       << "\"" << metadataValue << "\", "
                       << "\"" << extra         << "\", "
-                      << "\"" << timePointToUTCTimeString<std::chrono::system_clock>(min) << "\");"   // FROM_UNIXTIME(UNIX_TIMESTAMP(ts) DIV 60*60)
-                      << std::endl;
+                      << "\"" << timePointToUTCTimeString<std::chrono::system_clock>(min) << "\");\n";   // FROM_UNIXTIME(UNIX_TIMESTAMP(ts) DIV 60*60)
             rows++;
          }
       }
