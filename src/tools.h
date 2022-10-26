@@ -108,7 +108,7 @@ template <typename TimePoint> bool stringToTimePoint(
 {
    // ====== Handle time in seconds granularity =============================
    std::istringstream iss(string);
-   std::tm            tm;
+   std::tm            tm = {};
    if(!(iss >> std::get_time(&tm, format))) {
       return false;
    }

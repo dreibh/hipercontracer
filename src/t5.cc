@@ -102,6 +102,8 @@ class DatabaseConfiguration
    inline const std::filesystem::path& getTransactionsPath() const { return TransactionsPath; }
    inline const std::filesystem::path& getBadFilePath()      const { return BadFilePath;      }
 
+   inline void setBackend(const DatabaseBackend backend) { Backend = backend; }
+
    bool readConfiguration(const std::filesystem::path& configurationFile);
    void printConfiguration(std::ostream& os) const;
    DatabaseClientBase* createClient();
@@ -1549,6 +1551,10 @@ int main(int argc, char** argv)
    if(!databaseConfiguration.readConfiguration(databaseConfigurationFile)) {
       exit(1);
    }
+
+// ????
+databaseConfiguration.setBackend(DatabaseBackend::SQL_Debug);
+
    databaseConfiguration.printConfiguration(std::cout);
 
 
@@ -1611,8 +1617,8 @@ int main(int argc, char** argv)
 
    // ====== Clean up =======================================================
    if(metadataWorkers > 0) {
-      delete nnePingReader;
-      nnePingReader = nullptr;
+      delete nneMetadataReader;
+      nneMetadataReader = nullptr;
       for(unsigned int i = 0; i < metadataWorkers; i++) {
          delete metadataDatabaseClients[i];
          metadataDatabaseClients[i] = nullptr;
