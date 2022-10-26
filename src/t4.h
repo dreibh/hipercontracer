@@ -71,9 +71,9 @@ class NorNetEdgeMetadataReader : public BasicReader
                               const DatabaseBackend                outputFormat);
 
    private:
-   template<class Clock> static std::chrono::time_point<Clock> makeMin(std::chrono::time_point<Clock> timePoint);
-   template<class Clock> static std::chrono::time_point<Clock> parseTimeStamp(const boost::property_tree::ptree&         item,
-                                                                              const std::chrono::time_point<Clock>& now);
+   template<typename TimePoint> static TimePoint makeMin(const TimePoint& timePoint);
+   template<typename TimePoint> static TimePoint parseTimeStamp(const boost::property_tree::ptree&         item,
+                                                                              const TimePoint& now);
    long long parseDelta(const boost::property_tree::ptree& item) const;
    unsigned int parseNodeID(const boost::property_tree::ptree& item) const;
    unsigned int parseNetworkID(const boost::property_tree::ptree& item) const;
@@ -146,18 +146,18 @@ NorNetEdgeMetadataReader::NorNetEdgeMetadataReader(const unsigned int workers,
    const unsigned long long t1 = 1666261441;
    const unsigned long long t2 = 1000000000;
    const unsigned long long t3 = 2000000000;
-   const std::chrono::time_point<std::chrono::system_clock> tp1 = microsecondsToTimePoint<std::chrono::system_clock>(1000000ULL * t1);
-   const std::chrono::time_point<std::chrono::system_clock> tp2 = microsecondsToTimePoint<std::chrono::system_clock>(1000000ULL * t2);
-   const std::chrono::time_point<std::chrono::system_clock> tp3 = microsecondsToTimePoint<std::chrono::system_clock>(1000000ULL * t3);
-   const std::string ts1 = timePointToUTCTimeString<std::chrono::system_clock>(tp1);
-   const std::string ts2 = timePointToUTCTimeString<std::chrono::system_clock>(tp2);
-   const std::string ts3 = timePointToUTCTimeString<std::chrono::system_clock>(tp3);
-   const std::chrono::time_point<std::chrono::system_clock> dp1 = makeMin<std::chrono::system_clock>(tp1);
-   const std::chrono::time_point<std::chrono::system_clock> dp2 = makeMin<std::chrono::system_clock>(tp2);
-   const std::chrono::time_point<std::chrono::system_clock> dp3 = makeMin<std::chrono::system_clock>(tp3);
-   const std::string ds1 = timePointToUTCTimeString<std::chrono::system_clock>(dp1);
-   const std::string ds2 = timePointToUTCTimeString<std::chrono::system_clock>(dp2);
-   const std::string ds3 = timePointToUTCTimeString<std::chrono::system_clock>(dp3);
+   const std::chrono::time_point<std::chrono::system_clock> tp1 = microsecondsToTimePoint<std::chrono::time_point<std::chrono::system_clock>>(1000000ULL * t1);
+   const std::chrono::time_point<std::chrono::system_clock> tp2 = microsecondsToTimePoint<std::chrono::time_point<std::chrono::system_clock>>(1000000ULL * t2);
+   const std::chrono::time_point<std::chrono::system_clock> tp3 = microsecondsToTimePoint<std::chrono::time_point<std::chrono::system_clock>>(1000000ULL * t3);
+   const std::string ts1 = timePointToUTCTimeString<std::chrono::time_point<std::chrono::system_clock>>(tp1);
+   const std::string ts2 = timePointToUTCTimeString<std::chrono::time_point<std::chrono::system_clock>>(tp2);
+   const std::string ts3 = timePointToUTCTimeString<std::chrono::time_point<std::chrono::system_clock>>(tp3);
+   const std::chrono::time_point<std::chrono::system_clock> dp1 = makeMin<std::chrono::time_point<std::chrono::system_clock>>(tp1);
+   const std::chrono::time_point<std::chrono::system_clock> dp2 = makeMin<std::chrono::time_point<std::chrono::system_clock>>(tp2);
+   const std::chrono::time_point<std::chrono::system_clock> dp3 = makeMin<std::chrono::time_point<std::chrono::system_clock>>(tp3);
+   const std::string ds1 = timePointToUTCTimeString<std::chrono::time_point<std::chrono::system_clock>>(dp1);
+   const std::string ds2 = timePointToUTCTimeString<std::chrono::time_point<std::chrono::system_clock>>(dp2);
+   const std::string ds3 = timePointToUTCTimeString<std::chrono::time_point<std::chrono::system_clock>>(dp3);
 
    // std::cout << t1 << "\t" << ts1 << "\t" << ds1 << std::endl;
    // std::cout << t2 << "\t" << ts2 << "\t" << ds2 << std::endl;
@@ -281,26 +281,26 @@ bool NorNetEdgeMetadataReader::finishParsing(std::stringstream&  statement,
 
 
 // ###### Helper function to calculate "min" value ##########################
-template<class Clock> std::chrono::time_point<Clock> NorNetEdgeMetadataReader::makeMin(std::chrono::time_point<Clock> timePoint)
+template<typename TimePoint> TimePoint NorNetEdgeMetadataReader::makeMin(const TimePoint& timePoint)
 {
-   unsigned long long us = timePointToMicroseconds<Clock>(timePoint);
+   unsigned long long us = timePointToMicroseconds<std::chrono::time_point<std::chrono::system_clock>>(timePoint);
    us = us - (us % (60000000ULL));   // floor to minute
-   return  microsecondsToTimePoint<Clock>(us);
+   return  microsecondsToTimePoint<std::chrono::time_point<std::chrono::system_clock>>(us);
 }
 
 
 // ###### Parse time stamp ##################################################
-template<class Clock> std::chrono::time_point<Clock> NorNetEdgeMetadataReader::parseTimeStamp(
+template<typename TimePoint> TimePoint NorNetEdgeMetadataReader::parseTimeStamp(
                                                         const boost::property_tree::ptree&         item,
-                                                        const std::chrono::time_point<Clock>& now)
+                                                        const TimePoint& now)
 {
-   const unsigned long long             ts        = (unsigned long long)rint(1000000.0 * item.get<double>("ts"));
-   const std::chrono::time_point<Clock> timeStamp = microsecondsToTimePoint<Clock>(ts);
+   const unsigned long long ts        = (unsigned long long)rint(1000000.0 * item.get<double>("ts"));
+   const TimePoint          timeStamp = microsecondsToTimePoint<std::chrono::time_point<std::chrono::system_clock>>(ts);
    if( (timeStamp < now - std::chrono::hours(365 * 24)) ||   /* 1 year in the past  */
        (timeStamp > now + std::chrono::hours(24)) ) {        /* 1 day in the future */
       throw ImporterReaderException("Bad time stamp " + std::to_string(ts));
    }
-   return timeStamp; // std::to_string(ts); // timePointToUTCTimeString<Clock>(timeStamp);
+   return timeStamp;
 }
 
 
@@ -394,7 +394,7 @@ void NorNetEdgeMetadataReader::parseContents(
       const std::string& itemType             = item.get<std::string>("type");
 
       if(itemType == "bins-1min") {
-         const std::chrono::time_point<std::chrono::system_clock> ts = parseTimeStamp<std::chrono::system_clock>(item, now);
+         const std::chrono::time_point<std::chrono::system_clock> ts = parseTimeStamp<std::chrono::time_point<std::chrono::system_clock>>(item, now);
          const long long    delta         = parseDelta(item);
          const unsigned int nodeID        = parseNodeID(item);
          const unsigned int networkID     = parseNetworkID(item);
@@ -403,7 +403,7 @@ void NorNetEdgeMetadataReader::parseContents(
          if(outputFormat & DatabaseBackend::SQL_Generic) {
             statement << "INSERT INTO " << Table_bins1min
                       << "(ts, delta, node_id, network_id, metadata_key, metadata_value) VALUES ("
-                      << "\"" << timePointToUTCTimeString<std::chrono::system_clock>(ts) << "\", "
+                      << "\"" << timePointToUTCTimeString<std::chrono::time_point<std::chrono::system_clock>>(ts) << "\", "
                       << delta                 << ", "
                       << nodeID                << ", "
                       << networkID             << ", "
@@ -413,8 +413,8 @@ void NorNetEdgeMetadataReader::parseContents(
          }
       }
       else if(itemType == "event") {
-         const std::chrono::time_point<std::chrono::system_clock> ts  = parseTimeStamp<std::chrono::system_clock>(item, now);
-         const std::chrono::time_point<std::chrono::system_clock> min = makeMin<std::chrono::system_clock>(ts);
+         const std::chrono::time_point<std::chrono::system_clock> ts  = parseTimeStamp<std::chrono::time_point<std::chrono::system_clock>>(item, now);
+         const std::chrono::time_point<std::chrono::system_clock> min = makeMin<std::chrono::time_point<std::chrono::system_clock>>(ts);
          const unsigned int nodeID        = parseNodeID(item);
          const unsigned int networkID     = parseNetworkID(item);
          const std::string  metadataKey   = parseMetadataKey(item);
@@ -423,13 +423,13 @@ void NorNetEdgeMetadataReader::parseContents(
          if(outputFormat & DatabaseBackend::SQL_Generic) {
             statement << "INSERT INTO " << Table_event
                       << "(ts, node_id, network_id, metadata_key, metadata_value, extra, min) VALUES ("
-                      << "\"" << timePointToUTCTimeString<std::chrono::system_clock>(ts) << "\", "
+                      << "\"" << timePointToUTCTimeString<std::chrono::time_point<std::chrono::system_clock>>(ts) << "\", "
                       << nodeID                << ", "
                       << networkID             << ", "
                       << "\"" << metadataKey   << "\", "
                       << "\"" << metadataValue << "\", "
                       << "\"" << extra         << "\", "
-                      << "\"" << timePointToUTCTimeString<std::chrono::system_clock>(min) << "\");\n";   // FROM_UNIXTIME(UNIX_TIMESTAMP(ts) DIV 60*60)
+                      << "\"" << timePointToUTCTimeString<std::chrono::time_point<std::chrono::system_clock>>(min) << "\");\n";   // FROM_UNIXTIME(UNIX_TIMESTAMP(ts) DIV 60*60)
             rows++;
          }
       }

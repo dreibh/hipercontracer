@@ -55,16 +55,16 @@ bool addDestinationAddress(std::set<boost::asio::ip::address>& array,
 
 
 // ###### Convert microseconds since the epoch to time point ################
-template<class Clock> std::chrono::time_point<Clock> microsecondsToTimePoint(const unsigned long long microTime)
+template <typename TimePoint> TimePoint microsecondsToTimePoint(const unsigned long long microTime)
 {
    const std::chrono::microseconds      us(microTime);
-   const std::chrono::time_point<Clock> timePoint(us);
+   const TimePoint timePoint(us);
    return timePoint;
 }
 
 
 // ###### Convert microseconds since the epoch to time point ################
-template<class Clock> unsigned long long timePointToMicroseconds(const std::chrono::time_point<Clock>& timePoint)
+template <typename TimePoint> unsigned long long timePointToMicroseconds(const TimePoint& timePoint)
 {
    const std::chrono::microseconds us =
       std::chrono::duration_cast<std::chrono::microseconds>(timePoint.time_since_epoch());
@@ -73,7 +73,7 @@ template<class Clock> unsigned long long timePointToMicroseconds(const std::chro
 
 
 // ###### Convert time point to local time string ###########################
-template<class Clock> std::string timePointToLocalTimeString(const std::chrono::time_point<Clock>& timePoint)
+template <typename TimePoint> std::string timePointToLocalTimeString(const TimePoint& timePoint)
 {
    const time_t      tt = std::chrono::system_clock::to_time_t(timePoint);
    tm                localTime;
@@ -86,9 +86,9 @@ template<class Clock> std::string timePointToLocalTimeString(const std::chrono::
 
 
 // ###### Convert time point to UTC time string #############################
-template<class Clock> std::string timePointToUTCTimeString(const std::chrono::time_point<Clock>& timePoint)
+template <typename TimePoint> std::string timePointToUTCTimeString(const TimePoint& timePoint)
 {
-   const time_t      tt = Clock::to_time_t(timePoint);
+   const time_t      tt = std::chrono::system_clock::to_time_t(timePoint);
    tm                gmTime;
    std::stringstream ss;
 
