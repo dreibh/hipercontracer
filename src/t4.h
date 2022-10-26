@@ -296,9 +296,9 @@ unsigned int NorNetEdgeMetadataReader::fetchFiles(std::list<const std::filesyste
 
 
 // ###### Begin parsing #####################################################
-void NorNetEdgeMetadataReader::beginParsing(std::stringstream&  statement,
-                                        unsigned long long& rows,
-                                        const DatabaseBackend  outputFormat)
+void NorNetEdgeMetadataReader::beginParsing(std::stringstream&    statement,
+                                            unsigned long long&   rows,
+                                            const DatabaseBackend outputFormat)
 {
    rows = 0;
    statement.str(std::string());
@@ -306,9 +306,9 @@ void NorNetEdgeMetadataReader::beginParsing(std::stringstream&  statement,
 
 
 // ###### Finish parsing ####################################################
-bool NorNetEdgeMetadataReader::finishParsing(std::stringstream&  statement,
-                                         unsigned long long& rows,
-                                         const DatabaseBackend  outputFormat)
+bool NorNetEdgeMetadataReader::finishParsing(std::stringstream&    statement,
+                                             unsigned long long&   rows,
+                                             const DatabaseBackend outputFormat)
 {
    if(rows > 0) {
       return true;

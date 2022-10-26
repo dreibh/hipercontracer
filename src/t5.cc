@@ -868,9 +868,9 @@ unsigned int NorNetEdgePingReader::fetchFiles(std::list<const std::filesystem::p
 
 
 // ###### Begin parsing #####################################################
-void NorNetEdgePingReader::beginParsing(std::stringstream&  statement,
-                                        unsigned long long& rows,
-                                        const DatabaseBackend  outputFormat)
+void NorNetEdgePingReader::beginParsing(std::stringstream&    statement,
+                                        unsigned long long&   rows,
+                                        const DatabaseBackend outputFormat)
 {
    rows = 0;
    statement.str(std::string());
@@ -887,9 +887,9 @@ void NorNetEdgePingReader::beginParsing(std::stringstream&  statement,
 
 
 // ###### Finish parsing ####################################################
-bool NorNetEdgePingReader::finishParsing(std::stringstream&  statement,
-                                         unsigned long long& rows,
-                                         const DatabaseBackend  outputFormat)
+bool NorNetEdgePingReader::finishParsing(std::stringstream&    statement,
+                                         unsigned long long&   rows,
+                                         const DatabaseBackend outputFormat)
 {
    if(rows > 0) {
       // ====== Generate import statement ===================================
