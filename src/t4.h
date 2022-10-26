@@ -81,8 +81,10 @@ class NorNetEdgeMetadataReader : public BasicReader
    std::string parseMetadataValue(const boost::property_tree::ptree& item) const;
    std::string parseExtra(const boost::property_tree::ptree& item) const;
 
+   typedef std::chrono::system_clock               FileEntryClock;
+   typedef std::chrono::time_point<FileEntryClock> FileEntryTimePoint;
    struct InputFileEntry {
-      std::string           TimeStamp;
+      FileEntryTimePoint    TimeStamp;
       unsigned int          NodeID;
       std::filesystem::path DataFile;
    };
@@ -120,6 +122,12 @@ bool operator<(const NorNetEdgeMetadataReader::InputFileEntry& a,
       if(a.NodeID < b.NodeID) {
          return true;
       }
+      else if(a.NodeID == b.NodeID) {
+         // ====== Level 3: DataFile ========================================
+         if(a.DataFile < b.DataFile) {
+            return true;
+         }
+      }
    }
    return false;
 }
@@ -128,7 +136,11 @@ bool operator<(const NorNetEdgeMetadataReader::InputFileEntry& a,
 // ###### Output operator ###################################################
 std::ostream& operator<<(std::ostream& os, const NorNetEdgeMetadataReader::InputFileEntry& entry)
 {
-   os << "(" << entry.TimeStamp << ", " << entry.NodeID << ", " << entry.DataFile << ")";
+   os << "("
+      << timePointToString<NorNetEdgeMetadataReader::FileEntryTimePoint>(entry.TimeStamp) << ", "
+      << entry.NodeID << ", "
+      << entry.DataFile
+      << ")";
    return os;
 }
 
@@ -151,18 +163,18 @@ NorNetEdgeMetadataReader::NorNetEdgeMetadataReader(const unsigned int workers,
    const std::chrono::time_point<std::chrono::high_resolution_clock> tp2 = microsecondsToTimePoint<std::chrono::time_point<std::chrono::high_resolution_clock>>(t2);
    const std::chrono::time_point<std::chrono::high_resolution_clock> tp3 = microsecondsToTimePoint<std::chrono::time_point<std::chrono::high_resolution_clock>>(t3);
    const std::chrono::time_point<std::chrono::high_resolution_clock> tp4 = microsecondsToTimePoint<std::chrono::time_point<std::chrono::high_resolution_clock>>(t4);
-   const std::string ts1 = timePointToUTCTimeString<std::chrono::time_point<std::chrono::high_resolution_clock>>(tp1, 0);
-   const std::string ts2 = timePointToUTCTimeString<std::chrono::time_point<std::chrono::high_resolution_clock>>(tp2, 6);
-   const std::string ts3 = timePointToUTCTimeString<std::chrono::time_point<std::chrono::high_resolution_clock>>(tp3, 0);
-   const std::string ts4 = timePointToUTCTimeString<std::chrono::time_point<std::chrono::high_resolution_clock>>(tp4, 6);
+   const std::string ts1 = timePointToString<std::chrono::time_point<std::chrono::high_resolution_clock>>(tp1, 0);
+   const std::string ts2 = timePointToString<std::chrono::time_point<std::chrono::high_resolution_clock>>(tp2, 6);
+   const std::string ts3 = timePointToString<std::chrono::time_point<std::chrono::high_resolution_clock>>(tp3, 0);
+   const std::string ts4 = timePointToString<std::chrono::time_point<std::chrono::high_resolution_clock>>(tp4, 6);
    const std::chrono::time_point<std::chrono::high_resolution_clock> dp1 = makeMin<std::chrono::time_point<std::chrono::high_resolution_clock>>(tp1);
    const std::chrono::time_point<std::chrono::high_resolution_clock> dp2 = makeMin<std::chrono::time_point<std::chrono::high_resolution_clock>>(tp2);
    const std::chrono::time_point<std::chrono::high_resolution_clock> dp3 = makeMin<std::chrono::time_point<std::chrono::high_resolution_clock>>(tp3);
    const std::chrono::time_point<std::chrono::high_resolution_clock> dp4 = makeMin<std::chrono::time_point<std::chrono::high_resolution_clock>>(tp4);
-   const std::string ds1 = timePointToUTCTimeString<std::chrono::time_point<std::chrono::high_resolution_clock>>(dp1, 0);
-   const std::string ds2 = timePointToUTCTimeString<std::chrono::time_point<std::chrono::high_resolution_clock>>(dp2, 6);
-   const std::string ds3 = timePointToUTCTimeString<std::chrono::time_point<std::chrono::high_resolution_clock>>(dp3, 0);
-   const std::string ds4 = timePointToUTCTimeString<std::chrono::time_point<std::chrono::high_resolution_clock>>(dp4, 6);
+   const std::string ds1 = timePointToString<std::chrono::time_point<std::chrono::high_resolution_clock>>(dp1, 0);
+   const std::string ds2 = timePointToString<std::chrono::time_point<std::chrono::high_resolution_clock>>(dp2, 6);
+   const std::string ds3 = timePointToString<std::chrono::time_point<std::chrono::high_resolution_clock>>(dp3, 0);
+   const std::string ds4 = timePointToString<std::chrono::time_point<std::chrono::high_resolution_clock>>(dp4, 6);
 /*
    std::cout << t1 << "\t" << ts1 << "\t\t" << ds1 << std::endl;
    std::cout << t2 << "\t" << ts2 << "\t" << ds2 << std::endl;
@@ -213,17 +225,24 @@ int NorNetEdgeMetadataReader::addFile(const std::filesystem::path& dataFile,
                                       const std::smatch            match)
 {
    if(match.size() == 3) {
-      InputFileEntry inputFileEntry;
-      inputFileEntry.TimeStamp  = match[2];
-      inputFileEntry.NodeID     = atol(match[1].str().c_str());
-      inputFileEntry.DataFile   = dataFile;
-      const int workerID = inputFileEntry.NodeID % Workers;
+      FileEntryTimePoint timeStamp;
+      if(stringToTimePoint<FileEntryTimePoint>(match[2].str(), timeStamp, "%Y%m%dT%H%M%S")) {
+         InputFileEntry inputFileEntry;
+         inputFileEntry.TimeStamp  = timeStamp;
+         inputFileEntry.NodeID     = atol(match[1].str().c_str());
+         inputFileEntry.DataFile   = dataFile;
+         const int workerID = inputFileEntry.NodeID % Workers;
 
-      HPCT_LOG(trace) << Identification << ": Adding data file " << dataFile;
-      std::unique_lock lock(Mutex);
-      DataFileSet[workerID].insert(inputFileEntry);
-
-      return workerID;
+         std::unique_lock lock(Mutex);
+         if(DataFileSet[workerID].insert(inputFileEntry).second) {
+            HPCT_LOG(trace) << Identification << ": Added data file " << dataFile;
+            TotalFiles++;
+            return workerID;
+         }
+      }
+      else {
+         HPCT_LOG(warning) << Identification << ": Bad time stamp " << match[2].str();
+      }
    }
    return -1;
 }
@@ -235,15 +254,21 @@ bool NorNetEdgeMetadataReader::removeFile(const std::filesystem::path& dataFile,
 {
    assert(false);
    if(match.size() == 3) {
-      InputFileEntry inputFileEntry;
-      inputFileEntry.TimeStamp  = match[2];
-      inputFileEntry.NodeID     = atol(match[1].str().c_str());
-      inputFileEntry.DataFile   = dataFile;
-      const unsigned int worker = inputFileEntry.NodeID % Workers;
+      FileEntryTimePoint timeStamp;
+      if(stringToTimePoint<FileEntryTimePoint>(match[2].str(), timeStamp, "%Y%m%dT%H%M%S")) {
+         InputFileEntry inputFileEntry;
+         inputFileEntry.TimeStamp  = timeStamp;
+         inputFileEntry.NodeID     = atol(match[1].str().c_str());
+         inputFileEntry.DataFile   = dataFile;
+         const int workerID = inputFileEntry.NodeID % Workers;
 
-      HPCT_LOG(trace) << Identification << ": Removing data file " << dataFile;
-      std::unique_lock lock(Mutex);
-      return (DataFileSet[worker].erase(inputFileEntry) == 1);
+         HPCT_LOG(trace) << Identification << ": Removing data file " << dataFile;
+         std::unique_lock lock(Mutex);
+         if(DataFileSet[workerID].erase(inputFileEntry) == 1) {
+            assert(TotalFiles > 0);
+            TotalFiles--;
+         }
+      }
    }
    return 0;
 }
@@ -416,7 +441,7 @@ void NorNetEdgeMetadataReader::parseContents(
          if(outputFormat & DatabaseBackend::SQL_Generic) {
             statement << "INSERT INTO " << Table_bins1min
                       << "(ts, delta, node_id, network_id, metadata_key, metadata_value) VALUES ("
-                      << "'" << timePointToUTCTimeString<std::chrono::time_point<std::chrono::high_resolution_clock>>(ts) << "', "
+                      << "'" << timePointToString<std::chrono::time_point<std::chrono::high_resolution_clock>>(ts) << "', "
                       << delta                 << ", "
                       << nodeID                << ", "
                       << networkID             << ", "
@@ -436,13 +461,13 @@ void NorNetEdgeMetadataReader::parseContents(
 //          if(outputFormat & DatabaseBackend::SQL_Generic) {
 //             statement << "INSERT INTO " << Table_event
 //                       << "(ts, node_id, network_id, metadata_key, metadata_value, extra, min) VALUES ("
-//                       << "'" << timePointToUTCTimeString<std::chrono::time_point<std::chrono::high_resolution_clock>>(ts) << "', "
+//                       << "'" << timePointToString<std::chrono::time_point<std::chrono::high_resolution_clock>>(ts) << "', "
 //                       << nodeID                << ", "
 //                       << networkID             << ", "
 //                       << "'" << metadataKey   << "', "
 //                       << "'" << metadataValue << "', "
 //                       << "'" << extra         << "', "
-//                       << "'" << timePointToUTCTimeString<std::chrono::time_point<std::chrono::high_resolution_clock>>(min) << "');\n";   // FROM_UNIXTIME(UNIX_TIMESTAMP(ts) DIV 60*60)
+//                       << "'" << timePointToString<std::chrono::time_point<std::chrono::high_resolution_clock>>(min) << "');\n";   // FROM_UNIXTIME(UNIX_TIMESTAMP(ts) DIV 60*60)
 //             rows++;
 //          }
       }

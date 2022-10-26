@@ -57,8 +57,8 @@ bool addDestinationAddress(std::set<boost::asio::ip::address>& array,
 // ###### Convert microseconds since the epoch to time point ################
 template <typename TimePoint> TimePoint microsecondsToTimePoint(const unsigned long long microTime)
 {
-   const std::chrono::microseconds      us(microTime);
-   const TimePoint timePoint(us);
+   const std::chrono::microseconds microseconds(microTime);
+   const TimePoint                 timePoint(microseconds);
    return timePoint;
 }
 
@@ -66,18 +66,18 @@ template <typename TimePoint> TimePoint microsecondsToTimePoint(const unsigned l
 // ###### Convert microseconds since the epoch to time point ################
 template <typename TimePoint> unsigned long long timePointToMicroseconds(const TimePoint& timePoint)
 {
-   const std::chrono::microseconds us =
+   const std::chrono::microseconds microseconds =
       std::chrono::duration_cast<std::chrono::microseconds>(timePoint.time_since_epoch());
-   return us.count();
+   return microseconds.count();
 }
 
 
 // ###### Convert time point to UTC time string #############################
-template <typename TimePoint> std::string timePointToUTCTimeString(
+template <typename TimePoint> std::string timePointToString(
                                              const TimePoint&   timePoint,
-                                             const unsigned int precision = 6,
-                                             const char*        format = "%Y-%m-%d %H:%M:",   // %S omitted!
-                                             const bool         utc    = true)
+                                             const unsigned int precision = 0,
+                                             const char*        format    = "%Y-%m-%d %H:%M:",   // %S omitted!
+                                             const bool         utc       = true)
 {
    double seconds        = double(timePoint.time_since_epoch().count()) * TimePoint::period::num / TimePoint::period::den;
    const double fseconds = std::modf(seconds, &seconds);
@@ -95,6 +95,7 @@ template <typename TimePoint> std::string timePointToUTCTimeString(
       << std::setw((precision == 0) ? 2 : precision + 3) << std::setfill('0')
       << std::fixed << std::setprecision(precision)
       << tm.tm_sec + fseconds;
+
    return ss.str();
 }
 
@@ -112,13 +113,16 @@ template <typename TimePoint> bool stringToTimePoint(
       return false;
    }
    timePoint = TimePoint(std::chrono::seconds(std::mktime(&tm)));
+   if(iss.eof()) {
+      return true;
+   }
 
    // ====== Handle fractional seconds ======================================
    double f;
    if (iss.peek() != '.' || !(iss >> f)) {
       return false;
    }
-   const double fseconds = f * std::chrono::high_resolution_clock::period::den / std::chrono::high_resolution_clock::period::num;
+   const size_t fseconds = f * std::chrono::high_resolution_clock::period::den / std::chrono::high_resolution_clock::period::num;
    timePoint += std::chrono::high_resolution_clock::duration(fseconds);
 
    return true;

@@ -509,6 +509,7 @@ class BasicReader
    protected:
    const unsigned int Workers;
    const unsigned int MaxTransactionSize;
+   unsigned long long TotalFiles;
 };
 
 
@@ -520,6 +521,7 @@ BasicReader::BasicReader(const unsigned int workers,
 {
    assert(Workers > 0);
    assert(MaxTransactionSize > 0);
+   TotalFiles = 0;
 }
 
 
@@ -687,8 +689,10 @@ class NorNetEdgePingReader : public BasicReader
                               const DatabaseBackend                outputFormat);
 
    private:
+   typedef std::chrono::system_clock               FileEntryClock;
+   typedef std::chrono::time_point<FileEntryClock> FileEntryTimePoint;
    struct InputFileEntry {
-      std::string           TimeStamp;
+      FileEntryTimePoint    TimeStamp;
       unsigned int          MeasurementID;
       std::filesystem::path DataFile;
    };
@@ -706,7 +710,7 @@ class NorNetEdgePingReader : public BasicReader
 
 const std::string NorNetEdgePingReader::Identification = "UDPPing";
 const std::regex  NorNetEdgePingReader::FileNameRegExp = std::regex(
-   // Format: uping_<MeasurementID>.dat.<YYYY-MM-DD-HH-MM-SS>.xz
+   // Format: uping_<MeasurementID>.dat.<YYYY-MM-DD_HH-MM-SS>.xz
    "^uping_([0-9]+)\\.dat\\.([0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]_[0-9][0-9]-[0-9][0-9]-[0-9][0-9])\\.xz$"
 );
 
@@ -739,7 +743,11 @@ bool operator<(const NorNetEdgePingReader::InputFileEntry& a,
 // ###### Output operator ###################################################
 std::ostream& operator<<(std::ostream& os, const NorNetEdgePingReader::InputFileEntry& entry)
 {
-   os << "(" << entry.TimeStamp << ", " << entry.MeasurementID << ", " << entry.DataFile << ")";
+   os << "("
+      << timePointToString<NorNetEdgePingReader::FileEntryTimePoint>(entry.TimeStamp) << ", "
+      << entry.MeasurementID << ", "
+      << entry.DataFile
+      << ")";
    return os;
 }
 
@@ -788,19 +796,25 @@ int NorNetEdgePingReader::addFile(const std::filesystem::path& dataFile,
   return -1;  // ??????
  }
 
-
    if(match.size() == 3) {
-      InputFileEntry inputFileEntry;
-      inputFileEntry.MeasurementID = atol(match[1].str().c_str());
-      inputFileEntry.TimeStamp     = match[2];
-      inputFileEntry.DataFile      = dataFile;
-      const int workerID = inputFileEntry.MeasurementID % Workers;
+      FileEntryTimePoint timeStamp;
+      if(stringToTimePoint<FileEntryTimePoint>(match[2].str(), timeStamp, "%Y-%m-%d_%H-%M-%S")) {
+         InputFileEntry inputFileEntry;
+         inputFileEntry.TimeStamp     = timeStamp;
+         inputFileEntry.MeasurementID = atol(match[1].str().c_str());
+         inputFileEntry.DataFile      = dataFile;
+         const int workerID = inputFileEntry.MeasurementID % Workers;
 
-      HPCT_LOG(trace) << Identification << ": Adding data file " << dataFile;
-      std::unique_lock lock(Mutex);
-      DataFileSet[workerID].insert(inputFileEntry);
-
-      return workerID;
+         std::unique_lock lock(Mutex);
+         if(DataFileSet[workerID].insert(inputFileEntry).second) {
+            HPCT_LOG(trace) << Identification << ": Added data file " << dataFile;
+            TotalFiles++;
+            return workerID;
+         }
+      }
+      else {
+         HPCT_LOG(warning) << Identification << ": Bad time stamp " << match[2].str();
+      }
    }
    return -1;
 }
@@ -811,15 +825,21 @@ bool NorNetEdgePingReader::removeFile(const std::filesystem::path& dataFile,
                                       const std::smatch            match)
 {
    if(match.size() == 3) {
-      InputFileEntry inputFileEntry;
-      inputFileEntry.MeasurementID = atol(match[1].str().c_str());
-      inputFileEntry.TimeStamp     = match[2];
-      inputFileEntry.DataFile      = dataFile;
-      const unsigned int worker = inputFileEntry.MeasurementID % Workers;
+      FileEntryTimePoint timeStamp;
+      if(stringToTimePoint<FileEntryTimePoint>(match[2].str(), timeStamp, "%Y-%m-%d_%H-%M-%S")) {
+         InputFileEntry inputFileEntry;
+         inputFileEntry.TimeStamp     = timeStamp;
+         inputFileEntry.MeasurementID = atol(match[1].str().c_str());
+         inputFileEntry.DataFile      = dataFile;
+         const int workerID = inputFileEntry.MeasurementID % Workers;
 
-      HPCT_LOG(trace) << Identification << ": Removing data file " << dataFile;
-      std::unique_lock lock(Mutex);
-      return (DataFileSet[worker].erase(inputFileEntry) == 1);
+         HPCT_LOG(trace) << Identification << ": Removing data file " << dataFile;
+         std::unique_lock lock(Mutex);
+         if(DataFileSet[workerID].erase(inputFileEntry) == 1) {
+            assert(TotalFiles > 0);
+            TotalFiles--;
+         }
+      }
    }
    return 0;
 }
@@ -1205,6 +1225,7 @@ class UniversalImporter
    std::map<const WorkerMapping, Worker*> WorkerMap;
    const std::filesystem::path            DataDirectory;
    const unsigned int                     MaxDepth;
+   unsigned long long                     Files;
 #ifdef __linux__
    int                                    INotifyFD;
    std::set<int>                          INotifyWatchDescriptors;
@@ -1237,6 +1258,7 @@ UniversalImporter::UniversalImporter(boost::asio::io_service&     ioService,
    MaxDepth(maxDepth),
    INotifyStream(IOService)
 {
+   Files = 0;
 #ifdef __linux__
    INotifyFD = -1;
 #endif
@@ -1465,6 +1487,7 @@ void UniversalImporter::addFile(const std::filesystem::path& dataFile)
       if(std::regex_match(filename, match, reader->getFileNameRegExp())) {
          const int worker = reader->addFile(dataFile, match);
          if(worker >= 0) {
+            Files++;
             WorkerMapping workerMapping;
             workerMapping.Reader   = reader;
             workerMapping.WorkerID = worker;
@@ -1486,7 +1509,10 @@ void UniversalImporter::removeFile(const std::filesystem::path& dataFile)
    const std::string& filename = dataFile.filename().string();
    for(BasicReader* reader : ReaderList) {
       if(std::regex_match(filename, match, reader->getFileNameRegExp())) {
-         reader->removeFile(dataFile, match);
+         if(reader->removeFile(dataFile, match)) {
+            assert(Files > 0);
+            Files--;
+         }
          break;
       }
    }
