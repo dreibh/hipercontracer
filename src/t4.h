@@ -72,8 +72,8 @@ class NorNetEdgeMetadataReader : public BasicReader
 
    private:
    template<typename TimePoint> static TimePoint makeMin(const TimePoint& timePoint);
-   template<typename TimePoint> static TimePoint parseTimeStamp(const boost::property_tree::ptree&         item,
-                                                                              const TimePoint& now);
+   template<typename TimePoint> static TimePoint parseTimeStamp(const boost::property_tree::ptree& item,
+                                                                const TimePoint&                   now);
    long long parseDelta(const boost::property_tree::ptree& item) const;
    unsigned int parseNodeID(const boost::property_tree::ptree& item) const;
    unsigned int parseNetworkID(const boost::property_tree::ptree& item) const;
@@ -159,9 +159,9 @@ NorNetEdgeMetadataReader::NorNetEdgeMetadataReader(const unsigned int workers,
    const std::string ds2 = timePointToUTCTimeString<std::chrono::time_point<std::chrono::system_clock>>(dp2);
    const std::string ds3 = timePointToUTCTimeString<std::chrono::time_point<std::chrono::system_clock>>(dp3);
 
-   // std::cout << t1 << "\t" << ts1 << "\t" << ds1 << std::endl;
-   // std::cout << t2 << "\t" << ts2 << "\t" << ds2 << std::endl;
-   // std::cout << t3 << "\t" << ts3 << "\t" << ds3 << std::endl;
+   std::cout << t1 << "\t" << ts1 << "\t" << ds1 << std::endl;
+   std::cout << t2 << "\t" << ts2 << "\t" << ds2 << std::endl;
+   std::cout << t3 << "\t" << ts3 << "\t" << ds3 << std::endl;
 
    assert(ts1 == "2022-10-20 10:24:01");
    assert(ts2 == "2001-09-09 01:46:40");
@@ -291,8 +291,8 @@ template<typename TimePoint> TimePoint NorNetEdgeMetadataReader::makeMin(const T
 
 // ###### Parse time stamp ##################################################
 template<typename TimePoint> TimePoint NorNetEdgeMetadataReader::parseTimeStamp(
-                                                        const boost::property_tree::ptree&         item,
-                                                        const TimePoint& now)
+                                          const boost::property_tree::ptree& item,
+                                          const TimePoint&                   now)
 {
    const unsigned long long ts        = (unsigned long long)rint(1000000.0 * item.get<double>("ts"));
    const TimePoint          timeStamp = microsecondsToTimePoint<std::chrono::time_point<std::chrono::system_clock>>(ts);
@@ -379,7 +379,7 @@ void NorNetEdgeMetadataReader::parseContents(
         std::stringstream&                   statement,
         unsigned long long&                  rows,
         boost::iostreams::filtering_istream& inputStream,
-        const DatabaseBackend                   outputFormat)
+        const DatabaseBackend                outputFormat)
 {
    boost::property_tree::ptree propertyTreeRoot;
    boost::property_tree::read_json(inputStream, propertyTreeRoot);
@@ -403,35 +403,35 @@ void NorNetEdgeMetadataReader::parseContents(
          if(outputFormat & DatabaseBackend::SQL_Generic) {
             statement << "INSERT INTO " << Table_bins1min
                       << "(ts, delta, node_id, network_id, metadata_key, metadata_value) VALUES ("
-                      << "\"" << timePointToUTCTimeString<std::chrono::time_point<std::chrono::system_clock>>(ts) << "\", "
+                      << "'" << timePointToUTCTimeString<std::chrono::time_point<std::chrono::system_clock>>(ts) << "', "
                       << delta                 << ", "
                       << nodeID                << ", "
                       << networkID             << ", "
-                      << "\"" << metadataKey   << "\", "
-                      << "\"" << metadataValue << "\" );\n";
+                      << "'" << metadataKey   << "', "
+                      << "'" << metadataValue << "' );\n";
             rows++;
          }
       }
       else if(itemType == "event") {
-         const std::chrono::time_point<std::chrono::system_clock> ts  = parseTimeStamp<std::chrono::time_point<std::chrono::system_clock>>(item, now);
-         const std::chrono::time_point<std::chrono::system_clock> min = makeMin<std::chrono::time_point<std::chrono::system_clock>>(ts);
-         const unsigned int nodeID        = parseNodeID(item);
-         const unsigned int networkID     = parseNetworkID(item);
-         const std::string  metadataKey   = parseMetadataKey(item);
-         const std::string  metadataValue = parseMetadataValue(item);
-         const std::string  extra         = parseExtra(item);
-         if(outputFormat & DatabaseBackend::SQL_Generic) {
-            statement << "INSERT INTO " << Table_event
-                      << "(ts, node_id, network_id, metadata_key, metadata_value, extra, min) VALUES ("
-                      << "\"" << timePointToUTCTimeString<std::chrono::time_point<std::chrono::system_clock>>(ts) << "\", "
-                      << nodeID                << ", "
-                      << networkID             << ", "
-                      << "\"" << metadataKey   << "\", "
-                      << "\"" << metadataValue << "\", "
-                      << "\"" << extra         << "\", "
-                      << "\"" << timePointToUTCTimeString<std::chrono::time_point<std::chrono::system_clock>>(min) << "\");\n";   // FROM_UNIXTIME(UNIX_TIMESTAMP(ts) DIV 60*60)
-            rows++;
-         }
+//          const std::chrono::time_point<std::chrono::system_clock> ts  = parseTimeStamp<std::chrono::time_point<std::chrono::system_clock>>(item, now);
+//          const std::chrono::time_point<std::chrono::system_clock> min = makeMin<std::chrono::time_point<std::chrono::system_clock>>(ts);
+//          const unsigned int nodeID        = parseNodeID(item);
+//          const unsigned int networkID     = parseNetworkID(item);
+//          const std::string  metadataKey   = parseMetadataKey(item);
+//          const std::string  metadataValue = parseMetadataValue(item);
+//          const std::string  extra         = parseExtra(item);
+//          if(outputFormat & DatabaseBackend::SQL_Generic) {
+//             statement << "INSERT INTO " << Table_event
+//                       << "(ts, node_id, network_id, metadata_key, metadata_value, extra, min) VALUES ("
+//                       << "'" << timePointToUTCTimeString<std::chrono::time_point<std::chrono::system_clock>>(ts) << "', "
+//                       << nodeID                << ", "
+//                       << networkID             << ", "
+//                       << "'" << metadataKey   << "', "
+//                       << "'" << metadataValue << "', "
+//                       << "'" << extra         << "', "
+//                       << "'" << timePointToUTCTimeString<std::chrono::time_point<std::chrono::system_clock>>(min) << "');\n";   // FROM_UNIXTIME(UNIX_TIMESTAMP(ts) DIV 60*60)
+//             rows++;
+//          }
       }
       else {
          throw ImporterReaderException("Got unknown metadata type " + itemType);

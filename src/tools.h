@@ -73,28 +73,53 @@ template <typename TimePoint> unsigned long long timePointToMicroseconds(const T
 
 
 // ###### Convert time point to local time string ###########################
-template <typename TimePoint> std::string timePointToLocalTimeString(const TimePoint& timePoint)
+template <typename TimePoint> std::string timePointToLocalTimeString(
+                                             const TimePoint& timePoint,
+                                             const char*      format = "%Y-%m-%d %H:%M:%S %Z")
 {
-   const time_t      tt = std::chrono::system_clock::to_time_t(timePoint);
-   tm                localTime;
-   std::stringstream ss;
+   double seconds  = double(timePoint.time_since_epoch().count()) * TimePoint::period::num /
+                        TimePoint::period::den;
+   std::modf(seconds, &seconds);
+   const time_t tt = seconds;
 
+   std::stringstream ss;
+   tm                localTime;
    localtime_r(&tt, &localTime);
-   ss << std::put_time(&localTime, "%F %T") << std::put_time(&localTime, " %Z");
+   ss << std::put_time(&localTime, format);
    return ss.str();
 }
 
 
 // ###### Convert time point to UTC time string #############################
-template <typename TimePoint> std::string timePointToUTCTimeString(const TimePoint& timePoint)
+template <typename TimePoint> std::string timePointToUTCTimeString(
+                                             const TimePoint& timePoint,
+                                             const char*      format = "%Y-%m-%d %H:%M:%S")
 {
-   const time_t      tt = std::chrono::system_clock::to_time_t(timePoint);
-   tm                gmTime;
-   std::stringstream ss;
+   double seconds  = double(timePoint.time_since_epoch().count()) * TimePoint::period::num /
+                        TimePoint::period::den;
+   std::modf(seconds, &seconds);
+   const time_t tt = seconds;
 
-   gmtime_r(&tt, &gmTime);
-   ss << std::put_time(&gmTime, "%F %T");
+   std::stringstream ss;
+   tm                utcTime;
+   gmtime_r(&tt, &utcTime);
+   ss << std::put_time(&utcTime, format);
    return ss.str();
 }
+
+
+// // ###### Convert UTC time string to time point #############################
+// template <typename TimePoint> TimePoint timePointToUTCTimeString(
+//                                            const std::string string,
+//                                            const char*       format = "%Y-%m-%d %H:%M:%S %Z")
+// {
+//    const time_t      tt = std::chrono::system_clock::to_time_t(timePoint);
+//    tm                gmTime;
+//    std::stringstream ss;
+//
+//    gmtime_r(&tt, &gmTime);
+//    ss << std::put_time(&gmTime, "%F %T");
+//    return ss.str();
+// }
 
 #endif

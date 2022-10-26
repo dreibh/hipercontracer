@@ -343,7 +343,8 @@ void MariaDBClient::endTransaction(const bool commit)
    // ====== Commit transaction =============================================
    if(commit) {
       try {
-         Statement->execute("COMMIT;");
+         // Statement->execute("COMMIT;");
+         Connection->commit();
       }
       catch(const sql::SQLException& e) {
          HPCT_LOG(error) << "Commmit failed: " << e.what();
@@ -355,7 +356,8 @@ void MariaDBClient::endTransaction(const bool commit)
    // ====== Commit transaction =============================================
    else {
       try {
-         Statement->execute("ROLLBACK;");
+         // Statement->execute("ROLLBACK;");
+         Connection->rollback();
       }
       catch(const sql::SQLException& e) {
          HPCT_LOG(error) << "Rollback failed: " << e.what();
@@ -499,7 +501,7 @@ class BasicReader
    virtual void parseContents(std::stringstream&                   statement,
                               unsigned long long&                  rows,
                               boost::iostreams::filtering_istream& inputStream,
-                              const DatabaseBackend                   outputFormat) = 0;
+                              const DatabaseBackend                outputFormat) = 0;
 
    inline const unsigned int getWorkers() const { return Workers; }
    inline const unsigned int getMaxTransactionSize() const { return MaxTransactionSize; }
@@ -682,7 +684,7 @@ class NorNetEdgePingReader : public BasicReader
    virtual void parseContents(std::stringstream&                   statement,
                               unsigned long long&                  rows,
                               boost::iostreams::filtering_istream& inputStream,
-                              const DatabaseBackend                   outputFormat);
+                              const DatabaseBackend                outputFormat);
 
    private:
    struct InputFileEntry {
@@ -889,7 +891,7 @@ void NorNetEdgePingReader::parseContents(
         std::stringstream&                   statement,
         unsigned long long&                  rows,
         boost::iostreams::filtering_istream& inputStream,
-        const DatabaseBackend                   outputFormat)
+        const DatabaseBackend                outputFormat)
 {
    static const unsigned int NorNetEdgePingColumns   = 4;
    static const char         NorNetEdgePingDelimiter = '\t';
@@ -1511,8 +1513,8 @@ int main(int argc, char** argv)
    boost::asio::io_service ioService;
 
    unsigned int          logLevel                  = boost::log::trivial::severity_level::trace;
-   unsigned int          pingWorkers               = 1;
-   unsigned int          metadataWorkers           = 0;
+   unsigned int          pingWorkers               = 0;
+   unsigned int          metadataWorkers           = 1;
    std::filesystem::path databaseConfigurationFile = "/home/dreibh/soyuz.conf";
 
 
