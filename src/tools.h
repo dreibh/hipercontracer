@@ -72,54 +72,56 @@ template <typename TimePoint> unsigned long long timePointToMicroseconds(const T
 }
 
 
-// ###### Convert time point to local time string ###########################
-template <typename TimePoint> std::string timePointToLocalTimeString(
-                                             const TimePoint& timePoint,
-                                             const char*      format = "%Y-%m-%d %H:%M:%S %Z")
-{
-   double seconds  = double(timePoint.time_since_epoch().count()) * TimePoint::period::num /
-                        TimePoint::period::den;
-   std::modf(seconds, &seconds);
-   const time_t tt = seconds;
-
-   std::stringstream ss;
-   tm                localTime;
-   localtime_r(&tt, &localTime);
-   ss << std::put_time(&localTime, format);
-   return ss.str();
-}
-
-
 // ###### Convert time point to UTC time string #############################
 template <typename TimePoint> std::string timePointToUTCTimeString(
-                                             const TimePoint& timePoint,
-                                             const char*      format = "%Y-%m-%d %H:%M:%S")
+                                             const TimePoint&   timePoint,
+                                             const unsigned int precision = 6,
+                                             const char*        format = "%Y-%m-%d %H:%M:",   // %S omitted!
+                                             const bool         utc    = true)
 {
-   double seconds  = double(timePoint.time_since_epoch().count()) * TimePoint::period::num /
-                        TimePoint::period::den;
-   std::modf(seconds, &seconds);
-   const time_t tt = seconds;
+   double seconds        = double(timePoint.time_since_epoch().count()) * TimePoint::period::num / TimePoint::period::den;
+   const double fseconds = std::modf(seconds, &seconds);
+   const time_t tt       = seconds;
 
    std::stringstream ss;
-   tm                utcTime;
-   gmtime_r(&tt, &utcTime);
-   ss << std::put_time(&utcTime, format);
+   std::tm           tm;
+   if(utc) {
+      gmtime_r(&tt, &tm);
+   }
+   else {
+      localtime_r(&tt, &tm);
+   }
+   ss << std::put_time(&tm, format)
+      << std::setw((precision == 0) ? 2 : precision + 3) << std::setfill('0')
+      << std::fixed << std::setprecision(precision)
+      << tm.tm_sec + fseconds;
    return ss.str();
 }
 
 
-// // ###### Convert UTC time string to time point #############################
-// template <typename TimePoint> TimePoint timePointToUTCTimeString(
-//                                            const std::string string,
-//                                            const char*       format = "%Y-%m-%d %H:%M:%S %Z")
-// {
-//    const time_t      tt = std::chrono::system_clock::to_time_t(timePoint);
-//    tm                gmTime;
-//    std::stringstream ss;
-//
-//    gmtime_r(&tt, &gmTime);
-//    ss << std::put_time(&gmTime, "%F %T");
-//    return ss.str();
-// }
+// ###### Convert UTC time string to time point #############################
+template <typename TimePoint> bool stringToTimePoint(
+                                      const std::string& string,
+                                      TimePoint&         timePoint,
+                                      const char*        format = "%Y-%m-%d %H:%M:%S")
+{
+   // ====== Handle time in seconds granularity =============================
+   std::istringstream iss(string);
+   std::tm            tm;
+   if(!(iss >> std::get_time(&tm, format))) {
+      return false;
+   }
+   timePoint = TimePoint(std::chrono::seconds(std::mktime(&tm)));
+
+   // ====== Handle fractional seconds ======================================
+   double f;
+   if (iss.peek() != '.' || !(iss >> f)) {
+      return false;
+   }
+   const double fseconds = f * std::chrono::high_resolution_clock::period::den / std::chrono::high_resolution_clock::period::num;
+   timePoint += std::chrono::high_resolution_clock::duration(fseconds);
+
+   return true;
+}
 
 #endif
