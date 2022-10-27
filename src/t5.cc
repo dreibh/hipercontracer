@@ -377,9 +377,9 @@ void MariaDBClient::handleSQLException(const sql::SQLException& exception,
                                        const std::string&       statement)
 {
    // ====== Log error ======================================================
-   const std::string what = where + " failed: " +
-                               exception.getSQLState() + " E" +
-                               std::to_string(exception.getErrorCode()) + " " +
+   const std::string what = where + " error " +
+                               exception.getSQLState() + "/E" +
+                               std::to_string(exception.getErrorCode()) + ": " +
                                exception.what();
    HPCT_LOG(error) << what;
    std::cerr << statement << "\n";
@@ -1117,8 +1117,7 @@ class Worker
    void deleteImportedFile(const std::filesystem::path& dataFile);
    void moveImportedFile(const std::filesystem::path& dataFile);
    void moveBadFile(const std::filesystem::path& dataFile);
-   bool importFiles(std::list<std::filesystem::path>& dataFileList,
-                    const char*                       mode);
+   bool importFiles(const std::list<std::filesystem::path>& dataFileList);
    void run();
 
    std::atomic<bool>            StopRequested;
@@ -1319,16 +1318,16 @@ void Worker::finishedFile(const std::filesystem::path& dataFile,
 
 
 // ###### Import list of files ##############################################
-bool Worker::importFiles(std::list<std::filesystem::path>& dataFileList,
-                         const char*                       mode)
+bool Worker::importFiles(const std::list<std::filesystem::path>& dataFileList)
 {
-   HPCT_LOG(debug) << getIdentification() << ": Trying to import "
-                   << dataFileList.size() << " files in " << mode << " mode ...";
-
-   for(const std::filesystem::path& d : dataFileList) {
-      std::cout << "- " << d << "\n";
+   const bool fastMode = (dataFileList.size() > 1);
+   if(fastMode) {
+      HPCT_LOG(debug) << getIdentification() << ": Trying to import "
+                      << dataFileList.size() << " files in fast mode ...";
    }
-
+   // for(const std::filesystem::path& d : dataFileList) {
+   //    std::cout << "- " << d << "\n";
+   // }
 
    unsigned long long rows = 0;
    try {
@@ -1347,13 +1346,19 @@ bool Worker::importFiles(std::list<std::filesystem::path>& dataFileList,
             HPCT_LOG(warning) << getIdentification() << ": Import in fast mode failed with reader data error: "
                               << exception.what();
             DatabaseClient.rollback();
-            finishedFile(dataFile, false);
+            if(!fastMode) {
+               finishedFile(dataFile, false);
+            }
+            return false;
          }
          catch(ImporterDatabaseDataErrorException& exception) {
             HPCT_LOG(warning) << getIdentification() << ": Import in fast mode failed with database data error: "
                               << exception.what();
             DatabaseClient.rollback();
-            finishedFile(dataFile, false);
+            if(!fastMode) {
+               finishedFile(dataFile, false);
+            }
+            return false;
          }
       }
       if(Reader.finishParsing(DatabaseClient, rows)) {
@@ -1373,7 +1378,8 @@ bool Worker::importFiles(std::list<std::filesystem::path>& dataFileList,
       return true;
    }
    catch(ImporterDatabaseException& exception) {
-      HPCT_LOG(warning) << getIdentification() << ": Import in fast mode failed: "
+      HPCT_LOG(warning) << getIdentification() << ": Import in "
+                        << ((fastMode == true) ? "fast" : "slow") << " mode failed: "
                         << exception.what();
       DatabaseClient.rollback();
    }
@@ -1395,10 +1401,12 @@ void Worker::run()
       unsigned int files = Reader.fetchFiles(dataFileList, WorkerID, Reader.getMaxTransactionSize());
       while( (files > 0) && (!StopRequested) ) {
          // ====== Fast Mode ================================================
-         if(!importFiles(dataFileList, "fast")) {
+         if(!importFiles(dataFileList)) {
 
             // ====== Slow Mode =============================================
             if(files > 1) {
+               HPCT_LOG(debug) << getIdentification() << ": Trying to import "
+                               << dataFileList.size() << " files in slow mode ...";
                for(const std::filesystem::path& dataFile : dataFileList) {
                   std::list<std::filesystem::path> singleFileList;
                   if(StopRequested) {
@@ -1406,7 +1414,7 @@ void Worker::run()
                   }
                   singleFileList.push_back(dataFile);
                   assert(singleFileList.size() == 1);
-                  importFiles(singleFileList, "slow");
+                  importFiles(singleFileList);
                }
             }
          }
@@ -1804,9 +1812,9 @@ int main(int argc, char** argv)
    boost::asio::io_service ioService;
 
    unsigned int          logLevel                  = boost::log::trivial::severity_level::trace;
-   unsigned int          pingWorkers               = 0;
-   unsigned int          metadataWorkers           = 1;
-   unsigned int          pingTransactionSize       = 1;
+   unsigned int          pingWorkers               = 1;
+   unsigned int          metadataWorkers           = 0;
+   unsigned int          pingTransactionSize       = 4;
    unsigned int          metadataTransactionSize   = 256;
    std::filesystem::path databaseConfigurationFile = "/home/dreibh/soyuz.conf";
 
