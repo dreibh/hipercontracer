@@ -1041,8 +1041,8 @@ class Worker
 {
    public:
    Worker(const unsigned int           workerID,
-          BasicReader*                 reader,
-          DatabaseClientBase*          databaseClient,
+          BasicReader&                 reader,
+          DatabaseClientBase&          databaseClient,
           const std::filesystem::path& importFilePath,
           const std::filesystem::path& goodFilePath,
           const std::filesystem::path& badFilePath,
@@ -1066,8 +1066,8 @@ class Worker
 
    std::atomic<bool>            StopRequested;
    const unsigned int           WorkerID;
-   BasicReader*                 Reader;
-   DatabaseClientBase*          DatabaseClient;
+   BasicReader&                 Reader;
+   DatabaseClientBase&          DatabaseClient;
    const std::filesystem::path& ImportFilePath;
    const std::filesystem::path& GoodFilePath;
    const std::filesystem::path& BadFilePath;
@@ -1081,8 +1081,8 @@ class Worker
 
 // ###### Constructor #######################################################
 Worker::Worker(const unsigned int           workerID,
-               BasicReader*                 reader,
-               DatabaseClientBase*          databaseClient,
+               BasicReader&                 reader,
+               DatabaseClientBase&          databaseClient,
                const std::filesystem::path& importFilePath,
                const std::filesystem::path& goodFilePath,
                const std::filesystem::path& badFilePath,
@@ -1094,7 +1094,7 @@ Worker::Worker(const unsigned int           workerID,
      GoodFilePath(goodFilePath),
      BadFilePath(badFilePath),
      ImportMode(importMode),
-     Identification(reader->getIdentification() + "/" + std::to_string(WorkerID))
+     Identification(Reader.getIdentification() + "/" + std::to_string(WorkerID))
 {
    StopRequested.exchange(false);
 }
@@ -1155,7 +1155,7 @@ void Worker::processFile(std::stringstream&           statement,
    inputStream.push(inputFile);
 
    // ====== Read contents ==================================================
-   Reader->parseContents(statement, rows, inputStream, DatabaseClient->getBackend());
+   Reader.parseContents(statement, rows, inputStream, DatabaseClient.getBackend());
 }
 
 
@@ -1216,8 +1216,8 @@ void Worker::finishedFile(const std::filesystem::path& dataFile)
    // Need to extract the file name parts again, in order to find the entry:
    const std::string& filename = dataFile.filename().string();
    std::smatch        match;
-   assert(std::regex_match(filename, match, Reader->getFileNameRegExp()));
-   assert(Reader->removeFile(dataFile, match) == 1);
+   assert(std::regex_match(filename, match, Reader.getFileNameRegExp()));
+   assert(Reader.removeFile(dataFile, match) == 1);
 }
 
 
@@ -1232,7 +1232,7 @@ void Worker::run()
       std::list<const std::filesystem::path*> dataFileList;
 
       // ====== Fast import: try to combine files ===========================
-      unsigned int files = Reader->fetchFiles(dataFileList, WorkerID, Reader->getMaxTransactionSize());
+      unsigned int files = Reader.fetchFiles(dataFileList, WorkerID, Reader.getMaxTransactionSize());
       while( (files > 0) && (!StopRequested) ) {
          HPCT_LOG(debug) << getIdentification() << ": Trying to import " << files << " files in fast mode ...";
 
@@ -1240,15 +1240,15 @@ void Worker::run()
          unsigned long long rows = 0;
          try {
             // ====== Import multiple input files in one transaction ========
-            Reader->beginParsing(statement, rows, DatabaseClient->getBackend());
+            Reader.beginParsing(statement, rows, DatabaseClient.getBackend());
             for(const std::filesystem::path* dataFile : dataFileList) {
                HPCT_LOG(trace) << getIdentification() << ": Parsing " << *dataFile << " ...";
                processFile(statement, rows, dataFile);
             }
-            if(Reader->finishParsing(statement, rows, DatabaseClient->getBackend())) {
-               DatabaseClient->beginTransaction();
-               DatabaseClient->execute(statement.str());
-               DatabaseClient->commit();
+            if(Reader.finishParsing(statement, rows, DatabaseClient.getBackend())) {
+               DatabaseClient.beginTransaction();
+               DatabaseClient.execute(statement.str());
+               DatabaseClient.commit();
                HPCT_LOG(debug) << getIdentification() << ": Committed " << rows << " rows";
             }
             else {
@@ -1265,7 +1265,7 @@ void Worker::run()
          catch(const std::exception& exception) {
             HPCT_LOG(warning) << getIdentification() << ": Import in fast mode failed: "
                               << exception.what();
-            DatabaseClient->rollback();
+            DatabaseClient.rollback();
 
             // ====== Slow import: handle files sequentially ================
             if(files > 1) {
@@ -1274,13 +1274,13 @@ void Worker::run()
                for(const std::filesystem::path* dataFile : dataFileList) {
                   try {
                      // ====== Import one input file in one transaction =====
-                     Reader->beginParsing(statement, rows, DatabaseClient->getBackend());
+                     Reader.beginParsing(statement, rows, DatabaseClient.getBackend());
                      HPCT_LOG(trace) << getIdentification() << ": Parsing " << *dataFile << " ...";
                      processFile(statement, rows, dataFile);
-                     if(Reader->finishParsing(statement, rows, DatabaseClient->getBackend())) {
-                        DatabaseClient->beginTransaction();
-                        DatabaseClient->execute(statement.str());
-                        DatabaseClient->commit();
+                     if(Reader.finishParsing(statement, rows, DatabaseClient.getBackend())) {
+                        DatabaseClient.beginTransaction();
+                        DatabaseClient.execute(statement.str());
+                        DatabaseClient.commit();
                         HPCT_LOG(debug) << getIdentification() << ": Committed " << rows
                                         << " rows from " << *dataFile;
                      }
@@ -1293,7 +1293,7 @@ void Worker::run()
                      finishedFile(*dataFile);
                   }
                   catch(const std::exception& exception) {
-                     DatabaseClient->rollback();
+                     DatabaseClient.rollback();
                      HPCT_LOG(warning) << getIdentification() << ": Importing " << *dataFile << " in slow mode failed: "
                                        << exception.what();
                   }
@@ -1301,7 +1301,7 @@ void Worker::run()
             }
          }
 
-        files = Reader->fetchFiles(dataFileList, WorkerID, Reader->getMaxTransactionSize());
+        files = Reader.fetchFiles(dataFileList, WorkerID, Reader.getMaxTransactionSize());
 
         puts("????");
         files = 0;
@@ -1558,7 +1558,7 @@ void UniversalImporter::addReader(BasicReader*         reader,
 {
    ReaderList.push_back(reader);
    for(unsigned int w = 0; w < databaseClients; w++) {
-      Worker* worker = new Worker(w, reader, databaseClientArray[w],
+      Worker* worker = new Worker(w, *reader, *databaseClientArray[w],
                                   ImportFilePath, GoodFilePath, BadFilePath,
                                   ImportMode);
       assert(worker != nullptr);
