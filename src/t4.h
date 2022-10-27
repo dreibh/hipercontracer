@@ -59,12 +59,12 @@ class NorNetEdgeMetadataReader : public BasicReader
                                    const unsigned int                       limit = 1);
    virtual void printStatus(std::ostream& os = std::cout);
 
-   virtual void beginParsing(std::stringstream&     statement,
-                             unsigned long long&    rows,
-                             const DatabaseBackend  outputFormat);
-   virtual bool finishParsing(std::stringstream&     statement,
-                              unsigned long long&    rows,
-                              const DatabaseBackend  outputFormat);
+   virtual void beginParsing(std::stringstream&    statement,
+                             unsigned long long&   rows,
+                             const DatabaseBackend outputFormat);
+   virtual bool finishParsing(std::stringstream&    statement,
+                              unsigned long long&   rows,
+                              const DatabaseBackend outputFormat);
    virtual void parseContents(std::stringstream&                   statement,
                               unsigned long long&                  rows,
                               boost::iostreams::filtering_istream& inputStream,
@@ -228,9 +228,9 @@ int NorNetEdgeMetadataReader::addFile(const std::filesystem::path& dataFile,
       FileEntryTimePoint timeStamp;
       if(stringToTimePoint<FileEntryTimePoint>(match[2].str(), timeStamp, "%Y%m%dT%H%M%S")) {
          InputFileEntry inputFileEntry;
-         inputFileEntry.TimeStamp  = timeStamp;
-         inputFileEntry.NodeID     = atol(match[1].str().c_str());
-         inputFileEntry.DataFile   = dataFile;
+         inputFileEntry.TimeStamp = timeStamp;
+         inputFileEntry.NodeID    = atol(match[1].str().c_str());
+         inputFileEntry.DataFile  = dataFile;
          const int workerID = inputFileEntry.NodeID % Workers;
 
          std::unique_lock lock(Mutex);
@@ -257,9 +257,9 @@ bool NorNetEdgeMetadataReader::removeFile(const std::filesystem::path& dataFile,
       FileEntryTimePoint timeStamp;
       if(stringToTimePoint<FileEntryTimePoint>(match[2].str(), timeStamp, "%Y%m%dT%H%M%S")) {
          InputFileEntry inputFileEntry;
-         inputFileEntry.TimeStamp  = timeStamp;
-         inputFileEntry.NodeID     = atol(match[1].str().c_str());
-         inputFileEntry.DataFile   = dataFile;
+         inputFileEntry.TimeStamp = timeStamp;
+         inputFileEntry.NodeID    = atol(match[1].str().c_str());
+         inputFileEntry.DataFile  = dataFile;
          const int workerID = inputFileEntry.NodeID % Workers;
 
          HPCT_LOG(trace) << Identification << ": Removing data file " << dataFile;
@@ -267,10 +267,11 @@ bool NorNetEdgeMetadataReader::removeFile(const std::filesystem::path& dataFile,
          if(DataFileSet[workerID].erase(inputFileEntry) == 1) {
             assert(TotalFiles > 0);
             TotalFiles--;
+            return true;
          }
       }
    }
-   return 0;
+   return false;
 }
 
 

@@ -26,12 +26,6 @@
 #include <sys/inotify.h>
 #endif
 
-// Ubuntu: libmysqlcppconn-dev
-#include <cppconn/driver.h>
-#include <cppconn/exception.h>
-#include <cppconn/resultset.h>
-#include <cppconn/statement.h>
-
 
 // g++ t5.cc -o t5 -std=c++17
 // g++ t5.cc -o t5 -std=c++17 -O0 -g -Wall -lpthread && rm -f core && ./t5
@@ -83,6 +77,12 @@ enum DatabaseBackend {
 };
 
 
+enum ImportMode {
+   KeepImportedFiles   = 0,   // Keep the files where they are
+   MoveImportedFiles   = 1,   // Move into "good file" directory
+   DeleteImportedFiles = 2    // Delete
+};
+
 
 class DatabaseClientBase;
 
@@ -92,17 +92,20 @@ class DatabaseConfiguration
    DatabaseConfiguration();
    ~DatabaseConfiguration();
 
-   inline DatabaseBackend getBackend()     const { return Backend;  }
-   inline const std::string& getServer()   const { return Server;   }
-   inline const uint16_t     getPort()     const { return Port;     }
-   inline const std::string& getUser()     const { return User;     }
-   inline const std::string& getPassword() const { return Password; }
-   inline const std::string& getCAFile()   const { return CAFile;   }
-   inline const std::string& getDatabase() const { return Database; }
+   inline DatabaseBackend    getBackend()    const { return Backend;  }
+   inline const std::string& getServer()     const { return Server;   }
+   inline const uint16_t     getPort()       const { return Port;     }
+   inline const std::string& getUser()       const { return User;     }
+   inline const std::string& getPassword()   const { return Password; }
+   inline const std::string& getCAFile()     const { return CAFile;   }
+   inline const std::string& getDatabase()   const { return Database; }
+   inline const ImportMode   getImportMode() const { return Mode; }
    inline const std::filesystem::path& getTransactionsPath() const { return TransactionsPath; }
    inline const std::filesystem::path& getBadFilePath()      const { return BadFilePath;      }
+   inline const std::filesystem::path& getGoodFilePath()     const { return GoodFilePath;     }
 
    inline void setBackend(const DatabaseBackend backend) { Backend = backend; }
+   inline void setImportMode(const ImportMode mode)      { Mode = mode;       }
 
    bool readConfiguration(const std::filesystem::path& configurationFile);
    void printConfiguration(std::ostream& os) const;
@@ -118,8 +121,11 @@ class DatabaseConfiguration
    std::string           Password;
    std::string           CAFile;
    std::string           Database;
+   std::string           ModeName;
+   ImportMode            Mode;
    std::filesystem::path TransactionsPath;
    std::filesystem::path BadFilePath;
+   std::filesystem::path GoodFilePath;
 };
 
 
@@ -236,6 +242,13 @@ void DebugClient::execute(const std::string& statement)
 
 
 
+// Ubuntu: libmysqlcppconn-dev
+#include <cppconn/driver.h>
+#include <cppconn/exception.h>
+#include <cppconn/resultset.h>
+#include <cppconn/statement.h>
+
+
 class MariaDBClient : public DatabaseClientBase
 {
    public:
@@ -295,11 +308,12 @@ bool MariaDBClient::prepare()
                                    Configuration.getPassword().c_str());
       assert(Connection != nullptr);
       Connection->setSchema(Configuration.getDatabase().c_str());
+      // SET SESSION TRANSACTION ISOLATION LEVEL READ COMMITTED
+      Connection->setTransactionIsolation(sql::TRANSACTION_READ_COMMITTED);
 
       // ====== Create statement ============================================
       Statement = Connection->createStatement();
       assert(Statement != nullptr);
-      Statement->execute("SET SESSION TRANSACTION ISOLATION LEVEL READ COMMITTED;");
    }
    catch(const sql::SQLException& e) {
       HPCT_LOG(error) << "Unable to connect MariaDB client to " << url << ": " << e.what();
@@ -398,11 +412,15 @@ DatabaseConfiguration::DatabaseConfiguration()
       ("dbcafile",          boost::program_options::value<std::string>(&CAFile),      "database CA file")
       ("database",          boost::program_options::value<std::string>(&Database),    "database name")
       ("dbbackend",         boost::program_options::value<std::string>(&BackendName), "database backend")
+      ("import_mode",       boost::program_options::value<std::string>(&ModeName),    "import mode")
       ("transactions_path", boost::program_options::value<std::filesystem::path>(&TransactionsPath), "path for input data")
-      ("bad_file_path",     boost::program_options::value<std::filesystem::path>(&TransactionsPath), "path for bad files")
+      ("bad_file_path",     boost::program_options::value<std::filesystem::path>(&BadFilePath),      "path for bad files")
+      ("good_file_path",    boost::program_options::value<std::filesystem::path>(&GoodFilePath),     "path for good files")
    ;
    BackendName = "Invalid";
    Backend     = DatabaseBackend::Invalid;
+   ModeName    = "KeepImportedFiles";
+   Mode        = ImportMode::KeepImportedFiles;
 }
 
 
@@ -421,6 +439,20 @@ bool DatabaseConfiguration::readConfiguration(const std::filesystem::path& confi
    boost::program_options::store(boost::program_options::parse_config_file(configurationInputStream , OptionsDescription), vm);
    boost::program_options::notify(vm);
 
+   if(ModeName == "KeepImportedFiles") {
+      Mode = ImportMode::KeepImportedFiles;
+   }
+   else if(ModeName == "MoveImportedFiles") {
+      Mode = ImportMode::MoveImportedFiles;
+   }
+   else if(ModeName == "DeleteImportedFiles") {
+      Mode = ImportMode::DeleteImportedFiles;
+   }
+   else {
+      std::cerr << "ERROR: Invalid import mode name " << ModeName << std::endl;
+      return false;
+   }
+
    if( (BackendName == "MySQL") || (BackendName == "MariaDB") ) {
       Backend = DatabaseBackend::SQL_MariaDB;
    }
@@ -429,6 +461,12 @@ bool DatabaseConfiguration::readConfiguration(const std::filesystem::path& confi
    }
    else if(BackendName == "MongoDB") {
       Backend = DatabaseBackend::NoSQL_MongoDB;
+   }
+   else if(BackendName == "DebugSQL") {
+      Backend = DatabaseBackend::SQL_Debug;
+   }
+   else if(BackendName == "DebugNoSQL") {
+      Backend = DatabaseBackend::NoSQL_Debug;
    }
    else {
       std::cerr << "ERROR: Invalid backend name " << Backend << std::endl;
@@ -494,12 +532,12 @@ class BasicReader
                                    const unsigned int                       limit = 1) = 0;
    virtual void printStatus(std::ostream& os = std::cout) = 0;
 
-   virtual void beginParsing(std::stringstream&  statement,
-                             unsigned long long& rows,
-                             const DatabaseBackend  outputFormat) = 0;
-   virtual bool finishParsing(std::stringstream&  statement,
-                              unsigned long long& rows,
-                              const DatabaseBackend  outputFormat) = 0;
+   virtual void beginParsing(std::stringstream&    statement,
+                             unsigned long long&   rows,
+                             const DatabaseBackend outputFormat) = 0;
+   virtual bool finishParsing(std::stringstream&    statement,
+                              unsigned long long&   rows,
+                              const DatabaseBackend outputFormat) = 0;
    virtual void parseContents(std::stringstream&                   statement,
                               unsigned long long&                  rows,
                               boost::iostreams::filtering_istream& inputStream,
@@ -679,12 +717,12 @@ class NorNetEdgePingReader : public BasicReader
                                    const unsigned int                       limit = 1);
    virtual void printStatus(std::ostream& os = std::cout);
 
-   virtual void beginParsing(std::stringstream&  statement,
-                             unsigned long long& rows,
-                             const DatabaseBackend  outputFormat);
-   virtual bool finishParsing(std::stringstream&  statement,
-                              unsigned long long& rows,
-                              const DatabaseBackend  outputFormat);
+   virtual void beginParsing(std::stringstream&    statement,
+                             unsigned long long&   rows,
+                             const DatabaseBackend outputFormat);
+   virtual bool finishParsing(std::stringstream&    statement,
+                              unsigned long long&   rows,
+                              const DatabaseBackend outputFormat);
    virtual void parseContents(std::stringstream&                   statement,
                               unsigned long long&                  rows,
                               boost::iostreams::filtering_istream& inputStream,
@@ -840,10 +878,11 @@ bool NorNetEdgePingReader::removeFile(const std::filesystem::path& dataFile,
          if(DataFileSet[workerID].erase(inputFileEntry) == 1) {
             assert(TotalFiles > 0);
             TotalFiles--;
+            return true;
          }
       }
    }
-   return 0;
+   return false;
 }
 
 
@@ -1082,8 +1121,8 @@ void Worker::finishedFile(const std::filesystem::path& dataFile)
 
    // ====== Remove file from the reader ====================================
    // Need to extract the file name parts again, in order to find the entry:
-   std::smatch match;
    const std::string& filename = dataFile.filename().string();
+   std::smatch        match;
    assert(std::regex_match(filename, match, Reader->getFileNameRegExp()));
    assert(Reader->removeFile(dataFile, match) == 1);
 }
@@ -1189,6 +1228,7 @@ class UniversalImporter
    public:
    UniversalImporter(boost::asio::io_service&     ioService,
                      const std::filesystem::path& dataDirectory,
+                     const ImportMode             importMode,
                      const unsigned int           maxDepth = 5);
    ~UniversalImporter();
 
@@ -1211,8 +1251,8 @@ class UniversalImporter
 #endif
    void lookForFiles(const std::filesystem::path& dataDirectory,
                      const unsigned int           maxDepth);
-   void addFile(const std::filesystem::path& dataFile);
-   void removeFile(const std::filesystem::path& dataFile);
+   bool addFile(const std::filesystem::path& dataFile);
+   bool removeFile(const std::filesystem::path& dataFile);
 
    struct WorkerMapping {
       BasicReader* Reader;
@@ -1226,8 +1266,8 @@ class UniversalImporter
    std::list<BasicReader*>                ReaderList;
    std::map<const WorkerMapping, Worker*> WorkerMap;
    const std::filesystem::path            DataDirectory;
+   const ImportMode                       Mode;
    const unsigned int                     MaxDepth;
-   unsigned long long                     Files;
 #ifdef __linux__
    int                                    INotifyFD;
    std::set<int>                          INotifyWatchDescriptors;
@@ -1253,14 +1293,15 @@ bool operator<(const UniversalImporter::WorkerMapping& a,
 // ###### Constructor #######################################################
 UniversalImporter::UniversalImporter(boost::asio::io_service&     ioService,
                                      const std::filesystem::path& dataDirectory,
+                                     const ImportMode             importMode,
                                      const unsigned int           maxDepth)
  : IOService(ioService),
    Signals(IOService, SIGINT, SIGTERM),
    DataDirectory(dataDirectory),
+   Mode(importMode),
    MaxDepth(maxDepth),
    INotifyStream(IOService)
 {
-   Files = 0;
 #ifdef __linux__
    INotifyFD = -1;
 #endif
@@ -1481,15 +1522,14 @@ void UniversalImporter::lookForFiles(const std::filesystem::path& dataDirectory,
 
 
 // ###### Add input file ####################################################
-void UniversalImporter::addFile(const std::filesystem::path& dataFile)
+bool UniversalImporter::addFile(const std::filesystem::path& dataFile)
 {
-   std::smatch        match;
    const std::string& filename = dataFile.filename().string();
+   std::smatch        match;
    for(BasicReader* reader : ReaderList) {
       if(std::regex_match(filename, match, reader->getFileNameRegExp())) {
          const int worker = reader->addFile(dataFile, match);
          if(worker >= 0) {
-            Files++;
             WorkerMapping workerMapping;
             workerMapping.Reader   = reader;
             workerMapping.WorkerID = worker;
@@ -1497,27 +1537,29 @@ void UniversalImporter::addFile(const std::filesystem::path& dataFile)
             if(found != WorkerMap.end()) {
                Worker* worker = found->second;
                worker->wakeUp();
+               return true;
             }
          }
       }
    }
+   return false;
 }
 
 
 // ###### Add input file ####################################################
-void UniversalImporter::removeFile(const std::filesystem::path& dataFile)
+bool UniversalImporter::removeFile(const std::filesystem::path& dataFile)
 {
-   std::smatch        match;
    const std::string& filename = dataFile.filename().string();
+   std::smatch        match;
    for(BasicReader* reader : ReaderList) {
       if(std::regex_match(filename, match, reader->getFileNameRegExp())) {
          if(reader->removeFile(dataFile, match)) {
-            assert(Files > 0);
-            Files--;
+            return true;
          }
          break;
       }
    }
+   return false;
 }
 
 
@@ -1541,8 +1583,10 @@ int main(int argc, char** argv)
    boost::asio::io_service ioService;
 
    unsigned int          logLevel                  = boost::log::trivial::severity_level::trace;
-   unsigned int          pingWorkers               = 0;
-   unsigned int          metadataWorkers           = 1;
+   unsigned int          pingWorkers               = 1;
+   unsigned int          metadataWorkers           = 0;
+   unsigned int          pingTransactionSize       = 1;
+   unsigned int          metadataTransactionSize   = 1;
    std::filesystem::path databaseConfigurationFile = "/home/dreibh/soyuz.conf";
 
 
@@ -1553,7 +1597,7 @@ int main(int argc, char** argv)
    }
 
 // ????
-databaseConfiguration.setBackend(DatabaseBackend::SQL_Debug);
+// databaseConfiguration.setBackend(DatabaseBackend::SQL_Debug);
 
    databaseConfiguration.printConfiguration(std::cout);
 
@@ -1568,7 +1612,10 @@ databaseConfiguration.setBackend(DatabaseBackend::SQL_Debug);
 
    // ====== Initialise importer ============================================
    initialiseLogger(logLevel);
-   UniversalImporter importer(ioService, "data", 5);
+   UniversalImporter importer(ioService,
+                              "data",// ?????
+                              databaseConfiguration.getImportMode(),
+                              5);
 
 
    // ====== Initialise database clients and readers ========================
@@ -1583,7 +1630,7 @@ databaseConfiguration.setBackend(DatabaseBackend::SQL_Debug);
             exit(1);
          }
       }
-      nnePingReader = new NorNetEdgePingReader(pingWorkers);
+      nnePingReader = new NorNetEdgePingReader(pingWorkers, pingTransactionSize);
       assert(nnePingReader != nullptr);
       importer.addReader(nnePingReader,
                          (DatabaseClientBase**)&pingDatabaseClients, pingWorkers);
@@ -1600,7 +1647,7 @@ databaseConfiguration.setBackend(DatabaseBackend::SQL_Debug);
             exit(1);
          }
       }
-      nneMetadataReader = new NorNetEdgeMetadataReader(metadataWorkers);
+      nneMetadataReader = new NorNetEdgeMetadataReader(metadataWorkers, metadataTransactionSize);
       assert(nneMetadataReader != nullptr);
       importer.addReader(nneMetadataReader,
                          (DatabaseClientBase**)&metadataDatabaseClients, metadataWorkers);
