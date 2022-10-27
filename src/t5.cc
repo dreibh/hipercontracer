@@ -1079,6 +1079,7 @@ Worker::Worker(const unsigned int  workerID,
                const ImportMode    importMode)
    : WorkerID(workerID),
      Reader(reader),
+     DatabaseClient(databaseClient),
      Mode(importMode),
      Identification(reader->getIdentification() + "/" + std::to_string(WorkerID))
 {
@@ -1218,7 +1219,6 @@ void Worker::run()
          unsigned long long rows = 0;
          try {
             // ====== Import multiple input files in one transaction ========
-printf("BE=%x\n",             DatabaseClient->getBackend());
             Reader->beginParsing(statement, rows, DatabaseClient->getBackend());
             for(const std::filesystem::path* dataFile : dataFileList) {
                HPCT_LOG(trace) << getIdentification() << ": Parsing " << *dataFile << " ...";
