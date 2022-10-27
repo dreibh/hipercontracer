@@ -1090,6 +1090,11 @@ class Worker
                     const std::filesystem::path& dataFile);
    void finishedFile(const std::filesystem::path& dataFile);
    void deleteEmptyDirectories(std::filesystem::path path);
+   void deleteImportedFile(const std::filesystem::path& dataFile);
+   void moveImportedFile(const std::filesystem::path& dataFile);
+   void moveBadFile(const std::filesystem::path& dataFile);
+   bool importFiles(std::list<std::filesystem::path>& dataFileList,
+                    const char*                       mode);
    void run();
 
    std::atomic<bool>            StopRequested;
@@ -1204,40 +1209,72 @@ void Worker::deleteEmptyDirectories(std::filesystem::path path)
 }
 
 
+// ###### Delete successfully imported file #################################
+void Worker::deleteImportedFile(const std::filesystem::path& dataFile)
+{
+   try {
+      std::filesystem::remove(dataFile);
+      HPCT_LOG(trace) << getIdentification() << ": Deleted imported file " << dataFile;
+      deleteEmptyDirectories(dataFile.parent_path());
+   }
+   catch(std::filesystem::filesystem_error& e) {
+      HPCT_LOG(warning) << getIdentification() << ": Deleting imported file " << dataFile << " failed: " << e.what();
+   }
+}
+
+
+// ###### Move successfully imported file to good files #####################
+void Worker::moveImportedFile(const std::filesystem::path& dataFile)
+{
+   assert(is_subdir_of(dataFile, ImportFilePath));
+   const std::filesystem::path subdirs    = std::filesystem::relative(dataFile.parent_path(), ImportFilePath);
+   const std::filesystem::path targetPath = GoodFilePath / subdirs;
+   try {
+      std::filesystem::create_directories(targetPath);
+      std::filesystem::rename(dataFile, targetPath / dataFile.filename());
+      HPCT_LOG(trace) << getIdentification() << ": Moved imported file "
+                      << dataFile << " to " << targetPath;
+   }
+   catch(std::filesystem::filesystem_error& e) {
+      HPCT_LOG(warning) << getIdentification() << ": Moving imported file " << dataFile
+                        << " to " << targetPath << " failed: " << e.what();
+   }
+}
+
+
+// ###### Move bad file to bad files ########################################
+void Worker::moveBadFile(const std::filesystem::path& dataFile)
+{
+   assert(is_subdir_of(dataFile, ImportFilePath));
+   const std::filesystem::path subdirs    = std::filesystem::relative(dataFile.parent_path(), ImportFilePath);
+   const std::filesystem::path targetPath = BadFilePath / subdirs;
+   try {
+      std::filesystem::create_directories(targetPath);
+      std::filesystem::rename(dataFile, targetPath / dataFile.filename());
+      HPCT_LOG(trace) << getIdentification() << ": Moved bad file "
+                      << dataFile << " to " << targetPath;
+   }
+   catch(std::filesystem::filesystem_error& e) {
+      HPCT_LOG(warning) << getIdentification() << ": Moving bad file " << dataFile
+                        << " to " << targetPath << " failed: " << e.what();
+   }
+}
+
+
 // ###### Delete finished input file ########################################
 void Worker::finishedFile(const std::filesystem::path& dataFile)
 {
    // ====== Delete imported file ===========================================
    if(ImportMode == ImportModeType::DeleteImportedFiles) {
-      try {
-         std::filesystem::remove(dataFile);
-         HPCT_LOG(trace) << getIdentification() << ": Deleted finished file " << dataFile;
-         deleteEmptyDirectories(dataFile.parent_path());
-      }
-      catch(std::filesystem::filesystem_error& e) {
-         HPCT_LOG(warning) << getIdentification() << ": Deleting finished file " << dataFile << " failed: " << e.what();
-      }
+      deleteImportedFile(dataFile);
    }
-
    // ====== Move imported file =============================================
    else if(ImportMode == ImportModeType::MoveImportedFiles) {
-      assert(is_subdir_of(dataFile, ImportFilePath));
-      const std::filesystem::path subdirs    = std::filesystem::relative(dataFile.parent_path(), ImportFilePath);
-      const std::filesystem::path targetPath = GoodFilePath / subdirs;
-      try {
-         std::filesystem::create_directories(targetPath);
-         std::filesystem::rename(dataFile, targetPath / dataFile.filename());
-         HPCT_LOG(trace) << getIdentification() << ": Moved finished file " << dataFile;
-      }
-      catch(std::filesystem::filesystem_error& e) {
-         HPCT_LOG(warning) << getIdentification() << ": Moving finished file " << dataFile
-                           << " to " << targetPath << " failed: " << e.what();
-      }
+      moveImportedFile(dataFile);
    }
-
+   // ====== Keep imported file where it is =================================
    else  if(ImportMode == ImportModeType::KeepImportedFiles) {
       // Nothing to do here!
-      puts("NA");
    }
 
    // ====== Remove file from the reader ====================================
@@ -1246,6 +1283,55 @@ void Worker::finishedFile(const std::filesystem::path& dataFile)
    std::smatch        match;
    assert(std::regex_match(filename, match, Reader.getFileNameRegExp()));
    assert(Reader.removeFile(dataFile, match) == 1);
+}
+
+
+// ###### Import list of files ##############################################
+bool Worker::importFiles(std::list<std::filesystem::path>& dataFileList,
+                         const char*                       mode)
+{
+   HPCT_LOG(debug) << getIdentification() << ": Trying to import "
+                   << dataFileList.size() << " files in " << mode << " mode ...";
+
+   for(const std::filesystem::path& d : dataFileList) {
+      std::cout << "- " << d << "\n";
+   }
+
+
+   unsigned long long rows = 0;
+   try {
+      // ====== Import multiple input files in one transaction ========
+      DatabaseClient.beginTransaction();
+      Reader.beginParsing(DatabaseClient, rows);
+      for(const std::filesystem::path& dataFile : dataFileList) {
+         if(StopRequested) {
+            break;
+         }
+         HPCT_LOG(trace) << getIdentification() << ": Parsing " << dataFile << " ...";
+         processFile(DatabaseClient, rows, dataFile);
+      }
+      if(Reader.finishParsing(DatabaseClient, rows)) {
+         DatabaseClient.commit();
+         HPCT_LOG(debug) << getIdentification() << ": Committed " << rows << " rows";
+      }
+      else {
+         std::cout << "Nothing to do!" << std::endl;
+         HPCT_LOG(debug) << getIdentification() << ": Nothing to import!";
+      }
+
+      // ====== Delete input files ====================================
+      HPCT_LOG(debug) << getIdentification() << ": Finishing " << dataFileList.size() << " input files ...";
+      for(const std::filesystem::path& dataFile : dataFileList) {
+         finishedFile(dataFile);
+      }
+      return true;
+   }
+   catch(ImporterDatabaseException& exception) {
+      HPCT_LOG(warning) << getIdentification() << ": Import in fast mode failed: "
+                        << exception.what();
+      DatabaseClient.rollback();
+   }
+   return false;
 }
 
 
@@ -1260,73 +1346,90 @@ void Worker::run()
 
       // ====== Fast import: try to combine files ===========================
       std::list<std::filesystem::path> dataFileList;
+      printf("TS=%d\n", Reader.getMaxTransactionSize());
       unsigned int files = Reader.fetchFiles(dataFileList, WorkerID, Reader.getMaxTransactionSize());
       while( (files > 0) && (!StopRequested) ) {
-         HPCT_LOG(debug) << getIdentification() << ": Trying to import " << files << " files in fast mode ...";
+         // ====== Fast Mode ================================================
+         if(!importFiles(dataFileList, "fast")) {
 
-         unsigned long long rows = 0;
-         try {
-            // ====== Import multiple input files in one transaction ========
-            DatabaseClient.beginTransaction();
-            Reader.beginParsing(DatabaseClient, rows);
-            for(const std::filesystem::path& dataFile : dataFileList) {
-               HPCT_LOG(trace) << getIdentification() << ": Parsing " << dataFile << " ...";
-               processFile(DatabaseClient, rows, dataFile);
-            }
-            if(Reader.finishParsing(DatabaseClient, rows)) {
-               DatabaseClient.commit();
-               HPCT_LOG(debug) << getIdentification() << ": Committed " << rows << " rows";
-            }
-            else {
-               std::cout << "Nothing to do!" << std::endl;
-               HPCT_LOG(debug) << getIdentification() << ": Nothing to import!";
-            }
-
-            // ====== Delete input files ====================================
-            HPCT_LOG(debug) << getIdentification() << ": Finishing " << files << " input files ...";
-            for(const std::filesystem::path& dataFile : dataFileList) {
-               finishedFile(dataFile);
-            }
-         }
-         catch(ImporterDatabaseException& exception) {
-            HPCT_LOG(warning) << getIdentification() << ": Import in fast mode failed: "
-                              << exception.what();
-            DatabaseClient.rollback();
-
-            // ====== Slow import: handle files sequentially ================
-            if( (files > 1) && (!StopRequested) ) {
-               HPCT_LOG(debug) << getIdentification() << ": Trying to import " << files << " files in slow mode ...";
-
+            // ====== Slow Mode =============================================
+            if(files > 1) {
                for(const std::filesystem::path& dataFile : dataFileList) {
-                  try {
-                     // ====== Import one input file in one transaction =====
-                     rows = 0;
-                     DatabaseClient.beginTransaction();
-                     Reader.beginParsing(DatabaseClient, rows);
-                     HPCT_LOG(trace) << getIdentification() << ": Parsing " << dataFile << " ...";
-                     processFile(DatabaseClient, rows, dataFile);
-                     if(Reader.finishParsing(DatabaseClient, rows)) {
-                        DatabaseClient.commit();
-                        HPCT_LOG(debug) << getIdentification() << ": Committed " << rows
-                                        << " rows from " << dataFile;
-                     }
-                     else {
-                        HPCT_LOG(debug) << getIdentification() << ": Nothing to import from " << dataFile;
-                     }
-
-                     // ====== Delete input file ============================
-                     finishedFile(dataFile);
+                  std::list<std::filesystem::path> singleFileList;
+                  if(StopRequested) {
+                     break;
                   }
-                  catch(ImporterDatabaseException& exception) {
-                     DatabaseClient.rollback();
-                     HPCT_LOG(warning) << getIdentification() << ": Importing " << dataFile << " in slow mode failed: "
-                                       << exception.what();
-                     if(!DatabaseClient.statementIsEmpty()) {
-                        HPCT_LOG(warning) << getIdentification() << "Statement: " << DatabaseClient.getStatement().str();
-                     }
-                  }
+                  singleFileList.push_back(dataFile);
+                  assert(singleFileList.size() == 1);
+                  importFiles(singleFileList, "slow");
                }
             }
+
+//          HPCT_LOG(debug) << getIdentification() << ": Trying to import " << files << " files in fast mode ...";
+//
+//          unsigned long long rows = 0;
+//          try {
+//             // ====== Import multiple input files in one transaction ========
+//             DatabaseClient.beginTransaction();
+//             Reader.beginParsing(DatabaseClient, rows);
+//             for(const std::filesystem::path& dataFile : dataFileList) {
+//                HPCT_LOG(trace) << getIdentification() << ": Parsing " << dataFile << " ...";
+//                processFile(DatabaseClient, rows, dataFile);
+//             }
+//             if(Reader.finishParsing(DatabaseClient, rows)) {
+//                DatabaseClient.commit();
+//                HPCT_LOG(debug) << getIdentification() << ": Committed " << rows << " rows";
+//             }
+//             else {
+//                std::cout << "Nothing to do!" << std::endl;
+//                HPCT_LOG(debug) << getIdentification() << ": Nothing to import!";
+//             }
+//
+//             // ====== Delete input files ====================================
+//             HPCT_LOG(debug) << getIdentification() << ": Finishing " << files << " input files ...";
+//             for(const std::filesystem::path& dataFile : dataFileList) {
+//                finishedFile(dataFile);
+//             }
+//          }
+//          catch(ImporterDatabaseException& exception) {
+//             HPCT_LOG(warning) << getIdentification() << ": Import in fast mode failed: "
+//                               << exception.what();
+//             DatabaseClient.rollback();
+//
+//             // ====== Slow import: handle files sequentially ================
+//             if( (files > 1) && (!StopRequested) ) {
+//                HPCT_LOG(debug) << getIdentification() << ": Trying to import " << files << " files in slow mode ...";
+//
+//                for(const std::filesystem::path& dataFile : dataFileList) {
+//                   try {
+//                      // ====== Import one input file in one transaction =====
+//                      rows = 0;
+//                      DatabaseClient.beginTransaction();
+//                      Reader.beginParsing(DatabaseClient, rows);
+//                      HPCT_LOG(trace) << getIdentification() << ": Parsing " << dataFile << " ...";
+//                      processFile(DatabaseClient, rows, dataFile);
+//                      if(Reader.finishParsing(DatabaseClient, rows)) {
+//                         DatabaseClient.commit();
+//                         HPCT_LOG(debug) << getIdentification() << ": Committed " << rows
+//                                         << " rows from " << dataFile;
+//                      }
+//                      else {
+//                         HPCT_LOG(debug) << getIdentification() << ": Nothing to import from " << dataFile;
+//                      }
+//
+//                      // ====== Delete input file ============================
+//                      finishedFile(dataFile);
+//                   }
+//                   catch(ImporterDatabaseException& exception) {
+//                      DatabaseClient.rollback();
+//                      HPCT_LOG(warning) << getIdentification() << ": Importing " << dataFile << " in slow mode failed: "
+//                                        << exception.what();
+//                      if(!DatabaseClient.statementIsEmpty()) {
+//                         HPCT_LOG(warning) << getIdentification() << "Statement: " << DatabaseClient.getStatement().str();
+//                      }
+//                   }
+//                }
+//             }
          }
 
         files = Reader.fetchFiles(dataFileList, WorkerID, Reader.getMaxTransactionSize());
@@ -1721,7 +1824,7 @@ int main(int argc, char** argv)
    boost::asio::io_service ioService;
 
    unsigned int          logLevel                  = boost::log::trivial::severity_level::trace;
-   unsigned int          pingWorkers               = 1;
+   unsigned int          pingWorkers               = 0;
    unsigned int          metadataWorkers           = 1;
    unsigned int          pingTransactionSize       = 1;
    unsigned int          metadataTransactionSize   = 1;

@@ -277,18 +277,17 @@ unsigned int NorNetEdgeMetadataReader::fetchFiles(std::list<std::filesystem::pat
                                                   const unsigned int                limit)
 {
    assert(worker < Workers);
+   dataFileList.clear();
 
    std::unique_lock lock(Mutex);
 
-   unsigned int n = 0;
    for(const InputFileEntry& inputFileEntry : DataFileSet[worker]) {
       dataFileList.push_back(inputFileEntry.DataFile);
-      n++;
-      if(n >= limit) {
+      if(dataFileList.size() >= limit) {
          break;
       }
    }
-   return n;
+   return dataFileList.size();
 }
 
 
