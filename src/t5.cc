@@ -61,7 +61,7 @@ class ImporterDatabaseException : public ImporterException
 
 
 
-enum DatabaseBackend {
+enum DatabaseBackendType {
    Invalid        = 0,
 
    SQL_Generic    = (1 << 0),
@@ -77,7 +77,7 @@ enum DatabaseBackend {
 };
 
 
-enum ImportMode {
+enum ImportModeType {
    KeepImportedFiles   = 0,   // Keep the files where they are
    MoveImportedFiles   = 1,   // Move into "good file" directory
    DeleteImportedFiles = 2    // Delete
@@ -92,20 +92,20 @@ class DatabaseConfiguration
    DatabaseConfiguration();
    ~DatabaseConfiguration();
 
-   inline DatabaseBackend    getBackend()    const { return Backend;  }
-   inline const std::string& getServer()     const { return Server;   }
-   inline const uint16_t     getPort()       const { return Port;     }
-   inline const std::string& getUser()       const { return User;     }
-   inline const std::string& getPassword()   const { return Password; }
-   inline const std::string& getCAFile()     const { return CAFile;   }
-   inline const std::string& getDatabase()   const { return Database; }
-   inline const ImportMode   getImportMode() const { return Mode; }
+   inline DatabaseBackendType getBackend()    const { return Backend;    }
+   inline const std::string&  getServer()     const { return Server;     }
+   inline const uint16_t      getPort()       const { return Port;       }
+   inline const std::string&  getUser()       const { return User;       }
+   inline const std::string&  getPassword()   const { return Password;   }
+   inline const std::string&  getCAFile()     const { return CAFile;     }
+   inline const std::string&  getDatabase()   const { return Database;   }
+   inline ImportModeType      getImportMode() const { return ImportMode; }
    inline const std::filesystem::path& getImportFilePath() const { return ImportFilePath; }
-   inline const std::filesystem::path& getBadFilePath()      const { return BadFilePath;      }
-   inline const std::filesystem::path& getGoodFilePath()     const { return GoodFilePath;     }
+   inline const std::filesystem::path& getBadFilePath()    const { return BadFilePath;    }
+   inline const std::filesystem::path& getGoodFilePath()   const { return GoodFilePath;   }
 
-   inline void setBackend(const DatabaseBackend backend) { Backend = backend; }
-   inline void setImportMode(const ImportMode mode)      { Mode = mode;       }
+   inline void setBackend(const DatabaseBackendType backend)  { Backend = backend;       }
+   inline void setImportMode(const ImportModeType importMode) { ImportMode = importMode; }
 
    bool readConfiguration(const std::filesystem::path& configurationFile);
    void printConfiguration(std::ostream& os) const;
@@ -114,15 +114,15 @@ class DatabaseConfiguration
    private:
    boost::program_options::options_description OptionsDescription;
    std::string           BackendName;
-   DatabaseBackend       Backend;
+   DatabaseBackendType   Backend;
    std::string           Server;
    uint16_t              Port;
    std::string           User;
    std::string           Password;
    std::string           CAFile;
    std::string           Database;
-   std::string           ModeName;
-   ImportMode            Mode;
+   std::string           ImportModeName;
+   ImportModeType        ImportMode;
    std::filesystem::path ImportFilePath;
    std::filesystem::path BadFilePath;
    std::filesystem::path GoodFilePath;
@@ -135,7 +135,7 @@ class DatabaseClientBase
    DatabaseClientBase(const DatabaseConfiguration& configuration);
    virtual ~DatabaseClientBase();
 
-   virtual const DatabaseBackend getBackend() const = 0;
+   virtual const DatabaseBackendType getBackend() const = 0;
    virtual bool open()  = 0;
    virtual void close() = 0;
 
@@ -171,7 +171,7 @@ class DebugClient : public  DatabaseClientBase
    DebugClient(const DatabaseConfiguration& configuration);
    virtual ~DebugClient();
 
-   virtual const DatabaseBackend getBackend() const;
+   virtual const DatabaseBackendType getBackend() const;
    virtual bool open();
    virtual void close();
 
@@ -195,7 +195,7 @@ DebugClient::~DebugClient()
 
 
 // ###### Get backend #######################################################
-const DatabaseBackend DebugClient::getBackend() const
+const DatabaseBackendType DebugClient::getBackend() const
 {
    return Configuration.getBackend();
 }
@@ -255,7 +255,7 @@ class MariaDBClient : public DatabaseClientBase
    MariaDBClient(const DatabaseConfiguration& databaseConfiguration);
    virtual ~MariaDBClient();
 
-   virtual const DatabaseBackend getBackend() const;
+   virtual const DatabaseBackendType getBackend() const;
    virtual bool open();
    virtual void close();
 
@@ -289,9 +289,9 @@ MariaDBClient::~MariaDBClient()
 
 
 // ###### Get backend #######################################################
-const DatabaseBackend MariaDBClient::getBackend() const
+const DatabaseBackendType MariaDBClient::getBackend() const
 {
-   return DatabaseBackend::SQL_MariaDB;
+   return DatabaseBackendType::SQL_MariaDB;
 }
 
 
@@ -405,22 +405,22 @@ DatabaseConfiguration::DatabaseConfiguration()
    : OptionsDescription("Options")
 {
    OptionsDescription.add_options()
-      ("dbserver",          boost::program_options::value<std::string>(&Server),      "database server")
-      ("dbport",            boost::program_options::value<uint16_t>(&Port),           "database port")
-      ("dbuser",            boost::program_options::value<std::string>(&User),        "database username")
-      ("dbpassword",        boost::program_options::value<std::string>(&Password),    "database password")
-      ("dbcafile",          boost::program_options::value<std::string>(&CAFile),      "database CA file")
-      ("database",          boost::program_options::value<std::string>(&Database),    "database name")
-      ("dbbackend",         boost::program_options::value<std::string>(&BackendName), "database backend")
-      ("import_mode",       boost::program_options::value<std::string>(&ModeName),    "import mode")
+      ("dbserver",          boost::program_options::value<std::string>(&Server),                   "database server")
+      ("dbport",            boost::program_options::value<uint16_t>(&Port),                        "database port")
+      ("dbuser",            boost::program_options::value<std::string>(&User),                     "database username")
+      ("dbpassword",        boost::program_options::value<std::string>(&Password),                 "database password")
+      ("dbcafile",          boost::program_options::value<std::string>(&CAFile),                   "database CA file")
+      ("database",          boost::program_options::value<std::string>(&Database),                 "database name")
+      ("dbbackend",         boost::program_options::value<std::string>(&BackendName),              "database backend")
+      ("import_mode",       boost::program_options::value<std::string>(&ImportModeName),           "import mode")
       ("import_file_path",  boost::program_options::value<std::filesystem::path>(&ImportFilePath), "path for input data")
       ("bad_file_path",     boost::program_options::value<std::filesystem::path>(&BadFilePath),    "path for bad files")
       ("good_file_path",    boost::program_options::value<std::filesystem::path>(&GoodFilePath),   "path for good files")
    ;
-   BackendName = "Invalid";
-   Backend     = DatabaseBackend::Invalid;
-   ModeName    = "KeepImportedFiles";
-   Mode        = ImportMode::KeepImportedFiles;
+   BackendName    = "Invalid";
+   Backend        = DatabaseBackendType::Invalid;
+   ImportModeName = "KeepImportedFiles";
+   ImportMode     = ImportModeType::KeepImportedFiles;
 }
 
 
@@ -440,34 +440,34 @@ bool DatabaseConfiguration::readConfiguration(const std::filesystem::path& confi
    boost::program_options::notify(vm);
 
    // ====== Check options ==================================================
-   if(ModeName == "KeepImportedFiles") {
-      Mode = ImportMode::KeepImportedFiles;
+   if(ImportModeName == "KeepImportedFiles") {
+      ImportMode = ImportModeType::KeepImportedFiles;
    }
-   else if(ModeName == "MoveImportedFiles") {
-      Mode = ImportMode::MoveImportedFiles;
+   else if(ImportModeName == "MoveImportedFiles") {
+      ImportMode = ImportModeType::MoveImportedFiles;
    }
-   else if(ModeName == "DeleteImportedFiles") {
-      Mode = ImportMode::DeleteImportedFiles;
+   else if(ImportModeName == "DeleteImportedFiles") {
+      ImportMode = ImportModeType::DeleteImportedFiles;
    }
    else {
-      HPCT_LOG(error) << "Invalid import mode name " << ModeName;
+      HPCT_LOG(error) << "Invalid import mode name " << ImportModeName;
       return false;
    }
 
    if( (BackendName == "MySQL") || (BackendName == "MariaDB") ) {
-      Backend = DatabaseBackend::SQL_MariaDB;
+      Backend = DatabaseBackendType::SQL_MariaDB;
    }
    else if(BackendName == "PostgreSQL") {
-      Backend = DatabaseBackend::SQL_PostgreSQL;
+      Backend = DatabaseBackendType::SQL_PostgreSQL;
    }
    else if(BackendName == "MongoDB") {
-      Backend = DatabaseBackend::NoSQL_MongoDB;
+      Backend = DatabaseBackendType::NoSQL_MongoDB;
    }
    else if(BackendName == "DebugSQL") {
-      Backend = DatabaseBackend::SQL_Debug;
+      Backend = DatabaseBackendType::SQL_Debug;
    }
    else if(BackendName == "DebugNoSQL") {
-      Backend = DatabaseBackend::NoSQL_Debug;
+      Backend = DatabaseBackendType::NoSQL_Debug;
    }
    else {
       HPCT_LOG(error) << "Invalid backend name " << Backend;
@@ -559,16 +559,16 @@ class BasicReader
                                    const unsigned int                       limit = 1) = 0;
    virtual void printStatus(std::ostream& os = std::cout) = 0;
 
-   virtual void beginParsing(std::stringstream&    statement,
-                             unsigned long long&   rows,
-                             const DatabaseBackend outputFormat) = 0;
-   virtual bool finishParsing(std::stringstream&    statement,
-                              unsigned long long&   rows,
-                              const DatabaseBackend outputFormat) = 0;
+   virtual void beginParsing(std::stringstream&        statement,
+                             unsigned long long&       rows,
+                             const DatabaseBackendType outputFormat) = 0;
+   virtual bool finishParsing(std::stringstream&        statement,
+                              unsigned long long&       rows,
+                              const DatabaseBackendType outputFormat) = 0;
    virtual void parseContents(std::stringstream&                   statement,
                               unsigned long long&                  rows,
                               boost::iostreams::filtering_istream& inputStream,
-                              const DatabaseBackend                outputFormat) = 0;
+                              const DatabaseBackendType            outputFormat) = 0;
 
    inline const unsigned int getWorkers() const { return Workers; }
    inline const unsigned int getMaxTransactionSize() const { return MaxTransactionSize; }
@@ -744,16 +744,16 @@ class NorNetEdgePingReader : public BasicReader
                                    const unsigned int                       limit = 1);
    virtual void printStatus(std::ostream& os = std::cout);
 
-   virtual void beginParsing(std::stringstream&    statement,
-                             unsigned long long&   rows,
-                             const DatabaseBackend outputFormat);
-   virtual bool finishParsing(std::stringstream&    statement,
-                              unsigned long long&   rows,
-                              const DatabaseBackend outputFormat);
+   virtual void beginParsing(std::stringstream&        statement,
+                             unsigned long long&       rows,
+                             const DatabaseBackendType outputFormat);
+   virtual bool finishParsing(std::stringstream&        statement,
+                              unsigned long long&       rows,
+                              const DatabaseBackendType outputFormat);
    virtual void parseContents(std::stringstream&                   statement,
                               unsigned long long&                  rows,
                               boost::iostreams::filtering_istream& inputStream,
-                              const DatabaseBackend                outputFormat);
+                              const DatabaseBackendType            outputFormat);
 
    private:
    typedef std::chrono::system_clock               FileEntryClock;
@@ -934,15 +934,15 @@ unsigned int NorNetEdgePingReader::fetchFiles(std::list<const std::filesystem::p
 
 
 // ###### Begin parsing #####################################################
-void NorNetEdgePingReader::beginParsing(std::stringstream&    statement,
-                                        unsigned long long&   rows,
-                                        const DatabaseBackend outputFormat)
+void NorNetEdgePingReader::beginParsing(std::stringstream&        statement,
+                                        unsigned long long&       rows,
+                                        const DatabaseBackendType outputFormat)
 {
    rows = 0;
    statement.str(std::string());
 
    // ====== Generate import statement ======================================
-   if(outputFormat & DatabaseBackend::SQL_Generic) {
+   if(outputFormat & DatabaseBackendType::SQL_Generic) {
       statement << "INSERT INTO " << Table_measurement_generic_data
                 << "(ts, mi_id, seq, xml_data, crc, stats) VALUES \n";
    }
@@ -953,13 +953,13 @@ void NorNetEdgePingReader::beginParsing(std::stringstream&    statement,
 
 
 // ###### Finish parsing ####################################################
-bool NorNetEdgePingReader::finishParsing(std::stringstream&    statement,
-                                         unsigned long long&   rows,
-                                         const DatabaseBackend outputFormat)
+bool NorNetEdgePingReader::finishParsing(std::stringstream&        statement,
+                                         unsigned long long&       rows,
+                                         const DatabaseBackendType outputFormat)
 {
    if(rows > 0) {
       // ====== Generate import statement ===================================
-      if(outputFormat & DatabaseBackend::SQL_Generic) {
+      if(outputFormat & DatabaseBackendType::SQL_Generic) {
          if(rows > 0) {
             statement << "\nON DUPLICATE KEY UPDATE stats=stats;\n";
          }
@@ -979,7 +979,7 @@ void NorNetEdgePingReader::parseContents(
         std::stringstream&                   statement,
         unsigned long long&                  rows,
         boost::iostreams::filtering_istream& inputStream,
-        const DatabaseBackend                outputFormat)
+        const DatabaseBackendType            outputFormat)
 {
    static const unsigned int NorNetEdgePingColumns   = 4;
    static const char         NorNetEdgePingDelimiter = '\t';
@@ -1004,7 +1004,7 @@ void NorNetEdgePingReader::parseContents(
       }
 
       // ====== Generate import statement ===================================
-      if(outputFormat & DatabaseBackend::SQL_Generic) {
+      if(outputFormat & DatabaseBackendType::SQL_Generic) {
          if(rows > 0) {
             statement << ",\n";
          }
@@ -1028,9 +1028,9 @@ void NorNetEdgePingReader::printStatus(std::ostream& os)
    os << "NorNetEdgePing:" << std::endl;
    for(unsigned int w = 0; w < Workers; w++) {
       os << " - Work Queue #" << w + 1 << ": " << DataFileSet[w].size() << std::endl;
-      for(const InputFileEntry& inputFileEntry : DataFileSet[w]) {
-         os << "  - " <<  inputFileEntry << std::endl;
-      }
+      // for(const InputFileEntry& inputFileEntry : DataFileSet[w]) {
+      //    os << "  - " <<  inputFileEntry << std::endl;
+      // }
    }
 }
 
@@ -1042,7 +1042,7 @@ class Worker
    Worker(const unsigned int  workerID,
           BasicReader*        reader,
           DatabaseClientBase* databaseClient,
-          const ImportMode    importMode);
+          const ImportModeType    importMode);
    ~Worker();
 
    void start();
@@ -1064,7 +1064,7 @@ class Worker
    const unsigned int      WorkerID;
    BasicReader*            Reader;
    DatabaseClientBase*     DatabaseClient;
-   const ImportMode        Mode;
+   const ImportModeType        Mode;
    const std::string       Identification;
    std::thread             Thread;
    std::mutex              Mutex;
@@ -1076,7 +1076,7 @@ class Worker
 Worker::Worker(const unsigned int  workerID,
                BasicReader*        reader,
                DatabaseClientBase* databaseClient,
-               const ImportMode    importMode)
+               const ImportModeType    importMode)
    : WorkerID(workerID),
      Reader(reader),
      DatabaseClient(databaseClient),
@@ -1166,7 +1166,7 @@ void Worker::deleteEmptyDirectories(std::filesystem::path path)
 void Worker::finishedFile(const std::filesystem::path& dataFile)
 {
    // ====== Delete imported file ===========================================
-   if(Mode == ImportMode::DeleteImportedFiles) {
+   if(Mode == ImportModeType::DeleteImportedFiles) {
       try {
          std::filesystem::remove(dataFile);
          HPCT_LOG(trace) << getIdentification() << ": Deleted finished file " << dataFile;
@@ -1178,7 +1178,7 @@ void Worker::finishedFile(const std::filesystem::path& dataFile)
    }
 
    // ====== Move imported file =============================================
-   else if(Mode == ImportMode::MoveImportedFiles) {
+   else if(Mode == ImportModeType::MoveImportedFiles) {
 //       try {
 //          std::filesystem::create_directories(
 //          HPCT_LOG(trace) << getIdentification() << ": Moved finished file " << dataFile;
@@ -1187,7 +1187,7 @@ void Worker::finishedFile(const std::filesystem::path& dataFile)
 //          HPCT_LOG(warning) << getIdentification() << ": Moving finished file " << dataFile << " failed: " << e.what();
 //       }
    }
-   else  if(Mode == ImportMode::KeepImportedFiles) {
+   else  if(Mode == ImportModeType::KeepImportedFiles) {
       // Nothing to do here!
    }
 
@@ -1302,7 +1302,7 @@ class UniversalImporter
                      const std::filesystem::path& importFileDirectory,
                      const std::filesystem::path& goodFileDirectory,
                      const std::filesystem::path& badFileDirectory,
-                     const ImportMode             importMode,
+                     const ImportModeType         importMode,
                      const unsigned int           maxDepth = 5);
    ~UniversalImporter();
 
@@ -1342,7 +1342,7 @@ class UniversalImporter
    const std::filesystem::path            ImportFileDirectory;
    const std::filesystem::path            GoodFileDirectory;
    const std::filesystem::path            BadFileDirectory;
-   const ImportMode                       Mode;
+   const ImportModeType                   ImportMode;
    const unsigned int                     MaxDepth;
 #ifdef __linux__
    int                                    INotifyFD;
@@ -1371,14 +1371,14 @@ UniversalImporter::UniversalImporter(boost::asio::io_service&     ioService,
                                      const std::filesystem::path& importFileDirectory,
                                      const std::filesystem::path& goodFileDirectory,
                                      const std::filesystem::path& badFileDirectory,
-                                     const ImportMode             importMode,
+                                     const ImportModeType         importMode,
                                      const unsigned int           maxDepth)
  : IOService(ioService),
    Signals(IOService, SIGINT, SIGTERM),
    ImportFileDirectory(importFileDirectory),
    GoodFileDirectory(goodFileDirectory),
    BadFileDirectory(badFileDirectory),
-   Mode(importMode),
+   ImportMode(importMode),
    MaxDepth(maxDepth),
    INotifyStream(IOService)
 {
@@ -1537,7 +1537,7 @@ void UniversalImporter::addReader(BasicReader*         reader,
 {
    ReaderList.push_back(reader);
    for(unsigned int w = 0; w < databaseClients; w++) {
-      Worker* worker = new Worker(w, reader, databaseClientArray[w], Mode);
+      Worker* worker = new Worker(w, reader, databaseClientArray[w], ImportMode);
       assert(worker != nullptr);
       WorkerMapping workerMapping;
       workerMapping.Reader  = reader;
@@ -1677,7 +1677,7 @@ int main(int argc, char** argv)
    }
 
 // ????
-// databaseConfiguration.setBackend(DatabaseBackend::SQL_Debug);
+// databaseConfiguration.setBackend(DatabaseBackendType::SQL_Debug);
 
    databaseConfiguration.printConfiguration(std::cout);
 

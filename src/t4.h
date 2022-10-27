@@ -59,16 +59,16 @@ class NorNetEdgeMetadataReader : public BasicReader
                                    const unsigned int                       limit = 1);
    virtual void printStatus(std::ostream& os = std::cout);
 
-   virtual void beginParsing(std::stringstream&    statement,
-                             unsigned long long&   rows,
-                             const DatabaseBackend outputFormat);
-   virtual bool finishParsing(std::stringstream&    statement,
-                              unsigned long long&   rows,
-                              const DatabaseBackend outputFormat);
+   virtual void beginParsing(std::stringstream&        statement,
+                             unsigned long long&       rows,
+                             const DatabaseBackendType outputFormat);
+   virtual bool finishParsing(std::stringstream&        statement,
+                              unsigned long long&       rows,
+                              const DatabaseBackendType outputFormat);
    virtual void parseContents(std::stringstream&                   statement,
                               unsigned long long&                  rows,
                               boost::iostreams::filtering_istream& inputStream,
-                              const DatabaseBackend                outputFormat);
+                              const DatabaseBackendType            outputFormat);
 
    private:
    template<typename TimePoint> static TimePoint makeMin(const TimePoint& timePoint);
@@ -297,9 +297,9 @@ unsigned int NorNetEdgeMetadataReader::fetchFiles(std::list<const std::filesyste
 
 
 // ###### Begin parsing #####################################################
-void NorNetEdgeMetadataReader::beginParsing(std::stringstream&    statement,
-                                            unsigned long long&   rows,
-                                            const DatabaseBackend outputFormat)
+void NorNetEdgeMetadataReader::beginParsing(std::stringstream&        statement,
+                                            unsigned long long&       rows,
+                                            const DatabaseBackendType outputFormat)
 {
    rows = 0;
    statement.str(std::string());
@@ -307,9 +307,9 @@ void NorNetEdgeMetadataReader::beginParsing(std::stringstream&    statement,
 
 
 // ###### Finish parsing ####################################################
-bool NorNetEdgeMetadataReader::finishParsing(std::stringstream&    statement,
-                                             unsigned long long&   rows,
-                                             const DatabaseBackend outputFormat)
+bool NorNetEdgeMetadataReader::finishParsing(std::stringstream&        statement,
+                                             unsigned long long&       rows,
+                                             const DatabaseBackendType outputFormat)
 {
    if(rows > 0) {
       return true;
@@ -418,7 +418,7 @@ void NorNetEdgeMetadataReader::parseContents(
         std::stringstream&                   statement,
         unsigned long long&                  rows,
         boost::iostreams::filtering_istream& inputStream,
-        const DatabaseBackend                outputFormat)
+        const DatabaseBackendType            outputFormat)
 {
    boost::property_tree::ptree propertyTreeRoot;
    boost::property_tree::read_json(inputStream, propertyTreeRoot);
@@ -439,7 +439,7 @@ void NorNetEdgeMetadataReader::parseContents(
          const unsigned int networkID     = parseNetworkID(item);
          const std::string  metadataKey   = parseMetadataKey(item);
          const std::string  metadataValue = parseMetadataValue(item);
-         if(outputFormat & DatabaseBackend::SQL_Generic) {
+         if(outputFormat & DatabaseBackendType::SQL_Generic) {
             statement << "INSERT INTO " << Table_bins1min
                       << "(ts, delta, node_id, network_id, metadata_key, metadata_value) VALUES ("
                       << "'" << timePointToString<std::chrono::time_point<std::chrono::high_resolution_clock>>(ts) << "', "
@@ -452,25 +452,25 @@ void NorNetEdgeMetadataReader::parseContents(
          }
       }
       else if(itemType == "event") {
-//          const std::chrono::time_point<std::chrono::high_resolution_clock> ts  = parseTimeStamp<std::chrono::time_point<std::chrono::high_resolution_clock>>(item, now);
-//          const std::chrono::time_point<std::chrono::high_resolution_clock> min = makeMin<std::chrono::time_point<std::chrono::high_resolution_clock>>(ts);
-//          const unsigned int nodeID        = parseNodeID(item);
-//          const unsigned int networkID     = parseNetworkID(item);
-//          const std::string  metadataKey   = parseMetadataKey(item);
-//          const std::string  metadataValue = parseMetadataValue(item);
-//          const std::string  extra         = parseExtra(item);
-//          if(outputFormat & DatabaseBackend::SQL_Generic) {
-//             statement << "INSERT INTO " << Table_event
-//                       << "(ts, node_id, network_id, metadata_key, metadata_value, extra, min) VALUES ("
-//                       << "'" << timePointToString<std::chrono::time_point<std::chrono::high_resolution_clock>>(ts) << "', "
-//                       << nodeID                << ", "
-//                       << networkID             << ", "
-//                       << "'" << metadataKey   << "', "
-//                       << "'" << metadataValue << "', "
-//                       << "'" << extra         << "', "
-//                       << "'" << timePointToString<std::chrono::time_point<std::chrono::high_resolution_clock>>(min) << "');\n";   // FROM_UNIXTIME(UNIX_TIMESTAMP(ts) DIV 60*60)
-//             rows++;
-//          }
+         const std::chrono::time_point<std::chrono::high_resolution_clock> ts  = parseTimeStamp<std::chrono::time_point<std::chrono::high_resolution_clock>>(item, now);
+         const std::chrono::time_point<std::chrono::high_resolution_clock> min = makeMin<std::chrono::time_point<std::chrono::high_resolution_clock>>(ts);
+         const unsigned int nodeID        = parseNodeID(item);
+         const unsigned int networkID     = parseNetworkID(item);
+         const std::string  metadataKey   = parseMetadataKey(item);
+         const std::string  metadataValue = parseMetadataValue(item);
+         const std::string  extra         = parseExtra(item);
+         if(outputFormat & DatabaseBackendType::SQL_Generic) {
+            statement << "INSERT INTO " << Table_event
+                      << "(ts, node_id, network_id, metadata_key, metadata_value, extra, min) VALUES ("
+                      << "'" << timePointToString<std::chrono::time_point<std::chrono::high_resolution_clock>>(ts) << "', "
+                      << nodeID                << ", "
+                      << networkID             << ", "
+                      << "'" << metadataKey   << "', "
+                      << "'" << metadataValue << "', "
+                      << "'" << extra         << "', "
+                      << "'" << timePointToString<std::chrono::time_point<std::chrono::high_resolution_clock>>(min) << "');\n";   // FROM_UNIXTIME(UNIX_TIMESTAMP(ts) DIV 60*60)
+            rows++;
+         }
       }
       else {
          throw ImporterReaderException("Got unknown metadata type " + itemType);
