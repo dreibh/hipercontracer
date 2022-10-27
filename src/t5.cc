@@ -160,7 +160,7 @@ class DatabaseClientBase
    virtual bool open()  = 0;
    virtual void close() = 0;
 
-   virtual void beginTransaction() = 0;
+   virtual void startTransaction() = 0;
    virtual void execute(const std::string& statement) = 0;
    virtual void endTransaction(const bool commit) = 0;
 
@@ -202,7 +202,7 @@ class DebugClient : public  DatabaseClientBase
    virtual bool open();
    virtual void close();
 
-   virtual void beginTransaction();
+   virtual void startTransaction();
    virtual void execute(const std::string& statement);
    virtual void endTransaction(const bool commit);
 };
@@ -242,7 +242,7 @@ void DebugClient::close()
 
 
 // ###### Begin transaction #################################################
-void DebugClient::beginTransaction()
+void DebugClient::startTransaction()
 {
    std::cout << "START TRANSACTION;" << std::endl;
 }
@@ -286,14 +286,18 @@ class MariaDBClient : public DatabaseClientBase
    virtual bool open();
    virtual void close();
 
-   virtual void beginTransaction();
+   virtual void startTransaction();
    virtual void execute(const std::string& statement);
    virtual void endTransaction(const bool commit);
 
-    private:
-    sql::Driver*     Driver;
-    sql::Connection* Connection;
-    sql::Statement*  Statement;
+   private:
+   void handleSQLException(const sql::SQLException& exception,
+                           const std::string&       where,
+                           const std::string&       statement = std::string());
+
+   sql::Driver*     Driver;
+   sql::Connection* Connection;
+   sql::Statement*  Statement;
 };
 
 
@@ -367,16 +371,44 @@ void MariaDBClient::close()
 }
 
 
+// ###### Handle SQLException ###############################################
+void MariaDBClient::handleSQLException(const sql::SQLException& exception,
+                                       const std::string&       where,
+                                       const std::string&       statement)
+{
+   // ====== Log error ======================================================
+   const std::string what = where + " failed: " +
+                               exception.getSQLState() + " E" +
+                               std::to_string(exception.getErrorCode()) + " " +
+                               exception.what();
+   HPCT_LOG(error) << what;
+   std::cerr << statement << "\n";
+
+   // ====== Throw exception ================================================
+   const std::string e = exception.getSQLState().substr(0, 2);
+   // Integrity Error, according to mysql/connector/errors.py
+   if( (e == "23") || (e == "XA")) {
+      // For this type, the input file should be moved to the bad directory.
+      throw ImporterDatabaseDataErrorException(what);
+   }
+   // Other error
+   else {
+      throw ImporterDatabaseException(what);
+   }
+}
+
+
 // ###### Begin transaction #################################################
-void MariaDBClient::beginTransaction()
+void MariaDBClient::startTransaction()
 {
    try {
-      Statement->execute("START TRANSACTION;");
+      if(Connection->isClosed()) {
+         Connection->reconnect();
+      }
+      Statement->execute("START TRANSACTION");
    }
-   catch(const sql::SQLException& e) {
-      HPCT_LOG(error) << "Begin failed: " << e.what();
-      close();
-      throw ImporterDatabaseException(std::string("Begin failed: ") + e.what());
+   catch(const sql::SQLException& exception) {
+      handleSQLException(exception, "Start of transaction");
    }
 }
 
@@ -387,26 +419,20 @@ void MariaDBClient::endTransaction(const bool commit)
    // ====== Commit transaction =============================================
    if(commit) {
       try {
-         // Statement->execute("COMMIT;");
          Connection->commit();
       }
-      catch(const sql::SQLException& e) {
-         HPCT_LOG(error) << "Commmit failed: " << e.what();
-         // No call to close(); database connection should still be okay here!
-         throw ImporterDatabaseException(std::string("Commmit failed: ") + e.what());
+      catch(const sql::SQLException& exception) {
+         handleSQLException(exception, "Commit");
       }
    }
 
    // ====== Commit transaction =============================================
    else {
       try {
-         // Statement->execute("ROLLBACK;");
          Connection->rollback();
       }
-      catch(const sql::SQLException& e) {
-         HPCT_LOG(error) << "Rollback failed: " << e.what();
-         close();
-         throw ImporterDatabaseException(std::string("Rollback failed: ") + e.what());
+      catch(const sql::SQLException& exception) {
+         handleSQLException(exception, "Rollback");
       }
    }
 }
@@ -418,11 +444,8 @@ void MariaDBClient::execute(const std::string& statement)
    try {
       Statement->execute(statement);
    }
-   catch(const sql::SQLException& e) {
-      HPCT_LOG(error) << "Statement failed: " << e.what();
-      std::cerr << statement;
-      abort();
-      throw ImporterDatabaseException(std::string("Statement failed: ") + e.what());
+   catch(const sql::SQLException& exception) {
+      handleSQLException(exception, "Execute", statement);
    }
 }
 
@@ -1088,7 +1111,8 @@ class Worker
    void processFile(DatabaseClientBase&          databaseClient,
                     unsigned long long&          rows,
                     const std::filesystem::path& dataFile);
-   void finishedFile(const std::filesystem::path& dataFile);
+   void finishedFile(const std::filesystem::path& dataFile,
+                     const bool                   success = true);
    void deleteEmptyDirectories(std::filesystem::path path);
    void deleteImportedFile(const std::filesystem::path& dataFile);
    void moveImportedFile(const std::filesystem::path& dataFile);
@@ -1262,19 +1286,27 @@ void Worker::moveBadFile(const std::filesystem::path& dataFile)
 
 
 // ###### Delete finished input file ########################################
-void Worker::finishedFile(const std::filesystem::path& dataFile)
+void Worker::finishedFile(const std::filesystem::path& dataFile,
+                          const bool                   success)
 {
-   // ====== Delete imported file ===========================================
-   if(ImportMode == ImportModeType::DeleteImportedFiles) {
-      deleteImportedFile(dataFile);
+   // ====== File has been imported successfully ===============================
+   if(success) {
+      // ====== Delete imported file ===========================================
+      if(ImportMode == ImportModeType::DeleteImportedFiles) {
+         deleteImportedFile(dataFile);
+      }
+      // ====== Move imported file =============================================
+      else if(ImportMode == ImportModeType::MoveImportedFiles) {
+         moveImportedFile(dataFile);
+      }
+      // ====== Keep imported file where it is =================================
+      else  if(ImportMode == ImportModeType::KeepImportedFiles) {
+         // Nothing to do here!
+      }
    }
-   // ====== Move imported file =============================================
-   else if(ImportMode == ImportModeType::MoveImportedFiles) {
-      moveImportedFile(dataFile);
-   }
-   // ====== Keep imported file where it is =================================
-   else  if(ImportMode == ImportModeType::KeepImportedFiles) {
-      // Nothing to do here!
+   // ====== File is bad ====================================================
+   else {
+      moveBadFile(dataFile);
    }
 
    // ====== Remove file from the reader ====================================
@@ -1301,14 +1333,28 @@ bool Worker::importFiles(std::list<std::filesystem::path>& dataFileList,
    unsigned long long rows = 0;
    try {
       // ====== Import multiple input files in one transaction ========
-      DatabaseClient.beginTransaction();
+      DatabaseClient.startTransaction();
       Reader.beginParsing(DatabaseClient, rows);
       for(const std::filesystem::path& dataFile : dataFileList) {
          if(StopRequested) {
             break;
          }
          HPCT_LOG(trace) << getIdentification() << ": Parsing " << dataFile << " ...";
-         processFile(DatabaseClient, rows, dataFile);
+         try {
+            processFile(DatabaseClient, rows, dataFile);
+         }
+         catch(ImporterReaderDataErrorException& exception) {
+            HPCT_LOG(warning) << getIdentification() << ": Import in fast mode failed with reader data error: "
+                              << exception.what();
+            DatabaseClient.rollback();
+            finishedFile(dataFile, false);
+         }
+         catch(ImporterDatabaseDataErrorException& exception) {
+            HPCT_LOG(warning) << getIdentification() << ": Import in fast mode failed with database data error: "
+                              << exception.what();
+            DatabaseClient.rollback();
+            finishedFile(dataFile, false);
+         }
       }
       if(Reader.finishParsing(DatabaseClient, rows)) {
          DatabaseClient.commit();
@@ -1346,7 +1392,6 @@ void Worker::run()
 
       // ====== Fast import: try to combine files ===========================
       std::list<std::filesystem::path> dataFileList;
-      printf("TS=%d\n", Reader.getMaxTransactionSize());
       unsigned int files = Reader.fetchFiles(dataFileList, WorkerID, Reader.getMaxTransactionSize());
       while( (files > 0) && (!StopRequested) ) {
          // ====== Fast Mode ================================================
@@ -1364,84 +1409,19 @@ void Worker::run()
                   importFiles(singleFileList, "slow");
                }
             }
-
-//          HPCT_LOG(debug) << getIdentification() << ": Trying to import " << files << " files in fast mode ...";
-//
-//          unsigned long long rows = 0;
-//          try {
-//             // ====== Import multiple input files in one transaction ========
-//             DatabaseClient.beginTransaction();
-//             Reader.beginParsing(DatabaseClient, rows);
-//             for(const std::filesystem::path& dataFile : dataFileList) {
-//                HPCT_LOG(trace) << getIdentification() << ": Parsing " << dataFile << " ...";
-//                processFile(DatabaseClient, rows, dataFile);
-//             }
-//             if(Reader.finishParsing(DatabaseClient, rows)) {
-//                DatabaseClient.commit();
-//                HPCT_LOG(debug) << getIdentification() << ": Committed " << rows << " rows";
-//             }
-//             else {
-//                std::cout << "Nothing to do!" << std::endl;
-//                HPCT_LOG(debug) << getIdentification() << ": Nothing to import!";
-//             }
-//
-//             // ====== Delete input files ====================================
-//             HPCT_LOG(debug) << getIdentification() << ": Finishing " << files << " input files ...";
-//             for(const std::filesystem::path& dataFile : dataFileList) {
-//                finishedFile(dataFile);
-//             }
-//          }
-//          catch(ImporterDatabaseException& exception) {
-//             HPCT_LOG(warning) << getIdentification() << ": Import in fast mode failed: "
-//                               << exception.what();
-//             DatabaseClient.rollback();
-//
-//             // ====== Slow import: handle files sequentially ================
-//             if( (files > 1) && (!StopRequested) ) {
-//                HPCT_LOG(debug) << getIdentification() << ": Trying to import " << files << " files in slow mode ...";
-//
-//                for(const std::filesystem::path& dataFile : dataFileList) {
-//                   try {
-//                      // ====== Import one input file in one transaction =====
-//                      rows = 0;
-//                      DatabaseClient.beginTransaction();
-//                      Reader.beginParsing(DatabaseClient, rows);
-//                      HPCT_LOG(trace) << getIdentification() << ": Parsing " << dataFile << " ...";
-//                      processFile(DatabaseClient, rows, dataFile);
-//                      if(Reader.finishParsing(DatabaseClient, rows)) {
-//                         DatabaseClient.commit();
-//                         HPCT_LOG(debug) << getIdentification() << ": Committed " << rows
-//                                         << " rows from " << dataFile;
-//                      }
-//                      else {
-//                         HPCT_LOG(debug) << getIdentification() << ": Nothing to import from " << dataFile;
-//                      }
-//
-//                      // ====== Delete input file ============================
-//                      finishedFile(dataFile);
-//                   }
-//                   catch(ImporterDatabaseException& exception) {
-//                      DatabaseClient.rollback();
-//                      HPCT_LOG(warning) << getIdentification() << ": Importing " << dataFile << " in slow mode failed: "
-//                                        << exception.what();
-//                      if(!DatabaseClient.statementIsEmpty()) {
-//                         HPCT_LOG(warning) << getIdentification() << "Statement: " << DatabaseClient.getStatement().str();
-//                      }
-//                   }
-//                }
-//             }
          }
 
         files = Reader.fetchFiles(dataFileList, WorkerID, Reader.getMaxTransactionSize());
-
 //         puts("????");
 //         files = 0;
       }
 
       // ====== Wait for new data ===========================================
-      HPCT_LOG(trace) << getIdentification() << ": sleeping ...";
-      Notification.wait(lock);
-      HPCT_LOG(trace) << getIdentification() << ": wakeup!";
+      if(!StopRequested) {
+         HPCT_LOG(trace) << getIdentification() << ": Sleeping ...";
+         Notification.wait(lock);
+         HPCT_LOG(trace) << getIdentification() << ": Wakeup!";
+      }
    }
 }
 
@@ -1827,7 +1807,7 @@ int main(int argc, char** argv)
    unsigned int          pingWorkers               = 0;
    unsigned int          metadataWorkers           = 1;
    unsigned int          pingTransactionSize       = 1;
-   unsigned int          metadataTransactionSize   = 1;
+   unsigned int          metadataTransactionSize   = 256;
    std::filesystem::path databaseConfigurationFile = "/home/dreibh/soyuz.conf";
 
 

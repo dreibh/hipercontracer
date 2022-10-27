@@ -437,7 +437,7 @@ void NorNetEdgeMetadataReader::parseContents(
          const std::string  metadataKey   = parseMetadataKey(item);
          const std::string  metadataValue = parseMetadataValue(item);
          if(backend & DatabaseBackendType::SQL_Generic) {
-            assert(databaseClient.statementIsEmpty());
+            databaseClient.clearStatement();
             databaseClient.getStatement()
                << "INSERT INTO " << Table_bins1min
                << "(ts, delta, node_id, network_id, metadata_key, metadata_value) VALUES ("
@@ -461,7 +461,7 @@ void NorNetEdgeMetadataReader::parseContents(
          const std::string  metadataValue = parseMetadataValue(item);
          const std::string  extra         = parseExtra(item);
          if(backend & DatabaseBackendType::SQL_Generic) {
-            assert(databaseClient.statementIsEmpty());
+            databaseClient.clearStatement();
             databaseClient.getStatement()
                << "INSERT INTO " << Table_event
                << "(ts, node_id, network_id, metadata_key, metadata_value, extra, min) VALUES ("
