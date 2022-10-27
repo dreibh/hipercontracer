@@ -37,6 +37,7 @@
 #include <filesystem>
 #include <iostream>
 #include <list>
+#include <mutex>
 #include <regex>
 #include <string>
 
@@ -77,6 +78,7 @@ class ReaderBase
    const unsigned int Workers;
    const unsigned int MaxTransactionSize;
    unsigned long long TotalFiles;
+   std::mutex         Mutex;
 };
 
 #endif

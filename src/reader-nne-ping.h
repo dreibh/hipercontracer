@@ -82,7 +82,6 @@ class NorNetEdgePingReader : public ReaderBase
    static const std::string  Identification;
    static const std::regex   FileNameRegExp;
    const std::string         Table_measurement_generic_data;
-   std::mutex                Mutex;
    std::set<InputFileEntry>* DataFileSet;
 };
 

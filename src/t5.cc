@@ -32,33 +32,6 @@
 #include "logger.h"
 #include "tools.h"
 
-#include <filesystem>
-#include <fstream>
-#include <iostream>
-#include <regex>
-#include <set>
-#include <list>
-#include <mutex>
-#include <vector>
-#include <thread>
-#include <cassert>
-#include <condition_variable>
-
-#include <boost/asio.hpp>
-#include <boost/bind.hpp>
-#include <boost/iostreams/filtering_stream.hpp>
-#include <boost/iostreams/filter/bzip2.hpp>
-#include <boost/iostreams/filter/gzip.hpp>
-#include <boost/iostreams/filter/lzma.hpp>
-#include <boost/program_options.hpp>
-
-#include <unistd.h>
-// #ifdef __linux__
-// #include <sys/inotify.h>
-// #endif
-
-#include "importer-exception.h"
-
 // #include "databaseclient-base.h"
 #include "databaseclient-debug.h"
 #include "databaseclient-mariadb.h"
@@ -68,6 +41,13 @@
 #include "reader-nne-ping.h"
 
 #include "universal-importer.h"
+
+
+#include <filesystem>
+#include <iostream>
+
+#include <boost/program_options.hpp>
+
 
 
 // ###### Create new database client instance ###############################
@@ -89,7 +69,6 @@ DatabaseClientBase* DatabaseConfiguration::createClient()
 
    return databaseClient;
 }
-
 
 
 

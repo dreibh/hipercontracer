@@ -35,7 +35,6 @@
 #include "reader-base.h"
 
 #include <chrono>
-#include <mutex>
 #include <set>
 
 #include <boost/property_tree/ptree.hpp>
@@ -96,7 +95,6 @@ class NorNetEdgeMetadataReader : public ReaderBase
    static const std::regex   FileNameRegExp;
    const std::string         Table_bins1min;
    const std::string         Table_event;
-   std::mutex                Mutex;
    std::set<InputFileEntry>* DataFileSet;
 };
 
