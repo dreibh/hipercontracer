@@ -98,7 +98,19 @@ ADD_EXECUTABLE(t2 t2.cc)
 TARGET_LINK_LIBRARIES(t2 ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} ${CARES_LIBRARY})
 ADD_EXECUTABLE(t3 t3.cc)
 TARGET_LINK_LIBRARIES(t3 ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
-ADD_EXECUTABLE(t5 t5.cc logger.cc tools.cc)
+ADD_EXECUTABLE(t5 t5.cc
+   logger.cc
+   tools.cc
+   database-configuration.cc
+   databaseclient-base.cc
+   databaseclient-debug.cc
+   databaseclient-mariadb.cc
+   reader-base.cc
+   reader-nne-metadata.cc
+   reader-nne-ping.cc
+   universal-importer.cc
+   worker.cc
+)
 TARGET_LINK_LIBRARIES(t5 ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} ${MYSQLCPPCONN_LIBRARY})
 
 
