@@ -1327,10 +1327,10 @@ class UniversalImporter
                      const unsigned int           maxDepth = 5);
    ~UniversalImporter();
 
-   void addReader(BasicReader*         reader,
+   void addReader(BasicReader&         reader,
                   DatabaseClientBase** databaseClientArray,
                   const size_t         databaseClients);
-   void removeReader(BasicReader* reader);
+   void removeReader(BasicReader& reader);
    void lookForFiles();
    bool start();
    void stop();
@@ -1482,7 +1482,7 @@ void UniversalImporter::stop()
 
    // ====== Remove readers =================================================
    for(std::list<BasicReader*>::iterator readerIterator = ReaderList.begin(); readerIterator != ReaderList.end(); ) {
-      removeReader(*readerIterator);
+      removeReader(**readerIterator);
       readerIterator = ReaderList.begin();
    }
 }
@@ -1552,18 +1552,18 @@ void UniversalImporter::handleINotifyEvent(const boost::system::error_code& ec,
 
 
 // ###### Add reader ########################################################
-void UniversalImporter::addReader(BasicReader*         reader,
+void UniversalImporter::addReader(BasicReader&         reader,
                                   DatabaseClientBase** databaseClientArray,
                                   const size_t         databaseClients)
 {
-   ReaderList.push_back(reader);
+   ReaderList.push_back(&reader);
    for(unsigned int w = 0; w < databaseClients; w++) {
-      Worker* worker = new Worker(w, *reader, *databaseClientArray[w],
+      Worker* worker = new Worker(w, reader, *databaseClientArray[w],
                                   ImportFilePath, GoodFilePath, BadFilePath,
                                   ImportMode);
       assert(worker != nullptr);
       WorkerMapping workerMapping;
-      workerMapping.Reader  = reader;
+      workerMapping.Reader   = &reader;
       workerMapping.WorkerID = w;
       WorkerMap.insert(std::pair<const WorkerMapping, Worker*>(workerMapping, worker));
    }
@@ -1571,12 +1571,12 @@ void UniversalImporter::addReader(BasicReader*         reader,
 
 
 // ###### Remove reader #####################################################
-void UniversalImporter::removeReader(BasicReader* reader)
+void UniversalImporter::removeReader(BasicReader& reader)
 {
    for(std::list<BasicReader*>::iterator readerIterator = ReaderList.begin();
        readerIterator != ReaderList.end();
        readerIterator++) {
-      if(*readerIterator == reader) {
+      if(*readerIterator == &reader) {
          ReaderList.erase(readerIterator);
          break;
       }
@@ -1584,7 +1584,7 @@ void UniversalImporter::removeReader(BasicReader* reader)
 
    for(std::map<const WorkerMapping, Worker*>::iterator workerMappingIterator = WorkerMap.begin();
        workerMappingIterator != WorkerMap.end(); ) {
-      if(workerMappingIterator->first.Reader == reader) {
+      if(workerMappingIterator->first.Reader == &reader) {
          delete workerMappingIterator->second;
          workerMappingIterator = WorkerMap.erase(workerMappingIterator);
       }
@@ -1737,7 +1737,7 @@ int main(int argc, char** argv)
       }
       nnePingReader = new NorNetEdgePingReader(pingWorkers, pingTransactionSize);
       assert(nnePingReader != nullptr);
-      importer.addReader(nnePingReader,
+      importer.addReader(*nnePingReader,
                          (DatabaseClientBase**)&pingDatabaseClients, pingWorkers);
    }
 
@@ -1754,7 +1754,7 @@ int main(int argc, char** argv)
       }
       nneMetadataReader = new NorNetEdgeMetadataReader(metadataWorkers, metadataTransactionSize);
       assert(nneMetadataReader != nullptr);
-      importer.addReader(nneMetadataReader,
+      importer.addReader(*nneMetadataReader,
                          (DatabaseClientBase**)&metadataDatabaseClients, metadataWorkers);
    }
 
