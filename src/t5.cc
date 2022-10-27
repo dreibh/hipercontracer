@@ -1042,9 +1042,9 @@ class Worker
    Worker(const unsigned int           workerID,
           BasicReader*                 reader,
           DatabaseClientBase*          databaseClient,
-          const std::filesystem::path& importFileDirectory,
-          const std::filesystem::path& goodFileDirectory,
-          const std::filesystem::path& badFileDirectory,
+          const std::filesystem::path& importFilePath,
+          const std::filesystem::path& goodFilePath,
+          const std::filesystem::path& badFilePath,
           const ImportModeType         importMode);
    ~Worker();
 
@@ -1067,9 +1067,9 @@ class Worker
    const unsigned int           WorkerID;
    BasicReader*                 Reader;
    DatabaseClientBase*          DatabaseClient;
-   const std::filesystem::path& ImportFileDirectory;
-   const std::filesystem::path& GoodFileDirectory;
-   const std::filesystem::path& BadFileDirectory;
+   const std::filesystem::path& ImportFilePath;
+   const std::filesystem::path& GoodFilePath;
+   const std::filesystem::path& BadFilePath;
    const ImportModeType         ImportMode;
    const std::string            Identification;
    std::thread                  Thread;
@@ -1082,16 +1082,16 @@ class Worker
 Worker::Worker(const unsigned int           workerID,
                BasicReader*                 reader,
                DatabaseClientBase*          databaseClient,
-               const std::filesystem::path& importFileDirectory,
-               const std::filesystem::path& goodFileDirectory,
-               const std::filesystem::path& badFileDirectory,
+               const std::filesystem::path& importFilePath,
+               const std::filesystem::path& goodFilePath,
+               const std::filesystem::path& badFilePath,
                const ImportModeType         importMode)
    : WorkerID(workerID),
      Reader(reader),
      DatabaseClient(databaseClient),
-     ImportFileDirectory(importFileDirectory),
-     GoodFileDirectory(goodFileDirectory),
-     BadFileDirectory(badFileDirectory),
+     ImportFilePath(importFilePath),
+     GoodFilePath(goodFilePath),
+     BadFilePath(badFilePath),
      ImportMode(importMode),
      Identification(reader->getIdentification() + "/" + std::to_string(WorkerID))
 {
@@ -1161,10 +1161,10 @@ void Worker::processFile(std::stringstream&           statement,
 // ###### Remove empty directories ##########################################
 void Worker::deleteEmptyDirectories(std::filesystem::path path)
 {
-   assert(is_subdir_of(path, ImportFileDirectory));
+   assert(is_subdir_of(path, ImportFilePath));
 
    std::error_code ec;
-   while(path.parent_path() != ImportFileDirectory) {
+   while(path.parent_path() != ImportFilePath) {
       std::filesystem::remove(path, ec);
       if(ec) {
          break;
@@ -1192,9 +1192,9 @@ void Worker::finishedFile(const std::filesystem::path& dataFile)
 
    // ====== Move imported file =============================================
    else if(ImportMode == ImportModeType::MoveImportedFiles) {
-      assert(is_subdir_of(dataFile, ImportFileDirectory));
-      const std::filesystem::path subdirs    = std::filesystem::relative(dataFile.parent_path(), ImportFileDirectory);
-      const std::filesystem::path targetPath = GoodFileDirectory / subdirs;
+      assert(is_subdir_of(dataFile, ImportFilePath));
+      const std::filesystem::path subdirs    = std::filesystem::relative(dataFile.parent_path(), ImportFilePath);
+      const std::filesystem::path targetPath = GoodFilePath / subdirs;
       try {
          std::filesystem::create_directories(targetPath);
          std::filesystem::rename(dataFile, targetPath / dataFile.filename());
@@ -1319,9 +1319,9 @@ class UniversalImporter
 {
    public:
    UniversalImporter(boost::asio::io_service&     ioService,
-                     const std::filesystem::path& importFileDirectory,
-                     const std::filesystem::path& goodFileDirectory,
-                     const std::filesystem::path& badFileDirectory,
+                     const std::filesystem::path& importFilePath,
+                     const std::filesystem::path& goodFilePath,
+                     const std::filesystem::path& badFilePath,
                      const ImportModeType         importMode,
                      const unsigned int           maxDepth = 5);
    ~UniversalImporter();
@@ -1343,7 +1343,7 @@ class UniversalImporter
    void handleINotifyEvent(const boost::system::error_code& ec,
                            const std::size_t                length);
 #endif
-   void lookForFiles(const std::filesystem::path& importFileDirectory,
+   void lookForFiles(const std::filesystem::path& importFilePath,
                      const unsigned int           maxDepth);
    bool addFile(const std::filesystem::path& dataFile);
    bool removeFile(const std::filesystem::path& dataFile);
@@ -1359,9 +1359,9 @@ class UniversalImporter
    boost::asio::signal_set                Signals;
    std::list<BasicReader*>                ReaderList;
    std::map<const WorkerMapping, Worker*> WorkerMap;
-   const std::filesystem::path            ImportFileDirectory;
-   const std::filesystem::path            GoodFileDirectory;
-   const std::filesystem::path            BadFileDirectory;
+   const std::filesystem::path            ImportFilePath;
+   const std::filesystem::path            GoodFilePath;
+   const std::filesystem::path            BadFilePath;
    const ImportModeType                   ImportMode;
    const unsigned int                     MaxDepth;
 #ifdef __linux__
@@ -1388,16 +1388,16 @@ bool operator<(const UniversalImporter::WorkerMapping& a,
 
 // ###### Constructor #######################################################
 UniversalImporter::UniversalImporter(boost::asio::io_service&     ioService,
-                                     const std::filesystem::path& importFileDirectory,
-                                     const std::filesystem::path& goodFileDirectory,
-                                     const std::filesystem::path& badFileDirectory,
+                                     const std::filesystem::path& importFilePath,
+                                     const std::filesystem::path& goodFilePath,
+                                     const std::filesystem::path& badFilePath,
                                      const ImportModeType         importMode,
                                      const unsigned int           maxDepth)
  : IOService(ioService),
    Signals(IOService, SIGINT, SIGTERM),
-   ImportFileDirectory(std::filesystem::canonical(std::filesystem::absolute(importFileDirectory))),
-   GoodFileDirectory(std::filesystem::canonical(std::filesystem::absolute(goodFileDirectory))),
-   BadFileDirectory(std::filesystem::canonical(std::filesystem::absolute(badFileDirectory))),
+   ImportFilePath(std::filesystem::canonical(std::filesystem::absolute(importFilePath))),
+   GoodFilePath(std::filesystem::canonical(std::filesystem::absolute(goodFilePath))),
+   BadFilePath(std::filesystem::canonical(std::filesystem::absolute(badFilePath))),
    ImportMode(importMode),
    MaxDepth(maxDepth),
    INotifyStream(IOService)
@@ -1428,7 +1428,7 @@ bool UniversalImporter::start()
    INotifyFD = inotify_init1(IN_NONBLOCK|IN_CLOEXEC);
    assert(INotifyFD > 0);
    INotifyStream.assign(INotifyFD);
-   int wd = inotify_add_watch(INotifyFD, ImportFileDirectory.c_str(),
+   int wd = inotify_add_watch(INotifyFD, ImportFilePath.c_str(),
                               IN_CREATE | IN_DELETE | IN_CLOSE_WRITE | IN_MOVED_TO);
    if(wd < 0) {
       HPCT_LOG(error) << "Unable to configure inotify: " <<strerror(errno);
@@ -1511,15 +1511,15 @@ void UniversalImporter::handleINotifyEvent(const boost::system::error_code& ec,
       // ====== Event for directory =========================================
       if(event->mask & IN_ISDIR) {
          if(event->mask & IN_CREATE) {
-            const std::filesystem::path importFileDirectory = ImportFileDirectory / event->name;
-            HPCT_LOG(trace) << "INotify for new data directory: " << importFileDirectory;
-            const int wd = inotify_add_watch(INotifyFD, importFileDirectory.c_str(),
+            const std::filesystem::path importFilePath = ImportFilePath / event->name;
+            HPCT_LOG(trace) << "INotify for new data directory: " << importFilePath;
+            const int wd = inotify_add_watch(INotifyFD, importFilePath.c_str(),
                                              IN_CREATE | IN_DELETE | IN_CLOSE_WRITE | IN_MOVED_TO);
             INotifyWatchDescriptors.insert(wd);
          }
          else if(event->mask & IN_DELETE) {
-            const std::filesystem::path importFileDirectory = ImportFileDirectory / event->name;
-            HPCT_LOG(trace) << "INotify for deleted data directory: " << importFileDirectory;
+            const std::filesystem::path importFilePath = ImportFilePath / event->name;
+            HPCT_LOG(trace) << "INotify for deleted data directory: " << importFilePath;
             INotifyWatchDescriptors.erase(event->wd);
          }
       }
@@ -1558,7 +1558,7 @@ void UniversalImporter::addReader(BasicReader*         reader,
    ReaderList.push_back(reader);
    for(unsigned int w = 0; w < databaseClients; w++) {
       Worker* worker = new Worker(w, reader, databaseClientArray[w],
-                                  ImportFileDirectory, GoodFileDirectory, BadFileDirectory,
+                                  ImportFilePath, GoodFilePath, BadFilePath,
                                   ImportMode);
       assert(worker != nullptr);
       WorkerMapping workerMapping;
@@ -1597,15 +1597,15 @@ void UniversalImporter::removeReader(BasicReader* reader)
 // ###### Look for input files (full directory traversal) ###################
 void UniversalImporter::lookForFiles()
 {
-   lookForFiles(ImportFileDirectory, MaxDepth);
+   lookForFiles(ImportFilePath, MaxDepth);
 }
 
 
 // ###### Look for input files (limited directory traversal) ################
-void UniversalImporter::lookForFiles(const std::filesystem::path& importFileDirectory,
+void UniversalImporter::lookForFiles(const std::filesystem::path& importFilePath,
                                      const unsigned int           maxDepth)
 {
-   for(const std::filesystem::directory_entry& dirEntry : std::filesystem::directory_iterator(importFileDirectory)) {
+   for(const std::filesystem::directory_entry& dirEntry : std::filesystem::directory_iterator(importFilePath)) {
       if(dirEntry.is_regular_file()) {
          addFile(dirEntry.path());
       }
