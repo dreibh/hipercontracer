@@ -1,3 +1,34 @@
+// =================================================================
+//          #     #                 #     #
+//          ##    #   ####   #####  ##    #  ######   #####
+//          # #   #  #    #  #    # # #   #  #          #
+//          #  #  #  #    #  #    # #  #  #  #####      #
+//          #   # #  #    #  #####  #   # #  #          #
+//          #    ##  #    #  #   #  #    ##  #          #
+//          #     #   ####   #    # #     #  ######     #
+//
+//       ---   The NorNet Testbed for Multi-Homed Systems  ---
+//                       https://www.nntb.no
+// =================================================================
+//
+// High-Performance Connectivity Tracer (HiPerConTracer)
+// Copyright (C) 2015-2022 by Thomas Dreibholz
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <http://www.gnu.org/licenses/>.
+//
+// Contact: dreibh@simula.no
+
 #include "logger.h"
 #include "tools.h"
 
@@ -29,7 +60,6 @@
 
 // g++ t5.cc -o t5 -std=c++17
 // g++ t5.cc -o t5 -std=c++17 -O0 -g -Wall -lpthread && rm -f core && ./t5
-
 
 
 //  Base class for all importer problems (logic, reader, database)
@@ -1813,7 +1843,7 @@ int main(int argc, char** argv)
 
    unsigned int          logLevel                  = boost::log::trivial::severity_level::trace;
    unsigned int          pingWorkers               = 1;
-   unsigned int          metadataWorkers           = 0;
+   unsigned int          metadataWorkers           = 1;
    unsigned int          pingTransactionSize       = 4;
    unsigned int          metadataTransactionSize   = 256;
    std::filesystem::path databaseConfigurationFile = "/home/dreibh/soyuz.conf";
