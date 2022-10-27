@@ -874,7 +874,7 @@ int NorNetEdgePingReader::addFile(const std::filesystem::path& dataFile,
 
          std::unique_lock lock(Mutex);
          if(DataFileSet[workerID].insert(inputFileEntry).second) {
-            HPCT_LOG(trace) << Identification << ": Added data file " << dataFile;
+            HPCT_LOG(trace) << Identification << ": Added data file " << dataFile << " to reader";
             TotalFiles++;
             return workerID;
          }
@@ -900,7 +900,7 @@ bool NorNetEdgePingReader::removeFile(const std::filesystem::path& dataFile,
          inputFileEntry.DataFile      = dataFile;
          const int workerID = inputFileEntry.MeasurementID % Workers;
 
-         HPCT_LOG(trace) << Identification << ": Removing data file " << dataFile;
+         HPCT_LOG(trace) << Identification << ": Removing data file " << dataFile << " from reader";
          std::unique_lock lock(Mutex);
          if(DataFileSet[workerID].erase(inputFileEntry) == 1) {
             assert(TotalFiles > 0);
@@ -1060,7 +1060,6 @@ class Worker
                     unsigned long long&          rows,
                     const std::filesystem::path* dataFile);
    void finishedFile(const std::filesystem::path& dataFile);
-   void makeDirectories(std::filesystem::path path);
    void deleteEmptyDirectories(std::filesystem::path path);
    void run();
 
@@ -1159,19 +1158,13 @@ void Worker::processFile(std::stringstream&           statement,
 }
 
 
-// ###### Make directories ##################################################
-void Worker::makeDirectories(std::filesystem::path path)
-{
-//    std::filesystem::create_directories(GoodFileDirectory / dataFile.parent()
-}
-
-
 // ###### Remove empty directories ##########################################
 void Worker::deleteEmptyDirectories(std::filesystem::path path)
 {
-   const std::filesystem::path root = path.root_path();   // ?????
-   std::error_code             ec;
-   while(path.parent_path() != root) {
+   assert(is_subdir_of(path, ImportFileDirectory));
+
+   std::error_code ec;
+   while(path.parent_path() != ImportFileDirectory) {
       std::filesystem::remove(path, ec);
       if(ec) {
          break;
@@ -1199,16 +1192,23 @@ void Worker::finishedFile(const std::filesystem::path& dataFile)
 
    // ====== Move imported file =============================================
    else if(ImportMode == ImportModeType::MoveImportedFiles) {
+      assert(is_subdir_of(dataFile, ImportFileDirectory));
+      const std::filesystem::path subdirs    = std::filesystem::relative(dataFile.parent_path(), ImportFileDirectory);
+      const std::filesystem::path targetPath = GoodFileDirectory / subdirs;
       try {
-
+         std::filesystem::create_directories(targetPath);
+         std::filesystem::rename(dataFile, targetPath / dataFile.filename());
          HPCT_LOG(trace) << getIdentification() << ": Moved finished file " << dataFile;
       }
       catch(std::filesystem::filesystem_error& e) {
-         HPCT_LOG(warning) << getIdentification() << ": Moving finished file " << dataFile << " failed: " << e.what();
+         HPCT_LOG(warning) << getIdentification() << ": Moving finished file " << dataFile
+                           << " to " << targetPath << " failed: " << e.what();
       }
    }
+
    else  if(ImportMode == ImportModeType::KeepImportedFiles) {
       // Nothing to do here!
+      puts("NA");
    }
 
    // ====== Remove file from the reader ====================================
@@ -1256,7 +1256,7 @@ void Worker::run()
             }
 
             // ====== Delete input files ====================================
-            HPCT_LOG(debug) << getIdentification() << ": Deleting " << files << " input files ...";
+            HPCT_LOG(debug) << getIdentification() << ": Finishing " << files << " input files ...";
             for(const std::filesystem::path* dataFile : dataFileList) {
                finishedFile(*dataFile);
             }
@@ -1685,8 +1685,8 @@ int main(int argc, char** argv)
    boost::asio::io_service ioService;
 
    unsigned int          logLevel                  = boost::log::trivial::severity_level::trace;
-   unsigned int          pingWorkers               = 1;
-   unsigned int          metadataWorkers           = 0;
+   unsigned int          pingWorkers               = 0;
+   unsigned int          metadataWorkers           = 1;
    unsigned int          pingTransactionSize       = 1;
    unsigned int          metadataTransactionSize   = 1;
    std::filesystem::path databaseConfigurationFile = "/home/dreibh/soyuz.conf";

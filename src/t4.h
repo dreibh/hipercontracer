@@ -235,7 +235,7 @@ int NorNetEdgeMetadataReader::addFile(const std::filesystem::path& dataFile,
 
          std::unique_lock lock(Mutex);
          if(DataFileSet[workerID].insert(inputFileEntry).second) {
-            HPCT_LOG(trace) << Identification << ": Added data file " << dataFile;
+            HPCT_LOG(trace) << Identification << ": Added data file " << dataFile << " to reader";
             TotalFiles++;
             return workerID;
          }
@@ -262,7 +262,7 @@ bool NorNetEdgeMetadataReader::removeFile(const std::filesystem::path& dataFile,
          inputFileEntry.DataFile  = dataFile;
          const int workerID = inputFileEntry.NodeID % Workers;
 
-         HPCT_LOG(trace) << Identification << ": Removing data file " << dataFile;
+         HPCT_LOG(trace) << Identification << ": Removing data file " << dataFile << " from reader";
          std::unique_lock lock(Mutex);
          if(DataFileSet[workerID].erase(inputFileEntry) == 1) {
             assert(TotalFiles > 0);
