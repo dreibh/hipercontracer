@@ -32,6 +32,7 @@
 
 
 
+//  Base class for all importer problems (logic, reader, database)
 class ImporterException : public std::runtime_error
 {
    public:
@@ -39,6 +40,7 @@ class ImporterException : public std::runtime_error
 };
 
 
+// Program logic exception
 class ImporterLogicException : public ImporterException
 {
    public:
@@ -46,6 +48,7 @@ class ImporterLogicException : public ImporterException
 };
 
 
+// Generic reader problem
 class ImporterReaderException : public ImporterException
 {
    public:
@@ -53,10 +56,27 @@ class ImporterReaderException : public ImporterException
 };
 
 
+// Problem with input data (syntax error, etc.) => invalid data
+class ImporterReaderDataErrorException : public ImporterReaderException
+{
+   public:
+   ImporterReaderDataErrorException(const std::string& error) : ImporterReaderException(error) { }
+};
+
+
+// Generic database problem
 class ImporterDatabaseException : public ImporterException
 {
    public:
    ImporterDatabaseException(const std::string& error) : ImporterException(error) { }
+};
+
+
+// Problem with database transaction (syntax error, etc.) => invalid data
+class ImporterDatabaseDataErrorException : public ImporterDatabaseException
+{
+   public:
+   ImporterDatabaseDataErrorException(const std::string& error) : ImporterDatabaseException(error) { }
 };
 
 
@@ -147,10 +167,10 @@ class DatabaseClientBase
    inline void commit()   { endTransaction(true);  }
    inline void rollback() { endTransaction(false); }
 
-   inline void clearStatement()             { Statement.str(std::string());        }
-   inline bool statementIsEmpty() const     { return Statement.str().size() == 0;  }
-   inline std::stringstream& getStatement() { return Statement;         }
-   inline void executeStatement()           { execute(Statement.str()); }
+   inline void clearStatement()             { Statement.str(std::string());               }
+   inline bool statementIsEmpty() const     { return Statement.str().size() == 0;         }
+   inline std::stringstream& getStatement() { return Statement;                           }
+   inline void executeStatement()           { execute(Statement.str()); clearStatement(); }
 
    protected:
    const DatabaseConfiguration& Configuration;
@@ -522,7 +542,7 @@ void DatabaseConfiguration::printConfiguration(std::ostream& os) const
       << "User     = " << User        << std::endl
       << "Password = " << ((Password.size() > 0) ? "****************" : "(none)") << std::endl
       << "CA File  = " << CAFile      << std::endl
-      << "Databsee = " << Database    << std::endl;
+      << "Database = " << Database    << std::endl;
 }
 
 
@@ -562,9 +582,9 @@ class BasicReader
                        const std::smatch            match) = 0;
    virtual bool removeFile(const std::filesystem::path& dataFile,
                            const std::smatch            match) = 0;
-   virtual unsigned int fetchFiles(std::list<const std::filesystem::path*>& dataFileList,
-                                   const unsigned int                       worker,
-                                   const unsigned int                       limit = 1) = 0;
+   virtual unsigned int fetchFiles(std::list<std::filesystem::path>& dataFileList,
+                                   const unsigned int                worker,
+                                   const unsigned int                limit = 1) = 0;
    virtual void printStatus(std::ostream& os = std::cout) = 0;
 
    virtual void beginParsing(DatabaseClientBase& databaseClient,
@@ -744,9 +764,9 @@ class NorNetEdgePingReader : public BasicReader
                        const std::smatch            match);
    virtual bool removeFile(const std::filesystem::path& dataFile,
                            const std::smatch            match);
-   virtual unsigned int fetchFiles(std::list<const std::filesystem::path*>& dataFileList,
-                                   const unsigned int                       worker,
-                                   const unsigned int                       limit = 1);
+   virtual unsigned int fetchFiles(std::list<std::filesystem::path>& dataFileList,
+                                   const unsigned int                worker,
+                                   const unsigned int                limit = 1);
    virtual void printStatus(std::ostream& os = std::cout);
 
    virtual void beginParsing(DatabaseClientBase& databaseClient,
@@ -859,11 +879,11 @@ const std::regex& NorNetEdgePingReader::getFileNameRegExp() const
 int NorNetEdgePingReader::addFile(const std::filesystem::path& dataFile,
                                   const std::smatch            match)
 {
- static int n=0;n++;
- if(n>2) {
-  puts("??????");
-  return -1;  // ??????
- }
+//  static int n=0;n++;
+//  if(n>20) {
+//   puts("??????");
+//   return -1;  // ??????
+//  }
 
    if(match.size() == 3) {
       FileEntryTimePoint timeStamp;
@@ -916,9 +936,9 @@ bool NorNetEdgePingReader::removeFile(const std::filesystem::path& dataFile,
 
 
 // ###### Fetch list of input files #########################################
-unsigned int NorNetEdgePingReader::fetchFiles(std::list<const std::filesystem::path*>& dataFileList,
-                                              const unsigned int                       worker,
-                                              const unsigned int                       limit)
+unsigned int NorNetEdgePingReader::fetchFiles(std::list<std::filesystem::path>& dataFileList,
+                                              const unsigned int                worker,
+                                              const unsigned int                limit)
 {
    assert(worker < Workers);
    dataFileList.clear();
@@ -926,7 +946,7 @@ unsigned int NorNetEdgePingReader::fetchFiles(std::list<const std::filesystem::p
    std::unique_lock lock(Mutex);
 
    for(const InputFileEntry& inputFileEntry : DataFileSet[worker]) {
-      dataFileList.push_back(&inputFileEntry.DataFile);
+      dataFileList.push_back(inputFileEntry.DataFile);
       if(dataFileList.size() >= limit) {
          break;
       }
@@ -1067,7 +1087,7 @@ class Worker
    private:
    void processFile(DatabaseClientBase&          databaseClient,
                     unsigned long long&          rows,
-                    const std::filesystem::path* dataFile);
+                    const std::filesystem::path& dataFile);
    void finishedFile(const std::filesystem::path& dataFile);
    void deleteEmptyDirectories(std::filesystem::path path);
    void run();
@@ -1144,20 +1164,20 @@ void Worker::wakeUp()
 // ###### Get list of input files ###########################################
 void Worker::processFile(DatabaseClientBase&          databaseClient,
                          unsigned long long&          rows,
-                         const std::filesystem::path* dataFile)
+                         const std::filesystem::path& dataFile)
 {
    std::ifstream                       inputFile;
    boost::iostreams::filtering_istream inputStream;
 
    // ====== Prepare input stream ===========================================
-   inputFile.open(dataFile->string(), std::ios_base::in | std::ios_base::binary);
-   if(dataFile->extension() == ".xz") {
+   inputFile.open(dataFile.string(), std::ios_base::in | std::ios_base::binary);
+   if(dataFile.extension() == ".xz") {
       inputStream.push(boost::iostreams::lzma_decompressor());
    }
-   else if(dataFile->extension() == ".bz2") {
+   else if(dataFile.extension() == ".bz2") {
       inputStream.push(boost::iostreams::bzip2_decompressor());
    }
-   else if(dataFile->extension() == ".gz") {
+   else if(dataFile.extension() == ".gz") {
       inputStream.push(boost::iostreams::gzip_decompressor());
    }
    inputStream.push(inputFile);
@@ -1237,9 +1257,9 @@ void Worker::run()
    while(!StopRequested) {
       // ====== Look for new input files ====================================
       HPCT_LOG(trace) << getIdentification() << ": Looking for new input files ...";
-      std::list<const std::filesystem::path*> dataFileList;
 
       // ====== Fast import: try to combine files ===========================
+      std::list<std::filesystem::path> dataFileList;
       unsigned int files = Reader.fetchFiles(dataFileList, WorkerID, Reader.getMaxTransactionSize());
       while( (files > 0) && (!StopRequested) ) {
          HPCT_LOG(debug) << getIdentification() << ": Trying to import " << files << " files in fast mode ...";
@@ -1247,13 +1267,13 @@ void Worker::run()
          unsigned long long rows = 0;
          try {
             // ====== Import multiple input files in one transaction ========
+            DatabaseClient.beginTransaction();
             Reader.beginParsing(DatabaseClient, rows);
-            for(const std::filesystem::path* dataFile : dataFileList) {
-               HPCT_LOG(trace) << getIdentification() << ": Parsing " << *dataFile << " ...";
+            for(const std::filesystem::path& dataFile : dataFileList) {
+               HPCT_LOG(trace) << getIdentification() << ": Parsing " << dataFile << " ...";
                processFile(DatabaseClient, rows, dataFile);
             }
             if(Reader.finishParsing(DatabaseClient, rows)) {
-               DatabaseClient.beginTransaction();
                DatabaseClient.commit();
                HPCT_LOG(debug) << getIdentification() << ": Committed " << rows << " rows";
             }
@@ -1264,53 +1284,55 @@ void Worker::run()
 
             // ====== Delete input files ====================================
             HPCT_LOG(debug) << getIdentification() << ": Finishing " << files << " input files ...";
-            for(const std::filesystem::path* dataFile : dataFileList) {
-               finishedFile(*dataFile);
+            for(const std::filesystem::path& dataFile : dataFileList) {
+               finishedFile(dataFile);
             }
          }
-         catch(const std::exception& exception) {
+         catch(ImporterDatabaseException& exception) {
             HPCT_LOG(warning) << getIdentification() << ": Import in fast mode failed: "
                               << exception.what();
             DatabaseClient.rollback();
 
-//             // ====== Slow import: handle files sequentially ================
-//             if(files > 1) {
-//                HPCT_LOG(debug) << getIdentification() << ": Trying to import " << files << " files in slow mode ...";
-//
-//                for(const std::filesystem::path* dataFile : dataFileList) {
-//                   try {
-//                      // ====== Import one input file in one transaction =====
-//                      Reader.beginParsing(DatabaseClient, rows);
-//                      HPCT_LOG(trace) << getIdentification() << ": Parsing " << *dataFile << " ...";
-//                      processFile(statement, rows, dataFile);
-//                      if(Reader.finishParsing(statement, rows, DatabaseClient.getBackend())) {
-//                         DatabaseClient.beginTransaction();
-//                         DatabaseClient.execute(statement.str());
-//                         DatabaseClient.commit();
-//                         HPCT_LOG(debug) << getIdentification() << ": Committed " << rows
-//                                         << " rows from " << *dataFile;
-//                      }
-//                      else {
-//                         std::cout << "Nothing to do!" << std::endl;
-//                         HPCT_LOG(debug) << getIdentification() << ": Nothing to import!";
-//                      }
-//
-//                      // ====== Delete input file ============================
-//                      finishedFile(*dataFile);
-//                   }
-//                   catch(const std::exception& exception) {
-//                      DatabaseClient.rollback();
-//                      HPCT_LOG(warning) << getIdentification() << ": Importing " << *dataFile << " in slow mode failed: "
-//                                        << exception.what();
-//                   }
-//                }
-//             }
+            // ====== Slow import: handle files sequentially ================
+            if( (files > 1) && (!StopRequested) ) {
+               HPCT_LOG(debug) << getIdentification() << ": Trying to import " << files << " files in slow mode ...";
+
+               for(const std::filesystem::path& dataFile : dataFileList) {
+                  try {
+                     // ====== Import one input file in one transaction =====
+                     rows = 0;
+                     DatabaseClient.beginTransaction();
+                     Reader.beginParsing(DatabaseClient, rows);
+                     HPCT_LOG(trace) << getIdentification() << ": Parsing " << dataFile << " ...";
+                     processFile(DatabaseClient, rows, dataFile);
+                     if(Reader.finishParsing(DatabaseClient, rows)) {
+                        DatabaseClient.commit();
+                        HPCT_LOG(debug) << getIdentification() << ": Committed " << rows
+                                        << " rows from " << dataFile;
+                     }
+                     else {
+                        HPCT_LOG(debug) << getIdentification() << ": Nothing to import from " << dataFile;
+                     }
+
+                     // ====== Delete input file ============================
+                     finishedFile(dataFile);
+                  }
+                  catch(ImporterDatabaseException& exception) {
+                     DatabaseClient.rollback();
+                     HPCT_LOG(warning) << getIdentification() << ": Importing " << dataFile << " in slow mode failed: "
+                                       << exception.what();
+                     if(!DatabaseClient.statementIsEmpty()) {
+                        HPCT_LOG(warning) << getIdentification() << "Statement: " << DatabaseClient.getStatement().str();
+                     }
+                  }
+               }
+            }
          }
 
         files = Reader.fetchFiles(dataFileList, WorkerID, Reader.getMaxTransactionSize());
 
-        puts("????");
-        files = 0;
+//         puts("????");
+//         files = 0;
       }
 
       // ====== Wait for new data ===========================================

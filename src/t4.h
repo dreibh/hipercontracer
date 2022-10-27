@@ -54,9 +54,9 @@ class NorNetEdgeMetadataReader : public BasicReader
                        const std::smatch            match);
    virtual bool removeFile(const std::filesystem::path& dataFile,
                            const std::smatch            match);
-   virtual unsigned int fetchFiles(std::list<const std::filesystem::path*>& dataFileList,
-                                   const unsigned int                       worker,
-                                   const unsigned int                       limit = 1);
+   virtual unsigned int fetchFiles(std::list<std::filesystem::path>& dataFileList,
+                                   const unsigned int                worker,
+                                   const unsigned int                limit = 1);
    virtual void printStatus(std::ostream& os = std::cout);
 
    virtual void beginParsing(DatabaseClientBase& databaseClient,
@@ -272,9 +272,9 @@ bool NorNetEdgeMetadataReader::removeFile(const std::filesystem::path& dataFile,
 
 
 // ###### Fetch list of input files #########################################
-unsigned int NorNetEdgeMetadataReader::fetchFiles(std::list<const std::filesystem::path*>& dataFileList,
-                                                  const unsigned int                       worker,
-                                                  const unsigned int                       limit)
+unsigned int NorNetEdgeMetadataReader::fetchFiles(std::list<std::filesystem::path>& dataFileList,
+                                                  const unsigned int                worker,
+                                                  const unsigned int                limit)
 {
    assert(worker < Workers);
 
@@ -282,7 +282,7 @@ unsigned int NorNetEdgeMetadataReader::fetchFiles(std::list<const std::filesyste
 
    unsigned int n = 0;
    for(const InputFileEntry& inputFileEntry : DataFileSet[worker]) {
-      dataFileList.push_back(&inputFileEntry.DataFile);
+      dataFileList.push_back(inputFileEntry.DataFile);
       n++;
       if(n >= limit) {
          break;
@@ -411,9 +411,15 @@ void NorNetEdgeMetadataReader::parseContents(
         unsigned long long&                  rows,
         boost::iostreams::filtering_istream& inputStream)
 {
-   const DatabaseBackendType backend = databaseClient.getBackend();
+   const DatabaseBackendType   backend = databaseClient.getBackend();
    boost::property_tree::ptree propertyTreeRoot;
-   boost::property_tree::read_json(inputStream, propertyTreeRoot);
+
+   try {
+      boost::property_tree::read_json(inputStream, propertyTreeRoot);
+   }
+   catch(const boost::property_tree::json_parser::json_parser_error& exception) {
+      throw ImporterReaderDataErrorException(exception.what());
+   }
 
    // dumpPropertyTree(std::cerr, propertyTreeRoot);
 
