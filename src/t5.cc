@@ -310,6 +310,7 @@ bool MariaDBClient::open()
       Connection->setSchema(Configuration.getDatabase().c_str());
       // SET SESSION TRANSACTION ISOLATION LEVEL READ COMMITTED
       Connection->setTransactionIsolation(sql::TRANSACTION_READ_COMMITTED);
+      Connection->setAutoCommit(false);
 
       // ====== Create statement ============================================
       Statement = Connection->createStatement();

@@ -252,7 +252,6 @@ int NorNetEdgeMetadataReader::addFile(const std::filesystem::path& dataFile,
 bool NorNetEdgeMetadataReader::removeFile(const std::filesystem::path& dataFile,
                                           const std::smatch            match)
 {
-   assert(false);
    if(match.size() == 3) {
       FileEntryTimePoint timeStamp;
       if(stringToTimePoint<FileEntryTimePoint>(match[2].str(), timeStamp, "%Y%m%dT%H%M%S")) {
