@@ -100,7 +100,7 @@ class DatabaseConfiguration
    inline const std::string& getCAFile()     const { return CAFile;   }
    inline const std::string& getDatabase()   const { return Database; }
    inline const ImportMode   getImportMode() const { return Mode; }
-   inline const std::filesystem::path& getTransactionsPath() const { return TransactionsPath; }
+   inline const std::filesystem::path& getImportFilePath() const { return ImportFilePath; }
    inline const std::filesystem::path& getBadFilePath()      const { return BadFilePath;      }
    inline const std::filesystem::path& getGoodFilePath()     const { return GoodFilePath;     }
 
@@ -123,7 +123,7 @@ class DatabaseConfiguration
    std::string           Database;
    std::string           ModeName;
    ImportMode            Mode;
-   std::filesystem::path TransactionsPath;
+   std::filesystem::path ImportFilePath;
    std::filesystem::path BadFilePath;
    std::filesystem::path GoodFilePath;
 };
@@ -136,8 +136,8 @@ class DatabaseClientBase
    virtual ~DatabaseClientBase();
 
    virtual const DatabaseBackend getBackend() const = 0;
-   virtual bool prepare() = 0;
-   virtual void finish() = 0;
+   virtual bool open()  = 0;
+   virtual void close() = 0;
 
    virtual void beginTransaction() = 0;
    virtual void execute(const std::string& statement) = 0;
@@ -172,8 +172,8 @@ class DebugClient : public  DatabaseClientBase
    virtual ~DebugClient();
 
    virtual const DatabaseBackend getBackend() const;
-   virtual bool prepare();
-   virtual void finish();
+   virtual bool open();
+   virtual void close();
 
    virtual void beginTransaction();
    virtual void execute(const std::string& statement);
@@ -202,14 +202,14 @@ const DatabaseBackend DebugClient::getBackend() const
 
 
 // ###### Prepare connection to database ####################################
-bool DebugClient::prepare()
+bool DebugClient::open()
 {
    return true;
 }
 
 
 // ###### Finish connection to database #####################################
-void DebugClient::finish()
+void DebugClient::close()
 {
 }
 
@@ -256,8 +256,8 @@ class MariaDBClient : public DatabaseClientBase
    virtual ~MariaDBClient();
 
    virtual const DatabaseBackend getBackend() const;
-   virtual bool prepare();
-   virtual void finish();
+   virtual bool open();
+   virtual void close();
 
    virtual void beginTransaction();
    virtual void execute(const std::string& statement);
@@ -284,7 +284,7 @@ MariaDBClient::MariaDBClient(const DatabaseConfiguration& configuration)
 // ###### Destructor ########################################################
 MariaDBClient::~MariaDBClient()
 {
-   finish();
+   close();
 }
 
 
@@ -296,7 +296,7 @@ const DatabaseBackend MariaDBClient::getBackend() const
 
 
 // ###### Prepare connection to database ####################################
-bool MariaDBClient::prepare()
+bool MariaDBClient::open()
 {
    const std::string url = "tcp://" + Configuration.getServer() + ":" + std::to_string(Configuration.getPort());
 
@@ -317,7 +317,7 @@ bool MariaDBClient::prepare()
    }
    catch(const sql::SQLException& e) {
       HPCT_LOG(error) << "Unable to connect MariaDB client to " << url << ": " << e.what();
-      finish();
+      close();
       return false;
    }
 
@@ -326,7 +326,7 @@ bool MariaDBClient::prepare()
 
 
 // ###### Finish connection to database #####################################
-void MariaDBClient::finish()
+void MariaDBClient::close()
 {
    if(Statement) {
       delete Statement;
@@ -347,7 +347,7 @@ void MariaDBClient::beginTransaction()
    }
    catch(const sql::SQLException& e) {
       HPCT_LOG(error) << "Begin failed: " << e.what();
-      finish();
+      close();
       throw ImporterDatabaseException(std::string("Begin failed: ") + e.what());
    }
 }
@@ -364,7 +364,7 @@ void MariaDBClient::endTransaction(const bool commit)
       }
       catch(const sql::SQLException& e) {
          HPCT_LOG(error) << "Commmit failed: " << e.what();
-         // No call to finish(); database connection should still be okay here!
+         // No call to close(); database connection should still be okay here!
          throw ImporterDatabaseException(std::string("Commmit failed: ") + e.what());
       }
    }
@@ -377,7 +377,7 @@ void MariaDBClient::endTransaction(const bool commit)
       }
       catch(const sql::SQLException& e) {
          HPCT_LOG(error) << "Rollback failed: " << e.what();
-         finish();
+         close();
          throw ImporterDatabaseException(std::string("Rollback failed: ") + e.what());
       }
    }
@@ -413,9 +413,9 @@ DatabaseConfiguration::DatabaseConfiguration()
       ("database",          boost::program_options::value<std::string>(&Database),    "database name")
       ("dbbackend",         boost::program_options::value<std::string>(&BackendName), "database backend")
       ("import_mode",       boost::program_options::value<std::string>(&ModeName),    "import mode")
-      ("transactions_path", boost::program_options::value<std::filesystem::path>(&TransactionsPath), "path for input data")
-      ("bad_file_path",     boost::program_options::value<std::filesystem::path>(&BadFilePath),      "path for bad files")
-      ("good_file_path",    boost::program_options::value<std::filesystem::path>(&GoodFilePath),     "path for good files")
+      ("import_file_path",  boost::program_options::value<std::filesystem::path>(&ImportFilePath), "path for input data")
+      ("bad_file_path",     boost::program_options::value<std::filesystem::path>(&BadFilePath),    "path for bad files")
+      ("good_file_path",    boost::program_options::value<std::filesystem::path>(&GoodFilePath),   "path for good files")
    ;
    BackendName = "Invalid";
    Backend     = DatabaseBackend::Invalid;
@@ -439,6 +439,7 @@ bool DatabaseConfiguration::readConfiguration(const std::filesystem::path& confi
    boost::program_options::store(boost::program_options::parse_config_file(configurationInputStream , OptionsDescription), vm);
    boost::program_options::notify(vm);
 
+   // ====== Check options ==================================================
    if(ModeName == "KeepImportedFiles") {
       Mode = ImportMode::KeepImportedFiles;
    }
@@ -449,7 +450,7 @@ bool DatabaseConfiguration::readConfiguration(const std::filesystem::path& confi
       Mode = ImportMode::DeleteImportedFiles;
    }
    else {
-      std::cerr << "ERROR: Invalid import mode name " << ModeName << std::endl;
+      HPCT_LOG(error) << "Invalid import mode name " << ModeName;
       return false;
    }
 
@@ -469,7 +470,33 @@ bool DatabaseConfiguration::readConfiguration(const std::filesystem::path& confi
       Backend = DatabaseBackend::NoSQL_Debug;
    }
    else {
-      std::cerr << "ERROR: Invalid backend name " << Backend << std::endl;
+      HPCT_LOG(error) << "Invalid backend name " << Backend;
+      return false;
+   }
+
+   // ====== Check directories ==============================================
+   std::error_code ec;
+   if(!is_directory(ImportFilePath, ec)) {
+      HPCT_LOG(error) << "Import file path " << ImportFilePath << " does not exist: " << ec;
+      return false;
+   }
+   if(!is_directory(GoodFilePath, ec)) {
+      HPCT_LOG(error) << "Good file path " << GoodFilePath << " does not exist: " << ec;
+      return false;
+   }
+   if(!is_directory(BadFilePath, ec)) {
+      HPCT_LOG(error) << "Bad file path " << BadFilePath << " does not exist: " << ec;
+      return false;
+   }
+
+   if(is_subdir_of(GoodFilePath, ImportFilePath)) {
+      HPCT_LOG(error) << "Good file path " << GoodFilePath
+                      << " must not be within import file path " << ImportFilePath;
+      return false;
+   }
+   if(is_subdir_of(BadFilePath, ImportFilePath)) {
+      HPCT_LOG(error) << "Bad file path " << BadFilePath
+                      << " must not be within import file path " << ImportFilePath;
       return false;
    }
 
@@ -1014,7 +1041,8 @@ class Worker
    public:
    Worker(const unsigned int  workerID,
           BasicReader*        reader,
-          DatabaseClientBase* databaseClient);
+          DatabaseClientBase* databaseClient,
+          const ImportMode    importMode);
    ~Worker();
 
    void start();
@@ -1029,12 +1057,14 @@ class Worker
                     unsigned long long&          rows,
                     const std::filesystem::path* dataFile);
    void finishedFile(const std::filesystem::path& dataFile);
+   void deleteEmptyDirectories(std::filesystem::path path);
    void run();
 
    std::atomic<bool>       StopRequested;
    const unsigned int      WorkerID;
    BasicReader*            Reader;
    DatabaseClientBase*     DatabaseClient;
+   const ImportMode        Mode;
    const std::string       Identification;
    std::thread             Thread;
    std::mutex              Mutex;
@@ -1045,10 +1075,11 @@ class Worker
 // ###### Constructor #######################################################
 Worker::Worker(const unsigned int  workerID,
                BasicReader*        reader,
-               DatabaseClientBase* databaseClient)
+               DatabaseClientBase* databaseClient,
+               const ImportMode    importMode)
    : WorkerID(workerID),
      Reader(reader),
-     DatabaseClient(databaseClient),
+     Mode(importMode),
      Identification(reader->getIdentification() + "/" + std::to_string(WorkerID))
 {
    StopRequested.exchange(false);
@@ -1114,10 +1145,50 @@ void Worker::processFile(std::stringstream&           statement,
 }
 
 
-// ====== Delete finished input file ========================================
+// ###### Remove empty directories ##########################################
+void Worker::deleteEmptyDirectories(std::filesystem::path path)
+{
+   const std::filesystem::path root = path.root_path();
+   std::error_code             ec;
+   while(path.parent_path() != root) {
+      std::filesystem::remove(path, ec);
+      if(ec) {
+         break;
+      }
+      HPCT_LOG(trace) << getIdentification() << ": Deleted empty directory " << path;
+      path = path.parent_path();
+   }
+}
+
+
+// ###### Delete finished input file ########################################
 void Worker::finishedFile(const std::filesystem::path& dataFile)
 {
-   HPCT_LOG(trace) << "Deleting " << dataFile;
+   // ====== Delete imported file ===========================================
+   if(Mode == ImportMode::DeleteImportedFiles) {
+      try {
+         std::filesystem::remove(dataFile);
+         HPCT_LOG(trace) << getIdentification() << ": Deleted finished file " << dataFile;
+         deleteEmptyDirectories(dataFile.parent_path());
+      }
+      catch(std::filesystem::filesystem_error& e) {
+         HPCT_LOG(warning) << getIdentification() << ": Deleting finished file " << dataFile << " failed: " << e.what();
+      }
+   }
+
+   // ====== Move imported file =============================================
+   else if(Mode == ImportMode::MoveImportedFiles) {
+//       try {
+//          std::filesystem::create_directories(
+//          HPCT_LOG(trace) << getIdentification() << ": Moved finished file " << dataFile;
+//       }
+//       catch(std::filesystem::filesystem_error& e) {
+//          HPCT_LOG(warning) << getIdentification() << ": Moving finished file " << dataFile << " failed: " << e.what();
+//       }
+   }
+   else  if(Mode == ImportMode::KeepImportedFiles) {
+      // Nothing to do here!
+   }
 
    // ====== Remove file from the reader ====================================
    // Need to extract the file name parts again, in order to find the entry:
@@ -1147,6 +1218,7 @@ void Worker::run()
          unsigned long long rows = 0;
          try {
             // ====== Import multiple input files in one transaction ========
+printf("BE=%x\n",             DatabaseClient->getBackend());
             Reader->beginParsing(statement, rows, DatabaseClient->getBackend());
             for(const std::filesystem::path* dataFile : dataFileList) {
                HPCT_LOG(trace) << getIdentification() << ": Parsing " << *dataFile << " ...";
@@ -1227,7 +1299,9 @@ class UniversalImporter
 {
    public:
    UniversalImporter(boost::asio::io_service&     ioService,
-                     const std::filesystem::path& dataDirectory,
+                     const std::filesystem::path& importFileDirectory,
+                     const std::filesystem::path& goodFileDirectory,
+                     const std::filesystem::path& badFileDirectory,
                      const ImportMode             importMode,
                      const unsigned int           maxDepth = 5);
    ~UniversalImporter();
@@ -1249,7 +1323,7 @@ class UniversalImporter
    void handleINotifyEvent(const boost::system::error_code& ec,
                            const std::size_t                length);
 #endif
-   void lookForFiles(const std::filesystem::path& dataDirectory,
+   void lookForFiles(const std::filesystem::path& importFileDirectory,
                      const unsigned int           maxDepth);
    bool addFile(const std::filesystem::path& dataFile);
    bool removeFile(const std::filesystem::path& dataFile);
@@ -1265,7 +1339,9 @@ class UniversalImporter
    boost::asio::signal_set                Signals;
    std::list<BasicReader*>                ReaderList;
    std::map<const WorkerMapping, Worker*> WorkerMap;
-   const std::filesystem::path            DataDirectory;
+   const std::filesystem::path            ImportFileDirectory;
+   const std::filesystem::path            GoodFileDirectory;
+   const std::filesystem::path            BadFileDirectory;
    const ImportMode                       Mode;
    const unsigned int                     MaxDepth;
 #ifdef __linux__
@@ -1292,12 +1368,16 @@ bool operator<(const UniversalImporter::WorkerMapping& a,
 
 // ###### Constructor #######################################################
 UniversalImporter::UniversalImporter(boost::asio::io_service&     ioService,
-                                     const std::filesystem::path& dataDirectory,
+                                     const std::filesystem::path& importFileDirectory,
+                                     const std::filesystem::path& goodFileDirectory,
+                                     const std::filesystem::path& badFileDirectory,
                                      const ImportMode             importMode,
                                      const unsigned int           maxDepth)
  : IOService(ioService),
    Signals(IOService, SIGINT, SIGTERM),
-   DataDirectory(dataDirectory),
+   ImportFileDirectory(importFileDirectory),
+   GoodFileDirectory(goodFileDirectory),
+   BadFileDirectory(badFileDirectory),
    Mode(importMode),
    MaxDepth(maxDepth),
    INotifyStream(IOService)
@@ -1328,7 +1408,7 @@ bool UniversalImporter::start()
    INotifyFD = inotify_init1(IN_NONBLOCK|IN_CLOEXEC);
    assert(INotifyFD > 0);
    INotifyStream.assign(INotifyFD);
-   int wd = inotify_add_watch(INotifyFD, DataDirectory.c_str(),
+   int wd = inotify_add_watch(INotifyFD, ImportFileDirectory.c_str(),
                               IN_CREATE | IN_DELETE | IN_CLOSE_WRITE | IN_MOVED_TO);
    if(wd < 0) {
       HPCT_LOG(error) << "Unable to configure inotify: " <<strerror(errno);
@@ -1411,15 +1491,15 @@ void UniversalImporter::handleINotifyEvent(const boost::system::error_code& ec,
       // ====== Event for directory =========================================
       if(event->mask & IN_ISDIR) {
          if(event->mask & IN_CREATE) {
-            const std::filesystem::path dataDirectory = DataDirectory / event->name;
-            HPCT_LOG(trace) << "INotify for new data directory: " << dataDirectory;
-            const int wd = inotify_add_watch(INotifyFD, dataDirectory.c_str(),
+            const std::filesystem::path importFileDirectory = ImportFileDirectory / event->name;
+            HPCT_LOG(trace) << "INotify for new data directory: " << importFileDirectory;
+            const int wd = inotify_add_watch(INotifyFD, importFileDirectory.c_str(),
                                              IN_CREATE | IN_DELETE | IN_CLOSE_WRITE | IN_MOVED_TO);
             INotifyWatchDescriptors.insert(wd);
          }
          else if(event->mask & IN_DELETE) {
-            const std::filesystem::path dataDirectory = DataDirectory / event->name;
-            HPCT_LOG(trace) << "INotify for deleted data directory: " << dataDirectory;
+            const std::filesystem::path importFileDirectory = ImportFileDirectory / event->name;
+            HPCT_LOG(trace) << "INotify for deleted data directory: " << importFileDirectory;
             INotifyWatchDescriptors.erase(event->wd);
          }
       }
@@ -1457,7 +1537,7 @@ void UniversalImporter::addReader(BasicReader*         reader,
 {
    ReaderList.push_back(reader);
    for(unsigned int w = 0; w < databaseClients; w++) {
-      Worker* worker = new Worker(w, reader, databaseClientArray[w]);
+      Worker* worker = new Worker(w, reader, databaseClientArray[w], Mode);
       assert(worker != nullptr);
       WorkerMapping workerMapping;
       workerMapping.Reader  = reader;
@@ -1495,15 +1575,15 @@ void UniversalImporter::removeReader(BasicReader* reader)
 // ###### Look for input files (full directory traversal) ###################
 void UniversalImporter::lookForFiles()
 {
-   lookForFiles(DataDirectory, MaxDepth);
+   lookForFiles(ImportFileDirectory, MaxDepth);
 }
 
 
 // ###### Look for input files (limited directory traversal) ################
-void UniversalImporter::lookForFiles(const std::filesystem::path& dataDirectory,
+void UniversalImporter::lookForFiles(const std::filesystem::path& importFileDirectory,
                                      const unsigned int           maxDepth)
 {
-   for(const std::filesystem::directory_entry& dirEntry : std::filesystem::directory_iterator(dataDirectory)) {
+   for(const std::filesystem::directory_entry& dirEntry : std::filesystem::directory_iterator(importFileDirectory)) {
       if(dirEntry.is_regular_file()) {
          addFile(dirEntry.path());
       }
@@ -1613,7 +1693,9 @@ int main(int argc, char** argv)
    // ====== Initialise importer ============================================
    initialiseLogger(logLevel);
    UniversalImporter importer(ioService,
-                              "data",// ?????
+                              databaseConfiguration.getImportFilePath(),
+                              databaseConfiguration.getGoodFilePath(),
+                              databaseConfiguration.getBadFilePath(),
                               databaseConfiguration.getImportMode(),
                               5);
 
@@ -1626,7 +1708,7 @@ int main(int argc, char** argv)
       for(unsigned int i = 0; i < pingWorkers; i++) {
          pingDatabaseClients[i] = databaseConfiguration.createClient();
          assert(pingDatabaseClients[i] != nullptr);
-         if(!pingDatabaseClients[i]->prepare()) {
+         if(!pingDatabaseClients[i]->open()) {
             exit(1);
          }
       }
@@ -1643,7 +1725,7 @@ int main(int argc, char** argv)
       for(unsigned int i = 0; i < metadataWorkers; i++) {
          metadataDatabaseClients[i] = databaseConfiguration.createClient();
          assert(metadataDatabaseClients[i] != nullptr);
-         if(!metadataDatabaseClients[i]->prepare()) {
+         if(!metadataDatabaseClients[i]->open()) {
             exit(1);
          }
       }
