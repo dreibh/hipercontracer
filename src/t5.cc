@@ -1039,10 +1039,13 @@ void NorNetEdgePingReader::printStatus(std::ostream& os)
 class Worker
 {
    public:
-   Worker(const unsigned int  workerID,
-          BasicReader*        reader,
-          DatabaseClientBase* databaseClient,
-          const ImportModeType    importMode);
+   Worker(const unsigned int           workerID,
+          BasicReader*                 reader,
+          DatabaseClientBase*          databaseClient,
+          const std::filesystem::path& importFileDirectory,
+          const std::filesystem::path& goodFileDirectory,
+          const std::filesystem::path& badFileDirectory,
+          const ImportModeType         importMode);
    ~Worker();
 
    void start();
@@ -1057,30 +1060,40 @@ class Worker
                     unsigned long long&          rows,
                     const std::filesystem::path* dataFile);
    void finishedFile(const std::filesystem::path& dataFile);
+   void makeDirectories(std::filesystem::path path);
    void deleteEmptyDirectories(std::filesystem::path path);
    void run();
 
-   std::atomic<bool>       StopRequested;
-   const unsigned int      WorkerID;
-   BasicReader*            Reader;
-   DatabaseClientBase*     DatabaseClient;
-   const ImportModeType        Mode;
-   const std::string       Identification;
-   std::thread             Thread;
-   std::mutex              Mutex;
-   std::condition_variable Notification;
+   std::atomic<bool>            StopRequested;
+   const unsigned int           WorkerID;
+   BasicReader*                 Reader;
+   DatabaseClientBase*          DatabaseClient;
+   const std::filesystem::path& ImportFileDirectory;
+   const std::filesystem::path& GoodFileDirectory;
+   const std::filesystem::path& BadFileDirectory;
+   const ImportModeType         ImportMode;
+   const std::string            Identification;
+   std::thread                  Thread;
+   std::mutex                   Mutex;
+   std::condition_variable      Notification;
 };
 
 
 // ###### Constructor #######################################################
-Worker::Worker(const unsigned int  workerID,
-               BasicReader*        reader,
-               DatabaseClientBase* databaseClient,
-               const ImportModeType    importMode)
+Worker::Worker(const unsigned int           workerID,
+               BasicReader*                 reader,
+               DatabaseClientBase*          databaseClient,
+               const std::filesystem::path& importFileDirectory,
+               const std::filesystem::path& goodFileDirectory,
+               const std::filesystem::path& badFileDirectory,
+               const ImportModeType         importMode)
    : WorkerID(workerID),
      Reader(reader),
      DatabaseClient(databaseClient),
-     Mode(importMode),
+     ImportFileDirectory(importFileDirectory),
+     GoodFileDirectory(goodFileDirectory),
+     BadFileDirectory(badFileDirectory),
+     ImportMode(importMode),
      Identification(reader->getIdentification() + "/" + std::to_string(WorkerID))
 {
    StopRequested.exchange(false);
@@ -1146,10 +1159,17 @@ void Worker::processFile(std::stringstream&           statement,
 }
 
 
+// ###### Make directories ##################################################
+void Worker::makeDirectories(std::filesystem::path path)
+{
+//    std::filesystem::create_directories(GoodFileDirectory / dataFile.parent()
+}
+
+
 // ###### Remove empty directories ##########################################
 void Worker::deleteEmptyDirectories(std::filesystem::path path)
 {
-   const std::filesystem::path root = path.root_path();
+   const std::filesystem::path root = path.root_path();   // ?????
    std::error_code             ec;
    while(path.parent_path() != root) {
       std::filesystem::remove(path, ec);
@@ -1166,7 +1186,7 @@ void Worker::deleteEmptyDirectories(std::filesystem::path path)
 void Worker::finishedFile(const std::filesystem::path& dataFile)
 {
    // ====== Delete imported file ===========================================
-   if(Mode == ImportModeType::DeleteImportedFiles) {
+   if(ImportMode == ImportModeType::DeleteImportedFiles) {
       try {
          std::filesystem::remove(dataFile);
          HPCT_LOG(trace) << getIdentification() << ": Deleted finished file " << dataFile;
@@ -1178,16 +1198,16 @@ void Worker::finishedFile(const std::filesystem::path& dataFile)
    }
 
    // ====== Move imported file =============================================
-   else if(Mode == ImportModeType::MoveImportedFiles) {
-//       try {
-//          std::filesystem::create_directories(
-//          HPCT_LOG(trace) << getIdentification() << ": Moved finished file " << dataFile;
-//       }
-//       catch(std::filesystem::filesystem_error& e) {
-//          HPCT_LOG(warning) << getIdentification() << ": Moving finished file " << dataFile << " failed: " << e.what();
-//       }
+   else if(ImportMode == ImportModeType::MoveImportedFiles) {
+      try {
+
+         HPCT_LOG(trace) << getIdentification() << ": Moved finished file " << dataFile;
+      }
+      catch(std::filesystem::filesystem_error& e) {
+         HPCT_LOG(warning) << getIdentification() << ": Moving finished file " << dataFile << " failed: " << e.what();
+      }
    }
-   else  if(Mode == ImportModeType::KeepImportedFiles) {
+   else  if(ImportMode == ImportModeType::KeepImportedFiles) {
       // Nothing to do here!
    }
 
@@ -1375,9 +1395,9 @@ UniversalImporter::UniversalImporter(boost::asio::io_service&     ioService,
                                      const unsigned int           maxDepth)
  : IOService(ioService),
    Signals(IOService, SIGINT, SIGTERM),
-   ImportFileDirectory(importFileDirectory),
-   GoodFileDirectory(goodFileDirectory),
-   BadFileDirectory(badFileDirectory),
+   ImportFileDirectory(std::filesystem::canonical(std::filesystem::absolute(importFileDirectory))),
+   GoodFileDirectory(std::filesystem::canonical(std::filesystem::absolute(goodFileDirectory))),
+   BadFileDirectory(std::filesystem::canonical(std::filesystem::absolute(badFileDirectory))),
    ImportMode(importMode),
    MaxDepth(maxDepth),
    INotifyStream(IOService)
@@ -1537,7 +1557,9 @@ void UniversalImporter::addReader(BasicReader*         reader,
 {
    ReaderList.push_back(reader);
    for(unsigned int w = 0; w < databaseClients; w++) {
-      Worker* worker = new Worker(w, reader, databaseClientArray[w], ImportMode);
+      Worker* worker = new Worker(w, reader, databaseClientArray[w],
+                                  ImportFileDirectory, GoodFileDirectory, BadFileDirectory,
+                                  ImportMode);
       assert(worker != nullptr);
       WorkerMapping workerMapping;
       workerMapping.Reader  = reader;
