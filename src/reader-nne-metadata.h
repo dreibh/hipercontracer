@@ -69,7 +69,7 @@ class NorNetEdgeMetadataReader : public ReaderBase
                               unsigned long long&                  rows,
                               boost::iostreams::filtering_istream& inputStream);
 
-   private:
+   protected:
    template<typename TimePoint> static TimePoint makeMin(const TimePoint& timePoint);
    template<typename TimePoint> static TimePoint parseTimeStamp(const boost::property_tree::ptree& item,
                                                                 const TimePoint&                   now);

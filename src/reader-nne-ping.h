@@ -67,7 +67,7 @@ class NorNetEdgePingReader : public ReaderBase
                               unsigned long long&                  rows,
                               boost::iostreams::filtering_istream& inputStream);
 
-   private:
+   protected:
    typedef std::chrono::system_clock               FileEntryClock;
    typedef std::chrono::time_point<FileEntryClock> FileEntryTimePoint;
    struct InputFileEntry {
