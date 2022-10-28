@@ -122,8 +122,8 @@ void PingReader::parseContents(
         unsigned long long&                  rows,
         boost::iostreams::filtering_istream& inputStream)
 {
-   const DatabaseBackendType backend = databaseClient.getBackend();
    assert(false);
+//    const DatabaseBackendType backend = databaseClient.getBackend();
 //    static const unsigned int PingColumns   = 4;
 //    static const char         PingDelimiter = '\t';
 //
