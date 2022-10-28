@@ -29,35 +29,21 @@
 //
 // Contact: dreibh@simula.no
 
-#ifndef READER_NNE_PING
-#define READER_NNE_PING
+#ifndef READER_NNE_SPEEDTEST
+#define READER_NNE_SPEEDTEST
 
-#include "reader-base.h"
-
-#include <chrono>
-#include <mutex>
-#include <set>
+#include "reader-nne-ping.h"
 
 
-class NorNetEdgePingReader : public ReaderBase
+class NorNetEdgeSpeedTestReader : public NorNetEdgePingReader
 {
    public:
-   NorNetEdgePingReader(const unsigned int workers                        = 1,
-                        const unsigned int maxTransactionSize             = 4,
-                        const std::string& table_measurement_generic_data = "measurement_generic_data");
-   virtual ~NorNetEdgePingReader();
+   NorNetEdgeSpeedTestReader(const unsigned int workers            = 1,
+                             const unsigned int maxTransactionSize = 1);
+   virtual ~NorNetEdgeSpeedTestReader();
 
    virtual const std::string& getIdentification() const;
    virtual const std::regex&  getFileNameRegExp() const;
-
-   virtual int addFile(const std::filesystem::path& dataFile,
-                       const std::smatch            match);
-   virtual bool removeFile(const std::filesystem::path& dataFile,
-                           const std::smatch            match);
-   virtual unsigned int fetchFiles(std::list<std::filesystem::path>& dataFileList,
-                                   const unsigned int                worker,
-                                   const unsigned int                limit = 1);
-   virtual void printStatus(std::ostream& os = std::cout);
 
    virtual void beginParsing(DatabaseClientBase& databaseClient,
                              unsigned long long& rows);
@@ -67,22 +53,9 @@ class NorNetEdgePingReader : public ReaderBase
                               unsigned long long&                  rows,
                               boost::iostreams::filtering_istream& inputStream);
 
-   protected:
-   typedef std::chrono::system_clock               FileEntryClock;
-   typedef std::chrono::time_point<FileEntryClock> FileEntryTimePoint;
-   struct InputFileEntry {
-      FileEntryTimePoint    TimeStamp;
-      unsigned int          MeasurementID;
-      std::filesystem::path DataFile;
-   };
-   friend bool operator<(const NorNetEdgePingReader::InputFileEntry& a,
-                         const NorNetEdgePingReader::InputFileEntry& b);
-   friend std::ostream& operator<<(std::ostream& os, const InputFileEntry& entry);
-
    private:
    static const std::string  Identification;
    static const std::regex   FileNameRegExp;
-   const std::string         Table_measurement_generic_data;
    std::set<InputFileEntry>* DataFileSet;
 };
 

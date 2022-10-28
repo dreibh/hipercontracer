@@ -32,13 +32,9 @@
 #include "logger.h"
 #include "tools.h"
 
-// #include "databaseclient-base.h"
-#include "databaseclient-debug.h"
-#include "databaseclient-mariadb.h"
-
-// #include "reader-base.h"
-#include "reader-nne-metadata.h"
 #include "reader-nne-ping.h"
+#include "reader-nne-speedtest.h"
+#include "reader-nne-metadata.h"
 
 #include "universal-importer.h"
 
@@ -50,164 +46,82 @@
 
 
 
-// ###### Create new database client instance ###############################
-DatabaseClientBase* DatabaseConfiguration::createClient()
-{
-   DatabaseClientBase* databaseClient = nullptr;
-
-   switch(Backend) {
-      case SQL_Debug:
-      case NoSQL_Debug:
-          databaseClient = new DebugClient(*this);
-       break;
-      case SQL_MariaDB:
-          databaseClient = new MariaDBClient(*this);
-       break;
-      default:
-       break;
-   }
-
-   return databaseClient;
-}
-
-
-
-#if 0
-class HiPerConTracerPingReader : public ReaderBase
-{
-   public:
-   HiPerConTracerPingReader();
-   ~HiPerConTracerPingReader();
-
-   virtual const std::regex& getFileNameRegExp() const;
-   virtual void addFile(const std::filesystem::path& dataFile,
-                        const std::smatch            match);
-   virtual void printStatus(std::ostream& os = std::cout);
-
-   private:
-   struct InputFileEntry {
-      std::string           Source;
-      std::string           TimeStamp;
-      unsigned int          SeqNumber;
-      std::filesystem::path DataFile;
-   };
-   friend bool operator<(const HiPerConTracerPingReader::InputFileEntry& a,
-                         const HiPerConTracerPingReader::InputFileEntry& b);
-
-   std::set<InputFileEntry> inputFileSet;
-   static const std::regex  FileNameRegExp;
-};
-
-
-const std::regex HiPerConTracerPingReader::FileNameRegExp = std::regex(
-   // Format: Ping-<ProcessID>-<Source>-<YYYYMMDD>T<Seconds.Microseconds>-<Sequence>.results.bz2
-   "^Ping-P([0-9]+)-([0-9a-f:\\.]+)-([0-9]{8}T[0-9]+\\.[0-9]{6})-([0-9]*)\\.results.*$"
-);
-
-
-bool operator<(const HiPerConTracerPingReader::InputFileEntry& a,
-               const HiPerConTracerPingReader::InputFileEntry& b) {
-   if(a.Source < b.Source) {
-      return true;
-   }
-   if(a.TimeStamp < b.TimeStamp) {
-      return true;
-   }
-   if(a.SeqNumber < b.SeqNumber) {
-      return true;
-   }
-   return false;
-}
-
-
-// ###### Constructor #######################################################
-HiPerConTracerPingReader::HiPerConTracerPingReader()
-{
-}
-
-
-// ###### Destructor ########################################################
-HiPerConTracerPingReader::~HiPerConTracerPingReader()
-{
-}
-
-
-const std::regex& HiPerConTracerPingReader::getFileNameRegExp() const
-{
-   return(FileNameRegExp);
-}
-
-
-void HiPerConTracerPingReader::addFile(const std::filesystem::path& dataFile,
-                                       const std::smatch            match)
-{
-   std::cout << dataFile << " s=" << match.size() << std::endl;
-   if(match.size() == 5) {
-      InputFileEntry inputFileEntry;
-      inputFileEntry.Source    = match[2];
-      inputFileEntry.TimeStamp = match[3];
-      inputFileEntry.SeqNumber = atol(match[4].str().c_str());
-
-      std::cout << "  s=" << inputFileEntry.Source << std::endl;
-      std::cout << "  t=" << inputFileEntry.TimeStamp << std::endl;
-      std::cout << "  q=" << inputFileEntry.SeqNumber << std::endl;
-      inputFileEntry.DataFile  = dataFile;
-
-      inputFileSet.insert(inputFileEntry);
-   }
-}
-
-
-class HiPerConTracerTracerouteReader : public HiPerConTracerPingReader
-{
-   public:
-   HiPerConTracerTracerouteReader();
-   ~HiPerConTracerTracerouteReader();
-
-   virtual const std::regex& getFileNameRegExp() const;
-
-   private:
-   static const std::regex TracerouteFileNameRegExp;
-};
-
-
-const std::regex HiPerConTracerTracerouteReader::TracerouteFileNameRegExp = std::regex(
-   // Format: Traceroute-<ProcessID>-<Source>-<YYYYMMDD>T<Seconds.Microseconds>-<Sequence>.results.bz2
-   "^Traceroute-P([0-9]+)-([0-9a-f:\\.]+)-([0-9]{8}T[0-9]+\\.[0-9]{6})-([0-9]*)\\.results.*$"
-);
-
-
-HiPerConTracerTracerouteReader::HiPerConTracerTracerouteReader()
-{
-}
-
-
-// ###### Destructor ########################################################
-HiPerConTracerTracerouteReader::~HiPerConTracerTracerouteReader()
-{
-}
-
-
-const std::regex& HiPerConTracerTracerouteReader::getFileNameRegExp() const
-{
-   return(TracerouteFileNameRegExp);
-}
-
-#endif
-
-
-
+// ###### Main program ######################################################
 int main(int argc, char** argv)
 {
    // ====== Initialize =====================================================
-   boost::asio::io_service ioService;
+   unsigned int          logLevel;
+   std::filesystem::path databaseConfigurationFile;
+   unsigned int          pingWorkers;
+   unsigned int          speedTestWorkers;
+   unsigned int          metadataWorkers;
+   unsigned int          pingTransactionSize;
+   unsigned int          speedTestTransactionSize;
+   unsigned int          metadataTransactionSize;
 
-   unsigned int          logLevel                  = boost::log::trivial::severity_level::trace;
-   unsigned int          pingWorkers               = 1;
-   unsigned int          metadataWorkers           = 1;
-   unsigned int          pingTransactionSize       = 4;
-   unsigned int          metadataTransactionSize   = 256;
-   std::filesystem::path databaseConfigurationFile = "/home/dreibh/soyuz.conf";
+   boost::program_options::options_description commandLineOptions;
+   commandLineOptions.add_options()
+      ( "help,h",
+           "Print help message" )
+
+      ( "loglevel,L",
+           boost::program_options::value<unsigned int>(&logLevel)->default_value(boost::log::trivial::severity_level::info),
+           "Set logging level" )
+      ( "verbose,v",
+           boost::program_options::value<unsigned int>(&logLevel)->implicit_value(boost::log::trivial::severity_level::trace),
+           "Verbose logging level" )
+      ( "quiet,q",
+           boost::program_options::value<unsigned int>(&logLevel)->implicit_value(boost::log::trivial::severity_level::warning),
+           "Quiet logging level" )
+
+      ( "config,C",
+           boost::program_options::value<std::filesystem::path>(&databaseConfigurationFile)->default_value(std::filesystem::path("database.conf")),
+           "Database configuration file" )
+
+      ( "ping-workers",
+           boost::program_options::value<unsigned int>(&pingWorkers)->default_value(1),
+           "Number of Ping import worker threads" )
+      ( "ping-files",
+           boost::program_options::value<unsigned int>(&pingTransactionSize)->default_value(4),
+           "Number of Ping files per transaction" )
+      ( "speedtest-workers",
+           boost::program_options::value<unsigned int>(&speedTestWorkers)->default_value(1),
+           "Number of SpeedTest import worker threads" )
+      ( "speedtest-files",
+           boost::program_options::value<unsigned int>(&speedTestTransactionSize)->default_value(1),
+           "Number of SpeedTest files per transaction" )
+      ( "metadata-workers",
+           boost::program_options::value<unsigned int>(&metadataWorkers)->default_value(1),
+           "Number of Metadata import worker threads" )
+      ( "metadata-files",
+           boost::program_options::value<unsigned int>(&metadataTransactionSize)->default_value(256),
+           "Number of Metadata files per transaction" )
+   ;
+
+   // ====== Handle command-line arguments ==================================
+   boost::program_options::variables_map vm;
+   try {
+      boost::program_options::store(boost::program_options::command_line_parser(argc, argv).
+                                       style(
+                                          boost::program_options::command_line_style::style_t::default_style|
+                                          boost::program_options::command_line_style::style_t::allow_long_disguise
+                                       ).
+                                       options(commandLineOptions).
+                                       run(), vm);
+      boost::program_options::notify(vm);
+   }
+   catch(std::exception& e) {
+      std::cerr << "ERROR: Bad parameter: " << e.what() << std::endl;
+      return 1;
+   }
+
+   if(vm.count("help")) {
+       std::cerr << "Usage: " << argv[0] << " parameters" << std::endl
+                 << commandLineOptions;
+       return 1;
+   }
+
+   std::cout << pingWorkers << " " << speedTestWorkers << " " << metadataWorkers << std::endl;
 
 
    // ====== Read database configuration ====================================
@@ -222,16 +136,10 @@ int main(int argc, char** argv)
    databaseConfiguration.printConfiguration(std::cout);
 
 
-//    UniversalImporter importer(".", 5);
-//
-//    HiPerConTracerPingReader pingReader;
-//    importer.addReader(&pingReader);
-//    HiPerConTracerTracerouteReader tracerouteReader;
-//    importer.addReader(&tracerouteReader);
-
-
    // ====== Initialise importer ============================================
    initialiseLogger(logLevel);
+
+   boost::asio::io_service ioService;
    UniversalImporter importer(ioService,
                               databaseConfiguration.getImportFilePath(),
                               databaseConfiguration.getGoodFilePath(),
@@ -256,6 +164,23 @@ int main(int argc, char** argv)
       assert(nnePingReader != nullptr);
       importer.addReader(*nnePingReader,
                          (DatabaseClientBase**)&pingDatabaseClients, pingWorkers);
+   }
+
+   // ------ NorNet Edge SpeedTest ------------------------
+   DatabaseClientBase*        speedTestDatabaseClients[speedTestWorkers];
+   NorNetEdgeSpeedTestReader* nneSpeedTestReader = nullptr;
+   if(speedTestWorkers > 0) {
+      for(unsigned int i = 0; i < speedTestWorkers; i++) {
+         speedTestDatabaseClients[i] = databaseConfiguration.createClient();
+         assert(speedTestDatabaseClients[i] != nullptr);
+         if(!speedTestDatabaseClients[i]->open()) {
+            exit(1);
+         }
+      }
+      nneSpeedTestReader = new NorNetEdgeSpeedTestReader(speedTestWorkers, speedTestTransactionSize);
+      assert(nneSpeedTestReader != nullptr);
+      importer.addReader(*nneSpeedTestReader,
+                         (DatabaseClientBase**)&speedTestDatabaseClients, speedTestWorkers);
    }
 
    // ------ NorNet Edge Metadata -------------------------
@@ -291,6 +216,14 @@ int main(int argc, char** argv)
       for(unsigned int i = 0; i < metadataWorkers; i++) {
          delete metadataDatabaseClients[i];
          metadataDatabaseClients[i] = nullptr;
+      }
+   }
+   if(speedTestWorkers > 0) {
+      delete nneSpeedTestReader;
+      nneSpeedTestReader = nullptr;
+      for(unsigned int i = 0; i < speedTestWorkers; i++) {
+         delete speedTestDatabaseClients[i];
+         speedTestDatabaseClients[i] = nullptr;
       }
    }
    if(pingWorkers > 0) {

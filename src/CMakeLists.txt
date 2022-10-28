@@ -108,6 +108,9 @@ ADD_EXECUTABLE(t5 t5.cc
    reader-base.cc
    reader-nne-metadata.cc
    reader-nne-ping.cc
+   reader-nne-speedtest.cc
+   reader-ping.cc
+   reader-traceroute.cc
    universal-importer.cc
    worker.cc
 )

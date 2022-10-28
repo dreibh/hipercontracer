@@ -33,6 +33,9 @@
 #include "logger.h"
 #include "tools.h"
 
+#include "databaseclient-debug.h"
+#include "databaseclient-mariadb.h"
+
 #include <fstream>
 
 
@@ -154,22 +157,22 @@ void DatabaseConfiguration::printConfiguration(std::ostream& os) const
 }
 
 
-// // ###### Create new database client instance ###############################
-// DatabaseClientBase* DatabaseConfiguration::createClient()
-// {
-//    DatabaseClientBase* databaseClient = nullptr;
-//
-//    switch(Backend) {
-//       case SQL_Debug:
-//       case NoSQL_Debug:
-//           databaseClient = new DebugClient(*this);
-//        break;
-//       case SQL_MariaDB:
-//           databaseClient = new MariaDBClient(*this);
-//        break;
-//       default:
-//        break;
-//    }
-//
-//    return databaseClient;
-// }
+// ###### Create new database client instance ###############################
+DatabaseClientBase* DatabaseConfiguration::createClient()
+{
+   DatabaseClientBase* databaseClient = nullptr;
+
+   switch(Backend) {
+      case SQL_Debug:
+      case NoSQL_Debug:
+          databaseClient = new DebugClient(*this);
+       break;
+      case SQL_MariaDB:
+          databaseClient = new MariaDBClient(*this);
+       break;
+      default:
+       break;
+   }
+
+   return databaseClient;
+}

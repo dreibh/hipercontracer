@@ -29,28 +29,26 @@
 //
 // Contact: dreibh@simula.no
 
-#ifndef READER_NNE_METADATA_H
-#define READER_NNE_METADATA_H
+#ifndef READER_TRACEROUTE
+#define READER_TRACEROUTE
 
 #include "reader-base.h"
 
 #include <chrono>
+#include <mutex>
 #include <set>
 
-#include <boost/property_tree/ptree.hpp>
 
-
-class NorNetEdgeMetadataReader : public ReaderBase
+class TracerouteReader : public ReaderBase
 {
    public:
-   NorNetEdgeMetadataReader(const unsigned int workers            = 1,
-                            const unsigned int maxTransactionSize = 4,
-                            const std::string& table_bins1min     = "node_metadata_bins1min",
-                            const std::string& table_event        = "node_metadata_event");
-   virtual ~NorNetEdgeMetadataReader();
+   TracerouteReader(const unsigned int workers            = 1,
+                    const unsigned int maxTransactionSize = 4,
+                    const std::string& table              = "Traceroute");
+   virtual ~TracerouteReader();
 
    virtual const std::string& getIdentification() const;
-   virtual const std::regex& getFileNameRegExp() const;
+   virtual const std::regex&  getFileNameRegExp() const;
 
    virtual int addFile(const std::filesystem::path& dataFile,
                        const std::smatch            match);
@@ -70,32 +68,22 @@ class NorNetEdgeMetadataReader : public ReaderBase
                               boost::iostreams::filtering_istream& inputStream);
 
    protected:
-   template<typename TimePoint> static TimePoint makeMin(const TimePoint& timePoint);
-   template<typename TimePoint> static TimePoint parseTimeStamp(const boost::property_tree::ptree& item,
-                                                                const TimePoint&                   now);
-   long long parseDelta(const boost::property_tree::ptree& item) const;
-   unsigned int parseNodeID(const boost::property_tree::ptree& item) const;
-   unsigned int parseNetworkID(const boost::property_tree::ptree& item) const;
-   std::string parseMetadataKey(const boost::property_tree::ptree& item) const;
-   std::string parseMetadataValue(const boost::property_tree::ptree& item) const;
-   std::string parseExtra(const boost::property_tree::ptree& item) const;
-
    typedef std::chrono::system_clock               FileEntryClock;
    typedef std::chrono::time_point<FileEntryClock> FileEntryTimePoint;
    struct InputFileEntry {
+      std::string           Source;
       FileEntryTimePoint    TimeStamp;
-      unsigned int          NodeID;
+      unsigned int          SeqNumber;
       std::filesystem::path DataFile;
    };
-   friend bool operator<(const NorNetEdgeMetadataReader::InputFileEntry& a,
-                         const NorNetEdgeMetadataReader::InputFileEntry& b);
+   friend bool operator<(const TracerouteReader::InputFileEntry& a,
+                         const TracerouteReader::InputFileEntry& b);
    friend std::ostream& operator<<(std::ostream& os, const InputFileEntry& entry);
 
    private:
    static const std::string  Identification;
    static const std::regex   FileNameRegExp;
-   const std::string         Table_bins1min;
-   const std::string         Table_event;
+   const std::string         Table;
    std::set<InputFileEntry>* DataFileSet;
 };
 
