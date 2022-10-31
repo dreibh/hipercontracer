@@ -48,7 +48,7 @@ class ReaderBase
 {
    public:
    ReaderBase(const unsigned int workers,
-               const unsigned int maxTransactionSize);
+              const unsigned int maxTransactionSize);
    virtual ~ReaderBase();
 
    virtual const std::string& getIdentification() const = 0;
