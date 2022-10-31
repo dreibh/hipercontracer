@@ -69,7 +69,7 @@ void DebugClient::close()
 // ###### Begin transaction #################################################
 void DebugClient::startTransaction()
 {
-   std::cout << "START TRANSACTION;" << std::endl;
+   std::cout << "START TRANSACTION" << std::endl;
 }
 
 
@@ -77,11 +77,11 @@ void DebugClient::startTransaction()
 void DebugClient::endTransaction(const bool commit)
 {
    if(commit) {
-      std::cout << "COMMIT;" << std::endl;
+      std::cout << "COMMIT" << std::endl;
       throw ImporterDatabaseException("DEBUG CLIENT ONLY");
    }
    else {
-      std::cout << "ROLLBACK;" << std::endl;
+      std::cout << "ROLLBACK" << std::endl;
    }
 }
 
@@ -89,5 +89,5 @@ void DebugClient::endTransaction(const bool commit)
 // ###### Execute statement #################################################
 void DebugClient::execute(const std::string& statement)
 {
-   std::cout << statement << std::endl;
+   std::cout << statement;
 }
