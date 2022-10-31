@@ -202,7 +202,7 @@ void NorNetEdgePingReader::beginParsing(DatabaseClientBase& databaseClient,
    // ====== Generate import statement ======================================
    const DatabaseBackendType backend = databaseClient.getBackend();
    if(backend & DatabaseBackendType::SQL_Generic) {
-      assert(databaseClient.statementIsEmpty());
+      databaseClient.clearStatement();
       databaseClient.getStatement()
          << "INSERT INTO " << Table_measurement_generic_data
          << "(ts, mi_id, seq, xml_data, crc, stats) VALUES \n";
@@ -261,12 +261,12 @@ void NorNetEdgePingReader::parseContents(
          end = inputLine.find(NorNetEdgePingDelimiter, start);
 
          if(columns == NorNetEdgePingColumns) {
-            throw ImporterReaderException("Too many columns in input file");
+            throw ImporterReaderDataErrorException("Too many columns in input file");
          }
          tuple[columns++] = inputLine.substr(start, end - start);
       }
       if(columns != NorNetEdgePingColumns) {
-         throw ImporterReaderException("Too few columns in input file");
+         throw ImporterReaderDataErrorException("Too few columns in input file");
       }
 
       // ====== Generate import statement ===================================

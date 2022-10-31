@@ -308,7 +308,7 @@ template<typename TimePoint> TimePoint NorNetEdgeMetadataReader::parseTimeStamp(
    const TimePoint          timeStamp = microsecondsToTimePoint<std::chrono::time_point<std::chrono::high_resolution_clock>>(ts);
    if( (timeStamp < now - std::chrono::hours(365 * 24)) ||   /* 1 year in the past  */
        (timeStamp > now + std::chrono::hours(24)) ) {        /* 1 day in the future */
-      throw ImporterReaderException("Bad time stamp " + std::to_string(ts));
+      throw ImporterReaderDataErrorException("Bad time stamp " + std::to_string(ts));
    }
    return timeStamp;
 }
@@ -319,7 +319,7 @@ long long NorNetEdgeMetadataReader::parseDelta(const boost::property_tree::ptree
 {
    const unsigned int delta = round(item.get<double>("delta"));
    if( (delta < 0) || (delta > 4294967295.0) ) {
-      throw ImporterReaderException("Bad delta " + delta);
+      throw ImporterReaderDataErrorException("Bad delta " + delta);
    }
    return delta;
 }
@@ -330,11 +330,11 @@ unsigned int NorNetEdgeMetadataReader::parseNodeID(const boost::property_tree::p
 {
    const std::string& nodeName = item.get<std::string>("node");
    if(nodeName.substr(0, 3) != "nne") {
-      throw ImporterReaderException("Bad node name " + nodeName);
+      throw ImporterReaderDataErrorException("Bad node name " + nodeName);
    }
    const unsigned int nodeID = atol(nodeName.substr(3, nodeName.size() -3).c_str());
    if( (nodeID < 1) || (nodeID > 9999) ) {
-      throw ImporterReaderException("Bad node ID " + nodeID);
+      throw ImporterReaderDataErrorException("Bad node ID " + nodeID);
    }
    return nodeID;
 }
@@ -345,7 +345,7 @@ unsigned int NorNetEdgeMetadataReader::parseNetworkID(const boost::property_tree
 {
    const unsigned int networkID = item.get<unsigned int>("network_id");
    if(networkID > 99) {   // MNC is a two-digit number
-      throw ImporterReaderException("Bad network ID " + networkID);
+      throw ImporterReaderDataErrorException("Bad network ID " + networkID);
    }
    return networkID;
 }
@@ -356,7 +356,7 @@ std::string NorNetEdgeMetadataReader::parseMetadataKey(const boost::property_tre
 {
    const std::string& metadataKey = item.get<std::string>("key");
    if(metadataKey.size() > 45) {
-      throw ImporterReaderException("Too long metadata key " + metadataKey);
+      throw ImporterReaderDataErrorException("Too long metadata key " + metadataKey);
    }
    return metadataKey;
 }
@@ -367,7 +367,7 @@ std::string NorNetEdgeMetadataReader::parseMetadataValue(const boost::property_t
 {
    const std::string& metadataValue = item.get<std::string>("value");
    if(metadataValue.size() > 500) {
-      throw ImporterReaderException("Too long metadata value " + metadataValue);
+      throw ImporterReaderDataErrorException("Too long metadata value " + metadataValue);
    }
    return metadataValue;
 }
@@ -378,7 +378,7 @@ std::string NorNetEdgeMetadataReader::parseExtra(const boost::property_tree::ptr
 {
    const std::string& extra = item.get<std::string>("extra");
    if(extra.size() > 500) {
-      throw ImporterReaderException("Too long extra " + extra);
+      throw ImporterReaderDataErrorException("Too long extra " + extra);
    }
    return extra;
 }
@@ -418,86 +418,87 @@ void NorNetEdgeMetadataReader::parseContents(
 
    try {
       boost::property_tree::read_json(dataStream, propertyTreeRoot);
-   }
-   catch(const boost::property_tree::json_parser::json_parser_error& exception) {
-      throw ImporterReaderDataErrorException(exception.what());
-   }
-   // dumpPropertyTree(std::cerr, propertyTreeRoot);
+
+      // dumpPropertyTree(std::cerr, propertyTreeRoot);
 
 #ifdef WITH_NODEID_FIX
-   const unsigned int nodeIDFromPath = getNodeIDFromPath(dataFile);
-   bool               showWarning    = true;
+      const unsigned int nodeIDFromPath = getNodeIDFromPath(dataFile);
+      bool               showWarning    = true;
 #endif
 
-   // ====== Process all metadata items =====================================
-   std::chrono::high_resolution_clock::time_point now = std::chrono::high_resolution_clock::now();
-   for(boost::property_tree::ptree::const_iterator itemIterator = propertyTreeRoot.begin();
-       itemIterator != propertyTreeRoot.end(); itemIterator++)  {
-      const boost::property_tree::ptree& item = itemIterator->second;
-      const std::string& itemType             = item.get<std::string>("type");
+      // ====== Process all metadata items ==================================
+      std::chrono::high_resolution_clock::time_point now = std::chrono::high_resolution_clock::now();
+      for(boost::property_tree::ptree::const_iterator itemIterator = propertyTreeRoot.begin();
+         itemIterator != propertyTreeRoot.end(); itemIterator++)  {
+         const boost::property_tree::ptree& item = itemIterator->second;
+         const std::string& itemType             = item.get<std::string>("type");
 
-      const std::chrono::time_point<std::chrono::high_resolution_clock> ts =
-         parseTimeStamp<std::chrono::time_point<std::chrono::high_resolution_clock>>(item, now);
+         const std::chrono::time_point<std::chrono::high_resolution_clock> ts =
+            parseTimeStamp<std::chrono::time_point<std::chrono::high_resolution_clock>>(item, now);
 #ifdef WITH_NODEID_FIX
 #warning With NodeID fix!
-      unsigned int nodeID = parseNodeID(item);
-      if( (nodeID == 4125) && (nodeID != nodeIDFromPath) ) {
-         if(showWarning) {
-            HPCT_LOG(warning) << Identification << ": Bad NodeID fix: " << nodeID << " -> "
-                              << nodeIDFromPath << " for " << dataFile;
-            showWarning = false;
+         unsigned int nodeID = parseNodeID(item);
+         if( (nodeID == 4125) && (nodeID != nodeIDFromPath) ) {
+            if(showWarning) {
+               HPCT_LOG(warning) << Identification << ": Bad NodeID fix: " << nodeID << " -> "
+                                 << nodeIDFromPath << " for " << dataFile;
+               showWarning = false;
+            }
+            nodeID = nodeIDFromPath;
          }
-         nodeID = nodeIDFromPath;
-      }
 #else
-      const unsigned int nodeID        = parseNodeID(item);
+         const unsigned int nodeID        = parseNodeID(item);
 #endif
-      const unsigned int networkID     = parseNetworkID(item);
-      const std::string  metadataKey   = parseMetadataKey(item);
-      const std::string  metadataValue = parseMetadataValue(item);
+         const unsigned int networkID     = parseNetworkID(item);
+         const std::string  metadataKey   = parseMetadataKey(item);
+         const std::string  metadataValue = parseMetadataValue(item);
 
-      if(itemType == "bins-1min") {
-         const long long delta = parseDelta(item);
-         if(backend & DatabaseBackendType::SQL_Generic) {
-            databaseClient.clearStatement();
-            databaseClient.getStatement()
-               << "INSERT INTO " << Table_bins1min
-               << "(ts, delta, node_id, network_id, metadata_key, metadata_value) VALUES ("
-               << "'" << timePointToString<std::chrono::time_point<std::chrono::high_resolution_clock>>(ts) << "', "
-               << delta                << ", "
-               << nodeID               << ", "
-               << networkID            << ", "
-               << "'" << metadataKey   << "', "
-               << "'" << metadataValue << "' )\n";
-            databaseClient.executeStatement();
-            databaseClient.clearStatement();
-            rows++;
+         if(itemType == "bins-1min") {
+            const long long delta = parseDelta(item);
+            if(backend & DatabaseBackendType::SQL_Generic) {
+               databaseClient.clearStatement();
+               databaseClient.getStatement()
+                  << "INSERT INTO " << Table_bins1min
+                  << "(ts, delta, node_id, network_id, metadata_key, metadata_value) VALUES ("
+                  << "'" << timePointToString<std::chrono::time_point<std::chrono::high_resolution_clock>>(ts) << "', "
+                  << delta                << ", "
+                  << nodeID               << ", "
+                  << networkID            << ", "
+                  << "'" << metadataKey   << "', "
+                  << "'" << metadataValue << "' )\n";
+               databaseClient.executeStatement();
+               databaseClient.clearStatement();
+               rows++;
+            }
+         }
+         else if(itemType == "event") {
+            const std::chrono::time_point<std::chrono::high_resolution_clock> min =
+               makeMin<std::chrono::time_point<std::chrono::high_resolution_clock>>(ts);
+            const std::string  extra = parseExtra(item);
+            if(backend & DatabaseBackendType::SQL_Generic) {
+               databaseClient.clearStatement();
+               databaseClient.getStatement()
+                  << "INSERT INTO " << Table_event
+                  << "(ts, node_id, network_id, metadata_key, metadata_value, extra, min) VALUES ("
+                  << "'" << timePointToString<std::chrono::time_point<std::chrono::high_resolution_clock>>(ts) << "', "
+                  << nodeID               << ", "
+                  << networkID            << ", "
+                  << "'" << metadataKey   << "', "
+                  << "'" << metadataValue << "', "
+                  << "'" << extra         << "', "
+                  << "'" << timePointToString<std::chrono::time_point<std::chrono::high_resolution_clock>>(min) << "')\n";   // FROM_UNIXTIME(UNIX_TIMESTAMP(ts) DIV 60*60)
+               databaseClient.executeStatement();
+               databaseClient.clearStatement();
+               rows++;
+            }
+         }
+         else {
+            throw ImporterReaderDataErrorException("Got unknown metadata type " + itemType);
          }
       }
-      else if(itemType == "event") {
-         const std::chrono::time_point<std::chrono::high_resolution_clock> min =
-            makeMin<std::chrono::time_point<std::chrono::high_resolution_clock>>(ts);
-         const std::string  extra = parseExtra(item);
-         if(backend & DatabaseBackendType::SQL_Generic) {
-            databaseClient.clearStatement();
-            databaseClient.getStatement()
-               << "INSERT INTO " << Table_event
-               << "(ts, node_id, network_id, metadata_key, metadata_value, extra, min) VALUES ("
-               << "'" << timePointToString<std::chrono::time_point<std::chrono::high_resolution_clock>>(ts) << "', "
-               << nodeID               << ", "
-               << networkID            << ", "
-               << "'" << metadataKey   << "', "
-               << "'" << metadataValue << "', "
-               << "'" << extra         << "', "
-               << "'" << timePointToString<std::chrono::time_point<std::chrono::high_resolution_clock>>(min) << "')\n";   // FROM_UNIXTIME(UNIX_TIMESTAMP(ts) DIV 60*60)
-            databaseClient.executeStatement();
-            databaseClient.clearStatement();
-            rows++;
-         }
-      }
-      else {
-         throw ImporterReaderException("Got unknown metadata type " + itemType);
-      }
+   }
+   catch(const boost::property_tree::ptree_error& exception) {
+      throw ImporterReaderDataErrorException(exception.what());
    }
 }
 

@@ -101,24 +101,37 @@ void Worker::processFile(DatabaseClientBase&          databaseClient,
                          unsigned long long&          rows,
                          const std::filesystem::path& dataFile)
 {
-   std::ifstream                       inputFile;
-   boost::iostreams::filtering_istream inputStream;
+   // ====== Check file size ================================================
+   std::error_code ec;
+   const std::uintmax_t  size = std::filesystem::file_size(std::string(dataFile) + ".x", ec);
+   if( (!ec) && (size == 0) ) {
+      HPCT_LOG(warning) << getIdentification() << ": Empty file " << dataFile;
+   }
 
-   // ====== Prepare input stream ===========================================
-   inputFile.open(dataFile.string(), std::ios_base::in | std::ios_base::binary);
-   if(dataFile.extension() == ".xz") {
-      inputStream.push(boost::iostreams::lzma_decompressor());
-   }
-   else if(dataFile.extension() == ".bz2") {
-      inputStream.push(boost::iostreams::bzip2_decompressor());
-   }
-   else if(dataFile.extension() == ".gz") {
-      inputStream.push(boost::iostreams::gzip_decompressor());
-   }
-   inputStream.push(inputFile);
+   else {
+      // ====== Prepare input stream ========================================
+      std::ifstream                       inputFile;
+      boost::iostreams::filtering_istream inputStream;
+      inputFile.open(dataFile, std::ios_base::in | std::ios_base::binary);
+      if(inputFile.good()) {
+         if(dataFile.extension() == ".xz") {
+            inputStream.push(boost::iostreams::lzma_decompressor());
+         }
+         else if(dataFile.extension() == ".bz2") {
+            inputStream.push(boost::iostreams::bzip2_decompressor());
+         }
+         else if(dataFile.extension() == ".gz") {
+            inputStream.push(boost::iostreams::gzip_decompressor());
+         }
+         inputStream.push(inputFile);
 
-   // ====== Read contents ==================================================
-   Reader.parseContents(databaseClient, rows, dataFile, inputStream);
+         // ====== Read contents ============================================
+         Reader.parseContents(databaseClient, rows, dataFile, inputStream);
+      }
+      else {
+         HPCT_LOG(warning) << getIdentification() << ": Unable to open file " << dataFile;
+      }
+   }
 }
 
 
