@@ -243,7 +243,8 @@ bool NorNetEdgePingReader::finishParsing(DatabaseClientBase& databaseClient,
 void NorNetEdgePingReader::parseContents(
         DatabaseClientBase&                  databaseClient,
         unsigned long long&                  rows,
-        boost::iostreams::filtering_istream& inputStream)
+        const std::filesystem::path&         dataFile,
+        boost::iostreams::filtering_istream& dataStream)
 {
    const DatabaseBackendType backend = databaseClient.getBackend();
    static const unsigned int NorNetEdgePingColumns   = 4;
@@ -251,7 +252,7 @@ void NorNetEdgePingReader::parseContents(
 
    std::string inputLine;
    std::string tuple[NorNetEdgePingColumns];
-   while(std::getline(inputStream, inputLine)) {
+   while(std::getline(dataStream, inputLine)) {
       // ====== Parse line ==================================================
       size_t columns = 0;
       size_t start;

@@ -69,7 +69,8 @@ class ReaderBase
                               unsigned long long& rows) = 0;
    virtual void parseContents(DatabaseClientBase&                  databaseClient,
                               unsigned long long&                  rows,
-                              boost::iostreams::filtering_istream& inputStream) = 0;
+                              const std::filesystem::path&         dataFile,
+                              boost::iostreams::filtering_istream& dataStream) = 0;
 
    inline const unsigned int getWorkers() const { return Workers; }
    inline const unsigned int getMaxTransactionSize() const { return MaxTransactionSize; }

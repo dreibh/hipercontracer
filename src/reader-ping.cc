@@ -120,7 +120,8 @@ bool PingReader::finishParsing(DatabaseClientBase& databaseClient,
 void PingReader::parseContents(
         DatabaseClientBase&                  databaseClient,
         unsigned long long&                  rows,
-        boost::iostreams::filtering_istream& inputStream)
+        const std::filesystem::path&         dataFile,
+        boost::iostreams::filtering_istream& dataStream)
 {
    assert(false);
 //    const DatabaseBackendType backend = databaseClient.getBackend();

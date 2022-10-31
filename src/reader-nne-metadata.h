@@ -67,7 +67,8 @@ class NorNetEdgeMetadataReader : public ReaderBase
                               unsigned long long& rows);
    virtual void parseContents(DatabaseClientBase&                  databaseClient,
                               unsigned long long&                  rows,
-                              boost::iostreams::filtering_istream& inputStream);
+                              const std::filesystem::path&         dataFile,
+                              boost::iostreams::filtering_istream& dataStream);
 
    protected:
    template<typename TimePoint> static TimePoint makeMin(const TimePoint& timePoint);
@@ -79,6 +80,7 @@ class NorNetEdgeMetadataReader : public ReaderBase
    std::string parseMetadataKey(const boost::property_tree::ptree& item) const;
    std::string parseMetadataValue(const boost::property_tree::ptree& item) const;
    std::string parseExtra(const boost::property_tree::ptree& item) const;
+   static unsigned int getNodeIDFromPath(const std::filesystem::path& path);
 
    typedef std::chrono::system_clock               FileEntryClock;
    typedef std::chrono::time_point<FileEntryClock> FileEntryTimePoint;

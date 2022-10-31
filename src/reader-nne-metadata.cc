@@ -37,6 +37,9 @@
 #include <boost/property_tree/json_parser.hpp>
 
 
+#define WITH_NODEID_FIX
+
+
 #if 0
 // ###### Create indentation string #########################################
 static std::string indent(const unsigned int level, const char* indentation = "\t")
@@ -381,23 +384,50 @@ std::string NorNetEdgeMetadataReader::parseExtra(const boost::property_tree::ptr
 }
 
 
+// ###### Extract NodeID from path ##########################################
+// Assumption: node ID from 100 to 9999.
+// The function handles "all in one directory" as well as "hierarchical" setup.
+unsigned int NorNetEdgeMetadataReader::getNodeIDFromPath(const std::filesystem::path& path)
+{
+   unsigned int nodeID = 0;
+
+   std::filesystem::path parent = path.parent_path();
+   while(parent.has_filename()) {
+      if(parent.filename().string().size() >= 3) {
+         const unsigned int n = atol(parent.filename().string().c_str());
+         if( (n >=100) && (n <= 9999) ) {
+            nodeID = n;
+         }
+      }
+      parent = parent.parent_path();
+   }
+
+   return nodeID;
+}
+
+
 // ###### Parse input file ##################################################
 void NorNetEdgeMetadataReader::parseContents(
         DatabaseClientBase&                  databaseClient,
         unsigned long long&                  rows,
-        boost::iostreams::filtering_istream& inputStream)
+        const std::filesystem::path&         dataFile,
+        boost::iostreams::filtering_istream& dataStream)
 {
    const DatabaseBackendType   backend = databaseClient.getBackend();
    boost::property_tree::ptree propertyTreeRoot;
 
    try {
-      boost::property_tree::read_json(inputStream, propertyTreeRoot);
+      boost::property_tree::read_json(dataStream, propertyTreeRoot);
    }
    catch(const boost::property_tree::json_parser::json_parser_error& exception) {
       throw ImporterReaderDataErrorException(exception.what());
    }
-
    // dumpPropertyTree(std::cerr, propertyTreeRoot);
+
+#ifdef WITH_NODEID_FIX
+   const unsigned int nodeIDFromPath = getNodeIDFromPath(dataFile);
+   bool               showWarning    = true;
+#endif
 
    // ====== Process all metadata items =====================================
    std::chrono::high_resolution_clock::time_point now = std::chrono::high_resolution_clock::now();
@@ -406,13 +436,28 @@ void NorNetEdgeMetadataReader::parseContents(
       const boost::property_tree::ptree& item = itemIterator->second;
       const std::string& itemType             = item.get<std::string>("type");
 
+      const std::chrono::time_point<std::chrono::high_resolution_clock> ts =
+         parseTimeStamp<std::chrono::time_point<std::chrono::high_resolution_clock>>(item, now);
+#ifdef WITH_NODEID_FIX
+#warning With NodeID fix!
+      unsigned int nodeID = parseNodeID(item);
+      if( (nodeID == 4125) && (nodeID != nodeIDFromPath) ) {
+         if(showWarning) {
+            HPCT_LOG(warning) << Identification << ": Bad NodeID fix: " << nodeID << " -> "
+                              << nodeIDFromPath << " for " << dataFile;
+            showWarning = false;
+         }
+         nodeID = nodeIDFromPath;
+      }
+#else
+      const unsigned int nodeID        = parseNodeID(item);
+#endif
+      const unsigned int networkID     = parseNetworkID(item);
+      const std::string  metadataKey   = parseMetadataKey(item);
+      const std::string  metadataValue = parseMetadataValue(item);
+
       if(itemType == "bins-1min") {
-         const std::chrono::time_point<std::chrono::high_resolution_clock> ts = parseTimeStamp<std::chrono::time_point<std::chrono::high_resolution_clock>>(item, now);
-         const long long    delta         = parseDelta(item);
-         const unsigned int nodeID        = parseNodeID(item);
-         const unsigned int networkID     = parseNetworkID(item);
-         const std::string  metadataKey   = parseMetadataKey(item);
-         const std::string  metadataValue = parseMetadataValue(item);
+         const long long delta = parseDelta(item);
          if(backend & DatabaseBackendType::SQL_Generic) {
             databaseClient.clearStatement();
             databaseClient.getStatement()
@@ -430,13 +475,9 @@ void NorNetEdgeMetadataReader::parseContents(
          }
       }
       else if(itemType == "event") {
-         const std::chrono::time_point<std::chrono::high_resolution_clock> ts  = parseTimeStamp<std::chrono::time_point<std::chrono::high_resolution_clock>>(item, now);
-         const std::chrono::time_point<std::chrono::high_resolution_clock> min = makeMin<std::chrono::time_point<std::chrono::high_resolution_clock>>(ts);
-         const unsigned int nodeID        = parseNodeID(item);
-         const unsigned int networkID     = parseNetworkID(item);
-         const std::string  metadataKey   = parseMetadataKey(item);
-         const std::string  metadataValue = parseMetadataValue(item);
-         const std::string  extra         = parseExtra(item);
+         const std::chrono::time_point<std::chrono::high_resolution_clock> min =
+            makeMin<std::chrono::time_point<std::chrono::high_resolution_clock>>(ts);
+         const std::string  extra = parseExtra(item);
          if(backend & DatabaseBackendType::SQL_Generic) {
             databaseClient.clearStatement();
             databaseClient.getStatement()
@@ -448,7 +489,7 @@ void NorNetEdgeMetadataReader::parseContents(
                << "'" << metadataKey   << "', "
                << "'" << metadataValue << "', "
                << "'" << extra         << "', "
-               << "'" << timePointToString<std::chrono::time_point<std::chrono::high_resolution_clock>>(min) << "');\n";   // FROM_UNIXTIME(UNIX_TIMESTAMP(ts) DIV 60*60)
+               << "'" << timePointToString<std::chrono::time_point<std::chrono::high_resolution_clock>>(min) << "')\n";   // FROM_UNIXTIME(UNIX_TIMESTAMP(ts) DIV 60*60)
             databaseClient.executeStatement();
             databaseClient.clearStatement();
             rows++;

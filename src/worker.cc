@@ -118,7 +118,7 @@ void Worker::processFile(DatabaseClientBase&          databaseClient,
    inputStream.push(inputFile);
 
    // ====== Read contents ==================================================
-   Reader.parseContents(databaseClient, rows, inputStream);
+   Reader.parseContents(databaseClient, rows, dataFile, inputStream);
 }
 
 

@@ -93,7 +93,8 @@ bool NorNetEdgeSpeedTestReader::finishParsing(DatabaseClientBase& databaseClient
 void NorNetEdgeSpeedTestReader::parseContents(
         DatabaseClientBase&                  databaseClient,
         unsigned long long&                  rows,
-        boost::iostreams::filtering_istream& inputStream)
+        const std::filesystem::path&         dataFile,
+        boost::iostreams::filtering_istream& dataStream)
 {
    const DatabaseBackendType backend = databaseClient.getBackend();
    static const unsigned int NorNetEdgeSpeedTestColumns   = 4;
@@ -101,7 +102,7 @@ void NorNetEdgeSpeedTestReader::parseContents(
 
    std::string inputLine;
    std::string tuple[NorNetEdgeSpeedTestColumns];
-   while(std::getline(inputStream, inputLine)) {
+   while(std::getline(dataStream, inputLine)) {
       // ====== Parse line ==================================================
       size_t columns = 0;
       size_t start;

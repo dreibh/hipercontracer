@@ -52,7 +52,8 @@ class PingReader : public TracerouteReader
                               unsigned long long& rows);
    virtual void parseContents(DatabaseClientBase&                  databaseClient,
                               unsigned long long&                  rows,
-                              boost::iostreams::filtering_istream& inputStream);
+                              const std::filesystem::path&         dataFile,
+                              boost::iostreams::filtering_istream& dataStream);
 
    private:
    static const std::string Identification;
