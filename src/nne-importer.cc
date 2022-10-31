@@ -98,6 +98,7 @@ int main(int argc, char** argv)
            "Number of Metadata files per transaction" )
    ;
 
+
    // ====== Handle command-line arguments ==================================
    boost::program_options::variables_map vm;
    try {
@@ -121,7 +122,10 @@ int main(int argc, char** argv)
        return 1;
    }
 
-   std::cout << pingWorkers << " " << speedTestWorkers << " " << metadataWorkers << std::endl;
+   if(pingWorkers + speedTestWorkers + metadataWorkers < 1) {
+      std::cerr << "ERROR: At least one worker is needed!" << std::endl;
+      return 1;
+   }
 
 
    // ====== Read database configuration ====================================
@@ -129,10 +133,6 @@ int main(int argc, char** argv)
    if(!databaseConfiguration.readConfiguration(databaseConfigurationFile)) {
       exit(1);
    }
-
-// ????
-// databaseConfiguration.setBackend(DatabaseBackendType::SQL_Debug);
-
    databaseConfiguration.printConfiguration(std::cout);
 
 
