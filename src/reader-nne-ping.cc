@@ -261,12 +261,12 @@ void NorNetEdgePingReader::parseContents(
          end = inputLine.find(NorNetEdgePingDelimiter, start);
 
          if(columns == NorNetEdgePingColumns) {
-            throw ImporterReaderDataErrorException("Too many columns in input file");
+            throw ImporterReaderDataErrorException("Too many columns in input file " + dataFile.string());
          }
          tuple[columns++] = inputLine.substr(start, end - start);
       }
       if(columns != NorNetEdgePingColumns) {
-         throw ImporterReaderDataErrorException("Too few columns in input file");
+         throw ImporterReaderDataErrorException("Too few columns in input file " + dataFile.string());
       }
 
       // ====== Generate import statement ===================================

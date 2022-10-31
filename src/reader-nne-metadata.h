@@ -73,14 +73,21 @@ class NorNetEdgeMetadataReader : public ReaderBase
    protected:
    template<typename TimePoint> static TimePoint makeMin(const TimePoint& timePoint);
    template<typename TimePoint> static TimePoint parseTimeStamp(const boost::property_tree::ptree& item,
-                                                                const TimePoint&                   now);
-   long long parseDelta(const boost::property_tree::ptree& item) const;
-   unsigned int parseNodeID(const boost::property_tree::ptree& item) const;
-   unsigned int parseNetworkID(const boost::property_tree::ptree& item) const;
-   std::string parseMetadataKey(const boost::property_tree::ptree& item) const;
-   std::string parseMetadataValue(const boost::property_tree::ptree& item) const;
-   std::string parseExtra(const boost::property_tree::ptree& item) const;
-   static unsigned int getNodeIDFromPath(const std::filesystem::path& path);
+                                                                const TimePoint&                   now,
+                                                                const std::filesystem::path&       dataFile);
+   long long parseDelta(const boost::property_tree::ptree& item,
+                        const std::filesystem::path&       dataFile) const;
+   unsigned int parseNodeID(const boost::property_tree::ptree& item,
+                            const std::filesystem::path&       dataFile) const;
+   unsigned int parseNetworkID(const boost::property_tree::ptree& item,
+                               const std::filesystem::path&       dataFile) const;
+   std::string parseMetadataKey(const boost::property_tree::ptree& item,
+                                const std::filesystem::path&       dataFile) const;
+   std::string parseMetadataValue(const boost::property_tree::ptree& item,
+                                  const std::filesystem::path&       dataFile) const;
+   std::string parseExtra(const boost::property_tree::ptree& item,
+                          const std::filesystem::path&       dataFile) const;
+   static unsigned int getNodeIDFromPath(const std::filesystem::path& dataFile);
 
    typedef std::chrono::system_clock               FileEntryClock;
    typedef std::chrono::time_point<FileEntryClock> FileEntryTimePoint;

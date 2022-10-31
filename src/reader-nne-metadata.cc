@@ -302,7 +302,8 @@ template<typename TimePoint> TimePoint NorNetEdgeMetadataReader::makeMin(const T
 // ###### Parse time stamp ##################################################
 template<typename TimePoint> TimePoint NorNetEdgeMetadataReader::parseTimeStamp(
                                           const boost::property_tree::ptree& item,
-                                          const TimePoint&                   now)
+                                          const TimePoint&                   now,
+                                          const std::filesystem::path&       dataFile)
 {
    const unsigned long long ts        = (unsigned long long)rint(1000000.0 * item.get<double>("ts"));
    const TimePoint          timeStamp = microsecondsToTimePoint<std::chrono::time_point<std::chrono::high_resolution_clock>>(ts);
@@ -315,7 +316,8 @@ template<typename TimePoint> TimePoint NorNetEdgeMetadataReader::parseTimeStamp(
 
 
 // ###### Parse delta #######################################################
-long long NorNetEdgeMetadataReader::parseDelta(const boost::property_tree::ptree& item) const
+long long NorNetEdgeMetadataReader::parseDelta(const boost::property_tree::ptree& item,
+                                               const std::filesystem::path&       dataFile) const
 {
    const unsigned int delta = round(item.get<double>("delta"));
    if( (delta < 0) || (delta > 4294967295.0) ) {
@@ -326,7 +328,8 @@ long long NorNetEdgeMetadataReader::parseDelta(const boost::property_tree::ptree
 
 
 // ###### Parse node ID #####################################################
-unsigned int NorNetEdgeMetadataReader::parseNodeID(const boost::property_tree::ptree& item) const
+unsigned int NorNetEdgeMetadataReader::parseNodeID(const boost::property_tree::ptree& item,
+                                                   const std::filesystem::path&       dataFile) const
 {
    const std::string& nodeName = item.get<std::string>("node");
    if(nodeName.substr(0, 3) != "nne") {
@@ -341,7 +344,8 @@ unsigned int NorNetEdgeMetadataReader::parseNodeID(const boost::property_tree::p
 
 
 // ###### Parse network ID ##################################################
-unsigned int NorNetEdgeMetadataReader::parseNetworkID(const boost::property_tree::ptree& item) const
+unsigned int NorNetEdgeMetadataReader::parseNetworkID(const boost::property_tree::ptree& item,
+                                                      const std::filesystem::path&       dataFile) const
 {
    const unsigned int networkID = item.get<unsigned int>("network_id");
    if(networkID > 99) {   // MNC is a two-digit number
@@ -352,7 +356,8 @@ unsigned int NorNetEdgeMetadataReader::parseNetworkID(const boost::property_tree
 
 
 // ###### Parse metadata key ################################################
-std::string NorNetEdgeMetadataReader::parseMetadataKey(const boost::property_tree::ptree& item) const
+std::string NorNetEdgeMetadataReader::parseMetadataKey(const boost::property_tree::ptree& item,
+                                                       const std::filesystem::path&       dataFile) const
 {
    const std::string& metadataKey = item.get<std::string>("key");
    if(metadataKey.size() > 45) {
@@ -363,7 +368,8 @@ std::string NorNetEdgeMetadataReader::parseMetadataKey(const boost::property_tre
 
 
 // ###### Parse metadata value ##############################################
-std::string NorNetEdgeMetadataReader::parseMetadataValue(const boost::property_tree::ptree& item) const
+std::string NorNetEdgeMetadataReader::parseMetadataValue(const boost::property_tree::ptree& item,
+                                                         const std::filesystem::path&       dataFile) const
 {
    const std::string& metadataValue = item.get<std::string>("value");
    if(metadataValue.size() > 500) {
@@ -374,7 +380,8 @@ std::string NorNetEdgeMetadataReader::parseMetadataValue(const boost::property_t
 
 
 // ###### Parse extra data ##################################################
-std::string NorNetEdgeMetadataReader::parseExtra(const boost::property_tree::ptree& item) const
+std::string NorNetEdgeMetadataReader::parseExtra(const boost::property_tree::ptree& item,
+                                                 const std::filesystem::path&       dataFile) const
 {
    const std::string& extra = item.get<std::string>("extra");
    if(extra.size() > 500) {
@@ -387,11 +394,11 @@ std::string NorNetEdgeMetadataReader::parseExtra(const boost::property_tree::ptr
 // ###### Extract NodeID from path ##########################################
 // Assumption: node ID from 100 to 9999.
 // The function handles "all in one directory" as well as "hierarchical" setup.
-unsigned int NorNetEdgeMetadataReader::getNodeIDFromPath(const std::filesystem::path& path)
+unsigned int NorNetEdgeMetadataReader::getNodeIDFromPath(const std::filesystem::path& dataFile)
 {
    unsigned int nodeID = 0;
 
-   std::filesystem::path parent = path.parent_path();
+   std::filesystem::path parent = dataFile.parent_path();
    while(parent.has_filename()) {
       if(parent.filename().string().size() >= 3) {
          const unsigned int n = atol(parent.filename().string().c_str());
@@ -434,10 +441,10 @@ void NorNetEdgeMetadataReader::parseContents(
          const std::string& itemType             = item.get<std::string>("type");
 
          const std::chrono::time_point<std::chrono::high_resolution_clock> ts =
-            parseTimeStamp<std::chrono::time_point<std::chrono::high_resolution_clock>>(item, now);
+            parseTimeStamp<std::chrono::time_point<std::chrono::high_resolution_clock>>(item, now, dataFile);
 #ifdef WITH_NODEID_FIX
 #warning With NodeID fix!
-         unsigned int nodeID = parseNodeID(item);
+         unsigned int nodeID = parseNodeID(item, dataFile);
          if( (nodeID == 4125) && (nodeID != nodeIDFromPath) ) {
             if(showWarning) {
                HPCT_LOG(warning) << Identification << ": Bad NodeID fix: " << nodeID << " -> "
@@ -447,14 +454,14 @@ void NorNetEdgeMetadataReader::parseContents(
             nodeID = nodeIDFromPath;
          }
 #else
-         const unsigned int nodeID        = parseNodeID(item);
+         const unsigned int nodeID        = parseNodeID(item, dataFile);
 #endif
-         const unsigned int networkID     = parseNetworkID(item);
-         const std::string  metadataKey   = parseMetadataKey(item);
-         const std::string  metadataValue = parseMetadataValue(item);
+         const unsigned int networkID     = parseNetworkID(item, dataFile);
+         const std::string  metadataKey   = parseMetadataKey(item, dataFile);
+         const std::string  metadataValue = parseMetadataValue(item, dataFile);
 
          if(itemType == "bins-1min") {
-            const long long delta = parseDelta(item);
+            const long long delta = parseDelta(item, dataFile);
             if(backend & DatabaseBackendType::SQL_Generic) {
                databaseClient.clearStatement();
                databaseClient.getStatement()
@@ -474,7 +481,7 @@ void NorNetEdgeMetadataReader::parseContents(
          else if(itemType == "event") {
             const std::chrono::time_point<std::chrono::high_resolution_clock> min =
                makeMin<std::chrono::time_point<std::chrono::high_resolution_clock>>(ts);
-            const std::string  extra = parseExtra(item);
+            const std::string  extra = parseExtra(item, dataFile);
             if(backend & DatabaseBackendType::SQL_Generic) {
                databaseClient.clearStatement();
                databaseClient.getStatement()
@@ -493,12 +500,12 @@ void NorNetEdgeMetadataReader::parseContents(
             }
          }
          else {
-            throw ImporterReaderDataErrorException("Got unknown metadata type " + itemType);
+            throw ImporterReaderDataErrorException("Got unknown metadata type " + itemType + " in input file " + dataFile.string());
          }
       }
    }
    catch(const boost::property_tree::ptree_error& exception) {
-      throw ImporterReaderDataErrorException(exception.what());
+      throw ImporterReaderDataErrorException("JSON processing filed  in input file " + dataFile.string() + ": " + exception.what());
    }
 }
 

@@ -111,12 +111,12 @@ void NorNetEdgeSpeedTestReader::parseContents(
          end = inputLine.find(NorNetEdgeSpeedTestDelimiter, start);
 
          if(columns == NorNetEdgeSpeedTestColumns) {
-            throw ImporterReaderDataErrorException("Too many columns in input file");
+            throw ImporterReaderDataErrorException("Too many columns in input file " + dataFile.string());
          }
          tuple[columns++] = inputLine.substr(start, end - start);
       }
       if(columns != NorNetEdgeSpeedTestColumns) {
-         throw ImporterReaderDataErrorException("Too few columns in input file");
+         throw ImporterReaderDataErrorException("Too few columns in input file " + dataFile.string());
       }
 
       // ====== Generate import statement ===================================
