@@ -34,7 +34,7 @@
 # LIBRARIES
 #############################################################################
 
-# ====== liblibhipercontracer ==============================================
+# ====== libhipercontracer ==================================================
 LIST(APPEND libhipercontracer_headers
    destinationinfo.h
    logger.h
@@ -70,6 +70,50 @@ FOREACH(TYPE shared;static)
    INSTALL(TARGETS libhipercontracer-${TYPE} DESTINATION ${CMAKE_INSTALL_LIBDIR})
 ENDFOREACH()
 
+# ====== libuniversalimporter ==================================================
+LIST(APPEND libuniversalimporter_headers
+   logger.h
+   tools.h
+   database-configuration.h
+   databaseclient-base.h
+   databaseclient-debug.h
+   databaseclient-mariadb.h
+   reader-base.h
+   reader-ping.h
+   reader-ping.h
+   reader-traceroute.h
+   universal-importer.h
+   worker.h
+)
+LIST(APPEND libuniversalimporter_sources
+   logger.cc
+   tools.cc
+   database-configuration.cc
+   databaseclient-base.cc
+   databaseclient-debug.cc
+   databaseclient-mariadb.cc
+   reader-base.cc
+   reader-ping.cc
+   reader-ping.cc
+   reader-traceroute.cc
+   universal-importer.cc
+   worker.cc
+)
+
+INSTALL(FILES ${libuniversalimporter_headers} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/universalimporter)
+
+ADD_LIBRARY(libuniversalimporter-shared SHARED ${libuniversalimporter_sources})
+ADD_LIBRARY(libuniversalimporter-static STATIC ${libuniversalimporter_sources})
+FOREACH(TYPE shared;static)
+   SET_TARGET_PROPERTIES(libuniversalimporter-${TYPE} PROPERTIES OUTPUT_NAME universalimporter CLEAN_DIRECT_OUTPUT 1)
+   SET_TARGET_PROPERTIES(libuniversalimporter-${TYPE} PROPERTIES
+      VERSION   ${BUILD_VERSION}
+      SOVERSION ${BUILD_MAJOR}
+   )
+   TARGET_LINK_LIBRARIES (libuniversalimporter-${TYPE} ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} ${MYSQLCPPCONN_LIBRARY})
+   INSTALL(TARGETS libuniversalimporter-${TYPE} DESTINATION ${CMAKE_INSTALL_LIBDIR})
+ENDFOREACH()
+
 
 #############################################################################
 # PROGRAMS
@@ -84,6 +128,15 @@ ADD_EXECUTABLE(hpcttrigger hpcttrigger.cc)
 TARGET_LINK_LIBRARIES(hpcttrigger libhipercontracer-shared ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
 INSTALL(TARGETS hpcttrigger RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
 INSTALL(FILES hpcttrigger.1 DESTINATION ${CMAKE_INSTALL_MANDIR}/man1)
+
+ADD_EXECUTABLE(trace-importer trace-importer.cc
+   reader-ping.cc
+   reader-traceroute.cc
+)
+TARGET_LINK_LIBRARIES(trace-importer libuniversalimporter-shared)
+INSTALL(TARGETS trace-importer RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
+# INSTALL(FILES trace-importer.1 DESTINATION ${CMAKE_INSTALL_MANDIR}/man1)
+
 
 INSTALL(PROGRAMS tracedataimporter get-default-ips addressinfogenerator
         DESTINATION ${CMAKE_INSTALL_BINDIR})
@@ -100,22 +153,11 @@ ADD_EXECUTABLE(t3 t3.cc)
 TARGET_LINK_LIBRARIES(t3 ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
 
 ADD_EXECUTABLE(nne-importer nne-importer.cc
-   logger.cc
-   tools.cc
-   database-configuration.cc
-   databaseclient-base.cc
-   databaseclient-debug.cc
-   databaseclient-mariadb.cc
-   reader-base.cc
    reader-nne-metadata.cc
    reader-nne-ping.cc
    reader-nne-speedtest.cc
-   reader-ping.cc
-   reader-traceroute.cc
-   universal-importer.cc
-   worker.cc
 )
-TARGET_LINK_LIBRARIES(nne-importer ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} ${MYSQLCPPCONN_LIBRARY})
+TARGET_LINK_LIBRARIES(nne-importer libuniversalimporter-shared)
 
 
 #############################################################################
