@@ -32,6 +32,9 @@
 #include "reader-ping.h"
 #include "importer-exception.h"
 #include "logger.h"
+#include "tools.h"
+
+#include <boost/asio.hpp>
 
 
 const std::string PingReader::Identification = "Ping";
@@ -79,10 +82,13 @@ void PingReader::beginParsing(DatabaseClientBase& databaseClient,
    // ====== Generate import statement ======================================
    const DatabaseBackendType backend = databaseClient.getBackend();
    if(backend & DatabaseBackendType::SQL_Generic) {
-//       assert(databaseClient.statementIsEmpty());
-//       databaseClient.getStatement()
-//          << "INSERT INTO " << Table_measurement_generic_data
-//          << "(ts, mi_id, seq, xml_data, crc, stats) VALUES \n";
+      databaseClient.clearStatement();
+      databaseClient.getStatement()
+         << "INSERT INTO " << Table
+         << " (TimeStamp, FromIP, ToIP, Checksum, PktSize, TC, Status, RTT) VALUES\n";
+   }
+   else if(backend & DatabaseBackendType::NoSQL_MongoDB) {
+      // Nothing to do here!
    }
    else {
       throw ImporterLogicException("Unknown output format");
@@ -99,13 +105,14 @@ bool PingReader::finishParsing(DatabaseClientBase& databaseClient,
       const DatabaseBackendType backend = databaseClient.getBackend();
       if(backend & DatabaseBackendType::SQL_Generic) {
          if(rows > 0) {
-//             databaseClient.getStatement()
-//                << "\nON DUPLICATE KEY UPDATE stats=stats;\n";
-//             databaseClient.executeStatement();
+            databaseClient.executeStatement();
          }
          else {
             databaseClient.clearStatement();
          }
+      }
+      else if(backend & DatabaseBackendType::NoSQL_MongoDB) {
+         // Nothing to do here!
       }
       else {
          throw ImporterLogicException("Unknown output format");
@@ -116,6 +123,96 @@ bool PingReader::finishParsing(DatabaseClientBase& databaseClient,
 }
 
 
+// ###### Parse time stamp ##################################################
+template<typename TimePoint> TimePoint PingReader::parseTimeStamp(
+                                          const std::string&           value,
+                                          const TimePoint&             now,
+                                          const std::filesystem::path& dataFile)
+{
+   size_t                   index;
+   const unsigned long long ts = std::stoull(value, &index, 16);
+   if(index != value.size()) {
+      throw ImporterReaderDataErrorException("Bad time stamp format " + value);
+   }
+   const TimePoint timeStamp =    microsecondsToTimePoint<std::chrono::time_point<std::chrono::high_resolution_clock>>(ts);
+   if( (timeStamp < now - std::chrono::hours(365 * 24)) ||   /* 1 year in the past  */
+       (timeStamp > now + std::chrono::hours(24)) ) {        /* 1 day in the future */
+      throw ImporterReaderDataErrorException("Bad time stamp value " + value);
+   }
+   return timeStamp;
+}
+
+// ###### Parse time stamp ##################################################
+uint16_t PingReader::parseChecksum(const std::string&           value,
+                                   const std::filesystem::path& dataFile)
+{
+   size_t              index;
+   const unsigned long checksum = std::stoul(value, &index, 16);
+   if(index != value.size()) {
+      throw ImporterReaderDataErrorException("Bad checksum format " + value);
+   }
+   if(checksum > 0xffff) {
+      throw ImporterReaderDataErrorException("Bad checksum value " + value);
+   }
+   return (uint16_t)checksum;
+}
+
+
+// ###### Parse status ######################################################
+unsigned int PingReader::parseStatus(const std::string&           value,
+                                     const std::filesystem::path& dataFile)
+{
+   size_t              index;
+   const unsigned long status = std::stoul(value, &index, 10);
+   if(index != value.size()) {
+      throw ImporterReaderDataErrorException("Bad status format " + value);
+   }
+   return status;
+}
+
+
+// ###### Parse RTT #########################################################
+unsigned int PingReader::parseRTT(const std::string&           value,
+                                const std::filesystem::path& dataFile)
+{
+   size_t              index;
+   const unsigned long rtt = std::stoul(value, &index, 10);
+   if(index != value.size()) {
+      throw ImporterReaderDataErrorException("Bad RTT format " + value);
+   }
+   return rtt;
+}
+
+
+// ###### Parse packet size #################################################
+unsigned int PingReader::parsePacketSize(const std::string&           value,
+                                       const std::filesystem::path& dataFile)
+{
+   size_t              index;
+   const unsigned long packetSize = std::stoul(value, &index, 10);
+   if(index != value.size()) {
+      throw ImporterReaderDataErrorException("Bad packet size format " + value);
+   }
+   return packetSize;
+}
+
+
+// ###### Parse traffic class ###############################################
+uint8_t PingReader::parseTrafficClass(const std::string&           value,
+                                    const std::filesystem::path& dataFile)
+{
+   size_t              index;
+   const unsigned long trafficClass = std::stoul(value, &index, 16);
+   if(index != value.size()) {
+      throw ImporterReaderDataErrorException("Bad traffic class format " + value);
+   }
+   if(trafficClass > 0xffff) {
+      throw ImporterReaderDataErrorException("Bad traffic class value " + value);
+   }
+   return (uint8_t)trafficClass;
+}
+
+
 // ###### Parse input file ##################################################
 void PingReader::parseContents(
         DatabaseClientBase&                  databaseClient,
@@ -123,46 +220,80 @@ void PingReader::parseContents(
         const std::filesystem::path&         dataFile,
         boost::iostreams::filtering_istream& dataStream)
 {
-   assert(false);
-//    const DatabaseBackendType backend = databaseClient.getBackend();
-//    static const unsigned int PingColumns   = 4;
-//    static const char         PingDelimiter = '\t';
-//
-//    std::string inputLine;
-//    std::string tuple[PingColumns];
-//    while(std::getline(inputStream, inputLine)) {
-//       // ====== Parse line ==================================================
-//       size_t columns = 0;
-//       size_t start;
-//       size_t end = 0;
-//       while((start = inputLine.find_first_not_of(PingDelimiter, end)) != std::string::npos) {
-//          end = inputLine.find(PingDelimiter, start);
-//
-//          if(columns == PingColumns) {
-//             throw ImporterReaderException("Too many columns in input file");
-//          }
-//          tuple[columns++] = inputLine.substr(start, end - start);
-//       }
-//       if(columns != PingColumns) {
-//          throw ImporterReaderException("Too few columns in input file");
-//       }
-//
-//       // ====== Generate import statement ===================================
-//       if(backend & DatabaseBackendType::SQL_Generic) {
-//
-//          if(rows > 0) {
-//             databaseClient.getStatement() << ",\n";
-//          }
-//          databaseClient.getStatement()
-//             << "("
-//             << "'" << tuple[0] << "', "
-//             << std::stoul(tuple[1]) << ", "
-//             << std::stoul(tuple[2]) << ", "
-//             << "'" << tuple[3] << "', CRC32(xml_data), 10 + mi_id MOD 10)";
-//          rows++;
-//       }
-//       else {
-//          throw ImporterLogicException("Unknown output format");
-//       }
-//    }
+   const DatabaseBackendType backend = databaseClient.getBackend();
+   static const unsigned int PingMinColumns = 7;
+   static const unsigned int PingMaxColumns = 9;
+   static const char         PingDelimiter  = ' ';
+
+   std::string inputLine;
+   std::string tuple[PingMaxColumns];
+   size_t      lineNumber = 0;
+   std::chrono::high_resolution_clock::time_point now = std::chrono::high_resolution_clock::now();
+   while(std::getline(dataStream, inputLine)) {
+      // ====== Parse line ==================================================
+      lineNumber++;
+      size_t columns = 0;
+      size_t start;
+      size_t end = 0;
+      while((start = inputLine.find_first_not_of(PingDelimiter, end)) != std::string::npos) {
+         end = inputLine.find(PingDelimiter, start);
+
+         if(columns == PingMaxColumns) {
+            // Skip additional columns
+            break;
+         }
+         tuple[columns++] = inputLine.substr(start, end - start);
+      }
+      if(columns < PingMinColumns) {
+         throw ImporterReaderDataErrorException("Too few columns in input file " + dataFile.string());
+      }
+
+      // ====== Generate import statement ===================================
+      if(tuple[0] == "#P")  {
+         const std::chrono::time_point<std::chrono::high_resolution_clock> timeStamp =
+            parseTimeStamp<std::chrono::time_point<std::chrono::high_resolution_clock>>(tuple[3], now, dataFile);
+         const boost::asio::ip::address sourceIP      = boost::asio::ip::address::from_string(tuple[1]);
+         const boost::asio::ip::address destinationIP = boost::asio::ip::address::from_string(tuple[2]);
+         const uint16_t                 checksum      = parseChecksum(tuple[4], dataFile);
+         const unsigned int             status        = parseStatus(tuple[5], dataFile);
+         const unsigned int             rtt           = parseRTT(tuple[6], dataFile);
+         uint8_t                        trafficClass  = 0x0;
+         unsigned int                   packetSize    = 0;
+         if(columns >= 8) {
+            trafficClass = parseTrafficClass(tuple[7], dataFile);
+            if(packetSize >= 8) {
+               packetSize = parsePacketSize(tuple[8], dataFile);
+            }
+         }
+
+         if(backend & DatabaseBackendType::SQL_Generic) {
+            if(rows > 0) {
+               databaseClient.getStatement() << ",\n";
+            }
+            databaseClient.getStatement()
+               << "('" << timePointToString<std::chrono::time_point<std::chrono::high_resolution_clock>>(timeStamp) << "', "
+               << "'" << sourceIP      << "', "
+               << "'" << destinationIP << "', "
+               << checksum             << ", "
+               << packetSize           << ", "
+               << trafficClass         << ", "
+               << status               << ", "
+               << rtt                  << ")";
+            rows++;
+         }
+         else if(backend & DatabaseBackendType::NoSQL_MongoDB) {
+            databaseClient.getStatement()
+               << "db['" << Table << "'].insert("
+               << "TBD"
+               << ");\n";
+         }
+         else {
+            throw ImporterLogicException("Unknown output format");
+         }
+      }
+      else {
+         throw ImporterReaderDataErrorException("Unexpected input on line " +
+                  std::to_string(lineNumber) + " of input file " + dataFile.string());
+      }
+   }
 }

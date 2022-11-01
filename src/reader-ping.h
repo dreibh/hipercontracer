@@ -34,6 +34,8 @@
 
 #include "reader-traceroute.h"
 
+#include <chrono>
+
 
 class PingReader : public TracerouteReader
 {
@@ -56,6 +58,20 @@ class PingReader : public TracerouteReader
                               boost::iostreams::filtering_istream& dataStream);
 
    private:
+   template<typename TimePoint> static TimePoint parseTimeStamp(const std::string&           value,
+                                                                const TimePoint&             now,
+                                                                const std::filesystem::path& dataFile);
+   static uint16_t parseChecksum(const std::string&           value,
+                                 const std::filesystem::path& dataFile);
+   static unsigned int parseStatus(const std::string&           value,
+                                   const std::filesystem::path& dataFile);
+   static unsigned int parseRTT(const std::string&           value,
+                                const std::filesystem::path& dataFile);
+   static unsigned int parsePacketSize(const std::string&           value,
+                                       const std::filesystem::path& dataFile);
+   static uint8_t parseTrafficClass(const std::string&           value,
+                                    const std::filesystem::path& dataFile);
+
    static const std::string Identification;
    static const std::regex  FileNameRegExp;
    const std::string        Table;
