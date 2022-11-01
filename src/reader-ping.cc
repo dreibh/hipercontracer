@@ -39,7 +39,7 @@
 
 const std::string PingReader::Identification = "Ping";
 const std::regex  PingReader::FileNameRegExp = std::regex(
-   // Format: Ping-<ProcessID>-<Source>-<YYYYMMDD>T<Seconds.Microseconds>-<Sequence>.results.bz2
+   // Format: Ping-P<ProcessID>-<Source>-<YYYYMMDD>T<Seconds.Microseconds>-<Sequence>.results.bz2
    "^Ping-P([0-9]+)-([0-9a-f:\\.]+)-([0-9]{8}T[0-9]+\\.[0-9]{6})-([0-9]*)\\.results.*$"
 );
 
@@ -105,6 +105,7 @@ bool PingReader::finishParsing(DatabaseClientBase& databaseClient,
       const DatabaseBackendType backend = databaseClient.getBackend();
       if(backend & DatabaseBackendType::SQL_Generic) {
          if(rows > 0) {
+            databaseClient.getStatement() << "\n";
             databaseClient.executeStatement();
          }
          else {
@@ -173,7 +174,7 @@ unsigned int PingReader::parseStatus(const std::string&           value,
 
 // ###### Parse RTT #########################################################
 unsigned int PingReader::parseRTT(const std::string&           value,
-                                const std::filesystem::path& dataFile)
+                                  const std::filesystem::path& dataFile)
 {
    size_t              index;
    const unsigned long rtt = std::stoul(value, &index, 10);
@@ -186,7 +187,7 @@ unsigned int PingReader::parseRTT(const std::string&           value,
 
 // ###### Parse packet size #################################################
 unsigned int PingReader::parsePacketSize(const std::string&           value,
-                                       const std::filesystem::path& dataFile)
+                                         const std::filesystem::path& dataFile)
 {
    size_t              index;
    const unsigned long packetSize = std::stoul(value, &index, 10);
@@ -199,7 +200,7 @@ unsigned int PingReader::parsePacketSize(const std::string&           value,
 
 // ###### Parse traffic class ###############################################
 uint8_t PingReader::parseTrafficClass(const std::string&           value,
-                                    const std::filesystem::path& dataFile)
+                                      const std::filesystem::path& dataFile)
 {
    size_t              index;
    const unsigned long trafficClass = std::stoul(value, &index, 16);
@@ -227,17 +228,14 @@ void PingReader::parseContents(
 
    std::string inputLine;
    std::string tuple[PingMaxColumns];
-   size_t      lineNumber = 0;
    std::chrono::high_resolution_clock::time_point now = std::chrono::high_resolution_clock::now();
    while(std::getline(dataStream, inputLine)) {
       // ====== Parse line ==================================================
-      lineNumber++;
       size_t columns = 0;
       size_t start;
       size_t end = 0;
       while((start = inputLine.find_first_not_of(PingDelimiter, end)) != std::string::npos) {
          end = inputLine.find(PingDelimiter, start);
-
          if(columns == PingMaxColumns) {
             // Skip additional columns
             break;
@@ -271,29 +269,35 @@ void PingReader::parseContents(
                databaseClient.getStatement() << ",\n";
             }
             databaseClient.getStatement()
-               << "('" << timePointToString<std::chrono::time_point<std::chrono::high_resolution_clock>>(timeStamp) << "', "
-               << "'" << sourceIP      << "', "
-               << "'" << destinationIP << "', "
-               << checksum             << ", "
-               << packetSize           << ", "
-               << trafficClass         << ", "
-               << status               << ", "
-               << rtt                  << ")";
+               << "('" << timePointToString<std::chrono::time_point<std::chrono::high_resolution_clock>>(timeStamp, 6) << "', "
+               << "'" << sourceIP            << "', "
+               << "'" << destinationIP       << "', "
+               << checksum                   << ", "
+               << packetSize                 << ", "
+               << (unsigned int)trafficClass << ", "
+               << status                     << ", "
+               << rtt                        << ")";
             rows++;
          }
-         else if(backend & DatabaseBackendType::NoSQL_MongoDB) {
+         else if(backend & DatabaseBackendType::NoSQL_Generic) {
             databaseClient.getStatement()
-               << "db['" << Table << "'].insert("
-               << "TBD"
-               << ");\n";
+               << "db['" << Table << "'].insert({"
+               << "'timestamp': "   << timePointToMicroseconds<std::chrono::time_point<std::chrono::high_resolution_clock>>(timeStamp) << ", "
+               << "'source': "      << 0            << ", "
+               << "'destination': " << 0            << ", "
+               << "'checksum': "    << checksum     << ", "
+               << "'pktsize': "     << packetSize   << ", "
+               << "'tc': "          << trafficClass << ", "
+               << "'status': "      << status       << ", "
+               << "'rtt': "         << rtt          << "});\n";
+            rows++;
          }
          else {
             throw ImporterLogicException("Unknown output format");
          }
       }
       else {
-         throw ImporterReaderDataErrorException("Unexpected input on line " +
-                  std::to_string(lineNumber) + " of input file " + dataFile.string());
+         throw ImporterReaderDataErrorException("Unexpected input in input file " + dataFile.string());
       }
    }
 }

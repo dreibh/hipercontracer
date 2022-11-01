@@ -35,10 +35,10 @@
 #include "tools.h"
 
 
-const std::string TracerouteReader::Identification = "Ping";
+const std::string TracerouteReader::Identification = "Traceroute";
 const std::regex  TracerouteReader::FileNameRegExp = std::regex(
-   // Format: Ping-<ProcessID>-<Source>-<YYYYMMDD>T<Seconds.Microseconds>-<Sequence>.results.bz2
-   "^Ping-P([0-9]+)-([0-9a-f:\\.]+)-([0-9]{8}T[0-9]+\\.[0-9]{6})-([0-9]*)\\.results.*$"
+   // Format: Traceroute-P<ProcessID>-<Source>-<YYYYMMDD>T<Seconds.Microseconds>-<Sequence>.results.bz2
+   "^Traceroute-P([0-9]+)-([0-9a-f:\\.]+)-([0-9]{8}T[0-9]+\\.[0-9]{6})-([0-9]*)\\.results.*$"
 );
 
 
@@ -131,6 +131,7 @@ int TracerouteReader::addFile(const std::filesystem::path& dataFile,
          inputFileEntry.Source    = match[2];
          inputFileEntry.TimeStamp = timeStamp;
          inputFileEntry.SeqNumber = atol(match[4].str().c_str());
+         inputFileEntry.DataFile  = dataFile;
          const std::size_t workerID = std::hash<std::string>{}(inputFileEntry.Source) % Workers;
 
          std::unique_lock lock(Mutex);
@@ -298,8 +299,8 @@ void TracerouteReader::printStatus(std::ostream& os)
    os << "Traceroute:" << std::endl;
    for(unsigned int w = 0; w < Workers; w++) {
       os << " - Work Queue #" << w + 1 << ": " << DataFileSet[w].size() << std::endl;
-      // for(const InputFileEntry& inputFileEntry : DataFileSet[w]) {
-      //    os << "  - " <<  inputFileEntry << std::endl;
-      // }
+      for(const InputFileEntry& inputFileEntry : DataFileSet[w]) {
+         os << "  - " <<  inputFileEntry << std::endl;
+      }
    }
 }

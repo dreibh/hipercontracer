@@ -103,7 +103,7 @@ void Worker::processFile(DatabaseClientBase&          databaseClient,
 {
    // ====== Check file size ================================================
    std::error_code ec;
-   const std::uintmax_t  size = std::filesystem::file_size(std::string(dataFile) + ".x", ec);
+   const std::uintmax_t size = std::filesystem::file_size(dataFile, ec);
    if( (!ec) && (size == 0) ) {
       HPCT_LOG(warning) << getIdentification() << ": Empty file " << dataFile;
    }
@@ -338,10 +338,7 @@ void Worker::run()
                }
             }
          }
-
-        files = Reader.fetchFiles(dataFileList, WorkerID, Reader.getMaxTransactionSize());
-//         puts("????");
-//         files = 0;
+         files = Reader.fetchFiles(dataFileList, WorkerID, Reader.getMaxTransactionSize());
       }
 
       // ====== Wait for new data ===========================================

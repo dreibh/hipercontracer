@@ -117,12 +117,6 @@ const std::regex& NorNetEdgePingReader::getFileNameRegExp() const
 int NorNetEdgePingReader::addFile(const std::filesystem::path& dataFile,
                                   const std::smatch            match)
 {
-//  static int n=0;n++;
-//  if(n>20) {
-//   puts("??????");
-//   return -1;  // ??????
-//  }
-
    if(match.size() == 3) {
       FileEntryTimePoint timeStamp;
       if(stringToTimePoint<FileEntryTimePoint>(match[2].str(), timeStamp, "%Y-%m-%d_%H-%M-%S")) {
