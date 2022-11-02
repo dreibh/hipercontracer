@@ -42,9 +42,10 @@
 class TracerouteReader : public ReaderBase
 {
    public:
-   TracerouteReader(const unsigned int workers            = 1,
-                    const unsigned int maxTransactionSize = 4,
-                    const std::string& table              = "Traceroute");
+   TracerouteReader(const std::filesystem::path& importFilePath,
+                    const unsigned int           workers            = 1,
+                    const unsigned int           maxTransactionSize = 4,
+                    const std::string&           table              = "Traceroute");
    virtual ~TracerouteReader();
 
    virtual const std::string& getIdentification() const;

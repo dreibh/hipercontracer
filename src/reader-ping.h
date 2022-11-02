@@ -40,9 +40,10 @@
 class PingReader : public TracerouteReader
 {
    public:
-   PingReader(const unsigned int workers            = 1,
-              const unsigned int maxTransactionSize = 4,
-              const std::string& table              = "Ping");
+   PingReader(const std::filesystem::path& importFilePath,
+              const unsigned int           workers            = 1,
+              const unsigned int           maxTransactionSize = 4,
+              const std::string&           table              = "Ping");
    virtual ~PingReader();
 
    virtual const std::string& getIdentification() const;

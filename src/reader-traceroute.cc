@@ -87,10 +87,11 @@ std::ostream& operator<<(std::ostream& os, const TracerouteReader::InputFileEntr
 
 
 // ###### Constructor #######################################################
-TracerouteReader::TracerouteReader(const unsigned int workers,
-                                   const unsigned int maxTransactionSize,
-                                   const std::string& table)
-   : ReaderBase(workers, maxTransactionSize),
+TracerouteReader::TracerouteReader(const std::filesystem::path& importFilePath,
+                                   const unsigned int           workers,
+                                   const unsigned int           maxTransactionSize,
+                                   const std::string&           table)
+   : ReaderBase(importFilePath, workers, maxTransactionSize),
      Table(table)
 {
    DataFileSet = new std::set<InputFileEntry>[Workers];

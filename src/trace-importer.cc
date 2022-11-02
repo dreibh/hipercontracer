@@ -151,7 +151,8 @@ int main(int argc, char** argv)
             exit(1);
          }
       }
-      pingReader = new PingReader(pingWorkers, pingTransactionSize);
+      pingReader = new PingReader(databaseConfiguration.getImportFilePath(),
+                                  pingWorkers, pingTransactionSize);
       assert(pingReader != nullptr);
       importer.addReader(*pingReader,
                          (DatabaseClientBase**)&pingDatabaseClients, pingWorkers);
@@ -168,7 +169,8 @@ int main(int argc, char** argv)
             exit(1);
          }
       }
-      tracerouteReader = new TracerouteReader(tracerouteWorkers, tracerouteTransactionSize);
+      tracerouteReader = new TracerouteReader(databaseConfiguration.getImportFilePath(),
+                                              tracerouteWorkers, tracerouteTransactionSize);
       assert(tracerouteReader != nullptr);
       importer.addReader(*tracerouteReader,
                          (DatabaseClientBase**)&tracerouteDatabaseClients, tracerouteWorkers);

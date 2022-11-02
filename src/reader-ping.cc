@@ -45,10 +45,11 @@ const std::regex  PingReader::FileNameRegExp = std::regex(
 
 
 // ###### Constructor #######################################################
-PingReader::PingReader(const unsigned int workers,
-                       const unsigned int maxTransactionSize,
-                       const std::string& table)
-   : TracerouteReader(workers, maxTransactionSize, table)
+PingReader::PingReader(const std::filesystem::path& importFilePath,
+                       const unsigned int           workers,
+                       const unsigned int           maxTransactionSize,
+                       const std::string&           table)
+   : TracerouteReader(importFilePath, workers, maxTransactionSize, table)
 {
 }
 
