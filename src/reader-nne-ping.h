@@ -42,7 +42,7 @@
 class NorNetEdgePingReader : public ReaderBase
 {
    public:
-   NorNetEdgePingReader(const std::filesystem::path& importFilePath,
+   NorNetEdgePingReader(const DatabaseConfiguration& databaseConfiguration,
                         const unsigned int           workers                        = 1,
                         const unsigned int           maxTransactionSize             = 4,
                         const std::string&           table_measurement_generic_data = "measurement_generic_data");

@@ -131,12 +131,7 @@ int main(int argc, char** argv)
    initialiseLogger(logLevel);
 
    boost::asio::io_service ioService;
-   UniversalImporter importer(ioService,
-                              databaseConfiguration.getImportFilePath(),
-                              databaseConfiguration.getGoodFilePath(),
-                              databaseConfiguration.getBadFilePath(),
-                              databaseConfiguration.getImportMode(),
-                              5);
+   UniversalImporter importer(ioService, databaseConfiguration);
 
 
    // ====== Initialise database clients and readers ========================
@@ -151,7 +146,7 @@ int main(int argc, char** argv)
             exit(1);
          }
       }
-      pingReader = new PingReader(databaseConfiguration.getImportFilePath(),
+      pingReader = new PingReader(databaseConfiguration,
                                   pingWorkers, pingTransactionSize);
       assert(pingReader != nullptr);
       importer.addReader(*pingReader,
@@ -169,7 +164,7 @@ int main(int argc, char** argv)
             exit(1);
          }
       }
-      tracerouteReader = new TracerouteReader(databaseConfiguration.getImportFilePath(),
+      tracerouteReader = new TracerouteReader(databaseConfiguration,
                                               tracerouteWorkers, tracerouteTransactionSize);
       assert(tracerouteReader != nullptr);
       importer.addReader(*tracerouteReader,

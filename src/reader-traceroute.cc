@@ -87,11 +87,11 @@ std::ostream& operator<<(std::ostream& os, const TracerouteReader::InputFileEntr
 
 
 // ###### Constructor #######################################################
-TracerouteReader::TracerouteReader(const std::filesystem::path& importFilePath,
+TracerouteReader::TracerouteReader(const DatabaseConfiguration& databaseConfiguration,
                                    const unsigned int           workers,
                                    const unsigned int           maxTransactionSize,
                                    const std::string&           table)
-   : ReaderBase(importFilePath, workers, maxTransactionSize),
+   : ReaderBase(databaseConfiguration, workers, maxTransactionSize),
      Table(table)
 {
    DataFileSet = new std::set<InputFileEntry>[Workers];
@@ -138,7 +138,7 @@ int TracerouteReader::addFile(const std::filesystem::path& dataFile,
          std::unique_lock lock(Mutex);
          if(DataFileSet[workerID].insert(inputFileEntry).second) {
             HPCT_LOG(trace) << Identification << ": Added input file "
-                            << relative_to(dataFile, ImportFilePath) << " to reader";
+                            << relative_to(dataFile, Configuration.getImportFilePath()) << " to reader";
             TotalFiles++;
             return workerID;
          }
@@ -165,7 +165,7 @@ bool TracerouteReader::removeFile(const std::filesystem::path& dataFile,
          const std::size_t workerID = std::hash<std::string>{}(inputFileEntry.Source) % Workers;
 
          HPCT_LOG(trace) << Identification << ": Removing input file "
-                         << relative_to(dataFile, ImportFilePath) << " from reader";
+                         << relative_to(dataFile, Configuration.getImportFilePath()) << " from reader";
          std::unique_lock lock(Mutex);
          if(DataFileSet[workerID].erase(inputFileEntry) == 1) {
             assert(TotalFiles > 0);

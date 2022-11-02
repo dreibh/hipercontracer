@@ -45,10 +45,7 @@ class Worker
    Worker(const unsigned int           workerID,
           ReaderBase&                  reader,
           DatabaseClientBase&          databaseClient,
-          const std::filesystem::path& importFilePath,
-          const std::filesystem::path& goodFilePath,
-          const std::filesystem::path& badFilePath,
-          const ImportModeType         importMode);
+          const DatabaseConfiguration& databaseConfiguration);
    ~Worker();
 
    void start();
@@ -75,10 +72,7 @@ class Worker
    const unsigned int           WorkerID;
    ReaderBase&                  Reader;
    DatabaseClientBase&          DatabaseClient;
-   const std::filesystem::path& ImportFilePath;
-   const std::filesystem::path& GoodFilePath;
-   const std::filesystem::path& BadFilePath;
-   const ImportModeType         ImportMode;
+   const DatabaseConfiguration& Configuration;
    const std::string            Identification;
    std::thread                  Thread;
    std::mutex                   Mutex;

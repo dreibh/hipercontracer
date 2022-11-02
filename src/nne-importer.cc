@@ -140,12 +140,7 @@ int main(int argc, char** argv)
    initialiseLogger(logLevel);
 
    boost::asio::io_service ioService;
-   UniversalImporter importer(ioService,
-                              databaseConfiguration.getImportFilePath(),
-                              databaseConfiguration.getGoodFilePath(),
-                              databaseConfiguration.getBadFilePath(),
-                              databaseConfiguration.getImportMode(),
-                              5);
+   UniversalImporter importer(ioService, databaseConfiguration);
 
 
    // ====== Initialise database clients and readers ========================
@@ -160,7 +155,7 @@ int main(int argc, char** argv)
             exit(1);
          }
       }
-      nnePingReader = new NorNetEdgePingReader(databaseConfiguration.getImportFilePath(),
+      nnePingReader = new NorNetEdgePingReader(databaseConfiguration,
                                                pingWorkers, pingTransactionSize);
       assert(nnePingReader != nullptr);
       importer.addReader(*nnePingReader,
@@ -178,7 +173,7 @@ int main(int argc, char** argv)
             exit(1);
          }
       }
-      nneSpeedTestReader = new NorNetEdgeSpeedTestReader(databaseConfiguration.getImportFilePath(),
+      nneSpeedTestReader = new NorNetEdgeSpeedTestReader(databaseConfiguration,
                                                          speedTestWorkers, speedTestTransactionSize);
       assert(nneSpeedTestReader != nullptr);
       importer.addReader(*nneSpeedTestReader,
@@ -196,7 +191,7 @@ int main(int argc, char** argv)
             exit(1);
          }
       }
-      nneMetadataReader = new NorNetEdgeMetadataReader(databaseConfiguration.getImportFilePath(),
+      nneMetadataReader = new NorNetEdgeMetadataReader(databaseConfiguration,
                                                        metadataWorkers, metadataTransactionSize);
       assert(nneMetadataReader != nullptr);
       importer.addReader(*nneMetadataReader,

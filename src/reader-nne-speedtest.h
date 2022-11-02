@@ -38,7 +38,7 @@
 class NorNetEdgeSpeedTestReader : public NorNetEdgePingReader
 {
    public:
-   NorNetEdgeSpeedTestReader(const std::filesystem::path& importFilePath,
+   NorNetEdgeSpeedTestReader(const DatabaseConfiguration& databaseConfiguration,
                              const unsigned int           workers            = 1,
                              const unsigned int           maxTransactionSize = 1);
    virtual ~NorNetEdgeSpeedTestReader();

@@ -43,10 +43,10 @@ const std::regex  NorNetEdgeSpeedTestReader::FileNameRegExp = std::regex(
 
 
 // ###### Constructor #######################################################
-NorNetEdgeSpeedTestReader::NorNetEdgeSpeedTestReader(const std::filesystem::path& importFilePath,
+NorNetEdgeSpeedTestReader::NorNetEdgeSpeedTestReader(const DatabaseConfiguration& databaseConfiguration,
                                                      const unsigned int           workers,
                                                      const unsigned int           maxTransactionSize)
-   : NorNetEdgePingReader(importFilePath, workers, maxTransactionSize, std::string())
+   : NorNetEdgePingReader(databaseConfiguration, workers, maxTransactionSize, std::string())
 {
 }
 
@@ -113,13 +113,13 @@ void NorNetEdgeSpeedTestReader::parseContents(
 
          if(columns == NorNetEdgeSpeedTestColumns) {
             throw ImporterReaderDataErrorException("Too many columns in input file " +
-                                                   relative_to(dataFile, ImportFilePath).string());
+                                                   relative_to(dataFile, Configuration.getImportFilePath()).string());
          }
          tuple[columns++] = inputLine.substr(start, end - start);
       }
       if(columns != NorNetEdgeSpeedTestColumns) {
          throw ImporterReaderDataErrorException("Too few columns in input file " +
-                                                relative_to(dataFile, ImportFilePath).string());
+                                                relative_to(dataFile, Configuration.getImportFilePath()).string());
       }
 
       // ====== Generate import statement ===================================

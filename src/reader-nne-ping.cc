@@ -80,11 +80,11 @@ std::ostream& operator<<(std::ostream& os, const NorNetEdgePingReader::InputFile
 
 
 // ###### Constructor #######################################################
-NorNetEdgePingReader::NorNetEdgePingReader(const std::filesystem::path& importFilePath,
+NorNetEdgePingReader::NorNetEdgePingReader(const DatabaseConfiguration& databaseConfiguration,
                                            const unsigned int           workers,
                                            const unsigned int           maxTransactionSize,
                                            const std::string&           table_measurement_generic_data)
-   : ReaderBase(importFilePath, workers, maxTransactionSize),
+   : ReaderBase(databaseConfiguration, workers, maxTransactionSize),
      Table_measurement_generic_data(table_measurement_generic_data)
 {
    DataFileSet = new std::set<InputFileEntry>[Workers];
@@ -130,7 +130,7 @@ int NorNetEdgePingReader::addFile(const std::filesystem::path& dataFile,
          std::unique_lock lock(Mutex);
          if(DataFileSet[workerID].insert(inputFileEntry).second) {
             HPCT_LOG(trace) << Identification << ": Added input file "
-                            << relative_to(dataFile, ImportFilePath) << " to reader";
+                            << relative_to(dataFile, Configuration.getImportFilePath()) << " to reader";
             TotalFiles++;
             return workerID;
          }
@@ -157,7 +157,7 @@ bool NorNetEdgePingReader::removeFile(const std::filesystem::path& dataFile,
          const int workerID = inputFileEntry.MeasurementID % Workers;
 
          HPCT_LOG(trace) << Identification << ": Removing input file "
-                         << relative_to(dataFile, ImportFilePath) << " from reader";
+                         << relative_to(dataFile, Configuration.getImportFilePath()) << " from reader";
          std::unique_lock lock(Mutex);
          if(DataFileSet[workerID].erase(inputFileEntry) == 1) {
             assert(TotalFiles > 0);
@@ -259,13 +259,13 @@ void NorNetEdgePingReader::parseContents(
 
          if(columns == NorNetEdgePingColumns) {
             throw ImporterReaderDataErrorException("Too many columns in input file " +
-                                                   relative_to(dataFile, ImportFilePath).string());
+                                                   relative_to(dataFile, Configuration.getImportFilePath()).string());
          }
          tuple[columns++] = inputLine.substr(start, end - start);
       }
       if(columns != NorNetEdgePingColumns) {
          throw ImporterReaderDataErrorException("Too few columns in input file " +
-                                                relative_to(dataFile, ImportFilePath).string());
+                                                relative_to(dataFile, Configuration.getImportFilePath()).string());
       }
 
       // ====== Generate import statement ===================================

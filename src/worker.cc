@@ -46,17 +46,12 @@
 Worker::Worker(const unsigned int           workerID,
                ReaderBase&                  reader,
                DatabaseClientBase&          databaseClient,
-               const std::filesystem::path& importFilePath,
-               const std::filesystem::path& goodFilePath,
-               const std::filesystem::path& badFilePath,
-               const ImportModeType         importMode)
+               const DatabaseConfiguration& databaseConfiguration)
+
    : WorkerID(workerID),
      Reader(reader),
      DatabaseClient(databaseClient),
-     ImportFilePath(importFilePath),
-     GoodFilePath(goodFilePath),
-     BadFilePath(badFilePath),
-     ImportMode(importMode),
+     Configuration(databaseConfiguration),
      Identification(Reader.getIdentification() + "/" + std::to_string(WorkerID))
 {
    StopRequested.exchange(false);
@@ -106,7 +101,7 @@ void Worker::processFile(DatabaseClientBase&          databaseClient,
    const std::uintmax_t size = std::filesystem::file_size(dataFile, ec);
    if( (!ec) && (size == 0) ) {
       HPCT_LOG(warning) << getIdentification() << ": Empty input file "
-                       << relative_to(dataFile, ImportFilePath);
+                       << relative_to(dataFile, Configuration.getImportFilePath());
    }
 
    else {
@@ -131,7 +126,7 @@ void Worker::processFile(DatabaseClientBase&          databaseClient,
       }
       else {
          HPCT_LOG(warning) << getIdentification() << ": Unable to open input file "
-                           << relative_to(dataFile, ImportFilePath);
+                           << relative_to(dataFile, Configuration.getImportFilePath());
       }
    }
 }
@@ -140,16 +135,16 @@ void Worker::processFile(DatabaseClientBase&          databaseClient,
 // ###### Remove empty directories ##########################################
 void Worker::deleteEmptyDirectories(std::filesystem::path path)
 {
-   assert(is_subdir_of(path, ImportFilePath));
+   assert(is_subdir_of(path, Configuration.getImportFilePath()));
 
    std::error_code ec;
-   while(path.parent_path() != ImportFilePath) {
+   while(path.parent_path() != Configuration.getImportFilePath()) {
       std::filesystem::remove(path, ec);
       if(ec) {
          break;
       }
       HPCT_LOG(trace) << getIdentification() << ": Deleted empty directory "
-                      << relative_to(path, ImportFilePath);
+                      << relative_to(path, Configuration.getImportFilePath());
       path = path.parent_path();
    }
 }
@@ -161,12 +156,12 @@ void Worker::deleteImportedFile(const std::filesystem::path& dataFile)
    try {
       std::filesystem::remove(dataFile);
       HPCT_LOG(trace) << getIdentification() << ": Deleted imported file "
-                      << relative_to(dataFile, ImportFilePath);
+                      << relative_to(dataFile, Configuration.getImportFilePath());
       deleteEmptyDirectories(dataFile.parent_path());
    }
    catch(std::filesystem::filesystem_error& e) {
       HPCT_LOG(warning) << getIdentification() << ": Deleting imported file "
-                        << relative_to(dataFile, ImportFilePath) << " failed: " << e.what();
+                        << relative_to(dataFile, Configuration.getImportFilePath()) << " failed: " << e.what();
    }
 }
 
@@ -174,18 +169,18 @@ void Worker::deleteImportedFile(const std::filesystem::path& dataFile)
 // ###### Move successfully imported file to good files #####################
 void Worker::moveImportedFile(const std::filesystem::path& dataFile)
 {
-   assert(is_subdir_of(dataFile, ImportFilePath));
-   const std::filesystem::path subdirs    = std::filesystem::relative(dataFile.parent_path(), ImportFilePath);
-   const std::filesystem::path targetPath = GoodFilePath / subdirs;
+   assert(is_subdir_of(dataFile, Configuration.getImportFilePath()));
+   const std::filesystem::path subdirs    = std::filesystem::relative(dataFile.parent_path(), Configuration.getImportFilePath());
+   const std::filesystem::path targetPath = Configuration.getGoodFilePath() / subdirs;
    try {
       std::filesystem::create_directories(targetPath);
       std::filesystem::rename(dataFile, targetPath / dataFile.filename());
       HPCT_LOG(trace) << getIdentification() << ": Moved imported file "
-                      << relative_to(dataFile, ImportFilePath);
+                      << relative_to(dataFile, Configuration.getImportFilePath());
    }
    catch(std::filesystem::filesystem_error& e) {
       HPCT_LOG(warning) << getIdentification() << ": Moving imported file "
-                        << relative_to(dataFile, ImportFilePath)
+                        << relative_to(dataFile, Configuration.getImportFilePath())
                         << " to " << targetPath << " failed: " << e.what();
    }
 }
@@ -194,18 +189,18 @@ void Worker::moveImportedFile(const std::filesystem::path& dataFile)
 // ###### Move bad file to bad files ########################################
 void Worker::moveBadFile(const std::filesystem::path& dataFile)
 {
-   assert(is_subdir_of(dataFile, ImportFilePath));
-   const std::filesystem::path subdirs    = std::filesystem::relative(dataFile.parent_path(), ImportFilePath);
-   const std::filesystem::path targetPath = BadFilePath / subdirs;
+   assert(is_subdir_of(dataFile, Configuration.getImportFilePath()));
+   const std::filesystem::path subdirs    = std::filesystem::relative(dataFile.parent_path(), Configuration.getImportFilePath());
+   const std::filesystem::path targetPath = Configuration.getBadFilePath() / subdirs;
    try {
       std::filesystem::create_directories(targetPath);
       std::filesystem::rename(dataFile, targetPath / dataFile.filename());
       HPCT_LOG(trace) << getIdentification() << ": Moved bad file "
-                      << relative_to(dataFile, ImportFilePath);
+                      << relative_to(dataFile, Configuration.getImportFilePath());
    }
    catch(std::filesystem::filesystem_error& e) {
       HPCT_LOG(warning) << getIdentification() << ": Moving bad file "
-                        << relative_to(dataFile, ImportFilePath)
+                        << relative_to(dataFile, Configuration.getImportFilePath())
                         << " to " << targetPath << " failed: " << e.what();
    }
 }
@@ -218,15 +213,15 @@ void Worker::finishedFile(const std::filesystem::path& dataFile,
    // ====== File has been imported successfully ===============================
    if(success) {
       // ====== Delete imported file ===========================================
-      if(ImportMode == ImportModeType::DeleteImportedFiles) {
+      if(Configuration.getImportMode() == ImportModeType::DeleteImportedFiles) {
          deleteImportedFile(dataFile);
       }
       // ====== Move imported file =============================================
-      else if(ImportMode == ImportModeType::MoveImportedFiles) {
+      else if(Configuration.getImportMode() == ImportModeType::MoveImportedFiles) {
          moveImportedFile(dataFile);
       }
       // ====== Keep imported file where it is =================================
-      else  if(ImportMode == ImportModeType::KeepImportedFiles) {
+      else  if(Configuration.getImportMode() == ImportModeType::KeepImportedFiles) {
          // Nothing to do here!
       }
    }
@@ -268,7 +263,7 @@ bool Worker::importFiles(const std::list<std::filesystem::path>& dataFileList)
          }
          try {
             HPCT_LOG(trace) << getIdentification() << ": Parsing "
-                            <<relative_to(dataFile, ImportFilePath) << " ...";
+                            <<relative_to(dataFile, Configuration.getImportFilePath()) << " ...";
             processFile(DatabaseClient, rows, dataFile);
          }
          catch(ImporterReaderDataErrorException& exception) {
@@ -312,7 +307,7 @@ bool Worker::importFiles(const std::list<std::filesystem::path>& dataFileList)
                         << ((fastMode == true) ? "fast" : "slow") << " mode failed: "
                         << exception.what();
       DatabaseClient.rollback();
-      usleep(5000000);
+      std::this_thread::sleep_for(std::chrono::seconds(Configuration.getReconnectDelay()));
       DatabaseClient.reconnect();
    }
    return false;

@@ -69,14 +69,16 @@ class DatabaseConfiguration
    DatabaseConfiguration();
    ~DatabaseConfiguration();
 
-   inline DatabaseBackendType getBackend()    const { return Backend;    }
-   inline const std::string&  getServer()     const { return Server;     }
-   inline const uint16_t      getPort()       const { return Port;       }
-   inline const std::string&  getUser()       const { return User;       }
-   inline const std::string&  getPassword()   const { return Password;   }
-   inline const std::string&  getCAFile()     const { return CAFile;     }
-   inline const std::string&  getDatabase()   const { return Database;   }
-   inline ImportModeType      getImportMode() const { return ImportMode; }
+   inline DatabaseBackendType getBackend()        const { return Backend;        }
+   inline const std::string&  getServer()         const { return Server;         }
+   inline const uint16_t      getPort()           const { return Port;           }
+   inline const std::string&  getUser()           const { return User;           }
+   inline const std::string&  getPassword()       const { return Password;       }
+   inline const std::string&  getCAFile()         const { return CAFile;         }
+   inline const std::string&  getDatabase()       const { return Database;       }
+   inline const unsigned int  getReconnectDelay() const { return ReconnectDelay; }
+   inline ImportModeType      getImportMode()     const { return ImportMode;     }
+   inline const unsigned int  getImportMaxDepth() const { return ImportMaxDepth; }
    inline const std::filesystem::path& getImportFilePath() const { return ImportFilePath; }
    inline const std::filesystem::path& getBadFilePath()    const { return BadFilePath;    }
    inline const std::filesystem::path& getGoodFilePath()   const { return GoodFilePath;   }
@@ -92,6 +94,7 @@ class DatabaseConfiguration
    boost::program_options::options_description OptionsDescription;
    std::string           BackendName;
    DatabaseBackendType   Backend;
+   unsigned int          ReconnectDelay;
    std::string           Server;
    uint16_t              Port;
    std::string           User;
@@ -100,6 +103,7 @@ class DatabaseConfiguration
    std::string           Database;
    std::string           ImportModeName;
    ImportModeType        ImportMode;
+   unsigned int          ImportMaxDepth;
    std::filesystem::path ImportFilePath;
    std::filesystem::path BadFilePath;
    std::filesystem::path GoodFilePath;

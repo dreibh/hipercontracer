@@ -33,10 +33,10 @@
 
 
 // ###### Constructor #######################################################
-ReaderBase::ReaderBase(const std::filesystem::path& importFilePath,
+ReaderBase::ReaderBase(const DatabaseConfiguration& databaseConfiguration,
                        const unsigned int           workers,
                        const unsigned int           maxTransactionSize)
-   : ImportFilePath(importFilePath),
+   : Configuration(databaseConfiguration),
      Workers(workers),
      MaxTransactionSize(maxTransactionSize)
 {

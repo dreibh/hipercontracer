@@ -48,11 +48,7 @@ class UniversalImporter
 {
    public:
    UniversalImporter(boost::asio::io_service&     ioService,
-                     const std::filesystem::path& importFilePath,
-                     const std::filesystem::path& goodFilePath,
-                     const std::filesystem::path& badFilePath,
-                     const ImportModeType         importMode,
-                     const unsigned int           maxDepth = 5);
+                     const DatabaseConfiguration& databaseConfiguration);
    ~UniversalImporter();
 
    void addReader(ReaderBase&          reader,
@@ -85,11 +81,7 @@ class UniversalImporter
                          const UniversalImporter::WorkerMapping& b);
 
    boost::asio::io_service&               IOService;
-   const std::filesystem::path            ImportFilePath;
-   const std::filesystem::path            GoodFilePath;
-   const std::filesystem::path            BadFilePath;
-   const ImportModeType                   ImportMode;
-   const unsigned int                     MaxDepth;
+   const DatabaseConfiguration&           Configuration;
 
    boost::asio::signal_set                Signals;
    std::list<ReaderBase*>                 ReaderList;

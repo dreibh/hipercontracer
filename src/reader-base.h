@@ -47,7 +47,7 @@
 class ReaderBase
 {
    public:
-   ReaderBase(const std::filesystem::path& importFilePath,
+   ReaderBase(const DatabaseConfiguration& databaseConfiguration,
               const unsigned int           workers,
               const unsigned int           maxTransactionSize);
    virtual ~ReaderBase();
@@ -77,7 +77,7 @@ class ReaderBase
    inline const unsigned int getMaxTransactionSize() const { return MaxTransactionSize; }
 
    protected:
-   const std::filesystem::path& ImportFilePath;
+   const DatabaseConfiguration& Configuration;
    const unsigned int           Workers;
    const unsigned int           MaxTransactionSize;
    unsigned long long           TotalFiles;

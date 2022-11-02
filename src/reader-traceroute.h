@@ -42,7 +42,7 @@
 class TracerouteReader : public ReaderBase
 {
    public:
-   TracerouteReader(const std::filesystem::path& importFilePath,
+   TracerouteReader(const DatabaseConfiguration& databaseConfiguration,
                     const unsigned int           workers            = 1,
                     const unsigned int           maxTransactionSize = 4,
                     const std::string&           table              = "Traceroute");

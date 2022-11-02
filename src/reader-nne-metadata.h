@@ -43,7 +43,7 @@
 class NorNetEdgeMetadataReader : public ReaderBase
 {
    public:
-   NorNetEdgeMetadataReader(const std::filesystem::path& importFilePath,
+   NorNetEdgeMetadataReader(const DatabaseConfiguration& databaseConfiguration,
                             const unsigned int           workers            = 1,
                             const unsigned int           maxTransactionSize = 4,
                             const std::string&           table_bins1min     = "node_metadata_bins1min",

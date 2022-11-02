@@ -55,17 +55,9 @@ bool operator<(const UniversalImporter::WorkerMapping& a,
 
 // ###### Constructor #######################################################
 UniversalImporter::UniversalImporter(boost::asio::io_service&     ioService,
-                                     const std::filesystem::path& importFilePath,
-                                     const std::filesystem::path& goodFilePath,
-                                     const std::filesystem::path& badFilePath,
-                                     const ImportModeType         importMode,
-                                     const unsigned int           maxDepth)
+                                     const DatabaseConfiguration& databaseConfiguration)
  : IOService(ioService),
-   ImportFilePath(std::filesystem::canonical(std::filesystem::absolute(importFilePath))),
-   GoodFilePath(std::filesystem::canonical(std::filesystem::absolute(goodFilePath))),
-   BadFilePath(std::filesystem::canonical(std::filesystem::absolute(badFilePath))),
-   ImportMode(importMode),
-   MaxDepth(maxDepth),
+   Configuration(databaseConfiguration),
    Signals(IOService, SIGINT, SIGTERM),
    INotifyStream(IOService)
 {
@@ -95,7 +87,7 @@ bool UniversalImporter::start()
    INotifyFD = inotify_init1(IN_NONBLOCK|IN_CLOEXEC);
    assert(INotifyFD > 0);
    INotifyStream.assign(INotifyFD);
-   int wd = inotify_add_watch(INotifyFD, ImportFilePath.c_str(),
+   int wd = inotify_add_watch(INotifyFD, Configuration.getImportFilePath().c_str(),
                               IN_CREATE | IN_DELETE | IN_CLOSE_WRITE | IN_MOVED_TO);
    if(wd < 0) {
       HPCT_LOG(error) << "Unable to configure inotify: " <<strerror(errno);
@@ -178,14 +170,14 @@ void UniversalImporter::handleINotifyEvent(const boost::system::error_code& ec,
       // ====== Event for directory =========================================
       if(event->mask & IN_ISDIR) {
          if(event->mask & IN_CREATE) {
-            const std::filesystem::path importFilePath = ImportFilePath / event->name;
+            const std::filesystem::path importFilePath = Configuration.getImportFilePath() / event->name;
             HPCT_LOG(trace) << "INotify for new data directory: " << importFilePath;
             const int wd = inotify_add_watch(INotifyFD, importFilePath.c_str(),
                                              IN_CREATE | IN_DELETE | IN_CLOSE_WRITE | IN_MOVED_TO);
             INotifyWatchDescriptors.insert(wd);
          }
          else if(event->mask & IN_DELETE) {
-            const std::filesystem::path importFilePath = ImportFilePath / event->name;
+            const std::filesystem::path importFilePath = Configuration.getImportFilePath() / event->name;
             HPCT_LOG(trace) << "INotify for deleted data directory: " << importFilePath;
             INotifyWatchDescriptors.erase(event->wd);
          }
@@ -225,8 +217,7 @@ void UniversalImporter::addReader(ReaderBase&          reader,
    ReaderList.push_back(&reader);
    for(unsigned int w = 0; w < databaseClients; w++) {
       Worker* worker = new Worker(w, reader, *databaseClientArray[w],
-                                  ImportFilePath, GoodFilePath, BadFilePath,
-                                  ImportMode);
+                                  Configuration);
       assert(worker != nullptr);
       WorkerMapping workerMapping;
       workerMapping.Reader   = &reader;
@@ -266,7 +257,8 @@ void UniversalImporter::removeReader(ReaderBase& reader)
 // ###### Look for input files (full directory traversal) ###################
 void UniversalImporter::lookForFiles()
 {
-   lookForFiles(ImportFilePath, MaxDepth);
+   lookForFiles(Configuration.getImportFilePath(),
+                Configuration.getImportMaxDepth());
 }
 
 
