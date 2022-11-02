@@ -80,10 +80,11 @@ std::ostream& operator<<(std::ostream& os, const NorNetEdgePingReader::InputFile
 
 
 // ###### Constructor #######################################################
-NorNetEdgePingReader::NorNetEdgePingReader(const unsigned int workers,
-                                           const unsigned int maxTransactionSize,
-                                           const std::string& table_measurement_generic_data)
-   : ReaderBase(workers, maxTransactionSize),
+NorNetEdgePingReader::NorNetEdgePingReader(const std::filesystem::path& importFilePath,
+                                           const unsigned int           workers,
+                                           const unsigned int           maxTransactionSize,
+                                           const std::string&           table_measurement_generic_data)
+   : ReaderBase(importFilePath, workers, maxTransactionSize),
      Table_measurement_generic_data(table_measurement_generic_data)
 {
    DataFileSet = new std::set<InputFileEntry>[Workers];
@@ -128,7 +129,8 @@ int NorNetEdgePingReader::addFile(const std::filesystem::path& dataFile,
 
          std::unique_lock lock(Mutex);
          if(DataFileSet[workerID].insert(inputFileEntry).second) {
-            HPCT_LOG(trace) << Identification << ": Added data file " << dataFile << " to reader";
+            HPCT_LOG(trace) << Identification << ": Added input file "
+                            << relative_to(dataFile, ImportFilePath) << " to reader";
             TotalFiles++;
             return workerID;
          }
@@ -154,7 +156,8 @@ bool NorNetEdgePingReader::removeFile(const std::filesystem::path& dataFile,
          inputFileEntry.DataFile      = dataFile;
          const int workerID = inputFileEntry.MeasurementID % Workers;
 
-         HPCT_LOG(trace) << Identification << ": Removing data file " << dataFile << " from reader";
+         HPCT_LOG(trace) << Identification << ": Removing input file "
+                         << relative_to(dataFile, ImportFilePath) << " from reader";
          std::unique_lock lock(Mutex);
          if(DataFileSet[workerID].erase(inputFileEntry) == 1) {
             assert(TotalFiles > 0);
@@ -255,12 +258,14 @@ void NorNetEdgePingReader::parseContents(
          end = inputLine.find(NorNetEdgePingDelimiter, start);
 
          if(columns == NorNetEdgePingColumns) {
-            throw ImporterReaderDataErrorException("Too many columns in input file " + dataFile.string());
+            throw ImporterReaderDataErrorException("Too many columns in input file " +
+                                                   relative_to(dataFile, ImportFilePath).string());
          }
          tuple[columns++] = inputLine.substr(start, end - start);
       }
       if(columns != NorNetEdgePingColumns) {
-         throw ImporterReaderDataErrorException("Too few columns in input file " + dataFile.string());
+         throw ImporterReaderDataErrorException("Too few columns in input file " +
+                                                relative_to(dataFile, ImportFilePath).string());
       }
 
       // ====== Generate import statement ===================================

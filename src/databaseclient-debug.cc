@@ -60,9 +60,16 @@ bool DebugClient::open()
 }
 
 
-// ###### Finish connection to database #####################################
+// ###### Close connection to database ######################################
 void DebugClient::close()
 {
+}
+
+
+// ###### Reconnect connection to database ##################################
+void DebugClient::reconnect()
+{
+   std::cout << "reconnect ..." << std::endl;
 }
 
 

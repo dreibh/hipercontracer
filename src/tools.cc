@@ -77,6 +77,21 @@ bool is_subdir_of(const std::filesystem::path& path1,
 }
 
 
+
+// ###### Destructor ########################################################
+std::filesystem::path relative_to(const std::filesystem::path& dataFile,
+                                  const std::filesystem::path& basePath)
+{
+   std::error_code       ec;
+   std::filesystem::path relativePath = std::filesystem::relative(dataFile, basePath, ec);
+   if(ec) {
+      // Failed to get relative path -> return existing path.
+      return dataFile;
+   }
+   return relativePath;
+}
+
+
 // ###### Reduce privileges of process ######################################
 bool reducePrivileges(const passwd* pw)
 {

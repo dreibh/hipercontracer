@@ -123,11 +123,12 @@ std::ostream& operator<<(std::ostream& os, const NorNetEdgeMetadataReader::Input
 
 
 // ###### Constructor #######################################################
-NorNetEdgeMetadataReader::NorNetEdgeMetadataReader(const unsigned int workers,
-                                                   const unsigned int maxTransactionSize,
-                                                   const std::string& table_bins1min,
-                                                   const std::string& table_event)
-   : ReaderBase(workers, maxTransactionSize),
+NorNetEdgeMetadataReader::NorNetEdgeMetadataReader(const std::filesystem::path& importFilePath,
+                                                   const unsigned int           workers,
+                                                   const unsigned int           maxTransactionSize,
+                                                   const std::string&           table_bins1min,
+                                                   const std::string&           table_event)
+   : ReaderBase(importFilePath, workers, maxTransactionSize),
      Table_bins1min(table_bins1min),
      Table_event(table_event)
 {
@@ -212,7 +213,8 @@ int NorNetEdgeMetadataReader::addFile(const std::filesystem::path& dataFile,
 
          std::unique_lock lock(Mutex);
          if(DataFileSet[workerID].insert(inputFileEntry).second) {
-            HPCT_LOG(trace) << Identification << ": Added data file " << dataFile << " to reader";
+            HPCT_LOG(trace) << Identification << ": Added input file "
+                            << relative_to(dataFile, ImportFilePath) << " to reader";
             TotalFiles++;
             return workerID;
          }
@@ -238,7 +240,8 @@ bool NorNetEdgeMetadataReader::removeFile(const std::filesystem::path& dataFile,
          inputFileEntry.DataFile  = dataFile;
          const int workerID = inputFileEntry.NodeID % Workers;
 
-         HPCT_LOG(trace) << Identification << ": Removing data file " << dataFile << " from reader";
+         HPCT_LOG(trace) << Identification << ": Removing input file "
+                        << relative_to(dataFile, ImportFilePath) << " from reader";
          std::unique_lock lock(Mutex);
          if(DataFileSet[workerID].erase(inputFileEntry) == 1) {
             assert(TotalFiles > 0);
@@ -303,13 +306,14 @@ template<typename TimePoint> TimePoint NorNetEdgeMetadataReader::makeMin(const T
 template<typename TimePoint> TimePoint NorNetEdgeMetadataReader::parseTimeStamp(
                                           const boost::property_tree::ptree& item,
                                           const TimePoint&                   now,
-                                          const std::filesystem::path&       dataFile)
+                                          const std::filesystem::path&       dataFile) const
 {
    const unsigned long long ts        = (unsigned long long)rint(1000000.0 * item.get<double>("ts"));
    const TimePoint          timeStamp = microsecondsToTimePoint<std::chrono::time_point<std::chrono::high_resolution_clock>>(ts);
    if( (timeStamp < now - std::chrono::hours(365 * 24)) ||   /* 1 year in the past  */
        (timeStamp > now + std::chrono::hours(24)) ) {        /* 1 day in the future */
-      throw ImporterReaderDataErrorException("Bad time stamp " + std::to_string(ts));
+      throw ImporterReaderDataErrorException("Bad time stamp " + std::to_string(ts) +
+                                             " in input file " + relative_to(dataFile, ImportFilePath).string());
    }
    return timeStamp;
 }
@@ -321,7 +325,8 @@ long long NorNetEdgeMetadataReader::parseDelta(const boost::property_tree::ptree
 {
    const unsigned int delta = round(item.get<double>("delta"));
    if( (delta < 0) || (delta > 4294967295.0) ) {
-      throw ImporterReaderDataErrorException("Bad delta " + delta);
+      throw ImporterReaderDataErrorException("Bad delta " + std::to_string(delta) +
+                                             " in input file " + relative_to(dataFile, ImportFilePath).string());
    }
    return delta;
 }
@@ -333,11 +338,13 @@ unsigned int NorNetEdgeMetadataReader::parseNodeID(const boost::property_tree::p
 {
    const std::string& nodeName = item.get<std::string>("node");
    if(nodeName.substr(0, 3) != "nne") {
-      throw ImporterReaderDataErrorException("Bad node name " + nodeName);
+      throw ImporterReaderDataErrorException("Bad node name " + nodeName +
+                                             " in input file " + relative_to(dataFile, ImportFilePath).string());
    }
    const unsigned int nodeID = atol(nodeName.substr(3, nodeName.size() -3).c_str());
    if( (nodeID < 1) || (nodeID > 9999) ) {
-      throw ImporterReaderDataErrorException("Bad node ID " + nodeID);
+      throw ImporterReaderDataErrorException("Bad node ID " + std::to_string(nodeID) +
+                                             " in input file " + relative_to(dataFile, ImportFilePath).string());
    }
    return nodeID;
 }
@@ -349,7 +356,8 @@ unsigned int NorNetEdgeMetadataReader::parseNetworkID(const boost::property_tree
 {
    const unsigned int networkID = item.get<unsigned int>("network_id");
    if(networkID > 99) {   // MNC is a two-digit number
-      throw ImporterReaderDataErrorException("Bad network ID " + networkID);
+      throw ImporterReaderDataErrorException("Bad network ID " + std::to_string(networkID) +
+                                             " in input file " + relative_to(dataFile, ImportFilePath).string());
    }
    return networkID;
 }
@@ -361,7 +369,8 @@ std::string NorNetEdgeMetadataReader::parseMetadataKey(const boost::property_tre
 {
    const std::string& metadataKey = item.get<std::string>("key");
    if(metadataKey.size() > 45) {
-      throw ImporterReaderDataErrorException("Too long metadata key " + metadataKey);
+      throw ImporterReaderDataErrorException("Too long metadata key " + metadataKey +
+                                             " in input file " + relative_to(dataFile, ImportFilePath).string());
    }
    return metadataKey;
 }
@@ -373,7 +382,8 @@ std::string NorNetEdgeMetadataReader::parseMetadataValue(const boost::property_t
 {
    const std::string& metadataValue = item.get<std::string>("value");
    if(metadataValue.size() > 500) {
-      throw ImporterReaderDataErrorException("Too long metadata value " + metadataValue);
+      throw ImporterReaderDataErrorException("Too long metadata value " + metadataValue +
+                                             " in input file " + relative_to(dataFile, ImportFilePath).string());
    }
    return metadataValue;
 }
@@ -385,7 +395,8 @@ std::string NorNetEdgeMetadataReader::parseExtra(const boost::property_tree::ptr
 {
    const std::string& extra = item.get<std::string>("extra");
    if(extra.size() > 500) {
-      throw ImporterReaderDataErrorException("Too long extra " + extra);
+      throw ImporterReaderDataErrorException("Too long extra " + extra +
+                                             " in input file " + relative_to(dataFile, ImportFilePath).string());
    }
    return extra;
 }
@@ -448,7 +459,7 @@ void NorNetEdgeMetadataReader::parseContents(
          if( (nodeID == 4125) && (nodeID != nodeIDFromPath) ) {
             if(showWarning) {
                HPCT_LOG(warning) << Identification << ": Bad NodeID fix: " << nodeID << " -> "
-                                 << nodeIDFromPath << " for " << dataFile;
+                                 << nodeIDFromPath << " for " << relative_to(dataFile, ImportFilePath);
                showWarning = false;
             }
             nodeID = nodeIDFromPath;
@@ -500,12 +511,15 @@ void NorNetEdgeMetadataReader::parseContents(
             }
          }
          else {
-            throw ImporterReaderDataErrorException("Got unknown metadata type " + itemType + " in input file " + dataFile.string());
+            throw ImporterReaderDataErrorException("Got unknown metadata type " + itemType +
+                                                   " in input file " + relative_to(dataFile, ImportFilePath).string());
          }
       }
    }
    catch(const boost::property_tree::ptree_error& exception) {
-      throw ImporterReaderDataErrorException("JSON processing filed  in input file " + dataFile.string() + ": " + exception.what());
+      throw ImporterReaderDataErrorException("JSON processing failed  in input file " +
+                                             relative_to(dataFile, ImportFilePath).string() + ": " +
+                                             exception.what());
    }
 }
 

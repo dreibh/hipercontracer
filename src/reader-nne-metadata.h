@@ -43,10 +43,11 @@
 class NorNetEdgeMetadataReader : public ReaderBase
 {
    public:
-   NorNetEdgeMetadataReader(const unsigned int workers            = 1,
-                            const unsigned int maxTransactionSize = 4,
-                            const std::string& table_bins1min     = "node_metadata_bins1min",
-                            const std::string& table_event        = "node_metadata_event");
+   NorNetEdgeMetadataReader(const std::filesystem::path& importFilePath,
+                            const unsigned int           workers            = 1,
+                            const unsigned int           maxTransactionSize = 4,
+                            const std::string&           table_bins1min     = "node_metadata_bins1min",
+                            const std::string&           table_event        = "node_metadata_event");
    virtual ~NorNetEdgeMetadataReader();
 
    virtual const std::string& getIdentification() const;
@@ -72,9 +73,9 @@ class NorNetEdgeMetadataReader : public ReaderBase
 
    protected:
    template<typename TimePoint> static TimePoint makeMin(const TimePoint& timePoint);
-   template<typename TimePoint> static TimePoint parseTimeStamp(const boost::property_tree::ptree& item,
-                                                                const TimePoint&                   now,
-                                                                const std::filesystem::path&       dataFile);
+   template<typename TimePoint> TimePoint parseTimeStamp(const boost::property_tree::ptree& item,
+                                                         const TimePoint&                   now,
+                                                         const std::filesystem::path&       dataFile) const;
    long long parseDelta(const boost::property_tree::ptree& item,
                         const std::filesystem::path&       dataFile) const;
    unsigned int parseNodeID(const boost::property_tree::ptree& item,

@@ -47,8 +47,9 @@
 class ReaderBase
 {
    public:
-   ReaderBase(const unsigned int workers,
-              const unsigned int maxTransactionSize);
+   ReaderBase(const std::filesystem::path& importFilePath,
+              const unsigned int           workers,
+              const unsigned int           maxTransactionSize);
    virtual ~ReaderBase();
 
    virtual const std::string& getIdentification() const = 0;
@@ -76,10 +77,11 @@ class ReaderBase
    inline const unsigned int getMaxTransactionSize() const { return MaxTransactionSize; }
 
    protected:
-   const unsigned int Workers;
-   const unsigned int MaxTransactionSize;
-   unsigned long long TotalFiles;
-   std::mutex         Mutex;
+   const std::filesystem::path& ImportFilePath;
+   const unsigned int           Workers;
+   const unsigned int           MaxTransactionSize;
+   unsigned long long           TotalFiles;
+   std::mutex                   Mutex;
 };
 
 #endif

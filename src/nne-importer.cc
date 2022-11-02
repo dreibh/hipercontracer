@@ -160,7 +160,8 @@ int main(int argc, char** argv)
             exit(1);
          }
       }
-      nnePingReader = new NorNetEdgePingReader(pingWorkers, pingTransactionSize);
+      nnePingReader = new NorNetEdgePingReader(databaseConfiguration.getImportFilePath(),
+                                               pingWorkers, pingTransactionSize);
       assert(nnePingReader != nullptr);
       importer.addReader(*nnePingReader,
                          (DatabaseClientBase**)&pingDatabaseClients, pingWorkers);
@@ -177,7 +178,8 @@ int main(int argc, char** argv)
             exit(1);
          }
       }
-      nneSpeedTestReader = new NorNetEdgeSpeedTestReader(speedTestWorkers, speedTestTransactionSize);
+      nneSpeedTestReader = new NorNetEdgeSpeedTestReader(databaseConfiguration.getImportFilePath(),
+                                                         speedTestWorkers, speedTestTransactionSize);
       assert(nneSpeedTestReader != nullptr);
       importer.addReader(*nneSpeedTestReader,
                          (DatabaseClientBase**)&speedTestDatabaseClients, speedTestWorkers);
@@ -194,7 +196,8 @@ int main(int argc, char** argv)
             exit(1);
          }
       }
-      nneMetadataReader = new NorNetEdgeMetadataReader(metadataWorkers, metadataTransactionSize);
+      nneMetadataReader = new NorNetEdgeMetadataReader(databaseConfiguration.getImportFilePath(),
+                                                       metadataWorkers, metadataTransactionSize);
       assert(nneMetadataReader != nullptr);
       importer.addReader(*nneMetadataReader,
                          (DatabaseClientBase**)&metadataDatabaseClients, metadataWorkers);

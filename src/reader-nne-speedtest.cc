@@ -43,9 +43,10 @@ const std::regex  NorNetEdgeSpeedTestReader::FileNameRegExp = std::regex(
 
 
 // ###### Constructor #######################################################
-NorNetEdgeSpeedTestReader::NorNetEdgeSpeedTestReader(const unsigned int workers,
-                                                     const unsigned int maxTransactionSize)
-   : NorNetEdgePingReader(workers, maxTransactionSize, std::string())
+NorNetEdgeSpeedTestReader::NorNetEdgeSpeedTestReader(const std::filesystem::path& importFilePath,
+                                                     const unsigned int           workers,
+                                                     const unsigned int           maxTransactionSize)
+   : NorNetEdgePingReader(importFilePath, workers, maxTransactionSize, std::string())
 {
 }
 
@@ -80,7 +81,7 @@ void NorNetEdgeSpeedTestReader::beginParsing(DatabaseClientBase& databaseClient,
 
 // ###### Finish parsing ####################################################
 bool NorNetEdgeSpeedTestReader::finishParsing(DatabaseClientBase& databaseClient,
-                                         unsigned long long& rows)
+                                              unsigned long long& rows)
 {
    if(rows > 0) {
       return true;
@@ -111,12 +112,14 @@ void NorNetEdgeSpeedTestReader::parseContents(
          end = inputLine.find(NorNetEdgeSpeedTestDelimiter, start);
 
          if(columns == NorNetEdgeSpeedTestColumns) {
-            throw ImporterReaderDataErrorException("Too many columns in input file " + dataFile.string());
+            throw ImporterReaderDataErrorException("Too many columns in input file " +
+                                                   relative_to(dataFile, ImportFilePath).string());
          }
          tuple[columns++] = inputLine.substr(start, end - start);
       }
       if(columns != NorNetEdgeSpeedTestColumns) {
-         throw ImporterReaderDataErrorException("Too few columns in input file " + dataFile.string());
+         throw ImporterReaderDataErrorException("Too few columns in input file " +
+                                                relative_to(dataFile, ImportFilePath).string());
       }
 
       // ====== Generate import statement ===================================

@@ -90,7 +90,7 @@ bool MariaDBClient::open()
 }
 
 
-// ###### Finish connection to database #####################################
+// ###### Close connection to database ######################################
 void MariaDBClient::close()
 {
    if(Statement) {
@@ -101,6 +101,13 @@ void MariaDBClient::close()
       delete Connection;
       Connection = nullptr;
    }
+}
+
+
+// ###### Reconnect connection to database ##################################
+void MariaDBClient::reconnect()
+{
+   Connection->reconnect();
 }
 
 
@@ -115,7 +122,7 @@ void MariaDBClient::handleSQLException(const sql::SQLException& exception,
                                std::to_string(exception.getErrorCode()) + ": " +
                                exception.what();
    HPCT_LOG(error) << what;
-   std::cerr << statement << "\n";
+   // std::cerr << statement;
 
    // ====== Throw exception ================================================
    const std::string e = exception.getSQLState().substr(0, 2);
@@ -135,9 +142,6 @@ void MariaDBClient::handleSQLException(const sql::SQLException& exception,
 void MariaDBClient::startTransaction()
 {
    try {
-      if(Connection->isClosed()) {
-         Connection->reconnect();
-      }
       Statement->execute("START TRANSACTION");
    }
    catch(const sql::SQLException& exception) {

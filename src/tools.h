@@ -48,6 +48,8 @@ const passwd* getUser(const char* user);
 bool reducePrivileges(const passwd* pw);
 bool is_subdir_of(const std::filesystem::path& path1,
                   const std::filesystem::path& path2);
+std::filesystem::path relative_to(const std::filesystem::path& dataFile,
+                                  const std::filesystem::path& basePath);
 
 bool addSourceAddress(std::map<boost::asio::ip::address, std::set<uint8_t>>& array,
                       const std::string&                                     addressString,

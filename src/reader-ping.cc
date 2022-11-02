@@ -280,6 +280,7 @@ void PingReader::parseContents(
             rows++;
          }
          else if(backend & DatabaseBackendType::NoSQL_Generic) {
+            assert(false);   // FIXME packet addresses!
             databaseClient.getStatement()
                << "db['" << Table << "'].insert({"
                << "'timestamp': "   << timePointToMicroseconds<std::chrono::time_point<std::chrono::high_resolution_clock>>(timeStamp) << ", "

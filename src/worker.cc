@@ -105,7 +105,8 @@ void Worker::processFile(DatabaseClientBase&          databaseClient,
    std::error_code ec;
    const std::uintmax_t size = std::filesystem::file_size(dataFile, ec);
    if( (!ec) && (size == 0) ) {
-      HPCT_LOG(warning) << getIdentification() << ": Empty file " << dataFile;
+      HPCT_LOG(warning) << getIdentification() << ": Empty input file "
+                       << relative_to(dataFile, ImportFilePath);
    }
 
    else {
@@ -129,7 +130,8 @@ void Worker::processFile(DatabaseClientBase&          databaseClient,
          Reader.parseContents(databaseClient, rows, dataFile, inputStream);
       }
       else {
-         HPCT_LOG(warning) << getIdentification() << ": Unable to open file " << dataFile;
+         HPCT_LOG(warning) << getIdentification() << ": Unable to open input file "
+                           << relative_to(dataFile, ImportFilePath);
       }
    }
 }
@@ -146,7 +148,8 @@ void Worker::deleteEmptyDirectories(std::filesystem::path path)
       if(ec) {
          break;
       }
-      HPCT_LOG(trace) << getIdentification() << ": Deleted empty directory " << path;
+      HPCT_LOG(trace) << getIdentification() << ": Deleted empty directory "
+                      << relative_to(path, ImportFilePath);
       path = path.parent_path();
    }
 }
@@ -157,11 +160,13 @@ void Worker::deleteImportedFile(const std::filesystem::path& dataFile)
 {
    try {
       std::filesystem::remove(dataFile);
-      HPCT_LOG(trace) << getIdentification() << ": Deleted imported file " << dataFile;
+      HPCT_LOG(trace) << getIdentification() << ": Deleted imported file "
+                      << relative_to(dataFile, ImportFilePath);
       deleteEmptyDirectories(dataFile.parent_path());
    }
    catch(std::filesystem::filesystem_error& e) {
-      HPCT_LOG(warning) << getIdentification() << ": Deleting imported file " << dataFile << " failed: " << e.what();
+      HPCT_LOG(warning) << getIdentification() << ": Deleting imported file "
+                        << relative_to(dataFile, ImportFilePath) << " failed: " << e.what();
    }
 }
 
@@ -176,10 +181,11 @@ void Worker::moveImportedFile(const std::filesystem::path& dataFile)
       std::filesystem::create_directories(targetPath);
       std::filesystem::rename(dataFile, targetPath / dataFile.filename());
       HPCT_LOG(trace) << getIdentification() << ": Moved imported file "
-                      << dataFile << " to " << targetPath;
+                      << relative_to(dataFile, ImportFilePath);
    }
    catch(std::filesystem::filesystem_error& e) {
-      HPCT_LOG(warning) << getIdentification() << ": Moving imported file " << dataFile
+      HPCT_LOG(warning) << getIdentification() << ": Moving imported file "
+                        << relative_to(dataFile, ImportFilePath)
                         << " to " << targetPath << " failed: " << e.what();
    }
 }
@@ -195,10 +201,11 @@ void Worker::moveBadFile(const std::filesystem::path& dataFile)
       std::filesystem::create_directories(targetPath);
       std::filesystem::rename(dataFile, targetPath / dataFile.filename());
       HPCT_LOG(trace) << getIdentification() << ": Moved bad file "
-                      << dataFile << " to " << targetPath;
+                      << relative_to(dataFile, ImportFilePath);
    }
    catch(std::filesystem::filesystem_error& e) {
-      HPCT_LOG(warning) << getIdentification() << ": Moving bad file " << dataFile
+      HPCT_LOG(warning) << getIdentification() << ": Moving bad file "
+                        << relative_to(dataFile, ImportFilePath)
                         << " to " << targetPath << " failed: " << e.what();
    }
 }
@@ -243,7 +250,8 @@ bool Worker::importFiles(const std::list<std::filesystem::path>& dataFileList)
    const bool fastMode = (dataFileList.size() > 1);
    if(fastMode) {
       HPCT_LOG(debug) << getIdentification() << ": Trying to import "
-                      << dataFileList.size() << " files in fast mode ...";
+                      << dataFileList.size() << " files in "
+                      << ((fastMode == true) ? "fast" : "slow") << " mode ...";
    }
    // for(const std::filesystem::path& d : dataFileList) {
    //    std::cout << "- " << d << "\n";
@@ -258,12 +266,14 @@ bool Worker::importFiles(const std::list<std::filesystem::path>& dataFileList)
          if(StopRequested) {
             break;
          }
-         HPCT_LOG(trace) << getIdentification() << ": Parsing " << dataFile << " ...";
          try {
+            HPCT_LOG(trace) << getIdentification() << ": Parsing "
+                            <<relative_to(dataFile, ImportFilePath) << " ...";
             processFile(DatabaseClient, rows, dataFile);
          }
          catch(ImporterReaderDataErrorException& exception) {
-            HPCT_LOG(warning) << getIdentification() << ": Import in fast mode failed with reader data error: "
+            HPCT_LOG(warning) << getIdentification() << ": Import in "
+                              << ((fastMode == true) ? "fast" : "slow") << " mode failed with reader data error: "
                               << exception.what();
             DatabaseClient.rollback();
             if(!fastMode) {
@@ -272,7 +282,8 @@ bool Worker::importFiles(const std::list<std::filesystem::path>& dataFileList)
             return false;
          }
          catch(ImporterDatabaseDataErrorException& exception) {
-            HPCT_LOG(warning) << getIdentification() << ": Import in fast mode failed with database data error: "
+            HPCT_LOG(warning) << getIdentification() << ": Import in "
+                              << ((fastMode == true) ? "fast" : "slow") << " mode failed with database data error: "
                               << exception.what();
             DatabaseClient.rollback();
             if(!fastMode) {
@@ -286,11 +297,10 @@ bool Worker::importFiles(const std::list<std::filesystem::path>& dataFileList)
          HPCT_LOG(debug) << getIdentification() << ": Committed " << rows << " rows";
       }
       else {
-         std::cout << "Nothing to do!" << std::endl;
          HPCT_LOG(debug) << getIdentification() << ": Nothing to import!";
       }
 
-      // ====== Delete input files ====================================
+      // ====== Delete/move/keep input files ================================
       HPCT_LOG(debug) << getIdentification() << ": Finishing " << dataFileList.size() << " input files ...";
       for(const std::filesystem::path& dataFile : dataFileList) {
          finishedFile(dataFile);
@@ -302,6 +312,8 @@ bool Worker::importFiles(const std::list<std::filesystem::path>& dataFileList)
                         << ((fastMode == true) ? "fast" : "slow") << " mode failed: "
                         << exception.what();
       DatabaseClient.rollback();
+      usleep(5000000);
+      DatabaseClient.reconnect();
    }
    return false;
 }

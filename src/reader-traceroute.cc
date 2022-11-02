@@ -136,7 +136,8 @@ int TracerouteReader::addFile(const std::filesystem::path& dataFile,
 
          std::unique_lock lock(Mutex);
          if(DataFileSet[workerID].insert(inputFileEntry).second) {
-            HPCT_LOG(trace) << Identification << ": Added data file " << dataFile << " to reader";
+            HPCT_LOG(trace) << Identification << ": Added input file "
+                            << relative_to(dataFile, ImportFilePath) << " to reader";
             TotalFiles++;
             return workerID;
          }
@@ -162,7 +163,8 @@ bool TracerouteReader::removeFile(const std::filesystem::path& dataFile,
          inputFileEntry.SeqNumber = atol(match[4].str().c_str());
          const std::size_t workerID = std::hash<std::string>{}(inputFileEntry.Source) % Workers;
 
-         HPCT_LOG(trace) << Identification << ": Removing data file " << dataFile << " from reader";
+         HPCT_LOG(trace) << Identification << ": Removing input file "
+                         << relative_to(dataFile, ImportFilePath) << " from reader";
          std::unique_lock lock(Mutex);
          if(DataFileSet[workerID].erase(inputFileEntry) == 1) {
             assert(TotalFiles > 0);

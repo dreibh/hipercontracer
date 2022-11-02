@@ -46,6 +46,7 @@ class DatabaseClientBase
    virtual const DatabaseBackendType getBackend() const = 0;
    virtual bool open()  = 0;
    virtual void close() = 0;
+   virtual void reconnect() = 0;
 
    virtual void startTransaction() = 0;
    virtual void execute(const std::string& statement) = 0;

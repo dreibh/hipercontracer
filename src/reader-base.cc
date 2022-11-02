@@ -33,9 +33,11 @@
 
 
 // ###### Constructor #######################################################
-ReaderBase::ReaderBase(const unsigned int workers,
-                       const unsigned int maxTransactionSize)
-   : Workers(workers),
+ReaderBase::ReaderBase(const std::filesystem::path& importFilePath,
+                       const unsigned int           workers,
+                       const unsigned int           maxTransactionSize)
+   : ImportFilePath(importFilePath),
+     Workers(workers),
      MaxTransactionSize(maxTransactionSize)
 {
    assert(Workers > 0);
