@@ -148,14 +148,20 @@ bool DatabaseConfiguration::readConfiguration(const std::filesystem::path& confi
 // ###### Print reader status ###############################################
 void DatabaseConfiguration::printConfiguration(std::ostream& os) const
 {
-   os << "Database configuration:"    << std::endl
-      << "Backend  = " << BackendName << std::endl
-      << "Server   = " << Server      << std::endl
-      << "Port     = " << Port        << std::endl
-      << "User     = " << User        << std::endl
-      << "Password = " << ((Password.size() > 0) ? "****************" : "(none)") << std::endl
-      << "CA File  = " << CAFile      << std::endl
-      << "Database = " << Database    << std::endl;
+   os << "Import configuration:"                 << std::endl
+      << "Import File Path = " << ImportFilePath << " (max depth: " << ImportMaxDepth << ")" << std::endl
+      << "Good File Path   = " << GoodFilePath   << std::endl
+      << "Bad File Path    = " << BadFilePath    << std::endl
+
+      << "Database configuration:"               << std::endl
+      << "Backend          = " << BackendName    << std::endl
+      << "Reconnect Delay  = " << ReconnectDelay << " s" << std::endl
+      << "Server           = " << Server         << std::endl
+      << "Port             = " << Port           << std::endl
+      << "User             = " << User           << std::endl
+      << "Password         = " << ((Password.size() > 0) ? "****************" : "(none)") << std::endl
+      << "CA File          = " << CAFile         << std::endl
+      << "Database         = " << Database       << std::endl;
 }
 
 
