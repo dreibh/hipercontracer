@@ -40,6 +40,11 @@
 #include <boost/property_tree/ptree.hpp>
 
 
+// Temporary fixes, should be turned OFF!
+#define WITH_NODEID_FIX      // Wrong Node ID 4125
+#define WITH_TIMESTAMP_FIX   // Timestamp granularity of 1s
+
+
 class NorNetEdgeMetadataReader : public ReaderBase
 {
    public:
@@ -107,6 +112,11 @@ class NorNetEdgeMetadataReader : public ReaderBase
    const std::string         Table_bins1min;
    const std::string         Table_event;
    std::set<InputFileEntry>* DataFileSet;
+
+#ifdef WITH_TIMESTAMP_FIX
+   std::chrono::high_resolution_clock::time_point TSFixLastTimePoint;
+   std::chrono::high_resolution_clock::duration   TSFixTimeOffset;
+#endif
 };
 
 #endif

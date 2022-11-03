@@ -37,9 +37,6 @@
 #include <boost/property_tree/json_parser.hpp>
 
 
-#define WITH_NODEID_FIX
-
-
 #if 0
 // ###### Create indentation string #########################################
 static std::string indent(const unsigned int level, const char* indentation = "\t")
@@ -436,12 +433,15 @@ void NorNetEdgeMetadataReader::parseContents(
 
    try {
       boost::property_tree::read_json(dataStream, propertyTreeRoot);
-
       // dumpPropertyTree(std::cerr, propertyTreeRoot);
 
+#ifdef WITH_TIMESTAMP_FIX
+      bool showTimeStampFixWarning = true;
+      // std::cout << "-----\n";
+#endif
 #ifdef WITH_NODEID_FIX
-      const unsigned int nodeIDFromPath = getNodeIDFromPath(dataFile);
-      bool               showWarning    = true;
+      const unsigned int nodeIDFromPath       = getNodeIDFromPath(dataFile);
+      bool               showNodeIDFixWarning = true;
 #endif
 
       // ====== Process all metadata items ==================================
@@ -451,16 +451,43 @@ void NorNetEdgeMetadataReader::parseContents(
          const boost::property_tree::ptree& item = itemIterator->second;
          const std::string& itemType             = item.get<std::string>("type");
 
+#ifdef WITH_TIMESTAMP_FIX
+#warning With timestamp fix!
+         std::chrono::time_point<std::chrono::high_resolution_clock> ts =
+            parseTimeStamp<std::chrono::time_point<std::chrono::high_resolution_clock>>(item, now, dataFile);
+            const unsigned long long us = timePointToMicroseconds<std::chrono::time_point<std::chrono::high_resolution_clock>>(ts);
+         if(itemType == "event") {
+            if((us % 1000000) == 0) {
+               if(showTimeStampFixWarning) {
+                  HPCT_LOG(debug) << Identification << ": Applying time stamp fix for "
+                                    << relative_to(dataFile, Configuration.getImportFilePath());
+                  showTimeStampFixWarning = false;
+               }
+               if(ts == TSFixLastTimePoint) {
+                  ts += TSFixTimeOffset;   // Prevent possible duplicate
+                  TSFixTimeOffset += std::chrono::microseconds(1);
+               }
+               else {
+                  // std::cout << "reset\n";
+                  TSFixLastTimePoint = ts;   // First occurrence of this time stamp
+                  TSFixTimeOffset = std::chrono::microseconds(1);
+               }
+               // std::cout << "* " << timePointToString<std::chrono::time_point<std::chrono::high_resolution_clock>>(ts, 6) << "\n";
+            }
+         }
+#else
          const std::chrono::time_point<std::chrono::high_resolution_clock> ts =
             parseTimeStamp<std::chrono::time_point<std::chrono::high_resolution_clock>>(item, now, dataFile);
+#endif
 #ifdef WITH_NODEID_FIX
 #warning With NodeID fix!
          unsigned int nodeID = parseNodeID(item, dataFile);
          if( (nodeID == 4125) && (nodeID != nodeIDFromPath) ) {
-            if(showWarning) {
-               HPCT_LOG(warning) << Identification << ": Bad NodeID fix: " << nodeID << " -> "
-                                 << nodeIDFromPath << " for " << relative_to(dataFile, Configuration.getImportFilePath());
-               showWarning = false;
+            if(showNodeIDFixWarning) {
+               HPCT_LOG(debug) << Identification << ": Bad NodeID fix: " << nodeID << " -> "
+                               << nodeIDFromPath << " for "
+                               << relative_to(dataFile, Configuration.getImportFilePath());
+               showNodeIDFixWarning = false;
             }
             nodeID = nodeIDFromPath;
          }
@@ -498,7 +525,7 @@ void NorNetEdgeMetadataReader::parseContents(
                databaseClient.getStatement()
                   << "INSERT INTO " << Table_event
                   << "(ts, node_id, network_id, metadata_key, metadata_value, extra, min) VALUES ("
-                  << "'" << timePointToString<std::chrono::time_point<std::chrono::high_resolution_clock>>(ts) << "', "
+                  << "'" << timePointToString<std::chrono::time_point<std::chrono::high_resolution_clock>>(ts, 6) << "', "
                   << nodeID               << ", "
                   << networkID            << ", "
                   << "'" << metadataKey   << "', "

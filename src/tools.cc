@@ -71,9 +71,14 @@ const passwd* getUser(const char* user)
 bool is_subdir_of(const std::filesystem::path& path1,
                   const std::filesystem::path& path2)
 {
-   const std::string ca1 = std::filesystem::canonical(std::filesystem::absolute(path1));
-   const std::string ca2 = std::filesystem::canonical(std::filesystem::absolute(path2));
-   return ca1.substr(0, ca2.size()) == ca2;
+   try {
+      const std::string ca1 = std::filesystem::canonical(std::filesystem::absolute(path1));
+      const std::string ca2 = std::filesystem::canonical(std::filesystem::absolute(path2));
+      return ca1.substr(0, ca2.size()) == ca2;
+   }
+   catch(...) {
+      return false;
+   }
 }
 
 
