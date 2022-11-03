@@ -90,10 +90,11 @@ bool UniversalImporter::start()
    int wd = inotify_add_watch(INotifyFD, Configuration.getImportFilePath().c_str(),
                               IN_CREATE | IN_DELETE | IN_CLOSE_WRITE | IN_MOVED_TO);
    if(wd < 0) {
-      HPCT_LOG(error) << "Unable to configure inotify: " <<strerror(errno);
+      HPCT_LOG(error) << "Adding INotify watch for " << Configuration.getImportFilePath()
+                      << " failed: " << strerror(errno);
       return false;
    }
-   INotifyWatchDescriptors.insert(wd);
+   INotifyWatchDescriptors.insert(std::pair<int, std::filesystem::path>(wd, Configuration.getImportFilePath()));
 
    INotifyStream.async_read_some(boost::asio::buffer(&INotifyEventBuffer, sizeof(INotifyEventBuffer)),
                                  std::bind(&UniversalImporter::handleINotifyEvent, this,
@@ -127,9 +128,9 @@ void UniversalImporter::stop()
    // ====== Remove INotify =================================================
 #ifdef __linux__
    if(INotifyFD >= 0) {
-      std::set<int>::iterator iterator = INotifyWatchDescriptors.begin();
+      std::map<int, std::filesystem::path>::iterator iterator = INotifyWatchDescriptors.begin();
       while(iterator != INotifyWatchDescriptors.end()) {
-         inotify_rm_watch(INotifyFD, *iterator);
+         inotify_rm_watch(INotifyFD, iterator->first);
          INotifyWatchDescriptors.erase(iterator);
          iterator = INotifyWatchDescriptors.begin();
       }
@@ -166,32 +167,39 @@ void UniversalImporter::handleINotifyEvent(const boost::system::error_code& ec,
    unsigned long p = 0;
    while(p < length) {
       const inotify_event* event = (const inotify_event*)&INotifyEventBuffer[p];
+      std::map<int, std::filesystem::path>::const_iterator found = INotifyWatchDescriptors.find(event->wd);
+      assert(found != INotifyWatchDescriptors.end());
+      const std::filesystem::path& directory = found->second;
 
       // ====== Event for directory =========================================
       if(event->mask & IN_ISDIR) {
+         const std::filesystem::path dataDirectory = directory / event->name;
          if(event->mask & IN_CREATE) {
-            const std::filesystem::path importFilePath = Configuration.getImportFilePath() / event->name;
-            HPCT_LOG(trace) << "INotify for new data directory: " << importFilePath;
-            const int wd = inotify_add_watch(INotifyFD, importFilePath.c_str(),
+            HPCT_LOG(trace) << "INotify for new data directory: " << dataDirectory;
+            const int wd = inotify_add_watch(INotifyFD, dataDirectory.c_str(),
                                              IN_CREATE | IN_DELETE | IN_CLOSE_WRITE | IN_MOVED_TO);
-            INotifyWatchDescriptors.insert(wd);
+            if(wd >= 0) {
+               INotifyWatchDescriptors.insert(std::pair<int, std::filesystem::path>(wd, dataDirectory));
+            }
+            else {
+               HPCT_LOG(error) << "Adding INotify watch for " << dataDirectory
+                               << " failed: " << strerror(errno);
+            }
          }
          else if(event->mask & IN_DELETE) {
-            const std::filesystem::path importFilePath = Configuration.getImportFilePath() / event->name;
-            HPCT_LOG(trace) << "INotify for deleted data directory: " << importFilePath;
+            HPCT_LOG(trace) << "INotify for deleted data directory: " << dataDirectory;
             INotifyWatchDescriptors.erase(event->wd);
          }
       }
 
       // ====== Event for file ==============================================
       else {
+         const std::filesystem::path dataFile = directory / event->name;
          if(event->mask & (IN_CLOSE_WRITE | IN_MOVED_TO)) {
-            const std::filesystem::path dataFile(event->name);
             HPCT_LOG(trace) << "INotify event for new file " << dataFile;
             addFile(dataFile);
          }
          else if(event->mask & IN_DELETE) {
-            const std::filesystem::path dataFile(event->name);
             HPCT_LOG(trace) << "INotify event for deleted file " << dataFile;
             removeFile(dataFile);
          }
@@ -274,7 +282,13 @@ void UniversalImporter::lookForFiles(const std::filesystem::path& importFilePath
 #ifdef __linux
          const int wd = inotify_add_watch(INotifyFD, dirEntry.path().c_str(),
                                           IN_CREATE | IN_DELETE | IN_CLOSE_WRITE | IN_MOVED_TO);
-         INotifyWatchDescriptors.insert(wd);
+         if(wd >= 0) {
+         INotifyWatchDescriptors.insert(std::pair<int, std::filesystem::path>(wd, dirEntry.path()));
+         }
+         else {
+            HPCT_LOG(error) << "Adding INotify watch for " << dirEntry.path()
+                            << " failed: " << strerror(errno);
+         }
 #endif
          if(maxDepth > 1) {
             lookForFiles(dirEntry, maxDepth - 1);

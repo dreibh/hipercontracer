@@ -88,7 +88,7 @@ class UniversalImporter
    std::map<const WorkerMapping, Worker*> WorkerMap;
 #ifdef __linux__
    int                                    INotifyFD;
-   std::set<int>                          INotifyWatchDescriptors;
+   std::map<int, std::filesystem::path>   INotifyWatchDescriptors;
    boost::asio::posix::stream_descriptor  INotifyStream;
    char                                   INotifyEventBuffer[65536 * sizeof(inotify_event)];
 #endif
