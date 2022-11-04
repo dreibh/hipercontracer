@@ -122,7 +122,7 @@ void MariaDBClient::handleSQLException(const sql::SQLException& exception,
                                std::to_string(exception.getErrorCode()) + ": " +
                                exception.what();
    HPCT_LOG(error) << what;
-   std::cerr << statement;
+   HPCT_LOG(debug) << statement;
 
    // ====== Throw exception ================================================
    const std::string e = exception.getSQLState().substr(0, 2);

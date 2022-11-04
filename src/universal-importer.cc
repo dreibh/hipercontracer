@@ -175,43 +175,43 @@ void UniversalImporter::handleINotifyEvent(const boost::system::error_code& ec,
    while(p < length) {
       const inotify_event* event = (const inotify_event*)&INotifyEventBuffer[p];
       std::map<int, std::filesystem::path>::const_iterator found = INotifyWatchDescriptors.find(event->wd);
-      assert(found != INotifyWatchDescriptors.end());
-      const std::filesystem::path& directory = found->second;
+      if(found != INotifyWatchDescriptors.end()) {
+         const std::filesystem::path& directory = found->second;
 
-      // ====== Event for directory =========================================
-      if(event->mask & IN_ISDIR) {
-         const std::filesystem::path dataDirectory = directory / event->name;
-         if(event->mask & IN_CREATE) {
-            HPCT_LOG(trace) << "INotify for new data directory: " << dataDirectory;
-            const int wd = inotify_add_watch(INotifyFD, dataDirectory.c_str(),
-                                             IN_CREATE | IN_DELETE | IN_CLOSE_WRITE | IN_MOVED_TO);
-            if(wd >= 0) {
-               INotifyWatchDescriptors.insert(std::pair<int, std::filesystem::path>(wd, dataDirectory));
+         // ====== Event for directory ======================================
+         if(event->mask & IN_ISDIR) {
+            const std::filesystem::path dataDirectory = directory / event->name;
+            if(event->mask & IN_CREATE) {
+               HPCT_LOG(trace) << "INotify for new data directory: " << dataDirectory;
+               const int wd = inotify_add_watch(INotifyFD, dataDirectory.c_str(),
+                                                IN_CREATE | IN_DELETE | IN_CLOSE_WRITE | IN_MOVED_TO);
+               if(wd >= 0) {
+                  INotifyWatchDescriptors.insert(std::pair<int, std::filesystem::path>(wd, dataDirectory));
+               }
+               else {
+                  HPCT_LOG(error) << "Adding INotify watch for " << dataDirectory
+                                 << " failed: " << strerror(errno);
+               }
             }
-            else {
-               HPCT_LOG(error) << "Adding INotify watch for " << dataDirectory
-                               << " failed: " << strerror(errno);
+            else if(event->mask & IN_DELETE) {
+               HPCT_LOG(trace) << "INotify for deleted data directory: " << dataDirectory;
+               INotifyWatchDescriptors.erase(event->wd);
             }
          }
-         else if(event->mask & IN_DELETE) {
-            HPCT_LOG(trace) << "INotify for deleted data directory: " << dataDirectory;
-            INotifyWatchDescriptors.erase(event->wd);
+
+         // ====== Event for file ===========================================
+         else {
+            const std::filesystem::path dataFile = directory / event->name;
+            if(event->mask & (IN_CLOSE_WRITE | IN_MOVED_TO)) {
+               HPCT_LOG(trace) << "INotify event for new file " << dataFile;
+               addFile(dataFile);
+            }
+            else if(event->mask & IN_DELETE) {
+               HPCT_LOG(trace) << "INotify event for deleted file " << dataFile;
+               removeFile(dataFile);
+            }
          }
       }
-
-      // ====== Event for file ==============================================
-      else {
-         const std::filesystem::path dataFile = directory / event->name;
-         if(event->mask & (IN_CLOSE_WRITE | IN_MOVED_TO)) {
-            HPCT_LOG(trace) << "INotify event for new file " << dataFile;
-            addFile(dataFile);
-         }
-         else if(event->mask & IN_DELETE) {
-            HPCT_LOG(trace) << "INotify event for deleted file " << dataFile;
-            removeFile(dataFile);
-         }
-      }
-
       p += sizeof(inotify_event) + event->len;
    }
 
