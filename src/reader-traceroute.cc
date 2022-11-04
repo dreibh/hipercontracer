@@ -310,11 +310,11 @@ void TracerouteReader::parseContents(
 // ###### Print reader status ###############################################
 void TracerouteReader::printStatus(std::ostream& os)
 {
-   os << "Traceroute:" << std::endl;
+   os << getIdentification() << ":\n";
    for(unsigned int w = 0; w < Workers; w++) {
-      os << " - Work Queue #" << w + 1 << ": " << DataFileSet[w].size() << std::endl;
-      for(const InputFileEntry& inputFileEntry : DataFileSet[w]) {
-         os << "  - " <<  inputFileEntry << std::endl;
-      }
+      os << " - Work Queue #" << w + 1 << ": " << DataFileSet[w].size() << "\n";
+      // for(const InputFileEntry& inputFileEntry : DataFileSet[w]) {
+      //    os << "  - " <<  inputFileEntry << "\n";
+      // }
    }
 }
