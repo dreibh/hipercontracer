@@ -48,7 +48,8 @@ class UniversalImporter
 {
    public:
    UniversalImporter(boost::asio::io_service&     ioService,
-                     const DatabaseConfiguration& databaseConfiguration);
+                     const DatabaseConfiguration& databaseConfiguration,
+                     const unsigned int           statusTimerInterval = 60);
    ~UniversalImporter();
 
    void addReader(ReaderBase&          reader,
@@ -72,6 +73,7 @@ class UniversalImporter
                      const unsigned int           maxDepth);
    bool addFile(const std::filesystem::path& dataFile);
    bool removeFile(const std::filesystem::path& dataFile);
+   void handleStatusTimer(const boost::system::error_code& errorCode);
 
    struct WorkerMapping {
       ReaderBase*  Reader;
@@ -86,6 +88,8 @@ class UniversalImporter
    boost::asio::signal_set                Signals;
    std::list<ReaderBase*>                 ReaderList;
    std::map<const WorkerMapping, Worker*> WorkerMap;
+   boost::asio::deadline_timer            StatusTimer;
+   const boost::posix_time::seconds       StatusTimerInterval;
 #ifdef __linux__
    int                                    INotifyFD;
    std::map<int, std::filesystem::path>   INotifyWatchDescriptors;

@@ -55,21 +55,28 @@ bool operator<(const UniversalImporter::WorkerMapping& a,
 
 // ###### Constructor #######################################################
 UniversalImporter::UniversalImporter(boost::asio::io_service&     ioService,
-                                     const DatabaseConfiguration& databaseConfiguration)
+                                     const DatabaseConfiguration& databaseConfiguration,
+                                     const unsigned int           statusTimerInterval)
  : IOService(ioService),
    Configuration(databaseConfiguration),
    Signals(IOService, SIGINT, SIGTERM),
+   StatusTimer(IOService),
+   StatusTimerInterval(boost::posix_time::seconds(statusTimerInterval)),
    INotifyStream(IOService)
 {
 #ifdef __linux__
    INotifyFD = -1;
 #endif
+   StatusTimer.expires_from_now(StatusTimerInterval);
+   StatusTimer.async_wait(std::bind(&UniversalImporter::handleStatusTimer, this,
+                                    std::placeholders::_1));
 }
 
 
 // ###### Destructor ########################################################
 UniversalImporter::~UniversalImporter()
 {
+   StatusTimer.cancel();
    stop();
 }
 
@@ -337,6 +344,22 @@ bool UniversalImporter::removeFile(const std::filesystem::path& dataFile)
       }
    }
    return false;
+}
+
+
+// ###### Show status #######################################################
+void UniversalImporter::handleStatusTimer(const boost::system::error_code& errorCode)
+{
+   if(!errorCode) {
+      std::stringstream ss("Importer status:\n");
+      for(ReaderBase* reader : ReaderList) {
+         reader->printStatus(ss);
+      }
+      HPCT_LOG(info) << ss.str();
+      StatusTimer.expires_from_now(StatusTimerInterval);
+      StatusTimer.async_wait(std::bind(&UniversalImporter::handleStatusTimer, this,
+                                       std::placeholders::_1));
+   }
 }
 
 

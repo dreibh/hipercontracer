@@ -97,7 +97,8 @@ void NorNetEdgeSpeedTestReader::parseContents(
         const std::filesystem::path&         dataFile,
         boost::iostreams::filtering_istream& dataStream)
 {
-   const DatabaseBackendType backend = databaseClient.getBackend();
+   Statement&                statement = databaseClient.getStatement("insert_measurement_data", false, true);
+   const DatabaseBackendType backend   = databaseClient.getBackend();
    static const unsigned int NorNetEdgeSpeedTestColumns   = 4;
    static const char         NorNetEdgeSpeedTestDelimiter = '\t';
 
@@ -124,15 +125,16 @@ void NorNetEdgeSpeedTestReader::parseContents(
 
       // ====== Generate import statement ===================================
       if(backend & DatabaseBackendType::SQL_Generic) {
-         databaseClient.clearStatement();
-         databaseClient.getStatement()
-            << "'CALL insert_measurement_data("
-            << "'" << tuple[0] << "', "
-            << std::stoul(tuple[1]) << ", "
-            << std::stoul(tuple[2]) << ", "
-            << "'" << tuple[3] << "')";
-         databaseClient.executeStatement();
-         databaseClient.clearStatement();
+         statement << "CALL insert_measurement_data";
+         statement.beginRow();
+         statement
+            << statement.quote(tuple[0]) << statement.sep()
+            << std::stoul(tuple[1])      << statement.sep()
+            << std::stoul(tuple[2])      << statement.sep()
+            << statement.quote(tuple[3]);
+         statement.endRow();
+         databaseClient.executeUpdate(statement);
+         databaseClient.commit();
          rows++;
       }
       else {

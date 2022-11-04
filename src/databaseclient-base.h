@@ -32,9 +32,98 @@
 #ifndef DATABASECLIENT_BASE_H
 #define DATABASECLIENT_BASE_H
 
-#include <iostream>
+#include <sstream>
 
 #include "database-configuration.h"
+
+
+class Statement : public std::stringstream
+{
+   public:
+   Statement(const DatabaseBackendType backend);
+   ~Statement();
+
+   inline DatabaseBackendType getBackend() const {
+      return Backend;
+   }
+
+   inline void clear() {
+      str(std::string());
+      Rows    = 0;
+      InTuple = false;
+   }
+
+   inline bool isEmpty() const {
+      return str().size() == 0;
+   }
+
+   inline bool isValid() const {
+      return (!InTuple) && (Rows > 0);
+   }
+
+   inline size_t getRows() const {
+      return Rows;
+   }
+
+   inline void beginRow() {
+      assert(!InTuple);
+      InTuple = true;
+      if(Backend & DatabaseBackendType::SQL_Generic) {
+         *this << ((Rows == 0) ? "\n(" : ",\n(");
+      }
+      else if(Backend & DatabaseBackendType::NoSQL_Generic) {
+         *this << ((Rows == 0) ? "\n{" : ",\n{");
+      }
+      else {
+         assert(false);
+      }
+   }
+
+   inline const char* sep() const {
+      assert(InTuple);
+      if(Backend & DatabaseBackendType::SQL_Generic) {
+         return ",";
+      }
+      else {
+         assert(false);
+      }
+   }
+
+   inline std::string quote(const std::string& string) const {
+      assert(InTuple);
+      if(Backend & DatabaseBackendType::SQL_Generic) {
+         return "'" + string + "'";
+      }
+      else if(Backend & DatabaseBackendType::NoSQL_Generic) {
+         return "\"" + string + "\"";
+      }
+      else {
+         assert(false);
+      }
+   }
+
+   inline void endRow() {
+      assert(InTuple);
+      InTuple = false;
+      Rows++;
+      if(Backend & DatabaseBackendType::SQL_Generic) {
+         *this << ")";
+      }
+      else if(Backend & DatabaseBackendType::NoSQL_Generic) {
+         *this << "}";
+      }
+      else {
+         assert(false);
+      }
+   }
+
+   friend std::ostream& operator<<(std::ostream& os, const Statement& statement);
+
+   private:
+   const DatabaseBackendType Backend;
+   size_t                    Rows;
+   bool                      InTuple;
+};
 
 
 class DatabaseClientBase
@@ -49,20 +138,25 @@ class DatabaseClientBase
    virtual void reconnect() = 0;
 
    virtual void startTransaction() = 0;
-   virtual void execute(const std::string& statement) = 0;
+   virtual void executeUpdate(const std::string& statement) = 0;
    virtual void endTransaction(const bool commit) = 0;
 
    inline void commit()   { endTransaction(true);  }
    inline void rollback() { endTransaction(false); }
 
-   inline void clearStatement()             { Statement.str(std::string());               }
-   inline bool statementIsEmpty() const     { return Statement.str().size() == 0;         }
-   inline std::stringstream& getStatement() { return Statement;                           }
-   inline void executeStatement()           { execute(Statement.str()); clearStatement(); }
+   inline void executeUpdate(Statement& statement) {
+      assert(statement.isValid());
+      executeUpdate(statement.str());
+      statement.clear();
+   }
+
+   Statement& getStatement(const std::string& name,
+                           const bool         mustExist      = true,
+                           const bool         clearStatement = false);
 
    protected:
-   const DatabaseConfiguration& Configuration;
-   std::stringstream            Statement;
+   const DatabaseConfiguration&      Configuration;
+   std::map<std::string, Statement*> StatementMap;
 };
 
 #endif

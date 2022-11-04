@@ -33,6 +33,34 @@
 
 
 // ###### Constructor #######################################################
+Statement::Statement(const DatabaseBackendType backend)
+   : Backend(backend)
+{
+   Rows    = 0;
+   InTuple = false;
+}
+
+
+// ###### Destructor ########################################################
+Statement::~Statement()
+{
+}
+
+
+// ###### << operator #######################################################
+std::ostream& operator<<(std::ostream& os, const Statement& statement)
+{
+   if(statement.isEmpty()) {
+      os << "(empty)";
+   }
+   else {
+      os << statement.str();
+   }
+   return os;
+}
+
+
+// ###### Constructor #######################################################
 DatabaseClientBase::DatabaseClientBase(const DatabaseConfiguration& configuration)
    : Configuration(configuration)
 {
@@ -42,4 +70,33 @@ DatabaseClientBase::DatabaseClientBase(const DatabaseConfiguration& configuratio
 // ###### Destructor ########################################################
 DatabaseClientBase::~DatabaseClientBase()
 {
+   std::map<std::string, Statement*>::iterator iterator = StatementMap.begin();
+   while(iterator != StatementMap.end()) {
+      delete iterator->second;
+      StatementMap.erase(iterator);
+      iterator = StatementMap.begin();
+   }
+}
+
+
+// ###### Get or create new statement #######################################
+Statement& DatabaseClientBase::getStatement(const std::string& name,
+                                            const bool         mustExist,
+                                            const bool         clearStatement)
+{
+   Statement* statement;
+   std::map<std::string, Statement*>::iterator found = StatementMap.find(name);
+   if(found == StatementMap.end()) {
+      assert(mustExist == false);
+      statement = new Statement(getBackend());
+      assert(statement != nullptr);
+      StatementMap.insert(std::pair<std::string, Statement*>(name, statement));
+   }
+   else {
+      statement = found->second;
+      if(clearStatement) {
+         statement->clear();
+      }
+   }
+   return *statement;
 }

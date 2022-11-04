@@ -53,8 +53,11 @@ class MariaDBClient : public DatabaseClientBase
    virtual void reconnect();
 
    virtual void startTransaction();
-   virtual void execute(const std::string& statement);
+   virtual void executeUpdate(const std::string& statement);
    virtual void endTransaction(const bool commit);
+
+   inline sql::Driver*     getDriver()     { return Driver;     }
+   inline sql::Connection* getConnection() { return Connection; }
 
    private:
    void handleSQLException(const sql::SQLException& exception,

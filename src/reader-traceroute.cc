@@ -206,11 +206,14 @@ void TracerouteReader::beginParsing(DatabaseClientBase& databaseClient,
 
    // ====== Generate import statement ======================================
    const DatabaseBackendType backend = databaseClient.getBackend();
+   Statement& statement              = databaseClient.getStatement("Traceroute", false, true);
    if(backend & DatabaseBackendType::SQL_Generic) {
-//       assert(databaseClient.statementIsEmpty());
-//       databaseClient.getStatement()
-//          << "INSERT INTO " << Table_measurement_generic_data
-//          << "(ts, mi_id, seq, xml_data, crc, stats) VALUES \n";
+//       statement
+//          << "INSERT INTO " << Table
+//          << " (TimeStamp, FromIP, ToIP, Checksum, PktSize, TC, Status, RTT) VALUES";
+   }
+   else if(backend & DatabaseBackendType::NoSQL_Generic) {
+      statement << "db['" << Table << "'].insert(";
    }
    else {
       throw ImporterLogicException("Unknown output format");
@@ -224,15 +227,23 @@ bool TracerouteReader::finishParsing(DatabaseClientBase& databaseClient,
 {
    if(rows > 0) {
       // ====== Generate import statement ===================================
-      const DatabaseBackendType backend = databaseClient.getBackend();
+      const DatabaseBackendType backend   = databaseClient.getBackend();
+      Statement&                statement = databaseClient.getStatement("Traceroute");
       if(backend & DatabaseBackendType::SQL_Generic) {
          if(rows > 0) {
-//             databaseClient.getStatement()
-//                << "\nON DUPLICATE KEY UPDATE stats=stats;\n";
-//             databaseClient.executeStatement();
+            databaseClient.executeUpdate(statement);
          }
          else {
-            databaseClient.clearStatement();
+            statement.clear();
+         }
+      }
+      else if(backend & DatabaseBackendType::NoSQL_Generic) {
+         if(rows > 0) {
+            statement << ")";
+            databaseClient.executeUpdate(statement);
+         }
+         else {
+            statement.clear();
          }
       }
       else {

@@ -127,7 +127,7 @@ void MariaDBClient::handleSQLException(const sql::SQLException& exception,
    // ====== Throw exception ================================================
    const std::string e = exception.getSQLState().substr(0, 2);
    // Integrity Error, according to mysql/connector/errors.py
-   if( (e == "23") || (e == "XA")) {
+   if( (e == "23") || (e == "22") || (e == "XA")) {
       // For this type, the input file should be moved to the bad directory.
       throw ImporterDatabaseDataErrorException(what);
    }
@@ -176,10 +176,10 @@ void MariaDBClient::endTransaction(const bool commit)
 
 
 // ###### Execute statement #################################################
-void MariaDBClient::execute(const std::string& statement)
+void MariaDBClient::executeUpdate(const std::string& statement)
 {
    try {
-      Statement->execute(statement);
+      Statement->executeUpdate(statement);
    }
    catch(const sql::SQLException& exception) {
       handleSQLException(exception, "Execute", statement);

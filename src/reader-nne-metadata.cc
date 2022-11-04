@@ -271,25 +271,6 @@ unsigned int NorNetEdgeMetadataReader::fetchFiles(std::list<std::filesystem::pat
 }
 
 
-// ###### Begin parsing #####################################################
-void NorNetEdgeMetadataReader::beginParsing(DatabaseClientBase& databaseClient,
-                                            unsigned long long& rows)
-{
-   rows = 0;
-}
-
-
-// ###### Finish parsing ####################################################
-bool NorNetEdgeMetadataReader::finishParsing(DatabaseClientBase& databaseClient,
-                                             unsigned long long& rows)
-{
-   if(rows > 0) {
-      return true;
-   }
-   return false;
-}
-
-
 // ###### Helper function to calculate "min" value ##########################
 template<typename TimePoint> TimePoint NorNetEdgeMetadataReader::makeMin(const TimePoint& timePoint)
 {
@@ -421,6 +402,46 @@ unsigned int NorNetEdgeMetadataReader::getNodeIDFromPath(const std::filesystem::
 }
 
 
+// ###### Begin parsing #####################################################
+void NorNetEdgeMetadataReader::beginParsing(DatabaseClientBase& databaseClient,
+                                            unsigned long long& rows)
+{
+   rows = 0;
+
+   const DatabaseBackendType backend = databaseClient.getBackend();
+   if(backend & DatabaseBackendType::SQL_Generic) {
+      Statement& eventStatement = databaseClient.getStatement("event", false, true);
+      eventStatement
+         << "INSERT INTO " << Table_event
+         << "(ts, node_id, network_id, metadata_key, metadata_value, extra, min) VALUES";
+      Statement& bins1minStatement = databaseClient.getStatement("bins1min", false, true);
+      bins1minStatement
+          << "INSERT INTO " << Table_bins1min
+          << "(ts, delta, node_id, network_id, metadata_key, metadata_value) VALUES";
+   }
+}
+
+
+// ###### Finish parsing ####################################################
+bool NorNetEdgeMetadataReader::finishParsing(DatabaseClientBase& databaseClient,
+                                             unsigned long long& rows)
+{
+   Statement& eventStatement    = databaseClient.getStatement("event");
+   Statement& bins1minStatement = databaseClient.getStatement("bins1min");
+   assert(eventStatement.getRows() + bins1minStatement.getRows() == rows);
+   if(rows > 0) {
+      if(eventStatement.isValid()) {
+         databaseClient.executeUpdate(eventStatement);
+      }
+      if(bins1minStatement.isValid()) {
+         databaseClient.executeUpdate(bins1minStatement);
+      }
+      return true;
+   }
+   return false;
+}
+
+
 // ###### Parse input file ##################################################
 void NorNetEdgeMetadataReader::parseContents(
         DatabaseClientBase&                  databaseClient,
@@ -428,10 +449,12 @@ void NorNetEdgeMetadataReader::parseContents(
         const std::filesystem::path&         dataFile,
         boost::iostreams::filtering_istream& dataStream)
 {
-   const DatabaseBackendType   backend = databaseClient.getBackend();
-   boost::property_tree::ptree propertyTreeRoot;
+   const DatabaseBackendType backend           = databaseClient.getBackend();
+   Statement&                eventStatement    = databaseClient.getStatement("event");
+   Statement&                bins1minStatement = databaseClient.getStatement("bins1min");
 
    try {
+      boost::property_tree::ptree propertyTreeRoot;
       boost::property_tree::read_json(dataStream, propertyTreeRoot);
       // dumpPropertyTree(std::cerr, propertyTreeRoot);
 
@@ -498,42 +521,36 @@ void NorNetEdgeMetadataReader::parseContents(
          const std::string  metadataKey   = parseMetadataKey(item, dataFile);
          const std::string  metadataValue = parseMetadataValue(item, dataFile);
 
-         if(itemType == "bins-1min") {
-            const long long delta = parseDelta(item, dataFile);
-            if(backend & DatabaseBackendType::SQL_Generic) {
-               databaseClient.clearStatement();
-               databaseClient.getStatement()
-                  << "INSERT INTO " << Table_bins1min
-                  << "(ts, delta, node_id, network_id, metadata_key, metadata_value) VALUES ("
-                  << "'" << timePointToString<std::chrono::time_point<std::chrono::high_resolution_clock>>(ts) << "', "
-                  << delta                << ", "
-                  << nodeID               << ", "
-                  << networkID            << ", "
-                  << "'" << metadataKey   << "', "
-                  << "'" << metadataValue << "' )\n";
-               databaseClient.executeStatement();
-               databaseClient.clearStatement();
-               rows++;
-            }
-         }
-         else if(itemType == "event") {
+         if(itemType == "event") {
             const std::chrono::time_point<std::chrono::high_resolution_clock> min =
                makeMin<std::chrono::time_point<std::chrono::high_resolution_clock>>(ts);
             const std::string  extra = parseExtra(item, dataFile);
             if(backend & DatabaseBackendType::SQL_Generic) {
-               databaseClient.clearStatement();
-               databaseClient.getStatement()
-                  << "INSERT INTO " << Table_event
-                  << "(ts, node_id, network_id, metadata_key, metadata_value, extra, min) VALUES ("
-                  << "'" << timePointToString<std::chrono::time_point<std::chrono::high_resolution_clock>>(ts, 6) << "', "
-                  << nodeID               << ", "
-                  << networkID            << ", "
-                  << "'" << metadataKey   << "', "
-                  << "'" << metadataValue << "', "
-                  << "'" << extra         << "', "
-                  << "'" << timePointToString<std::chrono::time_point<std::chrono::high_resolution_clock>>(min) << "')\n";   // FROM_UNIXTIME(UNIX_TIMESTAMP(ts) DIV 60*60)
-               databaseClient.executeStatement();
-               databaseClient.clearStatement();
+               eventStatement.beginRow();
+               eventStatement
+                  << eventStatement.quote(timePointToString<std::chrono::time_point<std::chrono::high_resolution_clock>>(ts, 6)) << eventStatement.sep()
+                  << nodeID                              << eventStatement.sep()
+                  << networkID                           << eventStatement.sep()
+                  << eventStatement.quote(metadataKey)   << eventStatement.sep()
+                  << eventStatement.quote(metadataValue) << eventStatement.sep()
+                  << eventStatement.quote(extra)         << eventStatement.sep()
+                  << eventStatement.quote(timePointToString<std::chrono::time_point<std::chrono::high_resolution_clock>>(min));   // FROM_UNIXTIME(UNIX_TIMESTAMP(ts) DIV 60*60)
+               eventStatement.endRow();
+               rows++;
+            }
+         }
+         else if(itemType == "bins-1min") {
+            const long long delta = parseDelta(item, dataFile);
+            if(backend & DatabaseBackendType::SQL_Generic) {
+               bins1minStatement.beginRow();
+               bins1minStatement
+                  << bins1minStatement.quote(timePointToString<std::chrono::time_point<std::chrono::high_resolution_clock>>(ts)) << bins1minStatement.sep()
+                  << delta                                << bins1minStatement.sep()
+                  << nodeID                               << bins1minStatement.sep()
+                  << networkID                            << bins1minStatement.sep()
+                  << bins1minStatement.quote(metadataKey) << bins1minStatement.sep()
+                  << bins1minStatement.quote(metadataValue);
+               bins1minStatement.endRow();
                rows++;
             }
          }

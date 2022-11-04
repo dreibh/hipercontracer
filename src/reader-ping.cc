@@ -74,57 +74,6 @@ const std::regex& PingReader::getFileNameRegExp() const
 }
 
 
-// ###### Begin parsing #####################################################
-void PingReader::beginParsing(DatabaseClientBase& databaseClient,
-                              unsigned long long& rows)
-{
-   rows = 0;
-
-   // ====== Generate import statement ======================================
-   const DatabaseBackendType backend = databaseClient.getBackend();
-   if(backend & DatabaseBackendType::SQL_Generic) {
-      databaseClient.clearStatement();
-      databaseClient.getStatement()
-         << "INSERT INTO " << Table
-         << " (TimeStamp, FromIP, ToIP, Checksum, PktSize, TC, Status, RTT) VALUES\n";
-   }
-   else if(backend & DatabaseBackendType::NoSQL_MongoDB) {
-      // Nothing to do here!
-   }
-   else {
-      throw ImporterLogicException("Unknown output format");
-   }
-}
-
-
-// ###### Finish parsing ####################################################
-bool PingReader::finishParsing(DatabaseClientBase& databaseClient,
-                               unsigned long long& rows)
-{
-   if(rows > 0) {
-      // ====== Generate import statement ===================================
-      const DatabaseBackendType backend = databaseClient.getBackend();
-      if(backend & DatabaseBackendType::SQL_Generic) {
-         if(rows > 0) {
-            databaseClient.getStatement() << "\n";
-            databaseClient.executeStatement();
-         }
-         else {
-            databaseClient.clearStatement();
-         }
-      }
-      else if(backend & DatabaseBackendType::NoSQL_MongoDB) {
-         // Nothing to do here!
-      }
-      else {
-         throw ImporterLogicException("Unknown output format");
-      }
-      return true;
-   }
-   return false;
-}
-
-
 // ###### Parse time stamp ##################################################
 template<typename TimePoint> TimePoint PingReader::parseTimeStamp(
                                           const std::string&           value,
@@ -215,6 +164,63 @@ uint8_t PingReader::parseTrafficClass(const std::string&           value,
 }
 
 
+// ###### Begin parsing #####################################################
+void PingReader::beginParsing(DatabaseClientBase& databaseClient,
+                              unsigned long long& rows)
+{
+   rows = 0;
+
+   // ====== Generate import statement ======================================
+   const DatabaseBackendType backend = databaseClient.getBackend();
+   Statement& statement              = databaseClient.getStatement("Ping", false, true);
+   if(backend & DatabaseBackendType::SQL_Generic) {
+      statement
+         << "INSERT INTO " << Table
+         << " (TimeStamp, FromIP, ToIP, Checksum, PktSize, TC, Status, RTT) VALUES";
+   }
+   else if(backend & DatabaseBackendType::NoSQL_Generic) {
+      statement << "db['" << Table << "'].insert(";
+   }
+   else {
+      throw ImporterLogicException("Unknown output format");
+   }
+}
+
+
+// ###### Finish parsing ####################################################
+bool PingReader::finishParsing(DatabaseClientBase& databaseClient,
+                               unsigned long long& rows)
+{
+   if(rows > 0) {
+      // ====== Generate import statement ===================================
+      const DatabaseBackendType backend   = databaseClient.getBackend();
+      Statement&                statement = databaseClient.getStatement("Ping");
+      if(backend & DatabaseBackendType::SQL_Generic) {
+         if(rows > 0) {
+            databaseClient.executeUpdate(statement);
+         }
+         else {
+            statement.clear();
+         }
+      }
+      else if(backend & DatabaseBackendType::NoSQL_Generic) {
+         if(rows > 0) {
+            statement << ")";
+            databaseClient.executeUpdate(statement);
+         }
+         else {
+            statement.clear();
+         }
+      }
+      else {
+         throw ImporterLogicException("Unknown output format");
+      }
+      return true;
+   }
+   return false;
+}
+
+
 // ###### Parse input file ##################################################
 void PingReader::parseContents(
         DatabaseClientBase&                  databaseClient,
@@ -222,7 +228,8 @@ void PingReader::parseContents(
         const std::filesystem::path&         dataFile,
         boost::iostreams::filtering_istream& dataStream)
 {
-   const DatabaseBackendType backend = databaseClient.getBackend();
+   Statement&                statement = databaseClient.getStatement("Ping");
+   const DatabaseBackendType backend   = databaseClient.getBackend();
    static const unsigned int PingMinColumns = 7;
    static const unsigned int PingMaxColumns = 9;
    static const char         PingDelimiter  = ' ';
@@ -266,32 +273,32 @@ void PingReader::parseContents(
          }
 
          if(backend & DatabaseBackendType::SQL_Generic) {
-            if(rows > 0) {
-               databaseClient.getStatement() << ",\n";
-            }
-            databaseClient.getStatement()
-               << "('" << timePointToString<std::chrono::time_point<std::chrono::high_resolution_clock>>(timeStamp, 6) << "', "
-               << "'" << sourceIP            << "', "
-               << "'" << destinationIP       << "', "
-               << checksum                   << ", "
-               << packetSize                 << ", "
-               << (unsigned int)trafficClass << ", "
-               << status                     << ", "
-               << rtt                        << ")";
+            statement.beginRow();
+            statement
+               << statement.quote(timePointToString<std::chrono::time_point<std::chrono::high_resolution_clock>>(timeStamp, 6)) << statement.sep()
+               << statement.quote(sourceIP.to_string())      << statement.sep()
+               << statement.quote(destinationIP.to_string()) << statement.sep()
+               << checksum                   << statement.sep()
+               << packetSize                 << statement.sep()
+               << (unsigned int)trafficClass << statement.sep()
+               << status                     << statement.sep()
+               << rtt;
+            statement.endRow();
             rows++;
          }
          else if(backend & DatabaseBackendType::NoSQL_Generic) {
             assert(false);   // FIXME packet addresses!
-            databaseClient.getStatement()
-               << "db['" << Table << "'].insert({"
-               << "'timestamp': "   << timePointToMicroseconds<std::chrono::time_point<std::chrono::high_resolution_clock>>(timeStamp) << ", "
-               << "'source': "      << 0            << ", "
-               << "'destination': " << 0            << ", "
-               << "'checksum': "    << checksum     << ", "
-               << "'pktsize': "     << packetSize   << ", "
-               << "'tc': "          << trafficClass << ", "
-               << "'status': "      << status       << ", "
-               << "'rtt': "         << rtt          << "});\n";
+            statement.beginRow();
+            statement
+               << "'timestamp': "   << timePointToMicroseconds<std::chrono::time_point<std::chrono::high_resolution_clock>>(timeStamp) << statement.sep()
+               << "'source': "      << 0            << statement.sep()
+               << "'destination': " << 0            << statement.sep()
+               << "'checksum': "    << checksum     << statement.sep()
+               << "'pktsize': "     << packetSize   << statement.sep()
+               << "'tc': "          << trafficClass << statement.sep()
+               << "'status': "      << status       << statement.sep()
+               << "'rtt': "         << rtt;
+            statement.endRow();
             rows++;
          }
          else {

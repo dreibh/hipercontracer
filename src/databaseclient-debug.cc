@@ -32,6 +32,8 @@
 #include "databaseclient-debug.h"
 #include "importer-exception.h"
 
+#include <iostream>
+
 
 // ###### Constructor #######################################################
 DebugClient::DebugClient(const DatabaseConfiguration& configuration)
@@ -94,7 +96,7 @@ void DebugClient::endTransaction(const bool commit)
 
 
 // ###### Execute statement #################################################
-void DebugClient::execute(const std::string& statement)
+void DebugClient::executeUpdate(const std::string& statement)
 {
    std::cout << statement;
 }

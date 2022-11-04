@@ -199,10 +199,10 @@ void NorNetEdgePingReader::beginParsing(DatabaseClientBase& databaseClient,
    // ====== Generate import statement ======================================
    const DatabaseBackendType backend = databaseClient.getBackend();
    if(backend & DatabaseBackendType::SQL_Generic) {
-      databaseClient.clearStatement();
-      databaseClient.getStatement()
+      Statement& statement = databaseClient.getStatement("measurement_generic_data", false, true);
+      statement
          << "INSERT INTO " << Table_measurement_generic_data
-         << "(ts, mi_id, seq, xml_data, crc, stats) VALUES \n";
+         << "(ts, mi_id, seq, xml_data, crc, stats) VALUES";
    }
    else {
       throw ImporterLogicException("Unknown output format");
@@ -218,13 +218,13 @@ bool NorNetEdgePingReader::finishParsing(DatabaseClientBase& databaseClient,
       // ====== Generate import statement ===================================
       const DatabaseBackendType backend = databaseClient.getBackend();
       if(backend & DatabaseBackendType::SQL_Generic) {
+         Statement& statement = databaseClient.getStatement("measurement_generic_data");
          if(rows > 0) {
-            databaseClient.getStatement()
-               << "\nON DUPLICATE KEY UPDATE stats=stats;\n";
-            databaseClient.executeStatement();
+            statement << "\nON DUPLICATE KEY UPDATE stats=stats";
+            databaseClient.executeUpdate(statement);
          }
          else {
-            databaseClient.clearStatement();
+            statement.clear();
          }
       }
       else {
@@ -270,16 +270,16 @@ void NorNetEdgePingReader::parseContents(
 
       // ====== Generate import statement ===================================
       if(backend & DatabaseBackendType::SQL_Generic) {
-
-         if(rows > 0) {
-            databaseClient.getStatement() << ",\n";
-         }
-         databaseClient.getStatement()
-            << "("
-            << "'" << tuple[0] << "', "
-            << std::stoul(tuple[1]) << ", "
-            << std::stoul(tuple[2]) << ", "
-            << "'" << tuple[3] << "', CRC32(xml_data), 10 + mi_id MOD 10)";
+         Statement& statement = databaseClient.getStatement("measurement_generic_data");
+         statement.beginRow();
+         statement
+            << statement.quote(tuple[0]) << statement.sep()
+            << std::stoul(tuple[1])      << statement.sep()
+            << std::stoul(tuple[2])      << statement.sep()
+            << statement.quote(tuple[3]) << statement.sep()
+            << "CRC32(xml_data)"         << statement.sep()
+            << "10 + mi_id MOD 10";
+         statement.endRow();
          rows++;
       }
       else {
