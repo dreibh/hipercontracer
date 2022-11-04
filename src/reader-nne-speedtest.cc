@@ -35,7 +35,7 @@
 #include "tools.h"
 
 
-const std::string NorNetEdgeSpeedTestReader::Identification = "SpeedTest";
+const std::string NorNetEdgeSpeedTestReader::Identification = "NorNetEdgeSpeedTest";
 const std::regex  NorNetEdgeSpeedTestReader::FileNameRegExp = std::regex(
    // Format: speedtest_<MeasurementID>.sdat.<YYYY-MM-DD_HH-MM-SS>.xz
    "^speedtest_([0-9]+)\\.sdat\\.([0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]_[0-9][0-9]-[0-9][0-9]-[0-9][0-9])\\.xz$"

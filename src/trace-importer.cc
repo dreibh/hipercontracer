@@ -103,18 +103,18 @@ int main(int argc, char** argv)
       boost::program_options::notify(vm);
    }
    catch(std::exception& e) {
-      std::cerr << "ERROR: Bad parameter: " << e.what() << std::endl;
+      std::cerr << "ERROR: Bad parameter: " << e.what() << "\n";
       return 1;
    }
 
    if(vm.count("help")) {
-       std::cerr << "Usage: " << argv[0] << " parameters" << std::endl
+       std::cerr << "Usage: " << argv[0] << " parameters\n"
                  << commandLineOptions;
        return 1;
    }
 
    if(pingWorkers + tracerouteWorkers < 1) {
-      std::cerr << "ERROR: At least one worker is needed!" << std::endl;
+      std::cerr << "ERROR: At least one worker is needed!\n";
       return 1;
    }
 

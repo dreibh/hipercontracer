@@ -58,7 +58,7 @@ static void dumpPropertyTree(std::ostream&                      os,
       os << "\"" << propertyTree.data() << "\"";
    }
    else {
-      os << "{" << std::endl;
+      os << "{\n"
       for(boost::property_tree::ptree::const_iterator propertySubTreeIterator = propertyTree.begin();
           propertySubTreeIterator != propertyTree.end(); )  {
          os << indent(level + 1) << "\"" << propertySubTreeIterator->first << "\": ";
@@ -67,7 +67,7 @@ static void dumpPropertyTree(std::ostream&                      os,
          if(propertySubTreeIterator != propertyTree.end()) {
              os << ",";
          }
-         os << std::endl;
+         os << "\n";
       }
       os << indent(level) << "}";
    }
@@ -75,7 +75,7 @@ static void dumpPropertyTree(std::ostream&                      os,
 #endif
 
 
-const std::string NorNetEdgeMetadataReader::Identification = "Metadata";
+const std::string NorNetEdgeMetadataReader::Identification = "NorNetEdgeMetadata";
 const std::regex  NorNetEdgeMetadataReader::FileNameRegExp = std::regex(
    // Format: nne<NodeID>-metadatacollector-<YYYYMMDD>T<HHMMSS>.json
    "^nne([0-9]+)-metadatacollector-([0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]T[0-9][0-9][0-9][0-9][0-9][0-9])\\.json$"
@@ -151,10 +151,10 @@ NorNetEdgeMetadataReader::NorNetEdgeMetadataReader(const DatabaseConfiguration& 
    const std::string ds3 = timePointToString<std::chrono::time_point<std::chrono::high_resolution_clock>>(dp3, 0);
    const std::string ds4 = timePointToString<std::chrono::time_point<std::chrono::high_resolution_clock>>(dp4, 6);
 /*
-   std::cout << t1 << "\t" << ts1 << "\t\t" << ds1 << std::endl;
-   std::cout << t2 << "\t" << ts2 << "\t" << ds2 << std::endl;
-   std::cout << t3 << "\t" << ts3 << "\t\t" << ds3 << std::endl;
-   std::cout << t4 << "\t" << ts4 << "\t" << ds4 << std::endl;
+   std::cout << t1 << "\t" << ts1 << "\t\t" << ds1 << "\n";
+   std::cout << t2 << "\t" << ts2 << "\t" << ds2 << "\n";
+   std::cout << t3 << "\t" << ts3 << "\t\t" << ds3 << "\n";
+   std::cout << t4 << "\t" << ts4 << "\t" << ds4 << "\n";
 */
 
    assert(ts1 == "2022-10-20 10:24:01");
@@ -572,11 +572,11 @@ void NorNetEdgeMetadataReader::parseContents(
 // ###### Print reader status ###############################################
 void NorNetEdgeMetadataReader::printStatus(std::ostream& os)
 {
-   os << "NorNetEdgeMetadata:" << std::endl;
+   os << getIdentification() << ":\n";
    for(unsigned int w = 0; w < Workers; w++) {
-      os << " - Work Queue #" << w + 1 << ": " << DataFileSet[w].size() << std::endl;
+      os << " - Work Queue #" << w + 1 << ": " << DataFileSet[w].size() << "\n";
       // for(const InputFileEntry& inputFileEntry : DataFileSet[w]) {
-      //    os << "  - " <<  inputFileEntry.DataFile << std::endl;
+      //    os << "  - " <<  inputFileEntry << "\n";
       // }
    }
 }

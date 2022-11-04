@@ -35,7 +35,7 @@
 #include "tools.h"
 
 
-const std::string NorNetEdgePingReader::Identification = "UDPPing";
+const std::string NorNetEdgePingReader::Identification = "NorNetEdgePing";
 const std::regex  NorNetEdgePingReader::FileNameRegExp = std::regex(
    // Format: uping_<MeasurementID>.dat.<YYYY-MM-DD_HH-MM-SS>.xz
    "^uping_([0-9]+)\\.dat\\.([0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]_[0-9][0-9]-[0-9][0-9]-[0-9][0-9])\\.xz$"
@@ -295,11 +295,11 @@ void NorNetEdgePingReader::parseContents(
 // ###### Print reader status ###############################################
 void NorNetEdgePingReader::printStatus(std::ostream& os)
 {
-   os << "NorNetEdgePing:" << std::endl;
+   os << getIdentification() << ":\n";
    for(unsigned int w = 0; w < Workers; w++) {
-      os << " - Work Queue #" << w + 1 << ": " << DataFileSet[w].size() << std::endl;
+      os << " - Work Queue #" << w + 1 << ": " << DataFileSet[w].size() << "\n";
       // for(const InputFileEntry& inputFileEntry : DataFileSet[w]) {
-      //    os << "  - " <<  inputFileEntry << std::endl;
+      //    os << "  - " <<  inputFileEntry << "\n";
       // }
    }
 }

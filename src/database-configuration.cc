@@ -148,20 +148,20 @@ bool DatabaseConfiguration::readConfiguration(const std::filesystem::path& confi
 // ###### Print reader status ###############################################
 void DatabaseConfiguration::printConfiguration(std::ostream& os) const
 {
-   os << "Import configuration:"                 << std::endl
-      << "Import File Path = " << ImportFilePath << " (max depth: " << ImportMaxDepth << ")" << std::endl
-      << "Good File Path   = " << GoodFilePath   << std::endl
-      << "Bad File Path    = " << BadFilePath    << std::endl
+   os << "Import configuration:"                 << "\n"
+      << "Import File Path = " << ImportFilePath << " (max depth: " << ImportMaxDepth << ")" << "\n"
+      << "Good File Path   = " << GoodFilePath   << "\n"
+      << "Bad File Path    = " << BadFilePath    << "\n"
 
-      << "Database configuration:"               << std::endl
-      << "Backend          = " << BackendName    << std::endl
-      << "Reconnect Delay  = " << ReconnectDelay << " s" << std::endl
-      << "Server           = " << Server         << std::endl
-      << "Port             = " << Port           << std::endl
-      << "User             = " << User           << std::endl
-      << "Password         = " << ((Password.size() > 0) ? "****************" : "(none)") << std::endl
-      << "CA File          = " << CAFile         << std::endl
-      << "Database         = " << Database       << std::endl;
+      << "Database configuration:"               << "\n"
+      << "Backend          = " << BackendName    << "\n"
+      << "Reconnect Delay  = " << ReconnectDelay << " s" << "\n"
+      << "Server           = " << Server         << "\n"
+      << "Port             = " << Port           << "\n"
+      << "User             = " << User           << "\n"
+      << "Password         = " << ((Password.size() > 0) ? "****************" : "(none)") << "\n"
+      << "CA File          = " << CAFile         << "\n"
+      << "Database         = " << Database       << "\n";
 }
 
 

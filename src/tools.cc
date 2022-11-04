@@ -180,7 +180,7 @@ bool addSourceAddress(std::map<boost::asio::ip::address, std::set<uint8_t>>& arr
             const boost::asio::ip::tcp::resolver::results_type endpoints =
                resolver.resolve(resolver_query, ec);
             if(ec) {
-               std::cerr << "Failed to resolve a DNS name " << addressString << ": " << ec.message() << std::endl;
+               std::cerr << "Failed to resolve a DNS name " << addressString << ": " << ec.message() << "\n";
                exit(1);
             }
             for (boost::asio::ip::tcp::resolver::iterator it = endpoints.cbegin(); it != endpoints.cend(); it++) {
@@ -190,7 +190,7 @@ bool addSourceAddress(std::map<boost::asio::ip::address, std::set<uint8_t>>& arr
             }
             return true;
          }
-         std::cerr << "ERROR: Bad source address " << addressParameters[0] << "!" << std::endl;
+         std::cerr << "ERROR: Bad source address " << addressParameters[0] << "!\n";
          return false;
       }
       std::map<boost::asio::ip::address, std::set<uint8_t>>::iterator found = array.find(address);
@@ -212,7 +212,7 @@ bool addSourceAddress(std::map<boost::asio::ip::address, std::set<uint8_t>>& arr
             if(trafficClass == ~0U) {
                trafficClass = std::strtoul(addressParameters[i].c_str(), nullptr, 16);
                if(trafficClass > 0xff) {
-                  std::cerr << "ERROR: Bad traffic class " << addressParameters[i] << "!" << std::endl;
+                  std::cerr << "ERROR: Bad traffic class " << addressParameters[i] << "!\n";
                   return false;
                }
             }
@@ -224,7 +224,7 @@ bool addSourceAddress(std::map<boost::asio::ip::address, std::set<uint8_t>>& arr
       }
    }
    else {
-      std::cerr << "ERROR: Invalid source address specification " << addressString << std::endl;
+      std::cerr << "ERROR: Invalid source address specification " << addressString << "\n";
       return false;
    }
    return true;
@@ -248,7 +248,7 @@ bool addDestinationAddress(std::set<boost::asio::ip::address>& array,
          const boost::asio::ip::tcp::resolver::results_type endpoints =
             resolver.resolve(resolver_query, ec);
          if(ec) {
-            std::cerr << "Failed to resolve a DNS name " << addressString << ": " << ec.message() << std::endl;
+            std::cerr << "Failed to resolve a DNS name " << addressString << ": " << ec.message() << "\n";
             exit(1);
          }
          for (boost::asio::ip::tcp::resolver::iterator it = endpoints.cbegin(); it != endpoints.cend(); it++) {
@@ -258,7 +258,7 @@ bool addDestinationAddress(std::set<boost::asio::ip::address>& array,
          }
          return true;
       }
-      std::cerr << "ERROR: Bad destination address " << addressString << "!" << std::endl;
+      std::cerr << "ERROR: Bad destination address " << addressString << "!\n";
       return false;
    }
    array.insert(address);
