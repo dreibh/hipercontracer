@@ -83,10 +83,7 @@ void NorNetEdgeSpeedTestReader::beginParsing(DatabaseClientBase& databaseClient,
 bool NorNetEdgeSpeedTestReader::finishParsing(DatabaseClientBase& databaseClient,
                                               unsigned long long& rows)
 {
-   if(rows > 0) {
-      return true;
-   }
-   return false;
+   return (rows > 0);
 }
 
 
@@ -97,8 +94,8 @@ void NorNetEdgeSpeedTestReader::parseContents(
         const std::filesystem::path&         dataFile,
         boost::iostreams::filtering_istream& dataStream)
 {
-   Statement&                statement = databaseClient.getStatement("insert_measurement_data", false, true);
    const DatabaseBackendType backend   = databaseClient.getBackend();
+   Statement&                statement = databaseClient.getStatement("insert_measurement_data", false, true);
    static const unsigned int NorNetEdgeSpeedTestColumns   = 4;
    static const char         NorNetEdgeSpeedTestDelimiter = '\t';
 
@@ -134,7 +131,6 @@ void NorNetEdgeSpeedTestReader::parseContents(
             << statement.quote(tuple[3]);
          statement.endRow();
          databaseClient.executeUpdate(statement);
-         databaseClient.commit();
          rows++;
       }
       else {

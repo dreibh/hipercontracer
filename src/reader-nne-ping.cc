@@ -196,10 +196,11 @@ void NorNetEdgePingReader::beginParsing(DatabaseClientBase& databaseClient,
 {
    rows = 0;
 
-   // ====== Generate import statement ======================================
    const DatabaseBackendType backend = databaseClient.getBackend();
+   Statement& statement = databaseClient.getStatement("measurement_generic_data", false, true);
+
+   // ====== Generate import statement ======================================
    if(backend & DatabaseBackendType::SQL_Generic) {
-      Statement& statement = databaseClient.getStatement("measurement_generic_data", false, true);
       statement
          << "INSERT INTO " << Table_measurement_generic_data
          << "(ts, mi_id, seq, xml_data, crc, stats) VALUES";
@@ -214,11 +215,13 @@ void NorNetEdgePingReader::beginParsing(DatabaseClientBase& databaseClient,
 bool NorNetEdgePingReader::finishParsing(DatabaseClientBase& databaseClient,
                                          unsigned long long& rows)
 {
+   const DatabaseBackendType backend = databaseClient.getBackend();
+   Statement& statement = databaseClient.getStatement("measurement_generic_data");
+   assert(statement.getRows() == rows);
+
    if(rows > 0) {
       // ====== Generate import statement ===================================
-      const DatabaseBackendType backend = databaseClient.getBackend();
       if(backend & DatabaseBackendType::SQL_Generic) {
-         Statement& statement = databaseClient.getStatement("measurement_generic_data");
          if(rows > 0) {
             statement << "\nON DUPLICATE KEY UPDATE stats=stats";
             databaseClient.executeUpdate(statement);
@@ -244,6 +247,7 @@ void NorNetEdgePingReader::parseContents(
         boost::iostreams::filtering_istream& dataStream)
 {
    const DatabaseBackendType backend = databaseClient.getBackend();
+   Statement& statement              = databaseClient.getStatement("measurement_generic_data");
    static const unsigned int NorNetEdgePingColumns   = 4;
    static const char         NorNetEdgePingDelimiter = '\t';
 
@@ -270,7 +274,6 @@ void NorNetEdgePingReader::parseContents(
 
       // ====== Generate import statement ===================================
       if(backend & DatabaseBackendType::SQL_Generic) {
-         Statement& statement = databaseClient.getStatement("measurement_generic_data");
          statement.beginRow();
          statement
             << statement.quote(tuple[0]) << statement.sep()

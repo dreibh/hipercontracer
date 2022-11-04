@@ -253,45 +253,27 @@ bool Worker::importFiles(const std::list<std::filesystem::path>& dataFileList)
    // }
 
    unsigned long long rows = 0;
+   std::filesystem::path dataFile;
    try {
       // ====== Import multiple input files in one transaction ========
       DatabaseClient.startTransaction();
       Reader.beginParsing(DatabaseClient, rows);
-      for(const std::filesystem::path& dataFile : dataFileList) {
+      for(std::list<std::filesystem::path>::const_iterator iterator = dataFileList.begin();
+          iterator != dataFileList.end(); iterator++) {
+         dataFile = std::filesystem::path(*iterator);
          if(StopRequested) {
             break;
          }
-         try {
-            HPCT_LOG(trace) << getIdentification() << ": Parsing "
-                            <<relative_to(dataFile, Configuration.getImportFilePath()) << " ...";
-            processFile(DatabaseClient, rows, dataFile);
-         }
-         catch(ImporterReaderDataErrorException& exception) {
-            HPCT_LOG(warning) << getIdentification() << ": Import in "
-                              << ((fastMode == true) ? "fast" : "slow") << " mode failed with reader data error: "
-                              << exception.what();
-            DatabaseClient.rollback();
-            if(!fastMode) {
-               finishedFile(dataFile, false);
-            }
-            return false;
-         }
-         catch(ImporterDatabaseDataErrorException& exception) {
-            HPCT_LOG(warning) << getIdentification() << ": Import in "
-                              << ((fastMode == true) ? "fast" : "slow") << " mode failed with database data error: "
-                              << exception.what();
-            DatabaseClient.rollback();
-            if(!fastMode) {
-               finishedFile(dataFile, false);
-            }
-            return false;
-         }
+         HPCT_LOG(trace) << getIdentification() << ": Parsing "
+                           <<relative_to(dataFile, Configuration.getImportFilePath()) << " ...";
+         processFile(DatabaseClient, rows, dataFile);
       }
       if(Reader.finishParsing(DatabaseClient, rows)) {
          DatabaseClient.commit();
          HPCT_LOG(debug) << getIdentification() << ": Committed " << rows << " rows";
       }
       else {
+         DatabaseClient.rollback();
          HPCT_LOG(debug) << getIdentification() << ": Nothing to import!";
       }
 
@@ -302,14 +284,43 @@ bool Worker::importFiles(const std::list<std::filesystem::path>& dataFileList)
       }
       return true;
    }
-   catch(ImporterDatabaseException& exception) {
+
+   //  ====== Error in input data ===========================================
+   catch(ImporterReaderDataErrorException& exception) {
       HPCT_LOG(warning) << getIdentification() << ": Import in "
-                        << ((fastMode == true) ? "fast" : "slow") << " mode failed: "
+                        << ((fastMode == true) ? "fast" : "slow") << " mode failed with reader data error: "
                         << exception.what();
       DatabaseClient.rollback();
+      if( (!fastMode) && (dataFile != std::filesystem::path()) ) {
+         finishedFile(dataFile, false);
+      }
+   }
+
+   //  ====== Error in database data ========================================
+   // NOTE: The database connection is still okay!
+   catch(ImporterDatabaseDataErrorException& exception) {
+      HPCT_LOG(warning) << getIdentification() << ": Import in "
+                        << ((fastMode == true) ? "fast" : "slow") << " mode failed with database data error: "
+                        << exception.what();
+      DatabaseClient.rollback();
+      if(!fastMode) {
+         finishedFile(dataFile, false);
+      }
+   }
+
+   //  ====== Error in database handling ====================================
+   // NOTE: Requires reconnect to database!
+   catch(ImporterDatabaseException& exception) {
+      HPCT_LOG(warning) << getIdentification() << ": Import in "
+                        << ((fastMode == true) ? "fast" : "slow") << " mode failed with database exception: "
+                        << exception.what();
+      DatabaseClient.rollback();
+      HPCT_LOG(warning) << getIdentification() << ": Waiting " << Configuration.getReconnectDelay() << " ...";
       std::this_thread::sleep_for(std::chrono::seconds(Configuration.getReconnectDelay()));
+      HPCT_LOG(warning) << getIdentification() << ": Trying reconnect ...";
       DatabaseClient.reconnect();
    }
+
    return false;
 }
 

@@ -409,8 +409,8 @@ void NorNetEdgeMetadataReader::beginParsing(DatabaseClientBase& databaseClient,
    rows = 0;
 
    const DatabaseBackendType backend = databaseClient.getBackend();
+   Statement& eventStatement = databaseClient.getStatement("event", false, true);
    if(backend & DatabaseBackendType::SQL_Generic) {
-      Statement& eventStatement = databaseClient.getStatement("event", false, true);
       eventStatement
          << "INSERT INTO " << Table_event
          << "(ts, node_id, network_id, metadata_key, metadata_value, extra, min) VALUES";
@@ -429,6 +429,7 @@ bool NorNetEdgeMetadataReader::finishParsing(DatabaseClientBase& databaseClient,
    Statement& eventStatement    = databaseClient.getStatement("event");
    Statement& bins1minStatement = databaseClient.getStatement("bins1min");
    assert(eventStatement.getRows() + bins1minStatement.getRows() == rows);
+
    if(rows > 0) {
       if(eventStatement.isValid()) {
          databaseClient.executeUpdate(eventStatement);

@@ -168,11 +168,12 @@ uint8_t PingReader::parseTrafficClass(const std::string&           value,
 void PingReader::beginParsing(DatabaseClientBase& databaseClient,
                               unsigned long long& rows)
 {
+   const DatabaseBackendType backend = databaseClient.getBackend();
+   Statement& statement              = databaseClient.getStatement("Ping", false, true);
+
    rows = 0;
 
    // ====== Generate import statement ======================================
-   const DatabaseBackendType backend = databaseClient.getBackend();
-   Statement& statement              = databaseClient.getStatement("Ping", false, true);
    if(backend & DatabaseBackendType::SQL_Generic) {
       statement
          << "INSERT INTO " << Table
@@ -191,10 +192,12 @@ void PingReader::beginParsing(DatabaseClientBase& databaseClient,
 bool PingReader::finishParsing(DatabaseClientBase& databaseClient,
                                unsigned long long& rows)
 {
+   const DatabaseBackendType backend   = databaseClient.getBackend();
+   Statement&                statement = databaseClient.getStatement("Ping");
+   assert(statement.getRows() == rows);
+
    if(rows > 0) {
       // ====== Generate import statement ===================================
-      const DatabaseBackendType backend   = databaseClient.getBackend();
-      Statement&                statement = databaseClient.getStatement("Ping");
       if(backend & DatabaseBackendType::SQL_Generic) {
          if(rows > 0) {
             databaseClient.executeUpdate(statement);
