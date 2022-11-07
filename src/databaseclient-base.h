@@ -33,6 +33,7 @@
 #define DATABASECLIENT_BASE_H
 
 #include <sstream>
+#include <iomanip>
 
 #include "database-configuration.h"
 
@@ -65,14 +66,24 @@ class Statement : public std::stringstream
       return Rows;
    }
 
-   inline void beginRow() {
+   inline void beginRow(const bool multipleLines = true) {
       assert(!InTuple);
       InTuple = true;
       if(Backend & DatabaseBackendType::SQL_Generic) {
-         *this << ((Rows == 0) ? "\n(" : ",\n(");
+         if(multipleLines) {
+            *this << ((Rows == 0) ? "\n(" : ",\n(");
+         }
+         else {
+            *this << ((Rows == 0) ? "(" : ",(");
+         }
       }
       else if(Backend & DatabaseBackendType::NoSQL_Generic) {
-         *this << ((Rows == 0) ? "\n{" : ",\n{");
+         if(multipleLines) {
+            *this << ((Rows == 0) ? "\n{" : ",\n{");
+         }
+         else {
+            *this << ((Rows == 0) ? "{" : ",{");
+         }
       }
       else {
          assert(false);
@@ -91,15 +102,17 @@ class Statement : public std::stringstream
 
    inline std::string quote(const std::string& string) const {
       assert(InTuple);
+      std::stringstream ss;
       if(Backend & DatabaseBackendType::SQL_Generic) {
-         return "'" + string + "'";
+         ss << std::quoted(string, '\'', '\\');
       }
       else if(Backend & DatabaseBackendType::NoSQL_Generic) {
-         return "\"" + string + "\"";
+         ss << std::quoted(string, '"', '\\');
       }
       else {
          assert(false);
       }
+      return ss.str();
    }
 
    inline void endRow() {

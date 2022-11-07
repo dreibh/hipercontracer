@@ -123,7 +123,7 @@ void NorNetEdgeSpeedTestReader::parseContents(
       // ====== Generate import statement ===================================
       if(backend & DatabaseBackendType::SQL_Generic) {
          statement << "CALL insert_measurement_data";
-         statement.beginRow();
+         statement.beginRow(false);
          statement
             << statement.quote(tuple[0]) << statement.sep()
             << std::stoul(tuple[1])      << statement.sep()
