@@ -37,9 +37,11 @@
 
 #include <fstream>
 
+#include <boost/iostreams/device/file_descriptor.hpp>
 #include <boost/iostreams/filter/bzip2.hpp>
 #include <boost/iostreams/filter/gzip.hpp>
 #include <boost/iostreams/filter/lzma.hpp>
+#include <boost/iostreams/stream.hpp>
 
 
 // ###### Constructor #######################################################
@@ -106,9 +108,32 @@ void Worker::processFile(DatabaseClientBase&          databaseClient,
 
    else {
       // ====== Prepare input stream ========================================
-      std::ifstream                       inputFile;
       boost::iostreams::filtering_istream inputStream;
+
+      // ====== Open input file =============================================
+#ifdef POSIX_FADV_SEQUENTIAL
+      // With fadvise() to optimise caching:
+      int handle = open(dataFile.string().c_str(), 0, O_RDONLY);
+      if(handle < 0) {
+         HPCT_LOG(warning) << getIdentification() << ": Unable to open input file "
+                           << relative_to(dataFile, Configuration.getImportFilePath());
+         return;
+      }
+      if(posix_fadvise(handle, 0, 0, POSIX_FADV_SEQUENTIAL|POSIX_FADV_WILLNEED|POSIX_FADV_NOREUSE) < 0) {
+         perror("posix_fadvise:");
+         HPCT_LOG(warning) << "posix_fadvise() failed:" << strerror(errno);
+      }
+
+      boost::iostreams::stream_buffer<boost::iostreams::file_descriptor_source> fstreambuffer(
+         handle,
+         boost::iostreams::file_descriptor_flags::close_handle);
+      std::istream inputFile(&fstreambuffer);
+#else
+#warning Without fadvise()
+      // Without fadvise():
+      std::ifstream inputFile;
       inputFile.open(dataFile, std::ios_base::in | std::ios_base::binary);
+#endif
       if(inputFile.good()) {
          if(dataFile.extension() == ".xz") {
             inputStream.push(boost::iostreams::lzma_decompressor());

@@ -114,7 +114,7 @@ bool UniversalImporter::start()
    // ====== Look for files =================================================
    HPCT_LOG(info) << "Looking for input files ...";
    lookForFiles();
-   printStatus();
+   HPCT_LOG(info) << "Importer status after directory traversal:\n" << *this;
 
    // ====== Start workers ==================================================
    HPCT_LOG(info) << "Starting " << WorkerMap.size() << " worker threads ...";
@@ -351,11 +351,7 @@ bool UniversalImporter::removeFile(const std::filesystem::path& dataFile)
 void UniversalImporter::handleStatusTimer(const boost::system::error_code& errorCode)
 {
    if(!errorCode) {
-      std::stringstream ss("Importer status:\n");
-      for(ReaderBase* reader : ReaderList) {
-         reader->printStatus(ss);
-      }
-      HPCT_LOG(info) << ss.str();
+      HPCT_LOG(info) << "Importer status:\n" << *this;
       StatusTimer.expires_from_now(StatusTimerInterval);
       StatusTimer.async_wait(std::bind(&UniversalImporter::handleStatusTimer, this,
                                        std::placeholders::_1));
@@ -363,10 +359,18 @@ void UniversalImporter::handleStatusTimer(const boost::system::error_code& error
 }
 
 
-// ###### Print importer status #############################################
-void UniversalImporter::printStatus(std::ostream& os)
+// ###### << operator #######################################################
+std::ostream& operator<<(std::ostream& os, const UniversalImporter& importer)
 {
-   for(ReaderBase* reader : ReaderList) {
+   bool first = true;
+   for(ReaderBase* reader : importer.ReaderList) {
+      if(first)  {
+         first = false;
+      }
+      else {
+         os << "\n";
+      }
       reader->printStatus(os);
    }
+   return os;
 }

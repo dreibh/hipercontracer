@@ -312,7 +312,10 @@ void TracerouteReader::printStatus(std::ostream& os)
 {
    os << getIdentification() << ":\n";
    for(unsigned int w = 0; w < Workers; w++) {
-      os << " - Work Queue #" << w + 1 << ": " << DataFileSet[w].size() << "\n";
+      if(w > 0) {
+         os << "\n";
+      }
+      os << " - Work Queue #" << w + 1 << ": " << DataFileSet[w].size();
       // for(const InputFileEntry& inputFileEntry : DataFileSet[w]) {
       //    os << "  - " <<  inputFileEntry << "\n";
       // }

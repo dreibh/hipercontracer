@@ -176,6 +176,14 @@ NorNetEdgeMetadataReader::NorNetEdgeMetadataReader(const DatabaseConfiguration& 
 // ###### Destructor ########################################################
 NorNetEdgeMetadataReader::~NorNetEdgeMetadataReader()
 {
+#ifdef WITH_TIMESTAMP_FIX
+   std::map<unsigned int, TimeStampFix*>::iterator iterator = TSFixMap.begin();
+   while(iterator != TSFixMap.end()) {
+      delete iterator->second;
+      TSFixMap.erase(iterator);
+      iterator = TSFixMap.begin();
+   }
+#endif
    delete [] DataFileSet;
    DataFileSet = nullptr;
 }
@@ -205,8 +213,14 @@ int NorNetEdgeMetadataReader::addFile(const std::filesystem::path& dataFile,
          InputFileEntry inputFileEntry;
          inputFileEntry.TimeStamp = timeStamp;
          inputFileEntry.NodeID    = atol(match[1].str().c_str());
+#ifdef WITH_NODEID_FIX
+         const unsigned int nodeIDFromPath = getNodeIDFromPath(dataFile);
+         if( (inputFileEntry.NodeID == 4125) && (inputFileEntry.NodeID != nodeIDFromPath) ) {
+            inputFileEntry.NodeID = nodeIDFromPath;
+         }
+#endif
          inputFileEntry.DataFile  = dataFile;
-         const int workerID = inputFileEntry.NodeID % Workers;
+         const int workerID       = inputFileEntry.NodeID % Workers;
 
          std::unique_lock lock(Mutex);
          if(DataFileSet[workerID].insert(inputFileEntry).second) {
@@ -234,8 +248,14 @@ bool NorNetEdgeMetadataReader::removeFile(const std::filesystem::path& dataFile,
          InputFileEntry inputFileEntry;
          inputFileEntry.TimeStamp = timeStamp;
          inputFileEntry.NodeID    = atol(match[1].str().c_str());
+#ifdef WITH_NODEID_FIX
+         const unsigned int nodeIDFromPath = getNodeIDFromPath(dataFile);
+         if( (inputFileEntry.NodeID == 4125) && (inputFileEntry.NodeID != nodeIDFromPath) ) {
+            inputFileEntry.NodeID = nodeIDFromPath;
+         }
+#endif
          inputFileEntry.DataFile  = dataFile;
-         const int workerID = inputFileEntry.NodeID % Workers;
+         const int workerID       = inputFileEntry.NodeID % Workers;
 
          HPCT_LOG(trace) << Identification << ": Removing input file "
                         << relative_to(dataFile, Configuration.getImportFilePath()) << " from reader";
@@ -475,35 +495,9 @@ void NorNetEdgeMetadataReader::parseContents(
          const boost::property_tree::ptree& item = itemIterator->second;
          const std::string& itemType             = item.get<std::string>("type");
 
-#ifdef WITH_TIMESTAMP_FIX
-#warning With timestamp fix!
-         std::chrono::time_point<std::chrono::high_resolution_clock> ts =
-            parseTimeStamp<std::chrono::time_point<std::chrono::high_resolution_clock>>(item, now, dataFile);
-            const unsigned long long us = timePointToMicroseconds<std::chrono::time_point<std::chrono::high_resolution_clock>>(ts);
-         if(itemType == "event") {
-            if((us % 1000000) == 0) {
-               if(showTimeStampFixWarning) {
-                  HPCT_LOG(debug) << Identification << ": Applying time stamp fix for "
-                                    << relative_to(dataFile, Configuration.getImportFilePath());
-                  showTimeStampFixWarning = false;
-               }
-               if(ts == TSFixLastTimePoint) {
-                  ts += TSFixTimeOffset;   // Prevent possible duplicate
-                  TSFixTimeOffset += std::chrono::microseconds(1);
-               }
-               else {
-                  // std::cout << "reset\n";
-                  TSFixLastTimePoint = ts;   // First occurrence of this time stamp
-                  TSFixTimeOffset = std::chrono::microseconds(1);
-               }
-               // std::cout << "* " << timePointToString<std::chrono::time_point<std::chrono::high_resolution_clock>>(ts, 6) << "\n";
-            }
-         }
+#ifndef WITH_NODEID_FIX
+         const unsigned int nodeID               = parseNodeID(item, dataFile);
 #else
-         const std::chrono::time_point<std::chrono::high_resolution_clock> ts =
-            parseTimeStamp<std::chrono::time_point<std::chrono::high_resolution_clock>>(item, now, dataFile);
-#endif
-#ifdef WITH_NODEID_FIX
 #warning With NodeID fix!
          unsigned int nodeID = parseNodeID(item, dataFile);
          if( (nodeID == 4125) && (nodeID != nodeIDFromPath) ) {
@@ -515,8 +509,45 @@ void NorNetEdgeMetadataReader::parseContents(
             }
             nodeID = nodeIDFromPath;
          }
+#endif
+#ifndef WITH_TIMESTAMP_FIX
+         const std::chrono::time_point<std::chrono::high_resolution_clock> ts =
+            parseTimeStamp<std::chrono::time_point<std::chrono::high_resolution_clock>>(item, now, dataFile);
 #else
-         const unsigned int nodeID        = parseNodeID(item, dataFile);
+#warning With timestamp fix!
+         std::chrono::time_point<std::chrono::high_resolution_clock> ts =
+            parseTimeStamp<std::chrono::time_point<std::chrono::high_resolution_clock>>(item, now, dataFile);
+            const unsigned long long us = timePointToMicroseconds<std::chrono::time_point<std::chrono::high_resolution_clock>>(ts);
+         if(itemType == "event") {
+            if((us % 1000000) == 0) {
+               if(showTimeStampFixWarning) {
+                  HPCT_LOG(debug) << Identification << ": Applying time stamp fix for "
+                                    << relative_to(dataFile, Configuration.getImportFilePath());
+                  showTimeStampFixWarning = false;
+               }
+
+               TimeStampFix* timeStampFix;
+               std::map<unsigned int, TimeStampFix*>::iterator found = TSFixMap.find(nodeID);
+               if(found == TSFixMap.end()) {
+                  timeStampFix = new TimeStampFix;
+                  assert(TSFixMap.insert(std::pair<unsigned int, TimeStampFix*>(nodeID, timeStampFix)).second);
+               }
+               else {
+                  timeStampFix = found->second;
+               }
+
+               if(ts == timeStampFix->TSFixLastTimePoint) {
+                  ts += timeStampFix->TSFixTimeOffset;   // Prevent possible duplicate
+                  timeStampFix->TSFixTimeOffset += std::chrono::microseconds(1);
+               }
+               else {
+                  // std::cout << "reset\n";
+                  timeStampFix->TSFixLastTimePoint = ts;   // First occurrence of this time stamp
+                  timeStampFix->TSFixTimeOffset = std::chrono::microseconds(1);
+               }
+               // std::cout << "* " << timePointToString<std::chrono::time_point<std::chrono::high_resolution_clock>>(ts, 6) << "\n";
+            }
+         }
 #endif
          const unsigned int networkID     = parseNetworkID(item, dataFile);
          const std::string  metadataKey   = parseMetadataKey(item, dataFile);
@@ -574,7 +605,10 @@ void NorNetEdgeMetadataReader::printStatus(std::ostream& os)
 {
    os << getIdentification() << ":\n";
    for(unsigned int w = 0; w < Workers; w++) {
-      os << " - Work Queue #" << w + 1 << ": " << DataFileSet[w].size() << "\n";
+      if(w > 0) {
+         os << "\n";
+      }
+      os << " - Work Queue #" << w + 1 << ": " << DataFileSet[w].size();
       // for(const InputFileEntry& inputFileEntry : DataFileSet[w]) {
       //    os << "  - " <<  inputFileEntry << "\n";
       // }

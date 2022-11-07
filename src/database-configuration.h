@@ -80,15 +80,20 @@ class DatabaseConfiguration
    inline ImportModeType      getImportMode()     const { return ImportMode;     }
    inline const unsigned int  getImportMaxDepth() const { return ImportMaxDepth; }
    inline const std::filesystem::path& getImportFilePath() const { return ImportFilePath; }
-   inline const std::filesystem::path& getBadFilePath()    const { return BadFilePath;    }
    inline const std::filesystem::path& getGoodFilePath()   const { return GoodFilePath;   }
+   inline const std::filesystem::path& getBadFilePath()    const { return BadFilePath;    }
 
-   inline void setBackend(const DatabaseBackendType backend)  { Backend = backend;       }
-   inline void setImportMode(const ImportModeType importMode) { ImportMode = importMode; }
+   bool setBackend(const std::string& backendName);
+   bool setImportMode(const std::string& importModeName);
+   bool setImportMaxDepth(const unsigned int importMaxDepth);
+   bool setImportFilePath(const std::filesystem::path& importFilePath);
+   bool setGoodFilePath(const std::filesystem::path& goodFilePath);
+   bool setBadFilePath(const std::filesystem::path& badFilePath);
 
    bool readConfiguration(const std::filesystem::path& configurationFile);
-   void printConfiguration(std::ostream& os) const;
    DatabaseClientBase* createClient();
+
+   friend std::ostream& operator<<(std::ostream& os, const DatabaseConfiguration& configuration);
 
    private:
    boost::program_options::options_description OptionsDescription;

@@ -60,7 +60,8 @@ class UniversalImporter
    bool start();
    void stop();
    void run();
-   void printStatus(std::ostream& os = std::cout);
+
+   friend std::ostream& operator<<(std::ostream& os, const UniversalImporter& importer);
 
    private:
    void handleSignalEvent(const boost::system::error_code& ec,

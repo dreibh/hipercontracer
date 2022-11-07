@@ -52,6 +52,11 @@ int main(int argc, char** argv)
    // ====== Initialize =====================================================
    unsigned int          logLevel;
    std::filesystem::path databaseConfigurationFile;
+   std::string           importModeName;
+   unsigned int          importMaxDepth;
+   std::filesystem::path importFilePath;
+   std::filesystem::path badFilePath;
+   std::filesystem::path goodFilePath;
    unsigned int          pingWorkers;
    unsigned int          speedTestWorkers;
    unsigned int          metadataWorkers;
@@ -77,6 +82,11 @@ int main(int argc, char** argv)
       ( "config,C",
            boost::program_options::value<std::filesystem::path>(&databaseConfigurationFile)->default_value(std::filesystem::path("database.conf")),
            "Database configuration file" )
+      ("import-mode",       boost::program_options::value<std::string>(&importModeName),                     "Override import mode")
+      ("import-max-depth",  boost::program_options::value<unsigned int>(&importMaxDepth)->default_value(0),  "Override import max depth)")
+      ("import-file-path",  boost::program_options::value<std::filesystem::path>(&importFilePath),           "Override path for input data")
+      ("bad-file-path",     boost::program_options::value<std::filesystem::path>(&badFilePath),              "Override path for bad files")
+      ("good-file-path",    boost::program_options::value<std::filesystem::path>(&goodFilePath),             "Override path for good files")
 
       ( "ping-workers",
            boost::program_options::value<unsigned int>(&pingWorkers)->default_value(1),
@@ -102,13 +112,23 @@ int main(int argc, char** argv)
    // ====== Handle command-line arguments ==================================
    boost::program_options::variables_map vm;
    try {
-      boost::program_options::store(boost::program_options::command_line_parser(argc, argv).
-                                       style(
-                                          boost::program_options::command_line_style::style_t::default_style|
-                                          boost::program_options::command_line_style::style_t::allow_long_disguise
-                                       ).
-                                       options(commandLineOptions).
-                                       run(), vm);
+      const boost::program_options::parsed_options parsedOptions =
+         boost::program_options::command_line_parser(argc, argv).
+            style(boost::program_options::command_line_style::style_t::default_style| boost::program_options::command_line_style::style_t::allow_long_disguise).
+            options(commandLineOptions).
+            allow_unregistered().
+            run();
+      boost::program_options::store(parsedOptions, vm);
+
+      std::vector<std::string> p = boost::program_options::collect_unrecognized(parsedOptions.options, boost::program_options::include_positional);
+      if(p.size() > 1) {
+         std::cerr << "ERROR: Only one database configuration file may be provided!\n";
+         exit(1);
+      }
+      for(auto it = p.begin(); it != p.end(); it++) {
+          databaseConfigurationFile = *it;
+          break;
+      }
       boost::program_options::notify(vm);
    }
    catch(std::exception& e) {
@@ -133,7 +153,25 @@ int main(int argc, char** argv)
    if(!databaseConfiguration.readConfiguration(databaseConfigurationFile)) {
       exit(1);
    }
-   databaseConfiguration.printConfiguration(std::cout);
+   if(importModeName.size() > 0) {
+      if(!databaseConfiguration.setImportMode(importModeName)) return 1;
+   }
+   if(importMaxDepth) {
+      if(!databaseConfiguration.setImportMaxDepth(importMaxDepth)) return 1;
+   }
+   if(importFilePath.string().size() > 0) {
+      if(!databaseConfiguration.setImportFilePath(importFilePath)) return 1;
+   }
+   if(goodFilePath.string().size() > 0) {
+      if(!databaseConfiguration.setGoodFilePath(goodFilePath)) return 1;
+   }
+   if(goodFilePath.string().size() > 0) {
+      if(!databaseConfiguration.setGoodFilePath(goodFilePath)) return 1;
+   }
+   if(badFilePath.string().size() > 0) {
+      if(!databaseConfiguration.setBadFilePath(badFilePath)) return 1;
+   }
+   HPCT_LOG(info) << "Startup:\n" << databaseConfiguration;
 
 
    // ====== Initialise importer ============================================

@@ -81,20 +81,21 @@ bool DatabaseConfiguration::readConfiguration(const std::filesystem::path& confi
    boost::program_options::notify(vm);
 
    // ====== Check options ==================================================
-   if(ImportModeName == "KeepImportedFiles") {
-      ImportMode = ImportModeType::KeepImportedFiles;
-   }
-   else if(ImportModeName == "MoveImportedFiles") {
-      ImportMode = ImportModeType::MoveImportedFiles;
-   }
-   else if(ImportModeName == "DeleteImportedFiles") {
-      ImportMode = ImportModeType::DeleteImportedFiles;
-   }
-   else {
-      HPCT_LOG(error) << "Invalid import mode name " << ImportModeName;
-      return false;
-   }
+   if(!setBackend(BackendName))           return false;
+   if(!setImportMode(ImportModeName))     return false;
+   if(!setImportMaxDepth(ImportMaxDepth)) return false;
+   if(!setImportFilePath(ImportFilePath)) return false;
+   if(!setGoodFilePath(GoodFilePath))     return false;
+   if(!setBadFilePath(BadFilePath))       return false;
 
+   return true;
+}
+
+
+// ###### Set backend #######################################################
+bool DatabaseConfiguration::setBackend(const std::string& backendName)
+{
+   BackendName = backendName;
    if( (BackendName == "MySQL") || (BackendName == "MariaDB") ) {
       Backend = DatabaseBackendType::SQL_MariaDB;
    }
@@ -114,25 +115,81 @@ bool DatabaseConfiguration::readConfiguration(const std::filesystem::path& confi
       HPCT_LOG(error) << "Invalid backend name " << Backend;
       return false;
    }
+   return true;
+}
 
-   // ====== Check directories ==============================================
+
+// ###### Set import mode ###################################################
+bool DatabaseConfiguration::setImportMode(const std::string& importModeName)
+{
+   ImportModeName = importModeName;
+   if(ImportModeName == "KeepImportedFiles") {
+      ImportMode = ImportModeType::KeepImportedFiles;
+   }
+   else if(ImportModeName == "MoveImportedFiles") {
+      ImportMode = ImportModeType::MoveImportedFiles;
+   }
+   else if(ImportModeName == "DeleteImportedFiles") {
+      ImportMode = ImportModeType::DeleteImportedFiles;
+   }
+   else {
+      HPCT_LOG(error) << "Invalid import mode name " << ImportModeName;
+      return false;
+   }
+   return true;
+}
+
+
+// ###### Set import max depth ##############################################
+bool DatabaseConfiguration::setImportMaxDepth(const unsigned int importMaxDepth)
+{
+   ImportMaxDepth = importMaxDepth;
+   if(ImportMaxDepth < 1) {
+      HPCT_LOG(error) << "Import max depth must be at least 1!";
+      return false;
+   }
+   return true;
+}
+
+
+// ###### Set import file path ##############################################
+bool DatabaseConfiguration::setImportFilePath(const std::filesystem::path& importFilePath)
+{
+   ImportFilePath = importFilePath;
    std::error_code ec;
    if(!is_directory(ImportFilePath, ec)) {
       HPCT_LOG(error) << "Import file path " << ImportFilePath << " does not exist: " << ec;
       return false;
    }
+   return true;
+}
+
+
+// ###### Set good file path ################################################
+bool DatabaseConfiguration::setGoodFilePath(const std::filesystem::path& goodFilePath)
+{
+   GoodFilePath = goodFilePath;
+   std::error_code ec;
    if(!is_directory(GoodFilePath, ec)) {
       HPCT_LOG(error) << "Good file path " << GoodFilePath << " does not exist: " << ec;
       return false;
    }
-   if(!is_directory(BadFilePath, ec)) {
-      HPCT_LOG(error) << "Bad file path " << BadFilePath << " does not exist: " << ec;
-      return false;
-   }
-
    if(is_subdir_of(GoodFilePath, ImportFilePath)) {
       HPCT_LOG(error) << "Good file path " << GoodFilePath
                       << " must not be within import file path " << ImportFilePath;
+      return false;
+   }
+   return true;
+}
+
+
+// ###### Set bad file path #################################################
+bool DatabaseConfiguration::setBadFilePath(const std::filesystem::path& badFilePath)
+{
+   BadFilePath = badFilePath;
+   std::error_code ec;
+   if(!is_directory(BadFilePath, ec)) {
+      HPCT_LOG(error) << "Bad file path " << BadFilePath << " does not exist: " << ec;
       return false;
    }
    if(is_subdir_of(BadFilePath, ImportFilePath)) {
@@ -140,28 +197,44 @@ bool DatabaseConfiguration::readConfiguration(const std::filesystem::path& confi
                       << " must not be within import file path " << ImportFilePath;
       return false;
    }
-
    return true;
 }
 
 
-// ###### Print reader status ###############################################
-void DatabaseConfiguration::printConfiguration(std::ostream& os) const
+// ###### << operator #######################################################
+std::ostream& operator<<(std::ostream& os, const DatabaseConfiguration& configuration)
 {
-   os << "Import configuration:"                 << "\n"
-      << "Import File Path = " << ImportFilePath << " (max depth: " << ImportMaxDepth << ")" << "\n"
-      << "Good File Path   = " << GoodFilePath   << "\n"
-      << "Bad File Path    = " << BadFilePath    << "\n"
+   os << "Import configuration:" << "\n"
+      << "Import mode      = ";
+   switch(configuration.ImportMode) {
+      case KeepImportedFiles:
+         os << "KeepImportedFiles";
+       break;
+      case MoveImportedFiles:
+         os << "MoveImportedFiles";
+       break;
+      case DeleteImportedFiles:
+         os << "DeleteImportedFiles";
+       break;
+      default:
+         assert(false);
+       break;
+   }
+   os << "\n"
+      << "Import File Path = " << configuration.ImportFilePath << " (max depth: " << configuration.ImportMaxDepth << ")" << "\n"
+      << "Good File Path   = " << configuration.GoodFilePath   << "\n"
+      << "Bad File Path    = " << configuration.BadFilePath    << "\n"
 
       << "Database configuration:"               << "\n"
-      << "Backend          = " << BackendName    << "\n"
-      << "Reconnect Delay  = " << ReconnectDelay << " s" << "\n"
-      << "Server           = " << Server         << "\n"
-      << "Port             = " << Port           << "\n"
-      << "User             = " << User           << "\n"
-      << "Password         = " << ((Password.size() > 0) ? "****************" : "(none)") << "\n"
-      << "CA File          = " << CAFile         << "\n"
-      << "Database         = " << Database       << "\n";
+      << "Backend          = " << configuration.BackendName    << "\n"
+      << "Reconnect Delay  = " << configuration.ReconnectDelay << " s" << "\n"
+      << "Server           = " << configuration.Server         << "\n"
+      << "Port             = " << configuration.Port           << "\n"
+      << "User             = " << configuration.User           << "\n"
+      << "Password         = " << ((configuration.Password.size() > 0) ? "****************" : "(none)") << "\n"
+      << "CA File          = " << configuration.CAFile         << "\n"
+      << "Database         = " << configuration.Database;
+   return os;
 }
 
 

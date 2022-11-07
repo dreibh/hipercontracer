@@ -114,8 +114,11 @@ class NorNetEdgeMetadataReader : public ReaderBase
    std::set<InputFileEntry>* DataFileSet;
 
 #ifdef WITH_TIMESTAMP_FIX
-   std::chrono::high_resolution_clock::time_point TSFixLastTimePoint;
-   std::chrono::high_resolution_clock::duration   TSFixTimeOffset;
+   struct TimeStampFix {
+      std::chrono::high_resolution_clock::time_point TSFixLastTimePoint;
+      std::chrono::high_resolution_clock::duration   TSFixTimeOffset;
+   };
+   std::map<unsigned int, TimeStampFix*> TSFixMap;
 #endif
 };
 
