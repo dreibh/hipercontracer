@@ -183,7 +183,7 @@ void UniversalImporter::handleINotifyEvent(const boost::system::error_code& ec,
          if(event->mask & IN_ISDIR) {
             const std::filesystem::path dataDirectory = directory / event->name;
             if(event->mask & IN_CREATE) {
-               HPCT_LOG(trace) << "INotify for new data directory: " << dataDirectory;
+               HPCT_LOG(trace) << "INotify event for new directory: " << dataDirectory;
                const int wd = inotify_add_watch(INotifyFD, dataDirectory.c_str(),
                                                 IN_CREATE | IN_DELETE | IN_CLOSE_WRITE | IN_MOVED_TO);
                if(wd >= 0) {
@@ -195,7 +195,7 @@ void UniversalImporter::handleINotifyEvent(const boost::system::error_code& ec,
                }
             }
             else if(event->mask & IN_DELETE) {
-               HPCT_LOG(trace) << "INotify for deleted data directory: " << dataDirectory;
+               HPCT_LOG(trace) << "INotify event for deleted directory: " << dataDirectory;
                INotifyWatchDescriptors.erase(event->wd);
             }
          }
@@ -308,7 +308,7 @@ unsigned long long UniversalImporter::lookForFiles(const std::filesystem::path& 
 #endif
          // ------ Recursive directory traversal ----------------------------
          if(currentDepth < maxDepth) {
-            const unsigned long long m = lookForFiles(dirEntry, currentDepth + 1, maxDepth);
+            const unsigned long long m = lookForFiles(dirEntry.path(), currentDepth + 1, maxDepth);
 
             // ------ Remove empty directory --------------------------------
             if( (m == 0) &&
@@ -318,7 +318,7 @@ unsigned long long UniversalImporter::lookForFiles(const std::filesystem::path& 
                std::filesystem::remove(dirEntry.path(), ec);
                if(!ec) {
                   HPCT_LOG(trace) << "Deleted empty directory "
-                                  << relative_to(dirEntry, Configuration.getImportFilePath());
+                                  << relative_to(dirEntry.path(), Configuration.getImportFilePath());
                }
                else {
                   n++;   // Upper level still has one sub-directory
