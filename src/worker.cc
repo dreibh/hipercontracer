@@ -202,6 +202,7 @@ void Worker::moveImportedFile(const std::filesystem::path& dataFile)
       std::filesystem::rename(dataFile, targetPath / dataFile.filename());
       HPCT_LOG(trace) << getIdentification() << ": Moved imported file "
                       << relative_to(dataFile, Configuration.getImportFilePath());
+      deleteEmptyDirectories(dataFile.parent_path());
    }
    catch(std::filesystem::filesystem_error& e) {
       HPCT_LOG(warning) << getIdentification() << ": Moving imported file "
@@ -222,6 +223,7 @@ void Worker::moveBadFile(const std::filesystem::path& dataFile)
       std::filesystem::rename(dataFile, targetPath / dataFile.filename());
       HPCT_LOG(trace) << getIdentification() << ": Moved bad file "
                       << relative_to(dataFile, Configuration.getImportFilePath());
+      deleteEmptyDirectories(dataFile.parent_path());
    }
    catch(std::filesystem::filesystem_error& e) {
       HPCT_LOG(warning) << getIdentification() << ": Moving bad file "

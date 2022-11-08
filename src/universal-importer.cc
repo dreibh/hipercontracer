@@ -32,6 +32,7 @@
 #include "universal-importer.h"
 #include "database-configuration.h"
 #include "logger.h"
+#include "tools.h"
 #include "worker.h"
 
 
@@ -273,19 +274,27 @@ void UniversalImporter::removeReader(ReaderBase& reader)
 void UniversalImporter::lookForFiles()
 {
    lookForFiles(Configuration.getImportFilePath(),
-                Configuration.getImportMaxDepth());
+                1, Configuration.getImportMaxDepth());
 }
 
 
 // ###### Look for input files (limited directory traversal) ################
-void UniversalImporter::lookForFiles(const std::filesystem::path& importFilePath,
-                                     const unsigned int           maxDepth)
+unsigned long long UniversalImporter::lookForFiles(const std::filesystem::path& importFilePath,
+                                                   const unsigned int           currentDepth,
+                                                   const unsigned int           maxDepth)
 {
+   unsigned long long n = 0;
    for(const std::filesystem::directory_entry& dirEntry : std::filesystem::directory_iterator(importFilePath)) {
+
+      // ====== Add file ====================================================
       if(dirEntry.is_regular_file()) {
          addFile(dirEntry.path());
+         n++;
       }
+
+      // ====== Add directory ===============================================
       else if(dirEntry.is_directory()) {
+         // ------ Create INotify watch -------------------------------------
 #ifdef __linux
          const int wd = inotify_add_watch(INotifyFD, dirEntry.path().c_str(),
                                           IN_CREATE | IN_DELETE | IN_CLOSE_WRITE | IN_MOVED_TO);
@@ -297,11 +306,29 @@ void UniversalImporter::lookForFiles(const std::filesystem::path& importFilePath
                             << " failed: " << strerror(errno);
          }
 #endif
-         if(maxDepth > 1) {
-            lookForFiles(dirEntry, maxDepth - 1);
+         // ------ Recursive directory traversal ----------------------------
+         if(currentDepth < maxDepth) {
+            const unsigned long long m = lookForFiles(dirEntry, currentDepth + 1, maxDepth);
+
+            // ------ Remove empty directory --------------------------------
+            if( (m == 0) &&
+                (currentDepth > 1) &&
+                (Configuration.getImportMode() != ImportModeType::KeepImportedFiles) ) {
+               std::error_code ec;
+               std::filesystem::remove(dirEntry.path(), ec);
+               if(!ec) {
+                  HPCT_LOG(trace) << "Deleted empty directory "
+                                  << relative_to(dirEntry, Configuration.getImportFilePath());
+               }
+               else {
+                  n++;   // Upper level still has one sub-directory
+               }
+            }
+            n += m;
          }
       }
    }
+   return n;
 }
 
 

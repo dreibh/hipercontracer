@@ -70,8 +70,9 @@ class UniversalImporter
    void handleINotifyEvent(const boost::system::error_code& ec,
                            const std::size_t                length);
 #endif
-   void lookForFiles(const std::filesystem::path& importFilePath,
-                     const unsigned int           maxDepth);
+   unsigned long long lookForFiles(const std::filesystem::path& importFilePath,
+                                   const unsigned int           currentDepth,
+                                   const unsigned int           maxDepth);
    bool addFile(const std::filesystem::path& dataFile);
    bool removeFile(const std::filesystem::path& dataFile);
    void handleStatusTimer(const boost::system::error_code& errorCode);

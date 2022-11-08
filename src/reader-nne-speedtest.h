@@ -58,7 +58,6 @@ class NorNetEdgeSpeedTestReader : public NorNetEdgePingReader
    private:
    static const std::string  Identification;
    static const std::regex   FileNameRegExp;
-   std::set<InputFileEntry>* DataFileSet;
 };
 
 #endif

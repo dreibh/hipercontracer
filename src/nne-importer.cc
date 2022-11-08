@@ -80,7 +80,7 @@ int main(int argc, char** argv)
            "Quiet logging level" )
 
       ( "config,C",
-           boost::program_options::value<std::filesystem::path>(&databaseConfigurationFile)->default_value(std::filesystem::path("database.conf")),
+           boost::program_options::value<std::filesystem::path>(&databaseConfigurationFile),
            "Database configuration file" )
       ("import-mode",       boost::program_options::value<std::string>(&importModeName),                     "Override import mode")
       ("import-max-depth",  boost::program_options::value<unsigned int>(&importMaxDepth)->default_value(0),  "Override import max depth)")

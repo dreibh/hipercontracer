@@ -53,7 +53,7 @@ DatabaseConfiguration::DatabaseConfiguration()
       ("dbbackend",         boost::program_options::value<std::string>(&BackendName),                        "database backend")
       ("dbreconnectdelay",  boost::program_options::value<unsigned int>(&ReconnectDelay)->default_value(60), "database reconnect delay (in s)")
       ("import_mode",       boost::program_options::value<std::string>(&ImportModeName),                     "import mode")
-      ("import_max_depth",  boost::program_options::value<unsigned int>(&ImportMaxDepth)->default_value(5),  "import max depth)")
+      ("import_max_depth",  boost::program_options::value<unsigned int>(&ImportMaxDepth)->default_value(6),  "import max depth)")
       ("import_file_path",  boost::program_options::value<std::filesystem::path>(&ImportFilePath),           "path for input data")
       ("bad_file_path",     boost::program_options::value<std::filesystem::path>(&BadFilePath),              "path for bad files")
       ("good_file_path",    boost::program_options::value<std::filesystem::path>(&GoodFilePath),             "path for good files")
@@ -74,9 +74,14 @@ DatabaseConfiguration::~DatabaseConfiguration()
 // ###### Read database configuration #######################################
 bool DatabaseConfiguration::readConfiguration(const std::filesystem::path& configurationFile)
 {
-   std::ifstream                         configurationInputStream(configurationFile);
-   boost::program_options::variables_map vm = boost::program_options::variables_map();
+   std::ifstream configurationInputStream(configurationFile);
 
+   if(!configurationInputStream.good()) {
+      HPCT_LOG(error) << "Unable to read database configuration from " << configurationFile;
+      return false;
+   }
+
+   boost::program_options::variables_map vm = boost::program_options::variables_map();
    boost::program_options::store(boost::program_options::parse_config_file(configurationInputStream , OptionsDescription), vm);
    boost::program_options::notify(vm);
 

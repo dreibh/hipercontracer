@@ -378,10 +378,13 @@ std::string NorNetEdgeMetadataReader::parseMetadataKey(const boost::property_tre
 std::string NorNetEdgeMetadataReader::parseMetadataValue(const boost::property_tree::ptree& item,
                                                          const std::filesystem::path&       dataFile) const
 {
-   const std::string& metadataValue = item.get<std::string>("value");
+   std::string metadataValue = item.get<std::string>("value");
    if(metadataValue.size() > 500) {
       throw ImporterReaderDataErrorException("Too long metadata value " + metadataValue +
                                              " in input file " + relative_to(dataFile, Configuration.getImportFilePath()).string());
+   }
+   if(metadataValue == "null") {
+      metadataValue = std::string();
    }
    return metadataValue;
 }
@@ -391,10 +394,13 @@ std::string NorNetEdgeMetadataReader::parseMetadataValue(const boost::property_t
 std::string NorNetEdgeMetadataReader::parseExtra(const boost::property_tree::ptree& item,
                                                  const std::filesystem::path&       dataFile) const
 {
-   const std::string& extra = item.get<std::string>("extra");
+   std::string extra = item.get<std::string>("extra", std::string());
    if(extra.size() > 500) {
       throw ImporterReaderDataErrorException("Too long extra " + extra +
                                              " in input file " + relative_to(dataFile, Configuration.getImportFilePath()).string());
+   }
+   if(extra == "null") {
+      extra = std::string();
    }
    return extra;
 }
@@ -556,16 +562,16 @@ void NorNetEdgeMetadataReader::parseContents(
          if(itemType == "event") {
             const std::chrono::time_point<std::chrono::high_resolution_clock> min =
                makeMin<std::chrono::time_point<std::chrono::high_resolution_clock>>(ts);
-            const std::string  extra = parseExtra(item, dataFile);
+            const std::string extra = parseExtra(item, dataFile);
             if(backend & DatabaseBackendType::SQL_Generic) {
                eventStatement.beginRow();
                eventStatement
                   << eventStatement.quote(timePointToString<std::chrono::time_point<std::chrono::high_resolution_clock>>(ts, 6)) << eventStatement.sep()
-                  << nodeID                              << eventStatement.sep()
-                  << networkID                           << eventStatement.sep()
-                  << eventStatement.quote(metadataKey)   << eventStatement.sep()
-                  << eventStatement.quote(metadataValue) << eventStatement.sep()
-                  << eventStatement.quote(extra)         << eventStatement.sep()
+                  << nodeID                                   << eventStatement.sep()
+                  << networkID                                 << eventStatement.sep()
+                  << eventStatement.quote(metadataKey)         << eventStatement.sep()
+                  << eventStatement.quoteOrNull(metadataValue) << eventStatement.sep()
+                  << eventStatement.quoteOrNull(extra)         << eventStatement.sep()
                   << eventStatement.quote(timePointToString<std::chrono::time_point<std::chrono::high_resolution_clock>>(min));   // FROM_UNIXTIME(UNIX_TIMESTAMP(ts) DIV 60*60)
                eventStatement.endRow();
                rows++;
@@ -581,7 +587,7 @@ void NorNetEdgeMetadataReader::parseContents(
                   << nodeID                               << bins1minStatement.sep()
                   << networkID                            << bins1minStatement.sep()
                   << bins1minStatement.quote(metadataKey) << bins1minStatement.sep()
-                  << bins1minStatement.quote(metadataValue);
+                  << bins1minStatement.quoteOrNull(metadataValue);
                bins1minStatement.endRow();
                rows++;
             }

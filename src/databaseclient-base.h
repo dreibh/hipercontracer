@@ -100,6 +100,21 @@ class Statement : public std::stringstream
       }
    }
 
+   inline std::string quoteOrNull(const std::string& string) const {
+      if(string.size() == 0) {
+         if(Backend & DatabaseBackendType::SQL_Generic) {
+            return "NULL";
+         }
+         else if(Backend & DatabaseBackendType::NoSQL_Generic) {
+            return "null";
+         }
+         else {
+            assert(false);
+         }
+      }
+      return quote(string);
+   }
+
    inline std::string quote(const std::string& string) const {
       assert(InTuple);
       std::stringstream ss;

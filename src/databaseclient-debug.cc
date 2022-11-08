@@ -98,5 +98,5 @@ void DebugClient::endTransaction(const bool commit)
 // ###### Execute statement #################################################
 void DebugClient::executeUpdate(const std::string& statement)
 {
-   std::cout << statement;
+   std::cout << statement << std::endl;
 }
