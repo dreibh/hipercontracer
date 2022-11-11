@@ -117,27 +117,27 @@ elif [ "$1" == "postgresql" ] ; then
 
    # ====== Create schema ===================================================
    echo -e "\x1b[33mCreating schema ...\x1b[0m"
-   sudo -u postgres psql PingTracerouteDB <postgresql-schema.sql
+   sudo -u postgres psql pingtraceroutedb <postgresql-schema.sql
 
    # ====== Create users and roles ==========================================
    echo -e "\x1b[33mCreating users and roles ...\x1b[0m"
-   sudo -u postgres psql PingTracerouteDB <<EOF
-REASSIGN OWNED BY "maintainer" TO "postgres";
-DROP USER IF EXISTS "maintainer";
-CREATE USER "maintainer" WITH LOGIN ENCRYPTED PASSWORD '${MAINTAINER_PASSWORD}';
-GRANT ALL PRIVILEGES ON DATABASE "PingTracerouteDB" TO "maintainer";
+   sudo -u postgres psql pingtraceroutedb <<EOF
+REASSIGN OWNED BY maintainer TO postgres;
+DROP USER IF EXISTS maintainer;
+CREATE USER maintainer WITH LOGIN ENCRYPTED PASSWORD '${MAINTAINER_PASSWORD}';
+GRANT ALL PRIVILEGES ON DATABASE PingTracerouteDB TO maintainer;
 
-REASSIGN OWNED BY "importer" TO "postgres";
-DROP USER IF EXISTS "importer";
-CREATE USER "importer" WITH LOGIN ENCRYPTED PASSWORD '${IMPORTER_PASSWORD}';
-GRANT CONNECT ON DATABASE "PingTracerouteDB" TO "importer";
-GRANT INSERT ON "Ping", "Traceroute" TO "importer";
+REASSIGN OWNED BY importer TO postgres;
+DROP USER IF EXISTS importer;
+CREATE USER importer WITH LOGIN ENCRYPTED PASSWORD '${IMPORTER_PASSWORD}';
+GRANT CONNECT ON DATABASE PingTracerouteDB TO importer;
+GRANT INSERT ON Ping, Traceroute TO importer;
 
-REASSIGN OWNED BY "researcher" TO "postgres";
-DROP USER IF EXISTS "researcher";
-CREATE USER "researcher" WITH LOGIN ENCRYPTED PASSWORD '${RESEARCHER_PASSWORD}';
-GRANT CONNECT ON DATABASE "PingTracerouteDB" TO "researcher";
-GRANT INSERT, SELECT, UPDATE ON "Ping", "Traceroute" TO "researcher";
+REASSIGN OWNED BY researcher TO postgres;
+DROP USER IF EXISTS researcher;
+CREATE USER researcher WITH LOGIN ENCRYPTED PASSWORD '${RESEARCHER_PASSWORD}';
+GRANT CONNECT ON DATABASE PingTracerouteDB TO researcher;
+GRANT INSERT, SELECT, UPDATE ON Ping, Traceroute TO researcher;
 EOF
 
 

@@ -39,13 +39,11 @@ elif [ "$1" == "postgresql" ] ; then
    # Documentation: https://www.digitalocean.com/community/tutorials/how-to-install-postgresql-on-ubuntu-22-04-quickstart
 
    echo -e "\x1b[34mTesting access to PostgreSQL database ...\x1b[0m"
-
-echo "P=${RESEARCHER_PASSWORD}"
-   PGPASSWORD="${RESEARCHER_PASSWORD}" psql -h localhost -d PingTracerouteDB -U researcher <<EOF
-SELECT COUNT(*) FROM "Ping";
-SELECT * FROM "Ping" LIMIT 10;
-SELECT COUNT(*) FROM "Traceroute";
-SELECT * FROM "Ping" LIMIT 30;
+   PGPASSWORD="${RESEARCHER_PASSWORD}" psql -h localhost -d pingtraceroutedb -U researcher <<EOF
+SELECT COUNT(*) FROM Ping;
+SELECT * FROM Ping LIMIT 10;
+SELECT COUNT(*) FROM Traceroute;
+SELECT * FROM Ping LIMIT 30;
 EOF
 
 # ###### Error ##############################################################

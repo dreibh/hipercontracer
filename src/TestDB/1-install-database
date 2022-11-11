@@ -20,7 +20,7 @@ if [ "$1" == "mariadb" ] ; then
 
 
 # ###### PostgreSQL #########################################################
-elif [ "$1" == "postgres" ] ; then
+elif [ "$1" == "postgresql" ] ; then
    # Documentation: https://www.digitalocean.com/community/tutorials/how-to-install-postgresql-on-ubuntu-22-04-quickstart
 
    echo "Installing PostgreSQL ..."
