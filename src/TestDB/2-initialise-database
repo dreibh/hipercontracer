@@ -43,23 +43,23 @@ if [ "$1" == "mariadb" -o "$1" == "mysql" ] ; then
    echo -e "\x1b[33mCreating schema ...\x1b[0m"
    mysql -u root <mariadb-schema.sql
 
+   echo -e "\x1b[33mCreating users and roles ...\x1b[0m"
    mysql -u root <<EOF
-DROP USER IF EXISTS maintainer
-CREATE USER maintainer IDENTIFIED BY '${MAINTAINER_PASSWORD}'
-GRANT ALL PRIVILEGES ON PingTracerouteDB TO maintainer
+DROP USER IF EXISTS maintainer;
+CREATE USER maintainer IDENTIFIED BY '${MAINTAINER_PASSWORD}';
+GRANT ALL PRIVILEGES ON PingTracerouteDB.* TO maintainer;
 
-DROP USER IF EXISTS importer
-CREATE USER importer IDENTIFIED BY '${IMPORTER_PASSWORD}'
-GRANT INSERT ON PingTracerouteDB.Ping TO importer
-GRANT INSERT ON PingTracerouteDB.Traceroute TO importer
+DROP USER IF EXISTS importer;
+CREATE USER importer IDENTIFIED BY '${IMPORTER_PASSWORD}';
+GRANT INSERT ON PingTracerouteDB.Ping TO importer;
+GRANT INSERT ON PingTracerouteDB.Traceroute TO importer;
 
-DROP USER IF EXISTS researcher
-CREATE USER researcher IDENTIFIED BY '${RESEARCHER_PASSWORD}'
-GRANT SELECT, INSERT, UPDATE ON PingTracerouteDB.* TO researcher
+DROP USER IF EXISTS researcher;
+CREATE USER researcher IDENTIFIED BY '${RESEARCHER_PASSWORD}';
+GRANT SELECT, INSERT, UPDATE ON PingTracerouteDB.* TO researcher;
 
-FLUSH PRIVILEGES
+FLUSH PRIVILEGES;
 EOF
-
 
 
 # ###### PostgreSQL #########################################################

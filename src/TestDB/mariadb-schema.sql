@@ -32,7 +32,6 @@
 DROP DATABASE IF EXISTS PingTracerouteDB;
 CREATE DATABASE PingTracerouteDB;
 
-
 DROP TABLE IF EXISTS PingTracerouteDB.Ping;
 CREATE TABLE PingTracerouteDB.Ping (
    TimeStamp DATETIME(6) NOT NULL,                      -- Time stamp (always UTC!)
