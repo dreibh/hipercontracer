@@ -46,7 +46,7 @@ CREATE TABLE PingTracerouteDB.Ping (
    PRIMARY KEY (FromIP, ToIP, TC, TimeStamp)
 );
 
-CREATE INDEX PingTimeStampIndex ON Ping (TimeStamp ASC);
+CREATE INDEX PingTimeStampIndex ON PingTracerouteDB.Ping (TimeStamp ASC);
 
 
 DROP TABLE IF EXISTS PingTracerouteDB.Traceroute;
@@ -67,4 +67,4 @@ CREATE TABLE PingTracerouteDB.Traceroute (
    PRIMARY KEY (FromIP,ToIP,TC,TimeStamp,Round,HopNumber)
 );
 
-CREATE INDEX TracerouteTimeStampIndex ON Traceroute (TimeStamp ASC);
+CREATE INDEX TracerouteTimeStampIndex ON PingTracerouteDB.Traceroute (TimeStamp ASC);
