@@ -1,7 +1,7 @@
 #!/bin/bash -e
 
 if [ $# -ne 2 ] ; then
-   echo >&2 "Usage: $0 mongodb|mysql|mariadb|postgres users.conf"
+   echo >&2 "Usage: $0 mariadb|mongodb|mysql|postgres users.conf"
    exit 1
 fi
 if [ ! -e $2 ] ; then
@@ -30,48 +30,8 @@ echo -n "WARNING: THIS SCRIPT WILL ERASE THE EXISTING DATABASES. To proceed, typ
 # fi
 
 
-# ###### MariaDB/MySQL ######################################################
-if [ "$1" == "mariadb" -o "$1" == "mysql" ] ; then
-   # Documentation: https://www.digitalocean.com/community/tutorials/how-to-install-mariadb-on-ubuntu-22-04
-
-   echo -e "\x1b[34mPreparing admin user for MySQL/MariaDB ...\x1b[0m"
-   if [ ! -e ~/.my.cnf ] ; then
-     echo "ERROR: ~/.my.cnf does not exist! Set root user password there!"
-     exit 1
-   fi
-
-   echo -e "\x1b[33mCreating schema ...\x1b[0m"
-   mysql -u root <mariadb-schema.sql
-
-   echo -e "\x1b[33mCreating users and roles ...\x1b[0m"
-   mysql -u root <<EOF
-DROP USER IF EXISTS maintainer;
-CREATE USER maintainer IDENTIFIED BY '${MAINTAINER_PASSWORD}';
-GRANT ALL PRIVILEGES ON PingTracerouteDB.* TO maintainer;
-
-DROP USER IF EXISTS importer;
-CREATE USER importer IDENTIFIED BY '${IMPORTER_PASSWORD}';
-GRANT INSERT ON PingTracerouteDB.Ping TO importer;
-GRANT INSERT ON PingTracerouteDB.Traceroute TO importer;
-
-DROP USER IF EXISTS researcher;
-CREATE USER researcher IDENTIFIED BY '${RESEARCHER_PASSWORD}';
-GRANT SELECT, INSERT, UPDATE ON PingTracerouteDB.* TO researcher;
-
-FLUSH PRIVILEGES;
-EOF
-
-
-# ###### PostgreSQL #########################################################
-elif [ "$1" == "postgres" ] ; then
-   # Documentation: https://www.digitalocean.com/community/tutorials/how-to-install-postgresql-on-ubuntu-22-04-quickstart
-
-   echo -e "\x1b[34mPreparing admin user for PostgreSQL ...\x1b[0m"
-
-
-
 # ###### MongoDB ############################################################
-elif [ "$1" == "mongodb" ] ; then
+if [ "$1" == "mongodb" ] ; then
    # Documentation: https://www.mongodb.com/docs/manual/tutorial/install-mongodb-on-ubuntu/
 
    echo -e "\x1b[34mPreparing admin user for MongoDB ...\x1b[0m"
@@ -101,6 +61,63 @@ db.createUser({ user: "researcher", pwd: "${RESEARCHER_PASSWORD}", roles: [ "dbA
 quit()
 EOF
    echo ""
+
+
+# ###### MySQL/MariaDB ######################################################
+elif [ "$1" == "mysql" -o "$1" == "mariadb" ] ; then
+   # Documentation: https://www.digitalocean.com/community/tutorials/how-to-install-mariadb-on-ubuntu-22-04
+
+   echo -e "\x1b[34mPreparing admin user for MySQL/MariaDB ...\x1b[0m"
+   if [ ! -e ~/.my.cnf ] ; then
+     echo "ERROR: ~/.my.cnf does not exist! Set root user password there!"
+     exit 1
+   fi
+
+   echo -e "\x1b[33mCreating schema ...\x1b[0m"
+   mysql -u root <mysql-schema.sql
+
+   echo -e "\x1b[33mCreating users and roles ...\x1b[0m"
+   mysql -u root <<EOF
+DROP USER IF EXISTS maintainer;
+CREATE USER maintainer IDENTIFIED BY '${MAINTAINER_PASSWORD}';
+GRANT ALL PRIVILEGES ON PingTracerouteDB.* TO maintainer;
+
+DROP USER IF EXISTS importer;
+CREATE USER importer IDENTIFIED BY '${IMPORTER_PASSWORD}';
+GRANT INSERT ON PingTracerouteDB.Ping TO importer;
+GRANT INSERT ON PingTracerouteDB.Traceroute TO importer;
+
+DROP USER IF EXISTS researcher;
+CREATE USER researcher IDENTIFIED BY '${RESEARCHER_PASSWORD}';
+GRANT SELECT, INSERT, UPDATE ON PingTracerouteDB.* TO researcher;
+
+FLUSH PRIVILEGES;
+EOF
+
+
+# ###### PostgreSQL #########################################################
+elif [ "$1" == "postgres" ] ; then
+   # Documentation: https://www.digitalocean.com/community/tutorials/how-to-install-postgresql-on-ubuntu-22-04-quickstart
+
+   echo -e "\x1b[34mPreparing admin user for PostgreSQL ...\x1b[0m"
+
+   echo -e "\x1b[33mCreating schema ...\x1b[0m"
+   sudo -u postgres psql <postgresql-schema.sql
+
+   echo -e "\x1b[33mCreating users and roles ...\x1b[0m"
+   sudo -u postgres psql <<EOF
+DROP USER IF EXISTS maintainer;
+CREATE USER maintainer IDENTIFIED BY '${MAINTAINER_PASSWORD}';
+GRANT ALL PRIVILEGES ON PingTracerouteDB.* TO maintainer;
+
+DROP USER IF EXISTS importer;
+CREATE USER importer IDENTIFIED BY '${IMPORTER_PASSWORD}';
+GRANT CONNECT, INSERT ON PingTracerouteDB.Ping, PingTracerouteDB.Traceroute TO importer;
+
+DROP USER IF EXISTS researcher;
+CREATE USER researcher IDENTIFIED BY '${RESEARCHER_PASSWORD}';
+GRANT CONNECT, SELECT, INSERT, UPDATE ON PingTracerouteDB.* TO researcher;
+EOF
 
 
 # ###### Error ##############################################################
