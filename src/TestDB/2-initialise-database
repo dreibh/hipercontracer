@@ -122,17 +122,22 @@ elif [ "$1" == "postgresql" ] ; then
    # ====== Create users and roles ==========================================
    echo -e "\x1b[33mCreating users and roles ...\x1b[0m"
    sudo -u postgres psql PingTracerouteDB <<EOF
-DROP USER IF EXISTS maintainer;
-CREATE USER maintainer IDENTIFIED BY '${MAINTAINER_PASSWORD}';
-GRANT ALL PRIVILEGES ON PingTracerouteDB.* TO maintainer;
+REASSIGN OWNED BY "maintainer" TO "postgres";
+DROP USER IF EXISTS "maintainer";
+CREATE USER "maintainer" WITH LOGIN ENCRYPTED PASSWORD '${MAINTAINER_PASSWORD}';
+GRANT ALL PRIVILEGES ON DATABASE "PingTracerouteDB" TO "maintainer";
 
-DROP USER IF EXISTS importer;
-CREATE USER importer IDENTIFIED BY '${IMPORTER_PASSWORD}';
-GRANT CONNECT, INSERT ON PingTracerouteDB.Ping, PingTracerouteDB.Traceroute TO importer;
+REASSIGN OWNED BY "importer" TO "postgres";
+DROP USER IF EXISTS "importer";
+CREATE USER "importer" WITH LOGIN ENCRYPTED PASSWORD '${IMPORTER_PASSWORD}';
+GRANT CONNECT ON DATABASE "PingTracerouteDB" TO "importer";
+GRANT INSERT ON "Ping", "Traceroute" TO "importer";
 
-DROP USER IF EXISTS researcher;
-CREATE USER researcher IDENTIFIED BY '${RESEARCHER_PASSWORD}';
-GRANT CONNECT, SELECT, INSERT, UPDATE ON PingTracerouteDB.* TO researcher;
+REASSIGN OWNED BY "researcher" TO "postgres";
+DROP USER IF EXISTS "researcher";
+CREATE USER "researcher" WITH LOGIN ENCRYPTED PASSWORD '${RESEARCHER_PASSWORD}';
+GRANT CONNECT ON DATABASE "PingTracerouteDB" TO "researcher";
+GRANT INSERT, SELECT, UPDATE ON "Ping", "Traceroute" TO "researcher";
 EOF
 
 

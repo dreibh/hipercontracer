@@ -31,8 +31,8 @@
 
 
 -- ###### Ping ##############################################################
-DROP TABLE IF EXISTS Ping;
-CREATE TABLE Ping (
+DROP TABLE IF EXISTS "Ping";
+CREATE TABLE "Ping" (
    TimeStamp TIMESTAMP WITHOUT TIME ZONE NOT NULL,   -- Time stamp (always UTC!)
    FromIP    INET     NOT NULL,                      -- Source IP address
    ToIP      INET     NOT NULL,                      -- Destination IP address
@@ -44,12 +44,12 @@ CREATE TABLE Ping (
    PRIMARY KEY (FromIP, ToIP, TC, TimeStamp)
 );
 
-CREATE INDEX PingTimeStampIndex ON Ping (TimeStamp ASC);
+CREATE INDEX "PingTimeStampIndex" ON "Ping" (TimeStamp ASC);
 
 
 -- ###### Traceroute ########################################################
-DROP TABLE IF EXISTS Traceroute;
-CREATE TABLE Traceroute (
+DROP TABLE IF EXISTS "Traceroute";
+CREATE TABLE "Traceroute" (
    TimeStamp TIMESTAMP WITHOUT TIME ZONE NOT NULL,   -- Time stamp (always UTC!)
    FromIP    INET     NOT NULL,                      -- Source IP address
    ToIP      INET     NOT NULL,                      -- Destination IP address
@@ -66,4 +66,4 @@ CREATE TABLE Traceroute (
    PRIMARY KEY (FromIP,ToIP,TC,TimeStamp,Round,HopNumber)
 );
 
-CREATE INDEX TracerouteTimeStampIndex ON Traceroute (TimeStamp ASC);
+CREATE INDEX "TracerouteTimeStampIndex" ON "Traceroute" (TimeStamp ASC);

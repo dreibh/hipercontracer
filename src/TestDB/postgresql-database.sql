@@ -29,5 +29,5 @@
 --
 -- Contact: dreibh@simula.no
 
-DROP DATABASE IF EXISTS PingTracerouteDB;
-CREATE DATABASE PingTracerouteDB;
+DROP DATABASE IF EXISTS "PingTracerouteDB";
+CREATE DATABASE "PingTracerouteDB";
