@@ -1,0 +1,55 @@
+#!/bin/bash -e
+
+if [ $# -ne 1 ] ; then
+   echo >&2 "Usage: $0 mariadb|postgres|mongodb"
+   exit 1
+fi
+
+
+# ###### MariaDB ############################################################
+if [ "$1" == "mariadb" ] ; then
+   # Documentation: https://www.digitalocean.com/community/tutorials/how-to-install-mariadb-on-ubuntu-22-04
+
+   sudo apt install -y mariadb-server mariadb-backup mariadb-client
+
+   sudo mysql_secure_installation
+
+   # wget https://dev.mysql.com/get/Downloads/MySQLGUITools/mysql-workbench-community_8.0.31-1ubuntu22.10_amd64.deb
+   # sudo apt install ./mysql-workbench-community_8.0.31-1ubuntu22.10_amd64.deb
+
+
+# ###### PostgreSQL #########################################################
+elif [ "$1" == "postgres" ] ; then
+   # Documentation: https://www.digitalocean.com/community/tutorials/how-to-install-postgresql-on-ubuntu-22-04-quickstart
+
+   sudo apt install -y postgresql-all
+
+
+# ###### MongoDB ############################################################
+elif [ "$1" == "mongodb" ] ; then
+
+   # Documentation: https://www.mongodb.com/docs/manual/tutorial/install-mongodb-on-ubuntu/
+
+   echo "Installing MongoDB ..."
+
+   # FIXME! Still no official MongoDB for Ubuntu 22.04 ...
+   if [ ! -e libssl1.1_1.1.1f-1ubuntu2.16_amd64.deb ] ; then
+      wget http://archive.ubuntu.com/ubuntu/pool/main/o/openssl/libssl1.1_1.1.1f-1ubuntu2.16_amd64.deb
+      sudo dpkg -i libssl1.1_1.1.1f-1ubuntu2.16_amd64.deb 
+   fi
+   wget -qO - https://www.mongodb.org/static/pgp/server-6.0.asc | gpg --dearmor | sudo tee /usr/share/keyrings/mongodb.gpg
+   if [ ! -e /etc/apt/sources.list.d/mongodb-org-6.0.list ] ; then
+      echo "deb [ signed-by=/usr/share/keyrings/mongodb.gpg arch=amd64,arm64 ] https://repo.mongodb.org/apt/ubuntu focal/mongodb-org/6.0 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-6.0.list
+   fi
+   sudo apt-get update -qq
+   sudo apt-get install -y mongodb-org
+
+   sudo systemctl start mongod
+   sudo systemctl enable mongod
+
+
+# ###### Error ##############################################################
+else
+   echo >&2 "ERROR: Unsupported database: $1"
+   exit 1
+fi
