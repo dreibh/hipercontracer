@@ -9,7 +9,7 @@ if [ ! -e $2 ] ; then
 fi
 
 MAINTAINER_PASSWORD="!maintainer!"
-IMPORTER_PASSWORD="!importer1"
+IMPORTER_PASSWORD="!importer!"
 RESEARCHER_PASSWORD="!researcher!"
 . ./$2
 
@@ -22,18 +22,43 @@ if [ "${MAINTAINER_PASSWORD}" = "!maintainer!" -o \
 fi
 
 echo -n "WARNING: THIS SCRIPT WILL ERASE THE EXISTING DATABASES. To proceed, type \"I am sure!\": "
-read -er agree
-if [ "$agree" != "I am sure!" ] ; then
-   echo "Exiting."
-   exit
-fi
+# FIXME! ????
+# read -er agree
+# if [ "$agree" != "I am sure!" ] ; then
+#    echo "Exiting."
+#    exit
+# fi
 
 
 # ###### MariaDB ############################################################
 if [ "$1" == "mariadb" ] ; then
    # Documentation: https://www.digitalocean.com/community/tutorials/how-to-install-mariadb-on-ubuntu-22-04
 
-   echo "Preparing admin user for MariaDB ..."
+   echo -e "\x1b[34mPreparing admin user for MariaDB ...\x1b[0m"
+   if [ ! -e ~/.my.cnf ] ; then
+     echo "ERROR: ~/.my.cnf does not exist! Set root user password there!"
+     exit 1
+   fi
+
+   echo -e "\x1b[33mCreating schema ...\x1b[0m"
+   cat <mariadb-schema.sql
+
+   cat <<EOF
+DROP USER IF EXISTS maintainer
+CREATE USER maintainer IDENTIFIED BY '${MAINTAINER_PASSWORD}'
+GRANT ALL PRIVILEGES ON PingTracerouteDB TO maintainer
+
+DROP USER IF EXISTS importer
+CREATE USER importer IDENTIFIED BY '${IMPORTER_PASSWORD}'
+GRANT INSERT ON PingTracerouteDB.Ping TO importer
+GRANT INSERT ON PingTracerouteDB.Traceroute TO importer
+
+DROP USER IF EXISTS researcher
+CREATE USER researcher IDENTIFIED BY '${RESEARCHER_PASSWORD}'
+GRANT SELECT, INSERT, UPDATE ON PingTracerouteDB.* TO researcher
+
+FLUSH PRIVILEGES
+EOF
 
 
 
@@ -41,7 +66,7 @@ if [ "$1" == "mariadb" ] ; then
 elif [ "$1" == "postgres" ] ; then
    # Documentation: https://www.digitalocean.com/community/tutorials/how-to-install-postgresql-on-ubuntu-22-04-quickstart
 
-   echo "Preparing admin user for PostgreSQL ..."
+   echo -e "\x1b[34mPreparing admin user for PostgreSQL ...\x1b[0m"
 
 
 
@@ -51,8 +76,12 @@ elif [ "$1" == "mongodb" ] ; then
 
    echo -e "\x1b[34mPreparing admin user for MongoDB ...\x1b[0m"
 
-   # ====== Create user "maintainer" ========================================
-   echo -e "\x1b[33mCreating user \"maintainer\" ...\x1b[0m"
+   # ====== Create schema ===================================================
+   echo -e "\x1b[33mCreating database and schemata ...\x1b[0m"
+   mongosh --quiet <mongodb-schema.ms
+
+   # ====== Create users and roles ==========================================
+   echo -e "\x1b[33mCreating user and roles ...\x1b[0m"
    mongosh --quiet <<EOF
 use admin
 db.dropUser("maintainer")
@@ -64,28 +93,6 @@ db.createUser({ user: "maintainer",
                    "readWriteAnyDatabase",
                    "clusterAdmin"
                 ] })
-quit()
-EOF
-   echo ""
-
-   # ====== Create database =================================================
-   echo -e "\x1b[33mCreating database ...\x1b[0m"
-   mongosh --quiet <<EOF
-use pingtraceroutedb
-db.dropDatabase()
-use pingtraceroutedb
-show dbs
-quit()
-EOF
-   echo ""
-
-   # ====== Create schema ===================================================
-   echo -e "\x1b[33mCreating schema ...\x1b[0m"
-   mongosh --quiet <mongodb-schema.ms
-
-   # ====== Create users "importer", "researcher", as well as their roles ===
-   echo -e "\x1b[33mCreating users \"importer\", \"researcher\", as well as their roles ...\x1b[0m"
-   mongosh --quiet <<EOF
 use pingtraceroutedb
 db.dropUser("importer")
 db.dropUser("researcher")
@@ -93,7 +100,7 @@ db.createUser({ user: "importer",   pwd: "${IMPORTER_PASSWORD}",   roles: [ "rea
 db.createUser({ user: "researcher", pwd: "${RESEARCHER_PASSWORD}", roles: [ "dbAdmin", "readWrite" ] })
 quit()
 EOF
-   echo""
+   echo ""
 
 
 # ###### Error ##############################################################
