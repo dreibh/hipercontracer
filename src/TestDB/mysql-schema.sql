@@ -29,14 +29,10 @@
 --
 -- Contact: dreibh@simula.no
 
-DROP DATABASE IF EXISTS PingTracerouteDB;
-CREATE DATABASE PingTracerouteDB;
-
 
 -- ###### Ping ##############################################################
-USE PingTracerouteDB;
-DROP TABLE IF EXISTS Ping;
-CREATE TABLE Ping (
+DROP TABLE IF EXISTS PingTracerouteDB.Ping;
+CREATE TABLE PingTracerouteDB.Ping (
    TimeStamp DATETIME(6) NOT NULL,                      -- Time stamp (always UTC!)
    FromIP    BINARY(16)  NOT NULL,                      -- Source IP address
    ToIP      BINARY(16)  NOT NULL,                      -- Destination IP address
@@ -48,13 +44,12 @@ CREATE TABLE Ping (
    PRIMARY KEY (FromIP, ToIP, TC, TimeStamp)
 );
 
-CREATE INDEX PingTimeStampIndex ON Ping (TimeStamp ASC);
+CREATE INDEX PingTimeStampIndex ON PingTracerouteDB.Ping (TimeStamp ASC);
 
 
 -- ###### Traceroute ########################################################
-USE PingTracerouteDB;
-DROP TABLE IF EXISTS Traceroute;
-CREATE TABLE Traceroute (
+DROP TABLE IF EXISTS PingTracerouteDB.Traceroute;
+CREATE TABLE PingTracerouteDB.Traceroute (
    TimeStamp DATETIME(6) NOT NULL,                      -- Time stamp (always UTC!)
    FromIP    BINARY(16)  NOT NULL,                      -- Source IP address
    ToIP      BINARY(16)  NOT NULL,                      -- Destination IP address
@@ -71,4 +66,4 @@ CREATE TABLE Traceroute (
    PRIMARY KEY (FromIP,ToIP,TC,TimeStamp,Round,HopNumber)
 );
 
-CREATE INDEX TracerouteTimeStampIndex ON Traceroute (TimeStamp ASC);
+CREATE INDEX TracerouteTimeStampIndex ON PingTracerouteDB.Traceroute (TimeStamp ASC);

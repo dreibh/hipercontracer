@@ -1,9 +1,3 @@
-// ====== Create database ===================================================
-use pingtraceroutedb
-db.dropDatabase()
-use pingtraceroutedb
-show dbs
-
 // ====== Create collections ================================================
 db.createCollection("ping",       { storageEngine: { wiredTiger: { configString: 'block_compressor=zlib' }}})
 db.createCollection("traceroute", { storageEngine: { wiredTiger: { configString: 'block_compressor=zlib' }}})

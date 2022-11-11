@@ -73,9 +73,15 @@ elif [ "$1" == "mysql" -o "$1" == "mariadb" ] ; then
      exit 1
    fi
 
+   # ====== Create database =================================================
+   echo -e "\x1b[33mCreating database ...\x1b[0m"
+   mysql -u root <mysql-database.sql
+
+   # ====== Create schema ===================================================
    echo -e "\x1b[33mCreating schema ...\x1b[0m"
    mysql -u root <mysql-schema.sql
 
+   # ====== Create users and roles ==========================================
    echo -e "\x1b[33mCreating users and roles ...\x1b[0m"
    mysql -u root <<EOF
 DROP USER IF EXISTS maintainer;
@@ -101,11 +107,17 @@ elif [ "$1" == "postgresql" ] ; then
 
    echo -e "\x1b[34mPreparing admin user for PostgreSQL ...\x1b[0m"
 
-   echo -e "\x1b[33mCreating schema ...\x1b[0m"
-   sudo -u postgres psql <postgresql-schema.sql
+   # ====== Create database =================================================
+   echo -e "\x1b[33mCreating database ...\x1b[0m"
+   sudo -u postgres psql <postgresql-database.sql
 
+   # ====== Create schema ===================================================
+   echo -e "\x1b[33mCreating schema ...\x1b[0m"
+   sudo -u postgres psql PingTracerouteDB <postgresql-schema.sql
+
+   # ====== Create users and roles ==========================================
    echo -e "\x1b[33mCreating users and roles ...\x1b[0m"
-   sudo -u postgres psql <<EOF
+   sudo -u postgres psql PingTracerouteDB <<EOF
 DROP USER IF EXISTS maintainer;
 CREATE USER maintainer IDENTIFIED BY '${MAINTAINER_PASSWORD}';
 GRANT ALL PRIVILEGES ON PingTracerouteDB.* TO maintainer;

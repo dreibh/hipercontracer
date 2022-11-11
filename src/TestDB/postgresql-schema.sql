@@ -29,12 +29,8 @@
 --
 -- Contact: dreibh@simula.no
 
-DROP DATABASE IF EXISTS PingTracerouteDB;
-CREATE DATABASE PingTracerouteDB;
-
 
 -- ###### Ping ##############################################################
-USE PingTracerouteDB;
 DROP TABLE IF EXISTS Ping;
 CREATE TABLE Ping (
    TimeStamp TIMESTAMP WITHOUT TIME ZONE NOT NULL,   -- Time stamp (always UTC!)
@@ -52,7 +48,6 @@ CREATE INDEX PingTimeStampIndex ON Ping (TimeStamp ASC);
 
 
 -- ###### Traceroute ########################################################
-USE PingTracerouteDB;
 DROP TABLE IF EXISTS Traceroute;
 CREATE TABLE Traceroute (
    TimeStamp TIMESTAMP WITHOUT TIME ZONE NOT NULL,   -- Time stamp (always UTC!)
