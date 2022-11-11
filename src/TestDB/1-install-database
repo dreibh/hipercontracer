@@ -10,8 +10,9 @@ fi
 if [ "$1" == "mariadb" ] ; then
    # Documentation: https://www.digitalocean.com/community/tutorials/how-to-install-mariadb-on-ubuntu-22-04
 
-   sudo apt install -y mariadb-server mariadb-backup mariadb-client
+   echo "Installing MariaDB ..."
 
+   sudo apt install -y mariadb-server mariadb-backup mariadb-client
    sudo mysql_secure_installation
 
    # wget https://dev.mysql.com/get/Downloads/MySQLGUITools/mysql-workbench-community_8.0.31-1ubuntu22.10_amd64.deb
@@ -22,12 +23,13 @@ if [ "$1" == "mariadb" ] ; then
 elif [ "$1" == "postgres" ] ; then
    # Documentation: https://www.digitalocean.com/community/tutorials/how-to-install-postgresql-on-ubuntu-22-04-quickstart
 
+   echo "Installing PostgreSQL ..."
+
    sudo apt install -y postgresql-all
 
 
 # ###### MongoDB ############################################################
 elif [ "$1" == "mongodb" ] ; then
-
    # Documentation: https://www.mongodb.com/docs/manual/tutorial/install-mongodb-on-ubuntu/
 
    echo "Installing MongoDB ..."
