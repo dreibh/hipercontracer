@@ -18,8 +18,14 @@ RESEARCHER_PASSWORD="!researcher!"
 if [ "$1" == "mongodb" ] ; then
    # Documentation: https://www.mongodb.com/docs/manual/tutorial/install-mongodb-on-ubuntu/
 
-   echo -e "\x1b[34mPreparing admin user for MongoDB ...\x1b[0m"
-
+   echo -e "\x1b[34mTesting access to MongoDB database ...\x1b[0m"
+   mongosh mongodb://localhost/pingtraceroutedb --username researcher --password "${RESEARCHER_PASSWORD}" --quiet <<EOF
+use pingtraceroutedb
+db.ping.countDocuments()
+db.ping.findOne()
+db.traceroute.countDocuments()
+db.traceroute.findOne()
+EOF
 
 
 # ###### MySQL/MariaDB ######################################################
