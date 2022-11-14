@@ -112,9 +112,9 @@ void MariaDBClient::reconnect()
 
 
 // ###### Handle SQLException ###############################################
-void MariaDBClient::handleSQLException(const sql::SQLException& exception,
-                                       const std::string&       where,
-                                       const std::string&       statement)
+void MariaDBClient::handleDatabaseException(const sql::SQLException& exception,
+                                            const std::string&       where,
+                                            const std::string&       statement)
 {
    // ====== Log error ======================================================
    const std::string what = where + " error " +
@@ -145,7 +145,7 @@ void MariaDBClient::startTransaction()
       Statement->execute("START TRANSACTION");
    }
    catch(const sql::SQLException& exception) {
-      handleSQLException(exception, "Start of transaction");
+      handleDatabaseException(exception, "Start of transaction");
    }
 }
 
@@ -159,7 +159,7 @@ void MariaDBClient::endTransaction(const bool commit)
          Connection->commit();
       }
       catch(const sql::SQLException& exception) {
-         handleSQLException(exception, "Commit");
+         handleDatabaseException(exception, "Commit");
       }
    }
 
@@ -169,7 +169,7 @@ void MariaDBClient::endTransaction(const bool commit)
          Connection->rollback();
       }
       catch(const sql::SQLException& exception) {
-         handleSQLException(exception, "Rollback");
+         handleDatabaseException(exception, "Rollback");
       }
    }
 }
@@ -182,6 +182,6 @@ void MariaDBClient::executeUpdate(const std::string& statement)
       Statement->executeUpdate(statement);
    }
    catch(const sql::SQLException& exception) {
-      handleSQLException(exception, "Execute", statement);
+      handleDatabaseException(exception, "Execute", statement);
    }
 }

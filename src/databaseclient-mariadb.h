@@ -60,9 +60,9 @@ class MariaDBClient : public DatabaseClientBase
    inline sql::Connection* getConnection() { return Connection; }
 
    private:
-   void handleSQLException(const sql::SQLException& exception,
-                           const std::string&       where,
-                           const std::string&       statement = std::string());
+   void handleDatabaseException(const sql::SQLException& exception,
+                                const std::string&       where,
+                                const std::string&       statement = std::string());
 
    sql::Driver*     Driver;
    sql::Connection* Connection;
