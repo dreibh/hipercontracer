@@ -53,8 +53,7 @@ class PostgreSQLClient : public DatabaseClientBase
    virtual void executeUpdate(const std::string& statement);
    virtual void endTransaction(const bool commit);
 
-   inline sql::Driver*     getDriver()     { return Driver;     }
-   inline sql::Connection* getConnection() { return Connection; }
+   inline pqxx::lazyconnection* getConnection() { return Connection; }
 
    private:
    void handleDatabaseException(const pqxx::pqxx_exception& exception,

@@ -38,8 +38,6 @@
 PostgreSQLClient::PostgreSQLClient(const DatabaseConfiguration& configuration)
    : DatabaseClientBase(configuration)
 {
-   Driver = get_driver_instance();
-   assert(Driver != nullptr);
    Connection = nullptr;
    Statement  = nullptr;
 }
@@ -63,8 +61,8 @@ const DatabaseBackendType PostgreSQLClient::getBackend() const
 bool PostgreSQLClient::open()
 {
    const std::string parameters =
-      "host="     + Configuration.getServer() +
-      " port="     + boost::str(boost::format("%d") % schedulerDBPort) +
+      "host="      + Configuration.getServer() +
+      " port="     + std::to_string(Configuration.getPort()) +
       " user="     + Configuration.getUser() +
       " password=" + Configuration.getPassword() +
       " dbname="   + Configuration.getDatabase();
@@ -80,7 +78,7 @@ bool PostgreSQLClient::open()
       assert(Statement != nullptr);
    }
    catch(const pqxx::pqxx_exception& e) {
-      HPCT_LOG(error) << "Unable to connect PostgreSQL client to " << parameters << ": " << e.what();
+      HPCT_LOG(error) << "Unable to connect PostgreSQL client to " << parameters;
       close();
       return false;
    }
@@ -106,34 +104,36 @@ void PostgreSQLClient::close()
 // ###### Reconnect connection to database ##################################
 void PostgreSQLClient::reconnect()
 {
-   Connection->reconnect();
+   puts("?????"); // FIXME!
+   // Connection->reconnect();
 }
 
 
 // ###### Handle SQLException ###############################################
 void PostgreSQLClient::handleDatabaseException(const pqxx::pqxx_exception& exception,
-                                               const std::string&       where,
-                                               const std::string&       statement)
+                                               const std::string&          where,
+                                               const std::string&          statement)
 {
    // ====== Log error ======================================================
-   const std::string what = where + " error " +
-                               exception.getSQLState() + "/E" +
-                               std::to_string(exception.getErrorCode()) + ": " +
-                               exception.what();
+   std::string what = where;
+   const pqxx::sql_error* s = dynamic_cast<const pqxx::sql_error*>(&exception.base());
+   if(s) {
+      what += ": query was: " + std::string(s->query());
+   }
    HPCT_LOG(error) << what;
    HPCT_LOG(debug) << statement;
 
    // ====== Throw exception ================================================
-   const std::string e = exception.getSQLState().substr(0, 2);
-   // Integrity Error, according to mysql/connector/errors.py
-   if( (e == "23") || (e == "22") || (e == "XA")) {
-      // For this type, the input file should be moved to the bad directory.
-      throw ImporterDatabaseDataErrorException(what);
-   }
-   // Other error
-   else {
+//    const std::string e = exception.getSQLState().substr(0, 2);
+//    // Integrity Error, according to mysql/connector/errors.py
+//    if( (e == "23") || (e == "22") || (e == "XA")) {
+//       // For this type, the input file should be moved to the bad directory.
+//       throw ImporterDatabaseDataErrorException(what);
+//    }
+//    // Other error
+//    else {
       throw ImporterDatabaseException(what);
-   }
+//    }
 }
 
 
@@ -144,7 +144,7 @@ void PostgreSQLClient::startTransaction()
       Statement->execute("START TRANSACTION");
    }
    catch(const pqxx::pqxx_exception& exception) {
-      handleSQLException(exception, "Start of transaction");
+      handleDatabaseException(exception, "Start of transaction");
    }
 }
 
@@ -158,7 +158,7 @@ void PostgreSQLClient::endTransaction(const bool commit)
          Connection->commit();
       }
       catch(const pqxx::pqxx_exception& exception) {
-         handleSQLException(exception, "Commit");
+         handleDatabaseException(exception, "Commit");
       }
    }
 
@@ -168,7 +168,7 @@ void PostgreSQLClient::endTransaction(const bool commit)
          Connection->rollback();
       }
       catch(const pqxx::pqxx_exception& exception) {
-         handleSQLException(exception, "Rollback");
+         handleDatabaseException(exception, "Rollback");
       }
    }
 }
@@ -181,6 +181,6 @@ void PostgreSQLClient::executeUpdate(const std::string& statement)
       Statement->executeUpdate(statement);
    }
    catch(const pqxx::pqxx_exception& exception) {
-      handleSQLException(exception, "Execute", statement);
+      handleDatabaseException(exception, "Execute", statement);
    }
 }

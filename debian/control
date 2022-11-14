@@ -12,6 +12,9 @@ Build-Depends: cmake (>= 3.0.2) | cmake3,
                libboost-program-options-dev,
                libboost-system-dev,
                libboost-thread-dev,
+               libmongoclient-dev,
+               libmysqlcppconn-dev,
+               libpqxx-dev,
                pkg-config,
                python3
 Standards-Version: 4.6.1

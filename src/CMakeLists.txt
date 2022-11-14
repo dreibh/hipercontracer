@@ -92,6 +92,8 @@ LIST(APPEND libuniversalimporter_sources
    databaseclient-base.cc
    databaseclient-debug.cc
    databaseclient-mariadb.cc
+   databaseclient-mongodb.cc
+   databaseclient-postgresql.cc
    reader-base.cc
    reader-ping.cc
    reader-ping.cc
