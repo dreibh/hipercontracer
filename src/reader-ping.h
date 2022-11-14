@@ -59,7 +59,6 @@ class PingReader : public TracerouteReader
    private:
    static const std::string Identification;
    static const std::regex  FileNameRegExp;
-   const std::string        Table;
 };
 
 #endif

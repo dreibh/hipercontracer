@@ -90,10 +90,11 @@ class TracerouteReader : public ReaderImplementation<TracerouteFileEntry>
                                     const std::filesystem::path& dataFile);
    static std::string addressToBytesString(const boost::asio::ip::address& address);
 
+   const std::string        Table;
+
    private:
    static const std::string Identification;
    static const std::regex  FileNameRegExp;
-   const std::string        Table;
 };
 
 #endif
