@@ -60,96 +60,6 @@ PingReader::~PingReader()
 }
 
 
-// ###### Parse time stamp ##################################################
-template<typename TimePoint> TimePoint PingReader::parseTimeStamp(
-                                          const std::string&           value,
-                                          const TimePoint&             now,
-                                          const std::filesystem::path& dataFile)
-{
-   size_t                   index;
-   const unsigned long long ts = std::stoull(value, &index, 16);
-   if(index != value.size()) {
-      throw ImporterReaderDataErrorException("Bad time stamp format " + value);
-   }
-   const TimePoint timeStamp =    microsecondsToTimePoint<std::chrono::time_point<std::chrono::high_resolution_clock>>(ts);
-   if( (timeStamp < now - std::chrono::hours(365 * 24)) ||   /* 1 year in the past  */
-       (timeStamp > now + std::chrono::hours(24)) ) {        /* 1 day in the future */
-      throw ImporterReaderDataErrorException("Bad time stamp value " + value);
-   }
-   return timeStamp;
-}
-
-// ###### Parse time stamp ##################################################
-uint16_t PingReader::parseChecksum(const std::string&           value,
-                                   const std::filesystem::path& dataFile)
-{
-   size_t              index;
-   const unsigned long checksum = std::stoul(value, &index, 16);
-   if(index != value.size()) {
-      throw ImporterReaderDataErrorException("Bad checksum format " + value);
-   }
-   if(checksum > 0xffff) {
-      throw ImporterReaderDataErrorException("Bad checksum value " + value);
-   }
-   return (uint16_t)checksum;
-}
-
-
-// ###### Parse status ######################################################
-unsigned int PingReader::parseStatus(const std::string&           value,
-                                     const std::filesystem::path& dataFile)
-{
-   size_t              index;
-   const unsigned long status = std::stoul(value, &index, 10);
-   if(index != value.size()) {
-      throw ImporterReaderDataErrorException("Bad status format " + value);
-   }
-   return status;
-}
-
-
-// ###### Parse RTT #########################################################
-unsigned int PingReader::parseRTT(const std::string&           value,
-                                  const std::filesystem::path& dataFile)
-{
-   size_t              index;
-   const unsigned long rtt = std::stoul(value, &index, 10);
-   if(index != value.size()) {
-      throw ImporterReaderDataErrorException("Bad RTT format " + value);
-   }
-   return rtt;
-}
-
-
-// ###### Parse packet size #################################################
-unsigned int PingReader::parsePacketSize(const std::string&           value,
-                                         const std::filesystem::path& dataFile)
-{
-   size_t              index;
-   const unsigned long packetSize = std::stoul(value, &index, 10);
-   if(index != value.size()) {
-      throw ImporterReaderDataErrorException("Bad packet size format " + value);
-   }
-   return packetSize;
-}
-
-
-// ###### Parse traffic class ###############################################
-uint8_t PingReader::parseTrafficClass(const std::string&           value,
-                                      const std::filesystem::path& dataFile)
-{
-   size_t              index;
-   const unsigned long trafficClass = std::stoul(value, &index, 16);
-   if(index != value.size()) {
-      throw ImporterReaderDataErrorException("Bad traffic class format " + value);
-   }
-   if(trafficClass > 0xffff) {
-      throw ImporterReaderDataErrorException("Bad traffic class value " + value);
-   }
-   return (uint8_t)trafficClass;
-}
-
-
 // ###### Begin parsing #####################################################
 void PingReader::beginParsing(DatabaseClientBase& databaseClient,
                               unsigned long long& rows)
@@ -246,7 +156,7 @@ void PingReader::parseContents(
       // ====== Generate import statement ===================================
       if(tuple[0] == "#P")  {
          const std::chrono::time_point<std::chrono::high_resolution_clock> timeStamp =
-            parseTimeStamp<std::chrono::time_point<std::chrono::high_resolution_clock>>(tuple[3], now, dataFile);
+            parseTimeStamp(tuple[3], now, dataFile);
          const boost::asio::ip::address sourceIP      = boost::asio::ip::address::from_string(tuple[1]);
          const boost::asio::ip::address destinationIP = boost::asio::ip::address::from_string(tuple[2]);
          const uint16_t                 checksum      = parseChecksum(tuple[4], dataFile);

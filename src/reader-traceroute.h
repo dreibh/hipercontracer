@@ -74,6 +74,21 @@ class TracerouteReader : public ReaderImplementation<TracerouteFileEntry>
                               const std::filesystem::path&         dataFile,
                               boost::iostreams::filtering_istream& dataStream);
 
+   protected:
+   static ReaderTimePoint parseTimeStamp(const std::string&           value,
+                                         const ReaderTimePoint&       now,
+                                         const std::filesystem::path& dataFile);
+   static uint16_t parseChecksum(const std::string&           value,
+                                 const std::filesystem::path& dataFile);
+   static unsigned int parseStatus(const std::string&           value,
+                                   const std::filesystem::path& dataFile);
+   static unsigned int parseRTT(const std::string&           value,
+                                const std::filesystem::path& dataFile);
+   static unsigned int parsePacketSize(const std::string&           value,
+                                       const std::filesystem::path& dataFile);
+   static uint8_t parseTrafficClass(const std::string&           value,
+                                    const std::filesystem::path& dataFile);
+
    private:
    static const std::string Identification;
    static const std::regex  FileNameRegExp;
