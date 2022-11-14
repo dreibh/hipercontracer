@@ -208,12 +208,12 @@ int main(int argc, char** argv)
       boost::program_options::notify(vm);
    }
    catch(std::exception& e) {
-      std::cerr << "ERROR: Bad parameter: " << e.what() << std::endl;
+      std::cerr << "ERROR: Bad parameter: " << e.what() << "\n";
       return 1;
    }
 
    if(vm.count("help")) {
-       std::cerr << "Usage: " << argv[0] << " parameters" << std::endl
+       std::cerr << "Usage: " << argv[0] << " parameters" << "\n"
                  << commandLineOptions;
        return 1;
    }
@@ -266,30 +266,30 @@ int main(int argc, char** argv)
    pingPacketSize            = std::min(65535U, pingPacketSize);
 
    if(!resultsDirectory.empty()) {
-      HPCT_LOG(info) << "Results Output:" << std::endl
-                     << "* Results Directory  = " << resultsDirectory         << std::endl
+      HPCT_LOG(info) << "Results Output:" << "\n"
+                     << "* Results Directory  = " << resultsDirectory         << "\n"
                      << "* Transaction Length = " << resultsTransactionLength << " s";
    }
    else {
-      HPCT_LOG(info) << "Results Output:" << std::endl
-                     << "-- turned off--" << std::endl;
+      HPCT_LOG(info) << "Results Output:" << "\n"
+                     << "-- turned off--";
    }
    if(servicePing) {
       HPCT_LOG(info) << "Ping Service:" << std:: endl
-                     << "* Interval           = " << pingInterval   << " ms" << std::endl
-                     << "* Expiration         = " << pingExpiration << " ms" << std::endl
-                     << "* TTL                = " << pingTTL                 << std::endl
-                     << "* Packet Size        = " << pingPacketSize << " B"  << std::endl;
+                     << "* Interval           = " << pingInterval   << " ms" << "\n"
+                     << "* Expiration         = " << pingExpiration << " ms" << "\n"
+                     << "* TTL                = " << pingTTL                 << "\n"
+                     << "* Packet Size        = " << pingPacketSize << " B";
    }
    if(serviceTraceroute) {
       HPCT_LOG(info) << "Traceroute Service:" << std:: endl
-                     << "* Interval           = " << tracerouteInterval        << " ms" << std::endl
-                     << "* Expiration         = " << tracerouteExpiration      << " ms" << std::endl
-                     << "* Rounds             = " << tracerouteRounds          << std::endl
-                     << "* Initial MaxTTL     = " << tracerouteInitialMaxTTL   << std::endl
-                     << "* Final MaxTTL       = " << tracerouteFinalMaxTTL     << std::endl
-                     << "* Increment MaxTTL   = " << tracerouteIncrementMaxTTL << std::endl
-                     << "* Packet Size        = " << traceroutePacketSize      << " B" << std::endl;
+                     << "* Interval           = " << tracerouteInterval        << " ms" << "\n"
+                     << "* Expiration         = " << tracerouteExpiration      << " ms" << "\n"
+                     << "* Rounds             = " << tracerouteRounds          << "\n"
+                     << "* Initial MaxTTL     = " << tracerouteInitialMaxTTL   << "\n"
+                     << "* Final MaxTTL       = " << tracerouteFinalMaxTTL     << "\n"
+                     << "* Increment MaxTTL   = " << tracerouteIncrementMaxTTL << "\n"
+                     << "* Packet Size        = " << traceroutePacketSize      << " B";
    }
 
 
@@ -305,7 +305,7 @@ int main(int argc, char** argv)
          for(std::set<uint8_t>::iterator trafficClassIterator = sourceIterator->second.begin();
              trafficClassIterator != sourceIterator->second.end(); trafficClassIterator++) {
             const uint8_t trafficClass = *trafficClassIterator;
-            // std::cout << destinationAddress << " " << (unsigned int)trafficClass << std::endl;
+            // std::cout << destinationAddress << " " << (unsigned int)trafficClass << "\n";
             destinationsForSource.insert(DestinationInfo(destinationAddress, trafficClass));
          }
       }
@@ -313,7 +313,7 @@ int main(int argc, char** argv)
 /*
       for(std::set<DestinationInfo>::iterator iterator = destinationsForSource.begin();
           iterator != destinationsForSource.end(); iterator++) {
-         std::cout << " -> " << *iterator << std::endl;
+         std::cout << " -> " << *iterator << "\n";
       }
 */
 
