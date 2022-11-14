@@ -44,8 +44,7 @@ const std::regex  NorNetEdgePingReader::FileNameRegExp = std::regex(
 
 // ###### < operator for sorting ############################################
 // NOTE: find() will assume equality for: !(a < b) && !(b < a)
-bool operator<(const NorNetEdgePingReader::InputFileEntry& a,
-               const NorNetEdgePingReader::InputFileEntry& b)
+bool operator<(const NorNetEdgePingFileEntry& a, const NorNetEdgePingFileEntry& b)
 {
    // ====== Level 1: TimeStamp =============================================
    if(a.TimeStamp < b.TimeStamp) {
@@ -68,14 +67,47 @@ bool operator<(const NorNetEdgePingReader::InputFileEntry& a,
 
 
 // ###### Output operator ###################################################
-std::ostream& operator<<(std::ostream& os, const NorNetEdgePingReader::InputFileEntry& entry)
+std::ostream& operator<<(std::ostream& os, const NorNetEdgePingFileEntry& entry)
 {
    os << "("
-      << timePointToString<NorNetEdgePingReader::FileEntryTimePoint>(entry.TimeStamp) << ", "
+      << timePointToString<ReaderTimePoint>(entry.TimeStamp) << ", "
       << entry.MeasurementID << ", "
       << entry.DataFile
       << ")";
    return os;
+}
+
+
+// ###### Make NorNetEdgePingFileEntry from file name  ######################
+int makeInputFileEntry(const std::filesystem::path& dataFile,
+                       const std::smatch            match,
+                       NorNetEdgePingFileEntry&     inputFileEntry,
+                       const unsigned int           workers)
+{
+   if(match.size() == 3) {
+      ReaderTimePoint timeStamp;
+      if(stringToTimePoint<ReaderTimePoint>(match[2].str(), timeStamp, "%Y-%m-%d_%H-%M-%S")) {
+         inputFileEntry.TimeStamp     = timeStamp;
+         inputFileEntry.MeasurementID = atol(match[1].str().c_str());
+         inputFileEntry.DataFile      = dataFile;
+         const int workerID = inputFileEntry.MeasurementID % workers;
+         return workerID;
+      }
+   }
+   return -1;
+}
+
+
+// ###### Get priority of NorNetEdgePingFileEntry ###########################
+ReaderPriority getPriorityOfFileEntry(const NorNetEdgePingFileEntry& inputFileEntry)
+{
+   const ReaderTimePoint    now = nowInUTC<ReaderTimePoint>();
+   const ReaderTimeDuration age = now - inputFileEntry.TimeStamp;
+   const long long seconds = std::chrono::duration_cast<std::chrono::seconds>(age).count();
+   if(seconds < 6 * 3600) {
+      return ReaderPriority::High;
+   }
+   return ReaderPriority::Low;
 }
 
 
@@ -84,110 +116,14 @@ NorNetEdgePingReader::NorNetEdgePingReader(const DatabaseConfiguration& database
                                            const unsigned int           workers,
                                            const unsigned int           maxTransactionSize,
                                            const std::string&           table_measurement_generic_data)
-   : ReaderBase(databaseConfiguration, workers, maxTransactionSize),
+   : ReaderImplementation<NorNetEdgePingFileEntry>(databaseConfiguration, workers, maxTransactionSize),
      Table_measurement_generic_data(table_measurement_generic_data)
-{
-   DataFileSet = new std::set<InputFileEntry>[Workers];
-   assert(DataFileSet != nullptr);
-}
+{ }
 
 
 // ###### Destructor ########################################################
 NorNetEdgePingReader::~NorNetEdgePingReader()
-{
-   delete [] DataFileSet;
-   DataFileSet = nullptr;
-}
-
-
-// ###### Get identification of reader ######################################
-const std::string& NorNetEdgePingReader::getIdentification() const
-{
-   return Identification;
-}
-
-
-// ###### Get input file name regular expression ############################
-const std::regex& NorNetEdgePingReader::getFileNameRegExp() const
-{
-   return(FileNameRegExp);
-}
-
-
-// ###### Add input file to reader ##########################################
-int NorNetEdgePingReader::addFile(const std::filesystem::path& dataFile,
-                                  const std::smatch            match)
-{
-   if(match.size() == 3) {
-      FileEntryTimePoint timeStamp;
-      if(stringToTimePoint<FileEntryTimePoint>(match[2].str(), timeStamp, "%Y-%m-%d_%H-%M-%S")) {
-         InputFileEntry inputFileEntry;
-         inputFileEntry.TimeStamp     = timeStamp;
-         inputFileEntry.MeasurementID = atol(match[1].str().c_str());
-         inputFileEntry.DataFile      = dataFile;
-         const int workerID = inputFileEntry.MeasurementID % Workers;
-
-         std::unique_lock lock(Mutex);
-         if(DataFileSet[workerID].insert(inputFileEntry).second) {
-            HPCT_LOG(trace) << Identification << ": Added input file "
-                            << relative_to(dataFile, Configuration.getImportFilePath()) << " to reader";
-            TotalFiles++;
-            return workerID;
-         }
-      }
-      else {
-         HPCT_LOG(warning) << Identification << ": Bad time stamp " << match[2].str();
-      }
-   }
-   return -1;
-}
-
-
-// ###### Remove input file from reader #####################################
-bool NorNetEdgePingReader::removeFile(const std::filesystem::path& dataFile,
-                                      const std::smatch            match)
-{
-   if(match.size() == 3) {
-      FileEntryTimePoint timeStamp;
-      if(stringToTimePoint<FileEntryTimePoint>(match[2].str(), timeStamp, "%Y-%m-%d_%H-%M-%S")) {
-         InputFileEntry inputFileEntry;
-         inputFileEntry.TimeStamp     = timeStamp;
-         inputFileEntry.MeasurementID = atol(match[1].str().c_str());
-         inputFileEntry.DataFile      = dataFile;
-         const int workerID = inputFileEntry.MeasurementID % Workers;
-
-         HPCT_LOG(trace) << Identification << ": Removing input file "
-                         << relative_to(dataFile, Configuration.getImportFilePath()) << " from reader";
-         std::unique_lock lock(Mutex);
-         if(DataFileSet[workerID].erase(inputFileEntry) == 1) {
-            assert(TotalFiles > 0);
-            TotalFiles--;
-            return true;
-         }
-      }
-   }
-   return false;
-}
-
-
-// ###### Fetch list of input files #########################################
-unsigned int NorNetEdgePingReader::fetchFiles(std::list<std::filesystem::path>& dataFileList,
-                                              const unsigned int                worker,
-                                              const unsigned int                limit)
-{
-   assert(worker < Workers);
-   dataFileList.clear();
-
-   std::unique_lock lock(Mutex);
-
-   for(const InputFileEntry& inputFileEntry : DataFileSet[worker]) {
-      dataFileList.push_back(inputFileEntry.DataFile);
-      if(dataFileList.size() >= limit) {
-         break;
-      }
-   }
-   return dataFileList.size();
-}
+{ }
 
 
 // ###### Begin parsing #####################################################
@@ -288,21 +224,5 @@ void NorNetEdgePingReader::parseContents(
       else {
          throw ImporterLogicException("Unknown output format");
       }
-   }
-}
-
-
-// ###### Print reader status ###############################################
-void NorNetEdgePingReader::printStatus(std::ostream& os)
-{
-   os << getIdentification() << ":\n";
-   for(unsigned int w = 0; w < Workers; w++) {
-      if(w > 0) {
-         os << "\n";
-      }
-      os << " - Work Queue #" << w + 1 << ": " << DataFileSet[w].size();
-      // for(const InputFileEntry& inputFileEntry : DataFileSet[w]) {
-      //    os << "  - " <<  inputFileEntry << "\n";
-      // }
    }
 }

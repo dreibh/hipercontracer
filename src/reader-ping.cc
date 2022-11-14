@@ -60,20 +60,6 @@ PingReader::~PingReader()
 }
 
 
-// ###### Get identification of reader ######################################
-const std::string& PingReader::getIdentification() const
-{
-   return Identification;
-}
-
-
-// ###### Get input file name regular expression ############################
-const std::regex& PingReader::getFileNameRegExp() const
-{
-   return(FileNameRegExp);
-}
-
-
 // ###### Parse time stamp ##################################################
 template<typename TimePoint> TimePoint PingReader::parseTimeStamp(
                                           const std::string&           value,

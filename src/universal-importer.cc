@@ -83,7 +83,7 @@ UniversalImporter::~UniversalImporter()
 
 
 // ###### Start importer ####################################################
-bool UniversalImporter::start()
+bool UniversalImporter::start(const std::string& importFilePathFilter)
 {
    // ====== Intercept signals ==============================================
    Signals.async_wait(std::bind(&UniversalImporter::handleSignalEvent, this,
@@ -114,7 +114,7 @@ bool UniversalImporter::start()
 
    // ====== Look for files =================================================
    HPCT_LOG(info) << "Looking for input files ...";
-   lookForFiles();
+   lookForFiles(importFilePathFilter);
    HPCT_LOG(info) << "Importer status after directory traversal:\n" << *this;
 
    // ====== Start workers ==================================================
@@ -271,20 +271,32 @@ void UniversalImporter::removeReader(ReaderBase& reader)
 
 
 // ###### Look for input files (full directory traversal) ###################
-void UniversalImporter::lookForFiles()
+void UniversalImporter::lookForFiles(const std::string& importFilePathFilter)
 {
+   const std::string filterString =
+      "^(" + (Configuration.getImportFilePath() / ")(").string() + importFilePathFilter + ")(.*)$";
    lookForFiles(Configuration.getImportFilePath(),
-                1, Configuration.getImportMaxDepth());
+                1, Configuration.getImportMaxDepth(),
+                std::regex(filterString.c_str()));
 }
 
 
 // ###### Look for input files (limited directory traversal) ################
 unsigned long long UniversalImporter::lookForFiles(const std::filesystem::path& importFilePath,
                                                    const unsigned int           currentDepth,
-                                                   const unsigned int           maxDepth)
+                                                   const unsigned int           maxDepth,
+                                                   const std::regex&            directoryFilterRegExp)
 {
+   std::smatch match;
    unsigned long long n = 0;
    for(const std::filesystem::directory_entry& dirEntry : std::filesystem::directory_iterator(importFilePath)) {
+
+      // ====== Filter name =================================================
+      const std::string d = (dirEntry.path() / "").string();
+      if(!std::regex_match(d, match, directoryFilterRegExp)) {
+         HPCT_LOG(info) << "Skipping " << d;
+         continue;
+      }
 
       // ====== Add file ====================================================
       if(dirEntry.is_regular_file()) {
@@ -308,7 +320,8 @@ unsigned long long UniversalImporter::lookForFiles(const std::filesystem::path& 
 #endif
          // ------ Recursive directory traversal ----------------------------
          if(currentDepth < maxDepth) {
-            const unsigned long long m = lookForFiles(dirEntry.path(), currentDepth + 1, maxDepth);
+            const unsigned long long m = lookForFiles(dirEntry.path(), currentDepth + 1, maxDepth,
+                                                      directoryFilterRegExp);
 
             // ------ Remove empty directory --------------------------------
             if( (m == 0) &&

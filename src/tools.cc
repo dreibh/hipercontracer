@@ -72,13 +72,26 @@ bool is_subdir_of(const std::filesystem::path& path1,
                   const std::filesystem::path& path2)
 {
    try {
-      const std::string ca1 = std::filesystem::canonical(std::filesystem::absolute(path1));
-      const std::string ca2 = std::filesystem::canonical(std::filesystem::absolute(path2));
-      return ca1.substr(0, ca2.size()) == ca2;
+      const std::filesystem::path ca1 = std::filesystem::canonical(std::filesystem::absolute(path1));
+      const std::filesystem::path ca2 = std::filesystem::canonical(std::filesystem::absolute(path2));
+
+      std::filesystem::path::const_iterator it1 = ca1.begin();
+      std::filesystem::path::const_iterator it2 = ca2.begin();
+      while(it2 != ca2.end()) {
+         if(it1 == ca1.end()) {   // End of path1 -> path1 not a subdirectory of path2
+            return false;
+         }
+         else if(*it1 != *it2) {   // Different directories -> path1 not a subdirectory of path 2
+            return false;
+         }
+         it1++; it2++;
+      }
+      // Full overlap of all parts of path2
+      // -> path1 is a subdirectory of path 2, if path1 is not yet fully iterated
+      return it1 != ca1.end();
    }
-   catch(...) {
-      return false;
-   }
+   catch(...) { }
+   return false;
 }
 
 

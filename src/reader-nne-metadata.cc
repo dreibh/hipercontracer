@@ -84,8 +84,7 @@ const std::regex  NorNetEdgeMetadataReader::FileNameRegExp = std::regex(
 
 // ###### < operator for sorting ############################################
 // NOTE: find() will assume equality for: !(a < b) && !(b < a)
-bool operator<(const NorNetEdgeMetadataReader::InputFileEntry& a,
-               const NorNetEdgeMetadataReader::InputFileEntry& b)
+bool operator<(const NorNetEdgeMetadataFileEntry& a, const NorNetEdgeMetadataFileEntry& b)
 {
    // ====== Level 1: TimeStamp =============================================
    if(a.TimeStamp < b.TimeStamp) {
@@ -108,14 +107,77 @@ bool operator<(const NorNetEdgeMetadataReader::InputFileEntry& a,
 
 
 // ###### Output operator ###################################################
-std::ostream& operator<<(std::ostream& os, const NorNetEdgeMetadataReader::InputFileEntry& entry)
+std::ostream& operator<<(std::ostream& os, const NorNetEdgeMetadataFileEntry& entry)
 {
    os << "("
-      << timePointToString<NorNetEdgeMetadataReader::FileEntryTimePoint>(entry.TimeStamp) << ", "
+      << timePointToString<ReaderTimePoint>(entry.TimeStamp) << ", "
       << entry.NodeID << ", "
       << entry.DataFile
       << ")";
    return os;
+}
+
+
+#ifdef WITH_NODEID_FIX
+// ###### Extract NodeID from path ##########################################
+// Assumption: node ID from 100 to 9999.
+// The function handles "all in one directory" as well as "hierarchical" setup.
+static unsigned int getNodeIDFromPath(const std::filesystem::path& dataFile)
+{
+   unsigned int nodeID = 0;
+
+   std::filesystem::path parent = dataFile.parent_path();
+   while(parent.has_filename()) {
+      if(parent.filename().string().size() >= 3) {
+         const unsigned int n = atol(parent.filename().string().c_str());
+         if( (n >=100) && (n <= 9999) ) {
+            nodeID = n;
+         }
+      }
+      parent = parent.parent_path();
+   }
+
+   return nodeID;
+}
+#endif
+
+
+// ###### Make NorNetEdgeMetadataFileEntry from file name  ######################
+int makeInputFileEntry(const std::filesystem::path& dataFile,
+                       const std::smatch            match,
+                       NorNetEdgeMetadataFileEntry& inputFileEntry,
+                       const unsigned int           workers)
+{
+   if(match.size() == 3) {
+      ReaderTimePoint timeStamp;
+      if(stringToTimePoint<ReaderTimePoint>(match[2].str(), timeStamp, "%Y%m%dT%H%M%S")) {
+         inputFileEntry.TimeStamp = timeStamp;
+         inputFileEntry.NodeID    = atol(match[1].str().c_str());
+#ifdef WITH_NODEID_FIX
+         const unsigned int nodeIDFromPath = getNodeIDFromPath(dataFile);
+         if( (inputFileEntry.NodeID == 4125) && (inputFileEntry.NodeID != nodeIDFromPath) ) {
+            inputFileEntry.NodeID = nodeIDFromPath;
+         }
+#endif
+         inputFileEntry.DataFile  = dataFile;
+         const int workerID       = inputFileEntry.NodeID % workers;
+         return workerID;
+      }
+   }
+   return -1;
+}
+
+
+// ###### Get priority of NorNetEdgeMetadataFileEntry #######################
+ReaderPriority getPriorityOfFileEntry(const NorNetEdgeMetadataFileEntry& inputFileEntry)
+{
+   const ReaderTimePoint    now = nowInUTC<ReaderTimePoint>();
+   const ReaderTimeDuration age = now - inputFileEntry.TimeStamp;
+   const long long seconds = std::chrono::duration_cast<std::chrono::seconds>(age).count();
+   if(seconds < 6 * 3600) {
+      return ReaderPriority::High;
+   }
+   return ReaderPriority::Low;
 }
 
 
@@ -125,7 +187,7 @@ NorNetEdgeMetadataReader::NorNetEdgeMetadataReader(const DatabaseConfiguration& 
                                                    const unsigned int           maxTransactionSize,
                                                    const std::string&           table_bins1min,
                                                    const std::string&           table_event)
-   : ReaderBase(databaseConfiguration, workers, maxTransactionSize),
+   : ReaderImplementation<NorNetEdgeMetadataFileEntry>(databaseConfiguration, workers, maxTransactionSize),
      Table_bins1min(table_bins1min),
      Table_event(table_event)
 {
@@ -134,22 +196,22 @@ NorNetEdgeMetadataReader::NorNetEdgeMetadataReader(const DatabaseConfiguration& 
    const unsigned long long t2 = 1000000000000000;
    const unsigned long long t3 = 2000000000000000;
    const unsigned long long t4 = 1000000000123456;
-   const std::chrono::time_point<std::chrono::high_resolution_clock> tp1 = microsecondsToTimePoint<std::chrono::time_point<std::chrono::high_resolution_clock>>(t1);
-   const std::chrono::time_point<std::chrono::high_resolution_clock> tp2 = microsecondsToTimePoint<std::chrono::time_point<std::chrono::high_resolution_clock>>(t2);
-   const std::chrono::time_point<std::chrono::high_resolution_clock> tp3 = microsecondsToTimePoint<std::chrono::time_point<std::chrono::high_resolution_clock>>(t3);
-   const std::chrono::time_point<std::chrono::high_resolution_clock> tp4 = microsecondsToTimePoint<std::chrono::time_point<std::chrono::high_resolution_clock>>(t4);
-   const std::string ts1 = timePointToString<std::chrono::time_point<std::chrono::high_resolution_clock>>(tp1, 0);
-   const std::string ts2 = timePointToString<std::chrono::time_point<std::chrono::high_resolution_clock>>(tp2, 6);
-   const std::string ts3 = timePointToString<std::chrono::time_point<std::chrono::high_resolution_clock>>(tp3, 0);
-   const std::string ts4 = timePointToString<std::chrono::time_point<std::chrono::high_resolution_clock>>(tp4, 6);
-   const std::chrono::time_point<std::chrono::high_resolution_clock> dp1 = makeMin<std::chrono::time_point<std::chrono::high_resolution_clock>>(tp1);
-   const std::chrono::time_point<std::chrono::high_resolution_clock> dp2 = makeMin<std::chrono::time_point<std::chrono::high_resolution_clock>>(tp2);
-   const std::chrono::time_point<std::chrono::high_resolution_clock> dp3 = makeMin<std::chrono::time_point<std::chrono::high_resolution_clock>>(tp3);
-   const std::chrono::time_point<std::chrono::high_resolution_clock> dp4 = makeMin<std::chrono::time_point<std::chrono::high_resolution_clock>>(tp4);
-   const std::string ds1 = timePointToString<std::chrono::time_point<std::chrono::high_resolution_clock>>(dp1, 0);
-   const std::string ds2 = timePointToString<std::chrono::time_point<std::chrono::high_resolution_clock>>(dp2, 6);
-   const std::string ds3 = timePointToString<std::chrono::time_point<std::chrono::high_resolution_clock>>(dp3, 0);
-   const std::string ds4 = timePointToString<std::chrono::time_point<std::chrono::high_resolution_clock>>(dp4, 6);
+   const ReaderTimePoint tp1 = microsecondsToTimePoint<ReaderTimePoint>(t1);
+   const ReaderTimePoint tp2 = microsecondsToTimePoint<ReaderTimePoint>(t2);
+   const ReaderTimePoint tp3 = microsecondsToTimePoint<ReaderTimePoint>(t3);
+   const ReaderTimePoint tp4 = microsecondsToTimePoint<ReaderTimePoint>(t4);
+   const std::string ts1 = timePointToString<ReaderTimePoint>(tp1, 0);
+   const std::string ts2 = timePointToString<ReaderTimePoint>(tp2, 6);
+   const std::string ts3 = timePointToString<ReaderTimePoint>(tp3, 0);
+   const std::string ts4 = timePointToString<ReaderTimePoint>(tp4, 6);
+   const ReaderTimePoint dp1 = makeMin<ReaderTimePoint>(tp1);
+   const ReaderTimePoint dp2 = makeMin<ReaderTimePoint>(tp2);
+   const ReaderTimePoint dp3 = makeMin<ReaderTimePoint>(tp3);
+   const ReaderTimePoint dp4 = makeMin<ReaderTimePoint>(tp4);
+   const std::string ds1 = timePointToString<ReaderTimePoint>(dp1, 0);
+   const std::string ds2 = timePointToString<ReaderTimePoint>(dp2, 6);
+   const std::string ds3 = timePointToString<ReaderTimePoint>(dp3, 0);
+   const std::string ds4 = timePointToString<ReaderTimePoint>(dp4, 6);
 /*
    std::cout << t1 << "\t" << ts1 << "\t\t" << ds1 << "\n";
    std::cout << t2 << "\t" << ts2 << "\t" << ds2 << "\n";
@@ -166,10 +228,6 @@ NorNetEdgeMetadataReader::NorNetEdgeMetadataReader(const DatabaseConfiguration& 
    assert(ds2 == "2001-09-09 01:46:00.000000");
    assert(ds3 == "2033-05-18 03:33:00");
    assert(ds4 == "2001-09-09 01:46:00.000000");
-
-   // ====== Initialise =====================================================
-   DataFileSet = new std::set<InputFileEntry>[Workers];
-   assert(DataFileSet != nullptr);
 }
 
 
@@ -184,119 +242,15 @@ NorNetEdgeMetadataReader::~NorNetEdgeMetadataReader()
       iterator = TSFixMap.begin();
    }
 #endif
-   delete [] DataFileSet;
-   DataFileSet = nullptr;
-}
-
-
-// ###### Get identification of reader ######################################
-const std::string& NorNetEdgeMetadataReader::getIdentification() const
-{
-   return Identification;
-}
-
-
-// ###### Get input file name regular expression ############################
-const std::regex& NorNetEdgeMetadataReader::getFileNameRegExp() const
-{
-   return(FileNameRegExp);
-}
-
-
-// ###### Add input file to reader ##########################################
-int NorNetEdgeMetadataReader::addFile(const std::filesystem::path& dataFile,
-                                      const std::smatch            match)
-{
-   if(match.size() == 3) {
-      FileEntryTimePoint timeStamp;
-      if(stringToTimePoint<FileEntryTimePoint>(match[2].str(), timeStamp, "%Y%m%dT%H%M%S")) {
-         InputFileEntry inputFileEntry;
-         inputFileEntry.TimeStamp = timeStamp;
-         inputFileEntry.NodeID    = atol(match[1].str().c_str());
-#ifdef WITH_NODEID_FIX
-         const unsigned int nodeIDFromPath = getNodeIDFromPath(dataFile);
-         if( (inputFileEntry.NodeID == 4125) && (inputFileEntry.NodeID != nodeIDFromPath) ) {
-            inputFileEntry.NodeID = nodeIDFromPath;
-         }
-#endif
-         inputFileEntry.DataFile  = dataFile;
-         const int workerID       = inputFileEntry.NodeID % Workers;
-
-         std::unique_lock lock(Mutex);
-         if(DataFileSet[workerID].insert(inputFileEntry).second) {
-            HPCT_LOG(trace) << Identification << ": Added input file "
-                            << relative_to(dataFile, Configuration.getImportFilePath()) << " to reader";
-            TotalFiles++;
-            return workerID;
-         }
-      }
-      else {
-         HPCT_LOG(warning) << Identification << ": Bad time stamp " << match[2].str();
-      }
-   }
-   return -1;
-}
-
-
-// ###### Remove input file from reader #####################################
-bool NorNetEdgeMetadataReader::removeFile(const std::filesystem::path& dataFile,
-                                          const std::smatch            match)
-{
-   if(match.size() == 3) {
-      FileEntryTimePoint timeStamp;
-      if(stringToTimePoint<FileEntryTimePoint>(match[2].str(), timeStamp, "%Y%m%dT%H%M%S")) {
-         InputFileEntry inputFileEntry;
-         inputFileEntry.TimeStamp = timeStamp;
-         inputFileEntry.NodeID    = atol(match[1].str().c_str());
-#ifdef WITH_NODEID_FIX
-         const unsigned int nodeIDFromPath = getNodeIDFromPath(dataFile);
-         if( (inputFileEntry.NodeID == 4125) && (inputFileEntry.NodeID != nodeIDFromPath) ) {
-            inputFileEntry.NodeID = nodeIDFromPath;
-         }
-#endif
-         inputFileEntry.DataFile  = dataFile;
-         const int workerID       = inputFileEntry.NodeID % Workers;
-
-         HPCT_LOG(trace) << Identification << ": Removing input file "
-                        << relative_to(dataFile, Configuration.getImportFilePath()) << " from reader";
-         std::unique_lock lock(Mutex);
-         if(DataFileSet[workerID].erase(inputFileEntry) == 1) {
-            assert(TotalFiles > 0);
-            TotalFiles--;
-            return true;
-         }
-      }
-   }
-   return false;
-}
-
-
-// ###### Fetch list of input files #########################################
-unsigned int NorNetEdgeMetadataReader::fetchFiles(std::list<std::filesystem::path>& dataFileList,
-                                                  const unsigned int                worker,
-                                                  const unsigned int                limit)
-{
-   assert(worker < Workers);
-   dataFileList.clear();
-
-   std::unique_lock lock(Mutex);
-
-   for(const InputFileEntry& inputFileEntry : DataFileSet[worker]) {
-      dataFileList.push_back(inputFileEntry.DataFile);
-      if(dataFileList.size() >= limit) {
-         break;
-      }
-   }
-   return dataFileList.size();
 }
 
 
 // ###### Helper function to calculate "min" value ##########################
 template<typename TimePoint> TimePoint NorNetEdgeMetadataReader::makeMin(const TimePoint& timePoint)
 {
-   unsigned long long us = timePointToMicroseconds<std::chrono::time_point<std::chrono::high_resolution_clock>>(timePoint);
+   unsigned long long us = timePointToMicroseconds<ReaderTimePoint>(timePoint);
    us = us - (us % (60000000ULL));   // floor to minute
-   return  microsecondsToTimePoint<std::chrono::time_point<std::chrono::high_resolution_clock>>(us);
+   return  microsecondsToTimePoint<ReaderTimePoint>(us);
 }
 
 
@@ -307,7 +261,7 @@ template<typename TimePoint> TimePoint NorNetEdgeMetadataReader::parseTimeStamp(
                                           const std::filesystem::path&       dataFile) const
 {
    const unsigned long long ts        = (unsigned long long)rint(1000000.0 * item.get<double>("ts"));
-   const TimePoint          timeStamp = microsecondsToTimePoint<std::chrono::time_point<std::chrono::high_resolution_clock>>(ts);
+   const TimePoint          timeStamp = microsecondsToTimePoint<ReaderTimePoint>(ts);
    if( (timeStamp < now - std::chrono::hours(365 * 24)) ||   /* 1 year in the past  */
        (timeStamp > now + std::chrono::hours(24)) ) {        /* 1 day in the future */
       throw ImporterReaderDataErrorException("Bad time stamp " + std::to_string(ts) +
@@ -406,28 +360,6 @@ std::string NorNetEdgeMetadataReader::parseExtra(const boost::property_tree::ptr
 }
 
 
-// ###### Extract NodeID from path ##########################################
-// Assumption: node ID from 100 to 9999.
-// The function handles "all in one directory" as well as "hierarchical" setup.
-unsigned int NorNetEdgeMetadataReader::getNodeIDFromPath(const std::filesystem::path& dataFile)
-{
-   unsigned int nodeID = 0;
-
-   std::filesystem::path parent = dataFile.parent_path();
-   while(parent.has_filename()) {
-      if(parent.filename().string().size() >= 3) {
-         const unsigned int n = atol(parent.filename().string().c_str());
-         if( (n >=100) && (n <= 9999) ) {
-            nodeID = n;
-         }
-      }
-      parent = parent.parent_path();
-   }
-
-   return nodeID;
-}
-
-
 // ###### Begin parsing #####################################################
 void NorNetEdgeMetadataReader::beginParsing(DatabaseClientBase& databaseClient,
                                             unsigned long long& rows)
@@ -517,13 +449,13 @@ void NorNetEdgeMetadataReader::parseContents(
          }
 #endif
 #ifndef WITH_TIMESTAMP_FIX
-         const std::chrono::time_point<std::chrono::high_resolution_clock> ts =
-            parseTimeStamp<std::chrono::time_point<std::chrono::high_resolution_clock>>(item, now, dataFile);
+         const ReaderTimePoint ts =
+            parseTimeStamp<ReaderTimePoint>(item, now, dataFile);
 #else
 #warning With timestamp fix!
-         std::chrono::time_point<std::chrono::high_resolution_clock> ts =
-            parseTimeStamp<std::chrono::time_point<std::chrono::high_resolution_clock>>(item, now, dataFile);
-            const unsigned long long us = timePointToMicroseconds<std::chrono::time_point<std::chrono::high_resolution_clock>>(ts);
+         ReaderTimePoint ts =
+            parseTimeStamp<ReaderTimePoint>(item, now, dataFile);
+            const unsigned long long us = timePointToMicroseconds<ReaderTimePoint>(ts);
          if(itemType == "event") {
             if((us % 1000000) == 0) {
                if(showTimeStampFixWarning) {
@@ -536,6 +468,8 @@ void NorNetEdgeMetadataReader::parseContents(
                std::map<unsigned int, TimeStampFix*>::iterator found = TSFixMap.find(nodeID);
                if(found == TSFixMap.end()) {
                   timeStampFix = new TimeStampFix;
+                  assert(timeStampFix != nullptr);
+                  timeStampFix->TSFixTimeOffset = std::chrono::microseconds(1);
                   assert(TSFixMap.insert(std::pair<unsigned int, TimeStampFix*>(nodeID, timeStampFix)).second);
                }
                else {
@@ -551,7 +485,7 @@ void NorNetEdgeMetadataReader::parseContents(
                   timeStampFix->TSFixLastTimePoint = ts;   // First occurrence of this time stamp
                   timeStampFix->TSFixTimeOffset = std::chrono::microseconds(1);
                }
-               // std::cout << "* " << timePointToString<std::chrono::time_point<std::chrono::high_resolution_clock>>(ts, 6) << "\n";
+               // std::cout << "* " << timePointToString<ReaderTimePoint>(ts, 6) << "\n";
             }
          }
 #endif
@@ -560,19 +494,19 @@ void NorNetEdgeMetadataReader::parseContents(
          const std::string  metadataValue = parseMetadataValue(item, dataFile);
 
          if(itemType == "event") {
-            const std::chrono::time_point<std::chrono::high_resolution_clock> min =
-               makeMin<std::chrono::time_point<std::chrono::high_resolution_clock>>(ts);
+            const ReaderTimePoint min =
+               makeMin<ReaderTimePoint>(ts);
             const std::string extra = parseExtra(item, dataFile);
             if(backend & DatabaseBackendType::SQL_Generic) {
                eventStatement.beginRow();
                eventStatement
-                  << eventStatement.quote(timePointToString<std::chrono::time_point<std::chrono::high_resolution_clock>>(ts, 6)) << eventStatement.sep()
-                  << nodeID                                   << eventStatement.sep()
+                  << eventStatement.quote(timePointToString<ReaderTimePoint>(ts, 6)) << eventStatement.sep()
+                  << nodeID                                    << eventStatement.sep()
                   << networkID                                 << eventStatement.sep()
                   << eventStatement.quote(metadataKey)         << eventStatement.sep()
                   << eventStatement.quoteOrNull(metadataValue) << eventStatement.sep()
                   << eventStatement.quoteOrNull(extra)         << eventStatement.sep()
-                  << eventStatement.quote(timePointToString<std::chrono::time_point<std::chrono::high_resolution_clock>>(min));   // FROM_UNIXTIME(UNIX_TIMESTAMP(ts) DIV 60*60)
+                  << eventStatement.quote(timePointToString<ReaderTimePoint>(min));   // FROM_UNIXTIME(UNIX_TIMESTAMP(ts) DIV 60*60)
                eventStatement.endRow();
                rows++;
             }
@@ -582,7 +516,7 @@ void NorNetEdgeMetadataReader::parseContents(
             if(backend & DatabaseBackendType::SQL_Generic) {
                bins1minStatement.beginRow();
                bins1minStatement
-                  << bins1minStatement.quote(timePointToString<std::chrono::time_point<std::chrono::high_resolution_clock>>(ts)) << bins1minStatement.sep()
+                  << bins1minStatement.quote(timePointToString<ReaderTimePoint>(ts)) << bins1minStatement.sep()
                   << delta                                << bins1minStatement.sep()
                   << nodeID                               << bins1minStatement.sep()
                   << networkID                            << bins1minStatement.sep()
@@ -602,21 +536,5 @@ void NorNetEdgeMetadataReader::parseContents(
       throw ImporterReaderDataErrorException("JSON processing failed in input file " +
                                              relative_to(dataFile, Configuration.getImportFilePath()).string() + ": " +
                                              exception.what());
-   }
-}
-
-
-// ###### Print reader status ###############################################
-void NorNetEdgeMetadataReader::printStatus(std::ostream& os)
-{
-   os << getIdentification() << ":\n";
-   for(unsigned int w = 0; w < Workers; w++) {
-      if(w > 0) {
-         os << "\n";
-      }
-      os << " - Work Queue #" << w + 1 << ": " << DataFileSet[w].size();
-      // for(const InputFileEntry& inputFileEntry : DataFileSet[w]) {
-      //    os << "  - " <<  inputFileEntry << "\n";
-      // }
    }
 }

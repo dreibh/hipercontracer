@@ -64,8 +64,10 @@ class Worker
                      const bool                   success = true);
    void deleteEmptyDirectories(std::filesystem::path path);
    void deleteImportedFile(const std::filesystem::path& dataFile);
-   void moveImportedFile(const std::filesystem::path& dataFile);
-   void moveBadFile(const std::filesystem::path& dataFile);
+   void moveImportedFile(const std::filesystem::path& dataFile,
+                         const std::smatch            match,
+                         const bool                   isGood);
+
    bool importFiles(const std::list<std::filesystem::path>& dataFileList);
    void run();
 

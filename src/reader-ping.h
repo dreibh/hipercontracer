@@ -34,8 +34,6 @@
 
 #include "reader-traceroute.h"
 
-#include <chrono>
-
 
 class PingReader : public TracerouteReader
 {
@@ -46,8 +44,8 @@ class PingReader : public TracerouteReader
               const std::string&           table              = "Ping");
    virtual ~PingReader();
 
-   virtual const std::string& getIdentification() const;
-   virtual const std::regex&  getFileNameRegExp() const;
+   virtual const std::string& getIdentification() const { return Identification; }
+   virtual const std::regex&  getFileNameRegExp() const { return FileNameRegExp; }
 
    virtual void beginParsing(DatabaseClientBase& databaseClient,
                              unsigned long long& rows);

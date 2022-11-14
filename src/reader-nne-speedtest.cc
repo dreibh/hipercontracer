@@ -47,28 +47,12 @@ NorNetEdgeSpeedTestReader::NorNetEdgeSpeedTestReader(const DatabaseConfiguration
                                                      const unsigned int           workers,
                                                      const unsigned int           maxTransactionSize)
    : NorNetEdgePingReader(databaseConfiguration, workers, maxTransactionSize, std::string())
-{
-}
+{ }
 
 
 // ###### Destructor ########################################################
 NorNetEdgeSpeedTestReader::~NorNetEdgeSpeedTestReader()
-{
-}
-
-
-// ###### Get identification of reader ######################################
-const std::string& NorNetEdgeSpeedTestReader::getIdentification() const
-{
-   return Identification;
-}
-
-
-// ###### Get input file name regular expression ############################
-const std::regex& NorNetEdgeSpeedTestReader::getFileNameRegExp() const
-{
-   return(FileNameRegExp);
-}
+{ }
 
 
 // ###### Begin parsing #####################################################

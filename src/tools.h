@@ -32,6 +32,7 @@
 #ifndef TOOLS_H
 #define TOOLS_H
 
+#include <math.h>
 #include <pwd.h>
 
 #include <chrono>
@@ -59,6 +60,20 @@ bool addDestinationAddress(std::set<boost::asio::ip::address>& array,
                            bool                                tryToResolve = true);
 
 
+// ###### Get current time in UTC ###########################################
+template<typename TimePoint> TimePoint nowInUTC()
+{
+   std::time_t t;
+   time(&t);
+
+   std::tm tm = {};
+   gmtime_r(&t, &tm);
+
+   TimePoint timePoint = TimePoint(std::chrono::seconds(std::mktime(&tm)));
+   return timePoint;
+}
+
+
 // ###### Convert microseconds since the epoch to time point ################
 template <typename TimePoint> TimePoint microsecondsToTimePoint(const unsigned long long microTime)
 {
@@ -81,7 +96,7 @@ template <typename TimePoint> unsigned long long timePointToMicroseconds(const T
 template <typename TimePoint> std::string timePointToString(
                                              const TimePoint&   timePoint,
                                              const unsigned int precision = 0,
-                                             const char*        format    = "%Y-%m-%d %H:%M:",   // %S omitted!
+                                             const char*        format    = "%Y-%m-%d %H:%M:%S",
                                              const bool         utc       = true)
 {
    double seconds        = double(timePoint.time_since_epoch().count()) * TimePoint::period::num / TimePoint::period::den;
@@ -96,10 +111,11 @@ template <typename TimePoint> std::string timePointToString(
    else {
       localtime_r(&tt, &tm);
    }
-   ss << std::put_time(&tm, format)
-      << std::setw((precision == 0) ? 2 : precision + 3) << std::setfill('0')
-      << std::fixed << std::setprecision(precision)
-      << tm.tm_sec + fseconds;
+   ss << std::put_time(&tm, format);
+   if(precision > 0) {
+      ss << '.' << std::setw(precision) << std::setfill('0')
+         << (unsigned int)rint(fseconds * pow(10.0, precision));
+   }
 
    return ss.str();
 }

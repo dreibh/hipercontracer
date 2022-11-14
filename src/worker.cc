@@ -160,18 +160,21 @@ void Worker::processFile(DatabaseClientBase&          databaseClient,
 // ###### Remove empty directories ##########################################
 void Worker::deleteEmptyDirectories(std::filesystem::path path)
 {
-   assert(is_subdir_of(path, Configuration.getImportFilePath()));
+   try {
+      path = std::filesystem::canonical(std::filesystem::absolute(path));
 
-   std::error_code ec;
-   while(path.parent_path() != Configuration.getImportFilePath()) {
-      std::filesystem::remove(path, ec);
-      if(ec) {
-         break;
+      if(is_subdir_of(path, Configuration.getImportFilePath())) {
+         if(path != Configuration.getImportFilePath()) {
+            while(path.parent_path() != Configuration.getImportFilePath()) {
+               std::filesystem::remove(path);
+               HPCT_LOG(trace) << getIdentification() << ": Deleted empty directory "
+                               << relative_to(path, Configuration.getImportFilePath());
+               path = path.parent_path();
+            }
+         }
       }
-      HPCT_LOG(trace) << getIdentification() << ": Deleted empty directory "
-                      << relative_to(path, Configuration.getImportFilePath());
-      path = path.parent_path();
    }
+   catch(...) { }
 }
 
 
@@ -191,42 +194,29 @@ void Worker::deleteImportedFile(const std::filesystem::path& dataFile)
 }
 
 
-// ###### Move successfully imported file to good files #####################
-void Worker::moveImportedFile(const std::filesystem::path& dataFile)
+// ###### Move successfully imported file to good or bad files ##############
+void Worker::moveImportedFile(const std::filesystem::path& dataFile,
+                              const std::smatch            match,
+                              const bool                   isGood)
 {
+   // ====== Construct destination path =====================================
    assert(is_subdir_of(dataFile, Configuration.getImportFilePath()));
-   const std::filesystem::path subdirs    = std::filesystem::relative(dataFile.parent_path(), Configuration.getImportFilePath());
-   const std::filesystem::path targetPath = Configuration.getGoodFilePath() / subdirs;
+   const std::filesystem::path subdirs =
+      std::filesystem::relative(dataFile.parent_path(), Configuration.getImportFilePath()) /
+      Reader.getDirectoryHierarchy(dataFile, match, Configuration.getImportMaxDepth() - 1);
+   const std::filesystem::path targetPath =
+      ((isGood == true) ? Configuration.getGoodFilePath() : Configuration.getBadFilePath()) / subdirs;
+
+   // ====== Create destination directory and move file =====================
    try {
       std::filesystem::create_directories(targetPath);
       std::filesystem::rename(dataFile, targetPath / dataFile.filename());
-      HPCT_LOG(trace) << getIdentification() << ": Moved imported file "
+      HPCT_LOG(debug) << getIdentification() << ": Moved " << ((isGood == true) ? "good" : "bad") <<  " file "
                       << relative_to(dataFile, Configuration.getImportFilePath());
       deleteEmptyDirectories(dataFile.parent_path());
    }
    catch(std::filesystem::filesystem_error& e) {
-      HPCT_LOG(warning) << getIdentification() << ": Moving imported file "
-                        << relative_to(dataFile, Configuration.getImportFilePath())
-                        << " to " << targetPath << " failed: " << e.what();
-   }
-}
-
-
-// ###### Move bad file to bad files ########################################
-void Worker::moveBadFile(const std::filesystem::path& dataFile)
-{
-   assert(is_subdir_of(dataFile, Configuration.getImportFilePath()));
-   const std::filesystem::path subdirs    = std::filesystem::relative(dataFile.parent_path(), Configuration.getImportFilePath());
-   const std::filesystem::path targetPath = Configuration.getBadFilePath() / subdirs;
-   try {
-      std::filesystem::create_directories(targetPath);
-      std::filesystem::rename(dataFile, targetPath / dataFile.filename());
-      HPCT_LOG(trace) << getIdentification() << ": Moved bad file "
-                      << relative_to(dataFile, Configuration.getImportFilePath());
-      deleteEmptyDirectories(dataFile.parent_path());
-   }
-   catch(std::filesystem::filesystem_error& e) {
-      HPCT_LOG(warning) << getIdentification() << ": Moving bad file "
+      HPCT_LOG(warning) << getIdentification() << ": Moving " << ((isGood == true) ? "good" : "bad") <<  " file "
                         << relative_to(dataFile, Configuration.getImportFilePath())
                         << " to " << targetPath << " failed: " << e.what();
    }
@@ -237,6 +227,11 @@ void Worker::moveBadFile(const std::filesystem::path& dataFile)
 void Worker::finishedFile(const std::filesystem::path& dataFile,
                           const bool                   success)
 {
+   // Need to extract the file name parts again, in order to find the entry:
+   const std::string& filename = dataFile.filename().string();
+   std::smatch        match;
+   assert(std::regex_match(filename, match, Reader.getFileNameRegExp()));
+
    // ====== File has been imported successfully ===============================
    if(success) {
       // ====== Delete imported file ===========================================
@@ -245,7 +240,7 @@ void Worker::finishedFile(const std::filesystem::path& dataFile,
       }
       // ====== Move imported file =============================================
       else if(Configuration.getImportMode() == ImportModeType::MoveImportedFiles) {
-         moveImportedFile(dataFile);
+         moveImportedFile(dataFile, match, true);
       }
       // ====== Keep imported file where it is =================================
       else  if(Configuration.getImportMode() == ImportModeType::KeepImportedFiles) {
@@ -254,14 +249,10 @@ void Worker::finishedFile(const std::filesystem::path& dataFile,
    }
    // ====== File is bad ====================================================
    else {
-      moveBadFile(dataFile);
+      moveImportedFile(dataFile, match, false);
    }
 
    // ====== Remove file from the reader ====================================
-   // Need to extract the file name parts again, in order to find the entry:
-   const std::string& filename = dataFile.filename().string();
-   std::smatch        match;
-   assert(std::regex_match(filename, match, Reader.getFileNameRegExp()));
    assert(Reader.removeFile(dataFile, match) == 1);
 }
 

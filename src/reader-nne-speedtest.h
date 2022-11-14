@@ -35,6 +35,7 @@
 #include "reader-nne-ping.h"
 
 
+// ###### Reader class ######################################################
 class NorNetEdgeSpeedTestReader : public NorNetEdgePingReader
 {
    public:
@@ -43,8 +44,8 @@ class NorNetEdgeSpeedTestReader : public NorNetEdgePingReader
                              const unsigned int           maxTransactionSize = 1);
    virtual ~NorNetEdgeSpeedTestReader();
 
-   virtual const std::string& getIdentification() const;
-   virtual const std::regex&  getFileNameRegExp() const;
+   virtual const std::string& getIdentification() const { return Identification; }
+   virtual const std::regex&  getFileNameRegExp() const { return FileNameRegExp; }
 
    virtual void beginParsing(DatabaseClientBase& databaseClient,
                              unsigned long long& rows);

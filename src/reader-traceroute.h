@@ -34,12 +34,26 @@
 
 #include "reader-base.h"
 
-#include <chrono>
-#include <mutex>
-#include <set>
+
+// ###### Input file list structure #########################################
+struct TracerouteFileEntry {
+   std::string           Source;
+   ReaderTimePoint       TimeStamp;
+   unsigned int          SeqNumber;
+   std::filesystem::path DataFile;
+};
+bool operator<(const TracerouteFileEntry& a, const TracerouteFileEntry& b);
+std::ostream& operator<<(std::ostream& os, const TracerouteFileEntry& entry);
+
+int makeInputFileEntry(const std::filesystem::path& dataFile,
+                       const std::smatch            match,
+                       TracerouteFileEntry&         inputFileEntry,
+                       const unsigned int           workers);
+ReaderPriority getPriorityOfFileEntry(const TracerouteFileEntry& inputFileEntry);
 
 
-class TracerouteReader : public ReaderBase
+// ###### Reader class ######################################################
+class TracerouteReader : public ReaderImplementation<TracerouteFileEntry>
 {
    public:
    TracerouteReader(const DatabaseConfiguration& databaseConfiguration,
@@ -48,17 +62,8 @@ class TracerouteReader : public ReaderBase
                     const std::string&           table              = "Traceroute");
    virtual ~TracerouteReader();
 
-   virtual const std::string& getIdentification() const;
-   virtual const std::regex&  getFileNameRegExp() const;
-
-   virtual int addFile(const std::filesystem::path& dataFile,
-                       const std::smatch            match);
-   virtual bool removeFile(const std::filesystem::path& dataFile,
-                           const std::smatch            match);
-   virtual unsigned int fetchFiles(std::list<std::filesystem::path>& dataFileList,
-                                   const unsigned int                worker,
-                                   const unsigned int                limit = 1);
-   virtual void printStatus(std::ostream& os = std::cout);
+   virtual const std::string& getIdentification() const { return Identification; }
+   virtual const std::regex&  getFileNameRegExp() const { return FileNameRegExp; }
 
    virtual void beginParsing(DatabaseClientBase& databaseClient,
                              unsigned long long& rows);
@@ -69,24 +74,10 @@ class TracerouteReader : public ReaderBase
                               const std::filesystem::path&         dataFile,
                               boost::iostreams::filtering_istream& dataStream);
 
-   protected:
-   typedef std::chrono::system_clock               FileEntryClock;
-   typedef std::chrono::time_point<FileEntryClock> FileEntryTimePoint;
-   struct InputFileEntry {
-      std::string           Source;
-      FileEntryTimePoint    TimeStamp;
-      unsigned int          SeqNumber;
-      std::filesystem::path DataFile;
-   };
-   friend bool operator<(const TracerouteReader::InputFileEntry& a,
-                         const TracerouteReader::InputFileEntry& b);
-   friend std::ostream& operator<<(std::ostream& os, const InputFileEntry& entry);
-
    private:
-   static const std::string  Identification;
-   static const std::regex   FileNameRegExp;
-   const std::string         Table;
-   std::set<InputFileEntry>* DataFileSet;
+   static const std::string Identification;
+   static const std::regex  FileNameRegExp;
+   const std::string        Table;
 };
 
 #endif

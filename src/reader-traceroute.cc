@@ -44,8 +44,7 @@ const std::regex  TracerouteReader::FileNameRegExp = std::regex(
 
 // ###### < operator for sorting ############################################
 // NOTE: find() will assume equality for: !(a < b) && !(b < a)
-bool operator<(const TracerouteReader::InputFileEntry& a,
-               const TracerouteReader::InputFileEntry& b)
+bool operator<(const TracerouteFileEntry& a, const TracerouteFileEntry& b)
 {
    // ====== Level 1: TimeStamp =============================================
    if(a.Source < b.Source) {
@@ -74,15 +73,50 @@ bool operator<(const TracerouteReader::InputFileEntry& a,
 
 
 // ###### Output operator ###################################################
-std::ostream& operator<<(std::ostream& os, const TracerouteReader::InputFileEntry& entry)
+std::ostream& operator<<(std::ostream& os, const TracerouteFileEntry& entry)
 {
    os << "("
       << entry.Source << ", "
-      << timePointToString<TracerouteReader::FileEntryTimePoint>(entry.TimeStamp) << ", "
+      << timePointToString<ReaderTimePoint>(entry.TimeStamp) << ", "
       << entry.SeqNumber << ", "
       << entry.DataFile
       << ")";
    return os;
+}
+
+
+// ###### Make TracerouteFileEntry from file name  ##########################
+int makeInputFileEntry(const std::filesystem::path& dataFile,
+                       const std::smatch            match,
+                       TracerouteFileEntry&         inputFileEntry,
+                       const unsigned int           workers)
+{
+   if(match.size() == 5) {
+      ReaderTimePoint timeStamp;
+      if(stringToTimePoint<ReaderTimePoint>(match[3].str(), timeStamp, "%Y%m%dT%H%M%S")) {
+         TracerouteFileEntry inputFileEntry;
+         inputFileEntry.Source    = match[2];
+         inputFileEntry.TimeStamp = timeStamp;
+         inputFileEntry.SeqNumber = atol(match[4].str().c_str());
+         inputFileEntry.DataFile  = dataFile;
+         const std::size_t workerID = std::hash<std::string>{}(inputFileEntry.Source) % workers;
+         return workerID;
+      }
+   }
+   return -1;
+}
+
+
+// ###### Get priority of TracerouteFileEntry ###############################
+ReaderPriority getPriorityOfFileEntry(const TracerouteFileEntry& inputFileEntry)
+{
+   const ReaderTimePoint    now = nowInUTC<ReaderTimePoint>();
+   const ReaderTimeDuration age = now - inputFileEntry.TimeStamp;
+   const long long seconds = std::chrono::duration_cast<std::chrono::seconds>(age).count();
+   if(seconds < 6 * 3600) {
+      return ReaderPriority::High;
+   }
+   return ReaderPriority::Low;
 }
 
 
@@ -91,111 +125,14 @@ TracerouteReader::TracerouteReader(const DatabaseConfiguration& databaseConfigur
                                    const unsigned int           workers,
                                    const unsigned int           maxTransactionSize,
                                    const std::string&           table)
-   : ReaderBase(databaseConfiguration, workers, maxTransactionSize),
+   : ReaderImplementation<TracerouteFileEntry>(databaseConfiguration, workers, maxTransactionSize),
      Table(table)
-{
-   DataFileSet = new std::set<InputFileEntry>[Workers];
-   assert(DataFileSet != nullptr);
-}
+{ }
 
 
 // ###### Destructor ########################################################
 TracerouteReader::~TracerouteReader()
-{
-   delete [] DataFileSet;
-   DataFileSet = nullptr;
-}
-
-
-// ###### Get identification of reader ######################################
-const std::string& TracerouteReader::getIdentification() const
-{
-   return Identification;
-}
-
-
-// ###### Get input file name regular expression ############################
-const std::regex& TracerouteReader::getFileNameRegExp() const
-{
-   return(FileNameRegExp);
-}
-
-
-// ###### Add input file to reader ##########################################
-int TracerouteReader::addFile(const std::filesystem::path& dataFile,
-                              const std::smatch            match)
-{
-   if(match.size() == 5) {
-      FileEntryTimePoint timeStamp;
-      if(stringToTimePoint<FileEntryTimePoint>(match[3].str(), timeStamp, "%Y%m%dT%H%M%S")) {
-         InputFileEntry inputFileEntry;
-         inputFileEntry.Source    = match[2];
-         inputFileEntry.TimeStamp = timeStamp;
-         inputFileEntry.SeqNumber = atol(match[4].str().c_str());
-         inputFileEntry.DataFile  = dataFile;
-         const std::size_t workerID = std::hash<std::string>{}(inputFileEntry.Source) % Workers;
-
-         std::unique_lock lock(Mutex);
-         if(DataFileSet[workerID].insert(inputFileEntry).second) {
-            HPCT_LOG(trace) << Identification << ": Added input file "
-                            << relative_to(dataFile, Configuration.getImportFilePath()) << " to reader";
-            TotalFiles++;
-            return workerID;
-         }
-      }
-      else {
-         HPCT_LOG(warning) << Identification << ": Bad time stamp " << match[2].str();
-      }
-   }
-   return -1;
-}
-
-
-// ###### Remove input file from reader #####################################
-bool TracerouteReader::removeFile(const std::filesystem::path& dataFile,
-                                  const std::smatch            match)
-{
-   if(match.size() == 5) {
-      FileEntryTimePoint timeStamp;
-      if(stringToTimePoint<FileEntryTimePoint>(match[3].str(), timeStamp, "%Y%m%dT%H%M%S")) {
-         InputFileEntry inputFileEntry;
-         inputFileEntry.Source    = match[2];
-         inputFileEntry.TimeStamp = timeStamp;
-         inputFileEntry.SeqNumber = atol(match[4].str().c_str());
-         const std::size_t workerID = std::hash<std::string>{}(inputFileEntry.Source) % Workers;
-
-         HPCT_LOG(trace) << Identification << ": Removing input file "
-                         << relative_to(dataFile, Configuration.getImportFilePath()) << " from reader";
-         std::unique_lock lock(Mutex);
-         if(DataFileSet[workerID].erase(inputFileEntry) == 1) {
-            assert(TotalFiles > 0);
-            TotalFiles--;
-            return true;
-         }
-      }
-   }
-   return false;
-}
-
-
-// ###### Fetch list of input files #########################################
-unsigned int TracerouteReader::fetchFiles(std::list<std::filesystem::path>& dataFileList,
-                                          const unsigned int                worker,
-                                          const unsigned int                limit)
-{
-   assert(worker < Workers);
-   dataFileList.clear();
-
-   std::unique_lock lock(Mutex);
-
-   for(const InputFileEntry& inputFileEntry : DataFileSet[worker]) {
-      dataFileList.push_back(inputFileEntry.DataFile);
-      if(dataFileList.size() >= limit) {
-         break;
-      }
-   }
-   return dataFileList.size();
-}
+{ }
 
 
 // ###### Begin parsing #####################################################
@@ -304,20 +241,4 @@ void TracerouteReader::parseContents(
 //          throw ImporterLogicException("Unknown output format");
 //       }
 //    }
-}
-
-
-// ###### Print reader status ###############################################
-void TracerouteReader::printStatus(std::ostream& os)
-{
-   os << getIdentification() << ":\n";
-   for(unsigned int w = 0; w < Workers; w++) {
-      if(w > 0) {
-         os << "\n";
-      }
-      os << " - Work Queue #" << w + 1 << ": " << DataFileSet[w].size();
-      // for(const InputFileEntry& inputFileEntry : DataFileSet[w]) {
-      //    os << "  - " <<  inputFileEntry << "\n";
-      // }
-   }
 }

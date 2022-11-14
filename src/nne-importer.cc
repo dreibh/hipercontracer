@@ -57,6 +57,7 @@ int main(int argc, char** argv)
    std::filesystem::path importFilePath;
    std::filesystem::path badFilePath;
    std::filesystem::path goodFilePath;
+   std::string           importFilePathFilter;
    unsigned int          pingWorkers;
    unsigned int          speedTestWorkers;
    unsigned int          metadataWorkers;
@@ -82,28 +83,29 @@ int main(int argc, char** argv)
       ( "config,C",
            boost::program_options::value<std::filesystem::path>(&databaseConfigurationFile),
            "Database configuration file" )
-      ("import-mode",       boost::program_options::value<std::string>(&importModeName),                     "Override import mode")
-      ("import-max-depth",  boost::program_options::value<unsigned int>(&importMaxDepth)->default_value(0),  "Override import max depth)")
-      ("import-file-path",  boost::program_options::value<std::filesystem::path>(&importFilePath),           "Override path for input data")
-      ("bad-file-path",     boost::program_options::value<std::filesystem::path>(&badFilePath),              "Override path for bad files")
-      ("good-file-path",    boost::program_options::value<std::filesystem::path>(&goodFilePath),             "Override path for good files")
+      ("import-mode,X",              boost::program_options::value<std::string>(&importModeName),                     "Override import mode")
+      ("import-max-depth,D",         boost::program_options::value<unsigned int>(&importMaxDepth)->default_value(0),  "Override import max depth)")
+      ("import-file-path,I",         boost::program_options::value<std::filesystem::path>(&importFilePath),           "Override path for input files")
+      ("bad-file-path,B",            boost::program_options::value<std::filesystem::path>(&badFilePath),              "Override path for bad files")
+      ("good-file-path,G",           boost::program_options::value<std::filesystem::path>(&goodFilePath),             "Override path for good files")
+      ("import-file-path-filter,F",  boost::program_options::value<std::string>(&importFilePathFilter),               "Import path filter (regular expression)")
 
-      ( "ping-workers",
+      ( "ping-workers,P",
            boost::program_options::value<unsigned int>(&pingWorkers)->default_value(1),
            "Number of Ping import worker threads" )
-      ( "ping-files",
+      ( "ping-files,p",
            boost::program_options::value<unsigned int>(&pingTransactionSize)->default_value(4),
            "Number of Ping files per transaction" )
-      ( "speedtest-workers",
+      ( "speedtest-workers,S",
            boost::program_options::value<unsigned int>(&speedTestWorkers)->default_value(1),
            "Number of SpeedTest import worker threads" )
-      ( "speedtest-files",
+      ( "speedtest-files,s",
            boost::program_options::value<unsigned int>(&speedTestTransactionSize)->default_value(1),
            "Number of SpeedTest files per transaction" )
-      ( "metadata-workers",
+      ( "metadata-workers,M",
            boost::program_options::value<unsigned int>(&metadataWorkers)->default_value(1),
            "Number of Metadata import worker threads" )
-      ( "metadata-files",
+      ( "metadata-files,m",
            boost::program_options::value<unsigned int>(&metadataTransactionSize)->default_value(256),
            "Number of Metadata files per transaction" )
    ;
@@ -116,19 +118,19 @@ int main(int argc, char** argv)
          boost::program_options::command_line_parser(argc, argv).
             style(boost::program_options::command_line_style::style_t::default_style| boost::program_options::command_line_style::style_t::allow_long_disguise).
             options(commandLineOptions).
-            allow_unregistered().
+            // allow_unregistered().
             run();
       boost::program_options::store(parsedOptions, vm);
 
-      std::vector<std::string> p = boost::program_options::collect_unrecognized(parsedOptions.options, boost::program_options::include_positional);
-      if(p.size() > 1) {
-         std::cerr << "ERROR: Only one database configuration file may be provided!\n";
-         exit(1);
-      }
-      for(auto it = p.begin(); it != p.end(); it++) {
-          databaseConfigurationFile = *it;
-          break;
-      }
+      // std::vector<std::string> p = boost::program_options::collect_unrecognized(parsedOptions.options, boost::program_options::include_positional);
+      // if(p.size() > 1) {
+      //    std::cerr << "ERROR: Only one database configuration file may be provided!\n";
+      //    exit(1);
+      // }
+      // for(auto it = p.begin(); it != p.end(); it++) {
+      //     databaseConfigurationFile = *it;
+      //     break;
+      // }
       boost::program_options::notify(vm);
    }
    catch(std::exception& e) {
@@ -238,7 +240,7 @@ int main(int argc, char** argv)
 
 
    // ====== Main loop ======================================================
-   if(importer.start() == false) {
+   if(importer.start(importFilePathFilter) == false) {
       exit(1);
    }
    ioService.run();

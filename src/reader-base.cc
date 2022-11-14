@@ -33,20 +33,29 @@
 
 
 // ###### Constructor #######################################################
-ReaderBase::ReaderBase(const DatabaseConfiguration& databaseConfiguration,
-                       const unsigned int           workers,
-                       const unsigned int           maxTransactionSize)
+ReaderBase::ReaderBase(
+   const DatabaseConfiguration& databaseConfiguration,
+   const unsigned int           workers,
+   const unsigned int           maxTransactionSize)
    : Configuration(databaseConfiguration),
      Workers(workers),
      MaxTransactionSize(maxTransactionSize)
 {
    assert(Workers > 0);
    assert(MaxTransactionSize > 0);
-   TotalFiles = 0;
+
+   Statistics = new WorkerStatistics[Workers + 1];
+   assert(Statistics != nullptr);
+   for(unsigned int w = 0; w < Workers + 1; w++) {
+      Statistics[w].Processed = Statistics[w].OldProcessed = 0;
+   }
+   LastStatisticsUpdate = ReaderClock::now();
 }
 
 
 // ###### Destructor ########################################################
 ReaderBase::~ReaderBase()
 {
+   delete [] Statistics;
+   Statistics = nullptr;
 }

@@ -160,49 +160,45 @@ bool DatabaseConfiguration::setImportMaxDepth(const unsigned int importMaxDepth)
 // ###### Set import file path ##############################################
 bool DatabaseConfiguration::setImportFilePath(const std::filesystem::path& importFilePath)
 {
-   ImportFilePath = importFilePath;
-   std::error_code ec;
-   if(!is_directory(ImportFilePath, ec)) {
-      HPCT_LOG(error) << "Import file path " << ImportFilePath << " does not exist: " << ec;
-      return false;
+   try {
+      ImportFilePath = std::filesystem::canonical(std::filesystem::absolute(importFilePath));
+      if(std::filesystem::is_directory(ImportFilePath)) {
+         return true;
+      }
    }
-   return true;
+   catch(...) { }
+   HPCT_LOG(error) << "Invalid or inaccessible import file path " << ImportFilePath;
+   return false;
 }
 
 
 // ###### Set good file path ################################################
 bool DatabaseConfiguration::setGoodFilePath(const std::filesystem::path& goodFilePath)
 {
-   GoodFilePath = goodFilePath;
-   std::error_code ec;
-   if(!is_directory(GoodFilePath, ec)) {
-      HPCT_LOG(error) << "Good file path " << GoodFilePath << " does not exist: " << ec;
-      return false;
+   try {
+      GoodFilePath = std::filesystem::canonical(std::filesystem::absolute(goodFilePath));
+      if(std::filesystem::is_directory(GoodFilePath)) {
+         return true;
+      }
    }
-   if(is_subdir_of(GoodFilePath, ImportFilePath)) {
-      HPCT_LOG(error) << "Good file path " << GoodFilePath
-                      << " must not be within import file path " << ImportFilePath;
-      return false;
-   }
-   return true;
+   catch(...) { }
+   HPCT_LOG(error) << "Invalid or inaccessible good file path " << GoodFilePath;
+   return false;
 }
 
 
 // ###### Set bad file path #################################################
 bool DatabaseConfiguration::setBadFilePath(const std::filesystem::path& badFilePath)
 {
-   BadFilePath = badFilePath;
-   std::error_code ec;
-   if(!is_directory(BadFilePath, ec)) {
-      HPCT_LOG(error) << "Bad file path " << BadFilePath << " does not exist: " << ec;
-      return false;
+   try {
+      BadFilePath = std::filesystem::canonical(std::filesystem::absolute(badFilePath));
+      if(std::filesystem::is_directory(BadFilePath)) {
+         return true;
+      }
    }
-   if(is_subdir_of(BadFilePath, ImportFilePath)) {
-      HPCT_LOG(error) << "Bad file path " << BadFilePath
-                      << " must not be within import file path " << ImportFilePath;
-      return false;
-   }
-   return true;
+   catch(...) { }
+   HPCT_LOG(error) << "Invalid or inaccessible bad file path " << BadFilePath;
+   return false;
 }
 
 

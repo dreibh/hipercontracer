@@ -45,7 +45,25 @@
 #define WITH_TIMESTAMP_FIX   // Timestamp granularity of 1s
 
 
-class NorNetEdgeMetadataReader : public ReaderBase
+// ###### Input file list structure #########################################
+struct NorNetEdgeMetadataFileEntry {
+   ReaderTimePoint       TimeStamp;
+   unsigned int          NodeID;
+   std::filesystem::path DataFile;
+};
+
+bool operator<(const NorNetEdgeMetadataFileEntry& a, const NorNetEdgeMetadataFileEntry& b);
+std::ostream& operator<<(std::ostream& os, const NorNetEdgeMetadataFileEntry& entry);
+
+int makeInputFileEntry(const std::filesystem::path& dataFile,
+                       const std::smatch            match,
+                       NorNetEdgeMetadataFileEntry& inputFileEntry,
+                       const unsigned int           workers);
+ReaderPriority getPriorityOfFileEntry(const NorNetEdgeMetadataFileEntry& inputFileEntry);
+
+
+// ###### Reader class ######################################################
+class NorNetEdgeMetadataReader : public ReaderImplementation<NorNetEdgeMetadataFileEntry>
 {
    public:
    NorNetEdgeMetadataReader(const DatabaseConfiguration& databaseConfiguration,
@@ -55,17 +73,8 @@ class NorNetEdgeMetadataReader : public ReaderBase
                             const std::string&           table_event        = "node_metadata_event");
    virtual ~NorNetEdgeMetadataReader();
 
-   virtual const std::string& getIdentification() const;
-   virtual const std::regex& getFileNameRegExp() const;
-
-   virtual int addFile(const std::filesystem::path& dataFile,
-                       const std::smatch            match);
-   virtual bool removeFile(const std::filesystem::path& dataFile,
-                           const std::smatch            match);
-   virtual unsigned int fetchFiles(std::list<std::filesystem::path>& dataFileList,
-                                   const unsigned int                worker,
-                                   const unsigned int                limit = 1);
-   virtual void printStatus(std::ostream& os = std::cout);
+   virtual const std::string& getIdentification() const { return Identification; }
+   virtual const std::regex&  getFileNameRegExp() const { return FileNameRegExp; }
 
    virtual void beginParsing(DatabaseClientBase& databaseClient,
                              unsigned long long& rows);
@@ -93,30 +102,16 @@ class NorNetEdgeMetadataReader : public ReaderBase
                                   const std::filesystem::path&       dataFile) const;
    std::string parseExtra(const boost::property_tree::ptree& item,
                           const std::filesystem::path&       dataFile) const;
-   static unsigned int getNodeIDFromPath(const std::filesystem::path& dataFile);
-
-   typedef std::chrono::system_clock               FileEntryClock;
-   typedef std::chrono::time_point<FileEntryClock> FileEntryTimePoint;
-   struct InputFileEntry {
-      FileEntryTimePoint    TimeStamp;
-      unsigned int          NodeID;
-      std::filesystem::path DataFile;
-   };
-   friend bool operator<(const NorNetEdgeMetadataReader::InputFileEntry& a,
-                         const NorNetEdgeMetadataReader::InputFileEntry& b);
-   friend std::ostream& operator<<(std::ostream& os, const InputFileEntry& entry);
 
    private:
    static const std::string  Identification;
    static const std::regex   FileNameRegExp;
    const std::string         Table_bins1min;
    const std::string         Table_event;
-   std::set<InputFileEntry>* DataFileSet;
-
 #ifdef WITH_TIMESTAMP_FIX
    struct TimeStampFix {
-      std::chrono::high_resolution_clock::time_point TSFixLastTimePoint;
-      std::chrono::high_resolution_clock::duration   TSFixTimeOffset;
+      ReaderTimePoint        TSFixLastTimePoint;
+      ReaderClock::duration  TSFixTimeOffset;
    };
    std::map<unsigned int, TimeStampFix*> TSFixMap;
 #endif

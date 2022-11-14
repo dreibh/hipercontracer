@@ -34,12 +34,26 @@
 
 #include "reader-base.h"
 
-#include <chrono>
-#include <mutex>
-#include <set>
+
+// ###### Input file list structure #########################################
+struct NorNetEdgePingFileEntry {
+   ReaderTimePoint       TimeStamp;
+   unsigned int          MeasurementID;
+   std::filesystem::path DataFile;
+};
+
+bool operator<(const NorNetEdgePingFileEntry& a, const NorNetEdgePingFileEntry& b);
+std::ostream& operator<<(std::ostream& os, const NorNetEdgePingFileEntry& entry);
+
+int makeInputFileEntry(const std::filesystem::path& dataFile,
+                       const std::smatch            match,
+                       NorNetEdgePingFileEntry&     inputFileEntry,
+                       const unsigned int           workers);
+ReaderPriority getPriorityOfFileEntry(const NorNetEdgePingFileEntry& inputFileEntry);
 
 
-class NorNetEdgePingReader : public ReaderBase
+// ###### Reader class ######################################################
+class NorNetEdgePingReader : public ReaderImplementation<NorNetEdgePingFileEntry>
 {
    public:
    NorNetEdgePingReader(const DatabaseConfiguration& databaseConfiguration,
@@ -48,17 +62,8 @@ class NorNetEdgePingReader : public ReaderBase
                         const std::string&           table_measurement_generic_data = "measurement_generic_data");
    virtual ~NorNetEdgePingReader();
 
-   virtual const std::string& getIdentification() const;
-   virtual const std::regex&  getFileNameRegExp() const;
-
-   virtual int addFile(const std::filesystem::path& dataFile,
-                       const std::smatch            match);
-   virtual bool removeFile(const std::filesystem::path& dataFile,
-                           const std::smatch            match);
-   virtual unsigned int fetchFiles(std::list<std::filesystem::path>& dataFileList,
-                                   const unsigned int                worker,
-                                   const unsigned int                limit = 1);
-   virtual void printStatus(std::ostream& os = std::cout);
+   virtual const std::string& getIdentification() const { return Identification; }
+   virtual const std::regex&  getFileNameRegExp() const { return FileNameRegExp; }
 
    virtual void beginParsing(DatabaseClientBase& databaseClient,
                              unsigned long long& rows);
@@ -69,23 +74,10 @@ class NorNetEdgePingReader : public ReaderBase
                               const std::filesystem::path&         dataFile,
                               boost::iostreams::filtering_istream& dataStream);
 
-   protected:
-   typedef std::chrono::system_clock               FileEntryClock;
-   typedef std::chrono::time_point<FileEntryClock> FileEntryTimePoint;
-   struct InputFileEntry {
-      FileEntryTimePoint    TimeStamp;
-      unsigned int          MeasurementID;
-      std::filesystem::path DataFile;
-   };
-   friend bool operator<(const NorNetEdgePingReader::InputFileEntry& a,
-                         const NorNetEdgePingReader::InputFileEntry& b);
-   friend std::ostream& operator<<(std::ostream& os, const InputFileEntry& entry);
-
    private:
    static const std::string  Identification;
    static const std::regex   FileNameRegExp;
    const std::string         Table_measurement_generic_data;
-   std::set<InputFileEntry>* DataFileSet;
 };
 
 #endif
