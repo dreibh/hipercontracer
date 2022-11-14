@@ -33,14 +33,14 @@
 -- ###### Ping ##############################################################
 DROP TABLE IF EXISTS PingTracerouteDB.Ping;
 CREATE TABLE PingTracerouteDB.Ping (
-   TimeStamp DATETIME(6) NOT NULL,                      -- Time stamp (always UTC!)
-   FromIP    BINARY(16)  NOT NULL,                      -- Source IP address
-   ToIP      BINARY(16)  NOT NULL,                      -- Destination IP address
-   Checksum  INTEGER     NOT NULL DEFAULT 0,            -- Checksum
-   PktSize   INTEGER     NOT NULL DEFAULT 0,            -- Packet size
-   TC        SMALLINT    NOT NULL DEFAULT 0,            -- Traffic Class
-   Status    SMALLINT    NOT NULL,                      -- Status
-   RTT       INTEGER     NOT NULL,                      -- microseconds (max. 2147s)
+   TimeStamp DATETIME(6) NOT NULL,                   -- Time stamp (always UTC!)
+   FromIP    INET6       NOT NULL,                   -- Source IP address
+   ToIP      INET6       NOT NULL,                   -- Destination IP address
+   Checksum  INTEGER     NOT NULL DEFAULT 0,         -- Checksum
+   PktSize   INTEGER     NOT NULL DEFAULT 0,         -- Packet size
+   TC        SMALLINT    NOT NULL DEFAULT 0,         -- Traffic Class
+   Status    SMALLINT    NOT NULL,                   -- Status
+   RTT       INTEGER     NOT NULL,                   -- microseconds (max. 2147s)
    PRIMARY KEY (FromIP, ToIP, TC, TimeStamp)
 );
 
@@ -50,19 +50,19 @@ CREATE INDEX PingTimeStampIndex ON PingTracerouteDB.Ping (TimeStamp ASC);
 -- ###### Traceroute ########################################################
 DROP TABLE IF EXISTS PingTracerouteDB.Traceroute;
 CREATE TABLE PingTracerouteDB.Traceroute (
-   TimeStamp DATETIME(6) NOT NULL,                      -- Time stamp (always UTC!)
-   FromIP    BINARY(16)  NOT NULL,                      -- Source IP address
-   ToIP      BINARY(16)  NOT NULL,                      -- Destination IP address
-   Checksum  INTEGER     NOT NULL DEFAULT 0,            -- Checksum
-   PktSize   INTEGER     NOT NULL DEFAULT 0,            -- Packet size
-   TC        SMALLINT    NOT NULL DEFAULT 0,            -- Traffic Class
-   HopNumber SMALLINT    NOT NULL,                      -- Current hop number
-   TotalHops SMALLINT    NOT NULL,                      -- Total number of hops
-   Status    SMALLINT    NOT NULL,                      -- Status
-   RTT       INTEGER     NOT NULL,                      -- microseconds (max. 2147s)
-   HopIP     BINARY(16)  NOT NULL,                      -- Router or Destination IP address
-   PathHash  BIGINT      NOT NULL,                      -- Hash over full path
-   Round     INTEGER     NOT NULL DEFAULT 0,            -- Round number
+   TimeStamp DATETIME(6) NOT NULL,                   -- Time stamp (always UTC!)
+   FromIP    INET6       NOT NULL,                   -- Source IP address
+   ToIP      INET6       NOT NULL,                   -- Destination IP address
+   Checksum  INTEGER     NOT NULL DEFAULT 0,         -- Checksum
+   PktSize   INTEGER     NOT NULL DEFAULT 0,         -- Packet size
+   TC        SMALLINT    NOT NULL DEFAULT 0,         -- Traffic Class
+   HopNumber SMALLINT    NOT NULL,                   -- Current hop number
+   TotalHops SMALLINT    NOT NULL,                   -- Total number of hops
+   Status    SMALLINT    NOT NULL,                   -- Status
+   RTT       INTEGER     NOT NULL,                   -- microseconds (max. 2147s)
+   HopIP     INET6       NOT NULL,                   -- Router or Destination IP address
+   PathHash  BIGINT      NOT NULL,                   -- Hash over full path
+   Round     INTEGER     NOT NULL DEFAULT 0,         -- Round number
    PRIMARY KEY (FromIP,ToIP,TC,TimeStamp,Round,HopNumber)
 );
 
