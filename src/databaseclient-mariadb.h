@@ -66,7 +66,7 @@ class MariaDBClient : public DatabaseClientBase
 
    sql::Driver*     Driver;
    sql::Connection* Connection;
-   sql::Statement*  Statement;
+   sql::Statement*  Transaction;
 };
 
 #endif

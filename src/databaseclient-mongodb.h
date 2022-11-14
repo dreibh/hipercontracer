@@ -53,7 +53,7 @@ class MongoDBClient : public DatabaseClientBase
    virtual void executeUpdate(const std::string& statement);
    virtual void endTransaction(const bool commit);
 
-   inline sql::Connection& getConnection() { return Connection; }
+   inline mongo::DBClientConnection* getConnection() { return &Connection; }
 
    private:
    void handleDatabaseException(const mongo::DBException& exception,

@@ -40,8 +40,8 @@ MariaDBClient::MariaDBClient(const DatabaseConfiguration& configuration)
 {
    Driver = get_driver_instance();
    assert(Driver != nullptr);
-   Connection = nullptr;
-   Statement  = nullptr;
+   Connection  = nullptr;
+   Transaction = nullptr;
 }
 
 
@@ -77,8 +77,8 @@ bool MariaDBClient::open()
       Connection->setAutoCommit(false);
 
       // ====== Create statement ============================================
-      Statement = Connection->createStatement();
-      assert(Statement != nullptr);
+      Transaction = Connection->createStatement();
+      assert(Transaction != nullptr);
    }
    catch(const sql::SQLException& e) {
       HPCT_LOG(error) << "Unable to connect MariaDB client to " << url << ": " << e.what();
@@ -93,9 +93,9 @@ bool MariaDBClient::open()
 // ###### Close connection to database ######################################
 void MariaDBClient::close()
 {
-   if(Statement) {
-      delete Statement;
-      Statement = nullptr;
+   if(Transaction) {
+      delete Transaction;
+      Transaction = nullptr;
    }
    if(Connection != nullptr) {
       delete Connection;
@@ -142,7 +142,7 @@ void MariaDBClient::handleDatabaseException(const sql::SQLException& exception,
 void MariaDBClient::startTransaction()
 {
    try {
-      Statement->execute("START TRANSACTION");
+      Transaction->execute("START TRANSACTION");
    }
    catch(const sql::SQLException& exception) {
       handleDatabaseException(exception, "Start of transaction");
@@ -179,7 +179,7 @@ void MariaDBClient::endTransaction(const bool commit)
 void MariaDBClient::executeUpdate(const std::string& statement)
 {
    try {
-      Statement->executeUpdate(statement);
+      Transaction->executeUpdate(statement);
    }
    catch(const sql::SQLException& exception) {
       handleDatabaseException(exception, "Execute", statement);

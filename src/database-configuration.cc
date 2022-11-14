@@ -35,6 +35,8 @@
 
 #include "databaseclient-debug.h"
 #include "databaseclient-mariadb.h"
+#include "databaseclient-mongodb.h"
+#include "databaseclient-postgresql.h"
 
 #include <fstream>
 
@@ -247,10 +249,16 @@ DatabaseClientBase* DatabaseConfiguration::createClient()
    switch(Backend) {
       case SQL_Debug:
       case NoSQL_Debug:
-          databaseClient = new DebugClient(*this);
+         databaseClient = new DebugClient(*this);
        break;
       case SQL_MariaDB:
-          databaseClient = new MariaDBClient(*this);
+         databaseClient = new MariaDBClient(*this);
+       break;
+      case NoSQL_MongoDB:
+         databaseClient = new MongoDBClient(*this);
+       break;
+      case SQL_PostgreSQL:
+         databaseClient = new PostgreSQLClient(*this);
        break;
       default:
        break;

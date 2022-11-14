@@ -38,8 +38,8 @@
 PostgreSQLClient::PostgreSQLClient(const DatabaseConfiguration& configuration)
    : DatabaseClientBase(configuration)
 {
-   Connection = nullptr;
-   Statement  = nullptr;
+   Connection  = nullptr;
+   Transaction = nullptr;
 }
 
 
@@ -74,8 +74,8 @@ bool PostgreSQLClient::open()
       assert(Connection != nullptr);
 
       // ====== Create statement ============================================
-      Statement = new pqxx::work(*Connection);
-      assert(Statement != nullptr);
+      Transaction = new pqxx::work(*Connection);
+      assert(Transaction != nullptr);
    }
    catch(const pqxx::pqxx_exception& e) {
       HPCT_LOG(error) << "Unable to connect PostgreSQL client to " << parameters;
@@ -90,9 +90,9 @@ bool PostgreSQLClient::open()
 // ###### Close connection to database ######################################
 void PostgreSQLClient::close()
 {
-   if(Statement) {
-      delete Statement;
-      Statement = nullptr;
+   if(Transaction) {
+      delete Transaction;
+      Transaction = nullptr;
    }
    if(Connection != nullptr) {
       delete Connection;
@@ -124,28 +124,21 @@ void PostgreSQLClient::handleDatabaseException(const pqxx::pqxx_exception& excep
    HPCT_LOG(debug) << statement;
 
    // ====== Throw exception ================================================
-//    const std::string e = exception.getSQLState().substr(0, 2);
-//    // Integrity Error, according to mysql/connector/errors.py
-//    if( (e == "23") || (e == "22") || (e == "XA")) {
-//       // For this type, the input file should be moved to the bad directory.
-//       throw ImporterDatabaseDataErrorException(what);
-//    }
-//    // Other error
-//    else {
+   // Query error
+   if(s) {
+      // For this type, the input file should be moved to the bad directory.
+      throw ImporterDatabaseDataErrorException(what);
+   }
+   // Other error
+   else {
       throw ImporterDatabaseException(what);
-//    }
+   }
 }
 
 
 // ###### Begin transaction #################################################
 void PostgreSQLClient::startTransaction()
 {
-   try {
-      Statement->execute("START TRANSACTION");
-   }
-   catch(const pqxx::pqxx_exception& exception) {
-      handleDatabaseException(exception, "Start of transaction");
-   }
 }
 
 
@@ -155,7 +148,7 @@ void PostgreSQLClient::endTransaction(const bool commit)
    // ====== Commit transaction =============================================
    if(commit) {
       try {
-         Connection->commit();
+         Transaction->commit();
       }
       catch(const pqxx::pqxx_exception& exception) {
          handleDatabaseException(exception, "Commit");
@@ -165,7 +158,7 @@ void PostgreSQLClient::endTransaction(const bool commit)
    // ====== Commit transaction =============================================
    else {
       try {
-         Connection->rollback();
+         Transaction->abort();
       }
       catch(const pqxx::pqxx_exception& exception) {
          handleDatabaseException(exception, "Rollback");
@@ -178,7 +171,7 @@ void PostgreSQLClient::endTransaction(const bool commit)
 void PostgreSQLClient::executeUpdate(const std::string& statement)
 {
    try {
-      Statement->executeUpdate(statement);
+      Transaction->exec(statement);
    }
    catch(const pqxx::pqxx_exception& exception) {
       handleDatabaseException(exception, "Execute", statement);

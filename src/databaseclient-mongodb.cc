@@ -63,7 +63,7 @@ bool MongoDBClient::open()
 {
    const std::string url = "tcp://" + Configuration.getServer() + ":" + std::to_string(Configuration.getPort());
 
-   assert(Connection == nullptr);
+//    assert(Connection == nullptr);
    try {
       // ====== Connect to database =========================================
 //       Connection = Driver->connect(url.c_str(),
@@ -106,7 +106,8 @@ void MongoDBClient::close()
 // ###### Reconnect connection to database ##################################
 void MongoDBClient::reconnect()
 {
-   Connection->reconnect();
+   puts("?????"); // FIXME!
+//    Connection->reconnect();
 }
 
 
@@ -139,37 +140,37 @@ void MongoDBClient::handleDatabaseException(const mongo::DBException& exception,
 // ###### Begin transaction #################################################
 void MongoDBClient::startTransaction()
 {
-   try {
-      Statement->execute("START TRANSACTION");
-   }
-   catch(const sql::SQLException& exception) {
-      handleDatabaseException(exception, "Start of transaction");
-   }
+//    try {
+//       Statement->execute("START TRANSACTION");
+//    }
+//    catch(const mongo::DBException& exception) {
+//       handleDatabaseException(exception, "Start of transaction");
+//    }
 }
 
 
 // ###### End transaction ###################################################
 void MongoDBClient::endTransaction(const bool commit)
 {
-   // ====== Commit transaction =============================================
-   if(commit) {
-      try {
-         Connection->commit();
-      }
-      catch(const sql::SQLException& exception) {
-         handleDatabaseException(exception, "Commit");
-      }
-   }
-
-   // ====== Commit transaction =============================================
-   else {
-      try {
-         Connection->rollback();
-      }
-      catch(const sql::SQLException& exception) {
-         handleDatabaseException(exception, "Rollback");
-      }
-   }
+//    // ====== Commit transaction =============================================
+//    if(commit) {
+//       try {
+//          Connection->commit();
+//       }
+//       catch(const mongo::DBException& exception) {
+//          handleDatabaseException(exception, "Commit");
+//       }
+//    }
+//
+//    // ====== Commit transaction =============================================
+//    else {
+//       try {
+//          Connection->rollback();
+//       }
+//       catch(const mongo::DBException& exception) {
+//          handleDatabaseException(exception, "Rollback");
+//       }
+//    }
 }
 
 
@@ -177,9 +178,10 @@ void MongoDBClient::endTransaction(const bool commit)
 void MongoDBClient::executeUpdate(const std::string& statement)
 {
    try {
-      Statement->executeUpdate(statement);
+//       Statement->executeUpdate(statement);
+      abort();
    }
-   catch(const sql::SQLException& exception) {
+   catch(const mongo::DBException& exception) {
       handleDatabaseException(exception, "Execute", statement);
    }
 }

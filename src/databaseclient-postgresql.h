@@ -29,8 +29,8 @@
 //
 // Contact: dreibh@simula.no
 
-#ifndef DATABASECLIENT_MARIADB_H
-#define DATABASECLIENT_MARIADB_H
+#ifndef DATABASECLIENT_POSTGRESQL_H
+#define DATABASECLIENT_POSTGRESQL_H
 
 #include "databaseclient-base.h"
 
@@ -61,7 +61,7 @@ class PostgreSQLClient : public DatabaseClientBase
                                 const std::string&          statement = std::string());
 
    pqxx::lazyconnection* Connection;
-   pqxx::work*           Statement;
+   pqxx::work*           Transaction;
 };
 
 #endif
