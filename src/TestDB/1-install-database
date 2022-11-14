@@ -15,6 +15,12 @@ if [ "$1" == "mariadb" ] ; then
    sudo apt install -y mariadb-server mariadb-backup mariadb-client
    sudo mysql_secure_installation
 
+   # Enable network access:
+   sudo sed -e 's/^\(bind-address[ \t]*\)=.*$/\1= */g' /etc/mysql/mariadb.conf.d/50-server.cnf | sudo tee /etc/mysql/mariadb.conf.d/50-server.cnf.new
+   sudo mv /etc/mysql/mariadb.conf.d/50-server.cnf.new /etc/mysql/mariadb.conf.d/50-server.cnf
+   sudo service mariadb restart
+
+   # Install MySQL Workbench:
    # wget https://dev.mysql.com/get/Downloads/MySQLGUITools/mysql-workbench-community_8.0.31-1ubuntu22.10_amd64.deb
    # sudo apt install ./mysql-workbench-community_8.0.31-1ubuntu22.10_amd64.deb
 
@@ -26,6 +32,14 @@ elif [ "$1" == "postgresql" ] ; then
    echo "Installing PostgreSQL ..."
 
    sudo apt install -y postgresql-all
+
+   # Enable network access:
+   sudo sed \
+      -e 's#^host    all             all             127.0.0.1/32            scram-sha-256#host    all             all             0.0.0.0/32              scram-sha-256#' \
+      -e 's#^host    all             all             ::1/128                 scram-sha-256#host    all             all             ::/128                  scram-sha-256#' \
+   /etc/postgresql/14/main/pg_hba.conf | sudo tee /etc/mysql/mariadb.conf.d/50-server.cnf.new
+   sudo mv /etc/mysql/mariadb.conf.d/50-server.cnf.new /etc/mysql/mariadb.conf.d/50-server.cnf
+   sudo service postgresql restart
 
 
 # ###### MongoDB ############################################################
@@ -46,7 +60,12 @@ elif [ "$1" == "mongodb" ] ; then
    sudo apt-get update -qq
    sudo apt-get install -y mongodb-org
 
-   sudo systemctl start mongod
+   sudo sed \
+      -e 's#  bindIp: 127.0.0.1#  ipv6: true\n  bindIpAll: true#' \
+      /etc/mongod.conf | sudo tee /etc/mongod.conf.new
+   sudo mv /etc/mongod.conf.new /etc/mongod.conf
+
+   sudo systemctl restart mongod
    sudo systemctl enable mongod
 
 
