@@ -15,6 +15,12 @@ if [ "$1" == "mariadb" ] ; then
    sudo apt install -y mariadb-server mariadb-backup mariadb-client
    sudo mysql_secure_installation
 
+   # Enable network access:
+   sudo sed -e 's/^\(bind-address[ \t]*\)=.*$/\1= */g' /etc/mysql/mariadb.conf.d/50-server.cnf | sudo tee /etc/mysql/mariadb.conf.d/50-server.cnf.new
+   sudo mv /etc/mysql/mariadb.conf.d/50-server.cnf.new /etc/mysql/mariadb.conf.d/50-server.cnf
+   sudo service mariadb restart
+
+   # Install MySQL Workbench:
    # wget https://dev.mysql.com/get/Downloads/MySQLGUITools/mysql-workbench-community_8.0.31-1ubuntu22.10_amd64.deb
    # sudo apt install ./mysql-workbench-community_8.0.31-1ubuntu22.10_amd64.deb
 
