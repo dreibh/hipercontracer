@@ -77,7 +77,7 @@ std::ostream& operator<<(std::ostream& os, const TracerouteFileEntry& entry)
 {
    os << "("
       << entry.Source << ", "
-      << timePointToString<ReaderTimePoint>(entry.TimeStamp) << ", "
+      << timePointToString<ReaderTimePoint>(entry.TimeStamp, 6) << ", "
       << entry.SeqNumber << ", "
       << entry.DataFile
       << ")";
@@ -94,12 +94,12 @@ int makeInputFileEntry(const std::filesystem::path& dataFile,
    if(match.size() == 5) {
       ReaderTimePoint timeStamp;
       if(stringToTimePoint<ReaderTimePoint>(match[3].str(), timeStamp, "%Y%m%dT%H%M%S")) {
-         TracerouteFileEntry inputFileEntry;
          inputFileEntry.Source    = match[2];
          inputFileEntry.TimeStamp = timeStamp;
          inputFileEntry.SeqNumber = atol(match[4].str().c_str());
          inputFileEntry.DataFile  = dataFile;
          const std::size_t workerID = std::hash<std::string>{}(inputFileEntry.Source) % workers;
+         // std::cout << inputFileEntry.Source << "\t" << timePointToString<ReaderTimePoint>(inputFileEntry.TimeStamp, 6) << "\t" << inputFileEntry.SeqNumber << "\t" << inputFileEntry.DataFile << " -> " << workerID << "\n";
          return workerID;
       }
    }
@@ -221,6 +221,26 @@ uint8_t TracerouteReader::parseTrafficClass(const std::string&           value,
       throw ImporterReaderDataErrorException("Bad traffic class value " + value);
    }
    return (uint8_t)trafficClass;
+}
+
+
+// ###### Convert IP address into bytes string format #######################
+std::string TracerouteReader::addressToBytesString(const boost::asio::ip::address& address)
+{
+   std::stringstream byteString;
+   if(address.is_v4()) {
+      const boost::asio::ip::address_v4::bytes_type b = address.to_v4().to_bytes();
+      for(unsigned int i = 0; i < 4; i++) {
+         byteString << "\\x" << std::hex << (unsigned int)b[i];
+      }
+   }
+   else {
+      const boost::asio::ip::address_v6::bytes_type b = address.to_v6().to_bytes();
+      for(unsigned int i = 0; i < 16; i++) {
+         byteString << "\\x" << std::hex << (unsigned int)b[i];
+      }
+   }
+   return byteString.str();
 }
 
 

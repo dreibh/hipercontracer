@@ -155,8 +155,7 @@ void PingReader::parseContents(
 
       // ====== Generate import statement ===================================
       if(tuple[0] == "#P")  {
-         const std::chrono::time_point<std::chrono::high_resolution_clock> timeStamp =
-            parseTimeStamp(tuple[3], now, dataFile);
+         const ReaderTimePoint timeStamp = parseTimeStamp(tuple[3], now, dataFile);
          const boost::asio::ip::address sourceIP      = boost::asio::ip::address::from_string(tuple[1]);
          const boost::asio::ip::address destinationIP = boost::asio::ip::address::from_string(tuple[2]);
          const uint16_t                 checksum      = parseChecksum(tuple[4], dataFile);
@@ -164,9 +163,9 @@ void PingReader::parseContents(
          const unsigned int             rtt           = parseRTT(tuple[6], dataFile);
          uint8_t                        trafficClass  = 0x0;
          unsigned int                   packetSize    = 0;
-         if(columns >= 8) {
+         if(columns >= 8) {   // TrafficClass was added in HiPerConTracer 1.4.0!
             trafficClass = parseTrafficClass(tuple[7], dataFile);
-            if(packetSize >= 8) {
+            if(packetSize >= 8) {   // PacketSize was added in HiPerConTracer 1.6.0!
                packetSize = parsePacketSize(tuple[8], dataFile);
             }
          }
@@ -174,7 +173,7 @@ void PingReader::parseContents(
          if(backend & DatabaseBackendType::SQL_Generic) {
             statement.beginRow();
             statement
-               << statement.quote(timePointToString<std::chrono::time_point<std::chrono::high_resolution_clock>>(timeStamp, 6)) << statement.sep()
+               << statement.quote(timePointToString<ReaderTimePoint>(timeStamp, 6)) << statement.sep()
                << statement.quote(sourceIP.to_string())      << statement.sep()
                << statement.quote(destinationIP.to_string()) << statement.sep()
                << checksum                   << statement.sep()
@@ -186,12 +185,11 @@ void PingReader::parseContents(
             rows++;
          }
          else if(backend & DatabaseBackendType::NoSQL_Generic) {
-            assert(false);   // FIXME packet addresses!
             statement.beginRow();
             statement
-               << "'timestamp': "   << timePointToMicroseconds<std::chrono::time_point<std::chrono::high_resolution_clock>>(timeStamp) << statement.sep()
-               << "'source': "      << 0            << statement.sep()
-               << "'destination': " << 0            << statement.sep()
+               << "'timestamp': "   << timePointToMicroseconds<ReaderTimePoint>(timeStamp) << statement.sep()
+               << "'source': "      << statement.quote(addressToBytesString(sourceIP))      << statement.sep()
+               << "'destination': " << statement.quote(addressToBytesString(destinationIP)) << statement.sep()
                << "'checksum': "    << checksum     << statement.sep()
                << "'pktsize': "     << packetSize   << statement.sep()
                << "'tc': "          << trafficClass << statement.sep()

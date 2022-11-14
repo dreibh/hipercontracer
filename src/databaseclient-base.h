@@ -95,6 +95,9 @@ class Statement : public std::stringstream
       if(Backend & DatabaseBackendType::SQL_Generic) {
          return ",";
       }
+      else if(Backend & DatabaseBackendType::NoSQL_Generic) {
+         return ", ";
+      }
       else {
          assert(false);
       }
