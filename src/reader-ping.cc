@@ -73,7 +73,7 @@ void PingReader::beginParsing(DatabaseClientBase& databaseClient,
    if(backend & DatabaseBackendType::SQL_Generic) {
       statement
          << "INSERT INTO " << Table
-         << " (TimeStamp, FromIP, ToIP, Checksum, PktSize, TC, Status, RTT) VALUES";
+         << " (TimeStamp,FromIP,ToIP,Checksum,PktSize,TC,Status,RTT) VALUES";
    }
    else if(backend & DatabaseBackendType::NoSQL_Generic) {
       statement << "db['" << Table << "'].insert(";
@@ -165,7 +165,7 @@ void PingReader::parseContents(
          unsigned int                   packetSize    = 0;
          if(columns >= 8) {   // TrafficClass was added in HiPerConTracer 1.4.0!
             trafficClass = parseTrafficClass(tuple[7], dataFile);
-            if(packetSize >= 8) {   // PacketSize was added in HiPerConTracer 1.6.0!
+            if(columns >= 9) {   // PacketSize was added in HiPerConTracer 1.6.0!
                packetSize = parsePacketSize(tuple[8], dataFile);
             }
          }

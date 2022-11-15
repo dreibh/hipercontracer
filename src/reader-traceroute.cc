@@ -416,8 +416,6 @@ void TracerouteReader::parseContents(
    std::string tuple[TracerouteMaxColumns];
    const ReaderTimePoint now = ReaderClock::now();
    while(std::getline(dataStream, inputLine)) {
-      printf("I=<%s>\n", inputLine.c_str());
-
       // ====== Parse line ==================================================
       size_t columns = 0;
       size_t start;
@@ -448,7 +446,7 @@ void TracerouteReader::parseContents(
          packetSize    = 0;
          if(columns >= 10) {   // TrafficClass was added in HiPerConTracer 1.4.0!
             trafficClass = parseTrafficClass(tuple[9], dataFile);
-            if(packetSize >= 11) {   // PacketSize was added in HiPerConTracer 1.6.0!
+            if(columns >= 11) {   // PacketSize was added in HiPerConTracer 1.6.0!
                packetSize = parsePacketSize(tuple[10], dataFile);
             }
          }
