@@ -91,13 +91,13 @@ int main(int argc, char** argv)
            boost::program_options::value<unsigned int>(&pingWorkers)->default_value(1),
            "Number of Ping import worker threads" )
       ( "ping-files",
-           boost::program_options::value<unsigned int>(&pingTransactionSize)->default_value(4),
+           boost::program_options::value<unsigned int>(&pingTransactionSize)->default_value(1),
            "Number of Ping files per transaction" )
       ( "traceroute-workers",
            boost::program_options::value<unsigned int>(&tracerouteWorkers)->default_value(1),
            "Number of Traceroute import worker threads" )
       ( "traceroute-files",
-           boost::program_options::value<unsigned int>(&tracerouteTransactionSize)->default_value(256),
+           boost::program_options::value<unsigned int>(&tracerouteTransactionSize)->default_value(1),
            "Number of Traceroute files per transaction" )
    ;
 

@@ -72,10 +72,6 @@ bool PostgreSQLClient::open()
       // ====== Connect to database =========================================
       Connection = new pqxx::lazyconnection(parameters.c_str());
       assert(Connection != nullptr);
-
-      // ====== Create statement ============================================
-      Transaction = new pqxx::work(*Connection);
-      assert(Transaction != nullptr);
    }
    catch(const pqxx::pqxx_exception& e) {
       HPCT_LOG(error) << "Unable to connect PostgreSQL client to " << parameters;
@@ -104,8 +100,6 @@ void PostgreSQLClient::close()
 // ###### Reconnect connection to database ##################################
 void PostgreSQLClient::reconnect()
 {
-   puts("?????"); // FIXME!
-   // Connection->reconnect();
 }
 
 
@@ -116,16 +110,20 @@ void PostgreSQLClient::handleDatabaseException(const pqxx::pqxx_exception& excep
 {
    // ====== Log error ======================================================
    std::string what = where;
-   const pqxx::sql_error* s = dynamic_cast<const pqxx::sql_error*>(&exception.base());
-   if(s) {
-      what += ": query was: " + std::string(s->query());
+   const std::exception* error = dynamic_cast<const std::exception*>(&exception.base());
+   if(error != nullptr) {
+       what += ": " + std::string(error->what());
+   }
+   const pqxx::sql_error* sqlError = dynamic_cast<const pqxx::sql_error*>(&exception.base());
+   if(sqlError != nullptr) {
+      what += "; SQL: " + std::string(sqlError->query());
    }
    HPCT_LOG(error) << what;
    HPCT_LOG(debug) << statement;
 
    // ====== Throw exception ================================================
    // Query error
-   if(s) {
+   if( (Connection->is_open()) && (sqlError != nullptr) ) {
       // For this type, the input file should be moved to the bad directory.
       throw ImporterDatabaseDataErrorException(what);
    }
@@ -139,12 +137,19 @@ void PostgreSQLClient::handleDatabaseException(const pqxx::pqxx_exception& excep
 // ###### Begin transaction #################################################
 void PostgreSQLClient::startTransaction()
 {
+   assert(Transaction == nullptr);
+
+   // ====== Create transaction =============================================
+   Transaction = new pqxx::work(*Connection);
+   assert(Transaction != nullptr);
 }
 
 
 // ###### End transaction ###################################################
 void PostgreSQLClient::endTransaction(const bool commit)
 {
+   assert(Transaction != nullptr);
+
    // ====== Commit transaction =============================================
    if(commit) {
       try {
@@ -164,12 +169,17 @@ void PostgreSQLClient::endTransaction(const bool commit)
          handleDatabaseException(exception, "Rollback");
       }
    }
+
+   delete Transaction;
+   Transaction = nullptr;
 }
 
 
 // ###### Execute statement #################################################
 void PostgreSQLClient::executeUpdate(const std::string& statement)
 {
+   assert(Transaction != nullptr);
+
    try {
       Transaction->exec(statement);
    }
