@@ -182,7 +182,7 @@ bool addSourceAddress(std::map<boost::asio::ip::address, std::set<uint8_t>>& arr
 
    boost::split(addressParameters, addressString, boost::is_any_of(","));
    if(addressParameters.size() > 0) {
-      const boost::asio::ip::address address = boost::asio::ip::address::from_string(addressParameters[0], errorCode);
+      const boost::asio::ip::address address = boost::asio::ip::make_address(addressParameters[0], errorCode);
       if(errorCode != boost::system::errc::success) {
          if(tryToResolve) {
             boost::asio::io_service ios;
@@ -250,7 +250,7 @@ bool addDestinationAddress(std::set<boost::asio::ip::address>& array,
                            bool                                tryToResolve)
 {
    boost::system::error_code errorCode;
-   boost::asio::ip::address  address = boost::asio::ip::address::from_string(addressString, errorCode);
+   boost::asio::ip::address  address = boost::asio::ip::make_address(addressString, errorCode);
    if(errorCode != boost::system::errc::success) {
       if(tryToResolve) {
          boost::asio::io_service ios;

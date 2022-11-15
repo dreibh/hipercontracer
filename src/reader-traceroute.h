@@ -78,6 +78,9 @@ class TracerouteReader : public ReaderImplementation<TracerouteFileEntry>
    static ReaderTimePoint parseTimeStamp(const std::string&           value,
                                          const ReaderTimePoint&       now,
                                          const std::filesystem::path& dataFile);
+   static boost::asio::ip::address parseAddress(const std::string&           value,
+                                                const DatabaseBackendType    backend,
+                                                const std::filesystem::path& dataFile);
    static uint16_t parseChecksum(const std::string&           value,
                                  const std::filesystem::path& dataFile);
    static unsigned int parseStatus(const std::string&           value,

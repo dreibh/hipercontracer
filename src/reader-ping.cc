@@ -155,9 +155,9 @@ void PingReader::parseContents(
 
       // ====== Generate import statement ===================================
       if(tuple[0] == "#P")  {
-         const ReaderTimePoint timeStamp = parseTimeStamp(tuple[3], now, dataFile);
-         const boost::asio::ip::address sourceIP      = boost::asio::ip::address::from_string(tuple[1]);
-         const boost::asio::ip::address destinationIP = boost::asio::ip::address::from_string(tuple[2]);
+         const ReaderTimePoint          timeStamp     = parseTimeStamp(tuple[3], now, dataFile);
+         const boost::asio::ip::address sourceIP      = parseAddress(tuple[1], backend, dataFile);
+         const boost::asio::ip::address destinationIP = parseAddress(tuple[2], backend, dataFile);
          const uint16_t                 checksum      = parseChecksum(tuple[4], dataFile);
          const unsigned int             status        = parseStatus(tuple[5], dataFile);
          const unsigned int             rtt           = parseRTT(tuple[6], dataFile);
@@ -174,8 +174,8 @@ void PingReader::parseContents(
             statement.beginRow();
             statement
                << statement.quote(timePointToString<ReaderTimePoint>(timeStamp, 6)) << statement.sep()
-               << statement.quote(sourceIP.to_string())      << statement.sep()
-               << statement.quote(destinationIP.to_string()) << statement.sep()
+               << statement.quote(sourceIP.to_string())                             << statement.sep()
+               << statement.quote(destinationIP.to_string())                        << statement.sep()
                << checksum                   << statement.sep()
                << packetSize                 << statement.sep()
                << (unsigned int)trafficClass << statement.sep()
@@ -187,7 +187,7 @@ void PingReader::parseContents(
          else if(backend & DatabaseBackendType::NoSQL_Generic) {
             statement.beginRow();
             statement
-               << "'timestamp': "   << timePointToMicroseconds<ReaderTimePoint>(timeStamp) << statement.sep()
+               << "'timestamp': "   << timePointToMicroseconds<ReaderTimePoint>(timeStamp)  << statement.sep()
                << "'source': "      << statement.quote(addressToBytesString(sourceIP))      << statement.sep()
                << "'destination': " << statement.quote(addressToBytesString(destinationIP)) << statement.sep()
                << "'checksum': "    << checksum     << statement.sep()

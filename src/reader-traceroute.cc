@@ -153,6 +153,23 @@ ReaderTimePoint TracerouteReader::parseTimeStamp(const std::string&           va
    return timeStamp;
 }
 
+
+// ###### Parse time stamp ##################################################
+boost::asio::ip::address TracerouteReader::parseAddress(const std::string&           value,
+                                                        const DatabaseBackendType    backend,
+                                                        const std::filesystem::path& dataFile)
+{
+   const boost::asio::ip::address address = boost::asio::ip::make_address(value);
+   if( (backend & DatabaseBackendType::SQL_MariaDB) == DatabaseBackendType::SQL_MariaDB ) {
+      if(address.is_v4()) {
+         // MySQL/MariaDB only has INET6 datatype. Make IPv4 addresses mapped.
+         return boost::asio::ip::make_address_v6(boost::asio::ip::v4_mapped, address.to_v4());
+      }
+   }
+   return address;
+}
+
+
 // ###### Parse time stamp ##################################################
 uint16_t TracerouteReader::parseChecksum(const std::string&           value,
                                          const std::filesystem::path& dataFile)
