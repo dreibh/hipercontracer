@@ -56,7 +56,7 @@ if queryType == 'ping':
    FROM Ping;
    """)
    for row in rows:
-      timeStamp     = row[0].timestamp() * 1000000   ## FIXME!
+      timeStamp     = round(row[0].replace(tzinfo=datetime.timezone.utc).timestamp() * 1000000.0)
       sourceIP      = ipaddress.ip_address(row[1])
       destinationIP = ipaddress.ip_address(row[2])
       checksum      = int(row[3])
@@ -66,14 +66,14 @@ if queryType == 'ping':
       rtt           = int(row[7])
 
       sys.stdout.write('#P ' +
-         str(sourceIP)             + ' ' +
-         str(destinationIP)        + ' ' +
-         hex(round(timeStamp))[2:] + ' ' +
-         hex(checksum)[2:]         + ' ' +
-         str(status)               + ' ' +
-         str(rtt)                  + ' ' +
-         hex(trafficClass)[2:]     + ' ' +
-         str(packetSize)           + '\n')
+         str(sourceIP)         + ' ' +
+         str(destinationIP)    + ' ' +
+         hex(timeStamp)[2:]    + ' ' +
+         hex(checksum)[2:]     + ' ' +
+         str(status)           + ' ' +
+         str(rtt)              + ' ' +
+         hex(trafficClass)[2:] + ' ' +
+         str(packetSize)       + '\n')
 
 # ====== Query Traceroute data ==============================================
 elif queryType == 'traceroute':
@@ -83,7 +83,7 @@ FROM Traceroute
 ORDER BY FromIP, ToIP, TimeStamp, TC, Round, HopNumber
 """)
    for row in rows:
-      timeStamp     = row[0].timestamp() * 1000000   ## FIXME!
+      timeStamp     = round(row[0].replace(tzinfo=datetime.timezone.utc).timestamp() * 1000000.0)
       sourceIP      = ipaddress.ip_address(row[1])
       destinationIP = ipaddress.ip_address(row[2])
       roundNumber   = int(row[3])
@@ -99,22 +99,21 @@ ORDER BY FromIP, ToIP, TimeStamp, TC, Round, HopNumber
 
       if hopNumber == 1:
          sys.stdout.write('#T ' +
-            str(sourceIP)             + ' ' +
-            str(destinationIP)        + ' ' +
-            hex(round(timeStamp))[2:] + ' ' +
-            str(roundNumber)          + ' ' +
-            hex(checksum)[2:]         + ' ' +
-            str(totalHops)            + ' ' +
-            hex(status)[2:]           + ' ' +
-            hex(pathHash)[2:]         + ' ' +
-            hex(trafficClass)[2:]     + ' ' +
-            str(packetSize)           + '\n')
-      else:
-         sys.stdout.write('\t' +
-            str(hopNumber)            + ' ' +
-            hex(status)[2:]           + ' ' +
-            str(rtt)                  + ' ' +
-            str(hopIP)                + '\n')
+            str(sourceIP)         + ' ' +
+            str(destinationIP)    + ' ' +
+            hex(timeStamp)[2:]    + ' ' +
+            str(roundNumber)      + ' ' +
+            hex(checksum)[2:]     + ' ' +
+            str(totalHops)        + ' ' +
+            hex(status)[2:]       + ' ' +
+            hex(pathHash)[2:]     + ' ' +
+            hex(trafficClass)[2:] + ' ' +
+            str(packetSize)       + '\n')
+      sys.stdout.write('\t ' +
+         str(hopNumber)        + ' ' +
+         hex(status & 0xff)[2:]       + ' ' +
+         str(rtt)              + ' ' +
+         str(hopIP)            + '\n')
 
 
  # ====== Error =============================================================
