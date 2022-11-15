@@ -94,8 +94,8 @@ GRANT ALL PRIVILEGES ON PingTracerouteDB.* TO maintainer;
 
 DROP USER IF EXISTS importer;
 CREATE USER importer IDENTIFIED BY '${IMPORTER_PASSWORD}';
-GRANT INSERT ON PingTracerouteDB.Ping TO importer;
-GRANT INSERT ON PingTracerouteDB.Traceroute TO importer;
+GRANT INSERT, UPDATE ON PingTracerouteDB.Ping TO importer;
+GRANT INSERT, UPDATE ON PingTracerouteDB.Traceroute TO importer;
 
 DROP USER IF EXISTS researcher;
 CREATE USER researcher IDENTIFIED BY '${RESEARCHER_PASSWORD}';
@@ -125,19 +125,21 @@ elif [ "$1" == "postgresql" ] ; then
 REASSIGN OWNED BY maintainer TO postgres;
 DROP USER IF EXISTS maintainer;
 CREATE USER maintainer WITH LOGIN ENCRYPTED PASSWORD '${MAINTAINER_PASSWORD}';
-GRANT ALL PRIVILEGES ON DATABASE PingTracerouteDB TO maintainer;
+GRANT ALL PRIVILEGES ON DATABASE pingtraceroutedb TO maintainer;
+GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO maintainer;
 
 REASSIGN OWNED BY importer TO postgres;
 DROP USER IF EXISTS importer;
 CREATE USER importer WITH LOGIN ENCRYPTED PASSWORD '${IMPORTER_PASSWORD}';
-GRANT CONNECT ON DATABASE PingTracerouteDB TO importer;
-GRANT INSERT ON Ping, Traceroute TO importer;
+GRANT CONNECT ON DATABASE pingtraceroutedb TO importer;
+GRANT INSERT, UPDATE ON TABLE Ping TO importer;
+GRANT INSERT, UPDATE ON TABLE Traceroute TO importer;
 
 REASSIGN OWNED BY researcher TO postgres;
 DROP USER IF EXISTS researcher;
 CREATE USER researcher WITH LOGIN ENCRYPTED PASSWORD '${RESEARCHER_PASSWORD}';
-GRANT CONNECT ON DATABASE PingTracerouteDB TO researcher;
-GRANT INSERT, SELECT, UPDATE ON Ping, Traceroute TO researcher;
+GRANT CONNECT ON DATABASE pingtraceroutedb TO researcher;
+GRANT SELECT ON ALL TABLES IN SCHEMA public TO researcher;
 EOF
 
 
