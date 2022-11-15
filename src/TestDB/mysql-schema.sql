@@ -41,10 +41,10 @@ CREATE TABLE PingTracerouteDB.Ping (
    TC        SMALLINT    NOT NULL DEFAULT 0,         -- Traffic Class
    Status    SMALLINT    NOT NULL,                   -- Status
    RTT       INTEGER     NOT NULL,                   -- microseconds (max. 2147s)
-   PRIMARY KEY (FromIP, ToIP, TC, TimeStamp)
+   PRIMARY KEY (TimeStamp, FromIP, ToIP, TC)
 );
 
-CREATE INDEX PingTimeStampIndex ON PingTracerouteDB.Ping (TimeStamp ASC);
+CREATE INDEX PingRelationIndex ON PingTracerouteDB.Ping (FromIP ASC, ToIP ASC);
 
 
 -- ###### Traceroute ########################################################
@@ -63,7 +63,7 @@ CREATE TABLE PingTracerouteDB.Traceroute (
    RTT       INTEGER     NOT NULL,                   -- microseconds (max. 2147s)
    HopIP     INET6       NOT NULL,                   -- Router or Destination IP address
    PathHash  BIGINT      NOT NULL,                   -- Hash over full path
-   PRIMARY KEY (FromIP, ToIP, TC, TimeStamp, Round, HopNumber)
+   PRIMARY KEY (TimeStamp, FromIP, ToIP, TC, Round, HopNumber)
 );
 
-CREATE INDEX TracerouteTimeStampIndex ON PingTracerouteDB.Traceroute (TimeStamp ASC);
+CREATE INDEX TracerouteRelationIndex ON PingTracerouteDB.Ping (FromIP ASC, ToIP ASC);
