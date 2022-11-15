@@ -34,6 +34,9 @@
 #include "logger.h"
 
 
+REGISTER_BACKEND(DatabaseBackendType::SQL_PostgreSQL, "PostgreSQL", PostgreSQLClient)
+
+
 // ###### Constructor #######################################################
 PostgreSQLClient::PostgreSQLClient(const DatabaseConfiguration& configuration)
    : DatabaseClientBase(configuration)

@@ -34,6 +34,10 @@
 #include "logger.h"
 
 
+REGISTER_BACKEND(DatabaseBackendType::SQL_MariaDB, "MariaDB", MariaDBClient)
+REGISTER_BACKEND_ALIAS(DatabaseBackendType::SQL_MariaDB, "MySQL", MariaDBClient, 2)
+
+
 // ###### Constructor #######################################################
 MariaDBClient::MariaDBClient(const DatabaseConfiguration& configuration)
    : DatabaseClientBase(configuration)

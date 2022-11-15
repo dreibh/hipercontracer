@@ -37,6 +37,9 @@
 // https://mongodb-documentation.readthedocs.io/en/latest/ecosystem/tutorial/getting-started-with-cpp-driver.html
 
 
+REGISTER_BACKEND(DatabaseBackendType::NoSQL_MongoDB, "MongoDB", MongoDBClient)
+
+
 // ###### Constructor #######################################################
 MongoDBClient::MongoDBClient(const DatabaseConfiguration& configuration)
    : DatabaseClientBase(configuration)

@@ -33,12 +33,10 @@
 #include "logger.h"
 #include "tools.h"
 
-#include "databaseclient-debug.h"
-#include "databaseclient-mariadb.h"
-#include "databaseclient-mongodb.h"
-#include "databaseclient-postgresql.h"
-
 #include <fstream>
+
+
+std::list<DatabaseConfiguration::RegisteredBackend*>* DatabaseConfiguration::BackendList = nullptr;
 
 
 // ###### Constructor #######################################################
@@ -237,32 +235,43 @@ std::ostream& operator<<(std::ostream& os, const DatabaseConfiguration& configur
       << "Password         = " << ((configuration.Password.size() > 0) ? "****************" : "(none)") << "\n"
       << "CA File          = " << configuration.CAFile         << "\n"
       << "Database         = " << configuration.Database;
+
+/*
+   os << "\nAvail. Backends  = ";
+   for(DatabaseConfiguration::RegisteredBackend* registeredBackend : *DatabaseConfiguration::BackendList) {
+      os << registeredBackend->Name << " ";
+   }
+   os << "\n";
+*/
    return os;
+}
+
+
+// ###### Register backend ##################################################
+bool DatabaseConfiguration::registerBackend(const DatabaseBackendType type,
+                                            const std::string&        name,
+                                            DatabaseClientBase*       (*createClientFunction)(const DatabaseConfiguration& configuration))
+{
+   if(BackendList == nullptr) {
+      BackendList = new std::list<RegisteredBackend*>;
+      assert(BackendList != nullptr);
+   }
+   RegisteredBackend* registeredBackend = new RegisteredBackend;
+   registeredBackend->Type                 = type;
+   registeredBackend->Name                 = name;
+   registeredBackend->CreateClientFunction = createClientFunction;
+   BackendList->push_back(registeredBackend);
+   return true;
 }
 
 
 // ###### Create new database client instance ###############################
 DatabaseClientBase* DatabaseConfiguration::createClient()
 {
-   DatabaseClientBase* databaseClient = nullptr;
-
-   switch(Backend) {
-      case SQL_Debug:
-      case NoSQL_Debug:
-         databaseClient = new DebugClient(*this);
-       break;
-      case SQL_MariaDB:
-         databaseClient = new MariaDBClient(*this);
-       break;
-      case NoSQL_MongoDB:
-         databaseClient = new MongoDBClient(*this);
-       break;
-      case SQL_PostgreSQL:
-         databaseClient = new PostgreSQLClient(*this);
-       break;
-      default:
-       break;
+   for(RegisteredBackend* registeredBackend : *BackendList) {
+      if(registeredBackend->Type == Backend) {
+         return registeredBackend->CreateClientFunction(*this);
+      }
    }
-
-   return databaseClient;
+   return nullptr;
 }

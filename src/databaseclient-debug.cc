@@ -35,6 +35,10 @@
 #include <iostream>
 
 
+REGISTER_BACKEND(DatabaseBackendType::SQL_Debug, "DebugSQL", DebugClient)
+REGISTER_BACKEND_ALIAS(DatabaseBackendType::NoSQL_Debug, "DebugNoSQL", DebugClient, 2)
+
+
 // ###### Constructor #######################################################
 DebugClient::DebugClient(const DatabaseConfiguration& configuration)
    : DatabaseClientBase(configuration)

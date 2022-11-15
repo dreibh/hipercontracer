@@ -33,9 +33,13 @@
 #define DATABASE_CONFIGURATION_H
 
 #include <filesystem>
+#include <list>
 #include <string>
 
 #include <boost/program_options.hpp>
+
+
+class DatabaseClientBase;
 
 
 enum DatabaseBackendType {
@@ -60,8 +64,6 @@ enum ImportModeType {
    DeleteImportedFiles = 2    // Delete
 };
 
-
-class DatabaseClientBase;
 
 class DatabaseConfiguration
 {
@@ -92,10 +94,21 @@ class DatabaseConfiguration
 
    bool readConfiguration(const std::filesystem::path& configurationFile);
    DatabaseClientBase* createClient();
+   static bool registerBackend(const DatabaseBackendType type,
+                               const std::string&        name,
+                               DatabaseClientBase*       (*createClientFunction)(const DatabaseConfiguration& configuration));
 
    friend std::ostream& operator<<(std::ostream& os, const DatabaseConfiguration& configuration);
 
+
    private:
+   struct RegisteredBackend {
+      std::string         Name;
+      DatabaseBackendType Type;
+      DatabaseClientBase* (*CreateClientFunction)(const DatabaseConfiguration& configuration);
+   };
+
+   static std::list<RegisteredBackend*>*       BackendList;
    boost::program_options::options_description OptionsDescription;
    std::string           BackendName;
    DatabaseBackendType   Backend;
@@ -113,5 +126,12 @@ class DatabaseConfiguration
    std::filesystem::path BadFilePath;
    std::filesystem::path GoodFilePath;
 };
+
+
+#define REGISTER_BACKEND(type, name, backend) \
+   static DatabaseClientBase* createClient_##backend(const DatabaseConfiguration& configuration) { return new backend(configuration); } \
+   static bool Registered = DatabaseConfiguration::registerBackend(type, name, createClient_##backend);
+#define REGISTER_BACKEND_ALIAS(type, name, backend, alias) \
+   static bool Registered##alias = DatabaseConfiguration::registerBackend(type, name, createClient_##backend);
 
 #endif
