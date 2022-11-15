@@ -35,10 +35,16 @@ elif [ "$1" == "postgresql" ] ; then
 
    # Enable network access:
    sudo sed \
-      -e 's#^host    all             all             127.0.0.1/32            scram-sha-256#host    all             all             0.0.0.0/32              scram-sha-256#' \
-      -e 's#^host    all             all             ::1/128                 scram-sha-256#host    all             all             ::/128                  scram-sha-256#' \
-   /etc/postgresql/14/main/pg_hba.conf | sudo tee /etc/mysql/mariadb.conf.d/50-server.cnf.new
-   sudo mv /etc/mysql/mariadb.conf.d/50-server.cnf.new /etc/mysql/mariadb.conf.d/50-server.cnf
+      -e 's#^host    all             all             127.0.0.1/32            scram-sha-256#host    all             all             0.0.0.0/0               scram-sha-256#' \
+      -e 's#^host    all             all             ::1/128                 scram-sha-256#host    all             all             ::/0                    scram-sha-256#' \
+      /etc/postgresql/14/main/pg_hba.conf | sudo tee /etc/postgresql/14/main/pg_hba.conf.new && \
+   sudo mv /etc/postgresql/14/main/pg_hba.conf.new /etc/postgresql/14/main/pg_hba.conf
+
+   sudo sed \
+      -e "s%#listen_addresses = 'localhost'%listen_addresses = '*'        %" \
+      /etc/postgresql/14/main/postgresql.conf | sudo tee /etc/postgresql/14/main/postgresql.conf.new && \
+   sudo mv /etc/postgresql/14/main/postgresql.conf.new /etc/postgresql/14/main/postgresql.conf
+
    sudo service postgresql restart
 
 
