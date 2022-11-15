@@ -31,7 +31,7 @@ elif [ "$1" == "postgresql" ] ; then
 
    echo "Installing PostgreSQL ..."
 
-   sudo apt install -y postgresql-all
+   sudo apt install -y postgresql-all postgresql-contrib
 
    # Enable network access:
    sudo sed \
