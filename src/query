@@ -1,0 +1,123 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+#
+#  =================================================================
+#           #     #                 #     #
+#           ##    #   ####   #####  ##    #  ######   #####
+#           # #   #  #    #  #    # # #   #  #          #
+#           #  #  #  #    #  #    # #  #  #  #####      #
+#           #   # #  #    #  #####  #   # #  #          #
+#           #    ##  #    #  #   #  #    ##  #          #
+#           #     #   ####   #    # #     #  ######     #
+#
+#        ---   The NorNet Testbed for Multi-Homed Systems  ---
+#                        https://www.nntb.no
+#  =================================================================
+#
+#  High-Performance Connectivity Tracer (HiPerConTracer)
+#  Copyright (C) 2015-2022 by Thomas Dreibholz
+#
+#  This program is free software: you can redistribute it and/or modify
+#  it under the terms of the GNU General Public License as published by
+#  the Free Software Foundation, either version 3 of the License, or
+#  (at your option) any later version.
+#
+#  This program is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
+#
+#  You should have received a copy of the GNU General Public License
+#  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+#  Contact: dreibh@simula.no
+
+import sys
+import datetime
+import ipaddress
+
+import queryhelper;
+
+
+# ###### Main program #######################################################
+if len(sys.argv) < 3:
+   error('Usage: ' + sys.argv[0] + ' database_configuration ping|traceroute')
+configurationFile = sys.argv[1]
+queryType         = sys.argv[2]
+
+# ====== Connect to database ================================================
+configuration = queryhelper.DatabaseConfiguration(sys.argv[1])
+client = configuration.createClient()
+
+# ====== Query Ping data ====================================================
+if queryType == 'ping':
+   rows = configuration.query("""
+   SELECT TimeStamp, FromIP, ToIP, Checksum, PktSize, TC, Status, RTT
+   FROM Ping;
+   """)
+   for row in rows:
+      timeStamp     = row[0].timestamp() * 1000000   ## FIXME!
+      sourceIP      = ipaddress.ip_address(row[1])
+      destinationIP = ipaddress.ip_address(row[2])
+      checksum      = int(row[3])
+      packetSize    = int(row[4])
+      trafficClass  = int(row[5])
+      status        = int(row[6])
+      rtt           = int(row[7])
+
+      sys.stdout.write('#P ' +
+         str(sourceIP)             + ' ' +
+         str(destinationIP)        + ' ' +
+         hex(round(timeStamp))[2:] + ' ' +
+         hex(checksum)[2:]         + ' ' +
+         str(status)               + ' ' +
+         str(rtt)                  + ' ' +
+         hex(trafficClass)[2:]     + ' ' +
+         str(packetSize)           + '\n')
+
+# ====== Query Traceroute data ==============================================
+elif queryType == 'traceroute':
+   rows = configuration.query("""
+SELECT TimeStamp, FromIP, ToIP, Round, Checksum, PktSize, TC, HopNumber, TotalHops, Status, RTT, HopIP, PathHash
+FROM Traceroute
+ORDER BY FromIP, ToIP, TimeStamp, TC, Round, HopNumber
+""")
+   for row in rows:
+      timeStamp     = row[0].timestamp() * 1000000   ## FIXME!
+      sourceIP      = ipaddress.ip_address(row[1])
+      destinationIP = ipaddress.ip_address(row[2])
+      roundNumber   = int(row[3])
+      checksum      = int(row[4])
+      packetSize    = int(row[5])
+      trafficClass  = int(row[6])
+      hopNumber     = int(row[7])
+      totalHops     = int(row[8])
+      status        = int(row[9])
+      rtt           = int(row[10])
+      hopIP         = ipaddress.ip_address(row[11])
+      pathHash      = int(row[12])
+
+      if hopNumber == 1:
+         sys.stdout.write('#T ' +
+            str(sourceIP)             + ' ' +
+            str(destinationIP)        + ' ' +
+            hex(round(timeStamp))[2:] + ' ' +
+            str(roundNumber)          + ' ' +
+            hex(checksum)[2:]         + ' ' +
+            str(totalHops)            + ' ' +
+            hex(status)[2:]           + ' ' +
+            hex(pathHash)[2:]         + ' ' +
+            hex(trafficClass)[2:]     + ' ' +
+            str(packetSize)           + '\n')
+      else:
+         sys.stdout.write('\t' +
+            str(hopNumber)            + ' ' +
+            hex(status)[2:]           + ' ' +
+            str(rtt)                  + ' ' +
+            str(hopIP)                + '\n')
+
+
+ # ====== Error =============================================================
+else:
+   sys.stderr.write('Specify query type!\n')
+   sys.exit(1)
