@@ -98,6 +98,7 @@ ORDER BY FromIP, ToIP, TimeStamp, TC, Round, HopNumber
       pathHash      = int(row[12])
 
       if hopNumber == 1:
+         statusFlags = status - (status & 0xff)
          sys.stdout.write('#T ' +
             str(sourceIP)         + ' ' +
             str(destinationIP)    + ' ' +
@@ -105,7 +106,7 @@ ORDER BY FromIP, ToIP, TimeStamp, TC, Round, HopNumber
             str(roundNumber)      + ' ' +
             hex(checksum)[2:]     + ' ' +
             str(totalHops)        + ' ' +
-            hex(status)[2:]       + ' ' +
+            hex(statusFlags)[2:]  + ' ' +
             hex(pathHash)[2:]     + ' ' +
             hex(trafficClass)[2:] + ' ' +
             str(packetSize)       + '\n')
