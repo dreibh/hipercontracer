@@ -37,7 +37,7 @@ elif [ "$1" == "mysql" -o "$1" == "mariadb" ] ; then
 SELECT COUNT(*) FROM Ping;
 SELECT * FROM Ping LIMIT 10;
 SELECT COUNT(*) FROM Traceroute;
-SELECT * FROM Ping LIMIT 30;
+SELECT * FROM Traceroute LIMIT 30;
 EOF
 
 # ###### PostgreSQL #########################################################
@@ -49,7 +49,7 @@ elif [ "$1" == "postgresql" ] ; then
 SELECT COUNT(*) FROM Ping;
 SELECT * FROM Ping LIMIT 10;
 SELECT COUNT(*) FROM Traceroute;
-SELECT * FROM Ping LIMIT 30;
+SELECT * FROM Traceroute LIMIT 30;
 EOF
 
 # ###### Error ##############################################################
