@@ -53,6 +53,7 @@ CREATE TABLE Traceroute (
    TimeStamp TIMESTAMP WITHOUT TIME ZONE NOT NULL,   -- Time stamp (always UTC!)
    FromIP    INET     NOT NULL,                      -- Source IP address
    ToIP      INET     NOT NULL,                      -- Destination IP address
+   Round     INTEGER  NOT NULL DEFAULT 0,            -- Round number
    Checksum  INTEGER  NOT NULL DEFAULT 0,            -- Checksum
    PktSize   INTEGER  NOT NULL DEFAULT 0,            -- Packet size
    TC        SMALLINT NOT NULL DEFAULT 0,            -- Traffic Class
@@ -62,8 +63,7 @@ CREATE TABLE Traceroute (
    RTT       INTEGER  NOT NULL,                      -- microseconds (max. 2147s)
    HopIP     INET     NOT NULL,                      -- Router or Destination IP address
    PathHash  BIGINT   NOT NULL,                      -- Hash over full path
-   Round     INTEGER  NOT NULL DEFAULT 0,            -- Round number
-   PRIMARY KEY (FromIP,ToIP,TC,TimeStamp,Round,HopNumber)
+   PRIMARY KEY (FromIP, ToIP, TC, TimeStamp, Round, HopNumber)
 );
 
 CREATE INDEX TracerouteTimeStampIndex ON Traceroute (TimeStamp ASC);

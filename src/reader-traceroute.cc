@@ -174,8 +174,11 @@ boost::asio::ip::address TracerouteReader::parseAddress(const std::string&      
 unsigned int TracerouteReader::parseRoundNumber(const std::string&           value,
                                                 const std::filesystem::path& dataFile)
 {
-   size_t              index;
-   const unsigned long roundNumber = std::stoul(value, &index, 10);
+   size_t        index       = 0;
+   unsigned long roundNumber = 0;
+   try {
+      roundNumber = std::stoul(value, &index, 10);
+   } catch(...) { }
    if(index != value.size()) {
       throw ImporterReaderDataErrorException("Bad round number " + value);
    }
@@ -187,8 +190,11 @@ unsigned int TracerouteReader::parseRoundNumber(const std::string&           val
 unsigned int TracerouteReader::parseTotalHops(const std::string&           value,
                                               const std::filesystem::path& dataFile)
 {
-   size_t              index;
-   const unsigned long totalHops = std::stoul(value, &index, 10);
+   size_t        index     = 0;
+   unsigned long totalHops = 0;
+   try {
+      totalHops = std::stoul(value, &index, 10);
+   } catch(...) { }
    if(index != value.size()) {
       throw ImporterReaderDataErrorException("Bad total hops value " + value);
    }
@@ -203,8 +209,11 @@ unsigned int TracerouteReader::parseTotalHops(const std::string&           value
 uint16_t TracerouteReader::parseChecksum(const std::string&           value,
                                          const std::filesystem::path& dataFile)
 {
-   size_t              index;
-   const unsigned long checksum = std::stoul(value, &index, 16);
+   size_t        index    = 0;
+   unsigned long checksum = 0;
+   try {
+      checksum = std::stoul(value, &index, 16);
+   } catch(...) { }
    if(index != value.size()) {
       throw ImporterReaderDataErrorException("Bad checksum format " + value);
    }
@@ -217,10 +226,14 @@ uint16_t TracerouteReader::parseChecksum(const std::string&           value,
 
 // ###### Parse status ######################################################
 unsigned int TracerouteReader::parseStatus(const std::string&           value,
-                                           const std::filesystem::path& dataFile)
+                                           const std::filesystem::path& dataFile,
+                                           const unsigned int           base)
 {
-   size_t              index;
-   const unsigned long status = std::stoul(value, &index, 10);
+   size_t        index  = 0;
+   unsigned long status = 0;
+   try {
+      status = std::stoul(value, &index, base);
+   } catch(...) { }
    if(index != value.size()) {
       throw ImporterReaderDataErrorException("Bad status format " + value);
    }
@@ -232,8 +245,11 @@ unsigned int TracerouteReader::parseStatus(const std::string&           value,
 unsigned long long TracerouteReader::parsePathHash(const std::string&           value,
                                                    const std::filesystem::path& dataFile)
 {
-   size_t                   index;
-   const unsigned long long pathHash = std::stoull(value, &index, 16);
+   size_t             index    = 0;
+   unsigned long long pathHash = 0;
+   try {
+      pathHash = std::stoull(value, &index, 16);
+   } catch(...) { }
    if(index != value.size()) {
       throw ImporterReaderDataErrorException("Bad path hash " + value);
    }
@@ -245,8 +261,11 @@ unsigned long long TracerouteReader::parsePathHash(const std::string&           
 unsigned int TracerouteReader::parseRTT(const std::string&           value,
                                         const std::filesystem::path& dataFile)
 {
-   size_t              index;
-   const unsigned long rtt = std::stoul(value, &index, 10);
+   size_t        index = 0;
+   unsigned long rtt = 0;
+   try {
+      rtt = std::stoul(value, &index, 10);
+   } catch(...) { }
    if(index != value.size()) {
       throw ImporterReaderDataErrorException("Bad RTT format " + value);
    }
@@ -258,8 +277,11 @@ unsigned int TracerouteReader::parseRTT(const std::string&           value,
 unsigned int TracerouteReader::parsePacketSize(const std::string&           value,
                                                const std::filesystem::path& dataFile)
 {
-   size_t              index;
-   const unsigned long packetSize = std::stoul(value, &index, 10);
+   size_t        index      = 0;
+   unsigned long packetSize = 0;
+   try {
+      packetSize = std::stoul(value, &index, 10);
+   } catch(...) { }
    if(index != value.size()) {
       throw ImporterReaderDataErrorException("Bad packet size format " + value);
    }
@@ -271,8 +293,11 @@ unsigned int TracerouteReader::parsePacketSize(const std::string&           valu
 uint8_t TracerouteReader::parseTrafficClass(const std::string&           value,
                                             const std::filesystem::path& dataFile)
 {
-   size_t              index;
-   const unsigned long trafficClass = std::stoul(value, &index, 16);
+   size_t        index        = 0;
+   unsigned long trafficClass = 0;
+   try {
+      trafficClass = std::stoul(value, &index, 16);
+   } catch(...) { }
    if(index != value.size()) {
       throw ImporterReaderDataErrorException("Bad traffic class format " + value);
    }
@@ -316,7 +341,7 @@ void TracerouteReader::beginParsing(DatabaseClientBase& databaseClient,
    if(backend & DatabaseBackendType::SQL_Generic) {
       statement
          << "INSERT INTO " << Table
-         << " (TimeStamp,FromIP,ToIP,TC,HopNumber,TotalHops,Status,RTT,HopIP,PathHash,Round) VALUES";
+         << " (TimeStamp,FromIP,ToIP,Round,Checksum,PktSize,TC,HopNumber,TotalHops,Status,RTT,HopIP,PathHash) VALUES";
    }
    else if(backend & DatabaseBackendType::NoSQL_Generic) {
       statement << "db['" << Table << "'].insert(";
@@ -376,14 +401,13 @@ void TracerouteReader::parseContents(
    static const unsigned int TracerouteMaxColumns = 11;
    static const char         PingDelimiter  = ' ';
 
-   bool                      foundItem = false;
    ReaderTimePoint           timeStamp;
    boost::asio::ip::address  sourceIP;
    boost::asio::ip::address  destinationIP;
    unsigned int              roundNumber;
    uint16_t                  checksum;
    unsigned int              totalHops;
-   unsigned int              statusFlags;
+   unsigned int              statusFlags = ~0U;
    unsigned long long        pathHash;
    uint8_t                   trafficClass;
    unsigned int              packetSize;
@@ -392,6 +416,8 @@ void TracerouteReader::parseContents(
    std::string tuple[TracerouteMaxColumns];
    const ReaderTimePoint now = ReaderClock::now();
    while(std::getline(dataStream, inputLine)) {
+      printf("I=<%s>\n", inputLine.c_str());
+
       // ====== Parse line ==================================================
       size_t columns = 0;
       size_t start;
@@ -426,23 +452,22 @@ void TracerouteReader::parseContents(
                packetSize = parsePacketSize(tuple[10], dataFile);
             }
          }
-         foundItem = true;
       }
       else if(tuple[0] == "\t")  {
-         if(!foundItem) {
+         if(statusFlags == ~0U) {
             throw ImporterReaderDataErrorException("Hop data has no corresponding #T line");
          }
          const unsigned int hopNumber        = parseTotalHops(tuple[1], dataFile);
          const unsigned int status           = parseStatus(tuple[2], dataFile);
          const unsigned int rtt              = parseRTT(tuple[3], dataFile);
          boost::asio::ip::address hopAddress = parseAddress(tuple[4], backend, dataFile);
-
          if(backend & DatabaseBackendType::SQL_Generic) {
             statement.beginRow();
             statement
                << statement.quote(timePointToString<ReaderTimePoint>(timeStamp, 6)) << statement.sep()
                << statement.quote(sourceIP.to_string())      << statement.sep()
                << statement.quote(destinationIP.to_string()) << statement.sep()
+               << roundNumber                                << statement.sep()
                << checksum                                   << statement.sep()  //FIXME!
                << packetSize                                 << statement.sep()
                << (unsigned int)trafficClass                 << statement.sep()
@@ -451,8 +476,8 @@ void TracerouteReader::parseContents(
                << (status | statusFlags)                     << statement.sep()
                << rtt                                        << statement.sep()
                << statement.quote(hopAddress.to_string())    << statement.sep()
-               << "CAST(X" << pathHash << " AS BIGINT)"      << statement.sep()
-               << roundNumber;
+               << pathHash;
+               // << "CAST(X'" << std::hex << pathHash << "' AS BIGINT)";
             statement.endRow();
             rows++;
          }
@@ -468,7 +493,4 @@ void TracerouteReader::parseContents(
          throw ImporterReaderDataErrorException("Unexpected input in input file " + dataFile.string());
       }
    }
-
-   printf("<%s>\n", statement.str().c_str());
-   assert(false);
 }

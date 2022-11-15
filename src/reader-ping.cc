@@ -159,7 +159,7 @@ void PingReader::parseContents(
          const boost::asio::ip::address sourceIP      = parseAddress(tuple[1], backend, dataFile);
          const boost::asio::ip::address destinationIP = parseAddress(tuple[2], backend, dataFile);
          const uint16_t                 checksum      = parseChecksum(tuple[4], dataFile);
-         const unsigned int             status        = parseStatus(tuple[5], dataFile);
+         const unsigned int             status        = parseStatus(tuple[5], dataFile, 10);   // Decimal!
          const unsigned int             rtt           = parseRTT(tuple[6], dataFile);
          uint8_t                        trafficClass  = 0x0;
          unsigned int                   packetSize    = 0;
