@@ -101,23 +101,18 @@ bool DatabaseConfiguration::readConfiguration(const std::filesystem::path& confi
 bool DatabaseConfiguration::setBackend(const std::string& backendName)
 {
    BackendName = backendName;
-   if( (BackendName == "MySQL") || (BackendName == "MariaDB") ) {
-      Backend = DatabaseBackendType::SQL_MariaDB;
+   Backend     = DatabaseBackendType::Invalid;
+   for(RegisteredBackend* registeredBackend : *BackendList) {
+      if(registeredBackend->Name == BackendName) {
+         Backend = registeredBackend->Type;
+      }
    }
-   else if(BackendName == "PostgreSQL") {
-      Backend = DatabaseBackendType::SQL_PostgreSQL;
-   }
-   else if(BackendName == "MongoDB") {
-      Backend = DatabaseBackendType::NoSQL_MongoDB;
-   }
-   else if(BackendName == "DebugSQL") {
-      Backend = DatabaseBackendType::SQL_Debug;
-   }
-   else if(BackendName == "DebugNoSQL") {
-      Backend = DatabaseBackendType::NoSQL_Debug;
-   }
-   else {
-      HPCT_LOG(error) << "Invalid backend name " << Backend;
+   if(Backend == DatabaseBackendType::Invalid) {
+      HPCT_LOG(error) << "Invalid backend name " << Backend
+                      << ". Available backends: ";
+      for(DatabaseConfiguration::RegisteredBackend* registeredBackend : *DatabaseConfiguration::BackendList) {
+         HPCT_LOG(error) << registeredBackend->Name << " ";
+      }
       return false;
    }
    return true;
@@ -235,14 +230,6 @@ std::ostream& operator<<(std::ostream& os, const DatabaseConfiguration& configur
       << "Password         = " << ((configuration.Password.size() > 0) ? "****************" : "(none)") << "\n"
       << "CA File          = " << configuration.CAFile         << "\n"
       << "Database         = " << configuration.Database;
-
-/*
-   os << "\nAvail. Backends  = ";
-   for(DatabaseConfiguration::RegisteredBackend* registeredBackend : *DatabaseConfiguration::BackendList) {
-      os << registeredBackend->Name << " ";
-   }
-   os << "\n";
-*/
    return os;
 }
 
