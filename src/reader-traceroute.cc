@@ -476,8 +476,7 @@ void TracerouteReader::parseContents(
                << (status | statusFlags)                     << statement.sep()
                << rtt                                        << statement.sep()
                << statement.quote(hopAddress.to_string())    << statement.sep()
-               << pathHash;
-               // << "CAST(X'" << std::hex << pathHash << "' AS BIGINT)";
+               << "CAST(X'" << std::hex << pathHash << std::dec << "' AS BIGINT)";
             statement.endRow();
             rows++;
          }
