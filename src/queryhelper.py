@@ -46,7 +46,7 @@ class DatabaseConfiguration:
          'dbPort':     '5432',
          'dbUser':     '!maintainer!',
          'dbPassword': None,
-         'dbName':    'pingtraceroutedb'
+         'database':  'PingTracerouteDB'
       }
       self.readConfiguration(configurationFile)
 
@@ -78,6 +78,22 @@ class DatabaseConfiguration:
    # ###### Create new database client instance #############################
    def createClient(self):
 
+      # ====== MySQL/MariaDB ================================================
+      if self.Configuration['dbBackend'] in [ 'MySQL', 'MariaDB' ]:
+         import mysql.connector
+         try:
+            self.dbConnection = mysql.connector.connect(host=self.Configuration['dbServer'],
+                                                        port=self.Configuration['dbPort'],
+                                                        user=self.Configuration['dbUser'],
+                                                        password=self.Configuration['dbPassword'],
+                                                        database=self.Configuration['database'])
+            self.dbCursor = self.dbConnection.cursor()
+         except Exception as e:
+            sys.stderr.write('ERROR: Unable to connect to the database: ' + str(e) + '\n')
+            sys.exit(1)
+         return { 'connection': self.dbConnection,
+                  'cursor':     self.dbCursor }
+
       # ====== PostgreSQL ===================================================
       if self.Configuration['dbBackend'] == 'PostgreSQL':
          import psycopg2
@@ -86,7 +102,7 @@ class DatabaseConfiguration:
                                                  port=self.Configuration['dbPort'],
                                                  user=self.Configuration['dbUser'],
                                                  password=self.Configuration['dbPassword'],
-                                                 dbname=self.Configuration['dbName'])
+                                                 dbname=self.Configuration['database'])
             self.dbConnection.autocommit = False
             self.dbCursor = self.dbConnection.cursor()
          except Exception as e:
@@ -100,6 +116,15 @@ class DatabaseConfiguration:
 
    # ###### Query database ##################################################
    def query(self, request):
+
+      # ====== MySQL/MariaDB ================================================
+      if self.Configuration['dbBackend'] in [ 'MySQL', 'MariaDB' ]:
+         try:
+            self.dbCursor.execute(request)
+         except Exception as e:
+            sys.stderr.write('ERROR: Query failed: ' + str(e) + '\n')
+            sys.exit(1)
+         return self.dbCursor
 
       # ====== PostgreSQL ===================================================
       if self.Configuration['dbBackend'] == 'PostgreSQL':
