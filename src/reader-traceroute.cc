@@ -148,7 +148,7 @@ ReaderTimePoint TracerouteReader::parseTimeStamp(const std::string&           va
    const ReaderTimePoint timeStamp = microsecondsToTimePoint<ReaderTimePoint>(ts);
    if( (timeStamp < now - std::chrono::hours(365 * 24)) ||   /* 1 year in the past  */
        (timeStamp > now + std::chrono::hours(24)) ) {        /* 1 day in the future */
-      throw ImporterReaderDataErrorException("Bad time stamp value " + value);
+      throw ImporterReaderDataErrorException("Invalid time stamp value " + value);
    }
    return timeStamp;
 }
@@ -170,6 +170,35 @@ boost::asio::ip::address TracerouteReader::parseAddress(const std::string&      
 }
 
 
+// ###### Parse round number ################################################
+unsigned int TracerouteReader::parseRoundNumber(const std::string&           value,
+                                                const std::filesystem::path& dataFile)
+{
+   size_t              index;
+   const unsigned long roundNumber = std::stoul(value, &index, 10);
+   if(index != value.size()) {
+      throw ImporterReaderDataErrorException("Bad round number " + value);
+   }
+   return roundNumber;
+}
+
+
+// ###### Parse total number of hops ########################################
+unsigned int TracerouteReader::parseTotalHops(const std::string&           value,
+                                              const std::filesystem::path& dataFile)
+{
+   size_t              index;
+   const unsigned long totalHops = std::stoul(value, &index, 10);
+   if(index != value.size()) {
+      throw ImporterReaderDataErrorException("Bad total hops value " + value);
+   }
+   if( (totalHops < 1) || (totalHops > 255) ) {
+      throw ImporterReaderDataErrorException("Invalid total hops value " + value);
+   }
+   return totalHops;
+}
+
+
 // ###### Parse time stamp ##################################################
 uint16_t TracerouteReader::parseChecksum(const std::string&           value,
                                          const std::filesystem::path& dataFile)
@@ -180,7 +209,7 @@ uint16_t TracerouteReader::parseChecksum(const std::string&           value,
       throw ImporterReaderDataErrorException("Bad checksum format " + value);
    }
    if(checksum > 0xffff) {
-      throw ImporterReaderDataErrorException("Bad checksum value " + value);
+      throw ImporterReaderDataErrorException("Invalid checksum value " + value);
    }
    return (uint16_t)checksum;
 }
@@ -196,6 +225,19 @@ unsigned int TracerouteReader::parseStatus(const std::string&           value,
       throw ImporterReaderDataErrorException("Bad status format " + value);
    }
    return status;
+}
+
+
+// ###### Parse path hash ###################################################
+unsigned long long TracerouteReader::parsePathHash(const std::string&           value,
+                                                   const std::filesystem::path& dataFile)
+{
+   size_t                   index;
+   const unsigned long long pathHash = std::stoull(value, &index, 16);
+   if(index != value.size()) {
+      throw ImporterReaderDataErrorException("Bad path hash " + value);
+   }
+   return pathHash;
 }
 
 
@@ -234,8 +276,8 @@ uint8_t TracerouteReader::parseTrafficClass(const std::string&           value,
    if(index != value.size()) {
       throw ImporterReaderDataErrorException("Bad traffic class format " + value);
    }
-   if(trafficClass > 0xffff) {
-      throw ImporterReaderDataErrorException("Bad traffic class value " + value);
+   if(trafficClass > 0xff) {
+      throw ImporterReaderDataErrorException("Invalid traffic class value " + value);
    }
    return (uint8_t)trafficClass;
 }
@@ -265,15 +307,16 @@ std::string TracerouteReader::addressToBytesString(const boost::asio::ip::addres
 void TracerouteReader::beginParsing(DatabaseClientBase& databaseClient,
                                     unsigned long long& rows)
 {
+   const DatabaseBackendType backend = databaseClient.getBackend();
+   Statement& statement              = databaseClient.getStatement("Traceroute", false, true);
+
    rows = 0;
 
    // ====== Generate import statement ======================================
-   const DatabaseBackendType backend = databaseClient.getBackend();
-   Statement& statement              = databaseClient.getStatement("Traceroute", false, true);
    if(backend & DatabaseBackendType::SQL_Generic) {
-//       statement
-//          << "INSERT INTO " << Table
-//          << " (TimeStamp, FromIP, ToIP, Checksum, PktSize, TC, Status, RTT) VALUES";
+      statement
+         << "INSERT INTO " << Table
+         << " (TimeStamp,FromIP,ToIP,TC,HopNumber,TotalHops,Status,RTT,HopIP,PathHash,Round) VALUES";
    }
    else if(backend & DatabaseBackendType::NoSQL_Generic) {
       statement << "db['" << Table << "'].insert(";
@@ -288,10 +331,12 @@ void TracerouteReader::beginParsing(DatabaseClientBase& databaseClient,
 bool TracerouteReader::finishParsing(DatabaseClientBase& databaseClient,
                                      unsigned long long& rows)
 {
+   const DatabaseBackendType backend   = databaseClient.getBackend();
+   Statement&                statement = databaseClient.getStatement("Traceroute");
+   assert(statement.getRows() == rows);
+
    if(rows > 0) {
       // ====== Generate import statement ===================================
-      const DatabaseBackendType backend   = databaseClient.getBackend();
-      Statement&                statement = databaseClient.getStatement("Traceroute");
       if(backend & DatabaseBackendType::SQL_Generic) {
          if(rows > 0) {
             databaseClient.executeUpdate(statement);
@@ -325,46 +370,105 @@ void TracerouteReader::parseContents(
         const std::filesystem::path&         dataFile,
         boost::iostreams::filtering_istream& dataStream)
 {
+   Statement&                statement = databaseClient.getStatement("Traceroute");
+   const DatabaseBackendType backend   = databaseClient.getBackend();
+   static const unsigned int TracerouteMinColumns = 4;
+   static const unsigned int TracerouteMaxColumns = 11;
+   static const char         PingDelimiter  = ' ';
+
+   bool                      foundItem = false;
+   ReaderTimePoint           timeStamp;
+   boost::asio::ip::address  sourceIP;
+   boost::asio::ip::address  destinationIP;
+   unsigned int              roundNumber;
+   uint16_t                  checksum;
+   unsigned int              totalHops;
+   unsigned int              statusFlags;
+   unsigned long long        pathHash;
+   uint8_t                   trafficClass;
+   unsigned int              packetSize;
+
+   std::string inputLine;
+   std::string tuple[TracerouteMaxColumns];
+   const ReaderTimePoint now = ReaderClock::now();
+   while(std::getline(dataStream, inputLine)) {
+      // ====== Parse line ==================================================
+      size_t columns = 0;
+      size_t start;
+      size_t end = 0;
+      while((start = inputLine.find_first_not_of(PingDelimiter, end)) != std::string::npos) {
+         end = inputLine.find(PingDelimiter, start);
+         if(columns == TracerouteMaxColumns) {
+            // Skip additional columns
+            break;
+         }
+         tuple[columns++] = inputLine.substr(start, end - start);
+      }
+      if(columns < TracerouteMinColumns) {
+         throw ImporterReaderDataErrorException("Too few columns in input file " + dataFile.string());
+      }
+
+      // ====== Generate import statement ===================================
+      if((columns >= 9) && (tuple[0] == "#T"))  {
+         timeStamp     = parseTimeStamp(tuple[3], now, dataFile);
+         sourceIP      = parseAddress(tuple[1], backend, dataFile);
+         destinationIP = parseAddress(tuple[2], backend, dataFile);
+         roundNumber   = parseRoundNumber(tuple[4], dataFile);
+         checksum      = parseChecksum(tuple[5], dataFile);
+         totalHops     = parseTotalHops(tuple[6], dataFile);
+         statusFlags   = parseStatus(tuple[7], dataFile);
+         pathHash      = parsePathHash(tuple[8], dataFile);
+         trafficClass  = 0x0;
+         packetSize    = 0;
+         if(columns >= 10) {   // TrafficClass was added in HiPerConTracer 1.4.0!
+            trafficClass = parseTrafficClass(tuple[9], dataFile);
+            if(packetSize >= 11) {   // PacketSize was added in HiPerConTracer 1.6.0!
+               packetSize = parsePacketSize(tuple[10], dataFile);
+            }
+         }
+         foundItem = true;
+      }
+      else if(tuple[0] == "\t")  {
+         if(!foundItem) {
+            throw ImporterReaderDataErrorException("Hop data has no corresponding #T line");
+         }
+         const unsigned int hopNumber        = parseTotalHops(tuple[1], dataFile);
+         const unsigned int status           = parseStatus(tuple[2], dataFile);
+         const unsigned int rtt              = parseRTT(tuple[3], dataFile);
+         boost::asio::ip::address hopAddress = parseAddress(tuple[4], backend, dataFile);
+
+         if(backend & DatabaseBackendType::SQL_Generic) {
+            statement.beginRow();
+            statement
+               << statement.quote(timePointToString<ReaderTimePoint>(timeStamp, 6)) << statement.sep()
+               << statement.quote(sourceIP.to_string())      << statement.sep()
+               << statement.quote(destinationIP.to_string()) << statement.sep()
+               << checksum                                   << statement.sep()  //FIXME!
+               << packetSize                                 << statement.sep()
+               << (unsigned int)trafficClass                 << statement.sep()
+               << hopNumber                                  << statement.sep()
+               << totalHops                                  << statement.sep()
+               << (status | statusFlags)                     << statement.sep()
+               << rtt                                        << statement.sep()
+               << statement.quote(hopAddress.to_string())    << statement.sep()
+               << "CAST(X" << pathHash << " AS BIGINT)"      << statement.sep()
+               << roundNumber;
+            statement.endRow();
+            rows++;
+         }
+         else if(backend & DatabaseBackendType::NoSQL_Generic) {
+          abort(); //FIXME!
+            rows++;
+         }
+         else {
+            throw ImporterLogicException("Unknown output format");
+         }
+      }
+      else {
+         throw ImporterReaderDataErrorException("Unexpected input in input file " + dataFile.string());
+      }
+   }
+
+   printf("<%s>\n", statement.str().c_str());
    assert(false);
-//    const DatabaseBackendType backend = databaseClient.getBackend();
-//    static const unsigned int TracerouteColumns   = 4;
-//    static const char         TracerouteDelimiter = '\t';
-//
-//    std::string inputLine;
-//    std::string tuple[TracerouteColumns];
-//    while(std::getline(inputStream, inputLine)) {
-//       // ====== Parse line ==================================================
-//       size_t columns = 0;
-//       size_t start;
-//       size_t end = 0;
-//       while((start = inputLine.find_first_not_of(TracerouteDelimiter, end)) != std::string::npos) {
-//          end = inputLine.find(TracerouteDelimiter, start);
-//
-//          if(columns == TracerouteColumns) {
-//             throw ImporterReaderException("Too many columns in input file");
-//          }
-//          tuple[columns++] = inputLine.substr(start, end - start);
-//       }
-//       if(columns != TracerouteColumns) {
-//          throw ImporterReaderException("Too few columns in input file");
-//       }
-//
-//       // ====== Generate import statement ===================================
-//       if(backend & DatabaseBackendType::SQL_Generic) {
-//
-//          if(rows > 0) {
-//             databaseClient.getStatement() << ",\n";
-//          }
-//          databaseClient.getStatement()
-//             << "("
-//             << "'" << tuple[0] << "', "
-//             << std::stoul(tuple[1]) << ", "
-//             << std::stoul(tuple[2]) << ", "
-//             << "'" << tuple[3] << "', CRC32(xml_data), 10 + mi_id MOD 10)";
-//          rows++;
-//       }
-//       else {
-//          throw ImporterLogicException("Unknown output format");
-//       }
-//    }
 }

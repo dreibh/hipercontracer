@@ -81,10 +81,18 @@ class TracerouteReader : public ReaderImplementation<TracerouteFileEntry>
    static boost::asio::ip::address parseAddress(const std::string&           value,
                                                 const DatabaseBackendType    backend,
                                                 const std::filesystem::path& dataFile);
+   static unsigned int parseRoundNumber(const std::string&           value,
+                                        const std::filesystem::path& dataFile);
    static uint16_t parseChecksum(const std::string&           value,
                                  const std::filesystem::path& dataFile);
+   static unsigned int parseTotalHops(const std::string&           value,
+                                      const std::filesystem::path& dataFile);
+   static unsigned int parseHop(const std::string&           value,
+                                const std::filesystem::path& dataFile);
    static unsigned int parseStatus(const std::string&           value,
                                    const std::filesystem::path& dataFile);
+   static unsigned long long parsePathHash(const std::string&           value,
+                                           const std::filesystem::path& dataFile);
    static unsigned int parseRTT(const std::string&           value,
                                 const std::filesystem::path& dataFile);
    static unsigned int parsePacketSize(const std::string&           value,
