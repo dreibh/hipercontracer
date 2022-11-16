@@ -138,3 +138,10 @@ class DatabaseConfiguration:
          return rows
 
       return None
+
+
+# ###### Convert IPv4-mapped IPv6 address to IPv4 address, if possible ######
+def unmap(address):
+   if address.ipv4_mapped:
+      return address.ipv4_mapped
+   return address
