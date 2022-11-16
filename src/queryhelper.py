@@ -76,18 +76,43 @@ class DatabaseConfiguration:
       # print(self.Configuration)
 
 
+   # ###### Get backend #####################################################
+   def getBackend(self):
+      return self.Configuration['dbBackend']
+
+
    # ###### Create new database client instance #############################
    def createClient(self):
 
+      # ====== MongoDB ======================================================
+      if self.Configuration['dbBackend'] == 'MongoDB':
+         import pymongo
+         try:
+            self.dbConnection = pymongo.MongoClient(host          = self.Configuration['dbServer'],
+                                                    port          = self.Configuration['dbPort'],
+                                                    # ssl           = True,
+                                                    # ssl_cert_reqs = ssl.CERT_REQUIRED,
+                                                    # ssl_ca_certs  = port=self.Configuration['dbCAFile'],
+                                                    compressors   = "zstd,zlib")
+            self.database = self.dbConnection(self.Configuration['database'])
+            self.database.authenticate(self.Configuration['dbUser'],
+                                       self.Configuration['dbPassword'],
+                                       mechanism = 'SCRAM-SHA-1')
+         except Exception as e:
+            sys.stderr.write('ERROR: Unable to connect to the database: ' + str(e) + '\n')
+            sys.exit(1)
+         return { 'connection': self.dbConnection,
+                  'database':   self.database }
+
       # ====== MySQL/MariaDB ================================================
-      if self.Configuration['dbBackend'] in [ 'MySQL', 'MariaDB' ]:
+      elif self.Configuration['dbBackend'] in [ 'MySQL', 'MariaDB' ]:
          import mysql.connector
          try:
-            self.dbConnection = mysql.connector.connect(host=self.Configuration['dbServer'],
-                                                        port=self.Configuration['dbPort'],
-                                                        user=self.Configuration['dbUser'],
-                                                        password=self.Configuration['dbPassword'],
-                                                        database=self.Configuration['database'])
+            self.dbConnection = mysql.connector.connect(host     = self.Configuration['dbServer'],
+                                                        port     = self.Configuration['dbPort'],
+                                                        user     = self.Configuration['dbUser'],
+                                                        password = self.Configuration['dbPassword'],
+                                                        database = self.Configuration['database'])
             self.dbCursor = self.dbConnection.cursor()
          except Exception as e:
             sys.stderr.write('ERROR: Unable to connect to the database: ' + str(e) + '\n')
@@ -96,14 +121,14 @@ class DatabaseConfiguration:
                   'cursor':     self.dbCursor }
 
       # ====== PostgreSQL ===================================================
-      if self.Configuration['dbBackend'] == 'PostgreSQL':
+      elif self.Configuration['dbBackend'] == 'PostgreSQL':
          import psycopg2
          try:
-            self.dbConnection = psycopg2.connect(host=self.Configuration['dbServer'],
-                                                 port=self.Configuration['dbPort'],
-                                                 user=self.Configuration['dbUser'],
-                                                 password=self.Configuration['dbPassword'],
-                                                 dbname=self.Configuration['database'])
+            self.dbConnection = psycopg2.connect(host     = self.Configuration['dbServer'],
+                                                 port     = self.Configuration['dbPort'],
+                                                 user     = self.Configuration['dbUser'],
+                                                 password = self.Configuration['dbPassword'],
+                                                 dbname   = self.Configuration['database'])
             self.dbConnection.autocommit = False
             self.dbCursor = self.dbConnection.cursor()
          except Exception as e:
@@ -118,8 +143,18 @@ class DatabaseConfiguration:
    # ###### Query database ##################################################
    def query(self, request):
 
+      # ====== MongoDB ======================================================
+      if self.Configuration['dbBackend'] == 'MongoDB':
+         try:
+            self.dbCursor.execute(request)
+         except Exception as e:
+            sys.stderr.write('ERROR: Query failed: ' + str(e) + '\n')
+            sys.exit(1)
+         return self.dbCursor
+
+
       # ====== MySQL/MariaDB ================================================
-      if self.Configuration['dbBackend'] in [ 'MySQL', 'MariaDB' ]:
+      elif self.Configuration['dbBackend'] in [ 'MySQL', 'MariaDB' ]:
          try:
             self.dbCursor.execute(request)
          except Exception as e:
@@ -128,7 +163,7 @@ class DatabaseConfiguration:
          return self.dbCursor
 
       # ====== PostgreSQL ===================================================
-      if self.Configuration['dbBackend'] == 'PostgreSQL':
+      elif self.Configuration['dbBackend'] == 'PostgreSQL':
          try:
             self.dbCursor.execute(request)
             self.dbConnection.commit()
