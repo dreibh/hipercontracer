@@ -242,18 +242,19 @@ unsigned int TracerouteReader::parseStatus(const std::string&           value,
 
 
 // ###### Parse path hash ###################################################
-unsigned long long TracerouteReader::parsePathHash(const std::string&           value,
-                                                   const std::filesystem::path& dataFile)
+long long TracerouteReader::parsePathHash(const std::string&           value,
+                                          const std::filesystem::path& dataFile)
 {
-   size_t             index    = 0;
-   unsigned long long pathHash = 0;
+   size_t   index    = 0;
+   uint64_t pathHash = 0;
    try {
       pathHash = std::stoull(value, &index, 16);
    } catch(...) { }
    if(index != value.size()) {
       throw ImporterReaderDataErrorException("Bad path hash " + value);
    }
-   return pathHash;
+   // Cast to signed long long as-is:
+   return (long long)pathHash;
 }
 
 
@@ -408,7 +409,7 @@ void TracerouteReader::parseContents(
    uint16_t                  checksum;
    unsigned int              totalHops;
    unsigned int              statusFlags = ~0U;
-   unsigned long long        pathHash;
+   long long                 pathHash;
    uint8_t                   trafficClass;
    unsigned int              packetSize;
 
@@ -466,7 +467,7 @@ void TracerouteReader::parseContents(
                << statement.quote(sourceIP.to_string())      << statement.sep()
                << statement.quote(destinationIP.to_string()) << statement.sep()
                << roundNumber                                << statement.sep()
-               << checksum                                   << statement.sep()  //FIXME!
+               << checksum                                   << statement.sep()
                << packetSize                                 << statement.sep()
                << (unsigned int)trafficClass                 << statement.sep()
                << hopNumber                                  << statement.sep()
@@ -474,7 +475,7 @@ void TracerouteReader::parseContents(
                << (status | statusFlags)                     << statement.sep()
                << rtt                                        << statement.sep()
                << statement.quote(hopAddress.to_string())    << statement.sep()
-               << "CAST(X'" << std::hex << pathHash << std::dec << "' AS BIGINT)";
+               << pathHash;
             statement.endRow();
             rows++;
          }

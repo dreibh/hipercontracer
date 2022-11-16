@@ -92,8 +92,8 @@ class TracerouteReader : public ReaderImplementation<TracerouteFileEntry>
    static unsigned int parseStatus(const std::string&           value,
                                    const std::filesystem::path& dataFile,
                                    const unsigned int           base = 16);
-   static unsigned long long parsePathHash(const std::string&           value,
-                                           const std::filesystem::path& dataFile);
+   static long long parsePathHash(const std::string&           value,
+                                  const std::filesystem::path& dataFile);
    static unsigned int parseRTT(const std::string&           value,
                                 const std::filesystem::path& dataFile);
    static unsigned int parsePacketSize(const std::string&           value,
