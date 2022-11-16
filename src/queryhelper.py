@@ -97,7 +97,7 @@ class DatabaseConfiguration:
             self.database = self.dbConnection[str(self.Configuration['database'])]
             self.database.authenticate(self.Configuration['dbUser'],
                                        self.Configuration['dbPassword'],
-                                       mechanism = 'SCRAM-SHA-1')
+                                       mechanism = 'SCRAM-SHA-256')
          except Exception as e:
             sys.stderr.write('ERROR: Unable to connect to the database: ' + str(e) + '\n')
             sys.exit(1)
