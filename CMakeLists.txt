@@ -175,12 +175,6 @@ ENDIF()
 # ###### Threads ############################################################
 FIND_PACKAGE(Threads REQUIRED)
 
-# ###### C-ARES #############################################################
-FIND_LIBRARY(CARES_LIBRARY          NAMES cares        libcares-2      REQUIRED)
-FIND_LIBRARY(MYSQLCPPCONN_LIBRARY   NAMES mysqlcppconn libmysqlcppconn REQUIRED)
-FIND_LIBRARY(LIBPQXX_LIBRARY        NAMES pqxx         libpqxx         REQUIRED)
-FIND_LIBRARY(LIBMONGOCLIENT_LIBRARY NAMES mongoclient  libmongoclient  REQUIRED)
-
 # ###### Boost ##############################################################
 FIND_PACKAGE(Boost REQUIRED COMPONENTS log date_time system thread iostreams filesystem program_options)
 IF (NOT Boost_FOUND)
@@ -189,6 +183,31 @@ ELSE()
   INCLUDE_DIRECTORIES(${Boost_INCLUDE_DIRS})
 ENDIF()
 ADD_DEFINITIONS(-DBOOST_ALL_DYN_LINK)   # <<-- Required to handle BOOST Log link problem!
+
+# ###### C-ARES #############################################################
+FIND_LIBRARY(CARES_LIBRARY NAMES cares libcares REQUIRED)
+IF (NOT CARES_LIBRARY)
+   MESSAGE(FATAL_ERROR "Cannot find C-ARES library. Ubuntu/Debian: libc-ares-dev, Fedora: ???.")
+ENDIF()
+
+# ###### Database client libraries ##########################################
+FIND_LIBRARY(MYSQLCPPCONN_LIBRARY NAMES mysqlcppconn REQUIRED)
+FIND_PATH(MYSQLCPPCONN_INCLUDE_DIR NAMES driver.h PATH_SUFFIXES cppconn)
+IF ((NOT MYSQLCPPCONN_INCLUDE_DIR) OR (NOT MYSQLCPPCONN_LIBRARY))
+   MESSAGE(FATAL_ERROR "Cannot find MySQL/MariaDB C++ client library. Ubuntu/Debian: libmysqlcppconn-dev, Fedora: ???.")
+ENDIF()
+
+FIND_LIBRARY(LIBPQXX_LIBRARY NAMES pqxx REQUIRED)
+FIND_PATH(LIBPQXX_INCLUDE_DIR NAMES pqxx PATH_SUFFIXES pqxx)
+IF ((NOT LIBPQXX_INCLUDE_DIR) OR (NOT LIBPQXX_LIBRARY))
+   MESSAGE(FATAL_ERROR "Cannot find PostgreSQL C++ client library. Ubuntu/Debian: libpqxx-dev, Fedora: ???.")
+ENDIF()
+
+FIND_LIBRARY(LIBMONGOC_LIBRARY  NAMES mongoc-1.0)
+FIND_PATH(LIBMONGOC_INCLUDE_DIR NAMES mongoc.h PATH_SUFFIXES libmongoc-1.0)
+IF ((NOT LIBMONGOC_INCLUDE_DIR) OR (NOT LIBMONGOC_LIBRARY))
+   MESSAGE(FATAL_ERROR "Cannot find MongoDB C client library. Ubuntu/Debian: libmongo-dev, Fedora: ???.")
+ENDIF()
 
 
 #############################################################################
