@@ -30,6 +30,16 @@
 -- Contact: dreibh@simula.no
 
 
+-- IMPORTANT NOTES:
+-- 1. MySQL/MariaDB does not support unsigned BIGINT for the path hash.
+--    The 64-bit value is stored as-is in a signed BIGINT, i.e.:
+--    pathHash = (pathHash < 0) ?
+--       0x10000000000000000 - abs(pathHash) : pathHash;
+-- 2. MySQL/MariaDB does not support an INET datatype, just INET4 and INET6.
+--    Addresses are stored as INET6, IPv4 addresses are handled as
+--    IPv4-mapped IPv6 addesses (::ffff:a.b.c.d)!
+
+
 -- ###### Ping ##############################################################
 DROP TABLE IF EXISTS PingTracerouteDB.Ping;
 CREATE TABLE PingTracerouteDB.Ping (
@@ -44,7 +54,7 @@ CREATE TABLE PingTracerouteDB.Ping (
    PRIMARY KEY (TimeStamp, FromIP, ToIP, TC)
 );
 
-CREATE INDEX PingRelationIndex ON PingTracerouteDB.Ping (FromIP ASC, ToIP ASC);
+CREATE INDEX PingRelationIndex ON PingTracerouteDB.Ping (FromIP ASC, ToIP ASC, TimeStamp ASC);
 
 
 -- ###### Traceroute ########################################################
@@ -66,4 +76,4 @@ CREATE TABLE PingTracerouteDB.Traceroute (
    PRIMARY KEY (TimeStamp, FromIP, ToIP, TC, Round, HopNumber)
 );
 
-CREATE INDEX TracerouteRelationIndex ON PingTracerouteDB.Ping (FromIP ASC, ToIP ASC);
+CREATE INDEX TracerouteRelationIndex ON PingTracerouteDB.Ping (FromIP ASC, ToIP ASC, TimeStamp ASC);

@@ -1,5 +1,10 @@
 #!/bin/bash -e
 
+# NOTE:
+# This script runs a simple importer test, by importing the example data files
+# under examples/. The result can be checked by run-query-test, which generates
+# HiPerConTracer data statements as in the input files.
+
 if [ $# -ne 1 ] ; then
    echo >&2 "Usage: $0 configuration_file"
    exit 1

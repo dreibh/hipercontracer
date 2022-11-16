@@ -1,5 +1,10 @@
 #!/bin/bash -e
 
+# NOTE:
+# This script compares the data imported into the database by run-importer-test
+# with the data in good/ (successfully imported and moved files).
+# Limitation: only the headers #T, #P are compared, not the Traceroute hops!!
+
 if [ $# -ne 1 ] ; then
    echo >&2 "Usage: $0 configuration_file"
    exit 1
