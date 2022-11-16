@@ -32,8 +32,9 @@
 #
 #  Contact: dreibh@simula.no
 
-import sys
 import configparser
+import ipaddress
+import sys
 
 
 class DatabaseConfiguration:
@@ -142,6 +143,6 @@ class DatabaseConfiguration:
 
 # ###### Convert IPv4-mapped IPv6 address to IPv4 address, if possible ######
 def unmap(address):
-   if address.ipv4_mapped:
+   if isinstance(address, ipaddress.IPv6Address) and address.ipv4_mapped:
       return address.ipv4_mapped
    return address
