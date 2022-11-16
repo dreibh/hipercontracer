@@ -55,40 +55,76 @@ if len(sys.argv) > 3:
 configuration = queryhelper.DatabaseConfiguration(sys.argv[1])
 client = configuration.createClient()
 
+
 # ====== Query Ping data ====================================================
 if queryType == 'ping':
+   # ------ SQL: MySQL/MariaDB/PostgreSQL -----------------------------------
    if configuration.getBackend() in [ 'MySQL', 'MariaDB', 'PostgreSQL' ]:
       query = 'SELECT TimeStamp, FromIP, ToIP, Checksum, PktSize, TC, Status, RTT FROM Ping'
       if fromTimeStamp != None:
          query += ' WHERE TimeStamp >= \'' + str(fromTimeStamp) + '\''
          if toTimeStamp != None:
             query += ' AND TimeStamp < \'' + str(toTimeStamp) + '\''
+      print(query)
       rows = configuration.query(query)
-   else:
-      rows = None
 
-   for row in rows:
-      timeStamp     = round(row[0].replace(tzinfo=datetime.timezone.utc).timestamp() * 1000000.0)
-      sourceIP      = queryhelper.unmap(ipaddress.ip_address(row[1]))
-      destinationIP = queryhelper.unmap(ipaddress.ip_address(row[2]))
-      checksum      = int(row[3])
-      packetSize    = int(row[4])
-      trafficClass  = int(row[5])
-      status        = int(row[6])
-      rtt           = int(row[7])
+      for row in rows:
+         timeStamp     = round(row[0].replace(tzinfo=datetime.timezone.utc).timestamp() * 1000000.0)
+         sourceIP      = queryhelper.unmap(ipaddress.ip_address(row[1]))
+         destinationIP = queryhelper.unmap(ipaddress.ip_address(row[2]))
+         checksum      = int(row[3])
+         packetSize    = int(row[4])
+         trafficClass  = int(row[5])
+         status        = int(row[6])
+         rtt           = int(row[7])
 
-      sys.stdout.write('#P ' +
-         str(sourceIP)         + ' ' +
-         str(destinationIP)    + ' ' +
-         hex(timeStamp)[2:]    + ' ' +
-         hex(checksum)[2:]     + ' ' +
-         str(status)           + ' ' +
-         str(rtt)              + ' ' +
-         hex(trafficClass)[2:] + ' ' +
-         str(packetSize)       + '\n')
+         sys.stdout.write('#P ' +
+            str(sourceIP)         + ' ' +
+            str(destinationIP)    + ' ' +
+            hex(timeStamp)[2:]    + ' ' +
+            hex(checksum)[2:]     + ' ' +
+            str(status)           + ' ' +
+            str(rtt)              + ' ' +
+            hex(trafficClass)[2:] + ' ' +
+            str(packetSize)       + '\n')
+
+   # ------ NoSQL: MongoDB --------------------------------------------------
+   elif configuration.getBackend() == 'MongoDB':
+      query = { }
+      if fromTimeStamp != None:
+         ft =  { 'timestamp': { '$gte': str(fromTimeStamp) } }
+         if toTimeStamp != None:
+            tt =  { 'timestamp': { '$lt': str(toTimeStamp) } }
+            query = { '$and': [ ft, tt ] }
+         else:
+            query = ft
+      print(query)
+      rows = configuration.queryMongoDB('ping', query)
+
+      for row in rows:
+         timeStamp     = round(row['timestamp'].replace(tzinfo=datetime.timezone.utc).timestamp() * 1000000.0)
+         sourceIP      = ipaddress.ip_address(row['source'])
+         destinationIP = ipaddress.ip_address(row['destination'])
+         checksum      = int(row['checksum'])
+         packetSize    = int(row['pktsize'])
+         trafficClass  = int(row['tc'])
+         status        = int(row['status'])
+         rtt           = int(row['rtt'])
+
+         sys.stdout.write('#P ' +
+            str(sourceIP)         + ' ' +
+            str(destinationIP)    + ' ' +
+            hex(timeStamp)[2:]    + ' ' +
+            hex(checksum)[2:]     + ' ' +
+            str(status)           + ' ' +
+            str(rtt)              + ' ' +
+            hex(trafficClass)[2:] + ' ' +
+            str(packetSize)       + '\n')
+
 
 # ====== Query Traceroute data ==============================================
 elif queryType == 'traceroute':
+   # ------ SQL: MySQL/MariaDB/PostgreSQL -----------------------------------
    if configuration.getBackend() in [ 'MySQL', 'MariaDB', 'PostgreSQL' ]:
       query = 'SELECT TimeStamp, FromIP, ToIP, Round, Checksum, PktSize, TC, HopNumber, TotalHops, Status, RTT, HopIP, PathHash FROM Traceroute'
       if fromTimeStamp != None:
@@ -96,44 +132,55 @@ elif queryType == 'traceroute':
          if toTimeStamp != None:
             query += ' AND TimeStamp < \'' + str(toTimeStamp) + '\''
       rows = configuration.query(query)
-   else:
-      rows = None
 
-   for row in rows:
-      timeStamp     = round(row[0].replace(tzinfo=datetime.timezone.utc).timestamp() * 1000000.0)
-      sourceIP      = queryhelper.unmap(ipaddress.ip_address(row[1]))
-      destinationIP = queryhelper.unmap(ipaddress.ip_address(row[2]))
-      roundNumber   = int(row[3])
-      checksum      = int(row[4])
-      packetSize    = int(row[5])
-      trafficClass  = int(row[6])
-      hopNumber     = int(row[7])
-      totalHops     = int(row[8])
-      status        = int(row[9])
-      rtt           = int(row[10])
-      hopIP         = queryhelper.unmap(ipaddress.ip_address(row[11]))
-      pathHash      = int(row[12])
-      if pathHash < 0:
-         pathHash = 0x10000000000000000 - abs(pathHash)
+      for row in rows:
+         timeStamp     = round(row[0].replace(tzinfo=datetime.timezone.utc).timestamp() * 1000000.0)
+         sourceIP      = queryhelper.unmap(ipaddress.ip_address(row[1]))
+         destinationIP = queryhelper.unmap(ipaddress.ip_address(row[2]))
+         roundNumber   = int(row[3])
+         checksum      = int(row[4])
+         packetSize    = int(row[5])
+         trafficClass  = int(row[6])
+         hopNumber     = int(row[7])
+         totalHops     = int(row[8])
+         status        = int(row[9])
+         rtt           = int(row[10])
+         hopIP         = queryhelper.unmap(ipaddress.ip_address(row[11]))
+         pathHash      = int(row[12])
+         if pathHash < 0:
+            pathHash = 0x10000000000000000 - abs(pathHash)
 
-      if hopNumber == 1:
-         statusFlags = status - (status & 0xff)
-         sys.stdout.write('#T ' +
-            str(sourceIP)         + ' ' +
-            str(destinationIP)    + ' ' +
-            hex(timeStamp)[2:]    + ' ' +
-            str(roundNumber)      + ' ' +
-            hex(checksum)[2:]     + ' ' +
-            str(totalHops)        + ' ' +
-            hex(statusFlags)[2:]  + ' ' +
-            hex(pathHash)[2:]     + ' ' +
-            hex(trafficClass)[2:] + ' ' +
-            str(packetSize)       + '\n')
-      sys.stdout.write('\t ' +
-         str(hopNumber)        + ' ' +
-         hex(status & 0xff)[2:]       + ' ' +
-         str(rtt)              + ' ' +
-         str(hopIP)            + '\n')
+         if hopNumber == 1:
+            statusFlags = status - (status & 0xff)
+            sys.stdout.write('#T ' +
+               str(sourceIP)         + ' ' +
+               str(destinationIP)    + ' ' +
+               hex(timeStamp)[2:]    + ' ' +
+               str(roundNumber)      + ' ' +
+               hex(checksum)[2:]     + ' ' +
+               str(totalHops)        + ' ' +
+               hex(statusFlags)[2:]  + ' ' +
+               hex(pathHash)[2:]     + ' ' +
+               hex(trafficClass)[2:] + ' ' +
+               str(packetSize)       + '\n')
+         sys.stdout.write('\t ' +
+            str(hopNumber)        + ' ' +
+            hex(status & 0xff)[2:]       + ' ' +
+            str(rtt)              + ' ' +
+            str(hopIP)            + '\n')
+
+   # ------ NoSQL: MongoDB --------------------------------------------------
+   elif configuration.getBackend() == 'MongoDB':
+      query = { }
+      if fromTimeStamp != None:
+         ft =  { 'timestamp': { '$gte': str(fromTimeStamp) } }
+         if toTimeStamp != None:
+            tt =  { 'timestamp': { '$lt': str(toTimeStamp) } }
+            query = { '$and': [ ft, tt ] }
+         else:
+            query = ft
+      print(query)
+      rows = configuration.queryMongoDB('traceroute', query)
 
 
  # ====== Error =============================================================

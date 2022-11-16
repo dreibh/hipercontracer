@@ -89,12 +89,12 @@ class DatabaseConfiguration:
          import pymongo
          try:
             self.dbConnection = pymongo.MongoClient(host          = self.Configuration['dbServer'],
-                                                    port          = self.Configuration['dbPort'],
+                                                    port          = int(self.Configuration['dbPort']),
                                                     # ssl           = True,
                                                     # ssl_cert_reqs = ssl.CERT_REQUIRED,
                                                     # ssl_ca_certs  = port=self.Configuration['dbCAFile'],
                                                     compressors   = "zstd,zlib")
-            self.database = self.dbConnection(self.Configuration['database'])
+            self.database = self.dbConnection[str(self.Configuration['database'])]
             self.database.authenticate(self.Configuration['dbUser'],
                                        self.Configuration['dbPassword'],
                                        mechanism = 'SCRAM-SHA-1')
@@ -143,18 +143,8 @@ class DatabaseConfiguration:
    # ###### Query database ##################################################
    def query(self, request):
 
-      # ====== MongoDB ======================================================
-      if self.Configuration['dbBackend'] == 'MongoDB':
-         try:
-            self.dbCursor.execute(request)
-         except Exception as e:
-            sys.stderr.write('ERROR: Query failed: ' + str(e) + '\n')
-            sys.exit(1)
-         return self.dbCursor
-
-
       # ====== MySQL/MariaDB ================================================
-      elif self.Configuration['dbBackend'] in [ 'MySQL', 'MariaDB' ]:
+      if self.Configuration['dbBackend'] in [ 'MySQL', 'MariaDB' ]:
          try:
             self.dbCursor.execute(request)
          except Exception as e:
@@ -173,7 +163,17 @@ class DatabaseConfiguration:
          rows = self.dbCursor.fetchall()
          return rows
 
-      return None
+      raise Exception('Backend not implemented!')
+
+
+   # ###### Query MongoDB database ###########################################
+   def queryMongoDB(self, table, request):
+      # ====== MongoDB ======================================================
+      if not self.Configuration['dbBackend'] == 'MongoDB':
+         raise Exception('This method only works for MongoDB!')
+
+      rows = self.database[table].find(request, batch_size=1000000).batch_size(1000000)
+      return rows
 
 
 # ###### Convert IPv4-mapped IPv6 address to IPv4 address, if possible ######
