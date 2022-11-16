@@ -56,10 +56,6 @@ class MongoDBClient : public DatabaseClientBase
    inline mongo::DBClientConnection* getConnection() { return &Connection; }
 
    private:
-   void handleDatabaseException(const mongo::DBException& exception,
-                                const std::string&        where,
-                                const std::string&        statement = std::string());
-
    mongo::DBClientConnection Connection;
 };
 

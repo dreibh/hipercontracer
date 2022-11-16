@@ -44,6 +44,7 @@ REGISTER_BACKEND(DatabaseBackendType::NoSQL_MongoDB, "MongoDB", MongoDBClient)
 MongoDBClient::MongoDBClient(const DatabaseConfiguration& configuration)
    : DatabaseClientBase(configuration)
 {
+   mongo::client::initialize();
 }
 
 
@@ -64,23 +65,16 @@ const DatabaseBackendType MongoDBClient::getBackend() const
 // ###### Prepare connection to database ####################################
 bool MongoDBClient::open()
 {
-   const std::string url = "tcp://" + Configuration.getServer() + ":" + std::to_string(Configuration.getPort());
+   const std::string url = Configuration.getServer() + ":" + std::to_string(Configuration.getPort());
+   std::string       errorMessage;
 
-//    assert(Connection == nullptr);
+   // ====== Connect to database ============================================
    try {
-      // ====== Connect to database =========================================
-//       Connection = Driver->connect(url.c_str(),
-//                                    Configuration.getUser().c_str(),
-//                                    Configuration.getPassword().c_str());
-//       assert(Connection != nullptr);
-//       Connection->setSchema(Configuration.getDatabase().c_str());
-//       // SET SESSION TRANSACTION ISOLATION LEVEL READ COMMITTED
-//       Connection->setTransactionIsolation(sql::TRANSACTION_READ_COMMITTED);
-//       Connection->setAutoCommit(false);
-//
-//       // ====== Create statement ============================================
-//       Statement = Connection->createStatement();
-//       assert(Statement != nullptr);
+      Connection.connect(url);
+      Connection.auth(Configuration.getDatabase(),
+                      Configuration.getUser(),
+                      Configuration.getPassword(),
+                      errorMessage);
    }
    catch(const mongo::DBException &e) {
       HPCT_LOG(error) << "Unable to connect MongoDB client to " << url << ": " << e.what();
@@ -95,96 +89,49 @@ bool MongoDBClient::open()
 // ###### Close connection to database ######################################
 void MongoDBClient::close()
 {
-//    if(Statement) {
-//       delete Statement;
-//       Statement = nullptr;
-//    }
-//    if(Connection != nullptr) {
-//       delete Connection;
-//       Connection = nullptr;
-//    }
 }
 
 
 // ###### Reconnect connection to database ##################################
 void MongoDBClient::reconnect()
 {
-   puts("?????"); // FIXME!
-//    Connection->reconnect();
-}
-
-
-// ###### Handle SQLException ###############################################
-void MongoDBClient::handleDatabaseException(const mongo::DBException& exception,
-                                            const std::string&        where,
-                                            const std::string&        statement)
-{
-   // ====== Log error ======================================================
-   const std::string what = where + " error E" +
-                               std::to_string(exception.getCode()) + ": " +
-                               exception.what();
-   HPCT_LOG(error) << what;
-   HPCT_LOG(debug) << statement;
-
-   // ====== Throw exception ================================================
-//    const std::string e = exception.getSQLState().substr(0, 2);
-//    // Integrity Error, according to mysql/connector/errors.py
-//    if( (e == "23") || (e == "22") || (e == "XA")) {
-//       // For this type, the input file should be moved to the bad directory.
-//       throw ImporterDatabaseDataErrorException(what);
-//    }
-//    // Other error
-//    else {
-      throw ImporterDatabaseException(what);
-//    }
 }
 
 
 // ###### Begin transaction #################################################
 void MongoDBClient::startTransaction()
 {
-//    try {
-//       Statement->execute("START TRANSACTION");
-//    }
-//    catch(const mongo::DBException& exception) {
-//       handleDatabaseException(exception, "Start of transaction");
-//    }
 }
 
 
 // ###### End transaction ###################################################
 void MongoDBClient::endTransaction(const bool commit)
 {
-//    // ====== Commit transaction =============================================
-//    if(commit) {
-//       try {
-//          Connection->commit();
-//       }
-//       catch(const mongo::DBException& exception) {
-//          handleDatabaseException(exception, "Commit");
-//       }
-//    }
-//
-//    // ====== Commit transaction =============================================
-//    else {
-//       try {
-//          Connection->rollback();
-//       }
-//       catch(const mongo::DBException& exception) {
-//          handleDatabaseException(exception, "Rollback");
-//       }
-//    }
 }
 
 
 // ###### Execute statement #################################################
 void MongoDBClient::executeUpdate(const std::string& statement)
 {
+   printf("=> %s\n", statement.c_str());
+   puts("");
+   fflush(stdout);
+
+
+   mongo::BSONObj bson;
    try {
-//       Statement->executeUpdate(statement);
-      abort();
+//       mongo::fromjson(statement);
+      mongo::fromjson("{ \"test\": 1 }");
    }
    catch(const mongo::DBException& exception) {
-      handleDatabaseException(exception, "Execute", statement);
+      throw ImporterDatabaseDataErrorException(std::string("Data error: ") + exception.what());
+   }
+
+   try {
+       Connection.insert(Configuration.getDatabase() + ".xxxx",
+                         bson);
+   }
+   catch(const mongo::DBException& exception) {
+      throw ImporterDatabaseException(std::string("Execute error: ") + exception.what());
    }
 }
