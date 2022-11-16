@@ -345,7 +345,7 @@ void TracerouteReader::beginParsing(DatabaseClientBase& databaseClient,
          << " (TimeStamp,FromIP,ToIP,Round,Checksum,PktSize,TC,HopNumber,TotalHops,Status,RTT,HopIP,PathHash) VALUES";
    }
    else if(backend & DatabaseBackendType::NoSQL_Generic) {
-      statement << "db['" << Table << "'].insert(";
+      // Nothing to do here!
    }
    else {
       throw ImporterLogicException("Unknown output format");
@@ -373,7 +373,6 @@ bool TracerouteReader::finishParsing(DatabaseClientBase& databaseClient,
       }
       else if(backend & DatabaseBackendType::NoSQL_Generic) {
          if(rows > 0) {
-            statement << ")";
             databaseClient.executeUpdate(statement);
          }
          else {

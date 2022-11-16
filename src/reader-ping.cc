@@ -76,7 +76,7 @@ void PingReader::beginParsing(DatabaseClientBase& databaseClient,
          << " (TimeStamp,FromIP,ToIP,Checksum,PktSize,TC,Status,RTT) VALUES";
    }
    else if(backend & DatabaseBackendType::NoSQL_Generic) {
-      statement << "db['" << Table << "'].insert(";
+      statement << "[";
    }
    else {
       throw ImporterLogicException("Unknown output format");
@@ -104,7 +104,7 @@ bool PingReader::finishParsing(DatabaseClientBase& databaseClient,
       }
       else if(backend & DatabaseBackendType::NoSQL_Generic) {
          if(rows > 0) {
-            statement << ")";
+            statement << "\n]";
             databaseClient.executeUpdate(statement);
          }
          else {
@@ -190,10 +190,10 @@ void PingReader::parseContents(
                << "'timestamp': "   << timePointToMicroseconds<ReaderTimePoint>(timeStamp)  << statement.sep()
                << "'source': "      << statement.quote(addressToBytesString(sourceIP))      << statement.sep()
                << "'destination': " << statement.quote(addressToBytesString(destinationIP)) << statement.sep()
-               << "'checksum': "    << checksum     << statement.sep()
-               << "'pktsize': "     << packetSize   << statement.sep()
-               << "'tc': "          << trafficClass << statement.sep()
-               << "'status': "      << status       << statement.sep()
+               << "'checksum': "    << checksum                                             << statement.sep()
+               << "'pktsize': "     << packetSize                                           << statement.sep()
+               << "'tc': "          << (unsigned int)trafficClass                           << statement.sep()
+               << "'status': "      << status                                               << statement.sep()
                << "'rtt': "         << rtt;
             statement.endRow();
             rows++;
