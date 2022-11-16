@@ -34,8 +34,8 @@
 
 #include "databaseclient-base.h"
 
-// Ubuntu: libmongoclient-dev
-#include <mongo/client/dbclient.h>
+// Ubuntu: libmongoc-dev
+#include <mongoc/mongoc.h>
 
 
 class MongoDBClient : public DatabaseClientBase
@@ -53,10 +53,10 @@ class MongoDBClient : public DatabaseClientBase
    virtual void executeUpdate(const std::string& statement);
    virtual void endTransaction(const bool commit);
 
-   inline mongo::DBClientConnection* getConnection() { return &Connection; }
+   inline mongoc_client_t* getConnection() { return Connection; }
 
    private:
-   mongo::DBClientConnection Connection;
+   mongoc_client_t* Connection;
 };
 
 #endif
