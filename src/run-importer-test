@@ -1,0 +1,22 @@
+#!/bin/bash -e
+
+if [ $# -ne 1 ] ; then
+   echo >&2 "Usage: $0 configuration_file"
+   exit 1
+fi
+if [ ! -e $1 ] ; then
+   echo >&2 "ERROR: Use configuration $1 does not exist!"
+fi
+CONFIGURATION_FILE="$1"
+
+rm -rf good/*
+rm -rf bad/*
+cp examples/*.bz2 data/
+
+make trace-importer
+rm -f core
+./trace-importer \
+   -c "${CONFIGURATION_FILE}" \
+   --traceroute-workers 1 \
+   --ping-workers 1 \
+   --loglevel 1

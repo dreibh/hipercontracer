@@ -1,0 +1,24 @@
+#!/bin/bash -e
+
+if [ $# -ne 1 ] ; then
+   echo >&2 "Usage: $0 configuration_file"
+   exit 1
+fi
+if [ ! -e $1 ] ; then
+   echo >&2 "ERROR: Use configuration $1 does not exist!"
+fi
+CONFIGURATION_FILE="$1"
+
+
+for type in Traceroute Ping ; do
+
+   echo "Obtaining ${type} data from good/ directory ..."
+   find good/ -name "${type}-*.bz2" | sort | xargs bzcat | grep "^#" | sort -k4 >imported-${type,,}.txt
+
+   echo "Querying ${type} data from database ..."
+   ./query "${CONFIGURATION_FILE}" ${type,,} | grep "^#" | sort -k4 >queried-${type,,}.txt
+
+   echo "Differences for ${type}:"
+   colordiff imported-${type,,}.txt queried-${type,,}.txt
+
+done
