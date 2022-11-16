@@ -206,7 +206,13 @@ ENDIF()
 FIND_LIBRARY(LIBMONGOC_LIBRARY  NAMES mongoc-1.0)
 FIND_PATH(LIBMONGOC_INCLUDE_DIR NAMES mongoc.h PATH_SUFFIXES libmongoc-1.0)
 IF ((NOT LIBMONGOC_INCLUDE_DIR) OR (NOT LIBMONGOC_LIBRARY))
-   MESSAGE(FATAL_ERROR "Cannot find MongoDB C client library. Ubuntu/Debian: libmongo-dev, Fedora: ???.")
+   MESSAGE(FATAL_ERROR "Cannot find MongoDB C client library. Ubuntu/Debian: libmongoc-dev, Fedora: ???.")
+ENDIF()
+
+FIND_LIBRARY(LIBBSON_LIBRARY  NAMES bson-1.0)
+FIND_PATH(LIBBSON_INCLUDE_DIR NAMES bson.h PATH_SUFFIXES libbson-1.0)
+IF ((NOT LIBBSON_INCLUDE_DIR) OR (NOT LIBBSON_LIBRARY))
+   MESSAGE(FATAL_ERROR "Cannot find MongoDB C client library. Ubuntu/Debian: libbson-dev, Fedora: ???.")
 ENDIF()
 
 
