@@ -22,6 +22,6 @@ make trace-importer && \
 rm -f core &&  \
 ./trace-importer \
    -c "${CONFIGURATION_FILE}" \
-   --traceroute-workers 0 \
+   --traceroute-workers 1 \
    --ping-workers 1 \
    --loglevel 1

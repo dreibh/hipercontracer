@@ -136,7 +136,7 @@ void MongoDBClient::endTransaction(const bool commit)
 void MongoDBClient::executeUpdate(Statement& statement)
 {
    assert(statement.isValid());
-   printf("S: %s\n", statement.str().c_str());
+   // printf("JSON: %s\n", statement.str().c_str());
 
    // ====== Prepare BSON ===================================================
    bson_error_t error;

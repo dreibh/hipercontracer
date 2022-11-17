@@ -319,7 +319,7 @@ void TracerouteReader::beginParsing(DatabaseClientBase& databaseClient,
          << " (TimeStamp,FromIP,ToIP,Round,Checksum,PktSize,TC,HopNumber,TotalHops,Status,RTT,HopIP,PathHash) VALUES";
    }
    else if(backend & DatabaseBackendType::NoSQL_Generic) {
-      // Nothing to do here!
+      statement << "{ \"" << Table <<  "\": [";
    }
    else {
       throw ImporterLogicException("Unknown output format");
@@ -347,6 +347,7 @@ bool TracerouteReader::finishParsing(DatabaseClientBase& databaseClient,
       }
       else if(backend & DatabaseBackendType::NoSQL_Generic) {
          if(rows > 0) {
+            statement << " \n] }";
             databaseClient.executeUpdate(statement);
          }
          else {
@@ -408,6 +409,11 @@ void TracerouteReader::parseContents(
 
       // ====== Generate import statement ===================================
       if((columns >= 9) && (tuple[0] == "#T"))  {
+         if( (statusFlags != ~0U) && (backend & DatabaseBackendType::NoSQL_Generic) ) {
+            statement << "]";
+            statement.endRow();
+            rows++;
+         }
          timeStamp     = parseTimeStamp(tuple[3], now, dataFile);
          sourceIP      = parseAddress(tuple[1], backend, dataFile);
          destinationIP = parseAddress(tuple[2], backend, dataFile);
@@ -424,21 +430,38 @@ void TracerouteReader::parseContents(
                packetSize = parsePacketSize(tuple[10], dataFile);
             }
          }
+
+         if(backend & DatabaseBackendType::NoSQL_Generic) {
+            statement.beginRow();
+            statement
+               << "\"timestamp\": "   << timePointToMicroseconds<ReaderTimePoint>(timeStamp) << statement.sep()
+               << "\"source\": "      << statement.encodeAddress(sourceIP)                   << statement.sep()
+               << "\"destination\": " << statement.encodeAddress(destinationIP)              << statement.sep()
+               << "\"round\": "       << roundNumber                                         << statement.sep()
+               << "\"checksum\": "    << checksum                                            << statement.sep()
+               << "\"pktsize\": "     << packetSize                                          << statement.sep()
+               << "\"tc\": "          << (unsigned int)trafficClass                          << statement.sep()
+               << "\"statusFlags\": " << statusFlags                                         << statement.sep()
+               << "\"totalHops\": "   << totalHops                                           << statement.sep()
+               << "\"pathHash\": "    << pathHash                                            << statement.sep()
+               << "\"hops\": [ ";
+         }
       }
       else if(tuple[0] == "\t")  {
          if(statusFlags == ~0U) {
             throw ImporterReaderDataErrorException("Hop data has no corresponding #T line");
          }
-         const unsigned int hopNumber        = parseTotalHops(tuple[1], dataFile);
-         const unsigned int status           = parseStatus(tuple[2], dataFile);
-         const unsigned int rtt              = parseRTT(tuple[3], dataFile);
-         boost::asio::ip::address hopAddress = parseAddress(tuple[4], backend, dataFile);
+         const unsigned int hopNumber   = parseTotalHops(tuple[1], dataFile);
+         const unsigned int status      = parseStatus(tuple[2], dataFile);
+         const unsigned int rtt         = parseRTT(tuple[3], dataFile);
+         boost::asio::ip::address hopIP = parseAddress(tuple[4], backend, dataFile);
+
          if(backend & DatabaseBackendType::SQL_Generic) {
             statement.beginRow();
             statement
                << statement.quote(timePointToString<ReaderTimePoint>(timeStamp, 6)) << statement.sep()
-               << statement.quote(sourceIP.to_string())      << statement.sep()
-               << statement.quote(destinationIP.to_string()) << statement.sep()
+               << statement.encodeAddress(sourceIP)          << statement.sep()
+               << statement.encodeAddress(destinationIP)     << statement.sep()
                << roundNumber                                << statement.sep()
                << checksum                                   << statement.sep()
                << packetSize                                 << statement.sep()
@@ -447,14 +470,18 @@ void TracerouteReader::parseContents(
                << totalHops                                  << statement.sep()
                << (status | statusFlags)                     << statement.sep()
                << rtt                                        << statement.sep()
-               << statement.quote(hopAddress.to_string())    << statement.sep()
+               << statement.quote(hopIP.to_string())    << statement.sep()
                << pathHash;
             statement.endRow();
             rows++;
          }
          else if(backend & DatabaseBackendType::NoSQL_Generic) {
-          abort(); //FIXME!
-            rows++;
+            statement
+               << ((hopNumber > 1) ? ", { " : " { ")
+               << "\"hop\": "    << timePointToMicroseconds<ReaderTimePoint>(timeStamp) << statement.sep()
+               << "\"status\": " << status                                              << statement.sep()
+               << "\"rtt\": "    << rtt
+               << " }";
          }
          else {
             throw ImporterLogicException("Unknown output format");
@@ -463,5 +490,10 @@ void TracerouteReader::parseContents(
       else {
          throw ImporterReaderDataErrorException("Unexpected input in input file " + dataFile.string());
       }
+   }
+   if( (statusFlags != ~0U) && (backend & DatabaseBackendType::NoSQL_Generic) ) {
+      statement << "]";
+      statement.endRow();
+      rows++;
    }
 }
