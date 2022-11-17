@@ -40,6 +40,7 @@ SELECT COUNT(*) FROM Traceroute;
 SELECT * FROM Traceroute LIMIT 30;
 EOF
 
+
 # ###### PostgreSQL #########################################################
 elif [ "$1" == "postgresql" ] ; then
    # Documentation: https://www.digitalocean.com/community/tutorials/how-to-install-postgresql-on-ubuntu-22-04-quickstart
@@ -51,6 +52,7 @@ SELECT * FROM Ping LIMIT 10;
 SELECT COUNT(*) FROM Traceroute;
 SELECT * FROM Traceroute LIMIT 30;
 EOF
+
 
 # ###### Error ##############################################################
 else

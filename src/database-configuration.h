@@ -100,7 +100,6 @@ class DatabaseConfiguration
 
    friend std::ostream& operator<<(std::ostream& os, const DatabaseConfiguration& configuration);
 
-
    private:
    struct RegisteredBackend {
       std::string         Name;
