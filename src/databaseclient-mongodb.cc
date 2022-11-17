@@ -146,8 +146,6 @@ void MongoDBClient::executeUpdate(Statement& statement)
                                           std::to_string(error.domain) + "." +
                                           std::to_string(error.code) +
                                           ": " + error.message;
-      printf("ERROR: <%s>\n", errorMessage.c_str());
-    abort();
       throw ImporterDatabaseDataErrorException(errorMessage);
    }
 /*
@@ -180,37 +178,39 @@ void MongoDBClient::executeUpdate(Statement& statement)
 
 
    // ====== Split BSON into rows ===========================================
-   std::vector<_bson_t> documentVector(statement.getRows());
+   bson_t  documentArray[statement.getRows()];
+   bson_t* documentPtrArray[statement.getRows()];
    if(bson_iter_init(&iterator, &rowsToInsert)) {
       unsigned int i = 0;
       while(bson_iter_next(&iterator)) {
          if(bson_iter_type(&iterator) == BSON_TYPE_DOCUMENT) {
             // http://mongoc.org/libbson/current/bson_iter_t.html
             // https://github.com/mongodb/libbson/blob/master/src/bson/bson-iter.c
-            _bson_t        sub;
             uint32_t       len;
             const uint8_t* data;
             bson_iter_document(&iterator, &len, &data);
             assert(i < statement.getRows());
-            assert(bson_init_static(&sub, data, len));
-            documentVector[i++] = sub;
+            assert(bson_init_static(&documentArray[i], data, len));
+            documentPtrArray[i] = &documentArray[i];
+            i++;
          }
          else {
             throw ImporterDatabaseDataErrorException("Data error: Unexpected format (not list of documents)");
          }
       }
    }
-   assert(documentVector.size() == statement.getRows());
 
 
-   // ====== Get pointer to each row ========================================
-   bson_t* documentPtrArray[statement.getRows()];
-   unsigned int i = 0;
-   for(bson_t sub : documentVector) {
-      documentPtrArray[i++] = &sub;
+   // ====== Print rows =====================================================
+/*
+   char* json;
+   for(unsigned int i = 0;i < statement.getRows(); i++) {
+      if((json = bson_as_canonical_extended_json(documentPtrArray[i], nullptr))) {
+         printf ("%s\n", json);
+         bson_free(json);
+      }
    }
-   assert(i == statement.getRows());
-
+*/
 
    // ====== Insert rows ====================================================
    mongoc_collection_t* collection =

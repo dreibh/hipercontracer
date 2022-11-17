@@ -460,17 +460,17 @@ void TracerouteReader::parseContents(
             statement.beginRow();
             statement
                << statement.quote(timePointToString<ReaderTimePoint>(timeStamp, 6)) << statement.sep()
-               << statement.encodeAddress(sourceIP)          << statement.sep()
-               << statement.encodeAddress(destinationIP)     << statement.sep()
-               << roundNumber                                << statement.sep()
-               << checksum                                   << statement.sep()
-               << packetSize                                 << statement.sep()
-               << (unsigned int)trafficClass                 << statement.sep()
-               << hopNumber                                  << statement.sep()
-               << totalHops                                  << statement.sep()
-               << (status | statusFlags)                     << statement.sep()
-               << rtt                                        << statement.sep()
-               << statement.quote(hopIP.to_string())    << statement.sep()
+               << statement.encodeAddress(sourceIP)      << statement.sep()
+               << statement.encodeAddress(destinationIP) << statement.sep()
+               << roundNumber                            << statement.sep()
+               << checksum                               << statement.sep()
+               << packetSize                             << statement.sep()
+               << (unsigned int)trafficClass             << statement.sep()
+               << hopNumber                              << statement.sep()
+               << totalHops                              << statement.sep()
+               << (status | statusFlags)                 << statement.sep()
+               << rtt                                    << statement.sep()
+               << statement.encodeAddress(hopIP)         << statement.sep()
                << pathHash;
             statement.endRow();
             rows++;
@@ -478,8 +478,8 @@ void TracerouteReader::parseContents(
          else if(backend & DatabaseBackendType::NoSQL_Generic) {
             statement
                << ((hopNumber > 1) ? ", { " : " { ")
-               << "\"hop\": "    << timePointToMicroseconds<ReaderTimePoint>(timeStamp) << statement.sep()
-               << "\"status\": " << status                                              << statement.sep()
+               << "\"hop\": "    << statement.encodeAddress(hopIP) << statement.sep()
+               << "\"status\": " << status                         << statement.sep()
                << "\"rtt\": "    << rtt
                << " }";
          }

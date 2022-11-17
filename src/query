@@ -99,7 +99,7 @@ if queryType == 'ping':
             query = { '$and': [ ft, tt ] }
          else:
             query = ft
-      print(query)
+      # print(query)
       rows = configuration.queryMongoDB('ping', query)
 
       for row in rows:
@@ -111,7 +111,6 @@ if queryType == 'ping':
          trafficClass  = int(row['tc'])
          status        = int(row['status'])
          rtt           = int(row['rtt'])
-
          sys.stdout.write('#P ' +
             str(sourceIP)         + ' ' +
             str(destinationIP)    + ' ' +
@@ -165,10 +164,10 @@ elif queryType == 'traceroute':
                hex(trafficClass)[2:] + ' ' +
                str(packetSize)       + '\n')
          sys.stdout.write('\t ' +
-            str(hopNumber)        + ' ' +
-            hex(status & 0xff)[2:]       + ' ' +
-            str(rtt)              + ' ' +
-            str(hopIP)            + '\n')
+            str(hopNumber)         + ' ' +
+            hex(status & 0xff)[2:] + ' ' +
+            str(rtt)               + ' ' +
+            str(hopIP)             + '\n')
 
    # ------ NoSQL: MongoDB --------------------------------------------------
    elif configuration.getBackend() == 'MongoDB':
@@ -180,8 +179,44 @@ elif queryType == 'traceroute':
             query = { '$and': [ ft, tt ] }
          else:
             query = ft
-      print(query)
       rows = configuration.queryMongoDB('traceroute', query)
+
+      for row in rows:
+         timeStamp     = int(row['timestamp'])
+         sourceIP      = ipaddress.ip_address(bytes(row['source']))
+         destinationIP = ipaddress.ip_address(bytes(row['destination']))
+         roundNumber   = int(row['round'])
+         checksum      = int(row['checksum'])
+         packetSize    = int(row['pktsize'])
+         trafficClass  = int(row['tc'])
+         totalHops     = int(row['totalHops'])
+         statusFlags   = int(row['statusFlags'])
+         pathHash      = int(row['pathHash'])
+         if pathHash < 0:
+            pathHash = 0x10000000000000000 - abs(pathHash)
+         sys.stdout.write('#T ' +
+            str(sourceIP)         + ' ' +
+            str(destinationIP)    + ' ' +
+            hex(timeStamp)[2:]    + ' ' +
+            str(roundNumber)      + ' ' +
+            hex(checksum)[2:]     + ' ' +
+            str(totalHops)        + ' ' +
+            hex(statusFlags)[2:]  + ' ' +
+            hex(pathHash)[2:]     + ' ' +
+            hex(trafficClass)[2:] + ' ' +
+            str(packetSize)       + '\n')
+
+         hopNumber = 0
+         for hop in row['hops']:
+            hopNumber = hopNumber + 1
+            hopIP     = ipaddress.ip_address(bytes(hop['hop']))
+            status    = int(hop['status'])
+            rtt       = int(hop['rtt'])
+            sys.stdout.write('\t ' +
+               str(hopNumber)  + ' ' +
+               hex(status)[2:] + ' ' +
+               str(rtt)        + ' ' +
+               str(hopIP)      + '\n')
 
 
  # ====== Error =============================================================
