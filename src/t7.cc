@@ -21,23 +21,6 @@ template<typename ReaderTimePoint> ReaderTimePoint makeMin(const ReaderTimePoint
 }
 
 
-std::string encodeBinary(const std::string& str)
-{
-   std::stringstream ss;
-   ss << "\"";
-   for(unsigned char c : str) {
-      if(isprint(c)) {
-         ss << c;
-      }
-      else {
-         ss << "\\x" <<std::setw(2) << std::setfill('0') << std::hex << (unsigned int)c;
-      }
-   }
-   ss << "\"";
-   return ss.str();
-}
-
-
 int main()
 {
    const unsigned long long t1 = 1666261441000000;
@@ -93,57 +76,25 @@ int main()
    unsigned long long x1 = 0x7fffffffffffffffULL;
    unsigned long long x2 = 0x8000000000000000ULL;
    unsigned long long x3 = 0xffffffffffffffffULL;
-   unsigned long long x4 = 0xfffffffffffffff0ULL;
-   unsigned long long x5 = 0x1234ULL;
 
-// //    long long y1 = *(long long*)&x1;
-// //    long long y2 = *(long long*)&x2;
-// //    long long y3 = *(long long*)&x3;
-// //
-// //    unsigned long long z1 = *(unsigned long long*)&y1;
-// //    unsigned long long z2 = *(unsigned long long*)&y2;
-// //    unsigned long long z3 = *(unsigned long long*)&y3;
-//
-//    long long y1 = (long long)x1;
-//    long long y2 = (long long)x2;
-//    long long y3 = (long long)x3;
-//
-//    unsigned long long z1 = (unsigned long long)y1;
-//    unsigned long long z2 = (unsigned long long)y2;
-//    unsigned long long z3 = (unsigned long long)y3;
-//
-//    boost::multiprecision::cpp_int w1 = (y1 < 0) ? boost::multiprecision::cpp_int(y1) : boost::multiprecision::cpp_int(y1) + 0x8000000000000000ULL;
-//    boost::multiprecision::cpp_int w2 = (y2 < 0) ? boost::multiprecision::cpp_int(y2) : boost::multiprecision::cpp_int(y2) + 0x8000000000000000ULL;
-//    boost::multiprecision::cpp_int w3 = (y3 < 0) ? boost::multiprecision::cpp_int(y3) : boost::multiprecision::cpp_int(y3) + 0x8000000000000000ULL;
-//
-//    printf("%llu -> %lld -> %llu\n", x1, y1, z1);
-//    printf("%llu -> %lld -> %llu\n", x2, y2, z2);
-//    printf("%llu -> %lld -> %llu\n", x3, y3, z3);
-//    std::cout << w1 << "\n";
-//    std::cout << w2 << "\n";
-//    std::cout << w3 << "\n";
+   long long y1 = (long long)x1;
+   long long y2 = (long long)x2;
+   long long y3 = (long long)x3;
 
+   unsigned long long z1 = (unsigned long long)y1;
+   unsigned long long z2 = (unsigned long long)y2;
+   unsigned long long z3 = (unsigned long long)y3;
 
-   std::cout << std::hex;
-   std::cout << x1 << "\t" << toLL(x1) << "\t" << toUnsignedLL(toLL(x1)) << "\n";
-   std::cout << x2 << "\t" << toLL(x2) << "\t" << toUnsignedLL(toLL(x2)) << "\n";
-   std::cout << x3 << "\t" << toLL(x3) << "\t" << toUnsignedLL(toLL(x3)) << "\n";
-   std::cout << x4 << "\t" << toLL(x4) << "\t" << toUnsignedLL(toLL(x4)) << "\n";
-   std::cout << x5 << "\t" << toLL(x5) << "\t" << toUnsignedLL(toLL(x5)) << "\n";
+   boost::multiprecision::cpp_int w1 = (y1 < 0) ? boost::multiprecision::cpp_int(y1) : boost::multiprecision::cpp_int(y1) + 0x8000000000000000ULL;
+   boost::multiprecision::cpp_int w2 = (y2 < 0) ? boost::multiprecision::cpp_int(y2) : boost::multiprecision::cpp_int(y2) + 0x8000000000000000ULL;
+   boost::multiprecision::cpp_int w3 = (y3 < 0) ? boost::multiprecision::cpp_int(y3) : boost::multiprecision::cpp_int(y3) + 0x8000000000000000ULL;
 
-   std::cout << std::dec;
-   std::cout << x1 << "\t" << toLL(x1) << "\t" << toUnsignedLL(toLL(x1)) << "\n";
-   std::cout << x2 << "\t" << toLL(x2) << "\t" << toUnsignedLL(toLL(x2)) << "\n";
-   std::cout << x3 << "\t" << toLL(x3) << "\t" << toUnsignedLL(toLL(x3)) << "\n";
-   std::cout << x4 << "\t" << toLL(x4) << "\t" << toUnsignedLL(toLL(x4)) << "\n";
-   std::cout << x5 << "\t" << toLL(x5) << "\t" << toUnsignedLL(toLL(x5)) << "\n";
-
-   char s[] = "TEST....!!!!";
-   s[4] = 0x01;
-   s[5] = 0x08;
-   s[6] = 0x7f;
-   s[7] = 0xf0;
-   std::cout << "Test=" << encodeBinary(s) << "\n";
+   printf("%llu -> %lld -> %llu\n", x1, y1, z1);
+   printf("%llu -> %lld -> %llu\n", x2, y2, z2);
+   printf("%llu -> %lld -> %llu\n", x3, y3, z3);
+   std::cout << w1 << "\n";
+   std::cout << w2 << "\n";
+   std::cout << w3 << "\n";
 
    return 0;
 }
