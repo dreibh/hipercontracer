@@ -31,6 +31,7 @@
 
 #include "databaseclient-base.h"
 
+#include <boost/asio/ip/address.hpp>
 #include <boost/beast/core/detail/base64.hpp>
 
 

@@ -38,7 +38,15 @@
 #include <boost/algorithm/string.hpp>
 
 
-// MongoDB C driver example:
+// NOTE:
+// This backend uses the C library of MongoDB, instead of the C++ library.
+// The C++ library in Debian, Ubuntu, etc. is *highly* out of date, not working
+// with the latest MongoDB server, and with no progress in getting updated.
+// Depending on including upstream C++ library sources would introduce a
+// security maintenance problem!
+// => Just using the C library, which is working and maintained.
+//
+// MongoDB C driver example code:
 // http://mongoc.org/libmongoc/current/tutorial.html#starting-mongodb
 
 

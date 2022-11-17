@@ -32,14 +32,14 @@
 #ifndef UNIVERSAL_IMPORTER_H
 #define UNIVERSAL_IMPORTER_H
 
+#include "databaseclient-base.h"
+#include "reader-base.h"
+
 #include <boost/asio.hpp>
 
 #ifdef __linux__
 #include <sys/inotify.h>
 #endif
-
-#include "databaseclient-base.h"
-#include "reader-base.h"
 
 
 class Worker;

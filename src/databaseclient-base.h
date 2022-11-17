@@ -35,9 +35,11 @@
 #include <iomanip>
 #include <sstream>
 
-#include <boost/asio/ip/address.hpp>
-
 #include "database-configuration.h"
+
+
+// Forward declarations to avoid dependency on BOOST headers:
+namespace boost::asio::ip { class address; };
 
 
 class Statement : public std::stringstream
