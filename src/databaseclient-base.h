@@ -32,8 +32,10 @@
 #ifndef DATABASECLIENT_BASE_H
 #define DATABASECLIENT_BASE_H
 
-#include <sstream>
 #include <iomanip>
+#include <sstream>
+
+#include <boost/asio/ip/address.hpp>
 
 #include "database-configuration.h"
 
@@ -118,6 +120,21 @@ class Statement : public std::stringstream
       }
    }
 
+   inline std::string quote(const std::string& string) const {
+      assert(InTuple);
+      std::stringstream ss;
+      if(Backend & DatabaseBackendType::SQL_Generic) {
+         ss << std::quoted(string, '\'', '\\');
+      }
+      else if(Backend & DatabaseBackendType::NoSQL_Generic) {
+         ss << std::quoted(string, '"', '\\');
+      }
+      else {
+         assert(false);
+      }
+      return ss.str();
+   }
+
    inline std::string quoteOrNull(const std::string& string) const {
       if(string.size() == 0) {
          if(Backend & DatabaseBackendType::SQL_Generic) {
@@ -133,20 +150,7 @@ class Statement : public std::stringstream
       return quote(string);
    }
 
-   inline std::string quote(const std::string& string) const {
-      assert(InTuple);
-      std::stringstream ss;
-      if(Backend & DatabaseBackendType::SQL_Generic) {
-         ss << std::quoted(string, '\'', '\\');
-      }
-      else if(Backend & DatabaseBackendType::NoSQL_Generic) {
-         ss << std::quoted(string, '"', '\\');
-      }
-      else {
-         assert(false);
-      }
-      return ss.str();
-   }
+   std::string encodeAddress(const boost::asio::ip::address& address) const;
 
    friend std::ostream& operator<<(std::ostream& os, const Statement& statement);
 

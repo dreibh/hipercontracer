@@ -100,8 +100,8 @@ class TracerouteReader : public ReaderImplementation<TracerouteFileEntry>
                                        const std::filesystem::path& dataFile);
    static uint8_t parseTrafficClass(const std::string&           value,
                                     const std::filesystem::path& dataFile);
-   static std::string addressToBytesString(const boost::asio::ip::address& address);
 
+   protected:
    const std::string        Table;
 
    private:

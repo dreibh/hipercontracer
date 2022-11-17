@@ -103,8 +103,8 @@ if queryType == 'ping':
       rows = configuration.queryMongoDB('ping', query)
 
       for row in rows:
-         timeStamp     = round(row['timestamp'].replace(tzinfo=datetime.timezone.utc).timestamp() * 1000000.0)
-         sourceIP      = ipaddress.ip_address(row['source'])
+         timeStamp     = int(row['timestamp'])
+         sourceIP      = ipaddress.ip_address(bytes(row['source']))
          destinationIP = ipaddress.ip_address(row['destination'])
          checksum      = int(row['checksum'])
          packetSize    = int(row['pktsize'])

@@ -31,6 +31,8 @@
 
 #include "databaseclient-base.h"
 
+#include <boost/beast/core/detail/base64.hpp>
+
 
 // ###### Constructor #######################################################
 Statement::Statement(const DatabaseBackendType backend)
@@ -44,6 +46,41 @@ Statement::Statement(const DatabaseBackendType backend)
 // ###### Destructor ########################################################
 Statement::~Statement()
 {
+}
+
+
+// ###### Encode IP address #################################################
+std::string Statement::encodeAddress(const boost::asio::ip::address& address) const
+{
+   std::stringstream ss;
+
+   if(Backend & DatabaseBackendType::SQL_Generic) {
+      if( (Backend & DatabaseBackendType::SQL_MariaDB) == DatabaseBackendType::SQL_MariaDB ) {
+         // MySQL/MariaDB only has INET6 datatype. Make IPv4 addresses mapped.
+         ss << std::quoted(boost::asio::ip::make_address_v6(boost::asio::ip::v4_mapped, address.to_v4()).to_string(), '\'', '\\');
+      }
+      else {
+         ss << std::quoted(address.to_string(), '\'', '\\');
+      }
+   }
+   else if(Backend & DatabaseBackendType::NoSQL_Generic) {
+      char   encoded[boost::beast::detail::base64::encoded_size(16)];
+      size_t length;
+      if(address.is_v4()) {
+         const boost::asio::ip::address_v4::bytes_type& b = address.to_v4().to_bytes();
+         length = boost::beast::detail::base64::encode(&encoded, (void*)&b, 4);
+      }
+      else {
+         const boost::asio::ip::address_v6::bytes_type& b = address.to_v6().to_bytes();
+         length = boost::beast::detail::base64::encode(&encoded, (void*)&b, 16);
+      }
+      ss << "{\"$type\":\"0\",\"$binary\":\"" << std::string(encoded, length) << "\"}";
+   }
+   else {
+      assert(false);
+   }
+
+   return ss.str();
 }
 
 

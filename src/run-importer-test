@@ -18,10 +18,10 @@ rm -rf good/*
 rm -rf bad/*
 cp examples/*.bz2 data/
 
-make trace-importer
-rm -f core
+make trace-importer && \
+rm -f core &&  \
 ./trace-importer \
    -c "${CONFIGURATION_FILE}" \
-   --traceroute-workers 1 \
+   --traceroute-workers 0 \
    --ping-workers 1 \
    --loglevel 1

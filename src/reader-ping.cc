@@ -174,8 +174,8 @@ void PingReader::parseContents(
             statement.beginRow();
             statement
                << statement.quote(timePointToString<ReaderTimePoint>(timeStamp, 6)) << statement.sep()
-               << statement.quote(sourceIP.to_string())                             << statement.sep()
-               << statement.quote(destinationIP.to_string())                        << statement.sep()
+               << statement.encodeAddress(sourceIP)                                 << statement.sep()
+               << statement.encodeAddress(destinationIP)                             << statement.sep()
                << checksum                   << statement.sep()
                << packetSize                 << statement.sep()
                << (unsigned int)trafficClass << statement.sep()
@@ -187,13 +187,13 @@ void PingReader::parseContents(
          else if(backend & DatabaseBackendType::NoSQL_Generic) {
             statement.beginRow();
             statement
-               << "\"timestamp\": "   << timePointToMicroseconds<ReaderTimePoint>(timeStamp)  << statement.sep()
-               << "\"source\": "      << statement.quote(addressToBytesString(sourceIP))      << statement.sep()
-               << "\"destination\": " << statement.quote(addressToBytesString(destinationIP)) << statement.sep()
-               << "\"checksum\": "    << checksum                                             << statement.sep()
-               << "\"pktsize\": "     << packetSize                                           << statement.sep()
-               << "\"tc\": "          << (unsigned int)trafficClass                           << statement.sep()
-               << "\"status\": "      << status                                               << statement.sep()
+               << "\"timestamp\": "   << timePointToMicroseconds<ReaderTimePoint>(timeStamp) << statement.sep()
+               << "\"source\": "      << statement.encodeAddress(sourceIP)                   << statement.sep()
+               << "\"destination\": " << statement.encodeAddress(destinationIP)              << statement.sep()
+               << "\"checksum\": "    << checksum                                            << statement.sep()
+               << "\"pktsize\": "     << packetSize                                          << statement.sep()
+               << "\"tc\": "          << (unsigned int)trafficClass                          << statement.sep()
+               << "\"status\": "      << status                                              << statement.sep()
                << "\"rtt\": "         << rtt;
             statement.endRow();
             rows++;

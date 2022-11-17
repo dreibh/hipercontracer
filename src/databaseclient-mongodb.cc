@@ -136,12 +136,19 @@ void MongoDBClient::endTransaction(const bool commit)
 void MongoDBClient::executeUpdate(Statement& statement)
 {
    assert(statement.isValid());
+   printf("S: %s\n", statement.str().c_str());
 
    // ====== Prepare BSON ===================================================
    bson_error_t error;
    bson_t       bson;
    if(!bson_init_from_json(&bson, statement.str().c_str(), -1, &error)) {
-      throw ImporterDatabaseDataErrorException(std::string("Data error: ") + error.message);
+      const std::string errorMessage = std::string("Data error ") +
+                                          std::to_string(error.domain) + "." +
+                                          std::to_string(error.code) +
+                                          ": " + error.message;
+      printf("ERROR: <%s>\n", errorMessage.c_str());
+    abort();
+      throw ImporterDatabaseDataErrorException(errorMessage);
    }
 /*
    char* json;

@@ -21,19 +21,20 @@ template<typename ReaderTimePoint> ReaderTimePoint makeMin(const ReaderTimePoint
 }
 
 
-inline int64_t toLL(const uint64_t value)
+std::string encodeBinary(const std::string& str)
 {
-   return (int64_t)value;
-}
-
-
-inline uint64_t toUnsignedLL(const int64_t value)
-{
-   boost::multiprecision::cpp_int x = value;
-   if(x < 0) {
-      x = boost::multiprecision::int128_t(0xffffffffffffffffULL) + 1 - abs(x);   // 2^64 - abs(x)
+   std::stringstream ss;
+   ss << "\"";
+   for(unsigned char c : str) {
+      if(isprint(c)) {
+         ss << c;
+      }
+      else {
+         ss << "\\x" <<std::setw(2) << std::setfill('0') << std::hex << (unsigned int)c;
+      }
    }
-   return (uint64_t)x;
+   ss << "\"";
+   return ss.str();
 }
 
 
@@ -136,6 +137,13 @@ int main()
    std::cout << x3 << "\t" << toLL(x3) << "\t" << toUnsignedLL(toLL(x3)) << "\n";
    std::cout << x4 << "\t" << toLL(x4) << "\t" << toUnsignedLL(toLL(x4)) << "\n";
    std::cout << x5 << "\t" << toLL(x5) << "\t" << toUnsignedLL(toLL(x5)) << "\n";
+
+   char s[] = "TEST....!!!!";
+   s[4] = 0x01;
+   s[5] = 0x08;
+   s[6] = 0x7f;
+   s[7] = 0xf0;
+   std::cout << "Test=" << encodeBinary(s) << "\n";
 
    return 0;
 }

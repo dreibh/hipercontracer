@@ -160,12 +160,6 @@ boost::asio::ip::address TracerouteReader::parseAddress(const std::string&      
                                                         const std::filesystem::path& dataFile)
 {
    const boost::asio::ip::address address = boost::asio::ip::make_address(value);
-   if( (backend & DatabaseBackendType::SQL_MariaDB) == DatabaseBackendType::SQL_MariaDB ) {
-      if(address.is_v4()) {
-         // MySQL/MariaDB only has INET6 datatype. Make IPv4 addresses mapped.
-         return boost::asio::ip::make_address_v6(boost::asio::ip::v4_mapped, address.to_v4());
-      }
-   }
    return address;
 }
 
@@ -306,26 +300,6 @@ uint8_t TracerouteReader::parseTrafficClass(const std::string&           value,
       throw ImporterReaderDataErrorException("Invalid traffic class value " + value);
    }
    return (uint8_t)trafficClass;
-}
-
-
-// ###### Convert IP address into bytes string format #######################
-std::string TracerouteReader::addressToBytesString(const boost::asio::ip::address& address)
-{
-   std::stringstream byteString;
-   if(address.is_v4()) {
-      const boost::asio::ip::address_v4::bytes_type b = address.to_v4().to_bytes();
-      for(unsigned int i = 0; i < 4; i++) {
-         byteString << "\\x" << std::hex << (unsigned int)b[i];
-      }
-   }
-   else {
-      const boost::asio::ip::address_v6::bytes_type b = address.to_v6().to_bytes();
-      for(unsigned int i = 0; i < 16; i++) {
-         byteString << "\\x" << std::hex << (unsigned int)b[i];
-      }
-   }
-   return byteString.str();
 }
 
 
