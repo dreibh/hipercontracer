@@ -37,8 +37,8 @@
 #include <boost/asio.hpp>
 
 
-const std::string PingReader::Identification = "Ping";
-const std::regex  PingReader::FileNameRegExp = std::regex(
+const std::string PingReader::Identification("Ping");
+const std::regex  PingReader::FileNameRegExp(
    // Format: Ping-P<ProcessID>-<Source>-<YYYYMMDD>T<Seconds.Microseconds>-<Sequence>.results.bz2
    "^Ping-P([0-9]+)-([0-9a-f:\\.]+)-([0-9]{8}T[0-9]+\\.[0-9]{6})-([0-9]*)\\.results.*$"
 );
@@ -76,7 +76,7 @@ void PingReader::beginParsing(DatabaseClientBase& databaseClient,
          << " (TimeStamp,FromIP,ToIP,Checksum,PktSize,TC,Status,RTT) VALUES";
    }
    else if(backend & DatabaseBackendType::NoSQL_Generic) {
-      statement << "[";
+      statement << "{ \"" << Table <<  "\": [";
    }
    else {
       throw ImporterLogicException("Unknown output format");
@@ -104,7 +104,7 @@ bool PingReader::finishParsing(DatabaseClientBase& databaseClient,
       }
       else if(backend & DatabaseBackendType::NoSQL_Generic) {
          if(rows > 0) {
-            statement << "\n]";
+            statement << " \n] }";
             databaseClient.executeUpdate(statement);
          }
          else {
@@ -187,14 +187,14 @@ void PingReader::parseContents(
          else if(backend & DatabaseBackendType::NoSQL_Generic) {
             statement.beginRow();
             statement
-               << "'timestamp': "   << timePointToMicroseconds<ReaderTimePoint>(timeStamp)  << statement.sep()
-               << "'source': "      << statement.quote(addressToBytesString(sourceIP))      << statement.sep()
-               << "'destination': " << statement.quote(addressToBytesString(destinationIP)) << statement.sep()
-               << "'checksum': "    << checksum                                             << statement.sep()
-               << "'pktsize': "     << packetSize                                           << statement.sep()
-               << "'tc': "          << (unsigned int)trafficClass                           << statement.sep()
-               << "'status': "      << status                                               << statement.sep()
-               << "'rtt': "         << rtt;
+               << "\"timestamp\": "   << timePointToMicroseconds<ReaderTimePoint>(timeStamp)  << statement.sep()
+               << "\"source\": "      << statement.quote(addressToBytesString(sourceIP))      << statement.sep()
+               << "\"destination\": " << statement.quote(addressToBytesString(destinationIP)) << statement.sep()
+               << "\"checksum\": "    << checksum                                             << statement.sep()
+               << "\"pktsize\": "     << packetSize                                           << statement.sep()
+               << "\"tc\": "          << (unsigned int)trafficClass                           << statement.sep()
+               << "\"status\": "      << status                                               << statement.sep()
+               << "\"rtt\": "         << rtt;
             statement.endRow();
             rows++;
          }

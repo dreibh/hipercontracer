@@ -35,8 +35,8 @@
 #include "tools.h"
 
 
-const std::string TracerouteReader::Identification = "Traceroute";
-const std::regex  TracerouteReader::FileNameRegExp = std::regex(
+const std::string TracerouteReader::Identification("Traceroute");
+const std::regex  TracerouteReader::FileNameRegExp(
    // Format: Traceroute-P<ProcessID>-<Source>-<YYYYMMDD>T<Seconds.Microseconds>-<Sequence>.results.bz2
    "^Traceroute-P([0-9]+)-([0-9a-f:\\.]+)-([0-9]{8}T[0-9]+\\.[0-9]{6})-([0-9]*)\\.results.*$"
 );
