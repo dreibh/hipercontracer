@@ -90,6 +90,21 @@ class Statement : public std::stringstream
       }
    }
 
+   inline void endRow() {
+      assert(InTuple);
+      InTuple = false;
+      Rows++;
+      if(Backend & DatabaseBackendType::SQL_Generic) {
+         *this << ")";
+      }
+      else if(Backend & DatabaseBackendType::NoSQL_Generic) {
+         *this << "}";
+      }
+      else {
+         assert(false);
+      }
+   }
+
    inline const char* sep() const {
       assert(InTuple);
       if(Backend & DatabaseBackendType::SQL_Generic) {
@@ -131,21 +146,6 @@ class Statement : public std::stringstream
          assert(false);
       }
       return ss.str();
-   }
-
-   inline void endRow() {
-      assert(InTuple);
-      InTuple = false;
-      Rows++;
-      if(Backend & DatabaseBackendType::SQL_Generic) {
-         *this << ")";
-      }
-      else if(Backend & DatabaseBackendType::NoSQL_Generic) {
-         *this << "}";
-      }
-      else {
-         assert(false);
-      }
    }
 
    friend std::ostream& operator<<(std::ostream& os, const Statement& statement);
