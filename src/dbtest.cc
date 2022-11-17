@@ -6,7 +6,7 @@
 #include <cppconn/prepared_statement.h>
 
 
-void prepareTable(MariaDBClient& client)
+void prepareTable(DatabaseClientBase& client)
 {
    client.executeUpdate("DROP TABLE IF EXISTS test1");
    client.commit();
@@ -80,13 +80,13 @@ int main(int argc, char** argv)
 
    printf("Test 2\n");
    s = std::chrono::high_resolution_clock::now();
-   std::string statement = "INSERT INTO test1 VALUES ";
+   Statement statement(DatabaseBackendType::SQL_MariaDB);
+   statement << "INSERT INTO test1 VALUES ";
    for(unsigned int i = 0; i < items; i++) {
       if(i > 0) {
-         statement = statement + ",";
+         statement << ",";
       }
-      statement = statement +
-         "(" + std::to_string(i) + ", 'Test #" + std::to_string(i) + "')";
+      statement << "(" + std::to_string(i) + ", 'Test #" + std::to_string(i) + "')";
    }
    client.executeUpdate(statement);
    client.commit();
@@ -101,8 +101,7 @@ int main(int argc, char** argv)
    printf("Test 1\n");
    s = std::chrono::high_resolution_clock::now();
    for(unsigned int i = 0; i < items; i++) {
-      const std::string statement =
-         "INSERT INTO test1 VALUES (" + std::to_string(i) + ", 'Test #" + std::to_string(i) + "')";
+      statement << "INSERT INTO test1 VALUES (" + std::to_string(i) + ", 'Test #" + std::to_string(i) + "')";
       client.executeUpdate(statement);
    }
    client.commit();

@@ -181,6 +181,9 @@ class DatabaseClientBase
    inline void commit()   { endTransaction(true);  }
    inline void rollback() { endTransaction(false); }
 
+   inline void executeUpdate(const char* statement) {
+      executeUpdate(std::string(statement));
+   }
    inline void executeUpdate(const std::string& statement) {
       Statement s(Configuration.getBackend());
       s << statement;
