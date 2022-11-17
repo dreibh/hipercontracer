@@ -50,7 +50,7 @@ class PostgreSQLClient : public DatabaseClientBase
    virtual void reconnect();
 
    virtual void startTransaction();
-   virtual void executeUpdate(const std::string& statement);
+   virtual void executeUpdate(Statement& statement);
    virtual void endTransaction(const bool commit);
 
    inline pqxx::lazyconnection* getConnection() { return Connection; }

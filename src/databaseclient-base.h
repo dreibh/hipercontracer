@@ -169,16 +169,16 @@ class DatabaseClientBase
    virtual void reconnect() = 0;
 
    virtual void startTransaction() = 0;
-   virtual void executeUpdate(const std::string& statement) = 0;
+   virtual void executeUpdate(Statement& statement) = 0;
    virtual void endTransaction(const bool commit) = 0;
 
    inline void commit()   { endTransaction(true);  }
    inline void rollback() { endTransaction(false); }
 
-   inline void executeUpdate(Statement& statement) {
-      assert(statement.isValid());
-      executeUpdate(statement.str());
-      statement.clear();
+   inline void executeUpdate(const std::string& statement) {
+      Statement s(Configuration.getBackend());
+      s << statement;
+      executeUpdate(s);
    }
 
    Statement& getStatement(const std::string& name,

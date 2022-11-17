@@ -18,14 +18,16 @@ CONFIGURATION_FILE="$1"
 for type in Traceroute Ping ; do
 
    echo "Obtaining ${type} data from good/ directory ..."
-   find good/ -name "${type}-*.bz2" | sort | xargs bzcat | tee imported-raw-${type,,}.txt | grep "^#" | sort -k4 >imported-${type,,}.txt
+   find good/ -name "${type}-*.bz2" | sort | xargs -r bzcat | tee imported-raw-${type,,}.txt | grep "^#" | sort -k4 >imported-${type,,}.txt
 
    echo "Querying ${type} data from database ..."
    ./query "${CONFIGURATION_FILE}" ${type,,} | tee queried-raw-${type,,}.txt | grep "^#" | sort -k4 >queried-${type,,}.txt
 
    echo "Differences for ${type}:"
-   ls -l imported-raw-${type,,}.txt
-   ls -l queried-raw-${type,,}.txt
+   if [ "${type}" == "Traceroute" ] ; then
+      ls -l imported-raw-${type,,}.txt
+      ls -l queried-raw-${type,,}.txt
+   fi
    colordiff imported-${type,,}.txt queried-${type,,}.txt
 
 done

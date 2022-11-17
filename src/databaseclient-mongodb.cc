@@ -127,9 +127,11 @@ void MongoDBClient::endTransaction(const bool commit)
 
 
 // ###### Execute statement #################################################
-void MongoDBClient::executeUpdate(const std::string& statement)
+void MongoDBClient::executeUpdate(Statement& statement)
 {
-   printf("=> %s\n", statement.c_str());
+   assert(statement.isValid());
+
+   printf("=> %s\n", statement.str().c_str());
    puts("");
    fflush(stdout);
 
@@ -201,4 +203,6 @@ void MongoDBClient::executeUpdate(const std::string& statement)
    }
 
    abort();
+
+   statement.clear();
 }

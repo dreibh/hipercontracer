@@ -100,7 +100,9 @@ void DebugClient::endTransaction(const bool commit)
 
 
 // ###### Execute statement #################################################
-void DebugClient::executeUpdate(const std::string& statement)
+void DebugClient::executeUpdate(Statement& statement)
 {
+   assert(statement.isValid());
    std::cout << statement << std::endl;
+   statement.clear();
 }

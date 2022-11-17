@@ -50,7 +50,7 @@ class MongoDBClient : public DatabaseClientBase
    virtual void reconnect();
 
    virtual void startTransaction();
-   virtual void executeUpdate(const std::string& statement);
+   virtual void executeUpdate(Statement& statement);
    virtual void endTransaction(const bool commit);
 
    inline mongoc_client_t* getConnection() { return Connection; }

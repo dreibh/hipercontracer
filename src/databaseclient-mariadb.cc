@@ -180,12 +180,16 @@ void MariaDBClient::endTransaction(const bool commit)
 
 
 // ###### Execute statement #################################################
-void MariaDBClient::executeUpdate(const std::string& statement)
+void MariaDBClient::executeUpdate(Statement& statement)
 {
+   assert(statement.isValid());
+
    try {
-      Transaction->executeUpdate(statement);
+      Transaction->executeUpdate(statement.str());
    }
    catch(const sql::SQLException& exception) {
-      handleDatabaseException(exception, "Execute", statement);
+      handleDatabaseException(exception, "Execute", statement.str());
    }
+
+   statement.clear();
 }

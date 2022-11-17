@@ -179,14 +179,17 @@ void PostgreSQLClient::endTransaction(const bool commit)
 
 
 // ###### Execute statement #################################################
-void PostgreSQLClient::executeUpdate(const std::string& statement)
+void PostgreSQLClient::executeUpdate(Statement& statement)
 {
+   assert(statement.isValid());
    assert(Transaction != nullptr);
 
    try {
-      Transaction->exec(statement);
+      Transaction->exec(statement.str());
    }
    catch(const pqxx::pqxx_exception& exception) {
-      handleDatabaseException(exception, "Execute", statement);
+      handleDatabaseException(exception, "Execute", statement.str());
    }
+
+   statement.clear();
 }
