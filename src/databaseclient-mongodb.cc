@@ -35,6 +35,8 @@
 
 #include <vector>
 
+#include <boost/algorithm/string.hpp>
+
 
 // MongoDB C driver example:
 // http://mongoc.org/libmongoc/current/tutorial.html#starting-mongodb
@@ -97,6 +99,8 @@ bool MongoDBClient::open()
       HPCT_LOG(error) << "Connection to MongoDB " << url << " failed: " << error.message;
       return false;
    }
+   bson_destroy(&reply);
+   bson_destroy(command);
 
    return true;
 }
@@ -127,82 +131,104 @@ void MongoDBClient::endTransaction(const bool commit)
 
 
 // ###### Execute statement #################################################
+// Expected input format of the statement:
+// JSON object 'collection_name': [ item1, item2, ..., itemN ]
 void MongoDBClient::executeUpdate(Statement& statement)
 {
    assert(statement.isValid());
 
-   printf("=> %s\n", statement.str().c_str());
-   puts("");
-   fflush(stdout);
-
    // ====== Prepare BSON ===================================================
    bson_error_t error;
    bson_t       bson;
-   if(!bson_init_from_json(&bson, "[ { \"test\": 1 }, { \"test\": 2 } ]", -1, &error)) {
+   if(!bson_init_from_json(&bson, statement.str().c_str(), -1, &error)) {
       throw ImporterDatabaseDataErrorException(std::string("Data error: ") + error.message);
    }
-
-
+/*
    char* json;
    if((json = bson_as_canonical_extended_json(&bson, nullptr))) {
       printf ("%s\n", json);
       bson_free(json);
    }
+*/
+
+   // ====== Find collection ================================================
+   bson_iter_t iterator;
+   bson_t      rowsToInsert;
+   const char* key;
+   std::string collectionName;
+   if( (bson_iter_init(&iterator, &bson)) &&
+       (bson_iter_next(&iterator)) &&
+       ( (key = bson_iter_key(&iterator)) != nullptr ) &&
+       (bson_iter_type(&iterator) == BSON_TYPE_ARRAY) ) {
+      collectionName = boost::to_lower_copy<std::string>(key);
+      uint32_t       len;
+      const uint8_t* data;
+      bson_iter_array(&iterator, &len, &data);
+      assert(bson_init_static(&rowsToInsert, data, len));
+      assert(!bson_iter_next(&iterator));   // Only one collection is supported!
+   }
+   else {
+      throw ImporterDatabaseDataErrorException("Data error: Unexpected format (not collection -> [ ... ])");
+   }
 
 
    // ====== Split BSON into rows ===========================================
-   std::vector<_bson_t> objectVector;
-   objectVector.reserve(65536);   // FIXME! statement->rows()
-
-   bson_iter_t iterator;
-   if(bson_iter_init(&iterator, &bson)) {
+   std::vector<_bson_t> documentVector(statement.getRows());
+   if(bson_iter_init(&iterator, &rowsToInsert)) {
+      unsigned int i = 0;
       while(bson_iter_next(&iterator)) {
-         puts("--");
-         printf("T=%d\n", bson_iter_type(&iterator));   // 3 = BSON_TYPE_DOCUMENT
-
-
          if(bson_iter_type(&iterator) == BSON_TYPE_DOCUMENT) {
             // http://mongoc.org/libbson/current/bson_iter_t.html
             // https://github.com/mongodb/libbson/blob/master/src/bson/bson-iter.c
-            bson_t         sub;
+            _bson_t        sub;
             uint32_t       len;
             const uint8_t* data;
             bson_iter_document(&iterator, &len, &data);
-            if(bson_init_static (&sub, data, len)) {
-               objectVector.push_back(sub);
-            }
+            assert(i < statement.getRows());
+            assert(bson_init_static(&sub, data, len));
+            documentVector[i++] = sub;
          }
          else {
-            throw ImporterDatabaseDataErrorException("Data error: Unexpected format");
+            throw ImporterDatabaseDataErrorException("Data error: Unexpected format (not list of documents)");
          }
       }
    }
-   if(objectVector.size() == 0) {
-      // No array of documents, just a single document
-      objectVector.push_back(bson);
-   }
+   assert(documentVector.size() == statement.getRows());
 
-   for(bson_t sub : objectVector) {
-      if((json = bson_as_canonical_extended_json(&sub, nullptr))) {
-         printf ("%s\n", json);
-         bson_free(json);
-      }
+
+   // ====== Get pointer to each row ========================================
+   bson_t* documentPtrArray[statement.getRows()];
+   unsigned int i = 0;
+   for(bson_t sub : documentVector) {
+      documentPtrArray[i++] = &sub;
    }
+   assert(i == statement.getRows());
 
 
    // ====== Insert rows ====================================================
-   mongoc_collection_t* collection = mongoc_client_get_collection(Connection, Configuration.getDatabase().c_str(), "xxxx");
+   mongoc_collection_t* collection =
+      mongoc_client_get_collection(Connection,
+                                   Configuration.getDatabase().c_str(),
+                                   collectionName.c_str());
    assert(collection != nullptr);
-
-   bool success = mongoc_collection_insert_one(collection, &bson, nullptr, nullptr, &error);
-
+   bool success = mongoc_collection_insert_many(collection,
+                                                (const bson_t**)&documentPtrArray,
+                                                statement.getRows(),
+                                                nullptr, nullptr, &error);
    mongoc_collection_destroy(collection);
    bson_destroy(&bson);
    if(!success) {
-      throw ImporterDatabaseException(std::string("Insert error: ") +  error.message);
+      const std::string errorMessage = std::string("Insert error ") +
+                                          std::to_string(error.domain) + "." +
+                                          std::to_string(error.code) +
+                                          ": " + error.message;
+      if(error.domain == 12) {
+         throw ImporterDatabaseDataErrorException(errorMessage);
+      }
+      else {
+         throw ImporterDatabaseException(errorMessage);
+      }
    }
-
-   abort();
 
    statement.clear();
 }
