@@ -91,10 +91,10 @@ int main(int argc, char** argv)
       ("import-file-path-filter,F",  boost::program_options::value<std::string>(&importFilePathFilter),               "Import path filter (regular expression)")
 
       ( "ping-workers,P",
-           boost::program_options::value<unsigned int>(&pingWorkers)->default_value(1),
+           boost::program_options::value<unsigned int>(&pingWorkers)->default_value(4),
            "Number of Ping import worker threads" )
       ( "ping-files,p",
-           boost::program_options::value<unsigned int>(&pingTransactionSize)->default_value(4),
+           boost::program_options::value<unsigned int>(&pingTransactionSize)->default_value(512),
            "Number of Ping files per transaction" )
       ( "speedtest-workers,S",
            boost::program_options::value<unsigned int>(&speedTestWorkers)->default_value(1),
@@ -103,10 +103,10 @@ int main(int argc, char** argv)
            boost::program_options::value<unsigned int>(&speedTestTransactionSize)->default_value(1),
            "Number of SpeedTest files per transaction" )
       ( "metadata-workers,M",
-           boost::program_options::value<unsigned int>(&metadataWorkers)->default_value(1),
+           boost::program_options::value<unsigned int>(&metadataWorkers)->default_value(4),
            "Number of Metadata import worker threads" )
       ( "metadata-files,m",
-           boost::program_options::value<unsigned int>(&metadataTransactionSize)->default_value(256),
+           boost::program_options::value<unsigned int>(&metadataTransactionSize)->default_value(4096),
            "Number of Metadata files per transaction" )
    ;
 
