@@ -36,42 +36,63 @@
 
 
 // ###### Constructor #######################################################
-DatabaseClientBase::DatabaseClientBase(const DatabaseConfiguration& configuration)
-   : Configuration(configuration)
+Statement::Statement(const DatabaseBackendType backend)
+   : Backend(backend)
 {
+   Rows    = 0;
+   InTuple = false;
 }
 
 
 // ###### Destructor ########################################################
-DatabaseClientBase::~DatabaseClientBase()
+Statement::~Statement()
 {
-   std::map<std::string, Statement*>::iterator iterator = StatementMap.begin();
-   while(iterator != StatementMap.end()) {
-      delete iterator->second;
-      StatementMap.erase(iterator);
-      iterator = StatementMap.begin();
-   }
 }
 
 
-// ###### Get or create new statement #######################################
-Statement& DatabaseClientBase::getStatement(const std::string& name,
-                                            const bool         mustExist,
-                                            const bool         clearStatement)
+// ###### Encode IP address #################################################
+std::string Statement::encodeAddress(const boost::asio::ip::address& address) const
 {
-   Statement* statement;
-   std::map<std::string, Statement*>::iterator found = StatementMap.find(name);
-   if(found == StatementMap.end()) {
-      assert(mustExist == false);
-      statement = new Statement(getBackend());
-      assert(statement != nullptr);
-      StatementMap.insert(std::pair<std::string, Statement*>(name, statement));
-   }
-   else {
-      statement = found->second;
-      if(clearStatement) {
-         statement->clear();
+   std::stringstream ss;
+
+   if(Backend & DatabaseBackendType::SQL_Generic) {
+      if( (Backend & DatabaseBackendType::SQL_MariaDB) == DatabaseBackendType::SQL_MariaDB ) {
+         // MySQL/MariaDB only has INET6 datatype. Make IPv4 addresses mapped.
+         ss << std::quoted(boost::asio::ip::make_address_v6(boost::asio::ip::v4_mapped, address.to_v4()).to_string(), '\'', '\\');
+      }
+      else {
+         ss << std::quoted(address.to_string(), '\'', '\\');
       }
    }
-   return *statement;
+   else if(Backend & DatabaseBackendType::NoSQL_Generic) {
+      char   encoded[boost::beast::detail::base64::encoded_size(16)];
+      size_t length;
+      if(address.is_v4()) {
+         const boost::asio::ip::address_v4::bytes_type& b = address.to_v4().to_bytes();
+         length = boost::beast::detail::base64::encode(&encoded, (void*)&b, 4);
+      }
+      else {
+         const boost::asio::ip::address_v6::bytes_type& b = address.to_v6().to_bytes();
+         length = boost::beast::detail::base64::encode(&encoded, (void*)&b, 16);
+      }
+      ss << "{\"$type\":\"0\",\"$binary\":\"" << std::string(encoded, length) << "\"}";
+   }
+   else {
+      assert(false);
+   }
+
+   return ss.str();
+}
+
+
+// ###### << operator #######################################################
+std::ostream& operator<<(std::ostream& os, const Statement& statement)
+{
+   if(statement.isEmpty()) {
+      os << "(empty)";
+   }
+   else {
+      os << statement.str();
+   }
+   return os;
 }

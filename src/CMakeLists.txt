@@ -89,6 +89,7 @@ LIST(APPEND libuniversalimporter_sources
    logger.cc
    tools.cc
    database-configuration.cc
+   database-statement.cc
    databaseclient-base.cc
    databaseclient-debug.cc
    databaseclient-mariadb.cc

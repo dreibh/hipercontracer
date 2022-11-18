@@ -109,21 +109,21 @@ class DatabaseConfiguration
 
    static std::list<RegisteredBackend*>*       BackendList;
    boost::program_options::options_description OptionsDescription;
-   std::string           BackendName;
-   DatabaseBackendType   Backend;
-   unsigned int          ReconnectDelay;
-   std::string           Server;
-   uint16_t              Port;
-   std::string           User;
-   std::string           Password;
-   std::string           CAFile;
-   std::string           Database;
-   std::string           ImportModeName;
-   ImportModeType        ImportMode;
-   unsigned int          ImportMaxDepth;
-   std::filesystem::path ImportFilePath;
-   std::filesystem::path BadFilePath;
-   std::filesystem::path GoodFilePath;
+   std::string                                 BackendName;
+   DatabaseBackendType                         Backend;
+   unsigned int                                ReconnectDelay;
+   std::string                                 Server;
+   uint16_t                                    Port;
+   std::string                                 User;
+   std::string                                 Password;
+   std::string                                 CAFile;
+   std::string                                 Database;
+   std::string                                 ImportModeName;
+   ImportModeType                              ImportMode;
+   unsigned int                                ImportMaxDepth;
+   std::filesystem::path                       ImportFilePath;
+   std::filesystem::path                       BadFilePath;
+   std::filesystem::path                       GoodFilePath;
 };
 
 
