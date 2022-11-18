@@ -187,32 +187,32 @@ ADD_DEFINITIONS(-DBOOST_ALL_DYN_LINK)   # <<-- Required to handle BOOST Log link
 # ###### C-ARES #############################################################
 FIND_LIBRARY(CARES_LIBRARY NAMES cares libcares REQUIRED)
 IF (NOT CARES_LIBRARY)
-   MESSAGE(FATAL_ERROR "Cannot find C-ARES library. Ubuntu/Debian: libc-ares-dev, Fedora: ???.")
+   MESSAGE(FATAL_ERROR "Cannot find C-ARES library. Ubuntu/Debian: libc-ares-dev, Fedora: c-ares-devel.")
 ENDIF()
 
 # ###### Database client libraries ##########################################
 FIND_LIBRARY(MYSQLCPPCONN_LIBRARY NAMES mysqlcppconn REQUIRED)
 FIND_PATH(MYSQLCPPCONN_INCLUDE_DIR NAMES driver.h PATH_SUFFIXES cppconn)
 IF ((NOT MYSQLCPPCONN_INCLUDE_DIR) OR (NOT MYSQLCPPCONN_LIBRARY))
-   MESSAGE(FATAL_ERROR "Cannot find MySQL/MariaDB C++ client library. Ubuntu/Debian: libmysqlcppconn-dev, Fedora: ???.")
+   MESSAGE(FATAL_ERROR "Cannot find MySQL/MariaDB C++ client library. Ubuntu/Debian: libmysqlcppconn-dev, Fedora: mysql-connector-c++-devel (from PPA).")
 ENDIF()
 
 FIND_LIBRARY(LIBPQXX_LIBRARY NAMES pqxx REQUIRED)
 FIND_PATH(LIBPQXX_INCLUDE_DIR NAMES pqxx PATH_SUFFIXES pqxx)
 IF ((NOT LIBPQXX_INCLUDE_DIR) OR (NOT LIBPQXX_LIBRARY))
-   MESSAGE(FATAL_ERROR "Cannot find PostgreSQL C++ client library. Ubuntu/Debian: libpqxx-dev, Fedora: ???.")
+   MESSAGE(FATAL_ERROR "Cannot find PostgreSQL C++ client library. Ubuntu/Debian: libpqxx-dev, Fedora: libpqxx-devel.")
 ENDIF()
 
 FIND_LIBRARY(LIBMONGOC_LIBRARY  NAMES mongoc-1.0)
 FIND_PATH(LIBMONGOC_INCLUDE_DIR NAMES mongoc.h PATH_SUFFIXES libmongoc-1.0)
 IF ((NOT LIBMONGOC_INCLUDE_DIR) OR (NOT LIBMONGOC_LIBRARY))
-   MESSAGE(FATAL_ERROR "Cannot find MongoDB C client library. Ubuntu/Debian: libmongoc-dev, Fedora: ???.")
+   MESSAGE(FATAL_ERROR "Cannot find MongoDB C client library. Ubuntu/Debian: libmongoc-dev, Fedora: libmongo-client-devel.")
 ENDIF()
 
 FIND_LIBRARY(LIBBSON_LIBRARY  NAMES bson-1.0)
 FIND_PATH(LIBBSON_INCLUDE_DIR NAMES bson.h PATH_SUFFIXES libbson-1.0)
 IF ((NOT LIBBSON_INCLUDE_DIR) OR (NOT LIBBSON_LIBRARY))
-   MESSAGE(FATAL_ERROR "Cannot find MongoDB C client library. Ubuntu/Debian: libbson-dev, Fedora: ???.")
+   MESSAGE(FATAL_ERROR "Cannot find MongoDB C client library. Ubuntu/Debian: libbson-dev, Fedora: libbson-devel.")
 ENDIF()
 
 
