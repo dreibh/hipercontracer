@@ -3,8 +3,8 @@ Section: net
 Priority: optional
 Maintainer: Thomas Dreibholz <dreibh@iem.uni-due.de>
 Homepage: https://www.uni-due.de/~be0001/hipercontracer/
-Build-Depends: cmake (>= 3.0.2) | cmake3,
-               debhelper (>= 9),
+Build-Depends: cmake (>= 3.10),
+               debhelper (>= 12),
                libboost-date-time-dev,
                libboost-filesystem-dev,
                libboost-iostreams-dev,
@@ -28,8 +28,9 @@ Depends: ${misc:Depends},
          ${shlibs:Depends}
 Description: API library of HiPerConTracer
  High-Performance Connectivity Tracer (HiPerConTracer) is a
- ping/traceroute service. It performs regular ping and traceroute runs
- among sites and can export the results into an SQL or Non-SQL database.
+ Ping/Traceroute service. It performs regular Ping and Traceroute runs
+ among sites. The results are written to data files, which can be
+ imported into an SQL or Non-SQL database.
  .
  The HiPerConTracer library is provided by this package.
 
@@ -46,18 +47,55 @@ Depends: libboost-date-time-dev,
          ${misc:Depends}
 Description: Development files for HiPerConTracer API library
  High-Performance Connectivity Tracer (HiPerConTracer) is a
- ping/traceroute service. It performs regular ping and traceroute runs
- among sites and can export the results into an SQL or Non-SQL database.
+ Ping/Traceroute service. It performs regular Ping and Traceroute runs
+ among sites. The results are written to data files, which can be
+ imported into an SQL or Non-SQL database.
  .
  This package provides header files for the HiPerConTracer library. You need
  them to integrate HiPerConTracer into own programs.
+
+Package: libuniversalimporter1
+Section: libs
+Architecture: any
+Depends: ${misc:Depends},
+         ${shlibs:Depends}
+Description: API library of HiPerConTracer Universal Importer
+ High-Performance Connectivity Tracer (HiPerConTracer) is a
+ Ping/Traceroute service. It performs regular Ping and Traceroute runs
+ among sites. The results are written to data files, which can be
+ imported into an SQL or Non-SQL database.
+ .
+ The HiPerConTracer Universal Importer library is provided by this
+ package.
+
+Package: libuniversalimporter-dev
+Section: libdevel
+Architecture: any
+Depends: libboost-date-time-dev,
+         libboost-filesystem-dev,
+         libboost-iostreams-dev,
+         libboost-log-dev,
+         libboost-system-dev,
+         libboost-thread-dev,
+         libuniversalimporter1 (= ${binary:Version}),
+         ${misc:Depends}
+Description: Development files for HiPerConTracer Universal Importer API library
+ High-Performance Connectivity Tracer (HiPerConTracer) is a
+ Ping/Traceroute service. It performs regular Ping and Traceroute runs
+ among sites. The results are written to data files, which can be
+ imported into an SQL or Non-SQL database.
+ .
+ This package provides header files for the HiPerConTracer Universal Importer
+ library. You need them to integrate HiPerConTracer Universal Importer into
+ own programs.
 
 Package: hipercontracer
 Architecture: any
 Depends: libhipercontracer1 (= ${binary:Version}),
          ${misc:Depends},
          ${shlibs:Depends}
-Recommends: hipercontracer-trigger,
+Recommends: hipercontracer-importer,
+            hipercontracer-trigger,
             python3,
             python3-geoip,
             python3-mysql.connector,
@@ -66,8 +104,11 @@ Recommends: hipercontracer-trigger,
             python3-urllib3
 Description: Command-line programs for HiPerConTracer
  High-Performance Connectivity Tracer (HiPerConTracer) is a
- ping/traceroute service. It performs regular ping and traceroute runs
- among sites and can export the results into an SQL or Non-SQL database.
+ Ping/Traceroute service. It performs regular Ping and Traceroute runs
+ among sites. The results are written to data files, which can be
+ imported into an SQL or Non-SQL database.
+ .
+ This package contains the actual HiPerConTracer program.
 
 Package: hipercontracer-trigger
 Architecture: any
@@ -77,6 +118,23 @@ Depends: hipercontracer (= ${binary:Version}),
          ${shlibs:Depends}
 Description: Triggered HiPerConTracer service
  High-Performance Connectivity Tracer (HiPerConTracer) is a
- ping/traceroute service. It performs regular ping and traceroute runs
- among sites and can export the results into an SQL or Non-SQL database.
+ Ping/Traceroute service. It performs regular Ping and Traceroute runs
+ among sites. The results are written to data files, which can be
+ imported into an SQL or Non-SQL database.
+ .
  This tool triggers HiPerConTracer by incoming "Ping" packets.
+
+Package: hipercontracer-importer
+Architecture: any
+Depends: libuniversalimporter1 (= ${binary:Version}),
+         ${misc:Depends},
+         ${shlibs:Depends}
+Recommends: hipercontracer
+Description: HiPerConTracer results data importer
+ High-Performance Connectivity Tracer (HiPerConTracer) is a
+ Ping/Traceroute service. It performs regular Ping and Traceroute runs
+ among sites. The results are written to data files, which can be
+ imported into an SQL or Non-SQL database.
+ .
+ This package contains the importer tool to import results from
+ HiPerConTracer into an SQL or Non-SQL database.
