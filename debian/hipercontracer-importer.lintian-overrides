@@ -1,0 +1,2 @@
+# Package is built with -D_FORTIFY_SOURCE=2, so this is a false positive
+hipercontracer-importer: hardening-no-fortify-functions
