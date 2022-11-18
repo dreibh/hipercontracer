@@ -125,32 +125,35 @@ ENDFOREACH()
 # PROGRAMS
 #############################################################################
 
+# ====== HiPerConTracer =====================================================
 ADD_EXECUTABLE(hipercontracer hipercontracer.cc)
 TARGET_LINK_LIBRARIES(hipercontracer libhipercontracer-shared ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
 INSTALL(TARGETS hipercontracer RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
 INSTALL(FILES hipercontracer.1 DESTINATION ${CMAKE_INSTALL_MANDIR}/man1)
 
-ADD_EXECUTABLE(hpcttrigger hpcttrigger.cc)
-TARGET_LINK_LIBRARIES(hpcttrigger libhipercontracer-shared ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
-INSTALL(TARGETS hpcttrigger RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
-INSTALL(FILES hpcttrigger.1 DESTINATION ${CMAKE_INSTALL_MANDIR}/man1)
+# ====== HiPerConTracer Trigger =============================================
+ADD_EXECUTABLE(hpct-trigger hpct-trigger.cc)
+TARGET_LINK_LIBRARIES(hpct-trigger libhipercontracer-shared ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
+INSTALL(TARGETS hpct-trigger RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
+INSTALL(FILES hpct-trigger.1 DESTINATION ${CMAKE_INSTALL_MANDIR}/man1)
 
-ADD_EXECUTABLE(trace-importer trace-importer.cc
+# ====== HiPerConTracer Importer ============================================
+ADD_EXECUTABLE(hpct-importer hpct-importer.cc
    reader-ping.cc
    reader-traceroute.cc
 )
-TARGET_LINK_LIBRARIES(trace-importer libuniversalimporter-shared)
-INSTALL(TARGETS trace-importer RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
-# INSTALL(FILES trace-importer.1 DESTINATION ${CMAKE_INSTALL_MANDIR}/man1)
+TARGET_LINK_LIBRARIES(hpct-importer libuniversalimporter-shared)
+INSTALL(TARGETS hpct-importer RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
+INSTALL(FILES hpct-importer.1 DESTINATION ${CMAKE_INSTALL_MANDIR}/man1)
 
-
-INSTALL(PROGRAMS tracedataimporter get-default-ips addressinfogenerator
+# ====== Scripts ============================================================
+INSTALL(PROGRAMS get-default-ips addressinfogenerator
         DESTINATION ${CMAKE_INSTALL_BINDIR})
-INSTALL(FILES tracedataimporter.1 get-default-ips.1 addressinfogenerator.1
+INSTALL(FILES get-default-ips.1 addressinfogenerator.1
         DESTINATION ${CMAKE_INSTALL_MANDIR}/man1)
 
 
-# Test only:
+# ====== TEST ONLY ==========================================================
 # ADD_EXECUTABLE(t1 t1.cc)
 # TARGET_LINK_LIBRARIES(t1 ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
 # ADD_EXECUTABLE(t2 t2.cc)
@@ -159,12 +162,7 @@ INSTALL(FILES tracedataimporter.1 get-default-ips.1 addressinfogenerator.1
 # TARGET_LINK_LIBRARIES(t3 ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
 # ADD_EXECUTABLE(t7 t7.cc)
 # TARGET_LINK_LIBRARIES(t7 ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
-
-ADD_EXECUTABLE(nne-importer nne-importer.cc
-   reader-nne-metadata.cc
-   reader-nne-ping.cc
-   reader-nne-speedtest.cc
-)
+ADD_EXECUTABLE(nne-importer nne-importer.cc reader-nne-metadata.cc reader-nne-ping.cc reader-nne-speedtest.cc)
 TARGET_LINK_LIBRARIES(nne-importer libuniversalimporter-shared)
 
 
@@ -172,7 +170,7 @@ TARGET_LINK_LIBRARIES(nne-importer libuniversalimporter-shared)
 # EXAMPLES
 #############################################################################
 
-INSTALL(FILES hipercontracer-database-configuration
+INSTALL(FILES hipercontracer-database.conf
         DESTINATION ${CMAKE_INSTALL_DATADIR}/doc/hipercontracer/examples)
 
 

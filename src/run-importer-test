@@ -18,9 +18,9 @@ rm -rf good/*
 rm -rf bad/*
 cp examples/*.bz2 data/
 
-make trace-importer && \
+make hpct-importer && \
 rm -f core &&  \
-./trace-importer \
+./hpct-importer \
    -c "${CONFIGURATION_FILE}" \
    --traceroute-workers 1 \
    --ping-workers 1 \

@@ -17,16 +17,16 @@
 .\" Contact: dreibh@iem.uni-due.de
 .\"
 .\" ###### Setup ############################################################
-.Dd June 6, 2019
-.Dt hpcttrigger 1
-.Os hpcttrigger
+.Dd November 18, 2022
+.Dt hpct-trigger 1
+.Os hpct-trigger
 .\" ###### Name #############################################################
 .Sh NAME
-.Nm hpcttrigger
+.Nm hpct-trigger
 .Nd High-Performance Connectivity Tracer (HiPerConTracer) Trigger Tool
 .\" ###### Synopsis #########################################################
 .Sh SYNOPSIS
-.Nm hpcttrigger
+.Nm hpct-trigger
 .Op \-P|--ping
 .Op \-T|--traceroute
 .Op \-L|--loglevel level
@@ -51,7 +51,7 @@
 .Op \--pingsbeforequeuing count
 .\" ###### Description ######################################################
 .Sh DESCRIPTION
-.Nm hpcttrigger
+.Nm hpct-trigger
 is a tool to trigger HiPerConTracer runs, based on observed incoming "Ping"
 packets. Once the given number of such packets with a given size has been
 observed from a source, a Ping or Traceroute is triggered to the corresponding
@@ -74,10 +74,10 @@ format.
 .\" ###### Examples #########################################################
 .Sh EXAMPLES
 .Bl -tag -width indent
-.It hpcttrigger \--source 10.1.1.51 \--traceroute \--verbose \--pingsbeforequeuing 2 \--pingtriggerlength 88
-.It hpcttrigger \--source 10.1.1.51 \--pingtriggerage 1800 \--ping \--verbose
-.It hpcttrigger \--source=10.1.1.51 \--traceroute \--resultsdirectory=/tmp/results \--resultstransactionlength=60
-.It hpcttrigger \--source=172.16.1.2,BE,EF \--source=172.17.1.2,BE,AF11,AF21 \--pingtriggerage=1800 \--ping \--verbose
+.It hpct-trigger \--source 10.1.1.51 \--traceroute \--verbose \--pingsbeforequeuing 2 \--pingtriggerlength 88
+.It hpct-trigger \--source 10.1.1.51 \--pingtriggerage 1800 \--ping \--verbose
+.It hpct-trigger \--source=10.1.1.51 \--traceroute \--resultsdirectory=/tmp/results \--resultstransactionlength=60
+.It hpct-trigger \--source=172.16.1.2,BE,EF \--source=172.17.1.2,BE,AF11,AF21 \--pingtriggerage=1800 \--ping \--verbose
 .El
 .\" ###### Authors ##########################################################
 .Sh AUTHORS

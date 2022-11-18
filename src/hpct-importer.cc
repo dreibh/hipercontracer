@@ -81,7 +81,7 @@ int main(int argc, char** argv)
            boost::program_options::value<std::filesystem::path>(&databaseConfigurationFile),
            "Database configuration file" )
       ("import-mode,X",              boost::program_options::value<std::string>(&importModeName),                     "Override import mode")
-      ("import-max-depth,D",         boost::program_options::value<unsigned int>(&importMaxDepth)->default_value(0),  "Override import max depth)")
+      ("import-max-depth,D",         boost::program_options::value<unsigned int>(&importMaxDepth)->default_value(0),  "Override import max depth")
       ("import-file-path,I",         boost::program_options::value<std::filesystem::path>(&importFilePath),           "Override path for input files")
       ("bad-file-path,B",            boost::program_options::value<std::filesystem::path>(&badFilePath),              "Override path for bad files")
       ("good-file-path,G",           boost::program_options::value<std::filesystem::path>(&goodFilePath),             "Override path for good files")
