@@ -39,6 +39,7 @@
 #include <atomic>
 #include <chrono>
 #include <functional>
+#include <map>
 #include <mutex>
 #include <set>
 #include <thread>

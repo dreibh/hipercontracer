@@ -38,6 +38,7 @@
 #include <chrono>
 #include <filesystem>
 #include <iomanip>
+#include <map>
 #include <set>
 
 #include <boost/asio.hpp>
