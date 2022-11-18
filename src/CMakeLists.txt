@@ -75,11 +75,13 @@ LIST(APPEND libuniversalimporter_headers
    logger.h
    tools.h
    database-configuration.h
+   database-statement.h
    databaseclient-base.h
    databaseclient-debug.h
    databaseclient-mariadb.h
+   databaseclient-mongodb.h
+   databaseclient-postgresql.h
    reader-base.h
-   reader-ping.h
    reader-ping.h
    reader-traceroute.h
    universal-importer.h
