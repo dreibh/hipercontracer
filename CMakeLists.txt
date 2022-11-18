@@ -30,7 +30,7 @@
 #  Contact: dreibh@simula.no
 
 
-CMAKE_MINIMUM_REQUIRED(VERSION 3.5.1)
+CMAKE_MINIMUM_REQUIRED(VERSION 3.10)
 PROJECT(hipercontracer LANGUAGES C CXX)
 
 SET(BUILD_MAJOR "1")
@@ -51,9 +51,9 @@ SET(CMAKE_CXX_EXTENSIONS OFF)
 INCLUDE(GNUInstallDirs)
 
 
-#################################################
+#############################################################################
 # PACKAGING
-#################################################
+#############################################################################
 
 SET(CPACK_SOURCE_GENERATOR "TXZ")
 SET(CPACK_SOURCE_PACKAGE_FILE_NAME
@@ -69,9 +69,9 @@ INCLUDE(CheckIncludeFile)
 INCLUDE(CheckStructHasMember)
 
 
-#################################################
+#############################################################################
 # UNINSTALL
-#################################################
+#############################################################################
 
 IF(NOT TARGET uninstall)
    configure_file(
@@ -84,9 +84,9 @@ IF(NOT TARGET uninstall)
 ENDIF()
 
 
-#################################################
+#############################################################################
 # OS DEPENDENT
-#################################################
+#############################################################################
 
 IF (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
     MESSAGE(STATUS ${CMAKE_SYSTEM_NAME} " supported")
@@ -191,28 +191,59 @@ IF (NOT CARES_LIBRARY)
 ENDIF()
 
 # ###### Database client libraries ##########################################
-FIND_LIBRARY(MYSQLCPPCONN_LIBRARY NAMES mysqlcppconn REQUIRED)
-FIND_PATH(MYSQLCPPCONN_INCLUDE_DIR NAMES driver.h PATH_SUFFIXES cppconn)
-IF ((NOT MYSQLCPPCONN_INCLUDE_DIR) OR (NOT MYSQLCPPCONN_LIBRARY))
-   MESSAGE(FATAL_ERROR "Cannot find MySQL/MariaDB C++ client library. Ubuntu/Debian: libmysqlcppconn-dev, Fedora: mysql-connector-c++-devel (from PPA).")
+
+# ------ MariaDB/MySQL ------------------------------------------------------
+OPTION(ENABLE_BACKEND_MARIADB "Enable MySQL/MariaDB backed" 1)
+IF (ENABLE_BACKEND_MARIADB)
+   MESSAGE("Looking for MySQL/MariaDB C++ Client library:")
+   FIND_LIBRARY(MYSQLCPPCONN_LIBRARY NAMES mysqlcppconn REQUIRED)
+   MESSAGE(" * Library: ${MYSQLCPPCONN_LIBRARY}")
+   FIND_PATH(MYSQLCPPCONN_INCLUDE_DIR NAMES driver.h PATH_SUFFIXES cppconn)
+   MESSAGE(" * Includes: ${MYSQLCPPCONN_INCLUDE_DIR}")
+   IF ((NOT MYSQLCPPCONN_INCLUDE_DIR) OR (NOT MYSQLCPPCONN_LIBRARY))
+      MESSAGE(FATAL_ERROR "Cannot find MySQL/MariaDB C++ client library. Ubuntu/Debian: libmysqlcppconn-dev, Fedora: mysql-connector-c++-devel (from PPA).")
+   ENDIF()
+ELSE()
+   MESSAGE("MySQL/MariaDB backend disabled!")
 ENDIF()
 
-FIND_LIBRARY(LIBPQXX_LIBRARY NAMES pqxx REQUIRED)
-FIND_PATH(LIBPQXX_INCLUDE_DIR NAMES pqxx PATH_SUFFIXES pqxx)
-IF ((NOT LIBPQXX_INCLUDE_DIR) OR (NOT LIBPQXX_LIBRARY))
-   MESSAGE(FATAL_ERROR "Cannot find PostgreSQL C++ client library. Ubuntu/Debian: libpqxx-dev, Fedora: libpqxx-devel.")
+# ------ PostgreSQL ---------------------------------------------------------
+OPTION(ENABLE_BACKEND_POSTGRESQL "Enable PostgreSQL backed" 1)
+IF (ENABLE_BACKEND_POSTGRESQL)
+   MESSAGE("Looking for PostgreSQL C++ Client library:")
+   FIND_LIBRARY(LIBPQXX_LIBRARY NAMES pqxx REQUIRED)
+   MESSAGE(" * Library: ${LIBPQXX_LIBRARY}")
+   FIND_PATH(LIBPQXX_INCLUDE_DIR NAMES pqxx PATH_SUFFIXES pqxx)
+   MESSAGE(" * Includes: ${LIBPQXX_INCLUDE_DIR}")
+   IF ((NOT LIBPQXX_INCLUDE_DIR) OR (NOT LIBPQXX_LIBRARY))
+      MESSAGE(FATAL_ERROR "Cannot find PostgreSQL C++ client library. Ubuntu/Debian: libpqxx-dev, Fedora: libpqxx-devel.")
+   ENDIF()
+ELSE()
+   MESSAGE("PostgreSQL backend disabled!")
 ENDIF()
 
-FIND_LIBRARY(LIBMONGOC_LIBRARY  NAMES mongoc-1.0)
-FIND_PATH(LIBMONGOC_INCLUDE_DIR NAMES mongoc.h PATH_SUFFIXES libmongoc-1.0)
-IF ((NOT LIBMONGOC_INCLUDE_DIR) OR (NOT LIBMONGOC_LIBRARY))
-   MESSAGE(FATAL_ERROR "Cannot find MongoDB C client library. Ubuntu/Debian: libmongoc-dev, Fedora: libmongo-client-devel.")
-ENDIF()
+# ------ MongoDB ------------------------------------------------------------
+OPTION(ENABLE_BACKEND_MONGODB "Enable MongoDB backed" 1)
+IF (ENABLE_BACKEND_MONGODB)
+   MESSAGE("Looking for MongoDB C Client library:")
+   FIND_LIBRARY(LIBMONGOC_LIBRARY  NAMES mongoc-1.0)
+   MESSAGE(" * Library: ${LIBMONGOC_LIBRARY}")
+   FIND_PATH(LIBMONGOC_INCLUDE_DIR NAMES mongoc.h PATH_SUFFIXES libmongoc-1.0)
+   MESSAGE(" * Includes: ${LIBMONGOC_INCLUDE_DIR}")
+   IF ((NOT LIBMONGOC_INCLUDE_DIR) OR (NOT LIBMONGOC_LIBRARY))
+      MESSAGE(FATAL_ERROR "Cannot find MongoDB C client library. Ubuntu/Debian: libmongoc-dev, Fedora: libmongo-client-devel.")
+   ENDIF()
 
-FIND_LIBRARY(LIBBSON_LIBRARY  NAMES bson-1.0)
-FIND_PATH(LIBBSON_INCLUDE_DIR NAMES bson.h PATH_SUFFIXES libbson-1.0)
-IF ((NOT LIBBSON_INCLUDE_DIR) OR (NOT LIBBSON_LIBRARY))
-   MESSAGE(FATAL_ERROR "Cannot find MongoDB C client library. Ubuntu/Debian: libbson-dev, Fedora: libbson-devel.")
+   MESSAGE("Looking for MongoDB BSON library:")
+   FIND_LIBRARY(LIBBSON_LIBRARY  NAMES bson-1.0)
+   MESSAGE(" * Library: ${LIBBSON_LIBRARY}")
+   FIND_PATH(LIBBSON_INCLUDE_DIR NAMES bson.h PATH_SUFFIXES libbson-1.0)
+   MESSAGE(" * Includes: ${LIBBSON_INCLUDE_DIR}")
+   IF ((NOT LIBBSON_INCLUDE_DIR) OR (NOT LIBBSON_LIBRARY))
+      MESSAGE(FATAL_ERROR "Cannot find MongoDB C client library. Ubuntu/Debian: libbson-dev, Fedora: libbson-devel.")
+   ENDIF()
+ELSE()
+   MESSAGE("MongoDB backend disabled!")
 ENDIF()
 
 

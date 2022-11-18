@@ -78,9 +78,6 @@ LIST(APPEND libuniversalimporter_headers
    database-statement.h
    databaseclient-base.h
    databaseclient-debug.h
-   databaseclient-mariadb.h
-   databaseclient-mongodb.h
-   databaseclient-postgresql.h
    reader-base.h
    reader-ping.h
    reader-traceroute.h
@@ -94,9 +91,6 @@ LIST(APPEND libuniversalimporter_sources
    database-statement.cc
    databaseclient-base.cc
    databaseclient-debug.cc
-   databaseclient-mariadb.cc
-   databaseclient-mongodb.cc
-   databaseclient-postgresql.cc
    reader-base.cc
    reader-ping.cc
    reader-ping.cc
@@ -104,6 +98,20 @@ LIST(APPEND libuniversalimporter_sources
    universal-importer.cc
    worker.cc
 )
+
+IF (ENABLE_BACKEND_MARIADB)
+   LIST(APPEND libuniversalimporter_headers databaseclient-mariadb.h)
+   LIST(APPEND libuniversalimporter_sources databaseclient-mariadb.cc)
+ENDIF()
+IF (ENABLE_BACKEND_POSTGRESQL)
+   LIST(APPEND libuniversalimporter_headers databaseclient-postgresql.h)
+   LIST(APPEND libuniversalimporter_sources databaseclient-postgresql.cc)
+ENDIF()
+IF (ENABLE_BACKEND_MONGODB)
+   LIST(APPEND libuniversalimporter_headers databaseclient-mongodb.h)
+   LIST(APPEND libuniversalimporter_sources databaseclient-mongodb.cc)
+ENDIF()
+
 
 INSTALL(FILES ${libuniversalimporter_headers} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/universalimporter)
 
