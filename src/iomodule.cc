@@ -56,15 +56,21 @@
 
 
 // ###### Constructor #######################################################
-IOModuleBase::IOModuleBase(const std::string&              name,
-                           boost::asio::io_service&        ioService,
-                           const boost::asio::ip::address& sourceAddress,
-                           const unsigned int              packetSize)
+IOModuleBase::IOModuleBase(const std::string&                       name,
+                           boost::asio::io_service&                 ioService,
+                           std::map<unsigned short, ResultEntry*>&  resultsMap,
+                           const boost::asio::ip::address&          sourceAddress,
+                           const unsigned int                       packetSize,
+                           std::function<void (const ResultEntry*)> newResultFunction)
    : Name(name),
      IOService(ioService),
+     ResultsMap(resultsMap),
      SourceAddress(sourceAddress),
-     PacketSize(packetSize)
+     PacketSize(packetSize),
+     NewResultFunction(newResultFunction),
+     MagicNumber( ((std::rand() & 0xffff) << 16) | (std::rand() & 0xffff) )
 {
+   Identifier = 0;
 }
 
 
@@ -75,11 +81,13 @@ IOModuleBase::~IOModuleBase()
 
 
 // ###### Constructor #######################################################
-ICMPModule::ICMPModule(const std::string&              name,
-                       boost::asio::io_service&        ioService,
-                       const boost::asio::ip::address& sourceAddress,
-                       const unsigned int              packetSize)
-   : IOModuleBase(name + "/ICMPPing", ioService, sourceAddress, packetSize),
+ICMPModule::ICMPModule(const std::string&                       name,
+                       boost::asio::io_service&                 ioService,
+                       std::map<unsigned short, ResultEntry*>&  resultsMap,
+                       const boost::asio::ip::address&          sourceAddress,
+                       const unsigned int                       packetSize,
+                       std::function<void (const ResultEntry*)> newResultFunction)
+   : IOModuleBase(name + "/ICMPPing", ioService, resultsMap, sourceAddress, packetSize, newResultFunction),
      PayloadSize( std::max((ssize_t)MIN_TRACESERVICE_HEADER_SIZE,
                            (ssize_t)PacketSize -
                               (ssize_t)((SourceAddress.is_v6() == true) ? 40 : 20) -
@@ -100,6 +108,10 @@ ICMPModule::~ICMPModule()
 // ###### Prepare ICMP socket ###############################################
 bool ICMPModule::prepareSocket()
 {
+   // ====== Choose identifier ==============================================
+   Identifier = ::getpid();   // Identifier is the process ID
+   // NOTE: Assuming 16-bit PID, and one PID per thread!
+
    // ====== Bind ICMP socket to given source address =======================
    boost::system::error_code errorCode;
    ICMPSocket.bind(boost::asio::ip::icmp::endpoint(SourceAddress, 0), errorCode);
@@ -142,14 +154,13 @@ void ICMPModule::expectNextReply()
 // ###### Cancel socket operations ##########################################
 void ICMPModule::cancelSocket()
 {
+   puts("########## CANCEL!!");
    ICMPSocket.cancel();
 }
 
 
 // ###### Send one ICMP request to given destination ########################
-ResultEntry* ICMPModule::sendRequest(const uint16_t         identifier,
-                                     const uint32_t         magicNumber,
-                                     const DestinationInfo& destination,
+ResultEntry* ICMPModule::sendRequest(const DestinationInfo& destination,
                                      const unsigned int     ttl,
                                      const unsigned int     round,
                                      uint16_t&              seqNumber,
@@ -165,11 +176,11 @@ ResultEntry* ICMPModule::sendRequest(const uint16_t         identifier,
    ICMPHeader echoRequest;
    echoRequest.type((SourceAddress.is_v6() == true) ? ICMPHeader::IPv6EchoRequest : ICMPHeader::IPv4EchoRequest);
    echoRequest.code(0);
-   echoRequest.identifier(identifier);
+   echoRequest.identifier(Identifier);
    echoRequest.seqNumber(seqNumber);
 
    TraceServiceHeader tsHeader(PayloadSize);
-   tsHeader.magicNumber(magicNumber);
+   tsHeader.magicNumber(MagicNumber);
    tsHeader.sendTTL(ttl);
    tsHeader.round((unsigned char)round);
    tsHeader.checksumTweak(0);
@@ -242,6 +253,11 @@ ResultEntry* ICMPModule::sendRequest(const uint16_t         identifier,
                          (uint16_t)targetChecksum, sendTime,
                          destination, Unknown);
       assert(resultEntry != nullptr);
+
+      std::pair<std::map<unsigned short, ResultEntry*>::iterator, bool> result =
+         ResultsMap.insert(std::pair<unsigned short, ResultEntry*>(seqNumber, resultEntry));
+      assert(result.second == true);
+
       return resultEntry;
    }
    HPCT_LOG(warning) << getName() << ": sendICMPRequest() - send_to("
@@ -344,9 +360,87 @@ void ICMPModule::handleResponse(const boost::system::error_code& errorCode,
          }
       }
 
-      if(OutstandingRequests == 0) {
-         noMoreOutstandingRequests();
-      }
       expectNextReply();
+   }
+}
+
+
+// ###### Record result from response message ###############################
+void ICMPModule::recordResult(const std::chrono::system_clock::time_point& receiveTime,
+                              const ICMPHeader&                            icmpHeader,
+                              const unsigned short                         seqNumber)
+{
+   // ====== Find corresponding request =====================================
+   std::map<unsigned short, ResultEntry*>::iterator found = ResultsMap.find(seqNumber);
+   if(found == ResultsMap.end()) {
+      return;
+   }
+   ResultEntry* resultEntry = found->second;
+
+   // ====== Get status =====================================================
+   if(resultEntry->status() == Unknown) {
+      resultEntry->setReceiveTime(receiveTime);
+      // Just set address, keep traffic class and identifier settings:
+      resultEntry->setDestinationAddress(ReplyEndpoint.address());
+
+      HopStatus status = Unknown;
+      if( (icmpHeader.type() == ICMPHeader::IPv6TimeExceeded) ||
+          (icmpHeader.type() == ICMPHeader::IPv4TimeExceeded) ) {
+         status = TimeExceeded;
+      }
+      else if( (icmpHeader.type() == ICMPHeader::IPv6Unreachable) ||
+               (icmpHeader.type() == ICMPHeader::IPv4Unreachable) ) {
+         if(SourceAddress.is_v6()) {
+            switch(icmpHeader.code()) {
+               case ICMP6_DST_UNREACH_ADMIN:
+                  status = UnreachableProhibited;
+               break;
+               case ICMP6_DST_UNREACH_BEYONDSCOPE:
+                  status = UnreachableScope;
+               break;
+               case ICMP6_DST_UNREACH_NOROUTE:
+                  status = UnreachableNetwork;
+               break;
+               case ICMP6_DST_UNREACH_ADDR:
+                  status = UnreachableHost;
+               break;
+               case ICMP6_DST_UNREACH_NOPORT:
+                  status = UnreachablePort;
+               break;
+               default:
+                  status = UnreachableUnknown;
+               break;
+            }
+         }
+         else {
+            switch(icmpHeader.code()) {
+               case ICMP_UNREACH_FILTER_PROHIB:
+                  status = UnreachableProhibited;
+               break;
+               case ICMP_UNREACH_NET:
+               case ICMP_UNREACH_NET_UNKNOWN:
+                  status = UnreachableNetwork;
+               break;
+               case ICMP_UNREACH_HOST:
+               case ICMP_UNREACH_HOST_UNKNOWN:
+                  status = UnreachableHost;
+               break;
+               case ICMP_UNREACH_PORT:
+                  status = UnreachablePort;
+               break;
+               default:
+                  status = UnreachableUnknown;
+               break;
+            }
+         }
+      }
+      else if( (icmpHeader.type() == ICMPHeader::IPv6EchoReply) ||
+               (icmpHeader.type() == ICMPHeader::IPv4EchoReply) ) {
+         status  = Success;
+//  FIXME!        LastHop = std::min(LastHop, resultEntry->hop());
+      }
+      resultEntry->setStatus(status);
+
+      NewResultFunction(resultEntry);
    }
 }

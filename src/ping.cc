@@ -88,7 +88,7 @@ bool Ping::prepareRun(const bool newRound)
        StopRequested.exchange(true);
        cancelIntervalTimer();
        cancelTimeoutTimer();
-       cancelSocket();
+       IOModule->cancelSocket();
    }
 
    RunStartTimeStamp = std::chrono::steady_clock::now();
@@ -183,11 +183,13 @@ void Ping::processResults()
       // ====== Remove completed entries ====================================
       if(resultEntry->status() != Unknown) {
          assert(ResultsMap.erase(resultEntry->seqNumber()) == 1);
+         delete resultEntry;
          if(OutstandingRequests > 0) {
             OutstandingRequests--;
          }
       }
    }
+
 
    if(RemoveDestinationAfterRun == true) {
       std::lock_guard<std::recursive_mutex> lock(DestinationMutex);
@@ -215,13 +217,9 @@ void Ping::sendRequests()
             destinationIterator != Destinations.end(); destinationIterator++) {
             const DestinationInfo& destination = *destinationIterator;
             ResultEntry* resultEntry =
-               IOModule->sendRequest(Identifier, MagicNumber,
-                                     destination, FinalMaxTTL, 0, SeqNumber, targetChecksum);
+               IOModule->sendRequest(destination, FinalMaxTTL, 0, SeqNumber, targetChecksum);
             if(resultEntry) {
                OutstandingRequests++;
-               std::pair<std::map<unsigned short, ResultEntry*>::iterator, bool> result =
-                  ResultsMap.insert(std::pair<unsigned short, ResultEntry*>(SeqNumber, resultEntry));
-               assert(result.second == true);
             }
          }
 

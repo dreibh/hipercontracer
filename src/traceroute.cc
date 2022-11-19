@@ -82,18 +82,19 @@ Traceroute::Traceroute(ResultsWriter*                   resultsWriter,
 //      PacketSize(packetSize),
      IOService(),
      SourceAddress(sourceAddress),
-     ICMPSocket(IOService, (isIPv6() == true) ? boost::asio::ip::icmp::v6() : boost::asio::ip::icmp::v4()),
+//      ICMPSocket(IOService, (SourceAddress.is_v6() == true) ? boost::asio::ip::icmp::v6() : boost::asio::ip::icmp::v4()),
      TimeoutTimer(IOService),
      IntervalTimer(IOService)
 {
    // ====== Some initialisations ===========================================
-   IOModule            = new ICMPModule(getName(), IOService, SourceAddress, packetSize); // FIXME!
-   Identifier          = 0;
+   IOModule            = new ICMPModule(getName(), IOService, ResultsMap, SourceAddress, packetSize,
+                                        std::bind(&Traceroute::newResult, this, std::placeholders::_1));   // FIXME!
+//    Identifier          = 0;
    SeqNumber           = (unsigned short)(std::rand() & 0xffff);
-   MagicNumber         = ((std::rand() & 0xffff) << 16) | (std::rand() & 0xffff);
+//    MagicNumber         = ((std::rand() & 0xffff) << 16) | (std::rand() & 0xffff);
    OutstandingRequests = 0;
    LastHop             = 0xffffffff;
-   ExpectingReply      = false;
+//    ExpectingReply      = false;
    IterationNumber     = 0;
    MinTTL              = 1;
    MaxTTL              = InitialMaxTTL;
@@ -117,6 +118,11 @@ Traceroute::Traceroute(ResultsWriter*                   resultsWriter,
 // ###### Destructor ########################################################
 Traceroute::~Traceroute()
 {
+   std::map<unsigned short, ResultEntry*>::iterator iterator = ResultsMap.begin();
+   while(iterator != ResultsMap.end()) {
+      delete iterator->second;
+      iterator = ResultsMap.erase(iterator);
+   }
    delete IOModule;
    IOModule = nullptr;
    delete [] TargetChecksumArray;
@@ -168,7 +174,7 @@ bool Traceroute::start()
 {
    StopRequested.exchange(false);
    Thread = std::thread(&Traceroute::run, this);
-   return(prepareSocket());
+   return(IOModule->prepareSocket());
 }
 
 
@@ -177,7 +183,9 @@ void Traceroute::requestStop() {
    StopRequested.exchange(true);
    IOService.post(std::bind(&Traceroute::cancelIntervalTimer, this));
    IOService.post(std::bind(&Traceroute::cancelTimeoutTimer, this));
-   IOService.post(std::bind(&Traceroute::cancelSocket, this));
+   IOService.post(std::bind(&IOModuleBase::cancelSocket, IOModule));
+//    abort();
+//    FIXME! IOService.post(std::bind(&[](IOModuleBase* ioModule){ ioModule->cancelSocket(); }, IOModule));
 }
 
 
@@ -266,7 +274,11 @@ bool Traceroute::prepareRun(const bool newRound)
    }
 
    // ====== Clear results ==================================================
-   ResultsMap.clear();
+   std::map<unsigned short, ResultEntry*>::iterator iterator = ResultsMap.begin();
+   while(iterator != ResultsMap.end()) {
+      delete iterator->second;
+      iterator = ResultsMap.erase(iterator);
+   }
    MinTTL              = 1;
    MaxTTL              = (DestinationIterator != Destinations.end()) ?
                             getInitialMaxTTL(*DestinationIterator) : InitialMaxTTL;
@@ -295,14 +307,14 @@ void Traceroute::sendRequests()
       for(unsigned int round = 0; round < Rounds; round++) {
          for(int ttl = (int)MaxTTL; ttl >= (int)MinTTL; ttl--) {
             ResultEntry* resultEntry =
-               IOModule->sendRequest(Identifier, MagicNumber,
-                                     destination, (unsigned int)ttl, round,
+               IOModule->sendRequest(destination, (unsigned int)ttl, round,
                                      SeqNumber, TargetChecksumArray[round]);
             if(resultEntry) {
                OutstandingRequests++;
-               std::pair<std::map<unsigned short, ResultEntry*>::iterator, bool> result =
-                  ResultsMap.insert(std::pair<unsigned short, ResultEntry*>(SeqNumber, resultEntry));
-               assert(result.second == true);
+//                FIXME!
+//                std::pair<std::map<unsigned short, ResultEntry*>::iterator, bool> result =
+//                   ResultsMap.insert(std::pair<unsigned short, ResultEntry*>(SeqNumber, resultEntry));
+//                assert(result.second == true);
             }
          }
       }
@@ -370,7 +382,7 @@ void Traceroute::scheduleIntervalEvent()
        StopRequested.exchange(true);
        cancelIntervalTimer();
        cancelTimeoutTimer();
-       cancelSocket();
+       IOModule->cancelSocket();
    }
 }
 
@@ -397,10 +409,29 @@ void Traceroute::expectNextReply()
 #endif
 
 
+// ###### Received a new response ###########################################
+void Traceroute::newResult(const ResultEntry* resultEntry)
+{
+   printf("N %u\n", OutstandingRequests);
+
+   // ====== Found last hop? ================================================
+   if(resultEntry->status() == Success) {
+      LastHop = std::min(LastHop, resultEntry->hop());
+      printf("LAST HOP = %u\n", LastHop);
+   }
+
+
+   // ====== Check whether there are still outstanding requests =============
+   if(OutstandingRequests == 0) {
+      noMoreOutstandingRequests();
+   }
+}
+
+
 // ###### All requests have received a response #############################
 void Traceroute::noMoreOutstandingRequests()
 {
-   // HPCT_LOG(trace) << getName() << ": Completed!";
+   HPCT_LOG(trace) << getName() << ": Completed!";
    cancelTimeoutTimer();
 }
 
@@ -532,12 +563,12 @@ void Traceroute::sendICMPRequest(const DestinationInfo& destination,
 // ###### Run the measurement ###############################################
 void Traceroute::run()
 {
-   Identifier = ::getpid();   // Identifier is the process ID
-   // NOTE: Assuming 16-bit PID, and one PID per thread!
-
+//    Identifier = ::getpid();   // Identifier is the process ID
+//    // NOTE: Assuming 16-bit PID, and one PID per thread!
+//
    prepareRun(true);
    sendRequests();
-   expectNextReply();
+   IOModule->expectNextReply();
 
    IOService.run();
 }
@@ -852,6 +883,7 @@ void Traceroute::handleMessage(const boost::system::error_code& errorCode,
 #endif
 
 
+#if 0
 // ###### Record result from response message ###############################
 void Traceroute::recordResult(const std::chrono::system_clock::time_point& receiveTime,
                               const ICMPHeader&                            icmpHeader,
@@ -932,6 +964,7 @@ void Traceroute::recordResult(const std::chrono::system_clock::time_point& recei
       }
    }
 }
+#endif
 
 
 // // For HiPerConTracer packets: time stamp is microseconds since 1976-09-26.

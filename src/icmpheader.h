@@ -84,8 +84,8 @@ class ICMPHeader
       memcpy(Data, inputData, std::min(length, (size_t)8));
    }
 
-   inline uint8_t type()        const { return Data[0];      }
-   inline uint8_t code()        const { return Data[1];      }
+   inline uint8_t  type()       const { return Data[0];      }
+   inline uint8_t  code()       const { return Data[1];      }
    inline uint16_t checksum()   const { return decode(2, 3); }
    inline uint16_t identifier() const { return decode(4, 5); }
    inline uint16_t seqNumber()  const { return decode(6, 7); }

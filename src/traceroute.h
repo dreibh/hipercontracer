@@ -95,6 +95,7 @@ class Traceroute : public Service
 //                               std::size_t                      length);
 
 //    void cancelSocket();
+   void newResult(const ResultEntry* resultEntry);
    void cancelTimeoutTimer();
    void cancelIntervalTimer();
 
@@ -135,9 +136,9 @@ class Traceroute : public Service
    std::thread                             Thread;
    std::atomic<bool>                       StopRequested;
    unsigned int                            IterationNumber;
-   uint16_t                                Identifier;
+//    uint16_t                                Identifier;
    uint16_t                                SeqNumber;
-   uint32_t                                MagicNumber;
+//    uint32_t                                MagicNumber;
    unsigned int                            OutstandingRequests;
    unsigned int                            LastHop;
    std::map<unsigned short, ResultEntry*>  ResultsMap;
