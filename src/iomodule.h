@@ -16,7 +16,7 @@ class IOModuleBase
                 std::map<unsigned short, ResultEntry*>&  resultsMap,
                 const boost::asio::ip::address&          sourceAddress,
                 const unsigned int                       packetSize,
-                std::function<void (const ResultEntry*)> newResultFunction);
+                std::function<void (const ResultEntry*)> newResultCallback);
    virtual ~IOModuleBase();
 
    virtual ResultEntry* sendRequest(const DestinationInfo& destination,
@@ -37,7 +37,7 @@ class IOModuleBase
    std::map<unsigned short, ResultEntry*>&  ResultsMap;
    const boost::asio::ip::address&          SourceAddress;
    const unsigned int                       PacketSize;
-   std::function<void (const ResultEntry*)> NewResultFunction;
+   std::function<void (const ResultEntry*)> NewResultCallback;
    const uint32_t                           MagicNumber;
    uint16_t                                 Identifier;
 };
@@ -51,7 +51,7 @@ class ICMPModule : public IOModuleBase
               std::map<unsigned short, ResultEntry*>&  resultsMap,
               const boost::asio::ip::address&          sourceAddress,
               const unsigned int                       packetSize,
-              std::function<void (const ResultEntry*)> newResultFunction);
+              std::function<void (const ResultEntry*)> newResultCallback);
    virtual ~ICMPModule();
 
    virtual bool prepareSocket();

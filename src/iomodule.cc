@@ -50,13 +50,13 @@ IOModuleBase::IOModuleBase(const std::string&                       name,
                            std::map<unsigned short, ResultEntry*>&  resultsMap,
                            const boost::asio::ip::address&          sourceAddress,
                            const unsigned int                       packetSize,
-                           std::function<void (const ResultEntry*)> newResultFunction)
+                           std::function<void (const ResultEntry*)> newResultCallback)
    : Name(name),
      IOService(ioService),
      ResultsMap(resultsMap),
      SourceAddress(sourceAddress),
      PacketSize(packetSize),
-     NewResultFunction(newResultFunction),
+     NewResultCallback(newResultCallback),
      MagicNumber( ((std::rand() & 0xffff) << 16) | (std::rand() & 0xffff) )
 {
    Identifier = 0;
@@ -75,8 +75,8 @@ ICMPModule::ICMPModule(const std::string&                       name,
                        std::map<unsigned short, ResultEntry*>&  resultsMap,
                        const boost::asio::ip::address&          sourceAddress,
                        const unsigned int                       packetSize,
-                       std::function<void (const ResultEntry*)> newResultFunction)
-   : IOModuleBase(name + "/ICMPPing", ioService, resultsMap, sourceAddress, packetSize, newResultFunction),
+                       std::function<void (const ResultEntry*)> newResultCallback)
+   : IOModuleBase(name + "/ICMPPing", ioService, resultsMap, sourceAddress, packetSize, newResultCallback),
      PayloadSize( std::max((ssize_t)MIN_TRACESERVICE_HEADER_SIZE,
                            (ssize_t)PacketSize -
                               (ssize_t)((SourceAddress.is_v6() == true) ? 40 : 20) -
@@ -143,7 +143,6 @@ void ICMPModule::expectNextReply()
 // ###### Cancel socket operations ##########################################
 void ICMPModule::cancelSocket()
 {
-   puts("########## CANCEL!!");
    ICMPSocket.cancel();
 }
 
@@ -163,7 +162,8 @@ ResultEntry* ICMPModule::sendRequest(const DestinationInfo& destination,
    seqNumber++;
 
    ICMPHeader echoRequest;
-   echoRequest.type((SourceAddress.is_v6() == true) ? ICMPHeader::IPv6EchoRequest : ICMPHeader::IPv4EchoRequest);
+   echoRequest.type((SourceAddress.is_v6() == true) ?
+      ICMPHeader::IPv6EchoRequest : ICMPHeader::IPv4EchoRequest);
    echoRequest.code(0);
    echoRequest.identifier(Identifier);
    echoRequest.seqNumber(seqNumber);
@@ -229,7 +229,8 @@ ResultEntry* ICMPModule::sendRequest(const DestinationInfo& destination,
          sent = -1;
       }
       else {
-         sent = ICMPSocket.send_to(request_buffer.data(), boost::asio::ip::icmp::endpoint(destination.address(), 0));
+         sent = ICMPSocket.send_to(request_buffer.data(),
+                                   boost::asio::ip::icmp::endpoint(destination.address(), 0));
       }
    }
    catch(boost::system::system_error const& e) {
@@ -429,6 +430,6 @@ void ICMPModule::recordResult(const std::chrono::system_clock::time_point& recei
       }
       resultEntry->setStatus(status);
 
-      NewResultFunction(resultEntry);
+      NewResultCallback(resultEntry);
    }
 }

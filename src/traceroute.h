@@ -73,10 +73,6 @@ class Traceroute : public Service
    virtual bool joinable();
    virtual void join();
 
-   inline bool isIPv6() const {
-      return(SourceAddress.is_v6());
-   }
-
    protected:
    virtual bool prepareRun(const bool newRound = false);
    virtual void scheduleTimeoutEvent();
@@ -118,7 +114,7 @@ class Traceroute : public Service
    boost::asio::deadline_timer             TimeoutTimer;
    boost::asio::deadline_timer             IntervalTimer;
 
-   ICMPModule*                             IOModule;
+   IOModuleBase*                           IOModule;
    std::thread                             Thread;
    std::atomic<bool>                       StopRequested;
    unsigned int                            IterationNumber;

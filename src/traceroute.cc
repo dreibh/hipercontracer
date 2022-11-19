@@ -353,6 +353,9 @@ void Traceroute::cancelIntervalTimer()
 // ###### Received a new response ###########################################
 void Traceroute::newResult(const ResultEntry* resultEntry)
 {
+   if(OutstandingRequests > 0) {
+      OutstandingRequests--;
+   }
    printf("N %u\n", OutstandingRequests);
 
    // ====== Found last hop? ================================================
