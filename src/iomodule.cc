@@ -37,18 +37,7 @@
 #include "ipv6header.h"
 #include "traceserviceheader.h"
 
-// #include <netinet/in.h>
-// #include <netinet/ip.h>
-
-// #include <functional>
-// #include <boost/format.hpp>
-// #include <boost/version.hpp>
 #include <boost/interprocess/streams/bufferstream.hpp>
-// #if BOOST_VERSION >= 106600
-// #include <boost/uuid/detail/sha1.hpp>
-// #else
-// #include <boost/uuid/sha1.hpp>
-// #endif
 
 #ifdef __linux__
 #include <linux/sockios.h>
@@ -437,7 +426,6 @@ void ICMPModule::recordResult(const std::chrono::system_clock::time_point& recei
       else if( (icmpHeader.type() == ICMPHeader::IPv6EchoReply) ||
                (icmpHeader.type() == ICMPHeader::IPv4EchoReply) ) {
          status  = Success;
-//  FIXME!        LastHop = std::min(LastHop, resultEntry->hop());
       }
       resultEntry->setStatus(status);
 
