@@ -32,9 +32,10 @@
 #ifndef TRACEROUTE_H
 #define TRACEROUTE_H
 
-#include "service.h"
+#include "iomodule.h"
 #include "resultentry.h"
 #include "resultswriter.h"
+#include "service.h"
 
 #include <atomic>
 #include <chrono>
@@ -43,7 +44,6 @@
 #include <set>
 #include <thread>
 
-#define BOOST_BIND_GLOBAL_PLACEHOLDERS
 #include <boost/asio.hpp>
 
 
@@ -120,7 +120,7 @@ class Traceroute : public Service
    const unsigned int                      InitialMaxTTL;
    const unsigned int                      FinalMaxTTL;
    const unsigned int                      IncrementMaxTTL;
-   const unsigned int                      PacketSize;
+//    const unsigned int                      PacketSize;
    boost::asio::io_service                 IOService;
    boost::asio::ip::address                SourceAddress;
    std::recursive_mutex                    DestinationMutex;
@@ -134,9 +134,9 @@ class Traceroute : public Service
    std::thread                             Thread;
    std::atomic<bool>                       StopRequested;
    unsigned int                            IterationNumber;
-   uint16_t                                Identifier;
-   uint16_t                                SeqNumber;
-   uint32_t                                MagicNumber;
+//    uint16_t                                Identifier;
+//    uint16_t                                SeqNumber;
+//    uint32_t                                MagicNumber;
    unsigned int                            OutstandingRequests;
    unsigned int                            LastHop;
    std::map<unsigned short, ResultEntry>   ResultsMap;
