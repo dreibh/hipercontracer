@@ -80,29 +80,29 @@ class Traceroute : public Service
    }
 
    protected:
-   virtual bool prepareSocket();
+//    virtual bool prepareSocket();
    virtual bool prepareRun(const bool newRound = false);
    virtual void scheduleTimeoutEvent();
    virtual void scheduleIntervalEvent();
-   virtual void expectNextReply();
+//    virtual void expectNextReply();
    virtual void noMoreOutstandingRequests();
    virtual bool notReachedWithCurrentTTL();
    virtual void processResults();
    virtual void sendRequests();
    virtual void handleTimeoutEvent(const boost::system::error_code& errorCode);
    virtual void handleIntervalEvent(const boost::system::error_code& errorCode);
-   virtual void handleMessage(const boost::system::error_code& errorCode,
-                              std::size_t                      length);
+//    virtual void handleMessage(const boost::system::error_code& errorCode,
+//                               std::size_t                      length);
 
-   void cancelSocket();
+//    void cancelSocket();
    void cancelTimeoutTimer();
    void cancelIntervalTimer();
 
    void run();
-   void sendICMPRequest(const DestinationInfo& destination,
-                        const unsigned int             ttl,
-                        const unsigned int             round,
-                        uint32_t&                      targetChecksum);
+//    void sendICMPRequest(const DestinationInfo& destination,
+//                         const unsigned int             ttl,
+//                         const unsigned int             round,
+//                         uint32_t&                      targetChecksum);
    void recordResult(const std::chrono::system_clock::time_point& receiveTime,
                      const ICMPHeader&                            icmpHeader,
                      const unsigned short                         seqNumber);
@@ -126,23 +126,24 @@ class Traceroute : public Service
    std::recursive_mutex                    DestinationMutex;
    std::set<DestinationInfo>               Destinations;
    std::set<DestinationInfo>::iterator     DestinationIterator;
-   boost::asio::ip::icmp::socket           ICMPSocket;
+//    boost::asio::ip::icmp::socket           ICMPSocket;
    boost::asio::deadline_timer             TimeoutTimer;
    boost::asio::deadline_timer             IntervalTimer;
-   boost::asio::ip::icmp::endpoint         ReplyEndpoint;    // Store ICMP reply's source
+//    boost::asio::ip::icmp::endpoint         ReplyEndpoint;    // Store ICMP reply's source
 
+   ICMPModule*                             IOModule;
    std::thread                             Thread;
    std::atomic<bool>                       StopRequested;
    unsigned int                            IterationNumber;
-//    uint16_t                                Identifier;
-//    uint16_t                                SeqNumber;
-//    uint32_t                                MagicNumber;
+   uint16_t                                Identifier;
+   uint16_t                                SeqNumber;
+   uint32_t                                MagicNumber;
    unsigned int                            OutstandingRequests;
    unsigned int                            LastHop;
-   std::map<unsigned short, ResultEntry>   ResultsMap;
+   std::map<unsigned short, ResultEntry*>  ResultsMap;
    std::map<DestinationInfo, unsigned int> TTLCache;
-   bool                                    ExpectingReply;
-   char                                    MessageBuffer[65536 + 40];
+//    bool                                    ExpectingReply;
+//    char                                    MessageBuffer[65536 + 40];
    unsigned int                            MinTTL;
    unsigned int                            MaxTTL;
    std::chrono::steady_clock::time_point   RunStartTimeStamp;

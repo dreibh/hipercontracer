@@ -65,25 +65,27 @@ class IPv4Header
       std::fill(data, data + sizeof(data), 0);
    }
 
-   inline uint8_t version()         const { return((data[0] >> 4) & 0x0f); }
-   inline uint16_t headerLength()   const { return((data[0] & 0x0f) * 4);  }
-   inline uint8_t typeOfService()   const { return(data[1]);      }
-   inline uint16_t totalLength()    const { return(decode(2, 3)); }
-   inline uint16_t identification() const { return(decode(4, 5)); }
-   inline bool dontFragment()             const { return((data[6] & 0x40) != 0); }
-   inline bool moreFragments()            const { return((data[6] & 0x20) != 0); }
-   inline uint16_t fragmentOffset() const { return(decode(6, 7) & 0x1fff); }
-   inline unsigned int timeToLive()       const { return(data[8]); }
-   inline uint8_t protocol()        const { return(data[9]); }
-   inline uint16_t headerChecksum() const { return(decode(10, 11)); }
+   inline uint8_t      version()        const { return((data[0] >> 4) & 0x0f); }
+   inline uint16_t     headerLength()   const { return((data[0] & 0x0f) * 4);  }
+   inline uint8_t      typeOfService()  const { return(data[1]);               }
+   inline uint16_t     totalLength()    const { return(decode(2, 3));          }
+   inline uint16_t     identification() const { return(decode(4, 5));          }
+   inline bool         dontFragment()   const { return((data[6] & 0x40) != 0); }
+   inline bool         moreFragments()  const { return((data[6] & 0x20) != 0); }
+   inline uint16_t     fragmentOffset() const { return(decode(6, 7) & 0x1fff); }
+   inline unsigned int timeToLive()     const { return(data[8]);               }
+   inline uint8_t      protocol()       const { return(data[9]);               }
+   inline uint16_t     headerChecksum() const { return(decode(10, 11));        }
 
    inline boost::asio::ip::address_v4 sourceAddress() const {
-      const boost::asio::ip::address_v4::bytes_type bytes = { { data[12], data[13], data[14], data[15] } };
+      const boost::asio::ip::address_v4::bytes_type bytes =
+         { { data[12], data[13], data[14], data[15] } };
       return(boost::asio::ip::address_v4(bytes));
     }
 
    inline boost::asio::ip::address_v4 destinationAddress() const {
-      const boost::asio::ip::address_v4::bytes_type bytes = { { data[16], data[17], data[18], data[19] } };
+      const boost::asio::ip::address_v4::bytes_type bytes =
+         { { data[16], data[17], data[18], data[19] } };
       return(boost::asio::ip::address_v4(bytes));
    }
 

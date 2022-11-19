@@ -33,8 +33,8 @@
 #include "tools.h"
 #include "logger.h"
 #include "icmpheader.h"
-// #include "ipv4header.h"
-// #include "ipv6header.h"
+#include "ipv4header.h"
+#include "ipv6header.h"
 #include "traceserviceheader.h"
 
 // #include <netinet/in.h>
@@ -50,9 +50,9 @@
 // #include <boost/uuid/sha1.hpp>
 // #endif
 
-// #ifdef __linux__
-// #include <linux/sockios.h>
-// #endif
+#ifdef __linux__
+#include <linux/sockios.h>
+#endif
 
 
 // ###### Constructor #######################################################
@@ -63,8 +63,7 @@ IOModuleBase::IOModuleBase(const std::string&              name,
    : Name(name),
      IOService(ioService),
      SourceAddress(sourceAddress),
-     PacketSize(packetSize),
-     MagicNumber( ((std::rand() & 0xffff) << 16) | (std::rand() & 0xffff) )
+     PacketSize(packetSize)
 {
 }
 
@@ -88,8 +87,7 @@ ICMPModule::ICMPModule(const std::string&              name,
      ActualPacketSize( ((SourceAddress.is_v6() == true) ? 40 : 20) + sizeof(ICMPHeader) + PayloadSize ),
      ICMPSocket(IOService, (sourceAddress.is_v6() == true) ? boost::asio::ip::icmp::v6() : boost::asio::ip::icmp::v4())
 {
-   Identifier = 0;
-   SeqNumber  = (unsigned short)(std::rand() & 0xffff);
+   ExpectingReply = false;
 }
 
 
@@ -99,42 +97,84 @@ ICMPModule::~ICMPModule()
 }
 
 
-// ###### Send one ICMP request to given destination ########################
-void ICMPModule::sendRequest(const DestinationInfo& destination,
-                             const unsigned int     ttl,
-                             const unsigned int     round,
-                             uint32_t&              targetChecksum)
+// ###### Prepare ICMP socket ###############################################
+bool ICMPModule::prepareSocket()
 {
-//    // ====== Compute payload size and packet size ===========================
-//    const size_t payloadSize =
-//       (size_t)std::max((ssize_t)MIN_TRACESERVICE_HEADER_SIZE,
-//                        (ssize_t)PacketSize -
-//                           (ssize_t)((SourceAddress.is_v6() == true) ? 40 : 20) -
-//                           (ssize_t)sizeof(ICMPHeader));
-//    const size_t actualPacketSize = ((SourceAddress.is_v6() == true) ? 40 : 20) +
-//                                       sizeof(ICMPHeader) +
-//                                       payloadSize;
+   // ====== Bind ICMP socket to given source address =======================
+   boost::system::error_code errorCode;
+   ICMPSocket.bind(boost::asio::ip::icmp::endpoint(SourceAddress, 0), errorCode);
+   if(errorCode !=  boost::system::errc::success) {
+      HPCT_LOG(error) << getName() << ": Unable to bind ICMP socket to source address "
+                      << SourceAddress << "!";
+      return false;
+   }
 
+   // ====== Set filter (not required, but much more efficient) =============
+   if(SourceAddress.is_v6()) {
+      struct icmp6_filter filter;
+      ICMP6_FILTER_SETBLOCKALL(&filter);
+      ICMP6_FILTER_SETPASS(ICMP6_ECHO_REPLY, &filter);
+      ICMP6_FILTER_SETPASS(ICMP6_DST_UNREACH, &filter);
+      ICMP6_FILTER_SETPASS(ICMP6_PACKET_TOO_BIG, &filter);
+      ICMP6_FILTER_SETPASS(ICMP6_TIME_EXCEEDED, &filter);
+      if(setsockopt(ICMPSocket.native_handle(), IPPROTO_ICMPV6, ICMP6_FILTER,
+                    &filter, sizeof(struct icmp6_filter)) < 0) {
+         HPCT_LOG(warning) << "Unable to set ICMP6_FILTER!";
+      }
+   }
+   return true;
+}
+
+
+// ###### Expect next ICMP message ##########################################
+void ICMPModule::expectNextReply()
+{
+   assert(ExpectingReply == false);
+   ICMPSocket.async_receive_from(boost::asio::buffer(MessageBuffer),
+                                 ReplyEndpoint,
+                                 std::bind(&ICMPModule::handleResponse, this,
+                                           std::placeholders::_1,
+                                           std::placeholders::_2));
+   ExpectingReply = true;
+}
+
+
+// ###### Cancel socket operations ##########################################
+void ICMPModule::cancelSocket()
+{
+   ICMPSocket.cancel();
+}
+
+
+// ###### Send one ICMP request to given destination ########################
+ResultEntry* ICMPModule::sendRequest(const uint16_t         identifier,
+                                     const uint32_t         magicNumber,
+                                     const DestinationInfo& destination,
+                                     const unsigned int     ttl,
+                                     const unsigned int     round,
+                                     uint16_t&              seqNumber,
+                                     uint32_t&              targetChecksum)
+{
    // ====== Set TTL ========================================================
    const boost::asio::ip::unicast::hops option(ttl);
    ICMPSocket.set_option(option);
 
    // ====== Create an ICMP header for an echo request ======================
-   SeqNumber++;
+   seqNumber++;
 
    ICMPHeader echoRequest;
    echoRequest.type((SourceAddress.is_v6() == true) ? ICMPHeader::IPv6EchoRequest : ICMPHeader::IPv4EchoRequest);
    echoRequest.code(0);
-   echoRequest.identifier(Identifier);
-   echoRequest.seqNumber(SeqNumber);
+   echoRequest.identifier(identifier);
+   echoRequest.seqNumber(seqNumber);
 
    TraceServiceHeader tsHeader(PayloadSize);
-   tsHeader.magicNumber(MagicNumber);
+   tsHeader.magicNumber(magicNumber);
    tsHeader.sendTTL(ttl);
    tsHeader.round((unsigned char)round);
    tsHeader.checksumTweak(0);
    const std::chrono::system_clock::time_point sendTime = std::chrono::system_clock::now();
-   tsHeader.sendTimeStamp(makePacketTimeStamp(sendTime));
+   tsHeader.sendTimeStamp(sendTime);
 
    // ====== Tweak checksum =================================================
    std::vector<unsigned char> tsHeaderContents = tsHeader.contents();
@@ -161,6 +201,7 @@ void ICMPModule::sendRequest(const DestinationInfo& destination,
       computeInternet16(echoRequest, tsHeaderContents.begin(), tsHeaderContents.end());
       assert(echoRequest.checksum() == targetChecksum);
    }
+   assert((targetChecksum & ~0xffff) == 0);
 
    // ====== Encode the request packet ======================================
    boost::asio::streambuf request_buffer;
@@ -194,19 +235,118 @@ void ICMPModule::sendRequest(const DestinationInfo& destination,
    catch(boost::system::system_error const& e) {
       sent = -1;
    }
-   if(sent < 1) {
-      HPCT_LOG(warning) << getName() << ": ICMPModule::sendICMPRequest() - ICMP send_to("
-                        << SourceAddress << "->" << destination << ") failed!";
-   }
-   else {
-      // ====== Record the request ==========================================
-      OutstandingRequests++;
 
-      assert((targetChecksum & ~0xffff) == 0);
-      ResultEntry resultEntry(round, SeqNumber, ttl, actualPacketSize,
-                              (uint16_t)targetChecksum, sendTime,
-                              destination, Unknown);
-      std::pair<std::map<unsigned short, ResultEntry>::iterator, bool> result = ResultsMap.insert(std::pair<unsigned short, ResultEntry>(SeqNumber,resultEntry));
-      assert(result.second == true);
+   if(sent > 0) {
+      ResultEntry* resultEntry =
+         new ResultEntry(round, seqNumber, ttl, ActualPacketSize,
+                         (uint16_t)targetChecksum, sendTime,
+                         destination, Unknown);
+      assert(resultEntry != nullptr);
+      return resultEntry;
+   }
+   HPCT_LOG(warning) << getName() << ": sendICMPRequest() - send_to("
+                     << SourceAddress << "->" << destination << ") failed!";
+   return nullptr;
+}
+
+
+// ###### Handle incoming ICMP message ######################################
+void ICMPModule::handleResponse(const boost::system::error_code& errorCode,
+                                std::size_t                      length)
+{
+   if(errorCode != boost::asio::error::operation_aborted) {
+      if(!errorCode) {
+
+         // ====== Obtain reception time ====================================
+         std::chrono::system_clock::time_point receiveTime;
+#ifdef __linux__
+         struct timeval                        tv;
+         if(ioctl(ICMPSocket.native_handle(), SIOCGSTAMP, &tv) == 0) {
+            // Got reception time from kernel via SIOCGSTAMP
+            receiveTime = std::chrono::system_clock::time_point(
+                             std::chrono::seconds(tv.tv_sec) +
+                             std::chrono::microseconds(tv.tv_usec));
+         }
+         else {
+#endif
+            // Fallback: SIOCGSTAMP did not return a result
+            receiveTime = std::chrono::system_clock::now();
+#ifdef __linux__
+         }
+#endif
+
+         // ====== Handle ICMP header =======================================
+         boost::interprocess::bufferstream is(MessageBuffer, length);
+         ExpectingReply = false;   // Need to call expectNextReply() to get next message!
+
+         ICMPHeader icmpHeader;
+         if(SourceAddress.is_v6()) {
+            is >> icmpHeader;
+            if(is) {
+               if(icmpHeader.type() == ICMPHeader::IPv6EchoReply) {
+                  if(icmpHeader.identifier() == Identifier) {
+                     TraceServiceHeader tsHeader;
+                     is >> tsHeader;
+                     if(is) {
+                        if(tsHeader.magicNumber() == MagicNumber) {
+                           recordResult(receiveTime, icmpHeader, icmpHeader.seqNumber());
+                        }
+                     }
+                  }
+               }
+               else if( (icmpHeader.type() == ICMPHeader::IPv6TimeExceeded) ||
+                        (icmpHeader.type() == ICMPHeader::IPv6Unreachable) ) {
+                  IPv6Header innerIPv6Header;
+                  ICMPHeader innerICMPHeader;
+                  TraceServiceHeader tsHeader;
+                  is >> innerIPv6Header >> innerICMPHeader >> tsHeader;
+                  if(is) {
+                     if(tsHeader.magicNumber() == MagicNumber) {
+                        recordResult(receiveTime, icmpHeader, innerICMPHeader.seqNumber());
+                     }
+                  }
+               }
+            }
+         }
+         else {
+            IPv4Header ipv4Header;
+            is >> ipv4Header;
+            if(is) {
+               is >> icmpHeader;
+               if(is) {
+                  if(icmpHeader.type() == ICMPHeader::IPv4EchoReply) {
+                     if(icmpHeader.identifier() == Identifier) {
+                        TraceServiceHeader tsHeader;
+                        is >> tsHeader;
+                        if(is) {
+                           if(tsHeader.magicNumber() == MagicNumber) {
+                              recordResult(receiveTime, icmpHeader, icmpHeader.seqNumber());
+                           }
+                        }
+                     }
+                  }
+                  else if(icmpHeader.type() == ICMPHeader::IPv4TimeExceeded) {
+                     IPv4Header innerIPv4Header;
+                     ICMPHeader innerICMPHeader;
+                     is >> innerIPv4Header >> innerICMPHeader;
+                     if(is) {
+                        if( (icmpHeader.type() == ICMPHeader::IPv4TimeExceeded) ||
+                            (icmpHeader.type() == ICMPHeader::IPv4Unreachable) ) {
+                           if(innerICMPHeader.identifier() == Identifier) {
+                              // Unfortunately, ICMPv4 does not return the full TraceServiceHeader here!
+                              recordResult(receiveTime, icmpHeader, innerICMPHeader.seqNumber());
+                           }
+                        }
+                     }
+                  }
+               }
+            }
+         }
+      }
+
+      if(OutstandingRequests == 0) {
+         noMoreOutstandingRequests();
+      }
+      expectNextReply();
    }
 }

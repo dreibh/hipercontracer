@@ -73,10 +73,12 @@ class IPv6Header
 
    inline uint8_t  version()       const { return((data[0] >> 4) & 0x0f);             }
    inline uint8_t  trafficClass()  const { return((data[1] & 0x0f) | (data[2] >> 4)); }
-   inline uint32_t flowLabel()     const { return( (((uint32_t)data[2] & 0x0f) << 16) | ((uint32_t)data[3] << 8) | (uint32_t)data[4] ); }
+   inline uint32_t flowLabel()     const {
+      return( (((uint32_t)data[2] & 0x0f) << 16) | ((uint32_t)data[3] << 8) | (uint32_t)data[4] );
+   }
    inline uint16_t payloadLength() const { return(decode(4, 5)); }
-   inline uint8_t  nextHeader()    const { return data[6]; }
-   inline uint32_t timeToLive()    const { return data[7]; }
+   inline uint8_t  nextHeader()    const { return data[6];       }
+   inline uint32_t timeToLive()    const { return data[7];       }
 
    inline boost::asio::ip::address_v6 sourceAddress() const {
       boost::asio::ip::address_v6::bytes_type v6address;

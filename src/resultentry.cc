@@ -35,14 +35,14 @@
 
 
 // ###### Constructor #######################################################
-ResultEntry::ResultEntry(const unsigned short                        round,
-                         const unsigned short                        seqNumber,
-                         const unsigned int                          hop,
-                         const unsigned int                          packetSize,
-                         const uint16_t                              checksum,
-                         const std::chrono::system_clock::time_point sendTime,
-                         const DestinationInfo&                      destination,
-                         const HopStatus                             status)
+ResultEntry::ResultEntry(const unsigned short                         round,
+                         const unsigned short                         seqNumber,
+                         const unsigned int                           hop,
+                         const unsigned int                           packetSize,
+                         const uint16_t                               checksum,
+                         const std::chrono::system_clock::time_point& sendTime,
+                         const DestinationInfo&                       destination,
+                         const HopStatus                              status)
    : Round(round),
      SeqNumber(seqNumber),
      Hop(hop),

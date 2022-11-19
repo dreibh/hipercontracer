@@ -108,6 +108,13 @@ class TraceServiceHeader
       Data[14] = static_cast<uint8_t>( (timeStamp >> 8) & 0xff );
       Data[15] = static_cast<uint8_t>( timeStamp & 0xff );
    }
+   inline void sendTimeStamp(const std::chrono::system_clock::time_point& timeStamp) {
+      // For HiPerConTracer packets: time stamp is microseconds since 1976-09-26.
+      static const std::chrono::system_clock::time_point HiPerConTracerEpoch =
+         std::chrono::system_clock::from_time_t(212803200);
+      sendTimeStamp(std::chrono::duration_cast<std::chrono::microseconds>(
+                       timeStamp - HiPerConTracerEpoch).count());
+   }
 
    inline friend std::istream& operator>>(std::istream& is, TraceServiceHeader& header) {
       return(is.read(reinterpret_cast<char*>(header.Data), header.Size));
@@ -122,7 +129,7 @@ class TraceServiceHeader
       return(contents);
    }
 
-//    private:
+   private:
    const size_t Size;
    uint8_t      Data[MAX_TRACESERVICE_HEADER_SIZE];
 };

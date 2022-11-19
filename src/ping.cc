@@ -140,8 +140,8 @@ void Ping::processResults()
 {
    // ====== Sort results ===================================================
    std::vector<ResultEntry*> resultsVector;
-   for(std::map<unsigned short, ResultEntry>::iterator iterator = ResultsMap.begin(); iterator != ResultsMap.end(); iterator++) {
-      resultsVector.push_back(&iterator->second);
+   for(std::map<unsigned short, ResultEntry*>::iterator iterator = ResultsMap.begin(); iterator != ResultsMap.end(); iterator++) {
+      resultsVector.push_back(iterator->second);
    }
    std::sort(resultsVector.begin(), resultsVector.end(), &comparePingResults);
 
@@ -214,7 +214,15 @@ void Ping::sendRequests()
          for(std::set<DestinationInfo>::const_iterator destinationIterator = Destinations.begin();
             destinationIterator != Destinations.end(); destinationIterator++) {
             const DestinationInfo& destination = *destinationIterator;
-            sendICMPRequest(destination, FinalMaxTTL, 0, targetChecksum);
+            ResultEntry* resultEntry =
+               IOModule->sendRequest(Identifier, MagicNumber,
+                                     destination, FinalMaxTTL, 0, SeqNumber, targetChecksum);
+            if(resultEntry) {
+               OutstandingRequests++;
+               std::pair<std::map<unsigned short, ResultEntry*>::iterator, bool> result =
+                  ResultsMap.insert(std::pair<unsigned short, ResultEntry*>(SeqNumber, resultEntry));
+               assert(result.second == true);
+            }
          }
 
          scheduleTimeoutEvent();

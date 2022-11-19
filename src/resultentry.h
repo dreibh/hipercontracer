@@ -84,14 +84,14 @@ inline bool statusIsUnreachable(const HopStatus hopStatus)
 
 class ResultEntry {
    public:
-   ResultEntry(const unsigned short                        round,
-               const unsigned short                        seqNumber,
-               const unsigned int                          hop,
-               const unsigned int                          packetSize,
-               const uint16_t                              checksum,
-               const std::chrono::system_clock::time_point sendTime,
-               const DestinationInfo&                      destination,
-               const HopStatus                             status);
+   ResultEntry(const unsigned short                         round,
+               const unsigned short                         seqNumber,
+               const unsigned int                           hop,
+               const unsigned int                           packetSize,
+               const uint16_t                               checksum,
+               const std::chrono::system_clock::time_point& sendTime,
+               const DestinationInfo&                       destination,
+               const HopStatus                              status);
    ~ResultEntry();
 
    inline unsigned int round()                                const { return(Round);                  }
