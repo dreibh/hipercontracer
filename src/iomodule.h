@@ -61,14 +61,14 @@ class ICMPModule : public IOModuleBase
                                     const unsigned int     round,
                                     uint16_t&              seqNumber,
                                     uint32_t&              targetChecksum);
-   virtual void handleResponse(const boost::system::error_code& errorCode,
-                               std::size_t                      length);
-   void recordResult(const std::chrono::system_clock::time_point& receiveTime,
-                     const ICMPHeader&                            icmpHeader,
-                     const unsigned short                         seqNumber);
 
    protected:
    void expectNextReply();
+   void handleResponse(const boost::system::error_code& errorCode,
+                       std::size_t                      length);
+   void recordResult(const std::chrono::system_clock::time_point& receiveTime,
+                     const ICMPHeader&                            icmpHeader,
+                     const unsigned short                         seqNumber);
 
    const unsigned int              PayloadSize;
    const unsigned int              ActualPacketSize;
@@ -99,14 +99,15 @@ class UDPModule : public IOModuleBase
                                     const unsigned int     round,
                                     uint16_t&              seqNumber,
                                     uint32_t&              targetChecksum);
-   virtual void handleResponse(const boost::system::error_code& errorCode,
-                               std::size_t                      length);
-   void recordResult(const std::chrono::system_clock::time_point& receiveTime,
-                     const ICMPHeader*                            icmpHeader,
-                     const unsigned short                         seqNumber);
 
    protected:
    void expectNextReply();
+   void handleResponse(const boost::system::error_code& errorCode,
+                       const bool                       readFromErrorQueue);
+   void recordResult(const std::chrono::system_clock::time_point& receiveTime,
+                     const unsigned int                           icmpType,
+                     const unsigned int                           icmpCode,
+                     const unsigned short                         seqNumber);
 
    const unsigned int             PayloadSize;
    const unsigned int             ActualPacketSize;
@@ -114,7 +115,9 @@ class UDPModule : public IOModuleBase
    boost::asio::ip::udp::socket   UDPSocket;
    boost::asio::ip::udp::endpoint ReplyEndpoint;    // Store UDP reply's source address
    bool                           ExpectingReply;
+   bool                           ExpectingError;
    char                           MessageBuffer[65536 + 40];
+   char                           ControlBuffer[1024];
 };
 
 
