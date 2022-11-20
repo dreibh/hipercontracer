@@ -533,17 +533,17 @@ bool UDPModule::prepareSocket()
 // ###### Expect next UDP message ##########################################
 void UDPModule::expectNextReply()
 {
-   if(ExpectingReply == false) {
-      UDPSocket.async_wait(boost::asio::ip::tcp::socket::wait_read,
-                           std::bind(&UDPModule::handleResponse, this,
-                                     std::placeholders::_1, false));
-      ExpectingReply = true;
-   }
    if(ExpectingError == false) {
       UDPSocket.async_wait(boost::asio::ip::tcp::socket::wait_error,
                            std::bind(&UDPModule::handleResponse, this,
                                      std::placeholders::_1, true));
       ExpectingError = true;
+   }
+   if(ExpectingReply == false) {
+      UDPSocket.async_wait(boost::asio::ip::tcp::socket::wait_read,
+                           std::bind(&UDPModule::handleResponse, this,
+                                     std::placeholders::_1, false));
+      ExpectingReply = true;
    }
 }
 
@@ -603,8 +603,11 @@ ResultEntry* UDPModule::sendRequest(const DestinationInfo& destination,
          sent = -1;
       }
       else {
+// static int port=7;
+// printf("PORT=%d\n", port);
          sent = UDPSocket.send_to(request_buffer.data(),
-                                  boost::asio::ip::udp::endpoint(destination.address(), 7));   //FIXME!!!
+                                  boost::asio::ip::udp::endpoint(destination.address(), seqNumber));   //FIXME!!!
+//          port = 7 + ((port + 1) % 7);
       }
    }
    catch(boost::system::system_error const& e) {
@@ -637,6 +640,8 @@ ResultEntry* UDPModule::sendRequest(const DestinationInfo& destination,
 void UDPModule::handleResponse(const boost::system::error_code& errorCode,
                                const bool                       readFromErrorQueue)
 {
+   printf("handleResponse  EQ=%d\n", (readFromErrorQueue == true));
+
    if(errorCode != boost::asio::error::operation_aborted) {
       // ====== Ensure to request further messages later ====================
       if(!readFromErrorQueue) {
@@ -668,6 +673,7 @@ void UDPModule::handleResponse(const boost::system::error_code& errorCode,
 
             const ssize_t length = recvmsg(UDPSocket.native_handle(), &msg,
                                            (readFromErrorQueue == true) ? MSG_ERRQUEUE|MSG_DONTWAIT : MSG_DONTWAIT);
+            printf("   l=%d\n", (int)length);
             // Note: length == 0 for control data without user data!
             if(length < 0) {
                break;
@@ -734,6 +740,7 @@ void UDPModule::handleResponse(const boost::system::error_code& errorCode,
 
             // ====== Handle reply data =====================================
             if(!readFromErrorQueue) {
+               printf("DATA %d\n", (int)length);
                if(length > 0) {
                   // ====== Get reply address ===============================
                   ReplyEndpoint = sockaddrToEndpoint<boost::asio::ip::udp::endpoint>(
@@ -759,6 +766,8 @@ void UDPModule::handleResponse(const boost::system::error_code& errorCode,
             }
 
             else {
+               printf("ERR %d\n", (int)length);
+
                // FIXME!
                // ====== Get reply address ==================================
                ReplyEndpoint = sockaddrToEndpoint<boost::asio::ip::udp::endpoint>(
@@ -766,16 +775,34 @@ void UDPModule::handleResponse(const boost::system::error_code& errorCode,
 
                if(length == 0) {
                   std::cout << "HOW TO HANDLE " << ReplyEndpoint << ", length " << length << "\n";
-               }
+                  std::cout << "name=" << sockaddrToEndpoint<boost::asio::ip::udp::endpoint>( (sockaddr*)msg.msg_name, msg.msg_namelen) << "\n";
 
-               boost::interprocess::bufferstream is(MessageBuffer, length);
-               TraceServiceHeader tsHeader;
-               is >> tsHeader;
-               if(is) {
-                  if(tsHeader.magicNumber() == MagicNumber) {
-                     recordResult(receiveTime,
-                                  socketError->ee_type, socketError->ee_code,
-                                  tsHeader.checksumTweak());   // FIXME!!!
+                  uint16_t seq = sockaddrToEndpoint<boost::asio::ip::udp::endpoint>( (sockaddr*)msg.msg_name, msg.msg_namelen).port();
+
+                  printf("msg->msg_flags=%x   EC=%x\n", msg.msg_flags, MSG_ERRQUEUE);
+                  printf("iov.iov_len=%d\n", (int)iov.iov_len);
+                  printf("msg.msg_controllen=%d\n", (int)msg.msg_controllen);
+                  printf("socketError->ee_origin=%u\n", socketError->ee_origin);
+                  printf("socketError->ee_type=%u\n", socketError->ee_type);
+                  printf("socketError->ee_code=%u\n", socketError->ee_code);
+                  printf("socketError->ee_info=%u\n", socketError->ee_info);
+                  printf("socketError->ee_data=%u\n", socketError->ee_data);
+                  printf("port=%u\n", seq);
+
+                  recordResult(receiveTime,
+                               socketError->ee_type, socketError->ee_code, seq);
+
+               }
+               else {
+                  boost::interprocess::bufferstream is(MessageBuffer, length);
+                  TraceServiceHeader tsHeader;
+                  is >> tsHeader;
+                  if(is) {
+                     if(tsHeader.magicNumber() == MagicNumber) {
+                        recordResult(receiveTime,
+                                    socketError->ee_type, socketError->ee_code,
+                                    tsHeader.checksumTweak());   // FIXME!!!
+                     }
                   }
                }
             }
