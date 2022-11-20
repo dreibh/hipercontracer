@@ -668,7 +668,8 @@ void UDPModule::handleResponse(const boost::system::error_code& errorCode,
 
             const ssize_t length = recvmsg(UDPSocket.native_handle(), &msg,
                                            (readFromErrorQueue == true) ? MSG_ERRQUEUE|MSG_DONTWAIT : MSG_DONTWAIT);
-            if(length <= 0) {
+            // Note: length == 0 for control data without user data!
+            if(length < 0) {
                break;
             }
 
@@ -676,7 +677,7 @@ void UDPModule::handleResponse(const boost::system::error_code& errorCode,
             for(cmsghdr* cmsg = CMSG_FIRSTHDR(&msg); cmsg != nullptr; cmsg = CMSG_NXTHDR(&msg, cmsg)) {
                if(cmsg->cmsg_level == SOL_SOCKET) {
                   if(cmsg->cmsg_type == SO_TIMESTAMP) {
-                     puts("TIMESTAMP!");
+//                      puts("TIMESTAMP!");
                      const timeval* tv = (const timeval*)CMSG_DATA(cmsg);
                      receiveTime = std::chrono::system_clock::time_point(
                                       std::chrono::seconds(tv->tv_sec) +
@@ -685,7 +686,7 @@ void UDPModule::handleResponse(const boost::system::error_code& errorCode,
                }
                else if(cmsg->cmsg_level == SOL_IPV6) {
                   if(cmsg->cmsg_type == IPV6_HOPLIMIT) {
-                     puts("IPV6_HOPLIMIT");
+//                      puts("IPV6_HOPLIMIT");
                   }
                   else if(cmsg->cmsg_type == IPV6_RECVERR) {
                      socketError = (sock_extended_err*)CMSG_DATA(cmsg);
@@ -693,7 +694,7 @@ void UDPModule::handleResponse(const boost::system::error_code& errorCode,
                          (socketError->ee_origin != SO_EE_ORIGIN_LOCAL) ) {
                         socketError = nullptr;   // Unexpected content!
                      }
-                     else puts("IPV6_RECVERR!");
+//                      else puts("IPV6_RECVERR!");
                   }
                }
                else if(cmsg->cmsg_level == SOL_IP) {
@@ -703,7 +704,7 @@ void UDPModule::handleResponse(const boost::system::error_code& errorCode,
                          (socketError->ee_origin != SO_EE_ORIGIN_LOCAL) ) {
                         socketError = nullptr;   // Unexpected content!
                      }
-                     else puts("IP_RECVERR!");
+//                      else puts("IP_RECVERR!");
                   }
                }
             }
@@ -718,8 +719,8 @@ void UDPModule::handleResponse(const boost::system::error_code& errorCode,
                if(ioctl(UDPSocket.native_handle(), SIOCGSTAMP, &tv) == 0) {
                   // Got reception time from kernel via SIOCGSTAMP
                   receiveTime = std::chrono::system_clock::time_point(
-                                 std::chrono::seconds(tv.tv_sec) +
-                                 std::chrono::microseconds(tv.tv_usec));
+                                   std::chrono::seconds(tv.tv_sec) +
+                                   std::chrono::microseconds(tv.tv_usec));
                }
                // ------ Obtain current system time -------------------------
                else {
@@ -733,49 +734,50 @@ void UDPModule::handleResponse(const boost::system::error_code& errorCode,
 
             // ====== Handle reply data =====================================
             if(!readFromErrorQueue) {
-               // ====== Get reply address ==================================
-               ReplyEndpoint = sockaddrToEndpoint<boost::asio::ip::udp::endpoint>(
-                                  (sockaddr*)msg.msg_name, msg.msg_namelen);
+               if(length > 0) {
+                  // ====== Get reply address ===============================
+                  ReplyEndpoint = sockaddrToEndpoint<boost::asio::ip::udp::endpoint>(
+                                     (sockaddr*)msg.msg_name, msg.msg_namelen);
 
-               // ====== Handle TraceServiceHeader ==========================
-               boost::interprocess::bufferstream is(MessageBuffer, length);
+                  // ====== Handle TraceServiceHeader =======================
+                  boost::interprocess::bufferstream is(MessageBuffer, length);
 
-               TraceServiceHeader tsHeader;
-               is >> tsHeader;
-               if(is) {
-                  if(tsHeader.magicNumber() == MagicNumber) {
-                     printf("M  seq=%u\n", tsHeader.checksumTweak());
-                     recordResult(receiveTime, ICMPHeader::IPv6EchoReply, 0,
-                                  tsHeader.checksumTweak());   // FIXME!!!
+                  TraceServiceHeader tsHeader;
+                  is >> tsHeader;
+                  if(is) {
+                     if(tsHeader.magicNumber() == MagicNumber) {
+                        printf("M  seq=%u\n", tsHeader.checksumTweak());
+                        recordResult(receiveTime, ICMPHeader::IPv6EchoReply, 0,
+                                     tsHeader.checksumTweak());   // FIXME!!!
+                     }
                   }
+               }
+               else {
+                  puts("LLLL 0 ?????");   // FIXME!
+                  abort();
                }
             }
 
-            else {   // FIXME!
+            else {
+               // FIXME!
                // ====== Get reply address ==================================
                ReplyEndpoint = sockaddrToEndpoint<boost::asio::ip::udp::endpoint>(
                                   (sockaddr*)SO_EE_OFFENDER(socketError), sizeof(sockaddr_storage));
 
+               if(length == 0) {
+                  std::cout << "HOW TO HANDLE " << ReplyEndpoint << ", length " << length << "\n";
+               }
+
                boost::interprocess::bufferstream is(MessageBuffer, length);
                TraceServiceHeader tsHeader;
                is >> tsHeader;
                if(is) {
                   if(tsHeader.magicNumber() == MagicNumber) {
-                     sockaddr* o = SO_EE_OFFENDER(socketError);
-                     auto oo =
-                     boost::asio::ip::udp::endpoint(
-                        boost::asio::ip::address_v4( ntohl(((sockaddr_in*)o)->sin_addr.s_addr) ),
-                        ntohs(((sockaddr_in*)o)->sin_port)
-                     );
-
-                     printf("el=%d   seq=%u\n", (int)length, tsHeader.checksumTweak());
-                     std::cout << "EE=" << oo << "\n";
-
                      recordResult(receiveTime,
                                   socketError->ee_type, socketError->ee_code,
                                   tsHeader.checksumTweak());   // FIXME!!!
-                  } else puts("E1");
-               } else puts("E2");
+                  }
+               }
             }
          }
       }
