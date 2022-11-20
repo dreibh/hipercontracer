@@ -28,7 +28,6 @@ class IOModuleBase
    inline const std::string& getName() const { return Name; }
 
    virtual bool prepareSocket() = 0;
-   virtual void expectNextReply() = 0;
    virtual void cancelSocket() = 0;
 
    protected:
@@ -55,7 +54,6 @@ class ICMPModule : public IOModuleBase
    virtual ~ICMPModule();
 
    virtual bool prepareSocket();
-   virtual void expectNextReply();
    virtual void cancelSocket();
 
    virtual ResultEntry* sendRequest(const DestinationInfo& destination,
@@ -70,6 +68,8 @@ class ICMPModule : public IOModuleBase
                      const unsigned short                         seqNumber);
 
    protected:
+   void expectNextReply();
+
    const unsigned int              PayloadSize;
    const unsigned int              ActualPacketSize;
 
@@ -77,6 +77,44 @@ class ICMPModule : public IOModuleBase
    boost::asio::ip::icmp::endpoint ReplyEndpoint;    // Store ICMP reply's source address
    bool                            ExpectingReply;
    char                            MessageBuffer[65536 + 40];
+};
+
+
+class UDPModule : public IOModuleBase
+{
+   public:
+   UDPModule(const std::string&                       name,
+             boost::asio::io_service&                 ioService,
+             std::map<unsigned short, ResultEntry*>&  resultsMap,
+             const boost::asio::ip::address&          sourceAddress,
+             const unsigned int                       packetSize,
+             std::function<void (const ResultEntry*)> newResultCallback);
+   virtual ~UDPModule();
+
+   virtual bool prepareSocket();
+   virtual void cancelSocket();
+
+   virtual ResultEntry* sendRequest(const DestinationInfo& destination,
+                                    const unsigned int     ttl,
+                                    const unsigned int     round,
+                                    uint16_t&              seqNumber,
+                                    uint32_t&              targetChecksum);
+   virtual void handleResponse(const boost::system::error_code& errorCode,
+                               std::size_t                      length);
+   void recordResult(const std::chrono::system_clock::time_point& receiveTime,
+                     const ICMPHeader*                            icmpHeader,
+                     const unsigned short                         seqNumber);
+
+   protected:
+   void expectNextReply();
+
+   const unsigned int             PayloadSize;
+   const unsigned int             ActualPacketSize;
+
+   boost::asio::ip::udp::socket   UDPSocket;
+   boost::asio::ip::udp::endpoint ReplyEndpoint;    // Store UDP reply's source address
+   bool                           ExpectingReply;
+   char                           MessageBuffer[65536 + 40];
 };
 
 

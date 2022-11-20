@@ -395,7 +395,6 @@ void Traceroute::run()
 {
    prepareRun(true);
    sendRequests();
-   IOModule->expectNextReply();
    IOService.run();
 }
 
