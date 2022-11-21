@@ -1,17 +1,27 @@
 #!/bin/bash -e
 
-mkdir -p /tmp/ssl
+if [ $# -lt 1 ] ; then
+   echo >&2 "ERROR:$0 server_name [ssl_directory]"
+   exit 1
+fi
+if [ $# -ge 2 ] ; then
+   SSL_DIRECTORY="$2"
+else
+   SSL_DIRECTORY="/tmp/ssl"
+fi
 
-HOST=`hostname -f`
+SERVER="$1"
+SERVER_OPENSSL_CONF="${SSL_DIRECTORY}/${SERVER}.conf"
+SERVER_KEY="${SSL_DIRECTORY}/${SERVER}.key"
+SERVER_CSR="${SSL_DIRECTORY}/${SERVER}.csr"
+SERVER_CRT="${SSL_DIRECTORY}/${SERVER}.crt"
+SERVER_CHAIN="${SSL_DIRECTORY}/${SERVER}-chain.pem"
+
+# Get all IP addresses:
 ALT_ADDRESSES=`hostname -I | xargs -n1 | awk '{ print "IP." NR "=" $1 }'`
-SERVER_OPENSSL_CONF="/tmp/ssl/${HOST}.conf"
-SERVER_KEY="/tmp/ssl/${HOST}.key"
-SERVER_CSR="/tmp/ssl/${HOST}.csr"
-SERVER_CRT="/tmp/ssl/${HOST}.crt"
-SERVER_CHAIN="/tmp/ssl/${HOST}.pem"
 
 CA1="TestRoot"
-CA1_DIR="/tmp/ssl/${CA1}"
+CA1_DIR="${SSL_DIRECTORY}/${CA1}"
 CA1_OPENSSL_CONF="${CA1}.conf"
 CA1_KEY="private/${CA1}.key"
 CA1_CSR="${CA1}.csr"
@@ -20,7 +30,7 @@ CA1_PEM="chains/${CA1}-chain.pem"
 CA1_CRL="crl/${CA1}.crl"
 
 CA2="TestIntermediate"
-CA2_DIR="/tmp/ssl/${CA2}"
+CA2_DIR="${SSL_DIRECTORY}/${CA2}"
 CA2_OPENSSL_CONF="${CA2}.conf"
 CA2_KEY="private/${CA2}.key"
 CA2_CSR="${CA2}.csr"
@@ -29,7 +39,7 @@ CA2_PEM="${CA2}-chain.pem"
 CA2_CRL="crl/${CA2}.crl"
 
 CA3="TestLeaf"
-CA3_DIR="/tmp/ssl/${CA3}"
+CA3_DIR="${SSL_DIRECTORY}/${CA3}"
 CA3_OPENSSL_CONF="${CA3}.conf"
 CA3_KEY="private/${CA3}.key"
 CA3_CSR="${CA3}.csr"
@@ -38,8 +48,12 @@ CA3_PEM="${CA3}-chain.pem"
 CA3_CRL="crl/${CA3}.crl"
 
 
+if [ ! -e ${SSL_DIRECTORY}  ]; then
+   sudo mkdir -p ${SSL_DIRECTORY}
+fi
+
 # ====== Make Level-1 CA ====================================================
-if [ ! -e ${CA1_DIR}/${CA1}.key -o ! -e ${CA1_DIR}/${CA1}.crt ] ; then
+if [ ! -e ${CA1_DIR}/${CA1_KEY} -o ! -e ${CA1_DIR}/${CA1_CRT} ] ; then
 
    echo -e "\x1b[34mCreating Level-1 CA key and certificate ...\x1b[0m"
 
@@ -101,7 +115,7 @@ commonName             = supplied
 emailAddress           = optional
 
 [ req ]
-default_bits           = 8192
+default_bits           = 16384
 default_md             = sha512
 distinguished_name     = req_distinguished_name
 
@@ -127,7 +141,7 @@ EOF
 
    # Create Level-1 CA certificate (self-signed)
    sudo openssl req -x509 \
-      -newkey rsa:1024 -sha512 -nodes \
+      -newkey rsa:4096 -sha512 -nodes \
       -keyout ${CA1_DIR}/${CA1_KEY} \
       -out ${CA1_DIR}/${CA1_CRT} \
       -extensions v3_ca \
@@ -142,7 +156,7 @@ EOF
 fi
 
 # ====== Make Level-2 CA ====================================================
-if [ ! -e ${CA2}.key -o ! -e ${CA2}.crt ] ; then
+if [ ! -e ${CA2_DIR}/${CA2_KEY} -o ! -e ${CA2_DIR}/${CA2_CRT} ] ; then
 
    echo -e "\x1b[34mCreating Level-2 CA key and certificate ...\x1b[0m"
 
@@ -204,7 +218,7 @@ commonName             = supplied
 emailAddress           = optional
 
 [ req ]
-default_bits           = 8192
+default_bits           = 16384
 default_md             = sha512
 distinguished_name     = req_distinguished_name
 x509_extensions        = v3_ca
@@ -227,25 +241,11 @@ subjectKeyIdentifier   = hash
 authorityKeyIdentifier = keyid:always,issuer
 basicConstraints       = critical, CA:true, pathlen:0
 keyUsage               = critical, digitalSignature, cRLSign, keyCertSign
-
-[ usr_cert ]
-basicConstraints       = CA:FALSE
-subjectKeyIdentifier   = hash
-authorityKeyIdentifier = keyid,issuer
-keyUsage               = critical, nonRepudiation, digitalSignature, keyEncipherment
-extendedKeyUsage       = clientAuth, emailProtection
-
-[ server_cert ]
-basicConstraints       = CA:FALSE
-subjectKeyIdentifier   = hash
-authorityKeyIdentifier = keyid,issuer:always
-keyUsage               = critical, digitalSignature, keyEncipherment
-extendedKeyUsage       = serverAuth
 EOF
 
    # Create Level-2 CA certificate
    sudo openssl req \
-      -newkey rsa:1024 -sha512 -nodes \
+      -newkey rsa:4096 -sha512 -nodes \
       -keyout ${CA2_DIR}/${CA2_KEY} \
       -out ${CA2_DIR}/${CA2_CSR} \
       -utf8 -subj "/CN=${CA1} Level-2 CA Certificate/C=NO/ST=Oslo/L=Oslo/O=Simula Metropolitan Centre for Digital Engineering" \
@@ -266,7 +266,7 @@ EOF
 fi
 
 # ====== Make Level-3 CA ====================================================
-if [ ! -e ${CA3}.key -o ! -e ${CA3}.crt ] ; then
+if [ ! -e ${CA3_DIR}/${CA3_KEY} -o ! -e ${CA3_DIR}/${CA3_CRT} ] ; then
 
    echo -e "\x1b[34mCreating Level-3 CA key and certificate ...\x1b[0m"
 
@@ -328,7 +328,7 @@ commonName             = supplied
 emailAddress           = optional
 
 [ req ]
-default_bits           = 8192
+default_bits           = 16384
 default_md             = sha512
 distinguished_name     = req_distinguished_name
 x509_extensions        = v3_ca
@@ -369,7 +369,7 @@ EOF
 
    # Create Level-3 CA certificate
    sudo openssl req \
-      -newkey rsa:1024 -sha512 -nodes \
+      -newkey rsa:4096 -sha512 -nodes \
       -keyout ${CA3_DIR}/${CA3_KEY} \
       -out ${CA3_DIR}/${CA3_CSR} \
       -utf8 -subj "/CN=${CA3} Level-3 CA Certificate/C=NO/ST=Oslo/L=Oslo/O=Simula Metropolitan Centre for Digital Engineering/OU=Centre for Resilient Networks and Applications" \
@@ -390,13 +390,13 @@ EOF
 fi
 
 # ====== Make server certificate ============================================
-if [ ! -e ${HOST}.key -o ! -e ${HOST}.crt ] ; then
+if [ ! -e ${SERVER_KEY} -o ! -e ${SERVER_CRT} ] ; then
 
    echo -e "\x1b[34mCreating server key and certificate ...\x1b[0m"
 
    sudo tee ${SERVER_OPENSSL_CONF} >/dev/null <<EOF
 [ req ]
-default_bits        = 4096
+default_bits        = 8192
 default_md          = sha512
 distinguished_name  = req_distinguished_name
 req_extensions      = req_ext
@@ -405,7 +405,7 @@ countryName         = NO
 stateOrProvinceName = Oslo
 localityName        = Oslo
 organizationName    = Simula Metropolitan Centre for Digital Engineering
-commonName          = ${HOST}
+commonName          = ${SERVER}
 [ req_ext ]
 subjectAltName = @alt_names
 [ alt_names ]
@@ -414,10 +414,10 @@ ${ALT_ADDRESSES}
 EOF
 
    sudo openssl req \
-      -newkey rsa:1024 -sha512 -nodes \
+      -newkey rsa:4096 -sha512 -nodes \
       -keyout ${SERVER_KEY} \
       -out ${SERVER_CSR} \
-      -utf8 -subj "/CN=${HOST}" \
+      -utf8 -subj "/CN=${SERVER}" \
       -config ${SERVER_OPENSSL_CONF}
 
    sudo openssl ca \
@@ -427,10 +427,11 @@ EOF
       -batch -notext \
       -extensions server_cert \
       -days 3650 \
-      -utf8 -subj "/CN=${HOST}/C=NO/ST=Oslo/L=Oslo/O=Simula Metropolitan Centre for Digital Engineering/OU=Centre for Resilient Networks and Applications"
+      -utf8 -subj "/CN=${SERVER}/C=NO/ST=Oslo/L=Oslo/O=Simula Metropolitan Centre for Digital Engineering/OU=Centre for Resilient Networks and Applications"
 
    openssl req -noout -text -in ${SERVER_CSR}
 
-   sudo cat ${CA3_DIR}/${CA3_PEM} ${SERVER_CRT} | sudo tee ${SERVER_CHAIN}-chain.pem >/dev/null
-   sudo openssl verify -CAfile ${CA3_DIR}/${CA3_PEM} ${SERVER_CRT}
+   sudo cat ${CA3_DIR}/${CA3_PEM} ${SERVER_CRT} | sudo tee ${SERVER_CHAIN} >/dev/null
 fi
+
+sudo openssl verify -CAfile ${CA3_DIR}/${CA3_PEM} ${SERVER_CRT}

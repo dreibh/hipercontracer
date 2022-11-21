@@ -24,44 +24,13 @@ if [ "${ROOT_PASSWORD}"       = "!root!"       -o \
 fi
 
 
-# ###### Prepare key and certificate ########################################
-HOST=`hostname -f`
-OPENSSH_CONF_FILE="/etc/ssl/${HOST}.conf"
-KEY_FILE="/etc/ssl/${HOST}.key"
-CERT_FILE="/etc/ssl/${HOST}.crt"
-PEM_FILE="/etc/ssl/${HOST}.pem"
-if [ ! -e /etc/ssl/${HOST}.key -o ! -e /etc/ssl/${HOST}.crt ] ; then
-
-   echo "Creating key and certificate ..."
-
-   cat <<EOF
-[ req ]
-default_bits        = 4096
-distinguished_name  = req_distinguished_name
-req_extensions      = req_ext
-[ req_distinguished_name ]
-countryName         = NO
-stateOrProvinceName = Oslo
-localityName        = Oslo
-organizationName    = Simula Metropolitan Centre for Digital Engineering
-commonName          = ${HOST}
-[ req_ext ]
-subjectAltName = localhost
-EOF | sudo tee ${OPENSSH_CONF_FILE}
-
-   sudo openssl req -x509 -newkey rsa:4096 -sha256 -nodes \
-      -keyout ${KEY_FILE} \
-      -out ${CERT_FILE} \
-      -days 3650 -config ${OPENSSH_CONF_FILE} && \
-   sudo cat ${KEY_FILE} ${CERT_FILE} | sudo tee ${PEM_FILE}
-fi
-
-
 # ###### MariaDB ############################################################
 if [ "$1" == "mariadb" ] ; then
    # Documentation: https://www.digitalocean.com/community/tutorials/how-to-install-mariadb-on-ubuntu-22-04
 
    echo "Installing MariaDB ..."
+
+   ./generate-test-certificate mariadb.domain.test /etc/ssl
 
    sudo apt install -y mariadb-server mariadb-backup mariadb-client
    sudo mysql_secure_installation
@@ -81,6 +50,8 @@ elif [ "$1" == "postgresql" ] ; then
    # Documentation: https://www.digitalocean.com/community/tutorials/how-to-install-postgresql-on-ubuntu-22-04-quickstart
 
    echo "Installing PostgreSQL ..."
+
+   ./generate-test-certificate postgresql.domain.test /etc/ssl
 
    sudo apt install -y postgresql-all postgresql-contrib
 
@@ -104,6 +75,9 @@ elif [ "$1" == "mongodb" ] ; then
    # Documentation: https://www.mongodb.com/docs/manual/tutorial/install-mongodb-on-ubuntu/
 
    echo "Installing MongoDB ..."
+
+   ./generate-test-certificate mongodb.domain.test /etc/ssl
+   PEM_FILE="/etc/ssl/mongodb.domain.test-chain.pem"
 
    # ====== Install MongoDB =================================================
    # FIXME! Still no official MongoDB for Ubuntu 22.04 ...
