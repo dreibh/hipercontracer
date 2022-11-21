@@ -1,0 +1,45 @@
+#!/bin/bash -e
+
+if [ $# -ne 1 ] ; then
+   echo >&2 "Usage: $0 mariadb|mongodb|mysql|postgresql"
+   exit 1
+fi
+
+
+echo -n "WARNING: THIS SCRIPT WILL ERASE THE EXISTING DATABASES. To proceed, type \"I am sure!\": "
+# read -er agree
+# if [ "$agree" != "I am sure!" ] ; then
+#    echo "Exiting."
+#    exit
+# fi
+
+
+# ###### MariaDB ############################################################
+if [ "$1" == "mariadb" ] ; then
+   echo "Uninstalling MariaDB ..."
+
+   sudo apt purge 'mariadb*'
+   sudo rm -rf /var/lib/mysql
+
+
+# ###### PostgreSQL #########################################################
+elif [ "$1" == "postgresql" ] ; then
+   echo "Uninstalling PostgreSQL ..."
+
+   sudo apt purge 'postgresql*'
+   sudo rm -rf /var/lib/postgresql
+
+
+# ###### MongoDB ############################################################
+elif [ "$1" == "mongodb" ] ; then
+   echo "Uninstalling MongoDB ..."
+
+   sudo apt purge 'mongodb*'
+   sudo rm -rf /var/lib/mongodb
+
+
+# ###### Error ##############################################################
+else
+   echo >&2 "ERROR: Unsupported database: $1"
+   exit 1
+fi
