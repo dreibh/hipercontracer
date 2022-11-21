@@ -30,45 +30,8 @@ echo -n "WARNING: THIS SCRIPT WILL ERASE THE EXISTING DATABASES. To proceed, typ
 # fi
 
 
-# ###### MongoDB ############################################################
-if [ "$1" == "mongodb" ] ; then
-   # Documentation: https://www.mongodb.com/docs/manual/tutorial/install-mongodb-on-ubuntu/
-
-   echo -e "\x1b[34mPreparing admin user for MongoDB ...\x1b[0m"
-
-   # ====== Create database =================================================
-   echo -e "\x1b[33mCreating database ...\x1b[0m"
-   mongosh --quiet <mongodb-database.ms
-
-   # ====== Create schema ===================================================
-   echo -e "\x1b[33mCreating schemata ...\x1b[0m"
-   mongosh --quiet <mongodb-schema.ms
-
-   # ====== Create users and roles ==========================================
-   echo -e "\x1b[33mCreating user and roles ...\x1b[0m"
-   mongosh --quiet <<EOF
-use admin
-db.dropUser("maintainer")
-db.createUser({ user: "maintainer",
-                pwd: "${MAINTAINER_PASSWORD}",
-                roles: [
-                   "userAdminAnyDatabase",
-                   "dbAdminAnyDatabase",
-                   "readWriteAnyDatabase",
-                   "clusterAdmin"
-                ] })
-use pingtraceroutedb
-db.dropUser("importer")
-db.dropUser("researcher")
-db.createUser({ user: "importer",   pwd: "${IMPORTER_PASSWORD}",   roles: [ "readWrite" ] })
-db.createUser({ user: "researcher", pwd: "${RESEARCHER_PASSWORD}", roles: [ "dbAdmin", "readWrite" ] })
-quit()
-EOF
-   echo ""
-
-
 # ###### MySQL/MariaDB ######################################################
-elif [ "$1" == "mysql" -o "$1" == "mariadb" ] ; then
+if [ "$1" == "mysql" -o "$1" == "mariadb" ] ; then
    # Documentation: https://www.digitalocean.com/community/tutorials/how-to-install-mariadb-on-ubuntu-22-04
 
    echo -e "\x1b[34mPreparing admin user for MySQL/MariaDB ...\x1b[0m"
@@ -141,6 +104,43 @@ CREATE USER researcher WITH LOGIN ENCRYPTED PASSWORD '${RESEARCHER_PASSWORD}';
 GRANT CONNECT ON DATABASE pingtraceroutedb TO researcher;
 GRANT SELECT ON ALL TABLES IN SCHEMA public TO researcher;
 EOF
+
+
+# ###### MongoDB ############################################################
+elif [ "$1" == "mongodb" ] ; then
+   # Documentation: https://www.mongodb.com/docs/manual/tutorial/install-mongodb-on-ubuntu/
+
+   echo -e "\x1b[34mPreparing admin user for MongoDB ...\x1b[0m"
+
+   # ====== Create database =================================================
+   echo -e "\x1b[33mCreating database ...\x1b[0m"
+   mongosh --quiet <mongodb-database.ms
+
+   # ====== Create schema ===================================================
+   echo -e "\x1b[33mCreating schemata ...\x1b[0m"
+   mongosh --quiet <mongodb-schema.ms
+
+   # ====== Create users and roles ==========================================
+   echo -e "\x1b[33mCreating user and roles ...\x1b[0m"
+   mongosh --quiet <<EOF
+use admin
+db.dropUser("maintainer")
+db.createUser({ user: "maintainer",
+                pwd: "${MAINTAINER_PASSWORD}",
+                roles: [
+                   "userAdminAnyDatabase",
+                   "dbAdminAnyDatabase",
+                   "readWriteAnyDatabase",
+                   "clusterAdmin"
+                ] })
+use pingtraceroutedb
+db.dropUser("importer")
+db.dropUser("researcher")
+db.createUser({ user: "importer",   pwd: "${IMPORTER_PASSWORD}",   roles: [ "readWrite" ] })
+db.createUser({ user: "researcher", pwd: "${RESEARCHER_PASSWORD}", roles: [ "dbAdmin", "readWrite" ] })
+quit()
+EOF
+   echo ""
 
 
 # ###### Error ##############################################################
