@@ -18,7 +18,10 @@ SERVER_CRT="${SSL_DIRECTORY}/${SERVER}.crt"
 SERVER_CHAIN="${SSL_DIRECTORY}/${SERVER}-chain.pem"
 
 # Get all IP addresses:
-ALT_ADDRESSES=`hostname -I | xargs -n1 | awk '{ print "IP." NR "=" $1 }'`
+ALT_NAMES="DNS:localhost,DNS:`hostname -f`"
+ALT_ADDRESSES=`hostname -I | xargs -n1 | awk 'BEGIN { first=1 } { if(!first) { printf(","); } printf("IP:%s",$1); first=0 }'`
+
+RSA_BITS=4096
 
 CA1="TestRoot"
 CA1_DIR="${SSL_DIRECTORY}/${CA1}"
@@ -141,7 +144,7 @@ EOF
 
    # Create Level-1 CA certificate (self-signed)
    sudo openssl req -x509 \
-      -newkey rsa:4096 -sha512 -nodes \
+      -newkey rsa:${RSA_BITS} -sha512 -nodes \
       -keyout ${CA1_DIR}/${CA1_KEY} \
       -out ${CA1_DIR}/${CA1_CRT} \
       -extensions v3_ca \
@@ -245,7 +248,7 @@ EOF
 
    # Create Level-2 CA certificate
    sudo openssl req \
-      -newkey rsa:4096 -sha512 -nodes \
+      -newkey rsa:${RSA_BITS} -sha512 -nodes \
       -keyout ${CA2_DIR}/${CA2_KEY} \
       -out ${CA2_DIR}/${CA2_CSR} \
       -utf8 -subj "/CN=${CA1} Level-2 CA Certificate/C=NO/ST=Oslo/L=Oslo/O=Simula Metropolitan Centre for Digital Engineering" \
@@ -365,17 +368,18 @@ subjectKeyIdentifier   = hash
 authorityKeyIdentifier = keyid,issuer:always
 keyUsage               = critical, digitalSignature, keyEncipherment
 extendedKeyUsage       = serverAuth
+subjectAltName         = \${ENV::SAN}
 EOF
 
    # Create Level-3 CA certificate
-   sudo openssl req \
-      -newkey rsa:4096 -sha512 -nodes \
+   sudo SAN="" openssl req \
+      -newkey rsa:${RSA_BITS} -sha512 -nodes \
       -keyout ${CA3_DIR}/${CA3_KEY} \
       -out ${CA3_DIR}/${CA3_CSR} \
       -utf8 -subj "/CN=${CA3} Level-3 CA Certificate/C=NO/ST=Oslo/L=Oslo/O=Simula Metropolitan Centre for Digital Engineering/OU=Centre for Resilient Networks and Applications" \
       -config ${CA3_DIR}/${CA3_OPENSSL_CONF}
    sudo openssl ca \
-      -config ${CA1_DIR}/${CA1_OPENSSL_CONF} \
+      -config ${CA2_DIR}/${CA2_OPENSSL_CONF} \
       -in ${CA3_DIR}/${CA3_CSR} \
       -out ${CA3_DIR}/${CA3_CRT} \
       -batch -notext \
@@ -407,20 +411,19 @@ localityName        = Oslo
 organizationName    = Simula Metropolitan Centre for Digital Engineering
 commonName          = ${SERVER}
 [ req_ext ]
-subjectAltName = @alt_names
-[ alt_names ]
-DNS.1 = localhost
-${ALT_ADDRESSES}
+subjectAltName      = \${ENV::SAN}
 EOF
 
-   sudo openssl req \
-      -newkey rsa:4096 -sha512 -nodes \
+   # X509v3 Subject Alternative Name:
+   SAN="${ALT_NAMES},${ALT_ADDRESSES}"
+
+   sudo SAN="${SAN}" openssl req \
+      -newkey rsa:${RSA_BITS} -sha512 -nodes \
       -keyout ${SERVER_KEY} \
       -out ${SERVER_CSR} \
       -utf8 -subj "/CN=${SERVER}" \
       -config ${SERVER_OPENSSL_CONF}
-
-   sudo openssl ca \
+   sudo SAN="${SAN}" openssl ca \
       -config ${CA3_DIR}/${CA3_OPENSSL_CONF} \
       -in ${SERVER_CSR} \
       -out ${SERVER_CRT} \
