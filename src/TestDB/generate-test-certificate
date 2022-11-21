@@ -56,7 +56,7 @@ if [ ! -e ${SSL_DIRECTORY}  ]; then
 fi
 
 # ====== Make Level-1 CA ====================================================
-if [ ! -e ${CA1_DIR}/${CA1_KEY} -o ! -e ${CA1_DIR}/${CA1_CRT} ] ; then
+if [ ! -d ${CA1_DIR}/private -o ! -e ${CA1_DIR}/${CA1_CRT} ] ; then
 
    echo -e "\x1b[34mCreating Level-1 CA key and certificate ...\x1b[0m"
 
@@ -159,7 +159,7 @@ EOF
 fi
 
 # ====== Make Level-2 CA ====================================================
-if [ ! -e ${CA2_DIR}/${CA2_KEY} -o ! -e ${CA2_DIR}/${CA2_CRT} ] ; then
+if [ ! -d ${CA2_DIR}/private -o ! -e ${CA2_DIR}/${CA2_CRT} ] ; then
 
    echo -e "\x1b[34mCreating Level-2 CA key and certificate ...\x1b[0m"
 
@@ -269,7 +269,7 @@ EOF
 fi
 
 # ====== Make Level-3 CA ====================================================
-if [ ! -e ${CA3_DIR}/${CA3_KEY} -o ! -e ${CA3_DIR}/${CA3_CRT} ] ; then
+if [ ! -d ${CA3_DIR}/private -o ! -e ${CA3_DIR}/${CA3_CRT} ] ; then
 
    echo -e "\x1b[34mCreating Level-3 CA key and certificate ...\x1b[0m"
 
