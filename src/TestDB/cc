@@ -8,7 +8,7 @@ SERVER_OPENSSL_CONF="/tmp/ssl/${HOST}.conf"
 SERVER_KEY="/tmp/ssl/${HOST}.key"
 SERVER_CSR="/tmp/ssl/${HOST}.csr"
 SERVER_CRT="/tmp/ssl/${HOST}.crt"
-SERVER_PEM="/tmp/ssl/${HOST}.pem"
+SERVER_CHAIN="/tmp/ssl/${HOST}.pem"
 
 CA1="TestRoot"
 CA1_DIR="/tmp/ssl/${CA1}"
@@ -95,12 +95,25 @@ emailAddress           = optional
 default_bits           = 8192
 default_md             = sha512
 distinguished_name     = req_distinguished_name
+
 [ req_distinguished_name ]
 countryName            = NO
 stateOrProvinceName    = Oslo
 localityName           = Oslo
 organizationName       = Simula Metropolitan Centre for Digital Engineering
 commonName             = ${CA1} Level-1 CA Certificate
+
+[ v3_ca ]
+subjectKeyIdentifier   = hash
+authorityKeyIdentifier = keyid:always,issuer
+basicConstraints       = critical, CA:true
+keyUsage               = critical, digitalSignature, cRLSign, keyCertSign
+
+[ v3_leaf_ca ]
+subjectKeyIdentifier   = hash
+authorityKeyIdentifier = keyid:always,issuer
+basicConstraints       = critical, CA:true, pathlen:0
+keyUsage               = critical, digitalSignature, cRLSign, keyCertSign
 EOF
 
    # Create Level-1 CA certificate (self-signed)
@@ -108,6 +121,7 @@ EOF
       -newkey rsa:1024 -sha512 -nodes \
       -keyout ${CA1_DIR}/${CA1_KEY} \
       -out ${CA1_DIR}/${CA1_CRT} \
+      -extensions v3_ca \
       -days 3650 \
       -utf8 -subj "/CN=${CA1} Level-1 CA Certificate/C=NO/ST=Oslo/L=Oslo/O=Simula Metropolitan Centre for Digital Engineering" \
       -config ${CA1_DIR}/${CA1_OPENSSL_CONF}
@@ -184,12 +198,40 @@ emailAddress           = optional
 default_bits           = 8192
 default_md             = sha512
 distinguished_name     = req_distinguished_name
+x509_extensions        = v3_ca
+
 [ req_distinguished_name ]
 countryName            = NO
 stateOrProvinceName    = Oslo
 localityName           = Oslo
 organizationName       = Simula Metropolitan Centre for Digital Engineering
 commonName             = ${CA2} Level-2 CA Certificate
+
+[ v3_ca ]
+subjectKeyIdentifier   = hash
+authorityKeyIdentifier = keyid:always,issuer
+basicConstraints       = critical, CA:true
+keyUsage               = critical, digitalSignature, cRLSign, keyCertSign
+
+[ v3_leaf_ca ]
+subjectKeyIdentifier   = hash
+authorityKeyIdentifier = keyid:always,issuer
+basicConstraints       = critical, CA:true, pathlen:0
+keyUsage               = critical, digitalSignature, cRLSign, keyCertSign
+
+[ usr_cert ]
+basicConstraints       = CA:FALSE
+subjectKeyIdentifier   = hash
+authorityKeyIdentifier = keyid,issuer
+keyUsage               = critical, nonRepudiation, digitalSignature, keyEncipherment
+extendedKeyUsage       = clientAuth, emailProtection
+
+[ server_cert ]
+basicConstraints       = CA:FALSE
+subjectKeyIdentifier   = hash
+authorityKeyIdentifier = keyid,issuer:always
+keyUsage               = critical, digitalSignature, keyEncipherment
+extendedKeyUsage       = serverAuth
 EOF
 
    # Create Level-2 CA certificate
@@ -204,19 +246,20 @@ EOF
       -in ${CA2_DIR}/${CA2_CSR} \
       -out ${CA2_DIR}/${CA2_CRT} \
       -batch -notext \
+      -extensions v3_leaf_ca \
       -days 3650 \
       -utf8 -subj "/CN=${CA2} Level-2 CA Certificate/C=NO/ST=Oslo/L=Oslo/O=Simula Metropolitan Centre for Digital Engineering/OU=Centre for Resilient Networks and Applications" \
 
    # openssl x509 -noout -text -in ${CA2_DIR}/${CA2_CRT}
 
-   sudo cat ${CA1_DIR}/chains/${CA1_PEM} ${CA2_DIR}/${CA2_CRT} | sudo tee ${CA2_DIR}/${CA2_PEM} >/dev/null
+   sudo cat ${CA1_DIR}/${CA1_PEM} ${CA2_DIR}/${CA2_CRT} | sudo tee ${CA2_DIR}/${CA2_PEM} >/dev/null
    sudo openssl verify -CAfile ${CA2_DIR}/${CA2_PEM} ${CA2_DIR}/${CA2_CRT}
 fi
 
 # ====== Make server certificate ============================================
 if [ ! -e ${HOST}.key -o ! -e ${HOST}.crt ] ; then
 
-   echo -e "\x1b[34mCreating key and certificate ...\x1b[0m"
+   echo -e "\x1b[34mCreating server key and certificate ...\x1b[0m"
 
    sudo tee ${SERVER_OPENSSL_CONF} >/dev/null <<EOF
 [ req ]
@@ -249,11 +292,12 @@ EOF
       -in ${SERVER_CSR} \
       -out ${SERVER_CRT} \
       -batch -notext \
+      -extensions server_cert \
       -days 3650 \
       -utf8 -subj "/CN=${HOST}/C=NO/ST=Oslo/L=Oslo/O=Simula Metropolitan Centre for Digital Engineering/OU=Centre for Resilient Networks and Applications"
 
    openssl req -noout -text -in ${SERVER_CSR}
 
    sudo cat ${CA2_DIR}/${CA2_PEM} ${SERVER_CRT} | sudo tee ${SERVER_CHAIN}-chain.pem >/dev/null
-
+   sudo openssl verify -CAfile ${CA2_DIR}/${CA2_PEM} ${SERVER_CRT}
 fi
