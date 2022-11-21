@@ -385,7 +385,7 @@ EOF
 
    # openssl x509 -noout -text -in ${CA3_DIR}/${CA3_CRT}
 
-   sudo cat ${CA1_DIR}/${CA1_PEM} ${CA3_DIR}/${CA3_CRT} | sudo tee ${CA3_DIR}/${CA3_PEM} >/dev/null
+   sudo cat ${CA2_DIR}/${CA2_PEM} ${CA3_DIR}/${CA3_CRT} | sudo tee ${CA3_DIR}/${CA3_PEM} >/dev/null
    sudo openssl verify -CAfile ${CA3_DIR}/${CA3_PEM} ${CA3_DIR}/${CA3_CRT}
 fi
 
