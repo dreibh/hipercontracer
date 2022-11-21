@@ -60,9 +60,9 @@ if [ ! -e ${CA1_DIR}/${CA1_KEY} -o ! -e ${CA1_DIR}/${CA1_CRT} ] ; then
    sudo mkdir -p \
       ${CA1_DIR}/certs \
       ${CA1_DIR}/crl \
-      ${CA1_DIR}/private \
       ${CA1_DIR}/newcerts \
       ${CA1_DIR}/chains
+   sudo mkdir -m700 -p ${CA1_DIR}/private
    if [ ! -e ${CA1_DIR}/index.txt ] ; then
       sudo touch ${CA1_DIR}/index.txt
    fi
@@ -163,9 +163,9 @@ if [ ! -e ${CA2_DIR}/${CA2_KEY} -o ! -e ${CA2_DIR}/${CA2_CRT} ] ; then
    sudo mkdir -p \
       ${CA2_DIR}/certs \
       ${CA2_DIR}/crl \
-      ${CA2_DIR}/private \
       ${CA2_DIR}/newcerts \
       ${CA2_DIR}/chains
+   sudo mkdir -m700 -p ${CA2_DIR}/private
    if [ ! -e ${CA2_DIR}/index.txt ] ; then
       sudo touch ${CA2_DIR}/index.txt
    fi
@@ -273,9 +273,9 @@ if [ ! -e ${CA3_DIR}/${CA3_KEY} -o ! -e ${CA3_DIR}/${CA3_CRT} ] ; then
    sudo mkdir -p \
       ${CA3_DIR}/certs \
       ${CA3_DIR}/crl \
-      ${CA3_DIR}/private \
       ${CA3_DIR}/newcerts \
       ${CA3_DIR}/chains
+   sudo mkdir -m700 -p ${CA3_DIR}/private
    if [ ! -e ${CA3_DIR}/index.txt ] ; then
       sudo touch ${CA3_DIR}/index.txt
    fi
