@@ -18,7 +18,7 @@ echo -n "WARNING: THIS SCRIPT WILL ERASE THE EXISTING DATABASES. To proceed, typ
 if [ "$1" == "mariadb" ] ; then
    echo "Uninstalling MariaDB ..."
 
-   sudo apt purge 'mariadb*'
+   sudo apt purge -y 'mariadb*'
    sudo rm -rf /var/lib/mysql
 
 
@@ -26,7 +26,7 @@ if [ "$1" == "mariadb" ] ; then
 elif [ "$1" == "postgresql" ] ; then
    echo "Uninstalling PostgreSQL ..."
 
-   sudo apt purge 'postgresql*'
+   sudo apt purge -y 'postgresql*'
    sudo rm -rf /var/lib/postgresql
 
 
@@ -34,7 +34,7 @@ elif [ "$1" == "postgresql" ] ; then
 elif [ "$1" == "mongodb" ] ; then
    echo "Uninstalling MongoDB ..."
 
-   sudo apt purge 'mongodb*'
+   sudo apt purge -y 'mongodb*'
    sudo rm -rf /var/lib/mongodb
 
 

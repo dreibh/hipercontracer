@@ -92,7 +92,20 @@ elif [ "$1" == "mongodb" ] ; then
    sudo apt-get update -qq
    sudo apt-get install -y mongodb-org
 
+   # ====== Basic engine configuration ======================================
+   # WARNING: After installation, MongoDB gives everybody on 127.0.0.1
+   #          full access!
+   # The following settings enable authorization check, restricting access
+   # to the configured user (root).
+   cp /etc/mongod.conf /tmp/
+   sudo sed \
+      -e "s!#  engine:!  directoryPerDB: true!" \
+      -e "s!#  wiredTiger:!  wiredTiger:\n    engineConfig:\n      directoryForIndexes: true!" \
+      /etc/mongod.conf | sudo tee /etc/mongod.conf.new
+   sudo mv /etc/mongod.conf.new /etc/mongod.conf
+
    # ====== Make sure there is a root user ==================================
+   sudo service mongod start
    mongosh --quiet <<EOF
 use admin
 db.dropUser("root")
@@ -104,12 +117,13 @@ db.createUser({ user: "root",
                    "readWriteAnyDatabase",
                    "clusterAdmin"
                 ] })
+quit()
 EOF
+   sudo service mongod stop
 
    # ====== Configure MongoDB ===============================================
-   # WARNING: After installation, MongoDB does gives everybody full access!
    # The following settings enable authorization check, restricting access
-   # to the configured user (root).
+   # to the configured user (root):
    cp /etc/mongod.conf /tmp/
    sudo sed \
       -e "s!  bindIp: 127.0.0.1!  ipv6: true\n  bindIpAll: true\n  tls:\n    mode: requireTLS\n    certificateKeyFile: ${PEM_FILE}\n    disabledProtocols: TLS1_0,TLS1_1,TLS1_2!" \
@@ -119,7 +133,7 @@ EOF
       /etc/mongod.conf | sudo tee /etc/mongod.conf.new
    sudo mv /etc/mongod.conf.new /etc/mongod.conf
 
-   sudo systemctl restart mongod
+   sudo systemctl start mongod
    sudo systemctl enable mongod
 
 
