@@ -89,6 +89,7 @@ elif [ "$1" == "mongodb" ] ; then
 
    echo "Installing MongoDB ..."
 
+   # ====== Install MongoDB =================================================
    # FIXME! Still no official MongoDB for Ubuntu 22.04 ...
    if [ ! -e libssl1.1_1.1.1f-1ubuntu2.16_amd64.deb ] ; then
       wget http://archive.ubuntu.com/ubuntu/pool/main/o/openssl/libssl1.1_1.1.1f-1ubuntu2.16_amd64.deb
@@ -101,6 +102,7 @@ elif [ "$1" == "mongodb" ] ; then
    sudo apt-get update -qq
    sudo apt-get install -y mongodb-org
 
+   # ====== Make sure there is a root user ==================================
    mongosh --quiet <<EOF
 use admin
 db.dropUser("root")
@@ -114,6 +116,10 @@ db.createUser({ user: "root",
                 ] })
 EOF
 
+   # ====== Configure MongoDB ===============================================
+   # WARNING: After installation, MongoDB does gives everybody full access!
+   # The following settings enable authorization check, restricting access
+   # to the configured user (root).
    sudo sed \
       -e "s#  bindIp: 127.0.0.1#  ipv6: true\n  bindIpAll: true\n  ssl:\n    mode: requireSSL\n    PEMKeyFile: ${PEM_FILE}\n    disabledProtocols: TLS1_0,TLS1_1,TLS1_2#" \
       -e "s!#security:!security:\n  authorization: enabled!" \
