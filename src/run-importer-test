@@ -14,6 +14,7 @@ if [ ! -e $1 ] ; then
 fi
 CONFIGURATION_FILE="$1"
 
+mkdir -p data/ good/ bad/
 rm -rf good/*
 rm -rf bad/*
 cp examples/*.bz2 data/
