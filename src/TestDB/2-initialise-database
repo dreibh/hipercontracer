@@ -114,15 +114,18 @@ elif [ "$1" == "mongodb" ] ; then
 
    # ====== Create database =================================================
    echo -e "\x1b[33mCreating database ...\x1b[0m"
-   mongosh --quiet <mongodb-database.ms
+   mongosh --tls --tlsCAFile /etc/ssl/TestRoot/certs/TestRoot.crt \
+      mongodb://localhost --username root --password "${ROOT_PASSWORD}" --quiet <mongodb-database.ms
 
    # ====== Create schema ===================================================
    echo -e "\x1b[33mCreating schemata ...\x1b[0m"
-   mongosh --quiet <mongodb-schema.ms
+   mongosh --tls --tlsCAFile /etc/ssl/TestRoot/certs/TestRoot.crt \
+      mongodb://localhost --username root --password "${ROOT_PASSWORD}" --quiet <mongodb-schema.ms
 
    # ====== Create users and roles ==========================================
    echo -e "\x1b[33mCreating user and roles ...\x1b[0m"
-   mongosh mongodb://localhost --username root --password "${ROOT_PASSWORD}" --quiet <<EOF
+   mongosh --tls --tlsCAFile /etc/ssl/TestRoot/certs/TestRoot.crt \
+      mongodb://localhost --username root --password "${ROOT_PASSWORD}" --quiet <<EOF
 use admin
 db.dropUser("maintainer")
 db.createUser({ user: "maintainer",
