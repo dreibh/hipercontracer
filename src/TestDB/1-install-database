@@ -76,7 +76,7 @@ elif [ "$1" == "mongodb" ] ; then
       wget http://archive.ubuntu.com/ubuntu/pool/main/o/openssl/libssl1.1_1.1.1f-1ubuntu2.16_amd64.deb
       sudo dpkg -i libssl1.1_1.1.1f-1ubuntu2.16_amd64.deb 
    fi
-   wget -qO - https://www.mongodb.org/static/pgp/server-6.0.asc | gpg --dearmor | sudo tee /usr/share/keyrings/mongodb.gpg
+   wget -qO - https://www.mongodb.org/static/pgp/server-6.0.asc | gpg --dearmor | sudo tee /usr/share/keyrings/mongodb.gpg >/dev/null
    if [ ! -e /etc/apt/sources.list.d/mongodb-org-6.0.list ] ; then
       echo "deb [ signed-by=/usr/share/keyrings/mongodb.gpg arch=amd64,arm64 ] https://repo.mongodb.org/apt/ubuntu focal/mongodb-org/6.0 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-6.0.list
    fi
@@ -84,8 +84,8 @@ elif [ "$1" == "mongodb" ] ; then
    sudo apt-get install -y mongodb-org
 
    sudo sed \
-      -e 's#  bindIp: 127.0.0.1#  ipv6: true\n  bindIpAll: true\n  ssl:\n    mode: requireSSL\n    PEMKeyFile: ${PEM_FILE}\n    disabledProtocols: TLS1_0,TLS1_1,TLS1_2#' \
-      -e 's!#security:!security:\n  authorization: enabled!' \
+      -e "s#  bindIp: 127.0.0.1#  ipv6: true\n  bindIpAll: true\n  ssl:\n    mode: requireSSL\n    PEMKeyFile: ${PEM_FILE}\n    disabledProtocols: TLS1_0,TLS1_1,TLS1_2#" \
+      -e "s!#security:!security:\n  authorization: enabled!" \
       /etc/mongod.conf | sudo tee /etc/mongod.conf.new
    sudo mv /etc/mongod.conf.new /etc/mongod.conf
 
