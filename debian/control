@@ -129,7 +129,8 @@ Architecture: any
 Depends: libuniversalimporter1 (= ${binary:Version}),
          ${misc:Depends},
          ${shlibs:Depends}
-Recommends: hipercontracer
+Recommends: hipercontracer,
+            pwgen
 Description: HiPerConTracer results data importer
  High-Performance Connectivity Tracer (HiPerConTracer) is a
  Ping/Traceroute service. It performs regular Ping and Traceroute runs

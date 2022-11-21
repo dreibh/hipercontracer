@@ -14,22 +14,8 @@ RESEARCHER_PASSWORD="!researcher!"
 . ./$2
 
 
-# ###### MongoDB ############################################################
-if [ "$1" == "mongodb" ] ; then
-   # Documentation: https://www.mongodb.com/docs/manual/tutorial/install-mongodb-on-ubuntu/
-
-   echo -e "\x1b[34mTesting access to MongoDB database ...\x1b[0m"
-   mongosh mongodb://localhost/pingtraceroutedb --username researcher --password "${RESEARCHER_PASSWORD}" --quiet <<EOF
-use pingtraceroutedb
-db.ping.countDocuments()
-db.ping.findOne()
-db.traceroute.countDocuments()
-db.traceroute.findOne()
-EOF
-
-
 # ###### MySQL/MariaDB ######################################################
-elif [ "$1" == "mysql" -o "$1" == "mariadb" ] ; then
+if [ "$1" == "mysql" -o "$1" == "mariadb" ] ; then
    # Documentation: https://www.digitalocean.com/community/tutorials/how-to-install-mariadb-on-ubuntu-22-04
 
    echo -e "\x1b[34mTesting access to MySQL/MariaDB database ...\x1b[0m"
@@ -51,6 +37,20 @@ SELECT COUNT(*) FROM Ping;
 SELECT * FROM Ping LIMIT 10;
 SELECT COUNT(*) FROM Traceroute;
 SELECT * FROM Traceroute LIMIT 30;
+EOF
+
+
+# ###### MongoDB ############################################################
+elif [ "$1" == "mongodb" ] ; then
+   # Documentation: https://www.mongodb.com/docs/manual/tutorial/install-mongodb-on-ubuntu/
+
+   echo -e "\x1b[34mTesting access to MongoDB database ...\x1b[0m"
+   mongosh mongodb://localhost/pingtraceroutedb --username researcher --password "${RESEARCHER_PASSWORD}" --quiet <<EOF
+use pingtraceroutedb
+db.ping.countDocuments()
+db.ping.findOne()
+db.traceroute.countDocuments()
+db.traceroute.findOne()
 EOF
 
 
