@@ -28,6 +28,15 @@ CA2_CRT="certs/${CA2}.crt"
 CA2_PEM="${CA2}-chain.pem"
 CA2_CRL="crl/${CA2}.crl"
 
+CA3="TestLeaf"
+CA3_DIR="/tmp/ssl/${CA3}"
+CA3_OPENSSL_CONF="${CA3}.conf"
+CA3_KEY="private/${CA3}.key"
+CA3_CSR="${CA3}.csr"
+CA3_CRT="certs/${CA3}.crt"
+CA3_PEM="${CA3}-chain.pem"
+CA3_CRL="crl/${CA3}.crl"
+
 
 # ====== Make Level-1 CA ====================================================
 if [ ! -e ${CA1_DIR}/${CA1}.key -o ! -e ${CA1_DIR}/${CA1}.crt ] ; then
@@ -239,21 +248,145 @@ EOF
       -newkey rsa:1024 -sha512 -nodes \
       -keyout ${CA2_DIR}/${CA2_KEY} \
       -out ${CA2_DIR}/${CA2_CSR} \
-      -utf8 -subj "/CN=${CA2} Level-2 CA Certificate/C=NO/ST=Oslo/L=Oslo/O=Simula Metropolitan Centre for Digital Engineering/OU=Centre for Resilient Networks and Applications" \
+      -utf8 -subj "/CN=${CA1} Level-2 CA Certificate/C=NO/ST=Oslo/L=Oslo/O=Simula Metropolitan Centre for Digital Engineering" \
       -config ${CA2_DIR}/${CA2_OPENSSL_CONF}
    sudo openssl ca \
       -config ${CA1_DIR}/${CA1_OPENSSL_CONF} \
       -in ${CA2_DIR}/${CA2_CSR} \
       -out ${CA2_DIR}/${CA2_CRT} \
       -batch -notext \
-      -extensions v3_leaf_ca \
+      -extensions v3_ca \
       -days 3650 \
-      -utf8 -subj "/CN=${CA2} Level-2 CA Certificate/C=NO/ST=Oslo/L=Oslo/O=Simula Metropolitan Centre for Digital Engineering/OU=Centre for Resilient Networks and Applications" \
+      -utf8 -subj "/CN=${CA1} Level-2 CA Certificate/C=NO/ST=Oslo/L=Oslo/O=Simula Metropolitan Centre for Digital Engineering" \
 
    # openssl x509 -noout -text -in ${CA2_DIR}/${CA2_CRT}
 
    sudo cat ${CA1_DIR}/${CA1_PEM} ${CA2_DIR}/${CA2_CRT} | sudo tee ${CA2_DIR}/${CA2_PEM} >/dev/null
    sudo openssl verify -CAfile ${CA2_DIR}/${CA2_PEM} ${CA2_DIR}/${CA2_CRT}
+fi
+
+# ====== Make Level-3 CA ====================================================
+if [ ! -e ${CA3}.key -o ! -e ${CA3}.crt ] ; then
+
+   echo -e "\x1b[34mCreating Level-3 CA key and certificate ...\x1b[0m"
+
+   sudo mkdir -p \
+      ${CA3_DIR}/certs \
+      ${CA3_DIR}/crl \
+      ${CA3_DIR}/private \
+      ${CA3_DIR}/newcerts \
+      ${CA3_DIR}/chains
+   if [ ! -e ${CA3_DIR}/index.txt ] ; then
+      sudo touch ${CA3_DIR}/index.txt
+   fi
+   if [ ! -e ${CA3_DIR}/serial ] ; then
+      echo "1000" | sudo tee ${CA3_DIR}/serial >/dev/null
+   fi
+   if [ ! -e ${CA3_DIR}/crlnumber ] ; then
+      echo "1000" | sudo tee ${CA3_DIR}/crlnumber >/dev/null
+   fi
+
+   sudo tee ${CA3_DIR}/${CA3_OPENSSL_CONF} >/dev/null <<EOF
+[ ca ]
+default_ca             = CA_default
+
+[ CA_default ]
+# Directory and file locations.
+dir                    = ${CA3_DIR}
+certs                  = \$dir/certs
+crl_dir                = \$dir/crl
+new_certs_dir          = \$dir/newcerts
+database               = \$dir/index.txt
+serial                 = \$dir/serial
+RANDFILE               = \$dir/private/.rand
+
+# The root key and root certificate.
+private_key            = \$dir/${CA3_KEY}
+certificate            = \$dir/${CA3_CRT}
+
+# For certificate revocation lists.
+crlnumber              = \$dir/crlnumber
+crl                    = \$dir/crl/${CA3_CRL}
+crl_extensions         = crl_ext
+default_crl_days       = 30
+
+# SHA-1 is deprecated, so use SHA-512 instead.
+default_md             = sha512
+
+name_opt               = ca_default
+cert_opt               = ca_default
+default_days           = 375
+preserve               = no
+policy                 = policy_strict
+
+[ policy_strict ]
+countryName            = supplied
+stateOrProvinceName    = supplied
+organizationName       = supplied
+organizationalUnitName = optional
+commonName             = supplied
+emailAddress           = optional
+
+[ req ]
+default_bits           = 8192
+default_md             = sha512
+distinguished_name     = req_distinguished_name
+x509_extensions        = v3_ca
+
+[ req_distinguished_name ]
+countryName            = NO
+stateOrProvinceName    = Oslo
+localityName           = Oslo
+organizationName       = Simula Metropolitan Centre for Digital Engineering
+commonName             = ${CA3} Level-3 CA Certificate
+
+[ v3_ca ]
+subjectKeyIdentifier   = hash
+authorityKeyIdentifier = keyid:always,issuer
+basicConstraints       = critical, CA:true
+keyUsage               = critical, digitalSignature, cRLSign, keyCertSign
+
+[ v3_leaf_ca ]
+subjectKeyIdentifier   = hash
+authorityKeyIdentifier = keyid:always,issuer
+basicConstraints       = critical, CA:true, pathlen:0
+keyUsage               = critical, digitalSignature, cRLSign, keyCertSign
+
+[ usr_cert ]
+basicConstraints       = CA:FALSE
+subjectKeyIdentifier   = hash
+authorityKeyIdentifier = keyid,issuer
+keyUsage               = critical, nonRepudiation, digitalSignature, keyEncipherment
+extendedKeyUsage       = clientAuth, emailProtection
+
+[ server_cert ]
+basicConstraints       = CA:FALSE
+subjectKeyIdentifier   = hash
+authorityKeyIdentifier = keyid,issuer:always
+keyUsage               = critical, digitalSignature, keyEncipherment
+extendedKeyUsage       = serverAuth
+EOF
+
+   # Create Level-3 CA certificate
+   sudo openssl req \
+      -newkey rsa:1024 -sha512 -nodes \
+      -keyout ${CA3_DIR}/${CA3_KEY} \
+      -out ${CA3_DIR}/${CA3_CSR} \
+      -utf8 -subj "/CN=${CA3} Level-3 CA Certificate/C=NO/ST=Oslo/L=Oslo/O=Simula Metropolitan Centre for Digital Engineering/OU=Centre for Resilient Networks and Applications" \
+      -config ${CA3_DIR}/${CA3_OPENSSL_CONF}
+   sudo openssl ca \
+      -config ${CA1_DIR}/${CA1_OPENSSL_CONF} \
+      -in ${CA3_DIR}/${CA3_CSR} \
+      -out ${CA3_DIR}/${CA3_CRT} \
+      -batch -notext \
+      -extensions v3_leaf_ca \
+      -days 3650 \
+      -utf8 -subj "/CN=${CA3} Level-3 CA Certificate/C=NO/ST=Oslo/L=Oslo/O=Simula Metropolitan Centre for Digital Engineering/OU=Centre for Resilient Networks and Applications" \
+
+   # openssl x509 -noout -text -in ${CA3_DIR}/${CA3_CRT}
+
+   sudo cat ${CA1_DIR}/${CA1_PEM} ${CA3_DIR}/${CA3_CRT} | sudo tee ${CA3_DIR}/${CA3_PEM} >/dev/null
+   sudo openssl verify -CAfile ${CA3_DIR}/${CA3_PEM} ${CA3_DIR}/${CA3_CRT}
 fi
 
 # ====== Make server certificate ============================================
@@ -288,7 +421,7 @@ EOF
       -config ${SERVER_OPENSSL_CONF}
 
    sudo openssl ca \
-      -config ${CA2_DIR}/${CA2_OPENSSL_CONF} \
+      -config ${CA3_DIR}/${CA3_OPENSSL_CONF} \
       -in ${SERVER_CSR} \
       -out ${SERVER_CRT} \
       -batch -notext \
@@ -298,6 +431,6 @@ EOF
 
    openssl req -noout -text -in ${SERVER_CSR}
 
-   sudo cat ${CA2_DIR}/${CA2_PEM} ${SERVER_CRT} | sudo tee ${SERVER_CHAIN}-chain.pem >/dev/null
-   sudo openssl verify -CAfile ${CA2_DIR}/${CA2_PEM} ${SERVER_CRT}
+   sudo cat ${CA3_DIR}/${CA3_PEM} ${SERVER_CRT} | sudo tee ${SERVER_CHAIN}-chain.pem >/dev/null
+   sudo openssl verify -CAfile ${CA3_DIR}/${CA3_PEM} ${SERVER_CRT}
 fi
