@@ -11,7 +11,7 @@ fi
 MAINTAINER_PASSWORD="!maintainer!"
 IMPORTER_PASSWORD="!importer!"
 RESEARCHER_PASSWORD="!researcher!"
-. ./$2
+. $2
 
 
 # ###### MySQL/MariaDB ######################################################

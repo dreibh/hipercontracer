@@ -1,7 +1,7 @@
 #!/bin/bash -e
 
-if [ $# -ne 2 ] ; then
-   echo >&2 "Usage: $0 mariadb|mongodb|mysql|postgresql users.conf"
+if [ $# -lt 2 ] ; then
+   echo >&2 "Usage: $0 mariadb|mongodb|mysql|postgresql users.conf [--force-removal-without-confirmation]"
    exit 1
 fi
 if [ ! -e $2 ] ; then
@@ -11,23 +11,23 @@ fi
 MAINTAINER_PASSWORD="!maintainer!"
 IMPORTER_PASSWORD="!importer!"
 RESEARCHER_PASSWORD="!researcher!"
-. ./$2
+. $2
 
 if [ "${MAINTAINER_PASSWORD}" = "!maintainer!" -o \
      "${IMPORTER_PASSWORD}"   = "!importer!"   -o \
      "${RESEARCHER_PASSWORD}" = "!researcher!" ] ; then
    echo >&2 "DO NOT USE THE EXAMPLE PASSWORDS!"
-# FIXME! ????
-# exit 1
+   exit 1
 fi
 
-echo -n "WARNING: THIS SCRIPT WILL ERASE THE EXISTING DATABASES. To proceed, type \"I am sure!\": "
-# FIXME! ????
-# read -er agree
-# if [ "$agree" != "I am sure!" ] ; then
-#    echo "Exiting."
-#    exit
-# fi
+if [ "$3" != "--force-removal-without-confirmation" ] ; then
+   echo -n "WARNING: THIS SCRIPT WILL ERASE THE EXISTING DATABASES. To proceed, type \"I am sure!\": "
+   read -er agree
+   if [ "$agree" != "I am sure!" ] ; then
+      echo "Exiting."
+      exit
+   fi
+fi
 
 
 # ###### MySQL/MariaDB ######################################################

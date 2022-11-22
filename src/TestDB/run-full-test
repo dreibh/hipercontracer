@@ -1,0 +1,13 @@
+#!/bin/bash -e
+
+if [ $# -ne 1 ] ; then
+   echo >&2 "Usage: $0 mariadb|mongodb|mysql|postgresql"
+   exit 1
+fi
+
+./0-make-users.conf ~/users.conf
+
+./4-uninstall-database  $1 --force-removal-without-confirmation 
+./1-install-database    $1 ~/users.conf
+./2-initialise-database $1 ~/users.conf --force-removal-without-confirmation
+./3-test-database       $1 ~/users.conf
