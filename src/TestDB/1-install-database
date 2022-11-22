@@ -31,13 +31,31 @@ if [ "$1" == "mariadb" ] ; then
 
    ./generate-test-certificate mariadb.domain.test /etc/ssl
 
+   # MariaDB needs separate certificate and key files.
+   # The chain is in the CA file, it must not be in the certificate file!
+   # Details: https://mariadb.com/kb/en/securing-connections-for-client-and-server/
+   MARIADB_CA_FILE="/etc/ssl/TestLeaf/TestLeaf-chain.pem"
+   MARIADB_CRT_FILE="/etc/ssl/mariadb.domain.test.crt"
+   MARIADB_KEY_FILE="/etc/ssl/mariadb.domain.test.key"
+   sudo chown mysql:mysql ${MARIADB_KEY_FILE}
+   sudo openssl verify -CAfile ${MARIADB_CA_FILE} ${MARIADB_CRT_FILE}
+
    sudo apt install -y mariadb-server mariadb-backup mariadb-client
    sudo mysql_secure_installation
 
    # Enable network access:
-   sudo sed -e 's/^\(bind-address[ \t]*\)=.*$/\1= */g' /etc/mysql/mariadb.conf.d/50-server.cnf | sudo tee /etc/mysql/mariadb.conf.d/50-server.cnf.new
+   sudo sed \
+      -e 's/^\(bind-address[ \t]*\)=.*$/\1= */g' \
+      -e "s%\([#]\|\)ssl-ca[ ]*=[ ]*.*%ssl-ca = ${MARIADB_CA_FILE}%" \
+      -e "s%\([#]\|\)ssl-cert[ ]*=[ ]*.*%ssl-cert = ${MARIADB_CRT_FILE}%" \
+      -e "s%\([#]\|\)ssl-key[ ]*=[ ]*.*%ssl-key = ${MARIADB_KEY_FILE}%" \
+      -e "s%\([#]\|\)require-secure-transport[ ]*=[ ]*.*%require-secure-transport = on%" \
+      /etc/mysql/mariadb.conf.d/50-server.cnf | sudo tee /etc/mysql/mariadb.conf.d/50-server.cnf.new >/dev/null && \
+   sudo diff --color /etc/mysql/mariadb.conf.d/50-server.cnf.new /etc/mysql/mariadb.conf.d/50-server.cnf || true && \
    sudo mv /etc/mysql/mariadb.conf.d/50-server.cnf.new /etc/mysql/mariadb.conf.d/50-server.cnf
    sudo service mariadb restart
+
+   ./test-tls-connection localhost:3306 /etc/ssl/TestRoot/certs/TestRoot.crt -starttls mysql
 
    # Install MySQL Workbench:
    # wget https://dev.mysql.com/get/Downloads/MySQLGUITools/mysql-workbench-community_8.0.31-1ubuntu22.10_amd64.deb
@@ -83,6 +101,8 @@ elif [ "$1" == "postgresql" ] ; then
    sudo mv /etc/postgresql/14/main/postgresql.conf.new /etc/postgresql/14/main/postgresql.conf
 
    sudo service postgresql restart
+
+   ./test-tls-connection localhost:5432 /etc/ssl/TestRoot/certs/TestRoot.crt -starttls postgres
 
 
 # ###### MongoDB ############################################################
@@ -156,6 +176,8 @@ EOF
 
    sudo systemctl start mongod
    sudo systemctl enable mongod
+
+   ./test-tls-connection localhost:27017 /etc/ssl/TestRoot/certs/TestRoot.crt
 
 
 # ###### Error ##############################################################
