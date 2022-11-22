@@ -65,27 +65,39 @@ enum ImportModeType {
 };
 
 
+enum ConnectionFlags {
+   None                    = 0,
+   DisableTLS              = (1 << 0),
+   AllowInvalidCertificate = (1 << 1),
+   AllowInvalidHostname    = (1 << 2)
+};
+
 class DatabaseConfiguration
 {
    public:
    DatabaseConfiguration();
    ~DatabaseConfiguration();
 
-   inline DatabaseBackendType          getBackend()        const { return Backend;        }
-   inline const std::string&           getServer()         const { return Server;         }
-   inline const uint16_t               getPort()           const { return Port;           }
-   inline const std::string&           getUser()           const { return User;           }
-   inline const std::string&           getPassword()       const { return Password;       }
-   inline const std::string&           getCAFile()         const { return CAFile;         }
-   inline const std::string&           getDatabase()       const { return Database;       }
-   inline const unsigned int           getReconnectDelay() const { return ReconnectDelay; }
-   inline ImportModeType               getImportMode()     const { return ImportMode;     }
-   inline const unsigned int           getImportMaxDepth() const { return ImportMaxDepth; }
-   inline const std::filesystem::path& getImportFilePath() const { return ImportFilePath; }
-   inline const std::filesystem::path& getGoodFilePath()   const { return GoodFilePath;   }
-   inline const std::filesystem::path& getBadFilePath()    const { return BadFilePath;    }
+   inline DatabaseBackendType          getBackend()         const { return (DatabaseBackendType)Backend; }
+   inline const std::string&           getServer()          const { return Server;                       }
+   inline uint16_t                     getPort()            const { return Port;                         }
+   inline const std::string&           getUser()            const { return User;                         }
+   inline const std::string&           getPassword()        const { return Password;                     }
+   inline ConnectionFlags              getConnectionFlags() const { return (ConnectionFlags)Flags;       }
+   inline const std::string&           getCAFile()          const { return CAFile;                       }
+   inline const std::string&           getClientCertFile()  const { return ClientCertFile;               }
+   inline const std::string&           getDatabase()        const { return Database;                     }
+   inline unsigned int                 getReconnectDelay()  const { return ReconnectDelay;               }
+
+   inline ImportModeType               getImportMode()      const { return ImportMode;                   }
+   inline unsigned int                 getImportMaxDepth()  const { return ImportMaxDepth;               }
+   inline const std::filesystem::path& getImportFilePath()  const { return ImportFilePath;               }
+   inline const std::filesystem::path& getGoodFilePath()    const { return GoodFilePath;                 }
+   inline const std::filesystem::path& getBadFilePath()     const { return BadFilePath;                  }
 
    bool setBackend(const std::string& backendName);
+   bool setConnectionFlags(const std::string& connectionFlagNames);
+
    bool setImportMode(const std::string& importModeName);
    bool setImportMaxDepth(const unsigned int importMaxDepth);
    bool setImportFilePath(const std::filesystem::path& importFilePath);
@@ -110,13 +122,16 @@ class DatabaseConfiguration
    static std::list<RegisteredBackend*>*       BackendList;
    boost::program_options::options_description OptionsDescription;
    std::string                                 BackendName;
-   DatabaseBackendType                         Backend;
+   unsigned int                                Backend;
+   std::string                                 FlagNames;
+   unsigned int                                Flags;
    unsigned int                                ReconnectDelay;
    std::string                                 Server;
    uint16_t                                    Port;
    std::string                                 User;
    std::string                                 Password;
    std::string                                 CAFile;
+   std::string                                 ClientCertFile;
    std::string                                 Database;
    std::string                                 ImportModeName;
    ImportModeType                              ImportMode;

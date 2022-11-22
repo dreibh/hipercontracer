@@ -57,6 +57,7 @@ REGISTER_BACKEND(DatabaseBackendType::NoSQL_MongoDB, "MongoDB", MongoDBClient)
 MongoDBClient::MongoDBClient(const DatabaseConfiguration& configuration)
    : DatabaseClientBase(configuration)
 {
+   URI        = nullptr;
    Connection = nullptr;
    mongoc_init();
 }
@@ -70,6 +71,10 @@ MongoDBClient::~MongoDBClient()
    if(Connection) {
       mongoc_client_destroy(Connection);
       Connection = nullptr;
+   }
+   if(URI) {
+      mongoc_uri_destroy(URI);
+      URI = nullptr;
    }
    mongoc_cleanup();
 }
@@ -85,18 +90,53 @@ const DatabaseBackendType MongoDBClient::getBackend() const
 // ###### Prepare connection to database ####################################
 bool MongoDBClient::open()
 {
+   assert(Connection == nullptr);
+
+   // ====== Create URI =====================================================
    const std::string url = "mongodb://" +
       Configuration.getUser() + ":" + Configuration.getPassword() + "@" +
       Configuration.getServer() + ":" + std::to_string(Configuration.getPort()) +
-      "/" + Configuration.getDatabase() + "?authMechanism=SCRAM-SHA-256";
+      "/" + Configuration.getDatabase();
+
+   if(URI) {
+      mongoc_uri_destroy(URI);
+   }
+   URI = mongoc_uri_new(url.c_str());
+   assert(URI != nullptr);
+
+   // Set options (http://mongoc.org/libmongoc/1.12.0/mongoc_uri_t.html):
+   mongoc_uri_set_auth_mechanism(URI, "SCRAM-SHA-256");
+   mongoc_uri_set_option_as_utf8(URI, MONGOC_URI_APPNAME,       "UniversalImporter");
+   mongoc_uri_set_option_as_utf8(URI, MONGOC_URI_COMPRESSORS,   "snappy,zlib,zstd");
+   if(!(Configuration.getConnectionFlags() & ConnectionFlags::DisableTLS)) {
+      mongoc_uri_set_option_as_bool(URI, MONGOC_URI_TLS, true);
+   }
+   else {
+      HPCT_LOG(warning) << "TLS explicitly disabled. CONFIGURE TLS PROPERLY!!";
+   }
+   if(Configuration.getCAFile().size() > 0) {
+      mongoc_uri_set_option_as_utf8(URI, MONGOC_URI_TLSCAFILE,
+                                    Configuration.getCAFile().c_str());
+   }
+   if(Configuration.getClientCertFile().size() > 0) {
+     mongoc_uri_set_option_as_utf8(URI, MONGOC_URI_TLSCERTIFICATEKEYFILE,
+                                   Configuration.getClientCertFile().c_str());
+   }
+   if(Configuration.getConnectionFlags() & ConnectionFlags::AllowInvalidCertificate) {
+      mongoc_uri_set_option_as_bool(URI, MONGOC_URI_TLS, MONGOC_URI_TLSALLOWINVALIDCERTIFICATES);
+      HPCT_LOG(warning) << "TLS certificate check explicitliy disabled. CONFIGURE TLS PROPERLY!!";
+   }
+   if(Configuration.getConnectionFlags() & ConnectionFlags::AllowInvalidHostname) {
+      mongoc_uri_set_option_as_bool(URI, MONGOC_URI_TLS, MONGOC_URI_TLSALLOWINVALIDHOSTNAMES);
+      HPCT_LOG(warning) << "TLS hostname check explicitliy disabled. CONFIGURE TLS PROPERLY!!";
+   }
 
    // ====== Connect to database ============================================
-   Connection = mongoc_client_new(url.c_str());
+   Connection = mongoc_client_new_from_uri(URI);
    if(Connection == nullptr) {
       HPCT_LOG(error) << "Unable to create MongoDB Client";
       return false;
    }
-   mongoc_client_set_appname(Connection, "UniversalImporter");
 
    // ====== Check connection ===============================================
    bson_error_t error;

@@ -56,6 +56,7 @@ class MongoDBClient : public DatabaseClientBase
    inline mongoc_client_t* getConnection() { return Connection; }
 
    private:
+   mongoc_uri_t*    URI;
    mongoc_client_t* Connection;
 };
 

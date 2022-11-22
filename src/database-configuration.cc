@@ -35,6 +35,8 @@
 
 #include <fstream>
 
+#include <boost/algorithm/string.hpp>
+
 
 std::list<DatabaseConfiguration::RegisteredBackend*>* DatabaseConfiguration::BackendList = nullptr;
 
@@ -49,19 +51,22 @@ DatabaseConfiguration::DatabaseConfiguration()
       ("dbuser",            boost::program_options::value<std::string>(&User),                               "database username")
       ("dbpassword",        boost::program_options::value<std::string>(&Password),                           "database password")
       ("dbcafile",          boost::program_options::value<std::string>(&CAFile),                             "database CA file")
+      ("dbclientcertfile",  boost::program_options::value<std::string>(&ClientCertFile),                     "database client certificate file")
       ("database",          boost::program_options::value<std::string>(&Database),                           "database name")
       ("dbbackend",         boost::program_options::value<std::string>(&BackendName),                        "database backend")
       ("dbreconnectdelay",  boost::program_options::value<unsigned int>(&ReconnectDelay)->default_value(60), "database reconnect delay (in s)")
+      ("dbconnectionflags", boost::program_options::value<std::string>(&FlagNames),                          "database connection flags")
       ("import_mode",       boost::program_options::value<std::string>(&ImportModeName),                     "import mode")
       ("import_max_depth",  boost::program_options::value<unsigned int>(&ImportMaxDepth)->default_value(6),  "import max depth)")
       ("import_file_path",  boost::program_options::value<std::filesystem::path>(&ImportFilePath),           "path for input data")
       ("bad_file_path",     boost::program_options::value<std::filesystem::path>(&BadFilePath),              "path for bad files")
       ("good_file_path",    boost::program_options::value<std::filesystem::path>(&GoodFilePath),             "path for good files")
    ;
-   BackendName    = "Invalid";
-   Backend        = DatabaseBackendType::Invalid;
-   ImportModeName = "KeepImportedFiles";
-   ImportMode     = ImportModeType::KeepImportedFiles;
+   BackendName     = "Invalid";
+   Backend         = DatabaseBackendType::Invalid;
+   Flags           = ConnectionFlags::None;
+   ImportModeName  = "KeepImportedFiles";
+   ImportMode      = ImportModeType::KeepImportedFiles;
 }
 
 
@@ -87,11 +92,20 @@ bool DatabaseConfiguration::readConfiguration(const std::filesystem::path& confi
 
    // ====== Check options ==================================================
    if(!setBackend(BackendName))           return false;
+   if(!setConnectionFlags(FlagNames))     return false;
    if(!setImportMode(ImportModeName))     return false;
    if(!setImportMaxDepth(ImportMaxDepth)) return false;
    if(!setImportFilePath(ImportFilePath)) return false;
    if(!setGoodFilePath(GoodFilePath))     return false;
    if(!setBadFilePath(BadFilePath))       return false;
+
+   // Legacy parameter handling:
+   if(boost::iequals(CAFile, "NONE") || boost::iequals(CAFile, "IGNORE")) {
+      CAFile = std::string();
+   }
+   if(boost::iequals(ClientCertFile, "NONE") || boost::iequals(ClientCertFile, "IGNORE")) {
+      CAFile = std::string();
+   }
 
    return true;
 }
@@ -114,6 +128,31 @@ bool DatabaseConfiguration::setBackend(const std::string& backendName)
          HPCT_LOG(error) << registeredBackend->Name << " ";
       }
       return false;
+   }
+   return true;
+}
+
+
+// ###### Set import mode ###################################################
+bool DatabaseConfiguration::setConnectionFlags(const std::string& connectionFlagNames)
+{
+   std::istringstream flags(connectionFlagNames);
+   std::string        flag;
+   Flags = ConnectionFlags::None;
+   while(std::getline(flags, flag, ' ')) {
+      if(flag == "DisableTLS") {
+         Flags |= ConnectionFlags::DisableTLS;
+      }
+      else if(flag == "AllowInvalidCertificate") {
+         Flags |= ConnectionFlags::AllowInvalidCertificate;
+      }
+      else if(flag == "AllowInvalidHostname") {
+         Flags |= ConnectionFlags::AllowInvalidHostname;
+      }
+      else if(!boost::iequals(flag, "NONE")) {
+         HPCT_LOG(error) << "Invalid connection flag " << flag;
+         return false;
+      }
    }
    return true;
 }
@@ -229,7 +268,18 @@ std::ostream& operator<<(std::ostream& os, const DatabaseConfiguration& configur
       << "User             = " << configuration.User           << "\n"
       << "Password         = " << ((configuration.Password.size() > 0) ? "****************" : "(none)") << "\n"
       << "CA File          = " << configuration.CAFile         << "\n"
-      << "Database         = " << configuration.Database;
+      << "Client Cert File = " << configuration.ClientCertFile << "\n"
+      << "Database         = " << configuration.Database       << "\n"
+      << "Flags            =";
+   if(configuration.Flags & ConnectionFlags::DisableTLS) {
+      os << " DisableTLS";
+   }
+   if(configuration.Flags & ConnectionFlags::AllowInvalidCertificate) {
+      os << " AllowInvalidCertificate";
+   }
+   if(configuration.Flags & ConnectionFlags::AllowInvalidHostname) {
+      os << " AllowInvalidHostname";
+   }
    return os;
 }
 
