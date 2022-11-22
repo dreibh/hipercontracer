@@ -177,6 +177,7 @@ EOF
    sudo systemctl start mongod
    sudo systemctl enable mongod
 
+   sleep 5
    ./test-tls-connection localhost:27017 /etc/ssl/TestRoot/certs/TestRoot.crt
 
 
