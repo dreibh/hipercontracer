@@ -52,18 +52,32 @@ elif [ "$1" == "postgresql" ] ; then
 
    ./generate-test-certificate postgresql.domain.test /etc/ssl
 
+   # PostgreSQL needs separate certificate and key files.
+   # The chain is in the CA file, it must not be in the certificate file!
+   POSTGRESQL_CA_FILE="/etc/ssl/TestLeaf/TestLeaf-chain.pem"
+   POSTGRESQL_CRT_FILE="/etc/ssl/postgresql.domain.test.crt"
+   POSTGRESQL_KEY_FILE="/etc/ssl/postgresql.domain.test.key"
+   sudo chown postgres:postgres ${POSTGRESQL_KEY_FILE}
+   sudo openssl verify -CAfile ${POSTGRESQL_CA_FILE} ${POSTGRESQL_CRT_FILE}
+
    sudo apt install -y postgresql-all postgresql-contrib
 
    # Enable network access:
    sudo sed \
       -e 's#^host    all             all             127.0.0.1/32            scram-sha-256#host    all             all             0.0.0.0/0               scram-sha-256#' \
       -e 's#^host    all             all             ::1/128                 scram-sha-256#host    all             all             ::/0                    scram-sha-256#' \
-      /etc/postgresql/14/main/pg_hba.conf | sudo tee /etc/postgresql/14/main/pg_hba.conf.new && \
+      /etc/postgresql/14/main/pg_hba.conf | sudo tee /etc/postgresql/14/main/pg_hba.conf.new >/dev/null && \
+   diff --color /etc/postgresql/14/main/pg_hba.conf.new /etc/postgresql/14/main/pg_hba.conf || true && \
    sudo mv /etc/postgresql/14/main/pg_hba.conf.new /etc/postgresql/14/main/pg_hba.conf
 
    sudo sed \
       -e "s%#listen_addresses = 'localhost'%listen_addresses = '*'        %" \
-      /etc/postgresql/14/main/postgresql.conf | sudo tee /etc/postgresql/14/main/postgresql.conf.new && \
+      -e "s%\([#]\|\)ssl_ca_file = '.*'%ssl_ca_file = '${POSTGRESQL_CA_FILE}'%" \
+      -e "s%\([#]\|\)ssl_cert_file = '.*'%ssl_cert_file = '${POSTGRESQL_CRT_FILE}'%" \
+      -e "s%\([#]\|\)ssl_key_file = '.*'%ssl_key_file = '${POSTGRESQL_KEY_FILE}'%" \
+      -e "s%#ssl_ciphers = '.*'%ssl_ciphers = 'ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-AES256-SHA384:ECDHE-RSA-AES256-SHA384:ECDHE-ECDSA-AES256-SHA:ECDHE-RSA-AES256'%" \
+      /etc/postgresql/14/main/postgresql.conf | sudo tee /etc/postgresql/14/main/postgresql.conf.new >/dev/null && \
+   diff --color /etc/postgresql/14/main/postgresql.conf.new /etc/postgresql/14/main/postgresql.conf || true && \
    sudo mv /etc/postgresql/14/main/postgresql.conf.new /etc/postgresql/14/main/postgresql.conf
 
    sudo service postgresql restart
