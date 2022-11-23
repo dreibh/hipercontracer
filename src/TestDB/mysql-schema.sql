@@ -30,6 +30,7 @@
 -- Contact: dreibh@simula.no
 
 
+-- ##########################################################################
 -- IMPORTANT NOTES:
 -- 1. MySQL/MariaDB does not support unsigned BIGINT for the path hash.
 --    The 64-bit value is stored as-is in a signed BIGINT, i.e.:
@@ -38,6 +39,7 @@
 -- 2. MySQL/MariaDB does not support an INET datatype, just INET4 and INET6.
 --    Addresses are stored as INET6, IPv4 addresses are handled as
 --    IPv4-mapped IPv6 addesses (::ffff:a.b.c.d)!
+-- ##########################################################################
 
 
 -- ###### Ping ##############################################################

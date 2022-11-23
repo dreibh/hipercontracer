@@ -30,11 +30,13 @@
 -- Contact: dreibh@simula.no
 
 
--- IMPORTANT NOTES:
--- 1. PostgreSQL does not support unsigned BIGINT for the path hash.
---    The 64-bit value is stored as-is in a signed BIGINT, i.e.:
---    pathHash = (pathHash < 0) ?
---       0x10000000000000000 - abs(pathHash) : pathHash;
+-- ##########################################################################
+-- IMPORTANT NOTE:
+-- PostgreSQL does not support unsigned BIGINT for the path hash.
+-- The 64-bit value is stored as-is in a signed BIGINT, i.e.:
+-- pathHash = (pathHash < 0) ?
+--    0x10000000000000000 - abs(pathHash) : pathHash;
+-- ##########################################################################
 
 
 -- ###### Ping ##############################################################
