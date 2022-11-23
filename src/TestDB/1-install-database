@@ -31,13 +31,31 @@ if [ "$1" == "mariadb" ] ; then
 
    ./generate-test-certificate mariadb.domain.test /etc/ssl
 
+   # MariaDB needs separate certificate and key files.
+   # The chain is in the CA file, it must not be in the certificate file!
+   # Details: https://mariadb.com/kb/en/securing-connections-for-client-and-server/
+   MARIADB_CA_FILE="/etc/ssl/TestLeaf/TestLeaf-chain.pem"
+   MARIADB_CRT_FILE="/etc/ssl/mariadb.domain.test.crt"
+   MARIADB_KEY_FILE="/etc/ssl/mariadb.domain.test.key"
+   sudo chown mysql:mysql ${MARIADB_KEY_FILE}
+   sudo openssl verify -CAfile ${MARIADB_CA_FILE} ${MARIADB_CRT_FILE}
+
    sudo apt install -y mariadb-server mariadb-backup mariadb-client
    sudo mysql_secure_installation
 
    # Enable network access:
-   sudo sed -e 's/^\(bind-address[ \t]*\)=.*$/\1= */g' /etc/mysql/mariadb.conf.d/50-server.cnf | sudo tee /etc/mysql/mariadb.conf.d/50-server.cnf.new
+   sudo sed \
+      -e 's/^\(bind-address[ \t]*\)=.*$/\1= */g' \
+      -e "s%\([#]\|\)ssl-ca[ ]*=[ ]*.*%ssl-ca = ${MARIADB_CA_FILE}%" \
+      -e "s%\([#]\|\)ssl-cert[ ]*=[ ]*.*%ssl-cert = ${MARIADB_CRT_FILE}%" \
+      -e "s%\([#]\|\)ssl-key[ ]*=[ ]*.*%ssl-key = ${MARIADB_KEY_FILE}%" \
+      -e "s%\([#]\|\)require-secure-transport[ ]*=[ ]*.*%require-secure-transport = on%" \
+      /etc/mysql/mariadb.conf.d/50-server.cnf | sudo tee /etc/mysql/mariadb.conf.d/50-server.cnf.new >/dev/null && \
+   sudo diff --color /etc/mysql/mariadb.conf.d/50-server.cnf.new /etc/mysql/mariadb.conf.d/50-server.cnf || true && \
    sudo mv /etc/mysql/mariadb.conf.d/50-server.cnf.new /etc/mysql/mariadb.conf.d/50-server.cnf
    sudo service mariadb restart
+
+   ./test-tls-connection localhost:3306 /etc/ssl/TestRoot/certs/TestRoot.crt -starttls mysql
 
    # Install MySQL Workbench:
    # wget https://dev.mysql.com/get/Downloads/MySQLGUITools/mysql-workbench-community_8.0.31-1ubuntu22.10_amd64.deb
@@ -52,21 +70,39 @@ elif [ "$1" == "postgresql" ] ; then
 
    ./generate-test-certificate postgresql.domain.test /etc/ssl
 
+   # PostgreSQL needs separate certificate and key files.
+   # The chain is in the CA file, it must not be in the certificate file!
+   POSTGRESQL_CA_FILE="/etc/ssl/TestLeaf/TestLeaf-chain.pem"
+   POSTGRESQL_CRT_FILE="/etc/ssl/postgresql.domain.test.crt"
+   POSTGRESQL_KEY_FILE="/etc/ssl/postgresql.domain.test.key"
+   sudo chown postgres:postgres ${POSTGRESQL_KEY_FILE}
+   sudo openssl verify -CAfile ${POSTGRESQL_CA_FILE} ${POSTGRESQL_CRT_FILE}
+
    sudo apt install -y postgresql-all postgresql-contrib
 
    # Enable network access:
    sudo sed \
       -e 's#^host    all             all             127.0.0.1/32            scram-sha-256#host    all             all             0.0.0.0/0               scram-sha-256#' \
       -e 's#^host    all             all             ::1/128                 scram-sha-256#host    all             all             ::/0                    scram-sha-256#' \
-      /etc/postgresql/14/main/pg_hba.conf | sudo tee /etc/postgresql/14/main/pg_hba.conf.new && \
+      /etc/postgresql/14/main/pg_hba.conf | sudo tee /etc/postgresql/14/main/pg_hba.conf.new >/dev/null && \
+   diff --color /etc/postgresql/14/main/pg_hba.conf.new /etc/postgresql/14/main/pg_hba.conf || true && \
    sudo mv /etc/postgresql/14/main/pg_hba.conf.new /etc/postgresql/14/main/pg_hba.conf
 
    sudo sed \
       -e "s%#listen_addresses = 'localhost'%listen_addresses = '*'        %" \
-      /etc/postgresql/14/main/postgresql.conf | sudo tee /etc/postgresql/14/main/postgresql.conf.new && \
+      -e "s%\([#]\|\)ssl_ca_file = '.*'%ssl_ca_file = '${POSTGRESQL_CA_FILE}'%" \
+      -e "s%\([#]\|\)ssl_cert_file = '.*'%ssl_cert_file = '${POSTGRESQL_CRT_FILE}'%" \
+      -e "s%\([#]\|\)ssl_key_file = '.*'%ssl_key_file = '${POSTGRESQL_KEY_FILE}'%" \
+      -e "s%#ssl_ciphers = '.*'%ssl_ciphers = 'ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-AES256-SHA384:ECDHE-RSA-AES256-SHA384:ECDHE-ECDSA-AES256-SHA:ECDHE-RSA-AES256'%" \
+      -e "s%#ssl_prefer_server_ciphers = on%ssl_prefer_server_ciphers = on%" \
+      -e "s%#ssl_min_protocol_version = 'TLSv1.2'%ssl_min_protocol_version = 'TLSv1.3'%" \
+      /etc/postgresql/14/main/postgresql.conf | sudo tee /etc/postgresql/14/main/postgresql.conf.new >/dev/null && \
+   diff --color /etc/postgresql/14/main/postgresql.conf.new /etc/postgresql/14/main/postgresql.conf || true && \
    sudo mv /etc/postgresql/14/main/postgresql.conf.new /etc/postgresql/14/main/postgresql.conf
 
    sudo service postgresql restart
+
+   ./test-tls-connection localhost:5432 /etc/ssl/TestRoot/certs/TestRoot.crt -starttls postgres
 
 
 # ###### MongoDB ############################################################
@@ -140,6 +176,9 @@ EOF
 
    sudo systemctl start mongod
    sudo systemctl enable mongod
+
+   sleep 5
+   ./test-tls-connection localhost:27017 /etc/ssl/TestRoot/certs/TestRoot.crt
 
 
 # ###### Error ##############################################################

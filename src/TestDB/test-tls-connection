@@ -1,14 +1,15 @@
 #!/bin/bash
 
-if [ $# -ne 2 ] ; then
-   echo >&2 "Usage: $0 host:port cafile"
+if [ $# -lt 2 ] ; then
+   echo >&2 "Usage: $0 host:port cafile [openssl_args ...]"
    exit 1
 fi
 ENDPOINT="$1"
 CAFILE="$2"
+shift 2
 if [ ! -e "${CAFILE}" ] ; then
    echo >&2 "ERROR: ${CAFILE} does not exist!"
    exit 1
 fi
 
-echo "" | openssl s_client -showcerts -connect ${ENDPOINT}  -CAfile "${CAFILE}" | head
+echo "" | openssl s_client -showcerts -connect ${ENDPOINT}  -CAfile "${CAFILE}" $@ | head
