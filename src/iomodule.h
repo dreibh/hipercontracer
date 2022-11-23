@@ -8,6 +8,18 @@
 
 class ICMPHeader;
 
+enum TimeSource
+{
+   TS_Unknown         = 0,
+   TS_SysClock        = 1,
+   TS_TIMESTAMP       = 2,
+   TS_TIMESTAMPNS     = 3,
+   TS_SIOCGSTAMP      = 4,
+   TS_SIOCGSTAMPNS    = 5,
+   TS_TIMESTAMPING_SW = 8,
+   TS_TIMESTAMPING_HW = 9
+};
+
 class IOModuleBase
 {
    public:
@@ -65,7 +77,7 @@ class ICMPModule : public IOModuleBase
    protected:
    void expectNextReply();
    void handleResponse(const boost::system::error_code& errorCode,
-                       std::size_t                      length);
+                       const bool                       readFromErrorQueue);
    void recordResult(const std::chrono::system_clock::time_point& receiveTime,
                      const ICMPHeader&                            icmpHeader,
                      const unsigned short                         seqNumber);
@@ -74,9 +86,11 @@ class ICMPModule : public IOModuleBase
    const unsigned int              ActualPacketSize;
 
    boost::asio::ip::icmp::socket   ICMPSocket;
-   boost::asio::ip::icmp::endpoint ReplyEndpoint;    // Store ICMP reply's source address
+   boost::asio::ip::icmp::endpoint ReplyEndpoint;    // Store ICMP reply's source address    FIXME! Is this needed as attrib?
    bool                            ExpectingReply;
+   bool                            ExpectingError;
    char                            MessageBuffer[65536 + 40];
+   char                            ControlBuffer[1024];
 };
 
 
@@ -113,7 +127,7 @@ class UDPModule : public IOModuleBase
    const unsigned int             ActualPacketSize;
 
    boost::asio::ip::udp::socket   UDPSocket;
-   boost::asio::ip::udp::endpoint ReplyEndpoint;    // Store UDP reply's source address
+   boost::asio::ip::udp::endpoint ReplyEndpoint;    // Store UDP reply's source address    FIXME! Is this needed as attrib?
    bool                           ExpectingReply;
    bool                           ExpectingError;
    char                           MessageBuffer[65536 + 40];
