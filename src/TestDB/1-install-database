@@ -31,7 +31,9 @@
 #  Contact: dreibh@simula.no
 
 # Bash options:
-set -e
+set -o nounset
+set -o errexit
+
 
 if [ $# -ne 2 ] ; then
    echo >&2 "Usage: $0 mariadb|mongodb|mysql|postgresql users.conf"
@@ -42,6 +44,7 @@ if [ ! -e $2 ] ; then
 fi
 
 ROOT_PASSWORD="!root!"
+DATABASE="just_a_test_database"
 MAINTAINER_PASSWORD="!maintainer!"
 IMPORTER_PASSWORD="!importer!"
 RESEARCHER_PASSWORD="!researcher!"

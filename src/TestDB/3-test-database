@@ -31,7 +31,9 @@
 #  Contact: dreibh@simula.no
 
 # Bash options:
-set -e
+set -o nounset
+set -o errexit
+
 
 if [ $# -ne 2 ] ; then
    echo >&2 "Usage: $0 mariadb|mongodb|mysql|postgresql users.conf"
@@ -41,6 +43,7 @@ if [ ! -e $2 ] ; then
    echo >&2 "ERROR: Use configuration $2 does not exist!"
 fi
 
+DATABASE="just_a_test_database"
 MAINTAINER_PASSWORD=
 IMPORTER_PASSWORD=
 RESEARCHER_PASSWORD=
@@ -52,7 +55,7 @@ if [ "$1" == "mysql" -o "$1" == "mariadb" ] ; then
    # Documentation: https://www.digitalocean.com/community/tutorials/how-to-install-mariadb-on-ubuntu-22-04
 
    echo -e "\x1b[34mTesting access to MySQL/MariaDB database ...\x1b[0m"
-   mysql -h localhost -u researcher --password="${RESEARCHER_PASSWORD}" PingTracerouteDB <<EOF
+   mysql -h localhost -u researcher --password="${RESEARCHER_PASSWORD}" "${DATABASE}" <<EOF
 SELECT COUNT(*) FROM Ping;
 SELECT * FROM Ping LIMIT 10;
 SELECT COUNT(*) FROM Traceroute;
@@ -65,7 +68,7 @@ elif [ "$1" == "postgresql" ] ; then
    # Documentation: https://www.digitalocean.com/community/tutorials/how-to-install-postgresql-on-ubuntu-22-04-quickstart
 
    echo -e "\x1b[34mTesting access to PostgreSQL database ...\x1b[0m"
-   PGPASSWORD="${RESEARCHER_PASSWORD}" psql -h localhost -d pingtraceroutedb -U researcher <<EOF
+   PGPASSWORD="${RESEARCHER_PASSWORD}" psql -h localhost -d "${DATABASE}" -U researcher <<EOF
 SELECT COUNT(*) FROM Ping;
 SELECT * FROM Ping LIMIT 10;
 SELECT COUNT(*) FROM Traceroute;
@@ -79,7 +82,7 @@ elif [ "$1" == "mongodb" ] ; then
 
    echo -e "\x1b[34mTesting access to MongoDB database ...\x1b[0m"
    mongosh --tls --tlsCAFile /etc/ssl/TestRoot/certs/TestRoot.crt \
-      mongodb://localhost/pingtraceroutedb --username researcher --password "${RESEARCHER_PASSWORD}" --quiet <<EOF
+      "mongodb://localhost/${DATABASE}" --username researcher --password "${RESEARCHER_PASSWORD}" --quiet <<EOF
 use pingtraceroutedb
 db.ping.countDocuments()
 db.ping.findOne()

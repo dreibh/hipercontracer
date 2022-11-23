@@ -31,7 +31,9 @@
 #  Contact: dreibh@simula.no
 
 # Bash options:
-set -e
+set -o nounset
+set -o errexit
+
 
 if [ $# -lt 2 ] ; then
    echo >&2 "Usage: $0 host:port cafile [openssl_args ...]"

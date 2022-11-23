@@ -31,7 +31,9 @@
 #  Contact: dreibh@simula.no
 
 # Bash options:
-set -e
+set -o nounset
+set -o errexit
+
 
 if [ $# -lt 1 ] ; then
    echo >&2 "ERROR:$0 server_name [ssl_directory]"

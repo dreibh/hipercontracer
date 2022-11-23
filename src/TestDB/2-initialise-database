@@ -31,7 +31,9 @@
 #  Contact: dreibh@simula.no
 
 # Bash options:
-set -e
+set -o nounset
+set -o errexit
+
 
 if [ $# -lt 2 ] ; then
    echo >&2 "Usage: $0 mariadb|mongodb|mysql|postgresql users.conf [--force-removal-without-confirmation]"
@@ -41,6 +43,7 @@ if [ ! -e $2 ] ; then
    echo >&2 "ERROR: Use configuration $2 does not exist!"
 fi
 
+DATABASE="just_a_test_database"
 MAINTAINER_PASSWORD="!maintainer!"
 IMPORTER_PASSWORD="!importer!"
 RESEARCHER_PASSWORD="!researcher!"
@@ -79,26 +82,15 @@ if [ "$1" == "mysql" -o "$1" == "mariadb" ] ; then
 
    # ====== Create schema ===================================================
    echo -e "\x1b[33mCreating schema ...\x1b[0m"
-   mysql -u root --password="${ROOT_PASSWORD}" <mysql-schema.sql
+   mysql -u root --password="${ROOT_PASSWORD}" --database="${DATABASE}" <mysql-schema.sql
 
    # ====== Create users and roles ==========================================
    echo -e "\x1b[33mCreating users and roles ...\x1b[0m"
-   mysql -u root --password="${ROOT_PASSWORD}" <<EOF
-DROP USER IF EXISTS maintainer;
-CREATE USER maintainer IDENTIFIED BY '${MAINTAINER_PASSWORD}';
-GRANT ALL PRIVILEGES ON PingTracerouteDB.* TO maintainer;
-
-DROP USER IF EXISTS importer;
-CREATE USER importer IDENTIFIED BY '${IMPORTER_PASSWORD}';
-GRANT INSERT, UPDATE ON PingTracerouteDB.Ping TO importer;
-GRANT INSERT, UPDATE ON PingTracerouteDB.Traceroute TO importer;
-
-DROP USER IF EXISTS researcher;
-CREATE USER researcher IDENTIFIED BY '${RESEARCHER_PASSWORD}';
-GRANT SELECT, INSERT, UPDATE ON PingTracerouteDB.* TO researcher;
-
-FLUSH PRIVILEGES;
-EOF
+   cat mysql-users.sql | sed -e \
+      "s%.. INSERT MAINTAINER PASSWORD HERE ..%${MAINTAINER_PASSWORD}%" \
+      "s%.. INSERT RESEARCHER PASSWORD HERE ..%${RESEARCHER_PASSWORD}%" \
+      "s%.. INSERT IMPORTER PASSWORD HERE ..%${IMPORTER_PASSWORD}%" \
+      | tee | mysql -u root --password="${ROOT_PASSWORD}" <mysql-users.sql
 
 
 # ###### PostgreSQL #########################################################
