@@ -48,7 +48,7 @@ if [ "${HOSTNAME}" != "localhost" -a \
 fi
 
 
-USERS_CONFIG=~/testusers.conf
+USERS_CONFIG=~/testdb-users.conf
 
 ./0-make-users.conf     ${USERS_CONFIG}
 
