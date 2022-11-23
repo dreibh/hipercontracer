@@ -47,7 +47,13 @@ DATABASE="just_a_test_database"
 MAINTAINER_PASSWORD="!maintainer!"
 IMPORTER_PASSWORD="!importer!"
 RESEARCHER_PASSWORD="!researcher!"
-. $2
+CONFIG="$2"
+if [ $# -gt 2 ] ; then
+   OPTION="$3"
+else
+   OPTION=""
+fi
+. ${CONFIG}
 
 if [ "${MAINTAINER_PASSWORD}" = "!maintainer!" -o \
      "${IMPORTER_PASSWORD}"   = "!importer!"   -o \
@@ -56,7 +62,7 @@ if [ "${MAINTAINER_PASSWORD}" = "!maintainer!" -o \
    exit 1
 fi
 
-if [ "$3" != "--force-removal-without-confirmation" ] ; then
+if [ "${OPTION}" != "--force-removal-without-confirmation" ] ; then
    echo -n "WARNING: THIS SCRIPT WILL ERASE THE EXISTING DATABASES. To proceed, type \"I am sure!\": "
    read -er agree
    if [ "$agree" != "I am sure!" ] ; then
@@ -79,6 +85,9 @@ if [ "$1" == "mysql" -o "$1" == "mariadb" ] ; then
    # ====== Create database =================================================
    echo -e "\x1b[33mCreating database ...\x1b[0m"
    mysql -u root --password="${ROOT_PASSWORD}" <mysql-database.sql
+   cat mysql-users.sql | sed -e \
+      "s%.. INSERT DATABASE HERE ..%${DATABASE}%" \
+      | tee | mysql -u root --password="${ROOT_PASSWORD}" <mysql-database.sql
 
    # ====== Create schema ===================================================
    echo -e "\x1b[33mCreating schema ...\x1b[0m"
@@ -87,6 +96,7 @@ if [ "$1" == "mysql" -o "$1" == "mariadb" ] ; then
    # ====== Create users and roles ==========================================
    echo -e "\x1b[33mCreating users and roles ...\x1b[0m"
    cat mysql-users.sql | sed -e \
+      "s%.. INSERT MAINTAINER PASSWORD HERE ..%${MAINTAINER_PASSWORD}%" \
       "s%.. INSERT MAINTAINER PASSWORD HERE ..%${MAINTAINER_PASSWORD}%" \
       "s%.. INSERT RESEARCHER PASSWORD HERE ..%${RESEARCHER_PASSWORD}%" \
       "s%.. INSERT IMPORTER PASSWORD HERE ..%${IMPORTER_PASSWORD}%" \
