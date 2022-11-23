@@ -65,7 +65,7 @@ bool PostgreSQLClient::open()
 {
    const std::string parameters =
       "host="      + Configuration.getServer() +
-      " port="     + std::to_string(Configuration.getPort()) +
+      " port="     + std::to_string((Configuration.getPort() == 0) ? Configuration.getPort() : 5432) +
       " user="     + Configuration.getUser() +
       " password=" + Configuration.getPassword() +
       " dbname="   + Configuration.getDatabase();

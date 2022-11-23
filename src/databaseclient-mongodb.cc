@@ -94,8 +94,8 @@ bool MongoDBClient::open()
 
    // ====== Create URI =====================================================
    const std::string url = "mongodb://" +
-      Configuration.getUser() + ":" + Configuration.getPassword() + "@" +
-      Configuration.getServer() + ":" + std::to_string(Configuration.getPort()) +
+      Configuration.getServer() + ":" +
+      std::to_string((Configuration.getPort() == 0) ? Configuration.getPort() : 27017) +
       "/" + Configuration.getDatabase();
 
    if(URI) {
@@ -105,7 +105,10 @@ bool MongoDBClient::open()
    assert(URI != nullptr);
 
    // Set options (http://mongoc.org/libmongoc/1.12.0/mongoc_uri_t.html):
+   mongoc_uri_set_username(URI, Configuration.getUser().c_str());
+   mongoc_uri_set_password(URI, Configuration.getPassword().c_str());
    mongoc_uri_set_auth_mechanism(URI, "SCRAM-SHA-256");
+
    mongoc_uri_set_option_as_utf8(URI, MONGOC_URI_APPNAME,       "UniversalImporter");
    mongoc_uri_set_option_as_utf8(URI, MONGOC_URI_COMPRESSORS,   "snappy,zlib,zstd");
    if(!(Configuration.getConnectionFlags() & ConnectionFlags::DisableTLS)) {

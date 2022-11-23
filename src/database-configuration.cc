@@ -47,7 +47,7 @@ DatabaseConfiguration::DatabaseConfiguration()
 {
    OptionsDescription.add_options()
       ("dbserver",          boost::program_options::value<std::string>(&Server),                             "database server")
-      ("dbport",            boost::program_options::value<uint16_t>(&Port),                                  "database port")
+      ("dbport",            boost::program_options::value<uint16_t>(&Port)->default_value(0),                "database port")
       ("dbuser",            boost::program_options::value<std::string>(&User),                               "database username")
       ("dbpassword",        boost::program_options::value<std::string>(&Password),                           "database password")
       ("dbcafile",          boost::program_options::value<std::string>(&CAFile),                             "database CA file")

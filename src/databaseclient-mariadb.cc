@@ -72,7 +72,9 @@ const DatabaseBackendType MariaDBClient::getBackend() const
 // ###### Prepare connection to database ####################################
 bool MariaDBClient::open()
 {
-   const std::string url = "tcp://" + Configuration.getServer() + ":" + std::to_string(Configuration.getPort());
+   const std::string url = "tcp://" +
+      Configuration.getServer() + ":" +
+      std::to_string((Configuration.getPort() == 0) ? Configuration.getPort() : 3306);
 
    assert(Connection == nullptr);
    try {
