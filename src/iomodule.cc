@@ -163,6 +163,42 @@ bool ICMPModule::prepareSocket()
       return false;
    }
 
+
+        const char* interface = "lo";
+        struct ifreq device;
+        struct ifreq hwtstamp;
+        struct hwtstamp_config hwconfig, hwconfig_requested;
+
+        memset(&device, 0, sizeof(device));
+        memcpy(device.ifr_name, interface, strlen(interface) + 1);
+        if (ioctl(ICMPSocket.native_handle(), SIOCGIFADDR, &device) < 0) {
+           HPCT_LOG(error) << "SIOCGIFADDR:" << strerror(errno);
+           return false;
+        }
+
+        memset(&hwtstamp, 0, sizeof(hwtstamp));
+        memcpy(hwtstamp.ifr_name, interface, strlen(interface) + 1);
+        hwtstamp.ifr_data = (char*)&hwconfig;
+        memset(&hwconfig, 0, sizeof(hwconfig));
+        hwconfig.tx_type = HWTSTAMP_TX_ON;
+        hwconfig.rx_filter = HWTSTAMP_FILTER_NONE;
+        hwconfig_requested = hwconfig;
+        if (ioctl(ICMPSocket.native_handle(), SIOCSHWTSTAMP, &hwtstamp) < 0) {
+                if ((errno == EINVAL || errno == ENOTSUP) &&
+                    hwconfig_requested.tx_type == HWTSTAMP_TX_OFF &&
+                    hwconfig_requested.rx_filter == HWTSTAMP_FILTER_NONE) {
+                    printf("SIOCSHWTSTAMP: disabling hardware time stamping not possible\n");
+                    HPCT_LOG(error) << "X-2";
+                }
+                else {
+                    HPCT_LOG(error) << "SIOCSHWTSTAMP:" << strerror(errno);
+                }
+        }
+        printf("SIOCSHWTSTAMP: tx_type %d requested, got %d; rx_filter %d requested, got %d\n",
+               hwconfig_requested.tx_type, hwconfig.tx_type,
+               hwconfig_requested.rx_filter, hwconfig.rx_filter);
+
+
    // ====== Set filter (not required, but much more efficient) =============
    if(SourceAddress.is_v6()) {
       struct icmp6_filter filter;
