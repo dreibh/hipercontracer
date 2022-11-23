@@ -55,12 +55,7 @@ if [ "$1" == "mysql" -o "$1" == "mariadb" ] ; then
    # Documentation: https://www.digitalocean.com/community/tutorials/how-to-install-mariadb-on-ubuntu-22-04
 
    echo -e "\x1b[34mTesting access to MySQL/MariaDB database ...\x1b[0m"
-   mysql -h localhost -u researcher --password="${RESEARCHER_PASSWORD}" "${DATABASE}" <<EOF
-SELECT COUNT(*) FROM Ping;
-SELECT * FROM Ping LIMIT 10;
-SELECT COUNT(*) FROM Traceroute;
-SELECT * FROM Traceroute LIMIT 30;
-EOF
+   mysql -h localhost -u researcher --password="${RESEARCHER_PASSWORD}" --database="${DATABASE}" <mysql-test.sql
 
 
 # ###### PostgreSQL #########################################################
@@ -68,12 +63,7 @@ elif [ "$1" == "postgresql" ] ; then
    # Documentation: https://www.digitalocean.com/community/tutorials/how-to-install-postgresql-on-ubuntu-22-04-quickstart
 
    echo -e "\x1b[34mTesting access to PostgreSQL database ...\x1b[0m"
-   PGPASSWORD="${RESEARCHER_PASSWORD}" psql -h localhost -d "${DATABASE}" -U researcher <<EOF
-SELECT COUNT(*) FROM Ping;
-SELECT * FROM Ping LIMIT 10;
-SELECT COUNT(*) FROM Traceroute;
-SELECT * FROM Traceroute LIMIT 30;
-EOF
+   PGPASSWORD="${RESEARCHER_PASSWORD}" psql -h localhost -U researcher -d "${DATABASE}" <postgresql-test.sql
 
 
 # ###### MongoDB ############################################################
@@ -82,13 +72,7 @@ elif [ "$1" == "mongodb" ] ; then
 
    echo -e "\x1b[34mTesting access to MongoDB database ...\x1b[0m"
    mongosh --tls --tlsCAFile /etc/ssl/TestRoot/certs/TestRoot.crt \
-      "mongodb://localhost/${DATABASE}" --username researcher --password "${RESEARCHER_PASSWORD}" --quiet <<EOF
-use pingtraceroutedb
-db.ping.countDocuments()
-db.ping.findOne()
-db.traceroute.countDocuments()
-db.traceroute.findOne()
-EOF
+      "mongodb://localhost/${DATABASE}" --username researcher --password "${RESEARCHER_PASSWORD}" --quiet <mongodb-test.ms
 
 
 # ###### Error ##############################################################

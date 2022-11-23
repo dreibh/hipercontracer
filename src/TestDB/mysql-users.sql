@@ -30,23 +30,26 @@
 -- Contact: dreibh@simula.no
 
 
--- NOTE: these variables must be set correctly first!
-SET @MAINTAINER_PASSWORD = '!! INSERT MAINTAINER PASSWORD HERE !!';
-SET @IMPORTER_PASSWORD   = '!! INSERT IMPORTER PASSWORD HERE !!';
-SET @RESEARCHER_PASSWORD = '!! INSERT RESEARCHER PASSWORD HERE !!';
+-- ##########################################################################
+-- IMPORTANT NOTE:
+-- This script requires changing the placeholders below first:
+-- * MAINTAINER_PASSWORD
+-- * IMPORTER_PASSWORD
+-- * RESEARCHER_PASSWORD
+-- ##########################################################################
 
 
 DROP USER IF EXISTS maintainer;
-CREATE USER maintainer IDENTIFIED BY @MAINTAINER_PASSWORD;
-GRANT ALL PRIVILEGES ON .* TO maintainer;
+CREATE USER maintainer IDENTIFIED BY '${MAINTAINER_PASSWORD}';
+GRANT ALL PRIVILEGES ON * TO maintainer;
 
 DROP USER IF EXISTS importer;
-CREATE USER importer IDENTIFIED BY @IMPORTER_PASSWORD;
-GRANT INSERT, UPDATE ON .Ping TO importer;
-GRANT INSERT, UPDATE ON .Traceroute TO importer;
+CREATE USER importer IDENTIFIED BY '${IMPORTER_PASSWORD}';
+GRANT INSERT, UPDATE ON Ping TO importer;
+GRANT INSERT, UPDATE ON Traceroute TO importer;
 
 DROP USER IF EXISTS researcher;
-CREATE USER researcher IDENTIFIED BY @RESEARCHER_PASSWORD;
-GRANT SELECT, INSERT, UPDATE ON .* TO researcher;
+CREATE USER researcher IDENTIFIED BY '${RESEARCHER_PASSWORD}';
+GRANT SELECT, INSERT, UPDATE ON * TO researcher;
 
 FLUSH PRIVILEGES;

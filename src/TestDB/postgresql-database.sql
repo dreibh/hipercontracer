@@ -29,5 +29,13 @@
 --
 -- Contact: dreibh@simula.no
 
-DROP DATABASE IF EXISTS PingTracerouteDB;
-CREATE DATABASE PingTracerouteDB;
+
+-- ##########################################################################
+-- IMPORTANT NOTE:
+-- This script requires changing the placeholders below first:
+-- * DATABASE
+-- ##########################################################################
+
+
+DROP DATABASE IF EXISTS ${DATABASE};
+CREATE DATABASE ${DATABASE};
