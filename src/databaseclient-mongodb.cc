@@ -95,7 +95,7 @@ bool MongoDBClient::open()
    // ====== Create URI =====================================================
    const std::string url = "mongodb://" +
       Configuration.getServer() + ":" +
-      std::to_string((Configuration.getPort() == 0) ? Configuration.getPort() : 27017) +
+      std::to_string((Configuration.getPort() != 0) ? Configuration.getPort() : 27017) +
       "/" + Configuration.getDatabase();
 
    if(URI) {
