@@ -72,16 +72,28 @@ const DatabaseBackendType MariaDBClient::getBackend() const
 // ###### Prepare connection to database ####################################
 bool MariaDBClient::open()
 {
-   const std::string url = "tcp://" +
-      Configuration.getServer() + ":" +
-      std::to_string((Configuration.getPort() != 0) ? Configuration.getPort() : 3306);
+   sql::ConnectOptionsMap connectionProperties;
+   connectionProperties["hostName"] = Configuration.getServer();
+   connectionProperties["userName"] = Configuration.getUser();
+   connectionProperties["password"] = Configuration.getPassword();
+   connectionProperties["schema"]   = Configuration.getDatabase();
+   connectionProperties["port"]     = (Configuration.getPort() != 0) ? Configuration.getPort() : 3306;
+   if(Configuration.getCAFile().size() > 0) {
+      connectionProperties["sslCA"]   = Configuration.getCAFile();
+   }
+   if(Configuration.getClientCertFile().size() > 0) {
+      connectionProperties["sslCert"] = Configuration.getClientCertFile();
+   }
+   connectionProperties["sslVerify"]       = true;
+   connectionProperties["sslEnforce"]      = true;
+   connectionProperties["OPT_TLS_VERSION"] = "TLSv1.3";
+   connectionProperties["OPT_RECONNECT"]   = true;
+   connectionProperties["CLIENT_COMPRESS"] = true;
 
    assert(Connection == nullptr);
    try {
       // ====== Connect to database =========================================
-      Connection = Driver->connect(url.c_str(),
-                                   Configuration.getUser().c_str(),
-                                   Configuration.getPassword().c_str());
+      Connection = Driver->connect(connectionProperties);
       assert(Connection != nullptr);
       Connection->setSchema(Configuration.getDatabase().c_str());
       // SET SESSION TRANSACTION ISOLATION LEVEL READ COMMITTED
@@ -93,7 +105,7 @@ bool MariaDBClient::open()
       assert(Transaction != nullptr);
    }
    catch(const sql::SQLException& e) {
-      HPCT_LOG(error) << "Unable to connect MariaDB client to " << url << ": " << e.what();
+      HPCT_LOG(error) << "Unable to connect MariaDB client to " << Configuration.getServer() << ": " << e.what();
       close();
       return false;
    }
