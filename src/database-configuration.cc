@@ -104,7 +104,7 @@ bool DatabaseConfiguration::readConfiguration(const std::filesystem::path& confi
       CAFile = std::string();
    }
    if(boost::iequals(ClientCertFile, "NONE") || boost::iequals(ClientCertFile, "IGNORE")) {
-      CAFile = std::string();
+      ClientCertFile = std::string();
    }
 
    return true;
