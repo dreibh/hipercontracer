@@ -155,8 +155,9 @@ bool ICMPModule::prepareSocket()
    // ====== Enable SO_TIMESTAMPING option ==================================
    // Documentation: <linux-src>/Documentation/networking/timestamping.txt
 //    SOF_TIMESTAMPING_TX_HARDWARE|SOF_TIMESTAMPING_RX_HARDWARE|
-   const int type = SOF_TIMESTAMPING_TX_HARDWARE|SOF_TIMESTAMPING_RX_HARDWARE|
-                    SOF_TIMESTAMPING_TX_SOFTWARE|SOF_TIMESTAMPING_RX_SOFTWARE|SOF_TIMESTAMPING_SOFTWARE;
+   const int type = SOF_TIMESTAMPING_TX_HARDWARE|SOF_TIMESTAMPING_RX_HARDWARE|SOF_TIMESTAMPING_RAW_HARDWARE|
+                    SOF_TIMESTAMPING_TX_SOFTWARE|SOF_TIMESTAMPING_RX_SOFTWARE|SOF_TIMESTAMPING_SOFTWARE|
+                    SOF_TIMESTAMPING_OPT_ID   /* useful? */;
    if(setsockopt(ICMPSocket.native_handle(), SOL_SOCKET, SO_TIMESTAMPING,
                  &type, sizeof(type)) < 0) {
       HPCT_LOG(error) << "Unable to enable SO_TIMESTAMPING option on ICMPSocket socket";
@@ -164,7 +165,7 @@ bool ICMPModule::prepareSocket()
    }
 
 
-        const char* interface = "lo";
+        const char* interface = "oslomet";
         struct ifreq device;
         struct ifreq hwtstamp;
         struct hwtstamp_config hwconfig, hwconfig_requested;
@@ -181,7 +182,7 @@ bool ICMPModule::prepareSocket()
         hwtstamp.ifr_data = (char*)&hwconfig;
         memset(&hwconfig, 0, sizeof(hwconfig));
         hwconfig.tx_type = HWTSTAMP_TX_ON;
-        hwconfig.rx_filter = HWTSTAMP_FILTER_NONE;
+        hwconfig.rx_filter = HWTSTAMP_FILTER_ALL;
         hwconfig_requested = hwconfig;
         if (ioctl(ICMPSocket.native_handle(), SIOCSHWTSTAMP, &hwtstamp) < 0) {
                 if ((errno == EINVAL || errno == ENOTSUP) &&
@@ -455,7 +456,7 @@ void ICMPModule::handleResponse(const boost::system::error_code& errorCode,
                         socketTimestampingType = socketError->ee_info;
                         socketTimestamping     = (scm_timestamping*)CMSG_DATA(cmsg);
 
-               printf("TS TYPE = %d   is_snd=%d\n",  socketTimestampingType, (socketTimestampingType==SCM_TSTAMP_SND));
+               printf("SOL_IP IP_RECVERR: TS TYPE = %d   is_snd=%d\n",  socketTimestampingType, (socketTimestampingType==SCM_TSTAMP_SND));
                printf("ts0:  %ld.%09ld\n", socketTimestamping->ts[0].tv_sec, socketTimestamping->ts[0].tv_nsec);
                printf("ts1:  %ld.%09ld\n", socketTimestamping->ts[1].tv_sec, socketTimestamping->ts[1].tv_nsec);
                printf("ts2:  %ld.%09ld\n", socketTimestamping->ts[2].tv_sec, socketTimestamping->ts[2].tv_nsec);
@@ -486,10 +487,12 @@ void ICMPModule::handleResponse(const boost::system::error_code& errorCode,
 //         SCM_TSTAMP_SCHED,       /* data entered the packet scheduler */
 //         SCM_TSTAMP_ACK,         /* data acknowledged by peer */
 // };
+/*
                printf("TS TYPE = %d   is_snd=%d\n",  socketTimestampingType, (socketTimestampingType==SCM_TSTAMP_SND));
                printf("ts0:  %ld.%09ld\n", socketTimestamping->ts[0].tv_sec, socketTimestamping->ts[0].tv_nsec);
                printf("ts1:  %ld.%09ld\n", socketTimestamping->ts[1].tv_sec, socketTimestamping->ts[1].tv_nsec);
                printf("ts2:  %ld.%09ld\n", socketTimestamping->ts[2].tv_sec, socketTimestamping->ts[2].tv_nsec);
+*/               
             }
 
             // ====== Ensure to have the reception time =====================
