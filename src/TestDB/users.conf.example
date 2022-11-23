@@ -1,5 +1,5 @@
 # Set the database user passwords here.
-# Hint: "pwgen -s 64" generates secure ones!
+# Hint: "pwgen -s 128" generates secure ones!
 
 ROOT_PASSWORD="!root!"
 MAINTAINER_PASSWORD="!maintainer!"
