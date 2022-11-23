@@ -5,6 +5,17 @@ if [ $# -ne 1 ] ; then
    exit 1
 fi
 
+
+HOSTNAME=`hostname -s`
+if [ "${HOSTNAME}" != "localhost" -o \
+     "${HOSTNAME}" != "dbtest"    -o \
+     "${HOSTNAME}" != "midtstuen" ] ; then
+   echo >&2 "Hostname is not \"localhost\" or \"dbtest\". This script assumes to be run on a TEST SYSTEM only, since it replaces (i.e. erases) existing installations of PostgreSQL, MariaDB/MySQL and MongoDB!"
+   echo >&2 "Stopping here."
+   exit 1
+fi
+
+
 ./0-make-users.conf ~/users.conf
 
 ./4-uninstall-database  $1 --force-removal-without-confirmation 

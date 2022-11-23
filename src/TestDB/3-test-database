@@ -8,9 +8,9 @@ if [ ! -e $2 ] ; then
    echo >&2 "ERROR: Use configuration $2 does not exist!"
 fi
 
-MAINTAINER_PASSWORD="!maintainer!"
-IMPORTER_PASSWORD="!importer!"
-RESEARCHER_PASSWORD="!researcher!"
+MAINTAINER_PASSWORD=
+IMPORTER_PASSWORD=
+RESEARCHER_PASSWORD=
 . $2
 
 
