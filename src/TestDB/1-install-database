@@ -41,7 +41,16 @@ if [ "$1" == "mariadb" ] ; then
    sudo openssl verify -CAfile ${MARIADB_CA_FILE} ${MARIADB_CRT_FILE}
 
    sudo apt install -y mariadb-server mariadb-backup mariadb-client
-   sudo mysql_secure_installation
+
+   # sudo mariadb-secure-installation
+
+   sudo mysqladmin password "${ROOT_PASSWORD}"
+   sudo mariadb --user=root <<EOF
+DELETE FROM mysql.user WHERE User='';
+DROP DATABASE IF EXISTS test;
+DELETE FROM mysql.db WHERE Db='test' OR Db='test\\_%';
+FLUSH PRIVILEGES;
+EOF
 
    # Enable network access:
    sudo sed \

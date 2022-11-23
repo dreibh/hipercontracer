@@ -5,7 +5,6 @@ if [ $# -ne 1 ] ; then
    exit 1
 fi
 
-
 HOSTNAME=`hostname -s`
 if [ "${HOSTNAME}" != "localhost" -o \
      "${HOSTNAME}" != "dbtest"    -o \
@@ -16,9 +15,14 @@ if [ "${HOSTNAME}" != "localhost" -o \
 fi
 
 
-./0-make-users.conf ~/users.conf
+USERS_CONFIG=~/testusers.conf
 
+./0-make-users.conf     ${USERS_CONFIG}
+
+# Uninstall existing DBMS first:
 ./4-uninstall-database  $1 --force-removal-without-confirmation 
-./1-install-database    $1 ~/users.conf
-./2-initialise-database $1 ~/users.conf --force-removal-without-confirmation
-./3-test-database       $1 ~/users.conf
+
+# Install the DBMS and configure it:
+./1-install-database    $1 ${USERS_CONFIG}
+./2-initialise-database $1 ${USERS_CONFIG} --force-removal-without-confirmation
+./3-test-database       $1 ${USERS_CONFIG}
