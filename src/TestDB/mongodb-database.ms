@@ -1,5 +1,5 @@
 // ====== Create database ===================================================
-use pingtraceroutedb
+use ${DATABASE}
 db.dropDatabase()
-use pingtraceroutedb
+use ${DATABASE}
 show dbs

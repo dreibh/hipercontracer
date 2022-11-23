@@ -39,8 +39,8 @@ if [ $# -ne 1 ] ; then
 fi
 
 HOSTNAME=`hostname -s`
-if [ "${HOSTNAME}" != "localhost" -o \
-     "${HOSTNAME}" != "dbtest"    -o \
+if [ "${HOSTNAME}" != "localhost" -a \
+     "${HOSTNAME}" != "dbtest"    -a \
      "${HOSTNAME}" != "midtstuen" ] ; then
    echo >&2 "Hostname is not \"localhost\" or \"dbtest\". This script assumes to be run on a TEST SYSTEM only, since it replaces (i.e. erases) existing installations of PostgreSQL, MariaDB/MySQL and MongoDB!"
    echo >&2 "Stopping here."

@@ -30,12 +30,7 @@
 -- Contact: dreibh@simula.no
 
 
--- ##########################################################################
--- IMPORTANT NOTE:
--- This script requires changing the placeholders below first:
--- * DATABASE
--- ##########################################################################
-
-
-DROP DATABASE IF EXISTS ${DATABASE};
-CREATE DATABASE ${DATABASE};
+SELECT COUNT(*) FROM Ping;
+SELECT * FROM Ping LIMIT 10;
+SELECT COUNT(*) FROM Traceroute;
+SELECT * FROM Traceroute LIMIT 30;

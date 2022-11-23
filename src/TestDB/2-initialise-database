@@ -84,10 +84,9 @@ if [ "$1" == "mysql" -o "$1" == "mariadb" ] ; then
 
    # ====== Create database =================================================
    echo -e "\x1b[33mCreating database ...\x1b[0m"
-   mysql -u root --password="${ROOT_PASSWORD}" <mysql-database.sql
-   cat mysql-users.sql | sed -e \
-      "s%.. INSERT DATABASE HERE ..%${DATABASE}%" \
-      | tee | mysql -u root --password="${ROOT_PASSWORD}" <mysql-database.sql
+   cat mysql-database.sql | sed \
+      -e "s%\${DATABASE}%${DATABASE}%" | tee | \
+      mysql -u root --password="${ROOT_PASSWORD}"
 
    # ====== Create schema ===================================================
    echo -e "\x1b[33mCreating schema ...\x1b[0m"
@@ -95,12 +94,12 @@ if [ "$1" == "mysql" -o "$1" == "mariadb" ] ; then
 
    # ====== Create users and roles ==========================================
    echo -e "\x1b[33mCreating users and roles ...\x1b[0m"
-   cat mysql-users.sql | sed -e \
-      "s%.. INSERT MAINTAINER PASSWORD HERE ..%${MAINTAINER_PASSWORD}%" \
-      "s%.. INSERT MAINTAINER PASSWORD HERE ..%${MAINTAINER_PASSWORD}%" \
-      "s%.. INSERT RESEARCHER PASSWORD HERE ..%${RESEARCHER_PASSWORD}%" \
-      "s%.. INSERT IMPORTER PASSWORD HERE ..%${IMPORTER_PASSWORD}%" \
-      | tee | mysql -u root --password="${ROOT_PASSWORD}" <mysql-users.sql
+   cat mysql-users.sql | sed \
+      -e "s%\${DATABASE}%${DATABASE}%" \
+      -e "s%\${MAINTAINER_PASSWORD}%${MAINTAINER_PASSWORD}%" \
+      -e "s%\${RESEARCHER_PASSWORD}%${RESEARCHER_PASSWORD}%" \
+      -e "s%\${IMPORTER_PASSWORD}%${IMPORTER_PASSWORD}%" | tee | \
+      mysql -u root --password="${ROOT_PASSWORD}" --database="${DATABASE}"
 
 
 # ###### PostgreSQL #########################################################
@@ -111,34 +110,22 @@ elif [ "$1" == "postgresql" ] ; then
 
    # ====== Create database =================================================
    echo -e "\x1b[33mCreating database ...\x1b[0m"
-   sudo -u postgres psql <postgresql-database.sql
+   cat postgresql-database.sql | sed \
+      -e "s%\${DATABASE}%${DATABASE}%" | tee | \
+      sudo -u postgres psql
 
    # ====== Create schema ===================================================
    echo -e "\x1b[33mCreating schema ...\x1b[0m"
-   sudo -u postgres psql pingtraceroutedb <postgresql-schema.sql
+   sudo -u postgres psql -d "${DATABASE}" <postgresql-schema.sql
 
    # ====== Create users and roles ==========================================
    echo -e "\x1b[33mCreating users and roles ...\x1b[0m"
-   sudo -u postgres psql pingtraceroutedb <<EOF
-REASSIGN OWNED BY maintainer TO postgres;
-DROP USER IF EXISTS maintainer;
-CREATE USER maintainer WITH LOGIN ENCRYPTED PASSWORD '${MAINTAINER_PASSWORD}';
-GRANT ALL PRIVILEGES ON DATABASE pingtraceroutedb TO maintainer;
-GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO maintainer;
-
-REASSIGN OWNED BY importer TO postgres;
-DROP USER IF EXISTS importer;
-CREATE USER importer WITH LOGIN ENCRYPTED PASSWORD '${IMPORTER_PASSWORD}';
-GRANT CONNECT ON DATABASE pingtraceroutedb TO importer;
-GRANT INSERT, UPDATE ON TABLE Ping TO importer;
-GRANT INSERT, UPDATE ON TABLE Traceroute TO importer;
-
-REASSIGN OWNED BY researcher TO postgres;
-DROP USER IF EXISTS researcher;
-CREATE USER researcher WITH LOGIN ENCRYPTED PASSWORD '${RESEARCHER_PASSWORD}';
-GRANT CONNECT ON DATABASE pingtraceroutedb TO researcher;
-GRANT SELECT ON ALL TABLES IN SCHEMA public TO researcher;
-EOF
+   cat postgresql-users.sql | sed \
+      -e "s%\${DATABASE}%${DATABASE}%" \
+      -e "s%\${MAINTAINER_PASSWORD}%${MAINTAINER_PASSWORD}%" \
+      -e "s%\${RESEARCHER_PASSWORD}%${RESEARCHER_PASSWORD}%" \
+      -e "s%\${IMPORTER_PASSWORD}%${IMPORTER_PASSWORD}%" | tee | \
+      sudo -u postgres psql -d "${DATABASE}"
 
 
 # ###### MongoDB ############################################################
@@ -149,35 +136,27 @@ elif [ "$1" == "mongodb" ] ; then
 
    # ====== Create database =================================================
    echo -e "\x1b[33mCreating database ...\x1b[0m"
-   mongosh --tls --tlsCAFile /etc/ssl/TestRoot/certs/TestRoot.crt \
-      mongodb://localhost --username root --password "${ROOT_PASSWORD}" --quiet <mongodb-database.ms
+   cat mongodb-database.ms | sed \
+      -e "s%\${DATABASE}%${DATABASE}%" | tee | \
+      mongosh --tls --tlsCAFile /etc/ssl/TestRoot/certs/TestRoot.crt \
+         mongodb://localhost --username root --password "${ROOT_PASSWORD}" --quiet
 
    # ====== Create schema ===================================================
-   echo -e "\x1b[33mCreating schemata ...\x1b[0m"
-   mongosh --tls --tlsCAFile /etc/ssl/TestRoot/certs/TestRoot.crt \
-      mongodb://localhost --username root --password "${ROOT_PASSWORD}" --quiet <mongodb-schema.ms
+   echo -e "\x1b[33mCreating schema ...\x1b[0m"
+   cat mongodb-schema.ms | sed \
+      -e "s%\${DATABASE}%${DATABASE}%" | tee | \
+      mongosh --tls --tlsCAFile /etc/ssl/TestRoot/certs/TestRoot.crt \
+         mongodb://localhost --username root --password "${ROOT_PASSWORD}" --quiet
 
    # ====== Create users and roles ==========================================
    echo -e "\x1b[33mCreating user and roles ...\x1b[0m"
-   mongosh --tls --tlsCAFile /etc/ssl/TestRoot/certs/TestRoot.crt \
-      mongodb://localhost --username root --password "${ROOT_PASSWORD}" --quiet <<EOF
-use admin
-db.dropUser("maintainer")
-db.createUser({ user: "maintainer",
-                pwd: "${MAINTAINER_PASSWORD}",
-                roles: [
-                   "userAdminAnyDatabase",
-                   "dbAdminAnyDatabase",
-                   "readWriteAnyDatabase",
-                   "clusterAdmin"
-                ] })
-use pingtraceroutedb
-db.dropUser("importer")
-db.dropUser("researcher")
-db.createUser({ user: "importer",   pwd: "${IMPORTER_PASSWORD}",   roles: [ "readWrite" ] })
-db.createUser({ user: "researcher", pwd: "${RESEARCHER_PASSWORD}", roles: [ "dbAdmin", "readWrite" ] })
-quit()
-EOF
+   cat mongodb-users.ms | sed \
+      -e "s%\${DATABASE}%${DATABASE}%" \
+      -e "s%\${MAINTAINER_PASSWORD}%${MAINTAINER_PASSWORD}%" \
+      -e "s%\${RESEARCHER_PASSWORD}%${RESEARCHER_PASSWORD}%" \
+      -e "s%\${IMPORTER_PASSWORD}%${IMPORTER_PASSWORD}%" | tee | \
+      mongosh --tls --tlsCAFile /etc/ssl/TestRoot/certs/TestRoot.crt \
+         mongodb://localhost --username root --password "${ROOT_PASSWORD}" --quiet
    echo ""
 
 

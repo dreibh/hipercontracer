@@ -41,8 +41,8 @@
 
 
 -- ###### Ping ##############################################################
-DROP TABLE IF EXISTS PingTracerouteDB.Ping;
-CREATE TABLE PingTracerouteDB.Ping (
+DROP TABLE IF EXISTS Ping;
+CREATE TABLE Ping (
    TimeStamp DATETIME(6) NOT NULL,                   -- Time stamp (always UTC!)
    FromIP    INET6       NOT NULL,                   -- Source IP address
    ToIP      INET6       NOT NULL,                   -- Destination IP address
@@ -54,12 +54,12 @@ CREATE TABLE PingTracerouteDB.Ping (
    PRIMARY KEY (TimeStamp, FromIP, ToIP, TC)
 );
 
-CREATE INDEX PingRelationIndex ON PingTracerouteDB.Ping (FromIP ASC, ToIP ASC, TimeStamp ASC);
+CREATE INDEX PingRelationIndex ON Ping (FromIP ASC, ToIP ASC, TimeStamp ASC);
 
 
 -- ###### Traceroute ########################################################
-DROP TABLE IF EXISTS PingTracerouteDB.Traceroute;
-CREATE TABLE PingTracerouteDB.Traceroute (
+DROP TABLE IF EXISTS Traceroute;
+CREATE TABLE Traceroute (
    TimeStamp DATETIME(6) NOT NULL,                   -- Time stamp (always UTC!)
    FromIP    INET6       NOT NULL,                   -- Source IP address
    ToIP      INET6       NOT NULL,                   -- Destination IP address
@@ -76,4 +76,4 @@ CREATE TABLE PingTracerouteDB.Traceroute (
    PRIMARY KEY (TimeStamp, FromIP, ToIP, TC, Round, HopNumber)
 );
 
-CREATE INDEX TracerouteRelationIndex ON PingTracerouteDB.Ping (FromIP ASC, ToIP ASC, TimeStamp ASC);
+CREATE INDEX TracerouteRelationIndex ON Ping (FromIP ASC, ToIP ASC, TimeStamp ASC);
