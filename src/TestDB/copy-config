@@ -1,0 +1,10 @@
+#!/bin/bash
+
+# Copy configuration from dbtest VM:
+DBTEST=10.193.4.169
+
+rsync nornetpp@${DBTEST}:testdb-* ${HOME}/
+rsync nornetpp@${DBTEST}:/etc/ssl/TestRoot/certs/TestRoot.crt ${HOME}/
+sed -e "s/localhost/${DBTEST}/g" \
+    -e "s%\(dbcafile[ \t]*\)=\(.*\)$%\1= ${HOME}/TestRoot.crt%g" \
+    -i ${HOME}/testdb-*.conf
