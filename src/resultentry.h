@@ -82,9 +82,23 @@ inline bool statusIsUnreachable(const HopStatus hopStatus)
 }
 
 
+enum TimeSource
+{
+   TS_Unknown         = 0,
+   TS_SysClock        = 1,
+   TS_TIMESTAMP       = 2,
+   TS_TIMESTAMPNS     = 3,
+   TS_SIOCGSTAMP      = 4,
+   TS_SIOCGSTAMPNS    = 5,
+   TS_TIMESTAMPING_SW = 8,
+   TS_TIMESTAMPING_HW = 9
+};
+
+
 class ResultEntry {
    public:
-   ResultEntry(const unsigned short                         round,
+   ResultEntry(const uint32_t                               timeStampSeqID,
+               const unsigned short                         round,
                const unsigned short                         seqNumber,
                const unsigned int                           hop,
                const unsigned int                           packetSize,
@@ -94,6 +108,7 @@ class ResultEntry {
                const HopStatus                              status);
    ~ResultEntry();
 
+   inline uint32_t     timeStampSeqID()                       const { return(TimeStampSeqID);         }
    inline unsigned int round()                                const { return(Round);                  }
    inline unsigned int seqNumber()                            const { return(SeqNumber);              }
    inline unsigned int hop()                                  const { return(Hop);                    }
@@ -102,14 +117,33 @@ class ResultEntry {
    const boost::asio::ip::address& destinationAddress()       const { return(Destination.address());  }
    inline HopStatus status()                                  const { return(Status);                 }
    inline uint16_t checksum()                                 const { return(Checksum);               }
-   inline std::chrono::system_clock::time_point sendTime()    const { return(SendTime);               }
-   inline std::chrono::system_clock::time_point receiveTime() const { return(ReceiveTime);            }
-   inline std::chrono::system_clock::duration   rtt()         const { return(ReceiveTime - SendTime); }
 
-   inline void setDestination(const DestinationInfo& destination)                      { Destination = destination;       }
-   inline void setDestinationAddress(const boost::asio::ip::address& address)          { Destination.setAddress(address); }
-   inline void setStatus(const HopStatus status)                                       { Status      = status;            }
+   inline void setDestination(const DestinationInfo& destination)             { Destination = destination;       }
+   inline void setDestinationAddress(const boost::asio::ip::address& address) { Destination.setAddress(address); }
+   inline void setStatus(const HopStatus status)                              { Status      = status;            }
    inline void setReceiveTime(const std::chrono::system_clock::time_point receiveTime) { ReceiveTime = receiveTime;       }
+
+//    inline std::chrono::system_clock::time_point sendTime()    const { return(SendTime);               }
+//    inline std::chrono::system_clock::time_point receiveTime() const { return(ReceiveTime);            }
+//    inline std::chrono::system_clock::duration   rtt()         const { return(ReceiveTime - SendTime); }
+
+   inline TimeSource softwareTXTimeSource()                                         const { return SoftwareTXTimeSource;     }
+   inline std::chrono::high_resolution_clock::time_point softwareTXTime()           const { return SoftwareTXTime;           }
+   inline std::chrono::high_resolution_clock::time_point softwareTXSchedulingTime() const { return SoftwareTXSchedulingTime; }
+   inline TimeSource softwareRXTimeSource()                                         const { return SoftwareRXTimeSource;     }
+   inline std::chrono::high_resolution_clock::time_point softwareRXTime()           const { return SoftwareRXTime;           }
+
+   inline TimeSource hardwareTXTimeSource()                                         const { return HardwareTXTimeSource;     }
+   inline std::chrono::high_resolution_clock::time_point hardwareTXTime()           const { return HardwareTXTime;           }
+   inline std::chrono::high_resolution_clock::time_point hardwareTXSchedulingTime() const { return HardwareTXSchedulingTime; }
+   inline TimeSource hardwareRXTimeSource()                                         const { return HardwareRXTimeSource;     }
+   inline std::chrono::high_resolution_clock::time_point hardwareRXTime()           const { return HardwareRXTime;           }
+
+   void setSendTime(const TimeSource                                      timeSource,
+                    const std::chrono::high_resolution_clock::time_point& sendTime);
+   void setReceiveTime(const TimeSource                                      timeSource,
+                       const std::chrono::high_resolution_clock::time_point& receiveTime);
+
 
    inline friend bool operator<(const ResultEntry& resultEntry1, const ResultEntry& resultEntry2) {
       return(resultEntry1.SeqNumber < resultEntry2.SeqNumber);
@@ -117,16 +151,29 @@ class ResultEntry {
    friend std::ostream& operator<<(std::ostream& os, const ResultEntry& resultEntry);
 
    private:
-   const unsigned int                          Round;
-   const unsigned short                        SeqNumber;
-   const unsigned int                          Hop;
-   const unsigned int                          PacketSize;
-   const uint16_t                              Checksum;
-   const std::chrono::system_clock::time_point SendTime;
+   const uint32_t                                 TimeStampSeqID;   /* Used with SOF_TIMESTAMPING_OPT_ID */
+   const unsigned int                             Round;
+   const unsigned short                           SeqNumber;
+   const unsigned int                             Hop;
+   const unsigned int                             PacketSize;
+   const uint16_t                                 Checksum;
+   const std::chrono::system_clock::time_point    SendTime;
 
-   DestinationInfo                             Destination;
-   HopStatus                                   Status;
-   std::chrono::system_clock::time_point       ReceiveTime;
+   DestinationInfo                                Destination;
+   HopStatus                                      Status;
+   std::chrono::system_clock::time_point          ReceiveTime;
+
+   TimeSource                                     SoftwareTXTimeSource;
+   std::chrono::high_resolution_clock::time_point SoftwareTXTime;
+   std::chrono::high_resolution_clock::time_point SoftwareTXSchedulingTime;
+   TimeSource                                     SoftwareRXTimeSource;
+   std::chrono::high_resolution_clock::time_point SoftwareRXTime;
+
+   TimeSource                                     HardwareTXTimeSource;
+   std::chrono::high_resolution_clock::time_point HardwareTXTime;
+   std::chrono::high_resolution_clock::time_point HardwareTXSchedulingTime;
+   TimeSource                                     HardwareRXTimeSource;
+   std::chrono::high_resolution_clock::time_point HardwareRXTime;
 };
 
 #endif

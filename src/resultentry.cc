@@ -35,7 +35,8 @@
 
 
 // ###### Constructor #######################################################
-ResultEntry::ResultEntry(const unsigned short                         round,
+ResultEntry::ResultEntry(const uint32_t                               timeStampSeqID,
+                         const unsigned short                         round,
                          const unsigned short                         seqNumber,
                          const unsigned int                           hop,
                          const unsigned int                           packetSize,
@@ -43,7 +44,8 @@ ResultEntry::ResultEntry(const unsigned short                         round,
                          const std::chrono::system_clock::time_point& sendTime,
                          const DestinationInfo&                       destination,
                          const HopStatus                              status)
-   : Round(round),
+   : TimeStampSeqID(timeStampSeqID),
+     Round(round),
      SeqNumber(seqNumber),
      Hop(hop),
      PacketSize(packetSize),
@@ -64,7 +66,8 @@ ResultEntry::~ResultEntry()
 // ###### Output operator ###################################################
 std::ostream& operator<<(std::ostream& os, const ResultEntry& resultEntry)
 {
-   os << boost::format("R%d")             % resultEntry.Round
+   os << boost::format("#%08xu")          % resultEntry.TimeStampSeqID
+      << boost::format("R%d")             % resultEntry.Round
       << "\t" << boost::format("#%05d")   % resultEntry.SeqNumber
       << "\t" << boost::format("%2d")     % resultEntry.Hop
       << "\t" << boost::format("%9.3fms") % (std::chrono::duration_cast<std::chrono::microseconds>(resultEntry.rtt()).count() / 1000.0)
