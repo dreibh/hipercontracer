@@ -8,18 +8,6 @@
 
 class ICMPHeader;
 
-enum TimeSource
-{
-   TS_Unknown         = 0,
-   TS_SysClock        = 1,
-   TS_TIMESTAMP       = 2,
-   TS_TIMESTAMPNS     = 3,
-   TS_SIOCGSTAMP      = 4,
-   TS_SIOCGSTAMPNS    = 5,
-   TS_TIMESTAMPING_SW = 8,
-   TS_TIMESTAMPING_HW = 9
-};
-
 class IOModuleBase
 {
    public:

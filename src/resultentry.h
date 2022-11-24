@@ -95,6 +95,15 @@ enum TimeSource
 };
 
 
+enum TimeStampType
+{
+   TST_Unknown      = 0,
+   TST_Application  = 1,
+   TST_Scheduler    = 2,
+   TST_Transmission = 3
+};
+
+
 class ResultEntry {
    public:
    ResultEntry(const uint32_t                               timeStampSeqID,
@@ -123,9 +132,9 @@ class ResultEntry {
    inline void setStatus(const HopStatus status)                              { Status      = status;            }
    inline void setReceiveTime(const std::chrono::system_clock::time_point receiveTime) { ReceiveTime = receiveTime;       }
 
-//    inline std::chrono::system_clock::time_point sendTime()    const { return(SendTime);               }
-//    inline std::chrono::system_clock::time_point receiveTime() const { return(ReceiveTime);            }
-//    inline std::chrono::system_clock::duration   rtt()         const { return(ReceiveTime - SendTime); }
+   inline std::chrono::system_clock::time_point sendTime()    const { return(SendTime);               }
+   inline std::chrono::system_clock::time_point receiveTime() const { return(ReceiveTime);            }
+   inline std::chrono::system_clock::duration   rtt()         const { return(ReceiveTime - SendTime); }
 
    inline TimeSource softwareTXTimeSource()                                         const { return SoftwareTXTimeSource;     }
    inline std::chrono::high_resolution_clock::time_point softwareTXTime()           const { return SoftwareTXTime;           }
@@ -140,8 +149,10 @@ class ResultEntry {
    inline std::chrono::high_resolution_clock::time_point hardwareRXTime()           const { return HardwareRXTime;           }
 
    void setSendTime(const TimeSource                                      timeSource,
+                    const TimeStampType                                   timeStampType,
                     const std::chrono::high_resolution_clock::time_point& sendTime);
    void setReceiveTime(const TimeSource                                      timeSource,
+                       const TimeStampType                                   timeStampType,
                        const std::chrono::high_resolution_clock::time_point& receiveTime);
 
 

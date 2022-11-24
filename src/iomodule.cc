@@ -520,6 +520,40 @@ void ICMPModule::handleResponse(const boost::system::error_code& errorCode,
                printf("ts1:  %ld.%09ld\n", socketTimestamping->ts[1].tv_sec, socketTimestamping->ts[1].tv_nsec);
                printf("ts2:  %ld.%09ld\n", socketTimestamping->ts[2].tv_sec, socketTimestamping->ts[2].tv_nsec);
                assert(readFromErrorQueue);
+
+
+               std::map<unsigned short, ResultEntry*>::iterator found = ResultsMap.end();
+               for(std::map<unsigned short, ResultEntry*>::iterator iterator = ResultsMap.begin();
+                   iterator != ResultsMap.end(); iterator++) {
+                  ResultEntry* resultsEntry = iterator->second;
+                  if(resultsEntry->timeStampSeqID() == socketTXTimestamping->ee_data) {
+                     puts("--- FOUND ENTRY ---");
+                     TimeStampType timeStampType = TimeStampType::TST_Unknown;
+                     switch(socketTXTimestamping->ee_info) {
+                        case SCM_TSTAMP_SCHED:
+                           timeStampType = TimeStampType::TST_Scheduler;
+                         break;
+                        case SCM_TSTAMP_SND:
+                           timeStampType = TimeStampType::TST_Transmission;
+                         break;
+                        default:
+                         break;
+                     }
+                     TimeSource timeSource = TimeSource::TS_Unknown;
+                     if(socketTimestamping->ts[2].tv_sec != 0) {
+                        // Hardware timestamp (raw)
+                        timeSource = TimeSource::TS_TIMESTAMPING_HW;
+                     }
+                     else if(socketTimestamping->ts[0].tv_sec != 0) {
+                        // Software timestamp (system time from kernel)
+                        timeSource = TimeSource::TS_TIMESTAMPING_SW;
+                     }
+                     break;
+                  }
+               }
+
+               // This is just the timestamp -> nothing more to do here!
+               continue;
             }
 
             if(socketTimestamping != nullptr) {
