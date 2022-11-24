@@ -51,6 +51,7 @@ class IOModuleBase
    std::function<void (const ResultEntry*)> NewResultCallback;
    const uint32_t                           MagicNumber;
    uint16_t                                 Identifier;
+   uint32_t                                 TimeStampSeqID;
 };
 
 

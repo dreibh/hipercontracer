@@ -83,7 +83,8 @@ IOModuleBase::IOModuleBase(const std::string&                       name,
      NewResultCallback(newResultCallback),
      MagicNumber( ((std::rand() & 0xffff) << 16) | (std::rand() & 0xffff) )
 {
-   Identifier = 0;
+   Identifier     = 0;
+   TimeStampSeqID = 0;
 }
 
 
@@ -145,19 +146,32 @@ bool ICMPModule::prepareSocket()
       return false;
    }
 
-//    // ====== Enable SO_TIMESTAMP option =====================================
-//    if(setsockopt(ICMPSocket.native_handle(), SOL_SOCKET, SO_TIMESTAMPNS,
-//                  &on, sizeof(on)) < 0) {
-//       HPCT_LOG(error) << "Unable to enable SO_TIMESTAMPNS option on ICMPSocket socket";
-//       return false;
-//    }
+   // ====== Enable SO_TIMESTAMPNS or SO_TIMESTAMP option ===================
+   if(setsockopt(ICMPSocket.native_handle(), SOL_SOCKET, SO_TIMESTAMPNS,
+                 &on, sizeof(on)) < 0) {
+      if(setsockopt(ICMPSocket.native_handle(), SOL_SOCKET, SO_TIMESTAMP,
+                    &on, sizeof(on)) < 0) {
+         HPCT_LOG(error) << "Unable to enable SO_TIMESTAMPNS option on ICMPSocket socket";
+         return false;
+      }
+   }
 
    // ====== Enable SO_TIMESTAMPING option ==================================
-   // Documentation: <linux-src>/Documentation/networking/timestamping.txt
-//    SOF_TIMESTAMPING_TX_HARDWARE|SOF_TIMESTAMPING_RX_HARDWARE|
-   const int type = SOF_TIMESTAMPING_TX_HARDWARE|SOF_TIMESTAMPING_RX_HARDWARE|SOF_TIMESTAMPING_RAW_HARDWARE|
-                    SOF_TIMESTAMPING_TX_SOFTWARE|SOF_TIMESTAMPING_RX_SOFTWARE|SOF_TIMESTAMPING_SOFTWARE|
-                    SOF_TIMESTAMPING_OPT_ID   /* useful? */;
+   // Documentation: <linux-src>/Documentation/networking/timestamping.rst
+   const int type = SOF_TIMESTAMPING_TX_HARDWARE|    /* Get hardware TX timestamp                        */
+                    SOF_TIMESTAMPING_RX_HARDWARE|    /* Get hardware RX timestamp                        */
+                    SOF_TIMESTAMPING_RAW_HARDWARE|   /* Hardware timestamps as set by the hardware       */
+
+                    SOF_TIMESTAMPING_TX_SOFTWARE|    /* Get hardware TX timestamp                        */
+                    SOF_TIMESTAMPING_RX_SOFTWARE|    /* Get hardware RX timestamp                        */
+                    SOF_TIMESTAMPING_SOFTWARE|       /* Get software timestamp as well                   */
+
+                    SOF_TIMESTAMPING_OPT_ID|         /* Attach ID to packet (TimeStampSeqID)             */
+                    SOF_TIMESTAMPING_OPT_TSONLY|     /* Get only the timestamp, not the full packet sent */
+                    SOF_TIMESTAMPING_OPT_TX_SWHW|    /* Get both, software and hardware time stamp       */
+
+                    SOF_TIMESTAMPING_TX_SCHED        /* Get TX scheduling timestamp as well              */
+                    ;
    if(setsockopt(ICMPSocket.native_handle(), SOL_SOCKET, SO_TIMESTAMPING,
                  &type, sizeof(type)) < 0) {
       HPCT_LOG(error) << "Unable to enable SO_TIMESTAMPING option on ICMPSocket socket";
@@ -337,7 +351,8 @@ ResultEntry* ICMPModule::sendRequest(const DestinationInfo& destination,
       expectNextReply();   // Ensure to receive response!
 
       ResultEntry* resultEntry =
-         new ResultEntry(round, seqNumber, ttl, ActualPacketSize,
+         new ResultEntry(TimeStampSeqID++,
+                         round, seqNumber, ttl, ActualPacketSize,
                          (uint16_t)targetChecksum, sendTime,
                          destination, Unknown);
       assert(resultEntry != nullptr);
@@ -375,6 +390,7 @@ void ICMPModule::handleResponse(const boost::system::error_code& errorCode,
             msghdr                                msg;
             int                                   socketTimestampingType = -1;
             scm_timestamping*                     socketTimestamping     = nullptr;
+            sock_extended_err*                    socketTXTimestamping   = nullptr;
             sock_extended_err*                    socketError            = nullptr;
             TimeSource                            receiveTimeSource      = TimeSource::TS_Unknown;
             std::chrono::system_clock::time_point receiveTime;
@@ -437,8 +453,9 @@ void ICMPModule::handleResponse(const boost::system::error_code& errorCode,
                      if(socketError->ee_origin ==  SO_EE_ORIGIN_TIMESTAMPING) {
                         puts("------ SO_EE_ORIGIN_TIMESTAMPING-1");
 //                         assert(socketTimestamping == nullptr); // ????
+
                         socketTimestampingType = socketError->ee_info;
-                        socketTimestamping     = (scm_timestamping*)CMSG_DATA(cmsg);
+                        socketTimestamping     = (scm_timestamping*)CMSG_DATA(cmsg); //FIXME!
                      }
                      else if( (socketError->ee_origin != SO_EE_ORIGIN_ICMP6) &&
                               (socketError->ee_origin != SO_EE_ORIGIN_LOCAL) ) {
@@ -450,17 +467,29 @@ void ICMPModule::handleResponse(const boost::system::error_code& errorCode,
                else if(cmsg->cmsg_level == SOL_IP) {
                   if(cmsg->cmsg_type == IP_RECVERR) {
                      socketError = (sock_extended_err*)CMSG_DATA(cmsg);
-                     if(socketError->ee_origin ==  SO_EE_ORIGIN_TIMESTAMPING) {
+                     if( (socketError->ee_origin == SO_EE_ORIGIN_TIMESTAMPING) &&
+                         (socketError->ee_errno == ENOMSG) ) {
+
                         puts("------ SO_EE_ORIGIN_TIMESTAMPING-2");
-//                         assert(socketTimestamping == nullptr); // ????
-                        socketTimestampingType = socketError->ee_info;
-                        socketTimestamping     = (scm_timestamping*)CMSG_DATA(cmsg);
+                        socketTXTimestamping = socketError;
 
-               printf("SOL_IP IP_RECVERR: TS TYPE = %d   is_snd=%d\n",  socketTimestampingType, (socketTimestampingType==SCM_TSTAMP_SND));
-               printf("ts0:  %ld.%09ld\n", socketTimestamping->ts[0].tv_sec, socketTimestamping->ts[0].tv_nsec);
-               printf("ts1:  %ld.%09ld\n", socketTimestamping->ts[1].tv_sec, socketTimestamping->ts[1].tv_nsec);
-               printf("ts2:  %ld.%09ld\n", socketTimestamping->ts[2].tv_sec, socketTimestamping->ts[2].tv_nsec);
 
+// //                         assert(socketTimestamping == nullptr); // ????
+//                         socketTimestampingType = socketError->ee_info;
+// //                         socketTimestamping     = (scm_timestamping*)CMSG_DATA(cmsg);
+//
+//
+//                         printf("socketError->ee_errno=%d  socketError->ee_data=%d   enomsg=%d  length=%d\n", socketError->ee_errno, socketError->ee_data, ENOMSG, length);
+//
+//                         socketTimestamping = (scm_timestamping*)&MessageBuffer; // + (long)length - (long)sizeof(scm_timestamping);
+//
+//                printf("SOL_IP IP_RECVERR: TS TYPE = %d   is_snd=%d\n",  socketTimestampingType, (socketTimestampingType==SCM_TSTAMP_SND));
+//                printf("ts0:  %ld.%09ld\n", socketTimestamping->ts[0].tv_sec, socketTimestamping->ts[0].tv_nsec);
+//                printf("ts1:  %ld.%09ld\n", socketTimestamping->ts[1].tv_sec, socketTimestamping->ts[1].tv_nsec);
+//                printf("ts2:  %ld.%09ld\n", socketTimestamping->ts[2].tv_sec, socketTimestamping->ts[2].tv_nsec);
+//
+//                abort();
+//
                      }
                      else if( (socketError->ee_origin != SO_EE_ORIGIN_ICMP) &&
                               (socketError->ee_origin != SO_EE_ORIGIN_LOCAL) ) {
@@ -468,31 +497,36 @@ void ICMPModule::handleResponse(const boost::system::error_code& errorCode,
                      }
                      else puts("IP_RECVERR!");
                   }
+// 			case IP_PKTINFO: {
+// 				struct in_pktinfo *pktinfo =
+// 					(struct in_pktinfo *)CMSG_DATA(cmsg);
+// 				printf("IP_PKTINFO interface index %u",
+// 					pktinfo->ipi_ifindex);
+// 				break;
+// 			}
+               }
+               else if(cmsg->cmsg_level == SOL_PACKET) {
+// 			   (cm->cmsg_level == SOL_PACKET &&
+// 			    cm->cmsg_type == PACKET_TX_TIMESTAMP)) {
+                abort();
                }
                else abort();  /// ??????
             }
 
-            if(socketTimestamping != nullptr) {
-
-//         struct timespec systime;
-//         struct timespec hwtimetrans;
-//         struct timespec hwtimeraw;
-
-/* The type of scm_timestamping, passed in sock_extended_err ee_info.
- * This defines the type of ts[0]. For SCM_TSTAMP_SND only, if ts[0]
- * is zero, then this is a hardware timestamp and recorded in ts[2].
- */
-// enum {
-//         SCM_TSTAMP_SND,         /* driver passed skb to NIC, or HW */
-//         SCM_TSTAMP_SCHED,       /* data entered the packet scheduler */
-//         SCM_TSTAMP_ACK,         /* data acknowledged by peer */
-// };
-/*
-               printf("TS TYPE = %d   is_snd=%d\n",  socketTimestampingType, (socketTimestampingType==SCM_TSTAMP_SND));
+            if( (socketError != nullptr) &&
+                (socketTXTimestamping != nullptr) ) {
+               printf("TX TIMESTAMP OF TYPE %d FOR PKT %u\n", socketTXTimestamping->ee_info, socketTXTimestamping->ee_data);
                printf("ts0:  %ld.%09ld\n", socketTimestamping->ts[0].tv_sec, socketTimestamping->ts[0].tv_nsec);
                printf("ts1:  %ld.%09ld\n", socketTimestamping->ts[1].tv_sec, socketTimestamping->ts[1].tv_nsec);
                printf("ts2:  %ld.%09ld\n", socketTimestamping->ts[2].tv_sec, socketTimestamping->ts[2].tv_nsec);
-*/               
+               assert(readFromErrorQueue);
+            }
+
+            if(socketTimestamping != nullptr) {
+               puts("RX TIMESTAMP:");
+               printf("ts0:  %ld.%09ld\n", socketTimestamping->ts[0].tv_sec, socketTimestamping->ts[0].tv_nsec);
+               printf("ts1:  %ld.%09ld\n", socketTimestamping->ts[1].tv_sec, socketTimestamping->ts[1].tv_nsec);
+               printf("ts2:  %ld.%09ld\n", socketTimestamping->ts[2].tv_sec, socketTimestamping->ts[2].tv_nsec);
             }
 
             // ====== Ensure to have the reception time =====================
@@ -1073,7 +1107,8 @@ ResultEntry* UDPModule::sendRequest(const DestinationInfo& destination,
       expectNextReply();   // Ensure to receive response!
 
       ResultEntry* resultEntry =
-         new ResultEntry(round, seqNumber, ttl, ActualPacketSize,
+         new ResultEntry(TimeStampSeqID++,
+                         round, seqNumber, ttl, ActualPacketSize,
                          (uint16_t)targetChecksum, sendTime,
                          destination, Unknown);
       assert(resultEntry != nullptr);
