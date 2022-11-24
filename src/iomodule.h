@@ -7,6 +7,8 @@
 #include <boost/asio.hpp>
 
 class ICMPHeader;
+struct scm_timestamping;
+struct sock_extended_err;
 
 class IOModuleBase
 {
@@ -67,6 +69,8 @@ class ICMPModule : public IOModuleBase
    void expectNextReply();
    void handleResponse(const boost::system::error_code& errorCode,
                        const bool                       readFromErrorQueue);
+   void updateSendTimeInResultEntry(const sock_extended_err* socketError,
+                                    const scm_timestamping*  socketTimestamping);
    void recordResult(const std::chrono::system_clock::time_point& receiveTime,
                      const ICMPHeader&                            icmpHeader,
                      const unsigned short                         seqNumber);

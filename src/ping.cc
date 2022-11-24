@@ -152,7 +152,7 @@ void Ping::processResults()
 
       // ====== Time-out entries ============================================
       if( (resultEntry->status() == Unknown) &&
-          (std::chrono::duration_cast<std::chrono::milliseconds>(now - resultEntry->sendTime()).count() >= Expiration) ) {
+          (std::chrono::duration_cast<std::chrono::milliseconds>(now - resultEntry->sendTime(RXTimeStampType::RXTST_Application)).count() >= Expiration) ) {
          resultEntry->setStatus(Timeout);
          resultEntry->setReceiveTime(resultEntry->sendTime() + std::chrono::milliseconds(Expiration));
       }

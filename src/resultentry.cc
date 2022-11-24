@@ -35,25 +35,25 @@
 
 
 // ###### Constructor #######################################################
-ResultEntry::ResultEntry(const uint32_t                               timeStampSeqID,
-                         const unsigned short                         round,
-                         const unsigned short                         seqNumber,
-                         const unsigned int                           hop,
-                         const unsigned int                           packetSize,
-                         const uint16_t                               checksum,
-                         const std::chrono::system_clock::time_point& sendTime,
-                         const DestinationInfo&                       destination,
-                         const HopStatus                              status)
+ResultEntry::ResultEntry(const uint32_t                                        timeStampSeqID,
+                         const unsigned short                                  round,
+                         const unsigned short                                  seqNumber,
+                         const unsigned int                                    hop,
+                         const unsigned int                                    packetSize,
+                         const uint16_t                                        checksum,
+                         const std::chrono::high_resolution_clock::time_point& sendTime,
+                         const DestinationInfo&                                destination,
+                         const HopStatus                                       status)
    : TimeStampSeqID(timeStampSeqID),
      Round(round),
      SeqNumber(seqNumber),
      Hop(hop),
      PacketSize(packetSize),
      Checksum(checksum),
-     SendTime(sendTime),
      Destination(destination),
      Status(status)
 {
+   setSendTime(TXTimeStampType::TXTST_Application, TimeSource::TS_SysClock, sendTime);
 }
 
 
@@ -70,7 +70,9 @@ std::ostream& operator<<(std::ostream& os, const ResultEntry& resultEntry)
       << boost::format("R%d")             % resultEntry.Round
       << "\t" << boost::format("#%05d")   % resultEntry.SeqNumber
       << "\t" << boost::format("%2d")     % resultEntry.Hop
-      << "\t" << boost::format("%9.3fms") % (std::chrono::duration_cast<std::chrono::microseconds>(resultEntry.rtt()).count() / 1000.0)
+      << "\tA:" << boost::format("%9.6fms") % (std::chrono::duration_cast<std::chrono::nanoseconds>(resultEntry.rtt(RXTimeStampType::RXTST_Application)).count() / 1000000.0)
+      << "\tS:" << boost::format("%9.6fms") % (std::chrono::duration_cast<std::chrono::nanoseconds>(resultEntry.rtt(RXTimeStampType::RXTST_ReceptionSW)).count() / 1000000.0)
+      << "\tH:" << boost::format("%9.6fms") % (std::chrono::duration_cast<std::chrono::nanoseconds>(resultEntry.rtt(RXTimeStampType::RXTST_ReceptionHW)).count() / 1000000.0)
       << "\t" << boost::format("%3d")     % resultEntry.Status
       << "\t" << boost::format("%04x")    % resultEntry.Checksum
       << "\t" << boost::format("%d")      % resultEntry.PacketSize

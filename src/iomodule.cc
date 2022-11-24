@@ -369,6 +369,67 @@ ResultEntry* ICMPModule::sendRequest(const DestinationInfo& destination,
 }
 
 
+// ###### Update ResultEntry with send timestamp information ################
+void ICMPModule::updateSendTimeInResultEntry(const sock_extended_err* socketError,
+                                             const scm_timestamping*  socketTimestamp)
+{
+   for(std::map<unsigned short, ResultEntry*>::iterator iterator = ResultsMap.begin();
+       iterator != ResultsMap.end(); iterator++) {
+      ResultEntry* resultsEntry = iterator->second;
+      if(resultsEntry->timeStampSeqID() == socketError->ee_data) {
+         puts("--- FOUND ENTRY ---");
+         int                                   txTimeStampType = -1;
+         int                                   txTimeSource    = -1;
+         std::chrono::system_clock::time_point txTimePoint;
+         if(socketTimestamp->ts[2].tv_sec != 0) {
+            // Hardware timestamp (raw):
+            txTimeSource = TimeSource::TS_TIMESTAMPING_HW;
+            txTimePoint  = std::chrono::system_clock::time_point(
+                              std::chrono::seconds(socketTimestamp->ts[2].tv_sec) +
+                              std::chrono::nanoseconds(socketTimestamp->ts[2].tv_nsec));
+            switch(socketError->ee_info) {
+               case SCM_TSTAMP_SND:
+                  txTimeStampType = TXTimeStampType::TXTST_TransmissionHW;
+                break;
+               default:
+                  HPCT_LOG(warning) << "Got unexpected HW timestamp with socketError->ee_info="
+                                    << socketError->ee_info;
+                break;
+            }
+         }
+         else if(socketTimestamp->ts[0].tv_sec != 0) {
+            // Software timestamp (system time from kernel):
+            txTimeSource = TimeSource::TS_TIMESTAMPING_SW;
+            txTimePoint  = std::chrono::system_clock::time_point(
+                              std::chrono::seconds(socketTimestamp->ts[0].tv_sec) +
+                              std::chrono::nanoseconds(socketTimestamp->ts[0].tv_nsec));
+            switch(socketError->ee_info) {
+               case SCM_TSTAMP_SCHED:
+                  txTimeStampType = TXTimeStampType::TXTST_Scheduler;
+                break;
+               case SCM_TSTAMP_SND:
+                  txTimeStampType = TXTimeStampType::TXTST_TransmissionSW;
+                break;
+               default:
+                  HPCT_LOG(warning) << "Got unexpected SW timestamp with socketError->ee_info="
+                                    << socketError->ee_info;
+                break;
+            }
+         }
+         if( (txTimeStampType >= 0) && (txTimeSource >= 0) ) {
+            resultsEntry->setSendTime((TXTimeStampType)txTimeStampType,
+                                      (TimeSource)txTimeSource, txTimePoint);
+         }
+         else {
+            HPCT_LOG(warning) << "Got unexpected timestamping information";
+         }
+         return;   // Done!
+      }
+   }
+   HPCT_LOG(warning) << "Not found: timeStampSeqID=" << socketError->ee_data;
+}
+
+
 // ###### Handle incoming ICMP message ######################################
 void ICMPModule::handleResponse(const boost::system::error_code& errorCode,
                                 const bool                       readFromErrorQueue)
@@ -388,11 +449,11 @@ void ICMPModule::handleResponse(const boost::system::error_code& errorCode,
             // ====== Read message ==========================================
             iovec                                 iov;
             msghdr                                msg;
-            int                                   socketTimestampingType = -1;
-            scm_timestamping*                     socketTimestamping     = nullptr;
+            int                                   socketTimestampType = -1;  // FIXME!
+            scm_timestamping*                     socketTimestamp     = nullptr;
             sock_extended_err*                    socketTXTimestamping   = nullptr;
             sock_extended_err*                    socketError            = nullptr;
-            TimeSource                            receiveTimeSource      = TimeSource::TS_Unknown;
+            TimeSource                            receiveTimeSource      = TimeSource::TS_Unknown; // FIXME!
             std::chrono::system_clock::time_point receiveTime;
             sockaddr_storage                      replyAddress;
 
@@ -420,11 +481,11 @@ void ICMPModule::handleResponse(const boost::system::error_code& errorCode,
                if(cmsg->cmsg_level == SOL_SOCKET) {
                   if(cmsg->cmsg_type == SO_TIMESTAMPING) {
                      puts("SO_TIMESTAMPING!");
-                     socketTimestampingType = -1;
-                     socketTimestamping     = (scm_timestamping*)CMSG_DATA(cmsg);
-                     printf("ts0:  %ld.%09ld\n", socketTimestamping->ts[0].tv_sec, socketTimestamping->ts[0].tv_nsec);
-                     printf("ts1:  %ld.%09ld\n", socketTimestamping->ts[1].tv_sec, socketTimestamping->ts[1].tv_nsec);
-                     printf("ts2:  %ld.%09ld\n", socketTimestamping->ts[2].tv_sec, socketTimestamping->ts[2].tv_nsec);
+                     socketTimestampType = -1;
+                     socketTimestamp     = (scm_timestamping*)CMSG_DATA(cmsg);
+                     printf("ts0:  %ld.%09ld\n", socketTimestamp->ts[0].tv_sec, socketTimestamp->ts[0].tv_nsec);
+                     printf("ts1:  %ld.%09ld\n", socketTimestamp->ts[1].tv_sec, socketTimestamp->ts[1].tv_nsec);
+                     printf("ts2:  %ld.%09ld\n", socketTimestamp->ts[2].tv_sec, socketTimestamp->ts[2].tv_nsec);
                   }
                   else if(cmsg->cmsg_type == SO_TIMESTAMPNS) {
                      puts("SO_TIMESTAMPNS!");
@@ -452,10 +513,10 @@ void ICMPModule::handleResponse(const boost::system::error_code& errorCode,
                      socketError = (sock_extended_err*)CMSG_DATA(cmsg);
                      if(socketError->ee_origin ==  SO_EE_ORIGIN_TIMESTAMPING) {
                         puts("------ SO_EE_ORIGIN_TIMESTAMPING-1");
-//                         assert(socketTimestamping == nullptr); // ????
+//                         assert(socketTimestamp == nullptr); // ????
 
-                        socketTimestampingType = socketError->ee_info;
-                        socketTimestamping     = (scm_timestamping*)CMSG_DATA(cmsg); //FIXME!
+                        socketTimestampType = socketError->ee_info;
+                        socketTimestamp     = (scm_timestamping*)CMSG_DATA(cmsg); //FIXME!
                      }
                      else if( (socketError->ee_origin != SO_EE_ORIGIN_ICMP6) &&
                               (socketError->ee_origin != SO_EE_ORIGIN_LOCAL) ) {
@@ -474,19 +535,19 @@ void ICMPModule::handleResponse(const boost::system::error_code& errorCode,
                         socketTXTimestamping = socketError;
 
 
-// //                         assert(socketTimestamping == nullptr); // ????
-//                         socketTimestampingType = socketError->ee_info;
-// //                         socketTimestamping     = (scm_timestamping*)CMSG_DATA(cmsg);
+// //                         assert(socketTimestamp == nullptr); // ????
+//                         socketTimestampType = socketError->ee_info;
+// //                         socketTimestamp     = (scm_timestamping*)CMSG_DATA(cmsg);
 //
 //
 //                         printf("socketError->ee_errno=%d  socketError->ee_data=%d   enomsg=%d  length=%d\n", socketError->ee_errno, socketError->ee_data, ENOMSG, length);
 //
-//                         socketTimestamping = (scm_timestamping*)&MessageBuffer; // + (long)length - (long)sizeof(scm_timestamping);
+//                         socketTimestamp = (scm_timestamping*)&MessageBuffer; // + (long)length - (long)sizeof(scm_timestamping);
 //
-//                printf("SOL_IP IP_RECVERR: TS TYPE = %d   is_snd=%d\n",  socketTimestampingType, (socketTimestampingType==SCM_TSTAMP_SND));
-//                printf("ts0:  %ld.%09ld\n", socketTimestamping->ts[0].tv_sec, socketTimestamping->ts[0].tv_nsec);
-//                printf("ts1:  %ld.%09ld\n", socketTimestamping->ts[1].tv_sec, socketTimestamping->ts[1].tv_nsec);
-//                printf("ts2:  %ld.%09ld\n", socketTimestamping->ts[2].tv_sec, socketTimestamping->ts[2].tv_nsec);
+//                printf("SOL_IP IP_RECVERR: TS TYPE = %d   is_snd=%d\n",  socketTimestampType, (socketTimestampType==SCM_TSTAMP_SND));
+//                printf("ts0:  %ld.%09ld\n", socketTimestamp->ts[0].tv_sec, socketTimestamp->ts[0].tv_nsec);
+//                printf("ts1:  %ld.%09ld\n", socketTimestamp->ts[1].tv_sec, socketTimestamp->ts[1].tv_nsec);
+//                printf("ts2:  %ld.%09ld\n", socketTimestamp->ts[2].tv_sec, socketTimestamp->ts[2].tv_nsec);
 //
 //                abort();
 //
@@ -516,51 +577,22 @@ void ICMPModule::handleResponse(const boost::system::error_code& errorCode,
             if( (socketError != nullptr) &&
                 (socketTXTimestamping != nullptr) ) {
                printf("TX TIMESTAMP OF TYPE %d FOR PKT %u\n", socketTXTimestamping->ee_info, socketTXTimestamping->ee_data);
-               printf("ts0:  %ld.%09ld\n", socketTimestamping->ts[0].tv_sec, socketTimestamping->ts[0].tv_nsec);
-               printf("ts1:  %ld.%09ld\n", socketTimestamping->ts[1].tv_sec, socketTimestamping->ts[1].tv_nsec);
-               printf("ts2:  %ld.%09ld\n", socketTimestamping->ts[2].tv_sec, socketTimestamping->ts[2].tv_nsec);
+               printf("ts0:  %ld.%09ld\n", socketTimestamp->ts[0].tv_sec, socketTimestamp->ts[0].tv_nsec);
+               printf("ts1:  %ld.%09ld\n", socketTimestamp->ts[1].tv_sec, socketTimestamp->ts[1].tv_nsec);
+               printf("ts2:  %ld.%09ld\n", socketTimestamp->ts[2].tv_sec, socketTimestamp->ts[2].tv_nsec);
                assert(readFromErrorQueue);
 
-
-               std::map<unsigned short, ResultEntry*>::iterator found = ResultsMap.end();
-               for(std::map<unsigned short, ResultEntry*>::iterator iterator = ResultsMap.begin();
-                   iterator != ResultsMap.end(); iterator++) {
-                  ResultEntry* resultsEntry = iterator->second;
-                  if(resultsEntry->timeStampSeqID() == socketTXTimestamping->ee_data) {
-                     puts("--- FOUND ENTRY ---");
-                     TimeStampType timeStampType = TimeStampType::TST_Unknown;
-                     switch(socketTXTimestamping->ee_info) {
-                        case SCM_TSTAMP_SCHED:
-                           timeStampType = TimeStampType::TST_Scheduler;
-                         break;
-                        case SCM_TSTAMP_SND:
-                           timeStampType = TimeStampType::TST_Transmission;
-                         break;
-                        default:
-                         break;
-                     }
-                     TimeSource timeSource = TimeSource::TS_Unknown;
-                     if(socketTimestamping->ts[2].tv_sec != 0) {
-                        // Hardware timestamp (raw)
-                        timeSource = TimeSource::TS_TIMESTAMPING_HW;
-                     }
-                     else if(socketTimestamping->ts[0].tv_sec != 0) {
-                        // Software timestamp (system time from kernel)
-                        timeSource = TimeSource::TS_TIMESTAMPING_SW;
-                     }
-                     break;
-                  }
-               }
+               updateSendTimeInResultEntry(socketError, socketTimestamp);
 
                // This is just the timestamp -> nothing more to do here!
                continue;
             }
 
-            if(socketTimestamping != nullptr) {
+            if(socketTimestamp != nullptr) {
                puts("RX TIMESTAMP:");
-               printf("ts0:  %ld.%09ld\n", socketTimestamping->ts[0].tv_sec, socketTimestamping->ts[0].tv_nsec);
-               printf("ts1:  %ld.%09ld\n", socketTimestamping->ts[1].tv_sec, socketTimestamping->ts[1].tv_nsec);
-               printf("ts2:  %ld.%09ld\n", socketTimestamping->ts[2].tv_sec, socketTimestamping->ts[2].tv_nsec);
+               printf("ts0:  %ld.%09ld\n", socketTimestamp->ts[0].tv_sec, socketTimestamp->ts[0].tv_nsec);
+               printf("ts1:  %ld.%09ld\n", socketTimestamp->ts[1].tv_sec, socketTimestamp->ts[1].tv_nsec);
+               printf("ts2:  %ld.%09ld\n", socketTimestamp->ts[2].tv_sec, socketTimestamp->ts[2].tv_nsec);
             }
 
             // ====== Ensure to have the reception time =====================
@@ -600,7 +632,7 @@ void ICMPModule::handleResponse(const boost::system::error_code& errorCode,
 
             // ====== Handle reply data =====================================
             if(!readFromErrorQueue) {
-               printf("DATA %d    tsPtr=%p\n", (int)length, socketTimestamping);
+               printf("DATA %d    tsPtr=%p\n", (int)length, socketTimestamp);
                if(length > 0) {
                   // ====== Get reply address ===============================
                   ReplyEndpoint = sockaddrToEndpoint<boost::asio::ip::icmp::endpoint>(
@@ -918,7 +950,8 @@ void ICMPModule::recordResult(const std::chrono::system_clock::time_point& recei
 
    // ====== Get status =====================================================
    if(resultEntry->status() == Unknown) {
-      resultEntry->setReceiveTime(receiveTime);
+      resultEntry->setReceiveTime(RXTimeStampType::RXTST_Application,
+                                  TimeSource::TS_SysClock, receiveTime);
       // Just set address, keep traffic class and identifier settings:
       resultEntry->setDestinationAddress(ReplyEndpoint.address());
 
@@ -1351,7 +1384,8 @@ void UDPModule::recordResult(const std::chrono::system_clock::time_point& receiv
 
    // ====== Get status =====================================================
    if(resultEntry->status() == Unknown) {
-      resultEntry->setReceiveTime(receiveTime);
+      resultEntry->setReceiveTime(RXTimeStampType::RXTST_Application,
+                                  TimeSource::TS_SysClock, receiveTime);
       // Just set address, keep traffic class and identifier settings:
       resultEntry->setDestinationAddress(ReplyEndpoint.address());
 
