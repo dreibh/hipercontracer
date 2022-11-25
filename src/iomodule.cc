@@ -224,39 +224,39 @@ bool ICMPModule::prepareSocket()
 #endif
 
 
-        const char* interface = "oslomet";
-        struct ifreq device;
-        struct ifreq hwtstamp;
-        struct hwtstamp_config hwconfig, hwconfig_requested;
-
-        memset(&device, 0, sizeof(device));
-        memcpy(device.ifr_name, interface, strlen(interface) + 1);
-        if (ioctl(ICMPSocket.native_handle(), SIOCGIFADDR, &device) < 0) {
-           HPCT_LOG(error) << "SIOCGIFADDR:" << strerror(errno);
-           return false;
-        }
-
-        memset(&hwtstamp, 0, sizeof(hwtstamp));
-        memcpy(hwtstamp.ifr_name, interface, strlen(interface) + 1);
-        hwtstamp.ifr_data = (char*)&hwconfig;
-        memset(&hwconfig, 0, sizeof(hwconfig));
-        hwconfig.tx_type = HWTSTAMP_TX_ON;
-        hwconfig.rx_filter = HWTSTAMP_FILTER_ALL;
-        hwconfig_requested = hwconfig;
-        if (ioctl(ICMPSocket.native_handle(), SIOCSHWTSTAMP, &hwtstamp) < 0) {
-                if ((errno == EINVAL || errno == ENOTSUP) &&
-                    hwconfig_requested.tx_type == HWTSTAMP_TX_OFF &&
-                    hwconfig_requested.rx_filter == HWTSTAMP_FILTER_NONE) {
-                    printf("SIOCSHWTSTAMP: disabling hardware time stamping not possible\n");
-                    HPCT_LOG(error) << "X-2";
-                }
-                else {
-                    HPCT_LOG(error) << "SIOCSHWTSTAMP:" << strerror(errno);
-                }
-        }
-        printf("SIOCSHWTSTAMP: tx_type %d requested, got %d; rx_filter %d requested, got %d\n",
-               hwconfig_requested.tx_type, hwconfig.tx_type,
-               hwconfig_requested.rx_filter, hwconfig.rx_filter);
+//         const char* interface = "oslomet";
+//         struct ifreq device;
+//         struct ifreq hwtstamp;
+//         struct hwtstamp_config hwconfig, hwconfig_requested;
+//
+//         memset(&device, 0, sizeof(device));
+//         memcpy(device.ifr_name, interface, strlen(interface) + 1);
+//         if (ioctl(ICMPSocket.native_handle(), SIOCGIFADDR, &device) < 0) {
+//            HPCT_LOG(error) << "SIOCGIFADDR:" << strerror(errno);
+//            return false;
+//         }
+//
+//         memset(&hwtstamp, 0, sizeof(hwtstamp));
+//         memcpy(hwtstamp.ifr_name, interface, strlen(interface) + 1);
+//         hwtstamp.ifr_data = (char*)&hwconfig;
+//         memset(&hwconfig, 0, sizeof(hwconfig));
+//         hwconfig.tx_type = HWTSTAMP_TX_ON;
+//         hwconfig.rx_filter = HWTSTAMP_FILTER_ALL;
+//         hwconfig_requested = hwconfig;
+//         if (ioctl(ICMPSocket.native_handle(), SIOCSHWTSTAMP, &hwtstamp) < 0) {
+//                 if ((errno == EINVAL || errno == ENOTSUP) &&
+//                     hwconfig_requested.tx_type == HWTSTAMP_TX_OFF &&
+//                     hwconfig_requested.rx_filter == HWTSTAMP_FILTER_NONE) {
+//                     printf("SIOCSHWTSTAMP: disabling hardware time stamping not possible\n");
+//                     HPCT_LOG(error) << "X-2";
+//                 }
+//                 else {
+//                     HPCT_LOG(error) << "SIOCSHWTSTAMP:" << strerror(errno);
+//                 }
+//         }
+//         printf("SIOCSHWTSTAMP: tx_type %d requested, got %d; rx_filter %d requested, got %d\n",
+//                hwconfig_requested.tx_type, hwconfig.tx_type,
+//                hwconfig_requested.rx_filter, hwconfig.rx_filter);
 
 
    // ====== Set filter (not required, but much more efficient) =============
@@ -596,20 +596,7 @@ void ICMPModule::handleResponse(const boost::system::error_code& errorCode,
                      }
                      else puts("IP_RECVERR!");
                   }
-// 			case IP_PKTINFO: {
-// 				struct in_pktinfo *pktinfo =
-// 					(struct in_pktinfo *)CMSG_DATA(cmsg);
-// 				printf("IP_PKTINFO interface index %u",
-// 					pktinfo->ipi_ifindex);
-// 				break;
-// 			}
                }
-//                else if(cmsg->cmsg_level == SOL_PACKET) {
-// // 			   (cm->cmsg_level == SOL_PACKET &&
-// // 			    cm->cmsg_type == PACKET_TX_TIMESTAMP)) {
-//                 abort();
-//                }
-//                else abort();  /// ??????
             }
 
             // ====== TX Timestamping information via error queue ===========
@@ -742,10 +729,6 @@ void ICMPModule::handleResponse(const boost::system::error_code& errorCode,
 //***********************************************
 
                }
-               else {
-                  puts("LLLL 0 ?????");   // FIXME!
-                  abort();
-               }
             }
 
             else {
@@ -760,20 +743,8 @@ void ICMPModule::handleResponse(const boost::system::error_code& errorCode,
                   if(SourceAddress.is_v6()) {
                      is >> icmpHeader;
                      if(is) {
-                        if(icmpHeader.type() == ICMPHeader::IPv6EchoRequest) {
-                           if(icmpHeader.identifier() == Identifier) {
-                              TraceServiceHeader tsHeader;
-                              is >> tsHeader;
-                              if(is) {
-                                 if(tsHeader.magicNumber() == MagicNumber) {
-                                    // recordResult(receiveTime, icmpHeader, icmpHeader.seqNumber());
-                                    printf("UPDATE seq=%u\n", icmpHeader.seqNumber());
-                                 }
-                              }
-                           }
-                        }
-                        else if( (icmpHeader.type() == ICMPHeader::IPv6TimeExceeded) ||
-                                 (icmpHeader.type() == ICMPHeader::IPv6Unreachable) ) {
+                        if( (icmpHeader.type() == ICMPHeader::IPv6TimeExceeded) ||
+                            (icmpHeader.type() == ICMPHeader::IPv6Unreachable) ) {
                            IPv6Header innerIPv6Header;
                            ICMPHeader innerICMPHeader;
                            TraceServiceHeader tsHeader;
@@ -795,19 +766,7 @@ void ICMPModule::handleResponse(const boost::system::error_code& errorCode,
                      if(is) {
                         is >> icmpHeader;
                         if(is) {
-                           if(icmpHeader.type() == ICMPHeader::IPv4EchoRequest) {
-                              if(icmpHeader.identifier() == Identifier) {
-                                 TraceServiceHeader tsHeader;
-                                 is >> tsHeader;
-                                 if(is) {
-                                    if(tsHeader.magicNumber() == MagicNumber) {
-                                       // recordResult(receiveTime, icmpHeader, icmpHeader.seqNumber());
-                                       printf("UPDATE seq=%u ***************\n", icmpHeader.seqNumber());
-                                    }
-                                 }
-                              }
-                           }
-                           else if(icmpHeader.type() == ICMPHeader::IPv4TimeExceeded) {
+                           if(icmpHeader.type() == ICMPHeader::IPv4TimeExceeded) {
                               IPv4Header innerIPv4Header;
                               ICMPHeader innerICMPHeader;
                               is >> innerIPv4Header >> innerICMPHeader;

@@ -76,17 +76,17 @@ std::ostream& operator<<(std::ostream& os, const ResultEntry& resultEntry)
       << boost::format("R%d")             % resultEntry.Round
       << "\t" << boost::format("#%05d")   % resultEntry.SeqNumber
       << "\t" << boost::format("%2d")     % resultEntry.Hop
-      << "\tA:" << boost::format("%9.6fms") % (std::chrono::duration_cast<std::chrono::nanoseconds>(rttApplication).count() / 1000000.0)
-      << "\tS:" << boost::format("%9.6fms") % (std::chrono::duration_cast<std::chrono::nanoseconds>(rttSoftware).count() / 1000000.0)
-      << "\tH:" << boost::format("%9.6fms") % (std::chrono::duration_cast<std::chrono::nanoseconds>(rttHardware).count() / 1000000.0)
-      << "\tq:" << boost::format("%9.6fms") % (std::chrono::duration_cast<std::chrono::nanoseconds>(queuingDelay).count() / 1000000.0)
+      << "\tA:" << durationToString<std::chrono::high_resolution_clock::duration>(rttApplication)
+      << "\tS:" << durationToString<std::chrono::high_resolution_clock::duration>(rttSoftware)
+      << "\tH:" << durationToString<std::chrono::high_resolution_clock::duration>(rttHardware)
+      << "\tq:" << durationToString<std::chrono::high_resolution_clock::duration>(queuingDelay)
       << "\t" << boost::format("%3d")     % resultEntry.Status
       << "\t" << boost::format("%04x")    % resultEntry.Checksum
       << "\t" << boost::format("%d")      % resultEntry.PacketSize
       << "\t" << resultEntry.Destination;
 
    os << "\n"
-      << "Ap: " << nsSinceEpoch(resultEntry.sendTime(TXTimeStampType::TXTST_Application)) << " -> "
+      << "Ap: " << nsSinceEpoch(resultEntry.sendTime(TXTimeStampType::TXTST_Application))    << " -> "
                 << nsSinceEpoch(resultEntry.receiveTime(RXTimeStampType::RXTST_Application)) << "\n"
 
       << "Sw: " << nsSinceEpoch(resultEntry.sendTime(TXTimeStampType::TXTST_SchedulerSW))    << " -> "

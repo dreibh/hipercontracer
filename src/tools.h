@@ -37,6 +37,7 @@
 #include <set>
 #include <chrono>
 #include <boost/asio.hpp>
+#include <boost/format.hpp>
 
 
 // ###### Convert time to microseconds since the epoch ######################
@@ -54,6 +55,25 @@ uint64_t nsSinceEpoch(const TimePoint& timePoint)
 {
    const auto duration = timePoint.time_since_epoch();
    return std::chrono::duration_cast<std::chrono::nanoseconds>(duration).count();
+}
+
+
+// ###### Convert duration to string ########################################
+template <typename Duration>
+static std::string durationToString(const Duration& duration,
+                                    const char*     format = "%9.6fms",
+                                    const double    div    = 1000000.0,
+                                    const char*     null   = "NULL")
+{
+   std::stringstream ss;
+   if(duration != Duration::min()) {
+      ss << boost::format(format) %
+               (std::chrono::duration_cast<std::chrono::nanoseconds>(duration).count() / div);
+   }
+   else {
+      ss << null;
+   }
+   return ss.str();
 }
 
 
