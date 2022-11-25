@@ -358,12 +358,10 @@ void Traceroute::newResult(const ResultEntry* resultEntry)
    if(OutstandingRequests > 0) {
       OutstandingRequests--;
    }
-   printf("N %u\n", OutstandingRequests);
 
    // ====== Found last hop? ================================================
    if(resultEntry->status() == Success) {
       LastHop = std::min(LastHop, resultEntry->hop());
-      printf("LAST HOP = %u\n", LastHop);
    }
 
    // ====== Check whether there are still outstanding requests =============

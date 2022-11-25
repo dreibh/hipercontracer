@@ -71,16 +71,8 @@ class ICMPModule : public IOModuleBase
                        const bool                       readFromErrorQueue);
    void updateSendTimeInResultEntry(const sock_extended_err* socketError,
                                     const scm_timestamping*  socketTimestamping);
-//    void getReceptionTimes(
-//            const std::chrono::system_clock::time_point& applicationReceiveTime,
-//            const int                                    socketDescriptor,
-//            const scm_timestamping*                      socketTimestamp,
-//            TimeSourceType&                              rxReceiveSWSource,
-//            std::chrono::system_clock::time_point&       rxReceiveSWTime,
-//            TimeSourceType&                              rxReceiveHWSource,
-//            std::chrono::system_clock::time_point&       rxReceiveHWTime);
-
-   void recordResult(const std::chrono::system_clock::time_point& applicationReceiveTime,
+   void recordResult(const boost::asio::ip::udp::endpoint         replyEndpoint,
+                     const std::chrono::system_clock::time_point& applicationReceiveTime,
                      const TimeSourceType                         rxReceiveSWSource,
                      const std::chrono::system_clock::time_point& rxReceiveSWTime,
                      const TimeSourceType                         rxReceiveHWSource,
@@ -92,7 +84,6 @@ class ICMPModule : public IOModuleBase
    const unsigned int              ActualPacketSize;
 
    boost::asio::ip::icmp::socket   ICMPSocket;
-   boost::asio::ip::icmp::endpoint ReplyEndpoint;    // Store ICMP reply's source address    FIXME! Is this needed as attrib?
    bool                            ExpectingReply;
    bool                            ExpectingError;
    char                            MessageBuffer[65536 + 40];
