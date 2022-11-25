@@ -614,7 +614,9 @@ void ICMPModule::handleResponse(const boost::system::error_code& errorCode,
 
             // ====== TX Timestamping information via error queue ===========
             if( (readFromErrorQueue) && (socketTXTimestamping != nullptr) ) {
-               updateSendTimeInResultEntry(socketError, socketTimestamp);
+               if(socketTimestamp != nullptr) {
+                  updateSendTimeInResultEntry(socketTXTimestamping, socketTimestamp);
+               }
                // This is just the timestamp -> nothing more to do here!
                continue;
             }

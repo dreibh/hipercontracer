@@ -70,6 +70,7 @@ std::ostream& operator<<(std::ostream& os, const ResultEntry& resultEntry)
    const std::chrono::high_resolution_clock::duration rttApplication = resultEntry.rtt(RXTimeStampType::RXTST_Application);
    const std::chrono::high_resolution_clock::duration rttSoftware    = resultEntry.rtt(RXTimeStampType::RXTST_ReceptionSW);
    const std::chrono::high_resolution_clock::duration rttHardware    = resultEntry.rtt(RXTimeStampType::RXTST_ReceptionHW);
+   const std::chrono::high_resolution_clock::duration queuingDelay   = resultEntry.queuingDelay();
 
    os << boost::format("#%08xu")          % resultEntry.TimeStampSeqID
       << boost::format("R%d")             % resultEntry.Round
@@ -78,6 +79,7 @@ std::ostream& operator<<(std::ostream& os, const ResultEntry& resultEntry)
       << "\tA:" << boost::format("%9.6fms") % (std::chrono::duration_cast<std::chrono::nanoseconds>(rttApplication).count() / 1000000.0)
       << "\tS:" << boost::format("%9.6fms") % (std::chrono::duration_cast<std::chrono::nanoseconds>(rttSoftware).count() / 1000000.0)
       << "\tH:" << boost::format("%9.6fms") % (std::chrono::duration_cast<std::chrono::nanoseconds>(rttHardware).count() / 1000000.0)
+      << "\tq:" << boost::format("%9.6fms") % (std::chrono::duration_cast<std::chrono::nanoseconds>(queuingDelay).count() / 1000000.0)
       << "\t" << boost::format("%3d")     % resultEntry.Status
       << "\t" << boost::format("%04x")    % resultEntry.Checksum
       << "\t" << boost::format("%d")      % resultEntry.PacketSize

@@ -159,11 +159,15 @@ class ResultEntry {
       ReceiveTime[rxTimeStampType]       = rxTime;
    }
 
-    inline std::chrono::high_resolution_clock::duration rtt(const RXTimeStampType rxTimeStampType) const {
-       assert((unsigned int)rxTimeStampType <= RXTimeStampType::RXTST_MAX);
-       // NOTE: Indexing for both arrays (RX, TX) is the same!
-       return(ReceiveTime[rxTimeStampType] - SendTime[rxTimeStampType]);
-    }
+   inline std::chrono::high_resolution_clock::duration rtt(const RXTimeStampType rxTimeStampType) const {
+      assert((unsigned int)rxTimeStampType <= RXTimeStampType::RXTST_MAX);
+      // NOTE: Indexing for both arrays (RX, TX) is the same!
+      return(ReceiveTime[rxTimeStampType] - SendTime[rxTimeStampType]);
+   }
+
+   inline std::chrono::high_resolution_clock::duration queuingDelay() const {
+      return(SendTime[TXTST_TransmissionSW] - SendTime[TXTST_SchedulerSW]);
+   }
 
    inline friend bool operator<(const ResultEntry& resultEntry1, const ResultEntry& resultEntry2) {
       return(resultEntry1.SeqNumber < resultEntry2.SeqNumber);
