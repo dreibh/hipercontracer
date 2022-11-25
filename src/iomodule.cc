@@ -102,13 +102,16 @@ ICMPModule::ICMPModule(const std::string&                       name,
                        const boost::asio::ip::address&          sourceAddress,
                        const unsigned int                       packetSize,
                        std::function<void (const ResultEntry*)> newResultCallback)
-   : IOModuleBase(name + "/ICMPPing", ioService, resultsMap, sourceAddress, packetSize, newResultCallback),
+   : IOModuleBase(name + "/ICMPPing", ioService, resultsMap,
+                  sourceAddress, packetSize, newResultCallback),
      PayloadSize( std::max((ssize_t)MIN_TRACESERVICE_HEADER_SIZE,
                            (ssize_t)PacketSize -
                               (ssize_t)((SourceAddress.is_v6() == true) ? 40 : 20) -
                               (ssize_t)sizeof(ICMPHeader)) ),
-     ActualPacketSize( ((SourceAddress.is_v6() == true) ? 40 : 20) + sizeof(ICMPHeader) + PayloadSize ),
-     ICMPSocket(IOService, (sourceAddress.is_v6() == true) ? boost::asio::ip::icmp::v6() : boost::asio::ip::icmp::v4())
+     ActualPacketSize( ((SourceAddress.is_v6() == true) ? 40 : 20) +
+                          sizeof(ICMPHeader) + PayloadSize ),
+     ICMPSocket(IOService, (sourceAddress.is_v6() == true) ? boost::asio::ip::icmp::v6() :
+                                                             boost::asio::ip::icmp::v4() )
 {
    ExpectingReply = false;
    ExpectingError = false;
@@ -897,15 +900,18 @@ void ICMPModule::recordResult(const boost::asio::ip::udp::endpoint         reply
 
    // ====== Get status =====================================================
    if(resultEntry->status() == Unknown) {
+      // Just set address, keep traffic class and identifier settings:
+      resultEntry->setDestinationAddress(replyEndpoint.address());
+
+      // Set receive time stamps:
       resultEntry->setReceiveTime(RXTimeStampType::RXTST_Application,
                                   TimeSourceType::TST_SysClock, applicationReceiveTime);
       resultEntry->setReceiveTime(RXTimeStampType::RXTST_ReceptionSW,
                                   rxReceiveSWSource, rxReceiveSWTime);
       resultEntry->setReceiveTime(RXTimeStampType::RXTST_ReceptionHW,
                                   rxReceiveHWSource, rxReceiveHWTime);
-      // Just set address, keep traffic class and identifier settings:
-      resultEntry->setDestinationAddress(replyEndpoint.address());
 
+      // Set ICMP error status:
       HopStatus status = Unknown;
       if( (icmpType == ICMPHeader::IPv6TimeExceeded) ||
           (icmpType == ICMPHeader::IPv4TimeExceeded) ) {
