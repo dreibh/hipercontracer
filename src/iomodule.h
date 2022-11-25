@@ -69,6 +69,22 @@ class ICMPModule : public IOModuleBase
    void expectNextReply();
    void handleResponse(const boost::system::error_code& errorCode,
                        const bool                       readFromErrorQueue);
+   void handlePayloadResponse(const boost::asio::ip::udp::endpoint         replyEndpoint,
+                              const std::chrono::system_clock::time_point& applicationReceiveTime,
+                              const TimeSourceType                         rxReceiveSWSource,
+                              const std::chrono::system_clock::time_point& rxReceiveSWTime,
+                              const TimeSourceType                         rxReceiveHWSource,
+                              const std::chrono::system_clock::time_point& rxReceiveHWTime,
+                              char*                                        messageBuffer,
+                              const size_t                                 messageLength);
+   void handleErrorResponse(const boost::asio::ip::udp::endpoint         replyEndpoint,
+                            const std::chrono::system_clock::time_point& applicationReceiveTime,
+                            const TimeSourceType                         rxReceiveSWSource,
+                            const std::chrono::system_clock::time_point& rxReceiveSWTime,
+                            const TimeSourceType                         rxReceiveHWSource,
+                            const std::chrono::system_clock::time_point& rxReceiveHWTime,
+                            char*                                        messageBuffer,
+                            const size_t                                 messageLength);
    void updateSendTimeInResultEntry(const sock_extended_err* socketError,
                                     const scm_timestamping*  socketTimestamping);
    void recordResult(const boost::asio::ip::udp::endpoint         replyEndpoint,

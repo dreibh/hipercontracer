@@ -689,7 +689,12 @@ void ICMPModule::handleResponse(const boost::system::error_code& errorCode,
                printf("DATA %d    tsPtr=%p\n", (int)length, socketTimestamp);
                if(length > 0) {
 
+                handlePayloadResponse(replyEndpoint, applicationReceiveTime,
+                                      rxReceiveSWSource, rxReceiveSWTime,
+                                      rxReceiveHWSource, rxReceiveHWTime,
+                                      (char*)&MessageBuffer, length);
 //***********************************************
+#if 0
                   // ====== Handle ICMP header =======================================
                   boost::interprocess::bufferstream is(MessageBuffer, length);
                   ExpectingReply = false;   // Need to call expectNextReply() to get next message!
@@ -773,6 +778,7 @@ void ICMPModule::handleResponse(const boost::system::error_code& errorCode,
                         }
                      }
                   }
+#endif
 //***********************************************
 
                }
@@ -782,7 +788,13 @@ void ICMPModule::handleResponse(const boost::system::error_code& errorCode,
                printf("ERR-QUEUE %d --------------\n", (int)length);
                if(length > 0) {
 
+                handleErrorResponse(replyEndpoint, applicationReceiveTime,
+                                    rxReceiveSWSource, rxReceiveSWTime,
+                                    rxReceiveHWSource, rxReceiveHWTime,
+                                    (char*)&MessageBuffer, length);
+
 //***********************************************
+#if 0
                   // ====== Handle ICMP header =======================================
                   boost::interprocess::bufferstream is(MessageBuffer, length);
 
@@ -837,12 +849,175 @@ abort();
                         }
                      }
                   }
-               }
+#endif
 //***********************************************
+               }
             }
          }
       }
       expectNextReply();
+   }
+}
+
+
+// ###### Handle payload response (i.e. not from error queue) ###############
+void ICMPModule::handlePayloadResponse(const boost::asio::ip::udp::endpoint         replyEndpoint,
+                                       const std::chrono::system_clock::time_point& applicationReceiveTime,
+                                       const TimeSourceType                         rxReceiveSWSource,
+                                       const std::chrono::system_clock::time_point& rxReceiveSWTime,
+                                       const TimeSourceType                         rxReceiveHWSource,
+                                       const std::chrono::system_clock::time_point& rxReceiveHWTime,
+                                       char*                                        messageBuffer,
+                                       const size_t                                 messageLength)
+{
+   // ====== Handle ICMP header =======================================
+   boost::interprocess::bufferstream is(messageBuffer, messageLength);
+
+   ICMPHeader icmpHeader;
+   if(SourceAddress.is_v6()) {
+      is >> icmpHeader;
+      if(is) {
+         if(icmpHeader.type() == ICMPHeader::IPv6EchoReply) {
+            if(icmpHeader.identifier() == Identifier) {
+               TraceServiceHeader tsHeader;
+               is >> tsHeader;
+               if(is) {
+                  if(tsHeader.magicNumber() == MagicNumber) {
+                     recordResult(replyEndpoint, applicationReceiveTime,
+                                  rxReceiveSWSource, rxReceiveSWTime,
+                                  rxReceiveHWSource, rxReceiveHWTime,
+                                  icmpHeader.type(), icmpHeader.code(),
+                                  icmpHeader.seqNumber());
+                  }
+               }
+            }
+         }
+         else if( (icmpHeader.type() == ICMPHeader::IPv6TimeExceeded) ||
+                  (icmpHeader.type() == ICMPHeader::IPv6Unreachable) ) {
+            IPv6Header innerIPv6Header;
+            ICMPHeader innerICMPHeader;
+            TraceServiceHeader tsHeader;
+            is >> innerIPv6Header >> innerICMPHeader >> tsHeader;
+            if(is) {
+               if(tsHeader.magicNumber() == MagicNumber) {
+                  recordResult(replyEndpoint, applicationReceiveTime,
+                               rxReceiveSWSource, rxReceiveSWTime,
+                               rxReceiveHWSource, rxReceiveHWTime,
+                               icmpHeader.type(), icmpHeader.code(),
+                               innerICMPHeader.seqNumber());
+               }
+            }
+         }
+      }
+   }
+   else {
+      IPv4Header ipv4Header;
+      is >> ipv4Header;
+      if(is) {
+         is >> icmpHeader;
+         if(is) {
+            if(icmpHeader.type() == ICMPHeader::IPv4EchoReply) {
+               if(icmpHeader.identifier() == Identifier) {
+                  TraceServiceHeader tsHeader;
+                  is >> tsHeader;
+                  if(is) {
+                     if(tsHeader.magicNumber() == MagicNumber) {
+                        recordResult(replyEndpoint, applicationReceiveTime,
+                                     rxReceiveSWSource, rxReceiveSWTime,
+                                     rxReceiveHWSource, rxReceiveHWTime,
+                                     icmpHeader.type(), icmpHeader.code(),
+                                     icmpHeader.seqNumber());
+                     }
+                  }
+               }
+            }
+            else if(icmpHeader.type() == ICMPHeader::IPv4TimeExceeded) {
+               IPv4Header innerIPv4Header;
+               ICMPHeader innerICMPHeader;
+               is >> innerIPv4Header >> innerICMPHeader;
+               if(is) {
+                  if( (icmpHeader.type() == ICMPHeader::IPv4TimeExceeded) ||
+                      (icmpHeader.type() == ICMPHeader::IPv4Unreachable) ) {
+                     if(innerICMPHeader.identifier() == Identifier) {
+                        // Unfortunately, ICMPv4 does not return the full TraceServiceHeader here!
+                        recordResult(replyEndpoint, applicationReceiveTime,
+                                     rxReceiveSWSource, rxReceiveSWTime,
+                                     rxReceiveHWSource, rxReceiveHWTime,
+                                     icmpHeader.type(), icmpHeader.code(),
+                                     innerICMPHeader.seqNumber());
+                     }
+                  }
+               }
+            }
+         }
+      }
+   }
+}
+
+
+// ###### Handle error response (i.e. from error queue) #####################
+void ICMPModule::handleErrorResponse(const boost::asio::ip::udp::endpoint         replyEndpoint,
+                                     const std::chrono::system_clock::time_point& applicationReceiveTime,
+                                     const TimeSourceType                         rxReceiveSWSource,
+                                     const std::chrono::system_clock::time_point& rxReceiveSWTime,
+                                     const TimeSourceType                         rxReceiveHWSource,
+                                     const std::chrono::system_clock::time_point& rxReceiveHWTime,
+                                     char*                                        messageBuffer,
+                                     const size_t                                 messageLength)
+{
+   // ====== Handle ICMP header =============================================
+   boost::interprocess::bufferstream is(MessageBuffer, messageLength);
+
+   ICMPHeader icmpHeader;
+   if(SourceAddress.is_v6()) {
+      is >> icmpHeader;
+      if(is) {
+         if( (icmpHeader.type() == ICMPHeader::IPv6TimeExceeded) ||
+             (icmpHeader.type() == ICMPHeader::IPv6Unreachable) ) {
+            IPv6Header innerIPv6Header;
+            ICMPHeader innerICMPHeader;
+            TraceServiceHeader tsHeader;
+            is >> innerIPv6Header >> innerICMPHeader >> tsHeader;
+            if(is) {
+               if(tsHeader.magicNumber() == MagicNumber) {
+                  recordResult(replyEndpoint, applicationReceiveTime,
+                               rxReceiveSWSource, rxReceiveSWTime,
+                               rxReceiveHWSource, rxReceiveHWTime,
+                               icmpHeader.type(), icmpHeader.code(),
+                               innerICMPHeader.seqNumber());
+               }
+            }
+         }
+      }
+   }
+   else {
+      IPv4Header ipv4Header;
+      is >> ipv4Header;
+      if(is) {
+         is >> icmpHeader;
+         if(is) {
+            if(icmpHeader.type() == ICMPHeader::IPv4TimeExceeded) {
+               IPv4Header innerIPv4Header;
+               ICMPHeader innerICMPHeader;
+               is >> innerIPv4Header >> innerICMPHeader;
+               if(is) {
+                  if( (icmpHeader.type() == ICMPHeader::IPv4TimeExceeded) ||
+                      (icmpHeader.type() == ICMPHeader::IPv4Unreachable) ) {
+                     if(innerICMPHeader.identifier() == Identifier) {
+                        // Unfortunately, ICMPv4 does not return the full TraceServiceHeader here!
+                        recordResult(replyEndpoint, applicationReceiveTime,
+                                     rxReceiveSWSource, rxReceiveSWTime,
+                                     rxReceiveHWSource, rxReceiveHWTime,
+                                     icmpHeader.type(), icmpHeader.code(),
+                                     innerICMPHeader.seqNumber());
+puts("UPDATE IN ERRQUEUE !");
+abort();
+                     }
+                  }
+               }
+            }
+         }
+      }
    }
 }
 
