@@ -151,20 +151,21 @@ bool ICMPModule::prepareSocket()
    static bool	logTimestampType = true;
 #if defined (SO_TIMESTAMPING)
    // Documentation: <linux-src>/Documentation/networking/timestamping.rst
-   const int type = SOF_TIMESTAMPING_TX_HARDWARE|    /* Get hardware TX timestamp                        */
-                    SOF_TIMESTAMPING_RX_HARDWARE|    /* Get hardware RX timestamp                        */
-                    SOF_TIMESTAMPING_RAW_HARDWARE|   /* Hardware timestamps as set by the hardware       */
+   const int type =
+      SOF_TIMESTAMPING_TX_HARDWARE|    /* Get hardware TX timestamp                     */
+      SOF_TIMESTAMPING_RX_HARDWARE|    /* Get hardware RX timestamp                     */
+      SOF_TIMESTAMPING_RAW_HARDWARE|   /* Hardware timestamps as set by the hardware    */
 
-                    SOF_TIMESTAMPING_TX_SOFTWARE|    /* Get software TX timestamp                        */
-                    SOF_TIMESTAMPING_RX_SOFTWARE|    /* Get software RX timestamp                        */
-                    SOF_TIMESTAMPING_SOFTWARE|       /* Get software timestamp as well                   */
+      SOF_TIMESTAMPING_TX_SOFTWARE|    /* Get software TX timestamp                     */
+      SOF_TIMESTAMPING_RX_SOFTWARE|    /* Get software RX timestamp                     */
+      SOF_TIMESTAMPING_SOFTWARE|       /* Get software timestamp as well                */
 
-                    SOF_TIMESTAMPING_OPT_ID|         /* Attach ID to packet (TimeStampSeqID)             */
-                    SOF_TIMESTAMPING_OPT_TSONLY|     /* Get only the timestamp, not the full packet sent */
-                    SOF_TIMESTAMPING_OPT_TX_SWHW|    /* Get both, software and hardware TX time stamp    */
+      SOF_TIMESTAMPING_OPT_ID|         /* Attach ID to packet (TimeStampSeqID)          */
+      SOF_TIMESTAMPING_OPT_TSONLY|     /* Get only the timestamp, not the full packet   */
+      SOF_TIMESTAMPING_OPT_TX_SWHW|    /* Get both, software and hardware TX time stamp */
 
-                    SOF_TIMESTAMPING_TX_SCHED        /* Get TX scheduling timestamp as well              */
-                    ;
+      SOF_TIMESTAMPING_TX_SCHED        /* Get TX scheduling timestamp as well           */
+      ;
    if(setsockopt(ICMPSocket.native_handle(), SOL_SOCKET, SO_TIMESTAMPING,
                  &type, sizeof(type)) < 0) {
       HPCT_LOG(error) << "Unable to enable SO_TIMESTAMPING option on ICMPSocket socket: "
@@ -303,7 +304,7 @@ bool ICMPModule::prepareSocket()
 
    // ====== Set filter (not required, but much more efficient) =============
    if(SourceAddress.is_v6()) {
-      struct icmp6_filter filter;
+      icmp6_filter filter;
       ICMP6_FILTER_SETBLOCKALL(&filter);
       ICMP6_FILTER_SETPASS(ICMP6_ECHO_REPLY,     &filter);
       ICMP6_FILTER_SETPASS(ICMP6_DST_UNREACH,    &filter);
