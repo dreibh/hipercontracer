@@ -1,13 +1,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
-#include <ifaddrs.h>
 #include <netdb.h>
+#include <ifaddrs.h>
 #include <net/if.h>
 
 int main(int argc, char *argv[])
 {
-    struct ifaddrs *ifaddr;
+    ifaddrs *ifaddr;
     int family, s;
     char host[NI_MAXHOST];
 
@@ -16,7 +16,7 @@ int main(int argc, char *argv[])
         exit(EXIT_FAILURE);
     }
 
-    for (struct ifaddrs *ifa = ifaddr; ifa != NULL; ifa = ifa->ifa_next) {
+    for (ifaddrs *ifa = ifaddr; ifa != NULL; ifa = ifa->ifa_next) {
         if (ifa->ifa_addr == NULL)
             continue;
         family = ifa->ifa_addr->sa_family;
@@ -31,8 +31,7 @@ int main(int argc, char *argv[])
                    family);
 
             s = getnameinfo(ifa->ifa_addr,
-                    (family == AF_INET) ? sizeof(struct sockaddr_in) :
-                                          sizeof(struct sockaddr_in6),
+                    (family == AF_INET) ? sizeof(sockaddr_in) : sizeof(sockaddr_in6),
                     host, NI_MAXHOST,
                     NULL, 0, NI_NUMERICHOST);
             if (s != 0) {

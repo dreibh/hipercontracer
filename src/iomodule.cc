@@ -40,6 +40,7 @@
 #include <iostream>  // FIXME!
 #include <boost/interprocess/streams/bufferstream.hpp>
 
+#include <ifaddrs.h>
 #ifdef __linux__
 #include <linux/errqueue.h>
 #include <linux/sockios.h>
@@ -166,7 +167,8 @@ bool ICMPModule::prepareSocket()
                     ;
    if(setsockopt(ICMPSocket.native_handle(), SOL_SOCKET, SO_TIMESTAMPING,
                  &type, sizeof(type)) < 0) {
-      HPCT_LOG(error) << "Unable to enable SO_TIMESTAMPING option on ICMPSocket socket";
+      HPCT_LOG(error) << "Unable to enable SO_TIMESTAMPING option on ICMPSocket socket: "
+                      << strerror(errno);
 #else
 #warning No SO_TIMESTAMPING!
 #endif
@@ -183,7 +185,8 @@ bool ICMPModule::prepareSocket()
          // ====== Try to use SO_TIMESTAMP ==================================
          if(setsockopt(ICMPSocket.native_handle(), SOL_SOCKET, SO_TIMESTAMP,
                        &on, sizeof(on)) < 0) {
-            HPCT_LOG(error) << "Unable to enable SO_TIMESTAMP option on ICMPSocket socket";
+            HPCT_LOG(error) << "Unable to enable SO_TIMESTAMP option on ICMPSocket socket: "
+                            << strerror(errno);
             return false;
          }
 
@@ -191,7 +194,8 @@ bool ICMPModule::prepareSocket()
          const int tdClockType =
          if(setsockopt(ICMPSocket.native_handle(), SOL_SOCKET, SO_TS_CLOCK,
                        &tdClockType, sizeof(tdClockType)) < 0) {
-            HPCT_LOG(error) << "Unable to set SO_TS_CLOCK option on ICMPSocket socket";
+            HPCT_LOG(error) << "Unable to set SO_TS_CLOCK option on ICMPSocket socket: "
+                            << strerror(errno);
             return false;
          }
          if(logTimestampType) {
@@ -220,53 +224,91 @@ bool ICMPModule::prepareSocket()
          HPCT_LOG(info) << "Using SO_TIMESTAMPING (nanoseconds accuracy)";
          logTimestampType = false;
       }
+
+      // ====== Enable hardware timestamping, if possible ===================
+      ifaddrs* ifaddr;
+      if(getifaddrs(&ifaddr) == 0) {
+         // ------ Get set of interfaces ------------------------------------
+         std::set<std::string> interfaceSet;
+         for(ifaddrs *ifa = ifaddr; ifa != NULL; ifa = ifa->ifa_next) {
+            if( (ifa->ifa_addr != nullptr) &&
+                ( (ifa->ifa_addr->sa_family == AF_INET) ||
+                  (ifa->ifa_addr->sa_family == AF_INET6) ) ) {
+               if(SourceAddress.is_unspecified()) {
+                  // Source address is 0.0.0.0/:: -> add all interfaces
+                  interfaceSet.insert(ifa->ifa_name);
+               }
+               else {
+                  // Source address is specific -> find the corresponding interface
+                  const boost::asio::ip::address address =
+                     sockaddrToEndpoint<boost::asio::ip::icmp::endpoint>(
+                        ifa->ifa_addr,
+                        (ifa->ifa_addr->sa_family == AF_INET) ?
+                           sizeof(sockaddr_in) :
+                           sizeof(sockaddr_in6)
+                     ).address();
+                  if(address == SourceAddress) {
+                     std::cout << "A=" << address << "\n";
+                     interfaceSet.insert(ifa->ifa_name);
+                  }
+               }
+            }
+         }
+         freeifaddrs(ifaddr);
+
+         // ====== Try to configure SIOCSHWTSTAMP ===========================
+         static bool	logSIOCSHWTSTAMP = true;
+         for(std::string interfaceName : interfaceSet) {
+            hwtstamp_config hwTimestampConfig;
+            hwTimestampConfig.tx_type   = HWTSTAMP_TX_ON;
+            hwTimestampConfig.rx_filter = HWTSTAMP_FILTER_ALL;
+            const hwtstamp_config hwTimestampConfigDesired = hwTimestampConfig;
+
+            ifreq hwTimestampRequest;
+            memset(&hwTimestampRequest, 0, sizeof(hwTimestampRequest));
+            memcpy(&hwTimestampRequest.ifr_name,
+                   interfaceName.c_str(), interfaceName.size() + 1);
+            hwTimestampRequest.ifr_data = (char*)&hwTimestampConfig;
+
+            if(ioctl(ICMPSocket.native_handle(), SIOCSHWTSTAMP, &hwTimestampRequest) < 0) {
+               if(logSIOCSHWTSTAMP) {
+                  if(errno == ENOTSUP) {
+                     HPCT_LOG(info) << "Hardware timestamping not supported on interface "
+                                    << interfaceName;
+                  }
+                  else {
+                     HPCT_LOG(info) << "Hardware timestamping probably not supported on interface "
+                                    << interfaceName
+                                    << " (SIOCSHWTSTAMP: " << strerror(errno) << ")";
+                  }
+               }
+            }
+            else {
+               if( (hwTimestampConfig.tx_type == hwTimestampConfigDesired.tx_type) &&
+                   (hwTimestampConfig.rx_filter == hwTimestampConfigDesired.rx_filter) ) {
+                  if(logSIOCSHWTSTAMP) {
+                     HPCT_LOG(info) << "Hardware timestamping enabled on interface " << interfaceName;
+                  }
+               }
+            }
+         }
+         logSIOCSHWTSTAMP = false;
+      }
+      else {
+          HPCT_LOG(error) << "getifaddrs() failed: " << strerror(errno);
+          return false;
+      }
    }
 #endif
-
-
-//         const char* interface = "oslomet";
-//         struct ifreq device;
-//         struct ifreq hwtstamp;
-//         struct hwtstamp_config hwconfig, hwconfig_requested;
-//
-//         memset(&device, 0, sizeof(device));
-//         memcpy(device.ifr_name, interface, strlen(interface) + 1);
-//         if (ioctl(ICMPSocket.native_handle(), SIOCGIFADDR, &device) < 0) {
-//            HPCT_LOG(error) << "SIOCGIFADDR:" << strerror(errno);
-//            return false;
-//         }
-//
-//         memset(&hwtstamp, 0, sizeof(hwtstamp));
-//         memcpy(hwtstamp.ifr_name, interface, strlen(interface) + 1);
-//         hwtstamp.ifr_data = (char*)&hwconfig;
-//         memset(&hwconfig, 0, sizeof(hwconfig));
-//         hwconfig.tx_type = HWTSTAMP_TX_ON;
-//         hwconfig.rx_filter = HWTSTAMP_FILTER_ALL;
-//         hwconfig_requested = hwconfig;
-//         if (ioctl(ICMPSocket.native_handle(), SIOCSHWTSTAMP, &hwtstamp) < 0) {
-//                 if ((errno == EINVAL || errno == ENOTSUP) &&
-//                     hwconfig_requested.tx_type == HWTSTAMP_TX_OFF &&
-//                     hwconfig_requested.rx_filter == HWTSTAMP_FILTER_NONE) {
-//                     printf("SIOCSHWTSTAMP: disabling hardware time stamping not possible\n");
-//                     HPCT_LOG(error) << "X-2";
-//                 }
-//                 else {
-//                     HPCT_LOG(error) << "SIOCSHWTSTAMP:" << strerror(errno);
-//                 }
-//         }
-//         printf("SIOCSHWTSTAMP: tx_type %d requested, got %d; rx_filter %d requested, got %d\n",
-//                hwconfig_requested.tx_type, hwconfig.tx_type,
-//                hwconfig_requested.rx_filter, hwconfig.rx_filter);
-
 
    // ====== Set filter (not required, but much more efficient) =============
    if(SourceAddress.is_v6()) {
       struct icmp6_filter filter;
       ICMP6_FILTER_SETBLOCKALL(&filter);
-      ICMP6_FILTER_SETPASS(ICMP6_ECHO_REPLY, &filter);
-      ICMP6_FILTER_SETPASS(ICMP6_DST_UNREACH, &filter);
+      ICMP6_FILTER_SETPASS(ICMP6_ECHO_REPLY,     &filter);
+      ICMP6_FILTER_SETPASS(ICMP6_DST_UNREACH,    &filter);
       ICMP6_FILTER_SETPASS(ICMP6_PACKET_TOO_BIG, &filter);
-      ICMP6_FILTER_SETPASS(ICMP6_TIME_EXCEEDED, &filter);
+      ICMP6_FILTER_SETPASS(ICMP6_TIME_EXCEEDED,  &filter);
       if(setsockopt(ICMPSocket.native_handle(), IPPROTO_ICMPV6, ICMP6_FILTER,
                     &filter, sizeof(struct icmp6_filter)) < 0) {
          HPCT_LOG(warning) << "Unable to set ICMP6_FILTER!";
