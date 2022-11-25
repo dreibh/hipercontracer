@@ -71,7 +71,20 @@ class ICMPModule : public IOModuleBase
                        const bool                       readFromErrorQueue);
    void updateSendTimeInResultEntry(const sock_extended_err* socketError,
                                     const scm_timestamping*  socketTimestamping);
-   void recordResult(const std::chrono::system_clock::time_point& receiveTime,
+//    void getReceptionTimes(
+//            const std::chrono::system_clock::time_point& applicationReceiveTime,
+//            const int                                    socketDescriptor,
+//            const scm_timestamping*                      socketTimestamp,
+//            TimeSourceType&                              rxReceiveSWSource,
+//            std::chrono::system_clock::time_point&       rxReceiveSWTime,
+//            TimeSourceType&                              rxReceiveHWSource,
+//            std::chrono::system_clock::time_point&       rxReceiveHWTime);
+
+   void recordResult(const std::chrono::system_clock::time_point& applicationReceiveTime,
+                     const TimeSourceType                         rxReceiveSWSource,
+                     const std::chrono::system_clock::time_point& rxReceiveSWTime,
+                     const TimeSourceType                         rxReceiveHWSource,
+                     const std::chrono::system_clock::time_point& rxReceiveHWTime,
                      const ICMPHeader&                            icmpHeader,
                      const unsigned short                         seqNumber);
 

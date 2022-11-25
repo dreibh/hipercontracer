@@ -30,6 +30,7 @@
 // Contact: dreibh@simula.no
 
 #include "resultentry.h"
+#include "tools.h"
 
 #include <boost/format.hpp>
 
@@ -53,7 +54,7 @@ ResultEntry::ResultEntry(const uint32_t                                        t
      Destination(destination),
      Status(status)
 {
-   setSendTime(TXTimeStampType::TXTST_Application, TimeSource::TS_SysClock, sendTime);
+   setSendTime(TXTimeStampType::TXTST_Application, TimeSourceType::TST_SysClock, sendTime);
 }
 
 
@@ -66,6 +67,10 @@ ResultEntry::~ResultEntry()
 // ###### Output operator ###################################################
 std::ostream& operator<<(std::ostream& os, const ResultEntry& resultEntry)
 {
+   const std::chrono::high_resolution_clock::duration rttApplication = resultEntry.rtt(RXTimeStampType::RXTST_ReceptionSW);
+   const std::chrono::high_resolution_clock::duration rttSoftware    = resultEntry.rtt(RXTimeStampType::RXTST_ReceptionSW);
+   const std::chrono::high_resolution_clock::duration rttHardware    = resultEntry.rtt(RXTimeStampType::RXTST_ReceptionHW);
+
    os << boost::format("#%08xu")          % resultEntry.TimeStampSeqID
       << boost::format("R%d")             % resultEntry.Round
       << "\t" << boost::format("#%05d")   % resultEntry.SeqNumber
@@ -77,5 +82,16 @@ std::ostream& operator<<(std::ostream& os, const ResultEntry& resultEntry)
       << "\t" << boost::format("%04x")    % resultEntry.Checksum
       << "\t" << boost::format("%d")      % resultEntry.PacketSize
       << "\t" << resultEntry.Destination;
+
+   os << "\n"
+      << "Ap: " << nsSinceEpoch(resultEntry.sendTime(TXTimeStampType::TXTST_Application)) << " -> "
+                << nsSinceEpoch(resultEntry.receiveTime(RXTimeStampType::RXTST_Application)) << "\n"
+
+      << "Sw: " << nsSinceEpoch(resultEntry.sendTime(TXTimeStampType::TXTST_SchedulerSW))    << " -> "
+                << nsSinceEpoch(resultEntry.sendTime(TXTimeStampType::TXTST_TransmissionSW)) << " -> "
+                << nsSinceEpoch(resultEntry.receiveTime(RXTimeStampType::RXTST_ReceptionSW)) << "\n"
+
+      << "Hw: " << nsSinceEpoch(resultEntry.sendTime(TXTimeStampType::TXTST_TransmissionHW)) << " -> "
+                << nsSinceEpoch(resultEntry.receiveTime(RXTimeStampType::RXTST_ReceptionHW)) << "\n";
    return(os);
 }

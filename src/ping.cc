@@ -40,6 +40,7 @@
 
 // ###### Constructor #######################################################
 Ping::Ping(ResultsWriter*                   resultsWriter,
+           const OutputFormatType           outputFormat,
            const unsigned int               iterations,
            const bool                       removeDestinationAfterRun,
            const boost::asio::ip::address&  sourceAddress,
@@ -48,7 +49,7 @@ Ping::Ping(ResultsWriter*                   resultsWriter,
            const unsigned int               expiration,
            const unsigned int               ttl,
            const unsigned int               packetSize)
-   : Traceroute(resultsWriter, iterations, removeDestinationAfterRun,
+   : Traceroute(resultsWriter, outputFormat, iterations, removeDestinationAfterRun,
                 sourceAddress, destinationArray,
                 interval, expiration, ttl, ttl, ttl, 1,
                 packetSize),
@@ -152,9 +153,11 @@ void Ping::processResults()
 
       // ====== Time-out entries ============================================
       if( (resultEntry->status() == Unknown) &&
-          (std::chrono::duration_cast<std::chrono::milliseconds>(now - resultEntry->sendTime(RXTimeStampType::RXTST_Application)).count() >= Expiration) ) {
+          (std::chrono::duration_cast<std::chrono::milliseconds>(now - resultEntry->sendTime(TXTimeStampType::TXTST_Application)).count() >= Expiration) ) {
          resultEntry->setStatus(Timeout);
-         resultEntry->setReceiveTime(resultEntry->sendTime() + std::chrono::milliseconds(Expiration));
+         resultEntry->setReceiveTime(RXTimeStampType::RXTST_Application,
+                                     TimeSourceType::TST_SysClock,
+                                     resultEntry->sendTime(TXTimeStampType::TXTST_Application) + std::chrono::milliseconds(Expiration));
       }
 
       // ====== Print completed entries =====================================
@@ -166,14 +169,19 @@ void Ping::processResults()
          }
 
          if(ResultsOutput) {
+            std::chrono::high_resolution_clock::duration rtt = resultEntry->rtt(RXTimeStampType::RXTST_ReceptionSW);
+            if(rtt.count() == 0) {
+               rtt = resultEntry->rtt(RXTimeStampType::RXTST_Application);
+            }
+
             ResultsOutput->insert(
                str(boost::format("#P %s %s %x %x %d %d %x %d")
                   % SourceAddress.to_string()
                   % resultEntry->destinationAddress().to_string()
-                  % usSinceEpoch(resultEntry->sendTime())
+                  % usSinceEpoch<std::chrono::high_resolution_clock::time_point>(resultEntry->sendTime(TXTimeStampType::TXTST_Application))
                   % resultEntry->checksum()
                   % resultEntry->status()
-                  % std::chrono::duration_cast<std::chrono::microseconds>(resultEntry->receiveTime() - resultEntry->sendTime()).count()
+                  % std::chrono::duration_cast<std::chrono::microseconds>(rtt).count()
                   % (unsigned int)resultEntry->destination().trafficClass()
                   % resultEntry->packetSize()
             ));

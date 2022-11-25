@@ -39,7 +39,23 @@
 #include <boost/asio.hpp>
 
 
-uint64_t usSinceEpoch(const std::chrono::system_clock::time_point& time);
+// ###### Convert time to microseconds since the epoch ######################
+template<class TimePoint>
+uint64_t usSinceEpoch(const TimePoint& timePoint)
+{
+   const auto duration = timePoint.time_since_epoch();
+   return std::chrono::duration_cast<std::chrono::microseconds>(duration).count();
+}
+
+
+// ###### Convert time to nanoseconds since the epoch #######################
+template<class TimePoint>
+uint64_t nsSinceEpoch(const TimePoint& timePoint)
+{
+   const auto duration = timePoint.time_since_epoch();
+   return std::chrono::duration_cast<std::chrono::nanoseconds>(duration).count();
+}
+
 
 const passwd* getUser(const char* user);
 bool reducePrivileges(const passwd* pw);

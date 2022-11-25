@@ -58,6 +58,7 @@
 
 // ###### Constructor #######################################################
 Traceroute::Traceroute(ResultsWriter*                   resultsWriter,
+                       const OutputFormatType           outputFormat,
                        const unsigned int               iterations,
                        const bool                       removeDestinationAfterRun,
                        const boost::asio::ip::address&  sourceAddress,
@@ -71,6 +72,7 @@ Traceroute::Traceroute(ResultsWriter*                   resultsWriter,
                        const unsigned int               packetSize)
    : TracerouteInstanceName(std::string("Traceroute(") + sourceAddress.to_string() + std::string(")")),
      ResultsOutput(resultsWriter),
+     OutputFormat(outputFormat),
      Iterations(iterations),
      RemoveDestinationAfterRun(removeDestinationAfterRun),
      Interval(interval),
@@ -467,7 +469,9 @@ void Traceroute::processResults()
             // ====== Time-out ==============================================
             else if(resultEntry->status() == Unknown) {
                resultEntry->setStatus(Timeout);
-               resultEntry->setReceiveTime(resultEntry->sendTime() + std::chrono::milliseconds(Expiration));
+               resultEntry->setReceiveTime(RXTimeStampType::RXTST_Application,
+                                           TimeSourceType::TST_SysClock,
+                                           resultEntry->sendTime(TXTimeStampType::TXTST_Application) + std::chrono::milliseconds(Expiration));
                pathString += "-*";
                completeTraceroute = false;   // at least one hop has not sent a response :-(
             }
@@ -516,7 +520,7 @@ void Traceroute::processResults()
                   //   This is necessary, in order to ensure that all entries use the same
                   //   time stamp for identification!
                   // - Also, entries of additional rounds are using this time stamp!
-                  timeStamp = usSinceEpoch(resultEntry->sendTime());
+                  timeStamp = usSinceEpoch(resultEntry->sendTime(TXTimeStampType::TXTST_Application));
                }
 
                if(writeHeader) {
@@ -537,11 +541,16 @@ void Traceroute::processResults()
                   checksumCheck = resultEntry->checksum();
                }
 
+               std::chrono::high_resolution_clock::duration rtt = resultEntry->rtt(RXTimeStampType::RXTST_ReceptionSW);
+               if(rtt.count() == 0) {
+                  rtt = resultEntry->rtt(RXTimeStampType::RXTST_Application);
+               }
+
                ResultsOutput->insert(
                   str(boost::format("\t %d %x %d %s")
                      % resultEntry->hop()
                      % (unsigned int)resultEntry->status()
-                     % std::chrono::duration_cast<std::chrono::microseconds>(resultEntry->receiveTime() - resultEntry->sendTime()).count()
+                     % std::chrono::duration_cast<std::chrono::microseconds>(rtt).count()
                      % resultEntry->destinationAddress().to_string()
                ));
                assert(resultEntry->checksum() == checksumCheck);

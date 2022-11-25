@@ -47,10 +47,19 @@
 
 class ICMPHeader;
 
+
+enum OutputFormatType
+{
+   OFT_HiPerConTracer_Version1 = 1,
+   OFT_HiPerConTracer_Version2 = 2
+};
+
+
 class Traceroute : public Service
 {
    public:
    Traceroute(ResultsWriter*                   resultsWriter,
+              const OutputFormatType           outputFormat,
               const unsigned int               iterations,
               const bool                       removeDestinationInfoAfterRun,
               const boost::asio::ip::address&  sourceAddress,
@@ -98,6 +107,7 @@ class Traceroute : public Service
 
    const std::string                       TracerouteInstanceName;
    ResultsWriter*                          ResultsOutput;
+   const OutputFormatType                  OutputFormat;
    const unsigned int                      Iterations;
    const bool                              RemoveDestinationAfterRun;
    const unsigned long long                Interval;

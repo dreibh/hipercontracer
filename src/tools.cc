@@ -40,14 +40,6 @@
 #include <boost/algorithm/string.hpp>
 
 
-// ###### Convert time to microseconds since the epoch ######################
-uint64_t usSinceEpoch(const std::chrono::system_clock::time_point& time)
-{
-   const std::chrono::system_clock::duration duration = time.time_since_epoch();
-   return std::chrono::duration_cast<std::chrono::microseconds>(duration).count();
-}
-
-
 // ###### Reduce permissions of process #####################################
 const passwd* getUser(const char* user)
 {

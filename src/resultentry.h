@@ -82,16 +82,16 @@ inline bool statusIsUnreachable(const HopStatus hopStatus)
 }
 
 
-enum TimeSource
+enum TimeSourceType
 {
-   TS_Unknown         = 0,
-   TS_SysClock        = 1,
-   TS_TIMESTAMP       = 2,
-   TS_TIMESTAMPNS     = 3,
-   TS_SIOCGSTAMP      = 4,
-   TS_SIOCGSTAMPNS    = 5,
-   TS_TIMESTAMPING_SW = 8,
-   TS_TIMESTAMPING_HW = 9
+   TST_Unknown         = 0,
+   TST_SysClock        = 1,
+   TST_TIMESTAMP       = 2,
+   TST_TIMESTAMPNS     = 3,
+   TST_SIOCGSTAMP      = 4,
+   TST_SIOCGSTAMPNS    = 5,
+   TST_TIMESTAMPING_SW = 8,
+   TST_TIMESTAMPING_HW = 9
 };
 
 enum TXTimeStampType
@@ -99,8 +99,8 @@ enum TXTimeStampType
    TXTST_Application    = 0,   /* User-space application                               */
    TXTST_TransmissionSW = 1,   /* Software Transmission (SOF_TIMESTAMPING_TX_SOFTWARE) */
    TXTST_TransmissionHW = 2,   /* Hardware Transmission (SOF_TIMESTAMPING_TX_HARDWARE) */
-   TXTST_Scheduler      = 3,   /* Kernel scheduler (SOF_TIMESTAMPING_TX_SCHED)         */
-   TXTST_MAX = TXTST_Scheduler
+   TXTST_SchedulerSW    = 3,   /* Kernel scheduler (SOF_TIMESTAMPING_TX_SCHED)         */
+   TXTST_MAX = TXTST_SchedulerSW
 };
 
 enum RXTimeStampType
@@ -140,8 +140,11 @@ class ResultEntry {
    inline void setDestinationAddress(const boost::asio::ip::address& address) { Destination.setAddress(address); }
    inline void setStatus(const HopStatus status)                              { Status      = status;            }
 
+   inline std::chrono::high_resolution_clock::time_point sendTime(const TXTimeStampType txTimeStampType)    const { return(SendTime[txTimeStampType]);    }
+   inline std::chrono::high_resolution_clock::time_point receiveTime(const RXTimeStampType rxTimeStampType) const { return(ReceiveTime[rxTimeStampType]); }
+
    inline void setSendTime(const TXTimeStampType                                 txTimeStampType,
-                           const TimeSource                                      txTimeSource,
+                           const TimeSourceType                                  txTimeSource,
                            const std::chrono::high_resolution_clock::time_point& txTime) {
       assert((unsigned int)txTimeStampType <= TXTimeStampType::TXTST_MAX);
       SendTimeSource[txTimeStampType] = txTimeSource;
@@ -149,7 +152,7 @@ class ResultEntry {
    }
 
    inline void setReceiveTime(const RXTimeStampType                                 rxTimeStampType,
-                              const TimeSource                                      rxTimeSource,
+                              const TimeSourceType                                  rxTimeSource,
                               const std::chrono::high_resolution_clock::time_point& rxTime) {
       assert((unsigned int)rxTimeStampType <= RXTimeStampType::RXTST_MAX);
       ReceiveTimeSource[rxTimeStampType] = rxTimeSource;
@@ -159,7 +162,6 @@ class ResultEntry {
     inline std::chrono::high_resolution_clock::duration rtt(const RXTimeStampType rxTimeStampType) const {
        assert((unsigned int)rxTimeStampType <= RXTimeStampType::RXTST_MAX);
        // NOTE: Indexing for both arrays (RX, TX) is the same!
-       assert(ReceiveTimeSource[rxTimeStampType] == SendTimeSource[rxTimeStampType]);
        return(ReceiveTime[rxTimeStampType] - SendTime[rxTimeStampType]);
     }
 
@@ -178,9 +180,9 @@ class ResultEntry {
 
    DestinationInfo                                Destination;
    HopStatus                                      Status;
-   TimeSource                                     ReceiveTimeSource[RXTimeStampType::RXTST_MAX + 1];
+   TimeSourceType                                 ReceiveTimeSource[RXTimeStampType::RXTST_MAX + 1];
    std::chrono::high_resolution_clock::time_point ReceiveTime[RXTimeStampType::RXTST_MAX + 1];
-   TimeSource                                     SendTimeSource[TXTimeStampType::TXTST_MAX + 1];
+   TimeSourceType                                 SendTimeSource[TXTimeStampType::TXTST_MAX + 1];
    std::chrono::high_resolution_clock::time_point SendTime[TXTimeStampType::TXTST_MAX + 1];
 };
 
