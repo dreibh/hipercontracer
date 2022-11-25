@@ -160,7 +160,7 @@ bool ICMPModule::prepareSocket()
 
                     SOF_TIMESTAMPING_OPT_ID|         /* Attach ID to packet (TimeStampSeqID)             */
                     SOF_TIMESTAMPING_OPT_TSONLY|     /* Get only the timestamp, not the full packet sent */
-                    SOF_TIMESTAMPING_OPT_TX_SWHW|    /* Get both, software and hardware time stamp       */
+                    SOF_TIMESTAMPING_OPT_TX_SWHW|    /* Get both, software and hardware TX time stamp    */
 
                     SOF_TIMESTAMPING_TX_SCHED        /* Get TX scheduling timestamp as well              */
                     ;
@@ -539,7 +539,7 @@ void ICMPModule::handleResponse(const boost::system::error_code& errorCode,
                                                std::chrono::seconds(socketTimestamp->ts[2].tv_sec) +
                                                std::chrono::nanoseconds(socketTimestamp->ts[2].tv_nsec));
                      }
-                     else if(socketTimestamp->ts[0].tv_sec != 0) {
+                     if(socketTimestamp->ts[0].tv_sec != 0) {
                         // Software timestamp (system clock):
                         puts("SO_TIMESTAMPING SOFT!");
                         rxReceiveSWSource = TimeSourceType::TST_TIMESTAMPING_SW;

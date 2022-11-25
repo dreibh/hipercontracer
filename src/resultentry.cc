@@ -67,7 +67,7 @@ ResultEntry::~ResultEntry()
 // ###### Output operator ###################################################
 std::ostream& operator<<(std::ostream& os, const ResultEntry& resultEntry)
 {
-   const std::chrono::high_resolution_clock::duration rttApplication = resultEntry.rtt(RXTimeStampType::RXTST_ReceptionSW);
+   const std::chrono::high_resolution_clock::duration rttApplication = resultEntry.rtt(RXTimeStampType::RXTST_Application);
    const std::chrono::high_resolution_clock::duration rttSoftware    = resultEntry.rtt(RXTimeStampType::RXTST_ReceptionSW);
    const std::chrono::high_resolution_clock::duration rttHardware    = resultEntry.rtt(RXTimeStampType::RXTST_ReceptionHW);
 
@@ -75,9 +75,9 @@ std::ostream& operator<<(std::ostream& os, const ResultEntry& resultEntry)
       << boost::format("R%d")             % resultEntry.Round
       << "\t" << boost::format("#%05d")   % resultEntry.SeqNumber
       << "\t" << boost::format("%2d")     % resultEntry.Hop
-      << "\tA:" << boost::format("%9.6fms") % (std::chrono::duration_cast<std::chrono::nanoseconds>(resultEntry.rtt(RXTimeStampType::RXTST_Application)).count() / 1000000.0)
-      << "\tS:" << boost::format("%9.6fms") % (std::chrono::duration_cast<std::chrono::nanoseconds>(resultEntry.rtt(RXTimeStampType::RXTST_ReceptionSW)).count() / 1000000.0)
-      << "\tH:" << boost::format("%9.6fms") % (std::chrono::duration_cast<std::chrono::nanoseconds>(resultEntry.rtt(RXTimeStampType::RXTST_ReceptionHW)).count() / 1000000.0)
+      << "\tA:" << boost::format("%9.6fms") % (std::chrono::duration_cast<std::chrono::nanoseconds>(rttApplication).count() / 1000000.0)
+      << "\tS:" << boost::format("%9.6fms") % (std::chrono::duration_cast<std::chrono::nanoseconds>(rttSoftware).count() / 1000000.0)
+      << "\tH:" << boost::format("%9.6fms") % (std::chrono::duration_cast<std::chrono::nanoseconds>(rttHardware).count() / 1000000.0)
       << "\t" << boost::format("%3d")     % resultEntry.Status
       << "\t" << boost::format("%04x")    % resultEntry.Checksum
       << "\t" << boost::format("%d")      % resultEntry.PacketSize
