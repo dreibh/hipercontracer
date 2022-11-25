@@ -77,7 +77,8 @@ class ICMPModule : public IOModuleBase
                      const std::chrono::system_clock::time_point& rxReceiveSWTime,
                      const TimeSourceType                         rxReceiveHWSource,
                      const std::chrono::system_clock::time_point& rxReceiveHWTime,
-                     const ICMPHeader&                            icmpHeader,
+                     const uint8_t                                icmpType,
+                     const uint8_t                                icmpCode,
                      const unsigned short                         seqNumber);
 
    const unsigned int              PayloadSize;

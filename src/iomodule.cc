@@ -707,7 +707,8 @@ void ICMPModule::handleResponse(const boost::system::error_code& errorCode,
                                     recordResult(replyEndpoint, applicationReceiveTime,
                                                  rxReceiveSWSource, rxReceiveSWTime,
                                                  rxReceiveHWSource, rxReceiveHWTime,
-                                                 icmpHeader, icmpHeader.seqNumber());
+                                                 icmpHeader.type(), icmpHeader.code(),
+                                                 icmpHeader.seqNumber());
                                  }
                               }
                            }
@@ -723,7 +724,8 @@ void ICMPModule::handleResponse(const boost::system::error_code& errorCode,
                                  recordResult(replyEndpoint, applicationReceiveTime,
                                               rxReceiveSWSource, rxReceiveSWTime,
                                               rxReceiveHWSource, rxReceiveHWTime,
-                                              icmpHeader, innerICMPHeader.seqNumber());
+                                              icmpHeader.type(), icmpHeader.code(),
+                                              innerICMPHeader.seqNumber());
                               }
                            }
                         }
@@ -744,7 +746,8 @@ void ICMPModule::handleResponse(const boost::system::error_code& errorCode,
                                        recordResult(replyEndpoint, applicationReceiveTime,
                                                     rxReceiveSWSource, rxReceiveSWTime,
                                                     rxReceiveHWSource, rxReceiveHWTime,
-                                                    icmpHeader, icmpHeader.seqNumber());
+                                                    icmpHeader.type(), icmpHeader.code(),
+                                                    icmpHeader.seqNumber());
                                     }
                                  }
                               }
@@ -761,7 +764,8 @@ void ICMPModule::handleResponse(const boost::system::error_code& errorCode,
                                        recordResult(replyEndpoint, applicationReceiveTime,
                                                     rxReceiveSWSource, rxReceiveSWTime,
                                                     rxReceiveHWSource, rxReceiveHWTime,
-                                                    icmpHeader, innerICMPHeader.seqNumber());
+                                                    icmpHeader.type(), icmpHeader.code(),
+                                                    innerICMPHeader.seqNumber());
                                     }
                                  }
                               }
@@ -797,7 +801,8 @@ void ICMPModule::handleResponse(const boost::system::error_code& errorCode,
                                  recordResult(replyEndpoint, applicationReceiveTime,
                                               rxReceiveSWSource, rxReceiveSWTime,
                                               rxReceiveHWSource, rxReceiveHWTime,
-                                              icmpHeader, innerICMPHeader.seqNumber());
+                                              icmpHeader.type(), icmpHeader.code(),
+                                              innerICMPHeader.seqNumber());
                               }
                            }
                         }
@@ -821,7 +826,8 @@ void ICMPModule::handleResponse(const boost::system::error_code& errorCode,
                                        recordResult(replyEndpoint, applicationReceiveTime,
                                                     rxReceiveSWSource, rxReceiveSWTime,
                                                     rxReceiveHWSource, rxReceiveHWTime,
-                                                    icmpHeader, innerICMPHeader.seqNumber());
+                                                    icmpHeader.type(), icmpHeader.code(),
+                                                    innerICMPHeader.seqNumber());
 puts("UPDATE IN ERRQUEUE !");
 abort();
                                     }
@@ -848,7 +854,8 @@ void ICMPModule::recordResult(const boost::asio::ip::udp::endpoint         reply
                               const std::chrono::system_clock::time_point& rxReceiveSWTime,
                               const TimeSourceType                         rxReceiveHWSource,
                               const std::chrono::system_clock::time_point& rxReceiveHWTime,
-                              const ICMPHeader&                            icmpHeader,
+                              const uint8_t                                icmpType,
+                              const uint8_t                                icmpCode,
                               const unsigned short                         seqNumber)
 {
    // ====== Find corresponding request =====================================
@@ -870,14 +877,14 @@ void ICMPModule::recordResult(const boost::asio::ip::udp::endpoint         reply
       resultEntry->setDestinationAddress(replyEndpoint.address());
 
       HopStatus status = Unknown;
-      if( (icmpHeader.type() == ICMPHeader::IPv6TimeExceeded) ||
-          (icmpHeader.type() == ICMPHeader::IPv4TimeExceeded) ) {
+      if( (icmpType == ICMPHeader::IPv6TimeExceeded) ||
+          (icmpType == ICMPHeader::IPv4TimeExceeded) ) {
          status = TimeExceeded;
       }
-      else if( (icmpHeader.type() == ICMPHeader::IPv6Unreachable) ||
-               (icmpHeader.type() == ICMPHeader::IPv4Unreachable) ) {
+      else if( (icmpType == ICMPHeader::IPv6Unreachable) ||
+               (icmpType == ICMPHeader::IPv4Unreachable) ) {
          if(SourceAddress.is_v6()) {
-            switch(icmpHeader.code()) {
+            switch(icmpCode) {
                case ICMP6_DST_UNREACH_ADMIN:
                   status = UnreachableProhibited;
                break;
@@ -899,7 +906,7 @@ void ICMPModule::recordResult(const boost::asio::ip::udp::endpoint         reply
             }
          }
          else {
-            switch(icmpHeader.code()) {
+            switch(icmpCode) {
                case ICMP_UNREACH_FILTER_PROHIB:
                   status = UnreachableProhibited;
                break;
@@ -920,8 +927,8 @@ void ICMPModule::recordResult(const boost::asio::ip::udp::endpoint         reply
             }
          }
       }
-      else if( (icmpHeader.type() == ICMPHeader::IPv6EchoReply) ||
-               (icmpHeader.type() == ICMPHeader::IPv4EchoReply) ) {
+      else if( (icmpType == ICMPHeader::IPv6EchoReply) ||
+               (icmpType == ICMPHeader::IPv4EchoReply) ) {
          status  = Success;
       }
       resultEntry->setStatus(status);
