@@ -457,67 +457,7 @@ ResultEntry* ICMPModule::sendRequest(const DestinationInfo& destination,
 }
 
 
-// ###### Update ResultEntry with send timestamp information ################
-void ICMPModule::updateSendTimeInResultEntry(const sock_extended_err* socketError,
-                                             const scm_timestamping*  socketTimestamp)
-{
-   for(std::map<unsigned short, ResultEntry*>::iterator iterator = ResultsMap.begin();
-       iterator != ResultsMap.end(); iterator++) {
-      ResultEntry* resultsEntry = iterator->second;
-      if(resultsEntry->timeStampSeqID() == socketError->ee_data) {
-         int                                   txTimeStampType = -1;
-         int                                   txTimeSource    = -1;
-         std::chrono::system_clock::time_point txTimePoint;
-         if(socketTimestamp->ts[2].tv_sec != 0) {
-            // Hardware timestamp (raw):
-            txTimeSource = TimeSourceType::TST_TIMESTAMPING_HW;
-            txTimePoint  = std::chrono::system_clock::time_point(
-                              std::chrono::seconds(socketTimestamp->ts[2].tv_sec) +
-                              std::chrono::nanoseconds(socketTimestamp->ts[2].tv_nsec));
-            switch(socketError->ee_info) {
-               case SCM_TSTAMP_SND:
-                  txTimeStampType = TXTimeStampType::TXTST_TransmissionHW;
-                break;
-               default:
-                  HPCT_LOG(warning) << "Got unexpected HW timestamp with socketError->ee_info="
-                                    << socketError->ee_info;
-                break;
-            }
-         }
-         else if(socketTimestamp->ts[0].tv_sec != 0) {
-            // Software timestamp (system time from kernel):
-            txTimeSource = TimeSourceType::TST_TIMESTAMPING_SW;
-            txTimePoint  = std::chrono::system_clock::time_point(
-                              std::chrono::seconds(socketTimestamp->ts[0].tv_sec) +
-                              std::chrono::nanoseconds(socketTimestamp->ts[0].tv_nsec));
-            switch(socketError->ee_info) {
-               case SCM_TSTAMP_SCHED:
-                  txTimeStampType = TXTimeStampType::TXTST_SchedulerSW;
-                break;
-               case SCM_TSTAMP_SND:
-                  txTimeStampType = TXTimeStampType::TXTST_TransmissionSW;
-                break;
-               default:
-                  HPCT_LOG(warning) << "Got unexpected SW timestamp with socketError->ee_info="
-                                    << socketError->ee_info;
-                break;
-            }
-         }
-         if( (txTimeStampType >= 0) && (txTimeSource >= 0) ) {
-            resultsEntry->setSendTime((TXTimeStampType)txTimeStampType,
-                                      (TimeSourceType)txTimeSource, txTimePoint);
-         }
-         else {
-            HPCT_LOG(warning) << "Got unexpected timestamping information";
-         }
-         return;   // Done!
-      }
-   }
-   HPCT_LOG(warning) << "Not found: timeStampSeqID=" << socketError->ee_data;
-}
-
-
-// ###### Handle incoming ICMP message ######################################
+// ###### Handle incoming message from regular or from error queue ##########
 void ICMPModule::handleResponse(const boost::system::error_code& errorCode,
                                 const bool                       readFromErrorQueue)
 {
@@ -688,175 +628,86 @@ void ICMPModule::handleResponse(const boost::system::error_code& errorCode,
             if(!readFromErrorQueue) {
                printf("DATA %d    tsPtr=%p\n", (int)length, socketTimestamp);
                if(length > 0) {
-
-                handlePayloadResponse(replyEndpoint, applicationReceiveTime,
-                                      rxReceiveSWSource, rxReceiveSWTime,
-                                      rxReceiveHWSource, rxReceiveHWTime,
-                                      (char*)&MessageBuffer, length);
-//***********************************************
-#if 0
-                  // ====== Handle ICMP header =======================================
-                  boost::interprocess::bufferstream is(MessageBuffer, length);
-                  ExpectingReply = false;   // Need to call expectNextReply() to get next message!
-
-                  ICMPHeader icmpHeader;
-                  if(SourceAddress.is_v6()) {
-                     is >> icmpHeader;
-                     if(is) {
-                        if(icmpHeader.type() == ICMPHeader::IPv6EchoReply) {
-                           if(icmpHeader.identifier() == Identifier) {
-                              TraceServiceHeader tsHeader;
-                              is >> tsHeader;
-                              if(is) {
-                                 if(tsHeader.magicNumber() == MagicNumber) {
-                                    recordResult(replyEndpoint, applicationReceiveTime,
-                                                 rxReceiveSWSource, rxReceiveSWTime,
-                                                 rxReceiveHWSource, rxReceiveHWTime,
-                                                 icmpHeader.type(), icmpHeader.code(),
-                                                 icmpHeader.seqNumber());
-                                 }
-                              }
-                           }
-                        }
-                        else if( (icmpHeader.type() == ICMPHeader::IPv6TimeExceeded) ||
-                                 (icmpHeader.type() == ICMPHeader::IPv6Unreachable) ) {
-                           IPv6Header innerIPv6Header;
-                           ICMPHeader innerICMPHeader;
-                           TraceServiceHeader tsHeader;
-                           is >> innerIPv6Header >> innerICMPHeader >> tsHeader;
-                           if(is) {
-                              if(tsHeader.magicNumber() == MagicNumber) {
-                                 recordResult(replyEndpoint, applicationReceiveTime,
-                                              rxReceiveSWSource, rxReceiveSWTime,
-                                              rxReceiveHWSource, rxReceiveHWTime,
-                                              icmpHeader.type(), icmpHeader.code(),
-                                              innerICMPHeader.seqNumber());
-                              }
-                           }
-                        }
-                     }
-                  }
-                  else {
-                     IPv4Header ipv4Header;
-                     is >> ipv4Header;
-                     if(is) {
-                        is >> icmpHeader;
-                        if(is) {
-                           if(icmpHeader.type() == ICMPHeader::IPv4EchoReply) {
-                              if(icmpHeader.identifier() == Identifier) {
-                                 TraceServiceHeader tsHeader;
-                                 is >> tsHeader;
-                                 if(is) {
-                                    if(tsHeader.magicNumber() == MagicNumber) {
-                                       recordResult(replyEndpoint, applicationReceiveTime,
-                                                    rxReceiveSWSource, rxReceiveSWTime,
-                                                    rxReceiveHWSource, rxReceiveHWTime,
-                                                    icmpHeader.type(), icmpHeader.code(),
-                                                    icmpHeader.seqNumber());
-                                    }
-                                 }
-                              }
-                           }
-                           else if(icmpHeader.type() == ICMPHeader::IPv4TimeExceeded) {
-                              IPv4Header innerIPv4Header;
-                              ICMPHeader innerICMPHeader;
-                              is >> innerIPv4Header >> innerICMPHeader;
-                              if(is) {
-                                 if( (icmpHeader.type() == ICMPHeader::IPv4TimeExceeded) ||
-                                     (icmpHeader.type() == ICMPHeader::IPv4Unreachable) ) {
-                                    if(innerICMPHeader.identifier() == Identifier) {
-                                       // Unfortunately, ICMPv4 does not return the full TraceServiceHeader here!
-                                       recordResult(replyEndpoint, applicationReceiveTime,
-                                                    rxReceiveSWSource, rxReceiveSWTime,
-                                                    rxReceiveHWSource, rxReceiveHWTime,
-                                                    icmpHeader.type(), icmpHeader.code(),
-                                                    innerICMPHeader.seqNumber());
-                                    }
-                                 }
-                              }
-                           }
-                        }
-                     }
-                  }
-#endif
-//***********************************************
-
+                  handlePayloadResponse(replyEndpoint, applicationReceiveTime,
+                                        rxReceiveSWSource, rxReceiveSWTime,
+                                        rxReceiveHWSource, rxReceiveHWTime,
+                                        (char*)&MessageBuffer, length);
                }
             }
 
             else {
                printf("ERR-QUEUE %d --------------\n", (int)length);
                if(length > 0) {
-
-                handleErrorResponse(replyEndpoint, applicationReceiveTime,
-                                    rxReceiveSWSource, rxReceiveSWTime,
-                                    rxReceiveHWSource, rxReceiveHWTime,
-                                    (char*)&MessageBuffer, length);
-
-//***********************************************
-#if 0
-                  // ====== Handle ICMP header =======================================
-                  boost::interprocess::bufferstream is(MessageBuffer, length);
-
-                  ICMPHeader icmpHeader;
-                  if(SourceAddress.is_v6()) {
-                     is >> icmpHeader;
-                     if(is) {
-                        if( (icmpHeader.type() == ICMPHeader::IPv6TimeExceeded) ||
-                            (icmpHeader.type() == ICMPHeader::IPv6Unreachable) ) {
-                           IPv6Header innerIPv6Header;
-                           ICMPHeader innerICMPHeader;
-                           TraceServiceHeader tsHeader;
-                           is >> innerIPv6Header >> innerICMPHeader >> tsHeader;
-                           if(is) {
-                              if(tsHeader.magicNumber() == MagicNumber) {
-                                 recordResult(replyEndpoint, applicationReceiveTime,
-                                              rxReceiveSWSource, rxReceiveSWTime,
-                                              rxReceiveHWSource, rxReceiveHWTime,
-                                              icmpHeader.type(), icmpHeader.code(),
-                                              innerICMPHeader.seqNumber());
-                              }
-                           }
-                        }
-                     }
-                  }
-                  else {
-                     IPv4Header ipv4Header;
-                     is >> ipv4Header;
-                     if(is) {
-                        is >> icmpHeader;
-                        if(is) {
-                           if(icmpHeader.type() == ICMPHeader::IPv4TimeExceeded) {
-                              IPv4Header innerIPv4Header;
-                              ICMPHeader innerICMPHeader;
-                              is >> innerIPv4Header >> innerICMPHeader;
-                              if(is) {
-                                 if( (icmpHeader.type() == ICMPHeader::IPv4TimeExceeded) ||
-                                     (icmpHeader.type() == ICMPHeader::IPv4Unreachable) ) {
-                                    if(innerICMPHeader.identifier() == Identifier) {
-                                       // Unfortunately, ICMPv4 does not return the full TraceServiceHeader here!
-                                       recordResult(replyEndpoint, applicationReceiveTime,
-                                                    rxReceiveSWSource, rxReceiveSWTime,
-                                                    rxReceiveHWSource, rxReceiveHWTime,
-                                                    icmpHeader.type(), icmpHeader.code(),
-                                                    innerICMPHeader.seqNumber());
-puts("UPDATE IN ERRQUEUE !");
-abort();
-                                    }
-                                 }
-                              }
-                           }
-                        }
-                     }
-                  }
-#endif
-//***********************************************
+                  handleErrorResponse(replyEndpoint, applicationReceiveTime,
+                                      rxReceiveSWSource, rxReceiveSWTime,
+                                      rxReceiveHWSource, rxReceiveHWTime,
+                                      (char*)&MessageBuffer, length);
                }
             }
          }
       }
       expectNextReply();
    }
+}
+
+
+// ###### Update ResultEntry with send timestamp information ################
+void ICMPModule::updateSendTimeInResultEntry(const sock_extended_err* socketError,
+                                             const scm_timestamping*  socketTimestamp)
+{
+   for(std::map<unsigned short, ResultEntry*>::iterator iterator = ResultsMap.begin();
+       iterator != ResultsMap.end(); iterator++) {
+      ResultEntry* resultsEntry = iterator->second;
+      if(resultsEntry->timeStampSeqID() == socketError->ee_data) {
+         int                                   txTimeStampType = -1;
+         int                                   txTimeSource    = -1;
+         std::chrono::system_clock::time_point txTimePoint;
+         if(socketTimestamp->ts[2].tv_sec != 0) {
+            // Hardware timestamp (raw):
+            txTimeSource = TimeSourceType::TST_TIMESTAMPING_HW;
+            txTimePoint  = std::chrono::system_clock::time_point(
+                              std::chrono::seconds(socketTimestamp->ts[2].tv_sec) +
+                              std::chrono::nanoseconds(socketTimestamp->ts[2].tv_nsec));
+            switch(socketError->ee_info) {
+               case SCM_TSTAMP_SND:
+                  txTimeStampType = TXTimeStampType::TXTST_TransmissionHW;
+                break;
+               default:
+                  HPCT_LOG(warning) << "Got unexpected HW timestamp with socketError->ee_info="
+                                    << socketError->ee_info;
+                break;
+            }
+         }
+         else if(socketTimestamp->ts[0].tv_sec != 0) {
+            // Software timestamp (system time from kernel):
+            txTimeSource = TimeSourceType::TST_TIMESTAMPING_SW;
+            txTimePoint  = std::chrono::system_clock::time_point(
+                              std::chrono::seconds(socketTimestamp->ts[0].tv_sec) +
+                              std::chrono::nanoseconds(socketTimestamp->ts[0].tv_nsec));
+            switch(socketError->ee_info) {
+               case SCM_TSTAMP_SCHED:
+                  txTimeStampType = TXTimeStampType::TXTST_SchedulerSW;
+                break;
+               case SCM_TSTAMP_SND:
+                  txTimeStampType = TXTimeStampType::TXTST_TransmissionSW;
+                break;
+               default:
+                  HPCT_LOG(warning) << "Got unexpected SW timestamp with socketError->ee_info="
+                                    << socketError->ee_info;
+                break;
+            }
+         }
+         if( (txTimeStampType >= 0) && (txTimeSource >= 0) ) {
+            resultsEntry->setSendTime((TXTimeStampType)txTimeStampType,
+                                      (TimeSourceType)txTimeSource, txTimePoint);
+         }
+         else {
+            HPCT_LOG(warning) << "Got unexpected timestamping information";
+         }
+         return;   // Done!
+      }
+   }
+   HPCT_LOG(warning) << "Not found: timeStampSeqID=" << socketError->ee_data;
 }
 
 
@@ -965,6 +816,9 @@ void ICMPModule::handleErrorResponse(const boost::asio::ip::udp::endpoint       
                                      char*                                        messageBuffer,
                                      const size_t                                 messageLength)
 {
+   // Nothing to do here! ICMP error responses are the actual ICMP payload!
+
+#if 0
    // ====== Handle ICMP header =============================================
    boost::interprocess::bufferstream is(MessageBuffer, messageLength);
 
@@ -1019,6 +873,7 @@ abort();
          }
       }
    }
+#endif
 }
 
 
