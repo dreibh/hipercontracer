@@ -127,8 +127,7 @@ class TraceServiceHeader
    }
 
    inline std::vector<uint8_t> contents() const {
-      std::vector<uint8_t> contents((uint8_t*)&Data, (uint8_t*)&Data[Size]);
-      return(contents);
+      return std::vector<uint8_t>((uint8_t*)&Data, (uint8_t*)&Data[Size]);
    }
 
    private:
