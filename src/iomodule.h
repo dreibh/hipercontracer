@@ -142,7 +142,7 @@ class UDPModule : public ICMPModule
                                     uint16_t&              seqNumber,
                                     uint32_t&              targetChecksum);
 
-   protected:
+//    protected:
 //    void expectNextReply();
 //    void handleResponse(const boost::system::error_code& errorCode,
 //                        const bool                       readFromErrorQueue);

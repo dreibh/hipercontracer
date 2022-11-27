@@ -43,8 +43,9 @@
 #include <ifaddrs.h>
 #ifdef __linux__
 #include <linux/errqueue.h>
-#include <linux/sockios.h>
+// #include <linux/icmp.h>
 #include <linux/net_tstamp.h>
+#include <linux/sockios.h>
 #endif
 
 
@@ -339,7 +340,7 @@ bool ICMPModule::prepareSocket()
       return false;
    }
 
-   // ====== Set filter (not required, but much more efficient) =============
+   // ====== Set filter (not required, but more efficient) ==================
    if(SourceAddress.is_v6()) {
       icmp6_filter filter;
       ICMP6_FILTER_SETBLOCKALL(&filter);
@@ -352,6 +353,20 @@ bool ICMPModule::prepareSocket()
          HPCT_LOG(warning) << "Unable to set ICMP6_FILTER!";
       }
   }
+#if defined (ICMP_FILTER)
+  else {
+      icmp_filter filter;
+      filter.data = ~( (1 << ICMP_ECHOREPLY)      |
+                       (1 << ICMP_TIME_EXCEEDED)  |
+                       (1 << ICMP_DEST_UNREACH) );
+      if(setsockopt(ICMPSocket.native_handle(), IPPROTO_ICMPV, ICMP_FILTER,
+                    &filter, sizeof(filter)) < 0) {
+         HPCT_LOG(warning) << "Unable to set ICMP_FILTER!";
+      }
+  }
+#else
+#warning No ICMP_FILTER!
+#endif
 
    // ====== Await incoming message or error ================================
    expectNextReply(ICMPSocket.native_handle(), true);
@@ -515,9 +530,7 @@ void ICMPModule::handleResponse(const boost::system::error_code& errorCode,
                                 const int                        socketDescriptor,
                                 const bool                       readFromErrorQueue)
 {
-   printf("H-1   sd=%d  EQ=%d\n", socketDescriptor, readFromErrorQueue);
    if(errorCode != boost::asio::error::operation_aborted) {
-      printf("H-2\n");
       // ====== Ensure to request further messages later ====================
       if(socketDescriptor == ICMPSocket.native_handle()) {
          if(!readFromErrorQueue) {
@@ -692,16 +705,15 @@ void ICMPModule::handleResponse(const boost::system::error_code& errorCode,
             // ====== Handle reply data =====================================
             if(!readFromErrorQueue) {
                printf("DATA %d    tsPtr=%p\n", (int)length, socketTimestamp);
-               if(length > 0) {
-                  handlePayloadResponse(socketDescriptor, receivedData);
-               }
+
+               handlePayloadResponse(socketDescriptor, receivedData);
             }
 
             else {
-               printf("ERR-QUEUE %d --------------\n", (int)length);
-               if(length > 0) {
-                  handleErrorResponse(socketDescriptor, receivedData, socketError);
-               }
+               static int ee=0;
+               printf("%d: ERR-QUEUE %d --------------\n", ++ee, (int)length);
+
+               handleErrorResponse(socketDescriptor, receivedData, socketError);
             }
          }
       }
@@ -1062,7 +1074,6 @@ bool UDPModule::prepareSocket()
 void UDPModule::expectNextReply(const int  socketDescriptor,
                                 const bool readFromErrorQueue)
 {
-   printf("  udp::expectNext=%d eq=%d\n", socketDescriptor, readFromErrorQueue);
    if(socketDescriptor == UDPSocket.native_handle()) {
       UDPSocket.async_wait(
          (readFromErrorQueue == true) ?
@@ -1074,7 +1085,6 @@ void UDPModule::expectNextReply(const int  socketDescriptor,
       );
    }
    else {
-      puts("delegate!");
       ICMPModule::expectNextReply(socketDescriptor, readFromErrorQueue);
    }
 }
@@ -1198,10 +1208,9 @@ void UDPModule::handleErrorResponse(const int                socketDescriptor,
    if(socketDescriptor == UDPSocket.native_handle()) {
       static int qq=0;
       printf("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@qq UDP-P!   %u\n",++qq);
+      // printf("XXXX ERR %d/%d   len=%u\n", socketError->ee_type, socketError->ee_code, receivedData.MessageLength);
 
       assert(socketError != nullptr);
-
-      printf("XXXX ERR %d/%d   len=%u\n", socketError->ee_type, socketError->ee_code, receivedData.MessageLength);
 
       // ====== Read TraceServiceHeader =====================================
       boost::interprocess::bufferstream is(receivedData.MessageBuffer,
@@ -1219,7 +1228,6 @@ void UDPModule::handleErrorResponse(const int                socketDescriptor,
    }
    else if(socketDescriptor == ICMPSocket.native_handle()) {
       puts("UDP-ICMP!");
-      abort();
    }
 
 #if 0
