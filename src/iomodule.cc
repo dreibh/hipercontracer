@@ -95,6 +95,179 @@ IOModuleBase::~IOModuleBase()
 }
 
 
+// ###### Configure socket (timestamping, etc.) #############################
+bool IOModuleBase::configureSocket(const int                      socketDescriptor,
+                                   const boost::asio::ip::address sourceAddress)
+{
+   // ====== Enable RECVERR/IPV6_RECVERR option =============================
+   const int on = 1;
+   if(setsockopt(socketDescriptor,
+                 (sourceAddress.is_v6() == true) ? SOL_IPV6: SOL_IP,
+                 (sourceAddress.is_v6() == true) ? IPV6_RECVERR : IP_RECVERR,
+                 &on, sizeof(on)) < 0) {
+      HPCT_LOG(error) << "Unable to enable RECVERR/IPV6_RECVERR option on socket";
+      return false;
+   }
+
+   // ====== Try to use SO_TIMESTAMPING option ==============================
+   static bool logTimestampType = true;
+#if defined (SO_TIMESTAMPING)
+   // Documentation: <linux-src>/Documentation/networking/timestamping.rst
+   const int type =
+      SOF_TIMESTAMPING_TX_HARDWARE|    /* Get hardware TX timestamp                     */
+      SOF_TIMESTAMPING_RX_HARDWARE|    /* Get hardware RX timestamp                     */
+      SOF_TIMESTAMPING_RAW_HARDWARE|   /* Hardware timestamps as set by the hardware    */
+
+      SOF_TIMESTAMPING_TX_SOFTWARE|    /* Get software TX timestamp                     */
+      SOF_TIMESTAMPING_RX_SOFTWARE|    /* Get software RX timestamp                     */
+      SOF_TIMESTAMPING_SOFTWARE|       /* Get software timestamp as well                */
+
+      SOF_TIMESTAMPING_OPT_ID|         /* Attach ID to packet (TimeStampSeqID)          */
+      SOF_TIMESTAMPING_OPT_TSONLY|     /* Get only the timestamp, not the full packet   */
+      SOF_TIMESTAMPING_OPT_TX_SWHW|    /* Get both, software and hardware TX time stamp */
+
+      SOF_TIMESTAMPING_TX_SCHED        /* Get TX scheduling timestamp as well           */
+      ;
+   if(setsockopt(socketDescriptor, SOL_SOCKET, SO_TIMESTAMPING,
+                 &type, sizeof(type)) < 0) {
+      HPCT_LOG(error) << "Unable to enable SO_TIMESTAMPING option on socket: "
+                      << strerror(errno);
+#else
+#warning No SO_TIMESTAMPING!
+#endif
+
+      // ====== Try to use SO_TIMESTAMPNS ===================================
+#if defined (SO_TIMESTAMPNS)
+      if(setsockopt(socketDescriptor, SOL_SOCKET, SO_TIMESTAMPNS,
+                    &on, sizeof(on)) < 0) {
+
+#else
+#warning No SO_TIMESTAMPNS!
+#endif
+
+         // ====== Try to use SO_TIMESTAMP ==================================
+         if(setsockopt(socketDescriptor, SOL_SOCKET, SO_TIMESTAMP,
+                       &on, sizeof(on)) < 0) {
+            HPCT_LOG(error) << "Unable to enable SO_TIMESTAMP option on socket: "
+                            << strerror(errno);
+            return false;
+         }
+
+#if defined (SO_TS_CLOCK)
+         const int tdClockType =
+         if(setsockopt(socketDescriptor, SOL_SOCKET, SO_TS_CLOCK,
+                       &tdClockType, sizeof(tdClockType)) < 0) {
+            HPCT_LOG(error) << "Unable to set SO_TS_CLOCK option on socket: "
+                            << strerror(errno);
+            return false;
+         }
+         if(logTimestampType) {
+            HPCT_LOG(info) << "Using SO_TIMESTAMP+SO_TS_CLOCK (nanoseconds accuracy)";
+            logTimestampType = false;
+         }
+         else {
+#else
+            HPCT_LOG(info) << "Using SO_TIMESTAMP (microseconds accuracy)";
+#endif
+#if defined (SO_TS_CLOCK)
+         }
+#endif
+
+#if defined (SO_TIMESTAMPNS)
+      }
+      else {
+         HPCT_LOG(info) << "Using SO_TIMESTAMPNS (nanoseconds accuracy)";
+         logTimestampType = false;
+      }
+#endif
+#if defined (SO_TIMESTAMPING)
+   }
+   else {
+      if(logTimestampType) {
+         HPCT_LOG(info) << "Using SO_TIMESTAMPING (nanoseconds accuracy)";
+         logTimestampType = false;
+      }
+
+      // ====== Enable hardware timestamping, if possible ===================
+      ifaddrs* ifaddr;
+      if(getifaddrs(&ifaddr) == 0) {
+         // ------ Get set of interfaces ------------------------------------
+         std::set<std::string> interfaceSet;
+         for(ifaddrs *ifa = ifaddr; ifa != NULL; ifa = ifa->ifa_next) {
+            if( (ifa->ifa_addr != nullptr) &&
+                ( (ifa->ifa_addr->sa_family == AF_INET) ||
+                  (ifa->ifa_addr->sa_family == AF_INET6) ) ) {
+               if(sourceAddress.is_unspecified()) {
+                  // Source address is 0.0.0.0/:: -> add all interfaces
+                  interfaceSet.insert(ifa->ifa_name);
+               }
+               else {
+                  // Source address is specific -> find the corresponding interface
+                  const boost::asio::ip::address address =
+                     sockaddrToEndpoint<boost::asio::ip::icmp::endpoint>(
+                        ifa->ifa_addr,
+                        (ifa->ifa_addr->sa_family == AF_INET) ?
+                           sizeof(sockaddr_in) :
+                           sizeof(sockaddr_in6)
+                     ).address();
+                  if(address == sourceAddress) {
+                     interfaceSet.insert(ifa->ifa_name);
+                  }
+               }
+            }
+         }
+         freeifaddrs(ifaddr);
+
+         // ====== Try to configure SIOCSHWTSTAMP ===========================
+         static bool	logSIOCSHWTSTAMP = true;
+         for(std::string interfaceName : interfaceSet) {
+            hwtstamp_config hwTimestampConfig;
+            hwTimestampConfig.tx_type   = HWTSTAMP_TX_ON;
+            hwTimestampConfig.rx_filter = HWTSTAMP_FILTER_ALL;
+            const hwtstamp_config hwTimestampConfigDesired = hwTimestampConfig;
+
+            ifreq hwTimestampRequest;
+            memset(&hwTimestampRequest, 0, sizeof(hwTimestampRequest));
+            memcpy(&hwTimestampRequest.ifr_name,
+                   interfaceName.c_str(), interfaceName.size() + 1);
+            hwTimestampRequest.ifr_data = (char*)&hwTimestampConfig;
+
+            if(ioctl(socketDescriptor, SIOCSHWTSTAMP, &hwTimestampRequest) < 0) {
+               if(logSIOCSHWTSTAMP) {
+                  if(errno == ENOTSUP) {
+                     HPCT_LOG(info) << "Hardware timestamping not supported on interface "
+                                    << interfaceName;
+                  }
+                  else {
+                     HPCT_LOG(info) << "Hardware timestamping probably not supported on interface "
+                                    << interfaceName
+                                    << " (SIOCSHWTSTAMP: " << strerror(errno) << ")";
+                  }
+               }
+            }
+            else {
+               if( (hwTimestampConfig.tx_type == hwTimestampConfigDesired.tx_type) &&
+                   (hwTimestampConfig.rx_filter == hwTimestampConfigDesired.rx_filter) ) {
+                  if(logSIOCSHWTSTAMP) {
+                     HPCT_LOG(info) << "Hardware timestamping enabled on interface " << interfaceName;
+                  }
+               }
+            }
+         }
+         logSIOCSHWTSTAMP = false;
+      }
+      else {
+          HPCT_LOG(error) << "getifaddrs() failed: " << strerror(errno);
+          return false;
+      }
+   }
+#endif
+   return true;
+}
+
+
+
+
 // ###### Constructor #######################################################
 ICMPModule::ICMPModule(const std::string&                       name,
                        boost::asio::io_service&                 ioService,
@@ -161,201 +334,57 @@ bool ICMPModule::prepareSocket()
       return false;
    }
 
-   // ====== Enable RECVERR/IPV6_RECVERR option =============================
-   const int on = 1;
-   if(setsockopt(ICMPSocket.native_handle(),
-                 (SourceAddress.is_v6() == true) ? SOL_IPV6: SOL_IP,
-                 (SourceAddress.is_v6() == true) ? IPV6_RECVERR : IP_RECVERR,
-                 &on, sizeof(on)) < 0) {
-      HPCT_LOG(error) << "Unable to enable RECVERR/IPV6_RECVERR option on ICMPSocket socket";
+   // ====== Configure sockets (timestamping, etc.) =========================
+   if(!configureSocket(ICMPSocket.native_handle(), SourceAddress)) {
       return false;
    }
-
-   // ====== Try to use SO_TIMESTAMPING option ==============================
-   static bool	logTimestampType = true;
-#if defined (SO_TIMESTAMPING)
-   // Documentation: <linux-src>/Documentation/networking/timestamping.rst
-   const int type =
-      SOF_TIMESTAMPING_TX_HARDWARE|    /* Get hardware TX timestamp                     */
-      SOF_TIMESTAMPING_RX_HARDWARE|    /* Get hardware RX timestamp                     */
-      SOF_TIMESTAMPING_RAW_HARDWARE|   /* Hardware timestamps as set by the hardware    */
-
-      SOF_TIMESTAMPING_TX_SOFTWARE|    /* Get software TX timestamp                     */
-      SOF_TIMESTAMPING_RX_SOFTWARE|    /* Get software RX timestamp                     */
-      SOF_TIMESTAMPING_SOFTWARE|       /* Get software timestamp as well                */
-
-      SOF_TIMESTAMPING_OPT_ID|         /* Attach ID to packet (TimeStampSeqID)          */
-      SOF_TIMESTAMPING_OPT_TSONLY|     /* Get only the timestamp, not the full packet   */
-      SOF_TIMESTAMPING_OPT_TX_SWHW|    /* Get both, software and hardware TX time stamp */
-
-      SOF_TIMESTAMPING_TX_SCHED        /* Get TX scheduling timestamp as well           */
-      ;
-   if(setsockopt(ICMPSocket.native_handle(), SOL_SOCKET, SO_TIMESTAMPING,
-                 &type, sizeof(type)) < 0) {
-      HPCT_LOG(error) << "Unable to enable SO_TIMESTAMPING option on ICMPSocket socket: "
-                      << strerror(errno);
-#else
-#warning No SO_TIMESTAMPING!
-#endif
-
-      // ====== Try to use SO_TIMESTAMPNS ===================================
-#if defined (SO_TIMESTAMPNS)
-      if(setsockopt(ICMPSocket.native_handle(), SOL_SOCKET, SO_TIMESTAMPNS,
-                    &on, sizeof(on)) < 0) {
-
-#else
-#warning No SO_TIMESTAMPNS!
-#endif
-
-         // ====== Try to use SO_TIMESTAMP ==================================
-         if(setsockopt(ICMPSocket.native_handle(), SOL_SOCKET, SO_TIMESTAMP,
-                       &on, sizeof(on)) < 0) {
-            HPCT_LOG(error) << "Unable to enable SO_TIMESTAMP option on ICMPSocket socket: "
-                            << strerror(errno);
-            return false;
-         }
-
-#if defined (SO_TS_CLOCK)
-         const int tdClockType =
-         if(setsockopt(ICMPSocket.native_handle(), SOL_SOCKET, SO_TS_CLOCK,
-                       &tdClockType, sizeof(tdClockType)) < 0) {
-            HPCT_LOG(error) << "Unable to set SO_TS_CLOCK option on ICMPSocket socket: "
-                            << strerror(errno);
-            return false;
-         }
-         if(logTimestampType) {
-            HPCT_LOG(info) << "Using SO_TIMESTAMP+SO_TS_CLOCK (nanoseconds accuracy)";
-            logTimestampType = false;
-         }
-         else {
-#else
-            HPCT_LOG(info) << "Using SO_TIMESTAMP (microseconds accuracy)";
-#endif
-#if defined (SO_TS_CLOCK)
-         }
-#endif
-
-#if defined (SO_TIMESTAMPNS)
-      }
-      else {
-         HPCT_LOG(info) << "Using SO_TIMESTAMPNS (nanoseconds accuracy)";
-         logTimestampType = false;
-      }
-#endif
-#if defined (SO_TIMESTAMPING)
-   }
-   else {
-      if(logTimestampType) {
-         HPCT_LOG(info) << "Using SO_TIMESTAMPING (nanoseconds accuracy)";
-         logTimestampType = false;
-      }
-
-      // ====== Enable hardware timestamping, if possible ===================
-      ifaddrs* ifaddr;
-      if(getifaddrs(&ifaddr) == 0) {
-         // ------ Get set of interfaces ------------------------------------
-         std::set<std::string> interfaceSet;
-         for(ifaddrs *ifa = ifaddr; ifa != NULL; ifa = ifa->ifa_next) {
-            if( (ifa->ifa_addr != nullptr) &&
-                ( (ifa->ifa_addr->sa_family == AF_INET) ||
-                  (ifa->ifa_addr->sa_family == AF_INET6) ) ) {
-               if(SourceAddress.is_unspecified()) {
-                  // Source address is 0.0.0.0/:: -> add all interfaces
-                  interfaceSet.insert(ifa->ifa_name);
-               }
-               else {
-                  // Source address is specific -> find the corresponding interface
-                  const boost::asio::ip::address address =
-                     sockaddrToEndpoint<boost::asio::ip::icmp::endpoint>(
-                        ifa->ifa_addr,
-                        (ifa->ifa_addr->sa_family == AF_INET) ?
-                           sizeof(sockaddr_in) :
-                           sizeof(sockaddr_in6)
-                     ).address();
-                  if(address == SourceAddress) {
-                     interfaceSet.insert(ifa->ifa_name);
-                  }
-               }
-            }
-         }
-         freeifaddrs(ifaddr);
-
-         // ====== Try to configure SIOCSHWTSTAMP ===========================
-         static bool	logSIOCSHWTSTAMP = true;
-         for(std::string interfaceName : interfaceSet) {
-            hwtstamp_config hwTimestampConfig;
-            hwTimestampConfig.tx_type   = HWTSTAMP_TX_ON;
-            hwTimestampConfig.rx_filter = HWTSTAMP_FILTER_ALL;
-            const hwtstamp_config hwTimestampConfigDesired = hwTimestampConfig;
-
-            ifreq hwTimestampRequest;
-            memset(&hwTimestampRequest, 0, sizeof(hwTimestampRequest));
-            memcpy(&hwTimestampRequest.ifr_name,
-                   interfaceName.c_str(), interfaceName.size() + 1);
-            hwTimestampRequest.ifr_data = (char*)&hwTimestampConfig;
-
-            if(ioctl(ICMPSocket.native_handle(), SIOCSHWTSTAMP, &hwTimestampRequest) < 0) {
-               if(logSIOCSHWTSTAMP) {
-                  if(errno == ENOTSUP) {
-                     HPCT_LOG(info) << "Hardware timestamping not supported on interface "
-                                    << interfaceName;
-                  }
-                  else {
-                     HPCT_LOG(info) << "Hardware timestamping probably not supported on interface "
-                                    << interfaceName
-                                    << " (SIOCSHWTSTAMP: " << strerror(errno) << ")";
-                  }
-               }
-            }
-            else {
-               if( (hwTimestampConfig.tx_type == hwTimestampConfigDesired.tx_type) &&
-                   (hwTimestampConfig.rx_filter == hwTimestampConfigDesired.rx_filter) ) {
-                  if(logSIOCSHWTSTAMP) {
-                     HPCT_LOG(info) << "Hardware timestamping enabled on interface " << interfaceName;
-                  }
-               }
-            }
-         }
-         logSIOCSHWTSTAMP = false;
-      }
-      else {
-          HPCT_LOG(error) << "getifaddrs() failed: " << strerror(errno);
-          return false;
-      }
-   }
-#endif
 
    // ====== Set filter (not required, but much more efficient) =============
    if(SourceAddress.is_v6()) {
       icmp6_filter filter;
       ICMP6_FILTER_SETBLOCKALL(&filter);
       ICMP6_FILTER_SETPASS(ICMP6_ECHO_REPLY,     &filter);
-      ICMP6_FILTER_SETPASS(ICMP6_DST_UNREACH,    &filter);
-      ICMP6_FILTER_SETPASS(ICMP6_PACKET_TOO_BIG, &filter);
       ICMP6_FILTER_SETPASS(ICMP6_TIME_EXCEEDED,  &filter);
+      ICMP6_FILTER_SETPASS(ICMP6_PACKET_TOO_BIG, &filter);
+      ICMP6_FILTER_SETPASS(ICMP6_DST_UNREACH,    &filter);
       if(setsockopt(ICMPSocket.native_handle(), IPPROTO_ICMPV6, ICMP6_FILTER,
                     &filter, sizeof(struct icmp6_filter)) < 0) {
          HPCT_LOG(warning) << "Unable to set ICMP6_FILTER!";
       }
-   }
+  }
+
+   // ====== Await incoming message or error ================================
+   expectNextReply(ICMPSocket.native_handle(), true);
+   expectNextReply(ICMPSocket.native_handle(), false);
+
    return true;
 }
 
 
 // ###### Expect next ICMP message ##########################################
-void ICMPModule::expectNextReply()
+void ICMPModule::expectNextReply(const int  socketDescriptor,
+                                 const bool readFromErrorQueue)
 {
-   if(ExpectingError == false) {
-      ICMPSocket.async_wait(boost::asio::generic::datagram_protocol::socket::wait_error,
-                            std::bind(&ICMPModule::handleResponse, this,
-                                      std::placeholders::_1, true, SI_ICMP));
-      ExpectingError = true;
-   }
-   if(ExpectingReply == false) {
-      ICMPSocket.async_wait(boost::asio::generic::datagram_protocol::socket::wait_read,
-                            std::bind(&ICMPModule::handleResponse, this,
-                                      std::placeholders::_1, false, SI_ICMP));
-      ExpectingReply = true;
+   printf("  icmp::expectNext=%d eq=%d\n", socketDescriptor, readFromErrorQueue);
+   if(socketDescriptor == ICMPSocket.native_handle()) {
+      if(readFromErrorQueue == true) {
+         assert(ExpectingError == false);
+         ICMPSocket.async_wait(
+            boost::asio::ip::icmp::socket::wait_error,
+            std::bind(&ICMPModule::handleResponse, this,
+                     std::placeholders::_1, ICMPSocket.native_handle(), true)
+         );
+         ExpectingError = true;
+      }
+      else {
+         assert(ExpectingReply == false);
+         ICMPSocket.async_wait(
+            boost::asio::ip::icmp::socket::wait_read,
+            std::bind(&ICMPModule::handleResponse, this,
+                     std::placeholders::_1, ICMPSocket.native_handle(), false)
+         );
+         ExpectingReply = true;
+      }
    }
 }
 
@@ -460,7 +489,7 @@ ResultEntry* ICMPModule::sendRequest(const DestinationInfo& destination,
 
    // ====== Create ResultEntry on success ==================================
    if(sent > 0) {
-      expectNextReply();   // Ensure to receive response!
+//       expectNextReply();   // Ensure to receive response!
 
       ResultEntry* resultEntry =
          new ResultEntry(TimeStampSeqID++,
@@ -483,16 +512,20 @@ ResultEntry* ICMPModule::sendRequest(const DestinationInfo& destination,
 
 // ###### Handle incoming message from regular or from error queue ##########
 void ICMPModule::handleResponse(const boost::system::error_code& errorCode,
-                                const bool                       readFromErrorQueue,
-                                const unsigned int               socketIdentifier)
+                                const int                        socketDescriptor,
+                                const bool                       readFromErrorQueue)
 {
+   printf("H-1   sd=%d  EQ=%d\n", socketDescriptor, readFromErrorQueue);
    if(errorCode != boost::asio::error::operation_aborted) {
+      printf("H-2\n");
       // ====== Ensure to request further messages later ====================
-      if(!readFromErrorQueue) {
-         ExpectingReply = false;   // Need to call expectNextReply() to get next message!
-      }
-      else {
-         ExpectingError = false;   // Need to call expectNextReply() to get next error!
+      if(socketDescriptor == ICMPSocket.native_handle()) {
+         if(!readFromErrorQueue) {
+            ExpectingReply = false;   // Need to call expectNextReply() to get next message!
+         }
+         else {
+            ExpectingError = false;   // Need to call expectNextReply() to get next error!
+         }
       }
 
       // ====== Read all messages ===========================================
@@ -514,15 +547,15 @@ void ICMPModule::handleResponse(const boost::system::error_code& errorCode,
             msg.msg_controllen = sizeof(ControlBuffer);
 
             const ssize_t length =
-               recvmsg(ICMPSocket.native_handle(), &msg,
+               recvmsg(socketDescriptor, &msg,
                        (readFromErrorQueue == true) ? MSG_ERRQUEUE|MSG_DONTWAIT : MSG_DONTWAIT);
+            printf("======= l=%d   inEQ=%d\n", (int)length, (readFromErrorQueue));
 
             // Note: length == 0 for control data without user data!
             if(length < 0) {
                break;
             }
 
-            printf("======= l=%d   inEQ=%d\n", (int)length, (readFromErrorQueue));
 
             // ====== Handle control data ===================================
             ReceivedData receivedData;
@@ -534,7 +567,6 @@ void ICMPModule::handleResponse(const boost::system::error_code& errorCode,
             receivedData.ReceiveHWTime          = std::chrono::high_resolution_clock::time_point();
             receivedData.MessageBuffer          = (char*)&MessageBuffer;
             receivedData.MessageLength          = length;
-            receivedData.SocketError            = nullptr;
 
             sock_extended_err* socketError          = nullptr;
             sock_extended_err* socketTXTimestamping = nullptr;
@@ -632,7 +664,7 @@ void ICMPModule::handleResponse(const boost::system::error_code& errorCode,
                // ------ Linux: get reception time via SIOCGSTAMPNS ---------
                timespec ts;
                timeval  tv;
-               if(ioctl(ICMPSocket.native_handle(), SIOCGSTAMPNS, &ts) == 0) {
+               if(ioctl(socketDescriptor, SIOCGSTAMPNS, &ts) == 0) {
                   // Got reception time from kernel via SIOCGSTAMPNS
                   receivedData.ReceiveSWSource = TimeSourceType::TST_SIOCGSTAMPNS;
                   receivedData.ReceiveSWTime   = std::chrono::system_clock::time_point(
@@ -640,7 +672,7 @@ void ICMPModule::handleResponse(const boost::system::error_code& errorCode,
                                                     std::chrono::nanoseconds(ts.tv_nsec));
                }
                // ------ Linux: get reception time via SIOCGSTAMP -----------
-               else if(ioctl(ICMPSocket.native_handle(), SIOCGSTAMP, &tv) == 0) {
+               else if(ioctl(socketDescriptor, SIOCGSTAMP, &tv) == 0) {
                   // Got reception time from kernel via SIOCGSTAMP
                   receivedData.ReceiveSWSource = TimeSourceType::TST_SIOCGSTAMP;
                   receivedData.ReceiveSWTime   = std::chrono::system_clock::time_point(
@@ -661,19 +693,20 @@ void ICMPModule::handleResponse(const boost::system::error_code& errorCode,
             if(!readFromErrorQueue) {
                printf("DATA %d    tsPtr=%p\n", (int)length, socketTimestamp);
                if(length > 0) {
-                  handlePayloadResponse(socketIdentifier, receivedData);
+                  handlePayloadResponse(socketDescriptor, receivedData);
                }
             }
 
             else {
                printf("ERR-QUEUE %d --------------\n", (int)length);
                if(length > 0) {
-                  handleErrorResponse(socketIdentifier, receivedData, socketError);
+                  handleErrorResponse(socketDescriptor, receivedData, socketError);
                }
             }
          }
       }
-      expectNextReply();
+
+      expectNextReply(socketDescriptor, readFromErrorQueue);
    }
 }
 
@@ -713,11 +746,9 @@ void ICMPModule::updateSendTimeInResultEntry(const sock_extended_err* socketErro
                               std::chrono::nanoseconds(socketTimestamp->ts[0].tv_nsec));
             switch(socketError->ee_info) {
                case SCM_TSTAMP_SCHED:
-                  puts("x-sched");
                   txTimeStampType = TXTimeStampType::TXTST_SchedulerSW;
                 break;
                case SCM_TSTAMP_SND:
-                  puts("x-snd");
                   txTimeStampType = TXTimeStampType::TXTST_TransmissionSW;
                 break;
                default:
@@ -741,7 +772,7 @@ void ICMPModule::updateSendTimeInResultEntry(const sock_extended_err* socketErro
 
 
 // ###### Handle payload response (i.e. not from error queue) ###############
-void ICMPModule::handlePayloadResponse(const unsigned int  socketIdentifier,
+void ICMPModule::handlePayloadResponse(const int           socketDescriptor,
                                        const ReceivedData& receivedData)
 {
    // ====== Handle ICMP header =======================================
@@ -823,7 +854,7 @@ void ICMPModule::handlePayloadResponse(const unsigned int  socketIdentifier,
 
 
 // ###### Handle error response (i.e. from error queue) #####################
-void ICMPModule::handleErrorResponse(const unsigned int       socketIdentifier,
+void ICMPModule::handleErrorResponse(const int                socketDescriptor,
                                      const ReceivedData&      receivedData,
                                      const sock_extended_err* socketError)
 {
@@ -893,6 +924,7 @@ void ICMPModule::recordResult(const ReceivedData&  receivedData,
    // ====== Find corresponding request =====================================
    std::map<unsigned short, ResultEntry*>::iterator found = ResultsMap.find(seqNumber);
    if(found == ResultsMap.end()) {
+      puts("NF!");// FIXME!
       return;
    }
    ResultEntry* resultEntry = found->second;
@@ -1008,63 +1040,44 @@ UDPModule::~UDPModule()
 // ###### Prepare UDP socket ################################################
 bool UDPModule::prepareSocket()
 {
+   // ====== Prepare ICMP socket and create UDP socket ======================
    if(!ICMPModule::prepareSocket()) {
       return false;
    }
-//    // ====== Choose identifier ==============================================
-//    Identifier = ::getpid();   // Identifier is the process ID
-//    // NOTE: Assuming 16-bit PID, and one PID per thread!
 
-//    // ====== Bind UDP socket to given source address ========================
-//    boost::system::error_code errorCode;
-//    boost::asio::ip::udp::endpoint sourceEndpoint(SourceAddress, 0);
-// puts("### OPEN");
-//    UDPSocket.open((SourceAddress.is_v6() == true) ? boost::asio::ip::udp::v6() : boost::asio::ip::udp::v4());
-//    UDPSocket.bind(sourceEndpoint, errorCode);
-//    if(errorCode !=  boost::system::errc::success) {
-//       HPCT_LOG(error) << getName() << ": Unable to bind UDP socket to source address "
-//                       << sourceEndpoint << "!";
-//       return false;
-//    }
-
-   // ====== Enable RECVERR/IPV6_RECVERR option =============================
-   const int on = 1;
-   if(setsockopt(UDPSocket.native_handle(),
-                 (SourceAddress.is_v6() == true) ? SOL_IPV6: SOL_IP,
-                 (SourceAddress.is_v6() == true) ? IPV6_RECVERR : IP_RECVERR,
-                 &on, sizeof(on)) < 0) {
-      HPCT_LOG(error) << "Unable to enable RECVERR/IPV6_RECVERR option on UDP socket";
+   // ====== Configure sockets (timestamping, etc.) =========================
+   if(!configureSocket(UDPSocket.native_handle(), SourceAddress)) {
       return false;
    }
 
-   // ====== Enable SO_TIMESTAMP option =====================================
-   if(setsockopt(UDPSocket.native_handle(), SOL_SOCKET, SO_TIMESTAMP,
-                 &on, sizeof(on)) < 0) {
-      HPCT_LOG(error) << "Unable to enable RECVERR/IPV6_RECVERR option on UDP socket";
-      return false;
-   }
-printf("### OPEN OK h=%d\n", UDPSocket.native_handle());
+   // ====== Await incoming message or error ================================
+   expectNextReply(UDPSocket.native_handle(), true);
+   expectNextReply(UDPSocket.native_handle(), false);
 
    return true;
 }
 
 
-// // ###### Expect next UDP message ##########################################
-// void UDPModule::expectNextReply()
-// {
-//    if(ExpectingError == false) {
-//       UDPSocket.async_wait(boost::asio::ip::tcp::socket::wait_error,
-//                            std::bind(&UDPModule::handleResponse, this,
-//                                      std::placeholders::_1, true));
-//       ExpectingError = true;
-//    }
-//    if(ExpectingReply == false) {
-//       UDPSocket.async_wait(boost::asio::ip::tcp::socket::wait_read,
-//                            std::bind(&UDPModule::handleResponse, this,
-//                                      std::placeholders::_1, false));
-//       ExpectingReply = true;
-//    }
-// }
+// // ###### Expect next message ############################################
+void UDPModule::expectNextReply(const int  socketDescriptor,
+                                const bool readFromErrorQueue)
+{
+   printf("  udp::expectNext=%d eq=%d\n", socketDescriptor, readFromErrorQueue);
+   if(socketDescriptor == UDPSocket.native_handle()) {
+      UDPSocket.async_wait(
+         (readFromErrorQueue == true) ?
+            boost::asio::ip::udp::socket::wait_error :
+            boost::asio::ip::udp::socket::wait_read,
+         std::bind(&ICMPModule::handleResponse, this,
+                   std::placeholders::_1,
+                   UDPSocket.native_handle(), readFromErrorQueue)
+      );
+   }
+   else {
+      puts("delegate!");
+      ICMPModule::expectNextReply(socketDescriptor, readFromErrorQueue);
+   }
+}
 
 
 // ###### Cancel socket operations ##########################################
@@ -1084,9 +1097,7 @@ ResultEntry* UDPModule::sendRequest(const DestinationInfo& destination,
 {
    // ====== Set TTL ========================================================
    const boost::asio::ip::unicast::hops option(ttl);
-printf("### SET TTL h=%d\n", UDPSocket.native_handle());
    UDPSocket.set_option(option);
-puts("X setTTL OK");
 
    // ====== Create request =================================================
    seqNumber++;
@@ -1138,7 +1149,7 @@ puts("X setTTL OK");
 
    // ====== Create ResultEntry on success ==================================
    if(sent > 0) {
-      expectNextReply();   // Ensure to receive response!
+//       expectNextReply();   // Ensure to receive response!
 
       ResultEntry* resultEntry =
          new ResultEntry(TimeStampSeqID++,
@@ -1159,7 +1170,113 @@ puts("X setTTL OK");
 }
 
 
-// // ###### Handle incoming UDP message #######################################
+// ###### Handle payload response (i.e. not from error queue) ###############
+void UDPModule::handlePayloadResponse(const int           socketDescriptor,
+                                      const ReceivedData& receivedData)
+{
+   if(socketDescriptor == UDPSocket.native_handle()) {
+      // ====== Read TraceServiceHeader =====================================
+      boost::interprocess::bufferstream is(receivedData.MessageBuffer,
+                                           receivedData.MessageLength);
+      TraceServiceHeader tsHeader;
+      is >> tsHeader;
+      if(is) {
+         if(tsHeader.magicNumber() == MagicNumber) {
+            recordResult(receivedData,
+                         0, 0, tsHeader.checksumTweak());   // FIXME!!!
+         }
+      }
+   }
+}
+
+
+// ###### Handle error response (i.e. from error queue) #####################
+void UDPModule::handleErrorResponse(const int                socketDescriptor,
+                                    const ReceivedData&      receivedData,
+                                    const sock_extended_err* socketError)
+{
+   if(socketDescriptor == UDPSocket.native_handle()) {
+      static int qq=0;
+      printf("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@qq UDP-P!   %u\n",++qq);
+
+      assert(socketError != nullptr);
+
+      printf("XXXX ERR %d/%d   len=%u\n", socketError->ee_type, socketError->ee_code, receivedData.MessageLength);
+
+      // ====== Read TraceServiceHeader =====================================
+      boost::interprocess::bufferstream is(receivedData.MessageBuffer,
+                                           receivedData.MessageLength);
+      TraceServiceHeader tsHeader;
+      is >> tsHeader;
+      if(is) {
+         if(tsHeader.magicNumber() == MagicNumber) {
+            puts("MM-----------");
+            recordResult(receivedData,
+                         socketError->ee_type, socketError->ee_code,
+                         tsHeader.checksumTweak());   // FIXME!!!
+         }
+      }
+   }
+   else if(socketDescriptor == ICMPSocket.native_handle()) {
+      puts("UDP-ICMP!");
+      abort();
+   }
+
+#if 0
+   // ====== Handle ICMP header =============================================
+   boost::interprocess::bufferstream is(MessageBuffer, messageLength);
+
+   ICMPHeader icmpHeader;
+   if(SourceAddress.is_v6()) {
+      is >> icmpHeader;
+      if(is) {
+         if( (icmpHeader.type() == ICMPHeader::IPv6TimeExceeded) ||
+             (icmpHeader.type() == ICMPHeader::IPv6Unreachable) ) {
+            IPv6Header innerIPv6Header;
+            ICMPHeader innerICMPHeader;
+            TraceServiceHeader tsHeader;
+            is >> innerIPv6Header >> innerICMPHeader >> tsHeader;
+            if(is) {
+               if(tsHeader.magicNumber() == MagicNumber) {
+                  recordResult(receivedData,
+                               icmpHeader.type(), icmpHeader.code(),
+                               innerICMPHeader.seqNumber());
+               }
+            }
+         }
+      }
+   }
+   else {
+      IPv4Header ipv4Header;
+      is >> ipv4Header;
+      if(is) {
+         is >> icmpHeader;
+         if(is) {
+            if(icmpHeader.type() == ICMPHeader::IPv4TimeExceeded) {
+               IPv4Header innerIPv4Header;
+               ICMPHeader innerICMPHeader;
+               is >> innerIPv4Header >> innerICMPHeader;
+               if(is) {
+                  if( (icmpHeader.type() == ICMPHeader::IPv4TimeExceeded) ||
+                      (icmpHeader.type() == ICMPHeader::IPv4Unreachable) ) {
+                     if(innerICMPHeader.identifier() == Identifier) {
+                        // Unfortunately, ICMPv4 does not return the full TraceServiceHeader here!
+                        recordResult(receivedData,
+                                     icmpHeader.type(), icmpHeader.code(),
+                                     innerICMPHeader.seqNumber());
+puts("UPDATE IN ERRQUEUE !");
+abort();
+                     }
+                  }
+               }
+            }
+         }
+      }
+   }
+#endif
+}
+
+
 // void UDPModule::handleResponse(const boost::system::error_code& errorCode,
 //                                const bool                       readFromErrorQueue)
 // {
@@ -1332,93 +1449,5 @@ puts("X setTTL OK");
 //          }
 //       }
 //       expectNextReply();
-//    }
-// }
-//
-//
-// // ###### Record result from response message ###############################
-// void UDPModule::recordResult(const std::chrono::system_clock::time_point& receiveTime,
-//                              const unsigned int                           icmpType,
-//                              const unsigned int                           icmpCode,
-//                              const unsigned short                         seqNumber)
-// {
-//    // ====== Find corresponding request =====================================
-//    std::map<unsigned short, ResultEntry*>::iterator found = ResultsMap.find(seqNumber);
-//    if(found == ResultsMap.end()) {
-//       return;
-//    }
-//    ResultEntry* resultEntry = found->second;
-//
-//    // ====== Get status =====================================================
-//    if(resultEntry->status() == Unknown) {
-//       resultEntry->setReceiveTime(RXTimeStampType::RXTST_Application,
-//                                   TimeSourceType::TST_SysClock, receiveTime);
-//       // Just set address, keep traffic class and identifier settings:
-//       resultEntry->setDestinationAddress(ReplyEndpoint.address());
-//
-//       HopStatus status = Unknown;
-//       if( (icmpType == ICMPHeader::IPv6TimeExceeded) ||
-//           (icmpType == ICMPHeader::IPv4TimeExceeded) ) {
-//          status = TimeExceeded;
-//       }
-//       else if( (icmpType == ICMPHeader::IPv6Unreachable) ||
-//                (icmpType == ICMPHeader::IPv4Unreachable) ) {
-//          if(SourceAddress.is_v6()) {
-//             switch(icmpCode) {
-//                case ICMP6_DST_UNREACH_ADMIN:
-//                   status = UnreachableProhibited;
-//                break;
-//                case ICMP6_DST_UNREACH_BEYONDSCOPE:
-//                   status = UnreachableScope;
-//                break;
-//                case ICMP6_DST_UNREACH_NOROUTE:
-//                   status = UnreachableNetwork;
-//                break;
-//                case ICMP6_DST_UNREACH_ADDR:
-//                   status = UnreachableHost;
-//                break;
-//                case ICMP6_DST_UNREACH_NOPORT:
-//                   status = UnreachablePort;
-//                break;
-//                default:
-//                   status = UnreachableUnknown;
-//                break;
-//             }
-//          }
-//          else {
-//             switch(icmpCode) {
-//                case ICMP_UNREACH_FILTER_PROHIB:
-//                   status = UnreachableProhibited;
-//                break;
-//                case ICMP_UNREACH_NET:
-//                case ICMP_UNREACH_NET_UNKNOWN:
-//                   status = UnreachableNetwork;
-//                break;
-//                case ICMP_UNREACH_HOST:
-//                case ICMP_UNREACH_HOST_UNKNOWN:
-//                   status = UnreachableHost;
-//                break;
-//                case ICMP_UNREACH_PORT:
-//                   status = UnreachablePort;
-//                break;
-//                default:
-//                   status = UnreachableUnknown;
-//                break;
-//             }
-//          }
-//       }
-//       else if( (icmpType == ICMPHeader::IPv6EchoReply) ||
-//                (icmpType == ICMPHeader::IPv4EchoReply) ) {
-//          status  = Success;
-//       }
-//       resultEntry->setStatus(status);
-//
-// // // // //       HopStatus status = Unknown;
-// // // // //       if(icmpHeader == nullptr) {
-// // // // //          status  = Success;
-// // // // //       }
-// // // // //       resultEntry->setStatus(status);
-//
-//       NewResultCallback(resultEntry);
 //    }
 // }

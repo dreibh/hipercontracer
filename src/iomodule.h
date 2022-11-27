@@ -32,6 +32,10 @@ class IOModuleBase
    virtual bool prepareSocket() = 0;
    virtual void cancelSocket() = 0;
 
+   static bool configureSocket(const int                      socketDescriptor,
+                               const boost::asio::ip::address sourceAddress);
+
+
    protected:
    const std::string                        Name;
    boost::asio::io_service&                 IOService;
@@ -65,12 +69,6 @@ class ICMPModule : public IOModuleBase
                                     uint16_t&              seqNumber,
                                     uint32_t&              targetChecksum);
 
-   protected:
-   enum SocketIdentifier {
-      SI_ICMP = 0,
-      SI_UDP  = 1,
-      SI_AUX  = 10  // ...
-   };
    struct ReceivedData {
       boost::asio::ip::udp::endpoint                 ReplyEndpoint;
       std::chrono::high_resolution_clock::time_point ApplicationReceiveTime;
@@ -80,18 +78,18 @@ class ICMPModule : public IOModuleBase
       std::chrono::high_resolution_clock::time_point ReceiveHWTime;
       char*                                          MessageBuffer;
       size_t                                         MessageLength;
-      sock_extended_err*                             SocketError;
    };
 
-   void expectNextReply();
+   virtual void expectNextReply(const int  socketDescriptor,
+                                const bool readFromErrorQueue);
    void handleResponse(const boost::system::error_code& errorCode,
-                       const bool                       readFromErrorQueue,
-                       const unsigned int               socketIdentifier);
-   void handlePayloadResponse(const unsigned int  socketIdentifier,
-                              const ReceivedData& receivedData);
-   void handleErrorResponse(const unsigned int       socketIdentifier,
-                            const ReceivedData&      receivedData,
-                            const sock_extended_err* socketError);
+                       const int                        socketDescriptor,
+                       const bool                       readFromErrorQueue);
+   virtual void handlePayloadResponse(const int           socketDescriptor,
+                                      const ReceivedData& receivedData);
+   virtual void handleErrorResponse(const int                socketDescriptor,
+                                    const ReceivedData&      receivedData,
+                                    const sock_extended_err* socketError);
    void updateSendTimeInResultEntry(const sock_extended_err* socketError,
                                     const scm_timestamping*  socketTimestamping);
    void recordResult(const ReceivedData&  receivedData,
@@ -107,10 +105,12 @@ class ICMPModule : public IOModuleBase
    boost::asio::ip::udp::socket   UDPSocket;
    boost::asio::ip::udp::endpoint UDPSocketEndpoint;
    boost::asio::ip::icmp::socket  ICMPSocket;
-   bool                           ExpectingReply;
-   bool                           ExpectingError;
    char                           MessageBuffer[65536 + 40];
    char                           ControlBuffer[1024];
+
+   private:
+   bool                           ExpectingReply;
+   bool                           ExpectingError;
 };
 
 
@@ -127,6 +127,14 @@ class UDPModule : public ICMPModule
 
    virtual bool prepareSocket();
    virtual void cancelSocket();
+
+   virtual void expectNextReply(const int  socketDescriptor,
+                                const bool readFromErrorQueue);
+   virtual void handlePayloadResponse(const int           socketDescriptor,
+                                      const ReceivedData& receivedData);
+   virtual void handleErrorResponse(const int                socketDescriptor,
+                                    const ReceivedData&      receivedData,
+                                    const sock_extended_err* socketError);
 
    virtual ResultEntry* sendRequest(const DestinationInfo& destination,
                                     const unsigned int     ttl,
