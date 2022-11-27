@@ -4,45 +4,60 @@
 #include <netdb.h>
 #include <ifaddrs.h>
 #include <net/if.h>
+#include <arpa/inet.h>
+
+#include <boost/interprocess/streams/bufferstream.hpp>
+
+#include "ipv4header.h"
+#include "icmpheader.h"
+#include "traceserviceheader.h"
+
 
 int main(int argc, char *argv[])
 {
-    ifaddrs *ifaddr;
-    int family, s;
-    char host[NI_MAXHOST];
+   sockaddr_in localAddress;
+   localAddress.sin_family = AF_INET;
+   localAddress.sin_addr.s_addr = inet_addr("192.168.0.16");
+   localAddress.sin_port = htons(0);
 
-    if (getifaddrs(&ifaddr) == -1) {
-        perror("getifaddrs");
-        exit(EXIT_FAILURE);
-    }
+   int sd = socket(AF_INET, SOCK_RAW, IPPROTO_ICMP);
+   if(sd >= 0) {
+      if(bind(sd, (sockaddr*)&localAddress, sizeof(sockaddr)) == 0) {
+         char             buffer[65536];
+         sockaddr_storage address;
+         socklen_t        addressLength = sizeof(address);
+         while(true) {
+            ssize_t r = recvfrom(sd, (char*)&buffer, sizeof(buffer), 0,
+                                 (sockaddr*)&address, &addressLength);
+            printf("r=%d\n", (int)r);
+            if(r > 0) {
+               boost::interprocess::bufferstream is(buffer, r);
 
-    for (ifaddrs *ifa = ifaddr; ifa != NULL; ifa = ifa->ifa_next) {
-        if (ifa->ifa_addr == NULL)
-            continue;
-        family = ifa->ifa_addr->sa_family;
+               IPv4Header ipv4Header;
+               is >> ipv4Header;
+               if(is) {
+                  printf("IPv4::");
+                  ICMPHeader icmpHeader;
+                  is >> icmpHeader;
+                  if(is) {
+                     printf("ICMP::");
+                     if(icmpHeader.type() == ICMPHeader::IPv4TimeExceeded) {
+                        printf("TimeExceeded");
+                     }
+                     else {
+                        printf("Type=%d", icmpHeader.type());
+                     }
 
-        if (family == AF_INET || family == AF_INET6) {
-
-            printf("%-8s index=%u %s (%d)\n",
-                   ifa->ifa_name,
-                   if_nametoindex(ifa->ifa_name),
-                   (family == AF_INET) ? "AF_INET" :
-                   (family == AF_INET6) ? "AF_INET6" : "???",
-                   family);
-
-            s = getnameinfo(ifa->ifa_addr,
-                    (family == AF_INET) ? sizeof(sockaddr_in) : sizeof(sockaddr_in6),
-                    host, NI_MAXHOST,
-                    NULL, 0, NI_NUMERICHOST);
-            if (s != 0) {
-                printf("getnameinfo() failed: %s\n", gai_strerror(s));
-                exit(EXIT_FAILURE);
+                     TraceServiceHeader tsHeader;
+                     is >> tsHeader;
+                     if(is) {
+                        printf("::HPCT seq=%u", tsHeader.checksumTweak());
+                     }
+                  }
+                  puts("");
+               }
             }
-
-            printf("\t\taddress: <%s>\n", host);
-        }
-    }
-
-    freeifaddrs(ifaddr);
-    exit(EXIT_SUCCESS);
+         }
+      }
+   }
 }
