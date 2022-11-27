@@ -81,22 +81,17 @@ Traceroute::Traceroute(ResultsWriter*                   resultsWriter,
      InitialMaxTTL(initialMaxTTL),
      FinalMaxTTL(finalMaxTTL),
      IncrementMaxTTL(incrementMaxTTL),
-//      PacketSize(packetSize),
      IOService(),
      SourceAddress(sourceAddress),
-//      ICMPSocket(IOService, (SourceAddress.is_v6() == true) ? boost::asio::ip::icmp::v6() : boost::asio::ip::icmp::v4()),
      TimeoutTimer(IOService),
      IntervalTimer(IOService)
 {
    // ====== Some initialisations ===========================================
    IOModule            = new ICMPModule(getName(), IOService, ResultsMap, SourceAddress, packetSize,
                                         std::bind(&Traceroute::newResult, this, std::placeholders::_1));   // FIXME!
-//    Identifier          = 0;
    SeqNumber           = (unsigned short)(std::rand() & 0xffff);
-//    MagicNumber         = ((std::rand() & 0xffff) << 16) | (std::rand() & 0xffff);
    OutstandingRequests = 0;
    LastHop             = 0xffffffff;
-//    ExpectingReply      = false;
    IterationNumber     = 0;
    MinTTL              = 1;
    MaxTTL              = InitialMaxTTL;
@@ -174,9 +169,12 @@ const std::string& Traceroute::getName() const
 // ###### Start thread ######################################################
 bool Traceroute::start()
 {
-   StopRequested.exchange(false);
-   Thread = std::thread(&Traceroute::run, this);
-   return(IOModule->prepareSocket());
+   if(IOModule->prepareSocket()) {
+      StopRequested.exchange(false);
+      Thread = std::thread(&Traceroute::run, this);
+      return true;
+   }
+   return false;
 }
 
 

@@ -66,49 +66,55 @@ class ICMPModule : public IOModuleBase
                                     uint32_t&              targetChecksum);
 
    protected:
+   enum SocketIdentifier {
+      SI_ICMP = 0,
+      SI_UDP  = 1,
+      SI_AUX  = 10  // ...
+   };
+   struct ReceivedData {
+      boost::asio::ip::udp::endpoint                 ReplyEndpoint;
+      std::chrono::high_resolution_clock::time_point ApplicationReceiveTime;
+      TimeSourceType                                 ReceiveSWSource;
+      std::chrono::high_resolution_clock::time_point ReceiveSWTime;
+      TimeSourceType                                 ReceiveHWSource;
+      std::chrono::high_resolution_clock::time_point ReceiveHWTime;
+      char*                                          MessageBuffer;
+      size_t                                         MessageLength;
+      sock_extended_err*                             SocketError;
+   };
+
    void expectNextReply();
    void handleResponse(const boost::system::error_code& errorCode,
-                       const bool                       readFromErrorQueue);
-   void handlePayloadResponse(const boost::asio::ip::udp::endpoint         replyEndpoint,
-                              const std::chrono::system_clock::time_point& applicationReceiveTime,
-                              const TimeSourceType                         rxReceiveSWSource,
-                              const std::chrono::system_clock::time_point& rxReceiveSWTime,
-                              const TimeSourceType                         rxReceiveHWSource,
-                              const std::chrono::system_clock::time_point& rxReceiveHWTime,
-                              char*                                        messageBuffer,
-                              const size_t                                 messageLength);
-   void handleErrorResponse(const boost::asio::ip::udp::endpoint         replyEndpoint,
-                            const std::chrono::system_clock::time_point& applicationReceiveTime,
-                            const TimeSourceType                         rxReceiveSWSource,
-                            const std::chrono::system_clock::time_point& rxReceiveSWTime,
-                            const TimeSourceType                         rxReceiveHWSource,
-                            const std::chrono::system_clock::time_point& rxReceiveHWTime,
-                            char*                                        messageBuffer,
-                            const size_t                                 messageLength);
+                       const bool                       readFromErrorQueue,
+                       const unsigned int               socketIdentifier);
+   void handlePayloadResponse(const unsigned int  socketIdentifier,
+                              const ReceivedData& receivedData);
+   void handleErrorResponse(const unsigned int       socketIdentifier,
+                            const ReceivedData&      receivedData,
+                            const sock_extended_err* socketError);
    void updateSendTimeInResultEntry(const sock_extended_err* socketError,
                                     const scm_timestamping*  socketTimestamping);
-   void recordResult(const boost::asio::ip::udp::endpoint         replyEndpoint,
-                     const std::chrono::system_clock::time_point& applicationReceiveTime,
-                     const TimeSourceType                         rxReceiveSWSource,
-                     const std::chrono::system_clock::time_point& rxReceiveSWTime,
-                     const TimeSourceType                         rxReceiveHWSource,
-                     const std::chrono::system_clock::time_point& rxReceiveHWTime,
-                     const uint8_t                                icmpType,
-                     const uint8_t                                icmpCode,
-                     const unsigned short                         seqNumber);
+   void recordResult(const ReceivedData&  receivedData,
+                     const uint8_t        icmpType,
+                     const uint8_t        icmpCode,
+                     const unsigned short seqNumber);
 
-   const unsigned int              PayloadSize;
-   const unsigned int              ActualPacketSize;
+   const unsigned int             PayloadSize;
+   const unsigned int             ActualPacketSize;
 
-   boost::asio::ip::icmp::socket   ICMPSocket;
-   bool                            ExpectingReply;
-   bool                            ExpectingError;
-   char                            MessageBuffer[65536 + 40];
-   char                            ControlBuffer[1024];
+   // For ICMP type, this UDP socket is only used to generate a
+   // system-unique 16-bit ICMP Identifier!
+   boost::asio::ip::udp::socket   UDPSocket;
+   boost::asio::ip::udp::endpoint UDPSocketEndpoint;
+   boost::asio::ip::icmp::socket  ICMPSocket;
+   bool                           ExpectingReply;
+   bool                           ExpectingError;
+   char                           MessageBuffer[65536 + 40];
+   char                           ControlBuffer[1024];
 };
 
 
-class UDPModule : public IOModuleBase
+class UDPModule : public ICMPModule
 {
    public:
    UDPModule(const std::string&                       name,
@@ -129,23 +135,23 @@ class UDPModule : public IOModuleBase
                                     uint32_t&              targetChecksum);
 
    protected:
-   void expectNextReply();
-   void handleResponse(const boost::system::error_code& errorCode,
-                       const bool                       readFromErrorQueue);
-   void recordResult(const std::chrono::system_clock::time_point& receiveTime,
-                     const unsigned int                           icmpType,
-                     const unsigned int                           icmpCode,
-                     const unsigned short                         seqNumber);
+//    void expectNextReply();
+//    void handleResponse(const boost::system::error_code& errorCode,
+//                        const bool                       readFromErrorQueue);
+//    void recordResult(const std::chrono::high_resolution_clock::time_point& receiveTime,
+//                      const unsigned int                           icmpType,
+//                      const unsigned int                           icmpCode,
+//                      const unsigned short                         seqNumber);
 
-   const unsigned int             PayloadSize;
-   const unsigned int             ActualPacketSize;
-
-   boost::asio::ip::udp::socket   UDPSocket;
-   boost::asio::ip::udp::endpoint ReplyEndpoint;    // Store UDP reply's source address    FIXME! Is this needed as attrib?
-   bool                           ExpectingReply;
-   bool                           ExpectingError;
-   char                           MessageBuffer[65536 + 40];
-   char                           ControlBuffer[1024];
+//    const unsigned int             PayloadSize;
+//    const unsigned int             ActualPacketSize;
+//
+//    boost::asio::ip::udp::socket   UDPSocket;
+//    boost::asio::ip::udp::endpoint ReplyEndpoint;    // Store UDP reply's source address    FIXME! Is this needed as attrib?
+//    bool                           ExpectingReply;
+//    bool                           ExpectingError;
+//    char                           MessageBuffer[65536 + 40];
+//    char                           ControlBuffer[1024];
 };
 
 

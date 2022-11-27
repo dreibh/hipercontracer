@@ -111,7 +111,7 @@ class ICMPHeader
 
    inline void encode(const unsigned int a, const unsigned int b, const uint16_t n) {
       Data[a] = static_cast<uint8_t>(n >> 8);
-      Data[b] = static_cast<uint8_t>(n & 0xFF);
+      Data[b] = static_cast<uint8_t>(n & 0xff);
    }
 
    uint8_t Data[8];
