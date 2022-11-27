@@ -45,25 +45,27 @@ int main(int argc, char *argv[])
       exit(1);
    }
 
-   const uint16_t     localPort   = 12345;
-   const uint16_t     remotePort  = 7;
-   const unsigned int payloadSize = 16;
-   const unsigned int round       = 1;
-   const unsigned int magicNumber = 0x12345678;
-   const unsigned int ttl         = 64;
+   const char*        localAddress  = "192.168.0.16";
+   const uint16_t     localPort     = 12345;
+   const char*        remoteAddress = argv[1];
+   const uint16_t     remotePort    = 7;
+   const unsigned int payloadSize   = 16;
+   const unsigned int round         = 1;
+   const unsigned int magicNumber   = 0x12345678;
+   const unsigned int ttl           = 64;
 
-   sockaddr_in localAddress;
-   localAddress.sin_family = AF_INET;
-   localAddress.sin_addr.s_addr = inet_addr("0.0.0.0");
-   localAddress.sin_port = htons(localPort);
+   sockaddr_in localEndpoint;
+   localEndpoint.sin_family = AF_INET;
+   localEndpoint.sin_addr.s_addr = inet_addr(localAddress);
+   localEndpoint.sin_port = htons(localPort);
 
-   sockaddr_in remoteAddress;
-   remoteAddress.sin_family = AF_INET;
-   remoteAddress.sin_addr.s_addr = inet_addr(argv[1]);
-   remoteAddress.sin_port = htons(remotePort);
+   sockaddr_in remoteEndpoint;
+   remoteEndpoint.sin_family = AF_INET;
+   remoteEndpoint.sin_addr.s_addr = inet_addr(remoteAddress);
+   remoteEndpoint.sin_port = htons(remotePort);
 
    int sdINPUT = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
-   if(bind(sdINPUT, (sockaddr*)&localAddress, sizeof(sockaddr_in)) != 0) {
+   if(bind(sdINPUT, (sockaddr*)&localEndpoint, sizeof(sockaddr_in)) != 0) {
       perror("bind():");
       exit(1);
    }
@@ -89,8 +91,8 @@ int main(int argc, char *argv[])
          ipv4Header.fragmentOffset(0);
          ipv4Header.protocol(IPPROTO_UDP);
          ipv4Header.timeToLive(ttl);
-         ipv4Header.sourceAddress(boost::asio::ip::address::from_string("192.168.0.16").to_v4());
-         ipv4Header.destinationAddress(boost::asio::ip::address::from_string(argv[1]).to_v4());
+         ipv4Header.sourceAddress(boost::asio::ip::address::from_string(localAddress).to_v4());
+         ipv4Header.destinationAddress(boost::asio::ip::address::from_string(remoteAddress).to_v4());
 
          UDPHeader udpHeader;
          udpHeader.sourcePort(localPort);
@@ -104,6 +106,8 @@ int main(int argc, char *argv[])
          tsHeader.checksumTweak(seqNum);
          tsHeader.sendTimeStamp(std::chrono::system_clock::now());
 
+
+         // Header checksum:
          uint32_t sum = 0;
          std::vector<uint8_t> ipv4HeaderContents = ipv4Header.contents();
          processInternet16(sum, ipv4HeaderContents.begin(), ipv4HeaderContents.end());
@@ -116,6 +120,7 @@ int main(int argc, char *argv[])
          printf("CHECK1 = %04x\n", finishInternet16(sum));
 
 
+         // UDP checksum:
          sum = 0;
          std::vector<uint8_t> udpHeaderContents = udpHeader.contents();
          processInternet16(sum, udpHeaderContents.begin(), udpHeaderContents.end());
@@ -146,7 +151,7 @@ int main(int argc, char *argv[])
 
          // ====== Send the request =========================================
          ssize_t sent = sendto(sd, boost::asio::buffer_cast<const char*>(request_buffer.data()), request_buffer.size(), 0,
-                               (sockaddr*)&remoteAddress, sizeof(remoteAddress));
+                               (sockaddr*)&remoteEndpoint, sizeof(remoteEndpoint));
          if(sent < 0) {
             perror("sendto:");
          }
