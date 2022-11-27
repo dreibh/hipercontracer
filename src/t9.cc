@@ -6,6 +6,7 @@
 #include <net/if.h>
 #include <arpa/inet.h>
 
+#include <iostream>
 #include <boost/interprocess/streams/bufferstream.hpp>
 #include <boost/asio/streambuf.hpp>
 #include <boost/asio/ip/address.hpp>
@@ -63,6 +64,24 @@ int main(int argc, char *argv[])
    remoteEndpoint.sin_family = AF_INET;
    remoteEndpoint.sin_addr.s_addr = inet_addr(remoteAddress);
    remoteEndpoint.sin_port = htons(remotePort);
+
+
+   // ====== Obtain local address for given destination:
+   sockaddr_in localTEST;
+   socklen_t localTESTSize = sizeof(localTEST);
+   int sdTEST = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
+   if(connect(sdTEST, (sockaddr*)&remoteEndpoint, sizeof(sockaddr_in)) != 0) {
+      perror("bind():");
+      exit(1);
+   }
+   if(getsockname(sdTEST, (sockaddr*)&localTEST, &localTESTSize) != 0) {
+      perror("getsockname():");
+      exit(1);
+   }
+   boost::asio::ip::address_v4 localTESTaddress(ntohl(((sockaddr_in*)&localTEST)->sin_addr.s_addr));
+   std::cout << "LOCAL=" << localTESTaddress << "\n";
+   close(sdTEST);
+
 
    int sdINPUT = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
    if(bind(sdINPUT, (sockaddr*)&localEndpoint, sizeof(sockaddr_in)) != 0) {
