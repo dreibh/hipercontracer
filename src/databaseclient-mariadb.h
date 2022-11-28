@@ -35,10 +35,10 @@
 #include "databaseclient-base.h"
 
 // Ubuntu: libmysqlcppconn-dev
-#include <cppconn/driver.h>
-#include <cppconn/exception.h>
-#include <cppconn/resultset.h>
-#include <cppconn/statement.h>
+#include <driver.h>
+#include <exception.h>
+#include <resultset.h>
+#include <statement.h>
 
 
 class MariaDBClient : public DatabaseClientBase

@@ -34,10 +34,10 @@
 #include "logger.h"
 
 // Ubuntu: libmysqlcppconn-dev
-#include <cppconn/driver.h>
-#include <cppconn/exception.h>
-#include <cppconn/resultset.h>
-#include <cppconn/statement.h>
+#include <driver.h>
+#include <exception.h>
+#include <resultset.h>
+#include <statement.h>
 
 
 REGISTER_BACKEND(DatabaseBackendType::SQL_MariaDB, "MariaDB", MariaDBClient)
