@@ -51,7 +51,10 @@ DatabaseConfiguration::DatabaseConfiguration()
       ("dbuser",            boost::program_options::value<std::string>(&User),                               "database username")
       ("dbpassword",        boost::program_options::value<std::string>(&Password),                           "database password")
       ("dbcafile",          boost::program_options::value<std::string>(&CAFile),                             "database CA file")
-      ("dbclientcertfile",  boost::program_options::value<std::string>(&ClientCertFile),                     "database client certificate file")
+      ("dbcrlfile",         boost::program_options::value<std::string>(&CRLFile),                            "database CRL file")
+      ("dbcertfile",        boost::program_options::value<std::string>(&CertFile),                           "database certificate file")
+      ("dbkeyfile",         boost::program_options::value<std::string>(&KeyFile),                            "database key file")
+      ("dbcertkeyfile",     boost::program_options::value<std::string>(&CertKeyFile),                        "database certificate+key file")
       ("database",          boost::program_options::value<std::string>(&Database),                           "database name")
       ("dbbackend",         boost::program_options::value<std::string>(&BackendName),                        "database backend")
       ("dbreconnectdelay",  boost::program_options::value<unsigned int>(&ReconnectDelay)->default_value(60), "database reconnect delay (in s)")
@@ -86,9 +89,15 @@ bool DatabaseConfiguration::readConfiguration(const std::filesystem::path& confi
       return false;
    }
 
-   boost::program_options::variables_map vm = boost::program_options::variables_map();
-   boost::program_options::store(boost::program_options::parse_config_file(configurationInputStream , OptionsDescription), vm);
-   boost::program_options::notify(vm);
+   try {
+      boost::program_options::variables_map vm = boost::program_options::variables_map();
+      boost::program_options::store(boost::program_options::parse_config_file(configurationInputStream , OptionsDescription), vm);
+      boost::program_options::notify(vm);
+   } catch(const std::exception& e) {
+      HPCT_LOG(error) << "Parsing configuration file " << configurationFile
+                      << " failed: " << e.what();
+      return false;
+   }
 
    // ====== Check options ==================================================
    if(!setBackend(BackendName))           return false;
@@ -103,8 +112,14 @@ bool DatabaseConfiguration::readConfiguration(const std::filesystem::path& confi
    if(boost::iequals(CAFile, "NONE") || boost::iequals(CAFile, "IGNORE")) {
       CAFile = std::string();
    }
-   if(boost::iequals(ClientCertFile, "NONE") || boost::iequals(ClientCertFile, "IGNORE")) {
-      ClientCertFile = std::string();
+   if(boost::iequals(CertFile, "NONE") || boost::iequals(CertFile, "IGNORE")) {
+      CertFile = std::string();
+   }
+   if(boost::iequals(KeyFile, "NONE") || boost::iequals(KeyFile, "IGNORE")) {
+      KeyFile = std::string();
+   }
+   if(boost::iequals(CertKeyFile, "NONE") || boost::iequals(CertKeyFile, "IGNORE")) {
+      CertKeyFile = std::string();
    }
 
    return true;
@@ -268,7 +283,10 @@ std::ostream& operator<<(std::ostream& os, const DatabaseConfiguration& configur
       << "User             = " << configuration.User           << "\n"
       << "Password         = " << ((configuration.Password.size() > 0) ? "****************" : "(none)") << "\n"
       << "CA File          = " << configuration.CAFile         << "\n"
-      << "Client Cert File = " << configuration.ClientCertFile << "\n"
+      << "CRL File         = " << configuration.CRLFile        << "\n"
+      << "Certificate File = " << configuration.CertFile       << "\n"
+      << "Key File         = " << configuration.KeyFile        << "\n"
+      << "Cert.+Key File   = " << configuration.CertKeyFile    << "\n"
       << "Database         = " << configuration.Database       << "\n"
       << "Flags            =";
    if(configuration.Flags & ConnectionFlags::DisableTLS) {

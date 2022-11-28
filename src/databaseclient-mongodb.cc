@@ -121,9 +121,14 @@ bool MongoDBClient::open()
       mongoc_uri_set_option_as_utf8(URI, MONGOC_URI_TLSCAFILE,
                                     Configuration.getCAFile().c_str());
    }
-   if(Configuration.getClientCertFile().size() > 0) {
+   if(Configuration.getCertKeyFile().size() > 0) {
      mongoc_uri_set_option_as_utf8(URI, MONGOC_URI_TLSCERTIFICATEKEYFILE,
-                                   Configuration.getClientCertFile().c_str());
+                                   Configuration.getCertKeyFile().c_str());
+   }
+   if( (Configuration.getCertFile().size() > 0) ||
+       (Configuration.getKeyFile().size() > 0) ) {
+      HPCT_LOG(error) << "MongoDB backend expects one certificate+key file, not separate certificate and key files!";
+      return false;
    }
    if(Configuration.getConnectionFlags() & ConnectionFlags::AllowInvalidCertificate) {
       mongoc_uri_set_option_as_bool(URI, MONGOC_URI_TLS, MONGOC_URI_TLSALLOWINVALIDCERTIFICATES);

@@ -81,8 +81,12 @@ bool MariaDBClient::open()
    if(Configuration.getCAFile().size() > 0) {
       connectionProperties["sslCA"]   = Configuration.getCAFile();
    }
-   if(Configuration.getClientCertFile().size() > 0) {
-      connectionProperties["sslCert"] = Configuration.getClientCertFile();
+   if(Configuration.getCertFile().size() > 0) {
+      connectionProperties["sslCert"] = Configuration.getCertFile();
+   }
+   if(Configuration.getCertKeyFile().size() > 0) {
+      HPCT_LOG(error) << "MySQL/MariaDB backend expects separate certificate and key files, not one certificate+key file!";
+      return false;
    }
    connectionProperties["sslVerify"]       = true;
    connectionProperties["sslEnforce"]      = true;
@@ -105,7 +109,8 @@ bool MariaDBClient::open()
       assert(Transaction != nullptr);
    }
    catch(const sql::SQLException& e) {
-      HPCT_LOG(error) << "Unable to connect MariaDB client to " << Configuration.getServer() << ": " << e.what();
+      HPCT_LOG(error) << "Unable to connect MySQL/MariaDB client to "
+                      << Configuration.getServer() << ": " << e.what();
       close();
       return false;
    }

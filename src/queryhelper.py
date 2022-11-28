@@ -89,9 +89,10 @@ class DatabaseConfiguration:
                    sys.stderr.write('ERROR: Bad dbPort value ' + value + '!\n')
                    sys.exit(1)
              elif parameterName == 'dbConnectionFlags':
-                if self.Configuration['dbConnectionFlags'] != None:
-                   self.Configuration['dbConnectionFlags'] = \
-                      self.Configuration['dbConnectionFlags'].split(' ')
+                if value == 'NONE':
+                   self.Configuration['dbConnectionFlags'] = None
+                else:
+                   self.Configuration['dbConnectionFlags'] = value.split(' ')
                    for flag in self.Configuration['dbConnectionFlags']:
                       if not flag in self.AvailableConnectionFlags:
                          sys.stderr.write('ERROR: Invalid dbConnectionFlags flag ' + flag + '!\n')
@@ -145,11 +146,14 @@ class DatabaseConfiguration:
          if self.Configuration['dbConnectionFlags'] != None:
             for flag in self.Configuration['dbConnectionFlags']:
                if flag == 'DisableTLS':
+                  sys.stderr.write("WARNING: TLS explicitly disabled. CONFIGURE TLS PROPERLY!!\n")
                   ssl_disabled = True
-               elif flag == 'AllowInvalidHostname':
-                  ssl_verify_identity = False
                elif flag == 'AllowInvalidCertificate':
                   ssl_verify_cert = False
+                  sys.stderr.write("WARNING: TLS certificate check explicitliy disabled. CONFIGURE TLS PROPERLY!!\n")
+               elif flag == 'AllowInvalidHostname':
+                  ssl_verify_identity = False
+                  sys.stderr.write("TLS hostname check explicitliy disabled. CONFIGURE TLS PROPERLY!!\n")
          try:
             self.dbConnection = mysql.connector.connect(
                host                = self.Configuration['dbServer'],
@@ -179,11 +183,14 @@ class DatabaseConfiguration:
          if self.Configuration['dbConnectionFlags'] != None:
             for flag in self.Configuration['dbConnectionFlags']:
                if flag == 'DisableTLS':
+                  sys.stderr.write("WARNING: TLS explicitly disabled. CONFIGURE TLS PROPERLY!!\n")
                   ssl_mode = 'disable'
-               elif flag == 'AllowInvalidHostname':
-                  ssl_mode = 'verify-ca'
                elif flag == 'AllowInvalidCertificate':
                   ssl_mode = 'require'
+                  sys.stderr.write("WARNING: TLS certificate check explicitliy disabled. CONFIGURE TLS PROPERLY!!\n")
+               elif flag == 'AllowInvalidHostname':
+                  ssl_mode = 'verify-ca'
+                  sys.stderr.write("TLS hostname check explicitliy disabled. CONFIGURE TLS PROPERLY!!\n")
          try:
             self.dbConnection = psycopg2.connect(
                host     = self.Configuration['dbServer'],
@@ -216,10 +223,13 @@ class DatabaseConfiguration:
             for flag in self.Configuration['dbConnectionFlags']:
                if flag == 'DisableTLS':
                   tls = False
-               elif flag == 'AllowInvalidHostname':
-                  tlsAllowInvalidHostnames = True
+                  sys.stderr.write("WARNING: TLS explicitly disabled. CONFIGURE TLS PROPERLY!!\n")
                elif flag == 'AllowInvalidCertificate':
                   tlsAllowInvalidCertificates = True
+                  sys.stderr.write("WARNING: TLS certificate check explicitliy disabled. CONFIGURE TLS PROPERLY!!\n")
+               elif flag == 'AllowInvalidHostname':
+                  tlsAllowInvalidHostnames = True
+                  sys.stderr.write("TLS hostname check explicitliy disabled. CONFIGURE TLS PROPERLY!!\n")
          try:
             self.dbConnection = pymongo.MongoClient(
                host                        = self.Configuration['dbServer'],

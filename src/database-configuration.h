@@ -85,7 +85,10 @@ class DatabaseConfiguration
    inline const std::string&           getPassword()        const { return Password;                     }
    inline ConnectionFlags              getConnectionFlags() const { return (ConnectionFlags)Flags;       }
    inline const std::string&           getCAFile()          const { return CAFile;                       }
-   inline const std::string&           getClientCertFile()  const { return ClientCertFile;               }
+   inline const std::string&           getCRLFile()         const { return CRLFile;                      }
+   inline const std::string&           getCertFile()        const { return CertFile;                     }
+   inline const std::string&           getKeyFile()         const { return KeyFile;                      }
+   inline const std::string&           getCertKeyFile()     const { return CertKeyFile;                  }
    inline const std::string&           getDatabase()        const { return Database;                     }
    inline unsigned int                 getReconnectDelay()  const { return ReconnectDelay;               }
 
@@ -131,7 +134,10 @@ class DatabaseConfiguration
    std::string                                 User;
    std::string                                 Password;
    std::string                                 CAFile;
-   std::string                                 ClientCertFile;
+   std::string                                 CRLFile;
+   std::string                                 CertFile;
+   std::string                                 KeyFile;
+   std::string                                 CertKeyFile;
    std::string                                 Database;
    std::string                                 ImportModeName;
    ImportModeType                              ImportMode;
