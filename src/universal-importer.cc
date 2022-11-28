@@ -65,9 +65,7 @@ UniversalImporter::UniversalImporter(boost::asio::io_service&     ioService,
    StatusTimerInterval(boost::posix_time::seconds(statusTimerInterval)),
    INotifyStream(IOService)
 {
-#ifdef __linux__
    INotifyFD = -1;
-#endif
    StatusTimer.expires_from_now(StatusTimerInterval);
    StatusTimer.async_wait(std::bind(&UniversalImporter::handleStatusTimer, this,
                                     std::placeholders::_1));
@@ -92,7 +90,6 @@ bool UniversalImporter::start(const std::string& importFilePathFilter,
                                 std::placeholders::_2));
 
    // ====== Set up INotify =================================================
-#ifdef __linux__
    INotifyFD = inotify_init1(IN_NONBLOCK|IN_CLOEXEC);
    assert(INotifyFD > 0);
    INotifyStream.assign(INotifyFD);
@@ -109,9 +106,6 @@ bool UniversalImporter::start(const std::string& importFilePathFilter,
                                  std::bind(&UniversalImporter::handleINotifyEvent, this,
                                            std::placeholders::_1,
                                            std::placeholders::_2));
-#else
-#error FIXME!
-#endif
 
    // ====== Look for files =================================================
    HPCT_LOG(info) << "Looking for input files ...";
@@ -141,7 +135,6 @@ bool UniversalImporter::start(const std::string& importFilePathFilter,
 void UniversalImporter::stop()
 {
    // ====== Remove INotify =================================================
-#ifdef __linux__
    if(INotifyFD >= 0) {
       std::map<int, std::filesystem::path>::iterator iterator = INotifyWatchDescriptors.begin();
       while(iterator != INotifyWatchDescriptors.end()) {
@@ -152,7 +145,6 @@ void UniversalImporter::stop()
       close(INotifyFD);
       INotifyFD = -1;
    }
-#endif
 
    // ====== Remove readers =================================================
    for(std::list<ReaderBase*>::iterator readerIterator = ReaderList.begin(); readerIterator != ReaderList.end(); ) {
@@ -173,7 +165,6 @@ void UniversalImporter::handleSignalEvent(const boost::system::error_code& error
 }
 
 
-#ifdef __linux
 // ###### Handle signal #####################################################
 void UniversalImporter::handleINotifyEvent(const boost::system::error_code& errorCode,
                                            const std::size_t                length)
@@ -189,7 +180,7 @@ void UniversalImporter::handleINotifyEvent(const boost::system::error_code& erro
 
             // ====== Event for directory ===================================
             if(event->mask & IN_ISDIR) {
-               const std::filesystem::path dataDirectory = directory / event->name;
+               const std::filesystem::path dataDirectory = directory / std::string(event->name);
                if(event->mask & IN_CREATE) {
                   HPCT_LOG(trace) << "INotify event for new directory: " << dataDirectory;
                   const int wd = inotify_add_watch(INotifyFD, dataDirectory.c_str(),
@@ -210,7 +201,7 @@ void UniversalImporter::handleINotifyEvent(const boost::system::error_code& erro
 
             // ====== Event for file ========================================
             else {
-               const std::filesystem::path dataFile = directory / event->name;
+               const std::filesystem::path dataFile = directory / std::string(event->name);
                if(event->mask & (IN_CLOSE_WRITE | IN_MOVED_TO)) {
                   HPCT_LOG(trace) << "INotify event for new file " << dataFile;
                   addFile(dataFile);
@@ -231,7 +222,6 @@ void UniversalImporter::handleINotifyEvent(const boost::system::error_code& erro
                                               std::placeholders::_2));
    }
 }
-#endif
 
 
 // ###### Add reader ########################################################
@@ -316,7 +306,6 @@ unsigned long long UniversalImporter::lookForFiles(const std::filesystem::path& 
       // ====== Add directory ===============================================
       else if(dirEntry.is_directory()) {
          // ------ Create INotify watch -------------------------------------
-#ifdef __linux
          const int wd = inotify_add_watch(INotifyFD, dirEntry.path().c_str(),
                                           IN_CREATE | IN_DELETE | IN_CLOSE_WRITE | IN_MOVED_TO);
          if(wd >= 0) {
@@ -326,7 +315,7 @@ unsigned long long UniversalImporter::lookForFiles(const std::filesystem::path& 
             HPCT_LOG(error) << "Adding INotify watch for " << dirEntry.path()
                             << " failed: " << strerror(errno);
          }
-#endif
+
          // ------ Recursive directory traversal ----------------------------
          if(currentDepth < maxDepth) {
             const unsigned long long m = lookForFiles(dirEntry.path(), currentDepth + 1, maxDepth,

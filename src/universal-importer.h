@@ -37,9 +37,7 @@
 
 #include <boost/asio.hpp>
 
-#ifdef __linux__
 #include <sys/inotify.h>
-#endif
 
 
 class Worker;
@@ -67,10 +65,8 @@ class UniversalImporter
    private:
    void handleSignalEvent(const boost::system::error_code& errorCode,
                           const int                        signalNumber);
-#ifdef __linux__
    void handleINotifyEvent(const boost::system::error_code& errorCode,
                            const std::size_t                length);
-#endif
    unsigned long long lookForFiles(const std::filesystem::path& importFilePath,
                                    const unsigned int           currentDepth,
                                    const unsigned int           maxDepth,
@@ -94,12 +90,10 @@ class UniversalImporter
    std::map<const WorkerMapping, Worker*> WorkerMap;
    boost::asio::deadline_timer            StatusTimer;
    const boost::posix_time::seconds       StatusTimerInterval;
-#ifdef __linux__
    int                                    INotifyFD;
    std::map<int, std::filesystem::path>   INotifyWatchDescriptors;
    boost::asio::posix::stream_descriptor  INotifyStream;
    char                                   INotifyEventBuffer[65536 * sizeof(inotify_event)];
-#endif
 };
 
 #endif
