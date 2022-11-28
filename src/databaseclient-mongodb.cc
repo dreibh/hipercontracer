@@ -38,6 +38,10 @@
 #include <boost/algorithm/string.hpp>
 
 
+#if !MONGOC_CHECK_VERSION(1, 16, 1)
+#error The mongo-c-driver library is out-of-date. At least version 1.16.1 is required!
+#endif
+
 // NOTE:
 // This backend uses the C library of MongoDB, instead of the C++ library.
 // The C++ library in Debian, Ubuntu, etc. is *highly* out of date, not working
