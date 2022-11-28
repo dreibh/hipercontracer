@@ -64,6 +64,9 @@ DatabaseConfiguration::DatabaseConfiguration()
       ("import_file_path",  boost::program_options::value<std::filesystem::path>(&ImportFilePath),           "path for input data")
       ("bad_file_path",     boost::program_options::value<std::filesystem::path>(&BadFilePath),              "path for bad files")
       ("good_file_path",    boost::program_options::value<std::filesystem::path>(&GoodFilePath),             "path for good files")
+
+      // Deprecated option names:
+      ("transactions_path", boost::program_options::value<std::filesystem::path>(&ImportFilePath),           "path for input data (deprecated, use \"import_file_path\")")
    ;
    BackendName     = "Invalid";
    Backend         = DatabaseBackendType::Invalid;

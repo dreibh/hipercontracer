@@ -4,6 +4,7 @@
 # ====== Trace configuration ================================================
 transactions_path = /tmp/xy
 bad_file_path     = /tmp/xy/bad
+good_file_path    = /tmp/xy/good
 
 # ====== Database configuration =============================================
 database          = pingtraceroutedb
