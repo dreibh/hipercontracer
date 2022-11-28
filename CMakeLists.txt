@@ -247,7 +247,7 @@ IF (ENABLE_BACKEND_MONGODB)
               " Cannot find MongoDB C client library! Try:\n"
               " * Ubuntu/Debian: sudo apt install -y libmongoc-dev\n"
               " * Fedora:        sudo dnf install -y mongo-c-driver-devel\n"
-              " * FreeBSD:       sudo pkg install -y libmongo-client")
+              " * FreeBSD:       sudo pkg install -y mongo-c-driver")
    ENDIF()
 
    MESSAGE("Looking for MongoDB BSON library:")
