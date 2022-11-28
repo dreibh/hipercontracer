@@ -56,9 +56,9 @@ class PostgreSQLClient : public DatabaseClientBase
    inline pqxx::connection* getConnection() { return Connection; }
 
    private:
-   void handleDatabaseException(const pqxx::pqxx_exception& exception,
-                                const std::string&          where,
-                                const std::string&          statement = std::string());
+   void handleDatabaseException(const pqxx::failure& exception,
+                                const std::string&   where,
+                                const std::string&   statement = std::string());
 
    pqxx::connection* Connection;
    pqxx::work*       Transaction;

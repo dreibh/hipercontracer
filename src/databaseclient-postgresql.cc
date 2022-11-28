@@ -99,9 +99,9 @@ bool PostgreSQLClient::open()
       Connection = new pqxx::connection(parameters.c_str());
       assert(Connection != nullptr);
    }
-   catch(const pqxx::pqxx_exception& e) {
+   catch(const pqxx::failure& e) {
       HPCT_LOG(error) << "Unable to connect PostgreSQL client to " << parameters
-                      << ": " << e.base().what();
+                      << ": " << e.what();
       close();
       return false;
    }
@@ -131,17 +131,13 @@ void PostgreSQLClient::reconnect()
 
 
 // ###### Handle SQLException ###############################################
-void PostgreSQLClient::handleDatabaseException(const pqxx::pqxx_exception& exception,
-                                               const std::string&          where,
-                                               const std::string&          statement)
+void PostgreSQLClient::handleDatabaseException(const pqxx::failure& exception,
+                                               const std::string&   where,
+                                               const std::string&   statement)
 {
    // ====== Log error ======================================================
-   std::string what = where;
-   const std::exception* error = dynamic_cast<const std::exception*>(&exception.base());
-   if(error != nullptr) {
-       what += ": " + std::string(error->what());
-   }
-   const pqxx::sql_error* sqlError = dynamic_cast<const pqxx::sql_error*>(&exception.base());
+   std::string what = where + ": " + std::string(exception.what());
+   const pqxx::sql_error* sqlError = dynamic_cast<const pqxx::sql_error*>(&exception);
    if(sqlError != nullptr) {
       what += "; SQL: " + std::string(sqlError->query());
    }
@@ -170,7 +166,7 @@ void PostgreSQLClient::startTransaction()
    try {
       Transaction = new pqxx::work(*Connection);
    }
-   catch(const pqxx::pqxx_exception& exception) {
+   catch(const pqxx::failure& exception) {
       handleDatabaseException(exception, "New Transaction");
    }
    assert(Transaction != nullptr);
@@ -186,7 +182,7 @@ void PostgreSQLClient::endTransaction(const bool commit)
          try {
             Transaction->commit();
          }
-         catch(const pqxx::pqxx_exception& exception) {
+         catch(const pqxx::failure& exception) {
             handleDatabaseException(exception, "Commit");
          }
       }
@@ -196,7 +192,7 @@ void PostgreSQLClient::endTransaction(const bool commit)
          try {
             Transaction->abort();
          }
-         catch(const pqxx::pqxx_exception& exception) {
+         catch(const pqxx::failure& exception) {
             handleDatabaseException(exception, "Rollback");
          }
       }
@@ -220,7 +216,7 @@ void PostgreSQLClient::executeUpdate(Statement& statement)
    try {
       Transaction->exec(statement.str());
    }
-   catch(const pqxx::pqxx_exception& exception) {
+   catch(const pqxx::failure& exception) {
       handleDatabaseException(exception, "Execute", statement.str());
    }
 
