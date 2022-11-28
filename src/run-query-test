@@ -23,7 +23,7 @@ for type in Ping Traceroute ; do
 
 
    echo "Querying ${type} data from database ..."
-   ./query "${CONFIGURATION_FILE}" ${type,,} | tee queried-raw-${type,,}.txt | grep "^#" | sort -k4 >queried-${type,,}.txt
+   ./hpct-query "${CONFIGURATION_FILE}" ${type,,} | tee queried-raw-${type,,}.txt | grep "^#" | sort -k4 >queried-${type,,}.txt
    # ls -l queried-raw-${type,,}.txt queried-${type,,}.txt
 
    echo "Differences for ${type}:"
