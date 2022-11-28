@@ -40,30 +40,39 @@ if [ $# -lt 1 ] ; then
    exit 1
 fi
 
-# Access to database as "importer" user:
-DATABASE_CONFIG="${HOME}/testdb-users-$1-importer.conf"
+# Access to database as "researcher" user:
+DATABASE_CONFIG="${HOME}/testdb-users-$1-researcher.conf"
 
 
 # ###### Run test ###########################################################
 if [ -e "${DATABASE_CONFIG}" ] ; then
-   cd ..
-   if [ ! -e Makefile ] ; then
-      cd ..
-      ./autogen.sh
-      cd src
+
+   if [ ! -e good -o ! -e bad -o ! -e data ] ; then
+      echo >&2 "ERROR: Directories missing! Did 5-perform-importer-test succeed?"
+      exit 1
    fi
-   make hpct-importer
-   rm -f core
-   cd TestDB
 
-   mkdir -p data/ good/ bad/
-   rm -rf good/*
-   rm -rf bad/*
-   cp ../examples/*.bz2 data/
+   for type in Ping Traceroute ; do
 
-   ../hpct-importer \
-      -c "${DATABASE_CONFIG}" \
-      --loglevel 0
+      echo "Obtaining ${type} data from good/ directory ..."
+      find good/ -name "${type}-*.bz2" | sort | xargs -r bzcat | tee imported-raw-${type,,}.txt | grep "^#" | sort -k4 >imported-${type,,}.txt
+      # ls -l imported-raw-${type,,}.txt imported-${type,,}.txt
+
+      echo "Querying ${type} data from database ..."
+      ../hpct-query "${DATABASE_CONFIG}" ${type,,} | tee queried-raw-${type,,}.txt | grep "^#" | sort -k4 >queried-${type,,}.txt
+      # ls -l queried-raw-${type,,}.txt queried-${type,,}.txt
+
+      echo "Differences for ${type}:"
+      if [ "${type}" == "Traceroute" ] ; then
+         ls -l imported-raw-${type,,}.txt
+         ls -l queried-raw-${type,,}.txt
+      fi
+
+      colordiff imported-${type,,}.txt queried-${type,,}.txt
+
+   done
+
+   echo "SUCCESS!"
 
 
 # ###### Error ##############################################################
