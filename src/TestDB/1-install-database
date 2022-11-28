@@ -76,7 +76,7 @@ if [ "$1" == "mariadb" ] ; then
    sudo chown mysql:mysql ${MARIADB_KEY_FILE}
    sudo openssl verify -CAfile ${MARIADB_CA_FILE} ${MARIADB_CRT_FILE}
 
-   sudo apt install -y mariadb-server mariadb-backup mariadb-client
+   sudo DEBIAN_FRONTEND=noninteractive apt install -y mariadb-server mariadb-backup mariadb-client
 
    # sudo mariadb-secure-installation
 
@@ -104,7 +104,7 @@ EOF
 
    # Install MySQL Workbench:
    # wget https://dev.mysql.com/get/Downloads/MySQLGUITools/mysql-workbench-community_8.0.31-1ubuntu22.10_amd64.deb
-   # sudo apt install ./mysql-workbench-community_8.0.31-1ubuntu22.10_amd64.deb
+   # sudo DEBIAN_FRONTEND=noninteractive apt install ./mysql-workbench-community_8.0.31-1ubuntu22.10_amd64.deb
 
 
 # ###### PostgreSQL #########################################################
@@ -123,7 +123,7 @@ elif [ "$1" == "postgresql" ] ; then
    sudo chown postgres:postgres ${POSTGRESQL_KEY_FILE}
    sudo openssl verify -CAfile ${POSTGRESQL_CA_FILE} ${POSTGRESQL_CRT_FILE}
 
-   sudo apt install -y postgresql-all postgresql-contrib
+   sudo DEBIAN_FRONTEND=noninteractive  apt install -y postgresql-all postgresql-contrib
 
    # Enable network access:
    sudo sed \
@@ -175,8 +175,8 @@ elif [ "$1" == "mongodb" ] ; then
    if [ ! -e /etc/apt/sources.list.d/mongodb-org-6.0.list ] ; then
       echo "deb [ signed-by=/usr/share/keyrings/mongodb.gpg arch=amd64,arm64 ] https://repo.mongodb.org/apt/ubuntu focal/mongodb-org/6.0 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-6.0.list
    fi
-   sudo apt-get update -qq
-   sudo apt-get install -y mongodb-org
+   sudo apt update -qq
+   sudo DEBIAN_FRONTEND=noninteractive  apt install -y mongodb-org
 
    # ====== Basic engine configuration ======================================
    # WARNING: After installation, MongoDB gives everybody on 127.0.0.1

@@ -48,6 +48,9 @@ MAINTAINER_PASSWORD="!maintainer!"
 IMPORTER_PASSWORD="!importer!"
 RESEARCHER_PASSWORD="!researcher!"
 CONFIG="$2"
+if [ ! -e "${CONFIG}" ] ; then
+   echo >&2 "ERROR: Use configuration $2 does not exist!"
+fi
 if [ $# -gt 2 ] ; then
    OPTION="$3"
 else

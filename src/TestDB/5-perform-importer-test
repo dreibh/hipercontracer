@@ -51,7 +51,9 @@ if [ $# -gt 1 ] ; then
    fi
 fi
 
+# Access to database as "importer" user:
 DATABASE_CONFIG="${HOME}/testdb-users-$1-importer.conf"
+
 
 # ###### Run test ###########################################################
 if [ -e "${DATABASE_CONFIG}" ] ; then
@@ -70,7 +72,9 @@ if [ -e "${DATABASE_CONFIG}" ] ; then
    rm -rf bad/*
    cp ../examples/*.bz2 data/
 
-   
+   ../hpct-importer \
+      -c "${DATABASE_CONFIG}" \
+      --loglevel 0
 
 
 # ###### Error ##############################################################
