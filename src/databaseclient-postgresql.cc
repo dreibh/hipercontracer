@@ -63,21 +63,44 @@ const DatabaseBackendType PostgreSQLClient::getBackend() const
 // ###### Prepare connection to database ####################################
 bool PostgreSQLClient::open()
 {
+   const char* ssl_mode = "verify-full";
+   if(Configuration.getConnectionFlags() & DisableTLS) {
+      ssl_mode = "disable";
+      HPCT_LOG(warning) << "TLS explicitly disabled. CONFIGURE TLS PROPERLY!!";
+   }
+   else if(Configuration.getConnectionFlags() & ConnectionFlags::AllowInvalidCertificate) {
+      ssl_mode = "require";
+      HPCT_LOG(warning) << "TLS certificate check explicitliy disabled. CONFIGURE TLS PROPERLY!!";
+   }
+   else if(Configuration.getConnectionFlags() & ConnectionFlags::AllowInvalidHostname) {
+      ssl_mode = "verify-ca";
+   }
+   if(Configuration.getCertKeyFile().size() > 0) {
+      HPCT_LOG(error) << "PostgreSQL backend expects separate certificate and key files, not one certificate+key file!";
+      return false;
+   }
+
    const std::string parameters =
-      "host="      + Configuration.getServer() +
-      " port="     + std::to_string((Configuration.getPort() != 0) ? Configuration.getPort() : 5432) +
-      " user="     + Configuration.getUser() +
-      " password=" + Configuration.getPassword() +
-      " dbname="   + Configuration.getDatabase();
+      "host="         + Configuration.getServer() +
+      " port="        + std::to_string((Configuration.getPort() != 0) ? Configuration.getPort() : 5432) +
+      " sslmode="     + ssl_mode +
+      " sslrootcert=" + Configuration.getCAFile() +
+      " sslcrl="      + Configuration.getCRLFile() +
+      " sslcert="     + Configuration.getCertFile() +
+      " sslkey="      + Configuration.getKeyFile() +
+      " user="        + Configuration.getUser() +
+      " password="    + Configuration.getPassword() +
+      " dbname="      + Configuration.getDatabase();
 
    assert(Connection == nullptr);
    try {
       // ====== Connect to database =========================================
-      Connection = new pqxx::lazyconnection(parameters.c_str());
+      Connection = new pqxx::connection(parameters.c_str());
       assert(Connection != nullptr);
    }
    catch(const pqxx::pqxx_exception& e) {
-      HPCT_LOG(error) << "Unable to connect PostgreSQL client to " << parameters;
+      HPCT_LOG(error) << "Unable to connect PostgreSQL client to " << parameters
+                      << ": " << e.base().what();
       close();
       return false;
    }
@@ -143,7 +166,12 @@ void PostgreSQLClient::startTransaction()
    assert(Transaction == nullptr);
 
    // ====== Create transaction =============================================
-   Transaction = new pqxx::work(*Connection);
+   try {
+      Transaction = new pqxx::work(*Connection);
+   }
+   catch(const pqxx::pqxx_exception& exception) {
+      handleDatabaseException(exception, "New Transaction");
+   }
    assert(Transaction != nullptr);
 }
 
@@ -151,30 +179,34 @@ void PostgreSQLClient::startTransaction()
 // ###### End transaction ###################################################
 void PostgreSQLClient::endTransaction(const bool commit)
 {
-   assert(Transaction != nullptr);
+   if(Transaction != nullptr) {
+      // ====== Commit transaction ==========================================
+      if(commit) {
+         try {
+            Transaction->commit();
+         }
+         catch(const pqxx::pqxx_exception& exception) {
+            handleDatabaseException(exception, "Commit");
+         }
+      }
 
-   // ====== Commit transaction =============================================
-   if(commit) {
-      try {
-         Transaction->commit();
+      // ====== Commit transaction ==========================================
+      else {
+         try {
+            Transaction->abort();
+         }
+         catch(const pqxx::pqxx_exception& exception) {
+            handleDatabaseException(exception, "Rollback");
+         }
       }
-      catch(const pqxx::pqxx_exception& exception) {
-         handleDatabaseException(exception, "Commit");
-      }
+
+      delete Transaction;
+      Transaction = nullptr;
    }
-
-   // ====== Commit transaction =============================================
    else {
-      try {
-         Transaction->abort();
-      }
-      catch(const pqxx::pqxx_exception& exception) {
-         handleDatabaseException(exception, "Rollback");
-      }
+      // Only rollback without transaction (i.e. nothing to do) is okay here!
+      assert(commit == false);
    }
-
-   delete Transaction;
-   Transaction = nullptr;
 }
 
 

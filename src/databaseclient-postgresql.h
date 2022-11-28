@@ -53,15 +53,15 @@ class PostgreSQLClient : public DatabaseClientBase
    virtual void executeUpdate(Statement& statement);
    virtual void endTransaction(const bool commit);
 
-   inline pqxx::lazyconnection* getConnection() { return Connection; }
+   inline pqxx::connection* getConnection() { return Connection; }
 
    private:
    void handleDatabaseException(const pqxx::pqxx_exception& exception,
                                 const std::string&          where,
                                 const std::string&          statement = std::string());
 
-   pqxx::lazyconnection* Connection;
-   pqxx::work*           Transaction;
+   pqxx::connection* Connection;
+   pqxx::work*       Transaction;
 };
 
 #endif
