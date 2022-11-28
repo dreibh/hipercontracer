@@ -16,8 +16,7 @@ Build-Depends: cmake (>= 3.10),
                libmongoc-dev,
                libmysqlcppconn-dev,
                libpqxx-dev,
-               pkg-config,
-               python3
+               pkg-config
 Standards-Version: 4.6.1
 Rules-Requires-Root: no
 
@@ -30,7 +29,7 @@ Description: API library of HiPerConTracer
  High-Performance Connectivity Tracer (HiPerConTracer) is a
  Ping/Traceroute service. It performs regular Ping and Traceroute runs
  among sites. The results are written to data files, which can be
- imported into an SQL or Non-SQL database.
+ imported into an SQL or NoSQL database.
  .
  The HiPerConTracer library is provided by this package.
 
@@ -49,7 +48,7 @@ Description: Development files for HiPerConTracer API library
  High-Performance Connectivity Tracer (HiPerConTracer) is a
  Ping/Traceroute service. It performs regular Ping and Traceroute runs
  among sites. The results are written to data files, which can be
- imported into an SQL or Non-SQL database.
+ imported into an SQL or NoSQL database.
  .
  This package provides header files for the HiPerConTracer library. You need
  them to integrate HiPerConTracer into own programs.
@@ -63,7 +62,7 @@ Description: API library of HiPerConTracer Universal Importer
  High-Performance Connectivity Tracer (HiPerConTracer) is a
  Ping/Traceroute service. It performs regular Ping and Traceroute runs
  among sites. The results are written to data files, which can be
- imported into an SQL or Non-SQL database.
+ imported into an SQL or NoSQL database.
  .
  The HiPerConTracer Universal Importer library is provided by this
  package.
@@ -83,7 +82,7 @@ Description: Development files for HiPerConTracer Universal Importer API library
  High-Performance Connectivity Tracer (HiPerConTracer) is a
  Ping/Traceroute service. It performs regular Ping and Traceroute runs
  among sites. The results are written to data files, which can be
- imported into an SQL or Non-SQL database.
+ imported into an SQL or NoSQL database.
  .
  This package provides header files for the HiPerConTracer Universal Importer
  library. You need them to integrate HiPerConTracer Universal Importer into
@@ -95,18 +94,13 @@ Depends: libhipercontracer1 (= ${binary:Version}),
          ${misc:Depends},
          ${shlibs:Depends}
 Recommends: hipercontracer-importer,
-            hipercontracer-trigger,
-            python3,
-            python3-geoip,
-            python3-mysql.connector,
-            python3-psycopg2,
-            python3-pymongo,
-            python3-urllib3
+            hipercontracer-query,
+            hipercontracer-trigger
 Description: Command-line programs for HiPerConTracer
  High-Performance Connectivity Tracer (HiPerConTracer) is a
  Ping/Traceroute service. It performs regular Ping and Traceroute runs
  among sites. The results are written to data files, which can be
- imported into an SQL or Non-SQL database.
+ imported into an SQL or NoSQL database.
  .
  This package contains the actual HiPerConTracer program.
 
@@ -120,7 +114,7 @@ Description: Triggered HiPerConTracer service
  High-Performance Connectivity Tracer (HiPerConTracer) is a
  Ping/Traceroute service. It performs regular Ping and Traceroute runs
  among sites. The results are written to data files, which can be
- imported into an SQL or Non-SQL database.
+ imported into an SQL or NoSQL database.
  .
  This tool triggers HiPerConTracer by incoming "Ping" packets.
 
@@ -135,7 +129,29 @@ Description: HiPerConTracer results data importer
  High-Performance Connectivity Tracer (HiPerConTracer) is a
  Ping/Traceroute service. It performs regular Ping and Traceroute runs
  among sites. The results are written to data files, which can be
- imported into an SQL or Non-SQL database.
+ imported into an SQL or NoSQL database.
  .
  This package contains the importer tool to import results from
- HiPerConTracer into an SQL or Non-SQL database.
+ HiPerConTracer into an SQL or NoSQL database.
+
+Package: hipercontracer-query
+Architecture: any
+Depends: libuniversalimporter1 (= ${binary:Version}),
+         python3,
+         python3-geoip,
+         python3-mysql.connector,
+         python3-psycopg2,
+         python3-pymongo,
+         python3-urllib3,
+         python3-zstandard,
+         ${misc:Depends},
+         ${shlibs:Depends}
+Recommends: pwgen
+Description: HiPerConTracer database query tool
+ High-Performance Connectivity Tracer (HiPerConTracer) is a
+ Ping/Traceroute service. It performs regular Ping and Traceroute runs
+ among sites. The results are written to data files, which can be
+ imported into an SQL or NoSQL database.
+ .
+ This package contains a simple query tool to obtain results
+ from a HiPerConTracer SQL or NoSQL database.
