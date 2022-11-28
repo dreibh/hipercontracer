@@ -52,23 +52,25 @@ if [ -e "${DATABASE_CONFIG}" ] ; then
       exit 1
    fi
 
-   for type in Ping Traceroute ; do
+   for table in Ping Traceroute ; do
 
-      echo "Obtaining ${type} data from good/ directory ..."
-      find good/ -name "${type}-*.bz2" | sort | xargs -r bzcat | tee imported-raw-${type,,}.txt | grep "^#" | sort -k4 >imported-${type,,}.txt
-      # ls -l imported-raw-${type,,}.txt imported-${type,,}.txt
+      echo "Obtaining ${table} data from good/ directory ..."
+      find good/ -name "${table}-*.bz2" | sort | xargs -r bzcat | tee imported-raw-${table,,}.txt | grep "^#" | sort -k4 >imported-${table,,}.txt
+      ls -l imported-raw-${table,,}.txt imported-${table,,}.txt
 
-      echo "Querying ${type} data from database ..."
-      ../hpct-query "${DATABASE_CONFIG}" ${type,,} | tee queried-raw-${type,,}.txt | grep "^#" | sort -k4 >queried-${type,,}.txt
-      # ls -l queried-raw-${type,,}.txt queried-${type,,}.txt
+      echo "Querying ${table} data from database ..."
+      ../hpct-query "${DATABASE_CONFIG}" ${table,,} | tee queried-raw-${table,,}.txt | grep "^#" | sort -k4 >queried-${table,,}.txt
+      ls -l queried-raw-${table,,}.txt queried-${table,,}.txt
 
-      echo "Differences for ${type}:"
-      if [ "${type}" == "Traceroute" ] ; then
-         ls -l imported-raw-${type,,}.txt
-         ls -l queried-raw-${type,,}.txt
+      echo "Differences for ${table}:"
+      if [ "${table}" == "Traceroute" ] ; then
+         ls -l imported-raw-${table,,}.txt
+         ls -l queried-raw-${table,,}.txt
       fi
 
-      colordiff imported-${type,,}.txt queried-${type,,}.txt
+      ls -l imported-${table,,}.txt queried-${table,,}.txt
+      wc -l imported-${table,,}.txt queried-${table,,}.txt
+      colordiff imported-${table,,}.txt queried-${table,,}.txt
 
    done
 
