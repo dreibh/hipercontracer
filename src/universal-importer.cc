@@ -83,7 +83,8 @@ UniversalImporter::~UniversalImporter()
 
 
 // ###### Start importer ####################################################
-bool UniversalImporter::start(const std::string& importFilePathFilter)
+bool UniversalImporter::start(const std::string& importFilePathFilter,
+                              const bool         quitWhenIdle)
 {
    // ====== Intercept signals ==============================================
    Signals.async_wait(std::bind(&UniversalImporter::handleSignalEvent, this,
@@ -122,9 +123,15 @@ bool UniversalImporter::start(const std::string& importFilePathFilter)
    for(std::map<const WorkerMapping, Worker*>::iterator workerMappingIterator = WorkerMap.begin();
        workerMappingIterator != WorkerMap.end(); workerMappingIterator++) {
       Worker* worker = workerMappingIterator->second;
-      worker->start();
+      worker->start(quitWhenIdle);
    }
 
+   // ====== Quit when idle? ================================================
+   if(quitWhenIdle) {
+      INotifyStream.cancel();
+      StatusTimer.cancel();
+      Signals.cancel();
+   }
 
    return true;
 }
@@ -156,10 +163,10 @@ void UniversalImporter::stop()
 
 
 // ###### Handle signal #####################################################
-void UniversalImporter::handleSignalEvent(const boost::system::error_code& ec,
+void UniversalImporter::handleSignalEvent(const boost::system::error_code& errorCode,
                                           const int                        signalNumber)
 {
-   if(ec != boost::asio::error::operation_aborted) {
+   if(errorCode != boost::asio::error::operation_aborted) {
       puts("\n*** Shutting down! ***\n");   // Avoids a false positive from Helgrind.
       IOService.stop();
    }
@@ -168,59 +175,61 @@ void UniversalImporter::handleSignalEvent(const boost::system::error_code& ec,
 
 #ifdef __linux
 // ###### Handle signal #####################################################
-void UniversalImporter::handleINotifyEvent(const boost::system::error_code& ec,
+void UniversalImporter::handleINotifyEvent(const boost::system::error_code& errorCode,
                                            const std::size_t                length)
 {
-   // ====== Handle events ==================================================
-   unsigned long p = 0;
-   while(p < length) {
-      const inotify_event* event = (const inotify_event*)&INotifyEventBuffer[p];
-      std::map<int, std::filesystem::path>::const_iterator found = INotifyWatchDescriptors.find(event->wd);
-      if(found != INotifyWatchDescriptors.end()) {
-         const std::filesystem::path& directory = found->second;
+   if(errorCode != boost::asio::error::operation_aborted) {
+      // ====== Handle events ===============================================
+      unsigned long p = 0;
+      while(p < length) {
+         const inotify_event* event = (const inotify_event*)&INotifyEventBuffer[p];
+         std::map<int, std::filesystem::path>::const_iterator found = INotifyWatchDescriptors.find(event->wd);
+         if(found != INotifyWatchDescriptors.end()) {
+            const std::filesystem::path& directory = found->second;
 
-         // ====== Event for directory ======================================
-         if(event->mask & IN_ISDIR) {
-            const std::filesystem::path dataDirectory = directory / event->name;
-            if(event->mask & IN_CREATE) {
-               HPCT_LOG(trace) << "INotify event for new directory: " << dataDirectory;
-               const int wd = inotify_add_watch(INotifyFD, dataDirectory.c_str(),
-                                                IN_CREATE | IN_DELETE | IN_CLOSE_WRITE | IN_MOVED_TO);
-               if(wd >= 0) {
-                  INotifyWatchDescriptors.insert(std::pair<int, std::filesystem::path>(wd, dataDirectory));
+            // ====== Event for directory ===================================
+            if(event->mask & IN_ISDIR) {
+               const std::filesystem::path dataDirectory = directory / event->name;
+               if(event->mask & IN_CREATE) {
+                  HPCT_LOG(trace) << "INotify event for new directory: " << dataDirectory;
+                  const int wd = inotify_add_watch(INotifyFD, dataDirectory.c_str(),
+                                                   IN_CREATE | IN_DELETE | IN_CLOSE_WRITE | IN_MOVED_TO);
+                  if(wd >= 0) {
+                     INotifyWatchDescriptors.insert(std::pair<int, std::filesystem::path>(wd, dataDirectory));
+                  }
+                  else {
+                     HPCT_LOG(error) << "Adding INotify watch for " << dataDirectory
+                                    << " failed: " << strerror(errno);
+                  }
                }
-               else {
-                  HPCT_LOG(error) << "Adding INotify watch for " << dataDirectory
-                                 << " failed: " << strerror(errno);
+               else if(event->mask & IN_DELETE) {
+                  HPCT_LOG(trace) << "INotify event for deleted directory: " << dataDirectory;
+                  INotifyWatchDescriptors.erase(event->wd);
                }
             }
-            else if(event->mask & IN_DELETE) {
-               HPCT_LOG(trace) << "INotify event for deleted directory: " << dataDirectory;
-               INotifyWatchDescriptors.erase(event->wd);
+
+            // ====== Event for file ========================================
+            else {
+               const std::filesystem::path dataFile = directory / event->name;
+               if(event->mask & (IN_CLOSE_WRITE | IN_MOVED_TO)) {
+                  HPCT_LOG(trace) << "INotify event for new file " << dataFile;
+                  addFile(dataFile);
+               }
+               else if(event->mask & IN_DELETE) {
+                  HPCT_LOG(trace) << "INotify event for deleted file " << dataFile;
+                  removeFile(dataFile);
+               }
             }
          }
-
-         // ====== Event for file ===========================================
-         else {
-            const std::filesystem::path dataFile = directory / event->name;
-            if(event->mask & (IN_CLOSE_WRITE | IN_MOVED_TO)) {
-               HPCT_LOG(trace) << "INotify event for new file " << dataFile;
-               addFile(dataFile);
-            }
-            else if(event->mask & IN_DELETE) {
-               HPCT_LOG(trace) << "INotify event for deleted file " << dataFile;
-               removeFile(dataFile);
-            }
-         }
+         p += sizeof(inotify_event) + event->len;
       }
-      p += sizeof(inotify_event) + event->len;
-   }
 
-   // ====== Wait for more events ===========================================
-   INotifyStream.async_read_some(boost::asio::buffer(&INotifyEventBuffer, sizeof(INotifyEventBuffer)),
-                                 std::bind(&UniversalImporter::handleINotifyEvent, this,
-                                           std::placeholders::_1,
-                                           std::placeholders::_2));
+      // ====== Wait for more events ========================================
+      INotifyStream.async_read_some(boost::asio::buffer(&INotifyEventBuffer, sizeof(INotifyEventBuffer)),
+                                    std::bind(&UniversalImporter::handleINotifyEvent, this,
+                                              std::placeholders::_1,
+                                              std::placeholders::_2));
+   }
 }
 #endif
 

@@ -49,7 +49,7 @@ class Worker
           const DatabaseConfiguration& databaseConfiguration);
    ~Worker();
 
-   void start();
+   void start(const bool quitWhenIdle = false);
    void requestStop();
    void wakeUp();
 
@@ -80,6 +80,7 @@ class Worker
    std::thread                  Thread;
    std::mutex                   Mutex;
    std::condition_variable      Notification;
+   bool                         QuitWhenIdle;
 };
 
 #endif

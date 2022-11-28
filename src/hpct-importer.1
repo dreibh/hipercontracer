@@ -38,6 +38,7 @@ database_configuration
 .Op \-B|--bad-file-path PATH
 .Op \-G|--good-file-path PATH
 .Op \-F|--import-file-path-filter FILTER_REGEXP
+.Op \-Q|--quit-when-idle
 .Op \--ping-workers NUMBER
 .Op \--ping-files NUMBER
 .Op \--traceroute-workers NUMBER
@@ -104,6 +105,9 @@ Specifies the import path filter,
 overriding the mode read from the database configuration file.
 This filter can be used to only import a subset of the import files for
 testing. The filter expression is an std::regex regular expression.
+.Op \-Q|--quit-when-idle
+Quit importer when all workers are idle. This will perform only one import
+round.
 .It \--ping-workers NUMBER
 Sets the number of Ping import workers. Default: 1.
 An import file is distributed to a worker by hashing the source address

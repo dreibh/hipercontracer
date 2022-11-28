@@ -71,9 +71,10 @@ Worker::~Worker()
 
 
 // ###### Start worker ######################################################
-void Worker::start()
+void Worker::start(const bool quitWhenIdle)
 {
    StopRequested.exchange(false);
+   QuitWhenIdle = quitWhenIdle;
    Thread = std::thread(&Worker::run, this);
 }
 
@@ -377,6 +378,12 @@ void Worker::run()
          files = Reader.fetchFiles(dataFileList, WorkerID, Reader.getMaxTransactionSize());
       }
 
+      // ====== Quit when idle? =============================================
+      if( (files == 0) && (QuitWhenIdle) ) {
+         HPCT_LOG(trace) << getIdentification() << "Idle -> done!";
+         break;
+      }
+
       // ====== Wait for new data ===========================================
       if(!StopRequested) {
          HPCT_LOG(trace) << getIdentification() << ": Sleeping ...";
@@ -384,4 +391,5 @@ void Worker::run()
          HPCT_LOG(trace) << getIdentification() << ": Wakeup!";
       }
    }
+   HPCT_LOG(trace) << getIdentification() << ": Finished";
 }

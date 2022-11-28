@@ -58,6 +58,7 @@ int main(int argc, char** argv)
    std::filesystem::path badFilePath;
    std::filesystem::path goodFilePath;
    std::string           importFilePathFilter;
+   bool                  quitWhenIdle;
    unsigned int          pingWorkers;
    unsigned int          speedTestWorkers;
    unsigned int          metadataWorkers;
@@ -83,12 +84,15 @@ int main(int argc, char** argv)
       ( "config,C",
            boost::program_options::value<std::filesystem::path>(&databaseConfigurationFile),
            "Database configuration file" )
-      ("import-mode,X",              boost::program_options::value<std::string>(&importModeName),                     "Override import mode")
-      ("import-max-depth,D",         boost::program_options::value<unsigned int>(&importMaxDepth)->default_value(0),  "Override import max depth)")
-      ("import-file-path,I",         boost::program_options::value<std::filesystem::path>(&importFilePath),           "Override path for input files")
-      ("bad-file-path,B",            boost::program_options::value<std::filesystem::path>(&badFilePath),              "Override path for bad files")
-      ("good-file-path,G",           boost::program_options::value<std::filesystem::path>(&goodFilePath),             "Override path for good files")
-      ("import-file-path-filter,F",  boost::program_options::value<std::string>(&importFilePathFilter),               "Import path filter (regular expression)")
+      ("import-mode,X",              boost::program_options::value<std::string>(&importModeName),                    "Override import mode")
+      ("import-max-depth,D",         boost::program_options::value<unsigned int>(&importMaxDepth)->default_value(0), "Override import max depth")
+      ("import-file-path,I",         boost::program_options::value<std::filesystem::path>(&importFilePath),          "Override path for input files")
+      ("bad-file-path,B",            boost::program_options::value<std::filesystem::path>(&badFilePath),             "Override path for bad files")
+      ("good-file-path,G",           boost::program_options::value<std::filesystem::path>(&goodFilePath),            "Override path for good files")
+      ("import-file-path-filter,F",  boost::program_options::value<std::string>(&importFilePathFilter),              "Import path filter (regular expression)")
+      ("quit-when-idle,Q",
+          boost::program_options::value<bool>(&quitWhenIdle)->implicit_value(true)->default_value(false),
+          "Quit importer when idle")
 
       ( "ping-workers,P",
            boost::program_options::value<unsigned int>(&pingWorkers)->default_value(4),
@@ -240,7 +244,7 @@ int main(int argc, char** argv)
 
 
    // ====== Main loop ======================================================
-   if(importer.start(importFilePathFilter) == false) {
+   if(importer.start(importFilePathFilter, quitWhenIdle) == false) {
       exit(1);
    }
    ioService.run();

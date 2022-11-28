@@ -25,4 +25,6 @@ rm -f core &&  \
    -c "${CONFIGURATION_FILE}" \
    --traceroute-workers 1 \
    --ping-workers 1 \
-   --loglevel 1
+   --loglevel 0 \
+   --quit-when-idle
+

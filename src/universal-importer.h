@@ -57,17 +57,18 @@ class UniversalImporter
                   const size_t         databaseClients);
    void removeReader(ReaderBase& reader);
    void lookForFiles(const std::string& importFilePathFilter = std::string());
-   bool start(const std::string& importFilePathFilter = std::string());
+   bool start(const std::string& importFilePathFilter = std::string(),
+              const bool         quitWhenIdle         = false);
    void stop();
    void run();
 
    friend std::ostream& operator<<(std::ostream& os, const UniversalImporter& importer);
 
    private:
-   void handleSignalEvent(const boost::system::error_code& ec,
+   void handleSignalEvent(const boost::system::error_code& errorCode,
                           const int                        signalNumber);
 #ifdef __linux__
-   void handleINotifyEvent(const boost::system::error_code& ec,
+   void handleINotifyEvent(const boost::system::error_code& errorCode,
                            const std::size_t                length);
 #endif
    unsigned long long lookForFiles(const std::filesystem::path& importFilePath,
