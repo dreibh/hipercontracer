@@ -184,6 +184,17 @@ ELSE()
 ENDIF()
 ADD_DEFINITIONS(-DBOOST_ALL_DYN_LINK)   # <<-- Required to handle BOOST Log link problem!
 
+# ###### INotify ############################################################
+
+IF(CMAKE_SYSTEM_NAME MATCHES "Linux")
+   SET(INotify_FOUND TRUE)
+   SET(INotify_LIBRARIES "")
+   SET(INotify_INCLUDE_DIRS "")
+ELSE()
+   FIND_LIBRARY(INotify_LIBRARIES NAMES inotify)
+   FIND_PATH(INotify_INCLUDE_DIRS NAMES sys/inotify.h)
+ENDIF()
+
 # ###### C-ARES #############################################################
 FIND_LIBRARY(CARES_LIBRARY NAMES cares libcares)
 IF (NOT CARES_LIBRARY)
