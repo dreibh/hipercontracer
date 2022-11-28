@@ -56,7 +56,7 @@ if [ "$1" == "mysql" -o "$1" == "mariadb" ] ; then
 
    echo -e "\x1b[34mTesting access to MySQL/MariaDB database ...\x1b[0m"
    cat mysql-test.sql | mysql \
-      --host=localhost --port 3306 \
+      --host=localhost --port 3306 --protocol=tcp \
       --ssl --ssl-verify-server-cert --ssl-ca=/etc/ssl/TestRoot/certs/TestRoot.crt \
       --user=researcher --password="${RESEARCHER_PASSWORD}" \
       --database="${DATABASE}"
@@ -72,9 +72,9 @@ elif [ "$1" == "postgresql" ] ; then
       PGSSLMODE="verify-full" \
       PGSSLROOTCERT="/etc/ssl/TestRoot/certs/TestRoot.crt" \
       psql \
-         --host=localhost \
+         --host=localhost --port=5432 \
          --username=researcher \
-         --database="${DATABASE}"
+         --dbname="${DATABASE}"
 
 
 # ###### MongoDB ############################################################
@@ -83,7 +83,7 @@ elif [ "$1" == "mongodb" ] ; then
 
    echo -e "\x1b[34mTesting access to MongoDB database ...\x1b[0m"
    cat mongodb-test.ms | mongosh \
-      "mongodb://localhost/${DATABASE}:27017" \
+      "mongodb://localhost:27017/${DATABASE}" \
       --tls --tlsCAFile /etc/ssl/TestRoot/certs/TestRoot.crt \
       --username researcher --password "${RESEARCHER_PASSWORD}" \
       --quiet
