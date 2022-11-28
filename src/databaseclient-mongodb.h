@@ -35,7 +35,7 @@
 #include "databaseclient-base.h"
 
 // Ubuntu: libmongoc-dev
-#include <mongoc/mongoc.h>
+#include <mongoc.h>
 
 
 class MongoDBClient : public DatabaseClientBase
