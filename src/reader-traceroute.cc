@@ -379,13 +379,13 @@ void TracerouteReader::parseContents(
    ReaderTimePoint           timeStamp;
    boost::asio::ip::address  sourceIP;
    boost::asio::ip::address  destinationIP;
-   unsigned int              roundNumber;
-   uint16_t                  checksum;
-   unsigned int              totalHops;
-   unsigned int              statusFlags = ~0U;
-   long long                 pathHash;
-   uint8_t                   trafficClass;
-   unsigned int              packetSize;
+   unsigned int              roundNumber  = 0;
+   uint16_t                  checksum     = 0;
+   unsigned int              totalHops    = 0;
+   unsigned int              statusFlags  = ~0U;
+   long long                 pathHash     = 0;
+   uint8_t                   trafficClass = 0x00;
+   unsigned int              packetSize   = 0;
 
    std::string inputLine;
    std::string tuple[TracerouteMaxColumns];
