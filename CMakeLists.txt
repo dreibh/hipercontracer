@@ -187,7 +187,11 @@ ADD_DEFINITIONS(-DBOOST_ALL_DYN_LINK)   # <<-- Required to handle BOOST Log link
 # ###### C-ARES #############################################################
 FIND_LIBRARY(CARES_LIBRARY NAMES cares libcares)
 IF (NOT CARES_LIBRARY)
-   MESSAGE(FATAL_ERROR "Cannot find C-ARES library. Ubuntu/Debian: libc-ares-dev, Fedora: c-ares-devel.")
+   MESSAGE(FATAL_ERROR
+           " Cannot find C-ARES DNS resolver library! Try:\n"
+           " * Ubuntu/Debian: sudo apt install -y libc-ares-dev\n"
+           " * Fedora:        sudo dnf install -y c-ares-devel\n"
+           " * FreeBSD:       sudo pkg install -y c-ares")
 ENDIF()
 
 # ###### Database client libraries ##########################################
@@ -201,7 +205,11 @@ IF (ENABLE_BACKEND_MARIADB)
    FIND_PATH(MYSQLCPPCONN_INCLUDE_DIR NAMES driver.h PATH_SUFFIXES cppconn)
    MESSAGE(" * Includes: ${MYSQLCPPCONN_INCLUDE_DIR}")
    IF ((NOT MYSQLCPPCONN_INCLUDE_DIR) OR (NOT MYSQLCPPCONN_LIBRARY))
-      MESSAGE(FATAL_ERROR "Cannot find MySQL/MariaDB C++ client library. Ubuntu/Debian: libmysqlcppconn-dev, Fedora: mysql-connector-c++-devel (from PPA).")
+      MESSAGE(FATAL_ERROR
+              " Cannot find MySQL/MariaDB C++ client library! Try:\n"
+              " * Ubuntu/Debian: sudo apt install -y libmysqlcppconn-dev\n"
+              " * Fedora:        sudo dnf install -y mysql-connector-c++-devel (needs PPA!)\n"
+              " * FreeBSD:       sudo pkg install -y mysql-connector-c++")
    ENDIF()
 ELSE()
    MESSAGE("MySQL/MariaDB backend disabled!")
@@ -216,7 +224,11 @@ IF (ENABLE_BACKEND_POSTGRESQL)
    FIND_PATH(LIBPQXX_INCLUDE_DIR NAMES pqxx PATH_SUFFIXES pqxx)
    MESSAGE(" * Includes: ${LIBPQXX_INCLUDE_DIR}")
    IF ((NOT LIBPQXX_INCLUDE_DIR) OR (NOT LIBPQXX_LIBRARY))
-      MESSAGE(FATAL_ERROR "Cannot find PostgreSQL C++ client library. Ubuntu/Debian: libpqxx-dev, Fedora: libpqxx-devel.")
+      MESSAGE(FATAL_ERROR
+              " Cannot find PostgreSQL C++  client library! Try:\n"
+              " * Ubuntu/Debian: sudo apt install -y libpqxx-dev\n"
+              " * Fedora:        sudo dnf install -y libpqxx-devel\n"
+              " * FreeBSD:       sudo pkg install -y postgresql-libpqxx")
    ENDIF()
 ELSE()
    MESSAGE("PostgreSQL backend disabled!")
@@ -231,7 +243,11 @@ IF (ENABLE_BACKEND_MONGODB)
    FIND_PATH(LIBMONGOC_INCLUDE_DIR NAMES mongoc.h PATH_SUFFIXES libmongoc-1.0)
    MESSAGE(" * Includes: ${LIBMONGOC_INCLUDE_DIR}")
    IF ((NOT LIBMONGOC_INCLUDE_DIR) OR (NOT LIBMONGOC_LIBRARY))
-      MESSAGE(FATAL_ERROR "Cannot find MongoDB C client library. Ubuntu/Debian: libmongoc-dev, Fedora: libmongo-client-devel.")
+      MESSAGE(FATAL_ERROR
+              " Cannot find MongoDB C client library! Try:\n"
+              " * Ubuntu/Debian: sudo apt install -y libmongoc-dev\n"
+              " * Fedora:        sudo dnf install -y libmongo-client-devel\n"
+              " * FreeBSD:       sudo pkg install -y libmongo-client")
    ENDIF()
 
    MESSAGE("Looking for MongoDB BSON library:")
@@ -240,7 +256,11 @@ IF (ENABLE_BACKEND_MONGODB)
    FIND_PATH(LIBBSON_INCLUDE_DIR NAMES bson.h PATH_SUFFIXES libbson-1.0)
    MESSAGE(" * Includes: ${LIBBSON_INCLUDE_DIR}")
    IF ((NOT LIBBSON_INCLUDE_DIR) OR (NOT LIBBSON_LIBRARY))
-      MESSAGE(FATAL_ERROR "Cannot find MongoDB C client library. Ubuntu/Debian: libbson-dev, Fedora: libbson-devel.")
+      MESSAGE(FATAL_ERROR
+              " Cannot find MongoDB BSON library! Try:\n"
+              " * Ubuntu/Debian: sudo apt install -y libbson-dev\n"
+              " * Fedora:        sudo dnf install -y libbson-devel\n"
+              " * FreeBSD:       sudo pkg install -y libbson")
    ENDIF()
 ELSE()
    MESSAGE("MongoDB backend disabled!")
