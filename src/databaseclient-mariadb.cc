@@ -72,6 +72,17 @@ const DatabaseBackendType MariaDBClient::getBackend() const
 // ###### Prepare connection to database ####################################
 bool MariaDBClient::open()
 {
+   bool sslEnforce = true;
+   bool sslVerify  = true;
+   if(Configuration.getConnectionFlags() & DisableTLS) {
+      sslEnforce = false;
+      HPCT_LOG(warning) << "TLS explicitly disabled. CONFIGURE TLS PROPERLY!!";
+   }
+   else if(Configuration.getConnectionFlags() & (ConnectionFlags::AllowInvalidCertificate|ConnectionFlags::AllowInvalidHostname)) {
+      sslVerify = false;
+      HPCT_LOG(warning) << "TLS certificate check explicitliy disabled. CONFIGURE TLS PROPERLY!!";
+   }
+
    sql::ConnectOptionsMap connectionProperties;
    connectionProperties["hostName"] = Configuration.getServer();
    connectionProperties["userName"] = Configuration.getUser();
@@ -88,8 +99,8 @@ bool MariaDBClient::open()
       HPCT_LOG(error) << "MySQL/MariaDB backend expects separate certificate and key files, not one certificate+key file!";
       return false;
    }
-   connectionProperties["sslVerify"]       = true;
-   connectionProperties["sslEnforce"]      = true;
+   connectionProperties["sslVerify"]       = sslVerify;
+   connectionProperties["sslEnforce"]      = sslEnforce;
    connectionProperties["OPT_TLS_VERSION"] = "TLSv1.3";
    connectionProperties["OPT_RECONNECT"]   = true;
    connectionProperties["CLIENT_COMPRESS"] = true;

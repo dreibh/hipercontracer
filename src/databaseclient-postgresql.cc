@@ -74,6 +74,7 @@ bool PostgreSQLClient::open()
    }
    else if(Configuration.getConnectionFlags() & ConnectionFlags::AllowInvalidHostname) {
       ssl_mode = "verify-ca";
+      HPCT_LOG(warning) << "TLS hostname check explicitliy disabled. CONFIGURE TLS PROPERLY!!";
    }
    if(Configuration.getCertKeyFile().size() > 0) {
       HPCT_LOG(error) << "PostgreSQL backend expects separate certificate and key files, not one certificate+key file!";
