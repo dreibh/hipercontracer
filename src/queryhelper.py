@@ -42,13 +42,24 @@ class DatabaseConfiguration:
    # ###### Constructor #####################################################
    def __init__(self, configurationFile):
       self.Configuration = {
-         'dbBackend':  'PostgreSQL',
-         'dbServer':   'localhost',
-         'dbPort':     '5432',
-         'dbUser':     '!maintainer!',
-         'dbPassword': None,
-         'database':  'PingTracerouteDB'
+         'dbBackend':         'PostgreSQL',
+         'dbServer':          'localhost',
+         'dbPort':            0,
+         'dbCAFile':          None,
+         'dbCRLFile':         None,
+         'dbCertKeyFile':     None,
+         'dbCertFile':        None,
+         'dbKeyFile':         None,
+         'dbConnectionFlags': None,
+         'dbUser':            '!maintainer!',
+         'dbPassword':        None,
+         'database':         'PingTracerouteDB'
       }
+      self.AvailableConnectionFlags = [
+         'DisableTLS',
+         'AllowInvalidHostname',
+         'AllowInvalidCertificate'
+      ]
       self.readConfiguration(configurationFile)
 
 
@@ -62,16 +73,57 @@ class DatabaseConfiguration:
           sys.stderr.write('ERROR: Unable to read database configuration file' +  sys.argv[1] + ': ' + str(e) + '\n')
           sys.exit(1)
 
+      # ====== Read parameters ==============================================
       for parameterName in self.Configuration.keys():
           if parsedConfigFile.has_option('root', parameterName.lower()):
              value = parsedConfigFile.get('root', parameterName.lower())
              if parameterName == 'dbBackend':
                 if value not in [ 'MySQL', 'MariaDB', 'MongoDB', 'PostgreSQL' ] :
-                   sys.stderr.write('ERROR: Bad backend ' + value + '\n')
+                   sys.stderr.write('ERROR: Bad backend ' + value + '!\n')
                    sys.exit(1)
                 self.Configuration[parameterName] = value
+             elif parameterName == 'dbPort':
+                try:
+                   self.Configuration['dbPort'] = int(self.Configuration['dbPort'])
+                except Exception as e:
+                   sys.stderr.write('ERROR: Bad dbPort value ' + value + '!\n')
+                   sys.exit(1)
+             elif parameterName == 'dbConnectionFlags':
+                if self.Configuration['dbConnectionFlags'] != None:
+                   self.Configuration['dbConnectionFlags'] = \
+                      self.Configuration['dbConnectionFlags'].split(' ')
+                   for flag in self.Configuration['dbConnectionFlags']:
+                      if not flag in self.AvailableConnectionFlags:
+                         sys.stderr.write('ERROR: Invalid dbConnectionFlags flag ' + flag + '!\n')
+                         sys.exit(1)
              else:
                 self.Configuration[parameterName] = value
+
+      # ====== Check parameters =============================================
+      if self.Configuration['dbPort'] == 0:
+         if self.Configuration['dbBackend'] in [ 'MySQL', 'MariaDB' ]:
+            self.Configuration['dbPort'] = 3306
+         elif self.Configuration['dbBackend'] == 'PostgreSQL':
+            self.Configuration['dbPort'] = 5432
+         elif self.Configuration['dbBackend'] == 'MongoDB':
+            self.Configuration['dbPort'] = 27017
+
+      if self.Configuration['dbBackend'] in [ 'MySQL', 'MariaDB' ]:
+         if self.Configuration['dbCertKeyFile'] != None:
+            sys.stderr.write('ERROR: MySQL/MariaDB backend expects dbCertFile+dbKeyFile, not dbCertKeyFile!\n')
+            sys.exit(1)
+         if self.Configuration['dbCRLFile'] != None:
+            sys.stderr.write('ERROR: MySQL/MariaDB backend does not support dbCRLFile!\n')
+            sys.exit(1)
+      elif self.Configuration['dbBackend'] == 'PostgreSQL':
+         if self.Configuration['dbCertKeyFile'] != None:
+            sys.stderr.write('ERROR: PostgreSQL backend expects dbCertFile+dbKeyFile, not dbCertKeyFile!\n')
+            sys.exit(1)
+      elif self.Configuration['dbBackend'] == 'MongoDB':
+         if self.Configuration['dbCertFile'] != None or \
+            self.Configuration['dbKeyFile']  != None :
+            sys.stderr.write('ERROR: MongoDB backend expects dbCertKeyFile, not dbCertFile+dbKeyFile!\n')
+            sys.exit(1)
 
       # print(self.Configuration)
 
@@ -84,35 +136,35 @@ class DatabaseConfiguration:
    # ###### Create new database client instance #############################
    def createClient(self):
 
-      # ====== MongoDB ======================================================
-      if self.Configuration['dbBackend'] == 'MongoDB':
-         import pymongo
-         try:
-            self.dbConnection = pymongo.MongoClient(host          = self.Configuration['dbServer'],
-                                                    port          = int(self.Configuration['dbPort']),
-                                                    # ssl           = True,
-                                                    # ssl_cert_reqs = ssl.CERT_REQUIRED,
-                                                    # ssl_ca_certs  = port=self.Configuration['dbCAFile'],
-                                                    compressors   = "zstd,zlib")
-            self.database = self.dbConnection[str(self.Configuration['database'])]
-            self.database.authenticate(self.Configuration['dbUser'],
-                                       self.Configuration['dbPassword'],
-                                       mechanism = 'SCRAM-SHA-256')
-         except Exception as e:
-            sys.stderr.write('ERROR: Unable to connect to the database: ' + str(e) + '\n')
-            sys.exit(1)
-         return { 'connection': self.dbConnection,
-                  'database':   self.database }
-
       # ====== MySQL/MariaDB ================================================
-      elif self.Configuration['dbBackend'] in [ 'MySQL', 'MariaDB' ]:
+      if self.Configuration['dbBackend'] in [ 'MySQL', 'MariaDB' ]:
          import mysql.connector
+         ssl_disabled                = False
+         ssl_verify_cert             = True
+         ssl_verify_identity         = True
+         if self.Configuration['dbConnectionFlags'] != None:
+            for flag in self.Configuration['dbConnectionFlags']:
+               if flag == 'DisableTLS':
+                  ssl_disabled = True
+               elif flag == 'AllowInvalidHostname':
+                  ssl_verify_identity = False
+               elif flag == 'AllowInvalidCertificate':
+                  ssl_verify_cert = False
          try:
-            self.dbConnection = mysql.connector.connect(host     = self.Configuration['dbServer'],
-                                                        port     = self.Configuration['dbPort'],
-                                                        user     = self.Configuration['dbUser'],
-                                                        password = self.Configuration['dbPassword'],
-                                                        database = self.Configuration['database'])
+            self.dbConnection = mysql.connector.connect(
+               host                = self.Configuration['dbServer'],
+               port                = self.Configuration['dbPort'],
+               user                = self.Configuration['dbUser'],
+               password            = self.Configuration['dbPassword'],
+               database            = self.Configuration['database'],
+               ssl_disabled        = ssl_disabled,
+               ssl_verify_identity = ssl_verify_identity,
+               ssl_verify_cert     = ssl_verify_cert,
+               ssl_ca              = self.Configuration['dbCAFile'],
+               # ssl_crl             = self.Configuration['dbCRLFile'],
+               ssl_key             = self.Configuration['dbCertFile'],
+               ssl_cert            = self.Configuration['dbKeyFile'],
+            )
             self.dbCursor = self.dbConnection.cursor()
          except Exception as e:
             sys.stderr.write('ERROR: Unable to connect to the database: ' + str(e) + '\n')
@@ -123,12 +175,29 @@ class DatabaseConfiguration:
       # ====== PostgreSQL ===================================================
       elif self.Configuration['dbBackend'] == 'PostgreSQL':
          import psycopg2
+         ssl_mode = 'verify-full'
+         if self.Configuration['dbConnectionFlags'] != None:
+            for flag in self.Configuration['dbConnectionFlags']:
+               if flag == 'DisableTLS':
+                  ssl_mode = 'disable'
+               elif flag == 'AllowInvalidHostname':
+                  ssl_mode = 'verify-ca'
+               elif flag == 'AllowInvalidCertificate':
+                  ssl_mode = 'require'
          try:
-            self.dbConnection = psycopg2.connect(host     = self.Configuration['dbServer'],
-                                                 port     = self.Configuration['dbPort'],
-                                                 user     = self.Configuration['dbUser'],
-                                                 password = self.Configuration['dbPassword'],
-                                                 dbname   = self.Configuration['database'])
+            self.dbConnection = psycopg2.connect(
+               host     = self.Configuration['dbServer'],
+               port     = self.Configuration['dbPort'],
+               user     = self.Configuration['dbUser'],
+               password = self.Configuration['dbPassword'],
+               dbname   = self.Configuration['database'],
+               sslmode                  = ssl_mode,
+               sslrootcert              = self.Configuration['dbCAFile'],
+               sslcrl                   = self.Configuration['dbCRLFile'],
+               sslkey                   = self.Configuration['dbCertFile'],
+               sslcert                  = self.Configuration['dbKeyFile'],
+
+               )
             self.dbConnection.autocommit = False
             self.dbCursor = self.dbConnection.cursor()
          except Exception as e:
@@ -136,6 +205,42 @@ class DatabaseConfiguration:
             sys.exit(1)
          return { 'connection': self.dbConnection,
                   'cursor':     self.dbCursor }
+
+      # ====== MongoDB ======================================================
+      if self.Configuration['dbBackend'] == 'MongoDB':
+         import pymongo
+         tls                         = True
+         tlsAllowInvalidHostnames    = False
+         tlsAllowInvalidCertificates = False
+         if self.Configuration['dbConnectionFlags'] != None:
+            for flag in self.Configuration['dbConnectionFlags']:
+               if flag == 'DisableTLS':
+                  tls = False
+               elif flag == 'AllowInvalidHostname':
+                  tlsAllowInvalidHostnames = True
+               elif flag == 'AllowInvalidCertificate':
+                  tlsAllowInvalidCertificates = True
+         try:
+            self.dbConnection = pymongo.MongoClient(
+               host                        = self.Configuration['dbServer'],
+               port                        = int(self.Configuration['dbPort']),
+               tls                         = tls,
+               tlsAllowInvalidHostnames    = tlsAllowInvalidHostnames,
+               tlsAllowInvalidCertificates = tlsAllowInvalidCertificates,
+               tlsCAFile                   = self.Configuration['dbCAFile'],
+               tlsCRLFile                  = self.Configuration['dbCRLFile'],
+               tlsCertificateKeyFile       = self.Configuration['dbCertKeyFile'],
+               compressors                 = "zstd,zlib,snappy"
+            )
+            self.database = self.dbConnection[str(self.Configuration['database'])]
+            self.database.authenticate(self.Configuration['dbUser'],
+                                       self.Configuration['dbPassword'],
+                                       mechanism = 'SCRAM-SHA-256')
+         except Exception as e:
+            sys.stderr.write('ERROR: Unable to connect to the database: ' + str(e) + '\n')
+            sys.exit(1)
+         return { 'connection': self.dbConnection,
+                  'database':   self.database }
 
       return None
 
