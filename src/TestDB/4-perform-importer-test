@@ -1,0 +1,80 @@
+#!/usr/bin/env bash
+#  =================================================================
+#           #     #                 #     #
+#           ##    #   ####   #####  ##    #  ######   #####
+#           # #   #  #    #  #    # # #   #  #          #
+#           #  #  #  #    #  #    # #  #  #  #####      #
+#           #   # #  #    #  #####  #   # #  #          #
+#           #    ##  #    #  #   #  #    ##  #          #
+#           #     #   ####   #    # #     #  ######     #
+#
+#        ---   The NorNet Testbed for Multi-Homed Systems  ---
+#                        https://www.nntb.no
+#  =================================================================
+#
+#  High-Performance Connectivity Tracer (HiPerConTracer)
+#  Copyright (C) 2015-2022 by Thomas Dreibholz
+#
+#  This program is free software: you can redistribute it and/or modify
+#  it under the terms of the GNU General Public License as published by
+#  the Free Software Foundation, either version 3 of the License, or
+#  (at your option) any later version.
+#
+#  This program is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
+#
+#  You should have received a copy of the GNU General Public License
+#  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+#  Contact: dreibh@simula.no
+
+# Bash options:
+set -o nounset
+set -o errexit
+
+
+if [ $# -lt 1 ] ; then
+   echo >&2 "Usage: $0 mariadb|mongodb|mysql|postgresql [--force-removal-without-confirmation]"
+   exit 1
+fi
+
+if [ $# -gt 1 ] ; then
+   if [ "$2" != "--force-removal-without-confirmation" ] ; then
+      echo -n "WARNING: THIS SCRIPT WILL ERASE THE EXISTING DATABASES. To proceed, type \"I am sure!\": "
+      read -er agree
+      if [ "$agree" != "I am sure!" ] ; then
+         echo "Exiting."
+         exit
+      fi
+   fi
+fi
+
+DATABASE_CONFIG="${HOME}/testdb-users-$1-importer.conf"
+
+# ###### Run test ###########################################################
+if [ -e "${DATABASE_CONFIG}" ] ; then
+   cd ..
+   if [ ! -e Makefile ] ; then
+      cd ..
+      ./autogen.sh
+      cd src
+   fi
+   make hpct-importer
+   rm -f core
+   cd TestDB
+
+   mkdir -p data/ good/ bad/
+   rm -rf good/*
+   rm -rf bad/*
+   cp ../examples/*.bz2 data/
+
+   
+
+
+# ###### Error ##############################################################
+else
+   echo >&2 "ERROR: ${DATABASE_CONFIG} not found!"
+   exit 1
+fi
