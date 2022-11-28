@@ -56,7 +56,7 @@ if [ "$1" == "mysql" -o "$1" == "mariadb" ] ; then
 
    echo -e "\x1b[34mTesting access to MySQL/MariaDB database ...\x1b[0m"
    cat mysql-test.sql | mysql \
-      --host=localhost \
+      --host=localhost --port 3306 \
       --ssl --ssl-verify-server-cert --ssl-ca=/etc/ssl/TestRoot/certs/TestRoot.crt \
       --user=researcher --password="${RESEARCHER_PASSWORD}" \
       --database="${DATABASE}"
@@ -67,7 +67,14 @@ elif [ "$1" == "postgresql" ] ; then
    # Documentation: https://www.digitalocean.com/community/tutorials/how-to-install-postgresql-on-ubuntu-22-04-quickstart
 
    echo -e "\x1b[34mTesting access to PostgreSQL database ...\x1b[0m"
-   PGPASSWORD="${RESEARCHER_PASSWORD}" psql -h localhost -U researcher -d "${DATABASE}" <postgresql-test.sql
+   cat postgresql-test.sql | \
+      PGPASSWORD="${RESEARCHER_PASSWORD}" \
+      PGSSLMODE="verify-full" \
+      PGSSLROOTCERT="/etc/ssl/TestRoot/certs/TestRoot.crt" \
+      psql \
+         --host=localhost \
+         --username=researcher \
+         --database="${DATABASE}"
 
 
 # ###### MongoDB ############################################################
@@ -75,8 +82,11 @@ elif [ "$1" == "mongodb" ] ; then
    # Documentation: https://www.mongodb.com/docs/manual/tutorial/install-mongodb-on-ubuntu/
 
    echo -e "\x1b[34mTesting access to MongoDB database ...\x1b[0m"
-   mongosh --tls --tlsCAFile /etc/ssl/TestRoot/certs/TestRoot.crt \
-      "mongodb://localhost/${DATABASE}" --username researcher --password "${RESEARCHER_PASSWORD}" --quiet <mongodb-test.ms
+   cat mongodb-test.ms | mongosh \
+      "mongodb://localhost/${DATABASE}:27017" \
+      --tls --tlsCAFile /etc/ssl/TestRoot/certs/TestRoot.crt \
+      --username researcher --password "${RESEARCHER_PASSWORD}" \
+      --quiet
 
 
 # ###### Error ##############################################################
