@@ -55,7 +55,11 @@ if [ "$1" == "mysql" -o "$1" == "mariadb" ] ; then
    # Documentation: https://www.digitalocean.com/community/tutorials/how-to-install-mariadb-on-ubuntu-22-04
 
    echo -e "\x1b[34mTesting access to MySQL/MariaDB database ...\x1b[0m"
-   mysql -h localhost -u researcher --password="${RESEARCHER_PASSWORD}" --database="${DATABASE}" <mysql-test.sql
+   cat mysql-test.sql | mysql \
+      --host=localhost \
+      --ssl --ssl-verify-server-cert --ssl-ca=/etc/ssl/TestRoot/certs/TestRoot.crt \
+      --user=researcher --password="${RESEARCHER_PASSWORD}" \
+      --database="${DATABASE}"
 
 
 # ###### PostgreSQL #########################################################
