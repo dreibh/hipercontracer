@@ -68,11 +68,11 @@ DatabaseConfiguration::DatabaseConfiguration()
       // Deprecated option names:
       ("transactions_path", boost::program_options::value<std::filesystem::path>(&ImportFilePath),           "path for input data (deprecated, use \"import_file_path\")")
    ;
-   BackendName     = "Invalid";
-   Backend         = DatabaseBackendType::Invalid;
-   Flags           = ConnectionFlags::None;
-   ImportModeName  = "KeepImportedFiles";
-   ImportMode      = ImportModeType::KeepImportedFiles;
+   BackendName    = "Invalid";
+   Backend        = DatabaseBackendType::Invalid;
+   Flags          = ConnectionFlags::None;
+   ImportModeName = "KeepImportedFiles";
+   ImportMode     = ImportModeType::KeepImportedFiles;
 }
 
 
