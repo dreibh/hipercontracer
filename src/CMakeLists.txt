@@ -155,7 +155,9 @@ INSTALL(TARGETS hpct-importer RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
 INSTALL(FILES hpct-importer.1 DESTINATION ${CMAKE_INSTALL_MANDIR}/man1)
 
 # ====== Scripts ============================================================
-INSTALL(FILES get-default-ips.1 addressinfogenerator.1
+INSTALL(PROGRAMS get-default-ips
+        DESTINATION ${CMAKE_INSTALL_BINDIR})
+INSTALL(FILES get-default-ips.1
         DESTINATION ${CMAKE_INSTALL_MANDIR}/man1)
 
 
