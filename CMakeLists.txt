@@ -185,7 +185,6 @@ ENDIF()
 ADD_DEFINITIONS(-DBOOST_ALL_DYN_LINK)   # <<-- Required to handle BOOST Log link problem!
 
 # ###### INotify ############################################################
-
 IF(CMAKE_SYSTEM_NAME MATCHES "Linux")
    SET(INotify_FOUND TRUE)
    SET(INotify_LIBRARIES "")
