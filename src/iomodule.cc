@@ -795,6 +795,7 @@ void ICMPModule::handlePayloadResponse(const int           socketDescriptor,
    if(SourceAddress.is_v6()) {
       is >> icmpHeader;
       if(is) {
+         // FIXME! Check protocol()!
          if(icmpHeader.type() == ICMPHeader::IPv6EchoReply) {
             if(icmpHeader.identifier() == Identifier) {
                TraceServiceHeader tsHeader;
@@ -828,6 +829,7 @@ void ICMPModule::handlePayloadResponse(const int           socketDescriptor,
       IPv4Header ipv4Header;
       is >> ipv4Header;
       if(is) {
+         // FIXME! Check protocol()!
          is >> icmpHeader;
          if(is) {
             if(icmpHeader.type() == ICMPHeader::IPv4EchoReply) {
@@ -936,7 +938,6 @@ void ICMPModule::recordResult(const ReceivedData&  receivedData,
    // ====== Find corresponding request =====================================
    std::map<unsigned short, ResultEntry*>::iterator found = ResultsMap.find(seqNumber);
    if(found == ResultsMap.end()) {
-      puts("NF!");// FIXME!
       return;
    }
    ResultEntry* resultEntry = found->second;

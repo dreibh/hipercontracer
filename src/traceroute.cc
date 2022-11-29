@@ -87,7 +87,7 @@ Traceroute::Traceroute(ResultsWriter*                   resultsWriter,
      IntervalTimer(IOService)
 {
    // ====== Some initialisations ===========================================
-   IOModule            = new UDPModule(getName(), IOService, ResultsMap, SourceAddress, packetSize,
+   IOModule            = new ICMPModule(getName(), IOService, ResultsMap, SourceAddress, packetSize,
                                         std::bind(&Traceroute::newResult, this, std::placeholders::_1));   // FIXME!
    SeqNumber           = (unsigned short)(std::rand() & 0xffff);
    OutstandingRequests = 0;

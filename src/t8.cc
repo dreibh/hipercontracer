@@ -7,9 +7,11 @@
 #include <arpa/inet.h>
 
 #include <boost/interprocess/streams/bufferstream.hpp>
+#include <vector>
 
 #include "ipv4header.h"
 #include "icmpheader.h"
+#include "udpheader.h"
 #include "traceserviceheader.h"
 
 
@@ -17,7 +19,7 @@ int main(int argc, char *argv[])
 {
    sockaddr_in localAddress;
    localAddress.sin_family = AF_INET;
-   localAddress.sin_addr.s_addr = inet_addr("192.168.0.16");
+   localAddress.sin_addr.s_addr = inet_addr("10.44.33.110");
    localAddress.sin_port = htons(0);
 
    int sd = socket(AF_INET, SOCK_RAW, IPPROTO_ICMP);
@@ -33,29 +35,48 @@ int main(int argc, char *argv[])
             if(r > 0) {
                boost::interprocess::bufferstream is(buffer, r);
 
-               IPv4Header ipv4Header;
-               is >> ipv4Header;
-               if(is) {
-                  printf("IPv4::");
-                  ICMPHeader icmpHeader;
-                  is >> icmpHeader;
-                  if(is) {
-                     printf("ICMP::");
-                     if(icmpHeader.type() == ICMPHeader::IPv4TimeExceeded) {
-                        printf("TimeExceeded");
-                     }
-                     else {
-                        printf("Type=%d", icmpHeader.type());
-                     }
 
-                     TraceServiceHeader tsHeader;
-                     is >> tsHeader;
-                     if(is) {
-                        printf("::HPCT seq=%u", tsHeader.checksumTweak());
-                     }
-                  }
-                  puts("");
+               // Level 1: Outer IPv4 header
+               IPv4Header outerIPv4Header;
+               is >> outerIPv4Header;
+               if(!(is && (outerIPv4Header.protocol() == IPPROTO_ICMP))) {
+                puts("x-1");
+                  continue;
                }
+
+               // Level 2: Outer ICMP header
+               ICMPHeader outerICMPHeader;
+               is >> outerICMPHeader;
+               if(!is) {
+                puts("x-2");
+                  continue;
+               }
+
+               // Level 3: Inner IPv4 header
+               IPv4Header innerIPv4Header;
+               is >> innerIPv4Header;
+               if(!(is && (innerIPv4Header.protocol() == IPPROTO_UDP))) {
+                puts("x-3");
+                  continue;
+               }
+               printf("IPv4 Identification = %04x\n", innerIPv4Header.identification());
+
+               // Level 4: UDP header
+               UDPHeader udpHeader;
+               is >> udpHeader;
+               if(!is) {
+                puts("x-4");
+                  continue;
+               }
+               printf("UDP::");
+
+               // Level 5: TraceService header
+               TraceServiceHeader tsHeader;
+               is >> tsHeader;
+               if(is) {
+                  printf("::HPCT seq=%u", tsHeader.checksumTweak());
+               }
+
             }
          }
       }
