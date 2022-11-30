@@ -352,6 +352,10 @@ class Certificate:
 
       os.makedirs(self.ServerDirectory, exist_ok = True)
 
+      # ====== Revoke existing certificate first ============================
+      if os.path.isfile(self.ServerCertFileName):
+         self.revoke()
+
       # ====== Generate server key and CSR ==================================
       csrFileName = os.path.join(self.ServerDirectory, serverName + '.csr')
       if not os.path.isfile(csrFileName):
@@ -393,6 +397,7 @@ class Certificate:
          certFile.close()
          chainFile.close()
 
+      self.verify()
 
       # ====== Verify certificate ===========================================
       # Print certificate:
@@ -401,12 +406,38 @@ class Certificate:
               ' -subject -ext subjectAltName ' +   # Print basic information
               ' -in ' + self.ServerCertFileName)
 
+
+   # ###### Verify certificate ##############################################
+   def verify(self):
       sys.stdout.write('\x1b[33mVerifying certificate ' + self.ServerCertFileName + ' via ' +
                        self.ChainFileName + ' ...\x1b[0m\n')
       execute('openssl verify ' +
               ' -show_chain -verbose' +
               ' -CAfile ' + self.ChainFileName +
+              ' -CRLfile ' + self.CA.CRLFileName +
               ' ' + self.ServerCertFileName)
+
+
+   # ###### Revoke certificate ##############################################
+   def revoke(self):
+      sys.stdout.write('\x1b[33mRevoking certificate ' + self.ServerCertFileName + ' ...\x1b[0m\n')
+
+      assert os.path.isfile(self.ServerCertFileName)
+
+      execute('SAN="" openssl ca'     +
+              ' -gencrl'       +
+              ' -config '      + self.CA.ConfigFileName     +
+              ' -passin file:' + self.CA.CAPasswordFileName +
+              ' -out '         + self.CA.CRLFileName)
+
+      self.verify()
+
+      if os.path.exists(self.ServerKeyFileName):
+         os.remove(self.ServerKeyFileName)
+      if os.path.exists(self.ServerCertFileName):
+         os.remove(self.ServerCertFileName)
+      if os.path.exists(self.ChainFileName):
+         os.remove(self.ChainFileName)
 
 
 
@@ -448,7 +479,13 @@ TestLeaf = CA(MainDirectory, 'TestLeaf',
               caType   = CAT_LeafCA)
 
 # Servers:
-for server in [ 'brunost', 'rekesmoerbroed', 'pinnekjoett' ]:
-   subject = '/C=NO/ST=Oslo/L=Oslo/O=Simula Research Laboratory/O=Simula Metropolitan Centre for Digital Engineering/OU=SMIL Lab'
-   Server1 = Certificate(MainDirectory, server + '.test', TestLeaf, subject,
-                         'DNS:localhost')
+subject = '/C=NO/ST=Oslo/L=Oslo/O=Simula Research Laboratory/O=Simula Metropolitan Centre for Digital Engineering/OU=SMIL Lab'
+
+#for server in [ 'brunost', 'rekesmoerbroed', 'pinnekjoett' ]:
+   #server = Certificate(MainDirectory, server + '.test', TestLeaf, subject, 'DNS:localhost')
+
+#for server in [ 'brunost', 'rekesmoerbroed', 'pinnekjoett' ]:
+   #server = Certificate(MainDirectory, server + '.test', TestLeaf, subject, 'DNS:localhost')
+
+server = Certificate(MainDirectory, 'revoked.test', TestLeaf, subject, 'DNS:localhost')
+server.revoke()
