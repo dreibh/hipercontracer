@@ -31,51 +31,187 @@ CAT_LeafCA         = 3
 # ###### CA #################################################################
 class CA:
    # ###### Constructor #####################################################
-   def __init__(self, mainDirectory, caDirectory, parentCA, subject, caType):
-      self.MainDirectory = mainDirectory
-      self.CADirectory   = caDirectory
-      self.ParentCA      = parentCA
-      self.subject       = subject
-      self.CAType        = caType
+   def __init__(self, mainDirectory, caName, parentCA, subject, caType):
+      sys.stdout.write('\x1b[34mCreating CA ' + caName + ' ...\x1b[0m\n')
+
+      self.MainDirectory      = mainDirectory
+      self.CADirectory        = os.path.join(mainDirectory, caName)
+      self.ParentCA           = parentCA
+      self.Subject            = subject
+      self.CAType             = caType
+
+      self.CADefaultDays      = 10*365
+      self.CAKeyLength        = 1024
+
+      self.CertsLDirectory    = os.path.join(self.CADirectory, 'crl')
+      self.NewCertsLDirectory = os.path.join(self.CADirectory, 'certs')
+      self.CRLDirectory       = os.path.join(self.CADirectory, 'newcerts')
+      self.PrivateDirectory   = os.path.join(self.CADirectory, 'private')
+
+      self.CAKeyFileName      = os.path.join(self.PrivateDirectory, caName + '.key')
+      self.CAPasswordFileName = os.path.join(self.PrivateDirectory, caName + '.password')
+      self.CACertFileName     = os.path.join(self.CertsLDirectory,  caName + '.crt')
+      self.CRLFileName        = os.path.join(self.CRLDirectory,     caName + '.crl')
 
       # ====== Create directories, if not already existing ==================
       for directory in [
-            'certs',     # For issued certificates
-            'newcerts'   # Certificates to be signed
-            'crl',       # Certificates Revocation Lists (CRLs)
+            self.CertsLDirectory,      # For issued certificates
+            self.NewCertsLDirectory,   # Certificates to be signed
+            self.CRLDirectory          # Certificates Revocation Lists (CRLs)
          ]:
-         os.makedirs(os.path.join(mainDirectory, caDirectory, directory),
+         os.makedirs(os.path.join(self.CADirectory, directory),
                      mode     = 0o744,
                      exist_ok = True)
       # Directory for keys:
-      os.makedirs(os.path.join(mainDirectory, caDirectory, 'private'),
+      os.makedirs(os.path.join(self.CADirectory, 'private'),
                   mode     = 0o700,
                   exist_ok = True)
 
       # ====== Create index.txt, serial and crlnumber files =================
-      self.indexFileName = os.path.join(mainDirectory, caDirectory, 'index.txt')
-      if not os.path.exists(self.indexFileName):
-         indexFile = open(self.indexFileName, 'w', encoding='utf-8')
+      self.IndexFileName = os.path.join(self.CADirectory, 'index.txt')
+      if not os.path.exists(self.IndexFileName):
+         indexFile = open(self.IndexFileName, 'w', encoding='utf-8')
          indexFile.close()
 
-      self.serialFileName = os.path.join(mainDirectory, caDirectory, 'serial')
-      if not os.path.exists(self.serialFileName):
-         serialFile = open(self.serialFileName, 'w', encoding='utf-8')
+      self.SerialFileName = os.path.join(self.CADirectory, 'serial')
+      if not os.path.exists(self.SerialFileName):
+         serialFile = open(self.SerialFileName, 'w', encoding='utf-8')
          serialFile.write('0\n')
          serialFile.close()
 
-      self.crlnumberFileName = os.path.join(mainDirectory, caDirectory, 'crlnumber')
-      if not os.path.exists(self.crlnumberFileName):
-         crlnumberFile = open(self.crlnumberFileName, 'w', encoding='utf-8')
+      self.CRLNumberFileName = os.path.join(self.CADirectory, 'crlnumber')
+      if not os.path.exists(self.CRLNumberFileName):
+         crlnumberFile = open(self.CRLNumberFileName, 'w', encoding='utf-8')
          crlnumberFile.write('0\n')
          crlnumberFile.close()
 
       # ====== Generate CA configuration file ===============================
-      self.configFileName = os.path.join(mainDirectory, caDirectory, caDirectory + '.conf')
-      if not os.path.exists(self.configFileName):
-         configFile = open(os.path.join(self.configFileName), 'w', encoding='utf-8')
-         configFile.write('0\n')
+      self.ConfigFileName = os.path.join(self.CADirectory, caName + '.conf')
+      if not os.path.exists(self.ConfigFileName):
+         configFile = open(os.path.join(self.ConfigFileName), 'w', encoding='utf-8')
+         configFile.write("""
+# ###########################################################################
+# #### Test CA Configuration. See `man ca` for details!                  ####
+# ###########################################################################
+
+[ ca ]
+default_ca           = CA_default
+
+[ CA_default ]
+dir                    = """ + self.CADirectory        + """
+certs                  = """ + self.CertsLDirectory    + """
+crl_dir                = """ + self.CRLDirectory       + """
+new_certs_dir          = """ + self.NewCertsLDirectory + """
+database               = """ + self.IndexFileName      + """
+serial                 = """ + self.SerialFileName     + """
+RANDFILE               = """ + self.CADirectory        + """
+
+# The root key and root certificate.
+private_key            = """ + self.CAKeyFileName      + """
+certificate            = """ + self.CACertFileName     + """
+
+# For certificate revocation lists.
+crlnumber              = """ + self.CRLNumberFileName  + """
+crl                    = """ + self.CRLFileName        + """
+crl_extensions         = crl_ext
+
+default_days           = """ + str(self.CADefaultDays) + """
+default_crl_days       = 30
+default_md             = sha512
+
+policy                 = policy_any
+email_in_dn            = yes
+
+name_opt               = ca_default   # Subject name display option
+cert_opt               = ca_default   # Certificate display option
+copy_extensions        = none         # Don't copy extensions from request
+
+[ policy_any ]
+countryName            = supplied
+stateOrProvinceName    = optional
+organizationName       = optional
+organizationalUnitName = optional
+commonName             = supplied
+emailAddress           = optional
+
+# ====== PKCS#10 certificate request and certificate settings ===============
+[ req ]
+# See `man req` for details!
+default_bits           = 4096
+default_md             = sha512
+distinguished_name     = req_distinguished_name
+string_mask            = utf8only
+
+# Extension to add when the -x509 option is used:
+x509_extensions        = v3_ca
+
+[ req_distinguished_name ]
+countryName            = Country Name (2 letter code)
+stateOrProvinceName    = State or Province Name
+localityName           = Locality Name
+0.organizationName     = Organization Name
+organizationalUnitName = Organizational Unit Name
+commonName             = Common Name
+emailAddress           = Email Address
+
+# Optionally, specify some defaults.
+countryName_default             = NO
+stateOrProvinceName_default     = Norway
+localityName_default            = Oslo
+0.organizationName_default      =
+organizationalUnitName_default  =
+emailAddress_default            =
+
+# ====== Settings for a non-leaf CA =========================================
+[ v3_ca ]
+# See `man x509v3_config` for details!
+subjectKeyIdentifier   = hash
+authorityKeyIdentifier = keyid:always,issuer
+basicConstraints       = critical, CA:true              # <<-- CA certificate
+keyUsage               = critical, digitalSignature, cRLSign, keyCertSign
+
+# ====== Settings for a leaf CA =============================================
+[ v3_leaf_ca ]
+# See `man x509v3_config` for details!
+subjectKeyIdentifier   = hash
+authorityKeyIdentifier = keyid:always,issuer
+basicConstraints       = critical, CA:true, pathlen:0   # <<-- CA, but no sub-CAs
+keyUsage               = critical, digitalSignature, cRLSign, keyCertSign
+""")
          configFile.close()
+
+      # ====== Generate CA password =========================================
+      if not os.path.exists(self.CAPasswordFileName):
+         sys.stdout.write('\x1b[33mGenerating CA password ' + self.CAPasswordFileName + ' ...\x1b[0m\n')
+         os.system('pwgen -sy 128 >' + os.path.join(self.CADirectory, self.CAPasswordFileName))
+
+      # ====== Generate CA key ==============================================
+      if not os.path.exists(self.CAKeyFileName):
+         sys.stdout.write('\x1b[33mGenerating CA key ' + self.CAKeyFileName + ' ...\x1b[0m\n')
+         os.system('openssl genrsa'  +
+                   ' -aes256 '       +   # Use AES-256 encryption
+                   ' -out '          + os.path.join(self.CADirectory, self.CAKeyFileName)      +
+                   ' -passout file:' + os.path.join(self.CADirectory, self.CAPasswordFileName) +
+                   ' ' + str(self.CAKeyLength))
+
+      # ====== Generate root CA certificate =================================
+      if parentCA == None:
+         sys.stdout.write('\x1b[33mGenerating self-signed root CA certificate ' + self.CACertFileName + ' ...\x1b[0m\n')
+         os.system('openssl req' +
+                   ' -x509'             +   # Self-signed
+                   ' -config '          + self.ConfigFileName      +
+                   ' -extensions v3_ca' +
+                   ' -utf8 -subj "'     + str(subject) + '"'       +
+                   ' -days '            + str(self.CADefaultDays)  +
+                   ' -key '             + self.CAKeyFileName       +
+                   ' -passin file:'     + self.CAPasswordFileName  +
+                   ' -out '             + self.CACertFileName)
+
+      # Show certificate:
+      os.system('openssl x509 '                  +
+                ' -noout'                        +   # Do not dump the encoded certificate
+                ' -subject -ext subjectAltName ' +   # Print basic information
+                ' -in ' + self.CACertFileName)
 
 
 class Certificate:
@@ -102,5 +238,5 @@ MainDirectory = '/tmp/tlstest'
 # Create Level-1 CA certificate (self-signed)
 RootLevel1CA = CA(MainDirectory, 'TestRootL1',
                   parentCA  = None,
-                  subject = 'CN=${CA1} Level-1 CA Certificate/C=NO/ST=Oslo/L=Oslo/O=Simula Research Laboratory',
+                  subject = '/CN=Test Root Level-1 CA Certificate/C=NO/ST=Oslo/L=Oslo/O=Simula Research Laboratory',
                   caType   = CAT_RootCA)
