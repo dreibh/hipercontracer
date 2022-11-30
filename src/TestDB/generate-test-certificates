@@ -19,6 +19,7 @@
 # Contact: dreibh@simula.no
 
 import os
+import shutil
 import sys
 
 
@@ -26,6 +27,18 @@ import sys
 CAT_RootCA         = 1
 CAT_IntermediateCA = 2
 CAT_LeafCA         = 3
+
+
+
+# ###### Execute command ####################################################
+def execute(command):
+   try:
+      sys.stdout.write('\x1b[37m' + command + '\x1b[0m\n')
+      assert os.system(command) == 0
+   except Exception as e:
+      sys.stderr.write('FAILED COMMAND:\n' + command + '\n')
+      sys.exit(1)
+
 
 
 # ###### CA #################################################################
@@ -38,25 +51,27 @@ class CA:
       self.CADirectory        = os.path.join(mainDirectory, caName)
       self.ParentCA           = parentCA
       self.Subject            = subject
+      self.CAName             = caName
       self.CAType             = caType
 
       self.CADefaultDays      = 10*365
       self.CAKeyLength        = 1024
 
-      self.CertsLDirectory    = os.path.join(self.CADirectory, 'crl')
-      self.NewCertsLDirectory = os.path.join(self.CADirectory, 'certs')
-      self.CRLDirectory       = os.path.join(self.CADirectory, 'newcerts')
+      self.CertsDirectory     = os.path.join(self.CADirectory, 'certs')
+      self.NewCertsDirectory  = os.path.join(self.CADirectory, 'newcerts')
+      self.CRLDirectory       = os.path.join(self.CADirectory, 'crl')
       self.PrivateDirectory   = os.path.join(self.CADirectory, 'private')
 
       self.CAKeyFileName      = os.path.join(self.PrivateDirectory, caName + '.key')
       self.CAPasswordFileName = os.path.join(self.PrivateDirectory, caName + '.password')
-      self.CACertFileName     = os.path.join(self.CertsLDirectory,  caName + '.crt')
+      self.CACertFileName     = os.path.join(self.CertsDirectory,   caName + '.crt')
       self.CRLFileName        = os.path.join(self.CRLDirectory,     caName + '.crl')
+      self.ChainFileName      = os.path.join(self.CertsDirectory,   caName + '-chain.pem')
 
       # ====== Create directories, if not already existing ==================
       for directory in [
-            self.CertsLDirectory,      # For issued certificates
-            self.NewCertsLDirectory,   # Certificates to be signed
+            self.CertsDirectory,      # For issued certificates
+            self.NewCertsDirectory,   # Certificates to be signed
             self.CRLDirectory          # Certificates Revocation Lists (CRLs)
          ]:
          os.makedirs(os.path.join(self.CADirectory, directory),
@@ -69,25 +84,25 @@ class CA:
 
       # ====== Create index.txt, serial and crlnumber files =================
       self.IndexFileName = os.path.join(self.CADirectory, 'index.txt')
-      if not os.path.exists(self.IndexFileName):
+      if not os.path.isfile(self.IndexFileName):
          indexFile = open(self.IndexFileName, 'w', encoding='utf-8')
          indexFile.close()
 
       self.SerialFileName = os.path.join(self.CADirectory, 'serial')
-      if not os.path.exists(self.SerialFileName):
+      if not os.path.isfile(self.SerialFileName):
          serialFile = open(self.SerialFileName, 'w', encoding='utf-8')
-         serialFile.write('0\n')
+         serialFile.write('00')
          serialFile.close()
 
       self.CRLNumberFileName = os.path.join(self.CADirectory, 'crlnumber')
-      if not os.path.exists(self.CRLNumberFileName):
+      if not os.path.isfile(self.CRLNumberFileName):
          crlnumberFile = open(self.CRLNumberFileName, 'w', encoding='utf-8')
-         crlnumberFile.write('0\n')
+         crlnumberFile.write('00')
          crlnumberFile.close()
 
       # ====== Generate CA configuration file ===============================
       self.ConfigFileName = os.path.join(self.CADirectory, caName + '.conf')
-      if not os.path.exists(self.ConfigFileName):
+      if not os.path.isfile(self.ConfigFileName):
          configFile = open(os.path.join(self.ConfigFileName), 'w', encoding='utf-8')
          configFile.write("""
 # ###########################################################################
@@ -95,64 +110,64 @@ class CA:
 # ###########################################################################
 
 [ ca ]
-default_ca           = CA_default
+default_ca                      = CA_default
 
 [ CA_default ]
-dir                    = """ + self.CADirectory        + """
-certs                  = """ + self.CertsLDirectory    + """
-crl_dir                = """ + self.CRLDirectory       + """
-new_certs_dir          = """ + self.NewCertsLDirectory + """
-database               = """ + self.IndexFileName      + """
-serial                 = """ + self.SerialFileName     + """
-RANDFILE               = """ + self.CADirectory        + """
+dir                             = """ + self.CADirectory        + """
+certs                           = """ + self.CertsDirectory    + """
+crl_dir                         = """ + self.CRLDirectory       + """
+new_certs_dir                   = """ + self.NewCertsDirectory + """
+database                        = """ + self.IndexFileName      + """
+serial                          = """ + self.SerialFileName     + """
+RANDFILE                        = """ + self.CADirectory        + """
 
 # The root key and root certificate.
-private_key            = """ + self.CAKeyFileName      + """
-certificate            = """ + self.CACertFileName     + """
+private_key                     = """ + self.CAKeyFileName      + """
+certificate                     = """ + self.CACertFileName     + """
 
 # For certificate revocation lists.
-crlnumber              = """ + self.CRLNumberFileName  + """
-crl                    = """ + self.CRLFileName        + """
-crl_extensions         = crl_ext
+crlnumber                       = """ + self.CRLNumberFileName  + """
+crl                             = """ + self.CRLFileName        + """
+crl_extensions                  = crl_ext
 
-default_days           = """ + str(self.CADefaultDays) + """
-default_crl_days       = 30
-default_md             = sha512
+default_days                    = """ + str(self.CADefaultDays) + """
+default_crl_days                = 30
+default_md                      = sha512
 
-policy                 = policy_any
-email_in_dn            = yes
+policy                          = policy_any
+email_in_dn                     = yes
 
-name_opt               = ca_default   # Subject name display option
-cert_opt               = ca_default   # Certificate display option
-copy_extensions        = none         # Don't copy extensions from request
+name_opt                        = ca_default   # Subject name display option
+cert_opt                        = ca_default   # Certificate display option
+copy_extensions                 = none         # Don't copy extensions from request
 
 [ policy_any ]
-countryName            = supplied
-stateOrProvinceName    = optional
-organizationName       = optional
-organizationalUnitName = optional
-commonName             = supplied
-emailAddress           = optional
+countryName                     = supplied
+stateOrProvinceName             = optional
+organizationName                = optional
+organizationalUnitName          = optional
+commonName                      = supplied
+emailAddress                    = optional
 
 # ====== PKCS#10 certificate request and certificate settings ===============
 [ req ]
 # See `man req` for details!
-default_bits           = 4096
-default_md             = sha512
-distinguished_name     = req_distinguished_name
-string_mask            = utf8only
+default_bits                    = 4096
+default_md                      = sha512
+distinguished_name              = req_distinguished_name
+string_mask                     = utf8only
 
 # Extension to add when the -x509 option is used:
-x509_extensions        = v3_ca
+x509_extensions                 = v3_ca
 
 [ req_distinguished_name ]
-countryName            = Country Name (2 letter code)
-stateOrProvinceName    = State or Province Name
-localityName           = Locality Name
-0.organizationName     = Organization Name
-organizationalUnitName = Organizational Unit Name
-commonName             = Common Name
-emailAddress           = Email Address
+countryName                     = Country Name (2 letter code)
+stateOrProvinceName             = State or Province Name
+localityName                    = Locality Name
+0.organizationName              = Organization Name
+organizationalUnitName          = Organizational Unit Name
+commonName                      = Common Name
+emailAddress                    = Email Address
 
 # Optionally, specify some defaults.
 countryName_default             = NO
@@ -161,6 +176,11 @@ localityName_default            = Oslo
 0.organizationName_default      =
 organizationalUnitName_default  =
 emailAddress_default            =
+
+# ====== Extensions for CRLs ================================================
+[ crl_ext ]
+# See `man x509v3_config` for details!
+authorityKeyIdentifier = keyid:always
 
 # ====== Settings for a non-leaf CA =========================================
 [ v3_ca ]
@@ -177,48 +197,216 @@ subjectKeyIdentifier   = hash
 authorityKeyIdentifier = keyid:always,issuer
 basicConstraints       = critical, CA:true, pathlen:0   # <<-- CA, but no sub-CAs
 keyUsage               = critical, digitalSignature, cRLSign, keyCertSign
+
+# ====== Settings for a user certificate ====================================
+[ user_cert ]
+# Extensions for client certificates (`man x509v3_config`).
+basicConstraints       = CA:FALSE
+subjectKeyIdentifier   = hash
+authorityKeyIdentifier = keyid,issuer
+keyUsage               = critical, nonRepudiation, digitalSignature, keyEncipherment
+extendedKeyUsage       = clientAuth, emailProtection
+
+# ====== Settings for a server certificate ==================================
+[ server_cert ]
+# Extensions for server certificates (`man x509v3_config`).
+basicConstraints       = CA:FALSE
+subjectKeyIdentifier   = hash
+authorityKeyIdentifier = keyid,issuer:always
+keyUsage               = critical, digitalSignature, keyEncipherment
+extendedKeyUsage       = serverAuth
+subjectAltName         = ${ENV::SAN}
 """)
          configFile.close()
 
+
       # ====== Generate CA password =========================================
-      if not os.path.exists(self.CAPasswordFileName):
+      if not os.path.isfile(self.CAPasswordFileName):
          sys.stdout.write('\x1b[33mGenerating CA password ' + self.CAPasswordFileName + ' ...\x1b[0m\n')
-         os.system('pwgen -sy 128 >' + os.path.join(self.CADirectory, self.CAPasswordFileName))
+         execute('pwgen -sy 128 >' + os.path.join(self.CADirectory, self.CAPasswordFileName))
+         assert os.path.isfile(self.CAPasswordFileName)
+
 
       # ====== Generate CA key ==============================================
-      if not os.path.exists(self.CAKeyFileName):
+      if not os.path.isfile(self.CAKeyFileName):
          sys.stdout.write('\x1b[33mGenerating CA key ' + self.CAKeyFileName + ' ...\x1b[0m\n')
-         os.system('openssl genrsa'  +
-                   ' -aes256 '       +   # Use AES-256 encryption
-                   ' -out '          + os.path.join(self.CADirectory, self.CAKeyFileName)      +
-                   ' -passout file:' + os.path.join(self.CADirectory, self.CAPasswordFileName) +
-                   ' ' + str(self.CAKeyLength))
+         execute('openssl genrsa'  +
+                 ' -aes256 '       +   # Use AES-256 encryption
+                 ' -out '          + os.path.join(self.CADirectory, self.CAKeyFileName)      +
+                 ' -passout file:' + os.path.join(self.CADirectory, self.CAPasswordFileName) +
+                 ' ' + str(self.CAKeyLength))
+         assert os.path.isfile(self.CAKeyFileName)
 
-      # ====== Generate root CA certificate =================================
+
+      # ====== Generate self-signed root CA certificate =====================
       if parentCA == None:
          sys.stdout.write('\x1b[33mGenerating self-signed root CA certificate ' + self.CACertFileName + ' ...\x1b[0m\n')
-         os.system('openssl req' +
-                   ' -x509'             +   # Self-signed
-                   ' -config '          + self.ConfigFileName      +
-                   ' -extensions v3_ca' +
-                   ' -utf8 -subj "'     + str(subject) + '"'       +
-                   ' -days '            + str(self.CADefaultDays)  +
-                   ' -key '             + self.CAKeyFileName       +
-                   ' -passin file:'     + self.CAPasswordFileName  +
-                   ' -out '             + self.CACertFileName)
+         execute('SAN="" openssl req' +
+                 ' -x509'             +   # Self-signed
+                 ' -config '          + self.ConfigFileName      +
+                 ' -extensions v3_ca' +
+                 ' -utf8 -subj "'     + str(self.Subject) + '"'  +
+                 ' -days '            + str(self.CADefaultDays)  +
+                 ' -key '             + self.CAKeyFileName       +
+                 ' -passin file:'     + self.CAPasswordFileName  +
+                 ' -out '             + self.CACertFileName)
+         assert os.path.isfile(self.CACertFileName)
 
-      # Show certificate:
-      os.system('openssl x509 '                  +
-                ' -noout'                        +   # Do not dump the encoded certificate
-                ' -subject -ext subjectAltName ' +   # Print basic information
-                ' -in ' + self.CACertFileName)
+         # Get the whole chain (just this certificate):
+         shutil.copy2(self.CACertFileName, self.ChainFileName)
+
+         # Set the root CA:
+         self.RootCA = self
+
+      # ====== Generate CA certificate signed by parent CA ==================
+      else:
+         # ------ Create CSR ------------------------------------------------
+         csrFileName = os.path.join(self.CADirectory, caName + '.csr')
+         sys.stdout.write('\x1b[33mGenerating CSR ' + csrFileName + ' ...\x1b[0m\n')
+         execute('SAN="" openssl req' +
+                 ' -new'              +   # Not self-signed
+                 ' -config '          + self.ConfigFileName      +
+                 ' -extensions v3_ca' +
+                 ' -utf8 -subj "'     + str(self.Subject) + '"'  +
+                 ' -key '             + self.CAKeyFileName       +
+                 ' -passin file:'     + self.CAPasswordFileName  +
+                 ' -out '             + csrFileName)
+         assert os.path.isfile(csrFileName)
+
+         # ------ Sign CSR --------------------------------------------------
+         sys.stdout.write('\x1b[33mGetting CSR ' + csrFileName + ' signed by ' + parentCA.CAName + ' ...\x1b[0m\n')
+         if ((caType == CAT_RootCA) or (caType == CAT_IntermediateCA)):
+            caExtension = 'v3_ca'
+         else:
+            caExtension = 'v3_leaf_ca'
+         execute('SAN="" openssl ca' +
+                 ' -batch'            +
+                 ' -notext'           +
+                 ' -config '          + parentCA.ConfigFileName      +
+                 ' -extensions '      + caExtension                  +
+                 ' -utf8 -subj "'     + str(self.Subject) + '"'      +
+                 ' -days '            + str(parentCA.CADefaultDays)  +
+                 ' -passin file:'     + parentCA.CAPasswordFileName  +
+                 ' -in '              + csrFileName                  +
+                 ' -out '             + self.CACertFileName)
+         assert os.path.isfile(self.CACertFileName)
+
+         # Get the whole chain:
+         shutil.copy2(parentCA.ChainFileName, self.ChainFileName)
+         chainFile = open(self.ChainFileName, 'a', encoding='utf-8')
+         certFile  = open(self.CACertFileName, 'r', encoding='utf-8')
+         for line in certFile:
+            chainFile.write(line)
+         certFile.close()
+         chainFile.close()
+
+         # Find the root CA:
+         if self.ParentCA == None:
+            self.RootCA = self
+         else:
+            self.RootCA = self.ParentCA
+            while self.RootCA.ParentCA != None:
+               self.RootCA = self.RootCA.ParentCA
+
+
+      # ====== Verify certificate ===========================================
+      # Print certificate:
+      execute('openssl x509 '                  +
+              ' -noout'                        +   # Do not dump the encoded certificate
+              ' -subject -ext subjectAltName ' +   # Print basic information
+              ' -in ' + self.CACertFileName)
+
+      sys.stdout.write('\x1b[33mVerifying certificate ' + self.CACertFileName + ' via ' +
+                       self.ChainFileName + ' ...\x1b[0m\n')
+      execute('openssl verify ' +
+              ' -show_chain -verbose' +
+              ' -CAfile ' + self.ChainFileName +
+              ' ' + self.CACertFileName)
+
+
+      # ====== Initialise CRL ===============================================
+      sys.stdout.write('\x1b[33mGenerating CRL ' + self.CRLFileName + ' ...\x1b[0m\n')
+      assert(not os.path.isfile(self.CRLFileName))
+      execute('SAN="" openssl ca'     +
+              ' -gencrl'       +
+              ' -config '      + self.ConfigFileName     +
+              ' -passin file:' + self.CAPasswordFileName +
+              ' -out '         + self.CRLFileName)
+      assert(os.path.isfile(self.CRLFileName))
+
 
 
 class Certificate:
-   def __init__(self, mainDirectory, certificateDirectory, ca):
-      self.MainDirectory        = mainDirectory
-      self.CertificateDirectory = certificateDirectory
-      self.CA                   = CA
+   def __init__(self, mainDirectory, serverName, ca, subjectWithoutCN, subjectAltName):
+      sys.stdout.write('\x1b[34mCreating server ' + serverName + ' ...\x1b[0m\n')
+
+      self.MainDirectory      = mainDirectory
+      self.ServerDirectory    = os.path.join(mainDirectory, serverName)
+      self.CA                 = ca
+      self.Subject            = subjectWithoutCN + '/CN=' + serverName
+
+      self.ServerKeyLength    = 1024
+      self.ServerKeyFileName  = os.path.join(self.ServerDirectory, serverName + '.key')
+      self.ServerCertFileName = os.path.join(self.ServerDirectory, serverName + '.crt')
+      self.ChainFileName      = os.path.join(self.ServerDirectory, serverName + '-chain.pem')
+
+      os.makedirs(self.ServerDirectory, exist_ok = True)
+
+      # ====== Generate server key and CSR ==================================
+      csrFileName = os.path.join(self.ServerDirectory, serverName + '.csr')
+      if not os.path.isfile(csrFileName):
+         sys.stdout.write('\x1b[33mGenerating server key ' + self.ServerKeyFileName +
+                          ' and CSR ' + csrFileName + ' ...\x1b[0m\n')
+         execute('SAN="' + subjectAltName + '" openssl req' +
+                 ' -config '                + self.CA.ConfigFileName    +
+                 ' -extensions server_cert' +
+                 ' -utf8 -subj "'           + str(self.Subject) + '"'   +
+                 ' -newkey rsa:'            + str(self.ServerKeyLength) + ' -nodes'
+                 ' -keyout '                + self.ServerKeyFileName    +
+                 ' -out '                   + csrFileName)
+
+         assert os.path.isfile(self.ServerKeyFileName)
+         assert os.path.isfile(csrFileName)
+
+      if not os.path.isfile(self.ServerCertFileName):
+         assert(os.path.isfile(csrFileName))
+         sys.stdout.write('\x1b[33mGetting CSR ' + csrFileName + ' signed by ' + self.CA.CAName + ' ...\x1b[0m\n')
+         caExtension = 'server_cert'
+         execute('SAN="' + subjectAltName + '" openssl ca' +
+                 ' -batch'            +
+                 ' -notext'           +
+                 ' -config '          + self.CA.ConfigFileName      +
+                 ' -extensions '      + caExtension                 +
+                 ' -utf8 -subj "'     + str(self.Subject) + '"'     +
+                 ' -days '            + str(self.CA.CADefaultDays)  +
+                 ' -passin file:'     + self.CA.CAPasswordFileName  +
+                 ' -in '              + csrFileName                 +
+                 ' -out '             + self.ServerCertFileName)
+         assert os.path.isfile(self.ServerCertFileName)
+
+         # Get the whole chain:
+         shutil.copy2(self.CA.ChainFileName, self.ChainFileName)
+         chainFile = open(self.ChainFileName, 'a', encoding='utf-8')
+         certFile  = open(self.ServerCertFileName, 'r', encoding='utf-8')
+         for line in certFile:
+            chainFile.write(line)
+         certFile.close()
+         chainFile.close()
+
+
+      # ====== Verify certificate ===========================================
+      # Print certificate:
+      execute('openssl x509 '                  +
+              ' -noout'                        +   # Do not dump the encoded certificate
+              ' -subject -ext subjectAltName ' +   # Print basic information
+              ' -in ' + self.ServerCertFileName)
+
+      sys.stdout.write('\x1b[33mVerifying certificate ' + self.ServerCertFileName + ' via ' +
+                       self.ChainFileName + ' ...\x1b[0m\n')
+      execute('openssl verify ' +
+              ' -show_chain -verbose' +
+              ' -CAfile ' + self.ChainFileName +
+              ' ' + self.ServerCertFileName)
 
 
 
@@ -227,16 +415,40 @@ MainDirectory = '/tmp/tlstest'
 
 # ===========================================================================
 # Hierarchy to be created:
-# TestRootL1
-#    - TestRootL2
+# TestLevel1
+#    - TestLevel2
 #       - TestIntermediate
 #          - TestLeaf
 #             - Server ...
 # ===========================================================================
 
 
-# Create Level-1 CA certificate (self-signed)
-RootLevel1CA = CA(MainDirectory, 'TestRootL1',
-                  parentCA  = None,
-                  subject = '/CN=Test Root Level-1 CA Certificate/C=NO/ST=Oslo/L=Oslo/O=Simula Research Laboratory',
-                  caType   = CAT_RootCA)
+# Create Test Root Level-1 CA certificate (self-signed):
+TestLevel1 = CA(MainDirectory, 'TestLevel1',
+                parentCA = None,
+                subject  = '/CN=Test Level-1 CA Certificate/C=NO/ST=Oslo/L=Oslo/O=Simula Research Laboratory',
+                caType   = CAT_RootCA)
+
+# Create Test Root Level-2 CA certificate (signed by Test Root Level-1):
+TestLevel2 = CA(MainDirectory, 'TestLevel2',
+                parentCA = TestLevel1,
+                subject  = '/CN=Test Level-2 CA Certificate/C=NO/ST=Oslo/L=Oslo/O=Simula Research Laboratory',
+                caType   = CAT_IntermediateCA)
+
+# Create Test Intermediate CA certificate (signed by Test Root Level-2):
+TestIntermediate = CA(MainDirectory, 'TestIntermediate',
+                      parentCA = TestLevel2,
+                      subject  = '/CN=*/C=NO/ST=Oslo/L=Oslo/O=Simula Metropolitan Centre for Digital Engineering',
+                      caType   = CAT_IntermediateCA)
+
+# Create Test Leaf CA certificate (signed by Test Intermediate):
+TestLeaf = CA(MainDirectory, 'TestLeaf',
+              parentCA = TestIntermediate,
+              subject  = '/CN=*/C=NO/ST=Oslo/L=Oslo/O=Simula Research Laboratory/O=Simula Metropolitan Centre for Digital Engineering/OU=SMIL Lab',
+              caType   = CAT_LeafCA)
+
+# Servers:
+for server in [ 'brunost', 'rekesmoerbroed', 'pinnekjoett' ]:
+   subject = '/C=NO/ST=Oslo/L=Oslo/O=Simula Research Laboratory/O=Simula Metropolitan Centre for Digital Engineering/OU=SMIL Lab'
+   Server1 = Certificate(MainDirectory, server + '.test', TestLeaf, subject,
+                         'DNS:localhost')
