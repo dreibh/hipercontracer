@@ -1,0 +1,106 @@
+#!/usr/bin/python3
+#
+# Create Test CA Hierarchy and Test Certificates
+# Copyright (C) 2022 by Thomas Dreibholz
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+# Contact: dreibh@simula.no
+
+import os
+import sys
+
+
+# CA Types:
+CAT_RootCA         = 1
+CAT_IntermediateCA = 2
+CAT_LeafCA         = 3
+
+
+# ###### CA #################################################################
+class CA:
+   # ###### Constructor #####################################################
+   def __init__(self, mainDirectory, caDirectory, parentCA, subject, caType):
+      self.MainDirectory = mainDirectory
+      self.CADirectory   = caDirectory
+      self.ParentCA      = parentCA
+      self.subject       = subject
+      self.CAType        = caType
+
+      # ====== Create directories, if not already existing ==================
+      for directory in [
+            'certs',     # For issued certificates
+            'newcerts'   # Certificates to be signed
+            'crl',       # Certificates Revocation Lists (CRLs)
+         ]:
+         os.makedirs(os.path.join(mainDirectory, caDirectory, directory),
+                     mode     = 0o744,
+                     exist_ok = True)
+      # Directory for keys:
+      os.makedirs(os.path.join(mainDirectory, caDirectory, 'private'),
+                  mode     = 0o700,
+                  exist_ok = True)
+
+      # ====== Create index.txt, serial and crlnumber files =================
+      self.indexFileName = os.path.join(mainDirectory, caDirectory, 'index.txt')
+      if not os.path.exists(self.indexFileName):
+         indexFile = open(self.indexFileName, 'w', encoding='utf-8')
+         indexFile.close()
+
+      self.serialFileName = os.path.join(mainDirectory, caDirectory, 'serial')
+      if not os.path.exists(self.serialFileName):
+         serialFile = open(self.serialFileName, 'w', encoding='utf-8')
+         serialFile.write('0\n')
+         serialFile.close()
+
+      self.crlnumberFileName = os.path.join(mainDirectory, caDirectory, 'crlnumber')
+      if not os.path.exists(self.crlnumberFileName):
+         crlnumberFile = open(self.crlnumberFileName, 'w', encoding='utf-8')
+         crlnumberFile.write('0\n')
+         crlnumberFile.close()
+
+      # ====== Generate CA configuration file ===============================
+      self.configFileName = os.path.join(mainDirectory, caDirectory, caDirectory + '.conf')
+      if not os.path.exists(self.configFileName):
+         configFile = open(os.path.join(self.configFileName), 'w', encoding='utf-8')
+         configFile.write('0\n')
+         configFile.close()
+
+
+class Certificate:
+   def __init__(self, mainDirectory, certificateDirectory, ca):
+      self.MainDirectory        = mainDirectory
+      self.CertificateDirectory = certificateDirectory
+      self.CA                   = CA
+
+
+
+# ###### Main program #######################################################
+MainDirectory = '/tmp/tlstest'
+
+# ===========================================================================
+# Hierarchy to be created:
+# TestRootL1
+#    - TestRootL2
+#       - TestIntermediate
+#          - TestLeaf
+#             - Server ...
+# ===========================================================================
+
+
+# Create Level-1 CA certificate (self-signed)
+RootLevel1CA = CA(MainDirectory, 'TestRootL1',
+                  parentCA  = None,
+                  subject = 'CN=${CA1} Level-1 CA Certificate/C=NO/ST=Oslo/L=Oslo/O=Simula Research Laboratory',
+                  caType   = CAT_RootCA)
