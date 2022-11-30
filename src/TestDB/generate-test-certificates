@@ -313,7 +313,7 @@ subjectAltName         = ${ENV::SAN}
                  ' -out '             + self.CertFileName)
          assert os.path.isfile(self.CertFileName)
 
-         # Get the whole chain:
+         # ------ Get the whole chain ---------------------------------------
          shutil.copy2(parentCA.ChainFileName, self.ChainFileName)
          chainFile = open(self.ChainFileName, 'a', encoding='utf-8')
          certFile  = open(self.CertFileName, 'r', encoding='utf-8')
@@ -322,7 +322,7 @@ subjectAltName         = ${ENV::SAN}
          certFile.close()
          chainFile.close()
 
-         # Find the root CA:
+         # ------ Find the root CA ------------------------------------------
          if self.ParentCA == None:
             self.RootCA = self
          else:
@@ -466,11 +466,12 @@ class Certificate:
                        ' -CAfile '    + self.ChainFileName +
                        ' -CRLfile '   + self.CA.CRLFileName +
                        ' ' + self.CertFileName, mayFail = True)
+      return result == 0
 
 
    # ###### Revoke certificate ##############################################
    def revoke(self):
-      sys.stdout.write('\x1b[33mRevoking certificate ' + self.CertFileName + ' ...\x1b[0m\n')
+      sys.stdout.write('\x1b[34mRevoking certificate ' + self.CertFileName + ' ...\x1b[0m\n')
 
       assert os.path.isfile(self.CertFileName)
 
@@ -481,7 +482,8 @@ class Certificate:
 
       self.CA.generateCRL()
 
-      self.verify()
+      if self.verify() == False:
+         sys.stdout.write('Successfully revoked!\n')
 
       for fileName in [ self.CSRFileName, self.CertFileName, self.ChainFileName ]:
          if os.path.exists(fileName):
@@ -498,47 +500,83 @@ MainDirectory = '/tmp/tlstest'
 #    - TestLevel2
 #       - TestIntermediate
 #          - TestLeaf
-#             - Server ...
+#             - Servers ...
+#          - TestCA
+#             - TestUserCA
+#                - Users ...
+#             - TestServerCA
+#                - Servers ...
 # ===========================================================================
 
 
+# ====== Create Test CAs ====================================================
 # Create Test Root Level-1 CA certificate (self-signed):
 TestLevel1 = CA(MainDirectory, 'TestLevel1',
                 parentCA = None,
                 subject  = '/CN=Test Level-1 CA Certificate/C=NO/ST=Oslo/L=Oslo/O=Simula Research Laboratory',
-                certType   = CRT_RootCA)
+                certType = CRT_RootCA)
 
 # Create Test Root Level-2 CA certificate (signed by Test Root Level-1):
 TestLevel2 = CA(MainDirectory, 'TestLevel2',
                 parentCA = TestLevel1,
                 subject  = '/CN=Test Level-2 CA Certificate/C=NO/ST=Oslo/L=Oslo/O=Simula Research Laboratory',
-                certType   = CRT_IntermediateCA)
+                certType = CRT_IntermediateCA)
 
 # Create Test Intermediate CA certificate (signed by Test Root Level-2):
 TestIntermediate = CA(MainDirectory, 'TestIntermediate',
                       parentCA = TestLevel2,
                       subject  = '/CN=*/C=NO/ST=Oslo/L=Oslo/O=Simula Metropolitan Centre for Digital Engineering',
-                      certType   = CRT_IntermediateCA)
+                      certType = CRT_IntermediateCA)
 
 # Create Test Leaf CA certificate (signed by Test Intermediate):
 TestLeaf = CA(MainDirectory, 'TestLeaf',
               parentCA = TestIntermediate,
-              subject  = '/CN=*/C=NO/ST=Oslo/L=Oslo/O=Simula Research Laboratory/O=Simula Metropolitan Centre for Digital Engineering/OU=SMIL Lab',
-              certType   = CRT_LeafCA)
+              subject  = '/CN=*/C=NO/ST=Oslo/L=Oslo/O=Simula Metropolitan Centre for Digital Engineering/OU=SMIL Lab',
+              certType = CRT_LeafCA)
 
-# Servers:
-subject        = '/C=NO/ST=Oslo/L=Oslo/O=Simula Research Laboratory/O=Simula Metropolitan Centre for Digital Engineering/OU=SMIL Lab'
+
+# ====== Create Test Servers and Users ======================================
+subject        = '/C=NO/ST=Oslo/L=Oslo/O=Simula Metropolitan Centre for Digital Engineering/OU=SMIL Lab'
 subjectAltName = 'DNS:localhost'
 
-for server in [ 'brunost', 'rekesmoerbroed', 'pinnekjoett' ]:
-   server = Certificate(MainDirectory, server + '.test', TestLeaf, subject, subjectAltName)
+servers = {}
+for server in ['mariadb', 'postgresql', 'mongodb', 'revoked' ]:
+   servers[server] = Certificate(MainDirectory, server + '.domain.test', TestLeaf,
+                                 subject, subjectAltName, CRT_Server)
+servers['revoked'].revoke()
 
-for server in [ 'brunost', 'rekesmoerbroed', 'pinnekjoett' ]:
-   server = Certificate(MainDirectory, server + '.test', TestLeaf, subject, subjectAltName)
+users = {}
+for user in [ 'maintainer', 'importer', 'researcher', 'revoked' ] :
+   users[user] = Certificate(MainDirectory, user + '@domain.test', TestLeaf, subject, '', CRT_User)
+users['revoked'].revoke()
 
-user1 = Certificate(MainDirectory, 'test1@mail.test', TestLeaf, subject, subjectAltName, CRT_User)
+
+# ====== Some more testing ==================================================
+
+## Create Test Intermediate CA certificate (signed by Test Root Level-2):
+#TestCA = CA(MainDirectory, 'DatabaseTestCA',
+            #parentCA = TestLevel2,
+            #subject  = '/CN=*/C=NO/ST=Oslo/L=Oslo/O=Simula Metropolitan Centre for Digital Engineering/OU=Database Test Environment',
+            #certType = CRT_IntermediateCA)
+
+#TestUserCA = CA(MainDirectory, 'DatabaseTestUserCA',
+                #parentCA = TestCA,
+                #subject  = '/CN=*/C=NO/ST=Oslo/L=Oslo/O=Simula Metropolitan Centre for Digital Engineering/OU=Database Test Users',
+                #certType = CRT_LeafCA)
+#for username in [ 'maintainer', 'importer', 'researcher' ] :
+   #user = Certificate(MainDirectory, username + '@domain.test', TestUserCA,
+                      #subject, '', CRT_User)
+
+#TestServerCA = CA(MainDirectory, 'DatabaseTestServerCA',
+                  #parentCA = TestCA,
+                  #subject  = '/CN=*/C=NO/ST=Oslo/L=Oslo/O=Simula Metropolitan Centre for Digital Engineering/OU=Database Test Servers',
+                  #certType = CRT_LeafCA)
+#for dbname in ['mariadb', 'postgresql', 'mongodb' ]:
+   #server = Certificate(MainDirectory, dbname + '.domain.test', TestServerCA,
+                        #subject, subjectAltName, CRT_Server)
 
 
-# server = Certificate(MainDirectory, 'revoked.test', TestLeaf, subject, subjectAltName)
-# server.revoke()
-# print('Revoked')
+#for server in [ 'brunost', 'rekesmoerbroed', 'pinnekjoett' ]:
+   #server = Certificate(MainDirectory, server + '.domain.test', TestLeaf, subject, subjectAltName)
+
+#user1 = Certificate(MainDirectory, 'test1@mail.test', TestLeaf, subject, subjectAltName, CRT_User)
