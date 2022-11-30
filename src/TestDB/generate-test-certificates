@@ -47,26 +47,26 @@ class CA:
    def __init__(self, mainDirectory, caName, parentCA, subject, caType):
       sys.stdout.write('\x1b[34mCreating CA ' + caName + ' ...\x1b[0m\n')
 
-      self.MainDirectory      = mainDirectory
-      self.CADirectory        = os.path.join(mainDirectory, caName)
-      self.ParentCA           = parentCA
-      self.Subject            = subject
-      self.CAName             = caName
-      self.CAType             = caType
+      self.MainDirectory     = mainDirectory
+      self.Directory         = os.path.join(mainDirectory, caName)
+      self.ParentCA          = parentCA
+      self.Subject           = subject
+      self.CAName            = caName
+      self.CAType            = caType
 
-      self.CADefaultDays      = 10*365
-      self.CAKeyLength        = 1024
+      self.CADefaultDays     = 10*365
+      self.KeyLength         = 1024
 
-      self.CertsDirectory     = os.path.join(self.CADirectory, 'certs')
-      self.NewCertsDirectory  = os.path.join(self.CADirectory, 'newcerts')
-      self.CRLDirectory       = os.path.join(self.CADirectory, 'crl')
-      self.PrivateDirectory   = os.path.join(self.CADirectory, 'private')
+      self.CertsDirectory    = os.path.join(self.Directory, 'certs')
+      self.NewCertsDirectory = os.path.join(self.Directory, 'newcerts')
+      self.CRLDirectory      = os.path.join(self.Directory, 'crl')
+      self.PrivateDirectory  = os.path.join(self.Directory, 'private')
 
-      self.CAKeyFileName      = os.path.join(self.PrivateDirectory, caName + '.key')
-      self.CAPasswordFileName = os.path.join(self.PrivateDirectory, caName + '.password')
-      self.CACertFileName     = os.path.join(self.CertsDirectory,   caName + '.crt')
-      self.CRLFileName        = os.path.join(self.CRLDirectory,     caName + '.crl')
-      self.ChainFileName      = os.path.join(self.CertsDirectory,   caName + '-chain.pem')
+      self.KeyFileName       = os.path.join(self.PrivateDirectory, caName + '.key')
+      self.PasswordFileName  = os.path.join(self.PrivateDirectory, caName + '.password')
+      self.CertFileName      = os.path.join(self.CertsDirectory,   caName + '.crt')
+      self.CRLFileName       = os.path.join(self.CRLDirectory,     caName + '.crl')
+      self.ChainFileName     = os.path.join(self.CertsDirectory,   caName + '-chain.pem')
 
       # ====== Create directories, if not already existing ==================
       for directory in [
@@ -74,34 +74,34 @@ class CA:
             self.NewCertsDirectory,   # Certificates to be signed
             self.CRLDirectory          # Certificates Revocation Lists (CRLs)
          ]:
-         os.makedirs(os.path.join(self.CADirectory, directory),
+         os.makedirs(os.path.join(self.Directory, directory),
                      mode     = 0o744,
                      exist_ok = True)
       # Directory for keys:
-      os.makedirs(os.path.join(self.CADirectory, 'private'),
+      os.makedirs(os.path.join(self.Directory, 'private'),
                   mode     = 0o700,
                   exist_ok = True)
 
       # ====== Create index.txt, serial and crlnumber files =================
-      self.IndexFileName = os.path.join(self.CADirectory, 'index.txt')
+      self.IndexFileName = os.path.join(self.Directory, 'index.txt')
       if not os.path.isfile(self.IndexFileName):
          indexFile = open(self.IndexFileName, 'w', encoding='utf-8')
          indexFile.close()
 
-      self.SerialFileName = os.path.join(self.CADirectory, 'serial')
+      self.SerialFileName = os.path.join(self.Directory, 'serial')
       if not os.path.isfile(self.SerialFileName):
          serialFile = open(self.SerialFileName, 'w', encoding='utf-8')
          serialFile.write('00')
          serialFile.close()
 
-      self.CRLNumberFileName = os.path.join(self.CADirectory, 'crlnumber')
+      self.CRLNumberFileName = os.path.join(self.Directory, 'crlnumber')
       if not os.path.isfile(self.CRLNumberFileName):
          crlnumberFile = open(self.CRLNumberFileName, 'w', encoding='utf-8')
          crlnumberFile.write('00')
          crlnumberFile.close()
 
       # ====== Generate CA configuration file ===============================
-      self.ConfigFileName = os.path.join(self.CADirectory, caName + '.conf')
+      self.ConfigFileName = os.path.join(self.Directory, caName + '.conf')
       if not os.path.isfile(self.ConfigFileName):
          configFile = open(os.path.join(self.ConfigFileName), 'w', encoding='utf-8')
          configFile.write("""
@@ -113,17 +113,17 @@ class CA:
 default_ca                      = CA_default
 
 [ CA_default ]
-dir                             = """ + self.CADirectory        + """
-certs                           = """ + self.CertsDirectory    + """
+dir                             = """ + self.Directory          + """
+certs                           = """ + self.CertsDirectory     + """
 crl_dir                         = """ + self.CRLDirectory       + """
-new_certs_dir                   = """ + self.NewCertsDirectory + """
+new_certs_dir                   = """ + self.NewCertsDirectory  + """
 database                        = """ + self.IndexFileName      + """
 serial                          = """ + self.SerialFileName     + """
-RANDFILE                        = """ + self.CADirectory        + """
+RANDFILE                        = """ + self.Directory          + """
 
 # The root key and root certificate.
-private_key                     = """ + self.CAKeyFileName      + """
-certificate                     = """ + self.CACertFileName     + """
+private_key                     = """ + self.KeyFileName        + """
+certificate                     = """ + self.CertFileName       + """
 
 # For certificate revocation lists.
 crlnumber                       = """ + self.CRLNumberFileName  + """
@@ -221,39 +221,39 @@ subjectAltName         = ${ENV::SAN}
 
 
       # ====== Generate CA password =========================================
-      if not os.path.isfile(self.CAPasswordFileName):
-         sys.stdout.write('\x1b[33mGenerating CA password ' + self.CAPasswordFileName + ' ...\x1b[0m\n')
-         execute('pwgen -sy 128 >' + os.path.join(self.CADirectory, self.CAPasswordFileName))
-         assert os.path.isfile(self.CAPasswordFileName)
+      if not os.path.isfile(self.PasswordFileName):
+         sys.stdout.write('\x1b[33mGenerating CA password ' + self.PasswordFileName + ' ...\x1b[0m\n')
+         execute('pwgen -sy 128 >' + os.path.join(self.Directory, self.PasswordFileName))
+         assert os.path.isfile(self.PasswordFileName)
 
 
       # ====== Generate CA key ==============================================
-      if not os.path.isfile(self.CAKeyFileName):
-         sys.stdout.write('\x1b[33mGenerating CA key ' + self.CAKeyFileName + ' ...\x1b[0m\n')
+      if not os.path.isfile(self.KeyFileName):
+         sys.stdout.write('\x1b[33mGenerating CA key ' + self.KeyFileName + ' ...\x1b[0m\n')
          execute('openssl genrsa'  +
                  ' -aes256 '       +   # Use AES-256 encryption
-                 ' -out '          + os.path.join(self.CADirectory, self.CAKeyFileName)      +
-                 ' -passout file:' + os.path.join(self.CADirectory, self.CAPasswordFileName) +
-                 ' ' + str(self.CAKeyLength))
-         assert os.path.isfile(self.CAKeyFileName)
+                 ' -out '          + os.path.join(self.Directory, self.KeyFileName)      +
+                 ' -passout file:' + os.path.join(self.Directory, self.PasswordFileName) +
+                 ' ' + str(self.KeyLength))
+         assert os.path.isfile(self.KeyFileName)
 
 
       # ====== Generate self-signed root CA certificate =====================
       if parentCA == None:
-         sys.stdout.write('\x1b[33mGenerating self-signed root CA certificate ' + self.CACertFileName + ' ...\x1b[0m\n')
+         sys.stdout.write('\x1b[33mGenerating self-signed root CA certificate ' + self.CertFileName + ' ...\x1b[0m\n')
          execute('SAN="" openssl req' +
                  ' -x509'             +   # Self-signed
                  ' -config '          + self.ConfigFileName      +
                  ' -extensions v3_ca' +
                  ' -utf8 -subj "'     + str(self.Subject) + '"'  +
                  ' -days '            + str(self.CADefaultDays)  +
-                 ' -key '             + self.CAKeyFileName       +
-                 ' -passin file:'     + self.CAPasswordFileName  +
-                 ' -out '             + self.CACertFileName)
-         assert os.path.isfile(self.CACertFileName)
+                 ' -key '             + self.KeyFileName         +
+                 ' -passin file:'     + self.PasswordFileName    +
+                 ' -out '             + self.CertFileName)
+         assert os.path.isfile(self.CertFileName)
 
          # Get the whole chain (just this certificate):
-         shutil.copy2(self.CACertFileName, self.ChainFileName)
+         shutil.copy2(self.CertFileName, self.ChainFileName)
 
          # Set the root CA:
          self.RootCA = self
@@ -261,15 +261,15 @@ subjectAltName         = ${ENV::SAN}
       # ====== Generate CA certificate signed by parent CA ==================
       else:
          # ------ Create CSR ------------------------------------------------
-         csrFileName = os.path.join(self.CADirectory, caName + '.csr')
+         csrFileName = os.path.join(self.Directory, caName + '.csr')
          sys.stdout.write('\x1b[33mGenerating CSR ' + csrFileName + ' ...\x1b[0m\n')
          execute('SAN="" openssl req' +
                  ' -new'              +   # Not self-signed
-                 ' -config '          + self.ConfigFileName      +
+                 ' -config '          + self.ConfigFileName     +
                  ' -extensions v3_ca' +
-                 ' -utf8 -subj "'     + str(self.Subject) + '"'  +
-                 ' -key '             + self.CAKeyFileName       +
-                 ' -passin file:'     + self.CAPasswordFileName  +
+                 ' -utf8 -subj "'     + str(self.Subject) + '"' +
+                 ' -key '             + self.KeyFileName        +
+                 ' -passin file:'     + self.PasswordFileName   +
                  ' -out '             + csrFileName)
          assert os.path.isfile(csrFileName)
 
@@ -286,15 +286,15 @@ subjectAltName         = ${ENV::SAN}
                  ' -extensions '      + caExtension                  +
                  ' -utf8 -subj "'     + str(self.Subject) + '"'      +
                  ' -days '            + str(parentCA.CADefaultDays)  +
-                 ' -passin file:'     + parentCA.CAPasswordFileName  +
+                 ' -passin file:'     + parentCA.PasswordFileName  +
                  ' -in '              + csrFileName                  +
-                 ' -out '             + self.CACertFileName)
-         assert os.path.isfile(self.CACertFileName)
+                 ' -out '             + self.CertFileName)
+         assert os.path.isfile(self.CertFileName)
 
          # Get the whole chain:
          shutil.copy2(parentCA.ChainFileName, self.ChainFileName)
          chainFile = open(self.ChainFileName, 'a', encoding='utf-8')
-         certFile  = open(self.CACertFileName, 'r', encoding='utf-8')
+         certFile  = open(self.CertFileName, 'r', encoding='utf-8')
          for line in certFile:
             chainFile.write(line)
          certFile.close()
@@ -314,14 +314,14 @@ subjectAltName         = ${ENV::SAN}
       execute('openssl x509 '                  +
               ' -noout'                        +   # Do not dump the encoded certificate
               ' -subject -ext subjectAltName ' +   # Print basic information
-              ' -in ' + self.CACertFileName)
+              ' -in ' + self.CertFileName)
 
-      sys.stdout.write('\x1b[33mVerifying certificate ' + self.CACertFileName + ' via ' +
+      sys.stdout.write('\x1b[33mVerifying certificate ' + self.CertFileName + ' via ' +
                        self.ChainFileName + ' ...\x1b[0m\n')
       execute('openssl verify ' +
               ' -show_chain -verbose' +
               ' -CAfile ' + self.ChainFileName +
-              ' ' + self.CACertFileName)
+              ' ' + self.CertFileName)
 
 
       # ====== Initialise CRL ===============================================
@@ -330,7 +330,7 @@ subjectAltName         = ${ENV::SAN}
       execute('SAN="" openssl ca'     +
               ' -gencrl'       +
               ' -config '      + self.ConfigFileName     +
-              ' -passin file:' + self.CAPasswordFileName +
+              ' -passin file:' + self.PasswordFileName +
               ' -out '         + self.CRLFileName)
       assert(os.path.isfile(self.CRLFileName))
 
@@ -383,7 +383,7 @@ class Certificate:
                  ' -extensions '      + caExtension                 +
                  ' -utf8 -subj "'     + str(self.Subject) + '"'     +
                  ' -days '            + str(self.CA.CADefaultDays)  +
-                 ' -passin file:'     + self.CA.CAPasswordFileName  +
+                 ' -passin file:'     + self.CA.PasswordFileName    +
                  ' -in '              + csrFileName                 +
                  ' -out '             + self.ServerCertFileName)
          assert os.path.isfile(self.ServerCertFileName)
@@ -426,8 +426,8 @@ class Certificate:
 
       execute('SAN="" openssl ca'     +
               ' -gencrl'       +
-              ' -config '      + self.CA.ConfigFileName     +
-              ' -passin file:' + self.CA.CAPasswordFileName +
+              ' -config '      + self.CA.ConfigFileName   +
+              ' -passin file:' + self.CA.PasswordFileName +
               ' -out '         + self.CA.CRLFileName)
 
       self.verify()
