@@ -65,7 +65,7 @@ if [ "$1" == "mariadb" ] ; then
 
    echo "Installing MariaDB ..."
 
-   ./generate-test-certificate mariadb.domain.test /etc/ssl
+   ./generate-test-certificates /etc/ssl mariadb.domain.test
 
    # MariaDB needs separate certificate and key files.
    # The chain is in the CA file, it must not be in the certificate file!
@@ -113,7 +113,7 @@ elif [ "$1" == "postgresql" ] ; then
 
    echo "Installing PostgreSQL ..."
 
-   ./generate-test-certificate postgresql.domain.test /etc/ssl
+   ./generate-test-certificates /etc/ssl postgresql.domain.test
 
    # PostgreSQL needs separate certificate and key files.
    # The chain is in the CA file, it must not be in the certificate file!
@@ -156,7 +156,7 @@ elif [ "$1" == "mongodb" ] ; then
 
    echo "Installing MongoDB ..."
 
-   ./generate-test-certificate mongodb.domain.test /etc/ssl
+   ./generate-test-certificates /etc/ssl mongodb.domain.test
 
    # MongoDB wants key + certificate + chain (in this order!) in the PEM file:
    MONGODB_CRT_KEY_FILE="/etc/ssl/mongodb.domain.test.crt+key+chain"
