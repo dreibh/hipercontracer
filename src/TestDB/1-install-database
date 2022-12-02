@@ -65,14 +65,14 @@ if [ "$1" == "mariadb" ] ; then
 
    echo "Installing MariaDB ..."
 
-   ./generate-test-certificates /etc/ssl mariadb.domain.test
+   sudo ./generate-test-certificates /etc/ssl mariadb.domain.test
 
    # MariaDB needs separate certificate and key files.
    # The chain is in the CA file, it must not be in the certificate file!
    # Details: https://mariadb.com/kb/en/securing-connections-for-client-and-server/
-   MARIADB_CA_FILE="/etc/ssl/TestLeaf/TestLeaf-chain.pem"
-   MARIADB_CRT_FILE="/etc/ssl/mariadb.domain.test.crt"
-   MARIADB_KEY_FILE="/etc/ssl/mariadb.domain.test.key"
+   MARIADB_CA_FILE="/etc/ssl/TestLeaf/certs/TestLeaf-chain.pem"
+   MARIADB_CRT_FILE="/etc/ssl/mariadb.domain.test/mariadb.domain.test.crt"
+   MARIADB_KEY_FILE="/etc/ssl/mariadb.domain.test/mariadb.domain.test.key"
    sudo chown mysql:mysql ${MARIADB_KEY_FILE}
    sudo openssl verify -CAfile ${MARIADB_CA_FILE} ${MARIADB_CRT_FILE}
 
@@ -100,7 +100,7 @@ EOF
    sudo mv /etc/mysql/mariadb.conf.d/50-server.cnf.new /etc/mysql/mariadb.conf.d/50-server.cnf
    sudo service mariadb restart
 
-   ./test-tls-connection localhost:3306 /etc/ssl/TestRoot/certs/TestRoot.crt -starttls mysql
+   ./test-tls-connection localhost:3306 /etc/ssl/TestLevel1/certs/TestLevel1.crt -starttls mysql
 
    # Install MySQL Workbench:
    # wget https://dev.mysql.com/get/Downloads/MySQLGUITools/mysql-workbench-community_8.0.31-1ubuntu22.10_amd64.deb
@@ -113,13 +113,13 @@ elif [ "$1" == "postgresql" ] ; then
 
    echo "Installing PostgreSQL ..."
 
-   ./generate-test-certificates /etc/ssl postgresql.domain.test
+   sudo ./generate-test-certificates /etc/ssl postgresql.domain.test
 
    # PostgreSQL needs separate certificate and key files.
    # The chain is in the CA file, it must not be in the certificate file!
-   POSTGRESQL_CA_FILE="/etc/ssl/TestLeaf/TestLeaf-chain.pem"
-   POSTGRESQL_CRT_FILE="/etc/ssl/postgresql.domain.test.crt"
-   POSTGRESQL_KEY_FILE="/etc/ssl/postgresql.domain.test.key"
+   POSTGRESQL_CA_FILE="/etc/ssl/TestLeaf/certs/TestLeaf-chain.pem"
+   POSTGRESQL_CRT_FILE="/etc/ssl/postgresql.domain.test/postgresql.domain.test.crt"
+   POSTGRESQL_KEY_FILE="/etc/ssl/postgresql.domain.test/postgresql.domain.test.key"
    sudo chown postgres:postgres ${POSTGRESQL_KEY_FILE}
    sudo openssl verify -CAfile ${POSTGRESQL_CA_FILE} ${POSTGRESQL_CRT_FILE}
 
@@ -147,7 +147,7 @@ elif [ "$1" == "postgresql" ] ; then
 
    sudo service postgresql restart
 
-   ./test-tls-connection localhost:5432 /etc/ssl/TestRoot/certs/TestRoot.crt -starttls postgres
+   ./test-tls-connection localhost:5432 /etc/ssl/TestLevel1/certs/TestLevel1.crt -starttls postgres
 
 
 # ###### MongoDB ############################################################
@@ -156,13 +156,13 @@ elif [ "$1" == "mongodb" ] ; then
 
    echo "Installing MongoDB ..."
 
-   ./generate-test-certificates /etc/ssl mongodb.domain.test
+   sudo ./generate-test-certificates /etc/ssl mongodb.domain.test
 
    # MongoDB wants key + certificate + chain (in this order!) in the PEM file:
-   MONGODB_CRT_KEY_FILE="/etc/ssl/mongodb.domain.test.crt+key+chain"
+   MONGODB_CRT_KEY_FILE="/etc/ssl/mongodb.domain.test.crt/mongodb.domain.test.crt+key+chain"
    sudo touch ${MONGODB_CRT_KEY_FILE}
    sudo chmod 600 ${MONGODB_CRT_KEY_FILE}
-   sudo cat /etc/ssl/mongodb.domain.test.key /etc/ssl/mongodb.domain.test.crt /etc/ssl/TestLeaf/TestLeaf-chain.pem | sudo tee ${MONGODB_CRT_KEY_FILE} >/dev/null
+   sudo cat /etc/ssl/mongodb.domain.test.crt/mongodb.domain.test.key /etc/ssl/mongodb.domain.test.crt/mongodb.domain.test.crt /etc/ssl/TestLeaf/certs/TestLeaf-chain.pem | sudo tee ${MONGODB_CRT_KEY_FILE} >/dev/null
    sudo chown mongodb:mongodb ${MONGODB_CRT_KEY_FILE}
 
    # ====== Install MongoDB =================================================
@@ -223,7 +223,7 @@ EOF
    sudo systemctl enable mongod
 
    sleep 5
-   ./test-tls-connection localhost:27017 /etc/ssl/TestRoot/certs/TestRoot.crt
+   ./test-tls-connection localhost:27017 /etc/ssl/TestLevel1/certs/TestLevel1.crt
 
 
 # ###### Error ##############################################################

@@ -57,7 +57,7 @@ if [ "$1" == "mysql" -o "$1" == "mariadb" ] ; then
    echo -e "\x1b[34mTesting access to MySQL/MariaDB database ...\x1b[0m"
    cat mysql-test.sql | mysql \
       --host=localhost --port 3306 --protocol=tcp \
-      --ssl --ssl-verify-server-cert --ssl-ca=/etc/ssl/TestRoot/certs/TestRoot.crt \
+      --ssl --ssl-verify-server-cert --ssl-ca=/etc/ssl/TestLevel1/certs/TestLevel1.crt \
       --user=researcher --password="${RESEARCHER_PASSWORD}" \
       --database="${DATABASE}"
 
@@ -70,7 +70,7 @@ elif [ "$1" == "postgresql" ] ; then
    cat postgresql-test.sql | \
       PGPASSWORD="${RESEARCHER_PASSWORD}" \
       PGSSLMODE="verify-full" \
-      PGSSLROOTCERT="/etc/ssl/TestRoot/certs/TestRoot.crt" \
+      PGSSLROOTCERT="/etc/ssl/TestLevel1/certs/TestLevel1.crt" \
       psql \
          --host=localhost --port=5432 \
          --username=researcher \
@@ -84,7 +84,7 @@ elif [ "$1" == "mongodb" ] ; then
    echo -e "\x1b[34mTesting access to MongoDB database ...\x1b[0m"
    cat mongodb-test.ms | mongosh \
       "mongodb://localhost:27017/${DATABASE}" \
-      --tls --tlsCAFile /etc/ssl/TestRoot/certs/TestRoot.crt \
+      --tls --tlsCAFile /etc/ssl/TestLevel1/certs/TestLevel1.crt \
       --username researcher --password "${RESEARCHER_PASSWORD}" \
       --quiet
 
