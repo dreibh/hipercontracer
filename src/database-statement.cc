@@ -49,6 +49,7 @@ Statement::~Statement()
 {
 }
 
+#include <iostream>
 
 // ###### Encode IP address #################################################
 std::string Statement::encodeAddress(const boost::asio::ip::address& address) const
@@ -57,8 +58,7 @@ std::string Statement::encodeAddress(const boost::asio::ip::address& address) co
 
    if(Backend & DatabaseBackendType::SQL_Generic) {
       if( ((Backend & DatabaseBackendType::SQL_MariaDB) == DatabaseBackendType::SQL_MariaDB ) &&
-          (address.is_v6()) &&
-          (address.to_v6().is_v4_mapped()) ) {
+          (address.is_v4()) ) {
          // MySQL/MariaDB only has INET6 datatype. Make IPv4 addresses mapped.
          ss << std::quoted(boost::asio::ip::make_address_v6(boost::asio::ip::v4_mapped, address.to_v4()).to_string(), '\'', '\\');
       }
