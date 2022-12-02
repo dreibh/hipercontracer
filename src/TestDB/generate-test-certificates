@@ -98,7 +98,7 @@ class CA:
             self.CRLDirectory          # Certificates Revocation Lists (CRLs)
          ]:
          os.makedirs(os.path.join(self.Directory, directory),
-                     mode     = 0o744,
+                     mode     = 0o755,
                      exist_ok = True)
       # Directory for keys:
       os.makedirs(os.path.join(self.Directory, 'private'),
