@@ -64,3 +64,6 @@ USERS_CONFIG=~/testdb-users.conf
 ./4-clean-database        $1 ${USERS_CONFIG} --force-removal-without-confirmation
 ./5-perform-importer-test $1
 ./3-test-database         $1 ${USERS_CONFIG}
+
+
+echo "TEST SUCCESSFULLY FINISHED!"

@@ -63,6 +63,7 @@ if [ -e "${DATABASE_CONFIG}" ] ; then
 
    ../hpct-importer \
       -c "${DATABASE_CONFIG}" \
+      --quit-when-idle \
       --loglevel 0
 
 

@@ -58,7 +58,7 @@ ALT_ADDRESSES=`hostname -I | xargs -n1 | awk 'BEGIN { first=1 } { if(!first) { p
 
 RSA_BITS=4096
 
-CA1="TestRoot"
+CA1="TestLevel1"
 CA1_DIR="${SSL_DIRECTORY}/${CA1}"
 CA1_OPENSSL_CONF="${CA1}.conf"
 CA1_KEY="private/${CA1}.key"

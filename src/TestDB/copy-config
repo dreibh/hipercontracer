@@ -4,7 +4,7 @@
 DBTEST=10.193.4.169
 
 rsync nornetpp@${DBTEST}:testdb-* ${HOME}/
-rsync nornetpp@${DBTEST}:/etc/ssl/TestRoot/certs/TestRoot.crt ${HOME}/
+rsync nornetpp@${DBTEST}:/etc/ssl/TestLevel1/certs/TestLevel1.crt ${HOME}/
 sed -e "s/localhost/${DBTEST}/g" \
-    -e "s%\(dbcafile[ \t]*\)=\(.*\)$%\1= ${HOME}/TestRoot.crt%g" \
+    -e "s%\(dbcafile[ \t]*\)=\(.*\)$%\1= ${HOME}/TestLevel1.crt%g" \
     -i ${HOME}/testdb-*.conf

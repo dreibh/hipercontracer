@@ -1,0 +1,122 @@
+#!/usr/bin/env bash
+#  =================================================================
+#           #     #                 #     #
+#           ##    #   ####   #####  ##    #  ######   #####
+#           # #   #  #    #  #    # # #   #  #          #
+#           #  #  #  #    #  #    # #  #  #  #####      #
+#           #   # #  #    #  #####  #   # #  #          #
+#           #    ##  #    #  #   #  #    ##  #          #
+#           #     #   ####   #    # #     #  ######     #
+#
+#        ---   The NorNet Testbed for Multi-Homed Systems  ---
+#                        https://www.nntb.no
+#  =================================================================
+#
+#  High-Performance Connectivity Tracer (HiPerConTracer)
+#  Copyright (C) 2015-2022 by Thomas Dreibholz
+#
+#  This program is free software: you can redistribute it and/or modify
+#  it under the terms of the GNU General Public License as published by
+#  the Free Software Foundation, either version 3 of the License, or
+#  (at your option) any later version.
+#
+#  This program is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
+#
+#  You should have received a copy of the GNU General Public License
+#  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+#  Contact: dreibh@simula.no
+
+# Bash options:
+set -o nounset
+set -o errexit
+
+
+if [ $# -lt 2 ] ; then
+   echo >&2 "Usage: $0 mariadb|mongodb|mysql|postgresql users.conf [--force-removal-without-confirmation]"
+   exit 1
+fi
+CONFIG="$2"
+if [ ! -e "${CONFIG}" ] ; then
+   echo >&2 "ERROR: Use configuration $2 does not exist!"
+fi
+if [ $# -gt 2 ] ; then
+   OPTION="$3"
+else
+   OPTION=""
+fi
+
+if [ "${OPTION}" != "--force-removal-without-confirmation" ] ; then
+   echo -n "WARNING: THIS SCRIPT WILL ERASE THE EXISTING DATABASES. To proceed, type \"I am sure!\": "
+   read -er agree
+   if [ "$agree" != "I am sure!" ] ; then
+      echo "Exiting."
+      exit
+   fi
+fi
+
+DATABASE="just_a_test_database"
+MAINTAINER_PASSWORD=
+IMPORTER_PASSWORD=
+RESEARCHER_PASSWORD=
+. $2
+
+
+# ###### MySQL/MariaDB ######################################################
+if [ "$1" == "mysql" -o "$1" == "mariadb" ] ; then
+
+   echo -e "\x1b[34mRemoving all rows from MySQL/MariaDB database ...\x1b[0m"
+   mysql \
+      --host=localhost --port 3306 --protocol=tcp \
+      --ssl --ssl-verify-server-cert --ssl-ca=/etc/ssl/TestLevel1/certs/TestLevel1.crt \
+      --user=maintainer --password="${MAINTAINER_PASSWORD}" \
+      --database="${DATABASE}" <<EOF
+TRUNCATE TABLE Ping;
+TRUNCATE TABLE Traceroute;
+OPTIMIZE TABLE Ping;
+OPTIMIZE TABLE Traceroute;
+EOF
+
+
+# ###### PostgreSQL #########################################################
+elif [ "$1" == "postgresql" ] ; then
+
+   echo -e "\x1b[34mRemoving all rows from PostgreSQL database ...\x1b[0m"
+   PGPASSWORD="${MAINTAINER_PASSWORD}" \
+   PGSSLMODE="verify-full" \
+   PGSSLROOTCERT="/etc/ssl/TestLevel1/certs/TestLevel1.crt" \
+   psql \
+      --host=localhost --port=5432 \
+      --username=maintainer \
+      --dbname="${DATABASE}" <<EOF
+TRUNCATE TABLE Ping;
+TRUNCATE TABLE Traceroute;
+EOF
+
+
+# ###### MongoDB ############################################################
+elif [ "$1" == "mongodb" ] ; then
+
+   echo -e "\x1b[34mRemoving all rows from MongoDB database ...\x1b[0m"
+   mongosh \
+      "mongodb://localhost:27017/${DATABASE}" \
+      --tls --tlsCAFile /etc/ssl/TestLevel1/certs/TestLevel1.crt \
+      --username researcher --password "${RESEARCHER_PASSWORD}" \
+      --quiet <<EOF
+use ${DATABASE}
+db.ping.deleteMany({})
+db.ping.countDocuments()
+db.traceroute.deleteMany({})
+db.traceroute.countDocuments()
+quit()
+EOF
+
+
+# ###### Error ##############################################################
+else
+   echo >&2 "ERROR: Unsupported database: $1"
+   exit 1
+fi
