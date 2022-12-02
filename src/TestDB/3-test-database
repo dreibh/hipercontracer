@@ -55,7 +55,7 @@ if [ "$1" == "mysql" -o "$1" == "mariadb" ] ; then
    # Documentation: https://www.digitalocean.com/community/tutorials/how-to-install-mariadb-on-ubuntu-22-04
 
    echo -e "\x1b[34mTesting access to MySQL/MariaDB database ...\x1b[0m"
-   cat mysql-test.sql | mysql \
+   cat ../SQL/mysql-test.sql | mysql \
       --host=localhost --port 3306 --protocol=tcp \
       --ssl --ssl-verify-server-cert --ssl-ca=/etc/ssl/TestLevel1/certs/TestLevel1.crt \
       --user=researcher --password="${RESEARCHER_PASSWORD}" \
@@ -67,7 +67,7 @@ elif [ "$1" == "postgresql" ] ; then
    # Documentation: https://www.digitalocean.com/community/tutorials/how-to-install-postgresql-on-ubuntu-22-04-quickstart
 
    echo -e "\x1b[34mTesting access to PostgreSQL database ...\x1b[0m"
-   cat postgresql-test.sql | \
+   cat ../SQL/postgresql-test.sql | \
       PGPASSWORD="${RESEARCHER_PASSWORD}" \
       PGSSLMODE="verify-full" \
       PGSSLROOTCERT="/etc/ssl/TestLevel1/certs/TestLevel1.crt" \
@@ -82,7 +82,7 @@ elif [ "$1" == "mongodb" ] ; then
    # Documentation: https://www.mongodb.com/docs/manual/tutorial/install-mongodb-on-ubuntu/
 
    echo -e "\x1b[34mTesting access to MongoDB database ...\x1b[0m"
-   cat mongodb-test.ms | mongosh \
+   cat ../NoSQL/mongodb-test.ms | mongosh \
       "mongodb://localhost:27017/${DATABASE}" \
       --tls --tlsCAFile /etc/ssl/TestLevel1/certs/TestLevel1.crt \
       --username researcher --password "${RESEARCHER_PASSWORD}" \
