@@ -50,6 +50,7 @@ class Worker
    ~Worker();
 
    void start(const bool quitWhenIdle = false);
+   void join();
    void requestStop();
    void wakeUp();
 

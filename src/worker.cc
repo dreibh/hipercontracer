@@ -64,9 +64,7 @@ Worker::Worker(const unsigned int           workerID,
 Worker::~Worker()
 {
    requestStop();
-   if(Thread.joinable()) {
-      Thread.join();
-   }
+   join();
 }
 
 
@@ -76,6 +74,15 @@ void Worker::start(const bool quitWhenIdle)
    StopRequested.exchange(false);
    QuitWhenIdle = quitWhenIdle;
    Thread = std::thread(&Worker::run, this);
+}
+
+
+// ###### Wait for finish of worker thread ##################################
+void Worker::join()
+{
+   if(Thread.joinable()) {
+      Thread.join();
+   }
 }
 
 
