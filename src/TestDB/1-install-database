@@ -159,10 +159,10 @@ elif [ "$1" == "mongodb" ] ; then
    sudo ./generate-test-certificates /etc/ssl mongodb.domain.test
 
    # MongoDB wants key + certificate + chain (in this order!) in the PEM file:
-   MONGODB_CRT_KEY_FILE="/etc/ssl/mongodb.domain.test.crt/mongodb.domain.test.crt+key+chain"
+   MONGODB_CRT_KEY_FILE="/etc/ssl/mongodb.domain.test/mongodb.domain.test.crt+key+chain"
    sudo touch ${MONGODB_CRT_KEY_FILE}
    sudo chmod 600 ${MONGODB_CRT_KEY_FILE}
-   sudo cat /etc/ssl/mongodb.domain.test.crt/mongodb.domain.test.key /etc/ssl/mongodb.domain.test.crt/mongodb.domain.test.crt /etc/ssl/TestLeaf/certs/TestLeaf-chain.pem | sudo tee ${MONGODB_CRT_KEY_FILE} >/dev/null
+   sudo cat /etc/ssl/mongodb.domain.test/mongodb.domain.test.key /etc/ssl/mongodb.domain.test/mongodb.domain.test.crt /etc/ssl/TestLeaf/certs/TestLeaf-chain.pem | sudo tee ${MONGODB_CRT_KEY_FILE} >/dev/null
    sudo chown mongodb:mongodb ${MONGODB_CRT_KEY_FILE}
 
    # ====== Install MongoDB =================================================
