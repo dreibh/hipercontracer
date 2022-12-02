@@ -87,8 +87,8 @@ class CA:
       self.KeyFileName       = os.path.join(self.PrivateDirectory, name + '.key')
       self.PasswordFileName  = os.path.join(self.PrivateDirectory, name + '.password')
       self.CSRFileName       = os.path.join(self.Directory,        name + '.csr')
-      self.CertFileName      = os.path.join(self.Directory,        name + '.crt')
-      self.ChainFileName     = os.path.join(self.Directory,        name + '-chain.pem')
+      self.CertFileName      = os.path.join(self.CertsDirectory,   name + '.crt')
+      self.ChainFileName     = os.path.join(self.CertsDirectory,   name + '-chain.pem')
       self.CRLFileName       = os.path.join(self.CRLDirectory,     name + '.crl')
 
       # ====== Create directories, if not already existing ==================
@@ -537,7 +537,6 @@ for interfaceName in netifaces.interfaces():
                localAddressSet.add(str(ipaddress.ip_address(address['addr'])))
 
 for localAddress in localAddressSet:
-   print(localAddress)
    subjectAltName = subjectAltName + ',IP:' + localAddress
 
 # print(subjectAltName)
