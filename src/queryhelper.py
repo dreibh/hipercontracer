@@ -114,8 +114,7 @@ class DatabaseConfiguration:
             sys.stderr.write('ERROR: MySQL/MariaDB backend expects dbCertFile+dbKeyFile, not dbCertKeyFile!\n')
             sys.exit(1)
          if self.Configuration['dbCRLFile'] != None:
-            sys.stderr.write('ERROR: MySQL/MariaDB backend does not support dbCRLFile!\n')
-            sys.exit(1)
+            sys.stderr.write('WARNING: MySQL/MariaDB backend (based on mysql-connector-python) does not support dbCRLFile!\n')
       elif self.Configuration['dbBackend'] == 'PostgreSQL':
          if self.Configuration['dbCertKeyFile'] != None:
             sys.stderr.write('ERROR: PostgreSQL backend expects dbCertFile+dbKeyFile, not dbCertKeyFile!\n')
