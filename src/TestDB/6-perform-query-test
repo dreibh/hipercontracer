@@ -59,7 +59,8 @@ if [ -e "${DATABASE_CONFIG}" ] ; then
       ls -l imported-raw-${table,,}.txt imported-${table,,}.txt
 
       echo "Querying ${table} data from database ..."
-      ../hpct-query "${DATABASE_CONFIG}" ${table,,} | tee queried-raw-${table,,}.txt | grep "^#" | sort -k4 >queried-${table,,}.txt
+      ../hpct-query "${DATABASE_CONFIG}" ${table,,} >queried-raw-${table,,}.txt
+      cat queried-raw-${table,,}.txt | grep "^#" | sort -k4 >queried-${table,,}.txt
       ls -l queried-raw-${table,,}.txt queried-${table,,}.txt
 
       echo "Differences for ${table}:"
@@ -70,7 +71,7 @@ if [ -e "${DATABASE_CONFIG}" ] ; then
 
       ls -l imported-${table,,}.txt queried-${table,,}.txt
       wc -l imported-${table,,}.txt queried-${table,,}.txt
-      colordiff imported-${table,,}.txt queried-${table,,}.txt
+      diff --color=always imported-${table,,}.txt queried-${table,,}.txt | head -n32
 
    done
 

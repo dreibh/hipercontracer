@@ -94,7 +94,7 @@ EOF
       -e "s%\([#]\|\)ssl-ca[ ]*=[ ]*.*%ssl-ca = ${MARIADB_CA_FILE}%" \
       -e "s%\([#]\|\)ssl-cert[ ]*=[ ]*.*%ssl-cert = ${MARIADB_CRT_FILE}%" \
       -e "s%\([#]\|\)ssl-key[ ]*=[ ]*.*%ssl-key = ${MARIADB_KEY_FILE}%" \
-      -e "s%\([#]\|\)require-secure-transport[ ]*=[ ]*.*%require-secure-transport = on%" \
+      -e "s%\([#]\|\)require-secure-transport[ ]*=[ ]*.*%require-secure-transport = on\ntls_version = TLSv1.3%" \
       /etc/mysql/mariadb.conf.d/50-server.cnf | sudo tee /etc/mysql/mariadb.conf.d/50-server.cnf.new >/dev/null && \
    sudo diff --color /etc/mysql/mariadb.conf.d/50-server.cnf.new /etc/mysql/mariadb.conf.d/50-server.cnf || true && \
    sudo mv /etc/mysql/mariadb.conf.d/50-server.cnf.new /etc/mysql/mariadb.conf.d/50-server.cnf
