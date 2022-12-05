@@ -125,7 +125,8 @@ class DatabaseConfiguration:
             sys.stderr.write('ERROR: MongoDB backend expects dbCertKeyFile, not dbCertFile+dbKeyFile!\n')
             sys.exit(1)
 
-      for option in [ 'dbCAFile', 'dbCertFile', 'dbKeyFile', 'dbCRLFile' ] :
+      # Legacy parameter settings:
+      for option in [ 'dbCAFile', 'dbCRLFile', 'dbCertFile', 'dbKeyFile', 'dbCertKeyFile' ]:
          if self.Configuration[option].upper() in [ 'NONE', 'IGNORE' ]:
             self.Configuration[option] = None
 

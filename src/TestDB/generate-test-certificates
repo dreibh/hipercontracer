@@ -55,14 +55,16 @@ def execute(command, mayFail = False):
 
 
 # ###### CA #################################################################
-GlobalCRLSet = set([])
+GlobalCRLSet      = set([])
+GlobalCRLFileName = 'TestGlobal.crl'
 
 class CA:
    # ###### Constructor #####################################################
    def __init__(self, mainDirectory, name, parentCA, subject, certType):
       sys.stdout.write('\x1b[34mCreating CA ' + name + ' ...\x1b[0m\n')
 
-      self.Directory         = os.path.join(mainDirectory, name)
+      self.MainDirectory     = mainDirectory
+      self.Directory         = os.path.join(self.MainDirectory, name)
       self.ParentCA          = parentCA
       self.Subject           = subject
       self.CAName            = name
@@ -345,9 +347,9 @@ subjectAltName         = ${ENV::SAN}
 
 
       # ====== Generate initial CRL =========================================
+      GlobalCRLSet.add(self.CRLFileName)
       if not os.path.isfile(self.CRLFileName):
          self.generateCRL()
-         GlobalCRLSet.add(self.CRLFileName)
 
 
       # ====== Verify certificate ===========================================
@@ -404,6 +406,19 @@ subjectAltName         = ${ENV::SAN}
               ' -out '         + self.CRLFileName)
       assert(os.path.isfile(self.CRLFileName))
 
+      # ====== Update global CRL ============================================
+      self.generateGlobalCRL(os.path.join(self.MainDirectory, GlobalCRLFileName))
+
+
+   # ###### Generate global CRL #############################################
+   def generateGlobalCRL(self, globalCRLFileName):
+      if len(GlobalCRLSet) > 0:
+         cmd = 'cat'
+         for crlFileName in sorted(GlobalCRLSet):
+            cmd = cmd + ' ' + crlFileName
+         cmd = cmd + ' >' + globalCRLFileName
+         execute(cmd)
+         assert(os.path.isfile(globalCRLFileName))
 
 
 # ###### Server/User Certificate ############################################
@@ -514,7 +529,7 @@ mainDirectory = '/tmp/tlstest'
 
 # ====== Handle command-line parameters =====================================
 if len(sys.argv) < 3:
-   sys.stderr.write('Usage: ' + sys.argv[1] + ' ssl_directory server\n')
+   sys.stderr.write('Usage: ' + sys.argv[0] + ' ssl_directory server\n')
    sys.exit(1)
 mainDirectory = sys.argv[1]
 serverName    = sys.argv[2]
