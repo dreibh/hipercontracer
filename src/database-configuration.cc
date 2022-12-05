@@ -111,7 +111,6 @@ bool DatabaseConfiguration::readConfiguration(const std::filesystem::path& confi
    if(!setGoodFilePath(GoodFilePath))     return false;
    if(!setBadFilePath(BadFilePath))       return false;
 
-   // Legacy parameter handling:
    if(boost::iequals(CAFile, "NONE") || boost::iequals(CAFile, "IGNORE")) {
       CAFile = std::string();
    }
