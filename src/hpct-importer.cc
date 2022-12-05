@@ -219,6 +219,9 @@ int main(int argc, char** argv)
    if(importer.start(importFilePathFilter, quitWhenIdle) == false) {
       exit(1);
    }
+   if(quitWhenIdle) {
+     importer.waitForFinish();
+   }
    ioService.run();
    importer.stop();
 

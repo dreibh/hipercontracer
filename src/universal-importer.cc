@@ -154,6 +154,19 @@ void UniversalImporter::stop()
 }
 
 
+// ###### Wait for worker threads to be finished ############################
+void UniversalImporter::waitForFinish()
+{
+   // NOTE: To finish, the worker threads must have a stop criteria, i.e.
+   //       quitWhenIdle == true!
+   for(std::map<const WorkerMapping, Worker*>::iterator workerMappingIterator = WorkerMap.begin();
+       workerMappingIterator != WorkerMap.end(); workerMappingIterator++) {
+      Worker* worker = workerMappingIterator->second;
+      worker->join();
+   }
+}
+
+
 // ###### Handle signal #####################################################
 void UniversalImporter::handleSignalEvent(const boost::system::error_code& errorCode,
                                           const int                        signalNumber)

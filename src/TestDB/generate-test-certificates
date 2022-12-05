@@ -35,8 +35,8 @@ CRT_Server          = 4
 CRT_User            = 5
 
 # Some defaults:
-DefaultCAKeyLength   = 2048
-DefaultCertKeyLength = 2048
+DefaultCAKeyLength   = 8192
+DefaultCertKeyLength = 4096
 
 
 # ###### Execute command ####################################################

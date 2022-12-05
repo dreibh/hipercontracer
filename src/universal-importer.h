@@ -58,6 +58,7 @@ class UniversalImporter
    bool start(const std::string& importFilePathFilter = std::string(),
               const bool         quitWhenIdle         = false);
    void stop();
+   void waitForFinish();
    void run();
 
    friend std::ostream& operator<<(std::ostream& os, const UniversalImporter& importer);
