@@ -99,6 +99,9 @@ bool MariaDBClient::open()
       HPCT_LOG(error) << "MySQL/MariaDB backend expects separate certificate and key files, not one certificate+key file!";
       return false;
    }
+   if(Configuration.getCRLFile().size() > 0) {
+      connectionProperties["sslCRL"] = Configuration.getCRLFile();
+   }
    connectionProperties["sslVerify"]       = sslVerify;
    connectionProperties["sslEnforce"]      = sslEnforce;
    connectionProperties["OPT_TLS_VERSION"] = "TLSv1.3";
