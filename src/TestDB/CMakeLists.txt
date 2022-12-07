@@ -3,6 +3,7 @@
 #############################################################################
 
 INSTALL(FILES
+           README.md
            0-make-users.conf
            1-install-database
            2-initialise-database
