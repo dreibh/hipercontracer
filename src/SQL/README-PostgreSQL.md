@@ -46,14 +46,12 @@ maintenance_work_mem = 64MB
 
 Change in /etc/postgresql/*/main/postgresql.conf (**EXAMPLE ONLY**, adapt to your setup!):
 ```
-# ====== NorNet =============================================================
-ssl                       = on
-ssl_ciphers               = 'ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-AES256-SHA384:ECDHE-RSA-AES256-SHA384:ECDHE-ECDSA-AES256-SHA:ECDHE-RSA-AES256'
+ssl = on
+ssl_ca_file = '/etc/ssl/TestCA/certs/TestCA-chain.pem'
+ssl_cert_file = '/etc/ssl/postgresql.domain.example/postgresql.domain.example.crt'
+ssl_key_file = '/etc/ssl/postgresql.domain.example/postgresql.domain.example.key'
 ssl_prefer_server_ciphers = on
-password_encryption       = scram-sha-256
-ssl_ca_file               = '/etc/ssl/server-chain.pem'
-ssl_cert_file             = '/etc/ssl/server.crt'
-ssl_key_file              = '/etc/ssl/server.key'
+ssl_min_protocol_version = 'TLSv1.3'
 ```
 
 Make sure TLS is working properly, particularly when connecting to the database over the Internet!
@@ -63,12 +61,12 @@ Make sure TLS is working properly, particularly when connecting to the database 
 
 ### Create Database for Ping and Traceroute Measurements
 
-See [postgresql-database.sql]. NOTE: Replace the placeholder ${DATABASE} by your database name, e.g. "testdb", first!
+See [postgresql-database.sql](postgresql-database.sql). NOTE: Replace the placeholder ${DATABASE} by your database name, e.g. "testdb", first!
 
 
 ### Create Database Tables for Ping and Traceroute Measurements
 
-See [postgresql-schema.sql]. Apply the schema definition in the database created above!
+See [postgresql-schema.sql](postgresql-schema.sql). Apply the schema definition in the database created above!
 
 ### Create Users and Roles
 
@@ -77,7 +75,7 @@ Suggested setup with 3 users:
 - researcher: read-only query access
 - maintainer: full access
 
-See [postgresql-users.sql]. NOTE: Replace the placeholders ${DATABASE} and ${user_PASSWORD} first!
+See [postgresql-users.sql](postgresql-users.sql). NOTE: Replace the placeholders ${DATABASE} and ${user_PASSWORD} first!
 
 HINT: Create secure passwords, for example using pwgen:
 ```
@@ -98,7 +96,7 @@ PGPASSWORD="<PASSWORD>" \
 
 ## Test Database Example Scripts
 
-See [TestDB](../TestDB) for example scripts to install, configure, prepare and test a test databse:
+See [TestDB](../TestDB) for example scripts to install, configure, prepare, and perform an importer and query test with a test databse:
 - **[run-full-test](../TestDB/run-full-test)**
 - [0-make-users.conf](../TestDB/0-make-users.conf)
 - [1-install-database](../TestDB/1-install-database)
@@ -108,4 +106,3 @@ See [TestDB](../TestDB) for example scripts to install, configure, prepare and t
 - [5-perform-importer-test](../TestDB/5-perform-importer-test)
 - [6-perform-query-test](../TestDB/6-perform-query-test)
 - [9-uninstall-database](../TestDB/9-uninstall-database)
-
