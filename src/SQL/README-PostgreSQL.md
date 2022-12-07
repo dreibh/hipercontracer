@@ -101,9 +101,9 @@ PGPASSWORD="<PASSWORD>" \
 ## Test Database Example Scripts
 
 See [../TestDB] for example scripts to install, configure, prepare and test a test databse:
-- [../TestDB/0-make-users.conf]
-- [../TestDB/1-install-database]
-- [../TestDB/2-initialise-database]
+- [0-make-users.conf](../TestDB/0-make-users.conf)
+- [1-install-database](../TestDB/1-install-database)
+- [2-initialise-database](../TestDB/2-initialise-database)
 - [../TestDB/3-test-database]
 - [../TestDB/4-clean-database]
 - [../TestDB/5-perform-importer-test]
