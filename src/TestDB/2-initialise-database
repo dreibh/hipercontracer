@@ -99,8 +99,7 @@ if [ "$1" == "mysql" -o "$1" == "mariadb" ] ; then
          --ssl-crl=/etc/ssl/TestGlobal.crl \
          --user=root \
          --password="${ROOT_PASSWORD}" \
-         --database=system \
-         <../SQL/mariadb-test.sql
+         --database=sys
 
    # ====== Create schema ===================================================
    echo -e "\x1b[33mCreating schema ...\x1b[0m"
@@ -123,8 +122,7 @@ if [ "$1" == "mysql" -o "$1" == "mariadb" ] ; then
       --ssl-crl=/etc/ssl/TestGlobal.crl \
       --user=root \
       --password="${ROOT_PASSWORD}" \
-      --database="${DATABASE}" \
-      <../SQL/mariadb-test.sql
+      --database="${DATABASE}"
 
 
 # ###### PostgreSQL #########################################################
@@ -163,15 +161,25 @@ elif [ "$1" == "mongodb" ] ; then
    echo -e "\x1b[33mCreating database ...\x1b[0m"
    cat ../NoSQL/mongodb-database.ms | sed \
       -e "s%\${DATABASE}%${DATABASE}%" | tee | \
-      mongosh --tls --tlsCAFile /etc/ssl/TestLevel1/certs/TestLevel1.crt \
-         mongodb://localhost --username root --password "${ROOT_PASSWORD}" --quiet
+      mongosh \
+         "mongodb://localhost:27017" \
+         --tls \
+         --tlsDisabledProtocols TLS1_0,TLS1_1,TLS1_2 \
+         --tlsCAFile /etc/ssl/TestLevel1/certs/TestLevel1.crt \
+         --username root --password "${ROOT_PASSWORD}" \
+         --quiet
 
    # ====== Create schema ===================================================
    echo -e "\x1b[33mCreating schema ...\x1b[0m"
    cat ../NoSQL/mongodb-schema.ms | sed \
       -e "s%\${DATABASE}%${DATABASE}%" | tee | \
-      mongosh --tls --tlsCAFile /etc/ssl/TestLevel1/certs/TestLevel1.crt \
-         mongodb://localhost --username root --password "${ROOT_PASSWORD}" --quiet
+      mongosh \
+         "mongodb://localhost:27017" \
+         --tls \
+         --tlsDisabledProtocols TLS1_0,TLS1_1,TLS1_2 \
+         --tlsCAFile /etc/ssl/TestLevel1/certs/TestLevel1.crt \
+         --username root --password "${ROOT_PASSWORD}" \
+         --quiet
 
    # ====== Create users and roles ==========================================
    echo -e "\x1b[33mCreating user and roles ...\x1b[0m"
@@ -180,8 +188,13 @@ elif [ "$1" == "mongodb" ] ; then
       -e "s%\${MAINTAINER_PASSWORD}%${MAINTAINER_PASSWORD}%" \
       -e "s%\${RESEARCHER_PASSWORD}%${RESEARCHER_PASSWORD}%" \
       -e "s%\${IMPORTER_PASSWORD}%${IMPORTER_PASSWORD}%" | tee | \
-      mongosh --tls --tlsCAFile /etc/ssl/TestLevel1/certs/TestLevel1.crt \
-         mongodb://localhost --username root --password "${ROOT_PASSWORD}" --quiet
+      mongosh \
+         "mongodb://localhost:27017" \
+         --tls \
+         --tlsDisabledProtocols TLS1_0,TLS1_1,TLS1_2 \
+         --tlsCAFile /etc/ssl/TestLevel1/certs/TestLevel1.crt \
+         --username root --password "${ROOT_PASSWORD}" \
+         --quiet
    echo ""
 
 
