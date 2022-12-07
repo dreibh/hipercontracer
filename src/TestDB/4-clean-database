@@ -70,31 +70,33 @@ if [ "$1" == "mysql" -o "$1" == "mariadb" ] ; then
 
    echo -e "\x1b[34mRemoving all rows from MySQL/MariaDB database ...\x1b[0m"
    mysql \
-      --host=localhost --port 3306 --protocol=tcp \
-      --ssl --ssl-verify-server-cert --ssl-ca=/etc/ssl/TestLevel1/certs/TestLevel1.crt \
-      --user=maintainer --password="${MAINTAINER_PASSWORD}" \
-      --database="${DATABASE}" <<EOF
-TRUNCATE TABLE Ping;
-TRUNCATE TABLE Traceroute;
-OPTIMIZE TABLE Ping;
-OPTIMIZE TABLE Traceroute;
-EOF
+      --host=localhost \
+      --port 3306 \
+      --protocol=tcp \
+      --ssl \
+      --ssl-verify-server-cert \
+      --ssl-ca=/etc/ssl/TestLevel1/certs/TestLevel1.crt \
+      --ssl-crl=/etc/ssl/TestGlobal.crl \
+      --user=maintainer \
+      --password="${MAINTAINER_PASSWORD}" \
+      --database="${DATABASE}" \
+      <../SQL/mariadb-delete-all-rows.sql
 
 
 # ###### PostgreSQL #########################################################
 elif [ "$1" == "postgresql" ] ; then
 
-   echo -e "\x1b[34mRemoving all rows from PostgreSQL database ...\x1b[0m"
+   echo -e "\x1b[34mRemoving all rows from PostgreSQL database ...\x1b[0m"      
    PGPASSWORD="${MAINTAINER_PASSWORD}" \
    PGSSLMODE="verify-full" \
    PGSSLROOTCERT="/etc/ssl/TestLevel1/certs/TestLevel1.crt" \
+   PGSSLCRL="/etc/ssl/TestGlobal.crl" \
    psql \
-      --host=localhost --port=5432 \
+      --host=localhost \
+      --port=5432 \
       --username=maintainer \
-      --dbname="${DATABASE}" <<EOF
-TRUNCATE TABLE Ping;
-TRUNCATE TABLE Traceroute;
-EOF
+      --dbname="${DATABASE}" \
+      <../SQL/postgresql-delete-all-rows.sql
 
 
 # ###### MongoDB ############################################################
@@ -103,16 +105,14 @@ elif [ "$1" == "mongodb" ] ; then
    echo -e "\x1b[34mRemoving all rows from MongoDB database ...\x1b[0m"
    mongosh \
       "mongodb://localhost:27017/${DATABASE}" \
-      --tls --tlsCAFile /etc/ssl/TestLevel1/certs/TestLevel1.crt \
+      --tls \
+      --tlsDisabledProtocols TLS1_0,TLS1_1,TLS1_2 \
+      --tlsCAFile /etc/ssl/TestLevel1/certs/TestLevel1.crt \
       --username researcher --password "${RESEARCHER_PASSWORD}" \
-      --quiet <<EOF
-use ${DATABASE}
-db.ping.deleteMany({})
-db.ping.countDocuments()
-db.traceroute.deleteMany({})
-db.traceroute.countDocuments()
-quit()
-EOF
+      --quiet \
+      <../NoSQL/mongodb-delete-all-rows.ms
+
+   # FIXME! --tlsCRLFile /etc/ssl/TestGlobal.crl
 
 
 # ###### Error ##############################################################
