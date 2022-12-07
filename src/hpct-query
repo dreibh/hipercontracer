@@ -36,7 +36,7 @@ import sys
 import datetime
 import ipaddress
 
-import queryhelper;
+import QueryHelper
 
 
 # ###### Main program #######################################################

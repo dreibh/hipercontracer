@@ -10,4 +10,4 @@ INSTALL(FILES
            mongodb-test.ms
            mongodb-users.ms
            nornet-tools.R
-        DESTINATION ${CMAKE_INSTALL_DATADIR}/doc/hipercontracer/examples/SQL)
+        DESTINATION ${CMAKE_INSTALL_DATADIR}/doc/hipercontracer/examples/NoSQL)

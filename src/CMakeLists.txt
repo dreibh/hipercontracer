@@ -130,6 +130,30 @@ ENDFOREACH()
 
 
 #############################################################################
+# PYTHON LIBRARIES
+#############################################################################
+
+# Help:
+# https://bloerg.net/2012/11/10/cmake-and-distutils.html
+
+# NOTE: setup.py must *not* be packaged, since it is automatically generated!
+# It has to be added to CPACK_SOURCE_IGNORE_FILES (i.e. "setup.py$")!
+
+SET(SETUP_PY_IN "${CMAKE_CURRENT_SOURCE_DIR}/setup.py.in")
+SET(SETUP_PY    "${CMAKE_CURRENT_BINARY_DIR}/setup.py")
+# SET(DEPS        "${CMAKE_CURRENT_SOURCE_DIR}/module/__init__.py")
+SET(OUTPUT      "${CMAKE_CURRENT_BINARY_DIR}/build/timestamp")
+
+CONFIGURE_FILE(${SETUP_PY_IN} ${SETUP_PY})
+
+ADD_CUSTOM_COMMAND(OUTPUT ${OUTPUT}
+                   COMMAND ${PYTHON_EXECUTABLE} ${SETUP_PY} build && touch ${OUTPUT})
+ADD_CUSTOM_TARGET(target ALL DEPENDS ${OUTPUT})
+
+INSTALL(CODE "EXECUTE_PROCESS(COMMAND ${PYTHON_EXECUTABLE} ${SETUP_PY} install ${PYTHON_SETUP_OPTS} --prefix=${PYTHON_LIBRARY_PREFIX})")
+
+
+#############################################################################
 #### PROGRAMS                                                            ####
 #############################################################################
 
@@ -188,4 +212,5 @@ INSTALL(FILES hipercontracer-database.conf
 
 ADD_SUBDIRECTORY(SQL)
 ADD_SUBDIRECTORY(NoSQL)
+ADD_SUBDIRECTORY(TestDB)
 ADD_SUBDIRECTORY(examples)
