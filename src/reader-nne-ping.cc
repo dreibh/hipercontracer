@@ -34,6 +34,8 @@
 #include "logger.h"
 #include "tools.h"
 
+#include <boost/crc.hpp>
+
 
 const std::string NorNetEdgePingReader::Identification = "NorNetEdgePing";
 const std::regex  NorNetEdgePingReader::FileNameRegExp = std::regex(
@@ -141,6 +143,9 @@ void NorNetEdgePingReader::beginParsing(DatabaseClientBase& databaseClient,
          << "INSERT INTO " << Table_measurement_generic_data
          << "(ts, mi_id, seq, xml_data, crc, stats) VALUES";
    }
+   else if(backend & DatabaseBackendType::NoSQL_Generic) {
+      statement << "{ \"" << Table_measurement_generic_data <<  "\": [";
+   }
    else {
       throw ImporterLogicException("Unknown output format");
    }
@@ -160,6 +165,15 @@ bool NorNetEdgePingReader::finishParsing(DatabaseClientBase& databaseClient,
       if(backend & DatabaseBackendType::SQL_Generic) {
          if(rows > 0) {
             statement << "\nON DUPLICATE KEY UPDATE stats=stats";
+            databaseClient.executeUpdate(statement);
+         }
+         else {
+            statement.clear();
+         }
+      }
+      else if(backend & DatabaseBackendType::NoSQL_Generic) {
+         if(rows > 0) {
+            statement << " \n] }";
             databaseClient.executeUpdate(statement);
          }
          else {
@@ -218,6 +232,24 @@ void NorNetEdgePingReader::parseContents(
             << statement.quote(tuple[3]) << statement.sep()
             << "CRC32(xml_data)"         << statement.sep()
             << "10 + mi_id MOD 10";
+         statement.endRow();
+         rows++;
+      }
+      else if(backend & DatabaseBackendType::NoSQL_Generic) {
+         const unsigned int mi_id = std::stoul(tuple[1]);
+
+         boost::crc_32_type crc32;
+         crc32.process_bytes(tuple[3].data(), tuple[3].length());
+         const uint32_t crc32sum = crc32.checksum();
+
+         statement.beginRow();
+         statement
+            << "\"ts\": "       << statement.quote(tuple[0]) << statement.sep()
+            << "\"mi_id\": "    <<  mi_id     << statement.sep()
+            << "\"seq\": "      << std::stoul(tuple[2])      << statement.sep()
+            << "\"xml_data\": " << statement.quote(tuple[3]) << statement.sep()
+            << "\"crc\": "      << crc32sum                  << statement.sep()
+            << "\"stats\": "    << 10 + (mi_id % 10);
          statement.endRow();
          rows++;
       }

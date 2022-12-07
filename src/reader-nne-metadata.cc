@@ -367,15 +367,22 @@ void NorNetEdgeMetadataReader::beginParsing(DatabaseClientBase& databaseClient,
    rows = 0;
 
    const DatabaseBackendType backend = databaseClient.getBackend();
-   Statement& eventStatement = databaseClient.getStatement("event", false, true);
+   Statement& eventStatement    = databaseClient.getStatement("event",    false, true);
+   Statement& bins1minStatement = databaseClient.getStatement("bins1min", false, true);
    if(backend & DatabaseBackendType::SQL_Generic) {
       eventStatement
          << "INSERT INTO " << Table_event
          << "(ts, node_id, network_id, metadata_key, metadata_value, extra, min) VALUES";
-      Statement& bins1minStatement = databaseClient.getStatement("bins1min", false, true);
       bins1minStatement
           << "INSERT INTO " << Table_bins1min
           << "(ts, delta, node_id, network_id, metadata_key, metadata_value) VALUES";
+   }
+   else if(backend & DatabaseBackendType::NoSQL_Generic) {
+      eventStatement    << "{ \"" << Table_event       <<  "\": [";
+      bins1minStatement << "{ \"" << bins1minStatement <<  "\": [";
+   }
+   else {
+      throw ImporterLogicException("Unknown output format");
    }
 }
 
@@ -384,15 +391,22 @@ void NorNetEdgeMetadataReader::beginParsing(DatabaseClientBase& databaseClient,
 bool NorNetEdgeMetadataReader::finishParsing(DatabaseClientBase& databaseClient,
                                              unsigned long long& rows)
 {
+   const DatabaseBackendType backend = databaseClient.getBackend();
    Statement& eventStatement    = databaseClient.getStatement("event");
    Statement& bins1minStatement = databaseClient.getStatement("bins1min");
    assert(eventStatement.getRows() + bins1minStatement.getRows() == rows);
 
    if(rows > 0) {
       if(eventStatement.isValid()) {
+         if(backend & DatabaseBackendType::NoSQL_Generic) {
+            eventStatement << " \n] }";
+         }
          databaseClient.executeUpdate(eventStatement);
       }
       if(bins1minStatement.isValid()) {
+         if(backend & DatabaseBackendType::NoSQL_Generic) {
+            bins1minStatement << " \n] }";
+         }
          databaseClient.executeUpdate(bins1minStatement);
       }
       return true;
@@ -494,9 +508,8 @@ void NorNetEdgeMetadataReader::parseContents(
          const std::string  metadataValue = parseMetadataValue(item, dataFile);
 
          if(itemType == "event") {
-            const ReaderTimePoint min =
-               makeMin<ReaderTimePoint>(ts);
-            const std::string extra = parseExtra(item, dataFile);
+            const ReaderTimePoint min   = makeMin<ReaderTimePoint>(ts);
+            const std::string     extra = parseExtra(item, dataFile);
             if(backend & DatabaseBackendType::SQL_Generic) {
                eventStatement.beginRow();
                eventStatement
@@ -509,6 +522,22 @@ void NorNetEdgeMetadataReader::parseContents(
                   << eventStatement.quote(timePointToString<ReaderTimePoint>(min));   // FROM_UNIXTIME(UNIX_TIMESTAMP(ts) DIV 60*60)
                eventStatement.endRow();
                rows++;
+            }
+            else if(backend & DatabaseBackendType::NoSQL_Generic) {
+               eventStatement.beginRow();
+               eventStatement
+                  << "\"ts\":"             << eventStatement.quote(timePointToString<ReaderTimePoint>(ts, 6)) << eventStatement.sep()
+                  << "\"node_id\":"        << nodeID                                    << eventStatement.sep()
+                  << "\"network_id\":"     << networkID                                 << eventStatement.sep()
+                  << "\"metadata_key\":"   << eventStatement.quote(metadataKey)         << eventStatement.sep()
+                  << "\"metadata_value\":" << eventStatement.quoteOrNull(metadataValue) << eventStatement.sep()
+                  << "\"extra\":"          << eventStatement.quoteOrNull(extra)         << eventStatement.sep()
+                  << "\"min\":"            << eventStatement.quote(timePointToString<ReaderTimePoint>(min));   // FROM_UNIXTIME(UNIX_TIMESTAMP(ts) DIV 60*60)
+               eventStatement.endRow();
+               rows++;
+            }
+            else {
+               throw ImporterLogicException("Unknown output format");
             }
          }
          else if(itemType == "bins-1min") {
@@ -524,6 +553,21 @@ void NorNetEdgeMetadataReader::parseContents(
                   << bins1minStatement.quoteOrNull(metadataValue);
                bins1minStatement.endRow();
                rows++;
+            }
+            else if(backend & DatabaseBackendType::NoSQL_Generic) {
+               eventStatement.beginRow();
+               eventStatement
+                  << "\"ts\":"             << bins1minStatement.quote(timePointToString<ReaderTimePoint>(ts)) << bins1minStatement.sep()
+                  << "\"delta\":"          << delta                                << bins1minStatement.sep()
+                  << "\"node_id\":"        << nodeID                               << bins1minStatement.sep()
+                  << "\"network_id\":"     << networkID                            << bins1minStatement.sep()
+                  << "\"metadata_key\":"   << bins1minStatement.quote(metadataKey) << bins1minStatement.sep()
+                  << "\"metadata_value\":" << bins1minStatement.quoteOrNull(metadataValue);
+               eventStatement.endRow();
+               rows++;
+            }
+            else {
+               throw ImporterLogicException("Unknown output format");
             }
          }
          else {
