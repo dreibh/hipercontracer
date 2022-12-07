@@ -53,7 +53,7 @@ if len(sys.argv) > 3:
       toTimeStamp = datetime.datetime.strptime(sys.argv[4], "%Y-%m-%d %H:%M:%S")
 
 # ====== Connect to database ================================================
-configuration = queryhelper.DatabaseConfiguration(sys.argv[1])
+configuration = QueryHelper.DatabaseConfiguration(sys.argv[1])
 client = configuration.createClient()
 
 
@@ -71,8 +71,8 @@ if queryType == 'ping':
 
       for row in rows:
          timeStamp     = round(row[0].replace(tzinfo=datetime.timezone.utc).timestamp() * 1000000.0)
-         sourceIP      = queryhelper.unmap(ipaddress.ip_address(row[1]))
-         destinationIP = queryhelper.unmap(ipaddress.ip_address(row[2]))
+         sourceIP      = QueryHelper.unmap(ipaddress.ip_address(row[1]))
+         destinationIP = QueryHelper.unmap(ipaddress.ip_address(row[2]))
          checksum      = int(row[3])
          packetSize    = int(row[4])
          trafficClass  = int(row[5])
@@ -135,8 +135,8 @@ elif queryType == 'traceroute':
 
       for row in rows:
          timeStamp     = round(row[0].replace(tzinfo=datetime.timezone.utc).timestamp() * 1000000.0)
-         sourceIP      = queryhelper.unmap(ipaddress.ip_address(row[1]))
-         destinationIP = queryhelper.unmap(ipaddress.ip_address(row[2]))
+         sourceIP      = QueryHelper.unmap(ipaddress.ip_address(row[1]))
+         destinationIP = QueryHelper.unmap(ipaddress.ip_address(row[2]))
          roundNumber   = int(row[3])
          checksum      = int(row[4])
          packetSize    = int(row[5])
@@ -145,7 +145,7 @@ elif queryType == 'traceroute':
          totalHops     = int(row[8])
          status        = int(row[9])
          rtt           = int(row[10])
-         hopIP         = queryhelper.unmap(ipaddress.ip_address(row[11]))
+         hopIP         = QueryHelper.unmap(ipaddress.ip_address(row[11]))
          pathHash      = int(row[12])
          if pathHash < 0:
             pathHash = 0x10000000000000000 - abs(pathHash)
