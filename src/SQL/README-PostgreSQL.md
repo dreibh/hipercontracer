@@ -1,8 +1,6 @@
-# PostgreSQL Seup for HiPerConTracer Database
+# PostgreSQL Setup for a HiPerConTracer Database
 
-NOTE: This is a very brief overview of the setups to install, configure and prepare
-a PostgreSQL server to import HiPerConTracer results. Take a look at more detailed
-general PostgreSQL documentation for more details!
+NOTE: This is a very brief overview of the steps to install, configure and prepare a PostgreSQL server to import HiPerConTracer results. Take a look at more detailed, general PostgreSQL documentation for more details!
 
 
 ## Basic Installation
@@ -21,7 +19,7 @@ sudo dnf install postgresql-server postgresql-contrib
 
 ### Enable Network Access
 
-In /etc/postgresql/*/main/pg_hba.conf (EXAMPLE ONLY for 10.0.0.0/8, adapt to your setup!):
+In /etc/postgresql/*/main/pg_hba.conf (**EXAMPLE ONLY** for 10.0.0.0/8, adapt to your setup!):
 ```
 hostssl        all        all        10.0.0.0/8        scram-sha-256
 ```
@@ -33,7 +31,7 @@ listen_addresses = '*'
 
 ### Tuning
 
-In /etc/postgresql/*/main/postgresql.conf (EXAMPLE ONLY, adapt to your setup!):
+In /etc/postgresql/*/main/postgresql.conf (**EXAMPLE ONLY**, adapt to your setup!):
 ```
 shared_buffers       = 2048MB   # 1/4 of RAM
 effective_cache_size = 4096MB   # 1/2 of RAM
@@ -46,7 +44,7 @@ maintenance_work_mem = 64MB
 
 ### Enable TLS
 
-Change in /etc/postgresql/*/main/postgresql.conf (EXAMPLE ONLY, adapt to your setup!):
+Change in /etc/postgresql/*/main/postgresql.conf (**EXAMPLE ONLY**, adapt to your setup!):
 ```
 # ====== NorNet =============================================================
 ssl                       = on
@@ -79,7 +77,7 @@ Suggested setup with 3 users:
 - researcher: read-only query access
 - maintainer: full access
 
-See [postgresql-users.sql]. NOTE: Replace the placeholders ${DATABASE} and ${<USER>_PASSWORD} first!
+See [postgresql-users.sql]. NOTE: Replace the placeholders ${DATABASE} and ${user_PASSWORD} first!
 
 HINT: Create secure passwords, for example using pwgen:
 ```
