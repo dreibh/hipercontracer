@@ -71,6 +71,7 @@ if [ "$1" == "mariadb" ] ; then
    # The chain is in the CA file, it must not be in the certificate file!
    # Details: https://mariadb.com/kb/en/securing-connections-for-client-and-server/
    MARIADB_CA_FILE="/etc/ssl/TestLeaf/certs/TestLeaf-chain.pem"
+   MARIADB_CRL_FILE="/etc/ssl/TestGlobal.crl"
    MARIADB_CRT_FILE="/etc/ssl/mariadb.domain.test/mariadb.domain.test.crt"
    MARIADB_KEY_FILE="/etc/ssl/mariadb.domain.test/mariadb.domain.test.key"
    sudo chown mysql:mysql ${MARIADB_KEY_FILE}
@@ -91,7 +92,7 @@ EOF
    # Enable network access:
    sudo sed \
       -e 's/^\(bind-address[ \t]*\)=.*$/\1= */g' \
-      -e "s%\([#]\|\)ssl-ca[ ]*=[ ]*.*%ssl-ca = ${MARIADB_CA_FILE}%" \
+      -e "s%\([#]\|\)ssl-ca[ ]*=[ ]*.*%ssl-ca = ${MARIADB_CA_FILE}\nssl-crl = ${MARIADB_CRL_FILE}%" \
       -e "s%\([#]\|\)ssl-cert[ ]*=[ ]*.*%ssl-cert = ${MARIADB_CRT_FILE}%" \
       -e "s%\([#]\|\)ssl-key[ ]*=[ ]*.*%ssl-key = ${MARIADB_KEY_FILE}%" \
       -e "s%\([#]\|\)require-secure-transport[ ]*=[ ]*.*%require-secure-transport = on\ntls_version = TLSv1.3%" \
@@ -118,6 +119,7 @@ elif [ "$1" == "postgresql" ] ; then
    # PostgreSQL needs separate certificate and key files.
    # The chain is in the CA file, it must not be in the certificate file!
    POSTGRESQL_CA_FILE="/etc/ssl/TestLeaf/certs/TestLeaf-chain.pem"
+   POSTGRESQL_CRL_FILE="/etc/ssl/TestGlobal.crl"
    POSTGRESQL_CRT_FILE="/etc/ssl/postgresql.domain.test/postgresql.domain.test.crt"
    POSTGRESQL_KEY_FILE="/etc/ssl/postgresql.domain.test/postgresql.domain.test.key"
    sudo chown postgres:postgres ${POSTGRESQL_KEY_FILE}
@@ -136,6 +138,7 @@ elif [ "$1" == "postgresql" ] ; then
    sudo sed \
       -e "s%#listen_addresses = 'localhost'%listen_addresses = '*'        %" \
       -e "s%\([#]\|\)ssl_ca_file = '.*'%ssl_ca_file = '${POSTGRESQL_CA_FILE}'%" \
+      -e "s%\([#]\|\)ssl_crl_file = '.*'%ssl_crl_file = '${POSTGRESQL_CRL_FILE}'%" \
       -e "s%\([#]\|\)ssl_cert_file = '.*'%ssl_cert_file = '${POSTGRESQL_CRT_FILE}'%" \
       -e "s%\([#]\|\)ssl_key_file = '.*'%ssl_key_file = '${POSTGRESQL_KEY_FILE}'%" \
       -e "s%#ssl_ciphers = '.*'%ssl_ciphers = 'ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-AES256-SHA384:ECDHE-RSA-AES256-SHA384:ECDHE-ECDSA-AES256-SHA:ECDHE-RSA-AES256'%" \
@@ -159,6 +162,8 @@ elif [ "$1" == "mongodb" ] ; then
    sudo ./generate-test-certificates /etc/ssl mongodb.domain.test
 
    # MongoDB wants key + certificate + chain (in this order!) in the PEM file:
+   MONGODB_CA_FILE="/etc/ssl/TestLeaf/certs/TestLeaf-chain.pem"
+   MONGODB_CRL_FILE="/etc/ssl/TestGlobal.crl"
    MONGODB_CRT_KEY_FILE="/etc/ssl/mongodb.domain.test/mongodb.domain.test.crt+key+chain"
    sudo touch ${MONGODB_CRT_KEY_FILE}
    sudo chmod 600 ${MONGODB_CRT_KEY_FILE}
@@ -212,7 +217,7 @@ EOF
    # to the configured user (root):
    cp /etc/mongod.conf /tmp/
    sudo sed \
-      -e "s!  bindIp: 127.0.0.1!  ipv6: true\n  bindIpAll: true\n  tls:\n    mode: requireTLS\n    certificateKeyFile: ${MONGODB_CRT_KEY_FILE}\n    disabledProtocols: TLS1_0,TLS1_1,TLS1_2!" \
+      -e "s!  bindIp: 127.0.0.1!  ipv6: true\n  bindIpAll: true\n  tls:\n    mode: requireTLS\n    # CAFile: ${MONGODB_CA_FILE}\n    # CRLFile: ${MONGODB_CRL_FILE}\n    certificateKeyFile: ${MONGODB_CRT_KEY_FILE}\n    disabledProtocols: TLS1_0,TLS1_1,TLS1_2!" \
       -e "s!#security:!security:\n  authorization: enabled!" \
       -e "s!#  engine:!  directoryPerDB: true!" \
       -e "s!#  wiredTiger:!  wiredTiger:\n    engineConfig:\n      directoryForIndexes: true!" \
