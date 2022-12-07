@@ -1,17 +1,9 @@
-use admin
-db.dropUser("maintainer")
-db.createUser({ user: "maintainer",
-                pwd: "${MAINTAINER_PASSWORD}",
-                roles: [
-                   "userAdminAnyDatabase",
-                   "dbAdminAnyDatabase",
-                   "readWriteAnyDatabase",
-                   "clusterAdmin"
-                ] })
-
 use ${DATABASE}
+
+db.dropUser("maintainer")
 db.dropUser("importer")
 db.dropUser("researcher")
+db.createUser({ user: "maintainer", pwd: "${MAINTAINER_PASSWORD}", roles: [ "dbAdmin", "readWrite" ] })
 db.createUser({ user: "importer",   pwd: "${IMPORTER_PASSWORD}",   roles: [ "readWrite" ] })
 db.createUser({ user: "researcher", pwd: "${RESEARCHER_PASSWORD}", roles: [ "read" ] })
 
