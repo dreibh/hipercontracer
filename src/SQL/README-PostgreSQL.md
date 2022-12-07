@@ -75,7 +75,7 @@ Suggested setup with 3 users:
 - researcher: read-only query access
 - maintainer: full access
 
-See [postgresql-users.sql](postgresql-users.sql). NOTE: Replace the placeholders ${DATABASE} and ${user_PASSWORD} first!
+See [postgresql-users.sql](postgresql-users.sql). NOTE: Replace the placeholders ${DATABASE} and ${PASSWORD} first!
 
 HINT: Create secure passwords, for example using pwgen:
 ```
