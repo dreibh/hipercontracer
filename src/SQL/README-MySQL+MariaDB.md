@@ -80,7 +80,7 @@ mysql \
 
 ## Test Database Example Scripts
 
-See [TestDB](../TestDB) for example scripts to install, configure, prepare, and perform an importer and query test with a test databse:
+See [TestDB](../TestDB) for example scripts to install, configure and prepare a test database, as well as to run a full import and query test run with this test database:
 - **[run-full-test](../TestDB/run-full-test)**
 - [0-make-users.conf](../TestDB/0-make-users.conf)
 - [1-install-database](../TestDB/1-install-database)
