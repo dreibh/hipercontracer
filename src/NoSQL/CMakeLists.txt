@@ -2,6 +2,12 @@
 #### EXAMPLES                                                            ####
 #############################################################################
 
-INSTALL(FILES install-database-and-users admin.ms database.ms
-              README R-query-example.R schema.ms users.ms
-        DESTINATION ${CMAKE_INSTALL_DATADIR}/doc/hipercontracer/examples/NoSQL)
+INSTALL(FILES
+           README-MongoDB.md
+           R-query-example.R
+           mongodb-database.ms
+           mongodb-schema.ms
+           mongodb-test.ms
+           mongodb-users.ms
+           nornet-tools.R
+        DESTINATION ${CMAKE_INSTALL_DATADIR}/doc/hipercontracer/examples/SQL)
