@@ -49,7 +49,6 @@ Statement::~Statement()
 {
 }
 
-#include <iostream>
 
 // ###### Encode IP address #################################################
 std::string Statement::encodeAddress(const boost::asio::ip::address& address) const
