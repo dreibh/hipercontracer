@@ -96,7 +96,8 @@ elif [ "$1" == "mongodb" ] ; then
       --tls \
       --tlsDisabledProtocols TLS1_0,TLS1_1,TLS1_2 \
       --tlsCAFile /etc/ssl/TestLevel1/certs/TestLevel1.crt \
-      --username researcher --password "${RESEARCHER_PASSWORD}" \
+      --username researcher \
+      --password "${RESEARCHER_PASSWORD}" \
       --quiet \
       <../NoSQL/mongodb-test.ms
    # FIXME! --tlsCRLFile /etc/ssl/TestGlobal.crl
