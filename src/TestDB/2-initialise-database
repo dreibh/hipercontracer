@@ -87,8 +87,10 @@ if [ "$1" == "mysql" -o "$1" == "mariadb" ] ; then
 
    # ====== Create database =================================================
    echo -e "\x1b[33mCreating database ...\x1b[0m"
-   cat ../SQL/mariadb-database.sql | sed \
-      -e "s%\${DATABASE}%${DATABASE}%" | tee | \
+   cat ../SQL/mariadb-database.sql | \
+      sed \
+         -e "s%\${DATABASE}%${DATABASE}%" | \
+      tee | \
       mysql \
          --host=localhost \
          --port 3306 \
@@ -103,15 +105,28 @@ if [ "$1" == "mysql" -o "$1" == "mariadb" ] ; then
 
    # ====== Create schema ===================================================
    echo -e "\x1b[33mCreating schema ...\x1b[0m"
-   mysql -u root --password="${ROOT_PASSWORD}" --database="${DATABASE}" <../SQL/mariadb-schema.sql
+   mysql \
+      --host=localhost \
+      --port 3306 \
+      --protocol=tcp \
+      --ssl \
+      --ssl-verify-server-cert \
+      --ssl-ca=/etc/ssl/TestLevel1/certs/TestLevel1.crt \
+      --ssl-crl=/etc/ssl/TestGlobal.crl \
+      --user=root \
+      --password="${ROOT_PASSWORD}" \
+      --database="${DATABASE}" \
+      <../SQL/mariadb-schema.sql
 
    # ====== Create users and roles ==========================================
    echo -e "\x1b[33mCreating users and roles ...\x1b[0m"
-   cat ../SQL/mariadb-users.sql | sed \
-      -e "s%\${DATABASE}%${DATABASE}%" \
-      -e "s%\${MAINTAINER_PASSWORD}%${MAINTAINER_PASSWORD}%" \
-      -e "s%\${RESEARCHER_PASSWORD}%${RESEARCHER_PASSWORD}%" \
-      -e "s%\${IMPORTER_PASSWORD}%${IMPORTER_PASSWORD}%" | tee | \
+   cat ../SQL/mariadb-users.sql | \
+      sed \
+         -e "s%\${DATABASE}%${DATABASE}%" \
+         -e "s%\${MAINTAINER_PASSWORD}%${MAINTAINER_PASSWORD}%" \
+         -e "s%\${RESEARCHER_PASSWORD}%${RESEARCHER_PASSWORD}%" \
+         -e "s%\${IMPORTER_PASSWORD}%${IMPORTER_PASSWORD}%" | \
+      tee | \
       mysql \
       --host=localhost \
       --port 3306 \
@@ -133,8 +148,10 @@ elif [ "$1" == "postgresql" ] ; then
 
    # ====== Create database =================================================
    echo -e "\x1b[33mCreating database ...\x1b[0m"
-   cat ../SQL/postgresql-database.sql | sed \
-      -e "s%\${DATABASE}%${DATABASE}%" | tee | \
+   cat ../SQL/postgresql-database.sql | \
+      sed \
+         -e "s%\${DATABASE}%${DATABASE}%" | \
+      tee | \
       sudo -u postgres psql
 
    # ====== Create schema ===================================================
@@ -143,11 +160,13 @@ elif [ "$1" == "postgresql" ] ; then
 
    # ====== Create users and roles ==========================================
    echo -e "\x1b[33mCreating users and roles ...\x1b[0m"
-   cat ../SQL/postgresql-users.sql | sed \
-      -e "s%\${DATABASE}%${DATABASE}%" \
-      -e "s%\${MAINTAINER_PASSWORD}%${MAINTAINER_PASSWORD}%" \
-      -e "s%\${RESEARCHER_PASSWORD}%${RESEARCHER_PASSWORD}%" \
-      -e "s%\${IMPORTER_PASSWORD}%${IMPORTER_PASSWORD}%" | tee | \
+   cat ../SQL/postgresql-users.sql | \
+      sed \
+         -e "s%\${DATABASE}%${DATABASE}%" \
+         -e "s%\${MAINTAINER_PASSWORD}%${MAINTAINER_PASSWORD}%" \
+         -e "s%\${RESEARCHER_PASSWORD}%${RESEARCHER_PASSWORD}%" \
+         -e "s%\${IMPORTER_PASSWORD}%${IMPORTER_PASSWORD}%" | \
+      tee | \
       sudo -u postgres psql -d "${DATABASE}"
 
 
@@ -159,8 +178,10 @@ elif [ "$1" == "mongodb" ] ; then
 
    # ====== Create database =================================================
    echo -e "\x1b[33mCreating database ...\x1b[0m"
-   cat ../NoSQL/mongodb-database.ms | sed \
-      -e "s%\${DATABASE}%${DATABASE}%" | tee | \
+   cat ../NoSQL/mongodb-database.ms | \
+      sed \
+         -e "s%\${DATABASE}%${DATABASE}%" | \
+      tee | \
       mongosh \
          "mongodb://localhost:27017" \
          --tls \
@@ -171,8 +192,10 @@ elif [ "$1" == "mongodb" ] ; then
 
    # ====== Create schema ===================================================
    echo -e "\x1b[33mCreating schema ...\x1b[0m"
-   cat ../NoSQL/mongodb-schema.ms | sed \
-      -e "s%\${DATABASE}%${DATABASE}%" | tee | \
+   cat ../NoSQL/mongodb-schema.ms | \
+      sed \
+         -e "s%\${DATABASE}%${DATABASE}%" | \
+      tee | \
       mongosh \
          "mongodb://localhost:27017" \
          --tls \
@@ -183,11 +206,13 @@ elif [ "$1" == "mongodb" ] ; then
 
    # ====== Create users and roles ==========================================
    echo -e "\x1b[33mCreating user and roles ...\x1b[0m"
-   cat ../NoSQL/mongodb-users.ms | sed \
-      -e "s%\${DATABASE}%${DATABASE}%" \
-      -e "s%\${MAINTAINER_PASSWORD}%${MAINTAINER_PASSWORD}%" \
-      -e "s%\${RESEARCHER_PASSWORD}%${RESEARCHER_PASSWORD}%" \
-      -e "s%\${IMPORTER_PASSWORD}%${IMPORTER_PASSWORD}%" | tee | \
+   cat ../NoSQL/mongodb-users.ms | \
+      sed \
+         -e "s%\${DATABASE}%${DATABASE}%" \
+         -e "s%\${MAINTAINER_PASSWORD}%${MAINTAINER_PASSWORD}%" \
+         -e "s%\${RESEARCHER_PASSWORD}%${RESEARCHER_PASSWORD}%" \
+         -e "s%\${IMPORTER_PASSWORD}%${IMPORTER_PASSWORD}%" | \
+      tee | \
       mongosh \
          "mongodb://localhost:27017" \
          --tls \
