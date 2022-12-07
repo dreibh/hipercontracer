@@ -59,8 +59,8 @@ if [ -e "${DATABASE_CONFIG}" ] ; then
    mkdir -p data/ good/ bad/
    rm -rf good/*
    rm -rf bad/*
-   cp ../examples/*.bz2 data/
 
+   cp ../examples/*.bz2 data/
    ../hpct-importer \
       -c "${DATABASE_CONFIG}" \
       --quit-when-idle \
