@@ -13,6 +13,6 @@ use ${DATABASE}
 db.dropUser("importer")
 db.dropUser("researcher")
 db.createUser({ user: "importer",   pwd: "${IMPORTER_PASSWORD}",   roles: [ "readWrite" ] })
-db.createUser({ user: "researcher", pwd: "${RESEARCHER_PASSWORD}", roles: [ "dbAdmin", "readWrite" ] })
+db.createUser({ user: "researcher", pwd: "${RESEARCHER_PASSWORD}", roles: [ "read" ] })
 
 quit()

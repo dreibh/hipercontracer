@@ -7,10 +7,10 @@ debian/tmp/usr/share/doc/hipercontracer/examples/NoSQL/mongodb-users.ms
 debian/tmp/usr/share/doc/hipercontracer/examples/NoSQL/nornet-tools.R
 debian/tmp/usr/share/doc/hipercontracer/examples/SQL/README-MySQL+MariaDB.md
 debian/tmp/usr/share/doc/hipercontracer/examples/SQL/README-PostgreSQL.md
-debian/tmp/usr/share/doc/hipercontracer/examples/SQL/mysql-database.sql
-debian/tmp/usr/share/doc/hipercontracer/examples/SQL/mysql-schema.sql
-debian/tmp/usr/share/doc/hipercontracer/examples/SQL/mysql-test.sql
-debian/tmp/usr/share/doc/hipercontracer/examples/SQL/mysql-users.sql
+debian/tmp/usr/share/doc/hipercontracer/examples/SQL/mariadb-database.sql
+debian/tmp/usr/share/doc/hipercontracer/examples/SQL/mariadb-schema.sql
+debian/tmp/usr/share/doc/hipercontracer/examples/SQL/mariadb-test.sql
+debian/tmp/usr/share/doc/hipercontracer/examples/SQL/mariadb-users.sql
 debian/tmp/usr/share/doc/hipercontracer/examples/SQL/postgresql-database.sql
 debian/tmp/usr/share/doc/hipercontracer/examples/SQL/postgresql-schema.sql
 debian/tmp/usr/share/doc/hipercontracer/examples/SQL/postgresql-test.sql
