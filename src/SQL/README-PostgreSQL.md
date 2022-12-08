@@ -103,6 +103,6 @@ See [TestDB](../TestDB) for example scripts to install, configure and prepare a 
 - [2-initialise-database](../TestDB/2-initialise-database)
 - [3-test-database](../TestDB/3-test-database)
 - [4-clean-database](../TestDB/4-clean-database)
-- [5-perform-importer-test](../TestDB/5-perform-importer-test)
-- [6-perform-query-test](../TestDB/6-perform-query-test)
+- [5-perform-hpct-importer-test](../TestDB/5-perform-hpct-importer-test)
+- [6-perform-hpct-query-test](../TestDB/6-perform-hpct-query-test)
 - [9-uninstall-database](../TestDB/9-uninstall-database)
