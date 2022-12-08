@@ -209,6 +209,8 @@ ENDIF()
 # ------ MariaDB/MySQL ------------------------------------------------------
 OPTION(ENABLE_BACKEND_MARIADB "Enable MySQL/MariaDB backed" 1)
 IF (ENABLE_BACKEND_MARIADB)
+   MESSAGE("Building with MySQL/MariaDB backend (ENABLE_BACKEND_MARIADB=${ENABLE_BACKEND_MARIADB})")
+
    MESSAGE("Looking for MySQL/MariaDB C++ Client library:")
    FIND_LIBRARY(MYSQLCPPCONN_LIBRARY NAMES mysqlcppconn)
    MESSAGE(" * Library: ${MYSQLCPPCONN_LIBRARY}")
@@ -228,6 +230,8 @@ ENDIF()
 # ------ PostgreSQL ---------------------------------------------------------
 OPTION(ENABLE_BACKEND_POSTGRESQL "Enable PostgreSQL backed" 1)
 IF (ENABLE_BACKEND_POSTGRESQL)
+   MESSAGE("Building with PostgreSQL backend (ENABLE_BACKEND_POSTGRESQL=${ENABLE_BACKEND_POSTGRESQL})")
+
    MESSAGE("Looking for PostgreSQL C++ Client library:")
    FIND_LIBRARY(LIBPQXX_LIBRARY NAMES pqxx)
    MESSAGE(" * Library: ${LIBPQXX_LIBRARY}")
@@ -247,6 +251,8 @@ ENDIF()
 # ------ MongoDB ------------------------------------------------------------
 OPTION(ENABLE_BACKEND_MONGODB "Enable MongoDB backed" 1)
 IF (ENABLE_BACKEND_MONGODB)
+   MESSAGE("Building with MongoDB backend (ENABLE_BACKEND_MONGODB=${ENABLE_BACKEND_MONGODB})")
+
    MESSAGE("Looking for MongoDB C Client library:")
    FIND_LIBRARY(LIBMONGOC_LIBRARY  NAMES mongoc-1.0)
    MESSAGE(" * Library: ${LIBMONGOC_LIBRARY}")
