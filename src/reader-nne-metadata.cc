@@ -557,12 +557,12 @@ void NorNetEdgeMetadataReader::parseContents(
             else if(backend & DatabaseBackendType::NoSQL_Generic) {
                eventStatement.beginRow();
                eventStatement
-                  << "\"ts\":"             << bins1minStatement.quote(timePointToString<ReaderTimePoint>(ts)) << bins1minStatement.sep()
-                  << "\"delta\":"          << delta                                << bins1minStatement.sep()
-                  << "\"node_id\":"        << nodeID                               << bins1minStatement.sep()
-                  << "\"network_id\":"     << networkID                            << bins1minStatement.sep()
-                  << "\"metadata_key\":"   << bins1minStatement.quote(metadataKey) << bins1minStatement.sep()
-                  << "\"metadata_value\":" << bins1minStatement.quoteOrNull(metadataValue);
+                  << "\"ts\":"             << eventStatement.quote(timePointToString<ReaderTimePoint>(ts)) << eventStatement.sep()
+                  << "\"delta\":"          << delta                             << eventStatement.sep()
+                  << "\"node_id\":"        << nodeID                            << eventStatement.sep()
+                  << "\"network_id\":"     << networkID                         << eventStatement.sep()
+                  << "\"metadata_key\":"   << eventStatement.quote(metadataKey) << eventStatement.sep()
+                  << "\"metadata_value\":" << eventStatement.quoteOrNull(metadataValue);
                eventStatement.endRow();
                rows++;
             }
