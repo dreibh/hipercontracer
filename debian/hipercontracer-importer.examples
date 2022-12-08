@@ -20,8 +20,8 @@ debian/tmp/usr/share/doc/hipercontracer/examples/TestDB/1-install-database
 debian/tmp/usr/share/doc/hipercontracer/examples/TestDB/2-initialise-database
 debian/tmp/usr/share/doc/hipercontracer/examples/TestDB/3-test-database
 debian/tmp/usr/share/doc/hipercontracer/examples/TestDB/4-clean-database
-debian/tmp/usr/share/doc/hipercontracer/examples/TestDB/5-perform-importer-test
-debian/tmp/usr/share/doc/hipercontracer/examples/TestDB/6-perform-query-test
+debian/tmp/usr/share/doc/hipercontracer/examples/TestDB/5-perform-hpct-importer-test
+debian/tmp/usr/share/doc/hipercontracer/examples/TestDB/6-perform-hpct-query-test
 debian/tmp/usr/share/doc/hipercontracer/examples/TestDB/9-uninstall-database
 debian/tmp/usr/share/doc/hipercontracer/examples/TestDB/README.md
 debian/tmp/usr/share/doc/hipercontracer/examples/TestDB/generate-test-certificates
