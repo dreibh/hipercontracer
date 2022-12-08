@@ -143,7 +143,7 @@ bool DatabaseConfiguration::setBackend(const std::string& backendName)
       }
    }
    if(Backend == DatabaseBackendType::Invalid) {
-      HPCT_LOG(error) << "Invalid backend name " << Backend
+      HPCT_LOG(error) << "Invalid backend name " << backendName
                       << ". Available backends: ";
       for(DatabaseConfiguration::RegisteredBackend* registeredBackend : *DatabaseConfiguration::BackendList) {
          HPCT_LOG(error) << registeredBackend->Name << " ";
