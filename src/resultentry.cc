@@ -72,8 +72,8 @@ std::ostream& operator<<(std::ostream& os, const ResultEntry& resultEntry)
    const std::chrono::high_resolution_clock::duration rttHardware    = resultEntry.rtt(RXTimeStampType::RXTST_ReceptionHW);
    const std::chrono::high_resolution_clock::duration queuingDelay   = resultEntry.queuingDelay();
 
-   os << boost::format("#%08xu")          % resultEntry.TimeStampSeqID
-      << boost::format("R%d")             % resultEntry.Round
+   os << boost::format("#%08x")           % resultEntry.TimeStampSeqID
+      << "\t" << boost::format("R%d")     % resultEntry.Round
       << "\t" << boost::format("#%05d")   % resultEntry.SeqNumber
       << "\t" << boost::format("%2d")     % resultEntry.Hop
       << "\tA:" << durationToString<std::chrono::high_resolution_clock::duration>(rttApplication)

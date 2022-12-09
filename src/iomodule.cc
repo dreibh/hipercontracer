@@ -43,9 +43,15 @@
 #include <ifaddrs.h>
 #ifdef __linux__
 #include <linux/errqueue.h>
-// #include <linux/icmp.h>  ???? ICMP_FILTER
 #include <linux/net_tstamp.h>
 #include <linux/sockios.h>
+
+// linux/icmp.h defines the socket option ICMP_FILTER, but this include
+// conflicts with netinet/ip_icmp.h. Just adding the needed definitions here:
+#define ICMP_FILTER 1
+struct icmp_filter {
+   __u32 data;
+};
 #endif
 
 
@@ -75,18 +81,18 @@ IOModuleBase::IOModuleBase(const std::string&                       name,
                            boost::asio::io_service&                 ioService,
                            std::map<unsigned short, ResultEntry*>&  resultsMap,
                            const boost::asio::ip::address&          sourceAddress,
-                           const unsigned int                       packetSize,
                            std::function<void (const ResultEntry*)> newResultCallback)
    : Name(name),
      IOService(ioService),
      ResultsMap(resultsMap),
      SourceAddress(sourceAddress),
-     PacketSize(packetSize),
      NewResultCallback(newResultCallback),
      MagicNumber( ((std::rand() & 0xffff) << 16) | (std::rand() & 0xffff) )
 {
-   Identifier     = 0;
-   TimeStampSeqID = 0;
+   Identifier       = 0;
+   TimeStampSeqID   = 0;
+   PayloadSize      = 0;
+   ActualPacketSize = 0;
 }
 
 
@@ -274,23 +280,22 @@ ICMPModule::ICMPModule(const std::string&                       name,
                        boost::asio::io_service&                 ioService,
                        std::map<unsigned short, ResultEntry*>&  resultsMap,
                        const boost::asio::ip::address&          sourceAddress,
-                       const unsigned int                       packetSize,
-                       std::function<void (const ResultEntry*)> newResultCallback)
-   : IOModuleBase(name + "/ICMPPing", ioService, resultsMap,
-                  sourceAddress, packetSize, newResultCallback),
-     PayloadSize( std::max((ssize_t)MIN_TRACESERVICE_HEADER_SIZE,
-                           (ssize_t)PacketSize -
-                              (ssize_t)((SourceAddress.is_v6() == true) ? 40 : 20) -
-                              (ssize_t)sizeof(ICMPHeader)) ),
-     ActualPacketSize( ((SourceAddress.is_v6() == true) ? 40 : 20) +
-                          sizeof(ICMPHeader) + PayloadSize ),
+                       std::function<void (const ResultEntry*)> newResultCallback,
+                       const unsigned int                       packetSize)
+   : IOModuleBase(name + "/ICMPPing", ioService, resultsMap, sourceAddress,
+                  newResultCallback),
      UDPSocket(IOService, (sourceAddress.is_v6() == true) ? boost::asio::ip::udp::v6() :
                                                             boost::asio::ip::udp::v4() ),
      ICMPSocket(IOService, (sourceAddress.is_v6() == true) ? boost::asio::ip::icmp::v6() :
                                                              boost::asio::ip::icmp::v4() )
 {
-   ExpectingReply = false;
-   ExpectingError = false;
+   // Overhead: IPv4 Header (20)/IPv6 Header (40) + ICMP Header (8)
+   PayloadSize      = std::max((ssize_t)MIN_TRACESERVICE_HEADER_SIZE,
+                               (ssize_t)packetSize -
+                                  (ssize_t)((SourceAddress.is_v6() == true) ? 40 : 20) - 8);
+   ActualPacketSize =  ((SourceAddress.is_v6() == true) ? 40 : 20) + 8 + PayloadSize;
+   ExpectingReply   = false;
+   ExpectingError   = false;
 }
 
 
@@ -358,7 +363,7 @@ bool ICMPModule::prepareSocket()
       filter.data = ~( (1 << ICMP_ECHOREPLY)      |
                        (1 << ICMP_TIME_EXCEEDED)  |
                        (1 << ICMP_DEST_UNREACH) );
-      if(setsockopt(ICMPSocket.native_handle(), IPPROTO_ICMPV, ICMP_FILTER,
+      if(setsockopt(ICMPSocket.native_handle(), IPPROTO_ICMP, ICMP_FILTER,
                     &filter, sizeof(filter)) < 0) {
          HPCT_LOG(warning) << "Unable to set ICMP_FILTER!";
       }
@@ -970,18 +975,16 @@ UDPModule::UDPModule(const std::string&                       name,
                      boost::asio::io_service&                 ioService,
                      std::map<unsigned short, ResultEntry*>&  resultsMap,
                      const boost::asio::ip::address&          sourceAddress,
-                     const unsigned int                       packetSize,
-                     std::function<void (const ResultEntry*)> newResultCallback)
-   : ICMPModule(name + "/UDPPing", ioService, resultsMap, sourceAddress, packetSize, newResultCallback)   //FIXME! PayloadSettings!
-//      PayloadSize( std::max((ssize_t)MIN_TRACESERVICE_HEADER_SIZE,
-//                            (ssize_t)PacketSize -
-//                               (ssize_t)((SourceAddress.is_v6() == true) ? 40 : 20) -
-//                               (ssize_t)8) ),
-//      ActualPacketSize( ((SourceAddress.is_v6() == true) ? 40 : 20) + 8 + PayloadSize ),
-//      UDPSocket(IOService)
+                     std::function<void (const ResultEntry*)> newResultCallback,
+                     const unsigned int                       packetSize)
+   : ICMPModule(name + "/UDPPing", ioService, resultsMap, sourceAddress,
+                newResultCallback, packetSize)
 {
-//    ExpectingReply = false;
-//    ExpectingError = false;
+   // Overhead: IPv4 Header (20)/IPv6 Header (40) + UDP Header (8)
+   PayloadSize      = std::max((ssize_t)MIN_TRACESERVICE_HEADER_SIZE,
+                               (ssize_t)packetSize -
+                                  (ssize_t)((SourceAddress.is_v6() == true) ? 40 : 20) - 8);
+   ActualPacketSize =  ((SourceAddress.is_v6() == true) ? 40 : 20) + 8 + PayloadSize;
 }
 
 

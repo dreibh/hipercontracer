@@ -17,7 +17,6 @@ class IOModuleBase
                 boost::asio::io_service&                 ioService,
                 std::map<unsigned short, ResultEntry*>&  resultsMap,
                 const boost::asio::ip::address&          sourceAddress,
-                const unsigned int                       packetSize,
                 std::function<void (const ResultEntry*)> newResultCallback);
    virtual ~IOModuleBase();
 
@@ -41,7 +40,8 @@ class IOModuleBase
    boost::asio::io_service&                 IOService;
    std::map<unsigned short, ResultEntry*>&  ResultsMap;
    const boost::asio::ip::address&          SourceAddress;
-   const unsigned int                       PacketSize;
+   unsigned int                             PayloadSize;
+   unsigned int                             ActualPacketSize;
    std::function<void (const ResultEntry*)> NewResultCallback;
    const uint32_t                           MagicNumber;
    uint16_t                                 Identifier;
@@ -56,8 +56,8 @@ class ICMPModule : public IOModuleBase
               boost::asio::io_service&                 ioService,
               std::map<unsigned short, ResultEntry*>&  resultsMap,
               const boost::asio::ip::address&          sourceAddress,
-              const unsigned int                       packetSize,
-              std::function<void (const ResultEntry*)> newResultCallback);
+              std::function<void (const ResultEntry*)> newResultCallback,
+              const unsigned int                       packetSize);
    virtual ~ICMPModule();
 
    virtual bool prepareSocket();
@@ -97,9 +97,6 @@ class ICMPModule : public IOModuleBase
                      const uint8_t        icmpCode,
                      const unsigned short seqNumber);
 
-   const unsigned int             PayloadSize;
-   const unsigned int             ActualPacketSize;
-
    // For ICMP type, this UDP socket is only used to generate a
    // system-unique 16-bit ICMP Identifier!
    boost::asio::ip::udp::socket   UDPSocket;
@@ -121,8 +118,8 @@ class UDPModule : public ICMPModule
              boost::asio::io_service&                 ioService,
              std::map<unsigned short, ResultEntry*>&  resultsMap,
              const boost::asio::ip::address&          sourceAddress,
-             const unsigned int                       packetSize,
-             std::function<void (const ResultEntry*)> newResultCallback);
+             std::function<void (const ResultEntry*)> newResultCallback,
+             const unsigned int                       packetSize);
    virtual ~UDPModule();
 
    virtual bool prepareSocket();

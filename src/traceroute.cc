@@ -87,8 +87,9 @@ Traceroute::Traceroute(ResultsWriter*                   resultsWriter,
      IntervalTimer(IOService)
 {
    // ====== Some initialisations ===========================================
-   IOModule            = new ICMPModule(getName(), IOService, ResultsMap, SourceAddress, packetSize,
-                                        std::bind(&Traceroute::newResult, this, std::placeholders::_1));   // FIXME!
+   IOModule            = new ICMPModule(getName(), IOService, ResultsMap, SourceAddress,
+                                        std::bind(&Traceroute::newResult, this, std::placeholders::_1),
+                                        packetSize);   // FIXME!
    SeqNumber           = (unsigned short)(std::rand() & 0xffff);
    OutstandingRequests = 0;
    LastHop             = 0xffffffff;
