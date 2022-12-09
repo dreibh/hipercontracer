@@ -43,7 +43,7 @@
 #include <ifaddrs.h>
 #ifdef __linux__
 #include <linux/errqueue.h>
-// #include <linux/icmp.h>
+// #include <linux/icmp.h>  ???? ICMP_FILTER
 #include <linux/net_tstamp.h>
 #include <linux/sockios.h>
 #endif
@@ -325,7 +325,6 @@ bool ICMPModule::prepareSocket()
       assert(in->sa_family == AF_INET6);
       Identifier = ntohs(((sockaddr_in6*)in)->sin6_port);
    }
-   printf("ID=%d\n", Identifier);
 
    // ====== Bind ICMP socket to given source address =======================
    ICMPSocket.bind(boost::asio::ip::icmp::endpoint(SourceAddress, 0), errorCode);
@@ -380,7 +379,6 @@ bool ICMPModule::prepareSocket()
 void ICMPModule::expectNextReply(const int  socketDescriptor,
                                  const bool readFromErrorQueue)
 {
-   printf("  icmp::expectNext=%d eq=%d\n", socketDescriptor, readFromErrorQueue);
    if(socketDescriptor == ICMPSocket.native_handle()) {
       if(readFromErrorQueue == true) {
          assert(ExpectingError == false);
@@ -430,7 +428,6 @@ ResultEntry* ICMPModule::sendRequest(const DestinationInfo& destination,
       ICMPHeader::IPv6EchoRequest : ICMPHeader::IPv4EchoRequest);
    echoRequest.code(0);
    echoRequest.identifier(Identifier);
-   printf("SE=%d\n", echoRequest.identifier());
    echoRequest.seqNumber(seqNumber);
 
    TraceServiceHeader tsHeader(PayloadSize);
@@ -562,9 +559,7 @@ void ICMPModule::handleResponse(const boost::system::error_code& errorCode,
             const ssize_t length =
                recvmsg(socketDescriptor, &msg,
                        (readFromErrorQueue == true) ? MSG_ERRQUEUE|MSG_DONTWAIT : MSG_DONTWAIT);
-            printf("======= l=%d   inEQ=%d\n", (int)length, (readFromErrorQueue));
-
-            // Note: length == 0 for control data without user data!
+            // NOTE: length == 0 for control data without user data!
             if(length < 0) {
                break;
             }
@@ -592,7 +587,6 @@ void ICMPModule::handleResponse(const boost::system::error_code& errorCode,
                      socketTimestamp     = (scm_timestamping*)CMSG_DATA(cmsg);
                      if(socketTimestamp->ts[2].tv_sec != 0) {
                         // Hardware timestamp (raw):
-                        puts("SO_TIMESTAMPING HW!");
                         receivedData.ReceiveHWSource = TimeSourceType::TST_TIMESTAMPING_HW;
                         receivedData.ReceiveHWTime   = std::chrono::system_clock::time_point(
                                                           std::chrono::seconds(socketTimestamp->ts[2].tv_sec) +
@@ -600,7 +594,6 @@ void ICMPModule::handleResponse(const boost::system::error_code& errorCode,
                      }
                      if(socketTimestamp->ts[0].tv_sec != 0) {
                         // Software timestamp (system clock):
-                        puts("SO_TIMESTAMPING SOFT!");
                         receivedData.ReceiveSWSource = TimeSourceType::TST_TIMESTAMPING_SW;
                         receivedData.ReceiveSWTime   = std::chrono::system_clock::time_point(
                                                           std::chrono::seconds(socketTimestamp->ts[0].tv_sec) +
@@ -611,7 +604,6 @@ void ICMPModule::handleResponse(const boost::system::error_code& errorCode,
 #endif
 #if defined (SO_TIMESTAMPNS)
                   if(cmsg->cmsg_type == SO_TIMESTAMPNS) {
-                     puts("SO_TIMESTAMPNS!");
                      const timespec* ts = (const timespec*)CMSG_DATA(cmsg);
                      receivedData.ReceiveSWSource = TimeSourceType::TST_TIMESTAMPNS;
                      receivedData.ReceiveSWTime   = std::chrono::system_clock::time_point(
@@ -620,7 +612,6 @@ void ICMPModule::handleResponse(const boost::system::error_code& errorCode,
                   }
 #endif
                   else if(cmsg->cmsg_type == SO_TIMESTAMP) {
-                     puts("SO_TIMESTAMP!");
                      const timeval* tv = (const timeval*)CMSG_DATA(cmsg);
                      receivedData.ReceiveSWSource = TimeSourceType::TST_TIMESTAMP;
                      receivedData.ReceiveSWTime   = std::chrono::system_clock::time_point(
@@ -629,10 +620,7 @@ void ICMPModule::handleResponse(const boost::system::error_code& errorCode,
                   }
                }
                else if(cmsg->cmsg_level == SOL_IPV6) {
-                  if(cmsg->cmsg_type == IPV6_HOPLIMIT) {
-                     puts("IPV6_HOPLIMIT");
-                  }
-                  else if(cmsg->cmsg_type == IPV6_RECVERR) {
+                  if(cmsg->cmsg_type == IPV6_RECVERR) {
                      socketError = (sock_extended_err*)CMSG_DATA(cmsg);
                      if(socketError->ee_origin ==  SO_EE_ORIGIN_TIMESTAMPING) {
                         socketTXTimestamping = socketError;
@@ -641,7 +629,6 @@ void ICMPModule::handleResponse(const boost::system::error_code& errorCode,
                               (socketError->ee_origin != SO_EE_ORIGIN_LOCAL) ) {
                         socketError = nullptr;   // Unexpected content!
                      }
-                     else puts("IPV6_RECVERR!");
                   }
                }
                else if(cmsg->cmsg_level == SOL_IP) {
@@ -655,7 +642,6 @@ void ICMPModule::handleResponse(const boost::system::error_code& errorCode,
                               (socketError->ee_origin != SO_EE_ORIGIN_LOCAL) ) {
                         socketError = nullptr;   // Unexpected content!
                      }
-                     else puts("IP_RECVERR!");
                   }
                }
             }
@@ -704,15 +690,10 @@ void ICMPModule::handleResponse(const boost::system::error_code& errorCode,
 
             // ====== Handle reply data =====================================
             if(!readFromErrorQueue) {
-               printf("DATA %d    tsPtr=%p\n", (int)length, socketTimestamp);
-
                handlePayloadResponse(socketDescriptor, receivedData);
             }
 
             else {
-               static int ee=0;
-               printf("%d: ERR-QUEUE %d --------------\n", ++ee, (int)length);
-
                handleErrorResponse(socketDescriptor, receivedData, socketError);
             }
          }
@@ -798,7 +779,6 @@ void ICMPModule::handlePayloadResponse(const int           socketDescriptor,
       if(is) {
 
          // ------ IPv6 -> ICMPv6[Echo Reply] -------------------------------
-         // FIXME! Check protocol()!
          if( (icmpHeader.type() == ICMPHeader::IPv6EchoReply) &&
              (icmpHeader.identifier() == Identifier) ) {
             // ------ TraceServiceHeader ------------------------------------
@@ -839,7 +819,6 @@ void ICMPModule::handlePayloadResponse(const int           socketDescriptor,
       IPv4Header ipv4Header;
       is >> ipv4Header;
       if( (is) && (ipv4Header.protocol() == IPPROTO_ICMP) ) {
-         // FIXME! Check protocol()!
          is >> icmpHeader;
          if(is) {
 
@@ -888,59 +867,6 @@ void ICMPModule::handleErrorResponse(const int                socketDescriptor,
                                      const sock_extended_err* socketError)
 {
    // Nothing to do here! ICMP error responses are the actual ICMP payload!
-
-#if 0
-   // ====== Handle ICMP header =============================================
-   boost::interprocess::bufferstream is(MessageBuffer, messageLength);
-
-   ICMPHeader icmpHeader;
-   if(SourceAddress.is_v6()) {
-      is >> icmpHeader;
-      if(is) {
-         if( (icmpHeader.type() == ICMPHeader::IPv6TimeExceeded) ||
-             (icmpHeader.type() == ICMPHeader::IPv6Unreachable) ) {
-            IPv6Header innerIPv6Header;
-            ICMPHeader innerICMPHeader;
-            TraceServiceHeader tsHeader;
-            is >> innerIPv6Header >> innerICMPHeader >> tsHeader;
-            if(is) {
-               if(tsHeader.magicNumber() == MagicNumber) {
-                  recordResult(receivedData,
-                               icmpHeader.type(), icmpHeader.code(),
-                               innerICMPHeader.seqNumber());
-               }
-            }
-         }
-      }
-   }
-   else {
-      IPv4Header ipv4Header;
-      is >> ipv4Header;
-      if(is) {
-         is >> icmpHeader;
-         if(is) {
-            if(icmpHeader.type() == ICMPHeader::IPv4TimeExceeded) {
-               IPv4Header innerIPv4Header;
-               ICMPHeader innerICMPHeader;
-               is >> innerIPv4Header >> innerICMPHeader;
-               if(is) {
-                  if( (icmpHeader.type() == ICMPHeader::IPv4TimeExceeded) ||
-                      (icmpHeader.type() == ICMPHeader::IPv4Unreachable) ) {
-                     if(innerICMPHeader.identifier() == Identifier) {
-                        // Unfortunately, ICMPv4 does not return the full TraceServiceHeader here!
-                        recordResult(receivedData,
-                                     icmpHeader.type(), icmpHeader.code(),
-                                     innerICMPHeader.seqNumber());
-puts("UPDATE IN ERRQUEUE !");
-abort();
-                     }
-                  }
-               }
-            }
-         }
-      }
-   }
-#endif
 }
 
 
@@ -1248,233 +1174,4 @@ void UDPModule::handleErrorResponse(const int                socketDescriptor,
    else if(socketDescriptor == ICMPSocket.native_handle()) {
       puts("UDP-ICMP!");
    }
-
-#if 0
-   // ====== Handle ICMP header =============================================
-   boost::interprocess::bufferstream is(MessageBuffer, messageLength);
-
-   ICMPHeader icmpHeader;
-   if(SourceAddress.is_v6()) {
-      is >> icmpHeader;
-      if(is) {
-         if( (icmpHeader.type() == ICMPHeader::IPv6TimeExceeded) ||
-             (icmpHeader.type() == ICMPHeader::IPv6Unreachable) ) {
-            IPv6Header innerIPv6Header;
-            ICMPHeader innerICMPHeader;
-            TraceServiceHeader tsHeader;
-            is >> innerIPv6Header >> innerICMPHeader >> tsHeader;
-            if(is) {
-               if(tsHeader.magicNumber() == MagicNumber) {
-                  recordResult(receivedData,
-                               icmpHeader.type(), icmpHeader.code(),
-                               innerICMPHeader.seqNumber());
-               }
-            }
-         }
-      }
-   }
-   else {
-      IPv4Header ipv4Header;
-      is >> ipv4Header;
-      if(is) {
-         is >> icmpHeader;
-         if(is) {
-            if(icmpHeader.type() == ICMPHeader::IPv4TimeExceeded) {
-               IPv4Header innerIPv4Header;
-               ICMPHeader innerICMPHeader;
-               is >> innerIPv4Header >> innerICMPHeader;
-               if(is) {
-                  if( (icmpHeader.type() == ICMPHeader::IPv4TimeExceeded) ||
-                      (icmpHeader.type() == ICMPHeader::IPv4Unreachable) ) {
-                     if(innerICMPHeader.identifier() == Identifier) {
-                        // Unfortunately, ICMPv4 does not return the full TraceServiceHeader here!
-                        recordResult(receivedData,
-                                     icmpHeader.type(), icmpHeader.code(),
-                                     innerICMPHeader.seqNumber());
-puts("UPDATE IN ERRQUEUE !");
-abort();
-                     }
-                  }
-               }
-            }
-         }
-      }
-   }
-#endif
 }
-
-
-// void UDPModule::handleResponse(const boost::system::error_code& errorCode,
-//                                const bool                       readFromErrorQueue)
-// {
-//    printf("handleResponse  EQ=%d\n", (readFromErrorQueue == true));
-//
-//    if(errorCode != boost::asio::error::operation_aborted) {
-//       // ====== Ensure to request further messages later ====================
-//       if(!readFromErrorQueue) {
-//          ExpectingReply = false;   // Need to call expectNextReply() to get next message!
-//       }
-//       else {
-//          ExpectingError = false;   // Need to call expectNextReply() to get next error!
-//       }
-//
-//       // ====== Read all messages ===========================================
-//       if(!errorCode) {
-//          while(true) {
-//             // ====== Read message ==========================================
-//             iovec                                 iov;
-//             msghdr                                msg;
-//             sock_extended_err*                    socketError = nullptr;
-//             sockaddr_storage                      replyAddress;
-//             std::chrono::system_clock::time_point receiveTime;
-//
-//             iov.iov_base       = &MessageBuffer;
-//             iov.iov_len        = sizeof(MessageBuffer);
-//             msg.msg_name       = (sockaddr*)&replyAddress;
-//             msg.msg_namelen    = sizeof(replyAddress);
-//             msg.msg_iov        = &iov;
-//             msg.msg_iovlen     = 1;
-//             msg.msg_flags      = 0;
-//             msg.msg_control    = ControlBuffer;
-//             msg.msg_controllen = sizeof(ControlBuffer);
-//
-//             const ssize_t length = recvmsg(UDPSocket.native_handle(), &msg,
-//                                            (readFromErrorQueue == true) ? MSG_ERRQUEUE|MSG_DONTWAIT : MSG_DONTWAIT);
-//             printf("   l=%d\n", (int)length);
-//             // Note: length == 0 for control data without user data!
-//             if(length < 0) {
-//                break;
-//             }
-//
-//             // ====== Handle control data ===================================
-//             for(cmsghdr* cmsg = CMSG_FIRSTHDR(&msg); cmsg != nullptr; cmsg = CMSG_NXTHDR(&msg, cmsg)) {
-//                if(cmsg->cmsg_level == SOL_SOCKET) {
-//                   if(cmsg->cmsg_type == SO_TIMESTAMP) {
-// //                      puts("TIMESTAMP!");
-//                      const timeval* tv = (const timeval*)CMSG_DATA(cmsg);
-//                      receiveTime = std::chrono::system_clock::time_point(
-//                                       std::chrono::seconds(tv->tv_sec) +
-//                                       std::chrono::microseconds(tv->tv_usec));
-//                   }
-//                }
-//                else if(cmsg->cmsg_level == SOL_IPV6) {
-//                   if(cmsg->cmsg_type == IPV6_HOPLIMIT) {
-// //                      puts("IPV6_HOPLIMIT");
-//                   }
-//                   else if(cmsg->cmsg_type == IPV6_RECVERR) {
-//                      socketError = (sock_extended_err*)CMSG_DATA(cmsg);
-//                      if( (socketError->ee_origin != SO_EE_ORIGIN_ICMP6) &&
-//                          (socketError->ee_origin != SO_EE_ORIGIN_LOCAL) ) {
-//                         socketError = nullptr;   // Unexpected content!
-//                      }
-// //                      else puts("IPV6_RECVERR!");
-//                   }
-//                }
-//                else if(cmsg->cmsg_level == SOL_IP) {
-//                   if(cmsg->cmsg_type == IP_RECVERR) {
-//                      socketError = (sock_extended_err*)CMSG_DATA(cmsg);
-//                      if( (socketError->ee_origin != SO_EE_ORIGIN_ICMP) &&
-//                          (socketError->ee_origin != SO_EE_ORIGIN_LOCAL) ) {
-//                         socketError = nullptr;   // Unexpected content!
-//                      }
-// //                      else puts("IP_RECVERR!");
-//                   }
-//                }
-//             }
-//
-//             // ====== Ensure to have the reception time =====================
-//             // Ideally, it was provided by SO_TIMESTAMP.
-//             if(receiveTime == std::chrono::system_clock::time_point()) {
-//                abort();   // FIXME!!!
-// #ifdef __linux__
-//                // ------ Linux: get reception time via SIOCGSTAMP -----------
-//                timeval tv;
-//                if(ioctl(UDPSocket.native_handle(), SIOCGSTAMP, &tv) == 0) {
-//                   // Got reception time from kernel via SIOCGSTAMP
-//                   receiveTime = std::chrono::system_clock::time_point(
-//                                    std::chrono::seconds(tv.tv_sec) +
-//                                    std::chrono::microseconds(tv.tv_usec));
-//                }
-//                // ------ Obtain current system time -------------------------
-//                else {
-// #endif
-//                   // Fallback: SIOCGSTAMP did not return a result
-//                   receiveTime = std::chrono::system_clock::now();
-// #ifdef __linux__
-//                }
-// #endif
-//             }
-//
-//             // ====== Handle reply data =====================================
-//             if(!readFromErrorQueue) {
-//                printf("DATA %d\n", (int)length);
-//                if(length > 0) {
-//                   // ====== Get reply address ===============================
-//                   ReplyEndpoint = sockaddrToEndpoint<boost::asio::ip::udp::endpoint>(
-//                                      (sockaddr*)msg.msg_name, msg.msg_namelen);
-//
-//                   // ====== Handle TraceServiceHeader =======================
-//                   boost::interprocess::bufferstream is(MessageBuffer, length);
-//
-//                   TraceServiceHeader tsHeader;
-//                   is >> tsHeader;
-//                   if(is) {
-//                      if(tsHeader.magicNumber() == MagicNumber) {
-//                         printf("M  seq=%u\n", tsHeader.checksumTweak());
-//                         recordResult(receiveTime, ICMPHeader::IPv6EchoReply, 0,
-//                                      tsHeader.checksumTweak());   // FIXME!!!
-//                      }
-//                   }
-//                }
-//                else {
-//                   puts("LLLL 0 ?????");   // FIXME!
-//                   abort();
-//                }
-//             }
-//
-//             else {
-//                printf("ERR %d\n", (int)length);
-//
-//                // FIXME!
-//                // ====== Get reply address ==================================
-//                ReplyEndpoint = sockaddrToEndpoint<boost::asio::ip::udp::endpoint>(
-//                                   (sockaddr*)SO_EE_OFFENDER(socketError), sizeof(sockaddr_storage));
-//
-//                if(length == 0) {
-//                   std::cout << "HOW TO HANDLE " << ReplyEndpoint << ", length " << length << "\n";
-//                   std::cout << "name=" << sockaddrToEndpoint<boost::asio::ip::udp::endpoint>( (sockaddr*)msg.msg_name, msg.msg_namelen) << "\n";
-//
-//                   uint16_t seq = sockaddrToEndpoint<boost::asio::ip::udp::endpoint>( (sockaddr*)msg.msg_name, msg.msg_namelen).port();
-//
-//                   printf("msg->msg_flags=%x   EC=%x\n", msg.msg_flags, MSG_ERRQUEUE);
-//                   printf("iov.iov_len=%d\n", (int)iov.iov_len);
-//                   printf("msg.msg_controllen=%d\n", (int)msg.msg_controllen);
-//                   printf("socketError->ee_origin=%u\n", socketError->ee_origin);
-//                   printf("socketError->ee_type=%u\n", socketError->ee_type);
-//                   printf("socketError->ee_code=%u\n", socketError->ee_code);
-//                   printf("socketError->ee_info=%u\n", socketError->ee_info);
-//                   printf("socketError->ee_data=%u\n", socketError->ee_data);
-//                   printf("port=%u\n", seq);
-//
-//                   recordResult(receiveTime,
-//                                socketError->ee_type, socketError->ee_code, seq);
-//
-//                }
-//                else {
-//                   boost::interprocess::bufferstream is(MessageBuffer, length);
-//                   TraceServiceHeader tsHeader;
-//                   is >> tsHeader;
-//                   if(is) {
-//                      if(tsHeader.magicNumber() == MagicNumber) {
-//                         recordResult(receiveTime,
-//                                     socketError->ee_type, socketError->ee_code,
-//                                     tsHeader.checksumTweak());   // FIXME!!!
-//                      }
-//                   }
-//                }
-//             }
-//          }
-//       }
-//       expectNextReply();
-//    }
-// }
