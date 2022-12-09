@@ -787,17 +787,66 @@ void ICMPModule::updateSendTimeInResultEntry(const sock_extended_err* socketErro
 void ICMPModule::handlePayloadResponse(const int           socketDescriptor,
                                        const ReceivedData& receivedData)
 {
-   // ====== Handle ICMP header =======================================
+   // ====== Handle ICMP header =============================================
    boost::interprocess::bufferstream is(receivedData.MessageBuffer,
                                         receivedData.MessageLength);
 
+   // ------ IPv6 -----------------------------------------------------------
    ICMPHeader icmpHeader;
    if(SourceAddress.is_v6()) {
       is >> icmpHeader;
       if(is) {
+
+         // ------ IPv6 -> ICMPv6[Echo Reply] -------------------------------
          // FIXME! Check protocol()!
-         if(icmpHeader.type() == ICMPHeader::IPv6EchoReply) {
-            if(icmpHeader.identifier() == Identifier) {
+         if( (icmpHeader.type() == ICMPHeader::IPv6EchoReply) &&
+             (icmpHeader.identifier() == Identifier) ) {
+            // ------ TraceServiceHeader ------------------------------------
+            TraceServiceHeader tsHeader;
+            is >> tsHeader;
+            if(is) {
+               if(tsHeader.magicNumber() == MagicNumber) {
+                  recordResult(receivedData,
+                               icmpHeader.type(), icmpHeader.code(),
+                               icmpHeader.seqNumber());
+               }
+            }
+         }
+
+         // ------ IPv6 -> ICMPv6[Error] ------------------------------------
+         else if( (icmpHeader.type() == ICMPHeader::IPv6TimeExceeded) ||
+                  (icmpHeader.type() == ICMPHeader::IPv6Unreachable) ) {
+            IPv6Header innerIPv6Header;
+            ICMPHeader innerICMPHeader;
+            TraceServiceHeader tsHeader;
+            is >> innerIPv6Header >> innerICMPHeader >> tsHeader;
+            if( (is) &&
+                (innerIPv6Header.nextHeader() == IPPROTO_ICMPV6) &&
+                (innerICMPHeader.identifier() == Identifier) &&
+                (tsHeader.magicNumber() == MagicNumber) ) {
+               recordResult(receivedData,
+                            icmpHeader.type(), icmpHeader.code(),
+                            innerICMPHeader.seqNumber());
+            }
+         }
+
+      }
+   }
+
+   // ------ IPv4 -----------------------------------------------------------
+   else {
+      // NOTE: For IPv4, also the IPv4 header of the message is included!
+      IPv4Header ipv4Header;
+      is >> ipv4Header;
+      if( (is) && (ipv4Header.protocol() == IPPROTO_ICMP) ) {
+         // FIXME! Check protocol()!
+         is >> icmpHeader;
+         if(is) {
+
+            // ------ IPv4 -> ICMP[Echo Reply] ------------------------------
+            if( (icmpHeader.type() == ICMPHeader::IPv4EchoReply) &&
+                (icmpHeader.identifier() == Identifier) ) {
+               // ------ TraceServiceHeader ---------------------------------
                TraceServiceHeader tsHeader;
                is >> tsHeader;
                if(is) {
@@ -808,59 +857,25 @@ void ICMPModule::handlePayloadResponse(const int           socketDescriptor,
                   }
                }
             }
-         }
-         else if( (icmpHeader.type() == ICMPHeader::IPv6TimeExceeded) ||
-                  (icmpHeader.type() == ICMPHeader::IPv6Unreachable) ) {
-            IPv6Header innerIPv6Header;
-            ICMPHeader innerICMPHeader;
-            TraceServiceHeader tsHeader;
-            is >> innerIPv6Header >> innerICMPHeader >> tsHeader;
-            if(is) {
-               if(tsHeader.magicNumber() == MagicNumber) {
+
+            // ------ IPv4 -> ICMP[Error] -----------------------------------
+            else if( (icmpHeader.type() == ICMPHeader::IPv4TimeExceeded) ||
+                     (icmpHeader.type() == ICMPHeader::IPv4Unreachable) ) {
+               IPv4Header innerIPv4Header;
+               ICMPHeader innerICMPHeader;
+               is >> innerIPv4Header >> innerICMPHeader;
+               if( (is) &&
+                   (innerIPv4Header.protocol() == IPPROTO_ICMP) &&
+                   (innerICMPHeader.identifier() == Identifier) ) {
+                  // Unfortunately, ICMPv4 does not return the full
+                  // TraceServiceHeader here! So, the sequence number
+                  // has to be used to identify the outgoing request!
                   recordResult(receivedData,
                                icmpHeader.type(), icmpHeader.code(),
                                innerICMPHeader.seqNumber());
                }
             }
-         }
-      }
-   }
-   else {
-      IPv4Header ipv4Header;
-      is >> ipv4Header;
-      if(is) {
-         // FIXME! Check protocol()!
-         is >> icmpHeader;
-         if(is) {
-            if(icmpHeader.type() == ICMPHeader::IPv4EchoReply) {
-               if(icmpHeader.identifier() == Identifier) {
-                  TraceServiceHeader tsHeader;
-                  is >> tsHeader;
-                  if(is) {
-                     if(tsHeader.magicNumber() == MagicNumber) {
-                        recordResult(receivedData,
-                                     icmpHeader.type(), icmpHeader.code(),
-                                     icmpHeader.seqNumber());
-                     }
-                  }
-               }
-            }
-            else if(icmpHeader.type() == ICMPHeader::IPv4TimeExceeded) {
-               IPv4Header innerIPv4Header;
-               ICMPHeader innerICMPHeader;
-               is >> innerIPv4Header >> innerICMPHeader;
-               if(is) {
-                  if( (icmpHeader.type() == ICMPHeader::IPv4TimeExceeded) ||
-                      (icmpHeader.type() == ICMPHeader::IPv4Unreachable) ) {
-                     if(innerICMPHeader.identifier() == Identifier) {
-                        // Unfortunately, ICMPv4 does not return the full TraceServiceHeader here!
-                        recordResult(receivedData,
-                                     icmpHeader.type(), icmpHeader.code(),
-                                     innerICMPHeader.seqNumber());
-                     }
-                  }
-               }
-            }
+
          }
       }
    }
@@ -1197,6 +1212,9 @@ void UDPModule::handlePayloadResponse(const int           socketDescriptor,
                          0, 0, tsHeader.checksumTweak());   // FIXME!!!
          }
       }
+   }
+   else if(socketDescriptor == ICMPSocket.native_handle()) {
+      puts("UDP-ICMP PAYLOAD! ----------");
    }
 }
 
