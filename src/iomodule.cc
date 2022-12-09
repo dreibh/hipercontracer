@@ -35,6 +35,7 @@
 #include "icmpheader.h"
 #include "ipv4header.h"
 #include "ipv6header.h"
+#include "udpheader.h"
 #include "traceserviceheader.h"
 
 #include <iostream>  // FIXME!
@@ -293,7 +294,7 @@ ICMPModule::ICMPModule(const std::string&                       name,
    PayloadSize      = std::max((ssize_t)MIN_TRACESERVICE_HEADER_SIZE,
                                (ssize_t)packetSize -
                                   (ssize_t)((SourceAddress.is_v6() == true) ? 40 : 20) - 8);
-   ActualPacketSize =  ((SourceAddress.is_v6() == true) ? 40 : 20) + 8 + PayloadSize;
+   ActualPacketSize = ((SourceAddress.is_v6() == true) ? 40 : 20) + 8 + PayloadSize;
    ExpectingReply   = false;
    ExpectingError   = false;
 }
@@ -833,12 +834,10 @@ void ICMPModule::handlePayloadResponse(const int           socketDescriptor,
                // ------ TraceServiceHeader ---------------------------------
                TraceServiceHeader tsHeader;
                is >> tsHeader;
-               if(is) {
-                  if(tsHeader.magicNumber() == MagicNumber) {
-                     recordResult(receivedData,
-                                  icmpHeader.type(), icmpHeader.code(),
-                                  icmpHeader.seqNumber());
-                  }
+               if( (is) && (tsHeader.magicNumber() == MagicNumber) ) {
+                  recordResult(receivedData,
+                               icmpHeader.type(), icmpHeader.code(),
+                               icmpHeader.seqNumber());
                }
             }
 
@@ -976,15 +975,17 @@ UDPModule::UDPModule(const std::string&                       name,
                      std::map<unsigned short, ResultEntry*>&  resultsMap,
                      const boost::asio::ip::address&          sourceAddress,
                      std::function<void (const ResultEntry*)> newResultCallback,
-                     const unsigned int                       packetSize)
+                     const unsigned int                       packetSize,
+                     const uint16_t                           destinationPort)
    : ICMPModule(name + "/UDPPing", ioService, resultsMap, sourceAddress,
-                newResultCallback, packetSize)
+                newResultCallback, packetSize),
+     DestinationPort(destinationPort)
 {
    // Overhead: IPv4 Header (20)/IPv6 Header (40) + UDP Header (8)
    PayloadSize      = std::max((ssize_t)MIN_TRACESERVICE_HEADER_SIZE,
                                (ssize_t)packetSize -
                                   (ssize_t)((SourceAddress.is_v6() == true) ? 40 : 20) - 8);
-   ActualPacketSize =  ((SourceAddress.is_v6() == true) ? 40 : 20) + 8 + PayloadSize;
+   ActualPacketSize = ((SourceAddress.is_v6() == true) ? 40 : 20) + 8 + PayloadSize;
 }
 
 
@@ -1104,8 +1105,6 @@ ResultEntry* UDPModule::sendRequest(const DestinationInfo& destination,
 
    // ====== Create ResultEntry on success ==================================
    if(sent > 0) {
-//       expectNextReply();   // Ensure to receive response!
-
       ResultEntry* resultEntry =
          new ResultEntry(TimeStampSeqID++,
                          round, seqNumber, ttl, ActualPacketSize,
@@ -1129,21 +1128,99 @@ ResultEntry* UDPModule::sendRequest(const DestinationInfo& destination,
 void UDPModule::handlePayloadResponse(const int           socketDescriptor,
                                       const ReceivedData& receivedData)
 {
+   boost::interprocess::bufferstream is(receivedData.MessageBuffer,
+                                        receivedData.MessageLength);
+
+   // ====== UDP response ===================================================
    if(socketDescriptor == UDPSocket.native_handle()) {
-      // ====== Read TraceServiceHeader =====================================
-      boost::interprocess::bufferstream is(receivedData.MessageBuffer,
-                                           receivedData.MessageLength);
+      // ------ TraceServiceHeader ------------------------------------------
       TraceServiceHeader tsHeader;
       is >> tsHeader;
-      if(is) {
-         if(tsHeader.magicNumber() == MagicNumber) {
-            recordResult(receivedData,
-                         0, 0, tsHeader.checksumTweak());   // FIXME!!!
-         }
+      if( (is) && (tsHeader.magicNumber() == MagicNumber) ) {
+         recordResult(receivedData, 0, 0, tsHeader.checksumTweak());   // FIXME!!!
       }
    }
+
+   // ====== ICMP error response ============================================
    else if(socketDescriptor == ICMPSocket.native_handle()) {
       puts("UDP-ICMP PAYLOAD! ----------");
+
+      // ------ IPv6 --------------------------------------------------------
+      ICMPHeader icmpHeader;
+      if(SourceAddress.is_v6()) {
+         is >> icmpHeader;
+         if(is) {
+
+            // ------ IPv6 -> ICMPv6[Error] ---------------------------------
+            if( (icmpHeader.type() == ICMPHeader::IPv6TimeExceeded) ||
+                (icmpHeader.type() == ICMPHeader::IPv6Unreachable) ) {
+               // ------ IPv6 -> ICMPv6[Error] -> IPv6 ----------------------
+               IPv6Header innerIPv6Header;
+               is >> innerIPv6Header;
+               if( (is) &&
+                   (innerIPv6Header.nextHeader() == IPPROTO_UDP)
+                   /* FIXME: ADDRS! */
+                 ) {
+                  // ------ IPv6 -> ICMPv6[Error] -> IPv6 -> UDP ------------
+                  UDPHeader udpHeader;
+                  is >> udpHeader;
+                  if( (is) &&
+                      /* FIXME: src port! */
+                      (udpHeader.destinationPort() == DestinationPort) ) {
+
+                     // TBD
+
+                  }
+               }
+            }
+         }
+      }
+
+      // ------ IPv4 --------------------------------------------------------
+      else {
+         // NOTE: For IPv4, also the IPv4 header of the message is included!
+         IPv4Header ipv4Header;
+         is >> ipv4Header;
+         if( (is) && (ipv4Header.protocol() == IPPROTO_ICMP) ) {
+            is >> icmpHeader;
+            if(is) {
+
+               // ------ IPv4 -> ICMP[Error] --------------------------------
+               if( (icmpHeader.type() == ICMPHeader::IPv4TimeExceeded) ||
+                   (icmpHeader.type() == ICMPHeader::IPv4Unreachable) ) {
+                  puts("U3");
+                  // ------ IPv4 -> ICMP[Error] -> IPv4 ---------------------
+                  IPv4Header innerIPv4Header;
+                  is >> innerIPv4Header;
+                  if( (is) &&
+                      (innerIPv4Header.protocol() == IPPROTO_UDP)
+                      /* FIXME: ADDRS! */
+                    ) {
+                    static int n=0;++n;
+                    printf("U4   n=%d\n", n);
+                    // ------ IPv4 -> ICMP[Error] -> IPv4 -> UDP ------------
+                    UDPHeader udpHeader;
+                    is >> udpHeader;
+                    if( (is) &&
+                        /* FIXME: src port! */
+                        (udpHeader.destinationPort() == DestinationPort) ) {
+                       printf("U5   n=%d   dport=%u\n", n, udpHeader.destinationPort());
+
+                       // Unfortunately, ICMPv4 does not return the full
+                       // TraceServiceHeader here! So, the sequence number
+                       // has to be used to identify the outgoing request!
+  //                      recordResult(receivedData,
+  //                                   icmpHeader.type(), icmpHeader.code(),
+  //                                   innerICMPHeader.seqNumber());
+
+                     }
+                  }
+               }
+
+            }
+         }
+      }
+
    }
 }
 
@@ -1153,6 +1230,7 @@ void UDPModule::handleErrorResponse(const int                socketDescriptor,
                                     const ReceivedData&      receivedData,
                                     const sock_extended_err* socketError)
 {
+#if 0
    if(socketDescriptor == UDPSocket.native_handle()) {
       static int qq=0;
       printf("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@qq UDP-P!   %u\n",++qq);
@@ -1177,4 +1255,5 @@ void UDPModule::handleErrorResponse(const int                socketDescriptor,
    else if(socketDescriptor == ICMPSocket.native_handle()) {
       puts("UDP-ICMP!");
    }
+#endif
 }

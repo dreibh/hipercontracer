@@ -77,9 +77,6 @@ class UDPHeader
       if(totalLength < 8) {
          is.setstate(std::ios::failbit);
       }
-      else {
-         is.read(reinterpret_cast<char*>(header.Data) + 8, totalLength - 8);
-      }
       return is;
    }
 

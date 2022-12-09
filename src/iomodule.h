@@ -111,6 +111,7 @@ class ICMPModule : public IOModuleBase
 };
 
 
+
 class UDPModule : public ICMPModule
 {
    public:
@@ -119,7 +120,8 @@ class UDPModule : public ICMPModule
              std::map<unsigned short, ResultEntry*>&  resultsMap,
              const boost::asio::ip::address&          sourceAddress,
              std::function<void (const ResultEntry*)> newResultCallback,
-             const unsigned int                       packetSize);
+             const unsigned int                       packetSize,
+             const uint16_t                           destinationPort = 7);
    virtual ~UDPModule();
 
    virtual bool prepareSocket();
@@ -139,24 +141,8 @@ class UDPModule : public ICMPModule
                                     uint16_t&              seqNumber,
                                     uint32_t&              targetChecksum);
 
-//    protected:
-//    void expectNextReply();
-//    void handleResponse(const boost::system::error_code& errorCode,
-//                        const bool                       readFromErrorQueue);
-//    void recordResult(const std::chrono::high_resolution_clock::time_point& receiveTime,
-//                      const unsigned int                           icmpType,
-//                      const unsigned int                           icmpCode,
-//                      const unsigned short                         seqNumber);
-
-//    const unsigned int             PayloadSize;
-//    const unsigned int             ActualPacketSize;
-//
-//    boost::asio::ip::udp::socket   UDPSocket;
-//    boost::asio::ip::udp::endpoint ReplyEndpoint;    // Store UDP reply's source address    FIXME! Is this needed as attrib?
-//    bool                           ExpectingReply;
-//    bool                           ExpectingError;
-//    char                           MessageBuffer[65536 + 40];
-//    char                           ControlBuffer[1024];
+   protected:
+   const uint16_t DestinationPort;
 };
 
 
