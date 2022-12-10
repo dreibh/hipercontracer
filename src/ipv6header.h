@@ -71,14 +71,14 @@ class IPv6Header
       std::fill(Data, Data + sizeof(Data), 0);
    }
 
-   inline uint8_t  version()       const { return((Data[0] >> 4) & 0x0f);             }
-   inline uint8_t  trafficClass()  const { return((Data[1] & 0x0f) | (Data[2] >> 4)); }
+   inline uint8_t  version()       const { return (Data[0] >> 4) & 0x0f;             }
+   inline uint8_t  trafficClass()  const { return (Data[1] & 0x0f) | (Data[2] >> 4); }
    inline uint32_t flowLabel()     const {
-      return( (((uint32_t)Data[2] & 0x0f) << 16) | ((uint32_t)Data[3] << 8) | (uint32_t)Data[4] );
+      return (((uint32_t)Data[2] & 0x0f) << 16) | ((uint32_t)Data[3] << 8) | (uint32_t)Data[4];
    }
-   inline uint16_t payloadLength() const { return(decode(4, 5)); }
-   inline uint8_t  nextHeader()    const { return Data[6];       }
-   inline uint32_t timeToLive()    const { return Data[7];       }
+   inline uint16_t payloadLength() const { return decode(4, 5); }
+   inline uint8_t  nextHeader()    const { return Data[6];      }
+   inline uint32_t hopLimit()      const { return Data[7];      }
 
    inline boost::asio::ip::address_v6 sourceAddress() const {
       boost::asio::ip::address_v6::bytes_type v6address;
@@ -86,7 +86,7 @@ class IPv6Header
          v6address[i] = Data[8 + i];
       }
       const boost::asio::ip::address_v6 address = boost::asio::ip::address_v6(v6address, 0);
-      return(address);
+      return address;
    }
 
    inline boost::asio::ip::address_v6 destinationAddress() const {
@@ -95,7 +95,7 @@ class IPv6Header
          v6address[i] = Data[24 + i];
       }
       const boost::asio::ip::address_v6 address = boost::asio::ip::address_v6(v6address, 0);
-      return(address);
+      return address;
    }
 
    inline void version(const uint8_t version)              { Data[0] = (version << 4) | (Data[0] & 0x0f);  }
@@ -108,9 +108,9 @@ class IPv6Header
       Data[3] = (flowlabel & 0x0000ff00) >> 8;
       Data[4] = (flowlabel & 0x000000ff);
    }
-   inline void payloadLength(const uint16_t payloadLength) { encode(4, 5, payloadLength);                  }
-   inline void timeToLive(const uint8_t timeToLive)        { Data[7] = timeToLive;                         }
-   inline void nextHeader(const uint8_t nextHeader)        { Data[6] = nextHeader;                         }
+   inline void payloadLength(const uint16_t payloadLength) { encode(4, 5, payloadLength); }
+   inline void hopLimit(const uint8_t hopLimit)            { Data[7] = hopLimit;          }
+   inline void nextHeader(const uint8_t nextHeader)        { Data[6] = nextHeader;        }
 
    inline void sourceAddress(const boost::asio::ip::address_v6& sourceAddress) {
       memcpy(&Data[8], sourceAddress.to_bytes().data(), 16);
@@ -124,7 +124,7 @@ class IPv6Header
       if (header.version() != 6) {
          is.setstate(std::ios::failbit);
       }
-      return(is);
+      return is;
    }
 
    inline friend std::ostream& operator<<(std::ostream& os, const IPv6Header& header) {

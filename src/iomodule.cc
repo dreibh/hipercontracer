@@ -1177,7 +1177,7 @@ ResultEntry* UDPModule::sendRequest(const DestinationInfo& destination,
       ipv6Header.flowLabel(0);
       ipv6Header.payloadLength(8 + PayloadSize);
       ipv6Header.nextHeader(IPPROTO_UDP);
-      ipv6Header.timeToLive(ttl);
+      ipv6Header.hopLimit(ttl);
       ipv6Header.sourceAddress(localEndpoint.address().to_v6());
       ipv6Header.destinationAddress(remoteEndpoint.address().to_v6());
 
