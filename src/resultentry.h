@@ -122,6 +122,7 @@ class ResultEntry {
                const unsigned int                                    packetSize,
                const uint16_t                                        checksum,
                const std::chrono::high_resolution_clock::time_point& sendTime,
+               const boost::asio::ip::address&                       source,
                const DestinationInfo&                                destination,
                const HopStatus                                       status);
    ~ResultEntry();
@@ -132,6 +133,7 @@ class ResultEntry {
    inline unsigned int hop()                            const { return(Hop);                    }
    inline unsigned int packetSize()                     const { return(PacketSize);             }
    const DestinationInfo& destination()                 const { return(Destination);            }
+   const boost::asio::ip::address& sourceAddress()      const { return(Source);                 }
    const boost::asio::ip::address& destinationAddress() const { return(Destination.address());  }
    inline HopStatus status()                            const { return(Status);                 }
    inline uint16_t checksum()                           const { return(Checksum);               }
@@ -192,6 +194,7 @@ class ResultEntry {
    const unsigned int                             PacketSize;
    const uint16_t                                 Checksum;
 
+   boost::asio::ip::address                       Source;
    DestinationInfo                                Destination;
    HopStatus                                      Status;
    TimeSourceType                                 ReceiveTimeSource[RXTimeStampType::RXTST_MAX + 1];

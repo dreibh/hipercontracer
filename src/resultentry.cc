@@ -43,6 +43,7 @@ ResultEntry::ResultEntry(const uint32_t                                        t
                          const unsigned int                                    packetSize,
                          const uint16_t                                        checksum,
                          const std::chrono::high_resolution_clock::time_point& sendTime,
+                         const boost::asio::ip::address&                       source,
                          const DestinationInfo&                                destination,
                          const HopStatus                                       status)
    : TimeStampSeqID(timeStampSeqID),
@@ -51,6 +52,7 @@ ResultEntry::ResultEntry(const uint32_t                                        t
      Hop(hop),
      PacketSize(packetSize),
      Checksum(checksum),
+     Source(source),
      Destination(destination),
      Status(status)
 {

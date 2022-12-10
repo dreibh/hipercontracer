@@ -314,6 +314,111 @@ boost::asio::ip::address IOModuleBase::findSourceForDestination(const boost::asi
 }
 
 
+// ###### Record result from response message ###############################
+void IOModuleBase::recordResult(const ReceivedData&  receivedData,
+                                const uint8_t        icmpType,
+                                const uint8_t        icmpCode,
+                                const unsigned short seqNumber)
+{
+   // ====== Find corresponding request =====================================
+   std::map<unsigned short, ResultEntry*>::iterator found = ResultsMap.find(seqNumber);
+   if(found == ResultsMap.end()) {
+      return;
+   }
+   ResultEntry* resultEntry = found->second;
+
+   // ====== Checks =========================================================
+   std::cout << "Record:" << resultEntry->sourceAddress() << " -> " << resultEntry->destinationAddress() << "\n";
+   std::cout << "Recv:"   << receivedData.Source.address() << " -> " << receivedData.Destination.address() << "\n";
+
+   if( ( (!receivedData.Source.address().is_unspecified()) && (receivedData.Source.address() != resultEntry->sourceAddress()) )  ||
+       ( (!receivedData.Destination.address().is_unspecified()) && (receivedData.Destination.address() != resultEntry->destinationAddress()) ) ) {
+      HPCT_LOG(warning) << "Mapping mismatch: "
+        << " ResultEntry: "  << resultEntry->sourceAddress()  << " -> " << resultEntry->destinationAddress()
+        << " ReceivedData: " << receivedData.Source.address() << " -> " << receivedData.Destination.address()
+        << " T=" << (unsigned int)icmpType << " C=" << (unsigned int)icmpCode;
+   }
+
+   // ====== Get status =====================================================
+   if(resultEntry->status() == Unknown) {
+      // Just set address, keep traffic class and identifier settings:
+      resultEntry->setDestinationAddress(receivedData.ReplyEndpoint.address());
+
+      // Set receive time stamps:
+      resultEntry->setReceiveTime(RXTimeStampType::RXTST_Application,
+                                  TimeSourceType::TST_SysClock,
+                                  receivedData.ApplicationReceiveTime);
+      resultEntry->setReceiveTime(RXTimeStampType::RXTST_ReceptionSW,
+                                  receivedData.ReceiveSWSource,
+                                  receivedData.ReceiveSWTime);
+      resultEntry->setReceiveTime(RXTimeStampType::RXTST_ReceptionHW,
+                                  receivedData.ReceiveHWSource,
+                                  receivedData.ReceiveHWTime);
+
+      // Set ICMP error status:
+      HopStatus status = Unknown;
+      if( (icmpType == ICMPHeader::IPv6TimeExceeded) ||
+          (icmpType == ICMPHeader::IPv4TimeExceeded) ) {
+         status = TimeExceeded;
+      }
+      else if( (icmpType == ICMPHeader::IPv6Unreachable) ||
+               (icmpType == ICMPHeader::IPv4Unreachable) ) {
+         if(SourceAddress.is_v6()) {
+            switch(icmpCode) {
+               case ICMP6_DST_UNREACH_ADMIN:
+                  status = UnreachableProhibited;
+               break;
+               case ICMP6_DST_UNREACH_BEYONDSCOPE:
+                  status = UnreachableScope;
+               break;
+               case ICMP6_DST_UNREACH_NOROUTE:
+                  status = UnreachableNetwork;
+               break;
+               case ICMP6_DST_UNREACH_ADDR:
+                  status = UnreachableHost;
+               break;
+               case ICMP6_DST_UNREACH_NOPORT:
+                  status = UnreachablePort;
+               break;
+               default:
+                  status = UnreachableUnknown;
+               break;
+            }
+         }
+         else {
+            switch(icmpCode) {
+               case ICMP_UNREACH_FILTER_PROHIB:
+                  status = UnreachableProhibited;
+               break;
+               case ICMP_UNREACH_NET:
+               case ICMP_UNREACH_NET_UNKNOWN:
+                  status = UnreachableNetwork;
+               break;
+               case ICMP_UNREACH_HOST:
+               case ICMP_UNREACH_HOST_UNKNOWN:
+                  status = UnreachableHost;
+               break;
+               case ICMP_UNREACH_PORT:
+                  status = UnreachablePort;
+               break;
+               default:
+                  status = UnreachableUnknown;
+               break;
+            }
+         }
+      }
+      else if( (icmpType == ICMPHeader::IPv6EchoReply) ||
+               (icmpType == ICMPHeader::IPv4EchoReply) ) {
+         status  = Success;
+      }
+      resultEntry->setStatus(status);
+
+      NewResultCallback(resultEntry);
+   }
+}
+
+
+
 
 // ###### Constructor #######################################################
 ICMPModule::ICMPModule(const std::string&                       name,
@@ -550,7 +655,7 @@ ResultEntry* ICMPModule::sendRequest(const DestinationInfo& destination,
          new ResultEntry(TimeStampSeqID++,
                          round, seqNumber, ttl, ActualPacketSize,
                          (uint16_t)targetChecksum, sendTime,
-                         destination, Unknown);
+                         SourceAddress, destination, Unknown);
       assert(resultEntry != nullptr);
 
       std::pair<std::map<unsigned short, ResultEntry*>::iterator, bool> result =
@@ -808,8 +913,8 @@ void ICMPModule::updateSendTimeInResultEntry(const sock_extended_err* socketErro
 
 
 // ###### Handle payload response (i.e. not from error queue) ###############
-void ICMPModule::handlePayloadResponse(const int           socketDescriptor,
-                                       const ReceivedData& receivedData)
+void ICMPModule::handlePayloadResponse(const int     socketDescriptor,
+                                       ReceivedData& receivedData)
 {
    // ====== Handle ICMP header =============================================
    boost::interprocess::bufferstream is(receivedData.MessageBuffer,
@@ -829,6 +934,8 @@ void ICMPModule::handlePayloadResponse(const int           socketDescriptor,
             is >> tsHeader;
             if(is) {
                if(tsHeader.magicNumber() == MagicNumber) {
+                  // This is ICMP payload checked by the kernel =>
+                  // not setting receivedData.Source and receivedData.Destination here!
                   recordResult(receivedData,
                                icmpHeader.type(), icmpHeader.code(),
                                icmpHeader.seqNumber());
@@ -847,6 +954,8 @@ void ICMPModule::handlePayloadResponse(const int           socketDescriptor,
                 (innerIPv6Header.nextHeader() == IPPROTO_ICMPV6) &&
                 (innerICMPHeader.identifier() == Identifier) &&
                 (tsHeader.magicNumber() == MagicNumber) ) {
+               receivedData.Source      = boost::asio::ip::udp::endpoint(innerIPv6Header.sourceAddress(), 0);
+               receivedData.Destination = boost::asio::ip::udp::endpoint(innerIPv6Header.destinationAddress(), 0);
                recordResult(receivedData,
                             icmpHeader.type(), icmpHeader.code(),
                             innerICMPHeader.seqNumber());
@@ -872,6 +981,10 @@ void ICMPModule::handlePayloadResponse(const int           socketDescriptor,
                TraceServiceHeader tsHeader;
                is >> tsHeader;
                if( (is) && (tsHeader.magicNumber() == MagicNumber) ) {
+                  // NOTE: This is the reponse
+                  //       -> source and destination are swapped!
+                  receivedData.Source      = boost::asio::ip::udp::endpoint(ipv4Header.destinationAddress(), 0);
+                  receivedData.Destination = boost::asio::ip::udp::endpoint(ipv4Header.sourceAddress(), 0);
                   recordResult(receivedData,
                                icmpHeader.type(), icmpHeader.code(),
                                icmpHeader.seqNumber());
@@ -890,6 +1003,9 @@ void ICMPModule::handlePayloadResponse(const int           socketDescriptor,
                   // Unfortunately, ICMPv4 does not return the full
                   // TraceServiceHeader here! So, the sequence number
                   // has to be used to identify the outgoing request!
+                  receivedData.Source      = boost::asio::ip::udp::endpoint(innerIPv4Header.sourceAddress(), 0);
+                  receivedData.Destination = boost::asio::ip::udp::endpoint(innerIPv4Header.destinationAddress(), 0);
+                  std::cout << "X=" << receivedData.Source <<"\t"<<receivedData.Destination<<"\n";
                   recordResult(receivedData,
                                icmpHeader.type(), icmpHeader.code(),
                                innerICMPHeader.seqNumber());
@@ -903,103 +1019,11 @@ void ICMPModule::handlePayloadResponse(const int           socketDescriptor,
 
 
 // ###### Handle error response (i.e. from error queue) #####################
-void ICMPModule::handleErrorResponse(const int                socketDescriptor,
-                                     const ReceivedData&      receivedData,
-                                     const sock_extended_err* socketError)
+void ICMPModule::handleErrorResponse(const int          socketDescriptor,
+                                     ReceivedData&      receivedData,
+                                     sock_extended_err* socketError)
 {
    // Nothing to do here! ICMP error responses are the actual ICMP payload!
-}
-
-
-// ###### Record result from response message ###############################
-void ICMPModule::recordResult(const ReceivedData&  receivedData,
-                              const uint8_t        icmpType,
-                              const uint8_t        icmpCode,
-                              const unsigned short seqNumber)
-{
-   // ====== Find corresponding request =====================================
-   std::map<unsigned short, ResultEntry*>::iterator found = ResultsMap.find(seqNumber);
-   if(found == ResultsMap.end()) {
-      return;
-   }
-   ResultEntry* resultEntry = found->second;
-
-   // ====== Get status =====================================================
-   if(resultEntry->status() == Unknown) {
-      // Just set address, keep traffic class and identifier settings:
-      resultEntry->setDestinationAddress(receivedData.ReplyEndpoint.address());
-
-      // Set receive time stamps:
-      resultEntry->setReceiveTime(RXTimeStampType::RXTST_Application,
-                                  TimeSourceType::TST_SysClock,
-                                  receivedData.ApplicationReceiveTime);
-      resultEntry->setReceiveTime(RXTimeStampType::RXTST_ReceptionSW,
-                                  receivedData.ReceiveSWSource,
-                                  receivedData.ReceiveSWTime);
-      resultEntry->setReceiveTime(RXTimeStampType::RXTST_ReceptionHW,
-                                  receivedData.ReceiveHWSource,
-                                  receivedData.ReceiveHWTime);
-
-      // Set ICMP error status:
-      HopStatus status = Unknown;
-      if( (icmpType == ICMPHeader::IPv6TimeExceeded) ||
-          (icmpType == ICMPHeader::IPv4TimeExceeded) ) {
-         status = TimeExceeded;
-      }
-      else if( (icmpType == ICMPHeader::IPv6Unreachable) ||
-               (icmpType == ICMPHeader::IPv4Unreachable) ) {
-         if(SourceAddress.is_v6()) {
-            switch(icmpCode) {
-               case ICMP6_DST_UNREACH_ADMIN:
-                  status = UnreachableProhibited;
-               break;
-               case ICMP6_DST_UNREACH_BEYONDSCOPE:
-                  status = UnreachableScope;
-               break;
-               case ICMP6_DST_UNREACH_NOROUTE:
-                  status = UnreachableNetwork;
-               break;
-               case ICMP6_DST_UNREACH_ADDR:
-                  status = UnreachableHost;
-               break;
-               case ICMP6_DST_UNREACH_NOPORT:
-                  status = UnreachablePort;
-               break;
-               default:
-                  status = UnreachableUnknown;
-               break;
-            }
-         }
-         else {
-            switch(icmpCode) {
-               case ICMP_UNREACH_FILTER_PROHIB:
-                  status = UnreachableProhibited;
-               break;
-               case ICMP_UNREACH_NET:
-               case ICMP_UNREACH_NET_UNKNOWN:
-                  status = UnreachableNetwork;
-               break;
-               case ICMP_UNREACH_HOST:
-               case ICMP_UNREACH_HOST_UNKNOWN:
-                  status = UnreachableHost;
-               break;
-               case ICMP_UNREACH_PORT:
-                  status = UnreachablePort;
-               break;
-               default:
-                  status = UnreachableUnknown;
-               break;
-            }
-         }
-      }
-      else if( (icmpType == ICMPHeader::IPv6EchoReply) ||
-               (icmpType == ICMPHeader::IPv4EchoReply) ) {
-         status  = Success;
-      }
-      resultEntry->setStatus(status);
-
-      NewResultCallback(resultEntry);
-   }
 }
 
 
@@ -1199,7 +1223,7 @@ ResultEntry* UDPModule::sendRequest(const DestinationInfo& destination,
          new ResultEntry(TimeStampSeqID++,
                          round, seqNumber, ttl, ActualPacketSize,
                          (uint16_t)targetChecksum, sendTime,
-                         destination, Unknown);
+                         localEndpoint.address(), destination, Unknown);
       assert(resultEntry != nullptr);
 
       std::pair<std::map<unsigned short, ResultEntry*>::iterator, bool> result =
@@ -1215,8 +1239,8 @@ ResultEntry* UDPModule::sendRequest(const DestinationInfo& destination,
 
 
 // ###### Handle payload response (i.e. not from error queue) ###############
-void UDPModule::handlePayloadResponse(const int           socketDescriptor,
-                                      const ReceivedData& receivedData)
+void UDPModule::handlePayloadResponse(const int     socketDescriptor,
+                                      ReceivedData& receivedData)
 {
    boost::interprocess::bufferstream is(receivedData.MessageBuffer,
                                         receivedData.MessageLength);
@@ -1299,6 +1323,8 @@ void UDPModule::handlePayloadResponse(const int           socketDescriptor,
                        // Unfortunately, ICMPv4 does not return the full
                        // TraceServiceHeader here! So, the sequence number
                        // has to be used to identify the outgoing request!
+                       receivedData.Source      = boost::asio::ip::udp::endpoint(innerIPv4Header.sourceAddress(),      udpHeader.sourcePort());
+                       receivedData.Destination = boost::asio::ip::udp::endpoint(innerIPv4Header.destinationAddress(), udpHeader.destinationPort());
                        recordResult(receivedData,
                                     icmpHeader.type(), icmpHeader.code(),
                                     innerIPv4Header.identification());
@@ -1316,11 +1342,11 @@ void UDPModule::handlePayloadResponse(const int           socketDescriptor,
 
 
 // ###### Handle error response (i.e. from error queue) #####################
-void UDPModule::handleErrorResponse(const int                socketDescriptor,
-                                    const ReceivedData&      receivedData,
-                                    const sock_extended_err* socketError)
+void UDPModule::handleErrorResponse(const int          socketDescriptor,
+                                    ReceivedData&      receivedData,
+                                    sock_extended_err* socketError)
 {
-   puts("E");
+   // Nothing to do here!
 #if 0
    if(socketDescriptor == UDPSocket.native_handle()) {
       static int qq=0;

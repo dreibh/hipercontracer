@@ -31,11 +31,30 @@ class IOModuleBase
    virtual bool prepareSocket() = 0;
    virtual void cancelSocket() = 0;
 
+
    static bool configureSocket(const int                      socketDescriptor,
                                const boost::asio::ip::address sourceAddress);
 
    static boost::asio::ip::address findSourceForDestination(const boost::asio::ip::address& destinationAddress);
 
+
+   struct ReceivedData {
+      boost::asio::ip::udp::endpoint                 Source;
+      boost::asio::ip::udp::endpoint                 Destination;
+      boost::asio::ip::udp::endpoint                 ReplyEndpoint;
+      std::chrono::high_resolution_clock::time_point ApplicationReceiveTime;
+      TimeSourceType                                 ReceiveSWSource;
+      std::chrono::high_resolution_clock::time_point ReceiveSWTime;
+      TimeSourceType                                 ReceiveHWSource;
+      std::chrono::high_resolution_clock::time_point ReceiveHWTime;
+      char*                                          MessageBuffer;
+      size_t                                         MessageLength;
+   };
+
+   void recordResult(const ReceivedData&             receivedData,
+                     const uint8_t                   icmpType,
+                     const uint8_t                   icmpCode,
+                     const unsigned short            seqNumber);
 
    protected:
    static std::map<boost::asio::ip::address, boost::asio::ip::address> SourceForDestinationMap;
@@ -74,33 +93,18 @@ class ICMPModule : public IOModuleBase
                                     uint16_t&              seqNumber,
                                     uint32_t&              targetChecksum);
 
-   struct ReceivedData {
-      boost::asio::ip::udp::endpoint                 ReplyEndpoint;
-      std::chrono::high_resolution_clock::time_point ApplicationReceiveTime;
-      TimeSourceType                                 ReceiveSWSource;
-      std::chrono::high_resolution_clock::time_point ReceiveSWTime;
-      TimeSourceType                                 ReceiveHWSource;
-      std::chrono::high_resolution_clock::time_point ReceiveHWTime;
-      char*                                          MessageBuffer;
-      size_t                                         MessageLength;
-   };
-
    virtual void expectNextReply(const int  socketDescriptor,
                                 const bool readFromErrorQueue);
    void handleResponse(const boost::system::error_code& errorCode,
                        const int                        socketDescriptor,
                        const bool                       readFromErrorQueue);
-   virtual void handlePayloadResponse(const int           socketDescriptor,
-                                      const ReceivedData& receivedData);
-   virtual void handleErrorResponse(const int                socketDescriptor,
-                                    const ReceivedData&      receivedData,
-                                    const sock_extended_err* socketError);
+   virtual void handlePayloadResponse(const int     socketDescriptor,
+                                      ReceivedData& receivedData);
+   virtual void handleErrorResponse(const int          socketDescriptor,
+                                    ReceivedData&      receivedData,
+                                    sock_extended_err* socketError);
    void updateSendTimeInResultEntry(const sock_extended_err* socketError,
                                     const scm_timestamping*  socketTimestamping);
-   void recordResult(const ReceivedData&  receivedData,
-                     const uint8_t        icmpType,
-                     const uint8_t        icmpCode,
-                     const unsigned short seqNumber);
 
    // For ICMP type, this UDP socket is only used to generate a
    // system-unique 16-bit ICMP Identifier!
@@ -165,11 +169,11 @@ class UDPModule : public ICMPModule
 
    virtual void expectNextReply(const int  socketDescriptor,
                                 const bool readFromErrorQueue);
-   virtual void handlePayloadResponse(const int           socketDescriptor,
-                                      const ReceivedData& receivedData);
-   virtual void handleErrorResponse(const int                socketDescriptor,
-                                    const ReceivedData&      receivedData,
-                                    const sock_extended_err* socketError);
+   virtual void handlePayloadResponse(const int     socketDescriptor,
+                                      ReceivedData& receivedData);
+   virtual void handleErrorResponse(const int          socketDescriptor,
+                                    ReceivedData&      receivedData,
+                                    sock_extended_err* socketError);
 
    virtual ResultEntry* sendRequest(const DestinationInfo& destination,
                                     const unsigned int     ttl,
