@@ -8,6 +8,7 @@
 
 #include <iostream>
 #include <boost/interprocess/streams/bufferstream.hpp>
+#include <boost/asio.hpp>
 #include <boost/asio/streambuf.hpp>
 #include <boost/asio/ip/address.hpp>
 
@@ -39,6 +40,36 @@ uint16_t finishInternet16(uint32_t sum)
 }
 
 
+class raw_udp
+{
+   public:
+   typedef boost::asio::ip::basic_endpoint<raw_udp> endpoint;
+   typedef boost::asio::basic_raw_socket<raw_udp>   socket;
+   typedef boost::asio::ip::basic_resolver<raw_udp> resolver;
+
+   explicit raw_udp() : Protocol(IPPROTO_UDP), Family(AF_INET) { }
+   explicit raw_udp(int protocol, int family) : Protocol(protocol), Family(family) { }
+
+   static raw_udp v4() { return raw_udp(IPPROTO_UDP, AF_INET);  }
+   static raw_udp v6() { return raw_udp(IPPROTO_UDP, AF_INET6); }
+
+   int type()     const { return SOCK_RAW; }
+   int protocol() const { return Protocol; }
+   int family()   const { return Family;   }
+
+   friend bool operator==(const raw_udp& p1, const raw_udp& p2) {
+      return p1.Protocol == p2.Protocol && p1.Family == p2.Family;
+   }
+   friend bool operator!=(const raw_udp& p1, const raw_udp& p2) {
+      return p1.Protocol != p2.Protocol || p1.Family != p2.Family;
+   }
+
+   private:
+   int Protocol;
+   int Family;
+};
+
+
 int main(int argc, char *argv[])
 {
    if(argc < 2) {
@@ -46,7 +77,7 @@ int main(int argc, char *argv[])
       exit(1);
    }
 
-   const char*        localAddress  = "10.44.33.110";
+   const char*        localAddress  = "192.168.0.16";
    const uint16_t     localPort     = 12345;
    const char*        remoteAddress = argv[1];
    const uint16_t     remotePort    = 7;
@@ -89,10 +120,20 @@ int main(int argc, char *argv[])
       exit(1);
    }
 
+   boost::asio::io_service io_service;
+   boost::asio::basic_raw_socket<raw_udp> rs(io_service);
+   raw_udp::endpoint rep(boost::asio::ip::address::from_string(remoteAddress).to_v4(), remotePort);
+   rs.open();
+
    int sd = socket(AF_INET, SOCK_RAW, IPPROTO_UDP);
    if(sd >= 0) {
       const int on = 1;
       if(setsockopt(sd, IPPROTO_IP, IP_HDRINCL, &on, sizeof(on)) < 0) {
+         perror("setsockopt() error");
+         exit(1);
+      }
+
+      if(setsockopt(rs.native_handle(), IPPROTO_IP, IP_HDRINCL, &on, sizeof(on)) < 0) {
          perror("setsockopt() error");
          exit(1);
       }
@@ -171,11 +212,14 @@ int main(int argc, char *argv[])
             os << ipv4Header << udpHeader << tsHeader;
 
             // ====== Send the request =========================================
-            ssize_t sent = sendto(sd, boost::asio::buffer_cast<const char*>(request_buffer.data()), request_buffer.size(), 0,
-                                  (sockaddr*)&remoteEndpoint, sizeof(remoteEndpoint));
+//             ssize_t sent = sendto(sd, boost::asio::buffer_cast<const char*>(request_buffer.data()), request_buffer.size(), 0,
+//                                   (sockaddr*)&remoteEndpoint, sizeof(remoteEndpoint));
+/*
             if(sent < 0) {
                perror("sendto:");
-            }
+            }*/
+
+            rs.send_to(request_buffer.data(), rep);
          }
 
          usleep(1000000);

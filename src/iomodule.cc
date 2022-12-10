@@ -979,7 +979,9 @@ UDPModule::UDPModule(const std::string&                       name,
                      const uint16_t                           destinationPort)
    : ICMPModule(name + "/UDPPing", ioService, resultsMap, sourceAddress,
                 newResultCallback, packetSize),
-     DestinationPort(destinationPort)
+     DestinationPort(destinationPort),
+     RawUDPSocket(IOService, (sourceAddress.is_v6() == true) ? raw_udp::v6() :
+                                                               raw_udp::v4() )
 {
    // Overhead: IPv4 Header (20)/IPv6 Header (40) + UDP Header (8)
    PayloadSize      = std::max((ssize_t)MIN_TRACESERVICE_HEADER_SIZE,
@@ -1092,11 +1094,9 @@ ResultEntry* UDPModule::sendRequest(const DestinationInfo& destination,
          sent = -1;
       }
       else {
-// static int port=7;
-// printf("PORT=%d\n", port);
          sent = UDPSocket.send_to(request_buffer.data(),
-                                  boost::asio::ip::udp::endpoint(destination.address(), 7));   //FIXME!!!
-//          port = 7 + ((port + 1) % 7);
+                                  boost::asio::ip::udp::endpoint(destination.address(),
+                                                                 DestinationPort));
       }
    }
    catch(boost::system::system_error const& e) {

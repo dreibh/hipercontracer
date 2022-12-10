@@ -112,6 +112,37 @@ class ICMPModule : public IOModuleBase
 
 
 
+class raw_udp
+{
+   public:
+   typedef boost::asio::ip::basic_endpoint<raw_udp> endpoint;
+   typedef boost::asio::basic_raw_socket<raw_udp>   socket;
+   typedef boost::asio::ip::basic_resolver<raw_udp> resolver;
+
+   explicit raw_udp() : Protocol(IPPROTO_UDP), Family(AF_INET) { }
+   explicit raw_udp(int protocol, int family) : Protocol(protocol), Family(family) { }
+
+   static raw_udp v4() { return raw_udp(IPPROTO_UDP, AF_INET);  }
+   static raw_udp v6() { return raw_udp(IPPROTO_UDP, AF_INET6); }
+
+   int type()     const { return SOCK_RAW; }
+   int protocol() const { return Protocol; }
+   int family()   const { return Family;   }
+
+   friend bool operator==(const raw_udp& p1, const raw_udp& p2) {
+      return p1.Protocol == p2.Protocol && p1.Family == p2.Family;
+   }
+   friend bool operator!=(const raw_udp& p1, const raw_udp& p2) {
+      return p1.Protocol != p2.Protocol || p1.Family != p2.Family;
+   }
+
+   private:
+   int Protocol;
+   int Family;
+};
+
+
+
 class UDPModule : public ICMPModule
 {
    public:
@@ -142,7 +173,9 @@ class UDPModule : public ICMPModule
                                     uint32_t&              targetChecksum);
 
    protected:
-   const uint16_t DestinationPort;
+   const uint16_t                         DestinationPort;
+
+   boost::asio::basic_raw_socket<raw_udp> RawUDPSocket;
 };
 
 
