@@ -32,7 +32,7 @@ template <typename Iterator> void processInternet16(uint32_t& sum, Iterator body
 
 
 // ###### Internet-16 checksum according to RFC 1071, final part ############
-uint16_t finishInternet16(uint32_t sum)
+inline uint16_t finishInternet16(uint32_t sum)
 {
    sum = (sum >> 16) + (sum & 0xFFFF);
    sum += (sum >> 16);

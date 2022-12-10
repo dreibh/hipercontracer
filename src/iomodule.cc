@@ -35,6 +35,7 @@
 #include "icmpheader.h"
 #include "ipv4header.h"
 #include "ipv6header.h"
+#include "internet16.h"
 #include "udpheader.h"
 #include "traceserviceheader.h"
 
@@ -1009,6 +1010,15 @@ bool UDPModule::prepareSocket()
    if(!configureSocket(UDPSocket.native_handle(), SourceAddress)) {
       return false;
    }
+   if(!configureSocket(RawUDPSocket.native_handle(), SourceAddress)) {
+      return false;
+   }
+   int on = 1;
+   if(setsockopt(RawUDPSocket.native_handle(), IPPROTO_IP, IP_HDRINCL, &on, sizeof(on)) < 0) {
+      HPCT_LOG(error) << "Unable to enable IP_HDRINCL option on socket: "
+                        << strerror(errno);
+      return false;
+   }
 
    // ====== Await incoming message or error ================================
    expectNextReply(UDPSocket.native_handle(), true);
@@ -1053,6 +1063,92 @@ ResultEntry* UDPModule::sendRequest(const DestinationInfo& destination,
                                     uint16_t&              seqNumber,
                                     uint32_t&              targetChecksum)
 {
+   const raw_udp::endpoint remoteEndpoint(destination.address(), DestinationPort);
+   const raw_udp::endpoint localEndpoint((UDPSocketEndpoint.address().is_unspecified() ?
+                                            UDPSocketEndpoint.address() :
+                                            UDPSocketEndpoint.address()),
+                                         UDPSocketEndpoint.port());
+
+   // NOTE:
+   // RawUDPSocket is used for sending the raw UDP packet
+   // UDPSocket is used for receiving the response. This socket is already
+   // bound to the ANY address and source port.
+
+   // ====== Create UDP header ==============================================
+   UDPHeader udpHeader;
+   udpHeader.sourcePort(UDPSocketEndpoint.port());
+   udpHeader.destinationPort(DestinationPort);
+   udpHeader.length(8 + PayloadSize);
+
+   // ====== Create TraceServiceHeader ======================================
+   seqNumber++;
+   TraceServiceHeader tsHeader(PayloadSize);
+   tsHeader.magicNumber(MagicNumber);
+   tsHeader.sendTTL(ttl);
+   tsHeader.round((unsigned char)round);
+   tsHeader.checksumTweak(seqNumber);   // FIXME!
+   // NOTE: SendTimeStamp will be set later, for accuracy!
+
+   // ====== Create IPv6 header =============================================
+   boost::asio::streambuf                request_buffer;
+   std::ostream                          os(&request_buffer);
+   std::chrono::system_clock::time_point sendTime;
+   if(SourceAddress.is_v6()) {
+      IPv6Header ipv6Header;
+
+      abort();
+
+
+   }
+   else {
+      IPv4Header ipv4Header;
+      ipv4Header.version(4);
+      ipv4Header.typeOfService(destination.trafficClass());
+      ipv4Header.headerLength(20);
+      ipv4Header.totalLength(ActualPacketSize);
+      // NOTE: Using IPv4 Identification for the sequence number!
+      ipv4Header.identification(seqNumber);
+      ipv4Header.fragmentOffset(0);
+      ipv4Header.protocol(IPPROTO_UDP);
+      ipv4Header.timeToLive(ttl);
+      ipv4Header.sourceAddress(UDPSocketEndpoint.address().to_v4());
+      ipv4Header.destinationAddress(destination.address().to_v4());
+
+      // ------ IPv4 header checksum ----------------------------------------
+      uint32_t ipv4HeaderChecksum = 0;
+      std::vector<uint8_t> ipv4HeaderContents = ipv4Header.contents();
+      processInternet16(ipv4HeaderChecksum, ipv4HeaderContents.begin(), ipv4HeaderContents.end());
+      ipv4Header.headerChecksum(finishInternet16(ipv4HeaderChecksum));
+
+      // ------ UDP checksum ------------------------------------------------
+      // UDP header:
+      uint32_t udpChecksum = 0;
+      std::vector<uint8_t> udpHeaderContents = udpHeader.contents();
+      processInternet16(udpChecksum, udpHeaderContents.begin(), udpHeaderContents.end());
+
+      // UDP pseudo-header:
+      IPv4PseudoHeader ph(ipv4Header, udpHeader.length());
+      std::vector<uint8_t> pseudoHeaderContents = ph.contents();
+      processInternet16(udpChecksum, pseudoHeaderContents.begin(), pseudoHeaderContents.end());
+
+      // Now, the SendTimeStamp in the TraceServiceHeader has to be set:
+      sendTime = std::chrono::system_clock::now();
+      tsHeader.sendTimeStamp(sendTime);
+
+      // UDP payload:
+      std::vector<uint8_t> tsHeaderContents = tsHeader.contents();
+      processInternet16(udpChecksum, tsHeaderContents.begin(), tsHeaderContents.end());
+      udpHeader.checksum(finishInternet16(udpChecksum));
+
+      os << ipv4Header << udpHeader << tsHeader;
+   }
+   const std::size_t sent =
+      RawUDPSocket.send_to(request_buffer.data(), remoteEndpoint);
+
+      std::cout << "from=" <<UDPSocketEndpoint<<"\n";
+
+#if 0
+FIXME
    // ====== Set TTL ========================================================
    const boost::asio::ip::unicast::hops option(ttl);
    UDPSocket.set_option(option);
@@ -1102,6 +1198,7 @@ ResultEntry* UDPModule::sendRequest(const DestinationInfo& destination,
    catch(boost::system::system_error const& e) {
       sent = -1;
    }
+#endif
 
    // ====== Create ResultEntry on success ==================================
    if(sent > 0) {

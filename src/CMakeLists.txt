@@ -98,6 +98,8 @@ INSTALL(FILES tracedataimporter.1 get-default-ips.1 addressinfogenerator.1
 # TARGET_LINK_LIBRARIES(t1 ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
 # ADD_EXECUTABLE(t2 t2.cc)
 # ADD_EXECUTABLE(t3 t3.cc)
+ADD_EXECUTABLE(t9 t9.cc)
+TARGET_LINK_LIBRARIES(t9 ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
 
 
 #############################################################################
