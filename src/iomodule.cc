@@ -546,8 +546,6 @@ ResultEntry* ICMPModule::sendRequest(const DestinationInfo& destination,
 
    // ====== Create ResultEntry on success ==================================
    if(sent > 0) {
-//       expectNextReply();   // Ensure to receive response!
-
       ResultEntry* resultEntry =
          new ResultEntry(TimeStampSeqID++,
                          round, seqNumber, ttl, ActualPacketSize,
@@ -1061,6 +1059,7 @@ bool UDPModule::prepareSocket()
    // ====== Await incoming message or error ================================
    expectNextReply(UDPSocket.native_handle(), true);
    expectNextReply(UDPSocket.native_handle(), false);
+   expectNextReply(RawUDPSocket.native_handle(), true);
 
    return true;
 }
@@ -1080,6 +1079,16 @@ void UDPModule::expectNextReply(const int  socketDescriptor,
                    UDPSocket.native_handle(), readFromErrorQueue)
       );
    }
+   else if(socketDescriptor == RawUDPSocket.native_handle()) {
+      RawUDPSocket.async_wait(
+         (readFromErrorQueue == true) ?
+            boost::asio::ip::udp::socket::wait_error :
+            boost::asio::ip::udp::socket::wait_read,
+         std::bind(&ICMPModule::handleResponse, this,
+                   std::placeholders::_1,
+                   RawUDPSocket.native_handle(), readFromErrorQueue)
+      );
+   }
    else {
       ICMPModule::expectNextReply(socketDescriptor, readFromErrorQueue);
    }
@@ -1090,6 +1099,7 @@ void UDPModule::expectNextReply(const int  socketDescriptor,
 void UDPModule::cancelSocket()
 {
    UDPSocket.cancel();
+   RawUDPSocket.cancel();
    ICMPModule::cancelSocket();
 }
 
@@ -1282,16 +1292,16 @@ void UDPModule::handlePayloadResponse(const int           socketDescriptor,
                     UDPHeader udpHeader;
                     is >> udpHeader;
                     if( (is) &&
-                        /* FIXME: src port! */
+                        (udpHeader.sourcePort() == UDPSocketEndpoint.port()) &&
                         (udpHeader.destinationPort() == DestinationPort) ) {
-                       printf("U5   n=%d   dport=%u\n", n, udpHeader.destinationPort());
+                       printf("U5   n=%d   dport=%u   seq=%u\n", n, udpHeader.destinationPort(), innerIPv4Header.identification());
 
                        // Unfortunately, ICMPv4 does not return the full
                        // TraceServiceHeader here! So, the sequence number
                        // has to be used to identify the outgoing request!
-  //                      recordResult(receivedData,
-  //                                   icmpHeader.type(), icmpHeader.code(),
-  //                                   innerICMPHeader.seqNumber());
+                       recordResult(receivedData,
+                                    icmpHeader.type(), icmpHeader.code(),
+                                    innerIPv4Header.identification());
 
                      }
                   }
@@ -1310,6 +1320,7 @@ void UDPModule::handleErrorResponse(const int                socketDescriptor,
                                     const ReceivedData&      receivedData,
                                     const sock_extended_err* socketError)
 {
+   puts("E");
 #if 0
    if(socketDescriptor == UDPSocket.native_handle()) {
       static int qq=0;
