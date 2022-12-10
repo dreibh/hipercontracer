@@ -34,8 +34,13 @@ class IOModuleBase
    static bool configureSocket(const int                      socketDescriptor,
                                const boost::asio::ip::address sourceAddress);
 
+   static boost::asio::ip::address findSourceForDestination(const boost::asio::ip::address& destinationAddress);
+
 
    protected:
+   static std::map<boost::asio::ip::address, boost::asio::ip::address> SourceForDestinationMap;
+   static std::mutex                                                   SourceForDestinationMapMutex;
+
    const std::string                        Name;
    boost::asio::io_service&                 IOService;
    std::map<unsigned short, ResultEntry*>&  ResultsMap;

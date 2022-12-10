@@ -275,6 +275,44 @@ bool IOModuleBase::configureSocket(const int                      socketDescript
 }
 
 
+std::map<boost::asio::ip::address, boost::asio::ip::address> IOModuleBase::SourceForDestinationMap;
+std::mutex                                                   IOModuleBase::SourceForDestinationMapMutex;
+
+// ###### Find source address for given destination address #################
+boost::asio::ip::address IOModuleBase::findSourceForDestination(const boost::asio::ip::address& destinationAddress)
+{
+   std::lock_guard<std::mutex> lock(SourceForDestinationMapMutex);
+
+   // ====== Cache lookup ===================================================
+   std::map<boost::asio::ip::address, boost::asio::ip::address>::const_iterator found =
+      SourceForDestinationMap.find(destinationAddress);
+   if(found != SourceForDestinationMap.end()) {
+      return found->second;
+   }
+
+   // ====== Get source address from kernel =================================
+   // Procedure:
+   // - Create UDP socket
+   // - Connect it to remote address
+   // - Obtain local address
+   // - Write this information into a cache for later lookup
+   try {
+      boost::asio::io_service        ioService;
+      boost::asio::ip::udp::endpoint destinationEndpoint(destinationAddress, 7);
+      boost::asio::ip::udp::socket   udpSpcket(ioService, (destinationAddress.is_v6() == true) ?
+                                                             boost::asio::ip::udp::v6() :
+                                                             boost::asio::ip::udp::v4());
+      udpSpcket.connect(destinationEndpoint);
+      const boost::asio::ip::address sourceAddress = udpSpcket.local_endpoint().address();
+      SourceForDestinationMap.insert(std::pair<boost::asio::ip::address, boost::asio::ip::address>(destinationAddress,
+                                                                                                   sourceAddress));
+      return sourceAddress;
+   }
+   catch(...) {
+      return boost::asio::ip::address();
+   }
+}
+
 
 
 // ###### Constructor #######################################################
@@ -1063,21 +1101,21 @@ ResultEntry* UDPModule::sendRequest(const DestinationInfo& destination,
                                     uint16_t&              seqNumber,
                                     uint32_t&              targetChecksum)
 {
+   // NOTE:
+   // - RawUDPSocket is used for sending the raw UDP packet
+   // - UDPSocket is used for receiving the response. This socket is already
+   //   bound to the ANY address and source port.
+   // - If SourceAddress is the ANY address: find the actual source address
    const raw_udp::endpoint remoteEndpoint(destination.address(), DestinationPort);
    const raw_udp::endpoint localEndpoint((UDPSocketEndpoint.address().is_unspecified() ?
-                                            UDPSocketEndpoint.address() :
+                                            findSourceForDestination(destination.address()) :
                                             UDPSocketEndpoint.address()),
                                          UDPSocketEndpoint.port());
 
-   // NOTE:
-   // RawUDPSocket is used for sending the raw UDP packet
-   // UDPSocket is used for receiving the response. This socket is already
-   // bound to the ANY address and source port.
-
    // ====== Create UDP header ==============================================
    UDPHeader udpHeader;
-   udpHeader.sourcePort(UDPSocketEndpoint.port());
-   udpHeader.destinationPort(DestinationPort);
+   udpHeader.sourcePort(localEndpoint.port());
+   udpHeader.destinationPort(remoteEndpoint.port());
    udpHeader.length(8 + PayloadSize);
 
    // ====== Create TraceServiceHeader ======================================
@@ -1111,8 +1149,8 @@ ResultEntry* UDPModule::sendRequest(const DestinationInfo& destination,
       ipv4Header.fragmentOffset(0);
       ipv4Header.protocol(IPPROTO_UDP);
       ipv4Header.timeToLive(ttl);
-      ipv4Header.sourceAddress(UDPSocketEndpoint.address().to_v4());
-      ipv4Header.destinationAddress(destination.address().to_v4());
+      ipv4Header.sourceAddress(localEndpoint.address().to_v4());
+      ipv4Header.destinationAddress(remoteEndpoint.address().to_v4());
 
       // ------ IPv4 header checksum ----------------------------------------
       uint32_t ipv4HeaderChecksum = 0;
@@ -1144,61 +1182,6 @@ ResultEntry* UDPModule::sendRequest(const DestinationInfo& destination,
    }
    const std::size_t sent =
       RawUDPSocket.send_to(request_buffer.data(), remoteEndpoint);
-
-      std::cout << "from=" <<UDPSocketEndpoint<<"\n";
-
-#if 0
-FIXME
-   // ====== Set TTL ========================================================
-   const boost::asio::ip::unicast::hops option(ttl);
-   UDPSocket.set_option(option);
-
-   // ====== Create request =================================================
-   seqNumber++;
-
-   TraceServiceHeader tsHeader(PayloadSize);
-   tsHeader.magicNumber(MagicNumber);
-   tsHeader.sendTTL(ttl);
-   tsHeader.round((unsigned char)round);
-   tsHeader.checksumTweak(seqNumber);   // FIXME!
-   const std::chrono::system_clock::time_point sendTime = std::chrono::system_clock::now();
-   tsHeader.sendTimeStamp(sendTime);
-
-   // ====== Encode the request packet ======================================
-   boost::asio::streambuf request_buffer;
-   std::ostream os(&request_buffer);
-   os << tsHeader;
-
-   // ====== Send the request ===============================================
-   std::size_t sent;
-   try {
-      int level;
-      int option;
-      int trafficClass = destination.trafficClass();
-      if(destination.address().is_v6()) {
-         level  = IPPROTO_IPV6;
-         option = IPV6_TCLASS;
-      }
-      else {
-         level  = IPPROTO_IP;
-         option = IP_TOS;
-      }
-
-      if(setsockopt(UDPSocket.native_handle(), level, option,
-                    &trafficClass, sizeof(trafficClass)) < 0) {
-         HPCT_LOG(warning) << "Unable to set Traffic Class!";
-         sent = -1;
-      }
-      else {
-         sent = UDPSocket.send_to(request_buffer.data(),
-                                  boost::asio::ip::udp::endpoint(destination.address(),
-                                                                 DestinationPort));
-      }
-   }
-   catch(boost::system::system_error const& e) {
-      sent = -1;
-   }
-#endif
 
    // ====== Create ResultEntry on success ==================================
    if(sent > 0) {

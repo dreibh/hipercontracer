@@ -70,6 +70,45 @@ class raw_udp
 };
 
 
+static std::map<boost::asio::ip::address, boost::asio::ip::address> SourceForDestinationMap;
+static std::mutex                                                   SourceForDestinationMapMutex;
+
+// ###### Find source address for given destination address #################
+boost::asio::ip::address findSourceForDestination(const boost::asio::ip::address& destinationAddress)
+{
+   std::lock_guard<std::mutex> lock(SourceForDestinationMapMutex);
+
+   // ====== Cache lookup ===================================================
+   std::map<boost::asio::ip::address, boost::asio::ip::address>::const_iterator found =
+      SourceForDestinationMap.find(destinationAddress);
+   if(found != SourceForDestinationMap.end()) {
+      return found->second;
+   }
+
+   // ====== Get source address from kernel =================================
+   // Procedure:
+   // - Create UDP socket
+   // - Connect it to remote address
+   // - Obtain local address
+   // - Write this information into a cache for later lookup
+   try {
+      boost::asio::io_service        ioService;
+      boost::asio::ip::udp::endpoint destinationEndpoint(destinationAddress, 7);
+      boost::asio::ip::udp::socket   udpSpcket(ioService, (destinationAddress.is_v6() == true) ?
+                                                             boost::asio::ip::udp::v6() :
+                                                             boost::asio::ip::udp::v4());
+      udpSpcket.connect(destinationEndpoint);
+      const boost::asio::ip::address sourceAddress = udpSpcket.local_endpoint().address();
+      SourceForDestinationMap.insert(std::pair<boost::asio::ip::address, boost::asio::ip::address>(destinationAddress,
+                                                                                                   sourceAddress));
+      return sourceAddress;
+   }
+   catch(...) {
+      return boost::asio::ip::address();
+   }
+}
+
+
 int main(int argc, char *argv[])
 {
    if(argc < 2) {
@@ -77,52 +116,17 @@ int main(int argc, char *argv[])
       exit(1);
    }
 
-   const char*        localAddress  = "192.168.0.16";
-   const uint16_t     localPort     = 12345;
-   const char*        remoteAddress = argv[1];
-   const uint16_t     remotePort    = 7;
-   const unsigned int payloadSize   = 16;
-   const unsigned int round         = 1;
-   const unsigned int magicNumber   = 0x12345678;
-   const unsigned int ttl           = 8;
-
-   sockaddr_in localEndpoint;
-   localEndpoint.sin_family = AF_INET;
-   localEndpoint.sin_addr.s_addr = inet_addr(localAddress);
-   localEndpoint.sin_port = htons(localPort);
-
-   sockaddr_in remoteEndpoint;
-   remoteEndpoint.sin_family = AF_INET;
-   remoteEndpoint.sin_addr.s_addr = inet_addr(remoteAddress);
-   remoteEndpoint.sin_port = htons(remotePort);
-
-
-   // ====== Obtain local address for given destination:
-   sockaddr_in localTEST;
-   socklen_t localTESTSize = sizeof(localTEST);
-   int sdTEST = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
-   if(connect(sdTEST, (sockaddr*)&remoteEndpoint, sizeof(sockaddr_in)) != 0) {
-      perror("connect(sdTEST):");
-      exit(1);
-   }
-   if(getsockname(sdTEST, (sockaddr*)&localTEST, &localTESTSize) != 0) {
-      perror("getsockname():");
-      exit(1);
-   }
-   boost::asio::ip::address_v4 localTESTaddress(ntohl(((sockaddr_in*)&localTEST)->sin_addr.s_addr));
-   std::cout << "LOCAL=" << localTESTaddress << "\n";
-   close(sdTEST);
-
-
-   int sdINPUT = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
-   if(bind(sdINPUT, (sockaddr*)&localEndpoint, sizeof(sockaddr_in)) != 0) {
-      perror("bind(sdINPUT):");
-      exit(1);
-   }
+   const boost::asio::ip::address remoteAddress = boost::asio::ip::address::from_string(argv[1]);
+   const uint16_t                 remotePort    = 7;
+   const uint16_t                 localPort     = 12345;
+   const unsigned int             payloadSize   = 16;
+   const unsigned int             round         = 1;
+   const unsigned int             magicNumber   = 0x12345678;
+   const unsigned int             ttl           = 8;
 
    boost::asio::io_service io_service;
    boost::asio::basic_raw_socket<raw_udp> rs(io_service);
-   raw_udp::endpoint rep(boost::asio::ip::address::from_string(remoteAddress).to_v4(), remotePort);
+   raw_udp::endpoint rep(remoteAddress.to_v4(), remotePort);
    rs.open();
 
    int sd = socket(AF_INET, SOCK_RAW, IPPROTO_UDP);
@@ -153,8 +157,9 @@ int main(int argc, char *argv[])
             ipv4Header.fragmentOffset(0);
             ipv4Header.protocol(IPPROTO_UDP);
             ipv4Header.timeToLive(t);
-            ipv4Header.sourceAddress(boost::asio::ip::address::from_string(localAddress).to_v4());
-            ipv4Header.destinationAddress(boost::asio::ip::address::from_string(remoteAddress).to_v4());
+            const boost::asio::ip::address localAddress = findSourceForDestination(remoteAddress);
+            ipv4Header.sourceAddress(localAddress.to_v4());
+            ipv4Header.destinationAddress(remoteAddress.to_v4());
 
             UDPHeader udpHeader;
             udpHeader.sourcePort(localPort);
