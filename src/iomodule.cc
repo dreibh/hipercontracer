@@ -1203,6 +1203,51 @@ ResultEntry* UDPModule::sendRequest(const DestinationInfo& destination,
 
       os << ipv6Header << udpHeader << tsHeader;
    }
+
+   // ====== Create IPv4 header =============================================
+   else {
+      IPv4Header ipv4Header;
+      ipv4Header.version(4);
+      ipv4Header.typeOfService(destination.trafficClass());
+      ipv4Header.headerLength(20);
+      ipv4Header.totalLength(ActualPacketSize);
+      // NOTE: Using IPv4 Identification for the sequence number!
+      ipv4Header.identification(seqNumber);
+      ipv4Header.fragmentOffset(0);
+      ipv4Header.protocol(IPPROTO_UDP);
+      ipv4Header.timeToLive(ttl);
+      ipv4Header.sourceAddress(localEndpoint.address().to_v4());
+      ipv4Header.destinationAddress(remoteEndpoint.address().to_v4());
+
+      // ------ IPv4 header checksum ----------------------------------------
+      uint32_t ipv4HeaderChecksum = 0;
+      std::vector<uint8_t> ipv4HeaderContents = ipv4Header.contents();
+      processInternet16(ipv4HeaderChecksum, ipv4HeaderContents.begin(), ipv4HeaderContents.end());
+      ipv4Header.headerChecksum(finishInternet16(ipv4HeaderChecksum));
+
+      // ------ UDP checksum ------------------------------------------------
+      // UDP header:
+      uint32_t udpChecksum = 0;
+      std::vector<uint8_t> udpHeaderContents = udpHeader.contents();
+      processInternet16(udpChecksum, udpHeaderContents.begin(), udpHeaderContents.end());
+
+      // UDP pseudo-header:
+      IPv4PseudoHeader ph(ipv4Header, udpHeader.length());
+      std::vector<uint8_t> pseudoHeaderContents = ph.contents();
+      processInternet16(udpChecksum, pseudoHeaderContents.begin(), pseudoHeaderContents.end());
+
+      // Now, the SendTimeStamp in the TraceServiceHeader has to be set:
+      sendTime = std::chrono::system_clock::now();
+      tsHeader.sendTimeStamp(sendTime);
+
+      // UDP payload:
+      std::vector<uint8_t> tsHeaderContents = tsHeader.contents();
+      processInternet16(udpChecksum, tsHeaderContents.begin(), tsHeaderContents.end());
+      udpHeader.checksum(finishInternet16(udpChecksum));
+
+      os << ipv4Header << udpHeader << tsHeader;
+   }
+
 std::cout << "l=" << localEndpoint<<"\n";
 std::cout << "r=" << remoteEndpoint<<"\n";
    const std::size_t sent =
