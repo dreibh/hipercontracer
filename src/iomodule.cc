@@ -1302,29 +1302,22 @@ void UDPModule::handlePayloadResponse(const int     socketDescriptor,
                // ------ IPv4 -> ICMP[Error] --------------------------------
                if( (icmpHeader.type() == ICMPHeader::IPv4TimeExceeded) ||
                    (icmpHeader.type() == ICMPHeader::IPv4Unreachable) ) {
-                  puts("U3");
                   // ------ IPv4 -> ICMP[Error] -> IPv4 ---------------------
                   IPv4Header innerIPv4Header;
                   is >> innerIPv4Header;
-                  if( (is) &&
-                      (innerIPv4Header.protocol() == IPPROTO_UDP)
-                      /* FIXME: ADDRS! */
-                    ) {
-                    static int n=0;++n;
-                    printf("U4   n=%d\n", n);
+                  if( (is) && (innerIPv4Header.protocol() == IPPROTO_UDP) ) {
+                     // NOTE: Addresses will be checked by recordResult()!
                     // ------ IPv4 -> ICMP[Error] -> IPv4 -> UDP ------------
                     UDPHeader udpHeader;
                     is >> udpHeader;
                     if( (is) &&
-                        (udpHeader.sourcePort() == UDPSocketEndpoint.port()) &&
+                        (udpHeader.sourcePort()      == UDPSocketEndpoint.port()) &&
                         (udpHeader.destinationPort() == DestinationPort) ) {
-                       printf("U5   n=%d   dport=%u   seq=%u\n", n, udpHeader.destinationPort(), innerIPv4Header.identification());
-
+                       receivedData.Source      = boost::asio::ip::udp::endpoint(innerIPv4Header.sourceAddress(),      udpHeader.sourcePort());
+                       receivedData.Destination = boost::asio::ip::udp::endpoint(innerIPv4Header.destinationAddress(), udpHeader.destinationPort());
                        // Unfortunately, ICMPv4 does not return the full
                        // TraceServiceHeader here! So, the sequence number
                        // has to be used to identify the outgoing request!
-                       receivedData.Source      = boost::asio::ip::udp::endpoint(innerIPv4Header.sourceAddress(),      udpHeader.sourcePort());
-                       receivedData.Destination = boost::asio::ip::udp::endpoint(innerIPv4Header.destinationAddress(), udpHeader.destinationPort());
                        recordResult(receivedData,
                                     icmpHeader.type(), icmpHeader.code(),
                                     innerIPv4Header.identification());
@@ -1347,30 +1340,4 @@ void UDPModule::handleErrorResponse(const int          socketDescriptor,
                                     sock_extended_err* socketError)
 {
    // Nothing to do here!
-#if 0
-   if(socketDescriptor == UDPSocket.native_handle()) {
-      static int qq=0;
-      printf("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@qq UDP-P!   %u\n",++qq);
-      // printf("XXXX ERR %d/%d   len=%u\n", socketError->ee_type, socketError->ee_code, receivedData.MessageLength);
-
-      assert(socketError != nullptr);
-
-      // ====== Read TraceServiceHeader =====================================
-      boost::interprocess::bufferstream is(receivedData.MessageBuffer,
-                                           receivedData.MessageLength);
-      TraceServiceHeader tsHeader;
-      is >> tsHeader;
-      if(is) {
-         if(tsHeader.magicNumber() == MagicNumber) {
-            puts("MM-----------");
-            recordResult(receivedData,
-                         socketError->ee_type, socketError->ee_code,
-                         tsHeader.checksumTweak());   // FIXME!!!
-         }
-      }
-   }
-   else if(socketDescriptor == ICMPSocket.native_handle()) {
-      puts("UDP-ICMP!");
-   }
-#endif
 }
