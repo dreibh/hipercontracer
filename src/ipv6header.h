@@ -112,6 +112,13 @@ class IPv6Header
    inline void timeToLive(const uint8_t timeToLive)        { Data[7] = timeToLive;                         }
    inline void nextHeader(const uint8_t nextHeader)        { Data[6] = nextHeader;                         }
 
+   inline void sourceAddress(const boost::asio::ip::address_v6& sourceAddress) {
+      memcpy(&Data[8], sourceAddress.to_bytes().data(), 16);
+   }
+   inline void destinationAddress(const boost::asio::ip::address_v6& destinationAddress) {
+      memcpy(&Data[24], destinationAddress.to_bytes().data(), 16);
+   }
+
    friend std::istream& operator>>(std::istream& is, IPv6Header& header) {
       is.read(reinterpret_cast<char*>(header.Data), 40);
       if (header.version() != 6) {
@@ -122,6 +129,10 @@ class IPv6Header
 
    inline friend std::ostream& operator<<(std::ostream& os, const IPv6Header& header) {
       return os.write(reinterpret_cast<const char*>(header.Data), sizeof(header.Data));
+   }
+
+   inline std::vector<uint8_t> contents() const {
+      return std::vector<uint8_t>((uint8_t*)&Data, (uint8_t*)&Data[sizeof(Data)]);
    }
 
    private:
@@ -144,7 +155,7 @@ class IPv6PseudoHeader
 {
    public:
    IPv6PseudoHeader(const IPv6Header& ipv6Header, const uint16_t length) {
-      memcpy(&Data[0], &ipv6Header.Data[32], 32);      // Source and Destination Address
+      memcpy(&Data[0], &ipv6Header.Data[8], 32);   // Source and Destination Address
       // Length (Transport):
       Data[32] = static_cast<uint8_t>((length & 0xff000000) >> 24);
       Data[33] = static_cast<uint8_t>((length & 0x00ff0000) >> 16);

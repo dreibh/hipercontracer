@@ -220,6 +220,7 @@ bool IOModuleBase::configureSocket(const int                      socketDescript
                            sizeof(sockaddr_in6)
                      ).address();
                   if(address == sourceAddress) {
+                     printf("N=<%s>\n", ifa->ifa_name);
                      interfaceSet.insert(ifa->ifa_name);
                   }
                }
@@ -255,7 +256,7 @@ bool IOModuleBase::configureSocket(const int                      socketDescript
                }
             }
             else {
-               if( (hwTimestampConfig.tx_type == hwTimestampConfigDesired.tx_type) &&
+               if( (hwTimestampConfig.tx_type   == hwTimestampConfigDesired.tx_type) &&
                    (hwTimestampConfig.rx_filter == hwTimestampConfigDesired.rx_filter) ) {
                   if(logSIOCSHWTSTAMP) {
                      HPCT_LOG(info) << "Hardware timestamping enabled on interface " << interfaceName;
@@ -1074,8 +1075,11 @@ bool UDPModule::prepareSocket()
       return false;
    }
    int on = 1;
-   if(setsockopt(RawUDPSocket.native_handle(), IPPROTO_IP, IP_HDRINCL, &on, sizeof(on)) < 0) {
-      HPCT_LOG(error) << "Unable to enable IP_HDRINCL option on socket: "
+   if(setsockopt(RawUDPSocket.native_handle(),
+                 (SourceAddress.is_v6() == true) ? IPPROTO_IPV6 : IPPROTO_IP,
+                 (SourceAddress.is_v6() == true) ? IPV6_HDRINCL : IP_HDRINCL,
+                 &on, sizeof(on)) < 0) {
+      HPCT_LOG(error) << "Unable to enable IP_HDRINCL/IPV6_HDRINCL option on socket: "
                         << strerror(errno);
       return false;
    }
@@ -1168,29 +1172,14 @@ ResultEntry* UDPModule::sendRequest(const DestinationInfo& destination,
    if(SourceAddress.is_v6()) {
       IPv6Header ipv6Header;
 
-      abort();
-
-
-   }
-   else {
-      IPv4Header ipv4Header;
-      ipv4Header.version(4);
-      ipv4Header.typeOfService(destination.trafficClass());
-      ipv4Header.headerLength(20);
-      ipv4Header.totalLength(ActualPacketSize);
-      // NOTE: Using IPv4 Identification for the sequence number!
-      ipv4Header.identification(seqNumber);
-      ipv4Header.fragmentOffset(0);
-      ipv4Header.protocol(IPPROTO_UDP);
-      ipv4Header.timeToLive(ttl);
-      ipv4Header.sourceAddress(localEndpoint.address().to_v4());
-      ipv4Header.destinationAddress(remoteEndpoint.address().to_v4());
-
-      // ------ IPv4 header checksum ----------------------------------------
-      uint32_t ipv4HeaderChecksum = 0;
-      std::vector<uint8_t> ipv4HeaderContents = ipv4Header.contents();
-      processInternet16(ipv4HeaderChecksum, ipv4HeaderContents.begin(), ipv4HeaderContents.end());
-      ipv4Header.headerChecksum(finishInternet16(ipv4HeaderChecksum));
+      ipv6Header.version(6);
+      ipv6Header.trafficClass(destination.trafficClass());
+      ipv6Header.flowLabel(0);
+      ipv6Header.payloadLength(8 + PayloadSize);
+      ipv6Header.nextHeader(IPPROTO_UDP);
+      ipv6Header.timeToLive(ttl);
+      ipv6Header.sourceAddress(localEndpoint.address().to_v6());
+      ipv6Header.destinationAddress(remoteEndpoint.address().to_v6());
 
       // ------ UDP checksum ------------------------------------------------
       // UDP header:
@@ -1199,7 +1188,7 @@ ResultEntry* UDPModule::sendRequest(const DestinationInfo& destination,
       processInternet16(udpChecksum, udpHeaderContents.begin(), udpHeaderContents.end());
 
       // UDP pseudo-header:
-      IPv4PseudoHeader ph(ipv4Header, udpHeader.length());
+      IPv6PseudoHeader ph(ipv6Header, udpHeader.length());
       std::vector<uint8_t> pseudoHeaderContents = ph.contents();
       processInternet16(udpChecksum, pseudoHeaderContents.begin(), pseudoHeaderContents.end());
 
@@ -1212,8 +1201,10 @@ ResultEntry* UDPModule::sendRequest(const DestinationInfo& destination,
       processInternet16(udpChecksum, tsHeaderContents.begin(), tsHeaderContents.end());
       udpHeader.checksum(finishInternet16(udpChecksum));
 
-      os << ipv4Header << udpHeader << tsHeader;
+      os << ipv6Header << udpHeader << tsHeader;
    }
+std::cout << "l=" << localEndpoint<<"\n";
+std::cout << "r=" << remoteEndpoint<<"\n";
    const std::size_t sent =
       RawUDPSocket.send_to(request_buffer.data(), remoteEndpoint);
 
