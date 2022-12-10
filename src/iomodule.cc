@@ -1202,6 +1202,10 @@ ResultEntry* UDPModule::sendRequest(const DestinationInfo& destination,
       udpHeader.checksum(finishInternet16(udpChecksum));
 
       os << ipv6Header << udpHeader << tsHeader;
+
+std::cout << "l=" << localEndpoint<<"\n";
+std::cout << "r=" << remoteEndpoint<<"\n";
+
    }
 
    // ====== Create IPv4 header =============================================
@@ -1247,14 +1251,12 @@ ResultEntry* UDPModule::sendRequest(const DestinationInfo& destination,
 
       os << ipv4Header << udpHeader << tsHeader;
    }
-
-std::cout << "l=" << localEndpoint<<"\n";
-std::cout << "r=" << remoteEndpoint<<"\n";
+   boost::system::error_code errorCode;
    const std::size_t sent =
-      RawUDPSocket.send_to(request_buffer.data(), remoteEndpoint);
+      RawUDPSocket.send_to(request_buffer.data(), remoteEndpoint, 0, errorCode);
 
    // ====== Create ResultEntry on success ==================================
-   if(sent > 0) {
+   if( (!errorCode) && (sent > 0) ) {
       ResultEntry* resultEntry =
          new ResultEntry(TimeStampSeqID++,
                          round, seqNumber, ttl, ActualPacketSize,
@@ -1268,9 +1270,12 @@ std::cout << "r=" << remoteEndpoint<<"\n";
 
       return resultEntry;
    }
-   HPCT_LOG(warning) << getName() << ": sendRequest() - send_to("
-                     << SourceAddress << "->" << destination << ") failed!";
-   return nullptr;
+   else {
+      HPCT_LOG(warning) << getName() << ": sendRequest() - send_to("
+                        << SourceAddress << "->" << destination << ") failed: "
+                        << errorCode.message();
+      return nullptr;
+   }
 }
 
 
