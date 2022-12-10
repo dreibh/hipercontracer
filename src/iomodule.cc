@@ -220,7 +220,6 @@ bool IOModuleBase::configureSocket(const int                      socketDescript
                            sizeof(sockaddr_in6)
                      ).address();
                   if(address == sourceAddress) {
-                     printf("N=<%s>\n", ifa->ifa_name);
                      interfaceSet.insert(ifa->ifa_name);
                   }
                }
@@ -232,6 +231,7 @@ bool IOModuleBase::configureSocket(const int                      socketDescript
          static bool	logSIOCSHWTSTAMP = true;
          for(std::string interfaceName : interfaceSet) {
             hwtstamp_config hwTimestampConfig;
+            memset(&hwTimestampConfig, 0, sizeof(hwTimestampConfig));
             hwTimestampConfig.tx_type   = HWTSTAMP_TX_ON;
             hwTimestampConfig.rx_filter = HWTSTAMP_FILTER_ALL;
             const hwtstamp_config hwTimestampConfigDesired = hwTimestampConfig;
