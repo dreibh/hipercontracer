@@ -71,10 +71,10 @@ class IPv6Header
       std::fill(Data, Data + sizeof(Data), 0);
    }
 
-   inline uint8_t  version()       const { return (Data[0] >> 4) & 0x0f;             }
-   inline uint8_t  trafficClass()  const { return (Data[1] & 0x0f) | (Data[2] >> 4); }
+   inline uint8_t  version()       const { return (Data[0] >> 4) & 0x0f;                             }
+   inline uint8_t  trafficClass()  const { return ((Data[0] & 0x0f) << 4) | ((Data[1] >> 4) & 0x0f); }
    inline uint32_t flowLabel()     const {
-      return (((uint32_t)Data[2] & 0x0f) << 16) | ((uint32_t)Data[3] << 8) | (uint32_t)Data[4];
+      return (((uint32_t)Data[1] & 0x0f) << 16) | ((uint32_t)Data[2] << 8) | (uint32_t)Data[3];
    }
    inline uint16_t payloadLength() const { return decode(4, 5); }
    inline uint8_t  nextHeader()    const { return Data[6];      }
@@ -98,15 +98,15 @@ class IPv6Header
       return address;
    }
 
-   inline void version(const uint8_t version)              { Data[0] = (version << 4) | (Data[0] & 0x0f);  }
+   inline void version(const uint8_t version)              { Data[0] = ((version & 0x0f) << 4) | (Data[0] & 0x0f); }
    inline void trafficClass(const uint8_t trafficClass)    {
       Data[0] = (Data[0] & 0xf0) | ((trafficClass & 0xf0) >> 4);
       Data[1] = (Data[1] & 0x0f) | ((trafficClass & 0x0f) << 4);
    }
    inline void flowLabel(const uint32_t flowlabel) {
-      Data[2] = (Data[2] & 0xf0) | ((flowlabel & 0x000f0000) >> 16);
-      Data[3] = (flowlabel & 0x0000ff00) >> 8;
-      Data[4] = (flowlabel & 0x000000ff);
+      Data[1] = (Data[1] & 0xf0) | ((flowlabel & 0x000f0000) >> 16);
+      Data[2] = (flowlabel & 0x0000ff00) >> 8;
+      Data[3] = (flowlabel & 0x000000ff);
    }
    inline void payloadLength(const uint16_t payloadLength) { encode(4, 5, payloadLength); }
    inline void hopLimit(const uint8_t hopLimit)            { Data[7] = hopLimit;          }
@@ -128,7 +128,7 @@ class IPv6Header
    }
 
    inline friend std::ostream& operator<<(std::ostream& os, const IPv6Header& header) {
-      return os.write(reinterpret_cast<const char*>(header.Data), sizeof(header.Data));
+      return os.write(reinterpret_cast<const char*>(&header.Data), sizeof(header.Data));
    }
 
    inline std::vector<uint8_t> contents() const {
@@ -154,7 +154,7 @@ class IPv6Header
 class IPv6PseudoHeader
 {
    public:
-   IPv6PseudoHeader(const IPv6Header& ipv6Header, const uint16_t length) {
+   IPv6PseudoHeader(const IPv6Header& ipv6Header, const uint32_t length) {
       memcpy(&Data[0], &ipv6Header.Data[8], 32);   // Source and Destination Address
       // Length (Transport):
       Data[32] = static_cast<uint8_t>((length & 0xff000000) >> 24);
@@ -169,7 +169,7 @@ class IPv6PseudoHeader
    }
 
    inline std::vector<uint8_t> contents() const {
-      return std::vector<uint8_t>((uint8_t*)&Data, (uint8_t*)&Data[12]);
+      return std::vector<uint8_t>((uint8_t*)&Data, (uint8_t*)&Data[sizeof(Data)]);
    }
 
    private:

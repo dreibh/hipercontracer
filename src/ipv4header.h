@@ -156,7 +156,7 @@ class IPv4PseudoHeader
    }
 
    inline std::vector<uint8_t> contents() const {
-      return std::vector<uint8_t>((uint8_t*)&Data, (uint8_t*)&Data[12]);
+      return std::vector<uint8_t>((uint8_t*)&Data, (uint8_t*)&Data[sizeof(Data)]);
    }
 
    private:
