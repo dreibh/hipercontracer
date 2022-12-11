@@ -102,6 +102,8 @@ ADD_EXECUTABLE(t9 t9.cc)
 TARGET_LINK_LIBRARIES(t9 ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
 ADD_EXECUTABLE(t9b t9b.cc)
 TARGET_LINK_LIBRARIES(t9b ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
+ADD_EXECUTABLE(echo-server echo-server.cc logger.cc tools.cc)
+TARGET_LINK_LIBRARIES(echo-server ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
 
 
 #############################################################################
