@@ -1168,7 +1168,9 @@ ResultEntry* UDPModule::sendRequest(const DestinationInfo& destination,
    // ====== Create IPv6 header =============================================
    boost::asio::streambuf                request_buffer;
    std::ostream                          os(&request_buffer);
+   boost::system::error_code             errorCode;
    std::chrono::system_clock::time_point sendTime;
+   std::size_t                           sent;
    if(SourceAddress.is_v6()) {
       IPv6Header ipv6Header;
 
@@ -1202,10 +1204,9 @@ ResultEntry* UDPModule::sendRequest(const DestinationInfo& destination,
       udpHeader.checksum(finishInternet16(udpChecksum));
 
       os << ipv6Header << udpHeader << tsHeader;
-
-std::cout << "l=" << localEndpoint<<"\n";
-std::cout << "r=" << remoteEndpoint<<"\n";
-
+      sent = RawUDPSocket.send_to(request_buffer.data(),
+                                  raw_udp::endpoint(remoteEndpoint.address(), 0),   // Port==0 is required here!
+                                  0, errorCode);
    }
 
    // ====== Create IPv4 header =============================================
@@ -1250,10 +1251,8 @@ std::cout << "r=" << remoteEndpoint<<"\n";
       udpHeader.checksum(finishInternet16(udpChecksum));
 
       os << ipv4Header << udpHeader << tsHeader;
+      sent = RawUDPSocket.send_to(request_buffer.data(), remoteEndpoint, 0, errorCode);
    }
-   boost::system::error_code errorCode;
-   const std::size_t sent =
-      RawUDPSocket.send_to(request_buffer.data(), remoteEndpoint, 0, errorCode);
 
    // ====== Create ResultEntry on success ==================================
    if( (!errorCode) && (sent > 0) ) {
@@ -1320,8 +1319,10 @@ void UDPModule::handlePayloadResponse(const int     socketDescriptor,
                   UDPHeader udpHeader;
                   is >> udpHeader;
                   if( (is) &&
-                      /* FIXME: src port! */
-                      (udpHeader.destinationPort() == DestinationPort) ) {
+                     (udpHeader.sourcePort()      == UDPSocketEndpoint.port()) &&
+                     (udpHeader.destinationPort() == DestinationPort) ) {
+                     receivedData.Source      = boost::asio::ip::udp::endpoint(innerIPv6Header.sourceAddress(),      udpHeader.sourcePort());
+                     receivedData.Destination = boost::asio::ip::udp::endpoint(innerIPv6Header.destinationAddress(), udpHeader.destinationPort());
 
                      // TBD
 
@@ -1362,7 +1363,6 @@ void UDPModule::handlePayloadResponse(const int     socketDescriptor,
                        recordResult(receivedData,
                                     icmpHeader.type(), icmpHeader.code(),
                                     innerIPv4Header.identification());
-
                      }
                   }
                }
