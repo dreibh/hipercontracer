@@ -329,9 +329,6 @@ void IOModuleBase::recordResult(const ReceivedData&  receivedData,
    ResultEntry* resultEntry = found->second;
 
    // ====== Checks =========================================================
-   std::cout << "Record:" << resultEntry->sourceAddress() << " -> " << resultEntry->destinationAddress() << "\n";
-   std::cout << "Recv:"   << receivedData.Source.address() << " -> " << receivedData.Destination.address() << "\n";
-
    if( ( (!receivedData.Source.address().is_unspecified()) && (receivedData.Source.address() != resultEntry->sourceAddress()) )  ||
        ( (!receivedData.Destination.address().is_unspecified()) && (receivedData.Destination.address() != resultEntry->destinationAddress()) ) ) {
       HPCT_LOG(warning) << "Mapping mismatch: "
@@ -1297,7 +1294,6 @@ void UDPModule::handlePayloadResponse(const int     socketDescriptor,
 
    // ====== ICMP error response ============================================
    else if(socketDescriptor == ICMPSocket.native_handle()) {
-      puts("UDP-ICMP PAYLOAD! ----------");
 
       // ------ IPv6 --------------------------------------------------------
       ICMPHeader icmpHeader;
@@ -1311,10 +1307,8 @@ void UDPModule::handlePayloadResponse(const int     socketDescriptor,
                // ------ IPv6 -> ICMPv6[Error] -> IPv6 ----------------------
                IPv6Header innerIPv6Header;
                is >> innerIPv6Header;
-               if( (is) &&
-                   (innerIPv6Header.nextHeader() == IPPROTO_UDP)
-                   /* FIXME: ADDRS! */
-                 ) {
+               if( (is) && (innerIPv6Header.nextHeader() == IPPROTO_UDP) ) {
+                  // NOTE: Addresses will be checked by recordResult()!
                   // ------ IPv6 -> ICMPv6[Error] -> IPv6 -> UDP ------------
                   UDPHeader udpHeader;
                   is >> udpHeader;
@@ -1323,12 +1317,18 @@ void UDPModule::handlePayloadResponse(const int     socketDescriptor,
                      (udpHeader.destinationPort() == DestinationPort) ) {
                      receivedData.Source      = boost::asio::ip::udp::endpoint(innerIPv6Header.sourceAddress(),      udpHeader.sourcePort());
                      receivedData.Destination = boost::asio::ip::udp::endpoint(innerIPv6Header.destinationAddress(), udpHeader.destinationPort());
-
-                     // TBD
-
+                     // ------ TraceServiceHeader ---------------------------
+                     TraceServiceHeader tsHeader;
+                     is >> tsHeader;
+                     if( (is) && (tsHeader.magicNumber() == MagicNumber) ) {
+                        recordResult(receivedData,
+                                     icmpHeader.type(), icmpHeader.code(),
+                                     tsHeader.checksumTweak());   // FIXME!!!
+                     }
                   }
                }
             }
+
          }
       }
 
