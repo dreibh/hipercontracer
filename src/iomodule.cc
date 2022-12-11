@@ -1159,7 +1159,7 @@ ResultEntry* UDPModule::sendRequest(const DestinationInfo& destination,
    tsHeader.magicNumber(MagicNumber);
    tsHeader.sendTTL(ttl);
    tsHeader.round((unsigned char)round);
-   tsHeader.checksumTweak(seqNumber);   // FIXME!
+   tsHeader.seqNumber(seqNumber);
    // NOTE: SendTimeStamp will be set later, for accuracy!
 
    // ====== Create IPv6 header =============================================
@@ -1288,7 +1288,7 @@ void UDPModule::handlePayloadResponse(const int     socketDescriptor,
       TraceServiceHeader tsHeader;
       is >> tsHeader;
       if( (is) && (tsHeader.magicNumber() == MagicNumber) ) {
-         recordResult(receivedData, 0, 0, tsHeader.checksumTweak());   // FIXME!!!
+         recordResult(receivedData, 0, 0, tsHeader.seqNumber());
       }
    }
 
@@ -1323,7 +1323,7 @@ void UDPModule::handlePayloadResponse(const int     socketDescriptor,
                      if( (is) && (tsHeader.magicNumber() == MagicNumber) ) {
                         recordResult(receivedData,
                                      icmpHeader.type(), icmpHeader.code(),
-                                     tsHeader.checksumTweak());   // FIXME!!!
+                                     tsHeader.seqNumber());
                      }
                   }
                }

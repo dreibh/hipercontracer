@@ -45,7 +45,7 @@
 // 00 4 MagicNumber
 // 04 1 SendTTL
 // 05 1 Round
-// 06 2 Checksum Tweak
+// 06 2 Checksum Tweak (ICMP only) / Sequence Number (other protocols)
 // 08 8 Send Time Stamp
 // ==========================================================================
 
@@ -82,12 +82,19 @@ class TraceServiceHeader
    inline void round(uint8_t round)     { Data[5] = round;   }
 
    inline uint16_t checksumTweak() const {
-      return ( ((uint16_t)Data[6] << 8)  |
+      return ( ((uint16_t)Data[6] << 8) |
                (uint16_t)Data[7] );
    }
    inline void checksumTweak(const uint16_t value) {
       Data[6] = static_cast<uint8_t>( (value >> 8)  & 0xff );
       Data[7] = static_cast<uint8_t>( value & 0xff );
+   }
+
+   inline uint16_t seqNumber() const {
+      return checksumTweak();
+   }
+   inline void seqNumber(const uint16_t value) {
+      checksumTweak(value);
    }
 
    inline uint64_t sendTimeStamp() const {
@@ -119,11 +126,11 @@ class TraceServiceHeader
    }
 
    inline friend std::istream& operator>>(std::istream& is, TraceServiceHeader& header) {
-      return(is.read(reinterpret_cast<char*>(header.Data), header.Size));
+      return is.read(reinterpret_cast<char*>(header.Data), header.Size);
    }
 
    inline friend std::ostream& operator<<(std::ostream& os, const TraceServiceHeader& header) {
-      return(os.write(reinterpret_cast<const char*>(header.Data), header.Size));
+      return os.write(reinterpret_cast<const char*>(header.Data), header.Size);
    }
 
    inline std::vector<uint8_t> contents() const {

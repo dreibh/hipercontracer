@@ -117,7 +117,7 @@ int main(int argc, char *argv[])
    }
 
    const boost::asio::ip::address remoteAddress = boost::asio::ip::address::from_string(argv[1]);
-   const uint16_t                 remotePort    = 7;
+   const uint16_t                 remotePort    = 7777;
    boost::asio::ip::udp::endpoint remoteEndpoint(remoteAddress, remotePort);
    const uint16_t                 localPort     = 12345;
    const unsigned int             payloadSize   = 16;
