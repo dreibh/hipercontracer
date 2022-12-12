@@ -39,6 +39,8 @@
 #include <vector>
 #include <istream>
 
+#include "internet16.h"
+
 
 // ==========================================================================
 // Format:
@@ -125,16 +127,16 @@ class TraceServiceHeader
                        timeStamp - HiPerConTracerEpoch).count());
    }
 
+   inline void processInternet16(uint32_t& sum) const {
+      ::processInternet16(sum, (uint8_t*)&Data, Size);
+   }
+
    inline friend std::istream& operator>>(std::istream& is, TraceServiceHeader& header) {
       return is.read(reinterpret_cast<char*>(header.Data), header.Size);
    }
 
    inline friend std::ostream& operator<<(std::ostream& os, const TraceServiceHeader& header) {
       return os.write(reinterpret_cast<const char*>(header.Data), header.Size);
-   }
-
-   inline std::vector<uint8_t> contents() const {
-      return std::vector<uint8_t>((uint8_t*)&Data, (uint8_t*)&Data[Size]);
    }
 
    private:

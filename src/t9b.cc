@@ -18,28 +18,6 @@
 #include "traceserviceheader.h"
 
 
-// ###### Internet-16 checksum according to RFC 1071, computation part ######
-template <typename Iterator> void processInternet16(uint32_t& sum, Iterator bodyBegin, Iterator bodyEnd)
-{
-   Iterator body_iter = bodyBegin;
-   while (body_iter != bodyEnd) {
-      sum += (static_cast<uint8_t>(*body_iter++) << 8);
-      if (body_iter != bodyEnd) {
-         sum += static_cast<uint8_t>(*body_iter++);
-      }
-   }
-}
-
-
-// ###### Internet-16 checksum according to RFC 1071, final part ############
-inline uint16_t finishInternet16(uint32_t sum)
-{
-   sum = (sum >> 16) + (sum & 0xFFFF);
-   sum += (sum >> 16);
-   return static_cast<uint16_t>(~sum);
-}
-
-
 class raw_udp
 {
    public:
@@ -187,29 +165,18 @@ int main(int argc, char *argv[])
             tsHeader.checksumTweak(seqNum);
             tsHeader.sendTimeStamp(std::chrono::system_clock::now());
 
-
-            // UDP checksum:
-            uint32_t sum = 0;
-            std::vector<uint8_t> udpHeaderContents = udpHeader.contents();
-            processInternet16(sum, udpHeaderContents.begin(), udpHeaderContents.end());
-            std::vector<uint8_t> tsHeaderContents = tsHeader.contents();
-            processInternet16(sum, tsHeaderContents.begin(), tsHeaderContents.end());
-
-            IPv6PseudoHeader ph(ipv6Header, udpHeader.length());
-            std::vector<uint8_t> pseudoHeaderContents = ph.contents();
-            processInternet16(sum, pseudoHeaderContents.begin(), pseudoHeaderContents.end());
-
-            udpHeader.checksum(finishInternet16(sum));
+            IPv6PseudoHeader pseudoHeader(ipv6Header, udpHeader.length());
 
 
-            sum = 0;
-            udpHeaderContents = udpHeader.contents();
-            tsHeaderContents = tsHeader.contents();
-            pseudoHeaderContents = ph.contents();
-            processInternet16(sum, udpHeaderContents.begin(), udpHeaderContents.end());
-            processInternet16(sum, tsHeaderContents.begin(), tsHeaderContents.end());
-            processInternet16(sum, pseudoHeaderContents.begin(), pseudoHeaderContents.end());
-            printf("CHECK2 = %04x\n", finishInternet16(sum));
+            // UDP pseudo-header:
+            uint32_t udpChecksum = 0;
+            udpHeader.processInternet16(udpChecksum);
+            pseudoHeader.processInternet16(udpChecksum);
+
+            // UDP payload:
+            tsHeader.processInternet16(udpChecksum);
+
+            udpHeader.checksum(finishInternet16(udpChecksum));
 
 
             // ====== Encode the request packet ================================

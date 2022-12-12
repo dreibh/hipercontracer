@@ -18,28 +18,6 @@
 #include "traceserviceheader.h"
 
 
-// ###### Internet-16 checksum according to RFC 1071, computation part ######
-template <typename Iterator> void processInternet16(uint32_t& sum, Iterator bodyBegin, Iterator bodyEnd)
-{
-   Iterator body_iter = bodyBegin;
-   while (body_iter != bodyEnd) {
-      sum += (static_cast<uint8_t>(*body_iter++) << 8);
-      if (body_iter != bodyEnd) {
-         sum += static_cast<uint8_t>(*body_iter++);
-      }
-   }
-}
-
-
-// ###### Internet-16 checksum according to RFC 1071, final part ############
-inline uint16_t finishInternet16(uint32_t sum)
-{
-   sum = (sum >> 16) + (sum & 0xFFFF);
-   sum += (sum >> 16);
-   return static_cast<uint16_t>(~sum);
-}
-
-
 class raw_udp
 {
    public:
@@ -173,42 +151,18 @@ int main(int argc, char *argv[])
             tsHeader.checksumTweak(seqNum);
             tsHeader.sendTimeStamp(std::chrono::system_clock::now());
 
-
-            // Header checksum:
-            uint32_t sum = 0;
-            std::vector<uint8_t> ipv4HeaderContents = ipv4Header.contents();
-            processInternet16(sum, ipv4HeaderContents.begin(), ipv4HeaderContents.end());
-            ipv4Header.headerChecksum(finishInternet16(sum));
-            printf("IPv4CS = %04x\n", ipv4Header.headerChecksum());
-
-            sum = 0;
-            ipv4HeaderContents = ipv4Header.contents();
-            processInternet16(sum, ipv4HeaderContents.begin(), ipv4HeaderContents.end());
-            printf("CHECK1 = %04x\n", finishInternet16(sum));
+            IPv4PseudoHeader pseudoHeader(ipv4Header, udpHeader.length());
 
 
-            // UDP checksum:
-            sum = 0;
-            std::vector<uint8_t> udpHeaderContents = udpHeader.contents();
-            processInternet16(sum, udpHeaderContents.begin(), udpHeaderContents.end());
-            std::vector<uint8_t> tsHeaderContents = tsHeader.contents();
-            processInternet16(sum, tsHeaderContents.begin(), tsHeaderContents.end());
+            // UDP pseudo-header:
+            uint32_t udpChecksum = 0;
+            udpHeader.processInternet16(udpChecksum);
+            pseudoHeader.processInternet16(udpChecksum);
 
-            IPv4PseudoHeader ph(ipv4Header, udpHeader.length());
-            std::vector<uint8_t> pseudoHeaderContents = ph.contents();
-            processInternet16(sum, pseudoHeaderContents.begin(), pseudoHeaderContents.end());
+            // UDP payload:
+            tsHeader.processInternet16(udpChecksum);
 
-            udpHeader.checksum(finishInternet16(sum));
-
-
-            sum = 0;
-            udpHeaderContents = udpHeader.contents();
-            tsHeaderContents = tsHeader.contents();
-            pseudoHeaderContents = ph.contents();
-            processInternet16(sum, udpHeaderContents.begin(), udpHeaderContents.end());
-            processInternet16(sum, tsHeaderContents.begin(), tsHeaderContents.end());
-            processInternet16(sum, pseudoHeaderContents.begin(), pseudoHeaderContents.end());
-            printf("CHECK2 = %04x\n", finishInternet16(sum));
+            udpHeader.checksum(finishInternet16(udpChecksum));
 
 
             // ====== Encode the request packet ================================

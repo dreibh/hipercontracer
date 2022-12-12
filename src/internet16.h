@@ -36,13 +36,14 @@
 
 
 // ###### Internet-16 checksum according to RFC 1071, computation part ######
-template <typename Iterator> void processInternet16(uint32_t& sum, Iterator bodyBegin, Iterator bodyEnd)
+inline void processInternet16(uint32_t& sum, const uint8_t* data, const unsigned int datalen)
 {
-   Iterator body_iter = bodyBegin;
-   while (body_iter != bodyEnd) {
-      sum += (static_cast<uint8_t>(*body_iter++) << 8);
-      if (body_iter != bodyEnd) {
-         sum += static_cast<uint8_t>(*body_iter++);
+   const uint8_t*       ptr = data;
+   const uint8_t* const end = &data[datalen];
+   while(ptr != end) {
+      sum += (*ptr++) << 8;
+      if(ptr != end) {
+         sum += (*ptr++);
       }
    }
 }

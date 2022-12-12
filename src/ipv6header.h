@@ -33,8 +33,10 @@
 #define IPV6HEADER_H
 
 #include <istream>
-#include <algorithm>
+#include <ostream>
 #include <boost/asio/ip/address_v6.hpp>
+
+#include "internet16.h"
 
 
 // ==========================================================================
@@ -119,6 +121,10 @@ class IPv6Header
       memcpy(&Data[24], destinationAddress.to_bytes().data(), 16);
    }
 
+   inline void processInternet16(uint32_t& sum) const {
+      ::processInternet16(sum, (uint8_t*)&Data, sizeof(Data));
+   }
+
    friend std::istream& operator>>(std::istream& is, IPv6Header& header) {
       is.read(reinterpret_cast<char*>(header.Data), 40);
       if (header.version() != 6) {
@@ -129,10 +135,6 @@ class IPv6Header
 
    inline friend std::ostream& operator<<(std::ostream& os, const IPv6Header& header) {
       return os.write(reinterpret_cast<const char*>(&header.Data), sizeof(header.Data));
-   }
-
-   inline std::vector<uint8_t> contents() const {
-      return std::vector<uint8_t>((uint8_t*)&Data, (uint8_t*)&Data[sizeof(Data)]);
    }
 
    private:
@@ -168,8 +170,8 @@ class IPv6PseudoHeader
       Data[39] = ipv6Header.Data[6];                   // Protocol
    }
 
-   inline std::vector<uint8_t> contents() const {
-      return std::vector<uint8_t>((uint8_t*)&Data, (uint8_t*)&Data[sizeof(Data)]);
+   inline void processInternet16(uint32_t& sum) const {
+      ::processInternet16(sum, (uint8_t*)&Data, sizeof(Data));
    }
 
    private:

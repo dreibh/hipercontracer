@@ -39,7 +39,9 @@
 #include <netinet/ip_icmp.h>
 
 #include <istream>
-#include <algorithm>
+#include <ostream>
+
+#include "internet16.h"
 
 
 // ==========================================================================
@@ -96,6 +98,10 @@ class ICMPHeader
    inline void identifier(uint16_t id)     { encode(4, 5, id);       }
    inline void seqNumber(uint16_t seqNum)  { encode(6, 7, seqNum);   }
 
+   inline void processInternet16(uint32_t& sum) const {
+      ::processInternet16(sum, (uint8_t*)&Data, sizeof(Data));
+   }
+
    inline friend std::istream& operator>>(std::istream& is, ICMPHeader& header) {
       return(is.read(reinterpret_cast<char*>(header.Data), 8));
    }
@@ -116,28 +122,5 @@ class ICMPHeader
 
    uint8_t Data[8];
 };
-
-
-// Internet-16 checksum according to RFC 1071
-template <typename Iterator> void computeInternet16(ICMPHeader& header, Iterator bodyBegin, Iterator bodyEnd)
-{
-   uint32_t sum =
-      (header.type() << 8) +
-      header.code() +
-      header.identifier() +
-      header.seqNumber();
-
-   Iterator body_iter = bodyBegin;
-   while (body_iter != bodyEnd) {
-      sum += (static_cast<uint8_t>(*body_iter++) << 8);
-      if (body_iter != bodyEnd) {
-         sum += static_cast<uint8_t>(*body_iter++);
-      }
-   }
-
-   sum = (sum >> 16) + (sum & 0xFFFF);
-   sum += (sum >> 16);
-   header.checksum(static_cast<uint16_t>(~sum));
-}
 
 #endif

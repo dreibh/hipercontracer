@@ -33,8 +33,9 @@
 #define UDPHEADER_H
 
 #include <istream>
-#include <algorithm>
-#include <boost/asio/ip/address_v4.hpp>
+#include <ostream>
+
+#include "internet16.h"
 
 
 // ==========================================================================
@@ -84,8 +85,8 @@ class UDPHeader
       return os.write(reinterpret_cast<const char*>(header.Data), sizeof(header.Data));
    }
 
-   inline std::vector<uint8_t> contents() const {
-      return std::vector<uint8_t>((uint8_t*)&Data, (uint8_t*)&Data[8]);
+   inline void processInternet16(uint32_t& sum) const {
+      ::processInternet16(sum, (uint8_t*)&Data, sizeof(Data));
    }
 
    private:

@@ -33,8 +33,10 @@
 #define IPV4HEADER_H
 
 #include <istream>
-#include <algorithm>
+#include <ostream>
 #include <boost/asio/ip/address_v4.hpp>
+
+#include "internet16.h"
 
 
 // ==========================================================================
@@ -105,6 +107,10 @@ class IPv4Header
       memcpy(&Data[16], destinationAddress.to_bytes().data(), 4);
    }
 
+   inline void processInternet16(uint32_t& sum) const {
+      ::processInternet16(sum, (uint8_t*)&Data, headerLength());
+   }
+
    friend std::istream& operator>>(std::istream& is, IPv4Header& header) {
       is.read(reinterpret_cast<char*>(header.Data), 20);
       if (header.version() != 4) {
@@ -122,10 +128,6 @@ class IPv4Header
 
    inline friend std::ostream& operator<<(std::ostream& os, const IPv4Header& header) {
       return os.write(reinterpret_cast<const char*>(header.Data), header.headerLength());
-   }
-
-   inline std::vector<uint8_t> contents() const {
-      return std::vector<uint8_t>((uint8_t*)&Data, (uint8_t*)&Data[headerLength()]);
    }
 
    private:
@@ -155,8 +157,8 @@ class IPv4PseudoHeader
       Data[11] = static_cast<uint8_t>(length & 0xff);
    }
 
-   inline std::vector<uint8_t> contents() const {
-      return std::vector<uint8_t>((uint8_t*)&Data, (uint8_t*)&Data[sizeof(Data)]);
+   inline void processInternet16(uint32_t& sum) const {
+      ::processInternet16(sum, (uint8_t*)&Data, sizeof(Data));
    }
 
    private:

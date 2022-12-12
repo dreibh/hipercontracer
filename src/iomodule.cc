@@ -328,12 +328,13 @@ void IOModuleBase::recordResult(const ReceivedData&  receivedData,
    ResultEntry* resultEntry = found->second;
 
    // ====== Checks =========================================================
-   if( ( (!receivedData.Source.address().is_unspecified()) && (receivedData.Source.address() != resultEntry->sourceAddress()) )  ||
-       ( (!receivedData.Destination.address().is_unspecified()) && (receivedData.Destination.address() != resultEntry->destinationAddress()) ) ) {
+   if( ( (!receivedData.Source.address().is_unspecified())      && (!resultEntry->sourceAddress().is_unspecified())      && (receivedData.Source.address() != resultEntry->sourceAddress()) )  ||
+       ( (!receivedData.Destination.address().is_unspecified()) && (!resultEntry->destinationAddress().is_unspecified()) && (receivedData.Destination.address() != resultEntry->destinationAddress()) ) ) {
       HPCT_LOG(warning) << "Mapping mismatch: "
         << " ResultEntry: "  << resultEntry->sourceAddress()  << " -> " << resultEntry->destinationAddress()
         << " ReceivedData: " << receivedData.Source.address() << " -> " << receivedData.Destination.address()
         << " T=" << (unsigned int)icmpType << " C=" << (unsigned int)icmpCode;
+      return;
    }
 
    // ====== Get status =====================================================
@@ -564,8 +565,8 @@ ResultEntry* ICMPModule::sendRequest(const DestinationInfo& destination,
                                      uint32_t&              targetChecksum)
 {
    // ====== Set TTL ========================================================
-   const boost::asio::ip::unicast::hops option(ttl);
-   ICMPSocket.set_option(option);
+   const boost::asio::ip::unicast::hops hopsOption(ttl);
+   ICMPSocket.set_option(hopsOption);
 
    // ====== Create an ICMP header for an echo request ======================
    seqNumber++;
@@ -586,16 +587,17 @@ ResultEntry* ICMPModule::sendRequest(const DestinationInfo& destination,
    tsHeader.sendTimeStamp(sendTime);
 
    // ====== Tweak checksum =================================================
-   std::vector<unsigned char> tsHeaderContents = tsHeader.contents();
+   uint32_t icmpChecksum = 0;
+   echoRequest.processInternet16(icmpChecksum);
+   tsHeader.processInternet16(icmpChecksum);
+   echoRequest.checksum(finishInternet16(icmpChecksum));
+
    // ------ No given target checksum ---------------------
    if(targetChecksum == ~0U) {
-      computeInternet16(echoRequest, tsHeaderContents.begin(), tsHeaderContents.end());
       targetChecksum = echoRequest.checksum();
    }
    // ------ Target checksum given ------------------------
    else {
-      // Compute current checksum
-      computeInternet16(echoRequest, tsHeaderContents.begin(), tsHeaderContents.end());
       const uint16_t originalChecksum = echoRequest.checksum();
 
       // Compute value to tweak checksum to target value
@@ -606,8 +608,11 @@ ResultEntry* ICMPModule::sendRequest(const DestinationInfo& destination,
       tsHeader.checksumTweak(diff);
 
       // Compute new checksum (must be equal to target checksum!)
-      tsHeaderContents = tsHeader.contents();
-      computeInternet16(echoRequest, tsHeaderContents.begin(), tsHeaderContents.end());
+      icmpChecksum = 0;
+      echoRequest.checksum(0);   // Reset the original checksum first!
+      echoRequest.processInternet16(icmpChecksum);
+      tsHeader.processInternet16(icmpChecksum);
+      echoRequest.checksum(finishInternet16(icmpChecksum));
       assert(echoRequest.checksum() == targetChecksum);
    }
    assert((targetChecksum & ~0xffff) == 0);
@@ -617,37 +622,33 @@ ResultEntry* ICMPModule::sendRequest(const DestinationInfo& destination,
    std::ostream os(&request_buffer);
    os << echoRequest << tsHeader;
 
-   // ====== Send the request ===============================================
-   std::size_t sent;
-   try {
-      int level;
-      int option;
-      int trafficClass = destination.trafficClass();
-      if(destination.address().is_v6()) {
-         level  = IPPROTO_IPV6;
-         option = IPV6_TCLASS;
-      }
-      else {
-         level  = IPPROTO_IP;
-         option = IP_TOS;
-      }
+   // ====== Set TOS/Traffic Class ==========================================
+   int level;
+   int option;
+   int trafficClass = destination.trafficClass();
+   if(destination.address().is_v6()) {
+      level  = IPPROTO_IPV6;
+      option = IPV6_TCLASS;
+   }
+   else {
+      level  = IPPROTO_IP;
+      option = IP_TOS;
+   }
+   if(setsockopt(ICMPSocket.native_handle(), level, option,
+                 &trafficClass, sizeof(trafficClass)) < 0) {
+      HPCT_LOG(warning) << "Unable to set Traffic Class!";
+      return nullptr;
+   }
 
-      if(setsockopt(ICMPSocket.native_handle(), level, option,
-                    &trafficClass, sizeof(trafficClass)) < 0) {
-         HPCT_LOG(warning) << "Unable to set Traffic Class!";
-         sent = -1;
-      }
-      else {
-         sent = ICMPSocket.send_to(request_buffer.data(),
-                                   boost::asio::ip::icmp::endpoint(destination.address(), 0));
-      }
-   }
-   catch(boost::system::system_error const& e) {
-      sent = -1;
-   }
+   // ====== Send the request ===============================================
+   boost::system::error_code errorCode;
+   std::size_t               sent;
+   sent = ICMPSocket.send_to(request_buffer.data(),
+                             boost::asio::ip::icmp::endpoint(destination.address(), 0),
+                             0, errorCode);
 
    // ====== Create ResultEntry on success ==================================
-   if(sent > 0) {
+   if( (!errorCode) && (sent > 0) ) {
       ResultEntry* resultEntry =
          new ResultEntry(TimeStampSeqID++,
                          round, seqNumber, ttl, ActualPacketSize,
@@ -661,9 +662,12 @@ ResultEntry* ICMPModule::sendRequest(const DestinationInfo& destination,
 
       return resultEntry;
    }
-   HPCT_LOG(warning) << getName() << ": sendRequest() - send_to("
-                     << SourceAddress << "->" << destination << ") failed!";
-   return nullptr;
+   else {
+      HPCT_LOG(warning) << getName() << ": sendRequest() - send_to("
+                        << SourceAddress << "->" << destination << ") failed: "
+                        << errorCode.message();
+      return nullptr;
+   }
 }
 
 
@@ -1178,26 +1182,23 @@ ResultEntry* UDPModule::sendRequest(const DestinationInfo& destination,
       ipv6Header.sourceAddress(localEndpoint.address().to_v6());
       ipv6Header.destinationAddress(remoteEndpoint.address().to_v6());
 
+      IPv6PseudoHeader pseudoHeader(ipv6Header, udpHeader.length());
+
       // ------ UDP checksum ------------------------------------------------
-      // UDP header:
-      uint32_t udpChecksum = 0;
-      std::vector<uint8_t> udpHeaderContents = udpHeader.contents();
-      processInternet16(udpChecksum, udpHeaderContents.begin(), udpHeaderContents.end());
-
       // UDP pseudo-header:
-      IPv6PseudoHeader ph(ipv6Header, udpHeader.length());
-      std::vector<uint8_t> pseudoHeaderContents = ph.contents();
-      processInternet16(udpChecksum, pseudoHeaderContents.begin(), pseudoHeaderContents.end());
+      uint32_t udpChecksum = 0;
+      udpHeader.processInternet16(udpChecksum);
+      pseudoHeader.processInternet16(udpChecksum);
 
+      // UDP payload:
       // Now, the SendTimeStamp in the TraceServiceHeader has to be set:
       sendTime = std::chrono::system_clock::now();
       tsHeader.sendTimeStamp(sendTime);
+      tsHeader.processInternet16(udpChecksum);
 
-      // UDP payload:
-      std::vector<uint8_t> tsHeaderContents = tsHeader.contents();
-      processInternet16(udpChecksum, tsHeaderContents.begin(), tsHeaderContents.end());
       udpHeader.checksum(finishInternet16(udpChecksum));
 
+      // ------ Send IPv6/UDP/TraceServiceHeader packet ---------------------
       os << ipv6Header << udpHeader << tsHeader;
       sent = RawUDPSocket.send_to(request_buffer.data(),
                                   raw_udp::endpoint(remoteEndpoint.address(), 0),   // Port==0 is required here!
@@ -1219,30 +1220,25 @@ ResultEntry* UDPModule::sendRequest(const DestinationInfo& destination,
       ipv4Header.sourceAddress(localEndpoint.address().to_v4());
       ipv4Header.destinationAddress(remoteEndpoint.address().to_v4());
 
+      IPv4PseudoHeader pseudoHeader(ipv4Header, udpHeader.length());
+
       // ------ IPv4 header checksum ----------------------------------------
       uint32_t ipv4HeaderChecksum = 0;
-      std::vector<uint8_t> ipv4HeaderContents = ipv4Header.contents();
-      processInternet16(ipv4HeaderChecksum, ipv4HeaderContents.begin(), ipv4HeaderContents.end());
+      ipv4Header.processInternet16(ipv4HeaderChecksum);
       ipv4Header.headerChecksum(finishInternet16(ipv4HeaderChecksum));
 
       // ------ UDP checksum ------------------------------------------------
-      // UDP header:
-      uint32_t udpChecksum = 0;
-      std::vector<uint8_t> udpHeaderContents = udpHeader.contents();
-      processInternet16(udpChecksum, udpHeaderContents.begin(), udpHeaderContents.end());
-
       // UDP pseudo-header:
-      IPv4PseudoHeader ph(ipv4Header, udpHeader.length());
-      std::vector<uint8_t> pseudoHeaderContents = ph.contents();
-      processInternet16(udpChecksum, pseudoHeaderContents.begin(), pseudoHeaderContents.end());
+      uint32_t udpChecksum = 0;
+      udpHeader.processInternet16(udpChecksum);
+      pseudoHeader.processInternet16(udpChecksum);
 
+      // UDP payload:
       // Now, the SendTimeStamp in the TraceServiceHeader has to be set:
       sendTime = std::chrono::system_clock::now();
       tsHeader.sendTimeStamp(sendTime);
+      tsHeader.processInternet16(udpChecksum);
 
-      // UDP payload:
-      std::vector<uint8_t> tsHeaderContents = tsHeader.contents();
-      processInternet16(udpChecksum, tsHeaderContents.begin(), tsHeaderContents.end());
       udpHeader.checksum(finishInternet16(udpChecksum));
 
       os << ipv4Header << udpHeader << tsHeader;
