@@ -39,7 +39,6 @@
 #include "udpheader.h"
 #include "traceserviceheader.h"
 
-#include <iostream>  // FIXME!
 #include <boost/interprocess/streams/bufferstream.hpp>
 
 #include <ifaddrs.h>
@@ -1003,7 +1002,6 @@ void ICMPModule::handlePayloadResponse(const int     socketDescriptor,
                   // has to be used to identify the outgoing request!
                   receivedData.Source      = boost::asio::ip::udp::endpoint(innerIPv4Header.sourceAddress(), 0);
                   receivedData.Destination = boost::asio::ip::udp::endpoint(innerIPv4Header.destinationAddress(), 0);
-                  std::cout << "X=" << receivedData.Source <<"\t"<<receivedData.Destination<<"\n";
                   recordResult(receivedData,
                                icmpHeader.type(), icmpHeader.code(),
                                innerICMPHeader.seqNumber());

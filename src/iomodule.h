@@ -1,3 +1,34 @@
+// =================================================================
+//          #     #                 #     #
+//          ##    #   ####   #####  ##    #  ######   #####
+//          # #   #  #    #  #    # # #   #  #          #
+//          #  #  #  #    #  #    # #  #  #  #####      #
+//          #   # #  #    #  #####  #   # #  #          #
+//          #    ##  #    #  #   #  #    ##  #          #
+//          #     #   ####   #    # #     #  ######     #
+//
+//       ---   The NorNet Testbed for Multi-Homed Systems  ---
+//                       https://www.nntb.no
+// =================================================================
+//
+// High-Performance Connectivity Tracer (HiPerConTracer)
+// Copyright (C) 2015-2022 by Thomas Dreibholz
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <http://www.gnu.org/licenses/>.
+//
+// Contact: dreibh@simula.no
+
 #ifndef IOMODULE_H
 #define IOMODULE_H
 
@@ -30,7 +61,6 @@ class IOModuleBase
 
    virtual bool prepareSocket() = 0;
    virtual void cancelSocket() = 0;
-
 
    static bool configureSocket(const int                      socketDescriptor,
                                const boost::asio::ip::address sourceAddress);
@@ -86,6 +116,8 @@ class ICMPModule : public IOModuleBase
 
    virtual bool prepareSocket();
    virtual void cancelSocket();
+   virtual void expectNextReply(const int  socketDescriptor,
+                                const bool readFromErrorQueue);
 
    virtual ResultEntry* sendRequest(const DestinationInfo& destination,
                                     const unsigned int     ttl,
@@ -93,16 +125,17 @@ class ICMPModule : public IOModuleBase
                                     uint16_t&              seqNumber,
                                     uint32_t&              targetChecksum);
 
-   virtual void expectNextReply(const int  socketDescriptor,
-                                const bool readFromErrorQueue);
    void handleResponse(const boost::system::error_code& errorCode,
                        const int                        socketDescriptor,
                        const bool                       readFromErrorQueue);
+
    virtual void handlePayloadResponse(const int     socketDescriptor,
                                       ReceivedData& receivedData);
    virtual void handleErrorResponse(const int          socketDescriptor,
                                     ReceivedData&      receivedData,
                                     sock_extended_err* socketError);
+
+   protected:
    void updateSendTimeInResultEntry(const sock_extended_err* socketError,
                                     const scm_timestamping*  socketTimestamping);
 
@@ -186,6 +219,5 @@ class UDPModule : public ICMPModule
 
    boost::asio::basic_raw_socket<raw_udp> RawUDPSocket;
 };
-
 
 #endif
