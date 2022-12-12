@@ -1,0 +1,110 @@
+#!/usr/bin/env bash
+#  =================================================================
+#           #     #                 #     #
+#           ##    #   ####   #####  ##    #  ######   #####
+#           # #   #  #    #  #    # # #   #  #          #
+#           #  #  #  #    #  #    # #  #  #  #####      #
+#           #   # #  #    #  #####  #   # #  #          #
+#           #    ##  #    #  #   #  #    ##  #          #
+#           #     #   ####   #    # #     #  ######     #
+#
+#        ---   The NorNet Testbed for Multi-Homed Systems  ---
+#                        https://www.nntb.no
+#  =================================================================
+#
+#  High-Performance Connectivity Tracer (HiPerConTracer)
+#  Copyright (C) 2015-2022 by Thomas Dreibholz
+#
+#  This program is free software: you can redistribute it and/or modify
+#  it under the terms of the GNU General Public License as published by
+#  the Free Software Foundation, either version 3 of the License, or
+#  (at your option) any later version.
+#
+#  This program is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
+#
+#  You should have received a copy of the GNU General Public License
+#  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+#  Contact: dreibh@simula.no
+
+# Bash options:
+set -o nounset
+set -o errexit
+
+
+if [ $# -ne 2 ] ; then
+   echo >&2 "Usage: $0 mariadb|mongodb|mysql|postgresql users.conf"
+   exit 1
+fi
+if [ ! -e $2 ] ; then
+   echo >&2 "ERROR: Use configuration $2 does not exist!"
+fi
+
+DATABASE="just_a_test_database"
+MAINTAINER_PASSWORD=
+IMPORTER_PASSWORD=
+RESEARCHER_PASSWORD=
+. $2
+
+
+# ###### MySQL/MariaDB ######################################################
+if [ "$1" == "mysql" -o "$1" == "mariadb" ] ; then
+   # Documentation: https://www.digitalocean.com/community/tutorials/how-to-install-mariadb-on-ubuntu-22-04
+
+   echo -e "\x1b[34mTesting access to MySQL/MariaDB database ...\x1b[0m"
+   mysql \
+      --host=localhost \
+      --port 3306 \
+      --protocol=tcp \
+      --ssl \
+      --ssl-verify-server-cert \
+      --ssl-ca=/etc/ssl/TestLevel1/certs/TestLevel1.crt \
+      --ssl-crl=/etc/ssl/TestGlobal.crl \
+      --user=researcher \
+      --password="${RESEARCHER_PASSWORD}" \
+      --database="${DATABASE}" \
+      <../SQL/mariadb-test.sql
+
+
+# ###### PostgreSQL #########################################################
+elif [ "$1" == "postgresql" ] ; then
+   # Documentation: https://www.digitalocean.com/community/tutorials/how-to-install-postgresql-on-ubuntu-22-04-quickstart
+
+   echo -e "\x1b[34mTesting access to PostgreSQL database ...\x1b[0m"
+   PGPASSWORD="${RESEARCHER_PASSWORD}" \
+   PGSSLMODE="verify-full" \
+   PGSSLROOTCERT="/etc/ssl/TestLevel1/certs/TestLevel1.crt" \
+   PGSSLCRL="/etc/ssl/TestGlobal.crl" \
+   psql \
+      --host=localhost \
+      --port=5432 \
+      --username=researcher \
+      --dbname="${DATABASE}" \
+      <../SQL/postgresql-test.sql
+
+
+# ###### MongoDB ############################################################
+elif [ "$1" == "mongodb" ] ; then
+   # Documentation: https://www.mongodb.com/docs/manual/tutorial/install-mongodb-on-ubuntu/
+
+   echo -e "\x1b[34mTesting access to MongoDB database ...\x1b[0m"
+   mongosh \
+      "mongodb://localhost:27017/${DATABASE}" \
+      --tls \
+      --tlsDisabledProtocols TLS1_0,TLS1_1,TLS1_2 \
+      --tlsCAFile /etc/ssl/TestLevel1/certs/TestLevel1.crt \
+      --username researcher \
+      --password "${RESEARCHER_PASSWORD}" \
+      --quiet \
+      <../NoSQL/mongodb-test.ms
+   # FIXME! --tlsCRLFile /etc/ssl/TestGlobal.crl
+
+
+# ###### Error ##############################################################
+else
+   echo >&2 "ERROR: Unsupported database: $1"
+   exit 1
+fi

@@ -1,0 +1,230 @@
+#!/usr/bin/env bash
+#  =================================================================
+#           #     #                 #     #
+#           ##    #   ####   #####  ##    #  ######   #####
+#           # #   #  #    #  #    # # #   #  #          #
+#           #  #  #  #    #  #    # #  #  #  #####      #
+#           #   # #  #    #  #####  #   # #  #          #
+#           #    ##  #    #  #   #  #    ##  #          #
+#           #     #   ####   #    # #     #  ######     #
+#
+#        ---   The NorNet Testbed for Multi-Homed Systems  ---
+#                        https://www.nntb.no
+#  =================================================================
+#
+#  High-Performance Connectivity Tracer (HiPerConTracer)
+#  Copyright (C) 2015-2022 by Thomas Dreibholz
+#
+#  This program is free software: you can redistribute it and/or modify
+#  it under the terms of the GNU General Public License as published by
+#  the Free Software Foundation, either version 3 of the License, or
+#  (at your option) any later version.
+#
+#  This program is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
+#
+#  You should have received a copy of the GNU General Public License
+#  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+#  Contact: dreibh@simula.no
+
+# Bash options:
+set -o nounset
+set -o errexit
+
+
+if [ $# -lt 2 ] ; then
+   echo >&2 "Usage: $0 mariadb|mongodb|mysql|postgresql users.conf [--force-removal-without-confirmation]"
+   exit 1
+fi
+if [ ! -e $2 ] ; then
+   echo >&2 "ERROR: Use configuration $2 does not exist!"
+fi
+
+DATABASE="just_a_test_database"
+MAINTAINER_PASSWORD="!maintainer!"
+IMPORTER_PASSWORD="!importer!"
+RESEARCHER_PASSWORD="!researcher!"
+CONFIG="$2"
+if [ ! -e "${CONFIG}" ] ; then
+   echo >&2 "ERROR: Use configuration $2 does not exist!"
+fi
+if [ $# -gt 2 ] ; then
+   OPTION="$3"
+else
+   OPTION=""
+fi
+. ${CONFIG}
+
+if [ "${MAINTAINER_PASSWORD}" = "!maintainer!" -o \
+     "${IMPORTER_PASSWORD}"   = "!importer!"   -o \
+     "${RESEARCHER_PASSWORD}" = "!researcher!" ] ; then
+   echo >&2 "DO NOT USE THE EXAMPLE PASSWORDS!"
+   exit 1
+fi
+
+if [ "${OPTION}" != "--force-removal-without-confirmation" ] ; then
+   echo -n "WARNING: THIS SCRIPT WILL ERASE THE EXISTING DATABASES. To proceed, type \"I am sure!\": "
+   read -er agree
+   if [ "$agree" != "I am sure!" ] ; then
+      echo "Exiting."
+      exit
+   fi
+fi
+
+
+# ###### MySQL/MariaDB ######################################################
+if [ "$1" == "mysql" -o "$1" == "mariadb" ] ; then
+   # Documentation: https://www.digitalocean.com/community/tutorials/how-to-install-mariadb-on-ubuntu-22-04
+
+   echo -e "\x1b[34mPreparing admin user for MySQL/MariaDB ...\x1b[0m"
+   if [ ! -e ~/.my.cnf ] ; then
+     echo "ERROR: ~/.my.cnf does not exist! Set root user password there!"
+     exit 1
+   fi
+
+   # ====== Create database =================================================
+   echo -e "\x1b[33mCreating database ...\x1b[0m"
+   cat ../SQL/mariadb-database.sql | \
+      sed \
+         -e "s%\${DATABASE}%${DATABASE}%" | \
+      tee | \
+      mysql \
+         --host=localhost \
+         --port 3306 \
+         --protocol=tcp \
+         --ssl \
+         --ssl-verify-server-cert \
+         --ssl-ca=/etc/ssl/TestLevel1/certs/TestLevel1.crt \
+         --ssl-crl=/etc/ssl/TestGlobal.crl \
+         --user=root \
+         --password="${ROOT_PASSWORD}" \
+         --database=sys
+
+   # ====== Create schema ===================================================
+   echo -e "\x1b[33mCreating schema ...\x1b[0m"
+   mysql \
+      --host=localhost \
+      --port 3306 \
+      --protocol=tcp \
+      --ssl \
+      --ssl-verify-server-cert \
+      --ssl-ca=/etc/ssl/TestLevel1/certs/TestLevel1.crt \
+      --ssl-crl=/etc/ssl/TestGlobal.crl \
+      --user=root \
+      --password="${ROOT_PASSWORD}" \
+      --database="${DATABASE}" \
+      <../SQL/mariadb-schema.sql
+
+   # ====== Create users and roles ==========================================
+   echo -e "\x1b[33mCreating users and roles ...\x1b[0m"
+   cat ../SQL/mariadb-users.sql | \
+      sed \
+         -e "s%\${DATABASE}%${DATABASE}%" \
+         -e "s%\${MAINTAINER_PASSWORD}%${MAINTAINER_PASSWORD}%" \
+         -e "s%\${RESEARCHER_PASSWORD}%${RESEARCHER_PASSWORD}%" \
+         -e "s%\${IMPORTER_PASSWORD}%${IMPORTER_PASSWORD}%" | \
+      tee | \
+      mysql \
+      --host=localhost \
+      --port 3306 \
+      --protocol=tcp \
+      --ssl \
+      --ssl-verify-server-cert \
+      --ssl-ca=/etc/ssl/TestLevel1/certs/TestLevel1.crt \
+      --ssl-crl=/etc/ssl/TestGlobal.crl \
+      --user=root \
+      --password="${ROOT_PASSWORD}" \
+      --database="${DATABASE}"
+
+
+# ###### PostgreSQL #########################################################
+elif [ "$1" == "postgresql" ] ; then
+   # Documentation: https://www.digitalocean.com/community/tutorials/how-to-install-postgresql-on-ubuntu-22-04-quickstart
+
+   echo -e "\x1b[34mPreparing admin user for PostgreSQL ...\x1b[0m"
+
+   # ====== Create database =================================================
+   echo -e "\x1b[33mCreating database ...\x1b[0m"
+   cat ../SQL/postgresql-database.sql | \
+      sed \
+         -e "s%\${DATABASE}%${DATABASE}%" | \
+      tee | \
+      sudo -u postgres psql
+
+   # ====== Create schema ===================================================
+   echo -e "\x1b[33mCreating schema ...\x1b[0m"
+   sudo -u postgres psql -d "${DATABASE}" <../SQL/postgresql-schema.sql
+
+   # ====== Create users and roles ==========================================
+   echo -e "\x1b[33mCreating users and roles ...\x1b[0m"
+   cat ../SQL/postgresql-users.sql | \
+      sed \
+         -e "s%\${DATABASE}%${DATABASE}%" \
+         -e "s%\${MAINTAINER_PASSWORD}%${MAINTAINER_PASSWORD}%" \
+         -e "s%\${RESEARCHER_PASSWORD}%${RESEARCHER_PASSWORD}%" \
+         -e "s%\${IMPORTER_PASSWORD}%${IMPORTER_PASSWORD}%" | \
+      tee | \
+      sudo -u postgres psql -d "${DATABASE}"
+
+
+# ###### MongoDB ############################################################
+elif [ "$1" == "mongodb" ] ; then
+   # Documentation: https://www.mongodb.com/docs/manual/tutorial/install-mongodb-on-ubuntu/
+
+   echo -e "\x1b[34mPreparing admin user for MongoDB ...\x1b[0m"
+
+   # ====== Create database =================================================
+   echo -e "\x1b[33mCreating database ...\x1b[0m"
+   cat ../NoSQL/mongodb-database.ms | \
+      sed \
+         -e "s%\${DATABASE}%${DATABASE}%" | \
+      tee | \
+      mongosh \
+         "mongodb://localhost:27017" \
+         --tls \
+         --tlsDisabledProtocols TLS1_0,TLS1_1,TLS1_2 \
+         --tlsCAFile /etc/ssl/TestLevel1/certs/TestLevel1.crt \
+         --username root --password "${ROOT_PASSWORD}" \
+         --quiet
+
+   # ====== Create schema ===================================================
+   echo -e "\x1b[33mCreating schema ...\x1b[0m"
+   cat ../NoSQL/mongodb-schema.ms | \
+      sed \
+         -e "s%\${DATABASE}%${DATABASE}%" | \
+      tee | \
+      mongosh \
+         "mongodb://localhost:27017" \
+         --tls \
+         --tlsDisabledProtocols TLS1_0,TLS1_1,TLS1_2 \
+         --tlsCAFile /etc/ssl/TestLevel1/certs/TestLevel1.crt \
+         --username root --password "${ROOT_PASSWORD}" \
+         --quiet
+
+   # ====== Create users and roles ==========================================
+   echo -e "\x1b[33mCreating user and roles ...\x1b[0m"
+   cat ../NoSQL/mongodb-users.ms | \
+      sed \
+         -e "s%\${DATABASE}%${DATABASE}%" \
+         -e "s%\${MAINTAINER_PASSWORD}%${MAINTAINER_PASSWORD}%" \
+         -e "s%\${RESEARCHER_PASSWORD}%${RESEARCHER_PASSWORD}%" \
+         -e "s%\${IMPORTER_PASSWORD}%${IMPORTER_PASSWORD}%" | \
+      tee | \
+      mongosh \
+         "mongodb://localhost:27017" \
+         --tls \
+         --tlsDisabledProtocols TLS1_0,TLS1_1,TLS1_2 \
+         --tlsCAFile /etc/ssl/TestLevel1/certs/TestLevel1.crt \
+         --username root --password "${ROOT_PASSWORD}" \
+         --quiet
+   echo ""
+
+
+# ###### Error ##############################################################
+else
+   echo >&2 "ERROR: Unsupported database: $1"
+   exit 1
+fi

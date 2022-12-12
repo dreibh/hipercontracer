@@ -30,7 +30,7 @@
 #  Contact: dreibh@simula.no
 
 
-CMAKE_MINIMUM_REQUIRED(VERSION 3.5.1)
+CMAKE_MINIMUM_REQUIRED(VERSION 3.10)
 PROJECT(hipercontracer LANGUAGES C CXX)
 
 SET(BUILD_MAJOR "1")
@@ -38,22 +38,22 @@ SET(BUILD_MINOR "6")
 SET(BUILD_PATCH "6")
 SET(BUILD_VERSION ${BUILD_MAJOR}.${BUILD_MINOR}.${BUILD_PATCH})
 
-SET(CMAKE_CXX_STANDARD 14)
+SET(CMAKE_CXX_STANDARD 17)
 SET(CMAKE_CXX_STANDARD_REQUIRED ON)
 SET(CMAKE_CXX_EXTENSIONS OFF)
 
 
 #############################################################################
-# INSTALLATION_DIRECTORIES
+#### INSTALLATION_DIRECTORIES                                            ####
 #############################################################################
 
 # See: https://cmake.org/cmake/help/v3.0/module/GNUInstallDirs.html
 INCLUDE(GNUInstallDirs)
 
 
-#################################################
-# PACKAGING
-#################################################
+#############################################################################
+#### PACKAGING                                                           ####
+#############################################################################
 
 SET(CPACK_SOURCE_GENERATOR "TXZ")
 SET(CPACK_SOURCE_PACKAGE_FILE_NAME
@@ -69,9 +69,9 @@ INCLUDE(CheckIncludeFile)
 INCLUDE(CheckStructHasMember)
 
 
-#################################################
-# UNINSTALL
-#################################################
+#############################################################################
+#### UNINSTALL                                                           ####
+#############################################################################
 
 IF(NOT TARGET uninstall)
    configure_file(
@@ -84,9 +84,9 @@ IF(NOT TARGET uninstall)
 ENDIF()
 
 
-#################################################
-# OS DEPENDENT
-#################################################
+#############################################################################
+#### OS DEPENDENT                                                        ####
+#############################################################################
 
 IF (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
     MESSAGE(STATUS ${CMAKE_SYSTEM_NAME} " supported")
@@ -116,7 +116,7 @@ ENDIF()
 
 
 #############################################################################
-# COMPILER FLAGS
+#### COMPILER FLAGS                                                      ####
 #############################################################################
 
 SET(CMAKE_C_FLAGS   "${CMAKE_C_FLAGS}   -O2 -Wall")
@@ -130,7 +130,7 @@ ENDIF()
 
 
 #############################################################################
-# CHECK STRUCT MEMBERS
+#### CHECK STRUCT MEMBERS                                                ####
 #############################################################################
 
 CHECK_STRUCT_HAS_MEMBER("struct sockaddr" "sa_len" "sys/types.h;sys/socket.h" HAVE_SA_LEN)
@@ -159,12 +159,8 @@ ENDIF()
 
 
 #############################################################################
-# COMPILER FLAGS
+#### COMPILER FLAGS                                                      ####
 #############################################################################
-
-SET(CMAKE_CXX_STANDARD 14)
-SET(CMAKE_CXX_STANDARD_REQUIRED ON)
-SET(CMAKE_CXX_EXTENSIONS OFF)
 
 IF(CMAKE_SYSTEM_PROCESSOR STREQUAL "riscv64")
   STRING(APPEND CMAKE_C_STANDARD_LIBRARIES " -latomic")
@@ -173,7 +169,7 @@ ENDIF()
 
 
 #############################################################################
-# REQUIREMENTS
+#### REQUIREMENTS                                                        ####
 #############################################################################
 
 # ###### Threads ############################################################
@@ -188,9 +184,107 @@ ELSE()
 ENDIF()
 ADD_DEFINITIONS(-DBOOST_ALL_DYN_LINK)   # <<-- Required to handle BOOST Log link problem!
 
+# ###### INotify ############################################################
+IF(CMAKE_SYSTEM_NAME MATCHES "Linux")
+   SET(INotify_FOUND TRUE)
+   SET(INotify_LIBRARIES "")
+   SET(INotify_INCLUDE_DIRS "")
+ELSE()
+   FIND_LIBRARY(INotify_LIBRARIES NAMES inotify)
+   FIND_PATH(INotify_INCLUDE_DIRS NAMES sys/inotify.h)
+ENDIF()
+
+# ###### C-ARES #############################################################
+FIND_LIBRARY(CARES_LIBRARY NAMES cares libcares)
+IF (NOT CARES_LIBRARY)
+   MESSAGE(FATAL_ERROR
+           " Cannot find C-ARES DNS resolver library! Try:\n"
+           " * Ubuntu/Debian: sudo apt install -y libc-ares-dev\n"
+           " * Fedora:        sudo dnf install -y c-ares-devel\n"
+           " * FreeBSD:       sudo pkg install -y c-ares")
+ENDIF()
+
+# ###### Database client libraries ##########################################
+
+# ------ MariaDB/MySQL ------------------------------------------------------
+OPTION(ENABLE_BACKEND_MARIADB "Enable MySQL/MariaDB backed" 1)
+IF (ENABLE_BACKEND_MARIADB)
+   MESSAGE("Building with MySQL/MariaDB backend (ENABLE_BACKEND_MARIADB=${ENABLE_BACKEND_MARIADB})")
+
+   MESSAGE("Looking for MySQL/MariaDB C++ Client library:")
+   FIND_LIBRARY(MYSQLCPPCONN_LIBRARY NAMES mysqlcppconn)
+   MESSAGE(" * Library: ${MYSQLCPPCONN_LIBRARY}")
+   FIND_PATH(MYSQLCPPCONN_INCLUDE_DIR NAMES driver.h PATH_SUFFIXES cppconn mysql-cppconn/jdbc/cppconn)
+   MESSAGE(" * Includes: ${MYSQLCPPCONN_INCLUDE_DIR}")
+   IF ((NOT MYSQLCPPCONN_INCLUDE_DIR) OR (NOT MYSQLCPPCONN_LIBRARY))
+      MESSAGE(FATAL_ERROR
+              " Cannot find MySQL/MariaDB C++ client library! Try:\n"
+              " * Ubuntu/Debian: sudo apt install -y libmysqlcppconn-dev\n"
+              " * Fedora:        sudo dnf install -y mysql-connector-c++-devel (needs PPA!)\n"
+              " * FreeBSD:       sudo pkg install -y mysql-connector-c++")
+   ENDIF()
+ELSE()
+   MESSAGE("MySQL/MariaDB backend disabled!")
+ENDIF()
+
+# ------ PostgreSQL ---------------------------------------------------------
+OPTION(ENABLE_BACKEND_POSTGRESQL "Enable PostgreSQL backed" 1)
+IF (ENABLE_BACKEND_POSTGRESQL)
+   MESSAGE("Building with PostgreSQL backend (ENABLE_BACKEND_POSTGRESQL=${ENABLE_BACKEND_POSTGRESQL})")
+
+   MESSAGE("Looking for PostgreSQL C++ Client library:")
+   FIND_LIBRARY(LIBPQXX_LIBRARY NAMES pqxx)
+   MESSAGE(" * Library: ${LIBPQXX_LIBRARY}")
+   FIND_PATH(LIBPQXX_INCLUDE_DIR NAMES pqxx PATH_SUFFIXES pqxx)
+   MESSAGE(" * Includes: ${LIBPQXX_INCLUDE_DIR}")
+   IF ((NOT LIBPQXX_INCLUDE_DIR) OR (NOT LIBPQXX_LIBRARY))
+      MESSAGE(FATAL_ERROR
+              " Cannot find PostgreSQL C++  client library! Try:\n"
+              " * Ubuntu/Debian: sudo apt install -y libpqxx-dev\n"
+              " * Fedora:        sudo dnf install -y libpqxx-devel\n"
+              " * FreeBSD:       sudo pkg install -y postgresql-libpqxx")
+   ENDIF()
+ELSE()
+   MESSAGE("PostgreSQL backend disabled!")
+ENDIF()
+
+# ------ MongoDB ------------------------------------------------------------
+OPTION(ENABLE_BACKEND_MONGODB "Enable MongoDB backed" 1)
+IF (ENABLE_BACKEND_MONGODB)
+   MESSAGE("Building with MongoDB backend (ENABLE_BACKEND_MONGODB=${ENABLE_BACKEND_MONGODB})")
+
+   MESSAGE("Looking for MongoDB C Client library:")
+   FIND_LIBRARY(LIBMONGOC_LIBRARY  NAMES mongoc-1.0)
+   MESSAGE(" * Library: ${LIBMONGOC_LIBRARY}")
+   FIND_PATH(LIBMONGOC_INCLUDE_DIR NAMES mongoc.h PATH_SUFFIXES libmongoc-1.0)
+   MESSAGE(" * Includes: ${LIBMONGOC_INCLUDE_DIR}")
+   IF ((NOT LIBMONGOC_INCLUDE_DIR) OR (NOT LIBMONGOC_LIBRARY))
+      MESSAGE(FATAL_ERROR
+              " Cannot find MongoDB C client library! Try:\n"
+              " * Ubuntu/Debian: sudo apt install -y libmongoc-dev\n"
+              " * Fedora:        sudo dnf install -y mongo-c-driver-devel\n"
+              " * FreeBSD:       sudo pkg install -y mongo-c-driver")
+   ENDIF()
+
+   MESSAGE("Looking for MongoDB BSON library:")
+   FIND_LIBRARY(LIBBSON_LIBRARY  NAMES bson-1.0)
+   MESSAGE(" * Library: ${LIBBSON_LIBRARY}")
+   FIND_PATH(LIBBSON_INCLUDE_DIR NAMES bson.h PATH_SUFFIXES libbson-1.0)
+   MESSAGE(" * Includes: ${LIBBSON_INCLUDE_DIR}")
+   IF ((NOT LIBBSON_INCLUDE_DIR) OR (NOT LIBBSON_LIBRARY))
+      MESSAGE(FATAL_ERROR
+              " Cannot find MongoDB BSON library! Try:\n"
+              " * Ubuntu/Debian: sudo apt install -y libbson-dev\n"
+              " * Fedora:        sudo dnf install -y libbson-devel\n"
+              " * FreeBSD:       sudo pkg install -y libbson")
+   ENDIF()
+ELSE()
+   MESSAGE("MongoDB backend disabled!")
+ENDIF()
+
 
 #############################################################################
-# SUBDIRECTORIES
+#### SUBDIRECTORIES                                                      ####
 #############################################################################
 
 ADD_SUBDIRECTORY(src)

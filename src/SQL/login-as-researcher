@@ -1,3 +1,0 @@
-#!/bin/sh
-
-psql -d pingtraceroutedb -U researcher -h localhost

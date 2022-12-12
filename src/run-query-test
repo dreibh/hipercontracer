@@ -1,0 +1,36 @@
+#!/bin/bash -e
+
+# NOTE:
+# This script compares the data imported into the database by run-importer-test
+# with the data in good/ (successfully imported and moved files).
+# Limitation: only the headers #T, #P are compared, not the Traceroute hops!!
+
+if [ $# -ne 1 ] ; then
+   echo >&2 "Usage: $0 configuration_file"
+   exit 1
+fi
+if [ ! -e $1 ] ; then
+   echo >&2 "ERROR: Use configuration $1 does not exist!"
+fi
+CONFIGURATION_FILE="$1"
+
+
+for type in Ping Traceroute ; do
+
+   echo "Obtaining ${type} data from good/ directory ..."
+   find good/ -name "${type}-*.bz2" | sort | xargs -r bzcat | tee imported-raw-${type,,}.txt | grep "^#" | sort -k4 >imported-${type,,}.txt
+   # ls -l imported-raw-${type,,}.txt imported-${type,,}.txt
+
+
+   echo "Querying ${type} data from database ..."
+   ./hpct-query "${CONFIGURATION_FILE}" ${type,,} | tee queried-raw-${type,,}.txt | grep "^#" | sort -k4 >queried-${type,,}.txt
+   # ls -l queried-raw-${type,,}.txt queried-${type,,}.txt
+
+   echo "Differences for ${type}:"
+   if [ "${type}" == "Traceroute" ] ; then
+      ls -l imported-raw-${type,,}.txt
+      ls -l queried-raw-${type,,}.txt
+   fi
+   colordiff imported-${type,,}.txt queried-${type,,}.txt
+
+done

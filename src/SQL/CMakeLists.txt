@@ -1,7 +1,16 @@
-#################################################
-# EXAMPLES
-#################################################
+#############################################################################
+#### EXAMPLES                                                            ####
+#############################################################################
 
-INSTALL(FILES install-database-and-users login-as-importer login-as-researcher
-              database.sql procedures.sql README schema.sql users.sql
+INSTALL(FILES
+           README-MySQL+MariaDB.md
+           README-PostgreSQL.md
+           mariadb-database.sql
+           mariadb-schema.sql
+           mariadb-test.sql
+           mariadb-users.sql
+           postgresql-database.sql
+           postgresql-schema.sql
+           postgresql-test.sql
+           postgresql-users.sql
         DESTINATION ${CMAKE_INSTALL_DATADIR}/doc/hipercontracer/examples/SQL)

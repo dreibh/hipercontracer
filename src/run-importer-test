@@ -1,0 +1,30 @@
+#!/bin/bash -e
+
+# NOTE:
+# This script runs a simple importer test, by importing the example data files
+# under examples/. The result can be checked by run-query-test, which generates
+# HiPerConTracer data statements as in the input files.
+
+if [ $# -ne 1 ] ; then
+   echo >&2 "Usage: $0 configuration_file"
+   exit 1
+fi
+if [ ! -e $1 ] ; then
+   echo >&2 "ERROR: Use configuration $1 does not exist!"
+fi
+CONFIGURATION_FILE="$1"
+
+mkdir -p data/ good/ bad/
+rm -rf good/*
+rm -rf bad/*
+cp examples/*.bz2 data/
+
+make hpct-importer && \
+rm -f core &&  \
+./hpct-importer \
+   -c "${CONFIGURATION_FILE}" \
+   --traceroute-workers 1 \
+   --ping-workers 1 \
+   --loglevel 0 \
+   --quit-when-idle
+

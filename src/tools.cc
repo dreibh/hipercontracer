@@ -59,6 +59,49 @@ const passwd* getUser(const char* user)
 }
 
 
+// ###### Check whether path1 is a subdirectory of path2 ####################
+bool is_subdir_of(const std::filesystem::path& path1,
+                  const std::filesystem::path& path2)
+{
+   try {
+      const std::filesystem::path ca1 = std::filesystem::canonical(std::filesystem::absolute(path1));
+      const std::filesystem::path ca2 = std::filesystem::canonical(std::filesystem::absolute(path2));
+
+      std::filesystem::path::const_iterator it1 = ca1.begin();
+      std::filesystem::path::const_iterator it2 = ca2.begin();
+      while(it2 != ca2.end()) {
+         if(it1 == ca1.end()) {   // End of path1 -> path1 not a subdirectory of path2
+            return false;
+         }
+         else if(*it1 != *it2) {   // Different directories -> path1 not a subdirectory of path 2
+            return false;
+         }
+         it1++; it2++;
+      }
+      // Full overlap of all parts of path2
+      // -> path1 is a subdirectory of path 2, if path1 is not yet fully iterated
+      return it1 != ca1.end();
+   }
+   catch(...) { }
+   return false;
+}
+
+
+
+// ###### Destructor ########################################################
+std::filesystem::path relative_to(const std::filesystem::path& dataFile,
+                                  const std::filesystem::path& basePath)
+{
+   std::error_code       ec;
+   std::filesystem::path relativePath = std::filesystem::relative(dataFile, basePath, ec);
+   if(ec) {
+      // Failed to get relative path -> return existing path.
+      return dataFile;
+   }
+   return relativePath;
+}
+
+
 // ###### Reduce privileges of process ######################################
 bool reducePrivileges(const passwd* pw)
 {
@@ -131,7 +174,7 @@ bool addSourceAddress(std::map<boost::asio::ip::address, std::set<uint8_t>>& arr
 
    boost::split(addressParameters, addressString, boost::is_any_of(","));
    if(addressParameters.size() > 0) {
-      const boost::asio::ip::address address = boost::asio::ip::address::from_string(addressParameters[0], errorCode);
+      const boost::asio::ip::address address = boost::asio::ip::make_address(addressParameters[0], errorCode);
       if(errorCode != boost::system::errc::success) {
          if(tryToResolve) {
             boost::asio::io_service ios;
@@ -142,8 +185,8 @@ bool addSourceAddress(std::map<boost::asio::ip::address, std::set<uint8_t>>& arr
             const boost::asio::ip::tcp::resolver::results_type endpoints =
                resolver.resolve(resolver_query, ec);
             if(ec) {
-               std::cerr << "Failed to resolve a DNS name " << addressString << ": " << ec.message() << std::endl;
-               exit(1);
+               std::cerr << "Failed to resolve a DNS name " << addressString << ": " << ec.message() << "\n";
+               return false;
             }
             for (boost::asio::ip::tcp::resolver::iterator it = endpoints.cbegin(); it != endpoints.cend(); it++) {
                const boost::asio::ip::tcp::endpoint endpoint = *it;
@@ -152,7 +195,7 @@ bool addSourceAddress(std::map<boost::asio::ip::address, std::set<uint8_t>>& arr
             }
             return true;
          }
-         std::cerr << "ERROR: Bad source address " << addressParameters[0] << "!" << std::endl;
+         std::cerr << "ERROR: Bad source address " << addressParameters[0] << "!\n";
          return false;
       }
       std::map<boost::asio::ip::address, std::set<uint8_t>>::iterator found = array.find(address);
@@ -174,7 +217,7 @@ bool addSourceAddress(std::map<boost::asio::ip::address, std::set<uint8_t>>& arr
             if(trafficClass == ~0U) {
                trafficClass = std::strtoul(addressParameters[i].c_str(), nullptr, 16);
                if(trafficClass > 0xff) {
-                  std::cerr << "ERROR: Bad traffic class " << addressParameters[i] << "!" << std::endl;
+                  std::cerr << "ERROR: Bad traffic class " << addressParameters[i] << "!\n";
                   return false;
                }
             }
@@ -186,7 +229,7 @@ bool addSourceAddress(std::map<boost::asio::ip::address, std::set<uint8_t>>& arr
       }
    }
    else {
-      std::cerr << "ERROR: Invalid source address specification " << addressString << std::endl;
+      std::cerr << "ERROR: Invalid source address specification " << addressString << "\n";
       return false;
    }
    return true;
@@ -199,7 +242,7 @@ bool addDestinationAddress(std::set<boost::asio::ip::address>& array,
                            bool                                tryToResolve)
 {
    boost::system::error_code errorCode;
-   boost::asio::ip::address  address = boost::asio::ip::address::from_string(addressString, errorCode);
+   boost::asio::ip::address  address = boost::asio::ip::make_address(addressString, errorCode);
    if(errorCode != boost::system::errc::success) {
       if(tryToResolve) {
          boost::asio::io_service ios;
@@ -210,8 +253,8 @@ bool addDestinationAddress(std::set<boost::asio::ip::address>& array,
          const boost::asio::ip::tcp::resolver::results_type endpoints =
             resolver.resolve(resolver_query, ec);
          if(ec) {
-            std::cerr << "Failed to resolve a DNS name " << addressString << ": " << ec.message() << std::endl;
-            exit(1);
+            std::cerr << "Failed to resolve a DNS name " << addressString << ": " << ec.message() << "\n";
+            return false;
          }
          for (boost::asio::ip::tcp::resolver::iterator it = endpoints.cbegin(); it != endpoints.cend(); it++) {
             const boost::asio::ip::tcp::endpoint endpoint = *it;
@@ -220,7 +263,7 @@ bool addDestinationAddress(std::set<boost::asio::ip::address>& array,
          }
          return true;
       }
-      std::cerr << "ERROR: Bad destination address " << addressString << "!" << std::endl;
+      std::cerr << "ERROR: Bad destination address " << addressString << "!\n";
       return false;
    }
    array.insert(address);

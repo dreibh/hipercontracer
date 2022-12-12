@@ -1,0 +1,16 @@
+usr/include/universalimporter/database-configuration.h
+usr/include/universalimporter/database-statement.h
+usr/include/universalimporter/databaseclient-base.h
+usr/include/universalimporter/databaseclient-debug.h
+usr/include/universalimporter/databaseclient-mariadb.h
+usr/include/universalimporter/databaseclient-mongodb.h
+usr/include/universalimporter/databaseclient-postgresql.h
+usr/include/universalimporter/logger.h
+usr/include/universalimporter/reader-base.h
+usr/include/universalimporter/reader-ping.h
+usr/include/universalimporter/reader-traceroute.h
+usr/include/universalimporter/tools.h
+usr/include/universalimporter/universal-importer.h
+usr/include/universalimporter/worker.h
+usr/lib/*/libuniversalimporter*.so
+usr/lib/*/libuniversalimporter.a

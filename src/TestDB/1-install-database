@@ -1,0 +1,238 @@
+#!/usr/bin/env bash
+#  =================================================================
+#           #     #                 #     #
+#           ##    #   ####   #####  ##    #  ######   #####
+#           # #   #  #    #  #    # # #   #  #          #
+#           #  #  #  #    #  #    # #  #  #  #####      #
+#           #   # #  #    #  #####  #   # #  #          #
+#           #    ##  #    #  #   #  #    ##  #          #
+#           #     #   ####   #    # #     #  ######     #
+#
+#        ---   The NorNet Testbed for Multi-Homed Systems  ---
+#                        https://www.nntb.no
+#  =================================================================
+#
+#  High-Performance Connectivity Tracer (HiPerConTracer)
+#  Copyright (C) 2015-2022 by Thomas Dreibholz
+#
+#  This program is free software: you can redistribute it and/or modify
+#  it under the terms of the GNU General Public License as published by
+#  the Free Software Foundation, either version 3 of the License, or
+#  (at your option) any later version.
+#
+#  This program is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
+#
+#  You should have received a copy of the GNU General Public License
+#  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+#  Contact: dreibh@simula.no
+
+# Bash options:
+set -o nounset
+set -o errexit
+
+
+if [ $# -ne 2 ] ; then
+   echo >&2 "Usage: $0 mariadb|mongodb|mysql|postgresql users.conf"
+   exit 1
+fi
+if [ ! -e $2 ] ; then
+   echo >&2 "ERROR: Use configuration $2 does not exist!"
+fi
+
+ROOT_PASSWORD="!root!"
+DATABASE="just_a_test_database"
+MAINTAINER_PASSWORD="!maintainer!"
+IMPORTER_PASSWORD="!importer!"
+RESEARCHER_PASSWORD="!researcher!"
+. $2
+
+if [ "${ROOT_PASSWORD}"       = "!root!"       -o \
+     "${MAINTAINER_PASSWORD}" = "!maintainer!" -o \
+     "${IMPORTER_PASSWORD}"   = "!importer!"   -o \
+     "${RESEARCHER_PASSWORD}" = "!researcher!" ] ; then
+   echo >&2 "DO NOT USE THE EXAMPLE PASSWORDS!"
+   exit 1
+fi
+
+
+# ###### MariaDB ############################################################
+if [ "$1" == "mariadb" ] ; then
+   # Documentation: https://www.digitalocean.com/community/tutorials/how-to-install-mariadb-on-ubuntu-22-04
+
+   echo "Installing MariaDB ..."
+
+   sudo ./generate-test-certificates /etc/ssl mariadb.domain.test
+
+   # MariaDB needs separate certificate and key files.
+   # The chain is in the CA file, it must not be in the certificate file!
+   # Details: https://mariadb.com/kb/en/securing-connections-for-client-and-server/
+   MARIADB_CA_FILE="/etc/ssl/TestLeaf/certs/TestLeaf-chain.pem"
+   MARIADB_CRL_FILE="/etc/ssl/TestGlobal.crl"
+   MARIADB_CRT_FILE="/etc/ssl/mariadb.domain.test/mariadb.domain.test.crt"
+   MARIADB_KEY_FILE="/etc/ssl/mariadb.domain.test/mariadb.domain.test.key"
+   sudo chown mysql:mysql ${MARIADB_KEY_FILE}
+   sudo openssl verify -CAfile ${MARIADB_CA_FILE} ${MARIADB_CRT_FILE}
+
+   sudo DEBIAN_FRONTEND=noninteractive apt install -y mariadb-server mariadb-backup mariadb-client
+
+   # sudo mariadb-secure-installation
+
+   sudo mysqladmin password "${ROOT_PASSWORD}"
+   sudo mariadb --user=root <<EOF
+DELETE FROM mysql.user WHERE User='';
+DROP DATABASE IF EXISTS test;
+DELETE FROM mysql.db WHERE Db='test' OR Db='test\\_%';
+FLUSH PRIVILEGES;
+EOF
+
+   # Enable network access:
+   sudo sed \
+      -e 's/^\(bind-address[ \t]*\)=.*$/\1= */g' \
+      -e "s%\([#]\|\)ssl-ca[ ]*=[ ]*.*%ssl-ca = ${MARIADB_CA_FILE}\nssl-crl = ${MARIADB_CRL_FILE}%" \
+      -e "s%\([#]\|\)ssl-cert[ ]*=[ ]*.*%ssl-cert = ${MARIADB_CRT_FILE}%" \
+      -e "s%\([#]\|\)ssl-key[ ]*=[ ]*.*%ssl-key = ${MARIADB_KEY_FILE}%" \
+      -e "s%\([#]\|\)require-secure-transport[ ]*=[ ]*.*%require-secure-transport = on\ntls_version = TLSv1.3%" \
+      /etc/mysql/mariadb.conf.d/50-server.cnf | sudo tee /etc/mysql/mariadb.conf.d/50-server.cnf.new >/dev/null && \
+   sudo diff --color /etc/mysql/mariadb.conf.d/50-server.cnf.new /etc/mysql/mariadb.conf.d/50-server.cnf || true && \
+   sudo mv /etc/mysql/mariadb.conf.d/50-server.cnf.new /etc/mysql/mariadb.conf.d/50-server.cnf
+   sudo service mariadb restart
+
+   ./test-tls-connection localhost:3306 /etc/ssl/TestLevel1/certs/TestLevel1.crt -starttls mysql
+
+   # Install MySQL Workbench:
+   # wget https://dev.mysql.com/get/Downloads/MySQLGUITools/mysql-workbench-community_8.0.31-1ubuntu22.10_amd64.deb
+   # sudo DEBIAN_FRONTEND=noninteractive apt install ./mysql-workbench-community_8.0.31-1ubuntu22.10_amd64.deb
+
+
+# ###### PostgreSQL #########################################################
+elif [ "$1" == "postgresql" ] ; then
+   # Documentation: https://www.digitalocean.com/community/tutorials/how-to-install-postgresql-on-ubuntu-22-04-quickstart
+
+   echo "Installing PostgreSQL ..."
+
+   sudo ./generate-test-certificates /etc/ssl postgresql.domain.test
+
+   # PostgreSQL needs separate certificate and key files.
+   # The chain is in the CA file, it must not be in the certificate file!
+   POSTGRESQL_CA_FILE="/etc/ssl/TestLeaf/certs/TestLeaf-chain.pem"
+   POSTGRESQL_CRL_FILE="/etc/ssl/TestGlobal.crl"
+   POSTGRESQL_CRT_FILE="/etc/ssl/postgresql.domain.test/postgresql.domain.test.crt"
+   POSTGRESQL_KEY_FILE="/etc/ssl/postgresql.domain.test/postgresql.domain.test.key"
+   sudo chown postgres:postgres ${POSTGRESQL_KEY_FILE}
+   sudo openssl verify -CAfile ${POSTGRESQL_CA_FILE} ${POSTGRESQL_CRT_FILE}
+
+   sudo DEBIAN_FRONTEND=noninteractive  apt install -y postgresql-all postgresql-contrib
+
+   # Enable network access:
+   sudo sed \
+      -e 's#^host    all             all             127.0.0.1/32            scram-sha-256#host    all             all             0.0.0.0/0               scram-sha-256#' \
+      -e 's#^host    all             all             ::1/128                 scram-sha-256#host    all             all             ::/0                    scram-sha-256#' \
+      /etc/postgresql/14/main/pg_hba.conf | sudo tee /etc/postgresql/14/main/pg_hba.conf.new >/dev/null && \
+   diff --color /etc/postgresql/14/main/pg_hba.conf.new /etc/postgresql/14/main/pg_hba.conf || true && \
+   sudo mv /etc/postgresql/14/main/pg_hba.conf.new /etc/postgresql/14/main/pg_hba.conf
+
+   sudo sed \
+      -e "s%#listen_addresses = 'localhost'%listen_addresses = '*'        %" \
+      -e "s%\([#]\|\)ssl_ca_file = '.*'%ssl_ca_file = '${POSTGRESQL_CA_FILE}'%" \
+      -e "s%\([#]\|\)ssl_crl_file = '.*'%ssl_crl_file = '${POSTGRESQL_CRL_FILE}'%" \
+      -e "s%\([#]\|\)ssl_cert_file = '.*'%ssl_cert_file = '${POSTGRESQL_CRT_FILE}'%" \
+      -e "s%\([#]\|\)ssl_key_file = '.*'%ssl_key_file = '${POSTGRESQL_KEY_FILE}'%" \
+      -e "s%#ssl_ciphers = '.*'%ssl_ciphers = 'ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-AES256-SHA384:ECDHE-RSA-AES256-SHA384:ECDHE-ECDSA-AES256-SHA:ECDHE-RSA-AES256'%" \
+      -e "s%#ssl_prefer_server_ciphers = on%ssl_prefer_server_ciphers = on%" \
+      -e "s%#ssl_min_protocol_version = 'TLSv1.2'%ssl_min_protocol_version = 'TLSv1.3'%" \
+      /etc/postgresql/14/main/postgresql.conf | sudo tee /etc/postgresql/14/main/postgresql.conf.new >/dev/null && \
+   diff --color /etc/postgresql/14/main/postgresql.conf.new /etc/postgresql/14/main/postgresql.conf || true && \
+   sudo mv /etc/postgresql/14/main/postgresql.conf.new /etc/postgresql/14/main/postgresql.conf
+
+   sudo service postgresql restart
+
+   ./test-tls-connection localhost:5432 /etc/ssl/TestLevel1/certs/TestLevel1.crt -starttls postgres
+
+
+# ###### MongoDB ############################################################
+elif [ "$1" == "mongodb" ] ; then
+   # Documentation: https://www.mongodb.com/docs/manual/tutorial/install-mongodb-on-ubuntu/
+
+   echo "Installing MongoDB ..."
+
+   sudo ./generate-test-certificates /etc/ssl mongodb.domain.test
+
+   # MongoDB wants key + certificate + chain (in this order!) in the PEM file:
+   MONGODB_CA_FILE="/etc/ssl/TestLeaf/certs/TestLeaf-chain.pem"
+   MONGODB_CRL_FILE="/etc/ssl/TestGlobal.crl"
+   MONGODB_CRT_KEY_FILE="/etc/ssl/mongodb.domain.test/mongodb.domain.test.crt+key+chain"
+   sudo touch ${MONGODB_CRT_KEY_FILE}
+   sudo chmod 600 ${MONGODB_CRT_KEY_FILE}
+   sudo cat /etc/ssl/mongodb.domain.test/mongodb.domain.test.key /etc/ssl/mongodb.domain.test/mongodb.domain.test.crt /etc/ssl/TestLeaf/certs/TestLeaf-chain.pem | sudo tee ${MONGODB_CRT_KEY_FILE} >/dev/null
+   sudo chown mongodb:mongodb ${MONGODB_CRT_KEY_FILE}
+
+   # ====== Install MongoDB =================================================
+   # FIXME! Still no official MongoDB for Ubuntu 22.04 ...
+   if [ ! -e libssl1.1_1.1.1f-1ubuntu2.16_amd64.deb ] ; then
+      wget http://archive.ubuntu.com/ubuntu/pool/main/o/openssl/libssl1.1_1.1.1f-1ubuntu2.16_amd64.deb
+      sudo dpkg -i libssl1.1_1.1.1f-1ubuntu2.16_amd64.deb 
+   fi
+   wget -qO - https://www.mongodb.org/static/pgp/server-6.0.asc | gpg --dearmor | sudo tee /usr/share/keyrings/mongodb.gpg >/dev/null
+   if [ ! -e /etc/apt/sources.list.d/mongodb-org-6.0.list ] ; then
+      echo "deb [ signed-by=/usr/share/keyrings/mongodb.gpg arch=amd64,arm64 ] https://repo.mongodb.org/apt/ubuntu focal/mongodb-org/6.0 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-6.0.list
+   fi
+   sudo apt update -qq
+   sudo DEBIAN_FRONTEND=noninteractive  apt install -y mongodb-org
+
+   # ====== Basic engine configuration ======================================
+   # WARNING: After installation, MongoDB gives everybody on 127.0.0.1
+   #          full access!
+   # The following settings enable authorization check, restricting access
+   # to the configured user (root).
+   cp /etc/mongod.conf /tmp/
+   sudo sed \
+      -e "s!#  engine:!  directoryPerDB: true!" \
+      -e "s!#  wiredTiger:!  wiredTiger:\n    engineConfig:\n      directoryForIndexes: true!" \
+      /etc/mongod.conf | sudo tee /etc/mongod.conf.new
+   sudo mv /etc/mongod.conf.new /etc/mongod.conf
+
+   # ====== Make sure there is a root user ==================================
+   sudo service mongod start
+   mongosh --quiet <<EOF
+use admin
+db.dropUser("root")
+db.createUser({ user: "root",
+                pwd: "${ROOT_PASSWORD}",
+                roles: [
+                   "userAdminAnyDatabase",
+                   "dbAdminAnyDatabase",
+                   "readWriteAnyDatabase",
+                   "clusterAdmin"
+                ] })
+quit()
+EOF
+   sudo service mongod stop
+
+   # ====== Configure MongoDB ===============================================
+   # The following settings enable authorization check, restricting access
+   # to the configured user (root):
+   cp /etc/mongod.conf /tmp/
+   sudo sed \
+      -e "s!  bindIp: 127.0.0.1!  ipv6: true\n  bindIpAll: true\n  tls:\n    mode: requireTLS\n    # CAFile: ${MONGODB_CA_FILE}\n    # CRLFile: ${MONGODB_CRL_FILE}\n    certificateKeyFile: ${MONGODB_CRT_KEY_FILE}\n    disabledProtocols: TLS1_0,TLS1_1,TLS1_2!" \
+      -e "s!#security:!security:\n  authorization: enabled!" \
+      -e "s!#  engine:!  directoryPerDB: true!" \
+      -e "s!#  wiredTiger:!  wiredTiger:\n    engineConfig:\n      directoryForIndexes: true!" \
+      /etc/mongod.conf | sudo tee /etc/mongod.conf.new
+   sudo mv /etc/mongod.conf.new /etc/mongod.conf
+
+   sudo systemctl start mongod
+   sudo systemctl enable mongod
+
+   sleep 5
+   ./test-tls-connection localhost:27017 /etc/ssl/TestLevel1/certs/TestLevel1.crt
+
+
+# ###### Error ##############################################################
+else
+   echo >&2 "ERROR: Unsupported database: $1"
+   exit 1
+fi

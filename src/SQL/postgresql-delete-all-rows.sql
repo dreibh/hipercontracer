@@ -1,0 +1,2 @@
+TRUNCATE TABLE Ping;
+TRUNCATE TABLE Traceroute;

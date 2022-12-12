@@ -31,10 +31,10 @@
 
 
 #############################################################################
-# LIBRARIES
+#### LIBRARIES                                                           ####
 #############################################################################
 
-# ====== liblibhipercontracer ==============================================
+# ====== libhipercontracer ==================================================
 LIST(APPEND libhipercontracer_headers
    destinationinfo.h
    internet16.h
@@ -74,52 +74,164 @@ FOREACH(TYPE shared;static)
    INSTALL(TARGETS libhipercontracer-${TYPE} DESTINATION ${CMAKE_INSTALL_LIBDIR})
 ENDFOREACH()
 
+# ====== libuniversalimporter ==================================================
+LIST(APPEND libuniversalimporter_headers
+   logger.h
+   tools.h
+   database-configuration.h
+   database-statement.h
+   databaseclient-base.h
+   databaseclient-debug.h
+   reader-base.h
+   reader-ping.h
+   reader-traceroute.h
+   universal-importer.h
+   worker.h
+)
+LIST(APPEND libuniversalimporter_sources
+   logger.cc
+   tools.cc
+   database-configuration.cc
+   database-statement.cc
+   databaseclient-base.cc
+   databaseclient-debug.cc
+   reader-base.cc
+   reader-ping.cc
+   reader-ping.cc
+   reader-traceroute.cc
+   universal-importer.cc
+   worker.cc
+)
+
+IF (ENABLE_BACKEND_MARIADB)
+   LIST(APPEND libuniversalimporter_headers databaseclient-mariadb.h)
+   LIST(APPEND libuniversalimporter_sources databaseclient-mariadb.cc)
+ENDIF()
+IF (ENABLE_BACKEND_POSTGRESQL)
+   LIST(APPEND libuniversalimporter_headers databaseclient-postgresql.h)
+   LIST(APPEND libuniversalimporter_sources databaseclient-postgresql.cc)
+ENDIF()
+IF (ENABLE_BACKEND_MONGODB)
+   LIST(APPEND libuniversalimporter_headers databaseclient-mongodb.h)
+   LIST(APPEND libuniversalimporter_sources databaseclient-mongodb.cc)
+ENDIF()
+
+
+INSTALL(FILES ${libuniversalimporter_headers} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/universalimporter)
+
+ADD_LIBRARY(libuniversalimporter-shared SHARED ${libuniversalimporter_sources})
+ADD_LIBRARY(libuniversalimporter-static STATIC ${libuniversalimporter_sources})
+FOREACH(TYPE shared;static)
+   SET_TARGET_PROPERTIES(libuniversalimporter-${TYPE} PROPERTIES OUTPUT_NAME universalimporter CLEAN_DIRECT_OUTPUT 1)
+   SET_TARGET_PROPERTIES(libuniversalimporter-${TYPE} PROPERTIES
+      VERSION   ${BUILD_VERSION}
+      SOVERSION ${BUILD_MAJOR}
+   )
+   TARGET_INCLUDE_DIRECTORIES(libuniversalimporter-${TYPE} PUBLIC ${MYSQLCPPCONN_INCLUDE_DIR} ${LIBMONGOC_INCLUDE_DIR} ${LIBBSON_INCLUDE_DIR} ${INotify_INCLUDE_DIRS})
+   TARGET_LINK_LIBRARIES(libuniversalimporter-${TYPE} ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} ${MYSQLCPPCONN_LIBRARY} ${LIBPQXX_LIBRARY} ${LIBMONGOC_LIBRARY} ${LIBBSON_LIBRARY} ${INotify_LIBRARIES})
+   INSTALL(TARGETS libuniversalimporter-${TYPE} DESTINATION ${CMAKE_INSTALL_LIBDIR})
+ENDFOREACH()
+
 
 #############################################################################
-# PROGRAMS
+# PYTHON LIBRARIES
 #############################################################################
 
+# Help:
+# https://bloerg.net/2012/11/10/cmake-and-distutils.html
+
+# NOTE: setup.py must *not* be packaged, since it is automatically generated!
+# It has to be added to CPACK_SOURCE_IGNORE_FILES (i.e. "setup.py$")!
+
+SET(SETUP_PY_IN "${CMAKE_CURRENT_SOURCE_DIR}/setup.py.in")
+SET(SETUP_PY    "${CMAKE_CURRENT_BINARY_DIR}/setup.py")
+# SET(DEPS        "${CMAKE_CURRENT_SOURCE_DIR}/module/__init__.py")
+SET(OUTPUT      "${CMAKE_CURRENT_BINARY_DIR}/build/timestamp")
+
+CONFIGURE_FILE(${SETUP_PY_IN} ${SETUP_PY})
+
+ADD_CUSTOM_COMMAND(OUTPUT ${OUTPUT}
+                   COMMAND ${PYTHON_EXECUTABLE} ${SETUP_PY} build && touch ${OUTPUT})
+ADD_CUSTOM_TARGET(target ALL DEPENDS ${OUTPUT})
+
+INSTALL(CODE "EXECUTE_PROCESS(COMMAND ${PYTHON_EXECUTABLE} ${SETUP_PY} install ${PYTHON_SETUP_OPTS} --prefix=${PYTHON_LIBRARY_PREFIX})")
+
+
+#############################################################################
+#### PROGRAMS                                                            ####
+#############################################################################
+
+# ====== HiPerConTracer =====================================================
 ADD_EXECUTABLE(hipercontracer hipercontracer.cc)
 TARGET_LINK_LIBRARIES(hipercontracer libhipercontracer-shared ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
 INSTALL(TARGETS hipercontracer RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
 INSTALL(FILES hipercontracer.1 DESTINATION ${CMAKE_INSTALL_MANDIR}/man1)
 
-ADD_EXECUTABLE(hpcttrigger hpcttrigger.cc)
-TARGET_LINK_LIBRARIES(hpcttrigger libhipercontracer-shared ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
-INSTALL(TARGETS hpcttrigger RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
-INSTALL(FILES hpcttrigger.1 DESTINATION ${CMAKE_INSTALL_MANDIR}/man1)
+# ====== HiPerConTracer Trigger =============================================
+ADD_EXECUTABLE(hpct-trigger hpct-trigger.cc)
+TARGET_LINK_LIBRARIES(hpct-trigger libhipercontracer-shared ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
+INSTALL(TARGETS hpct-trigger RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
+INSTALL(FILES hpct-trigger.1 DESTINATION ${CMAKE_INSTALL_MANDIR}/man1)
 
-INSTALL(PROGRAMS tracedataimporter get-default-ips addressinfogenerator
+# ====== HiPerConTracer Importer ============================================
+ADD_EXECUTABLE(hpct-importer hpct-importer.cc
+   reader-ping.cc
+   reader-traceroute.cc
+)
+TARGET_LINK_LIBRARIES(hpct-importer libuniversalimporter-shared)
+INSTALL(TARGETS hpct-importer RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
+INSTALL(FILES hpct-importer.1 DESTINATION ${CMAKE_INSTALL_MANDIR}/man1)
+
+# ====== HiPerConTracer Query ===============================================
+INSTALL(PROGRAMS hpct-query
         DESTINATION ${CMAKE_INSTALL_BINDIR})
-INSTALL(FILES tracedataimporter.1 get-default-ips.1 addressinfogenerator.1
+INSTALL(FILES hpct-query.1
+        DESTINATION ${CMAKE_INSTALL_MANDIR}/man1)
+
+# ====== UDP Echo Server ====================================================
+ADD_EXECUTABLE(echo-server echo-server.cc logger.cc tools.cc)
+TARGET_LINK_LIBRARIES(echo-server ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
+INSTALL(PROGRAMS echo-server
+        DESTINATION ${CMAKE_INSTALL_BINDIR})
+
+
+# ====== Scripts ============================================================
+INSTALL(PROGRAMS get-default-ips
+        DESTINATION ${CMAKE_INSTALL_BINDIR})
+INSTALL(FILES get-default-ips.1
         DESTINATION ${CMAKE_INSTALL_MANDIR}/man1)
 
 
-# Test only:
+# ====== TEST ONLY ==========================================================
 # ADD_EXECUTABLE(t1 t1.cc)
 # TARGET_LINK_LIBRARIES(t1 ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
 # ADD_EXECUTABLE(t2 t2.cc)
+# TARGET_LINK_LIBRARIES(t2 ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} ${CARES_LIBRARY})
 # ADD_EXECUTABLE(t3 t3.cc)
-ADD_EXECUTABLE(t9 t9.cc)
-TARGET_LINK_LIBRARIES(t9 ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
-ADD_EXECUTABLE(t9b t9b.cc)
-TARGET_LINK_LIBRARIES(t9b ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
-ADD_EXECUTABLE(echo-server echo-server.cc logger.cc tools.cc)
-TARGET_LINK_LIBRARIES(echo-server ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
+# ADD_EXECUTABLE(t9 t9.cc)
+# TARGET_LINK_LIBRARIES(t9 ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
+# ADD_EXECUTABLE(t9b t9b.cc)
+# TARGET_LINK_LIBRARIES(t9b ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
+# TARGET_LINK_LIBRARIES(t3 ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
+# ADD_EXECUTABLE(t7 t7.cc)
+# TARGET_LINK_LIBRARIES(t7 ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
+# ADD_EXECUTABLE(nne-importer nne-importer.cc reader-nne-metadata.cc reader-nne-ping.cc reader-nne-speedtest.cc)
+# TARGET_LINK_LIBRARIES(nne-importer libuniversalimporter-shared)
 
 
 #############################################################################
-# EXAMPLES
+#### EXAMPLES                                                            ####
 #############################################################################
 
-INSTALL(FILES hipercontracer-database-configuration
+INSTALL(FILES hipercontracer-database.conf
         DESTINATION ${CMAKE_INSTALL_DATADIR}/doc/hipercontracer/examples)
 
 
 #############################################################################
-# SUBDIRECTORIES
+#### SUBDIRECTORIES                                                      ####
 #############################################################################
 
 ADD_SUBDIRECTORY(SQL)
 ADD_SUBDIRECTORY(NoSQL)
+ADD_SUBDIRECTORY(TestDB)
 ADD_SUBDIRECTORY(examples)

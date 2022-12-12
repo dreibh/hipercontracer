@@ -1,6 +1,4 @@
-debian/tmp/usr/share/doc/hipercontracer/examples/NoSQL/
-debian/tmp/usr/share/doc/hipercontracer/examples/Ping-P256751-0.0.0.0-20211212T125352.632431-000000001.results.bz2
-debian/tmp/usr/share/doc/hipercontracer/examples/SQL/
-debian/tmp/usr/share/doc/hipercontracer/examples/Traceroute-P258235-0.0.0.0-20211212T132253.414640-000000001.results.bz2
-debian/tmp/usr/share/doc/hipercontracer/examples/hipercontracer-database-configuration
-debian/tmp/usr/share/doc/hipercontracer/examples/r-example.R
+debian/tmp/usr/share/doc/hipercontracer/examples/Ping-*.results.bz2
+debian/tmp/usr/share/doc/hipercontracer/examples/README.md
+debian/tmp/usr/share/doc/hipercontracer/examples/Traceroute-*.results.bz2
+debian/tmp/usr/share/doc/hipercontracer/examples/ping-example.R

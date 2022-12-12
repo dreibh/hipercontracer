@@ -1,0 +1,13 @@
+# Set the database user passwords here.
+# Hint: "pwgen -s 128" generates secure ones!
+
+# DBMS root:
+ROOT_PASSWORD="!root!"
+
+# Test database:
+DATABASE="testonly"
+
+# Users for the test database:
+MAINTAINER_PASSWORD="!maintainer!"
+IMPORTER_PASSWORD="!importer!"
+RESEARCHER_PASSWORD="!researcher!"

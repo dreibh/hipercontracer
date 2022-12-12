@@ -1,0 +1,85 @@
+#!/usr/bin/env bash
+#  =================================================================
+#           #     #                 #     #
+#           ##    #   ####   #####  ##    #  ######   #####
+#           # #   #  #    #  #    # # #   #  #          #
+#           #  #  #  #    #  #    # #  #  #  #####      #
+#           #   # #  #    #  #####  #   # #  #          #
+#           #    ##  #    #  #   #  #    ##  #          #
+#           #     #   ####   #    # #     #  ######     #
+#
+#        ---   The NorNet Testbed for Multi-Homed Systems  ---
+#                        https://www.nntb.no
+#  =================================================================
+#
+#  High-Performance Connectivity Tracer (HiPerConTracer)
+#  Copyright (C) 2015-2022 by Thomas Dreibholz
+#
+#  This program is free software: you can redistribute it and/or modify
+#  it under the terms of the GNU General Public License as published by
+#  the Free Software Foundation, either version 3 of the License, or
+#  (at your option) any later version.
+#
+#  This program is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
+#
+#  You should have received a copy of the GNU General Public License
+#  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+#  Contact: dreibh@simula.no
+
+# Bash options:
+set -o nounset
+set -o errexit
+
+
+if [ $# -lt 1 ] ; then
+   echo >&2 "Usage: $0 mariadb|mongodb|mysql|postgresql"
+   exit 1
+fi
+
+# Access to database as "researcher" user:
+DATABASE_CONFIG="${HOME}/testdb-users-$1-researcher.conf"
+
+
+# ###### Run test ###########################################################
+if [ -e "${DATABASE_CONFIG}" ] ; then
+
+   if [ ! -e good -o ! -e bad -o ! -e data ] ; then
+      echo >&2 "ERROR: Directories missing! Did 5-perform-hpct-importer-test succeed?"
+      exit 1
+   fi
+
+   for table in Ping Traceroute ; do
+
+      echo "Obtaining ${table} data from good/ directory ..."
+      find good/ -name "${table}-*.bz2" | sort | xargs -r bzcat | tee imported-raw-${table,,}.txt | grep "^#" | sort -k4 >imported-${table,,}.txt
+      ls -l imported-raw-${table,,}.txt imported-${table,,}.txt
+
+      echo "Querying ${table} data from database ..."
+      ../hpct-query "${DATABASE_CONFIG}" ${table,,} >queried-raw-${table,,}.txt
+      cat queried-raw-${table,,}.txt | grep "^#" | sort -k4 >queried-${table,,}.txt
+      ls -l queried-raw-${table,,}.txt queried-${table,,}.txt
+
+      echo "Differences for ${table}:"
+      if [ "${table}" == "Traceroute" ] ; then
+         ls -l imported-raw-${table,,}.txt
+         ls -l queried-raw-${table,,}.txt
+      fi
+
+      ls -l imported-${table,,}.txt queried-${table,,}.txt
+      wc -l imported-${table,,}.txt queried-${table,,}.txt
+      diff --color=always imported-${table,,}.txt queried-${table,,}.txt | head -n32
+
+   done
+
+   echo "SUCCESS!"
+
+
+# ###### Error ##############################################################
+else
+   echo >&2 "ERROR: ${DATABASE_CONFIG} not found!"
+   exit 1
+fi

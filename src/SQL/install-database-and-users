@@ -1,6 +1,0 @@
-#!/bin/sh
-
-sudo -u postgres psql <database.sql
-sudo -u postgres psql pingtraceroutedb <schema.sql
-sudo -u postgres psql pingtraceroutedb <users.sql
-

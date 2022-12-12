@@ -1,0 +1,136 @@
+.\" High-Performance Connectivity Tracer (HiPerConTracer)
+.\" Copyright (C) 2015-2022 by Thomas Dreibholz
+.\"
+.\" This program is free software: you can redistribute it and/or modify
+.\" it under the terms of the GNU General Public License as published by
+.\" the Free Software Foundation, either version 3 of the License, or
+.\" (at your option) any later version.
+.\"
+.\" This program is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\" GNU General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU General Public License
+.\" along with this program.  If not, see <http://www.gnu.org/licenses/>.
+.\"
+.\" Contact: dreibh@iem.uni-due.de
+.\"
+.\" ###### Setup ############################################################
+.Dd November 18, 2022
+.Dt hpct-importer 1
+.Os hpct-importer
+.\" ###### Name #############################################################
+.Sh NAME
+.Nm hpct-importer
+.Nd HiPerConTracer Trace Data Importer
+.\" ###### Synopsis #########################################################
+.Sh SYNOPSIS
+.Nm hpct-importer
+database_configuration
+.Op \-L|--loglevel level
+.Op \-q|--quiet
+.Op \-v|--verbose
+.Op \-C|--config DATABASE_CONFIGURATION_FILE
+.Op \-X|--import-mode MODE
+.Op \-D|--import-max-depth DEPTH
+.Op \-I|--import-file-path PATH
+.Op \-B|--bad-file-path PATH
+.Op \-G|--good-file-path PATH
+.Op \-F|--import-file-path-filter FILTER_REGEXP
+.Op \-Q|--quit-when-idle
+.Op \--ping-workers NUMBER
+.Op \--ping-files NUMBER
+.Op \--traceroute-workers NUMBER
+.Op \--traceroute-files NUMBER
+.\" ###### Description ######################################################
+.Sh DESCRIPTION
+.Nm hpct-importer
+imports HiPerConTracer results into an SQL or NoSQL database. Currently, the
+following database backends are supported:
+MySQL/MariaDB (SQL),
+PostgreSQL (SQL),
+MongoDB  (NoSQL).
+.br
+Results files imported successfully can be moved into a "good" directory,
+deleted or kept as-in (for debugging only!).
+Results files which failed to import a re moved into a "bad" directory.
+.br
+The input of multiple input files can be combined into a single database
+transaction, to improve performance on short files. In case of an import
+error, each file is imported sequentially to identify faulty ones.
+.Pp
+.\" ###### Arguments ########################################################
+.Sh ARGUMENTS
+The following argument may be provided:
+.Bl -tag -width indent
+.It \-L|\--loglevel level
+Sets the minimum logging level to the provided value: 0=trace, 1=debug, 2=info, 3=warning, 4=error, 5=fatal.
+.It \-q|\--quiet
+Sets the minimum logging level to 3 (warning).
+.It \-v|\--verbose
+Sets the minimum logging level to 0 (trace).
+.It \-C|--config DATABASE_CONFIGURATION_FILE
+Specifies the database configuration file. See
+/usr/share/doc/hipercontracer/examples/hipercontracer-database.conf
+for a commented example.
+.It \-X|--import-mode MODE
+Specifies the import mode,
+overriding the mode read from the database configuration file:
+DeleteImportedFiles (delete successfully imported files)
+MoveImportedFiles (move successfully imported files into "good" directory),
+KeepImportedFiles (keep successfully imported files where they are).
+Do not use KeepImportedFiles execpt for testing. Otherwise, the next re-run of
+hpct-importer tries to import them again! They may create duplicates when the
+underlying database system (NoSQL without unique indices) does not ensure
+uniqueness!
+.It \-D|--import-max-depth DEPTH
+Specifies the import directory traversal depth,
+overriding the mode read from the database configuration file.
+.It \-I|--import-file-path PATH
+Specifies the import file path,
+overriding the mode read from the database configuration file.
+This path is used to look for files to import.
+.It \-B|--bad-file-path PATH
+Specifies the "good" file path,
+overriding the mode read from the database configuration file.
+This path is used to move successfully imported files to, when
+the import mode is set to KeepImportedFiles.
+.It \-G|--good-file-path PATH
+Specifies the "bad" file path,
+overriding the mode read from the database configuration file.
+This path is used to move files to which failed to import.
+.It \-F|--import-file-path-filter FILTER_REGEXP
+Specifies the import path filter,
+overriding the mode read from the database configuration file.
+This filter can be used to only import a subset of the import files for
+testing. The filter expression is an std::regex regular expression.
+.Op \-Q|--quit-when-idle
+Quit importer when all workers are idle. This will perform only one import
+round.
+.It \--ping-workers NUMBER
+Sets the number of Ping import workers. Default: 1.
+An import file is distributed to a worker by hashing the source address
+given in the file name.
+.It \--ping-files NUMBER
+Sets the number of Ping import files per database transaction. Default: 1.
+.It \--traceroute-workers NUMBER
+Sets the number of Traceroute import workers. Default: 1.
+An import file is distributed to a worker by hashing the source address
+given in the file name.
+.It \--traceroute-files NUMBER
+Sets the number of Traceroute import files per database transaction. Default: 1.
+.El
+.\" ###### Arguments ########################################################
+.Sh EXAMPLES
+.Bl -tag -width indent
+.It hpct-importer hipercontracer-database.conf
+.El
+.\" ###### Authors ##########################################################
+.Sh AUTHORS
+Thomas Dreibholz
+.br
+https://www.uni-due.de/~be0001/hipercontracer
+.br
+mailto://dreibh@iem.uni-due.de
+.br

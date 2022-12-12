@@ -1,0 +1,68 @@
+.\" High-Performance Connectivity Tracer (HiPerConTracer)
+.\" Copyright (C) 2015-2022 by Thomas Dreibholz
+.\"
+.\" This program is free software: you can redistribute it and/or modify
+.\" it under the terms of the GNU General Public License as published by
+.\" the Free Software Foundation, either version 3 of the License, or
+.\" (at your option) any later version.
+.\"
+.\" This program is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\" GNU General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU General Public License
+.\" along with this program.  If not, see <http://www.gnu.org/licenses/>.
+.\"
+.\" Contact: dreibh@iem.uni-due.de
+.\"
+.\" ###### Setup ############################################################
+.Dd November 18, 2022
+.Dt hpct-query 1
+.Os hpct-query
+.\" ###### Name #############################################################
+.Sh NAME
+.Nm hpct-query
+.Nd HiPerConTracer Trace Data Importer
+.\" ###### Synopsis #########################################################
+.Sh SYNOPSIS
+.Nm hpct-query
+database_configuration
+ping|traceroute
+.Op from_time
+.Op to_time
+.\" ###### Description ######################################################
+.Sh DESCRIPTION
+.Nm hpct-query
+provides a simple query command to query a HiPerConTracer database for
+Ping or Traceroute results within a given time range. The output format is
+that same as the uncompressed HiPerConTracer results formant. See the
+HiPerConTracer manpage for the format description.
+.Pp
+.\" ###### Arguments ########################################################
+.Sh ARGUMENTS
+The following argument may be provided:
+.Bl -tag -width indent
+.It from_time
+Set the beginning of the time range as string in format "%Y-%m-%d %H:%M:%S".
+If not provided, all results will be queried.
+.It end_time
+Set the end of the time range as string in format "%Y-%m-%d %H:%M:%S".
+If not provided, all results after a given from_time will be queried.
+.El
+.\" ###### Arguments ########################################################
+.Sh EXAMPLES
+.Bl -tag -width indent
+.It hpct-query hipercontracer-database.conf ping
+.It hpct-query hipercontracer-database.conf traceroute
+.It hpct-query hipercontracer-database.conf ping "2022-09-29 13:00:00"
+.It hpct-query hipercontracer-database.conf traceroute "2022-09-29 00:00:00" "2022-09-29 12:00:00"
+.El
+.\" ###### Authors ##########################################################
+.Sh AUTHORS
+Thomas Dreibholz
+.br
+https://www.uni-due.de/~be0001/hipercontracer
+.br
+mailto://dreibh@iem.uni-due.de
+.br
