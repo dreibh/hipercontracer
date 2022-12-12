@@ -226,6 +226,7 @@ int main(int argc, char** argv)
    unsigned int       logLevel;
    std::string        user((getlogin() != nullptr) ? getlogin() : "");
    std::string        configurationFileName;
+   OutputFormatType   outputFormat = OutputFormatType::OFT_HiPerConTracer_Version2;
    bool               servicePing;
    bool               serviceTraceroute;
 
@@ -454,7 +455,7 @@ int main(int argc, char** argv)
                   return 1;
                }
             }
-            Service* service = new Ping(resultsWriter, 0, true,
+            Service* service = new Ping(resultsWriter, outputFormat, 0, true,
                                         sourceAddress, destinationsForSource,
                                         pingInterval, pingExpiration, pingTTL);
             if(service->start() == false) {
@@ -480,7 +481,7 @@ int main(int argc, char** argv)
                   return 1;
                }
             }
-            Service* service = new Traceroute(resultsWriter, 0, true,
+            Service* service = new Traceroute(resultsWriter, outputFormat, 0, true,
                                               sourceAddress, destinationsForSource,
                                               tracerouteInterval, tracerouteExpiration,
                                               tracerouteRounds,
