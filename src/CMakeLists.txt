@@ -37,6 +37,7 @@
 # ====== liblibhipercontracer ==============================================
 LIST(APPEND libhipercontracer_headers
    destinationinfo.h
+   internet16.h
    iomodule.h
    logger.h
    ping.h
@@ -48,6 +49,7 @@ LIST(APPEND libhipercontracer_headers
 )
 LIST(APPEND libhipercontracer_sources
    destinationinfo.cc
+   internet16.cc
    iomodule.cc
    logger.cc
    ping.cc

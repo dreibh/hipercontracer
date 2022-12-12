@@ -33,20 +33,10 @@
 #define INTERNET16_H
 
 #include <stdint.h>
+#include <arpa/inet.h>
 
 
-// ###### Internet-16 checksum according to RFC 1071, computation part ######
-inline void processInternet16(uint32_t& sum, const uint8_t* data, const unsigned int datalen)
-{
-   const uint8_t*       ptr = data;
-   const uint8_t* const end = &data[datalen];
-   while(ptr != end) {
-      sum += (*ptr++) << 8;
-      if(ptr != end) {
-         sum += (*ptr++);
-      }
-   }
-}
+void processInternet16(uint32_t& sum, const uint8_t* data, const unsigned int datalen);
 
 
 // ###### Internet-16 checksum according to RFC 1071, final part ############
@@ -54,7 +44,7 @@ inline uint16_t finishInternet16(uint32_t sum)
 {
    sum = (sum >> 16) + (sum & 0xFFFF);
    sum += (sum >> 16);
-   return static_cast<uint16_t>(~sum);
+   return htons(static_cast<uint16_t>(~sum));
 }
 
 #endif
