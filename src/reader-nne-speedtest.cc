@@ -117,6 +117,19 @@ void NorNetEdgeSpeedTestReader::parseContents(
          databaseClient.executeUpdate(statement);
          rows++;
       }
+      else if(backend & DatabaseBackendType::NoSQL_Generic) {
+         statement << "{ \"" << "speedtest_data" <<  "\": [";
+         statement.beginRow(false);
+         statement
+            << "\"ts\""    << statement.quote(tuple[0]) << statement.sep()
+            << "\"mi_id\"" << std::stoul(tuple[1])      << statement.sep()
+            << "\"seq\""   << std::stoul(tuple[2])      << statement.sep()
+            << "\"data\""  << statement.quote(tuple[3]);
+         statement.endRow();
+         statement << " \n] }";
+         databaseClient.executeUpdate(statement);
+         rows++;
+      }
       else {
          throw ImporterLogicException("Unknown output format");
       }

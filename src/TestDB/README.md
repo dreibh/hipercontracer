@@ -7,6 +7,6 @@ This directory contains scripts to install, configure and prepare a test databas
 - [2-initialise-database](2-initialise-database)
 - [3-test-database](3-test-database)
 - [4-clean-database](4-clean-database)
-- [5-perform-importer-test](5-perform-importer-test)
-- [6-perform-query-test](6-perform-query-test)
+- [5-perform-hpct-importer-test](5-perform-hpct-importer-test)
+- [6-perform-hpct-query-test](6-perform-hpct-query-test)
 - [9-uninstall-database](9-uninstall-database)

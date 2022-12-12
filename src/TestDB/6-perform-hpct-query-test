@@ -48,7 +48,7 @@ DATABASE_CONFIG="${HOME}/testdb-users-$1-researcher.conf"
 if [ -e "${DATABASE_CONFIG}" ] ; then
 
    if [ ! -e good -o ! -e bad -o ! -e data ] ; then
-      echo >&2 "ERROR: Directories missing! Did 5-perform-importer-test succeed?"
+      echo >&2 "ERROR: Directories missing! Did 5-perform-hpct-importer-test succeed?"
       exit 1
    fi
 

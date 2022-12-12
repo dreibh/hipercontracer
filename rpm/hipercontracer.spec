@@ -16,7 +16,7 @@ BuildRequires: gcc-c++
 BuildRequires: libbson-devel
 BuildRequires: libpqxx-devel
 BuildRequires: mongo-c-driver-devel
-BuildRequires: python3
+BuildRequires: python3-devel
 Recommends: mysql-connector-c++-devel
 Recommends: python3-psycopg2
 Recommends: python3-pymongo
@@ -40,7 +40,8 @@ imported into an SQL or NoSQL database.
 
 %build
 # NOTE: CMAKE_VERBOSE_MAKEFILE=OFF for reduced log output!
-%cmake -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_VERBOSE_MAKEFILE=OFF -DPYTHON_LIBRARY_PREFIX=%{buildroot}/usr .
+# NOTE: ENABLE_BACKEND_MARIADB=0
+%cmake -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_VERBOSE_MAKEFILE=OFF -DPYTHON_LIBRARY_PREFIX=%{buildroot}/usr -DENABLE_BACKEND_MARIADB=0 .
 %cmake_build
 
 %pre
@@ -149,7 +150,7 @@ own programs.
 %{_includedir}/universalimporter/database-statement.h
 %{_includedir}/universalimporter/databaseclient-base.h
 %{_includedir}/universalimporter/databaseclient-debug.h
-%{_includedir}/universalimporter/databaseclient-mariadb.h
+# universalimporter/databaseclient-mariadb.h
 %{_includedir}/universalimporter/databaseclient-mongodb.h
 %{_includedir}/universalimporter/databaseclient-postgresql.h
 %{_includedir}/universalimporter/logger.h
@@ -177,8 +178,8 @@ imported into an SQL or NoSQL database.
 This tool triggers HiPerConTracer by incoming "Ping" packets.
 
 %files hipercontracer-trigger
-%{_bindir}/hpcttrigger
-%{_mandir}/man1/hpcttrigger.1.gz
+%{_bindir}/hpct-trigger
+%{_mandir}/man1/hpct-trigger.1.gz
 
 
 %package hipercontracer-importer
@@ -196,8 +197,8 @@ This package contains the importer tool to import results from
 HiPerConTracer into an SQL or NoSQL database.
 
 %files hipercontracer-importer
-%{_bindir}/hpctimporter
-%{_mandir}/man1/hpctimporter.1.gz
+%{_bindir}/hpct-importer
+%{_mandir}/man1/hpct-importer.1.gz
 %{_datadir}/doc/hipercontracer/examples/NoSQL/R-query-example.R
 %{_datadir}/doc/hipercontracer/examples/NoSQL/README-MongoDB.md
 %{_datadir}/doc/hipercontracer/examples/NoSQL/mongodb-database.ms
@@ -272,8 +273,8 @@ This package contains a simple query tool to obtain results
 from a HiPerConTracer SQL or NoSQL database.
 
 %files hipercontracer-query
-%{_bindir}/hpctquery
-%{_mandir}/man1/hpctquery.1.gz
+%{_bindir}/hpct-query
+%{_mandir}/man1/hpct-query.1.gz
 
 
 %changelog
