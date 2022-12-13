@@ -121,8 +121,8 @@ class IPv6Header
       memcpy(&Data[24], destinationAddress.to_bytes().data(), 16);
    }
 
-   inline void processInternet16(uint32_t& sum) const {
-      ::processInternet16(sum, (uint8_t*)&Data, sizeof(Data));
+   inline void computeInternet16(uint32_t& sum) const {
+      ::computeInternet16(sum, (uint8_t*)&Data, sizeof(Data));
    }
 
    friend std::istream& operator>>(std::istream& is, IPv6Header& header) {
@@ -170,8 +170,8 @@ class IPv6PseudoHeader
       Data[39] = ipv6Header.Data[6];                   // Protocol
    }
 
-   inline void processInternet16(uint32_t& sum) const {
-      ::processInternet16(sum, (uint8_t*)&Data, sizeof(Data));
+   inline void computeInternet16(uint32_t& sum) const {
+      ::computeInternet16(sum, (uint8_t*)&Data, sizeof(Data));
    }
 
    private:

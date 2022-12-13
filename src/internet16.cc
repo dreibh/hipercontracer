@@ -33,7 +33,7 @@
 
 
 // ###### Internet-16 checksum according to RFC 1071, computation part ######
-void processInternet16(uint32_t& sum, const uint8_t* data, const unsigned int datalen)
+void computeInternet16(uint32_t& sum, const uint8_t* data, const unsigned int datalen)
 {
    const uint8_t*       ptr = data;
    const uint8_t* const end = &data[datalen];

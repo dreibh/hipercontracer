@@ -85,8 +85,8 @@ class UDPHeader
       return os.write(reinterpret_cast<const char*>(header.Data), sizeof(header.Data));
    }
 
-   inline void processInternet16(uint32_t& sum) const {
-      ::processInternet16(sum, (uint8_t*)&Data, sizeof(Data));
+   inline void computeInternet16(uint32_t& sum) const {
+      ::computeInternet16(sum, (uint8_t*)&Data, sizeof(Data));
    }
 
    private:

@@ -130,8 +130,8 @@ class TraceServiceHeader
                        timeStamp - HiPerConTracerEpoch).count());
    }
 
-   inline void processInternet16(uint32_t& sum) const {
-      ::processInternet16(sum, (uint8_t*)&Data, Size);
+   inline void computeInternet16(uint32_t& sum) const {
+      ::computeInternet16(sum, (uint8_t*)&Data, Size);
    }
 
    inline friend std::istream& operator>>(std::istream& is, TraceServiceHeader& header) {

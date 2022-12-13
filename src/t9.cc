@@ -156,11 +156,11 @@ int main(int argc, char *argv[])
 
             // UDP pseudo-header:
             uint32_t udpChecksum = 0;
-            udpHeader.processInternet16(udpChecksum);
-            pseudoHeader.processInternet16(udpChecksum);
+            udpHeader.computeInternet16(udpChecksum);
+            pseudoHeader.computeInternet16(udpChecksum);
 
             // UDP payload:
-            tsHeader.processInternet16(udpChecksum);
+            tsHeader.computeInternet16(udpChecksum);
 
             udpHeader.checksum(finishInternet16(udpChecksum));
 

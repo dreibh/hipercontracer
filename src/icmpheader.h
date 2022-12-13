@@ -98,8 +98,8 @@ class ICMPHeader
    inline void identifier(uint16_t id)     { encode(4, 5, id);       }
    inline void seqNumber(uint16_t seqNum)  { encode(6, 7, seqNum);   }
 
-   inline void processInternet16(uint32_t& sum) const {
-      ::processInternet16(sum, (uint8_t*)&Data, sizeof(Data));
+   inline void computeInternet16(uint32_t& sum) const {
+      ::computeInternet16(sum, (uint8_t*)&Data, sizeof(Data));
    }
 
    inline friend std::istream& operator>>(std::istream& is, ICMPHeader& header) {

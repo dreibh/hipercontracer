@@ -107,8 +107,8 @@ class IPv4Header
       memcpy(&Data[16], destinationAddress.to_bytes().data(), 4);
    }
 
-   inline void processInternet16(uint32_t& sum) const {
-      ::processInternet16(sum, (uint8_t*)&Data, headerLength());
+   inline void computeInternet16(uint32_t& sum) const {
+      ::computeInternet16(sum, (uint8_t*)&Data, headerLength());
    }
 
    friend std::istream& operator>>(std::istream& is, IPv4Header& header) {
@@ -157,8 +157,8 @@ class IPv4PseudoHeader
       Data[11] = static_cast<uint8_t>(length & 0xff);
    }
 
-   inline void processInternet16(uint32_t& sum) const {
-      ::processInternet16(sum, (uint8_t*)&Data, sizeof(Data));
+   inline void computeInternet16(uint32_t& sum) const {
+      ::computeInternet16(sum, (uint8_t*)&Data, sizeof(Data));
    }
 
    private:

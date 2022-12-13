@@ -36,7 +36,7 @@
 #include <arpa/inet.h>
 
 
-void processInternet16(uint32_t& sum, const uint8_t* data, const unsigned int datalen);
+void computeInternet16(uint32_t& sum, const uint8_t* data, const unsigned int datalen);
 
 
 // ###### Internet-16 checksum according to RFC 1071, final part ############

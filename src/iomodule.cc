@@ -588,8 +588,8 @@ ResultEntry* ICMPModule::sendRequest(const DestinationInfo& destination,
 
    // ====== Tweak checksum =================================================
    uint32_t icmpChecksum = 0;
-   echoRequest.processInternet16(icmpChecksum);
-   tsHeader.processInternet16(icmpChecksum);
+   echoRequest.computeInternet16(icmpChecksum);
+   tsHeader.computeInternet16(icmpChecksum);
    echoRequest.checksum(finishInternet16(icmpChecksum));
 
    // ------ No given target checksum ---------------------
@@ -610,8 +610,8 @@ ResultEntry* ICMPModule::sendRequest(const DestinationInfo& destination,
       // Compute new checksum (must be equal to target checksum!)
       icmpChecksum = 0;
       echoRequest.checksum(0);   // Reset the original checksum first!
-      echoRequest.processInternet16(icmpChecksum);
-      tsHeader.processInternet16(icmpChecksum);
+      echoRequest.computeInternet16(icmpChecksum);
+      tsHeader.computeInternet16(icmpChecksum);
       echoRequest.checksum(finishInternet16(icmpChecksum));
       assert(echoRequest.checksum() == targetChecksum);
    }
@@ -1187,14 +1187,14 @@ ResultEntry* UDPModule::sendRequest(const DestinationInfo& destination,
       // ------ UDP checksum ------------------------------------------------
       // UDP pseudo-header:
       uint32_t udpChecksum = 0;
-      udpHeader.processInternet16(udpChecksum);
-      pseudoHeader.processInternet16(udpChecksum);
+      udpHeader.computeInternet16(udpChecksum);
+      pseudoHeader.computeInternet16(udpChecksum);
 
       // UDP payload:
       // Now, the SendTimeStamp in the TraceServiceHeader has to be set:
       sendTime = std::chrono::system_clock::now();
       tsHeader.sendTimeStamp(sendTime);
-      tsHeader.processInternet16(udpChecksum);
+      tsHeader.computeInternet16(udpChecksum);
 
       udpHeader.checksum(finishInternet16(udpChecksum));
 
@@ -1224,20 +1224,20 @@ ResultEntry* UDPModule::sendRequest(const DestinationInfo& destination,
 
       // ------ IPv4 header checksum ----------------------------------------
       uint32_t ipv4HeaderChecksum = 0;
-      ipv4Header.processInternet16(ipv4HeaderChecksum);
+      ipv4Header.computeInternet16(ipv4HeaderChecksum);
       ipv4Header.headerChecksum(finishInternet16(ipv4HeaderChecksum));
 
       // ------ UDP checksum ------------------------------------------------
       // UDP pseudo-header:
       uint32_t udpChecksum = 0;
-      udpHeader.processInternet16(udpChecksum);
-      pseudoHeader.processInternet16(udpChecksum);
+      udpHeader.computeInternet16(udpChecksum);
+      pseudoHeader.computeInternet16(udpChecksum);
 
       // UDP payload:
       // Now, the SendTimeStamp in the TraceServiceHeader has to be set:
       sendTime = std::chrono::system_clock::now();
       tsHeader.sendTimeStamp(sendTime);
-      tsHeader.processInternet16(udpChecksum);
+      tsHeader.computeInternet16(udpChecksum);
 
       udpHeader.checksum(finishInternet16(udpChecksum));
 
