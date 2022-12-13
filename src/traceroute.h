@@ -58,7 +58,8 @@ enum OutputFormatType
 class Traceroute : public Service
 {
    public:
-   Traceroute(ResultsWriter*                   resultsWriter,
+   Traceroute(const std::string                moduleName,
+              ResultsWriter*                   resultsWriter,
               const OutputFormatType           outputFormat,
               const unsigned int               iterations,
               const bool                       removeDestinationInfoAfterRun,
@@ -70,7 +71,8 @@ class Traceroute : public Service
               const unsigned int               initialMaxTTL   = 5,
               const unsigned int               finalMaxTTL     = 35,
               const unsigned int               incrementMaxTTL = 2,
-              const unsigned int               packetSize      = 0);
+              const unsigned int               packetSize      = 0,
+              const uint16_t                   destinationPort = 7);
    virtual ~Traceroute();
 
    virtual const boost::asio::ip::address& getSource();

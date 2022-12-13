@@ -94,29 +94,30 @@ static void tryCleanup(const boost::system::error_code& errorCode)
 int main(int argc, char** argv)
 {
    // ====== Initialize =====================================================
-   unsigned int       logLevel;
-   std::string        user((getlogin() != nullptr) ? getlogin() : "");
-   std::string        configurationFileName;
-   OutputFormatType   outputFormat = OutputFormatType::OFT_HiPerConTracer_Version2;
-   bool               servicePing;
-   bool               serviceTraceroute;
-   unsigned int       iterations;
+   unsigned int             logLevel;
+   std::string              user((getlogin() != nullptr) ? getlogin() : "");
+   std::string              configurationFileName;
+   OutputFormatType         outputFormat = OutputFormatType::OFT_HiPerConTracer_Version2;
+   bool                     servicePing;
+   bool                     serviceTraceroute;
+   unsigned int             iterations;
+   std::vector<std::string> ioModules;
 
-   unsigned long long tracerouteInterval;
-   unsigned int       tracerouteExpiration;
-   unsigned int       tracerouteRounds;
-   unsigned int       tracerouteInitialMaxTTL;
-   unsigned int       tracerouteFinalMaxTTL;
-   unsigned int       tracerouteIncrementMaxTTL;
-   unsigned int       traceroutePacketSize;
+   unsigned long long       tracerouteInterval;
+   unsigned int             tracerouteExpiration;
+   unsigned int             tracerouteRounds;
+   unsigned int             tracerouteInitialMaxTTL;
+   unsigned int             tracerouteFinalMaxTTL;
+   unsigned int             tracerouteIncrementMaxTTL;
+   unsigned int             traceroutePacketSize;
 
-   unsigned long long pingInterval;
-   unsigned int       pingExpiration;
-   unsigned int       pingTTL;
-   unsigned int       pingPacketSize;
+   unsigned long long       pingInterval;
+   unsigned int             pingExpiration;
+   unsigned int             pingTTL;
+   unsigned int             pingPacketSize;
 
-   unsigned int       resultsTransactionLength;
-   std::string        resultsDirectory;
+   unsigned int             resultsTransactionLength;
+   std::string              resultsDirectory;
 
    boost::program_options::options_description commandLineOptions;
    commandLineOptions.add_options()
@@ -142,6 +143,9 @@ int main(int argc, char** argv)
       ( "destination,D",
            boost::program_options::value<std::vector<std::string>>(),
            "Destination address" )
+      ( "iomodule,M",
+           boost::program_options::value<std::vector<std::string>>(&ioModules),
+           "I/O module" )
 
       ( "ping,P",
            boost::program_options::value<bool>(&servicePing)->default_value(false)->implicit_value(true),
@@ -330,7 +334,8 @@ int main(int argc, char** argv)
                   return 1;
                }
             }
-            Service* service = new Ping(resultsWriter, outputFormat, iterations, false,
+            Service* service = new Ping("UDP",
+                                        resultsWriter, outputFormat, iterations, false,
                                         sourceAddress, destinationsForSource,
                                         pingInterval, pingExpiration, pingTTL,
                                         pingPacketSize);
@@ -357,7 +362,8 @@ int main(int argc, char** argv)
                   return 1;
                }
             }
-            Service* service = new Traceroute(resultsWriter, outputFormat, iterations, false,
+            Service* service = new Traceroute("UDP",
+                                              resultsWriter, outputFormat, iterations, false,
                                               sourceAddress, destinationsForSource,
                                               tracerouteInterval, tracerouteExpiration,
                                               tracerouteRounds,

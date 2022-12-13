@@ -35,7 +35,9 @@
 #include "destinationinfo.h"
 #include "resultentry.h"
 
+#include <list>
 #include <boost/asio.hpp>
+
 
 class ICMPHeader;
 struct scm_timestamping;
@@ -44,8 +46,7 @@ struct sock_extended_err;
 class IOModuleBase
 {
    public:
-   IOModuleBase(const std::string&                       name,
-                boost::asio::io_service&                 ioService,
+   IOModuleBase(boost::asio::io_service&                 ioService,
                 std::map<unsigned short, ResultEntry*>&  resultsMap,
                 const boost::asio::ip::address&          sourceAddress,
                 std::function<void (const ResultEntry*)> newResultCallback);
@@ -58,6 +59,11 @@ class IOModuleBase
                                     uint32_t&              targetChecksum) = 0;
 
    inline const std::string& getName() const { return Name; }
+   inline void setName(const std::string& name) {
+      Name = name + "/" + getProtocolName();
+   }
+   virtual const ProtocolType getProtocolType() const = 0;
+   virtual const std::string& getProtocolName() const = 0;
 
    virtual bool prepareSocket() = 0;
    virtual void cancelSocket() = 0;
@@ -81,16 +87,33 @@ class IOModuleBase
       size_t                                         MessageLength;
    };
 
-   void recordResult(const ReceivedData&             receivedData,
-                     const uint8_t                   icmpType,
-                     const uint8_t                   icmpCode,
-                     const unsigned short            seqNumber);
+   void recordResult(const ReceivedData&  receivedData,
+                     const uint8_t        icmpType,
+                     const uint8_t        icmpCode,
+                     const unsigned short seqNumber);
+
+   static bool registerIOModule(const ProtocolType  moduleType,
+                                const std::string&  moduleName,
+                                IOModuleBase* (*createIOModuleFunction)(
+                                   boost::asio::io_service&                 ioService,
+                                   std::map<unsigned short, ResultEntry*>&  resultsMap,
+                                   const boost::asio::ip::address&          sourceAddress,
+                                   std::function<void (const ResultEntry*)> newResultCallback,
+                                   const unsigned int                       packetSize,
+                                   const uint16_t                           destinationPort));
+   static IOModuleBase* createIOModule(const std::string&                       moduleName,
+                                       boost::asio::io_service&                 ioService,
+                                       std::map<unsigned short, ResultEntry*>&  resultsMap,
+                                       const boost::asio::ip::address&          sourceAddress,
+                                       std::function<void (const ResultEntry*)> newResultCallback,
+                                       const unsigned int                       packetSize,
+                                       const uint16_t                           destinationPort);
 
    protected:
    static std::map<boost::asio::ip::address, boost::asio::ip::address> SourceForDestinationMap;
    static std::mutex                                                   SourceForDestinationMapMutex;
 
-   const std::string                        Name;
+   std::string                              Name;
    boost::asio::io_service&                 IOService;
    std::map<unsigned short, ResultEntry*>&  ResultsMap;
    const boost::asio::ip::address&          SourceAddress;
@@ -100,19 +123,51 @@ class IOModuleBase
    const uint32_t                           MagicNumber;
    uint16_t                                 Identifier;
    uint32_t                                 TimeStampSeqID;
+
+   private:
+   struct RegisteredIOModule {
+      std::string  Name;
+      ProtocolType Type;
+      IOModuleBase* (*CreateIOModuleFunction)(
+         boost::asio::io_service&                 ioService,
+         std::map<unsigned short, ResultEntry*>&  resultsMap,
+         const boost::asio::ip::address&          sourceAddress,
+         std::function<void (const ResultEntry*)> newResultCallback,
+         const unsigned int                       packetSize,
+         const uint16_t                           destinationPort);
+   };
+
+   static std::list<RegisteredIOModule*>* IOModuleList;
 };
+
+#define REGISTER_IOMODULE(moduleType, moduleName, iomodule) \
+   static IOModuleBase* createIOModule_##iomodule(boost::asio::io_service&                 ioService, \
+                                                  std::map<unsigned short, ResultEntry*>&  resultsMap, \
+                                                  const boost::asio::ip::address&          sourceAddress, \
+                                                  std::function<void (const ResultEntry*)> newResultCallback, \
+                                                  const unsigned int                       packetSize, \
+                                                  const uint16_t                           destinationPort) { \
+      return new iomodule(ioService, resultsMap, sourceAddress, newResultCallback, packetSize, destinationPort); \
+   } \
+   static bool Registered_##iomodule = IOModuleBase::registerIOModule(moduleType, moduleName, createIOModule_##iomodule);
 
 
 class ICMPModule : public IOModuleBase
 {
    public:
-   ICMPModule(const std::string&                       name,
-              boost::asio::io_service&                 ioService,
+   ICMPModule(boost::asio::io_service&                 ioService,
               std::map<unsigned short, ResultEntry*>&  resultsMap,
               const boost::asio::ip::address&          sourceAddress,
               std::function<void (const ResultEntry*)> newResultCallback,
-              const unsigned int                       packetSize);
+              const unsigned int                       packetSize,
+              const uint16_t                           destinationPort = 0);
    virtual ~ICMPModule();
+
+   virtual const ProtocolType getProtocolType() const { return ProtocolType::PT_ICMP; }
+   virtual const std::string& getProtocolName() const {
+      static std::string name = "ICMP";
+      return name;
+   }
 
    virtual bool prepareSocket();
    virtual void cancelSocket();
@@ -188,14 +243,19 @@ class raw_udp
 class UDPModule : public ICMPModule
 {
    public:
-   UDPModule(const std::string&                       name,
-             boost::asio::io_service&                 ioService,
+   UDPModule(boost::asio::io_service&                 ioService,
              std::map<unsigned short, ResultEntry*>&  resultsMap,
              const boost::asio::ip::address&          sourceAddress,
              std::function<void (const ResultEntry*)> newResultCallback,
              const unsigned int                       packetSize,
              const uint16_t                           destinationPort = 7);
    virtual ~UDPModule();
+
+   virtual const ProtocolType getProtocolType() const { return ProtocolType::PT_UDP; }
+   virtual const std::string& getProtocolName() const {
+      static std::string name = "UDP";
+      return name;
+   }
 
    virtual bool prepareSocket();
    virtual void cancelSocket();

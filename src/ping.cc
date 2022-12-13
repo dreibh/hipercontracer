@@ -39,7 +39,8 @@
 
 
 // ###### Constructor #######################################################
-Ping::Ping(ResultsWriter*                   resultsWriter,
+Ping::Ping(const std::string                moduleName,
+           ResultsWriter*                   resultsWriter,
            const OutputFormatType           outputFormat,
            const unsigned int               iterations,
            const bool                       removeDestinationAfterRun,
@@ -48,13 +49,16 @@ Ping::Ping(ResultsWriter*                   resultsWriter,
            const unsigned long long         interval,
            const unsigned int               expiration,
            const unsigned int               ttl,
-           const unsigned int               packetSize)
-   : Traceroute(resultsWriter, outputFormat, iterations, removeDestinationAfterRun,
+           const unsigned int               packetSize,
+           const uint16_t                   destinationPort)
+   : Traceroute(moduleName,
+                resultsWriter, outputFormat, iterations, removeDestinationAfterRun,
                 sourceAddress, destinationArray,
                 interval, expiration, ttl, ttl, ttl, 1,
-                packetSize),
+                packetSize, destinationPort),
      PingInstanceName(std::string("Ping(") + sourceAddress.to_string() + std::string(")"))
 {
+   IOModule->setName(PingInstanceName);
 }
 
 

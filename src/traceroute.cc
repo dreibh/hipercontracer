@@ -40,6 +40,7 @@
 #include <netinet/in.h>
 #include <netinet/ip.h>
 
+#include <exception>
 #include <functional>
 #include <boost/format.hpp>
 #include <boost/version.hpp>
@@ -57,7 +58,8 @@
 
 
 // ###### Constructor #######################################################
-Traceroute::Traceroute(ResultsWriter*                   resultsWriter,
+Traceroute::Traceroute(const std::string                moduleName,
+                       ResultsWriter*                   resultsWriter,
                        const OutputFormatType           outputFormat,
                        const unsigned int               iterations,
                        const bool                       removeDestinationAfterRun,
@@ -69,7 +71,8 @@ Traceroute::Traceroute(ResultsWriter*                   resultsWriter,
                        const unsigned int               initialMaxTTL,
                        const unsigned int               finalMaxTTL,
                        const unsigned int               incrementMaxTTL,
-                       const unsigned int               packetSize)
+                       const unsigned int               packetSize,
+                       const uint16_t                   destinationPort)
    : TracerouteInstanceName(std::string("Traceroute(") + sourceAddress.to_string() + std::string(")")),
      ResultsOutput(resultsWriter),
      OutputFormat(outputFormat),
@@ -87,9 +90,15 @@ Traceroute::Traceroute(ResultsWriter*                   resultsWriter,
      IntervalTimer(IOService)
 {
    // ====== Some initialisations ===========================================
-   IOModule            = new UDPModule(getName(), IOService, ResultsMap, SourceAddress,
-                                        std::bind(&Traceroute::newResult, this, std::placeholders::_1),
-                                        packetSize);   // FIXME!
+   IOModule = IOModuleBase::createIOModule(
+                 moduleName,
+                 IOService, ResultsMap, SourceAddress,
+                 std::bind(&Traceroute::newResult, this, std::placeholders::_1),
+                 packetSize, destinationPort);
+   if(IOModule == nullptr) {
+      throw std::runtime_error("Unable to initialise IO module for " + moduleName);
+   }
+   IOModule->setName(TracerouteInstanceName);
    SeqNumber           = (unsigned short)(std::rand() & 0xffff);
    OutstandingRequests = 0;
    LastHop             = 0xffffffff;

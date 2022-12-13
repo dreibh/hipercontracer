@@ -82,6 +82,14 @@ inline bool statusIsUnreachable(const HopStatus hopStatus)
 }
 
 
+enum ProtocolType
+{
+   PT_ICMP = 'I',
+   PT_UDP  = 'U',
+   PT_TCP  = 'T'
+};
+
+
 enum TimeSourceType
 {
    TST_Unknown         = 0,

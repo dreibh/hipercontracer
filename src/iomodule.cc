@@ -77,14 +77,17 @@ Endpoint sockaddrToEndpoint(const sockaddr* address, const socklen_t socklen)
 
 
 
+
+
+std::list<IOModuleBase::RegisteredIOModule*>* IOModuleBase::IOModuleList = nullptr;
+
+
 // ###### Constructor #######################################################
-IOModuleBase::IOModuleBase(const std::string&                       name,
-                           boost::asio::io_service&                 ioService,
+IOModuleBase::IOModuleBase(boost::asio::io_service&                 ioService,
                            std::map<unsigned short, ResultEntry*>&  resultsMap,
                            const boost::asio::ip::address&          sourceAddress,
                            std::function<void (const ResultEntry*)> newResultCallback)
-   : Name(name),
-     IOService(ioService),
+   : IOService(ioService),
      ResultsMap(resultsMap),
      SourceAddress(sourceAddress),
      NewResultCallback(newResultCallback),
@@ -416,16 +419,64 @@ void IOModuleBase::recordResult(const ReceivedData&  receivedData,
 }
 
 
+// ###### Register IO module ################################################
+bool IOModuleBase::registerIOModule(
+   const ProtocolType  moduleType,
+   const std::string&  moduleName,
+   IOModuleBase*       (*createIOModuleFunction)(
+      boost::asio::io_service&                 ioService,
+      std::map<unsigned short, ResultEntry*>&  resultsMap,
+      const boost::asio::ip::address&          sourceAddress,
+      std::function<void (const ResultEntry*)> newResultCallback,
+      const unsigned int                       packetSize,
+      const uint16_t                           destinationPort))
+{
+   if(IOModuleList == nullptr) {
+      IOModuleList = new std::list<RegisteredIOModule*>;
+      assert(IOModuleList != nullptr);
+   }
+   RegisteredIOModule* registeredIOModule = new RegisteredIOModule;
+   registeredIOModule->Type                   = moduleType;
+   registeredIOModule->Name                   = moduleName;
+   registeredIOModule->CreateIOModuleFunction = createIOModuleFunction;
+   IOModuleList->push_back(registeredIOModule);
+   return true;
+}
+
+
+// ###### Create new IO module ##############################################
+IOModuleBase* IOModuleBase::createIOModule(const std::string&                       moduleName,
+                                           boost::asio::io_service&                 ioService,
+                                           std::map<unsigned short, ResultEntry*>&  resultsMap,
+                                           const boost::asio::ip::address&          sourceAddress,
+                                           std::function<void (const ResultEntry*)> newResultCallback,
+                                           const unsigned int                       packetSize,
+                                           const uint16_t                           destinationPort)
+{
+   for(RegisteredIOModule* registeredIOModule : *IOModuleList) {
+      if(registeredIOModule->Name == moduleName) {
+         return registeredIOModule->CreateIOModuleFunction(
+                   ioService, resultsMap, sourceAddress,
+                   newResultCallback, packetSize, destinationPort);
+      }
+   }
+   return nullptr;
+}
+
+
+
+
+REGISTER_IOMODULE(ProtocolType::PT_ICMP, "ICMP", ICMPModule);
 
 
 // ###### Constructor #######################################################
-ICMPModule::ICMPModule(const std::string&                       name,
-                       boost::asio::io_service&                 ioService,
+ICMPModule::ICMPModule(boost::asio::io_service&                 ioService,
                        std::map<unsigned short, ResultEntry*>&  resultsMap,
                        const boost::asio::ip::address&          sourceAddress,
                        std::function<void (const ResultEntry*)> newResultCallback,
-                       const unsigned int                       packetSize)
-   : IOModuleBase(name + "/ICMPPing", ioService, resultsMap, sourceAddress,
+                       const unsigned int                       packetSize,
+                       const uint16_t                           destinationPort)
+   : IOModuleBase(ioService, resultsMap, sourceAddress,
                   newResultCallback),
      UDPSocket(IOService, (sourceAddress.is_v6() == true) ? boost::asio::ip::udp::v6() :
                                                             boost::asio::ip::udp::v4() ),
@@ -1030,15 +1081,17 @@ void ICMPModule::handleErrorResponse(const int          socketDescriptor,
 
 
 
+REGISTER_IOMODULE(ProtocolType::PT_UDP, "UDP", UDPModule);
+
+
 // ###### Constructor #######################################################
-UDPModule::UDPModule(const std::string&                       name,
-                     boost::asio::io_service&                 ioService,
+UDPModule::UDPModule(boost::asio::io_service&                 ioService,
                      std::map<unsigned short, ResultEntry*>&  resultsMap,
                      const boost::asio::ip::address&          sourceAddress,
                      std::function<void (const ResultEntry*)> newResultCallback,
                      const unsigned int                       packetSize,
                      const uint16_t                           destinationPort)
-   : ICMPModule(name + "/UDPPing", ioService, resultsMap, sourceAddress,
+   : ICMPModule(ioService, resultsMap, sourceAddress,
                 newResultCallback, packetSize),
      DestinationPort(destinationPort),
      RawUDPSocket(IOService, (sourceAddress.is_v6() == true) ? raw_udp::v6() :
