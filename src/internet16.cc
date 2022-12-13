@@ -40,7 +40,7 @@ void processInternet16(uint32_t& sum, const uint8_t* data, const unsigned int da
 
    // ------ Compute checksum in steps of 20 bytes --------------------------
    // 20-bytes-steps handle an IPv4 header in 1 step, an IPv6 header in 2 steps.
-   while(ptr + 20 < end) {
+   while(ptr + 19 < end) {
       sum = sum +
          ((const uint16_t*)ptr)[0] +
          ((const uint16_t*)ptr)[1] +
@@ -58,7 +58,7 @@ void processInternet16(uint32_t& sum, const uint8_t* data, const unsigned int da
    // ------ Compute checksum in steps of 8 bytes ---------------------------
    // 8-bytes-steps handle an ICMP or UDP header in 1 step, and a default-sized
    // TraceServiceHeader in 2 steps.
-   while(ptr + 8 < end) {
+   while(ptr + 7 < end) {
       sum = sum +
          ((const uint16_t*)ptr)[0] +
          ((const uint16_t*)ptr)[1] +
