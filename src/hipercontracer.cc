@@ -334,7 +334,7 @@ int main(int argc, char** argv)
                   return 1;
                }
             }
-            Service* service = new Ping("UDP",
+            Service* service = new Ping("ICMP",
                                         resultsWriter, outputFormat, iterations, false,
                                         sourceAddress, destinationsForSource,
                                         pingInterval, pingExpiration, pingTTL,
@@ -362,7 +362,7 @@ int main(int argc, char** argv)
                   return 1;
                }
             }
-            Service* service = new Traceroute("UDP",
+            Service* service = new Traceroute("ICMP",
                                               resultsWriter, outputFormat, iterations, false,
                                               sourceAddress, destinationsForSource,
                                               tracerouteInterval, tracerouteExpiration,
