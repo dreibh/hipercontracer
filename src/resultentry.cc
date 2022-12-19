@@ -66,6 +66,30 @@ ResultEntry::~ResultEntry()
 }
 
 
+// ##### Compute RTT ########################################################
+std::chrono::high_resolution_clock::duration ResultEntry::rtt(const RXTimeStampType rxTimeStampType) const {
+   assert((unsigned int)rxTimeStampType <= RXTimeStampType::RXTST_MAX);
+   // NOTE: Indexing for both arrays (RX, TX) is the same!
+   if( (ReceiveTime[rxTimeStampType] == std::chrono::high_resolution_clock::time_point())  ||
+       (SendTime[rxTimeStampType]    == std::chrono::high_resolution_clock::time_point()) ) {
+      // At least one value is missing -> return "invalid" duration.
+      return std::chrono::high_resolution_clock::duration::min();
+   }
+   return(ReceiveTime[rxTimeStampType] - SendTime[rxTimeStampType]);
+}
+
+
+// ##### Compute queuing delay ##############################################
+std::chrono::high_resolution_clock::duration ResultEntry::queuingDelay() const {
+   if( (SendTime[TXTST_TransmissionSW] == std::chrono::high_resolution_clock::time_point())  ||
+       (SendTime[TXTST_SchedulerSW]    == std::chrono::high_resolution_clock::time_point()) ) {
+      // At least one value is missing -> return "invalid" duration.
+      return std::chrono::high_resolution_clock::duration::min();
+   }
+   return(SendTime[TXTST_TransmissionSW] - SendTime[TXTST_SchedulerSW]);
+}
+
+
 // ###### Output operator ###################################################
 std::ostream& operator<<(std::ostream& os, const ResultEntry& resultEntry)
 {

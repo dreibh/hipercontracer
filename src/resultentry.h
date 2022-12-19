@@ -92,31 +92,31 @@ enum ProtocolType
 
 enum TimeSourceType
 {
-   TST_Unknown         = 0,
-   TST_SysClock        = 1,
-   TST_TIMESTAMP       = 2,
-   TST_TIMESTAMPNS     = 3,
-   TST_SIOCGSTAMP      = 4,
-   TST_SIOCGSTAMPNS    = 5,
-   TST_TIMESTAMPING_SW = 8,
-   TST_TIMESTAMPING_HW = 9
+   TST_Unknown         = 0x0,
+   TST_SysClock        = 0x1,   // System clock
+   TST_TIMESTAMP       = 0x2,   // SO_TIMESTAMPING option, microseconds granularity
+   TST_TIMESTAMPNS     = 0x3,   // SO_TIMESTAMPING option, nanoseconds granularity
+   TST_SIOCGSTAMP      = 0x4,   // SIOCGSTAMP ioctl, microseconds granularity
+   TST_SIOCGSTAMPNS    = 0x5,   // SIOCGSTAMPNS ioctl, nanoseconds granularity
+   TST_TIMESTAMPING_SW = 0xa,   // SO_TIMESTAMPING option, software
+   TST_TIMESTAMPING_HW = 0xb    // SO_TIMESTAMPING option, hardware
 };
 
 enum TXTimeStampType
 {
-   TXTST_Application    = 0,   /* User-space application                               */
-   TXTST_TransmissionSW = 1,   /* Software Transmission (SOF_TIMESTAMPING_TX_SOFTWARE) */
-   TXTST_TransmissionHW = 2,   /* Hardware Transmission (SOF_TIMESTAMPING_TX_HARDWARE) */
-   TXTST_SchedulerSW    = 3,   /* Kernel scheduler (SOF_TIMESTAMPING_TX_SCHED)         */
+   TXTST_Application    = 0,   // User-space application
+   TXTST_TransmissionSW = 1,   // Software Transmission (SOF_TIMESTAMPING_TX_SOFTWARE)
+   TXTST_TransmissionHW = 2,   // Hardware Transmission (SOF_TIMESTAMPING_TX_HARDWARE)
+   TXTST_SchedulerSW    = 3,   // Kernel scheduler (SOF_TIMESTAMPING_TX_SCHED)
    TXTST_MAX = TXTST_SchedulerSW
 };
 
 enum RXTimeStampType
 {
-   /* Same numbering as TXTimeStampType, for corresponding RTT computation! */
-   RXTST_Application = TXTimeStampType::TXTST_Application,      /* User-space application                            */
-   RXTST_ReceptionSW = TXTimeStampType::TXTST_TransmissionSW,   /* Software Reception (SOF_TIMESTAMPING_TX_SOFTWARE) */
-   RXTST_ReceptionHW = TXTimeStampType::TXTST_TransmissionHW,   /* Hardware Reception (SOF_TIMESTAMPING_RX_HARDWARE) */
+   // Same numbering as TXTimeStampType, for corresponding RTT computation!
+   RXTST_Application = TXTimeStampType::TXTST_Application,      // User-space application
+   RXTST_ReceptionSW = TXTimeStampType::TXTST_TransmissionSW,   // Software Reception (SOF_TIMESTAMPING_TX_SOFTWARE)
+   RXTST_ReceptionHW = TXTimeStampType::TXTST_TransmissionHW,   // Hardware Reception (SOF_TIMESTAMPING_RX_HARDWARE)
    RXTST_MAX = RXTST_ReceptionHW
 };
 
@@ -140,18 +140,18 @@ class ResultEntry {
    inline unsigned int seqNumber()                      const { return(SeqNumber);              }
    inline unsigned int hop()                            const { return(Hop);                    }
    inline unsigned int packetSize()                     const { return(PacketSize);             }
-   const DestinationInfo& destination()                 const { return(Destination);            }
+   inline uint16_t checksum()                           const { return(Checksum);               }
+
    const boost::asio::ip::address& sourceAddress()      const { return(Source);                 }
+   const DestinationInfo& destination()                 const { return(Destination);            }
    const boost::asio::ip::address& destinationAddress() const { return(Destination.address());  }
    inline HopStatus status()                            const { return(Status);                 }
-   inline uint16_t checksum()                           const { return(Checksum);               }
+   inline std::chrono::high_resolution_clock::time_point sendTime(const TXTimeStampType txTimeStampType)    const { return(SendTime[txTimeStampType]);    }
+   inline std::chrono::high_resolution_clock::time_point receiveTime(const RXTimeStampType rxTimeStampType) const { return(ReceiveTime[rxTimeStampType]); }
 
    inline void setDestination(const DestinationInfo& destination)             { Destination = destination;       }
    inline void setDestinationAddress(const boost::asio::ip::address& address) { Destination.setAddress(address); }
    inline void setStatus(const HopStatus status)                              { Status      = status;            }
-
-   inline std::chrono::high_resolution_clock::time_point sendTime(const TXTimeStampType txTimeStampType)    const { return(SendTime[txTimeStampType]);    }
-   inline std::chrono::high_resolution_clock::time_point receiveTime(const RXTimeStampType rxTimeStampType) const { return(ReceiveTime[rxTimeStampType]); }
 
    inline void setSendTime(const TXTimeStampType                                 txTimeStampType,
                            const TimeSourceType                                  txTimeSource,
@@ -169,25 +169,8 @@ class ResultEntry {
       ReceiveTime[rxTimeStampType]       = rxTime;
    }
 
-   inline std::chrono::high_resolution_clock::duration rtt(const RXTimeStampType rxTimeStampType) const {
-      assert((unsigned int)rxTimeStampType <= RXTimeStampType::RXTST_MAX);
-      // NOTE: Indexing for both arrays (RX, TX) is the same!
-      if( (ReceiveTime[rxTimeStampType] == std::chrono::high_resolution_clock::time_point())  ||
-          (SendTime[rxTimeStampType]    == std::chrono::high_resolution_clock::time_point()) ) {
-         // At least one value is missing -> return "invalid" duration.
-         return std::chrono::high_resolution_clock::duration::min();
-      }
-      return(ReceiveTime[rxTimeStampType] - SendTime[rxTimeStampType]);
-   }
-
-   inline std::chrono::high_resolution_clock::duration queuingDelay() const {
-      if( (SendTime[TXTST_TransmissionSW] == std::chrono::high_resolution_clock::time_point())  ||
-          (SendTime[TXTST_SchedulerSW]    == std::chrono::high_resolution_clock::time_point()) ) {
-         // At least one value is missing -> return "invalid" duration.
-         return std::chrono::high_resolution_clock::duration::min();
-      }
-      return(SendTime[TXTST_TransmissionSW] - SendTime[TXTST_SchedulerSW]);
-   }
+   std::chrono::high_resolution_clock::duration rtt(const RXTimeStampType rxTimeStampType) const;
+   std::chrono::high_resolution_clock::duration queuingDelay() const;
 
    inline friend bool operator<(const ResultEntry& resultEntry1, const ResultEntry& resultEntry2) {
       return(resultEntry1.SeqNumber < resultEntry2.SeqNumber);
