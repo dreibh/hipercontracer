@@ -49,10 +49,10 @@ void handleMessage(boost::asio::ip::udp::socket*    udpSocket,
    if(errorCode != boost::asio::error::operation_aborted) {
       // ====== Send response ===============================================
       if(bytesReceived > 0) {
-         // For security reasons, only respond if remote port != 7.
+         // For security reasons, only respond if remote port >= 1024.
          // Otherwise, an attacker could inject a message to cause
-         // an echo loop between two echo servers!
-         if(RemoteEndpoint.port() != 7) {
+         // an echo loop between two echo servers (port 7)!
+         if(RemoteEndpoint.port() >= 1024) {
             boost::system::error_code sendErrorCode;
             udpSocket->send_to(boost::asio::buffer(Buffer, bytesReceived),
                               RemoteEndpoint, 0, sendErrorCode);
