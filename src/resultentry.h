@@ -89,13 +89,12 @@ enum ProtocolType
    PT_TCP  = 'T'
 };
 
-
 enum TimeSourceType
 {
    TST_Unknown         = 0x0,
    TST_SysClock        = 0x1,   // System clock
    TST_TIMESTAMP       = 0x2,   // SO_TIMESTAMPING option, microseconds granularity
-   TST_TIMESTAMPNS     = 0x3,   // SO_TIMESTAMPING option, nanoseconds granularity
+   TST_TIMESTAMPNS     = 0x3,   // SO_TIMESTAMPINGNS option, nanoseconds granularity
    TST_SIOCGSTAMP      = 0x4,   // SIOCGSTAMP ioctl, microseconds granularity
    TST_SIOCGSTAMPNS    = 0x5,   // SIOCGSTAMPNS ioctl, nanoseconds granularity
    TST_TIMESTAMPING_SW = 0xa,   // SO_TIMESTAMPING option, software
@@ -105,9 +104,9 @@ enum TimeSourceType
 enum TXTimeStampType
 {
    TXTST_Application    = 0,   // User-space application
-   TXTST_TransmissionSW = 1,   // Software Transmission (SOF_TIMESTAMPING_TX_SOFTWARE)
-   TXTST_TransmissionHW = 2,   // Hardware Transmission (SOF_TIMESTAMPING_TX_HARDWARE)
-   TXTST_SchedulerSW    = 3,   // Kernel scheduler (SOF_TIMESTAMPING_TX_SCHED)
+   TXTST_TransmissionSW = 1,   // Software Transmission (e.g. SOF_TIMESTAMPING_TX_SOFTWARE)
+   TXTST_TransmissionHW = 2,   // Hardware Transmission (e.g. SOF_TIMESTAMPING_TX_HARDWARE)
+   TXTST_SchedulerSW    = 3,   // Kernel scheduler (e.g. SOF_TIMESTAMPING_TX_SCHED)
    TXTST_MAX = TXTST_SchedulerSW
 };
 
