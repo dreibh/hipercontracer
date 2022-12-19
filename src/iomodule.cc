@@ -729,7 +729,8 @@ ResultEntry* ICMPModule::sendRequest(const DestinationInfo& destination,
    }
    else {
       HPCT_LOG(warning) << getName() << ": sendRequest() - send_to("
-                        << SourceAddress << "->" << destination << ") failed: "
+                        << SourceAddress << "->" << destination
+                        << ", TTL " << ttl << ") failed: "
                         << errorCode.message();
       return nullptr;
    }
@@ -1315,6 +1316,22 @@ ResultEntry* UDPModule::sendRequest(const DestinationInfo& destination,
          boost::asio::buffer(tsHeader.data(), tsHeader.size())
       };
       sent = RawUDPSocket.send_to(buffer, remoteEndpoint, 0, errorCode);
+
+
+      /* FIXME */
+      if(errorCode) {
+       puts("RETRY-1");
+       sent = RawUDPSocket.send_to(buffer, remoteEndpoint, 0, errorCode);
+      }
+      if(errorCode) {
+       puts("RETRY-2");
+       sent = RawUDPSocket.send_to(buffer, remoteEndpoint, 0, errorCode);
+      }
+      if(errorCode) {
+       puts("RETRY-3");
+       sent = RawUDPSocket.send_to(buffer, remoteEndpoint, 0, errorCode);
+      }
+      /* FIXME */
    }
 
    // ====== Create ResultEntry on success ==================================
@@ -1334,7 +1351,8 @@ ResultEntry* UDPModule::sendRequest(const DestinationInfo& destination,
    }
    else {
       HPCT_LOG(warning) << getName() << ": sendRequest() - send_to("
-                        << SourceAddress << "->" << destination << ") failed: "
+                        << SourceAddress << "->" << destination
+                        << ", TTL " << ttl << ") failed: "
                         << errorCode.message();
       return nullptr;
    }

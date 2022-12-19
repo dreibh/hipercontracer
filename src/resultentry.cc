@@ -58,10 +58,13 @@ ResultEntry::ResultEntry(const uint32_t                  timeStampSeqID,
      Destination(destination),
      Status(status)
 {
-   setSendTime(TXTimeStampType::TXTST_Application, TimeSourceType::TST_SysClock, sendTime);
-   for(unsigned int i = 0; i < RXTST_MAX + 1; i++) {
-       ReceiveTimeSource[i] = TimeSourceType::TST_Unknown;
+   for(unsigned int i = 0; i < TXTST_MAX + 1; i++) {
+      SendTimeSource[i] = TimeSourceType::TST_Unknown;
    }
+   for(unsigned int i = 0; i < RXTST_MAX + 1; i++) {
+      ReceiveTimeSource[i] = TimeSourceType::TST_Unknown;
+   }
+   setSendTime(TXTimeStampType::TXTST_Application, TimeSourceType::TST_SysClock, sendTime);
 }
 
 
@@ -101,8 +104,18 @@ ResultDuration ResultEntry::rtt(const RXTimeStampType rxTimeStampType,
        (SendTime[rxTimeStampType]    == ResultTimePoint()) ) {
    puts("XXXXXXXXXXXXXXXXXY");
    printf("X=%02x\n", timeSource);
-   std::cout << *this << "\n";
-   abort();
+   std::cout << "\n"
+      << "Ap: " << nsSinceEpoch(sendTime(TXTimeStampType::TXTST_Application))    << " -> "
+                << nsSinceEpoch(receiveTime(RXTimeStampType::RXTST_Application)) << "\n"
+
+      << "Sw: " << nsSinceEpoch(sendTime(TXTimeStampType::TXTST_SchedulerSW))    << " -> "
+                << nsSinceEpoch(sendTime(TXTimeStampType::TXTST_TransmissionSW)) << " -> "
+                << nsSinceEpoch(receiveTime(RXTimeStampType::RXTST_ReceptionSW)) << "\n"
+
+      << "Hw: " << nsSinceEpoch(sendTime(TXTimeStampType::TXTST_TransmissionHW)) << " -> "
+                << nsSinceEpoch(receiveTime(RXTimeStampType::RXTST_ReceptionHW)) << "\n";
+      abort();
+
       goto not_available;
    }
 //
