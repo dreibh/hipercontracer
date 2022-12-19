@@ -84,21 +84,26 @@ inline bool statusIsUnreachable(const HopStatus hopStatus)
 
 enum ProtocolType
 {
-   PT_ICMP = 'I',
-   PT_UDP  = 'U',
-   PT_TCP  = 'T'
+   PT_ICMP = 'i',
+   PT_UDP  = 'u',
+   PT_TCP  = 't'
 };
 
 enum TimeSourceType
 {
    TST_Unknown         = 0x0,
+
+   // The following time stamp types are based on the system time:
    TST_SysClock        = 0x1,   // System clock
    TST_TIMESTAMP       = 0x2,   // SO_TIMESTAMPING option, microseconds granularity
    TST_TIMESTAMPNS     = 0x3,   // SO_TIMESTAMPINGNS option, nanoseconds granularity
    TST_SIOCGSTAMP      = 0x4,   // SIOCGSTAMP ioctl, microseconds granularity
    TST_SIOCGSTAMPNS    = 0x5,   // SIOCGSTAMPNS ioctl, nanoseconds granularity
-   TST_TIMESTAMPING_SW = 0xa,   // SO_TIMESTAMPING option, software
-   TST_TIMESTAMPING_HW = 0xb    // SO_TIMESTAMPING option, hardware
+   TST_TIMESTAMPING_SW = 0x6,   // SO_TIMESTAMPING option, software
+
+   // The following time stamp type is raw, no assumption should be made on
+   // relation to system time!
+   TST_TIMESTAMPING_HW = 0xa    // SO_TIMESTAMPING option, hardware
 };
 
 enum TXTimeStampType
@@ -120,18 +125,23 @@ enum RXTimeStampType
 };
 
 
+typedef std::chrono::high_resolution_clock ResultClock;
+typedef ResultClock::time_point            ResultTimePoint;
+typedef ResultClock::duration              ResultDuration;
+
+
 class ResultEntry {
    public:
-   ResultEntry(const uint32_t                                        timeStampSeqID,
-               const unsigned short                                  round,
-               const unsigned short                                  seqNumber,
-               const unsigned int                                    hop,
-               const unsigned int                                    packetSize,
-               const uint16_t                                        checksum,
-               const std::chrono::high_resolution_clock::time_point& sendTime,
-               const boost::asio::ip::address&                       source,
-               const DestinationInfo&                                destination,
-               const HopStatus                                       status);
+   ResultEntry(const uint32_t                  timeStampSeqID,
+               const unsigned short            round,
+               const unsigned short            seqNumber,
+               const unsigned int              hop,
+               const unsigned int              packetSize,
+               const uint16_t                  checksum,
+               const ResultTimePoint&          sendTime,
+               const boost::asio::ip::address& source,
+               const DestinationInfo&          destination,
+               const HopStatus                 status);
    ~ResultEntry();
 
    inline uint32_t     timeStampSeqID()                 const { return(TimeStampSeqID);         }
@@ -145,31 +155,34 @@ class ResultEntry {
    const DestinationInfo& destination()                 const { return(Destination);            }
    const boost::asio::ip::address& destinationAddress() const { return(Destination.address());  }
    inline HopStatus status()                            const { return(Status);                 }
-   inline std::chrono::high_resolution_clock::time_point sendTime(const TXTimeStampType txTimeStampType)    const { return(SendTime[txTimeStampType]);    }
-   inline std::chrono::high_resolution_clock::time_point receiveTime(const RXTimeStampType rxTimeStampType) const { return(ReceiveTime[rxTimeStampType]); }
+   inline ResultTimePoint sendTime(const TXTimeStampType txTimeStampType)    const { return(SendTime[txTimeStampType]);    }
+   inline ResultTimePoint receiveTime(const RXTimeStampType rxTimeStampType) const { return(ReceiveTime[rxTimeStampType]); }
 
    inline void setDestination(const DestinationInfo& destination)             { Destination = destination;       }
    inline void setDestinationAddress(const boost::asio::ip::address& address) { Destination.setAddress(address); }
    inline void setStatus(const HopStatus status)                              { Status      = status;            }
 
-   inline void setSendTime(const TXTimeStampType                                 txTimeStampType,
-                           const TimeSourceType                                  txTimeSource,
-                           const std::chrono::high_resolution_clock::time_point& txTime) {
+   inline void setSendTime(const TXTimeStampType  txTimeStampType,
+                           const TimeSourceType   txTimeSource,
+                           const ResultTimePoint& txTime) {
       assert((unsigned int)txTimeStampType <= TXTimeStampType::TXTST_MAX);
       SendTimeSource[txTimeStampType] = txTimeSource;
       SendTime[txTimeStampType]       = txTime;
    }
 
-   inline void setReceiveTime(const RXTimeStampType                                 rxTimeStampType,
-                              const TimeSourceType                                  rxTimeSource,
-                              const std::chrono::high_resolution_clock::time_point& rxTime) {
+   inline void setReceiveTime(const RXTimeStampType  rxTimeStampType,
+                              const TimeSourceType   rxTimeSource,
+                              const ResultTimePoint& rxTime) {
       assert((unsigned int)rxTimeStampType <= RXTimeStampType::RXTST_MAX);
       ReceiveTimeSource[rxTimeStampType] = rxTimeSource;
       ReceiveTime[rxTimeStampType]       = rxTime;
    }
 
-   std::chrono::high_resolution_clock::duration rtt(const RXTimeStampType rxTimeStampType) const;
-   std::chrono::high_resolution_clock::duration queuingDelay() const;
+   ResultDuration rtt(const RXTimeStampType rxTimeStampType,
+                      unsigned int&         timeSource) const;
+   ResultDuration obtainMostAccurateRTT(const RXTimeStampType rxTimeStampType,
+                                        unsigned int&         timeSource) const;
+   ResultDuration queuingDelay(unsigned int& timeSource) const;
 
    inline friend bool operator<(const ResultEntry& resultEntry1, const ResultEntry& resultEntry2) {
       return(resultEntry1.SeqNumber < resultEntry2.SeqNumber);
@@ -177,20 +190,20 @@ class ResultEntry {
    friend std::ostream& operator<<(std::ostream& os, const ResultEntry& resultEntry);
 
    private:
-   const uint32_t                                 TimeStampSeqID;   /* Used with SOF_TIMESTAMPING_OPT_ID */
-   const unsigned int                             Round;
-   const unsigned short                           SeqNumber;
-   const unsigned int                             Hop;
-   const unsigned int                             PacketSize;
-   const uint16_t                                 Checksum;
+   const uint32_t           TimeStampSeqID;   /* Used with SOF_TIMESTAMPING_OPT_ID */
+   const unsigned int       Round;
+   const unsigned short     SeqNumber;
+   const unsigned int       Hop;
+   const unsigned int       PacketSize;
+   const uint16_t           Checksum;
 
-   boost::asio::ip::address                       Source;
-   DestinationInfo                                Destination;
-   HopStatus                                      Status;
-   TimeSourceType                                 ReceiveTimeSource[RXTimeStampType::RXTST_MAX + 1];
-   std::chrono::high_resolution_clock::time_point ReceiveTime[RXTimeStampType::RXTST_MAX + 1];
-   TimeSourceType                                 SendTimeSource[TXTimeStampType::TXTST_MAX + 1];
-   std::chrono::high_resolution_clock::time_point SendTime[TXTimeStampType::TXTST_MAX + 1];
+   boost::asio::ip::address Source;
+   DestinationInfo          Destination;
+   HopStatus                Status;
+   TimeSourceType           SendTimeSource[TXTimeStampType::TXTST_MAX + 1];
+   ResultTimePoint          SendTime[TXTimeStampType::TXTST_MAX + 1];
+   TimeSourceType           ReceiveTimeSource[RXTimeStampType::RXTST_MAX + 1];
+   ResultTimePoint          ReceiveTime[RXTimeStampType::RXTST_MAX + 1];
 };
 
 #endif

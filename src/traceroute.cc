@@ -615,17 +615,17 @@ void Traceroute::processResults()
 
                // ====== Old output format =====================================
                else {
-                  std::chrono::high_resolution_clock::duration rtt = resultEntry->rtt(RXTimeStampType::RXTST_ReceptionSW);
-                  if(rtt.count() <= 0) {
-                     rtt = resultEntry->rtt(RXTimeStampType::RXTST_Application);
-                  }
+                  unsigned int timeSource;
+                  const ResultDuration rtt = resultEntry->obtainMostAccurateRTT(RXTimeStampType::RXTST_ReceptionSW,
+                                                                                timeSource);
 
                   ResultsOutput->insert(
-                     str(boost::format("\t %d %x %d %s")
+                     str(boost::format("\t%d %x %d %s %02x")
                         % resultEntry->hop()
                         % (unsigned int)resultEntry->status()
                         % std::chrono::duration_cast<std::chrono::microseconds>(rtt).count()
                         % resultEntry->destinationAddress().to_string()
+                        % timeSource
                   ));
                }
 

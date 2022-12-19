@@ -37,6 +37,8 @@
 #include <boost/bind.hpp>
 #include <boost/format.hpp>
 
+#include <iostream> // FIXME!
+
 
 // ###### Constructor #######################################################
 Ping::Ping(const std::string                moduleName,
@@ -208,28 +210,63 @@ void Ping::processResults()
 
             // ====== Current output format =================================
             if(OutputFormat >= OFT_HiPerConTracer_Version2) {
+               const unsigned long long sendTimeStamp = nsSinceEpoch<ResultTimePoint>(
+                  resultEntry->sendTime(TXTimeStampType::TXTST_Application));
 
-               puts("TBD");
+               unsigned int timeSourceApplication;
+               unsigned int timeSourceQueuing;
+               unsigned int timeSourceSoftware;
+               unsigned int timeSourceHardware;
+               const ResultDuration rttApplication = resultEntry->rtt(RXTimeStampType::RXTST_Application, timeSourceApplication);
+               const ResultDuration rttSoftware    = resultEntry->rtt(RXTimeStampType::RXTST_ReceptionSW, timeSourceSoftware);
+               const ResultDuration rttHardware    = resultEntry->rtt(RXTimeStampType::RXTST_ReceptionHW, timeSourceHardware);
+               const ResultDuration queuingDelay   = resultEntry->queuingDelay(timeSourceQueuing);
+               const unsigned int   timeSource     = (timeSourceApplication << 24) |
+                                                     (timeSourceQueuing     << 16) |
+                                                     (timeSourceSoftware    << 8) |
+                                                     timeSourceHardware;
 
+               std::string s =
+                  str(boost::format("#P%c %s %s %x %x %d %x %d %08x %d %d %d %d")
+                     % (unsigned char)IOModule->getProtocolType()
+
+                     % SourceAddress.to_string()
+                     % resultEntry->destinationAddress().to_string()
+                     % sendTimeStamp
+
+                     % (unsigned int)resultEntry->destination().trafficClass()
+                     % resultEntry->packetSize()
+                     % resultEntry->checksum()
+                     % resultEntry->status()
+
+                     % timeSource
+                     % std::chrono::duration_cast<std::chrono::nanoseconds>(rttApplication).count()
+                     % std::chrono::duration_cast<std::chrono::nanoseconds>(queuingDelay).count()
+                     % std::chrono::duration_cast<std::chrono::nanoseconds>(rttSoftware).count()
+                     % std::chrono::duration_cast<std::chrono::nanoseconds>(rttHardware).count()
+                  );
+               std::cout << s << "\n";
             }
 
             // ====== Old output format =====================================
             else {
-               std::chrono::high_resolution_clock::duration rtt = resultEntry->rtt(RXTimeStampType::RXTST_ReceptionSW);
-               if(rtt.count() <= 0) {
-                  rtt = resultEntry->rtt(RXTimeStampType::RXTST_Application);
-               }
+               unsigned int timeSource;
+               const ResultDuration rtt = resultEntry->obtainMostAccurateRTT(RXTimeStampType::RXTST_ReceptionSW,
+                                                                             timeSource);
+               const unsigned long long sendTimeStamp = usSinceEpoch<ResultTimePoint>(
+                  resultEntry->sendTime(TXTimeStampType::TXTST_Application));
 
                ResultsOutput->insert(
-                  str(boost::format("#P %s %s %x %x %d %d %x %d")
+                  str(boost::format("#P %s %s %x %x %d %d %x %d %02x")
                      % SourceAddress.to_string()
                      % resultEntry->destinationAddress().to_string()
-                     % usSinceEpoch<std::chrono::high_resolution_clock::time_point>(resultEntry->sendTime(TXTimeStampType::TXTST_Application))
+                     % sendTimeStamp
                      % resultEntry->checksum()
                      % resultEntry->status()
                      % std::chrono::duration_cast<std::chrono::microseconds>(rtt).count()
                      % (unsigned int)resultEntry->destination().trafficClass()
                      % resultEntry->packetSize()
+                     % timeSource
                ));
             }
 
