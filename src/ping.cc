@@ -75,13 +75,6 @@ const std::string& Ping::getName() const
 }
 
 
-// ###### All requests have received a response #############################
-void Ping::noMoreOutstandingRequests()
-{
-   // Nothing to do for Ping!
-}
-
-
 // ###### Prepare a new run #################################################
 bool Ping::prepareRun(const bool newRound)
 {
@@ -91,21 +84,13 @@ bool Ping::prepareRun(const bool newRound)
    if((Iterations > 0) && (IterationNumber > Iterations)) {
        // ====== Done -> exit! ==============================================
        StopRequested.exchange(true);
-       cancelIntervalTimer();
-       cancelTimeoutTimer();
+       cancelIntervalEvent();
+       cancelTimeoutEvent();
        IOModule->cancelSocket();
    }
 
    RunStartTimeStamp = std::chrono::steady_clock::now();
    return(Destinations.begin() == Destinations.end());
-}
-
-
-// ###### The destination has not been reached with the current TTL #########
-bool Ping::notReachedWithCurrentTTL()
-{
-   // Nothing to do for Ping!
-   return(false);
 }
 
 
@@ -129,6 +114,53 @@ void Ping::scheduleTimeoutEvent()
    // ====== Check, whether it is time for starting a new transaction =======
    if(ResultsOutput) {
       ResultsOutput->mayStartNewTransaction();
+   }
+}
+
+
+// ###### All requests have received a response #############################
+void Ping::noMoreOutstandingRequests()
+{
+   // Nothing to do for Ping!
+}
+
+
+// ###### The destination has not been reached with the current TTL #########
+bool Ping::notReachedWithCurrentTTL()
+{
+   // Nothing to do for Ping!
+   return(false);
+}
+
+
+// ###### Send requests to all destinations #################################
+void Ping::sendRequests()
+{
+   if((Iterations == 0) || (IterationNumber <= Iterations)) {
+      std::lock_guard<std::recursive_mutex> lock(DestinationMutex);
+
+      // ====== Send requests, if there are destination addresses ===========
+      if(Destinations.begin() != Destinations.end()) {
+         // All packets of this request block (for each destination) use the same checksum.
+         // The next block of requests may then use another checksum.
+         uint32_t targetChecksum = ~0U;
+         for(std::set<DestinationInfo>::const_iterator destinationIterator = Destinations.begin();
+            destinationIterator != Destinations.end(); destinationIterator++) {
+            const DestinationInfo& destination = *destinationIterator;
+            ResultEntry* resultEntry =
+               IOModule->sendRequest(destination, FinalMaxTTL, 0, SeqNumber, targetChecksum);
+            if(resultEntry) {
+               OutstandingRequests++;
+            }
+         }
+
+         scheduleTimeoutEvent();
+      }
+
+      // ====== No destination addresses -> wait ============================
+      else {
+         scheduleIntervalEvent();
+      }
    }
 }
 
@@ -202,45 +234,12 @@ void Ping::processResults()
       }
    }
 
-
    if(RemoveDestinationAfterRun == true) {
       std::lock_guard<std::recursive_mutex> lock(DestinationMutex);
       DestinationIterator = Destinations.begin();
       while(DestinationIterator != Destinations.end()) {
          Destinations.erase(DestinationIterator);
          DestinationIterator = Destinations.begin();
-      }
-   }
-}
-
-
-// ###### Send requests to all destinations #################################
-void Ping::sendRequests()
-{
-   if((Iterations == 0) || (IterationNumber <= Iterations)) {
-      std::lock_guard<std::recursive_mutex> lock(DestinationMutex);
-
-      // ====== Send requests, if there are destination addresses ===========
-      if(Destinations.begin() != Destinations.end()) {
-         // All packets of this request block (for each destination) use the same checksum.
-         // The next block of requests may then use another checksum.
-         uint32_t targetChecksum = ~0U;
-         for(std::set<DestinationInfo>::const_iterator destinationIterator = Destinations.begin();
-            destinationIterator != Destinations.end(); destinationIterator++) {
-            const DestinationInfo& destination = *destinationIterator;
-            ResultEntry* resultEntry =
-               IOModule->sendRequest(destination, FinalMaxTTL, 0, SeqNumber, targetChecksum);
-            if(resultEntry) {
-               OutstandingRequests++;
-            }
-         }
-
-         scheduleTimeoutEvent();
-      }
-
-      // ====== No destination addresses -> wait ============================
-      else {
-         scheduleIntervalEvent();
       }
    }
 }

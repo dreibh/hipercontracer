@@ -59,8 +59,8 @@ class Ping : public Traceroute
    virtual void scheduleTimeoutEvent();
    virtual void noMoreOutstandingRequests();
    virtual bool notReachedWithCurrentTTL();
-   virtual void processResults();
    virtual void sendRequests();
+   virtual void processResults();
 
    private:
    static int comparePingResults(const ResultEntry* a, const ResultEntry* b);

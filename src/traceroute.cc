@@ -191,8 +191,8 @@ bool Traceroute::start()
 // ###### Request stop of thread ############################################
 void Traceroute::requestStop() {
    StopRequested.exchange(true);
-   IOService.post(std::bind(&Traceroute::cancelIntervalTimer, this));
-   IOService.post(std::bind(&Traceroute::cancelTimeoutTimer, this));
+   IOService.post(std::bind(&Traceroute::cancelIntervalEvent, this));
+   IOService.post(std::bind(&Traceroute::cancelTimeoutEvent, this));
    IOService.post(std::bind(&IOModuleBase::cancelSocket, IOModule));
 }
 
@@ -261,36 +261,12 @@ bool Traceroute::prepareRun(const bool newRound)
 }
 
 
-// ###### Send requests to all destinations #################################
-void Traceroute::sendRequests()
+// ###### Run the measurement ###############################################
+void Traceroute::run()
 {
-   std::lock_guard<std::recursive_mutex> lock(DestinationMutex);
-
-   // ====== Send requests, if there are destination addresses ==============
-   if(DestinationIterator != Destinations.end()) {
-      const DestinationInfo& destination = *DestinationIterator;
-      HPCT_LOG(debug) << getName() << ": Traceroute from " << SourceAddress
-                      << " to " << destination << " ...";
-
-      // ====== Send Echo Requests ==========================================
-      assert(MinTTL > 0);
-      for(unsigned int round = 0; round < Rounds; round++) {
-         for(int ttl = (int)MaxTTL; ttl >= (int)MinTTL; ttl--) {
-            ResultEntry* resultEntry =
-               IOModule->sendRequest(destination, (unsigned int)ttl, round,
-                                     SeqNumber, TargetChecksumArray[round]);
-            if(resultEntry) {
-               OutstandingRequests++;
-            }
-         }
-      }
-      scheduleTimeoutEvent();
-   }
-
-   // ====== No destination addresses -> wait ===============================
-   else {
-      scheduleIntervalEvent();
-   }
+   prepareRun(true);
+   sendRequests();
+   IOService.run();
 }
 
 
@@ -306,9 +282,42 @@ void Traceroute::scheduleTimeoutEvent()
 
 
 // ###### Cancel timeout timer ##############################################
-void Traceroute::cancelTimeoutTimer()
+void Traceroute::cancelTimeoutEvent()
 {
    TimeoutTimer.cancel();
+}
+
+
+// ###### Handle timer event ################################################
+void Traceroute::handleTimeoutEvent(const boost::system::error_code& errorCode)
+{
+   if(StopRequested == false) {
+      std::lock_guard<std::recursive_mutex> lock(DestinationMutex);
+
+      // ====== Has destination been reached with current TTL? ==============
+      if(DestinationIterator != Destinations.end()) {
+         TTLCache[*DestinationIterator] = LastHop;
+         if(LastHop == 0xffffffff) {
+            if(notReachedWithCurrentTTL()) {
+               // Try another round ...
+               sendRequests();
+               return;
+            }
+         }
+      }
+
+      // ====== Create results output =======================================
+      processResults();
+
+      // ====== Prepare new run =============================================
+      if(prepareRun() == false) {
+         sendRequests();
+      }
+      else {
+         // Done with this round -> schedule next round!
+         scheduleIntervalEvent();
+      }
+   }
 }
 
 
@@ -346,17 +355,100 @@ void Traceroute::scheduleIntervalEvent()
    else {
        // ====== Done -> exit! ==============================================
        StopRequested.exchange(true);
-       cancelIntervalTimer();
-       cancelTimeoutTimer();
+       cancelIntervalEvent();
+       cancelTimeoutEvent();
        IOModule->cancelSocket();
    }
 }
 
 
 // ###### Cancel interval timer #############################################
-void Traceroute::cancelIntervalTimer()
+void Traceroute::cancelIntervalEvent()
 {
    IntervalTimer.cancel();
+}
+
+
+// ###### Handle timer event ################################################
+void Traceroute::handleIntervalEvent(const boost::system::error_code& errorCode)
+{
+   if(StopRequested == false) {
+      // ====== Prepare new run =============================================
+      if(errorCode != boost::asio::error::operation_aborted) {
+         HPCT_LOG(debug) << getName() << ": Starting iteration " << (IterationNumber + 1) << " ...";
+         prepareRun(true);
+         sendRequests();
+      }
+   }
+}
+
+
+// ###### All requests have received a response #############################
+void Traceroute::noMoreOutstandingRequests()
+{
+   HPCT_LOG(trace) << getName() << ": Completed!";
+   cancelTimeoutEvent();
+}
+
+
+// ###### The destination has not been reached with the current TTL #########
+bool Traceroute::notReachedWithCurrentTTL()
+{
+   std::lock_guard<std::recursive_mutex> lock(DestinationMutex);
+
+   if(MaxTTL < FinalMaxTTL) {
+      MinTTL = MaxTTL + 1;
+      MaxTTL = std::min(MaxTTL + IncrementMaxTTL, FinalMaxTTL);
+      HPCT_LOG(debug) << getName() << ": Cannot reach " << *DestinationIterator
+                      << " with TTL " << MinTTL - 1 << ", now trying TTLs "
+                      << MinTTL << " to " << MaxTTL << " ...";
+      return(true);
+   }
+   return(false);
+}
+
+
+// ###### Send requests to all destinations #################################
+void Traceroute::sendRequests()
+{
+   std::lock_guard<std::recursive_mutex> lock(DestinationMutex);
+
+   // ====== Send requests, if there are destination addresses ==============
+   if(DestinationIterator != Destinations.end()) {
+      const DestinationInfo& destination = *DestinationIterator;
+      HPCT_LOG(debug) << getName() << ": Traceroute from " << SourceAddress
+                      << " to " << destination << " ...";
+
+      // ====== Send Echo Requests ==========================================
+      assert(MinTTL > 0);
+      for(unsigned int round = 0; round < Rounds; round++) {
+         for(int ttl = (int)MaxTTL; ttl >= (int)MinTTL; ttl--) {
+            ResultEntry* resultEntry =
+               IOModule->sendRequest(destination, (unsigned int)ttl, round,
+                                     SeqNumber, TargetChecksumArray[round]);
+            if(resultEntry) {
+               OutstandingRequests++;
+            }
+         }
+      }
+      scheduleTimeoutEvent();
+   }
+
+   // ====== No destination addresses -> wait ===============================
+   else {
+      scheduleIntervalEvent();
+   }
+}
+
+
+// ###### Get value for initial MaxTTL ######################################
+unsigned int Traceroute::getInitialMaxTTL(const DestinationInfo& destination) const
+{
+   const std::map<DestinationInfo, unsigned int>::const_iterator found = TTLCache.find(destination);
+   if(found != TTLCache.end()) {
+      return(std::min(found->second, FinalMaxTTL));
+   }
+   return(InitialMaxTTL);
 }
 
 
@@ -376,51 +468,6 @@ void Traceroute::newResult(const ResultEntry* resultEntry)
    if(OutstandingRequests == 0) {
       noMoreOutstandingRequests();
    }
-}
-
-
-// ###### All requests have received a response #############################
-void Traceroute::noMoreOutstandingRequests()
-{
-   HPCT_LOG(trace) << getName() << ": Completed!";
-   cancelTimeoutTimer();
-}
-
-
-// ###### Get value for initial MaxTTL ######################################
-unsigned int Traceroute::getInitialMaxTTL(const DestinationInfo& destination) const
-{
-   const std::map<DestinationInfo, unsigned int>::const_iterator found = TTLCache.find(destination);
-   if(found != TTLCache.end()) {
-      return(std::min(found->second, FinalMaxTTL));
-   }
-   return(InitialMaxTTL);
-}
-
-
-// ###### Run the measurement ###############################################
-void Traceroute::run()
-{
-   prepareRun(true);
-   sendRequests();
-   IOService.run();
-}
-
-
-// ###### The destination has not been reached with the current TTL #########
-bool Traceroute::notReachedWithCurrentTTL()
-{
-   std::lock_guard<std::recursive_mutex> lock(DestinationMutex);
-
-   if(MaxTTL < FinalMaxTTL) {
-      MinTTL = MaxTTL + 1;
-      MaxTTL = std::min(MaxTTL + IncrementMaxTTL, FinalMaxTTL);
-      HPCT_LOG(debug) << getName() << ": Cannot reach " << *DestinationIterator
-                      << " with TTL " << MinTTL - 1 << ", now trying TTLs "
-                      << MinTTL << " to " << MaxTTL << " ...";
-      return(true);
-   }
-   return(false);
 }
 
 
@@ -567,53 +614,6 @@ void Traceroute::processResults()
                break;
             }
          }
-      }
-   }
-}
-
-
-// ###### Handle timer event ################################################
-void Traceroute::handleTimeoutEvent(const boost::system::error_code& errorCode)
-{
-   if(StopRequested == false) {
-      std::lock_guard<std::recursive_mutex> lock(DestinationMutex);
-
-      // ====== Has destination been reached with current TTL? ==============
-      if(DestinationIterator != Destinations.end()) {
-         TTLCache[*DestinationIterator] = LastHop;
-         if(LastHop == 0xffffffff) {
-            if(notReachedWithCurrentTTL()) {
-               // Try another round ...
-               sendRequests();
-               return;
-            }
-         }
-      }
-
-      // ====== Create results output =======================================
-      processResults();
-
-      // ====== Prepare new run =============================================
-      if(prepareRun() == false) {
-         sendRequests();
-      }
-      else {
-         // Done with this round -> schedule next round!
-         scheduleIntervalEvent();
-      }
-   }
-}
-
-
-// ###### Handle timer event ################################################
-void Traceroute::handleIntervalEvent(const boost::system::error_code& errorCode)
-{
-   if(StopRequested == false) {
-      // ====== Prepare new run =============================================
-      if(errorCode != boost::asio::error::operation_aborted) {
-         HPCT_LOG(debug) << getName() << ": Starting iteration " << (IterationNumber + 1) << " ...";
-         prepareRun(true);
-         sendRequests();
       }
    }
 }

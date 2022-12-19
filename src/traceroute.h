@@ -86,26 +86,20 @@ class Traceroute : public Service
 
    protected:
    virtual bool prepareRun(const bool newRound = false);
+   void         run();
    virtual void scheduleTimeoutEvent();
+   void         cancelTimeoutEvent();
+   virtual void handleTimeoutEvent(const boost::system::error_code& errorCode);
    virtual void scheduleIntervalEvent();
+   void         cancelIntervalEvent();
+   virtual void handleIntervalEvent(const boost::system::error_code& errorCode);
    virtual void noMoreOutstandingRequests();
    virtual bool notReachedWithCurrentTTL();
-   virtual void processResults();
    virtual void sendRequests();
-   virtual void handleTimeoutEvent(const boost::system::error_code& errorCode);
-   virtual void handleIntervalEvent(const boost::system::error_code& errorCode);
+   virtual void processResults();
 
-   void newResult(const ResultEntry* resultEntry);
-   void cancelTimeoutTimer();
-   void cancelIntervalTimer();
-
-   void run();
-   void recordResult(const std::chrono::system_clock::time_point& receiveTime,
-                     const ICMPHeader&                            icmpHeader,
-                     const unsigned short                         seqNumber);
    unsigned int getInitialMaxTTL(const DestinationInfo&   destination) const;
-
-   static unsigned long long makePacketTimeStamp(const std::chrono::system_clock::time_point& time);
+   void         newResult(const ResultEntry* resultEntry);
 
    const std::string                       TracerouteInstanceName;
    ResultsWriter*                          ResultsOutput;
