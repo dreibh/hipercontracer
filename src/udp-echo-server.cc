@@ -114,7 +114,7 @@ int main(int argc, char *argv[])
       ( "address,A",
            boost::program_options::value<std::string>(&localAddressString)->default_value("::"),
            "Address" )
-      ( "port",
+      ( "port,P",
            boost::program_options::value<uint16_t>(&localPort)->default_value(7),
            "Port" )
     ;

@@ -189,10 +189,12 @@ INSTALL(FILES hpct-query.1
         DESTINATION ${CMAKE_INSTALL_MANDIR}/man1)
 
 # ====== UDP Echo Server ====================================================
-ADD_EXECUTABLE(echo-server echo-server.cc logger.cc tools.cc)
-TARGET_LINK_LIBRARIES(echo-server ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
-INSTALL(PROGRAMS echo-server
+ADD_EXECUTABLE(udp-echo-server udp-echo-server.cc logger.cc tools.cc)
+TARGET_LINK_LIBRARIES(udp-echo-server ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
+INSTALL(PROGRAMS udp-echo-server
         DESTINATION ${CMAKE_INSTALL_BINDIR})
+INSTALL(FILES udp-echo-server.1
+        DESTINATION ${CMAKE_INSTALL_MANDIR}/man1)
 
 
 # ====== Scripts ============================================================

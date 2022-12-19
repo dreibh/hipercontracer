@@ -1,0 +1,77 @@
+.\" High-Performance Connectivity Tracer (HiPerConTracer)
+.\" Copyright (C) 2015-2022 by Thomas Dreibholz
+.\"
+.\" This program is free software: you can redistribute it and/or modify
+.\" it under the terms of the GNU General Public License as published by
+.\" the Free Software Foundation, either version 3 of the License, or
+.\" (at your option) any later version.
+.\"
+.\" This program is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\" GNU General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU General Public License
+.\" along with this program.  If not, see <http://www.gnu.org/licenses/>.
+.\"
+.\" Contact: dreibh@iem.uni-due.de
+.\"
+.\" ###### Setup ############################################################
+.Dd December 19, 2022
+.Dt udp-echo-server 1
+.Os udp-echo-server
+.\" ###### Name #############################################################
+.Sh NAME
+.Nm udp-echo-server
+.Nd Simple UDP Echo Server
+.\" ###### Synopsis #########################################################
+.Sh SYNOPSIS
+.Nm udp-echo-server
+.Op \-L|--loglevel level
+.Op \-q|--quiet
+.Op \-v|--verbose
+.Op \-U|--user user|uid
+.Op \-A|--address address
+.Op \-P|--port port
+.\" ###### Description ######################################################
+.Sh DESCRIPTION
+.Nm udp-echo-server
+is a simple UDP Echo server. It can be used as endpoint for HiPerConTracer
+UDP Ping/Traceroute.
+Note, for security reasons, udp-echo-server only responds to source ports
+>= 1024, to avoid using the server in attacks, like spoofing a packet from
+another Echo server (port 7) to create a flooding loop.
+.Pp
+.\" ###### Arguments ########################################################
+.Sh ARGUMENTS
+The following arguments may be provided:
+.Bl -tag -width indent
+.It \-L|\--loglevel level
+Sets the minimum logging level to the provided value: 0=trace, 1=debug, 2=info, 3=warning, 4=error, 5=fatal.
+.It \-q|\--quiet
+Sets the minimum logging level to 3 (warning).
+.It \-v|\--verbose
+Sets the minimum logging level to 0 (trace).
+.It \-U|\--user user|uid
+After startup, the server uses UID and GID of the given user (by name or GID).
+.It \-A|--address address
+Sets the local address (default: ::).
+.It \-P|--port port
+Sets the local port (default: 7).
+.El
+.\" ###### Examples #########################################################
+.Sh EXAMPLES
+.Bl -tag -width indent
+.It udp-echo-server
+.It udp-echo-server --address 192.168.1.1 --port 7777
+.It udp-echo-server --address 3ffe::1:2:3 --port 7777
+.It udp-echo-server --address :: --user nornetpp
+.El
+.\" ###### Authors ##########################################################
+.Sh AUTHORS
+Thomas Dreibholz
+.br
+https://www.uni-due.de/~be0001/hipercontracer
+.br
+mailto://dreibh@iem.uni-due.de
+.br
