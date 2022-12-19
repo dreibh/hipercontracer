@@ -577,35 +577,58 @@ void Traceroute::processResults()
                }
 
                if(writeHeader) {
-                  ResultsOutput->insert(
-                     str(boost::format("#T %s %s %x %d %x %d %x %x %x %d")
-                        % SourceAddress.to_string()
-                        % (*DestinationIterator).address().to_string()
-                        % timeStamp
-                        % round
-                        % resultEntry->checksum()
-                        % totalHops
-                        % statusFlags
-                        % (int64_t)pathHash
-                        % (unsigned int)(*DestinationIterator).trafficClass()
-                        % resultEntry->packetSize()
-                  ));
+
+                  // ====== Current output format =================================
+                  if(OutputFormat >= OFT_HiPerConTracer_Version2) {
+
+                     puts("TBD");
+
+                  }
+
+                  // ====== Old output format =====================================
+                  else {
+                     ResultsOutput->insert(
+                        str(boost::format("#T %s %s %x %d %x %d %x %x %x %d")
+                           % SourceAddress.to_string()
+                           % (*DestinationIterator).address().to_string()
+                           % timeStamp
+                           % round
+                           % resultEntry->checksum()
+                           % totalHops
+                           % statusFlags
+                           % (int64_t)pathHash
+                           % (unsigned int)(*DestinationIterator).trafficClass()
+                           % resultEntry->packetSize()
+                     ));
+                  }
+
                   writeHeader = false;
                   checksumCheck = resultEntry->checksum();
                }
 
-               std::chrono::high_resolution_clock::duration rtt = resultEntry->rtt(RXTimeStampType::RXTST_ReceptionSW);
-               if(rtt.count() == 0) {
-                  rtt = resultEntry->rtt(RXTimeStampType::RXTST_Application);
+               // ====== Current output format =================================
+               if(OutputFormat >= OFT_HiPerConTracer_Version2) {
+
+                  puts("TBD");
+
                }
 
-               ResultsOutput->insert(
-                  str(boost::format("\t %d %x %d %s")
-                     % resultEntry->hop()
-                     % (unsigned int)resultEntry->status()
-                     % std::chrono::duration_cast<std::chrono::microseconds>(rtt).count()
-                     % resultEntry->destinationAddress().to_string()
-               ));
+               // ====== Old output format =====================================
+               else {
+                  std::chrono::high_resolution_clock::duration rtt = resultEntry->rtt(RXTimeStampType::RXTST_ReceptionSW);
+                  if(rtt.count() <= 0) {
+                     rtt = resultEntry->rtt(RXTimeStampType::RXTST_Application);
+                  }
+
+                  ResultsOutput->insert(
+                     str(boost::format("\t %d %x %d %s")
+                        % resultEntry->hop()
+                        % (unsigned int)resultEntry->status()
+                        % std::chrono::duration_cast<std::chrono::microseconds>(rtt).count()
+                        % resultEntry->destinationAddress().to_string()
+                  ));
+               }
+
                assert(resultEntry->checksum() == checksumCheck);
             }
 

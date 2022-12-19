@@ -205,22 +205,34 @@ void Ping::processResults()
          }
 
          if(ResultsOutput) {
-            std::chrono::high_resolution_clock::duration rtt = resultEntry->rtt(RXTimeStampType::RXTST_ReceptionSW);
-            if(rtt.count() == 0) {
-               rtt = resultEntry->rtt(RXTimeStampType::RXTST_Application);
+
+            // ====== Current output format =================================
+            if(OutputFormat >= OFT_HiPerConTracer_Version2) {
+
+               puts("TBD");
+
             }
 
-            ResultsOutput->insert(
-               str(boost::format("#P %s %s %x %x %d %d %x %d")
-                  % SourceAddress.to_string()
-                  % resultEntry->destinationAddress().to_string()
-                  % usSinceEpoch<std::chrono::high_resolution_clock::time_point>(resultEntry->sendTime(TXTimeStampType::TXTST_Application))
-                  % resultEntry->checksum()
-                  % resultEntry->status()
-                  % std::chrono::duration_cast<std::chrono::microseconds>(rtt).count()
-                  % (unsigned int)resultEntry->destination().trafficClass()
-                  % resultEntry->packetSize()
-            ));
+            // ====== Old output format =====================================
+            else {
+               std::chrono::high_resolution_clock::duration rtt = resultEntry->rtt(RXTimeStampType::RXTST_ReceptionSW);
+               if(rtt.count() <= 0) {
+                  rtt = resultEntry->rtt(RXTimeStampType::RXTST_Application);
+               }
+
+               ResultsOutput->insert(
+                  str(boost::format("#P %s %s %x %x %d %d %x %d")
+                     % SourceAddress.to_string()
+                     % resultEntry->destinationAddress().to_string()
+                     % usSinceEpoch<std::chrono::high_resolution_clock::time_point>(resultEntry->sendTime(TXTimeStampType::TXTST_Application))
+                     % resultEntry->checksum()
+                     % resultEntry->status()
+                     % std::chrono::duration_cast<std::chrono::microseconds>(rtt).count()
+                     % (unsigned int)resultEntry->destination().trafficClass()
+                     % resultEntry->packetSize()
+               ));
+            }
+
          }
       }
 
