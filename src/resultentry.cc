@@ -34,6 +34,8 @@
 
 #include <boost/format.hpp>
 
+#include <iostream>   // FIXME!
+
 
 // ###### Constructor #######################################################
 ResultEntry::ResultEntry(const uint32_t                  timeStampSeqID,
@@ -91,16 +93,20 @@ ResultDuration ResultEntry::rtt(const RXTimeStampType rxTimeStampType,
       goto not_available;
    }
 
+
 //    FIXME!
 //    // ====== Check whether there are time stamps available ==================
 //    // NOTE: Indexing for both arrays (RX, TX) is the same!
    if( (ReceiveTime[rxTimeStampType] == ResultTimePoint())  ||
        (SendTime[rxTimeStampType]    == ResultTimePoint()) ) {
-//       timeSource = 0x00;
-   puts("XXXXXXXXXXXXXXXXXX");
+   puts("XXXXXXXXXXXXXXXXXY");
    printf("X=%02x\n", timeSource);
+   std::cout << *this << "\n";
+   abort();
       goto not_available;
    }
+//
+
    assert(ReceiveTime[rxTimeStampType] != ResultTimePoint());
    assert(SendTime[rxTimeStampType]    != ResultTimePoint());
 
@@ -109,7 +115,7 @@ ResultDuration ResultEntry::rtt(const RXTimeStampType rxTimeStampType,
 
 not_available:
    // At least one value is missing -> return "invalid" duration.
-   return ResultDuration::min();
+   return ResultDuration(std::chrono::nanoseconds(-1));
 }
 
 
@@ -150,7 +156,7 @@ ResultDuration ResultEntry::queuingDelay(unsigned int& timeSource) const {
 
 not_available:
    // At least one value is missing -> return "invalid" duration.
-   return ResultDuration::min();
+   return ResultDuration(std::chrono::nanoseconds(-1));
 }
 
 

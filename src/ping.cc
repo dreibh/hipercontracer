@@ -226,7 +226,7 @@ void Ping::processResults()
                                                      (timeSourceSoftware    << 8) |
                                                      timeSourceHardware;
 
-               std::string s =
+               ResultsOutput->insert(
                   str(boost::format("#P%c %s %s %x %x %d %x %d %08x %d %d %d %d")
                      % (unsigned char)IOModule->getProtocolType()
 
@@ -244,8 +244,7 @@ void Ping::processResults()
                      % std::chrono::duration_cast<std::chrono::nanoseconds>(queuingDelay).count()
                      % std::chrono::duration_cast<std::chrono::nanoseconds>(rttSoftware).count()
                      % std::chrono::duration_cast<std::chrono::nanoseconds>(rttHardware).count()
-                  );
-               std::cout << s << "\n";
+               ));
             }
 
             // ====== Old output format =====================================

@@ -579,16 +579,32 @@ void Traceroute::processResults()
                   //   This is necessary, in order to ensure that all entries use the same
                   //   time stamp for identification!
                   // - Also, entries of additional rounds are using this time stamp!
-                  timeStamp = usSinceEpoch(resultEntry->sendTime(TXTimeStampType::TXTST_Application));
+                  timeStamp = nsSinceEpoch<ResultTimePoint>(
+                     resultEntry->sendTime(TXTimeStampType::TXTST_Application));
                }
 
                if(writeHeader) {
 
                   // ====== Current output format =================================
                   if(OutputFormat >= OFT_HiPerConTracer_Version2) {
+                     ResultsOutput->insert(
+                        str(boost::format("#T%c %s %s %x   %d %d   %x %d %x %x   %x")
+                           % (unsigned char)IOModule->getProtocolType()
 
-                     puts("TBD");
+                           % SourceAddress.to_string()
+                           % (*DestinationIterator).address().to_string()
+                           % timeStamp
 
+                           % round
+                           % totalHops
+
+                           % (unsigned int)(*DestinationIterator).trafficClass()
+                           % resultEntry->packetSize()
+                           % resultEntry->checksum()
+                           % statusFlags
+
+                           % (int64_t)pathHash
+                     ));
                   }
 
                   // ====== Old output format =====================================
@@ -597,7 +613,7 @@ void Traceroute::processResults()
                         str(boost::format("#T %s %s %x %d %x %d %x %x %x %d")
                            % SourceAddress.to_string()
                            % (*DestinationIterator).address().to_string()
-                           % timeStamp
+                           % (timeStamp / 1000)
                            % round
                            % resultEntry->checksum()
                            % totalHops
@@ -614,8 +630,32 @@ void Traceroute::processResults()
 
                // ====== Current output format =================================
                if(OutputFormat >= OFT_HiPerConTracer_Version2) {
+                  unsigned int timeSourceApplication;
+                  unsigned int timeSourceQueuing;
+                  unsigned int timeSourceSoftware;
+                  unsigned int timeSourceHardware;
+                  const ResultDuration rttApplication = resultEntry->rtt(RXTimeStampType::RXTST_Application, timeSourceApplication);
+                  const ResultDuration rttSoftware    = resultEntry->rtt(RXTimeStampType::RXTST_ReceptionSW, timeSourceSoftware);
+                  const ResultDuration rttHardware    = resultEntry->rtt(RXTimeStampType::RXTST_ReceptionHW, timeSourceHardware);
+                  const ResultDuration queuingDelay   = resultEntry->queuingDelay(timeSourceQueuing);
+                  const unsigned int   timeSource     = (timeSourceApplication << 24) |
+                                                        (timeSourceQueuing     << 16) |
+                                                        (timeSourceSoftware    << 8) |
+                                                        timeSourceHardware;
 
-                  puts("TBD");
+                  ResultsOutput->insert(
+                     str(boost::format("\t%d %x   %08x %d %d %d %d  %s")
+                        % resultEntry->hop()
+                        % (unsigned int)resultEntry->status()
+
+                        % timeSource
+                        % std::chrono::duration_cast<std::chrono::nanoseconds>(rttApplication).count()
+                        % std::chrono::duration_cast<std::chrono::nanoseconds>(queuingDelay).count()
+                        % std::chrono::duration_cast<std::chrono::nanoseconds>(rttSoftware).count()
+                        % std::chrono::duration_cast<std::chrono::nanoseconds>(rttHardware).count()
+
+                        % resultEntry->destinationAddress().to_string()
+                  ));
 
                }
 
@@ -626,7 +666,7 @@ void Traceroute::processResults()
                                                                                 timeSource);
 
                   ResultsOutput->insert(
-                     str(boost::format("\t%d %x %d %s %02x")
+                     str(boost::format("\t%d %x %d %s %02x")   /* status is hex here! */
                         % resultEntry->hop()
                         % (unsigned int)resultEntry->status()
                         % std::chrono::duration_cast<std::chrono::microseconds>(rtt).count()
