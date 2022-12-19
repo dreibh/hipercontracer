@@ -32,6 +32,7 @@
 #include <iostream>
 #include <vector>
 
+#include <boost/algorithm/string.hpp>
 #include <boost/asio/ip/address.hpp>
 #include <boost/program_options.hpp>
 
@@ -223,26 +224,33 @@ static void receivedPingV6(const boost::system::error_code& errorCode, std::size
 int main(int argc, char** argv)
 {
    // ====== Initialize =====================================================
-   unsigned int       logLevel;
-   std::string        user((getlogin() != nullptr) ? getlogin() : "");
-   std::string        configurationFileName;
-   OutputFormatType   outputFormat = OutputFormatType::OFT_HiPerConTracer_Version2;
-   bool               servicePing;
-   bool               serviceTraceroute;
+   unsigned int             logLevel;
+   std::string              user((getlogin() != nullptr) ? getlogin() : "");
+   std::string              configurationFileName;
+   OutputFormatType         outputFormat = OutputFormatType::OFT_HiPerConTracer_Version2;
+   bool                     servicePing;
+   bool                     serviceTraceroute;
+   unsigned int             iterations;
+   std::vector<std::string> ioModulesList;
+   std::set<std::string>    ioModules;
 
-   unsigned long long tracerouteInterval;
-   unsigned int       tracerouteExpiration;
-   unsigned int       tracerouteRounds;
-   unsigned int       tracerouteInitialMaxTTL;
-   unsigned int       tracerouteFinalMaxTTL;
-   unsigned int       tracerouteIncrementMaxTTL;
+   unsigned long long       tracerouteInterval;
+   unsigned int             tracerouteExpiration;
+   unsigned int             tracerouteRounds;
+   unsigned int             tracerouteInitialMaxTTL;
+   unsigned int             tracerouteFinalMaxTTL;
+   unsigned int             tracerouteIncrementMaxTTL;
+   unsigned int             traceroutePacketSize;
 
-   unsigned long long pingInterval;
-   unsigned int       pingExpiration;
-   unsigned int       pingTTL;
+   unsigned long long       pingInterval;
+   unsigned int             pingExpiration;
+   unsigned int             pingTTL;
+   unsigned int             pingPacketSize;
 
-   unsigned int       resultsTransactionLength;
-   std::string        resultsDirectory;
+   uint16_t                 udpDestinationPort;
+
+   unsigned int             resultsTransactionLength;
+   std::string              resultsDirectory;
 
    boost::program_options::options_description commandLineOptions;
    commandLineOptions.add_options()
@@ -268,6 +276,9 @@ int main(int argc, char** argv)
       ( "destination,D",
            boost::program_options::value<std::vector<std::string>>(),
            "Destination address" )
+      ( "iomodule,M",
+           boost::program_options::value<std::vector<std::string>>(&ioModulesList),
+           "I/O module" )
 
       ( "ping,P",
            boost::program_options::value<bool>(&servicePing)->default_value(false)->implicit_value(true),
@@ -275,6 +286,9 @@ int main(int argc, char** argv)
       ( "traceroute,T",
            boost::program_options::value<bool>(&serviceTraceroute)->default_value(false)->implicit_value(true),
            "Start Traceroute service" )
+      ( "iterations,I",
+           boost::program_options::value<unsigned int>(&iterations)->default_value(1),
+           "Iterations" )
 
       ( "tracerouteinterval",
            boost::program_options::value<unsigned long long>(&tracerouteInterval)->default_value(10000),
@@ -294,6 +308,9 @@ int main(int argc, char** argv)
       ( "tracerouteincrementmaxttl",
            boost::program_options::value<unsigned int>(&tracerouteIncrementMaxTTL)->default_value(6),
            "Traceroute increment maximum TTL value" )
+      ( "traceroutepacketsize",
+           boost::program_options::value<unsigned int>(&traceroutePacketSize)->default_value(0),
+           "Traceroute packet size in B" )
 
       ( "pinginterval",
            boost::program_options::value<unsigned long long>(&pingInterval)->default_value(1000),
@@ -304,6 +321,13 @@ int main(int argc, char** argv)
       ( "pingttl",
            boost::program_options::value<unsigned int>(&pingTTL)->default_value(64),
            "Ping initial maximum TTL value" )
+      ( "pingpacketsize",
+           boost::program_options::value<unsigned int>(&pingPacketSize)->default_value(0),
+           "Ping packet size in B" )
+
+      ( "udpdestinationport",
+           boost::program_options::value<uint16_t>(&udpDestinationPort)->default_value(7),
+           "UDP destination port" )
 
       ( "pingsbeforequeuing",
            boost::program_options::value<unsigned int>(&PingsBeforeQueuing)->default_value(3),
@@ -350,15 +374,32 @@ int main(int argc, char** argv)
       const std::vector<std::string>& sourceAddressVector = vm["source"].as<std::vector<std::string>>();
       for(std::vector<std::string>::const_iterator iterator = sourceAddressVector.begin();
           iterator != sourceAddressVector.end(); iterator++) {
-         addSourceAddress(SourceArray, iterator->c_str());
+         if(!addSourceAddress(SourceArray, iterator->c_str())) {
+            return 1;
+         }
       }
    }
    if(vm.count("destination")) {
       const std::vector<std::string>& destinationAddressVector = vm["destination"].as<std::vector<std::string>>();
       for(std::vector<std::string>::const_iterator iterator = destinationAddressVector.begin();
           iterator != destinationAddressVector.end(); iterator++) {
-         addDestinationAddress(DestinationArray, iterator->c_str());
+         if(!addDestinationAddress(DestinationArray, iterator->c_str())) {
+            return 1;
+         }
       }
+   }
+   if(vm.count("iomodule")) {
+      for(std::string ioModule : ioModulesList) {
+         boost::algorithm::to_upper(ioModule);
+         if(IOModuleBase::checkIOModule(ioModule) == false) {
+            std::cerr << "ERROR: Bad IO module name: " << ioModule << "\n";
+            return 1;
+         }
+         ioModules.insert(ioModule);
+      }
+   }
+   else {
+      ioModules.insert("ICMP");
    }
 
 
@@ -441,60 +482,66 @@ int main(int argc, char** argv)
          std::cout << " -> " << *iterator << std::endl;
       }
 
-
-      if(servicePing) {
-         try {
-            ResultsWriter* resultsWriter = nullptr;
-            if(!resultsDirectory.empty()) {
-               resultsWriter = ResultsWriter::makeResultsWriter(
-                                  ResultsWriterSet, sourceAddress, "TriggeredPing",
-                                  resultsDirectory, resultsTransactionLength,
-                                  (pw != nullptr) ? pw->pw_uid : 0, (pw != nullptr) ? pw->pw_gid : 0);
-               if(resultsWriter == nullptr) {
-                  HPCT_LOG(fatal) << "Cannot initialise results directory " << resultsDirectory << "!";
+      for(const std::string ioModule : ioModules) {
+         const uint16_t port = udpDestinationPort;
+         if(servicePing) {
+            try {
+               ResultsWriter* resultsWriter = nullptr;
+               if(!resultsDirectory.empty()) {
+                  resultsWriter = ResultsWriter::makeResultsWriter(
+                                     ResultsWriterSet, sourceAddress, "TriggeredPing-" + ioModule,
+                                     resultsDirectory, resultsTransactionLength,
+                                     (pw != nullptr) ? pw->pw_uid : 0, (pw != nullptr) ? pw->pw_gid : 0);
+                  if(resultsWriter == nullptr) {
+                     HPCT_LOG(fatal) << "Cannot initialise results directory " << resultsDirectory << "!";
+                     return 1;
+                  }
+               }
+               Service* service = new Ping(ioModule,
+                                           resultsWriter, outputFormat, iterations, true,
+                                           sourceAddress, destinationsForSource,
+                                           pingInterval, pingExpiration, pingTTL,
+                                           pingPacketSize, port);
+               if(service->start() == false) {
                   return 1;
                }
+               ServiceSet.insert(service);
             }
-            Service* service = new Ping(resultsWriter, outputFormat, 0, true,
-                                        sourceAddress, destinationsForSource,
-                                        pingInterval, pingExpiration, pingTTL);
-            if(service->start() == false) {
+            catch (std::exception& e) {
+               HPCT_LOG(fatal) << "Cannot create Ping service - " << e.what();
                return 1;
             }
-            ServiceSet.insert(service);
          }
-         catch (std::exception& e) {
-            HPCT_LOG(fatal) << "Cannot create Ping service - " << e.what();
-            return 1;
-         }
-      }
-      if(serviceTraceroute) {
-         try {
-            ResultsWriter* resultsWriter = nullptr;
-            if(!resultsDirectory.empty()) {
-               resultsWriter = ResultsWriter::makeResultsWriter(
-                                  ResultsWriterSet, sourceAddress, "TriggeredTraceroute",
-                                  resultsDirectory, resultsTransactionLength,
-                                  (pw != nullptr) ? pw->pw_uid : 0, (pw != nullptr) ? pw->pw_gid : 0);
-               if(resultsWriter == nullptr) {
-                  HPCT_LOG(fatal) << "Cannot initialise results directory " << resultsDirectory << "!";
+         if(serviceTraceroute) {
+            try {
+               ResultsWriter* resultsWriter = nullptr;
+               if(!resultsDirectory.empty()) {
+                  resultsWriter = ResultsWriter::makeResultsWriter(
+                                     ResultsWriterSet, sourceAddress, "TriggeredTraceroute-" + ioModule,
+                                     resultsDirectory, resultsTransactionLength,
+                                     (pw != nullptr) ? pw->pw_uid : 0, (pw != nullptr) ? pw->pw_gid : 0);
+                  if(resultsWriter == nullptr) {
+                     HPCT_LOG(fatal) << "Cannot initialise results directory " << resultsDirectory << "!";
+                     return 1;
+                  }
+               }
+               Service* service = new Traceroute(ioModule,
+                                                 resultsWriter, outputFormat, iterations, true,
+                                                 sourceAddress, destinationsForSource,
+                                                 tracerouteInterval, tracerouteExpiration,
+                                                 tracerouteRounds,
+                                                 tracerouteInitialMaxTTL, tracerouteFinalMaxTTL,
+                                                 tracerouteIncrementMaxTTL,
+                                                 traceroutePacketSize, port);
+               if(service->start() == false) {
                   return 1;
                }
+               ServiceSet.insert(service);
             }
-            Service* service = new Traceroute(resultsWriter, outputFormat, 0, true,
-                                              sourceAddress, destinationsForSource,
-                                              tracerouteInterval, tracerouteExpiration,
-                                              tracerouteRounds,
-                                              tracerouteInitialMaxTTL, tracerouteFinalMaxTTL,
-                                              tracerouteIncrementMaxTTL);
-            if(service->start() == false) {
+            catch (std::exception& e) {
+               HPCT_LOG(fatal) << "Cannot create Traceroute service - " << e.what();
                return 1;
             }
-            ServiceSet.insert(service);
-         }
-         catch (std::exception& e) {
-            HPCT_LOG(fatal) << "Cannot create Traceroute service - " << e.what();
-            return 1;
          }
       }
    }

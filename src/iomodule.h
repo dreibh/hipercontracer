@@ -108,6 +108,7 @@ class IOModuleBase
                                        std::function<void (const ResultEntry*)> newResultCallback,
                                        const unsigned int                       packetSize,
                                        const uint16_t                           destinationPort);
+   static bool checkIOModule(const std::string& moduleName);
 
    protected:
    static std::map<boost::asio::ip::address, boost::asio::ip::address> SourceForDestinationMap;

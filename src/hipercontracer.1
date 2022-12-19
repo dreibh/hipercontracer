@@ -17,7 +17,7 @@
 .\" Contact: dreibh@iem.uni-due.de
 .\"
 .\" ###### Setup ############################################################
-.Dd February 26, 2021
+.Dd December 19, 2022
 .Dt hipercontracer 1
 .Os hipercontracer
 .\" ###### Name #############################################################
@@ -35,6 +35,7 @@
 .Op \-U|--user=user|uid
 .Op \-S|--source=address|hostname[,traffic_class[,...]]
 .Op \-D|--destination address|hostname
+.Op \-M|--iomodule ICMP|UDP
 .Op \--iterations number_of_iterations
 .Op \--tracerouteinterval milliseconds
 .Op \--tracerouteduration milliseconds
@@ -82,6 +83,8 @@ If a hostname is provided, a DNS resolution is performed and all returned addres
 .It \-D|\--destination address|hostname
 Adds the given destination address or hostname.
 If a hostname is provided, a DNS resolution is performed and all returned addresses are added.
+.Op \-M|--iomodule ICMP|UDP
+Adds an I/O module: ICMP or UDP. The option may be specified multiple times with different modules.
 .It \--iterations number_of_iterations
 Limit the number of measurement iterations (measurement for all source/destination
 pairs) to the given number of iterations. The default 0 lets HiPerConTracer run
@@ -196,8 +199,9 @@ This entry has been added with HiPerConTracer 1.6.0!
 .It hipercontracer \--source 172.16.0.127 \--destination 8.8.8.8 \--destination 193.99.144.80 \--destination 132.252.181.87 \--destination 10.254.254.254 \--destination 91.189.93.5 \--destination 128.112.139.90 \--destination 4.31.198.44 \--destination 136.186.1.10 \--destination 101.4.112.170 \--destination 77.36.144.2 \--source 2a02:270:2014:40:92e2:baff:fe48:bde1 \--destination 2400:cb00:2048:1::6814:155 \--destination 2a02:2e0:3fe:1001:7777:772e:2:85 \--destination 2a00:1450:400f:805::2004 \--traceroute \--ping \--tracerouteduration 1000 \--tracerouteinitialmaxttl 4 \--traceroutefinalmaxttl 32 \--tracerouteincrementmaxttl 4 \--pinginterval 1000 \--pingexpiration 7500 \--pingttl 56 \--resultsdirectory results
 .It hipercontracer \--source=0.0.0.0,00,AF11 \--source=::,BE,EF,AF11 \--destination=8.8.8.8 \--destination=2606:4700:10::6814:155 \--ping \--traceroute \--tracerouteduration=1000 \--tracerouteinitialmaxttl=4 \--traceroutefinalmaxttl=32 \--tracerouteincrementmaxttl=4 \--pinginterval=1000 \--pingexpiration=7500 \--pingttl=56 \--resultsdirectory=/storage/hpct-results \--resultstransactionlength=20 \--quiet
 .It hipercontracer \--user=hipercontracer \--source=10.1.1.51 \--destination=10.1.1.6 \--destination=10.1.1.7 \--destination=10.1.1.8 \--traceroute \--tracerouteinterval=10000 \--tracerouteduration=1000
-.It hipercontracer \--user=hipercontracer \--source=0.0.0.0 \--destination=8.8.8.8 \--ping \--verbose
-.It hipercontracer \--user=hipercontracer \--source=0.0.0.0 \--source=::\--destination=www.ietf.org \--ping \--verbose
+.It hipercontracer \--user=hipercontracer \--source=0.0.0.0 \--destination=8.8.8.8 \-M ICMP \--ping \--verbose
+.It hipercontracer \--user=hipercontracer \--source=0.0.0.0 \--source=::\--destination=www.ietf.org \--iomodule ICMP \--ping \--verbose
+.It hipercontracer \--user=hipercontracer \--source=10.193.4.64 \--destination 1.2.3.4 \--iomodule ICMP \--iomodule UDP \--ping \--traceroute
 .El
 .\" ###### Authors ##########################################################
 .Sh AUTHORS

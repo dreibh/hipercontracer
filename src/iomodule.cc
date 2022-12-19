@@ -464,6 +464,18 @@ IOModuleBase* IOModuleBase::createIOModule(const std::string&                   
 }
 
 
+// ###### Check existence of IO module ######################################
+bool IOModuleBase::checkIOModule(const std::string& moduleName)
+{
+   for(RegisteredIOModule* registeredIOModule : *IOModuleList) {
+      if(registeredIOModule->Name == moduleName) {
+         return true;
+      }
+   }
+   return false;
+}
+
+
 
 
 REGISTER_IOMODULE(ProtocolType::PT_ICMP, "ICMP", ICMPModule);

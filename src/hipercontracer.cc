@@ -32,6 +32,7 @@
 #include <iostream>
 #include <vector>
 
+#include <boost/algorithm/string.hpp>
 #include <boost/asio/ip/address.hpp>
 #include <boost/program_options.hpp>
 
@@ -101,7 +102,8 @@ int main(int argc, char** argv)
    bool                     servicePing;
    bool                     serviceTraceroute;
    unsigned int             iterations;
-   std::vector<std::string> ioModules;
+   std::vector<std::string> ioModulesList;
+   std::set<std::string>    ioModules;
 
    unsigned long long       tracerouteInterval;
    unsigned int             tracerouteExpiration;
@@ -115,6 +117,8 @@ int main(int argc, char** argv)
    unsigned int             pingExpiration;
    unsigned int             pingTTL;
    unsigned int             pingPacketSize;
+
+   uint16_t                 udpDestinationPort;
 
    unsigned int             resultsTransactionLength;
    std::string              resultsDirectory;
@@ -144,7 +148,7 @@ int main(int argc, char** argv)
            boost::program_options::value<std::vector<std::string>>(),
            "Destination address" )
       ( "iomodule,M",
-           boost::program_options::value<std::vector<std::string>>(&ioModules),
+           boost::program_options::value<std::vector<std::string>>(&ioModulesList),
            "I/O module" )
 
       ( "ping,P",
@@ -191,6 +195,10 @@ int main(int argc, char** argv)
       ( "pingpacketsize",
            boost::program_options::value<unsigned int>(&pingPacketSize)->default_value(0),
            "Ping packet size in B" )
+
+      ( "udpdestinationport",
+           boost::program_options::value<uint16_t>(&udpDestinationPort)->default_value(7),
+           "UDP destination port" )
 
       ( "resultsdirectory,R",
            boost::program_options::value<std::string>(&resultsDirectory)->default_value(std::string()),
@@ -239,6 +247,19 @@ int main(int argc, char** argv)
             return 1;
          }
       }
+   }
+   if(vm.count("iomodule")) {
+      for(std::string ioModule : ioModulesList) {
+         boost::algorithm::to_upper(ioModule);
+         if(IOModuleBase::checkIOModule(ioModule) == false) {
+            std::cerr << "ERROR: Bad IO module name: " << ioModule << "\n";
+            return 1;
+         }
+         ioModules.insert(ioModule);
+      }
+   }
+   else {
+      ioModules.insert("ICMP");
    }
 
 
@@ -322,62 +343,66 @@ int main(int argc, char** argv)
       }
 */
 
-      if(servicePing) {
-         try {
-            ResultsWriter* resultsWriter = nullptr;
-            if(!resultsDirectory.empty()) {
-               resultsWriter = ResultsWriter::makeResultsWriter(ResultsWriterSet, sourceAddress, "Ping",
-                                                                resultsDirectory, resultsTransactionLength,
-                                                                (pw != nullptr) ? pw->pw_uid : 0, (pw != nullptr) ? pw->pw_gid : 0);
-               if(resultsWriter == nullptr) {
-                  HPCT_LOG(fatal) << "Cannot initialise results directory " << resultsDirectory << "!";
+      for(const std::string ioModule : ioModules) {
+         const uint16_t port = udpDestinationPort;
+         if(servicePing) {
+            try {
+               ResultsWriter* resultsWriter = nullptr;
+               if(!resultsDirectory.empty()) {
+                  resultsWriter = ResultsWriter::makeResultsWriter(
+                                     ResultsWriterSet, sourceAddress, "Ping-" + ioModule,
+                                     resultsDirectory, resultsTransactionLength,
+                                     (pw != nullptr) ? pw->pw_uid : 0, (pw != nullptr) ? pw->pw_gid : 0);
+                  if(resultsWriter == nullptr) {
+                     HPCT_LOG(fatal) << "Cannot initialise results directory " << resultsDirectory << "!";
+                     return 1;
+                  }
+               }
+               Service* service = new Ping(ioModule,
+                                           resultsWriter, outputFormat, iterations, false,
+                                           sourceAddress, destinationsForSource,
+                                           pingInterval, pingExpiration, pingTTL,
+                                           pingPacketSize, port);
+               if(service->start() == false) {
                   return 1;
                }
+               ServiceSet.insert(service);
             }
-            Service* service = new Ping("ICMP",
-                                        resultsWriter, outputFormat, iterations, false,
-                                        sourceAddress, destinationsForSource,
-                                        pingInterval, pingExpiration, pingTTL,
-                                        pingPacketSize);
-            if(service->start() == false) {
+            catch (std::exception& e) {
+               HPCT_LOG(fatal) << "Cannot create Ping service - " << e.what();
                return 1;
             }
-            ServiceSet.insert(service);
          }
-         catch (std::exception& e) {
-            HPCT_LOG(fatal) << "Cannot create Ping service - " << e.what();
-            return 1;
-         }
-      }
-      if(serviceTraceroute) {
-         try {
-            ResultsWriter* resultsWriter = nullptr;
-            if(!resultsDirectory.empty()) {
-               resultsWriter = ResultsWriter::makeResultsWriter(
-                                  ResultsWriterSet, sourceAddress, "Traceroute",
-                                  resultsDirectory, resultsTransactionLength,
-                                  (pw != nullptr) ? pw->pw_uid : 0, (pw != nullptr) ? pw->pw_gid : 0);
-               if(resultsWriter == nullptr) {
-                  HPCT_LOG(fatal) << "Cannot initialise results directory " << resultsDirectory << "!";
+         if(serviceTraceroute) {
+            try {
+               ResultsWriter* resultsWriter = nullptr;
+               if(!resultsDirectory.empty()) {
+                  resultsWriter = ResultsWriter::makeResultsWriter(
+                                     ResultsWriterSet, sourceAddress, "Traceroute-" + ioModule,
+                                     resultsDirectory, resultsTransactionLength,
+                                     (pw != nullptr) ? pw->pw_uid : 0, (pw != nullptr) ? pw->pw_gid : 0);
+                  if(resultsWriter == nullptr) {
+                     HPCT_LOG(fatal) << "Cannot initialise results directory " << resultsDirectory << "!";
+                     return 1;
+                  }
+               }
+               Service* service = new Traceroute(ioModule,
+                                                 resultsWriter, outputFormat, iterations, false,
+                                                 sourceAddress, destinationsForSource,
+                                                 tracerouteInterval, tracerouteExpiration,
+                                                 tracerouteRounds,
+                                                 tracerouteInitialMaxTTL, tracerouteFinalMaxTTL,
+                                                 tracerouteIncrementMaxTTL,
+                                                 traceroutePacketSize, port);
+               if(service->start() == false) {
                   return 1;
                }
+               ServiceSet.insert(service);
             }
-            Service* service = new Traceroute("ICMP",
-                                              resultsWriter, outputFormat, iterations, false,
-                                              sourceAddress, destinationsForSource,
-                                              tracerouteInterval, tracerouteExpiration,
-                                              tracerouteRounds,
-                                              tracerouteInitialMaxTTL, tracerouteFinalMaxTTL,
-                                              tracerouteIncrementMaxTTL,
-                                              traceroutePacketSize);
-            if(service->start() == false) {
+            catch (std::exception& e) {
+               HPCT_LOG(fatal) << "Cannot create Traceroute service - " << e.what();
                return 1;
             }
-            ServiceSet.insert(service);
-         }
-         catch (std::exception& e) {
-            HPCT_LOG(fatal) << "Cannot create Traceroute service - " << e.what();
-            return 1;
          }
       }
    }

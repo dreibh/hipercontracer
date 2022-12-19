@@ -17,7 +17,7 @@
 .\" Contact: dreibh@iem.uni-due.de
 .\"
 .\" ###### Setup ############################################################
-.Dd November 18, 2022
+.Dd December 19, 2022
 .Dt hpct-trigger 1
 .Os hpct-trigger
 .\" ###### Name #############################################################
@@ -35,6 +35,7 @@
 .Op \-U|--user user|uid
 .Op \-S|--source address[,traffic_class[,...]]
 .Op \-D|--destination address
+.Op \-M|--iomodule ICMP|UDP
 .Op \--tracerouteinterval milliseconds
 .Op \--tracerouteduration milliseconds
 .Op \--tracerouterounds rounds
@@ -78,6 +79,7 @@ format.
 .It hpct-trigger \--source 10.1.1.51 \--pingtriggerage 1800 \--ping \--verbose
 .It hpct-trigger \--source=10.1.1.51 \--traceroute \--resultsdirectory=/tmp/results \--resultstransactionlength=60
 .It hpct-trigger \--source=172.16.1.2,BE,EF \--source=172.17.1.2,BE,AF11,AF21 \--pingtriggerage=1800 \--ping \--verbose
+.It hpct-trigger \--source 10.1.1.51 \--pingtriggerage 1800 \--ping \--traceroute \--iomodule ICMP \--iomodule UDP
 .El
 .\" ###### Authors ##########################################################
 .Sh AUTHORS
