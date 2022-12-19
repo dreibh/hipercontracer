@@ -102,6 +102,13 @@ class ICMPHeader
       ::computeInternet16(sum, (uint8_t*)&Data, sizeof(Data));
    }
 
+   inline const uint8_t* data() const {
+      return (const uint8_t*)&Data;
+   }
+   inline size_t size() const {
+      return sizeof(Data);
+   }
+
    inline friend std::istream& operator>>(std::istream& is, ICMPHeader& header) {
       return(is.read(reinterpret_cast<char*>(header.Data), 8));
    }

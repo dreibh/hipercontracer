@@ -72,6 +72,17 @@ class UDPHeader
    inline void length(const uint16_t length)                   { encode(4, 5, length);          }
    inline void checksum(const uint16_t checksum)               { encode(6, 7, checksum);        }
 
+   inline void computeInternet16(uint32_t& sum) const {
+      ::computeInternet16(sum, (uint8_t*)&Data, sizeof(Data));
+   }
+
+   inline const uint8_t* data() const {
+      return (const uint8_t*)&Data;
+   }
+   inline size_t size() const {
+      return sizeof(Data);
+   }
+
    friend std::istream& operator>>(std::istream& is, UDPHeader& header) {
       is.read(reinterpret_cast<char*>(header.Data), 8);
       std::streamsize totalLength = header.length() - 8;
@@ -83,10 +94,6 @@ class UDPHeader
 
    inline friend std::ostream& operator<<(std::ostream& os, const UDPHeader& header) {
       return os.write(reinterpret_cast<const char*>(header.Data), sizeof(header.Data));
-   }
-
-   inline void computeInternet16(uint32_t& sum) const {
-      ::computeInternet16(sum, (uint8_t*)&Data, sizeof(Data));
    }
 
    private:

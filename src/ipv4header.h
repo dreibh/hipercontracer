@@ -111,6 +111,13 @@ class IPv4Header
       ::computeInternet16(sum, (uint8_t*)&Data, headerLength());
    }
 
+   inline const uint8_t* data() const {
+      return (const uint8_t*)&Data;
+   }
+   inline size_t size() const {
+      return headerLength();
+   }
+
    friend std::istream& operator>>(std::istream& is, IPv4Header& header) {
       is.read(reinterpret_cast<char*>(header.Data), 20);
       if (header.version() != 4) {

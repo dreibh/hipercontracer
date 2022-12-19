@@ -55,6 +55,7 @@
 #include <linux/sockios.h>
 #endif
 
+#include <iostream>   // FIXME!
 
 
 // ###### Constructor #######################################################
@@ -501,6 +502,11 @@ void Traceroute::processResults()
       std::string pathString         = SourceAddress.to_string();
       for(std::vector<ResultEntry*>::iterator iterator = resultsVector.begin(); iterator != resultsVector.end(); iterator++) {
          ResultEntry* resultEntry = *iterator;
+
+
+         std::cout << *resultEntry << "\n";
+
+
          if(resultEntry->round() == round) {
             assert(resultEntry->hop() > totalHops);
             currentHop++;
@@ -535,7 +541,7 @@ void Traceroute::processResults()
             }
          }
       }
-      assert(currentHop == totalHops);
+      assert(currentHop == totalHops);   // !!! FIXME! send_to() may fail => no results entry!
 
       // ====== Compute path hash ===========================================
       // Checksum: the first 64 bits of the SHA-1 sum over path string

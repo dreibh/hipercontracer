@@ -47,6 +47,8 @@
 #include <linux/net_tstamp.h>
 #include <linux/sockios.h>
 
+#include <iostream>   // FIXME!
+
 // linux/icmp.h defines the socket option ICMP_FILTER, but this include
 // conflicts with netinet/ip_icmp.h. Just adding the needed definitions here:
 #define ICMP_FILTER 1
@@ -627,9 +629,7 @@ ResultEntry* ICMPModule::sendRequest(const DestinationInfo& destination,
                                      uint16_t&              seqNumber,
                                      uint32_t&              targetChecksum)
 {
-   // ====== Set TTL ========================================================
-   const boost::asio::ip::unicast::hops hopsOption(ttl);
-   ICMPSocket.set_option(hopsOption);
+   const boost::asio::ip::icmp::endpoint remoteEndpoint(destination.address(), 0);
 
    // ====== Create an ICMP header for an echo request ======================
    seqNumber++;
@@ -681,9 +681,14 @@ ResultEntry* ICMPModule::sendRequest(const DestinationInfo& destination,
    assert((targetChecksum & ~0xffff) == 0);
 
    // ====== Encode the request packet ======================================
-   boost::asio::streambuf request_buffer;
-   std::ostream os(&request_buffer);
-   os << echoRequest << tsHeader;
+   std::array<boost::asio::const_buffer, 2> buffer = {
+      boost::asio::buffer(echoRequest.data(), echoRequest.size()),
+      boost::asio::buffer(tsHeader.data(), tsHeader.size())
+   };
+
+   // ====== Set TTL ========================================================
+   const boost::asio::ip::unicast::hops hopsOption(ttl);
+   ICMPSocket.set_option(hopsOption);
 
    // ====== Set TOS/Traffic Class ==========================================
    int level;
@@ -705,10 +710,7 @@ ResultEntry* ICMPModule::sendRequest(const DestinationInfo& destination,
 
    // ====== Send the request ===============================================
    boost::system::error_code errorCode;
-   std::size_t               sent;
-   sent = ICMPSocket.send_to(request_buffer.data(),
-                             boost::asio::ip::icmp::endpoint(destination.address(), 0),
-                             0, errorCode);
+   const std::size_t sent = ICMPSocket.send_to(buffer, remoteEndpoint, 0, errorCode);
 
    // ====== Create ResultEntry on success ==================================
    if( (!errorCode) && (sent > 0) ) {
@@ -1230,8 +1232,6 @@ ResultEntry* UDPModule::sendRequest(const DestinationInfo& destination,
    // NOTE: SendTimeStamp will be set later, for accuracy!
 
    // ====== Create IPv6 header =============================================
-   boost::asio::streambuf                request_buffer;
-   std::ostream                          os(&request_buffer);
    boost::system::error_code             errorCode;
    std::chrono::system_clock::time_point sendTime;
    std::size_t                           sent;
@@ -1264,9 +1264,12 @@ ResultEntry* UDPModule::sendRequest(const DestinationInfo& destination,
       udpHeader.checksum(finishInternet16(udpChecksum));
 
       // ------ Send IPv6/UDP/TraceServiceHeader packet ---------------------
-      os << ipv6Header << udpHeader << tsHeader;
-      sent = RawUDPSocket.send_to(request_buffer.data(),
-                                  raw_udp::endpoint(remoteEndpoint.address(), 0),   // Port==0 is required here!
+      const std::array<boost::asio::const_buffer, 3> buffer = {
+         boost::asio::buffer(ipv6Header.data(), ipv6Header.size()),
+         boost::asio::buffer(udpHeader.data(), udpHeader.size()),
+         boost::asio::buffer(tsHeader.data(), tsHeader.size())
+      };
+      sent = RawUDPSocket.send_to(buffer, raw_udp::endpoint(remoteEndpoint.address(), 0),
                                   0, errorCode);
    }
 
@@ -1306,8 +1309,12 @@ ResultEntry* UDPModule::sendRequest(const DestinationInfo& destination,
 
       udpHeader.checksum(finishInternet16(udpChecksum));
 
-      os << ipv4Header << udpHeader << tsHeader;
-      sent = RawUDPSocket.send_to(request_buffer.data(), remoteEndpoint, 0, errorCode);
+      const std::array<boost::asio::const_buffer, 3> buffer = {
+         boost::asio::buffer(ipv4Header.data(), ipv4Header.size()),
+         boost::asio::buffer(udpHeader.data(), udpHeader.size()),
+         boost::asio::buffer(tsHeader.data(), tsHeader.size())
+      };
+      sent = RawUDPSocket.send_to(buffer, remoteEndpoint, 0, errorCode);
    }
 
    // ====== Create ResultEntry on success ==================================

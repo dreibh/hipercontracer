@@ -134,6 +134,13 @@ class TraceServiceHeader
       ::computeInternet16(sum, (uint8_t*)&Data, Size);
    }
 
+   inline const uint8_t* data() const {
+      return (const uint8_t*)&Data;
+   }
+   inline size_t size() const {
+      return Size;
+   }
+
    inline friend std::istream& operator>>(std::istream& is, TraceServiceHeader& header) {
       return is.read(reinterpret_cast<char*>(header.Data), header.Size);
    }
