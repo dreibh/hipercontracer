@@ -140,21 +140,24 @@ bool Ping::notReachedWithCurrentTTL()
 void Ping::sendRequests()
 {
    if((Iterations == 0) || (IterationNumber <= Iterations)) {
-      std::lock_guard<std::recursive_mutex> lock(DestinationMutex);
+      // All packets in this call use the same checksum.
+      // The next sendRequests() call may use a different checksum.
+      TargetChecksumArray[0] = IOModule->getIdentifier() ^ SeqNumber;
+      for(unsigned int i = 1; i < Rounds; i++) {
+         TargetChecksumArray[i] = TargetChecksumArray[0];
+      }
 
       // ====== Send requests, if there are destination addresses ===========
+      std::lock_guard<std::recursive_mutex> lock(DestinationMutex);
       if(Destinations.begin() != Destinations.end()) {
-         // All packets of this request block (for each destination) use the same checksum.
-         // The next block of requests may then use another checksum.
-         uint32_t targetChecksum = ~0U;
+         assert(Rounds > 0);
+
          for(const DestinationInfo& destination : Destinations) {
-            for(unsigned int round = 0; round < Rounds; round++) {
-               ResultEntry* resultEntry =
-                  IOModule->sendRequest(destination, FinalMaxTTL, round, SeqNumber, targetChecksum);
-               if(resultEntry) {
-                  OutstandingRequests++;
-               }
-            }
+            OutstandingRequests +=
+               IOModule->sendRequest(destination,
+                                     FinalMaxTTL, FinalMaxTTL,
+                                     0, Rounds - 1,
+                                     SeqNumber, TargetChecksumArray);
          }
 
          scheduleTimeoutEvent();
@@ -228,12 +231,13 @@ void Ping::processResults()
                                                      timeSourceHardware;
 
                ResultsOutput->insert(
-                  str(boost::format("#P%c %s %s %x %x %d %x %d %08x %d %d %d %d")
+                  str(boost::format("#P%c %s %s %x %d %x %d %x %d %08x %d %d %d %d")
                      % (unsigned char)IOModule->getProtocolType()
 
                      % SourceAddress.to_string()
                      % resultEntry->destinationAddress().to_string()
                      % sendTimeStamp
+                     % resultEntry->round()
 
                      % (unsigned int)resultEntry->destination().trafficClass()
                      % resultEntry->packetSize()

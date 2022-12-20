@@ -422,16 +422,11 @@ void Traceroute::sendRequests()
 
       // ====== Send Echo Requests ==========================================
       assert(MinTTL > 0);
-      for(unsigned int round = 0; round < Rounds; round++) {
-         for(int ttl = (int)MaxTTL; ttl >= (int)MinTTL; ttl--) {
-            ResultEntry* resultEntry =
-               IOModule->sendRequest(destination, (unsigned int)ttl, round,
-                                     SeqNumber, TargetChecksumArray[round]);
-            if(resultEntry) {
-               OutstandingRequests++;
-            }
-         }
-      }
+      OutstandingRequests +=
+         IOModule->sendRequest(destination,
+                               MaxTTL, MinTTL, 0, Rounds - 1,
+                               SeqNumber, TargetChecksumArray);
+
       scheduleTimeoutEvent();
    }
 
@@ -588,14 +583,14 @@ void Traceroute::processResults()
                   // ====== Current output format =================================
                   if(OutputFormat >= OFT_HiPerConTracer_Version2) {
                      ResultsOutput->insert(
-                        str(boost::format("#T%c %s %s %x   %d %d   %x %d %x %x   %x")
+                        str(boost::format("#T%c %s %s %x %d   %d   %x %d %x %x   %x")
                            % (unsigned char)IOModule->getProtocolType()
 
                            % SourceAddress.to_string()
                            % (*DestinationIterator).address().to_string()
                            % timeStamp
-
                            % round
+
                            % totalHops
 
                            % (unsigned int)(*DestinationIterator).trafficClass()

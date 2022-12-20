@@ -52,11 +52,13 @@ class IOModuleBase
                 std::function<void (const ResultEntry*)> newResultCallback);
    virtual ~IOModuleBase();
 
-   virtual ResultEntry* sendRequest(const DestinationInfo& destination,
-                                    const unsigned int     ttl,
-                                    const unsigned int     round,
+   virtual unsigned int sendRequest(const DestinationInfo& destination,
+                                    const unsigned int     fromTTL,
+                                    const unsigned int     toTTL,
+                                    const unsigned int     fromRound,
+                                    const unsigned int     toRound,
                                     uint16_t&              seqNumber,
-                                    uint32_t&              targetChecksum) = 0;
+                                    uint32_t*              targetChecksumArray) = 0;
 
    inline const std::string& getName() const { return Name; }
    inline void setName(const std::string& name) {
@@ -64,6 +66,7 @@ class IOModuleBase
    }
    virtual const ProtocolType getProtocolType() const = 0;
    virtual const std::string& getProtocolName() const = 0;
+   inline uint16_t getIdentifier()              const { return Identifier; }
 
    virtual bool prepareSocket() = 0;
    virtual void cancelSocket() = 0;
@@ -175,11 +178,13 @@ class ICMPModule : public IOModuleBase
    virtual void expectNextReply(const int  socketDescriptor,
                                 const bool readFromErrorQueue);
 
-   virtual ResultEntry* sendRequest(const DestinationInfo& destination,
-                                    const unsigned int     ttl,
-                                    const unsigned int     round,
+   virtual unsigned int sendRequest(const DestinationInfo& destination,
+                                    const unsigned int     fromTTL,
+                                    const unsigned int     toTTL,
+                                    const unsigned int     fromRound,
+                                    const unsigned int     toRound,
                                     uint16_t&              seqNumber,
-                                    uint32_t&              targetChecksum);
+                                    uint32_t*              targetChecksumArray);
 
    void handleResponse(const boost::system::error_code& errorCode,
                        const int                        socketDescriptor,
@@ -269,11 +274,13 @@ class UDPModule : public ICMPModule
                                     ReceivedData&      receivedData,
                                     sock_extended_err* socketError);
 
-   virtual ResultEntry* sendRequest(const DestinationInfo& destination,
-                                    const unsigned int     ttl,
-                                    const unsigned int     round,
+   virtual unsigned int sendRequest(const DestinationInfo& destination,
+                                    const unsigned int     fromTTL,
+                                    const unsigned int     toTTL,
+                                    const unsigned int     fromRound,
+                                    const unsigned int     toRound,
                                     uint16_t&              seqNumber,
-                                    uint32_t&              targetChecksum);
+                                    uint32_t*              targetChecksumArray);
 
    protected:
    const uint16_t                         DestinationPort;
