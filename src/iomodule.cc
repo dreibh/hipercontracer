@@ -665,6 +665,12 @@ unsigned int ICMPModule::sendRequest(const DestinationInfo& destination,
    echoRequest.code(0);
    echoRequest.identifier(Identifier);
 
+   // ====== Message scatter/gather array ===================================
+   std::array<boost::asio::const_buffer, 2> buffer = {
+      boost::asio::buffer(echoRequest.data(), echoRequest.size()),
+      boost::asio::buffer(tsHeader.data(),    tsHeader.size())
+   };
+
    // ====== Prepare ResultEntry array ======================================
    const unsigned int        entries      = (1 + (toRound -fromRound)) * (1 + (fromTTL -toTTL));
    unsigned int              currentEntry = 0;
@@ -676,6 +682,7 @@ unsigned int ICMPModule::sendRequest(const DestinationInfo& destination,
    }
 
    // ====== Sender loop ====================================================
+   // BEGIN OF TIMING-CRITICAL PART
    assert(fromRound <= toRound);
    assert(fromTTL >= toTTL);
    unsigned int messagesSent = 0;
@@ -737,10 +744,6 @@ unsigned int ICMPModule::sendRequest(const DestinationInfo& destination,
          assert((targetChecksumArray[round] & ~0xffff) == 0);
 
          // ====== Send the request =========================================
-         std::array<boost::asio::const_buffer, 2> buffer = {
-            boost::asio::buffer(echoRequest.data(), echoRequest.size()),
-            boost::asio::buffer(tsHeader.data(),    tsHeader.size())
-         };
          sentArray[currentEntry] =
             ICMPSocket.send_to(buffer, remoteEndpoint, 0, errorCodeArray[currentEntry]);
 
@@ -759,6 +762,7 @@ unsigned int ICMPModule::sendRequest(const DestinationInfo& destination,
       }
    }
    assert(currentEntry == entries);
+   // END OF TIMING-CRITICAL PART
 
    // ====== Check results ==================================================
    for(unsigned int i = 0; i < entries; i++) {
