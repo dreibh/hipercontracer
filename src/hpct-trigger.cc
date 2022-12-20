@@ -389,7 +389,7 @@ int main(int argc, char** argv)
       }
    }
    if(vm.count("iomodule")) {
-      for(std::string ioModule : ioModulesList) {
+      for(std::string& ioModule : ioModulesList) {
          boost::algorithm::to_upper(ioModule);
          if(IOModuleBase::checkIOModule(ioModule) == false) {
             std::cerr << "ERROR: Bad IO module name: " << ioModule << "\n";
@@ -482,7 +482,7 @@ int main(int argc, char** argv)
          std::cout << " -> " << *iterator << std::endl;
       }
 
-      for(const std::string ioModule : ioModules) {
+      for(const std::string& ioModule : ioModules) {
          const uint16_t port = udpDestinationPort;
          if(servicePing) {
             try {
