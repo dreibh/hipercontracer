@@ -1155,6 +1155,7 @@ bool UDPModule::prepareSocket()
    expectNextReply(UDPSocket.native_handle(), true);
    expectNextReply(UDPSocket.native_handle(), false);
    expectNextReply(RawUDPSocket.native_handle(), true);
+   expectNextReply(RawUDPSocket.native_handle(), false);
 
    return true;
 }
