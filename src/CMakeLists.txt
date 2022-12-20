@@ -201,8 +201,6 @@ INSTALL(FILES get-default-ips.1
 # TARGET_LINK_LIBRARIES(t3 ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
 # ADD_EXECUTABLE(t7 t7.cc)
 # TARGET_LINK_LIBRARIES(t7 ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
-# ADD_EXECUTABLE(nne-importer nne-importer.cc reader-nne-metadata.cc reader-nne-ping.cc reader-nne-speedtest.cc)
-# TARGET_LINK_LIBRARIES(nne-importer libuniversalimporter-shared)
 
 
 #############################################################################
