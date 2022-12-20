@@ -132,17 +132,19 @@ typedef ResultClock::duration              ResultDuration;
 
 class ResultEntry {
    public:
-   ResultEntry(const uint32_t                  timeStampSeqID,
-               const unsigned short            round,
-               const unsigned short            seqNumber,
-               const unsigned int              hop,
-               const unsigned int              packetSize,
-               const uint16_t                  checksum,
-               const ResultTimePoint&          sendTime,
-               const boost::asio::ip::address& source,
-               const DestinationInfo&          destination,
-               const HopStatus                 status);
+   ResultEntry();
    ~ResultEntry();
+
+   void initialise(const uint32_t                  timeStampSeqID,
+                   const unsigned short            round,
+                   const unsigned short            seqNumber,
+                   const unsigned int              hop,
+                   const unsigned int              packetSize,
+                   const uint16_t                  checksum,
+                   const ResultTimePoint&          sendTime,
+                   const boost::asio::ip::address& source,
+                   const DestinationInfo&          destination,
+                   const HopStatus                 status);
 
    inline uint32_t     timeStampSeqID()                 const { return(TimeStampSeqID);         }
    inline unsigned int round()                          const { return(Round);                  }
@@ -190,12 +192,12 @@ class ResultEntry {
    friend std::ostream& operator<<(std::ostream& os, const ResultEntry& resultEntry);
 
    private:
-   const uint32_t           TimeStampSeqID;   /* Used with SOF_TIMESTAMPING_OPT_ID */
-   const unsigned int       Round;
-   const unsigned short     SeqNumber;
-   const unsigned int       Hop;
-   const unsigned int       PacketSize;
-   const uint16_t           Checksum;
+   uint32_t                 TimeStampSeqID;   /* Used with SOF_TIMESTAMPING_OPT_ID */
+   unsigned int             Round;
+   unsigned short           SeqNumber;
+   unsigned int             Hop;
+   unsigned int             PacketSize;
+   uint16_t                 Checksum;
 
    boost::asio::ip::address Source;
    DestinationInfo          Destination;
