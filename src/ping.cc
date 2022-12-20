@@ -50,13 +50,14 @@ Ping::Ping(const std::string                moduleName,
            const std::set<DestinationInfo>& destinationArray,
            const unsigned long long         interval,
            const unsigned int               expiration,
+           const unsigned int               rounds,
            const unsigned int               ttl,
            const unsigned int               packetSize,
            const uint16_t                   destinationPort)
    : Traceroute(moduleName,
                 resultsWriter, outputFormat, iterations, removeDestinationAfterRun,
                 sourceAddress, destinationArray,
-                interval, expiration, ttl, ttl, ttl, 1,
+                interval, expiration, rounds, ttl, ttl, ttl,
                 packetSize, destinationPort),
      PingInstanceName(std::string("Ping(") + sourceAddress.to_string() + std::string(")"))
 {
@@ -146,13 +147,13 @@ void Ping::sendRequests()
          // All packets of this request block (for each destination) use the same checksum.
          // The next block of requests may then use another checksum.
          uint32_t targetChecksum = ~0U;
-         for(std::set<DestinationInfo>::const_iterator destinationIterator = Destinations.begin();
-            destinationIterator != Destinations.end(); destinationIterator++) {
-            const DestinationInfo& destination = *destinationIterator;
-            ResultEntry* resultEntry =
-               IOModule->sendRequest(destination, FinalMaxTTL, 0, SeqNumber, targetChecksum);
-            if(resultEntry) {
-               OutstandingRequests++;
+         for(const DestinationInfo& destination : Destinations) {
+            for(unsigned int round = 0; round < Rounds; round++) {
+               ResultEntry* resultEntry =
+                  IOModule->sendRequest(destination, FinalMaxTTL, round, SeqNumber, targetChecksum);
+               if(resultEntry) {
+                  OutstandingRequests++;
+               }
             }
          }
 
@@ -179,15 +180,15 @@ void Ping::processResults()
 {
    // ====== Sort results ===================================================
    std::vector<ResultEntry*> resultsVector;
-   for(std::map<unsigned short, ResultEntry*>::iterator iterator = ResultsMap.begin(); iterator != ResultsMap.end(); iterator++) {
+   for(std::map<unsigned short, ResultEntry*>::iterator iterator = ResultsMap.begin();
+       iterator != ResultsMap.end(); iterator++) {
       resultsVector.push_back(iterator->second);
    }
    std::sort(resultsVector.begin(), resultsVector.end(), &comparePingResults);
 
    // ====== Process results ================================================
    const std::chrono::system_clock::time_point now = std::chrono::system_clock::now();
-   for(std::vector<ResultEntry*>::iterator iterator = resultsVector.begin(); iterator != resultsVector.end(); iterator++) {
-      ResultEntry* resultEntry = *iterator;
+   for(ResultEntry* resultEntry : resultsVector) {
 
       // ====== Time-out entries ============================================
       if( (resultEntry->status() == Unknown) &&

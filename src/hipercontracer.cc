@@ -115,6 +115,7 @@ int main(int argc, char** argv)
 
    unsigned long long       pingInterval;
    unsigned int             pingExpiration;
+   unsigned int             pingBurst;
    unsigned int             pingTTL;
    unsigned int             pingPacketSize;
 
@@ -189,6 +190,9 @@ int main(int argc, char** argv)
       ( "pingexpiration",
            boost::program_options::value<unsigned int>(&pingExpiration)->default_value(30000),
            "Ping expiration timeout in ms" )
+      ( "pingburst",
+           boost::program_options::value<unsigned int>(&pingBurst)->default_value(1),
+           "Ping burst" )
       ( "pingttl",
            boost::program_options::value<unsigned int>(&pingTTL)->default_value(64),
            "Ping initial maximum TTL value" )
@@ -361,7 +365,8 @@ int main(int argc, char** argv)
                Service* service = new Ping(ioModule,
                                            resultsWriter, outputFormat, iterations, false,
                                            sourceAddress, destinationsForSource,
-                                           pingInterval, pingExpiration, pingTTL,
+                                           pingInterval, pingExpiration,
+                                           pingBurst, pingTTL,
                                            pingPacketSize, port);
                if(service->start() == false) {
                   return 1;

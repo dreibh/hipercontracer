@@ -115,6 +115,9 @@ The actually sent packet size always covers at least the headers for IPv4/IPv6, 
 Sets the Ping interval (time for each full round of destinations).
 .It \--pingexpiration milliseconds
 Sets the Ping duration (timeout for each destination).
+.It \--pingburst packets
+For each Ping measurement, send a burst of the given number of packets.
+Default is 1 packet.
 .It \--pingttl value
 Sets the Ping TTL value.
 .It \--pingpacketsize bytes
