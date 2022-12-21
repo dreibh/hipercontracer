@@ -29,44 +29,37 @@
 //
 // Contact: dreibh@simula.no
 
-#ifndef PING_H
-#define PING_H
+#ifndef JITTER_H
+#define JITTER_H
 
-#include "traceroute.h"
+#include "ping.h"
 
 
-class Ping : public Traceroute
+class Jitter : public Traceroute
 {
    public:
-   Ping(const std::string                moduleName,
-        ResultsWriter*                   resultsWriter,
-        const OutputFormatType           outputFormat,
-        const unsigned int               iterations,
-        const bool                       removeDestinationAfterRun,
-        const boost::asio::ip::address&  sourceAddress,
-        const std::set<DestinationInfo>& destinationArray,
-        const unsigned long long         interval        =  1000,
-        const unsigned int               expiration      = 10000,
-        const unsigned int               rounds          =     1,
-        const unsigned int               ttl             =    64,
-        const unsigned int               packetSize      =     0,
-        const uint16_t                   destinationPort =     7);
-   virtual ~Ping();
+   Jitter(const std::string                moduleName,
+          ResultsWriter*                   resultsWriter,
+          const OutputFormatType           outputFormat,
+          const unsigned int               iterations,
+          const bool                       removeDestinationAfterRun,
+          const boost::asio::ip::address&  sourceAddress,
+          const std::set<DestinationInfo>& destinationArray,
+          const unsigned long long         interval        =  1000,
+          const unsigned int               expiration      = 10000,
+          const unsigned int               rounds          =    16,
+          const unsigned int               ttl             =    64,
+          const unsigned int               packetSize      =     0,
+          const uint16_t                   destinationPort =     7);
+   virtual ~Jitter();
 
    virtual const std::string& getName() const;
 
    protected:
-   virtual bool prepareRun(const bool newRound = false);
-   virtual void scheduleTimeoutEvent();
-   virtual void noMoreOutstandingRequests();
-   virtual bool notReachedWithCurrentTTL();
-   virtual void sendRequests();
    virtual void processResults();
 
-   static int comparePingResults(const ResultEntry* a, const ResultEntry* b);
-
    private:
-   const std::string PingInstanceName;
+   const std::string JitterInstanceName;
 };
 
 #endif

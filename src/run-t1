@@ -1,0 +1,23 @@
+#!/bin/sh
+
+
+make -j8 hipercontracer && \
+rm -f core && \
+sudo ./debug.memcheck ./hipercontracer \
+   -# 12345678 \
+   --iomodule icmp \
+   -source=0.0.0.0 \
+   -destination=8.8.8.8 -destination=193.99.144.80 -destination=104.16.45.99 \
+   -traceroute \
+   -ping \
+   -tracerouterounds 3 \
+   -tracerouteduration=1000 \
+   -tracerouteinitialmaxttl=4 \
+   -traceroutefinalmaxttl=32 \
+   -tracerouteincrementmaxttl=4 \
+   -pinginterval=1000 \
+   -pingexpiration=7500 \
+   -pingttl=56 \
+   -pingburst=4 \
+   -resultsdirectory=results \
+   $@
