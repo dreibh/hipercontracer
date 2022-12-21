@@ -70,8 +70,7 @@ class IPv6Header
 {
    public:
    IPv6Header() {
-//       Data[1] = 0x00;
-      // std::fill(Data, Data + sizeof(Data), 0);
+      Data[1] = 0x00;   // Avoid warning about uninitialised usage
    }
 
    inline uint8_t  version()       const { return (Data[0] >> 4) & 0x0f;                             }

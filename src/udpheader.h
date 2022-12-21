@@ -58,9 +58,7 @@
 class UDPHeader
 {
    public:
-   UDPHeader() {
-      std::fill(Data, Data + sizeof(Data), 0);
-   }
+   UDPHeader() { }
 
    inline uint16_t sourcePort()      const                     { return decode(0, 1);           }
    inline uint16_t destinationPort() const                     { return decode(2, 3);           }

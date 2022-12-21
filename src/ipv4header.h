@@ -64,7 +64,7 @@ class IPv4Header
 {
    public:
    IPv4Header() {
-      // std::fill(Data, Data + sizeof(Data), 0);
+      Data[6] = 0x00;   // Avoid warning about uninitialised usage
    }
 
    inline uint8_t  version()        const { return (Data[0] >> 4) & 0x0f; }
@@ -95,7 +95,16 @@ class IPv4Header
    inline void typeOfService(const uint8_t typeOfService)    { Data[1] = typeOfService;                                   }
    inline void totalLength(const uint16_t totalLength)       { encode(2, 3, totalLength);                                 }
    inline void identification(const uint16_t identification) { encode(4, 5, identification);                              }
-   inline void fragmentOffset(const uint16_t fragmentOffset) { encode(6, 7, fragmentOffset);                              }
+   inline void moreFragments(const bool df) {
+      Data[6] = (Data[6] & ~0x40) | ((df == true) ? 0x40 : 0x00);
+   }
+   inline void dontFragment(const bool df) {
+      Data[6] = (Data[6] & ~0x20) | ((df == true) ? 0x20 : 0x00);
+   }
+   inline void fragmentOffset(const uint16_t fragmentOffset) {
+      Data[6] = (Data[6] & 0xe0) | static_cast<uint8_t>(fragmentOffset >> 8);
+      Data[7] = static_cast<uint8_t>(fragmentOffset & 0xff);
+   }
    inline void timeToLive(const uint8_t timeToLive)          { Data[8] = timeToLive;                                      }
    inline void protocol(const uint8_t protocol)              { Data[9] = protocol;                                        }
    inline void headerChecksum(const uint16_t headerChecksum) { encode(10, 11, headerChecksum);                            }

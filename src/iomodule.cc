@@ -1377,6 +1377,17 @@ unsigned int UDPModule::sendRequest(const DestinationInfo& destination,
          sentArray[currentEntry] =
             RawUDPSocket.send_to(buffer, remoteEndpoint, 0, errorCodeArray[currentEntry]);
 
+         // FIXME! Is this really necessary?
+         if(errorCodeArray[currentEntry]) {
+            unsigned int retries = 0;
+            do {
+               printf("RETRY: %u\n", retries);
+               retries++;
+               sentArray[currentEntry] =
+                  RawUDPSocket.send_to(buffer, remoteEndpoint, 0, errorCodeArray[currentEntry]);
+            } while( (errorCodeArray[currentEntry]) && (retries < 3) );
+         }
+
          // ====== Store message information ================================
          if( (!errorCodeArray[currentEntry]) && (sentArray[currentEntry] > 0) ) {
             resultEntryArray[currentEntry]->initialise(
