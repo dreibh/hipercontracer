@@ -39,8 +39,8 @@
 #include <boost/iostreams/filtering_streambuf.hpp>
 #include <boost/iostreams/filter/bzip2.hpp>
 #include <boost/iostreams/filter/gzip.hpp>
-// #include <boost/iostreams/filter/lzma.hpp>   -- Currently not provided by the Debian/Ubuntu packages!
-// #include <boost/process/environment.hpp>
+#include <boost/iostreams/filter/lzma.hpp>
+#include <boost/process/environment.hpp>
 
 
 // ###### Constructor #######################################################
@@ -122,11 +122,9 @@ bool ResultsWriter::changeFile(const bool createNewFile)
       try {
          const char* extension = "";
          switch(Compressor) {
-            /*
             case XZ:
                extension = ".xz";
              break;
-            */
             case BZip2:
                extension = ".bz2";
              break;
@@ -141,11 +139,9 @@ bool ResultsWriter::changeFile(const bool createNewFile)
          TargetFileName = Directory / name;
          OutputFile.open(TempFileName.c_str(), std::ios_base::out | std::ios_base::binary);
          switch(Compressor) {
-            /*
             case XZ:
                OutputStream.push(boost::iostreams::lzma_compressor());
              break;
-            */
             case BZip2:
                OutputStream.push(boost::iostreams::bzip2_compressor());
              break;
@@ -194,6 +190,7 @@ void ResultsWriter::insert(const std::string& tuple)
 
 // ###### Prepare results writer ############################################
 ResultsWriter* ResultsWriter::makeResultsWriter(std::set<ResultsWriter*>&       resultsWriterSet,
+                                                const unsigned int              identifier,
                                                 const boost::asio::ip::address& sourceAddress,
                                                 const std::string&              resultsFormat,
                                                 const std::string&              resultsDirectory,
@@ -205,7 +202,9 @@ ResultsWriter* ResultsWriter::makeResultsWriter(std::set<ResultsWriter*>&       
    if(!resultsDirectory.empty()) {
       std::string uniqueID =
          resultsFormat + "-" +
-         str(boost::format("P%d") % getpid()) + "-" +   /* Better: boost::this_process::get_id() */
+         ((identifier != 0) ?
+            "#" + std::to_string(identifier) :
+            "P" + std::to_string(boost::this_process::get_id())) + "-" +
          sourceAddress.to_string() + "-" +
          boost::posix_time::to_iso_string(boost::posix_time::microsec_clock::universal_time());
       replace(uniqueID.begin(), uniqueID.end(), ' ', '-');

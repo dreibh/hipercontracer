@@ -45,8 +45,8 @@
 enum ResultsWriterCompressor {
    None  = 0,
    GZip  = 1,
-   BZip2 = 2
-   // XZ = 3
+   BZip2 = 2,
+   XZ    = 3
 };
 
 
@@ -68,6 +68,7 @@ class ResultsWriter
    void insert(const std::string& tuple);
 
    static ResultsWriter* makeResultsWriter(std::set<ResultsWriter*>&       resultsWriterSet,
+                                           const unsigned int              identifier,
                                            const boost::asio::ip::address& sourceAddress,
                                            const std::string&              resultsFormat,
                                            const std::string&              resultsDirectory,

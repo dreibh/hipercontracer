@@ -95,10 +95,10 @@ static void tryCleanup(const boost::system::error_code& errorCode)
 int main(int argc, char** argv)
 {
    // ====== Initialize =====================================================
+   unsigned int             identifier;
    unsigned int             logLevel;
    std::string              user((getlogin() != nullptr) ? getlogin() : "");
    std::string              configurationFileName;
-   OutputFormatType         outputFormat = OutputFormatType::OFT_HiPerConTracer_Version2;
    bool                     servicePing;
    bool                     serviceTraceroute;
    unsigned int             iterations;
@@ -123,6 +123,9 @@ int main(int argc, char** argv)
 
    unsigned int             resultsTransactionLength;
    std::string              resultsDirectory;
+   std::string              resultsCompressionString;
+   ResultsWriterCompressor  resultsCompression;
+   unsigned int             resultsFormat;
 
    boost::program_options::options_description commandLineOptions;
    commandLineOptions.add_options()
@@ -142,6 +145,9 @@ int main(int argc, char** argv)
            boost::program_options::value<std::string>(&user),
            "User" )
 
+      ( "identifier,#",
+           boost::program_options::value<unsigned int>(&identifier)->default_value(0),
+           "Identifier" )
       ( "source,S",
            boost::program_options::value<std::vector<std::string>>(),
            "Source address" )
@@ -207,9 +213,15 @@ int main(int argc, char** argv)
       ( "resultsdirectory,R",
            boost::program_options::value<std::string>(&resultsDirectory)->default_value(std::string()),
            "Results directory" )
-      ( "resultstransactionlength",
+      ( "resultstransactionlength,l",
            boost::program_options::value<unsigned int>(&resultsTransactionLength)->default_value(60),
            "Results directory in s" )
+      ( "resultscompression,C",
+           boost::program_options::value<std::string>(&resultsCompressionString)->default_value(std::string("XZ")),
+           "Results compression" )
+      ( "resultsformat,F",
+           boost::program_options::value<unsigned int>(&resultsFormat)->default_value(OutputFormatType::OFT_HiPerConTracer_Version2),
+           "Results format version" )
     ;
 
    // ====== Handle command-line arguments ==================================
@@ -264,6 +276,40 @@ int main(int argc, char** argv)
    }
    else {
       ioModules.insert("ICMP");
+   }
+   if(identifier > 0x7fffffff) {
+      std::cerr << "ERROR: Invalid Identifier setting: " << identifier << "\n";
+      return 1;
+   }
+   if((pingBurst < 1) || (pingBurst > 1024)) {
+      std::cerr << "ERROR: Invalid Ping burst setting: " << pingBurst << "\n";
+      return 1;
+   }
+   if((tracerouteRounds < 1) || (tracerouteRounds > 64)) {
+      std::cerr << "ERROR: Invalid Traceroute rounds setting: " << tracerouteRounds << "\n";
+      return 1;
+   }
+   if( (resultsFormat < OutputFormatType::OFT_Min) ||
+       (resultsFormat > OutputFormatType::OFT_Max) ) {
+      std::cerr << "ERROR: Invalid results format version: " << resultsFormat << "\n";
+      return 1;
+   }
+   boost::algorithm::to_upper(resultsCompressionString);
+   if(resultsCompressionString == "XZ") {
+      resultsCompression = ResultsWriterCompressor::XZ;
+   }
+   else if(resultsCompressionString == "BZIP2") {
+      resultsCompression = ResultsWriterCompressor::BZip2;
+   }
+   else if(resultsCompressionString == "GZIP") {
+      resultsCompression = ResultsWriterCompressor::GZip;
+   }
+   else if(resultsCompressionString == "NONE") {
+      resultsCompression = ResultsWriterCompressor::None;
+   }
+   else {
+      std::cerr << "ERROR: Invalid results compression: " << resultsCompressionString << "\n";
+      return 1;
    }
 
 
@@ -354,16 +400,19 @@ int main(int argc, char** argv)
                ResultsWriter* resultsWriter = nullptr;
                if(!resultsDirectory.empty()) {
                   resultsWriter = ResultsWriter::makeResultsWriter(
-                                     ResultsWriterSet, sourceAddress, "Ping-" + ioModule,
+                                     ResultsWriterSet, identifier,
+                                     sourceAddress, "Ping-" + ioModule,
                                      resultsDirectory, resultsTransactionLength,
-                                     (pw != nullptr) ? pw->pw_uid : 0, (pw != nullptr) ? pw->pw_gid : 0);
+                                     (pw != nullptr) ? pw->pw_uid : 0, (pw != nullptr) ? pw->pw_gid : 0,
+                                     resultsCompression);
                   if(resultsWriter == nullptr) {
                      HPCT_LOG(fatal) << "Cannot initialise results directory " << resultsDirectory << "!";
                      return 1;
                   }
                }
                Service* service = new Ping(ioModule,
-                                           resultsWriter, outputFormat, iterations, false,
+                                           resultsWriter, (OutputFormatType)resultsFormat,
+                                           iterations, false,
                                            sourceAddress, destinationsForSource,
                                            pingInterval, pingExpiration,
                                            pingBurst, pingTTL,
@@ -383,16 +432,19 @@ int main(int argc, char** argv)
                ResultsWriter* resultsWriter = nullptr;
                if(!resultsDirectory.empty()) {
                   resultsWriter = ResultsWriter::makeResultsWriter(
-                                     ResultsWriterSet, sourceAddress, "Traceroute-" + ioModule,
+                                     ResultsWriterSet, identifier,
+                                     sourceAddress, "Traceroute-" + ioModule,
                                      resultsDirectory, resultsTransactionLength,
-                                     (pw != nullptr) ? pw->pw_uid : 0, (pw != nullptr) ? pw->pw_gid : 0);
+                                     (pw != nullptr) ? pw->pw_uid : 0, (pw != nullptr) ? pw->pw_gid : 0,
+                                     resultsCompression);
                   if(resultsWriter == nullptr) {
                      HPCT_LOG(fatal) << "Cannot initialise results directory " << resultsDirectory << "!";
                      return 1;
                   }
                }
                Service* service = new Traceroute(ioModule,
-                                                 resultsWriter, outputFormat, iterations, false,
+                                                 resultsWriter, (OutputFormatType)resultsFormat,
+                                                 iterations, false,
                                                  sourceAddress, destinationsForSource,
                                                  tracerouteInterval, tracerouteExpiration,
                                                  tracerouteRounds,

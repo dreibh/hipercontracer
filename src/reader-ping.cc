@@ -39,7 +39,7 @@
 
 const std::string PingReader::Identification("Ping");
 const std::regex  PingReader::FileNameRegExp(
-   // Format: Ping-P<ProcessID>-<Source>-<YYYYMMDD>T<Seconds.Microseconds>-<Sequence>.results.bz2
+   // Format: Ping-[P#]<ID>-<Source>-<YYYYMMDD>T<Seconds.Microseconds>-<Sequence>.results<EXT>
    "^Ping-P([0-9]+)-([0-9a-f:\\.]+)-([0-9]{8}T[0-9]+\\.[0-9]{6})-([0-9]*)\\.results.*$"
 );
 

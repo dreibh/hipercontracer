@@ -32,7 +32,8 @@
 .Op \-L|--loglevel level
 .Op \-q|--quiet
 .Op \-v|--verbose
-.Op \-U|--user=user|uid
+.Op \-U|--user user|uid
+.Op \-#|--identifier identifier
 .Op \-S|--source=address|hostname[,traffic_class[,...]]
 .Op \-D|--destination address|hostname
 .Op \-M|--iomodule ICMP|UDP
@@ -49,7 +50,9 @@
 .Op \--pingttl value
 .Op \--pingpacketsize bytes
 .Op \-R|--resultsdirectory directory
-.Op \--resultstransactionlength seconds
+.Op \-l|--resultstransactionlength seconds
+.Op \-C|--resultscompression none|XZ|BZip2|GZip
+.Op \-F|--resultsformat version
 .\" ###### Description ######################################################
 .Sh DESCRIPTION
 .Nm hipercontracer
@@ -75,6 +78,11 @@ Sets the minimum logging level to 0 (trace).
 After startup, HiPerConTracer uses UID and GID of the given user (by name or GID).
 The output directory's ownership as well as the ownership of the created results
 files will be set accordingly.
+.It \-#|--identifier identifier
+Sets a unique identifier for the measurement. All output files will have this identifier in their file name (#<ID>). It
+can be used to set a setup-wide unique identifier to identify the vantage point. If no identifier is specified, the
+files will contain the process ID instead (P<ID>). Range: 0-2147483647.
+Default: 0 (using process ID instead).
 .It \-S|\--source address|hostname[,traffic_class[,...]]
 Adds the given source address or hostname. It is possible to use the ANY address (0.0.0.0 or ::), in order to just use the default route.
 If no traffic class is given, Best Effort (00) is used. Otherwise, the list of given traffic classes (in hexadecimal) is used. Alternatively, a traffic class can be specified by PHB name (BE, EF, AF11, AF12, AF13, AF21, AF22, AF23, AF31, AF32, AF33, AF41, AF42, AF43, CS1, CS2, CS3, CS4, CS5, CS6, CS7). In this case, the corresponding traffic class with ECN bits set to 0 is used.
@@ -95,7 +103,7 @@ Sets the Traceroute interval (time for each full round of destinations).
 Sets the Traceroute duration (timeout for each destination).
 .It \--tracerouterounds rounds
 For each Traceroute measurement, perform the given number of rounds simultaneously.
-Default is 1 round.
+Default is 1 round. Range: 1-64.
 Each TTL test of a round will have the same ICMP checksum value ("Oslo Traceroute"),
 in order to deal with load balancing in the Internet.
 Different rounds will have different checksums. That is, different rounds may
@@ -117,7 +125,7 @@ Sets the Ping interval (time for each full round of destinations).
 Sets the Ping duration (timeout for each destination).
 .It \--pingburst packets
 For each Ping measurement, send a burst of the given number of packets.
-Default is 1 packet.
+Default is 1 packet. Range: 1-1024.
 .It \--pingttl value
 Sets the Ping TTL value.
 .It \--pingpacketsize bytes
@@ -125,12 +133,19 @@ Sets the Ping packet size, that is IP header (20 for IPv4/40 for IPv6) + ICMP he
 The actually sent packet size always covers at least the headers for IPv4/IPv6, ICMP and HiPerConTracer. Maximum packet size is 65535.
 .It \-R|\--resultsdirectory directory
 Sets the results files directory. The results will be stored there. If not specified, to results will be stored.
-.It \--resultstransactionlength seconds
+.It \-l|\--resultstransactionlength seconds
 After a given number of seconds, begin a new results file.
+.It \-C|--resultscompression none|XZ|BZip2|GZip
+Sets the compression for the output files.
+Default: XZ.
+.It \-F|--resultsformat version
+Sets the results file format version.
+Default: 2 (current version).
+Note: A future version of HiPerConTracer may increase the default setting!
 .El
 .\" ###### Output format ####################################################
 .Sh OUTPUT FORMAT
-The output file is a BZip2-compressed text file. The format is as follows, depending on the measurement type:
+The output file is a text file (possibly compressed). The format is as follows, depending on the measurement type:
 .Bl -tag -width indent
 .It Ping
 Each Ping entry consists of a #P line.

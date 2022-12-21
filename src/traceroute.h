@@ -51,7 +51,10 @@ class ICMPHeader;
 enum OutputFormatType
 {
    OFT_HiPerConTracer_Version1 = 1,
-   OFT_HiPerConTracer_Version2 = 2
+   OFT_HiPerConTracer_Version2 = 2,
+
+   OFT_Min = OFT_HiPerConTracer_Version1,
+   OFT_Max = OFT_HiPerConTracer_Version2
 };
 
 
