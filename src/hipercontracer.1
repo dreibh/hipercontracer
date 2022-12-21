@@ -140,21 +140,26 @@ Sets the compression for the output files.
 Default: XZ.
 .It \-F|--resultsformat version
 Sets the results file format version.
-Default: 2 (current version).
-Note: A future version of HiPerConTracer may increase the default setting!
+Default: 2 (current version). Range (currently): 1-2.
+Note: A future version of HiPerConTracer may increase this default setting!
 .El
 .\" ###### Output format ####################################################
 .Sh OUTPUT FORMAT
-The output file is a text file (possibly compressed). The format is as follows, depending on the measurement type:
+The output file is a text file (possibly compressed).
+The format is as follows, depending on the measurement type:
 .Bl -tag -width indent
-.It Ping
-Each Ping entry consists of a #P line.
+.\" ====== Ping, version 2 ==================================================
+.It Ping (version 2, current)
+Each Ping entry consists of a #P<m> line, with m=i for ICMP and m=u for UDP (according to underlying I/O module).
 .Bl -tag -width indent
-.It #P sourceIP destinationIP timestamp checksum status rtt traffic_class
+.It #P<m> sourceIP destinationIP timestamp burstseq traffic_class packetsize checksum status timesource rtt_app queuing rtt_sw rtt_hw
 .Bl -tag -width indent
 .It * sourceIP: Source IP address.
 .It * destinationIP: Destination IP address.
-.It * timestamp: Timestamp (microseconds since the UTC epoch, hexadecimal).
+.It * timestamp: Timestamp (nanoseconds since the UTC epoch, hexadecimal).
+.It * burstseq: Sequence number within a burst (decimal), numbered from 0.
+.It * traffic_class: The outgoing IP Traffic Class/Type of Service value of the ICMP Echo Request packets (hexadecimal).
+.It * packet_size: The sent packet size (decimal, in bytes) including IPv4/IPv6 header, ICMP header and HiPerConTracer header.
 .It * checksum: The checksum of the ICMP Echo Request packets (hexadecimal).
 .It * status: Status code (decimal):
 .Bl -tag -width indent
@@ -169,18 +174,90 @@ Each Ping entry consists of a #P line.
 .It - 200 = Timeout (no response from a router)
 .It - 255 = Success (destination has responded)
 .El
-Status values from 100 to 199 denote unreachability, as reported by ICMP error from a router. The rtt field contains the response time of the corresponding router.
-Status values from 200 to 254 have the destination IP in their destinationIP field. However, there was no response from a router, so the rtt field will be the configured timeout value!
+Status values from 100 to 199 denote unreachability, as reported by ICMP error from a router. The rtt_* fields contain the response time of the corresponding router.
+Status values from 200 to 254 have the destination IP in their destinationIP field. However, there was no response from a router, so the rtt_* fields will be the configured timeout value!
+.It * timesource: Source of the timing information (hexadecimal) as: AAQQSSHH
+.Bl -tag -width indent
+.It AA: Application
+.It QQ: Queuing (queuing packet until sending it by driver, in software)
+.It SS: Software (sending request by driver until receiving response by driver, in software; decimal, in nanoseconds; -1 if not available)
+.It HW: Hardware (sending request by NIC until receiving response by NIC, in hardware; decimal, in nanoseconds; -1 if not available)
+.El
+Each byte AA, QQ, SS, HH provides the receive time source (upper nibble) and send time source (lower nibble):
+.Bl -tag -width indent
+.It 0x0: Not available
+.It 0x1: System clock
+.It 0x2: SO_TIMESTAMPING socket option, microseconds granularity
+.It 0x3: SO_TIMESTAMPINGNS socket option, nanoseconds granularity
+.It 0x4: SIOCGSTAMP ioctl, microseconds granularity
+.It 0x5: SIOCGSTAMPNS ioctl, nanoseconds granularity
+.It 0x6: SO_TIMESTAMPING socket option, in software, nanoseconds granularity
+.It 0xa: SO_TIMESTAMPING socket option, in hardware, nanoseconds granularity
+.El
+.It * rtt_app: The measured application RTT (nanoseconds, decimal).
+.It * queuing: The measured kernel software queuing delay (nanoseconds, decimal; -1 if not available).
+.It * rtt_sw: The measured kernel software RTT (nanoseconds, decimal; -1 if not available).
+.It * rtt_hw: The measured kernel hardware RTT (nanoseconds, decimal; -1 if not available).
+.El
+.El
+.\" ====== Ping, version 1 ==================================================
+.It Ping (version 1, SUPERSEDED!)
+Each Ping entry consists of a #P line.
+.Bl -tag -width indent
+.It #P sourceIP destinationIP timestamp checksum status rtt traffic_class
+.Bl -tag -width indent
+.It * sourceIP: Source IP address.
+.It * destinationIP: Destination IP address.
+.It * timestamp: Timestamp (microseconds since the UTC epoch, hexadecimal).
+.It * checksum: The checksum of the ICMP Echo Request packets (hexadecimal).
+.It * status: Status code (decimal)
 .It * rtt: The measured RTT (microseconds, decimal).
 .It * traffic_class: The outgoing IP Traffic Class/Type of Service value of the ICMP Echo Request packets (hexadecimal). This entry has been added with HiPerConTracer 1.4.0!
-.It * packet_size: The sent packet size (decimal, in bytes) including IPv4/IPv6 header, ICMP header and HiPerConTracer header.
-This entry has been added with HiPerConTracer 1.6.0!
+.It * packet_size: The sent packet size (decimal, in bytes) including IPv4/IPv6 header, ICMP header and HiPerConTracer header. This entry has been added with HiPerConTracer 1.6.0!
 .El
 .El
-.It Traceroute
-Each Traceroute entry begins with a #T line, plus one TAB-started line per hop.
+.\" ====== Traceroute, version 2 ============================================
+.It Traceroute (version 2, current)
+Each Traceroute entry begins with a #Tm line, with m=i for ICMP and m=u for UDP (according to underlying I/O module).
+This is followed with one TAB-started line per each hop.
 .Bl -tag -width indent
-.It #T sourceIP destinationIP timestamp round totalHops statusFlags pathHash traffic_class packet_size
+.It #T<m> sourceIP destinationIP timestamp round totalHops traffic_class packet_size checksum statusFlags pathHash
+.Bl -tag -width indent
+.It * sourceIP: Source IP address.
+.It * destinationIP: Destination IP address.
+.It * timestamp: Timestamp (nanoseconds since the UTC epoch, hexadecimal).
+.It * round: Round number (decimal).
+.It * totalHops: Total hops (decimal).
+.It * traffic_class: The outgoing IP Traffic Class/Type of Service value of the ICMP Echo Request packets (hexadecimal).
+.It * packet_size: The sent packet size (decimal, in bytes) including IPv4/IPv6 header, ICMP header and HiPerConTracer header.
+.It * checksum: The checksum of the ICMP Echo Request packets (hexadecimal).
+.It * statusFlags: Status flags (hexadecimal):
+See the status code for Ping above for the lower 8 bits. Additionally:
+.Bl -tag -width indent
+.It - 0x100 = Route with * (at least one router did not respond)
+.It - 0x200 = Destination has responded
+.El
+.It * pathHash: Hash of the path (hexadecimal).
+.El
+.It (TAB) hopNumber status timesource rtt_app queuing rtt_sw rtt_hw hopIP
+.Bl -tag -width indent
+.It * hopNumber: Number of the hop.
+.It * status: Status code (decimal; the values are the same as for Ping, see above).
+.It * rtt: The measured RTT (microseconds, decimal).
+.It * timesource: Source of the timing information (hexadecimal; the values are the same as for Ping, see above)
+.It * rtt_app: The measured application RTT (nanoseconds, decimal).
+.It * queuing: The measured kernel software queuing delay (nanoseconds, decimal; -1 if not available).
+.It * rtt_sw: The measured kernel software RTT (nanoseconds, decimal; -1 if not available).
+.It * rtt_hw: The measured kernel hardware RTT (nanoseconds, decimal; -1 if not available).
+.It * hopIP: Hop IP address.
+.El
+.El
+.\" ====== Traceroute, version 1 ============================================
+.It Traceroute (version 1, SUPERSEDED!)
+Each Traceroute entry begins with a #T line.
+This is followed with one TAB-started line per each hop.
+.Bl -tag -width indent
+.It #T sourceIP destinationIP timestamp round checksum totalHops statusFlags pathHash traffic_class packet_size
 .Bl -tag -width indent
 .It * sourceIP: Source IP address.
 .It * destinationIP: Destination IP address.
@@ -188,12 +265,7 @@ Each Traceroute entry begins with a #T line, plus one TAB-started line per hop.
 .It * round: Round number.
 .It * checksum: The checksum of the ICMP Echo Request packets (hexadecimal).
 .It * totalHops: Total hops.
-.It * statusFlags: Status flags (hexadecimal):
-See the status code for Ping above for the lower 8 bits. Additionally:
-.Bl -tag -width indent
-.It - 0x100 = Route with * (at least one router did not respond)
-.It - 0x200 = Destination has responded
-.El
+.It * statusFlags: Status flags (hexadecimal).
 .It * pathHash: Hash of the path (hexadecimal).
 .It * traffic_class: The outgoing IP Traffic Class/Type of Service value of the ICMP Echo Request packets (hexadecimal).
 This entry has been added with HiPerConTracer 1.4.0!
@@ -203,7 +275,7 @@ This entry has been added with HiPerConTracer 1.6.0!
 .It (TAB) hopNumber status rtt hopIP
 .Bl -tag -width indent
 .It * hopNumber: Number of the hop.
-.It * status: Status code (hexadecimal here(!); the values are the same as for Ping, see above).
+.It * status: Status code (in hexadecimal here(!); the values are the same as for Ping, see above).
 .It * rtt: The measured RTT (microseconds, decimal).
 .It * hopIP: Hop IP address.
 .El
