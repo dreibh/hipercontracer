@@ -468,7 +468,22 @@ void Traceroute::newResult(const ResultEntry* resultEntry)
 // ###### Comparison function for results output ############################
 int Traceroute::compareTracerouteResults(const ResultEntry* a, const ResultEntry* b)
 {
-  return(a->hop() < b->hop());
+   // Traceroute:
+   // The results in ResultsMap are only for a single destination.
+   // But there are different rounds.
+   // => sort by: rounds / hop
+
+   // ====== Level 1: Round =================================================
+   if(a->round() < b->round()) {
+      return true;
+   }
+   else if(a->round() == b->round()) {
+      // ====== Level 2: Hop ================================================
+      if(a->hop() < b->hop()) {
+         return true;
+      }
+   }
+   return false;
 }
 
 

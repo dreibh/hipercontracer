@@ -171,7 +171,22 @@ void Ping::sendRequests()
 // ###### Comparison function for results output ############################
 int Ping::comparePingResults(const ResultEntry* a, const ResultEntry* b)
 {
-   return(a->destination() < b->destination());
+   // Ping:
+   // The results in ResultsMap are for different destinations.
+   // There are different rounds as well.
+   // => sort by: destination / round
+
+   // ====== Level 1: Round =================================================
+   if(a->destination() < b->destination()) {
+      return true;
+   }
+   else if(a->destination() == b->destination()) {
+      // ====== Level 2: Hop ================================================
+      if(a->round() < b->round()) {
+         return true;
+      }
+   }
+   return false;
 }
 
 
