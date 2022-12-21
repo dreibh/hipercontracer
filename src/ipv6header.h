@@ -70,7 +70,8 @@ class IPv6Header
 {
    public:
    IPv6Header() {
-      std::fill(Data, Data + sizeof(Data), 0);
+//       Data[1] = 0x00;
+      // std::fill(Data, Data + sizeof(Data), 0);
    }
 
    inline uint8_t  version()       const { return (Data[0] >> 4) & 0x0f;                             }
@@ -164,6 +165,7 @@ class IPv6Header
 class IPv6PseudoHeader
 {
    public:
+   IPv6PseudoHeader() { }
    IPv6PseudoHeader(const IPv6Header& ipv6Header, const uint32_t length) {
       memcpy(&Data[0], &ipv6Header.Data[8], 32);   // Source and Destination Address
       // Length (Transport):

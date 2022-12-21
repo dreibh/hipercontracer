@@ -64,7 +64,7 @@ class IPv4Header
 {
    public:
    IPv4Header() {
-      std::fill(Data, Data + sizeof(Data), 0);
+      // std::fill(Data, Data + sizeof(Data), 0);
    }
 
    inline uint8_t  version()        const { return (Data[0] >> 4) & 0x0f; }
@@ -156,6 +156,7 @@ class IPv4Header
 class IPv4PseudoHeader
 {
    public:
+   IPv4PseudoHeader() { }
    IPv4PseudoHeader(const IPv4Header& ipv4Header, const uint16_t length) {
       memcpy(&Data[0], &ipv4Header.Data[12], 8);      // Source and Destination Address
       Data[8] = 0x00;                                 // Padding
