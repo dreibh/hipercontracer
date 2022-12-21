@@ -490,17 +490,12 @@ int Traceroute::compareTracerouteResults(const ResultEntry* a, const ResultEntry
 // ###### Process results ###################################################
 void Traceroute::processResults()
 {
-   uint64_t timeStamp = 0;
-
    // ====== Sort results ===================================================
-   std::vector<ResultEntry*> resultsVector;
-   for(std::map<unsigned short, ResultEntry*>::iterator iterator = ResultsMap.begin();
-       iterator != ResultsMap.end(); iterator++) {
-      resultsVector.push_back(iterator->second);
-   }
-   std::sort(resultsVector.begin(), resultsVector.end(), &compareTracerouteResults);
+   std::vector<ResultEntry*> resultsVector =
+      makeSortedResultsVector(&compareTracerouteResults);
 
    // ====== Handle the results of each round ===============================
+   uint64_t timeStamp = 0;
    for(unsigned int round = 0; round < Rounds; round++) {
 
       // ====== Count hops ==================================================
@@ -530,11 +525,7 @@ void Traceroute::processResults()
 
             // ====== Time-out ==============================================
             else if(resultEntry->status() == Unknown) {
-               resultEntry->setStatus(Timeout);
-               resultEntry->setReceiveTime(RXTimeStampType::RXTST_Application,
-                                           TimeSourceType::TST_SysClock,
-                                           resultEntry->sendTime(TXTimeStampType::TXTST_Application) +
-                                              std::chrono::milliseconds(Expiration));
+               resultEntry->expire(Expiration);
                pathString += "-*";
                completeTraceroute = false;   // at least one hop has not sent a response :-(
             }

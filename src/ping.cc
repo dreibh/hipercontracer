@@ -194,12 +194,8 @@ int Ping::comparePingResults(const ResultEntry* a, const ResultEntry* b)
 void Ping::processResults()
 {
    // ====== Sort results ===================================================
-   std::vector<ResultEntry*> resultsVector;
-   for(std::map<unsigned short, ResultEntry*>::iterator iterator = ResultsMap.begin();
-       iterator != ResultsMap.end(); iterator++) {
-      resultsVector.push_back(iterator->second);
-   }
-   std::sort(resultsVector.begin(), resultsVector.end(), &comparePingResults);
+   std::vector<ResultEntry*> resultsVector =
+      makeSortedResultsVector(&comparePingResults);
 
    // ====== Process results ================================================
    const std::chrono::system_clock::time_point now = std::chrono::system_clock::now();
@@ -208,10 +204,7 @@ void Ping::processResults()
       // ====== Time-out entries ============================================
       if( (resultEntry->status() == Unknown) &&
           (std::chrono::duration_cast<std::chrono::milliseconds>(now - resultEntry->sendTime(TXTimeStampType::TXTST_Application)).count() >= Expiration) ) {
-         resultEntry->setStatus(Timeout);
-         resultEntry->setReceiveTime(RXTimeStampType::RXTST_Application,
-                                     TimeSourceType::TST_SysClock,
-                                     resultEntry->sendTime(TXTimeStampType::TXTST_Application) + std::chrono::milliseconds(Expiration));
+         resultEntry->expire(Expiration);
       }
 
       // ====== Print completed entries =====================================

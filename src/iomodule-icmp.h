@@ -34,6 +34,15 @@
 
 #include "iomodule-base.h"
 
+#ifdef __linux__
+// linux/icmp.h defines the socket option ICMP_FILTER, but this include
+// conflicts with netinet/ip_icmp.h. Just adding the needed definitions here:
+#define ICMP_FILTER 1
+struct icmp_filter {
+   __u32 data;
+};
+#endif
+
 
 class ICMPModule : public IOModuleBase
 {

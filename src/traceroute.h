@@ -104,6 +104,20 @@ class Traceroute : public Service
    unsigned int getInitialMaxTTL(const DestinationInfo&   destination) const;
    void         newResult(const ResultEntry* resultEntry);
 
+   inline std::vector<ResultEntry*> makeSortedResultsVector(int (*compareResults)(const ResultEntry* a,
+                                                                                  const ResultEntry* b)) const {
+      std::vector<ResultEntry*> resultsVector;
+
+      resultsVector.reserve(ResultsMap.size());
+      for(std::map<unsigned short, ResultEntry*>::const_iterator iterator = ResultsMap.begin();
+          iterator != ResultsMap.end(); iterator++) {
+         resultsVector.push_back(iterator->second);
+      }
+      std::sort(resultsVector.begin(), resultsVector.end(), compareResults);
+
+      return resultsVector;
+   }
+
    const std::string                       TracerouteInstanceName;
    ResultsWriter*                          ResultsOutput;
    const OutputFormatType                  OutputFormat;

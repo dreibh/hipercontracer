@@ -145,13 +145,15 @@ class ResultEntry {
                    const boost::asio::ip::address& source,
                    const DestinationInfo&          destination,
                    const HopStatus                 status);
+   void expire(const unsigned int expiration);
+
 
    inline uint32_t     timeStampSeqID()                 const { return(TimeStampSeqID);         }
    inline unsigned int round()                          const { return(Round);                  }
    inline unsigned int seqNumber()                      const { return(SeqNumber);              }
    inline unsigned int hop()                            const { return(Hop);                    }
    inline unsigned int packetSize()                     const { return(PacketSize);             }
-   inline uint16_t checksum()                           const { return(Checksum);               }
+   inline uint16_t     checksum()                       const { return(Checksum);               }
 
    const boost::asio::ip::address& sourceAddress()      const { return(Source);                 }
    const DestinationInfo& destination()                 const { return(Destination);            }

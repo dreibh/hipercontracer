@@ -81,6 +81,17 @@ void ResultEntry::initialise(const uint32_t                  timeStampSeqID,
 }
 
 
+// ###### Expire ############################################################
+void ResultEntry::expire(const unsigned int expiration)
+{
+   setStatus(Timeout);
+   setReceiveTime(RXTimeStampType::RXTST_Application,
+                  TimeSourceType::TST_SysClock,
+                  sendTime(TXTimeStampType::TXTST_Application) +
+                     std::chrono::milliseconds(expiration));
+}
+
+
 // ##### Compute RTT ########################################################
 ResultDuration ResultEntry::rtt(const RXTimeStampType rxTimeStampType,
                                 unsigned int&         timeSource) const {

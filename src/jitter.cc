@@ -79,6 +79,10 @@ const std::string& Jitter::getName() const
 void Jitter::processResults()
 {
    // ====== Sort results ===================================================
+   std::vector<ResultEntry*> resultsVector =
+      makeSortedResultsVector(&comparePingResults);
+
+   // ====== Sort results ===================================================
    std::vector<ResultEntry*> resultsVector;
    for(std::map<unsigned short, ResultEntry*>::iterator iterator = ResultsMap.begin();
        iterator != ResultsMap.end(); iterator++) {
@@ -93,10 +97,7 @@ void Jitter::processResults()
       // ====== Time-out entries ============================================
       if( (resultEntry->status() == Unknown) &&
           (std::chrono::duration_cast<std::chrono::milliseconds>(now - resultEntry->sendTime(TXTimeStampType::TXTST_Application)).count() >= Expiration) ) {
-         resultEntry->setStatus(Timeout);
-         resultEntry->setReceiveTime(RXTimeStampType::RXTST_Application,
-                                     TimeSourceType::TST_SysClock,
-                                     resultEntry->sendTime(TXTimeStampType::TXTST_Application) + std::chrono::milliseconds(Expiration));
+         resultEntry->expire(Expiration);
       }
 
       // ====== Print completed entries =====================================

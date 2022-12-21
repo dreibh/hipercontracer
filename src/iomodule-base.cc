@@ -39,13 +39,6 @@
 #include <linux/errqueue.h>
 #include <linux/net_tstamp.h>
 #include <linux/sockios.h>
-
-// linux/icmp.h defines the socket option ICMP_FILTER, but this include
-// conflicts with netinet/ip_icmp.h. Just adding the needed definitions here:
-#define ICMP_FILTER 1
-struct icmp_filter {
-   __u32 data;
-};
 #endif
 
 
