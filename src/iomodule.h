@@ -36,6 +36,7 @@
 #include "resultentry.h"
 
 #include <list>
+#include <map>
 #include <boost/asio.hpp>
 
 
