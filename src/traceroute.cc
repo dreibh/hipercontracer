@@ -583,7 +583,7 @@ void Traceroute::processResults()
                   // ====== Current output format =================================
                   if(OutputFormat >= OFT_HiPerConTracer_Version2) {
                      ResultsOutput->insert(
-                        str(boost::format("#T%c %s %s %x %d   %d   %x %d %x %x   %x")
+                        str(boost::format("#T%c %s %s %x %d %d %x %d %x %x %x")
                            % (unsigned char)IOModule->getProtocolType()
 
                            % SourceAddress.to_string()
@@ -639,7 +639,7 @@ void Traceroute::processResults()
                                                         timeSourceHardware;
 
                   ResultsOutput->insert(
-                     str(boost::format("\t%d %x   %08x %d %d %d %d  %s")
+                     str(boost::format("\t%d %x %08x %d %d %d %d %s")
                         % resultEntry->hop()
                         % (unsigned int)resultEntry->status()
 
