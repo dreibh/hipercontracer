@@ -29,8 +29,8 @@
 //
 // Contact: dreibh@simula.no
 
-#ifndef IOMODULE_H
-#define IOMODULE_H
+#ifndef IOMODULE_BASE_H
+#define IOMODULE_BASE_H
 
 #include "destinationinfo.h"
 #include "resultentry.h"
@@ -155,138 +155,5 @@ class IOModuleBase
       return new iomodule(ioService, resultsMap, sourceAddress, newResultCallback, packetSize, destinationPort); \
    } \
    static bool Registered_##iomodule = IOModuleBase::registerIOModule(moduleType, moduleName, createIOModule_##iomodule);
-
-
-class ICMPModule : public IOModuleBase
-{
-   public:
-   ICMPModule(boost::asio::io_service&                 ioService,
-              std::map<unsigned short, ResultEntry*>&  resultsMap,
-              const boost::asio::ip::address&          sourceAddress,
-              std::function<void (const ResultEntry*)> newResultCallback,
-              const unsigned int                       packetSize,
-              const uint16_t                           destinationPort = 0);
-   virtual ~ICMPModule();
-
-   virtual const ProtocolType getProtocolType() const { return ProtocolType::PT_ICMP; }
-   virtual const std::string& getProtocolName() const {
-      static std::string name = "ICMP";
-      return name;
-   }
-
-   virtual bool prepareSocket();
-   virtual void cancelSocket();
-   virtual void expectNextReply(const int  socketDescriptor,
-                                const bool readFromErrorQueue);
-
-   virtual unsigned int sendRequest(const DestinationInfo& destination,
-                                    const unsigned int     fromTTL,
-                                    const unsigned int     toTTL,
-                                    const unsigned int     fromRound,
-                                    const unsigned int     toRound,
-                                    uint16_t&              seqNumber,
-                                    uint32_t*              targetChecksumArray);
-
-   void handleResponse(const boost::system::error_code& errorCode,
-                       const int                        socketDescriptor,
-                       const bool                       readFromErrorQueue);
-
-   virtual void handlePayloadResponse(const int     socketDescriptor,
-                                      ReceivedData& receivedData);
-   virtual void handleErrorResponse(const int          socketDescriptor,
-                                    ReceivedData&      receivedData,
-                                    sock_extended_err* socketError);
-
-   protected:
-   void updateSendTimeInResultEntry(const sock_extended_err* socketError,
-                                    const scm_timestamping*  socketTimestamping);
-
-   // For ICMP type, this UDP socket is only used to generate a
-   // system-unique 16-bit ICMP Identifier!
-   boost::asio::ip::udp::socket   UDPSocket;
-   boost::asio::ip::udp::endpoint UDPSocketEndpoint;
-   boost::asio::ip::icmp::socket  ICMPSocket;
-   char                           MessageBuffer[65536 + 40];
-   char                           ControlBuffer[1024];
-
-   private:
-   bool                           ExpectingReply;
-   bool                           ExpectingError;
-};
-
-
-
-class raw_udp
-{
-   public:
-   typedef boost::asio::ip::basic_endpoint<raw_udp> endpoint;
-   typedef boost::asio::basic_raw_socket<raw_udp>   socket;
-   typedef boost::asio::ip::basic_resolver<raw_udp> resolver;
-
-   explicit raw_udp() : Protocol(IPPROTO_UDP), Family(AF_INET) { }
-   explicit raw_udp(int protocol, int family) : Protocol(protocol), Family(family) { }
-
-   static raw_udp v4() { return raw_udp(IPPROTO_UDP, AF_INET);  }
-   static raw_udp v6() { return raw_udp(IPPROTO_UDP, AF_INET6); }
-
-   int type()     const { return SOCK_RAW; }
-   int protocol() const { return Protocol; }
-   int family()   const { return Family;   }
-
-   friend bool operator==(const raw_udp& p1, const raw_udp& p2) {
-      return p1.Protocol == p2.Protocol && p1.Family == p2.Family;
-   }
-   friend bool operator!=(const raw_udp& p1, const raw_udp& p2) {
-      return p1.Protocol != p2.Protocol || p1.Family != p2.Family;
-   }
-
-   private:
-   int Protocol;
-   int Family;
-};
-
-
-
-class UDPModule : public ICMPModule
-{
-   public:
-   UDPModule(boost::asio::io_service&                 ioService,
-             std::map<unsigned short, ResultEntry*>&  resultsMap,
-             const boost::asio::ip::address&          sourceAddress,
-             std::function<void (const ResultEntry*)> newResultCallback,
-             const unsigned int                       packetSize,
-             const uint16_t                           destinationPort = 7);
-   virtual ~UDPModule();
-
-   virtual const ProtocolType getProtocolType() const { return ProtocolType::PT_UDP; }
-   virtual const std::string& getProtocolName() const {
-      static std::string name = "UDP";
-      return name;
-   }
-
-   virtual bool prepareSocket();
-   virtual void cancelSocket();
-
-   virtual void expectNextReply(const int  socketDescriptor,
-                                const bool readFromErrorQueue);
-   virtual void handlePayloadResponse(const int     socketDescriptor,
-                                      ReceivedData& receivedData);
-   virtual void handleErrorResponse(const int          socketDescriptor,
-                                    ReceivedData&      receivedData,
-                                    sock_extended_err* socketError);
-
-   virtual unsigned int sendRequest(const DestinationInfo& destination,
-                                    const unsigned int     fromTTL,
-                                    const unsigned int     toTTL,
-                                    const unsigned int     fromRound,
-                                    const unsigned int     toRound,
-                                    uint16_t&              seqNumber,
-                                    uint32_t*              targetChecksumArray);
-
-   protected:
-   const uint16_t                         DestinationPort;
-
-   boost::asio::basic_raw_socket<raw_udp> RawUDPSocket;
-};
 
 #endif

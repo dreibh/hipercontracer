@@ -32,7 +32,7 @@
 #ifndef TRACEROUTE_H
 #define TRACEROUTE_H
 
-#include "iomodule.h"
+#include "iomodule-base.h"
 #include "resultentry.h"
 #include "resultswriter.h"
 #include "service.h"

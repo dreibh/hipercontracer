@@ -38,7 +38,9 @@
 LIST(APPEND libhipercontracer_headers
    destinationinfo.h
    internet16.h
-   iomodule.h
+   iomodule-base.h
+   iomodule-icmp.h
+   iomodule-udp.h
    logger.h
    ping.h
    resultentry.h
@@ -50,14 +52,16 @@ LIST(APPEND libhipercontracer_headers
 LIST(APPEND libhipercontracer_sources
    destinationinfo.cc
    internet16.cc
-   iomodule.cc
+   iomodule-base.cc
+   iomodule-icmp.cc
+   iomodule-udp.cc
    logger.cc
    ping.cc
    resultentry.cc
    resultswriter.cc
    service.cc
-   traceroute.cc
    tools.cc
+   traceroute.cc
 )
 
 INSTALL(FILES ${libhipercontracer_headers} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/hipercontracer)

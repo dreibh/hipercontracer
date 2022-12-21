@@ -45,6 +45,21 @@
 #include <boost/format.hpp>
 
 
+const passwd* getUser(const char* user);
+bool reducePrivileges(const passwd* pw);
+bool is_subdir_of(const std::filesystem::path& path1,
+                  const std::filesystem::path& path2);
+std::filesystem::path relative_to(const std::filesystem::path& dataFile,
+                                  const std::filesystem::path& basePath);
+
+bool addSourceAddress(std::map<boost::asio::ip::address, std::set<uint8_t>>& array,
+                      const std::string&                                     addressString,
+                      bool                                                   tryToResolve = true);
+bool addDestinationAddress(std::set<boost::asio::ip::address>& array,
+                           const std::string&                  addressString,
+                           bool                                tryToResolve = true);
+
+
 // ###### Convert time to microseconds since the epoch ######################
 template<class TimePoint>
 uint64_t usSinceEpoch(const TimePoint& timePoint)
@@ -80,21 +95,6 @@ static std::string durationToString(const Duration& duration,
    }
    return ss.str();
 }
-
-
-const passwd* getUser(const char* user);
-bool reducePrivileges(const passwd* pw);
-bool is_subdir_of(const std::filesystem::path& path1,
-                  const std::filesystem::path& path2);
-std::filesystem::path relative_to(const std::filesystem::path& dataFile,
-                                  const std::filesystem::path& basePath);
-
-bool addSourceAddress(std::map<boost::asio::ip::address, std::set<uint8_t>>& array,
-                      const std::string&                                     addressString,
-                      bool                                                   tryToResolve = true);
-bool addDestinationAddress(std::set<boost::asio::ip::address>& array,
-                           const std::string&                  addressString,
-                           bool                                tryToResolve = true);
 
 
 // ###### Get current time in UTC ###########################################
@@ -184,6 +184,27 @@ template <typename TimePoint> bool stringToTimePoint(
    timePoint += std::chrono::high_resolution_clock::duration(fseconds);
 
    return true;
+}
+
+
+// ###### Convert sockaddr to endpoint ######################################
+template<class Endpoint>
+Endpoint sockaddrToEndpoint(const sockaddr* address, const socklen_t socklen)
+{
+   if(socklen >= sizeof(sockaddr_in)) {
+      if(address->sa_family == AF_INET) {
+         return Endpoint( boost::asio::ip::address_v4(ntohl(((sockaddr_in*)address)->sin_addr.s_addr)),
+                          ntohs(((sockaddr_in*)address)->sin_port) );
+      }
+      else if(address->sa_family == AF_INET6) {
+         const unsigned char* aptr = ((sockaddr_in6*)address)->sin6_addr.s6_addr;
+         boost::asio::ip::address_v6::bytes_type v6address;
+         std::copy(aptr, aptr + v6address.size(), v6address.data());
+         return Endpoint( boost::asio::ip::address_v6(v6address, ((sockaddr_in6*)address)->sin6_scope_id),
+                          ntohs(((sockaddr_in6*)address)->sin6_port) );
+      }
+   }
+   return Endpoint();
 }
 
 #endif

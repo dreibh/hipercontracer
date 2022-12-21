@@ -102,6 +102,10 @@ them to integrate HiPerConTracer into own programs.
 
 %files libhipercontracer-devel
 %{_includedir}/hipercontracer/destinationinfo.h
+%{_includedir}/hipercontracer/internet16.h
+%{_includedir}/hipercontracer/iomodule-base.h
+%{_includedir}/hipercontracer/iomodule-icmp.h
+%{_includedir}/hipercontracer/iomodule-udp.h
 %{_includedir}/hipercontracer/logger.h
 %{_includedir}/hipercontracer/ping.h
 %{_includedir}/hipercontracer/resultentry.h
