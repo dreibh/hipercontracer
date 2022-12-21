@@ -37,8 +37,6 @@
 #include <boost/bind.hpp>
 #include <boost/format.hpp>
 
-#include <iostream> // FIXME!
-
 
 // ###### Constructor #######################################################
 Ping::Ping(const std::string                moduleName,

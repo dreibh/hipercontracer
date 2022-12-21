@@ -55,8 +55,6 @@
 #include <linux/sockios.h>
 #endif
 
-#include <iostream>   // FIXME!
-
 
 // ###### Constructor #######################################################
 Traceroute::Traceroute(const std::string                moduleName,
@@ -481,7 +479,8 @@ void Traceroute::processResults()
 
    // ====== Sort results ===================================================
    std::vector<ResultEntry*> resultsVector;
-   for(std::map<unsigned short, ResultEntry*>::iterator iterator = ResultsMap.begin(); iterator != ResultsMap.end(); iterator++) {
+   for(std::map<unsigned short, ResultEntry*>::iterator iterator = ResultsMap.begin();
+       iterator != ResultsMap.end(); iterator++) {
       resultsVector.push_back(iterator->second);
    }
    std::sort(resultsVector.begin(), resultsVector.end(), &compareTracerouteResults);
@@ -495,13 +494,7 @@ void Traceroute::processResults()
       bool        completeTraceroute = true;   // all hops have responded
       bool        destinationReached = false;  // destination has responded
       std::string pathString         = SourceAddress.to_string();
-      for(std::vector<ResultEntry*>::iterator iterator = resultsVector.begin(); iterator != resultsVector.end(); iterator++) {
-         ResultEntry* resultEntry = *iterator;
-
-
-         std::cout << *resultEntry << "\n";
-
-
+      for(ResultEntry* resultEntry : resultsVector) {
          if(resultEntry->round() == round) {
             assert(resultEntry->hop() > totalHops);
             currentHop++;
@@ -525,7 +518,8 @@ void Traceroute::processResults()
                resultEntry->setStatus(Timeout);
                resultEntry->setReceiveTime(RXTimeStampType::RXTST_Application,
                                            TimeSourceType::TST_SysClock,
-                                           resultEntry->sendTime(TXTimeStampType::TXTST_Application) + std::chrono::milliseconds(Expiration));
+                                           resultEntry->sendTime(TXTimeStampType::TXTST_Application) +
+                                              std::chrono::milliseconds(Expiration));
                pathString += "-*";
                completeTraceroute = false;   // at least one hop has not sent a response :-(
             }
@@ -558,8 +552,7 @@ void Traceroute::processResults()
 
       bool     writeHeader   = true;
       uint16_t checksumCheck = 0;
-      for(std::vector<ResultEntry*>::iterator iterator = resultsVector.begin(); iterator != resultsVector.end(); iterator++) {
-         ResultEntry* resultEntry = *iterator;
+      for(ResultEntry* resultEntry : resultsVector) {
          if(resultEntry->round() == round) {
             HPCT_LOG(trace) << getName() << ": " << *resultEntry;
 

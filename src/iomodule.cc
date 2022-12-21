@@ -47,7 +47,6 @@
 #include <linux/net_tstamp.h>
 #include <linux/sockios.h>
 
-#include <iostream>   // FIXME!
 
 // linux/icmp.h defines the socket option ICMP_FILTER, but this include
 // conflicts with netinet/ip_icmp.h. Just adding the needed definitions here:
@@ -480,7 +479,7 @@ bool IOModuleBase::checkIOModule(const std::string& moduleName)
 
 
 
-#define VERIFY_ICMP_CHECKSUM   // Verify ICMP checksum computation (FIXME)
+#define VERIFY_ICMP_CHECKSUM   // Verify ICMP checksum computation (FIXME!)
 
 REGISTER_IOMODULE(ProtocolType::PT_ICMP, "ICMP", ICMPModule);
 
