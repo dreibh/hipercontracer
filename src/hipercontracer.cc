@@ -37,6 +37,7 @@
 #include <boost/program_options.hpp>
 
 #include "icmpheader.h"
+#include "jitter.h"
 #include "logger.h"
 #include "ping.h"
 #include "resultswriter.h"
@@ -99,11 +100,24 @@ int main(int argc, char** argv)
    unsigned int             logLevel;
    std::string              user((getlogin() != nullptr) ? getlogin() : "");
    std::string              configurationFileName;
+   bool                     serviceJitter;
    bool                     servicePing;
    bool                     serviceTraceroute;
    unsigned int             iterations;
    std::vector<std::string> ioModulesList;
    std::set<std::string>    ioModules;
+
+   unsigned long long       jitterInterval;
+   unsigned int             jitterExpiration;
+   unsigned int             jitterBurst;
+   unsigned int             jitterTTL;
+   unsigned int             jitterPacketSize;
+
+   unsigned long long       pingInterval;
+   unsigned int             pingExpiration;
+   unsigned int             pingBurst;
+   unsigned int             pingTTL;
+   unsigned int             pingPacketSize;
 
    unsigned long long       tracerouteInterval;
    unsigned int             tracerouteExpiration;
@@ -112,12 +126,6 @@ int main(int argc, char** argv)
    unsigned int             tracerouteFinalMaxTTL;
    unsigned int             tracerouteIncrementMaxTTL;
    unsigned int             traceroutePacketSize;
-
-   unsigned long long       pingInterval;
-   unsigned int             pingExpiration;
-   unsigned int             pingBurst;
-   unsigned int             pingTTL;
-   unsigned int             pingPacketSize;
 
    uint16_t                 udpDestinationPort;
 
@@ -158,6 +166,9 @@ int main(int argc, char** argv)
            boost::program_options::value<std::vector<std::string>>(&ioModulesList),
            "I/O module" )
 
+      ( "jitter,J",
+           boost::program_options::value<bool>(&serviceJitter)->default_value(false)->implicit_value(true),
+           "Start Jitter service" )
       ( "ping,P",
            boost::program_options::value<bool>(&servicePing)->default_value(false)->implicit_value(true),
            "Start Ping service" )
@@ -205,6 +216,22 @@ int main(int argc, char** argv)
       ( "pingpacketsize",
            boost::program_options::value<unsigned int>(&pingPacketSize)->default_value(0),
            "Ping packet size in B" )
+
+      ( "jitterinterval",
+           boost::program_options::value<unsigned long long>(&jitterInterval)->default_value(5000),
+           "Jitter interval in ms" )
+      ( "jitterexpiration",
+           boost::program_options::value<unsigned int>(&jitterExpiration)->default_value(10000),
+           "Jitter expiration timeout in ms" )
+      ( "jitterburst",
+           boost::program_options::value<unsigned int>(&jitterBurst)->default_value(16),
+           "Jitter burst" )
+      ( "jitterttl",
+           boost::program_options::value<unsigned int>(&jitterTTL)->default_value(64),
+           "Jitter initial maximum TTL value" )
+      ( "jitterpacketsize",
+           boost::program_options::value<unsigned int>(&jitterPacketSize)->default_value(128),
+           "Jitter packet size in B" )
 
       ( "udpdestinationport",
            boost::program_options::value<uint16_t>(&udpDestinationPort)->default_value(7),
@@ -281,14 +308,6 @@ int main(int argc, char** argv)
       std::cerr << "ERROR: Invalid Identifier setting: " << identifier << "\n";
       return 1;
    }
-   if((pingBurst < 1) || (pingBurst > 1024)) {
-      std::cerr << "ERROR: Invalid Ping burst setting: " << pingBurst << "\n";
-      return 1;
-   }
-   if((tracerouteRounds < 1) || (tracerouteRounds > 64)) {
-      std::cerr << "ERROR: Invalid Traceroute rounds setting: " << tracerouteRounds << "\n";
-      return 1;
-   }
    if( (resultsFormat < OutputFormatType::OFT_Min) ||
        (resultsFormat > OutputFormatType::OFT_Max) ) {
       std::cerr << "ERROR: Invalid results format version: " << resultsFormat << "\n";
@@ -330,16 +349,23 @@ int main(int argc, char** argv)
    }
 
    std::srand(std::time(0));
+   jitterInterval            = std::min(std::max(100ULL, jitterInterval),        3600U*10000ULL);
+   jitterExpiration          = std::min(std::max(100U, jitterExpiration),        3600U*10000U);
+   jitterTTL                 = std::min(std::max(1U, jitterTTL),                 255U);
+   jitterBurst               = std::min(std::max(2U, jitterBurst),               1024U);
+   jitterPacketSize          = std::min(65535U, jitterPacketSize);
+   pingInterval              = std::min(std::max(100ULL, pingInterval),          3600U*60000ULL);
+   pingExpiration            = std::min(std::max(100U, pingExpiration),          3600U*60000U);
+   pingTTL                   = std::min(std::max(1U, pingTTL),                   255U);
+   pingBurst                 = std::min(std::max(1U, pingBurst),                 1024U);
+   pingPacketSize            = std::min(65535U, pingPacketSize);
    tracerouteInterval        = std::min(std::max(1000ULL, tracerouteInterval),   3600U*60000ULL);
    tracerouteExpiration      = std::min(std::max(1000U, tracerouteExpiration),   60000U);
    tracerouteInitialMaxTTL   = std::min(std::max(1U, tracerouteInitialMaxTTL),   255U);
    tracerouteFinalMaxTTL     = std::min(std::max(1U, tracerouteFinalMaxTTL),     255U);
    tracerouteIncrementMaxTTL = std::min(std::max(1U, tracerouteIncrementMaxTTL), 255U);
    traceroutePacketSize      = std::min(65535U, traceroutePacketSize);
-   pingInterval              = std::min(std::max(100ULL, pingInterval),          3600U*60000ULL);
-   pingExpiration            = std::min(std::max(100U, pingExpiration),          3600U*60000U);
-   pingTTL                   = std::min(std::max(1U, pingTTL),                   255U);
-   pingPacketSize            = std::min(65535U, pingPacketSize);
+   tracerouteRounds          = std::min(std::max(1U, tracerouteRounds),          64U);
 
    if(!resultsDirectory.empty()) {
       HPCT_LOG(info) << "Results Output:" << "\n"
@@ -350,12 +376,22 @@ int main(int argc, char** argv)
       HPCT_LOG(info) << "Results Output:" << "\n"
                      << "-- turned off--";
    }
+
+   if(serviceJitter) {
+      HPCT_LOG(info) << "Jitter Service:" << std:: endl
+                     << "* Interval           = " << jitterInterval   << " ms" << "\n"
+                     << "* Expiration         = " << jitterExpiration << " ms" << "\n"
+                     << "* Burst              = " << jitterBurst               << "\n"
+                     << "* TTL                = " << jitterTTL                 << "\n"
+                     << "* Packet Size        = " << jitterPacketSize          << " B";
+   }
    if(servicePing) {
       HPCT_LOG(info) << "Ping Service:" << std:: endl
                      << "* Interval           = " << pingInterval   << " ms" << "\n"
                      << "* Expiration         = " << pingExpiration << " ms" << "\n"
+                     << "* Burst              = " << pingBurst               << "\n"
                      << "* TTL                = " << pingTTL                 << "\n"
-                     << "* Packet Size        = " << pingPacketSize << " B";
+                     << "* Packet Size        = " << pingPacketSize          << " B";
    }
    if(serviceTraceroute) {
       HPCT_LOG(info) << "Traceroute Service:" << std:: endl
@@ -395,6 +431,38 @@ int main(int argc, char** argv)
 
       for(const std::string& ioModule : ioModules) {
          const uint16_t port = udpDestinationPort;
+         if(serviceJitter) {
+            try {
+               ResultsWriter* resultsWriter = nullptr;
+               if(!resultsDirectory.empty()) {
+                  resultsWriter = ResultsWriter::makeResultsWriter(
+                                     ResultsWriterSet, identifier,
+                                     sourceAddress, "Jitter-" + ioModule,
+                                     resultsDirectory, resultsTransactionLength,
+                                     (pw != nullptr) ? pw->pw_uid : 0, (pw != nullptr) ? pw->pw_gid : 0,
+                                     resultsCompression);
+                  if(resultsWriter == nullptr) {
+                     HPCT_LOG(fatal) << "Cannot initialise results directory " << resultsDirectory << "!";
+                     return 1;
+                  }
+               }
+               Service* service = new Jitter(ioModule,
+                                             resultsWriter, (OutputFormatType)resultsFormat,
+                                             iterations, false,
+                                             sourceAddress, destinationsForSource,
+                                             jitterInterval, jitterExpiration,
+                                             jitterBurst, jitterTTL,
+                                             jitterPacketSize, port);
+               if(service->start() == false) {
+                  return 1;
+               }
+               ServiceSet.insert(service);
+            }
+            catch (std::exception& e) {
+               HPCT_LOG(fatal) << "Cannot create Jitter service - " << e.what();
+               return 1;
+            }
+         }
          if(servicePing) {
             try {
                ResultsWriter* resultsWriter = nullptr;

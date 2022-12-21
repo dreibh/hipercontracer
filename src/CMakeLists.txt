@@ -41,6 +41,7 @@ LIST(APPEND libhipercontracer_headers
    iomodule-base.h
    iomodule-icmp.h
    iomodule-udp.h
+   jitter.h
    logger.h
    ping.h
    resultentry.h
@@ -55,6 +56,7 @@ LIST(APPEND libhipercontracer_sources
    iomodule-base.cc
    iomodule-icmp.cc
    iomodule-udp.cc
+   jitter.cc
    logger.cc
    ping.cc
    resultentry.cc

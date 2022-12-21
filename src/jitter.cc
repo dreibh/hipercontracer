@@ -82,14 +82,6 @@ void Jitter::processResults()
    std::vector<ResultEntry*> resultsVector =
       makeSortedResultsVector(&comparePingResults);
 
-   // ====== Sort results ===================================================
-   std::vector<ResultEntry*> resultsVector;
-   for(std::map<unsigned short, ResultEntry*>::iterator iterator = ResultsMap.begin();
-       iterator != ResultsMap.end(); iterator++) {
-      resultsVector.push_back(iterator->second);
-   }
-   std::sort(resultsVector.begin(), resultsVector.end(), &comparePingResults);
-
    // ====== Process results ================================================
    const std::chrono::system_clock::time_point now = std::chrono::system_clock::now();
    for(ResultEntry* resultEntry : resultsVector) {
@@ -100,6 +92,8 @@ void Jitter::processResults()
          resultEntry->expire(Expiration);
       }
 
+      puts("TBD!");
+#if 0
       // ====== Print completed entries =====================================
       if(resultEntry->status() != Unknown) {
          HPCT_LOG(trace) << getName() << ": " << *resultEntry;
@@ -147,6 +141,7 @@ void Jitter::processResults()
             ));
          }
       }
+#endif
 
       // ====== Remove completed entries ====================================
       if(resultEntry->status() != Unknown) {

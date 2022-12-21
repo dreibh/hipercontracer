@@ -35,7 +35,7 @@
 #include "ping.h"
 
 
-class Jitter : public Traceroute
+class Jitter : public Ping
 {
    public:
    Jitter(const std::string                moduleName,
