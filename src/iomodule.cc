@@ -690,6 +690,7 @@ unsigned int ICMPModule::sendRequest(const DestinationInfo& destination,
    for(unsigned int round = fromRound; round <= toRound; round++) {
       for(int ttl = (int)fromTTL; ttl >= (int)toTTL; ttl--) {
          assert(currentEntry < entries);
+         seqNumber++;   // New sequence number!
 
          // ====== Set TTL ==================================================
          if(ttl != currentTTL) {
@@ -701,7 +702,7 @@ unsigned int ICMPModule::sendRequest(const DestinationInfo& destination,
 
          // ====== Update ICMP header =======================================
          uint32_t icmpChecksum = 0;
-         echoRequest.seqNumber(++seqNumber);
+         echoRequest.seqNumber(seqNumber);
          echoRequest.checksum(0);   // Reset the original checksum first!
          echoRequest.computeInternet16(icmpChecksum);
 
@@ -1333,6 +1334,7 @@ unsigned int UDPModule::sendRequest(const DestinationInfo& destination,
    // ------ BEGIN OF TIMING-CRITICAL PART ----------------------------------
    for(unsigned int round = fromRound; round <= toRound; round++) {
       for(int ttl = (int)fromTTL; ttl >= (int)toTTL; ttl--) {
+         assert(currentEntry < entries);
          seqNumber++;   // New sequence number!
 
          // ====== Update IP header =========================================
@@ -1353,7 +1355,6 @@ unsigned int UDPModule::sendRequest(const DestinationInfo& destination,
          tsHeader.seqNumber(seqNumber);
          tsHeader.sendTTL(ttl);
          tsHeader.round((unsigned char)round);
-         tsHeader.checksumTweak(0);
          const std::chrono::system_clock::time_point sendTime = std::chrono::system_clock::now();
          tsHeader.sendTimeStamp(sendTime);
 
