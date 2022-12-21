@@ -623,16 +623,16 @@ void Traceroute::processResults()
                   unsigned int timeSourceSoftware;
                   unsigned int timeSourceHardware;
                   const ResultDuration rttApplication = resultEntry->rtt(RXTimeStampType::RXTST_Application, timeSourceApplication);
+                  const ResultDuration queuingDelay   = resultEntry->queuingDelay(timeSourceQueuing);
                   const ResultDuration rttSoftware    = resultEntry->rtt(RXTimeStampType::RXTST_ReceptionSW, timeSourceSoftware);
                   const ResultDuration rttHardware    = resultEntry->rtt(RXTimeStampType::RXTST_ReceptionHW, timeSourceHardware);
-                  const ResultDuration queuingDelay   = resultEntry->queuingDelay(timeSourceQueuing);
                   const unsigned int   timeSource     = (timeSourceApplication << 24) |
                                                         (timeSourceQueuing     << 16) |
                                                         (timeSourceSoftware    << 8) |
                                                         timeSourceHardware;
 
                   ResultsOutput->insert(
-                     str(boost::format("\t%d %x %08x %d %d %d %d %s")
+                     str(boost::format("\t%d %d %08x %d %d %d %d %s")
                         % resultEntry->hop()
                         % (unsigned int)resultEntry->status()
 

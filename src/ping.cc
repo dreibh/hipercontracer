@@ -219,9 +219,9 @@ void Ping::processResults()
                unsigned int timeSourceSoftware;
                unsigned int timeSourceHardware;
                const ResultDuration rttApplication = resultEntry->rtt(RXTimeStampType::RXTST_Application, timeSourceApplication);
+               const ResultDuration queuingDelay   = resultEntry->queuingDelay(timeSourceQueuing);
                const ResultDuration rttSoftware    = resultEntry->rtt(RXTimeStampType::RXTST_ReceptionSW, timeSourceSoftware);
                const ResultDuration rttHardware    = resultEntry->rtt(RXTimeStampType::RXTST_ReceptionHW, timeSourceHardware);
-               const ResultDuration queuingDelay   = resultEntry->queuingDelay(timeSourceQueuing);
                const unsigned int   timeSource     = (timeSourceApplication << 24) |
                                                      (timeSourceQueuing     << 16) |
                                                      (timeSourceSoftware    << 8) |
