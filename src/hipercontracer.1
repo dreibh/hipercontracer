@@ -312,6 +312,40 @@ This entry has been added with HiPerConTracer 1.6.0!
 .It * hopIP: Hop IP address.
 .El
 .El
+.\" ====== Jitter, version 2 ================================================
+.It Jitter (version 2, current; there is no version 1)
+Each Jitter entry consists of a #J<m> line, with m=i for ICMP and m=u for UDP (according to underlying I/O module).
+.Bl -tag -width indent
+.It #J<m> sourceIP destinationIP timestamp burstseq traffic_class packetsize checksum status timesource
+packets_app jitter_app meanrtt_app
+packets_queuing jitter_queuing meandelay_queuing
+packets_sw jitter_sw meanrtt_sw
+packets_hw jitter_hw meanrtt_hw
+rtt_app queuing rtt_sw rtt_hw
+.Bl -tag -width indent
+.It * sourceIP: Source IP address.
+.It * destinationIP: Destination IP address.
+.It * timestamp: Timestamp (nanoseconds since the UTC epoch, hexadecimal).
+.It * burstseq: Sequence number within a burst (decimal), numbered from 0.
+.It * traffic_class: The outgoing IP Traffic Class/Type of Service value of the ICMP Echo Request packets (hexadecimal).
+.It * packet_size: The sent packet size (decimal, in bytes) including IPv4/IPv6 header, ICMP header and HiPerConTracer header.
+.It * checksum: The checksum of the ICMP Echo Request packets (hexadecimal).
+.It * status: Status code (decimal):
+.It * timesource: Source of the timing information (hexadecimal) as: AAQQSSHH (same as for Ping, see above).
+.It * packets_app: Number of packets for application RTT jitter/mean RTT computation
+.It * jitter_app: Jitter of application RTT  (computed based on RFC 3550, Subsubsection 6.4.1)
+.It * meanrtt_app: Mean application RTT
+.It * packets_app: Number of packets for queuing jitter/mean RTT computation
+.It * jitter_app: Jitter of queuing  (computed based on RFC 3550, Subsubsection 6.4.1)
+.It * meanrtt_app: Mean queuing
+.It * packets_app: Number of packets for kernel software RTT jitter/mean RTT computation
+.It * jitter_app: Jitter of kernel software RTT  (computed based on RFC 3550, Subsubsection 6.4.1)
+.It * meanrtt_app: Mean kernel software RTT
+.It * packets_app: Number of packets for kernel hardware RTT jitter/mean RTT computation
+.It * jitter_app: Jitter of kernel hardware RTT  (computed based on RFC 3550, Subsubsection 6.4.1)
+.It * meanrtt_app: Mean kernel hardware RTT
+.El
+.El
 .El
 .\" ###### Examples #########################################################
 .Sh EXAMPLES
