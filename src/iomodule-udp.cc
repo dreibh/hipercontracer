@@ -297,7 +297,7 @@ unsigned int UDPModule::sendRequest(const DestinationInfo& destination,
             TimeStampSeqID,
             round, seqNumber, ttl, ActualPacketSize,
             (uint16_t)targetChecksumArray[round], sendTime,
-            SourceAddress, destination, Unknown
+            localEndpoint.address(), destination, Unknown
          );
          if( (!errorCodeArray[currentEntry]) && (sentArray[currentEntry] > 0) ) {
             TimeStampSeqID++;

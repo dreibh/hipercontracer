@@ -585,8 +585,8 @@ void Traceroute::processResults()
                         str(boost::format("#T%c %s %s %x %d %d %x %d %x %x %x")
                            % (unsigned char)IOModule->getProtocolType()
 
-                           % SourceAddress.to_string()
-                           % (*DestinationIterator).address().to_string()
+                           % resultEntry->sourceAddress().to_string()
+                           % resultEntry->destinationAddress().to_string()
                            % timeStamp
                            % round
 
@@ -605,8 +605,8 @@ void Traceroute::processResults()
                   else {
                      ResultsOutput->insert(
                         str(boost::format("#T %s %s %x %d %x %d %x %x %x %d")
-                           % SourceAddress.to_string()
-                           % (*DestinationIterator).address().to_string()
+                           % resultEntry->sourceAddress().to_string()
+                           % resultEntry->destinationAddress().to_string()
                            % (timeStamp / 1000)
                            % round
                            % resultEntry->checksum()

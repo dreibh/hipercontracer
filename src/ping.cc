@@ -210,7 +210,6 @@ void Ping::processResults()
       // ====== Print completed entries =====================================
       if(resultEntry->status() != Unknown) {
          HPCT_LOG(trace) << getName() << ": " << *resultEntry;
-
          if(ResultCallback) {
             ResultCallback(this, resultEntry);
          }
@@ -239,7 +238,7 @@ void Ping::processResults()
                   str(boost::format("#P%c %s %s %x %d %x %d %x %d %08x %d %d %d %d")
                      % (unsigned char)IOModule->getProtocolType()
 
-                     % SourceAddress.to_string()
+                     % resultEntry->sourceAddress().to_string()
                      % resultEntry->destinationAddress().to_string()
                      % sendTimeStamp
                      % resultEntry->round()
@@ -267,7 +266,7 @@ void Ping::processResults()
 
                ResultsOutput->insert(
                   str(boost::format("#P %s %s %x %x %d %d %x %d %02x")
-                     % SourceAddress.to_string()
+                     % resultEntry->sourceAddress().to_string()
                      % resultEntry->destinationAddress().to_string()
                      % sendTimeStamp
                      % resultEntry->checksum()

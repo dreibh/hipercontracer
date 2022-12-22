@@ -38,9 +38,6 @@
 #include <boost/format.hpp>
 
 
-#include <iostream> // FIXME!
-
-
 // ###### Constructor #######################################################
 Jitter::Jitter(const std::string                moduleName,
                ResultsWriter*                   resultsWriter,
@@ -99,14 +96,13 @@ void Jitter::computeJitter(const std::vector<ResultEntry*>::const_iterator& star
    for(std::vector<ResultEntry*>::const_iterator iterator = start; iterator != end; iterator++) {
       const ResultEntry* resultEntry = *iterator;
 
-      std::cout << *resultEntry << "\n";
+      HPCT_LOG(trace) << getName() << ": " << *resultEntry;
+      if(ResultCallback) {
+         ResultCallback(this, resultEntry);
+      }
 
       // ====== Compute jitter ==============================================
       if(resultEntry->status() == Success) {
-         if(ResultCallback) {
-            ResultCallback(this, resultEntry);
-         }
-
          if(resultEntry->obtainSendReceiveTime(RXTimeStampType::RXTST_Application, timeSourceApplication, sendTime, receiveTime)) {
             jitterApplication.process(timeSourceApplication,
                                       nsSinceEpoch<ResultTimePoint>(sendTime),
@@ -145,7 +141,6 @@ void Jitter::computeJitter(const std::vector<ResultEntry*>::const_iterator& star
    }
 
    if(referenceEntry) {
-      std::cout << "JITTER\n";
       if(ResultsOutput) {
          const unsigned long long sendTimeStamp = nsSinceEpoch<ResultTimePoint>(
             referenceEntry->sendTime(TXTimeStampType::TXTST_Application));
@@ -154,7 +149,7 @@ void Jitter::computeJitter(const std::vector<ResultEntry*>::const_iterator& star
             str(boost::format("#J%c %s %s %x %d %x %d %x %d %08x  %d %d %d  %d %d %d  %d %d %d  %d %d %d")
                % (unsigned char)IOModule->getProtocolType()
 
-               % SourceAddress.to_string()
+               % referenceEntry->sourceAddress().to_string()
                % referenceEntry->destinationAddress().to_string()
                % sendTimeStamp
                % referenceEntry->round()
@@ -218,8 +213,6 @@ void Jitter::processResults()
           (std::chrono::duration_cast<std::chrono::milliseconds>(now - resultEntry->sendTime(TXTimeStampType::TXTST_Application)).count() >= Expiration) ) {
          resultEntry->expire(Expiration);
       }
-
-      std::cout << "x " << *resultEntry << "\n";
 
       // If there is still an entry with unknown status, this block cannot
       // be processed by the jitter calculation, yet.
