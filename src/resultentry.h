@@ -39,32 +39,38 @@
 
 enum HopStatus {
    // ====== Status byte ==================================
-   Unknown                 = 0,
+   Unknown                   = 0,
 
    // ====== ICMP responses (from routers) ================
    // NOTE: Status values from 1 to 199 have a given
    //       router IP in their HopIP result!
 
    // ------ TTL/Hop Count --------------------------------
-   TimeExceeded            = 1,     // ICMP response
+   TimeExceeded              = 1,     // ICMP response
+
    // ------ Reported as "unreachable" --------------------
    // NOTE: Status values from 100 to 199 denote unreachability
-   UnreachableScope        = 100,   // ICMP response
-   UnreachableNetwork      = 101,   // ICMP response
-   UnreachableHost         = 102,   // ICMP response
-   UnreachableProtocol     = 103,   // ICMP response
-   UnreachablePort         = 104,   // ICMP response
-   UnreachableProhibited   = 105,   // ICMP response
-   UnreachableUnknown      = 110,   // ICMP response
+   UnreachableScope          = 100,   // ICMP response
+   UnreachableNetwork        = 101,   // ICMP response
+   UnreachableHost           = 102,   // ICMP response
+   UnreachableProtocol       = 103,   // ICMP response
+   UnreachablePort           = 104,   // ICMP response
+   UnreachableProhibited     = 105,   // ICMP response
+   UnreachableUnknown        = 110,   // ICMP response
 
    // ====== No response  =================================
    // NOTE: Status values from 200 to 254 have the destination
    //       IP in their HopIP field. However, there is no response!
-   Timeout                 = 200,
+   Timeout                   = 200,
+
+   NotSentGenericError       = 210,   // sendto() call failed
+   NotSentPermissionDenied   = 211,   // sendto() error: EACCES
+   NotSentNetworkUnreachable = 212,   // sendto() error: ENETUNREACH
+   NotSentHostUnreachable    = 213,   // sendto() error: EHOSTUNREACH
 
    // ====== Destination's response (from destination) ====
    // NOTE: Successful response, destination is in HopIP field.
-   Success                 = 255,   // Success!
+   Success                   = 255,   // Success!
 
    // ------ Response received ----------------------------
    Flag_StarredRoute       = (1 << 8),  // Route with * (router did not respond)
@@ -146,7 +152,7 @@ class ResultEntry {
                    const DestinationInfo&          destination,
                    const HopStatus                 status);
    void expire(const unsigned int expiration);
-
+   void failedToSend(const boost::system::error_code& errorCode);
 
    inline uint32_t     timeStampSeqID()                 const { return(TimeStampSeqID);         }
    inline unsigned int round()                          const { return(Round);                  }

@@ -279,7 +279,8 @@ unsigned int UDPModule::sendRequest(const DestinationInfo& destination,
          sentArray[currentEntry] =
             RawUDPSocket.send_to(buffer, remoteEndpoint, 0, errorCodeArray[currentEntry]);
 
-         // FIXME! Is this really necessary?
+#if 0
+         // FIXME! This is probably unnecessary
          if(errorCodeArray[currentEntry]) {
             unsigned int retries = 0;
             do {
@@ -289,15 +290,17 @@ unsigned int UDPModule::sendRequest(const DestinationInfo& destination,
                   RawUDPSocket.send_to(buffer, remoteEndpoint, 0, errorCodeArray[currentEntry]);
             } while( (errorCodeArray[currentEntry]) && (retries < 3) );
          }
+#endif
 
          // ====== Store message information ================================
+         resultEntryArray[currentEntry]->initialise(
+            TimeStampSeqID,
+            round, seqNumber, ttl, ActualPacketSize,
+            (uint16_t)targetChecksumArray[round], sendTime,
+            SourceAddress, destination, Unknown
+         );
          if( (!errorCodeArray[currentEntry]) && (sentArray[currentEntry] > 0) ) {
-            resultEntryArray[currentEntry]->initialise(
-               TimeStampSeqID++,
-               round, seqNumber, ttl, ActualPacketSize,
-               (uint16_t)targetChecksumArray[round], sendTime,
-               SourceAddress, destination, Unknown
-            );
+            TimeStampSeqID++;
             messagesSent++;
          }
 
@@ -309,18 +312,16 @@ unsigned int UDPModule::sendRequest(const DestinationInfo& destination,
 
    // ====== Check results ==================================================
    for(unsigned int i = 0; i < entries; i++) {
-      if( (!errorCodeArray[i]) && (sentArray[i] > 0) ) {
-         std::pair<std::map<unsigned short, ResultEntry*>::iterator, bool> result =
-            ResultsMap.insert(std::pair<unsigned short, ResultEntry*>(
-                                 resultEntryArray[i]->seqNumber(),
-                                 resultEntryArray[i]));
-         assert(result.second == true);
-      }
-      else {
-         HPCT_LOG(warning) << getName() << ": sendRequest() - send_to("
-                           << SourceAddress << "->" << destination << ") failed: "
-                           << errorCodeArray[i].message();
-         delete resultEntryArray[i];
+      std::pair<std::map<unsigned short, ResultEntry*>::iterator, bool> result =
+         ResultsMap.insert(std::pair<unsigned short, ResultEntry*>(
+                              resultEntryArray[i]->seqNumber(),
+                              resultEntryArray[i]));
+      assert(result.second == true);
+      if( (errorCodeArray[i]) || (sentArray[i] <= 0) ) {
+         resultEntryArray[i]->failedToSend(errorCodeArray[i]);
+         HPCT_LOG(debug) << getName() << ": sendRequest() - send_to("
+                         << localEndpoint.address() << "->" << destination << ") failed: "
+                         << errorCodeArray[i].message();
       }
    }
 

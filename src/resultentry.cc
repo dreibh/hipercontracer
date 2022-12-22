@@ -92,6 +92,31 @@ void ResultEntry::expire(const unsigned int expiration)
 }
 
 
+// ###### Expire ############################################################
+void ResultEntry::failedToSend(const boost::system::error_code& errorCode)
+{
+   HopStatus hopStatus;
+   switch(errorCode.value()) {
+      case boost::system::errc::permission_denied:
+         hopStatus = NotSentPermissionDenied;
+       break;
+      case boost::system::errc::network_unreachable:
+         hopStatus = NotSentNetworkUnreachable;
+       break;
+      case boost::asio::error::host_unreachable:
+         hopStatus = NotSentHostUnreachable;
+       break;
+      default:
+         hopStatus = NotSentGenericError;
+       break;
+   }
+   setStatus(hopStatus);
+   setReceiveTime(RXTimeStampType::RXTST_Application,
+                  TimeSourceType::TST_SysClock,
+                  sendTime(TXTimeStampType::TXTST_Application));
+}
+
+
 // ##### Compute RTT ########################################################
 ResultDuration ResultEntry::rtt(const RXTimeStampType rxTimeStampType,
                                 unsigned int&         timeSource) const {
