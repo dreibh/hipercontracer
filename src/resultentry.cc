@@ -29,6 +29,7 @@
 //
 // Contact: dreibh@simula.no
 
+#include "logger.h"
 #include "resultentry.h"
 #include "tools.h"
 
@@ -117,9 +118,12 @@ void ResultEntry::failedToSend(const boost::system::error_code& errorCode)
 }
 
 
-// ##### Compute RTT ########################################################
-ResultDuration ResultEntry::rtt(const RXTimeStampType rxTimeStampType,
-                                unsigned int&         timeSource) const {
+// ##### Obtain send and receive time #######################################
+bool ResultEntry::obtainSendReceiveTime(const RXTimeStampType rxTimeStampType,
+                                        unsigned int&         timeSource,
+                                        ResultTimePoint&      sendTime,
+                                        ResultTimePoint&      receiveTime) const
+{
    assert((unsigned int)rxTimeStampType <= RXTimeStampType::RXTST_MAX);
 
    // Get receiver/sender time stamp source as byte:
@@ -134,48 +138,85 @@ ResultDuration ResultEntry::rtt(const RXTimeStampType rxTimeStampType,
    // ====== Hardware timestamps are raw, not system time ===================
    // Hardware time stamps are only compatible to hardware time stamps!
    if( ( ((ReceiveTimeSource[rxTimeStampType] == TST_TIMESTAMPING_HW) ||
-          (SendTimeSource[rxTimeStampType] == TST_TIMESTAMPING_HW)) ) &&
+          (SendTimeSource[rxTimeStampType]    == TST_TIMESTAMPING_HW)) ) &&
        (ReceiveTimeSource[rxTimeStampType] != SendTimeSource[rxTimeStampType]) ) {
       goto not_available;
    }
 
-
-//    FIXME!
-//    // ====== Check whether there are time stamps available ==================
-//    // NOTE: Indexing for both arrays (RX, TX) is the same!
+   // ====== Check whether there are time stamps available ==================
+   // NOTE: Indexing for both arrays (RX, TX) is the same!
    if( (ReceiveTime[rxTimeStampType] == ResultTimePoint())  ||
        (SendTime[rxTimeStampType]    == ResultTimePoint()) ) {
-   puts("XXXXXXXXXXXXXXXXXY");
-   printf("X=%02x\n", timeSource);
-   std::cout << "\n"
-      << "Ap: " << nsSinceEpoch(sendTime(TXTimeStampType::TXTST_Application))    << " -> "
-                << nsSinceEpoch(receiveTime(RXTimeStampType::RXTST_Application)) << "\n"
+      HPCT_LOG(warning) << "Time stamp(s) not set?!";
+/*
+      std::cout << "\n"
+         << "Ap: " << nsSinceEpoch(sendTime(TXTimeStampType::TXTST_Application))    << " -> "
+                   << nsSinceEpoch(receiveTime(RXTimeStampType::RXTST_Application)) << "\n"
 
-      << "Sw: " << nsSinceEpoch(sendTime(TXTimeStampType::TXTST_SchedulerSW))    << " -> "
-                << nsSinceEpoch(sendTime(TXTimeStampType::TXTST_TransmissionSW)) << " -> "
-                << nsSinceEpoch(receiveTime(RXTimeStampType::RXTST_ReceptionSW)) << "\n"
+         << "Sw: " << nsSinceEpoch(sendTime(TXTimeStampType::TXTST_SchedulerSW))    << " -> "
+                   << nsSinceEpoch(sendTime(TXTimeStampType::TXTST_TransmissionSW)) << " -> "
+                   << nsSinceEpoch(receiveTime(RXTimeStampType::RXTST_ReceptionSW)) << "\n"
 
-      << "Hw: " << nsSinceEpoch(sendTime(TXTimeStampType::TXTST_TransmissionHW)) << " -> "
-                << nsSinceEpoch(receiveTime(RXTimeStampType::RXTST_ReceptionHW)) << "\n";
-      abort();
-
+         << "Hw: " << nsSinceEpoch(sendTime(TXTimeStampType::TXTST_TransmissionHW)) << " -> "
+                   << nsSinceEpoch(receiveTime(RXTimeStampType::RXTST_ReceptionHW)) << "\n";
+*/
       goto not_available;
    }
-//
 
-   assert(ReceiveTime[rxTimeStampType] != ResultTimePoint());
-   assert(SendTime[rxTimeStampType]    != ResultTimePoint());
+   // ====== Check whether the time stamps make sense =======================
+   if(SendTime[rxTimeStampType] >= ReceiveTime[rxTimeStampType]) {
+      // Time went backwards -> clock issue (may be NTP)?
+      HPCT_LOG(warning) << "Time jump detected! May be NTP is adjusting the system clock?";
+      goto not_available;
+   }
 
-   // Time stamps are compatible => compute RTT
-   return ReceiveTime[rxTimeStampType] - SendTime[rxTimeStampType];
+   // Time stamps are compatible:
+   sendTime    = SendTime[rxTimeStampType];
+   receiveTime = ReceiveTime[rxTimeStampType];
+   return true;
 
 not_available:
-   // At least one value is missing -> return "invalid" duration.
-   return ResultDuration(std::chrono::nanoseconds(-1));
+   // At least one value is missing, or they are incompatible, or invalid:
+   return false;
 }
 
 
-// ##### Compute most accurate RTT ##########################################
+// ##### Obtain scheduling and send time #####################################
+bool ResultEntry::obtainSchedulingSendTime(unsigned int&         timeSource,
+                                           ResultTimePoint&      schedulingTime,
+                                           ResultTimePoint&      sendTime) const
+{
+   // Get send/scheduling time stamp source as byte:
+   timeSource = (SendTimeSource[TXTST_TransmissionSW] << 4) | SendTimeSource[TXTST_SchedulerSW];
+
+   // ====== Time source must not be unknown ================================
+   if( ((SendTimeSource[TXTST_SchedulerSW]    == TST_Unknown) ||
+        (SendTimeSource[TXTST_TransmissionSW] == TST_Unknown)) ) {
+      goto not_available;
+   }
+
+   assert(SendTime[TXTST_SchedulerSW]    != ResultTimePoint());
+   assert(SendTime[TXTST_TransmissionSW] != ResultTimePoint());
+
+   // ====== Check whether the time stamps make sense =======================
+   if(SendTime[TXTST_SchedulerSW] >= SendTime[TXTST_TransmissionSW]) {
+      // Time went backwards -> clock issue (may be NTP)?
+      HPCT_LOG(warning) << "Time jump detected! May be NTP is adjusting the system clock?";
+      goto not_available;
+   }
+
+   // Time stamps are compatible:
+   schedulingTime = SendTime[TXTST_SchedulerSW];
+   sendTime       = SendTime[TXTST_TransmissionSW];
+   return true;
+
+not_available:
+   // At least one value is missing, or they are incompatible, or invalid:
+   return false;
+}
+
+
+// ##### Obtain most accurate RTT ###########################################
 ResultDuration ResultEntry::obtainMostAccurateRTT(const RXTimeStampType rxTimeStampType,
                                                   unsigned int&         timeSource) const
 {
@@ -193,25 +234,30 @@ ResultDuration ResultEntry::obtainMostAccurateRTT(const RXTimeStampType rxTimeSt
 }
 
 
+// ##### Compute RTT ########################################################
+ResultDuration ResultEntry::rtt(const RXTimeStampType rxTimeStampType,
+                                unsigned int&         timeSource) const
+{
+   ResultTimePoint sendTime;
+   ResultTimePoint receiveTime;
+   if(obtainSendReceiveTime(rxTimeStampType, timeSource, sendTime, receiveTime)) {
+      // Time stamps are available and compatible => compute RTT
+      return receiveTime - sendTime;
+   }
+   // Return "invalid" duration of -1ns
+   return ResultDuration(std::chrono::nanoseconds(-1));
+}
+
+
 // ##### Compute queuing delay ##############################################
 ResultDuration ResultEntry::queuingDelay(unsigned int& timeSource) const {
-   // Get send/scheduling time stamp source as byte:
-   timeSource = (SendTimeSource[TXTST_TransmissionSW] << 4) | SendTimeSource[TXTST_SchedulerSW];
-
-   // ====== Time source must not be unknown ================================
-   if( ((SendTimeSource[TXTST_SchedulerSW]    == TST_Unknown) ||
-        (SendTimeSource[TXTST_TransmissionSW] == TST_Unknown)) ) {
-      goto not_available;
+   ResultTimePoint schedulingTime;
+   ResultTimePoint sendTime;
+   if(obtainSchedulingSendTime(timeSource, schedulingTime, sendTime)) {
+      // Time stamps are compatible => compute queuing delay
+      return sendTime - schedulingTime;
    }
-
-   assert(SendTime[TXTST_SchedulerSW]    != ResultTimePoint());
-   assert(SendTime[TXTST_TransmissionSW] != ResultTimePoint());
-
-   // Time stamps are compatible => compute queuing delay
-   return SendTime[TXTST_TransmissionSW] - SendTime[TXTST_SchedulerSW];
-
-not_available:
-   // At least one value is missing -> return "invalid" duration.
+   // Return "invalid" duration of -1ns
    return ResultDuration(std::chrono::nanoseconds(-1));
 }
 

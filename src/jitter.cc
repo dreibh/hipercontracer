@@ -30,6 +30,7 @@
 // Contact: dreibh@simula.no
 
 #include "jitter.h"
+#include "jitter-rfc3550.h"
 #include "tools.h"
 #include "logger.h"
 
@@ -82,13 +83,111 @@ const std::string& Jitter::getName() const
 void Jitter::computeJitter(const std::vector<ResultEntry*>::const_iterator& start,
                            const std::vector<ResultEntry*>::const_iterator& end)
 {
-   std::cout << "JITTER\n";
+   const ResultEntry* referenceEntry = nullptr;
+   JitterRFC3550      jitterApplication;
+   JitterRFC3550      jitterQueuing;
+   JitterRFC3550      jitterSoftware;
+   JitterRFC3550      jitterHardware;
+   unsigned int       timeSourceApplication;
+   unsigned int       timeSourceQueuing;
+   unsigned int       timeSourceSoftware;
+   unsigned int       timeSourceHardware;
+   unsigned int       timeSource;
+   ResultTimePoint    sendTime;
+   ResultTimePoint    receiveTime;
+
    for(std::vector<ResultEntry*>::const_iterator iterator = start; iterator != end; iterator++) {
       const ResultEntry* resultEntry = *iterator;
 
       std::cout << *resultEntry << "\n";
 
-      // ====== Remove completed entry ======================================
+      // ====== Compute jitter ==============================================
+      if(resultEntry->status() == Success) {
+         if(ResultCallback) {
+            ResultCallback(this, resultEntry);
+         }
+
+         if(resultEntry->obtainSendReceiveTime(RXTimeStampType::RXTST_Application, timeSourceApplication, sendTime, receiveTime)) {
+            jitterApplication.process(timeSourceApplication,
+                                      nsSinceEpoch<ResultTimePoint>(sendTime),
+                                      nsSinceEpoch<ResultTimePoint>(receiveTime));
+         }
+         if(resultEntry->obtainSchedulingSendTime(timeSourceQueuing, sendTime, receiveTime)) {
+            // NOTE: For queuing: sendTime = schedulingTime ; receiveTime = actual send time!
+            jitterQueuing.process(timeSourceQueuing,
+                                  nsSinceEpoch<ResultTimePoint>(sendTime),
+                                  nsSinceEpoch<ResultTimePoint>(receiveTime));
+         }
+         if(resultEntry->obtainSendReceiveTime(RXTimeStampType::RXTST_ReceptionSW, timeSourceSoftware, sendTime, receiveTime)) {
+            jitterSoftware.process(timeSourceSoftware,
+                                   nsSinceEpoch<ResultTimePoint>(sendTime),
+                                   nsSinceEpoch<ResultTimePoint>(receiveTime));
+         }
+         if(resultEntry->obtainSendReceiveTime(RXTimeStampType::RXTST_ReceptionHW, timeSourceHardware, sendTime, receiveTime)) {
+            jitterHardware.process(timeSourceHardware,
+                                   nsSinceEpoch<ResultTimePoint>(sendTime),
+                                   nsSinceEpoch<ResultTimePoint>(receiveTime));
+         }
+      }
+
+      // ====== Set pointer to reference entry ==============================
+      // The reference entry points to basic configuration values. It is the
+      // first successful entry (if one is successufl), or otherwise the first
+      // failed entry.
+      if( (referenceEntry == nullptr) ||
+          (referenceEntry->status() != Success) ) {
+         referenceEntry = resultEntry;
+         timeSource = (timeSourceApplication << 24) |
+                      (timeSourceQueuing     << 16) |
+                      (timeSourceSoftware    << 8)  |
+                      timeSourceHardware;
+      }
+   }
+
+   if(referenceEntry) {
+      std::cout << "JITTER\n";
+      if(ResultsOutput) {
+         const unsigned long long sendTimeStamp = nsSinceEpoch<ResultTimePoint>(
+            referenceEntry->sendTime(TXTimeStampType::TXTST_Application));
+
+         ResultsOutput->insert(
+            str(boost::format("#J%c %s %s %x %d %x %d %x %d %08x  %d %d %d  %d %d %d  %d %d %d  %d %d %d")
+               % (unsigned char)IOModule->getProtocolType()
+
+               % SourceAddress.to_string()
+               % referenceEntry->destinationAddress().to_string()
+               % sendTimeStamp
+               % referenceEntry->round()
+
+               % (unsigned int)referenceEntry->destination().trafficClass()
+               % referenceEntry->packetSize()
+               % referenceEntry->checksum()
+               % referenceEntry->status()
+
+               % timeSource
+
+               % jitterApplication.packets()
+               % jitterApplication.jitter()
+               % jitterApplication.meanLatency()
+
+               % jitterQueuing.packets()
+               % jitterQueuing.jitter()
+               % jitterQueuing.meanLatency()
+
+               % jitterSoftware.packets()
+               % jitterSoftware.jitter()
+               % jitterSoftware.meanLatency()
+
+               % jitterHardware.packets()
+               % jitterHardware.jitter()
+               % jitterHardware.meanLatency()
+            ));
+      }
+   }
+
+   // ====== Remove completed entries =======================================
+   for(std::vector<ResultEntry*>::const_iterator iterator = start; iterator != end; iterator++) {
+      const ResultEntry* resultEntry = *iterator;
       assert(ResultsMap.erase(resultEntry->seqNumber()) == 1);
       delete resultEntry;
       if(OutstandingRequests > 0) {
@@ -141,67 +240,7 @@ void Jitter::processResults()
       computeJitter(start, iterator);
    }
 
-
-#if 0
-      // ====== Print completed entries =====================================
-      if(resultEntry->status() != Unknown) {
-         HPCT_LOG(trace) << getName() << ": " << *resultEntry;
-
-         if(ResultCallback) {
-            ResultCallback(this, resultEntry);
-         }
-
-         if(ResultsOutput) {
-            const unsigned long long sendTimeStamp = nsSinceEpoch<ResultTimePoint>(
-               resultEntry->sendTime(TXTimeStampType::TXTST_Application));
-
-            unsigned int timeSourceApplication;
-            unsigned int timeSourceQueuing;
-            unsigned int timeSourceSoftware;
-            unsigned int timeSourceHardware;
-            const ResultDuration rttApplication = resultEntry->rtt(RXTimeStampType::RXTST_Application, timeSourceApplication);
-            const ResultDuration queuingDelay   = resultEntry->queuingDelay(timeSourceQueuing);
-            const ResultDuration rttSoftware    = resultEntry->rtt(RXTimeStampType::RXTST_ReceptionSW, timeSourceSoftware);
-            const ResultDuration rttHardware    = resultEntry->rtt(RXTimeStampType::RXTST_ReceptionHW, timeSourceHardware);
-            const unsigned int   timeSource     = (timeSourceApplication << 24) |
-                                                  (timeSourceQueuing     << 16) |
-                                                  (timeSourceSoftware    << 8) |
-                                                  timeSourceHardware;
-
-            ResultsOutput->insert(
-               str(boost::format("#P%c %s %s %x %d %x %d %x %d %08x %d %d %d %d")
-                  % (unsigned char)IOModule->getProtocolType()
-
-                  % SourceAddress.to_string()
-                  % resultEntry->destinationAddress().to_string()
-                  % sendTimeStamp
-                  % resultEntry->round()
-
-                  % (unsigned int)resultEntry->destination().trafficClass()
-                  % resultEntry->packetSize()
-                  % resultEntry->checksum()
-                  % resultEntry->status()
-
-                  % timeSource
-                  % std::chrono::duration_cast<std::chrono::nanoseconds>(rttApplication).count()
-                  % std::chrono::duration_cast<std::chrono::nanoseconds>(queuingDelay).count()
-                  % std::chrono::duration_cast<std::chrono::nanoseconds>(rttSoftware).count()
-                  % std::chrono::duration_cast<std::chrono::nanoseconds>(rttHardware).count()
-            ));
-         }
-      }
-#endif
-
-//       // ====== Remove completed entries ====================================
-//       if(resultEntry->status() != Unknown) {
-//          assert(ResultsMap.erase(resultEntry->seqNumber()) == 1);
-//          delete resultEntry;
-//          if(OutstandingRequests > 0) {
-//             OutstandingRequests--;
-//          }
-//       }
-//    }
-
+   // ====== Handle "remove destination after run" option ===================
    if(RemoveDestinationAfterRun == true) {
       std::lock_guard<std::recursive_mutex> lock(DestinationMutex);
       DestinationIterator = Destinations.begin();

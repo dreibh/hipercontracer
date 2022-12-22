@@ -188,11 +188,19 @@ class ResultEntry {
       ReceiveTime[rxTimeStampType]       = rxTime;
    }
 
+   bool obtainSendReceiveTime(const RXTimeStampType rxTimeStampType,
+                              unsigned int&         timeSource,
+                              ResultTimePoint&      sendTime,
+                              ResultTimePoint&      receiveTime) const;
+   bool obtainSchedulingSendTime(unsigned int&     timeSource,
+                                 ResultTimePoint&  schedulingTime,
+                                 ResultTimePoint&  sendTime) const;
    ResultDuration rtt(const RXTimeStampType rxTimeStampType,
                       unsigned int&         timeSource) const;
+   ResultDuration queuingDelay(unsigned int& timeSource) const;
+
    ResultDuration obtainMostAccurateRTT(const RXTimeStampType rxTimeStampType,
                                         unsigned int&         timeSource) const;
-   ResultDuration queuingDelay(unsigned int& timeSource) const;
 
    inline friend bool operator<(const ResultEntry& resultEntry1, const ResultEntry& resultEntry2) {
       return(resultEntry1.SeqNumber < resultEntry2.SeqNumber);

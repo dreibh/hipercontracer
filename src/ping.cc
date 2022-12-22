@@ -292,6 +292,7 @@ void Ping::processResults()
       }
    }
 
+   // ====== Handle "remove destination after run" option ===================
    if(RemoveDestinationAfterRun == true) {
       std::lock_guard<std::recursive_mutex> lock(DestinationMutex);
       DestinationIterator = Destinations.begin();
