@@ -17,7 +17,7 @@
 .\" Contact: dreibh@iem.uni-due.de
 .\"
 .\" ###### Setup ############################################################
-.Dd December 19, 2022
+.Dd December 22, 2022
 .Dt hipercontracer 1
 .Os hipercontracer
 .\" ###### Name #############################################################
@@ -29,6 +29,7 @@
 .Nm hipercontracer
 .Op \-P|--ping
 .Op \-T|--traceroute
+.Op \-J|--jitter
 .Op \-L|--loglevel level
 .Op \-q|--quiet
 .Op \-v|--verbose
@@ -47,8 +48,14 @@
 .Op \--traceroutepacketsize bytes
 .Op \--pinginterval milliseconds
 .Op \--pingexpiration milliseconds
+.Op \--pingburst packets
 .Op \--pingttl value
 .Op \--pingpacketsize bytes
+.Op \--jitterinterval milliseconds
+.Op \--jitterexpiration milliseconds
+.Op \--jitterburst packets
+.Op \--jitterttl value
+.Op \--jitterpacketsize bytes
 .Op \-R|--resultsdirectory directory
 .Op \-l|--resultstransactionlength seconds
 .Op \-C|--resultscompression none|XZ|BZip2|GZip
@@ -68,6 +75,8 @@ The following arguments may be provided:
 Start the Ping service.
 .It \-T|\--traceroute
 Start the Traceroute service.
+.It \-J|\--jitter
+Start the Jitter service.
 .It \-L|\--loglevel level
 Sets the minimum logging level to the provided value: 0=trace, 1=debug, 2=info, 3=warning, 4=error, 5=fatal.
 .It \-q|\--quiet
@@ -110,27 +119,47 @@ Different rounds will have different checksums. That is, different rounds may
 experience different paths in the network.
 .It \--tracerouteinitialmaxttl value
 Start with the given maximum TTL.
+Default is 6.
 .It \--traceroutefinalmaxttl value
-Finish with the given maximum TTL
-(when destination is not reached with current TTL setting).
+Finish with the given maximum TTL (when destination is not reached with current TTL setting).
+Default is 36.
 .It \--tracerouteincrementmaxttl value
-Increase the maximum TTL by the given value
-(when destination is not reached with current TTL setting).
+Increase the maximum TTL by the given value (when destination is not reached with current TTL setting).
+Default is 6.
 .It \--traceroutepacketsize bytes
 Sets the Traceroute packet size, that is IP header (20 for IPv4/40 for IPv6) + ICMP header (8) + HiPerConTracer header (16) + payload, in bytes.
 The actually sent packet size always covers at least the headers for IPv4/IPv6, ICMP and HiPerConTracer. Maximum packet size is 65535.
 .It \--pinginterval milliseconds
 Sets the Ping interval (time for each full round of destinations).
+Default is 5000 ms.
 .It \--pingexpiration milliseconds
 Sets the Ping duration (timeout for each destination).
+Default is 10000 ms.
 .It \--pingburst packets
 For each Ping measurement, send a burst of the given number of packets.
 Default is 1 packet. Range: 1-1024.
 .It \--pingttl value
 Sets the Ping TTL value.
+Default is 64. Range: 1-255.
 .It \--pingpacketsize bytes
-Sets the Ping packet size, that is IP header (20 for IPv4/40 for IPv6) + ICMP header (8) + HiPerConTracer header (16) + payload, in bytes.
-The actually sent packet size always covers at least the headers for IPv4/IPv6, ICMP and HiPerConTracer. Maximum packet size is 65535.
+Sets the Jitter packet size, that is IP header (20 for IPv4/40 for IPv6) + ICMP header (8)/UDP header (8) + HiPerConTracer header (16) + payload, in bytes.
+The actually sent packet size always covers at least the headers for IPv4/IPv6, transport protocol and HiPerConTracer. Default is 0 (use minimum possible value). Range: 0-65535.
+.It \--jitterinterval milliseconds
+Sets the Jitter interval (time for each full round of destinations).
+Default is 5000 ms.
+.It \--jitterexpiration milliseconds
+Sets the Jitter duration (timeout for each destination).
+Default is 10000 ms.
+.It \--jitterburst packets
+For each Jitter measurement, send a burst of the given number of packets.
+Default is 16 packets. Range: 2-1024.
+.It \--jitterttl value
+Sets the Jitter TTL value.
+Default is 64. Range: 1-255.
+.It \--jitterpacketsize bytes
+Sets the Jitter packet size, that is IP header (20 for IPv4/40 for IPv6) + ICMP header (8)/UDP header (8) + HiPerConTracer header (16) + payload, in bytes.
+The actually sent packet size always covers at least the headers for IPv4/IPv6, transport protocol and HiPerConTracer.
+Default is 128 bytes. Range: 0-65535.
 .It \-R|\--resultsdirectory directory
 Sets the results files directory. The results will be stored there. If not specified, to results will be stored.
 .It \-l|\--resultstransactionlength seconds
