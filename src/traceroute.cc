@@ -536,7 +536,7 @@ void Traceroute::processResults()
             }
          }
       }
-      assert(currentHop == totalHops);   // !!! FIXME! send_to() may fail => no results entry!
+      assert(currentHop == totalHops);
 
       // ====== Compute path hash ===========================================
       // Checksum: the first 64 bits of the SHA-1 sum over path string

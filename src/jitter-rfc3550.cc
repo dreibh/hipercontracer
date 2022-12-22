@@ -31,13 +31,13 @@
 
 #include "jitter-rfc3550.h"
 
-#include <stdio.h> //FIXME!
 
 // ###### Constructor #######################################################
 JitterRFC3550::JitterRFC3550()
 {
-   Packets = 0;
-   Jitter  = 0.0;
+   Packets    = 0;
+   Jitter     = 0.0;
+   LatencySum = 0.0;
 }
 
 
@@ -49,7 +49,7 @@ void JitterRFC3550::process(const uint8_t            timeSource,
    if(Packets > 0) {
       if(timeSource != TimeSource) {
          // The time source has changed => do not accept these time stamps.
-       puts("XXXX"); //FIXME!
+         abort();   // FIXME!
          return;
       }
 
@@ -69,7 +69,7 @@ void JitterRFC3550::process(const uint8_t            timeSource,
 }
 
 
-// #if 0
+#if 0
 #include <stdio.h>
 
 int main(int argc, char *argv[])
@@ -88,4 +88,4 @@ int main(int argc, char *argv[])
 
    return 0;
 }
-// #endif
+#endif

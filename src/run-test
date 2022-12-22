@@ -14,6 +14,7 @@ sudo ./debug.memcheck ./hipercontracer \
    -destination=2400:cb00:2048:1::6814:155 -destination=2a02:2e0:3fe:1001:7777:772e:2:85 -destination=2a00:1450:400f:805::2004 \
    -traceroute \
    -ping \
+   -jitter \
    -tracerouteduration=1000 \
    -tracerouteinitialmaxttl=4 \
    -traceroutefinalmaxttl=32 \

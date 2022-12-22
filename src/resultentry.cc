@@ -35,9 +35,6 @@
 
 #include <boost/format.hpp>
 
-#include <iostream>   // FIXME!
-
-
 
 // ###### Constructor #######################################################
 ResultEntry::ResultEntry()
@@ -164,9 +161,11 @@ bool ResultEntry::obtainSendReceiveTime(const RXTimeStampType rxTimeStampType,
    }
 
    // ====== Check whether the time stamps make sense =======================
-   if(SendTime[rxTimeStampType] >= ReceiveTime[rxTimeStampType]) {
+   if(SendTime[rxTimeStampType] > ReceiveTime[rxTimeStampType]) {
       // Time went backwards -> clock issue (may be NTP)?
-      HPCT_LOG(warning) << "Time jump detected! May be NTP is adjusting the system clock?";
+      HPCT_LOG(warning) << "Send/receive time jump detected! May be NTP is adjusting the system clock?"
+                        << " s=" << timePointToString<ResultTimePoint>(SendTime[rxTimeStampType], 9) << ", "
+                        << " r=" << timePointToString<ResultTimePoint>(ReceiveTime[rxTimeStampType], 9);
       goto not_available;
    }
 
@@ -199,9 +198,11 @@ bool ResultEntry::obtainSchedulingSendTime(unsigned int&         timeSource,
    assert(SendTime[TXTST_TransmissionSW] != ResultTimePoint());
 
    // ====== Check whether the time stamps make sense =======================
-   if(SendTime[TXTST_SchedulerSW] >= SendTime[TXTST_TransmissionSW]) {
+   if(SendTime[TXTST_SchedulerSW] > SendTime[TXTST_TransmissionSW]) {
       // Time went backwards -> clock issue (may be NTP)?
-      HPCT_LOG(warning) << "Time jump detected! May be NTP is adjusting the system clock?";
+      HPCT_LOG(warning) << "Queuing time jump detected! May be NTP is adjusting the system clock?"
+                        << " q=" << timePointToString<ResultTimePoint>(SendTime[TXTST_SchedulerSW], 9) << ", "
+                        << " s=" << timePointToString<ResultTimePoint>(SendTime[TXTST_TransmissionSW], 9);
       goto not_available;
    }
 
