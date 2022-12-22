@@ -75,7 +75,9 @@ void ResultEntry::initialise(const uint32_t                  timeStampSeqID,
    for(unsigned int i = 0; i < RXTST_MAX + 1; i++) {
       ReceiveTimeSource[i] = TimeSourceType::TST_Unknown;
    }
-   setSendTime(TXTimeStampType::TXTST_Application, TimeSourceType::TST_SysClock, sendTime);
+   setSendTime(TXTimeStampType::TXTST_Application,    TimeSourceType::TST_SysClock, sendTime);
+   // Set TXTST_TransmissionSW to system clock for now. It may be updated later!
+   setSendTime(TXTimeStampType::TXTST_TransmissionSW, TimeSourceType::TST_SysClock, sendTime);
 }
 
 
@@ -191,6 +193,14 @@ bool ResultEntry::obtainSchedulingSendTime(unsigned int&         timeSource,
    // ====== Time source must not be unknown ================================
    if( ((SendTimeSource[TXTST_SchedulerSW]    == TST_Unknown) ||
         (SendTimeSource[TXTST_TransmissionSW] == TST_Unknown)) ) {
+      goto not_available;
+   }
+
+   // ====== Time sources must be the same here =============================
+   // Linux: time source must be from kernel (TST_TIMESTAMPING_SW)
+   if(SendTimeSource[TXTST_SchedulerSW] != SendTimeSource[TXTST_TransmissionSW]) {
+      // This is the case when TXTST_TransmissionSW is TST_SysClock
+      // (as initialised by ResultEntry::initialise()) -> no queuing delay!
       goto not_available;
    }
 
