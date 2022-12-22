@@ -133,10 +133,15 @@ void Jitter::computeJitter(const std::vector<ResultEntry*>::const_iterator& star
       if( (referenceEntry == nullptr) ||
           (referenceEntry->status() != Success) ) {
          referenceEntry = resultEntry;
-         timeSource = (timeSourceApplication << 24) |
-                      (timeSourceQueuing     << 16) |
-                      (timeSourceSoftware    << 8)  |
-                      timeSourceHardware;
+         if(referenceEntry->status() != Success) {
+            timeSource = (timeSourceApplication << 24) |
+                         (timeSourceQueuing     << 16) |
+                         (timeSourceSoftware    << 8)  |
+                         timeSourceHardware;
+         }
+         else {
+            timeSource = 0x00000000;
+         }
       }
    }
 
