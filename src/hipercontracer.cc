@@ -343,8 +343,8 @@ int main(int argc, char** argv)
       HPCT_LOG(fatal) << "At least one source and one destination are needed!";
       return 1;
    }
-   if((servicePing == false) && (serviceTraceroute == false)) {
-      HPCT_LOG(fatal) << "Enable at least on service (Ping or Traceroute)!";
+   if( (serviceJitter == false) && (servicePing == false) && (serviceTraceroute == false) ) {
+      HPCT_LOG(fatal) << "Enable at least on service (Traceroute, Ping, Jitter)!";
       return 1;
    }
 

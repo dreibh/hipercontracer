@@ -56,6 +56,8 @@ class Jitter : public Ping
    virtual const std::string& getName() const;
 
    protected:
+   void computeJitter(const std::vector<ResultEntry*>::const_iterator& start,
+                      const std::vector<ResultEntry*>::const_iterator& end);
    virtual void processResults();
 
    private:

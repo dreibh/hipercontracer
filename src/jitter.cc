@@ -37,6 +37,9 @@
 #include <boost/format.hpp>
 
 
+#include <iostream> // FIXME!
+
+
 // ###### Constructor #######################################################
 Jitter::Jitter(const std::string                moduleName,
                ResultsWriter*                   resultsWriter,
@@ -75,16 +78,41 @@ const std::string& Jitter::getName() const
 }
 
 
+// ###### Compute jitter, according to RFC 3550 #############################
+void Jitter::computeJitter(const std::vector<ResultEntry*>::const_iterator& start,
+                           const std::vector<ResultEntry*>::const_iterator& end)
+{
+   std::cout << "JITTER\n";
+   for(std::vector<ResultEntry*>::const_iterator iterator = start; iterator != end; iterator++) {
+      const ResultEntry* resultEntry = *iterator;
+
+      std::cout << *resultEntry << "\n";
+
+      // ====== Remove completed entry ======================================
+      assert(ResultsMap.erase(resultEntry->seqNumber()) == 1);
+      delete resultEntry;
+      if(OutstandingRequests > 0) {
+         OutstandingRequests--;
+      }
+   }
+}
+
+
 // ###### Process results ###################################################
 void Jitter::processResults()
 {
    // ====== Sort results ===================================================
    std::vector<ResultEntry*> resultsVector =
       makeSortedResultsVector(&comparePingResults);
+   // The vector is sorted by destination/round in comparePingResults()!
 
    // ====== Process results ================================================
-   const std::chrono::system_clock::time_point now = std::chrono::system_clock::now();
-   for(ResultEntry* resultEntry : resultsVector) {
+   const std::chrono::system_clock::time_point now        = std::chrono::system_clock::now();
+   std::vector<ResultEntry*>::iterator         iterator   = resultsVector.begin();
+   std::vector<ResultEntry*>::const_iterator   start      = resultsVector.begin();
+   bool                                        isComplete = true;
+   for(   ; iterator != resultsVector.end(); iterator++) {
+      ResultEntry* resultEntry = *iterator;
 
       // ====== Time-out entries ============================================
       if( (resultEntry->status() == Unknown) &&
@@ -92,7 +120,28 @@ void Jitter::processResults()
          resultEntry->expire(Expiration);
       }
 
-      puts("TBD!");
+      std::cout << "x " << *resultEntry << "\n";
+
+      // If there is still an entry with unknown status, this block cannot
+      // be processed by the jitter calculation, yet.
+      if(resultEntry->status() == Unknown) {
+         isComplete = false;
+      }
+
+      if(resultEntry->round() == 0) {
+         // New block -> try to process previous block, then start new one:
+         if( (isComplete) && (start != resultsVector.begin()) ) {
+            computeJitter(start, iterator);
+            start      = iterator;
+            isComplete = true;
+         }
+      }
+   }
+   if(isComplete) {
+      computeJitter(start, iterator);
+   }
+
+
 #if 0
       // ====== Print completed entries =====================================
       if(resultEntry->status() != Unknown) {
@@ -143,15 +192,15 @@ void Jitter::processResults()
       }
 #endif
 
-      // ====== Remove completed entries ====================================
-      if(resultEntry->status() != Unknown) {
-         assert(ResultsMap.erase(resultEntry->seqNumber()) == 1);
-         delete resultEntry;
-         if(OutstandingRequests > 0) {
-            OutstandingRequests--;
-         }
-      }
-   }
+//       // ====== Remove completed entries ====================================
+//       if(resultEntry->status() != Unknown) {
+//          assert(ResultsMap.erase(resultEntry->seqNumber()) == 1);
+//          delete resultEntry;
+//          if(OutstandingRequests > 0) {
+//             OutstandingRequests--;
+//          }
+//       }
+//    }
 
    if(RemoveDestinationAfterRun == true) {
       std::lock_guard<std::recursive_mutex> lock(DestinationMutex);
