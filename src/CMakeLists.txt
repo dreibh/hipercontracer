@@ -68,16 +68,20 @@ LIST(APPEND libhipercontracer_sources
 
 INSTALL(FILES ${libhipercontracer_headers} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/hipercontracer)
 
-ADD_LIBRARY(libhipercontracer-shared SHARED ${libhipercontracer_sources})
+IF (NOT STATIC_BUILD)
+   ADD_LIBRARY(libhipercontracer-shared SHARED ${libhipercontracer_sources})
+ENDIF()
 ADD_LIBRARY(libhipercontracer-static STATIC ${libhipercontracer_sources})
 FOREACH(TYPE shared;static)
-   SET_TARGET_PROPERTIES(libhipercontracer-${TYPE} PROPERTIES OUTPUT_NAME hipercontracer CLEAN_DIRECT_OUTPUT 1)
-   SET_TARGET_PROPERTIES(libhipercontracer-${TYPE} PROPERTIES
-      VERSION   ${BUILD_VERSION}
-      SOVERSION ${BUILD_MAJOR}
-   )
-   TARGET_LINK_LIBRARIES (libhipercontracer-${TYPE} ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
-   INSTALL(TARGETS libhipercontracer-${TYPE} DESTINATION ${CMAKE_INSTALL_LIBDIR})
+   IF (("${TYPE}" STREQUAL "static") OR (NOT STATIC_BUILD))
+      SET_TARGET_PROPERTIES(libhipercontracer-${TYPE} PROPERTIES OUTPUT_NAME hipercontracer CLEAN_DIRECT_OUTPUT 1)
+      SET_TARGET_PROPERTIES(libhipercontracer-${TYPE} PROPERTIES
+         VERSION   ${BUILD_VERSION}
+         SOVERSION ${BUILD_MAJOR}
+      )
+      TARGET_LINK_LIBRARIES (libhipercontracer-${TYPE} ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
+      INSTALL(TARGETS libhipercontracer-${TYPE} DESTINATION ${CMAKE_INSTALL_LIBDIR})
+   ENDIF()
 ENDFOREACH()
 
 # ====== libuniversalimporter ==================================================
@@ -125,17 +129,21 @@ ENDIF()
 
 INSTALL(FILES ${libuniversalimporter_headers} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/universalimporter)
 
-ADD_LIBRARY(libuniversalimporter-shared SHARED ${libuniversalimporter_sources})
+IF (NOT STATIC_BUILD)
+   ADD_LIBRARY(libuniversalimporter-shared SHARED ${libuniversalimporter_sources})
+ENDIF()
 ADD_LIBRARY(libuniversalimporter-static STATIC ${libuniversalimporter_sources})
 FOREACH(TYPE shared;static)
-   SET_TARGET_PROPERTIES(libuniversalimporter-${TYPE} PROPERTIES OUTPUT_NAME universalimporter CLEAN_DIRECT_OUTPUT 1)
-   SET_TARGET_PROPERTIES(libuniversalimporter-${TYPE} PROPERTIES
-      VERSION   ${BUILD_VERSION}
-      SOVERSION ${BUILD_MAJOR}
-   )
-   TARGET_INCLUDE_DIRECTORIES(libuniversalimporter-${TYPE} PUBLIC ${MYSQLCPPCONN_INCLUDE_DIR} ${LIBMONGOC_INCLUDE_DIR} ${LIBBSON_INCLUDE_DIR} ${INotify_INCLUDE_DIRS})
-   TARGET_LINK_LIBRARIES(libuniversalimporter-${TYPE} ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} ${MYSQLCPPCONN_LIBRARY} ${LIBPQXX_LIBRARY} ${LIBMONGOC_LIBRARY} ${LIBBSON_LIBRARY} ${INotify_LIBRARIES})
-   INSTALL(TARGETS libuniversalimporter-${TYPE} DESTINATION ${CMAKE_INSTALL_LIBDIR})
+   IF (("${TYPE}" STREQUAL "static") OR (NOT STATIC_BUILD))
+      SET_TARGET_PROPERTIES(libuniversalimporter-${TYPE} PROPERTIES OUTPUT_NAME universalimporter CLEAN_DIRECT_OUTPUT 1)
+      SET_TARGET_PROPERTIES(libuniversalimporter-${TYPE} PROPERTIES
+         VERSION   ${BUILD_VERSION}
+         SOVERSION ${BUILD_MAJOR}
+      )
+      TARGET_INCLUDE_DIRECTORIES(libuniversalimporter-${TYPE} PUBLIC ${MYSQLCPPCONN_INCLUDE_DIR} ${LIBMONGOC_INCLUDE_DIR} ${LIBBSON_INCLUDE_DIR} ${INotify_INCLUDE_DIRS})
+      TARGET_LINK_LIBRARIES(libuniversalimporter-${TYPE} ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} ${MYSQLCPPCONN_LIBRARY} ${LIBPQXX_LIBRARY} ${LIBMONGOC_LIBRARY} ${LIBBSON_LIBRARY} ${INotify_LIBRARIES})
+      INSTALL(TARGETS libuniversalimporter-${TYPE} DESTINATION ${CMAKE_INSTALL_LIBDIR})
+   ENDIF()
 ENDFOREACH()
 
 
@@ -167,15 +175,21 @@ INSTALL(CODE "EXECUTE_PROCESS(COMMAND ${PYTHON_EXECUTABLE} ${SETUP_PY} install $
 #### PROGRAMS                                                            ####
 #############################################################################
 
+IF (STATIC_BUILD)
+   SET(libraryType static)
+ELSE()
+   SET(libraryType shared)
+ENDIF()
+
 # ====== HiPerConTracer =====================================================
 ADD_EXECUTABLE(hipercontracer hipercontracer.cc)
-TARGET_LINK_LIBRARIES(hipercontracer libhipercontracer-shared ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
+TARGET_LINK_LIBRARIES(hipercontracer libhipercontracer-${libraryType} ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} -llzma -lbz2 -lz)
 INSTALL(TARGETS hipercontracer RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
 INSTALL(FILES hipercontracer.1 DESTINATION ${CMAKE_INSTALL_MANDIR}/man1)
 
 # ====== HiPerConTracer Trigger =============================================
 ADD_EXECUTABLE(hpct-trigger hpct-trigger.cc)
-TARGET_LINK_LIBRARIES(hpct-trigger libhipercontracer-shared ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
+TARGET_LINK_LIBRARIES(hpct-trigger libhipercontracer-${libraryType} ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} -llzma -lbz2 -lz)
 INSTALL(TARGETS hpct-trigger RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
 INSTALL(FILES hpct-trigger.1 DESTINATION ${CMAKE_INSTALL_MANDIR}/man1)
 
@@ -184,7 +198,7 @@ ADD_EXECUTABLE(hpct-importer hpct-importer.cc
    reader-ping.cc
    reader-traceroute.cc
 )
-TARGET_LINK_LIBRARIES(hpct-importer libuniversalimporter-shared)
+TARGET_LINK_LIBRARIES(hpct-importer libuniversalimporter-${libraryType} ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} -llzma -lbz2 -lz)
 INSTALL(TARGETS hpct-importer RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
 INSTALL(FILES hpct-importer.1 DESTINATION ${CMAKE_INSTALL_MANDIR}/man1)
 
@@ -196,7 +210,7 @@ INSTALL(FILES hpct-query.1
 
 # ====== UDP Echo Server ====================================================
 ADD_EXECUTABLE(udp-echo-server udp-echo-server.cc logger.cc tools.cc)
-TARGET_LINK_LIBRARIES(udp-echo-server ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
+TARGET_LINK_LIBRARIES(udp-echo-server ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} -llzma -lbz2 -lz)
 INSTALL(TARGETS udp-echo-server
         DESTINATION ${CMAKE_INSTALL_BINDIR})
 INSTALL(FILES udp-echo-server.1
@@ -224,7 +238,7 @@ INSTALL(FILES get-default-ips.1
 # ADD_EXECUTABLE(t7 t7.cc)
 # TARGET_LINK_LIBRARIES(t7 ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
 # ADD_EXECUTABLE(nne-importer nne-importer.cc reader-nne-metadata.cc reader-nne-ping.cc reader-nne-speedtest.cc)
-# TARGET_LINK_LIBRARIES(nne-importer libuniversalimporter-shared)
+# TARGET_LINK_LIBRARIES(nne-importer libuniversalimporter-${libraryType})
 
 
 #############################################################################

@@ -128,6 +128,15 @@ IF (CMAKE_BUILD_TYPE MATCHES DEBUG)
     SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O")
 ENDIF()
 
+OPTION(STATIC_BUILD "Build statically-linked executables" 0)
+IF (STATIC_BUILD)
+   MESSAGE("Trying to build static executables")
+   LIST(REMOVE_ITEM CMAKE_FIND_LIBRARY_SUFFIXES   ".a" )
+   LIST(INSERT      CMAKE_FIND_LIBRARY_SUFFIXES 0 ".a" )
+   SET(Boost_USE_STATIC_LIBS    ON)
+   # SET(Boost_USE_STATIC_RUNTIME ON)
+ENDIF()
+
 
 #############################################################################
 #### CHECK STRUCT MEMBERS                                                ####
@@ -182,7 +191,7 @@ IF (NOT Boost_FOUND)
 ELSE()
   INCLUDE_DIRECTORIES(${Boost_INCLUDE_DIRS})
 ENDIF()
-ADD_DEFINITIONS(-DBOOST_ALL_DYN_LINK)   # <<-- Required to handle BOOST Log link problem!
+# ADD_DEFINITIONS(-DBOOST_ALL_DYN_LINK)   # <<-- Required to handle BOOST Log link problem!
 
 # ###### INotify ############################################################
 IF(CMAKE_SYSTEM_NAME MATCHES "Linux")
