@@ -112,6 +112,7 @@ int main(int argc, char** argv)
    unsigned int             jitterBurst;
    unsigned int             jitterTTL;
    unsigned int             jitterPacketSize;
+   bool                     jitterRecordRawResults;
 
    unsigned long long       pingInterval;
    unsigned int             pingExpiration;
@@ -232,6 +233,9 @@ int main(int argc, char** argv)
       ( "jitterpacketsize",
            boost::program_options::value<unsigned int>(&jitterPacketSize)->default_value(128),
            "Jitter packet size in B" )
+      ( "jitterrecordraw",
+           boost::program_options::value<bool>(&jitterRecordRawResults)->default_value(false)->implicit_value(true),
+           "Record raw Ping results for Jitter computation" )
 
       ( "udpdestinationport",
            boost::program_options::value<uint16_t>(&udpDestinationPort)->default_value(7),
@@ -450,6 +454,7 @@ int main(int argc, char** argv)
                                              resultsWriter, (OutputFormatType)resultsFormat,
                                              iterations, false,
                                              sourceAddress, destinationsForSource,
+                                             jitterRecordRawResults,
                                              jitterInterval, jitterExpiration,
                                              jitterBurst, jitterTTL,
                                              jitterPacketSize, port);

@@ -17,7 +17,7 @@
 .\" Contact: dreibh@iem.uni-due.de
 .\"
 .\" ###### Setup ############################################################
-.Dd December 22, 2022
+.Dd December 23, 2022
 .Dt hipercontracer 1
 .Os hipercontracer
 .\" ###### Name #############################################################
@@ -56,6 +56,7 @@
 .Op \--jitterburst packets
 .Op \--jitterttl value
 .Op \--jitterpacketsize bytes
+.Op \--jitterrecordraw
 .Op \-R|--resultsdirectory directory
 .Op \-l|--resultstransactionlength seconds
 .Op \-C|--resultscompression none|XZ|BZip2|GZip
@@ -160,6 +161,8 @@ Default is 64. Range: 1-255.
 Sets the Jitter packet size, that is IP header (20 for IPv4/40 for IPv6) + ICMP header (8)/UDP header (8) + HiPerConTracer header (16) + payload, in bytes.
 The actually sent packet size always covers at least the headers for IPv4/IPv6, transport protocol and HiPerConTracer.
 Default is 128 bytes. Range: 0-65535.
+.It \--jitterrecordraw
+Also record raw Ping results used for jitter computation.
 .It \-R|\--resultsdirectory directory
 Sets the results files directory. The results will be stored there. If not specified, to results will be stored.
 .It \-l|\--resultstransactionlength seconds
@@ -345,6 +348,7 @@ rtt_app queuing rtt_sw rtt_hw
 .It * jitter_app: Jitter of kernel hardware RTT  (computed based on RFC 3550, Subsubsection 6.4.1)
 .It * meanrtt_app: Mean kernel hardware RTT
 .El
+If recording of raw Ping results is enabled (\--jitterrecordraw), a Jitter entry is followed by the underlying Ping measurement entries (see Ping version 2 format above).
 .El
 .El
 .\" ###### Examples #########################################################

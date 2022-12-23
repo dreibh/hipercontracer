@@ -239,7 +239,8 @@ void Ping::processResults()
 
 
 // ###### Write Ping result entry to output file ############################
-void Ping::writePingResultEntry(const ResultEntry* resultEntry)
+void Ping::writePingResultEntry(const ResultEntry* resultEntry,
+                                const char*        indentation)
 {
    if(ResultsOutput) {
 
@@ -262,7 +263,8 @@ void Ping::writePingResultEntry(const ResultEntry* resultEntry)
                                                timeSourceHardware;
 
          ResultsOutput->insert(
-            str(boost::format("#P%c %s %s %x %d %x %d %x %d %08x %d %d %d %d")
+            str(boost::format("%s#P%c %s %s %x %d %x %d %x %d %08x %d %d %d %d")
+               % indentation
                % (unsigned char)IOModule->getProtocolType()
 
                % resultEntry->sourceAddress().to_string()

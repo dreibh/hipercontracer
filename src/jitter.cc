@@ -46,6 +46,7 @@ Jitter::Jitter(const std::string                moduleName,
                const bool                       removeDestinationAfterRun,
                const boost::asio::ip::address&  sourceAddress,
                const std::set<DestinationInfo>& destinationArray,
+               const bool                       recordRawResults,
                const unsigned long long         interval,
                const unsigned int               expiration,
                const unsigned int               rounds,
@@ -57,7 +58,8 @@ Jitter::Jitter(const std::string                moduleName,
           sourceAddress, destinationArray,
           interval, expiration, rounds, ttl,
           packetSize, destinationPort),
-     JitterInstanceName(std::string("Jitter(") + sourceAddress.to_string() + std::string(")"))
+     JitterInstanceName(std::string("Jitter(") + sourceAddress.to_string() + std::string(")")),
+     RecordRawResults(recordRawResults)
 {
    IOModule->setName(JitterInstanceName);
 }
@@ -179,6 +181,13 @@ void Jitter::computeJitter(const std::vector<ResultEntry*>::const_iterator& star
          }
       }
 
+      if(resultEntry->status() != Unknown) {
+         HPCT_LOG(trace) << getName() << ": " << *resultEntry;
+         if(ResultCallback) {
+            ResultCallback(this, resultEntry);
+         }
+      }
+
       // ====== Set pointer to reference entry ==============================
       // The reference entry points to basic configuration values. It is the
       // first successful entry (if one is successufl), or otherwise the first
@@ -196,9 +205,18 @@ void Jitter::computeJitter(const std::vector<ResultEntry*>::const_iterator& star
    }
 
    if(referenceEntry) {
+      // ====== Record Jitter entry =========================================
       writeJitterResultEntry(referenceEntry,    timeSource,
                              jitterApplication, jitterQueuing,
                              jitterSoftware,    jitterHardware);
+
+      // ====== Record raw Ping results as well =============================
+      if(RecordRawResults) {
+         for(std::vector<ResultEntry*>::const_iterator iterator = start; iterator != end; iterator++) {
+            const ResultEntry* resultEntry = *iterator;
+            writePingResultEntry(resultEntry, "\t");
+         }
+      }
    }
 
    // ====== Remove completed entries =======================================

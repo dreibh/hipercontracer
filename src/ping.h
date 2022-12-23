@@ -64,7 +64,8 @@ class Ping : public Traceroute
    virtual void processResults();
 
    static int comparePingResults(const ResultEntry* a, const ResultEntry* b);
-   void writePingResultEntry(const ResultEntry* resultEntry);
+   void writePingResultEntry(const ResultEntry* resultEntry,
+                             const char*        indentation = "");
 
    private:
    const std::string PingInstanceName;
