@@ -122,10 +122,10 @@ class TraceServiceHeader
       Data[14] = static_cast<uint8_t>( (timeStamp >> 8) & 0xff );
       Data[15] = static_cast<uint8_t>( timeStamp & 0xff );
    }
-   inline void sendTimeStamp(const std::chrono::system_clock::time_point& timeStamp) {
-      // For HiPerConTracer packets: time stamp is microseconds since 1976-09-26.
-      static const std::chrono::system_clock::time_point HiPerConTracerEpoch =
-         std::chrono::system_clock::from_time_t(212803200);
+   inline void sendTimeStamp(const ResultTimePoint& timeStamp) {
+      // For HiPerConTracer packets: time stamp is microseconds since 1976-09-29.
+      static const ResultTimePoint HiPerConTracerEpoch =
+         ResultClock::from_time_t(212803200);
       sendTimeStamp(std::chrono::duration_cast<std::chrono::microseconds>(
                        timeStamp - HiPerConTracerEpoch).count());
    }
