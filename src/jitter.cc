@@ -87,7 +87,7 @@ void Jitter::processResults()
    // The vector is sorted by destination/round in comparePingResults()!
 
    // ====== Process results ================================================
-   const std::chrono::system_clock::time_point now        = std::chrono::system_clock::now();
+   const ResultTimePoint                       now        = ResultClock::now();
    std::vector<ResultEntry*>::iterator         iterator   = resultsVector.begin();
    std::vector<ResultEntry*>::const_iterator   start      = resultsVector.begin();
    bool                                        isComplete = true;

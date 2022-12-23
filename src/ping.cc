@@ -198,7 +198,7 @@ void Ping::processResults()
       makeSortedResultsVector(&comparePingResults);
 
    // ====== Process results ================================================
-   const std::chrono::system_clock::time_point now = std::chrono::system_clock::now();
+   const ResultTimePoint now = ResultClock::now();
    for(ResultEntry* resultEntry : resultsVector) {
 
       // ====== Time-out entries ============================================

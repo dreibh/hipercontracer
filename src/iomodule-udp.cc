@@ -256,7 +256,7 @@ unsigned int UDPModule::sendRequest(const DestinationInfo& destination,
          tsHeader.seqNumber(seqNumber);
          tsHeader.sendTTL(ttl);
          tsHeader.round((unsigned char)round);
-         const std::chrono::system_clock::time_point sendTime = std::chrono::system_clock::now();
+         const ResultTimePoint sendTime = ResultClock::now();
          tsHeader.sendTimeStamp(sendTime);
 
          // ====== Compute checksums ========================================

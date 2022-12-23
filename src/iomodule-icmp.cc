@@ -275,7 +275,7 @@ unsigned int ICMPModule::sendRequest(const DestinationInfo& destination,
          tsHeader.sendTTL(ttl);
          tsHeader.round((unsigned char)round);
          tsHeader.checksumTweak(0);
-         const std::chrono::system_clock::time_point sendTime = std::chrono::system_clock::now();
+         const ResultTimePoint sendTime = ResultClock::now();
          tsHeader.sendTimeStamp(sendTime);
          tsHeader.computeInternet16(icmpChecksum);
          // Update ICMP checksum:
@@ -416,14 +416,14 @@ void ICMPModule::handleResponse(const boost::system::error_code& errorCode,
                      if(socketTimestamp->ts[2].tv_sec != 0) {
                         // Hardware timestamp (raw):
                         receivedData.ReceiveHWSource = TimeSourceType::TST_TIMESTAMPING_HW;
-                        receivedData.ReceiveHWTime   = std::chrono::system_clock::time_point(
+                        receivedData.ReceiveHWTime   = ResultTimePoint(
                                                           std::chrono::seconds(socketTimestamp->ts[2].tv_sec) +
                                                           std::chrono::nanoseconds(socketTimestamp->ts[2].tv_nsec));
                      }
                      if(socketTimestamp->ts[0].tv_sec != 0) {
                         // Software timestamp (system clock):
                         receivedData.ReceiveSWSource = TimeSourceType::TST_TIMESTAMPING_SW;
-                        receivedData.ReceiveSWTime   = std::chrono::system_clock::time_point(
+                        receivedData.ReceiveSWTime   = ResultTimePoint(
                                                           std::chrono::seconds(socketTimestamp->ts[0].tv_sec) +
                                                           std::chrono::nanoseconds(socketTimestamp->ts[0].tv_nsec));
                      }
@@ -434,7 +434,7 @@ void ICMPModule::handleResponse(const boost::system::error_code& errorCode,
                   if(cmsg->cmsg_type == SO_TIMESTAMPNS) {
                      const timespec* ts = (const timespec*)CMSG_DATA(cmsg);
                      receivedData.ReceiveSWSource = TimeSourceType::TST_TIMESTAMPNS;
-                     receivedData.ReceiveSWTime   = std::chrono::system_clock::time_point(
+                     receivedData.ReceiveSWTime   = ResultTimePoint(
                                                        std::chrono::seconds(ts->tv_sec) +
                                                        std::chrono::nanoseconds(ts->tv_nsec));
                   }
@@ -442,7 +442,7 @@ void ICMPModule::handleResponse(const boost::system::error_code& errorCode,
                   else if(cmsg->cmsg_type == SO_TIMESTAMP) {
                      const timeval* tv = (const timeval*)CMSG_DATA(cmsg);
                      receivedData.ReceiveSWSource = TimeSourceType::TST_TIMESTAMP;
-                     receivedData.ReceiveSWTime   = std::chrono::system_clock::time_point(
+                     receivedData.ReceiveSWTime   = ResultTimePoint(
                                                        std::chrono::seconds(tv->tv_sec) +
                                                        std::chrono::microseconds(tv->tv_usec));
                   }
@@ -494,7 +494,7 @@ void ICMPModule::handleResponse(const boost::system::error_code& errorCode,
                if(ioctl(socketDescriptor, SIOCGSTAMPNS, &ts) == 0) {
                   // Got reception time from kernel via SIOCGSTAMPNS
                   receivedData.ReceiveSWSource = TimeSourceType::TST_SIOCGSTAMPNS;
-                  receivedData.ReceiveSWTime   = std::chrono::system_clock::time_point(
+                  receivedData.ReceiveSWTime   = ResultTimePoint(
                                                     std::chrono::seconds(ts.tv_sec) +
                                                     std::chrono::nanoseconds(ts.tv_nsec));
                }
@@ -502,7 +502,7 @@ void ICMPModule::handleResponse(const boost::system::error_code& errorCode,
                else if(ioctl(socketDescriptor, SIOCGSTAMP, &tv) == 0) {
                   // Got reception time from kernel via SIOCGSTAMP
                   receivedData.ReceiveSWSource = TimeSourceType::TST_SIOCGSTAMP;
-                  receivedData.ReceiveSWTime   = std::chrono::system_clock::time_point(
+                  receivedData.ReceiveSWTime   = ResultTimePoint(
                                                     std::chrono::seconds(tv.tv_sec) +
                                                     std::chrono::microseconds(tv.tv_usec));
                }
@@ -542,11 +542,11 @@ void ICMPModule::updateSendTimeInResultEntry(const sock_extended_err* socketErro
       if(resultsEntry->timeStampSeqID() == socketError->ee_data) {
          int                                   txTimeStampType = -1;
          int                                   txTimeSource    = -1;
-         std::chrono::system_clock::time_point txTimePoint;
+         ResultTimePoint txTimePoint;
          if(socketTimestamp->ts[2].tv_sec != 0) {
             // Hardware timestamp (raw):
             txTimeSource = TimeSourceType::TST_TIMESTAMPING_HW;
-            txTimePoint  = std::chrono::system_clock::time_point(
+            txTimePoint  = ResultTimePoint(
                               std::chrono::seconds(socketTimestamp->ts[2].tv_sec) +
                               std::chrono::nanoseconds(socketTimestamp->ts[2].tv_nsec));
             switch(socketError->ee_info) {
@@ -562,7 +562,7 @@ void ICMPModule::updateSendTimeInResultEntry(const sock_extended_err* socketErro
          if(socketTimestamp->ts[0].tv_sec != 0) {
             // Software timestamp (system time from kernel):
             txTimeSource = TimeSourceType::TST_TIMESTAMPING_SW;
-            txTimePoint  = std::chrono::system_clock::time_point(
+            txTimePoint  = ResultTimePoint(
                               std::chrono::seconds(socketTimestamp->ts[0].tv_sec) +
                               std::chrono::nanoseconds(socketTimestamp->ts[0].tv_nsec));
             switch(socketError->ee_info) {
