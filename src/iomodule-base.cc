@@ -35,6 +35,8 @@
 #include "icmpheader.h"
 
 #include <ifaddrs.h>
+#include <sys/types.h>
+#include <sys/socket.h>
 #ifdef __linux__
 #include <linux/errqueue.h>
 #include <linux/net_tstamp.h>
@@ -75,13 +77,17 @@ bool IOModuleBase::configureSocket(const int                      socketDescript
 {
    // ====== Enable RECVERR/IPV6_RECVERR option =============================
    const int on = 1;
+#if defined (IP_RECVERR) && defined (IPV6_RECVERR)
    if(setsockopt(socketDescriptor,
                  (sourceAddress.is_v6() == true) ? SOL_IPV6: SOL_IP,
                  (sourceAddress.is_v6() == true) ? IPV6_RECVERR : IP_RECVERR,
                  &on, sizeof(on)) < 0) {
-      HPCT_LOG(error) << "Unable to enable RECVERR/IPV6_RECVERR option on socket";
+      HPCT_LOG(error) << "Unable to enable IP_RECVERR/IPV6_RECVERR option on socket";
       return false;
    }
+#else
+#warning No IP_RECVERR/IPV6_RECVERR!
+#endif
 
    // ====== Try to use SO_TIMESTAMPING option ==============================
    static bool logTimestampType = true;
@@ -128,7 +134,7 @@ bool IOModuleBase::configureSocket(const int                      socketDescript
          }
 
 #if defined (SO_TS_CLOCK)
-         const int tdClockType =
+         const int tdClockType = SO_TS_REALTIME;
          if(setsockopt(socketDescriptor, SOL_SOCKET, SO_TS_CLOCK,
                        &tdClockType, sizeof(tdClockType)) < 0) {
             HPCT_LOG(error) << "Unable to set SO_TS_CLOCK option on socket: "
