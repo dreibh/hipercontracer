@@ -499,10 +499,10 @@ void Traceroute::processResults()
    for(unsigned int round = 0; round < Rounds; round++) {
 
       // ====== Count hops ==================================================
-      std::size_t totalHops          = 0;
-      std::size_t currentHop         = 0;
-      bool        completeTraceroute = true;   // all hops have responded
-      bool        destinationReached = false;  // destination has responded
+      unsigned int totalHops          = 0;
+      unsigned int currentHop         = 0;
+      bool         completeTraceroute = true;   // all hops have responded
+      bool         destinationReached = false;  // destination has responded
       std::string pathString         = SourceAddress.to_string();
       for(ResultEntry* resultEntry : resultsVector) {
          if(resultEntry->round() == round) {
@@ -565,118 +565,133 @@ void Traceroute::processResults()
             if(ResultCallback) {
                ResultCallback(this, resultEntry);
             }
-
-            if(ResultsOutput) {
-               if(timeStamp == 0) {
-                  // NOTE:
-                  // - The time stamp for this traceroute run is the first entry's send time!
-                  //   This is necessary, in order to ensure that all entries use the same
-                  //   time stamp for identification!
-                  // - Also, entries of additional rounds are using this time stamp!
-                  timeStamp = nsSinceEpoch<ResultTimePoint>(
-                     resultEntry->sendTime(TXTimeStampType::TXTST_Application));
-               }
-
-               if(writeHeader) {
-
-                  // ====== Current output format =================================
-                  if(OutputFormat >= OFT_HiPerConTracer_Version2) {
-                     ResultsOutput->insert(
-                        str(boost::format("#T%c %s %s %x %d %d %x %d %x %x %x")
-                           % (unsigned char)IOModule->getProtocolType()
-
-                           % resultEntry->sourceAddress().to_string()
-                           % resultEntry->destinationAddress().to_string()
-                           % timeStamp
-                           % round
-
-                           % totalHops
-
-                           % (unsigned int)(*DestinationIterator).trafficClass()
-                           % resultEntry->packetSize()
-                           % resultEntry->checksum()
-                           % statusFlags
-
-                           % (int64_t)pathHash
-                     ));
-                  }
-
-                  // ====== Old output format =====================================
-                  else {
-                     ResultsOutput->insert(
-                        str(boost::format("#T %s %s %x %d %x %d %x %x %x %d")
-                           % resultEntry->sourceAddress().to_string()
-                           % resultEntry->destinationAddress().to_string()
-                           % (timeStamp / 1000)
-                           % round
-                           % resultEntry->checksum()
-                           % totalHops
-                           % statusFlags
-                           % (int64_t)pathHash
-                           % (unsigned int)(*DestinationIterator).trafficClass()
-                           % resultEntry->packetSize()
-                     ));
-                  }
-
-                  writeHeader = false;
-                  checksumCheck = resultEntry->checksum();
-               }
-
-               // ====== Current output format =================================
-               if(OutputFormat >= OFT_HiPerConTracer_Version2) {
-                  unsigned int timeSourceApplication;
-                  unsigned int timeSourceQueuing;
-                  unsigned int timeSourceSoftware;
-                  unsigned int timeSourceHardware;
-                  const ResultDuration rttApplication = resultEntry->rtt(RXTimeStampType::RXTST_Application, timeSourceApplication);
-                  const ResultDuration queuingDelay   = resultEntry->queuingDelay(timeSourceQueuing);
-                  const ResultDuration rttSoftware    = resultEntry->rtt(RXTimeStampType::RXTST_ReceptionSW, timeSourceSoftware);
-                  const ResultDuration rttHardware    = resultEntry->rtt(RXTimeStampType::RXTST_ReceptionHW, timeSourceHardware);
-                  const unsigned int   timeSource     = (timeSourceApplication << 24) |
-                                                        (timeSourceQueuing     << 16) |
-                                                        (timeSourceSoftware    << 8) |
-                                                        timeSourceHardware;
-
-                  ResultsOutput->insert(
-                     str(boost::format("\t%d %d %08x %d %d %d %d %s")
-                        % resultEntry->hop()
-                        % (unsigned int)resultEntry->status()
-
-                        % timeSource
-                        % std::chrono::duration_cast<std::chrono::nanoseconds>(rttApplication).count()
-                        % std::chrono::duration_cast<std::chrono::nanoseconds>(queuingDelay).count()
-                        % std::chrono::duration_cast<std::chrono::nanoseconds>(rttSoftware).count()
-                        % std::chrono::duration_cast<std::chrono::nanoseconds>(rttHardware).count()
-
-                        % resultEntry->destinationAddress().to_string()
-                  ));
-
-               }
-
-               // ====== Old output format =====================================
-               else {
-                  unsigned int timeSource;
-                  const ResultDuration rtt = resultEntry->obtainMostAccurateRTT(RXTimeStampType::RXTST_ReceptionSW,
-                                                                                timeSource);
-
-                  ResultsOutput->insert(
-                     str(boost::format("\t%d %x %d %s %02x")   /* status is hex here! */
-                        % resultEntry->hop()
-                        % (unsigned int)resultEntry->status()
-                        % std::chrono::duration_cast<std::chrono::microseconds>(rtt).count()
-                        % resultEntry->destinationAddress().to_string()
-                        % timeSource
-                  ));
-               }
-
-               assert(resultEntry->checksum() == checksumCheck);
-            }
+            writeTracerouteResultEntry(resultEntry, timeStamp, writeHeader,
+                                       totalHops, statusFlags, pathHash,
+                                       checksumCheck);
 
             if( (resultEntry->status() == Success) ||
                 (statusIsUnreachable(resultEntry->status())) ) {
+               // Done!
                break;
             }
          }
       }
+   }
+}
+
+
+// ###### Write Traceroute result entry to output file ######################
+void Traceroute::writeTracerouteResultEntry(const ResultEntry* resultEntry,
+                                            uint64_t&          timeStamp,
+                                            bool&              writeHeader,
+                                            const unsigned int totalHops,
+                                            const unsigned int statusFlags,
+                                            const uint64_t     pathHash,
+                                            uint16_t&          checksumCheck)
+{
+   if(ResultsOutput) {
+      if(timeStamp == 0) {
+         // NOTE:
+         // - The time stamp for this traceroute run is the first entry's send time!
+         //   This is necessary, in order to ensure that all entries use the same
+         //   time stamp for identification!
+         // - Also, entries of additional rounds are using this time stamp!
+         timeStamp = nsSinceEpoch<ResultTimePoint>(
+            resultEntry->sendTime(TXTimeStampType::TXTST_Application));
+      }
+
+      if(writeHeader) {
+
+         // ====== Current output format =================================
+         if(OutputFormat >= OFT_HiPerConTracer_Version2) {
+            ResultsOutput->insert(
+               str(boost::format("#T%c %s %s %x %d %d %x %d %x %x %x")
+                  % (unsigned char)IOModule->getProtocolType()
+
+                  % resultEntry->sourceAddress().to_string()
+                  % resultEntry->destinationAddress().to_string()
+                  % timeStamp
+                  % resultEntry->round()
+
+                  % totalHops
+
+                  % (unsigned int)(*DestinationIterator).trafficClass()
+                  % resultEntry->packetSize()
+                  % resultEntry->checksum()
+                  % statusFlags
+
+                  % (int64_t)pathHash
+            ));
+         }
+
+         // ====== Old output format =====================================
+         else {
+            ResultsOutput->insert(
+               str(boost::format("#T %s %s %x %d %x %d %x %x %x %d")
+                  % resultEntry->sourceAddress().to_string()
+                  % resultEntry->destinationAddress().to_string()
+                  % (timeStamp / 1000)
+                  % resultEntry->round()
+                  % resultEntry->checksum()
+                  % totalHops
+                  % statusFlags
+                  % (int64_t)pathHash
+                  % (unsigned int)(*DestinationIterator).trafficClass()
+                  % resultEntry->packetSize()
+            ));
+         }
+
+         writeHeader = false;
+         checksumCheck = resultEntry->checksum();
+      }
+
+      // ====== Current output format =================================
+      if(OutputFormat >= OFT_HiPerConTracer_Version2) {
+         unsigned int timeSourceApplication;
+         unsigned int timeSourceQueuing;
+         unsigned int timeSourceSoftware;
+         unsigned int timeSourceHardware;
+         const ResultDuration rttApplication = resultEntry->rtt(RXTimeStampType::RXTST_Application, timeSourceApplication);
+         const ResultDuration queuingDelay   = resultEntry->queuingDelay(timeSourceQueuing);
+         const ResultDuration rttSoftware    = resultEntry->rtt(RXTimeStampType::RXTST_ReceptionSW, timeSourceSoftware);
+         const ResultDuration rttHardware    = resultEntry->rtt(RXTimeStampType::RXTST_ReceptionHW, timeSourceHardware);
+         const unsigned int   timeSource     = (timeSourceApplication << 24) |
+                                               (timeSourceQueuing     << 16) |
+                                               (timeSourceSoftware    << 8) |
+                                               timeSourceHardware;
+
+         ResultsOutput->insert(
+            str(boost::format("\t%d %d %08x %d %d %d %d %s")
+               % resultEntry->hop()
+               % (unsigned int)resultEntry->status()
+
+               % timeSource
+               % std::chrono::duration_cast<std::chrono::nanoseconds>(rttApplication).count()
+               % std::chrono::duration_cast<std::chrono::nanoseconds>(queuingDelay).count()
+               % std::chrono::duration_cast<std::chrono::nanoseconds>(rttSoftware).count()
+               % std::chrono::duration_cast<std::chrono::nanoseconds>(rttHardware).count()
+
+               % resultEntry->destinationAddress().to_string()
+         ));
+
+      }
+
+      // ====== Old output format =====================================
+      else {
+         unsigned int timeSource;
+         const ResultDuration rtt = resultEntry->obtainMostAccurateRTT(RXTimeStampType::RXTST_ReceptionSW,
+                                                                       timeSource);
+
+         ResultsOutput->insert(
+            str(boost::format("\t%d %x %d %s %02x")   /* status is hex here! */
+               % resultEntry->hop()
+               % (unsigned int)resultEntry->status()
+               % std::chrono::duration_cast<std::chrono::microseconds>(rtt).count()
+               % resultEntry->destinationAddress().to_string()
+               % timeSource
+         ));
+      }
+
+      assert(resultEntry->checksum() == checksumCheck);
    }
 }

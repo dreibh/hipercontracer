@@ -76,127 +76,6 @@ const std::string& Jitter::getName() const
 }
 
 
-// ###### Compute jitter, according to RFC 3550 #############################
-void Jitter::computeJitter(const std::vector<ResultEntry*>::const_iterator& start,
-                           const std::vector<ResultEntry*>::const_iterator& end)
-{
-   const ResultEntry* referenceEntry = nullptr;
-   JitterRFC3550      jitterApplication;
-   JitterRFC3550      jitterQueuing;
-   JitterRFC3550      jitterSoftware;
-   JitterRFC3550      jitterHardware;
-   unsigned int       timeSourceApplication;
-   unsigned int       timeSourceQueuing;
-   unsigned int       timeSourceSoftware;
-   unsigned int       timeSourceHardware;
-   unsigned int       timeSource;
-   ResultTimePoint    sendTime;
-   ResultTimePoint    receiveTime;
-
-   for(std::vector<ResultEntry*>::const_iterator iterator = start; iterator != end; iterator++) {
-      const ResultEntry* resultEntry = *iterator;
-
-      HPCT_LOG(trace) << getName() << ": " << *resultEntry;
-      if(ResultCallback) {
-         ResultCallback(this, resultEntry);
-      }
-
-      // ====== Compute jitter ==============================================
-      if(resultEntry->status() == Success) {
-         if(resultEntry->obtainSendReceiveTime(RXTimeStampType::RXTST_Application, timeSourceApplication, sendTime, receiveTime)) {
-            jitterApplication.process(timeSourceApplication,
-                                      nsSinceEpoch<ResultTimePoint>(sendTime),
-                                      nsSinceEpoch<ResultTimePoint>(receiveTime));
-         }
-         if(resultEntry->obtainSchedulingSendTime(timeSourceQueuing, sendTime, receiveTime)) {
-            // NOTE: For queuing: sendTime = schedulingTime ; receiveTime = actual send time!
-            jitterQueuing.process(timeSourceQueuing,
-                                  nsSinceEpoch<ResultTimePoint>(sendTime),
-                                  nsSinceEpoch<ResultTimePoint>(receiveTime));
-         }
-         if(resultEntry->obtainSendReceiveTime(RXTimeStampType::RXTST_ReceptionSW, timeSourceSoftware, sendTime, receiveTime)) {
-            jitterSoftware.process(timeSourceSoftware,
-                                   nsSinceEpoch<ResultTimePoint>(sendTime),
-                                   nsSinceEpoch<ResultTimePoint>(receiveTime));
-         }
-         if(resultEntry->obtainSendReceiveTime(RXTimeStampType::RXTST_ReceptionHW, timeSourceHardware, sendTime, receiveTime)) {
-            jitterHardware.process(timeSourceHardware,
-                                   nsSinceEpoch<ResultTimePoint>(sendTime),
-                                   nsSinceEpoch<ResultTimePoint>(receiveTime));
-         }
-      }
-
-      // ====== Set pointer to reference entry ==============================
-      // The reference entry points to basic configuration values. It is the
-      // first successful entry (if one is successufl), or otherwise the first
-      // failed entry.
-      if( (referenceEntry == nullptr) ||
-          (referenceEntry->status() != Success) ) {
-         referenceEntry = resultEntry;
-         if(referenceEntry->status() != Success) {
-            timeSource = (timeSourceApplication << 24) |
-                         (timeSourceQueuing     << 16) |
-                         (timeSourceSoftware    << 8)  |
-                         timeSourceHardware;
-         }
-         else {
-            timeSource = 0x00000000;
-         }
-      }
-   }
-
-   if(referenceEntry) {
-      if(ResultsOutput) {
-         const unsigned long long sendTimeStamp = nsSinceEpoch<ResultTimePoint>(
-            referenceEntry->sendTime(TXTimeStampType::TXTST_Application));
-
-         ResultsOutput->insert(
-            str(boost::format("#J%c %s %s %x %d %x %d %x %d %08x  %d %d %d  %d %d %d  %d %d %d  %d %d %d")
-               % (unsigned char)IOModule->getProtocolType()
-
-               % referenceEntry->sourceAddress().to_string()
-               % referenceEntry->destinationAddress().to_string()
-               % sendTimeStamp
-               % referenceEntry->round()
-
-               % (unsigned int)referenceEntry->destination().trafficClass()
-               % referenceEntry->packetSize()
-               % referenceEntry->checksum()
-               % referenceEntry->status()
-
-               % timeSource
-
-               % jitterApplication.packets()
-               % jitterApplication.jitter()
-               % jitterApplication.meanLatency()
-
-               % jitterQueuing.packets()
-               % jitterQueuing.jitter()
-               % jitterQueuing.meanLatency()
-
-               % jitterSoftware.packets()
-               % jitterSoftware.jitter()
-               % jitterSoftware.meanLatency()
-
-               % jitterHardware.packets()
-               % jitterHardware.jitter()
-               % jitterHardware.meanLatency()
-            ));
-      }
-   }
-
-   // ====== Remove completed entries =======================================
-   for(std::vector<ResultEntry*>::const_iterator iterator = start; iterator != end; iterator++) {
-      const ResultEntry* resultEntry = *iterator;
-      assert(ResultsMap.erase(resultEntry->seqNumber()) == 1);
-      delete resultEntry;
-      if(OutstandingRequests > 0) {
-         OutstandingRequests--;
-      }
-   }
-}
-
-
 // ###### Process results ###################################################
 void Jitter::processResults()
 {
@@ -246,5 +125,138 @@ void Jitter::processResults()
          Destinations.erase(DestinationIterator);
          DestinationIterator = Destinations.begin();
       }
+   }
+}
+
+
+// ###### Compute jitter, according to RFC 3550 #############################
+void Jitter::computeJitter(const std::vector<ResultEntry*>::const_iterator& start,
+                           const std::vector<ResultEntry*>::const_iterator& end)
+{
+   const ResultEntry* referenceEntry = nullptr;
+   JitterRFC3550      jitterApplication;
+   JitterRFC3550      jitterQueuing;
+   JitterRFC3550      jitterSoftware;
+   JitterRFC3550      jitterHardware;
+   unsigned int       timeSourceApplication;
+   unsigned int       timeSourceQueuing;
+   unsigned int       timeSourceSoftware;
+   unsigned int       timeSourceHardware;
+   unsigned int       timeSource = 0x00000000;
+   ResultTimePoint    sendTime;
+   ResultTimePoint    receiveTime;
+
+   for(std::vector<ResultEntry*>::const_iterator iterator = start; iterator != end; iterator++) {
+      const ResultEntry* resultEntry = *iterator;
+
+      HPCT_LOG(trace) << getName() << ": " << *resultEntry;
+      if(ResultCallback) {
+         ResultCallback(this, resultEntry);
+      }
+
+      // ====== Compute jitter ==============================================
+      if(resultEntry->status() == Success) {
+         if(resultEntry->obtainSendReceiveTime(RXTimeStampType::RXTST_Application, timeSourceApplication, sendTime, receiveTime)) {
+            jitterApplication.process(timeSourceApplication,
+                                      nsSinceEpoch<ResultTimePoint>(sendTime),
+                                      nsSinceEpoch<ResultTimePoint>(receiveTime));
+         }
+         if(resultEntry->obtainSchedulingSendTime(timeSourceQueuing, sendTime, receiveTime)) {
+            // NOTE: For queuing: sendTime = schedulingTime ; receiveTime = actual send time!
+            jitterQueuing.process(timeSourceQueuing,
+                                  nsSinceEpoch<ResultTimePoint>(sendTime),
+                                  nsSinceEpoch<ResultTimePoint>(receiveTime));
+         }
+         if(resultEntry->obtainSendReceiveTime(RXTimeStampType::RXTST_ReceptionSW, timeSourceSoftware, sendTime, receiveTime)) {
+            jitterSoftware.process(timeSourceSoftware,
+                                   nsSinceEpoch<ResultTimePoint>(sendTime),
+                                   nsSinceEpoch<ResultTimePoint>(receiveTime));
+         }
+         if(resultEntry->obtainSendReceiveTime(RXTimeStampType::RXTST_ReceptionHW, timeSourceHardware, sendTime, receiveTime)) {
+            jitterHardware.process(timeSourceHardware,
+                                   nsSinceEpoch<ResultTimePoint>(sendTime),
+                                   nsSinceEpoch<ResultTimePoint>(receiveTime));
+         }
+      }
+
+      // ====== Set pointer to reference entry ==============================
+      // The reference entry points to basic configuration values. It is the
+      // first successful entry (if one is successufl), or otherwise the first
+      // failed entry.
+      if( (referenceEntry == nullptr) ||
+          (referenceEntry->status() == Success) ) {
+         referenceEntry = resultEntry;
+         if(referenceEntry->status() == Success) {
+            timeSource = (timeSourceApplication << 24) |
+                         (timeSourceQueuing     << 16) |
+                         (timeSourceSoftware    << 8)  |
+                         timeSourceHardware;
+         }
+      }
+   }
+
+   if(referenceEntry) {
+      writeJitterResultEntry(referenceEntry,    timeSource,
+                             jitterApplication, jitterQueuing,
+                             jitterSoftware,    jitterHardware);
+   }
+
+   // ====== Remove completed entries =======================================
+   for(std::vector<ResultEntry*>::const_iterator iterator = start; iterator != end; iterator++) {
+      const ResultEntry* resultEntry = *iterator;
+      assert(ResultsMap.erase(resultEntry->seqNumber()) == 1);
+      delete resultEntry;
+      if(OutstandingRequests > 0) {
+         OutstandingRequests--;
+      }
+   }
+}
+
+
+// ###### Write Jitter result entry to output file ############################
+void Jitter::writeJitterResultEntry(const ResultEntry*   referenceEntry,
+                                    const unsigned int   timeSource,
+                                    const JitterRFC3550& jitterApplication,
+                                    const JitterRFC3550& jitterQueuing,
+                                    const JitterRFC3550& jitterSoftware,
+                                    const JitterRFC3550& jitterHardware)
+{
+   if(ResultsOutput) {
+      const unsigned long long sendTimeStamp = nsSinceEpoch<ResultTimePoint>(
+         referenceEntry->sendTime(TXTimeStampType::TXTST_Application));
+
+
+      ResultsOutput->insert(
+         str(boost::format("#J%c %s %s %x %d %x %d %x %d %08x %d %d %d %d %d %d %d %d %d %d %d %d")
+            % (unsigned char)IOModule->getProtocolType()
+
+            % referenceEntry->sourceAddress().to_string()
+            % referenceEntry->destinationAddress().to_string()
+            % sendTimeStamp
+            % referenceEntry->round()
+
+            % (unsigned int)referenceEntry->destination().trafficClass()
+            % referenceEntry->packetSize()
+            % referenceEntry->checksum()
+            % referenceEntry->status()
+
+            % timeSource
+
+            % jitterApplication.packets()
+            % jitterApplication.jitter()
+            % jitterApplication.meanLatency()
+
+            % jitterQueuing.packets()
+            % jitterQueuing.jitter()
+            % jitterQueuing.meanLatency()
+
+            % jitterSoftware.packets()
+            % jitterSoftware.jitter()
+            % jitterSoftware.meanLatency()
+
+            % jitterHardware.packets()
+            % jitterHardware.jitter()
+            % jitterHardware.meanLatency()
+         ));
    }
 }

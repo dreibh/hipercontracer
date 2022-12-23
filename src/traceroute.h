@@ -118,6 +118,15 @@ class Traceroute : public Service
       return resultsVector;
    }
 
+   static int compareTracerouteResults(const ResultEntry* a, const ResultEntry* b);
+   void writeTracerouteResultEntry(const ResultEntry* resultEntry,
+                                   uint64_t&          timeStamp,
+                                   bool&              writeHeader,
+                                   const unsigned int totalHops,
+                                   const unsigned int statusFlags,
+                                   const uint64_t     pathHash,
+                                   uint16_t&          checksumCheck);
+
    const std::string                       TracerouteInstanceName;
    ResultsWriter*                          ResultsOutput;
    const OutputFormatType                  OutputFormat;
@@ -152,7 +161,6 @@ class Traceroute : public Service
    uint32_t*                               TargetChecksumArray;
 
    private:
-   static int compareTracerouteResults(const ResultEntry* a, const ResultEntry* b);
 };
 
 #endif

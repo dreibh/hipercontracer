@@ -213,72 +213,7 @@ void Ping::processResults()
          if(ResultCallback) {
             ResultCallback(this, resultEntry);
          }
-
-         if(ResultsOutput) {
-
-            // ====== Current output format =================================
-            if(OutputFormat >= OFT_HiPerConTracer_Version2) {
-               const unsigned long long sendTimeStamp = nsSinceEpoch<ResultTimePoint>(
-                  resultEntry->sendTime(TXTimeStampType::TXTST_Application));
-
-               unsigned int timeSourceApplication;
-               unsigned int timeSourceQueuing;
-               unsigned int timeSourceSoftware;
-               unsigned int timeSourceHardware;
-               const ResultDuration rttApplication = resultEntry->rtt(RXTimeStampType::RXTST_Application, timeSourceApplication);
-               const ResultDuration queuingDelay   = resultEntry->queuingDelay(timeSourceQueuing);
-               const ResultDuration rttSoftware    = resultEntry->rtt(RXTimeStampType::RXTST_ReceptionSW, timeSourceSoftware);
-               const ResultDuration rttHardware    = resultEntry->rtt(RXTimeStampType::RXTST_ReceptionHW, timeSourceHardware);
-               const unsigned int   timeSource     = (timeSourceApplication << 24) |
-                                                     (timeSourceQueuing     << 16) |
-                                                     (timeSourceSoftware    << 8) |
-                                                     timeSourceHardware;
-
-               ResultsOutput->insert(
-                  str(boost::format("#P%c %s %s %x %d %x %d %x %d %08x %d %d %d %d")
-                     % (unsigned char)IOModule->getProtocolType()
-
-                     % resultEntry->sourceAddress().to_string()
-                     % resultEntry->destinationAddress().to_string()
-                     % sendTimeStamp
-                     % resultEntry->round()
-
-                     % (unsigned int)resultEntry->destination().trafficClass()
-                     % resultEntry->packetSize()
-                     % resultEntry->checksum()
-                     % resultEntry->status()
-
-                     % timeSource
-                     % std::chrono::duration_cast<std::chrono::nanoseconds>(rttApplication).count()
-                     % std::chrono::duration_cast<std::chrono::nanoseconds>(queuingDelay).count()
-                     % std::chrono::duration_cast<std::chrono::nanoseconds>(rttSoftware).count()
-                     % std::chrono::duration_cast<std::chrono::nanoseconds>(rttHardware).count()
-               ));
-            }
-
-            // ====== Old output format =====================================
-            else {
-               unsigned int timeSource;
-               const ResultDuration rtt = resultEntry->obtainMostAccurateRTT(RXTimeStampType::RXTST_ReceptionSW,
-                                                                             timeSource);
-               const unsigned long long sendTimeStamp = usSinceEpoch<ResultTimePoint>(
-                  resultEntry->sendTime(TXTimeStampType::TXTST_Application));
-
-               ResultsOutput->insert(
-                  str(boost::format("#P %s %s %x %x %d %d %x %d %02x")
-                     % resultEntry->sourceAddress().to_string()
-                     % resultEntry->destinationAddress().to_string()
-                     % sendTimeStamp
-                     % resultEntry->checksum()
-                     % resultEntry->status()
-                     % std::chrono::duration_cast<std::chrono::microseconds>(rtt).count()
-                     % (unsigned int)resultEntry->destination().trafficClass()
-                     % resultEntry->packetSize()
-                     % timeSource
-               ));
-            }
-
-         }
+         writePingResultEntry(resultEntry);
       }
 
       // ====== Remove completed entries ====================================
@@ -299,5 +234,76 @@ void Ping::processResults()
          Destinations.erase(DestinationIterator);
          DestinationIterator = Destinations.begin();
       }
+   }
+}
+
+
+// ###### Write Ping result entry to output file ############################
+void Ping::writePingResultEntry(const ResultEntry* resultEntry)
+{
+   if(ResultsOutput) {
+
+      // ====== Current output format =======================================
+      if(OutputFormat >= OFT_HiPerConTracer_Version2) {
+         const unsigned long long sendTimeStamp = nsSinceEpoch<ResultTimePoint>(
+            resultEntry->sendTime(TXTimeStampType::TXTST_Application));
+
+         unsigned int timeSourceApplication;
+         unsigned int timeSourceQueuing;
+         unsigned int timeSourceSoftware;
+         unsigned int timeSourceHardware;
+         const ResultDuration rttApplication = resultEntry->rtt(RXTimeStampType::RXTST_Application, timeSourceApplication);
+         const ResultDuration queuingDelay   = resultEntry->queuingDelay(timeSourceQueuing);
+         const ResultDuration rttSoftware    = resultEntry->rtt(RXTimeStampType::RXTST_ReceptionSW, timeSourceSoftware);
+         const ResultDuration rttHardware    = resultEntry->rtt(RXTimeStampType::RXTST_ReceptionHW, timeSourceHardware);
+         const unsigned int   timeSource     = (timeSourceApplication << 24) |
+                                               (timeSourceQueuing     << 16) |
+                                               (timeSourceSoftware    << 8) |
+                                               timeSourceHardware;
+
+         ResultsOutput->insert(
+            str(boost::format("#P%c %s %s %x %d %x %d %x %d %08x %d %d %d %d")
+               % (unsigned char)IOModule->getProtocolType()
+
+               % resultEntry->sourceAddress().to_string()
+               % resultEntry->destinationAddress().to_string()
+               % sendTimeStamp
+               % resultEntry->round()
+
+               % (unsigned int)resultEntry->destination().trafficClass()
+               % resultEntry->packetSize()
+               % resultEntry->checksum()
+               % resultEntry->status()
+
+               % timeSource
+               % std::chrono::duration_cast<std::chrono::nanoseconds>(rttApplication).count()
+               % std::chrono::duration_cast<std::chrono::nanoseconds>(queuingDelay).count()
+               % std::chrono::duration_cast<std::chrono::nanoseconds>(rttSoftware).count()
+               % std::chrono::duration_cast<std::chrono::nanoseconds>(rttHardware).count()
+         ));
+      }
+
+      // ====== Old output format ===========================================
+      else {
+         unsigned int timeSource;
+         const ResultDuration rtt = resultEntry->obtainMostAccurateRTT(RXTimeStampType::RXTST_ReceptionSW,
+                                                                       timeSource);
+         const unsigned long long sendTimeStamp = usSinceEpoch<ResultTimePoint>(
+            resultEntry->sendTime(TXTimeStampType::TXTST_Application));
+
+         ResultsOutput->insert(
+            str(boost::format("#P %s %s %x %x %d %d %x %d %02x")
+               % resultEntry->sourceAddress().to_string()
+               % resultEntry->destinationAddress().to_string()
+               % sendTimeStamp
+               % resultEntry->checksum()
+               % resultEntry->status()
+               % std::chrono::duration_cast<std::chrono::microseconds>(rtt).count()
+               % (unsigned int)resultEntry->destination().trafficClass()
+               % resultEntry->packetSize()
+               % timeSource
+         ));
+      }
+
    }
 }

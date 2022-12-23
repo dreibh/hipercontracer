@@ -35,6 +35,8 @@
 #include "ping.h"
 
 
+class JitterRFC3550;
+
 class Jitter : public Ping
 {
    public:
@@ -56,9 +58,16 @@ class Jitter : public Ping
    virtual const std::string& getName() const;
 
    protected:
+   virtual void processResults();
+
    void computeJitter(const std::vector<ResultEntry*>::const_iterator& start,
                       const std::vector<ResultEntry*>::const_iterator& end);
-   virtual void processResults();
+   void writeJitterResultEntry(const ResultEntry* referenceEntry,
+                               const unsigned int timeSource,
+                               const JitterRFC3550& jitterApplication,
+                               const JitterRFC3550& jitterQueuing,
+                               const JitterRFC3550& jitterSoftware,
+                               const JitterRFC3550& jitterHardware);
 
    private:
    const std::string JitterInstanceName;
