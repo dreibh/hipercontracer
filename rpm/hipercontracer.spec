@@ -1,11 +1,11 @@
 Name: hipercontracer
-Version: 1.6.6
+Version: 1.6.7~rc0
 Release: 1
 Summary: High-Performance Connectivity Tracer (HiPerConTracer)
 Group: Applications/Internet
 License: GPL-3+
-URL: https://www.uni-due.de/~be0001/hipercontracer/
-Source: https://www.uni-due.de/~be0001/hipercontracer/download/%{name}-%{version}.tar.xz
+URL: https://www.nntb.no/~dreibh/hipercontracer/
+Source: https://www.nntb.no/~dreibh/hipercontracer/download/%{name}-%{version}.tar.xz
 
 AutoReqProv: on
 BuildRequires: cmake
