@@ -1,9 +1,9 @@
-hipercontracer (1.6.7~rc0-1ubuntu1) jammy; urgency=medium
+hipercontracer (1.6.7-1ubuntu1) jammy; urgency=medium
 
   * New upstream release.
   * debian/control: Updated standards version to 4.6.2.
 
- -- Thomas Dreibholz <thomas.dreibholz@gmail.com>  Fri, 06 Jan 2023 21:27:28 +1100
+ -- Thomas Dreibholz <thomas.dreibholz@gmail.com>  Sun, 22 Jan 2023 22:44:08 +1100
 
 hipercontracer (1.6.6-1ubuntu1) jammy; urgency=medium
 
