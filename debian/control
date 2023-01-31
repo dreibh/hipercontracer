@@ -1,8 +1,8 @@
 Source: hipercontracer
 Section: net
 Priority: optional
-Maintainer: Thomas Dreibholz <dreibh@iem.uni-due.de>
-Homepage: https://www.uni-due.de/~be0001/hipercontracer/
+Maintainer: Thomas Dreibholz <thomas.dreibholz@gmail.com>
+Homepage: https://www.nntb.no/~dreibh/hipercontracer/
 Build-Depends: cmake (>= 3.10),
                debhelper (>= 12),
                dh-python,
@@ -22,7 +22,7 @@ Build-Depends: cmake (>= 3.10),
                pkg-config,
                python3,
                zlib1g-dev
-Standards-Version: 4.6.1
+Standards-Version: 4.6.2
 Rules-Requires-Root: no
 
 Package: libhipercontracer1

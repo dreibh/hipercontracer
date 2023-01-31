@@ -7,11 +7,11 @@ Description:    High-Performance Connectivity Tracer (HiPerConTracer) is a
                 traceroute runs among sites and can export the results into
                 an SQL or Non-SQL database.
 Keywords:       Ping, Traceroute, Connectivity, Measurements
-Author:         dreibh@iem.uni-due.de (Thomas Dreibholz)
-Maintained-by:  dreibh@iem.uni-due.de (Thomas Dreibholz)
-Primary-site:   https://www.uni-due.de/~be0001/hipercontracer
+Author:         thomas.dreibholz@gmail.com (Thomas Dreibholz)
+Maintained-by:  thomas.dreibholz@gmail.com (Thomas Dreibholz)
+Primary-site:   https://www.nntb.no/~dreibh/hipercontracer
                 175 kB download/hipercontracer-1.6.5.tar.xz
-Original-site:  https://www.uni-due.de/~be0001/hipercontracer
+Original-site:  https://www.nntb.no/~dreibh/hipercontracer
 Platforms:      Linux
 Copying-policy: GPL-3+
 End
