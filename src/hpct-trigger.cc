@@ -226,7 +226,7 @@ int main(int argc, char** argv)
    // ====== Initialize =====================================================
    unsigned int             identifier;
    unsigned int             logLevel;
-   std::string              user((getlogin() != nullptr) ? getlogin() : "");
+   std::string              user((getlogin() != nullptr) ? getlogin() : "0");
    std::string              configurationFileName;
    OutputFormatType         outputFormat = OutputFormatType::OFT_HiPerConTracer_Version2;
    bool                     servicePing;

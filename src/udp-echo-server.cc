@@ -88,7 +88,7 @@ int main(int argc, char *argv[])
 {
    // ====== Initialize =====================================================
    unsigned int             logLevel;
-   std::string              user((getlogin() != nullptr) ? getlogin() : "");
+   std::string              user((getlogin() != nullptr) ? getlogin() : "0");
    std::string              localAddressString;
    boost::asio::ip::address localAddress;
    uint16_t                 localPort;
