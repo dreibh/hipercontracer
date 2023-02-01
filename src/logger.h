@@ -42,7 +42,11 @@ BOOST_LOG_GLOBAL_LOGGER(MyLogger, boost::log::sources::severity_logger_mt<boost:
 #define HPCT_LOG(_severity_) BOOST_LOG_SEV(MyLogger::get(), boost::log::trivial::_severity_)
 
 
-void initialiseLogger(const unsigned int logLevel = 0);
+void initialiseLogger(const unsigned int logLevel = 0,
+                      const bool         logColor = true,
+                      const char*        logFile  = nullptr
+                      // const char*        logTarget = "hipercontracer-%Y%m%dT%H:%M:%S.log"
+                     );
 
 
 #endif

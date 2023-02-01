@@ -31,6 +31,8 @@
 .Op \-T|--traceroute
 .Op \-J|--jitter
 .Op \-L|--loglevel level
+.Op \-x|--logcolor on|off
+.Op \-O|--logfile file
 .Op \-q|--quiet
 .Op \-v|--verbose
 .Op \-U|--user user|uid
@@ -84,6 +86,10 @@ Sets the minimum logging level to the provided value: 0=trace, 1=debug, 2=info, 
 Sets the minimum logging level to 3 (warning).
 .It \-v|\--verbose
 Sets the minimum logging level to 0 (trace).
+.Op \-x|--logcolor on|off
+Enables (on) or disables (off) the usage of ANSI color escape sequences to colorise the log output according to their log level.
+.Op \-O|--logfile file
+Sets a file name for appending the log output to. If a file is set, no log output is made to the console. Otherwise, all log output will be written to the console.
 .It \-U|\--user user|uid
 After startup, HiPerConTracer uses UID and GID of the given user (by name or GID).
 The output directory's ownership as well as the ownership of the created results
