@@ -149,7 +149,7 @@ int main(int argc, char** argv)
       ( "logfile,O",
            boost::program_options::value<std::filesystem::path>(&logFile)->default_value(std::filesystem::path()),
            "Log file" )
-      ( "logcolor,x",
+      ( "logcolor,Z",
            boost::program_options::value<bool>(&logColor)->default_value(true),
            "Use ANSI color escape sequences for log output" )
       ( "verbose,v",

@@ -29,6 +29,8 @@
 .Nm hpct-importer
 database_configuration
 .Op \-L|--loglevel level
+.Op \-Z|--logcolor on|off
+.Op \-O|--logfile file
 .Op \-q|--quiet
 .Op \-v|--verbose
 .Op \-C|--config DATABASE_CONFIGURATION_FILE
@@ -70,6 +72,10 @@ Sets the minimum logging level to the provided value: 0=trace, 1=debug, 2=info, 
 Sets the minimum logging level to 3 (warning).
 .It \-v|\--verbose
 Sets the minimum logging level to 0 (trace).
+.It \-Z|--logcolor on|off
+Enables (on) or disables (off) the usage of ANSI color escape sequences to colorise the log output according to its level.
+.It \-O|--logfile file
+Sets a file name for appending the log output to. If a file is set, no log output is made to the console. Otherwise, all log output will be written to the console.
 .It \-C|--config DATABASE_CONFIGURATION_FILE
 Specifies the database configuration file. See
 /usr/share/doc/hipercontracer/examples/hipercontracer-database.conf

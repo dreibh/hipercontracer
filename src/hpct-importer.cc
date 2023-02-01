@@ -50,6 +50,8 @@ int main(int argc, char** argv)
 {
    // ====== Initialize =====================================================
    unsigned int          logLevel;
+   bool                  logColor;
+   std::filesystem::path logFile;
    std::filesystem::path databaseConfigurationFile;
    std::string           importModeName;
    unsigned int          importMaxDepth;
@@ -71,6 +73,12 @@ int main(int argc, char** argv)
       ( "loglevel,L",
            boost::program_options::value<unsigned int>(&logLevel)->default_value(boost::log::trivial::severity_level::info),
            "Set logging level" )
+      ( "logfile,O",
+           boost::program_options::value<std::filesystem::path>(&logFile)->default_value(std::filesystem::path()),
+           "Log file" )
+      ( "logcolor,Z",
+           boost::program_options::value<bool>(&logColor)->default_value(true),
+           "Use ANSI color escape sequences for log output" )
       ( "verbose,v",
            boost::program_options::value<unsigned int>(&logLevel)->implicit_value(boost::log::trivial::severity_level::trace),
            "Verbose logging level" )
@@ -171,7 +179,8 @@ int main(int argc, char** argv)
 
 
    // ====== Initialise importer ============================================
-   initialiseLogger(logLevel);
+   initialiseLogger(logLevel, logColor,
+                    (logFile != std::filesystem::path()) ? logFile.string().c_str() : nullptr);
 
    boost::asio::io_service ioService;
    UniversalImporter importer(ioService, databaseConfiguration);
