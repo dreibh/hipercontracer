@@ -273,7 +273,7 @@ std::ostream& operator<<(std::ostream& os, const DatabaseConfiguration& configur
          os << "DeleteImportedFiles";
        break;
       default:
-         assert(false);
+         abort();
        break;
    }
    os << "\n"

@@ -89,7 +89,7 @@ class Statement : public std::stringstream
          }
       }
       else {
-         assert(false);
+         abort();
       }
    }
 
@@ -104,7 +104,7 @@ class Statement : public std::stringstream
          *this << "}";
       }
       else {
-         assert(false);
+         abort();
       }
    }
 
@@ -117,7 +117,7 @@ class Statement : public std::stringstream
          return ", ";
       }
       else {
-         assert(false);
+         abort();
       }
    }
 
@@ -131,7 +131,7 @@ class Statement : public std::stringstream
          ss << std::quoted(string, '"', '\\');
       }
       else {
-         assert(false);
+         abort();
       }
       return ss.str();
    }
@@ -145,7 +145,7 @@ class Statement : public std::stringstream
             return "null";
          }
          else {
-            assert(false);
+            abort();
          }
       }
       return quote(string);

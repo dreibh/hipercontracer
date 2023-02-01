@@ -79,7 +79,7 @@ std::string Statement::encodeAddress(const boost::asio::ip::address& address) co
       ss << "{\"$type\":\"0\",\"$binary\":\"" << std::string(encoded, length) << "\"}";
    }
    else {
-      assert(false);
+      abort();
    }
 
    return ss.str();
