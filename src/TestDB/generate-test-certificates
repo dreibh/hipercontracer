@@ -348,8 +348,7 @@ subjectAltName         = ${ENV::SAN}
 
       # ====== Generate initial CRL =========================================
       GlobalCRLSet.add(self.CRLFileName)
-      if not os.path.isfile(self.CRLFileName):
-         self.generateCRL()
+      self.generateCRL()
 
 
       # ====== Verify certificate ===========================================
