@@ -52,7 +52,13 @@ while [ $# -gt 0 ] ; do
       CORES=1   # The analyzer takes a *huge* amount of memory!
    elif [[ "$1" =~ ^(-|--)debug$ ]] ; then
       # Enable debugging build:
-      CMAKE_OPTIONS="$CMAKE_OPTIONS -DCMAKE_BUILD_TYPE=DEBUG"
+      CMAKE_OPTIONS="$CMAKE_OPTIONS -DCMAKE_BUILD_TYPE=Debug"
+   elif [[ "$1" =~ ^(-|--)release$ ]] ; then
+      # Enable debugging build:
+      CMAKE_OPTIONS="$CMAKE_OPTIONS -DCMAKE_BUILD_TYPE=Release"
+   elif [[ "$1" =~ ^(-|--)release-with-debinfo$ ]] ; then
+      # Enable debugging build:
+      CMAKE_OPTIONS="$CMAKE_OPTIONS -DCMAKE_BUILD_TYPE=RelWithDebInfo"
    elif [[ "$1" =~ ^(-|--)verbose$ ]] ; then
       # Enable verbose Makefile:
       CMAKE_OPTIONS="$CMAKE_OPTIONS -DCMAKE_VERBOSE_MAKEFILE=ON"
@@ -66,7 +72,7 @@ while [ $# -gt 0 ] ; do
    elif [ "$1" == "--" ] ; then
       break
    else
-      echo >&2 "Usage: autogen.sh [--use-clang|--use-clang-scan-build|--use-gcc|--use-gcc-analyzer] [--debug] [--cores N] [--verbose]"
+      echo >&2 "Usage: autogen.sh [--use-clang|--use-clang-scan-build|--use-gcc|--use-gcc-analyzer] [--debug|--release|--release-with-debinfo] [--cores N] [--verbose]"
       exit 1
    fi
    shift
