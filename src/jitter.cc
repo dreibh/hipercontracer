@@ -221,8 +221,9 @@ void Jitter::computeJitter(const std::vector<ResultEntry*>::const_iterator& star
 
    // ====== Remove completed entries =======================================
    for(std::vector<ResultEntry*>::const_iterator iterator = start; iterator != end; iterator++) {
-      const ResultEntry* resultEntry = *iterator;
-      assert(ResultsMap.erase(resultEntry->seqNumber()) == 1);
+      const ResultEntry* resultEntry    = *iterator;
+      const std::size_t  elementsErased = ResultsMap.erase(resultEntry->seqNumber());
+      assert(elementsErased == 1);
       delete resultEntry;
       if(OutstandingRequests > 0) {
          OutstandingRequests--;

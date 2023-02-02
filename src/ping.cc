@@ -218,7 +218,8 @@ void Ping::processResults()
 
       // ====== Remove completed entries ====================================
       if(resultEntry->status() != Unknown) {
-         assert(ResultsMap.erase(resultEntry->seqNumber()) == 1);
+         const std::size_t elementsErased = ResultsMap.erase(resultEntry->seqNumber());
+         assert(elementsErased == 1);
          delete resultEntry;
          if(OutstandingRequests > 0) {
             OutstandingRequests--;
