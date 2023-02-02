@@ -484,7 +484,8 @@ void NorNetEdgeMetadataReader::parseContents(
                   timeStampFix = new TimeStampFix;
                   assert(timeStampFix != nullptr);
                   timeStampFix->TSFixTimeOffset = std::chrono::microseconds(1);
-                  assert(TSFixMap.insert(std::pair<unsigned int, TimeStampFix*>(nodeID, timeStampFix)).second);
+                  const bool success = TSFixMap.insert(std::pair<unsigned int, TimeStampFix*>(nodeID, timeStampFix)).second;
+                  assert(success);
                }
                else {
                   timeStampFix = found->second;

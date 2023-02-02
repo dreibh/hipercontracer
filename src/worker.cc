@@ -238,7 +238,8 @@ void Worker::finishedFile(const std::filesystem::path& dataFile,
    // Need to extract the file name parts again, in order to find the entry:
    const std::string& filename = dataFile.filename().string();
    std::smatch        match;
-   assert(std::regex_match(filename, match, Reader.getFileNameRegExp()));
+   const bool         isMatching = std::regex_match(filename, match, Reader.getFileNameRegExp());
+   assert(isMatching);
 
    // ====== File has been imported successfully ===============================
    if(success) {
@@ -261,7 +262,8 @@ void Worker::finishedFile(const std::filesystem::path& dataFile,
    }
 
    // ====== Remove file from the reader ====================================
-   assert(Reader.removeFile(dataFile, match) == 1);
+   const bool fileRemoved = Reader.removeFile(dataFile, match);
+   assert(fileRemoved);
 }
 
 

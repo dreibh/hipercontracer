@@ -229,7 +229,8 @@ void MongoDBClient::executeUpdate(Statement& statement)
       uint32_t       len;
       const uint8_t* data;
       bson_iter_array(&iterator, &len, &data);
-      assert(bson_init_static(&rowsToInsert, data, len));
+      bson_init_static(&rowsToInsert, data, len);
+      assert(success);
       assert(!bson_iter_next(&iterator));   // Only one collection is supported!
    }
    else {
@@ -250,7 +251,8 @@ void MongoDBClient::executeUpdate(Statement& statement)
             const uint8_t* data;
             bson_iter_document(&iterator, &len, &data);
             assert(i < statement.getRows());
-            assert(bson_init_static(&documentArray[i], data, len));
+            const bool success = bson_init_static(&documentArray[i], data, len);
+            assert(success);
             documentPtrArray[i] = &documentArray[i];
             i++;
          }
