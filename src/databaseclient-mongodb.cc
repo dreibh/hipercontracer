@@ -229,7 +229,7 @@ void MongoDBClient::executeUpdate(Statement& statement)
       uint32_t       len;
       const uint8_t* data;
       bson_iter_array(&iterator, &len, &data);
-      bson_init_static(&rowsToInsert, data, len);
+      const bool success = bson_init_static(&rowsToInsert, data, len);
       assert(success);
       assert(!bson_iter_next(&iterator));   // Only one collection is supported!
    }
