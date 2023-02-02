@@ -119,22 +119,12 @@ ENDIF()
 #### COMPILER FLAGS                                                      ####
 #############################################################################
 
-SET(CMAKE_C_FLAGS   "${CMAKE_C_FLAGS}   -O2 -Wall")
-SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O2 -Wall")
-
-IF (CMAKE_BUILD_TYPE MATCHES DEBUG)
-    MESSAGE(STATUS "Building in DEBUG mode")
-    # _FORTIFY_SOURCE requires compiling with optimization
-    SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O")
-ENDIF()
-
 OPTION(STATIC_BUILD "Build statically-linked executables" 0)
 IF (STATIC_BUILD)
    MESSAGE("Trying to build static executables")
    LIST(REMOVE_ITEM CMAKE_FIND_LIBRARY_SUFFIXES   ".a" )
    LIST(INSERT      CMAKE_FIND_LIBRARY_SUFFIXES 0 ".a" )
-   SET(Boost_USE_STATIC_LIBS    ON)
-   # SET(Boost_USE_STATIC_RUNTIME ON)
+   SET(Boost_USE_STATIC_LIBS ON)
 ENDIF()
 
 
