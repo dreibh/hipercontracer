@@ -32,8 +32,10 @@
 #ifndef TOOLS_H
 #define TOOLS_H
 
+#include <math.h>
 #include <pwd.h>
 
+#include <map>
 #include <set>
 #include <chrono>
 #include <boost/asio.hpp>
