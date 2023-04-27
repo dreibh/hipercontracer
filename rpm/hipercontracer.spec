@@ -1,5 +1,5 @@
 Name: hipercontracer
-Version: 1.6.7
+Version: 1.6.8
 Release: 1
 Summary: High-Performance Connectivity Tracer (HiPerConTracer)
 Group: Applications/Internet
@@ -282,6 +282,8 @@ from a HiPerConTracer SQL or NoSQL database.
 
 
 %changelog
+* Tue Apr 18 2023 Thomas Dreibholz <thomas.dreibholz@gmail.com> - 1.6.8
+- New upstream release.
 * Sun Jan 22 2023 Thomas Dreibholz <thomas.dreibholz@gmail.com> - 1.6.7
 - New upstream release.
 * Sun Sep 11 2022 Thomas Dreibholz <dreibh@iem.uni-due.de> - 1.6.6
