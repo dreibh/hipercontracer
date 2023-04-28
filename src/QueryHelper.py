@@ -63,6 +63,11 @@ class DatabaseConfiguration:
       self.readConfiguration(configurationFile)
 
 
+   # ###### Destructor ######################################################
+   def __del__(self):
+      self.destroyClient()
+
+
    # ###### Read database configuration #####################################
    def readConfiguration(self, configurationFile):
       parsedConfigFile = configparser.RawConfigParser()
@@ -262,6 +267,30 @@ class DatabaseConfiguration:
                   'database':   self.database }
 
       return None
+
+
+   # ###### Destroy new database client instance ############################
+   def destroyClient(self):
+      # ====== MySQL/MariaDB ================================================
+      if self.Configuration['dbBackend'] in [ 'MySQL', 'MariaDB' ]:
+         try:
+            self.dbConnection.close()
+         except Exception as e:
+            pass
+
+      # ====== PostgreSQL ===================================================
+      elif self.Configuration['dbBackend'] == 'PostgreSQL':
+         try:
+            self.dbConnection.close()
+         except Exception as e:
+            pass
+
+      # ====== MongoDB ======================================================
+      if self.Configuration['dbBackend'] == 'MongoDB':
+         try:
+            self.dbConnection.close()
+         except Exception as e:
+            pass
 
 
    # ###### Query database ##################################################
