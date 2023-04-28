@@ -75,7 +75,7 @@ class DatabaseConfiguration:
       try:
          parsedConfigFile.read_string('[root]\n' + open(configurationFile, 'r').read())
       except Exception as e:
-          sys.stderr.write('ERROR: Unable to read database configuration file' +  sys.argv[1] + ': ' + str(e) + '\n')
+          sys.stderr.write('ERROR: Unable to read database configuration file ' +  sys.argv[1] + ': ' + str(e) + '\n')
           sys.exit(1)
 
       # ====== Read parameters ==============================================
@@ -118,8 +118,8 @@ class DatabaseConfiguration:
          if self.Configuration['dbCertKeyFile'] != None:
             sys.stderr.write('ERROR: MySQL/MariaDB backend expects dbCertFile+dbKeyFile, not dbCertKeyFile!\n')
             sys.exit(1)
-         if self.Configuration['dbCRLFile'] != None:
-            sys.stderr.write('WARNING: MySQL/MariaDB backend (based on mysql-connector-python) does not support dbCRLFile!\n')
+         # if self.Configuration['dbCRLFile'] != None:
+         #    sys.stderr.write('WARNING: MySQL/MariaDB backend (based on mysql-connector-python) does not support dbCRLFile!\n')
       elif self.Configuration['dbBackend'] == 'PostgreSQL':
          if self.Configuration['dbCertKeyFile'] != None:
             sys.stderr.write('ERROR: PostgreSQL backend expects dbCertFile+dbKeyFile, not dbCertKeyFile!\n')
@@ -169,6 +169,9 @@ class DatabaseConfiguration:
                   ssl_verify_identity = False
                   sys.stderr.write("TLS hostname check explicitliy disabled. CONFIGURE TLS PROPERLY!!\n")
          try:
+            caFile = self.Configuration['dbCAFile']
+            if caFile == None:
+               caFile = ''   # Otherwise: "Missing ssl_ca argument." if caFile is None.
             self.dbConnection = mysql.connector.connect(
                host                = self.Configuration['dbServer'],
                port                = self.Configuration['dbPort'],
@@ -178,7 +181,7 @@ class DatabaseConfiguration:
                ssl_disabled        = ssl_disabled,
                ssl_verify_identity = ssl_verify_identity,
                ssl_verify_cert     = ssl_verify_cert,
-               ssl_ca              = self.Configuration['dbCAFile'],
+               ssl_ca              = caFile,
                # ssl_crl             = self.Configuration['dbCRLFile'],
                ssl_key             = self.Configuration['dbCertFile'],
                ssl_cert            = self.Configuration['dbKeyFile'],
