@@ -34,7 +34,6 @@
 #include "logger.h"
 
 #include <functional>
-#include <boost/bind.hpp>
 #include <boost/format.hpp>
 
 

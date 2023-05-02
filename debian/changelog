@@ -1,3 +1,17 @@
+hipercontracer (1.6.8-1ubuntu1) jammy; urgency=medium
+
+  * New upstream release.
+  * Build fix for recent BOOST versions (Closes: #1029783).
+
+ -- Thomas Dreibholz <thomas.dreibholz@gmail.com>  Tue, 18 Apr 2023 21:09:46 +0200
+
+hipercontracer (1.6.7-1ubuntu1) jammy; urgency=medium
+
+  * New upstream release.
+  * debian/control: Updated standards version to 4.6.2.
+
+ -- Thomas Dreibholz <thomas.dreibholz@gmail.com>  Sun, 22 Jan 2023 22:44:08 +1100
+
 hipercontracer (1.6.6-1ubuntu1) jammy; urgency=medium
 
   * New upstream release.
