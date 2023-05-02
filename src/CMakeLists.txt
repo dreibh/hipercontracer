@@ -94,8 +94,6 @@ IF (WITH_IMPORTER)
       databaseclient-base.h
       databaseclient-debug.h
       reader-base.h
-      reader-ping.h
-      reader-traceroute.h
       universal-importer.h
       worker.h
    )
@@ -108,8 +106,6 @@ IF (WITH_IMPORTER)
       databaseclient-debug.cc
       reader-base.cc
       reader-ping.cc
-      reader-ping.cc
-      reader-traceroute.cc
       universal-importer.cc
       worker.cc
    )
