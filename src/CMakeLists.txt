@@ -93,6 +93,7 @@ IF (WITH_IMPORTER)
       database-statement.h
       databaseclient-base.h
       databaseclient-debug.h
+      importer-exception.h
       reader-base.h
       universal-importer.h
       worker.h
@@ -105,7 +106,6 @@ IF (WITH_IMPORTER)
       databaseclient-base.cc
       databaseclient-debug.cc
       reader-base.cc
-      reader-ping.cc
       universal-importer.cc
       worker.cc
    )

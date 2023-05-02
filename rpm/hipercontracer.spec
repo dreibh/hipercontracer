@@ -157,10 +157,9 @@ own programs.
 # universalimporter/databaseclient-mariadb.h
 %{_includedir}/universalimporter/databaseclient-mongodb.h
 %{_includedir}/universalimporter/databaseclient-postgresql.h
+%{_includedir}/universalimporter/importer-exception.h
 %{_includedir}/universalimporter/logger.h
 %{_includedir}/universalimporter/reader-base.h
-%{_includedir}/universalimporter/reader-ping.h
-%{_includedir}/universalimporter/reader-traceroute.h
 %{_includedir}/universalimporter/tools.h
 %{_includedir}/universalimporter/universal-importer.h
 %{_includedir}/universalimporter/worker.h
