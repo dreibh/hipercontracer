@@ -119,6 +119,7 @@ class ReaderImplementation : public ReaderBase
                         const unsigned int           maxTransactionSize);
    virtual ~ReaderImplementation();
 
+   virtual bool getReaderInputFileEntryForFile(const std::filesystem::path& dataFile, ReaderInputFileEntry& inputFileEntry) const;
    virtual int addFile(const std::filesystem::path& dataFile,
                        const std::smatch            match);
    virtual bool removeFile(const std::filesystem::path& dataFile,
@@ -159,6 +160,23 @@ ReaderImplementation<ReaderInputFileEntry>::~ReaderImplementation()
       delete [] DataFileSet[p];
       DataFileSet[p] = nullptr;
    }
+}
+
+
+// ###### Get ReaderInputFileEntry for file #################################
+template<typename ReaderInputFileEntry>
+bool ReaderImplementation<ReaderInputFileEntry>::getReaderInputFileEntryForFile(
+        const std::filesystem::path& dataFile,
+        ReaderInputFileEntry&        inputFileEntry) const
+{
+   const std::string& filename = dataFile.filename().string();
+   std::smatch        match;
+   if(std::regex_match(filename, match, getFileNameRegExp())) {
+      if(makeInputFileEntry(dataFile, match, inputFileEntry, 1) >= 0) {
+         return true;
+      }
+   }
+   return false;
 }
 
 
@@ -237,7 +255,7 @@ unsigned int ReaderImplementation<ReaderInputFileEntry>::fetchFiles(
 }
 
 
-// ###### Make directory hierarchy from NorNetEdgePingFileEntry #############
+// ###### Make directory hierarchy from ReaderInputFileEntry ################
 template<typename ReaderInputFileEntry>
 std::filesystem::path ReaderImplementation<ReaderInputFileEntry>::getDirectoryHierarchy(
    const std::filesystem::path& dataFile,
