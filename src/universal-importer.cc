@@ -100,7 +100,8 @@ bool UniversalImporter::start(const std::string& importFilePathFilter,
                       << " failed: " << strerror(errno);
       return false;
    }
-   INotifyWatchDescriptors.insert(std::pair<int, std::filesystem::path>(wd, Configuration.getImportFilePath()));
+   INotifyWatchDescriptors.insert(boost::bimap<int, std::filesystem::path>::value_type(
+                                  wd, Configuration.getImportFilePath()));
 
    INotifyStream.async_read_some(boost::asio::buffer(&INotifyEventBuffer, sizeof(INotifyEventBuffer)),
                                  std::bind(&UniversalImporter::handleINotifyEvent, this,
@@ -136,9 +137,9 @@ void UniversalImporter::stop()
 {
    // ====== Remove INotify =================================================
    if(INotifyFD >= 0) {
-      std::map<int, std::filesystem::path>::iterator iterator = INotifyWatchDescriptors.begin();
+      boost::bimap<int, std::filesystem::path>::iterator iterator = INotifyWatchDescriptors.begin();
       while(iterator != INotifyWatchDescriptors.end()) {
-         inotify_rm_watch(INotifyFD, iterator->first);
+         inotify_rm_watch(INotifyFD, iterator->left);
          INotifyWatchDescriptors.erase(iterator);
          iterator = INotifyWatchDescriptors.begin();
       }
@@ -187,8 +188,8 @@ void UniversalImporter::handleINotifyEvent(const boost::system::error_code& erro
       unsigned long p = 0;
       while(p < length) {
          const inotify_event* event = (const inotify_event*)&INotifyEventBuffer[p];
-         std::map<int, std::filesystem::path>::const_iterator found = INotifyWatchDescriptors.find(event->wd);
-         if(found != INotifyWatchDescriptors.end()) {
+         boost::bimap<int, std::filesystem::path>::left_map::const_iterator found = INotifyWatchDescriptors.left.find(event->wd);
+         if(found != INotifyWatchDescriptors.left.end()) {
             const std::filesystem::path& directory = found->second;
 
             // ====== Event for directory ===================================
@@ -199,7 +200,7 @@ void UniversalImporter::handleINotifyEvent(const boost::system::error_code& erro
                   const int wd = inotify_add_watch(INotifyFD, dataDirectory.c_str(),
                                                    IN_CREATE | IN_DELETE | IN_CLOSE_WRITE | IN_MOVED_TO);
                   if(wd >= 0) {
-                     INotifyWatchDescriptors.insert(std::pair<int, std::filesystem::path>(wd, dataDirectory));
+                     INotifyWatchDescriptors.insert(boost::bimap<int, std::filesystem::path>::value_type(wd, dataDirectory));
                   }
                   else {
                      HPCT_LOG(error) << "Adding INotify watch for " << dataDirectory
@@ -208,7 +209,10 @@ void UniversalImporter::handleINotifyEvent(const boost::system::error_code& erro
                }
                else if(event->mask & IN_DELETE) {
                   HPCT_LOG(trace) << "INotify event for deleted directory: " << dataDirectory;
-                  INotifyWatchDescriptors.erase(event->wd);
+                  boost::bimap<int, std::filesystem::path>::right_map::const_iterator wdToDelete = INotifyWatchDescriptors.right.find(dataDirectory);
+                  if(wdToDelete != INotifyWatchDescriptors.right.end()) {
+                     INotifyWatchDescriptors.left.erase(wdToDelete->second);
+                  }
                }
             }
 
@@ -322,7 +326,7 @@ unsigned long long UniversalImporter::lookForFiles(const std::filesystem::path& 
          const int wd = inotify_add_watch(INotifyFD, dirEntry.path().c_str(),
                                           IN_CREATE | IN_DELETE | IN_CLOSE_WRITE | IN_MOVED_TO);
          if(wd >= 0) {
-         INotifyWatchDescriptors.insert(std::pair<int, std::filesystem::path>(wd, dirEntry.path()));
+            INotifyWatchDescriptors.insert(boost::bimap<int, std::filesystem::path>::value_type(wd, dirEntry.path()));
          }
          else {
             HPCT_LOG(error) << "Adding INotify watch for " << dirEntry.path()
