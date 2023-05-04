@@ -362,7 +362,7 @@ unsigned long long UniversalImporter::lookForFiles(const std::filesystem::path& 
                std::filesystem::remove(dirEntry.path(), ec);
                if(!ec) {
                   HPCT_LOG(trace) << "Deleted empty directory "
-                                  << relative_to(dirEntry.path(), Configuration.getImportFilePath());
+                                  << relativeTo(dirEntry.path(), Configuration.getImportFilePath());
                }
                else {
                   n++;   // Upper level still has one sub-directory
