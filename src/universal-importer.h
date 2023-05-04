@@ -36,6 +36,7 @@
 #include "reader-base.h"
 
 #include <boost/asio.hpp>
+#include <boost/bimap.hpp>
 
 #include <sys/inotify.h>
 
@@ -83,18 +84,18 @@ class UniversalImporter
    friend bool operator<(const UniversalImporter::WorkerMapping& a,
                          const UniversalImporter::WorkerMapping& b);
 
-   boost::asio::io_service&               IOService;
-   const DatabaseConfiguration&           Configuration;
+   boost::asio::io_service&                 IOService;
+   const DatabaseConfiguration&             Configuration;
 
-   boost::asio::signal_set                Signals;
-   std::list<ReaderBase*>                 ReaderList;
-   std::map<const WorkerMapping, Worker*> WorkerMap;
-   boost::asio::deadline_timer            StatusTimer;
-   const boost::posix_time::seconds       StatusTimerInterval;
-   int                                    INotifyFD;
-   std::map<int, std::filesystem::path>   INotifyWatchDescriptors;
-   boost::asio::posix::stream_descriptor  INotifyStream;
-   char                                   INotifyEventBuffer[65536 * sizeof(inotify_event)];
+   boost::asio::signal_set                  Signals;
+   std::list<ReaderBase*>                   ReaderList;
+   std::map<const WorkerMapping, Worker*>   WorkerMap;
+   boost::asio::deadline_timer              StatusTimer;
+   const boost::posix_time::seconds         StatusTimerInterval;
+   int                                      INotifyFD;
+   boost::bimap<int, std::filesystem::path> INotifyWatchDescriptors;
+   boost::asio::posix::stream_descriptor    INotifyStream;
+   char                                     INotifyEventBuffer[65536 * sizeof(inotify_event)];
 };
 
 #endif
