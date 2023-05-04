@@ -60,8 +60,11 @@ const passwd* getUser(const char* user)
 
 
 // ###### Check whether path1 is a subdirectory of path2 ####################
-bool is_subdir_of(const std::filesystem::path& path1,
-                  const std::filesystem::path& path2)
+// Returns: -1, if path1 is not a subdirectory of path2
+//           0, if path1 is identical to path2
+//           N, if path1 is N-th level subdirectory of path2
+int subDirectoryOf(const std::filesystem::path& path1,
+                   const std::filesystem::path& path2)
 {
    try {
       const std::filesystem::path ca1 = std::filesystem::canonical(std::filesystem::absolute(path1));
@@ -80,17 +83,20 @@ bool is_subdir_of(const std::filesystem::path& path1,
       }
       // Full overlap of all parts of path2
       // -> path1 is a subdirectory of path 2, if path1 is not yet fully iterated
-      return it1 != ca1.end();
+      unsigned int depth = 0;
+      while(it1++ != ca1.end()) {
+         depth++;
+      }
+      return depth;
    }
    catch(...) { }
-   return false;
+   return -1;
 }
 
 
-
 // ###### Destructor ########################################################
-std::filesystem::path relative_to(const std::filesystem::path& dataFile,
-                                  const std::filesystem::path& basePath)
+std::filesystem::path relativeTo(const std::filesystem::path& dataFile,
+                                 const std::filesystem::path& basePath)
 {
    std::error_code       ec;
    std::filesystem::path relativePath = std::filesystem::relative(dataFile, basePath, ec);

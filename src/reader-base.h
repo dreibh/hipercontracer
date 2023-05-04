@@ -197,7 +197,7 @@ int ReaderImplementation<ReaderInputFileEntry>::addFile(
       // ====== Insert file entry into list =================================
       if(DataFileSet[p][workerID].insert(inputFileEntry).second) {
          HPCT_LOG(trace) << getIdentification() << ": Added input file "
-                         << relative_to(dataFile, Configuration.getImportFilePath()) << " to reader";
+                         << relativeTo(dataFile, Configuration.getImportFilePath()) << " to reader";
          return workerID;
       }
    }
@@ -215,7 +215,7 @@ bool ReaderImplementation<ReaderInputFileEntry>::removeFile(
    const int workerID = makeInputFileEntry(dataFile, match, inputFileEntry, Workers);
    if(workerID >= 0) {
       HPCT_LOG(trace) << getIdentification() << ": Removing input file "
-                      << relative_to(dataFile, Configuration.getImportFilePath()) << " from reader";
+                      << relativeTo(dataFile, Configuration.getImportFilePath()) << " from reader";
       std::unique_lock lock(Mutex);
 
       for(int p = ReaderPriority::Max; p >= 0; p--) {
