@@ -209,7 +209,7 @@ void UniversalImporter::handleINotifyEvent(const boost::system::error_code& erro
                      if(currentDepth > 0) {
                         HPCT_LOG(debug) << "Looking for files in new directory " << dataDirectory
                                         << " (depth " << currentDepth << " of "
-                                        << Configuration.getImportMaxDepth() << " ...";
+                                        << Configuration.getImportMaxDepth() << ") ...";
                         lookForFiles(dataDirectory,
                                      1 + currentDepth, Configuration.getImportMaxDepth(),
                                      std::regex(std::string()));
