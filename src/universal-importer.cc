@@ -201,10 +201,26 @@ void UniversalImporter::handleINotifyEvent(const boost::system::error_code& erro
                                                    IN_CREATE | IN_DELETE | IN_CLOSE_WRITE | IN_MOVED_TO);
                   if(wd >= 0) {
                      INotifyWatchDescriptors.insert(boost::bimap<int, std::filesystem::path>::value_type(wd, dataDirectory));
+
+                     // A directory traversal is necessary in this new
+                     // directory, since files/directories may have been
+                     // created before adding the INotify watch!
+                     const unsigned int currentDepth = subDirectoryOf(dataDirectory, Configuration.getImportFilePath());
+                     if(currentDepth > 0) {
+                        HPCT_LOG(debug) << "Looking for files in new directory " << dataDirectory
+                                        << " (depth " << currentDepth << " of "
+                                        << Configuration.getImportMaxDepth() << " ...";
+                        lookForFiles(dataDirectory,
+                                     1 + currentDepth, Configuration.getImportMaxDepth(),
+                                     std::regex(std::string()));
+                     }
+                     else {
+                        HPCT_LOG(error) << "Not a subdirectory of the import path: " << dataDirectory;
+                     }
                   }
                   else {
                      HPCT_LOG(error) << "Adding INotify watch for " << dataDirectory
-                                    << " failed: " << strerror(errno);
+                                     << " failed: " << strerror(errno);
                   }
                }
                else if(event->mask & IN_DELETE) {
