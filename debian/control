@@ -1,8 +1,8 @@
 Source: hipercontracer
 Section: net
 Priority: optional
-Maintainer: Thomas Dreibholz <dreibh@iem.uni-due.de>
-Homepage: https://www.uni-due.de/~be0001/hipercontracer/
+Maintainer: Thomas Dreibholz <thomas.dreibholz@gmail.com>
+Homepage: https://www.nntb.no/~dreibh/hipercontracer/
 Build-Depends: cmake (>= 3.10),
                debhelper (>= 12),
                dh-python,
@@ -13,13 +13,16 @@ Build-Depends: cmake (>= 3.10),
                libboost-program-options-dev,
                libboost-system-dev,
                libboost-thread-dev,
+               libbz2-dev,
                libc-ares-dev,
+               liblzma-dev,
                libmongoc-dev,
                libmysqlcppconn-dev,
                libpqxx-dev,
                pkg-config,
-               python3
-Standards-Version: 4.6.1
+               python3,
+               zlib1g-dev
+Standards-Version: 4.6.2
 Rules-Requires-Root: no
 
 Package: libhipercontracer1
@@ -144,7 +147,7 @@ Depends: python3-mysql.connector,
          python3-pymongo,
          python3-snappy,
          python3-urllib3,
-         python3-zstandard,
+         python3-zstd
          ${misc:Depends},
          ${python3:Depends}
 Description: Query helper library for HiPerConTracer Universal Importer

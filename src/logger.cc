@@ -12,7 +12,7 @@
 // =================================================================
 //
 // High-Performance Connectivity Tracer (HiPerConTracer)
-// Copyright (C) 2015-2022 by Thomas Dreibholz
+// Copyright (C) 2015-2023 by Thomas Dreibholz
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -38,56 +38,84 @@
 #include <boost/log/sinks/text_ostream_backend.hpp>
 #include <boost/log/support/date_time.hpp>
 #include <boost/log/utility/setup/common_attributes.hpp>
+#include <boost/log/utility/setup/console.hpp>
+#include <boost/log/utility/setup/file.hpp>
 
-
-boost::shared_ptr<boost::log::sinks::synchronous_sink<boost::log::sinks::text_ostream_backend>>
-   MySink(new boost::log::sinks::synchronous_sink<boost::log::sinks::text_ostream_backend>);
 
 BOOST_LOG_GLOBAL_LOGGER_INIT(MyLogger, boost::log::sources::severity_logger_mt) {
    boost::log::sources::severity_logger_mt<boost::log::trivial::severity_level> MyLogger;
 
    // ====== Additional attributes ==========================================
-   // MyLogger.add_attribute("LineID",    boost::log::attributes::counter<unsigned int>(1));     // lines are sequentially numbered
-   // MyLogger.add_attribute("ThreadID",  boost::log::attributes::current_thread_id());
-   MyLogger.add_attribute("TimeStamp", boost::log::attributes::local_clock());             // each log line gets a timestamp
+   // MyLogger.add_attribute("LineID",    boost::log::attributes::counter<unsigned int>(1));   // Lines are sequentially numbered
+   // MyLogger.add_attribute("ThreadID",  boost::log::attributes::current_thread_id());        // Thread ID
+   MyLogger.add_attribute("TimeStamp", boost::log::attributes::utc_clock());                   // Each log line gets a UTC timestamp
+   return MyLogger;
+}
 
-   // ====== Create text sink ===============================================
-   MySink->locked_backend()->add_stream(boost::shared_ptr<std::ostream>(&std::clog, boost::null_deleter()));
 
-   // ====== Coloring expression ============================================
-   const auto colorisationExpression =
+// ###### Initialise logger #################################################
+void initialiseLogger(const unsigned int logLevel,
+                      const bool         logColor,
+                      const char*        logFile
+                      // const char*        logTarget
+                     )
+{
+   boost::shared_ptr<boost::log::core> core = boost::log::core::get();
+
+   // ====== Formatting expressions =========================================
+   const static boost::log::formatter coloredFormatter =
       boost::log::expressions::stream << boost::log::expressions::if_(boost::log::trivial::severity <= boost::log::trivial::severity_level::trace)[ boost::log::expressions::stream << "\x1b[37m" ].else_[
          boost::log::expressions::stream << boost::log::expressions::if_(boost::log::trivial::severity == boost::log::trivial::severity_level::debug)[ boost::log::expressions::stream << "\x1b[36m" ].else_[
             boost::log::expressions::stream << boost::log::expressions::if_(boost::log::trivial::severity == boost::log::trivial::severity_level::info)[ boost::log::expressions::stream << "\x1b[34m" ].else_[
                boost::log::expressions::stream << boost::log::expressions::if_(boost::log::trivial::severity == boost::log::trivial::severity_level::warning)[ boost::log::expressions::stream << "\x1b[33m" ].else_[
                   boost::log::expressions::stream << boost::log::expressions::if_(boost::log::trivial::severity == boost::log::trivial::severity_level::error)[ boost::log::expressions::stream << "\x1b[31;1m" ].else_[
                      boost::log::expressions::stream << "\x1b[37;41;1m"   // Fatal
-      ]]]]];
+       ]]]]]
+       /*
+       << std::setw(7) << std::setfill('0') << boost::log::expressions::attr< unsigned int >("LineID") << std::setfill(' ') << " "
+       << std::setw(7) << std::setfill(' ') << boost::log::expressions::attr< boost::log::attributes::current_thread_id::value_type >("ThreadID") << std::setfill(' ') << " | "
+       */
+       << boost::log::expressions::format_date_time(boost::log::expressions::attr< boost::posix_time::ptime >("TimeStamp"),
+                                 "[%Y-%m-%d %H:%M:%S.%f]")
+       << "[" << boost::log::trivial::severity << "]"
+       << ": " << boost::log::expressions::smessage
+       << "\x1b[0m";
+   const static boost::log::formatter plainFormatter =
+      boost::log::expressions::stream
+       << boost::log::expressions::format_date_time(boost::log::expressions::attr< boost::posix_time::ptime >("TimeStamp"),
+                                 "[%Y-%m-%d %H:%M:%S.%f]")
+       << "[" << boost::log::trivial::severity << "]"
+       << ": " << boost::log::expressions::smessage;
 
-   // ====== Formatting expression ==========================================
-    const boost::log::formatter formatter =
-       colorisationExpression
-        /*
-        << std::setw(7) << std::setfill('0') << boost::log::expressions::attr< unsigned int >("LineID") << std::setfill(' ') << " "
-        << std::setw(7) << std::setfill(' ') << boost::log::expressions::attr< boost::log::attributes::current_thread_id::value_type >("ThreadID") << std::setfill(' ') << " | "
-        */
-        << boost::log::expressions::format_date_time(boost::log::expressions::attr< boost::posix_time::ptime >("TimeStamp"),
-                                  "[%Y-%m-%d %H:%M:%S.%f]")
-        << "[" << boost::log::trivial::severity << "]"
-        << ": " << boost::log::expressions::smessage
-        << "\x1b[0m";
-    MySink->set_formatter(formatter);
+   // ====== Log file output ================================================
+   if(logFile != nullptr) {
+      boost::shared_ptr<boost::log::sinks::text_file_backend> backend =
+         boost::make_shared<boost::log::sinks::text_file_backend>(
+            boost::log::keywords::file_name             = logFile,
+            boost::log::keywords::open_mode             = std::ios_base::out | std::ios_base::app
+            // boost::log::keywords::target_file_name      = logTarget,
+            // boost::log::keywords::enable_final_rotation = false,
+            // boost::log::keywords::scan_method           = boost::log::sinks::file::scan_matching,
+            // boost::log::keywords::max_files             = 10,
+            // boost::log::keywords::rotation_size         = 2048,
+            // boost::log::keywords::time_based_rotation   = boost::log::sinks::file::rotation_at_time_point(0, 0, 0)
+         );
+      boost::shared_ptr<boost::log::sinks::synchronous_sink<boost::log::sinks::text_file_backend>> fileSink(new boost::log::sinks::synchronous_sink<boost::log::sinks::text_file_backend>(backend));
 
-    boost::log::core::get()->add_sink(MySink);
-    return MyLogger;
-}
+      fileSink->set_formatter((logColor == true) ? coloredFormatter : plainFormatter);
+      fileSink->set_filter(boost::log::trivial::severity >= logLevel);
+      core->add_sink(fileSink);
+   }
 
-
-// ###### Initialise logger #################################################
-void initialiseLogger(const unsigned int logLevel)
-{
-   // ====== Set filter ====================================================
-   MySink->set_filter(boost::log::trivial::severity >= logLevel);
+   // ====== Console output =================================================
+   else {
+      boost::shared_ptr<boost::log::sinks::synchronous_sink<boost::log::sinks::text_ostream_backend>>
+         consoleSink(new boost::log::sinks::synchronous_sink<boost::log::sinks::text_ostream_backend>());
+      consoleSink->locked_backend()->add_stream(boost::shared_ptr<std::ostream>(&std::clog, boost::null_deleter()));
+      consoleSink->set_formatter((logColor == true) ? coloredFormatter : plainFormatter);
+      consoleSink->set_filter(boost::log::trivial::severity >= logLevel);
+      core->add_sink(consoleSink);
+   }
 
    HPCT_LOG(trace) << "Initialised logger";
 

@@ -12,7 +12,7 @@
 // =================================================================
 //
 // High-Performance Connectivity Tracer (HiPerConTracer)
-// Copyright (C) 2015-2022 by Thomas Dreibholz
+// Copyright (C) 2015-2023 by Thomas Dreibholz
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -229,7 +229,8 @@ void MongoDBClient::executeUpdate(Statement& statement)
       uint32_t       len;
       const uint8_t* data;
       bson_iter_array(&iterator, &len, &data);
-      assert(bson_init_static(&rowsToInsert, data, len));
+      const bool success = bson_init_static(&rowsToInsert, data, len);
+      assert(success);
       assert(!bson_iter_next(&iterator));   // Only one collection is supported!
    }
    else {
@@ -250,7 +251,8 @@ void MongoDBClient::executeUpdate(Statement& statement)
             const uint8_t* data;
             bson_iter_document(&iterator, &len, &data);
             assert(i < statement.getRows());
-            assert(bson_init_static(&documentArray[i], data, len));
+            const bool success = bson_init_static(&documentArray[i], data, len);
+            assert(success);
             documentPtrArray[i] = &documentArray[i];
             i++;
          }

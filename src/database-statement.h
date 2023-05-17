@@ -12,7 +12,7 @@
 // =================================================================
 //
 // High-Performance Connectivity Tracer (HiPerConTracer)
-// Copyright (C) 2015-2022 by Thomas Dreibholz
+// Copyright (C) 2015-2023 by Thomas Dreibholz
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -89,7 +89,7 @@ class Statement : public std::stringstream
          }
       }
       else {
-         assert(false);
+         abort();
       }
    }
 
@@ -104,7 +104,7 @@ class Statement : public std::stringstream
          *this << "}";
       }
       else {
-         assert(false);
+         abort();
       }
    }
 
@@ -117,7 +117,7 @@ class Statement : public std::stringstream
          return ", ";
       }
       else {
-         assert(false);
+         abort();
       }
    }
 
@@ -131,7 +131,7 @@ class Statement : public std::stringstream
          ss << std::quoted(string, '"', '\\');
       }
       else {
-         assert(false);
+         abort();
       }
       return ss.str();
    }
@@ -145,7 +145,7 @@ class Statement : public std::stringstream
             return "null";
          }
          else {
-            assert(false);
+            abort();
          }
       }
       return quote(string);

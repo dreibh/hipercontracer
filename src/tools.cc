@@ -12,7 +12,7 @@
 // =================================================================
 //
 // High-Performance Connectivity Tracer (HiPerConTracer)
-// Copyright (C) 2015-2022 by Thomas Dreibholz
+// Copyright (C) 2015-2023 by Thomas Dreibholz
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -60,8 +60,11 @@ const passwd* getUser(const char* user)
 
 
 // ###### Check whether path1 is a subdirectory of path2 ####################
-bool is_subdir_of(const std::filesystem::path& path1,
-                  const std::filesystem::path& path2)
+// Returns: -1, if path1 is not a subdirectory of path2
+//           0, if path1 is identical to path2
+//           N, if path1 is N-th level subdirectory of path2
+int subDirectoryOf(const std::filesystem::path& path1,
+                   const std::filesystem::path& path2)
 {
    try {
       const std::filesystem::path ca1 = std::filesystem::canonical(std::filesystem::absolute(path1));
@@ -80,17 +83,20 @@ bool is_subdir_of(const std::filesystem::path& path1,
       }
       // Full overlap of all parts of path2
       // -> path1 is a subdirectory of path 2, if path1 is not yet fully iterated
-      return it1 != ca1.end();
+      unsigned int depth = 0;
+      while(it1++ != ca1.end()) {
+         depth++;
+      }
+      return depth;
    }
    catch(...) { }
-   return false;
+   return -1;
 }
 
 
-
 // ###### Destructor ########################################################
-std::filesystem::path relative_to(const std::filesystem::path& dataFile,
-                                  const std::filesystem::path& basePath)
+std::filesystem::path relativeTo(const std::filesystem::path& dataFile,
+                                 const std::filesystem::path& basePath)
 {
    std::error_code       ec;
    std::filesystem::path relativePath = std::filesystem::relative(dataFile, basePath, ec);
@@ -182,14 +188,14 @@ bool addSourceAddress(std::map<boost::asio::ip::address, std::set<uint8_t>>& arr
                addressString, "0", boost::asio::ip::tcp::resolver::query::numeric_service);
             boost::asio::ip::tcp::resolver resolver(ios);
             boost::system::error_code ec;
-            const boost::asio::ip::tcp::resolver::results_type endpoints =
+            boost::asio::ip::tcp::resolver::iterator iterator =
                resolver.resolve(resolver_query, ec);
             if(ec) {
                std::cerr << "Failed to resolve a DNS name " << addressString << ": " << ec.message() << "\n";
                return false;
             }
-            for (boost::asio::ip::tcp::resolver::iterator it = endpoints.cbegin(); it != endpoints.cend(); it++) {
-               const boost::asio::ip::tcp::endpoint endpoint = *it;
+            for(   ; iterator != boost::asio::ip::tcp::resolver::iterator(); iterator++) {
+               const boost::asio::ip::tcp::endpoint& endpoint = *iterator;
                HPCT_LOG(info) << addressString << " -> " << endpoint.address().to_string();
                addSourceAddress(array, endpoint.address().to_string(), false);
             }
@@ -250,14 +256,14 @@ bool addDestinationAddress(std::set<boost::asio::ip::address>& array,
             addressString, "0", boost::asio::ip::tcp::resolver::query::numeric_service);
          boost::asio::ip::tcp::resolver resolver(ios);
          boost::system::error_code ec;
-         const boost::asio::ip::tcp::resolver::results_type endpoints =
+         boost::asio::ip::tcp::resolver::iterator iterator =
             resolver.resolve(resolver_query, ec);
          if(ec) {
             std::cerr << "Failed to resolve a DNS name " << addressString << ": " << ec.message() << "\n";
             return false;
          }
-         for (boost::asio::ip::tcp::resolver::iterator it = endpoints.cbegin(); it != endpoints.cend(); it++) {
-            const boost::asio::ip::tcp::endpoint endpoint = *it;
+         for(   ; iterator != boost::asio::ip::tcp::resolver::iterator(); iterator++) {
+            const boost::asio::ip::tcp::endpoint endpoint = *iterator;
             HPCT_LOG(info) << addressString << " -> " << endpoint.address().to_string();
             addDestinationAddress(array, endpoint.address().to_string(), false);
          }

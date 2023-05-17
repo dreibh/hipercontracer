@@ -12,7 +12,7 @@
 #  =================================================================
 #
 #  High-Performance Connectivity Tracer (HiPerConTracer)
-#  Copyright (C) 2015-2022 by Thomas Dreibholz
+#  Copyright (C) 2015-2023 by Thomas Dreibholz
 #
 #  This program is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -35,7 +35,7 @@ PROJECT(hipercontracer LANGUAGES C CXX)
 
 SET(BUILD_MAJOR "1")
 SET(BUILD_MINOR "6")
-SET(BUILD_PATCH "6")
+SET(BUILD_PATCH "8")
 SET(BUILD_VERSION ${BUILD_MAJOR}.${BUILD_MINOR}.${BUILD_PATCH})
 
 SET(CMAKE_CXX_STANDARD 17)
@@ -116,55 +116,21 @@ ENDIF()
 
 
 #############################################################################
-#### COMPILER FLAGS                                                      ####
+#### OPTIONS                                                             ####
 #############################################################################
-
-SET(CMAKE_C_FLAGS   "${CMAKE_C_FLAGS}   -O2 -Wall")
-SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O2 -Wall")
-
-IF (CMAKE_BUILD_TYPE MATCHES DEBUG)
-    MESSAGE(STATUS "Building in DEBUG mode")
-    # _FORTIFY_SOURCE requires compiling with optimization
-    SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O")
-ENDIF()
 
 OPTION(STATIC_BUILD "Build statically-linked executables" 0)
 IF (STATIC_BUILD)
    MESSAGE("Trying to build static executables")
    LIST(REMOVE_ITEM CMAKE_FIND_LIBRARY_SUFFIXES   ".a" )
    LIST(INSERT      CMAKE_FIND_LIBRARY_SUFFIXES 0 ".a" )
-   SET(Boost_USE_STATIC_LIBS    ON)
-   # SET(Boost_USE_STATIC_RUNTIME ON)
+   SET(Boost_USE_STATIC_LIBS ON)
 ENDIF()
 
-
-#############################################################################
-#### CHECK STRUCT MEMBERS                                                ####
-#############################################################################
-
-CHECK_STRUCT_HAS_MEMBER("struct sockaddr" "sa_len" "sys/types.h;sys/socket.h" HAVE_SA_LEN)
-IF (HAVE_SA_LEN)
-    MESSAGE(STATUS "HAVE_SA_LEN")
-    ADD_DEFINITIONS(-DHAVE_SA_LEN)
-ENDIF()
-
-CHECK_STRUCT_HAS_MEMBER("struct sockaddr_in" "sin_len" "sys/types.h;netinet/in.h" HAVE_SIN_LEN)
-IF (HAVE_SIN_LEN)
-    MESSAGE(STATUS "HAVE_SIN_LEN")
-    ADD_DEFINITIONS(-DHAVE_SIN_LEN)
-ENDIF()
-
-CHECK_STRUCT_HAS_MEMBER("struct sockaddr_in6" "sin6_len" "sys/types.h;netinet/in.h" HAVE_SIN6_LEN)
-IF (HAVE_SIN6_LEN)
-    MESSAGE(STATUS "HAVE_SIN6_LEN")
-    ADD_DEFINITIONS(-DHAVE_SIN6_LEN)
-ENDIF()
-
-CHECK_STRUCT_HAS_MEMBER("struct sockaddr_storage" "ss_len" "sys/types.h;sys/socket.h" HAVE_SS_LEN)
-IF (HAVE_SS_LEN)
-    MESSAGE(STATUS "HAVE_SS_LEN")
-    ADD_DEFINITIONS(-DHAVE_SS_LEN)
-ENDIF()
+OPTION(WITH_TRIGGER         "Build HiPerConTracer Trigger"  1)
+OPTION(WITH_IMPORTER        "Build HiPerConTracer Importer" 1)
+OPTION(WITH_QUERY           "Build HiPerConTracer Query"    1)
+OPTION(WITH_UDP_ECHO_SERVER "Build UDP Echo Server"         1)
 
 
 #############################################################################
@@ -172,7 +138,7 @@ ENDIF()
 #############################################################################
 
 IF(CMAKE_SYSTEM_PROCESSOR STREQUAL "riscv64")
-  STRING(APPEND CMAKE_C_STANDARD_LIBRARIES " -latomic")
+  STRING(APPEND CMAKE_C_STANDARD_LIBRARIES   " -latomic")
   STRING(APPEND CMAKE_CXX_STANDARD_LIBRARIES " -latomic")
 ENDIF()
 
@@ -214,82 +180,92 @@ IF (NOT CARES_LIBRARY)
 ENDIF()
 
 # ###### Database client libraries ##########################################
+IF (WITH_IMPORTER)
+   # ------ MariaDB/MySQL ---------------------------------------------------
+   OPTION(ENABLE_BACKEND_MARIADB "Enable MySQL/MariaDB backed" 1)
+   IF (ENABLE_BACKEND_MARIADB)
+      MESSAGE("Building with MySQL/MariaDB backend (ENABLE_BACKEND_MARIADB=${ENABLE_BACKEND_MARIADB})")
 
-# ------ MariaDB/MySQL ------------------------------------------------------
-OPTION(ENABLE_BACKEND_MARIADB "Enable MySQL/MariaDB backed" 1)
-IF (ENABLE_BACKEND_MARIADB)
-   MESSAGE("Building with MySQL/MariaDB backend (ENABLE_BACKEND_MARIADB=${ENABLE_BACKEND_MARIADB})")
-
-   MESSAGE("Looking for MySQL/MariaDB C++ Client library:")
-   FIND_LIBRARY(MYSQLCPPCONN_LIBRARY NAMES mysqlcppconn)
-   MESSAGE(" * Library: ${MYSQLCPPCONN_LIBRARY}")
-   FIND_PATH(MYSQLCPPCONN_INCLUDE_DIR NAMES driver.h PATH_SUFFIXES cppconn mysql-cppconn/jdbc/cppconn)
-   MESSAGE(" * Includes: ${MYSQLCPPCONN_INCLUDE_DIR}")
-   IF ((NOT MYSQLCPPCONN_INCLUDE_DIR) OR (NOT MYSQLCPPCONN_LIBRARY))
-      MESSAGE(FATAL_ERROR
-              " Cannot find MySQL/MariaDB C++ client library! Try:\n"
-              " * Ubuntu/Debian: sudo apt install -y libmysqlcppconn-dev\n"
-              " * Fedora:        sudo dnf install -y mysql-connector-c++-devel (needs PPA!)\n"
-              " * FreeBSD:       sudo pkg install -y mysql-connector-c++")
+      MESSAGE("Looking for MySQL/MariaDB C++ Client library:")
+      FIND_LIBRARY(MYSQLCPPCONN_LIBRARY NAMES mysqlcppconn)
+      MESSAGE(" * Library: ${MYSQLCPPCONN_LIBRARY}")
+      FIND_PATH(MYSQLCPPCONN_INCLUDE_DIR NAMES driver.h PATH_SUFFIXES cppconn mysql-cppconn/jdbc/cppconn)
+      MESSAGE(" * Includes: ${MYSQLCPPCONN_INCLUDE_DIR}")
+      IF ((NOT MYSQLCPPCONN_INCLUDE_DIR) OR (NOT MYSQLCPPCONN_LIBRARY))
+         MESSAGE(FATAL_ERROR
+                 " Cannot find MySQL/MariaDB C++ client library! Try:\n"
+                 " * Ubuntu/Debian: sudo apt install -y libmysqlcppconn-dev\n"
+                 " * Fedora:        sudo dnf install -y mysql-connector-c++-devel (needs PPA!)\n"
+                 " * FreeBSD:       sudo pkg install -y mysql-connector-c++")
+      ENDIF()
+   ELSE()
+      MESSAGE("MySQL/MariaDB backend disabled!")
    ENDIF()
-ELSE()
-   MESSAGE("MySQL/MariaDB backend disabled!")
+
+   # ------ PostgreSQL ---------------------------------------------------------
+   OPTION(ENABLE_BACKEND_POSTGRESQL "Enable PostgreSQL backed" 1)
+   IF (ENABLE_BACKEND_POSTGRESQL)
+      MESSAGE("Building with PostgreSQL backend (ENABLE_BACKEND_POSTGRESQL=${ENABLE_BACKEND_POSTGRESQL})")
+
+      MESSAGE("Looking for PostgreSQL C++ Client library:")
+      FIND_LIBRARY(LIBPQXX_LIBRARY NAMES pqxx)
+      MESSAGE(" * Library: ${LIBPQXX_LIBRARY}")
+      FIND_PATH(LIBPQXX_INCLUDE_DIR NAMES pqxx PATH_SUFFIXES pqxx)
+      MESSAGE(" * Includes: ${LIBPQXX_INCLUDE_DIR}")
+      IF ((NOT LIBPQXX_INCLUDE_DIR) OR (NOT LIBPQXX_LIBRARY))
+         MESSAGE(FATAL_ERROR
+                 " Cannot find PostgreSQL C++  client library! Try:\n"
+                 " * Ubuntu/Debian: sudo apt install -y libpqxx-dev\n"
+                 " * Fedora:        sudo dnf install -y libpqxx-devel\n"
+                 " * FreeBSD:       sudo pkg install -y postgresql-libpqxx")
+      ENDIF()
+   ELSE()
+      MESSAGE("PostgreSQL backend disabled!")
+   ENDIF()
+
+   # ------ MongoDB ------------------------------------------------------------
+   OPTION(ENABLE_BACKEND_MONGODB "Enable MongoDB backed" 1)
+   IF (ENABLE_BACKEND_MONGODB)
+      MESSAGE("Building with MongoDB backend (ENABLE_BACKEND_MONGODB=${ENABLE_BACKEND_MONGODB})")
+
+      MESSAGE("Looking for MongoDB C Client library:")
+      FIND_LIBRARY(LIBMONGOC_LIBRARY  NAMES mongoc-1.0)
+      MESSAGE(" * Library: ${LIBMONGOC_LIBRARY}")
+      FIND_PATH(LIBMONGOC_INCLUDE_DIR NAMES mongoc.h PATH_SUFFIXES libmongoc-1.0)
+      MESSAGE(" * Includes: ${LIBMONGOC_INCLUDE_DIR}")
+      IF ((NOT LIBMONGOC_INCLUDE_DIR) OR (NOT LIBMONGOC_LIBRARY))
+         MESSAGE(FATAL_ERROR
+                 " Cannot find MongoDB C client library! Try:\n"
+                 " * Ubuntu/Debian: sudo apt install -y libmongoc-dev\n"
+                 " * Fedora:        sudo dnf install -y mongo-c-driver-devel\n"
+                 " * FreeBSD:       sudo pkg install -y mongo-c-driver")
+      ENDIF()
+
+      MESSAGE("Looking for MongoDB BSON library:")
+      FIND_LIBRARY(LIBBSON_LIBRARY  NAMES bson-1.0)
+      MESSAGE(" * Library: ${LIBBSON_LIBRARY}")
+      FIND_PATH(LIBBSON_INCLUDE_DIR NAMES bson.h PATH_SUFFIXES libbson-1.0)
+      MESSAGE(" * Includes: ${LIBBSON_INCLUDE_DIR}")
+      IF ((NOT LIBBSON_INCLUDE_DIR) OR (NOT LIBBSON_LIBRARY))
+         MESSAGE(FATAL_ERROR
+                 " Cannot find MongoDB BSON library! Try:\n"
+                 " * Ubuntu/Debian: sudo apt install -y libbson-dev\n"
+                 " * Fedora:        sudo dnf install -y libbson-devel\n"
+                 " * FreeBSD:       sudo pkg install -y libbson")
+      ENDIF()
+   ELSE()
+      MESSAGE("MongoDB backend disabled!")
+   ENDIF()
 ENDIF()
 
-# ------ PostgreSQL ---------------------------------------------------------
-OPTION(ENABLE_BACKEND_POSTGRESQL "Enable PostgreSQL backed" 1)
-IF (ENABLE_BACKEND_POSTGRESQL)
-   MESSAGE("Building with PostgreSQL backend (ENABLE_BACKEND_POSTGRESQL=${ENABLE_BACKEND_POSTGRESQL})")
+# ###### Python #############################################################
+SET(PYTHON_LIBRARY_PREFIX "${CMAKE_INSTALL_PREFIX}" CACHE PATH   "Python library prefix")
+SET(PYTHON_SETUP_OPTS     ""                        CACHE STRING "")
 
-   MESSAGE("Looking for PostgreSQL C++ Client library:")
-   FIND_LIBRARY(LIBPQXX_LIBRARY NAMES pqxx)
-   MESSAGE(" * Library: ${LIBPQXX_LIBRARY}")
-   FIND_PATH(LIBPQXX_INCLUDE_DIR NAMES pqxx PATH_SUFFIXES pqxx)
-   MESSAGE(" * Includes: ${LIBPQXX_INCLUDE_DIR}")
-   IF ((NOT LIBPQXX_INCLUDE_DIR) OR (NOT LIBPQXX_LIBRARY))
-      MESSAGE(FATAL_ERROR
-              " Cannot find PostgreSQL C++  client library! Try:\n"
-              " * Ubuntu/Debian: sudo apt install -y libpqxx-dev\n"
-              " * Fedora:        sudo dnf install -y libpqxx-devel\n"
-              " * FreeBSD:       sudo pkg install -y postgresql-libpqxx")
-   ENDIF()
-ELSE()
-   MESSAGE("PostgreSQL backend disabled!")
-ENDIF()
+SET(Python_ADDITIONAL_VERSIONS 3)
+INCLUDE(FindPythonInterp)
 
-# ------ MongoDB ------------------------------------------------------------
-OPTION(ENABLE_BACKEND_MONGODB "Enable MongoDB backed" 1)
-IF (ENABLE_BACKEND_MONGODB)
-   MESSAGE("Building with MongoDB backend (ENABLE_BACKEND_MONGODB=${ENABLE_BACKEND_MONGODB})")
-
-   MESSAGE("Looking for MongoDB C Client library:")
-   FIND_LIBRARY(LIBMONGOC_LIBRARY  NAMES mongoc-1.0)
-   MESSAGE(" * Library: ${LIBMONGOC_LIBRARY}")
-   FIND_PATH(LIBMONGOC_INCLUDE_DIR NAMES mongoc.h PATH_SUFFIXES libmongoc-1.0)
-   MESSAGE(" * Includes: ${LIBMONGOC_INCLUDE_DIR}")
-   IF ((NOT LIBMONGOC_INCLUDE_DIR) OR (NOT LIBMONGOC_LIBRARY))
-      MESSAGE(FATAL_ERROR
-              " Cannot find MongoDB C client library! Try:\n"
-              " * Ubuntu/Debian: sudo apt install -y libmongoc-dev\n"
-              " * Fedora:        sudo dnf install -y mongo-c-driver-devel\n"
-              " * FreeBSD:       sudo pkg install -y mongo-c-driver")
-   ENDIF()
-
-   MESSAGE("Looking for MongoDB BSON library:")
-   FIND_LIBRARY(LIBBSON_LIBRARY  NAMES bson-1.0)
-   MESSAGE(" * Library: ${LIBBSON_LIBRARY}")
-   FIND_PATH(LIBBSON_INCLUDE_DIR NAMES bson.h PATH_SUFFIXES libbson-1.0)
-   MESSAGE(" * Includes: ${LIBBSON_INCLUDE_DIR}")
-   IF ((NOT LIBBSON_INCLUDE_DIR) OR (NOT LIBBSON_LIBRARY))
-      MESSAGE(FATAL_ERROR
-              " Cannot find MongoDB BSON library! Try:\n"
-              " * Ubuntu/Debian: sudo apt install -y libbson-dev\n"
-              " * Fedora:        sudo dnf install -y libbson-devel\n"
-              " * FreeBSD:       sudo pkg install -y libbson")
-   ENDIF()
-ELSE()
-   MESSAGE("MongoDB backend disabled!")
-ENDIF()
+FIND_PACKAGE(PythonInterp 3.4.0 REQUIRED)
 
 
 #############################################################################

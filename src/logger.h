@@ -12,7 +12,7 @@
 // =================================================================
 //
 // High-Performance Connectivity Tracer (HiPerConTracer)
-// Copyright (C) 2015-2022 by Thomas Dreibholz
+// Copyright (C) 2015-2023 by Thomas Dreibholz
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -42,7 +42,11 @@ BOOST_LOG_GLOBAL_LOGGER(MyLogger, boost::log::sources::severity_logger_mt<boost:
 #define HPCT_LOG(_severity_) BOOST_LOG_SEV(MyLogger::get(), boost::log::trivial::_severity_)
 
 
-void initialiseLogger(const unsigned int logLevel = 0);
+void initialiseLogger(const unsigned int logLevel = 0,
+                      const bool         logColor = true,
+                      const char*        logFile  = nullptr
+                      // const char*        logTarget = "hipercontracer-%Y%m%dT%H:%M:%S.log"
+                     );
 
 
 #endif

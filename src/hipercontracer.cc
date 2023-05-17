@@ -12,7 +12,7 @@
 // =================================================================
 //
 // High-Performance Connectivity Tracer (HiPerConTracer)
-// Copyright (C) 2015-2022 by Thomas Dreibholz
+// Copyright (C) 2015-2023 by Thomas Dreibholz
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -98,7 +98,9 @@ int main(int argc, char** argv)
    // ====== Initialize =====================================================
    unsigned int             identifier;
    unsigned int             logLevel;
-   std::string              user((getlogin() != nullptr) ? getlogin() : "");
+   bool                     logColor;
+   std::filesystem::path    logFile;
+   std::string              user((getlogin() != nullptr) ? getlogin() : "0");
    std::string              configurationFileName;
    bool                     serviceJitter;
    bool                     servicePing;
@@ -131,7 +133,7 @@ int main(int argc, char** argv)
    uint16_t                 udpDestinationPort;
 
    unsigned int             resultsTransactionLength;
-   std::string              resultsDirectory;
+   std::filesystem::path    resultsDirectory;
    std::string              resultsCompressionString;
    ResultsWriterCompressor  resultsCompression;
    unsigned int             resultsFormat;
@@ -144,6 +146,12 @@ int main(int argc, char** argv)
       ( "loglevel,L",
            boost::program_options::value<unsigned int>(&logLevel)->default_value(boost::log::trivial::severity_level::info),
            "Set logging level" )
+      ( "logfile,O",
+           boost::program_options::value<std::filesystem::path>(&logFile)->default_value(std::filesystem::path()),
+           "Log file" )
+      ( "logcolor,Z",
+           boost::program_options::value<bool>(&logColor)->default_value(true),
+           "Use ANSI color escape sequences for log output" )
       ( "verbose,v",
            boost::program_options::value<unsigned int>(&logLevel)->implicit_value(boost::log::trivial::severity_level::trace),
            "Verbose logging level" )
@@ -242,7 +250,7 @@ int main(int argc, char** argv)
            "UDP destination port" )
 
       ( "resultsdirectory,R",
-           boost::program_options::value<std::string>(&resultsDirectory)->default_value(std::string()),
+           boost::program_options::value<std::filesystem::path>(&resultsDirectory)->default_value(std::string()),
            "Results directory" )
       ( "resultstransactionlength,l",
            boost::program_options::value<unsigned int>(&resultsTransactionLength)->default_value(60),
@@ -337,7 +345,8 @@ int main(int argc, char** argv)
 
 
    // ====== Initialize =====================================================
-   initialiseLogger(logLevel);
+   initialiseLogger(logLevel, logColor,
+                    (logFile != std::filesystem::path()) ? logFile.string().c_str() : nullptr);
    const passwd* pw = getUser(user.c_str());
    if(pw == nullptr) {
       HPCT_LOG(fatal) << "Cannot find user \"" << user << "\"!";

@@ -12,7 +12,7 @@
 // =================================================================
 //
 // High-Performance Connectivity Tracer (HiPerConTracer)
-// Copyright (C) 2015-2022 by Thomas Dreibholz
+// Copyright (C) 2015-2023 by Thomas Dreibholz
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -37,6 +37,7 @@
 
 #include <chrono>
 #include <filesystem>
+#include <cstring>
 #include <iomanip>
 #include <map>
 #include <set>
@@ -47,10 +48,10 @@
 
 const passwd* getUser(const char* user);
 bool reducePrivileges(const passwd* pw);
-bool is_subdir_of(const std::filesystem::path& path1,
-                  const std::filesystem::path& path2);
-std::filesystem::path relative_to(const std::filesystem::path& dataFile,
-                                  const std::filesystem::path& basePath);
+int subDirectoryOf(const std::filesystem::path& path1,
+                   const std::filesystem::path& path2);
+std::filesystem::path relativeTo(const std::filesystem::path& dataFile,
+                                 const std::filesystem::path& basePath);
 
 bool addSourceAddress(std::map<boost::asio::ip::address, std::set<uint8_t>>& array,
                       const std::string&                                     addressString,
@@ -176,12 +177,16 @@ template <typename TimePoint> bool stringToTimePoint(
    }
 
    // ====== Handle fractional seconds ======================================
-   double f;
-   if (iss.peek() != '.' || !(iss >> f)) {
-      return false;
+   const size_t l = strlen(format);
+   if( (format[l - 2] == '%') &&
+       (format[l - 1] == 'S') ) {
+      double f;
+      if (iss.peek() != '.' || !(iss >> f)) {
+         return false;
+      }
+      const size_t fseconds = f * std::chrono::high_resolution_clock::period::den / std::chrono::high_resolution_clock::period::num;
+      timePoint += std::chrono::high_resolution_clock::duration(fseconds);
    }
-   const size_t fseconds = f * std::chrono::high_resolution_clock::period::den / std::chrono::high_resolution_clock::period::num;
-   timePoint += std::chrono::high_resolution_clock::duration(fseconds);
 
    return true;
 }

@@ -12,7 +12,7 @@
 // =================================================================
 //
 // High-Performance Connectivity Tracer (HiPerConTracer)
-// Copyright (C) 2015-2022 by Thomas Dreibholz
+// Copyright (C) 2015-2023 by Thomas Dreibholz
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -111,7 +111,7 @@ void Worker::processFile(DatabaseClientBase&          databaseClient,
    const std::uintmax_t size = std::filesystem::file_size(dataFile, ec);
    if( (!ec) && (size == 0) ) {
       HPCT_LOG(warning) << getIdentification() << ": Empty input file "
-                       << relative_to(dataFile, Configuration.getImportFilePath());
+                       << relativeTo(dataFile, Configuration.getImportFilePath());
    }
 
    else {
@@ -124,7 +124,7 @@ void Worker::processFile(DatabaseClientBase&          databaseClient,
       int handle = open(dataFile.string().c_str(), 0, O_RDONLY);
       if(handle < 0) {
          HPCT_LOG(warning) << getIdentification() << ": Unable to open input file "
-                           << relative_to(dataFile, Configuration.getImportFilePath());
+                           << relativeTo(dataFile, Configuration.getImportFilePath());
          return;
       }
       if(posix_fadvise(handle, 0, 0, POSIX_FADV_SEQUENTIAL|POSIX_FADV_WILLNEED|POSIX_FADV_NOREUSE) < 0) {
@@ -159,7 +159,7 @@ void Worker::processFile(DatabaseClientBase&          databaseClient,
       }
       else {
          HPCT_LOG(warning) << getIdentification() << ": Unable to open input file "
-                           << relative_to(dataFile, Configuration.getImportFilePath());
+                           << relativeTo(dataFile, Configuration.getImportFilePath());
       }
    }
 }
@@ -171,12 +171,12 @@ void Worker::deleteEmptyDirectories(std::filesystem::path path)
    try {
       path = std::filesystem::canonical(std::filesystem::absolute(path));
 
-      if(is_subdir_of(path, Configuration.getImportFilePath())) {
+      if(subDirectoryOf(path, Configuration.getImportFilePath()) > 0) {
          if(path != Configuration.getImportFilePath()) {
             while(path.parent_path() != Configuration.getImportFilePath()) {
                std::filesystem::remove(path);
                HPCT_LOG(trace) << getIdentification() << ": Deleted empty directory "
-                               << relative_to(path, Configuration.getImportFilePath());
+                               << relativeTo(path, Configuration.getImportFilePath());
                path = path.parent_path();
             }
          }
@@ -192,12 +192,12 @@ void Worker::deleteImportedFile(const std::filesystem::path& dataFile)
    try {
       std::filesystem::remove(dataFile);
       HPCT_LOG(trace) << getIdentification() << ": Deleted imported file "
-                      << relative_to(dataFile, Configuration.getImportFilePath());
+                      << relativeTo(dataFile, Configuration.getImportFilePath());
       deleteEmptyDirectories(dataFile.parent_path());
    }
    catch(std::filesystem::filesystem_error& e) {
       HPCT_LOG(warning) << getIdentification() << ": Deleting imported file "
-                        << relative_to(dataFile, Configuration.getImportFilePath()) << " failed: " << e.what();
+                        << relativeTo(dataFile, Configuration.getImportFilePath()) << " failed: " << e.what();
    }
 }
 
@@ -208,7 +208,7 @@ void Worker::moveImportedFile(const std::filesystem::path& dataFile,
                               const bool                   isGood)
 {
    // ====== Construct destination path =====================================
-   assert(is_subdir_of(dataFile, Configuration.getImportFilePath()));
+   assert(subDirectoryOf(dataFile, Configuration.getImportFilePath()) > 0);
    const std::filesystem::path subdirs =
       std::filesystem::relative(dataFile.parent_path(), Configuration.getImportFilePath()) /
       Reader.getDirectoryHierarchy(dataFile, match, Configuration.getImportMaxDepth() - 1);
@@ -220,12 +220,12 @@ void Worker::moveImportedFile(const std::filesystem::path& dataFile,
       std::filesystem::create_directories(targetPath);
       std::filesystem::rename(dataFile, targetPath / dataFile.filename());
       HPCT_LOG(debug) << getIdentification() << ": Moved " << ((isGood == true) ? "good" : "bad") <<  " file "
-                      << relative_to(dataFile, Configuration.getImportFilePath());
+                      << relativeTo(dataFile, Configuration.getImportFilePath());
       deleteEmptyDirectories(dataFile.parent_path());
    }
    catch(std::filesystem::filesystem_error& e) {
       HPCT_LOG(warning) << getIdentification() << ": Moving " << ((isGood == true) ? "good" : "bad") <<  " file "
-                        << relative_to(dataFile, Configuration.getImportFilePath())
+                        << relativeTo(dataFile, Configuration.getImportFilePath())
                         << " to " << targetPath << " failed: " << e.what();
    }
 }
@@ -238,7 +238,8 @@ void Worker::finishedFile(const std::filesystem::path& dataFile,
    // Need to extract the file name parts again, in order to find the entry:
    const std::string& filename = dataFile.filename().string();
    std::smatch        match;
-   assert(std::regex_match(filename, match, Reader.getFileNameRegExp()));
+   const bool         isMatching = std::regex_match(filename, match, Reader.getFileNameRegExp());
+   assert(isMatching);
 
    // ====== File has been imported successfully ===============================
    if(success) {
@@ -261,7 +262,8 @@ void Worker::finishedFile(const std::filesystem::path& dataFile,
    }
 
    // ====== Remove file from the reader ====================================
-   assert(Reader.removeFile(dataFile, match) == 1);
+   const bool fileRemoved = Reader.removeFile(dataFile, match);
+   assert(fileRemoved);
 }
 
 
@@ -291,7 +293,7 @@ bool Worker::importFiles(const std::list<std::filesystem::path>& dataFileList)
             break;
          }
          HPCT_LOG(trace) << getIdentification() << ": Parsing "
-                           <<relative_to(dataFile, Configuration.getImportFilePath()) << " ...";
+                           <<relativeTo(dataFile, Configuration.getImportFilePath()) << " ...";
          processFile(DatabaseClient, rows, dataFile);
       }
       if(Reader.finishParsing(DatabaseClient, rows)) {

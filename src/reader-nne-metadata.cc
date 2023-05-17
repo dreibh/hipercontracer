@@ -12,7 +12,7 @@
 // =================================================================
 //
 // High-Performance Connectivity Tracer (HiPerConTracer)
-// Copyright (C) 2015-2022 by Thomas Dreibholz
+// Copyright (C) 2015-2023 by Thomas Dreibholz
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -265,7 +265,7 @@ template<typename TimePoint> TimePoint NorNetEdgeMetadataReader::parseTimeStamp(
    if( (timeStamp < now - std::chrono::hours(365 * 24)) ||   /* 1 year in the past  */
        (timeStamp > now + std::chrono::hours(24)) ) {        /* 1 day in the future */
       throw ImporterReaderDataErrorException("Bad time stamp " + std::to_string(ts) +
-                                             " in input file " + relative_to(dataFile, Configuration.getImportFilePath()).string());
+                                             " in input file " + relativeTo(dataFile, Configuration.getImportFilePath()).string());
    }
    return timeStamp;
 }
@@ -278,7 +278,7 @@ long long NorNetEdgeMetadataReader::parseDelta(const boost::property_tree::ptree
    const unsigned int delta = round(item.get<double>("delta"));
    if( (delta < 0) || (delta > 4294967295.0) ) {
       throw ImporterReaderDataErrorException("Bad delta " + std::to_string(delta) +
-                                             " in input file " + relative_to(dataFile, Configuration.getImportFilePath()).string());
+                                             " in input file " + relativeTo(dataFile, Configuration.getImportFilePath()).string());
    }
    return delta;
 }
@@ -291,12 +291,12 @@ unsigned int NorNetEdgeMetadataReader::parseNodeID(const boost::property_tree::p
    const std::string& nodeName = item.get<std::string>("node");
    if(nodeName.substr(0, 3) != "nne") {
       throw ImporterReaderDataErrorException("Bad node name " + nodeName +
-                                             " in input file " + relative_to(dataFile, Configuration.getImportFilePath()).string());
+                                             " in input file " + relativeTo(dataFile, Configuration.getImportFilePath()).string());
    }
    const unsigned int nodeID = atol(nodeName.substr(3, nodeName.size() -3).c_str());
    if( (nodeID < 1) || (nodeID > 9999) ) {
       throw ImporterReaderDataErrorException("Bad node ID " + std::to_string(nodeID) +
-                                             " in input file " + relative_to(dataFile, Configuration.getImportFilePath()).string());
+                                             " in input file " + relativeTo(dataFile, Configuration.getImportFilePath()).string());
    }
    return nodeID;
 }
@@ -309,7 +309,7 @@ unsigned int NorNetEdgeMetadataReader::parseNetworkID(const boost::property_tree
    const unsigned int networkID = item.get<unsigned int>("network_id");
    if(networkID > 99) {   // MNC is a two-digit number
       throw ImporterReaderDataErrorException("Bad network ID " + std::to_string(networkID) +
-                                             " in input file " + relative_to(dataFile, Configuration.getImportFilePath()).string());
+                                             " in input file " + relativeTo(dataFile, Configuration.getImportFilePath()).string());
    }
    return networkID;
 }
@@ -322,7 +322,7 @@ std::string NorNetEdgeMetadataReader::parseMetadataKey(const boost::property_tre
    const std::string& metadataKey = item.get<std::string>("key");
    if(metadataKey.size() > 45) {
       throw ImporterReaderDataErrorException("Too long metadata key " + metadataKey +
-                                             " in input file " + relative_to(dataFile, Configuration.getImportFilePath()).string());
+                                             " in input file " + relativeTo(dataFile, Configuration.getImportFilePath()).string());
    }
    return metadataKey;
 }
@@ -335,7 +335,7 @@ std::string NorNetEdgeMetadataReader::parseMetadataValue(const boost::property_t
    std::string metadataValue = item.get<std::string>("value");
    if(metadataValue.size() > 500) {
       throw ImporterReaderDataErrorException("Too long metadata value " + metadataValue +
-                                             " in input file " + relative_to(dataFile, Configuration.getImportFilePath()).string());
+                                             " in input file " + relativeTo(dataFile, Configuration.getImportFilePath()).string());
    }
    if(metadataValue == "null") {
       metadataValue = std::string();
@@ -351,7 +351,7 @@ std::string NorNetEdgeMetadataReader::parseExtra(const boost::property_tree::ptr
    std::string extra = item.get<std::string>("extra", std::string());
    if(extra.size() > 500) {
       throw ImporterReaderDataErrorException("Too long extra " + extra +
-                                             " in input file " + relative_to(dataFile, Configuration.getImportFilePath()).string());
+                                             " in input file " + relativeTo(dataFile, Configuration.getImportFilePath()).string());
    }
    if(extra == "null") {
       extra = std::string();
@@ -456,7 +456,7 @@ void NorNetEdgeMetadataReader::parseContents(
             if(showNodeIDFixWarning) {
                HPCT_LOG(debug) << Identification << ": Bad NodeID fix: " << nodeID << " -> "
                                << nodeIDFromPath << " for "
-                               << relative_to(dataFile, Configuration.getImportFilePath());
+                               << relativeTo(dataFile, Configuration.getImportFilePath());
                showNodeIDFixWarning = false;
             }
             nodeID = nodeIDFromPath;
@@ -474,7 +474,7 @@ void NorNetEdgeMetadataReader::parseContents(
             if((us % 1000000) == 0) {
                if(showTimeStampFixWarning) {
                   HPCT_LOG(debug) << Identification << ": Applying time stamp fix for "
-                                    << relative_to(dataFile, Configuration.getImportFilePath());
+                                    << relativeTo(dataFile, Configuration.getImportFilePath());
                   showTimeStampFixWarning = false;
                }
 
@@ -484,7 +484,8 @@ void NorNetEdgeMetadataReader::parseContents(
                   timeStampFix = new TimeStampFix;
                   assert(timeStampFix != nullptr);
                   timeStampFix->TSFixTimeOffset = std::chrono::microseconds(1);
-                  assert(TSFixMap.insert(std::pair<unsigned int, TimeStampFix*>(nodeID, timeStampFix)).second);
+                  const bool success = TSFixMap.insert(std::pair<unsigned int, TimeStampFix*>(nodeID, timeStampFix)).second;
+                  assert(success);
                }
                else {
                   timeStampFix = found->second;
@@ -572,13 +573,13 @@ void NorNetEdgeMetadataReader::parseContents(
          }
          else {
             throw ImporterReaderDataErrorException("Got unknown metadata type " + itemType +
-                                                   " in input file " + relative_to(dataFile, Configuration.getImportFilePath()).string());
+                                                   " in input file " + relativeTo(dataFile, Configuration.getImportFilePath()).string());
          }
       }
    }
    catch(const boost::property_tree::ptree_error& exception) {
       throw ImporterReaderDataErrorException("JSON processing failed in input file " +
-                                             relative_to(dataFile, Configuration.getImportFilePath()).string() + ": " +
+                                             relativeTo(dataFile, Configuration.getImportFilePath()).string() + ": " +
                                              exception.what());
    }
 }

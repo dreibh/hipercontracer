@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 #
 # Create Test CA Hierarchy and Test Certificates
-# Copyright (C) 2022 by Thomas Dreibholz
+# Copyright (C) 2022-2023 by Thomas Dreibholz
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -348,8 +348,7 @@ subjectAltName         = ${ENV::SAN}
 
       # ====== Generate initial CRL =========================================
       GlobalCRLSet.add(self.CRLFileName)
-      if not os.path.isfile(self.CRLFileName):
-         self.generateCRL()
+      self.generateCRL()
 
 
       # ====== Verify certificate ===========================================

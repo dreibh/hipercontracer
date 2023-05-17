@@ -12,7 +12,7 @@
 // =================================================================
 //
 // High-Performance Connectivity Tracer (HiPerConTracer)
-// Copyright (C) 2015-2022 by Thomas Dreibholz
+// Copyright (C) 2015-2023 by Thomas Dreibholz
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -119,6 +119,7 @@ class ReaderImplementation : public ReaderBase
                         const unsigned int           maxTransactionSize);
    virtual ~ReaderImplementation();
 
+   virtual bool getReaderInputFileEntryForFile(const std::filesystem::path& dataFile, ReaderInputFileEntry& inputFileEntry) const;
    virtual int addFile(const std::filesystem::path& dataFile,
                        const std::smatch            match);
    virtual bool removeFile(const std::filesystem::path& dataFile,
@@ -162,6 +163,23 @@ ReaderImplementation<ReaderInputFileEntry>::~ReaderImplementation()
 }
 
 
+// ###### Get ReaderInputFileEntry for file #################################
+template<typename ReaderInputFileEntry>
+bool ReaderImplementation<ReaderInputFileEntry>::getReaderInputFileEntryForFile(
+        const std::filesystem::path& dataFile,
+        ReaderInputFileEntry&        inputFileEntry) const
+{
+   const std::string& filename = dataFile.filename().string();
+   std::smatch        match;
+   if(std::regex_match(filename, match, getFileNameRegExp())) {
+      if(makeInputFileEntry(dataFile, match, inputFileEntry, 1) >= 0) {
+         return true;
+      }
+   }
+   return false;
+}
+
+
 // ###### Add input file to reader ##########################################
 template<typename ReaderInputFileEntry>
 int ReaderImplementation<ReaderInputFileEntry>::addFile(
@@ -179,7 +197,7 @@ int ReaderImplementation<ReaderInputFileEntry>::addFile(
       // ====== Insert file entry into list =================================
       if(DataFileSet[p][workerID].insert(inputFileEntry).second) {
          HPCT_LOG(trace) << getIdentification() << ": Added input file "
-                         << relative_to(dataFile, Configuration.getImportFilePath()) << " to reader";
+                         << relativeTo(dataFile, Configuration.getImportFilePath()) << " to reader";
          return workerID;
       }
    }
@@ -197,7 +215,7 @@ bool ReaderImplementation<ReaderInputFileEntry>::removeFile(
    const int workerID = makeInputFileEntry(dataFile, match, inputFileEntry, Workers);
    if(workerID >= 0) {
       HPCT_LOG(trace) << getIdentification() << ": Removing input file "
-                      << relative_to(dataFile, Configuration.getImportFilePath()) << " from reader";
+                      << relativeTo(dataFile, Configuration.getImportFilePath()) << " from reader";
       std::unique_lock lock(Mutex);
 
       for(int p = ReaderPriority::Max; p >= 0; p--) {
@@ -237,7 +255,7 @@ unsigned int ReaderImplementation<ReaderInputFileEntry>::fetchFiles(
 }
 
 
-// ###### Make directory hierarchy from NorNetEdgePingFileEntry #############
+// ###### Make directory hierarchy from ReaderInputFileEntry ################
 template<typename ReaderInputFileEntry>
 std::filesystem::path ReaderImplementation<ReaderInputFileEntry>::getDirectoryHierarchy(
    const std::filesystem::path& dataFile,

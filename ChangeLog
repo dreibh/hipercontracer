@@ -1,3 +1,57 @@
+commit e1931d7a4d1f1b258559c32fc53027aefa778023
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Apr 18 20:17:26 2023 +0200
+
+    Updated build scripts
+
+commit 1f44f2cd30a9dae6046a52ae45480af3f60ff1b0
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Apr 18 20:11:56 2023 +0200
+
+    Build fix for BOOST <= 1.65.
+
+commit 47e4172686363caa7f860a14a43f7446048022f7
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Mar 9 17:01:42 2023 +0100
+
+    Fixed includes for build on recent systems.
+
+commit e56d4b7dacd32073ef14fed8837b78c200de3ef9
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Sun Jan 22 22:44:10 2023 +1100
+
+    New release hipercontracer-1.6.7.
+
+commit f8b71215a297c026c707578944fb61840332b89a
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Sat Jan 21 22:02:47 2023 +1100
+
+    Updated build scripts
+
+commit d0ee4cf7acc292db730de921cec22bf4f6cab0e1
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Fri Jan 6 21:38:01 2023 +1100
+
+    URL change from UDE to NNTB.
+
+commit 63f3498fd452ea6c75a61b2f1d94f08424892256
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Fri Jan 6 10:41:55 2023 +1100
+
+    Updated CI scripts
+
+commit cc513442b608861ffa044540ea92ede2b8031f71
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Fri Jan 6 10:41:54 2023 +1100
+
+    Updated build scripts
+
+commit 8ac6a97597db38b5f08580601b0ca0d0964b49b4
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Sun Sep 11 13:05:12 2022 +0200
+
+    New release hipercontracer-1.6.6.
+
 commit 1ef81a3ad6c957e1882e31eda1950f45c3e80a41
 Merge: 0642920 acba95d
 Author: Thomas Dreibholz <dreibh@simula.no>

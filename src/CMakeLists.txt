@@ -12,7 +12,7 @@
 #  =================================================================
 #
 #  High-Performance Connectivity Tracer (HiPerConTracer)
-#  Copyright (C) 2015-2022 by Thomas Dreibholz
+#  Copyright (C) 2015-2023 by Thomas Dreibholz
 #
 #  This program is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -85,90 +85,90 @@ FOREACH(TYPE shared;static)
 ENDFOREACH()
 
 # ====== libuniversalimporter ==================================================
-LIST(APPEND libuniversalimporter_headers
-   logger.h
-   tools.h
-   database-configuration.h
-   database-statement.h
-   databaseclient-base.h
-   databaseclient-debug.h
-   reader-base.h
-   reader-ping.h
-   reader-traceroute.h
-   universal-importer.h
-   worker.h
-)
-LIST(APPEND libuniversalimporter_sources
-   logger.cc
-   tools.cc
-   database-configuration.cc
-   database-statement.cc
-   databaseclient-base.cc
-   databaseclient-debug.cc
-   reader-base.cc
-   reader-ping.cc
-   reader-ping.cc
-   reader-traceroute.cc
-   universal-importer.cc
-   worker.cc
-)
+IF (WITH_IMPORTER)
+   LIST(APPEND libuniversalimporter_headers
+      logger.h
+      tools.h
+      database-configuration.h
+      database-statement.h
+      databaseclient-base.h
+      databaseclient-debug.h
+      importer-exception.h
+      reader-base.h
+      universal-importer.h
+      worker.h
+   )
+   LIST(APPEND libuniversalimporter_sources
+      logger.cc
+      tools.cc
+      database-configuration.cc
+      database-statement.cc
+      databaseclient-base.cc
+      databaseclient-debug.cc
+      reader-base.cc
+      universal-importer.cc
+      worker.cc
+   )
 
-IF (ENABLE_BACKEND_MARIADB)
-   LIST(APPEND libuniversalimporter_headers databaseclient-mariadb.h)
-   LIST(APPEND libuniversalimporter_sources databaseclient-mariadb.cc)
-ENDIF()
-IF (ENABLE_BACKEND_POSTGRESQL)
-   LIST(APPEND libuniversalimporter_headers databaseclient-postgresql.h)
-   LIST(APPEND libuniversalimporter_sources databaseclient-postgresql.cc)
-ENDIF()
-IF (ENABLE_BACKEND_MONGODB)
-   LIST(APPEND libuniversalimporter_headers databaseclient-mongodb.h)
-   LIST(APPEND libuniversalimporter_sources databaseclient-mongodb.cc)
-ENDIF()
-
-
-INSTALL(FILES ${libuniversalimporter_headers} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/universalimporter)
-
-IF (NOT STATIC_BUILD)
-   ADD_LIBRARY(libuniversalimporter-shared SHARED ${libuniversalimporter_sources})
-ENDIF()
-ADD_LIBRARY(libuniversalimporter-static STATIC ${libuniversalimporter_sources})
-FOREACH(TYPE shared;static)
-   IF (("${TYPE}" STREQUAL "static") OR (NOT STATIC_BUILD))
-      SET_TARGET_PROPERTIES(libuniversalimporter-${TYPE} PROPERTIES OUTPUT_NAME universalimporter CLEAN_DIRECT_OUTPUT 1)
-      SET_TARGET_PROPERTIES(libuniversalimporter-${TYPE} PROPERTIES
-         VERSION   ${BUILD_VERSION}
-         SOVERSION ${BUILD_MAJOR}
-      )
-      TARGET_INCLUDE_DIRECTORIES(libuniversalimporter-${TYPE} PUBLIC ${MYSQLCPPCONN_INCLUDE_DIR} ${LIBMONGOC_INCLUDE_DIR} ${LIBBSON_INCLUDE_DIR} ${INotify_INCLUDE_DIRS})
-      TARGET_LINK_LIBRARIES(libuniversalimporter-${TYPE} ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} ${MYSQLCPPCONN_LIBRARY} ${LIBPQXX_LIBRARY} ${LIBMONGOC_LIBRARY} ${LIBBSON_LIBRARY} ${INotify_LIBRARIES})
-      INSTALL(TARGETS libuniversalimporter-${TYPE} DESTINATION ${CMAKE_INSTALL_LIBDIR})
+   IF (ENABLE_BACKEND_MARIADB)
+      LIST(APPEND libuniversalimporter_headers databaseclient-mariadb.h)
+      LIST(APPEND libuniversalimporter_sources databaseclient-mariadb.cc)
    ENDIF()
-ENDFOREACH()
+   IF (ENABLE_BACKEND_POSTGRESQL)
+      LIST(APPEND libuniversalimporter_headers databaseclient-postgresql.h)
+      LIST(APPEND libuniversalimporter_sources databaseclient-postgresql.cc)
+   ENDIF()
+   IF (ENABLE_BACKEND_MONGODB)
+      LIST(APPEND libuniversalimporter_headers databaseclient-mongodb.h)
+      LIST(APPEND libuniversalimporter_sources databaseclient-mongodb.cc)
+   ENDIF()
+
+
+   INSTALL(FILES ${libuniversalimporter_headers} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/universalimporter)
+
+   IF (NOT STATIC_BUILD)
+      ADD_LIBRARY(libuniversalimporter-shared SHARED ${libuniversalimporter_sources})
+   ENDIF()
+   ADD_LIBRARY(libuniversalimporter-static STATIC ${libuniversalimporter_sources})
+   FOREACH(TYPE shared;static)
+      IF (("${TYPE}" STREQUAL "static") OR (NOT STATIC_BUILD))
+         SET_TARGET_PROPERTIES(libuniversalimporter-${TYPE} PROPERTIES OUTPUT_NAME universalimporter CLEAN_DIRECT_OUTPUT 1)
+         SET_TARGET_PROPERTIES(libuniversalimporter-${TYPE} PROPERTIES
+            VERSION   ${BUILD_VERSION}
+            SOVERSION ${BUILD_MAJOR}
+         )
+         TARGET_INCLUDE_DIRECTORIES(libuniversalimporter-${TYPE} PUBLIC ${MYSQLCPPCONN_INCLUDE_DIR} ${LIBMONGOC_INCLUDE_DIR} ${LIBBSON_INCLUDE_DIR} ${INotify_INCLUDE_DIRS})
+         TARGET_LINK_LIBRARIES(libuniversalimporter-${TYPE} ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} ${MYSQLCPPCONN_LIBRARY} ${LIBPQXX_LIBRARY} ${LIBMONGOC_LIBRARY} ${LIBBSON_LIBRARY} ${INotify_LIBRARIES})
+         INSTALL(TARGETS libuniversalimporter-${TYPE} DESTINATION ${CMAKE_INSTALL_LIBDIR})
+      ENDIF()
+   ENDFOREACH()
+ENDIF()
 
 
 #############################################################################
-# PYTHON LIBRARIES
+#### PYTHON LIBRARIES                                                    ####
 #############################################################################
 
-# Help:
-# https://bloerg.net/2012/11/10/cmake-and-distutils.html
+IF (WITH_QUERY)
+   # Help:
+   # https://bloerg.net/2012/11/10/cmake-and-distutils.html
 
-# NOTE: setup.py must *not* be packaged, since it is automatically generated!
-# It has to be added to CPACK_SOURCE_IGNORE_FILES (i.e. "setup.py$")!
+   # NOTE: setup.py must *not* be packaged, since it is automatically generated!
+   # It has to be added to CPACK_SOURCE_IGNORE_FILES (i.e. "setup.py$")!
 
-SET(SETUP_PY_IN "${CMAKE_CURRENT_SOURCE_DIR}/setup.py.in")
-SET(SETUP_PY    "${CMAKE_CURRENT_BINARY_DIR}/setup.py")
-# SET(DEPS        "${CMAKE_CURRENT_SOURCE_DIR}/module/__init__.py")
-SET(OUTPUT      "${CMAKE_CURRENT_BINARY_DIR}/build/timestamp")
+   SET(SETUP_PY_IN "${CMAKE_CURRENT_SOURCE_DIR}/setup.py.in")
+   SET(SETUP_PY    "${CMAKE_CURRENT_BINARY_DIR}/setup.py")
+   # SET(DEPS        "${CMAKE_CURRENT_SOURCE_DIR}/module/__init__.py")
+   SET(OUTPUT      "${CMAKE_CURRENT_BINARY_DIR}/build/timestamp")
 
-CONFIGURE_FILE(${SETUP_PY_IN} ${SETUP_PY})
+   CONFIGURE_FILE(${SETUP_PY_IN} ${SETUP_PY})
 
-ADD_CUSTOM_COMMAND(OUTPUT ${OUTPUT}
-                   COMMAND ${PYTHON_EXECUTABLE} ${SETUP_PY} build && touch ${OUTPUT})
-ADD_CUSTOM_TARGET(target ALL DEPENDS ${OUTPUT})
+   ADD_CUSTOM_COMMAND(OUTPUT ${OUTPUT}
+                      COMMAND ${PYTHON_EXECUTABLE} ${SETUP_PY} build && touch ${OUTPUT})
+   ADD_CUSTOM_TARGET(target ALL DEPENDS ${OUTPUT})
 
-INSTALL(CODE "EXECUTE_PROCESS(COMMAND ${PYTHON_EXECUTABLE} ${SETUP_PY} install ${PYTHON_SETUP_OPTS} --prefix=${PYTHON_LIBRARY_PREFIX})")
+   INSTALL(CODE "EXECUTE_PROCESS(COMMAND ${PYTHON_EXECUTABLE} ${SETUP_PY} install ${PYTHON_SETUP_OPTS} --prefix=${PYTHON_LIBRARY_PREFIX})")
+ENDIF()
 
 
 #############################################################################
@@ -188,34 +188,41 @@ INSTALL(TARGETS hipercontracer RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
 INSTALL(FILES hipercontracer.1 DESTINATION ${CMAKE_INSTALL_MANDIR}/man1)
 
 # ====== HiPerConTracer Trigger =============================================
-ADD_EXECUTABLE(hpct-trigger hpct-trigger.cc)
-TARGET_LINK_LIBRARIES(hpct-trigger libhipercontracer-${libraryType} ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} -llzma -lbz2 -lz)
-INSTALL(TARGETS hpct-trigger RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
-INSTALL(FILES hpct-trigger.1 DESTINATION ${CMAKE_INSTALL_MANDIR}/man1)
+IF (WITH_TRIGGER)
+   ADD_EXECUTABLE(hpct-trigger hpct-trigger.cc)
+   TARGET_LINK_LIBRARIES(hpct-trigger libhipercontracer-${libraryType} ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} -llzma -lbz2 -lz)
+   INSTALL(TARGETS hpct-trigger RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
+   INSTALL(FILES hpct-trigger.1 DESTINATION ${CMAKE_INSTALL_MANDIR}/man1)
+ENDIF()
 
 # ====== HiPerConTracer Importer ============================================
-ADD_EXECUTABLE(hpct-importer hpct-importer.cc
-   reader-ping.cc
-   reader-traceroute.cc
-)
-TARGET_LINK_LIBRARIES(hpct-importer libuniversalimporter-${libraryType} ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} -llzma -lbz2 -lz)
-INSTALL(TARGETS hpct-importer RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
-INSTALL(FILES hpct-importer.1 DESTINATION ${CMAKE_INSTALL_MANDIR}/man1)
+IF (WITH_IMPORTER)
+   ADD_EXECUTABLE(hpct-importer hpct-importer.cc
+      reader-ping.cc
+      reader-traceroute.cc
+   )
+   TARGET_LINK_LIBRARIES(hpct-importer libuniversalimporter-${libraryType} ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} -llzma -lbz2 -lz)
+   INSTALL(TARGETS hpct-importer RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
+   INSTALL(FILES hpct-importer.1 DESTINATION ${CMAKE_INSTALL_MANDIR}/man1)
+ENDIF()
 
 # ====== HiPerConTracer Query ===============================================
-INSTALL(PROGRAMS hpct-query
-        DESTINATION ${CMAKE_INSTALL_BINDIR})
-INSTALL(FILES hpct-query.1
-        DESTINATION ${CMAKE_INSTALL_MANDIR}/man1)
+IF (WITH_QUERY)
+   INSTALL(PROGRAMS hpct-query
+           DESTINATION ${CMAKE_INSTALL_BINDIR})
+   INSTALL(FILES hpct-query.1
+           DESTINATION ${CMAKE_INSTALL_MANDIR}/man1)
+ENDIF()
 
 # ====== UDP Echo Server ====================================================
-ADD_EXECUTABLE(udp-echo-server udp-echo-server.cc logger.cc tools.cc)
-TARGET_LINK_LIBRARIES(udp-echo-server ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} -llzma -lbz2 -lz)
-INSTALL(TARGETS udp-echo-server
-        DESTINATION ${CMAKE_INSTALL_BINDIR})
-INSTALL(FILES udp-echo-server.1
-        DESTINATION ${CMAKE_INSTALL_MANDIR}/man1)
-
+IF (WITH_UDP_ECHO_SERVER)
+   ADD_EXECUTABLE(udp-echo-server udp-echo-server.cc logger.cc tools.cc)
+   TARGET_LINK_LIBRARIES(udp-echo-server ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} -llzma -lbz2 -lz)
+   INSTALL(TARGETS udp-echo-server
+           DESTINATION ${CMAKE_INSTALL_BINDIR})
+   INSTALL(FILES udp-echo-server.1
+           DESTINATION ${CMAKE_INSTALL_MANDIR}/man1)
+ENDIF()
 
 # ====== Scripts ============================================================
 INSTALL(PROGRAMS get-default-ips
@@ -253,7 +260,9 @@ INSTALL(FILES hipercontracer-database.conf
 #### SUBDIRECTORIES                                                      ####
 #############################################################################
 
-ADD_SUBDIRECTORY(SQL)
-ADD_SUBDIRECTORY(NoSQL)
-ADD_SUBDIRECTORY(TestDB)
-ADD_SUBDIRECTORY(examples)
+IF (WITH_IMPORTER)
+   ADD_SUBDIRECTORY(SQL)
+   ADD_SUBDIRECTORY(NoSQL)
+   ADD_SUBDIRECTORY(TestDB)
+   ADD_SUBDIRECTORY(examples)
+ENDIF()
