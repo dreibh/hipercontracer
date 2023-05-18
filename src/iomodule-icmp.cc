@@ -440,6 +440,9 @@ void ICMPModule::handleResponse(const boost::system::error_code& errorCode,
                   }
 #endif
                   else if(cmsg->cmsg_type == SO_TIMESTAMP) {
+#if defined (SO_TS_CLOCK)
+#error FreeBSD FIXME!
+#endif
                      const timeval* tv = (const timeval*)CMSG_DATA(cmsg);
                      receivedData.ReceiveSWSource = TimeSourceType::TST_TIMESTAMP;
                      receivedData.ReceiveSWTime   = ResultTimePoint(
