@@ -35,13 +35,34 @@ library(assert)
 library(data.table)
 
 
+# ###### Open file with support for decompression ###########################
+openFile <- function(name)
+{
+   if(length(grep("\\.xz$", name)) > 0) {
+      inputFile <- xzfile(name)
+   }
+   else if(length(grep("\\.bz2$", name)) > 0) {
+      inputFile <- bzfile(name)
+   }
+   else if(length(grep("\\.gz$", name)) > 0) {
+      inputFile <- gzfile(name)
+   }
+   else {
+      inputFile <- open(name)
+   }
+   return(inputFile)
+}
+
+
 # ###### Read HiPerConTracer output file ####################################
 readHiPerConTracerTracerouteResults <- function(name)
 {
-   print(paste(sep="", "Trying to read ", name, " ..."))
-   inputFile <- xzfile(name)
-   lines     <- readLines(inputFile)
+   cat(sep="", "Trying to read ", name, " ...\n")
 
+   inputFile <- openFile(name)
+   lines <- readLines(inputFile)
+
+   version   <- NA
    row       <- NA
    hop       <- 0
    data      <- data.table()
@@ -49,53 +70,90 @@ readHiPerConTracerTracerouteResults <- function(name)
       values <- strsplit(line, " +")[[1]]
       if(substr(values[1], 1, 2) == "#T") {
          protocol <- substr(values[1], 3, 1000000)
-         if(protocol == "i") {
+         if(protocol == "") {
             protocol <- "ICMP"
+            version  <- 1
+         }
+         else if(protocol == "i") {
+            protocol <- "ICMP"
+            version  <- 2
          }
          else if(protocol == "u") {
             protocol <- "UDP"
+            version  <- 2
          }
          else {
             stop(paste(sep="", "ERROR: Unexpected protocol \"", line, "\"!"))
          }
 
-         row <- data.table(Timestamp       = as.numeric(paste(sep="", "0x", values[4])),
-                           Protocol        = protocol,
-                           Source          = values[2],
-                           Destination     = values[3],
-                           Round           = as.numeric(values[5]),
-                           TotalHops       = as.numeric(values[6]),
-                           TotalHops       = as.numeric(paste(sep="", "0x", values[7])),
-                           PacketSize      = as.numeric(values[8]),
-                           Checksum        = as.numeric(paste(sep="", "0x", values[9])),
-                           StatusFlags     = as.numeric(paste(sep="", "0x", values[10])),
-                           PathHash        = as.numeric(paste(sep="", "0x", values[11])),
-                           Hop             = NA,
-                           Status          = NA,
-                           LinkSource      = values[2],
-                           LinkDestination = NA,
-                           RTT.App         = NA,
-                           Queuing         = NA,
-                           RTT.SW          = NA,
-                           RTT.HW          = NA
-                          )
+         # ====== Version 1 =================================================
+         if(version == 1) {
+            row <- data.table(Timestamp       = 1000 * as.numeric(paste(sep="", "0x", values[4])),   # Convert to ns!
+                              Protocol        = protocol,
+                              Source          = values[2],
+                              Destination     = values[3],
+                              Round           = as.numeric(values[5]),
+                              TotalHops       = as.numeric(values[7]),
+                              TrafficClass    = as.numeric(paste(sep="", "0x", values[10])),
+                              PacketSize      = as.numeric(values[11]),
+                              Checksum        = as.numeric(paste(sep="", "0x", values[6])),
+                              StatusFlags     = as.numeric(paste(sep="", "0x", values[8])),
+                              PathHash        = as.numeric(paste(sep="", "0x", values[9])),
+                              Hop             = NA,
+                              Status          = NA,
+                              LinkSource      = values[2],
+                              LinkDestination = NA,
+                              RTT.App         = NA,
+                              Queuing         = NA,
+                              RTT.SW          = NA,
+                              RTT.HW          = NA
+                           )
+         }
+         # ====== Version 2 =================================================
+         else {
+            row <- data.table(Timestamp       = as.numeric(paste(sep="", "0x", values[4])),
+                              Protocol        = protocol,
+                              Source          = values[2],
+                              Destination     = values[3],
+                              Round           = as.numeric(values[5]),
+                              TotalHops       = as.numeric(values[6]),
+                              TrafficClass    = as.numeric(paste(sep="", "0x", values[7])),
+                              PacketSize      = as.numeric(values[8]),
+                              Checksum        = as.numeric(paste(sep="", "0x", values[9])),
+                              StatusFlags     = as.numeric(paste(sep="", "0x", values[10])),
+                              PathHash        = as.numeric(paste(sep="", "0x", values[11])),
+                              Hop             = NA,
+                              Status          = NA,
+                              LinkSource      = values[2],
+                              LinkDestination = NA,
+                              RTT.App         = NA,
+                              Queuing         = NA,
+                              RTT.SW          = NA,
+                              RTT.HW          = NA
+                           )
+         }
          hop <- 1
-         print(row)
       }
       else if(substr(values[1], 1, 1) == "\t") {
-         # Remove "\t" from first value:
-         values[1] <- substr(values[1], 2, 1000000)
-
-         row$Hop             <- as.numeric(values[1])
-         row$Status          <- as.numeric(values[2])
-         row$TimeSource      <- as.numeric(paste(sep="", "0x", values[3]))
-         row$RTT.App         <- ifelse(as.numeric(values[4]) >= 0.0, as.numeric(values[4]), NA)
-         row$Queuing         <- ifelse(as.numeric(values[5]) >= 0.0, as.numeric(values[5]), NA)
-         row$RTT.SW          <- ifelse(as.numeric(values[6]) >= 0.0, as.numeric(values[6]), NA)
-         row$RTT.HW          <- ifelse(as.numeric(values[7]) >= 0.0, as.numeric(values[7]), NA)
-         row$LinkDestination <- ifelse(is.na(values[8]), "*", values[8])
-         print(values)
-         print(row)
+         # ====== Version 1 =================================================
+         if(version == 1) {
+            # "\t" has own value!
+            row$Hop             <- as.numeric(values[2])
+            row$Status          <- as.numeric(paste(sep="", "0x", values[3]))
+            row$RTT.App         <- 1000 * as.numeric(values[4])   # Convert to ns!
+            row$LinkDestination <- ifelse(is.na(values[5]), "*", values[5])
+         }
+         # ====== Version 2 =================================================
+         else {
+            row$Hop             <- as.numeric(substr(values[1], 2, 1000000))   # Remove "\t" from first value!
+            row$Status          <- as.numeric(values[2])
+            row$TimeSource      <- as.numeric(paste(sep="", "0x", values[3]))
+            row$RTT.App         <- as.numeric(values[4])
+            row$Queuing         <- ifelse(as.numeric(values[5]) >= 0.0, as.numeric(values[5]), NA)
+            row$RTT.SW          <- ifelse(as.numeric(values[6]) >= 0.0, as.numeric(values[6]), NA)
+            row$RTT.HW          <- ifelse(as.numeric(values[7]) >= 0.0, as.numeric(values[7]), NA)
+            row$LinkDestination <- ifelse(is.na(values[8]), "*", values[8])
+         }
 
          assert(hop == row$Hop)
          hop <- hop + 1
@@ -123,14 +181,19 @@ if( (length(commandArgs()) >= 1) && ((commandArgs()[2] == "--slave") || (command
      stop("Usage: r-traceroute-example traceroute-results-file")
    }
    name <- args[1]
+   csv  <- args[2]
 } else {
    # !!! NOTE: Set name here, for testing interactively in R! !!!
    name <- "Traceroute-ICMP-P293172-192.168.0.16-20230519T102355.319475-000000001.results.xz"
-   name <- "Traceroute-UDP-P293172-192.168.0.16-20230519T102355.320500-000000001.results.xz"
+   csv  <- NA
 }
 
+# ====== Read input data ====================================================
 data <- readHiPerConTracerTracerouteResults(name)
-print(colnames(data))
 print(summary(data))
 
-write.csv(data, "traceroute.csv", quote = FALSE, row.names = FALSE)
+# ====== Write CSV file =====================================================
+if(!is.na(csv)) {
+   cat(sep="", "Writing ", csv, " ...\n")
+   write.csv(data, csv, quote = FALSE, row.names = FALSE)
+}
