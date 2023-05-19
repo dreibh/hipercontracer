@@ -32,134 +32,89 @@
 
 library(anytime)
 library(data.table)
-
-
-# ###### Open file with support for decompression ###########################
-openFile <- function(name)
-{
-   if(length(grep("\\.xz$", name)) > 0) {
-      inputFile <- xzfile(name)
-   }
-   else if(length(grep("\\.bz2$", name)) > 0) {
-      inputFile <- bzfile(name)
-   }
-   else if(length(grep("\\.gz$", name)) > 0) {
-      inputFile <- gzfile(name)
-   }
-   else {
-      inputFile <- open(name)
-   }
-   return(inputFile)
-}
+library(dplyr, warn.conflicts = FALSE)
+library(readr)
 
 
 # ###### Read HiPerConTracer output file ####################################
 readHiPerConTracerPingResults <- function(name)
 {
    cat(sep="", "Trying to read ", name, " ...\n")
+   inputData <- read_file(name)
 
-   inputFile <- openFile(name)
-   lines <- readLines(inputFile)
-
-   version   <- NA
-   row       <- NA
-   data      <- data.table()
-   for(line in lines) {
-      values <- strsplit(line, " +")[[1]]
-      if(substr(values[1], 1, 2) == "#P") {
-         protocol <- substr(values[1], 3, 1000000)
-         if(protocol == "") {
-            protocol <- "ICMP"
-            version  <- 1
-         }
-         else if(protocol == "i") {
-            protocol <- "ICMP"
-            version  <- 2
-         }
-         else if(protocol == "u") {
-            protocol <- "UDP"
-            version  <- 2
-         }
-         else {
-            stop(paste(sep="", "ERROR: Unexpected protocol \"", line, "\"!"))
-         }
-
-         # ====== Version 1 =================================================
-         if(version == 1) {
-            row <- data.table(Timestamp    = 1000 * as.numeric(paste(sep="", "0x", values[4])),   # Convert to ns!
-                              Protocol     = protocol,
-                              Source       = values[2],
-                              Destination  = values[3],
-                              BurstSeq     = NA,
-                              TrafficClass = as.numeric(paste(sep="", "0x", values[8])),
-                              PacketSize   = as.numeric(values[9]),
-                              Checksum     = as.numeric(paste(sep="", "0x", values[5])),
-                              Status       = as.numeric(values[6]),
-                              TimeSource   = NA,
-                              RTT.App      = as.numeric(values[7]),
-                              Queuing      = NA,
-                              RTT.SW       = NA,
-                              RTT.HW       = NA
-                           )
-         }
-         # ====== Version 2 =================================================
-         else {
-            row <- data.table(Timestamp    = as.numeric(paste(sep="", "0x", values[4])),
-                              Protocol     = protocol,
-                              Source       = values[2],
-                              Destination  = values[3],
-                              BurstSeq     = as.numeric(values[5]),
-                              TrafficClass = as.numeric(paste(sep="", "0x", values[6])),
-                              PacketSize   = as.numeric(values[7]),
-                              Checksum     = as.numeric(paste(sep="", "0x", values[8])),
-                              Status       = as.numeric(values[9]),
-                              TimeSource   = as.numeric(paste(sep="", "0x", values[10])),
-                              RTT.App      = as.numeric(values[11]),
-                              Queuing      = ifelse(as.numeric(values[12]) >= 0.0, as.numeric(values[12]), NA),
-                              RTT.SW       = ifelse(as.numeric(values[13]) >= 0.0, as.numeric(values[13]), NA),
-                              RTT.HW       = ifelse(as.numeric(values[14]) >= 0.0, as.numeric(values[14]), NA)
-                           )
-         }
-         data <- rbind(data, row)
-      }
-      else {
-         print(values)
-         stop(paste(sep="", "ERROR: Bad input \"", line, "\"!"))
-      }
+   # ====== Identify version ================================================
+   if(substr(inputData, 1, 3) == "#P ") {
+      version <- 1
    }
+   else if(substr(inputData, 1, 2) == "#P") {
+      version <- 2
+   }
+
+   # ====== Version 1 =======================================================
+   if(version == 1) {
+      columns <- c(
+         "Ping",           # "#P"
+         "Source",         # Source address
+         "Destination",    # Destination address
+         "Timestamp",      # Absolute time since the epoch in UTC, in microseconds (hexadeciaml)
+         "Checksum",       # Checksum (hexadeciaml)
+         "Status",         # Status (decimal)
+         "RTT.App",        # RTT in microseconds (decimal)
+         "TrafficClass",   # Traffic Class setting (hexadeciaml)
+         "PacketSize"      # Packet size, in bytes (decimal)
+      )
+      data <- fread(text = inputData, sep = " ", col.names = columns, header = FALSE) %>%
+                 mutate(Timestamp    = 1000 * as.numeric(paste(sep="", "0x", Timestamp)),   # Convert to ns!
+                        Checksum     = as.numeric(paste(sep="", "0x", Checksum)),
+                        TrafficClass = as.numeric(paste(sep="", "0x", TrafficClass)),
+                        RTT.App      = 1000 * RTT.App,   # Convert to ns!
+                        Protocol     = "ICMP",
+                        BurstSeq     = NA,
+                        TimeSource   = NA,
+                        Queuing      = NA,
+                        RTT.SW       = NA,
+                        RTT.HW       = NA)
+   }
+
+   # ====== Version 2 =======================================================
+   else if(version == 2) {
+      columns <- c(
+         "Ping",           # "#P"
+         "Source",         # Source address
+         "Destination",    # Destination address
+         "Timestamp",      # Timestamp (nanoseconds since the UTC epoch, hexadecimal).
+         "BurstSeq",       # Sequence number within a burst (decimal), numbered from 0.
+         "TrafficClass",   # Traffic Class setting (hexadeciaml)
+         "PacketSize",     # Packet size, in bytes (decimal)
+         "Checksum",       # Checksum (hexadeciaml)
+         "Status",         # Status (decimal)
+         "TimeSource",     # Source of the timing information (hexadecimal) as: AAQQSSHH
+         "RTT.App",        # The measured application RTT (nanoseconds, decimal).
+         "Queuing",        # The measured kernel software queuing delay (nanoseconds, decimal; -1 if not available).
+         "RTT.SW",         # The measured kernel software RTT (nanoseconds, decimal; -1 if not available).
+         "RTT.HW"          # The measured kernel hardware RTT (nanoseconds, decimal; -1 if not available).
+      )
+      data <- fread(text = inputData, sep = " ", col.names = columns, header = FALSE) %>%
+                 mutate(Timestamp    = as.numeric(paste(sep="", "0x", Timestamp)),
+                        Protocol     = substr(Ping, 3, 1000000),
+                        Checksum     = as.numeric(paste(sep="", "0x", Checksum)),
+                        TrafficClass = as.numeric(paste(sep="", "0x", TrafficClass)))
+
+      data$Protocol[data$Protocol == "i"] <- "ICMP"
+      data$Protocol[data$Protocol == "u"] <- "UDP"
+   }
+
+   else {
+      stop(paste(sep="", "ERROR: Unexpected version \"", lines[[1]], "\"!"))
+   }
+
+   data <- data %>%
+              relocate(Timestamp, Protocol, Source, Destination,
+                       BurstSeq, TrafficClass, PacketSize, Checksum, Status,
+                       TimeSource, RTT.App, Queuing, RTT.SW, RTT.HW) %>%
+              select(!Ping)
    return(data)
 }
-
-
-# # ###### Read HiPerConTracer output file ####################################
-# readHiPerConTracerPingResults <- function(name)
-# {
-#    print(paste(sep="", "Trying to read ", name, " ..."))
-#
-#    # NOTE:See the "hipercontracer" manpage for the format description!
-#    columns <- c(
-#       "Ping",          # "#P"
-#       "Source",        # Source address
-#       "Destination",   # Destination address
-#       "Timestamp",     # Absolute time since the epoch in UTC, in microseconds (hexadeciaml)
-#       "Checksum",      # Checksum (hexadeciaml)
-#       "Status",        # Status (decimal)
-#       "RTT",           # RTT in microseconds (decimal)
-#       "TrafficClass",  # Traffic Class setting (hexadeciaml)
-#       "PacketSize"     # Packet size, in bytes (decimal)
-#    )
-#    data <- fread(name, col.names = columns, header = FALSE)
-#
-#    # Convert time stamp with anytime() (time is in UTC!):
-#    data$TimeStamp <- anytime(as.numeric(paste(sep="", "0x", data$TimeStamp)) / 1000000.0, tz="UTC")
-#    # Convert RTT to ms:
-#    data$RTT <- data$RTT / 1000.0
-#    # Convert TrafficClass and Checksum to numbers
-#    data$Checksum     <- as.numeric(paste(sep="", "0x", data$Checksum))
-#    data$TrafficClass <- as.numeric(paste(sep="", "0x", data$TrafficClass))
-#
-#    return(data)
-# }
 
 
 
@@ -175,7 +130,8 @@ if( (length(commandArgs()) >= 1) && ((commandArgs()[2] == "--slave") || (command
    csv  <- args[2]
 } else {
    # !!! NOTE: Set name here, for testing interactively in R! !!!
-   name <- "Ping-P256751-0.0.0.0-20211212T125352.632431-000000001.results.bz2"
+   name <- "Ping-ICMP-P294036-192.168.0.16-20230519T105110.860718-000000001.results.xz"
+   # name <- "Ping-P256751-0.0.0.0-20211212T125352.632431-000000001.results.bz2"
    csv  <- NA
 }
 
