@@ -30,7 +30,7 @@
 #
 #  Contact: dreibh@simula.no
 
-library(anytime)
+# library(anytime)
 library(data.table)
 library(dplyr, warn.conflicts = FALSE)
 library(readr)

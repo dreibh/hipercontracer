@@ -30,28 +30,10 @@
 #
 #  Contact: dreibh@simula.no
 
-library(anytime)
+# library(anytime)
 library(assert)
 library(data.table)
-
-
-# ###### Open file with support for decompression ###########################
-openFile <- function(name)
-{
-   if(length(grep("\\.xz$", name)) > 0) {
-      inputFile <- xzfile(name)
-   }
-   else if(length(grep("\\.bz2$", name)) > 0) {
-      inputFile <- bzfile(name)
-   }
-   else if(length(grep("\\.gz$", name)) > 0) {
-      inputFile <- gzfile(name)
-   }
-   else {
-      inputFile <- open(name)
-   }
-   return(inputFile)
-}
+library(readr)
 
 
 # ###### Read HiPerConTracer output file ####################################
@@ -59,11 +41,12 @@ readHiPerConTracerTracerouteResults <- function(name)
 {
    cat(sep="", "Trying to read ", name, " ...\n")
 
-   inputFile <- openFile(name)
-   lines <- readLines(inputFile)
+   inputData <- read_file(name)
+   lines <- strsplit(inputData, "\n")[[1]]
 
    version   <- NA
    row       <- NA
+   rowList   <- list()
    hop       <- 0
    data      <- data.table()
    for(line in lines) {
@@ -155,19 +138,20 @@ readHiPerConTracerTracerouteResults <- function(name)
             row$RTT.HW          <- ifelse(as.numeric(values[7]) >= 0.0, as.numeric(values[7]), NA)
             row$LinkDestination <- ifelse(is.na(values[8]), "*", values[8])
          }
-
          assert(hop == row$Hop)
-         hop <- hop + 1
 
-         data <- rbind(data, row)
+         rowList <- append(rowList, list(row))
 
+         # The source for the next hop is the current hop:
          row$LinkSource <- row$LinkDestination
+         hop            <- hop + 1
       }
       else {
-         print(values)
          stop(paste(sep="", "ERROR: Bad input \"", line, "\"!"))
       }
    }
+
+   data <- data.table::rbindlist(rowList)
    return(data)
 }
 
