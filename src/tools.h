@@ -81,15 +81,15 @@ uint64_t nsSinceEpoch(const TimePoint& timePoint)
 
 // ###### Convert duration to string ########################################
 template <typename Duration>
-static std::string durationToString(const Duration& duration,
-                                    const char*     format = "%9.6fms",
-                                    const double    div    = 1000000.0,
-                                    const char*     null   = "NULL")
+std::string durationToString(const Duration& duration,
+                             const char*     format = "%9.6fms",
+                             const double    div    = 1000000.0,
+                             const char*     null   = "NULL")
 {
    std::stringstream ss;
-   if(duration != Duration::min()) {
-      ss << boost::format(format) %
-               (std::chrono::duration_cast<std::chrono::nanoseconds>(duration).count() / div);
+   double            ns = std::chrono::duration_cast<std::chrono::nanoseconds>(duration).count();
+   if(ns >= 0.0) {
+      ss << boost::format(format) % (ns / div);
    }
    else {
       ss << null;
