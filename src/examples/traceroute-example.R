@@ -126,6 +126,7 @@ readHiPerConTracerTracerouteResults <- function(name)
                               Status          = NA,
                               LinkSource      = values[2],
                               LinkDestination = NA,
+                              TimeSource      = NA,
                               RTT.App         = NA,
                               Queuing         = NA,
                               RTT.SW          = NA,
@@ -178,7 +179,7 @@ readHiPerConTracerTracerouteResults <- function(name)
 if( (length(commandArgs()) >= 1) && ((commandArgs()[2] == "--slave") || (commandArgs()[2] == "--no-echo")) ) {
    args <- commandArgs(trailingOnly = TRUE)
    if (length(args) < 1) {
-     stop("Usage: r-traceroute-example traceroute-results-file")
+     stop("Usage: r-traceroute-example traceroute-results-file [csv-file]")
    }
    name <- args[1]
    csv  <- args[2]
