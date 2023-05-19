@@ -17,7 +17,7 @@
 .\" Contact: thomas.dreibholz@gmail.com
 .\"
 .\" ###### Setup ############################################################
-.Dd December 23, 2022
+.Dd May 19, 2023
 .Dt hipercontracer 1
 .Os hipercontracer
 .\" ###### Name #############################################################
@@ -284,7 +284,6 @@ See the status code for Ping above for the lower 8 bits. Additionally:
 .Bl -tag -width indent
 .It * hopNumber: Number of the hop.
 .It * status: Status code (decimal; the values are the same as for Ping, see above).
-.It * rtt: The measured RTT (microseconds, decimal).
 .It * timesource: Source of the timing information (hexadecimal; the values are the same as for Ping, see above)
 .It * rtt_app: The measured application RTT (nanoseconds, decimal).
 .It * queuing: The measured kernel software queuing delay (nanoseconds, decimal; -1 if not available).
