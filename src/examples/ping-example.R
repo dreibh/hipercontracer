@@ -35,7 +35,7 @@ library(data.table)
 
 
 # ###### Read HiPerConTracer output file ####################################
-readHiPerConTracerResults <- function(name)
+readHiPerConTracerPingResults <- function(name)
 {
    print(paste(sep="", "Trying to read ", name, " ..."))
 
@@ -44,7 +44,7 @@ readHiPerConTracerResults <- function(name)
       "Ping",          # "#P"
       "Source",        # Source address
       "Destination",   # Destination address
-      "TimeStamp",     # Absolute time since the epoch in UTC, in microseconds (hexadeciaml)
+      "Timestamp",     # Absolute time since the epoch in UTC, in microseconds (hexadeciaml)
       "Checksum",      # Checksum (hexadeciaml)
       "Status",        # Status (decimal)
       "RTT",           # RTT in microseconds (decimal)
@@ -72,7 +72,7 @@ readHiPerConTracerResults <- function(name)
 if( (length(commandArgs()) >= 1) && ((commandArgs()[2] == "--slave") || (commandArgs()[2] == "--no-echo")) ) {
    args <- commandArgs(trailingOnly = TRUE)
    if (length(args) < 1) {
-     stop("Usage: r-example ping-results-file")
+     stop("Usage: r-ping-example ping-results-file")
    }
    name <- args[1]
 } else {
@@ -80,5 +80,6 @@ if( (length(commandArgs()) >= 1) && ((commandArgs()[2] == "--slave") || (command
    name <- "Ping-P256751-0.0.0.0-20211212T125352.632431-000000001.results.bz2"
 }
 
-data <- readHiPerConTracerResults(name)
-summary(data)
+data <- readHiPerConTracerPingResults(name)
+print(colnames(data))
+print(summary(data))
