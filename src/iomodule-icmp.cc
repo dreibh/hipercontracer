@@ -388,9 +388,14 @@ void ICMPModule::handleResponse(const boost::system::error_code& errorCode,
             msg.msg_control    = ControlBuffer;
             msg.msg_controllen = sizeof(ControlBuffer);
 
+#if defined (MSG_ERRQUEUE)
             const ssize_t length =
                recvmsg(socketDescriptor, &msg,
                        (readFromErrorQueue == true) ? MSG_ERRQUEUE|MSG_DONTWAIT : MSG_DONTWAIT);
+#else
+            assert(readFromErrorQueue == false);
+            const ssize_t length = recvmsg(socketDescriptor, &msg, MSG_DONTWAIT); 
+#endif
             // NOTE: length == 0 for control data without user data!
             if(length < 0) {
                break;
@@ -442,8 +447,8 @@ void ICMPModule::handleResponse(const boost::system::error_code& errorCode,
                                                        std::chrono::seconds(ts->tv_sec) +
                                                        std::chrono::nanoseconds(ts->tv_nsec));
                   }
-#endif
                   else if(cmsg->cmsg_type == SO_TIMESTAMP) {
+#endif
 #if defined (SO_TS_CLOCK)
 #error FreeBSD FIXME!
 #endif
@@ -452,8 +457,11 @@ void ICMPModule::handleResponse(const boost::system::error_code& errorCode,
                      receivedData.ReceiveSWTime   = ResultTimePoint(
                                                        std::chrono::seconds(tv->tv_sec) +
                                                        std::chrono::microseconds(tv->tv_usec));
+#if defined (SO_TIMESTAMPNS)
                   }
+#endif
                }
+#if defined (MSG_ERRQUEUE)
                else if(cmsg->cmsg_level == SOL_IPV6) {
                   if(cmsg->cmsg_type == IPV6_RECVERR) {
                      socketError = (sock_extended_err*)CMSG_DATA(cmsg);
@@ -479,9 +487,13 @@ void ICMPModule::handleResponse(const boost::system::error_code& errorCode,
                      }
                   }
                }
+#else
+#error FreeBSD FIXME!
+#endif
             }
 
             // ====== TX Timestamping information via error queue ===========
+#if defined (SO_TIMESTAMPNS)
             if( (readFromErrorQueue) && (socketTXTimestamping != nullptr) ) {
                if(socketTimestamp != nullptr) {
                   updateSendTimeInResultEntry(socketTXTimestamping, socketTimestamp);
@@ -489,6 +501,7 @@ void ICMPModule::handleResponse(const boost::system::error_code& errorCode,
                // This is just the timestamp -> nothing more to do here!
                continue;
             }
+#endif
 
 #if defined (SIOCGSTAMPNS) || defined (SIOCGSTAMP)
             // ====== No timestamping, yet? Try SIOCGSTAMPNS/SIOCGSTAMP =====
@@ -543,6 +556,7 @@ void ICMPModule::handleResponse(const boost::system::error_code& errorCode,
 void ICMPModule::updateSendTimeInResultEntry(const sock_extended_err* socketError,
                                              const scm_timestamping*  socketTimestamp)
 {
+#if defined (SO_TIMESTAMPING)
    for(std::map<unsigned short, ResultEntry*>::iterator iterator = ResultsMap.begin();
        iterator != ResultsMap.end(); iterator++) {
       ResultEntry* resultsEntry = iterator->second;
@@ -596,6 +610,7 @@ void ICMPModule::updateSendTimeInResultEntry(const sock_extended_err* socketErro
       }
    }
    HPCT_LOG(warning) << "Not found: timeStampSeqID=" << socketError->ee_data;
+#endif
 }
 
 
