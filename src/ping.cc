@@ -140,6 +140,11 @@ void Ping::sendRequests()
       // All packets in this call use the same checksum.
       // The next sendRequests() call may use a different checksum.
       TargetChecksumArray[0] = IOModule->getIdentifier() ^ SeqNumber;
+      if(TargetChecksumArray[0] == 0xffff) {
+         // RFC 1624: Checksum 0xffff == -0 cannot occur, since there is
+         //           always at least one non-zero field in each packet!
+         TargetChecksumArray[0] = 0x0000;
+      }
       for(unsigned int i = 1; i < Rounds; i++) {
          TargetChecksumArray[i] = TargetChecksumArray[0];
       }

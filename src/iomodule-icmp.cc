@@ -287,6 +287,10 @@ unsigned int ICMPModule::sendRequest(const DestinationInfo& destination,
          }
          // ------ Target checksum given ------------------------------------
          else {
+            // RFC 1624: Checksum 0xffff == -0 cannot occur, since there is
+            //           always at least one non-zero field in each packet!
+            assert(targetChecksumArray[round] != 0xffff);
+
             const uint16_t originalChecksum = echoRequest.checksum();
 
             // Compute value to tweak checksum to target value
