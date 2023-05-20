@@ -1,0 +1,61 @@
+#!/usr/bin/Rscript
+#  =================================================================
+#           #     #                 #     #
+#           ##    #   ####   #####  ##    #  ######   #####
+#           # #   #  #    #  #    # # #   #  #          #
+#           #  #  #  #    #  #    # #  #  #  #####      #
+#           #   # #  #    #  #####  #   # #  #          #
+#           #    ##  #    #  #   #  #    ##  #          #
+#           #     #   ####   #    # #     #  ######     #
+#
+#        ---   The NorNet Testbed for Multi-Homed Systems  ---
+#                        https://www.nntb.no
+#  =================================================================
+#
+#  High-Performance Connectivity Tracer (HiPerConTracer)
+#  Copyright (C) 2015-2023 by Thomas Dreibholz
+#
+#  This program is free software: you can redistribute it and/or modify
+#  it under the terms of the GNU General Public License as published by
+#  the Free Software Foundation, either version 3 of the License, or
+#  (at your option) any later version.
+#
+#  This program is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
+#
+#  You should have received a copy of the GNU General Public License
+#  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+#  Contact: dreibh@simula.no
+
+source("HiPerConTracer.R")
+
+
+# ###### Main program #######################################################
+
+# ====== Handle arguments ===================================================
+if( (length(commandArgs()) >= 1) && ((commandArgs()[2] == "--slave") || (commandArgs()[2] == "--no-echo")) ) {
+   args <- commandArgs(trailingOnly = TRUE)
+   if (length(args) < 1) {
+     stop("Usage: r-ping-example ping-results-file [csv-file]")
+   }
+   name <- args[1]
+   csv  <- args[2]
+} else {
+   # !!! NOTE: Set name here, for testing interactively in R! !!!
+   # name <- "Ping-P256751-0.0.0.0-20211212T125352.632431-000000001.results.bz2"
+   name <- "Ping-ICMP-P56277-10.44.33.50-20230520T085512.537837-000000003.results.xz"
+   csv  <- NA
+}
+
+# ====== Read input data ====================================================
+data <- readHiPerConTracerPingResults(name)
+print(summary(data))
+
+# ====== Write CSV file =====================================================
+if(!is.na(csv)) {
+   cat(sep="", "Writing ", csv, " ...\n")
+   write.csv(data, csv, quote = FALSE, row.names = FALSE)
+}
