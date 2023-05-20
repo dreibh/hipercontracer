@@ -255,21 +255,20 @@ void Ping::writePingResultEntry(const ResultEntry* resultEntry,
          const unsigned long long sendTimeStamp = nsSinceEpoch<ResultTimePoint>(
             resultEntry->sendTime(TXTimeStampType::TXTST_Application));
 
-         unsigned int timeSourceApplication;
-         unsigned int timeSourceQueuing;
-         unsigned int timeSourceSoftware;
-         unsigned int timeSourceHardware;
-         const ResultDuration rttApplication = resultEntry->rtt(RXTimeStampType::RXTST_Application, timeSourceApplication);
-         const ResultDuration queuingDelay   = resultEntry->queuingDelay(timeSourceQueuing);
-         const ResultDuration rttSoftware    = resultEntry->rtt(RXTimeStampType::RXTST_ReceptionSW, timeSourceSoftware);
-         const ResultDuration rttHardware    = resultEntry->rtt(RXTimeStampType::RXTST_ReceptionHW, timeSourceHardware);
-         const unsigned int   timeSource     = (timeSourceApplication << 24) |
-                                               (timeSourceQueuing     << 16) |
-                                               (timeSourceSoftware    << 8) |
-                                               timeSourceHardware;
+         unsigned int   timeSource;
+         ResultDuration rttApplication;
+         ResultDuration rttSoftware;
+         ResultDuration rttHardware;
+         ResultDuration appSendDelay;
+         ResultDuration appReceiveDelay;
+         ResultDuration queuingDelay;
+
+         resultEntry->obtainValues(timeSource,
+                                   rttApplication, rttSoftware, rttHardware,
+                                   queuingDelay, appSendDelay, appReceiveDelay);
 
          ResultsOutput->insert(
-            str(boost::format("%s#P%c %s %s %x %d %x %d %x %d %08x %d %d %d %d")
+            str(boost::format("%s#P%c %s %s %x %d %x %d %x %d %08x %d %d %d %d %d %d")
                % indentation
                % (unsigned char)IOModule->getProtocolType()
 
@@ -284,8 +283,10 @@ void Ping::writePingResultEntry(const ResultEntry* resultEntry,
                % resultEntry->status()
 
                % timeSource
-               % std::chrono::duration_cast<std::chrono::nanoseconds>(rttApplication).count()
+               % std::chrono::duration_cast<std::chrono::nanoseconds>(appSendDelay).count()
                % std::chrono::duration_cast<std::chrono::nanoseconds>(queuingDelay).count()
+               % std::chrono::duration_cast<std::chrono::nanoseconds>(appReceiveDelay).count()
+               % std::chrono::duration_cast<std::chrono::nanoseconds>(rttApplication).count()
                % std::chrono::duration_cast<std::chrono::nanoseconds>(rttSoftware).count()
                % std::chrono::duration_cast<std::chrono::nanoseconds>(rttHardware).count()
          ));

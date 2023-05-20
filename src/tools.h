@@ -87,8 +87,8 @@ std::string durationToString(const Duration& duration,
                              const char*     null   = "NULL")
 {
    std::stringstream ss;
-   double            ns = std::chrono::duration_cast<std::chrono::nanoseconds>(duration).count();
-   if(ns >= 0.0) {
+   long long         ns = std::chrono::duration_cast<std::chrono::nanoseconds>(duration).count();
+   if(ns >= 0) {
       ss << boost::format(format) % (ns / div);
    }
    else {

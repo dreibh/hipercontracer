@@ -192,13 +192,29 @@ class ResultEntry {
                               unsigned int&         timeSource,
                               ResultTimePoint&      sendTime,
                               ResultTimePoint&      receiveTime) const;
-   bool obtainSchedulingSendTime(unsigned int&     timeSource,
-                                 ResultTimePoint&  schedulingTime,
-                                 ResultTimePoint&  sendTime) const;
-   ResultDuration rtt(const RXTimeStampType rxTimeStampType,
-                      unsigned int&         timeSource) const;
-   ResultDuration queuingDelay(unsigned int& timeSource) const;
+   bool obtainSchedulingSendTime(unsigned int&    timeSource,
+                                 ResultTimePoint& schedulingTime,
+                                 ResultTimePoint& sendTime) const;
+   bool obtainApplicationSendSchedulingTime(unsigned int&    timeSource,
+                                            ResultTimePoint& appSendTime,
+                                            ResultTimePoint& schedulingTime) const;
+   bool obtainReceptionApplicationReceiveTime(unsigned int&    timeSource,
+                                              ResultTimePoint& receiveTime,
+                                              ResultTimePoint& appReceiveTime) const;
 
+   ResultDuration getRTT(const RXTimeStampType rxTimeStampType,
+                         unsigned int&         timeSource) const;
+   ResultDuration getQueuingDelay(unsigned int& timeSource) const;
+   ResultDuration getAppSendDelay(unsigned int& timeSource) const;
+   ResultDuration getAppReceiveDelay(unsigned int& timeSource) const;
+
+   void obtainValues(unsigned int&   timeSource,
+                     ResultDuration& rttApplication,
+                     ResultDuration& rttSoftware,
+                     ResultDuration& rttHardware,
+                     ResultDuration& queuingDelay,
+                     ResultDuration& appSendDelay,
+                     ResultDuration& appReceiveDelay) const;
    ResultDuration obtainMostAccurateRTT(const RXTimeStampType rxTimeStampType,
                                         unsigned int&         timeSource) const;
 
