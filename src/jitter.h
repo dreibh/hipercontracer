@@ -65,8 +65,10 @@ class Jitter : public Ping
                       const std::vector<ResultEntry*>::const_iterator& end);
    void writeJitterResultEntry(const ResultEntry* referenceEntry,
                                const unsigned int timeSource,
-                               const JitterRFC3550& jitterApplication,
                                const JitterRFC3550& jitterQueuing,
+                               const JitterRFC3550& jitterAppSend,
+                               const JitterRFC3550& jitterAppReceive,
+                               const JitterRFC3550& jitterApplication,
                                const JitterRFC3550& jitterSoftware,
                                const JitterRFC3550& jitterHardware);
 

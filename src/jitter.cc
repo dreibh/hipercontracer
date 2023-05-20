@@ -136,15 +136,19 @@ void Jitter::computeJitter(const std::vector<ResultEntry*>::const_iterator& star
                            const std::vector<ResultEntry*>::const_iterator& end)
 {
    const ResultEntry* referenceEntry = nullptr;
-   JitterRFC3550      jitterApplication;
    JitterRFC3550      jitterQueuing;
+   JitterRFC3550      jitterAppSend;
+   JitterRFC3550      jitterAppReceive;
+   JitterRFC3550      jitterApplication;
    JitterRFC3550      jitterSoftware;
    JitterRFC3550      jitterHardware;
+   unsigned int       timeSource;
    unsigned int       timeSourceApplication;
-   unsigned int       timeSourceQueuing;
    unsigned int       timeSourceSoftware;
    unsigned int       timeSourceHardware;
-   unsigned int       timeSource = 0x00000000;
+   unsigned int       timeSourceAppSend;
+   unsigned int       timeSourceAppReceive;
+   unsigned int       timeSourceQueuing;
    ResultTimePoint    sendTime;
    ResultTimePoint    receiveTime;
 
@@ -158,16 +162,30 @@ void Jitter::computeJitter(const std::vector<ResultEntry*>::const_iterator& star
 
       // ====== Compute jitter ==============================================
       if(resultEntry->status() == Success) {
-         if(resultEntry->obtainSendReceiveTime(RXTimeStampType::RXTST_Application, timeSourceApplication, sendTime, receiveTime)) {
-            jitterApplication.process(timeSourceApplication,
-                                      nsSinceEpoch<ResultTimePoint>(sendTime),
-                                      nsSinceEpoch<ResultTimePoint>(receiveTime));
-         }
          if(resultEntry->obtainSchedulingSendTime(timeSourceQueuing, sendTime, receiveTime)) {
             // NOTE: For queuing: sendTime = schedulingTime ; receiveTime = actual send time!
             jitterQueuing.process(timeSourceQueuing,
                                   nsSinceEpoch<ResultTimePoint>(sendTime),
                                   nsSinceEpoch<ResultTimePoint>(receiveTime));
+         }
+
+         if(resultEntry->obtainApplicationSendSchedulingTime(timeSourceAppSend, sendTime, receiveTime)) {
+            // NOTE: For queuing: sendTime = schedulingTime ; receiveTime = actual send time!
+            jitterAppSend.process(timeSourceAppSend,
+                                  nsSinceEpoch<ResultTimePoint>(sendTime),
+                                  nsSinceEpoch<ResultTimePoint>(receiveTime));
+         }
+         if(resultEntry->obtainReceptionApplicationReceiveTime(timeSourceAppReceive, sendTime, receiveTime)) {
+            // NOTE: For queuing: sendTime = schedulingTime ; receiveTime = actual send time!
+            jitterAppReceive.process(timeSourceAppReceive,
+                                     nsSinceEpoch<ResultTimePoint>(sendTime),
+                                     nsSinceEpoch<ResultTimePoint>(receiveTime));
+         }
+
+         if(resultEntry->obtainSendReceiveTime(RXTimeStampType::RXTST_Application, timeSourceApplication, sendTime, receiveTime)) {
+            jitterApplication.process(timeSourceApplication,
+                                      nsSinceEpoch<ResultTimePoint>(sendTime),
+                                      nsSinceEpoch<ResultTimePoint>(receiveTime));
          }
          if(resultEntry->obtainSendReceiveTime(RXTimeStampType::RXTST_ReceptionSW, timeSourceSoftware, sendTime, receiveTime)) {
             jitterSoftware.process(timeSourceSoftware,
@@ -207,8 +225,8 @@ void Jitter::computeJitter(const std::vector<ResultEntry*>::const_iterator& star
    if(referenceEntry) {
       // ====== Record Jitter entry =========================================
       writeJitterResultEntry(referenceEntry,    timeSource,
-                             jitterApplication, jitterQueuing,
-                             jitterSoftware,    jitterHardware);
+                             jitterQueuing,     jitterAppSend,  jitterAppReceive,
+                             jitterApplication, jitterSoftware, jitterHardware);
 
       // ====== Record raw Ping results as well =============================
       if(RecordRawResults) {
@@ -235,8 +253,10 @@ void Jitter::computeJitter(const std::vector<ResultEntry*>::const_iterator& star
 // ###### Write Jitter result entry to output file ############################
 void Jitter::writeJitterResultEntry(const ResultEntry*   referenceEntry,
                                     const unsigned int   timeSource,
-                                    const JitterRFC3550& jitterApplication,
                                     const JitterRFC3550& jitterQueuing,
+                                    const JitterRFC3550& jitterAppSend,
+                                    const JitterRFC3550& jitterAppReceive,
+                                    const JitterRFC3550& jitterApplication,
                                     const JitterRFC3550& jitterSoftware,
                                     const JitterRFC3550& jitterHardware)
 {
@@ -246,7 +266,7 @@ void Jitter::writeJitterResultEntry(const ResultEntry*   referenceEntry,
 
 
       ResultsOutput->insert(
-         str(boost::format("#J%c %s %s %x %d %x %d %x %d %08x %d %d %d %d %d %d %d %d %d %d %d %d")
+         str(boost::format("#J%c %s %s %x %d %x %d %x %d %08x %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d")
             % (unsigned char)IOModule->getProtocolType()
 
             % referenceEntry->sourceAddress().to_string()
@@ -261,13 +281,21 @@ void Jitter::writeJitterResultEntry(const ResultEntry*   referenceEntry,
 
             % timeSource
 
-            % jitterApplication.packets()
-            % jitterApplication.jitter()
-            % jitterApplication.meanLatency()
+            % jitterAppSend.packets()
+            % jitterAppSend.jitter()
+            % jitterAppSend.meanLatency()
 
             % jitterQueuing.packets()
             % jitterQueuing.jitter()
             % jitterQueuing.meanLatency()
+
+            % jitterAppReceive.packets()
+            % jitterAppReceive.jitter()
+            % jitterAppReceive.meanLatency()
+
+            % jitterApplication.packets()
+            % jitterApplication.jitter()
+            % jitterApplication.meanLatency()
 
             % jitterSoftware.packets()
             % jitterSoftware.jitter()

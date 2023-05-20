@@ -327,11 +327,12 @@ This entry has been added with HiPerConTracer 1.6.0!
 Each Jitter entry consists of a #J<m> line, with m=i for ICMP and m=u for UDP (according to underlying I/O module).
 .Bl -tag -width indent
 .It #J<m> sourceIP destinationIP timestamp burstseq traffic_class packetsize checksum status timesource
-packets_app jitter_app meanrtt_app
+packets_app_send jitter_app_send meandelay_app_send
 packets_queuing jitter_queuing meandelay_queuing
+packets_app_receive jitter_app_receive meandelay_app_receive
+packets_app jitter_app meanrtt_app
 packets_sw jitter_sw meanrtt_sw
 packets_hw jitter_hw meanrtt_hw
-rtt_app queuing rtt_sw rtt_hw
 .Bl -tag -width indent
 .It * sourceIP: Source IP address.
 .It * destinationIP: Destination IP address.
@@ -342,18 +343,24 @@ rtt_app queuing rtt_sw rtt_hw
 .It * checksum: The checksum of the ICMP Echo Request packets (hexadecimal).
 .It * status: Status code (decimal):
 .It * timesource: Source of the timing information (hexadecimal) as: AAQQSSHH (same as for Ping, see above).
+.It * packets_app_send: Number of packets for application send jitter/mean RTT computation
+.It * jitter_app_send: Jitter of application send (computed based on RFC 3550, Subsubsection 6.4.1)
+.It * meandelay_app_send: Mean application send
+.It * packets_queuing: Number of packets for queuing jitter/mean RTT computation
+.It * jitter_queuing: Jitter of queuing  (computed based on RFC 3550, Subsubsection 6.4.1)
+.It * meandelay_queuing: Mean queuing
+.It * packets_app_receive: Number of packets for application receive jitter/mean RTT computation
+.It * jitter_app_receive: Jitter of application receive (computed based on RFC 3550, Subsubsection 6.4.1)
+.It * meandelay_app_receive: Mean application receive
 .It * packets_app: Number of packets for application RTT jitter/mean RTT computation
 .It * jitter_app: Jitter of application RTT  (computed based on RFC 3550, Subsubsection 6.4.1)
 .It * meanrtt_app: Mean application RTT
-.It * packets_app: Number of packets for queuing jitter/mean RTT computation
-.It * jitter_app: Jitter of queuing  (computed based on RFC 3550, Subsubsection 6.4.1)
-.It * meanrtt_app: Mean queuing
-.It * packets_app: Number of packets for kernel software RTT jitter/mean RTT computation
-.It * jitter_app: Jitter of kernel software RTT  (computed based on RFC 3550, Subsubsection 6.4.1)
-.It * meanrtt_app: Mean kernel software RTT
-.It * packets_app: Number of packets for kernel hardware RTT jitter/mean RTT computation
-.It * jitter_app: Jitter of kernel hardware RTT  (computed based on RFC 3550, Subsubsection 6.4.1)
-.It * meanrtt_app: Mean kernel hardware RTT
+.It * packets_sw: Number of packets for kernel software RTT jitter/mean RTT computation
+.It * jitter_sw: Jitter of kernel software RTT  (computed based on RFC 3550, Subsubsection 6.4.1)
+.It * meanrtt_sw: Mean kernel software RTT
+.It * packets_hw: Number of packets for kernel hardware RTT jitter/mean RTT computation
+.It * jitter_hw: Jitter of kernel hardware RTT  (computed based on RFC 3550, Subsubsection 6.4.1)
+.It * meanrtt_hw: Mean kernel hardware RTT
 .El
 If recording of raw Ping results is enabled (\--jitterrecordraw), a Jitter entry is followed by the underlying Ping measurement entries (see Ping version 2 format above).
 .El
