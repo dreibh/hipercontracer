@@ -282,13 +282,15 @@ See the status code for Ping above for the lower 8 bits. Additionally:
 .El
 .It * pathHash: Hash of the path (hexadecimal).
 .El
-.It (TAB) hopNumber status timesource rtt_app queuing rtt_sw rtt_hw hopIP
+.It (TAB) hopNumber status timesource delay_queuing delay_app_receive rtt_app rtt_app rtt_sw rtt_hw hopIP
 .Bl -tag -width indent
 .It * hopNumber: Number of the hop.
 .It * status: Status code (decimal; the values are the same as for Ping, see above).
 .It * timesource: Source of the timing information (hexadecimal; the values are the same as for Ping, see above)
+.It * delay_app_send: The measured application send delay (nanoseconds, decimal; -1 if not available).
+.It * delay_queuing: The measured kernel software queuing delay (nanoseconds, decimal; -1 if not available).
+.It * delay_app_receive: The measured application receive delay (nanoseconds, decimal; -1 if not available).
 .It * rtt_app: The measured application RTT (nanoseconds, decimal).
-.It * queuing: The measured kernel software queuing delay (nanoseconds, decimal; -1 if not available).
 .It * rtt_sw: The measured kernel software RTT (nanoseconds, decimal; -1 if not available).
 .It * rtt_hw: The measured kernel hardware RTT (nanoseconds, decimal; -1 if not available).
 .It * hopIP: Hop IP address.
