@@ -259,13 +259,13 @@ void Ping::writePingResultEntry(const ResultEntry* resultEntry,
          ResultDuration rttApplication;
          ResultDuration rttSoftware;
          ResultDuration rttHardware;
-         ResultDuration appSendDelay;
-         ResultDuration appReceiveDelay;
-         ResultDuration queuingDelay;
+         ResultDuration delayAppSend;
+         ResultDuration delayAppReceive;
+         ResultDuration delayQueuing;
 
-         resultEntry->obtainValues(timeSource,
-                                   rttApplication, rttSoftware, rttHardware,
-                                   queuingDelay, appSendDelay, appReceiveDelay);
+         resultEntry->obtainResultsValues(timeSource,
+                                          rttApplication, rttSoftware, rttHardware,
+                                          delayQueuing, delayAppSend, delayAppReceive);
 
          ResultsOutput->insert(
             str(boost::format("%s#P%c %s %s %x %d %x %d %x %d %08x %d %d %d %d %d %d")
@@ -283,9 +283,9 @@ void Ping::writePingResultEntry(const ResultEntry* resultEntry,
                % resultEntry->status()
 
                % timeSource
-               % std::chrono::duration_cast<std::chrono::nanoseconds>(appSendDelay).count()
-               % std::chrono::duration_cast<std::chrono::nanoseconds>(queuingDelay).count()
-               % std::chrono::duration_cast<std::chrono::nanoseconds>(appReceiveDelay).count()
+               % std::chrono::duration_cast<std::chrono::nanoseconds>(delayAppSend).count()
+               % std::chrono::duration_cast<std::chrono::nanoseconds>(delayQueuing).count()
+               % std::chrono::duration_cast<std::chrono::nanoseconds>(delayAppReceive).count()
                % std::chrono::duration_cast<std::chrono::nanoseconds>(rttApplication).count()
                % std::chrono::duration_cast<std::chrono::nanoseconds>(rttSoftware).count()
                % std::chrono::duration_cast<std::chrono::nanoseconds>(rttHardware).count()

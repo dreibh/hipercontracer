@@ -368,13 +368,13 @@ ResultDuration ResultEntry::getAppReceiveDelay(unsigned int& timeSource) const {
 
 
 // ###### Obtain RTT and delay ##############################################
-void ResultEntry::obtainValues(unsigned int&   timeSource,
-                               ResultDuration& rttApplication,
-                               ResultDuration& rttSoftware,
-                               ResultDuration& rttHardware,
-                               ResultDuration& queuingDelay,
-                               ResultDuration& appSendDelay,
-                               ResultDuration& appReceiveDelay) const
+void ResultEntry::obtainResultsValues(unsigned int&   timeSource,
+                                      ResultDuration& rttApplication,
+                                      ResultDuration& rttSoftware,
+                                      ResultDuration& rttHardware,
+                                      ResultDuration& delayQueuing,
+                                      ResultDuration& delayAppSend,
+                                      ResultDuration& delayAppReceive) const
 {
    // ====== Obtain values ==================================================
    unsigned int timeSourceApplication;
@@ -387,9 +387,9 @@ void ResultEntry::obtainValues(unsigned int&   timeSource,
    rttApplication  = getRTT(RXTimeStampType::RXTST_Application, timeSourceApplication);
    rttSoftware     = getRTT(RXTimeStampType::RXTST_ReceptionSW, timeSourceSoftware);
    rttHardware     = getRTT(RXTimeStampType::RXTST_ReceptionHW, timeSourceHardware);
-   appSendDelay    = getAppSendDelay(timeSourceAppSend);
-   appReceiveDelay = getAppReceiveDelay(timeSourceAppReceive);
-   queuingDelay    = getQueuingDelay(timeSourceQueuing);
+   delayAppSend    = getAppSendDelay(timeSourceAppSend);
+   delayAppReceive = getAppReceiveDelay(timeSourceAppReceive);
+   delayQueuing    = getQueuingDelay(timeSourceQueuing);
    timeSource      = (timeSourceApplication << 24) |
                      (timeSourceQueuing     << 16) |
                      (timeSourceSoftware    << 8)  |
@@ -412,21 +412,21 @@ void ResultEntry::obtainValues(unsigned int&   timeSource,
          abort();
       }
    }
-   if((long long)std::chrono::duration_cast<std::chrono::nanoseconds>(queuingDelay).count() >= 0) {
-      if(__builtin_expect(SendTime[TXTST_SchedulerSW] + queuingDelay != SendTime[TXTST_TransmissionSW], 0)) {
-         HPCT_LOG(fatal) << "queuingDelay check failed!";
+   if((long long)std::chrono::duration_cast<std::chrono::nanoseconds>(delayQueuing).count() >= 0) {
+      if(__builtin_expect(SendTime[TXTST_SchedulerSW] + delayQueuing != SendTime[TXTST_TransmissionSW], 0)) {
+         HPCT_LOG(fatal) << "delayQueuing check failed!";
          abort();
       }
    }
-   if((long long)std::chrono::duration_cast<std::chrono::nanoseconds>(appSendDelay).count() >= 0) {
-      if(__builtin_expect(SendTime[TXTST_Application] + appSendDelay != SendTime[TXTST_SchedulerSW], 0)) {
-         HPCT_LOG(fatal) << "appSendDelay check failed!";
+   if((long long)std::chrono::duration_cast<std::chrono::nanoseconds>(delayAppSend).count() >= 0) {
+      if(__builtin_expect(SendTime[TXTST_Application] + delayAppSend != SendTime[TXTST_SchedulerSW], 0)) {
+         HPCT_LOG(fatal) << "delayAppSend check failed!";
          abort();
       }
    }
-   if((long long)std::chrono::duration_cast<std::chrono::nanoseconds>(appReceiveDelay).count() >= 0) {
-      if(__builtin_expect(ReceiveTime[RXTST_ReceptionSW] + appReceiveDelay != ReceiveTime[RXTST_Application], 0)) {
-         HPCT_LOG(fatal) << "appReceiveDelay check failed!";
+   if((long long)std::chrono::duration_cast<std::chrono::nanoseconds>(delayAppReceive).count() >= 0) {
+      if(__builtin_expect(ReceiveTime[RXTST_ReceptionSW] + delayAppReceive != ReceiveTime[RXTST_Application], 0)) {
+         HPCT_LOG(fatal) << "delayAppReceive check failed!";
          abort();
       }
    }
@@ -458,25 +458,25 @@ std::ostream& operator<<(std::ostream& os, const ResultEntry& resultEntry)
    ResultDuration rttApplication;
    ResultDuration rttSoftware;
    ResultDuration rttHardware;
-   ResultDuration appSendDelay;
-   ResultDuration appReceiveDelay;
-   ResultDuration queuingDelay;
+   ResultDuration delayAppSend;
+   ResultDuration delayAppReceive;
+   ResultDuration delayQueuing;
 
-   resultEntry.obtainValues(timeSource,
-                            rttApplication, rttSoftware, rttHardware,
-                            queuingDelay, appSendDelay, appReceiveDelay);
+   resultEntry.obtainResultsValues(timeSource,
+                                   rttApplication, rttSoftware, rttHardware,
+                                   delayQueuing, delayAppSend, delayAppReceive);
 
    os << boost::format("#%08x")           % resultEntry.TimeStampSeqID
       << "\t" << boost::format("R%d")     % resultEntry.Round
       << "\t" << boost::format("#%05d")   % resultEntry.SeqNumber
       << "\t" << boost::format("%2d")     % resultEntry.Hop
       << "\tTS:" << boost::format("%08x") % timeSource
+      << "\taS:" << durationToString<ResultDuration>(delayAppSend)
+      << "\tq:"  << durationToString<ResultDuration>(delayQueuing)
+      << "\taR:" << durationToString<ResultDuration>(delayAppReceive)
       << "\tA:"  << durationToString<ResultDuration>(rttApplication)
       << "\tS:"  << durationToString<ResultDuration>(rttSoftware)
       << "\tH:"  << durationToString<ResultDuration>(rttHardware)
-      << "\taO:" << durationToString<ResultDuration>(appSendDelay)
-      << "\tq:"  << durationToString<ResultDuration>(queuingDelay)
-      << "\taI:" << durationToString<ResultDuration>(appReceiveDelay)
       << "\t" << boost::format("%3d")     % resultEntry.Status
       << "\t" << boost::format("%04x")    % resultEntry.Checksum
       << "\t" << boost::format("%d")      % resultEntry.PacketSize

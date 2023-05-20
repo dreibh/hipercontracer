@@ -208,13 +208,13 @@ class ResultEntry {
    ResultDuration getAppSendDelay(unsigned int& timeSource) const;
    ResultDuration getAppReceiveDelay(unsigned int& timeSource) const;
 
-   void obtainValues(unsigned int&   timeSource,
-                     ResultDuration& rttApplication,
-                     ResultDuration& rttSoftware,
-                     ResultDuration& rttHardware,
-                     ResultDuration& queuingDelay,
-                     ResultDuration& appSendDelay,
-                     ResultDuration& appReceiveDelay) const;
+   void obtainResultsValues(unsigned int&   timeSource,
+                            ResultDuration& rttApplication,
+                            ResultDuration& rttSoftware,
+                            ResultDuration& rttHardware,
+                            ResultDuration& delayQueuing,
+                            ResultDuration& delayAppSend,
+                            ResultDuration& delayAppReceive) const;
    ResultDuration obtainMostAccurateRTT(const RXTimeStampType rxTimeStampType,
                                         unsigned int&         timeSource) const;
 

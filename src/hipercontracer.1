@@ -190,7 +190,7 @@ The format is as follows, depending on the measurement type:
 .It Ping (version 2, current)
 Each Ping entry consists of a #P<m> line, with m=i for ICMP and m=u for UDP (according to underlying I/O module).
 .Bl -tag -width indent
-.It #P<m> sourceIP destinationIP timestamp burstseq traffic_class packetsize checksum status timesource rtt_app queuing rtt_sw rtt_hw
+.It #P<m> sourceIP destinationIP timestamp burstseq traffic_class packetsize checksum status timesource delay_app_send delay_queuing delay_app_receive rtt_app rtt_sw rtt_hw
 .Bl -tag -width indent
 .It * sourceIP: Source IP address.
 .It * destinationIP: Destination IP address.
@@ -235,8 +235,10 @@ Each byte AA, QQ, SS, HH provides the receive time source (upper nibble) and sen
 .It 0x6: SO_TIMESTAMPING socket option, in software, nanoseconds granularity
 .It 0xa: SO_TIMESTAMPING socket option, in hardware, nanoseconds granularity
 .El
+.It * delay_app_send: The measured application send delay (nanoseconds, decimal; -1 if not available).
+.It * delay_queuing: The measured kernel software queuing delay (nanoseconds, decimal; -1 if not available).
+.It * delay_app_receive: The measured application receive delay (nanoseconds, decimal; -1 if not available).
 .It * rtt_app: The measured application RTT (nanoseconds, decimal).
-.It * queuing: The measured kernel software queuing delay (nanoseconds, decimal; -1 if not available).
 .It * rtt_sw: The measured kernel software RTT (nanoseconds, decimal; -1 if not available).
 .It * rtt_hw: The measured kernel hardware RTT (nanoseconds, decimal; -1 if not available).
 .El
