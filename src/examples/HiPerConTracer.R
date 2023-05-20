@@ -231,7 +231,6 @@ readHiPerConTracerTracerouteResults <- function(name)
          "RTT.HW",             # The measured kernel hardware RTT (nanoseconds, decimal; -1 if not available).
          "LinkDestination"     # Hop IP address.
       )
-      print(inputData)
       data <- fread(text = inputData, sep = " ", col.names = columns, header = FALSE) %>%
                  mutate(Timestamp    = as.numeric(paste(sep="", "0x", Timestamp)),
                         Protocol     = substr(Traceroute, 3, 1000000),
@@ -262,4 +261,56 @@ readHiPerConTracerTracerouteResults <- function(name)
                        RTT.App, RTT.SW, RTT.HW)
 
    return(data)
+}
+
+
+# ##### Read files from directory ###########################################
+readResultsFromDirectory <- function(cacheLabel, path, pattern, func)
+{
+   files <- list.files(path=name, pattern = pattern, full.names=TRUE)
+
+   # ====== Read ping data ==================================================
+   cacheName <- paste(sep="", cacheLabel, "-cache-", digest(pingFiles, "sha256"), ".rds")
+   if(!file.exists(cacheName)) {
+      cat(sep="", "\x1b[34mReading ", length(files), " ping files ...\x1b[0m\n")
+
+      dataTable <- foreach(fileName = files,
+                              .combine=function(...) rbindlist(list(...)), .multicombine=TRUE, .maxcombine=512,
+                              .inorder=FALSE,
+                              .verbose=FALSE
+                          )   %dopar%
+                          func(fileName)
+
+      cat(sep="", "Writing data to cache file ", cacheName, " ...\n")
+      saveRDS(dataTable, cacheName)
+   } else {
+      cat(sep="", "\x1b[34mLoading cached ping table from ", cacheName, " ...\x1b[0m\n")
+      dataTable <- readRDS(cacheName)
+   }
+   showTableStatistics(dataTable)
+   return(dataTable)
+}
+
+
+# ##### Read HiPerConTracer Ping files from directory #######################
+readHiPerConTracerPingResultsFromDirectory <- function(cacheLabel, path, pattern)
+{
+   return(readResultsFromDirectory(cacheLabel, path, pattern, readHiPerConTracerPingResults))
+}
+
+
+# ##### Read HiPerConTracer Traceroute files from directory #################
+readHiPerConTracerTracerouteResultsFromDirectory <- function(cacheLabel, path, pattern)
+{
+   return(readResultsFromDirectory(cacheLabel, path, pattern, readHiPerConTracerTracerouteResults))
+}
+
+
+# ###### Show table statistics ##############################################
+showTableStatistics <- function(table)
+{
+   firstColumn <- colnames(table)[1]
+   cat(sep="",
+       "\x1b[32mEntries: ", length(table[[firstColumn]]), ", ",
+       "Table Size: ", round(object_size(table) / (1024*1024), 2), " MiB\x1b[0m\n")
 }
