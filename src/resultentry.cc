@@ -52,7 +52,7 @@ ResultEntry::~ResultEntry()
 void ResultEntry::initialise(const uint32_t                  timeStampSeqID,
                              const unsigned short            round,
                              const unsigned short            seqNumber,
-                             const unsigned int              hop,
+                             const unsigned int              hopNumber,
                              const unsigned int              packetSize,
                              const uint16_t                  checksum,
                              const ResultTimePoint&          sendTime,
@@ -63,11 +63,12 @@ void ResultEntry::initialise(const uint32_t                  timeStampSeqID,
    TimeStampSeqID = timeStampSeqID;
    Round          = round;
    SeqNumber      = seqNumber;
-   Hop            = hop;
+   HopNumber      = hopNumber;
    PacketSize     = packetSize;
    Checksum       = checksum;
    Source         = source;
    Destination    = destination;
+   Hop            = destination.address();
    Status         = status;
    for(unsigned int i = 0; i < TXTST_MAX + 1; i++) {
       SendTimeSource[i] = TimeSourceType::TST_Unknown;

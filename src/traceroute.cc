@@ -455,7 +455,7 @@ void Traceroute::newResult(const ResultEntry* resultEntry)
 
    // ====== Found last hop? ================================================
    if(resultEntry->status() == Success) {
-      LastHop = std::min(LastHop, resultEntry->hop());
+      LastHop = std::min(LastHop, resultEntry->hopNumber());
    }
 
    // ====== Check whether there are still outstanding requests =============
@@ -479,7 +479,7 @@ int Traceroute::compareTracerouteResults(const ResultEntry* a, const ResultEntry
    }
    else if(a->round() == b->round()) {
       // ====== Level 2: Hop ================================================
-      if(a->hop() < b->hop()) {
+      if(a->hopNumber() < b->hopNumber()) {
          return true;
       }
    }
@@ -506,9 +506,9 @@ void Traceroute::processResults()
       std::string pathString         = SourceAddress.to_string();
       for(ResultEntry* resultEntry : resultsVector) {
          if(resultEntry->round() == round) {
-            assert(resultEntry->hop() > totalHops);
+            assert(resultEntry->hopNumber() > totalHops);
             currentHop++;
-            totalHops = resultEntry->hop();
+            totalHops = resultEntry->hopNumber();
 
             // ====== We have reached the destination =======================
             if(resultEntry->status() == Success) {
@@ -661,7 +661,7 @@ void Traceroute::writeTracerouteResultEntry(const ResultEntry* resultEntry,
 
          ResultsOutput->insert(
             str(boost::format("\t%d %d %08x %d %d %d %d %d %d %s")
-               % resultEntry->hop()
+               % resultEntry->hopNumber()
                % (unsigned int)resultEntry->status()
 
                % timeSource
@@ -672,7 +672,7 @@ void Traceroute::writeTracerouteResultEntry(const ResultEntry* resultEntry,
                % std::chrono::duration_cast<std::chrono::nanoseconds>(rttSoftware).count()
                % std::chrono::duration_cast<std::chrono::nanoseconds>(rttHardware).count()
 
-               % resultEntry->destinationAddress().to_string()
+               % resultEntry->hopAddress().to_string()
          ));
 
       }
@@ -685,10 +685,10 @@ void Traceroute::writeTracerouteResultEntry(const ResultEntry* resultEntry,
 
          ResultsOutput->insert(
             str(boost::format("\t%d %x %d %s %02x")   /* status is hex here! */
-               % resultEntry->hop()
+               % resultEntry->hopNumber()
                % (unsigned int)resultEntry->status()
                % std::chrono::duration_cast<std::chrono::microseconds>(rtt).count()
-               % resultEntry->destinationAddress().to_string()
+               % resultEntry->hopAddress().to_string()
                % timeSource
          ));
       }

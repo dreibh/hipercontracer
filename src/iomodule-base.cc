@@ -312,7 +312,7 @@ void IOModuleBase::recordResult(const ReceivedData&  receivedData,
    // ====== Get status =====================================================
    if(resultEntry->status() == Unknown) {
       // Just set address, keep traffic class and identifier settings:
-      resultEntry->setDestinationAddress(receivedData.ReplyEndpoint.address());
+      resultEntry->setHopAddress(receivedData.ReplyEndpoint.address());
 
       // Set receive time stamps:
       resultEntry->setReceiveTime(RXTimeStampType::RXTST_Application,
