@@ -32,9 +32,13 @@
 
 # library(anytime)
 library("assert")
-library("data.table", warn.conflicts = FALSE)
-library("dplyr",      warn.conflicts = FALSE)
+library("digest")
 library("readr")
+library("doParallel")
+library("data.table", warn.conflicts = FALSE)
+library("plyr",       warn.conflicts = FALSE)    # for mapvalues(). Must be loaded before dplyr!
+library("dplyr",      warn.conflicts = FALSE)
+library("pryr",       warn.conflicts = FALSE)
 
 
 # ###### Read HiPerConTracer Ping output file ###############################
@@ -248,10 +252,9 @@ readHiPerConTracerTracerouteResults <- function(name)
               # ------ Remove unnecessary columns ---------------------------
               select(!c("Traceroute", "TAB")) %>%
               # ------ Set LinkSource ---------------------------------------
-              mutate(LinkSource =
-                        ifelse(HopNumber == 1,
-                           Source,
-                           shift(LinkDestination, 1, type="lag"))) %>%
+              mutate(LinkSource = ifelse(HopNumber == 1,
+                                         Source,
+                                         shift(LinkDestination, 1, type="lag"))) %>%
               # ------ Reorder entries --------------------------------------
               relocate(Timestamp, Protocol, Source, Destination,
                        Round, HopNumber, TotalHops, TrafficClass, PacketSize, Checksum, StatusFlags, Status, PathHash,
@@ -259,7 +262,6 @@ readHiPerConTracerTracerouteResults <- function(name)
                        TimeSource,
                        Delay.AppSend, Delay.Queuing, Delay.AppReceive,
                        RTT.App, RTT.SW, RTT.HW)
-
    return(data)
 }
 
@@ -267,12 +269,12 @@ readHiPerConTracerTracerouteResults <- function(name)
 # ##### Read files from directory ###########################################
 readResultsFromDirectory <- function(cacheLabel, path, pattern, func)
 {
-   files <- list.files(path=name, pattern = pattern, full.names=TRUE)
+   files <- list.files(path = path, pattern = pattern, full.names=TRUE)
 
-   # ====== Read ping data ==================================================
-   cacheName <- paste(sep="", cacheLabel, "-cache-", digest(pingFiles, "sha256"), ".rds")
+   # ====== Read data =======================================================
+   cacheName <- paste(sep="", cacheLabel, "-cache-", digest(files, "sha256"), ".rds")
    if(!file.exists(cacheName)) {
-      cat(sep="", "\x1b[34mReading ", length(files), " ping files ...\x1b[0m\n")
+      cat(sep="", "\x1b[34mReading ", length(files), " files ...\x1b[0m\n")
 
       dataTable <- foreach(fileName = files,
                               .combine=function(...) rbindlist(list(...)), .multicombine=TRUE, .maxcombine=512,
@@ -284,7 +286,7 @@ readResultsFromDirectory <- function(cacheLabel, path, pattern, func)
       cat(sep="", "Writing data to cache file ", cacheName, " ...\n")
       saveRDS(dataTable, cacheName)
    } else {
-      cat(sep="", "\x1b[34mLoading cached ping table from ", cacheName, " ...\x1b[0m\n")
+      cat(sep="", "\x1b[34mLoading cached table from ", cacheName, " ...\x1b[0m\n")
       dataTable <- readRDS(cacheName)
    }
    showTableStatistics(dataTable)
