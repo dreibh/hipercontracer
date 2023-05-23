@@ -293,7 +293,7 @@ bool Worker::importFiles(const std::list<std::filesystem::path>& dataFileList)
             break;
          }
          HPCT_LOG(trace) << getIdentification() << ": Parsing "
-                           <<relativeTo(dataFile, Configuration.getImportFilePath()) << " ...";
+                         << relativeTo(dataFile, Configuration.getImportFilePath()) << " ...";
          processFile(DatabaseClient, rows, dataFile);
       }
       if(Reader.finishParsing(DatabaseClient, rows)) {
