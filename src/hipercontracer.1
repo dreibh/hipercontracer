@@ -39,8 +39,10 @@
 .Op \-#|--identifier identifier
 .Op \-S|--source=address|hostname[,traffic_class[,...]]
 .Op \-D|--destination address|hostname
-.Op \-M|--iomodule ICMP|UDP
+.Op \-M|--iomodule ICMP|UDP|TCP
 .Op \--iterations number_of_iterations
+.Op \--udpdestinationport port
+.Op \--tcpdestinationport port
 .Op \--tracerouteinterval milliseconds
 .Op \--tracerouteduration milliseconds
 .Op \--tracerouterounds rounds
@@ -107,12 +109,18 @@ If a hostname is provided, a DNS resolution is performed and all returned addres
 .It \-D|\--destination address|hostname
 Adds the given destination address or hostname.
 If a hostname is provided, a DNS resolution is performed and all returned addresses are added.
-.Op \-M|--iomodule ICMP|UDP
-Adds an I/O module: ICMP or UDP. The option may be specified multiple times with different modules.
+.Op \-M|--iomodule ICMP|UDP|TCP
+Adds an I/O module: ICMP, UDP or TCP. The option may be specified multiple times with different modules.
 .It \--iterations number_of_iterations
 Limit the number of measurement iterations (measurement for all source/destination
 pairs) to the given number of iterations. The default 0 lets HiPerConTracer run
 continuously.
+.Op \--udpdestinationport port
+Sets the UDP destination port used by the UDP module.
+Default is 7 (Echo).
+.Op \--tcpdestinationport port
+Sets the TCP destination port used by the TCP module.
+Default is 80 (HTTP).
 .It \--tracerouteinterval milliseconds
 Sets the Traceroute interval (time for each full round of destinations).
 .It \--tracerouteduration milliseconds
@@ -149,7 +157,7 @@ Default is 1 packet. Range: 1-1024.
 Sets the Ping TTL value.
 Default is 64. Range: 1-255.
 .It \--pingpacketsize bytes
-Sets the Jitter packet size, that is IP header (20 for IPv4/40 for IPv6) + ICMP header (8)/UDP header (8) + HiPerConTracer header (16) + payload, in bytes.
+Sets the Jitter packet size, that is IP header (20 for IPv4/40 for IPv6) + ICMP header (8)/UDP header (8)/TCP header (20) + HiPerConTracer header (16) + payload, in bytes.
 The actually sent packet size always covers at least the headers for IPv4/IPv6, transport protocol and HiPerConTracer. Default is 0 (use minimum possible value). Range: 0-65535.
 .It \--jitterinterval milliseconds
 Sets the Jitter interval (time for each full round of destinations).
@@ -164,7 +172,7 @@ Default is 16 packets. Range: 2-1024.
 Sets the Jitter TTL value.
 Default is 64. Range: 1-255.
 .It \--jitterpacketsize bytes
-Sets the Jitter packet size, that is IP header (20 for IPv4/40 for IPv6) + ICMP header (8)/UDP header (8) + HiPerConTracer header (16) + payload, in bytes.
+Sets the Jitter packet size, that is IP header (20 for IPv4/40 for IPv6) + ICMP header (8)/UDP header (8)/TCP header (20) + HiPerConTracer header (16) + payload, in bytes.
 The actually sent packet size always covers at least the headers for IPv4/IPv6, transport protocol and HiPerConTracer.
 Default is 128 bytes. Range: 0-65535.
 .It \--jitterrecordraw
@@ -188,7 +196,7 @@ The format is as follows, depending on the measurement type:
 .Bl -tag -width indent
 .\" ====== Ping, version 2 ==================================================
 .It Ping (version 2, current)
-Each Ping entry consists of a #P<m> line, with m=i for ICMP and m=u for UDP (according to underlying I/O module).
+Each Ping entry consists of a #P<m> line, with m=i for ICMP, m=u for UDP, m=t for TCP (according to underlying I/O module).
 .Bl -tag -width indent
 .It #P<m> sourceIP destinationIP timestamp burstseq traffic_class packetsize checksum status timesource delay_app_send delay_queuing delay_app_receive rtt_app rtt_sw rtt_hw
 .Bl -tag -width indent
@@ -261,7 +269,7 @@ Each Ping entry consists of a #P line.
 .El
 .\" ====== Traceroute, version 2 ============================================
 .It Traceroute (version 2, current)
-Each Traceroute entry begins with a #Tm line, with m=i for ICMP and m=u for UDP (according to underlying I/O module).
+Each Traceroute entry begins with a #Tm line, with m=i for ICMP, m=u for UDP, m=t for TCP (according to underlying I/O module).
 This is followed with one TAB-started line per each hop.
 .Bl -tag -width indent
 .It #T<m> sourceIP destinationIP timestamp round totalHops traffic_class packet_size checksum statusFlags pathHash
@@ -326,7 +334,7 @@ This entry has been added with HiPerConTracer 1.6.0!
 .El
 .\" ====== Jitter, version 2 ================================================
 .It Jitter (version 2, current; there is no version 1)
-Each Jitter entry consists of a #J<m> line, with m=i for ICMP and m=u for UDP (according to underlying I/O module).
+Each Jitter entry consists of a #J<m> line, with m=i for ICMP, m=u for UDP, m=t for TCP (according to underlying I/O module).
 .Bl -tag -width indent
 .It #J<m> sourceIP destinationIP timestamp burstseq traffic_class packetsize checksum status timesource
 packets_app_send jitter_app_send meandelay_app_send
@@ -378,6 +386,7 @@ If recording of raw Ping results is enabled (\--jitterrecordraw), a Jitter entry
 .It hipercontracer \--user=hipercontracer \--source=0.0.0.0 \--destination=8.8.8.8 \-M ICMP \--ping \--verbose
 .It hipercontracer \--user=hipercontracer \--source=0.0.0.0 \--source=::\--destination=www.ietf.org \--iomodule ICMP \--ping \--verbose
 .It hipercontracer \--user=hipercontracer \--source=10.193.4.64 \--destination 1.2.3.4 \--iomodule ICMP \--iomodule UDP \--ping \--traceroute
+.It hipercontracer \--user=hipercontracer \--source=:: \--source=::\--destination=www.ietf.org \--iomodule TCP \--traceroute \--verbose
 .El
 .\" ###### Authors ##########################################################
 .Sh AUTHORS
