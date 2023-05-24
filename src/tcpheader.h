@@ -64,6 +64,19 @@
 //
 // ==========================================================================
 
+
+enum TCPFlags
+{
+   TF_FIN = (1 << 0),
+   TF_SYN = (1 << 1),
+   TF_RST = (1 << 2),
+   TF_PSH = (1 << 3),
+   TF_ACK = (1 << 4),
+   TF_URG = (1 << 5),
+   TF_ECE = (1 << 6),
+   TF_CWR = (1 << 7)
+};
+
 class TCPHeader
 {
    public:
@@ -74,7 +87,7 @@ class TCPHeader
    inline uint16_t seqNumber()       const { return ntohl(*((uint32_t*)&Data[4])); }
    inline uint16_t ackNumber()       const { return ntohl(*((uint32_t*)&Data[8])); }
    inline uint8_t dataOffset()       const { return (Data[12] & 0xf0) >> 2;        }   /* converted to bytes (*4)! */
-   inline uint8_t flags()            const { return Data[13];                      }
+   inline TCPFlags flags()           const { return (TCPFlags)Data[13];            }
    inline uint16_t window()          const { return ntohs(*((uint16_t*)&Data[14])); }
    inline uint16_t checksum()        const { return ntohs(*((uint16_t*)&Data[16])); }
    inline uint16_t urgentPointer()   const { return ntohs(*((uint16_t*)&Data[18])); }
@@ -85,7 +98,7 @@ class TCPHeader
    inline void seqNumber(const uint32_t seqNumber)             { *((uint32_t*)&Data[4]) = htonl(seqNumber);       }
    inline void ackNumber(const uint32_t ackNumber)             { *((uint32_t*)&Data[8]) = htonl(ackNumber);       }
    inline void dataOffset(const uint8_t dataOffset)            { Data[12] = (dataOffset & 0x0f) << 2;             }   /* in bytes! */
-   inline void flags(const uint8_t flags)                      { Data[13] = flags;                                }
+   inline void flags(const TCPFlags flags)                     { Data[13] = (uint8_t)flags;                       }
    inline void window(const uint16_t window)                   { *((uint16_t*)&Data[14]) = htons(window);         }
    inline void checksum(const uint16_t checksum)               { *((uint16_t*)&Data[16]) = htons(checksum);       }
    inline void urgentPointer(const uint16_t urgentPointer)     { *((uint16_t*)&Data[18]) = htons(urgentPointer);  }
@@ -111,7 +124,7 @@ class TCPHeader
    }
 
    inline friend std::ostream& operator<<(std::ostream& os, const TCPHeader& header) {
-      return os.write(reinterpret_cast<const char*>(header.Data), dataOffset());
+      return os.write(reinterpret_cast<const char*>(header.Data), header.dataOffset());
    }
 
    private:
