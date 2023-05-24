@@ -324,6 +324,10 @@ int main(int argc, char** argv)
       std::cerr << "ERROR: Invalid Identifier setting: " << identifier << "\n";
       return 1;
    }
+   if(tracerouteInitialMaxTTL > tracerouteFinalMaxTTL) {
+      std::cerr << "NOTE: Setting TracerouteInitialMaxTTL to TracerouteFinalMaxTTL=" << tracerouteFinalMaxTTL << "!\n";
+      tracerouteInitialMaxTTL = tracerouteFinalMaxTTL;
+   }
    if( (resultsFormat < OutputFormatType::OFT_Min) ||
        (resultsFormat > OutputFormatType::OFT_Max) ) {
       std::cerr << "ERROR: Invalid results format version: " << resultsFormat << "\n";
