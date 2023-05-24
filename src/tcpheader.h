@@ -106,6 +106,16 @@ class TCPHeader
       ::computeInternet16(sum, (uint8_t*)&Data, dataOffset());
    }
 
+   inline const uint8_t* options() const {
+      return (const uint8_t*)&Data[20];
+   }
+   inline uint8_t* options() {
+      return (uint8_t*)&Data[20];
+   }
+   inline uint8_t optionsLength() const {
+      return dataOffset() - 20;
+   }
+
    inline const uint8_t* data() const {
       return (const uint8_t*)&Data;
    }
@@ -116,7 +126,7 @@ class TCPHeader
    friend std::istream& operator>>(std::istream& is, TCPHeader& header) {
       is.read(reinterpret_cast<char*>(header.Data), 20);
       std::streamsize totalLength = header.dataOffset();
-      if(totalLength < 20) {
+      if( (totalLength < 20) || ((totalLength > 60) ) {
          is.setstate(std::ios::failbit);
       }
       return is;

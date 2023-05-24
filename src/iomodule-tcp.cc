@@ -174,14 +174,38 @@ unsigned int TCPModule::sendRequest(const DestinationInfo& destination,
    tsHeader.magicNumber(MagicNumber);
 
    // ====== Prepare TCP header =============================================
+   struct MyOptions {
+      uint8_t  MSSOption;              // 0x02
+      uint8_t  MSSLength;              // 4
+      uint16_t MSSValue;
+      uint8_t  SACKPermittedOption;    // 0x02
+      uint8_t  SACKPermittedLength;    // 2
+      uint8_t  TimeStampOption;        // 0x08
+      uint8_t  TimeStampLength;        // 10
+      uint32_t TimeStampValue;
+      uint32_t TimeStampReply;
+   };
+
    TCPHeader tcpHeader;
    tcpHeader.sourcePort(localEndpoint.port());
    tcpHeader.destinationPort(DestinationPort);
    tcpHeader.ackNumber(0);
-   tcpHeader.dataOffset(20);
+   tcpHeader.dataOffset(20 + sizeof(MyOptions));
    tcpHeader.flags(TCPFlags::TF_SYN);
    tcpHeader.window(4096);
    tcpHeader.urgentPointer(0);
+
+   MyOptions* tcpOptions = (MyOptions*)tcpHeader.options();
+   memset(tcpOptions, 0x01, sizeof(MyOptions));
+   tcpOptions->MSSOption           = 0x02;
+   tcpOptions->MSSLength           = 4;
+   tcpOptions->MSSValue            = htons(1460);
+   tcpOptions->SACKPermittedOption = 0x04;
+   tcpOptions->SACKPermittedLength = 2;
+   tcpOptions->TimeStampOption     = 0x08;
+   tcpOptions->TimeStampLength     = 10;
+   tcpOptions->TimeStampValue      = htonl(0x12345678);
+   tcpOptions->TimeStampReply      = 0;
 
    // ====== Prepare IP header ==============================================
    IPv6Header       ipv6Header;
@@ -192,7 +216,7 @@ unsigned int TCPModule::sendRequest(const DestinationInfo& destination,
       ipv6Header.version(6);
       ipv6Header.trafficClass(destination.trafficClass());
       ipv6Header.flowLabel(0);
-      ipv6Header.payloadLength(tcpHeader.dataOffset() + PayloadSize);
+      ipv6Header.payloadLength(tcpHeader.size() + PayloadSize);
       ipv6Header.nextHeader(IPPROTO_TCP);
       ipv6Header.sourceAddress(localEndpoint.address().to_v6());
       ipv6Header.destinationAddress(destination.address().to_v6());
