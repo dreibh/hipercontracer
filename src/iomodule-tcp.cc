@@ -382,7 +382,6 @@ void TCPModule::handlePayloadResponse(const int     socketDescriptor,
                   const uint16_t a1 = (uint16_t)((a & 0xffff0000) >> 16);
                   const uint16_t a2 = ((uint16_t)(a & 0xffff));
                   if(a1 == a2) {
-                     puts("SYN+ACK");
                      // Addressing information may need update!
                      receivedData.Destination = boost::asio::ip::udp::endpoint(ipv4Header.sourceAddress(),      tcpHeader.sourcePort());
                      receivedData.Source      = boost::asio::ip::udp::endpoint(ipv4Header.destinationAddress(), tcpHeader.destinationPort());
@@ -395,7 +394,6 @@ void TCPModule::handlePayloadResponse(const int     socketDescriptor,
                   const uint16_t r1 = (uint16_t)((r & 0xffff0000) >> 16);
                   const uint16_t r2 = ((uint16_t)(r & 0xffff));
                   if(r1 == r2) {
-                     puts("RST");
                      // Addressing information may need update!
                      receivedData.Destination = boost::asio::ip::udp::endpoint(ipv4Header.sourceAddress(),      tcpHeader.sourcePort());
                      receivedData.Source      = boost::asio::ip::udp::endpoint(ipv4Header.destinationAddress(), tcpHeader.destinationPort());
@@ -429,17 +427,17 @@ void TCPModule::handlePayloadResponse(const int     socketDescriptor,
                   TCPHeader tcpHeader;
                   is >> tcpHeader;
                   if( (is) &&
-                     (tcpHeader.sourcePort()      == TCPSocketEndpoint.port()) &&
-                     (tcpHeader.destinationPort() == DestinationPort) ) {
-                     receivedData.Source      = boost::asio::ip::udp::endpoint(innerIPv6Header.sourceAddress(),      tcpHeader.sourcePort());
-                     receivedData.Destination = boost::asio::ip::udp::endpoint(innerIPv6Header.destinationAddress(), tcpHeader.destinationPort());
-                     // ------ TraceServiceHeader ---------------------------
-                     TraceServiceHeader tsHeader;
-                     is >> tsHeader;
-                     if( (is) && (tsHeader.magicNumber() == MagicNumber) ) {
+                        (tcpHeader.sourcePort()      == TCPSocketEndpoint.port()) &&
+                        (tcpHeader.destinationPort() == DestinationPort) ) {
+                     const uint32_t s  = tcpHeader.seqNumber();
+                     const uint16_t s1 = (uint16_t)((s & 0xffff0000) >> 16);
+                     const uint16_t s2 = ((uint16_t)(s & 0xffff));
+                     if(s1 == s2) {
+                        receivedData.Source      = boost::asio::ip::udp::endpoint(innerIPv6Header.sourceAddress(),      tcpHeader.sourcePort());
+                        receivedData.Destination = boost::asio::ip::udp::endpoint(innerIPv6Header.destinationAddress(), tcpHeader.destinationPort());
                         recordResult(receivedData,
                                      icmpHeader.type(), icmpHeader.code(),
-                                     tsHeader.seqNumber());
+                                     s1);
                      }
                   }
                }
@@ -465,20 +463,22 @@ void TCPModule::handlePayloadResponse(const int     socketDescriptor,
                   is >> innerIPv4Header;
                   if( (is) && (innerIPv4Header.protocol() == IPPROTO_TCP) ) {
                      // NOTE: Addresses will be checked by recordResult()!
-                    // ------ IPv4 -> ICMP[Error] -> IPv4 -> TCP ------------
-                    TCPHeader tcpHeader;
-                    is >> tcpHeader;
-                    if( (is) &&
-                        (tcpHeader.sourcePort()      == TCPSocketEndpoint.port()) &&
-                        (tcpHeader.destinationPort() == DestinationPort) ) {
-                       receivedData.Source      = boost::asio::ip::udp::endpoint(innerIPv4Header.sourceAddress(),      tcpHeader.sourcePort());
-                       receivedData.Destination = boost::asio::ip::udp::endpoint(innerIPv4Header.destinationAddress(), tcpHeader.destinationPort());
-                       // Unfortunately, ICMPv4 does not return the full
-                       // TraceServiceHeader here! So, the sequence number
-                       // has to be used to identify the outgoing request!
-                       recordResult(receivedData,
-                                    icmpHeader.type(), icmpHeader.code(),
-                                    innerIPv4Header.identification());
+                     // ------ IPv4 -> ICMP[Error] -> IPv4 -> TCP -----------
+                     TCPHeader tcpHeader;
+                     is >> tcpHeader;
+                     if( (is) &&
+                         (tcpHeader.sourcePort()      == TCPSocketEndpoint.port()) &&
+                         (tcpHeader.destinationPort() == DestinationPort) ) {
+                        const uint32_t s  = tcpHeader.seqNumber();
+                        const uint16_t s1 = (uint16_t)((s & 0xffff0000) >> 16);
+                        const uint16_t s2 = ((uint16_t)(s & 0xffff));
+                        if(s1 == s2) {
+                           receivedData.Source      = boost::asio::ip::udp::endpoint(innerIPv4Header.sourceAddress(),      tcpHeader.sourcePort());
+                           receivedData.Destination = boost::asio::ip::udp::endpoint(innerIPv4Header.destinationAddress(), tcpHeader.destinationPort());
+                           recordResult(receivedData,
+                                        icmpHeader.type(), icmpHeader.code(),
+                                        s1);
+                        }
                      }
                   }
                }
