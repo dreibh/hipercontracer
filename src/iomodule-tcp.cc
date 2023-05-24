@@ -102,8 +102,6 @@ bool TCPModule::prepareSocket()
    }
 
    // ====== Await incoming message or error ================================
-   expectNextReply(TCPSocket.native_handle(), true);
-   expectNextReply(TCPSocket.native_handle(), false);
    expectNextReply(RawTCPSocket.native_handle(), true);
    expectNextReply(RawTCPSocket.native_handle(), false);
 
@@ -179,6 +177,7 @@ unsigned int TCPModule::sendRequest(const DestinationInfo& destination,
    TCPHeader tcpHeader;
    tcpHeader.sourcePort(localEndpoint.port());
    tcpHeader.destinationPort(DestinationPort);
+   // TCP sequence number: (Seq Number)(Seq Number)!
    tcpHeader.seqNumber(((uint32_t)seqNumber << 16) | seqNumber);
    tcpHeader.ackNumber(0);
    tcpHeader.dataOffset(20);
@@ -329,13 +328,80 @@ void TCPModule::handlePayloadResponse(const int     socketDescriptor,
                                         receivedData.MessageLength);
 
    // ====== TCP response ===================================================
-   if(socketDescriptor == TCPSocket.native_handle()) {
-      // ------ TraceServiceHeader ------------------------------------------
-      TraceServiceHeader tsHeader;
-      is >> tsHeader;
-      if( (is) && (tsHeader.magicNumber() == MagicNumber) ) {
-         recordResult(receivedData, 0, 0, tsHeader.seqNumber());
+   if(socketDescriptor == RawTCPSocket.native_handle()) {
+
+      // ------ IPv6 --------------------------------------------------------
+      if(SourceAddress.is_v6()) {
+         TCPHeader tcpHeader;
+         is >> tcpHeader;
+         if( (is) &&
+               (tcpHeader.destinationPort() == TCPSocketEndpoint.port()) &&
+               (tcpHeader.sourcePort()      == DestinationPort) ) {
+
+            // For SYN+ACK: AckNumber = SeqNumber + 1!
+            if( (tcpHeader.flags() & (TCPFlags::TF_SYN|TCPFlags::TF_ACK|TCPFlags::TF_RST)) == (TCPFlags::TF_SYN|TCPFlags::TF_ACK) ) {
+               const uint32_t a  = tcpHeader.ackNumber() - 1;
+               const uint16_t a1 = (uint16_t)((a & 0xffff0000) >> 16);
+               const uint16_t a2 = ((uint16_t)(a & 0xffff));
+               if(a1 == a2) {
+                  // Addressing information is already checked by kernel!
+                  recordResult(receivedData, 0, 0, a1);
+               }
+            }
+            else if(tcpHeader.flags() & TCPFlags::TF_RST) {
+               // For RST: AckNumber = SeqNumber + PayloadSize!
+               const uint32_t r  = tcpHeader.ackNumber() - PayloadSize - 1;
+               const uint16_t r1 = (uint16_t)((r & 0xffff0000) >> 16);
+               const uint16_t r2 = ((uint16_t)(r & 0xffff));
+               if(r1 == r2) {
+                  // Addressing information is already checked by kernel!
+                  recordResult(receivedData, 0, 0, r1);
+               }
+            }
+         }
       }
+
+      // ------ IPv4 --------------------------------------------------------
+      else {
+         IPv4Header ipv4Header;
+         is >> ipv4Header;
+         if( (is) && (ipv4Header.protocol() == IPPROTO_TCP) ) {
+            TCPHeader tcpHeader;
+            is >> tcpHeader;
+            if( (is) &&
+                (tcpHeader.destinationPort() == TCPSocketEndpoint.port()) &&
+                (tcpHeader.sourcePort()      == DestinationPort) ) {
+
+               // For SYN+ACK: AckNumber = SeqNumber + 1!
+               if( (tcpHeader.flags() & (TCPFlags::TF_SYN|TCPFlags::TF_ACK|TCPFlags::TF_RST)) == (TCPFlags::TF_SYN|TCPFlags::TF_ACK) ) {
+                  const uint32_t a  = tcpHeader.ackNumber() - 1;
+                  const uint16_t a1 = (uint16_t)((a & 0xffff0000) >> 16);
+                  const uint16_t a2 = ((uint16_t)(a & 0xffff));
+                  if(a1 == a2) {
+                     puts("SYN+ACK");
+                     // Addressing information may need update!
+                     receivedData.Destination = boost::asio::ip::udp::endpoint(ipv4Header.sourceAddress(),      tcpHeader.sourcePort());
+                     receivedData.Source      = boost::asio::ip::udp::endpoint(ipv4Header.destinationAddress(), tcpHeader.destinationPort());
+                     recordResult(receivedData, 0, 0, a1);
+                  }
+               }
+               else if(tcpHeader.flags() & TCPFlags::TF_RST) {
+                  // For RST: AckNumber = SeqNumber + PayloadSize!
+                  const uint32_t r  = tcpHeader.ackNumber() - PayloadSize - 1;
+                  const uint16_t r1 = (uint16_t)((r & 0xffff0000) >> 16);
+                  const uint16_t r2 = ((uint16_t)(r & 0xffff));
+                  if(r1 == r2) {
+                     puts("RST");
+                     // Addressing information may need update!
+                     receivedData.Destination = boost::asio::ip::udp::endpoint(ipv4Header.sourceAddress(),      tcpHeader.sourcePort());
+                     receivedData.Source      = boost::asio::ip::udp::endpoint(ipv4Header.destinationAddress(), tcpHeader.destinationPort());
+                     recordResult(receivedData, 0, 0, r1);
+                  }
+               }
+            }
+         }
+      }
+
    }
 
    // ====== ICMP error response ============================================

@@ -84,8 +84,8 @@ class TCPHeader
 
    inline uint16_t sourcePort()      const { return ntohs(*((uint16_t*)&Data[0]));  }
    inline uint16_t destinationPort() const { return ntohs(*((uint16_t*)&Data[2]));  }
-   inline uint16_t seqNumber()       const { return ntohl(*((uint32_t*)&Data[4]));  }
-   inline uint16_t ackNumber()       const { return ntohl(*((uint32_t*)&Data[8]));  }
+   inline uint32_t seqNumber()       const { return ntohl(*((uint32_t*)&Data[4]));  }
+   inline uint32_t ackNumber()       const { return ntohl(*((uint32_t*)&Data[8]));  }
    inline uint8_t dataOffset()       const { return (Data[12] & 0xf0) >> 2;         }   /* converted to bytes (*4)! */
    inline TCPFlags flags()           const { return (TCPFlags)Data[13];             }
    inline uint16_t window()          const { return ntohs(*((uint16_t*)&Data[14])); }
