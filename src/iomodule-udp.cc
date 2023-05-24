@@ -390,20 +390,20 @@ void UDPModule::handlePayloadResponse(const int     socketDescriptor,
                   is >> innerIPv4Header;
                   if( (is) && (innerIPv4Header.protocol() == IPPROTO_UDP) ) {
                      // NOTE: Addresses will be checked by recordResult()!
-                    // ------ IPv4 -> ICMP[Error] -> IPv4 -> UDP ------------
-                    UDPHeader udpHeader;
-                    is >> udpHeader;
-                    if( (is) &&
-                        (udpHeader.sourcePort()      == UDPSocketEndpoint.port()) &&
-                        (udpHeader.destinationPort() == DestinationPort) ) {
-                       receivedData.Source      = boost::asio::ip::udp::endpoint(innerIPv4Header.sourceAddress(),      udpHeader.sourcePort());
-                       receivedData.Destination = boost::asio::ip::udp::endpoint(innerIPv4Header.destinationAddress(), udpHeader.destinationPort());
-                       // Unfortunately, ICMPv4 does not return the full
-                       // TraceServiceHeader here! So, the sequence number
-                       // has to be used to identify the outgoing request!
-                       recordResult(receivedData,
-                                    icmpHeader.type(), icmpHeader.code(),
-                                    innerIPv4Header.identification());
+                     // ------ IPv4 -> ICMP[Error] -> IPv4 -> UDP ------------
+                     UDPHeader udpHeader;
+                     is >> udpHeader;
+                     if( (is) &&
+                         (udpHeader.sourcePort()      == UDPSocketEndpoint.port()) &&
+                         (udpHeader.destinationPort() == DestinationPort) ) {
+                        receivedData.Source      = boost::asio::ip::udp::endpoint(innerIPv4Header.sourceAddress(),      udpHeader.sourcePort());
+                        receivedData.Destination = boost::asio::ip::udp::endpoint(innerIPv4Header.destinationAddress(), udpHeader.destinationPort());
+                        // Unfortunately, ICMPv4 does not return the full
+                        // TraceServiceHeader here! So, the sequence number
+                        // has to be used to identify the outgoing request!
+                        recordResult(receivedData,
+                                     icmpHeader.type(), icmpHeader.code(),
+                                     innerIPv4Header.identification());
                      }
                   }
                }
