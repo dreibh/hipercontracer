@@ -29,14 +29,14 @@
 //
 // Contact: dreibh@simula.no
 
-#include "iomodule-udp.h"
+#include "iomodule-tcp.h"
 #include "tools.h"
 #include "logger.h"
 #include "icmpheader.h"
 #include "ipv4header.h"
 #include "ipv6header.h"
 #include "internet16.h"
-#include "udpheader.h"
+#include "tcpheader.h"
 #include "traceserviceheader.h"
 
 #include <boost/interprocess/streams/bufferstream.hpp>
@@ -46,11 +46,11 @@
 #endif
 
 
-REGISTER_IOMODULE(ProtocolType::PT_UDP, "UDP", UDPModule);
+REGISTER_IOMODULE(ProtocolType::PT_TCP, "TCP", TCPModule);
 
 
 // ###### Constructor #######################################################
-UDPModule::UDPModule(boost::asio::io_service&                 ioService,
+TCPModule::TCPModule(boost::asio::io_service&                 ioService,
                      std::map<unsigned short, ResultEntry*>&  resultsMap,
                      const boost::asio::ip::address&          sourceAddress,
                      std::function<void (const ResultEntry*)> newResultCallback,
@@ -59,40 +59,40 @@ UDPModule::UDPModule(boost::asio::io_service&                 ioService,
    : ICMPModule(ioService, resultsMap, sourceAddress,
                 newResultCallback, packetSize),
      DestinationPort(destinationPort),
-     RawUDPSocket(IOService, (sourceAddress.is_v6() == true) ? raw_udp::v6() :
-                                                               raw_udp::v4() )
+     RawTCPSocket(IOService, (sourceAddress.is_v6() == true) ? raw_tcp::v6() :
+                                                               raw_tcp::v4() )
 {
-   // Overhead: IPv4 Header (20)/IPv6 Header (40) + UDP Header (8)
+   // Overhead: IPv4 Header (20)/IPv6 Header (40) + TCP Header (20)
    PayloadSize      = std::max((ssize_t)MIN_TRACESERVICE_HEADER_SIZE,
                                (ssize_t)packetSize -
-                                  (ssize_t)((SourceAddress.is_v6() == true) ? 40 : 20) - 8);
-   ActualPacketSize = ((SourceAddress.is_v6() == true) ? 40 : 20) + 8 + PayloadSize;
+                                  (ssize_t)((SourceAddress.is_v6() == true) ? 40 : 20) - 20);
+   ActualPacketSize = ((SourceAddress.is_v6() == true) ? 40 : 20) + 20 + PayloadSize;
 }
 
 
 // ###### Destructor ########################################################
-UDPModule::~UDPModule()
+TCPModule::~TCPModule()
 {
 }
 
 
-// ###### Prepare UDP socket ################################################
-bool UDPModule::prepareSocket()
+// ###### Prepare TCP socket ################################################
+bool TCPModule::prepareSocket()
 {
-   // ====== Prepare ICMP socket and create UDP socket ======================
+   // ====== Prepare ICMP socket and create TCP socket ======================
    if(!ICMPModule::prepareSocket()) {
       return false;
    }
 
    // ====== Configure sockets (timestamping, etc.) =========================
-   if(!configureSocket(UDPSocket.native_handle(), SourceAddress)) {
+   if(!configureSocket(TCPSocket.native_handle(), SourceAddress)) {
       return false;
    }
-   if(!configureSocket(RawUDPSocket.native_handle(), SourceAddress)) {
+   if(!configureSocket(RawTCPSocket.native_handle(), SourceAddress)) {
       return false;
    }
    int on = 1;
-   if(setsockopt(RawUDPSocket.native_handle(),
+   if(setsockopt(RawTCPSocket.native_handle(),
                  (SourceAddress.is_v6() == true) ? IPPROTO_IPV6 : IPPROTO_IP,
                  (SourceAddress.is_v6() == true) ? IPV6_HDRINCL : IP_HDRINCL,
                  &on, sizeof(on)) < 0) {
@@ -102,37 +102,37 @@ bool UDPModule::prepareSocket()
    }
 
    // ====== Await incoming message or error ================================
-   expectNextReply(UDPSocket.native_handle(), true);
-   expectNextReply(UDPSocket.native_handle(), false);
-   expectNextReply(RawUDPSocket.native_handle(), true);
-   expectNextReply(RawUDPSocket.native_handle(), false);
+   expectNextReply(TCPSocket.native_handle(), true);
+   expectNextReply(TCPSocket.native_handle(), false);
+   expectNextReply(RawTCPSocket.native_handle(), true);
+   expectNextReply(RawTCPSocket.native_handle(), false);
 
    return true;
 }
 
 
 // // ###### Expect next message ############################################
-void UDPModule::expectNextReply(const int  socketDescriptor,
+void TCPModule::expectNextReply(const int  socketDescriptor,
                                 const bool readFromErrorQueue)
 {
-   if(socketDescriptor == UDPSocket.native_handle()) {
-      UDPSocket.async_wait(
+   if(socketDescriptor == TCPSocket.native_handle()) {
+      TCPSocket.async_wait(
          (readFromErrorQueue == true) ?
-            boost::asio::ip::udp::socket::wait_error :
-            boost::asio::ip::udp::socket::wait_read,
+            boost::asio::ip::tcp::socket::wait_error :
+            boost::asio::ip::tcp::socket::wait_read,
          std::bind(&ICMPModule::handleResponse, this,
                    std::placeholders::_1,
-                   UDPSocket.native_handle(), readFromErrorQueue)
+                   TCPSocket.native_handle(), readFromErrorQueue)
       );
    }
-   else if(socketDescriptor == RawUDPSocket.native_handle()) {
-      RawUDPSocket.async_wait(
+   else if(socketDescriptor == RawTCPSocket.native_handle()) {
+      RawTCPSocket.async_wait(
          (readFromErrorQueue == true) ?
-            boost::asio::ip::udp::socket::wait_error :
-            boost::asio::ip::udp::socket::wait_read,
+            boost::asio::ip::tcp::socket::wait_error :
+            boost::asio::ip::tcp::socket::wait_read,
          std::bind(&ICMPModule::handleResponse, this,
                    std::placeholders::_1,
-                   RawUDPSocket.native_handle(), readFromErrorQueue)
+                   RawTCPSocket.native_handle(), readFromErrorQueue)
       );
    }
    else {
@@ -142,16 +142,16 @@ void UDPModule::expectNextReply(const int  socketDescriptor,
 
 
 // ###### Cancel socket operations ##########################################
-void UDPModule::cancelSocket()
+void TCPModule::cancelSocket()
 {
-   UDPSocket.cancel();
-   RawUDPSocket.cancel();
+   TCPSocket.cancel();
+   RawTCPSocket.cancel();
    ICMPModule::cancelSocket();
 }
 
 
-// ###### Send one UDP request to given destination ########################
-unsigned int UDPModule::sendRequest(const DestinationInfo& destination,
+// ###### Send one TCP request to given destination ########################
+unsigned int TCPModule::sendRequest(const DestinationInfo& destination,
                                     const unsigned int     fromTTL,
                                     const unsigned int     toTTL,
                                     const unsigned int     fromRound,
@@ -160,26 +160,31 @@ unsigned int UDPModule::sendRequest(const DestinationInfo& destination,
                                     uint32_t*              targetChecksumArray)
 {
    // NOTE:
-   // - RawUDPSocket is used for sending the raw UDP packet
-   // - UDPSocket is used for receiving the response. This socket is already
+   // - RawTCPSocket is used for sending the raw TCP packet
+   // - TCPSocket is used for receiving the response. This socket is already
    //   bound to the ANY address and source port.
    // - If SourceAddress is the ANY address: find the actual source address
-   const raw_udp::endpoint remoteEndpoint(destination.address(),
+   const raw_tcp::endpoint remoteEndpoint(destination.address(),
                                           SourceAddress.is_v6() ? 0 : DestinationPort);
-   const raw_udp::endpoint localEndpoint((UDPSocketEndpoint.address().is_unspecified() ?
+   const raw_tcp::endpoint localEndpoint((TCPSocketEndpoint.address().is_unspecified() ?
                                             findSourceForDestination(destination.address()) :
-                                            UDPSocketEndpoint.address()),
-                                         UDPSocketEndpoint.port());
+                                            TCPSocketEndpoint.address()),
+                                         TCPSocketEndpoint.port());
 
    // ====== Prepare TraceService header ====================================
    TraceServiceHeader tsHeader(PayloadSize);
    tsHeader.magicNumber(MagicNumber);
 
-   // ====== Prepare UDP header =============================================
-   UDPHeader udpHeader;
-   udpHeader.sourcePort(localEndpoint.port());
-   udpHeader.destinationPort(DestinationPort);
-   udpHeader.length(8 + PayloadSize);
+   // ====== Prepare TCP header =============================================
+   TCPHeader tcpHeader;
+   tcpHeader.sourcePort(localEndpoint.port());
+   tcpHeader.destinationPort(DestinationPort);
+   tcpHeader.seqNumber(((uint32_t)seqNumber << 16) | seqNumber);
+   tcpHeader.ackNumber(0);
+   tcpHeader.dataOffset(20);
+   tcpHeader.flags(TCPFlags::TF_SYN);
+   tcpHeader.window(4096);
+   tcpHeader.urgentPointer(0);
 
    // ====== Prepare IP header ==============================================
    IPv6Header       ipv6Header;
@@ -190,12 +195,12 @@ unsigned int UDPModule::sendRequest(const DestinationInfo& destination,
       ipv6Header.version(6);
       ipv6Header.trafficClass(destination.trafficClass());
       ipv6Header.flowLabel(0);
-      ipv6Header.payloadLength(8 + PayloadSize);
-      ipv6Header.nextHeader(IPPROTO_UDP);
+      ipv6Header.payloadLength(tcpHeader.dataOffset() + PayloadSize);
+      ipv6Header.nextHeader(IPPROTO_TCP);
       ipv6Header.sourceAddress(localEndpoint.address().to_v6());
       ipv6Header.destinationAddress(destination.address().to_v6());
 
-      ipv6PseudoHeader = IPv6PseudoHeader(ipv6Header, udpHeader.length());
+      ipv6PseudoHeader = IPv6PseudoHeader(ipv6Header, tcpHeader.dataOffset() + PayloadSize);
    }
    else {
       ipv4Header.version(4);
@@ -203,18 +208,18 @@ unsigned int UDPModule::sendRequest(const DestinationInfo& destination,
       ipv4Header.headerLength(20);
       ipv4Header.totalLength(ActualPacketSize);
       ipv4Header.fragmentOffset(0);
-      ipv4Header.protocol(IPPROTO_UDP);
+      ipv4Header.protocol(IPPROTO_TCP);
       ipv4Header.sourceAddress(localEndpoint.address().to_v4());
       ipv4Header.destinationAddress(destination.address().to_v4());
 
-      ipv4PseudoHeader = IPv4PseudoHeader(ipv4Header, udpHeader.length());
+      ipv4PseudoHeader = IPv4PseudoHeader(ipv4Header, tcpHeader.dataOffset() + PayloadSize);
    }
 
    // ====== Message scatter/gather array ===================================
    const std::array<boost::asio::const_buffer, 3> buffer {
       SourceAddress.is_v6() ? boost::asio::buffer(ipv6Header.data(), ipv6Header.size()) :
                               boost::asio::buffer(ipv4Header.data(), ipv4Header.size()),
-      boost::asio::buffer(udpHeader.data(), udpHeader.size()),
+      boost::asio::buffer(tcpHeader.data(), tcpHeader.size()),
       boost::asio::buffer(tsHeader.data(),  tsHeader.size())
    };
 
@@ -249,8 +254,8 @@ unsigned int UDPModule::sendRequest(const DestinationInfo& destination,
             ipv4Header.headerChecksum(0);
          }
 
-         // ====== Update UDP header ========================================
-         udpHeader.checksum(0);
+         // ====== Update TCP header ========================================
+         tcpHeader.checksum(0);
 
          // ====== Update TraceService header ===============================
          tsHeader.seqNumber(seqNumber);
@@ -260,24 +265,24 @@ unsigned int UDPModule::sendRequest(const DestinationInfo& destination,
          tsHeader.sendTimeStamp(sendTime);
 
          // ====== Compute checksums ========================================
-         uint32_t udpChecksum = 0;
-         udpHeader.computeInternet16(udpChecksum);
+         uint32_t tcpChecksum = 0;
+         tcpHeader.computeInternet16(tcpChecksum);
          if(SourceAddress.is_v6()) {
-            ipv6PseudoHeader.computeInternet16(udpChecksum);
+            ipv6PseudoHeader.computeInternet16(tcpChecksum);
          }
          else {
-            ipv4PseudoHeader.computeInternet16(udpChecksum);
+            ipv4PseudoHeader.computeInternet16(tcpChecksum);
 
             uint32_t ipv4HeaderChecksum = 0;
             ipv4Header.computeInternet16(ipv4HeaderChecksum);
             ipv4Header.headerChecksum(finishInternet16(ipv4HeaderChecksum));
          }
-         tsHeader.computeInternet16(udpChecksum);
-         udpHeader.checksum(finishInternet16(udpChecksum));
+         tsHeader.computeInternet16(tcpChecksum);
+         tcpHeader.checksum(finishInternet16(tcpChecksum));
 
          // ====== Send the request =========================================
          sentArray[currentEntry] =
-            RawUDPSocket.send_to(buffer, remoteEndpoint, 0, errorCodeArray[currentEntry]);
+            RawTCPSocket.send_to(buffer, remoteEndpoint, 0, errorCodeArray[currentEntry]);
 
          // ====== Store message information ================================
          resultEntryArray[currentEntry]->initialise(
@@ -317,14 +322,14 @@ unsigned int UDPModule::sendRequest(const DestinationInfo& destination,
 
 
 // ###### Handle payload response (i.e. not from error queue) ###############
-void UDPModule::handlePayloadResponse(const int     socketDescriptor,
+void TCPModule::handlePayloadResponse(const int     socketDescriptor,
                                       ReceivedData& receivedData)
 {
    boost::interprocess::bufferstream is(receivedData.MessageBuffer,
                                         receivedData.MessageLength);
 
-   // ====== UDP response ===================================================
-   if(socketDescriptor == UDPSocket.native_handle()) {
+   // ====== TCP response ===================================================
+   if(socketDescriptor == TCPSocket.native_handle()) {
       // ------ TraceServiceHeader ------------------------------------------
       TraceServiceHeader tsHeader;
       is >> tsHeader;
@@ -348,16 +353,16 @@ void UDPModule::handlePayloadResponse(const int     socketDescriptor,
                // ------ IPv6 -> ICMPv6[Error] -> IPv6 ----------------------
                IPv6Header innerIPv6Header;
                is >> innerIPv6Header;
-               if( (is) && (innerIPv6Header.nextHeader() == IPPROTO_UDP) ) {
+               if( (is) && (innerIPv6Header.nextHeader() == IPPROTO_TCP) ) {
                   // NOTE: Addresses will be checked by recordResult()!
-                  // ------ IPv6 -> ICMPv6[Error] -> IPv6 -> UDP ------------
-                  UDPHeader udpHeader;
-                  is >> udpHeader;
+                  // ------ IPv6 -> ICMPv6[Error] -> IPv6 -> TCP ------------
+                  TCPHeader tcpHeader;
+                  is >> tcpHeader;
                   if( (is) &&
-                     (udpHeader.sourcePort()      == UDPSocketEndpoint.port()) &&
-                     (udpHeader.destinationPort() == DestinationPort) ) {
-                     receivedData.Source      = boost::asio::ip::udp::endpoint(innerIPv6Header.sourceAddress(),      udpHeader.sourcePort());
-                     receivedData.Destination = boost::asio::ip::udp::endpoint(innerIPv6Header.destinationAddress(), udpHeader.destinationPort());
+                     (tcpHeader.sourcePort()      == TCPSocketEndpoint.port()) &&
+                     (tcpHeader.destinationPort() == DestinationPort) ) {
+                     receivedData.Source      = boost::asio::ip::udp::endpoint(innerIPv6Header.sourceAddress(),      tcpHeader.sourcePort());
+                     receivedData.Destination = boost::asio::ip::udp::endpoint(innerIPv6Header.destinationAddress(), tcpHeader.destinationPort());
                      // ------ TraceServiceHeader ---------------------------
                      TraceServiceHeader tsHeader;
                      is >> tsHeader;
@@ -388,16 +393,16 @@ void UDPModule::handlePayloadResponse(const int     socketDescriptor,
                   // ------ IPv4 -> ICMP[Error] -> IPv4 ---------------------
                   IPv4Header innerIPv4Header;
                   is >> innerIPv4Header;
-                  if( (is) && (innerIPv4Header.protocol() == IPPROTO_UDP) ) {
+                  if( (is) && (innerIPv4Header.protocol() == IPPROTO_TCP) ) {
                      // NOTE: Addresses will be checked by recordResult()!
-                    // ------ IPv4 -> ICMP[Error] -> IPv4 -> UDP ------------
-                    UDPHeader udpHeader;
-                    is >> udpHeader;
+                    // ------ IPv4 -> ICMP[Error] -> IPv4 -> TCP ------------
+                    TCPHeader tcpHeader;
+                    is >> tcpHeader;
                     if( (is) &&
-                        (udpHeader.sourcePort()      == UDPSocketEndpoint.port()) &&
-                        (udpHeader.destinationPort() == DestinationPort) ) {
-                       receivedData.Source      = boost::asio::ip::udp::endpoint(innerIPv4Header.sourceAddress(),      udpHeader.sourcePort());
-                       receivedData.Destination = boost::asio::ip::udp::endpoint(innerIPv4Header.destinationAddress(), udpHeader.destinationPort());
+                        (tcpHeader.sourcePort()      == TCPSocketEndpoint.port()) &&
+                        (tcpHeader.destinationPort() == DestinationPort) ) {
+                       receivedData.Source      = boost::asio::ip::udp::endpoint(innerIPv4Header.sourceAddress(),      tcpHeader.sourcePort());
+                       receivedData.Destination = boost::asio::ip::udp::endpoint(innerIPv4Header.destinationAddress(), tcpHeader.destinationPort());
                        // Unfortunately, ICMPv4 does not return the full
                        // TraceServiceHeader here! So, the sequence number
                        // has to be used to identify the outgoing request!
@@ -417,7 +422,7 @@ void UDPModule::handlePayloadResponse(const int     socketDescriptor,
 
 
 // ###### Handle error response (i.e. from error queue) #####################
-void UDPModule::handleErrorResponse(const int          socketDescriptor,
+void TCPModule::handleErrorResponse(const int          socketDescriptor,
                                     ReceivedData&      receivedData,
                                     sock_extended_err* socketError)
 {

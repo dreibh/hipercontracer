@@ -39,6 +39,7 @@ LIST(APPEND libhipercontracer_headers
    destinationinfo.h
    iomodule-base.h
    iomodule-icmp.h
+   iomodule-tcp.h
    iomodule-udp.h
    jitter.h
    logger.h
@@ -54,6 +55,7 @@ LIST(APPEND libhipercontracer_sources
    internet16.cc
    iomodule-base.cc
    iomodule-icmp.cc
+   iomodule-tcp.cc
    iomodule-udp.cc
    jitter.cc
    jitter-rfc3550.cc

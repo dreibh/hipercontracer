@@ -60,6 +60,8 @@ ICMPModule::ICMPModule(boost::asio::io_service&                 ioService,
                   newResultCallback),
      UDPSocket(IOService, (sourceAddress.is_v6() == true) ? boost::asio::ip::udp::v6() :
                                                             boost::asio::ip::udp::v4() ),
+     TCPSocket(IOService, (sourceAddress.is_v6() == true) ? boost::asio::ip::tcp::v6() :
+                                                            boost::asio::ip::tcp::v4() ),
      ICMPSocket(IOService, (sourceAddress.is_v6() == true) ? boost::asio::ip::icmp::v6() :
                                                              boost::asio::ip::icmp::v4() )
 {
@@ -84,11 +86,11 @@ bool ICMPModule::prepareSocket()
 {
    // ====== Bind UDP socket to given source address ========================
    boost::system::error_code      errorCode;
-   boost::asio::ip::udp::endpoint sourceEndpoint(SourceAddress, 0);
-   UDPSocket.bind(sourceEndpoint, errorCode);
+   boost::asio::ip::udp::endpoint udpSourceEndpoint(SourceAddress, 0);
+   UDPSocket.bind(udpSourceEndpoint, errorCode);
    if(errorCode !=  boost::system::errc::success) {
       HPCT_LOG(error) << getName() << ": Unable to bind UDP socket to source address "
-                      << sourceEndpoint << "!";
+                      << udpSourceEndpoint << "!";
       return false;
    }
    UDPSocketEndpoint = UDPSocket.local_endpoint();
@@ -104,6 +106,16 @@ bool ICMPModule::prepareSocket()
       assert(in->sa_family == AF_INET6);
       Identifier = ntohs(((sockaddr_in6*)in)->sin6_port);
    }
+
+   // ====== Bind TCP socket to given source address ========================
+   boost::asio::ip::tcp::endpoint tcpSourceEndpoint(SourceAddress, 0);
+   TCPSocket.bind(tcpSourceEndpoint, errorCode);
+   if(errorCode !=  boost::system::errc::success) {
+      HPCT_LOG(error) << getName() << ": Unable to bind TCP socket to source address "
+                      << tcpSourceEndpoint << "!";
+      return false;
+   }
+   TCPSocketEndpoint = TCPSocket.local_endpoint();
 
    // ====== Bind ICMP socket to given source address =======================
    ICMPSocket.bind(boost::asio::ip::icmp::endpoint(SourceAddress, 0), errorCode);

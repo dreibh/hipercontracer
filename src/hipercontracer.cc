@@ -130,6 +130,7 @@ int main(int argc, char** argv)
    unsigned int             tracerouteIncrementMaxTTL;
    unsigned int             traceroutePacketSize;
 
+   uint16_t                 tcpDestinationPort;
    uint16_t                 udpDestinationPort;
 
    unsigned int             resultsTransactionLength;
@@ -245,6 +246,9 @@ int main(int argc, char** argv)
            boost::program_options::value<bool>(&jitterRecordRawResults)->default_value(false)->implicit_value(true),
            "Record raw Ping results for Jitter computation" )
 
+      ( "tcpdestinationport",
+           boost::program_options::value<uint16_t>(&tcpDestinationPort)->default_value(80),
+           "TCP destination port" )
       ( "udpdestinationport",
            boost::program_options::value<uint16_t>(&udpDestinationPort)->default_value(7),
            "UDP destination port" )
@@ -443,7 +447,13 @@ int main(int argc, char** argv)
 */
 
       for(const std::string& ioModule : ioModules) {
-         const uint16_t port = udpDestinationPort;
+         uint16_t port = 0;
+         if(ioModule == "UDP") {
+            port = udpDestinationPort;
+         }
+         else if(ioModule == "TCP") {
+            port = tcpDestinationPort;
+         }
          if(serviceJitter) {
             try {
                ResultsWriter* resultsWriter = nullptr;

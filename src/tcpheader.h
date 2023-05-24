@@ -82,26 +82,25 @@ class TCPHeader
    public:
    TCPHeader() { }
 
-   inline uint16_t sourcePort()      const { return ntohs(*((uint16_t*)&Data[0])); }
-   inline uint16_t destinationPort() const { return ntohs(*((uint16_t*)&Data[2])); }
-   inline uint16_t seqNumber()       const { return ntohl(*((uint32_t*)&Data[4])); }
-   inline uint16_t ackNumber()       const { return ntohl(*((uint32_t*)&Data[8])); }
-   inline uint8_t dataOffset()       const { return (Data[12] & 0xf0) >> 2;        }   /* converted to bytes (*4)! */
-   inline TCPFlags flags()           const { return (TCPFlags)Data[13];            }
+   inline uint16_t sourcePort()      const { return ntohs(*((uint16_t*)&Data[0]));  }
+   inline uint16_t destinationPort() const { return ntohs(*((uint16_t*)&Data[2]));  }
+   inline uint16_t seqNumber()       const { return ntohl(*((uint32_t*)&Data[4]));  }
+   inline uint16_t ackNumber()       const { return ntohl(*((uint32_t*)&Data[8]));  }
+   inline uint8_t dataOffset()       const { return (Data[12] & 0xf0) >> 2;         }   /* converted to bytes (*4)! */
+   inline TCPFlags flags()           const { return (TCPFlags)Data[13];             }
    inline uint16_t window()          const { return ntohs(*((uint16_t*)&Data[14])); }
    inline uint16_t checksum()        const { return ntohs(*((uint16_t*)&Data[16])); }
    inline uint16_t urgentPointer()   const { return ntohs(*((uint16_t*)&Data[18])); }
 
-
-   inline void sourcePort(const uint16_t sourcePort)           { *((uint16_t*)&Data[0]) = htons(sourcePort);      }
-   inline void destinationPort(const uint16_t destinationPort) { *((uint16_t*)&Data[2]) = htons(destinationPort); }
-   inline void seqNumber(const uint32_t seqNumber)             { *((uint32_t*)&Data[4]) = htonl(seqNumber);       }
-   inline void ackNumber(const uint32_t ackNumber)             { *((uint32_t*)&Data[8]) = htonl(ackNumber);       }
-   inline void dataOffset(const uint8_t dataOffset)            { Data[12] = (dataOffset & 0x0f) << 2;             }   /* in bytes! */
-   inline void flags(const TCPFlags flags)                     { Data[13] = (uint8_t)flags;                       }
-   inline void window(const uint16_t window)                   { *((uint16_t*)&Data[14]) = htons(window);         }
-   inline void checksum(const uint16_t checksum)               { *((uint16_t*)&Data[16]) = htons(checksum);       }
-   inline void urgentPointer(const uint16_t urgentPointer)     { *((uint16_t*)&Data[18]) = htons(urgentPointer);  }
+   inline void sourcePort(const uint16_t sourcePort)           { *((uint16_t*)&Data[0])  = htons(sourcePort);      }
+   inline void destinationPort(const uint16_t destinationPort) { *((uint16_t*)&Data[2])  = htons(destinationPort); }
+   inline void seqNumber(const uint32_t seqNumber)             { *((uint32_t*)&Data[4])  = htonl(seqNumber);       }
+   inline void ackNumber(const uint32_t ackNumber)             { *((uint32_t*)&Data[8])  = htonl(ackNumber);       }
+   inline void dataOffset(const uint8_t dataOffset)            { Data[12] = ((dataOffset >> 2) & 0x0f) << 4;       }   /* in bytes! */
+   inline void flags(const TCPFlags flags)                     { Data[13] = (uint8_t)flags;                        }
+   inline void window(const uint16_t window)                   { *((uint16_t*)&Data[14]) = htons(window);          }
+   inline void checksum(const uint16_t checksum)               { *((uint16_t*)&Data[16]) = htons(checksum);        }
+   inline void urgentPointer(const uint16_t urgentPointer)     { *((uint16_t*)&Data[18]) = htons(urgentPointer);   }
 
    inline void computeInternet16(uint32_t& sum) const {
       ::computeInternet16(sum, (uint8_t*)&Data, dataOffset());
