@@ -177,12 +177,6 @@ unsigned int TCPModule::sendRequest(const DestinationInfo& destination,
    TCPHeader tcpHeader;
    tcpHeader.sourcePort(localEndpoint.port());
    tcpHeader.destinationPort(DestinationPort);
-   // TCP sequence number: (Seq Number)(Seq Number)!
-   // The TCP SYN segment is sent with this recognisable sequence number.
-   // It contains payload data as well. The payload data is not going to be
-   // acknowledged in a SYN+ACK. A SYN+ACK will only contain the
-   // acknowledgement for the SYN. A RST will acknowledge (1 + payload)!
-   tcpHeader.seqNumber(((uint32_t)seqNumber << 16) | seqNumber);
    tcpHeader.ackNumber(0);
    tcpHeader.dataOffset(20);
    tcpHeader.flags(TCPFlags::TF_SYN);
@@ -258,6 +252,12 @@ unsigned int TCPModule::sendRequest(const DestinationInfo& destination,
          }
 
          // ====== Update TCP header ========================================
+         // TCP sequence number: (Seq Number)(Seq Number)!
+         // The TCP SYN segment is sent with this recognisable sequence number.
+         // It contains payload data as well. The payload data is not going to be
+         // acknowledged in a SYN+ACK. A SYN+ACK will only contain the
+         // acknowledgement for the SYN. A RST will acknowledge (1 + payload)!
+         tcpHeader.seqNumber(((uint32_t)seqNumber << 16) | seqNumber);
          tcpHeader.checksum(0);
 
          // ====== Update TraceService header ===============================

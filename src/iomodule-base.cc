@@ -379,7 +379,7 @@ void IOModuleBase::recordResult(const ReceivedData&  receivedData,
       }
       else if( (icmpType == ICMPHeader::IPv6EchoReply) ||
                (icmpType == ICMPHeader::IPv4EchoReply) ) {
-         status  = Success;
+         status = Success;
       }
       resultEntry->setStatus(status);
 
