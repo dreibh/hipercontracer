@@ -353,13 +353,13 @@ unsigned int TCPModule::sendRequest(const DestinationInfo& destination,
 }
 
 
-// ?????????FIXME!
-bool extractSeqNumberFromTimeStampReply(const TCPHeader& tcpHeader,
-                                        uint32_t&        timeStampValue,
-                                        uint32_t&        timeStampReply)
+// ###### Extract sequence number from Timestamp option #####################
+bool TCPModule::extractSeqNumberFromTimestampOption(const TCPHeader& tcpHeader,
+                                                    uint32_t&        timeStampValue,
+                                                    uint32_t&        timeStampReply)
 {
-   const uint8_t* options = tcpHeader.options();
-   size_t optionsLength = tcpHeader.optionsLength();
+   const uint8_t* options       = tcpHeader.options();
+   const size_t   optionsLength = tcpHeader.optionsLength();
    for(unsigned int i = 0;i < optionsLength; i++) {
       if(options[i] == 0x00) {
          // End of options.
@@ -408,7 +408,7 @@ void TCPModule::handlePayloadResponse(const int     socketDescriptor,
                (tcpHeader.sourcePort()      == DestinationPort) ) {
             uint32_t timeStampValue;
             uint32_t timeStampReply;
-            if(extractSeqNumberFromTimeStampReply(tcpHeader, timeStampValue, timeStampReply)) {
+            if(extractSeqNumberFromTimestampOption(tcpHeader, timeStampValue, timeStampReply)) {
                const uint16_t r1 = (uint16_t)((timeStampReply & 0xffff0000) >> 16);
                const uint16_t r2 = ((uint16_t)(timeStampReply & 0xffff));
                if(r1 == r2) {
@@ -438,7 +438,7 @@ void TCPModule::handlePayloadResponse(const int     socketDescriptor,
                 (tcpHeader.sourcePort()      == DestinationPort) ) {
                uint32_t timeStampValue;
                uint32_t timeStampReply;
-               if(extractSeqNumberFromTimeStampReply(tcpHeader, timeStampValue, timeStampReply)) {
+               if(extractSeqNumberFromTimestampOption(tcpHeader, timeStampValue, timeStampReply)) {
                   const uint16_t r1 = (uint16_t)((timeStampReply & 0xffff0000) >> 16);
                   const uint16_t r2 = ((uint16_t)(timeStampReply & 0xffff));
                   if(r1 == r2) {
@@ -488,7 +488,7 @@ void TCPModule::handlePayloadResponse(const int     socketDescriptor,
                       (tcpHeader.destinationPort() == DestinationPort) ) {
                      uint32_t timeStampValue;
                      uint32_t timeStampReply;
-                     if(extractSeqNumberFromTimeStampReply(tcpHeader, timeStampValue, timeStampReply)) {
+                     if(extractSeqNumberFromTimestampOption(tcpHeader, timeStampValue, timeStampReply)) {
                         const uint16_t v1 = (uint16_t)((timeStampValue & 0xffff0000) >> 16);
                         const uint16_t v2 = ((uint16_t)(timeStampValue & 0xffff));
                         if(v1 == v2) {
@@ -536,7 +536,7 @@ void TCPModule::handlePayloadResponse(const int     socketDescriptor,
                          (tcpHeader.destinationPort() == DestinationPort) ) {
                         uint32_t timeStampValue;
                         uint32_t timeStampReply;
-                        if(extractSeqNumberFromTimeStampReply(tcpHeader, timeStampValue, timeStampReply)) {
+                        if(extractSeqNumberFromTimestampOption(tcpHeader, timeStampValue, timeStampReply)) {
                            const uint16_t v1 = (uint16_t)((timeStampValue & 0xffff0000) >> 16);
                            const uint16_t v2 = ((uint16_t)(timeStampValue & 0xffff));
                            if(v1 == v2) {

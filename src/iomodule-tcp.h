@@ -65,6 +65,8 @@ class raw_tcp
 };
 
 
+class TCPHeader;
+
 class TCPModule : public ICMPModule
 {
    public:
@@ -102,6 +104,10 @@ class TCPModule : public ICMPModule
                                     uint32_t*              targetChecksumArray);
 
    protected:
+   static bool extractSeqNumberFromTimestampOption(const TCPHeader& tcpHeader,
+                                                   uint32_t&        timeStampValue,
+                                                   uint32_t&        timeStampReply);
+
    const uint16_t                         DestinationPort;
 
    boost::asio::basic_raw_socket<raw_tcp> RawTCPSocket;
