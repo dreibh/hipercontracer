@@ -174,7 +174,7 @@ unsigned int TCPModule::sendRequest(const DestinationInfo& destination,
    tsHeader.magicNumber(MagicNumber);
 
    // ====== Prepare TCP header =============================================
-   struct MyOptions {
+   struct MyTCPOptions {
       uint8_t  MSSOption;              // 0x02
       uint8_t  MSSLength;              // 4
       uint16_t MSSValue;
@@ -190,13 +190,13 @@ unsigned int TCPModule::sendRequest(const DestinationInfo& destination,
    tcpHeader.sourcePort(localEndpoint.port());
    tcpHeader.destinationPort(DestinationPort);
    tcpHeader.ackNumber(0);
-   tcpHeader.dataOffset(20 + sizeof(MyOptions));
+   tcpHeader.dataOffset(20 + sizeof(MyTCPOptions));
    tcpHeader.flags(TCPFlags::TF_SYN);
    tcpHeader.window(4096);
    tcpHeader.urgentPointer(0);
 
-   MyOptions* tcpOptions = (MyOptions*)tcpHeader.options();
-   memset(tcpOptions, 0x01, sizeof(MyOptions));
+   MyTCPOptions* tcpOptions = (MyTCPOptions*)tcpHeader.options();
+   memset(tcpOptions, 0x01, sizeof(MyTCPOptions));   // NOP
    tcpOptions->MSSOption           = 0x02;
    tcpOptions->MSSLength           = 4;
    tcpOptions->MSSValue            = htons(1460);
@@ -262,7 +262,9 @@ unsigned int TCPModule::sendRequest(const DestinationInfo& destination,
    for(unsigned int round = fromRound; round <= toRound; round++) {
       // NOTE: Using forward direction for TCP!
 // FIXME! CHECK
+//       for(int ttl = (int)fromTTL; ttl >= (int)toTTL; ttl--) {
       for(int ttl = toTTL; ttl <= fromTTL; ttl++) {
+
          assert(currentEntry < entries);
          seqNumber++;   // New sequence number!
 
@@ -283,7 +285,8 @@ unsigned int TCPModule::sendRequest(const DestinationInfo& destination,
          // It contains payload data as well. The payload data is not going to be
          // acknowledged in a SYN+ACK. A SYN+ACK will only contain the
          // acknowledgement for the SYN. A RST will acknowledge (1 + payload)!
-         tcpHeader.seqNumber(((uint32_t)seqNumber << 16) | seqNumber);
+         tcpOptions->TimeStampValue = htonl(((uint32_t)seqNumber << 16) | seqNumber);
+         tcpHeader.seqNumber(1000000);
          tcpHeader.checksum(0);
 
          // ====== Update TraceService header ===============================
@@ -350,6 +353,42 @@ unsigned int TCPModule::sendRequest(const DestinationInfo& destination,
 }
 
 
+// ?????????FIXME!
+bool extractSeqNumberFromTimeStampReply(const TCPHeader& tcpHeader,
+                                        uint32_t&        timeStampValue,
+                                        uint32_t&        timeStampReply)
+{
+   const uint8_t* options = tcpHeader.options();
+   size_t optionsLength = tcpHeader.optionsLength();
+   for(unsigned int i = 0;i < optionsLength; i++) {
+      if(options[i] == 0x00) {
+         // End of options.
+         break;
+      }
+      else if(options[i] == 0x01) {
+         // NOP.
+      }
+      else {
+         if(i + 1 > optionsLength) {
+            // Invalid!
+            break;
+         }
+         if(i + options[i + 1] > optionsLength) {
+            // Invalid!
+            break;
+         }
+         if((options[i] == 0x08) && (options[i + 1] == 10)) {   // Timestamp option
+            timeStampValue = ntohl(*(const uint32_t*)&options[i + 2]);
+            timeStampReply = ntohl(*(const uint32_t*)&options[i + 6]);
+            return true;
+         }
+         i += options[i + 1] - 1;
+      }
+   }
+   return false;
+}
+
+
 // ###### Handle payload response (i.e. not from error queue) ###############
 void TCPModule::handlePayloadResponse(const int     socketDescriptor,
                                       ReceivedData& receivedData)
@@ -367,25 +406,21 @@ void TCPModule::handlePayloadResponse(const int     socketDescriptor,
          if( (is) &&
                (tcpHeader.destinationPort() == TCPSocketEndpoint.port()) &&
                (tcpHeader.sourcePort()      == DestinationPort) ) {
-
-            // For SYN+ACK: AckNumber = SeqNumber + 1!
-            if( (tcpHeader.flags() & (TCPFlags::TF_SYN|TCPFlags::TF_ACK|TCPFlags::TF_RST)) == (TCPFlags::TF_SYN|TCPFlags::TF_ACK) ) {
-               const uint32_t a  = tcpHeader.ackNumber() - 1;
-               const uint16_t a1 = (uint16_t)((a & 0xffff0000) >> 16);
-               const uint16_t a2 = ((uint16_t)(a & 0xffff));
-               if(a1 == a2) {
-                  // Addressing information is already checked by kernel!
-                  recordResult(receivedData, 0, 0, a1);
-               }
-            }
-            else if(tcpHeader.flags() & TCPFlags::TF_RST) {
-               // For RST: AckNumber = SeqNumber + PayloadSize!
-               const uint32_t r  = tcpHeader.ackNumber() - PayloadSize - 1;
-               const uint16_t r1 = (uint16_t)((r & 0xffff0000) >> 16);
-               const uint16_t r2 = ((uint16_t)(r & 0xffff));
+            uint32_t timeStampValue;
+            uint32_t timeStampReply;
+            if(extractSeqNumberFromTimeStampReply(tcpHeader, timeStampValue, timeStampReply)) {
+               const uint16_t r1 = (uint16_t)((timeStampReply & 0xffff0000) >> 16);
+               const uint16_t r2 = ((uint16_t)(timeStampReply & 0xffff));
                if(r1 == r2) {
-                  // Addressing information is already checked by kernel!
-                  recordResult(receivedData, 0, 0, r1);
+                  // For SYN+ACK: AckNumber = SeqNumber + 1!
+                  if( (tcpHeader.flags() & (TCPFlags::TF_SYN|TCPFlags::TF_ACK|TCPFlags::TF_RST)) == (TCPFlags::TF_SYN|TCPFlags::TF_ACK) ) {
+                     // Addressing information is already checked by kernel!
+                     recordResult(receivedData, 0, 0, r1);
+                  }
+                  else if(tcpHeader.flags() & TCPFlags::TF_RST) {
+                     // Addressing information is already checked by kernel!
+                     recordResult(receivedData, 0, 0, r1);
+                  }
                }
             }
          }
@@ -401,29 +436,25 @@ void TCPModule::handlePayloadResponse(const int     socketDescriptor,
             if( (is) &&
                 (tcpHeader.destinationPort() == TCPSocketEndpoint.port()) &&
                 (tcpHeader.sourcePort()      == DestinationPort) ) {
-
-               // For SYN+ACK: AckNumber = SeqNumber + 1!
-               if( (tcpHeader.flags() & (TCPFlags::TF_SYN|TCPFlags::TF_ACK|TCPFlags::TF_RST)) == (TCPFlags::TF_SYN|TCPFlags::TF_ACK) ) {
-                  const uint32_t a  = tcpHeader.ackNumber() - 1;
-                  const uint16_t a1 = (uint16_t)((a & 0xffff0000) >> 16);
-                  const uint16_t a2 = ((uint16_t)(a & 0xffff));
-                  if(a1 == a2) {
-                     // Addressing information may need update!
-                     receivedData.Destination = boost::asio::ip::udp::endpoint(ipv4Header.sourceAddress(),      tcpHeader.sourcePort());
-                     receivedData.Source      = boost::asio::ip::udp::endpoint(ipv4Header.destinationAddress(), tcpHeader.destinationPort());
-                     recordResult(receivedData, 0, 0, a1);
-                  }
-               }
-               else if(tcpHeader.flags() & TCPFlags::TF_RST) {
-                  // For RST: AckNumber = SeqNumber + PayloadSize!
-                  const uint32_t r  = tcpHeader.ackNumber() - PayloadSize - 1;
-                  const uint16_t r1 = (uint16_t)((r & 0xffff0000) >> 16);
-                  const uint16_t r2 = ((uint16_t)(r & 0xffff));
+               uint32_t timeStampValue;
+               uint32_t timeStampReply;
+               if(extractSeqNumberFromTimeStampReply(tcpHeader, timeStampValue, timeStampReply)) {
+                  const uint16_t r1 = (uint16_t)((timeStampReply & 0xffff0000) >> 16);
+                  const uint16_t r2 = ((uint16_t)(timeStampReply & 0xffff));
                   if(r1 == r2) {
-                     // Addressing information may need update!
-                     receivedData.Destination = boost::asio::ip::udp::endpoint(ipv4Header.sourceAddress(),      tcpHeader.sourcePort());
-                     receivedData.Source      = boost::asio::ip::udp::endpoint(ipv4Header.destinationAddress(), tcpHeader.destinationPort());
-                     recordResult(receivedData, 0, 0, r1);
+                     // For SYN+ACK: AckNumber = SeqNumber + 1!
+                     if( (tcpHeader.flags() & (TCPFlags::TF_SYN|TCPFlags::TF_ACK|TCPFlags::TF_RST)) == (TCPFlags::TF_SYN|TCPFlags::TF_ACK) ) {
+                        // Addressing information may need update!
+                        receivedData.Destination = boost::asio::ip::udp::endpoint(ipv4Header.sourceAddress(),      tcpHeader.sourcePort());
+                        receivedData.Source      = boost::asio::ip::udp::endpoint(ipv4Header.destinationAddress(), tcpHeader.destinationPort());
+                        recordResult(receivedData, 0, 0, r1);
+                     }
+                     else if(tcpHeader.flags() & TCPFlags::TF_RST) {
+                        // Addressing information may need update!
+                        receivedData.Destination = boost::asio::ip::udp::endpoint(ipv4Header.sourceAddress(),      tcpHeader.sourcePort());
+                        receivedData.Source      = boost::asio::ip::udp::endpoint(ipv4Header.destinationAddress(), tcpHeader.destinationPort());
+                        recordResult(receivedData, 0, 0, r1);
+                     }
                   }
                }
             }
@@ -453,17 +484,20 @@ void TCPModule::handlePayloadResponse(const int     socketDescriptor,
                   TCPHeader tcpHeader;
                   is >> tcpHeader;
                   if( (is) &&
-                        (tcpHeader.sourcePort()      == TCPSocketEndpoint.port()) &&
-                        (tcpHeader.destinationPort() == DestinationPort) ) {
-                     const uint32_t s  = tcpHeader.seqNumber();
-                     const uint16_t s1 = (uint16_t)((s & 0xffff0000) >> 16);
-                     const uint16_t s2 = ((uint16_t)(s & 0xffff));
-                     if(s1 == s2) {
-                        receivedData.Source      = boost::asio::ip::udp::endpoint(innerIPv6Header.sourceAddress(),      tcpHeader.sourcePort());
-                        receivedData.Destination = boost::asio::ip::udp::endpoint(innerIPv6Header.destinationAddress(), tcpHeader.destinationPort());
-                        recordResult(receivedData,
-                                     icmpHeader.type(), icmpHeader.code(),
-                                     s1);
+                      (tcpHeader.sourcePort()      == TCPSocketEndpoint.port()) &&
+                      (tcpHeader.destinationPort() == DestinationPort) ) {
+                     uint32_t timeStampValue;
+                     uint32_t timeStampReply;
+                     if(extractSeqNumberFromTimeStampReply(tcpHeader, timeStampValue, timeStampReply)) {
+                        const uint16_t v1 = (uint16_t)((timeStampValue & 0xffff0000) >> 16);
+                        const uint16_t v2 = ((uint16_t)(timeStampValue & 0xffff));
+                        if(v1 == v2) {
+                           receivedData.Source      = boost::asio::ip::udp::endpoint(innerIPv6Header.sourceAddress(),      tcpHeader.sourcePort());
+                           receivedData.Destination = boost::asio::ip::udp::endpoint(innerIPv6Header.destinationAddress(), tcpHeader.destinationPort());
+                           recordResult(receivedData,
+                                       icmpHeader.type(), icmpHeader.code(),
+                                       v1);
+                        }
                      }
                   }
                }
@@ -492,19 +526,39 @@ void TCPModule::handlePayloadResponse(const int     socketDescriptor,
                      // ------ IPv4 -> ICMP[Error] -> IPv4 -> TCP -----------
                      TCPHeader tcpHeader;
                      is >> tcpHeader;
+
+                     // NOTE:
+                     // ICMPv4 may not return the full TCP header with options.
+                     // If these is, try to get the information from the TCP
+                     // header + options:
                      if( (is) &&
                          (tcpHeader.sourcePort()      == TCPSocketEndpoint.port()) &&
                          (tcpHeader.destinationPort() == DestinationPort) ) {
-                        const uint32_t s  = tcpHeader.seqNumber();
-                        const uint16_t s1 = (uint16_t)((s & 0xffff0000) >> 16);
-                        const uint16_t s2 = ((uint16_t)(s & 0xffff));
-                        if(s1 == s2) {
-                           receivedData.Source      = boost::asio::ip::udp::endpoint(innerIPv4Header.sourceAddress(),      tcpHeader.sourcePort());
-                           receivedData.Destination = boost::asio::ip::udp::endpoint(innerIPv4Header.destinationAddress(), tcpHeader.destinationPort());
-                           recordResult(receivedData,
-                                        icmpHeader.type(), icmpHeader.code(),
-                                        s1);
+                        uint32_t timeStampValue;
+                        uint32_t timeStampReply;
+                        if(extractSeqNumberFromTimeStampReply(tcpHeader, timeStampValue, timeStampReply)) {
+                           const uint16_t v1 = (uint16_t)((timeStampValue & 0xffff0000) >> 16);
+                           const uint16_t v2 = ((uint16_t)(timeStampValue & 0xffff));
+                           if(v1 == v2) {
+                              receivedData.Source      = boost::asio::ip::udp::endpoint(innerIPv4Header.sourceAddress(),      tcpHeader.sourcePort());
+                              receivedData.Destination = boost::asio::ip::udp::endpoint(innerIPv4Header.destinationAddress(), tcpHeader.destinationPort());
+                              recordResult(receivedData,
+                                          icmpHeader.type(), icmpHeader.code(),
+                                          v1);
+                           }
                         }
+                     }
+                     else {
+                        // The TCP header is truncated. So, use the IPv4
+                        // Identification field instead:
+                        receivedData.Source      = boost::asio::ip::udp::endpoint(innerIPv4Header.sourceAddress(),      tcpHeader.sourcePort());
+                        receivedData.Destination = boost::asio::ip::udp::endpoint(innerIPv4Header.destinationAddress(), tcpHeader.destinationPort());
+                        // Unfortunately, ICMPv4 does not return the full
+                        // TraceServiceHeader here! So, the sequence number
+                        // has to be used to identify the outgoing request!
+                        recordResult(receivedData,
+                                     icmpHeader.type(), icmpHeader.code(),
+                                     innerIPv4Header.identification());
                      }
                   }
                }

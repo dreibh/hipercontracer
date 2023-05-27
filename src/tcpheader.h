@@ -129,6 +129,7 @@ class TCPHeader
       if( (totalLength < 20) || (totalLength > 60) ) {
          is.setstate(std::ios::failbit);
       }
+      is.read(reinterpret_cast<char*>(&header.Data[20]), header.optionsLength());
       return is;
    }
 
