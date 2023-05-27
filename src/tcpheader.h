@@ -126,7 +126,7 @@ class TCPHeader
    friend std::istream& operator>>(std::istream& is, TCPHeader& header) {
       is.read(reinterpret_cast<char*>(header.Data), 20);
       std::streamsize totalLength = header.dataOffset();
-      if( (totalLength < 20) || ((totalLength > 60) ) {
+      if( (totalLength < 20) || (totalLength > 60) ) {
          is.setstate(std::ios::failbit);
       }
       return is;
