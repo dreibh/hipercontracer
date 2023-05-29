@@ -44,19 +44,38 @@
 
 
 
+// ###### Replace space by given separator character ########################
+unsigned int applySeparator(std::string& string, const char separator)
+{
+   unsigned int changes = 0;
+   for(char& c : string) {
+      if(c == ' ') {
+         c = separator;
+         changes++;
+      }
+   }
+   return changes;
+}
+
+
 // ###### Dump results file #################################################
 bool dumpResultsFile(boost::iostreams::filtering_ostream& outputStream,
-                     const std::filesystem::path&         fileName)
+                     const std::filesystem::path&         fileName,
+                     std::string&                         format,
+                     unsigned long long&                  columns,
+                     const char                           separator)
 {
-   const std::string                   extension(fileName.extension());
+   // ====== Open input file ================================================
+   std::string                         extension(fileName.extension());
    std::ifstream                       inputFile;
    boost::iostreams::filtering_istream inputStream;
 
    inputFile.open(fileName, std::ios_base::in | std::ios_base::binary);
    if(!inputFile.is_open()) {
-      std::cerr << "ERROR: Failed to read " << fileName << "!\n";
+      std::cerr << "ERROR: Failed to read input file " << fileName << "!\n";
       exit(1);
    }
+   boost::algorithm::to_lower(extension);
    if(extension == ".xz") {
       inputStream.push(boost::iostreams::lzma_decompressor());
    }
@@ -68,9 +87,149 @@ bool dumpResultsFile(boost::iostreams::filtering_ostream& outputStream,
    }
    inputStream.push(inputFile);
 
+   // ====== Process lines of the input file ================================
    std::string line;
-   while(std::getline(inputStream, line)) {
-      outputStream << line << "\n";
+   std::string header;
+   while(std::getline(inputStream, line, '\n')) {
+      // ------ #<line> -----------------------------------------------------
+      if(line[0] == '#') {
+         if(format.size() == 0) {
+            std::string columnNames;
+            format = line.substr(0, 3);
+            // ------ Ping --------------------------------------------------
+            if(format[1] == 'P') {
+               // ------ Ping, Version 1 ------------------------------------
+               if(format[2] == ' ') {
+                  columnNames =
+                     "Ping "               // "#P"
+                     "Source "             // Source address
+                     "Destination "        // Destination address
+                     "Timestamp "          // Absolute time since the epoch in UTC, in microseconds (hexadeciaml)
+                     "Checksum "           // Checksum (hexadeciaml)
+                     "Status "             // Status (decimal)
+                     "RTT.App "            // RTT in microseconds (decimal)
+                     "TrafficClass "       // Traffic Class setting (hexadeciaml)
+                     "PacketSize";         // Packet size, in bytes (decimal)
+               }
+               // ------ Ping, Version 2 ------------------------------------
+               else {
+                  columnNames =
+                     "Ping "               // "#P<p>"
+                     "Source "             // Source address
+                     "Destination "        // Destination address
+                     "Timestamp "          // Timestamp (nanoseconds since the UTC epoch, hexadecimal).
+                     "BurstSeq "           // Sequence number within a burst (decimal), numbered from 0.
+                     "TrafficClass "       // Traffic Class setting (hexadeciaml)
+                     "PacketSize "         // Packet size, in bytes (decimal)
+                     "Checksum "           // Checksum (hexadeciaml)
+                     "Status "             // Status (decimal)
+                     "TimeSource "         // Source of the timing information (hexadecimal) as: AAQQSSHH
+                     "Delay.AppSend "      // The measured application send delay (nanoseconds, decimal; -1 if not available).
+                     "Delay.Queuing "      // The measured kernel software queuing delay (nanoseconds, decimal; -1 if not available).
+                     "Delay.AppReceive "   // The measured application receive delay (nanoseconds, decimal; -1 if not available).
+                     "RTT.App "            // The measured application RTT (nanoseconds, decimal).
+                     "RTT.SW "             // The measured kernel software RTT (nanoseconds, decimal; -1 if not available).
+                     "RTT.HW";             // The measured kernel hardware RTT (nanoseconds, decimal; -1 if not available).
+               }
+            }
+            // ------ Traceroute --------------------------------------------
+            if(format[1] == 'T') {
+               // ------ Traceroute, Version 1 ------------------------------
+               if(format[2] == ' ') {
+                  columnNames =
+                     "Traceroute "        // "#T"
+                     "Source "            // Source address
+                     "Destination "       // Destination address
+                     "Timestamp "         // Absolute time since the epoch in UTC, in microseconds (hexadeciaml)
+                     "Round "             // Round number (decimal)
+                     "Checksum "          // Checksum (hexadeciaml)
+                     "TotalHops "         // Total hops (decimal)
+                     "StatusFlags "       // Status flags (hexadecimal)
+                     "PathHash "          // Hash of the path (hexadecimal)
+                     "TrafficClass "      // Traffic Class setting (hexadeciaml)
+                     "PacketSize "        // Packet size, in bytes (decimal)
+
+                     "TAB "               // NOTE: must be "\t" from combination above!
+                     "HopNumber "         // Number of the hop.
+                     "Status "            // Status code (in hexadecimal here!)
+                     "RTT.App "           // RTT in microseconds (decimal)
+                     "LinkDestination";   // Hop IP address.
+               }
+               // ------ Traceroute, Version 2 ------------------------------
+               else {
+                  columnNames =
+                     "Traceroute "         // "#T<p>"
+                     "Source "             // Source address
+                     "Destination "        // Destination address
+                     "Timestamp "          // Absolute time since the epoch in UTC, in microseconds (hexadeciaml)
+                     "Round "              // Round number (decimal)
+                     "TotalHops "          // Total hops (decimal)
+                     "TrafficClass "       // Traffic Class setting (hexadeciaml)
+                     "PacketSize "         // Packet size, in bytes (decimal)
+                     "Checksum "           // Checksum (hexadeciaml)
+                     "StatusFlags "        // Status flags (hexadecimal)
+                     "PathHash "           // Hash of the path (hexadecimal)
+
+                     "TAB "                // NOTE: must be "\t" from combination above!
+                     "HopNumber "          // Number of the hop.
+                     "Status "             // Status code (decimal!)
+                     "TimeSource "         // Source of the timing information (hexadecimal) as: AAQQSSHH
+                     "Delay.AppSend "      // The measured application send delay (nanoseconds, decimal; -1 if not available).
+                     "Delay.Queuing "      // The measured kernel software queuing delay (nanoseconds, decimal; -1 if not available).
+                     "Delay.AppReceive "   // The measured application receive delay (nanoseconds, decimal; -1 if not available).
+                     "RTT.App "            // The measured application RTT (nanoseconds, decimal).
+                     "RTT.SW "             // The measured kernel software RTT (nanoseconds, decimal; -1 if not available).
+                     "RTT.HW "             // The measured kernel hardware RTT (nanoseconds, decimal; -1 if not available).
+                     "LinkDestination";    // Hop IP address.
+               }
+            }
+            // ------ Jitter ------------------------------------------------
+            else if(format[1] == 'J') {
+               abort(); // FIXME! TBD
+            }
+            // ------ Error -------------------------------------------------
+            else {
+               std::cerr << "ERROR: Unknown format " << format << " in input file " << fileName << "!\n";
+               exit(1);
+            }
+
+            columns = applySeparator(columnNames, separator);
+            outputStream << columnNames << "\n";
+         }
+         else {
+            if(format != line.substr(0, 3)) {
+               std::cerr << "ERROR: Different format in input file " << fileName << "!\n"
+                         << "Expected: " << format << ", Read: " << line.substr(0, 3) << "\n";
+               exit(1);
+            }
+         }
+
+         if(format[1] != 'T') {
+            outputStream << line << "\n";
+         }
+         else {
+            header = line;
+         }
+      }
+
+      // ------ TAB<line> ---------------------------------------------------
+      else if(line[0] == '\t') {
+         if(header.size() == 0) {
+            std::cerr << "ERROR: Missing header for TAB line in input file " << fileName << "!\n";
+            exit(1);
+         }
+         outputStream << header
+                      << " TAB "
+                      << ((line[1] == ' ') ? line.substr(2) : line.substr(1))
+                      << "\n";
+      }
+
+      // ------ Syntax error ------------------------------------------------
+      else {
+         std::cerr << "ERROR: Unexpected syntax in input file " << fileName << "!\n";
+         std::cerr << line << "\n";
+         exit(1);
+      }
    }
 
    return true;
@@ -82,6 +241,9 @@ int main(int argc, char** argv)
 {
    std::vector<std::filesystem::path> inputFileNameList;
    std::filesystem::path              outputFileName;
+   std::string                        format;
+   unsigned int                       columns = 0;
+   char                               separator;
 
    // ====== Initialize =====================================================
    boost::program_options::options_description commandLineOptions;
@@ -92,6 +254,9 @@ int main(int argc, char** argv)
       ( "output,o",
            boost::program_options::value<std::filesystem::path>(&outputFileName)->default_value(std::filesystem::path()),
            "Output file" )
+      ( "separator,s",
+           boost::program_options::value<char>(&separator)->default_value(' '),
+           "Separator character" )
    ;
    boost::program_options::options_description hiddenOptions;
    hiddenOptions.add_options()
@@ -119,7 +284,15 @@ int main(int argc, char** argv)
       std::cerr << "ERROR: Bad parameter: " << e.what() << "\n";
       return 1;
    }
-
+   if( (separator != ' ')  &&
+       (separator != '\t') &&
+       (separator != ',')  &&
+       (separator != ':')  &&
+       (separator != ';')  &&
+       (separator != '|') ) {
+      std::cerr << "ERROR: Invalid separator \"" << separator << "\"!\n";
+      exit(1);
+   }
    if(vm.count("help")) {
        std::cerr << "Usage: " << argv[0] << " parameters" << "\n"
                  << commandLineOptions;
@@ -128,16 +301,16 @@ int main(int argc, char** argv)
 
 
    // ====== Open output file ===============================================
-   const std::string                   extension(outputFileName.extension());
+   std::string                         extension(outputFileName.extension());
    std::ofstream                       outputFile;
    boost::iostreams::filtering_ostream outputStream;
    if(outputFileName != std::filesystem::path()) {
       outputFile.open(outputFileName, std::ios_base::out | std::ios_base::binary);
       if(!outputFile.is_open()) {
-         std::cerr << "ERROR: Failed to create " << outputFileName << "!\n";
+         std::cerr << "ERROR: Failed to create output file " << outputFileName << "!\n";
          exit(1);
       }
-   std::cout << "e=" << extension<<"\n";
+      boost::algorithm::to_lower(extension);
       if(extension == ".xz") {
          outputStream.push(boost::iostreams::lzma_compressor());
       }
@@ -157,7 +330,7 @@ int main(int argc, char** argv)
    std::set<std::filesystem::path> inputFileNameSet(inputFileNameList.begin(),
                                                     inputFileNameList.end());
    for(const std::filesystem::path& inputFileName : inputFileNameSet) {
-      dumpResultsFile(outputStream, inputFileName);
+      dumpResultsFile(outputStream, inputFileName, format, columns, separator);
    }
 
    return 0;
