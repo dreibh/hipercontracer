@@ -205,6 +205,9 @@ bool dumpResultsFile(boost::iostreams::filtering_ostream& outputStream,
          }
 
          if(format[1] != 'T') {
+            if(applySeparator(line, separator) != columns) {
+               std::cerr << "ERROR: Different number of columns than expected " << columns << "!\n";
+            }
             outputStream << line << "\n";
          }
          else {
@@ -218,10 +221,14 @@ bool dumpResultsFile(boost::iostreams::filtering_ostream& outputStream,
             std::cerr << "ERROR: Missing header for TAB line in input file " << fileName << "!\n";
             exit(1);
          }
-         outputStream << header
-                      << " TAB "
-                      << ((line[1] == ' ') ? line.substr(2) : line.substr(1))
-                      << "\n";
+         std::stringstream ss;
+         ss << header << " TAB "
+            << ((line[1] == ' ') ? line.substr(2) : line.substr(1));
+         line = ss.str();
+         if(applySeparator(line, separator) != columns) {
+            std::cerr << "ERROR: Different number of columns than expected " << columns << "!\n";
+         }
+         outputStream << line << "\n";
       }
 
       // ------ Syntax error ------------------------------------------------
@@ -242,7 +249,7 @@ int main(int argc, char** argv)
    std::vector<std::filesystem::path> inputFileNameList;
    std::filesystem::path              outputFileName;
    std::string                        format;
-   unsigned int                       columns = 0;
+   unsigned long long                 columns = 0;
    char                               separator;
 
    // ====== Initialize =====================================================
