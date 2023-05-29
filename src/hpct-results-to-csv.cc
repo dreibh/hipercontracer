@@ -32,6 +32,7 @@
 #include <filesystem>
 #include <fstream>
 #include <iostream>
+#include <set>
 
 #include <boost/algorithm/string.hpp>
 #include <boost/iostreams/filtering_stream.hpp>
@@ -39,16 +40,19 @@
 #include <boost/iostreams/filter/bzip2.hpp>
 #include <boost/iostreams/filter/gzip.hpp>
 #include <boost/iostreams/filter/lzma.hpp>
+#include <boost/program_options.hpp>
+
 
 
 // ###### Dump results file #################################################
-bool dumpResultsFile(const std::filesystem::path& fileName)
+bool dumpResultsFile(boost::iostreams::filtering_ostream& outputStream,
+                     const std::filesystem::path&         fileName)
 {
    const std::string                   extension(fileName.extension());
    std::ifstream                       inputFile;
    boost::iostreams::filtering_istream inputStream;
 
-   inputFile.open(fileName, std::ios_base::out | std::ios_base::binary);
+   inputFile.open(fileName, std::ios_base::in | std::ios_base::binary);
    if(!inputFile.is_open()) {
       std::cerr << "ERROR: Failed to read " << fileName << "!\n";
       exit(1);
@@ -66,7 +70,7 @@ bool dumpResultsFile(const std::filesystem::path& fileName)
 
    std::string line;
    while(std::getline(inputStream, line)) {
-      std::cout << line << "\n";
+      outputStream << line << "\n";
    }
 
    return true;
@@ -76,10 +80,84 @@ bool dumpResultsFile(const std::filesystem::path& fileName)
 // ###### Main program ######################################################
 int main(int argc, char** argv)
 {
-   // ====== Initialize =====================================================
+   std::vector<std::filesystem::path> inputFileNameList;
+   std::filesystem::path              outputFileName;
 
-   for(unsigned int i = 1; i < argc; i++) {
-      dumpResultsFile(std::filesystem::path(argv[i]));
+   // ====== Initialize =====================================================
+   boost::program_options::options_description commandLineOptions;
+   commandLineOptions.add_options()
+      ( "help,h",
+           "Print help message" )
+
+      ( "output,o",
+           boost::program_options::value<std::filesystem::path>(&outputFileName)->default_value(std::filesystem::path()),
+           "Output file" )
+   ;
+   boost::program_options::options_description hiddenOptions;
+   hiddenOptions.add_options()
+      ("input,i", boost::program_options::value<std::vector<std::filesystem::path>>(&inputFileNameList))
+   ;
+   boost::program_options::options_description allOptions;
+   allOptions.add(commandLineOptions);
+   allOptions.add(hiddenOptions);
+   boost::program_options::positional_options_description positionalParameters;
+   positionalParameters.add("input", -1);
+
+   // ====== Handle command-line arguments ==================================
+   boost::program_options::variables_map vm;
+   try {
+      boost::program_options::store(boost::program_options::command_line_parser(argc, argv).
+                                       style(
+                                          boost::program_options::command_line_style::style_t::default_style|
+                                          boost::program_options::command_line_style::style_t::allow_long_disguise
+                                       ).
+                                       options(allOptions).positional(positionalParameters).
+                                       run(), vm);
+      boost::program_options::notify(vm);
+   }
+   catch(std::exception& e) {
+      std::cerr << "ERROR: Bad parameter: " << e.what() << "\n";
+      return 1;
+   }
+
+   if(vm.count("help")) {
+       std::cerr << "Usage: " << argv[0] << " parameters" << "\n"
+                 << commandLineOptions;
+       return 1;
+   }
+
+
+   // ====== Open output file ===============================================
+   const std::string                   extension(outputFileName.extension());
+   std::ofstream                       outputFile;
+   boost::iostreams::filtering_ostream outputStream;
+   if(outputFileName != std::filesystem::path()) {
+      outputFile.open(outputFileName, std::ios_base::out | std::ios_base::binary);
+      if(!outputFile.is_open()) {
+         std::cerr << "ERROR: Failed to create " << outputFileName << "!\n";
+         exit(1);
+      }
+   std::cout << "e=" << extension<<"\n";
+      if(extension == ".xz") {
+         outputStream.push(boost::iostreams::lzma_compressor());
+      }
+      else if(extension == ".bz2") {
+         outputStream.push(boost::iostreams::bzip2_compressor());
+      }
+      else if(extension == ".gz") {
+         outputStream.push(boost::iostreams::gzip_compressor());
+      }
+      outputStream.push(outputFile);
+   }
+   else {
+      outputStream.push(std::cout);
+   }
+
+   // ====== Dump input files ===============================================
+   std::set<std::filesystem::path> inputFileNameSet(inputFileNameList.begin(),
+                                                    inputFileNameList.end());
+   for(const std::filesystem::path& inputFileName : inputFileNameSet) {
+      dumpResultsFile(outputStream, inputFileName);
    }
 
    return 0;
