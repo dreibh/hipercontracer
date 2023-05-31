@@ -32,16 +32,74 @@
 #include <filesystem>
 #include <fstream>
 #include <iostream>
+#include <map>
 #include <set>
 
 #include <boost/algorithm/string.hpp>
+#include <boost/asio/ip/address.hpp>
 #include <boost/iostreams/filtering_stream.hpp>
 #include <boost/iostreams/filtering_streambuf.hpp>
 #include <boost/iostreams/filter/bzip2.hpp>
 #include <boost/iostreams/filter/gzip.hpp>
 #include <boost/iostreams/filter/lzma.hpp>
 #include <boost/program_options.hpp>
+#include <regex>
 
+
+struct OutputEntry
+{
+   int                      Identifier;
+   std::string              Format;
+   boost::asio::ip::address Source;
+   boost::asio::ip::address Destination;
+   unsigned long long       TimeStamp;
+   unsigned int             SeqNumber;
+   std::string              Line;
+};
+
+
+// ###### < operator for sorting ############################################
+// NOTE: find() will assume equality for: !(a < b) && !(b < a)
+bool operator<(const OutputEntry& a, const OutputEntry& b)
+{
+   // ====== Level 1: Identifier ============================================
+   if(a.Identifier < b.Identifier) {
+      return true;
+   }
+   else if(a.Identifier == b.Identifier) {
+      // ====== Level 2: Format =============================================
+      if(a.Format < b.Format) {
+         return true;
+      }
+      else if(a.Format == b.Format) {
+         // ====== Level 3: Source ==========================================
+         if(a.Source < b.Source) {
+            return true;
+         }
+         else if(a.Source == b.Source) {
+            // ====== Level 4: Destination ==================================
+            if(a.Destination < b.Destination) {
+               return true;
+            }
+            else if(a.Destination == b.Destination) {
+               // ====== Level 5: TimeStamp =================================
+               if(a.TimeStamp < b.TimeStamp) {
+                  return true;
+               }
+               else if(a.TimeStamp == b.TimeStamp) {
+                  // ====== Level 6: SeqNumber ==============================
+                  if(a.SeqNumber < b.SeqNumber) {
+                     return true;
+                  }
+                  else if(a.SeqNumber == b.SeqNumber) {
+                  }
+               }
+            }
+         }
+      }
+   }
+   return false;
+}
 
 
 // ###### Replace space by given separator character ########################
@@ -59,7 +117,8 @@ unsigned int applySeparator(std::string& string, const char separator)
 
 
 // ###### Dump results file #################################################
-bool dumpResultsFile(boost::iostreams::filtering_ostream& outputStream,
+bool dumpResultsFile(std::map<OutputEntry, std::string>&  outputMap,
+                     boost::iostreams::filtering_ostream& outputStream,
                      const std::filesystem::path&         fileName,
                      std::string&                         format,
                      unsigned long long&                  columns,
@@ -88,8 +147,11 @@ bool dumpResultsFile(boost::iostreams::filtering_ostream& outputStream,
    inputStream.push(inputFile);
 
    // ====== Process lines of the input file ================================
-   std::string line;
-   std::string header;
+   std::string      line;
+   std::string      header;
+   unsigned int     seqNumber = 0;
+   OutputEntry      newEntry;
+   const std::regex re_space("\\s");   // space
    while(std::getline(inputStream, line, '\n')) {
       // ------ #<line> -----------------------------------------------------
       if(line[0] == '#') {
@@ -204,19 +266,52 @@ bool dumpResultsFile(boost::iostreams::filtering_ostream& outputStream,
             }
          }
 
+         // ====== Get format, identifier, source, destination, timestamp ===
+         std::sregex_token_iterator iterator(line.begin(), line.end(), re_space, -1);
+         std::sregex_token_iterator reg_end;
+         std::vector<std::string>   columnVector;
+         unsigned int               n = 0;
+         for(  ; ((n < 5) && (iterator != std::sregex_token_iterator())); iterator++, n++) {
+                     columnVector.push_back(*iterator);
+         }
+
+         newEntry.Identifier  = -1;
+         newEntry.Format      = format;
+         newEntry.SeqNumber   = 0;
+         try {
+            newEntry.Source      = boost::asio::ip::make_address(columnVector[1]);
+            newEntry.Destination = boost::asio::ip::make_address(columnVector[2]);
+            size_t index;
+            newEntry.TimeStamp   = std::stoull(columnVector[3], &index, 16);
+            if(index != columnVector[3].size()) {
+               throw std::exception();
+            }
+         } catch(std::exception e) {
+            std::cerr << "ERROR: Bad columns in input file " << fileName << "!\n";
+            exit(1);
+         }
+
          if(format[1] != 'T') {
             if(applySeparator(line, separator) != columns) {
-               std::cerr << "ERROR: Different number of columns than expected " << columns << "!\n";
+               std::cerr << "ERROR: Different number of columns than expected "
+                         << columns << " in input file " << fileName << "!\n";
             }
-            outputStream << line << "\n";
+            newEntry.Line = line;
+            auto success = outputMap.insert(std::pair<OutputEntry, std::string>(newEntry, line));
+            if(!success.second) {
+               std::cerr << "ERROR: Duplicate entry detected!\n";
+               exit(1);
+            }
          }
          else {
-            header = line;
+            header    = line;
+            seqNumber = 0;
          }
       }
 
       // ------ TAB<line> ---------------------------------------------------
       else if(line[0] == '\t') {
+         seqNumber++;
          if(header.size() == 0) {
             std::cerr << "ERROR: Missing header for TAB line in input file " << fileName << "!\n";
             exit(1);
@@ -228,7 +323,16 @@ bool dumpResultsFile(boost::iostreams::filtering_ostream& outputStream,
          if(applySeparator(line, separator) != columns) {
             std::cerr << "ERROR: Different number of columns than expected " << columns << "!\n";
          }
-         outputStream << line << "\n";
+         if(columns < 4) {
+            std::cerr << "ERROR: Too few columns in input file " << fileName << "!\n";
+            exit(1);
+         }
+
+         auto success = outputMap.insert(std::pair<OutputEntry, std::string>(newEntry, line));
+         if(!success.second) {
+            std::cerr << "ERROR: Duplicate entry detected!\n";
+            exit(1);
+         }
       }
 
       // ------ Syntax error ------------------------------------------------
@@ -334,10 +438,15 @@ int main(int argc, char** argv)
    }
 
    // ====== Dump input files ===============================================
-   std::set<std::filesystem::path> inputFileNameSet(inputFileNameList.begin(),
-                                                    inputFileNameList.end());
+   std::set<std::filesystem::path>    inputFileNameSet(inputFileNameList.begin(),
+                                                       inputFileNameList.end());
+   std::map<OutputEntry, std::string> outputMap;
    for(const std::filesystem::path& inputFileName : inputFileNameSet) {
-      dumpResultsFile(outputStream, inputFileName, format, columns, separator);
+      dumpResultsFile(outputMap, outputStream, inputFileName, format, columns, separator);
+   }
+   for(std::map<OutputEntry, std::string>::const_iterator iterator = outputMap.begin();
+       iterator != outputMap.end(); iterator++) {
+      outputStream << iterator->second << "\n";
    }
 
    return 0;
