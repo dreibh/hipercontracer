@@ -133,7 +133,7 @@ bool dumpResultsFile(boost::iostreams::filtering_ostream& outputStream,
                }
             }
             // ------ Traceroute --------------------------------------------
-            if(format[1] == 'T') {
+            else if(format[1] == 'T') {
                // ------ Traceroute, Version 1 ------------------------------
                if(format[2] == ' ') {
                   columnNames =
