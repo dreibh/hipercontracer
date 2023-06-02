@@ -140,6 +140,15 @@ bool operator<(const OutputEntry& a, const OutputEntry& b)
 }
 
 
+template <typename T>
+struct pointer_lessthan
+{
+   bool operator()(T* left, T* right) const {
+      return (left && right) ? std::less<T>{}(*left, *right) : std::less<T*>{}(left, right);
+   }
+};
+
+
 // ###### Replace space by given separator character ########################
 unsigned int applySeparator(std::string& string, const char separator)
 {
@@ -298,7 +307,7 @@ void checkFormat(boost::iostreams::filtering_ostream& outputStream,
 
 
 // ###### Dump results file #################################################
-bool dumpResultsFile(std::map<OutputEntry, std::string>&  outputMap,
+bool dumpResultsFile(std::set<OutputEntry*, pointer_lessthan<OutputEntry>>&  outputSet,
                      boost::iostreams::filtering_ostream& outputStream,
                      const std::filesystem::path&         fileName,
                      InputFormat&                         format,
@@ -329,10 +338,9 @@ bool dumpResultsFile(std::map<OutputEntry, std::string>&  outputMap,
 
    // ====== Process lines of the input file ================================
    std::string        line;
-   std::string        header;
-   unsigned long long lineNumber = 0;
-   unsigned int       seqNumber  = 0;
-   OutputEntry*       newEntry   = nullptr;
+   unsigned long long lineNumber  = 0;
+   OutputEntry*       newEntry    = nullptr;
+   OutputEntry*       newSubEntry = nullptr;
    const std::regex re_space("\\s");   // space
    while(std::getline(inputStream, line, '\n')) {
       lineNumber++;
@@ -413,6 +421,9 @@ bool dumpResultsFile(std::map<OutputEntry, std::string>&  outputMap,
                roundNumber = 0;
             }
          }
+         if(newEntry != nullptr) {
+            delete newEntry;
+         }
          newEntry = new OutputEntry(measurementID, source, destination, timeStamp,
                                     roundNumber, line);
 
@@ -424,54 +435,39 @@ bool dumpResultsFile(std::map<OutputEntry, std::string>&  outputMap,
                          << " in input file " << fileName << ", line " << lineNumber << "!\n";
                exit(1);
             }
-//             newEntry.Line = line;
-//             auto success = outputMap.insert(std::pair<OutputEntry, std::string>(newEntry, line));
-//             if(!success.second) {
-//                std::cerr << "ERROR: Duplicate entry"
-//                         << " in input file " << fileName << ", line " << lineNumber << "!\n";
-//                exit(1);
-//             }
+
+            auto success = outputSet.insert(newEntry);
+            if(!success.second) {
+               std::cerr << "ERROR: Duplicate entry"
+                        << " in input file " << fileName << ", line " << lineNumber << "!\n";
+               exit(1);
+            }
          }
 
          // ====== Remember header, if Traceroute ===========================
          else {
             // This header is combined with TAB lines later!
-            header    = line;
-            seqNumber = 0;
+            newSubEntry = newEntry;
          }
       }
 
       // ====== TAB<line> ===================================================
       else if(line[0] == '\t') {
-         seqNumber++;
-         if(header.size() == 0) {
-            std::cerr << "ERROR: Missing header for TAB line"
+         if(newSubEntry == nullptr) {
+            std::cerr << "ERROR: TAB line without corresponding header line"
                       << " in input file " << fileName << ", line " << lineNumber << "!\n";
             exit(1);
          }
-         std::stringstream ss;
-         ss << header << " ~ "
-            << ((line[1] == ' ') ? line.substr(2) : line.substr(1));
-         line = ss.str();
+         newSubEntry = new OutputEntry(*newSubEntry);
+         newSubEntry->SeqNumber++;
+         newSubEntry->Line += " ~ " + ((line[1] == ' ') ? line.substr(2) : line.substr(1));
 
-         const unsigned int currentColumns = applySeparator(line, separator);
-         if(currentColumns != columns) {
-            std::cerr << "ERROR: Got " << currentColumns << " instead of expected " << columns
-                        << " in input file " << fileName << ", line " << lineNumber << "!\n";
-            exit(1);
-         }
-         if(columns < 4) {
-            std::cerr << "ERROR: Too few columns"
+         auto success = outputSet.insert(newSubEntry);
+         if(!success.second) {
+            std::cerr << "ERROR: Duplicate entry"
                       << " in input file " << fileName << ", line " << lineNumber << "!\n";
             exit(1);
          }
-
-//          auto success = outputMap.insert(std::pair<OutputEntry, std::string>(newEntry, line));
-//          if(!success.second) {
-//             std::cerr << "ERROR: Duplicate entry"
-//                       << " in input file " << fileName << ", line " << lineNumber << "!\n";
-//             exit(1);
-//          }
       }
 
       // ------ Syntax error ------------------------------------------------
@@ -482,6 +478,9 @@ bool dumpResultsFile(std::map<OutputEntry, std::string>&  outputMap,
       }
    }
 
+   if(newEntry != nullptr) {
+      delete newEntry;
+   }
    return true;
 }
 
@@ -579,13 +578,14 @@ int main(int argc, char** argv)
    // ====== Dump input files ===============================================
    std::set<std::filesystem::path>    inputFileNameSet(inputFileNameList.begin(),
                                                        inputFileNameList.end());
-   std::map<OutputEntry, std::string> outputMap;
+   std::set<OutputEntry*, pointer_lessthan<OutputEntry>> outputSet;
    for(const std::filesystem::path& inputFileName : inputFileNameSet) {
-      dumpResultsFile(outputMap, outputStream, inputFileName, format, columns, separator);
+      dumpResultsFile(outputSet, outputStream, inputFileName, format, columns, separator);
    }
-   for(std::map<OutputEntry, std::string>::const_iterator iterator = outputMap.begin();
-       iterator != outputMap.end(); iterator++) {
-      outputStream << iterator->second << "\n";
+   for(std::set<OutputEntry*, pointer_lessthan<OutputEntry>>::const_iterator iterator = outputSet.begin();
+       iterator != outputSet.end(); iterator++) {
+      outputStream << (*iterator)->Line << "\n";
+      delete *iterator;
    }
 
    return 0;
