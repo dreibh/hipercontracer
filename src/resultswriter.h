@@ -53,14 +53,19 @@ enum ResultsWriterCompressor {
 class ResultsWriter
 {
    public:
-   ResultsWriter(const std::string&            directory,
+   ResultsWriter(const unsigned int            measurementID,
+                 const std::string&            directory,
                  const std::string&            uniqueID,
-                 const std::string&            formatName,
+                 const std::string&            resultsFormat,
                  const unsigned int            transactionLength,
                  const uid_t                   uid,
                  const gid_t                   gid,
                  const ResultsWriterCompressor compressor);
    virtual ~ResultsWriter();
+
+   inline unsigned int measurementID() const {
+      return MeasurementID;
+   }
 
    bool prepare();
    bool changeFile(const bool createNewFile = true);
@@ -68,7 +73,7 @@ class ResultsWriter
    void insert(const std::string& tuple);
 
    static ResultsWriter* makeResultsWriter(std::set<ResultsWriter*>&       resultsWriterSet,
-                                           const unsigned int              identifier,
+                                           const unsigned int              measurementID,
                                            const boost::asio::ip::address& sourceAddress,
                                            const std::string&              resultsFormat,
                                            const std::string&              resultsDirectory,
@@ -78,14 +83,15 @@ class ResultsWriter
                                            const ResultsWriterCompressor   compressor = BZip2);
 
    protected:
+   const unsigned int                    MeasurementID;
    const boost::filesystem::path         Directory;
-   const std::string                     UniqueID;
    const std::string                     FormatName;
    const unsigned int                    TransactionLength;
    const uid_t                           UID;
    const gid_t                           GID;
    const ResultsWriterCompressor         Compressor;
 
+   std::string                           UniqueID;
    boost::filesystem::path               TempFileName;
    boost::filesystem::path               TargetFileName;
    size_t                                Inserts;

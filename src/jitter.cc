@@ -266,9 +266,10 @@ void Jitter::writeJitterResultEntry(const ResultEntry*   referenceEntry,
 
 
       ResultsOutput->insert(
-         str(boost::format("#J%c %s %s %x %d %x %d %x %d %08x %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d")
+         str(boost::format("#J%c %d %s %s %x %d %x %d %x %d %08x %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d")
             % (unsigned char)IOModule->getProtocolType()
 
+            % ResultsOutput->measurementID()
             % referenceEntry->sourceAddress().to_string()
             % referenceEntry->destinationAddress().to_string()
             % sendTimeStamp

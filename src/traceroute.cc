@@ -605,9 +605,10 @@ void Traceroute::writeTracerouteResultEntry(const ResultEntry* resultEntry,
          // ====== Current output format =================================
          if(OutputFormat >= OFT_HiPerConTracer_Version2) {
             ResultsOutput->insert(
-               str(boost::format("#T%c %s %s %x %d %d %x %d %x %x %x")
+               str(boost::format("#T%c %d %s %s %x %d %d %x %d %x %x %x")
                   % (unsigned char)IOModule->getProtocolType()
 
+                  % ResultsOutput->measurementID()
                   % resultEntry->sourceAddress().to_string()
                   % resultEntry->destinationAddress().to_string()
                   % timeStamp

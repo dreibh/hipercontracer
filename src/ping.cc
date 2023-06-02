@@ -268,10 +268,11 @@ void Ping::writePingResultEntry(const ResultEntry* resultEntry,
                                           delayQueuing, delayAppSend, delayAppReceive);
 
          ResultsOutput->insert(
-            str(boost::format("%s#P%c %s %s %x %d %x %d %x %d %08x %d %d %d %d %d %d")
+            str(boost::format("%s#P%c %d %s %s %x %d %x %d %x %d %08x %d %d %d %d %d %d")
                % indentation
                % (unsigned char)IOModule->getProtocolType()
 
+               % ResultsOutput->measurementID()
                % resultEntry->sourceAddress().to_string()
                % resultEntry->destinationAddress().to_string()
                % sendTimeStamp

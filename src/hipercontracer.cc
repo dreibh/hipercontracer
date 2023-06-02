@@ -96,7 +96,7 @@ static void tryCleanup(const boost::system::error_code& errorCode)
 int main(int argc, char** argv)
 {
    // ====== Initialize =====================================================
-   unsigned int             identifier;
+   unsigned int             measurementID;
    unsigned int             logLevel;
    bool                     logColor;
    std::filesystem::path    logFile;
@@ -162,9 +162,9 @@ int main(int argc, char** argv)
            boost::program_options::value<std::string>(&user),
            "User" )
 
-      ( "identifier,#",
-           boost::program_options::value<unsigned int>(&identifier)->default_value(0),
-           "Identifier" )
+      ( "measurement-id,#",
+           boost::program_options::value<unsigned int>(&measurementID)->default_value(0),
+           "Measurement identifier" )
       ( "source,S",
            boost::program_options::value<std::vector<std::string>>(),
            "Source address" )
@@ -316,8 +316,8 @@ int main(int argc, char** argv)
    else {
       ioModules.insert("ICMP");
    }
-   if(identifier > 0x7fffffff) {
-      std::cerr << "ERROR: Invalid Identifier setting: " << identifier << "\n";
+   if(measurementID > 0x7fffffff) {
+      std::cerr << "ERROR: Invalid MeasurementID setting: " << measurementID << "\n";
       return 1;
    }
    if( (resultsFormat < OutputFormatType::OFT_Min) ||
@@ -382,6 +382,7 @@ int main(int argc, char** argv)
 
    if(!resultsDirectory.empty()) {
       HPCT_LOG(info) << "Results Output:" << "\n"
+                     << "* MeasurementID      = " << measurementID            << "\n"
                      << "* Results Directory  = " << resultsDirectory         << "\n"
                      << "* Transaction Length = " << resultsTransactionLength << " s";
    }
@@ -449,7 +450,7 @@ int main(int argc, char** argv)
                ResultsWriter* resultsWriter = nullptr;
                if(!resultsDirectory.empty()) {
                   resultsWriter = ResultsWriter::makeResultsWriter(
-                                     ResultsWriterSet, identifier,
+                                     ResultsWriterSet, measurementID,
                                      sourceAddress, "Jitter-" + ioModule,
                                      resultsDirectory, resultsTransactionLength,
                                      (pw != nullptr) ? pw->pw_uid : 0, (pw != nullptr) ? pw->pw_gid : 0,
@@ -482,7 +483,7 @@ int main(int argc, char** argv)
                ResultsWriter* resultsWriter = nullptr;
                if(!resultsDirectory.empty()) {
                   resultsWriter = ResultsWriter::makeResultsWriter(
-                                     ResultsWriterSet, identifier,
+                                     ResultsWriterSet, measurementID,
                                      sourceAddress, "Ping-" + ioModule,
                                      resultsDirectory, resultsTransactionLength,
                                      (pw != nullptr) ? pw->pw_uid : 0, (pw != nullptr) ? pw->pw_gid : 0,
@@ -514,7 +515,7 @@ int main(int argc, char** argv)
                ResultsWriter* resultsWriter = nullptr;
                if(!resultsDirectory.empty()) {
                   resultsWriter = ResultsWriter::makeResultsWriter(
-                                     ResultsWriterSet, identifier,
+                                     ResultsWriterSet, measurementID,
                                      sourceAddress, "Traceroute-" + ioModule,
                                      resultsDirectory, resultsTransactionLength,
                                      (pw != nullptr) ? pw->pw_uid : 0, (pw != nullptr) ? pw->pw_gid : 0,
