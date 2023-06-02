@@ -661,8 +661,9 @@ void Traceroute::writeTracerouteResultEntry(const ResultEntry* resultEntry,
                                           delayQueuing, delayAppSend, delayAppReceive);
 
          ResultsOutput->insert(
-            str(boost::format("\t%d %d %08x %d %d %d %d %d %d %s")
+            str(boost::format("\t%d %d %08x %d %d %d %d %d %d %d %s")
                % resultEntry->hopNumber()
+               % resultEntry->responseSize()
                % (unsigned int)resultEntry->status()
 
                % timeSource

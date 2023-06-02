@@ -65,6 +65,7 @@ void ResultEntry::initialise(const uint32_t                  timeStampSeqID,
    SeqNumber      = seqNumber;
    HopNumber      = hopNumber;
    PacketSize     = packetSize;
+   ResponseSize   = 0;
    Checksum       = checksum;
    Source         = source;
    Destination    = destination;
