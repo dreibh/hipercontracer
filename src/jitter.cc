@@ -257,7 +257,6 @@ void Jitter::writeJitterResultEntry(const ResultEntry*   referenceEntry,
       const unsigned long long sendTimeStamp = nsSinceEpoch<ResultTimePoint>(
          referenceEntry->sendTime(TXTimeStampType::TXTST_Application));
 
-
       ResultsOutput->insert(
          str(boost::format("#J%c %d %s %s %x %d %x %d %x %d %08x %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d")
             % (unsigned char)IOModule->getProtocolType()
