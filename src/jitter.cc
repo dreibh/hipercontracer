@@ -199,13 +199,6 @@ void Jitter::computeJitter(const std::vector<ResultEntry*>::const_iterator& star
          }
       }
 
-      if(resultEntry->status() != Unknown) {
-         HPCT_LOG(trace) << getName() << ": " << *resultEntry;
-         if(ResultCallback) {
-            ResultCallback(this, resultEntry);
-         }
-      }
-
       // ====== Set pointer to reference entry ==============================
       // The reference entry points to basic configuration values. It is the
       // first successful entry (if one is successufl), or otherwise the first
