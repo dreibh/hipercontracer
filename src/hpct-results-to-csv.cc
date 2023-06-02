@@ -282,7 +282,37 @@ void checkFormat(boost::iostreams::filtering_ostream& outputStream,
       else if(format.Type == InputType::IT_Jitter) {
          format.Protocol = (InputProtocol)line[2];
          format.Version  = 2;
-         abort(); // FIXME! TBD
+         columnNames =
+            "Jitter "                 // "#J<p>"
+            "MeasurementID "          // Measurement ID
+            "Source "                 // Source address
+            "Destination "            // Destination address
+            "Timestamp "              // Timestamp (nanoseconds since the UTC epoch, hexadecimal).
+            "BurstSeq "               // Sequence number within a burst (decimal), numbered from 0.
+            "TrafficClass "           // Traffic Class setting (hexadeciaml)
+            "PacketSize "             // Packet size, in bytes (decimal)
+            "Checksum "               // Checksum (hexadeciaml)
+            "Status "                 // Status (decimal)
+            "TimeSource "             // Source of the timing information (hexadecimal) as: AAQQSSHH
+
+            "Packets.AppSend "        // Number of packets for application send jitter/mean RTT computation
+            "Jitter.AppSend "         // Jitter of application send (computed based on RFC 3550, Subsubsection 6.4.1)
+            "MeanDelay.AppSend "      // Mean application send
+            "Packets.Queuing "        // Number of packets for queuing jitter/mean RTT computation
+            "Jitter.Queuing "         // Jitter of queuing (computed based on RFC 3550, Subsubsection 6.4.1)
+            "MeanDelay.Queuing "      // Mean queuing
+            "Packets.AppReceive "     // Number of packets for application receive jitter/mean RTT computation
+            "Jitter.AppReceive "      //Jitter of application receive (computed based on RFC 3550, Subsubsection 6.4.1)
+            "MeanDelay.AppReceive "   // Mean application receive
+            "Packets.App "            // Number of packets for application RTT jitter/mean RTT computation
+            "Jitter.App "             // Jitter of application RTT (computed based on RFC 3550, Subsubsection 6.4.1)
+            "MeanRTT.App "            // Mean application RTT
+            "Packets.sw "             // Number of packets for kernel software RTT jitter/mean RTT computation
+            "Jitter.sw "              // Jitter of kernel software RTT (computed based on RFC 3550, Subsubsection 6.4.1)
+            "MeanRTT.sw "             // Mean kernel software RTT
+            "Packets.hw "             // Number of packets for kernel hardware RTT jitter/mean RTT computation
+            "Jitter.hw "              // Jitter of kernel hardware RTT (computed based on RFC 3550, Subsubsection 6.4.1)
+            "MeanRTT.hw";             // Mean kernel hardware RTT
       }
 
       // ====== Error =======================================================
@@ -442,6 +472,7 @@ bool dumpResultsFile(std::set<OutputEntry*, pointer_lessthan<OutputEntry>>&  out
                         << " in input file " << fileName << ", line " << lineNumber << "!\n";
                exit(1);
             }
+            newEntry = nullptr;
          }
 
          // ====== Remember header, if Traceroute ===========================
