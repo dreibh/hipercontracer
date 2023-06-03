@@ -1,0 +1,39 @@
+#!/bin/sh
+
+
+make -j8 hipercontracer && \
+rm -f core && \
+sudo ./debug.memcheck ./hipercontracer \
+   -# 88888888 \
+   --iomodule TCP \
+   --source=0.0.0.0 \
+   --destination=www.hainanu.edu.cn \
+   --destination=www.swinburne.edu.au \
+   --destination=i2s-research.ku.edu \
+   --destination=www.fesb.unist.hr \
+   --destination=www.opt.pf \
+   --destination=voyager.ce.fit.ac.jp \
+   --destination=www.uni-due.de \
+   --destination=shirazu.ac.ir \
+   --destination=www.msu.ru \
+   --destination=www.nntb.no \
+   --destination=universe.bits-pilani.ac.in \
+   --destination=nus.edu.sg \
+   --destination=www.airkoryo.com.kp \
+   --destination=www.uom.gr \
+   --destination=www.rta.ae \
+   --traceroute \
+   --ping \
+   --tracerouteinterval 60000 \
+   --tracerouterounds 3 \
+   --tracerouteduration=1000 \
+   --tracerouteinitialmaxttl=12 \
+   --traceroutefinalmaxttl=32 \
+   --tracerouteincrementmaxttl=6 \
+   --pinginterval=1000 \
+   --pingexpiration=7500 \
+   --pingttl=56 \
+   --pingburst=4 \
+   --jitterinterval=300000 \
+   --resultsdirectory=results \
+   $@
