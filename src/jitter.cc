@@ -217,6 +217,9 @@ void Jitter::computeJitter(const std::vector<ResultEntry*>::const_iterator& star
                          (timeSourceSoftware    << 8)  |
                          timeSourceHardware;
          }
+         else {
+            timeSource = 0;
+         }
       }
    }
 
@@ -260,9 +263,18 @@ void Jitter::writeJitterResultEntry(const ResultEntry*   referenceEntry,
 {
    HPCT_LOG(debug) << getName() << ": "
                    << referenceEntry->destinationAddress()
-                   << "\tA:" << jitterApplication.packets() << "/" << jitterApplication.jitter() << "/" << jitterApplication.meanLatency()
-                   << "\tS:" << jitterSoftware.packets() << "/" << jitterSoftware.jitter() << "/" << jitterSoftware.meanLatency()
-                   << "\tH:" << jitterHardware.packets() << "/" << jitterHardware.jitter() << "/" << jitterHardware.meanLatency();
+
+                   << "\tA:" << jitterApplication.packets()         << "p/"
+                   << (jitterApplication.meanLatency() / 1000000.0) << "ms/"
+                   << (jitterApplication.jitter() / 1000000.0)      << "ms"
+
+                   << "\tS:" << jitterSoftware.packets()            << "p/"
+                   << (jitterSoftware.meanLatency() / 1000000.0)    << "ms/"
+                   << (jitterSoftware.jitter() / 1000000.0)         << "ms"
+
+                   << "\tH:" << jitterHardware.packets()            << "p/"
+                   << (jitterHardware.meanLatency() / 1000000.0)    << "ms/"
+                   << (jitterHardware.jitter() / 1000000.0)         << "ms";
 
    if(ResultsOutput) {
       const unsigned long long sendTimeStamp = nsSinceEpoch<ResultTimePoint>(
@@ -286,28 +298,28 @@ void Jitter::writeJitterResultEntry(const ResultEntry*   referenceEntry,
             % timeSource
 
             % jitterAppSend.packets()
-            % jitterAppSend.jitter()
             % jitterAppSend.meanLatency()
+            % jitterAppSend.jitter()
 
             % jitterQueuing.packets()
-            % jitterQueuing.jitter()
             % jitterQueuing.meanLatency()
+            % jitterQueuing.jitter()
 
             % jitterAppReceive.packets()
-            % jitterAppReceive.jitter()
             % jitterAppReceive.meanLatency()
+            % jitterAppReceive.jitter()
 
             % jitterApplication.packets()
-            % jitterApplication.jitter()
             % jitterApplication.meanLatency()
+            % jitterApplication.jitter()
 
             % jitterSoftware.packets()
-            % jitterSoftware.jitter()
             % jitterSoftware.meanLatency()
+            % jitterSoftware.jitter()
 
             % jitterHardware.packets()
-            % jitterHardware.jitter()
             % jitterHardware.meanLatency()
+            % jitterHardware.jitter()
          ));
    }
 }

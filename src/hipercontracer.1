@@ -362,23 +362,23 @@ packets_hw jitter_hw meanrtt_hw
 .It * status: Status code (decimal):
 .It * timesource: Source of the timing information (hexadecimal) as: AAQQSSHH (same as for Ping, see above).
 .It * packets_app_send: Number of packets for application send jitter/mean RTT computation
+.It * meandelay_app_send: Mean application send (nanoseconds, decimal; -1 if not available).
 .It * jitter_app_send: Jitter of application send (computed based on RFC 3550, Subsubsection 6.4.1)
-.It * meandelay_app_send: Mean application send
 .It * packets_queuing: Number of packets for queuing jitter/mean RTT computation
-.It * jitter_queuing: Jitter of queuing  (computed based on RFC 3550, Subsubsection 6.4.1)
-.It * meandelay_queuing: Mean queuing
+.It * meandelay_queuing: Mean queuing (nanoseconds, decimal; -1 if not available).
+.It * jitter_queuing: Jitter of queuing (computed based on RFC 3550, Subsubsection 6.4.1)
 .It * packets_app_receive: Number of packets for application receive jitter/mean RTT computation
+.It * meandelay_app_receive: Mean application receive (nanoseconds, decimal; -1 if not available).
 .It * jitter_app_receive: Jitter of application receive (computed based on RFC 3550, Subsubsection 6.4.1)
-.It * meandelay_app_receive: Mean application receive
 .It * packets_app: Number of packets for application RTT jitter/mean RTT computation
-.It * jitter_app: Jitter of application RTT  (computed based on RFC 3550, Subsubsection 6.4.1)
-.It * meanrtt_app: Mean application RTT
+.It * meanrtt_app: Mean application RTT (nanoseconds, decimal).
+.It * jitter_app: Jitter of application RTT (computed based on RFC 3550, Subsubsection 6.4.1)
 .It * packets_sw: Number of packets for kernel software RTT jitter/mean RTT computation
-.It * jitter_sw: Jitter of kernel software RTT  (computed based on RFC 3550, Subsubsection 6.4.1)
-.It * meanrtt_sw: Mean kernel software RTT
+.It * meanrtt_sw: Mean kernel software RTT (nanoseconds, decimal; -1 if not available).
+.It * jitter_sw: Jitter of kernel software RTT (computed based on RFC 3550, Subsubsection 6.4.1)
 .It * packets_hw: Number of packets for kernel hardware RTT jitter/mean RTT computation
-.It * jitter_hw: Jitter of kernel hardware RTT  (computed based on RFC 3550, Subsubsection 6.4.1)
-.It * meanrtt_hw: Mean kernel hardware RTT
+.It * meanrtt_hw: Mean kernel hardware RTT (nanoseconds, decimal; -1 if not available).
+.It * jitter_hw: Jitter of kernel hardware RTT (computed based on RFC 3550, Subsubsection 6.4.1)
 .El
 If recording of raw Ping results is enabled (\--jitterrecordraw), a Jitter entry is followed by the underlying Ping measurement entries (see Ping version 2 format above).
 .El

@@ -320,23 +320,28 @@ void checkFormat(boost::iostreams::filtering_ostream* outputStream,
             "TimeSource "             // Source of the timing information (hexadecimal) as: AAQQSSHH
 
             "Packets.AppSend "        // Number of packets for application send jitter/mean RTT computation
-            "Jitter.AppSend "         // Jitter of application send (computed based on RFC 3550, Subsubsection 6.4.1)
             "MeanDelay.AppSend "      // Mean application send
+            "Jitter.AppSend "         // Jitter of application send (computed based on RFC 3550, Subsubsection 6.4.1)
+
             "Packets.Queuing "        // Number of packets for queuing jitter/mean RTT computation
-            "Jitter.Queuing "         // Jitter of queuing (computed based on RFC 3550, Subsubsection 6.4.1)
             "MeanDelay.Queuing "      // Mean queuing
+            "Jitter.Queuing "         // Jitter of queuing (computed based on RFC 3550, Subsubsection 6.4.1)
+
             "Packets.AppReceive "     // Number of packets for application receive jitter/mean RTT computation
-            "Jitter.AppReceive "      //Jitter of application receive (computed based on RFC 3550, Subsubsection 6.4.1)
             "MeanDelay.AppReceive "   // Mean application receive
+            "Jitter.AppReceive "      //Jitter of application receive (computed based on RFC 3550, Subsubsection 6.4.1)
+
             "Packets.App "            // Number of packets for application RTT jitter/mean RTT computation
-            "Jitter.App "             // Jitter of application RTT (computed based on RFC 3550, Subsubsection 6.4.1)
             "MeanRTT.App "            // Mean application RTT
-            "Packets.sw "             // Number of packets for kernel software RTT jitter/mean RTT computation
-            "Jitter.sw "              // Jitter of kernel software RTT (computed based on RFC 3550, Subsubsection 6.4.1)
-            "MeanRTT.sw "             // Mean kernel software RTT
-            "Packets.hw "             // Number of packets for kernel hardware RTT jitter/mean RTT computation
-            "Jitter.hw "              // Jitter of kernel hardware RTT (computed based on RFC 3550, Subsubsection 6.4.1)
-            "MeanRTT.hw";             // Mean kernel hardware RTT
+            "Jitter.App "             // Jitter of application RTT (computed based on RFC 3550, Subsubsection 6.4.1)
+
+            "Packets.SW "             // Number of packets for kernel software RTT jitter/mean RTT computation
+            "MeanRTT.SW "             // Mean kernel software RTT
+            "Jitter.SW "              // Jitter of kernel software RTT (computed based on RFC 3550, Subsubsection 6.4.1)
+
+            "Packets.HW "             // Number of packets for kernel hardware RTT jitter/mean RTT computation
+            "MeanRTT.HW "             // Mean kernel hardware RTT
+            "Jitter.HW";              // Jitter of kernel hardware RTT (computed based on RFC 3550, Subsubsection 6.4.1)
       }
 
       // ====== Error =======================================================
