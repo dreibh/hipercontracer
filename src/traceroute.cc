@@ -659,9 +659,12 @@ void Traceroute::writeTracerouteResultEntry(const ResultEntry* resultEntry,
          resultEntry->obtainResultsValues(timeSource,
                                           rttApplication, rttSoftware, rttHardware,
                                           delayQueuing, delayAppSend, delayAppReceive);
+         const unsigned long long sendTimeStamp = nsSinceEpoch<ResultTimePoint>(
+            resultEntry->sendTime(TXTimeStampType::TXTST_Application));
 
          ResultsOutput->insert(
-            str(boost::format("\t%d %d %08x %d %d %d %d %d %d %d %s")
+            str(boost::format("\t%x %d %d %08x %d %d %d %d %d %d %d %s")
+               % sendTimeStamp
                % resultEntry->hopNumber()
                % resultEntry->responseSize()
                % (unsigned int)resultEntry->status()

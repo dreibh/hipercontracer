@@ -276,7 +276,9 @@ This is followed with one TAB-started line per each hop.
 .It * measurementID: Measurement identifier.
 .It * sourceIP: Source IP address.
 .It * destinationIP: Destination IP address.
-.It * timestamp: Timestamp (nanoseconds since the UTC epoch, hexadecimal).
+.It * timestamp: Timestamp (nanoseconds since the UTC epoch, hexadecimal) of the current run.
+Note: This timestamp is only an identifier for the Traceroute run. All Traceroute rounds of the same run use the same timestamp here!
+The actual send timestamp of the request to each hop can be found in sendTimeStamp of the corresponding hop!
 .It * round: Round number (decimal).
 .It * totalHops: Total hops (decimal).
 .It * traffic_class: The IP Traffic Class/Type of Service value of the sent packets (hexadecimal).
@@ -290,8 +292,9 @@ See the status code for Ping above for the lower 8 bits. Additionally:
 .El
 .It * pathHash: Hash of the path (hexadecimal).
 .El
-.It (TAB) hopNumber response_size status timesource delay_queuing delay_app_receive rtt_app rtt_app rtt_sw rtt_hw hopIP
+.It (TAB) sendTimeStamp hopNumber response_size status timesource delay_queuing delay_app_receive rtt_app rtt_app rtt_sw rtt_hw hopIP
 .Bl -tag -width indent
+.It * sendTimeStamp: Timestamp (nanoseconds since the UTC epoch, hexadecimal) for the request to this hop.
 .It * hopNumber: Number of the hop.
 .It * response_size: The response packet size (decimal, in bytes) including IPv4/IPv6 header, transport header and HiPerConTracer header.
 .It * status: Status code (decimal; the values are the same as for Ping, see above).
@@ -314,7 +317,8 @@ This is followed with one TAB-started line per each hop.
 .Bl -tag -width indent
 .It * sourceIP: Source IP address.
 .It * destinationIP: Destination IP address.
-.It * timestamp: Timestamp (microseconds since the UTC epoch, hexadecimal).
+.It * timestamp: Timestamp (microseconds since the UTC epoch, hexadecimal) of the current run.
+Note: This timestamp is only an identifier for the Traceroute run. All Traceroute rounds of the same run use the same timestamp here!
 .It * round: Round number.
 .It * checksum: The checksum of the ICMP Echo Request packets (hexadecimal).
 .It * totalHops: Total hops.
