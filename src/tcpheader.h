@@ -124,12 +124,13 @@ class TCPHeader
    }
 
    friend std::istream& operator>>(std::istream& is, TCPHeader& header) {
-      is.read(reinterpret_cast<char*>(header.Data), 20);
-      std::streamsize totalLength = header.dataOffset();
-      if( (totalLength < 20) || (totalLength > 60) ) {
-         is.setstate(std::ios::failbit);
+      if(is.read(reinterpret_cast<char*>(header.Data), 20)) {
+         std::streamsize totalLength = header.dataOffset();
+         if( (totalLength < 20) || (totalLength > 60) ) {
+            is.setstate(std::ios::failbit);
+         }
+         is.read(reinterpret_cast<char*>(&header.Data[20]), header.optionsLength());
       }
-      is.read(reinterpret_cast<char*>(&header.Data[20]), header.optionsLength());
       return is;
    }
 
