@@ -64,10 +64,12 @@ groupdel hipercontracer >/dev/null 2>&1 || true
 %{_bindir}/hipercontracer
 %{_mandir}/man1/get-default-ips.1.gz
 %{_mandir}/man1/hipercontracer.1.gz
+%{_datadir}/doc/hipercontracer/examples/HiPerConTracer.R
 %{_datadir}/doc/hipercontracer/examples/Ping-*.results.bz2
 %{_datadir}/doc/hipercontracer/examples/README.md
 %{_datadir}/doc/hipercontracer/examples/Traceroute-*.results.bz2
-%{_datadir}/doc/hipercontracer/examples/ping-example.R
+%{_datadir}/doc/hipercontracer/examples/r-ping-example
+%{_datadir}/doc/hipercontracer/examples/r-traceroute-example
 
 
 %package libhipercontracer
@@ -278,6 +280,26 @@ from a HiPerConTracer SQL or NoSQL database.
 %files hipercontracer-query
 %{_bindir}/hpct-query
 %{_mandir}/man1/hpct-query.1.gz
+
+
+%package hipercontracer-results-tool
+Summary: HiPerConTracer results data importer
+Group: Applications/Database
+Requires: %{name}-libuniversalimporter = %{version}-%{release}
+Recommends: %{name} = %{version}-%{release}
+
+%description hipercontracer-results-tool
+High-Performance Connectivity Tracer (HiPerConTracer) is a
+Ping/Traceroute service. It performs regular Ping and Traceroute runs
+among sites. The results are written to data files, which can be
+imported into an SQL or NoSQL database.
+This package contains the results tool to process HiPerConTracer
+results files, particularly for converting them to CSV files for
+reading them into spreadsheets, analysis tools, etc.
+
+%files hipercontracer-results-tool
+%{_bindir}/hipercontracer-results-tool
+%{_mandir}/man1/hipercontracer-results-tool.1.gz
 
 
 %changelog

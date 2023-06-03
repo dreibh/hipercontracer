@@ -100,6 +100,7 @@ Depends: libhipercontracer1 (= ${binary:Version}),
          ${shlibs:Depends}
 Recommends: hipercontracer-importer,
             hipercontracer-query,
+            hipercontracer-results-tool,
             hipercontracer-trigger
 Description: Command-line programs for HiPerConTracer
  High-Performance Connectivity Tracer (HiPerConTracer) is a
