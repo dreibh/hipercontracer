@@ -44,8 +44,8 @@ while [ $# -gt 0 ] ; do
       export CC=gcc
    elif [[ "$1" =~ ^(-|--)use-gcc-analyzer$ ]] ; then
       # Use these settings for GCC:
-      export CXX=g++-10
-      export CC=gcc-10
+      export CXX=g++
+      export CC=gcc
       export CFLAGS=-fanalyzer
       export CXXFLAGS=-fanalyzer
       CMAKE_OPTIONS="$CMAKE_OPTIONS -DCMAKE_VERBOSE_MAKEFILE=ON"
