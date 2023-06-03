@@ -29,14 +29,21 @@
 //
 // Contact: dreibh@simula.no
 
+#include "logger.h"
+
+#include <chrono>
 #include <filesystem>
 #include <fstream>
 #include <iostream>
 #include <map>
+#include <mutex>
 #include <set>
+#include <thread>
 
 #include <boost/algorithm/string.hpp>
 #include <boost/asio/ip/address.hpp>
+#include <boost/asio/post.hpp>
+#include <boost/asio/thread_pool.hpp>
 #include <boost/iostreams/filtering_stream.hpp>
 #include <boost/iostreams/filtering_streambuf.hpp>
 #include <boost/iostreams/filter/bzip2.hpp>
@@ -102,26 +109,26 @@ struct InputFormat
 // NOTE: find() will assume equality for: !(a < b) && !(b < a)
 bool operator<(const OutputEntry& a, const OutputEntry& b)
 {
-   // ====== Level 1: MeasurementID ============================================
-   if(a.MeasurementID < b.MeasurementID) {
+   // ====== Level 1: TimeStamp ====================================
+   if(a.TimeStamp < b.TimeStamp) {
       return true;
    }
-   else if(a.MeasurementID == b.MeasurementID) {
-      // ====== Level 2: Source =============================================
-      if(a.Source < b.Source) {
+   else if(a.TimeStamp == b.TimeStamp) {
+      // ====== Level 2: MeasurementID ============================================
+      if(a.MeasurementID < b.MeasurementID) {
          return true;
       }
-      else if(a.Source == b.Source) {
-         // ====== Level 3: Destination =====================================
-         if(a.Destination < b.Destination) {
+      else if(a.MeasurementID == b.MeasurementID) {
+         // ====== Level 3: Source =============================================
+         if(a.Source < b.Source) {
             return true;
          }
-         else if(a.Destination == b.Destination) {
-            // ====== Level 4: TimeStamp ====================================
-            if(a.TimeStamp < b.TimeStamp) {
+         else if(a.Source == b.Source) {
+            // ====== Level 4: Destination =====================================
+            if(a.Destination < b.Destination) {
                return true;
             }
-            else if(a.TimeStamp == b.TimeStamp) {
+            else if(a.Destination == b.Destination) {
                // ====== Level 5: RoundNumber ===============================
                if(a.RoundNumber < b.RoundNumber) {
                   return true;
@@ -164,7 +171,7 @@ unsigned int applySeparator(std::string& string, const char separator)
 
 
 // ###### Check format of file ##############################################
-void checkFormat(boost::iostreams::filtering_ostream& outputStream,
+void checkFormat(boost::iostreams::filtering_ostream* outputStream,
                  const std::filesystem::path&         fileName,
                  InputFormat&                         format,
                  unsigned int&                        columns,
@@ -323,7 +330,7 @@ void checkFormat(boost::iostreams::filtering_ostream& outputStream,
       }
 
       columns = applySeparator(columnNames, separator);
-      outputStream << columnNames << "\n";
+      *outputStream << columnNames << "\n";
    }
    else {
       if(format.String != line.substr(0, 3)) {
@@ -337,12 +344,14 @@ void checkFormat(boost::iostreams::filtering_ostream& outputStream,
 
 
 // ###### Dump results file #################################################
-bool dumpResultsFile(std::set<OutputEntry*, pointer_lessthan<OutputEntry>>&  outputSet,
-                     boost::iostreams::filtering_ostream& outputStream,
+bool dumpResultsFile(std::set<OutputEntry*, pointer_lessthan<OutputEntry>>* outputSet,
+                     boost::iostreams::filtering_ostream* outputStream,
+                     std::mutex*                          outputMutex,
                      const std::filesystem::path&         fileName,
                      InputFormat&                         format,
                      unsigned int&                        columns,
-                     const char                           separator)
+                     const char                           separator,
+                     const bool                           checkOnly = false)
 {
    // ====== Open input file ================================================
    std::string                         extension(fileName.extension());
@@ -356,7 +365,10 @@ bool dumpResultsFile(std::set<OutputEntry*, pointer_lessthan<OutputEntry>>&  out
    }
    boost::algorithm::to_lower(extension);
    if(extension == ".xz") {
-      inputStream.push(boost::iostreams::lzma_decompressor());
+      const boost::iostreams::lzma_params params(
+         boost::iostreams::lzma::default_compression,
+         std::thread::hardware_concurrency());
+      inputStream.push(boost::iostreams::lzma_decompressor(params));
    }
    else if(extension == ".bz2") {
       inputStream.push(boost::iostreams::bzip2_decompressor());
@@ -378,6 +390,9 @@ bool dumpResultsFile(std::set<OutputEntry*, pointer_lessthan<OutputEntry>>&  out
       // ====== #<line> =====================================================
       if(line[0] == '#') {
          checkFormat(outputStream, fileName, format, columns, line, separator);
+         if(checkOnly) {
+            return true;
+         }
 
          // ------ Obtain pointers to first N entres ------------------------
          const unsigned int maxColumns = 6;
@@ -407,7 +422,7 @@ bool dumpResultsFile(std::set<OutputEntry*, pointer_lessthan<OutputEntry>>&  out
          // ------ Create output entry --------------------------------------
          unsigned int             measurementID;
          size_t                   timeStampIndex;
-         unsigned int             timeStamp;
+         unsigned long long       timeStamp;
          size_t                   roundNumberIndex;
          unsigned int             roundNumber;
          boost::asio::ip::address source;
@@ -466,7 +481,8 @@ bool dumpResultsFile(std::set<OutputEntry*, pointer_lessthan<OutputEntry>>&  out
                exit(1);
             }
 
-            auto success = outputSet.insert(newEntry);
+            const std::lock_guard<std::mutex> lock(*outputMutex);
+            auto success = outputSet->insert(newEntry);
             if(!success.second) {
                std::cerr << "ERROR: Duplicate entry"
                         << " in input file " << fileName << ", line " << lineNumber << "!\n";
@@ -493,9 +509,10 @@ bool dumpResultsFile(std::set<OutputEntry*, pointer_lessthan<OutputEntry>>&  out
          newSubEntry->SeqNumber++;
          newSubEntry->Line += " ~ " + ((line[1] == ' ') ? line.substr(2) : line.substr(1));
 
-         auto success = outputSet.insert(newSubEntry);
+         const std::lock_guard<std::mutex> lock(*outputMutex);
+         auto success = outputSet->insert(newSubEntry);
          if(!success.second) {
-            std::cerr << "ERROR: Duplicate entry"
+            std::cerr << "ERROR: Duplicate tab entry"
                       << " in input file " << fileName << ", line " << lineNumber << "!\n";
             exit(1);
          }
@@ -519,6 +536,9 @@ bool dumpResultsFile(std::set<OutputEntry*, pointer_lessthan<OutputEntry>>&  out
 // ###### Main program ######################################################
 int main(int argc, char** argv)
 {
+   unsigned int                       logLevel;
+   bool                               logColor;
+   std::filesystem::path              logFile;
    std::vector<std::filesystem::path> inputFileNameList;
    std::filesystem::path              outputFileName;
    InputFormat                        format { InputType::IT_Unknown };
@@ -530,6 +550,22 @@ int main(int argc, char** argv)
    commandLineOptions.add_options()
       ( "help,h",
            "Print help message" )
+
+      ( "loglevel,L",
+           boost::program_options::value<unsigned int>(&logLevel)->default_value(boost::log::trivial::severity_level::info),
+           "Set logging level" )
+      ( "logfile,O",
+           boost::program_options::value<std::filesystem::path>(&logFile)->default_value(std::filesystem::path()),
+           "Log file" )
+      ( "logcolor,Z",
+           boost::program_options::value<bool>(&logColor)->default_value(true),
+           "Use ANSI color escape sequences for log output" )
+      ( "verbose,v",
+           boost::program_options::value<unsigned int>(&logLevel)->implicit_value(boost::log::trivial::severity_level::trace),
+           "Verbose logging level" )
+      ( "quiet,q",
+           boost::program_options::value<unsigned int>(&logLevel)->implicit_value(boost::log::trivial::severity_level::warning),
+           "Quiet logging level" )
 
       ( "output,o",
            boost::program_options::value<std::filesystem::path>(&outputFileName)->default_value(std::filesystem::path()),
@@ -579,6 +615,9 @@ int main(int argc, char** argv)
        return 1;
    }
 
+   // ====== Initialize =====================================================
+   initialiseLogger(logLevel, logColor,
+                    (logFile != std::filesystem::path()) ? logFile.string().c_str() : nullptr);
 
    // ====== Open output file ===============================================
    std::string                         extension(outputFileName.extension());
@@ -592,7 +631,10 @@ int main(int argc, char** argv)
       }
       boost::algorithm::to_lower(extension);
       if(extension == ".xz") {
-         outputStream.push(boost::iostreams::lzma_compressor());
+         const boost::iostreams::lzma_params params(
+            boost::iostreams::lzma::default_compression,
+            std::thread::hardware_concurrency());
+         outputStream.push(boost::iostreams::lzma_compressor(params));
       }
       else if(extension == ".bz2") {
          outputStream.push(boost::iostreams::bzip2_compressor());
@@ -606,18 +648,49 @@ int main(int argc, char** argv)
       outputStream.push(std::cout);
    }
 
-   // ====== Dump input files ===============================================
-   std::set<std::filesystem::path>    inputFileNameSet(inputFileNameList.begin(),
-                                                       inputFileNameList.end());
+   // ====== Read the input files ===========================================
+   const std::set<std::filesystem::path>                 inputFileNameSet(inputFileNameList.begin(), inputFileNameList.end());
    std::set<OutputEntry*, pointer_lessthan<OutputEntry>> outputSet;
+   std::mutex                                            outputMutex;
+
+   // ------ Identify format of the first file ------------------------------
+   const std::filesystem::path firstInputFileName = *(inputFileNameSet.begin());
+   HPCT_LOG(info) << "Identifying format from " << firstInputFileName << " ...";
+   dumpResultsFile(&outputSet, &outputStream, &outputMutex,
+                   firstInputFileName, format, columns, separator,
+                   true);
+   HPCT_LOG(info) << "Format: Type=" << (char)format.Type
+                  << ", Protocol="   << (char)format.Protocol
+                  << ", Version="    << format.Version;
+
+   // ------  Use thread pool to read all files -----------------------------
+   const unsigned int       maxThreads = std::thread::hardware_concurrency();
+   boost::asio::thread_pool threadPool(maxThreads);
+   HPCT_LOG(info) << "Reading " << inputFileNameSet.size() << " files using "
+                  << maxThreads << " threads ...";
+   const std::chrono::system_clock::time_point t1 = std::chrono::system_clock::now();
    for(const std::filesystem::path& inputFileName : inputFileNameSet) {
-      dumpResultsFile(outputSet, outputStream, inputFileName, format, columns, separator);
+      boost::asio::post(threadPool, std::bind(dumpResultsFile,
+                        &outputSet, &outputStream, &outputMutex,
+                        inputFileName, format, columns, separator,
+                        false));
    }
+   threadPool.join();
+   const std::chrono::system_clock::time_point t2 = std::chrono::system_clock::now();
+   HPCT_LOG(info) << "Read " << outputSet.size() << " results rows in "
+                  << std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1).count() << " ms";
+
+   // ====== Print the results ==============================================
+   HPCT_LOG(info) << "Writing " << outputSet.size() << " results rows ...";
+   const std::chrono::system_clock::time_point t3 = std::chrono::system_clock::now();
    for(std::set<OutputEntry*, pointer_lessthan<OutputEntry>>::const_iterator iterator = outputSet.begin();
        iterator != outputSet.end(); iterator++) {
       outputStream << (*iterator)->Line << "\n";
       delete *iterator;
    }
+   const std::chrono::system_clock::time_point t4 = std::chrono::system_clock::now();
+   HPCT_LOG(info) << "Wrote " << outputSet.size() << " results rows in "
+                  << std::chrono::duration_cast<std::chrono::milliseconds>(t4 - t3).count() << " ms";
 
    return 0;
 }
