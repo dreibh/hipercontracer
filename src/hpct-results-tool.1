@@ -1,0 +1,88 @@
+.\" High-Performance Connectivity Tracer (HiPerConTracer)
+.\" Copyright (C) 2015-2023 by Thomas Dreibholz
+.\"
+.\" This program is free software: you can redistribute it and/or modify
+.\" it under the terms of the GNU General Public License as published by
+.\" the Free Software Foundation, either version 3 of the License, or
+.\" (at your option) any later version.
+.\"
+.\" This program is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\" GNU General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU General Public License
+.\" along with this program.  If not, see <http://www.gnu.org/licenses/>.
+.\"
+.\" Contact: thomas.dreibholz@gmail.com
+.\"
+.\" ###### Setup ############################################################
+.Dd November 18, 2022
+.Dt hpct-results-tool 1
+.Os hpct-results-tool
+.\" ###### Name #############################################################
+.Sh NAME
+.Nm hpct-results-tool
+.Nd HiPerConTracer Results Tool
+.\" ###### Synopsis #########################################################
+.Sh SYNOPSIS
+.Nm hpct-results-tool
+database_configuration
+.Op \-L|--loglevel level
+.Op \-Z|--logcolor on|off
+.Op \-O|--logfile file
+.Op \-q|--quiet
+.Op \-v|--verbose
+.Op \-S|--sorted
+.Op \-U|--unsorted
+.Op \-s|--separator character
+.Op \-o|--output filename
+.\" ###### Description ######################################################
+.Sh DESCRIPTION
+.Nm hpct-results-tool
+reads HiPerConTracer results files and merges them into a CSV file. Reading
+is multi-threaded. The output can be to standard output, or a file. Compression
+using GZip, BZip2 and XZ is supported. Multi-threading is supported, reading
+files in parallel.
+The results can be sorted (to ensure a deterministic order; requires ample of
+memory) or unsorted (non-deterministic order in case of parallel processing).
+.Pp
+.\" ###### Arguments ########################################################
+.Sh ARGUMENTS
+The following argument may be provided:
+.Bl -tag -width indent
+.It \-L|\--loglevel level
+Sets the minimum logging level to the provided value: 0=trace, 1=debug, 2=info, 3=warning, 4=error, 5=fatal.
+.It \-q|\--quiet
+Sets the minimum logging level to 3 (warning).
+.It \-v|\--verbose
+Sets the minimum logging level to 0 (trace).
+.It \-Z|--logcolor on|off
+Enables (on) or disables (off) the usage of ANSI color escape sequences to colorise the log output according to its level.
+.It \-O|--logfile file
+Sets a file name for appending the log output to. If a file is set, no log output is made to the console. Otherwise, all log output will be written to the console.
+.It \-S|--sorted
+Sort the output data (Timestamp, MeasurementID, Source, Destination, RoundNumber, SeqNumber).
+.It \-U|--unsorted
+Do not sort the output data.
+.It \-s|--separator character
+Configures the character used as separator of the CSV output. Default: ",".
+Possible values: " ", ";",  ":", "|".
+.It \-o|--output filename
+Sets the specified filename as output file. Extensions \.gz, \.bz2, and \.xz are recognised to enable compression.
+.El
+.\" ###### Arguments ########################################################
+.Sh EXAMPLES
+.Bl -tag -width indent
+.It hpct-results-tool results/Ping* --output ping.csv.xz --sorted --separator ";"
+.It hpct-results-tool results/Traceroute* --output traceroute.csv.bz2 --unsorted
+.It hpct-results-tool results/Traceroute* --sorted | head -n 64
+.El
+.\" ###### Authors ##########################################################
+.Sh AUTHORS
+Thomas Dreibholz
+.br
+https://www.nntb.no/~dreibh/hipercontracer
+.br
+mailto://thomas.dreibholz@gmail.com
+.br
