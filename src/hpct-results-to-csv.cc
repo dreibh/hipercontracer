@@ -504,11 +504,17 @@ bool dumpResultsFile(std::set<OutputEntry*, pointer_lessthan<OutputEntry>>* outp
             }
 
             const std::lock_guard<std::mutex> lock(*outputMutex);
-            auto success = outputSet->insert(newEntry);
-            if(!success.second) {
-               HPCT_LOG(fatal) << "Duplicate tab entry"
-                               << " in input file " << fileName << ", line " << lineNumber;
-               exit(1);
+            if(outputSet) {
+               auto success = outputSet->insert(newEntry);
+               if(!success.second) {
+                  HPCT_LOG(fatal) << "Duplicate tab entry"
+                                 << " in input file " << fileName << ", line " << lineNumber;
+                  exit(1);
+               }
+            }
+            else {
+               *outputStream << newEntry->Line << "\n";
+               delete newEntry;
             }
             newEntry = nullptr;
          }
@@ -522,7 +528,7 @@ bool dumpResultsFile(std::set<OutputEntry*, pointer_lessthan<OutputEntry>>* outp
 
       // ====== TAB<line> ===================================================
       else if(line[0] == '\t') {
-         if(newSubEntry == nullptr) {
+         if(newEntry == nullptr) {
             HPCT_LOG(fatal) << "TAB line without corresponding header line"
                             << " in input file " << fileName << ", line " << lineNumber;
             exit(1);
@@ -541,11 +547,18 @@ bool dumpResultsFile(std::set<OutputEntry*, pointer_lessthan<OutputEntry>>* outp
          }
 
          const std::lock_guard<std::mutex> lock(*outputMutex);
-         auto success = outputSet->insert(newSubEntry);
-         if(!success.second) {
-            HPCT_LOG(fatal) << "Duplicate tab entry"
-                            << " in input file " << fileName << ", line " << lineNumber;
-            exit(1);
+         if(outputSet) {
+            auto success = outputSet->insert(newSubEntry);
+            if(!success.second) {
+               HPCT_LOG(fatal) << "Duplicate tab entry"
+                              << " in input file " << fileName << ", line " << lineNumber;
+               exit(1);
+            }
+         }
+         else {
+            *outputStream << newSubEntry->Line << "\n";
+            delete newSubEntry;
+            newSubEntry = nullptr;
          }
       }
 
@@ -572,9 +585,8 @@ int main(int argc, char** argv)
    std::filesystem::path              logFile;
    std::vector<std::filesystem::path> inputFileNameList;
    std::filesystem::path              outputFileName;
-   InputFormat                        format { InputType::IT_Unknown };
-   unsigned int                       columns = 0;
    char                               separator;
+   bool                               sorted;
 
    // ====== Initialize =====================================================
    boost::program_options::options_description commandLineOptions;
@@ -604,6 +616,12 @@ int main(int argc, char** argv)
       ( "separator,s",
            boost::program_options::value<char>(&separator)->default_value(' '),
            "Separator character" )
+      ( "sorted,S",
+           boost::program_options::value<bool>(&sorted)->implicit_value(true)->default_value(true),
+           "Sorted results" )
+      ( "unsorted,U",
+           boost::program_options::value<bool>(&sorted)->implicit_value(false),
+           "Unsorted results" )
    ;
    boost::program_options::options_description hiddenOptions;
    hiddenOptions.add_options()
@@ -683,11 +701,13 @@ int main(int argc, char** argv)
    const std::set<std::filesystem::path>                 inputFileNameSet(inputFileNameList.begin(), inputFileNameList.end());
    std::set<OutputEntry*, pointer_lessthan<OutputEntry>> outputSet;
    std::mutex                                            outputMutex;
+   InputFormat                                           format { InputType::IT_Unknown };
+   unsigned int                                          columns = 0;
 
    // ------ Identify format of the first file ------------------------------
    const std::filesystem::path firstInputFileName = *(inputFileNameSet.begin());
    HPCT_LOG(info) << "Identifying format from " << firstInputFileName << " ...";
-   dumpResultsFile(&outputSet, &outputStream, &outputMutex,
+   dumpResultsFile((sorted == true) ? &outputSet : nullptr, &outputStream, &outputMutex,
                    firstInputFileName, format, columns, separator,
                    true);
    HPCT_LOG(info) << "Format: Type=" << (char)format.Type
@@ -702,7 +722,7 @@ int main(int argc, char** argv)
    const std::chrono::system_clock::time_point t1 = std::chrono::system_clock::now();
    for(const std::filesystem::path& inputFileName : inputFileNameSet) {
       boost::asio::post(threadPool, std::bind(dumpResultsFile,
-                        &outputSet, &outputStream, &outputMutex,
+                        (sorted == true) ? &outputSet : nullptr, &outputStream, &outputMutex,
                         inputFileName, format, columns, separator,
                         false));
    }
