@@ -213,8 +213,16 @@ IF (WITH_QUERY)
    INSTALL(PROGRAMS hpct-query
            DESTINATION ${CMAKE_INSTALL_BINDIR})
    INSTALL(FILES hpct-query.1
-           DESTINATION ${CMAKE_INSTALL_MANDIR}/man1)
+            DESTINATION ${CMAKE_INSTALL_MANDIR}/man1)
 ENDIF()
+
+# ====== HiPerConTracer Results Tool ========================================
+ADD_EXECUTABLE(hpct-results-tool hpct-results-tool.cc)
+TARGET_LINK_LIBRARIES(hpct-results-tool libuniversalimporter-${libraryType} ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} -llzma -lbz2 -lz)
+INSTALL(TARGETS hpct-results-tool RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
+INSTALL(FILES hpct-results-tool.1
+         DESTINATION ${CMAKE_INSTALL_MANDIR}/man1)
+
 
 # ====== UDP Echo Server ====================================================
 IF (WITH_UDP_ECHO_SERVER)

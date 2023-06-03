@@ -187,7 +187,7 @@ int Ping::comparePingResults(const ResultEntry* a, const ResultEntry* b)
    }
    else if(a->destination() == b->destination()) {
       // ====== Level 2: Hop ================================================
-      if(a->round() < b->round()) {
+      if(a->roundNumber() < b->roundNumber()) {
          return true;
       }
    }
@@ -268,17 +268,19 @@ void Ping::writePingResultEntry(const ResultEntry* resultEntry,
                                           delayQueuing, delayAppSend, delayAppReceive);
 
          ResultsOutput->insert(
-            str(boost::format("%s#P%c %s %s %x %d %x %d %x %d %08x %d %d %d %d %d %d")
+            str(boost::format("%s#P%c %d %s %s %x %d %x %d %d %x %d %08x %d %d %d %d %d %d")
                % indentation
                % (unsigned char)IOModule->getProtocolType()
 
+               % ResultsOutput->measurementID()
                % resultEntry->sourceAddress().to_string()
                % resultEntry->destinationAddress().to_string()
                % sendTimeStamp
-               % resultEntry->round()
+               % resultEntry->roundNumber()
 
                % (unsigned int)resultEntry->destination().trafficClass()
                % resultEntry->packetSize()
+               % resultEntry->responseSize()
                % resultEntry->checksum()
                % resultEntry->status()
 

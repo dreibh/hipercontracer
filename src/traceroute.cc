@@ -474,10 +474,10 @@ int Traceroute::compareTracerouteResults(const ResultEntry* a, const ResultEntry
    // => sort by: rounds / hop
 
    // ====== Level 1: Round =================================================
-   if(a->round() < b->round()) {
+   if(a->roundNumber() < b->roundNumber()) {
       return true;
    }
-   else if(a->round() == b->round()) {
+   else if(a->roundNumber() == b->roundNumber()) {
       // ====== Level 2: Hop ================================================
       if(a->hopNumber() < b->hopNumber()) {
          return true;
@@ -505,7 +505,7 @@ void Traceroute::processResults()
       bool         destinationReached = false;  // destination has responded
       std::string pathString         = SourceAddress.to_string();
       for(ResultEntry* resultEntry : resultsVector) {
-         if(resultEntry->round() == round) {
+         if(resultEntry->roundNumber() == round) {
             assert(resultEntry->hopNumber() > totalHops);
             currentHop++;
             totalHops = resultEntry->hopNumber();
@@ -559,7 +559,7 @@ void Traceroute::processResults()
       bool     writeHeader   = true;
       uint16_t checksumCheck = 0;
       for(ResultEntry* resultEntry : resultsVector) {
-         if(resultEntry->round() == round) {
+         if(resultEntry->roundNumber() == round) {
             HPCT_LOG(trace) << getName() << ": " << *resultEntry;
 
             if(ResultCallback) {
@@ -605,13 +605,14 @@ void Traceroute::writeTracerouteResultEntry(const ResultEntry* resultEntry,
          // ====== Current output format =================================
          if(OutputFormat >= OFT_HiPerConTracer_Version2) {
             ResultsOutput->insert(
-               str(boost::format("#T%c %s %s %x %d %d %x %d %x %x %x")
+               str(boost::format("#T%c %d %s %s %x %d %d %x %d %x %x %x")
                   % (unsigned char)IOModule->getProtocolType()
 
+                  % ResultsOutput->measurementID()
                   % resultEntry->sourceAddress().to_string()
                   % resultEntry->destinationAddress().to_string()
                   % timeStamp
-                  % resultEntry->round()
+                  % resultEntry->roundNumber()
 
                   % totalHops
 
@@ -631,7 +632,7 @@ void Traceroute::writeTracerouteResultEntry(const ResultEntry* resultEntry,
                   % resultEntry->sourceAddress().to_string()
                   % resultEntry->destinationAddress().to_string()
                   % (timeStamp / 1000)
-                  % resultEntry->round()
+                  % resultEntry->roundNumber()
                   % resultEntry->checksum()
                   % totalHops
                   % statusFlags
@@ -658,10 +659,14 @@ void Traceroute::writeTracerouteResultEntry(const ResultEntry* resultEntry,
          resultEntry->obtainResultsValues(timeSource,
                                           rttApplication, rttSoftware, rttHardware,
                                           delayQueuing, delayAppSend, delayAppReceive);
+         const unsigned long long sendTimeStamp = nsSinceEpoch<ResultTimePoint>(
+            resultEntry->sendTime(TXTimeStampType::TXTST_Application));
 
          ResultsOutput->insert(
-            str(boost::format("\t%d %d %08x %d %d %d %d %d %d %s")
+            str(boost::format("\t%x %d %d %08x %d %d %d %d %d %d %d %s")
+               % sendTimeStamp
                % resultEntry->hopNumber()
+               % resultEntry->responseSize()
                % (unsigned int)resultEntry->status()
 
                % timeSource

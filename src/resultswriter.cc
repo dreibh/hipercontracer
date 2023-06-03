@@ -44,16 +44,18 @@
 
 
 // ###### Constructor #######################################################
-ResultsWriter::ResultsWriter(const std::string&            directory,
+ResultsWriter::ResultsWriter(const unsigned int            measurementID,
+                             const std::string&            directory,
                              const std::string&            uniqueID,
-                             const std::string&            formatName,
+                             const std::string&            resultsFormat,
                              const unsigned int            transactionLength,
                              const uid_t                   uid,
                              const gid_t                   gid,
                              const ResultsWriterCompressor compressor)
-   : Directory(directory),
+   : MeasurementID(measurementID),
+     Directory(directory),
      UniqueID(uniqueID),
-     FormatName(formatName),
+     FormatName(resultsFormat),
      TransactionLength(transactionLength),
      UID(uid),
      GID(gid),
@@ -190,7 +192,7 @@ void ResultsWriter::insert(const std::string& tuple)
 
 // ###### Prepare results writer ############################################
 ResultsWriter* ResultsWriter::makeResultsWriter(std::set<ResultsWriter*>&       resultsWriterSet,
-                                                const unsigned int              identifier,
+                                                const unsigned int              measurementID,
                                                 const boost::asio::ip::address& sourceAddress,
                                                 const std::string&              resultsFormat,
                                                 const std::string&              resultsDirectory,
@@ -202,15 +204,15 @@ ResultsWriter* ResultsWriter::makeResultsWriter(std::set<ResultsWriter*>&       
    if(!resultsDirectory.empty()) {
       std::string uniqueID =
          resultsFormat + "-" +
-         ((identifier != 0) ?
-            "#" + std::to_string(identifier) :
+         ((measurementID != 0) ?
+            "#" + std::to_string(measurementID) :
             "P" + std::to_string(boost::this_process::get_id())) + "-" +
          sourceAddress.to_string() + "-" +
          boost::posix_time::to_iso_string(boost::posix_time::microsec_clock::universal_time());
       replace(uniqueID.begin(), uniqueID.end(), ' ', '-');
 
       ResultsWriter* resultsWriter =
-         new ResultsWriter(resultsDirectory, uniqueID, resultsFormat, resultsTransactionLength,
+         new ResultsWriter(measurementID, resultsDirectory, uniqueID, resultsFormat, resultsTransactionLength,
                            uid, gid, compressor);
       if(resultsWriter->prepare() == true) {
          resultsWriterSet.insert(resultsWriter);

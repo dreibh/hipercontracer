@@ -142,7 +142,7 @@ class ResultEntry {
    ~ResultEntry();
 
    void initialise(const uint32_t                  timeStampSeqID,
-                   const unsigned short            round,
+                   const unsigned short            roundNumber,
                    const unsigned short            seqNumber,
                    const unsigned int              hopNumber,
                    const unsigned int              packetSize,
@@ -155,10 +155,11 @@ class ResultEntry {
    void failedToSend(const boost::system::error_code& errorCode);
 
    inline uint32_t     timeStampSeqID()                 const { return(TimeStampSeqID);         }
-   inline unsigned int round()                          const { return(Round);                  }
+   inline unsigned int roundNumber()                    const { return(RoundNumber);            }
    inline unsigned int seqNumber()                      const { return(SeqNumber);              }
    inline unsigned int hopNumber()                      const { return(HopNumber);              }
    inline unsigned int packetSize()                     const { return(PacketSize);             }
+   inline unsigned int responseSize()                   const { return(ResponseSize);           }
    inline uint16_t     checksum()                       const { return(Checksum);               }
 
    const boost::asio::ip::address& sourceAddress()      const { return(Source);                 }
@@ -169,8 +170,9 @@ class ResultEntry {
    inline ResultTimePoint sendTime(const TXTimeStampType txTimeStampType)    const { return(SendTime[txTimeStampType]);    }
    inline ResultTimePoint receiveTime(const RXTimeStampType rxTimeStampType) const { return(ReceiveTime[rxTimeStampType]); }
 
-   inline void setHopAddress(const boost::asio::ip::address& address) { Hop    = address; }
-   inline void setStatus(const HopStatus status)                      { Status = status;  }
+   inline void setStatus(const HopStatus status)                      { Status       = status;       }
+   inline void setResponseSize(const unsigned int responseSize)       { ResponseSize = responseSize; }
+   inline void setHopAddress(const boost::asio::ip::address& address) { Hop          = address;      }
 
    inline void setSendTime(const TXTimeStampType  txTimeStampType,
                            const TimeSourceType   txTimeSource,
@@ -225,10 +227,11 @@ class ResultEntry {
 
    private:
    uint32_t                 TimeStampSeqID;   /* Used with SOF_TIMESTAMPING_OPT_ID */
-   unsigned int             Round;
+   unsigned int             RoundNumber;
    unsigned short           SeqNumber;
    unsigned int             HopNumber;
    unsigned int             PacketSize;
+   unsigned int             ResponseSize;
    uint16_t                 Checksum;
 
    boost::asio::ip::address Source;

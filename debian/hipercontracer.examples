@@ -1,4 +1,6 @@
+debian/tmp/usr/share/doc/hipercontracer/examples/HiPerConTracer.R
 debian/tmp/usr/share/doc/hipercontracer/examples/Ping-*.results.bz2
 debian/tmp/usr/share/doc/hipercontracer/examples/README.md
 debian/tmp/usr/share/doc/hipercontracer/examples/Traceroute-*.results.bz2
-debian/tmp/usr/share/doc/hipercontracer/examples/ping-example.R
+debian/tmp/usr/share/doc/hipercontracer/examples/r-ping-example
+debian/tmp/usr/share/doc/hipercontracer/examples/r-traceroute-example

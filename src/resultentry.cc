@@ -50,7 +50,7 @@ ResultEntry::~ResultEntry()
 
 // ###### Initialise ########################################################
 void ResultEntry::initialise(const uint32_t                  timeStampSeqID,
-                             const unsigned short            round,
+                             const unsigned short            roundNumber,
                              const unsigned short            seqNumber,
                              const unsigned int              hopNumber,
                              const unsigned int              packetSize,
@@ -61,10 +61,11 @@ void ResultEntry::initialise(const uint32_t                  timeStampSeqID,
                              const HopStatus                 status)
 {
    TimeStampSeqID = timeStampSeqID;
-   Round          = round;
+   RoundNumber    = roundNumber;
    SeqNumber      = seqNumber;
    HopNumber      = hopNumber;
    PacketSize     = packetSize;
+   ResponseSize   = 0;
    Checksum       = checksum;
    Source         = source;
    Destination    = destination;
@@ -468,7 +469,7 @@ std::ostream& operator<<(std::ostream& os, const ResultEntry& resultEntry)
                                    delayQueuing, delayAppSend, delayAppReceive);
 
    os << boost::format("#%08x")           % resultEntry.TimeStampSeqID
-      << "\t" << boost::format("R%d")     % resultEntry.Round
+      << "\t" << boost::format("R%d")     % resultEntry.RoundNumber
       << "\t" << boost::format("#%05d")   % resultEntry.SeqNumber
       << "\t" << boost::format("%2d")     % resultEntry.Hop
       << "\tTS:" << boost::format("%08x") % timeSource

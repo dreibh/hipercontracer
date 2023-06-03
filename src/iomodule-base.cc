@@ -311,6 +311,8 @@ void IOModuleBase::recordResult(const ReceivedData&  receivedData,
 
    // ====== Get status =====================================================
    if(resultEntry->status() == Unknown) {
+      resultEntry->setResponseSize(receivedData.MessageLength);
+
       // Just set address, keep traffic class and identifier settings:
       resultEntry->setHopAddress(receivedData.ReplyEndpoint.address());
 

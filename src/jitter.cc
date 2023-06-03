@@ -94,6 +94,16 @@ void Jitter::processResults()
    for(   ; iterator != resultsVector.end(); iterator++) {
       ResultEntry* resultEntry = *iterator;
 
+      // ====== New block -> process previous block, then start new one =====
+      if( (resultEntry->roundNumber() == 0) &&
+          (iterator != resultsVector.begin()) ) {
+         if(isComplete) {
+            computeJitter(start, iterator);
+         }
+         start      = iterator;
+         isComplete = true;
+      }
+
       // ====== Time-out entries ============================================
       if( (resultEntry->status() == Unknown) &&
           (std::chrono::duration_cast<std::chrono::milliseconds>(now - resultEntry->sendTime(TXTimeStampType::TXTST_Application)).count() >= Expiration) ) {
@@ -104,15 +114,6 @@ void Jitter::processResults()
       // be processed by the jitter calculation, yet.
       if(resultEntry->status() == Unknown) {
          isComplete = false;
-      }
-
-      if(resultEntry->round() == 0) {
-         // New block -> try to process previous block, then start new one:
-         if( (isComplete) && (start != resultsVector.begin()) ) {
-            computeJitter(start, iterator);
-            start      = iterator;
-            isComplete = true;
-         }
       }
    }
    if(isComplete) {
@@ -151,9 +152,13 @@ void Jitter::computeJitter(const std::vector<ResultEntry*>::const_iterator& star
    unsigned int       timeSourceQueuing;
    ResultTimePoint    sendTime;
    ResultTimePoint    receiveTime;
+   unsigned short     roundNumber = 0;
 
+   // HPCT_LOG(trace) << getName() << ": computeJitter()";
    for(std::vector<ResultEntry*>::const_iterator iterator = start; iterator != end; iterator++) {
       const ResultEntry* resultEntry = *iterator;
+      assert(resultEntry->roundNumber() == roundNumber);
+      roundNumber++;
 
       HPCT_LOG(trace) << getName() << ": " << *resultEntry;
       if(ResultCallback) {
@@ -199,13 +204,6 @@ void Jitter::computeJitter(const std::vector<ResultEntry*>::const_iterator& star
          }
       }
 
-      if(resultEntry->status() != Unknown) {
-         HPCT_LOG(trace) << getName() << ": " << *resultEntry;
-         if(ResultCallback) {
-            ResultCallback(this, resultEntry);
-         }
-      }
-
       // ====== Set pointer to reference entry ==============================
       // The reference entry points to basic configuration values. It is the
       // first successful entry (if one is successufl), or otherwise the first
@@ -218,6 +216,9 @@ void Jitter::computeJitter(const std::vector<ResultEntry*>::const_iterator& star
                          (timeSourceQueuing     << 16) |
                          (timeSourceSoftware    << 8)  |
                          timeSourceHardware;
+         }
+         else {
+            timeSource = 0;
          }
       }
    }
@@ -260,19 +261,34 @@ void Jitter::writeJitterResultEntry(const ResultEntry*   referenceEntry,
                                     const JitterRFC3550& jitterSoftware,
                                     const JitterRFC3550& jitterHardware)
 {
+   HPCT_LOG(debug) << getName() << ": "
+                   << referenceEntry->destinationAddress()
+
+                   << "\tA:" << jitterApplication.packets()         << "p/"
+                   << (jitterApplication.meanLatency() / 1000000.0) << "ms/"
+                   << (jitterApplication.jitter() / 1000000.0)      << "ms"
+
+                   << "\tS:" << jitterSoftware.packets()            << "p/"
+                   << (jitterSoftware.meanLatency() / 1000000.0)    << "ms/"
+                   << (jitterSoftware.jitter() / 1000000.0)         << "ms"
+
+                   << "\tH:" << jitterHardware.packets()            << "p/"
+                   << (jitterHardware.meanLatency() / 1000000.0)    << "ms/"
+                   << (jitterHardware.jitter() / 1000000.0)         << "ms";
+
    if(ResultsOutput) {
       const unsigned long long sendTimeStamp = nsSinceEpoch<ResultTimePoint>(
          referenceEntry->sendTime(TXTimeStampType::TXTST_Application));
 
-
       ResultsOutput->insert(
-         str(boost::format("#J%c %s %s %x %d %x %d %x %d %08x %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d")
+         str(boost::format("#J%c %d %s %s %x %d %x %d %x %d %08x %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d")
             % (unsigned char)IOModule->getProtocolType()
 
+            % ResultsOutput->measurementID()
             % referenceEntry->sourceAddress().to_string()
             % referenceEntry->destinationAddress().to_string()
             % sendTimeStamp
-            % referenceEntry->round()
+            % referenceEntry->roundNumber()
 
             % (unsigned int)referenceEntry->destination().trafficClass()
             % referenceEntry->packetSize()
@@ -282,28 +298,28 @@ void Jitter::writeJitterResultEntry(const ResultEntry*   referenceEntry,
             % timeSource
 
             % jitterAppSend.packets()
-            % jitterAppSend.jitter()
             % jitterAppSend.meanLatency()
+            % jitterAppSend.jitter()
 
             % jitterQueuing.packets()
-            % jitterQueuing.jitter()
             % jitterQueuing.meanLatency()
+            % jitterQueuing.jitter()
 
             % jitterAppReceive.packets()
-            % jitterAppReceive.jitter()
             % jitterAppReceive.meanLatency()
+            % jitterAppReceive.jitter()
 
             % jitterApplication.packets()
-            % jitterApplication.jitter()
             % jitterApplication.meanLatency()
+            % jitterApplication.jitter()
 
             % jitterSoftware.packets()
-            % jitterSoftware.jitter()
             % jitterSoftware.meanLatency()
+            % jitterSoftware.jitter()
 
             % jitterHardware.packets()
-            % jitterHardware.jitter()
             % jitterHardware.meanLatency()
+            % jitterHardware.jitter()
          ));
    }
 }
