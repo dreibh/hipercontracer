@@ -227,10 +227,10 @@ int main(int argc, char** argv)
            "Ping packet size in B" )
 
       ( "jitterinterval",
-           boost::program_options::value<unsigned long long>(&jitterInterval)->default_value(5000),
+           boost::program_options::value<unsigned long long>(&jitterInterval)->default_value(10000),
            "Jitter interval in ms" )
       ( "jitterexpiration",
-           boost::program_options::value<unsigned int>(&jitterExpiration)->default_value(10000),
+           boost::program_options::value<unsigned int>(&jitterExpiration)->default_value(5000),
            "Jitter expiration timeout in ms" )
       ( "jitterburst",
            boost::program_options::value<unsigned int>(&jitterBurst)->default_value(16),
@@ -323,6 +323,10 @@ int main(int argc, char** argv)
    if( (resultsFormat < OutputFormatType::OFT_Min) ||
        (resultsFormat > OutputFormatType::OFT_Max) ) {
       std::cerr << "ERROR: Invalid results format version: " << resultsFormat << "\n";
+      return 1;
+   }
+   if(jitterExpiration >= jitterInterval) {
+      std::cerr << "ERROR: Jitter expiration must be smaller than jitter interval" << "\n";
       return 1;
    }
    boost::algorithm::to_upper(resultsCompressionString);

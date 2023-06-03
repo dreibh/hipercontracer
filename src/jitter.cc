@@ -106,7 +106,7 @@ void Jitter::processResults()
          isComplete = false;
       }
 
-      if(resultEntry->round() == 0) {
+      if(resultEntry->roundNumber() == 0) {
          // New block -> try to process previous block, then start new one:
          if( (isComplete) && (start != resultsVector.begin()) ) {
             computeJitter(start, iterator);
@@ -151,9 +151,13 @@ void Jitter::computeJitter(const std::vector<ResultEntry*>::const_iterator& star
    unsigned int       timeSourceQueuing;
    ResultTimePoint    sendTime;
    ResultTimePoint    receiveTime;
+   unsigned short     roundNumber = 0;
 
+   HPCT_LOG(trace) << getName() << ": computeJitter()";
    for(std::vector<ResultEntry*>::const_iterator iterator = start; iterator != end; iterator++) {
       const ResultEntry* resultEntry = *iterator;
+      assert(resultEntry->roundNumber() == roundNumber);
+      roundNumber++;
 
       HPCT_LOG(trace) << getName() << ": " << *resultEntry;
       if(ResultCallback) {
@@ -253,6 +257,12 @@ void Jitter::writeJitterResultEntry(const ResultEntry*   referenceEntry,
                                     const JitterRFC3550& jitterSoftware,
                                     const JitterRFC3550& jitterHardware)
 {
+   HPCT_LOG(trace) << getName() << ": "
+                   << referenceEntry->destinationAddress()
+                   << "\tA:" << jitterApplication.packets() << "/" << jitterApplication.jitter() << "/" << jitterApplication.meanLatency()
+                   << "\tS:" << jitterSoftware.packets() << "/" << jitterSoftware.jitter() << "/" << jitterSoftware.meanLatency()
+                   << "\tH:" << jitterHardware.packets() << "/" << jitterHardware.jitter() << "/" << jitterHardware.meanLatency();
+
    if(ResultsOutput) {
       const unsigned long long sendTimeStamp = nsSinceEpoch<ResultTimePoint>(
          referenceEntry->sendTime(TXTimeStampType::TXTST_Application));
@@ -265,7 +275,7 @@ void Jitter::writeJitterResultEntry(const ResultEntry*   referenceEntry,
             % referenceEntry->sourceAddress().to_string()
             % referenceEntry->destinationAddress().to_string()
             % sendTimeStamp
-            % referenceEntry->round()
+            % referenceEntry->roundNumber()
 
             % (unsigned int)referenceEntry->destination().trafficClass()
             % referenceEntry->packetSize()

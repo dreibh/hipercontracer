@@ -187,7 +187,7 @@ int Ping::comparePingResults(const ResultEntry* a, const ResultEntry* b)
    }
    else if(a->destination() == b->destination()) {
       // ====== Level 2: Hop ================================================
-      if(a->round() < b->round()) {
+      if(a->roundNumber() < b->roundNumber()) {
          return true;
       }
    }
@@ -276,7 +276,7 @@ void Ping::writePingResultEntry(const ResultEntry* resultEntry,
                % resultEntry->sourceAddress().to_string()
                % resultEntry->destinationAddress().to_string()
                % sendTimeStamp
-               % resultEntry->round()
+               % resultEntry->roundNumber()
 
                % (unsigned int)resultEntry->destination().trafficClass()
                % resultEntry->packetSize()

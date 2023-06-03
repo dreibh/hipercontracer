@@ -474,10 +474,10 @@ int Traceroute::compareTracerouteResults(const ResultEntry* a, const ResultEntry
    // => sort by: rounds / hop
 
    // ====== Level 1: Round =================================================
-   if(a->round() < b->round()) {
+   if(a->roundNumber() < b->roundNumber()) {
       return true;
    }
-   else if(a->round() == b->round()) {
+   else if(a->roundNumber() == b->roundNumber()) {
       // ====== Level 2: Hop ================================================
       if(a->hopNumber() < b->hopNumber()) {
          return true;
@@ -505,7 +505,7 @@ void Traceroute::processResults()
       bool         destinationReached = false;  // destination has responded
       std::string pathString         = SourceAddress.to_string();
       for(ResultEntry* resultEntry : resultsVector) {
-         if(resultEntry->round() == round) {
+         if(resultEntry->roundNumber() == round) {
             assert(resultEntry->hopNumber() > totalHops);
             currentHop++;
             totalHops = resultEntry->hopNumber();
@@ -559,7 +559,7 @@ void Traceroute::processResults()
       bool     writeHeader   = true;
       uint16_t checksumCheck = 0;
       for(ResultEntry* resultEntry : resultsVector) {
-         if(resultEntry->round() == round) {
+         if(resultEntry->roundNumber() == round) {
             HPCT_LOG(trace) << getName() << ": " << *resultEntry;
 
             if(ResultCallback) {
@@ -612,7 +612,7 @@ void Traceroute::writeTracerouteResultEntry(const ResultEntry* resultEntry,
                   % resultEntry->sourceAddress().to_string()
                   % resultEntry->destinationAddress().to_string()
                   % timeStamp
-                  % resultEntry->round()
+                  % resultEntry->roundNumber()
 
                   % totalHops
 
@@ -632,7 +632,7 @@ void Traceroute::writeTracerouteResultEntry(const ResultEntry* resultEntry,
                   % resultEntry->sourceAddress().to_string()
                   % resultEntry->destinationAddress().to_string()
                   % (timeStamp / 1000)
-                  % resultEntry->round()
+                  % resultEntry->roundNumber()
                   % resultEntry->checksum()
                   % totalHops
                   % statusFlags
