@@ -156,6 +156,19 @@ struct pointer_lessthan
 };
 
 
+// ###### Count columns #####################################################
+unsigned int countColumns(const std::string& string, const char separator)
+{
+   unsigned int columns = 1;
+   for(const char c : string) {
+      if(c == separator) {
+         columns++;
+      }
+   }
+   return columns;
+}
+
+
 // ###### Replace space by given separator character ########################
 unsigned int applySeparator(std::string& string, const char separator)
 {
@@ -186,6 +199,7 @@ void checkFormat(boost::iostreams::filtering_ostream* outputStream,
 
       // ====== Ping ========================================================
       if(format.Type == InputType::IT_Ping) {
+
          // ------ Ping, Version 2 ------------------------------------------
          if(line[2] != ' ') {
             format.Protocol = (InputProtocol)line[2];
@@ -223,7 +237,8 @@ void checkFormat(boost::iostreams::filtering_ostream* outputStream,
                "Status "             // Status (decimal)
                "RTT.App "            // RTT in microseconds (decimal)
                "TrafficClass "       // Traffic Class setting (hexadeciaml)
-               "PacketSize";         // Packet size, in bytes (decimal)
+               "PacketSize "         // Packet size, in bytes (decimal)
+               "TimeSource";         // Source of the timing information (hexadecimal) as: AA
          }
       }
 
@@ -248,8 +263,9 @@ void checkFormat(boost::iostreams::filtering_ostream* outputStream,
                "PathHash "           // Hash of the path (hexadecimal)
 
                "TAB "                // NOTE: must be "\t" from combination above!
+               "SendTimestamp "      // Timestamp (nanoseconds since the UTC epoch, hexadecimal) for the request to this hop.
                "HopNumber "          // Number of the hop.
-               "ResponseSize "      // Response size, in bytes (decimal)
+               "ResponseSize "       // Response size, in bytes (decimal)
                "Status "             // Status code (decimal!)
                "TimeSource "         // Source of the timing information (hexadecimal) as: AAQQSSHH
                "Delay.AppSend "      // The measured application send delay (nanoseconds, decimal; -1 if not available).
@@ -276,6 +292,7 @@ void checkFormat(boost::iostreams::filtering_ostream* outputStream,
                "PathHash "          // Hash of the path (hexadecimal)
                "TrafficClass "      // Traffic Class setting (hexadeciaml)
                "PacketSize "        // Packet size, in bytes (decimal)
+               "TimeSource";        // Source of the timing information (hexadecimal) as: AA
 
                "TAB "               // NOTE: must be "\t" from combination above!
                "HopNumber "         // Number of the hop.
@@ -324,8 +341,8 @@ void checkFormat(boost::iostreams::filtering_ostream* outputStream,
 
       // ====== Error =======================================================
       else {
-         std::cerr << "ERROR: Unknown format " << format.String
-                   << " in input file " << fileName << "!\n";
+         HPCT_LOG(fatal) << "Unknown format " << format.String
+                         << " in input file " << fileName;
          exit(1);
       }
 
@@ -334,9 +351,9 @@ void checkFormat(boost::iostreams::filtering_ostream* outputStream,
    }
    else {
       if(format.String != line.substr(0, 3)) {
-         std::cerr << "ERROR: Incompatible format for merging ("
-                   << line.substr(0, 3) << " vs. " << format.String << ")"
-                   << " in input file " << fileName << "!\n";
+         HPCT_LOG(fatal) << "Incompatible format for merging ("
+                         << line.substr(0, 3) << " vs. " << format.String << ")"
+                         << " in input file " << fileName;
          exit(1);
       }
    }
@@ -360,7 +377,7 @@ bool dumpResultsFile(std::set<OutputEntry*, pointer_lessthan<OutputEntry>>* outp
 
    inputFile.open(fileName, std::ios_base::in | std::ios_base::binary);
    if(!inputFile.is_open()) {
-      std::cerr << "ERROR: Failed to read input file " << fileName << "!\n";
+      HPCT_LOG(fatal) << "Failed to read input file " << fileName;
       exit(1);
    }
    boost::algorithm::to_lower(extension);
@@ -474,18 +491,18 @@ bool dumpResultsFile(std::set<OutputEntry*, pointer_lessthan<OutputEntry>>* outp
 
          // ====== Write entry, if not Traceroute ===========================
          if(format.Type != InputType::IT_Traceroute) {
-            const unsigned int currentColumns = applySeparator(line, separator);
-            if(currentColumns != columns) {
-               std::cerr << "ERROR: Got " << currentColumns << " instead of expected " << columns
-                         << " in input file " << fileName << ", line " << lineNumber << "!\n";
+            const unsigned int seenColumns = applySeparator(line, separator);
+            if(seenColumns != columns) {
+               HPCT_LOG(fatal) << "Got " << seenColumns << " instead of expected " << columns
+                               << " in input file " << fileName << ", line " << lineNumber;
                exit(1);
             }
 
             const std::lock_guard<std::mutex> lock(*outputMutex);
             auto success = outputSet->insert(newEntry);
             if(!success.second) {
-               std::cerr << "ERROR: Duplicate entry"
-                        << " in input file " << fileName << ", line " << lineNumber << "!\n";
+               HPCT_LOG(fatal) << "Duplicate tab entry"
+                               << " in input file " << fileName << ", line " << lineNumber;
                exit(1);
             }
             newEntry = nullptr;
@@ -501,27 +518,36 @@ bool dumpResultsFile(std::set<OutputEntry*, pointer_lessthan<OutputEntry>>* outp
       // ====== TAB<line> ===================================================
       else if(line[0] == '\t') {
          if(newSubEntry == nullptr) {
-            std::cerr << "ERROR: TAB line without corresponding header line"
-                      << " in input file " << fileName << ", line " << lineNumber << "!\n";
+            HPCT_LOG(fatal) << "TAB line without corresponding header line"
+                            << " in input file " << fileName << ", line " << lineNumber;
             exit(1);
          }
-         newSubEntry = new OutputEntry(*newSubEntry);
-         newSubEntry->SeqNumber++;
-         newSubEntry->Line += " ~ " + ((line[1] == ' ') ? line.substr(2) : line.substr(1));
+
+         // NOTE: newEntry is the header line, used as reference entry!
+         newEntry->SeqNumber++;
+         newSubEntry = new OutputEntry(*newEntry);
+         newSubEntry->Line += " ~ " + line.substr(1);
+
+         const unsigned int seenColumns = applySeparator(newSubEntry->Line, separator);
+         if(seenColumns != columns) {
+            HPCT_LOG(fatal) << "Got " << seenColumns << " instead of expected " << columns
+                            << " in input file " << fileName << ", line " << lineNumber;
+            exit(1);
+         }
 
          const std::lock_guard<std::mutex> lock(*outputMutex);
          auto success = outputSet->insert(newSubEntry);
          if(!success.second) {
-            std::cerr << "ERROR: Duplicate tab entry"
-                      << " in input file " << fileName << ", line " << lineNumber << "!\n";
+            HPCT_LOG(fatal) << "Duplicate tab entry"
+                            << " in input file " << fileName << ", line " << lineNumber;
             exit(1);
          }
       }
 
       // ------ Syntax error ------------------------------------------------
       else {
-         std::cerr << "ERROR: Unexpected syntax"
-                     << " in input file " << fileName << ", line " << lineNumber << "!\n";
+         HPCT_LOG(fatal) << "Unexpected syntax"
+                         << " in input file " << fileName << ", line " << lineNumber;
          exit(1);
       }
    }
@@ -597,7 +623,7 @@ int main(int argc, char** argv)
       boost::program_options::notify(vm);
    }
    catch(std::exception& e) {
-      std::cerr << "ERROR: Bad parameter: " << e.what() << "\n";
+      std::cerr << "Bad parameter: " << e.what() << "!\n";
       return 1;
    }
    if( (separator != ' ')  &&
@@ -606,7 +632,7 @@ int main(int argc, char** argv)
        (separator != ':')  &&
        (separator != ';')  &&
        (separator != '|') ) {
-      std::cerr << "ERROR: Invalid separator \"" << separator << "\"!\n";
+      std::cerr << "Invalid separator \"" << separator << "\"!\n";
       exit(1);
    }
    if(vm.count("help")) {
@@ -626,7 +652,7 @@ int main(int argc, char** argv)
    if(outputFileName != std::filesystem::path()) {
       outputFile.open(outputFileName, std::ios_base::out | std::ios_base::binary);
       if(!outputFile.is_open()) {
-         std::cerr << "ERROR: Failed to create output file " << outputFileName << "!\n";
+         HPCT_LOG(fatal) << "Failed to create output file " << outputFileName;
          exit(1);
       }
       boost::algorithm::to_lower(extension);
