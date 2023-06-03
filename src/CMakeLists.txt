@@ -214,11 +214,11 @@ IF (WITH_QUERY)
             DESTINATION ${CMAKE_INSTALL_MANDIR}/man1)
 ENDIF()
 
-# ====== HiPerConTracer Results to CSV ======================================
-ADD_EXECUTABLE(hpct-results-to-csv hpct-results-to-csv.cc)
-TARGET_LINK_LIBRARIES(hpct-results-to-csv libuniversalimporter-${libraryType} ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} -llzma -lbz2 -lz)
-INSTALL(TARGETS hpct-results-to-csv RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
-INSTALL(FILES hpct-results-to-csv.1
+# ====== HiPerConTracer Results Tool ========================================
+ADD_EXECUTABLE(hpct-results-tool hpct-results-tool.cc)
+TARGET_LINK_LIBRARIES(hpct-results-tool libuniversalimporter-${libraryType} ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} -llzma -lbz2 -lz)
+INSTALL(TARGETS hpct-results-tool RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
+INSTALL(FILES hpct-results-tool.1
          DESTINATION ${CMAKE_INSTALL_MANDIR}/man1)
 
 
