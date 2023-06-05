@@ -168,6 +168,11 @@ unsigned int TCPModule::sendRequest(const DestinationInfo& destination,
                                             findSourceForDestination(destination.address()) :
                                             TCPSocketEndpoint.address()),
                                          TCPSocketEndpoint.port());
+   if(localEndpoint.address().is_unspecified()) {
+      HPCT_LOG(warning) << getName() << ": sendRequest() - No local endpoint for destination "
+                      << destination.address();
+      return 0;
+   }
 
    // ====== Prepare TraceService header ====================================
    TraceServiceHeader tsHeader(PayloadSize);
@@ -204,7 +209,7 @@ unsigned int TCPModule::sendRequest(const DestinationInfo& destination,
    tcpOptions->SACKPermittedLength = 2;
    tcpOptions->TimeStampOption     = 0x08;
    tcpOptions->TimeStampLength     = 10;
-   tcpOptions->TimeStampValue      = htonl(0x12345678);
+   // tcpOptions->TimeStampValue   = ... (to be set later!)
    tcpOptions->TimeStampReply      = 0;
 
    // ====== Prepare IP header ==============================================
@@ -261,8 +266,6 @@ unsigned int TCPModule::sendRequest(const DestinationInfo& destination,
    // ------ BEGIN OF TIMING-CRITICAL PART ----------------------------------
    for(unsigned int round = fromRound; round <= toRound; round++) {
       // NOTE: Using forward direction for TCP!
-// FIXME! CHECK
-//       for(int ttl = (int)fromTTL; ttl >= (int)toTTL; ttl--) {
       for(int ttl = toTTL; ttl <= fromTTL; ttl++) {
 
          assert(currentEntry < entries);
