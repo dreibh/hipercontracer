@@ -75,31 +75,38 @@ class TracerouteReader : public ReaderImplementation<TracerouteFileEntry>
                               boost::iostreams::filtering_istream& dataStream);
 
    protected:
+   static unsigned long long parseMeasurementID(const std::string&           value,
+                                                const std::filesystem::path& dataFile);
+   static boost::asio::ip::address parseAddress(const std::string&           value,
+                                                const std::filesystem::path& dataFile);
    static ReaderTimePoint parseTimeStamp(const std::string&           value,
                                          const ReaderTimePoint&       now,
                                          const std::filesystem::path& dataFile);
-   static boost::asio::ip::address parseAddress(const std::string&           value,
-                                                const DatabaseBackendType    backend,
-                                                const std::filesystem::path& dataFile);
    static unsigned int parseRoundNumber(const std::string&           value,
+                                        const std::filesystem::path& dataFile);
+   static uint8_t parseTrafficClass(const std::string&           value,
+                                    const std::filesystem::path& dataFile);
+   static unsigned int parsePacketSize(const std::string&           value,
+                                       const std::filesystem::path& dataFile);
+   static unsigned int parseResponseSize(const std::string&           value,
                                         const std::filesystem::path& dataFile);
    static uint16_t parseChecksum(const std::string&           value,
                                  const std::filesystem::path& dataFile);
+   static unsigned int parseStatus(const std::string&           value,
+                                   const std::filesystem::path& dataFile,
+                                   const unsigned int           base = 16);
+   static unsigned int parseTimeSource(const std::string&           value,
+                                       const std::filesystem::path& dataFile);
    static unsigned int parseTotalHops(const std::string&           value,
                                       const std::filesystem::path& dataFile);
    static unsigned int parseHop(const std::string&           value,
                                 const std::filesystem::path& dataFile);
-   static unsigned int parseStatus(const std::string&           value,
-                                   const std::filesystem::path& dataFile,
-                                   const unsigned int           base = 16);
    static long long parsePathHash(const std::string&           value,
                                   const std::filesystem::path& dataFile);
-   static unsigned int parseRTT(const std::string&           value,
-                                const std::filesystem::path& dataFile);
-   static unsigned int parsePacketSize(const std::string&           value,
-                                       const std::filesystem::path& dataFile);
-   static uint8_t parseTrafficClass(const std::string&           value,
-                                    const std::filesystem::path& dataFile);
+   static long long parseMicroseconds(const std::string&           value,
+                                      const std::filesystem::path& dataFile);
+   static long long parseNanoseconds(const std::string&           value,
+                                     const std::filesystem::path& dataFile);
 
    protected:
    const std::string        Table;

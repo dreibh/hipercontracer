@@ -663,7 +663,7 @@ void Traceroute::writeTracerouteResultEntry(const ResultEntry* resultEntry,
             resultEntry->sendTime(TXTimeStampType::TXTST_Application));
 
          ResultsOutput->insert(
-            str(boost::format("\t%x %d %d %08x %d %d %d %d %d %d %d %s")
+            str(boost::format("\t%x %d %d %d %08x %d %d %d %d %d %d %s")
                % sendTimeStamp
                % resultEntry->hopNumber()
                % resultEntry->responseSize()

@@ -50,7 +50,6 @@
 #include <boost/iostreams/filter/gzip.hpp>
 #include <boost/iostreams/filter/lzma.hpp>
 #include <boost/program_options.hpp>
-#include <regex>
 
 
 struct OutputEntry
@@ -207,24 +206,24 @@ void checkFormat(boost::iostreams::filtering_ostream* outputStream,
                format.Protocol = (InputProtocol)line[2];
                format.Version  = 2;
                columnNames =
-                  "Ping "                  // "#P<p>"
-                  "MeasurementID "         // Measurement ID
-                  "SourceIP "              // Source address
-                  "DestinationIP "         // Destination address
-                  "Timestamp "             // Timestamp (nanoseconds since the UTC epoch, hexadecimal).
-                  "BurstSeq "              // Sequence number within a burst (decimal), numbered from 0.
-                  "TrafficClass "          // Traffic Class setting (hexadeciaml)
-                  "PacketSize "            // Packet size, in bytes (decimal)
-                  "ResponseSize "          // Response size, in bytes (decimal)
-                  "Checksum "              // Checksum (hexadeciaml)
-                  "Status "                // Status (decimal)
-                  "TimeSource "            // Source of the timing information (hexadecimal) as: AAQQSSHH
-                  "Delay.AppSend "         // The measured application send delay (nanoseconds, decimal; -1 if not available).
-                  "Delay.Queuing "         // The measured kernel software queuing delay (nanoseconds, decimal; -1 if not available).
-                  "Delay.AppReceive "      // The measured application receive delay (nanoseconds, decimal; -1 if not available).
-                  "RTT.App "               // The measured application RTT (nanoseconds, decimal).
-                  "RTT.SW "                // The measured kernel software RTT (nanoseconds, decimal; -1 if not available).
-                  "RTT.HW";                // The measured kernel hardware RTT (nanoseconds, decimal; -1 if not available).
+                  "Ping "                  // 00: "#P<p>"
+                  "MeasurementID "         // 01: Measurement ID
+                  "SourceIP "              // 02: Source address
+                  "DestinationIP "         // 03: Destination address
+                  "Timestamp "             // 04: Timestamp (nanoseconds since the UTC epoch, hexadecimal).
+                  "BurstSeq "              // 05: Sequence number within a burst (decimal), numbered from 0.
+                  "TrafficClass "          // 06: Traffic Class setting (hexadecimal)
+                  "PacketSize "            // 07: Packet size, in bytes (decimal; 0 if unknown)
+                  "ResponseSize "          // 08: Response size, in bytes (decimal; 0 if unknown)
+                  "Checksum "              // 09: Checksum (hexadecimal)
+                  "Status "                // 10: Status (decimal)
+                  "TimeSource "            // 11: Source of the timing information (hexadecimal) as: AAQQSSHH
+                  "Delay.AppSend "         // 12: The measured application send delay (nanoseconds, decimal; -1 if not available).
+                  "Delay.Queuing "         // 13: The measured kernel software queuing delay (nanoseconds, decimal; -1 if not available).
+                  "Delay.AppReceive "      // 14: The measured application receive delay (nanoseconds, decimal; -1 if not available).
+                  "RTT.App "               // 15: The measured application RTT (nanoseconds, decimal).
+                  "RTT.SW "                // 16: The measured kernel software RTT (nanoseconds, decimal; -1 if not available).
+                  "RTT.HW";                // 17: The measured kernel hardware RTT (nanoseconds, decimal; -1 if not available).
             }
          }
          // ------ Ping, Version 1 ------------------------------------------
@@ -233,22 +232,22 @@ void checkFormat(boost::iostreams::filtering_ostream* outputStream,
                format.Protocol = InputProtocol::IP_ICMP;
                format.Version  = 1;
                columnNames =
-                  "Ping "                  // "#P"
-                  "SourceIP "              // Source address
-                  "DestinationIP "         // Destination address
-                  "Timestamp "             // Absolute time since the epoch in UTC, in microseconds (hexadeciaml)
-                  "Checksum "              // Checksum (hexadeciaml)
-                  "Status "                // Status (decimal)
-                  "RTT.App";               // RTT in microseconds (decimal)
+                  "Ping "                  // 00: "#P"
+                  "SourceIP "              // 01: Source address
+                  "DestinationIP "         // 02: Destination address
+                  "Timestamp "             // 03: Absolute time since the epoch in UTC, in microseconds (hexadecimal)
+                  "Checksum "              // 04: Checksum (hexadecimal)
+                  "Status "                // 05: Status (decimal)
+                  "RTT.App";               // 06: RTT in microseconds (decimal)
                if(inputColumns >= 8) {
                   columnNames +=
-                     " TrafficClass";      // Traffic Class setting (hexadeciaml)
+                     " TrafficClass";      // 07: Traffic Class setting (hexadecimal)
                   if(inputColumns >= 9) {
                      columnNames +=
-                        " PacketSize";     // Packet size, in bytes (decimal)
+                        " PacketSize";     // 08: Packet size, in bytes (decimal)
                      if(inputColumns >= 10) {
                         columnNames +=
-                           " TimeSource";  // Source of the timing information (hexadecimal) as: AA
+                           " TimeSource";  // 09: Source of the timing information (hexadecimal) as: AA
                      }
                   }
                }
@@ -264,32 +263,33 @@ void checkFormat(boost::iostreams::filtering_ostream* outputStream,
                format.Protocol = (InputProtocol)line[2];
                format.Version  = 2;
                columnNames =
-                  "Traceroute "            // "#T<p>"
-                  "MeasurementID "         // Measurement ID
-                  "SourceIP "              // Source address
-                  "DestinationIP "         // Destination address
-                  "Timestamp "             // Absolute time since the epoch in UTC, in microseconds (hexadeciaml)
-                  "Round "                 // Round number (decimal)
-                  "TotalHops "             // Total hops (decimal)
-                  "TrafficClass "          // Traffic Class setting (hexadeciaml)
-                  "PacketSize "            // Packet size, in bytes (decimal)
-                  "Checksum "              // Checksum (hexadeciaml)
-                  "StatusFlags "           // Status flags (hexadecimal)
-                  "PathHash "              // Hash of the path (hexadecimal)
+                  "Traceroute "            // 00: "#T<p>"
+                  "MeasurementID "         // 01: Measurement ID
+                  "SourceIP "              // 02: Source address
+                  "DestinationIP "         // 03: Destination address
+                  "Timestamp "             // 04: Absolute time since the epoch in UTC, in microseconds (hexadecimal)
+                  "Round "                 // 05: Round number (decimal)
+                  "TotalHops "             // 06: Total hops (decimal)
+                  "TrafficClass "          // 07: Traffic Class setting (hexadecimal)
+                  "PacketSize "            // 08: Packet size, in bytes (decimal)
+                  "Checksum "              // 09: Checksum (hexadecimal)
+                  "StatusFlags "           // 10: Status flags (hexadecimal)
+                  "PathHash "              // 11: Hash of the path (hexadecimal)
 
-                  "TAB "                   // NOTE: must be "\t" from combination above!
-                  "SendTimestamp "         // Timestamp (nanoseconds since the UTC epoch, hexadecimal) for the request to this hop.
-                  "HopNumber "             // Number of the hop.
-                  "ResponseSize "          // Response size, in bytes (decimal)
-                  "Status "                // Status code (decimal!)
-                  "TimeSource "            // Source of the timing information (hexadecimal) as: AAQQSSHH
-                  "Delay.AppSend "         // The measured application send delay (nanoseconds, decimal; -1 if not available).
-                  "Delay.Queuing "         // The measured kernel software queuing delay (nanoseconds, decimal; -1 if not available).
-                  "Delay.AppReceive "      // The measured application receive delay (nanoseconds, decimal; -1 if not available).
-                  "RTT.App "               // The measured application RTT (nanoseconds, decimal).
-                  "RTT.SW "                // The measured kernel software RTT (nanoseconds, decimal; -1 if not available).
-                  "RTT.HW "                // The measured kernel hardware RTT (nanoseconds, decimal; -1 if not available).
-                  "HopIP";                 // Hop IP address.
+                  "TAB "                   // 12: NOTE: must be "\t" from combination above!
+
+                  "SendTimestamp "         // 13: Timestamp (nanoseconds since the UTC epoch, hexadecimal) for the request to this hop.
+                  "HopNumber "             // 14: Number of the hop.
+                  "ResponseSize "          // 15: Response size, in bytes (decimal)
+                  "Status "                // 16: Status code (decimal!)
+                  "TimeSource "            // 17: Source of the timing information (hexadecimal) as: AAQQSSHH
+                  "Delay.AppSend "         // 18: The measured application send delay (nanoseconds, decimal; -1 if not available).
+                  "Delay.Queuing "         // 19: The measured kernel software queuing delay (nanoseconds, decimal; -1 if not available).
+                  "Delay.AppReceive "      // 20: The measured application receive delay (nanoseconds, decimal; -1 if not available).
+                  "RTT.App "               // 21: The measured application RTT (nanoseconds, decimal).
+                  "RTT.SW "                // 22: The measured kernel software RTT (nanoseconds, decimal; -1 if not available).
+                  "RTT.HW "                // 23: The measured kernel hardware RTT (nanoseconds, decimal; -1 if not available).
+                  "HopIP";                 // 24: Hop IP address.
             }
          }
          // ------ Traceroute, Version 1 ------------------------------------
@@ -298,23 +298,25 @@ void checkFormat(boost::iostreams::filtering_ostream* outputStream,
                format.Protocol = InputProtocol::IP_ICMP;
                format.Version  = 1;
                columnNames =
-                  "Traceroute "            // "#T"
-                  "SourceIP "              // Source address
-                  "DestinationIP "         // Destination address
-                  "Timestamp "             // Absolute time since the epoch in UTC, in microseconds (hexadeciaml)
-                  "Round "                 // Round number (decimal)
-                  "Checksum "              // Checksum (hexadeciaml)
-                  "TotalHops "             // Total hops (decimal)
-                  "StatusFlags "           // Status flags (hexadecimal)
-                  "PathHash "              // Hash of the path (hexadecimal)
-                  "TrafficClass "          // Traffic Class setting (hexadeciaml)
-                  "PacketSize "            // Packet size, in bytes (decimal)
-                  "TAB "                   // NOTE: must be "\t" from combination above!
-                  "HopNumber "             // Number of the hop.
-                  "Status "                // Status code (in hexadecimal here!)
-                  "RTT.App ";              // RTT in microseconds (decimal)
-                  "HopIP "                 // Hop IP address.
-                  "TimeSource";            // Source of the timing information (hexadecimal) as: AA
+                  "Traceroute "            // 00: "#T"
+                  "SourceIP "              // 01: Source address
+                  "DestinationIP "         // 02: Destination address
+                  "Timestamp "             // 03: Absolute time since the epoch in UTC, in microseconds (hexadecimal)
+                  "Round "                 // 04: Round number (decimal)
+                  "Checksum "              // 05: Checksum (hexadecimal)
+                  "TotalHops "             // 06: Total hops (decimal)
+                  "StatusFlags "           // 07: Status flags (hexadecimal)
+                  "PathHash "              // 08: Hash of the path (hexadecimal)
+                  "TrafficClass "          // 09: Traffic Class setting (hexadecimal)
+                  "PacketSize "            // 10: Packet size, in bytes (decimal)
+
+                  "TAB "                   // 11: NOTE: must be "\t" from combination above!
+
+                  "HopNumber "             // 12: Number of the hop.
+                  "Status "                // 13: Status code (in hexadecimal here!)
+                  "RTT.App ";              // 14: RTT in microseconds (decimal)
+                  "HopIP "                 // 15: Hop IP address.
+                  "TimeSource";            // 16: Source of the timing information (hexadecimal) as: AA
                   std::cout << "C=" << columnNames << "\n";
             }
          }
@@ -331,9 +333,9 @@ void checkFormat(boost::iostreams::filtering_ostream* outputStream,
             "Destination "            // Destination address
             "Timestamp "              // Timestamp (nanoseconds since the UTC epoch, hexadecimal).
             "BurstSeq "               // Sequence number within a burst (decimal), numbered from 0.
-            "TrafficClass "           // Traffic Class setting (hexadeciaml)
+            "TrafficClass "           // Traffic Class setting (hexadecimal)
             "PacketSize "             // Packet size, in bytes (decimal)
-            "Checksum "               // Checksum (hexadeciaml)
+            "Checksum "               // Checksum (hexadecimal)
             "Status "                 // Status (decimal)
             "TimeSource "             // Source of the timing information (hexadecimal) as: AAQQSSHH
 
@@ -423,7 +425,6 @@ bool dumpResultsFile(std::set<OutputEntry*, pointer_lessthan<OutputEntry>>* outp
    unsigned long long lineNumber  = 0;
    OutputEntry*       newEntry    = nullptr;
    OutputEntry*       newSubEntry = nullptr;
-   const std::regex re_space("\\s");   // space
    while(std::getline(inputStream, line, '\n')) {
       lineNumber++;
 
