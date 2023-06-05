@@ -45,7 +45,7 @@
 -- ###### Ping ##############################################################
 DROP TABLE IF EXISTS Ping;
 CREATE TABLE Ping (
-   Timestamp        DATETIME(6) NOT NULL,                   -- Timestamp (always UTrafficClass!)
+   Timestamp        DATETIME(6) NOT NULL,                   -- Timestamp (always UTC!)
    MeasurementID    INTEGER     NOT NULL DEFAULT 0,         -- MeasurementID
    SourceIP         INET6       NOT NULL,                   -- Source IP address
    DestinationIP    INET6       NOT NULL,                   -- Destination IP address
@@ -57,13 +57,13 @@ CREATE TABLE Ping (
    Checksum         INTEGER     NOT NULL DEFAULT 0,         -- Checksum
    Status           SMALLINT    NOT NULL,                   -- Status
 
-   TimeSource       INTEGER     NOT NULL DEFAULT 0,         -- Source of the timing information (hexadecimal) as: AAQQSSHH
-   Delay_AppSend    BIGINT      NOT NULL,                   -- The measured application send delay (nanoseconds; -1 if not available)
-   Delay_Queuing    BIGINT      NOT NULL,                   -- The measured kernel software queuing delay (decimal; -1 if not available)
-   Delay_AppReceive BIGINT      NOT NULL,                   -- The measured application receive delay (nanoseconds; -1 if not available)
+   TimeSource       INTEGER     NOT NULL DEFAULT  0,        -- Source of the timing information (hexadecimal) as: AAQQSSHH
+   Delay_AppSend    BIGINT      NOT NULL DEFAULT -1,        -- The measured application send delay (nanoseconds; -1 if not available)
+   Delay_Queuing    BIGINT      NOT NULL DEFAULT -1,        -- The measured kernel software queuing delay (decimal; -1 if not available)
+   Delay_AppReceive BIGINT      NOT NULL DEFAULT -1,        -- The measured application receive delay (nanoseconds; -1 if not available)
    RTT_App          BIGINT      NOT NULL,                   -- The measured application RTT (nanoseconds)
-   RTT_SW           BIGINT      NOT NULL,                   -- The measured kernel software RTT (nanoseconds; -1 if not available)
-   RTT_HW           BIGINT      NOT NULL,                   -- The measured kernel hardware RTT (nanoseconds; -1 if not available)
+   RTT_SW           BIGINT      NOT NULL DEFAULT -1,        -- The measured kernel software RTT (nanoseconds; -1 if not available)
+   RTT_HW           BIGINT      NOT NULL DEFAULT -1,        -- The measured kernel hardware RTT (nanoseconds; -1 if not available)
 
    PRIMARY KEY (Timestamp, MeasurementID, SourceIP, DestinationIP, Protocol, TrafficClass)
 );
@@ -74,7 +74,7 @@ CREATE INDEX PingRelationIndex ON Ping (MeasurementID ASC, DestinationIP ASC, Ti
 -- ###### Traceroute ########################################################
 DROP TABLE IF EXISTS Traceroute;
 CREATE TABLE Traceroute (
-   Timestamp        DATETIME(6) NOT NULL,                   -- Timestamp (always UTrafficClass!)
+   Timestamp        DATETIME(6) NOT NULL,                   -- Timestamp (always UTC!)
    MeasurementID    INTEGER     NOT NULL DEFAULT 0,         -- MeasurementID
    SourceIP         INET6       NOT NULL,                   -- Source IP address
    DestinationIP    INET6       NOT NULL,                   -- Destination IP address
@@ -88,16 +88,16 @@ CREATE TABLE Traceroute (
    Checksum         INTEGER     NOT NULL DEFAULT 0,         -- Checksum
    Status           SMALLINT    NOT NULL,                   -- Status
    PathHash         BIGINT      NOT NULL,                   -- Hash over full path
-   SendTimestamp    DATETIME(6) NOT NULL,                   -- Send timestamp for hop (always UTrafficClass!)
+   SendTimestamp    DATETIME(6) NOT NULL,                   -- Send timestamp for hop (always UTC!)
    HopIP            INET6       NOT NULL,                   -- Router or Destination IP address
 
-   TimeSource       INTEGER     NOT NULL DEFAULT 0,         -- Source of the timing information (hexadecimal) as: AAQQSSHH
-   Delay_AppSend    BIGINT      NOT NULL,                   -- The measured application send delay (nanoseconds; -1 if not available)
-   Delay_Queuing    BIGINT      NOT NULL,                   -- The measured kernel software queuing delay (decimal; -1 if not available)
-   Delay_AppReceive BIGINT      NOT NULL,                   -- The measured application receive delay (nanoseconds; -1 if not available)
+   TimeSource       INTEGER     NOT NULL DEFAULT  0,        -- Source of the timing information (hexadecimal) as: AAQQSSHH
+   Delay_AppSend    BIGINT      NOT NULL DEFAULT -1,        -- The measured application send delay (nanoseconds; -1 if not available)
+   Delay_Queuing    BIGINT      NOT NULL DEFAULT -1,        -- The measured kernel software queuing delay (decimal; -1 if not available)
+   Delay_AppReceive BIGINT      NOT NULL DEFAULT -1,        -- The measured application receive delay (nanoseconds; -1 if not available)
    RTT_App          BIGINT      NOT NULL,                   -- The measured application RTT (nanoseconds)
-   RTT_SW           BIGINT      NOT NULL,                   -- The measured kernel software RTT (nanoseconds; -1 if not available)
-   RTT_HW           BIGINT      NOT NULL,                   -- The measured kernel hardware RTT (nanoseconds; -1 if not available)
+   RTT_SW           BIGINT      NOT NULL DEFAULT -1,        -- The measured kernel software RTT (nanoseconds; -1 if not available)
+   RTT_HW           BIGINT      NOT NULL DEFAULT -1,        -- The measured kernel hardware RTT (nanoseconds; -1 if not available)
 
    PRIMARY KEY (Timestamp, MeasurementID, SourceIP, DestinationIP, Protocol, TrafficClass, RoundNumber, HopNumber)
 );
