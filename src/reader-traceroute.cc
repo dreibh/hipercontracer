@@ -135,6 +135,28 @@ TracerouteReader::~TracerouteReader()
 { }
 
 
+// ###### Parse measurement ID ##############################################
+unsigned long long TracerouteReader::parseMeasurementID(const std::string&           value,
+                                                        const std::filesystem::path& dataFile)
+{
+   size_t                   index;
+   const unsigned long long measurementID = std::stoull(value, &index, 10);
+   if(index != value.size()) {
+      throw ImporterReaderDataErrorException("Bad measurement ID value " + value);
+   }
+   return measurementID;
+}
+
+
+// ###### Parse time stamp ##################################################
+boost::asio::ip::address TracerouteReader::parseAddress(const std::string&           value,
+                                                        const std::filesystem::path& dataFile)
+{
+   const boost::asio::ip::address address = boost::asio::ip::make_address(value);
+   return address;
+}
+
+
 // ###### Parse time stamp ##################################################
 ReaderTimePoint TracerouteReader::parseTimeStamp(const std::string&           value,
                                                  const ReaderTimePoint&       now,
@@ -154,16 +176,6 @@ ReaderTimePoint TracerouteReader::parseTimeStamp(const std::string&           va
 }
 
 
-// ###### Parse time stamp ##################################################
-boost::asio::ip::address TracerouteReader::parseAddress(const std::string&           value,
-                                                        const DatabaseBackendType    backend,
-                                                        const std::filesystem::path& dataFile)
-{
-   const boost::asio::ip::address address = boost::asio::ip::make_address(value);
-   return address;
-}
-
-
 // ###### Parse round number ################################################
 unsigned int TracerouteReader::parseRoundNumber(const std::string&           value,
                                                 const std::filesystem::path& dataFile)
@@ -180,22 +192,54 @@ unsigned int TracerouteReader::parseRoundNumber(const std::string&           val
 }
 
 
-// ###### Parse total number of hops ########################################
-unsigned int TracerouteReader::parseTotalHops(const std::string&           value,
-                                              const std::filesystem::path& dataFile)
+// ###### Parse traffic class ###############################################
+uint8_t TracerouteReader::parseTrafficClass(const std::string&           value,
+                                            const std::filesystem::path& dataFile)
 {
-   size_t        index     = 0;
-   unsigned long totalHops = 0;
+   size_t        index        = 0;
+   unsigned long trafficClass = 0;
    try {
-      totalHops = std::stoul(value, &index, 10);
+      trafficClass = std::stoul(value, &index, 16);
    } catch(...) { }
    if(index != value.size()) {
-      throw ImporterReaderDataErrorException("Bad total hops value " + value);
+      throw ImporterReaderDataErrorException("Bad traffic class format " + value);
    }
-   if( (totalHops < 1) || (totalHops > 255) ) {
-      throw ImporterReaderDataErrorException("Invalid total hops value " + value);
+   if(trafficClass > 0xff) {
+      throw ImporterReaderDataErrorException("Invalid traffic class value " + value);
    }
-   return totalHops;
+   return (uint8_t)trafficClass;
+}
+
+
+// ###### Parse packet size #################################################
+unsigned int TracerouteReader::parsePacketSize(const std::string&           value,
+                                               const std::filesystem::path& dataFile)
+{
+   size_t        index      = 0;
+   unsigned long packetSize = 0;
+   try {
+      packetSize = std::stoul(value, &index, 10);
+   } catch(...) { }
+   if(index != value.size()) {
+      throw ImporterReaderDataErrorException("Bad packet size format " + value);
+   }
+   return packetSize;
+}
+
+
+// ###### Parse response size #################################################
+unsigned int TracerouteReader::parseResponseSize(const std::string&           value,
+                                                const std::filesystem::path& dataFile)
+{
+   size_t        index      = 0;
+   unsigned long responseSize = 0;
+   try {
+      responseSize = std::stoul(value, &index, 10);
+   } catch(...) { }
+   if(index != value.size()) {
+      throw ImporterReaderDataErrorException("Bad response size format " + value);
+   }
+   return responseSize;
 }
 
 
@@ -252,54 +296,70 @@ long long TracerouteReader::parsePathHash(const std::string&           value,
 }
 
 
-// ###### Parse RTT #########################################################
-unsigned int TracerouteReader::parseRTT(const std::string&           value,
-                                        const std::filesystem::path& dataFile)
+// ###### Parse total number of hops ########################################
+unsigned int TracerouteReader::parseTotalHops(const std::string&           value,
+                                              const std::filesystem::path& dataFile)
 {
-   size_t        index = 0;
-   unsigned long rtt = 0;
+   size_t        index     = 0;
+   unsigned long totalHops = 0;
    try {
-      rtt = std::stoul(value, &index, 10);
+      totalHops = std::stoul(value, &index, 10);
    } catch(...) { }
    if(index != value.size()) {
-      throw ImporterReaderDataErrorException("Bad RTT format " + value);
+      throw ImporterReaderDataErrorException("Bad total hops value " + value);
    }
-   return rtt;
+   if( (totalHops < 1) || (totalHops > 255) ) {
+      throw ImporterReaderDataErrorException("Invalid total hops value " + value);
+   }
+   return totalHops;
 }
 
 
 // ###### Parse packet size #################################################
-unsigned int TracerouteReader::parsePacketSize(const std::string&           value,
+unsigned int TracerouteReader::parseTimeSource(const std::string&           value,
                                                const std::filesystem::path& dataFile)
 {
-   size_t        index      = 0;
-   unsigned long packetSize = 0;
+   size_t       index      = 0;
+   unsigned int timeSource = 0;
    try {
-      packetSize = std::stoul(value, &index, 10);
+      timeSource = std::stoul(value, &index, 16);
    } catch(...) { }
    if(index != value.size()) {
-      throw ImporterReaderDataErrorException("Bad packet size format " + value);
+      throw ImporterReaderDataErrorException("Bad time source format " + value);
    }
-   return packetSize;
+   return timeSource;
 }
 
 
-// ###### Parse traffic class ###############################################
-uint8_t TracerouteReader::parseTrafficClass(const std::string&           value,
-                                            const std::filesystem::path& dataFile)
+// ###### Parse microseconds ################################################
+long long TracerouteReader::parseMicroseconds(const std::string&           value,
+                                              const std::filesystem::path& dataFile)
 {
-   size_t        index        = 0;
-   unsigned long trafficClass = 0;
+   size_t        index = 0;
+   unsigned long us    = 0;
    try {
-      trafficClass = std::stoul(value, &index, 16);
+      us = std::stoul(value, &index, 10);
    } catch(...) { }
    if(index != value.size()) {
-      throw ImporterReaderDataErrorException("Bad traffic class format " + value);
+      throw ImporterReaderDataErrorException("Bad microseconds format " + value);
    }
-   if(trafficClass > 0xff) {
-      throw ImporterReaderDataErrorException("Invalid traffic class value " + value);
+   return 1000LL * us;
+}
+
+
+// ###### Parse nanoseconds ################################################
+long long TracerouteReader::parseNanoseconds(const std::string&           value,
+                                             const std::filesystem::path& dataFile)
+{
+   size_t        index = 0;
+   unsigned long ns    = 0;
+   try {
+      ns = std::stoul(value, &index, 10);
+   } catch(...) { }
+   if(index != value.size()) {
+      throw ImporterReaderDataErrorException("Bad nanoseconds format " + value);
    }
-   return (uint8_t)trafficClass;
+   return ns;
 }
 
 
