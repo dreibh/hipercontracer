@@ -45,37 +45,63 @@
 -- ###### Ping ##############################################################
 DROP TABLE IF EXISTS Ping;
 CREATE TABLE Ping (
-   TimeStamp DATETIME(6) NOT NULL,                   -- Time stamp (always UTC!)
-   FromIP    INET6       NOT NULL,                   -- Source IP address
-   ToIP      INET6       NOT NULL,                   -- Destination IP address
-   Checksum  INTEGER     NOT NULL DEFAULT 0,         -- Checksum
-   PktSize   INTEGER     NOT NULL DEFAULT 0,         -- Packet size
-   TC        SMALLINT    NOT NULL DEFAULT 0,         -- Traffic Class
-   Status    SMALLINT    NOT NULL,                   -- Status
-   RTT       INTEGER     NOT NULL,                   -- microseconds (max. 2147s)
-   PRIMARY KEY (TimeStamp, FromIP, ToIP, TC)
+   Timestamp        DATETIME(6) NOT NULL,                   -- Timestamp (always UTC!)
+   MeasurementID    INTEGER     NOT NULL DEFAULT 0,         -- MeasurementID
+   SourceIP         INET6       NOT NULL,                   -- Source IP address
+   DestinationIP    INET6       NOT NULL,                   -- Destination IP address
+   BurstSeq         INTEGER     NOT NULL DEFAULT 0,         -- Sequence number within a burst, numbered from 0.
+   TrafficClass     SMALLINT    NOT NULL DEFAULT 0,         -- Traffic Class
+   Protocol         SMALLINT    NOT NULL DEFAULT 0,         -- Protocol (ICMP, UDP, ...)
+   PacketSize       INTEGER     NOT NULL DEFAULT 0,         -- Packet size (bytes)
+   ResponseSize     INTEGER     NOT NULL DEFAULT 0,         -- Response size (bytes; 0 if unknown)
+   Checksum         INTEGER     NOT NULL DEFAULT 0,         -- Checksum
+   Status           SMALLINT    NOT NULL,                   -- Status
+
+   TimeSource       INTEGER     NOT NULL DEFAULT 0,         -- Source of the timing information (hexadecimal) as: AAQQSSHH
+   Delay.AppSend    BIGINT      NOT NULL,                   -- The measured application send delay (nanoseconds; -1 if not available).
+   Delay.Queuing    BIGINT      NOT NULL,                   -- The measured kernel software queuing delay (decimal; -1 if not available).
+   Delay.AppReceive BIGINT      NOT NULL,                   -- The measured application receive delay (nanoseconds; -1 if not available).
+   RTT.App          BIGINT      NOT NULL,                   -- The measured application RTT (nanoseconds).
+   RTT.SW           BIGINT      NOT NULL,                   -- The measured kernel software RTT (nanoseconds; -1 if not available).
+   RTT.HW           BIGINT      NOT NULL,                   -- The measured kernel hardware RTT (nanoseconds; -1 if not available).
+
+   PRIMARY KEY (Timestamp, MeasurementID, FromIP, ToIP, TC)
 );
 
-CREATE INDEX PingRelationIndex ON Ping (FromIP ASC, ToIP ASC, TimeStamp ASC);
+CREATE INDEX PingRelationIndex ON Ping (FromIP ASC, ToIP ASC, Timestamp ASC);
 
 
 -- ###### Traceroute ########################################################
 DROP TABLE IF EXISTS Traceroute;
 CREATE TABLE Traceroute (
-   TimeStamp DATETIME(6) NOT NULL,                   -- Time stamp (always UTC!)
-   FromIP    INET6       NOT NULL,                   -- Source IP address
-   ToIP      INET6       NOT NULL,                   -- Destination IP address
-   Round     INTEGER     NOT NULL DEFAULT 0,         -- Round number
-   Checksum  INTEGER     NOT NULL DEFAULT 0,         -- Checksum
-   PktSize   INTEGER     NOT NULL DEFAULT 0,         -- Packet size
-   TC        SMALLINT    NOT NULL DEFAULT 0,         -- Traffic Class
-   HopNumber SMALLINT    NOT NULL,                   -- Current hop number
-   TotalHops SMALLINT    NOT NULL,                   -- Total number of hops
-   Status    SMALLINT    NOT NULL,                   -- Status
-   RTT       INTEGER     NOT NULL,                   -- microseconds (max. 2147s)
-   HopIP     INET6       NOT NULL,                   -- Router or Destination IP address
-   PathHash  BIGINT      NOT NULL,                   -- Hash over full path
-   PRIMARY KEY (TimeStamp, FromIP, ToIP, TC, Round, HopNumber)
+   Timestamp        DATETIME(6) NOT NULL,                   -- Timestamp (always UTC!)
+   MeasurementID    INTEGER     NOT NULL DEFAULT 0,         -- MeasurementID
+   SourceIP         INET6       NOT NULL,                   -- Source IP address
+   DestinationIP    INET6       NOT NULL,                   -- Destination IP address
+   Round            INTEGER     NOT NULL DEFAULT 0,         -- Round number
+   TrafficClass     SMALLINT    NOT NULL DEFAULT 0,         -- Traffic Class
+   Protocol         SMALLINT    NOT NULL DEFAULT 0,         -- Protocol (ICMP, UDP, ...)
+   HopNumber        SMALLINT    NOT NULL,                   -- Current hop number
+   TotalHops        SMALLINT    NOT NULL,                   -- Total number of hops
+   PacketSize       INTEGER     NOT NULL DEFAULT 0,         -- Packet size (bytes)
+   ResponseSize     INTEGER     NOT NULL DEFAULT 0,         -- Response size (bytes; 0 if unknown)
+   Checksum         INTEGER     NOT NULL DEFAULT 0,         -- Checksum
+   Status           SMALLINT    NOT NULL,                   -- Status
+   PathHash         BIGINT      NOT NULL,                   -- Hash over full path
+
+   SendTimestamp    DATETIME(6) NOT NULL,                   -- Send timestamp for hop (always UTC!)
+   ResponseSize     INTEGER     NOT NULL DEFAULT 0,         -- Response size (bytes; 0 if unknown)
+   HopIP            INET6       NOT NULL,                   -- Router or Destination IP address
+
+   TimeSource       INTEGER     NOT NULL DEFAULT 0,         -- Source of the timing information (hexadecimal) as: AAQQSSHH
+   Delay.AppSend    BIGINT      NOT NULL,                   -- The measured application send delay (nanoseconds; -1 if not available).
+   Delay.Queuing    BIGINT      NOT NULL,                   -- The measured kernel software queuing delay (decimal; -1 if not available).
+   Delay.AppReceive BIGINT      NOT NULL,                   -- The measured application receive delay (nanoseconds; -1 if not available).
+   RTT.App          BIGINT      NOT NULL,                   -- The measured application RTT (nanoseconds).
+   RTT.SW           BIGINT      NOT NULL,                   -- The measured kernel software RTT (nanoseconds; -1 if not available).
+   RTT.HW           BIGINT      NOT NULL,                   -- The measured kernel hardware RTT (nanoseconds; -1 if not available).
+
+   PRIMARY KEY (Timestamp, MeasurementID, FromIP, ToIP, TC, Round, HopNumber)
 );
 
-CREATE INDEX TracerouteRelationIndex ON Ping (FromIP ASC, ToIP ASC, TimeStamp ASC);
+CREATE INDEX TracerouteRelationIndex ON Ping (FromIP ASC, ToIP ASC, Timestamp ASC);
