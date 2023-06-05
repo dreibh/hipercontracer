@@ -6,7 +6,9 @@ rm -f core && \
 sudo ./debug.memcheck ./hipercontracer \
    -# 88888888 \
    -R results \
+   --resultstransactionlength=300 \
    --iomodule TCP \
+   --iomodule ICMP \
    --source=0.0.0.0 \
    --source=:: \
    --destination=www.hainanu.edu.cn \
@@ -25,7 +27,7 @@ sudo ./debug.memcheck ./hipercontracer \
    --destination=www.uom.gr \
    --destination=www.rta.ae \
    --traceroute \
-   --tracerouteinterval 60000 \
+   --tracerouteinterval 300000 \
    --tracerouterounds 1 \
    --tracerouteduration=1000 \
    --tracerouteinitialmaxttl=12 \
