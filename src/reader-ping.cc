@@ -39,8 +39,8 @@
 
 const std::string PingReader::Identification("Ping");
 const std::regex  PingReader::FileNameRegExp(
-   // Format: Ping-[P#]<ID>-<Source>-<YYYYMMDD>T<Seconds.Microseconds>-<Sequence>.results<EXT>
-   "^Ping-P([0-9]+)-([0-9a-f:\\.]+)-([0-9]{8}T[0-9]+\\.[0-9]{6})-([0-9]*)\\.results.*$"
+   // Format: Ping-(Protocol-|)[P#]<ID>-<Source>-<YYYYMMDD>T<Seconds.Microseconds>-<Sequence>.results<EXT>
+   "^Ping-([A-Z]+-|)([#P])([0-9]+)-([0-9a-f:\\.]+)-([0-9]{8}T[0-9]+\\.[0-9]{6})-([0-9]*)\\.results.*$"
 );
 
 
@@ -154,7 +154,81 @@ void PingReader::parseContents(
       }
 
       // ====== Generate import statement ===================================
-      if(tuple[0] == "#P")  {
+      if( (tuple[0].size() >= 2) && (tuple[0][0] == '#') && (tuple[0][1] == 'P') ) {
+         // ------ Obtain version -------------------------------------------
+         unsigned int version;
+         const char   protocol;
+         if( ((tuple[0].size() > 2) && (columns >= 18) ) {
+            version  = 2;
+            protocol = tuple[0][2];
+         }
+         else if(columns >= 7) {
+            version  = 1;
+            protocol = 'i';
+         }
+         else {
+            throw ImporterReaderDataErrorException("Unexpected syntax in input file " + dataFile.string());
+         }
+
+         const unsigned int             measurementID = (version >= 2) ? paraseMeasruementID(tuple[1]) : 0;
+         const boost::asio::ip::address sourceIP      = parseAddress(tuple[(version >= 2) 2 : 1], backend, dataFile);
+         const boost::asio::ip::address destinationIP = parseAddress(tuple[(version >= 2) 3 : 2], backend, dataFile);
+         const ReaderTimePoint          timeStamp     = parseTimeStamp(tuple[(version >= 2) 4 : 3], now, dataFile);
+         uint8_t                        trafficClass  = (version >= 2) ? parseTrafficClass(tuple[6], dataFile) : 0x00;
+         const unsigned int             burstSeq      = (version >= 2) ? parseBurstSeq(tuple[5], dataFile) : 0;
+         unsigned int                   packetSize    = (version >= 2) ? parseTrafficClass(tuple[7], dataFile) : 0;
+         const unsigned int             responseSize  = (version >= 2) ? parseTrafficClass(tuple[8], dataFile) : 0;
+         const uint16_t                 checksum      = parseChecksum(tuple[(version >= 2) 9 : 4], dataFile);
+         const unsigned int             status        = parseStatus(tuple[(version >= 2) 10 : 5], dataFile, 10);   // Decimal!
+         unsigned int                   timeSource    = (version >= 2) ? parseTimeSource(tuple[11]) : 0x00000000;
+
+         const long long                delayAppSend  = (version >= 2) ? parseNanoseconds(tuple[12]) : -1;
+         const long long                delayAppSend  = (version >= 2) ? parseNanoseconds(tuple[12]) : -1;
+         const long long                delayAppSend  = (version >= 2) ? parseNanoseconds(tuple[12]) : -1;
+         const long long                delayAppSend  = (version >= 2) ? parseNanoseconds(tuple[12]) : -1;
+
+         if(version == 1) {
+            if(columns >= 8) {   // TrafficClass was added in HiPerConTracer 1.4.0!
+               trafficClass = parseTrafficClass(tuple[7], dataFile);
+               if(columns >= 9) {   // PacketSize was added in HiPerConTracer 1.6.0!
+                  packetSize = parsePacketSize(tuple[8], dataFile);
+                  if(columns >= 10) {   // TimeSource was added in HiPerConTracer 2.0.0!
+                     timeSource = parseTimeSource(tuple[9], dataFile);
+                  }
+               }
+            }
+         }
+
+#if 0
+         const unsigned int             rtt           = parseRTT(tuple[(version >= 2) 15 : 6], dataFile);
+
+
+
+                  "Ping "                  // "#P<p>"
+                  "MeasurementID "         // Measurement ID
+                  "SourceIP "              // Source address
+                  "DestinationIP "         // Destination address
+                  "Timestamp "             // Timestamp (nanoseconds since the UTC epoch, hexadecimal).
+                  "BurstSeq "              // Sequence number within a burst (decimal), numbered from 0.
+                  "TrafficClass "          // Traffic Class setting (hexadeciaml)
+                  "PacketSize "            // Packet size, in bytes (decimal)
+                  "ResponseSize "          // Response size, in bytes (decimal)
+                  "Checksum "              // Checksum (hexadeciaml)
+                  "Status "                // Status (decimal)
+                  "TimeSource "            // Source of the timing information (hexadecimal) as: AAQQSSHH
+                  "Delay.AppSend "         // The measured application send delay (nanoseconds, decimal; -1 if not available).
+                  "Delay.Queuing "         // The measured kernel software queuing delay (nanoseconds, decimal; -1 if not available).
+                  "Delay.AppReceive "      // The measured application receive delay (nanoseconds, decimal; -1 if not available).
+                  "RTT.App "               // The measured application RTT (nanoseconds, decimal).
+                  "RTT.SW "                // The measured kernel software RTT (nanoseconds, decimal; -1 if not available).
+                  "RTT.HW";                // The measured kernel hardware RTT (nanoseconds, decimal; -1 if not available).
+
+         }
+         // ------ Ping, Version 1 ------------------------------------------
+         else {
+
+         }
+
          const ReaderTimePoint          timeStamp     = parseTimeStamp(tuple[3], now, dataFile);
          const boost::asio::ip::address sourceIP      = parseAddress(tuple[1], backend, dataFile);
          const boost::asio::ip::address destinationIP = parseAddress(tuple[2], backend, dataFile);
@@ -201,6 +275,7 @@ void PingReader::parseContents(
          else {
             throw ImporterLogicException("Unknown output format");
          }
+#endif
       }
       else {
          throw ImporterReaderDataErrorException("Unexpected input in input file " + dataFile.string());

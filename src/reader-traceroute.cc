@@ -37,8 +37,8 @@
 
 const std::string TracerouteReader::Identification("Traceroute");
 const std::regex  TracerouteReader::FileNameRegExp(
-   // Format: Traceroute-[P#]<ID>-<Source>-<YYYYMMDD>T<Seconds.Microseconds>-<Sequence>.results<EXT>
-   "^Traceroute-P([0-9]+)-([0-9a-f:\\.]+)-([0-9]{8}T[0-9]+\\.[0-9]{6})-([0-9]*)\\.results.*$"
+   // Format: Traceroute-(Protocol-|)[P#]<ID>-<Source>-<YYYYMMDD>T<Seconds.Microseconds>-<Sequence>.results<EXT>
+   "^Traceroute-([A-Z]+-|)([#P])([0-9]+)-([0-9a-f:\\.]+)-([0-9]{8}T[0-9]+\\.[0-9]{6})-([0-9]*)\\.results.*$"
 );
 
 
@@ -91,12 +91,12 @@ int makeInputFileEntry(const std::filesystem::path& dataFile,
                        TracerouteFileEntry&         inputFileEntry,
                        const unsigned int           workers)
 {
-   if(match.size() == 5) {
+   if(match.size() == 7) {
       ReaderTimePoint timeStamp;
-      if(stringToTimePoint<ReaderTimePoint>(match[3].str(), timeStamp, "%Y%m%dT%H%M%S")) {
-         inputFileEntry.Source    = match[2];
+      if(stringToTimePoint<ReaderTimePoint>(match[5].str(), timeStamp, "%Y%m%dT%H%M%S")) {
+         inputFileEntry.Source    = match[4];
          inputFileEntry.TimeStamp = timeStamp;
-         inputFileEntry.SeqNumber = atol(match[4].str().c_str());
+         inputFileEntry.SeqNumber = atol(match[6].str().c_str());
          inputFileEntry.DataFile  = dataFile;
          const std::size_t workerID = std::hash<std::string>{}(inputFileEntry.Source) % workers;
          // std::cout << inputFileEntry.Source << "\t" << timePointToString<ReaderTimePoint>(inputFileEntry.TimeStamp, 6) << "\t" << inputFileEntry.SeqNumber << "\t" << inputFileEntry.DataFile << " -> " << workerID << "\n";
