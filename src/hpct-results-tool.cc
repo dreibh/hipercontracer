@@ -50,7 +50,6 @@
 #include <boost/iostreams/filter/gzip.hpp>
 #include <boost/iostreams/filter/lzma.hpp>
 #include <boost/program_options.hpp>
-#include <regex>
 
 
 struct OutputEntry
@@ -423,7 +422,6 @@ bool dumpResultsFile(std::set<OutputEntry*, pointer_lessthan<OutputEntry>>* outp
    unsigned long long lineNumber  = 0;
    OutputEntry*       newEntry    = nullptr;
    OutputEntry*       newSubEntry = nullptr;
-   const std::regex re_space("\\s");   // space
    while(std::getline(inputStream, line, '\n')) {
       lineNumber++;
 
