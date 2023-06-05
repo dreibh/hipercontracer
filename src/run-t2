@@ -5,8 +5,10 @@ make -j8 hipercontracer && \
 rm -f core && \
 sudo ./debug.memcheck ./hipercontracer \
    -# 88888888 \
+   -R results \
    --iomodule TCP \
    --source=0.0.0.0 \
+   --source=:: \
    --destination=www.hainanu.edu.cn \
    --destination=www.swinburne.edu.au \
    --destination=i2s-research.ku.edu \
@@ -23,17 +25,9 @@ sudo ./debug.memcheck ./hipercontracer \
    --destination=www.uom.gr \
    --destination=www.rta.ae \
    --traceroute \
-   --ping \
    --tracerouteinterval 60000 \
-   --tracerouterounds 3 \
+   --tracerouterounds 1 \
    --tracerouteduration=1000 \
    --tracerouteinitialmaxttl=12 \
    --traceroutefinalmaxttl=32 \
-   --tracerouteincrementmaxttl=6 \
-   --pinginterval=1000 \
-   --pingexpiration=7500 \
-   --pingttl=56 \
-   --pingburst=4 \
-   --jitterinterval=300000 \
-   --resultsdirectory=results \
-   $@
+   --tracerouteincrementmaxttl=6
