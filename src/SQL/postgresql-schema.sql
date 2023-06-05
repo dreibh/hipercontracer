@@ -85,8 +85,8 @@ CREATE TABLE Traceroute (
    Checksum         INTEGER     NOT NULL DEFAULT 0,         -- Checksum
    Status           SMALLINT    NOT NULL,                   -- Status
    PathHash         BIGINT      NOT NULL,                   -- Hash over full path
-   SendTimestamp    DATETIME(6) NOT NULL,                   -- Send timestamp for hop (always UTC!)
-   HopIP            INET6       NOT NULL,                   -- Router or Destination IP address
+   SendTimestamp    TIMESTAMP   WITHOUT TIME ZONE NOT NULL, -- Send timestamp for hop (always UTC!)
+   HopIP            INET        NOT NULL,                   -- Router or Destination IP address
 
    TimeSource       INTEGER     NOT NULL DEFAULT  0,        -- Source of the timing information (hexadecimal) as: AAQQSSHH
    Delay_AppSend    BIGINT      NOT NULL DEFAULT -1,        -- The measured application send delay (nanoseconds; -1 if not available)

@@ -61,7 +61,7 @@ client = configuration.createClient()
 if queryType == 'ping':
    # ------ SQL: MySQL/MariaDB/PostgreSQL -----------------------------------
    if configuration.getBackend() in [ 'MySQL', 'MariaDB', 'PostgreSQL' ]:
-      query = 'SELECT TimeStamp, FromIP, ToIP, Checksum, PktSize, TC, Status, RTT FROM Ping'
+      query = 'SELECT Timestamp, SourceIP, DestinationIP, Checksum, PacketSize, TrafficClass, Status, RTT_App FROM Ping'
       if fromTimeStamp != None:
          query += ' WHERE TimeStamp >= \'' + str(fromTimeStamp) + '\''
          if toTimeStamp != None:
@@ -126,7 +126,7 @@ if queryType == 'ping':
 elif queryType == 'traceroute':
    # ------ SQL: MySQL/MariaDB/PostgreSQL -----------------------------------
    if configuration.getBackend() in [ 'MySQL', 'MariaDB', 'PostgreSQL' ]:
-      query = 'SELECT TimeStamp, FromIP, ToIP, Round, Checksum, PktSize, TC, HopNumber, TotalHops, Status, RTT, HopIP, PathHash FROM Traceroute'
+      query = 'SELECT TimeStamp, SourceIP, DestinationIP, RoundNumber, Checksum, PacketSize, TrafficClass, HopNumber, TotalHops, Status, RTT_App, HopIP, PathHash FROM Traceroute'
       if fromTimeStamp != None:
          query += ' WHERE TimeStamp >= \'' + str(fromTimeStamp) + '\''
          if toTimeStamp != None:
