@@ -130,7 +130,7 @@ void PingReader::parseContents(
    Statement&                statement = databaseClient.getStatement("Ping");
    const DatabaseBackendType backend   = databaseClient.getBackend();
    static const unsigned int PingMinColumns = 7;
-   static const unsigned int PingMaxColumns = 9;
+   static const unsigned int PingMaxColumns = 18;
    static const char         PingDelimiter  = ' ';
 
    std::string inputLine;
@@ -162,7 +162,7 @@ void PingReader::parseContents(
             version  = 2;
             protocol = tuple[0][2];
          }
-         else if(columns >= 7) {
+         else if( (tuple[0].size() == 2) && (columns >= 7) ) {
             version  = 1;
             protocol = 'i';
          }
@@ -173,7 +173,7 @@ void PingReader::parseContents(
          const unsigned int             measurementID   = (version >= 2) ? parseMeasurementID(tuple[1], dataFile) : 0;
          const boost::asio::ip::address sourceIP        = (version >= 2) ? parseAddress(tuple[2], dataFile) : parseAddress(tuple[1], dataFile);
          const boost::asio::ip::address destinationIP   = (version >= 2) ? parseAddress(tuple[3], dataFile) : parseAddress(tuple[2], dataFile);
-         const ReaderTimePoint          timeStamp       = (version >= 2) ? parseTimeStamp(tuple[4], now, dataFile) :  parseTimeStamp(tuple[3], now, dataFile);
+         const ReaderTimePoint          timeStamp       = (version >= 2) ? parseTimeStamp(tuple[4], now, true, dataFile) :  parseTimeStamp(tuple[3], now, false, dataFile);
          uint8_t                        trafficClass    = (version >= 2) ? parseTrafficClass(tuple[6], dataFile) : 0x00;
          const unsigned int             burstSeq        = (version >= 2) ? parseRoundNumber(tuple[5], dataFile) : 0;
          unsigned int                   packetSize      = (version >= 2) ? parseTrafficClass(tuple[7], dataFile) : 0;
@@ -229,25 +229,25 @@ void PingReader::parseContents(
          else if(backend & DatabaseBackendType::NoSQL_Generic) {
             statement.beginRow();
             statement
-               << "\"timestamp\": "     << timePointToMicroseconds<ReaderTimePoint>(timeStamp) << statement.sep()
-               << "\"measurementID\": " << measurementID                                       << statement.sep()
-               << "\"source\": "        << statement.encodeAddress(sourceIP)                   << statement.sep()
-               << "\"destination\": "   << statement.encodeAddress(destinationIP)              << statement.sep()
-               << "\"protocol\": "      << protocol                                            << statement.sep()
-               << "\"tc\": "            << (unsigned int)trafficClass                          << statement.sep()
-               << "\"burstSeq\": "      << burstSeq                                            << statement.sep()
-               << "\"pktsize\": "       << packetSize                                          << statement.sep()
-               << "\"respsize\": "      << responseSize                                        << statement.sep()
-               << "\"checksum\": "      << checksum                                            << statement.sep()
-               << "\"status\": "        << status                                              << statement.sep()
+               << "\"timestamp\": "     << timePointToNanoseconds<ReaderTimePoint>(timeStamp) << statement.sep()
+               << "\"measurementID\": " << measurementID                                      << statement.sep()
+               << "\"source\": "        << statement.encodeAddress(sourceIP)                  << statement.sep()
+               << "\"destination\": "   << statement.encodeAddress(destinationIP)             << statement.sep()
+               << "\"protocol\": "      << protocol                                           << statement.sep()
+               << "\"tc\": "            << (unsigned int)trafficClass                         << statement.sep()
+               << "\"burstSeq\": "      << burstSeq                                           << statement.sep()
+               << "\"pktsize\": "       << packetSize                                         << statement.sep()
+               << "\"respsize\": "      << responseSize                                       << statement.sep()
+               << "\"checksum\": "      << checksum                                           << statement.sep()
+               << "\"status\": "        << status                                             << statement.sep()
 
-               << "\"timesource\": "    << timeSource                                          << statement.sep()
-               << "\"delay.appsend\": " << delayAppSend                                        << statement.sep()
-               << "\"delay.queuing\": " << delayQueuing                                        << statement.sep()
-               << "\"delay.apprecv\": " << delayAppReceive                                     << statement.sep()
-               << "\"rtt.app\": "       << rttApp                                              << statement.sep()
-               << "\"rtt.sw\": "        << rttSoftware                                         << statement.sep()
-               << "\"rtt.hw\": "        << rttHardware                                         << statement.sep();
+               << "\"timesource\": "    << timeSource                                         << statement.sep()
+               << "\"delay.appsend\": " << delayAppSend                                       << statement.sep()
+               << "\"delay.queuing\": " << delayQueuing                                       << statement.sep()
+               << "\"delay.apprecv\": " << delayAppReceive                                    << statement.sep()
+               << "\"rtt.app\": "       << rttApp                                             << statement.sep()
+               << "\"rtt.sw\": "        << rttSoftware                                        << statement.sep()
+               << "\"rtt.hw\": "        << rttHardware                                        << statement.sep();
 
             statement.endRow();
             rows++;

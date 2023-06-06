@@ -5,6 +5,8 @@ make -j8 hipercontracer && \
 rm -f core && \
 sudo ./debug.memcheck ./hipercontracer \
    -# 12345678 \
+   -R results \
+   --resultstransactionlength=900 \
    --iomodule icmp \
    --source=0.0.0.0 \
    --destination=8.8.8.8 -destination=193.99.144.80 -destination=104.16.45.99 \
@@ -21,5 +23,4 @@ sudo ./debug.memcheck ./hipercontracer \
    --pingttl=56 \
    --pingburst=4 \
    --jitterinterval=300000 \
-   --resultsdirectory=results \
    $@

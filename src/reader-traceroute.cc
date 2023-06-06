@@ -142,7 +142,8 @@ unsigned long long TracerouteReader::parseMeasurementID(const std::string&      
    size_t                   index;
    const unsigned long long measurementID = std::stoull(value, &index, 10);
    if(index != value.size()) {
-      throw ImporterReaderDataErrorException("Bad measurement ID value " + value);
+      throw ImporterReaderDataErrorException("Bad measurement ID value " + value +
+                                             " in input file " + relativeTo(dataFile, Configuration.getImportFilePath()).string());
    }
    return measurementID;
 }
@@ -152,25 +153,34 @@ unsigned long long TracerouteReader::parseMeasurementID(const std::string&      
 boost::asio::ip::address TracerouteReader::parseAddress(const std::string&           value,
                                                         const std::filesystem::path& dataFile)
 {
-   const boost::asio::ip::address address = boost::asio::ip::make_address(value);
-   return address;
+   try {
+      const boost::asio::ip::address address = boost::asio::ip::make_address(value);
+      return address;
+   }
+   catch(...) { }
+   throw ImporterReaderDataErrorException("Bad address " + value +
+                                          " in input file " + relativeTo(dataFile, Configuration.getImportFilePath()).string());
 }
 
 
 // ###### Parse time stamp ##################################################
 ReaderTimePoint TracerouteReader::parseTimeStamp(const std::string&           value,
                                                  const ReaderTimePoint&       now,
+                                                 const bool                   inNanoseconds,
                                                  const std::filesystem::path& dataFile)
 {
    size_t                   index;
    const unsigned long long ts = std::stoull(value, &index, 16);
    if(index != value.size()) {
-      throw ImporterReaderDataErrorException("Bad time stamp format " + value);
+      throw ImporterReaderDataErrorException("Bad time stamp format " + value +
+                                             " in input file " + relativeTo(dataFile, Configuration.getImportFilePath()).string());
    }
-   const ReaderTimePoint timeStamp = microsecondsToTimePoint<ReaderTimePoint>(ts);
+   const ReaderTimePoint timeStamp = (inNanoseconds == true) ? nanosecondsToTimePoint<ReaderTimePoint>(ts) :
+                                                               nanosecondsToTimePoint<ReaderTimePoint>(1000ULL * ts);
    if( (timeStamp < now - std::chrono::hours(365 * 24)) ||   /* 1 year in the past  */
        (timeStamp > now + std::chrono::hours(24)) ) {        /* 1 day in the future */
-      throw ImporterReaderDataErrorException("Invalid time stamp value " + value);
+      throw ImporterReaderDataErrorException("Invalid time stamp value " + value +
+                                             " in input file " + relativeTo(dataFile, Configuration.getImportFilePath()).string());
    }
    return timeStamp;
 }
@@ -186,7 +196,8 @@ unsigned int TracerouteReader::parseRoundNumber(const std::string&           val
       roundNumber = std::stoul(value, &index, 10);
    } catch(...) { }
    if(index != value.size()) {
-      throw ImporterReaderDataErrorException("Bad round number " + value);
+      throw ImporterReaderDataErrorException("Bad round number " + value +
+                                             " in input file " + relativeTo(dataFile, Configuration.getImportFilePath()).string());
    }
    return roundNumber;
 }
@@ -202,10 +213,12 @@ uint8_t TracerouteReader::parseTrafficClass(const std::string&           value,
       trafficClass = std::stoul(value, &index, 16);
    } catch(...) { }
    if(index != value.size()) {
-      throw ImporterReaderDataErrorException("Bad traffic class format " + value);
+      throw ImporterReaderDataErrorException("Bad traffic class format " + value +
+                                             " in input file " + relativeTo(dataFile, Configuration.getImportFilePath()).string());
    }
    if(trafficClass > 0xff) {
-      throw ImporterReaderDataErrorException("Invalid traffic class value " + value);
+      throw ImporterReaderDataErrorException("Invalid traffic class value " + value +
+                                             " in input file " + relativeTo(dataFile, Configuration.getImportFilePath()).string());
    }
    return (uint8_t)trafficClass;
 }
@@ -221,7 +234,8 @@ unsigned int TracerouteReader::parsePacketSize(const std::string&           valu
       packetSize = std::stoul(value, &index, 10);
    } catch(...) { }
    if(index != value.size()) {
-      throw ImporterReaderDataErrorException("Bad packet size format " + value);
+      throw ImporterReaderDataErrorException("Bad packet size format " + value +
+                                             " in input file " + relativeTo(dataFile, Configuration.getImportFilePath()).string());
    }
    return packetSize;
 }
@@ -237,7 +251,8 @@ unsigned int TracerouteReader::parseResponseSize(const std::string&           va
       responseSize = std::stoul(value, &index, 10);
    } catch(...) { }
    if(index != value.size()) {
-      throw ImporterReaderDataErrorException("Bad response size format " + value);
+      throw ImporterReaderDataErrorException("Bad response size format " + value +
+                                             " in input file " + relativeTo(dataFile, Configuration.getImportFilePath()).string());
    }
    return responseSize;
 }
@@ -253,10 +268,12 @@ uint16_t TracerouteReader::parseChecksum(const std::string&           value,
       checksum = std::stoul(value, &index, 16);
    } catch(...) { }
    if(index != value.size()) {
-      throw ImporterReaderDataErrorException("Bad checksum format " + value);
+      throw ImporterReaderDataErrorException("Bad checksum format " + value +
+                                             " in input file " + relativeTo(dataFile, Configuration.getImportFilePath()).string());
    }
    if(checksum > 0xffff) {
-      throw ImporterReaderDataErrorException("Invalid checksum value " + value);
+      throw ImporterReaderDataErrorException("Invalid checksum value " + value +
+                                             " in input file " + relativeTo(dataFile, Configuration.getImportFilePath()).string());
    }
    return (uint16_t)checksum;
 }
@@ -273,7 +290,8 @@ unsigned int TracerouteReader::parseStatus(const std::string&           value,
       status = std::stoul(value, &index, base);
    } catch(...) { }
    if(index != value.size()) {
-      throw ImporterReaderDataErrorException("Bad status format " + value);
+      throw ImporterReaderDataErrorException("Bad status format " + value +
+                                             " in input file " + relativeTo(dataFile, Configuration.getImportFilePath()).string());
    }
    return status;
 }
@@ -289,7 +307,8 @@ long long TracerouteReader::parsePathHash(const std::string&           value,
       pathHash = std::stoull(value, &index, 16);
    } catch(...) { }
    if(index != value.size()) {
-      throw ImporterReaderDataErrorException("Bad path hash " + value);
+      throw ImporterReaderDataErrorException("Bad path hash " + value +
+                                             " in input file " + relativeTo(dataFile, Configuration.getImportFilePath()).string());
    }
    // Cast to signed long long as-is:
    return (long long)pathHash;
@@ -306,10 +325,12 @@ unsigned int TracerouteReader::parseTotalHops(const std::string&           value
       totalHops = std::stoul(value, &index, 10);
    } catch(...) { }
    if(index != value.size()) {
-      throw ImporterReaderDataErrorException("Bad total hops value " + value);
+      throw ImporterReaderDataErrorException("Bad total hops value " + value +
+                                             " in input file " + relativeTo(dataFile, Configuration.getImportFilePath()).string());
    }
    if( (totalHops < 1) || (totalHops > 255) ) {
-      throw ImporterReaderDataErrorException("Invalid total hops value " + value);
+      throw ImporterReaderDataErrorException("Invalid total hops value " + value +
+                                             " in input file " + relativeTo(dataFile, Configuration.getImportFilePath()).string());
    }
    return totalHops;
 }
@@ -325,7 +346,8 @@ unsigned int TracerouteReader::parseTimeSource(const std::string&           valu
       timeSource = std::stoul(value, &index, 16);
    } catch(...) { }
    if(index != value.size()) {
-      throw ImporterReaderDataErrorException("Bad time source format " + value);
+      throw ImporterReaderDataErrorException("Bad time source format " + value +
+                                             " in input file " + relativeTo(dataFile, Configuration.getImportFilePath()).string());
    }
    return timeSource;
 }
@@ -341,7 +363,8 @@ long long TracerouteReader::parseMicroseconds(const std::string&           value
       us = std::stoul(value, &index, 10);
    } catch(...) { }
    if(index != value.size()) {
-      throw ImporterReaderDataErrorException("Bad microseconds format " + value);
+      throw ImporterReaderDataErrorException("Bad microseconds format " + value +
+                                             " in input file " + relativeTo(dataFile, Configuration.getImportFilePath()).string());
    }
    return 1000LL * us;
 }
@@ -357,7 +380,8 @@ long long TracerouteReader::parseNanoseconds(const std::string&           value,
       ns = std::stoul(value, &index, 10);
    } catch(...) { }
    if(index != value.size()) {
-      throw ImporterReaderDataErrorException("Bad nanoseconds format " + value);
+      throw ImporterReaderDataErrorException("Bad nanoseconds format " + value +
+                                             " in input file " + relativeTo(dataFile, Configuration.getImportFilePath()).string());
    }
    return ns;
 }
@@ -477,26 +501,27 @@ void TracerouteReader::parseContents(
             version  = 2;
             protocol = tuple[0][2];
          }
-         else if(columns >= 9) {
+         else if( (tuple[0].size() == 2) && (columns >= 9) ) {
             version  = 1;
             protocol = 'i';
          }
          else {
-            throw ImporterReaderDataErrorException("Unexpected syntax in input file " + dataFile.string());
+            throw ImporterReaderDataErrorException("Unexpected syntax in input file " +
+                                                   relativeTo(dataFile, Configuration.getImportFilePath()).string());
          }
 
 
-         measurementID   = (version >= 2) ? parseMeasurementID(tuple[1], dataFile) : 0;
-         sourceIP        = (version >= 2) ? parseAddress(tuple[2], dataFile) : parseAddress(tuple[1], dataFile);
-         destinationIP   = (version >= 2) ? parseAddress(tuple[3], dataFile) : parseAddress(tuple[2], dataFile);
-         timeStamp       = (version >= 2) ? parseTimeStamp(tuple[4], now, dataFile) :  parseTimeStamp(tuple[3], now, dataFile);
-         roundNumber     = (version >= 2) ? parseRoundNumber(tuple[5], dataFile) : parseRoundNumber(tuple[4], dataFile);
+         measurementID   = (version >= 2) ? parseMeasurementID(tuple[1], dataFile)        : 0;
+         sourceIP        = (version >= 2) ? parseAddress(tuple[2], dataFile)              : parseAddress(tuple[1], dataFile);
+         destinationIP   = (version >= 2) ? parseAddress(tuple[3], dataFile)              : parseAddress(tuple[2], dataFile);
+         timeStamp       = (version >= 2) ? parseTimeStamp(tuple[4], now, true, dataFile) :  parseTimeStamp(tuple[3], now, false, dataFile);
+         roundNumber     = (version >= 2) ? parseRoundNumber(tuple[5], dataFile)          : parseRoundNumber(tuple[4], dataFile);
          totalHops       = parseTotalHops(tuple[6], dataFile);
-         trafficClass    = (version >= 2) ? parseTrafficClass(tuple[7], dataFile) : 0x00;
-         packetSize      = (version >= 2) ? parseTrafficClass(tuple[8], dataFile) : parseTrafficClass(tuple[10], dataFile);
-         checksum        = (version >= 2) ? parseChecksum(tuple[9], dataFile) : parseChecksum(tuple[5], dataFile);
-         statusFlags     = (version >= 2) ? parseStatus(tuple[10], dataFile) :  parseStatus(tuple[7], dataFile);
-         pathHash        = (version >= 2) ? parsePathHash(tuple[11], dataFile) : parsePathHash(tuple[8], dataFile);
+         trafficClass    = (version >= 2) ? parseTrafficClass(tuple[7], dataFile)         : 0x00;
+         packetSize      = (version >= 2) ? parsePacketSize(tuple[8], dataFile)           : parsePacketSize(tuple[10], dataFile);
+         checksum        = (version >= 2) ? parseChecksum(tuple[9], dataFile)             : parseChecksum(tuple[5], dataFile);
+         statusFlags     = (version >= 2) ? parseStatus(tuple[10], dataFile)              :  parseStatus(tuple[7], dataFile);
+         pathHash        = (version >= 2) ? parsePathHash(tuple[11], dataFile)            : parsePathHash(tuple[8], dataFile);
 
          if(version == 1) {
             if(columns >= 10) {   // TrafficClass was added in HiPerConTracer 1.4.0!
@@ -516,7 +541,7 @@ void TracerouteReader::parseContents(
          if(backend & DatabaseBackendType::NoSQL_Generic) {
             statement.beginRow();
             statement
-               << "\"timestamp\": "     << timePointToMicroseconds<ReaderTimePoint>(timeStamp) << statement.sep()
+               << "\"timestamp\": "     << timePointToNanoseconds<ReaderTimePoint>(timeStamp) << statement.sep()
                << "\"measurementID\": " << measurementID                                       << statement.sep()
                << "\"source\": "        << statement.encodeAddress(sourceIP)                   << statement.sep()
                << "\"destination\": "   << statement.encodeAddress(destinationIP)              << statement.sep()
@@ -530,24 +555,24 @@ void TracerouteReader::parseContents(
                << "\"hops\": [ ";
          }
       }
-      else if(tuple[0] == "\t")  {
+      else if( (tuple[0].size() >= 1) && (tuple[0][0] == '\t') ) {
          if(statusFlags == ~0U) {
             throw ImporterReaderDataErrorException("Hop data has no corresponding #T line");
          }
 
-         const ReaderTimePoint          sendTimeStamp   = (version >= 2) ? parseTimeStamp(tuple[0], now, dataFile) : timeStamp;
-         const unsigned int             hopNumber       = (version >= 2) ? parseTotalHops(tuple[1], dataFile) : parseTotalHops(tuple[0], dataFile);
-         const unsigned int             responseSize    = (version >= 2) ? parseTrafficClass(tuple[2], dataFile) : 0;
-         const unsigned int             status          = (version >= 2) ? parseStatus(tuple[3], dataFile, 10) : parseStatus(tuple[2], dataFile);
-         const boost::asio::ip::address hopIP           = (version >= 2) ? parseAddress(tuple[11], dataFile) : parseAddress(tuple[4], dataFile);
+         const ReaderTimePoint          sendTimeStamp   = (version >= 2) ? parseTimeStamp(tuple[0], now, true, dataFile) : timeStamp;
+         const unsigned int             hopNumber       = (version >= 2) ? parseTotalHops(tuple[1], dataFile)    : parseTotalHops(tuple[0], dataFile);
+         const unsigned int             responseSize    = (version >= 2) ? parseResponseSize(tuple[2], dataFile) : 0;
+         const unsigned int             status          = (version >= 2) ? parseStatus(tuple[3], dataFile, 10)   : parseStatus(tuple[2], dataFile);
+         const boost::asio::ip::address hopIP           = (version >= 2) ? parseAddress(tuple[11], dataFile)     : parseAddress(tuple[4], dataFile);
 
-         unsigned int                   timeSource      = (version >= 2) ? parseTimeSource(tuple[6], dataFile) : 0x00000000;
-         const long long                delayAppSend    = (version >= 2) ? parseNanoseconds(tuple[7], dataFile) : -1;
-         const long long                delayQueuing    = (version >= 2) ? parseNanoseconds(tuple[8], dataFile) : -1;
-         const long long                delayAppReceive = (version >= 2) ? parseNanoseconds(tuple[9], dataFile) : -1;
-         const long long                rttApp          = (version >= 2) ? parseNanoseconds(tuple[10], dataFile) : parseMicroseconds(tuple[2], dataFile);
-         const long long                rttHardware     = (version >= 2) ? parseNanoseconds(tuple[11], dataFile) : -1;
-         const long long                rttSoftware     = (version >= 2) ? parseNanoseconds(tuple[12], dataFile) : -1;
+         unsigned int                   timeSource      = (version >= 2) ? parseTimeSource(tuple[4], dataFile)   : 0x00000000;
+         const long long                delayAppSend    = (version >= 2) ? parseNanoseconds(tuple[5], dataFile)  : -1;
+         const long long                delayQueuing    = (version >= 2) ? parseNanoseconds(tuple[6], dataFile)  : -1;
+         const long long                delayAppReceive = (version >= 2) ? parseNanoseconds(tuple[7], dataFile)  : -1;
+         const long long                rttApp          = (version >= 2) ? parseNanoseconds(tuple[8], dataFile)  : parseMicroseconds(tuple[2], dataFile);
+         const long long                rttHardware     = (version >= 2) ? parseNanoseconds(tuple[9], dataFile)  : -1;
+         const long long                rttSoftware     = (version >= 2) ? parseNanoseconds(tuple[10], dataFile) : -1;
 
          if(version == 1) {
             if(columns >= 5) {   // TimeSource was added in HiPerConTracer 2.0.0!
@@ -558,28 +583,29 @@ void TracerouteReader::parseContents(
          if(backend & DatabaseBackendType::SQL_Generic) {
             statement.beginRow();
             statement
-               << statement.quote(timePointToString<ReaderTimePoint>(timeStamp, 9)) << statement.sep()
-               << measurementID                                                     << statement.sep()
-               << statement.encodeAddress(sourceIP)                                 << statement.sep()
-               << statement.encodeAddress(destinationIP)                            << statement.sep()
-               << (unsigned int)protocol                                            << statement.sep()
-               << (unsigned int)trafficClass                                        << statement.sep()
-               << roundNumber                                                       << statement.sep()
-               << hopNumber                                                         << statement.sep()
-               << totalHops                                                         << statement.sep()
-               << packetSize                                                        << statement.sep()
-               << responseSize                                                      << statement.sep()
-               << checksum                                                          << statement.sep()
-               << (status | statusFlags)                                            << statement.sep()
-               << pathHash                                                          << statement.sep()
-               << statement.encodeAddress(hopIP)                                    << statement.sep()
+               << statement.quote(timePointToString<ReaderTimePoint>(timeStamp, 9))     << statement.sep()
+               << measurementID                                                         << statement.sep()
+               << statement.encodeAddress(sourceIP)                                     << statement.sep()
+               << statement.encodeAddress(destinationIP)                                << statement.sep()
+               << (unsigned int)protocol                                                << statement.sep()
+               << (unsigned int)trafficClass                                            << statement.sep()
+               << roundNumber                                                           << statement.sep()
+               << hopNumber                                                             << statement.sep()
+               << totalHops                                                             << statement.sep()
+               << packetSize                                                            << statement.sep()
+               << responseSize                                                          << statement.sep()
+               << checksum                                                              << statement.sep()
+               << (status | statusFlags)                                                << statement.sep()
+               << pathHash                                                              << statement.sep()
+               << statement.quote(timePointToString<ReaderTimePoint>(sendTimeStamp, 9)) << statement.sep()
+               << statement.encodeAddress(hopIP)                                        << statement.sep()
 
-               << (long long)timeSource                                             << statement.sep()
-               << delayAppSend                                                      << statement.sep()
-               << delayQueuing                                                      << statement.sep()
-               << delayAppReceive                                                   << statement.sep()
-               << rttApp                                                            << statement.sep()
-               << rttSoftware                                                       << statement.sep()
+               << (long long)timeSource                                                 << statement.sep()
+               << delayAppSend                                                          << statement.sep()
+               << delayQueuing                                                          << statement.sep()
+               << delayAppReceive                                                       << statement.sep()
+               << rttApp                                                                << statement.sep()
+               << rttSoftware                                                           << statement.sep()
                << rttHardware;
             statement.endRow();
             rows++;
@@ -608,7 +634,8 @@ void TracerouteReader::parseContents(
          }
       }
       else {
-         throw ImporterReaderDataErrorException("Unexpected input in input file " + dataFile.string());
+         throw ImporterReaderDataErrorException("Unexpected input in input file " +
+                                                relativeTo(dataFile, Configuration.getImportFilePath()).string());
       }
    }
    if( (statusFlags != ~0U) && (backend & DatabaseBackendType::NoSQL_Generic) ) {
