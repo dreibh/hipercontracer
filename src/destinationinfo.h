@@ -43,24 +43,24 @@ class DestinationInfo {
                    const uint8_t                   trafficClassValue,
                    const uint32_t                  identifier = 0);
 
-   inline uint32_t identifier() const {
-      return(Identifier);
-   }
    inline const boost::asio::ip::address& address() const {
       return(Address);
    }
    inline const uint8_t& trafficClass() const {
       return(TrafficClass);
    }
-
-   inline void setIdentifier(const uint8_t identifier) {
-      Identifier = identifier;
+   inline uint32_t identifier() const {
+      return(Identifier);
    }
+
    inline void setAddress(const boost::asio::ip::address& address) {
       Address = address;
    }
    inline void setTrafficClass(const uint8_t trafficClass) {
       TrafficClass = trafficClass;
+   }
+   inline void setIdentifier(const uint32_t identifier) {
+      Identifier = identifier;
    }
 
    private:
