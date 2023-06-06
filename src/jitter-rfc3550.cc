@@ -30,6 +30,7 @@
 // Contact: dreibh@simula.no
 
 #include "jitter-rfc3550.h"
+#include "logger.h"
 
 
 // ###### Constructor #######################################################
@@ -48,8 +49,15 @@ void JitterRFC3550::process(const uint8_t            timeSource,
 {
    if(Packets > 0) {
       if(timeSource != TimeSource) {
+         // In some rare cases, the kernel seems to not deliver HW/SW time
+         // stamps for the reception. The SW time stamp gets replaced by
+         // the application time, but this is incompatible to SW time stamps.
+         // => Not using such time stamps for jitter computation.
+
          // The time source has changed => do not accept these time stamps.
-         abort();   // FIXME!
+         HPCT_LOG(debug) << "Ignoring packet with incompatible time source "
+                         << std::hex << (int)timeSource << " vs. " << (int)TimeSource;
+abort();
          return;
       }
 
