@@ -75,31 +75,39 @@ class TracerouteReader : public ReaderImplementation<TracerouteFileEntry>
                               boost::iostreams::filtering_istream& dataStream);
 
    protected:
-   static ReaderTimePoint parseTimeStamp(const std::string&           value,
-                                         const ReaderTimePoint&       now,
+   unsigned long long parseMeasurementID(const std::string&           value,
                                          const std::filesystem::path& dataFile);
-   static boost::asio::ip::address parseAddress(const std::string&           value,
-                                                const DatabaseBackendType    backend,
-                                                const std::filesystem::path& dataFile);
-   static unsigned int parseRoundNumber(const std::string&           value,
-                                        const std::filesystem::path& dataFile);
-   static uint16_t parseChecksum(const std::string&           value,
-                                 const std::filesystem::path& dataFile);
-   static unsigned int parseTotalHops(const std::string&           value,
-                                      const std::filesystem::path& dataFile);
-   static unsigned int parseHop(const std::string&           value,
-                                const std::filesystem::path& dataFile);
-   static unsigned int parseStatus(const std::string&           value,
-                                   const std::filesystem::path& dataFile,
-                                   const unsigned int           base = 16);
-   static long long parsePathHash(const std::string&           value,
+   boost::asio::ip::address parseAddress(const std::string&           value,
+                                         const std::filesystem::path& dataFile);
+   ReaderTimePoint parseTimeStamp(const std::string&           value,
+                                  const ReaderTimePoint&       now,
+                                  const bool                   inNanoseconds,
                                   const std::filesystem::path& dataFile);
-   static unsigned int parseRTT(const std::string&           value,
+   unsigned int parseRoundNumber(const std::string&           value,
+                                 const std::filesystem::path& dataFile);
+   uint8_t parseTrafficClass(const std::string&           value,
+                             const std::filesystem::path& dataFile);
+   unsigned int parsePacketSize(const std::string&           value,
                                 const std::filesystem::path& dataFile);
-   static unsigned int parsePacketSize(const std::string&           value,
-                                       const std::filesystem::path& dataFile);
-   static uint8_t parseTrafficClass(const std::string&           value,
-                                    const std::filesystem::path& dataFile);
+   unsigned int parseResponseSize(const std::string&           value,
+                                 const std::filesystem::path& dataFile);
+   uint16_t parseChecksum(const std::string&           value,
+                          const std::filesystem::path& dataFile);
+   unsigned int parseStatus(const std::string&           value,
+                            const std::filesystem::path& dataFile,
+                            const unsigned int           base = 16);
+   unsigned int parseTimeSource(const std::string&           value,
+                                const std::filesystem::path& dataFile);
+   unsigned int parseTotalHops(const std::string&           value,
+                               const std::filesystem::path& dataFile);
+   unsigned int parseHop(const std::string&           value,
+                         const std::filesystem::path& dataFile);
+   long long parsePathHash(const std::string&           value,
+                           const std::filesystem::path& dataFile);
+   long long parseMicroseconds(const std::string&           value,
+                               const std::filesystem::path& dataFile);
+   long long parseNanoseconds(const std::string&           value,
+                              const std::filesystem::path& dataFile);
 
    protected:
    const std::string        Table;

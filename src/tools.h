@@ -112,6 +112,7 @@ template<typename TimePoint> TimePoint nowInUTC()
 }
 
 
+#if 0
 // ###### Convert microseconds since the epoch to time point ################
 template <typename TimePoint> TimePoint microsecondsToTimePoint(const unsigned long long microTime)
 {
@@ -127,6 +128,25 @@ template <typename TimePoint> unsigned long long timePointToMicroseconds(const T
    const std::chrono::microseconds microseconds =
       std::chrono::duration_cast<std::chrono::microseconds>(timePoint.time_since_epoch());
    return microseconds.count();
+}
+#endif
+
+
+// ###### Convert nanoseconds since the epoch to time point #################
+template <typename TimePoint> TimePoint nanosecondsToTimePoint(const unsigned long long nanoTime)
+{
+   const std::chrono::nanoseconds nanoseconds(nanoTime);
+   const TimePoint                timePoint(nanoseconds);
+   return timePoint;
+}
+
+
+// ###### Convert nanoseconds since the epoch to time point #################
+template <typename TimePoint> unsigned long long timePointToNanoseconds(const TimePoint& timePoint)
+{
+   const std::chrono::nanoseconds nanoseconds =
+      std::chrono::duration_cast<std::chrono::nanoseconds>(timePoint.time_since_epoch());
+   return nanoseconds.count();
 }
 
 
