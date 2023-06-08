@@ -177,9 +177,9 @@ ReaderTimePoint TracerouteReader::parseTimeStamp(const std::string&           va
    }
    const ReaderTimePoint timeStamp = (inNanoseconds == true) ? nanosecondsToTimePoint<ReaderTimePoint>(ts) :
                                                                nanosecondsToTimePoint<ReaderTimePoint>(1000ULL * ts);
-   if( (timeStamp < now - std::chrono::hours(365 * 24)) ||   /* 1 year in the past  */
-       (timeStamp > now + std::chrono::hours(24)) ) {        /* 1 day in the future */
-      throw ImporterReaderDataErrorException("Invalid time stamp value " + value +
+   if( (timeStamp < now - std::chrono::hours(10 * 365 * 24)) ||   /* 10 years in the past */
+       (timeStamp > now + std::chrono::hours(24)) ) {             /* 1 day in the future  */
+      throw ImporterReaderDataErrorException("Invalid time stamp value (too old, or in the future) " + value +
                                              " in input file " + relativeTo(dataFile, Configuration.getImportFilePath()).string());
    }
    return timeStamp;
@@ -333,6 +333,27 @@ unsigned int TracerouteReader::parseTotalHops(const std::string&           value
                                              " in input file " + relativeTo(dataFile, Configuration.getImportFilePath()).string());
    }
    return totalHops;
+}
+
+
+// ###### Parse hop number ##################################################
+unsigned int TracerouteReader::parseHopNumber(const std::string&           value,
+                                              const std::filesystem::path& dataFile)
+{
+   size_t        index     = 0;
+   unsigned long hopNumber = 0;
+   try {
+      hopNumber = std::stoul(value, &index, 10);
+   } catch(...) { }
+   if(index != value.size()) {
+      throw ImporterReaderDataErrorException("Bad hopNumber value " + value +
+                                             " in input file " + relativeTo(dataFile, Configuration.getImportFilePath()).string());
+   }
+   if( (hopNumber < 1) || (hopNumber > 255) ) {
+      throw ImporterReaderDataErrorException("Invalid hopNumber value " + value +
+                                             " in input file " + relativeTo(dataFile, Configuration.getImportFilePath()).string());
+   }
+   return hopNumber;
 }
 
 
@@ -510,17 +531,16 @@ void TracerouteReader::parseContents(
                                                    relativeTo(dataFile, Configuration.getImportFilePath()).string());
          }
 
-
          measurementID   = (version >= 2) ? parseMeasurementID(tuple[1], dataFile)        : 0;
          sourceIP        = (version >= 2) ? parseAddress(tuple[2], dataFile)              : parseAddress(tuple[1], dataFile);
          destinationIP   = (version >= 2) ? parseAddress(tuple[3], dataFile)              : parseAddress(tuple[2], dataFile);
-         timeStamp       = (version >= 2) ? parseTimeStamp(tuple[4], now, true, dataFile) :  parseTimeStamp(tuple[3], now, false, dataFile);
+         timeStamp       = (version >= 2) ? parseTimeStamp(tuple[4], now, true, dataFile) : parseTimeStamp(tuple[3], now, false, dataFile);
          roundNumber     = (version >= 2) ? parseRoundNumber(tuple[5], dataFile)          : parseRoundNumber(tuple[4], dataFile);
          totalHops       = parseTotalHops(tuple[6], dataFile);
          trafficClass    = (version >= 2) ? parseTrafficClass(tuple[7], dataFile)         : 0x00;
          packetSize      = (version >= 2) ? parsePacketSize(tuple[8], dataFile)           : parsePacketSize(tuple[10], dataFile);
          checksum        = (version >= 2) ? parseChecksum(tuple[9], dataFile)             : parseChecksum(tuple[5], dataFile);
-         statusFlags     = (version >= 2) ? parseStatus(tuple[10], dataFile)              :  parseStatus(tuple[7], dataFile);
+         statusFlags     = (version >= 2) ? parseStatus(tuple[10], dataFile)              : parseStatus(tuple[7], dataFile);
          pathHash        = (version >= 2) ? parsePathHash(tuple[11], dataFile)            : parsePathHash(tuple[8], dataFile);
 
          if(version == 1) {
@@ -561,7 +581,7 @@ void TracerouteReader::parseContents(
          }
 
          const ReaderTimePoint          sendTimeStamp   = (version >= 2) ? parseTimeStamp(tuple[0], now, true, dataFile) : timeStamp;
-         const unsigned int             hopNumber       = (version >= 2) ? parseTotalHops(tuple[1], dataFile)    : parseTotalHops(tuple[0], dataFile);
+         const unsigned int             hopNumber       = (version >= 2) ? parseHopNumber(tuple[1], dataFile)    : parseHopNumber(tuple[1], dataFile);
          const unsigned int             responseSize    = (version >= 2) ? parseResponseSize(tuple[2], dataFile) : 0;
          const unsigned int             status          = (version >= 2) ? parseStatus(tuple[3], dataFile, 10)   : parseStatus(tuple[2], dataFile);
          const boost::asio::ip::address hopIP           = (version >= 2) ? parseAddress(tuple[11], dataFile)     : parseAddress(tuple[4], dataFile);
@@ -570,13 +590,13 @@ void TracerouteReader::parseContents(
          const long long                delayAppSend    = (version >= 2) ? parseNanoseconds(tuple[5], dataFile)  : -1;
          const long long                delayQueuing    = (version >= 2) ? parseNanoseconds(tuple[6], dataFile)  : -1;
          const long long                delayAppReceive = (version >= 2) ? parseNanoseconds(tuple[7], dataFile)  : -1;
-         const long long                rttApp          = (version >= 2) ? parseNanoseconds(tuple[8], dataFile)  : parseMicroseconds(tuple[2], dataFile);
+         const long long                rttApp          = (version >= 2) ? parseNanoseconds(tuple[8], dataFile)  : parseMicroseconds(tuple[3], dataFile);
          const long long                rttHardware     = (version >= 2) ? parseNanoseconds(tuple[9], dataFile)  : -1;
          const long long                rttSoftware     = (version >= 2) ? parseNanoseconds(tuple[10], dataFile) : -1;
 
          if(version == 1) {
-            if(columns >= 5) {   // TimeSource was added in HiPerConTracer 2.0.0!
-               timeSource = parseTimeSource(tuple[4], dataFile);
+            if(columns >= 6) {   // TimeSource was added in HiPerConTracer 2.0.0!
+               timeSource = parseTimeSource(tuple[5], dataFile);
             }
          }
 

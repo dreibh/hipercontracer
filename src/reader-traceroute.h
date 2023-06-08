@@ -100,6 +100,8 @@ class TracerouteReader : public ReaderImplementation<TracerouteFileEntry>
                                 const std::filesystem::path& dataFile);
    unsigned int parseTotalHops(const std::string&           value,
                                const std::filesystem::path& dataFile);
+   unsigned int parseHopNumber(const std::string&           value,
+                               const std::filesystem::path& dataFile);
    unsigned int parseHop(const std::string&           value,
                          const std::filesystem::path& dataFile);
    long long parsePathHash(const std::string&           value,

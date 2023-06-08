@@ -9,7 +9,9 @@ sudo ./debug.memcheck ./hipercontracer \
    --resultstransactionlength=900 \
    --iomodule icmp \
    --source=0.0.0.0 \
+   --source=:: \
    --destination=8.8.8.8 -destination=193.99.144.80 -destination=104.16.45.99 \
+   --destination=2001:4860:4860::8888 --destination=2a02:2e0:3fe:1001:7777:772e:2:85 --destination=2606:4700::6810:2c63 \
    --traceroute \
    --ping \
    --jitter \
