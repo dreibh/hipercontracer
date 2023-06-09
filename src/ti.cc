@@ -222,11 +222,7 @@ int main(int argc, char** argv)
                " ORDER BY Timestamp, MeasurementID, SourceIP, DestinationIP, Protocol, TrafficClass";
          databaseClient->executeQuery(statement);
          while(databaseClient->fetchNextTuple()) {
-            ResultTimePoint sendTimeStamp;
-            if(!stringToTimePoint<ResultTimePoint>(databaseClient->getString(1), sendTimeStamp)) {
-               HPCT_LOG(error) << "Invalid time stamp";
-               exit(1);
-            }
+            const unsigned long long       sendTimeStamp   = databaseClient->getBigInt(1);
             const unsigned long long       measurementID   = databaseClient->getBigInt(2);
             const boost::asio::ip::address sourceIP        = unmapIPv4(boost::asio::ip::make_address(databaseClient->getString(3)));
             const boost::asio::ip::address destinationIP   = unmapIPv4(boost::asio::ip::make_address(databaseClient->getString(4)));
@@ -252,7 +248,7 @@ int main(int argc, char** argv)
                   % measurementID
                   % sourceIP.to_string()
                   % destinationIP.to_string()
-                  % timePointToNanoseconds<ResultTimePoint>(sendTimeStamp)
+                  % sendTimeStamp
                   % burstSeq
 
                   % trafficClass
@@ -290,16 +286,7 @@ int main(int argc, char** argv)
                " ORDER BY Timestamp,MeasurementID,SourceIP,DestinationIP,Protocol,TrafficClass,RoundNumber,HopNumber";
          databaseClient->executeQuery(statement);
          while(databaseClient->fetchNextTuple()) {
-            ResultTimePoint timeStamp;
-            if(!stringToTimePoint<ResultTimePoint>(databaseClient->getString(1), timeStamp)) {
-               HPCT_LOG(error) << "Invalid time stamp";
-               exit(1);
-            }
-            ResultTimePoint sendTimeStamp;
-            if(!stringToTimePoint<ResultTimePoint>(databaseClient->getString(15), sendTimeStamp)) {
-               HPCT_LOG(error) << "Invalid send time stamp";
-               exit(1);
-            }
+            const unsigned long long       timeStamp       = databaseClient->getBigInt(1);
             const unsigned long long       measurementID   = databaseClient->getBigInt(2);
             const boost::asio::ip::address sourceIP        = unmapIPv4(boost::asio::ip::make_address(databaseClient->getString(3)));
             const boost::asio::ip::address destinationIP   = unmapIPv4(boost::asio::ip::make_address(databaseClient->getString(4)));
@@ -313,6 +300,7 @@ int main(int argc, char** argv)
             const uint16_t                 checksum        = databaseClient->getInteger(12);
             const unsigned int             status          = databaseClient->getInteger(13);
             const long long                pathHash        = databaseClient->getBigInt(14);
+            const unsigned long long       sendTimeStamp   = databaseClient->getBigInt(15);
             const boost::asio::ip::address hopIP           = unmapIPv4(boost::asio::ip::make_address(databaseClient->getString(16)));
             const unsigned int             timeSource      = databaseClient->getInteger(17);
             const long long                delayAppSend    = databaseClient->getBigInt(18);
@@ -331,7 +319,7 @@ int main(int argc, char** argv)
                      % measurementID
                      % sourceIP.to_string()
                      % destinationIP.to_string()
-                     % timePointToNanoseconds<ResultTimePoint>(timeStamp)
+                     % timeStamp
                      % roundNumber
 
                      % totalHops
@@ -347,7 +335,7 @@ int main(int argc, char** argv)
             else {
                outputStream <<
                   str(boost::format("\t%x %d %d %d %08x %d %d %d %d %d %d %s\n")
-                     % timePointToNanoseconds<ResultTimePoint>(sendTimeStamp)
+                     % sendTimeStamp
                      % hopNumber
                      % responseSize
                      % (unsigned int)(status & 0xff)
