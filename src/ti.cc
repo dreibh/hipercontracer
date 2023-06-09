@@ -122,7 +122,6 @@ int main(int argc, char** argv)
       ( "query-type,Q",
            boost::program_options::value<std::string>(&queryType)->default_value("Ping"),
            "Query type (Ping, Traceroute, Jitter)" )
-
    ;
 
 
@@ -218,7 +217,9 @@ int main(int argc, char** argv)
    if(queryType == "ping") {
       if(backend & DatabaseBackendType::SQL_Generic) {
          statement
-            << "SELECT Timestamp,MeasurementID,SourceIP,DestinationIP,Protocol,TrafficClass,BurstSeq,PacketSize,ResponseSize,Checksum,Status,TimeSource,Delay_AppSend,Delay_Queuing, Delay_AppReceive,RTT_App,RTT_SW,RTT_HW FROM Ping";
+            << "SELECT Timestamp,MeasurementID,SourceIP,DestinationIP,Protocol,TrafficClass,BurstSeq,PacketSize,ResponseSize,Checksum,Status,TimeSource,Delay_AppSend,Delay_Queuing, Delay_AppReceive,RTT_App,RTT_SW,RTT_HW"
+               " FROM Ping"
+               " ORDER BY Timestamp, MeasurementID, SourceIP, DestinationIP, Protocol, TrafficClass";
          databaseClient->executeQuery(statement);
          while(databaseClient->fetchNextTuple()) {
             ResultTimePoint sendTimeStamp;
@@ -284,7 +285,9 @@ int main(int argc, char** argv)
    else if(queryType == "traceroute") {
       if(backend & DatabaseBackendType::SQL_Generic) {
          statement
-            << "SELECT Timestamp,MeasurementID,SourceIP,DestinationIP,Protocol,TrafficClass,RoundNumber,HopNumber,TotalHops,PacketSize,ResponseSize,Checksum,Status,PathHash,SendTimestamp,HopIP,TimeSource,Delay_AppSend,Delay_Queuing,Delay_AppReceive,RTT_App,RTT_SW,RTT_HW FROM Traceroute";
+            << "SELECT Timestamp,MeasurementID,SourceIP,DestinationIP,Protocol,TrafficClass,RoundNumber,HopNumber,TotalHops,PacketSize,ResponseSize,Checksum,Status,PathHash,SendTimestamp,HopIP,TimeSource,Delay_AppSend,Delay_Queuing,Delay_AppReceive,RTT_App,RTT_SW,RTT_HW"
+               " FROM Traceroute"
+               " ORDER BY Timestamp,MeasurementID,SourceIP,DestinationIP,Protocol,TrafficClass,RoundNumber,HopNumber";
          databaseClient->executeQuery(statement);
          while(databaseClient->fetchNextTuple()) {
             ResultTimePoint timeStamp;
