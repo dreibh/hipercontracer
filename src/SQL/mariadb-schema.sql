@@ -68,7 +68,7 @@ CREATE TABLE Ping (
    PRIMARY KEY (SendTimestamp, MeasurementID, SourceIP, DestinationIP, Protocol, TrafficClass)
 );
 
-CREATE INDEX PingRelationIndex ON Ping (MeasurementID ASC, DestinationIP ASC, Timestamp ASC);
+CREATE INDEX PingRelationIndex ON Ping (MeasurementID ASC, DestinationIP ASC, SendTimestamp ASC);
 
 
 -- ###### Traceroute ########################################################
