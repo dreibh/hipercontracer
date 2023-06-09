@@ -253,6 +253,9 @@ INSTALL(FILES get-default-ips.1
 # ADD_EXECUTABLE(t7 t7.cc)
 # TARGET_LINK_LIBRARIES(t7 ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
 
+ADD_EXECUTABLE(ti ti.cc)
+TARGET_LINK_LIBRARIES(ti libuniversalimporter-${libraryType} ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} -llzma -lbz2 -lz)
+
 
 #############################################################################
 #### EXAMPLES                                                            ####

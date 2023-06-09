@@ -222,3 +222,20 @@ void PostgreSQLClient::executeUpdate(Statement& statement)
 
    statement.clear();
 }
+
+
+// ###### Execute statement #################################################
+void PostgreSQLClient::executeQuery(Statement& statement)
+{
+   assert(statement.isValid());
+   assert(Transaction != nullptr);
+
+   try {
+      Transaction->exec(statement.str());
+   }
+   catch(const pqxx::failure& exception) {
+      handleDatabaseException(exception, "Execute", statement.str());
+   }
+
+   statement.clear();
+}

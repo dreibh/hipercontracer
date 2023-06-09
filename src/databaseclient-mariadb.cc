@@ -52,6 +52,7 @@ MariaDBClient::MariaDBClient(const DatabaseConfiguration& configuration)
    assert(Driver != nullptr);
    Connection  = nullptr;
    Transaction = nullptr;
+   ResultSet   = nullptr;
 }
 
 
@@ -144,6 +145,10 @@ void MariaDBClient::close()
       delete Connection;
       Connection = nullptr;
    }
+   if(ResultSet != nullptr) {
+      delete ResultSet;
+      ResultSet = nullptr;
+   }
 }
 
 
@@ -231,4 +236,58 @@ void MariaDBClient::executeUpdate(Statement& statement)
    }
 
    statement.clear();
+}
+
+
+// ###### Execute statement #################################################
+void MariaDBClient::executeQuery(Statement& statement)
+{
+   assert(statement.isValid());
+
+   if(ResultSet != nullptr) {
+      delete ResultSet;
+      ResultSet = nullptr;
+   }
+   try {
+      ResultSet = Transaction->executeQuery(statement.str());
+   }
+   catch(const sql::SQLException& exception) {
+      handleDatabaseException(exception, "Execute", statement.str());
+   }
+
+   statement.clear();
+}
+
+
+// ###### Fetch next tuple ##################################################
+bool MariaDBClient::fetchNextTuple()
+{
+   if(ResultSet != nullptr) {
+      return ResultSet->next();
+   }
+   return false;
+}
+
+
+// ###### Get integer value #################################################
+int32_t MariaDBClient::getInteger(unsigned int column) const
+{
+   assert(ResultSet != nullptr);
+   return ResultSet->getInt(column);
+}
+
+
+// ###### Get big integer value #############################################
+int64_t MariaDBClient::getBigInt(unsigned int column) const
+{
+   assert(ResultSet != nullptr);
+   return ResultSet->getInt64(column);
+}
+
+
+// ###### Get string value ##################################################
+std::string MariaDBClient::getString(unsigned int column) const
+{
+   assert(ResultSet != nullptr);
+   return ResultSet->getString(column);
 }

@@ -106,3 +106,40 @@ void DebugClient::executeUpdate(Statement& statement)
    std::cout << statement << std::endl;
    statement.clear();
 }
+
+
+// ###### Execute statement #################################################
+void DebugClient::executeQuery(Statement& statement)
+{
+   assert(statement.isValid());
+   std::cout << statement << std::endl;
+   statement.clear();
+}
+
+
+// ###### Fetch next tuple ##################################################
+bool DebugClient::fetchNextTuple()
+{
+   abort();
+}
+
+
+// ###### Get integer value #################################################
+int32_t DebugClient::getInteger(unsigned int column) const
+{
+   abort();
+}
+
+
+// ###### Get big integer value #############################################
+int64_t DebugClient::getBigInt(unsigned int column) const
+{
+   abort();
+}
+
+
+// ###### Get string value ##################################################
+std::string DebugClient::getString(unsigned int column) const
+{
+   abort();
+}

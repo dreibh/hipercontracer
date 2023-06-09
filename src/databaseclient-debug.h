@@ -48,7 +48,13 @@ class DebugClient : public DatabaseClientBase
 
    virtual void startTransaction();
    virtual void executeUpdate(Statement& statement);
+   virtual void executeQuery(Statement& statement);
    virtual void endTransaction(const bool commit);
+
+   virtual bool fetchNextTuple();
+   virtual int32_t getInteger(unsigned int column) const;
+   virtual int64_t getBigInt(unsigned int column) const;
+   virtual std::string getString(unsigned int column) const;
 };
 
 #endif
