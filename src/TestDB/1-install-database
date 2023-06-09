@@ -171,14 +171,9 @@ elif [ "$1" == "mongodb" ] ; then
    sudo chown mongodb:mongodb ${MONGODB_CRT_KEY_FILE}
 
    # ====== Install MongoDB =================================================
-   # FIXME! Still no official MongoDB for Ubuntu 22.04 ...
-   if [ ! -e libssl1.1_1.1.1f-1ubuntu2.16_amd64.deb ] ; then
-      wget http://archive.ubuntu.com/ubuntu/pool/main/o/openssl/libssl1.1_1.1.1f-1ubuntu2.16_amd64.deb
-      sudo dpkg -i libssl1.1_1.1.1f-1ubuntu2.16_amd64.deb 
-   fi
    wget -qO - https://www.mongodb.org/static/pgp/server-6.0.asc | gpg --dearmor | sudo tee /usr/share/keyrings/mongodb.gpg >/dev/null
    if [ ! -e /etc/apt/sources.list.d/mongodb-org-6.0.list ] ; then
-      echo "deb [ signed-by=/usr/share/keyrings/mongodb.gpg arch=amd64,arm64 ] https://repo.mongodb.org/apt/ubuntu focal/mongodb-org/6.0 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-6.0.list
+      echo "deb [ signed-by=/usr/share/keyrings/mongodb.gpg arch=amd64,arm64 ] https://repo.mongodb.org/apt/ubuntu jammy/mongodb-org/6.0 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-6.0.list
    fi
    sudo apt update -qq
    sudo DEBIAN_FRONTEND=noninteractive  apt install -y mongodb-org
@@ -197,6 +192,7 @@ elif [ "$1" == "mongodb" ] ; then
 
    # ====== Make sure there is a root user ==================================
    sudo service mongod start
+   sleep 10
    mongosh --quiet <<EOF
 use admin
 db.dropUser("root")
