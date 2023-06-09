@@ -73,7 +73,7 @@ void PingReader::beginParsing(DatabaseClientBase& databaseClient,
    if(backend & DatabaseBackendType::SQL_Generic) {
       statement
          << "INSERT INTO " << Table
-         << " (Timestamp,MeasurementID,SourceIP,DestinationIP,Protocol,TrafficClass,BurstSeq,PacketSize,ResponseSize,Checksum,Status,TimeSource,Delay_AppSend,Delay_Queuing, Delay_AppReceive,RTT_App,RTT_SW,RTT_HW) VALUES";
+         << " (SendTimestamp,MeasurementID,SourceIP,DestinationIP,Protocol,TrafficClass,BurstSeq,PacketSize,ResponseSize,Checksum,Status,TimeSource,Delay_AppSend,Delay_Queuing, Delay_AppReceive,RTT_App,RTT_SW,RTT_HW) VALUES";
    }
    else if(backend & DatabaseBackendType::NoSQL_Generic) {
       statement << "{ \"" << Table <<  "\": [";
@@ -173,7 +173,7 @@ void PingReader::parseContents(
          const unsigned int             measurementID   = (version >= 2) ? parseMeasurementID(tuple[1], dataFile) : 0;
          const boost::asio::ip::address sourceIP        = (version >= 2) ? parseAddress(tuple[2], dataFile) : parseAddress(tuple[1], dataFile);
          const boost::asio::ip::address destinationIP   = (version >= 2) ? parseAddress(tuple[3], dataFile) : parseAddress(tuple[2], dataFile);
-         const ReaderTimePoint          timeStamp       = (version >= 2) ? parseTimeStamp(tuple[4], now, true, dataFile) :  parseTimeStamp(tuple[3], now, false, dataFile);
+         const ReaderTimePoint          sendTimeStamp   = (version >= 2) ? parseTimeStamp(tuple[4], now, true, dataFile) :  parseTimeStamp(tuple[3], now, false, dataFile);
          uint8_t                        trafficClass    = (version >= 2) ? parseTrafficClass(tuple[6], dataFile) : 0x00;
          const unsigned int             burstSeq        = (version >= 2) ? parseRoundNumber(tuple[5], dataFile) : 0;
          unsigned int                   packetSize      = (version >= 2) ? parseTrafficClass(tuple[7], dataFile) : 0;
@@ -204,24 +204,24 @@ void PingReader::parseContents(
          if(backend & DatabaseBackendType::SQL_Generic) {
             statement.beginRow();
             statement
-               << statement.quote(timePointToString<ReaderTimePoint>(timeStamp, 9)) << statement.sep()
-               << measurementID                                                     << statement.sep()
-               << statement.encodeAddress(sourceIP)                                 << statement.sep()
-               << statement.encodeAddress(destinationIP)                            << statement.sep()
-               << (unsigned int)protocol                                            << statement.sep()
-               << (unsigned int)trafficClass                                        << statement.sep()
-               << burstSeq                                                          << statement.sep()
-               << packetSize                                                        << statement.sep()
-               << responseSize                                                      << statement.sep()
-               << checksum                                                          << statement.sep()
-               << status                                                            << statement.sep()
+               << timePointToNanoseconds<ReaderTimePoint>(sendTimeStamp) << statement.sep()
+               << measurementID                                          << statement.sep()
+               << statement.encodeAddress(sourceIP)                      << statement.sep()
+               << statement.encodeAddress(destinationIP)                 << statement.sep()
+               << (unsigned int)protocol                                 << statement.sep()
+               << (unsigned int)trafficClass                             << statement.sep()
+               << burstSeq                                               << statement.sep()
+               << packetSize                                             << statement.sep()
+               << responseSize                                           << statement.sep()
+               << checksum                                               << statement.sep()
+               << status                                                 << statement.sep()
 
-               << (long long)timeSource                                             << statement.sep()
-               << delayAppSend                                                      << statement.sep()
-               << delayQueuing                                                      << statement.sep()
-               << delayAppReceive                                                   << statement.sep()
-               << rttApp                                                            << statement.sep()
-               << rttSoftware                                                       << statement.sep()
+               << (long long)timeSource                                  << statement.sep()
+               << delayAppSend                                           << statement.sep()
+               << delayQueuing                                           << statement.sep()
+               << delayAppReceive                                        << statement.sep()
+               << rttApp                                                 << statement.sep()
+               << rttSoftware                                            << statement.sep()
                << rttHardware;
             statement.endRow();
             rows++;
@@ -229,25 +229,25 @@ void PingReader::parseContents(
          else if(backend & DatabaseBackendType::NoSQL_Generic) {
             statement.beginRow();
             statement
-               << "\"timestamp\": "     << timePointToNanoseconds<ReaderTimePoint>(timeStamp) << statement.sep()
-               << "\"measurementID\": " << measurementID                                      << statement.sep()
-               << "\"source\": "        << statement.encodeAddress(sourceIP)                  << statement.sep()
-               << "\"destination\": "   << statement.encodeAddress(destinationIP)             << statement.sep()
-               << "\"protocol\": "      << protocol                                           << statement.sep()
-               << "\"tc\": "            << (unsigned int)trafficClass                         << statement.sep()
-               << "\"burstSeq\": "      << burstSeq                                           << statement.sep()
-               << "\"pktsize\": "       << packetSize                                         << statement.sep()
-               << "\"respsize\": "      << responseSize                                       << statement.sep()
-               << "\"checksum\": "      << checksum                                           << statement.sep()
-               << "\"status\": "        << status                                             << statement.sep()
+               << "\"sendTimestamp\": " << timePointToNanoseconds<ReaderTimePoint>(sendTimeStamp) << statement.sep()
+               << "\"measurementID\": " << measurementID                                          << statement.sep()
+               << "\"sourceIP\": "      << statement.encodeAddress(sourceIP)                      << statement.sep()
+               << "\"destinationIP\": " << statement.encodeAddress(destinationIP)                 << statement.sep()
+               << "\"protocol\": "      << protocol                                               << statement.sep()
+               << "\"trafficClass\": "  << (unsigned int)trafficClass                             << statement.sep()
+               << "\"burstSeq\": "      << burstSeq                                               << statement.sep()
+               << "\"packetSize\": "    << packetSize                                             << statement.sep()
+               << "\"responseSize\": "  << responseSize                                           << statement.sep()
+               << "\"checksum\": "      << checksum                                               << statement.sep()
+               << "\"status\": "        << status                                                 << statement.sep()
 
-               << "\"timesource\": "    << timeSource                                         << statement.sep()
-               << "\"delay.appsend\": " << delayAppSend                                       << statement.sep()
-               << "\"delay.queuing\": " << delayQueuing                                       << statement.sep()
-               << "\"delay.apprecv\": " << delayAppReceive                                    << statement.sep()
-               << "\"rtt.app\": "       << rttApp                                             << statement.sep()
-               << "\"rtt.sw\": "        << rttSoftware                                        << statement.sep()
-               << "\"rtt.hw\": "        << rttHardware                                        << statement.sep();
+               << "\"timeSource\": "    << (long long)timeSource                                  << statement.sep()
+               << "\"delay.appSend\": " << delayAppSend                                           << statement.sep()
+               << "\"delay.queuing\": " << delayQueuing                                           << statement.sep()
+               << "\"delay.appRecv\": " << delayAppReceive                                        << statement.sep()
+               << "\"rtt.app\": "       << rttApp                                                 << statement.sep()
+               << "\"rtt.sw\": "        << rttSoftware                                            << statement.sep()
+               << "\"rtt.hw\": "        << rttHardware                                            << statement.sep();
 
             statement.endRow();
             rows++;

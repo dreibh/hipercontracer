@@ -562,16 +562,16 @@ void TracerouteReader::parseContents(
             statement.beginRow();
             statement
                << "\"timestamp\": "     << timePointToNanoseconds<ReaderTimePoint>(timeStamp) << statement.sep()
-               << "\"measurementID\": " << measurementID                                       << statement.sep()
-               << "\"source\": "        << statement.encodeAddress(sourceIP)                   << statement.sep()
-               << "\"destination\": "   << statement.encodeAddress(destinationIP)              << statement.sep()
-               << "\"round\": "         << roundNumber                                         << statement.sep()
-               << "\"checksum\": "      << checksum                                            << statement.sep()
-               << "\"pktsize\": "       << packetSize                                          << statement.sep()
-               << "\"tc\": "            << (unsigned int)trafficClass                          << statement.sep()
-               << "\"statusFlags\": "   << statusFlags                                         << statement.sep()
-               << "\"totalHops\": "     << totalHops                                           << statement.sep()
-               << "\"pathHash\": "      << pathHash                                            << statement.sep()
+               << "\"measurementID\": " << measurementID                                      << statement.sep()
+               << "\"sourceIP\": "      << statement.encodeAddress(sourceIP)                  << statement.sep()
+               << "\"destinationIP\": " << statement.encodeAddress(destinationIP)             << statement.sep()
+               << "\"round\": "         << roundNumber                                        << statement.sep()
+               << "\"checksum\": "      << checksum                                           << statement.sep()
+               << "\"packetSize\": "    << packetSize                                         << statement.sep()
+               << "\"trafficClass\": "  << (unsigned int)trafficClass                         << statement.sep()
+               << "\"statusFlags\": "   << statusFlags                                        << statement.sep()
+               << "\"totalHops\": "     << totalHops                                          << statement.sep()
+               << "\"pathHash\": "      << pathHash                                           << statement.sep()
                << "\"hops\": [ ";
          }
       }
@@ -603,29 +603,29 @@ void TracerouteReader::parseContents(
          if(backend & DatabaseBackendType::SQL_Generic) {
             statement.beginRow();
             statement
-               << statement.quote(timePointToString<ReaderTimePoint>(timeStamp, 9))     << statement.sep()
-               << measurementID                                                         << statement.sep()
-               << statement.encodeAddress(sourceIP)                                     << statement.sep()
-               << statement.encodeAddress(destinationIP)                                << statement.sep()
-               << (unsigned int)protocol                                                << statement.sep()
-               << (unsigned int)trafficClass                                            << statement.sep()
-               << roundNumber                                                           << statement.sep()
-               << hopNumber                                                             << statement.sep()
-               << totalHops                                                             << statement.sep()
-               << packetSize                                                            << statement.sep()
-               << responseSize                                                          << statement.sep()
-               << checksum                                                              << statement.sep()
-               << (status | statusFlags)                                                << statement.sep()
-               << pathHash                                                              << statement.sep()
-               << statement.quote(timePointToString<ReaderTimePoint>(sendTimeStamp, 9)) << statement.sep()
-               << statement.encodeAddress(hopIP)                                        << statement.sep()
+               << timePointToNanoseconds<ReaderTimePoint>(timeStamp)     << statement.sep()
+               << measurementID                                          << statement.sep()
+               << statement.encodeAddress(sourceIP)                      << statement.sep()
+               << statement.encodeAddress(destinationIP)                 << statement.sep()
+               << (unsigned int)protocol                                 << statement.sep()
+               << (unsigned int)trafficClass                             << statement.sep()
+               << roundNumber                                            << statement.sep()
+               << hopNumber                                              << statement.sep()
+               << totalHops                                              << statement.sep()
+               << packetSize                                             << statement.sep()
+               << responseSize                                           << statement.sep()
+               << checksum                                               << statement.sep()
+               << (status | statusFlags)                                 << statement.sep()
+               << pathHash                                               << statement.sep()
+               << timePointToNanoseconds<ReaderTimePoint>(sendTimeStamp) << statement.sep()
+               << statement.encodeAddress(hopIP)                         << statement.sep()
 
-               << (long long)timeSource                                                 << statement.sep()
-               << delayAppSend                                                          << statement.sep()
-               << delayQueuing                                                          << statement.sep()
-               << delayAppReceive                                                       << statement.sep()
-               << rttApp                                                                << statement.sep()
-               << rttSoftware                                                           << statement.sep()
+               << (long long)timeSource                                  << statement.sep()
+               << delayAppSend                                           << statement.sep()
+               << delayQueuing                                           << statement.sep()
+               << delayAppReceive                                        << statement.sep()
+               << rttApp                                                 << statement.sep()
+               << rttSoftware                                            << statement.sep()
                << rttHardware;
             statement.endRow();
             rows++;
@@ -634,17 +634,17 @@ void TracerouteReader::parseContents(
             statement
                << ((hopNumber > 1) ? ", { " : " { ")
 
-               << statement.quote(timePointToString<ReaderTimePoint>(sendTimeStamp, 9)) << statement.sep()
-               << "\"respsize\": "      << responseSize                                 << statement.sep()
-               << "\"hop\": "           << statement.encodeAddress(hopIP)               << statement.sep()
-               << "\"status\": "        << status                                       << statement.sep()
+               << "\"sendTimeStamp\":"  << statement.quote(timePointToString<ReaderTimePoint>(sendTimeStamp, 9)) << statement.sep()
+               << "\"responseSize\": "  << responseSize                                                          << statement.sep()
+               << "\"hopIP\": "         << statement.encodeAddress(hopIP)                                        << statement.sep()
+               << "\"status\": "        << status                                                                << statement.sep()
 
-               << "\"timesource\": "    << timeSource                                   << statement.sep()
-               << "\"delay.appsend\": " << delayAppSend                                 << statement.sep()
-               << "\"delay.queuing\": " << delayQueuing                                 << statement.sep()
-               << "\"delay.apprecv\": " << delayAppReceive                              << statement.sep()
-               << "\"rtt.app\": "       << rttApp                                       << statement.sep()
-               << "\"rtt.sw\": "        << rttSoftware                                  << statement.sep()
+               << "\"timeSource\": "    << (long long)timeSource                                                 << statement.sep()
+               << "\"delay.appSend\": " << delayAppSend                                                          << statement.sep()
+               << "\"delay.queuing\": " << delayQueuing                                                          << statement.sep()
+               << "\"delay.appRecv\": " << delayAppReceive                                                       << statement.sep()
+               << "\"rtt.app\": "       << rttApp                                                                << statement.sep()
+               << "\"rtt.sw\": "        << rttSoftware                                                           << statement.sep()
                << "\"rtt.hw\": "        << rttHardware
 
                << " }";
