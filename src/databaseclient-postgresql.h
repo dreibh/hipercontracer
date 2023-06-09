@@ -54,6 +54,11 @@ class PostgreSQLClient : public DatabaseClientBase
    virtual void executeQuery(Statement& statement);
    virtual void endTransaction(const bool commit);
 
+   virtual bool fetchNextTuple();
+   virtual int32_t getInteger(unsigned int column) const;
+   virtual int64_t getBigInt(unsigned int column) const;
+   virtual std::string getString(unsigned int column) const;
+
    inline pqxx::connection* getConnection() { return Connection; }
 
    private:
@@ -61,8 +66,10 @@ class PostgreSQLClient : public DatabaseClientBase
                                 const std::string&   where,
                                 const std::string&   statement = std::string());
 
-   pqxx::connection* Connection;
-   pqxx::work*       Transaction;
+   pqxx::connection*       Connection;
+   pqxx::work*             Transaction;
+   pqxx::result            ResultSet;
+   pqxx::result::size_type ResultIndex;
 };
 
 #endif

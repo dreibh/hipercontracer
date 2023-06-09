@@ -137,6 +137,10 @@ bool MariaDBClient::open()
 // ###### Close connection to database ######################################
 void MariaDBClient::close()
 {
+   if(ResultSet != nullptr) {
+      delete ResultSet;
+      ResultSet = nullptr;
+   }
    if(Transaction) {
       delete Transaction;
       Transaction = nullptr;
@@ -144,10 +148,6 @@ void MariaDBClient::close()
    if(Connection != nullptr) {
       delete Connection;
       Connection = nullptr;
-   }
-   if(ResultSet != nullptr) {
-      delete ResultSet;
-      ResultSet = nullptr;
    }
 }
 

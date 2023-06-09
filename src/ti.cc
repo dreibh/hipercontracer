@@ -216,7 +216,6 @@ int main(int argc, char** argv)
          << "SELECT Timestamp,MeasurementID,SourceIP,DestinationIP,Protocol,TrafficClass,BurstSeq,PacketSize,ResponseSize,Checksum,Status,TimeSource,Delay_AppSend,Delay_Queuing, Delay_AppReceive,RTT_App,RTT_SW,RTT_HW FROM Ping";
       databaseClient->executeQuery(statement);
       while(databaseClient->fetchNextTuple()) {
-
          ResultTimePoint sendTimeStamp;
          if(!stringToTimePoint<ResultTimePoint>(databaseClient->getString(1), sendTimeStamp)) {
             HPCT_LOG(error) << "Invalid time stamp";
