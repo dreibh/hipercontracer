@@ -301,3 +301,19 @@ void MongoDBClient::executeUpdate(Statement& statement)
 
    statement.clear();
 }
+
+
+// ###### Execute statement #################################################
+void MongoDBClient::executeQuery(Statement& statement)
+{
+   assert(statement.isValid());
+
+   abort();   // TBD
+}
+
+
+// ###### Fetch next tuple ##################################################
+bool MongoDBClient::fetchNextTuple()
+{
+   abort();
+}

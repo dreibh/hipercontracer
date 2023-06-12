@@ -122,24 +122,3 @@ bool DebugClient::fetchNextTuple()
 {
    abort();
 }
-
-
-// ###### Get integer value #################################################
-int32_t DebugClient::getInteger(unsigned int column) const
-{
-   abort();
-}
-
-
-// ###### Get big integer value #############################################
-int64_t DebugClient::getBigInt(unsigned int column) const
-{
-   abort();
-}
-
-
-// ###### Get string value ##################################################
-std::string DebugClient::getString(unsigned int column) const
-{
-   abort();
-}

@@ -74,9 +74,12 @@ class DatabaseClientBase
    }
 
    virtual bool fetchNextTuple() = 0;
-   virtual int32_t getInteger(unsigned int column) const = 0;
-   virtual int64_t getBigInt(unsigned int column) const = 0;
-   virtual std::string getString(unsigned int column) const = 0;
+   virtual int32_t getInteger(unsigned int column) const;
+   virtual int32_t getInteger(const char* column) const;
+   virtual int64_t getBigInt(unsigned int column) const;
+   virtual int64_t getBigInt(const char* column) const;
+   virtual std::string getString(unsigned int column) const;
+   virtual std::string getString(const char* column) const;
 
    Statement& getStatement(const std::string& name,
                            const bool         mustExist      = true,
