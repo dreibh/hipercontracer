@@ -5,7 +5,6 @@ Maintainer: Thomas Dreibholz <thomas.dreibholz@gmail.com>
 Homepage: https://www.nntb.no/~dreibh/hipercontracer/
 Build-Depends: cmake (>= 3.10),
                debhelper (>= 12),
-               dh-python,
                libboost-date-time-dev,
                libboost-filesystem-dev,
                libboost-iostreams-dev,
@@ -20,7 +19,6 @@ Build-Depends: cmake (>= 3.10),
                libmysqlcppconn-dev,
                libpqxx-dev,
                pkg-config,
-               python3,
                zlib1g-dev
 Standards-Version: 4.6.2
 Rules-Requires-Root: no
@@ -140,31 +138,11 @@ Description: HiPerConTracer results data importer
  This package contains the importer tool to import results from
  HiPerConTracer into an SQL or NoSQL database.
 
-Package: python3-queryhelper
-Section: python
-Architecture: all
-Depends: python3-mysql.connector,
-         python3-psycopg2,
-         python3-pymongo,
-         python3-snappy,
-         python3-urllib3,
-         python3-zstd,
-         ${misc:Depends},
-         ${python3:Depends}
-Description: Query helper library for HiPerConTracer Universal Importer
- High-Performance Connectivity Tracer (HiPerConTracer) is a
- Ping/Traceroute service. It performs regular Ping and Traceroute runs
- among sites. The results are written to data files, which can be
- imported into an SQL or NoSQL database.
- .
- The HiPerConTracer Universal Importer query helper library for Python
- is provided by this package.
-
 Package: hipercontracer-query
-Architecture: all
-Depends: python3-queryhelper (>= ${source:Version}),
+Architecture: any
+Depends: libuniversalimporter1 (= ${binary:Version}),
          ${misc:Depends},
-         ${python3:Depends}
+         ${shlibs:Depends}
 Recommends: hipercontracer,
             hipercontracer-results-tool,
             pwgen

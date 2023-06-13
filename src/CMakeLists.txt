@@ -146,32 +146,6 @@ ENDIF()
 
 
 #############################################################################
-#### PYTHON LIBRARIES                                                    ####
-#############################################################################
-
-IF (WITH_QUERY)
-   # Help:
-   # https://bloerg.net/2012/11/10/cmake-and-distutils.html
-
-   # NOTE: setup.py must *not* be packaged, since it is automatically generated!
-   # It has to be added to CPACK_SOURCE_IGNORE_FILES (i.e. "setup.py$")!
-
-   SET(SETUP_PY_IN "${CMAKE_CURRENT_SOURCE_DIR}/setup.py.in")
-   SET(SETUP_PY    "${CMAKE_CURRENT_BINARY_DIR}/setup.py")
-   # SET(DEPS        "${CMAKE_CURRENT_SOURCE_DIR}/module/__init__.py")
-   SET(OUTPUT      "${CMAKE_CURRENT_BINARY_DIR}/build/timestamp")
-
-   CONFIGURE_FILE(${SETUP_PY_IN} ${SETUP_PY})
-
-   ADD_CUSTOM_COMMAND(OUTPUT ${OUTPUT}
-                      COMMAND ${PYTHON_EXECUTABLE} ${SETUP_PY} build && touch ${OUTPUT})
-   ADD_CUSTOM_TARGET(target ALL DEPENDS ${OUTPUT})
-
-   INSTALL(CODE "EXECUTE_PROCESS(COMMAND ${PYTHON_EXECUTABLE} ${SETUP_PY} install ${PYTHON_SETUP_OPTS} --prefix=${PYTHON_LIBRARY_PREFIX})")
-ENDIF()
-
-
-#############################################################################
 #### PROGRAMS                                                            ####
 #############################################################################
 
@@ -208,7 +182,9 @@ ENDIF()
 
 # ====== HiPerConTracer Query ===============================================
 IF (WITH_QUERY)
-   INSTALL(PROGRAMS hpct-query
+   ADD_EXECUTABLE(hpct-query hpct-query.cc)
+   TARGET_LINK_LIBRARIES(hpct-query libuniversalimporter-${libraryType} ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} -llzma -lbz2 -lz)
+   INSTALL(TARGETS hpct-query
            DESTINATION ${CMAKE_INSTALL_BINDIR})
    INSTALL(FILES hpct-query.1
             DESTINATION ${CMAKE_INSTALL_MANDIR}/man1)
@@ -252,9 +228,6 @@ INSTALL(FILES get-default-ips.1
 # TARGET_LINK_LIBRARIES(t3 ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
 # ADD_EXECUTABLE(t7 t7.cc)
 # TARGET_LINK_LIBRARIES(t7 ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
-
-ADD_EXECUTABLE(ti ti.cc)
-TARGET_LINK_LIBRARIES(ti libuniversalimporter-${libraryType} ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} -llzma -lbz2 -lz)
 
 
 #############################################################################

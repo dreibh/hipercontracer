@@ -4,7 +4,7 @@
 export DEB_BUILD_MAINT_OPTIONS = hardening=+all
 
 %:
-	dh $@ --buildsystem=cmake --with python3
+	dh $@ --buildsystem=cmake
 
 override_dh_auto_configure:
 	dh_auto_configure -- -DCMAKE_BUILD_RPATH_USE_ORIGIN=ON -DPYTHON_LIBRARY_PREFIX="$(CURDIR)/debian/tmp/usr" -DPYTHON_SETUP_OPTS="--install-layout=deb"
