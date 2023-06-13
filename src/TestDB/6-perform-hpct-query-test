@@ -55,7 +55,7 @@ if [ -e "${DATABASE_CONFIG}" ] ; then
    for table in Ping Traceroute ; do
 
       echo "Obtaining ${table} data from good/ directory ..."
-      find good/ -name "${table}-*.bz2" | sort | xargs -r bzcat | tee imported-raw-${table,,}.txt | grep "^#" | sort -k4 >imported-${table,,}.txt
+      find good/ -name "${table}-*.results.*" | sort | xargs -r bzcat | tee imported-raw-${table,,}.txt | grep "^#" | sort -k4 >imported-${table,,}.txt
       ls -l imported-raw-${table,,}.txt imported-${table,,}.txt
 
       echo "Querying ${table} data from database ..."

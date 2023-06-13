@@ -60,7 +60,7 @@ if [ -e "${DATABASE_CONFIG}" ] ; then
    rm -rf good/*
    rm -rf bad/*
 
-   cp ../examples/*.bz2 data/
+   cp ../examples/*.results.* data/
    ../hpct-importer \
       -c "${DATABASE_CONFIG}" \
       --quit-when-idle \
