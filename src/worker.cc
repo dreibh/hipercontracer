@@ -389,7 +389,7 @@ void Worker::run()
 
       // ====== Quit when idle? =============================================
       if( (files == 0) && (QuitWhenIdle) ) {
-         HPCT_LOG(trace) << getIdentification() << "Idle -> done!";
+         HPCT_LOG(trace) << getIdentification() << ": Idle -> done!";
          break;
       }
 
