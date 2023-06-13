@@ -324,7 +324,7 @@ int main(int argc, char** argv)
 
                      % totalHops
 
-                     % trafficClass
+                     % (unsigned int)trafficClass
                      % packetSize
                      % checksum
                      % statusFlags
