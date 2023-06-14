@@ -317,7 +317,6 @@ void checkFormat(boost::iostreams::filtering_ostream* outputStream,
                   "RTT.App ";              // 14: RTT in microseconds (decimal)
                   "HopIP "                 // 15: Hop IP address.
                   "TimeSource";            // 16: Source of the timing information (hexadecimal) as: AA
-                  std::cout << "C=" << columnNames << "\n";
             }
          }
       }
@@ -349,7 +348,7 @@ void checkFormat(boost::iostreams::filtering_ostream* outputStream,
 
             "Packets.AppReceive "     // Number of packets for application receive jitter/mean RTT computation
             "MeanDelay.AppReceive "   // Mean application receive
-            "Jitter.AppReceive "      //Jitter of application receive (computed based on RFC 3550, Subsubsection 6.4.1)
+            "Jitter.AppReceive "      // Jitter of application receive (computed based on RFC 3550, Subsubsection 6.4.1)
 
             "Packets.App "            // Number of packets for application RTT jitter/mean RTT computation
             "MeanRTT.App "            // Mean application RTT
@@ -375,9 +374,9 @@ void checkFormat(boost::iostreams::filtering_ostream* outputStream,
       *outputStream << columnNames << "\n";
    }
    else {
-      if(format.String != line.substr(0, 3)) {
+      if(format.String.substr(0, 2) != line.substr(0, 2)) {
          HPCT_LOG(fatal) << "Incompatible format for merging ("
-                         << line.substr(0, 3) << " vs. " << format.String << ")"
+                         << line.substr(0, 2) << " vs. " << format.String.substr(0, 2) << ")"
                          << " in input file " << fileName;
          exit(1);
       }
@@ -558,7 +557,6 @@ bool dumpResultsFile(std::set<OutputEntry*, pointer_lessthan<OutputEntry>>* outp
          newEntry->SeqNumber++;
          newSubEntry = new OutputEntry(*newEntry);
          newSubEntry->Line += " ~ " + ((line[1] != ' ') ? line.substr(1) : line.substr(2));
-         std::cout << newSubEntry->Line << "\n";
 
          const unsigned int seenColumns = applySeparator(newSubEntry->Line, separator);
          if(seenColumns != columns) {
@@ -605,8 +603,10 @@ int main(int argc, char** argv)
    unsigned int                       logLevel;
    bool                               logColor;
    std::filesystem::path              logFile;
-   std::vector<std::filesystem::path> inputFileNameList;
    std::filesystem::path              outputFileName;
+   std::vector<std::filesystem::path> inputFileNameList;
+   bool                               inputFileNamesFromStdin;
+   bool                               inputResultsFromStdin;
    char                               separator;
    bool                               sorted;
 
@@ -631,6 +631,13 @@ int main(int argc, char** argv)
       ( "quiet,q",
            boost::program_options::value<unsigned int>(&logLevel)->implicit_value(boost::log::trivial::severity_level::warning),
            "Quiet logging level" )
+
+      ( "input-results-from-stdin,R",
+           boost::program_options::value<bool>(&inputResultsFromStdin)->implicit_value(true)->default_value(false),
+           "Read results from standard input" )
+      ( "input-file-names-from-stdin,N",
+           boost::program_options::value<bool>(&inputFileNamesFromStdin)->implicit_value(true)->default_value(false),
+           "Read input file names from standard input" )
 
       ( "output,o",
            boost::program_options::value<std::filesystem::path>(&outputFileName)->default_value(std::filesystem::path()),
@@ -684,6 +691,25 @@ int main(int argc, char** argv)
        std::cerr << "Usage: " << argv[0] << " parameters" << "\n"
                  << commandLineOptions;
        return 1;
+   }
+
+   if(inputResultsFromStdin) {
+      inputFileNameList.clear();
+      inputFileNameList.push_back("/dev/stdin");
+   }
+   else if(inputFileNamesFromStdin) {
+      std::cout << "Input file: ";
+      std::cout.flush();
+      while(!std::cin.eof()) {
+         std::string inputFileName;
+         std::cin >> inputFileName;
+         if(!inputFileName.empty()) {
+            std::cout << inputFileName << "\n";
+            inputFileNameList.push_back(inputFileName);
+         }
+         std::cout << "Input file: ";
+         std::cout.flush();
+      }
    }
 
    // ====== Initialize =====================================================

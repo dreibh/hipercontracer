@@ -251,7 +251,7 @@ int main(int argc, char** argv)
                   % sendTimeStamp
                   % burstSeq
 
-                  % trafficClass
+                  % (unsigned int)trafficClass
                   % packetSize
                   % responseSize
                   % checksum
