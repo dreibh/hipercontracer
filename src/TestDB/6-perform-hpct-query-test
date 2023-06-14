@@ -55,23 +55,25 @@ if [ -e "${DATABASE_CONFIG}" ] ; then
    for table in Ping Traceroute ; do
 
       echo "Obtaining ${table} data from good/ directory ..."
-      find good/ -name "${table}-*.results.*" | sort | xargs -r bzcat | tee imported-raw-${table,,}.txt | grep "^#" | sort -k4 >imported-${table,,}.txt
-      ls -l imported-raw-${table,,}.txt imported-${table,,}.txt
+      find good/ -name "${table}-*.results.*" | ../hpct-results-tool --input-file-names-from-stdin -o imported-${table,,}.csv
 
       echo "Querying ${table} data from database ..."
-      ../hpct-query -c "${DATABASE_CONFIG}" -Q ${table,,} >queried-raw-${table,,}.txt
-      cat queried-raw-${table,,}.txt | grep "^#" | sort -k4 >queried-${table,,}.txt
-      ls -l queried-raw-${table,,}.txt queried-${table,,}.txt
+      ../hpct-query -c "${DATABASE_CONFIG}" -Q ${table,,} >queried-${table,,}.results
+      ../hpct-results-tool queried-${table,,}.results -o queried-${table,,}.csv
 
       echo "Differences for ${table}:"
       if [ "${table}" == "Traceroute" ] ; then
-         ls -l imported-raw-${table,,}.txt
-         ls -l queried-raw-${table,,}.txt
+         ls -l imported-${table,,}.csv
+         ls -l queried-${table,,}.csv
       fi
 
-      ls -l imported-${table,,}.txt queried-${table,,}.txt
-      wc -l imported-${table,,}.txt queried-${table,,}.txt
-      diff --color=always imported-${table,,}.txt queried-${table,,}.txt | head -n32
+      ls -l imported-${table,,}.csv queried-${table,,}.csv
+      wc -l imported-${table,,}.csv queried-${table,,}.csv
+      if ! diff imported-${table,,}.csv queried-${table,,}.csv ; then
+         echo "RESULTS DIFFER!"
+         diff --color=always imported-${table,,}.csv queried-${table,,}.csv | head -n32
+         exit 1
+      fi
 
    done
 
