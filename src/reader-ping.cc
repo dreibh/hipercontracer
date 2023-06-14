@@ -186,8 +186,8 @@ void PingReader::parseContents(
          const long long                delayQueuing    = (version >= 2) ? parseNanoseconds(tuple[13], dataFile) : -1;
          const long long                delayAppReceive = (version >= 2) ? parseNanoseconds(tuple[14], dataFile) : -1;
          const long long                rttApp          = (version >= 2) ? parseNanoseconds(tuple[15], dataFile) : parseMicroseconds(tuple[6], dataFile);
-         const long long                rttHardware     = (version >= 2) ? parseNanoseconds(tuple[16], dataFile) : -1;
-         const long long                rttSoftware     = (version >= 2) ? parseNanoseconds(tuple[17], dataFile) : -1;
+         const long long                rttSoftware     = (version >= 2) ? parseNanoseconds(tuple[16], dataFile) : -1;
+         const long long                rttHardware     = (version >= 2) ? parseNanoseconds(tuple[17], dataFile) : -1;
 
          if(version == 1) {
             if(columns >= 8) {   // TrafficClass was added in HiPerConTracer 1.4.0!
