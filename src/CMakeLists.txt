@@ -172,6 +172,7 @@ ENDIF()
 # ====== HiPerConTracer Importer ============================================
 IF (WITH_IMPORTER)
    ADD_EXECUTABLE(hpct-importer hpct-importer.cc
+      conversions.cc
       reader-ping.cc
       reader-traceroute.cc
    )
@@ -191,7 +192,7 @@ IF (WITH_QUERY)
 ENDIF()
 
 # ====== HiPerConTracer Results Tool ========================================
-ADD_EXECUTABLE(hpct-results-tool hpct-results-tool.cc)
+ADD_EXECUTABLE(hpct-results-tool hpct-results-tool.cc conversions.cc)
 TARGET_LINK_LIBRARIES(hpct-results-tool libuniversalimporter-${libraryType} ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} -llzma -lbz2 -lz)
 INSTALL(TARGETS hpct-results-tool RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
 INSTALL(FILES hpct-results-tool.1
