@@ -29,6 +29,7 @@
 //
 // Contact: dreibh@simula.no
 
+#include "conversions.h"
 #include "reader-ping.h"
 #include "importer-exception.h"
 #include "logger.h"
@@ -129,7 +130,7 @@ void PingReader::parseContents(
 {
    Statement&                statement = databaseClient.getStatement("Ping");
    const DatabaseBackendType backend   = databaseClient.getBackend();
-   static const unsigned int PingMinColumns = 7;
+   static const unsigned int PingMinColumns = 18;
    static const unsigned int PingMaxColumns = 18;
    static const char         PingDelimiter  = ' ';
 
@@ -137,6 +138,11 @@ void PingReader::parseContents(
    std::string tuple[PingMaxColumns];
    const ReaderTimePoint now = ReaderClock::now();
    while(std::getline(dataStream, inputLine)) {
+      // ====== Conversion from old versions ================================
+      if(inputLine.substr(0, 3) == "#P ") {
+         inputLine = convertOldPingLine(inputLine);
+      }
+
       // ====== Parse line ==================================================
       size_t columns = 0;
       size_t start;
@@ -155,51 +161,25 @@ void PingReader::parseContents(
 
       // ====== Generate import statement ===================================
       if( (tuple[0].size() >= 2) && (tuple[0][0] == '#') && (tuple[0][1] == 'P') ) {
-         // ------ Obtain version -------------------------------------------
-         unsigned int version;
-         char         protocol;
-         if( (tuple[0].size() > 2) && (columns >= 18) ) {
-            version  = 2;
-            protocol = tuple[0][2];
-         }
-         else if( (tuple[0].size() == 2) && (columns >= 7) ) {
-            version  = 1;
-            protocol = 'i';
-         }
-         else {
-            throw ImporterReaderDataErrorException("Unexpected syntax in input file " + dataFile.string());
-         }
+         const char                     protocol        = tuple[0][2];
+         const unsigned int             measurementID   = parseMeasurementID(tuple[1], dataFile);
+         const boost::asio::ip::address sourceIP        = parseAddress(tuple[2], dataFile);
+         const boost::asio::ip::address destinationIP   = parseAddress(tuple[3], dataFile);
+         const ReaderTimePoint          sendTimeStamp   = parseTimeStamp(tuple[4], now, true, dataFile);
+         uint8_t                        trafficClass    = parseTrafficClass(tuple[6], dataFile);
+         const unsigned int             burstSeq        = parseRoundNumber(tuple[5], dataFile);
+         unsigned int                   packetSize      = parseTrafficClass(tuple[7], dataFile);
+         const unsigned int             responseSize    = parseTrafficClass(tuple[8], dataFile);
+         const uint16_t                 checksum        = parseChecksum(tuple[9], dataFile);
+         const unsigned int             status          = parseStatus(tuple[10], dataFile, 10);
+         unsigned int                   timeSource      = parseTimeSource(tuple[11], dataFile);
 
-         const unsigned int             measurementID   = (version >= 2) ? parseMeasurementID(tuple[1], dataFile) : 0;
-         const boost::asio::ip::address sourceIP        = (version >= 2) ? parseAddress(tuple[2], dataFile) : parseAddress(tuple[1], dataFile);
-         const boost::asio::ip::address destinationIP   = (version >= 2) ? parseAddress(tuple[3], dataFile) : parseAddress(tuple[2], dataFile);
-         const ReaderTimePoint          sendTimeStamp   = (version >= 2) ? parseTimeStamp(tuple[4], now, true, dataFile) :  parseTimeStamp(tuple[3], now, false, dataFile);
-         uint8_t                        trafficClass    = (version >= 2) ? parseTrafficClass(tuple[6], dataFile) : 0x00;
-         const unsigned int             burstSeq        = (version >= 2) ? parseRoundNumber(tuple[5], dataFile) : 0;
-         unsigned int                   packetSize      = (version >= 2) ? parseTrafficClass(tuple[7], dataFile) : 0;
-         const unsigned int             responseSize    = (version >= 2) ? parseTrafficClass(tuple[8], dataFile) : 0;
-         const uint16_t                 checksum        = (version >= 2) ? parseChecksum(tuple[9], dataFile) : parseChecksum(tuple[4], dataFile);
-         const unsigned int             status          = (version >= 2) ? parseStatus(tuple[10], dataFile, 10) : parseStatus(tuple[5], dataFile, 10);   // Decimal!
-         unsigned int                   timeSource      = (version >= 2) ? parseTimeSource(tuple[11], dataFile) : 0x00000000;
-
-         const long long                delayAppSend    = (version >= 2) ? parseNanoseconds(tuple[12], dataFile) : -1;
-         const long long                delayQueuing    = (version >= 2) ? parseNanoseconds(tuple[13], dataFile) : -1;
-         const long long                delayAppReceive = (version >= 2) ? parseNanoseconds(tuple[14], dataFile) : -1;
-         const long long                rttApp          = (version >= 2) ? parseNanoseconds(tuple[15], dataFile) : parseMicroseconds(tuple[6], dataFile);
-         const long long                rttSoftware     = (version >= 2) ? parseNanoseconds(tuple[16], dataFile) : -1;
-         const long long                rttHardware     = (version >= 2) ? parseNanoseconds(tuple[17], dataFile) : -1;
-
-         if(version == 1) {
-            if(columns >= 8) {   // TrafficClass was added in HiPerConTracer 1.4.0!
-               trafficClass = parseTrafficClass(tuple[7], dataFile);
-               if(columns >= 9) {   // PacketSize was added in HiPerConTracer 1.6.0!
-                  packetSize = parsePacketSize(tuple[8], dataFile);
-                  if(columns >= 10) {   // TimeSource was added in HiPerConTracer 2.0.0!
-                     timeSource = parseTimeSource(tuple[9], dataFile);
-                  }
-               }
-            }
-         }
+         const long long                delayAppSend    = parseNanoseconds(tuple[12], dataFile);
+         const long long                delayQueuing    = parseNanoseconds(tuple[13], dataFile);
+         const long long                delayAppReceive = parseNanoseconds(tuple[14], dataFile);
+         const long long                rttApp          = parseNanoseconds(tuple[15], dataFile);
+         const long long                rttSoftware     = parseNanoseconds(tuple[16], dataFile);
+         const long long                rttHardware     = parseNanoseconds(tuple[17], dataFile);
 
          if(backend & DatabaseBackendType::SQL_Generic) {
             statement.beginRow();
@@ -233,7 +213,7 @@ void PingReader::parseContents(
                << "\"measurementID\": " << measurementID                                          << statement.sep()
                << "\"sourceIP\": "      << statement.encodeAddress(sourceIP)                      << statement.sep()
                << "\"destinationIP\": " << statement.encodeAddress(destinationIP)                 << statement.sep()
-               << "\"protocol\": "      << protocol                                               << statement.sep()
+               << "\"protocol\": \""    << protocol << "\""                                       << statement.sep()
                << "\"trafficClass\": "  << (unsigned int)trafficClass                             << statement.sep()
                << "\"burstSeq\": "      << burstSeq                                               << statement.sep()
                << "\"packetSize\": "    << packetSize                                             << statement.sep()

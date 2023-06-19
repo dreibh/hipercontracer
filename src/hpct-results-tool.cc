@@ -53,6 +53,7 @@
 #include <boost/program_options.hpp>
 
 
+
 struct OutputEntry
 {
    OutputEntry(const int                       measurementID,
@@ -154,6 +155,7 @@ struct pointer_lessthan
       return (left && right) ? std::less<T>{}(*left, *right) : std::less<T*>{}(left, right);
    }
 };
+
 
 
 // ###### Count columns #####################################################
@@ -422,6 +424,9 @@ bool dumpResultsFile(std::set<OutputEntry*, pointer_lessthan<OutputEntry>>* outp
          if(format.Version < 2) {
             if(format.Type == InputType::IT_Ping) {
                line = convertOldPingLine(line);
+            }
+            else if(format.Type == InputType::IT_Traceroute) {
+               line = convertOldTracerouteLine(line);
             }
          }
 

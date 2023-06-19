@@ -36,5 +36,6 @@
 
 
 std::string convertOldPingLine(const std::string& line);
+std::string convertOldTracerouteLine(const std::string& line);
 
 #endif

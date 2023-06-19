@@ -32,6 +32,7 @@
 #ifndef READER_TRACEROUTE
 #define READER_TRACEROUTE
 
+#include "conversions.h"
 #include "reader-base.h"
 
 
