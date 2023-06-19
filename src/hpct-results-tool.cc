@@ -410,6 +410,7 @@ bool dumpResultsFile(std::set<OutputEntry*, pointer_lessthan<OutputEntry>>* outp
    unsigned long long lineNumber  = 0;
    OutputEntry*       newEntry    = nullptr;
    OutputEntry*       newSubEntry = nullptr;
+   unsigned long long oldTimeStamp;   // Just used for version 1 conversion!
    while(std::getline(inputStream, line, '\n')) {
       lineNumber++;
 
@@ -426,7 +427,7 @@ bool dumpResultsFile(std::set<OutputEntry*, pointer_lessthan<OutputEntry>>* outp
                line = convertOldPingLine(line);
             }
             else if(format.Type == InputType::IT_Traceroute) {
-               line = convertOldTracerouteLine(line);
+               line = convertOldTracerouteLine(line, oldTimeStamp);
             }
          }
 
@@ -521,6 +522,13 @@ bool dumpResultsFile(std::set<OutputEntry*, pointer_lessthan<OutputEntry>>* outp
 
       // ====== TAB<line> ===================================================
       else if(line[0] == '\t') {
+         // ------ Conversion from old versions -----------------------------
+         if(format.Version < 2) {
+            if(format.Type == InputType::IT_Traceroute) {
+               line = convertOldTracerouteLine(line, oldTimeStamp);
+            }
+         }
+
          if(newEntry == nullptr) {
             HPCT_LOG(fatal) << "TAB line without corresponding header line"
                             << " in input file " << fileName << ", line " << lineNumber;
@@ -583,6 +591,7 @@ int main(int argc, char** argv)
    bool                               inputResultsFromStdin;
    char                               separator;
    bool                               sorted;
+   unsigned int                       maxThreads;
 
    // ====== Initialize =====================================================
    boost::program_options::options_description commandLineOptions;
@@ -605,6 +614,10 @@ int main(int argc, char** argv)
       ( "quiet,q",
            boost::program_options::value<unsigned int>(&logLevel)->implicit_value(boost::log::trivial::severity_level::warning),
            "Quiet logging level" )
+
+      ( "maxthreads,T",
+           boost::program_options::value<unsigned int>(&maxThreads)->default_value(std::thread::hardware_concurrency()),
+           "Maximum number of threads" )
 
       ( "input-results-from-stdin,R",
            boost::program_options::value<bool>(&inputResultsFromStdin)->implicit_value(true)->default_value(false),
@@ -737,9 +750,8 @@ int main(int argc, char** argv)
                   << ", Version="    << format.Version;
 
    // ------  Use thread pool to read all files -----------------------------
-   const unsigned int       maxThreads = std::thread::hardware_concurrency();
    boost::asio::thread_pool threadPool(maxThreads);
-   HPCT_LOG(info) << "Reading " << inputFileNameSet.size() << " files using "
+   HPCT_LOG(info) << "Reading " << inputFileNameSet.size() << " files using up to "
                   << maxThreads << " threads ...";
    const std::chrono::system_clock::time_point t1 = std::chrono::system_clock::now();
    for(const std::filesystem::path& inputFileName : inputFileNameSet) {

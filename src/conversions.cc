@@ -31,6 +31,7 @@
 
 #include "conversions.h"
 
+// #include <iostream>
 #include <boost/format.hpp>
 
 
@@ -61,6 +62,7 @@ std::string convertOldPingLine(const std::string& line)
       l++; i++;
    }
    length[c] = l;
+   c++;
 
    // ====== Generate data line in version 2 ================================
    if(c >= 7) {
@@ -75,7 +77,7 @@ std::string convertOldPingLine(const std::string& line)
          throw std::range_error("Bad RTT value");
       }
 
-      std::string newLine =
+      const std::string newLine =
          std::string(value[0], length[0]) + "i " +                // "#P<p>"
          "0 " +                                                   // Measurement ID
          std::string(value[1], length[1]) + " " +                 // Source address
@@ -97,6 +99,8 @@ std::string convertOldPingLine(const std::string& line)
          "-1 -1 -1 " +
          std::to_string(rtt) + " -1 -1";
 
+      // std::cout << "<= " << line    << "\n"
+      //           << "=> " << newLine << "\n";
       return newLine;
    }
    throw std::range_error("Unexpected number of columns");
@@ -104,10 +108,11 @@ std::string convertOldPingLine(const std::string& line)
 
 
 // ###### Convert Traceroute data line from old version to version 2 ########
-std::string convertOldTracerouteLine(const std::string& line)
+std::string convertOldTracerouteLine(const std::string&  line,
+                                     unsigned long long& timeStamp)
 {
    const char*        linestr    = line.c_str();
-   const unsigned int maxColumns = 11;  // FIXME!
+   const unsigned int maxColumns = 11;
    const char*        value[maxColumns];
    size_t             length[maxColumns];
    unsigned int       i          = 0;
@@ -130,43 +135,70 @@ std::string convertOldTracerouteLine(const std::string& line)
       l++; i++;
    }
    length[c] = l;
+   c++;
 
    // ====== Generate data line in version 2 ================================
-//    if(c >= 7) {
-//       size_t                   timeStampIndex;
-//       const unsigned long long timeStamp = 1000ULL * std::stoull(value[3], &timeStampIndex, 16);
-//       if(timeStampIndex != length[3]) {
-//          throw std::range_error("Bad time stamp");
-//       }
-//       size_t                   rttIndex;
-//       const unsigned long long rtt = 1000ULL * std::stoull(value[6], &rttIndex, 10);
-//       if(rttIndex != length[6]) {
-//          throw std::range_error("Bad RTT value");
-//       }
-//
-//       std::string newLine =
-//          std::string(value[0], length[0]) + "i " +                // "#P<p>"
-//          "0 " +                                                   // Measurement ID
-//          std::string(value[1], length[1]) + " " +                 // Source address
-//          std::string(value[2], length[2]) + " " +                 // Destination address
-//          (boost::format("%x ") % timeStamp).str() +               // Timestamp
-//          "0 " +                                                   // Sequence number within a burst (0, not supported in version 1)
-//          ((c >= 8) ?
-//              /* TrafficClass was added in HiPerConTracer 1.4.0! */
-//              (boost::format("%x ") % std::string(value[7], length[7])).str() : std::string("0 ")) +
-//          ((c >= 9) ?
-//              /* PacketSize was added in HiPerConTracer 1.6.0! */
-//              std::string(value[8], length[8]) : std::string("0")) + " " +
-//          "0 " +                                                   // Response size (0, not supported in version 1)
-//          std::string(value[4], length[4]) + " " +                 // Checksum
-//          std::string(value[5], length[5]) + " " +                 // Status
-//          ((c >= 10) ?
-//              /* TimeSource was added in HiPerConTracer 2.0.0! */
-//              (boost::format("%x ") % std::string(value[9], length[9])).str() : std::string("0 ")) +   // Source of the timing information
-//          "-1 -1 -1 " +
-//          std::to_string(rtt) + " -1 -1";
-//
-//       return newLine;
-//    }
+   if(c > 0) {
+      if( (value[0][0] == '#') && (c >= 9) ) {
+         size_t timeStampIndex;
+         timeStamp = 1000ULL * std::stoull(value[3], &timeStampIndex, 16);
+         if(timeStampIndex != length[3]) {
+            throw std::range_error("Bad time stamp");
+         }
+
+         const std::string newLine =
+            std::string(value[0], length[0]) + "i " +                // "#T<p>"
+            "0 " +                                                   // Measurement ID
+            std::string(value[1], length[1]) + " " +                 // Source address
+            std::string(value[2], length[2]) + " " +                 // Destination address
+            (boost::format("%x ") % timeStamp).str() +               // Timestamp
+            std::string(value[4], length[4]) + " " +                 // Round number
+            std::string(value[6], length[6]) + " " +                 // Total hops
+            ((c >= 10) ?
+                /* TrafficClass was added in HiPerConTracer 1.4.0! */
+                (boost::format("%x ") % std::string(value[9], length[9])).str() : std::string("0 ")) +
+            ((c >= 11) ?
+                /* PacketSize was added in HiPerConTracer 1.6.0! */
+                std::string(value[10], length[10]) : std::string("0")) + " " +
+            std::string(value[5], length[5]) + " " +                 // Checksum
+            std::string(value[7], length[7]) + " " +                 // Status flags
+            std::string(value[8], length[8]);                        // Path hash
+
+         // std::cout << "<= " << line    << "\n"
+         //           << "=> " << newLine << "\n";
+         return newLine;
+      }
+
+      else if( (value[0][0] == '\t') && (c >= 5) ) {
+         size_t             statusIndex;
+         const unsigned int status = std::stoul(value[2], &statusIndex, 16);
+         if(statusIndex != length[2]) {
+            throw std::range_error("Bad status value");
+         }
+         size_t                   rttIndex;
+         const unsigned long long rtt = 1000ULL * std::stoull(value[3], &rttIndex, 10);
+         if(rttIndex != length[3]) {
+            throw std::range_error("Bad RTT value");
+         }
+
+         const std::string newLine =
+            '\t' +
+            (boost::format("%x ") % timeStamp).str() +               // Timestamp
+            std::string(value[1], length[1]) + " " +                 // Hop number
+            "0 " +                                                   // Response size (0, not supported in version 1)
+            std::to_string(status) + " " +                           // Status code (decimal!)
+            ((c >= 6) ?
+                /* TimeSource was added in HiPerConTracer 2.0.0! */
+                (boost::format("%x ") % std::string(value[5], length[5])).str() : std::string("0 ")) +   // Source of the timing information
+            "-1 -1 -1 " +
+            std::to_string(rtt) + " -1 -1 " +
+            std::string(value[4], length[4]);                        // Hop IP address
+
+         // std::cout << "<= " << line    << "\n"
+         //           << "=> " << newLine << "\n";
+         return newLine;
+      }
+   }
+
    throw std::range_error("Unexpected number of columns");
 }
