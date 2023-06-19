@@ -44,6 +44,7 @@
 #include <boost/asio/ip/address.hpp>
 #include <boost/asio/post.hpp>
 #include <boost/asio/thread_pool.hpp>
+#include <boost/format.hpp>
 #include <boost/iostreams/filtering_stream.hpp>
 #include <boost/iostreams/filtering_streambuf.hpp>
 #include <boost/iostreams/filter/bzip2.hpp>
@@ -54,12 +55,12 @@
 
 struct OutputEntry
 {
-   OutputEntry(const int                 measurementID,
-               boost::asio::ip::address& source,
-               boost::asio::ip::address& destination,
-               unsigned long long        timeStamp,
-               unsigned int              roundNumber,
-               const std::string&        line) :
+   OutputEntry(const int                       measurementID,
+               const boost::asio::ip::address& source,
+               const boost::asio::ip::address& destination,
+               const unsigned long long        timeStamp,
+               const unsigned int              roundNumber,
+               const std::string&              line) :
       MeasurementID(measurementID),
       Source(source),
       Destination(destination),
@@ -190,141 +191,73 @@ void checkFormat(boost::iostreams::filtering_ostream* outputStream,
                  const std::string&                   line,
                  const char                           separator)
 {
+   const unsigned int inputColumns = countColumns(line);
+
+   // ====== Identify format ================================================
+   format.Version = 0;
    if(format.Type == InputType::IT_Unknown) {
-      const unsigned int inputColumns = countColumns(line);
       std::string                       columnNames;
       format.Type    = (InputType)line[1];
-      format.Version = 0;
       format.String  = line.substr(0, 3);
 
       // ====== Ping ========================================================
       if(format.Type == InputType::IT_Ping) {
-
-         // ------ Ping, Version 2 ------------------------------------------
-         if(line[2] != ' ') {
-            if(inputColumns >= 18) {
-               format.Protocol = (InputProtocol)line[2];
-               format.Version  = 2;
-               columnNames =
-                  "Ping "                  // 00: "#P<p>"
-                  "MeasurementID "         // 01: Measurement ID
-                  "SourceIP "              // 02: Source address
-                  "DestinationIP "         // 03: Destination address
-                  "Timestamp "             // 04: Timestamp (nanoseconds since the UTC epoch, hexadecimal).
-                  "BurstSeq "              // 05: Sequence number within a burst (decimal), numbered from 0.
-                  "TrafficClass "          // 06: Traffic Class setting (hexadecimal)
-                  "PacketSize "            // 07: Packet size, in bytes (decimal; 0 if unknown)
-                  "ResponseSize "          // 08: Response size, in bytes (decimal; 0 if unknown)
-                  "Checksum "              // 09: Checksum (hexadecimal)
-                  "Status "                // 10: Status (decimal)
-                  "TimeSource "            // 11: Source of the timing information (hexadecimal) as: AAQQSSHH
-                  "Delay.AppSend "         // 12: The measured application send delay (nanoseconds, decimal; -1 if not available).
-                  "Delay.Queuing "         // 13: The measured kernel software queuing delay (nanoseconds, decimal; -1 if not available).
-                  "Delay.AppReceive "      // 14: The measured application receive delay (nanoseconds, decimal; -1 if not available).
-                  "RTT.App "               // 15: The measured application RTT (nanoseconds, decimal).
-                  "RTT.SW "                // 16: The measured kernel software RTT (nanoseconds, decimal; -1 if not available).
-                  "RTT.HW";                // 17: The measured kernel hardware RTT (nanoseconds, decimal; -1 if not available).
-            }
-         }
-         // ------ Ping, Version 1 ------------------------------------------
-         else {
-            if(inputColumns >= 7) {
-               format.Protocol = InputProtocol::IP_ICMP;
-               format.Version  = 1;
-               columnNames =
-                  "Ping "                  // 00: "#P"
-                  "SourceIP "              // 01: Source address
-                  "DestinationIP "         // 02: Destination address
-                  "Timestamp "             // 03: Absolute time since the epoch in UTC, in microseconds (hexadecimal)
-                  "Checksum "              // 04: Checksum (hexadecimal)
-                  "Status "                // 05: Status (decimal)
-                  "RTT.App";               // 06: RTT in microseconds (decimal)
-               if(inputColumns >= 8) {
-                  columnNames +=
-                     " TrafficClass";      // 07: Traffic Class setting (hexadecimal)
-                  if(inputColumns >= 9) {
-                     columnNames +=
-                        " PacketSize";     // 08: Packet size, in bytes (decimal)
-                     if(inputColumns >= 10) {
-                        columnNames +=
-                           " TimeSource";  // 09: Source of the timing information (hexadecimal) as: AA
-                     }
-                  }
-               }
-            }
-         }
+         columnNames =
+            "Ping "                  // 00: "#P<p>"
+            "MeasurementID "         // 01: Measurement ID
+            "SourceIP "              // 02: Source address
+            "DestinationIP "         // 03: Destination address
+            "Timestamp "             // 04: Timestamp (nanoseconds since the UTC epoch, hexadecimal).
+            "BurstSeq "              // 05: Sequence number within a burst (decimal), numbered from 0.
+            "TrafficClass "          // 06: Traffic Class setting (hexadecimal)
+            "PacketSize "            // 07: Packet size, in bytes (decimal; 0 if unknown)
+            "ResponseSize "          // 08: Response size, in bytes (decimal; 0 if unknown)
+            "Checksum "              // 09: Checksum (hexadecimal)
+            "Status "                // 10: Status (decimal)
+            "TimeSource "            // 11: Source of the timing information (hexadecimal) as: AAQQSSHH
+            "Delay.AppSend "         // 12: The measured application send delay (nanoseconds, decimal; -1 if not available).
+            "Delay.Queuing "         // 13: The measured kernel software queuing delay (nanoseconds, decimal; -1 if not available).
+            "Delay.AppReceive "      // 14: The measured application receive delay (nanoseconds, decimal; -1 if not available).
+            "RTT.App "               // 15: The measured application RTT (nanoseconds, decimal).
+            "RTT.SW "                // 16: The measured kernel software RTT (nanoseconds, decimal; -1 if not available).
+            "RTT.HW";                // 17: The measured kernel hardware RTT (nanoseconds, decimal; -1 if not available).
       }
 
       // ====== Traceroute  =================================================
       else if(format.Type == InputType::IT_Traceroute) {
-         // ------ Traceroute, Version 2 ------------------------------------
-         if(line[2] != ' ') {
-            if(inputColumns >= 12) {
-               format.Protocol = (InputProtocol)line[2];
-               format.Version  = 2;
-               columnNames =
-                  "Traceroute "            // 00: "#T<p>"
-                  "MeasurementID "         // 01: Measurement ID
-                  "SourceIP "              // 02: Source address
-                  "DestinationIP "         // 03: Destination address
-                  "Timestamp "             // 04: Absolute time since the epoch in UTC, in microseconds (hexadecimal)
-                  "Round "                 // 05: Round number (decimal)
-                  "TotalHops "             // 06: Total hops (decimal)
-                  "TrafficClass "          // 07: Traffic Class setting (hexadecimal)
-                  "PacketSize "            // 08: Packet size, in bytes (decimal)
-                  "Checksum "              // 09: Checksum (hexadecimal)
-                  "StatusFlags "           // 10: Status flags (hexadecimal)
-                  "PathHash "              // 11: Hash of the path (hexadecimal)
+         columnNames =
+            "Traceroute "            // 00: "#T<p>"
+            "MeasurementID "         // 01: Measurement ID
+            "SourceIP "              // 02: Source address
+            "DestinationIP "         // 03: Destination address
+            "Timestamp "             // 04: Absolute time since the epoch in UTC, in microseconds (hexadecimal)
+            "Round "                 // 05: Round number (decimal)
+            "TotalHops "             // 06: Total hops (decimal)
+            "TrafficClass "          // 07: Traffic Class setting (hexadecimal)
+            "PacketSize "            // 08: Packet size, in bytes (decimal)
+            "Checksum "              // 09: Checksum (hexadecimal)
+            "StatusFlags "           // 10: Status flags (hexadecimal)
+            "PathHash "              // 11: Hash of the path (hexadecimal)
 
-                  "TAB "                   // 12: NOTE: must be "\t" from combination above!
+            "TAB "                   // 12: NOTE: must be "\t" from combination above!
 
-                  "SendTimestamp "         // 13: Timestamp (nanoseconds since the UTC epoch, hexadecimal) for the request to this hop.
-                  "HopNumber "             // 14: Number of the hop.
-                  "ResponseSize "          // 15: Response size, in bytes (decimal)
-                  "Status "                // 16: Status code (decimal!)
-                  "TimeSource "            // 17: Source of the timing information (hexadecimal) as: AAQQSSHH
-                  "Delay.AppSend "         // 18: The measured application send delay (nanoseconds, decimal; -1 if not available).
-                  "Delay.Queuing "         // 19: The measured kernel software queuing delay (nanoseconds, decimal; -1 if not available).
-                  "Delay.AppReceive "      // 20: The measured application receive delay (nanoseconds, decimal; -1 if not available).
-                  "RTT.App "               // 21: The measured application RTT (nanoseconds, decimal).
-                  "RTT.SW "                // 22: The measured kernel software RTT (nanoseconds, decimal; -1 if not available).
-                  "RTT.HW "                // 23: The measured kernel hardware RTT (nanoseconds, decimal; -1 if not available).
-                  "HopIP";                 // 24: Hop IP address.
-            }
-         }
-         // ------ Traceroute, Version 1 ------------------------------------
-         else {
-            if(inputColumns >= 11) {
-               format.Protocol = InputProtocol::IP_ICMP;
-               format.Version  = 1;
-               columnNames =
-                  "Traceroute "            // 00: "#T"
-                  "SourceIP "              // 01: Source address
-                  "DestinationIP "         // 02: Destination address
-                  "Timestamp "             // 03: Absolute time since the epoch in UTC, in microseconds (hexadecimal)
-                  "Round "                 // 04: Round number (decimal)
-                  "Checksum "              // 05: Checksum (hexadecimal)
-                  "TotalHops "             // 06: Total hops (decimal)
-                  "StatusFlags "           // 07: Status flags (hexadecimal)
-                  "PathHash "              // 08: Hash of the path (hexadecimal)
-                  "TrafficClass "          // 09: Traffic Class setting (hexadecimal)
-                  "PacketSize "            // 10: Packet size, in bytes (decimal)
-
-                  "TAB "                   // 11: NOTE: must be "\t" from combination above!
-
-                  "HopNumber "             // 12: Number of the hop.
-                  "Status "                // 13: Status code (in hexadecimal here!)
-                  "RTT.App ";              // 14: RTT in microseconds (decimal)
-                  "HopIP "                 // 15: Hop IP address.
-                  "TimeSource";            // 16: Source of the timing information (hexadecimal) as: AA
-            }
-         }
+            "SendTimestamp "         // 13: Timestamp (nanoseconds since the UTC epoch, hexadecimal) for the request to this hop.
+            "HopNumber "             // 14: Number of the hop.
+            "ResponseSize "          // 15: Response size, in bytes (decimal)
+            "Status "                // 16: Status code (decimal!)
+            "TimeSource "            // 17: Source of the timing information (hexadecimal) as: AAQQSSHH
+            "Delay.AppSend "         // 18: The measured application send delay (nanoseconds, decimal; -1 if not available).
+            "Delay.Queuing "         // 19: The measured kernel software queuing delay (nanoseconds, decimal; -1 if not available).
+            "Delay.AppReceive "      // 20: The measured application receive delay (nanoseconds, decimal; -1 if not available).
+            "RTT.App "               // 21: The measured application RTT (nanoseconds, decimal).
+            "RTT.SW "                // 22: The measured kernel software RTT (nanoseconds, decimal; -1 if not available).
+            "RTT.HW "                // 23: The measured kernel hardware RTT (nanoseconds, decimal; -1 if not available).
+            "HopIP";                 // 24: Hop IP address.
       }
 
       // ====== Jitter ======================================================
       else if(format.Type == InputType::IT_Jitter) {
          format.Protocol = (InputProtocol)line[2];
-         format.Version  = 2;
          columnNames =
             "Jitter "                 // "#J<p>"
             "MeasurementID "          // Measurement ID
@@ -364,8 +297,8 @@ void checkFormat(boost::iostreams::filtering_ostream* outputStream,
       }
 
       // ====== Error =======================================================
-      if(format.Version == 0) {
-         HPCT_LOG(fatal) << "Unrecognised format of input data"
+      else {
+         HPCT_LOG(fatal) << "Unrecognised type of input data"
                          << " in input file " << fileName;
          exit(1);
       }
@@ -373,14 +306,134 @@ void checkFormat(boost::iostreams::filtering_ostream* outputStream,
       columns = applySeparator(columnNames, separator);
       *outputStream << columnNames << "\n";
    }
-   else {
-      if(format.String.substr(0, 2) != line.substr(0, 2)) {
-         HPCT_LOG(fatal) << "Incompatible format for merging ("
-                         << line.substr(0, 2) << " vs. " << format.String.substr(0, 2) << ")"
-                         << " in input file " << fileName;
-         exit(1);
+
+   // ====== Error ==========================================================
+   else if(format.String.substr(0, 2) != line.substr(0, 2)) {
+      HPCT_LOG(fatal) << "Incompatible format for merging ("
+                        << line.substr(0, 2) << " vs. " << format.String.substr(0, 2) << ")"
+                        << " in input file " << fileName;
+      exit(1);
+   }
+
+   // ====== Identify version ===============================================
+
+   // ====== Ping ===========================================================
+   if(format.Type == InputType::IT_Ping) {
+      // ------ Ping, Version 2 ---------------------------------------------
+      if(line[2] != ' ') {
+         if(inputColumns >= 18) {
+            format.Protocol = (InputProtocol)line[2];
+            format.Version  = 2;
+         }
+      }
+      // ------ Ping, Version 1 ---------------------------------------------
+      else {
+         if(inputColumns >= 7) {
+            format.Protocol = InputProtocol::IP_ICMP;
+            format.Version  = 1;
+         }
       }
    }
+
+   // ====== Traceroute =====================================================
+   else if(format.Type == InputType::IT_Traceroute) {
+      // ------ Traceroute, Version 2 ---------------------------------------
+      if(line[2] != ' ') {
+         if(inputColumns >= 12) {
+            format.Protocol = (InputProtocol)line[2];
+            format.Version  = 2;
+         }
+      }
+      // ------ Traceroute, Version 1 ---------------------------------------
+      else {
+         if(inputColumns >= 11) {
+            format.Protocol = InputProtocol::IP_ICMP;
+            format.Version  = 1;
+         }
+      }
+   }
+
+   // ====== Jitter =========================================================
+   else if(format.Type == InputType::IT_Jitter) {
+      format.Protocol = (InputProtocol)line[2];
+      format.Version  = 2;
+   }
+
+   // ====== Error ==========================================================
+   if(format.Version == 0) {
+      HPCT_LOG(fatal) << "Unrecognised format of input data"
+                        << " in input file " << fileName;
+      exit(1);
+   }
+}
+
+
+// ###### Convert Ping data line from old version to version 2 ##############
+std::string convertOldPingLine(const std::string& line)
+{
+   const char*        linestr    = line.c_str();
+   const unsigned int maxColumns = 11;
+   const char*        value[maxColumns];
+   size_t             length[maxColumns];
+   unsigned int       i          = 0;
+   unsigned int       c          = 0;
+   unsigned int       l          = 0;
+
+   // ====== Obtain pointers to entries =====================================
+   value[c] = linestr;
+   while(linestr[i] != 0x00) {
+      if(linestr[i] == ' ') {
+         length[c] = l;
+         c++;
+         if(c >= maxColumns) {
+            break;
+         }
+         value[c] = &linestr[i + 1];
+         l = 0; i++;
+         continue;
+      }
+      l++; i++;
+   }
+   length[c] = l;
+
+   // ====== Generate data line in version 2 ================================
+   if(c >= 7) {
+      size_t                   timeStampIndex;
+      const unsigned long long timeStamp = 1000ULL * std::stoull(value[3], &timeStampIndex, 16);
+      if(timeStampIndex != length[3]) {
+         throw std::range_error("Bad time stamp");
+      }
+      size_t                   rttIndex;
+      const unsigned long long rtt = 1000ULL * std::stoull(value[6], &rttIndex, 10);
+      if(rttIndex != length[6]) {
+         throw std::range_error("Bad RTT value");
+      }
+
+      std::string newLine =
+         std::string(value[0], length[0]) + "i " +                // "#P<p>"
+         "0 " +                                                   // Measurement ID
+         std::string(value[1], length[1]) + " " +                 // Source address
+         std::string(value[2], length[2]) + " " +                 // Destination address
+         (boost::format("%x ") % timeStamp).str() +               // Timestamp
+         "0 " +                                                   // Sequence number within a burst (0, not supported in version 1)
+         ((c >= 8) ?
+             /* TrafficClass was added in HiPerConTracer 1.4.0! */
+             (boost::format("%x ") % std::string(value[7], length[7])).str() : std::string("0 ")) +
+         ((c >= 9) ?
+             /* PacketSize was added in HiPerConTracer 1.6.0! */
+             std::string(value[8], length[8]) : std::string("0")) + " " +
+         "0 " +                                                   // Response size (0, not supported in version 1)
+         std::string(value[4], length[4]) + " " +                 // Checksum
+         std::string(value[5], length[5]) + " " +                 // Status
+         ((c >= 10) ?
+             /* TimeSource was added in HiPerConTracer 2.0.0! */
+             (boost::format("%x ") % std::string(value[9], length[9])).str() : std::string("0 ")) +   // Source of the timing information
+         "0 0 0 " +
+         std::to_string(rtt) + " 0 0";
+
+      return newLine;
+   }
+   throw std::range_error("Unexpected number of columns");
 }
 
 
@@ -434,11 +487,18 @@ bool dumpResultsFile(std::set<OutputEntry*, pointer_lessthan<OutputEntry>>* outp
             return true;
          }
 
-         // ------ Obtain pointers to first N entres ------------------------
+         // ------ Conversion from old versions -----------------------------
+         if(format.Version < 2) {
+            if(format.Type == InputType::IT_Ping) {
+               line = convertOldPingLine(line);
+            }
+         }
+
+         // ------ Obtain pointers to first N entries -----------------------
          const unsigned int maxColumns = 6;
-         const char*  linestr = line.c_str();
-         const char*  value[maxColumns];
-         size_t       length[maxColumns];
+         const char*        linestr    = line.c_str();
+         const char*        value[maxColumns];
+         size_t             length[maxColumns];
 
          unsigned int i = 0;
          unsigned int c = 0;
@@ -460,52 +520,30 @@ bool dumpResultsFile(std::set<OutputEntry*, pointer_lessthan<OutputEntry>>* outp
          length[c] = l;
 
          // ------ Create output entry --------------------------------------
-         unsigned int             measurementID;
-         size_t                   timeStampIndex;
-         unsigned long long       timeStamp;
-         size_t                   roundNumberIndex;
-         unsigned int             roundNumber;
-         boost::asio::ip::address source;
-         boost::asio::ip::address destination;
-         if(format.Version == 2) {
-            size_t measurementIDIndex;
-            measurementID = std::stoul(value[1], &measurementIDIndex, 10);
-            if(measurementIDIndex != length[1]) {
-               throw std::exception();
-            }
-            source      = boost::asio::ip::make_address(std::string(value[2], length[2]));
-            destination = boost::asio::ip::make_address(std::string(value[3], length[3]));
-            timeStamp   = std::stoull(value[4], &timeStampIndex, 16);
-            if(timeStampIndex != length[4]) {
-               throw std::exception();
-            }
-            if(format.Type == InputType::IT_Traceroute) {
-               roundNumber = std::stoul(value[5], &roundNumberIndex, 10);
-               if(roundNumberIndex != length[5]) {
-                  throw std::exception();
-               }
-            }
-            else {
-               roundNumber = 0;
+         size_t measurementIDIndex;
+         const unsigned int measurementID = std::stoul(value[1], &measurementIDIndex, 10);
+         if(measurementIDIndex != length[1]) {
+            throw std::range_error("Bad measurement ID");
+         }
+         const boost::asio::ip::address source      = boost::asio::ip::make_address(std::string(value[2], length[2]));
+         const boost::asio::ip::address destination = boost::asio::ip::make_address(std::string(value[3], length[3]));
+         size_t                         timeStampIndex;
+         const unsigned long long       timeStamp   = std::stoull(value[4], &timeStampIndex, 16);
+         if(timeStampIndex != length[4]) {
+            throw std::range_error("Bad time stamp");
+         }
+         size_t       roundNumberIndex;
+         unsigned int roundNumber;
+         if(format.Type == InputType::IT_Traceroute) {
+            roundNumber = std::stoul(value[5], &roundNumberIndex, 10);
+            if(roundNumberIndex != length[5]) {
+               throw std::range_error("Bad round number");
             }
          }
          else {
-            source      = boost::asio::ip::make_address(std::string(value[1], length[1]));
-            destination = boost::asio::ip::make_address(std::string(value[2], length[2]));
-            timeStamp   = std::stoull(value[3], &timeStampIndex, 16);
-            if(timeStampIndex != length[3]) {
-               throw std::exception();
-            }
-            if(format.Type == InputType::IT_Traceroute) {
-               roundNumber = std::stoul(value[4], &roundNumberIndex, 10);
-               if(roundNumberIndex != length[4]) {
-                  throw std::exception();
-               }
-            }
-            else {
-               roundNumber = 0;
-            }
+            roundNumber = 0;
          }
+
          if(newEntry != nullptr) {
             delete newEntry;
          }
