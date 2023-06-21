@@ -430,18 +430,14 @@ bool dumpResultsFile(std::set<OutputEntry*, pointer_lessthan<OutputEntry>>* outp
 
          try {
             // ------ Conversion from old versions --------------------------
-            std::cout << format.Version << ": " << line << "\n";
             if(format.Version < 2) {
                if(format.Type == InputType::IT_Ping) {
                   line = convertOldPingLine(line);
                }
                else if(format.Type == InputType::IT_Traceroute) {
-                  puts("C-1");
                   line = convertOldTracerouteLine(line, oldTimeStamp);
-                  puts("C-2");
                }
             }
-            std::cout << "N: " << line << "\n";
 
             // ------ Obtain pointers to first N entries --------------------
             const unsigned int maxColumns = 6;
