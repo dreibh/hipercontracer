@@ -332,25 +332,23 @@ int main(int argc, char** argv)
                      % pathHash
                   );
             }
-            else {
-               outputStream <<
-                  str(boost::format("\t%x %d %d %d %08x %d %d %d %d %d %d %s\n")
-                     % sendTimeStamp
-                     % hopNumber
-                     % responseSize
-                     % (unsigned int)(status & 0xff)
+            outputStream <<
+               str(boost::format("\t%x %d %d %d %08x %d %d %d %d %d %d %s\n")
+                  % sendTimeStamp
+                  % hopNumber
+                  % responseSize
+                  % (unsigned int)(status & 0xff)
 
-                     % timeSource
-                     % delayAppSend
-                     % delayQueuing
-                     % delayAppReceive
-                     % rttApplication
-                     % rttSoftware
-                     % rttHardware
+                  % timeSource
+                  % delayAppSend
+                  % delayQueuing
+                  % delayAppReceive
+                  % rttApplication
+                  % rttSoftware
+                  % rttHardware
 
-                     % hopIP.to_string()
-                  );
-            }
+                  % hopIP.to_string()
+               );
          }
       }
       else if(backend & DatabaseBackendType::NoSQL_Generic) {
