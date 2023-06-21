@@ -168,8 +168,8 @@ void PingReader::parseContents(
          const ReaderTimePoint          sendTimeStamp   = parseTimeStamp(tuple[4], now, true, dataFile);
          uint8_t                        trafficClass    = parseTrafficClass(tuple[6], dataFile);
          const unsigned int             burstSeq        = parseRoundNumber(tuple[5], dataFile);
-         unsigned int                   packetSize      = parseTrafficClass(tuple[7], dataFile);
-         const unsigned int             responseSize    = parseTrafficClass(tuple[8], dataFile);
+         unsigned int                   packetSize      = parsePacketSize(tuple[7], dataFile);
+         const unsigned int             responseSize    = parseResponseSize(tuple[8], dataFile);
          const uint16_t                 checksum        = parseChecksum(tuple[9], dataFile);
          const unsigned int             status          = parseStatus(tuple[10], dataFile, 10);
          unsigned int                   timeSource      = parseTimeSource(tuple[11], dataFile);
