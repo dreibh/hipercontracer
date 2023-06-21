@@ -190,7 +190,7 @@ std::string convertOldTracerouteLine(const std::string&  line,
             std::to_string(status) + " " +                           // Status code (decimal!)
             ((c >= 6) ?
                 /* TimeSource was added in HiPerConTracer 2.0.0! */
-                (boost::format("%x ") % std::string(value[5], length[5])).str() : std::string("0 ")) +   // Source of the timing information
+                (boost::format("%x ") % std::string(value[5], length[5])).str() : std::string("00000000 ")) +   // Source of the timing information
             "-1 -1 -1 " +
             std::to_string(rtt) + " -1 -1 " +
             std::string(value[4], length[4]);                        // Hop IP address
