@@ -29,6 +29,7 @@
 //
 // Contact: dreibh@simula.no
 
+#include "conversions.h"
 #include "reader-traceroute.h"
 #include "importer-exception.h"
 #include "logger.h"
@@ -374,23 +375,6 @@ unsigned int TracerouteReader::parseTimeSource(const std::string&           valu
 }
 
 
-// ###### Parse microseconds ################################################
-long long TracerouteReader::parseMicroseconds(const std::string&           value,
-                                              const std::filesystem::path& dataFile)
-{
-   size_t        index = 0;
-   unsigned long us    = 0;
-   try {
-      us = std::stoul(value, &index, 10);
-   } catch(...) { }
-   if(index != value.size()) {
-      throw ImporterReaderDataErrorException("Bad microseconds format " + value +
-                                             " in input file " + relativeTo(dataFile, Configuration.getImportFilePath()).string());
-   }
-   return 1000LL * us;
-}
-
-
 // ###### Parse nanoseconds ################################################
 long long TracerouteReader::parseNanoseconds(const std::string&           value,
                                              const std::filesystem::path& dataFile)
@@ -481,7 +465,6 @@ void TracerouteReader::parseContents(
    static const unsigned int TracerouteMaxColumns = 12;
    static const char         TracerouteDelimiter  = ' ';
 
-   unsigned int              version       = 0;
    char                      protocol      = 0x00;
    unsigned int              measurementID = 0;
    ReaderTimePoint           timeStamp;
@@ -499,6 +482,11 @@ void TracerouteReader::parseContents(
    std::string tuple[TracerouteMaxColumns];
    const ReaderTimePoint now = ReaderClock::now();
    while(std::getline(dataStream, inputLine)) {
+      // ====== Conversion from old versions ================================
+      if(inputLine.substr(0, 3) == "#T ") {
+         inputLine = convertOldPingLine(inputLine);
+      }
+
       // ====== Parse line ==================================================
       size_t columns = 0;
       size_t start;
@@ -517,40 +505,17 @@ void TracerouteReader::parseContents(
 
       // ====== Generate import statement ===================================
       if( (tuple[0].size() >= 2) && (tuple[0][0] == '#') && (tuple[0][1] == 'T') ) {
-         // ------ Obtain version -------------------------------------------
-         if( (tuple[0].size() > 2) && (columns >= 12) ) {
-            version  = 2;
-            protocol = tuple[0][2];
-         }
-         else if( (tuple[0].size() == 2) && (columns >= 9) ) {
-            version  = 1;
-            protocol = 'i';
-         }
-         else {
-            throw ImporterReaderDataErrorException("Unexpected syntax in input file " +
-                                                   relativeTo(dataFile, Configuration.getImportFilePath()).string());
-         }
-
-         measurementID   = (version >= 2) ? parseMeasurementID(tuple[1], dataFile)        : 0;
-         sourceIP        = (version >= 2) ? parseAddress(tuple[2], dataFile)              : parseAddress(tuple[1], dataFile);
-         destinationIP   = (version >= 2) ? parseAddress(tuple[3], dataFile)              : parseAddress(tuple[2], dataFile);
-         timeStamp       = (version >= 2) ? parseTimeStamp(tuple[4], now, true, dataFile) : parseTimeStamp(tuple[3], now, false, dataFile);
-         roundNumber     = (version >= 2) ? parseRoundNumber(tuple[5], dataFile)          : parseRoundNumber(tuple[4], dataFile);
+         measurementID   = parseMeasurementID(tuple[1], dataFile);
+         sourceIP        = parseAddress(tuple[2], dataFile);
+         destinationIP   = parseAddress(tuple[3], dataFile);
+         timeStamp       = parseTimeStamp(tuple[4], now, true, dataFile);
+         roundNumber     = parseRoundNumber(tuple[5], dataFile);
          totalHops       = parseTotalHops(tuple[6], dataFile);
-         trafficClass    = (version >= 2) ? parseTrafficClass(tuple[7], dataFile)         : 0x00;
-         packetSize      = (version >= 2) ? parsePacketSize(tuple[8], dataFile)           : parsePacketSize(tuple[10], dataFile);
-         checksum        = (version >= 2) ? parseChecksum(tuple[9], dataFile)             : parseChecksum(tuple[5], dataFile);
-         statusFlags     = (version >= 2) ? parseStatus(tuple[10], dataFile)              : parseStatus(tuple[7], dataFile);
-         pathHash        = (version >= 2) ? parsePathHash(tuple[11], dataFile)            : parsePathHash(tuple[8], dataFile);
-
-         if(version == 1) {
-            if(columns >= 10) {   // TrafficClass was added in HiPerConTracer 1.4.0!
-               trafficClass = parseTrafficClass(tuple[9], dataFile);
-               if(columns >= 11) {   // PacketSize was added in HiPerConTracer 1.6.0!
-                  packetSize = parsePacketSize(tuple[10], dataFile);
-               }
-            }
-         }
+         trafficClass    = parseTrafficClass(tuple[7], dataFile);
+         packetSize      = parsePacketSize(tuple[8], dataFile);
+         checksum        = parseChecksum(tuple[9], dataFile);
+         statusFlags     = parseStatus(tuple[10], dataFile);
+         pathHash        = parsePathHash(tuple[11], dataFile);
 
          if( (statusFlags != ~0U) && (backend & DatabaseBackendType::NoSQL_Generic) ) {
             statement << "]";
@@ -580,25 +545,19 @@ void TracerouteReader::parseContents(
             throw ImporterReaderDataErrorException("Hop data has no corresponding #T line");
          }
 
-         const ReaderTimePoint          sendTimeStamp   = (version >= 2) ? parseTimeStamp(tuple[0], now, true, dataFile) : timeStamp;
-         const unsigned int             hopNumber       = (version >= 2) ? parseHopNumber(tuple[1], dataFile)    : parseHopNumber(tuple[1], dataFile);
-         const unsigned int             responseSize    = (version >= 2) ? parseResponseSize(tuple[2], dataFile) : 0;
-         const unsigned int             status          = (version >= 2) ? parseStatus(tuple[3], dataFile, 10)   : parseStatus(tuple[2], dataFile);
-         const boost::asio::ip::address hopIP           = (version >= 2) ? parseAddress(tuple[11], dataFile)     : parseAddress(tuple[4], dataFile);
+         const ReaderTimePoint          sendTimeStamp   = parseTimeStamp(tuple[0], now, true, dataFile);
+         const unsigned int             hopNumber       = parseHopNumber(tuple[1], dataFile);
+         const unsigned int             responseSize    = parseResponseSize(tuple[2], dataFile);
+         const unsigned int             status          = parseStatus(tuple[3], dataFile, 10);
+         const boost::asio::ip::address hopIP           = parseAddress(tuple[11], dataFile);
 
-         unsigned int                   timeSource      = (version >= 2) ? parseTimeSource(tuple[4], dataFile)   : 0x00000000;
-         const long long                delayAppSend    = (version >= 2) ? parseNanoseconds(tuple[5], dataFile)  : -1;
-         const long long                delayQueuing    = (version >= 2) ? parseNanoseconds(tuple[6], dataFile)  : -1;
-         const long long                delayAppReceive = (version >= 2) ? parseNanoseconds(tuple[7], dataFile)  : -1;
-         const long long                rttApp          = (version >= 2) ? parseNanoseconds(tuple[8], dataFile)  : parseMicroseconds(tuple[3], dataFile);
-         const long long                rttHardware     = (version >= 2) ? parseNanoseconds(tuple[9], dataFile)  : -1;
-         const long long                rttSoftware     = (version >= 2) ? parseNanoseconds(tuple[10], dataFile) : -1;
-
-         if(version == 1) {
-            if(columns >= 6) {   // TimeSource was added in HiPerConTracer 2.0.0!
-               timeSource = parseTimeSource(tuple[5], dataFile);
-            }
-         }
+         unsigned int                   timeSource      = parseTimeSource(tuple[4], dataFile);
+         const long long                delayAppSend    = parseNanoseconds(tuple[5], dataFile);
+         const long long                delayQueuing    = parseNanoseconds(tuple[6], dataFile);
+         const long long                delayAppReceive = parseNanoseconds(tuple[7], dataFile);
+         const long long                rttApp          = parseNanoseconds(tuple[8], dataFile);
+         const long long                rttSoftware     = parseNanoseconds(tuple[9], dataFile);
+         const long long                rttHardware     = parseNanoseconds(tuple[10], dataFile);
 
          if(backend & DatabaseBackendType::SQL_Generic) {
             statement.beginRow();

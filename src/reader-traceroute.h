@@ -107,8 +107,6 @@ class TracerouteReader : public ReaderImplementation<TracerouteFileEntry>
                          const std::filesystem::path& dataFile);
    long long parsePathHash(const std::string&           value,
                            const std::filesystem::path& dataFile);
-   long long parseMicroseconds(const std::string&           value,
-                               const std::filesystem::path& dataFile);
    long long parseNanoseconds(const std::string&           value,
                               const std::filesystem::path& dataFile);
 
