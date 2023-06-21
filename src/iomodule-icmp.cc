@@ -197,7 +197,10 @@ unsigned int ICMPModule::sendRequest(const DestinationInfo& destination,
                                      uint16_t&              seqNumber,
                                      uint32_t*              targetChecksumArray)
 {
-   const boost::asio::ip::icmp::endpoint localEndpoint(SourceAddress, 0);
+   const boost::asio::ip::icmp::endpoint localEndpoint(SourceAddress.is_unspecified() ?
+                                                          findSourceForDestination(destination.address()) :
+                                                          SourceAddress,
+                                                       0);
    const boost::asio::ip::icmp::endpoint remoteEndpoint(destination.address(), 0);
 
    // ====== Set TOS/Traffic Class ==========================================
