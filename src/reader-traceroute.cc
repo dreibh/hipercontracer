@@ -465,6 +465,7 @@ void TracerouteReader::parseContents(
    static const unsigned int TracerouteMaxColumns = 12;
    static const char         TracerouteDelimiter  = ' ';
 
+   unsigned int              version       = 2;
    char                      protocol      = 0x00;
    unsigned int              measurementID = 0;
    ReaderTimePoint           timeStamp;
@@ -477,6 +478,7 @@ void TracerouteReader::parseContents(
    long long                 pathHash     = 0;
    uint8_t                   trafficClass = 0x00;
    unsigned int              packetSize   = 0;
+   unsigned long long        oldTimeStamp;   // Just used for version 1 conversion!
 
    std::string inputLine;
    std::string tuple[TracerouteMaxColumns];
@@ -484,7 +486,10 @@ void TracerouteReader::parseContents(
    while(std::getline(dataStream, inputLine)) {
       // ====== Conversion from old versions ================================
       if(inputLine.substr(0, 3) == "#T ") {
-         inputLine = convertOldPingLine(inputLine);
+         version = 1;
+      }
+      if(version < 2) {
+         inputLine = convertOldTracerouteLine(inputLine, oldTimeStamp);
       }
 
       // ====== Parse line ==================================================
