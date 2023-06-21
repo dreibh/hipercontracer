@@ -95,7 +95,7 @@ std::string convertOldPingLine(const std::string& line)
          std::string(value[5], length[5]) + " " +                 // Status
          ((c >= 10) ?
              /* TimeSource was added in HiPerConTracer 2.0.0! */
-             (boost::format("%x ") % std::string(value[9], length[9])).str() : std::string("0 ")) +   // Source of the timing information
+             (boost::format("%x ") % std::string(value[9], length[9])).str() : std::string("00000000 ")) +   // Source of the timing information
          "-1 -1 -1 " +
          std::to_string(rtt) + " -1 -1";
 
@@ -156,7 +156,7 @@ std::string convertOldTracerouteLine(const std::string&  line,
             std::string(value[6], length[6]) + " " +                 // Total hops
             ((c >= 10) ?
                 /* TrafficClass was added in HiPerConTracer 1.4.0! */
-                (boost::format("%x ") % std::string(value[9], length[9])).str() : std::string("0 ")) +
+                (boost::format("%x ") % std::string(value[9], length[9])).str() : std::string("00000000 ")) +
             ((c >= 11) ?
                 /* PacketSize was added in HiPerConTracer 1.6.0! */
                 std::string(value[10], length[10]) : std::string("0")) + " " +
