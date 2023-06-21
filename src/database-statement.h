@@ -62,7 +62,7 @@ class Statement : public std::stringstream
    }
 
    inline bool isValid() const {
-      return (!InTuple) && (Rows > 0);
+      return (!InTuple) && ((Rows > 0) || (!str().empty()));
    }
 
    inline size_t getRows() const {
