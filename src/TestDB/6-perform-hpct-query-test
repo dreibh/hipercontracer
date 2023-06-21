@@ -58,7 +58,7 @@ if [ -e "${DATABASE_CONFIG}" ] ; then
       find good/ -name "${table}-*.results.*" | ../hpct-results-tool --input-file-names-from-stdin -o imported-${table,,}.csv
 
       echo "Querying ${table} data from database ..."
-      ../hpct-query -c "${DATABASE_CONFIG}" -Q ${table,,} >queried-${table,,}.results
+      ../hpct-query -c "${DATABASE_CONFIG}" -Q ${table,,} -o queried-${table,,}.results
       ../hpct-results-tool queried-${table,,}.results -o queried-${table,,}.csv
 
       echo "Differences for ${table}:"
