@@ -211,9 +211,11 @@ int main(int argc, char** argv)
    // ====== Prepare query ==================================================
    const DatabaseBackendType backend = databaseClient->getBackend();
    Statement& statement              = databaseClient->getStatement(queryType, false, true);
+   const std::chrono::system_clock::time_point t1 = std::chrono::system_clock::now();
 
 
    // ====== Ping ===========================================================
+   unsigned long long lines = 0;
    if(queryType == "ping") {
       if(backend & DatabaseBackendType::SQL_Generic) {
          statement
@@ -265,6 +267,7 @@ int main(int argc, char** argv)
                   % rttSoftware
                   % rttHardware
                );
+            lines++;
          }
       }
       else if(backend & DatabaseBackendType::NoSQL_Generic) {
@@ -331,6 +334,7 @@ int main(int argc, char** argv)
 
                      % pathHash
                   );
+               lines++;
             }
             outputStream <<
                str(boost::format("\t%x %d %d %d %08x %d %d %d %d %d %d %s\n")
@@ -349,6 +353,7 @@ int main(int argc, char** argv)
 
                   % hopIP.to_string()
                );
+            lines++;
          }
       }
       else if(backend & DatabaseBackendType::NoSQL_Generic) {
@@ -372,6 +377,11 @@ int main(int argc, char** argv)
       HPCT_LOG(fatal) << "Invalid query type " << queryType;
       exit(1);
    }
+   outputStream.flush();
+
+   const std::chrono::system_clock::time_point t2 = std::chrono::system_clock::now();
+   HPCT_LOG(info) << "Wrote " << lines << " results lines in "
+                  << std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1).count() << " ms";
 
 
    // ====== Clean up =======================================================

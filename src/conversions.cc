@@ -32,7 +32,7 @@
 #include "conversions.h"
 #include "importer-exception.h"
 
-// #include <iostream>
+#include <iostream>
 #include <boost/format.hpp>
 
 
@@ -165,8 +165,8 @@ std::string convertOldTracerouteLine(const std::string&  line,
             std::string(value[7], length[7]) + " " +                 // Status flags
             std::string(value[8], length[8]);                        // Path hash
 
-         // std::cout << "<= " << line    << "\n"
-         //           << "=> " << newLine << "\n";
+         std::cout << "<= " << line    << "\n"
+                   << "=> " << newLine << "\n";
          return newLine;
       }
 
@@ -195,8 +195,8 @@ std::string convertOldTracerouteLine(const std::string&  line,
             std::to_string(rtt) + " -1 -1 " +
             std::string(value[4], length[4]);                        // Hop IP address
 
-         // std::cout << "<= " << line    << "\n"
-         //           << "=> " << newLine << "\n";
+         std::cout << "<= " << line    << "\n"
+                   << "=> " << newLine << "\n";
          return newLine;
       }
    }

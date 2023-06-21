@@ -196,9 +196,15 @@ void checkFormat(boost::iostreams::filtering_ostream* outputStream,
    const unsigned int inputColumns = countColumns(line);
 
    // ====== Identify format ================================================
+   if(line.size() < 3) {
+      HPCT_LOG(fatal) << "Unrecognised format of input data"
+                      << " in input file " << fileName;
+      exit(1);
+   }
+
    format.Version = 0;
    if(format.Type == InputType::IT_Unknown) {
-      std::string                       columnNames;
+      std::string columnNames;
       format.Type    = (InputType)line[1];
       format.String  = line.substr(0, 3);
 
@@ -317,8 +323,6 @@ void checkFormat(boost::iostreams::filtering_ostream* outputStream,
       exit(1);
    }
 
-   // ====== Identify version ===============================================
-
    // ====== Ping ===========================================================
    if(format.Type == InputType::IT_Ping) {
       // ------ Ping, Version 2 ---------------------------------------------
@@ -415,118 +419,151 @@ bool dumpResultsFile(std::set<OutputEntry*, pointer_lessthan<OutputEntry>>* outp
       lineNumber++;
 
       // ====== #<line> =====================================================
-      if(line[0] == '#') {
+      if(line.size() < 1) {
+         continue;
+      }
+      else if(line[0] == '#') {
          checkFormat(outputStream, fileName, format, columns, line, separator);
          if(checkOnly) {
             return true;
          }
 
-         // ------ Conversion from old versions -----------------------------
-         if(format.Version < 2) {
-            if(format.Type == InputType::IT_Ping) {
-               line = convertOldPingLine(line);
-            }
-            else if(format.Type == InputType::IT_Traceroute) {
-               line = convertOldTracerouteLine(line, oldTimeStamp);
-            }
-         }
-
-         // ------ Obtain pointers to first N entries -----------------------
-         const unsigned int maxColumns = 6;
-         const char*        linestr    = line.c_str();
-         const char*        value[maxColumns];
-         size_t             length[maxColumns];
-
-         unsigned int i = 0;
-         unsigned int c = 0;
-         unsigned int l = 0;
-         value[c]  = linestr;
-         while(linestr[i] != 0x00) {
-            if(linestr[i] == ' ') {
-               length[c] = l;
-               c++;
-               if(c >= maxColumns) {
-                  break;
+         try {
+            // ------ Conversion from old versions --------------------------
+            std::cout << format.Version << ": " << line << "\n";
+            if(format.Version < 2) {
+               if(format.Type == InputType::IT_Ping) {
+                  line = convertOldPingLine(line);
                }
-               value[c] = &linestr[i + 1];
-               l = 0; i++;
-               continue;
+               else if(format.Type == InputType::IT_Traceroute) {
+                  puts("C-1");
+                  line = convertOldTracerouteLine(line, oldTimeStamp);
+                  puts("C-2");
+               }
             }
-            l++; i++;
-         }
-         length[c] = l;
+            std::cout << "N: " << line << "\n";
 
-         // ------ Create output entry --------------------------------------
-         size_t measurementIDIndex;
-         const unsigned int measurementID = std::stoul(value[1], &measurementIDIndex, 10);
-         if(measurementIDIndex != length[1]) {
-            throw std::range_error("Bad measurement ID");
-         }
-         const boost::asio::ip::address source      = boost::asio::ip::make_address(std::string(value[2], length[2]));
-         const boost::asio::ip::address destination = boost::asio::ip::make_address(std::string(value[3], length[3]));
-         size_t                         timeStampIndex;
-         const unsigned long long       timeStamp   = std::stoull(value[4], &timeStampIndex, 16);
-         if(timeStampIndex != length[4]) {
-            throw std::range_error("Bad time stamp");
-         }
-         size_t       roundNumberIndex;
-         unsigned int roundNumber;
-         if(format.Type == InputType::IT_Traceroute) {
-            roundNumber = std::stoul(value[5], &roundNumberIndex, 10);
-            if(roundNumberIndex != length[5]) {
-               throw std::range_error("Bad round number");
+            // ------ Obtain pointers to first N entries --------------------
+            const unsigned int maxColumns = 6;
+            const char*        linestr    = line.c_str();
+            const char*        value[maxColumns];
+            size_t             length[maxColumns];
+
+            unsigned int i = 0;
+            unsigned int c = 0;
+            unsigned int l = 0;
+            value[c] = linestr;
+            while(linestr[i] != 0x00) {
+               if(linestr[i] == ' ') {
+                  length[c] = l;
+                  c++;
+                  if(c >= maxColumns) {
+                     break;
+                  }
+                  value[c] = &linestr[i + 1];
+                  l = 0; i++;
+                  continue;
+               }
+               l++; i++;
             }
-         }
-         else {
-            roundNumber = 0;
-         }
+            length[c] = l;
+            c++;
 
-         if(newEntry != nullptr) {
-            delete newEntry;
-         }
-         newEntry = new OutputEntry(measurementID, source, destination, timeStamp,
-                                    roundNumber, line);
-
-         // ====== Write entry, if not Traceroute ===========================
-         if(format.Type != InputType::IT_Traceroute) {
-            const unsigned int seenColumns = applySeparator(line, separator);
-            if(seenColumns != columns) {
-               HPCT_LOG(fatal) << "Got " << seenColumns << " instead of expected "
-                               << columns << " columns"
-                               << " in input file " << fileName << ", line " << lineNumber;
+            // ------ Create output entry --------------------------------
+            if(c < 5) {
+               HPCT_LOG(fatal) << "Unexpected syntax"
+                              << " in input file " << fileName << ", line " << lineNumber;
                exit(1);
             }
-
-            const std::lock_guard<std::mutex> lock(*outputMutex);
-            if(outputSet) {
-               auto success = outputSet->insert(newEntry);
-               if(!success.second) {
-                  HPCT_LOG(fatal) << "Duplicate tab entry"
-                                 << " in input file " << fileName << ", line " << lineNumber;
-                  exit(1);
+            size_t measurementIDIndex;
+            const unsigned int measurementID = std::stoul(value[1], &measurementIDIndex, 10);
+            if(measurementIDIndex != length[1]) {
+               throw std::range_error("Bad measurement ID");
+            }
+            const boost::asio::ip::address source      = boost::asio::ip::make_address(std::string(value[2], length[2]));
+            const boost::asio::ip::address destination = boost::asio::ip::make_address(std::string(value[3], length[3]));
+            size_t                         timeStampIndex;
+            const unsigned long long       timeStamp   = std::stoull(value[4], &timeStampIndex, 16);
+            if(timeStampIndex != length[4]) {
+               throw std::range_error("Bad time stamp");
+            }
+            size_t       roundNumberIndex;
+            unsigned int roundNumber;
+            if(format.Type == InputType::IT_Traceroute) {
+               roundNumber = std::stoul(value[5], &roundNumberIndex, 10);
+               if(roundNumberIndex != length[5]) {
+                  throw std::range_error("Bad round number");
                }
             }
             else {
-               *outputStream << newEntry->Line << "\n";
+               roundNumber = 0;
+            }
+
+            if(newEntry != nullptr) {
                delete newEntry;
             }
-            newEntry = nullptr;
-         }
+            newEntry = new OutputEntry(measurementID, source, destination, timeStamp,
+                                       roundNumber, line);
 
-         // ====== Remember header, if Traceroute ===========================
-         else {
-            // This header is combined with TAB lines later!
-            newSubEntry = newEntry;
+            // ====== Write entry, if not Traceroute ========================
+            if(format.Type != InputType::IT_Traceroute) {
+               const unsigned int seenColumns = applySeparator(line, separator);
+               if(seenColumns != columns) {
+                  HPCT_LOG(fatal) << "Got " << seenColumns << " instead of expected "
+                                 << columns << " columns"
+                                 << " in input file " << fileName << ", line " << lineNumber;
+                  exit(1);
+               }
+
+               const std::lock_guard<std::mutex> lock(*outputMutex);
+               if(outputSet) {
+                  auto success = outputSet->insert(newEntry);
+                  if(!success.second) {
+                     HPCT_LOG(fatal) << "Duplicate tab entry"
+                                    << " in input file " << fileName << ", line " << lineNumber;
+                     exit(1);
+                  }
+               }
+               else {
+                  *outputStream << newEntry->Line << "\n";
+                  delete newEntry;
+               }
+               newEntry = nullptr;
+            }
+
+            // ====== Remember header, if Traceroute ========================
+            else {
+               // This header is combined with TAB lines later!
+               newSubEntry = newEntry;
+            }
+         }
+         catch(const std::exception& e) {
+            HPCT_LOG(fatal) << "Unexpected input"
+                           << " in input file " << fileName << ", line " << lineNumber
+                           << ": " << e.what();
+            exit(1);
          }
       }
 
       // ====== TAB<line> ===================================================
       else if(line[0] == '\t') {
+
          // ------ Conversion from old versions -----------------------------
-         if(format.Version < 2) {
-            if(format.Type == InputType::IT_Traceroute) {
-               line = convertOldTracerouteLine(line, oldTimeStamp);
+         try {
+            if(format.Version < 2) {
+               if(format.Type == InputType::IT_Ping) {
+                  line = convertOldPingLine(line);
+               }
+               else if(format.Type == InputType::IT_Traceroute) {
+                  line = convertOldTracerouteLine(line, oldTimeStamp);
+               }
             }
+         }
+         catch(const std::exception& e) {
+            HPCT_LOG(fatal) << "Unexpected input"
+                           << " in input file " << fileName << ", line " << lineNumber
+                           << ": " << e.what();
+            exit(1);
          }
 
          if(newEntry == nullptr) {
@@ -773,6 +810,7 @@ int main(int argc, char** argv)
       outputStream << (*iterator)->Line << "\n";
       delete *iterator;
    }
+   outputStream.flush();
    const std::chrono::system_clock::time_point t4 = std::chrono::system_clock::now();
    HPCT_LOG(info) << "Wrote " << outputSet.size() << " results rows in "
                   << std::chrono::duration_cast<std::chrono::milliseconds>(t4 - t3).count() << " ms";
