@@ -30,6 +30,7 @@
 // Contact: dreibh@simula.no
 
 #include "conversions.h"
+#include "importer-exception.h"
 
 // #include <iostream>
 #include <boost/format.hpp>
@@ -69,12 +70,12 @@ std::string convertOldPingLine(const std::string& line)
       size_t                   timeStampIndex;
       const unsigned long long timeStamp = 1000ULL * std::stoull(value[3], &timeStampIndex, 16);
       if(timeStampIndex != length[3]) {
-         throw std::range_error("Bad time stamp");
+         throw ImporterReaderDataErrorException("Bad time stamp");
       }
       size_t                   rttIndex;
       const unsigned long long rtt = 1000ULL * std::stoull(value[6], &rttIndex, 10);
       if(rttIndex != length[6]) {
-         throw std::range_error("Bad RTT value");
+         throw ImporterReaderDataErrorException("Bad RTT value");
       }
 
       const std::string newLine =
@@ -103,7 +104,7 @@ std::string convertOldPingLine(const std::string& line)
       //           << "=> " << newLine << "\n";
       return newLine;
    }
-   throw std::range_error("Unexpected number of columns");
+   throw ImporterReaderDataErrorException("Unexpected number of columns");
 }
 
 
@@ -143,7 +144,7 @@ std::string convertOldTracerouteLine(const std::string&  line,
          size_t timeStampIndex;
          timeStamp = 1000ULL * std::stoull(value[3], &timeStampIndex, 16);
          if(timeStampIndex != length[3]) {
-            throw std::range_error("Bad time stamp");
+            throw ImporterReaderDataErrorException("Bad time stamp");
          }
 
          const std::string newLine =
@@ -173,12 +174,12 @@ std::string convertOldTracerouteLine(const std::string&  line,
          size_t             statusIndex;
          const unsigned int status = std::stoul(value[2], &statusIndex, 16);
          if(statusIndex != length[2]) {
-            throw std::range_error("Bad status value");
+            throw ImporterReaderDataErrorException("Bad status value");
          }
          size_t                   rttIndex;
          const unsigned long long rtt = 1000ULL * std::stoull(value[3], &rttIndex, 10);
          if(rttIndex != length[3]) {
-            throw std::range_error("Bad RTT value");
+            throw ImporterReaderDataErrorException("Bad RTT value");
          }
 
          const std::string newLine =
@@ -200,5 +201,5 @@ std::string convertOldTracerouteLine(const std::string&  line,
       }
    }
 
-   throw std::range_error("Unexpected number of columns");
+   throw ImporterReaderDataErrorException("Unexpected number of columns");
 }

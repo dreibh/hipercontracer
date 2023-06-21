@@ -32,7 +32,7 @@
 #ifndef IMPORTER_EXCEPTION_H
 #define IMPORTER_EXCEPTION_H
 
-#include <exception>
+#include <stdexcept>
 #include <string>
 
 
