@@ -160,7 +160,7 @@ void PingReader::parseContents(
       }
 
       // ====== Generate import statement ===================================
-      if( (tuple[0].size() >= 2) && (tuple[0][0] == '#') && (tuple[0][1] == 'P') ) {
+      if( (tuple[0].size() >= 3) && (tuple[0][0] == '#') && (tuple[0][1] == 'P') ) {
          const char                     protocol        = tuple[0][2];
          const unsigned int             measurementID   = parseMeasurementID(tuple[1], dataFile);
          const boost::asio::ip::address sourceIP        = parseAddress(tuple[2], dataFile);
@@ -227,7 +227,7 @@ void PingReader::parseContents(
                << "\"delay.appRecv\": " << delayAppReceive                                        << statement.sep()
                << "\"rtt.app\": "       << rttApp                                                 << statement.sep()
                << "\"rtt.sw\": "        << rttSoftware                                            << statement.sep()
-               << "\"rtt.hw\": "        << rttHardware                                            << statement.sep();
+               << "\"rtt.hw\": "        << rttHardware;
 
             statement.endRow();
             rows++;

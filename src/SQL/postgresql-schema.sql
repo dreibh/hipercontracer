@@ -62,7 +62,7 @@ CREATE TABLE Ping (
    RTT_SW           BIGINT      NOT NULL DEFAULT -1,   -- The measured kernel software RTT (nanoseconds; -1 if not available)
    RTT_HW           BIGINT      NOT NULL DEFAULT -1,   -- The measured kernel hardware RTT (nanoseconds; -1 if not available)
 
-   PRIMARY KEY (SendTimestamp, MeasurementID, SourceIP, DestinationIP, Protocol, TrafficClass)
+   PRIMARY KEY (SendTimestamp, MeasurementID, SourceIP, DestinationIP, Protocol, TrafficClass, BurstSeq)
 );
 
 CREATE INDEX PingRelationIndex ON PingTracerouteDB.Ping (MeasurementID ASC, DestinationIP ASC, SendTimestamp ASC);
