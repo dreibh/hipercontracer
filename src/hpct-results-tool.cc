@@ -719,20 +719,19 @@ int main(int argc, char** argv)
       inputFileNameList.push_back("/dev/stdin");
    }
    else if(inputFileNamesFromStdin) {
-      std::cout << "Input file: ";
-      std::cout.flush();
-      while(!std::cin.eof()) {
-         std::string inputFileName;
+      std::string inputFileName;
+      do {
+         std::cout << "Input file: ";
+         std::cout.flush();
          std::cin >> inputFileName;
          if(!inputFileName.empty()) {
             std::cout << inputFileName << "\n";
             inputFileNameList.push_back(inputFileName);
          }
-         std::cout << "Input file: ";
-         std::cout.flush();
-      }
+      } while(!std::cin.eof());
    }
    if(inputFileNameList.size() == 0) {
+      std::cerr << "No input files.\n";
       return 0;
    }
 
