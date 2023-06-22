@@ -484,6 +484,7 @@ void TracerouteReader::parseContents(
    std::string tuple[TracerouteMaxColumns];
    const ReaderTimePoint now = ReaderClock::now();
    while(std::getline(dataStream, inputLine)) {
+
       // ====== Conversion from old versions ================================
       if(inputLine.substr(0, 3) == "#T ") {
          version = 1;
@@ -510,6 +511,12 @@ void TracerouteReader::parseContents(
 
       // ====== Generate import statement ===================================
       if( (tuple[0].size() >= 3) && (tuple[0][0] == '#') && (tuple[0][1] == 'T') ) {
+         if( (statusFlags != ~0U) && (backend & DatabaseBackendType::NoSQL_Generic) ) {
+            statement << "]";
+            statement.endRow();
+            rows++;
+         }
+
          protocol        = tuple[0][2];
          measurementID   = parseMeasurementID(tuple[1], dataFile);
          sourceIP        = parseAddress(tuple[2], dataFile);
@@ -522,12 +529,6 @@ void TracerouteReader::parseContents(
          checksum        = parseChecksum(tuple[9], dataFile);
          statusFlags     = parseStatus(tuple[10], dataFile);
          pathHash        = parsePathHash(tuple[11], dataFile);
-
-         if( (statusFlags != ~0U) && (backend & DatabaseBackendType::NoSQL_Generic) ) {
-            statement << "]";
-            statement.endRow();
-            rows++;
-         }
 
          if(backend & DatabaseBackendType::NoSQL_Generic) {
             statement.beginRow();
