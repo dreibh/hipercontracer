@@ -343,8 +343,9 @@ int main(int argc, char** argv)
          if(backend & DatabaseBackendType::SQL_Generic) {
             statement
                << "SELECT Timestamp,MeasurementID,SourceIP,DestinationIP,Protocol,TrafficClass,RoundNumber,HopNumber,TotalHops,PacketSize,ResponseSize,Checksum,Status,PathHash,SendTimestamp,HopIP,TimeSource,Delay_AppSend,Delay_Queuing,Delay_AppReceive,RTT_App,RTT_SW,RTT_HW"
-                  " FROM Traceroute"
-                  " ORDER BY Timestamp,MeasurementID,SourceIP,DestinationIP,Protocol,TrafficClass,RoundNumber,HopNumber";
+                  " FROM Traceroute";
+            addSQLWhere(statement, "Timestamp", fromTimeStamp, toTimeStamp, fromMeasurementID, toMeasurementID);
+            statement << " ORDER BY Timestamp,MeasurementID,SourceIP,DestinationIP,Protocol,TrafficClass,RoundNumber,HopNumber";
             databaseClient->executeQuery(statement);
             while(databaseClient->fetchNextTuple()) {
                const unsigned long long       timeStamp       = databaseClient->getBigInt(1);
