@@ -698,6 +698,12 @@ int main(int argc, char** argv)
       std::cerr << "Bad parameter: " << e.what() << "!\n";
       return 1;
    }
+
+   if(vm.count("help")) {
+       std::cerr << "Usage: " << argv[0] << " parameters" << "\n"
+                 << commandLineOptions;
+       return 1;
+   }
    if( (separator != ' ')  &&
        (separator != '\t') &&
        (separator != ',')  &&
@@ -706,11 +712,6 @@ int main(int argc, char** argv)
        (separator != '|') ) {
       std::cerr << "Invalid separator \"" << separator << "\"!\n";
       exit(1);
-   }
-   if(vm.count("help")) {
-       std::cerr << "Usage: " << argv[0] << " parameters" << "\n"
-                 << commandLineOptions;
-       return 1;
    }
 
    if(inputResultsFromStdin) {
