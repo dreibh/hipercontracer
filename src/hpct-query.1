@@ -17,7 +17,7 @@
 .\" Contact: thomas.dreibholz@gmail.com
 .\"
 .\" ###### Setup ############################################################
-.Dd November 18, 2022
+.Dd June 22, 2023
 .Dt hpct-query 1
 .Os hpct-query
 .\" ###### Name #############################################################
@@ -28,9 +28,16 @@
 .Sh SYNOPSIS
 .Nm hpct-query
 database_configuration
-ping|traceroute
-.Op from_time
-.Op to_time
+ping|traceroute|jitter
+.Op \-L|--loglevel LEVEL
+.Op \-Z|--logcolor on|off
+.Op \-O|--logfile FILE
+.Op \-q|--quiet
+.Op \-v|--verbose
+.Op \--from-time timestamp
+.Op \--to_time timestamp
+.Op \--from-measurement-id measurement_identifier
+.Op \--to_measurement-id measurement_identifier
 .\" ###### Description ######################################################
 .Sh DESCRIPTION
 .Nm hpct-query
@@ -43,20 +50,37 @@ HiPerConTracer manpage for the format description.
 .Sh ARGUMENTS
 The following argument may be provided:
 .Bl -tag -width indent
-.It from_time
-Set the beginning of the time range as string in format "%Y-%m-%d %H:%M:%S".
+.It \-L|\--loglevel LEVEL
+Sets the minimum logging level to the provided value: 0=trace, 1=debug, 2=info, 3=warning, 4=error, 5=fatal.
+.It \-q|\--quiet
+Sets the minimum logging level to 3 (warning).
+.It \-v|\--verbose
+Sets the minimum logging level to 0 (trace).
+.It \-Z|--logcolor on|off
+Enables (on) or disables (off) the usage of ANSI color escape sequences to colorise the log output according to its level.
+.It \-O|--logfile FILE
+Sets a file name for appending the log output to. If a file is set, no log output is made to the console. Otherwise, all log output will be written to the console.
+.It \--from-time timestamp
+Set the beginning of the time range as string in format "%Y-%m-%d %H:%M:%S.%F".
 If not provided, all results will be queried.
-.It end_time
-Set the end of the time range as string in format "%Y-%m-%d %H:%M:%S".
-If not provided, all results after a given from_time will be queried.
+.It \--to_time timestamp
+Set the end of the time range as string in format "%Y-%m-%d %H:%M:%S.%F".
+If not provided, all results after a given from-time will be queried.
+.It \--from-measurement-id measurement_identifier
+Set the beginning of the measurement identifier range.
+If not provided, all results will be queried.
+.It \--to_measurement-id measurement_identifier
+Set the end of the measurement identifier range.
+If not provided, all results will be queried.
 .El
 .\" ###### Arguments ########################################################
 .Sh EXAMPLES
 .Bl -tag -width indent
 .It hpct-query hipercontracer-database.conf ping
 .It hpct-query hipercontracer-database.conf traceroute
-.It hpct-query hipercontracer-database.conf ping "2022-09-29 13:00:00"
-.It hpct-query hipercontracer-database.conf traceroute "2022-09-29 00:00:00" "2022-09-29 12:00:00"
+.It hpct-query hipercontracer-database.conf ping --from-time "2022-09-29 13:00:00"
+.It hpct-query hipercontracer-database.conf traceroute --from-time "2022-09-29 00:00:00" --to-time "2022-09-29 12:00:00"
+.It hpct-query hipercontracer-database.conf traceroute --from-measurement-id 1000 --to-measurement-id 2000
 .El
 .\" ###### Authors ##########################################################
 .Sh AUTHORS
