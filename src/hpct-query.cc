@@ -350,7 +350,7 @@ int main(int argc, char** argv)
          }
          else if(backend & DatabaseBackendType::NoSQL_Generic) {
             statement << "{ \"ping\": { ";
-            addNoSQLFilter(statement, "Timestamp", fromTimeStamp, toTimeStamp, fromMeasurementID, toMeasurementID);
+            addNoSQLFilter(statement, "sendTimestamp", fromTimeStamp, toTimeStamp, fromMeasurementID, toMeasurementID);
             statement << "} }";
 
             HPCT_LOG(debug) << "Query: " << statement;
@@ -492,7 +492,20 @@ int main(int argc, char** argv)
             }
          }
          else if(backend & DatabaseBackendType::NoSQL_Generic) {
+            statement << "{ \"traceroute\": { ";
+            addNoSQLFilter(statement, "Timestamp", fromTimeStamp, toTimeStamp, fromMeasurementID, toMeasurementID);
+            statement << "} }";
 
+            HPCT_LOG(debug) << "Query: " << statement;
+            databaseClient->executeQuery(statement);
+            while(databaseClient->fetchNextTuple()) {
+               try {
+                  puts("TBD");   // FIXME!
+               }
+               catch(const std::exception& e) {
+                  HPCT_LOG(warning) << "Bad data: " << e.what();
+               }
+            }
          }
          else {
             HPCT_LOG(fatal) << "Unknown backend";
