@@ -152,6 +152,7 @@ class Statement : public std::stringstream
    }
 
    std::string encodeAddress(const boost::asio::ip::address& address) const;
+   boost::asio::ip::address decodeAddress(const std::string& string) const;
 
    friend std::ostream& operator<<(std::ostream& os, const Statement& statement);
 

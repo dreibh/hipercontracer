@@ -402,8 +402,7 @@ int32_t MongoDBClient::getInteger(const char* column) const
 
    bson_iter_t iterator;
    if( (bson_iter_init(&iterator, ResultDoc)) &&
-       (bson_iter_find(&iterator, column)) &&
-       (BSON_ITER_HOLDS_INT32(&iterator)) ) {
+       (bson_iter_find(&iterator, column)) ) {
       return bson_iter_int32(&iterator);
    }
    throw ImporterDatabaseDataErrorException("Data error: no field " + std::string(column));
@@ -417,8 +416,7 @@ int64_t MongoDBClient::getBigInt(const char* column) const
 
    bson_iter_t iterator;
    if( (bson_iter_init(&iterator, ResultDoc)) &&
-       (bson_iter_find(&iterator, column)) &&
-       (BSON_ITER_HOLDS_INT64(&iterator)) ) {
+       (bson_iter_find(&iterator, column)) ) {
       return bson_iter_int64(&iterator);
    }
    throw ImporterDatabaseDataErrorException("Data error: no field " + std::string(column));
@@ -432,8 +430,7 @@ std::string MongoDBClient::getString(const char* column) const
 
    bson_iter_t iterator;
    if( (bson_iter_init(&iterator, ResultDoc)) &&
-       (bson_iter_find(&iterator, column)) &&
-       (BSON_ITER_HOLDS_BINARY(&iterator)) ) {
+       (bson_iter_find(&iterator, column)) ) {
       bson_subtype_t subtype;
       uint32_t       length;
       const uint8_t* binary;

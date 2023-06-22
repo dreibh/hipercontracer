@@ -52,20 +52,8 @@ typedef ResultClock::time_point            ResultTimePoint;
 typedef ResultClock::duration              ResultDuration;
 
 
-// ###### Convert IPv4-mapped IPv6 address to IPv4 address ##################
-static inline boost::asio::ip::address unmapIPv4(const boost::asio::ip::address& address) {
-   if(address.is_v6()) {
-      const boost::asio::ip::address_v6 v6 = address.to_v6();
-      if(v6.is_v4_mapped()) {
-         return boost::asio::ip::make_address_v4(boost::asio::ip::v4_mapped, v6);
-      }
-   }
-   return address;
-}
-
-
 // ###### Add WHERE clause in for SELECT statement ##########################
-static void addSQLWhere(Statement& statement,
+static void addSQLWhere(Statement&               statement,
                         const char*              timeStampField,
                         const unsigned long long fromTimeStamp,
                         const unsigned long long toTimeStamp,
@@ -95,6 +83,34 @@ static void addSQLWhere(Statement& statement,
 }
 
 
+// ###### Add WHERE clause in for SELECT statement ##########################
+static void addNoSQLFilter(Statement&               statement,
+                           const char*              timeStampField,
+                           const unsigned long long fromTimeStamp,
+                           const unsigned long long toTimeStamp,
+                           const unsigned int       fromMeasurementID,
+                           const unsigned int       toMeasurementID)
+{
+   if( (fromTimeStamp > 0) || (toTimeStamp > 0) || (fromMeasurementID > 0) || (toMeasurementID > 0) ) {
+
+      abort();
+
+//       query = { }
+//       if fromTimeStamp != None:
+//          ft =  { 'timestamp': { '$gte': str(fromTimeStamp) } }
+//          if toTimeStamp != None:
+//             tt =  { 'timestamp': { '$lt': str(toTimeStamp) } }
+//             query = { '$and': [ ft, tt ] }
+//          else:
+//             query = ft
+//       rows = configuration.queryMongoDB('traceroute', query)
+//       rows = self.database[table].find(request, batch_size=1000000).batch_size(1000000)
+//       return rows
+
+   }
+}
+
+
 
 // ###### Main program ######################################################
 int main(int argc, char** argv)
@@ -108,8 +124,8 @@ int main(int argc, char** argv)
    std::string           queryType;
    std::string           fromTimeString;
    std::string           toTimeString;
-   unsigned long long    fromTimeStamp     = 0;
-   unsigned long long    toTimeStamp       = 0;
+   unsigned long long    fromTimeStamp = 0;
+   unsigned long long    toTimeStamp   = 0;
    unsigned int          fromMeasurementID;
    unsigned int          toMeasurementID;
 
@@ -287,9 +303,9 @@ int main(int argc, char** argv)
             databaseClient->executeQuery(statement);
             while(databaseClient->fetchNextTuple()) {
                const unsigned long long       sendTimeStamp   = databaseClient->getBigInt(1);
-               const unsigned long long       measurementID   = databaseClient->getBigInt(2);
-               const boost::asio::ip::address sourceIP        = unmapIPv4(boost::asio::ip::make_address(databaseClient->getString(3)));
-               const boost::asio::ip::address destinationIP   = unmapIPv4(boost::asio::ip::make_address(databaseClient->getString(4)));
+               const unsigned long long       measurementID   = databaseClient->getInteger(2);
+               const boost::asio::ip::address sourceIP        = statement.decodeAddress(databaseClient->getString(3));
+               const boost::asio::ip::address destinationIP   = statement.decodeAddress(databaseClient->getString(4));
                const char                     protocol        = databaseClient->getInteger(5);
                const uint8_t                  trafficClass    = databaseClient->getInteger(6);
                const unsigned int             burstSeq        = databaseClient->getInteger(7);
@@ -333,7 +349,63 @@ int main(int argc, char** argv)
             }
          }
          else if(backend & DatabaseBackendType::NoSQL_Generic) {
+            statement << "{ \"ping\": { ";
+            addNoSQLFilter(statement, "Timestamp", fromTimeStamp, toTimeStamp, fromMeasurementID, toMeasurementID);
+            statement << "} }";
 
+            HPCT_LOG(debug) << "Query: " << statement;
+            databaseClient->executeQuery(statement);
+            while(databaseClient->fetchNextTuple()) {
+               try {
+                  const unsigned long long       sendTimeStamp   = databaseClient->getBigInt("sendTimestamp");
+                  const unsigned long long       measurementID   = databaseClient->getInteger("measurementID");
+                  const boost::asio::ip::address sourceIP        = statement.decodeAddress(databaseClient->getString("sourceIP"));
+                  const boost::asio::ip::address destinationIP   = statement.decodeAddress(databaseClient->getString("destinationIP"));
+                  const char                     protocol        = databaseClient->getInteger("protocol");
+                  const uint8_t                  trafficClass    = databaseClient->getInteger("trafficClass");
+                  const unsigned int             burstSeq        = databaseClient->getInteger("burstSeq");
+                  const unsigned int             packetSize      = databaseClient->getInteger("packetSize");
+                  const unsigned int             responseSize    = databaseClient->getInteger("responseSize");
+                  const uint16_t                 checksum        = databaseClient->getInteger("checksum");
+                  const unsigned int             status          = databaseClient->getInteger("status");
+                  const unsigned int             timeSource      = databaseClient->getInteger("timeSource");
+                  const long long                delayAppSend    = databaseClient->getBigInt("delay.appSend");
+                  const long long                delayQueuing    = databaseClient->getBigInt("delay.queuing");
+                  const long long                delayAppReceive = databaseClient->getBigInt("delay.appRecv");
+                  const long long                rttApplication  = databaseClient->getBigInt("rtt.app");
+                  const long long                rttSoftware     = databaseClient->getBigInt("rtt.sw");
+                  const long long                rttHardware     = databaseClient->getBigInt("rtt.hw");
+
+                  outputStream <<
+                     str(boost::format("#P%c %d %s %s %x %d %x %d %d %x %d %08x %d %d %d %d %d %d\n")
+                        % protocol
+
+                        % measurementID
+                        % sourceIP.to_string()
+                        % destinationIP.to_string()
+                        % sendTimeStamp
+                        % burstSeq
+
+                        % (unsigned int)trafficClass
+                        % packetSize
+                        % responseSize
+                        % checksum
+                        % status
+
+                        % timeSource
+                        % delayAppSend
+                        % delayQueuing
+                        % delayAppReceive
+                        % rttApplication
+                        % rttSoftware
+                        % rttHardware
+                     );
+                  lines++;
+               }
+               catch(const std::exception& e) {
+                  HPCT_LOG(warning) << "Bad data: " << e.what();
+               }
+            }
          }
          else {
             HPCT_LOG(fatal) << "Unknown backend";
@@ -354,8 +426,8 @@ int main(int argc, char** argv)
             while(databaseClient->fetchNextTuple()) {
                const unsigned long long       timeStamp       = databaseClient->getBigInt(1);
                const unsigned long long       measurementID   = databaseClient->getBigInt(2);
-               const boost::asio::ip::address sourceIP        = unmapIPv4(boost::asio::ip::make_address(databaseClient->getString(3)));
-               const boost::asio::ip::address destinationIP   = unmapIPv4(boost::asio::ip::make_address(databaseClient->getString(4)));
+               const boost::asio::ip::address sourceIP        = statement.decodeAddress(databaseClient->getString(3));
+               const boost::asio::ip::address destinationIP   = statement.decodeAddress(databaseClient->getString(4));
                const char                     protocol        = databaseClient->getInteger(5);
                const uint8_t                  trafficClass    = databaseClient->getInteger(6);
                const unsigned int             roundNumber     = databaseClient->getInteger(7);
@@ -367,7 +439,7 @@ int main(int argc, char** argv)
                const unsigned int             status          = databaseClient->getInteger(13);
                const long long                pathHash        = databaseClient->getBigInt(14);
                const unsigned long long       sendTimeStamp   = databaseClient->getBigInt(15);
-               const boost::asio::ip::address hopIP           = unmapIPv4(boost::asio::ip::make_address(databaseClient->getString(16)));
+               const boost::asio::ip::address hopIP           = statement.decodeAddress(databaseClient->getString(16));
                const unsigned int             timeSource      = databaseClient->getInteger(17);
                const long long                delayAppSend    = databaseClient->getBigInt(18);
                const long long                delayQueuing    = databaseClient->getBigInt(19);

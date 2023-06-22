@@ -31,6 +31,7 @@
 
 #include "databaseclient-base.h"
 
+#include <stdexcept>
 #include <boost/asio/ip/address.hpp>
 #include <boost/beast/core/detail/base64.hpp>
 
@@ -83,6 +84,52 @@ std::string Statement::encodeAddress(const boost::asio::ip::address& address) co
    }
 
    return ss.str();
+}
+
+
+// ###### Decode IP address #################################################
+boost::asio::ip::address Statement::decodeAddress(const std::string& string) const
+{
+   boost::asio::ip::address address;
+
+   if(Backend & DatabaseBackendType::SQL_Generic) {
+      address = boost::asio::ip::make_address(string);
+   }
+   else if(Backend & DatabaseBackendType::NoSQL_Generic) {
+
+      // NOTE: The address is already decoded in the string!
+      //       => No need for Base64 decoding.
+#if 0
+      char decoded[boost::beast::detail::base64::decoded_size(string.size())];
+      const std::pair<std::size_t, std::size_t> result =
+         boost::beast::detail::base64::decode(&decoded, string.c_str(), string.size());
+      if(result.first == 4) {
+         address = boost::asio::ip::make_address_v4(*((boost::asio::ip::address_v4::bytes_type*)&decoded));
+      }
+      else if(result.first == 16) {
+         address = boost::asio::ip::make_address_v6(*((boost::asio::ip::address_v6::bytes_type*)&decoded));
+      }
+#endif
+
+      if(string.size() == 4) {
+         address = boost::asio::ip::make_address_v4(*((boost::asio::ip::address_v4::bytes_type*)string.c_str()));
+      }
+      else if(string.size() == 16) {
+         address = boost::asio::ip::make_address_v6(*((boost::asio::ip::address_v6::bytes_type*)string.c_str()));
+      }
+      else {
+         throw std::runtime_error("Not an base64-encoded address");
+      }
+   }
+
+   if(address.is_v6()) {
+      const boost::asio::ip::address_v6 v6 = address.to_v6();
+      if(v6.is_v4_mapped()) {
+         return boost::asio::ip::make_address_v4(boost::asio::ip::v4_mapped, v6);
+      }
+   }
+
+   return address;
 }
 
 
