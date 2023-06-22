@@ -55,12 +55,21 @@ class MongoDBClient : public DatabaseClientBase
    virtual void endTransaction(const bool commit);
 
    virtual bool fetchNextTuple();
+   virtual int32_t getInteger(const char* column) const;
+   virtual int64_t getBigInt(const char* column) const;
+   virtual std::string getString(const char* column) const;
 
    inline mongoc_client_t* getConnection() { return Connection; }
 
    private:
-   mongoc_uri_t*    URI;
-   mongoc_client_t* Connection;
+   void freeResults();
+
+   mongoc_uri_t*        URI;
+   mongoc_client_t*     Connection;
+   mongoc_collection_t* ResultCollection;
+   mongoc_cursor_t*     ResultCursor;
+   const bson_t*        ResultDoc;
+   bson_t*              ResultQuery;
 };
 
 #endif
