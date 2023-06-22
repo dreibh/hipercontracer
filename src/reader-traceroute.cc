@@ -537,7 +537,7 @@ void TracerouteReader::parseContents(
                << "\"measurementID\": " << measurementID                                      << statement.sep()
                << "\"sourceIP\": "      << statement.encodeAddress(sourceIP)                  << statement.sep()
                << "\"destinationIP\": " << statement.encodeAddress(destinationIP)             << statement.sep()
-               << "\"protocol\": \""    << protocol << "\""                                   << statement.sep()
+               << "\"protocol\":"       << (unsigned int)protocol                             << statement.sep()
                << "\"trafficClass\": "  << (unsigned int)trafficClass                         << statement.sep()
                << "\"roundNumber\": "   << roundNumber                                        << statement.sep()
                << "\"packetSize\": "    << packetSize                                         << statement.sep()
