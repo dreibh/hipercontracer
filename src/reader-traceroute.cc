@@ -517,34 +517,34 @@ void TracerouteReader::parseContents(
             rows++;
          }
 
-         protocol        = tuple[0][2];
-         measurementID   = parseMeasurementID(tuple[1], dataFile);
-         sourceIP        = parseAddress(tuple[2], dataFile);
-         destinationIP   = parseAddress(tuple[3], dataFile);
-         timeStamp       = parseTimeStamp(tuple[4], now, true, dataFile);
-         roundNumber     = parseRoundNumber(tuple[5], dataFile);
-         totalHops       = parseTotalHops(tuple[6], dataFile);
-         trafficClass    = parseTrafficClass(tuple[7], dataFile);
-         packetSize      = parsePacketSize(tuple[8], dataFile);
-         checksum        = parseChecksum(tuple[9], dataFile);
-         statusFlags     = parseStatus(tuple[10], dataFile);
-         pathHash        = parsePathHash(tuple[11], dataFile);
+         protocol      = tuple[0][2];
+         measurementID = parseMeasurementID(tuple[1], dataFile);
+         sourceIP      = parseAddress(tuple[2], dataFile);
+         destinationIP = parseAddress(tuple[3], dataFile);
+         timeStamp     = parseTimeStamp(tuple[4], now, true, dataFile);
+         roundNumber   = parseRoundNumber(tuple[5], dataFile);
+         totalHops     = parseTotalHops(tuple[6], dataFile);
+         trafficClass  = parseTrafficClass(tuple[7], dataFile);
+         packetSize    = parsePacketSize(tuple[8], dataFile);
+         checksum      = parseChecksum(tuple[9], dataFile);
+         statusFlags   = parseStatus(tuple[10], dataFile);
+         pathHash      = parsePathHash(tuple[11], dataFile);
 
          if(backend & DatabaseBackendType::NoSQL_Generic) {
             statement.beginRow();
             statement
-               << "\"timestamp\": "     << timePointToNanoseconds<ReaderTimePoint>(timeStamp) << statement.sep()
-               << "\"measurementID\": " << measurementID                                      << statement.sep()
-               << "\"sourceIP\": "      << statement.encodeAddress(sourceIP)                  << statement.sep()
-               << "\"destinationIP\": " << statement.encodeAddress(destinationIP)             << statement.sep()
-               << "\"protocol\":"       << (unsigned int)protocol                             << statement.sep()
-               << "\"trafficClass\": "  << (unsigned int)trafficClass                         << statement.sep()
-               << "\"roundNumber\": "   << roundNumber                                        << statement.sep()
-               << "\"packetSize\": "    << packetSize                                         << statement.sep()
-               << "\"trafficClass\": "  << (unsigned int)trafficClass                         << statement.sep()
-               << "\"statusFlags\": "   << statusFlags                                        << statement.sep()
-               << "\"totalHops\": "     << totalHops                                          << statement.sep()
-               << "\"pathHash\": "      << pathHash                                           << statement.sep()
+               << "\"timestamp\":"     << timePointToNanoseconds<ReaderTimePoint>(timeStamp) << statement.sep()
+               << "\"measurementID\":" << measurementID                                      << statement.sep()
+               << "\"sourceIP\":"      << statement.encodeAddress(sourceIP)                  << statement.sep()
+               << "\"destinationIP\":" << statement.encodeAddress(destinationIP)             << statement.sep()
+               << "\"protocol\":"      << (unsigned int)protocol                             << statement.sep()
+               << "\"trafficClass\":"  << (unsigned int)trafficClass                         << statement.sep()
+               << "\"roundNumber\":"   << roundNumber                                        << statement.sep()
+               << "\"packetSize\":"    << packetSize                                         << statement.sep()
+               << "\"trafficClass\":"  << (unsigned int)trafficClass                         << statement.sep()
+               << "\"statusFlags\":"   << statusFlags                                        << statement.sep()
+               << "\"totalHops\":"     << totalHops                                          << statement.sep()
+               << "\"pathHash\":"      << pathHash                                           << statement.sep()
                << "\"hops\": [ ";
          }
       }
@@ -599,20 +599,20 @@ void TracerouteReader::parseContents(
          }
          else if(backend & DatabaseBackendType::NoSQL_Generic) {
             statement
-               << ((hopNumber > 1) ? ", { " : " { ")
+               << ((hopNumber > 1) ? ", { " :" { ")
 
-               << "\"sendTimeStamp\":"  << statement.quote(timePointToString<ReaderTimePoint>(sendTimeStamp, 9)) << statement.sep()
-               << "\"responseSize\": "  << responseSize                                                          << statement.sep()
-               << "\"hopIP\": "         << statement.encodeAddress(hopIP)                                        << statement.sep()
-               << "\"status\": "        << status                                                                << statement.sep()
+               << "\"sendTimeStamp\":" << statement.quote(timePointToString<ReaderTimePoint>(sendTimeStamp, 9)) << statement.sep()
+               << "\"responseSize\":"  << responseSize                                                          << statement.sep()
+               << "\"hopIP\":"         << statement.encodeAddress(hopIP)                                        << statement.sep()
+               << "\"status\":"        << status                                                                << statement.sep()
 
-               << "\"timeSource\": "    << (long long)timeSource                                                 << statement.sep()
-               << "\"delay.appSend\": " << delayAppSend                                                          << statement.sep()
-               << "\"delay.queuing\": " << delayQueuing                                                          << statement.sep()
-               << "\"delay.appRecv\": " << delayAppReceive                                                       << statement.sep()
-               << "\"rtt.app\": "       << rttApp                                                                << statement.sep()
-               << "\"rtt.sw\": "        << rttSoftware                                                           << statement.sep()
-               << "\"rtt.hw\": "        << rttHardware
+               << "\"timeSource\":"    << (long long)timeSource                                                 << statement.sep()
+               << "\"delay.appSend\":" << delayAppSend                                                          << statement.sep()
+               << "\"delay.queuing\":" << delayQueuing                                                          << statement.sep()
+               << "\"delay.appRecv\":" << delayAppReceive                                                       << statement.sep()
+               << "\"rtt.app\":"       << rttApp                                                                << statement.sep()
+               << "\"rtt.sw\":"        << rttSoftware                                                           << statement.sep()
+               << "\"rtt.hw\":"        << rttHardware
 
                << " }";
          }

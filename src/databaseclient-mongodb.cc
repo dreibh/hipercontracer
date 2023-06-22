@@ -403,7 +403,9 @@ int32_t MongoDBClient::getInteger(const char* column) const
    bson_iter_t iterator;
    if( (bson_iter_init(&iterator, ResultDoc)) &&
        (bson_iter_find(&iterator, column)) ) {
-      return bson_iter_int32(&iterator);
+      if(BSON_ITER_HOLDS_INT32(&iterator)) {
+         return bson_iter_int32(&iterator);
+      }
    }
    throw ImporterDatabaseDataErrorException("Data error: no field " + std::string(column));
 }
@@ -417,7 +419,12 @@ int64_t MongoDBClient::getBigInt(const char* column) const
    bson_iter_t iterator;
    if( (bson_iter_init(&iterator, ResultDoc)) &&
        (bson_iter_find(&iterator, column)) ) {
-      return bson_iter_int64(&iterator);
+      if(BSON_ITER_HOLDS_INT64(&iterator)) {
+         return bson_iter_int64(&iterator);
+      }
+      else if(BSON_ITER_HOLDS_INT32(&iterator)) {
+         return bson_iter_int32(&iterator);
+      }
    }
    throw ImporterDatabaseDataErrorException("Data error: no field " + std::string(column));
 }

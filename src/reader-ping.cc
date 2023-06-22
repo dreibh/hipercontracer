@@ -209,25 +209,25 @@ void PingReader::parseContents(
          else if(backend & DatabaseBackendType::NoSQL_Generic) {
             statement.beginRow();
             statement
-               << "\"sendTimestamp\": " << timePointToNanoseconds<ReaderTimePoint>(sendTimeStamp) << statement.sep()
-               << "\"measurementID\": " << measurementID                                          << statement.sep()
-               << "\"sourceIP\": "      << statement.encodeAddress(sourceIP)                      << statement.sep()
-               << "\"destinationIP\": " << statement.encodeAddress(destinationIP)                 << statement.sep()
-               << "\"protocol\":"       << (unsigned int)protocol                                 << statement.sep()
-               << "\"trafficClass\": "  << (unsigned int)trafficClass                             << statement.sep()
-               << "\"burstSeq\": "      << burstSeq                                               << statement.sep()
-               << "\"packetSize\": "    << packetSize                                             << statement.sep()
-               << "\"responseSize\": "  << responseSize                                           << statement.sep()
-               << "\"checksum\": "      << checksum                                               << statement.sep()
-               << "\"status\": "        << status                                                 << statement.sep()
+               << "\"sendTimestamp\":" << timePointToNanoseconds<ReaderTimePoint>(sendTimeStamp) << statement.sep()
+               << "\"measurementID\":" << measurementID                                          << statement.sep()
+               << "\"sourceIP\":"      << statement.encodeAddress(sourceIP)                      << statement.sep()
+               << "\"destinationIP\":" << statement.encodeAddress(destinationIP)                 << statement.sep()
+               << "\"protocol\":"      << (unsigned int)protocol                                 << statement.sep()
+               << "\"trafficClass\":"  << (unsigned int)trafficClass                             << statement.sep()
+               << "\"burstSeq\":"      << burstSeq                                               << statement.sep()
+               << "\"packetSize\":"    << packetSize                                             << statement.sep()
+               << "\"responseSize\":"  << responseSize                                           << statement.sep()
+               << "\"checksum\":"      << checksum                                               << statement.sep()
+               << "\"status\":"        << status                                                 << statement.sep()
 
-               << "\"timeSource\": "    << (long long)timeSource                                  << statement.sep()
-               << "\"delay.appSend\": " << delayAppSend                                           << statement.sep()
-               << "\"delay.queuing\": " << delayQueuing                                           << statement.sep()
-               << "\"delay.appRecv\": " << delayAppReceive                                        << statement.sep()
-               << "\"rtt.app\": "       << rttApp                                                 << statement.sep()
-               << "\"rtt.sw\": "        << rttSoftware                                            << statement.sep()
-               << "\"rtt.hw\": "        << rttHardware;
+               << "\"timeSource\":"    << (long long)timeSource                                  << statement.sep()
+               << "\"delay.appSend\":" << delayAppSend                                           << statement.sep()
+               << "\"delay.queuing\":" << delayQueuing                                           << statement.sep()
+               << "\"delay.appRecv\":" << delayAppReceive                                        << statement.sep()
+               << "\"rtt.app\":"       << rttApp                                                 << statement.sep()
+               << "\"rtt.sw\":"        << rttSoftware                                            << statement.sep()
+               << "\"rtt.hw\":"        << rttHardware;
 
             statement.endRow();
             rows++;
