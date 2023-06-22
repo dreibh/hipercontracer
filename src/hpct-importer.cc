@@ -86,15 +86,12 @@ int main(int argc, char** argv)
            boost::program_options::value<unsigned int>(&logLevel)->implicit_value(boost::log::trivial::severity_level::warning),
            "Quiet logging level" )
 
-      ( "config,C",
-           boost::program_options::value<std::filesystem::path>(&databaseConfigurationFile),
-           "Database configuration file" )
-      ("import-mode,X",              boost::program_options::value<std::string>(&importModeName),                    "Override import mode")
-      ("import-max-depth,D",         boost::program_options::value<unsigned int>(&importMaxDepth)->default_value(0), "Override import max depth")
-      ("import-file-path,I",         boost::program_options::value<std::filesystem::path>(&importFilePath),          "Override path for input files")
-      ("bad-file-path,B",            boost::program_options::value<std::filesystem::path>(&badFilePath),             "Override path for bad files")
-      ("good-file-path,G",           boost::program_options::value<std::filesystem::path>(&goodFilePath),            "Override path for good files")
-      ("import-file-path-filter,F",  boost::program_options::value<std::string>(&importFilePathFilter),              "Import path filter (regular expression)")
+      ("import-mode,X",             boost::program_options::value<std::string>(&importModeName),                    "Override import mode")
+      ("import-max-depth,D",        boost::program_options::value<unsigned int>(&importMaxDepth)->default_value(0), "Override import max depth")
+      ("import-file-path,I",        boost::program_options::value<std::filesystem::path>(&importFilePath),          "Override path for input files")
+      ("bad-file-path,B",           boost::program_options::value<std::filesystem::path>(&badFilePath),             "Override path for bad files")
+      ("good-file-path,G",          boost::program_options::value<std::filesystem::path>(&goodFilePath),            "Override path for good files")
+      ("import-file-path-filter,F", boost::program_options::value<std::string>(&importFilePathFilter),              "Import path filter (regular expression)")
       ("quit-when-idle,Q",
           boost::program_options::value<bool>(&quitWhenIdle)->implicit_value(true)->default_value(false),
           "Quit importer when idle")
@@ -112,32 +109,31 @@ int main(int argc, char** argv)
            boost::program_options::value<unsigned int>(&tracerouteTransactionSize)->default_value(1),
            "Number of Traceroute files per transaction" )
    ;
+   boost::program_options::options_description hiddenOptions;
+   hiddenOptions.add_options()
+      ( "config", boost::program_options::value<std::filesystem::path>(&databaseConfigurationFile) )
+   ;
+   boost::program_options::options_description allOptions;
+   allOptions.add(commandLineOptions);
+   allOptions.add(hiddenOptions);
+   boost::program_options::positional_options_description positionalParameters;
+   positionalParameters.add("config", 1);
 
 
    // ====== Handle command-line arguments ==================================
    boost::program_options::variables_map vm;
    try {
-      const boost::program_options::parsed_options parsedOptions =
-         boost::program_options::command_line_parser(argc, argv).
-            style(boost::program_options::command_line_style::style_t::default_style| boost::program_options::command_line_style::style_t::allow_long_disguise).
-            options(commandLineOptions).
-            // allow_unregistered().
-            run();
-      boost::program_options::store(parsedOptions, vm);
-
-      // std::vector<std::string> p = boost::program_options::collect_unrecognized(parsedOptions.options, boost::program_options::include_positional);
-      // if(p.size() > 1) {
-      //    std::cerr << "ERROR: Only one database configuration file may be provided!\n";
-      //    exit(1);
-      // }
-      // for(auto it = p.begin(); it != p.end(); it++) {
-      //     databaseConfigurationFile = *it;
-      //     break;
-      // }
+      boost::program_options::store(boost::program_options::command_line_parser(argc, argv).
+                                       style(
+                                          boost::program_options::command_line_style::style_t::default_style|
+                                          boost::program_options::command_line_style::style_t::allow_long_disguise
+                                       ).
+                                       options(allOptions).positional(positionalParameters).
+                                       run(), vm);
       boost::program_options::notify(vm);
    }
    catch(std::exception& e) {
-      std::cerr << "ERROR: Bad parameter: " << e.what() << "\n";
+      std::cerr << "Bad parameter: " << e.what() << "!\n";
       return 1;
    }
 
@@ -147,6 +143,10 @@ int main(int argc, char** argv)
        return 1;
    }
 
+   if(databaseConfigurationFile.empty()) {
+      std::cerr << "ERROR: No database configuration file provided!\n";
+      return 1;
+   }
    if(pingWorkers + tracerouteWorkers < 1) {
       std::cerr << "ERROR: At least one worker is needed!\n";
       return 1;

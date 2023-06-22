@@ -188,6 +188,10 @@ int main(int argc, char** argv)
    }
    boost::algorithm::to_lower(queryType);
 
+   if(databaseConfigurationFile.empty()) {
+      std::cerr << "ERROR: No database configuration file provided!\n";
+      return 1;
+   }
    if(!fromTimeString.empty()) {
       ResultTimePoint timePoint;
       if(!(stringToTimePoint<ResultTimePoint>(fromTimeString, timePoint))) {
