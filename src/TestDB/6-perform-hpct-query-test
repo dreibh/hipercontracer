@@ -61,14 +61,9 @@ if [ -e "${DATABASE_CONFIG}" ] ; then
       ../hpct-query -c "${DATABASE_CONFIG}" -Q ${table,,} -o queried-${table,,}.results
       ../hpct-results-tool queried-${table,,}.results -o queried-${table,,}.csv
 
-      echo "Differences for ${table}:"
-      if [ "${table}" == "Traceroute" ] ; then
-         ls -l imported-${table,,}.csv
-         ls -l queried-${table,,}.csv
-      fi
-
-      ls -l imported-${table,,}.csv queried-${table,,}.csv
-      wc -l imported-${table,,}.csv queried-${table,,}.csv
+      echo "Checking for differences in ${table}:"
+      wc -ml imported-${table,,}.csv
+      wc -ml queried-${table,,}.csv
       if ! diff imported-${table,,}.csv queried-${table,,}.csv ; then
          echo "RESULTS DIFFER!"
          diff --color=always imported-${table,,}.csv queried-${table,,}.csv | head -n32
