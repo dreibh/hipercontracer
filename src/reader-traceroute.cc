@@ -509,7 +509,7 @@ void TracerouteReader::parseContents(
       }
 
       // ====== Generate import statement ===================================
-      if( (tuple[0].size() >= 2) && (tuple[0][0] == '#') && (tuple[0][1] == 'T') ) {
+      if( (tuple[0].size() >= 3) && (tuple[0][0] == '#') && (tuple[0][1] == 'T') ) {
          protocol        = tuple[0][2];
          measurementID   = parseMeasurementID(tuple[1], dataFile);
          sourceIP        = parseAddress(tuple[2], dataFile);
