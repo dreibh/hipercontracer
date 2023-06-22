@@ -732,6 +732,9 @@ int main(int argc, char** argv)
          std::cout.flush();
       }
    }
+   if(inputFileNameList.size() == 0) {
+      return 0;
+   }
 
    // ====== Initialize =====================================================
    initialiseLogger(logLevel, logColor,
