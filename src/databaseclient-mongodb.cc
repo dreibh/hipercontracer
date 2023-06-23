@@ -334,15 +334,14 @@ void MongoDBClient::executeQuery(Statement& statement)
    // printf("JSON: %s\n", statement.str().c_str());
 
    // ====== Prepare BSON ===================================================
-   bson_t* queryStatement = bson_new();
-   assert(queryStatement != nullptr);
    bson_error_t error;
-   if(!bson_init_from_json(queryStatement, statement.str().c_str(), -1, &error)) {
+   bson_t       bson;
+   if(!bson_init_from_json(&bson, statement.str().c_str(), -1, &error)) {
+      bson_destroy(&bson);
       const std::string errorMessage = std::string("Data error ") +
                                           std::to_string(error.domain) + "." +
                                           std::to_string(error.code) +
                                           ": " + error.message;
-      bson_destroy(queryStatement);
       throw ResultsDatabaseDataErrorException(errorMessage);
    }
 
@@ -352,7 +351,7 @@ void MongoDBClient::executeQuery(Statement& statement)
    const char* key;
    bson_t      query;
    std::string collectionName;
-   if( (bson_iter_init(&iterator, queryStatement)) &&
+   if( (bson_iter_init(&iterator, &bson)) &&
        (bson_iter_next(&iterator)) &&
        ( (key = bson_iter_key(&iterator)) != nullptr ) &&
        (bson_iter_type(&iterator) == BSON_TYPE_DOCUMENT) ) {
@@ -366,7 +365,7 @@ void MongoDBClient::executeQuery(Statement& statement)
       assert(!bson_iter_next(&iterator));   // Only one collection is supported!
    }
    else {
-      bson_destroy(queryStatement);
+      bson_destroy(&bson);
       throw ResultsDatabaseDataErrorException("Data error: Unexpected format (not collection -> [ ... ])");
    }
 
@@ -379,7 +378,7 @@ void MongoDBClient::executeQuery(Statement& statement)
    ResultCursor = mongoc_collection_find_with_opts (ResultCollection, &query, NULL, NULL);
    assert(ResultCursor != nullptr);
 
-   bson_destroy(queryStatement);
+   bson_destroy(&bson);
 }
 
 
