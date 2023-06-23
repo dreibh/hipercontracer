@@ -411,9 +411,8 @@ bool dumpResultsFile(std::set<OutputEntry*, pointer_lessthan<OutputEntry>>* outp
 
    // ====== Process lines of the input file ================================
    std::string        line;
-   unsigned long long lineNumber  = 0;
-   OutputEntry*       newEntry    = nullptr;
-   OutputEntry*       newSubEntry = nullptr;
+   unsigned long long lineNumber = 0;
+   OutputEntry*       newEntry   = nullptr;
    unsigned long long oldTimeStamp;   // Just used for version 1 conversion!
    while(std::getline(inputStream, line, '\n')) {
       lineNumber++;
@@ -526,12 +525,6 @@ bool dumpResultsFile(std::set<OutputEntry*, pointer_lessthan<OutputEntry>>* outp
                }
                newEntry = nullptr;
             }
-
-            // ====== Remember header, if Traceroute ========================
-            else {
-               // This header is combined with TAB lines later!
-               newSubEntry = newEntry;
-            }
          }
          catch(const std::exception& e) {
             HPCT_LOG(fatal) << "Unexpected input"
@@ -544,57 +537,55 @@ bool dumpResultsFile(std::set<OutputEntry*, pointer_lessthan<OutputEntry>>* outp
       // ====== TAB<line> ===================================================
       else if(line[0] == '\t') {
 
-         // ------ Conversion from old versions -----------------------------
-         try {
-            if(format.Version < 2) {
-               if(format.Type == InputType::IT_Ping) {
-                  line = convertOldPingLine(line);
-               }
-               else if(format.Type == InputType::IT_Traceroute) {
+         if(format.Type == InputType::IT_Traceroute) {
+            // ------ Conversion from old versions -----------------------------
+            try {
+               if(format.Version < 2) {
                   line = convertOldTracerouteLine(line, oldTimeStamp);
                }
             }
-         }
-         catch(const std::exception& e) {
-            HPCT_LOG(fatal) << "Unexpected input"
-                           << " in input file " << fileName << ", line " << lineNumber
-                           << ": " << e.what();
-            exit(1);
-         }
+            catch(const std::exception& e) {
+               HPCT_LOG(fatal) << "Unexpected input"
+                              << " in input file " << fileName << ", line " << lineNumber
+                              << ": " << e.what();
+               exit(1);
+            }
 
-         if(newEntry == nullptr) {
-            HPCT_LOG(fatal) << "TAB line without corresponding header line"
-                            << " in input file " << fileName << ", line " << lineNumber;
-            exit(1);
-         }
-
-         // NOTE: newEntry is the header line, used as reference entry!
-         newEntry->SeqNumber++;
-         newSubEntry = new OutputEntry(*newEntry);
-         newSubEntry->Line += " ~ " + ((line[1] != ' ') ? line.substr(1) : line.substr(2));
-
-         const unsigned int seenColumns = applySeparator(newSubEntry->Line, separator);
-         if(seenColumns != columns) {
-            HPCT_LOG(fatal) << "Got " << seenColumns << " instead of expected "
-                              << columns << " columns"
-                              << " in input file " << fileName << ", line " << lineNumber;
-            exit(1);
-         }
-
-         const std::lock_guard<std::mutex> lock(*outputMutex);
-         if(outputSet) {
-            auto success = outputSet->insert(newSubEntry);
-            if(!success.second) {
-               HPCT_LOG(fatal) << "Duplicate tab entry"
+            if(newEntry == nullptr) {
+               HPCT_LOG(fatal) << "TAB line without corresponding header line"
                               << " in input file " << fileName << ", line " << lineNumber;
                exit(1);
             }
+
+            // NOTE: newEntry is the header line, used as reference entry!
+            newEntry->SeqNumber++;
+
+            OutputEntry* newSubEntry = new OutputEntry(*newEntry);
+            newSubEntry->Line += " ~ " + ((line[1] != ' ') ? line.substr(1) : line.substr(2));
+
+            const unsigned int seenColumns = applySeparator(newSubEntry->Line, separator);
+            if(seenColumns != columns) {
+               HPCT_LOG(fatal) << "Got " << seenColumns << " instead of expected "
+                                 << columns << " columns"
+                                 << " in input file " << fileName << ", line " << lineNumber;
+               exit(1);
+            }
+
+            const std::lock_guard<std::mutex> lock(*outputMutex);
+            if(outputSet) {
+               auto success = outputSet->insert(newSubEntry);
+               if(!success.second) {
+                  HPCT_LOG(fatal) << "Duplicate tab entry"
+                                 << " in input file " << fileName << ", line " << lineNumber;
+                  exit(1);
+               }
+            }
+            else {
+               *outputStream << newSubEntry->Line << "\n";
+               delete newSubEntry;
+            }
          }
-         else {
-            *outputStream << newSubEntry->Line << "\n";
-            delete newSubEntry;
-            newSubEntry = nullptr;
-         }
+
       }
 
       // ------ Syntax error ------------------------------------------------
