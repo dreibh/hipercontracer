@@ -58,12 +58,12 @@ ICMPModule::ICMPModule(boost::asio::io_service&                 ioService,
                        const uint16_t                           destinationPort)
    : IOModuleBase(ioService, resultsMap, sourceAddress,
                   newResultCallback),
+     ICMPSocket(IOService, (sourceAddress.is_v6() == true) ? boost::asio::ip::icmp::v6() :
+                                                             boost::asio::ip::icmp::v4() ),
      UDPSocket(IOService, (sourceAddress.is_v6() == true) ? boost::asio::ip::udp::v6() :
                                                             boost::asio::ip::udp::v4() ),
      TCPSocket(IOService, (sourceAddress.is_v6() == true) ? boost::asio::ip::tcp::v6() :
-                                                            boost::asio::ip::tcp::v4() ),
-     ICMPSocket(IOService, (sourceAddress.is_v6() == true) ? boost::asio::ip::icmp::v6() :
-                                                             boost::asio::ip::icmp::v4() )
+                                                            boost::asio::ip::tcp::v4() )
 {
    // Overhead: IPv4 Header (20)/IPv6 Header (40) + ICMP Header (8)
    PayloadSize      = std::max((ssize_t)MIN_TRACESERVICE_HEADER_SIZE,
