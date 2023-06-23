@@ -30,7 +30,6 @@
 // Contact: dreibh@simula.no
 
 #include "databaseclient-mongodb.h"
-#include "importer-exception.h"
 #include "logger.h"
 
 #include <vector>
@@ -212,7 +211,7 @@ void MongoDBClient::executeUpdate(Statement& statement)
                                           std::to_string(error.domain) + "." +
                                           std::to_string(error.code) +
                                           ": " + error.message;
-      throw ImporterDatabaseDataErrorException(errorMessage);
+      throw ResultsDatabaseDataErrorException(errorMessage);
    }
 /*
    char* json;
@@ -240,7 +239,7 @@ void MongoDBClient::executeUpdate(Statement& statement)
       assert(!bson_iter_next(&iterator));   // Only one collection is supported!
    }
    else {
-      throw ImporterDatabaseDataErrorException("Data error: Unexpected format (not collection -> [ ... ])");
+      throw ResultsDatabaseDataErrorException("Data error: Unexpected format (not collection -> [ ... ])");
    }
 
 
@@ -263,7 +262,7 @@ void MongoDBClient::executeUpdate(Statement& statement)
             i++;
          }
          else {
-            throw ImporterDatabaseDataErrorException("Data error: Unexpected format (not list of documents)");
+            throw ResultsDatabaseDataErrorException("Data error: Unexpected format (not list of documents)");
          }
       }
    }
@@ -298,10 +297,10 @@ void MongoDBClient::executeUpdate(Statement& statement)
                                           std::to_string(error.code) +
                                           ": " + error.message;
       if(error.domain == 12) {
-         throw ImporterDatabaseDataErrorException(errorMessage);
+         throw ResultsDatabaseDataErrorException(errorMessage);
       }
       else {
-         throw ImporterDatabaseException(errorMessage);
+         throw ResultsDatabaseException(errorMessage);
       }
    }
 
@@ -344,7 +343,7 @@ void MongoDBClient::executeQuery(Statement& statement)
                                           std::to_string(error.code) +
                                           ": " + error.message;
       bson_destroy(queryStatement);
-      throw ImporterDatabaseDataErrorException(errorMessage);
+      throw ResultsDatabaseDataErrorException(errorMessage);
    }
 
    // ====== Find collection ================================================
@@ -368,7 +367,7 @@ void MongoDBClient::executeQuery(Statement& statement)
    }
    else {
       bson_destroy(queryStatement);
-      throw ImporterDatabaseDataErrorException("Data error: Unexpected format (not collection -> [ ... ])");
+      throw ResultsDatabaseDataErrorException("Data error: Unexpected format (not collection -> [ ... ])");
    }
 
    ResultCollection = mongoc_client_get_collection(Connection,
@@ -410,11 +409,11 @@ int32_t MongoDBClient::getInteger(const char* column) const
       if(BSON_ITER_HOLDS_INT32(&iterator)) {
          return bson_iter_int32(&iterator);
       }
-      throw ImporterDatabaseDataErrorException("Data error: wrong type " +
+      throw ResultsDatabaseDataErrorException("Data error: wrong type " +
                std::to_string(bson_iter_type(&iterator)) + " for field " +
                std::string(column));
    }
-   throw ImporterDatabaseDataErrorException("Data error: no integer field " + std::string(column));
+   throw ResultsDatabaseDataErrorException("Data error: no integer field " + std::string(column));
 }
 
 
@@ -431,11 +430,11 @@ int64_t MongoDBClient::getBigInt(const char* column) const
       else if(BSON_ITER_HOLDS_INT32(&iterator)) {
          return bson_iter_int32(&iterator);
       }
-      throw ImporterDatabaseDataErrorException("Data error: wrong type " +
+      throw ResultsDatabaseDataErrorException("Data error: wrong type " +
                std::to_string(bson_iter_type(&iterator)) + " for field " +
                std::string(column));
    }
-   throw ImporterDatabaseDataErrorException("Data error: no bigint field " + std::string(column));
+   throw ResultsDatabaseDataErrorException("Data error: no bigint field " + std::string(column));
 }
 
 
@@ -452,7 +451,7 @@ std::string MongoDBClient::getString(const char* column) const
       bson_iter_binary(&iterator, &subtype, &length, &binary);
       return std::string((const char*)binary, length);
    }
-   throw ImporterDatabaseDataErrorException("Data error: no binary field " + std::string(column));
+   throw ResultsDatabaseDataErrorException("Data error: no binary field " + std::string(column));
 }
 
 
@@ -472,11 +471,11 @@ void MongoDBClient::getArrayBegin(const char* column)
          ResultDoc            = nullptr;
          return;
       }
-      throw ImporterDatabaseDataErrorException("Data error: wrong type " +
+      throw ResultsDatabaseDataErrorException("Data error: wrong type " +
                std::to_string(bson_iter_type(&iterator)) + " for field " +
                std::string(column));
    }
-   throw ImporterDatabaseDataErrorException("Data error: no array field " + std::string(column));
+   throw ResultsDatabaseDataErrorException("Data error: no array field " + std::string(column));
 }
 
 

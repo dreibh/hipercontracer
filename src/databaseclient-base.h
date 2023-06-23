@@ -35,6 +35,8 @@
 #include "database-configuration.h"
 #include "database-statement.h"
 
+#include "results-exception.h"
+
 
 class DatabaseClientBase
 {

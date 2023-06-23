@@ -30,7 +30,6 @@
 // Contact: dreibh@simula.no
 
 #include "databaseclient-mariadb.h"
-#include "importer-exception.h"
 #include "logger.h"
 
 // Ubuntu: libmysqlcppconn-dev
@@ -177,11 +176,11 @@ void MariaDBClient::handleDatabaseException(const sql::SQLException& exception,
    //  Based on mysql/connector/errors.py:
    if( (e == "42") || (e == "23") || (e == "22") || (e == "XA")) {
       // For this type, the input file should be moved to the bad directory.
-      throw ImporterDatabaseDataErrorException(what);
+      throw ResultsDatabaseDataErrorException(what);
    }
    // Other error
    else {
-      throw ImporterDatabaseException(what);
+      throw ResultsDatabaseException(what);
    }
 }
 

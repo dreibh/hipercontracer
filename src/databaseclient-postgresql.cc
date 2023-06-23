@@ -30,7 +30,6 @@
 // Contact: dreibh@simula.no
 
 #include "databaseclient-postgresql.h"
-#include "importer-exception.h"
 #include "logger.h"
 
 
@@ -148,11 +147,11 @@ void PostgreSQLClient::handleDatabaseException(const pqxx::failure& exception,
    // Query error
    if( (Connection->is_open()) && (sqlError != nullptr) ) {
       // For this type, the input file should be moved to the bad directory.
-      throw ImporterDatabaseDataErrorException(what);
+      throw ResultsDatabaseDataErrorException(what);
    }
    // Other error
    else {
-      throw ImporterDatabaseException(what);
+      throw ResultsDatabaseException(what);
    }
 }
 

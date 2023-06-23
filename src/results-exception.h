@@ -29,58 +29,58 @@
 //
 // Contact: dreibh@simula.no
 
-#ifndef IMPORTER_EXCEPTION_H
-#define IMPORTER_EXCEPTION_H
+#ifndef RESULTS_EXCEPTION_H
+#define RESULTS_EXCEPTION_H
 
 #include <stdexcept>
 #include <string>
 
 
 //  Base class for all importer problems (logic, reader, database)
-class ImporterException : public std::runtime_error
+class ResultsException : public std::runtime_error
 {
    public:
-   ImporterException(const std::string& error) : std::runtime_error(error) { }
+   ResultsException(const std::string& error) : std::runtime_error(error) { }
 };
 
 
 // Program logic exception
-class ImporterLogicException : public ImporterException
+class ResultsLogicException : public ResultsException
 {
    public:
-   ImporterLogicException(const std::string& error) : ImporterException(error) { }
+   ResultsLogicException(const std::string& error) : ResultsException(error) { }
 };
 
 
 // Generic reader problem
-class ImporterReaderException : public ImporterException
+class ResultsReaderException : public ResultsException
 {
    public:
-   ImporterReaderException(const std::string& error) : ImporterException(error) { }
+   ResultsReaderException(const std::string& error) : ResultsException(error) { }
 };
 
 
 // Problem with input data (syntax error, etc.) => invalid data
-class ImporterReaderDataErrorException : public ImporterReaderException
+class ResultsReaderDataErrorException : public ResultsReaderException
 {
    public:
-   ImporterReaderDataErrorException(const std::string& error) : ImporterReaderException(error) { }
+   ResultsReaderDataErrorException(const std::string& error) : ResultsReaderException(error) { }
 };
 
 
 // Generic database problem
-class ImporterDatabaseException : public ImporterException
+class ResultsDatabaseException : public ResultsException
 {
    public:
-   ImporterDatabaseException(const std::string& error) : ImporterException(error) { }
+   ResultsDatabaseException(const std::string& error) : ResultsException(error) { }
 };
 
 
 // Problem with database transaction (syntax error, etc.) => invalid data
-class ImporterDatabaseDataErrorException : public ImporterDatabaseException
+class ResultsDatabaseDataErrorException : public ResultsDatabaseException
 {
    public:
-   ImporterDatabaseDataErrorException(const std::string& error) : ImporterDatabaseException(error) { }
+   ResultsDatabaseDataErrorException(const std::string& error) : ResultsDatabaseException(error) { }
 };
 
 #endif

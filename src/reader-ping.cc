@@ -31,7 +31,6 @@
 
 #include "conversions.h"
 #include "reader-ping.h"
-#include "importer-exception.h"
 #include "logger.h"
 #include "tools.h"
 
@@ -80,7 +79,7 @@ void PingReader::beginParsing(DatabaseClientBase& databaseClient,
       statement << "{ \"" << Table <<  "\": [";
    }
    else {
-      throw ImporterLogicException("Unknown output format");
+      throw ResultsLogicException("Unknown output format");
    }
 }
 
@@ -113,7 +112,7 @@ bool PingReader::finishParsing(DatabaseClientBase& databaseClient,
          }
       }
       else {
-         throw ImporterLogicException("Unknown output format");
+         throw ResultsLogicException("Unknown output format");
       }
       return true;
    }
@@ -156,7 +155,7 @@ void PingReader::parseContents(
          tuple[columns++] = inputLine.substr(start, end - start);
       }
       if(columns < PingMinColumns) {
-         throw ImporterReaderDataErrorException("Too few columns in input file " + dataFile.string());
+         throw ResultsReaderDataErrorException("Too few columns in input file " + dataFile.string());
       }
 
       // ====== Generate import statement ===================================
@@ -233,11 +232,11 @@ void PingReader::parseContents(
             rows++;
          }
          else {
-            throw ImporterLogicException("Unknown output format");
+            throw ResultsLogicException("Unknown output format");
          }
       }
       else {
-         throw ImporterReaderDataErrorException("Unexpected input in input file " + dataFile.string());
+         throw ResultsReaderDataErrorException("Unexpected input in input file " + dataFile.string());
       }
    }
 }

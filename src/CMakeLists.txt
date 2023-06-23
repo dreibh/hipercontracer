@@ -93,8 +93,8 @@ IF (WITH_IMPORTER)
       database-statement.h
       databaseclient-base.h
       databaseclient-debug.h
-      importer-exception.h
       reader-base.h
+      results-exception.h
       universal-importer.h
       worker.h
    )
