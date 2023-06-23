@@ -143,7 +143,7 @@ void Jitter::computeJitter(const std::vector<ResultEntry*>::const_iterator& star
    JitterRFC3550      jitterApplication;
    JitterRFC3550      jitterSoftware;
    JitterRFC3550      jitterHardware;
-   unsigned int       timeSource;
+   unsigned int       timeSource = 0;
    unsigned int       timeSourceApplication;
    unsigned int       timeSourceSoftware;
    unsigned int       timeSourceHardware;
