@@ -601,17 +601,17 @@ void TracerouteReader::parseContents(
             statement
                << ((hopNumber > 1) ? ", { " :" { ")
 
-               << "\"sendTimestamp\":" << statement.quote(timePointToString<ReaderTimePoint>(sendTimeStamp, 9)) << statement.sep()
-               << "\"responseSize\":"  << responseSize                                                          << statement.sep()
-               << "\"hopIP\":"         << statement.encodeAddress(hopIP)                                        << statement.sep()
-               << "\"status\":"        << status                                                                << statement.sep()
+               << "\"sendTimestamp\":" << timePointToNanoseconds<ReaderTimePoint>(sendTimeStamp) << statement.sep()
+               << "\"responseSize\":"  << responseSize                                           << statement.sep()
+               << "\"hopIP\":"         << statement.encodeAddress(hopIP)                         << statement.sep()
+               << "\"status\":"        << status                                                 << statement.sep()
 
-               << "\"timeSource\":"    << (long long)timeSource                                                 << statement.sep()
-               << "\"delay.appSend\":" << delayAppSend                                                          << statement.sep()
-               << "\"delay.queuing\":" << delayQueuing                                                          << statement.sep()
-               << "\"delay.appRecv\":" << delayAppReceive                                                       << statement.sep()
-               << "\"rtt.app\":"       << rttApp                                                                << statement.sep()
-               << "\"rtt.sw\":"        << rttSoftware                                                           << statement.sep()
+               << "\"timeSource\":"    << (long long)timeSource                                  << statement.sep()
+               << "\"delay.appSend\":" << delayAppSend                                           << statement.sep()
+               << "\"delay.queuing\":" << delayQueuing                                           << statement.sep()
+               << "\"delay.appRecv\":" << delayAppReceive                                        << statement.sep()
+               << "\"rtt.app\":"       << rttApp                                                 << statement.sep()
+               << "\"rtt.sw\":"        << rttSoftware                                            << statement.sep()
                << "\"rtt.hw\":"        << rttHardware
 
                << " }";
