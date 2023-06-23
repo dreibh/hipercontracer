@@ -61,7 +61,7 @@ if [ -e "${DATABASE_CONFIG}" ] ; then
    rm -rf bad/*
 
    cp ../examples/*.results.* data/
-   ../hpct-importer \
+   ${VALGRIND_CMD} ../hpct-importer \
       -c "${DATABASE_CONFIG}" \
       --quit-when-idle \
       --loglevel 0
