@@ -29,8 +29,8 @@
 //
 // Contact: dreibh@simula.no
 
+#include "conversions.h"
 #include "reader-traceroute.h"
-#include "importer-exception.h"
 #include "logger.h"
 #include "tools.h"
 
@@ -142,7 +142,8 @@ unsigned long long TracerouteReader::parseMeasurementID(const std::string&      
    size_t                   index;
    const unsigned long long measurementID = std::stoull(value, &index, 10);
    if(index != value.size()) {
-      throw ImporterReaderDataErrorException("Bad measurement ID value " + value);
+      throw ResultsReaderDataErrorException("Bad measurement ID value " + value +
+                                            " in input file " + relativeTo(dataFile, Configuration.getImportFilePath()).string());
    }
    return measurementID;
 }
@@ -152,25 +153,34 @@ unsigned long long TracerouteReader::parseMeasurementID(const std::string&      
 boost::asio::ip::address TracerouteReader::parseAddress(const std::string&           value,
                                                         const std::filesystem::path& dataFile)
 {
-   const boost::asio::ip::address address = boost::asio::ip::make_address(value);
-   return address;
+   try {
+      const boost::asio::ip::address address = boost::asio::ip::make_address(value);
+      return address;
+   }
+   catch(...) { }
+   throw ResultsReaderDataErrorException("Bad address " + value +
+                                         " in input file " + relativeTo(dataFile, Configuration.getImportFilePath()).string());
 }
 
 
 // ###### Parse time stamp ##################################################
 ReaderTimePoint TracerouteReader::parseTimeStamp(const std::string&           value,
                                                  const ReaderTimePoint&       now,
+                                                 const bool                   inNanoseconds,
                                                  const std::filesystem::path& dataFile)
 {
    size_t                   index;
    const unsigned long long ts = std::stoull(value, &index, 16);
    if(index != value.size()) {
-      throw ImporterReaderDataErrorException("Bad time stamp format " + value);
+      throw ResultsReaderDataErrorException("Bad time stamp format " + value +
+                                            " in input file " + relativeTo(dataFile, Configuration.getImportFilePath()).string());
    }
-   const ReaderTimePoint timeStamp = microsecondsToTimePoint<ReaderTimePoint>(ts);
-   if( (timeStamp < now - std::chrono::hours(365 * 24)) ||   /* 1 year in the past  */
-       (timeStamp > now + std::chrono::hours(24)) ) {        /* 1 day in the future */
-      throw ImporterReaderDataErrorException("Invalid time stamp value " + value);
+   const ReaderTimePoint timeStamp = (inNanoseconds == true) ? nanosecondsToTimePoint<ReaderTimePoint>(ts) :
+                                                               nanosecondsToTimePoint<ReaderTimePoint>(1000ULL * ts);
+   if( (timeStamp < now - std::chrono::hours(10 * 365 * 24)) ||   /* 10 years in the past */
+       (timeStamp > now + std::chrono::hours(24)) ) {             /* 1 day in the future  */
+      throw ResultsReaderDataErrorException("Invalid time stamp value (too old, or in the future) " + value +
+                                            " in input file " + relativeTo(dataFile, Configuration.getImportFilePath()).string());
    }
    return timeStamp;
 }
@@ -186,7 +196,8 @@ unsigned int TracerouteReader::parseRoundNumber(const std::string&           val
       roundNumber = std::stoul(value, &index, 10);
    } catch(...) { }
    if(index != value.size()) {
-      throw ImporterReaderDataErrorException("Bad round number " + value);
+      throw ResultsReaderDataErrorException("Bad round number " + value +
+                                            " in input file " + relativeTo(dataFile, Configuration.getImportFilePath()).string());
    }
    return roundNumber;
 }
@@ -202,10 +213,12 @@ uint8_t TracerouteReader::parseTrafficClass(const std::string&           value,
       trafficClass = std::stoul(value, &index, 16);
    } catch(...) { }
    if(index != value.size()) {
-      throw ImporterReaderDataErrorException("Bad traffic class format " + value);
+      throw ResultsReaderDataErrorException("Bad traffic class format " + value +
+                                            " in input file " + relativeTo(dataFile, Configuration.getImportFilePath()).string());
    }
    if(trafficClass > 0xff) {
-      throw ImporterReaderDataErrorException("Invalid traffic class value " + value);
+      throw ResultsReaderDataErrorException("Invalid traffic class value " + value +
+                                            " in input file " + relativeTo(dataFile, Configuration.getImportFilePath()).string());
    }
    return (uint8_t)trafficClass;
 }
@@ -221,7 +234,8 @@ unsigned int TracerouteReader::parsePacketSize(const std::string&           valu
       packetSize = std::stoul(value, &index, 10);
    } catch(...) { }
    if(index != value.size()) {
-      throw ImporterReaderDataErrorException("Bad packet size format " + value);
+      throw ResultsReaderDataErrorException("Bad packet size format " + value +
+                                            " in input file " + relativeTo(dataFile, Configuration.getImportFilePath()).string());
    }
    return packetSize;
 }
@@ -237,7 +251,8 @@ unsigned int TracerouteReader::parseResponseSize(const std::string&           va
       responseSize = std::stoul(value, &index, 10);
    } catch(...) { }
    if(index != value.size()) {
-      throw ImporterReaderDataErrorException("Bad response size format " + value);
+      throw ResultsReaderDataErrorException("Bad response size format " + value +
+                                            " in input file " + relativeTo(dataFile, Configuration.getImportFilePath()).string());
    }
    return responseSize;
 }
@@ -253,10 +268,12 @@ uint16_t TracerouteReader::parseChecksum(const std::string&           value,
       checksum = std::stoul(value, &index, 16);
    } catch(...) { }
    if(index != value.size()) {
-      throw ImporterReaderDataErrorException("Bad checksum format " + value);
+      throw ResultsReaderDataErrorException("Bad checksum format " + value +
+                                            " in input file " + relativeTo(dataFile, Configuration.getImportFilePath()).string());
    }
    if(checksum > 0xffff) {
-      throw ImporterReaderDataErrorException("Invalid checksum value " + value);
+      throw ResultsReaderDataErrorException("Invalid checksum value " + value +
+                                            " in input file " + relativeTo(dataFile, Configuration.getImportFilePath()).string());
    }
    return (uint16_t)checksum;
 }
@@ -273,7 +290,8 @@ unsigned int TracerouteReader::parseStatus(const std::string&           value,
       status = std::stoul(value, &index, base);
    } catch(...) { }
    if(index != value.size()) {
-      throw ImporterReaderDataErrorException("Bad status format " + value);
+      throw ResultsReaderDataErrorException("Bad status format " + value +
+                                            " in input file " + relativeTo(dataFile, Configuration.getImportFilePath()).string());
    }
    return status;
 }
@@ -289,7 +307,8 @@ long long TracerouteReader::parsePathHash(const std::string&           value,
       pathHash = std::stoull(value, &index, 16);
    } catch(...) { }
    if(index != value.size()) {
-      throw ImporterReaderDataErrorException("Bad path hash " + value);
+      throw ResultsReaderDataErrorException("Bad path hash " + value +
+                                            " in input file " + relativeTo(dataFile, Configuration.getImportFilePath()).string());
    }
    // Cast to signed long long as-is:
    return (long long)pathHash;
@@ -306,12 +325,35 @@ unsigned int TracerouteReader::parseTotalHops(const std::string&           value
       totalHops = std::stoul(value, &index, 10);
    } catch(...) { }
    if(index != value.size()) {
-      throw ImporterReaderDataErrorException("Bad total hops value " + value);
+      throw ResultsReaderDataErrorException("Bad total hops value " + value +
+                                            " in input file " + relativeTo(dataFile, Configuration.getImportFilePath()).string());
    }
    if( (totalHops < 1) || (totalHops > 255) ) {
-      throw ImporterReaderDataErrorException("Invalid total hops value " + value);
+      throw ResultsReaderDataErrorException("Invalid total hops value " + value +
+                                            " in input file " + relativeTo(dataFile, Configuration.getImportFilePath()).string());
    }
    return totalHops;
+}
+
+
+// ###### Parse hop number ##################################################
+unsigned int TracerouteReader::parseHopNumber(const std::string&           value,
+                                              const std::filesystem::path& dataFile)
+{
+   size_t        index     = 0;
+   unsigned long hopNumber = 0;
+   try {
+      hopNumber = std::stoul(value, &index, 10);
+   } catch(...) { }
+   if(index != value.size()) {
+      throw ResultsReaderDataErrorException("Bad hopNumber value " + value +
+                                            " in input file " + relativeTo(dataFile, Configuration.getImportFilePath()).string());
+   }
+   if( (hopNumber < 1) || (hopNumber > 255) ) {
+      throw ResultsReaderDataErrorException("Invalid hopNumber value " + value +
+                                            " in input file " + relativeTo(dataFile, Configuration.getImportFilePath()).string());
+   }
+   return hopNumber;
 }
 
 
@@ -325,25 +367,10 @@ unsigned int TracerouteReader::parseTimeSource(const std::string&           valu
       timeSource = std::stoul(value, &index, 16);
    } catch(...) { }
    if(index != value.size()) {
-      throw ImporterReaderDataErrorException("Bad time source format " + value);
+      throw ResultsReaderDataErrorException("Bad time source format " + value +
+                                            " in input file " + relativeTo(dataFile, Configuration.getImportFilePath()).string());
    }
    return timeSource;
-}
-
-
-// ###### Parse microseconds ################################################
-long long TracerouteReader::parseMicroseconds(const std::string&           value,
-                                              const std::filesystem::path& dataFile)
-{
-   size_t        index = 0;
-   unsigned long us    = 0;
-   try {
-      us = std::stoul(value, &index, 10);
-   } catch(...) { }
-   if(index != value.size()) {
-      throw ImporterReaderDataErrorException("Bad microseconds format " + value);
-   }
-   return 1000LL * us;
 }
 
 
@@ -357,7 +384,8 @@ long long TracerouteReader::parseNanoseconds(const std::string&           value,
       ns = std::stoul(value, &index, 10);
    } catch(...) { }
    if(index != value.size()) {
-      throw ImporterReaderDataErrorException("Bad nanoseconds format " + value);
+      throw ResultsReaderDataErrorException("Bad nanoseconds format " + value +
+                                            " in input file " + relativeTo(dataFile, Configuration.getImportFilePath()).string());
    }
    return ns;
 }
@@ -382,7 +410,7 @@ void TracerouteReader::beginParsing(DatabaseClientBase& databaseClient,
       statement << "{ \"" << Table <<  "\": [";
    }
    else {
-      throw ImporterLogicException("Unknown output format");
+      throw ResultsLogicException("Unknown output format");
    }
 }
 
@@ -415,7 +443,7 @@ bool TracerouteReader::finishParsing(DatabaseClientBase& databaseClient,
          }
       }
       else {
-         throw ImporterLogicException("Unknown output format");
+         throw ResultsLogicException("Unknown output format");
       }
       return true;
    }
@@ -436,7 +464,7 @@ void TracerouteReader::parseContents(
    static const unsigned int TracerouteMaxColumns = 12;
    static const char         TracerouteDelimiter  = ' ';
 
-   unsigned int              version       = 0;
+   unsigned int              version       = 2;
    char                      protocol      = 0x00;
    unsigned int              measurementID = 0;
    ReaderTimePoint           timeStamp;
@@ -449,11 +477,21 @@ void TracerouteReader::parseContents(
    long long                 pathHash     = 0;
    uint8_t                   trafficClass = 0x00;
    unsigned int              packetSize   = 0;
+   unsigned long long        oldTimeStamp;   // Just used for version 1 conversion!
 
    std::string inputLine;
    std::string tuple[TracerouteMaxColumns];
    const ReaderTimePoint now = ReaderClock::now();
    while(std::getline(dataStream, inputLine)) {
+
+      // ====== Conversion from old versions ================================
+      if(inputLine.substr(0, 3) == "#T ") {
+         version = 1;
+      }
+      if(version < 2) {
+         inputLine = convertOldTracerouteLine(inputLine, oldTimeStamp);
+      }
+
       // ====== Parse line ==================================================
       size_t columns = 0;
       size_t start;
@@ -467,148 +505,123 @@ void TracerouteReader::parseContents(
          tuple[columns++] = inputLine.substr(start, end - start);
       }
       if(columns < TracerouteMinColumns) {
-         throw ImporterReaderDataErrorException("Too few columns in input file " + dataFile.string());
+         throw ResultsReaderDataErrorException("Too few columns in input file " + dataFile.string());
       }
 
       // ====== Generate import statement ===================================
-      if( (tuple[0].size() >= 2) && (tuple[0][0] == '#') && (tuple[0][1] == 'T') ) {
-         // ------ Obtain version -------------------------------------------
-         if( (tuple[0].size() > 2) && (columns >= 12) ) {
-            version  = 2;
-            protocol = tuple[0][2];
-         }
-         else if(columns >= 9) {
-            version  = 1;
-            protocol = 'i';
-         }
-         else {
-            throw ImporterReaderDataErrorException("Unexpected syntax in input file " + dataFile.string());
-         }
-
-
-         measurementID   = (version >= 2) ? parseMeasurementID(tuple[1], dataFile) : 0;
-         sourceIP        = (version >= 2) ? parseAddress(tuple[2], dataFile) : parseAddress(tuple[1], dataFile);
-         destinationIP   = (version >= 2) ? parseAddress(tuple[3], dataFile) : parseAddress(tuple[2], dataFile);
-         timeStamp       = (version >= 2) ? parseTimeStamp(tuple[4], now, dataFile) :  parseTimeStamp(tuple[3], now, dataFile);
-         roundNumber     = (version >= 2) ? parseRoundNumber(tuple[5], dataFile) : parseRoundNumber(tuple[4], dataFile);
-         totalHops       = parseTotalHops(tuple[6], dataFile);
-         trafficClass    = (version >= 2) ? parseTrafficClass(tuple[7], dataFile) : 0x00;
-         packetSize      = (version >= 2) ? parseTrafficClass(tuple[8], dataFile) : parseTrafficClass(tuple[10], dataFile);
-         checksum        = (version >= 2) ? parseChecksum(tuple[9], dataFile) : parseChecksum(tuple[5], dataFile);
-         statusFlags     = (version >= 2) ? parseStatus(tuple[10], dataFile) :  parseStatus(tuple[7], dataFile);
-         pathHash        = (version >= 2) ? parsePathHash(tuple[11], dataFile) : parsePathHash(tuple[8], dataFile);
-
-         if(version == 1) {
-            if(columns >= 10) {   // TrafficClass was added in HiPerConTracer 1.4.0!
-               trafficClass = parseTrafficClass(tuple[9], dataFile);
-               if(columns >= 11) {   // PacketSize was added in HiPerConTracer 1.6.0!
-                  packetSize = parsePacketSize(tuple[10], dataFile);
-               }
-            }
-         }
-
+      if( (tuple[0].size() >= 3) && (tuple[0][0] == '#') && (tuple[0][1] == 'T') ) {
          if( (statusFlags != ~0U) && (backend & DatabaseBackendType::NoSQL_Generic) ) {
             statement << "]";
             statement.endRow();
             rows++;
          }
 
+         protocol      = tuple[0][2];
+         measurementID = parseMeasurementID(tuple[1], dataFile);
+         sourceIP      = parseAddress(tuple[2], dataFile);
+         destinationIP = parseAddress(tuple[3], dataFile);
+         timeStamp     = parseTimeStamp(tuple[4], now, true, dataFile);
+         roundNumber   = parseRoundNumber(tuple[5], dataFile);
+         totalHops     = parseTotalHops(tuple[6], dataFile);
+         trafficClass  = parseTrafficClass(tuple[7], dataFile);
+         packetSize    = parsePacketSize(tuple[8], dataFile);
+         checksum      = parseChecksum(tuple[9], dataFile);
+         statusFlags   = parseStatus(tuple[10], dataFile);
+         pathHash      = parsePathHash(tuple[11], dataFile);
+
          if(backend & DatabaseBackendType::NoSQL_Generic) {
             statement.beginRow();
             statement
-               << "\"timestamp\": "     << timePointToMicroseconds<ReaderTimePoint>(timeStamp) << statement.sep()
-               << "\"measurementID\": " << measurementID                                       << statement.sep()
-               << "\"source\": "        << statement.encodeAddress(sourceIP)                   << statement.sep()
-               << "\"destination\": "   << statement.encodeAddress(destinationIP)              << statement.sep()
-               << "\"round\": "         << roundNumber                                         << statement.sep()
-               << "\"checksum\": "      << checksum                                            << statement.sep()
-               << "\"pktsize\": "       << packetSize                                          << statement.sep()
-               << "\"tc\": "            << (unsigned int)trafficClass                          << statement.sep()
-               << "\"statusFlags\": "   << statusFlags                                         << statement.sep()
-               << "\"totalHops\": "     << totalHops                                           << statement.sep()
-               << "\"pathHash\": "      << pathHash                                            << statement.sep()
+               << "\"timestamp\":"     << timePointToNanoseconds<ReaderTimePoint>(timeStamp) << statement.sep()
+               << "\"measurementID\":" << measurementID                                      << statement.sep()
+               << "\"sourceIP\":"      << statement.encodeAddress(sourceIP)                  << statement.sep()
+               << "\"destinationIP\":" << statement.encodeAddress(destinationIP)             << statement.sep()
+               << "\"protocol\":"      << (unsigned int)protocol                             << statement.sep()
+               << "\"trafficClass\":"  << (unsigned int)trafficClass                         << statement.sep()
+               << "\"roundNumber\":"   << roundNumber                                        << statement.sep()
+               << "\"packetSize\":"    << packetSize                                         << statement.sep()
+               << "\"checksum\":"      << checksum                                           << statement.sep()
+               << "\"statusFlags\":"   << statusFlags                                        << statement.sep()
+               << "\"totalHops\":"     << totalHops                                          << statement.sep()
+               << "\"pathHash\":"      << pathHash                                           << statement.sep()
                << "\"hops\": [ ";
          }
       }
-      else if(tuple[0] == "\t")  {
+      else if( (tuple[0].size() >= 1) && (tuple[0][0] == '\t') ) {
          if(statusFlags == ~0U) {
-            throw ImporterReaderDataErrorException("Hop data has no corresponding #T line");
+            throw ResultsReaderDataErrorException("Hop data has no corresponding #T line");
          }
 
-         const ReaderTimePoint          sendTimeStamp   = (version >= 2) ? parseTimeStamp(tuple[0], now, dataFile) : timeStamp;
-         const unsigned int             hopNumber       = (version >= 2) ? parseTotalHops(tuple[1], dataFile) : parseTotalHops(tuple[0], dataFile);
-         const unsigned int             responseSize    = (version >= 2) ? parseTrafficClass(tuple[2], dataFile) : 0;
-         const unsigned int             status          = (version >= 2) ? parseStatus(tuple[3], dataFile, 10) : parseStatus(tuple[2], dataFile);
-         const boost::asio::ip::address hopIP           = (version >= 2) ? parseAddress(tuple[11], dataFile) : parseAddress(tuple[4], dataFile);
+         const ReaderTimePoint          sendTimeStamp   = parseTimeStamp(tuple[0], now, true, dataFile);
+         const unsigned int             hopNumber       = parseHopNumber(tuple[1], dataFile);
+         const unsigned int             responseSize    = parseResponseSize(tuple[2], dataFile);
+         const unsigned int             status          = parseStatus(tuple[3], dataFile, 10);
+         const boost::asio::ip::address hopIP           = parseAddress(tuple[11], dataFile);
 
-         unsigned int                   timeSource      = (version >= 2) ? parseTimeSource(tuple[6], dataFile) : 0x00000000;
-         const long long                delayAppSend    = (version >= 2) ? parseNanoseconds(tuple[7], dataFile) : -1;
-         const long long                delayQueuing    = (version >= 2) ? parseNanoseconds(tuple[8], dataFile) : -1;
-         const long long                delayAppReceive = (version >= 2) ? parseNanoseconds(tuple[9], dataFile) : -1;
-         const long long                rttApp          = (version >= 2) ? parseNanoseconds(tuple[10], dataFile) : parseMicroseconds(tuple[2], dataFile);
-         const long long                rttHardware     = (version >= 2) ? parseNanoseconds(tuple[11], dataFile) : -1;
-         const long long                rttSoftware     = (version >= 2) ? parseNanoseconds(tuple[12], dataFile) : -1;
-
-         if(version == 1) {
-            if(columns >= 5) {   // TimeSource was added in HiPerConTracer 2.0.0!
-               timeSource = parseTimeSource(tuple[4], dataFile);
-            }
-         }
+         unsigned int                   timeSource      = parseTimeSource(tuple[4], dataFile);
+         const long long                delayAppSend    = parseNanoseconds(tuple[5], dataFile);
+         const long long                delayQueuing    = parseNanoseconds(tuple[6], dataFile);
+         const long long                delayAppReceive = parseNanoseconds(tuple[7], dataFile);
+         const long long                rttApp          = parseNanoseconds(tuple[8], dataFile);
+         const long long                rttSoftware     = parseNanoseconds(tuple[9], dataFile);
+         const long long                rttHardware     = parseNanoseconds(tuple[10], dataFile);
 
          if(backend & DatabaseBackendType::SQL_Generic) {
             statement.beginRow();
             statement
-               << statement.quote(timePointToString<ReaderTimePoint>(timeStamp, 9)) << statement.sep()
-               << measurementID                                                     << statement.sep()
-               << statement.encodeAddress(sourceIP)                                 << statement.sep()
-               << statement.encodeAddress(destinationIP)                            << statement.sep()
-               << (unsigned int)protocol                                            << statement.sep()
-               << (unsigned int)trafficClass                                        << statement.sep()
-               << roundNumber                                                       << statement.sep()
-               << hopNumber                                                         << statement.sep()
-               << totalHops                                                         << statement.sep()
-               << packetSize                                                        << statement.sep()
-               << responseSize                                                      << statement.sep()
-               << checksum                                                          << statement.sep()
-               << (status | statusFlags)                                            << statement.sep()
-               << pathHash                                                          << statement.sep()
-               << statement.encodeAddress(hopIP)                                    << statement.sep()
+               << timePointToNanoseconds<ReaderTimePoint>(timeStamp)     << statement.sep()
+               << measurementID                                          << statement.sep()
+               << statement.encodeAddress(sourceIP)                      << statement.sep()
+               << statement.encodeAddress(destinationIP)                 << statement.sep()
+               << (unsigned int)protocol                                 << statement.sep()
+               << (unsigned int)trafficClass                             << statement.sep()
+               << roundNumber                                            << statement.sep()
+               << hopNumber                                              << statement.sep()
+               << totalHops                                              << statement.sep()
+               << packetSize                                             << statement.sep()
+               << responseSize                                           << statement.sep()
+               << checksum                                               << statement.sep()
+               << (status | statusFlags)                                 << statement.sep()
+               << pathHash                                               << statement.sep()
+               << timePointToNanoseconds<ReaderTimePoint>(sendTimeStamp) << statement.sep()
+               << statement.encodeAddress(hopIP)                         << statement.sep()
 
-               << (long long)timeSource                                             << statement.sep()
-               << delayAppSend                                                      << statement.sep()
-               << delayQueuing                                                      << statement.sep()
-               << delayAppReceive                                                   << statement.sep()
-               << rttApp                                                            << statement.sep()
-               << rttSoftware                                                       << statement.sep()
+               << (long long)timeSource                                  << statement.sep()
+               << delayAppSend                                           << statement.sep()
+               << delayQueuing                                           << statement.sep()
+               << delayAppReceive                                        << statement.sep()
+               << rttApp                                                 << statement.sep()
+               << rttSoftware                                            << statement.sep()
                << rttHardware;
             statement.endRow();
             rows++;
          }
          else if(backend & DatabaseBackendType::NoSQL_Generic) {
             statement
-               << ((hopNumber > 1) ? ", { " : " { ")
+               << ((hopNumber > 1) ? ", { " :" { ")
 
-               << statement.quote(timePointToString<ReaderTimePoint>(sendTimeStamp, 9)) << statement.sep()
-               << "\"respsize\": "      << responseSize                                 << statement.sep()
-               << "\"hop\": "           << statement.encodeAddress(hopIP)               << statement.sep()
-               << "\"status\": "        << status                                       << statement.sep()
+               << "\"sendTimestamp\":" << timePointToNanoseconds<ReaderTimePoint>(sendTimeStamp) << statement.sep()
+               << "\"responseSize\":"  << responseSize                                           << statement.sep()
+               << "\"hopIP\":"         << statement.encodeAddress(hopIP)                         << statement.sep()
+               << "\"status\":"        << status                                                 << statement.sep()
 
-               << "\"timesource\": "    << timeSource                                   << statement.sep()
-               << "\"delay.appsend\": " << delayAppSend                                 << statement.sep()
-               << "\"delay.queuing\": " << delayQueuing                                 << statement.sep()
-               << "\"delay.apprecv\": " << delayAppReceive                              << statement.sep()
-               << "\"rtt.app\": "       << rttApp                                       << statement.sep()
-               << "\"rtt.sw\": "        << rttSoftware                                  << statement.sep()
-               << "\"rtt.hw\": "        << rttHardware
+               << "\"timeSource\":"    << (long long)timeSource                                  << statement.sep()
+               << "\"delay.appSend\":" << delayAppSend                                           << statement.sep()
+               << "\"delay.queuing\":" << delayQueuing                                           << statement.sep()
+               << "\"delay.appRecv\":" << delayAppReceive                                        << statement.sep()
+               << "\"rtt.app\":"       << rttApp                                                 << statement.sep()
+               << "\"rtt.sw\":"        << rttSoftware                                            << statement.sep()
+               << "\"rtt.hw\":"        << rttHardware
 
                << " }";
          }
          else {
-            throw ImporterLogicException("Unknown output format");
+            throw ResultsLogicException("Unknown output format");
          }
       }
       else {
-         throw ImporterReaderDataErrorException("Unexpected input in input file " + dataFile.string());
+         throw ResultsReaderDataErrorException("Unexpected input in input file " +
+                                               relativeTo(dataFile, Configuration.getImportFilePath()).string());
       }
    }
    if( (statusFlags != ~0U) && (backend & DatabaseBackendType::NoSQL_Generic) ) {

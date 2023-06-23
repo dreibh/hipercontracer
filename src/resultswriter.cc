@@ -54,12 +54,12 @@ ResultsWriter::ResultsWriter(const unsigned int            measurementID,
                              const ResultsWriterCompressor compressor)
    : MeasurementID(measurementID),
      Directory(directory),
-     UniqueID(uniqueID),
      FormatName(resultsFormat),
      TransactionLength(transactionLength),
      UID(uid),
      GID(gid),
-     Compressor(compressor)
+     Compressor(compressor),
+     UniqueID(uniqueID)
 {
    Inserts   = 0;
    SeqNumber = 0;

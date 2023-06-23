@@ -9,6 +9,7 @@ Source: https://www.nntb.no/~dreibh/hipercontracer/download/%{name}-%{version}.t
 
 AutoReqProv: on
 BuildRequires: boost-devel
+BuildRequires: bzip2-devel
 BuildRequires: c-ares-devel
 BuildRequires: cmake
 BuildRequires: gcc
@@ -16,13 +17,10 @@ BuildRequires: gcc-c++
 BuildRequires: libbson-devel
 BuildRequires: libpqxx-devel
 BuildRequires: mongo-c-driver-devel
-BuildRequires: python3-devel
-Recommends: mysql-connector-c++-devel
-Recommends: python3-psycopg2
-Recommends: python3-pymongo
-Recommends: python3-snappy,
-Recommends: python3-urllib3
-Recommends: python3-zstandard
+BuildRequires: xz-devel
+BuildRequires: zlib-devel
+# Not provided by Fedora:
+# BuildRequires: mysql-connector-c++-devel
 BuildRoot: %{_tmppath}/%{name}-%{version}-build
 
 # TEST ONLY:
@@ -40,8 +38,8 @@ imported into an SQL or NoSQL database.
 
 %build
 # NOTE: CMAKE_VERBOSE_MAKEFILE=OFF for reduced log output!
-# NOTE: ENABLE_BACKEND_MARIADB=0
-%cmake -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_VERBOSE_MAKEFILE=OFF -DPYTHON_LIBRARY_PREFIX=%{buildroot}/usr -DENABLE_BACKEND_MARIADB=0 .
+# NOTE: ENABLE_BACKEND_MARIADB=OFF, since mysql-connector-c++ is not provided by Fedora.
+%cmake -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_VERBOSE_MAKEFILE=OFF -DENABLE_BACKEND_MARIADB=OFF .
 %cmake_build
 
 %pre
@@ -65,9 +63,10 @@ groupdel hipercontracer >/dev/null 2>&1 || true
 %{_mandir}/man1/get-default-ips.1.gz
 %{_mandir}/man1/hipercontracer.1.gz
 %{_datadir}/doc/hipercontracer/examples/HiPerConTracer.R
-%{_datadir}/doc/hipercontracer/examples/Ping-*.results.bz2
+%{_datadir}/doc/hipercontracer/examples/Jitter-*.results.*
+%{_datadir}/doc/hipercontracer/examples/Ping-*.results.*
 %{_datadir}/doc/hipercontracer/examples/README.md
-%{_datadir}/doc/hipercontracer/examples/Traceroute-*.results.bz2
+%{_datadir}/doc/hipercontracer/examples/Traceroute-*.results.*
 %{_datadir}/doc/hipercontracer/examples/r-ping-example
 %{_datadir}/doc/hipercontracer/examples/r-traceroute-example
 
@@ -106,6 +105,7 @@ them to integrate HiPerConTracer into own programs.
 %{_includedir}/hipercontracer/destinationinfo.h
 %{_includedir}/hipercontracer/iomodule-base.h
 %{_includedir}/hipercontracer/iomodule-icmp.h
+%{_includedir}/hipercontracer/iomodule-tcp.h
 %{_includedir}/hipercontracer/iomodule-udp.h
 %{_includedir}/hipercontracer/jitter.h
 %{_includedir}/hipercontracer/logger.h
@@ -159,9 +159,9 @@ own programs.
 # universalimporter/databaseclient-mariadb.h
 %{_includedir}/universalimporter/databaseclient-mongodb.h
 %{_includedir}/universalimporter/databaseclient-postgresql.h
-%{_includedir}/universalimporter/importer-exception.h
 %{_includedir}/universalimporter/logger.h
 %{_includedir}/universalimporter/reader-base.h
+%{_includedir}/universalimporter/results-exception.h
 %{_includedir}/universalimporter/tools.h
 %{_includedir}/universalimporter/universal-importer.h
 %{_includedir}/universalimporter/worker.h
@@ -192,6 +192,7 @@ Summary: HiPerConTracer results data importer
 Group: Applications/Database
 Requires: %{name}-libuniversalimporter = %{version}-%{release}
 Recommends: %{name} = %{version}-%{release}
+Recommends: pwgen
 
 %description hipercontracer-importer
 High-Performance Connectivity Tracer (HiPerConTracer) is a
@@ -237,37 +238,11 @@ HiPerConTracer into an SQL or NoSQL database.
 %{_datadir}/doc/hipercontracer/examples/hipercontracer-database.conf
 
 
-%package hipercontracer-queryhelper
-Summary: Query helper library for HiPerConTracer Universal Importer
-Group: Applications/Database
-Requires: %{name} = %{version}-%{release}
-Requires: python3
-Requires: python3-psycopg2
-Requires: python3-pymongo
-Requires: python3-snappy,
-Requires: python3-urllib3
-Requires: python3-zstandard
-Recommends: mysql-connector-c++-devel
-
-%description hipercontracer-queryhelper
-High-Performance Connectivity Tracer (HiPerConTracer) is a
-Ping/Traceroute service. It performs regular Ping and Traceroute runs
-among sites. The results are written to data files, which can be
-imported into an SQL or NoSQL database.
-The HiPerConTracer Universal Importer query helper library for Python
-is provided by this package.
-
-%files hipercontracer-queryhelper
-%{python3_sitelib}/QueryHelper*.egg-info
-%{python3_sitelib}/QueryHelper.py
-%{python3_sitelib}/__pycache__/QueryHelper*.pyc
-
-
 %package hipercontracer-query
-Summary: HiPerConTracer database query tool
+Summary: HiPerConTracer Query Tool to query results from a database
 Group: Applications/Database
-Requires: %{name}-queryhelper = %{version}-%{release}
 Recommends: %{name} = %{version}-%{release}
+Recommends: %{name}-results-tool = %{version}-%{release}
 
 %description hipercontracer-query
 High-Performance Connectivity Tracer (HiPerConTracer) is a
@@ -283,7 +258,7 @@ from a HiPerConTracer SQL or NoSQL database.
 
 
 %package hipercontracer-results-tool
-Summary: HiPerConTracer results data importer
+Summary: HiPerConTracer Results Tool to process results files
 Group: Applications/Database
 Requires: %{name}-libuniversalimporter = %{version}-%{release}
 Recommends: %{name} = %{version}-%{release}
@@ -298,8 +273,26 @@ results files, particularly for converting them to CSV files for
 reading them into spreadsheets, analysis tools, etc.
 
 %files hipercontracer-results-tool
-%{_bindir}/hipercontracer-results-tool
-%{_mandir}/man1/hipercontracer-results-tool.1.gz
+%{_bindir}/hpct-results-tool
+%{_mandir}/man1/hpct-results-tool.1.gz
+
+
+%package hipercontracer-udp-echo-server
+Summary: HiPerConTracer UDP Echo server for responding to UDP Pings
+Group: Applications/Internet
+Recommends: %{name} = %{version}-%{release}
+
+%description hipercontracer-udp-echo-server
+High-Performance Connectivity Tracer (HiPerConTracer) is a
+Ping/Traceroute service. It performs regular Ping and Traceroute runs
+among sites. The results are written to data files, which can be
+imported into an SQL or NoSQL database.
+This package contains a simple UDP Echo server to respond to
+UDP Pings.
+
+%files hipercontracer-udp-echo-server
+%{_bindir}/udp-echo-server
+%{_mandir}/man1/udp-echo-server.1.gz
 
 
 %changelog

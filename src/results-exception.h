@@ -29,54 +29,58 @@
 //
 // Contact: dreibh@simula.no
 
-#ifndef DATABASECLIENT_MONGODB_H
-#define DATABASECLIENT_MONGODB_H
+#ifndef RESULTS_EXCEPTION_H
+#define RESULTS_EXCEPTION_H
 
-#include "databaseclient-base.h"
-
-// Ubuntu: libmongoc-dev
-#include <mongoc.h>
+#include <stdexcept>
+#include <string>
 
 
-class MongoDBClient : public DatabaseClientBase
+//  Base class for all importer problems (logic, reader, database)
+class ResultsException : public std::runtime_error
 {
    public:
-   MongoDBClient(const DatabaseConfiguration& databaseConfiguration);
-   virtual ~MongoDBClient();
+   ResultsException(const std::string& error) : std::runtime_error(error) { }
+};
 
-   virtual const DatabaseBackendType getBackend() const;
-   virtual bool open();
-   virtual void close();
-   virtual void reconnect();
 
-   virtual void startTransaction();
-   virtual void executeUpdate(Statement& statement);
-   virtual void executeQuery(Statement& statement);
-   virtual void endTransaction(const bool commit);
+// Program logic exception
+class ResultsLogicException : public ResultsException
+{
+   public:
+   ResultsLogicException(const std::string& error) : ResultsException(error) { }
+};
 
-   virtual bool fetchNextTuple();
-   virtual int32_t getInteger(const char* column) const;
-   virtual int64_t getBigInt(const char* column) const;
-   virtual std::string getString(const char* column) const;
 
-   virtual void getArrayBegin(const char* column);
-   virtual void getArrayEnd();
-   virtual bool fetchNextArrayTuple();
+// Generic reader problem
+class ResultsReaderException : public ResultsException
+{
+   public:
+   ResultsReaderException(const std::string& error) : ResultsException(error) { }
+};
 
-   inline mongoc_client_t* getConnection() { return Connection; }
 
-   private:
-   void freeResults();
+// Problem with input data (syntax error, etc.) => invalid data
+class ResultsReaderDataErrorException : public ResultsReaderException
+{
+   public:
+   ResultsReaderDataErrorException(const std::string& error) : ResultsReaderException(error) { }
+};
 
-   mongoc_uri_t*        URI;
-   mongoc_client_t*     Connection;
-   mongoc_collection_t* ResultCollection;
-   mongoc_cursor_t*     ResultCursor;
-   const bson_t*        ResultDoc;
 
-   bson_iter_t          ResultArrayIterator;
-   bson_t               ResultArrayDoc;
-   const bson_t*        ResultArrayParentDoc;
+// Generic database problem
+class ResultsDatabaseException : public ResultsException
+{
+   public:
+   ResultsDatabaseException(const std::string& error) : ResultsException(error) { }
+};
+
+
+// Problem with database transaction (syntax error, etc.) => invalid data
+class ResultsDatabaseDataErrorException : public ResultsDatabaseException
+{
+   public:
+   ResultsDatabaseDataErrorException(const std::string& error) : ResultsDatabaseException(error) { }
 };
 
 #endif

@@ -67,9 +67,9 @@ void ResultEntry::initialise(const uint32_t                  timeStampSeqID,
    PacketSize     = packetSize;
    ResponseSize   = 0;
    Checksum       = checksum;
-   Source         = source;
-   Destination    = destination;
-   Hop            = destination.address();
+   Source         = dropScopeID(source);
+   Destination    = DestinationInfo(dropScopeID(destination.address()), destination.trafficClass(), destination.identifier());
+   Hop            = Destination.address();
    Status         = status;
    for(unsigned int i = 0; i < TXTST_MAX + 1; i++) {
       SendTimeSource[i] = TimeSourceType::TST_Unknown;

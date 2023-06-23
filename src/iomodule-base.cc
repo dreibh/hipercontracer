@@ -290,7 +290,8 @@ boost::asio::ip::address IOModuleBase::findSourceForDestination(const boost::asi
 void IOModuleBase::recordResult(const ReceivedData&  receivedData,
                                 const uint8_t        icmpType,
                                 const uint8_t        icmpCode,
-                                const unsigned short seqNumber)
+                                const unsigned short seqNumber,
+                                const unsigned int   responseLength)
 {
    // ====== Find corresponding request =====================================
    std::map<unsigned short, ResultEntry*>::iterator found = ResultsMap.find(seqNumber);
@@ -311,7 +312,7 @@ void IOModuleBase::recordResult(const ReceivedData&  receivedData,
 
    // ====== Get status =====================================================
    if(resultEntry->status() == Unknown) {
-      resultEntry->setResponseSize(receivedData.MessageLength);
+      resultEntry->setResponseSize(responseLength);
 
       // Just set address, keep traffic class and identifier settings:
       resultEntry->setHopAddress(receivedData.ReplyEndpoint.address());

@@ -30,7 +30,6 @@
 // Contact: dreibh@simula.no
 
 #include "databaseclient-mariadb.h"
-#include "importer-exception.h"
 #include "logger.h"
 
 // Ubuntu: libmysqlcppconn-dev
@@ -52,6 +51,7 @@ MariaDBClient::MariaDBClient(const DatabaseConfiguration& configuration)
    assert(Driver != nullptr);
    Connection  = nullptr;
    Transaction = nullptr;
+   ResultSet   = nullptr;
 }
 
 
@@ -99,7 +99,7 @@ bool MariaDBClient::open()
       HPCT_LOG(error) << "MySQL/MariaDB backend expects separate certificate and key files, not one certificate+key file!";
       return false;
    }
-   if(Configuration.getCRLFile().size() > 0) {
+   if( (sslVerify) && (Configuration.getCRLFile().size() > 0) ) {
       connectionProperties["sslCRL"] = Configuration.getCRLFile();
    }
    connectionProperties["sslVerify"]       = sslVerify;
@@ -136,6 +136,10 @@ bool MariaDBClient::open()
 // ###### Close connection to database ######################################
 void MariaDBClient::close()
 {
+   if(ResultSet != nullptr) {
+      delete ResultSet;
+      ResultSet = nullptr;
+   }
    if(Transaction) {
       delete Transaction;
       Transaction = nullptr;
@@ -172,11 +176,11 @@ void MariaDBClient::handleDatabaseException(const sql::SQLException& exception,
    //  Based on mysql/connector/errors.py:
    if( (e == "42") || (e == "23") || (e == "22") || (e == "XA")) {
       // For this type, the input file should be moved to the bad directory.
-      throw ImporterDatabaseDataErrorException(what);
+      throw ResultsDatabaseDataErrorException(what);
    }
    // Other error
    else {
-      throw ImporterDatabaseException(what);
+      throw ResultsDatabaseException(what);
    }
 }
 
@@ -231,4 +235,58 @@ void MariaDBClient::executeUpdate(Statement& statement)
    }
 
    statement.clear();
+}
+
+
+// ###### Execute statement #################################################
+void MariaDBClient::executeQuery(Statement& statement)
+{
+   assert(statement.isValid());
+
+   if(ResultSet != nullptr) {
+      delete ResultSet;
+      ResultSet = nullptr;
+   }
+   try {
+      ResultSet = Transaction->executeQuery(statement.str());
+   }
+   catch(const sql::SQLException& exception) {
+      handleDatabaseException(exception, "Execute", statement.str());
+   }
+
+   statement.clear();
+}
+
+
+// ###### Fetch next tuple ##################################################
+bool MariaDBClient::fetchNextTuple()
+{
+   if(ResultSet != nullptr) {
+      return ResultSet->next();
+   }
+   return false;
+}
+
+
+// ###### Get integer value #################################################
+int32_t MariaDBClient::getInteger(unsigned int column) const
+{
+   assert(ResultSet != nullptr);
+   return ResultSet->getInt(column);
+}
+
+
+// ###### Get big integer value #############################################
+int64_t MariaDBClient::getBigInt(unsigned int column) const
+{
+   assert(ResultSet != nullptr);
+   return ResultSet->getInt64(column);
+}
+
+
+// ###### Get string value ##################################################
+std::string MariaDBClient::getString(unsigned int column) const
+{
+   assert(ResultSet != nullptr);
+   return ResultSet->getString(column);
 }

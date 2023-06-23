@@ -29,58 +29,14 @@
 //
 // Contact: dreibh@simula.no
 
-#ifndef IMPORTER_EXCEPTION_H
-#define IMPORTER_EXCEPTION_H
+#ifndef CONVERSIONS_H
+#define CONVERSIONS_H
 
-#include <exception>
 #include <string>
 
 
-//  Base class for all importer problems (logic, reader, database)
-class ImporterException : public std::runtime_error
-{
-   public:
-   ImporterException(const std::string& error) : std::runtime_error(error) { }
-};
-
-
-// Program logic exception
-class ImporterLogicException : public ImporterException
-{
-   public:
-   ImporterLogicException(const std::string& error) : ImporterException(error) { }
-};
-
-
-// Generic reader problem
-class ImporterReaderException : public ImporterException
-{
-   public:
-   ImporterReaderException(const std::string& error) : ImporterException(error) { }
-};
-
-
-// Problem with input data (syntax error, etc.) => invalid data
-class ImporterReaderDataErrorException : public ImporterReaderException
-{
-   public:
-   ImporterReaderDataErrorException(const std::string& error) : ImporterReaderException(error) { }
-};
-
-
-// Generic database problem
-class ImporterDatabaseException : public ImporterException
-{
-   public:
-   ImporterDatabaseException(const std::string& error) : ImporterException(error) { }
-};
-
-
-// Problem with database transaction (syntax error, etc.) => invalid data
-class ImporterDatabaseDataErrorException : public ImporterDatabaseException
-{
-   public:
-   ImporterDatabaseDataErrorException(const std::string& error) : ImporterDatabaseException(error) { }
-};
+std::string convertOldPingLine(const std::string& line);
+std::string convertOldTracerouteLine(const std::string&  line,
+                                     unsigned long long& timeStamp);
 
 #endif

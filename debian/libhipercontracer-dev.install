@@ -1,6 +1,7 @@
 usr/include/hipercontracer/destinationinfo.h
 usr/include/hipercontracer/iomodule-base.h
 usr/include/hipercontracer/iomodule-icmp.h
+usr/include/hipercontracer/iomodule-tcp.h
 usr/include/hipercontracer/iomodule-udp.h
 usr/include/hipercontracer/jitter.h
 usr/include/hipercontracer/logger.h

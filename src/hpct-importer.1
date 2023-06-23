@@ -17,7 +17,7 @@
 .\" Contact: thomas.dreibholz@gmail.com
 .\"
 .\" ###### Setup ############################################################
-.Dd November 18, 2022
+.Dd June 22, 2023
 .Dt hpct-importer 1
 .Os hpct-importer
 .\" ###### Name #############################################################
@@ -28,12 +28,11 @@
 .Sh SYNOPSIS
 .Nm hpct-importer
 database_configuration
-.Op \-L|--loglevel level
+.Op \-L|--loglevel LEVEL
 .Op \-Z|--logcolor on|off
-.Op \-O|--logfile file
+.Op \-O|--logfile FILE
 .Op \-q|--quiet
 .Op \-v|--verbose
-.Op \-C|--config DATABASE_CONFIGURATION_FILE
 .Op \-X|--import-mode MODE
 .Op \-D|--import-max-depth DEPTH
 .Op \-I|--import-file-path PATH
@@ -52,7 +51,11 @@ imports HiPerConTracer results into an SQL or NoSQL database. Currently, the
 following database backends are supported:
 MySQL/MariaDB (SQL),
 PostgreSQL (SQL),
-MongoDB  (NoSQL).
+MongoDB (NoSQL).
+.br
+See
+/usr/share/doc/hipercontracer/examples/hipercontracer-database.conf
+for a commented database configuration example.
 .br
 Results files imported successfully can be moved into a "good" directory,
 deleted or kept as-in (for debugging only!).
@@ -66,7 +69,7 @@ error, each file is imported sequentially to identify faulty ones.
 .Sh ARGUMENTS
 The following argument may be provided:
 .Bl -tag -width indent
-.It \-L|\--loglevel level
+.It \-L|\--loglevel LEVEL
 Sets the minimum logging level to the provided value: 0=trace, 1=debug, 2=info, 3=warning, 4=error, 5=fatal.
 .It \-q|\--quiet
 Sets the minimum logging level to 3 (warning).
@@ -74,12 +77,8 @@ Sets the minimum logging level to 3 (warning).
 Sets the minimum logging level to 0 (trace).
 .It \-Z|--logcolor on|off
 Enables (on) or disables (off) the usage of ANSI color escape sequences to colorise the log output according to its level.
-.It \-O|--logfile file
+.It \-O|--logfile FILE
 Sets a file name for appending the log output to. If a file is set, no log output is made to the console. Otherwise, all log output will be written to the console.
-.It \-C|--config DATABASE_CONFIGURATION_FILE
-Specifies the database configuration file. See
-/usr/share/doc/hipercontracer/examples/hipercontracer-database.conf
-for a commented example.
 .It \-X|--import-mode MODE
 Specifies the import mode,
 overriding the mode read from the database configuration file:

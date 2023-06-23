@@ -209,7 +209,10 @@ unsigned int ICMPModule::sendRequest(const DestinationInfo& destination,
                                      uint16_t&              seqNumber,
                                      uint32_t*              targetChecksumArray)
 {
-   const boost::asio::ip::icmp::endpoint localEndpoint(SourceAddress, 0);
+   const boost::asio::ip::icmp::endpoint localEndpoint(SourceAddress.is_unspecified() ?
+                                                          findSourceForDestination(destination.address()) :
+                                                          SourceAddress,
+                                                       0);
    const boost::asio::ip::icmp::endpoint remoteEndpoint(destination.address(), 0);
 
    // ====== Set TOS/Traffic Class ==========================================
@@ -652,7 +655,8 @@ void ICMPModule::handlePayloadResponse(const int     socketDescriptor,
                   // not setting receivedData.Source and receivedData.Destination here!
                   recordResult(receivedData,
                                icmpHeader.type(), icmpHeader.code(),
-                               icmpHeader.seqNumber());
+                               icmpHeader.seqNumber(),
+                               40 + receivedData.MessageLength);
                }
             }
          }
@@ -672,7 +676,8 @@ void ICMPModule::handlePayloadResponse(const int     socketDescriptor,
                receivedData.Destination = boost::asio::ip::udp::endpoint(innerIPv6Header.destinationAddress(), 0);
                recordResult(receivedData,
                             icmpHeader.type(), icmpHeader.code(),
-                            innerICMPHeader.seqNumber());
+                            innerICMPHeader.seqNumber(),
+                            40 + receivedData.MessageLength);
             }
          }
 
@@ -701,7 +706,8 @@ void ICMPModule::handlePayloadResponse(const int     socketDescriptor,
                   receivedData.Destination = boost::asio::ip::udp::endpoint(ipv4Header.sourceAddress(), 0);
                   recordResult(receivedData,
                                icmpHeader.type(), icmpHeader.code(),
-                               icmpHeader.seqNumber());
+                               icmpHeader.seqNumber(),
+                               receivedData.MessageLength);
                }
             }
 
@@ -721,7 +727,8 @@ void ICMPModule::handlePayloadResponse(const int     socketDescriptor,
                   receivedData.Destination = boost::asio::ip::udp::endpoint(innerIPv4Header.destinationAddress(), 0);
                   recordResult(receivedData,
                                icmpHeader.type(), icmpHeader.code(),
-                               innerICMPHeader.seqNumber());
+                               innerICMPHeader.seqNumber(),
+                               receivedData.MessageLength);
                }
             }
 

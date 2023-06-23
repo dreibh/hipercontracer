@@ -94,7 +94,8 @@ class IOModuleBase
    void recordResult(const ReceivedData&  receivedData,
                      const uint8_t        icmpType,
                      const uint8_t        icmpCode,
-                     const unsigned short seqNumber);
+                     const unsigned short seqNumber,
+                     const unsigned int   responseLength);
 
    static bool registerIOModule(const ProtocolType  moduleType,
                                 const std::string&  moduleName,

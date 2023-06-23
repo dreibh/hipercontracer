@@ -75,3 +75,66 @@ Statement& DatabaseClientBase::getStatement(const std::string& name,
    }
    return *statement;
 }
+
+
+// ###### Get integer value #################################################
+int32_t DatabaseClientBase::getInteger(unsigned int column) const
+{
+   abort();   // To be implemented by subclass!
+}
+
+
+// ###### Get integer value #################################################
+int32_t DatabaseClientBase::getInteger(const char* column) const
+{
+   abort();   // To be implemented by subclass!
+}
+
+
+// ###### Get big integer value #############################################
+int64_t DatabaseClientBase::getBigInt(unsigned int column) const
+{
+   abort();   // To be implemented by subclass!
+}
+
+
+// ###### Get big integer value #############################################
+int64_t DatabaseClientBase::getBigInt(const char* column) const
+{
+   abort();   // To be implemented by subclass!
+}
+
+
+// ###### Get string value ##################################################
+std::string DatabaseClientBase::getString(unsigned int column) const
+{
+   abort();   // To be implemented by subclass!
+}
+
+
+// ###### Get string value ##################################################
+std::string DatabaseClientBase::getString(const char* column) const
+{
+   abort();   // To be implemented by subclass!
+}
+
+
+// ###### Get array #########################################################
+void DatabaseClientBase::getArrayBegin(const char* column)
+{
+   abort();   // To be implemented by subclass!
+}
+
+
+// ###### Get array #########################################################
+void DatabaseClientBase::getArrayEnd()
+{
+   abort();   // To be implemented by subclass!
+}
+
+
+// ###### Fetch next array tuple ############################################
+bool DatabaseClientBase::fetchNextArrayTuple()
+{
+   abort();   // To be implemented by subclass!
+}

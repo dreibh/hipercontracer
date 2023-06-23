@@ -35,19 +35,19 @@ library("bitops")
 library("openssl")
 
 
-# ###### Convert Unix time in microseconds to string ########################
+# ###### Convert Unix time in nanoseconds to string #########################
 unix_time_to_string <- function(timeStamp)
 {
-   seconds      <- as.character(anytime(timeStamp / 1000000), asUTC=TRUE, tz="UTC")
-   microseconds <- sprintf("%06d", timeStamp %% 1000000)
-   timeString <- paste(sep=".", seconds, microseconds)
+   seconds      <- as.character(anytime(timeStamp / 1000000000), asUTC=TRUE, tz="UTC")
+   nanoseconds <- sprintf("%06d", timeStamp %% 1000000000)
+   timeString <- paste(sep=".", seconds, nanoseconds)
 }
 
 
-# ###### Convert strong to Unix time in microseconds ########################
+# ###### Convert strong to Unix time in nanoseconds #########################
 string_to_unix_time <- function(timeString)
 {
-   timeStamp <- 1000000.0 * as.numeric(anytime(timeString, asUTC=TRUE))
+   timeStamp <- 1000000000.0 * as.numeric(anytime(timeString, asUTC=TRUE))
    return(timeStamp)
 }
 

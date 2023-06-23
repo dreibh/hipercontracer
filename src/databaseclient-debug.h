@@ -48,7 +48,10 @@ class DebugClient : public DatabaseClientBase
 
    virtual void startTransaction();
    virtual void executeUpdate(Statement& statement);
+   virtual void executeQuery(Statement& statement);
    virtual void endTransaction(const bool commit);
+
+   virtual bool fetchNextTuple();
 };
 
 #endif

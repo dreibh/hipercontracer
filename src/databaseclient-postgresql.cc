@@ -30,7 +30,6 @@
 // Contact: dreibh@simula.no
 
 #include "databaseclient-postgresql.h"
-#include "importer-exception.h"
 #include "logger.h"
 
 
@@ -148,11 +147,11 @@ void PostgreSQLClient::handleDatabaseException(const pqxx::failure& exception,
    // Query error
    if( (Connection->is_open()) && (sqlError != nullptr) ) {
       // For this type, the input file should be moved to the bad directory.
-      throw ImporterDatabaseDataErrorException(what);
+      throw ResultsDatabaseDataErrorException(what);
    }
    // Other error
    else {
-      throw ImporterDatabaseException(what);
+      throw ResultsDatabaseException(what);
    }
 }
 
@@ -221,4 +220,64 @@ void PostgreSQLClient::executeUpdate(Statement& statement)
    }
 
    statement.clear();
+}
+
+
+// ###### Execute statement #################################################
+void PostgreSQLClient::executeQuery(Statement& statement)
+{
+   assert(statement.isValid());
+
+   try {
+      if(Transaction == nullptr) {
+         Transaction = new pqxx::work(*Connection);
+      }
+      ResultSet   = Transaction->exec(statement.str());
+      ResultIndex = ~((pqxx::result::size_type)0);
+   }
+   catch(const pqxx::failure& exception) {
+      handleDatabaseException(exception, "Execute", statement.str());
+   }
+
+   statement.clear();
+}
+
+
+// ###### Fetch next tuple ##################################################
+bool PostgreSQLClient::fetchNextTuple()
+{
+   if(ResultIndex == ~((pqxx::result::size_type)0)) {
+      ResultIndex = 0;
+   }
+   else {
+      ResultIndex++;
+   }
+   return ResultIndex < ResultSet.size();
+}
+
+
+// ###### Get integer value #################################################
+int32_t PostgreSQLClient::getInteger(unsigned int column) const
+{
+   assert(ResultIndex < ResultSet.size());
+   assert(column > 0);
+   return ResultSet[ResultIndex][column - 1].as<int32_t>();
+}
+
+
+// ###### Get big integer value #############################################
+int64_t PostgreSQLClient::getBigInt(unsigned int column) const
+{
+   assert(ResultIndex < ResultSet.size());
+   assert(column > 0);
+   return ResultSet[ResultIndex][column - 1].as<int64_t>();
+}
+
+
+// ###### Get string value ##################################################
+std::string PostgreSQLClient::getString(unsigned int column) const
+{
+   assert(ResultIndex < ResultSet.size());
+   assert(column > 0);
+   return ResultSet[ResultIndex][column - 1].as<std::string>();
 }

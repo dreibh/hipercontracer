@@ -60,8 +60,8 @@ if [ -e "${DATABASE_CONFIG}" ] ; then
    rm -rf good/*
    rm -rf bad/*
 
-   cp ../examples/*.bz2 data/
-   ../hpct-importer \
+   cp ../examples/*.results.* data/
+   ${VALGRIND_CMD} ../hpct-importer \
       -c "${DATABASE_CONFIG}" \
       --quit-when-idle \
       --loglevel 0

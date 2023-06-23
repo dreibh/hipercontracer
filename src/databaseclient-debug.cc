@@ -30,7 +30,6 @@
 // Contact: dreibh@simula.no
 
 #include "databaseclient-debug.h"
-#include "importer-exception.h"
 
 #include <iostream>
 
@@ -91,7 +90,7 @@ void DebugClient::endTransaction(const bool commit)
 {
    if(commit) {
       std::cout << "COMMIT" << std::endl;
-      throw ImporterDatabaseException("DEBUG CLIENT ONLY");
+      throw ResultsDatabaseException("DEBUG CLIENT ONLY");
    }
    else {
       std::cout << "ROLLBACK" << std::endl;
@@ -105,4 +104,20 @@ void DebugClient::executeUpdate(Statement& statement)
    assert(statement.isValid());
    std::cout << statement << std::endl;
    statement.clear();
+}
+
+
+// ###### Execute statement #################################################
+void DebugClient::executeQuery(Statement& statement)
+{
+   assert(statement.isValid());
+   std::cout << statement << std::endl;
+   statement.clear();
+}
+
+
+// ###### Fetch next tuple ##################################################
+bool DebugClient::fetchNextTuple()
+{
+   abort();
 }

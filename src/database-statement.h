@@ -62,7 +62,7 @@ class Statement : public std::stringstream
    }
 
    inline bool isValid() const {
-      return (!InTuple) && (Rows > 0);
+      return (!InTuple) && ((Rows > 0) || (!str().empty()));
    }
 
    inline size_t getRows() const {
@@ -152,6 +152,7 @@ class Statement : public std::stringstream
    }
 
    std::string encodeAddress(const boost::asio::ip::address& address) const;
+   boost::asio::ip::address decodeAddress(const std::string& string) const;
 
    friend std::ostream& operator<<(std::ostream& os, const Statement& statement);
 

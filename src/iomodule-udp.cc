@@ -329,7 +329,8 @@ void UDPModule::handlePayloadResponse(const int     socketDescriptor,
       TraceServiceHeader tsHeader;
       is >> tsHeader;
       if( (is) && (tsHeader.magicNumber() == MagicNumber) ) {
-         recordResult(receivedData, 0, 0, tsHeader.seqNumber());
+         recordResult(receivedData, 0, 0, tsHeader.seqNumber(),
+                      ((SourceAddress.is_v6()) ? 40 + 8 : 20 + 8 ) + receivedData.MessageLength);
       }
    }
 
@@ -364,7 +365,8 @@ void UDPModule::handlePayloadResponse(const int     socketDescriptor,
                      if( (is) && (tsHeader.magicNumber() == MagicNumber) ) {
                         recordResult(receivedData,
                                      icmpHeader.type(), icmpHeader.code(),
-                                     tsHeader.seqNumber());
+                                     tsHeader.seqNumber(),
+                                     receivedData.MessageLength);
                      }
                   }
                }
@@ -403,7 +405,8 @@ void UDPModule::handlePayloadResponse(const int     socketDescriptor,
                         // has to be used to identify the outgoing request!
                         recordResult(receivedData,
                                      icmpHeader.type(), icmpHeader.code(),
-                                     innerIPv4Header.identification());
+                                     innerIPv4Header.identification(),
+                                     receivedData.MessageLength);
                      }
                   }
                }

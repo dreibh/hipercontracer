@@ -418,11 +418,13 @@ void TCPModule::handlePayloadResponse(const int     socketDescriptor,
                   // For SYN+ACK: AckNumber = SeqNumber + 1!
                   if( (tcpHeader.flags() & (TCPFlags::TF_SYN|TCPFlags::TF_ACK|TCPFlags::TF_RST)) == (TCPFlags::TF_SYN|TCPFlags::TF_ACK) ) {
                      // Addressing information is already checked by kernel!
-                     recordResult(receivedData, 0, 0, r1);
+                     recordResult(receivedData, 0, 0, r1,
+                                  ((SourceAddress.is_v6()) ? 40 : 20) + tcpHeader.dataOffset() + receivedData.MessageLength);
                   }
                   else if(tcpHeader.flags() & TCPFlags::TF_RST) {
                      // Addressing information is already checked by kernel!
-                     recordResult(receivedData, 0, 0, r1);
+                     recordResult(receivedData, 0, 0, r1,
+                                  ((SourceAddress.is_v6()) ? 40 : 20) + tcpHeader.dataOffset() + receivedData.MessageLength);
                   }
                }
             }
@@ -450,13 +452,15 @@ void TCPModule::handlePayloadResponse(const int     socketDescriptor,
                         // Addressing information may need update!
                         receivedData.Destination = boost::asio::ip::udp::endpoint(ipv4Header.sourceAddress(),      tcpHeader.sourcePort());
                         receivedData.Source      = boost::asio::ip::udp::endpoint(ipv4Header.destinationAddress(), tcpHeader.destinationPort());
-                        recordResult(receivedData, 0, 0, r1);
+                        recordResult(receivedData, 0, 0, r1                  ,
+                                     ((SourceAddress.is_v6()) ? 40 : 20) + tcpHeader.dataOffset() + receivedData.MessageLength);
                      }
                      else if(tcpHeader.flags() & TCPFlags::TF_RST) {
                         // Addressing information may need update!
                         receivedData.Destination = boost::asio::ip::udp::endpoint(ipv4Header.sourceAddress(),      tcpHeader.sourcePort());
                         receivedData.Source      = boost::asio::ip::udp::endpoint(ipv4Header.destinationAddress(), tcpHeader.destinationPort());
-                        recordResult(receivedData, 0, 0, r1);
+                        recordResult(receivedData, 0, 0, r1,
+                                     ((SourceAddress.is_v6()) ? 40 : 20) + tcpHeader.dataOffset() + receivedData.MessageLength);
                      }
                   }
                }
@@ -499,7 +503,8 @@ void TCPModule::handlePayloadResponse(const int     socketDescriptor,
                            receivedData.Destination = boost::asio::ip::udp::endpoint(innerIPv6Header.destinationAddress(), tcpHeader.destinationPort());
                            recordResult(receivedData,
                                        icmpHeader.type(), icmpHeader.code(),
-                                       v1);
+                                       v1,
+                                       receivedData.MessageLength);
                         }
                      }
                   }
@@ -547,7 +552,8 @@ void TCPModule::handlePayloadResponse(const int     socketDescriptor,
                               receivedData.Destination = boost::asio::ip::udp::endpoint(innerIPv4Header.destinationAddress(), tcpHeader.destinationPort());
                               recordResult(receivedData,
                                           icmpHeader.type(), icmpHeader.code(),
-                                          v1);
+                                          v1,
+                                          receivedData.MessageLength);
                            }
                         }
                      }
@@ -561,7 +567,8 @@ void TCPModule::handlePayloadResponse(const int     socketDescriptor,
                         // has to be used to identify the outgoing request!
                         recordResult(receivedData,
                                      icmpHeader.type(), icmpHeader.code(),
-                                     innerIPv4Header.identification());
+                                     innerIPv4Header.identification(),
+                                     receivedData.MessageLength);
                      }
                   }
                }

@@ -35,6 +35,8 @@
 #include "database-configuration.h"
 #include "database-statement.h"
 
+#include "results-exception.h"
+
 
 class DatabaseClientBase
 {
@@ -49,6 +51,7 @@ class DatabaseClientBase
 
    virtual void startTransaction() = 0;
    virtual void executeUpdate(Statement& statement) = 0;
+   virtual void executeQuery(Statement& statement) = 0;
    virtual void endTransaction(const bool commit) = 0;
 
    inline void commit()   { endTransaction(true);  }
@@ -62,6 +65,27 @@ class DatabaseClientBase
       s << statement;
       executeUpdate(s);
    }
+
+   inline void executeQuery(const char* statement) {
+      executeQuery(std::string(statement));
+   }
+   inline void executeQuery(const std::string& statement) {
+      Statement s(Configuration.getBackend());
+      s << statement;
+      executeQuery(s);
+   }
+
+   virtual bool fetchNextTuple() = 0;
+   virtual int32_t getInteger(unsigned int column) const;
+   virtual int32_t getInteger(const char* column) const;
+   virtual int64_t getBigInt(unsigned int column) const;
+   virtual int64_t getBigInt(const char* column) const;
+   virtual std::string getString(unsigned int column) const;
+   virtual std::string getString(const char* column) const;
+
+   virtual void getArrayBegin(const char* column);
+   virtual void getArrayEnd();
+   virtual bool fetchNextArrayTuple();
 
    Statement& getStatement(const std::string& name,
                            const bool         mustExist      = true,

@@ -31,7 +31,6 @@
 
 #include "worker.h"
 #include "database-configuration.h"
-#include "importer-exception.h"
 #include "logger.h"
 #include "tools.h"
 
@@ -314,7 +313,7 @@ bool Worker::importFiles(const std::list<std::filesystem::path>& dataFileList)
    }
 
    //  ====== Error in input data ===========================================
-   catch(ImporterReaderDataErrorException& exception) {
+   catch(ResultsReaderDataErrorException& exception) {
       HPCT_LOG(warning) << getIdentification() << ": Import in "
                         << ((fastMode == true) ? "fast" : "slow") << " mode failed with reader data error: "
                         << exception.what();
@@ -326,7 +325,7 @@ bool Worker::importFiles(const std::list<std::filesystem::path>& dataFileList)
 
    //  ====== Error in database data ========================================
    // NOTE: The database connection is still okay!
-   catch(ImporterDatabaseDataErrorException& exception) {
+   catch(ResultsDatabaseDataErrorException& exception) {
       HPCT_LOG(warning) << getIdentification() << ": Import in "
                         << ((fastMode == true) ? "fast" : "slow") << " mode failed with database data error: "
                         << exception.what();
@@ -338,7 +337,7 @@ bool Worker::importFiles(const std::list<std::filesystem::path>& dataFileList)
 
    //  ====== Error in database handling ====================================
    // NOTE: Requires reconnect to database!
-   catch(ImporterDatabaseException& exception) {
+   catch(ResultsDatabaseException& exception) {
       HPCT_LOG(warning) << getIdentification() << ": Import in "
                         << ((fastMode == true) ? "fast" : "slow") << " mode failed with database exception: "
                         << exception.what();
@@ -389,7 +388,7 @@ void Worker::run()
 
       // ====== Quit when idle? =============================================
       if( (files == 0) && (QuitWhenIdle) ) {
-         HPCT_LOG(trace) << getIdentification() << "Idle -> done!";
+         HPCT_LOG(trace) << getIdentification() << ": Idle -> done!";
          break;
       }
 

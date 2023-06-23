@@ -170,9 +170,9 @@ class ResultEntry {
    inline ResultTimePoint sendTime(const TXTimeStampType txTimeStampType)    const { return(SendTime[txTimeStampType]);    }
    inline ResultTimePoint receiveTime(const RXTimeStampType rxTimeStampType) const { return(ReceiveTime[rxTimeStampType]); }
 
-   inline void setStatus(const HopStatus status)                      { Status       = status;       }
-   inline void setResponseSize(const unsigned int responseSize)       { ResponseSize = responseSize; }
-   inline void setHopAddress(const boost::asio::ip::address& address) { Hop          = address;      }
+   inline void setStatus(const HopStatus status)                      { Status       = status;               }
+   inline void setResponseSize(const unsigned int responseSize)       { ResponseSize = responseSize;         }
+   inline void setHopAddress(const boost::asio::ip::address& address) { Hop          = dropScopeID(address); }
 
    inline void setSendTime(const TXTimeStampType  txTimeStampType,
                            const TimeSourceType   txTimeSource,
@@ -226,6 +226,15 @@ class ResultEntry {
    friend std::ostream& operator<<(std::ostream& os, const ResultEntry& resultEntry);
 
    private:
+   inline static boost::asio::ip::address dropScopeID(const boost::asio::ip::address& address) {
+      if(address.is_v6()) {
+         boost::asio::ip::address_v6 v6 = address.to_v6();
+         v6.scope_id(0);
+         return v6;
+      }
+      return address;
+   }
+
    uint32_t                 TimeStampSeqID;   /* Used with SOF_TIMESTAMPING_OPT_ID */
    unsigned int             RoundNumber;
    unsigned short           SeqNumber;
