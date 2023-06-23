@@ -601,7 +601,7 @@ void TracerouteReader::parseContents(
             statement
                << ((hopNumber > 1) ? ", { " :" { ")
 
-               << "\"sendTimeStamp\":" << statement.quote(timePointToString<ReaderTimePoint>(sendTimeStamp, 9)) << statement.sep()
+               << "\"sendTimestamp\":" << statement.quote(timePointToString<ReaderTimePoint>(sendTimeStamp, 9)) << statement.sep()
                << "\"responseSize\":"  << responseSize                                                          << statement.sep()
                << "\"hopIP\":"         << statement.encodeAddress(hopIP)                                        << statement.sep()
                << "\"status\":"        << status                                                                << statement.sep()
