@@ -347,7 +347,6 @@ void MongoDBClient::executeQuery(Statement& statement)
 
    // ====== Find collection ================================================
    bson_iter_t iterator;
-   bson_t      rowsToInsert;
    const char* key;
    bson_t      query;
    std::string collectionName;
