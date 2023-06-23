@@ -16,13 +16,8 @@ BuildRequires: gcc-c++
 BuildRequires: libbson-devel
 BuildRequires: libpqxx-devel
 BuildRequires: mongo-c-driver-devel
-BuildRequires: python3-devel
+BuildRequires: xz-devel
 Recommends: mysql-connector-c++-devel
-Recommends: python3-psycopg2
-Recommends: python3-pymongo
-Recommends: python3-snappy,
-Recommends: python3-urllib3
-Recommends: python3-zstandard
 BuildRoot: %{_tmppath}/%{name}-%{version}-build
 
 # TEST ONLY:
@@ -40,8 +35,7 @@ imported into an SQL or NoSQL database.
 
 %build
 # NOTE: CMAKE_VERBOSE_MAKEFILE=OFF for reduced log output!
-# NOTE: ENABLE_BACKEND_MARIADB=0
-%cmake -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_VERBOSE_MAKEFILE=OFF -DPYTHON_LIBRARY_PREFIX=%{buildroot}/usr -DENABLE_BACKEND_MARIADB=0 .
+%cmake -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_VERBOSE_MAKEFILE=OFF .
 %cmake_build
 
 %pre

@@ -144,8 +144,7 @@ Depends: libuniversalimporter1 (= ${binary:Version}),
          ${misc:Depends},
          ${shlibs:Depends}
 Recommends: hipercontracer,
-            hipercontracer-results-tool,
-            pwgen
+            hipercontracer-results-tool
 Description: HiPerConTracer Query Tool to query results from a database
  High-Performance Connectivity Tracer (HiPerConTracer) is a
  Ping/Traceroute service. It performs regular Ping and Traceroute runs
@@ -159,8 +158,7 @@ Package: hipercontracer-results-tool
 Architecture: any
 Depends: ${misc:Depends},
          ${shlibs:Depends}
-Recommends: hipercontracer,
-            pwgen
+Recommends: hipercontracer
 Description: HiPerConTracer Results Tool to process results files
  High-Performance Connectivity Tracer (HiPerConTracer) is a
  Ping/Traceroute service. It performs regular Ping and Traceroute runs
