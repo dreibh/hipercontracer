@@ -9,6 +9,7 @@ Source: https://www.nntb.no/~dreibh/hipercontracer/download/%{name}-%{version}.t
 
 AutoReqProv: on
 BuildRequires: boost-devel
+BuildRequires: bzip2-devel
 BuildRequires: c-ares-devel
 BuildRequires: cmake
 BuildRequires: gcc
@@ -17,7 +18,9 @@ BuildRequires: libbson-devel
 BuildRequires: libpqxx-devel
 BuildRequires: mongo-c-driver-devel
 BuildRequires: xz-devel
-Recommends: mysql-connector-c++-devel
+BuildRequires: zlib-devel
+# Not provided by Fedora:
+# BuildRequires: mysql-connector-c++-devel
 BuildRoot: %{_tmppath}/%{name}-%{version}-build
 
 # TEST ONLY:
@@ -60,9 +63,10 @@ groupdel hipercontracer >/dev/null 2>&1 || true
 %{_mandir}/man1/get-default-ips.1.gz
 %{_mandir}/man1/hipercontracer.1.gz
 %{_datadir}/doc/hipercontracer/examples/HiPerConTracer.R
-%{_datadir}/doc/hipercontracer/examples/Ping-*.results.bz2
+%{_datadir}/doc/hipercontracer/examples/Jitter-*.results.*
+%{_datadir}/doc/hipercontracer/examples/Ping-*.results.*
 %{_datadir}/doc/hipercontracer/examples/README.md
-%{_datadir}/doc/hipercontracer/examples/Traceroute-*.results.bz2
+%{_datadir}/doc/hipercontracer/examples/Traceroute-*.results.*
 %{_datadir}/doc/hipercontracer/examples/r-ping-example
 %{_datadir}/doc/hipercontracer/examples/r-traceroute-example
 
@@ -268,8 +272,26 @@ results files, particularly for converting them to CSV files for
 reading them into spreadsheets, analysis tools, etc.
 
 %files hipercontracer-results-tool
-%{_bindir}/hipercontracer-results-tool
-%{_mandir}/man1/hipercontracer-results-tool.1.gz
+%{_bindir}/hpct-results-tool
+%{_mandir}/man1/hpct-results-tool.1.gz
+
+
+%package hipercontracer-udp-echo-server
+Summary: HiPerConTracer UDP Echo server for responding to UDP Pings
+Group: Applications/Internet
+Recommends: %{name} = %{version}-%{release}
+
+%description hipercontracer-udp-echo-server
+High-Performance Connectivity Tracer (HiPerConTracer) is a
+Ping/Traceroute service. It performs regular Ping and Traceroute runs
+among sites. The results are written to data files, which can be
+imported into an SQL or NoSQL database.
+This package contains a simple UDP Echo server to respond to
+UDP Pings.
+
+%files hipercontracer-udp-echo-server
+%{_bindir}/udp-echo-server
+%{_mandir}/man1/udp-echo-server.1.gz
 
 
 %changelog
