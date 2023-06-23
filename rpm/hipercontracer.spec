@@ -35,7 +35,8 @@ imported into an SQL or NoSQL database.
 
 %build
 # NOTE: CMAKE_VERBOSE_MAKEFILE=OFF for reduced log output!
-%cmake -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_VERBOSE_MAKEFILE=OFF .
+# NOTE: ENABLE_BACKEND_MARIADB=OFF, since mysql-connector-c++ is not provided by Fedora.
+%cmake -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_VERBOSE_MAKEFILE=OFF -DENABLE_BACKEND_MARIADB=OFF .
 %cmake_build
 
 %pre
