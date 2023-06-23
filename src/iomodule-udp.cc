@@ -279,19 +279,6 @@ unsigned int UDPModule::sendRequest(const DestinationInfo& destination,
          sentArray[currentEntry] =
             RawUDPSocket.send_to(buffer, remoteEndpoint, 0, errorCodeArray[currentEntry]);
 
-#if 0
-         // FIXME! This is probably unnecessary
-         if(errorCodeArray[currentEntry]) {
-            unsigned int retries = 0;
-            do {
-               printf("RETRY: %u\n", retries);
-               retries++;
-               sentArray[currentEntry] =
-                  RawUDPSocket.send_to(buffer, remoteEndpoint, 0, errorCodeArray[currentEntry]);
-            } while( (errorCodeArray[currentEntry]) && (retries < 3) );
-         }
-#endif
-
          // ====== Store message information ================================
          resultEntryArray[currentEntry]->initialise(
             TimeStampSeqID,
@@ -405,21 +392,21 @@ void UDPModule::handlePayloadResponse(const int     socketDescriptor,
                   is >> innerIPv4Header;
                   if( (is) && (innerIPv4Header.protocol() == IPPROTO_UDP) ) {
                      // NOTE: Addresses will be checked by recordResult()!
-                    // ------ IPv4 -> ICMP[Error] -> IPv4 -> UDP ------------
-                    UDPHeader udpHeader;
-                    is >> udpHeader;
-                    if( (is) &&
-                        (udpHeader.sourcePort()      == UDPSocketEndpoint.port()) &&
-                        (udpHeader.destinationPort() == DestinationPort) ) {
-                       receivedData.Source      = boost::asio::ip::udp::endpoint(innerIPv4Header.sourceAddress(),      udpHeader.sourcePort());
-                       receivedData.Destination = boost::asio::ip::udp::endpoint(innerIPv4Header.destinationAddress(), udpHeader.destinationPort());
-                       // Unfortunately, ICMPv4 does not return the full
-                       // TraceServiceHeader here! So, the sequence number
-                       // has to be used to identify the outgoing request!
-                       recordResult(receivedData,
-                                    icmpHeader.type(), icmpHeader.code(),
-                                    innerIPv4Header.identification(),
-                                    receivedData.MessageLength);
+                     // ------ IPv4 -> ICMP[Error] -> IPv4 -> UDP ------------
+                     UDPHeader udpHeader;
+                     is >> udpHeader;
+                     if( (is) &&
+                         (udpHeader.sourcePort()      == UDPSocketEndpoint.port()) &&
+                         (udpHeader.destinationPort() == DestinationPort) ) {
+                        receivedData.Source      = boost::asio::ip::udp::endpoint(innerIPv4Header.sourceAddress(),      udpHeader.sourcePort());
+                        receivedData.Destination = boost::asio::ip::udp::endpoint(innerIPv4Header.destinationAddress(), udpHeader.destinationPort());
+                        // Unfortunately, ICMPv4 does not return the full
+                        // TraceServiceHeader here! So, the sequence number
+                        // has to be used to identify the outgoing request!
+                        recordResult(receivedData,
+                                     icmpHeader.type(), icmpHeader.code(),
+                                     innerIPv4Header.identification(),
+                                     receivedData.MessageLength);
                      }
                   }
                }
