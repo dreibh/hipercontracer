@@ -33,8 +33,8 @@
 # Bash options:
 set -e
 
-if [ $# -ne 1 ] ; then
-   echo >&2 "Usage: $0 ALL|mariadb|mongodb|mysql|postgresql"
+if [ $# -lt 1 ] ; then
+   echo >&2 "Usage: $0 ALL|mariadb|mongodb|mysql|postgresql [--memcheck|--helgrind]"
    exit 1
 fi
 
@@ -48,11 +48,25 @@ if [ "${HOSTNAME}" != "localhost" -a \
 fi
 
 if [ "$1" == "ALL" ] ; then
-   $0 mariadb
-   $0 postgresql
-   $0 mongodb
+   $0 mariadb    $2
+   $0 postgresql $2
+   $0 mongodb    $2
    exit 0
 fi
+
+if [ $# -gt 1 ] ; then
+   if [ "$2" == "--memcheck" ] ; then
+      export VALGRIND_CMD="valgrind --tool=memcheck --leak-check=full"
+   elif [ "$2" == "--helgrind" ] ; then
+      export VALGRIND_CMD="valgrind --tool=helgrind --leak-check=full"
+   else
+      echo >&2 "ERROR: Unknown option $2!"
+      exit 1
+   fi
+else
+   export VALGRIND_CMD=
+fi
+
 
 
 USERS_CONFIG=~/testdb-users.conf
