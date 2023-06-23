@@ -493,14 +493,85 @@ int main(int argc, char** argv)
          }
          else if(backend & DatabaseBackendType::NoSQL_Generic) {
             statement << "{ \"traceroute\": { ";
-            addNoSQLFilter(statement, "Timestamp", fromTimeStamp, toTimeStamp, fromMeasurementID, toMeasurementID);
+            addNoSQLFilter(statement, "timestamp", fromTimeStamp, toTimeStamp, fromMeasurementID, toMeasurementID);
             statement << "} }";
 
             HPCT_LOG(debug) << "Query: " << statement;
             databaseClient->executeQuery(statement);
             while(databaseClient->fetchNextTuple()) {
                try {
-                  puts("TBD");   // FIXME!
+                  const unsigned long long       timeStamp     = databaseClient->getBigInt("timestamp");
+                  const unsigned long long       measurementID = databaseClient->getBigInt("measurementID");
+                  const boost::asio::ip::address sourceIP      = statement.decodeAddress(databaseClient->getString("sourceIP"));
+                  const boost::asio::ip::address destinationIP = statement.decodeAddress(databaseClient->getString("destinationIP"));
+                  const char                     protocol      = databaseClient->getInteger("protocol");
+                  const uint8_t                  trafficClass  = databaseClient->getInteger("trafficClass");
+                  const unsigned int             roundNumber   = databaseClient->getInteger("roundNumber");
+                  const unsigned int             totalHops     = databaseClient->getInteger("totalHops");
+                  const unsigned int             packetSize    = databaseClient->getInteger("packetSize");
+                  const uint16_t                 checksum      = databaseClient->getInteger("checksum");
+                  const unsigned int             statusFlags   = databaseClient->getInteger("statusFlags");
+                  const long long                pathHash      = databaseClient->getBigInt("pathHash");
+
+                  outputStream <<
+                     str(boost::format("#T%c %d %s %s %x %d %d %x %d %x %x %x\n")
+                        % protocol
+
+                        % measurementID
+                        % sourceIP.to_string()
+                        % destinationIP.to_string()
+                        % timeStamp
+                        % roundNumber
+
+                        % totalHops
+
+                        % (unsigned int)trafficClass
+                        % packetSize
+                        % checksum
+                        % statusFlags
+
+                        % pathHash
+                     );
+                  lines++;
+
+                  databaseClient->getArrayBegin("hops");
+                  unsigned int hopNumber = 0;
+                  while(databaseClient->fetchNextArrayTuple()) {
+                     hopNumber++;
+
+                     const unsigned long long       sendTimeStamp   = databaseClient->getBigInt("sendTimestamp");
+                     const unsigned int             responseSize    = databaseClient->getInteger("responseSize");
+                     const boost::asio::ip::address hopIP           = statement.decodeAddress(databaseClient->getString("hopIP"));
+                     const unsigned int             status          = databaseClient->getInteger("status");
+                     const unsigned int             timeSource      = databaseClient->getInteger("timeSource");
+                     const long long                delayAppSend    = databaseClient->getBigInt("delay.appSend");
+                     const long long                delayQueuing    = databaseClient->getBigInt("delay.queuing");
+                     const long long                delayAppReceive = databaseClient->getBigInt("delay.appRecv");
+                     const long long                rttApplication  = databaseClient->getBigInt("rtt.app");
+                     const long long                rttSoftware     = databaseClient->getBigInt("rtt.sw");
+                     const long long                rttHardware     = databaseClient->getBigInt("rtt.hw");
+
+                     outputStream <<
+                        str(boost::format("\t%x %d %d %d %08x %d %d %d %d %d %d %s\n")
+                           % sendTimeStamp
+                           % hopNumber
+                           % responseSize
+                           % (unsigned int)(status & 0xff)
+
+                           % timeSource
+                           % delayAppSend
+                           % delayQueuing
+                           % delayAppReceive
+                           % rttApplication
+                           % rttSoftware
+                           % rttHardware
+
+                           % hopIP.to_string()
+                        );
+                     lines++;
+
+                  }
+                  databaseClient->getArrayEnd();
                }
                catch(const std::exception& e) {
                   HPCT_LOG(warning) << "Bad data: " << e.what();
