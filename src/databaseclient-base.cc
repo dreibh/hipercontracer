@@ -117,3 +117,24 @@ std::string DatabaseClientBase::getString(const char* column) const
 {
    abort();
 }
+
+
+// ###### Get array #########################################################
+void DatabaseClientBase::getArrayBegin(const char* column)
+{
+   abort();
+}
+
+
+// ###### Get array #########################################################
+void DatabaseClientBase::getArrayEnd()
+{
+   abort();
+}
+
+
+// ###### Fetch next array tuple ############################################
+bool DatabaseClientBase::fetchNextArrayTuple()
+{
+   abort();
+}

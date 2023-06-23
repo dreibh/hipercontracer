@@ -61,12 +61,12 @@ REGISTER_BACKEND(DatabaseBackendType::NoSQL_MongoDB, "MongoDB", MongoDBClient)
 MongoDBClient::MongoDBClient(const DatabaseConfiguration& configuration)
    : DatabaseClientBase(configuration)
 {
-   URI              = nullptr;
-   Connection       = nullptr;
-   ResultCollection = nullptr;
-   ResultCursor     = nullptr;
-   ResultDoc        = nullptr;
-   ResultQuery      = nullptr;
+   URI                  = nullptr;
+   Connection           = nullptr;
+   ResultCollection     = nullptr;
+   ResultCursor         = nullptr;
+   ResultDoc            = nullptr;
+   ResultArrayParentDoc = nullptr;
 
    mongoc_init();
 }
@@ -75,7 +75,6 @@ MongoDBClient::MongoDBClient(const DatabaseConfiguration& configuration)
 // ###### Destructor ########################################################
 MongoDBClient::~MongoDBClient()
 {
-   freeResults();
    close();
 
    if(Connection) {
@@ -175,6 +174,7 @@ bool MongoDBClient::open()
 // ###### Close connection to database ######################################
 void MongoDBClient::close()
 {
+   freeResults();
 }
 
 
@@ -312,13 +312,10 @@ void MongoDBClient::executeUpdate(Statement& statement)
 // ###### Execute statement #################################################
 void MongoDBClient::freeResults()
 {
+   ResultArrayParentDoc = nullptr;
    if(ResultCursor) {
       mongoc_cursor_destroy(ResultCursor);
       ResultCursor = nullptr;
-   }
-   if(ResultQuery) {
-      bson_destroy(ResultQuery);
-      ResultQuery = nullptr;
    }
    if(ResultCollection) {
       mongoc_collection_destroy(ResultCollection);
@@ -335,17 +332,18 @@ void MongoDBClient::executeQuery(Statement& statement)
 
    freeResults();
 
-   printf("JSON: %s\n", statement.str().c_str());
+   // printf("JSON: %s\n", statement.str().c_str());
 
    // ====== Prepare BSON ===================================================
-   ResultQuery = bson_new ();
-   assert(ResultQuery != nullptr);
+   bson_t* queryStatement = bson_new();
+   assert(queryStatement != nullptr);
    bson_error_t error;
-   if(!bson_init_from_json(ResultQuery, statement.str().c_str(), -1, &error)) {
+   if(!bson_init_from_json(queryStatement, statement.str().c_str(), -1, &error)) {
       const std::string errorMessage = std::string("Data error ") +
                                           std::to_string(error.domain) + "." +
                                           std::to_string(error.code) +
                                           ": " + error.message;
+      bson_destroy(queryStatement);
       throw ImporterDatabaseDataErrorException(errorMessage);
    }
 
@@ -355,7 +353,7 @@ void MongoDBClient::executeQuery(Statement& statement)
    const char* key;
    bson_t      query;
    std::string collectionName;
-   if( (bson_iter_init(&iterator, ResultQuery)) &&
+   if( (bson_iter_init(&iterator, queryStatement)) &&
        (bson_iter_next(&iterator)) &&
        ( (key = bson_iter_key(&iterator)) != nullptr ) &&
        (bson_iter_type(&iterator) == BSON_TYPE_DOCUMENT) ) {
@@ -369,6 +367,7 @@ void MongoDBClient::executeQuery(Statement& statement)
       assert(!bson_iter_next(&iterator));   // Only one collection is supported!
    }
    else {
+      bson_destroy(queryStatement);
       throw ImporterDatabaseDataErrorException("Data error: Unexpected format (not collection -> [ ... ])");
    }
 
@@ -380,12 +379,15 @@ void MongoDBClient::executeQuery(Statement& statement)
    // ====== Submit query ===================================================
    ResultCursor = mongoc_collection_find_with_opts (ResultCollection, &query, NULL, NULL);
    assert(ResultCursor != nullptr);
+
+   bson_destroy(queryStatement);
 }
 
 
 // ###### Fetch next tuple ##################################################
 bool MongoDBClient::fetchNextTuple()
 {
+   assert(ResultArrayParentDoc == nullptr);
    if(ResultCursor) {
       return mongoc_cursor_next(ResultCursor, &ResultDoc);
    }
@@ -401,13 +403,12 @@ int32_t MongoDBClient::getInteger(const char* column) const
    assert(ResultDoc != nullptr);
 
    bson_iter_t iterator;
-   if( (bson_iter_init(&iterator, ResultDoc)) &&
-       (bson_iter_find(&iterator, column)) ) {
+   if(bson_iter_init_find(&iterator, ResultDoc, column)) {
       if(BSON_ITER_HOLDS_INT32(&iterator)) {
          return bson_iter_int32(&iterator);
       }
    }
-   throw ImporterDatabaseDataErrorException("Data error: no field " + std::string(column));
+   throw ImporterDatabaseDataErrorException("Data error: no integer field " + std::string(column));
 }
 
 
@@ -417,8 +418,7 @@ int64_t MongoDBClient::getBigInt(const char* column) const
    assert(ResultDoc != nullptr);
 
    bson_iter_t iterator;
-   if( (bson_iter_init(&iterator, ResultDoc)) &&
-       (bson_iter_find(&iterator, column)) ) {
+   if(bson_iter_init_find(&iterator, ResultDoc, column)) {
       if(BSON_ITER_HOLDS_INT64(&iterator)) {
          return bson_iter_int64(&iterator);
       }
@@ -426,7 +426,7 @@ int64_t MongoDBClient::getBigInt(const char* column) const
          return bson_iter_int32(&iterator);
       }
    }
-   throw ImporterDatabaseDataErrorException("Data error: no field " + std::string(column));
+   throw ImporterDatabaseDataErrorException("Data error: no bigint field " + std::string(column));
 }
 
 
@@ -436,13 +436,66 @@ std::string MongoDBClient::getString(const char* column) const
    assert(ResultDoc != nullptr);
 
    bson_iter_t iterator;
-   if( (bson_iter_init(&iterator, ResultDoc)) &&
-       (bson_iter_find(&iterator, column)) ) {
+   if(bson_iter_init_find(&iterator, ResultDoc, column)) {
       bson_subtype_t subtype;
       uint32_t       length;
       const uint8_t* binary;
       bson_iter_binary(&iterator, &subtype, &length, &binary);
       return std::string((const char*)binary, length);
    }
-   throw ImporterDatabaseDataErrorException("Data error: no field " + std::string(column));
+   throw ImporterDatabaseDataErrorException("Data error: no binary field " + std::string(column));
+}
+
+
+// ###### Get array #########################################################
+void MongoDBClient::getArrayBegin(const char* column)
+{
+   assert(ResultDoc != nullptr);
+   assert(ResultArrayParentDoc == nullptr);
+
+   bson_iter_t iterator;
+   if(bson_iter_init_find(&iterator, ResultDoc, column)) {
+      if(BSON_ITER_HOLDS_ARRAY(&iterator)) {
+         bson_iter_recurse(&iterator, &ResultArrayIterator);
+         // NOTE: ResultDoc now points to the document of the array!
+         //       This will be reverted in getArrayEnd().
+         ResultArrayParentDoc = ResultDoc;
+         ResultDoc            = nullptr;
+         return;
+      }
+   }
+   throw ImporterDatabaseDataErrorException("Data error: no array field " + std::string(column));
+}
+
+
+// ###### Get array #########################################################
+void MongoDBClient::getArrayEnd()
+{
+   assert(ResultArrayParentDoc != nullptr);
+
+   ResultDoc            = ResultArrayParentDoc;
+   ResultArrayParentDoc = nullptr;
+}
+
+
+// ###### Fetch next array tuple ############################################
+bool MongoDBClient::fetchNextArrayTuple()
+{
+   assert(ResultArrayParentDoc != nullptr);
+
+   if(bson_iter_next(&ResultArrayIterator)) {
+      if(BSON_ITER_HOLDS_DOCUMENT(&ResultArrayIterator)) {
+         uint32_t       len;
+         const uint8_t* data;
+
+         bson_iter_document(&ResultArrayIterator, &len, &data);
+         const bool success = bson_init_static(&ResultArrayDoc, data, len);
+         assert(success);
+
+         ResultDoc = &ResultArrayDoc;
+
+         return true;
+      }
+   }
+   return false;
 }

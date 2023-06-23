@@ -81,6 +81,10 @@ class DatabaseClientBase
    virtual std::string getString(unsigned int column) const;
    virtual std::string getString(const char* column) const;
 
+   virtual void getArrayBegin(const char* column);
+   virtual void getArrayEnd();
+   virtual bool fetchNextArrayTuple();
+
    Statement& getStatement(const std::string& name,
                            const bool         mustExist      = true,
                            const bool         clearStatement = false);

@@ -59,6 +59,10 @@ class MongoDBClient : public DatabaseClientBase
    virtual int64_t getBigInt(const char* column) const;
    virtual std::string getString(const char* column) const;
 
+   virtual void getArrayBegin(const char* column);
+   virtual void getArrayEnd();
+   virtual bool fetchNextArrayTuple();
+
    inline mongoc_client_t* getConnection() { return Connection; }
 
    private:
@@ -69,7 +73,10 @@ class MongoDBClient : public DatabaseClientBase
    mongoc_collection_t* ResultCollection;
    mongoc_cursor_t*     ResultCursor;
    const bson_t*        ResultDoc;
-   bson_t*              ResultQuery;
+
+   bson_iter_t          ResultArrayIterator;
+   bson_t               ResultArrayDoc;
+   const bson_t*        ResultArrayParentDoc;
 };
 
 #endif
