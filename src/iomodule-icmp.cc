@@ -58,10 +58,10 @@ ICMPModule::ICMPModule(boost::asio::io_service&                 ioService,
                        const uint16_t                           destinationPort)
    : IOModuleBase(ioService, resultsMap, sourceAddress,
                   newResultCallback),
-     UDPSocket(IOService, (sourceAddress.is_v6() == true) ? boost::asio::ip::udp::v6() :
-                                                            boost::asio::ip::udp::v4() ),
      ICMPSocket(IOService, (sourceAddress.is_v6() == true) ? boost::asio::ip::icmp::v6() :
-                                                             boost::asio::ip::icmp::v4() )
+                                                             boost::asio::ip::icmp::v4() ),
+     UDPSocket(IOService, (sourceAddress.is_v6() == true) ? boost::asio::ip::udp::v6() :
+                                                            boost::asio::ip::udp::v4() )
 {
    // Overhead: IPv4 Header (20)/IPv6 Header (40) + ICMP Header (8)
    PayloadSize      = std::max((ssize_t)MIN_TRACESERVICE_HEADER_SIZE,
@@ -84,11 +84,11 @@ bool ICMPModule::prepareSocket()
 {
    // ====== Bind UDP socket to given source address ========================
    boost::system::error_code      errorCode;
-   boost::asio::ip::udp::endpoint sourceEndpoint(SourceAddress, 0);
-   UDPSocket.bind(sourceEndpoint, errorCode);
+   boost::asio::ip::udp::endpoint udpSourceEndpoint(SourceAddress, 0);
+   UDPSocket.bind(udpSourceEndpoint, errorCode);
    if(errorCode !=  boost::system::errc::success) {
       HPCT_LOG(error) << getName() << ": Unable to bind UDP socket to source address "
-                      << sourceEndpoint << "!";
+                      << udpSourceEndpoint << "!";
       return false;
    }
    UDPSocketEndpoint = UDPSocket.local_endpoint();
