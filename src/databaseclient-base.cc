@@ -94,47 +94,47 @@ int32_t DatabaseClientBase::getInteger(const char* column) const
 // ###### Get big integer value #############################################
 int64_t DatabaseClientBase::getBigInt(unsigned int column) const
 {
-   abort();
+   abort();   // To be implemented by subclass!
 }
 
 
 // ###### Get big integer value #############################################
 int64_t DatabaseClientBase::getBigInt(const char* column) const
 {
-   abort();
+   abort();   // To be implemented by subclass!
 }
 
 
 // ###### Get string value ##################################################
 std::string DatabaseClientBase::getString(unsigned int column) const
 {
-   abort();
+   abort();   // To be implemented by subclass!
 }
 
 
 // ###### Get string value ##################################################
 std::string DatabaseClientBase::getString(const char* column) const
 {
-   abort();
+   abort();   // To be implemented by subclass!
 }
 
 
 // ###### Get array #########################################################
 void DatabaseClientBase::getArrayBegin(const char* column)
 {
-   abort();
+   abort();   // To be implemented by subclass!
 }
 
 
 // ###### Get array #########################################################
 void DatabaseClientBase::getArrayEnd()
 {
-   abort();
+   abort();   // To be implemented by subclass!
 }
 
 
 // ###### Fetch next array tuple ############################################
 bool DatabaseClientBase::fetchNextArrayTuple()
 {
-   abort();
+   abort();   // To be implemented by subclass!
 }
