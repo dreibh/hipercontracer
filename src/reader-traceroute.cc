@@ -541,7 +541,7 @@ void TracerouteReader::parseContents(
                << "\"trafficClass\":"  << (unsigned int)trafficClass                         << statement.sep()
                << "\"roundNumber\":"   << roundNumber                                        << statement.sep()
                << "\"packetSize\":"    << packetSize                                         << statement.sep()
-               << "\"trafficClass\":"  << (unsigned int)trafficClass                         << statement.sep()
+               << "\"checksum\":"      << checksum                                           << statement.sep()
                << "\"statusFlags\":"   << statusFlags                                        << statement.sep()
                << "\"totalHops\":"     << totalHops                                          << statement.sep()
                << "\"pathHash\":"      << pathHash                                           << statement.sep()
