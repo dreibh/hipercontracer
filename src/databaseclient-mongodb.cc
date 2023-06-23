@@ -387,7 +387,10 @@ void MongoDBClient::executeQuery(Statement& statement)
 // ###### Fetch next tuple ##################################################
 bool MongoDBClient::fetchNextTuple()
 {
-   assert(ResultArrayParentDoc == nullptr);
+   if(ResultArrayParentDoc != nullptr) {
+      ResultDoc            = ResultArrayParentDoc;
+      ResultArrayParentDoc = nullptr;
+   }
    if(ResultCursor) {
       return mongoc_cursor_next(ResultCursor, &ResultDoc);
    }
@@ -407,6 +410,9 @@ int32_t MongoDBClient::getInteger(const char* column) const
       if(BSON_ITER_HOLDS_INT32(&iterator)) {
          return bson_iter_int32(&iterator);
       }
+      throw ImporterDatabaseDataErrorException("Data error: wrong type " +
+               std::to_string(bson_iter_type(&iterator)) + " for field " +
+               std::string(column));
    }
    throw ImporterDatabaseDataErrorException("Data error: no integer field " + std::string(column));
 }
@@ -425,6 +431,9 @@ int64_t MongoDBClient::getBigInt(const char* column) const
       else if(BSON_ITER_HOLDS_INT32(&iterator)) {
          return bson_iter_int32(&iterator);
       }
+      throw ImporterDatabaseDataErrorException("Data error: wrong type " +
+               std::to_string(bson_iter_type(&iterator)) + " for field " +
+               std::string(column));
    }
    throw ImporterDatabaseDataErrorException("Data error: no bigint field " + std::string(column));
 }
@@ -463,6 +472,9 @@ void MongoDBClient::getArrayBegin(const char* column)
          ResultDoc            = nullptr;
          return;
       }
+      throw ImporterDatabaseDataErrorException("Data error: wrong type " +
+               std::to_string(bson_iter_type(&iterator)) + " for field " +
+               std::string(column));
    }
    throw ImporterDatabaseDataErrorException("Data error: no array field " + std::string(column));
 }
