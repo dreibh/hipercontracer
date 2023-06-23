@@ -88,16 +88,17 @@ class ICMPModule : public IOModuleBase
    void updateSendTimeInResultEntry(const sock_extended_err* socketError,
                                     const scm_timestamping*  socketTimestamping);
 
+   boost::asio::ip::icmp::socket  ICMPSocket;
+
    // For ICMP type, this UDP socket is only used to generate a
    // system-unique 16-bit ICMP Identifier!
    boost::asio::ip::udp::socket   UDPSocket;
    boost::asio::ip::udp::endpoint UDPSocketEndpoint;
-   boost::asio::ip::icmp::socket  ICMPSocket;
-// FIXME! CHECK!!
+
    // The TCP socket is only used to generate RST for unexpected SYN+ACK!
    boost::asio::ip::tcp::socket   TCPSocket;
    boost::asio::ip::tcp::endpoint TCPSocketEndpoint;
-// FIXME! CHECK!!
+
    char                           MessageBuffer[65536 + 40];
    char                           ControlBuffer[1024];
 
