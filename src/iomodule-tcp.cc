@@ -62,11 +62,13 @@ TCPModule::TCPModule(boost::asio::io_service&                 ioService,
      RawTCPSocket(IOService, (sourceAddress.is_v6() == true) ? raw_tcp::v6() :
                                                                raw_tcp::v4() )
 {
-   // Overhead: IPv4 Header (20)/IPv6 Header (40) + TCP Header (20)
+   // Overhead: IPv4 Header (20)/IPv6 Header (40) + TCP Header (20) + TCP Options (16)
    PayloadSize      = std::max((ssize_t)MIN_TRACESERVICE_HEADER_SIZE,
                                (ssize_t)packetSize -
-                                  (ssize_t)((SourceAddress.is_v6() == true) ? 40 : 20) - 20);
-   ActualPacketSize = ((SourceAddress.is_v6() == true) ? 40 : 20) + 20 + PayloadSize;
+                                  (ssize_t)((SourceAddress.is_v6() == true) ? 40 : 20) -
+                                  20 -
+                                  16);
+   ActualPacketSize = ((SourceAddress.is_v6() == true) ? 40 : 20) + 20 + 16 + PayloadSize;
 }
 
 
@@ -407,8 +409,8 @@ void TCPModule::handlePayloadResponse(const int     socketDescriptor,
          TCPHeader tcpHeader;
          is >> tcpHeader;
          if( (is) &&
-               (tcpHeader.destinationPort() == TCPSocketEndpoint.port()) &&
-               (tcpHeader.sourcePort()      == DestinationPort) ) {
+             (tcpHeader.destinationPort() == TCPSocketEndpoint.port()) &&
+             (tcpHeader.sourcePort()      == DestinationPort) ) {
             uint32_t timeStampValue;
             uint32_t timeStampReply;
             if(extractSeqNumberFromTimestampOption(tcpHeader, timeStampValue, timeStampReply)) {
@@ -419,12 +421,12 @@ void TCPModule::handlePayloadResponse(const int     socketDescriptor,
                   if( (tcpHeader.flags() & (TCPFlags::TF_SYN|TCPFlags::TF_ACK|TCPFlags::TF_RST)) == (TCPFlags::TF_SYN|TCPFlags::TF_ACK) ) {
                      // Addressing information is already checked by kernel!
                      recordResult(receivedData, 0, 0, r1,
-                                  ((SourceAddress.is_v6()) ? 40 : 20) + tcpHeader.dataOffset() + receivedData.MessageLength);
+                                  40 + receivedData.MessageLength);
                   }
                   else if(tcpHeader.flags() & TCPFlags::TF_RST) {
                      // Addressing information is already checked by kernel!
                      recordResult(receivedData, 0, 0, r1,
-                                  ((SourceAddress.is_v6()) ? 40 : 20) + tcpHeader.dataOffset() + receivedData.MessageLength);
+                                  40 + receivedData.MessageLength);
                   }
                }
             }
@@ -453,14 +455,14 @@ void TCPModule::handlePayloadResponse(const int     socketDescriptor,
                         receivedData.Destination = boost::asio::ip::udp::endpoint(ipv4Header.sourceAddress(),      tcpHeader.sourcePort());
                         receivedData.Source      = boost::asio::ip::udp::endpoint(ipv4Header.destinationAddress(), tcpHeader.destinationPort());
                         recordResult(receivedData, 0, 0, r1                  ,
-                                     ((SourceAddress.is_v6()) ? 40 : 20) + tcpHeader.dataOffset() + receivedData.MessageLength);
+                                     receivedData.MessageLength);
                      }
                      else if(tcpHeader.flags() & TCPFlags::TF_RST) {
                         // Addressing information may need update!
                         receivedData.Destination = boost::asio::ip::udp::endpoint(ipv4Header.sourceAddress(),      tcpHeader.sourcePort());
                         receivedData.Source      = boost::asio::ip::udp::endpoint(ipv4Header.destinationAddress(), tcpHeader.destinationPort());
                         recordResult(receivedData, 0, 0, r1,
-                                     ((SourceAddress.is_v6()) ? 40 : 20) + tcpHeader.dataOffset() + receivedData.MessageLength);
+                                     receivedData.MessageLength);
                      }
                   }
                }

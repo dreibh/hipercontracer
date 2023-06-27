@@ -158,7 +158,7 @@ Default is 1 packet. Range: 1-1024.
 Sets the Ping TTL value.
 Default is 64. Range: 1-255.
 .It \--pingpacketsize bytes
-Sets the Jitter packet size, that is IP header (20 for IPv4/40 for IPv6) + ICMP header (8)/UDP header (8)/TCP header (20) + HiPerConTracer header (16) + payload, in bytes.
+Sets the Jitter packet size, that is IP header (20 for IPv4/40 for IPv6) + ICMP header (8)/UDP header (8)/TCP header (20+16) + HiPerConTracer header (16) + payload, in bytes.
 The actually sent packet size always covers at least the headers for IPv4/IPv6, transport protocol and HiPerConTracer. Default is 0 (use minimum possible value). Range: 0-65535.
 .It \--jitterinterval milliseconds
 Sets the Jitter interval (time for each full round of destinations).
