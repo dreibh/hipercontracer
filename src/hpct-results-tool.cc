@@ -726,11 +726,15 @@ int main(int argc, char** argv)
             exit(1);
          }
          do {
-            std::cout << "Input file: ";
-            std::cout.flush();
+            if(inputFileNamesFromStdin) {
+               std::cout << "Input file: ";
+               std::cout.flush();
+            }
             is >> inputFileName;
             if(!inputFileName.empty()) {
-               std::cout << inputFileName << "\n";
+               if(inputFileNamesFromStdin) {
+                  std::cout << inputFileName << "\n";
+               }
                inputFileNameList.push_back(inputFileName);
             }
          } while(!is.eof());
@@ -804,21 +808,29 @@ int main(int argc, char** argv)
    }
    threadPool.join();
    const std::chrono::system_clock::time_point t2 = std::chrono::system_clock::now();
-   HPCT_LOG(info) << "Read " << outputSet.size() << " results rows in "
-                  << std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1).count() << " ms";
+   if(sorted == true) {
+      HPCT_LOG(info) << "Read " << outputSet.size() << " results rows in "
+                     << std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1).count() << " ms";
+   }
+   else {
+      HPCT_LOG(info) << "Reading input and writing output took "
+                     << std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1).count() << " ms";
+   }
 
    // ====== Print the results ==============================================
-   HPCT_LOG(info) << "Writing " << outputSet.size() << " results rows ...";
-   const std::chrono::system_clock::time_point t3 = std::chrono::system_clock::now();
-   for(std::set<OutputEntry*, pointer_lessthan<OutputEntry>>::const_iterator iterator = outputSet.begin();
-       iterator != outputSet.end(); iterator++) {
-      outputStream << (*iterator)->Line << "\n";
-      delete *iterator;
+   if(sorted == true) {
+      HPCT_LOG(info) << "Writing " << outputSet.size() << " results rows ...";
+      const std::chrono::system_clock::time_point t3 = std::chrono::system_clock::now();
+      for(std::set<OutputEntry*, pointer_lessthan<OutputEntry>>::const_iterator iterator = outputSet.begin();
+         iterator != outputSet.end(); iterator++) {
+         outputStream << (*iterator)->Line << "\n";
+         delete *iterator;
+      }
+      outputStream.flush();
+      const std::chrono::system_clock::time_point t4 = std::chrono::system_clock::now();
+      HPCT_LOG(info) << "Wrote " << outputSet.size() << " results rows in "
+                     << std::chrono::duration_cast<std::chrono::milliseconds>(t4 - t3).count() << " ms";
    }
-   outputStream.flush();
-   const std::chrono::system_clock::time_point t4 = std::chrono::system_clock::now();
-   HPCT_LOG(info) << "Wrote " << outputSet.size() << " results rows in "
-                  << std::chrono::duration_cast<std::chrono::milliseconds>(t4 - t3).count() << " ms";
 
    return 0;
 }
