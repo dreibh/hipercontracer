@@ -612,6 +612,7 @@ int main(int argc, char** argv)
    std::filesystem::path              outputFileName;
    std::vector<std::filesystem::path> inputFileNameList;
    bool                               inputFileNamesFromStdin;
+   std::vector<std::filesystem::path> inputFileNamesFromFileList;
    bool                               inputResultsFromStdin;
    char                               separator;
    bool                               sorted;
@@ -646,9 +647,13 @@ int main(int argc, char** argv)
       ( "input-results-from-stdin,R",
            boost::program_options::value<bool>(&inputResultsFromStdin)->implicit_value(true)->default_value(false),
            "Read results from standard input" )
+
       ( "input-file-names-from-stdin,N",
            boost::program_options::value<bool>(&inputFileNamesFromStdin)->implicit_value(true)->default_value(false),
            "Read input file names from standard input" )
+      ( "input-file-names-from-file,F",
+           boost::program_options::value<std::vector<std::filesystem::path>>(&inputFileNamesFromFileList),
+           "Read input file names from file" )
 
       ( "output,o",
            boost::program_options::value<std::filesystem::path>(&outputFileName)->default_value(std::filesystem::path()),
@@ -709,17 +714,27 @@ int main(int argc, char** argv)
       inputFileNameList.clear();
       inputFileNameList.push_back("/dev/stdin");
    }
-   else if(inputFileNamesFromStdin) {
-      std::string inputFileName;
-      do {
-         std::cout << "Input file: ";
-         std::cout.flush();
-         std::cin >> inputFileName;
-         if(!inputFileName.empty()) {
-            std::cout << inputFileName << "\n";
-            inputFileNameList.push_back(inputFileName);
+   else {
+      if(inputFileNamesFromStdin) {
+         inputFileNamesFromFileList.push_back("/dev/stdin");
+      }
+      for(const std::filesystem::path& inputFileNamesFileName : inputFileNamesFromFileList) {
+         std::string inputFileName;
+         std::ifstream is(inputFileNamesFileName);
+         if(!is.good()) {
+            std::cerr << "ERROR: Unable to read input file names from " << inputFileNamesFileName << "!\n";
+            exit(1);
          }
-      } while(!std::cin.eof());
+         do {
+            std::cout << "Input file: ";
+            std::cout.flush();
+            is >> inputFileName;
+            if(!inputFileName.empty()) {
+               std::cout << inputFileName << "\n";
+               inputFileNameList.push_back(inputFileName);
+            }
+         } while(!is.eof());
+      }
    }
    if(inputFileNameList.size() == 0) {
       std::cerr << "No input files.\n";

@@ -37,6 +37,10 @@ input_file ...
 .Op \-s|--separator character
 .Op \-S|--sorted
 .Op \-U|--unsorted
+.Op \-T|--maxthreads
+.Op \-R|--input-results-from-stdin
+.Op \-N|--input-file-names-from-stdin
+.Op \-F|--input-file-names-from-file file
 .\" ###### Description ######################################################
 .Sh DESCRIPTION
 .Nm hpct-results-tool
@@ -78,6 +82,8 @@ Sets the maximum number of threads. By default, it is the number of CPU cores.
 Read the results from standard input.
 .It \-N|--input-file-names-from-stdin
 Read the input file names from standard input.
+.It \-F|--input-file-names-from-file file
+Read the input file names from file. The option may be provided multiple times to read from multiple files.
 .El
 .\" ###### Arguments ########################################################
 .Sh EXAMPLES
@@ -86,6 +92,7 @@ Read the input file names from standard input.
 .It hpct-results-tool results/Traceroute* --output traceroute.csv.bz2 --unsorted
 .It hpct-results-tool results/Traceroute* --sorted | head -n 64
 .It find results/ -name 'Traceroute-*.results.*' | hpct-results-tool --input-file-names-from-stdin -o results.csv.gz
+.It hpct-results-tool --input-file-names-from-file results-files.list -o results.csv.xz
 .El
 .\" ###### Authors ##########################################################
 .Sh AUTHORS
