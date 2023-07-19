@@ -753,10 +753,11 @@ int main(int argc, char** argv)
    std::string                         extension(outputFileName.extension());
    std::ofstream                       outputFile;
    boost::iostreams::filtering_ostream outputStream;
+   const std::filesystem::path         tmpOutputFileName = outputFileName.string() + ".tmp";
    if(outputFileName != std::filesystem::path()) {
-      outputFile.open(outputFileName, std::ios_base::out | std::ios_base::binary);
+      outputFile.open(tmpOutputFileName, std::ios_base::out | std::ios_base::binary);
       if(!outputFile.is_open()) {
-         HPCT_LOG(fatal) << "Failed to create output file " << outputFileName;
+         HPCT_LOG(fatal) << "Failed to create output file " << tmpOutputFileName;
          exit(1);
       }
       boost::algorithm::to_lower(extension);
@@ -815,6 +816,17 @@ int main(int argc, char** argv)
    else {
       HPCT_LOG(info) << "Reading input and writing output took "
                      << std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1).count() << " ms";
+   }
+
+   if(outputFileName != std::filesystem::path()) {
+      try {
+         std::filesystem::rename(tmpOutputFileName, outputFileName);
+      }
+      catch(const std::exception& e) {
+         HPCT_LOG(fatal) << "Unable to rename " << tmpOutputFileName << " to " << outputFileName
+                        << ": " << e.what();
+         exit(1);
+      }
    }
 
    // ====== Print the results ==============================================
