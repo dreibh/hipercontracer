@@ -57,22 +57,22 @@
 struct OutputEntry
 {
    OutputEntry(const int                       measurementID,
-               const boost::asio::ip::address& source,
-               const boost::asio::ip::address& destination,
+               const boost::asio::ip::address& sourceIP,
+               const boost::asio::ip::address& destinationIP,
                const unsigned long long        timeStamp,
                const unsigned int              roundNumber,
                const std::string&              line) :
       MeasurementID(measurementID),
-      Source(source),
-      Destination(destination),
+      SourceIP(sourceIP),
+      DestinationIP(destinationIP),
       TimeStamp(timeStamp),
       RoundNumber(roundNumber),
       SeqNumber(0),
       Line(line) { };
 
    const int                      MeasurementID;
-   const boost::asio::ip::address Source;
-   const boost::asio::ip::address Destination;
+   const boost::asio::ip::address SourceIP;
+   const boost::asio::ip::address DestinationIP;
    const unsigned long long       TimeStamp;
    const unsigned int             RoundNumber;
 
@@ -120,16 +120,16 @@ bool operator<(const OutputEntry& a, const OutputEntry& b)
          return true;
       }
       else if(a.MeasurementID == b.MeasurementID) {
-         // ====== Level 3: Source =============================================
-         if(a.Source < b.Source) {
+         // ====== Level 3: SourceIP =============================================
+         if(a.SourceIP < b.SourceIP) {
             return true;
          }
-         else if(a.Source == b.Source) {
-            // ====== Level 4: Destination =====================================
-            if(a.Destination < b.Destination) {
+         else if(a.SourceIP == b.SourceIP) {
+            // ====== Level 4: DestinationIP =====================================
+            if(a.DestinationIP < b.DestinationIP) {
                return true;
             }
-            else if(a.Destination == b.Destination) {
+            else if(a.DestinationIP == b.DestinationIP) {
                // ====== Level 5: RoundNumber ===============================
                if(a.RoundNumber < b.RoundNumber) {
                   return true;
@@ -213,8 +213,8 @@ void checkFormat(boost::iostreams::filtering_ostream* outputStream,
          columnNames =
             "Ping "                  // 00: "#P<p>"
             "MeasurementID "         // 01: Measurement ID
-            "SourceIP "              // 02: Source address
-            "DestinationIP "         // 03: Destination address
+            "SourceIP "              // 02: SourceIP address
+            "DestinationIP "         // 03: DestinationIP address
             "Timestamp "             // 04: Timestamp (nanoseconds since the UTC epoch, hexadecimal).
             "BurstSeq "              // 05: Sequence number within a burst (decimal), numbered from 0.
             "TrafficClass "          // 06: Traffic Class setting (hexadecimal)
@@ -236,10 +236,10 @@ void checkFormat(boost::iostreams::filtering_ostream* outputStream,
          columnNames =
             "Traceroute "            // 00: "#T<p>"
             "MeasurementID "         // 01: Measurement ID
-            "SourceIP "              // 02: Source address
-            "DestinationIP "         // 03: Destination address
+            "SourceIP "               // Source IP address
+            "DestinationIP "          // Destination IP address
             "Timestamp "             // 04: Absolute time since the epoch in UTC, in microseconds (hexadecimal)
-            "Round "                 // 05: Round number (decimal)
+            "RoundNumber "           // 05: Round number (decimal)
             "TotalHops "             // 06: Total hops (decimal)
             "TrafficClass "          // 07: Traffic Class setting (hexadecimal)
             "PacketSize "            // 08: Packet size, in bytes (decimal)
@@ -269,8 +269,8 @@ void checkFormat(boost::iostreams::filtering_ostream* outputStream,
          columnNames =
             "Jitter "                 // "#J<p>"
             "MeasurementID "          // Measurement ID
-            "Source "                 // Source address
-            "Destination "            // Destination address
+            "SourceIP "               // Source IP address
+            "DestinationIP "          // Destination IP address
             "Timestamp "              // Timestamp (nanoseconds since the UTC epoch, hexadecimal).
             "BurstSeq "               // Sequence number within a burst (decimal), numbered from 0.
             "TrafficClass "           // Traffic Class setting (hexadecimal)
@@ -475,8 +475,8 @@ bool dumpResultsFile(std::set<OutputEntry*, pointer_lessthan<OutputEntry>>* outp
             if(measurementIDIndex != length[1]) {
                throw std::range_error("Bad measurement ID");
             }
-            const boost::asio::ip::address source      = boost::asio::ip::make_address(std::string(value[2], length[2]));
-            const boost::asio::ip::address destination = boost::asio::ip::make_address(std::string(value[3], length[3]));
+            const boost::asio::ip::address sourceIP      = boost::asio::ip::make_address(std::string(value[2], length[2]));
+            const boost::asio::ip::address destinationIP = boost::asio::ip::make_address(std::string(value[3], length[3]));
             size_t                         timeStampIndex;
             const unsigned long long       timeStamp   = std::stoull(value[4], &timeStampIndex, 16);
             if(timeStampIndex != length[4]) {
@@ -497,7 +497,7 @@ bool dumpResultsFile(std::set<OutputEntry*, pointer_lessthan<OutputEntry>>* outp
             if(newEntry != nullptr) {
                delete newEntry;
             }
-            newEntry = new OutputEntry(measurementID, source, destination, timeStamp,
+            newEntry = new OutputEntry(measurementID, sourceIP, destinationIP, timeStamp,
                                        roundNumber, line);
 
             // ====== Write entry, if not Traceroute ========================
