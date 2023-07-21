@@ -17,7 +17,7 @@
 .\" Contact: thomas.dreibholz@gmail.com
 .\"
 .\" ###### Setup ############################################################
-.Dd November 18, 2022
+.Dd July 18, 2023
 .Dt hpct-results-tool 1
 .Os hpct-results-tool
 .\" ###### Name #############################################################
@@ -27,16 +27,20 @@
 .\" ###### Synopsis #########################################################
 .Sh SYNOPSIS
 .Nm hpct-results-tool
-database_configuration
+input_file ...
 .Op \-L|--loglevel level
 .Op \-Z|--logcolor on|off
 .Op \-O|--logfile file
 .Op \-q|--quiet
 .Op \-v|--verbose
+.Op \-o|--output filename
+.Op \-s|--separator character
 .Op \-S|--sorted
 .Op \-U|--unsorted
-.Op \-s|--separator character
-.Op \-o|--output filename
+.Op \-T|--maxthreads
+.Op \-R|--input-results-from-stdin
+.Op \-N|--input-file-names-from-stdin
+.Op \-F|--input-file-names-from-file file
 .\" ###### Description ######################################################
 .Sh DESCRIPTION
 .Nm hpct-results-tool
@@ -51,6 +55,8 @@ memory) or unsorted (non-deterministic order in case of parallel processing).
 .Sh ARGUMENTS
 The following argument may be provided:
 .Bl -tag -width indent
+.It input_file ...
+A HiPerConTracer results file. Multiple files may be provided, they results will be joined.
 .It \-L|\--loglevel level
 Sets the minimum logging level to the provided value: 0=trace, 1=debug, 2=info, 3=warning, 4=error, 5=fatal.
 .It \-q|\--quiet
@@ -61,15 +67,23 @@ Sets the minimum logging level to 0 (trace).
 Enables (on) or disables (off) the usage of ANSI color escape sequences to colorise the log output according to its level.
 .It \-O|--logfile file
 Sets a file name for appending the log output to. If a file is set, no log output is made to the console. Otherwise, all log output will be written to the console.
-.It \-S|--sorted
-Sort the output data (Timestamp, MeasurementID, Source, Destination, RoundNumber, SeqNumber).
-.It \-U|--unsorted
-Do not sort the output data.
+.It \-o|--output filename
+Sets the specified filename as output file. Extensions \.gz, \.bz2, and \.xz are recognised to enable compression.
 .It \-s|--separator character
 Configures the character used as separator of the CSV output. Default: ",".
 Possible values: " ", ";",  ":", "|".
-.It \-o|--output filename
-Sets the specified filename as output file. Extensions \.gz, \.bz2, and \.xz are recognised to enable compression.
+.It \-S|--sorted
+Sort the output data (Timestamp, MeasurementID, Source, Destination, RoundNumber, SeqNumber). This is the default.
+.It \-U|--unsorted
+Do not sort the output data. This saves time, but multi-threading makes the output order non-deterministic.
+.It \-T|--maxthreads
+Sets the maximum number of threads. By default, it is the number of CPU cores.
+.It \-R|--input-results-from-stdin
+Read the results from standard input.
+.It \-N|--input-file-names-from-stdin
+Read the input file names from standard input.
+.It \-F|--input-file-names-from-file file
+Read the input file names from file. The option may be provided multiple times to read from multiple files.
 .El
 .\" ###### Arguments ########################################################
 .Sh EXAMPLES
@@ -77,6 +91,8 @@ Sets the specified filename as output file. Extensions \.gz, \.bz2, and \.xz are
 .It hpct-results-tool results/Ping* --output ping.csv.xz --sorted --separator ";"
 .It hpct-results-tool results/Traceroute* --output traceroute.csv.bz2 --unsorted
 .It hpct-results-tool results/Traceroute* --sorted | head -n 64
+.It find results/ -name 'Traceroute-*.results.*' | hpct-results-tool --input-file-names-from-stdin -o results.csv.gz
+.It hpct-results-tool --input-file-names-from-file results-files.list -o results.csv.xz
 .El
 .\" ###### Authors ##########################################################
 .Sh AUTHORS
