@@ -179,6 +179,16 @@ IF (NOT CARES_LIBRARY)
            " * FreeBSD:       sudo pkg install -y c-ares")
 ENDIF()
 
+# ###### libcrypto ##########################################################
+FIND_LIBRARY(CRYPTO_LIBRARY crypto libcrypto)
+IF (NOT CRYPTO_LIBRARY)
+   MESSAGE(FATAL_ERROR
+           " Cannot find libcrypto library! Try:\n"
+           " * Ubuntu/Debian: sudo apt install -y libssl-dev\n"
+           " * Fedora:        sudo dnf install -y openssl-devel\n"
+           " * FreeBSD:       sudo pkg install -y openssl")
+ENDIF()
+
 # ###### Database client libraries ##########################################
 IF (WITH_IMPORTER)
    # ------ MariaDB/MySQL ---------------------------------------------------

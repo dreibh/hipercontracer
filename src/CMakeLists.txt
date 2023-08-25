@@ -198,11 +198,12 @@ INSTALL(TARGETS hpct-results-tool RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
 INSTALL(FILES hpct-results-tool.1
          DESTINATION ${CMAKE_INSTALL_MANDIR}/man1)
 
-ADD_EXECUTABLE(pipe-checksum pipe-checksum.cc conversions.cc)
-TARGET_LINK_LIBRARIES(pipe-checksum -lcrypto)
+# ====== Pipe Checksum Tool =================================================
+ADD_EXECUTABLE(pipe-checksum pipe-checksum.cc)
+TARGET_LINK_LIBRARIES(pipe-checksum ${CRYPTO_LIBRARY})
 INSTALL(TARGETS pipe-checksum RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
-#INSTALL(FILES pipe-checksum.1
-         #DESTINATION ${CMAKE_INSTALL_MANDIR}/man1)
+INSTALL(FILES pipe-checksum.1
+        DESTINATION ${CMAKE_INSTALL_MANDIR}/man1)
 
 
 # ====== UDP Echo Server ====================================================

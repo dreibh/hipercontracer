@@ -117,6 +117,7 @@ finish:
          }
          EVP_cleanup();
 
+         // ====== Close files ==============================================
          if(fclose(checksumFile)) {
             std::cerr << "ERROR: Unable to close checksum file " << tmpChecksumFileName << "!\n";
             success = false;
