@@ -1,0 +1,67 @@
+.\" High-Performance Connectivity Tracer (HiPerConTracer)
+.\" Copyright (C) 2015-2023 by Thomas Dreibholz
+.\"
+.\" This program is free software: you can redistribute it and/or modify
+.\" it under the terms of the GNU General Public License as published by
+.\" the Free Software Foundation, either version 3 of the License, or
+.\" (at your option) any later version.
+.\"
+.\" This program is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\" GNU General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU General Public License
+.\" along with this program.  If not, see <http://www.gnu.org/licenses/>.
+.\"
+.\" Contact: thomas.dreibholz@gmail.com
+.\"
+.\" ###### Setup ############################################################
+.Dd August 25, 2023
+.Dt pipe-checksum 1
+.Os pipe-checksum
+.\" ###### Name #############################################################
+.Sh NAME
+.Nm pipe-checksum
+.Nd Write stdin to file and create a file with the checksum of the data
+.\" ###### Synopsis #########################################################
+.Sh SYNOPSIS
+.Nm pipe-checksum
+file
+.Op \--digest=MD5|SHA1|SHA256|SHA384|SHA512|...
+.\" ###### Description ######################################################
+.Sh DESCRIPTION
+.Nm pipe-checksum
+writes all data from standard input into a given file "file". Furthermore, it
+computes the checksum of the data and writes it to a new file "file.checksum".
+The used message digest algorithm can be configured, it defaults to SHA256.
+The checksum format is BSD-style checksum format, as written for example by
+the sha256sum tool. Therefore, any tool supporting this format can be used
+for comparison.
+.Pp
+.\" ###### Arguments ########################################################
+.Sh ARGUMENTS
+The following arguments may be provided:
+.Bl -tag -width indent
+.It \--digest=MD5|SHA1|SHA256|SHA384|SHA512|...
+Sets the message digest. Any digest supported by the underlying libcrypto
+library is possible. Default: SHA256.
+.El
+.\" ###### Examples #########################################################
+.Sh EXAMPLES
+.Bl -tag -width indent
+.It date | pipe-checksum date.txt
+.It sha256sum --check date.txt.checksum
+.It date | pipe-checksum date.txt --digest=SHA384
+.It dd if=/dev/urandom bs=12345 count=67 | hexdump | pipe-checksum random.txt
+.It dd if=/dev/urandom bs=12345 count=67 | pipe-checksum random.txt --digest=SHA512
+.It sha512sum --check random.txt.checksum
+.El
+.\" ###### Authors ##########################################################
+.Sh AUTHORS
+Thomas Dreibholz
+.br
+https://www.nntb.no/~dreibh/hipercontracer
+.br
+mailto://thomas.dreibholz@gmail.com
+.br
