@@ -39,23 +39,36 @@ source("HiPerConTracer.R")
 if( (length(commandArgs()) >= 1) && ((commandArgs()[2] == "--slave") || (commandArgs()[2] == "--no-echo")) ) {
    args <- commandArgs(trailingOnly = TRUE)
    if (length(args) < 1) {
-     stop("Usage: r-traceroute-example traceroute-results-file [csv-file]")
+     stop("Usage: r-traceroute-example traceroute-csv-file")
    }
    name <- args[1]
-   csv  <- args[2]
 } else {
    # !!! NOTE: Set name here, for testing interactively in R! !!!
-   # name <- "Traceroute-P13735-158.39.4.2-20221012T142120.713464-000002601.results.bz2"
-   name <- "Traceroute-ICMP-P42416-10.44.35.50-20230520T084931.149494-000000001.results.xz"
-   csv  <- NA
+   name <- "../traceroute.csv.gz"
 }
 
 # ====== Read input data ====================================================
-data <- readHiPerConTracerTracerouteResultsFromCSV("traceroute", name)
-print(summary(data))
+data <- readHiPerConTracerTracerouteResultsFromCSV("", name)
+print(colnames(data))
 
-# ====== Write CSV file =====================================================
-if(!is.na(csv)) {
-   cat(sep="", "Writing ", csv, " ...\n")
-   write.csv(data, csv, quote = FALSE, row.names = FALSE)
+# ====== Processing example =================================================
+for(measurementID in levels(factor(data$MeasurementID))) {
+   for(sourceIP in levels(factor(data$SourceIP))) {
+      for(destinationIP in levels(factor(data$DestinationIP))) {
+         dataSubset <- subset(data,
+                              (data$MeasurementID == measurementID) &
+                              (data$SourceIP == sourceIP) &
+                              (data$DestinationIP == destinationIP))
+         if(length(dataSubset$RTT.App) > 0) {
+            cat(sep="", "Measurement #", measurementID, ":\t",
+                sourceIP, " - ", destinationIP, "\t",
+                # Print time range:
+                as.character(anytime(min(dataSubset$Timestamp) / 1000000000)), " - ",
+                as.character(anytime(max(dataSubset$Timestamp) / 1000000000)), "\t",
+                # Print number of Traceroutes:
+                length( subset(dataSubset, dataSubset$HopNumber == 1)$RTT.App ), " Traceroutes",
+                "\n")
+         }
+      }
+   }
 }
