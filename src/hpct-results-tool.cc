@@ -791,7 +791,7 @@ int main(int argc, char** argv)
    HPCT_LOG(info) << "Identifying format from " << firstInputFileName << " ...";
    dumpResultsFile((sorted == true) ? &outputSet : nullptr, &outputStream, &outputMutex,
                    firstInputFileName, format, columns, separator,
-                   true);
+                   inputResultsFromStdin ? false : true);
    HPCT_LOG(info) << "Format: Type=" << (char)format.Type
                   << ", Protocol="   << (char)format.Protocol
                   << ", Version="    << format.Version;
