@@ -6,7 +6,7 @@ DBTEST=192.168.56.200
 scp nornetpp@${DBTEST}:testdb-* ${HOME}/
 scp nornetpp@${DBTEST}:/etc/ssl/TestLevel1/certs/TestLevel1.crt ${HOME}/
 scp nornetpp@${DBTEST}:/etc/ssl/TestGlobal.crl ${HOME}/
-sed -e 's/^\(dbserver[ \t]*\)=.*$/\1= ${DBTEST}/g' \
+sed -e "s/^\(dbserver[ \t]*\)=.*\$/\1= $DBTEST/g" \
     -e "s#^\(dbcafile[ \t]*\)=.*\$#\1= $HOME/TestLevel1.crt#g" \
     -e "s#^\(dbcrlfile[ \t]*\)=.*\$#\1= $HOME/TestGlobal.crl#g" \
     -i ${HOME}/testdb-*.conf
