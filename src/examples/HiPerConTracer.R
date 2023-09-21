@@ -30,6 +30,7 @@
 #
 #  Contact: dreibh@simula.no
 
+library("anytime")
 library("assert")
 library("digest")
 library("data.table", warn.conflicts = FALSE)
@@ -88,8 +89,13 @@ readHiPerConTracerResultsFromDirectory <- function(cacheLabel, path, pattern, pr
    # !!!!!! TEST ONLY! !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
    # ====== Read data =======================================================
-   cacheName <- paste(sep="", cacheLabel, "-cache-", digest(files, "sha256"), ".rds")
-   if(!file.exists(cacheName)) {
+   if(cacheLabel == "") {
+      cacheName <- ""
+   }
+   else {
+      cacheName <- paste(sep="", cacheLabel, "-cache-", digest(files, "sha256"), ".rds")
+   }
+   if( (cacheName == "") || (!file.exists(cacheName)) ) {
       cat(sep="", "\x1b[34mReading ", length(files), " files ...\x1b[0m\n")
 
       # ====== Generate files with input file names =========================
@@ -117,8 +123,10 @@ readHiPerConTracerResultsFromDirectory <- function(cacheLabel, path, pattern, pr
       # ====== Post-processing ==============================================
       dataTable <- processingFunction(dataTable)
 
-      cat(sep="", "\x1b[34mWriting data to cache file ", cacheName, " ...\x1b[0m\n")
-      saveRDS(dataTable, cacheName)
+      if(cacheName != "") {
+         cat(sep="", "\x1b[34mWriting data to cache file ", cacheName, " ...\x1b[0m\n")
+         saveRDS(dataTable, cacheName)
+      }
    } else {
       cat(sep="", "\x1b[34mLoading cached table from ", cacheName, " ...\x1b[0m\n")
       dataTable <- readRDS(cacheName)
@@ -147,19 +155,23 @@ readHiPerConTracerTracerouteResultsFromDirectory <- function(cacheLabel, path, p
 # ##### Read HiPerConTracer results from CSV file ###########################
 readHiPerConTracerResultsFromCSV <- function(cacheLabel, csvFileName, processingFunction)
 {
-   cacheName <- paste(sep="", cacheLabel, "-cache-csv-", digest(csvFileName, "sha256"), ".rds")
-   if(!file.exists(cacheName)) {
+   if(cacheLabel == "") {
+      cacheName <- ""
+   }
+   else {
+      cacheName <- paste(sep="", cacheLabel, "-cache-csv-", digest(csvFileName, "sha256"), ".rds")
+   }
+   if( (cacheName == "") || (!file.exists(cacheName)) ) {
       cat(sep="", "\x1b[34mReading ", csvFileName, " ...\x1b[0m\n")
       dataTable <- fread(csvFileName)
-      #dataTable <- vroom(file = csvFileName,
-      #                   show_col_types = FALSE)
-      #setDT(dataTable)
 
       # ====== Post-processing ==============================================
       dataTable <- processingFunction(dataTable)
 
-      cat(sep="", "\x1b[34mWriting data to cache file ", cacheName, " ...\x1b[0m\n")
-      saveRDS(dataTable, cacheName)
+      if(cacheName != "") {
+         cat(sep="", "\x1b[34mWriting data to cache file ", cacheName, " ...\x1b[0m\n")
+         saveRDS(dataTable, cacheName)
+      }
    } else {
       cat(sep="", "\x1b[34mLoading cached table from ", cacheName, " ...\x1b[0m\n")
       dataTable <- readRDS(cacheName)
