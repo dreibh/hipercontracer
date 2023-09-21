@@ -51,7 +51,7 @@ if( (length(commandArgs()) >= 1) && ((commandArgs()[2] == "--slave") || (command
 }
 
 # ====== Read input data ====================================================
-data <- readHiPerConTracerTracerouteResults(name)
+data <- readHiPerConTracerTracerouteResultsFromCSV("traceroute", name)
 print(summary(data))
 
 # ====== Write CSV file =====================================================

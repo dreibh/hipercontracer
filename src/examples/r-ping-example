@@ -51,7 +51,7 @@ if( (length(commandArgs()) >= 1) && ((commandArgs()[2] == "--slave") || (command
 }
 
 # ====== Read input data ====================================================
-data <- readHiPerConTracerPingResults(name)
+data <- readHiPerConTracerPingResultsFromCSV("ping", name)
 print(summary(data))
 
 # ====== Write CSV file =====================================================
