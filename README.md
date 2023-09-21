@@ -23,8 +23,8 @@ See the the manpage "hipercontracer" for all options, including a description of
 
 # Convert Results into a CSV File
 
-- find ./data -maxdepth 1 -name "Ping*.results.*" | ./hpct-results-tool --input-file-names-from-stdin -o ping.csv.gz
-- find ./data -maxdepth 1 -name "Traceroute*.results.*" | ./hpct-results-tool --input-file-names-from-stdin -o traceroute.csv.gz
+- find ./data -maxdepth 1 -name "Ping*.results.*" | ./hpct-results-tool --input-file-names-from-stdin --separator=, -o ping.csv.gz
+- find ./data -maxdepth 1 -name "Traceroute*.results.*" | ./hpct-results-tool --input-file-names-from-stdin --separator=, -o traceroute.csv.gz
 
 Hint: You can use extension .gz for GZip, .bz for BZip2, .xz for XZ, or none for uncompressed output into the output CSV file!
 
@@ -83,8 +83,8 @@ Hint: You can use extension .gz for GZip, .bz for BZip2, .xz for XZ, or none for
 See the the manpage "hpct-query" for all options!
 
 To convert the results to CSV format, use for example:
-- hpct-results-tool ping.results.xz --output ping.csv.gz
-- hpct-results-tool traceroute.results.xz --output traceroute.csv.gz
+- hpct-results-tool ping.results.xz --separator=, --output ping.csv.gz
+- hpct-results-tool traceroute.results.xz --separator=, --output traceroute.csv.gz
 
 
 # Examples to Process Results from CSV
