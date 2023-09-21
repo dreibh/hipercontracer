@@ -137,7 +137,7 @@ bool ResultsWriter::changeFile(const bool createNewFile)
              break;
          }
          const std::string name = UniqueID + str(boost::format("-%09d.results%s") % SeqNumber % extension);
-         TempFileName   = Directory / "tmp" / name;
+         TempFileName   = Directory / "tmp" / ("tmp-" + name);
          TargetFileName = Directory / name;
          OutputFile.open(TempFileName.c_str(), std::ios_base::out | std::ios_base::binary);
          switch(Compressor) {
