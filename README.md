@@ -68,6 +68,9 @@ See [src/hipercontracer-database.conf] for an example. Make sure that the databa
 ## Run the Query Tool
 
 Examples:
-- hpct-query ~/testdb-users-mariadb-researcher.conf
-- hpct-query ~/testdb-users-mariadb-researcher.conf --loglevel 0 --from-measurement-id 1000 --to-measurement-id 1000
-- hpct-query ~/testdb-users-mariadb-researcher.conf --verbose --from-time "2023-09-22 00:00:00"
+- hpct-query ~/testdb-users-mariadb-researcher.conf ping
+- hpct-query ~/testdb-users-mariadb-researcher.conf traceroute --loglevel 0 --from-measurement-id 1000 --to-measurement-id 1000
+- hpct-query ~/testdb-users-mariadb-researcher.conf traceroute --verbose --from-time "2023-09-22 00:00:00"
+- hpct-query ~/testdb-users-mariadb-researcher.conf traceroute --verbose --from-time "2023-09-22 00:00:00" --to-time "2023-09-23 00:00:00"
+
+Note: Make sure to specify a Measurement ID range, or a time range. Otherwise, the Query tool will export **everything**!
