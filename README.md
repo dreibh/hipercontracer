@@ -23,8 +23,8 @@ See the the manpage "hipercontracer" for all options, including a description of
 
 # Convert Results into a CSV File
 
-- find ./data -maxdepth 1 -name "Ping*.results.*" | ./hpct-results-tool --input-file-names-from-stdin -o ping.csv
-- find ./data -maxdepth 1 -name "Traceroute*.results.*" | ./hpct-results-tool --input-file-names-from-stdin -o traceroute.csv
+- find ./data -maxdepth 1 -name "Ping*.results.*" | ./hpct-results-tool --input-file-names-from-stdin -o ping.csv.gz
+- find ./data -maxdepth 1 -name "Traceroute*.results.*" | ./hpct-results-tool --input-file-names-from-stdin -o traceroute.csv.gz
 
 Hint: You can use extension .gz for GZip, .bz for BZip2, .xz for XZ, or none for uncompressed output into the output CSV file!
 
@@ -44,7 +44,7 @@ Hint: All HiPerConTracer tools support TLS setup. It is **strongly** recommended
 
 ## Write a Configuration File for the Importer
 
-See [src/hipercontracer-database.conf] for an example. Make sure that the database access details are correct, so that the Importer tool can connect to the right database and has the required permissions! See src/SQL and src/NoSQL for schema, user and permission setups.
+See [src/hipercontracer-database.conf](src/hipercontracer-database.conf) for an example. Make sure that the database access details are correct, so that the Importer tool can connect to the right database and has the required permissions! See src/SQL and src/NoSQL for schema, user and permission setups.
 
 Note: Make sure the "data" directory, as well as the directory for "good" imports and the directory for "bad" (i.e. failed) imports are existing and accessible by the user running the importer!
 
@@ -69,7 +69,8 @@ See [src/hipercontracer-database.conf](src/hipercontracer-database.conf) for an 
 
 Examples:
 - hpct-query ~/testdb-users-mariadb-researcher.conf ping -o ping.results.xz
-- hpct-query ~/testdb-users-mariadb-researcher.conf traceroute -o traceroute.results.xz --loglevel 0 --from-measurement-id 1000 --to-measurement-id 1000
+- hpct-query ~/testdb-users-mariadb-researcher.conf traceroute -o traceroute.results.xz --loglevel 0 --from-
+measurement-id 1000 --to-measurement-id 1000
 - hpct-query ~/testdb-users-mariadb-researcher.conf traceroute -o traceroute.results.xz --verbose --from-time "2023-09-22 00:00:00"
 - hpct-query ~/testdb-users-mariadb-researcher.conf traceroute -o traceroute.results.xz --verbose --from-time "2023-09-22 00:00:00" --to-time "2023-09-23 00:00:00"
 
@@ -80,3 +81,19 @@ Note: Make sure to specify a Measurement ID range, or a time range. Otherwise, t
 Hint: You can use extension .gz for GZip, .bz for BZip2, .xz for XZ, or none for uncompressed output into the output CSV file!
 
 See the the manpage "hpct-query" for all options!
+
+To convert the results to CSV format, use for example:
+- hpct-results-tool ping.results.xz --output ping.csv.gz
+- hpct-results-tool traceroute.results.xz --output traceroute.csv.gz
+
+
+# Examples to Process Results from CSV
+
+See [src/examples](src/examples) for some examples.
+
+## GNU R
+
+See [src/examples/install-packages.R](src/examples/install-packages.R) to get the necessary library packages installed!
+
+- ./r-ping-example ../ping.csv
+- ./r-traceroute-example ../traceroute.csv.gz
