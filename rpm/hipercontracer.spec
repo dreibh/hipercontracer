@@ -1,5 +1,5 @@
 Name: hipercontracer
-Version: 1.6.8
+Version: 1.6.9
 Release: 1
 Summary: High-Performance Connectivity Tracer (HiPerConTracer)
 Group: Applications/Internet
@@ -295,6 +295,8 @@ UDP Pings.
 
 
 %changelog
+* Thu Sep 21 2023 Thomas Dreibholz <thomas.dreibholz@gmail.com> - 1.6.9
+- New upstream release.
 * Tue Apr 18 2023 Thomas Dreibholz <thomas.dreibholz@gmail.com> - 1.6.8
 - New upstream release.
 * Sun Jan 22 2023 Thomas Dreibholz <thomas.dreibholz@gmail.com> - 1.6.7
