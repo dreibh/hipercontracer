@@ -13,28 +13,61 @@ sudo make install
 # Run HiPerConTracer
 
 Examples:
-- sudo hipercontracer --source 0.0.0.0 --destination 193.99.144.80 --traceroute --ping --resultsdirectory /tmp/results --verbose
-- sudo hipercontracer --source 0.0.0.0 --source :: --destination 193.99.144.80 --destination 2a02:2e0:3fe:1001:302:: --traceroute --ping --resultsdirectory /tmp/results --verbose
+- sudo hipercontracer -#1000 --source 0.0.0.0 --destination 193.99.144.80 --traceroute --ping --resultsdirectory ./data --verbose
+- sudo hipercontracer -#1000 --source 0.0.0.0 --source :: --destination 193.99.144.80 --destination 2a02:2e0:3fe:1001:302:: --traceroute --ping --resultsdirectory ./data --verbose
+
+Note: HiPerConTracer expects the directory "./data" (provided with "--resultsdirectory") to write the results files to!
 
 See the the manpage "hipercontracer" for all options, including a description of the results file formats!
 
 
-# Convert results into a CSV file
+# Convert Results into a CSV File
 
-- find /tmp/results -name "Ping*.results.*" | ./hpct-results-tool --input-file-names-from-stdin -o ping.csv
-- find /tmp/results -name "Traceroute*.results.*" | ./hpct-results-tool --input-file-names-from-stdin -o traceroute.csv
+- find ./data -maxdepth 1 -name "Ping*.results.*" | ./hpct-results-tool --input-file-names-from-stdin -o ping.csv
+- find ./data -maxdepth 1 -name "Traceroute*.results.*" | ./hpct-results-tool --input-file-names-from-stdin -o traceroute.csv
 
 Hint: You can use extension .gz for GZip, .bz for BZip2, .xz for XZ, or none for uncompressed output into the output CSV file!
 
 See the the manpage "hpct-results-tool" for all options!
 
+Note: For simple measurements, you can use HiPerConTracer and the Results Tool directly, without using a database!
+
 
 # Setting Up a Database
 
-See src/SQL and src/NoSQL for schema and user setups. Use the database of your choice (MariaDB/MySQL, PostgreSQL, MongoDB).
+See src/SQL and src/NoSQL for schema, user and permission setups. Use the database of your choice (MariaDB/MySQL, PostgreSQL, MongoDB).
 
 Hint: All HiPerConTracer tools support TLS setup. It is **strongly** recommended to properly setup TLS for secure access to a database!
 
 
-# Run the Importer
+# Using the Importer to Store Results in a Database
 
+## Write a Configuration File for the Importer
+
+See [src/hipercontracer-database.conf] for an example. Make sure that the database access details are correct, so that the Importer tool can connect to the right database and has the required permissions! See src/SQL and src/NoSQL for schema, user and permission setups.
+
+Note: Make sure the "data" directory, as well as the directory for "good" imports and the directory for "bad" (i.e. failed) imports are existing and accessible by the user running the importer!
+
+## Run the Importer
+
+Examples:
+- hpct-importer ~/testdb-users-mariadb-importer.conf -verbose
+- hpct-importer ~/testdb-users-mariadb-importer.conf -verbose --quit-when-idle
+
+Note: If running without "--quit-when-idle" (recommended), the importer keeps running and imports new files as soon as they appear in the results directory. The importer uses INotify!
+
+See the the manpage "hpct-importer" for all options!
+
+
+# Using the Query Tool to Retrieve Results from a Database
+
+## Write a Configuration File for the Query Tool
+
+See [src/hipercontracer-database.conf] for an example. Make sure that the database access details are correct, so that the Query tool can connect to the right database and has the required permissions! See src/SQL and src/NoSQL for schema, user and permission setups.
+
+## Run the Query Tool
+
+Examples:
+- hpct-query ~/testdb-users-mariadb-researcher.conf
+- hpct-query ~/testdb-users-mariadb-researcher.conf --loglevel 0 --from-measurement-id 1000 --to-measurement-id 1000
+- hpct-query ~/testdb-users-mariadb-researcher.conf --verbose --from-time "2023-09-22 00:00:00"
