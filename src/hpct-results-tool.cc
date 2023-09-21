@@ -502,7 +502,7 @@ bool dumpResultsFile(std::set<OutputEntry*, pointer_lessthan<OutputEntry>>* outp
 
             // ====== Write entry, if not Traceroute ========================
             if(format.Type != InputType::IT_Traceroute) {
-               const unsigned int seenColumns = applySeparator(line, separator);
+               const unsigned int seenColumns = applySeparator(newEntry->Line, separator);
                if(seenColumns != columns) {
                   HPCT_LOG(fatal) << "Got " << seenColumns << " instead of expected "
                                  << columns << " columns"
