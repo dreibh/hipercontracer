@@ -63,14 +63,20 @@ See the the manpage "hpct-importer" for all options!
 
 ## Write a Configuration File for the Query Tool
 
-See [src/hipercontracer-database.conf] for an example. Make sure that the database access details are correct, so that the Query tool can connect to the right database and has the required permissions! See src/SQL and src/NoSQL for schema, user and permission setups.
+See [src/hipercontracer-database.conf](src/hipercontracer-database.conf) for an example. Make sure that the database access details are correct, so that the Query tool can connect to the right database and has the required permissions! See src/SQL and src/NoSQL for schema, user and permission setups.
 
 ## Run the Query Tool
 
 Examples:
-- hpct-query ~/testdb-users-mariadb-researcher.conf ping
-- hpct-query ~/testdb-users-mariadb-researcher.conf traceroute --loglevel 0 --from-measurement-id 1000 --to-measurement-id 1000
-- hpct-query ~/testdb-users-mariadb-researcher.conf traceroute --verbose --from-time "2023-09-22 00:00:00"
-- hpct-query ~/testdb-users-mariadb-researcher.conf traceroute --verbose --from-time "2023-09-22 00:00:00" --to-time "2023-09-23 00:00:00"
+- hpct-query ~/testdb-users-mariadb-researcher.conf ping -o ping.results.xz
+- hpct-query ~/testdb-users-mariadb-researcher.conf traceroute -o traceroute.results.xz --loglevel 0 --from-measurement-id 1000 --to-measurement-id 1000
+- hpct-query ~/testdb-users-mariadb-researcher.conf traceroute -o traceroute.results.xz --verbose --from-time "2023-09-22 00:00:00"
+- hpct-query ~/testdb-users-mariadb-researcher.conf traceroute -o traceroute.results.xz --verbose --from-time "2023-09-22 00:00:00" --to-time "2023-09-23 00:00:00"
+
+The output is in the same format as the originally written HiPerConTracer results. See the the manpage "hipercontracer" for all options, including a description of the results file formats!
 
 Note: Make sure to specify a Measurement ID range, or a time range. Otherwise, the Query tool will export **everything**!
+
+Hint: You can use extension .gz for GZip, .bz for BZip2, .xz for XZ, or none for uncompressed output into the output CSV file!
+
+See the the manpage "hpct-query" for all options!
