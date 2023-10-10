@@ -38,6 +38,7 @@
 #include "traceserviceheader.h"
 
 #include <boost/interprocess/streams/bufferstream.hpp>
+#include <iostream> // FIXME!
 
 #ifdef __linux__
 #include <linux/errqueue.h>
@@ -279,6 +280,7 @@ unsigned int ICMPModule::sendRequest(const DestinationInfo& destination,
          tsHeader.round((unsigned char)round);
          tsHeader.checksumTweak(0);
          const ResultTimePoint sendTime = ResultClock::now();
+         std::cout << "S=" << timePointToString(sendTime,6) << "\n";
          tsHeader.sendTimeStamp(sendTime);
          tsHeader.computeInternet16(icmpChecksum);
          // Update ICMP checksum:
@@ -453,17 +455,24 @@ void ICMPModule::handleResponse(const boost::system::error_code& errorCode,
                   else if(cmsg->cmsg_type == SO_TIMESTAMP) {
 #endif
 #if defined (SO_TS_CLOCK)
-#error FreeBSD FIXME!
-#endif
+                     const timespec* ts = (const timespec*)CMSG_DATA(cmsg);
+printf("TS: %ld\n", ts->tv_sec);
+                     receivedData.ReceiveSWSource = TimeSourceType::TST_TIMESTAMPNS;
+                     receivedData.ReceiveSWTime   = ResultTimePoint(
+                                                       std::chrono::seconds(ts->tv_sec) +
+                                                       std::chrono::nanoseconds(ts->tv_nsec));
+#else
                      const timeval* tv = (const timeval*)CMSG_DATA(cmsg);
                      receivedData.ReceiveSWSource = TimeSourceType::TST_TIMESTAMP;
                      receivedData.ReceiveSWTime   = ResultTimePoint(
                                                        std::chrono::seconds(tv->tv_sec) +
                                                        std::chrono::microseconds(tv->tv_usec));
+#endif
 #if defined (SO_TIMESTAMPNS)
                   }
 #endif
                }
+
 #if defined (MSG_ERRQUEUE)
                else if(cmsg->cmsg_level == SOL_IPV6) {
                   if(cmsg->cmsg_type == IPV6_RECVERR) {
@@ -490,8 +499,6 @@ void ICMPModule::handleResponse(const boost::system::error_code& errorCode,
                      }
                   }
                }
-#else
-#error FreeBSD FIXME!
 #endif
             }
 
