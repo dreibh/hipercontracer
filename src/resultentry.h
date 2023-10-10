@@ -131,9 +131,13 @@ enum RXTimeStampType
 };
 
 
-typedef std::chrono::high_resolution_clock ResultClock;
-typedef ResultClock::time_point            ResultTimePoint;
-typedef ResultClock::duration              ResultDuration;
+typedef std::chrono::system_clock            SystemClock;
+typedef std::chrono::time_point<SystemClock> SystemTimePoint;
+typedef SystemClock::duration                SystemDuration;
+
+typedef std::chrono::high_resolution_clock   ResultClock;
+typedef ResultClock::time_point              ResultTimePoint;
+typedef ResultClock::duration                ResultDuration;
 
 
 class ResultEntry {

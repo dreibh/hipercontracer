@@ -40,6 +40,10 @@
 #include <istream>
 
 #include "internet16.h"
+#include "resultentry.h"
+
+
+extern const ResultTimePoint HiPerConTracerEpoch;
 
 
 // ==========================================================================
@@ -124,8 +128,6 @@ class TraceServiceHeader
    }
    inline void sendTimeStamp(const ResultTimePoint& timeStamp) {
       // For HiPerConTracer packets: time stamp is microseconds since 1976-09-29.
-      static const ResultTimePoint HiPerConTracerEpoch =
-         ResultClock::from_time_t(212803200);
       sendTimeStamp(std::chrono::duration_cast<std::chrono::microseconds>(
                        timeStamp - HiPerConTracerEpoch).count());
    }

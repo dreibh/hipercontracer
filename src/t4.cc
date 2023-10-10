@@ -3,8 +3,8 @@
 #include "tools.h"
 
 
-typedef std::chrono::high_resolution_clock   ResultClock;
-// typedef std::chrono::steady_clock            ResultClock;
+// typedef std::chrono::high_resolution_clock   ResultClock;
+typedef std::chrono::steady_clock            ResultClock;
 typedef std::chrono::time_point<ResultClock> ResultTimePoint;
 typedef ResultClock::duration                ResultDuration;
 

@@ -64,6 +64,7 @@ LIST(APPEND libhipercontracer_sources
    service.cc
    tools.cc
    traceroute.cc
+   traceserviceheader.cc
 )
 
 INSTALL(FILES ${libhipercontracer_headers} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/hipercontracer)
@@ -230,8 +231,8 @@ INSTALL(FILES get-default-ips.1
 # ADD_EXECUTABLE(t2 t2.cc)
 # TARGET_LINK_LIBRARIES(t2 ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} ${CARES_LIBRARY})
 # ADD_EXECUTABLE(t3 t3.cc)
-ADD_EXECUTABLE(t4 t4.cc)
-TARGET_LINK_LIBRARIES(t4 ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
+# ADD_EXECUTABLE(t4 t4.cc)
+# TARGET_LINK_LIBRARIES(t4 ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
 # ADD_EXECUTABLE(t9 t9.cc)
 # TARGET_LINK_LIBRARIES(t9 ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
 # ADD_EXECUTABLE(t9b t9b.cc)
