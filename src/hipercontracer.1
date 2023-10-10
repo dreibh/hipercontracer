@@ -232,7 +232,7 @@ Each byte AA, QQ, SS, HH provides the receive time source (upper nibble) and sen
 .It 0x0: Not available
 .It 0x1: System clock
 .It 0x2: SO_TIMESTAMPING socket option, microseconds granularity
-.It 0x3: SO_TIMESTAMPINGNS socket option, nanoseconds granularity
+.It 0x3: SO_TIMESTAMPINGNS socket option (or SO_TIMESTAMPING+SO_TS_CLOCK), nanoseconds granularity
 .It 0x4: SIOCGSTAMP ioctl, microseconds granularity
 .It 0x5: SIOCGSTAMPNS ioctl, nanoseconds granularity
 .It 0x6: SO_TIMESTAMPING socket option, in software, nanoseconds granularity

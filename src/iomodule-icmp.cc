@@ -410,11 +410,11 @@ void ICMPModule::handleResponse(const boost::system::error_code& errorCode,
             // ====== Handle control data ===================================
             ReceivedData receivedData;
             receivedData.ReplyEndpoint          = boost::asio::ip::udp::endpoint();
-            receivedData.ApplicationReceiveTime = std::chrono::high_resolution_clock::now();
+            receivedData.ApplicationReceiveTime = ResultClock::now();
             receivedData.ReceiveSWSource        = TimeSourceType::TST_Unknown;
-            receivedData.ReceiveSWTime          = std::chrono::high_resolution_clock::time_point();
+            receivedData.ReceiveSWTime          = ResultTimePoint();
             receivedData.ReceiveHWSource        = TimeSourceType::TST_Unknown;
-            receivedData.ReceiveHWTime          = std::chrono::high_resolution_clock::time_point();
+            receivedData.ReceiveHWTime          = ResultTimePoint();
             receivedData.MessageBuffer          = (char*)&MessageBuffer;
             receivedData.MessageLength          = length;
 
