@@ -102,7 +102,7 @@ enum TimeSourceType
    // The following time stamp types are based on the system time:
    TST_SysClock        = 0x1,   // System clock
    TST_TIMESTAMP       = 0x2,   // SO_TIMESTAMPING option, microseconds granularity
-   TST_TIMESTAMPNS     = 0x3,   // SO_TIMESTAMPINGNS option, nanoseconds granularity
+   TST_TIMESTAMPNS     = 0x3,   // SO_TIMESTAMPINGNS option (or SO_TIMESTAMPING+SO_TS_CLOCK), nanoseconds granularity
    TST_SIOCGSTAMP      = 0x4,   // SIOCGSTAMP ioctl, microseconds granularity
    TST_SIOCGSTAMPNS    = 0x5,   // SIOCGSTAMPNS ioctl, nanoseconds granularity
    TST_TIMESTAMPING_SW = 0x6,   // SO_TIMESTAMPING option, software
