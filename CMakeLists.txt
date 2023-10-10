@@ -158,7 +158,9 @@ IF (NOT Boost_FOUND)
 ELSE()
   INCLUDE_DIRECTORIES(${Boost_INCLUDE_DIRS})
 ENDIF()
-# ADD_DEFINITIONS(-DBOOST_ALL_DYN_LINK)   # <<-- Required to handle BOOST Log link problem!
+IF (${CMAKE_SYSTEM_NAME} MATCHES "FreeBSD")
+   ADD_DEFINITIONS(-DBOOST_ALL_DYN_LINK)   # <<-- Required to handle BOOST Log link problem!
+ENDIF()
 
 # ###### INotify ############################################################
 IF(CMAKE_SYSTEM_NAME MATCHES "Linux")
