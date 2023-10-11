@@ -91,7 +91,7 @@ bool UDPModule::prepareSocket()
    if(!configureSocket(RawUDPSocket.native_handle(), SourceAddress)) {
       return false;
    }
-   int on = 1;
+   const int on = 1;
    if(SourceAddress.is_v6() == true) {
 #ifdef __FreeBSD__
       abort();   // FIXME! Check IPV6_HDRINCL!!!
