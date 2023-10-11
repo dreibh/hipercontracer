@@ -32,9 +32,12 @@
 #include <iostream>
 #include <vector>
 
+#include <boost/version.hpp>
 #include <boost/algorithm/string.hpp>
 #include <boost/asio/ip/address.hpp>
 #include <boost/program_options.hpp>
+
+#include <sys/utsname.h>
 
 #include "icmpheader.h"
 #include "jitter.h"
@@ -94,6 +97,22 @@ static void tryCleanup(const boost::system::error_code& errorCode)
 // ###### Check environment #################################################
 static void checkEnvironment()
 {
+   utsname sysInfo;
+   if(uname(&sysInfo) == 0) {
+      std::cout << "System:\n"
+                << "* System: \t" << sysInfo.sysname  << "\n"
+                << "* Name:   \t" << sysInfo.nodename << "\n"
+                << "* Release:\t" << sysInfo.release  << "\n"
+                << "* Version:\t" << sysInfo.version  << "\n"
+                << "* Machine:\t" << sysInfo.machine  << "\n";
+   }
+
+   std::cout << "Compiler:\n"
+             << "* BOOST Version: \t" << BOOST_VERSION  << "\n"
+             << "* BOOST Compiler:\t" << BOOST_COMPILER << "\n"
+             << "* BOOST StdLib:  \t" << BOOST_STDLIB   << "\n"
+             << "* C++ Standard:  \t" << __cplusplus    << "\n";
+
    std::cout << "Clocks Granularities:\n"
 
              << "* std::chrono::system_clock:        \t"
