@@ -107,11 +107,21 @@ static void checkEnvironment()
                 << "* Machine:\t" << sysInfo.machine  << "\n";
    }
 
-   std::cout << "Compiler:\n"
-             << "* BOOST Version: \t" << BOOST_VERSION  << "\n"
-             << "* BOOST Compiler:\t" << BOOST_COMPILER << "\n"
-             << "* BOOST StdLib:  \t" << BOOST_STDLIB   << "\n"
-             << "* C++ Standard:  \t" << __cplusplus    << "\n";
+   std::cout << "Build Environment:\n"
+             << "* BOOST Version:  \t" << BOOST_VERSION  << "\n"
+             << "* BOOST Compiler: \t" << BOOST_COMPILER << "\n"
+             << "* BOOST StdLib:   \t" << BOOST_STDLIB   << "\n"
+             << "* C++ Standard:   \t" << __cplusplus    << "\n";
+#ifdef BOOST_HAS_CLOCK_GETTIME
+   std::cout << "* clock_gettime():\tyes\n";
+#else
+   std::cout << "* clock_gettime():\tno\n";
+#endif
+#ifdef BOOST_HAS_GETTIMEOFDAY
+   std::cout << "* gettimeofday(): \tyes\n";
+#else
+   std::cout << "* gettimeofday(): \tno\n";
+#endif
 
    std::cout << "Clocks Granularities:\n"
 
