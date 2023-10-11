@@ -502,7 +502,7 @@ bool dumpResultsFile(std::set<OutputEntry*, pointer_lessthan<OutputEntry>>* outp
 
             // ====== Write entry, if not Traceroute ========================
             if(format.Type != InputType::IT_Traceroute) {
-               const unsigned int seenColumns = applySeparator(line, separator);
+               const unsigned int seenColumns = applySeparator(newEntry->Line, separator);
                if(seenColumns != columns) {
                   HPCT_LOG(fatal) << "Got " << seenColumns << " instead of expected "
                                  << columns << " columns"
@@ -791,7 +791,7 @@ int main(int argc, char** argv)
    HPCT_LOG(info) << "Identifying format from " << firstInputFileName << " ...";
    dumpResultsFile((sorted == true) ? &outputSet : nullptr, &outputStream, &outputMutex,
                    firstInputFileName, format, columns, separator,
-                   true);
+                   inputResultsFromStdin ? false : true);
    HPCT_LOG(info) << "Format: Type=" << (char)format.Type
                   << ", Protocol="   << (char)format.Protocol
                   << ", Version="    << format.Version;
