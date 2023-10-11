@@ -59,6 +59,7 @@
 .Op \--jitterttl value
 .Op \--jitterpacketsize bytes
 .Op \--jitterrecordraw
+.Op \--udpdestinationport port
 .Op \-R|--resultsdirectory directory
 .Op \-l|--resultstransactionlength seconds
 .Op \-C|--resultscompression none|XZ|BZip2|GZip
@@ -171,6 +172,8 @@ The actually sent packet size always covers at least the headers for IPv4/IPv6, 
 Default is 128 bytes. Range: 0-65535.
 .It \--jitterrecordraw
 Also record raw Ping results used for jitter computation.
+.It \--udpdestinationport port
+Sets the destination port for the UDP module (default: 7).
 .It \-R|\--resultsdirectory directory
 Sets the results files directory. The results will be stored there. If not specified, to results will be stored.
 .It \-l|\--resultstransactionlength seconds
