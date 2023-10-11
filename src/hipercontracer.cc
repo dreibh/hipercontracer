@@ -129,7 +129,7 @@ static void checkEnvironment()
 
    // ====== Clock granularities ============================================
    const std::chrono::time_point<std::chrono::system_clock>          n1a = std::chrono::system_clock::now();
-   const std::chrono::time_point<std::chrono::system_clock>          n1b = nowInUTC<std::chrono::time_point<std::chrono::system_clock>>();
+   // const std::chrono::time_point<std::chrono::system_clock>          n1b = nowInUTC<std::chrono::time_point<std::chrono::system_clock>>();
    const std::chrono::time_point<std::chrono::steady_clock>          n2a = std::chrono::steady_clock::now();
    const std::chrono::time_point<std::chrono::steady_clock>          n2b = nowInUTC<std::chrono::time_point<std::chrono::steady_clock>>();
    const std::chrono::time_point<std::chrono::high_resolution_clock> n3a = std::chrono::high_resolution_clock::now();
@@ -146,8 +146,8 @@ static void checkEnvironment()
              << std::chrono::time_point<std::chrono::system_clock>::period::num << "/"
              << std::chrono::time_point<std::chrono::system_clock>::period::den << " s\t"
              << (std::chrono::system_clock::is_steady ? "steady    " : "not steady") << "\t"
-             << std::chrono::duration_cast<std::chrono::nanoseconds>(n1a.time_since_epoch()).count() << " ns / "
-             << std::chrono::duration_cast<std::chrono::nanoseconds>(n1b.time_since_epoch()).count() << " ns since epoch\n"
+             << std::chrono::duration_cast<std::chrono::nanoseconds>(n1a.time_since_epoch()).count() << " ns\n"
+             // << std::chrono::duration_cast<std::chrono::nanoseconds>(n1b.time_since_epoch()).count() << " ns since epoch\n"
 
              << "* std::chrono::steady_clock:        \t"
              << std::chrono::time_point<std::chrono::steady_clock>::period::num << "/"

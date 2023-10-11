@@ -279,8 +279,7 @@ unsigned int ICMPModule::sendRequest(const DestinationInfo& destination,
          tsHeader.sendTTL(ttl);
          tsHeader.round((unsigned char)round);
          tsHeader.checksumTweak(0);
-         const ResultTimePoint sendTime = ResultClock::now();
-         std::cout << "S=" << timePointToString(sendTime,6) << "\n";
+         const ResultTimePoint sendTime = nowInUTC<ResultTimePoint>();
          tsHeader.sendTimeStamp(sendTime);
          tsHeader.computeInternet16(icmpChecksum);
          // Update ICMP checksum:
@@ -410,7 +409,7 @@ void ICMPModule::handleResponse(const boost::system::error_code& errorCode,
             // ====== Handle control data ===================================
             ReceivedData receivedData;
             receivedData.ReplyEndpoint          = boost::asio::ip::udp::endpoint();
-            receivedData.ApplicationReceiveTime = ResultClock::now();
+            receivedData.ApplicationReceiveTime = nowInUTC<ResultTimePoint>();
             receivedData.ReceiveSWSource        = TimeSourceType::TST_Unknown;
             receivedData.ReceiveSWTime          = ResultTimePoint();
             receivedData.ReceiveHWSource        = TimeSourceType::TST_Unknown;
@@ -456,7 +455,6 @@ void ICMPModule::handleResponse(const boost::system::error_code& errorCode,
 #endif
 #if defined (SO_TS_CLOCK)
                      const timespec* ts = (const timespec*)CMSG_DATA(cmsg);
-printf("TS: %ld\n", ts->tv_sec);
                      receivedData.ReceiveSWSource = TimeSourceType::TST_TIMESTAMPNS;
                      receivedData.ReceiveSWTime   = ResultTimePoint(
                                                        std::chrono::seconds(ts->tv_sec) +

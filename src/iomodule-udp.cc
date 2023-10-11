@@ -266,7 +266,7 @@ unsigned int UDPModule::sendRequest(const DestinationInfo& destination,
          tsHeader.seqNumber(seqNumber);
          tsHeader.sendTTL(ttl);
          tsHeader.round((unsigned char)round);
-         const ResultTimePoint sendTime = ResultClock::now();
+         const ResultTimePoint sendTime = nowInUTC<ResultTimePoint>();
          tsHeader.sendTimeStamp(sendTime);
 
          // ====== Compute checksums ========================================
