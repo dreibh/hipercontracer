@@ -63,6 +63,7 @@
 .Op \-l|--resultstransactionlength seconds
 .Op \-C|--resultscompression none|XZ|BZip2|GZip
 .Op \-F|--resultsformat version
+.Op \--check
 .\" ###### Description ######################################################
 .Sh DESCRIPTION
 .Nm hipercontracer
@@ -181,6 +182,8 @@ Default: XZ.
 Sets the results file format version.
 Default: 2 (current version). Range (currently): 1-2.
 Note: A future version of HiPerConTracer may increase this default setting!
+.It \--check
+Check the environment and print some information for debugging.
 .El
 .\" ###### Output format ####################################################
 .Sh OUTPUT FORMAT

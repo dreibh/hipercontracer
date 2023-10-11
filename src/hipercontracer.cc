@@ -91,6 +91,27 @@ static void tryCleanup(const boost::system::error_code& errorCode)
 }
 
 
+// ###### Check environment #################################################
+static void checkEnvironment()
+{
+   std::cout << "Clocks Granularities:\n"
+
+             << "* std::chrono::system_clock:        \t"
+             << std::chrono::time_point<std::chrono::system_clock>::period::num << "/"
+             << std::chrono::time_point<std::chrono::system_clock>::period::den << " s\t"
+             << (std::chrono::system_clock::is_steady ? "steady" : "not steady") << "\n"
+
+             << "* std::chrono::steady_clock:        \t"
+             << std::chrono::time_point<std::chrono::steady_clock>::period::num << "/"
+             << std::chrono::time_point<std::chrono::steady_clock>::period::den << " s\t"
+             << (std::chrono::steady_clock::is_steady ? "steady" : "not steady") << "\n"
+
+             << "* std::chrono::high_resolution_clock:\t"
+             << std::chrono::time_point<std::chrono::high_resolution_clock>::period::num << "/"
+             << std::chrono::time_point<std::chrono::high_resolution_clock>::period::den << " s\t"
+             << (std::chrono::high_resolution_clock::is_steady ? "steady" : "not steady") << "\n";
+}
+
 
 // ###### Main program ######################################################
 int main(int argc, char** argv)
@@ -142,6 +163,8 @@ int main(int argc, char** argv)
    commandLineOptions.add_options()
       ( "help,h",
            "Print help message" )
+      ( "check",
+           "Check environment" )
 
       ( "loglevel,L",
            boost::program_options::value<unsigned int>(&logLevel)->default_value(boost::log::trivial::severity_level::info),
@@ -284,6 +307,10 @@ int main(int argc, char** argv)
        std::cerr << "Usage: " << argv[0] << " parameters" << "\n"
                  << commandLineOptions;
        return 1;
+   }
+   else if(vm.count("check")) {
+      checkEnvironment();
+      return 0;
    }
    if(vm.count("source")) {
       const std::vector<std::string>& sourceAddressVector = vm["source"].as<std::vector<std::string>>();
