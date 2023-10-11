@@ -30,30 +30,8 @@
 // Contact: dreibh@simula.no
 
 #include "traceserviceheader.h"
-#include "tools.h"
 
 
-static ResultTimePoint getHiPerConTracerEpoch();
-
-
-const ResultTimePoint HiPerConTracerEpoch = getHiPerConTracerEpoch();
-
-
-// ###### Get HiPerConTracer Epoch (1976-09-29, 00:00:00 UTC) ###############
-static ResultTimePoint getHiPerConTracerEpoch()
-{
-   // NOTE: This computation is only used for the send time stamp inside
-   //       the packets (e.g. for Wireshark analysis). It is *not* used
-   //       to compute packet timing!
-
-   static const ResultTimePoint nowRT = nowInUTC<ResultTimePoint>();
-   static const SystemTimePoint nowST = nowInUTC<SystemTimePoint>();
-
-   // For HiPerConTracer packets: time stamp is microseconds since 1976-09-29.
-   static const SystemTimePoint hiPerConTracerEpochST             = SystemClock::from_time_t(212803200);
-   static const SystemDuration durationSinceHiPerConTracerEpochST = nowST - hiPerConTracerEpochST;
-   static const std::chrono::seconds secsSinceHiPerConTracerEpoch(std::chrono::duration_cast<std::chrono::seconds>(durationSinceHiPerConTracerEpochST).count());
-
-   static const ResultTimePoint hiPerConTracerEpochRT = nowRT - secsSinceHiPerConTracerEpoch;
-   return hiPerConTracerEpochRT;
-}
+// For HiPerConTracer packets: time stamp is microseconds since 1976-09-29.
+// The offset to the Unix epoch is 212803200 s.
+const ResultTimePoint HiPerConTracerEpoch(std::chrono::seconds(212803200));
