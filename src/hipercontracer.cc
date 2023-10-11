@@ -114,6 +114,7 @@ static void checkEnvironment()
              << "* BOOST Compiler: \t" << BOOST_COMPILER << "\n"
              << "* BOOST StdLib:   \t" << BOOST_STDLIB   << "\n"
              << "* C++ Standard:   \t" << __cplusplus    << "\n";
+#if 0
 #ifdef BOOST_HAS_CLOCK_GETTIME
    std::cout << "* clock_gettime():\tyes\n";
 #else
@@ -124,6 +125,7 @@ static void checkEnvironment()
 #else
    std::cout << "* gettimeofday(): \tno\n";
 #endif
+#endif
 
    // ====== Clock granularities ============================================
    const std::chrono::time_point<std::chrono::system_clock>          n1a = std::chrono::system_clock::now();
@@ -132,6 +134,11 @@ static void checkEnvironment()
    const std::chrono::time_point<std::chrono::steady_clock>          n2b = nowInUTC<std::chrono::time_point<std::chrono::steady_clock>>();
    const std::chrono::time_point<std::chrono::high_resolution_clock> n3a = std::chrono::high_resolution_clock::now();
    const std::chrono::time_point<std::chrono::high_resolution_clock> n3b = nowInUTC<std::chrono::time_point<std::chrono::high_resolution_clock>>();
+
+   timespec ts1;
+   timespec ts2;
+   clock_getres(CLOCK_REALTIME,  &ts1);
+   clock_getres(CLOCK_MONOTONIC, &ts2);
 
    std::cout << "Clocks Granularities:\n"
 
@@ -155,6 +162,10 @@ static void checkEnvironment()
              << (std::chrono::high_resolution_clock::is_steady ? "steady    " : "not steady") << "\t"
              << std::chrono::duration_cast<std::chrono::nanoseconds>(n3a.time_since_epoch()).count() << " ns / "
              << std::chrono::duration_cast<std::chrono::nanoseconds>(n3b.time_since_epoch()).count() << " ns since epoch\n"
+
+             << "* clock_getres(CLOCK_REALTIME):  s=" << ts1.tv_sec << " ns=" << ts1.tv_nsec << "\n"
+             << "* clock_getres(CLOCK_MONOTONIC): s=" << ts2.tv_sec << " ns=" << ts2.tv_nsec << "\n"
+
              ;
 }
 
