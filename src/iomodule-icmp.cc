@@ -38,7 +38,6 @@
 #include "traceserviceheader.h"
 
 #include <boost/interprocess/streams/bufferstream.hpp>
-#include <iostream> // FIXME!
 
 #ifdef __linux__
 #include <linux/errqueue.h>
