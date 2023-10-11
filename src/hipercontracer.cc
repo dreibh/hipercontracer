@@ -97,9 +97,10 @@ static void tryCleanup(const boost::system::error_code& errorCode)
 // ###### Check environment #################################################
 static void checkEnvironment()
 {
+   // ====== System information =============================================
    utsname sysInfo;
    if(uname(&sysInfo) == 0) {
-      std::cout << "System:\n"
+      std::cout << "System Information:\n"
                 << "* System: \t" << sysInfo.sysname  << "\n"
                 << "* Name:   \t" << sysInfo.nodename << "\n"
                 << "* Release:\t" << sysInfo.release  << "\n"
@@ -107,6 +108,7 @@ static void checkEnvironment()
                 << "* Machine:\t" << sysInfo.machine  << "\n";
    }
 
+   // ====== Build environment ==============================================
    std::cout << "Build Environment:\n"
              << "* BOOST Version:  \t" << BOOST_VERSION  << "\n"
              << "* BOOST Compiler: \t" << BOOST_COMPILER << "\n"
@@ -123,22 +125,37 @@ static void checkEnvironment()
    std::cout << "* gettimeofday(): \tno\n";
 #endif
 
+   // ====== Clock granularities ============================================
+   const std::chrono::time_point<std::chrono::system_clock>          n1a = std::chrono::system_clock::now();
+   const std::chrono::time_point<std::chrono::system_clock>          n1b = nowInUTC<std::chrono::time_point<std::chrono::system_clock>>();
+   const std::chrono::time_point<std::chrono::steady_clock>          n2a = std::chrono::steady_clock::now();
+   const std::chrono::time_point<std::chrono::steady_clock>          n2b = nowInUTC<std::chrono::time_point<std::chrono::steady_clock>>();
+   const std::chrono::time_point<std::chrono::high_resolution_clock> n3a = std::chrono::high_resolution_clock::now();
+   const std::chrono::time_point<std::chrono::high_resolution_clock> n3b = nowInUTC<std::chrono::time_point<std::chrono::high_resolution_clock>>();
+
    std::cout << "Clocks Granularities:\n"
 
              << "* std::chrono::system_clock:        \t"
              << std::chrono::time_point<std::chrono::system_clock>::period::num << "/"
              << std::chrono::time_point<std::chrono::system_clock>::period::den << " s\t"
-             << (std::chrono::system_clock::is_steady ? "steady" : "not steady") << "\n"
+             << (std::chrono::system_clock::is_steady ? "steady    " : "not steady") << "\t"
+             << std::chrono::duration_cast<std::chrono::nanoseconds>(n1a.time_since_epoch()).count() << " ns / "
+             << std::chrono::duration_cast<std::chrono::nanoseconds>(n1b.time_since_epoch()).count() << " ns since epoch\n"
 
              << "* std::chrono::steady_clock:        \t"
              << std::chrono::time_point<std::chrono::steady_clock>::period::num << "/"
              << std::chrono::time_point<std::chrono::steady_clock>::period::den << " s\t"
-             << (std::chrono::steady_clock::is_steady ? "steady" : "not steady") << "\n"
+             << (std::chrono::steady_clock::is_steady ? "steady    " : "not steady") << "\t"
+             << std::chrono::duration_cast<std::chrono::nanoseconds>(n2a.time_since_epoch()).count() << " ns / "
+             << std::chrono::duration_cast<std::chrono::nanoseconds>(n2b.time_since_epoch()).count() << " ns since epoch\n"
 
              << "* std::chrono::high_resolution_clock:\t"
              << std::chrono::time_point<std::chrono::high_resolution_clock>::period::num << "/"
              << std::chrono::time_point<std::chrono::high_resolution_clock>::period::den << " s\t"
-             << (std::chrono::high_resolution_clock::is_steady ? "steady" : "not steady") << "\n";
+             << (std::chrono::high_resolution_clock::is_steady ? "steady    " : "not steady") << "\t"
+             << std::chrono::duration_cast<std::chrono::nanoseconds>(n3a.time_since_epoch()).count() << " ns / "
+             << std::chrono::duration_cast<std::chrono::nanoseconds>(n3b.time_since_epoch()).count() << " ns since epoch\n"
+             ;
 }
 
 
