@@ -216,6 +216,7 @@ IF (WITH_UDP_ECHO_SERVER)
            DESTINATION ${CMAKE_INSTALL_BINDIR})
    INSTALL(FILES udp-echo-server.1
            DESTINATION ${CMAKE_INSTALL_MANDIR}/man1)
+   INSTALL(FILES udp-echo-server.service DESTINATION /lib/systemd/system)
 ENDIF()
 
 # ====== Scripts ============================================================

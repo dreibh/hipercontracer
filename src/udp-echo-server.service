@@ -1,0 +1,15 @@
+[Unit]
+Description=UDP Echo Server
+
+[Service]
+Type=simple
+WorkingDirectory=/tmp
+ExecStart=/usr/bin/udp-echo-server
+KillMode=process
+Restart=on-failure
+CPUSchedulingPolicy=fifo
+CPUSchedulingPriority=99
+IOSchedulingClass=realtime
+
+[Install]
+WantedBy=multi-user.target

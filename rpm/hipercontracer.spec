@@ -292,6 +292,7 @@ UDP Pings.
 %files hipercontracer-udp-echo-server
 %{_bindir}/udp-echo-server
 %{_mandir}/man1/udp-echo-server.1.gz
+/lib/systemd/system/udp-echo-server.service
 
 
 %changelog
