@@ -92,13 +92,23 @@ bool UDPModule::prepareSocket()
       return false;
    }
    int on = 1;
-   if(setsockopt(RawUDPSocket.native_handle(),
-                 (SourceAddress.is_v6() == true) ? IPPROTO_IPV6 : IPPROTO_IP,
-                 (SourceAddress.is_v6() == true) ? IPV6_HDRINCL : IP_HDRINCL,
-                 &on, sizeof(on)) < 0) {
-      HPCT_LOG(error) << "Unable to enable IP_HDRINCL/IPV6_HDRINCL option on socket: "
-                        << strerror(errno);
-      return false;
+   if(SourceAddress.is_v6() == true) {
+#ifdef __FreeBSD__
+      abort();   // FIXME! Check IPV6_HDRINCL!!!
+#else
+      if(setsockopt(RawUDPSocket.native_handle(), IPPROTO_IPV6, IPV6_HDRINCL, &on, sizeof(on)) < 0) {
+         HPCT_LOG(error) << "Unable to enable IPV6_HDRINCL option on socket: "
+                         << strerror(errno);
+         return false;
+      }
+#endif
+   }
+   else {
+      if(setsockopt(RawUDPSocket.native_handle(), IPPROTO_IP, IP_HDRINCL, &on, sizeof(on)) < 0) {
+         HPCT_LOG(error) << "Unable to enable IP_HDRINCL option on socket: "
+                         << strerror(errno);
+         return false;
+      }
    }
 
    // ====== Await incoming message or error ================================
@@ -256,7 +266,7 @@ unsigned int UDPModule::sendRequest(const DestinationInfo& destination,
          tsHeader.seqNumber(seqNumber);
          tsHeader.sendTTL(ttl);
          tsHeader.round((unsigned char)round);
-         const ResultTimePoint sendTime = ResultClock::now();
+         const ResultTimePoint sendTime = nowInUTC<ResultTimePoint>();
          tsHeader.sendTimeStamp(sendTime);
 
          // ====== Compute checksums ========================================

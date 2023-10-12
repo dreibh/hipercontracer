@@ -23,7 +23,7 @@ Build-Depends: cmake (>= 3.10),
 Standards-Version: 4.6.2
 Rules-Requires-Root: no
 
-Package: libhipercontracer1
+Package: libhipercontracer2
 Section: libs
 Architecture: any
 Depends: ${misc:Depends},
@@ -45,7 +45,7 @@ Depends: libboost-date-time-dev,
          libboost-log-dev,
          libboost-system-dev,
          libboost-thread-dev,
-         libhipercontracer1 (= ${binary:Version}),
+         libhipercontracer2 (= ${binary:Version}),
          ${misc:Depends}
 Description: Development files for HiPerConTracer API library
  High-Performance Connectivity Tracer (HiPerConTracer) is a
@@ -56,7 +56,7 @@ Description: Development files for HiPerConTracer API library
  This package provides header files for the HiPerConTracer library. You need
  them to integrate HiPerConTracer into own programs.
 
-Package: libuniversalimporter1
+Package: libuniversalimporter2
 Section: libs
 Architecture: any
 Depends: ${misc:Depends},
@@ -79,7 +79,7 @@ Depends: libboost-date-time-dev,
          libboost-log-dev,
          libboost-system-dev,
          libboost-thread-dev,
-         libuniversalimporter1 (= ${binary:Version}),
+         libuniversalimporter2 (= ${binary:Version}),
          ${misc:Depends}
 Description: Development files for HiPerConTracer Universal Importer API library
  High-Performance Connectivity Tracer (HiPerConTracer) is a
@@ -93,7 +93,7 @@ Description: Development files for HiPerConTracer Universal Importer API library
 
 Package: hipercontracer
 Architecture: any
-Depends: libhipercontracer1 (= ${binary:Version}),
+Depends: libhipercontracer2 (= ${binary:Version}),
          ${misc:Depends},
          ${shlibs:Depends}
 Recommends: hipercontracer-importer,
@@ -112,7 +112,7 @@ Description: Command-line programs for HiPerConTracer
 Package: hipercontracer-trigger
 Architecture: any
 Depends: hipercontracer (= ${binary:Version}),
-         libhipercontracer1 (= ${binary:Version}),
+         libhipercontracer2 (= ${binary:Version}),
          ${misc:Depends},
          ${shlibs:Depends}
 Description: Triggered HiPerConTracer service
@@ -125,7 +125,7 @@ Description: Triggered HiPerConTracer service
 
 Package: hipercontracer-importer
 Architecture: any
-Depends: libuniversalimporter1 (= ${binary:Version}),
+Depends: libuniversalimporter2 (= ${binary:Version}),
          ${misc:Depends},
          ${shlibs:Depends}
 Recommends: hipercontracer,
@@ -141,7 +141,7 @@ Description: HiPerConTracer Importer for importing results into a database
 
 Package: hipercontracer-query
 Architecture: any
-Depends: libuniversalimporter1 (= ${binary:Version}),
+Depends: libuniversalimporter2 (= ${binary:Version}),
          ${misc:Depends},
          ${shlibs:Depends}
 Recommends: hipercontracer,

@@ -290,7 +290,7 @@ unsigned int ICMPModule::sendRequest(const DestinationInfo& destination,
          tsHeader.sendTTL(ttl);
          tsHeader.round((unsigned char)round);
          tsHeader.checksumTweak(0);
-         const ResultTimePoint sendTime = ResultClock::now();
+         const ResultTimePoint sendTime = nowInUTC<ResultTimePoint>();
          tsHeader.sendTimeStamp(sendTime);
          tsHeader.computeInternet16(icmpChecksum);
          // Update ICMP checksum:
@@ -420,11 +420,11 @@ void ICMPModule::handleResponse(const boost::system::error_code& errorCode,
             // ====== Handle control data ===================================
             ReceivedData receivedData;
             receivedData.ReplyEndpoint          = boost::asio::ip::udp::endpoint();
-            receivedData.ApplicationReceiveTime = std::chrono::high_resolution_clock::now();
+            receivedData.ApplicationReceiveTime = nowInUTC<ResultTimePoint>();
             receivedData.ReceiveSWSource        = TimeSourceType::TST_Unknown;
-            receivedData.ReceiveSWTime          = std::chrono::high_resolution_clock::time_point();
+            receivedData.ReceiveSWTime          = ResultTimePoint();
             receivedData.ReceiveHWSource        = TimeSourceType::TST_Unknown;
-            receivedData.ReceiveHWTime          = std::chrono::high_resolution_clock::time_point();
+            receivedData.ReceiveHWTime          = ResultTimePoint();
             receivedData.MessageBuffer          = (char*)&MessageBuffer;
             receivedData.MessageLength          = length;
 
@@ -465,17 +465,23 @@ void ICMPModule::handleResponse(const boost::system::error_code& errorCode,
                   else if(cmsg->cmsg_type == SO_TIMESTAMP) {
 #endif
 #if defined (SO_TS_CLOCK)
-#error FreeBSD FIXME!
-#endif
+                     const timespec* ts = (const timespec*)CMSG_DATA(cmsg);
+                     receivedData.ReceiveSWSource = TimeSourceType::TST_TIMESTAMPNS;
+                     receivedData.ReceiveSWTime   = ResultTimePoint(
+                                                       std::chrono::seconds(ts->tv_sec) +
+                                                       std::chrono::nanoseconds(ts->tv_nsec));
+#else
                      const timeval* tv = (const timeval*)CMSG_DATA(cmsg);
                      receivedData.ReceiveSWSource = TimeSourceType::TST_TIMESTAMP;
                      receivedData.ReceiveSWTime   = ResultTimePoint(
                                                        std::chrono::seconds(tv->tv_sec) +
                                                        std::chrono::microseconds(tv->tv_usec));
+#endif
 #if defined (SO_TIMESTAMPNS)
                   }
 #endif
                }
+
 #if defined (MSG_ERRQUEUE)
                else if(cmsg->cmsg_level == SOL_IPV6) {
                   if(cmsg->cmsg_type == IPV6_RECVERR) {
@@ -502,8 +508,6 @@ void ICMPModule::handleResponse(const boost::system::error_code& errorCode,
                      }
                   }
                }
-#else
-#error FreeBSD FIXME!
 #endif
             }
 

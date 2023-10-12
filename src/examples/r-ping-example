@@ -39,23 +39,36 @@ source("HiPerConTracer.R")
 if( (length(commandArgs()) >= 1) && ((commandArgs()[2] == "--slave") || (commandArgs()[2] == "--no-echo")) ) {
    args <- commandArgs(trailingOnly = TRUE)
    if (length(args) < 1) {
-     stop("Usage: r-ping-example ping-results-file [csv-file]")
+     stop("Usage: r-ping-example ping-csv-file")
    }
    name <- args[1]
-   csv  <- args[2]
 } else {
    # !!! NOTE: Set name here, for testing interactively in R! !!!
-   # name <- "Ping-P256751-0.0.0.0-20211212T125352.632431-000000001.results.bz2"
-   name <- "Ping-ICMP-P56277-10.44.33.50-20230520T085512.537837-000000003.results.xz"
-   csv  <- NA
+   name <- "../ping.csv.gz"
 }
 
 # ====== Read input data ====================================================
-data <- readHiPerConTracerPingResults(name)
-print(summary(data))
+data <- readHiPerConTracerPingResultsFromCSV("", name)
+print(colnames(data))
 
-# ====== Write CSV file =====================================================
-if(!is.na(csv)) {
-   cat(sep="", "Writing ", csv, " ...\n")
-   write.csv(data, csv, quote = FALSE, row.names = FALSE)
+# ====== Processing example =================================================
+for(measurementID in levels(factor(data$MeasurementID))) {
+   for(sourceIP in levels(factor(data$SourceIP))) {
+      for(destinationIP in levels(factor(data$DestinationIP))) {
+         dataSubset <- subset(data,
+                              (data$MeasurementID == measurementID) &
+                              (data$SourceIP == sourceIP) &
+                              (data$DestinationIP == destinationIP))
+         if(length(dataSubset$RTT.App) > 0) {
+            cat(sep="", "Measurement #", measurementID, ":\t",
+                sourceIP, "-", destinationIP, "\t",
+                # Print time range:
+                as.character(anytime(min(dataSubset$Timestamp) / 1000000000)), " - ",
+                as.character(anytime(max(dataSubset$Timestamp) / 1000000000)), "\t",
+                # Print number of Pings:
+                length(dataSubset$RTT.App), " Pings",
+                "\n")
+         }
+      }
+   }
 }

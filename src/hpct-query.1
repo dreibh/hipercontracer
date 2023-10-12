@@ -17,7 +17,7 @@
 .\" Contact: thomas.dreibholz@gmail.com
 .\"
 .\" ###### Setup ############################################################
-.Dd June 22, 2023
+.Dd September 21, 2023
 .Dt hpct-query 1
 .Os hpct-query
 .\" ###### Name #############################################################
@@ -34,6 +34,7 @@ ping|traceroute|jitter
 .Op \-O|--logfile FILE
 .Op \-q|--quiet
 .Op \-v|--verbose
+.Op \-o|--output filename
 .Op \--from-time timestamp
 .Op \--to_time timestamp
 .Op \--from-measurement-id measurement_identifier
@@ -60,6 +61,8 @@ Sets the minimum logging level to 0 (trace).
 Enables (on) or disables (off) the usage of ANSI color escape sequences to colorise the log output according to its level.
 .It \-O|--logfile FILE
 Sets a file name for appending the log output to. If a file is set, no log output is made to the console. Otherwise, all log output will be written to the console.
+.It \-o|--output filename
+Sets the specified filename as output file. Extensions \.gz, \.bz2, and \.xz are recognised to enable compression.
 .It \--from-time timestamp
 Set the beginning of the time range as string in format "%Y-%m-%d %H:%M:%S.%F".
 If not provided, all results will be queried.
@@ -81,6 +84,7 @@ If not provided, all results will be queried.
 .It hpct-query hipercontracer-database.conf ping --from-time "2022-09-29 13:00:00"
 .It hpct-query hipercontracer-database.conf traceroute --from-time "2022-09-29 00:00:00" --to-time "2022-09-29 12:00:00"
 .It hpct-query hipercontracer-database.conf traceroute --from-measurement-id 1000 --to-measurement-id 2000
+.It hpct-query hipercontracer-database.conf traceroute --from-measurement-id 1000 --to-measurement-id 2000 --output results.xz
 .El
 .\" ###### Authors ##########################################################
 .Sh AUTHORS

@@ -12,3 +12,7 @@ override_dh_auto_configure:
 # Use upstream ChangeLog for installation
 override_dh_installchangelogs:
 	dh_installchangelogs -k ChangeLog
+
+# Do not enable services by default
+override_dh_installsystemd:
+	dh_installsystemd --no-enable

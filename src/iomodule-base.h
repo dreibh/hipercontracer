@@ -79,16 +79,16 @@ class IOModuleBase
 
 
    struct ReceivedData {
-      boost::asio::ip::udp::endpoint                 Source;
-      boost::asio::ip::udp::endpoint                 Destination;
-      boost::asio::ip::udp::endpoint                 ReplyEndpoint;
-      std::chrono::high_resolution_clock::time_point ApplicationReceiveTime;
-      TimeSourceType                                 ReceiveSWSource;
-      std::chrono::high_resolution_clock::time_point ReceiveSWTime;
-      TimeSourceType                                 ReceiveHWSource;
-      std::chrono::high_resolution_clock::time_point ReceiveHWTime;
-      char*                                          MessageBuffer;
-      size_t                                         MessageLength;
+      boost::asio::ip::udp::endpoint Source;
+      boost::asio::ip::udp::endpoint Destination;
+      boost::asio::ip::udp::endpoint ReplyEndpoint;
+      ResultTimePoint                ApplicationReceiveTime;
+      TimeSourceType                 ReceiveSWSource;
+      ResultTimePoint                ReceiveSWTime;
+      TimeSourceType                 ReceiveHWSource;
+      ResultTimePoint                ReceiveHWTime;
+      char*                          MessageBuffer;
+      size_t                         MessageLength;
    };
 
    void recordResult(const ReceivedData&  receivedData,

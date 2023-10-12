@@ -88,7 +88,7 @@ Read the input file names from file. The option may be provided multiple times t
 .\" ###### Arguments ########################################################
 .Sh EXAMPLES
 .Bl -tag -width indent
-.It hpct-results-tool results/Ping* --output ping.csv.xz --sorted --separator ";"
+.It hpct-results-tool results/Ping* --output ping.csv.xz --sorted --separator ';'
 .It hpct-results-tool results/Traceroute* --output traceroute.csv.bz2 --unsorted
 .It hpct-results-tool results/Traceroute* --sorted | head -n 64
 .It find results/ -name 'Traceroute-*.results.*' | hpct-results-tool --input-file-names-from-stdin -o results.csv.gz
