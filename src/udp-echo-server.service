@@ -1,15 +1,24 @@
 [Unit]
 Description=UDP Echo Server
+Documentation=man:udp-echo-server(1)
+After=network.target
 
 [Service]
 Type=simple
-WorkingDirectory=/tmp
-ExecStart=/usr/bin/udp-echo-server
 KillMode=process
 Restart=on-failure
+EnvironmentFile=/etc/udp-echo-server.conf
+ExecStart=/usr/bin/udp-echo-server \
+   --from-port ${FROM_PORT} \
+   --to-port ${TO_PORT}
+
 CPUSchedulingPolicy=fifo
 CPUSchedulingPriority=99
 IOSchedulingClass=realtime
+
+PrivateTmp=yes
+InaccessibleDirectories=/home
+CapabilityBoundingSet=
 
 [Install]
 WantedBy=multi-user.target

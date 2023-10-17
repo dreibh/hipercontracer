@@ -17,7 +17,7 @@
 .\" Contact: thomas.dreibholz@gmail.com
 .\"
 .\" ###### Setup ############################################################
-.Dd December 19, 2022
+.Dd October 17, 2023
 .Dt udp-echo-server 1
 .Os udp-echo-server
 .\" ###### Name #############################################################
@@ -35,6 +35,8 @@
 .Op \-U|--user user|uid
 .Op \-A|--address address
 .Op \-P|--port port
+.Op \-f|--from-port port
+.Op \-t|--to-port port
 .\" ###### Description ######################################################
 .Sh DESCRIPTION
 .Nm udp-echo-server
@@ -42,7 +44,8 @@ is a simple UDP Echo server. It can be used as endpoint for HiPerConTracer
 UDP Ping/Traceroute.
 Note, for security reasons, udp-echo-server only responds to source ports
 >= 1024, to avoid using the server in attacks, like spoofing a packet from
-another Echo server (port 7) to create a flooding loop.
+another Echo server (port 7) to create a flooding loop. Also, packets
+from the same port as the listening port are ignored.
 .Pp
 .\" ###### Arguments ########################################################
 .Sh ARGUMENTS
@@ -64,6 +67,10 @@ After startup, the server uses UID and GID of the given user (by name or GID).
 Sets the local address (default: ::).
 .It \-P|--port port
 Sets the local port (default: 7).
+.It \-P|--from-port port
+Sets the first local port of a range (default: 7).
+.It \-P|--to-port port
+Sets the last local port of a range (default: 0; 0 uses the "from" port).
 .El
 .\" ###### Examples #########################################################
 .Sh EXAMPLES
@@ -72,6 +79,7 @@ Sets the local port (default: 7).
 .It udp-echo-server --address 192.168.1.1 --port 7777
 .It udp-echo-server --address 3ffe::1:2:3 --port 7777
 .It udp-echo-server --address :: --user nornetpp
+.It udp-echo-server --address 3ffe::1:2:3 --from-port 10000 --to-port 10999
 .El
 .\" ###### Authors ##########################################################
 .Sh AUTHORS
