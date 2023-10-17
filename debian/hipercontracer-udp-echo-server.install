@@ -1,2 +1,3 @@
 lib/systemd/system/udp-echo-server.service
 usr/bin/udp-echo-server
+etc/hipercontracer/udp-echo-server.conf

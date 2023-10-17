@@ -217,6 +217,7 @@ IF (WITH_UDP_ECHO_SERVER)
    INSTALL(FILES udp-echo-server.1
            DESTINATION ${CMAKE_INSTALL_MANDIR}/man1)
    INSTALL(FILES udp-echo-server.service DESTINATION /lib/systemd/system)
+   INSTALL(FILES udp-echo-server.conf    DESTINATION /etc/hipercontracer)
 ENDIF()
 
 # ====== Scripts ============================================================

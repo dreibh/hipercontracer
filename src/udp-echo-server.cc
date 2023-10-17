@@ -37,24 +37,67 @@
 #include "tools.h"
 
 
-static boost::asio::ip::udp::endpoint RemoteEndpoint;
-static char                           Buffer[65536];
+class UDPEchoInstance
+{
+   public:
+   UDPEchoInstance(boost::asio::io_service&        ioService,
+                   const boost::asio::ip::address& localAddress,
+                   const uint16_t                  localPort);
+   ~UDPEchoInstance();
+
+   void handleMessage(const boost::system::error_code& errorCode,
+                      std::size_t                      bytesReceived);
+
+   boost::asio::io_service&             IOService;
+   const boost::asio::ip::udp::endpoint LocalEndpoint;
+   boost::asio::ip::udp::socket         UDPSocket;
+   boost::asio::ip::udp::endpoint       RemoteEndpoint;
+   char                                 Buffer[65536];
+};
+
+
+// ###### Constructor #######################################################
+UDPEchoInstance::UDPEchoInstance(boost::asio::io_service&        ioService,
+                                 const boost::asio::ip::address& localAddress,
+                                 const uint16_t                  localPort)
+   : IOService(ioService),
+     LocalEndpoint(localAddress, localPort),
+     UDPSocket(IOService, (localAddress.is_v6() == true) ?
+                              boost::asio::ip::udp::v6() :
+                              boost::asio::ip::udp::v4())
+{
+   UDPSocket.bind(LocalEndpoint);
+   UDPSocket.async_receive_from(boost::asio::buffer(Buffer, sizeof(Buffer)),
+                                RemoteEndpoint,
+                                std::bind(&UDPEchoInstance::handleMessage,
+                                          this,
+                                          std::placeholders::_1,
+                                          std::placeholders::_2));
+}
+
+
+// ###### Destructor ########################################################
+UDPEchoInstance::~UDPEchoInstance()
+{
+}
 
 
 // ###### Handle incoming echo request ######################################
-void handleMessage(boost::asio::ip::udp::socket*    udpSocket,
-                   const boost::system::error_code& errorCode,
-                   std::size_t                      bytesReceived)
+void UDPEchoInstance::handleMessage(const boost::system::error_code& errorCode,
+                                    std::size_t                      bytesReceived)
 {
    if(errorCode != boost::asio::error::operation_aborted) {
       // ====== Send response ===============================================
       if(bytesReceived > 0) {
-         // For security reasons, only respond if remote port >= 1024.
-         // Otherwise, an attacker could inject a message to cause
-         // an echo loop between two echo servers (port 7)!
-         if(RemoteEndpoint.port() >= 1024) {
+         // Security:
+         // * For security reasons, only respond if remote port >= 1024.
+         //   Otherwise, an attacker could inject a message to cause
+         //   an echo loop between two echo servers (port 7)!
+         // * Also ignore requests from same port as local port!
+         if( (RemoteEndpoint.port() >= 1024) &&
+             (RemoteEndpoint.port() != LocalEndpoint.port()) ) {
             boost::system::error_code sendErrorCode;
-            udpSocket->send_to(boost::asio::buffer(Buffer, bytesReceived),
+            UDPSocket.send_to(boost::asio::buffer(Buffer, bytesReceived),
                               RemoteEndpoint, 0, sendErrorCode);
             if(sendErrorCode != boost::system::errc::success) {
                HPCT_LOG(error) << "Error sending " << bytesReceived << " bytes to "
@@ -73,17 +116,28 @@ void handleMessage(boost::asio::ip::udp::socket*    udpSocket,
       }
 
       // ====== Wait for next message =======================================
-      udpSocket->async_receive_from(boost::asio::buffer(Buffer, sizeof(Buffer)),
-                                    RemoteEndpoint,
-                                    std::bind(&handleMessage,
-                                              udpSocket,
-                                              std::placeholders::_1,
-                                              std::placeholders::_2));
+      UDPSocket.async_receive_from(boost::asio::buffer(Buffer, sizeof(Buffer)),
+                                   RemoteEndpoint,
+                                   std::bind(&UDPEchoInstance::handleMessage,
+                                             this,
+                                             std::placeholders::_1,
+                                             std::placeholders::_2));
    }
 }
 
 
+// ###### Handle SIGINT #####################################################
+static void signalHandler(boost::asio::io_service*         ioService,
+                          const boost::system::error_code& errorCode,
+                          int                              signalNumber)
+{
+   std::cout << "\nGot signal " << signalNumber << "\n";
+   ioService->stop();
+}
 
+
+
+// ###### Main program ######################################################
 int main(int argc, char *argv[])
 {
    // ====== Initialize =====================================================
@@ -93,7 +147,8 @@ int main(int argc, char *argv[])
    std::string              user((getlogin() != nullptr) ? getlogin() : "0");
    std::string              localAddressString;
    boost::asio::ip::address localAddress;
-   uint16_t                 localPort;
+   uint16_t                 localPortFrom;
+   uint16_t                 localPortTo;
 
    boost::program_options::options_description commandLineOptions;
    commandLineOptions.add_options()
@@ -122,10 +177,14 @@ int main(int argc, char *argv[])
       ( "address,A",
            boost::program_options::value<std::string>(&localAddressString)->default_value("::"),
            "Address" )
-      ( "port,P",
-           boost::program_options::value<uint16_t>(&localPort)->default_value(7),
+      ( "from-port,f,p",
+           boost::program_options::value<uint16_t>(&localPortFrom)->default_value(7),
            "Port" )
-    ;
+      ( "to-port,t",
+           boost::program_options::value<uint16_t>(&localPortTo)->default_value(0),
+           "Port" )
+      ;
+
 
    // ====== Handle command-line arguments ==================================
    boost::program_options::variables_map vm;
@@ -140,20 +199,29 @@ int main(int argc, char *argv[])
       boost::program_options::notify(vm);
    }
    catch(std::exception& e) {
-      std::cerr << "ERROR: Bad parameter: " << e.what() << std::endl;
+      std::cerr << "ERROR: Bad parameter: " << e.what() << "\n";
       return 1;
    }
+
+   if(localPortTo == 0) {
+      localPortTo = localPortFrom;
+   }
+   if( (localPortTo < 1) || (localPortFrom > localPortTo) || (localPortTo > 65535) ) {
+      std::cerr << "ERROR: Invalid port range " << localPortFrom << " - " << localPortTo << "\n";
+      return 1;
+   }
+   const unsigned int ports = 1U + localPortTo - localPortFrom;
 
    try {
       localAddress = boost::asio::ip::address::from_string(localAddressString);
    }
    catch(std::exception& e) {
-      std::cerr << "ERROR: Invalid address: " << e.what() << std::endl;
+      std::cerr << "ERROR: Invalid address: " << e.what() << "\n";
       return 1;
    }
 
    if(vm.count("help")) {
-       std::cerr << "Usage: " << argv[0] << " parameters" << std::endl
+       std::cerr << "Usage: " << argv[0] << " parameters" << "\n"
                  << commandLineOptions;
        return 1;
    }
@@ -168,20 +236,32 @@ int main(int argc, char *argv[])
       return 1;
    }
 
-   boost::asio::io_service        ioService;
-   boost::asio::ip::udp::endpoint localEndpoint(localAddress, localPort);
-   boost::asio::ip::udp::socket   udpSocket(ioService, (localAddress.is_v6() == true) ?
-                                                          boost::asio::ip::udp::v6() :
-                                                          boost::asio::ip::udp::v4());
-   boost::system::error_code      errorCode;
+   // ------ Handle SIGINT --------------------------------------------------
+   boost::asio::io_service ioService;
+   boost::asio::signal_set signals(ioService, SIGINT);
+   signals.async_wait(std::bind(&signalHandler, &ioService,
+                                std::placeholders::_1,
+                                std::placeholders::_2));
 
-   udpSocket.bind(localEndpoint, errorCode);
-   if(errorCode !=  boost::system::errc::success) {
-      HPCT_LOG(fatal) << "Unable to bind UDP socket to source address "
-                      << localEndpoint << ": " << errorCode.message();
-      return 1;
+   // ------ Create UDP instances -------------------------------------------
+   UDPEchoInstance*        udpEchoInstance[ports];
+   for(unsigned int p = 0; p  < ports; p++) {
+      const uint16_t localPort = p + localPortFrom;
+      try {
+         udpEchoInstance[p] = new UDPEchoInstance(ioService, localAddress, localPort);
+      }
+      catch(std::exception& e) {
+         HPCT_LOG(fatal) << "Unable to bind UDP socket to source address "
+                        << localAddress << ":" << localPort << ": " << e.what();
+         return 1;
+      }
    }
-
+   if(ports > 1) {
+      HPCT_LOG(info) << "Listening on UDP ports " << localPortFrom << " to " << localPortTo;
+   }
+   else {
+      HPCT_LOG(info) << "Listening on UDP port " << localPortFrom;
+   }
 
    // ====== Reduce privileges ==============================================
    if(reducePrivileges(pw) == false) {
@@ -189,15 +269,13 @@ int main(int argc, char *argv[])
       return 1;
    }
 
-
    // ====== Main loop ======================================================
-   udpSocket.async_receive_from(boost::asio::buffer(Buffer, sizeof(Buffer)),
-                                RemoteEndpoint,
-                                std::bind(&handleMessage,
-                                          &udpSocket,
-                                          std::placeholders::_1,
-                                          std::placeholders::_2));
    ioService.run();
 
+   // ====== Clean up =======================================================
+   for(unsigned int p = 0; p  < ports; p++) {
+      delete udpEchoInstance[p];
+      udpEchoInstance[p] = nullptr;
+   }
    return 0;
 }
