@@ -17,16 +17,16 @@
 .\" Contact: thomas.dreibholz@gmail.com
 .\"
 .\" ###### Setup ############################################################
-.Dd July 18, 2023
-.Dt hpct-results-tool 1
-.Os hpct-results-tool
+.Dd October 18, 2023
+.Dt hpct-results 1
+.Os hpct-results
 .\" ###### Name #############################################################
 .Sh NAME
-.Nm hpct-results-tool
+.Nm hpct-results
 .Nd HiPerConTracer Results Tool
 .\" ###### Synopsis #########################################################
 .Sh SYNOPSIS
-.Nm hpct-results-tool
+.Nm hpct-results
 input_file ...
 .Op \-L|--loglevel level
 .Op \-Z|--logcolor on|off
@@ -43,7 +43,7 @@ input_file ...
 .Op \-F|--input-file-names-from-file file
 .\" ###### Description ######################################################
 .Sh DESCRIPTION
-.Nm hpct-results-tool
+.Nm hpct-results
 reads HiPerConTracer results files and merges them into a CSV file. Reading
 is multi-threaded. The output can be to standard output, or a file. Compression
 using GZip, BZip2 and XZ is supported. Multi-threading is supported, reading
@@ -88,11 +88,11 @@ Read the input file names from file. The option may be provided multiple times t
 .\" ###### Arguments ########################################################
 .Sh EXAMPLES
 .Bl -tag -width indent
-.It hpct-results-tool results/Ping* --output ping.csv.xz --sorted --separator ';'
-.It hpct-results-tool results/Traceroute* --output traceroute.csv.bz2 --unsorted
-.It hpct-results-tool results/Traceroute* --sorted | head -n 64
-.It find results/ -name 'Traceroute-*.results.*' | hpct-results-tool --input-file-names-from-stdin -o results.csv.gz
-.It hpct-results-tool --input-file-names-from-file results-files.list -o results.csv.xz
+.It hpct-results results/Ping* --output ping.csv.xz --sorted --separator ';'
+.It hpct-results results/Traceroute* --output traceroute.csv.bz2 --unsorted
+.It hpct-results results/Traceroute* --sorted | head -n 64
+.It find results/ -name 'Traceroute-*.results.*' | hpct-results --input-file-names-from-stdin -o results.csv.gz
+.It hpct-results --input-file-names-from-file results-files.list -o results.csv.xz
 .El
 .\" ###### Authors ##########################################################
 .Sh AUTHORS

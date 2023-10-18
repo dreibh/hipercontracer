@@ -23,12 +23,12 @@ See the the manpage "hipercontracer" for all options, including a description of
 
 # Convert Results into a CSV File
 
-- find ./data -maxdepth 1 -name "Ping*.results.*" | ./hpct-results-tool --input-file-names-from-stdin --separator=, -o ping.csv.gz
-- find ./data -maxdepth 1 -name "Traceroute*.results.*" | ./hpct-results-tool --input-file-names-from-stdin --separator=, -o traceroute.csv.gz
+- find ./data -maxdepth 1 -name "Ping*.results.*" | ./hpct-results --input-file-names-from-stdin --separator=, -o ping.csv.gz
+- find ./data -maxdepth 1 -name "Traceroute*.results.*" | ./hpct-results --input-file-names-from-stdin --separator=, -o traceroute.csv.gz
 
 Hint: You can use extension .gz for GZip, .bz for BZip2, .xz for XZ, or none for uncompressed output into the output CSV file!
 
-See the the manpage "hpct-results-tool" for all options!
+See the the manpage "hpct-results" for all options!
 
 Note: For simple measurements, you can use HiPerConTracer and the Results Tool directly, without using a database!
 
@@ -83,8 +83,8 @@ Hint: You can use extension .gz for GZip, .bz for BZip2, .xz for XZ, or none for
 See the the manpage "hpct-query" for all options!
 
 To convert the results to CSV format, use for example:
-- ./hpct-results-tool ping.results.gz --separator=, --output ping.csv.gz
-- ./hpct-results-tool traceroute.results.gz --separator=, --output traceroute.csv.gz
+- ./hpct-results ping.results.gz --separator=, --output ping.csv.gz
+- ./hpct-results traceroute.results.gz --separator=, --output traceroute.csv.gz
 
 
 # Examples to Process Results from CSV
