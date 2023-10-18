@@ -294,7 +294,7 @@ int main(int argc, char** argv)
       if(queryType == "ping") {
          if(backend & DatabaseBackendType::SQL_Generic) {
             statement
-               << "SELECT SendTimestamp,MeasurementID,SourceIP,DestinationIP,Protocol,TrafficClass,BurstSeq,PacketSize,ResponseSize,Checksum,Status,TimeSource,Delay_AppSend,Delay_Queuing, Delay_AppReceive,RTT_App,RTT_SW,RTT_HW"
+               << "SELECT SendTimestamp,MeasurementID,SourceIP,DestinationIP,Protocol,TrafficClass,BurstSeq,PacketSize,ResponseSize,Checksum,SourcePort,DestinationPort,Status,TimeSource,Delay_AppSend,Delay_Queuing, Delay_AppReceive,RTT_App,RTT_SW,RTT_HW"
                   " FROM Ping";
             addSQLWhere(statement, "SendTimestamp", fromTimeStamp, toTimeStamp, fromMeasurementID, toMeasurementID);
             statement << " ORDER BY SendTimestamp, MeasurementID, SourceIP, DestinationIP, Protocol, TrafficClass";
@@ -312,17 +312,19 @@ int main(int argc, char** argv)
                const unsigned int             packetSize      = databaseClient->getInteger(8);
                const unsigned int             responseSize    = databaseClient->getInteger(9);
                const uint16_t                 checksum        = databaseClient->getInteger(10);
-               const unsigned int             status          = databaseClient->getInteger(11);
-               const unsigned int             timeSource      = databaseClient->getInteger(12);
-               const long long                delayAppSend    = databaseClient->getBigInt(13);
-               const long long                delayQueuing    = databaseClient->getBigInt(14);
-               const long long                delayAppReceive = databaseClient->getBigInt(15);
-               const long long                rttApplication  = databaseClient->getBigInt(16);
-               const long long                rttSoftware     = databaseClient->getBigInt(17);
-               const long long                rttHardware     = databaseClient->getBigInt(18);
+               const uint16_t                 sourcePort      = databaseClient->getInteger(11);
+               const uint16_t                 destinationPort = databaseClient->getInteger(12);
+               const unsigned int             status          = databaseClient->getInteger(13);
+               const unsigned int             timeSource      = databaseClient->getInteger(14);
+               const long long                delayAppSend    = databaseClient->getBigInt(15);
+               const long long                delayQueuing    = databaseClient->getBigInt(16);
+               const long long                delayAppReceive = databaseClient->getBigInt(17);
+               const long long                rttApplication  = databaseClient->getBigInt(18);
+               const long long                rttSoftware     = databaseClient->getBigInt(19);
+               const long long                rttHardware     = databaseClient->getBigInt(20);
 
                outputStream <<
-                  str(boost::format("#P%c %d %s %s %x %d %x %d %d %x %d %08x %d %d %d %d %d %d\n")
+                  str(boost::format("#P%c %d %s %s %x %d %x %d %d %x %d %d %d %08x %d %d %d %d %d %d\n")
                      % protocol
 
                      % measurementID
@@ -335,6 +337,8 @@ int main(int argc, char** argv)
                      % packetSize
                      % responseSize
                      % checksum
+                     % sourcePort
+                     % destinationPort
                      % status
 
                      % timeSource
@@ -367,6 +371,8 @@ int main(int argc, char** argv)
                   const unsigned int             packetSize      = databaseClient->getInteger("packetSize");
                   const unsigned int             responseSize    = databaseClient->getInteger("responseSize");
                   const uint16_t                 checksum        = databaseClient->getInteger("checksum");
+                  const uint16_t                 sourcePort      = databaseClient->getInteger("sourcePort");
+                  const uint16_t                 destinationPort = databaseClient->getInteger("destinationPort");
                   const unsigned int             status          = databaseClient->getInteger("status");
                   const unsigned int             timeSource      = databaseClient->getInteger("timeSource");
                   const long long                delayAppSend    = databaseClient->getBigInt("delay.appSend");
@@ -377,7 +383,7 @@ int main(int argc, char** argv)
                   const long long                rttHardware     = databaseClient->getBigInt("rtt.hw");
 
                   outputStream <<
-                     str(boost::format("#P%c %d %s %s %x %d %x %d %d %x %d %08x %d %d %d %d %d %d\n")
+                     str(boost::format("#P%c %d %s %s %x %d %x %d %d %x %d %d %d %08x %d %d %d %d %d %d\n")
                         % protocol
 
                         % measurementID
@@ -390,6 +396,8 @@ int main(int argc, char** argv)
                         % packetSize
                         % responseSize
                         % checksum
+                        % sourcePort
+                        % destinationPort
                         % status
 
                         % timeSource
@@ -418,7 +426,7 @@ int main(int argc, char** argv)
       else if(queryType == "traceroute") {
          if(backend & DatabaseBackendType::SQL_Generic) {
             statement
-               << "SELECT Timestamp,MeasurementID,SourceIP,DestinationIP,Protocol,TrafficClass,RoundNumber,HopNumber,TotalHops,PacketSize,ResponseSize,Checksum,Status,PathHash,SendTimestamp,HopIP,TimeSource,Delay_AppSend,Delay_Queuing,Delay_AppReceive,RTT_App,RTT_SW,RTT_HW"
+               << "SELECT Timestamp,MeasurementID,SourceIP,DestinationIP,Protocol,TrafficClass,RoundNumber,HopNumber,TotalHops,PacketSize,ResponseSize,Checksum,SourcePort,DestinationPort,Status,PathHash,SendTimestamp,HopIP,TimeSource,Delay_AppSend,Delay_Queuing,Delay_AppReceive,RTT_App,RTT_SW,RTT_HW"
                   " FROM Traceroute";
             addSQLWhere(statement, "Timestamp", fromTimeStamp, toTimeStamp, fromMeasurementID, toMeasurementID);
             statement << " ORDER BY Timestamp,MeasurementID,SourceIP,DestinationIP,Protocol,TrafficClass,RoundNumber,HopNumber";
@@ -436,17 +444,19 @@ int main(int argc, char** argv)
                const unsigned int             packetSize      = databaseClient->getInteger(10);
                const unsigned int             responseSize    = databaseClient->getInteger(11);
                const uint16_t                 checksum        = databaseClient->getInteger(12);
-               const unsigned int             status          = databaseClient->getInteger(13);
-               const long long                pathHash        = databaseClient->getBigInt(14);
-               const unsigned long long       sendTimeStamp   = databaseClient->getBigInt(15);
-               const boost::asio::ip::address hopIP           = statement.decodeAddress(databaseClient->getString(16));
-               const unsigned int             timeSource      = databaseClient->getInteger(17);
-               const long long                delayAppSend    = databaseClient->getBigInt(18);
-               const long long                delayQueuing    = databaseClient->getBigInt(19);
-               const long long                delayAppReceive = databaseClient->getBigInt(20);
-               const long long                rttApplication  = databaseClient->getBigInt(21);
-               const long long                rttSoftware     = databaseClient->getBigInt(22);
-               const long long                rttHardware     = databaseClient->getBigInt(23);
+               const uint16_t                 sourcePort      = databaseClient->getInteger(13);
+               const uint16_t                 destinationPort = databaseClient->getInteger(14);
+               const unsigned int             status          = databaseClient->getInteger(15);
+               const long long                pathHash        = databaseClient->getBigInt(16);
+               const unsigned long long       sendTimeStamp   = databaseClient->getBigInt(17);
+               const boost::asio::ip::address hopIP           = statement.decodeAddress(databaseClient->getString(18));
+               const unsigned int             timeSource      = databaseClient->getInteger(19);
+               const long long                delayAppSend    = databaseClient->getBigInt(20);
+               const long long                delayQueuing    = databaseClient->getBigInt(21);
+               const long long                delayAppReceive = databaseClient->getBigInt(22);
+               const long long                rttApplication  = databaseClient->getBigInt(23);
+               const long long                rttSoftware     = databaseClient->getBigInt(24);
+               const long long                rttHardware     = databaseClient->getBigInt(25);
 
                if(hopNumber == 1) {
                   const unsigned int statusFlags = status - (status & 0xff);
@@ -500,21 +510,23 @@ int main(int argc, char** argv)
             databaseClient->executeQuery(statement);
             while(databaseClient->fetchNextTuple()) {
                try {
-                  const unsigned long long       timeStamp     = databaseClient->getBigInt("timestamp");
-                  const unsigned long long       measurementID = databaseClient->getBigInt("measurementID");
-                  const boost::asio::ip::address sourceIP      = statement.decodeAddress(databaseClient->getString("sourceIP"));
-                  const boost::asio::ip::address destinationIP = statement.decodeAddress(databaseClient->getString("destinationIP"));
-                  const char                     protocol      = databaseClient->getInteger("protocol");
-                  const uint8_t                  trafficClass  = databaseClient->getInteger("trafficClass");
-                  const unsigned int             roundNumber   = databaseClient->getInteger("roundNumber");
-                  const unsigned int             totalHops     = databaseClient->getInteger("totalHops");
-                  const unsigned int             packetSize    = databaseClient->getInteger("packetSize");
-                  const uint16_t                 checksum      = databaseClient->getInteger("checksum");
-                  const unsigned int             statusFlags   = databaseClient->getInteger("statusFlags");
-                  const long long                pathHash      = databaseClient->getBigInt("pathHash");
+                  const unsigned long long       timeStamp       = databaseClient->getBigInt("timestamp");
+                  const unsigned long long       measurementID   = databaseClient->getBigInt("measurementID");
+                  const boost::asio::ip::address sourceIP        = statement.decodeAddress(databaseClient->getString("sourceIP"));
+                  const boost::asio::ip::address destinationIP   = statement.decodeAddress(databaseClient->getString("destinationIP"));
+                  const char                     protocol        = databaseClient->getInteger("protocol");
+                  const uint8_t                  trafficClass    = databaseClient->getInteger("trafficClass");
+                  const unsigned int             roundNumber     = databaseClient->getInteger("roundNumber");
+                  const unsigned int             totalHops       = databaseClient->getInteger("totalHops");
+                  const unsigned int             packetSize      = databaseClient->getInteger("packetSize");
+                  const uint16_t                 checksum        = databaseClient->getInteger("checksum");
+                  const uint16_t                 sourcePort      = databaseClient->getInteger("sourcePort");
+                  const uint16_t                 destinationPort = databaseClient->getInteger("destinationPort");
+                  const unsigned int             statusFlags     = databaseClient->getInteger("statusFlags");
+                  const long long                pathHash        = databaseClient->getBigInt("pathHash");
 
                   outputStream <<
-                     str(boost::format("#T%c %d %s %s %x %d %d %x %d %x %x %x\n")
+                     str(boost::format("#T%c %d %s %s %x %d %d %x %d %x %d %d %x %x\n")
                         % protocol
 
                         % measurementID
@@ -528,6 +540,8 @@ int main(int argc, char** argv)
                         % (unsigned int)trafficClass
                         % packetSize
                         % checksum
+                        % sourcePort
+                        % destinationPort
                         % statusFlags
 
                         % pathHash
