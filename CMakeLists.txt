@@ -127,11 +127,12 @@ IF (STATIC_BUILD)
    SET(Boost_USE_STATIC_LIBS ON)
 ENDIF()
 
-OPTION(WITH_TRIGGER         "Build HiPerConTracer Trigger"  1)
-OPTION(WITH_IMPORTER        "Build HiPerConTracer Importer" 1)
-OPTION(WITH_QUERY           "Build HiPerConTracer Query"    1)
-OPTION(WITH_UDP_ECHO_SERVER "Build UDP Echo Server"         1)
-OPTION(WITH_PIPE_CHECKSUM   "Build Pipe Checksum"           1)
+OPTION(WITH_TRIGGER         "Build HiPerConTracer Trigger"      1)
+OPTION(WITH_IMPORTER        "Build HiPerConTracer Importer"     1)
+OPTION(WITH_QUERY           "Build HiPerConTracer Query Tool"   1)
+OPTION(WITH_RESULTS         "Build HiPerConTracer Results Tool" 1)
+OPTION(WITH_PIPE_CHECKSUM   "Build Pipe Checksum Tool"          1)
+OPTION(WITH_UDP_ECHO_SERVER "Build UDP Echo Server"             1)
 
 
 #############################################################################

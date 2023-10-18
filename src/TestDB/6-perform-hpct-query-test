@@ -55,11 +55,11 @@ if [ -e "${DATABASE_CONFIG}" ] ; then
    for table in Ping Traceroute ; do
 
       echo "Obtaining ${table} data from good/ directory ..."
-      find good/ -name "${table}-*.results.*" | ../hpct-results-tool --input-file-names-from-stdin -o imported-${table,,}.csv
+      find good/ -name "${table}-*.results.*" | ../hpct-results --input-file-names-from-stdin -o imported-${table,,}.csv
 
       echo "Querying ${table} data from database ..."
       ${VALGRIND_CMD} ../hpct-query "${DATABASE_CONFIG}" ${table,,} -o queried-${table,,}.results
-      ${VALGRIND_CMD} ../hpct-results-tool queried-${table,,}.results -o queried-${table,,}.csv
+      ${VALGRIND_CMD} ../hpct-results queried-${table,,}.results -o queried-${table,,}.csv
 
       echo "Checking for differences in ${table}:"
       wc -ml imported-${table,,}.csv

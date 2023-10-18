@@ -63,10 +63,8 @@ groupdel hipercontracer >/dev/null 2>&1 || true
 %{_mandir}/man1/get-default-ips.1.gz
 %{_mandir}/man1/hipercontracer.1.gz
 %{_datadir}/doc/hipercontracer/examples/HiPerConTracer.R
-%{_datadir}/doc/hipercontracer/examples/Jitter-*.results.*
-%{_datadir}/doc/hipercontracer/examples/Ping-*.results.*
+%{_datadir}/doc/hipercontracer/examples/*-*.results.*
 %{_datadir}/doc/hipercontracer/examples/README.md
-%{_datadir}/doc/hipercontracer/examples/Traceroute-*.results.*
 %{_datadir}/doc/hipercontracer/examples/r-ping-example
 %{_datadir}/doc/hipercontracer/examples/r-traceroute-example
 
@@ -242,7 +240,7 @@ HiPerConTracer into an SQL or NoSQL database.
 Summary: HiPerConTracer Query Tool to query results from a database
 Group: Applications/Database
 Recommends: %{name} = %{version}-%{release}
-Recommends: %{name}-results-tool = %{version}-%{release}
+Recommends: %{name}-results = %{version}-%{release}
 
 %description hipercontracer-query
 High-Performance Connectivity Tracer (HiPerConTracer) is a
@@ -257,13 +255,13 @@ from a HiPerConTracer SQL or NoSQL database.
 %{_mandir}/man1/hpct-query.1.gz
 
 
-%package hipercontracer-results-tool
+%package hipercontracer-results
 Summary: HiPerConTracer Results Tool to process results files
 Group: Applications/Database
 Requires: %{name}-libuniversalimporter = %{version}-%{release}
 Recommends: %{name} = %{version}-%{release}
 
-%description hipercontracer-results-tool
+%description hipercontracer-results
 High-Performance Connectivity Tracer (HiPerConTracer) is a
 Ping/Traceroute service. It performs regular Ping and Traceroute runs
 among sites. The results are written to data files, which can be
@@ -272,9 +270,9 @@ This package contains the results tool to process HiPerConTracer
 results files, particularly for converting them to CSV files for
 reading them into spreadsheets, analysis tools, etc.
 
-%files hipercontracer-results-tool
-%{_bindir}/hpct-results-tool
-%{_mandir}/man1/hpct-results-tool.1.gz
+%files hipercontracer-results
+%{_bindir}/hpct-results
+%{_mandir}/man1/hpct-results.1.gz
 
 
 %package hipercontracer-udp-echo-server

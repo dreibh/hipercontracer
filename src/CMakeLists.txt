@@ -184,22 +184,24 @@ IF (WITH_IMPORTER)
    INSTALL(FILES hpct-importer.1 DESTINATION ${CMAKE_INSTALL_MANDIR}/man1)
 ENDIF()
 
-# ====== HiPerConTracer Query ===============================================
+# ====== HiPerConTracer Query Tool ==========================================
 IF (WITH_QUERY)
    ADD_EXECUTABLE(hpct-query hpct-query.cc)
    TARGET_LINK_LIBRARIES(hpct-query libuniversalimporter-${libraryType} ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} -llzma -lbz2 -lz)
    INSTALL(TARGETS hpct-query
            DESTINATION ${CMAKE_INSTALL_BINDIR})
    INSTALL(FILES hpct-query.1
-            DESTINATION ${CMAKE_INSTALL_MANDIR}/man1)
+           DESTINATION ${CMAKE_INSTALL_MANDIR}/man1)
 ENDIF()
 
 # ====== HiPerConTracer Results Tool ========================================
-ADD_EXECUTABLE(hpct-results-tool hpct-results-tool.cc conversions.cc)
-TARGET_LINK_LIBRARIES(hpct-results-tool libuniversalimporter-${libraryType} ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} -llzma -lbz2 -lz)
-INSTALL(TARGETS hpct-results-tool RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
-INSTALL(FILES hpct-results-tool.1
-         DESTINATION ${CMAKE_INSTALL_MANDIR}/man1)
+IF (WITH_RESULTS)
+   ADD_EXECUTABLE(hpct-results hpct-results.cc conversions.cc)
+   TARGET_LINK_LIBRARIES(hpct-results libuniversalimporter-${libraryType} ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} -llzma -lbz2 -lz)
+   INSTALL(TARGETS hpct-results RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
+   INSTALL(FILES hpct-results.1
+           DESTINATION ${CMAKE_INSTALL_MANDIR}/man1)
+ENDIF()
 
 # ====== Pipe Checksum Tool =================================================
 IF (WITH_PIPE_CHECKSUM)
