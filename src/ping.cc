@@ -268,7 +268,7 @@ void Ping::writePingResultEntry(const ResultEntry* resultEntry,
                                           delayQueuing, delayAppSend, delayAppReceive);
 
          ResultsOutput->insert(
-            str(boost::format("%s#P%c %d %s %s %x %d %x %d %d %x %d %08x %d %d %d %d %d %d")
+            str(boost::format("%s#P%c %d %s %s %x %d %x %d %d %x %d %d %d %08x %d %d %d %d %d %d")
                % indentation
                % (unsigned char)IOModule->getProtocolType()
 
@@ -282,6 +282,8 @@ void Ping::writePingResultEntry(const ResultEntry* resultEntry,
                % resultEntry->packetSize()
                % resultEntry->responseSize()
                % resultEntry->checksum()
+               % resultEntry->sourcePort()
+               % resultEntry->destinationPort()
                % resultEntry->status()
 
                % timeSource

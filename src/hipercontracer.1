@@ -17,7 +17,7 @@
 .\" Contact: thomas.dreibholz@gmail.com
 .\"
 .\" ###### Setup ############################################################
-.Dd May 19, 2023
+.Dd October 18, 2023
 .Dt hipercontracer 1
 .Os hipercontracer
 .\" ###### Name #############################################################
@@ -197,7 +197,7 @@ The format is as follows, depending on the measurement type:
 .It Ping (version 2, current)
 Each Ping entry consists of a #P<m> line, with m=i for ICMP and m=u for UDP (according to underlying I/O module).
 .Bl -tag -width indent
-.It #P<m> measurementID sourceIP destinationIP timestamp burstseq traffic_class packetsize response_size checksum status timesource delay_app_send delay_queuing delay_app_receive rtt_app rtt_sw rtt_hw
+.It #P<m> measurementID sourceIP destinationIP timestamp burstseq traffic_class packetsize response_size checksum sourcePort destinationPort status timesource delay_app_send delay_queuing delay_app_receive rtt_app rtt_sw rtt_hw
 .Bl -tag -width indent
 .It * measurementID: Measurement identifier.
 .It * sourceIP: Source IP address.
@@ -207,7 +207,9 @@ Each Ping entry consists of a #P<m> line, with m=i for ICMP and m=u for UDP (acc
 .It * traffic_class: The IP Traffic Class/Type of Service value of the sent packets (hexadecimal).
 .It * packet_size: The sent packet size (decimal, in bytes) including IPv4/IPv6 header, transport header and HiPerConTracer header.
 .It * response_size: The response packet size (decimal, in bytes) including IPv4/IPv6 header, transport header and HiPerConTracer header.
-.It * checksum: The checksum of the ICMP Echo Request packets (hexadecimal).
+.It * checksum: The checksum of the ICMP Echo Request packets, 0 for other protocols (hexadecimal).
+.It * sourcePort: Source port, 0 for ICMP (decimal).
+.It * destinationPort: Destination port, 0 for ICMP (decimal).
 .It * status: Status code (decimal):
 .Bl -tag -width indent
 .It - 1 = ICMP response: Time Exceeded
@@ -277,7 +279,7 @@ This entry has been added with HiPerConTracer 2.0.0!
 Each Traceroute entry begins with a #Tm line, with m=i for ICMP and m=u for UDP (according to underlying I/O module).
 This is followed with one TAB-started line per each hop.
 .Bl -tag -width indent
-.It #T<m> measurementID sourceIP destinationIP timestamp round totalHops traffic_class packet_size checksum statusFlags pathHash
+.It #T<m> measurementID sourceIP destinationIP timestamp round totalHops traffic_class packet_size checksum sourcePort destinationPort statusFlags pathHash
 .Bl -tag -width indent
 .It * measurementID: Measurement identifier.
 .It * sourceIP: Source IP address.
@@ -289,7 +291,9 @@ The actual send timestamp of the request to each hop can be found in sendTimeSta
 .It * totalHops: Total hops (decimal).
 .It * traffic_class: The IP Traffic Class/Type of Service value of the sent packets (hexadecimal).
 .It * packet_size: The sent packet size (decimal, in bytes) including IPv4/IPv6 header, transport header and HiPerConTracer header.
-.It * checksum: The checksum of the ICMP Echo Request packets (hexadecimal).
+.It * checksum: The checksum of the ICMP Echo Request packets, 0 for other protocols (hexadecimal).
+.It * sourcePort: Source port, 0 for ICMP (decimal).
+.It * destinationPort: Destination port, 0 for ICMP (decimal).
 .It * statusFlags: Status flags (hexadecimal):
 See the status code for Ping above for the lower 8 bits. Additionally:
 .Bl -tag -width indent
@@ -349,7 +353,7 @@ This entry has been added with HiPerConTracer 2.0.0!
 .It Jitter (version 2, current; there is no version 1)
 Each Jitter entry consists of a #J<m> line, with m=i for ICMP and m=u for UDP (according to underlying I/O module).
 .Bl -tag -width indent
-.It #J<m> measurementID sourceIP destinationIP timestamp burstseq traffic_class packetsize checksum status timesource
+.It #J<m> measurementID sourceIP destinationIP timestamp burstseq traffic_class packetsize checksum sourcePort destinationPort status timesource
 packets_app_send jitter_app_send meandelay_app_send
 packets_queuing jitter_queuing meandelay_queuing
 packets_app_receive jitter_app_receive meandelay_app_receive
@@ -364,7 +368,9 @@ packets_hw jitter_hw meanrtt_hw
 .It * burstseq: Sequence number within a burst (decimal), numbered from 0.
 .It * traffic_class: The IP Traffic Class/Type of Service value of the sent packets (hexadecimal).
 .It * packet_size: The sent packet size (decimal, in bytes) including IPv4/IPv6 header, transport header and HiPerConTracer header.
-.It * checksum: The checksum of the ICMP Echo Request packets (hexadecimal).
+.It * checksum: The checksum of the ICMP Echo Request packets, 0 for other protocols (hexadecimal).
+.It * sourcePort: Source port, 0 for ICMP (decimal).
+.It * destinationPort: Destination port, 0 for ICMP (decimal).
 .It * status: Status code (decimal):
 .It * timesource: Source of the timing information (hexadecimal) as: AAQQSSHH (same as for Ping, see above).
 .It * packets_app_send: Number of packets for application send jitter/mean RTT computation
