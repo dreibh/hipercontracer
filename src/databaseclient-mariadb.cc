@@ -105,7 +105,6 @@ bool MariaDBClient::open()
    connectionProperties["sslVerify"]       = sslVerify;
    connectionProperties["sslEnforce"]      = sslEnforce;
    connectionProperties["OPT_TLS_VERSION"] = "TLSv1.3";
-   connectionProperties["OPT_RECONNECT"]   = true;
    connectionProperties["CLIENT_COMPRESS"] = true;
 
    assert(Connection == nullptr);
