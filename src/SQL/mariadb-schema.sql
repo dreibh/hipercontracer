@@ -95,7 +95,9 @@ CREATE TABLE Traceroute (
    PacketSize       INT2 UNSIGNED NOT NULL DEFAULT 0,    -- Packet size (bytes)
    ResponseSize     INT2 UNSIGNED NOT NULL DEFAULT 0,    -- Response size (bytes; 0 if unknown)
    Checksum         INT2 UNSIGNED NOT NULL DEFAULT 0,    -- Checksum
-   Status           INT1 UNSIGNED NOT NULL,              -- Status
+   SourcePort       INT2 UNSIGNED NOT NULL DEFAULT 0,    -- Source port
+   DestinationPort  INT2 UNSIGNED NOT NULL DEFAULT 0,    -- Destination port
+   Status           INT2 UNSIGNED NOT NULL,              -- Status
    PathHash         INT8 UNSIGNED NOT NULL,              -- Hash over full path
    SendTimestamp    INT8 UNSIGNED NOT NULL,              -- Send timestamp for hop (nanoseconds since 1970-01-01, 00:00:00 UTC)
    HopIP            INET6         NOT NULL,              -- Router or Destination IP address

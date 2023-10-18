@@ -331,7 +331,7 @@ void checkFormat(boost::iostreams::filtering_ostream* outputStream,
    if(format.Type == InputType::IT_Ping) {
       // ------ Ping, Version 2 ---------------------------------------------
       if(line[2] != ' ') {
-         if(inputColumns >= 18) {
+         if(inputColumns >= 20) {
             format.Protocol = (InputProtocol)line[2];
             format.Version  = 2;
          }

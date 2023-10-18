@@ -461,7 +461,7 @@ int main(int argc, char** argv)
                if(hopNumber == 1) {
                   const unsigned int statusFlags = status - (status & 0xff);
                   outputStream <<
-                     str(boost::format("#T%c %d %s %s %x %d %d %x %d %x %x %x\n")
+                     str(boost::format("#T%c %d %s %s %x %d %d %x %d %x %d %d %x %x\n")
                         % protocol
 
                         % measurementID
@@ -475,6 +475,8 @@ int main(int argc, char** argv)
                         % (unsigned int)trafficClass
                         % packetSize
                         % checksum
+                        % sourcePort
+                        % destinationPort
                         % statusFlags
 
                         % pathHash
