@@ -73,7 +73,7 @@ void PingReader::beginParsing(DatabaseClientBase& databaseClient,
    if(backend & DatabaseBackendType::SQL_Generic) {
       statement
          << "INSERT INTO " << Table
-         << " (SendTimestamp,MeasurementID,SourceIP,DestinationIP,Protocol,TrafficClass,BurstSeq,PacketSize,ResponseSize,Checksum,Status,TimeSource,Delay_AppSend,Delay_Queuing, Delay_AppReceive,RTT_App,RTT_SW,RTT_HW) VALUES";
+         << " (SendTimestamp,MeasurementID,SourceIP,DestinationIP,Protocol,TrafficClass,BurstSeq,PacketSize,ResponseSize,Checksum,SourcePort,DestinationPort,Status,TimeSource,Delay_AppSend,Delay_Queuing, Delay_AppReceive,RTT_App,RTT_SW,RTT_HW) VALUES";
    }
    else if(backend & DatabaseBackendType::NoSQL_Generic) {
       statement << "{ \"" << Table <<  "\": [";
@@ -129,8 +129,8 @@ void PingReader::parseContents(
 {
    Statement&                statement = databaseClient.getStatement("Ping");
    const DatabaseBackendType backend   = databaseClient.getBackend();
-   static const unsigned int PingMinColumns = 18;
-   static const unsigned int PingMaxColumns = 18;
+   static const unsigned int PingMinColumns = 20;
+   static const unsigned int PingMaxColumns = 20;
    static const char         PingDelimiter  = ' ';
 
    std::string inputLine;
@@ -170,15 +170,17 @@ void PingReader::parseContents(
          unsigned int                   packetSize      = parsePacketSize(tuple[7], dataFile);
          const unsigned int             responseSize    = parseResponseSize(tuple[8], dataFile);
          const uint16_t                 checksum        = parseChecksum(tuple[9], dataFile);
-         const unsigned int             status          = parseStatus(tuple[10], dataFile, 10);
-         unsigned int                   timeSource      = parseTimeSource(tuple[11], dataFile);
+         const uint16_t                 sourcePort      = parsePort(tuple[10], dataFile);
+         const uint16_t                 destinationPort = parsePort(tuple[11], dataFile);
+         const unsigned int             status          = parseStatus(tuple[12], dataFile, 10);
+         unsigned int                   timeSource      = parseTimeSource(tuple[13], dataFile);
 
-         const long long                delayAppSend    = parseNanoseconds(tuple[12], dataFile);
-         const long long                delayQueuing    = parseNanoseconds(tuple[13], dataFile);
-         const long long                delayAppReceive = parseNanoseconds(tuple[14], dataFile);
-         const long long                rttApp          = parseNanoseconds(tuple[15], dataFile);
-         const long long                rttSoftware     = parseNanoseconds(tuple[16], dataFile);
-         const long long                rttHardware     = parseNanoseconds(tuple[17], dataFile);
+         const long long                delayAppSend    = parseNanoseconds(tuple[14], dataFile);
+         const long long                delayQueuing    = parseNanoseconds(tuple[15], dataFile);
+         const long long                delayAppReceive = parseNanoseconds(tuple[16], dataFile);
+         const long long                rttApp          = parseNanoseconds(tuple[17], dataFile);
+         const long long                rttSoftware     = parseNanoseconds(tuple[18], dataFile);
+         const long long                rttHardware     = parseNanoseconds(tuple[19], dataFile);
 
          if(backend & DatabaseBackendType::SQL_Generic) {
             statement.beginRow();
@@ -193,6 +195,8 @@ void PingReader::parseContents(
                << packetSize                                             << statement.sep()
                << responseSize                                           << statement.sep()
                << checksum                                               << statement.sep()
+               << sourcePort                                             << statement.sep()
+               << destinationPort                                        << statement.sep()
                << status                                                 << statement.sep()
 
                << (long long)timeSource                                  << statement.sep()
@@ -208,25 +212,27 @@ void PingReader::parseContents(
          else if(backend & DatabaseBackendType::NoSQL_Generic) {
             statement.beginRow();
             statement
-               << "\"sendTimestamp\":" << timePointToNanoseconds<ReaderTimePoint>(sendTimeStamp) << statement.sep()
-               << "\"measurementID\":" << measurementID                                          << statement.sep()
-               << "\"sourceIP\":"      << statement.encodeAddress(sourceIP)                      << statement.sep()
-               << "\"destinationIP\":" << statement.encodeAddress(destinationIP)                 << statement.sep()
-               << "\"protocol\":"      << (unsigned int)protocol                                 << statement.sep()
-               << "\"trafficClass\":"  << (unsigned int)trafficClass                             << statement.sep()
-               << "\"burstSeq\":"      << burstSeq                                               << statement.sep()
-               << "\"packetSize\":"    << packetSize                                             << statement.sep()
-               << "\"responseSize\":"  << responseSize                                           << statement.sep()
-               << "\"checksum\":"      << checksum                                               << statement.sep()
-               << "\"status\":"        << status                                                 << statement.sep()
+               << "\"sendTimestamp\":"   << timePointToNanoseconds<ReaderTimePoint>(sendTimeStamp) << statement.sep()
+               << "\"measurementID\":"   << measurementID                                          << statement.sep()
+               << "\"sourceIP\":"        << statement.encodeAddress(sourceIP)                      << statement.sep()
+               << "\"destinationIP\":"   << statement.encodeAddress(destinationIP)                 << statement.sep()
+               << "\"protocol\":"        << (unsigned int)protocol                                 << statement.sep()
+               << "\"trafficClass\":"    << (unsigned int)trafficClass                             << statement.sep()
+               << "\"burstSeq\":"        << burstSeq                                               << statement.sep()
+               << "\"packetSize\":"      << packetSize                                             << statement.sep()
+               << "\"responseSize\":"    << responseSize                                           << statement.sep()
+               << "\"checksum\":"        << checksum                                               << statement.sep()
+               << "\"sourcePort\":"      << sourcePort                                             << statement.sep()
+               << "\"destinationPort\":" << destinationPort                                        << statement.sep()
+               << "\"status\":"          << status                                                 << statement.sep()
 
-               << "\"timeSource\":"    << (long long)timeSource                                  << statement.sep()
-               << "\"delay.appSend\":" << delayAppSend                                           << statement.sep()
-               << "\"delay.queuing\":" << delayQueuing                                           << statement.sep()
-               << "\"delay.appRecv\":" << delayAppReceive                                        << statement.sep()
-               << "\"rtt.app\":"       << rttApp                                                 << statement.sep()
-               << "\"rtt.sw\":"        << rttSoftware                                            << statement.sep()
-               << "\"rtt.hw\":"        << rttHardware;
+               << "\"timeSource\":"      << (long long)timeSource                                  << statement.sep()
+               << "\"delay.appSend\":"   << delayAppSend                                           << statement.sep()
+               << "\"delay.queuing\":"   << delayQueuing                                           << statement.sep()
+               << "\"delay.appRecv\":"   << delayAppReceive                                        << statement.sep()
+               << "\"rtt.app\":"         << rttApp                                                 << statement.sep()
+               << "\"rtt.sw\":"          << rttSoftware                                            << statement.sep()
+               << "\"rtt.hw\":"          << rttHardware;
 
             statement.endRow();
             rows++;

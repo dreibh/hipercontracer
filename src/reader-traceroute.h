@@ -94,6 +94,8 @@ class TracerouteReader : public ReaderImplementation<TracerouteFileEntry>
                                  const std::filesystem::path& dataFile);
    uint16_t parseChecksum(const std::string&           value,
                           const std::filesystem::path& dataFile);
+   uint16_t parsePort(const std::string&           value,
+                      const std::filesystem::path& dataFile);
    unsigned int parseStatus(const std::string&           value,
                             const std::filesystem::path& dataFile,
                             const unsigned int           base = 16);

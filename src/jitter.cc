@@ -281,7 +281,7 @@ void Jitter::writeJitterResultEntry(const ResultEntry*   referenceEntry,
          referenceEntry->sendTime(TXTimeStampType::TXTST_Application));
 
       ResultsOutput->insert(
-         str(boost::format("#J%c %d %s %s %x %d %x %d %x %d %08x %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d")
+         str(boost::format("#J%c %d %s %s %x %d %x %d %x %d %d %d %08x %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d")
             % (unsigned char)IOModule->getProtocolType()
 
             % ResultsOutput->measurementID()
@@ -293,6 +293,8 @@ void Jitter::writeJitterResultEntry(const ResultEntry*   referenceEntry,
             % (unsigned int)referenceEntry->destination().trafficClass()
             % referenceEntry->packetSize()
             % referenceEntry->checksum()
+            % referenceEntry->sourcePort()
+            % referenceEntry->destinationPort()
             % referenceEntry->status()
 
             % timeSource

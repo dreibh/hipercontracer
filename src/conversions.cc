@@ -92,6 +92,7 @@ std::string convertOldPingLine(const std::string& line)
              std::string(value[8], length[8]) : std::string("0")) + " " +
          "0 " +                                                   // Response size (0, not supported in version 1)
          std::string(value[4], length[4]) + " " +                 // Checksum
+         "0 0 " +                                                 // Source and destination port
          std::string(value[5], length[5]) + " " +                 // Status
          ((c >= 10) ?
              /* TimeSource was added in HiPerConTracer 2.0.0! */
@@ -161,6 +162,7 @@ std::string convertOldTracerouteLine(const std::string&  line,
                 /* PacketSize was added in HiPerConTracer 1.6.0! */
                 std::string(value[10], length[10]) : std::string("0")) + " " +
             std::string(value[5], length[5]) + " " +                 // Checksum
+            "0 0 " +                                                 // Source and destination port
             std::string(value[7], length[7]) + " " +                 // Status flags
             std::string(value[8], length[8]);                        // Path hash
 

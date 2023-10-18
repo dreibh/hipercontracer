@@ -605,7 +605,7 @@ void Traceroute::writeTracerouteResultEntry(const ResultEntry* resultEntry,
          // ====== Current output format =================================
          if(OutputFormat >= OFT_HiPerConTracer_Version2) {
             ResultsOutput->insert(
-               str(boost::format("#T%c %d %s %s %x %d %d %x %d %x %x %x")
+               str(boost::format("#T%c %d %s %s %x %d %d %x %d %x %d %d %x %x")
                   % (unsigned char)IOModule->getProtocolType()
 
                   % ResultsOutput->measurementID()
@@ -619,6 +619,8 @@ void Traceroute::writeTracerouteResultEntry(const ResultEntry* resultEntry,
                   % (unsigned int)(*DestinationIterator).trafficClass()
                   % resultEntry->packetSize()
                   % resultEntry->checksum()
+                  % resultEntry->sourcePort()
+                  % resultEntry->destinationPort()
                   % statusFlags
 
                   % (int64_t)pathHash

@@ -32,10 +32,11 @@
 
 -- ##########################################################################
 -- IMPORTANT NOTE:
--- PostgreSQL does not support unsigned BIGINT for the path hash.
--- The 64-bit value is stored as-is in a signed BIGINT, i.e.:
--- pathHash = (pathHash < 0) ?
---    0x10000000000000000 - abs(pathHash) : pathHash;
+-- 1. PostgreSQL does not support unsigned BIGINT for the path hash.
+--    The 64-bit value is stored as-is in a signed BIGINT, i.e.:
+--    pathHash = (pathHash < 0) ?
+--       0x10000000000000000 - abs(pathHash) : pathHash;
+-- 2. PostgreSQL does not support unsigned integers.
 -- ##########################################################################
 
 
@@ -52,6 +53,8 @@ CREATE TABLE Ping (
    PacketSize       INTEGER     NOT NULL DEFAULT 0,    -- Packet size (bytes)
    ResponseSize     INTEGER     NOT NULL DEFAULT 0,    -- Response size (bytes; 0 if unknown)
    Checksum         INTEGER     NOT NULL DEFAULT 0,    -- Checksum
+   SourcePort       INTEGER     NOT NULL DEFAULT 0,    -- Source port
+   DestinationPort  INTEGER     NOT NULL DEFAULT 0,    -- Destination port
    Status           SMALLINT    NOT NULL,              -- Status
 
    TimeSource       INTEGER     NOT NULL DEFAULT  0,   -- Source of the timing information (hexadecimal) as: AAQQSSHH
@@ -83,6 +86,8 @@ CREATE TABLE Traceroute (
    PacketSize       INTEGER     NOT NULL DEFAULT 0,    -- Packet size (bytes)
    ResponseSize     INTEGER     NOT NULL DEFAULT 0,    -- Response size (bytes; 0 if unknown)
    Checksum         INTEGER     NOT NULL DEFAULT 0,    -- Checksum
+   SourcePort       INTEGER     NOT NULL DEFAULT 0,    -- Source port
+   DestinationPort  INTEGER     NOT NULL DEFAULT 0,    -- Destination port
    Status           SMALLINT    NOT NULL,              -- Status
    PathHash         BIGINT      NOT NULL,              -- Hash over full path
    SendTimestamp    BIGINT      NOT NULL,              -- Send timestamp (nanoseconds since 1970-01-01, 00:00:00 UTC)

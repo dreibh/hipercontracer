@@ -151,6 +151,8 @@ class ResultEntry {
                    const unsigned int              hopNumber,
                    const unsigned int              packetSize,
                    const uint16_t                  checksum,
+                   const uint16_t                  sourcePort,
+                   const uint16_t                  destinationPort,
                    const ResultTimePoint&          sendTime,
                    const boost::asio::ip::address& source,
                    const DestinationInfo&          destination,
@@ -165,6 +167,8 @@ class ResultEntry {
    inline unsigned int packetSize()                     const { return(PacketSize);             }
    inline unsigned int responseSize()                   const { return(ResponseSize);           }
    inline uint16_t     checksum()                       const { return(Checksum);               }
+   inline uint16_t     sourcePort()                     const { return(SourcePort);             }
+   inline uint16_t     destinationPort()                const { return(DestinationPort);        }
 
    const boost::asio::ip::address& sourceAddress()      const { return(Source);                 }
    const DestinationInfo& destination()                 const { return(Destination);            }
@@ -246,6 +250,8 @@ class ResultEntry {
    unsigned int             PacketSize;
    unsigned int             ResponseSize;
    uint16_t                 Checksum;
+   uint16_t                 SourcePort;
+   uint16_t                 DestinationPort;
 
    boost::asio::ip::address Source;
    DestinationInfo          Destination;

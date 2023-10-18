@@ -293,7 +293,8 @@ unsigned int UDPModule::sendRequest(const DestinationInfo& destination,
          resultEntryArray[currentEntry]->initialise(
             TimeStampSeqID,
             round, seqNumber, ttl, ActualPacketSize,
-            (uint16_t)targetChecksumArray[round], sendTime,
+            0, localEndpoint.port(), DestinationPort,
+            sendTime,
             localEndpoint.address(), destination, Unknown
          );
          if( (!errorCodeArray[currentEntry]) && (sentArray[currentEntry] > 0) ) {

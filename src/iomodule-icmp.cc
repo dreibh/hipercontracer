@@ -336,7 +336,8 @@ unsigned int ICMPModule::sendRequest(const DestinationInfo& destination,
          resultEntryArray[currentEntry]->initialise(
             TimeStampSeqID,
             round, seqNumber, ttl, ActualPacketSize,
-            (uint16_t)targetChecksumArray[round], sendTime,
+            (uint16_t)targetChecksumArray[round], 0, 0,
+            sendTime,
             localEndpoint.address(), destination, Unknown
          );
          if( (!errorCodeArray[currentEntry]) && (sentArray[currentEntry] > 0) ) {

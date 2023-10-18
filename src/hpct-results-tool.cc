@@ -221,14 +221,16 @@ void checkFormat(boost::iostreams::filtering_ostream* outputStream,
             "PacketSize "            // 07: Packet size, in bytes (decimal; 0 if unknown)
             "ResponseSize "          // 08: Response size, in bytes (decimal; 0 if unknown)
             "Checksum "              // 09: Checksum (hexadecimal)
-            "Status "                // 10: Status (decimal)
-            "TimeSource "            // 11: Source of the timing information (hexadecimal) as: AAQQSSHH
-            "Delay.AppSend "         // 12: The measured application send delay (nanoseconds, decimal; -1 if not available).
-            "Delay.Queuing "         // 13: The measured kernel software queuing delay (nanoseconds, decimal; -1 if not available).
-            "Delay.AppReceive "      // 14: The measured application receive delay (nanoseconds, decimal; -1 if not available).
-            "RTT.App "               // 15: The measured application RTT (nanoseconds, decimal).
-            "RTT.SW "                // 16: The measured kernel software RTT (nanoseconds, decimal; -1 if not available).
-            "RTT.HW";                // 17: The measured kernel hardware RTT (nanoseconds, decimal; -1 if not available).
+            "SourcePort "            // 10: Checksum (hexadecimal)
+            "DestinationPort "       // 11: Checksum (hexadecimal)
+            "Status "                // 12: Status (decimal)
+            "TimeSource "            // 13: Source of the timing information (hexadecimal) as: AAQQSSHH
+            "Delay.AppSend "         // 14: The measured application send delay (nanoseconds, decimal; -1 if not available).
+            "Delay.Queuing "         // 15: The measured kernel software queuing delay (nanoseconds, decimal; -1 if not available).
+            "Delay.AppReceive "      // 16: The measured application receive delay (nanoseconds, decimal; -1 if not available).
+            "RTT.App "               // 17: The measured application RTT (nanoseconds, decimal).
+            "RTT.SW "                // 18: The measured kernel software RTT (nanoseconds, decimal; -1 if not available).
+            "RTT.HW";                // 19: The measured kernel hardware RTT (nanoseconds, decimal; -1 if not available).
       }
 
       // ====== Traceroute  =================================================
@@ -236,31 +238,33 @@ void checkFormat(boost::iostreams::filtering_ostream* outputStream,
          columnNames =
             "Traceroute "            // 00: "#T<p>"
             "MeasurementID "         // 01: Measurement ID
-            "SourceIP "               // Source IP address
-            "DestinationIP "          // Destination IP address
+            "SourceIP "              // Source IP address
+            "DestinationIP "         // Destination IP address
             "Timestamp "             // 04: Absolute time since the epoch in UTC, in microseconds (hexadecimal)
             "RoundNumber "           // 05: Round number (decimal)
             "TotalHops "             // 06: Total hops (decimal)
             "TrafficClass "          // 07: Traffic Class setting (hexadecimal)
             "PacketSize "            // 08: Packet size, in bytes (decimal)
             "Checksum "              // 09: Checksum (hexadecimal)
-            "StatusFlags "           // 10: Status flags (hexadecimal)
-            "PathHash "              // 11: Hash of the path (hexadecimal)
+            "SourcePort "            // 10: Checksum (hexadecimal)
+            "DestinationPort "       // 11: Checksum (hexadecimal)
+            "StatusFlags "           // 12: Status flags (hexadecimal)
+            "PathHash "              // 13: Hash of the path (hexadecimal)
 
-            "TAB "                   // 12: NOTE: must be "\t" from combination above!
+            "TAB "                   // 14: NOTE: must be "\t" from combination above!
 
-            "SendTimestamp "         // 13: Timestamp (nanoseconds since the UTC epoch, hexadecimal) for the request to this hop.
-            "HopNumber "             // 14: Number of the hop.
-            "ResponseSize "          // 15: Response size, in bytes (decimal)
-            "Status "                // 16: Status code (decimal!)
-            "TimeSource "            // 17: Source of the timing information (hexadecimal) as: AAQQSSHH
-            "Delay.AppSend "         // 18: The measured application send delay (nanoseconds, decimal; -1 if not available).
-            "Delay.Queuing "         // 19: The measured kernel software queuing delay (nanoseconds, decimal; -1 if not available).
-            "Delay.AppReceive "      // 20: The measured application receive delay (nanoseconds, decimal; -1 if not available).
-            "RTT.App "               // 21: The measured application RTT (nanoseconds, decimal).
-            "RTT.SW "                // 22: The measured kernel software RTT (nanoseconds, decimal; -1 if not available).
-            "RTT.HW "                // 23: The measured kernel hardware RTT (nanoseconds, decimal; -1 if not available).
-            "HopIP";                 // 24: Hop IP address.
+            "SendTimestamp "         // 15: Timestamp (nanoseconds since the UTC epoch, hexadecimal) for the request to this hop.
+            "HopNumber "             // 16: Number of the hop.
+            "ResponseSize "          // 17: Response size, in bytes (decimal)
+            "Status "                // 18: Status code (decimal!)
+            "TimeSource "            // 19: Source of the timing information (hexadecimal) as: AAQQSSHH
+            "Delay.AppSend "         // 20: The measured application send delay (nanoseconds, decimal; -1 if not available).
+            "Delay.Queuing "         // 21: The measured kernel software queuing delay (nanoseconds, decimal; -1 if not available).
+            "Delay.AppReceive "      // 22: The measured application receive delay (nanoseconds, decimal; -1 if not available).
+            "RTT.App "               // 23: The measured application RTT (nanoseconds, decimal).
+            "RTT.SW "                // 24: The measured kernel software RTT (nanoseconds, decimal; -1 if not available).
+            "RTT.HW "                // 25: The measured kernel hardware RTT (nanoseconds, decimal; -1 if not available).
+            "HopIP";                 // 26: Hop IP address.
       }
 
       // ====== Jitter ======================================================
@@ -327,7 +331,7 @@ void checkFormat(boost::iostreams::filtering_ostream* outputStream,
    if(format.Type == InputType::IT_Ping) {
       // ------ Ping, Version 2 ---------------------------------------------
       if(line[2] != ' ') {
-         if(inputColumns >= 18) {
+         if(inputColumns >= 20) {
             format.Protocol = (InputProtocol)line[2];
             format.Version  = 2;
          }
