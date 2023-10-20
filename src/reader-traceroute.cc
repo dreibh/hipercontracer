@@ -286,7 +286,7 @@ uint16_t TracerouteReader::parsePort(const std::string&           value,
    size_t        index = 0;
    unsigned long port  = 0;
    try {
-      port = std::stoul(value, &index, 16);
+      port = std::stoul(value, &index, 10);
    } catch(...) { }
    if(index != value.size()) {
       throw ResultsReaderDataErrorException("Bad port format " + value +

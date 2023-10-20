@@ -1,7 +1,5 @@
 debian/tmp/usr/share/doc/hipercontracer/examples/HiPerConTracer.R
-debian/tmp/usr/share/doc/hipercontracer/examples/Jitter-*.results.*
-debian/tmp/usr/share/doc/hipercontracer/examples/Ping-*.results.*
+debian/tmp/usr/share/doc/hipercontracer/examples/*-*.results.*
 debian/tmp/usr/share/doc/hipercontracer/examples/README.md
-debian/tmp/usr/share/doc/hipercontracer/examples/Traceroute-*.results.*
 debian/tmp/usr/share/doc/hipercontracer/examples/r-ping-example
 debian/tmp/usr/share/doc/hipercontracer/examples/r-traceroute-example
