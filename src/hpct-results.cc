@@ -221,8 +221,8 @@ void checkFormat(boost::iostreams::filtering_ostream* outputStream,
             "PacketSize "            // 07: Packet size, in bytes (decimal; 0 if unknown)
             "ResponseSize "          // 08: Response size, in bytes (decimal; 0 if unknown)
             "Checksum "              // 09: Checksum (hexadecimal)
-            "SourcePort "            // 10: Checksum (hexadecimal)
-            "DestinationPort "       // 11: Checksum (hexadecimal)
+            "SourcePort "            // 10: Source port (decimal)
+            "DestinationPort "       // 11: Destination port (decimal)
             "Status "                // 12: Status (decimal)
             "TimeSource "            // 13: Source of the timing information (hexadecimal) as: AAQQSSHH
             "Delay.AppSend "         // 14: The measured application send delay (nanoseconds, decimal; -1 if not available).
@@ -246,8 +246,8 @@ void checkFormat(boost::iostreams::filtering_ostream* outputStream,
             "TrafficClass "          // 07: Traffic Class setting (hexadecimal)
             "PacketSize "            // 08: Packet size, in bytes (decimal)
             "Checksum "              // 09: Checksum (hexadecimal)
-            "SourcePort "            // 10: Checksum (hexadecimal)
-            "DestinationPort "       // 11: Checksum (hexadecimal)
+            "SourcePort "            // 10: Source port (decimal)
+            "DestinationPort "       // 11: Destination port (decimal)
             "StatusFlags "           // 12: Status flags (hexadecimal)
             "PathHash "              // 13: Hash of the path (hexadecimal)
 
@@ -271,41 +271,43 @@ void checkFormat(boost::iostreams::filtering_ostream* outputStream,
       else if(format.Type == InputType::IT_Jitter) {
          format.Protocol = (InputProtocol)line[2];
          columnNames =
-            "Jitter "                 // "#J<p>"
-            "MeasurementID "          // Measurement ID
-            "SourceIP "               // Source IP address
-            "DestinationIP "          // Destination IP address
-            "Timestamp "              // Timestamp (nanoseconds since the UTC epoch, hexadecimal).
-            "BurstSeq "               // Sequence number within a burst (decimal), numbered from 0.
-            "TrafficClass "           // Traffic Class setting (hexadecimal)
-            "PacketSize "             // Packet size, in bytes (decimal)
-            "Checksum "               // Checksum (hexadecimal)
-            "Status "                 // Status (decimal)
-            "TimeSource "             // Source of the timing information (hexadecimal) as: AAQQSSHH
+            "Jitter "                 // 00: "#J<p>"
+            "MeasurementID "          // 01: Measurement ID
+            "SourceIP "               // 02: Source IP address
+            "DestinationIP "          // 03: Destination IP address
+            "Timestamp "              // 04: Timestamp (nanoseconds since the UTC epoch, hexadecimal).
+            "BurstSeq "               // 05: Sequence number within a burst (decimal), numbered from 0.
+            "TrafficClass "           // 06: Traffic Class setting (hexadecimal)
+            "PacketSize "             // 07: Packet size, in bytes (decimal)
+            "Checksum "               // 08: Checksum (hexadecimal)
+            "SourcePort "             // 09: Source port (decimal)
+            "DestinationPort "        // 10: Destination port (decimal)
+            "Status "                 // 11: Status (decimal)
+            "TimeSource "             // 12: Source of the timing information (hexadecimal) as: AAQQSSHH
 
-            "Packets.AppSend "        // Number of packets for application send jitter/mean RTT computation
-            "MeanDelay.AppSend "      // Mean application send
-            "Jitter.AppSend "         // Jitter of application send (computed based on RFC 3550, Subsubsection 6.4.1)
+            "Packets.AppSend "        // 13: Number of packets for application send jitter/mean RTT computation
+            "MeanDelay.AppSend "      // 14: Mean application send
+            "Jitter.AppSend "         // 15: Jitter of application send (computed based on RFC 3550, Subsubsection 6.4.1)
 
-            "Packets.Queuing "        // Number of packets for queuing jitter/mean RTT computation
-            "MeanDelay.Queuing "      // Mean queuing
-            "Jitter.Queuing "         // Jitter of queuing (computed based on RFC 3550, Subsubsection 6.4.1)
+            "Packets.Queuing "        // 16: Number of packets for queuing jitter/mean RTT computation
+            "MeanDelay.Queuing "      // 17: Mean queuing
+            "Jitter.Queuing "         // 18: Jitter of queuing (computed based on RFC 3550, Subsubsection 6.4.1)
 
-            "Packets.AppReceive "     // Number of packets for application receive jitter/mean RTT computation
-            "MeanDelay.AppReceive "   // Mean application receive
-            "Jitter.AppReceive "      // Jitter of application receive (computed based on RFC 3550, Subsubsection 6.4.1)
+            "Packets.AppReceive "     // 19: Number of packets for application receive jitter/mean RTT computation
+            "MeanDelay.AppReceive "   // 20: Mean application receive
+            "Jitter.AppReceive "      // 21: Jitter of application receive (computed based on RFC 3550, Subsubsection 6.4.1)
 
-            "Packets.App "            // Number of packets for application RTT jitter/mean RTT computation
-            "MeanRTT.App "            // Mean application RTT
-            "Jitter.App "             // Jitter of application RTT (computed based on RFC 3550, Subsubsection 6.4.1)
+            "Packets.App "            // 22: Number of packets for application RTT jitter/mean RTT computation
+            "MeanRTT.App "            // 23: Mean application RTT
+            "Jitter.App "             // 24: Jitter of application RTT (computed based on RFC 3550, Subsubsection 6.4.1)
 
-            "Packets.SW "             // Number of packets for kernel software RTT jitter/mean RTT computation
-            "MeanRTT.SW "             // Mean kernel software RTT
-            "Jitter.SW "              // Jitter of kernel software RTT (computed based on RFC 3550, Subsubsection 6.4.1)
+            "Packets.SW "             // 25: Number of packets for kernel software RTT jitter/mean RTT computation
+            "MeanRTT.SW "             // 26: Mean kernel software RTT
+            "Jitter.SW "              // 27: Jitter of kernel software RTT (computed based on RFC 3550, Subsubsection 6.4.1)
 
-            "Packets.HW "             // Number of packets for kernel hardware RTT jitter/mean RTT computation
-            "MeanRTT.HW "             // Mean kernel hardware RTT
-            "Jitter.HW";              // Jitter of kernel hardware RTT (computed based on RFC 3550, Subsubsection 6.4.1)
+            "Packets.HW "             // 28: Number of packets for kernel hardware RTT jitter/mean RTT computation
+            "MeanRTT.HW "             // 29: Mean kernel hardware RTT
+            "Jitter.HW";              // 30: Jitter of kernel hardware RTT (computed based on RFC 3550, Subsubsection 6.4.1)
       }
 
       // ====== Error =======================================================
