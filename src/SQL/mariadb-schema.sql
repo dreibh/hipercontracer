@@ -39,6 +39,9 @@
 -- 2. MySQL/MariaDB does not support an INET datatype, just INET4 and INET6.
 --    Addresses are stored as INET6, IPv4 addresses are handled as
 --    IPv4-mapped IPv6 addesses (::ffff:a.b.c.d)!
+-- 3. Enabling page compression (PAGE_COMPRESSED=1):
+--    To check space saved:
+--    SHOW GLOBAL STATUS LIKE 'Innodb_page_compression_saved';
 -- ##########################################################################
 
 
@@ -69,6 +72,7 @@ CREATE TABLE Ping (
 
    PRIMARY KEY (SendTimestamp, MeasurementID, SourceIP, DestinationIP, Protocol, TrafficClass, BurstSeq)
 )
+PAGE_COMPRESSED=1   -- Enable page compression!
 PARTITION BY RANGE ( SendTimestamp ) (
    PARTITION p2022 VALUES LESS THAN ( 1000000000 * UNIX_TIMESTAMP('2023-01-01') ),
    PARTITION p2023 VALUES LESS THAN ( 1000000000 * UNIX_TIMESTAMP('2024-01-01') ),
@@ -112,6 +116,7 @@ CREATE TABLE Traceroute (
 
    PRIMARY KEY (Timestamp, MeasurementID, SourceIP, DestinationIP, Protocol, TrafficClass, RoundNumber, HopNumber)
 )
+PAGE_COMPRESSED=1   -- Enable page compression!
 PARTITION BY RANGE ( Timestamp ) (
    PARTITION p2022 VALUES LESS THAN ( 1000000000 * UNIX_TIMESTAMP('2023-01-01') ),
    PARTITION p2023 VALUES LESS THAN ( 1000000000 * UNIX_TIMESTAMP('2024-01-01') ),
