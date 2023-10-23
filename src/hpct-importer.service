@@ -30,28 +30,37 @@
 #  Contact: dreibh@simula.no
 
 [Unit]
-Description=UDP Echo Server
-Documentation=man:udp-echo-server(1)
-After=network.target
+Description=HiPerConTracer Importer
+Documentation=man:hpct-importer(1)
+After=network-online.target
+Wants=network-online.target
 
 [Service]
 Type=simple
-# Will change to user "nobody" after startup
-User=root
-KillMode=process
-Restart=on-failure
-EnvironmentFile=/etc/hipercontracer/udp-echo-server.conf
-ExecStart=/usr/bin/udp-echo-server \
-   --from-port ${FROM_PORT} \
-   --to-port ${TO_PORT} \
-   --user nobody
-CPUSchedulingPolicy=fifo
-CPUSchedulingPriority=99
-IOSchedulingClass=realtime
+User=hipercontracer
+Group=hipercontracer
+WorkingDirectory=/var/hipercontracer
+EnvironmentFile=/etc/hipercontracer/hpct-importer.conf
 
+ExecStart=/usr/bin/hpct-importer \
+   -c ${CONFIG} \
+   --import-file-path-filter "${IMPORT_FILTER}" \
+   --loglevel ${LOGLEVEL} \
+   --ping-workers ${PING_WORKERS} \
+   --ping-files ${PING_FILES} \
+   --traceroute-workers ${TRACEROUTE_WORKERS} \
+   --traceroute-files ${TRACEROUTE_FILES}
+
+KillSignal=SIGINT
+KillMode=control-group
+TimeoutStopSec=60
+Restart=on-failure
+RestartSec=300
+
+PrivateNetwork=no
 PrivateTmp=yes
 InaccessibleDirectories=/home
-# CapabilityBoundingSet=
+CapabilityBoundingSet=
 
 [Install]
 WantedBy=multi-user.target
