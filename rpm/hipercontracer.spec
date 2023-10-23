@@ -287,7 +287,7 @@ reading them into spreadsheets, analysis tools, etc.
 %{_bindir}/hpct-results
 %{_bindir}/pipe-checksum
 %{_mandir}/man1/hpct-results.1.gz
-%{_mandir}/man1/pipe-checksum
+%{_mandir}/man1/pipe-checksum.1.gz
 
 
 %package hipercontracer-udp-echo-server
