@@ -182,6 +182,8 @@ IF (WITH_IMPORTER)
    TARGET_LINK_LIBRARIES(hpct-importer libuniversalimporter-${libraryType} ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} -llzma -lbz2 -lz)
    INSTALL(TARGETS hpct-importer RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
    INSTALL(FILES hpct-importer.1 DESTINATION ${CMAKE_INSTALL_MANDIR}/man1)
+   INSTALL(FILES hpct-importer.service DESTINATION /lib/systemd/system)
+   INSTALL(FILES hpct-importer.conf    DESTINATION /etc/hipercontracer)
 ENDIF()
 
 # ====== HiPerConTracer Query Tool ==========================================
