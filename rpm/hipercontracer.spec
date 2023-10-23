@@ -17,6 +17,7 @@ BuildRequires: gcc-c++
 BuildRequires: libbson-devel
 BuildRequires: libpqxx-devel
 BuildRequires: mongo-c-driver-devel
+BuildRequires: openssl-devel
 BuildRequires: xz-devel
 BuildRequires: zlib-devel
 # Not provided by Fedora:
@@ -43,16 +44,27 @@ imported into an SQL or NoSQL database.
 %cmake_build
 
 %pre
+# Make sure the administrative user exists
 if ! getent group hipercontracer >/dev/null 2>&1; then
    groupadd -r hipercontracer
 fi
 if ! getent passwd hipercontracer >/dev/null 2>&1; then
-   useradd -M -g hipercontracer -r -d / -s /sbin/nologin -c "HiPerConTracer User" hipercontracer
+   useradd -M -g hipercontracer -r -d /var/hipercontracer -s /sbin/nologin -c "HiPerConTracer User" hipercontracer
 fi
 
+# Make data directory
+mkdir -p /var/hipercontracer
+mkdir -p -m 755 /var/hipercontracer/data /var/hipercontracer/good /var/hipercontracer/bad
+chown hipercontracer:hipercontracer /var/hipercontracer/data /var/hipercontracer/good /var/hipercontracer/bad || true
+
 %postun
+# Remove administrative user
 userdel hipercontracer >/dev/null 2>&1 || true
 groupdel hipercontracer >/dev/null 2>&1 || true
+
+# Remove data directory (if empty)
+rmdir /var/hipercontracer/data /var/hipercontracer/good /var/hipercontracer/bad || true
+rmdir /var/hipercontracer >/dev/null 2>&1 || true
 
 %install
 %cmake_install
@@ -67,29 +79,6 @@ groupdel hipercontracer >/dev/null 2>&1 || true
 %{_datadir}/doc/hipercontracer/examples/README.md
 %{_datadir}/doc/hipercontracer/examples/r-ping-example
 %{_datadir}/doc/hipercontracer/examples/r-traceroute-example
-
-%pre
-# Make sure the administrative user exists
-if ! getent group hipercontracer >/dev/null 2>&1; then
-   groupadd -r hipercontracer
-fi
-if ! getent passwd hipercontracer >/dev/null 2>&1; then
-   useradd -M -g hipercontracer -r -d /var/hipercontracer -s /sbin/nologin -c "HiPerConTracer User" hipercontracer
-fi
-
-# Make data directory
-mkdir -p /var/hipercontracer
-mkdir -p -m 755 /var/hipercontracer/data /var/hipercontracer/good /var/hipercontracer/bad
-chown hipercontracer:hipercontracer /var/hipercontracer/data /var/hipercontracer/good /var/hipercontracer/bad || true
-
-%postrun
-# Remove administrative user
-userdel hipercontracer >/dev/null 2>&1 || true
-groupdel hipercontracer >/dev/null 2>&1 || true
-
-# Remove data directory (if empty)
-rmdir /var/hipercontracer/data /var/hipercontracer/good /var/hipercontracer/bad || true
-rmdir /var/hipercontracer >/dev/null 2>&1 || true
 
 
 %package libhipercontracer
@@ -296,7 +285,9 @@ reading them into spreadsheets, analysis tools, etc.
 
 %files hipercontracer-results
 %{_bindir}/hpct-results
+%{_bindir}/pipe-checksum
 %{_mandir}/man1/hpct-results.1.gz
+%{_mandir}/man1/pipe-checksum
 
 
 %package hipercontracer-udp-echo-server
