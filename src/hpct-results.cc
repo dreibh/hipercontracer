@@ -285,17 +285,17 @@ void checkFormat(boost::iostreams::filtering_ostream* outputStream,
             "Status "                 // 11: Status (decimal)
             "TimeSource "             // 12: Source of the timing information (hexadecimal) as: AAQQSSHH
 
-            "Packets.AppSend "        // 13: Number of packets for application send jitter/mean RTT computation
-            "MeanDelay.AppSend "      // 14: Mean application send
-            "Jitter.AppSend "         // 15: Jitter of application send (computed based on RFC 3550, Subsubsection 6.4.1)
+            "Packets.AppSend "        // 13: Number of packets for application send delay jitter/mean RTT computation
+            "MeanDelay.AppSend "      // 14: Mean application send delay
+            "Jitter.AppSend "         // 15: Jitter of application send delay (computed based on RFC 3550, Subsubsection 6.4.1)
 
-            "Packets.Queuing "        // 16: Number of packets for queuing jitter/mean RTT computation
-            "MeanDelay.Queuing "      // 17: Mean queuing
-            "Jitter.Queuing "         // 18: Jitter of queuing (computed based on RFC 3550, Subsubsection 6.4.1)
+            "Packets.Queuing "        // 16: Number of packets for queuing delay jitter/mean RTT computation
+            "MeanDelay.Queuing "      // 17: Mean queuing delay
+            "Jitter.Queuing "         // 18: Jitter of queuing delay (computed based on RFC 3550, Subsubsection 6.4.1)
 
-            "Packets.AppReceive "     // 19: Number of packets for application receive jitter/mean RTT computation
-            "MeanDelay.AppReceive "   // 20: Mean application receive
-            "Jitter.AppReceive "      // 21: Jitter of application receive (computed based on RFC 3550, Subsubsection 6.4.1)
+            "Packets.AppReceive "     // 19: Number of packets for application receive delay jitter/mean RTT computation
+            "MeanDelay.AppReceive "   // 20: Mean application receive delay
+            "Jitter.AppReceive "      // 21: Jitter of application receive delay (computed based on RFC 3550, Subsubsection 6.4.1)
 
             "Packets.App "            // 22: Number of packets for application RTT jitter/mean RTT computation
             "MeanRTT.App "            // 23: Mean application RTT
