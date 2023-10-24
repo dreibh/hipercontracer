@@ -107,6 +107,7 @@ CREATE TABLE Traceroute (
 CREATE INDEX TracerouteRelationIndex ON PingTracerouteDB.Traceroute (MeasurementID ASC, DestinationIP ASC, Timestamp ASC);
 
 
+-- ###### Jitter ############################################################
 DROP TABLE IF EXISTS Jitter;
 CREATE TABLE Jitter (
    Timestamp            BIGINT      NOT NULL,              -- Timestamp *for sorting* (nanoseconds since 1970-01-01, 00:00:00 UTC)
