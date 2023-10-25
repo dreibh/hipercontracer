@@ -51,17 +51,19 @@ def execute(command, mayFail = False):
 
 
 # ###### CA #################################################################
-GlobalCRLSet      = set([])
-GlobalCRLFileName = 'TestGlobal.crl'
+GlobalCRLSet             = set([])
+DefaultGlobalCRLFileName = 'Test.crl'
 
 class CA:
    # ###### Constructor #####################################################
    def __init__(self, mainDirectory, name, parentCA, subject, certType,
-                days = 10 * 365, keyLength = DefaultCAKeyLength):
+                days = 10 * 365, keyLength = DefaultCAKeyLength,
+                globalCRLFileName = DefaultGlobalCRLFileName):
       sys.stdout.write('\x1b[34mCreating CA ' + name + ' ...\x1b[0m\n')
 
       self.MainDirectory     = os.path.abspath(mainDirectory)
       self.Directory         = os.path.join(self.MainDirectory, name)
+      self.GlobalCRLFileName = os.path.join(self.MainDirectory, globalCRLFileName)
       self.ParentCA          = parentCA
       self.Subject           = subject
       self.CAName            = name
@@ -403,7 +405,7 @@ subjectAltName         = ${ENV::SAN}
       assert(os.path.isfile(self.CRLFileName))
 
       # ====== Update global CRL ============================================
-      self.generateGlobalCRL(os.path.join(self.MainDirectory, GlobalCRLFileName))
+      self.generateGlobalCRL(self.GlobalCRLFileName)
 
 
    # ###### Generate global CRL #############################################
