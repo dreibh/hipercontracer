@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 #
-# Create Test CA Hierarchy and Test Certificates
+# Create CA Hierarchy and Certificates
 # Copyright (C) 2022-2023 by Thomas Dreibholz
 #
 # This program is free software: you can redistribute it and/or modify
