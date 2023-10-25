@@ -56,10 +56,11 @@ GlobalCRLFileName = 'TestGlobal.crl'
 
 class CA:
    # ###### Constructor #####################################################
-   def __init__(self, mainDirectory, name, parentCA, subject, certType):
+   def __init__(self, mainDirectory, name, parentCA, subject, certType,
+                days = 10 * 365, keyLength = DefaultCAKeyLength):
       sys.stdout.write('\x1b[34mCreating CA ' + name + ' ...\x1b[0m\n')
 
-      self.MainDirectory     = mainDirectory
+      self.MainDirectory     = os.path.abspath(mainDirectory)
       self.Directory         = os.path.join(self.MainDirectory, name)
       self.ParentCA          = parentCA
       self.Subject           = subject
@@ -74,8 +75,8 @@ class CA:
       else:
          raise Exception('Invalid certificate type')
 
-      self.DefaultDays       = 10*365
-      self.KeyLength         = DefaultCAKeyLength
+      self.DefaultDays       = days
+      self.KeyLength         = keyLength
 
       self.CertsDirectory    = os.path.join(self.Directory, 'certs')
       self.NewCertsDirectory = os.path.join(self.Directory, 'newcerts')
@@ -418,10 +419,11 @@ subjectAltName         = ${ENV::SAN}
 
 # ###### Server/User Certificate ############################################
 class Certificate:
-   def __init__(self, mainDirectory, name, ca, subjectWithoutCN, subjectAltName, certType = CRT_Server):
+   def __init__(self, mainDirectory, name, ca, subjectWithoutCN, subjectAltName,
+                certType = CRT_Server, keyLength = DefaultCertKeyLength):
       sys.stdout.write('\x1b[34mCreating server ' + name + ' ...\x1b[0m\n')
 
-      self.Directory      = os.path.join(mainDirectory, name)
+      self.Directory      = os.path.join(os.path.abspath(mainDirectory), name)
       self.CA             = ca
       self.Subject        = subjectWithoutCN + '/CN=' + name
       self.SubjectAltName = subjectAltName
@@ -433,7 +435,7 @@ class Certificate:
       else:
          raise Exception('Invalid certificate type')
 
-      self.KeyLength     = DefaultCertKeyLength
+      self.KeyLength     = keyLength
       self.KeyFileName   = os.path.join(self.Directory, name + '.key')
       self.CSRFileName   = os.path.join(self.Directory, name + '.csr')
       self.CertFileName  = os.path.join(self.Directory, name + '.crt')
