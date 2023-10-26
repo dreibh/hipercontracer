@@ -214,7 +214,7 @@ int main(int argc, char** argv)
    std::filesystem::path    resultsDirectory;
    std::string              resultsCompressionString;
    ResultsWriterCompressor  resultsCompression;
-   unsigned int             resultsFormat;
+   unsigned int             resultsFormatVersion;
 
    boost::program_options::options_description commandLineOptions;
    commandLineOptions.add_options()
@@ -339,7 +339,7 @@ int main(int argc, char** argv)
            boost::program_options::value<std::string>(&resultsCompressionString)->default_value(std::string("XZ")),
            "Results compression" )
       ( "resultsformat,F",
-           boost::program_options::value<unsigned int>(&resultsFormat)->default_value(OutputFormatType::OFT_HiPerConTracer_Version2),
+           boost::program_options::value<unsigned int>(&resultsFormatVersion)->default_value(OutputFormatVersionType::OFT_HiPerConTracer_Version2),
            "Results format version" )
     ;
 
@@ -404,9 +404,9 @@ int main(int argc, char** argv)
       std::cerr << "ERROR: Invalid MeasurementID setting: " << measurementID << "\n";
       return 1;
    }
-   if( (resultsFormat < OutputFormatType::OFT_Min) ||
-       (resultsFormat > OutputFormatType::OFT_Max) ) {
-      std::cerr << "ERROR: Invalid results format version: " << resultsFormat << "\n";
+   if( (resultsFormatVersion < OutputFormatVersionType::OFT_Min) ||
+       (resultsFormatVersion > OutputFormatVersionType::OFT_Max) ) {
+      std::cerr << "ERROR: Invalid results format version: " << resultsFormatVersion << "\n";
       return 1;
    }
    if(jitterExpiration >= jitterInterval) {
@@ -549,7 +549,7 @@ int main(int argc, char** argv)
                   }
                }
                Service* service = new Jitter(ioModule,
-                                             resultsWriter, (OutputFormatType)resultsFormat,
+                                             resultsWriter, "Jitter", (OutputFormatVersionType)resultsFormatVersion,
                                              iterations, false,
                                              sourceAddress, destinationsForSource,
                                              jitterRecordRawResults,
@@ -582,7 +582,7 @@ int main(int argc, char** argv)
                   }
                }
                Service* service = new Ping(ioModule,
-                                           resultsWriter, (OutputFormatType)resultsFormat,
+                                           resultsWriter, "Ping", (OutputFormatVersionType)resultsFormatVersion,
                                            iterations, false,
                                            sourceAddress, destinationsForSource,
                                            pingInterval, pingExpiration,
@@ -614,7 +614,7 @@ int main(int argc, char** argv)
                   }
                }
                Service* service = new Traceroute(ioModule,
-                                                 resultsWriter, (OutputFormatType)resultsFormat,
+                                                 resultsWriter, "Traceroute", (OutputFormatVersionType)resultsFormatVersion,
                                                  iterations, false,
                                                  sourceAddress, destinationsForSource,
                                                  tracerouteInterval, tracerouteExpiration,

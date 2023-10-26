@@ -56,12 +56,16 @@ class ResultsWriter
    ResultsWriter(const unsigned int            measurementID,
                  const std::string&            directory,
                  const std::string&            uniqueID,
-                 const std::string&            resultsFormat,
+                 const std::string&            prefix,
                  const unsigned int            transactionLength,
                  const uid_t                   uid,
                  const gid_t                   gid,
-                 const ResultsWriterCompressor compressor);
+                 const ResultsWriterCompressor compressor,
+                 const char*                   program);
    virtual ~ResultsWriter();
+
+   void specifyOutputFormat(const std::string& outputFormatName,
+                            const unsigned int outputFormatVersion);
 
    inline unsigned int measurementID() const {
       return MeasurementID;
@@ -75,21 +79,23 @@ class ResultsWriter
    static ResultsWriter* makeResultsWriter(std::set<ResultsWriter*>&       resultsWriterSet,
                                            const unsigned int              measurementID,
                                            const boost::asio::ip::address& sourceAddress,
-                                           const std::string&              resultsFormat,
+                                           const std::string&              resultsPrefix,
                                            const std::string&              resultsDirectory,
                                            const unsigned int              resultsTransactionLength,
                                            const uid_t                     uid,
                                            const gid_t                     gid,
-                                           const ResultsWriterCompressor   compressor = BZip2);
+                                           const ResultsWriterCompressor   compressor = BZip2,
+                                           const char*                     program    = "HiPerConTracer");
 
    protected:
    const unsigned int                    MeasurementID;
    const boost::filesystem::path         Directory;
-   const std::string                     FormatName;
+   const std::string                     Prefix;
    const unsigned int                    TransactionLength;
    const uid_t                           UID;
    const gid_t                           GID;
    const ResultsWriterCompressor         Compressor;
+   const std::string                     Program;
 
    std::string                           UniqueID;
    boost::filesystem::path               TempFileName;
@@ -99,6 +105,8 @@ class ResultsWriter
    std::ofstream                         OutputFile;
    boost::iostreams::filtering_ostream   OutputStream;
    std::chrono::steady_clock::time_point OutputCreationTime;
+   std::string                           OutputFormatName;
+   unsigned int                          OutputFormatVersion;
 };
 
 #endif

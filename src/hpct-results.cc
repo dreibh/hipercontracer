@@ -51,7 +51,7 @@
 #include <boost/iostreams/filter/gzip.hpp>
 #include <boost/iostreams/filter/lzma.hpp>
 #include <boost/program_options.hpp>
-
+#include <boost/tokenizer.hpp>
 
 
 struct OutputEntry
@@ -100,7 +100,6 @@ enum InputProtocol
 struct InputFormat
 {
    InputType     Type;
-   InputProtocol Protocol;
    unsigned int  Version;
    std::string   String;
 };
@@ -202,13 +201,40 @@ void checkFormat(boost::iostreams::filtering_ostream* outputStream,
       exit(1);
    }
 
-   format.Version = 0;
    if(format.Type == InputType::IT_Unknown) {
-      std::string columnNames;
-      format.Type    = (InputType)line[1];
-      format.String  = line.substr(0, 3);
+      format.Version = 0;
+
+      // ====== Check for specified type and version ========================
+      if(line.substr(0, 8) == "#? HPCT ") {
+         boost::tokenizer<boost::char_separator<char>> tokens(line, boost::char_separator<char>(" "));
+         std::vector<std::string> tokensVector;
+         for (const auto& token : tokens) {
+            tokensVector.push_back(token);
+         }
+         if(tokensVector.size() >= 4) {
+            format.Version = (InputType)atoi(tokensVector[3].c_str());
+            if(tokensVector[2] == "Ping") {
+               format.Type   = InputType::IT_Ping;
+               format.String = "#P";
+            }
+            else if(tokensVector[2] == "Traceroute") {
+               format.Type   = InputType::IT_Traceroute;
+               format.String = "#T";
+            }
+            else if(tokensVector[2] == "Jitter") {
+               format.Type   = InputType::IT_Jitter;
+               format.String = "#J";
+            }
+         }
+      }
+      else {
+         // Guess format instead:
+         format.Type   = (InputType)line[1];
+         format.String = line.substr(0, 3);
+      }
 
       // ====== Ping ========================================================
+      std::string columnNames;
       if(format.Type == InputType::IT_Ping) {
          columnNames =
             "Ping "                  // 00: "#P<p>"
@@ -269,7 +295,6 @@ void checkFormat(boost::iostreams::filtering_ostream* outputStream,
 
       // ====== Jitter ======================================================
       else if(format.Type == InputType::IT_Jitter) {
-         format.Protocol = (InputProtocol)line[2];
          columnNames =
             "Jitter "                 // 00: "#J<p>"
             "MeasurementID "          // 01: Measurement ID
@@ -322,53 +347,52 @@ void checkFormat(boost::iostreams::filtering_ostream* outputStream,
    }
 
    // ====== Error ==========================================================
-   else if(format.String.substr(0, 2) != line.substr(0, 2)) {
+   else if( (format.String.substr(0, 2) != line.substr(0, 2)) &&
+            (line.substr(0, 2) != "#?") ) {
       HPCT_LOG(fatal) << "Incompatible format for merging ("
                         << line.substr(0, 2) << " vs. " << format.String.substr(0, 2) << ")"
                         << " in input file " << fileName;
       exit(1);
    }
 
-   // ====== Ping ===========================================================
-   if(format.Type == InputType::IT_Ping) {
-      // ------ Ping, Version 2 ---------------------------------------------
-      if(line[2] != ' ') {
-         if(inputColumns >= 20) {
-            format.Protocol = (InputProtocol)line[2];
-            format.Version  = 2;
+   // ====== Guess version, if not specified ================================
+   if(format.Version == 0) {
+      // ====== Ping ========================================================
+      if(format.Type == InputType::IT_Ping) {
+         // ------ Ping, Version 2 ------------------------------------------
+         if(line[2] != ' ') {
+            if(inputColumns >= 20) {
+               format.Version = 2;
+            }
+         }
+         // ------ Ping, Version 1 ------------------------------------------
+         else {
+            if(inputColumns >= 7) {
+               format.Version = 1;
+            }
          }
       }
-      // ------ Ping, Version 1 ---------------------------------------------
-      else {
-         if(inputColumns >= 7) {
-            format.Protocol = InputProtocol::IP_ICMP;
-            format.Version  = 1;
-         }
-      }
-   }
 
-   // ====== Traceroute =====================================================
-   else if(format.Type == InputType::IT_Traceroute) {
-      // ------ Traceroute, Version 2 ---------------------------------------
-      if(line[2] != ' ') {
-         if(inputColumns >= 12) {
-            format.Protocol = (InputProtocol)line[2];
-            format.Version  = 2;
+      // ====== Traceroute ==================================================
+      else if(format.Type == InputType::IT_Traceroute) {
+         // ------ Traceroute, Version 2 ------------------------------------
+         if(line[2] != ' ') {
+            if(inputColumns >= 12) {
+               format.Version = 2;
+            }
+         }
+         // ------ Traceroute, Version 1 ------------------------------------
+         else {
+            if(inputColumns >= 11) {
+               format.Version = 1;
+            }
          }
       }
-      // ------ Traceroute, Version 1 ---------------------------------------
-      else {
-         if(inputColumns >= 11) {
-            format.Protocol = InputProtocol::IP_ICMP;
-            format.Version  = 1;
-         }
-      }
-   }
 
-   // ====== Jitter =========================================================
-   else if(format.Type == InputType::IT_Jitter) {
-      format.Protocol = (InputProtocol)line[2];
-      format.Version  = 2;
+      // ====== Jitter ======================================================
+      else if(format.Type == InputType::IT_Jitter) {
+         format.Version = 2;
+      }
    }
 
    // ====== Error ==========================================================
@@ -424,13 +448,16 @@ bool dumpResultsFile(std::set<OutputEntry*, pointer_lessthan<OutputEntry>>* outp
       lineNumber++;
 
       // ====== #<line> =====================================================
-      if(line.size() < 1) {
+      if(line.size() < 2) {
          continue;
       }
       else if(line[0] == '#') {
          checkFormat(outputStream, fileName, format, columns, line, separator);
          if(checkOnly) {
             return true;
+         }
+         if(line[1] == '?') {
+            continue;   // #? ...
          }
 
          try {
@@ -799,7 +826,6 @@ int main(int argc, char** argv)
                    firstInputFileName, format, columns, separator,
                    inputResultsFromStdin ? false : true);
    HPCT_LOG(info) << "Format: Type=" << (char)format.Type
-                  << ", Protocol="   << (char)format.Protocol
                   << ", Version="    << format.Version;
 
    // ------  Use thread pool to read all files -----------------------------

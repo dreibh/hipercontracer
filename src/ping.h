@@ -40,7 +40,8 @@ class Ping : public Traceroute
    public:
    Ping(const std::string                moduleName,
         ResultsWriter*                   resultsWriter,
-        const OutputFormatType           outputFormat,
+        const char*                      outputFormatName,
+        const OutputFormatVersionType    outputFormatVersion,
         const unsigned int               iterations,
         const bool                       removeDestinationAfterRun,
         const boost::asio::ip::address&  sourceAddress,

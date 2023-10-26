@@ -47,19 +47,21 @@
 ResultsWriter::ResultsWriter(const unsigned int            measurementID,
                              const std::string&            directory,
                              const std::string&            uniqueID,
-                             const std::string&            resultsFormat,
+                             const std::string&            prefix,
                              const unsigned int            transactionLength,
                              const uid_t                   uid,
                              const gid_t                   gid,
-                             const ResultsWriterCompressor compressor)
+                             const ResultsWriterCompressor compressor,
+                             const char*                   program)
    : MeasurementID(measurementID),
      Directory(directory),
-     FormatName(resultsFormat),
+     Prefix(prefix),
      TransactionLength(transactionLength),
      UID(uid),
      GID(gid),
      Compressor(compressor),
-     UniqueID(uniqueID)
+     UniqueID(uniqueID),
+     Program(program)
 {
    Inserts   = 0;
    SeqNumber = 0;
@@ -70,6 +72,15 @@ ResultsWriter::ResultsWriter(const unsigned int            measurementID,
 ResultsWriter::~ResultsWriter()
 {
    changeFile(false);
+}
+
+
+// ###### Specifc output format #############################################
+void ResultsWriter::specifyOutputFormat(const std::string& outputFormatName,
+                                        const unsigned int outputFormatVersion)
+{
+   OutputFormatName    = outputFormatName;
+   OutputFormatVersion = outputFormatVersion;
 }
 
 
@@ -185,7 +196,14 @@ bool ResultsWriter::mayStartNewTransaction()
 // ###### Generate INSERT statement #########################################
 void ResultsWriter::insert(const std::string& tuple)
 {
-   OutputStream << tuple << std::endl;
+   if( (Inserts == 0) && (!OutputFormatName.empty()) ) {
+      // Write header
+      OutputStream << "#? HPCT "
+                   << OutputFormatName    << " "
+                   << OutputFormatVersion << " "
+                   << Program             << "\n";
+   }
+   OutputStream << tuple << "\n";
    Inserts++;
 }
 
@@ -194,16 +212,17 @@ void ResultsWriter::insert(const std::string& tuple)
 ResultsWriter* ResultsWriter::makeResultsWriter(std::set<ResultsWriter*>&       resultsWriterSet,
                                                 const unsigned int              measurementID,
                                                 const boost::asio::ip::address& sourceAddress,
-                                                const std::string&              resultsFormat,
+                                                const std::string&              resultsPrefix,
                                                 const std::string&              resultsDirectory,
                                                 const unsigned int              resultsTransactionLength,
                                                 const uid_t                     uid,
                                                 const gid_t                     gid,
-                                                const ResultsWriterCompressor   compressor)
+                                                const ResultsWriterCompressor   compressor,
+                                                const char*                     program)
 {
    if(!resultsDirectory.empty()) {
       std::string uniqueID =
-         resultsFormat + "-" +
+         resultsPrefix + "-" +
          ((measurementID != 0) ?
             "#" + std::to_string(measurementID) :
             "P" + std::to_string(boost::this_process::get_id())) + "-" +
@@ -212,8 +231,9 @@ ResultsWriter* ResultsWriter::makeResultsWriter(std::set<ResultsWriter*>&       
       replace(uniqueID.begin(), uniqueID.end(), ' ', '-');
 
       ResultsWriter* resultsWriter =
-         new ResultsWriter(measurementID, resultsDirectory, uniqueID, resultsFormat, resultsTransactionLength,
-                           uid, gid, compressor);
+         new ResultsWriter(measurementID, resultsDirectory, uniqueID,
+                           resultsPrefix, resultsTransactionLength,
+                           uid, gid, compressor, program);
       if(resultsWriter->prepare() == true) {
          resultsWriterSet.insert(resultsWriter);
          return(resultsWriter);
