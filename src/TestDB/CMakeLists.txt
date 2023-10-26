@@ -3,6 +3,7 @@
 #############################################################################
 
 INSTALL(FILES
+           CertificateHelper.py
            README.md
            0-make-users.conf
            1-install-database

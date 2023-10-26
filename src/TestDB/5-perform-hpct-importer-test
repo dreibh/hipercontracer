@@ -43,6 +43,10 @@ fi
 # Access to database as "importer" user:
 DATABASE_CONFIG="${HOME}/testdb-users-$1-importer.conf"
 
+if [ ! -v VALGRIND_CMD ] ; then
+   VALGRIND_CMD=""
+fi
+
 
 # ###### Run test ###########################################################
 if [ -e "${DATABASE_CONFIG}" ] ; then
