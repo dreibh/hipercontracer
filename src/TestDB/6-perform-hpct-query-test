@@ -43,6 +43,9 @@ fi
 # Access to database as "researcher" user:
 DATABASE_CONFIG="${HOME}/testdb-users-$1-researcher.conf"
 
+if [ ! -v VALGRIND_CMD ] ; then
+   VALGRIND_CMD=""
+fi
 
 # ###### Run test ###########################################################
 if [ -e "${DATABASE_CONFIG}" ] ; then

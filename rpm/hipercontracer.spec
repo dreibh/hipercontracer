@@ -240,6 +240,7 @@ HiPerConTracer into an SQL or NoSQL database.
 %{_datadir}/doc/hipercontracer/examples/TestDB/5-perform-hpct-importer-test
 %{_datadir}/doc/hipercontracer/examples/TestDB/6-perform-hpct-query-test
 %{_datadir}/doc/hipercontracer/examples/TestDB/9-uninstall-database
+%{_datadir}/doc/hipercontracer/examples/TestDB/CertificateHelper.py
 %{_datadir}/doc/hipercontracer/examples/TestDB/README.md
 %{_datadir}/doc/hipercontracer/examples/TestDB/generate-test-certificates
 %{_datadir}/doc/hipercontracer/examples/TestDB/run-full-test
