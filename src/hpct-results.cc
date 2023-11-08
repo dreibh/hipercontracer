@@ -158,7 +158,7 @@ struct pointer_lessthan
 
 
 // ###### Count columns #####################################################
-unsigned int countColumns(const std::string& string, const char separator = ' ')
+static unsigned int countColumns(const std::string& string, const char separator = ' ')
 {
    unsigned int columns = 1;
    for(const char c : string) {
@@ -185,9 +185,9 @@ unsigned int applySeparator(std::string& string, const char separator)
 
 
 // ###### Get format identifier (#? HPTC ...) ###############################
-bool getFormatIdentifier(const std::string& line,
-                         InputFormat&       format,
-                         unsigned int&      version)
+static bool getFormatIdentifier(const std::string& line,
+                                InputFormat&       format,
+                                unsigned int&      version)
 {
    if(line.substr(0, 8) == "#? HPCT ") {
       boost::tokenizer<boost::char_separator<char>> tokens(line, boost::char_separator<char>(" "));
@@ -220,13 +220,13 @@ bool getFormatIdentifier(const std::string& line,
 
 
 // ###### Check format of file ##############################################
-bool checkFormat(boost::iostreams::filtering_ostream* outputStream,
-                 const std::filesystem::path&         fileName,
-                 InputFormat&                         format,
-                 unsigned int&                        version,
-                 unsigned int&                        columns,
-                 const std::string&                   line,
-                 const char                           separator)
+static bool checkFormat(boost::iostreams::filtering_ostream* outputStream,
+                        const std::filesystem::path&         fileName,
+                        InputFormat&                         format,
+                        unsigned int&                        version,
+                        unsigned int&                        columns,
+                        const std::string&                   line,
+                        const char                           separator)
 {
    const unsigned int inputColumns = countColumns(line);
 
@@ -441,15 +441,15 @@ bool checkFormat(boost::iostreams::filtering_ostream* outputStream,
 
 
 // ###### Dump results file #################################################
-bool dumpResultsFile(std::atomic<unsigned int>*                             errorCounter,
-                     std::set<OutputEntry*, pointer_lessthan<OutputEntry>>* outputSet,
-                     boost::iostreams::filtering_ostream*                   outputStream,
-                     std::mutex*                                            outputMutex,
-                     const std::filesystem::path&                           fileName,
-                     InputFormat&                                           format,
-                     unsigned int&                                          columns,
-                     const char                                             separator,
-                     const bool                                             checkOnly = false)
+static bool dumpResultsFile(std::atomic<unsigned int>*                             errorCounter,
+                            std::set<OutputEntry*, pointer_lessthan<OutputEntry>>* outputSet,
+                            boost::iostreams::filtering_ostream*                   outputStream,
+                            std::mutex*                                            outputMutex,
+                            const std::filesystem::path&                           fileName,
+                            InputFormat&                                           format,
+                            unsigned int&                                          columns,
+                            const char                                             separator,
+                            const bool                                             checkOnly = false)
 {
    // ====== Open input file ================================================
    std::string                         extension(fileName.extension());
@@ -687,6 +687,7 @@ bool dumpResultsFile(std::atomic<unsigned int>*                             erro
    }
    return true;
 }
+
 
 
 // ###### Main program ######################################################
