@@ -1,12 +1,26 @@
 #!/bin/bash -e
 
 # A simple fix for the old "2.0.0~beta1" format, to add port numbers,
-# and also set a new ID.
+# set a new measurement ID, and add a format identifier
 
 ID=20230001
 SPORT=0
 DPORT=0
 
+# ====== Add format identifier ==============================================
+H=`xzcat $1 | head -n1`
+if [[ "$H" =~ ^#T ]] ; then
+   echo "#? HPCT Traceroute 2 fix-beta1/2.0.0"
+elif [[ "$H" =~ ^#P ]] ; then
+   echo "#? HPCT Ping 2 fix-beta1/2.0.0"
+elif [[ "$H" =~ ^#J ]] ; then
+   echo "#? HPCT Jitter 2 fix-beta1/2.0.0"
+else
+   echo >&2 "ERROR: Unknown format of $1"
+   exit 1
+fi
+
+# ====== Add Measurement ID and ports =======================================
 while [ $# -gt 0 ] ; do
    xzcat $1 | sed \
       -e "s%^\(#T.\) \([0-9]*\) \(.*\) \([0-9a-f]*\) \([0-9a-f]*\)$%\1 $ID \3 $SPORT $DPORT \4 \5%g" \
