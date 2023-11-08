@@ -174,47 +174,49 @@ static void checkEnvironment()
 int main(int argc, char** argv)
 {
    // ====== Initialize =====================================================
-   unsigned int             measurementID;
-   unsigned int             logLevel;
-   bool                     logColor;
-   std::filesystem::path    logFile;
-   std::string              user((getlogin() != nullptr) ? getlogin() : "0");
-   std::string              configurationFileName;
-   bool                     serviceJitter;
-   bool                     servicePing;
-   bool                     serviceTraceroute;
-   unsigned int             iterations;
-   std::vector<std::string> ioModulesList;
-   std::set<std::string>    ioModules;
+   unsigned int                       measurementID;
+   unsigned int                       logLevel;
+   bool                               logColor;
+   std::filesystem::path              logFile;
+   std::string                        user((getlogin() != nullptr) ? getlogin() : "0");
+   bool                               serviceJitter;
+   bool                               servicePing;
+   bool                               serviceTraceroute;
+   unsigned int                       iterations;
+   std::vector<std::string>           ioModulesList;
+   std::set<std::string>              ioModules;
+   std::vector<std::filesystem::path> sourcesFileList;
+   std::vector<std::filesystem::path> destinationsFileList;
 
-   unsigned long long       jitterInterval;
-   unsigned int             jitterExpiration;
-   unsigned int             jitterBurst;
-   unsigned int             jitterTTL;
-   unsigned int             jitterPacketSize;
-   bool                     jitterRecordRawResults;
 
-   unsigned long long       pingInterval;
-   unsigned int             pingExpiration;
-   unsigned int             pingBurst;
-   unsigned int             pingTTL;
-   unsigned int             pingPacketSize;
+   unsigned long long                 jitterInterval;
+   unsigned int                       jitterExpiration;
+   unsigned int                       jitterBurst;
+   unsigned int                       jitterTTL;
+   unsigned int                       jitterPacketSize;
+   bool                               jitterRecordRawResults;
 
-   unsigned long long       tracerouteInterval;
-   unsigned int             tracerouteExpiration;
-   unsigned int             tracerouteRounds;
-   unsigned int             tracerouteInitialMaxTTL;
-   unsigned int             tracerouteFinalMaxTTL;
-   unsigned int             tracerouteIncrementMaxTTL;
-   unsigned int             traceroutePacketSize;
+   unsigned long long                 pingInterval;
+   unsigned int                       pingExpiration;
+   unsigned int                       pingBurst;
+   unsigned int                       pingTTL;
+   unsigned int                       pingPacketSize;
 
-   uint16_t                 udpDestinationPort;
+   unsigned long long                 tracerouteInterval;
+   unsigned int                       tracerouteExpiration;
+   unsigned int                       tracerouteRounds;
+   unsigned int                       tracerouteInitialMaxTTL;
+   unsigned int                       tracerouteFinalMaxTTL;
+   unsigned int                       tracerouteIncrementMaxTTL;
+   unsigned int                       traceroutePacketSize;
 
-   unsigned int             resultsTransactionLength;
-   std::filesystem::path    resultsDirectory;
-   std::string              resultsCompressionString;
-   ResultsWriterCompressor  resultsCompression;
-   unsigned int             resultsFormatVersion;
+   uint16_t                           udpDestinationPort;
+
+   unsigned int                       resultsTransactionLength;
+   std::filesystem::path              resultsDirectory;
+   std::string                        resultsCompressionString;
+   ResultsWriterCompressor            resultsCompression;
+   unsigned int                       resultsFormatVersion;
 
    boost::program_options::options_description commandLineOptions;
    commandLineOptions.add_options()
@@ -251,6 +253,12 @@ int main(int argc, char** argv)
       ( "destination,D",
            boost::program_options::value<std::vector<std::string>>(),
            "Destination address" )
+      ( "sources-from-file",
+           boost::program_options::value<std::vector<std::filesystem::path>>(&sourcesFileList),
+           "Read source addresses from file" )
+      ( "destinations-from-file",
+           boost::program_options::value<std::vector<std::filesystem::path>>(&destinationsFileList),
+           "Read destination addresses from file" )
       ( "iomodule,M",
            boost::program_options::value<std::vector<std::string>>(&ioModulesList),
            "I/O module" )
@@ -385,6 +393,16 @@ int main(int argc, char** argv)
          if(!addDestinationAddress(DestinationArray, iterator->c_str())) {
             return 1;
          }
+      }
+   }
+   for(const std::filesystem::path& sourceFile : sourcesFileList) {
+      if(!addSourceAddressesFromFile(SourceArray, sourceFile)) {
+         return -1;
+      }
+   }
+   for(const std::filesystem::path& destinationFile : destinationsFileList) {
+      if(!addDestinationAddressesFromFile(DestinationArray, destinationFile)) {
+         return -1;
       }
    }
    if(vm.count("iomodule")) {
