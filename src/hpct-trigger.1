@@ -17,7 +17,7 @@
 .\" Contact: thomas.dreibholz@gmail.com
 .\"
 .\" ###### Setup ############################################################
-.Dd December 19, 2022
+.Dd November 8, 2023
 .Dt hpct-trigger 1
 .Os hpct-trigger
 .\" ###### Name #############################################################
@@ -27,31 +27,34 @@
 .\" ###### Synopsis #########################################################
 .Sh SYNOPSIS
 .Nm hpct-trigger
-.Op \-P|--ping
-.Op \-T|--traceroute
-.Op \-L|--loglevel level
-.Op \-Z|--logcolor on|off
-.Op \-O|--logfile file
-.Op \-q|--quiet
-.Op \-v|--verbose
-.Op \-U|--user user|uid
-.Op \-S|--source address[,traffic_class[,...]]
-.Op \-D|--destination address
-.Op \-M|--iomodule ICMP|UDP
-.Op \--tracerouteinterval milliseconds
-.Op \--tracerouteduration milliseconds
-.Op \--tracerouterounds rounds
-.Op \--tracerouteinitialmaxttl value
-.Op \--traceroutefinalmaxttl value
-.Op \--tracerouteincrementmaxttl value
-.Op \--pinginterval milliseconds
-.Op \--pingexpiration milliseconds
-.Op \--pingttl value
-.Op \-R|--resultsdirectory directory
-.Op \--resultstransactionlength seconds
-.Op \--pingtriggerage seconds
-.Op \--pingtriggerlength payload_length
-.Op \--pingsbeforequeuing count
+.Op \-P|\-\-ping
+.Op \-T|\-\-traceroute
+.Op \-L|\-\-loglevel level
+.Op \-Z|\-\-logcolor on|off
+.Op \-O|\-\-logfile file
+.Op \-q|\-\-quiet
+.Op \-v|\-\-verbose
+.Op \-U|\-\-user user|uid
+.Op \-#|\-\-measurement-id identifier
+.Op \-S|\-\-source address[,traffic_class[,...]]
+.Op \-D|\-\-destination address
+.Op \-S|\-\-source address|hostname[,traffic_class[,...]]
+.Op \-D|\-\-destination address|hostname
+.Op \-M|\-\-iomodule ICMP|UDP
+.Op \-\-tracerouteinterval milliseconds
+.Op \-\-tracerouteduration milliseconds
+.Op \-\-tracerouterounds rounds
+.Op \-\-tracerouteinitialmaxttl value
+.Op \-\-traceroutefinalmaxttl value
+.Op \-\-tracerouteincrementmaxttl value
+.Op \-\-pinginterval milliseconds
+.Op \-\-pingexpiration milliseconds
+.Op \-\-pingttl value
+.Op \-R|\-\-resultsdirectory directory
+.Op \-\-resultstransactionlength seconds
+.Op \-\-pingtriggerage seconds
+.Op \-\-pingtriggerlength payload_length
+.Op \-\-pingsbeforequeuing count
 .\" ###### Description ######################################################
 .Sh DESCRIPTION
 .Nm hpct-trigger
@@ -64,11 +67,11 @@ address.
 .Sh ARGUMENTS
 The following arguments may be provided:
 .Bl -tag -width indent
-.It \--pingtriggerage seconds
+.It \-\-pingtriggerage seconds
 Sets the maximum number of seconds between two trigger "Pings" (default: 300).
-.It \--pingtriggerlength payload_length
+.It \-\-pingtriggerlength payload_length
 Sets the "Ping" payload length to trigger HiPerConTracer (default: 53).
-.It \--pingsbeforequeuing count
+.It \-\-pingsbeforequeuing count
 Sets the number of observed "Ping" packets before triggering HiPerConTracer
 (default: 3).
 .El
@@ -77,11 +80,11 @@ format.
 .\" ###### Examples #########################################################
 .Sh EXAMPLES
 .Bl -tag -width indent
-.It hpct-trigger \--source 10.1.1.51 \--traceroute \--verbose \--pingsbeforequeuing 2 \--pingtriggerlength 88
-.It hpct-trigger \--source 10.1.1.51 \--pingtriggerage 1800 \--ping \--verbose
-.It hpct-trigger \--source=10.1.1.51 \--traceroute \--resultsdirectory=/tmp/results \--resultstransactionlength=60
-.It hpct-trigger \--source=172.16.1.2,BE,EF \--source=172.17.1.2,BE,AF11,AF21 \--pingtriggerage=1800 \--ping \--verbose
-.It hpct-trigger \--source 10.1.1.51 \--pingtriggerage 1800 \--ping \--traceroute \--iomodule ICMP \--iomodule UDP
+.It hpct-trigger \-\-source 10.1.1.51 \-\-traceroute \-\-verbose \-\-pingsbeforequeuing 2 \-\-pingtriggerlength 88
+.It hpct-trigger \-\-source 10.1.1.51 \-\-pingtriggerage 1800 \-\-ping \-\-verbose
+.It hpct-trigger \-\-source=10.1.1.51 \-\-traceroute \-\-resultsdirectory=/tmp/results \-\-resultstransactionlength=60
+.It hpct-trigger \-\-source=172.16.1.2,BE,EF \-\-source=172.17.1.2,BE,AF11,AF21 \-\-pingtriggerage=1800 \-\-ping \-\-verbose
+.It hpct-trigger \-\-source 10.1.1.51 \-\-pingtriggerage 1800 \-\-ping \-\-traceroute \-\-iomodule ICMP \-\-iomodule UDP
 .El
 .\" ###### Authors ##########################################################
 .Sh AUTHORS
