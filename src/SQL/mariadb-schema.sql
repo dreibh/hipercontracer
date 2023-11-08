@@ -181,4 +181,4 @@ PARTITION BY RANGE ( Timestamp ) (
    PARTITION p2026 VALUES LESS THAN MAXVALUE
 );
 
-CREATE INDEX JitterRelationIndex ON Jitter (MeasurementID ASC, DestinationIP ASC, DROP TABLE IF EXISTS Jitter;
+CREATE INDEX JitterRelationIndex ON Jitter (MeasurementID ASC, DestinationIP ASC, Timestamp ASC);
