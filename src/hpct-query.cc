@@ -52,7 +52,7 @@ typedef ResultClock::time_point            ResultTimePoint;
 typedef ResultClock::duration              ResultDuration;
 
 
-// ###### Add WHERE clause in for SELECT statement ##########################
+// ###### Add WHERE clause to SELECT statement ##############################
 static void addSQLWhere(Statement&               statement,
                         const char*              timeStampField,
                         const unsigned long long fromTimeStamp,
@@ -83,7 +83,7 @@ static void addSQLWhere(Statement&               statement,
 }
 
 
-// ###### Add WHERE clause in for SELECT statement ##########################
+// ###### Add filter clause to query statement ##############################
 static void addNoSQLFilter(Statement&               statement,
                            const char*              timeStampField,
                            const unsigned long long fromTimeStamp,
@@ -93,6 +93,7 @@ static void addNoSQLFilter(Statement&               statement,
 {
    if( (fromTimeStamp > 0) || (toTimeStamp > 0) || (fromMeasurementID > 0) || (toMeasurementID > 0) ) {
 
+      puts("FIXME: TDB!");
       abort();
 
 //       query = { }
