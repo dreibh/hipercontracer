@@ -100,9 +100,8 @@ enum InputProtocol
 
 struct InputFormat
 {
-   InputType     Type;
-   unsigned int  Version;
-   std::string   String;
+   InputType   Type;
+   std::string String;
 };
 
 
@@ -185,48 +184,73 @@ unsigned int applySeparator(std::string& string, const char separator)
 }
 
 
+// ###### Get format identifier (#? HPTC ...) ###############################
+bool getFormatIdentifier(const std::string& line,
+                         InputFormat&       format,
+                         unsigned int&      version)
+{
+   if(line.substr(0, 8) == "#? HPCT ") {
+      boost::tokenizer<boost::char_separator<char>> tokens(line, boost::char_separator<char>(" "));
+      std::vector<std::string> tokensVector;
+      for (const auto& token : tokens) {
+         tokensVector.push_back(token);
+      }
+      if(tokensVector.size() >= 4) {
+         version = (InputType)atoi(tokensVector[3].c_str());
+         if(tokensVector[2] == "Ping") {
+            format.Type   = InputType::IT_Ping;
+            format.String = "#P";
+            return true;
+         }
+         else if(tokensVector[2] == "Traceroute") {
+            format.Type   = InputType::IT_Traceroute;
+            format.String = "#T";
+            return true;
+         }
+         else if(tokensVector[2] == "Jitter") {
+            format.Type   = InputType::IT_Jitter;
+            format.String = "#J";
+            return true;
+         }
+      }
+   }
+   return false;
+}
+
+
+
 // ###### Check format of file ##############################################
 bool checkFormat(boost::iostreams::filtering_ostream* outputStream,
                  const std::filesystem::path&         fileName,
                  InputFormat&                         format,
+                 unsigned int&                        version,
                  unsigned int&                        columns,
                  const std::string&                   line,
                  const char                           separator)
 {
    const unsigned int inputColumns = countColumns(line);
 
-   // ====== Identify format ================================================
+   // ====== Check input ====================================================
    if(line.size() < 3) {
       HPCT_LOG(fatal) << "Unrecognised format of input data"
                       << " in input file " << fileName;
       return false;
    }
 
-   format.Version = 0;
+   // ====== Identify format ================================================
+   version = 0;   // To be identified!
    if(format.Type == InputType::IT_Unknown) {
 
       // ====== Check for specified type and version ========================
-      if(line.substr(0, 8) == "#? HPCT ") {
-         boost::tokenizer<boost::char_separator<char>> tokens(line, boost::char_separator<char>(" "));
-         std::vector<std::string> tokensVector;
-         for (const auto& token : tokens) {
-            tokensVector.push_back(token);
+      if(line.substr(0, 2) == "#?") {
+         InputFormat inputFormat;
+         if(!getFormatIdentifier(line, inputFormat, version)) {
+            HPCT_LOG(fatal) << "Incompatible format of input data"
+                           << " in input file " << fileName;
+            return false;
          }
-         if(tokensVector.size() >= 4) {
-            format.Version = (InputType)atoi(tokensVector[3].c_str());
-            if(tokensVector[2] == "Ping") {
-               format.Type   = InputType::IT_Ping;
-               format.String = "#P";
-            }
-            else if(tokensVector[2] == "Traceroute") {
-               format.Type   = InputType::IT_Traceroute;
-               format.String = "#T";
-            }
-            else if(tokensVector[2] == "Jitter") {
-               format.Type   = InputType::IT_Jitter;
-               format.String = "#J";
-            }
-         }
+         format.Type    = inputFormat.Type;
+         format.String = inputFormat.String;
       }
       else {
          // Guess format instead:
@@ -347,9 +371,19 @@ bool checkFormat(boost::iostreams::filtering_ostream* outputStream,
       *outputStream << columnNames << "\n";
    }
 
-   // ====== Error ==========================================================
-   else if( (format.String.substr(0, 2) != line.substr(0, 2)) &&
-            (line.substr(0, 2) != "#?") ) {
+   // ====== Compatibility check ============================================
+   else if(line.substr(0, 2) == "#?") {
+      InputFormat inputFormat;
+      if( (!getFormatIdentifier(line, inputFormat, version)) || (inputFormat.Type != format.Type) ) {
+         HPCT_LOG(fatal) << "Incompatible format for merging ("
+                         << inputFormat.String.substr(0, 2) << " vs. " << format.String.substr(0, 2) << ")"
+                         << " in input file " << fileName;
+         return false;
+      }
+   }
+
+   // ====== Compatibility check ============================================
+   else if(format.String.substr(0, 2) != line.substr(0, 2)) {
       HPCT_LOG(fatal) << "Incompatible format for merging ("
                         << line.substr(0, 2) << " vs. " << format.String.substr(0, 2) << ")"
                         << " in input file " << fileName;
@@ -357,19 +391,19 @@ bool checkFormat(boost::iostreams::filtering_ostream* outputStream,
    }
 
    // ====== Guess version, if not specified ================================
-   if(format.Version == 0) {
+   if(version == 0) {
       // ====== Ping ========================================================
       if(format.Type == InputType::IT_Ping) {
          // ------ Ping, Version 2 ------------------------------------------
          if(line[2] != ' ') {
             if(inputColumns >= 20) {
-               format.Version = 2;
+               version = 2;
             }
          }
          // ------ Ping, Version 1 ------------------------------------------
          else {
             if(inputColumns >= 7) {
-               format.Version = 1;
+               version = 1;
             }
          }
       }
@@ -379,26 +413,26 @@ bool checkFormat(boost::iostreams::filtering_ostream* outputStream,
          // ------ Traceroute, Version 2 ------------------------------------
          if(line[2] != ' ') {
             if(inputColumns >= 12) {
-               format.Version = 2;
+               version = 2;
             }
          }
          // ------ Traceroute, Version 1 ------------------------------------
          else {
             if(inputColumns >= 11) {
-               format.Version = 1;
+               version = 1;
             }
          }
       }
 
       // ====== Jitter ======================================================
       else if(format.Type == InputType::IT_Jitter) {
-         format.Version = 2;
+         version = 2;
       }
    }
 
    // ====== Error ==========================================================
-   if(format.Version == 0) {
-      HPCT_LOG(fatal) << "Unrecognised format of input data"
+   if(version == 0) {
+      HPCT_LOG(fatal) << "Unrecognised version of input data"
                       << " in input file " << fileName;
       return false;
    }
@@ -444,6 +478,7 @@ bool dumpResultsFile(std::atomic<unsigned int>*                             erro
    inputStream.push(inputFile);
 
    // ====== Process lines of the input file ================================
+   unsigned int       version    = 0;
    std::string        line;
    unsigned long long lineNumber = 0;
    OutputEntry*       newEntry   = nullptr;
@@ -456,12 +491,14 @@ bool dumpResultsFile(std::atomic<unsigned int>*                             erro
          continue;
       }
       else if(line[0] == '#') {
-         if(!checkFormat(outputStream, fileName, format, columns, line, separator)) {
-            (*errorCounter)++;
-            return false;
-         }
-         if(checkOnly) {
-            return true;
+         if(version == 0) {
+            if(!checkFormat(outputStream, fileName, format, version, columns, line, separator)) {
+               (*errorCounter)++;
+               return false;
+            }
+            if(checkOnly) {
+               return true;
+            }
          }
          if(line[1] == '?') {
             continue;   // #? ...
@@ -469,7 +506,7 @@ bool dumpResultsFile(std::atomic<unsigned int>*                             erro
 
          try {
             // ------ Conversion from old versions --------------------------
-            if(format.Version < 2) {
+            if(version < 2) {
                if(format.Type == InputType::IT_Ping) {
                   line = convertOldPingLine(line);
                }
@@ -584,7 +621,7 @@ bool dumpResultsFile(std::atomic<unsigned int>*                             erro
          if(format.Type == InputType::IT_Traceroute) {
             // ------ Conversion from old versions -----------------------------
             try {
-               if(format.Version < 2) {
+               if(version < 2) {
                   line = convertOldTracerouteLine(line, oldTimeStamp);
                }
             }
@@ -848,8 +885,7 @@ int main(int argc, char** argv)
                        inputResultsFromStdin ? false : true)) {
       return 1;
    }
-   HPCT_LOG(info) << "Format: Type=" << (char)format.Type
-                  << ", Version="    << format.Version;
+   HPCT_LOG(info) << "Format: Type=" << (char)format.Type;
 
    // ------  Use thread pool to read all files -----------------------------
    boost::asio::thread_pool threadPool(maxThreads);
