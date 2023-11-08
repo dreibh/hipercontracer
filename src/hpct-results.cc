@@ -742,6 +742,9 @@ int main(int argc, char** argv)
       std::cerr << "Invalid separator \"" << separator << "\"!\n";
       exit(1);
    }
+   if(maxThreads < 1) {
+      maxThreads = std::thread::hardware_concurrency();
+   }
 
    if(inputResultsFromStdin) {
       inputFileNameList.clear();
