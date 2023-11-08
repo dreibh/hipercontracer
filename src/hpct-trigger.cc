@@ -224,40 +224,42 @@ static void receivedPingV6(const boost::system::error_code& errorCode, std::size
 int main(int argc, char** argv)
 {
    // ====== Initialize =====================================================
-   unsigned int             measurementID;
-   unsigned int             logLevel;
-   bool                     logColor;
-   std::filesystem::path    logFile;
-   std::string              user((getlogin() != nullptr) ? getlogin() : "0");
-   std::string              configurationFileName;
-   OutputFormatType         outputFormat = OutputFormatType::OFT_HiPerConTracer_Version2;
-   bool                     servicePing;
-   bool                     serviceTraceroute;
-   unsigned int             iterations;
-   std::vector<std::string> ioModulesList;
-   std::set<std::string>    ioModules;
+   unsigned int                       measurementID;
+   unsigned int                       logLevel;
+   bool                               logColor;
+   std::filesystem::path              logFile;
+   std::string                        user((getlogin() != nullptr) ? getlogin() : "0");
+   std::string                        configurationFileName;
+   OutputFormatType                   outputFormat = OutputFormatType::OFT_HiPerConTracer_Version2;
+   bool                               servicePing;
+   bool                               serviceTraceroute;
+   unsigned int                       iterations;
+   std::vector<std::string>           ioModulesList;
+   std::set<std::string>              ioModules;
+   std::vector<std::filesystem::path> sourcesFileList;
+   std::vector<std::filesystem::path> destinationsFileList;
 
-   unsigned long long       tracerouteInterval;
-   unsigned int             tracerouteExpiration;
-   unsigned int             tracerouteRounds;
-   unsigned int             tracerouteInitialMaxTTL;
-   unsigned int             tracerouteFinalMaxTTL;
-   unsigned int             tracerouteIncrementMaxTTL;
-   unsigned int             traceroutePacketSize;
+   unsigned long long                 tracerouteInterval;
+   unsigned int                       tracerouteExpiration;
+   unsigned int                       tracerouteRounds;
+   unsigned int                       tracerouteInitialMaxTTL;
+   unsigned int                       tracerouteFinalMaxTTL;
+   unsigned int                       tracerouteIncrementMaxTTL;
+   unsigned int                       traceroutePacketSize;
 
-   unsigned long long       pingInterval;
-   unsigned int             pingExpiration;
-   unsigned int             pingBurst;
-   unsigned int             pingTTL;
-   unsigned int             pingPacketSize;
+   unsigned long long                 pingInterval;
+   unsigned int                       pingExpiration;
+   unsigned int                       pingBurst;
+   unsigned int                       pingTTL;
+   unsigned int                       pingPacketSize;
 
-   uint16_t                 udpDestinationPort;
+   uint16_t                           udpDestinationPort;
 
-   unsigned int             resultsTransactionLength;
-   std::string              resultsDirectory;
-   std::string              resultsCompressionString;
-   ResultsWriterCompressor  resultsCompression;
-   unsigned int             resultsFormat;
+   unsigned int                       resultsTransactionLength;
+   std::string                        resultsDirectory;
+   std::string                        resultsCompressionString;
+   ResultsWriterCompressor            resultsCompression;
+   unsigned int                       resultsFormat;
 
    boost::program_options::options_description commandLineOptions;
    commandLineOptions.add_options()
@@ -292,6 +294,12 @@ int main(int argc, char** argv)
       ( "destination,D",
            boost::program_options::value<std::vector<std::string>>(),
            "Destination address" )
+      ( "sources-from-file",
+           boost::program_options::value<std::vector<std::filesystem::path>>(&sourcesFileList),
+           "Read source addresses from file" )
+      ( "destinations-from-file",
+           boost::program_options::value<std::vector<std::filesystem::path>>(&destinationsFileList),
+           "Read destination addresses from file" )
       ( "iomodule,M",
            boost::program_options::value<std::vector<std::string>>(&ioModulesList),
            "I/O module" )
@@ -411,6 +419,16 @@ int main(int argc, char** argv)
          if(!addDestinationAddress(DestinationArray, iterator->c_str())) {
             return 1;
          }
+      }
+   }
+   for(const std::filesystem::path& sourceFile : sourcesFileList) {
+      if(!addSourceAddressesFromFile(SourceArray, sourceFile)) {
+         return -1;
+      }
+   }
+   for(const std::filesystem::path& destinationFile : destinationsFileList) {
+      if(!addDestinationAddressesFromFile(DestinationArray, destinationFile)) {
+         return -1;
       }
    }
    if(vm.count("iomodule")) {

@@ -17,7 +17,7 @@
 .\" Contact: thomas.dreibholz@gmail.com
 .\"
 .\" ###### Setup ############################################################
-.Dd October 18, 2023
+.Dd November 8, 2023
 .Dt hpct-query 1
 .Os hpct-query
 .\" ###### Name #############################################################
@@ -29,16 +29,16 @@
 .Nm hpct-query
 database_configuration
 ping|traceroute|jitter
-.Op \-L|--loglevel LEVEL
-.Op \-Z|--logcolor on|off
-.Op \-O|--logfile FILE
-.Op \-q|--quiet
-.Op \-v|--verbose
-.Op \-o|--output filename
-.Op \--from-time timestamp
-.Op \--to_time timestamp
-.Op \--from-measurement-id measurement_identifier
-.Op \--to_measurement-id measurement_identifier
+.Op \-L|\-\-loglevel LEVEL
+.Op \-Z|\-\-logcolor on|off
+.Op \-O|\-\-logfile FILE
+.Op \-q|\-\-quiet
+.Op \-v|\-\-verbose
+.Op \-o|\-\-output filename
+.Op \-\-from-time timestamp
+.Op \-\-to_time timestamp
+.Op \-\-from-measurement-id measurement_identifier
+.Op \-\-to_measurement-id measurement_identifier
 .\" ###### Description ######################################################
 .Sh DESCRIPTION
 .Nm hpct-query
@@ -51,28 +51,28 @@ HiPerConTracer manpage for the format description.
 .Sh ARGUMENTS
 The following argument may be provided:
 .Bl -tag -width indent
-.It \-L|\--loglevel LEVEL
+.It \-L|\-\-loglevel LEVEL
 Sets the minimum logging level to the provided value: 0=trace, 1=debug, 2=info, 3=warning, 4=error, 5=fatal.
-.It \-q|\--quiet
+.It \-q|\-\-quiet
 Sets the minimum logging level to 3 (warning).
-.It \-v|\--verbose
+.It \-v|\-\-verbose
 Sets the minimum logging level to 0 (trace).
-.It \-Z|--logcolor on|off
+.It \-Z|\-\-logcolor on|off
 Enables (on) or disables (off) the usage of ANSI color escape sequences to colorise the log output according to its level.
-.It \-O|--logfile FILE
+.It \-O|\-\-logfile FILE
 Sets a file name for appending the log output to. If a file is set, no log output is made to the console. Otherwise, all log output will be written to the console.
-.It \-o|--output filename
+.It \-o|\-\-output filename
 Sets the specified filename as output file. Extensions \.gz, \.bz2, and \.xz are recognised to enable compression.
-.It \--from-time timestamp
+.It \-\-from-time timestamp
 Set the beginning of the time range as string in format "%Y-%m-%d %H:%M:%S.%F".
 If not provided, all results will be queried.
-.It \--to_time timestamp
+.It \-\-to_time timestamp
 Set the end of the time range as string in format "%Y-%m-%d %H:%M:%S.%F".
 If not provided, all results after a given from-time will be queried.
-.It \--from-measurement-id measurement_identifier
+.It \-\-from-measurement-id measurement_identifier
 Set the beginning of the measurement identifier range.
 If not provided, all results will be queried.
-.It \--to_measurement-id measurement_identifier
+.It \-\-to_measurement-id measurement_identifier
 Set the end of the measurement identifier range.
 If not provided, all results will be queried.
 .El

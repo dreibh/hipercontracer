@@ -35,6 +35,7 @@
 #include <string.h>
 #include <unistd.h>
 
+#include <fstream>
 #include <iostream>
 
 #include <boost/algorithm/string.hpp>
@@ -191,7 +192,7 @@ bool addSourceAddress(std::map<boost::asio::ip::address, std::set<uint8_t>>& arr
             boost::asio::ip::tcp::resolver::iterator iterator =
                resolver.resolve(resolver_query, ec);
             if(ec) {
-               std::cerr << "Failed to resolve a DNS name " << addressString << ": " << ec.message() << "\n";
+               HPCT_LOG(error) << "Failed to resolve a DNS name " << addressString << ": " << ec.message();
                return false;
             }
             for(   ; iterator != boost::asio::ip::tcp::resolver::iterator(); iterator++) {
@@ -201,7 +202,7 @@ bool addSourceAddress(std::map<boost::asio::ip::address, std::set<uint8_t>>& arr
             }
             return true;
          }
-         std::cerr << "ERROR: Bad source address " << addressParameters[0] << "!\n";
+         HPCT_LOG(error) << "Bad source address " << addressParameters[0];
          return false;
       }
       std::map<boost::asio::ip::address, std::set<uint8_t>>::iterator found = array.find(address);
@@ -223,7 +224,7 @@ bool addSourceAddress(std::map<boost::asio::ip::address, std::set<uint8_t>>& arr
             if(trafficClass == ~0U) {
                trafficClass = std::strtoul(addressParameters[i].c_str(), nullptr, 16);
                if(trafficClass > 0xff) {
-                  std::cerr << "ERROR: Bad traffic class " << addressParameters[i] << "!\n";
+                  HPCT_LOG(error) << "Bad traffic class " << addressParameters[i];
                   return false;
                }
             }
@@ -235,7 +236,7 @@ bool addSourceAddress(std::map<boost::asio::ip::address, std::set<uint8_t>>& arr
       }
    }
    else {
-      std::cerr << "ERROR: Invalid source address specification " << addressString << "\n";
+      HPCT_LOG(error) << "Invalid source address specification " << addressString;
       return false;
    }
    return true;
@@ -259,7 +260,7 @@ bool addDestinationAddress(std::set<boost::asio::ip::address>& array,
          boost::asio::ip::tcp::resolver::iterator iterator =
             resolver.resolve(resolver_query, ec);
          if(ec) {
-            std::cerr << "Failed to resolve a DNS name " << addressString << ": " << ec.message() << "\n";
+            HPCT_LOG(error) << "Failed to resolve a DNS name " << addressString << ": " << ec.message();
             return false;
          }
          for(   ; iterator != boost::asio::ip::tcp::resolver::iterator(); iterator++) {
@@ -269,9 +270,51 @@ bool addDestinationAddress(std::set<boost::asio::ip::address>& array,
          }
          return true;
       }
-      std::cerr << "ERROR: Bad destination address " << addressString << "!\n";
+      HPCT_LOG(error) << "Bad destination address " << addressString;
       return false;
    }
    array.insert(address);
+   return true;
+}
+
+
+// ###### Add source addresses from file ####################################
+bool addSourceAddressesFromFile(std::map<boost::asio::ip::address, std::set<uint8_t>>& array,
+                                const std::filesystem::path&                           inputFileName,
+                                bool                                                   tryToResolve)
+{
+   std::ifstream is(inputFileName);
+   if(!is.is_open()) {
+      HPCT_LOG(error) << "Unable to open sources file " << inputFileName;
+      return false;
+   }
+
+   std::string line;
+   while (std::getline(is, line)) {
+      if(!addSourceAddress(array, line, tryToResolve)) {
+         return false;
+      }
+   }
+   return true;
+}
+
+
+// ###### Add destination addresses from file ###############################
+bool addDestinationAddressesFromFile(std::set<boost::asio::ip::address>& array,
+                                     const std::filesystem::path&        inputFileName,
+                                     bool                                tryToResolve)
+{
+   std::ifstream is(inputFileName);
+   if(!is.is_open()) {
+      HPCT_LOG(error) << "Unable to open destinations file " << inputFileName;
+      return false;
+   }
+
+   std::string line;
+   while (std::getline(is, line)) {
+      if(!addDestinationAddress(array, line, tryToResolve)) {
+         return false;
+      }
+   }
    return true;
 }

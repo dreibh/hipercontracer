@@ -17,7 +17,7 @@
 .\" Contact: thomas.dreibholz@gmail.com
 .\"
 .\" ###### Setup ############################################################
-.Dd August 25, 2023
+.Dd November 8, 2023
 .Dt pipe-checksum 1
 .Os pipe-checksum
 .\" ###### Name #############################################################
@@ -28,7 +28,7 @@
 .Sh SYNOPSIS
 .Nm pipe-checksum
 file
-.Op \--digest=MD5|SHA1|SHA256|SHA384|SHA512|...
+.Op \-\-digest=MD5|SHA1|SHA256|SHA384|SHA512|...
 .\" ###### Description ######################################################
 .Sh DESCRIPTION
 .Nm pipe-checksum
@@ -43,7 +43,7 @@ for comparison.
 .Sh ARGUMENTS
 The following arguments may be provided:
 .Bl -tag -width indent
-.It \--digest=MD5|SHA1|SHA256|SHA384|SHA512|...
+.It \-\-digest=MD5|SHA1|SHA256|SHA384|SHA512|...
 Sets the message digest. Any digest supported by the underlying libcrypto
 library is possible. Default: SHA256.
 .El
