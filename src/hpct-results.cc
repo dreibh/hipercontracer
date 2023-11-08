@@ -201,8 +201,8 @@ void checkFormat(boost::iostreams::filtering_ostream* outputStream,
       exit(1);
    }
 
+   format.Version = 0;
    if(format.Type == InputType::IT_Unknown) {
-      format.Version = 0;
 
       // ====== Check for specified type and version ========================
       if(line.substr(0, 8) == "#? HPCT ") {
@@ -498,7 +498,7 @@ bool dumpResultsFile(std::set<OutputEntry*, pointer_lessthan<OutputEntry>>* outp
             c++;
 
             // ------ Create output entry --------------------------------
-            if(c < 5) {
+            if(c < maxColumns) {
                HPCT_LOG(fatal) << "Unexpected syntax"
                               << " in input file " << fileName << ", line " << lineNumber;
                exit(1);
