@@ -59,6 +59,12 @@ bool addSourceAddress(std::map<boost::asio::ip::address, std::set<uint8_t>>& arr
 bool addDestinationAddress(std::set<boost::asio::ip::address>& array,
                            const std::string&                  addressString,
                            bool                                tryToResolve = true);
+bool addSourceAddressesFromFile(std::map<boost::asio::ip::address, std::set<uint8_t>>& array,
+                                const std::filesystem::path&                           inputFileName,
+                                bool                                                   tryToResolve = true);
+bool addDestinationAddressesFromFile(std::set<boost::asio::ip::address>& array,
+                                     const std::filesystem::path&        inputFileName,
+                                     bool                                tryToResolve = true);
 
 
 // ###### Convert time to microseconds since the epoch ######################
