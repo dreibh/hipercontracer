@@ -42,6 +42,7 @@
 #include "icmpheader.h"
 #include "jitter.h"
 #include "logger.h"
+#include "package-version.h"
 #include "ping.h"
 #include "resultswriter.h"
 #include "service.h"
@@ -97,6 +98,9 @@ static void tryCleanup(const boost::system::error_code& errorCode)
 // ###### Check environment #################################################
 static void checkEnvironment()
 {
+   std::cout << "HiPerConTracer:\n"
+             << "* Version:\t" << HPCT_VERSION << "\n";
+
    // ====== System information =============================================
    utsname sysInfo;
    if(uname(&sysInfo) == 0) {

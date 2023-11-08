@@ -97,8 +97,8 @@ Depends: libhipercontracer2 (= ${binary:Version}),
          ${misc:Depends},
          ${shlibs:Depends}
 Recommends: hipercontracer-importer,
-            hipercontracer-query,
-            hipercontracer-results,
+            hipercontracer-query-tool,
+            hipercontracer-results-tool,
             hipercontracer-trigger,
             hipercontracer-udp-echo-server
 Description: Command-line programs for HiPerConTracer
@@ -139,13 +139,13 @@ Description: HiPerConTracer Importer for importing results into a database
  This package contains the importer tool to import results from
  HiPerConTracer into an SQL or NoSQL database.
 
-Package: hipercontracer-query
+Package: hipercontracer-query-tool
 Architecture: any
 Depends: libuniversalimporter2 (= ${binary:Version}),
          ${misc:Depends},
          ${shlibs:Depends}
 Recommends: hipercontracer,
-            hipercontracer-results
+            hipercontracer-results-tool
 Description: HiPerConTracer Query Tool to query results from a database
  High-Performance Connectivity Tracer (HiPerConTracer) is a
  Ping/Traceroute service. It performs regular Ping and Traceroute runs
@@ -155,7 +155,7 @@ Description: HiPerConTracer Query Tool to query results from a database
  This package contains a simple query tool to obtain results
  from a HiPerConTracer SQL or NoSQL database.
 
-Package: hipercontracer-results
+Package: hipercontracer-results-tool
 Architecture: any
 Depends: ${misc:Depends},
          ${shlibs:Depends}
