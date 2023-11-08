@@ -59,6 +59,12 @@ bool addSourceAddress(std::map<boost::asio::ip::address, std::set<uint8_t>>& arr
 bool addDestinationAddress(std::set<boost::asio::ip::address>& array,
                            const std::string&                  addressString,
                            bool                                tryToResolve = true);
+bool addSourceAddressesFromFile(std::map<boost::asio::ip::address, std::set<uint8_t>>& array,
+                                const std::filesystem::path&                           inputFileName,
+                                bool                                                   tryToResolve = true);
+bool addDestinationAddressesFromFile(std::set<boost::asio::ip::address>& array,
+                                     const std::filesystem::path&        inputFileName,
+                                     bool                                tryToResolve = true);
 
 
 // ###### Convert time to microseconds since the epoch ######################
@@ -101,14 +107,10 @@ std::string durationToString(const Duration& duration,
 // ###### Get current time in UTC ###########################################
 template<typename TimePoint> TimePoint nowInUTC()
 {
-   std::time_t t;
-   time(&t);
-
-   std::tm tm = {};
-   gmtime_r(&t, &tm);
-
-   TimePoint timePoint = TimePoint(std::chrono::seconds(std::mktime(&tm)));
-   return timePoint;
+   timespec ts;
+   clock_gettime(CLOCK_REALTIME, &ts);
+   return TimePoint(std::chrono::seconds(ts.tv_sec) +
+                    std::chrono::nanoseconds(ts.tv_nsec));
 }
 
 

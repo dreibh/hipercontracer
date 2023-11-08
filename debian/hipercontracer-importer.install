@@ -1,1 +1,3 @@
+lib/systemd/system/hpct-importer.service
+usr/bin/hpct-importer
 usr/bin/hpct-importer

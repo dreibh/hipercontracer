@@ -32,20 +32,24 @@
 #include <iostream>
 #include <vector>
 
+#include <boost/version.hpp>
 #include <boost/algorithm/string.hpp>
 #include <boost/asio/ip/address.hpp>
 #include <boost/program_options.hpp>
 
+#include <sys/utsname.h>
+
 #include "icmpheader.h"
 #include "jitter.h"
 #include "logger.h"
+#include "package-version.h"
 #include "ping.h"
 #include "resultswriter.h"
 #include "service.h"
 #include "tools.h"
 #include "traceroute.h"
 
-
+static const std::string                                     ProgramID = std::string("HiPerConTracer/") + HPCT_VERSION;
 static std::map<boost::asio::ip::address, std::set<uint8_t>> SourceArray;
 static std::set<boost::asio::ip::address>                    DestinationArray;
 static std::set<ResultsWriter*>                              ResultsWriterSet;
@@ -91,57 +95,139 @@ static void tryCleanup(const boost::system::error_code& errorCode)
 }
 
 
+// ###### Check environment #################################################
+static void checkEnvironment()
+{
+   std::cout << "HiPerConTracer:\n"
+             << "* Version:\t" << HPCT_VERSION << "\n";
+
+   // ====== System information =============================================
+   utsname sysInfo;
+   if(uname(&sysInfo) == 0) {
+      std::cout << "System Information:\n"
+                << "* System: \t" << sysInfo.sysname  << "\n"
+                << "* Name:   \t" << sysInfo.nodename << "\n"
+                << "* Release:\t" << sysInfo.release  << "\n"
+                << "* Version:\t" << sysInfo.version  << "\n"
+                << "* Machine:\t" << sysInfo.machine  << "\n";
+   }
+
+   // ====== Build environment ==============================================
+   std::cout << "Build Environment:\n"
+             << "* BOOST Version:  \t" << BOOST_VERSION  << "\n"
+             << "* BOOST Compiler: \t" << BOOST_COMPILER << "\n"
+             << "* BOOST StdLib:   \t" << BOOST_STDLIB   << "\n"
+             << "* C++ Standard:   \t" << __cplusplus    << "\n";
+#if 0
+#ifdef BOOST_HAS_CLOCK_GETTIME
+   std::cout << "* clock_gettime():\tyes\n";
+#else
+   std::cout << "* clock_gettime():\tno\n";
+#endif
+#ifdef BOOST_HAS_GETTIMEOFDAY
+   std::cout << "* gettimeofday(): \tyes\n";
+#else
+   std::cout << "* gettimeofday(): \tno\n";
+#endif
+#endif
+
+   // ====== Clock granularities ============================================
+   const std::chrono::time_point<std::chrono::system_clock>          n1a = std::chrono::system_clock::now();
+   // const std::chrono::time_point<std::chrono::system_clock>          n1b = nowInUTC<std::chrono::time_point<std::chrono::system_clock>>();
+   const std::chrono::time_point<std::chrono::steady_clock>          n2a = std::chrono::steady_clock::now();
+   const std::chrono::time_point<std::chrono::steady_clock>          n2b = nowInUTC<std::chrono::time_point<std::chrono::steady_clock>>();
+   const std::chrono::time_point<std::chrono::high_resolution_clock> n3a = std::chrono::high_resolution_clock::now();
+   const std::chrono::time_point<std::chrono::high_resolution_clock> n3b = nowInUTC<std::chrono::time_point<std::chrono::high_resolution_clock>>();
+
+   timespec ts1;
+   timespec ts2;
+   clock_getres(CLOCK_REALTIME,  &ts1);
+   clock_getres(CLOCK_MONOTONIC, &ts2);
+
+   std::cout << "Clocks Granularities:\n"
+
+             << "* std::chrono::system_clock:        \t"
+             << std::chrono::time_point<std::chrono::system_clock>::period::num << "/"
+             << std::chrono::time_point<std::chrono::system_clock>::period::den << " s\t"
+             << (std::chrono::system_clock::is_steady ? "steady    " : "not steady") << "\t"
+             << std::chrono::duration_cast<std::chrono::nanoseconds>(n1a.time_since_epoch()).count() << " ns\n"
+             // << std::chrono::duration_cast<std::chrono::nanoseconds>(n1b.time_since_epoch()).count() << " ns since epoch\n"
+
+             << "* std::chrono::steady_clock:        \t"
+             << std::chrono::time_point<std::chrono::steady_clock>::period::num << "/"
+             << std::chrono::time_point<std::chrono::steady_clock>::period::den << " s\t"
+             << (std::chrono::steady_clock::is_steady ? "steady    " : "not steady") << "\t"
+             << std::chrono::duration_cast<std::chrono::nanoseconds>(n2a.time_since_epoch()).count() << " ns / "
+             << std::chrono::duration_cast<std::chrono::nanoseconds>(n2b.time_since_epoch()).count() << " ns since epoch\n"
+
+             << "* std::chrono::high_resolution_clock:\t"
+             << std::chrono::time_point<std::chrono::high_resolution_clock>::period::num << "/"
+             << std::chrono::time_point<std::chrono::high_resolution_clock>::period::den << " s\t"
+             << (std::chrono::high_resolution_clock::is_steady ? "steady    " : "not steady") << "\t"
+             << std::chrono::duration_cast<std::chrono::nanoseconds>(n3a.time_since_epoch()).count() << " ns / "
+             << std::chrono::duration_cast<std::chrono::nanoseconds>(n3b.time_since_epoch()).count() << " ns since epoch\n"
+
+             << "* clock_getres(CLOCK_REALTIME):  s=" << ts1.tv_sec << " ns=" << ts1.tv_nsec << "\n"
+             << "* clock_getres(CLOCK_MONOTONIC): s=" << ts2.tv_sec << " ns=" << ts2.tv_nsec << "\n"
+
+             ;
+}
+
 
 // ###### Main program ######################################################
 int main(int argc, char** argv)
 {
    // ====== Initialize =====================================================
-   unsigned int             measurementID;
-   unsigned int             logLevel;
-   bool                     logColor;
-   std::filesystem::path    logFile;
-   std::string              user((getlogin() != nullptr) ? getlogin() : "0");
-   std::string              configurationFileName;
-   bool                     serviceJitter;
-   bool                     servicePing;
-   bool                     serviceTraceroute;
-   unsigned int             iterations;
-   std::vector<std::string> ioModulesList;
-   std::set<std::string>    ioModules;
+   unsigned int                       measurementID;
+   unsigned int                       logLevel;
+   bool                               logColor;
+   std::filesystem::path              logFile;
+   std::string                        user((getlogin() != nullptr) ? getlogin() : "0");
+   bool                               serviceJitter;
+   bool                               servicePing;
+   bool                               serviceTraceroute;
+   unsigned int                       iterations;
+   std::vector<std::string>           ioModulesList;
+   std::set<std::string>              ioModules;
+   std::vector<std::filesystem::path> sourcesFileList;
+   std::vector<std::filesystem::path> destinationsFileList;
 
-   unsigned long long       jitterInterval;
-   unsigned int             jitterExpiration;
-   unsigned int             jitterBurst;
-   unsigned int             jitterTTL;
-   unsigned int             jitterPacketSize;
-   bool                     jitterRecordRawResults;
 
-   unsigned long long       pingInterval;
-   unsigned int             pingExpiration;
-   unsigned int             pingBurst;
-   unsigned int             pingTTL;
-   unsigned int             pingPacketSize;
+   unsigned long long                 jitterInterval;
+   unsigned int                       jitterExpiration;
+   unsigned int                       jitterBurst;
+   unsigned int                       jitterTTL;
+   unsigned int                       jitterPacketSize;
+   bool                               jitterRecordRawResults;
 
-   unsigned long long       tracerouteInterval;
-   unsigned int             tracerouteExpiration;
-   unsigned int             tracerouteRounds;
-   unsigned int             tracerouteInitialMaxTTL;
-   unsigned int             tracerouteFinalMaxTTL;
-   unsigned int             tracerouteIncrementMaxTTL;
-   unsigned int             traceroutePacketSize;
+   unsigned long long                 pingInterval;
+   unsigned int                       pingExpiration;
+   unsigned int                       pingBurst;
+   unsigned int                       pingTTL;
+   unsigned int                       pingPacketSize;
 
-   uint16_t                 udpDestinationPort;
+   unsigned long long                 tracerouteInterval;
+   unsigned int                       tracerouteExpiration;
+   unsigned int                       tracerouteRounds;
+   unsigned int                       tracerouteInitialMaxTTL;
+   unsigned int                       tracerouteFinalMaxTTL;
+   unsigned int                       tracerouteIncrementMaxTTL;
+   unsigned int                       traceroutePacketSize;
 
-   unsigned int             resultsTransactionLength;
-   std::filesystem::path    resultsDirectory;
-   std::string              resultsCompressionString;
-   ResultsWriterCompressor  resultsCompression;
-   unsigned int             resultsFormat;
+   uint16_t                           udpDestinationPort;
+
+   unsigned int                       resultsTransactionLength;
+   std::filesystem::path              resultsDirectory;
+   std::string                        resultsCompressionString;
+   ResultsWriterCompressor            resultsCompression;
+   unsigned int                       resultsFormatVersion;
 
    boost::program_options::options_description commandLineOptions;
    commandLineOptions.add_options()
       ( "help,h",
            "Print help message" )
+      ( "check",
+           "Check environment" )
 
       ( "loglevel,L",
            boost::program_options::value<unsigned int>(&logLevel)->default_value(boost::log::trivial::severity_level::info),
@@ -171,6 +257,12 @@ int main(int argc, char** argv)
       ( "destination,D",
            boost::program_options::value<std::vector<std::string>>(),
            "Destination address" )
+      ( "sources-from-file",
+           boost::program_options::value<std::vector<std::filesystem::path>>(&sourcesFileList),
+           "Read source addresses from file" )
+      ( "destinations-from-file",
+           boost::program_options::value<std::vector<std::filesystem::path>>(&destinationsFileList),
+           "Read destination addresses from file" )
       ( "iomodule,M",
            boost::program_options::value<std::vector<std::string>>(&ioModulesList),
            "I/O module" )
@@ -259,7 +351,7 @@ int main(int argc, char** argv)
            boost::program_options::value<std::string>(&resultsCompressionString)->default_value(std::string("XZ")),
            "Results compression" )
       ( "resultsformat,F",
-           boost::program_options::value<unsigned int>(&resultsFormat)->default_value(OutputFormatType::OFT_HiPerConTracer_Version2),
+           boost::program_options::value<unsigned int>(&resultsFormatVersion)->default_value(OutputFormatVersionType::OFT_HiPerConTracer_Version2),
            "Results format version" )
     ;
 
@@ -285,6 +377,10 @@ int main(int argc, char** argv)
                  << commandLineOptions;
        return 1;
    }
+   else if(vm.count("check")) {
+      checkEnvironment();
+      return 0;
+   }
    if(vm.count("source")) {
       const std::vector<std::string>& sourceAddressVector = vm["source"].as<std::vector<std::string>>();
       for(std::vector<std::string>::const_iterator iterator = sourceAddressVector.begin();
@@ -301,6 +397,16 @@ int main(int argc, char** argv)
          if(!addDestinationAddress(DestinationArray, iterator->c_str())) {
             return 1;
          }
+      }
+   }
+   for(const std::filesystem::path& sourceFile : sourcesFileList) {
+      if(!addSourceAddressesFromFile(SourceArray, sourceFile)) {
+         return -1;
+      }
+   }
+   for(const std::filesystem::path& destinationFile : destinationsFileList) {
+      if(!addDestinationAddressesFromFile(DestinationArray, destinationFile)) {
+         return -1;
       }
    }
    if(vm.count("iomodule")) {
@@ -320,9 +426,9 @@ int main(int argc, char** argv)
       std::cerr << "ERROR: Invalid MeasurementID setting: " << measurementID << "\n";
       return 1;
    }
-   if( (resultsFormat < OutputFormatType::OFT_Min) ||
-       (resultsFormat > OutputFormatType::OFT_Max) ) {
-      std::cerr << "ERROR: Invalid results format version: " << resultsFormat << "\n";
+   if( (resultsFormatVersion < OutputFormatVersionType::OFT_Min) ||
+       (resultsFormatVersion > OutputFormatVersionType::OFT_Max) ) {
+      std::cerr << "ERROR: Invalid results format version: " << resultsFormatVersion << "\n";
       return 1;
    }
    if(jitterExpiration >= jitterInterval) {
@@ -454,7 +560,7 @@ int main(int argc, char** argv)
                ResultsWriter* resultsWriter = nullptr;
                if(!resultsDirectory.empty()) {
                   resultsWriter = ResultsWriter::makeResultsWriter(
-                                     ResultsWriterSet, measurementID,
+                                     ResultsWriterSet, ProgramID, measurementID,
                                      sourceAddress, "Jitter-" + ioModule,
                                      resultsDirectory, resultsTransactionLength,
                                      (pw != nullptr) ? pw->pw_uid : 0, (pw != nullptr) ? pw->pw_gid : 0,
@@ -465,7 +571,7 @@ int main(int argc, char** argv)
                   }
                }
                Service* service = new Jitter(ioModule,
-                                             resultsWriter, (OutputFormatType)resultsFormat,
+                                             resultsWriter, "Jitter", (OutputFormatVersionType)resultsFormatVersion,
                                              iterations, false,
                                              sourceAddress, destinationsForSource,
                                              jitterRecordRawResults,
@@ -487,7 +593,7 @@ int main(int argc, char** argv)
                ResultsWriter* resultsWriter = nullptr;
                if(!resultsDirectory.empty()) {
                   resultsWriter = ResultsWriter::makeResultsWriter(
-                                     ResultsWriterSet, measurementID,
+                                     ResultsWriterSet, ProgramID, measurementID,
                                      sourceAddress, "Ping-" + ioModule,
                                      resultsDirectory, resultsTransactionLength,
                                      (pw != nullptr) ? pw->pw_uid : 0, (pw != nullptr) ? pw->pw_gid : 0,
@@ -498,7 +604,7 @@ int main(int argc, char** argv)
                   }
                }
                Service* service = new Ping(ioModule,
-                                           resultsWriter, (OutputFormatType)resultsFormat,
+                                           resultsWriter, "Ping", (OutputFormatVersionType)resultsFormatVersion,
                                            iterations, false,
                                            sourceAddress, destinationsForSource,
                                            pingInterval, pingExpiration,
@@ -519,7 +625,7 @@ int main(int argc, char** argv)
                ResultsWriter* resultsWriter = nullptr;
                if(!resultsDirectory.empty()) {
                   resultsWriter = ResultsWriter::makeResultsWriter(
-                                     ResultsWriterSet, measurementID,
+                                     ResultsWriterSet, ProgramID, measurementID,
                                      sourceAddress, "Traceroute-" + ioModule,
                                      resultsDirectory, resultsTransactionLength,
                                      (pw != nullptr) ? pw->pw_uid : 0, (pw != nullptr) ? pw->pw_gid : 0,
@@ -530,7 +636,7 @@ int main(int argc, char** argv)
                   }
                }
                Service* service = new Traceroute(ioModule,
-                                                 resultsWriter, (OutputFormatType)resultsFormat,
+                                                 resultsWriter, "Traceroute", (OutputFormatVersionType)resultsFormatVersion,
                                                  iterations, false,
                                                  sourceAddress, destinationsForSource,
                                                  tracerouteInterval, tracerouteExpiration,

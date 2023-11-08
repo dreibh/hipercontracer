@@ -17,7 +17,7 @@
 .\" Contact: thomas.dreibholz@gmail.com
 .\"
 .\" ###### Setup ############################################################
-.Dd May 19, 2023
+.Dd November 8, 2023
 .Dt hipercontracer 1
 .Os hipercontracer
 .\" ###### Name #############################################################
@@ -27,42 +27,46 @@
 .\" ###### Synopsis #########################################################
 .Sh SYNOPSIS
 .Nm hipercontracer
-.Op \-P|--ping
-.Op \-T|--traceroute
-.Op \-J|--jitter
-.Op \-L|--loglevel level
-.Op \-Z|--logcolor on|off
-.Op \-O|--logfile file
-.Op \-q|--quiet
-.Op \-v|--verbose
-.Op \-U|--user user|uid
-.Op \-#|--measurement-id identifier
-.Op \-S|--source=address|hostname[,traffic_class[,...]]
-.Op \-D|--destination address|hostname
-.Op \-M|--iomodule ICMP|UDP
-.Op \--iterations number_of_iterations
-.Op \--tracerouteinterval milliseconds
-.Op \--tracerouteduration milliseconds
-.Op \--tracerouterounds rounds
-.Op \--tracerouteinitialmaxttl value
-.Op \--traceroutefinalmaxttl value
-.Op \--tracerouteincrementmaxttl value
-.Op \--traceroutepacketsize bytes
-.Op \--pinginterval milliseconds
-.Op \--pingexpiration milliseconds
-.Op \--pingburst packets
-.Op \--pingttl value
-.Op \--pingpacketsize bytes
-.Op \--jitterinterval milliseconds
-.Op \--jitterexpiration milliseconds
-.Op \--jitterburst packets
-.Op \--jitterttl value
-.Op \--jitterpacketsize bytes
-.Op \--jitterrecordraw
-.Op \-R|--resultsdirectory directory
-.Op \-l|--resultstransactionlength seconds
-.Op \-C|--resultscompression none|XZ|BZip2|GZip
-.Op \-F|--resultsformat version
+.Op \-P|\-\-ping
+.Op \-T|\-\-traceroute
+.Op \-J|\-\-jitter
+.Op \-L|\-\-loglevel level
+.Op \-Z|\-\-logcolor on|off
+.Op \-O|\-\-logfile file
+.Op \-q|\-\-quiet
+.Op \-v|\-\-verbose
+.Op \-U|\-\-user user|uid
+.Op \-#|\-\-measurement-id identifier
+.Op \-S|\-\-source address|hostname[,traffic_class[,...]]
+.Op \-D|\-\-destination address|hostname
+.Op \-\-sources-from-file file
+.Op \-\-destinations-from-file file
+.Op \-M|\-\-iomodule ICMP|UDP
+.Op \-\-iterations number_of_iterations
+.Op \-\-tracerouteinterval milliseconds
+.Op \-\-tracerouteduration milliseconds
+.Op \-\-tracerouterounds rounds
+.Op \-\-tracerouteinitialmaxttl value
+.Op \-\-traceroutefinalmaxttl value
+.Op \-\-tracerouteincrementmaxttl value
+.Op \-\-traceroutepacketsize bytes
+.Op \-\-pinginterval milliseconds
+.Op \-\-pingexpiration milliseconds
+.Op \-\-pingburst packets
+.Op \-\-pingttl value
+.Op \-\-pingpacketsize bytes
+.Op \-\-jitterinterval milliseconds
+.Op \-\-jitterexpiration milliseconds
+.Op \-\-jitterburst packets
+.Op \-\-jitterttl value
+.Op \-\-jitterpacketsize bytes
+.Op \-\-jitterrecordraw
+.Op \-\-udpdestinationport port
+.Op \-R|\-\-resultsdirectory directory
+.Op \-l|\-\-resultstransactionlength seconds
+.Op \-C|\-\-resultscompression none|XZ|BZip2|GZip
+.Op \-F|\-\-resultsformat version
+.Op \-\-check
 .\" ###### Description ######################################################
 .Sh DESCRIPTION
 .Nm hipercontracer
@@ -74,124 +78,142 @@ a database.
 .Sh ARGUMENTS
 The following arguments may be provided:
 .Bl -tag -width indent
-.It \-P|\--ping
+.It \-P|\-\-ping
 Start the Ping service.
-.It \-T|\--traceroute
+.It \-T|\-\-traceroute
 Start the Traceroute service.
-.It \-J|\--jitter
+.It \-J|\-\-jitter
 Start the Jitter service.
-.It \-L|\--loglevel level
+.It \-L|\-\-loglevel level
 Sets the minimum logging level to the provided value: 0=trace, 1=debug, 2=info, 3=warning, 4=error, 5=fatal.
-.It \-q|\--quiet
+.It \-q|\-\-quiet
 Sets the minimum logging level to 3 (warning).
-.It \-v|\--verbose
+.It \-v|\-\-verbose
 Sets the minimum logging level to 0 (trace).
-.It \-Z|--logcolor on|off
+.It \-Z|\-\-logcolor on|off
 Enables (on) or disables (off) the usage of ANSI color escape sequences to colorise the log output according to its level.
-.It \-O|--logfile file
+.It \-O|\-\-logfile file
 Sets a file name for appending the log output to. If a file is set, no log output is made to the console.
 Otherwise, all log output will be written to the console.
-.It \-U|\--user user|uid
+.It \-U|\-\-user user|uid
 After startup, HiPerConTracer uses UID and GID of the given user (by name or GID).
 The output directory's ownership as well as the ownership of the created results
 files will be set accordingly.
-.It \-#|--measurement-id identifier
+.It \-#|\-\-measurement-id identifier
 Sets a unique measurement identifier for the measurement. All output files will have this identifier in their file name (#<ID>).
 It can be used to set a setup-wide unique identifier to identify the vantage point. If no measurement identifier is specified,
 the files will contain the process ID instead (P<ID>). Range: 0-2147483647.
 Default: 0 (using process ID instead).
-.It \-S|\--source address|hostname[,traffic_class[,...]]
+.It \-S|\-\-source address|hostname[,traffic_class[,...]]
 Adds the given source address or hostname. It is possible to use the ANY address (0.0.0.0 or ::), in order to just use the default route.
 If no traffic class is given, Best Effort (00) is used. Otherwise, the list of given traffic classes (in hexadecimal) is used. Alternatively, a traffic class can be specified by PHB name (BE, EF, AF11, AF12, AF13, AF21, AF22, AF23, AF31, AF32, AF33, AF41, AF42, AF43, CS1, CS2, CS3, CS4, CS5, CS6, CS7). In this case, the corresponding traffic class with ECN bits set to 0 is used.
 Note: use lower-case hexadecimal letters to avoid ambiguities with PHB name (e.g. be for 0xbe instead of BE PHB)!
 If a hostname is provided, a DNS resolution is performed and all returned addresses are added.
-.It \-D|\--destination address|hostname
+.It \-D|\-\-destination address|hostname
 Adds the given destination address or hostname.
 If a hostname is provided, a DNS resolution is performed and all returned addresses are added.
-.Op \-M|--iomodule ICMP|UDP
+.It \-\-sources-from-file file
+Read sources from given file. This option may be used multiple times, to read from multiple files.
+.It \-\-destinations-from-file file
+Read destinations from given file. This option may be used multiple times, to read from multiple files.
+.It \-M|\-\-iomodule ICMP|UDP
 Adds an I/O module: ICMP or UDP. The option may be specified multiple times with different modules.
-.It \--iterations number_of_iterations
+.It \-\-iterations number_of_iterations
 Limit the number of measurement iterations (measurement for all source/destination
 pairs) to the given number of iterations. The default 0 lets HiPerConTracer run
 continuously.
-.It \--tracerouteinterval milliseconds
+.It \-\-tracerouteinterval milliseconds
 Sets the Traceroute interval (time for each full round of destinations).
-.It \--tracerouteduration milliseconds
+.It \-\-tracerouteduration milliseconds
 Sets the Traceroute duration (timeout for each destination).
-.It \--tracerouterounds rounds
+.It \-\-tracerouterounds rounds
 For each Traceroute measurement, perform the given number of rounds simultaneously.
 Default is 1 round. Range: 1-64.
 Each TTL test of a round will have the same ICMP checksum value ("Oslo Traceroute"),
 in order to deal with load balancing in the Internet.
 Different rounds will have different checksums. That is, different rounds may
 experience different paths in the network.
-.It \--tracerouteinitialmaxttl value
+.It \-\-tracerouteinitialmaxttl value
 Start with the given maximum TTL.
 Default is 6.
-.It \--traceroutefinalmaxttl value
+.It \-\-traceroutefinalmaxttl value
 Finish with the given maximum TTL (when destination is not reached with current TTL setting).
 Default is 36.
-.It \--tracerouteincrementmaxttl value
+.It \-\-tracerouteincrementmaxttl value
 Increase the maximum TTL by the given value (when destination is not reached with current TTL setting).
 Default is 6.
-.It \--traceroutepacketsize bytes
+.It \-\-traceroutepacketsize bytes
 Sets the Traceroute packet size, that is IP header (20 for IPv4/40 for IPv6) + ICMP header (8) + HiPerConTracer header (16) + payload, in bytes.
 The actually sent packet size always covers at least the headers for IPv4/IPv6, ICMP and HiPerConTracer. Maximum packet size is 65535.
-.It \--pinginterval milliseconds
+.It \-\-pinginterval milliseconds
 Sets the Ping interval (time for each full round of destinations).
 Default is 5000 ms.
-.It \--pingexpiration milliseconds
+.It \-\-pingexpiration milliseconds
 Sets the Ping duration (timeout for each destination).
 Default is 10000 ms.
-.It \--pingburst packets
+.It \-\-pingburst packets
 For each Ping measurement, send a burst of the given number of packets.
 Default is 1 packet. Range: 1-1024.
-.It \--pingttl value
+.It \-\-pingttl value
 Sets the Ping TTL value.
 Default is 64. Range: 1-255.
-.It \--pingpacketsize bytes
+.It \-\-pingpacketsize bytes
 Sets the Jitter packet size, that is IP header (20 for IPv4/40 for IPv6) + ICMP header (8)/UDP header (8) + HiPerConTracer header (16) + payload, in bytes.
 The actually sent packet size always covers at least the headers for IPv4/IPv6, transport protocol and HiPerConTracer. Default is 0 (use minimum possible value). Range: 0-65535.
-.It \--jitterinterval milliseconds
+.It \-\-jitterinterval milliseconds
 Sets the Jitter interval (time for each full round of destinations).
 Default is 5000 ms.
-.It \--jitterexpiration milliseconds
+.It \-\-jitterexpiration milliseconds
 Sets the Jitter duration (timeout for each destination).
 Default is 10000 ms.
-.It \--jitterburst packets
+.It \-\-jitterburst packets
 For each Jitter measurement, send a burst of the given number of packets.
 Default is 16 packets. Range: 2-1024.
-.It \--jitterttl value
+.It \-\-jitterttl value
 Sets the Jitter TTL value.
 Default is 64. Range: 1-255.
-.It \--jitterpacketsize bytes
+.It \-\-jitterpacketsize bytes
 Sets the Jitter packet size, that is IP header (20 for IPv4/40 for IPv6) + ICMP header (8)/UDP header (8) + HiPerConTracer header (16) + payload, in bytes.
 The actually sent packet size always covers at least the headers for IPv4/IPv6, transport protocol and HiPerConTracer.
 Default is 128 bytes. Range: 0-65535.
-.It \--jitterrecordraw
+.It \-\-jitterrecordraw
 Also record raw Ping results used for jitter computation.
-.It \-R|\--resultsdirectory directory
+.It \-\-udpdestinationport port
+Sets the destination port for the UDP module (default: 7).
+.It \-R|\-\-resultsdirectory directory
 Sets the results files directory. The results will be stored there. If not specified, to results will be stored.
-.It \-l|\--resultstransactionlength seconds
+.It \-l|\-\-resultstransactionlength seconds
 After a given number of seconds, begin a new results file.
-.It \-C|--resultscompression none|XZ|BZip2|GZip
+.It \-C|\-\-resultscompression none|XZ|BZip2|GZip
 Sets the compression for the output files.
 Default: XZ.
-.It \-F|--resultsformat version
+.It \-F|\-\-resultsformat version
 Sets the results file format version.
 Default: 2 (current version). Range (currently): 1-2.
 Note: A future version of HiPerConTracer may increase this default setting!
+.It \-\-check
+Print build environment information for debugging.
 .El
 .\" ###### Output format ####################################################
 .Sh OUTPUT FORMAT
 The output file is a text file (possibly compressed).
 The format is as follows, depending on the measurement type:
 .Bl -tag -width indent
+.\" ====== Format identifier ================================================
+.It Format identifier in first line
+.Bl -tag -width indent
+.It #? HPCT format version programID
+.Bl -tag -width indent
+.It * format: Format of the output data (Ping, Traceroute, etc.).
+.It * version: Version of the output data (decimal).
+.It * programID: Identifier for the program generating the output (e.g. HiPerConTracer/2.0.0).
+.El
+.El
 .\" ====== Ping, version 2 ==================================================
 .It Ping (version 2, current)
 Each Ping entry consists of a #P<m> line, with m=i for ICMP and m=u for UDP (according to underlying I/O module).
 .Bl -tag -width indent
-.It #P<m> measurementID sourceIP destinationIP timestamp burstseq traffic_class packetsize response_size checksum status timesource delay_app_send delay_queuing delay_app_receive rtt_app rtt_sw rtt_hw
+.It #P<m> measurementID sourceIP destinationIP timestamp burstseq traffic_class packetsize response_size checksum sourcePort destinationPort status timesource delay_app_send delay_queuing delay_app_receive rtt_app rtt_sw rtt_hw
 .Bl -tag -width indent
 .It * measurementID: Measurement identifier.
 .It * sourceIP: Source IP address.
@@ -201,7 +223,9 @@ Each Ping entry consists of a #P<m> line, with m=i for ICMP and m=u for UDP (acc
 .It * traffic_class: The IP Traffic Class/Type of Service value of the sent packets (hexadecimal).
 .It * packet_size: The sent packet size (decimal, in bytes) including IPv4/IPv6 header, transport header and HiPerConTracer header.
 .It * response_size: The response packet size (decimal, in bytes) including IPv4/IPv6 header, transport header and HiPerConTracer header.
-.It * checksum: The checksum of the ICMP Echo Request packets (hexadecimal).
+.It * checksum: The checksum of the ICMP Echo Request packets, 0 for other protocols (hexadecimal).
+.It * sourcePort: Source port, 0 for ICMP (decimal).
+.It * destinationPort: Destination port, 0 for ICMP (decimal).
 .It * status: Status code (decimal):
 .Bl -tag -width indent
 .It - 1 = ICMP response: Time Exceeded
@@ -232,7 +256,7 @@ Each byte AA, QQ, SS, HH provides the receive time source (upper nibble) and sen
 .It 0x0: Not available
 .It 0x1: System clock
 .It 0x2: SO_TIMESTAMPING socket option, microseconds granularity
-.It 0x3: SO_TIMESTAMPINGNS socket option, nanoseconds granularity
+.It 0x3: SO_TIMESTAMPINGNS socket option (or SO_TIMESTAMPING+SO_TS_CLOCK), nanoseconds granularity
 .It 0x4: SIOCGSTAMP ioctl, microseconds granularity
 .It 0x5: SIOCGSTAMPNS ioctl, nanoseconds granularity
 .It 0x6: SO_TIMESTAMPING socket option, in software, nanoseconds granularity
@@ -271,7 +295,7 @@ This entry has been added with HiPerConTracer 2.0.0!
 Each Traceroute entry begins with a #Tm line, with m=i for ICMP and m=u for UDP (according to underlying I/O module).
 This is followed with one TAB-started line per each hop.
 .Bl -tag -width indent
-.It #T<m> measurementID sourceIP destinationIP timestamp round totalHops traffic_class packet_size checksum statusFlags pathHash
+.It #T<m> measurementID sourceIP destinationIP timestamp round totalHops traffic_class packet_size checksum sourcePort destinationPort statusFlags pathHash
 .Bl -tag -width indent
 .It * measurementID: Measurement identifier.
 .It * sourceIP: Source IP address.
@@ -283,7 +307,9 @@ The actual send timestamp of the request to each hop can be found in sendTimeSta
 .It * totalHops: Total hops (decimal).
 .It * traffic_class: The IP Traffic Class/Type of Service value of the sent packets (hexadecimal).
 .It * packet_size: The sent packet size (decimal, in bytes) including IPv4/IPv6 header, transport header and HiPerConTracer header.
-.It * checksum: The checksum of the ICMP Echo Request packets (hexadecimal).
+.It * checksum: The checksum of the ICMP Echo Request packets, 0 for other protocols (hexadecimal).
+.It * sourcePort: Source port, 0 for ICMP (decimal).
+.It * destinationPort: Destination port, 0 for ICMP (decimal).
 .It * statusFlags: Status flags (hexadecimal):
 See the status code for Ping above for the lower 8 bits. Additionally:
 .Bl -tag -width indent
@@ -343,7 +369,7 @@ This entry has been added with HiPerConTracer 2.0.0!
 .It Jitter (version 2, current; there is no version 1)
 Each Jitter entry consists of a #J<m> line, with m=i for ICMP and m=u for UDP (according to underlying I/O module).
 .Bl -tag -width indent
-.It #J<m> measurementID sourceIP destinationIP timestamp burstseq traffic_class packetsize checksum status timesource
+.It #J<m> measurementID sourceIP destinationIP timestamp burstseq traffic_class packetsize checksum sourcePort destinationPort status timesource
 packets_app_send jitter_app_send meandelay_app_send
 packets_queuing jitter_queuing meandelay_queuing
 packets_app_receive jitter_app_receive meandelay_app_receive
@@ -358,7 +384,9 @@ packets_hw jitter_hw meanrtt_hw
 .It * burstseq: Sequence number within a burst (decimal), numbered from 0.
 .It * traffic_class: The IP Traffic Class/Type of Service value of the sent packets (hexadecimal).
 .It * packet_size: The sent packet size (decimal, in bytes) including IPv4/IPv6 header, transport header and HiPerConTracer header.
-.It * checksum: The checksum of the ICMP Echo Request packets (hexadecimal).
+.It * checksum: The checksum of the ICMP Echo Request packets, 0 for other protocols (hexadecimal).
+.It * sourcePort: Source port, 0 for ICMP (decimal).
+.It * destinationPort: Destination port, 0 for ICMP (decimal).
 .It * status: Status code (decimal):
 .It * timesource: Source of the timing information (hexadecimal) as: AAQQSSHH (same as for Ping, see above).
 .It * packets_app_send: Number of packets for application send jitter/mean RTT computation
@@ -380,20 +408,20 @@ packets_hw jitter_hw meanrtt_hw
 .It * meanrtt_hw: Mean kernel hardware RTT (nanoseconds, decimal; -1 if not available).
 .It * jitter_hw: Jitter of kernel hardware RTT (computed based on RFC 3550, Subsubsection 6.4.1)
 .El
-If recording of raw Ping results is enabled (\--jitterrecordraw), a Jitter entry is followed by the underlying Ping measurement entries (see Ping version 2 format above).
+If recording of raw Ping results is enabled (\-\-jitterrecordraw), a Jitter entry is followed by the underlying Ping measurement entries (see Ping version 2 format above).
 .El
 .El
 .\" ###### Examples #########################################################
 .Sh EXAMPLES
 .Bl -tag -width indent
-.It hipercontracer \-S 10.1.1.51 \-D 10.1.1.6 \-D 10.1.1.7 \-D 10.1.1.8 \-T \--tracerouteinterval 10000 \--tracerouteduration 1000 \-v
-.It hipercontracer \--source 10.1.1.51 \--destination 10.1.1.6 \--destination 10.1.1.7 \--destination 10.1.1.8 \--traceroute \--tracerouteinterval 10000 \--tracerouteduration 1000
-.It hipercontracer \--source 172.16.0.127 \--destination 8.8.8.8 \--destination 193.99.144.80 \--destination 132.252.181.87 \--destination 10.254.254.254 \--destination 91.189.93.5 \--destination 128.112.139.90 \--destination 4.31.198.44 \--destination 136.186.1.10 \--destination 101.4.112.170 \--destination 77.36.144.2 \--source 2a02:270:2014:40:92e2:baff:fe48:bde1 \--destination 2400:cb00:2048:1::6814:155 \--destination 2a02:2e0:3fe:1001:7777:772e:2:85 \--destination 2a00:1450:400f:805::2004 \--traceroute \--ping \--tracerouteduration 1000 \--tracerouteinitialmaxttl 4 \--traceroutefinalmaxttl 32 \--tracerouteincrementmaxttl 4 \--pinginterval 1000 \--pingexpiration 7500 \--pingttl 56 \--resultsdirectory results
-.It hipercontracer \--source=0.0.0.0,00,AF11 \--source=::,BE,EF,AF11 \--destination=8.8.8.8 \--destination=2606:4700:10::6814:155 \--ping \--traceroute \--tracerouteduration=1000 \--tracerouteinitialmaxttl=4 \--traceroutefinalmaxttl=32 \--tracerouteincrementmaxttl=4 \--pinginterval=1000 \--pingexpiration=7500 \--pingttl=56 \--resultsdirectory=/storage/hpct-results \--resultstransactionlength=20 \--quiet
-.It hipercontracer \--user=hipercontracer \--source=10.1.1.51 \--destination=10.1.1.6 \--destination=10.1.1.7 \--destination=10.1.1.8 \--traceroute \--tracerouteinterval=10000 \--tracerouteduration=1000
-.It hipercontracer \--user=hipercontracer \--source=0.0.0.0 \--destination=8.8.8.8 \-M ICMP \--ping \--verbose
-.It hipercontracer \--user=hipercontracer \--source=0.0.0.0 \--source=::\--destination=www.ietf.org \--iomodule ICMP \--ping \--verbose
-.It hipercontracer \--user=hipercontracer \--source=10.193.4.64 \--destination 1.2.3.4 \--iomodule ICMP \--iomodule UDP \--ping \--traceroute
+.It hipercontracer \-S 10.1.1.51 \-D 10.1.1.6 \-D 10.1.1.7 \-D 10.1.1.8 \-T \-\-tracerouteinterval 10000 \-\-tracerouteduration 1000 \-v
+.It hipercontracer \-\-source 10.1.1.51 \-\-destination 10.1.1.6 \-\-destination 10.1.1.7 \-\-destination 10.1.1.8 \-\-traceroute \-\-tracerouteinterval 10000 \-\-tracerouteduration 1000
+.It hipercontracer \-\-source 172.16.0.127 \-\-destination 8.8.8.8 \-\-destination 193.99.144.80 \-\-destination 132.252.181.87 \-\-destination 10.254.254.254 \-\-destination 91.189.93.5 \-\-destination 128.112.139.90 \-\-destination 4.31.198.44 \-\-destination 136.186.1.10 \-\-destination 101.4.112.170 \-\-destination 77.36.144.2 \-\-source 2a02:270:2014:40:92e2:baff:fe48:bde1 \-\-destination 2400:cb00:2048:1::6814:155 \-\-destination 2a02:2e0:3fe:1001:7777:772e:2:85 \-\-destination 2a00:1450:400f:805::2004 \-\-traceroute \-\-ping \-\-tracerouteduration 1000 \-\-tracerouteinitialmaxttl 4 \-\-traceroutefinalmaxttl 32 \-\-tracerouteincrementmaxttl 4 \-\-pinginterval 1000 \-\-pingexpiration 7500 \-\-pingttl 56 \-\-resultsdirectory results
+.It hipercontracer \-\-source=0.0.0.0,00,AF11 \-\-source=::,BE,EF,AF11 \-\-destination=8.8.8.8 \-\-destination=2606:4700:10::6814:155 \-\-ping \-\-traceroute \-\-tracerouteduration=1000 \-\-tracerouteinitialmaxttl=4 \-\-traceroutefinalmaxttl=32 \-\-tracerouteincrementmaxttl=4 \-\-pinginterval=1000 \-\-pingexpiration=7500 \-\-pingttl=56 \-\-resultsdirectory=/storage/hpct-results \-\-resultstransactionlength=20 \-\-quiet
+.It hipercontracer \-\-user=hipercontracer \-\-source=10.1.1.51 \-\-destination=10.1.1.6 \-\-destination=10.1.1.7 \-\-destination=10.1.1.8 \-\-traceroute \-\-tracerouteinterval=10000 \-\-tracerouteduration=1000
+.It hipercontracer \-\-user=hipercontracer \-\-source=0.0.0.0 \-\-destination=8.8.8.8 \-M ICMP \-\-ping \-\-verbose
+.It hipercontracer \-\-user=hipercontracer \-\-source=0.0.0.0 \-\-source=::\-\-destination=www.ietf.org \-\-iomodule ICMP \-\-ping \-\-verbose
+.It hipercontracer \-\-user=hipercontracer \-\-source=10.193.4.64 \-\-destination 1.2.3.4 \-\-iomodule ICMP \-\-iomodule UDP \-\-ping \-\-traceroute
 .El
 .\" ###### Authors ##########################################################
 .Sh AUTHORS

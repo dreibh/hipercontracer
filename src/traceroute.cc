@@ -59,7 +59,8 @@
 // ###### Constructor #######################################################
 Traceroute::Traceroute(const std::string                moduleName,
                        ResultsWriter*                   resultsWriter,
-                       const OutputFormatType           outputFormat,
+                       const char*                      outputFormatName,
+                       const OutputFormatVersionType    outputFormatVersion,
                        const unsigned int               iterations,
                        const bool                       removeDestinationAfterRun,
                        const boost::asio::ip::address&  sourceAddress,
@@ -74,7 +75,8 @@ Traceroute::Traceroute(const std::string                moduleName,
                        const uint16_t                   destinationPort)
    : TracerouteInstanceName(std::string("Traceroute(") + sourceAddress.to_string() + std::string(")")),
      ResultsOutput(resultsWriter),
-     OutputFormat(outputFormat),
+     OutputFormatName(outputFormatName),
+     OutputFormatVersion(outputFormatVersion),
      Iterations(iterations),
      RemoveDestinationAfterRun(removeDestinationAfterRun),
      Interval(interval),
@@ -118,6 +120,8 @@ Traceroute::Traceroute(const std::string                moduleName,
       }
    }
    DestinationIterator = Destinations.end();
+
+   ResultsOutput->specifyOutputFormat(OutputFormatName, OutputFormatVersion);
 }
 
 
@@ -603,9 +607,9 @@ void Traceroute::writeTracerouteResultEntry(const ResultEntry* resultEntry,
       if(writeHeader) {
 
          // ====== Current output format =================================
-         if(OutputFormat >= OFT_HiPerConTracer_Version2) {
+         if(OutputFormatVersion >= OFT_HiPerConTracer_Version2) {
             ResultsOutput->insert(
-               str(boost::format("#T%c %d %s %s %x %d %d %x %d %x %x %x")
+               str(boost::format("#T%c %d %s %s %x %d %d %x %d %x %d %d %x %x")
                   % (unsigned char)IOModule->getProtocolType()
 
                   % ResultsOutput->measurementID()
@@ -619,6 +623,8 @@ void Traceroute::writeTracerouteResultEntry(const ResultEntry* resultEntry,
                   % (unsigned int)(*DestinationIterator).trafficClass()
                   % resultEntry->packetSize()
                   % resultEntry->checksum()
+                  % resultEntry->sourcePort()
+                  % resultEntry->destinationPort()
                   % statusFlags
 
                   % (int64_t)pathHash
@@ -647,7 +653,7 @@ void Traceroute::writeTracerouteResultEntry(const ResultEntry* resultEntry,
       }
 
       // ====== Current output format =================================
-      if(OutputFormat >= OFT_HiPerConTracer_Version2) {
+      if(OutputFormatVersion >= OFT_HiPerConTracer_Version2) {
          unsigned int   timeSource;
          ResultDuration rttApplication;
          ResultDuration rttSoftware;

@@ -57,7 +57,6 @@ void JitterRFC3550::process(const uint8_t            timeSource,
          // The time source has changed => do not accept these time stamps.
          HPCT_LOG(debug) << "Ignoring packet with incompatible time source "
                          << std::hex << (int)timeSource << " vs. " << (int)TimeSource;
-abort();
          return;
       }
 

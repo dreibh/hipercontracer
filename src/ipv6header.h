@@ -120,11 +120,6 @@ class IPv6Header
    inline void destinationAddress(const boost::asio::ip::address_v6& destinationAddress) {
       memcpy(&Data[24], destinationAddress.to_bytes().data(), 16);
    }
-#if 0
-   inline void computeInternet16(uint32_t& sum) const {
-      ::computeInternet16(sum, (uint8_t*)&Data, sizeof(Data));
-   }
-#endif
 
    inline const uint8_t* data() const {
       return (const uint8_t*)&Data;

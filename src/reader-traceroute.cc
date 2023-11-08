@@ -258,7 +258,7 @@ unsigned int TracerouteReader::parseResponseSize(const std::string&           va
 }
 
 
-// ###### Parse time stamp ##################################################
+// ###### Parse checksum ####################################################
 uint16_t TracerouteReader::parseChecksum(const std::string&           value,
                                          const std::filesystem::path& dataFile)
 {
@@ -276,6 +276,27 @@ uint16_t TracerouteReader::parseChecksum(const std::string&           value,
                                             " in input file " + relativeTo(dataFile, Configuration.getImportFilePath()).string());
    }
    return (uint16_t)checksum;
+}
+
+
+// ###### Parse port ########################################################
+uint16_t TracerouteReader::parsePort(const std::string&           value,
+                                     const std::filesystem::path& dataFile)
+{
+   size_t        index = 0;
+   unsigned long port  = 0;
+   try {
+      port = std::stoul(value, &index, 10);
+   } catch(...) { }
+   if(index != value.size()) {
+      throw ResultsReaderDataErrorException("Bad port format " + value +
+                                            " in input file " + relativeTo(dataFile, Configuration.getImportFilePath()).string());
+   }
+   if(port > 65535) {
+      throw ResultsReaderDataErrorException("Invalid port value " + value +
+                                            " in input file " + relativeTo(dataFile, Configuration.getImportFilePath()).string());
+   }
+   return (uint16_t)port;
 }
 
 
@@ -404,7 +425,7 @@ void TracerouteReader::beginParsing(DatabaseClientBase& databaseClient,
    if(backend & DatabaseBackendType::SQL_Generic) {
       statement
          << "INSERT INTO " << Table
-         << " (Timestamp,MeasurementID,SourceIP,DestinationIP,Protocol,TrafficClass,RoundNumber,HopNumber,TotalHops,PacketSize,ResponseSize,Checksum,Status,PathHash,SendTimestamp,HopIP,TimeSource,Delay_AppSend,Delay_Queuing,Delay_AppReceive,RTT_App,RTT_SW,RTT_HW) VALUES";
+         << " (Timestamp,MeasurementID,SourceIP,DestinationIP,Protocol,TrafficClass,RoundNumber,HopNumber,TotalHops,PacketSize,ResponseSize,Checksum,SourcePort,DestinationPort,Status,PathHash,SendTimestamp,HopIP,TimeSource,Delay_AppSend,Delay_Queuing,Delay_AppReceive,RTT_App,RTT_SW,RTT_HW) VALUES";
    }
    else if(backend & DatabaseBackendType::NoSQL_Generic) {
       statement << "{ \"" << Table <<  "\": [";
@@ -461,22 +482,24 @@ void TracerouteReader::parseContents(
    Statement&                statement = databaseClient.getStatement("Traceroute");
    const DatabaseBackendType backend   = databaseClient.getBackend();
    static const unsigned int TracerouteMinColumns = 4;
-   static const unsigned int TracerouteMaxColumns = 12;
+   static const unsigned int TracerouteMaxColumns = 14;
    static const char         TracerouteDelimiter  = ' ';
 
-   unsigned int              version       = 2;
-   char                      protocol      = 0x00;
-   unsigned int              measurementID = 0;
+   unsigned int              version         = 2;
+   char                      protocol        = 0x00;
+   unsigned int              measurementID   = 0;
    ReaderTimePoint           timeStamp;
    boost::asio::ip::address  sourceIP;
    boost::asio::ip::address  destinationIP;
-   unsigned int              roundNumber  = 0;
-   uint16_t                  checksum     = 0;
-   unsigned int              totalHops    = 0;
-   unsigned int              statusFlags  = ~0U;
-   long long                 pathHash     = 0;
-   uint8_t                   trafficClass = 0x00;
-   unsigned int              packetSize   = 0;
+   unsigned int              roundNumber     = 0;
+   uint16_t                  checksum        = 0;
+   uint16_t                  sourcePort      = 0;
+   uint16_t                  destinationPort = 0;
+   unsigned int              totalHops       = 0;
+   unsigned int              statusFlags     = ~0U;
+   long long                 pathHash        = 0;
+   uint8_t                   trafficClass    = 0x00;
+   unsigned int              packetSize      = 0;
    unsigned long long        oldTimeStamp;   // Just used for version 1 conversion!
 
    std::string inputLine;
@@ -516,34 +539,38 @@ void TracerouteReader::parseContents(
             rows++;
          }
 
-         protocol      = tuple[0][2];
-         measurementID = parseMeasurementID(tuple[1], dataFile);
-         sourceIP      = parseAddress(tuple[2], dataFile);
-         destinationIP = parseAddress(tuple[3], dataFile);
-         timeStamp     = parseTimeStamp(tuple[4], now, true, dataFile);
-         roundNumber   = parseRoundNumber(tuple[5], dataFile);
-         totalHops     = parseTotalHops(tuple[6], dataFile);
-         trafficClass  = parseTrafficClass(tuple[7], dataFile);
-         packetSize    = parsePacketSize(tuple[8], dataFile);
-         checksum      = parseChecksum(tuple[9], dataFile);
-         statusFlags   = parseStatus(tuple[10], dataFile);
-         pathHash      = parsePathHash(tuple[11], dataFile);
+         protocol        = tuple[0][2];
+         measurementID   = parseMeasurementID(tuple[1], dataFile);
+         sourceIP        = parseAddress(tuple[2], dataFile);
+         destinationIP   = parseAddress(tuple[3], dataFile);
+         timeStamp       = parseTimeStamp(tuple[4], now, true, dataFile);
+         roundNumber     = parseRoundNumber(tuple[5], dataFile);
+         totalHops       = parseTotalHops(tuple[6], dataFile);
+         trafficClass    = parseTrafficClass(tuple[7], dataFile);
+         packetSize      = parsePacketSize(tuple[8], dataFile);
+         checksum        = parseChecksum(tuple[9], dataFile);
+         sourcePort      = parsePort(tuple[10], dataFile);
+         destinationPort = parsePort(tuple[11], dataFile);
+         statusFlags     = parseStatus(tuple[12], dataFile);
+         pathHash        = parsePathHash(tuple[13], dataFile);
 
          if(backend & DatabaseBackendType::NoSQL_Generic) {
             statement.beginRow();
             statement
-               << "\"timestamp\":"     << timePointToNanoseconds<ReaderTimePoint>(timeStamp) << statement.sep()
-               << "\"measurementID\":" << measurementID                                      << statement.sep()
-               << "\"sourceIP\":"      << statement.encodeAddress(sourceIP)                  << statement.sep()
-               << "\"destinationIP\":" << statement.encodeAddress(destinationIP)             << statement.sep()
-               << "\"protocol\":"      << (unsigned int)protocol                             << statement.sep()
-               << "\"trafficClass\":"  << (unsigned int)trafficClass                         << statement.sep()
-               << "\"roundNumber\":"   << roundNumber                                        << statement.sep()
-               << "\"packetSize\":"    << packetSize                                         << statement.sep()
-               << "\"checksum\":"      << checksum                                           << statement.sep()
-               << "\"statusFlags\":"   << statusFlags                                        << statement.sep()
-               << "\"totalHops\":"     << totalHops                                          << statement.sep()
-               << "\"pathHash\":"      << pathHash                                           << statement.sep()
+               << "\"timestamp\":"       << timePointToNanoseconds<ReaderTimePoint>(timeStamp) << statement.sep()
+               << "\"measurementID\":"   << measurementID                                      << statement.sep()
+               << "\"sourceIP\":"        << statement.encodeAddress(sourceIP)                  << statement.sep()
+               << "\"destinationIP\":"   << statement.encodeAddress(destinationIP)             << statement.sep()
+               << "\"protocol\":"        << (unsigned int)protocol                             << statement.sep()
+               << "\"trafficClass\":"    << (unsigned int)trafficClass                         << statement.sep()
+               << "\"roundNumber\":"     << roundNumber                                        << statement.sep()
+               << "\"packetSize\":"      << packetSize                                         << statement.sep()
+               << "\"checksum\":"        << checksum                                           << statement.sep()
+               << "\"sourcePort\":"      << sourcePort                                         << statement.sep()
+               << "\"destinationPort\":" << destinationPort                                    << statement.sep()
+               << "\"statusFlags\":"     << statusFlags                                        << statement.sep()
+               << "\"totalHops\":"       << totalHops                                          << statement.sep()
+               << "\"pathHash\":"        << pathHash                                           << statement.sep()
                << "\"hops\": [ ";
          }
       }
@@ -581,6 +608,8 @@ void TracerouteReader::parseContents(
                << packetSize                                             << statement.sep()
                << responseSize                                           << statement.sep()
                << checksum                                               << statement.sep()
+               << sourcePort                                             << statement.sep()
+               << destinationPort                                        << statement.sep()
                << (status | statusFlags)                                 << statement.sep()
                << pathHash                                               << statement.sep()
                << timePointToNanoseconds<ReaderTimePoint>(sendTimeStamp) << statement.sep()

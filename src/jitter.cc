@@ -41,7 +41,8 @@
 // ###### Constructor #######################################################
 Jitter::Jitter(const std::string                moduleName,
                ResultsWriter*                   resultsWriter,
-               const OutputFormatType           outputFormat,
+               const char*                      outputFormatName,
+               const OutputFormatVersionType    outputFormatVersion,
                const unsigned int               iterations,
                const bool                       removeDestinationAfterRun,
                const boost::asio::ip::address&  sourceAddress,
@@ -54,7 +55,8 @@ Jitter::Jitter(const std::string                moduleName,
                const unsigned int               packetSize,
                const uint16_t                   destinationPort)
    : Ping(moduleName,
-          resultsWriter, outputFormat, iterations, removeDestinationAfterRun,
+          resultsWriter, outputFormatName, outputFormatVersion,
+          iterations, removeDestinationAfterRun,
           sourceAddress, destinationArray,
           interval, expiration, rounds, ttl,
           packetSize, destinationPort),
@@ -281,7 +283,7 @@ void Jitter::writeJitterResultEntry(const ResultEntry*   referenceEntry,
          referenceEntry->sendTime(TXTimeStampType::TXTST_Application));
 
       ResultsOutput->insert(
-         str(boost::format("#J%c %d %s %s %x %d %x %d %x %d %08x %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d")
+         str(boost::format("#J%c %d %s %s %x %d %x %d %x %d %d %d %08x %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d")
             % (unsigned char)IOModule->getProtocolType()
 
             % ResultsOutput->measurementID()
@@ -293,6 +295,8 @@ void Jitter::writeJitterResultEntry(const ResultEntry*   referenceEntry,
             % (unsigned int)referenceEntry->destination().trafficClass()
             % referenceEntry->packetSize()
             % referenceEntry->checksum()
+            % referenceEntry->sourcePort()
+            % referenceEntry->destinationPort()
             % referenceEntry->status()
 
             % timeSource

@@ -29,6 +29,15 @@
 #
 #  Contact: dreibh@simula.no
 
+#############################################################################
+#### VERSION FILE                                                        ####
+#############################################################################
+
+CONFIGURE_FILE (
+   "${CMAKE_CURRENT_SOURCE_DIR}/package-version.h.in"
+   "${CMAKE_CURRENT_SOURCE_DIR}/package-version.h"
+)
+
 
 #############################################################################
 #### LIBRARIES                                                           ####
@@ -64,6 +73,7 @@ LIST(APPEND libhipercontracer_sources
    service.cc
    tools.cc
    traceroute.cc
+   traceserviceheader.cc
 )
 
 INSTALL(FILES ${libhipercontracer_headers} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/hipercontracer)
@@ -179,25 +189,37 @@ IF (WITH_IMPORTER)
    TARGET_LINK_LIBRARIES(hpct-importer libuniversalimporter-${libraryType} ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} -llzma -lbz2 -lz)
    INSTALL(TARGETS hpct-importer RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
    INSTALL(FILES hpct-importer.1 DESTINATION ${CMAKE_INSTALL_MANDIR}/man1)
+   INSTALL(FILES hpct-importer.service DESTINATION /lib/systemd/system)
+   INSTALL(FILES hpct-importer.conf    DESTINATION /etc/hipercontracer)
 ENDIF()
 
-# ====== HiPerConTracer Query ===============================================
+# ====== HiPerConTracer Query Tool ==========================================
 IF (WITH_QUERY)
    ADD_EXECUTABLE(hpct-query hpct-query.cc)
    TARGET_LINK_LIBRARIES(hpct-query libuniversalimporter-${libraryType} ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} -llzma -lbz2 -lz)
    INSTALL(TARGETS hpct-query
            DESTINATION ${CMAKE_INSTALL_BINDIR})
    INSTALL(FILES hpct-query.1
-            DESTINATION ${CMAKE_INSTALL_MANDIR}/man1)
+           DESTINATION ${CMAKE_INSTALL_MANDIR}/man1)
 ENDIF()
 
 # ====== HiPerConTracer Results Tool ========================================
-ADD_EXECUTABLE(hpct-results-tool hpct-results-tool.cc conversions.cc)
-TARGET_LINK_LIBRARIES(hpct-results-tool libuniversalimporter-${libraryType} ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} -llzma -lbz2 -lz)
-INSTALL(TARGETS hpct-results-tool RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
-INSTALL(FILES hpct-results-tool.1
-         DESTINATION ${CMAKE_INSTALL_MANDIR}/man1)
+IF (WITH_RESULTS)
+   ADD_EXECUTABLE(hpct-results hpct-results.cc conversions.cc)
+   TARGET_LINK_LIBRARIES(hpct-results libuniversalimporter-${libraryType} ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} -llzma -lbz2 -lz)
+   INSTALL(TARGETS hpct-results RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
+   INSTALL(FILES hpct-results.1
+           DESTINATION ${CMAKE_INSTALL_MANDIR}/man1)
+ENDIF()
 
+# ====== Pipe Checksum Tool =================================================
+IF (WITH_PIPE_CHECKSUM)
+   ADD_EXECUTABLE(pipe-checksum pipe-checksum.cc)
+   TARGET_LINK_LIBRARIES(pipe-checksum ${CRYPTO_LIBRARY})
+   INSTALL(TARGETS pipe-checksum RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
+   INSTALL(FILES pipe-checksum.1
+           DESTINATION ${CMAKE_INSTALL_MANDIR}/man1)
+ENDIF()
 
 # ====== UDP Echo Server ====================================================
 IF (WITH_UDP_ECHO_SERVER)
@@ -207,6 +229,8 @@ IF (WITH_UDP_ECHO_SERVER)
            DESTINATION ${CMAKE_INSTALL_BINDIR})
    INSTALL(FILES udp-echo-server.1
            DESTINATION ${CMAKE_INSTALL_MANDIR}/man1)
+   INSTALL(FILES udp-echo-server.service DESTINATION /lib/systemd/system)
+   INSTALL(FILES udp-echo-server.conf    DESTINATION /etc/hipercontracer)
 ENDIF()
 
 # ====== Scripts ============================================================
@@ -222,6 +246,8 @@ INSTALL(FILES get-default-ips.1
 # ADD_EXECUTABLE(t2 t2.cc)
 # TARGET_LINK_LIBRARIES(t2 ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} ${CARES_LIBRARY})
 # ADD_EXECUTABLE(t3 t3.cc)
+# ADD_EXECUTABLE(t4 t4.cc)
+# TARGET_LINK_LIBRARIES(t4 ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
 # ADD_EXECUTABLE(t9 t9.cc)
 # TARGET_LINK_LIBRARIES(t9 ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
 # ADD_EXECUTABLE(t9b t9b.cc)

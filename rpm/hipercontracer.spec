@@ -1,5 +1,5 @@
 Name: hipercontracer
-Version: 1.6.8
+Version: 2.0.0~beta2
 Release: 1
 Summary: High-Performance Connectivity Tracer (HiPerConTracer)
 Group: Applications/Internet
@@ -17,6 +17,7 @@ BuildRequires: gcc-c++
 BuildRequires: libbson-devel
 BuildRequires: libpqxx-devel
 BuildRequires: mongo-c-driver-devel
+BuildRequires: openssl-devel
 BuildRequires: xz-devel
 BuildRequires: zlib-devel
 # Not provided by Fedora:
@@ -43,16 +44,27 @@ imported into an SQL or NoSQL database.
 %cmake_build
 
 %pre
+# Make sure the administrative user exists
 if ! getent group hipercontracer >/dev/null 2>&1; then
    groupadd -r hipercontracer
 fi
 if ! getent passwd hipercontracer >/dev/null 2>&1; then
-   useradd -M -g hipercontracer -r -d / -s /sbin/nologin -c "HiPerConTracer User" hipercontracer
+   useradd -M -g hipercontracer -r -d /var/hipercontracer -s /sbin/nologin -c "HiPerConTracer User" hipercontracer
 fi
 
+# Make data directory
+mkdir -p /var/hipercontracer
+mkdir -p -m 755 /var/hipercontracer/data /var/hipercontracer/good /var/hipercontracer/bad
+chown hipercontracer:hipercontracer /var/hipercontracer/data /var/hipercontracer/good /var/hipercontracer/bad || true
+
 %postun
+# Remove administrative user
 userdel hipercontracer >/dev/null 2>&1 || true
 groupdel hipercontracer >/dev/null 2>&1 || true
+
+# Remove data directory (if empty)
+rmdir /var/hipercontracer/data /var/hipercontracer/good /var/hipercontracer/bad || true
+rmdir /var/hipercontracer >/dev/null 2>&1 || true
 
 %install
 %cmake_install
@@ -63,10 +75,8 @@ groupdel hipercontracer >/dev/null 2>&1 || true
 %{_mandir}/man1/get-default-ips.1.gz
 %{_mandir}/man1/hipercontracer.1.gz
 %{_datadir}/doc/hipercontracer/examples/HiPerConTracer.R
-%{_datadir}/doc/hipercontracer/examples/Jitter-*.results.*
-%{_datadir}/doc/hipercontracer/examples/Ping-*.results.*
+%{_datadir}/doc/hipercontracer/examples/*-*.results.*
 %{_datadir}/doc/hipercontracer/examples/README.md
-%{_datadir}/doc/hipercontracer/examples/Traceroute-*.results.*
 %{_datadir}/doc/hipercontracer/examples/r-ping-example
 %{_datadir}/doc/hipercontracer/examples/r-traceroute-example
 
@@ -229,21 +239,24 @@ HiPerConTracer into an SQL or NoSQL database.
 %{_datadir}/doc/hipercontracer/examples/TestDB/5-perform-hpct-importer-test
 %{_datadir}/doc/hipercontracer/examples/TestDB/6-perform-hpct-query-test
 %{_datadir}/doc/hipercontracer/examples/TestDB/9-uninstall-database
+%{_datadir}/doc/hipercontracer/examples/TestDB/CertificateHelper.py
 %{_datadir}/doc/hipercontracer/examples/TestDB/README.md
 %{_datadir}/doc/hipercontracer/examples/TestDB/generate-test-certificates
 %{_datadir}/doc/hipercontracer/examples/TestDB/run-full-test
 %{_datadir}/doc/hipercontracer/examples/TestDB/test-tls-connection
 %{_datadir}/doc/hipercontracer/examples/TestDB/users.conf.example
 %{_datadir}/doc/hipercontracer/examples/hipercontracer-database.conf
+%{_sysconfdir}/hipercontracer/hpct-importer.conf
+/lib/systemd/system/hpct-importer.service
 
 
-%package hipercontracer-query
+%package hipercontracer-query-tool
 Summary: HiPerConTracer Query Tool to query results from a database
 Group: Applications/Database
 Recommends: %{name} = %{version}-%{release}
-Recommends: %{name}-results-tool = %{version}-%{release}
+Recommends: %{name}-results = %{version}-%{release}
 
-%description hipercontracer-query
+%description hipercontracer-query-tool
 High-Performance Connectivity Tracer (HiPerConTracer) is a
 Ping/Traceroute service. It performs regular Ping and Traceroute runs
 among sites. The results are written to data files, which can be
@@ -251,7 +264,7 @@ imported into an SQL or NoSQL database.
 This package contains a simple query tool to obtain results
 from a HiPerConTracer SQL or NoSQL database.
 
-%files hipercontracer-query
+%files hipercontracer-query-tool
 %{_bindir}/hpct-query
 %{_mandir}/man1/hpct-query.1.gz
 
@@ -272,8 +285,10 @@ results files, particularly for converting them to CSV files for
 reading them into spreadsheets, analysis tools, etc.
 
 %files hipercontracer-results-tool
-%{_bindir}/hpct-results-tool
-%{_mandir}/man1/hpct-results-tool.1.gz
+%{_bindir}/hpct-results
+%{_bindir}/pipe-checksum
+%{_mandir}/man1/hpct-results.1.gz
+%{_mandir}/man1/pipe-checksum.1.gz
 
 
 %package hipercontracer-udp-echo-server
@@ -292,9 +307,13 @@ UDP Pings.
 %files hipercontracer-udp-echo-server
 %{_bindir}/udp-echo-server
 %{_mandir}/man1/udp-echo-server.1.gz
+%{_sysconfdir}/hipercontracer/udp-echo-server.conf
+/lib/systemd/system/udp-echo-server.service
 
 
 %changelog
+* Thu Sep 21 2023 Thomas Dreibholz <thomas.dreibholz@gmail.com> - 1.6.9
+- New upstream release.
 * Tue Apr 18 2023 Thomas Dreibholz <thomas.dreibholz@gmail.com> - 1.6.8
 - New upstream release.
 * Sun Jan 22 2023 Thomas Dreibholz <thomas.dreibholz@gmail.com> - 1.6.7

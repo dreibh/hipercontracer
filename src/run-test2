@@ -1,0 +1,25 @@
+#!/bin/sh
+
+make -j8 hipercontracer && \
+rm -f core && \
+sudo ./hipercontracer \
+   -# 88888888 \
+   --resultsdirectory results \
+   --resultstransactionlength 900 \
+   --iomodule icmp --iomodule udp \
+   --source 10.193.4.50 \
+   --source fdb6:6d27:be73:4::50 \
+   --destination 10.193.4.67 \
+   --destination fdb6:6d27:be73:4::67 \
+   --ping --traceroute \
+   --tracerouteduration 1000 \
+   --tracerouteinitialmaxttl 4 \
+   --traceroutefinalmaxttl 32 \
+   --tracerouteincrementmaxttl 4 \
+   --pinginterval 1000 \
+   --pingexpiration 7500 \
+   --pingttl 56 \
+   --pingburst 4 \
+   --jitterinterval 300000 \
+   --udpdestinationport 10000 \
+   $@

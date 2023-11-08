@@ -17,7 +17,7 @@
 .\" Contact: thomas.dreibholz@gmail.com
 .\"
 .\" ###### Setup ############################################################
-.Dd December 19, 2022
+.Dd November 8, 2023
 .Dt udp-echo-server 1
 .Os udp-echo-server
 .\" ###### Name #############################################################
@@ -27,14 +27,16 @@
 .\" ###### Synopsis #########################################################
 .Sh SYNOPSIS
 .Nm udp-echo-server
-.Op \-L|--loglevel level
-.Op \-Z|--logcolor on|off
-.Op \-O|--logfile file
-.Op \-q|--quiet
-.Op \-v|--verbose
-.Op \-U|--user user|uid
-.Op \-A|--address address
-.Op \-P|--port port
+.Op \-L|\-\-loglevel level
+.Op \-Z|\-\-logcolor on|off
+.Op \-O|\-\-logfile file
+.Op \-q|\-\-quiet
+.Op \-v|\-\-verbose
+.Op \-U|\-\-user user|uid
+.Op \-A|\-\-address address
+.Op \-P|\-\-port port
+.Op \-f|\-\-from-port port
+.Op \-t|\-\-to-port port
 .\" ###### Description ######################################################
 .Sh DESCRIPTION
 .Nm udp-echo-server
@@ -42,28 +44,33 @@ is a simple UDP Echo server. It can be used as endpoint for HiPerConTracer
 UDP Ping/Traceroute.
 Note, for security reasons, udp-echo-server only responds to source ports
 >= 1024, to avoid using the server in attacks, like spoofing a packet from
-another Echo server (port 7) to create a flooding loop.
+another Echo server (port 7) to create a flooding loop. Also, packets
+from the same port as the listening port are ignored.
 .Pp
 .\" ###### Arguments ########################################################
 .Sh ARGUMENTS
 The following arguments may be provided:
 .Bl -tag -width indent
-.It \-L|\--loglevel level
+.It \-L|\-\-loglevel level
 Sets the minimum logging level to the provided value: 0=trace, 1=debug, 2=info, 3=warning, 4=error, 5=fatal.
-.It \-q|\--quiet
+.It \-q|\-\-quiet
 Sets the minimum logging level to 3 (warning).
-.It \-v|\--verbose
+.It \-v|\-\-verbose
 Sets the minimum logging level to 0 (trace).
-.It \-Z|--logcolor on|off
+.It \-Z|\-\-logcolor on|off
 Enables (on) or disables (off) the usage of ANSI color escape sequences to colorise the log output according to its level.
-.It \-O|--logfile file
+.It \-O|\-\-logfile file
 Sets a file name for appending the log output to. If a file is set, no log output is made to the console. Otherwise, all log output will be written to the console.
-.It \-U|\--user user|uid
+.It \-U|\-\-user user|uid
 After startup, the server uses UID and GID of the given user (by name or GID).
-.It \-A|--address address
+.It \-A|\-\-address address
 Sets the local address (default: ::).
-.It \-P|--port port
+.It \-P|\-\-port port
 Sets the local port (default: 7).
+.It \-P|\-\-from-port port
+Sets the first local port of a range (default: 7).
+.It \-P|\-\-to-port port
+Sets the last local port of a range (default: 0; 0 uses the "from" port).
 .El
 .\" ###### Examples #########################################################
 .Sh EXAMPLES
@@ -72,6 +79,7 @@ Sets the local port (default: 7).
 .It udp-echo-server --address 192.168.1.1 --port 7777
 .It udp-echo-server --address 3ffe::1:2:3 --port 7777
 .It udp-echo-server --address :: --user nornetpp
+.It udp-echo-server --address 3ffe::1:2:3 --from-port 10000 --to-port 10999
 .El
 .\" ###### Authors ##########################################################
 .Sh AUTHORS

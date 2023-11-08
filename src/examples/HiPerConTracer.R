@@ -30,261 +30,103 @@
 #
 #  Contact: dreibh@simula.no
 
-# library(anytime)
+library("anytime")
 library("assert")
 library("digest")
-library("readr")
-library("doParallel")
 library("data.table", warn.conflicts = FALSE)
-library("plyr",       warn.conflicts = FALSE)    # for mapvalues(). Must be loaded before dplyr!
 library("dplyr",      warn.conflicts = FALSE)
-library("pryr",       warn.conflicts = FALSE)
+library("ipaddress")
 
 
-# ###### Read HiPerConTracer Ping output file ###############################
-readHiPerConTracerPingResults <- function(name)
+# ###### Process HiPerConTracer Ping results ################################
+processHiPerConTracerPingResults <- function(dataTable)
 {
-   cat(sep="", "Trying to read ", name, " ...\n")
-   inputData <- read_file(name)
-
-   # ====== Identify version ================================================
-   version <- NA
-   if(substr(inputData, 1, 3) == "#P ") {
-      version <- 1
-   }
-   else if(substr(inputData, 1, 2) == "#P") {
-      version <- 2
-   }
-   else {
-      stop("Unexpected format!")
-   }
-
-   # ====== Version 1 =======================================================
-   if(version == 1) {
-      columns <- c(
-         "Ping",               # "#P"
-         "Source",             # Source address
-         "Destination",        # Destination address
-         "Timestamp",          # Absolute time since the epoch in UTC, in microseconds (hexadeciaml)
-         "Checksum",           # Checksum (hexadeciaml)
-         "Status",             # Status (decimal)
-         "RTT.App",            # RTT in microseconds (decimal)
-         "TrafficClass",       # Traffic Class setting (hexadeciaml)
-         "PacketSize"          # Packet size, in bytes (decimal)
-      )
-      data <- fread(text = inputData, sep = " ", col.names = columns, header = FALSE) %>%
-                 mutate(Timestamp        = 1000 * as.numeric(paste(sep="", "0x", Timestamp)),   # Convert to ns!
-                        Checksum         = as.numeric(paste(sep="", "0x", Checksum)),
-                        TrafficClass     = as.numeric(paste(sep="", "0x", TrafficClass)),
-                        RTT.App          = 1000 * RTT.App,   # Convert to ns!
-                        Protocol         = "ICMP",
-                        BurstSeq         = NA,
-                        TimeSource       = NA,
-                        Delay.AppSend    = NA,
-                        Delay.Queuing    = NA,
-                        Delay.AppReceive = NA,
-                        RTT.SW           = NA,
-                        RTT.HW           = NA)
-   }
-
-   # ====== Version 2 =======================================================
-   else if(version == 2) {
-      columns <- c(
-         "Ping",               # "#P<p>"
-         "Source",             # Source address
-         "Destination",        # Destination address
-         "Timestamp",          # Timestamp (nanoseconds since the UTC epoch, hexadecimal).
-         "BurstSeq",           # Sequence number within a burst (decimal), numbered from 0.
-         "TrafficClass",       # Traffic Class setting (hexadeciaml)
-         "PacketSize",         # Packet size, in bytes (decimal)
-         "Checksum",           # Checksum (hexadeciaml)
-         "Status",             # Status (decimal)
-         "TimeSource",         # Source of the timing information (hexadecimal) as: AAQQSSHH
-         "Delay.AppSend",      # The measured application send delay (nanoseconds, decimal; -1 if not available).
-         "Delay.Queuing",      # The measured kernel software queuing delay (nanoseconds, decimal; -1 if not available).
-         "Delay.AppReceive",   # The measured application receive delay (nanoseconds, decimal; -1 if not available).
-         "RTT.App",            # The measured application RTT (nanoseconds, decimal).
-         "RTT.SW",             # The measured kernel software RTT (nanoseconds, decimal; -1 if not available).
-         "RTT.HW"              # The measured kernel hardware RTT (nanoseconds, decimal; -1 if not available).
-      )
-      data <- fread(text = inputData, sep = " ", col.names = columns, header = FALSE) %>%
-                 mutate(Timestamp    = as.numeric(paste(sep="", "0x", Timestamp)),
-                        Protocol     = substr(Ping, 3, 1000000),
-                        Checksum     = as.numeric(paste(sep="", "0x", Checksum)),
-                        TrafficClass = as.numeric(paste(sep="", "0x", TrafficClass)))
-
-      data$Protocol[data$Protocol == "i"] <- "ICMP"
-      data$Protocol[data$Protocol == "u"] <- "UDP"
-   }
-
-   # ====== Post-processing =================================================
-   data <- data %>%
-              # ------ Remove unnecessary columns ---------------------------
-              select(!Ping) %>%
-              # ------ Reorder entries --------------------------------------
-              relocate(Timestamp, Protocol, Source, Destination,
-                       BurstSeq, TrafficClass, PacketSize, Checksum, Status,
-                       TimeSource,
-                       Delay.AppSend, Delay.Queuing, Delay.AppReceive,
-                       RTT.App, RTT.SW, RTT.HW)
-   return(data)
+   # print(colnames(dataTable))
+   dataTable <- dataTable %>%
+                   mutate(Timestamp    = as.numeric(paste(sep="", "0x", Timestamp)),
+                          Protocol     = substr(Ping, 3, 1000000),
+                          Checksum     = as.numeric(paste(sep="", "0x", Checksum)),
+                          TrafficClass = as.numeric(paste(sep="", "0x", TrafficClass))) %>%
+                   arrange(Timestamp, MeasurementID, SourceIP, DestinationIP, BurstSeq)
+   return(dataTable)
 }
 
 
-# ###### Read HiPerConTracer Traceroute output file #########################
-readHiPerConTracerTracerouteResults <- function(name)
+# ###### Process HiPerConTracer Traceroute results ##########################
+processHiPerConTracerTracerouteResults <- function(dataTable)
 {
-   cat(sep="", "Trying to read ", name, " ...\n")
-   inputData <- read_file(name)
-
-   # ====== Identify version ================================================
-   version <- NA
-   if(substr(inputData, 1, 3) == "#T ") {
-      version <- 1
-   }
-   else if(substr(inputData, 1, 2) == "#T") {
-      version <- 2
-   }
-   else {
-      stop("Unexpected format!")
-   }
-
-   # ====== Combine TAB lines to their header, for faster processing ========
-   originalLines <- strsplit(inputData, "\n")[[1]]
-   combinedLines <- list()
-   head <- NA
-   rm(inputData)
-   for(line in originalLines) {
-      if(substr(line, 1, 1) == "#") {
-         head <- line
-      }
-      else if(substr(line, 1, 1) == "\t") {
-         combined <- paste(head, "\t", substr(line, 2, 1000000))
-         combinedLines <- append(combinedLines, combined)
-      }
-      else {
-         stop("Unexpected format!")
-      }
-   }
-   rm(originalLines)
-   inputData <- paste(sep="\n", combinedLines)
-   rm(combinedLines)
-
-   # ====== Version 1 =======================================================
-   if(version == 1) {
-      columns <- c(
-         "Traceroute",        # "#T"
-         "Source",            # Source address
-         "Destination",       # Destination address
-         "Timestamp",         # Absolute time since the epoch in UTC, in microseconds (hexadeciaml)
-         "Round",             # Round number (decimal)
-         "Checksum",          # Checksum (hexadeciaml)
-         "TotalHops",         # Total hops (decimal)
-         "StatusFlags",       # Status flags (hexadecimal)
-         "PathHash",          # Hash of the path (hexadecimal)
-         "TrafficClass",      # Traffic Class setting (hexadeciaml)
-         "PacketSize",        # Packet size, in bytes (decimal)
-
-         "TAB",               # NOTE: must be "\t" from combination above!
-         "HopNumber",         # Number of the hop.
-         "Status",            # Status code (in hexadecimal here!)
-         "RTT.App",           # RTT in microseconds (decimal)
-         "LinkDestination"    # Hop IP address.
-      )
-      data <- fread(text = inputData, sep = " ", col.names = columns, header = FALSE) %>%
-                 mutate(Timestamp        = 1000 * as.numeric(paste(sep="", "0x", Timestamp)),   # Convert to ns!
-                        Checksum         = as.numeric(paste(sep="", "0x", Checksum)),
-                        TrafficClass     = as.numeric(paste(sep="", "0x", TrafficClass)),
-                        PathHash         = as.numeric(paste(sep="", "0x", PathHash)),
-                        StatusFlags      = as.numeric(paste(sep="", "0x", StatusFlags)),
-                        Status           = as.numeric(paste(sep="", "0x", Status)),
-                        RTT.App          = 1000 * RTT.App,   # Convert to ns!
-                        Protocol         = "ICMP",
-                        TimeSource       = NA,
-                        Delay.AppSend    = NA,
-                        Delay.Queuing    = NA,
-                        Delay.AppReceive = NA,
-                        RTT.SW           = NA,
-                        RTT.HW           = NA)
-   }
-
-   # ====== Version 2 =======================================================
-   else if(version == 2) {
-      columns <- c(
-         "Traceroute",         # "#T<p>"
-         "Source",             # Source address
-         "Destination",        # Destination address
-         "Timestamp",          # Absolute time since the epoch in UTC, in microseconds (hexadeciaml)
-         "Round",              # Round number (decimal)
-         "TotalHops",          # Total hops (decimal)
-         "TrafficClass",       # Traffic Class setting (hexadeciaml)
-         "PacketSize",         # Packet size, in bytes (decimal)
-         "Checksum",           # Checksum (hexadeciaml)
-         "StatusFlags",        # Status flags (hexadecimal)
-         "PathHash",           # Hash of the path (hexadecimal)
-
-         "TAB",                # NOTE: must be "\t" from combination above!
-         "HopNumber",          # Number of the hop.
-         "Status",             # Status code (decimal!)
-         "TimeSource",         # Source of the timing information (hexadecimal) as: AAQQSSHH
-         "Delay.AppSend",      # The measured application send delay (nanoseconds, decimal; -1 if not available).
-         "Delay.Queuing",      # The measured kernel software queuing delay (nanoseconds, decimal; -1 if not available).
-         "Delay.AppReceive",   # The measured application receive delay (nanoseconds, decimal; -1 if not available).
-         "RTT.App",            # The measured application RTT (nanoseconds, decimal).
-         "RTT.SW",             # The measured kernel software RTT (nanoseconds, decimal; -1 if not available).
-         "RTT.HW",             # The measured kernel hardware RTT (nanoseconds, decimal; -1 if not available).
-         "LinkDestination"     # Hop IP address.
-      )
-      data <- fread(text = inputData, sep = " ", col.names = columns, header = FALSE) %>%
-                 mutate(Timestamp    = as.numeric(paste(sep="", "0x", Timestamp)),
-                        Protocol     = substr(Traceroute, 3, 1000000),
-                        Checksum     = as.numeric(paste(sep="", "0x", Checksum)),
-                        TrafficClass = as.numeric(paste(sep="", "0x", TrafficClass)),
-                        PathHash     = as.numeric(paste(sep="", "0x", PathHash)),
-                        StatusFlags  = as.numeric(paste(sep="", "0x", StatusFlags)))
-
-      data$Protocol[data$Protocol == "i"] <- "ICMP"
-      data$Protocol[data$Protocol == "u"] <- "UDP"
-   }
-
-   # ====== Post-processing =================================================
-   data <- data %>%
-              # ------ Remove unnecessary columns ---------------------------
-              select(!c("Traceroute", "TAB")) %>%
-              # ------ Set LinkSource ---------------------------------------
-              mutate(LinkSource = ifelse(HopNumber == 1,
-                                         Source,
-                                         shift(LinkDestination, 1, type="lag"))) %>%
-              # ------ Reorder entries --------------------------------------
-              relocate(Timestamp, Protocol, Source, Destination,
-                       Round, HopNumber, TotalHops, TrafficClass, PacketSize, Checksum, StatusFlags, Status, PathHash,
-                       LinkSource, LinkDestination,
-                       TimeSource,
-                       Delay.AppSend, Delay.Queuing, Delay.AppReceive,
-                       RTT.App, RTT.SW, RTT.HW)
-   return(data)
+   # print(colnames(dataTable))
+   dataTable <- dataTable %>%
+                   mutate(Timestamp    = as.numeric(paste(sep="", "0x", Timestamp)),
+                          Protocol     = substr(Traceroute, 3, 1000000),
+                          IPVersion    = ifelse(is_ipv4(as_ip_address(DestinationIP)), 4, 6),
+                          Checksum     = as.numeric(paste(sep="", "0x", Checksum)),
+                          TrafficClass = as.numeric(paste(sep="", "0x", TrafficClass)),
+                          PathHash     = as.numeric(paste(sep="", "0x", PathHash)),
+                          StatusFlags  = as.numeric(paste(sep="", "0x", StatusFlags))) %>%
+                   arrange(Timestamp, MeasurementID, SourceIP, DestinationIP, RoundNumber, HopNumber) %>%
+                   mutate(# Link source, if available:
+                          LinkDestinationIP = ifelse( (Status < 200) | (Status == 255),
+                                                     HopIP,
+                                                     NA ),
+                          # Link destination, if available:
+                          LinkSourceIP = ifelse(HopNumber == 1,
+                                               SourceIP,
+                                               shift(LinkDestinationIP, 1, type="lag")))
+   return(dataTable)
 }
 
 
-# ##### Read files from directory ###########################################
-readResultsFromDirectory <- function(cacheLabel, path, pattern, func)
+# ##### Read HiPerConTracer results from directory ##########################
+readHiPerConTracerResultsFromDirectory <- function(cacheLabel, path, pattern, processingFunction)
 {
    files <- list.files(path = path, pattern = pattern, full.names=TRUE)
 
+   # !!!!!! TEST ONLY! !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+   # cat("****** TEST ONLY! ******\n")
+   # files <- sample(files, 128)   # FIXME!
+   # files <- head(files, 16)   # FIXME!
+   # !!!!!! TEST ONLY! !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
    # ====== Read data =======================================================
-   cacheName <- paste(sep="", cacheLabel, "-cache-", digest(files, "sha256"), ".rds")
-   if(!file.exists(cacheName)) {
+   if(cacheLabel == "") {
+      cacheName <- ""
+   }
+   else {
+      cacheName <- paste(sep="", cacheLabel, "-cache-", digest(files, "sha256"), ".rds")
+   }
+   if( (cacheName == "") || (!file.exists(cacheName)) ) {
       cat(sep="", "\x1b[34mReading ", length(files), " files ...\x1b[0m\n")
 
-      dataTable <- foreach(fileName = files,
-                              .combine=function(...) rbindlist(list(...)), .multicombine=TRUE, .maxcombine=512,
-                              .inorder=FALSE,
-                              .verbose=FALSE
-                          )   %dopar%
-                          func(fileName)
+      # ====== Generate files with input file names =========================
+      filesName <- paste(sep="", cacheLabel, "-files-", digest(files, "sha256"), ".list")
+      filesNameFile <- file(filesName, "w")
+      cat(file = filesNameFile, paste(as.list(files), collapse = "\n"))
+      cat(file = filesNameFile, "\n")
+      close(filesNameFile)
 
-      cat(sep="", "Writing data to cache file ", cacheName, " ...\n")
-      saveRDS(dataTable, cacheName)
+      # ====== Read the input file ==========================================
+      t1 <- Sys.time()
+      inputPipe <- pipe(paste(sep=" ",
+                              hpct_results_tool,
+                              "--unsorted",
+                              "--input-file-names-from-file", filesName))
+      dataTable <- vroom(file = inputPipe,
+                         show_col_types = FALSE)
+      # NOTE: read.csv() is slow, vroom() is much faster!
+      # dataTable <- read.csv(file = inputPipe,
+      #                       sep  = " ")
+      setDT(dataTable)
+      t2 <- Sys.time()
+      print(t2 - t1)
+
+      # ====== Post-processing ==============================================
+      dataTable <- processingFunction(dataTable)
+
+      if(cacheName != "") {
+         cat(sep="", "\x1b[34mWriting data to cache file ", cacheName, " ...\x1b[0m\n")
+         saveRDS(dataTable, cacheName)
+      }
    } else {
       cat(sep="", "\x1b[34mLoading cached table from ", cacheName, " ...\x1b[0m\n")
       dataTable <- readRDS(cacheName)
@@ -294,17 +136,64 @@ readResultsFromDirectory <- function(cacheLabel, path, pattern, func)
 }
 
 
-# ##### Read HiPerConTracer Ping files from directory #######################
+# ##### Read HiPerConTracer Ping results from directory #####################
 readHiPerConTracerPingResultsFromDirectory <- function(cacheLabel, path, pattern)
 {
-   return(readResultsFromDirectory(cacheLabel, path, pattern, readHiPerConTracerPingResults))
+   return(readHiPerConTracerResultsFromDirectory(cacheLabel, path, pattern,
+                                                 processHiPerConTracerPingResults))
 }
 
 
-# ##### Read HiPerConTracer Traceroute files from directory #################
+# ##### Read HiPerConTracer Traceroute results from directory ###############
 readHiPerConTracerTracerouteResultsFromDirectory <- function(cacheLabel, path, pattern)
 {
-   return(readResultsFromDirectory(cacheLabel, path, pattern, readHiPerConTracerTracerouteResults))
+   return(readHiPerConTracerResultsFromDirectory(cacheLabel, path, pattern,
+                                                 processHiPerConTracerTracerouteResults))
+}
+
+
+# ##### Read HiPerConTracer results from CSV file ###########################
+readHiPerConTracerResultsFromCSV <- function(cacheLabel, csvFileName, processingFunction)
+{
+   if(cacheLabel == "") {
+      cacheName <- ""
+   }
+   else {
+      cacheName <- paste(sep="", cacheLabel, "-cache-csv-", digest(csvFileName, "sha256"), ".rds")
+   }
+   if( (cacheName == "") || (!file.exists(cacheName)) ) {
+      cat(sep="", "\x1b[34mReading ", csvFileName, " ...\x1b[0m\n")
+      dataTable <- fread(csvFileName)
+
+      # ====== Post-processing ==============================================
+      dataTable <- processingFunction(dataTable)
+
+      if(cacheName != "") {
+         cat(sep="", "\x1b[34mWriting data to cache file ", cacheName, " ...\x1b[0m\n")
+         saveRDS(dataTable, cacheName)
+      }
+   } else {
+      cat(sep="", "\x1b[34mLoading cached table from ", cacheName, " ...\x1b[0m\n")
+      dataTable <- readRDS(cacheName)
+   }
+   showTableStatistics(dataTable)
+   return(dataTable)
+}
+
+
+# ##### Read HiPerConTracer Ping results from CSV file ######################
+readHiPerConTracerPingResultsFromCSV <- function(cacheLabel, csvFileName)
+{
+   return(readHiPerConTracerResultsFromCSV(cacheLabel, csvFileName,
+                                           processHiPerConTracerPingResults))
+}
+
+
+# ##### Read HiPerConTracer Traceroute results from CSV file ################
+readHiPerConTracerTracerouteResultsFromCSV <- function(cacheLabel, csvFileName)
+{
+   return(readHiPerConTracerResultsFromCSV(cacheLabel, csvFileName,
+                                           processHiPerConTracerTracerouteResults))
 }
 
 
@@ -314,5 +203,71 @@ showTableStatistics <- function(table)
    firstColumn <- colnames(table)[1]
    cat(sep="",
        "\x1b[32mEntries: ", length(table[[firstColumn]]), ", ",
-       "Table Size: ", round(object_size(table) / (1024*1024), 2), " MiB\x1b[0m\n")
+       "Table Size: ", round(as.numeric(object.size(table)) / (1024*1024), 2), " MiB\x1b[0m\n")
+}
+
+
+# ###### plyr::mapvalues() replacement ######################################
+# Copy from: https://github.com/hadley/plyr/blob/main/R/revalue.r
+# ===========================================================================
+#
+#' Replace specified values with new values, in a vector or factor.
+#'
+#' Item in \code{x} that match items \code{from} will be replaced by
+#' items in \code{to}, matched by position. For example, items in \code{x} that
+#' match the first element in \code{from} will be replaced by the first
+#' element of \code{to}.
+#'
+#' If \code{x} is a factor, the matching levels of the factor will be
+#' replaced with the new values.
+#'
+#' The related \code{revalue} function works only on character vectors
+#' and factors, but this function works on vectors of any type and factors.
+#'
+#' @param x the factor or vector to modify
+#' @param from a vector of the items to replace
+#' @param to a vector of replacement values
+#' @param warn_missing print a message if any of the old values are
+#'   not actually present in \code{x}
+#'
+#' @seealso \code{\link{revalue}} to do the same thing but with a single
+#'   named vector instead of two separate vectors.
+#' @export
+#' @examples
+#' x <- c("a", "b", "c")
+#' mapvalues(x, c("a", "c"), c("A", "C"))
+#'
+#' # Works on factors
+#' y <- factor(c("a", "b", "c", "a"))
+#' mapvalues(y, c("a", "c"), c("A", "C"))
+#'
+#' # Works on numeric vectors
+#' z <- c(1, 4, 5, 9)
+#' mapvalues(z, from = c(1, 5, 9), to = c(10, 50, 90))
+mapvalues <- function(x, from, to, warn_missing = TRUE) {
+  if (length(from) != length(to)) {
+    stop("`from` and `to` vectors are not the same length.")
+  }
+  if (!is.atomic(x) && !is.null(x)) {
+    stop("`x` must be an atomic vector or NULL.")
+  }
+
+  if (is.factor(x)) {
+    # If x is a factor, call self but operate on the levels
+    levels(x) <- mapvalues(levels(x), from, to, warn_missing)
+    return(x)
+  }
+
+  mapidx <- match(x, from)
+  mapidxNA  <- is.na(mapidx)
+
+  # index of items in `from` that were found in `x`
+  from_found <- sort(unique(mapidx))
+  if (warn_missing && length(from_found) != length(from)) {
+    message("The following `from` values were not present in `x`: ",
+      paste(from[!(1:length(from) %in% from_found) ], collapse = ", "))
+  }
+
+  x[!mapidxNA] <- to[mapidx[!mapidxNA]]
+  x
 }

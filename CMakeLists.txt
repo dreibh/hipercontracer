@@ -33,9 +33,9 @@
 CMAKE_MINIMUM_REQUIRED(VERSION 3.10)
 PROJECT(hipercontracer LANGUAGES C CXX)
 
-SET(BUILD_MAJOR "1")
-SET(BUILD_MINOR "6")
-SET(BUILD_PATCH "8")
+SET(BUILD_MAJOR "2")
+SET(BUILD_MINOR "0")
+SET(BUILD_PATCH "0~beta2")
 SET(BUILD_VERSION ${BUILD_MAJOR}.${BUILD_MINOR}.${BUILD_PATCH})
 
 SET(CMAKE_CXX_STANDARD 17)
@@ -127,10 +127,12 @@ IF (STATIC_BUILD)
    SET(Boost_USE_STATIC_LIBS ON)
 ENDIF()
 
-OPTION(WITH_TRIGGER         "Build HiPerConTracer Trigger"  1)
-OPTION(WITH_IMPORTER        "Build HiPerConTracer Importer" 1)
-OPTION(WITH_QUERY           "Build HiPerConTracer Query"    1)
-OPTION(WITH_UDP_ECHO_SERVER "Build UDP Echo Server"         1)
+OPTION(WITH_TRIGGER         "Build HiPerConTracer Trigger"      1)
+OPTION(WITH_IMPORTER        "Build HiPerConTracer Importer"     1)
+OPTION(WITH_QUERY           "Build HiPerConTracer Query Tool"   1)
+OPTION(WITH_RESULTS         "Build HiPerConTracer Results Tool" 1)
+OPTION(WITH_PIPE_CHECKSUM   "Build Pipe Checksum Tool"          1)
+OPTION(WITH_UDP_ECHO_SERVER "Build UDP Echo Server"             1)
 
 
 #############################################################################
@@ -157,7 +159,9 @@ IF (NOT Boost_FOUND)
 ELSE()
   INCLUDE_DIRECTORIES(${Boost_INCLUDE_DIRS})
 ENDIF()
-# ADD_DEFINITIONS(-DBOOST_ALL_DYN_LINK)   # <<-- Required to handle BOOST Log link problem!
+IF (${CMAKE_SYSTEM_NAME} MATCHES "FreeBSD")
+   ADD_DEFINITIONS(-DBOOST_ALL_DYN_LINK)   # <<-- Required to handle BOOST Log link problem!
+ENDIF()
 
 # ###### INotify ############################################################
 IF(CMAKE_SYSTEM_NAME MATCHES "Linux")
@@ -177,6 +181,18 @@ IF (NOT CARES_LIBRARY)
            " * Ubuntu/Debian: sudo apt install -y libc-ares-dev\n"
            " * Fedora:        sudo dnf install -y c-ares-devel\n"
            " * FreeBSD:       sudo pkg install -y c-ares")
+ENDIF()
+
+# ###### libcrypto ##########################################################
+IF (WITH_PIPE_CHECKSUM)
+   FIND_LIBRARY(CRYPTO_LIBRARY crypto libcrypto)
+   IF (NOT CRYPTO_LIBRARY)
+      MESSAGE(FATAL_ERROR
+            " Cannot find libcrypto library! Try:\n"
+            " * Ubuntu/Debian: sudo apt install -y libssl-dev\n"
+            " * Fedora:        sudo dnf install -y openssl-devel\n"
+            " * FreeBSD:       sudo pkg install -y openssl")
+   ENDIF()
 ENDIF()
 
 # ###### Database client libraries ##########################################

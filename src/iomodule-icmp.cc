@@ -58,10 +58,10 @@ ICMPModule::ICMPModule(boost::asio::io_service&                 ioService,
                        const uint16_t                           destinationPort)
    : IOModuleBase(ioService, resultsMap, sourceAddress,
                   newResultCallback),
-     UDPSocket(IOService, (sourceAddress.is_v6() == true) ? boost::asio::ip::udp::v6() :
-                                                            boost::asio::ip::udp::v4() ),
      ICMPSocket(IOService, (sourceAddress.is_v6() == true) ? boost::asio::ip::icmp::v6() :
-                                                             boost::asio::ip::icmp::v4() )
+                                                             boost::asio::ip::icmp::v4() ),
+     UDPSocket(IOService, (sourceAddress.is_v6() == true) ? boost::asio::ip::udp::v6() :
+                                                            boost::asio::ip::udp::v4() )
 {
    // Overhead: IPv4 Header (20)/IPv6 Header (40) + ICMP Header (8)
    PayloadSize      = std::max((ssize_t)MIN_TRACESERVICE_HEADER_SIZE,
@@ -84,11 +84,11 @@ bool ICMPModule::prepareSocket()
 {
    // ====== Bind UDP socket to given source address ========================
    boost::system::error_code      errorCode;
-   boost::asio::ip::udp::endpoint sourceEndpoint(SourceAddress, 0);
-   UDPSocket.bind(sourceEndpoint, errorCode);
+   boost::asio::ip::udp::endpoint udpSourceEndpoint(SourceAddress, 0);
+   UDPSocket.bind(udpSourceEndpoint, errorCode);
    if(errorCode !=  boost::system::errc::success) {
       HPCT_LOG(error) << getName() << ": Unable to bind UDP socket to source address "
-                      << sourceEndpoint << "!";
+                      << udpSourceEndpoint << "!";
       return false;
    }
    UDPSocketEndpoint = UDPSocket.local_endpoint();
@@ -278,7 +278,7 @@ unsigned int ICMPModule::sendRequest(const DestinationInfo& destination,
          tsHeader.sendTTL(ttl);
          tsHeader.round((unsigned char)round);
          tsHeader.checksumTweak(0);
-         const ResultTimePoint sendTime = ResultClock::now();
+         const ResultTimePoint sendTime = nowInUTC<ResultTimePoint>();
          tsHeader.sendTimeStamp(sendTime);
          tsHeader.computeInternet16(icmpChecksum);
          // Update ICMP checksum:
@@ -324,7 +324,8 @@ unsigned int ICMPModule::sendRequest(const DestinationInfo& destination,
          resultEntryArray[currentEntry]->initialise(
             TimeStampSeqID,
             round, seqNumber, ttl, ActualPacketSize,
-            (uint16_t)targetChecksumArray[round], sendTime,
+            (uint16_t)targetChecksumArray[round], 0, 0,
+            sendTime,
             localEndpoint.address(), destination, Unknown
          );
          if( (!errorCodeArray[currentEntry]) && (sentArray[currentEntry] > 0) ) {
@@ -408,11 +409,11 @@ void ICMPModule::handleResponse(const boost::system::error_code& errorCode,
             // ====== Handle control data ===================================
             ReceivedData receivedData;
             receivedData.ReplyEndpoint          = boost::asio::ip::udp::endpoint();
-            receivedData.ApplicationReceiveTime = std::chrono::high_resolution_clock::now();
+            receivedData.ApplicationReceiveTime = nowInUTC<ResultTimePoint>();
             receivedData.ReceiveSWSource        = TimeSourceType::TST_Unknown;
-            receivedData.ReceiveSWTime          = std::chrono::high_resolution_clock::time_point();
+            receivedData.ReceiveSWTime          = ResultTimePoint();
             receivedData.ReceiveHWSource        = TimeSourceType::TST_Unknown;
-            receivedData.ReceiveHWTime          = std::chrono::high_resolution_clock::time_point();
+            receivedData.ReceiveHWTime          = ResultTimePoint();
             receivedData.MessageBuffer          = (char*)&MessageBuffer;
             receivedData.MessageLength          = length;
 
@@ -453,17 +454,23 @@ void ICMPModule::handleResponse(const boost::system::error_code& errorCode,
                   else if(cmsg->cmsg_type == SO_TIMESTAMP) {
 #endif
 #if defined (SO_TS_CLOCK)
-#error FreeBSD FIXME!
-#endif
+                     const timespec* ts = (const timespec*)CMSG_DATA(cmsg);
+                     receivedData.ReceiveSWSource = TimeSourceType::TST_TIMESTAMPNS;
+                     receivedData.ReceiveSWTime   = ResultTimePoint(
+                                                       std::chrono::seconds(ts->tv_sec) +
+                                                       std::chrono::nanoseconds(ts->tv_nsec));
+#else
                      const timeval* tv = (const timeval*)CMSG_DATA(cmsg);
                      receivedData.ReceiveSWSource = TimeSourceType::TST_TIMESTAMP;
                      receivedData.ReceiveSWTime   = ResultTimePoint(
                                                        std::chrono::seconds(tv->tv_sec) +
                                                        std::chrono::microseconds(tv->tv_usec));
+#endif
 #if defined (SO_TIMESTAMPNS)
                   }
 #endif
                }
+
 #if defined (MSG_ERRQUEUE)
                else if(cmsg->cmsg_level == SOL_IPV6) {
                   if(cmsg->cmsg_type == IPV6_RECVERR) {
@@ -490,8 +497,6 @@ void ICMPModule::handleResponse(const boost::system::error_code& errorCode,
                      }
                   }
                }
-#else
-#error FreeBSD FIXME!
 #endif
             }
 

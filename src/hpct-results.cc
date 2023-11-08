@@ -51,28 +51,28 @@
 #include <boost/iostreams/filter/gzip.hpp>
 #include <boost/iostreams/filter/lzma.hpp>
 #include <boost/program_options.hpp>
-
+#include <boost/tokenizer.hpp>
 
 
 struct OutputEntry
 {
    OutputEntry(const int                       measurementID,
-               const boost::asio::ip::address& source,
-               const boost::asio::ip::address& destination,
+               const boost::asio::ip::address& sourceIP,
+               const boost::asio::ip::address& destinationIP,
                const unsigned long long        timeStamp,
                const unsigned int              roundNumber,
                const std::string&              line) :
       MeasurementID(measurementID),
-      Source(source),
-      Destination(destination),
+      SourceIP(sourceIP),
+      DestinationIP(destinationIP),
       TimeStamp(timeStamp),
       RoundNumber(roundNumber),
       SeqNumber(0),
       Line(line) { };
 
    const int                      MeasurementID;
-   const boost::asio::ip::address Source;
-   const boost::asio::ip::address Destination;
+   const boost::asio::ip::address SourceIP;
+   const boost::asio::ip::address DestinationIP;
    const unsigned long long       TimeStamp;
    const unsigned int             RoundNumber;
 
@@ -100,7 +100,6 @@ enum InputProtocol
 struct InputFormat
 {
    InputType     Type;
-   InputProtocol Protocol;
    unsigned int  Version;
    std::string   String;
 };
@@ -120,16 +119,16 @@ bool operator<(const OutputEntry& a, const OutputEntry& b)
          return true;
       }
       else if(a.MeasurementID == b.MeasurementID) {
-         // ====== Level 3: Source =============================================
-         if(a.Source < b.Source) {
+         // ====== Level 3: SourceIP =============================================
+         if(a.SourceIP < b.SourceIP) {
             return true;
          }
-         else if(a.Source == b.Source) {
-            // ====== Level 4: Destination =====================================
-            if(a.Destination < b.Destination) {
+         else if(a.SourceIP == b.SourceIP) {
+            // ====== Level 4: DestinationIP =====================================
+            if(a.DestinationIP < b.DestinationIP) {
                return true;
             }
-            else if(a.Destination == b.Destination) {
+            else if(a.DestinationIP == b.DestinationIP) {
                // ====== Level 5: RoundNumber ===============================
                if(a.RoundNumber < b.RoundNumber) {
                   return true;
@@ -204,31 +203,60 @@ void checkFormat(boost::iostreams::filtering_ostream* outputStream,
 
    format.Version = 0;
    if(format.Type == InputType::IT_Unknown) {
-      std::string columnNames;
-      format.Type    = (InputType)line[1];
-      format.String  = line.substr(0, 3);
+
+      // ====== Check for specified type and version ========================
+      if(line.substr(0, 8) == "#? HPCT ") {
+         boost::tokenizer<boost::char_separator<char>> tokens(line, boost::char_separator<char>(" "));
+         std::vector<std::string> tokensVector;
+         for (const auto& token : tokens) {
+            tokensVector.push_back(token);
+         }
+         if(tokensVector.size() >= 4) {
+            format.Version = (InputType)atoi(tokensVector[3].c_str());
+            if(tokensVector[2] == "Ping") {
+               format.Type   = InputType::IT_Ping;
+               format.String = "#P";
+            }
+            else if(tokensVector[2] == "Traceroute") {
+               format.Type   = InputType::IT_Traceroute;
+               format.String = "#T";
+            }
+            else if(tokensVector[2] == "Jitter") {
+               format.Type   = InputType::IT_Jitter;
+               format.String = "#J";
+            }
+         }
+      }
+      else {
+         // Guess format instead:
+         format.Type   = (InputType)line[1];
+         format.String = line.substr(0, 3);
+      }
 
       // ====== Ping ========================================================
+      std::string columnNames;
       if(format.Type == InputType::IT_Ping) {
          columnNames =
             "Ping "                  // 00: "#P<p>"
             "MeasurementID "         // 01: Measurement ID
-            "SourceIP "              // 02: Source address
-            "DestinationIP "         // 03: Destination address
+            "SourceIP "              // 02: SourceIP address
+            "DestinationIP "         // 03: DestinationIP address
             "Timestamp "             // 04: Timestamp (nanoseconds since the UTC epoch, hexadecimal).
             "BurstSeq "              // 05: Sequence number within a burst (decimal), numbered from 0.
             "TrafficClass "          // 06: Traffic Class setting (hexadecimal)
             "PacketSize "            // 07: Packet size, in bytes (decimal; 0 if unknown)
             "ResponseSize "          // 08: Response size, in bytes (decimal; 0 if unknown)
             "Checksum "              // 09: Checksum (hexadecimal)
-            "Status "                // 10: Status (decimal)
-            "TimeSource "            // 11: Source of the timing information (hexadecimal) as: AAQQSSHH
-            "Delay.AppSend "         // 12: The measured application send delay (nanoseconds, decimal; -1 if not available).
-            "Delay.Queuing "         // 13: The measured kernel software queuing delay (nanoseconds, decimal; -1 if not available).
-            "Delay.AppReceive "      // 14: The measured application receive delay (nanoseconds, decimal; -1 if not available).
-            "RTT.App "               // 15: The measured application RTT (nanoseconds, decimal).
-            "RTT.SW "                // 16: The measured kernel software RTT (nanoseconds, decimal; -1 if not available).
-            "RTT.HW";                // 17: The measured kernel hardware RTT (nanoseconds, decimal; -1 if not available).
+            "SourcePort "            // 10: Source port (decimal)
+            "DestinationPort "       // 11: Destination port (decimal)
+            "Status "                // 12: Status (decimal)
+            "TimeSource "            // 13: Source of the timing information (hexadecimal) as: AAQQSSHH
+            "Delay.AppSend "         // 14: The measured application send delay (nanoseconds, decimal; -1 if not available).
+            "Delay.Queuing "         // 15: The measured kernel software queuing delay (nanoseconds, decimal; -1 if not available).
+            "Delay.AppReceive "      // 16: The measured application receive delay (nanoseconds, decimal; -1 if not available).
+            "RTT.App "               // 17: The measured application RTT (nanoseconds, decimal).
+            "RTT.SW "                // 18: The measured kernel software RTT (nanoseconds, decimal; -1 if not available).
+            "RTT.HW";                // 19: The measured kernel hardware RTT (nanoseconds, decimal; -1 if not available).
       }
 
       // ====== Traceroute  =================================================
@@ -236,72 +264,75 @@ void checkFormat(boost::iostreams::filtering_ostream* outputStream,
          columnNames =
             "Traceroute "            // 00: "#T<p>"
             "MeasurementID "         // 01: Measurement ID
-            "SourceIP "              // 02: Source address
-            "DestinationIP "         // 03: Destination address
+            "SourceIP "              // Source IP address
+            "DestinationIP "         // Destination IP address
             "Timestamp "             // 04: Absolute time since the epoch in UTC, in microseconds (hexadecimal)
-            "Round "                 // 05: Round number (decimal)
+            "RoundNumber "           // 05: Round number (decimal)
             "TotalHops "             // 06: Total hops (decimal)
             "TrafficClass "          // 07: Traffic Class setting (hexadecimal)
             "PacketSize "            // 08: Packet size, in bytes (decimal)
             "Checksum "              // 09: Checksum (hexadecimal)
-            "StatusFlags "           // 10: Status flags (hexadecimal)
-            "PathHash "              // 11: Hash of the path (hexadecimal)
+            "SourcePort "            // 10: Source port (decimal)
+            "DestinationPort "       // 11: Destination port (decimal)
+            "StatusFlags "           // 12: Status flags (hexadecimal)
+            "PathHash "              // 13: Hash of the path (hexadecimal)
 
-            "TAB "                   // 12: NOTE: must be "\t" from combination above!
+            "TAB "                   // 14: NOTE: must be "\t" from combination above!
 
-            "SendTimestamp "         // 13: Timestamp (nanoseconds since the UTC epoch, hexadecimal) for the request to this hop.
-            "HopNumber "             // 14: Number of the hop.
-            "ResponseSize "          // 15: Response size, in bytes (decimal)
-            "Status "                // 16: Status code (decimal!)
-            "TimeSource "            // 17: Source of the timing information (hexadecimal) as: AAQQSSHH
-            "Delay.AppSend "         // 18: The measured application send delay (nanoseconds, decimal; -1 if not available).
-            "Delay.Queuing "         // 19: The measured kernel software queuing delay (nanoseconds, decimal; -1 if not available).
-            "Delay.AppReceive "      // 20: The measured application receive delay (nanoseconds, decimal; -1 if not available).
-            "RTT.App "               // 21: The measured application RTT (nanoseconds, decimal).
-            "RTT.SW "                // 22: The measured kernel software RTT (nanoseconds, decimal; -1 if not available).
-            "RTT.HW "                // 23: The measured kernel hardware RTT (nanoseconds, decimal; -1 if not available).
-            "HopIP";                 // 24: Hop IP address.
+            "SendTimestamp "         // 15: Timestamp (nanoseconds since the UTC epoch, hexadecimal) for the request to this hop.
+            "HopNumber "             // 16: Number of the hop.
+            "ResponseSize "          // 17: Response size, in bytes (decimal)
+            "Status "                // 18: Status code (decimal!)
+            "TimeSource "            // 19: Source of the timing information (hexadecimal) as: AAQQSSHH
+            "Delay.AppSend "         // 20: The measured application send delay (nanoseconds, decimal; -1 if not available).
+            "Delay.Queuing "         // 21: The measured kernel software queuing delay (nanoseconds, decimal; -1 if not available).
+            "Delay.AppReceive "      // 22: The measured application receive delay (nanoseconds, decimal; -1 if not available).
+            "RTT.App "               // 23: The measured application RTT (nanoseconds, decimal).
+            "RTT.SW "                // 24: The measured kernel software RTT (nanoseconds, decimal; -1 if not available).
+            "RTT.HW "                // 25: The measured kernel hardware RTT (nanoseconds, decimal; -1 if not available).
+            "HopIP";                 // 26: Hop IP address.
       }
 
       // ====== Jitter ======================================================
       else if(format.Type == InputType::IT_Jitter) {
-         format.Protocol = (InputProtocol)line[2];
          columnNames =
-            "Jitter "                 // "#J<p>"
-            "MeasurementID "          // Measurement ID
-            "Source "                 // Source address
-            "Destination "            // Destination address
-            "Timestamp "              // Timestamp (nanoseconds since the UTC epoch, hexadecimal).
-            "BurstSeq "               // Sequence number within a burst (decimal), numbered from 0.
-            "TrafficClass "           // Traffic Class setting (hexadecimal)
-            "PacketSize "             // Packet size, in bytes (decimal)
-            "Checksum "               // Checksum (hexadecimal)
-            "Status "                 // Status (decimal)
-            "TimeSource "             // Source of the timing information (hexadecimal) as: AAQQSSHH
+            "Jitter "                 // 00: "#J<p>"
+            "MeasurementID "          // 01: Measurement ID
+            "SourceIP "               // 02: Source IP address
+            "DestinationIP "          // 03: Destination IP address
+            "Timestamp "              // 04: Timestamp (nanoseconds since the UTC epoch, hexadecimal).
+            "BurstSeq "               // 05: Sequence number within a burst (decimal), numbered from 0.
+            "TrafficClass "           // 06: Traffic Class setting (hexadecimal)
+            "PacketSize "             // 07: Packet size, in bytes (decimal)
+            "Checksum "               // 08: Checksum (hexadecimal)
+            "SourcePort "             // 09: Source port (decimal)
+            "DestinationPort "        // 10: Destination port (decimal)
+            "Status "                 // 11: Status (decimal)
+            "TimeSource "             // 12: Source of the timing information (hexadecimal) as: AAQQSSHH
 
-            "Packets.AppSend "        // Number of packets for application send jitter/mean RTT computation
-            "MeanDelay.AppSend "      // Mean application send
-            "Jitter.AppSend "         // Jitter of application send (computed based on RFC 3550, Subsubsection 6.4.1)
+            "Packets.AppSend "        // 13: Number of packets for application send jitter/mean RTT computation
+            "MeanDelay.AppSend "      // 14: Mean application send
+            "Jitter.AppSend "         // 15: Jitter of application send (computed based on RFC 3550, Subsubsection 6.4.1)
 
-            "Packets.Queuing "        // Number of packets for queuing jitter/mean RTT computation
-            "MeanDelay.Queuing "      // Mean queuing
-            "Jitter.Queuing "         // Jitter of queuing (computed based on RFC 3550, Subsubsection 6.4.1)
+            "Packets.Queuing "        // 16: Number of packets for queuing jitter/mean RTT computation
+            "MeanDelay.Queuing "      // 17: Mean queuing
+            "Jitter.Queuing "         // 18: Jitter of queuing (computed based on RFC 3550, Subsubsection 6.4.1)
 
-            "Packets.AppReceive "     // Number of packets for application receive jitter/mean RTT computation
-            "MeanDelay.AppReceive "   // Mean application receive
-            "Jitter.AppReceive "      // Jitter of application receive (computed based on RFC 3550, Subsubsection 6.4.1)
+            "Packets.AppReceive "     // 19: Number of packets for application receive jitter/mean RTT computation
+            "MeanDelay.AppReceive "   // 20: Mean application receive
+            "Jitter.AppReceive "      // 21: Jitter of application receive (computed based on RFC 3550, Subsubsection 6.4.1)
 
-            "Packets.App "            // Number of packets for application RTT jitter/mean RTT computation
-            "MeanRTT.App "            // Mean application RTT
-            "Jitter.App "             // Jitter of application RTT (computed based on RFC 3550, Subsubsection 6.4.1)
+            "Packets.App "            // 22: Number of packets for application RTT jitter/mean RTT computation
+            "MeanRTT.App "            // 23: Mean application RTT
+            "Jitter.App "             // 24: Jitter of application RTT (computed based on RFC 3550, Subsubsection 6.4.1)
 
-            "Packets.SW "             // Number of packets for kernel software RTT jitter/mean RTT computation
-            "MeanRTT.SW "             // Mean kernel software RTT
-            "Jitter.SW "              // Jitter of kernel software RTT (computed based on RFC 3550, Subsubsection 6.4.1)
+            "Packets.SW "             // 25: Number of packets for kernel software RTT jitter/mean RTT computation
+            "MeanRTT.SW "             // 26: Mean kernel software RTT
+            "Jitter.SW "              // 27: Jitter of kernel software RTT (computed based on RFC 3550, Subsubsection 6.4.1)
 
-            "Packets.HW "             // Number of packets for kernel hardware RTT jitter/mean RTT computation
-            "MeanRTT.HW "             // Mean kernel hardware RTT
-            "Jitter.HW";              // Jitter of kernel hardware RTT (computed based on RFC 3550, Subsubsection 6.4.1)
+            "Packets.HW "             // 28: Number of packets for kernel hardware RTT jitter/mean RTT computation
+            "MeanRTT.HW "             // 29: Mean kernel hardware RTT
+            "Jitter.HW";              // 30: Jitter of kernel hardware RTT (computed based on RFC 3550, Subsubsection 6.4.1)
       }
 
       // ====== Error =======================================================
@@ -316,53 +347,52 @@ void checkFormat(boost::iostreams::filtering_ostream* outputStream,
    }
 
    // ====== Error ==========================================================
-   else if(format.String.substr(0, 2) != line.substr(0, 2)) {
+   else if( (format.String.substr(0, 2) != line.substr(0, 2)) &&
+            (line.substr(0, 2) != "#?") ) {
       HPCT_LOG(fatal) << "Incompatible format for merging ("
                         << line.substr(0, 2) << " vs. " << format.String.substr(0, 2) << ")"
                         << " in input file " << fileName;
       exit(1);
    }
 
-   // ====== Ping ===========================================================
-   if(format.Type == InputType::IT_Ping) {
-      // ------ Ping, Version 2 ---------------------------------------------
-      if(line[2] != ' ') {
-         if(inputColumns >= 18) {
-            format.Protocol = (InputProtocol)line[2];
-            format.Version  = 2;
+   // ====== Guess version, if not specified ================================
+   if(format.Version == 0) {
+      // ====== Ping ========================================================
+      if(format.Type == InputType::IT_Ping) {
+         // ------ Ping, Version 2 ------------------------------------------
+         if(line[2] != ' ') {
+            if(inputColumns >= 20) {
+               format.Version = 2;
+            }
+         }
+         // ------ Ping, Version 1 ------------------------------------------
+         else {
+            if(inputColumns >= 7) {
+               format.Version = 1;
+            }
          }
       }
-      // ------ Ping, Version 1 ---------------------------------------------
-      else {
-         if(inputColumns >= 7) {
-            format.Protocol = InputProtocol::IP_ICMP;
-            format.Version  = 1;
-         }
-      }
-   }
 
-   // ====== Traceroute =====================================================
-   else if(format.Type == InputType::IT_Traceroute) {
-      // ------ Traceroute, Version 2 ---------------------------------------
-      if(line[2] != ' ') {
-         if(inputColumns >= 12) {
-            format.Protocol = (InputProtocol)line[2];
-            format.Version  = 2;
+      // ====== Traceroute ==================================================
+      else if(format.Type == InputType::IT_Traceroute) {
+         // ------ Traceroute, Version 2 ------------------------------------
+         if(line[2] != ' ') {
+            if(inputColumns >= 12) {
+               format.Version = 2;
+            }
+         }
+         // ------ Traceroute, Version 1 ------------------------------------
+         else {
+            if(inputColumns >= 11) {
+               format.Version = 1;
+            }
          }
       }
-      // ------ Traceroute, Version 1 ---------------------------------------
-      else {
-         if(inputColumns >= 11) {
-            format.Protocol = InputProtocol::IP_ICMP;
-            format.Version  = 1;
-         }
-      }
-   }
 
-   // ====== Jitter =========================================================
-   else if(format.Type == InputType::IT_Jitter) {
-      format.Protocol = (InputProtocol)line[2];
-      format.Version  = 2;
+      // ====== Jitter ======================================================
+      else if(format.Type == InputType::IT_Jitter) {
+         format.Version = 2;
+      }
    }
 
    // ====== Error ==========================================================
@@ -418,13 +448,16 @@ bool dumpResultsFile(std::set<OutputEntry*, pointer_lessthan<OutputEntry>>* outp
       lineNumber++;
 
       // ====== #<line> =====================================================
-      if(line.size() < 1) {
+      if(line.size() < 2) {
          continue;
       }
       else if(line[0] == '#') {
          checkFormat(outputStream, fileName, format, columns, line, separator);
          if(checkOnly) {
             return true;
+         }
+         if(line[1] == '?') {
+            continue;   // #? ...
          }
 
          try {
@@ -465,7 +498,7 @@ bool dumpResultsFile(std::set<OutputEntry*, pointer_lessthan<OutputEntry>>* outp
             c++;
 
             // ------ Create output entry --------------------------------
-            if(c < 5) {
+            if(c < maxColumns) {
                HPCT_LOG(fatal) << "Unexpected syntax"
                               << " in input file " << fileName << ", line " << lineNumber;
                exit(1);
@@ -475,8 +508,8 @@ bool dumpResultsFile(std::set<OutputEntry*, pointer_lessthan<OutputEntry>>* outp
             if(measurementIDIndex != length[1]) {
                throw std::range_error("Bad measurement ID");
             }
-            const boost::asio::ip::address source      = boost::asio::ip::make_address(std::string(value[2], length[2]));
-            const boost::asio::ip::address destination = boost::asio::ip::make_address(std::string(value[3], length[3]));
+            const boost::asio::ip::address sourceIP      = boost::asio::ip::make_address(std::string(value[2], length[2]));
+            const boost::asio::ip::address destinationIP = boost::asio::ip::make_address(std::string(value[3], length[3]));
             size_t                         timeStampIndex;
             const unsigned long long       timeStamp   = std::stoull(value[4], &timeStampIndex, 16);
             if(timeStampIndex != length[4]) {
@@ -497,12 +530,12 @@ bool dumpResultsFile(std::set<OutputEntry*, pointer_lessthan<OutputEntry>>* outp
             if(newEntry != nullptr) {
                delete newEntry;
             }
-            newEntry = new OutputEntry(measurementID, source, destination, timeStamp,
+            newEntry = new OutputEntry(measurementID, sourceIP, destinationIP, timeStamp,
                                        roundNumber, line);
 
             // ====== Write entry, if not Traceroute ========================
             if(format.Type != InputType::IT_Traceroute) {
-               const unsigned int seenColumns = applySeparator(line, separator);
+               const unsigned int seenColumns = applySeparator(newEntry->Line, separator);
                if(seenColumns != columns) {
                   HPCT_LOG(fatal) << "Got " << seenColumns << " instead of expected "
                                  << columns << " columns"
@@ -612,6 +645,7 @@ int main(int argc, char** argv)
    std::filesystem::path              outputFileName;
    std::vector<std::filesystem::path> inputFileNameList;
    bool                               inputFileNamesFromStdin;
+   std::vector<std::filesystem::path> inputFileNamesFromFileList;
    bool                               inputResultsFromStdin;
    char                               separator;
    bool                               sorted;
@@ -646,9 +680,13 @@ int main(int argc, char** argv)
       ( "input-results-from-stdin,R",
            boost::program_options::value<bool>(&inputResultsFromStdin)->implicit_value(true)->default_value(false),
            "Read results from standard input" )
+
       ( "input-file-names-from-stdin,N",
            boost::program_options::value<bool>(&inputFileNamesFromStdin)->implicit_value(true)->default_value(false),
            "Read input file names from standard input" )
+      ( "input-file-names-from-file,F",
+           boost::program_options::value<std::vector<std::filesystem::path>>(&inputFileNamesFromFileList),
+           "Read input file names from file" )
 
       ( "output,o",
            boost::program_options::value<std::filesystem::path>(&outputFileName)->default_value(std::filesystem::path()),
@@ -704,22 +742,39 @@ int main(int argc, char** argv)
       std::cerr << "Invalid separator \"" << separator << "\"!\n";
       exit(1);
    }
+   if(maxThreads < 1) {
+      maxThreads = std::thread::hardware_concurrency();
+   }
 
    if(inputResultsFromStdin) {
       inputFileNameList.clear();
       inputFileNameList.push_back("/dev/stdin");
    }
-   else if(inputFileNamesFromStdin) {
-      std::string inputFileName;
-      do {
-         std::cout << "Input file: ";
-         std::cout.flush();
-         std::cin >> inputFileName;
-         if(!inputFileName.empty()) {
-            std::cout << inputFileName << "\n";
-            inputFileNameList.push_back(inputFileName);
+   else {
+      if(inputFileNamesFromStdin) {
+         inputFileNamesFromFileList.push_back("/dev/stdin");
+      }
+      for(const std::filesystem::path& inputFileNamesFileName : inputFileNamesFromFileList) {
+         std::string inputFileName;
+         std::ifstream is(inputFileNamesFileName);
+         if(!is.good()) {
+            std::cerr << "ERROR: Unable to read input file names from " << inputFileNamesFileName << "!\n";
+            exit(1);
          }
-      } while(!std::cin.eof());
+         do {
+            if(inputFileNamesFromStdin) {
+               std::cout << "Input file: ";
+               std::cout.flush();
+            }
+            is >> inputFileName;
+            if(!inputFileName.empty()) {
+               if(inputFileNamesFromStdin) {
+                  std::cout << inputFileName << "\n";
+               }
+               inputFileNameList.push_back(inputFileName);
+            }
+         } while(!is.eof());
+      }
    }
    if(inputFileNameList.size() == 0) {
       std::cerr << "No input files.\n";
@@ -734,10 +789,11 @@ int main(int argc, char** argv)
    std::string                         extension(outputFileName.extension());
    std::ofstream                       outputFile;
    boost::iostreams::filtering_ostream outputStream;
+   const std::filesystem::path         tmpOutputFileName = outputFileName.string() + ".tmp";
    if(outputFileName != std::filesystem::path()) {
-      outputFile.open(outputFileName, std::ios_base::out | std::ios_base::binary);
+      outputFile.open(tmpOutputFileName, std::ios_base::out | std::ios_base::binary);
       if(!outputFile.is_open()) {
-         HPCT_LOG(fatal) << "Failed to create output file " << outputFileName;
+         HPCT_LOG(fatal) << "Failed to create output file " << tmpOutputFileName;
          exit(1);
       }
       boost::algorithm::to_lower(extension);
@@ -771,9 +827,8 @@ int main(int argc, char** argv)
    HPCT_LOG(info) << "Identifying format from " << firstInputFileName << " ...";
    dumpResultsFile((sorted == true) ? &outputSet : nullptr, &outputStream, &outputMutex,
                    firstInputFileName, format, columns, separator,
-                   true);
+                   inputResultsFromStdin ? false : true);
    HPCT_LOG(info) << "Format: Type=" << (char)format.Type
-                  << ", Protocol="   << (char)format.Protocol
                   << ", Version="    << format.Version;
 
    // ------  Use thread pool to read all files -----------------------------
@@ -789,21 +844,40 @@ int main(int argc, char** argv)
    }
    threadPool.join();
    const std::chrono::system_clock::time_point t2 = std::chrono::system_clock::now();
-   HPCT_LOG(info) << "Read " << outputSet.size() << " results rows in "
-                  << std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1).count() << " ms";
+   if(sorted == true) {
+      HPCT_LOG(info) << "Read " << outputSet.size() << " results rows in "
+                     << std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1).count() << " ms";
+   }
+   else {
+      HPCT_LOG(info) << "Reading input and writing output took "
+                     << std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1).count() << " ms";
+   }
+
+   if(outputFileName != std::filesystem::path()) {
+      try {
+         std::filesystem::rename(tmpOutputFileName, outputFileName);
+      }
+      catch(const std::exception& e) {
+         HPCT_LOG(fatal) << "Unable to rename " << tmpOutputFileName << " to " << outputFileName
+                        << ": " << e.what();
+         exit(1);
+      }
+   }
 
    // ====== Print the results ==============================================
-   HPCT_LOG(info) << "Writing " << outputSet.size() << " results rows ...";
-   const std::chrono::system_clock::time_point t3 = std::chrono::system_clock::now();
-   for(std::set<OutputEntry*, pointer_lessthan<OutputEntry>>::const_iterator iterator = outputSet.begin();
-       iterator != outputSet.end(); iterator++) {
-      outputStream << (*iterator)->Line << "\n";
-      delete *iterator;
+   if(sorted == true) {
+      HPCT_LOG(info) << "Writing " << outputSet.size() << " results rows ...";
+      const std::chrono::system_clock::time_point t3 = std::chrono::system_clock::now();
+      for(std::set<OutputEntry*, pointer_lessthan<OutputEntry>>::const_iterator iterator = outputSet.begin();
+         iterator != outputSet.end(); iterator++) {
+         outputStream << (*iterator)->Line << "\n";
+         delete *iterator;
+      }
+      outputStream.flush();
+      const std::chrono::system_clock::time_point t4 = std::chrono::system_clock::now();
+      HPCT_LOG(info) << "Wrote " << outputSet.size() << " results rows in "
+                     << std::chrono::duration_cast<std::chrono::milliseconds>(t4 - t3).count() << " ms";
    }
-   outputStream.flush();
-   const std::chrono::system_clock::time_point t4 = std::chrono::system_clock::now();
-   HPCT_LOG(info) << "Wrote " << outputSet.size() << " results rows in "
-                  << std::chrono::duration_cast<std::chrono::milliseconds>(t4 - t3).count() << " ms";
 
    return 0;
 }

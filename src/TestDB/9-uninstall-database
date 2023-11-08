@@ -55,7 +55,8 @@ if [ "$1" == "mariadb" ] ; then
    echo "Uninstalling MariaDB ..."
 
    sudo DEBIAN_FRONTEND=noninteractive apt purge -y 'mariadb*'
-   sudo rm -rf /var/lib/mysql
+   sudo rm -rf /var/lib/mysql/*
+   sudo rmdir /var/lib/mysql || true
 
 
 # ###### PostgreSQL #########################################################
@@ -63,7 +64,8 @@ elif [ "$1" == "postgresql" ] ; then
    echo "Uninstalling PostgreSQL ..."
 
    sudo DEBIAN_FRONTEND=noninteractive apt purge -y 'postgresql*'
-   sudo rm -rf /var/lib/postgresql
+   sudo rm -rf /var/lib/postgresql/*
+   sudo rmdir /var/lib/postgresql || true
 
 
 # ###### MongoDB ############################################################
@@ -71,8 +73,8 @@ elif [ "$1" == "mongodb" ] ; then
    echo "Uninstalling MongoDB ..."
 
    sudo DEBIAN_FRONTEND=noninteractive apt purge -y 'mongodb*'
-   sudo rm -rf /var/lib/mongodb
-
+   sudo rm -rf /var/lib/mongodb/*
+   sudo rmdir /var/lib/mongodb || true
 
 # ###### Error ##############################################################
 else

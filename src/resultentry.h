@@ -102,7 +102,7 @@ enum TimeSourceType
    // The following time stamp types are based on the system time:
    TST_SysClock        = 0x1,   // System clock
    TST_TIMESTAMP       = 0x2,   // SO_TIMESTAMPING option, microseconds granularity
-   TST_TIMESTAMPNS     = 0x3,   // SO_TIMESTAMPINGNS option, nanoseconds granularity
+   TST_TIMESTAMPNS     = 0x3,   // SO_TIMESTAMPINGNS option (or SO_TIMESTAMPING+SO_TS_CLOCK), nanoseconds granularity
    TST_SIOCGSTAMP      = 0x4,   // SIOCGSTAMP ioctl, microseconds granularity
    TST_SIOCGSTAMPNS    = 0x5,   // SIOCGSTAMPNS ioctl, nanoseconds granularity
    TST_TIMESTAMPING_SW = 0x6,   // SO_TIMESTAMPING option, software
@@ -131,9 +131,13 @@ enum RXTimeStampType
 };
 
 
-typedef std::chrono::high_resolution_clock ResultClock;
-typedef ResultClock::time_point            ResultTimePoint;
-typedef ResultClock::duration              ResultDuration;
+typedef std::chrono::system_clock            SystemClock;
+typedef std::chrono::time_point<SystemClock> SystemTimePoint;
+typedef SystemClock::duration                SystemDuration;
+
+typedef std::chrono::high_resolution_clock   ResultClock;
+typedef ResultClock::time_point              ResultTimePoint;
+typedef ResultClock::duration                ResultDuration;
 
 
 class ResultEntry {
@@ -147,6 +151,8 @@ class ResultEntry {
                    const unsigned int              hopNumber,
                    const unsigned int              packetSize,
                    const uint16_t                  checksum,
+                   const uint16_t                  sourcePort,
+                   const uint16_t                  destinationPort,
                    const ResultTimePoint&          sendTime,
                    const boost::asio::ip::address& source,
                    const DestinationInfo&          destination,
@@ -161,6 +167,8 @@ class ResultEntry {
    inline unsigned int packetSize()                     const { return(PacketSize);             }
    inline unsigned int responseSize()                   const { return(ResponseSize);           }
    inline uint16_t     checksum()                       const { return(Checksum);               }
+   inline uint16_t     sourcePort()                     const { return(SourcePort);             }
+   inline uint16_t     destinationPort()                const { return(DestinationPort);        }
 
    const boost::asio::ip::address& sourceAddress()      const { return(Source);                 }
    const DestinationInfo& destination()                 const { return(Destination);            }
@@ -242,6 +250,8 @@ class ResultEntry {
    unsigned int             PacketSize;
    unsigned int             ResponseSize;
    uint16_t                 Checksum;
+   uint16_t                 SourcePort;
+   uint16_t                 DestinationPort;
 
    boost::asio::ip::address Source;
    DestinationInfo          Destination;

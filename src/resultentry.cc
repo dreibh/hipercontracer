@@ -55,22 +55,26 @@ void ResultEntry::initialise(const uint32_t                  timeStampSeqID,
                              const unsigned int              hopNumber,
                              const unsigned int              packetSize,
                              const uint16_t                  checksum,
+                             const uint16_t                  sourcePort,
+                             const uint16_t                  destinationPort,
                              const ResultTimePoint&          sendTime,
                              const boost::asio::ip::address& source,
                              const DestinationInfo&          destination,
                              const HopStatus                 status)
 {
-   TimeStampSeqID = timeStampSeqID;
-   RoundNumber    = roundNumber;
-   SeqNumber      = seqNumber;
-   HopNumber      = hopNumber;
-   PacketSize     = packetSize;
-   ResponseSize   = 0;
-   Checksum       = checksum;
-   Source         = dropScopeID(source);
-   Destination    = DestinationInfo(dropScopeID(destination.address()), destination.trafficClass(), destination.identifier());
-   Hop            = Destination.address();
-   Status         = status;
+   TimeStampSeqID  = timeStampSeqID;
+   RoundNumber     = roundNumber;
+   SeqNumber       = seqNumber;
+   HopNumber       = hopNumber;
+   PacketSize      = packetSize;
+   ResponseSize    = 0;
+   Checksum        = checksum;
+   SourcePort      = sourcePort;
+   DestinationPort = destinationPort;
+   Source          = dropScopeID(source);
+   Destination     = DestinationInfo(dropScopeID(destination.address()), destination.trafficClass(), destination.identifier());
+   Hop             = Destination.address();
+   Status          = status;
    for(unsigned int i = 0; i < TXTST_MAX + 1; i++) {
       SendTimeSource[i] = TimeSourceType::TST_Unknown;
    }
@@ -480,7 +484,8 @@ std::ostream& operator<<(std::ostream& os, const ResultEntry& resultEntry)
       << "\tS:"  << durationToString<ResultDuration>(rttSoftware)
       << "\tH:"  << durationToString<ResultDuration>(rttHardware)
       << "\t" << boost::format("%3d")     % resultEntry.Status
-      << "\t" << boost::format("%04x")    % resultEntry.Checksum
+      << "\t" << ((resultEntry.Checksum != 0) ? (boost::format("%04x")    % resultEntry.Checksum) :
+                                                (boost::format("%d/%d")   % resultEntry.SourcePort % resultEntry.DestinationPort))
       << "\t" << boost::format("%d")      % resultEntry.PacketSize
       << "\t" << resultEntry.Destination;
 
