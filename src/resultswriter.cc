@@ -44,24 +44,24 @@
 
 
 // ###### Constructor #######################################################
-ResultsWriter::ResultsWriter(const unsigned int            measurementID,
+ResultsWriter::ResultsWriter(const std::string&            programID,
+                             const unsigned int            measurementID,
                              const std::string&            directory,
                              const std::string&            uniqueID,
                              const std::string&            prefix,
                              const unsigned int            transactionLength,
                              const uid_t                   uid,
                              const gid_t                   gid,
-                             const ResultsWriterCompressor compressor,
-                             const char*                   program)
-   : MeasurementID(measurementID),
+                             const ResultsWriterCompressor compressor)
+   : ProgramID(programID),
+     MeasurementID(measurementID),
      Directory(directory),
      Prefix(prefix),
      TransactionLength(transactionLength),
      UID(uid),
      GID(gid),
      Compressor(compressor),
-     UniqueID(uniqueID),
-     Program(program)
+     UniqueID(uniqueID)
 {
    Inserts   = 0;
    SeqNumber = 0;
@@ -201,7 +201,7 @@ void ResultsWriter::insert(const std::string& tuple)
       OutputStream << "#? HPCT "
                    << OutputFormatName    << " "
                    << OutputFormatVersion << " "
-                   << Program             << "\n";
+                   << ProgramID           << "\n";
    }
    OutputStream << tuple << "\n";
    Inserts++;
@@ -210,6 +210,7 @@ void ResultsWriter::insert(const std::string& tuple)
 
 // ###### Prepare results writer ############################################
 ResultsWriter* ResultsWriter::makeResultsWriter(std::set<ResultsWriter*>&       resultsWriterSet,
+                                                const std::string&              programID,
                                                 const unsigned int              measurementID,
                                                 const boost::asio::ip::address& sourceAddress,
                                                 const std::string&              resultsPrefix,
@@ -217,8 +218,7 @@ ResultsWriter* ResultsWriter::makeResultsWriter(std::set<ResultsWriter*>&       
                                                 const unsigned int              resultsTransactionLength,
                                                 const uid_t                     uid,
                                                 const gid_t                     gid,
-                                                const ResultsWriterCompressor   compressor,
-                                                const char*                     program)
+                                                const ResultsWriterCompressor   compressor)
 {
    if(!resultsDirectory.empty()) {
       std::string uniqueID =
@@ -231,9 +231,9 @@ ResultsWriter* ResultsWriter::makeResultsWriter(std::set<ResultsWriter*>&       
       replace(uniqueID.begin(), uniqueID.end(), ' ', '-');
 
       ResultsWriter* resultsWriter =
-         new ResultsWriter(measurementID, resultsDirectory, uniqueID,
+         new ResultsWriter(programID, measurementID, resultsDirectory, uniqueID,
                            resultsPrefix, resultsTransactionLength,
-                           uid, gid, compressor, program);
+                           uid, gid, compressor);
       if(resultsWriter->prepare() == true) {
          resultsWriterSet.insert(resultsWriter);
          return(resultsWriter);

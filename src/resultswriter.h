@@ -53,15 +53,15 @@ enum ResultsWriterCompressor {
 class ResultsWriter
 {
    public:
-   ResultsWriter(const unsigned int            measurementID,
+   ResultsWriter(const std::string&            programID,
+                 const unsigned int            measurementID,
                  const std::string&            directory,
                  const std::string&            uniqueID,
                  const std::string&            prefix,
                  const unsigned int            transactionLength,
                  const uid_t                   uid,
                  const gid_t                   gid,
-                 const ResultsWriterCompressor compressor,
-                 const char*                   program);
+                 const ResultsWriterCompressor compressor);
    virtual ~ResultsWriter();
 
    void specifyOutputFormat(const std::string& outputFormatName,
@@ -77,6 +77,7 @@ class ResultsWriter
    void insert(const std::string& tuple);
 
    static ResultsWriter* makeResultsWriter(std::set<ResultsWriter*>&       resultsWriterSet,
+                                           const std::string&              programID,
                                            const unsigned int              measurementID,
                                            const boost::asio::ip::address& sourceAddress,
                                            const std::string&              resultsPrefix,
@@ -84,10 +85,10 @@ class ResultsWriter
                                            const unsigned int              resultsTransactionLength,
                                            const uid_t                     uid,
                                            const gid_t                     gid,
-                                           const ResultsWriterCompressor   compressor = BZip2,
-                                           const char*                     program    = "HiPerConTracer");
+                                           const ResultsWriterCompressor   compressor = ResultsWriterCompressor::XZ);
 
    protected:
+   const std::string                     ProgramID;
    const unsigned int                    MeasurementID;
    const boost::filesystem::path         Directory;
    const std::string                     Prefix;
@@ -95,7 +96,6 @@ class ResultsWriter
    const uid_t                           UID;
    const gid_t                           GID;
    const ResultsWriterCompressor         Compressor;
-   const std::string                     Program;
 
    std::string                           UniqueID;
    boost::filesystem::path               TempFileName;

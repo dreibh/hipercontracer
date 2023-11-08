@@ -39,6 +39,7 @@
 #include "icmpheader.h"
 #include "logger.h"
 #include "ping.h"
+#include "package-version.h"
 #include "resultswriter.h"
 #include "service.h"
 #include "tools.h"
@@ -51,6 +52,7 @@ struct TargetInfo
    unsigned int                          TriggerCounter;
 };
 
+static const std::string                                     ProgramID = std::string("HPCT-Results-Tool/") + HPCT_VERSION;
 static std::map<boost::asio::ip::address, std::set<uint8_t>> SourceArray;
 static std::set<boost::asio::ip::address>                    DestinationArray;
 static std::map<boost::asio::ip::address, TargetInfo*>       TargetMap;
@@ -566,7 +568,7 @@ int main(int argc, char** argv)
                ResultsWriter* resultsWriter = nullptr;
                if(!resultsDirectory.empty()) {
                   resultsWriter = ResultsWriter::makeResultsWriter(
-                                     ResultsWriterSet, measurementID,
+                                     ResultsWriterSet, ProgramID, measurementID,
                                      sourceAddress, "TriggeredPing-" + ioModule,
                                      resultsDirectory, resultsTransactionLength,
                                      (pw != nullptr) ? pw->pw_uid : 0, (pw != nullptr) ? pw->pw_gid : 0,
@@ -596,7 +598,7 @@ int main(int argc, char** argv)
                ResultsWriter* resultsWriter = nullptr;
                if(!resultsDirectory.empty()) {
                   resultsWriter = ResultsWriter::makeResultsWriter(
-                                     ResultsWriterSet, measurementID,
+                                     ResultsWriterSet, ProgramID, measurementID,
                                      sourceAddress, "TriggeredTraceroute-" + ioModule,
                                      resultsDirectory, resultsTransactionLength,
                                      (pw != nullptr) ? pw->pw_uid : 0, (pw != nullptr) ? pw->pw_gid : 0,

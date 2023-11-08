@@ -49,7 +49,7 @@
 #include "tools.h"
 #include "traceroute.h"
 
-
+static const std::string                                     ProgramID = std::string("HiPerConTracer/") + HPCT_VERSION;
 static std::map<boost::asio::ip::address, std::set<uint8_t>> SourceArray;
 static std::set<boost::asio::ip::address>                    DestinationArray;
 static std::set<ResultsWriter*>                              ResultsWriterSet;
@@ -560,7 +560,7 @@ int main(int argc, char** argv)
                ResultsWriter* resultsWriter = nullptr;
                if(!resultsDirectory.empty()) {
                   resultsWriter = ResultsWriter::makeResultsWriter(
-                                     ResultsWriterSet, measurementID,
+                                     ResultsWriterSet, ProgramID, measurementID,
                                      sourceAddress, "Jitter-" + ioModule,
                                      resultsDirectory, resultsTransactionLength,
                                      (pw != nullptr) ? pw->pw_uid : 0, (pw != nullptr) ? pw->pw_gid : 0,
@@ -593,7 +593,7 @@ int main(int argc, char** argv)
                ResultsWriter* resultsWriter = nullptr;
                if(!resultsDirectory.empty()) {
                   resultsWriter = ResultsWriter::makeResultsWriter(
-                                     ResultsWriterSet, measurementID,
+                                     ResultsWriterSet, ProgramID, measurementID,
                                      sourceAddress, "Ping-" + ioModule,
                                      resultsDirectory, resultsTransactionLength,
                                      (pw != nullptr) ? pw->pw_uid : 0, (pw != nullptr) ? pw->pw_gid : 0,
@@ -625,7 +625,7 @@ int main(int argc, char** argv)
                ResultsWriter* resultsWriter = nullptr;
                if(!resultsDirectory.empty()) {
                   resultsWriter = ResultsWriter::makeResultsWriter(
-                                     ResultsWriterSet, measurementID,
+                                     ResultsWriterSet, ProgramID, measurementID,
                                      sourceAddress, "Traceroute-" + ioModule,
                                      resultsDirectory, resultsTransactionLength,
                                      (pw != nullptr) ? pw->pw_uid : 0, (pw != nullptr) ? pw->pw_gid : 0,
