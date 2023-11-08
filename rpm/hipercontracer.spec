@@ -250,13 +250,13 @@ HiPerConTracer into an SQL or NoSQL database.
 /lib/systemd/system/hpct-importer.service
 
 
-%package hipercontracer-query
+%package hipercontracer-query-tool
 Summary: HiPerConTracer Query Tool to query results from a database
 Group: Applications/Database
 Recommends: %{name} = %{version}-%{release}
 Recommends: %{name}-results = %{version}-%{release}
 
-%description hipercontracer-query
+%description hipercontracer-query-tool
 High-Performance Connectivity Tracer (HiPerConTracer) is a
 Ping/Traceroute service. It performs regular Ping and Traceroute runs
 among sites. The results are written to data files, which can be
@@ -264,18 +264,18 @@ imported into an SQL or NoSQL database.
 This package contains a simple query tool to obtain results
 from a HiPerConTracer SQL or NoSQL database.
 
-%files hipercontracer-query
+%files hipercontracer-query-tool
 %{_bindir}/hpct-query
 %{_mandir}/man1/hpct-query.1.gz
 
 
-%package hipercontracer-results
+%package hipercontracer-results-tool
 Summary: HiPerConTracer Results Tool to process results files
 Group: Applications/Database
 Requires: %{name}-libuniversalimporter = %{version}-%{release}
 Recommends: %{name} = %{version}-%{release}
 
-%description hipercontracer-results
+%description hipercontracer-results-tool
 High-Performance Connectivity Tracer (HiPerConTracer) is a
 Ping/Traceroute service. It performs regular Ping and Traceroute runs
 among sites. The results are written to data files, which can be
@@ -284,7 +284,7 @@ This package contains the results tool to process HiPerConTracer
 results files, particularly for converting them to CSV files for
 reading them into spreadsheets, analysis tools, etc.
 
-%files hipercontracer-results
+%files hipercontracer-results-tool
 %{_bindir}/hpct-results
 %{_bindir}/pipe-checksum
 %{_mandir}/man1/hpct-results.1.gz
