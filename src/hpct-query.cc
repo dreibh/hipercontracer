@@ -54,7 +54,7 @@ typedef ResultClock::duration              ResultDuration;
 
 // ###### Add WHERE clause to SELECT statement ##############################
 static void addSQLWhere(Statement&               statement,
-                        const char*              timeStampField,
+                        const std::string&       timeStampField,
                         const unsigned long long fromTimeStamp,
                         const unsigned long long toTimeStamp,
                         const unsigned int       fromMeasurementID,
@@ -85,29 +85,40 @@ static void addSQLWhere(Statement&               statement,
 
 // ###### Add filter clause to query statement ##############################
 static void addNoSQLFilter(Statement&               statement,
-                           const char*              timeStampField,
+                           const std::string&       timeStampField,
                            const unsigned long long fromTimeStamp,
                            const unsigned long long toTimeStamp,
                            const unsigned int       fromMeasurementID,
                            const unsigned int       toMeasurementID)
 {
    if( (fromTimeStamp > 0) || (toTimeStamp > 0) || (fromMeasurementID > 0) || (toMeasurementID > 0) ) {
+      unsigned int filters = 0;
+      std::string  filterArray[4];
+      if(fromTimeStamp > 0) {
+         filterArray[filters++] = "\"" + timeStampField + "\": { \"$gte\": " + std::to_string(fromTimeStamp) + " }";
+      }
+      if(toTimeStamp > 0) {
+         filterArray[filters++] = "\"" + timeStampField + "\": { \"$lt\": " + std::to_string(toTimeStamp) + " }";
+      }
+      if(fromMeasurementID > 0) {
+         filterArray[filters++] = "\"measurementID\": { \"$gte\": " + std::to_string(fromMeasurementID) + " }";
+      }
+      if(toMeasurementID > 0) {
+         filterArray[filters++] = "\"measurementID\": { \"$lt\": " + std::to_string(toMeasurementID) + " }";
+      }
+      assert(filters > 0);
 
-      puts("FIXME: TDB!");
-      abort();
-
-//       query = { }
-//       if fromTimeStamp != None:
-//          ft =  { 'timestamp': { '$gte': str(fromTimeStamp) } }
-//          if toTimeStamp != None:
-//             tt =  { 'timestamp': { '$lt': str(toTimeStamp) } }
-//             query = { '$and': [ ft, tt ] }
-//          else:
-//             query = ft
-//       rows = configuration.queryMongoDB('traceroute', query)
-//       rows = self.database[table].find(request, batch_size=1000000).batch_size(1000000)
-//       return rows
-
+      if(filters == 1) {
+         statement << filterArray[0];
+      }
+      else {
+         statement << "\"$and\": [ ";
+         for(unsigned int i = 0;i < filters; i++) {
+            statement << "{ " << filterArray[i]
+                      << ((i < filters - 1) ? "}, " : "} ");
+         }
+         statement << "]";
+      }
    }
 }
 
@@ -356,7 +367,7 @@ int main(int argc, char** argv)
          else if(backend & DatabaseBackendType::NoSQL_Generic) {
             statement << "{ \"ping\": { ";
             addNoSQLFilter(statement, "sendTimestamp", fromTimeStamp, toTimeStamp, fromMeasurementID, toMeasurementID);
-            statement << "} }";
+            statement << " } }";
 
             HPCT_LOG(debug) << "Query: " << statement;
             databaseClient->executeQuery(statement);
@@ -507,7 +518,7 @@ int main(int argc, char** argv)
          else if(backend & DatabaseBackendType::NoSQL_Generic) {
             statement << "{ \"traceroute\": { ";
             addNoSQLFilter(statement, "timestamp", fromTimeStamp, toTimeStamp, fromMeasurementID, toMeasurementID);
-            statement << "} }";
+            statement << " } }";
 
             HPCT_LOG(debug) << "Query: " << statement;
             databaseClient->executeQuery(statement);
