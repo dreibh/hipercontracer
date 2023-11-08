@@ -32,6 +32,7 @@
 #include "logger.h"
 #include "conversions.h"
 
+#include <atomic>
 #include <chrono>
 #include <filesystem>
 #include <fstream>
@@ -185,7 +186,7 @@ unsigned int applySeparator(std::string& string, const char separator)
 
 
 // ###### Check format of file ##############################################
-void checkFormat(boost::iostreams::filtering_ostream* outputStream,
+bool checkFormat(boost::iostreams::filtering_ostream* outputStream,
                  const std::filesystem::path&         fileName,
                  InputFormat&                         format,
                  unsigned int&                        columns,
@@ -198,7 +199,7 @@ void checkFormat(boost::iostreams::filtering_ostream* outputStream,
    if(line.size() < 3) {
       HPCT_LOG(fatal) << "Unrecognised format of input data"
                       << " in input file " << fileName;
-      exit(1);
+      return false;
    }
 
    format.Version = 0;
@@ -339,7 +340,7 @@ void checkFormat(boost::iostreams::filtering_ostream* outputStream,
       else {
          HPCT_LOG(fatal) << "Unrecognised type of input data"
                          << " in input file " << fileName;
-         exit(1);
+         return false;
       }
 
       columns = applySeparator(columnNames, separator);
@@ -352,7 +353,7 @@ void checkFormat(boost::iostreams::filtering_ostream* outputStream,
       HPCT_LOG(fatal) << "Incompatible format for merging ("
                         << line.substr(0, 2) << " vs. " << format.String.substr(0, 2) << ")"
                         << " in input file " << fileName;
-      exit(1);
+      return false;
    }
 
    // ====== Guess version, if not specified ================================
@@ -398,21 +399,23 @@ void checkFormat(boost::iostreams::filtering_ostream* outputStream,
    // ====== Error ==========================================================
    if(format.Version == 0) {
       HPCT_LOG(fatal) << "Unrecognised format of input data"
-                        << " in input file " << fileName;
-      exit(1);
+                      << " in input file " << fileName;
+      return false;
    }
+   return true;
 }
 
 
 // ###### Dump results file #################################################
-bool dumpResultsFile(std::set<OutputEntry*, pointer_lessthan<OutputEntry>>* outputSet,
-                     boost::iostreams::filtering_ostream* outputStream,
-                     std::mutex*                          outputMutex,
-                     const std::filesystem::path&         fileName,
-                     InputFormat&                         format,
-                     unsigned int&                        columns,
-                     const char                           separator,
-                     const bool                           checkOnly = false)
+bool dumpResultsFile(std::atomic<unsigned int>*                             errorCounter,
+                     std::set<OutputEntry*, pointer_lessthan<OutputEntry>>* outputSet,
+                     boost::iostreams::filtering_ostream*                   outputStream,
+                     std::mutex*                                            outputMutex,
+                     const std::filesystem::path&                           fileName,
+                     InputFormat&                                           format,
+                     unsigned int&                                          columns,
+                     const char                                             separator,
+                     const bool                                             checkOnly = false)
 {
    // ====== Open input file ================================================
    std::string                         extension(fileName.extension());
@@ -422,7 +425,8 @@ bool dumpResultsFile(std::set<OutputEntry*, pointer_lessthan<OutputEntry>>* outp
    inputFile.open(fileName, std::ios_base::in | std::ios_base::binary);
    if(!inputFile.is_open()) {
       HPCT_LOG(fatal) << "Failed to read input file " << fileName;
-      exit(1);
+      (*errorCounter)++;
+      return false;
    }
    boost::algorithm::to_lower(extension);
    if(extension == ".xz") {
@@ -452,7 +456,10 @@ bool dumpResultsFile(std::set<OutputEntry*, pointer_lessthan<OutputEntry>>* outp
          continue;
       }
       else if(line[0] == '#') {
-         checkFormat(outputStream, fileName, format, columns, line, separator);
+         if(!checkFormat(outputStream, fileName, format, columns, line, separator)) {
+            (*errorCounter)++;
+            return false;
+         }
          if(checkOnly) {
             return true;
          }
@@ -501,7 +508,8 @@ bool dumpResultsFile(std::set<OutputEntry*, pointer_lessthan<OutputEntry>>* outp
             if(c < maxColumns) {
                HPCT_LOG(fatal) << "Unexpected syntax"
                               << " in input file " << fileName << ", line " << lineNumber;
-               exit(1);
+               (*errorCounter)++;
+               return false;
             }
             size_t measurementIDIndex;
             const unsigned int measurementID = std::stoul(value[1], &measurementIDIndex, 10);
@@ -540,7 +548,8 @@ bool dumpResultsFile(std::set<OutputEntry*, pointer_lessthan<OutputEntry>>* outp
                   HPCT_LOG(fatal) << "Got " << seenColumns << " instead of expected "
                                  << columns << " columns"
                                  << " in input file " << fileName << ", line " << lineNumber;
-                  exit(1);
+                  (*errorCounter)++;
+                  return false;
                }
 
                const std::lock_guard<std::mutex> lock(*outputMutex);
@@ -549,7 +558,8 @@ bool dumpResultsFile(std::set<OutputEntry*, pointer_lessthan<OutputEntry>>* outp
                   if(!success.second) {
                      HPCT_LOG(fatal) << "Duplicate tab entry"
                                     << " in input file " << fileName << ", line " << lineNumber;
-                     exit(1);
+                     (*errorCounter)++;
+                     return false;
                   }
                }
                else {
@@ -563,7 +573,8 @@ bool dumpResultsFile(std::set<OutputEntry*, pointer_lessthan<OutputEntry>>* outp
             HPCT_LOG(fatal) << "Unexpected input"
                            << " in input file " << fileName << ", line " << lineNumber
                            << ": " << e.what();
-            exit(1);
+            (*errorCounter)++;
+            return false;
          }
       }
 
@@ -581,13 +592,15 @@ bool dumpResultsFile(std::set<OutputEntry*, pointer_lessthan<OutputEntry>>* outp
                HPCT_LOG(fatal) << "Unexpected input"
                               << " in input file " << fileName << ", line " << lineNumber
                               << ": " << e.what();
-               exit(1);
+               (*errorCounter)++;
+               return false;
             }
 
             if(newEntry == nullptr) {
                HPCT_LOG(fatal) << "TAB line without corresponding header line"
                               << " in input file " << fileName << ", line " << lineNumber;
-               exit(1);
+               (*errorCounter)++;
+               return false;
             }
 
             // NOTE: newEntry is the header line, used as reference entry!
@@ -601,7 +614,8 @@ bool dumpResultsFile(std::set<OutputEntry*, pointer_lessthan<OutputEntry>>* outp
                HPCT_LOG(fatal) << "Got " << seenColumns << " instead of expected "
                                  << columns << " columns"
                                  << " in input file " << fileName << ", line " << lineNumber;
-               exit(1);
+               (*errorCounter)++;
+               return false;
             }
 
             const std::lock_guard<std::mutex> lock(*outputMutex);
@@ -610,7 +624,8 @@ bool dumpResultsFile(std::set<OutputEntry*, pointer_lessthan<OutputEntry>>* outp
                if(!success.second) {
                   HPCT_LOG(fatal) << "Duplicate tab entry"
                                  << " in input file " << fileName << ", line " << lineNumber;
-                  exit(1);
+                  (*errorCounter)++;
+                  return false;
                }
             }
             else {
@@ -625,7 +640,8 @@ bool dumpResultsFile(std::set<OutputEntry*, pointer_lessthan<OutputEntry>>* outp
       else {
          HPCT_LOG(fatal) << "Unexpected syntax"
                          << " in input file " << fileName << ", line " << lineNumber;
-         exit(1);
+         (*errorCounter)++;
+         return false;
       }
    }
 
@@ -823,11 +839,15 @@ int main(int argc, char** argv)
    unsigned int                                          columns = 0;
 
    // ------ Identify format of the first file ------------------------------
+   std::atomic<unsigned int> errorCounter = 0;
    const std::filesystem::path firstInputFileName = *(inputFileNameSet.begin());
    HPCT_LOG(info) << "Identifying format from " << firstInputFileName << " ...";
-   dumpResultsFile((sorted == true) ? &outputSet : nullptr, &outputStream, &outputMutex,
-                   firstInputFileName, format, columns, separator,
-                   inputResultsFromStdin ? false : true);
+   if(!dumpResultsFile(&errorCounter,
+                       (sorted == true) ? &outputSet : nullptr, &outputStream, &outputMutex,
+                       firstInputFileName, format, columns, separator,
+                       inputResultsFromStdin ? false : true)) {
+      return 1;
+   }
    HPCT_LOG(info) << "Format: Type=" << (char)format.Type
                   << ", Version="    << format.Version;
 
@@ -838,11 +858,16 @@ int main(int argc, char** argv)
    const std::chrono::system_clock::time_point t1 = std::chrono::system_clock::now();
    for(const std::filesystem::path& inputFileName : inputFileNameSet) {
       boost::asio::post(threadPool, std::bind(dumpResultsFile,
+                        &errorCounter,
                         (sorted == true) ? &outputSet : nullptr, &outputStream, &outputMutex,
                         inputFileName, format, columns, separator,
                         false));
    }
    threadPool.join();
+   unsigned int e = errorCounter;
+   if(errorCounter > 0) {
+      exit(1);
+   }
    const std::chrono::system_clock::time_point t2 = std::chrono::system_clock::now();
    if(sorted == true) {
       HPCT_LOG(info) << "Read " << outputSet.size() << " results rows in "
