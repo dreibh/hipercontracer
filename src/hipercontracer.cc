@@ -426,6 +426,10 @@ int main(int argc, char** argv)
       std::cerr << "ERROR: Invalid MeasurementID setting: " << measurementID << "\n";
       return 1;
    }
+   if(tracerouteInitialMaxTTL > tracerouteFinalMaxTTL) {
+      std::cerr << "NOTE: Setting TracerouteInitialMaxTTL to TracerouteFinalMaxTTL=" << tracerouteFinalMaxTTL << "!\n";
+      tracerouteInitialMaxTTL = tracerouteFinalMaxTTL;
+   }
    if( (resultsFormatVersion < OutputFormatVersionType::OFT_Min) ||
        (resultsFormatVersion > OutputFormatVersionType::OFT_Max) ) {
       std::cerr << "ERROR: Invalid results format version: " << resultsFormatVersion << "\n";
