@@ -10,11 +10,11 @@ DPORT=0
 # ====== Add format identifier ==============================================
 H=`xzcat $1 | head -n1`
 if [[ "$H" =~ ^#T ]] ; then
-   echo "#? HPCT Traceroute 2 hipercontracer/2.0.0~beta1"
+   echo "#? HPCT Traceroute 2 HiPerConTracer/2.0.0~beta1"
 elif [[ "$H" =~ ^#P ]] ; then
-   echo "#? HPCT Ping 2 hipercontracer/2.0.0~beta1"
+   echo "#? HPCT Ping 2 HiPerConTracer/2.0.0~beta1"
 elif [[ "$H" =~ ^#J ]] ; then
-   echo "#? HPCT Jitter 2 hipercontracer/2.0.0~beta1"
+   echo "#? HPCT Jitter 2 HiPerConTracer/2.0.0~beta1"
 else
    echo >&2 "ERROR: Unknown format of $1"
    exit 1
