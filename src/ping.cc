@@ -40,7 +40,8 @@
 // ###### Constructor #######################################################
 Ping::Ping(const std::string                moduleName,
            ResultsWriter*                   resultsWriter,
-           const OutputFormatType           outputFormat,
+           const char*                      outputFormatName,
+           const OutputFormatVersionType    outputFormatVersion,
            const unsigned int               iterations,
            const bool                       removeDestinationAfterRun,
            const boost::asio::ip::address&  sourceAddress,
@@ -52,7 +53,8 @@ Ping::Ping(const std::string                moduleName,
            const unsigned int               packetSize,
            const uint16_t                   destinationPort)
    : Traceroute(moduleName,
-                resultsWriter, outputFormat, iterations, removeDestinationAfterRun,
+                resultsWriter, outputFormatName, outputFormatVersion,
+                iterations, removeDestinationAfterRun,
                 sourceAddress, destinationArray,
                 interval, expiration, rounds, ttl, ttl, ttl,
                 packetSize, destinationPort),
@@ -251,7 +253,7 @@ void Ping::writePingResultEntry(const ResultEntry* resultEntry,
    if(ResultsOutput) {
 
       // ====== Current output format =======================================
-      if(OutputFormat >= OFT_HiPerConTracer_Version2) {
+      if(OutputFormatVersion >= OFT_HiPerConTracer_Version2) {
          const unsigned long long sendTimeStamp = nsSinceEpoch<ResultTimePoint>(
             resultEntry->sendTime(TXTimeStampType::TXTST_Application));
 

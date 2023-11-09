@@ -39,6 +39,7 @@
 #include "icmpheader.h"
 #include "logger.h"
 #include "ping.h"
+#include "package-version.h"
 #include "resultswriter.h"
 #include "service.h"
 #include "tools.h"
@@ -51,6 +52,7 @@ struct TargetInfo
    unsigned int                          TriggerCounter;
 };
 
+static const std::string                                     ProgramID = std::string("HPCT-Results-Tool/") + HPCT_VERSION;
 static std::map<boost::asio::ip::address, std::set<uint8_t>> SourceArray;
 static std::set<boost::asio::ip::address>                    DestinationArray;
 static std::map<boost::asio::ip::address, TargetInfo*>       TargetMap;
@@ -229,8 +231,7 @@ int main(int argc, char** argv)
    bool                               logColor;
    std::filesystem::path              logFile;
    std::string                        user((getlogin() != nullptr) ? getlogin() : "0");
-   std::string                        configurationFileName;
-   OutputFormatType                   outputFormat = OutputFormatType::OFT_HiPerConTracer_Version2;
+   OutputFormatVersionType            outputFormat = OutputFormatVersionType::OFT_HiPerConTracer_Version2;
    bool                               servicePing;
    bool                               serviceTraceroute;
    unsigned int                       iterations;
@@ -256,10 +257,10 @@ int main(int argc, char** argv)
    uint16_t                           udpDestinationPort;
 
    unsigned int                       resultsTransactionLength;
-   std::string                        resultsDirectory;
+   std::filesystem::path              resultsDirectory;
    std::string                        resultsCompressionString;
    ResultsWriterCompressor            resultsCompression;
-   unsigned int                       resultsFormat;
+   unsigned int                       resultsFormatVersion;
 
    boost::program_options::options_description commandLineOptions;
    commandLineOptions.add_options()
@@ -367,7 +368,7 @@ int main(int argc, char** argv)
            "Ping trigger age in s" )
 
       ( "resultsdirectory,R",
-           boost::program_options::value<std::string>(&resultsDirectory)->default_value(std::string()),
+           boost::program_options::value<std::filesystem::path>(&resultsDirectory)->default_value(std::string()),
            "Results directory" )
       ( "resultstransactionlength,l",
            boost::program_options::value<unsigned int>(&resultsTransactionLength)->default_value(60),
@@ -376,7 +377,7 @@ int main(int argc, char** argv)
            boost::program_options::value<std::string>(&resultsCompressionString)->default_value(std::string("XZ")),
            "Results compression" )
       ( "resultsformat,F",
-           boost::program_options::value<unsigned int>(&resultsFormat)->default_value(OutputFormatType::OFT_HiPerConTracer_Version2),
+           boost::program_options::value<unsigned int>(&resultsFormatVersion)->default_value(OutputFormatVersionType::OFT_HiPerConTracer_Version2),
            "Results format version" )
     ;
 
@@ -456,9 +457,9 @@ int main(int argc, char** argv)
       std::cerr << "ERROR: Invalid Traceroute rounds setting: " << tracerouteRounds << "\n";
       return 1;
    }
-   if( (resultsFormat < OutputFormatType::OFT_Min) ||
-       (resultsFormat > OutputFormatType::OFT_Max) ) {
-      std::cerr << "ERROR: Invalid results format version: " << resultsFormat << "\n";
+   if( (resultsFormatVersion < OutputFormatVersionType::OFT_Min) ||
+       (resultsFormatVersion > OutputFormatVersionType::OFT_Max) ) {
+      std::cerr << "ERROR: Invalid results format version: " << resultsFormatVersion << "\n";
       return 1;
    }
    boost::algorithm::to_upper(resultsCompressionString);
@@ -567,7 +568,7 @@ int main(int argc, char** argv)
                ResultsWriter* resultsWriter = nullptr;
                if(!resultsDirectory.empty()) {
                   resultsWriter = ResultsWriter::makeResultsWriter(
-                                     ResultsWriterSet, measurementID,
+                                     ResultsWriterSet, ProgramID, measurementID,
                                      sourceAddress, "TriggeredPing-" + ioModule,
                                      resultsDirectory, resultsTransactionLength,
                                      (pw != nullptr) ? pw->pw_uid : 0, (pw != nullptr) ? pw->pw_gid : 0,
@@ -578,7 +579,7 @@ int main(int argc, char** argv)
                   }
                }
                Service* service = new Ping(ioModule,
-                                           resultsWriter, outputFormat, iterations, true,
+                                           resultsWriter, "Ping", (OutputFormatVersionType)resultsFormatVersion, iterations, true,
                                            sourceAddress, destinationsForSource,
                                            pingInterval, pingExpiration, pingTTL,
                                            pingPacketSize, port);
@@ -597,7 +598,7 @@ int main(int argc, char** argv)
                ResultsWriter* resultsWriter = nullptr;
                if(!resultsDirectory.empty()) {
                   resultsWriter = ResultsWriter::makeResultsWriter(
-                                     ResultsWriterSet, measurementID,
+                                     ResultsWriterSet, ProgramID, measurementID,
                                      sourceAddress, "TriggeredTraceroute-" + ioModule,
                                      resultsDirectory, resultsTransactionLength,
                                      (pw != nullptr) ? pw->pw_uid : 0, (pw != nullptr) ? pw->pw_gid : 0,
@@ -608,7 +609,7 @@ int main(int argc, char** argv)
                   }
                }
                Service* service = new Traceroute(ioModule,
-                                                 resultsWriter, outputFormat, iterations, true,
+                                                 resultsWriter, "Traceroute", (OutputFormatVersionType)resultsFormatVersion, iterations, true,
                                                  sourceAddress, destinationsForSource,
                                                  tracerouteInterval, tracerouteExpiration,
                                                  tracerouteRounds,

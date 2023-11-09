@@ -49,7 +49,7 @@
 #include "tools.h"
 #include "traceroute.h"
 
-
+static const std::string                                     ProgramID = std::string("HiPerConTracer/") + HPCT_VERSION;
 static std::map<boost::asio::ip::address, std::set<uint8_t>> SourceArray;
 static std::set<boost::asio::ip::address>                    DestinationArray;
 static std::set<ResultsWriter*>                              ResultsWriterSet;
@@ -183,7 +183,6 @@ int main(int argc, char** argv)
    bool                               logColor;
    std::filesystem::path              logFile;
    std::string                        user((getlogin() != nullptr) ? getlogin() : "0");
-   std::string                        configurationFileName;
    bool                               serviceJitter;
    bool                               servicePing;
    bool                               serviceTraceroute;
@@ -222,7 +221,7 @@ int main(int argc, char** argv)
    std::filesystem::path              resultsDirectory;
    std::string                        resultsCompressionString;
    ResultsWriterCompressor            resultsCompression;
-   unsigned int                       resultsFormat;
+   unsigned int                       resultsFormatVersion;
 
    boost::program_options::options_description commandLineOptions;
    commandLineOptions.add_options()
@@ -356,7 +355,7 @@ int main(int argc, char** argv)
            boost::program_options::value<std::string>(&resultsCompressionString)->default_value(std::string("XZ")),
            "Results compression" )
       ( "resultsformat,F",
-           boost::program_options::value<unsigned int>(&resultsFormat)->default_value(OutputFormatType::OFT_HiPerConTracer_Version2),
+           boost::program_options::value<unsigned int>(&resultsFormatVersion)->default_value(OutputFormatVersionType::OFT_HiPerConTracer_Version2),
            "Results format version" )
     ;
 
@@ -435,9 +434,9 @@ int main(int argc, char** argv)
       std::cerr << "NOTE: Setting TracerouteInitialMaxTTL to TracerouteFinalMaxTTL=" << tracerouteFinalMaxTTL << "!\n";
       tracerouteInitialMaxTTL = tracerouteFinalMaxTTL;
    }
-   if( (resultsFormat < OutputFormatType::OFT_Min) ||
-       (resultsFormat > OutputFormatType::OFT_Max) ) {
-      std::cerr << "ERROR: Invalid results format version: " << resultsFormat << "\n";
+   if( (resultsFormatVersion < OutputFormatVersionType::OFT_Min) ||
+       (resultsFormatVersion > OutputFormatVersionType::OFT_Max) ) {
+      std::cerr << "ERROR: Invalid results format version: " << resultsFormatVersion << "\n";
       return 1;
    }
    if(jitterExpiration >= jitterInterval) {
@@ -575,7 +574,7 @@ int main(int argc, char** argv)
                ResultsWriter* resultsWriter = nullptr;
                if(!resultsDirectory.empty()) {
                   resultsWriter = ResultsWriter::makeResultsWriter(
-                                     ResultsWriterSet, measurementID,
+                                     ResultsWriterSet, ProgramID, measurementID,
                                      sourceAddress, "Jitter-" + ioModule,
                                      resultsDirectory, resultsTransactionLength,
                                      (pw != nullptr) ? pw->pw_uid : 0, (pw != nullptr) ? pw->pw_gid : 0,
@@ -586,7 +585,7 @@ int main(int argc, char** argv)
                   }
                }
                Service* service = new Jitter(ioModule,
-                                             resultsWriter, (OutputFormatType)resultsFormat,
+                                             resultsWriter, "Jitter", (OutputFormatVersionType)resultsFormatVersion,
                                              iterations, false,
                                              sourceAddress, destinationsForSource,
                                              jitterRecordRawResults,
@@ -608,7 +607,7 @@ int main(int argc, char** argv)
                ResultsWriter* resultsWriter = nullptr;
                if(!resultsDirectory.empty()) {
                   resultsWriter = ResultsWriter::makeResultsWriter(
-                                     ResultsWriterSet, measurementID,
+                                     ResultsWriterSet, ProgramID, measurementID,
                                      sourceAddress, "Ping-" + ioModule,
                                      resultsDirectory, resultsTransactionLength,
                                      (pw != nullptr) ? pw->pw_uid : 0, (pw != nullptr) ? pw->pw_gid : 0,
@@ -619,7 +618,7 @@ int main(int argc, char** argv)
                   }
                }
                Service* service = new Ping(ioModule,
-                                           resultsWriter, (OutputFormatType)resultsFormat,
+                                           resultsWriter, "Ping", (OutputFormatVersionType)resultsFormatVersion,
                                            iterations, false,
                                            sourceAddress, destinationsForSource,
                                            pingInterval, pingExpiration,
@@ -640,7 +639,7 @@ int main(int argc, char** argv)
                ResultsWriter* resultsWriter = nullptr;
                if(!resultsDirectory.empty()) {
                   resultsWriter = ResultsWriter::makeResultsWriter(
-                                     ResultsWriterSet, measurementID,
+                                     ResultsWriterSet, ProgramID, measurementID,
                                      sourceAddress, "Traceroute-" + ioModule,
                                      resultsDirectory, resultsTransactionLength,
                                      (pw != nullptr) ? pw->pw_uid : 0, (pw != nullptr) ? pw->pw_gid : 0,
@@ -651,7 +650,7 @@ int main(int argc, char** argv)
                   }
                }
                Service* service = new Traceroute(ioModule,
-                                                 resultsWriter, (OutputFormatType)resultsFormat,
+                                                 resultsWriter, "Traceroute", (OutputFormatVersionType)resultsFormatVersion,
                                                  iterations, false,
                                                  sourceAddress, destinationsForSource,
                                                  tracerouteInterval, tracerouteExpiration,

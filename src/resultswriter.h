@@ -53,15 +53,19 @@ enum ResultsWriterCompressor {
 class ResultsWriter
 {
    public:
-   ResultsWriter(const unsigned int            measurementID,
+   ResultsWriter(const std::string&            programID,
+                 const unsigned int            measurementID,
                  const std::string&            directory,
                  const std::string&            uniqueID,
-                 const std::string&            resultsFormat,
+                 const std::string&            prefix,
                  const unsigned int            transactionLength,
                  const uid_t                   uid,
                  const gid_t                   gid,
                  const ResultsWriterCompressor compressor);
    virtual ~ResultsWriter();
+
+   void specifyOutputFormat(const std::string& outputFormatName,
+                            const unsigned int outputFormatVersion);
 
    inline unsigned int measurementID() const {
       return MeasurementID;
@@ -73,19 +77,21 @@ class ResultsWriter
    void insert(const std::string& tuple);
 
    static ResultsWriter* makeResultsWriter(std::set<ResultsWriter*>&       resultsWriterSet,
+                                           const std::string&              programID,
                                            const unsigned int              measurementID,
                                            const boost::asio::ip::address& sourceAddress,
-                                           const std::string&              resultsFormat,
+                                           const std::string&              resultsPrefix,
                                            const std::string&              resultsDirectory,
                                            const unsigned int              resultsTransactionLength,
                                            const uid_t                     uid,
                                            const gid_t                     gid,
-                                           const ResultsWriterCompressor   compressor = BZip2);
+                                           const ResultsWriterCompressor   compressor = ResultsWriterCompressor::XZ);
 
    protected:
+   const std::string                     ProgramID;
    const unsigned int                    MeasurementID;
    const boost::filesystem::path         Directory;
-   const std::string                     FormatName;
+   const std::string                     Prefix;
    const unsigned int                    TransactionLength;
    const uid_t                           UID;
    const gid_t                           GID;
@@ -99,6 +105,8 @@ class ResultsWriter
    std::ofstream                         OutputFile;
    boost::iostreams::filtering_ostream   OutputStream;
    std::chrono::steady_clock::time_point OutputCreationTime;
+   std::string                           OutputFormatName;
+   unsigned int                          OutputFormatVersion;
 };
 
 #endif
