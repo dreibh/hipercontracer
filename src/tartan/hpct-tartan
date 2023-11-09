@@ -1,0 +1,47 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+
+import csv
+import ipaddress
+import netifaces
+import os
+import socket
+import sys
+
+
+resultsDirectory = '/home/dreibh/tartan'
+localAddresses   = [ '10.44.33.111', '2001:700:712:52:baca:3aff:fe92:9517' ]
+
+# sudo valgrind --tool=memcheck --leak-check=full
+hipercontracer = 'sudo /home/dreibh/src/hipercontracer/src/hipercontracer'
+parameters1    = '-# 20230001 --traceroute --ping -M TCP -M ICMP'
+output         = '--resultstransactionlength=900 --resultsdirectory=' + resultsDirectory
+parameters2    = '-pinginterval=60000 -pingexpiration=1000 -pingttl=64 -tracerouterounds=3 -tracerouteinterval=300000 -tracerouteduration=2000 -tracerouteinitialmaxttl=5 -traceroutefinalmaxttl=35 -tracerouteincrementmaxttl=5'
+destinations   = ''
+sources        = ''
+
+
+remoteAddresses = set()
+
+entries = csv.DictReader(open(os.path.join(resultsDirectory, 'destinations.csv'), 'rt', encoding = 'utf-8').read().splitlines(), delimiter='\t', skipinitialspace=True)
+for entry in entries:
+   address = ipaddress.ip_address(entry['Address'])
+   remoteAddresses.add(str(address))
+
+remoteAddresses = sorted(list(remoteAddresses))
+print(remoteAddresses)
+for remoteAddress in remoteAddresses:
+   destinations = destinations + ' --destination ' + remoteAddress
+
+
+localAddresses = sorted(list(localAddresses))
+print(localAddresses)
+for localAddress in localAddresses:
+   sources = sources + ' --source ' + localAddress
+
+
+commandLine = hipercontracer + sources + destinations + ' ' + \
+                 output + ' ' + parameters1 + ' ' + parameters2
+print(commandLine)
+
+os.system(commandLine)

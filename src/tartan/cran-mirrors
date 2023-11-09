@@ -1,0 +1,6 @@
+#!/bin/bash
+
+if [ ! -e cran-mirrors.html ] ; then
+   curl 'https://cran.r-project.org/mirrors.html' >cran-mirrors.html
+fi
+awk -f cran-mirrors.awk <cran-mirrors.html

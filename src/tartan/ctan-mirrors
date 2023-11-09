@@ -1,0 +1,6 @@
+#!/bin/bash
+
+if [ ! -e ctan-mirrors.html ] ; then
+   curl 'https://ctan.org/mirrors?lang=en' >ctan-mirrors.html
+fi
+awk -f ctan-mirrors.awk <ctan-mirrors.html
