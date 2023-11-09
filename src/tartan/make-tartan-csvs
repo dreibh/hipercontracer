@@ -2,17 +2,17 @@
 
 RESULTS_TOOL=~/src/hipercontracer/src/hpct-results
 
-find /turbo/tartan -maxdepth 1 -name "Traceroute-TCP-*"  | ${RESULTS_TOOL} -N -o /turbo/tartan-traceroute-tcp.csv.xz
-find /turbo/tartan -maxdepth 1 -name "Traceroute-ICMP-*" | ${RESULTS_TOOL} -N -o /turbo/tartan-traceroute-icmp.csv.xz
+find /storage/tartan -maxdepth 1 -name "Traceroute-TCP-*"  | ${RESULTS_TOOL} -N -o /storage/tartan-traceroute-tcp.csv.xz
+find /storage/tartan -maxdepth 1 -name "Traceroute-ICMP-*" | ${RESULTS_TOOL} -N -o /storage/tartan-traceroute-icmp.csv.xz
 
 
 # for type in tcp icmp ; do
 #    (
-#       xzcat /turbo/tartan-traceroute-$type.csv.xz | head -n1
+#       xzcat /storage/tartan-traceroute-$type.csv.xz | head -n1
 #       # Iran: 109\.122\.252\.51\|
 #       # Canada: 207\.210\.46\.249
-#       xzcat /turbo/tartan-traceroute-$type.csv.xz  | \
+#       xzcat /storage/tartan-traceroute-$type.csv.xz  | \
 #          grep -E "^#T. 0 [0-9a-f:.]* (2001:67c:20d0::1414|163.10.4.7|62.44.96.11|2001:648:2000:de::211|2001:df0:b6:ffff:5a20:b1ff:fe07:11cc|185.96.240.128|144.122.156.22|202.202.1.140|161.53.167.47|193.225.55.64)"
-#    ) | xz -T0 -c >/turbo/tartan-traceroute-$type-TEST.csv.xz &
+#    ) | xz -T0 -c >/storage/tartan-traceroute-$type-TEST.csv.xz &
 # done
 # wait

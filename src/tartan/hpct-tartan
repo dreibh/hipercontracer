@@ -9,7 +9,7 @@ import socket
 import sys
 
 
-resultsDirectory = '/home/dreibh/tartan'
+resultsDirectory = '/storage/tartan'
 localAddresses   = [ '10.44.33.111', '2001:700:712:52:baca:3aff:fe92:9517' ]
 
 # sudo valgrind --tool=memcheck --leak-check=full

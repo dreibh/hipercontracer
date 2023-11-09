@@ -9,7 +9,7 @@ import socket
 import sys
 
 
-resultsDirectory = '/home/dreibh/tartan'
+resultsDirectory = '/storage/tartan'
 
 destinations = [
    [ 'bits-pilani.ac.in', 'India' ],
