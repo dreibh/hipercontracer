@@ -83,7 +83,8 @@ DatabaseConfiguration::~DatabaseConfiguration()
 
 
 // ###### Read database configuration #######################################
-bool DatabaseConfiguration::readConfiguration(const std::filesystem::path& configurationFile)
+bool DatabaseConfiguration::readConfiguration(const std::filesystem::path& configurationFile,
+                                              const bool                   isImporter)
 {
    std::ifstream configurationInputStream(configurationFile);
 
@@ -105,11 +106,13 @@ bool DatabaseConfiguration::readConfiguration(const std::filesystem::path& confi
    // ====== Check options ==================================================
    if(!setBackend(BackendName))           return false;
    if(!setConnectionFlags(FlagNames))     return false;
-   if(!setImportMode(ImportModeName))     return false;
-   if(!setImportMaxDepth(ImportMaxDepth)) return false;
-   if(!setImportFilePath(ImportFilePath)) return false;
-   if(!setGoodFilePath(GoodFilePath))     return false;
-   if(!setBadFilePath(BadFilePath))       return false;
+   if(isImporter) {
+      if(!setImportMode(ImportModeName))     return false;
+      if(!setImportMaxDepth(ImportMaxDepth)) return false;
+      if(!setImportFilePath(ImportFilePath)) return false;
+      if(!setGoodFilePath(GoodFilePath))     return false;
+      if(!setBadFilePath(BadFilePath))       return false;
+   }
 
    // Legacy parameter settings:
    if(boost::iequals(CAFile, "NONE") || boost::iequals(CAFile, "IGNORE")) {
