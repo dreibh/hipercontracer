@@ -199,6 +199,16 @@ Print build environment information for debugging.
 The output file is a text file (possibly compressed).
 The format is as follows, depending on the measurement type:
 .Bl -tag -width indent
+.\" ====== Format identifier ================================================
+.It Format identifier in first line
+.Bl -tag -width indent
+.It #? HPCT format version programID
+.Bl -tag -width indent
+.It * format: Format of the output data (Ping, Traceroute, etc.).
+.It * version: Version of the output data (decimal).
+.It * programID: Identifier for the program generating the output (e.g. HiPerConTracer/2.0.0).
+.El
+.El
 .\" ====== Ping, version 2 ==================================================
 .It Ping (version 2, current)
 Each Ping entry consists of a #P<m> line, with m=i for ICMP and m=u for UDP (according to underlying I/O module).

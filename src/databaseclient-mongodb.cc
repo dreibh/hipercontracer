@@ -337,7 +337,6 @@ void MongoDBClient::executeQuery(Statement& statement)
    bson_error_t error;
    bson_t       bson;
    if(!bson_init_from_json(&bson, statement.str().c_str(), -1, &error)) {
-      bson_destroy(&bson);
       const std::string errorMessage = std::string("Data error ") +
                                           std::to_string(error.domain) + "." +
                                           std::to_string(error.code) +
@@ -374,7 +373,7 @@ void MongoDBClient::executeQuery(Statement& statement)
    assert(ResultCollection != nullptr);
 
    // ====== Submit query ===================================================
-   ResultCursor = mongoc_collection_find_with_opts (ResultCollection, &query, NULL, NULL);
+   ResultCursor = mongoc_collection_find_with_opts(ResultCollection, &query, NULL, NULL);
    assert(ResultCursor != nullptr);
 
    bson_destroy(&bson);
