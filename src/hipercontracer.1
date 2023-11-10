@@ -369,7 +369,7 @@ This entry has been added with HiPerConTracer 2.0.0!
 .It Jitter (version 2, current; there is no version 1)
 Each Jitter entry consists of a #J<m> line, with m=i for ICMP and m=u for UDP (according to underlying I/O module).
 .Bl -tag -width indent
-.It #J<m> measurementID sourceIP destinationIP timestamp burstseq traffic_class packetsize checksum sourcePort destinationPort status timesource
+.It #J<m> measurementID sourceIP destinationIP timestamp burstseq traffic_class packetsize checksum sourcePort destinationPort status timesource jitter_type
 packets_app_send jitter_app_send meandelay_app_send
 packets_queuing jitter_queuing meandelay_queuing
 packets_app_receive jitter_app_receive meandelay_app_receive
@@ -389,6 +389,7 @@ packets_hw jitter_hw meanrtt_hw
 .It * destinationPort: Destination port, 0 for ICMP (decimal).
 .It * status: Status code (decimal):
 .It * timesource: Source of the timing information (hexadecimal) as: AAQQSSHH (same as for Ping, see above).
+.It * jitter_type: 0 for calculation as in RFC 3550, Appendix A.8 (decimal).
 .It * packets_app_send: Number of packets for application send jitter/mean RTT computation
 .It * meandelay_app_send: Mean application send (nanoseconds, decimal; -1 if not available).
 .It * jitter_app_send: Jitter of application send (computed based on RFC 3550, Subsubsection 6.4.1)
