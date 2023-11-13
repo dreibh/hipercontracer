@@ -107,7 +107,8 @@ class DatabaseConfiguration
    bool setGoodFilePath(const std::filesystem::path& goodFilePath);
    bool setBadFilePath(const std::filesystem::path& badFilePath);
 
-   bool readConfiguration(const std::filesystem::path& configurationFile);
+   bool readConfiguration(const std::filesystem::path& configurationFile,
+                          const bool                   isImporter = true);
    DatabaseClientBase* createClient();
    static bool registerBackend(const DatabaseBackendType type,
                                const std::string&        name,

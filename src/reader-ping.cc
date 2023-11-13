@@ -137,29 +137,37 @@ void PingReader::parseContents(
    std::string tuple[PingMaxColumns];
    const ReaderTimePoint now = ReaderClock::now();
    while(std::getline(dataStream, inputLine)) {
-      // ====== Conversion from old versions ================================
-      if(inputLine.substr(0, 3) == "#P ") {
-         inputLine = convertOldPingLine(inputLine);
+
+      // ====== Format identifier ===========================================
+      if(inputLine.substr(0, 2) == "#?") {
+         // Nothing to do here!
+         continue;
       }
 
-      // ====== Parse line ==================================================
-      size_t columns = 0;
-      size_t start;
-      size_t end = 0;
-      while((start = inputLine.find_first_not_of(PingDelimiter, end)) != std::string::npos) {
-         end = inputLine.find(PingDelimiter, start);
-         if(columns == PingMaxColumns) {
-            // Skip additional columns
-            break;
+      // ====== Parse Ping line =============================================
+      if(inputLine.substr(0, 2) == "#P") {
+         // ====== Conversion from old versions =============================
+         if(inputLine.substr(0, 3) == "#P ") {
+            inputLine = convertOldPingLine(inputLine);
          }
-         tuple[columns++] = inputLine.substr(start, end - start);
-      }
-      if(columns < PingMinColumns) {
-         throw ResultsReaderDataErrorException("Too few columns in input file " + dataFile.string());
-      }
 
-      // ====== Generate import statement ===================================
-      if( (tuple[0].size() >= 3) && (tuple[0][0] == '#') && (tuple[0][1] == 'P') ) {
+         size_t columns = 0;
+         size_t start;
+         size_t end = 0;
+         while((start = inputLine.find_first_not_of(PingDelimiter, end)) != std::string::npos) {
+            end = inputLine.find(PingDelimiter, start);
+            if(columns == PingMaxColumns) {
+               // Skip additional columns
+               break;
+            }
+            tuple[columns++] = inputLine.substr(start, end - start);
+         }
+         if(columns < PingMinColumns) {
+            throw ResultsReaderDataErrorException("Too few columns in input file " +
+                                                  relativeTo(dataFile, Configuration.getImportFilePath()).string());
+         }
+
+         // ====== Generate import statement ================================
          const char                     protocol        = tuple[0][2];
          const unsigned int             measurementID   = parseMeasurementID(tuple[1], dataFile);
          const boost::asio::ip::address sourceIP        = parseAddress(tuple[2], dataFile);
@@ -241,8 +249,10 @@ void PingReader::parseContents(
             throw ResultsLogicException("Unknown output format");
          }
       }
+
       else {
-         throw ResultsReaderDataErrorException("Unexpected input in input file " + dataFile.string());
+         throw ResultsReaderDataErrorException("Unexpected input in input file " +
+                                               relativeTo(dataFile, Configuration.getImportFilePath()).string());
       }
    }
 }
