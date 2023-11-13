@@ -77,7 +77,7 @@ static void addSQLWhere(Statement&               statement,
       }
       if(toMeasurementID > 0) {
          statement << ((needsAnd == true) ? " AND" : "") << " (MeasurementID <= " << toMeasurementID << ")";
-         needsAnd = true;
+         // needsAnd = true;
       }
    }
 }
@@ -252,7 +252,7 @@ int main(int argc, char** argv)
 
    // ====== Read database configuration ====================================
    DatabaseConfiguration databaseConfiguration;
-   if(!databaseConfiguration.readConfiguration(databaseConfigurationFile)) {
+   if(!databaseConfiguration.readConfiguration(databaseConfigurationFile, false)) {
       exit(1);
    }
    HPCT_LOG(info) << "Startup:\n" << databaseConfiguration;
