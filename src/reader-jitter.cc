@@ -137,7 +137,13 @@ void JitterReader::parseContents(
    const ReaderTimePoint now = ReaderClock::now();
    while(std::getline(dataStream, inputLine)) {
 
-      // ====== Parse line ==================================================
+      // ====== Format identifier ===========================================
+      if(inputLine.substr(0, 2) == "#?") {
+         // Nothing to do here!
+         continue;
+      }
+
+      // ====== Parse Jitter line ===========================================
       size_t columns = 0;
       size_t start;
       size_t end = 0;
