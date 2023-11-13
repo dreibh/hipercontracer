@@ -77,7 +77,7 @@ static void addSQLWhere(Statement&               statement,
       }
       if(toMeasurementID > 0) {
          statement << ((needsAnd == true) ? " AND" : "") << " (MeasurementID <= " << toMeasurementID << ")";
-         needsAnd = true;
+         // needsAnd = true;
       }
    }
 }
