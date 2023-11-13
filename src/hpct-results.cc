@@ -901,7 +901,6 @@ int main(int argc, char** argv)
                         false));
    }
    threadPool.join();
-   unsigned int e = errorCounter;
    if(errorCounter > 0) {
       exit(1);
    }
