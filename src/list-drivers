@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+#
 #  =================================================================
 #           #     #                 #     #
 #           ##    #   ####   #####  ##    #  ######   #####
@@ -30,21 +31,18 @@
 #
 #  Contact: dreibh@simula.no
 
-# Bash options:
-set -o nounset
-set -o errexit
 
-
-if [ $# -lt 2 ] ; then
-   echo >&2 "Usage: $0 host:port cafile [openssl_args ...]"
-   exit 1
-fi
-ENDPOINT="$1"
-CAFILE="$2"
-shift 2
-if [ ! -e "${CAFILE}" ] ; then
-   echo >&2 "ERROR: ${CAFILE} does not exist!"
-   exit 1
-fi
-
-echo "" | openssl s_client -showcerts -connect ${ENDPOINT}  -CAfile "${CAFILE}" $@ | head
+echo "Active devices and drivers:"
+for name in /sys/class/net/* ; do
+   device="`basename ${name}`"
+   driverModule="`readlink ${name}/device/driver/module`"
+   if [ "${driverModule}" != "" ]; then
+      driverModule="`basename ${driverModule}`"
+   fi
+   operstate="`cat ${name}/operstate`"
+   if [ "${operstate}" != "down" ] ; then
+      mac="`cat ${name}/address`"
+      businfo="`ethtool -i ${device} 2>/dev/null | grep "^bus-info:" | sed -e "s/[^:]*: //g"`"
+      printf "%-16s %-18s %-18s %-20s %-16s\n" "${device}" "${mac}" "${driverModule}" "${operstate}" "${businfo}"
+   fi
+done

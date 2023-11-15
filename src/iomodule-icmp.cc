@@ -12,7 +12,7 @@
 // =================================================================
 //
 // High-Performance Connectivity Tracer (HiPerConTracer)
-// Copyright (C) 2015-2023 by Thomas Dreibholz
+// Copyright (C) 2015-2024 by Thomas Dreibholz
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -398,7 +398,7 @@ void ICMPModule::handleResponse(const boost::system::error_code& errorCode,
                        (readFromErrorQueue == true) ? MSG_ERRQUEUE|MSG_DONTWAIT : MSG_DONTWAIT);
 #else
             assert(readFromErrorQueue == false);
-            const ssize_t length = recvmsg(socketDescriptor, &msg, MSG_DONTWAIT); 
+            const ssize_t length = recvmsg(socketDescriptor, &msg, MSG_DONTWAIT);
 #endif
             // NOTE: length == 0 for control data without user data!
             if(length < 0) {
@@ -569,8 +569,8 @@ void ICMPModule::updateSendTimeInResultEntry(const sock_extended_err* socketErro
        iterator != ResultsMap.end(); iterator++) {
       ResultEntry* resultsEntry = iterator->second;
       if(resultsEntry->timeStampSeqID() == socketError->ee_data) {
-         int                                   txTimeStampType = -1;
-         int                                   txTimeSource    = -1;
+         int             txTimeStampType = -1;
+         int             txTimeSource    = -1;
          ResultTimePoint txTimePoint;
          if(socketTimestamp->ts[2].tv_sec != 0) {
             // Hardware timestamp (raw):
