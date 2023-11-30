@@ -53,10 +53,11 @@ REGISTER_IOMODULE(ProtocolType::PT_ICMP, "ICMP", ICMPModule);
 ICMPModule::ICMPModule(boost::asio::io_service&                 ioService,
                        std::map<unsigned short, ResultEntry*>&  resultsMap,
                        const boost::asio::ip::address&          sourceAddress,
+                       const uint16_t                           sourcePort,
+                       const uint16_t                           destinationPort,
                        std::function<void (const ResultEntry*)> newResultCallback,
-                       const unsigned int                       packetSize,
-                       const uint16_t                           destinationPort)
-   : IOModuleBase(ioService, resultsMap, sourceAddress,
+                       const unsigned int                       packetSize)
+   : IOModuleBase(ioService, resultsMap, sourceAddress, sourcePort, destinationPort,
                   newResultCallback),
      ICMPSocket(IOService, (sourceAddress.is_v6() == true) ? boost::asio::ip::icmp::v6() :
                                                              boost::asio::ip::icmp::v4() ),
@@ -84,7 +85,7 @@ bool ICMPModule::prepareSocket()
 {
    // ====== Bind UDP socket to given source address ========================
    boost::system::error_code      errorCode;
-   boost::asio::ip::udp::endpoint udpSourceEndpoint(SourceAddress, 0);
+   boost::asio::ip::udp::endpoint udpSourceEndpoint(SourceAddress, SourcePort);
    UDPSocket.bind(udpSourceEndpoint, errorCode);
    if(errorCode !=  boost::system::errc::success) {
       HPCT_LOG(error) << getName() << ": Unable to bind UDP socket to source address "

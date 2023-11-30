@@ -46,12 +46,7 @@ class Ping : public Traceroute
         const bool                       removeDestinationAfterRun,
         const boost::asio::ip::address&  sourceAddress,
         const std::set<DestinationInfo>& destinationArray,
-        const unsigned long long         interval        =  1000,
-        const unsigned int               expiration      = 10000,
-        const unsigned int               rounds          =     1,
-        const unsigned int               ttl             =    64,
-        const unsigned int               packetSize      =     0,
-        const uint16_t                   destinationPort =     7);
+        const TracerouteParameters&      parameters);
    virtual ~Ping();
 
    virtual const std::string& getName() const;

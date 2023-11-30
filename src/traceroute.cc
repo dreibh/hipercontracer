@@ -65,37 +65,31 @@ Traceroute::Traceroute(const std::string                moduleName,
                        const bool                       removeDestinationAfterRun,
                        const boost::asio::ip::address&  sourceAddress,
                        const std::set<DestinationInfo>& destinationArray,
-                       const unsigned long long         interval,
-                       const unsigned int               expiration,
-                       const unsigned int               rounds,
-                       const unsigned int               initialMaxTTL,
-                       const unsigned int               finalMaxTTL,
-                       const unsigned int               incrementMaxTTL,
-                       const unsigned int               packetSize,
-                       const uint16_t                   destinationPort)
+                       const TracerouteParameters&      parameters)
    : TracerouteInstanceName(std::string("Traceroute(") + sourceAddress.to_string() + std::string(")")),
      ResultsOutput(resultsWriter),
      OutputFormatName(outputFormatName),
      OutputFormatVersion(outputFormatVersion),
      Iterations(iterations),
      RemoveDestinationAfterRun(removeDestinationAfterRun),
-     Interval(interval),
-     Expiration(expiration),
-     Rounds(rounds),
-     InitialMaxTTL(initialMaxTTL),
-     FinalMaxTTL(finalMaxTTL),
-     IncrementMaxTTL(incrementMaxTTL),
+     Parameters(parameters),
      IOService(),
      SourceAddress(sourceAddress),
      TimeoutTimer(IOService),
      IntervalTimer(IOService)
 {
+   assert(Parameters.Rounds >= 1);
+   assert(Parameters.InitialMaxTTL >= 1);
+   assert(Parameters.InitialMaxTTL <= Parameters.FinalMaxTTL);
+   assert( (Parameters.InitialMaxTTL >= 1) &&
+           (Parameters.InitialMaxTTL <= Parameters.FinalMaxTTL) );
+
    // ====== Some initialisations ===========================================
    IOModule = IOModuleBase::createIOModule(
                  moduleName,
-                 IOService, ResultsMap, SourceAddress,
+                 IOService, ResultsMap, SourceAddress, Parameters.SourcePort, Parameters.DestinationPort,
                  std::bind(&Traceroute::newResult, this, std::placeholders::_1),
-                 packetSize, destinationPort);
+                 Parameters.PacketSize);
    if(IOModule == nullptr) {
       throw std::runtime_error("Unable to initialise IO module for " + moduleName);
    }
@@ -105,8 +99,8 @@ Traceroute::Traceroute(const std::string                moduleName,
    LastHop             = 0xffffffff;
    IterationNumber     = 0;
    MinTTL              = 1;
-   MaxTTL              = InitialMaxTTL;
-   TargetChecksumArray = new uint32_t[Rounds];
+   MaxTTL              = Parameters.InitialMaxTTL;
+   TargetChecksumArray = new uint32_t[Parameters.Rounds];
    assert(TargetChecksumArray != nullptr);
    StopRequested.exchange(false);
 
@@ -121,7 +115,9 @@ Traceroute::Traceroute(const std::string                moduleName,
    }
    DestinationIterator = Destinations.end();
 
-   ResultsOutput->specifyOutputFormat(OutputFormatName, OutputFormatVersion);
+   if(ResultsOutput) {
+      ResultsOutput->specifyOutputFormat(OutputFormatName, OutputFormatVersion);
+   }
 }
 
 
@@ -227,7 +223,7 @@ bool Traceroute::prepareRun(const bool newRound)
 
       // ====== Rewind ======================================================
       DestinationIterator = Destinations.begin();
-      for(unsigned int i = 0; i < Rounds; i++) {
+      for(unsigned int i = 0; i < Parameters.Rounds; i++) {
          TargetChecksumArray[i] = ~0U;   // Use a new target checksum!
       }
    }
@@ -254,7 +250,7 @@ bool Traceroute::prepareRun(const bool newRound)
    }
    MinTTL              = 1;
    MaxTTL              = (DestinationIterator != Destinations.end()) ?
-                            getInitialMaxTTL(*DestinationIterator) : InitialMaxTTL;
+                            getInitialMaxTTL(*DestinationIterator) : Parameters.InitialMaxTTL;
    LastHop             = 0xffffffff;
    OutstandingRequests = 0;
    RunStartTimeStamp   = std::chrono::steady_clock::now();
@@ -276,8 +272,8 @@ void Traceroute::run()
 // ###### Schedule timeout timer ############################################
 void Traceroute::scheduleTimeoutEvent()
 {
-   const unsigned int deviation = std::max(10U, Expiration / 5);   // 20% deviation
-   const unsigned int duration  = Expiration + (std::rand() % deviation);
+   const unsigned int deviation = std::max(10U, Parameters.Expiration / 5);   // 20% deviation
+   const unsigned int duration  = Parameters.Expiration + (std::rand() % deviation);
    TimeoutTimer.expires_from_now(boost::posix_time::milliseconds(duration));
    TimeoutTimer.async_wait(std::bind(&Traceroute::handleTimeoutEvent, this,
                                      std::placeholders::_1));
@@ -337,8 +333,8 @@ void Traceroute::scheduleIntervalEvent()
           millisecondsToWait = 24*3600*1000;
       }
       else {
-         const unsigned long long deviation       = std::max(10ULL, Interval / 5);   // 20% deviation
-         const unsigned long long waitingDuration = Interval + (std::rand() % deviation);
+         const unsigned long long deviation       = std::max(10ULL, Parameters.Interval / 5);   // 20% deviation
+         const unsigned long long waitingDuration = Parameters.Interval + (std::rand() % deviation);
          const std::chrono::steady_clock::duration howLongToWait =
             (RunStartTimeStamp + std::chrono::milliseconds(waitingDuration)) - std::chrono::steady_clock::now();
          millisecondsToWait = std::max(0LL, (long long)std::chrono::duration_cast<std::chrono::milliseconds>(howLongToWait).count());
@@ -399,9 +395,9 @@ bool Traceroute::notReachedWithCurrentTTL()
 {
    std::lock_guard<std::recursive_mutex> lock(DestinationMutex);
 
-   if(MaxTTL < FinalMaxTTL) {
+   if(MaxTTL < Parameters.FinalMaxTTL) {
       MinTTL = MaxTTL + 1;
-      MaxTTL = std::min(MaxTTL + IncrementMaxTTL, FinalMaxTTL);
+      MaxTTL = std::min(MaxTTL + Parameters.IncrementMaxTTL, Parameters.FinalMaxTTL);
       HPCT_LOG(debug) << getName() << ": Cannot reach " << *DestinationIterator
                       << " with TTL " << MinTTL - 1 << ", now trying TTLs "
                       << MinTTL << " to " << MaxTTL << " ...";
@@ -426,7 +422,7 @@ void Traceroute::sendRequests()
       assert(MinTTL > 0);
       OutstandingRequests +=
          IOModule->sendRequest(destination,
-                               MaxTTL, MinTTL, 0, Rounds - 1,
+                               MaxTTL, MinTTL, 0, Parameters.Rounds - 1,
                                SeqNumber, TargetChecksumArray);
 
       scheduleTimeoutEvent();
@@ -444,9 +440,9 @@ unsigned int Traceroute::getInitialMaxTTL(const DestinationInfo& destination) co
 {
    const std::map<DestinationInfo, unsigned int>::const_iterator found = TTLCache.find(destination);
    if(found != TTLCache.end()) {
-      return(std::min(found->second, FinalMaxTTL));
+      return(std::min(found->second, Parameters.FinalMaxTTL));
    }
-   return(InitialMaxTTL);
+   return(Parameters.InitialMaxTTL);
 }
 
 
@@ -500,7 +496,7 @@ void Traceroute::processResults()
 
    // ====== Handle the results of each round ===============================
    uint64_t timeStamp = 0;
-   for(unsigned int round = 0; round < Rounds; round++) {
+   for(unsigned int round = 0; round < Parameters.Rounds; round++) {
 
       // ====== Count hops ==================================================
       unsigned int totalHops          = 0;
@@ -529,7 +525,7 @@ void Traceroute::processResults()
 
             // ====== Time-out ==============================================
             else if(resultEntry->status() == Unknown) {
-               resultEntry->expire(Expiration);
+               resultEntry->expire(Parameters.Expiration);
                pathString += "-*";
                completeTraceroute = false;   // at least one hop has not sent a response :-(
             }
