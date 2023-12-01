@@ -226,12 +226,16 @@ void JitterReader::parseContents(
          const unsigned long long       appReceiveMeanLatency = parseNanoseconds(tuple[21], dataFile);
          const unsigned long long       appReceiveJitter      = parseNanoseconds(tuple[22], dataFile);
 
+         const unsigned long long       applicationPackets    = parsePackets(tuple[23], dataFile);
+         const unsigned long long       applicationMeanRTT    = parseNanoseconds(tuple[24], dataFile);
+         const unsigned long long       applicationJitter     = parseNanoseconds(tuple[25], dataFile);
+
          const unsigned long long       softwarePackets       = parsePackets(tuple[23], dataFile);
-         const unsigned long long       softwareMeanLatency   = parseNanoseconds(tuple[24], dataFile);
+         const unsigned long long       softwareMeanRTT       = parseNanoseconds(tuple[24], dataFile);
          const unsigned long long       softwareJitter        = parseNanoseconds(tuple[25], dataFile);
 
          const unsigned long long       hardwarePackets       = parsePackets(tuple[26], dataFile);
-         const unsigned long long       hardwareMeanLatency   = parseNanoseconds(tuple[27], dataFile);
+         const unsigned long long       hardwareMeanRTT       = parseNanoseconds(tuple[27], dataFile);
          const unsigned long long       hardwareJitter        = parseNanoseconds(tuple[28], dataFile);
 
          if(backend & DatabaseBackendType::SQL_Generic) {
@@ -264,12 +268,16 @@ void JitterReader::parseContents(
                << appReceiveMeanLatency                                  << statement.sep()
                << appReceiveJitter                                       << statement.sep()
 
+               << applicationPackets                                     << statement.sep()
+               << applicationMeanRTT                                     << statement.sep()
+               << applicationJitter                                      << statement.sep()
+
                << softwarePackets                                        << statement.sep()
-               << softwareMeanLatency                                    << statement.sep()
+               << softwareMeanRTT                                        << statement.sep()
                << softwareJitter                                         << statement.sep()
 
                << hardwarePackets                                        << statement.sep()
-               << hardwareMeanLatency                                    << statement.sep()
+               << hardwareMeanRTT                                        << statement.sep()
                << hardwareJitter;
 
             statement.endRow();
@@ -305,12 +313,16 @@ void JitterReader::parseContents(
                << "\"appReceiveMeanLatency\":"  << appReceiveMeanLatency                                  << statement.sep()
                << "\"appReceiveJitter\":"       << appReceiveJitter                                       << statement.sep()
 
+               << "\"applicationPackets\":"     << applicationPackets                                     << statement.sep()
+               << "\"applicationMeanRTT\":"     << applicationMeanRTT                                     << statement.sep()
+               << "\"applicationJitter\":"      << applicationJitter                                      << statement.sep()
+
                << "\"softwarePackets\":"        << softwarePackets                                        << statement.sep()
-               << "\"softwareMeanLatency\":"    << softwareMeanLatency                                    << statement.sep()
+               << "\"softwareMeanRTT\":"        << softwareMeanRTT                                        << statement.sep()
                << "\"softwareJitter\":"         << softwareJitter                                         << statement.sep()
 
                << "\"hardwarePackets\":"        << hardwarePackets                                        << statement.sep()
-               << "\"hardwareMeanLatency\":"    << hardwareMeanLatency                                    << statement.sep()
+               << "\"hardwareMeanRTT\":"        << hardwareMeanRTT                                        << statement.sep()
                << "\"hardwareJitter\":"         << hardwareJitter;
 
             statement.endRow();
