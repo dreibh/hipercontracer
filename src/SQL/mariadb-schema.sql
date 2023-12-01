@@ -143,32 +143,32 @@ CREATE TABLE Jitter (
    SourcePort           INT2 UNSIGNED NOT NULL DEFAULT 0,    -- Source port
    DestinationPort      INT2 UNSIGNED NOT NULL DEFAULT 0,    -- Destination port
    Status               INT1 UNSIGNED NOT NULL,              -- Status
-
+   JitterType           INT1 UNSIGNED NOT NULL DEFAULT 0,    -- Jitter type (0 for computed based on RFC 3550, Subsubsection 6.4.1)
    TimeSource           INT4 UNSIGNED NOT NULL DEFAULT 0,    -- Source of the timing information (hexadecimal) as: AAQQSSHH
 
    Packets_AppSend      INT2 UNSIGNED NOT NULL DEFAULT 0,    -- Number of packets for application send jitter/mean RTT computation
    MeanDelay_AppSend    INT8          NOT NULL DEFAULT -1,   -- Mean application send delay
-   Jitter_AppSend       INT8          NOT NULL DEFAULT -1,   -- Jitter of application send delay (computed based on RFC 3550, Subsubsection 6.4.1)
+   Jitter_AppSend       INT8          NOT NULL DEFAULT -1,   -- Jitter of application send delay
 
    Packets_Queuing      INT2 UNSIGNED NOT NULL DEFAULT 0,    -- Number of packets for queuing delay jitter/mean RTT computation
    MeanDelay_Queuing    INT8          NOT NULL DEFAULT -1,   -- Mean application queuing delay
-   Jitter_Queuing       INT8          NOT NULL DEFAULT -1,   -- Jitter of application queuing delay (computed based on RFC 3550, Subsubsection 6.4.1)
+   Jitter_Queuing       INT8          NOT NULL DEFAULT -1,   -- Jitter of application queuing delay
 
    Packets_AppReceive   INT2 UNSIGNED NOT NULL DEFAULT 0,    -- Number of packets for application receive jitter/mean RTT computation
    MeanDelay_AppReceive INT8          NOT NULL DEFAULT -1,   -- Mean application receive delay
-   Jitter_AppReceive    INT8          NOT NULL DEFAULT -1,   -- Jitter of application receive delay (computed based on RFC 3550, Subsubsection 6.4.1)
+   Jitter_AppReceive    INT8          NOT NULL DEFAULT -1,   -- Jitter of application receive delay
 
    Packets_App          INT2 UNSIGNED NOT NULL,              -- Number of packets for application RTT jitter/mean RTT computation
    MeanRTT_App          INT8          NOT NULL,              -- Mean application RTT
-   Jitter_App           INT8          NOT NULL,              -- Jitter of application receive delay (computed based on RFC 3550, Subsubsection 6.4.1)
+   Jitter_App           INT8          NOT NULL,              -- Jitter of application receive delay
 
    Packets_SW           INT2 UNSIGNED NOT NULL DEFAULT 0,    -- Number of packets for kernel software RTT jitter/mean RTT computation
    MeanRTT_SW           INT8          NOT NULL DEFAULT -1,   -- Mean kernel software RTT
-   Jitter_SW            INT8          NOT NULL DEFAULT -1,   -- Jitter of kernel software RTT (computed based on RFC 3550, Subsubsection 6.4.1)
+   Jitter_SW            INT8          NOT NULL DEFAULT -1,   -- Jitter of kernel software RTT
 
    Packets_HW           INT2 UNSIGNED NOT NULL DEFAULT 0,    -- Number of packets for kernel hardware RTT jitter/mean RTT computation
    MeanRTT_HW           INT8          NOT NULL DEFAULT -1,   -- Mean kernel hardware RTT
-   Jitter_HW            INT8          NOT NULL DEFAULT -1,   -- Jitter of kernel hardware RTT (computed based on RFC 3550, Subsubsection 6.4.1)
+   Jitter_HW            INT8          NOT NULL DEFAULT -1,   -- Jitter of kernel hardware RTT
 
    PRIMARY KEY (Timestamp, MeasurementID, SourceIP, DestinationIP, Protocol, TrafficClass, RoundNumber)
 )

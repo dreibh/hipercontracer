@@ -72,7 +72,7 @@ void JitterReader::beginParsing(DatabaseClientBase& databaseClient,
    if(backend & DatabaseBackendType::SQL_Generic) {
       statement
          << "INSERT INTO " << Table
-         << " (Timestamp,MeasurementID,SourceIP,DestinationIP,Protocol,TrafficClass,RoundNumber,PacketSize,Checksum,SourcePort,DestinationPort,Status,TimeSource,Packets_AppSend,MeanDelay_AppSend,Jitter_AppSend,Packets_Queuing,MeanDelay_Queuing,Jitter_Queuing,Packets_AppReceive,MeanDelay_AppReceive,Jitter_AppReceive,Packets_App,MeanRTT_App,Jitter_App,Packets_SW,MeanRTT_SW,Jitter_SW,Packets_HW,MeanRTT_HW,Jitter_HW) VALUES";
+         << " (Timestamp,MeasurementID,SourceIP,DestinationIP,Protocol,TrafficClass,RoundNumber,PacketSize,Checksum,SourcePort,DestinationPort,Status,JitterType,TimeSource,Packets_AppSend,MeanDelay_AppSend,Jitter_AppSend,Packets_Queuing,MeanDelay_Queuing,Jitter_Queuing,Packets_AppReceive,MeanDelay_AppReceive,Jitter_AppReceive,Packets_App,MeanRTT_App,Jitter_App,Packets_SW,MeanRTT_SW,Jitter_SW,Packets_HW,MeanRTT_HW,Jitter_HW) VALUES";
    }
    else if(backend & DatabaseBackendType::NoSQL_Generic) {
       statement << "{ \"" << Table <<  "\": [";
@@ -203,7 +203,7 @@ void JitterReader::parseContents(
          const boost::asio::ip::address sourceIP              = parseAddress(tuple[2], dataFile);
          const boost::asio::ip::address destinationIP         = parseAddress(tuple[3], dataFile);
          const ReaderTimePoint          sendTimeStamp         = parseTimeStamp(tuple[4], now, true, dataFile);
-         const unsigned int             burstSeq              = parseRoundNumber(tuple[5], dataFile);
+         const unsigned int             roundNumber           = parseRoundNumber(tuple[5], dataFile);
          const uint8_t                  trafficClass          = parseTrafficClass(tuple[6], dataFile);
          const unsigned int             packetSize            = parsePacketSize(tuple[7], dataFile);
 
@@ -236,7 +236,6 @@ void JitterReader::parseContents(
 
          if(backend & DatabaseBackendType::SQL_Generic) {
             statement.beginRow();
-
             statement
                << timePointToNanoseconds<ReaderTimePoint>(sendTimeStamp) << statement.sep()
                << measurementID                                          << statement.sep()
@@ -244,15 +243,14 @@ void JitterReader::parseContents(
                << statement.encodeAddress(destinationIP)                 << statement.sep()
                << (unsigned int)protocol                                 << statement.sep()
                << (unsigned int)trafficClass                             << statement.sep()
-               << burstSeq                                               << statement.sep()
+               << roundNumber                                            << statement.sep()
                << packetSize                                             << statement.sep()
                << checksum                                               << statement.sep()
                << sourcePort                                             << statement.sep()
                << destinationPort                                        << statement.sep()
                << status                                                 << statement.sep()
-
-               << (long long)timeSource                                  << statement.sep()
                << jitterType                                             << statement.sep()
+               << (long long)timeSource                                  << statement.sep()
 
                << appSendPackets                                         << statement.sep()
                << appSendMeanLatency                                     << statement.sep()
@@ -286,15 +284,14 @@ void JitterReader::parseContents(
                << "\"destinationIP\":"          << statement.encodeAddress(destinationIP)                 << statement.sep()
                << "\"protocol\":"               << (unsigned int)protocol                                 << statement.sep()
                << "\"trafficClass\":"           << (unsigned int)trafficClass                             << statement.sep()
-               << "\"burstSeq\":"               << burstSeq                                               << statement.sep()
+               << "\"roundNumber\":"            << roundNumber                                            << statement.sep()
                << "\"packetSize\":"             << packetSize                                             << statement.sep()
                << "\"checksum\":"               << checksum                                               << statement.sep()
                << "\"sourcePort\":"             << sourcePort                                             << statement.sep()
                << "\"destinationPort\":"        << destinationPort                                        << statement.sep()
                << "\"status\":"                 << status                                                 << statement.sep()
-
-               << "\"timeSource\":"             << (long long)timeSource                                  << statement.sep()
                << "\"jitterType\":"             << jitterType                                             << statement.sep()
+               << "\"timeSource\":"             << (long long)timeSource                                  << statement.sep()
 
                << "\"appSendPackets\":"         << appSendPackets                                         << statement.sep()
                << "\"appSendMeanLatency\":"     << appSendMeanLatency                                     << statement.sep()
