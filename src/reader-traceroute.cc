@@ -618,8 +618,6 @@ void TracerouteReader::parseContents(
          const unsigned int             hopNumber       = parseHopNumber(tuple[1], dataFile);
          const unsigned int             responseSize    = parseResponseSize(tuple[2], dataFile);
          const unsigned int             status          = parseStatus(tuple[3], dataFile, 10);
-         const boost::asio::ip::address hopIP           = parseAddress(tuple[11], dataFile);
-
          unsigned int                   timeSource      = parseTimeSource(tuple[4], dataFile);
          const long long                delayAppSend    = parseNanoseconds(tuple[5], dataFile);
          const long long                delayQueuing    = parseNanoseconds(tuple[6], dataFile);
@@ -627,6 +625,7 @@ void TracerouteReader::parseContents(
          const long long                rttApp          = parseNanoseconds(tuple[8], dataFile);
          const long long                rttSoftware     = parseNanoseconds(tuple[9], dataFile);
          const long long                rttHardware     = parseNanoseconds(tuple[10], dataFile);
+         const boost::asio::ip::address hopIP           = parseAddress(tuple[11], dataFile);
 
          if(backend & DatabaseBackendType::SQL_Generic) {
             statement.beginRow();

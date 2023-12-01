@@ -105,3 +105,51 @@ CREATE TABLE Traceroute (
 );
 
 CREATE INDEX TracerouteRelationIndex ON PingTracerouteDB.Traceroute (MeasurementID ASC, DestinationIP ASC, Timestamp ASC);
+
+
+-- ###### Jitter ############################################################
+DROP TABLE IF EXISTS Jitter;
+CREATE TABLE Jitter (
+   Timestamp            BIGINT   NOT NULL,             -- Timestamp *for sorting* (nanoseconds since 1970-01-01, 00:00:00 UTC)
+   MeasurementID        INTEGER  NOT NULL DEFAULT 0,   -- MeasurementID
+   SourceIP             INET     NOT NULL,             -- Source IP address
+   DestinationIP        INET     NOT NULL,             -- Destination IP address
+   Protocol             SMALLINT NOT NULL DEFAULT 0,   -- Protocol (ICMP, UDP, ...)
+   TrafficClass         SMALLINT NOT NULL DEFAULT 0,   -- Traffic Class
+   RoundNumber          INTEGER  NOT NULL DEFAULT 0,   -- Round number
+   PacketSize           INTEGER  NOT NULL DEFAULT 0,   -- Packet size (bytes)
+   Checksum             INTEGER  NOT NULL DEFAULT 0,   -- Checksum
+   SourcePort           INTEGER  NOT NULL DEFAULT 0,   -- Source port
+   DestinationPort      INTEGER  NOT NULL DEFAULT 0,   -- Destination port
+   Status               SMALLINT NOT NULL,             -- Status
+   JitterType           SMALLINT NOT NULL DEFAULT 0,   -- Jitter type (0 for computed based on RFC 3550, Subsubsection 6.4.1)
+   TimeSource           INTEGER  NOT NULL DEFAULT 0,   -- Source of the timing information (hexadecimal) as: AAQQSSHH
+
+   Packets_AppSend      INTEGER  NOT NULL DEFAULT 0,   -- Number of packets for application send jitter/mean RTT computation
+   MeanDelay_AppSend    BIGINT   NOT NULL DEFAULT -1,  -- Mean application send delay
+   Jitter_AppSend       BIGINT   NOT NULL DEFAULT -1,  -- Jitter of application send delay
+
+   Packets_Queuing      INTEGER  NOT NULL DEFAULT 0,   -- Number of packets for queuing delay jitter/mean RTT computation
+   MeanDelay_Queuing    BIGINT   NOT NULL DEFAULT -1,  -- Mean application queuing delay
+   Jitter_Queuing       BIGINT   NOT NULL DEFAULT -1,  -- Jitter of application queuing delay
+
+   Packets_AppReceive   INTEGER  NOT NULL DEFAULT 0,   -- Number of packets for application receive jitter/mean RTT computation
+   MeanDelay_AppReceive BIGINT   NOT NULL DEFAULT -1,  -- Mean application receive delay
+   Jitter_AppReceive    BIGINT   NOT NULL DEFAULT -1,  -- Jitter of application receive delay
+
+   Packets_App          INTEGER  NOT NULL,             -- Number of packets for application RTT jitter/mean RTT computation
+   MeanRTT_App          BIGINT   NOT NULL,             -- Mean application RTT
+   Jitter_App           BIGINT   NOT NULL,             -- Jitter of application receive delay
+
+   Packets_SW           INTEGER  NOT NULL DEFAULT 0,   -- Number of packets for kernel software RTT jitter/mean RTT computation
+   MeanRTT_SW           BIGINT   NOT NULL DEFAULT -1,  -- Mean kernel software RTT
+   Jitter_SW            BIGINT   NOT NULL DEFAULT -1,  -- Jitter of kernel software RTT
+
+   Packets_HW           INTEGER  NOT NULL DEFAULT 0,   -- Number of packets for kernel hardware RTT jitter/mean RTT computation
+   MeanRTT_HW           BIGINT   NOT NULL DEFAULT -1,  -- Mean kernel hardware RTT
+   Jitter_HW            BIGINT   NOT NULL DEFAULT -1,  -- Jitter of kernel hardware RTT
+
+   PRIMARY KEY (Timestamp, MeasurementID, SourceIP, DestinationIP, Protocol, TrafficClass, RoundNumber)
+);
+
+CREATE INDEX JitterRelationIndex ON PingTracerouteDB.Jitter (MeasurementID ASC, DestinationIP ASC, Timestamp ASC);

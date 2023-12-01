@@ -16,4 +16,13 @@ db.traceroute.createIndex( { timestamp: 1, measurementID: 1, sourceIP: 1, destin
 db.traceroute.createIndex( { measurementID: 1, destinationIP: 1, timestamp: 1 } )
 
 
+// ###### Jitter ############################################################
+use ${DATABASE}
+
+db.createCollection("jitter", { storageEngine: { wiredTiger: { configString: 'block_compressor=zlib' }}})
+db.jitter.createIndex( { timestamp: 1, measurementID: 1, sourceIP: 1, destinationIP: 1, protocol: 1, trafficClass: 1, roundNumber: 1 }, { unique: true } )
+
+db.jitter.createIndex( { measurementID: 1, destinationIP: 1, timestamp: 1 } )
+
+
 quit()

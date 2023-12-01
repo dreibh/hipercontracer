@@ -187,6 +187,7 @@ ENDIF()
 IF (WITH_IMPORTER)
    ADD_EXECUTABLE(hpct-importer hpct-importer.cc
       conversions.cc
+      reader-jitter.cc
       reader-ping.cc
       reader-traceroute.cc
    )
