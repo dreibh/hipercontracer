@@ -530,8 +530,8 @@ int main(int argc, char** argv)
                   jitterParameters.DestinationPort = jitterUDPDestinationPort;
                }
                else if(ioModule == "TCP") {
-                  jitterParameters.SourcePort      = jitterTCPDestinationPort;
-                  jitterParameters.DestinationPort = jitterTCPSourcePort;
+                  jitterParameters.SourcePort      = jitterTCPSourcePort;
+                  jitterParameters.DestinationPort = jitterTCPDestinationPort;
                }
                else {
                   jitterParameters.SourcePort      = 0;
@@ -573,8 +573,8 @@ int main(int argc, char** argv)
                   pingParameters.DestinationPort = pingUDPDestinationPort;
                }
                else if(ioModule == "TCP") {
-                  pingParameters.SourcePort      = pingTCPDestinationPort;
-                  pingParameters.DestinationPort = pingTCPSourcePort;
+                  pingParameters.SourcePort      = pingTCPSourcePort;
+                  pingParameters.DestinationPort = pingTCPDestinationPort;
                }
                else {
                   pingParameters.SourcePort      = 0;
@@ -615,8 +615,8 @@ int main(int argc, char** argv)
                   tracerouteParameters.DestinationPort = tracerouteUDPDestinationPort;
                }
                else if(ioModule == "TCP") {
-                  tracerouteParameters.SourcePort      = tracerouteTCPDestinationPort;
-                  tracerouteParameters.DestinationPort = tracerouteTCPSourcePort;
+                  tracerouteParameters.SourcePort      = tracerouteTCPSourcePort;
+                  tracerouteParameters.DestinationPort = tracerouteTCPDestinationPort;
                }
                else {
                   tracerouteParameters.SourcePort      = 0;
