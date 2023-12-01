@@ -214,29 +214,29 @@ void JitterReader::parseContents(
          const unsigned int             timeSource            = parseTimeSource(tuple[12], dataFile);
          const unsigned int             jitterType            = parseJitterType(tuple[13], dataFile);
 
-         const unsigned long long       appSendPackets        = parsePackets(tuple[14], dataFile);
+         const unsigned int             appSendPackets        = parsePackets(tuple[14], dataFile);
          const unsigned long long       appSendMeanLatency    = parseNanoseconds(tuple[15], dataFile);
          const unsigned long long       appSendJitter         = parseNanoseconds(tuple[16], dataFile);
 
-         const unsigned long long       queuingPackets        = parsePackets(tuple[17], dataFile);
+         const unsigned int             queuingPackets        = parsePackets(tuple[17], dataFile);
          const unsigned long long       queuingMeanLatency    = parseNanoseconds(tuple[18], dataFile);
          const unsigned long long       queuingJitter         = parseNanoseconds(tuple[19], dataFile);
 
-         const unsigned long long       appReceivePackets     = parsePackets(tuple[20], dataFile);
+         const unsigned int             appReceivePackets     = parsePackets(tuple[20], dataFile);
          const unsigned long long       appReceiveMeanLatency = parseNanoseconds(tuple[21], dataFile);
          const unsigned long long       appReceiveJitter      = parseNanoseconds(tuple[22], dataFile);
 
-         const unsigned long long       applicationPackets    = parsePackets(tuple[23], dataFile);
+         const unsigned int             applicationPackets    = parsePackets(tuple[23], dataFile);
          const unsigned long long       applicationMeanRTT    = parseNanoseconds(tuple[24], dataFile);
          const unsigned long long       applicationJitter     = parseNanoseconds(tuple[25], dataFile);
 
-         const unsigned long long       softwarePackets       = parsePackets(tuple[23], dataFile);
-         const unsigned long long       softwareMeanRTT       = parseNanoseconds(tuple[24], dataFile);
-         const unsigned long long       softwareJitter        = parseNanoseconds(tuple[25], dataFile);
+         const unsigned int             softwarePackets       = parsePackets(tuple[26], dataFile);
+         const unsigned long long       softwareMeanRTT       = parseNanoseconds(tuple[27], dataFile);
+         const unsigned long long       softwareJitter        = parseNanoseconds(tuple[28], dataFile);
 
-         const unsigned long long       hardwarePackets       = parsePackets(tuple[26], dataFile);
-         const unsigned long long       hardwareMeanRTT       = parseNanoseconds(tuple[27], dataFile);
-         const unsigned long long       hardwareJitter        = parseNanoseconds(tuple[28], dataFile);
+         const unsigned int             hardwarePackets       = parsePackets(tuple[29], dataFile);
+         const unsigned long long       hardwareMeanRTT       = parseNanoseconds(tuple[30], dataFile);
+         const unsigned long long       hardwareJitter        = parseNanoseconds(tuple[31], dataFile);
 
          if(backend & DatabaseBackendType::SQL_Generic) {
             statement.beginRow();
