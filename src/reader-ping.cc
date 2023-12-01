@@ -12,7 +12,7 @@
 // =================================================================
 //
 // High-Performance Connectivity Tracer (HiPerConTracer)
-// Copyright (C) 2015-2023 by Thomas Dreibholz
+// Copyright (C) 2015-2024 by Thomas Dreibholz
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -173,8 +173,8 @@ void PingReader::parseContents(
          const boost::asio::ip::address sourceIP        = parseAddress(tuple[2], dataFile);
          const boost::asio::ip::address destinationIP   = parseAddress(tuple[3], dataFile);
          const ReaderTimePoint          sendTimeStamp   = parseTimeStamp(tuple[4], now, true, dataFile);
-         uint8_t                        trafficClass    = parseTrafficClass(tuple[6], dataFile);
          const unsigned int             burstSeq        = parseRoundNumber(tuple[5], dataFile);
+         uint8_t                        trafficClass    = parseTrafficClass(tuple[6], dataFile);
          unsigned int                   packetSize      = parsePacketSize(tuple[7], dataFile);
          const unsigned int             responseSize    = parseResponseSize(tuple[8], dataFile);
          const uint16_t                 checksum        = parseChecksum(tuple[9], dataFile);

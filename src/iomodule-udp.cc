@@ -12,7 +12,7 @@
 // =================================================================
 //
 // High-Performance Connectivity Tracer (HiPerConTracer)
-// Copyright (C) 2015-2023 by Thomas Dreibholz
+// Copyright (C) 2015-2024 by Thomas Dreibholz
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -53,12 +53,13 @@ REGISTER_IOMODULE(ProtocolType::PT_UDP, "UDP", UDPModule);
 UDPModule::UDPModule(boost::asio::io_service&                 ioService,
                      std::map<unsigned short, ResultEntry*>&  resultsMap,
                      const boost::asio::ip::address&          sourceAddress,
+                     const uint16_t                           sourcePort,
+                     const uint16_t                           destinationPort,
                      std::function<void (const ResultEntry*)> newResultCallback,
-                     const unsigned int                       packetSize,
-                     const uint16_t                           destinationPort)
-   : ICMPModule(ioService, resultsMap, sourceAddress,
-                newResultCallback, packetSize),
-     DestinationPort(destinationPort),
+                     const unsigned int                       packetSize)
+   : ICMPModule(ioService, resultsMap, sourceAddress, sourcePort, destinationPort,
+                newResultCallback,
+                packetSize),
      RawUDPSocket(IOService, (sourceAddress.is_v6() == true) ? raw_udp::v6() :
                                                                raw_udp::v4() )
 {

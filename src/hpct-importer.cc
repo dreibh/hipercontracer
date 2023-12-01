@@ -12,7 +12,7 @@
 // =================================================================
 //
 // High-Performance Connectivity Tracer (HiPerConTracer)
-// Copyright (C) 2015-2023 by Thomas Dreibholz
+// Copyright (C) 2015-2024 by Thomas Dreibholz
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -32,11 +32,10 @@
 #include "logger.h"
 #include "tools.h"
 
+#include "reader-jitter.h"
 #include "reader-ping.h"
 #include "reader-traceroute.h"
-
 #include "universal-importer.h"
-
 
 #include <filesystem>
 #include <iostream>
@@ -62,8 +61,10 @@ int main(int argc, char** argv)
    bool                  quitWhenIdle;
    unsigned int          pingWorkers;
    unsigned int          tracerouteWorkers;
+   unsigned int          jitterWorkers;
    unsigned int          pingTransactionSize;
    unsigned int          tracerouteTransactionSize;
+   unsigned int          jitterTransactionSize;
 
    boost::program_options::options_description commandLineOptions;
    commandLineOptions.add_options()
@@ -108,6 +109,12 @@ int main(int argc, char** argv)
       ( "traceroute-files",
            boost::program_options::value<unsigned int>(&tracerouteTransactionSize)->default_value(1),
            "Number of Traceroute files per transaction" )
+      ( "jitter-workers",
+           boost::program_options::value<unsigned int>(&jitterWorkers)->default_value(1),
+           "Number of Jitter import worker threads" )
+      ( "jitter-files",
+           boost::program_options::value<unsigned int>(&jitterTransactionSize)->default_value(1),
+           "Number of Jitter files per transaction" )
    ;
    boost::program_options::options_description hiddenOptions;
    hiddenOptions.add_options()
@@ -223,6 +230,24 @@ int main(int argc, char** argv)
                          (DatabaseClientBase**)&tracerouteDatabaseClients, tracerouteWorkers);
    }
 
+   // ------ HiPerConTracer Jitter ------------------------
+   DatabaseClientBase* jitterDatabaseClients[jitterWorkers];
+   JitterReader*   jitterReader = nullptr;
+   if(jitterWorkers > 0) {
+      for(unsigned int i = 0; i < jitterWorkers; i++) {
+         jitterDatabaseClients[i] = databaseConfiguration.createClient();
+         assert(jitterDatabaseClients[i] != nullptr);
+         if(!jitterDatabaseClients[i]->open()) {
+            exit(1);
+         }
+      }
+      jitterReader = new JitterReader(databaseConfiguration,
+                                              jitterWorkers, jitterTransactionSize);
+      assert(jitterReader != nullptr);
+      importer.addReader(*jitterReader,
+                         (DatabaseClientBase**)&jitterDatabaseClients, jitterWorkers);
+   }
+
 
    // ====== Main loop ======================================================
    if(importer.start(importFilePathFilter, quitWhenIdle) == false) {
@@ -236,6 +261,14 @@ int main(int argc, char** argv)
 
 
    // ====== Clean up =======================================================
+   if(jitterWorkers > 0) {
+      delete jitterReader;
+      jitterReader = nullptr;
+      for(unsigned int i = 0; i < jitterWorkers; i++) {
+         delete jitterDatabaseClients[i];
+         jitterDatabaseClients[i] = nullptr;
+      }
+   }
    if(tracerouteWorkers > 0) {
       delete tracerouteReader;
       tracerouteReader = nullptr;

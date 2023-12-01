@@ -12,7 +12,7 @@
 // =================================================================
 //
 // High-Performance Connectivity Tracer (HiPerConTracer)
-// Copyright (C) 2015-2023 by Thomas Dreibholz
+// Copyright (C) 2015-2024 by Thomas Dreibholz
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -333,31 +333,32 @@ static bool checkFormat(boost::iostreams::filtering_ostream* outputStream,
             "SourcePort "             // 09: Source port (decimal)
             "DestinationPort "        // 10: Destination port (decimal)
             "Status "                 // 11: Status (decimal)
-            "TimeSource "             // 12: Source of the timing information (hexadecimal) as: AAQQSSHH
+            "JitterType "             // 12: Jitter type (decimal, 0 for calculation as in RFC 3550, Appendix A.8).
+            "TimeSource "             // 13: Source of the timing information (hexadecimal) as: AAQQSSHH
 
-            "Packets.AppSend "        // 13: Number of packets for application send jitter/mean RTT computation
-            "MeanDelay.AppSend "      // 14: Mean application send
-            "Jitter.AppSend "         // 15: Jitter of application send (computed based on RFC 3550, Subsubsection 6.4.1)
+            "Packets.AppSend "        // 14: Number of packets for application send delay jitter/mean RTT computation
+            "MeanDelay.AppSend "      // 15: Mean application send delay
+            "Jitter.AppSend "         // 16: Jitter of application send delay
 
-            "Packets.Queuing "        // 16: Number of packets for queuing jitter/mean RTT computation
-            "MeanDelay.Queuing "      // 17: Mean queuing
-            "Jitter.Queuing "         // 18: Jitter of queuing (computed based on RFC 3550, Subsubsection 6.4.1)
+            "Packets.Queuing "        // 17: Number of packets for queuing delay jitter/mean RTT computation
+            "MeanDelay.Queuing "      // 18: Mean queuing delay
+            "Jitter.Queuing "         // 19: Jitter of queuing delay
 
-            "Packets.AppReceive "     // 19: Number of packets for application receive jitter/mean RTT computation
-            "MeanDelay.AppReceive "   // 20: Mean application receive
-            "Jitter.AppReceive "      // 21: Jitter of application receive (computed based on RFC 3550, Subsubsection 6.4.1)
+            "Packets.AppReceive "     // 20: Number of packets for application receive delay jitter/mean RTT computation
+            "MeanDelay.AppReceive "   // 21: Mean application receive delay
+            "Jitter.AppReceive "      // 22: Jitter of application receive delay
 
-            "Packets.App "            // 22: Number of packets for application RTT jitter/mean RTT computation
-            "MeanRTT.App "            // 23: Mean application RTT
-            "Jitter.App "             // 24: Jitter of application RTT (computed based on RFC 3550, Subsubsection 6.4.1)
+            "Packets.App "            // 23: Number of packets for application RTT jitter/mean RTT computation
+            "MeanRTT.App "            // 24: Mean application RTT
+            "Jitter.App "             // 25: Jitter of application RTT
 
-            "Packets.SW "             // 25: Number of packets for kernel software RTT jitter/mean RTT computation
-            "MeanRTT.SW "             // 26: Mean kernel software RTT
-            "Jitter.SW "              // 27: Jitter of kernel software RTT (computed based on RFC 3550, Subsubsection 6.4.1)
+            "Packets.SW "             // 26: Number of packets for kernel software RTT jitter/mean RTT computation
+            "MeanRTT.SW "             // 27: Mean kernel software RTT
+            "Jitter.SW "              // 28: Jitter of kernel software RTT
 
-            "Packets.HW "             // 28: Number of packets for kernel hardware RTT jitter/mean RTT computation
-            "MeanRTT.HW "             // 29: Mean kernel hardware RTT
-            "Jitter.HW";              // 30: Jitter of kernel hardware RTT (computed based on RFC 3550, Subsubsection 6.4.1)
+            "Packets.HW "             // 29: Number of packets for kernel hardware RTT jitter/mean RTT computation
+            "MeanRTT.HW "             // 30: Mean kernel hardware RTT
+            "Jitter.HW";              // 31: Jitter of kernel hardware RTT
       }
 
       // ====== Error =======================================================

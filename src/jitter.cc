@@ -12,7 +12,7 @@
 // =================================================================
 //
 // High-Performance Connectivity Tracer (HiPerConTracer)
-// Copyright (C) 2015-2023 by Thomas Dreibholz
+// Copyright (C) 2015-2024 by Thomas Dreibholz
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -47,19 +47,13 @@ Jitter::Jitter(const std::string                moduleName,
                const bool                       removeDestinationAfterRun,
                const boost::asio::ip::address&  sourceAddress,
                const std::set<DestinationInfo>& destinationArray,
-               const bool                       recordRawResults,
-               const unsigned long long         interval,
-               const unsigned int               expiration,
-               const unsigned int               rounds,
-               const unsigned int               ttl,
-               const unsigned int               packetSize,
-               const uint16_t                   destinationPort)
+               const TracerouteParameters&      parameters,
+               const bool                       recordRawResults)
    : Ping(moduleName,
           resultsWriter, outputFormatName, outputFormatVersion,
           iterations, removeDestinationAfterRun,
           sourceAddress, destinationArray,
-          interval, expiration, rounds, ttl,
-          packetSize, destinationPort),
+          parameters),
      JitterInstanceName(std::string("Jitter(") + sourceAddress.to_string() + std::string(")")),
      RecordRawResults(recordRawResults)
 {
@@ -108,8 +102,8 @@ void Jitter::processResults()
 
       // ====== Time-out entries ============================================
       if( (resultEntry->status() == Unknown) &&
-          (std::chrono::duration_cast<std::chrono::milliseconds>(now - resultEntry->sendTime(TXTimeStampType::TXTST_Application)).count() >= Expiration) ) {
-         resultEntry->expire(Expiration);
+          (std::chrono::duration_cast<std::chrono::milliseconds>(now - resultEntry->sendTime(TXTimeStampType::TXTST_Application)).count() >= Parameters.Expiration) ) {
+         resultEntry->expire(Parameters.Expiration);
       }
 
       // If there is still an entry with unknown status, this block cannot
@@ -283,7 +277,7 @@ void Jitter::writeJitterResultEntry(const ResultEntry*   referenceEntry,
          referenceEntry->sendTime(TXTimeStampType::TXTST_Application));
 
       ResultsOutput->insert(
-         str(boost::format("#J%c %d %s %s %x %d %x %d %x %d %d %d %08x %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d")
+         str(boost::format("#J%c %d %s %s %x %d %x %d %x %d %d %d %08x %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d")
             % (unsigned char)IOModule->getProtocolType()
 
             % ResultsOutput->measurementID()
@@ -300,6 +294,8 @@ void Jitter::writeJitterResultEntry(const ResultEntry*   referenceEntry,
             % referenceEntry->status()
 
             % timeSource
+
+            % 0   /* Jitter Type for future extension */
 
             % jitterAppSend.packets()
             % jitterAppSend.meanLatency()
