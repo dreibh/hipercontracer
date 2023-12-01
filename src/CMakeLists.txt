@@ -45,6 +45,7 @@ CONFIGURE_FILE (
 
 # ====== libhipercontracer ==================================================
 LIST(APPEND libhipercontracer_headers
+   check.h
    destinationinfo.h
    iomodule-base.h
    iomodule-icmp.h
@@ -59,6 +60,7 @@ LIST(APPEND libhipercontracer_headers
    traceroute.h
 )
 LIST(APPEND libhipercontracer_sources
+   check.cc
    destinationinfo.cc
    internet16.cc
    iomodule-base.cc

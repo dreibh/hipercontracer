@@ -71,9 +71,10 @@ class UDPModule : public ICMPModule
    UDPModule(boost::asio::io_service&                 ioService,
              std::map<unsigned short, ResultEntry*>&  resultsMap,
              const boost::asio::ip::address&          sourceAddress,
+             const uint16_t                           sourcePort,
+             const uint16_t                           destinationPort,
              std::function<void (const ResultEntry*)> newResultCallback,
-             const unsigned int                       packetSize,
-             const uint16_t                           destinationPort = 7);
+             const unsigned int                       packetSize);
    virtual ~UDPModule();
 
    virtual const ProtocolType getProtocolType() const { return ProtocolType::PT_UDP; }
@@ -102,8 +103,6 @@ class UDPModule : public ICMPModule
                                     uint32_t*              targetChecksumArray);
 
    protected:
-   const uint16_t                         DestinationPort;
-
    boost::asio::basic_raw_socket<raw_udp> RawUDPSocket;
 };
 

@@ -29,42 +29,9 @@
 //
 // Contact: dreibh@simula.no
 
-#ifndef PING_H
-#define PING_H
+#ifndef CHECK_H
+#define CHECK_H
 
-#include "traceroute.h"
-
-
-class Ping : public Traceroute
-{
-   public:
-   Ping(const std::string                moduleName,
-        ResultsWriter*                   resultsWriter,
-        const char*                      outputFormatName,
-        const OutputFormatVersionType    outputFormatVersion,
-        const unsigned int               iterations,
-        const bool                       removeDestinationAfterRun,
-        const boost::asio::ip::address&  sourceAddress,
-        const std::set<DestinationInfo>& destinationArray,
-        const TracerouteParameters&      parameters);
-   virtual ~Ping();
-
-   virtual const std::string& getName() const;
-
-   protected:
-   virtual bool prepareRun(const bool newRound = false);
-   virtual void scheduleTimeoutEvent();
-   virtual void noMoreOutstandingRequests();
-   virtual bool notReachedWithCurrentTTL();
-   virtual void sendRequests();
-   virtual void processResults();
-
-   static int comparePingResults(const ResultEntry* a, const ResultEntry* b);
-   void writePingResultEntry(const ResultEntry* resultEntry,
-                             const char*        indentation = "");
-
-   private:
-   const std::string PingInstanceName;
-};
+void checkEnvironment(const char* programName);
 
 #endif

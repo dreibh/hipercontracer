@@ -47,19 +47,13 @@ Jitter::Jitter(const std::string                moduleName,
                const bool                       removeDestinationAfterRun,
                const boost::asio::ip::address&  sourceAddress,
                const std::set<DestinationInfo>& destinationArray,
-               const bool                       recordRawResults,
-               const unsigned long long         interval,
-               const unsigned int               expiration,
-               const unsigned int               rounds,
-               const unsigned int               ttl,
-               const unsigned int               packetSize,
-               const uint16_t                   destinationPort)
+               const TracerouteParameters&      parameters,
+               const bool                       recordRawResults)
    : Ping(moduleName,
           resultsWriter, outputFormatName, outputFormatVersion,
           iterations, removeDestinationAfterRun,
           sourceAddress, destinationArray,
-          interval, expiration, rounds, ttl,
-          packetSize, destinationPort),
+          parameters),
      JitterInstanceName(std::string("Jitter(") + sourceAddress.to_string() + std::string(")")),
      RecordRawResults(recordRawResults)
 {
@@ -108,8 +102,8 @@ void Jitter::processResults()
 
       // ====== Time-out entries ============================================
       if( (resultEntry->status() == Unknown) &&
-          (std::chrono::duration_cast<std::chrono::milliseconds>(now - resultEntry->sendTime(TXTimeStampType::TXTST_Application)).count() >= Expiration) ) {
-         resultEntry->expire(Expiration);
+          (std::chrono::duration_cast<std::chrono::milliseconds>(now - resultEntry->sendTime(TXTimeStampType::TXTST_Application)).count() >= Parameters.Expiration) ) {
+         resultEntry->expire(Parameters.Expiration);
       }
 
       // If there is still an entry with unknown status, this block cannot

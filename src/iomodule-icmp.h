@@ -50,9 +50,10 @@ class ICMPModule : public IOModuleBase
    ICMPModule(boost::asio::io_service&                 ioService,
               std::map<unsigned short, ResultEntry*>&  resultsMap,
               const boost::asio::ip::address&          sourceAddress,
+              const uint16_t                           sourcePort,
+              const uint16_t                           destinationPort,
               std::function<void (const ResultEntry*)> newResultCallback,
-              const unsigned int                       packetSize,
-              const uint16_t                           destinationPort = 0);
+              const unsigned int                       packetSize);
    virtual ~ICMPModule();
 
    virtual const ProtocolType getProtocolType() const { return ProtocolType::PT_ICMP; }
