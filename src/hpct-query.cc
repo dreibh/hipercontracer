@@ -663,7 +663,7 @@ int main(int argc, char** argv)
                const unsigned long long       hardwareJitter        = databaseClient->getBigInt(32);
 
                outputStream <<
-                  str(boost::format("#J%c %d %s %s %x %d %x %d %x %d %d %d %08x %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d")
+                  str(boost::format("#J%c %d %s %s %x %d %x %d %x %d %d %d %08x %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d\n")
                      % protocol
                      % measurementID
                      % sourceIP.to_string()
@@ -755,7 +755,7 @@ int main(int argc, char** argv)
                   const unsigned long long       hardwareJitter        = databaseClient->getBigInt("hardwareJitter");
 
                   outputStream <<
-                     str(boost::format("#J%c %d %s %s %x %d %x %d %x %d %d %d %08x %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d")
+                     str(boost::format("#J%c %d %s %s %x %d %x %d %x %d %d %d %08x %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d\n")
                         % protocol
                         % measurementID
                         % sourceIP.to_string()
