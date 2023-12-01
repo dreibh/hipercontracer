@@ -36,6 +36,7 @@
 #include <boost/asio/ip/address.hpp>
 #include <boost/program_options.hpp>
 
+#include "check.h"
 #include "icmpheader.h"
 #include "jitter.h"
 #include "logger.h"
@@ -270,6 +271,8 @@ int main(int argc, char** argv)
    commandLineOptions.add_options()
       ( "help,h",
            "Print help message" )
+      ( "check",
+           "Check environment" )
 
       ( "loglevel,L",
            boost::program_options::value<unsigned int>(&logLevel)->default_value(boost::log::trivial::severity_level::info),
@@ -461,6 +464,10 @@ int main(int argc, char** argv)
        std::cerr << "Usage: " << argv[0] << " parameters" << "\n"
                  << commandLineOptions;
        return 1;
+   }
+   else if(vm.count("check")) {
+      checkEnvironment("HPCT Trigger");
+      return 0;
    }
    if(vm.count("source")) {
       const std::vector<std::string>& sourceAddressVector = vm["source"].as<std::vector<std::string>>();
