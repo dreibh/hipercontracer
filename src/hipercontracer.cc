@@ -32,13 +32,11 @@
 #include <iostream>
 #include <vector>
 
-#include <boost/version.hpp>
 #include <boost/algorithm/string.hpp>
 #include <boost/asio/ip/address.hpp>
 #include <boost/program_options.hpp>
 
-#include <sys/utsname.h>
-
+#include "check.h"
 #include "icmpheader.h"
 #include "jitter.h"
 #include "logger.h"
@@ -95,84 +93,6 @@ static void tryCleanup(const boost::system::error_code& errorCode)
    }
 }
 
-
-// ###### Check environment #################################################
-static void checkEnvironment()
-{
-   std::cout << "HiPerConTracer:\n"
-             << "* Version:\t" << HPCT_VERSION << "\n";
-
-   // ====== System information =============================================
-   utsname sysInfo;
-   if(uname(&sysInfo) == 0) {
-      std::cout << "System Information:\n"
-                << "* System: \t" << sysInfo.sysname  << "\n"
-                << "* Name:   \t" << sysInfo.nodename << "\n"
-                << "* Release:\t" << sysInfo.release  << "\n"
-                << "* Version:\t" << sysInfo.version  << "\n"
-                << "* Machine:\t" << sysInfo.machine  << "\n";
-   }
-
-   // ====== Build environment ==============================================
-   std::cout << "Build Environment:\n"
-             << "* BOOST Version:  \t" << BOOST_VERSION  << "\n"
-             << "* BOOST Compiler: \t" << BOOST_COMPILER << "\n"
-             << "* BOOST StdLib:   \t" << BOOST_STDLIB   << "\n"
-             << "* C++ Standard:   \t" << __cplusplus    << "\n";
-#if 0
-#ifdef BOOST_HAS_CLOCK_GETTIME
-   std::cout << "* clock_gettime():\tyes\n";
-#else
-   std::cout << "* clock_gettime():\tno\n";
-#endif
-#ifdef BOOST_HAS_GETTIMEOFDAY
-   std::cout << "* gettimeofday(): \tyes\n";
-#else
-   std::cout << "* gettimeofday(): \tno\n";
-#endif
-#endif
-
-   // ====== Clock granularities ============================================
-   const std::chrono::time_point<std::chrono::system_clock>          n1a = std::chrono::system_clock::now();
-   // const std::chrono::time_point<std::chrono::system_clock>          n1b = nowInUTC<std::chrono::time_point<std::chrono::system_clock>>();
-   const std::chrono::time_point<std::chrono::steady_clock>          n2a = std::chrono::steady_clock::now();
-   const std::chrono::time_point<std::chrono::steady_clock>          n2b = nowInUTC<std::chrono::time_point<std::chrono::steady_clock>>();
-   const std::chrono::time_point<std::chrono::high_resolution_clock> n3a = std::chrono::high_resolution_clock::now();
-   const std::chrono::time_point<std::chrono::high_resolution_clock> n3b = nowInUTC<std::chrono::time_point<std::chrono::high_resolution_clock>>();
-
-   timespec ts1;
-   timespec ts2;
-   clock_getres(CLOCK_REALTIME,  &ts1);
-   clock_getres(CLOCK_MONOTONIC, &ts2);
-
-   std::cout << "Clocks Granularities:\n"
-
-             << "* std::chrono::system_clock:        \t"
-             << std::chrono::time_point<std::chrono::system_clock>::period::num << "/"
-             << std::chrono::time_point<std::chrono::system_clock>::period::den << " s\t"
-             << (std::chrono::system_clock::is_steady ? "steady    " : "not steady") << "\t"
-             << std::chrono::duration_cast<std::chrono::nanoseconds>(n1a.time_since_epoch()).count() << " ns\n"
-             // << std::chrono::duration_cast<std::chrono::nanoseconds>(n1b.time_since_epoch()).count() << " ns since epoch\n"
-
-             << "* std::chrono::steady_clock:        \t"
-             << std::chrono::time_point<std::chrono::steady_clock>::period::num << "/"
-             << std::chrono::time_point<std::chrono::steady_clock>::period::den << " s\t"
-             << (std::chrono::steady_clock::is_steady ? "steady    " : "not steady") << "\t"
-             << std::chrono::duration_cast<std::chrono::nanoseconds>(n2a.time_since_epoch()).count() << " ns / "
-             << std::chrono::duration_cast<std::chrono::nanoseconds>(n2b.time_since_epoch()).count() << " ns since epoch\n"
-
-             << "* std::chrono::high_resolution_clock:\t"
-             << std::chrono::time_point<std::chrono::high_resolution_clock>::period::num << "/"
-             << std::chrono::time_point<std::chrono::high_resolution_clock>::period::den << " s\t"
-             << (std::chrono::high_resolution_clock::is_steady ? "steady    " : "not steady") << "\t"
-             << std::chrono::duration_cast<std::chrono::nanoseconds>(n3a.time_since_epoch()).count() << " ns / "
-             << std::chrono::duration_cast<std::chrono::nanoseconds>(n3b.time_since_epoch()).count() << " ns since epoch\n"
-
-             << "* clock_getres(CLOCK_REALTIME):  s=" << ts1.tv_sec << " ns=" << ts1.tv_nsec << "\n"
-             << "* clock_getres(CLOCK_MONOTONIC): s=" << ts2.tv_sec << " ns=" << ts2.tv_nsec << "\n"
-
-             ;
-}
 
 
 // ###### Main program ######################################################
@@ -382,7 +302,7 @@ int main(int argc, char** argv)
        return 1;
    }
    else if(vm.count("check")) {
-      checkEnvironment();
+      checkEnvironment("HiPerConTracer");
       return 0;
    }
    if(vm.count("source")) {
