@@ -193,12 +193,17 @@ int main(int argc, char** argv)
    std::vector<std::filesystem::path> destinationsFileList;
 
    TracerouteParameters               tracerouteParameters;
-   TracerouteParameters               pingParameters;
-   TracerouteParameters               jitterParameters;
-   bool                               jitterRecordRawResults;
+   uint16_t                           tracerouteUDPSourcePort;
+   uint16_t                           tracerouteUDPDestinationPort;
 
-   uint16_t                           udpSourcePort;
-   uint16_t                           udpDestinationPort;
+   TracerouteParameters               pingParameters;
+   uint16_t                           pingUDPSourcePort;
+   uint16_t                           pingUDPDestinationPort;
+
+   TracerouteParameters               jitterParameters;
+   uint16_t                           jitterUDPSourcePort;
+   uint16_t                           jitterUDPDestinationPort;
+   bool                               jitterRecordRawResults;
 
    unsigned int                       resultsTransactionLength;
    std::filesystem::path              resultsDirectory;
@@ -285,6 +290,12 @@ int main(int argc, char** argv)
       ( "traceroutepacketsize",
            boost::program_options::value<unsigned int>(&tracerouteParameters.PacketSize)->default_value(0),
            "Traceroute packet size in B" )
+      ( "tracerouteudpsourceport",
+           boost::program_options::value<uint16_t>(&tracerouteUDPSourcePort)->default_value(0),
+           "Traceroute UDP source port" )
+      ( "traceroutedestinationport",
+           boost::program_options::value<uint16_t>(&tracerouteUDPDestinationPort)->default_value(7),
+           "Traceroute UDP destination port" )
 
       ( "pinginterval",
            boost::program_options::value<unsigned long long>(&pingParameters.Interval)->default_value(1000),
@@ -301,6 +312,12 @@ int main(int argc, char** argv)
       ( "pingpacketsize",
            boost::program_options::value<unsigned int>(&pingParameters.PacketSize)->default_value(0),
            "Ping packet size in B" )
+      ( "pingudpsourceport",
+           boost::program_options::value<uint16_t>(&pingUDPSourcePort)->default_value(0),
+           "Ping UDP source port" )
+      ( "pingdestinationport",
+           boost::program_options::value<uint16_t>(&pingUDPDestinationPort)->default_value(7),
+           "Ping UDP destination port" )
 
       ( "jitterinterval",
            boost::program_options::value<unsigned long long>(&jitterParameters.Interval)->default_value(10000),
@@ -317,16 +334,15 @@ int main(int argc, char** argv)
       ( "jitterpacketsize",
            boost::program_options::value<unsigned int>(&jitterParameters.PacketSize)->default_value(128),
            "Jitter packet size in B" )
+      ( "jitterudpsourceport",
+           boost::program_options::value<uint16_t>(&jitterUDPSourcePort)->default_value(0),
+           "Jitter UDP source port" )
+      ( "jitterdestinationport",
+           boost::program_options::value<uint16_t>(&jitterUDPDestinationPort)->default_value(7),
+           "Jitter UDP destination port" )
       ( "jitterrecordraw",
            boost::program_options::value<bool>(&jitterRecordRawResults)->default_value(false)->implicit_value(true),
            "Record raw Ping results for Jitter computation" )
-
-      ( "udpsourceport",
-           boost::program_options::value<uint16_t>(&udpSourcePort)->default_value(0),
-           "UDP source port" )
-      ( "udpdestinationport",
-           boost::program_options::value<uint16_t>(&udpDestinationPort)->default_value(7),
-           "UDP destination port" )
 
       ( "resultsdirectory,R",
            boost::program_options::value<std::filesystem::path>(&resultsDirectory)->default_value(std::string()),
@@ -549,8 +565,6 @@ int main(int argc, char** argv)
 */
 
       for(const std::string& ioModule : ioModules) {
-         const uint16_t sourcePort      = udpSourcePort;
-         const uint16_t destinationPort = udpDestinationPort;
          if(serviceJitter) {
             try {
                ResultsWriter* resultsWriter = nullptr;
@@ -566,8 +580,8 @@ int main(int argc, char** argv)
                      return 1;
                   }
                }
-               jitterParameters.DestinationPort = destinationPort;
-               jitterParameters.SourcePort      = sourcePort;
+               jitterParameters.SourcePort      = jitterUDPDestinationPort;
+               jitterParameters.DestinationPort = jitterUDPSourcePort;
                Service* service = new Jitter(ioModule,
                                              resultsWriter, "Jitter", (OutputFormatVersionType)resultsFormatVersion,
                                              iterations, false,
@@ -599,8 +613,8 @@ int main(int argc, char** argv)
                      return 1;
                   }
                }
-               pingParameters.DestinationPort = destinationPort;
-               pingParameters.SourcePort      = sourcePort;
+               pingParameters.SourcePort      = pingUDPSourcePort;
+               pingParameters.DestinationPort = pingUDPDestinationPort;
                Service* service = new Ping(ioModule,
                                            resultsWriter, "Ping", (OutputFormatVersionType)resultsFormatVersion,
                                            iterations, false,
@@ -631,8 +645,8 @@ int main(int argc, char** argv)
                      return 1;
                   }
                }
-               tracerouteParameters.DestinationPort = destinationPort;
-               tracerouteParameters.SourcePort      = sourcePort;
+               tracerouteParameters.SourcePort      = tracerouteUDPSourcePort;
+               tracerouteParameters.DestinationPort = tracerouteUDPDestinationPort;
                Service* service = new Traceroute(ioModule,
                                                  resultsWriter, "Traceroute", (OutputFormatVersionType)resultsFormatVersion,
                                                  iterations, false,

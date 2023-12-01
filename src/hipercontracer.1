@@ -17,7 +17,7 @@
 .\" Contact: thomas.dreibholz@gmail.com
 .\"
 .\" ###### Setup ############################################################
-.Dd November 8, 2023
+.Dd December 1, 2023
 .Dt hipercontracer 1
 .Os hipercontracer
 .\" ###### Name #############################################################
@@ -50,19 +50,23 @@
 .Op \-\-traceroutefinalmaxttl value
 .Op \-\-tracerouteincrementmaxttl value
 .Op \-\-traceroutepacketsize bytes
+.Op \-\-tracerouteudpsourceport port
+.Op \-\-tracerouteudpdestinationport port
 .Op \-\-pinginterval milliseconds
 .Op \-\-pingexpiration milliseconds
 .Op \-\-pingburst packets
 .Op \-\-pingttl value
 .Op \-\-pingpacketsize bytes
+.Op \-\-pingudpsourceport port
+.Op \-\-pingudpdestinationport port
 .Op \-\-jitterinterval milliseconds
 .Op \-\-jitterexpiration milliseconds
 .Op \-\-jitterburst packets
 .Op \-\-jitterttl value
 .Op \-\-jitterpacketsize bytes
 .Op \-\-jitterrecordraw
-.Op \-\-udpsourceport port
-.Op \-\-udpdestinationport port
+.Op \-\-jitterudpsourceport port
+.Op \-\-jitterudpdestinationport port
 .Op \-R|\-\-resultsdirectory directory
 .Op \-l|\-\-resultstransactionlength seconds
 .Op \-C|\-\-resultscompression none|XZ|BZip2|GZip
@@ -146,6 +150,10 @@ Default is 6.
 .It \-\-traceroutepacketsize bytes
 Sets the Traceroute packet size, that is IP header (20 for IPv4/40 for IPv6) + ICMP header (8) + HiPerConTracer header (16) + payload, in bytes.
 The actually sent packet size always covers at least the headers for IPv4/IPv6, ICMP and HiPerConTracer. Maximum packet size is 65535.
+.It \-\-tracerouteudpsourceport port
+Sets the Traceroute source port for the UDP module (default: 0, for automatic allocation). Note: If using a fixed UDP port for Traceroute, different UDP source ports must be used for any other services!
+.It \-\-tracerouteudpdestinationport port
+Sets the Traceroute destination port for the UDP module (default: 7).
 .It \-\-pinginterval milliseconds
 Sets the Ping interval (time for each full round of destinations).
 Default is 5000 ms.
@@ -161,6 +169,10 @@ Default is 64. Range: 1-255.
 .It \-\-pingpacketsize bytes
 Sets the Jitter packet size, that is IP header (20 for IPv4/40 for IPv6) + ICMP header (8)/UDP header (8) + HiPerConTracer header (16) + payload, in bytes.
 The actually sent packet size always covers at least the headers for IPv4/IPv6, transport protocol and HiPerConTracer. Default is 0 (use minimum possible value). Range: 0-65535.
+.It \-\-pingudpsourceport port
+Sets the Ping source port for the UDP module (default: 0, for automatic allocation). Note: If using a fixed UDP port for Ping, different UDP source ports must be used for any other services!
+.It \-\-pingudpdestinationport port
+Sets the Ping destination port for the UDP module (default: 7).
 .It \-\-jitterinterval milliseconds
 Sets the Jitter interval (time for each full round of destinations).
 Default is 5000 ms.
@@ -177,12 +189,12 @@ Default is 64. Range: 1-255.
 Sets the Jitter packet size, that is IP header (20 for IPv4/40 for IPv6) + ICMP header (8)/UDP header (8) + HiPerConTracer header (16) + payload, in bytes.
 The actually sent packet size always covers at least the headers for IPv4/IPv6, transport protocol and HiPerConTracer.
 Default is 128 bytes. Range: 0-65535.
+.It \-\-jitterudpsourceport port
+Sets the Jitter source port for the UDP module (default: 0, for automatic allocation). Note: If using a fixed UDP port for Jitter, different UDP source ports must be used for any other services!
+.It \-\-jitterudpdestinationport port
+Sets the Jitter destination port for the UDP module (default: 7).
 .It \-\-jitterrecordraw
 Also record raw Ping results used for jitter computation.
-.It \-\-udpsourceport port
-Sets the source port for the UDP module (default: 0, for automatic allocation).
-.It \-\-udpdestinationport port
-Sets the destination port for the UDP module (default: 7).
 .It \-R|\-\-resultsdirectory directory
 Sets the results files directory. The results will be stored there. If not specified, to results will be stored.
 .It \-l|\-\-resultstransactionlength seconds
