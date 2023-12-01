@@ -121,7 +121,7 @@ If a hostname is provided, a DNS resolution is performed and all returned addres
 Read sources from given file. This option may be used multiple times, to read from multiple files.
 .It \-\-destinations-from-file file
 Read destinations from given file. This option may be used multiple times, to read from multiple files.
-.It \-M|\-\-iomodule ICMP|UDP
+.It \-M|-\-iomodule ICMP|UDP
 Adds an I/O module: ICMP or UDP. The option may be specified multiple times with different modules.
 .It \-\-iterations number_of_iterations
 Limit the number of measurement iterations (measurement for all source/destination
@@ -153,7 +153,7 @@ The actually sent packet size always covers at least the headers for IPv4/IPv6, 
 .It \-\-tracerouteudpsourceport port
 Sets the Traceroute source port for the UDP module (default: 0, for automatic allocation). Note: If using a fixed UDP port for Traceroute, different UDP source ports must be used for any other services!
 .It \-\-tracerouteudpdestinationport port
-Sets the Traceroute destination port for the UDP module (default: 7).
+Sets the Traceroute destination port for the UDP module (default: 7, for Echo).
 .It \-\-pinginterval milliseconds
 Sets the Ping interval (time for each full round of destinations).
 Default is 5000 ms.
@@ -172,7 +172,7 @@ The actually sent packet size always covers at least the headers for IPv4/IPv6, 
 .It \-\-pingudpsourceport port
 Sets the Ping source port for the UDP module (default: 0, for automatic allocation). Note: If using a fixed UDP port for Ping, different UDP source ports must be used for any other services!
 .It \-\-pingudpdestinationport port
-Sets the Ping destination port for the UDP module (default: 7).
+Sets the Ping destination port for the UDP module (default: 7, for Echo).
 .It \-\-jitterinterval milliseconds
 Sets the Jitter interval (time for each full round of destinations).
 Default is 5000 ms.
@@ -192,7 +192,7 @@ Default is 128 bytes. Range: 0-65535.
 .It \-\-jitterudpsourceport port
 Sets the Jitter source port for the UDP module (default: 0, for automatic allocation). Note: If using a fixed UDP port for Jitter, different UDP source ports must be used for any other services!
 .It \-\-jitterudpdestinationport port
-Sets the Jitter destination port for the UDP module (default: 7).
+Sets the Jitter destination port for the UDP module (default: 7, for Echo).
 .It \-\-jitterrecordraw
 Also record raw Ping results used for jitter computation.
 .It \-R|\-\-resultsdirectory directory
