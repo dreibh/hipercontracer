@@ -112,6 +112,7 @@ This package provides header files for the HiPerConTracer library. You need
 them to integrate HiPerConTracer into own programs.
 
 %files libhipercontracer-devel
+%{_includedir}/hipercontracer/check.h
 %{_includedir}/hipercontracer/destinationinfo.h
 %{_includedir}/hipercontracer/iomodule-base.h
 %{_includedir}/hipercontracer/iomodule-icmp.h

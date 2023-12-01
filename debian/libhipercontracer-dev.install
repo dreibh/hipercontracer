@@ -1,3 +1,4 @@
+usr/include/hipercontracer/check.h
 usr/include/hipercontracer/destinationinfo.h
 usr/include/hipercontracer/iomodule-base.h
 usr/include/hipercontracer/iomodule-icmp.h
