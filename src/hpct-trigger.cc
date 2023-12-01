@@ -622,8 +622,14 @@ int main(int argc, char** argv)
                      return 1;
                   }
                }
-               jitterParameters.SourcePort      = jitterUDPSourcePort;
-               jitterParameters.DestinationPort = jitterUDPDestinationPort;
+               if(ioModule == "UDP") {
+                  jitterParameters.SourcePort      = jitterUDPDestinationPort;
+                  jitterParameters.DestinationPort = jitterUDPSourcePort;
+               }
+               else {
+                  jitterParameters.SourcePort      = 0;
+                  jitterParameters.DestinationPort = 0;
+               }
                Service* service = new Jitter(ioModule,
                                              resultsWriter, "Jitter", (OutputFormatVersionType)resultsFormatVersion, iterations, true,
                                              sourceAddress, destinationsForSource,
@@ -653,8 +659,14 @@ int main(int argc, char** argv)
                      return 1;
                   }
                }
-               pingParameters.SourcePort      = pingUDPSourcePort;
-               pingParameters.DestinationPort = pingUDPDestinationPort;
+               if(ioModule == "UDP") {
+                  pingParameters.SourcePort      = pingUDPDestinationPort;
+                  pingParameters.DestinationPort = pingUDPSourcePort;
+               }
+               else {
+                  pingParameters.SourcePort      = 0;
+                  pingParameters.DestinationPort = 0;
+               }
                Service* service = new Ping(ioModule,
                                            resultsWriter, "Ping", (OutputFormatVersionType)resultsFormatVersion, iterations, true,
                                            sourceAddress, destinationsForSource,
@@ -684,8 +696,14 @@ int main(int argc, char** argv)
                      return 1;
                   }
                }
-               tracerouteParameters.SourcePort      = tracerouteUDPSourcePort;
-               tracerouteParameters.DestinationPort = tracerouteUDPDestinationPort;
+               if(ioModule == "UDP") {
+                  tracerouteParameters.SourcePort      = tracerouteUDPDestinationPort;
+                  tracerouteParameters.DestinationPort = tracerouteUDPSourcePort;
+               }
+               else {
+                  tracerouteParameters.SourcePort      = 0;
+                  tracerouteParameters.DestinationPort = 0;
+               }
                Service* service = new Traceroute(ioModule,
                                                  resultsWriter, "Traceroute", (OutputFormatVersionType)resultsFormatVersion, iterations, true,
                                                  sourceAddress, destinationsForSource,
