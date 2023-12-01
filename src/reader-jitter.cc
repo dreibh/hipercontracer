@@ -286,7 +286,7 @@ void JitterReader::parseContents(
          else if(backend & DatabaseBackendType::NoSQL_Generic) {
             statement.beginRow();
             statement
-               << "\"timeStamp\":"             << timePointToNanoseconds<ReaderTimePoint>(timeStamp) << statement.sep()
+               << "\"timestamp\":"             << timePointToNanoseconds<ReaderTimePoint>(timeStamp) << statement.sep()
                << "\"measurementID\":"         << measurementID                                      << statement.sep()
                << "\"sourceIP\":"              << statement.encodeAddress(sourceIP)                  << statement.sep()
                << "\"destinationIP\":"         << statement.encodeAddress(destinationIP)             << statement.sep()
