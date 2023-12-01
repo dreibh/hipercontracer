@@ -715,7 +715,7 @@ int main(int argc, char** argv)
             databaseClient->executeQuery(statement);
             while(databaseClient->fetchNextTuple()) {
                try {
-                  const unsigned long long       timeStamp             = databaseClient->getBigInt("timeStamp");
+                  const unsigned long long       timeStamp             = databaseClient->getBigInt("timestamp");
                   const unsigned long long       measurementID         = databaseClient->getInteger("measurementID");
                   const boost::asio::ip::address sourceIP              = statement.decodeAddress(databaseClient->getString("sourceIP"));
                   const boost::asio::ip::address destinationIP         = statement.decodeAddress(databaseClient->getString("destinationIP"));
