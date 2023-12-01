@@ -72,7 +72,7 @@ void JitterReader::beginParsing(DatabaseClientBase& databaseClient,
    if(backend & DatabaseBackendType::SQL_Generic) {
       statement
          << "INSERT INTO " << Table
-         << " (xxx) VALUES";   // FIXME!
+         << " (Timestamp,MeasurementID,SourceIP,DestinationIP,Protocol,TrafficClass,RoundNumber,PacketSize,Checksum,SourcePort,DestinationPort,Status,TimeSource,Packets_AppSend,MeanDelay_AppSend,Jitter_AppSend,Packets_Queuing,MeanDelay_Queuing,Jitter_Queuing,Packets_AppReceive,MeanDelay_AppReceive,Jitter_AppReceive,Packets_App,MeanRTT_App,Jitter_App,Packets_SW,MeanRTT_SW,Jitter_SW,Packets_HW,MeanRTT_HW,Jitter_HW) VALUES";
    }
    else if(backend & DatabaseBackendType::NoSQL_Generic) {
       statement << "{ \"" << Table <<  "\": [";
@@ -80,6 +80,42 @@ void JitterReader::beginParsing(DatabaseClientBase& databaseClient,
    else {
       throw ResultsLogicException("Unknown output format");
    }
+}
+
+
+// ###### Parse jitter type #################################################
+unsigned int JitterReader::parseJitterType(const std::string&           value,
+                                           const std::filesystem::path& dataFile)
+{
+   size_t       index      = 0;
+   unsigned int jitterType = 0;
+   try {
+      jitterType = std::stoul(value, &index, 10);
+   } catch(...) { }
+   if(index != value.size()) {
+      throw ResultsReaderDataErrorException("Bad jitter type format " + value +
+                                            " in input file " +
+                                            relativeTo(dataFile, Configuration.getImportFilePath()).string());
+   }
+   return jitterType;
+}
+
+
+// ###### Parse packets  ####################################################
+unsigned int JitterReader::parsePackets(const std::string&           value,
+                                        const std::filesystem::path& dataFile)
+{
+   size_t       index   = 0;
+   unsigned int packets = 0;
+   try {
+      packets = std::stoul(value, &index, 10);
+   } catch(...) { }
+   if(index != value.size()) {
+      throw ResultsReaderDataErrorException("Bad packets format " + value +
+                                            " in input file " +
+                                            relativeTo(dataFile, Configuration.getImportFilePath()).string());
+   }
+   return packets;
 }
 
 
@@ -161,32 +197,46 @@ void JitterReader::parseContents(
 
       // ====== Generate import statement ===================================
       if( (tuple[0].size() >= 3) && (tuple[0][0] == '#') && (tuple[0][1] == 'J') ) {
-         abort();   // FIXME: TBD!
-#if 0
-         const char                     protocol        = tuple[0][2];
-         const unsigned int             measurementID   = parseMeasurementID(tuple[1], dataFile);
-         const boost::asio::ip::address sourceIP        = parseAddress(tuple[2], dataFile);
-         const boost::asio::ip::address destinationIP   = parseAddress(tuple[3], dataFile);
-         const ReaderTimePoint          sendTimeStamp   = parseTimeStamp(tuple[4], now, true, dataFile);
-         uint8_t                        trafficClass    = parseTrafficClass(tuple[6], dataFile);
-         const unsigned int             burstSeq        = parseRoundNumber(tuple[5], dataFile);
-         unsigned int                   packetSize      = parsePacketSize(tuple[7], dataFile);
-         const unsigned int             responseSize    = parseResponseSize(tuple[8], dataFile);
-         const uint16_t                 checksum        = parseChecksum(tuple[9], dataFile);
-         const uint16_t                 sourcePort      = parsePort(tuple[10], dataFile);
-         const uint16_t                 destinationPort = parsePort(tuple[11], dataFile);
-         const unsigned int             status          = parseStatus(tuple[12], dataFile, 10);
-         unsigned int                   timeSource      = parseTimeSource(tuple[13], dataFile);
+         // ====== Generate import statement ================================
+         const char                     protocol              = tuple[0][2];
+         const unsigned int             measurementID         = parseMeasurementID(tuple[1], dataFile);
+         const boost::asio::ip::address sourceIP              = parseAddress(tuple[2], dataFile);
+         const boost::asio::ip::address destinationIP         = parseAddress(tuple[3], dataFile);
+         const ReaderTimePoint          sendTimeStamp         = parseTimeStamp(tuple[4], now, true, dataFile);
+         const unsigned int             burstSeq              = parseRoundNumber(tuple[5], dataFile);
+         const uint8_t                  trafficClass          = parseTrafficClass(tuple[6], dataFile);
+         const unsigned int             packetSize            = parsePacketSize(tuple[7], dataFile);
 
-         const long long                delayAppSend    = parseNanoseconds(tuple[14], dataFile);
-         const long long                delayQueuing    = parseNanoseconds(tuple[15], dataFile);
-         const long long                delayAppReceive = parseNanoseconds(tuple[16], dataFile);
-         const long long                rttApp          = parseNanoseconds(tuple[17], dataFile);
-         const long long                rttSoftware     = parseNanoseconds(tuple[18], dataFile);
-         const long long                rttHardware     = parseNanoseconds(tuple[19], dataFile);
+         const uint16_t                 checksum              = parseChecksum(tuple[8], dataFile);
+         const uint16_t                 sourcePort            = parsePort(tuple[9], dataFile);
+         const uint16_t                 destinationPort       = parsePort(tuple[10], dataFile);
+         const unsigned int             status                = parseStatus(tuple[11], dataFile, 10);
+         const unsigned int             timeSource            = parseTimeSource(tuple[12], dataFile);
+         const unsigned int             jitterType            = parseJitterType(tuple[13], dataFile);
+
+         const unsigned long long       appSendPackets        = parsePackets(tuple[14], dataFile);
+         const unsigned long long       appSendMeanLatency    = parseNanoseconds(tuple[15], dataFile);
+         const unsigned long long       appSendJitter         = parseNanoseconds(tuple[16], dataFile);
+
+         const unsigned long long       queuingPackets        = parsePackets(tuple[17], dataFile);
+         const unsigned long long       queuingMeanLatency    = parseNanoseconds(tuple[18], dataFile);
+         const unsigned long long       queuingJitter         = parseNanoseconds(tuple[19], dataFile);
+
+         const unsigned long long       appReceivePackets     = parsePackets(tuple[20], dataFile);
+         const unsigned long long       appReceiveMeanLatency = parseNanoseconds(tuple[21], dataFile);
+         const unsigned long long       appReceiveJitter      = parseNanoseconds(tuple[22], dataFile);
+
+         const unsigned long long       softwarePackets       = parsePackets(tuple[23], dataFile);
+         const unsigned long long       softwareMeanLatency   = parseNanoseconds(tuple[24], dataFile);
+         const unsigned long long       softwareJitter        = parseNanoseconds(tuple[25], dataFile);
+
+         const unsigned long long       hardwarePackets       = parsePackets(tuple[26], dataFile);
+         const unsigned long long       hardwareMeanLatency   = parseNanoseconds(tuple[27], dataFile);
+         const unsigned long long       hardwareJitter        = parseNanoseconds(tuple[28], dataFile);
 
          if(backend & DatabaseBackendType::SQL_Generic) {
             statement.beginRow();
+
             statement
                << timePointToNanoseconds<ReaderTimePoint>(sendTimeStamp) << statement.sep()
                << measurementID                                          << statement.sep()
@@ -196,46 +246,75 @@ void JitterReader::parseContents(
                << (unsigned int)trafficClass                             << statement.sep()
                << burstSeq                                               << statement.sep()
                << packetSize                                             << statement.sep()
-               << responseSize                                           << statement.sep()
                << checksum                                               << statement.sep()
                << sourcePort                                             << statement.sep()
                << destinationPort                                        << statement.sep()
                << status                                                 << statement.sep()
 
                << (long long)timeSource                                  << statement.sep()
-               << delayAppSend                                           << statement.sep()
-               << delayQueuing                                           << statement.sep()
-               << delayAppReceive                                        << statement.sep()
-               << rttApp                                                 << statement.sep()
-               << rttSoftware                                            << statement.sep()
-               << rttHardware;
+               << jitterType                                             << statement.sep()
+
+               << appSendPackets                                         << statement.sep()
+               << appSendMeanLatency                                     << statement.sep()
+               << appSendJitter                                          << statement.sep()
+
+               << queuingPackets                                         << statement.sep()
+               << queuingMeanLatency                                     << statement.sep()
+               << queuingJitter                                          << statement.sep()
+
+               << appReceivePackets                                      << statement.sep()
+               << appReceiveMeanLatency                                  << statement.sep()
+               << appReceiveJitter                                       << statement.sep()
+
+               << softwarePackets                                        << statement.sep()
+               << softwareMeanLatency                                    << statement.sep()
+               << softwareJitter                                         << statement.sep()
+
+               << hardwarePackets                                        << statement.sep()
+               << hardwareMeanLatency                                    << statement.sep()
+               << hardwareJitter;
+
             statement.endRow();
             rows++;
          }
          else if(backend & DatabaseBackendType::NoSQL_Generic) {
             statement.beginRow();
             statement
-               << "\"sendTimestamp\":"   << timePointToNanoseconds<ReaderTimePoint>(sendTimeStamp) << statement.sep()
-               << "\"measurementID\":"   << measurementID                                          << statement.sep()
-               << "\"sourceIP\":"        << statement.encodeAddress(sourceIP)                      << statement.sep()
-               << "\"destinationIP\":"   << statement.encodeAddress(destinationIP)                 << statement.sep()
-               << "\"protocol\":"        << (unsigned int)protocol                                 << statement.sep()
-               << "\"trafficClass\":"    << (unsigned int)trafficClass                             << statement.sep()
-               << "\"burstSeq\":"        << burstSeq                                               << statement.sep()
-               << "\"packetSize\":"      << packetSize                                             << statement.sep()
-               << "\"responseSize\":"    << responseSize                                           << statement.sep()
-               << "\"checksum\":"        << checksum                                               << statement.sep()
-               << "\"sourcePort\":"      << sourcePort                                             << statement.sep()
-               << "\"destinationPort\":" << destinationPort                                        << statement.sep()
-               << "\"status\":"          << status                                                 << statement.sep()
+               << "\"sendTimestamp\":"          << timePointToNanoseconds<ReaderTimePoint>(sendTimeStamp) << statement.sep()
+               << "\"measurementID\":"          << measurementID                                          << statement.sep()
+               << "\"sourceIP\":"               << statement.encodeAddress(sourceIP)                      << statement.sep()
+               << "\"destinationIP\":"          << statement.encodeAddress(destinationIP)                 << statement.sep()
+               << "\"protocol\":"               << (unsigned int)protocol                                 << statement.sep()
+               << "\"trafficClass\":"           << (unsigned int)trafficClass                             << statement.sep()
+               << "\"burstSeq\":"               << burstSeq                                               << statement.sep()
+               << "\"packetSize\":"             << packetSize                                             << statement.sep()
+               << "\"checksum\":"               << checksum                                               << statement.sep()
+               << "\"sourcePort\":"             << sourcePort                                             << statement.sep()
+               << "\"destinationPort\":"        << destinationPort                                        << statement.sep()
+               << "\"status\":"                 << status                                                 << statement.sep()
 
-               << "\"timeSource\":"      << (long long)timeSource                                  << statement.sep()
-               << "\"delay.appSend\":"   << delayAppSend                                           << statement.sep()
-               << "\"delay.queuing\":"   << delayQueuing                                           << statement.sep()
-               << "\"delay.appRecv\":"   << delayAppReceive                                        << statement.sep()
-               << "\"rtt.app\":"         << rttApp                                                 << statement.sep()
-               << "\"rtt.sw\":"          << rttSoftware                                            << statement.sep()
-               << "\"rtt.hw\":"          << rttHardware;
+               << "\"timeSource\":"             << (long long)timeSource                                  << statement.sep()
+               << "\"jitterType\":"             << jitterType                                             << statement.sep()
+
+               << "\"appSendPackets\":"         << appSendPackets                                         << statement.sep()
+               << "\"appSendMeanLatency\":"     << appSendMeanLatency                                     << statement.sep()
+               << "\"appSendJitter\":"          << appSendJitter                                          << statement.sep()
+
+               << "\"queuingPackets\":"         << queuingPackets                                         << statement.sep()
+               << "\"queuingMeanLatency\":"     << queuingMeanLatency                                     << statement.sep()
+               << "\"queuingJitter\":"          << queuingJitter                                          << statement.sep()
+
+               << "\"appReceivePackets\":"      << appReceivePackets                                      << statement.sep()
+               << "\"appReceiveMeanLatency\":"  << appReceiveMeanLatency                                  << statement.sep()
+               << "\"appReceiveJitter\":"       << appReceiveJitter                                       << statement.sep()
+
+               << "\"softwarePackets\":"        << softwarePackets                                        << statement.sep()
+               << "\"softwareMeanLatency\":"    << softwareMeanLatency                                    << statement.sep()
+               << "\"softwareJitter\":"         << softwareJitter                                         << statement.sep()
+
+               << "\"hardwarePackets\":"        << hardwarePackets                                        << statement.sep()
+               << "\"hardwareMeanLatency\":"    << hardwareMeanLatency                                    << statement.sep()
+               << "\"hardwareJitter\":"         << hardwareJitter;
 
             statement.endRow();
             rows++;
@@ -243,7 +322,6 @@ void JitterReader::parseContents(
          else {
             throw ResultsLogicException("Unknown output format");
          }
-#endif
       }
       else {
          throw ResultsReaderDataErrorException("Unexpected input in input file " + dataFile.string());

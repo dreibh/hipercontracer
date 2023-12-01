@@ -56,6 +56,12 @@ class JitterReader : public PingReader
                               const std::filesystem::path&         dataFile,
                               boost::iostreams::filtering_istream& dataStream);
 
+   protected:
+   unsigned int parseJitterType(const std::string&           value,
+                                const std::filesystem::path& dataFile);
+   unsigned int parsePackets(const std::string&           value,
+                             const std::filesystem::path& dataFile);
+
    private:
    static const std::string Identification;
    static const std::regex  FileNameRegExp;
