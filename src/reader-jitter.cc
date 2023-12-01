@@ -202,7 +202,7 @@ void JitterReader::parseContents(
          const unsigned int             measurementID         = parseMeasurementID(tuple[1], dataFile);
          const boost::asio::ip::address sourceIP              = parseAddress(tuple[2], dataFile);
          const boost::asio::ip::address destinationIP         = parseAddress(tuple[3], dataFile);
-         const ReaderTimePoint          sendTimeStamp         = parseTimeStamp(tuple[4], now, true, dataFile);
+         const ReaderTimePoint          timeStamp             = parseTimeStamp(tuple[4], now, true, dataFile);
          const unsigned int             roundNumber           = parseRoundNumber(tuple[5], dataFile);
          const uint8_t                  trafficClass          = parseTrafficClass(tuple[6], dataFile);
          const unsigned int             packetSize            = parsePacketSize(tuple[7], dataFile);
@@ -241,7 +241,7 @@ void JitterReader::parseContents(
          if(backend & DatabaseBackendType::SQL_Generic) {
             statement.beginRow();
             statement
-               << timePointToNanoseconds<ReaderTimePoint>(sendTimeStamp) << statement.sep()
+               << timePointToNanoseconds<ReaderTimePoint>(timeStamp) << statement.sep()
                << measurementID                                          << statement.sep()
                << statement.encodeAddress(sourceIP)                      << statement.sep()
                << statement.encodeAddress(destinationIP)                 << statement.sep()
@@ -286,7 +286,7 @@ void JitterReader::parseContents(
          else if(backend & DatabaseBackendType::NoSQL_Generic) {
             statement.beginRow();
             statement
-               << "\"sendTimestamp\":"          << timePointToNanoseconds<ReaderTimePoint>(sendTimeStamp) << statement.sep()
+               << "\"timeStamp\":"              << timePointToNanoseconds<ReaderTimePoint>(timeStamp)     << statement.sep()
                << "\"measurementID\":"          << measurementID                                          << statement.sep()
                << "\"sourceIP\":"               << statement.encodeAddress(sourceIP)                      << statement.sep()
                << "\"destinationIP\":"          << statement.encodeAddress(destinationIP)                 << statement.sep()
