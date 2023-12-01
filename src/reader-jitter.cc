@@ -164,8 +164,8 @@ void JitterReader::parseContents(
 {
    Statement&                statement = databaseClient.getStatement("Jitter");
    const DatabaseBackendType backend   = databaseClient.getBackend();
-   static const unsigned int JitterMinColumns = 31;
-   static const unsigned int JitterMaxColumns = 31;
+   static const unsigned int JitterMinColumns = 32;
+   static const unsigned int JitterMaxColumns = 32;
    static const char         JitterDelimiter  = ' ';
 
    std::string inputLine;
@@ -242,42 +242,42 @@ void JitterReader::parseContents(
             statement.beginRow();
             statement
                << timePointToNanoseconds<ReaderTimePoint>(timeStamp) << statement.sep()
-               << measurementID                                          << statement.sep()
-               << statement.encodeAddress(sourceIP)                      << statement.sep()
-               << statement.encodeAddress(destinationIP)                 << statement.sep()
-               << (unsigned int)protocol                                 << statement.sep()
-               << (unsigned int)trafficClass                             << statement.sep()
-               << roundNumber                                            << statement.sep()
-               << packetSize                                             << statement.sep()
-               << checksum                                               << statement.sep()
-               << sourcePort                                             << statement.sep()
-               << destinationPort                                        << statement.sep()
-               << status                                                 << statement.sep()
-               << jitterType                                             << statement.sep()
-               << (long long)timeSource                                  << statement.sep()
+               << measurementID                                      << statement.sep()
+               << statement.encodeAddress(sourceIP)                  << statement.sep()
+               << statement.encodeAddress(destinationIP)             << statement.sep()
+               << (unsigned int)protocol                             << statement.sep()
+               << (unsigned int)trafficClass                         << statement.sep()
+               << roundNumber                                        << statement.sep()
+               << packetSize                                         << statement.sep()
+               << checksum                                           << statement.sep()
+               << sourcePort                                         << statement.sep()
+               << destinationPort                                    << statement.sep()
+               << status                                             << statement.sep()
+               << jitterType                                         << statement.sep()
+               << (long long)timeSource                              << statement.sep()
 
-               << appSendPackets                                         << statement.sep()
-               << appSendMeanLatency                                     << statement.sep()
-               << appSendJitter                                          << statement.sep()
+               << appSendPackets                                     << statement.sep()
+               << appSendMeanLatency                                 << statement.sep()
+               << appSendJitter                                      << statement.sep()
 
-               << queuingPackets                                         << statement.sep()
-               << queuingMeanLatency                                     << statement.sep()
-               << queuingJitter                                          << statement.sep()
+               << queuingPackets                                     << statement.sep()
+               << queuingMeanLatency                                 << statement.sep()
+               << queuingJitter                                      << statement.sep()
 
-               << appReceivePackets                                      << statement.sep()
-               << appReceiveMeanLatency                                  << statement.sep()
-               << appReceiveJitter                                       << statement.sep()
+               << appReceivePackets                                  << statement.sep()
+               << appReceiveMeanLatency                              << statement.sep()
+               << appReceiveJitter                                   << statement.sep()
 
-               << applicationPackets                                     << statement.sep()
-               << applicationMeanRTT                                     << statement.sep()
-               << applicationJitter                                      << statement.sep()
+               << applicationPackets                                 << statement.sep()
+               << applicationMeanRTT                                 << statement.sep()
+               << applicationJitter                                  << statement.sep()
 
-               << softwarePackets                                        << statement.sep()
-               << softwareMeanRTT                                        << statement.sep()
-               << softwareJitter                                         << statement.sep()
+               << softwarePackets                                    << statement.sep()
+               << softwareMeanRTT                                    << statement.sep()
+               << softwareJitter                                     << statement.sep()
 
-               << hardwarePackets                                        << statement.sep()
-               << hardwareMeanRTT                                        << statement.sep()
+               << hardwarePackets                                    << statement.sep()
+               << hardwareMeanRTT                                    << statement.sep()
                << hardwareJitter;
 
             statement.endRow();
@@ -286,44 +286,44 @@ void JitterReader::parseContents(
          else if(backend & DatabaseBackendType::NoSQL_Generic) {
             statement.beginRow();
             statement
-               << "\"timeStamp\":"              << timePointToNanoseconds<ReaderTimePoint>(timeStamp)     << statement.sep()
-               << "\"measurementID\":"          << measurementID                                          << statement.sep()
-               << "\"sourceIP\":"               << statement.encodeAddress(sourceIP)                      << statement.sep()
-               << "\"destinationIP\":"          << statement.encodeAddress(destinationIP)                 << statement.sep()
-               << "\"protocol\":"               << (unsigned int)protocol                                 << statement.sep()
-               << "\"trafficClass\":"           << (unsigned int)trafficClass                             << statement.sep()
-               << "\"roundNumber\":"            << roundNumber                                            << statement.sep()
-               << "\"packetSize\":"             << packetSize                                             << statement.sep()
-               << "\"checksum\":"               << checksum                                               << statement.sep()
-               << "\"sourcePort\":"             << sourcePort                                             << statement.sep()
-               << "\"destinationPort\":"        << destinationPort                                        << statement.sep()
-               << "\"status\":"                 << status                                                 << statement.sep()
-               << "\"jitterType\":"             << jitterType                                             << statement.sep()
-               << "\"timeSource\":"             << (long long)timeSource                                  << statement.sep()
+               << "\"timeStamp\":"             << timePointToNanoseconds<ReaderTimePoint>(timeStamp) << statement.sep()
+               << "\"measurementID\":"         << measurementID                                      << statement.sep()
+               << "\"sourceIP\":"              << statement.encodeAddress(sourceIP)                  << statement.sep()
+               << "\"destinationIP\":"         << statement.encodeAddress(destinationIP)             << statement.sep()
+               << "\"protocol\":"              << (unsigned int)protocol                             << statement.sep()
+               << "\"trafficClass\":"          << (unsigned int)trafficClass                         << statement.sep()
+               << "\"roundNumber\":"           << roundNumber                                        << statement.sep()
+               << "\"packetSize\":"            << packetSize                                         << statement.sep()
+               << "\"checksum\":"              << checksum                                           << statement.sep()
+               << "\"sourcePort\":"            << sourcePort                                         << statement.sep()
+               << "\"destinationPort\":"       << destinationPort                                    << statement.sep()
+               << "\"status\":"                << status                                             << statement.sep()
+               << "\"jitterType\":"            << jitterType                                         << statement.sep()
+               << "\"timeSource\":"            << (long long)timeSource                              << statement.sep()
 
-               << "\"appSendPackets\":"         << appSendPackets                                         << statement.sep()
-               << "\"appSendMeanLatency\":"     << appSendMeanLatency                                     << statement.sep()
-               << "\"appSendJitter\":"          << appSendJitter                                          << statement.sep()
+               << "\"appSendPackets\":"        << appSendPackets                                     << statement.sep()
+               << "\"appSendMeanLatency\":"    << appSendMeanLatency                                 << statement.sep()
+               << "\"appSendJitter\":"         << appSendJitter                                      << statement.sep()
 
-               << "\"queuingPackets\":"         << queuingPackets                                         << statement.sep()
-               << "\"queuingMeanLatency\":"     << queuingMeanLatency                                     << statement.sep()
-               << "\"queuingJitter\":"          << queuingJitter                                          << statement.sep()
+               << "\"queuingPackets\":"        << queuingPackets                                     << statement.sep()
+               << "\"queuingMeanLatency\":"    << queuingMeanLatency                                 << statement.sep()
+               << "\"queuingJitter\":"         << queuingJitter                                      << statement.sep()
 
-               << "\"appReceivePackets\":"      << appReceivePackets                                      << statement.sep()
-               << "\"appReceiveMeanLatency\":"  << appReceiveMeanLatency                                  << statement.sep()
-               << "\"appReceiveJitter\":"       << appReceiveJitter                                       << statement.sep()
+               << "\"appReceivePackets\":"     << appReceivePackets                                  << statement.sep()
+               << "\"appReceiveMeanLatency\":" << appReceiveMeanLatency                              << statement.sep()
+               << "\"appReceiveJitter\":"      << appReceiveJitter                                   << statement.sep()
 
-               << "\"applicationPackets\":"     << applicationPackets                                     << statement.sep()
-               << "\"applicationMeanRTT\":"     << applicationMeanRTT                                     << statement.sep()
-               << "\"applicationJitter\":"      << applicationJitter                                      << statement.sep()
+               << "\"applicationPackets\":"    << applicationPackets                                 << statement.sep()
+               << "\"applicationMeanRTT\":"    << applicationMeanRTT                                 << statement.sep()
+               << "\"applicationJitter\":"     << applicationJitter                                  << statement.sep()
 
-               << "\"softwarePackets\":"        << softwarePackets                                        << statement.sep()
-               << "\"softwareMeanRTT\":"        << softwareMeanRTT                                        << statement.sep()
-               << "\"softwareJitter\":"         << softwareJitter                                         << statement.sep()
+               << "\"softwarePackets\":"       << softwarePackets                                    << statement.sep()
+               << "\"softwareMeanRTT\":"       << softwareMeanRTT                                    << statement.sep()
+               << "\"softwareJitter\":"        << softwareJitter                                     << statement.sep()
 
-               << "\"hardwarePackets\":"        << hardwarePackets                                        << statement.sep()
-               << "\"hardwareMeanRTT\":"        << hardwareMeanRTT                                        << statement.sep()
-               << "\"hardwareJitter\":"         << hardwareJitter;
+               << "\"hardwarePackets\":"       << hardwarePackets                                    << statement.sep()
+               << "\"hardwareMeanRTT\":"       << hardwareMeanRTT                                    << statement.sep()
+               << "\"hardwareJitter\":"        << hardwareJitter;
 
             statement.endRow();
             rows++;
