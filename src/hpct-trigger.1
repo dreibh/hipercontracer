@@ -17,7 +17,7 @@
 .\" Contact: thomas.dreibholz@gmail.com
 .\"
 .\" ###### Setup ############################################################
-.Dd November 8, 2023
+.Dd December 1, 2023
 .Dt hpct-trigger 1
 .Os hpct-trigger
 .\" ###### Name #############################################################
@@ -36,10 +36,10 @@
 .Op \-v|\-\-verbose
 .Op \-U|\-\-user user|uid
 .Op \-#|\-\-measurement-id identifier
-.Op \-S|\-\-source address[,traffic_class[,...]]
-.Op \-D|\-\-destination address
 .Op \-S|\-\-source address|hostname[,traffic_class[,...]]
 .Op \-D|\-\-destination address|hostname
+.Op \-\-sources-from-file file
+.Op \-\-destinations-from-file file
 .Op \-M|\-\-iomodule ICMP|UDP
 .Op \-\-tracerouteinterval milliseconds
 .Op \-\-tracerouteduration milliseconds
@@ -47,14 +47,20 @@
 .Op \-\-tracerouteinitialmaxttl value
 .Op \-\-traceroutefinalmaxttl value
 .Op \-\-tracerouteincrementmaxttl value
+.Op \-\-traceroutepacketsize bytes
+.Op \-\-tracerouteudpsourceport port
+.Op \-\-tracerouteudpdestinationport port
 .Op \-\-pinginterval milliseconds
 .Op \-\-pingexpiration milliseconds
+.Op \-\-pingburst packets
 .Op \-\-pingttl value
+.Op \-\-pingpacketsize bytes
+.Op \-\-pingudpsourceport port
+.Op \-\-pingudpdestinationport port
 .Op \-R|\-\-resultsdirectory directory
-.Op \-\-resultstransactionlength seconds
-.Op \-\-pingtriggerage seconds
-.Op \-\-pingtriggerlength payload_length
-.Op \-\-pingsbeforequeuing count
+.Op \-l|\-\-resultstransactionlength seconds
+.Op \-C|\-\-resultscompression none|XZ|BZip2|GZip
+.Op \-F|\-\-resultsformat version
 .\" ###### Description ######################################################
 .Sh DESCRIPTION
 .Nm hpct-trigger

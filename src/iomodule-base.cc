@@ -51,10 +51,14 @@ std::list<IOModuleBase::RegisteredIOModule*>* IOModuleBase::IOModuleList = nullp
 IOModuleBase::IOModuleBase(boost::asio::io_service&                 ioService,
                            std::map<unsigned short, ResultEntry*>&  resultsMap,
                            const boost::asio::ip::address&          sourceAddress,
+                           const uint16_t                           sourcePort,
+                           const uint16_t                           destinationPort,
                            std::function<void (const ResultEntry*)> newResultCallback)
    : IOService(ioService),
      ResultsMap(resultsMap),
      SourceAddress(sourceAddress),
+     SourcePort(sourcePort),
+     DestinationPort(destinationPort),
      NewResultCallback(newResultCallback),
      MagicNumber( ((std::rand() & 0xffff) << 16) | (std::rand() & 0xffff) )
 {
@@ -400,9 +404,10 @@ bool IOModuleBase::registerIOModule(
       boost::asio::io_service&                 ioService,
       std::map<unsigned short, ResultEntry*>&  resultsMap,
       const boost::asio::ip::address&          sourceAddress,
+      const uint16_t                           sourcePort,
+      const uint16_t                           destinationPort,
       std::function<void (const ResultEntry*)> newResultCallback,
-      const unsigned int                       packetSize,
-      const uint16_t                           destinationPort))
+      const unsigned int                       packetSize))
 {
    if(IOModuleList == nullptr) {
       IOModuleList = new std::list<RegisteredIOModule*>;
@@ -422,15 +427,17 @@ IOModuleBase* IOModuleBase::createIOModule(const std::string&                   
                                            boost::asio::io_service&                 ioService,
                                            std::map<unsigned short, ResultEntry*>&  resultsMap,
                                            const boost::asio::ip::address&          sourceAddress,
+                                           const uint16_t                           sourcePort,
+                                           const uint16_t                           destinationPort,
                                            std::function<void (const ResultEntry*)> newResultCallback,
-                                           const unsigned int                       packetSize,
-                                           const uint16_t                           destinationPort)
+                                           const unsigned int                       packetSize)
 {
    for(RegisteredIOModule* registeredIOModule : *IOModuleList) {
       if(registeredIOModule->Name == moduleName) {
          return registeredIOModule->CreateIOModuleFunction(
-                   ioService, resultsMap, sourceAddress,
-                   newResultCallback, packetSize, destinationPort);
+                   ioService, resultsMap, sourceAddress, sourcePort, destinationPort,
+                   newResultCallback,
+                   packetSize);
       }
    }
    return nullptr;

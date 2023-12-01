@@ -53,12 +53,13 @@ REGISTER_IOMODULE(ProtocolType::PT_TCP, "TCP", TCPModule);
 TCPModule::TCPModule(boost::asio::io_service&                 ioService,
                      std::map<unsigned short, ResultEntry*>&  resultsMap,
                      const boost::asio::ip::address&          sourceAddress,
+                     const uint16_t                           sourcePort,
+                     const uint16_t                           destinationPort,
                      std::function<void (const ResultEntry*)> newResultCallback,
-                     const unsigned int                       packetSize,
-                     const uint16_t                           destinationPort)
-   : ICMPModule(ioService, resultsMap, sourceAddress,
-                newResultCallback, packetSize),
-     DestinationPort(destinationPort),
+                     const unsigned int                       packetSize)
+   : ICMPModule(ioService, resultsMap, sourceAddress, sourcePort, destinationPort,
+                newResultCallback,
+                packetSize),
      RawTCPSocket(IOService, (sourceAddress.is_v6() == true) ? raw_tcp::v6() :
                                                                raw_tcp::v4() )
 {

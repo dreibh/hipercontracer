@@ -37,9 +37,10 @@
 #include <boost/program_options.hpp>
 
 #include "icmpheader.h"
+#include "jitter.h"
 #include "logger.h"
-#include "ping.h"
 #include "package-version.h"
+#include "ping.h"
 #include "resultswriter.h"
 #include "service.h"
 #include "tools.h"
@@ -231,7 +232,7 @@ int main(int argc, char** argv)
    bool                               logColor;
    std::filesystem::path              logFile;
    std::string                        user((getlogin() != nullptr) ? getlogin() : "0");
-   OutputFormatVersionType            outputFormat = OutputFormatVersionType::OFT_HiPerConTracer_Version2;
+   bool                               serviceJitter;
    bool                               servicePing;
    bool                               serviceTraceroute;
    unsigned int                       iterations;
@@ -240,21 +241,24 @@ int main(int argc, char** argv)
    std::vector<std::filesystem::path> sourcesFileList;
    std::vector<std::filesystem::path> destinationsFileList;
 
-   unsigned long long                 tracerouteInterval;
-   unsigned int                       tracerouteExpiration;
-   unsigned int                       tracerouteRounds;
-   unsigned int                       tracerouteInitialMaxTTL;
-   unsigned int                       tracerouteFinalMaxTTL;
-   unsigned int                       tracerouteIncrementMaxTTL;
-   unsigned int                       traceroutePacketSize;
+   TracerouteParameters               tracerouteParameters;
+   uint16_t                           tracerouteUDPSourcePort;
+   uint16_t                           tracerouteUDPDestinationPort;
+   uint16_t                           tracerouteTCPSourcePort;
+   uint16_t                           tracerouteTCPDestinationPort;
 
-   unsigned long long                 pingInterval;
-   unsigned int                       pingExpiration;
-   unsigned int                       pingBurst;
-   unsigned int                       pingTTL;
-   unsigned int                       pingPacketSize;
+   TracerouteParameters               pingParameters;
+   uint16_t                           pingUDPSourcePort;
+   uint16_t                           pingUDPDestinationPort;
+   uint16_t                           pingTCPSourcePort;
+   uint16_t                           pingTCPDestinationPort;
 
-   uint16_t                           udpDestinationPort;
+   TracerouteParameters               jitterParameters;
+   uint16_t                           jitterUDPSourcePort;
+   uint16_t                           jitterUDPDestinationPort;
+   uint16_t                           jitterTCPSourcePort;
+   uint16_t                           jitterTCPDestinationPort;
+   bool                               jitterRecordRawResults;
 
    unsigned int                       resultsTransactionLength;
    std::filesystem::path              resultsDirectory;
@@ -305,6 +309,9 @@ int main(int argc, char** argv)
            boost::program_options::value<std::vector<std::string>>(&ioModulesList),
            "I/O module" )
 
+      ( "jitter,J",
+           boost::program_options::value<bool>(&serviceJitter)->default_value(false)->implicit_value(true),
+           "Start Jitter service" )
       ( "ping,P",
            boost::program_options::value<bool>(&servicePing)->default_value(false)->implicit_value(true),
            "Start Ping service" )
@@ -312,50 +319,101 @@ int main(int argc, char** argv)
            boost::program_options::value<bool>(&serviceTraceroute)->default_value(false)->implicit_value(true),
            "Start Traceroute service" )
       ( "iterations,I",
-           boost::program_options::value<unsigned int>(&iterations)->default_value(1),
+           boost::program_options::value<unsigned int>(&iterations)->default_value(0),
            "Iterations" )
 
       ( "tracerouteinterval",
-           boost::program_options::value<unsigned long long>(&tracerouteInterval)->default_value(10000),
+           boost::program_options::value<unsigned long long>(&tracerouteParameters.Interval)->default_value(10000),
            "Traceroute interval in ms" )
       ( "tracerouteduration",
-           boost::program_options::value<unsigned int>(&tracerouteExpiration)->default_value(3000),
+           boost::program_options::value<unsigned int>(&tracerouteParameters.Expiration)->default_value(3000),
            "Traceroute duration in ms" )
       ( "tracerouterounds",
-           boost::program_options::value<unsigned int>(&tracerouteRounds)->default_value(1),
+           boost::program_options::value<unsigned int>(&tracerouteParameters.Rounds)->default_value(1),
            "Traceroute rounds" )
       ( "tracerouteinitialmaxttl",
-           boost::program_options::value<unsigned int>(&tracerouteInitialMaxTTL)->default_value(6),
+           boost::program_options::value<unsigned int>(&tracerouteParameters.InitialMaxTTL)->default_value(6),
            "Traceroute initial maximum TTL value" )
       ( "traceroutefinalmaxttl",
-           boost::program_options::value<unsigned int>(&tracerouteFinalMaxTTL)->default_value(36),
+           boost::program_options::value<unsigned int>(&tracerouteParameters.FinalMaxTTL)->default_value(36),
            "Traceroute final maximum TTL value" )
       ( "tracerouteincrementmaxttl",
-           boost::program_options::value<unsigned int>(&tracerouteIncrementMaxTTL)->default_value(6),
+           boost::program_options::value<unsigned int>(&tracerouteParameters.IncrementMaxTTL)->default_value(6),
            "Traceroute increment maximum TTL value" )
       ( "traceroutepacketsize",
-           boost::program_options::value<unsigned int>(&traceroutePacketSize)->default_value(0),
+           boost::program_options::value<unsigned int>(&tracerouteParameters.PacketSize)->default_value(0),
            "Traceroute packet size in B" )
+      ( "tracerouteudpsourceport",
+           boost::program_options::value<uint16_t>(&tracerouteUDPSourcePort)->default_value(0),
+           "Traceroute UDP source port" )
+      ( "traceroutedestinationport",
+           boost::program_options::value<uint16_t>(&tracerouteUDPDestinationPort)->default_value(7),
+           "Traceroute UDP destination port" )
+      ( "traceroutetcpsourceport",
+           boost::program_options::value<uint16_t>(&tracerouteTCPSourcePort)->default_value(0),
+           "Traceroute TCP source port" )
+      ( "traceroutedestinationport",
+           boost::program_options::value<uint16_t>(&tracerouteTCPDestinationPort)->default_value(80),
+           "Traceroute TCP destination port" )
 
       ( "pinginterval",
-           boost::program_options::value<unsigned long long>(&pingInterval)->default_value(1000),
+           boost::program_options::value<unsigned long long>(&pingParameters.Interval)->default_value(1000),
            "Ping interval in ms" )
       ( "pingexpiration",
-           boost::program_options::value<unsigned int>(&pingExpiration)->default_value(30000),
+           boost::program_options::value<unsigned int>(&pingParameters.Expiration)->default_value(30000),
            "Ping expiration timeout in ms" )
       ( "pingburst",
-           boost::program_options::value<unsigned int>(&pingBurst)->default_value(1),
+           boost::program_options::value<unsigned int>(&pingParameters.Rounds)->default_value(1),
            "Ping burst" )
       ( "pingttl",
-           boost::program_options::value<unsigned int>(&pingTTL)->default_value(64),
+           boost::program_options::value<unsigned int>(&pingParameters.InitialMaxTTL)->default_value(64),
            "Ping initial maximum TTL value" )
       ( "pingpacketsize",
-           boost::program_options::value<unsigned int>(&pingPacketSize)->default_value(0),
+           boost::program_options::value<unsigned int>(&pingParameters.PacketSize)->default_value(0),
            "Ping packet size in B" )
+      ( "pingudpsourceport",
+           boost::program_options::value<uint16_t>(&pingUDPSourcePort)->default_value(0),
+           "Ping UDP source port" )
+      ( "pingdestinationport",
+           boost::program_options::value<uint16_t>(&pingUDPDestinationPort)->default_value(7),
+           "Ping UDP destination port" )
+      ( "pingtcpsourceport",
+           boost::program_options::value<uint16_t>(&pingTCPSourcePort)->default_value(0),
+           "Ping TCP source port" )
+      ( "pingdestinationport",
+           boost::program_options::value<uint16_t>(&pingTCPDestinationPort)->default_value(80),
+           "Ping TCP destination port" )
 
-      ( "udpdestinationport",
-           boost::program_options::value<uint16_t>(&udpDestinationPort)->default_value(7),
-           "UDP destination port" )
+      ( "jitterinterval",
+           boost::program_options::value<unsigned long long>(&jitterParameters.Interval)->default_value(10000),
+           "Jitter interval in ms" )
+      ( "jitterexpiration",
+           boost::program_options::value<unsigned int>(&jitterParameters.Expiration)->default_value(5000),
+           "Jitter expiration timeout in ms" )
+      ( "jitterburst",
+           boost::program_options::value<unsigned int>(&jitterParameters.Rounds)->default_value(16),
+           "Jitter burst" )
+      ( "jitterttl",
+           boost::program_options::value<unsigned int>(&jitterParameters.InitialMaxTTL)->default_value(64),
+           "Jitter initial maximum TTL value" )
+      ( "jitterpacketsize",
+           boost::program_options::value<unsigned int>(&jitterParameters.PacketSize)->default_value(128),
+           "Jitter packet size in B" )
+      ( "jitterudpsourceport",
+           boost::program_options::value<uint16_t>(&jitterUDPSourcePort)->default_value(0),
+           "Jitter UDP source port" )
+      ( "jitterdestinationport",
+           boost::program_options::value<uint16_t>(&jitterUDPDestinationPort)->default_value(7),
+           "Jitter UDP destination port" )
+      ( "jittertcpsourceport",
+           boost::program_options::value<uint16_t>(&jitterTCPSourcePort)->default_value(0),
+           "Jitter TCP source port" )
+      ( "jitterdestinationport",
+           boost::program_options::value<uint16_t>(&jitterTCPDestinationPort)->default_value(80),
+           "Jitter TCP destination port" )
+      ( "jitterrecordraw",
+           boost::program_options::value<bool>(&jitterRecordRawResults)->default_value(false)->implicit_value(true),
+           "Record raw Ping results for Jitter computation" )
 
       ( "pingsbeforequeuing",
            boost::program_options::value<unsigned int>(&PingsBeforeQueuing)->default_value(3),
@@ -395,7 +453,7 @@ int main(int argc, char** argv)
       boost::program_options::notify(vm);
    }
    catch(std::exception& e) {
-      std::cerr << "ERROR: Bad parameter: " << e.what() << std::endl;
+      std::cerr << "ERROR: Bad parameter: " << e.what() << "\n";
       return 1;
    }
 
@@ -449,14 +507,6 @@ int main(int argc, char** argv)
       std::cerr << "ERROR: Invalid Identifier setting: " << measurementID << "\n";
       return 1;
    }
-   if((pingBurst < 1) || (pingBurst > 1024)) {
-      std::cerr << "ERROR: Invalid Ping burst setting: " << pingBurst << "\n";
-      return 1;
-   }
-   if((tracerouteRounds < 1) || (tracerouteRounds > 64)) {
-      std::cerr << "ERROR: Invalid Traceroute rounds setting: " << tracerouteRounds << "\n";
-      return 1;
-   }
    if( (resultsFormatVersion < OutputFormatVersionType::OFT_Min) ||
        (resultsFormatVersion > OutputFormatVersionType::OFT_Max) ) {
       std::cerr << "ERROR: Invalid results format version: " << resultsFormatVersion << "\n";
@@ -493,44 +543,63 @@ int main(int argc, char** argv)
       HPCT_LOG(fatal) << "At least one source is needed!";
       return 1;
    }
-   if((servicePing == false) && (serviceTraceroute == false)) {
-      HPCT_LOG(fatal) << "Enable at least on service (Ping or Traceroute)!";
+   if( (serviceJitter == false) && (servicePing == false) && (serviceTraceroute == false) ) {
+      HPCT_LOG(fatal) << "Enable at least on service (Traceroute, Ping, Jitter)!";
       return 1;
    }
 
    std::srand(std::time(0));
-   tracerouteInterval        = std::min(std::max(1000ULL, tracerouteInterval),   3600U*60000ULL);
-   tracerouteExpiration      = std::min(std::max(1000U, tracerouteExpiration),   60000U);
-   tracerouteInitialMaxTTL   = std::min(std::max(1U, tracerouteInitialMaxTTL),   255U);
-   tracerouteFinalMaxTTL     = std::min(std::max(1U, tracerouteFinalMaxTTL),     255U);
-   tracerouteIncrementMaxTTL = std::min(std::max(1U, tracerouteIncrementMaxTTL), 255U);
-   pingInterval              = std::min(std::max(100ULL, pingInterval),          3600U*60000ULL);
-   pingExpiration            = std::min(std::max(100U, pingExpiration),          3600U*60000U);
-   pingTTL                   = std::min(std::max(1U, pingTTL),                   255U);
+   pingParameters.Interval              = std::min(std::max(100ULL, pingParameters.Interval),          3600U*60000ULL);
+   pingParameters.Expiration            = std::min(std::max(100U, pingParameters.Expiration),          3600U*60000U);
+   pingParameters.InitialMaxTTL         = std::min(std::max(1U, pingParameters.InitialMaxTTL),         255U);
+   pingParameters.FinalMaxTTL           = pingParameters.InitialMaxTTL;
+   pingParameters.IncrementMaxTTL       = 1;
+   pingParameters.Rounds                = std::min(std::max(1U, pingParameters.Rounds),                1024U);
+   pingParameters.PacketSize            = std::min(65535U, pingParameters.PacketSize);
+   tracerouteParameters.Interval        = std::min(std::max(1000ULL, tracerouteParameters.Interval),   3600U*60000ULL);
+   tracerouteParameters.Expiration      = std::min(std::max(1000U, tracerouteParameters.Expiration),   60000U);
+   tracerouteParameters.InitialMaxTTL   = std::min(std::max(1U, tracerouteParameters.InitialMaxTTL),   255U);
+   tracerouteParameters.FinalMaxTTL     = std::min(std::max(1U, tracerouteParameters.FinalMaxTTL),     255U);
+   tracerouteParameters.IncrementMaxTTL = std::min(std::max(1U, tracerouteParameters.IncrementMaxTTL), 255U);
+   tracerouteParameters.PacketSize      = std::min(65535U, tracerouteParameters.PacketSize);
+   tracerouteParameters.Rounds          = std::min(std::max(1U, tracerouteParameters.Rounds),          64U);
 
    if(!resultsDirectory.empty()) {
-      HPCT_LOG(info) << "Results Output:" << std::endl
-                     << "* Results Directory  = " << resultsDirectory         << std::endl
+      HPCT_LOG(info) << "Results Output:" << "\n"
+                     << "* MeasurementID      = " << measurementID            << "\n"
+                     << "* Results Directory  = " << resultsDirectory         << "\n"
                      << "* Transaction Length = " << resultsTransactionLength << " s";
    }
    else {
-      HPCT_LOG(info) << "Results Output:" << std::endl
-                     << "-- turned off--" << std::endl;
+      HPCT_LOG(info) << "Results Output:" << "\n"
+                     << "-- turned off--";
+   }
+
+   if(serviceJitter) {
+      HPCT_LOG(info) << "Jitter Service:" << std:: endl
+                     << "* Interval           = " << jitterParameters.Interval   << " ms" << "\n"
+                     << "* Expiration         = " << jitterParameters.Expiration << " ms" << "\n"
+                     << "* Burst              = " << jitterParameters.Rounds              << "\n"
+                     << "* TTL                = " << jitterParameters.InitialMaxTTL       << "\n"
+                     << "* Packet Size        = " << jitterParameters.PacketSize          << " B";
    }
    if(servicePing) {
       HPCT_LOG(info) << "Ping Service:" << std:: endl
-                     << "* Interval           = " << pingInterval   << " ms" << std::endl
-                     << "* Expiration         = " << pingExpiration << " ms" << std::endl
-                     << "* TTL                = " << pingTTL;
+                     << "* Interval           = " << pingParameters.Interval   << " ms" << "\n"
+                     << "* Expiration         = " << pingParameters.Expiration << " ms" << "\n"
+                     << "* Burst              = " << pingParameters.Rounds              << "\n"
+                     << "* TTL                = " << pingParameters.InitialMaxTTL       << "\n"
+                     << "* Packet Size        = " << pingParameters.PacketSize          << " B";
    }
    if(serviceTraceroute) {
       HPCT_LOG(info) << "Traceroute Service:" << std:: endl
-                     << "* Interval           = " << tracerouteInterval        << " ms" << std::endl
-                     << "* Expiration         = " << tracerouteExpiration      << " ms" << std::endl
-                     << "* Rounds             = " << tracerouteRounds          << std::endl
-                     << "* Initial MaxTTL     = " << tracerouteInitialMaxTTL   << std::endl
-                     << "* Final MaxTTL       = " << tracerouteFinalMaxTTL     << std::endl
-                     << "* Increment MaxTTL   = " << tracerouteIncrementMaxTTL;
+                     << "* Interval           = " << tracerouteParameters.Interval        << " ms" << "\n"
+                     << "* Expiration         = " << tracerouteParameters.Expiration      << " ms" << "\n"
+                     << "* Rounds             = " << tracerouteParameters.Rounds          << "\n"
+                     << "* Initial MaxTTL     = " << tracerouteParameters.InitialMaxTTL   << "\n"
+                     << "* Final MaxTTL       = " << tracerouteParameters.FinalMaxTTL     << "\n"
+                     << "* Increment MaxTTL   = " << tracerouteParameters.IncrementMaxTTL << "\n"
+                     << "* Packet Size        = " << tracerouteParameters.PacketSize      << " B";
    }
    HPCT_LOG(info) << "Trigger:" << std::endl
                   << "* Ping Trigger Age     = " << PingTriggerAge << " s" << std::endl
@@ -562,7 +631,47 @@ int main(int argc, char** argv)
       }
 
       for(const std::string& ioModule : ioModules) {
-         const uint16_t port = udpDestinationPort;
+         if(serviceJitter) {
+            try {
+               ResultsWriter* resultsWriter = nullptr;
+               if(!resultsDirectory.empty()) {
+                  resultsWriter = ResultsWriter::makeResultsWriter(
+                                     ResultsWriterSet, ProgramID, measurementID,
+                                     sourceAddress, "TriggeredJitter-" + ioModule,
+                                     resultsDirectory, resultsTransactionLength,
+                                     (pw != nullptr) ? pw->pw_uid : 0, (pw != nullptr) ? pw->pw_gid : 0,
+                                     resultsCompression);
+                  if(resultsWriter == nullptr) {
+                     HPCT_LOG(fatal) << "Cannot initialise results directory " << resultsDirectory << "!";
+                     return 1;
+                  }
+               }
+               if(ioModule == "UDP") {
+                  jitterParameters.SourcePort      = jitterUDPDestinationPort;
+                  jitterParameters.DestinationPort = jitterUDPSourcePort;
+               }
+               else if(ioModule == "TCP") {
+                  jitterParameters.SourcePort      = jitterTCPDestinationPort;
+                  jitterParameters.DestinationPort = jitterTCPSourcePort;
+               }
+               else {
+                  jitterParameters.SourcePort      = 0;
+                  jitterParameters.DestinationPort = 0;
+               }
+               Service* service = new Jitter(ioModule,
+                                             resultsWriter, "Jitter", (OutputFormatVersionType)resultsFormatVersion, iterations, true,
+                                             sourceAddress, destinationsForSource,
+                                             jitterParameters);
+               if(service->start() == false) {
+                  return 1;
+               }
+               ServiceSet.insert(service);
+            }
+            catch (std::exception& e) {
+               HPCT_LOG(fatal) << "Cannot create Jitter service - " << e.what();
+               return 1;
+            }
+         }
          if(servicePing) {
             try {
                ResultsWriter* resultsWriter = nullptr;
@@ -578,11 +687,22 @@ int main(int argc, char** argv)
                      return 1;
                   }
                }
+               if(ioModule == "UDP") {
+                  pingParameters.SourcePort      = pingUDPDestinationPort;
+                  pingParameters.DestinationPort = pingUDPSourcePort;
+               }
+               else if(ioModule == "TCP") {
+                  pingParameters.SourcePort      = pingTCPDestinationPort;
+                  pingParameters.DestinationPort = pingTCPSourcePort;
+               }
+               else {
+                  pingParameters.SourcePort      = 0;
+                  pingParameters.DestinationPort = 0;
+               }
                Service* service = new Ping(ioModule,
                                            resultsWriter, "Ping", (OutputFormatVersionType)resultsFormatVersion, iterations, true,
                                            sourceAddress, destinationsForSource,
-                                           pingInterval, pingExpiration, pingTTL,
-                                           pingPacketSize, port);
+                                           pingParameters);
                if(service->start() == false) {
                   return 1;
                }
@@ -608,14 +728,22 @@ int main(int argc, char** argv)
                      return 1;
                   }
                }
+               if(ioModule == "UDP") {
+                  tracerouteParameters.SourcePort      = tracerouteUDPDestinationPort;
+                  tracerouteParameters.DestinationPort = tracerouteUDPSourcePort;
+               }
+               else if(ioModule == "TCP") {
+                  tracerouteParameters.SourcePort      = tracerouteTCPDestinationPort;
+                  tracerouteParameters.DestinationPort = tracerouteTCPSourcePort;
+               }
+               else {
+                  tracerouteParameters.SourcePort      = 0;
+                  tracerouteParameters.DestinationPort = 0;
+               }
                Service* service = new Traceroute(ioModule,
                                                  resultsWriter, "Traceroute", (OutputFormatVersionType)resultsFormatVersion, iterations, true,
                                                  sourceAddress, destinationsForSource,
-                                                 tracerouteInterval, tracerouteExpiration,
-                                                 tracerouteRounds,
-                                                 tracerouteInitialMaxTTL, tracerouteFinalMaxTTL,
-                                                 tracerouteIncrementMaxTTL,
-                                                 traceroutePacketSize, port);
+                                                 tracerouteParameters);
                if(service->start() == false) {
                   return 1;
                }

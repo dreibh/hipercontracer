@@ -46,20 +46,15 @@ Ping::Ping(const std::string                moduleName,
            const bool                       removeDestinationAfterRun,
            const boost::asio::ip::address&  sourceAddress,
            const std::set<DestinationInfo>& destinationArray,
-           const unsigned long long         interval,
-           const unsigned int               expiration,
-           const unsigned int               rounds,
-           const unsigned int               ttl,
-           const unsigned int               packetSize,
-           const uint16_t                   destinationPort)
+           const TracerouteParameters&      parameters)
    : Traceroute(moduleName,
                 resultsWriter, outputFormatName, outputFormatVersion,
                 iterations, removeDestinationAfterRun,
                 sourceAddress, destinationArray,
-                interval, expiration, rounds, ttl, ttl, ttl,
-                packetSize, destinationPort),
+                parameters),
      PingInstanceName(std::string("Ping(") + sourceAddress.to_string() + std::string(")"))
 {
+   assert(Parameters.FinalMaxTTL == Parameters.InitialMaxTTL);
    IOModule->setName(PingInstanceName);
 }
 
@@ -102,13 +97,13 @@ void Ping::scheduleTimeoutEvent()
    // ====== Schedule event =================================================
    if((Iterations == 0) || (IterationNumber < Iterations)) {
       // Deviate next send interval by 20%, to avoid synchronisation!
-      const unsigned long long deviation = std::max(10ULL, Interval / 5ULL);   // 20% deviation
-      const unsigned long long duration  = Interval + (std::rand() % deviation);
+      const unsigned long long deviation = std::max(10ULL, Parameters.Interval / 5ULL);   // 20% deviation
+      const unsigned long long duration  = Parameters.Interval + (std::rand() % deviation);
       TimeoutTimer.expires_from_now(boost::posix_time::milliseconds(duration));
    }
    else {
       // Last ping run: no need to wait for interval, just wait for expiration!
-      TimeoutTimer.expires_from_now(boost::posix_time::milliseconds(Expiration));
+      TimeoutTimer.expires_from_now(boost::posix_time::milliseconds(Parameters.Expiration));
    }
    TimeoutTimer.async_wait(std::bind(&Ping::handleTimeoutEvent, this,
                                      std::placeholders::_1));
@@ -147,20 +142,20 @@ void Ping::sendRequests()
          //           always at least one non-zero field in each packet!
          TargetChecksumArray[0] = 0x0000;
       }
-      for(unsigned int i = 1; i < Rounds; i++) {
+      for(unsigned int i = 1; i < Parameters.Rounds; i++) {
          TargetChecksumArray[i] = TargetChecksumArray[0];
       }
 
       // ====== Send requests, if there are destination addresses ===========
       std::lock_guard<std::recursive_mutex> lock(DestinationMutex);
       if(Destinations.begin() != Destinations.end()) {
-         assert(Rounds > 0);
+         assert(Parameters.Rounds > 0);
 
          for(const DestinationInfo& destination : Destinations) {
             OutstandingRequests +=
                IOModule->sendRequest(destination,
-                                     FinalMaxTTL, FinalMaxTTL,
-                                     0, Rounds - 1,
+                                     Parameters.FinalMaxTTL, Parameters.FinalMaxTTL,
+                                     0, Parameters.Rounds - 1,
                                      SeqNumber, TargetChecksumArray);
          }
 
@@ -210,8 +205,8 @@ void Ping::processResults()
 
       // ====== Time-out entries ============================================
       if( (resultEntry->status() == Unknown) &&
-          (std::chrono::duration_cast<std::chrono::milliseconds>(now - resultEntry->sendTime(TXTimeStampType::TXTST_Application)).count() >= Expiration) ) {
-         resultEntry->expire(Expiration);
+          (std::chrono::duration_cast<std::chrono::milliseconds>(now - resultEntry->sendTime(TXTimeStampType::TXTST_Application)).count() >= Parameters.Expiration) ) {
+         resultEntry->expire(Parameters.Expiration);
       }
 
       // ====== Print completed entries =====================================

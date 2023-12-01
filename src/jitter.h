@@ -48,13 +48,8 @@ class Jitter : public Ping
           const bool                       removeDestinationAfterRun,
           const boost::asio::ip::address&  sourceAddress,
           const std::set<DestinationInfo>& destinationArray,
-          const bool                       recordRawResults = false,
-          const unsigned long long         interval         =  1000,
-          const unsigned int               expiration       = 10000,
-          const unsigned int               rounds           =    16,
-          const unsigned int               ttl              =    64,
-          const unsigned int               packetSize       =     0,
-          const uint16_t                   destinationPort  =     7);
+          const TracerouteParameters&      parameters,
+          const bool                       recordRawResults = false);
    virtual ~Jitter();
 
    virtual const std::string& getName() const;

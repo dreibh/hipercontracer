@@ -73,9 +73,10 @@ class TCPModule : public ICMPModule
    TCPModule(boost::asio::io_service&                 ioService,
              std::map<unsigned short, ResultEntry*>&  resultsMap,
              const boost::asio::ip::address&          sourceAddress,
+             const uint16_t                           sourcePort,
+             const uint16_t                           destinationPort,
              std::function<void (const ResultEntry*)> newResultCallback,
-             const unsigned int                       packetSize,
-             const uint16_t                           destinationPort = 7);
+             const unsigned int                       packetSize);
    virtual ~TCPModule();
 
    virtual const ProtocolType getProtocolType() const { return ProtocolType::PT_TCP; }
@@ -107,8 +108,6 @@ class TCPModule : public ICMPModule
    static bool extractSeqNumberFromTimestampOption(const TCPHeader& tcpHeader,
                                                    uint32_t&        timeStampValue,
                                                    uint32_t&        timeStampReply);
-
-   const uint16_t                         DestinationPort;
 
    boost::asio::basic_raw_socket<raw_tcp> RawTCPSocket;
 };
