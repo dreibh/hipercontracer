@@ -502,8 +502,8 @@ int main(int argc, char** argv)
                   }
                }
                if(ioModule == "UDP") {
-                  jitterParameters.SourcePort      = jitterUDPDestinationPort;
-                  jitterParameters.DestinationPort = jitterUDPSourcePort;
+                  jitterParameters.SourcePort      = jitterUDPSourcePort;
+                  jitterParameters.DestinationPort = jitterUDPDestinationPort;
                }
                else {
                   jitterParameters.SourcePort      = 0;
@@ -541,8 +541,8 @@ int main(int argc, char** argv)
                   }
                }
                if(ioModule == "UDP") {
-                  pingParameters.SourcePort      = pingUDPDestinationPort;
-                  pingParameters.DestinationPort = pingUDPSourcePort;
+                  pingParameters.SourcePort      = pingUDPSourcePort;
+                  pingParameters.DestinationPort = pingUDPDestinationPort;
                }
                else {
                   pingParameters.SourcePort      = 0;
@@ -579,8 +579,8 @@ int main(int argc, char** argv)
                   }
                }
                if(ioModule == "UDP") {
-                  tracerouteParameters.SourcePort      = tracerouteUDPDestinationPort;
-                  tracerouteParameters.DestinationPort = tracerouteUDPSourcePort;
+                  tracerouteParameters.SourcePort      = tracerouteUDPSourcePort;
+                  tracerouteParameters.DestinationPort = tracerouteUDPDestinationPort;
                }
                else {
                   tracerouteParameters.SourcePort      = 0;
