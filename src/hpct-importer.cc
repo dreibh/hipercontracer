@@ -61,10 +61,10 @@ int main(int argc, char** argv)
    bool                  quitWhenIdle;
    unsigned int          pingWorkers;
    unsigned int          tracerouteWorkers;
-   unsigned int          jitterWorkers;
+   // unsigned int          jitterWorkers;
    unsigned int          pingTransactionSize;
    unsigned int          tracerouteTransactionSize;
-   unsigned int          jitterTransactionSize;
+   // unsigned int          jitterTransactionSize;
 
    boost::program_options::options_description commandLineOptions;
    commandLineOptions.add_options()

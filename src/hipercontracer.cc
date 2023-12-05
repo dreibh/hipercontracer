@@ -104,7 +104,7 @@ int main(int argc, char** argv)
    bool                               logColor;
    std::filesystem::path              logFile;
    std::string                        user((getlogin() != nullptr) ? getlogin() : "0");
-   bool                               serviceJitter;
+   // bool                               serviceJitter;
    bool                               servicePing;
    bool                               serviceTraceroute;
    unsigned int                       iterations;
@@ -121,10 +121,12 @@ int main(int argc, char** argv)
    uint16_t                           pingUDPSourcePort;
    uint16_t                           pingUDPDestinationPort;
 
+#if 0
    TracerouteParameters               jitterParameters;
    uint16_t                           jitterUDPSourcePort;
    uint16_t                           jitterUDPDestinationPort;
    bool                               jitterRecordRawResults;
+#endif
 
    unsigned int                       resultsTransactionLength;
    std::filesystem::path              resultsDirectory;
@@ -400,12 +402,13 @@ int main(int argc, char** argv)
       HPCT_LOG(fatal) << "At least one source and one destination are needed!";
       return 1;
    }
-   if( (serviceJitter == false) && (servicePing == false) && (serviceTraceroute == false) ) {
+   if( /* (serviceJitter == false) && */ (servicePing == false) && (serviceTraceroute == false) ) {
       HPCT_LOG(fatal) << "Enable at least on service (Traceroute, Ping, Jitter)!";
       return 1;
    }
 
    std::srand(std::time(0));
+#if 0
    jitterParameters.Interval            = std::min(std::max(100ULL, jitterParameters.Interval),        3600U*10000ULL);
    jitterParameters.Expiration          = std::min(std::max(100U, jitterParameters.Expiration),        3600U*10000U);
    jitterParameters.InitialMaxTTL       = std::min(std::max(1U, jitterParameters.InitialMaxTTL),       255U);
@@ -413,6 +416,7 @@ int main(int argc, char** argv)
    jitterParameters.IncrementMaxTTL     = 1;
    jitterParameters.Rounds              = std::min(std::max(2U, jitterParameters.Rounds),              1024U);
    jitterParameters.PacketSize          = std::min(65535U, jitterParameters.PacketSize);
+#endif
    pingParameters.Interval              = std::min(std::max(100ULL, pingParameters.Interval),          3600U*60000ULL);
    pingParameters.Expiration            = std::min(std::max(100U, pingParameters.Expiration),          3600U*60000U);
    pingParameters.InitialMaxTTL         = std::min(std::max(1U, pingParameters.InitialMaxTTL),         255U);
@@ -439,6 +443,7 @@ int main(int argc, char** argv)
                      << "-- turned off--";
    }
 
+#if 0
    if(serviceJitter) {
       HPCT_LOG(info) << "Jitter Service:" << std:: endl
                      << "* Interval           = " << jitterParameters.Interval   << " ms" << "\n"
@@ -447,6 +452,7 @@ int main(int argc, char** argv)
                      << "* TTL                = " << jitterParameters.InitialMaxTTL       << "\n"
                      << "* Packet Size        = " << jitterParameters.PacketSize          << " B";
    }
+#endif
    if(servicePing) {
       HPCT_LOG(info) << "Ping Service:" << std:: endl
                      << "* Interval           = " << pingParameters.Interval   << " ms" << "\n"
