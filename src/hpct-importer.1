@@ -44,8 +44,8 @@ database_configuration
 .Op \-\-ping-files NUMBER
 .Op \-\-traceroute-workers NUMBER
 .Op \-\-traceroute-files NUMBER
-.Op \-\-jitter-workers NUMBER
-.Op \-\-jitter-files NUMBER
+.\" .Op \-\-jitter-workers NUMBER
+.\" .Op \-\-jitter-files NUMBER
 .\" ###### Description ######################################################
 .Sh DESCRIPTION
 .Nm hpct-importer
@@ -127,12 +127,12 @@ An import file is distributed to a worker by hashing the source address
 given in the file name.
 .It \-\-traceroute-files NUMBER
 Sets the number of Traceroute import files per database transaction. Default: 1.
-.It \-\-jitter-workers NUMBER
-Sets the number of Jitter import workers. Default: 1.
-An import file is distributed to a worker by hashing the source address
-given in the file name.
-.It \-\-jitter-files NUMBER
-Sets the number of Jitter import files per database transaction. Default: 1.
+.\" .It \-\-jitter-workers NUMBER
+.\" Sets the number of Jitter import workers. Default: 1.
+.\" An import file is distributed to a worker by hashing the source address
+.\" given in the file name.
+.\" .It \-\-jitter-files NUMBER
+.\" Sets the number of Jitter import files per database transaction. Default: 1.
 .El
 .\" ###### Arguments ########################################################
 .Sh EXAMPLES

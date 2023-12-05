@@ -32,7 +32,7 @@
 #include "logger.h"
 #include "tools.h"
 
-#include "reader-jitter.h"
+// #include "reader-jitter.h"
 #include "reader-ping.h"
 #include "reader-traceroute.h"
 #include "universal-importer.h"
@@ -109,12 +109,14 @@ int main(int argc, char** argv)
       ( "traceroute-files",
            boost::program_options::value<unsigned int>(&tracerouteTransactionSize)->default_value(1),
            "Number of Traceroute files per transaction" )
+#if 0
       ( "jitter-workers",
            boost::program_options::value<unsigned int>(&jitterWorkers)->default_value(1),
            "Number of Jitter import worker threads" )
       ( "jitter-files",
            boost::program_options::value<unsigned int>(&jitterTransactionSize)->default_value(1),
            "Number of Jitter files per transaction" )
+#endif
    ;
    boost::program_options::options_description hiddenOptions;
    hiddenOptions.add_options()
@@ -230,6 +232,7 @@ int main(int argc, char** argv)
                          (DatabaseClientBase**)&tracerouteDatabaseClients, tracerouteWorkers);
    }
 
+#if 0
    // ------ HiPerConTracer Jitter ------------------------
    DatabaseClientBase* jitterDatabaseClients[jitterWorkers];
    JitterReader*   jitterReader = nullptr;
@@ -247,6 +250,7 @@ int main(int argc, char** argv)
       importer.addReader(*jitterReader,
                          (DatabaseClientBase**)&jitterDatabaseClients, jitterWorkers);
    }
+#endif
 
 
    // ====== Main loop ======================================================
@@ -261,6 +265,7 @@ int main(int argc, char** argv)
 
 
    // ====== Clean up =======================================================
+#if 0
    if(jitterWorkers > 0) {
       delete jitterReader;
       jitterReader = nullptr;
@@ -269,6 +274,7 @@ int main(int argc, char** argv)
          jitterDatabaseClients[i] = nullptr;
       }
    }
+#endif
    if(tracerouteWorkers > 0) {
       delete tracerouteReader;
       tracerouteReader = nullptr;
