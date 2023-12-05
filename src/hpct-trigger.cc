@@ -250,10 +250,12 @@ int main(int argc, char** argv)
    uint16_t                           pingUDPSourcePort;
    uint16_t                           pingUDPDestinationPort;
 
+#if 0
    TracerouteParameters               jitterParameters;
    uint16_t                           jitterUDPSourcePort;
    uint16_t                           jitterUDPDestinationPort;
    bool                               jitterRecordRawResults;
+#endif
 
    unsigned int                       resultsTransactionLength;
    std::filesystem::path              resultsDirectory;
