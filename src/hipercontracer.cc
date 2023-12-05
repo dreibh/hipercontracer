@@ -226,7 +226,7 @@ int main(int argc, char** argv)
       ( "traceroutetcpsourceport",
            boost::program_options::value<uint16_t>(&tracerouteTCPSourcePort)->default_value(0),
            "Traceroute TCP source port" )
-      ( "traceroutedestinationport",
+      ( "traceroutetcpdestinationport",
            boost::program_options::value<uint16_t>(&tracerouteTCPDestinationPort)->default_value(80),
            "Traceroute TCP destination port" )
 
@@ -254,7 +254,7 @@ int main(int argc, char** argv)
       ( "pingtcpsourceport",
            boost::program_options::value<uint16_t>(&pingTCPSourcePort)->default_value(0),
            "Ping TCP source port" )
-      ( "pingdestinationport",
+      ( "pingtcpdestinationport",
            boost::program_options::value<uint16_t>(&pingTCPDestinationPort)->default_value(80),
            "Ping TCP destination port" )
 
@@ -282,7 +282,7 @@ int main(int argc, char** argv)
       ( "jittertcpsourceport",
            boost::program_options::value<uint16_t>(&jitterTCPSourcePort)->default_value(0),
            "Jitter TCP source port" )
-      ( "jitterdestinationport",
+      ( "jittertcpdestinationport",
            boost::program_options::value<uint16_t>(&jitterTCPDestinationPort)->default_value(80),
            "Jitter TCP destination port" )
       ( "jitterrecordraw",
