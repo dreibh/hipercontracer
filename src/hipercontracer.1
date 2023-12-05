@@ -29,7 +29,7 @@
 .Nm hipercontracer
 .Op \-P|\-\-ping
 .Op \-T|\-\-traceroute
-.\" .Op \-J|\-\-jitter
+.Op \-J|\-\-jitter
 .Op \-L|\-\-loglevel level
 .Op \-Z|\-\-logcolor on|off
 .Op \-O|\-\-logfile file
@@ -59,14 +59,14 @@
 .Op \-\-pingpacketsize bytes
 .Op \-\-pingudpsourceport port
 .Op \-\-pingudpdestinationport port
-.\" .Op \-\-jitterinterval milliseconds
-.\" .Op \-\-jitterexpiration milliseconds
-.\" .Op \-\-jitterburst packets
-.\" .Op \-\-jitterttl value
-.\" .Op \-\-jitterpacketsize bytes
-.\" .Op \-\-jitterrecordraw
-.\" .Op \-\-jitterudpsourceport port
-.\" .Op \-\-jitterudpdestinationport port
+.Op \-\-jitterinterval milliseconds
+.Op \-\-jitterexpiration milliseconds
+.Op \-\-jitterburst packets
+.Op \-\-jitterttl value
+.Op \-\-jitterpacketsize bytes
+.Op \-\-jitterrecordraw
+.Op \-\-jitterudpsourceport port
+.Op \-\-jitterudpdestinationport port
 .Op \-R|\-\-resultsdirectory directory
 .Op \-l|\-\-resultstransactionlength seconds
 .Op \-C|\-\-resultscompression none|XZ|BZip2|GZip
@@ -87,8 +87,8 @@ The following arguments may be provided:
 Start the Ping service.
 .It \-T|\-\-traceroute
 Start the Traceroute service.
-.\" .It \-J|\-\-jitter
-.\" Start the Jitter service.
+.It \-J|\-\-jitter
+Start the Jitter service.
 .It \-L|\-\-loglevel level
 Sets the minimum logging level to the provided value: 0=trace, 1=debug, 2=info, 3=warning, 4=error, 5=fatal.
 .It \-q|\-\-quiet
@@ -173,28 +173,28 @@ The actually sent packet size always covers at least the headers for IPv4/IPv6, 
 Sets the Ping source port for the UDP module (default: 0, for automatic allocation). Note: If using a fixed UDP port for Ping, different UDP source ports must be used for any other services!
 .It \-\-pingudpdestinationport port
 Sets the Ping destination port for the UDP module (default: 7, for Echo).
-.\" .It \-\-jitterinterval milliseconds
-.\" Sets the Jitter interval (time for each full round of destinations).
-.\" Default is 5000 ms.
-.\" .It \-\-jitterexpiration milliseconds
-.\" Sets the Jitter duration (timeout for each destination).
-.\" Default is 10000 ms.
-.\" .It \-\-jitterburst packets
-.\" For each Jitter measurement, send a burst of the given number of packets.
-.\" Default is 16 packets. Range: 2-1024.
-.\" .It \-\-jitterttl value
-.\" Sets the Jitter TTL value.
-.\" Default is 64. Range: 1-255.
-.\" .It \-\-jitterpacketsize bytes
-.\" Sets the Jitter packet size, that is IP header (20 for IPv4/40 for IPv6) + ICMP header (8)/UDP header (8) + HiPerConTracer header (16) + payload, in bytes.
-.\" The actually sent packet size always covers at least the headers for IPv4/IPv6, transport protocol and HiPerConTracer.
-.\" Default is 128 bytes. Range: 0-65535.
-.\" .It \-\-jitterudpsourceport port
-.\" Sets the Jitter source port for the UDP module (default: 0, for automatic allocation). Note: If using a fixed UDP port for Jitter, different UDP source ports must be used for any other services!
-.\" .It \-\-jitterudpdestinationport port
-.\" Sets the Jitter destination port for the UDP module (default: 7, for Echo).
-.\" .It \-\-jitterrecordraw
-.\" Also record raw Ping results used for jitter computation.
+.It \-\-jitterinterval milliseconds
+Sets the Jitter interval (time for each full round of destinations).
+Default is 5000 ms.
+.It \-\-jitterexpiration milliseconds
+Sets the Jitter duration (timeout for each destination).
+Default is 10000 ms.
+.It \-\-jitterburst packets
+For each Jitter measurement, send a burst of the given number of packets.
+Default is 16 packets. Range: 2-1024.
+.It \-\-jitterttl value
+Sets the Jitter TTL value.
+Default is 64. Range: 1-255.
+.It \-\-jitterpacketsize bytes
+Sets the Jitter packet size, that is IP header (20 for IPv4/40 for IPv6) + ICMP header (8)/UDP header (8) + HiPerConTracer header (16) + payload, in bytes.
+The actually sent packet size always covers at least the headers for IPv4/IPv6, transport protocol and HiPerConTracer.
+Default is 128 bytes. Range: 0-65535.
+.It \-\-jitterudpsourceport port
+Sets the Jitter source port for the UDP module (default: 0, for automatic allocation). Note: If using a fixed UDP port for Jitter, different UDP source ports must be used for any other services!
+.It \-\-jitterudpdestinationport port
+Sets the Jitter destination port for the UDP module (default: 7, for Echo).
+.It \-\-jitterrecordraw
+Also record raw Ping results used for jitter computation.
 .It \-R|\-\-resultsdirectory directory
 Sets the results files directory. The results will be stored there. If not specified, to results will be stored.
 .It \-l|\-\-resultstransactionlength seconds
@@ -380,52 +380,52 @@ This entry has been added with HiPerConTracer 1.6.0!
 This entry has been added with HiPerConTracer 2.0.0!
 .El
 .El
-.\" .\" ====== Jitter, version 2 ================================================
-.\" .It Jitter (version 2, current; there is no version 1)
-.\" Each Jitter entry consists of a #J<m> line, with m=i for ICMP and m=u for UDP (according to underlying I/O module).
-.\" .Bl -tag -width indent
-.\" .It #J<m> measurementID sourceIP destinationIP timestamp round traffic_class packetsize checksum sourcePort destinationPort status timesource jitter_type
-.\" packets_app_send jitter_app_send meandelay_app_send
-.\" packets_queuing jitter_queuing meandelay_queuing
-.\" packets_app_receive jitter_app_receive meandelay_app_receive
-.\" packets_app jitter_app meanrtt_app
-.\" packets_sw jitter_sw meanrtt_sw
-.\" packets_hw jitter_hw meanrtt_hw
-.\" .Bl -tag -width indent
-.\" .It * measurementID: Measurement identifier.
-.\" .It * sourceIP: Source IP address.
-.\" .It * destinationIP: Destination IP address.
-.\" .It * timestamp: Timestamp (nanoseconds since the UTC epoch, hexadecimal).
-.\" .It * round: Round number (decimal).
-.\" .It * traffic_class: The IP Traffic Class/Type of Service value of the sent packets (hexadecimal).
-.\" .It * packet_size: The sent packet size (decimal, in bytes) including IPv4/IPv6 header, transport header and HiPerConTracer header.
-.\" .It * checksum: The checksum of the ICMP Echo Request packets, 0 for other protocols (hexadecimal).
-.\" .It * sourcePort: Source port, 0 for ICMP (decimal).
-.\" .It * destinationPort: Destination port, 0 for ICMP (decimal).
-.\" .It * status: Status code (decimal):
-.\" .It * timesource: Source of the timing information (hexadecimal) as: AAQQSSHH (same as for Ping, see above).
-.\" .It * jitter_type: 0 for calculation as in RFC 3550, Appendix A.8 (decimal).
-.\" .It * packets_app_send: Number of packets for application send jitter/mean RTT computation.
-.\" .It * meandelay_app_send: Mean application send (nanoseconds, decimal; -1 if not available).
-.\" .It * jitter_app_send: Jitter of application send.
-.\" .It * packets_queuing: Number of packets for queuing jitter/mean RTT computation
-.\" .It * meandelay_queuing: Mean queuing (nanoseconds, decimal; -1 if not available).
-.\" .It * jitter_queuing: Jitter of queuing.
-.\" .It * packets_app_receive: Number of packets for application receive jitter/mean RTT computation.
-.\" .It * meandelay_app_receive: Mean application receive (nanoseconds, decimal; -1 if not available).
-.\" .It * jitter_app_receive: Jitter of application receive.
-.\" .It * packets_app: Number of packets for application RTT jitter/mean RTT computation.
-.\" .It * meanrtt_app: Mean application RTT (nanoseconds, decimal).
-.\" .It * jitter_app: Jitter of application RTT.
-.\" .It * packets_sw: Number of packets for kernel software RTT jitter/mean RTT computation.
-.\" .It * meanrtt_sw: Mean kernel software RTT (nanoseconds, decimal; -1 if not available).
-.\" .It * jitter_sw: Jitter of kernel software RTT.
-.\" .It * packets_hw: Number of packets for kernel hardware RTT jitter/mean RTT computation.
-.\" .It * meanrtt_hw: Mean kernel hardware RTT (nanoseconds, decimal; -1 if not available).
-.\" .It * jitter_hw: Jitter of kernel hardware RTT.
-.\" .El
-.\" If recording of raw Ping results is enabled (\-\-jitterrecordraw), a Jitter entry is followed by the underlying Ping measurement entries (see Ping version 2 format above).
-.\" .El
+.\" ====== Jitter, version 2 ================================================
+.It Jitter (version 2, current; there is no version 1)
+Each Jitter entry consists of a #J<m> line, with m=i for ICMP and m=u for UDP (according to underlying I/O module).
+.Bl -tag -width indent
+.It #J<m> measurementID sourceIP destinationIP timestamp round traffic_class packetsize checksum sourcePort destinationPort status timesource jitter_type
+packets_app_send jitter_app_send meandelay_app_send
+packets_queuing jitter_queuing meandelay_queuing
+packets_app_receive jitter_app_receive meandelay_app_receive
+packets_app jitter_app meanrtt_app
+packets_sw jitter_sw meanrtt_sw
+packets_hw jitter_hw meanrtt_hw
+.Bl -tag -width indent
+.It * measurementID: Measurement identifier.
+.It * sourceIP: Source IP address.
+.It * destinationIP: Destination IP address.
+.It * timestamp: Timestamp (nanoseconds since the UTC epoch, hexadecimal).
+.It * round: Round number (decimal).
+.It * traffic_class: The IP Traffic Class/Type of Service value of the sent packets (hexadecimal).
+.It * packet_size: The sent packet size (decimal, in bytes) including IPv4/IPv6 header, transport header and HiPerConTracer header.
+.It * checksum: The checksum of the ICMP Echo Request packets, 0 for other protocols (hexadecimal).
+.It * sourcePort: Source port, 0 for ICMP (decimal).
+.It * destinationPort: Destination port, 0 for ICMP (decimal).
+.It * status: Status code (decimal):
+.It * timesource: Source of the timing information (hexadecimal) as: AAQQSSHH (same as for Ping, see above).
+.It * jitter_type: 0 for calculation as in RFC 3550, Appendix A.8 (decimal).
+.It * packets_app_send: Number of packets for application send jitter/mean RTT computation.
+.It * meandelay_app_send: Mean application send (nanoseconds, decimal; -1 if not available).
+.It * jitter_app_send: Jitter of application send.
+.It * packets_queuing: Number of packets for queuing jitter/mean RTT computation
+.It * meandelay_queuing: Mean queuing (nanoseconds, decimal; -1 if not available).
+.It * jitter_queuing: Jitter of queuing.
+.It * packets_app_receive: Number of packets for application receive jitter/mean RTT computation.
+.It * meandelay_app_receive: Mean application receive (nanoseconds, decimal; -1 if not available).
+.It * jitter_app_receive: Jitter of application receive.
+.It * packets_app: Number of packets for application RTT jitter/mean RTT computation.
+.It * meanrtt_app: Mean application RTT (nanoseconds, decimal).
+.It * jitter_app: Jitter of application RTT.
+.It * packets_sw: Number of packets for kernel software RTT jitter/mean RTT computation.
+.It * meanrtt_sw: Mean kernel software RTT (nanoseconds, decimal; -1 if not available).
+.It * jitter_sw: Jitter of kernel software RTT.
+.It * packets_hw: Number of packets for kernel hardware RTT jitter/mean RTT computation.
+.It * meanrtt_hw: Mean kernel hardware RTT (nanoseconds, decimal; -1 if not available).
+.It * jitter_hw: Jitter of kernel hardware RTT.
+.El
+If recording of raw Ping results is enabled (\-\-jitterrecordraw), a Jitter entry is followed by the underlying Ping measurement entries (see Ping version 2 format above).
+.El
 .El
 .\" ###### Examples #########################################################
 .Sh EXAMPLES

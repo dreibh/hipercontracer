@@ -50,7 +50,7 @@ LIST(APPEND libhipercontracer_headers
    iomodule-base.h
    iomodule-icmp.h
    iomodule-udp.h
-   # jitter.h
+   jitter.h
    logger.h
    ping.h
    resultentry.h
@@ -66,8 +66,8 @@ LIST(APPEND libhipercontracer_sources
    iomodule-base.cc
    iomodule-icmp.cc
    iomodule-udp.cc
-   # jitter.cc
-   # jitter-rfc3550.cc
+   jitter.cc
+   jitter-rfc3550.cc
    logger.cc
    ping.cc
    resultentry.cc
@@ -185,7 +185,7 @@ ENDIF()
 IF (WITH_IMPORTER)
    ADD_EXECUTABLE(hpct-importer hpct-importer.cc
       conversions.cc
-      # reader-jitter.cc
+      reader-jitter.cc
       reader-ping.cc
       reader-traceroute.cc
    )

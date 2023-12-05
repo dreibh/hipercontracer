@@ -117,7 +117,7 @@ them to integrate HiPerConTracer into own programs.
 %{_includedir}/hipercontracer/iomodule-base.h
 %{_includedir}/hipercontracer/iomodule-icmp.h
 %{_includedir}/hipercontracer/iomodule-udp.h
-% %{_includedir}/hipercontracer/jitter.h
+%{_includedir}/hipercontracer/jitter.h
 %{_includedir}/hipercontracer/logger.h
 %{_includedir}/hipercontracer/ping.h
 %{_includedir}/hipercontracer/resultentry.h

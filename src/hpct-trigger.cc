@@ -38,7 +38,7 @@
 
 #include "check.h"
 #include "icmpheader.h"
-// #include "jitter.h"
+#include "jitter.h"
 #include "logger.h"
 #include "package-version.h"
 #include "ping.h"
@@ -306,11 +306,9 @@ int main(int argc, char** argv)
            boost::program_options::value<std::vector<std::string>>(&ioModulesList),
            "I/O module" )
 
-#if 0
       ( "jitter,J",
            boost::program_options::value<bool>(&serviceJitter)->default_value(false)->implicit_value(true),
            "Start Jitter service" )
-#endif
       ( "ping,P",
            boost::program_options::value<bool>(&servicePing)->default_value(false)->implicit_value(true),
            "Start Ping service" )
@@ -371,7 +369,6 @@ int main(int argc, char** argv)
            boost::program_options::value<uint16_t>(&pingUDPDestinationPort)->default_value(7),
            "Ping UDP destination port" )
 
-#if 0
       ( "jitterinterval",
            boost::program_options::value<unsigned long long>(&jitterParameters.Interval)->default_value(10000),
            "Jitter interval in ms" )
@@ -396,7 +393,6 @@ int main(int argc, char** argv)
       ( "jitterrecordraw",
            boost::program_options::value<bool>(&jitterRecordRawResults)->default_value(false)->implicit_value(true),
            "Record raw Ping results for Jitter computation" )
-#endif
 
       ( "pingsbeforequeuing",
            boost::program_options::value<unsigned int>(&PingsBeforeQueuing)->default_value(3),
@@ -618,7 +614,6 @@ int main(int argc, char** argv)
       }
 
       for(const std::string& ioModule : ioModules) {
-#if 0
          if(serviceJitter) {
             try {
                ResultsWriter* resultsWriter = nullptr;
@@ -656,7 +651,6 @@ int main(int argc, char** argv)
                return 1;
             }
          }
-#endif
          if(servicePing) {
             try {
                ResultsWriter* resultsWriter = nullptr;
