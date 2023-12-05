@@ -44,7 +44,7 @@
 #endif
 
 
-#define VERIFY_ICMP_CHECKSUM   // Verify ICMP checksum computation (FIXME!)
+// #define VERIFY_ICMP_CHECKSUM   // Verify ICMP checksum computation
 
 REGISTER_IOMODULE(ProtocolType::PT_ICMP, "ICMP", ICMPModule);
 
