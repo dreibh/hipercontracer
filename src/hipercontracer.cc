@@ -220,13 +220,13 @@ int main(int argc, char** argv)
       ( "tracerouteudpsourceport",
            boost::program_options::value<uint16_t>(&tracerouteUDPSourcePort)->default_value(0),
            "Traceroute UDP source port" )
-      ( "traceroutedestinationport",
+      ( "tracerouteudpdestinationport",
            boost::program_options::value<uint16_t>(&tracerouteUDPDestinationPort)->default_value(7),
            "Traceroute UDP destination port" )
       ( "traceroutetcpsourceport",
            boost::program_options::value<uint16_t>(&tracerouteTCPSourcePort)->default_value(0),
            "Traceroute TCP source port" )
-      ( "traceroutedestinationport",
+      ( "traceroutetcpdestinationport",
            boost::program_options::value<uint16_t>(&tracerouteTCPDestinationPort)->default_value(80),
            "Traceroute TCP destination port" )
 
@@ -248,13 +248,13 @@ int main(int argc, char** argv)
       ( "pingudpsourceport",
            boost::program_options::value<uint16_t>(&pingUDPSourcePort)->default_value(0),
            "Ping UDP source port" )
-      ( "pingdestinationport",
+      ( "pingudpdestinationport",
            boost::program_options::value<uint16_t>(&pingUDPDestinationPort)->default_value(7),
            "Ping UDP destination port" )
       ( "pingtcpsourceport",
            boost::program_options::value<uint16_t>(&pingTCPSourcePort)->default_value(0),
            "Ping TCP source port" )
-      ( "pingdestinationport",
+      ( "pingtcpdestinationport",
            boost::program_options::value<uint16_t>(&pingTCPDestinationPort)->default_value(80),
            "Ping TCP destination port" )
 
@@ -276,13 +276,13 @@ int main(int argc, char** argv)
       ( "jitterudpsourceport",
            boost::program_options::value<uint16_t>(&jitterUDPSourcePort)->default_value(0),
            "Jitter UDP source port" )
-      ( "jitterdestinationport",
+      ( "jitterudpdestinationport",
            boost::program_options::value<uint16_t>(&jitterUDPDestinationPort)->default_value(7),
            "Jitter UDP destination port" )
       ( "jittertcpsourceport",
            boost::program_options::value<uint16_t>(&jitterTCPSourcePort)->default_value(0),
            "Jitter TCP source port" )
-      ( "jitterdestinationport",
+      ( "jittertcpdestinationport",
            boost::program_options::value<uint16_t>(&jitterTCPDestinationPort)->default_value(80),
            "Jitter TCP destination port" )
       ( "jitterrecordraw",
