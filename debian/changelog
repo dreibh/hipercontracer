@@ -1,3 +1,9 @@
+hipercontracer (1.6.10-1ubuntu1) jammy; urgency=medium
+
+  * New upstream release.
+
+ -- Thomas Dreibholz <thomas.dreibholz@gmail.com>  Wed, 06 Dec 2023 16:54:11 +0100
+
 hipercontracer (1.6.9-1ubuntu1) jammy; urgency=medium
 
   * New upstream release.
