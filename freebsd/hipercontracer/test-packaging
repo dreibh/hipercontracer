@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 #
 # Free Packaging Test Script
-# Copyright (C) 2010-2022 by Thomas Dreibholz
+# Copyright (C) 2010-2024 by Thomas Dreibholz
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -53,22 +53,19 @@ make package && \
 echo "4. ###### make deinstall ##############################################" && \
 make deinstall && \
 echo "5. ###### pkg add #####################################################" && \
-if [ ! -e "work/pkg/${PACKAGE}-${PACKAGE_VERSION}.txz" ] ; then
-   echo >&2 "ERROR: Package work/pkg/${PACKAGE}-${PACKAGE_VERSION}.txz not found!"
+if [ ! -e "/usr/ports/packages/All/${PACKAGE}-${PACKAGE_VERSION}.pkg" ] ; then
+   echo >&2 "ERROR: Package /usr/ports/packages/All/${PACKAGE}-${PACKAGE_VERSION}.pkg not found!"
    exit 1
-else
-   mkdir -p /usr/ports/packages/All
-   cp work/pkg/${PACKAGE}-${PACKAGE_VERSION}.txz /usr/ports/packages/All
-fi
-pkg add /usr/ports/packages/All/${PACKAGE}-${PACKAGE_VERSION}.txz && \
+fi && \
+pkg add /usr/ports/packages/All/${PACKAGE}-${PACKAGE_VERSION}.pkg && \
 echo "6. ###### make deinstall ##############################################" && \
 make deinstall && \
 echo "7. ###### make reinstall ##############################################" && \
 make reinstall && \
 echo "8. ###### make package ################################################" && \
 make package && \
-echo "9. ###### tar tzvf *.txz ##############################################" && \
-tar tzvf /usr/ports/packages/All/${PACKAGE}-${PACKAGE_VERSION}.txz && \
+echo "9. ###### tar tzvf *.pkg ##############################################" && \
+tar tzvf /usr/ports/packages/All/${PACKAGE}-${PACKAGE_VERSION}.pkg && \
 echo "Running portlint ..." && \
 portlint && \
 echo "====== Successfully completed! ======"
