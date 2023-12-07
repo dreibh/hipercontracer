@@ -23,8 +23,9 @@ LIB_DEPENDS=	libboost_date_time.so:devel/boost-libs \
 USES=		cmake compiler:c++14-lang python:3.9+ shebangfix tar:xz
 USE_LDCONFIG=	yes
 
-PLIST_SUB=	PORTVERSION=${PORTVERSION}
-CMAKE_ARGS+=	-DCMAKE_INSTALL_MANDIR=${PREFIX}/man
 SHEBANG_FILES=	src/addressinfogenerator src/get-default-ips src/tracedataimporter
+
+CMAKE_ARGS+=	-DCMAKE_INSTALL_MANDIR=${PREFIX}/man
+PLIST_SUB=	PORTVERSION=${PORTVERSION}
 
 .include <bsd.port.mk>
