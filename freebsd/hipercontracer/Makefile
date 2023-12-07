@@ -7,6 +7,7 @@ MASTER_SITES=	https://www.nntb.no/~dreibh/hipercontracer/download/
 
 MAINTAINER=	thomas.dreibholz@gmail.com
 COMMENT=	High-Performance Connectivity Tracer (HiPerConTracer)
+WWW=		https://www.nntb.no/~dreibh/hipercontracer/
 
 LICENSE=	GPLv3+
 LICENSE_FILE=	${WRKSRC}/COPYING
@@ -19,7 +20,7 @@ LIB_DEPENDS=	libboost_date_time.so:devel/boost-libs \
 		libboost_system.so:devel/boost-libs \
 		libboost_thread.so:devel/boost-libs
 
-USES=		cmake compiler:c++14-lang python shebangfix tar:xz
+USES=		cmake compiler:c++14-lang python:3.9+ shebangfix tar:xz
 USE_LDCONFIG=	yes
 
 PLIST_SUB=	PORTVERSION=${PORTVERSION}
