@@ -1,5 +1,3 @@
-# Created by: Thomas Dreibholz <thomas.dreibholz@gmail.com>
-
 PORTNAME=	hipercontracer
 PORTVERSION=	1.6.10
 CATEGORIES=	benchmarks
