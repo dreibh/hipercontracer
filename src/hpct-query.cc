@@ -626,6 +626,7 @@ int main(int argc, char** argv)
          }
       }
 
+#if 0
       // ====== Jitter ======================================================
       else if(queryType == "jitter") {
          if(backend & DatabaseBackendType::SQL_Generic) {
@@ -828,6 +829,7 @@ int main(int argc, char** argv)
             abort();
          }
       }
+#endif
 
       // ====== Invalid query ===============================================
       else {
