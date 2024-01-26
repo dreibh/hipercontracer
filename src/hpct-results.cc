@@ -377,8 +377,8 @@ static bool checkFormat(boost::iostreams::filtering_ostream* outputStream,
                          << " in input file " << fileName;
          return false;
       }
-
       columns = applySeparator(columnNames, separator);
+
       const std::lock_guard<std::mutex> lock(*outputMutex);
       *outputStream << columnNames << "\n";
    }
