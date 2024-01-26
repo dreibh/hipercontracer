@@ -57,7 +57,7 @@
 
 struct OutputEntry
 {
-   OutputEntry(const int                       measurementID,
+   OutputEntry(const unsigned int              measurementID,
                const boost::asio::ip::address& sourceIP,
                const boost::asio::ip::address& destinationIP,
                const unsigned long long        timeStamp,
@@ -69,9 +69,18 @@ struct OutputEntry
       TimeStamp(timeStamp),
       RoundNumber(roundNumber),
       SeqNumber(0),
-      Line(line) { };
+      Line(line) {
+         /*
+         std::cout << MeasurementID  << "\t"
+                   <<  SourceIP      << "\t"
+                   <<  DestinationIP << "\t"
+                   <<  TimeStamp     << "\t"
+                   <<  RoundNumber   << "\t"
+                   <<  SeqNumber     << "\n";
+         */
+      };
 
-   const int                      MeasurementID;
+   const unsigned int             MeasurementID;
    const boost::asio::ip::address SourceIP;
    const boost::asio::ip::address DestinationIP;
    const unsigned long long       TimeStamp;
@@ -221,6 +230,7 @@ static bool getFormatIdentifier(const std::string& line,
 
 // ###### Check format of file ##############################################
 static bool checkFormat(boost::iostreams::filtering_ostream* outputStream,
+                        std::mutex*                          outputMutex,
                         const std::filesystem::path&         fileName,
                         InputFormat&                         format,
                         unsigned int&                        version,
@@ -369,6 +379,7 @@ static bool checkFormat(boost::iostreams::filtering_ostream* outputStream,
       }
 
       columns = applySeparator(columnNames, separator);
+      const std::lock_guard<std::mutex> lock(*outputMutex);
       *outputStream << columnNames << "\n";
    }
 
@@ -493,7 +504,7 @@ static bool dumpResultsFile(std::atomic<unsigned int>*                          
       }
       else if(line[0] == '#') {
          if(version == 0) {
-            if(!checkFormat(outputStream, fileName, format, version, columns, line, separator)) {
+            if(!checkFormat(outputStream, outputMutex, fileName, format, version, columns, line, separator)) {
                (*errorCounter)++;
                return false;
             }
@@ -594,7 +605,7 @@ static bool dumpResultsFile(std::atomic<unsigned int>*                          
                if(outputSet) {
                   auto success = outputSet->insert(newEntry);
                   if(!success.second) {
-                     HPCT_LOG(fatal) << "Duplicate tab entry"
+                     HPCT_LOG(fatal) << "Duplicate entry"
                                     << " in input file " << fileName << ", line " << lineNumber;
                      (*errorCounter)++;
                      return false;
