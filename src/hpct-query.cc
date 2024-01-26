@@ -32,6 +32,7 @@
 #include "database-configuration.h"
 #include "databaseclient-base.h"
 #include "logger.h"
+#include "package-version.h"
 #include "tools.h"
 
 #include <filesystem>
@@ -50,6 +51,8 @@
 typedef std::chrono::high_resolution_clock ResultClock;
 typedef ResultClock::time_point            ResultTimePoint;
 typedef ResultClock::duration              ResultDuration;
+
+static const std::string                   ProgramID = std::string("HPCT-Query/") + HPCT_VERSION;
 
 
 // ###### Add WHERE clause to SELECT statement ##############################
@@ -335,6 +338,9 @@ int main(int argc, char** argv)
                const long long                rttSoftware     = databaseClient->getBigInt(19);
                const long long                rttHardware     = databaseClient->getBigInt(20);
 
+               if(lines == 0) {
+                  outputStream << "#? HPCT Ping 2 " << ProgramID << "\n";
+               }
                outputStream <<
                   str(boost::format("#P%c %d %s %s %x %d %x %d %d %x %d %d %d %08x %d %d %d %d %d %d\n")
                      % protocol
@@ -394,6 +400,9 @@ int main(int argc, char** argv)
                   const long long                rttSoftware     = databaseClient->getBigInt("rtt.sw");
                   const long long                rttHardware     = databaseClient->getBigInt("rtt.hw");
 
+                  if(lines == 0) {
+                     outputStream << "#? HPCT Ping 2 " << ProgramID << "\n";
+                  }
                   outputStream <<
                      str(boost::format("#P%c %d %s %s %x %d %x %d %d %x %d %d %d %08x %d %d %d %d %d %d\n")
                         % protocol
@@ -470,6 +479,9 @@ int main(int argc, char** argv)
                const long long                rttHardware     = databaseClient->getBigInt(25);
 
                if(hopNumber == 1) {
+                  if(lines == 0) {
+                     outputStream << "#? HPCT Traceroute 2 " << ProgramID << "\n";
+                  }
                   const unsigned int statusFlags = status - (status & 0xff);
                   outputStream <<
                      str(boost::format("#T%c %d %s %s %x %d %d %x %d %x %d %d %x %x\n")
@@ -538,6 +550,9 @@ int main(int argc, char** argv)
                   const unsigned int             statusFlags     = databaseClient->getInteger("statusFlags");
                   const long long                pathHash        = databaseClient->getBigInt("pathHash");
 
+                  if(lines == 0) {
+                     outputStream << "#? HPCT Traceroute 2 " << ProgramID << "\n";
+                  }
                   outputStream <<
                      str(boost::format("#T%c %d %s %s %x %d %d %x %d %x %d %d %x %x\n")
                         % protocol
@@ -611,6 +626,7 @@ int main(int argc, char** argv)
          }
       }
 
+#if 0
       // ====== Jitter ======================================================
       else if(queryType == "jitter") {
          if(backend & DatabaseBackendType::SQL_Generic) {
@@ -662,6 +678,9 @@ int main(int argc, char** argv)
                const unsigned long long       hardwareMeanRTT       = databaseClient->getBigInt(31);
                const unsigned long long       hardwareJitter        = databaseClient->getBigInt(32);
 
+               if(lines == 0) {
+                  outputStream << "#? HPCT Jitter 2 " << ProgramID << "\n";
+               }
                outputStream <<
                   str(boost::format("#J%c %d %s %s %x %d %x %d %x %d %d %d %08x %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d\n")
                      % protocol
@@ -754,6 +773,9 @@ int main(int argc, char** argv)
                   const unsigned long long       hardwareMeanRTT       = databaseClient->getBigInt("hardwareMeanRTT");
                   const unsigned long long       hardwareJitter        = databaseClient->getBigInt("hardwareJitter");
 
+                  if(lines == 0) {
+                     outputStream << "#? HPCT Jitter 2 " << ProgramID << "\n";
+                  }
                   outputStream <<
                      str(boost::format("#J%c %d %s %s %x %d %x %d %x %d %d %d %08x %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d\n")
                         % protocol
@@ -807,6 +829,7 @@ int main(int argc, char** argv)
             abort();
          }
       }
+#endif
 
       // ====== Invalid query ===============================================
       else {

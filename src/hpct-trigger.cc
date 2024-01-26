@@ -54,7 +54,7 @@ struct TargetInfo
    unsigned int                          TriggerCounter;
 };
 
-static const std::string                                     ProgramID = std::string("HPCT-Results-Tool/") + HPCT_VERSION;
+static const std::string                                     ProgramID = std::string("HPCT-Trigger/") + HPCT_VERSION;
 static std::map<boost::asio::ip::address, std::set<uint8_t>> SourceArray;
 static std::set<boost::asio::ip::address>                    DestinationArray;
 static std::map<boost::asio::ip::address, TargetInfo*>       TargetMap;
