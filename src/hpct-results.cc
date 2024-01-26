@@ -236,7 +236,8 @@ static bool checkFormat(boost::iostreams::filtering_ostream* outputStream,
                         unsigned int&                        version,
                         unsigned int&                        columns,
                         const std::string&                   line,
-                        const char                           separator)
+                        const char                           separator,
+                        bool*                                foundFormat)
 {
    const unsigned int inputColumns = countColumns(line);
 
@@ -380,7 +381,10 @@ static bool checkFormat(boost::iostreams::filtering_ostream* outputStream,
       columns = applySeparator(columnNames, separator);
 
       const std::lock_guard<std::mutex> lock(*outputMutex);
-      *outputStream << columnNames << "\n";
+      if(*foundFormat == false) {
+         *outputStream << columnNames << "\n";
+         *foundFormat = true;
+      }
    }
 
    // ====== Compatibility check ============================================
@@ -461,6 +465,7 @@ static bool dumpResultsFile(std::atomic<unsigned int>*                          
                             InputFormat&                                           format,
                             unsigned int&                                          columns,
                             const char                                             separator,
+                            bool*                                                  foundFormat,
                             const bool                                             checkOnly = false)
 {
    // ====== Open input file ================================================
@@ -504,7 +509,7 @@ static bool dumpResultsFile(std::atomic<unsigned int>*                          
       }
       else if(line[0] == '#') {
          if(version == 0) {
-            if(!checkFormat(outputStream, outputMutex, fileName, format, version, columns, line, separator)) {
+            if(!checkFormat(outputStream, outputMutex, fileName, format, version, columns, line, separator, foundFormat)) {
                (*errorCounter)++;
                return false;
             }
@@ -892,9 +897,10 @@ int main(int argc, char** argv)
    std::atomic<unsigned int> errorCounter = 0;
    const std::filesystem::path firstInputFileName = *(inputFileNameSet.begin());
    HPCT_LOG(info) << "Identifying format from " << firstInputFileName << " ...";
+   bool foundFormat = false;
    if(!dumpResultsFile(&errorCounter,
                        (sorted == true) ? &outputSet : nullptr, &outputStream, &outputMutex,
-                       firstInputFileName, format, columns, separator,
+                       firstInputFileName, format, columns, separator, &foundFormat,
                        inputResultsFromStdin ? false : true)) {
       return 1;
    }
@@ -909,7 +915,7 @@ int main(int argc, char** argv)
       boost::asio::post(threadPool, std::bind(dumpResultsFile,
                         &errorCounter,
                         (sorted == true) ? &outputSet : nullptr, &outputStream, &outputMutex,
-                        inputFileName, format, columns, separator,
+                        inputFileName, format, columns, separator, &foundFormat,
                         false));
    }
    threadPool.join();
@@ -932,7 +938,7 @@ int main(int argc, char** argv)
       }
       catch(const std::exception& e) {
          HPCT_LOG(fatal) << "Unable to rename " << tmpOutputFileName << " to " << outputFileName
-                        << ": " << e.what();
+                         << ": " << e.what();
          exit(1);
       }
    }
