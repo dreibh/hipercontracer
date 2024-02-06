@@ -279,7 +279,7 @@ unsigned int TCPModule::sendRequest(const DestinationInfo& destination,
    // ------ BEGIN OF TIMING-CRITICAL PART ----------------------------------
    for(unsigned int round = fromRound; round <= toRound; round++) {
       // NOTE: Using forward direction for TCP!
-      for(int ttl = toTTL; ttl <= fromTTL; ttl++) {
+      for(unsigned int ttl = toTTL; ttl <= fromTTL; ttl++) {
 
          assert(currentEntry < entries);
          seqNumber++;   // New sequence number!
