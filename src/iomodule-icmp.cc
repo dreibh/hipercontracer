@@ -44,8 +44,6 @@
 #endif
 
 
-// #define VERIFY_ICMP_CHECKSUM   // Verify ICMP checksum computation
-
 REGISTER_IOMODULE(ProtocolType::PT_ICMP, "ICMP", ICMPModule);
 
 
@@ -316,8 +314,6 @@ unsigned int ICMPModule::sendRequest(const DestinationInfo& destination,
             }
             tsHeader.checksumTweak(diff);
 
-#ifdef VERIFY_ICMP_CHECKSUM
-#warning VERIFY_ICMP_CHECKSUM is on!
             // Compute new checksum (must be equal to target checksum!)
             icmpChecksum = 0;
             echoRequest.checksum(0);   // Reset the original checksum first!
@@ -325,7 +321,6 @@ unsigned int ICMPModule::sendRequest(const DestinationInfo& destination,
             tsHeader.computeInternet16(icmpChecksum);
             echoRequest.checksum(finishInternet16(icmpChecksum));
             assert(echoRequest.checksum() == targetChecksumArray[round]);
-#endif
          }
          assert((targetChecksumArray[round] & ~0xffff) == 0);
 
