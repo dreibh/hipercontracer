@@ -18,7 +18,6 @@ USE_LDCONFIG=	yes
 
 SHEBANG_FILES=	src/addressinfogenerator src/get-default-ips src/tracedataimporter
 
-CMAKE_ARGS=	-DCMAKE_INSTALL_MANDIR:PATH=${PREFIX}/man
 PLIST_SUB=	PORTVERSION=${PORTVERSION}
 
 .include <bsd.port.mk>
