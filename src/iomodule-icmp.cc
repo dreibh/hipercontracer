@@ -44,8 +44,6 @@
 #endif
 
 
-// #define VERIFY_ICMP_CHECKSUM   // Verify ICMP checksum computation
-
 REGISTER_IOMODULE(ProtocolType::PT_ICMP, "ICMP", ICMPModule);
 
 
@@ -87,7 +85,7 @@ bool ICMPModule::prepareSocket()
    boost::system::error_code      errorCode;
    boost::asio::ip::udp::endpoint udpSourceEndpoint(SourceAddress, SourcePort);
    UDPSocket.bind(udpSourceEndpoint, errorCode);
-   if(errorCode !=  boost::system::errc::success) {
+   if(errorCode != boost::system::errc::success) {
       HPCT_LOG(error) << getName() << ": Unable to bind UDP socket to source address "
                       << udpSourceEndpoint << "!";
       return false;
@@ -304,8 +302,6 @@ unsigned int ICMPModule::sendRequest(const DestinationInfo& destination,
             }
             tsHeader.checksumTweak(diff);
 
-#ifdef VERIFY_ICMP_CHECKSUM
-#warning VERIFY_ICMP_CHECKSUM is on!
             // Compute new checksum (must be equal to target checksum!)
             icmpChecksum = 0;
             echoRequest.checksum(0);   // Reset the original checksum first!
@@ -313,7 +309,6 @@ unsigned int ICMPModule::sendRequest(const DestinationInfo& destination,
             tsHeader.computeInternet16(icmpChecksum);
             echoRequest.checksum(finishInternet16(icmpChecksum));
             assert(echoRequest.checksum() == targetChecksumArray[round]);
-#endif
          }
          assert((targetChecksumArray[round] & ~0xffff) == 0);
 

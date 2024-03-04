@@ -85,6 +85,16 @@ bool UDPModule::prepareSocket()
       return false;
    }
 
+   // ====== Bind UDP raw socket to given source address ====================
+   boost::system::error_code errorCode;
+   raw_udp::endpoint udpRawSourceEndpoint(SourceAddress, SourcePort);
+   RawUDPSocket.bind(udpRawSourceEndpoint, errorCode);
+   if(errorCode != boost::system::errc::success) {
+      HPCT_LOG(error) << getName() << ": Unable to bind UDP socket to source address "
+                      << udpRawSourceEndpoint << "!";
+      return false;
+   }
+
    // ====== Configure sockets (timestamping, etc.) =========================
    if(!configureSocket(UDPSocket.native_handle(), SourceAddress)) {
       return false;
