@@ -86,7 +86,7 @@ bool UDPModule::prepareSocket()
    }
 
    // ====== Bind UDP raw socket to given source address ====================
-   boost::system::error_code      errorCode;
+   boost::system::error_code errorCode;
    raw_udp::endpoint udpRawSourceEndpoint(SourceAddress, SourcePort);
    RawUDPSocket.bind(udpRawSourceEndpoint, errorCode);
    if(errorCode != boost::system::errc::success) {
