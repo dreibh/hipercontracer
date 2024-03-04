@@ -87,7 +87,7 @@ bool ICMPModule::prepareSocket()
    boost::system::error_code      errorCode;
    boost::asio::ip::udp::endpoint udpSourceEndpoint(SourceAddress, SourcePort);
    UDPSocket.bind(udpSourceEndpoint, errorCode);
-   if(errorCode !=  boost::system::errc::success) {
+   if(errorCode != boost::system::errc::success) {
       HPCT_LOG(error) << getName() << ": Unable to bind UDP socket to source address "
                       << udpSourceEndpoint << "!";
       return false;
