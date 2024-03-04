@@ -87,6 +87,16 @@ bool TCPModule::prepareSocket()
       return false;
    }
 
+   // ====== Bind TCP raw socket to given source address ====================
+   boost::system::error_code errorCode;
+   raw_tcp::endpoint tcpRawSourceEndpoint(SourceAddress, UDPSocketEndpoint.port());
+   RawTCPSocket.bind(tcpRawSourceEndpoint, errorCode);
+   if(errorCode != boost::system::errc::success) {
+      HPCT_LOG(error) << getName() << ": Unable to bind TCP socket to source address "
+                      << tcpRawSourceEndpoint << "!";
+      return false;
+   }
+
    // ====== Configure sockets (timestamping, etc.) =========================
    if(!configureSocket(TCPSocket.native_handle(), SourceAddress)) {
       return false;
