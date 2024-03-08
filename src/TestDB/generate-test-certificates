@@ -34,7 +34,6 @@ if len(sys.argv) < 3:
    sys.exit(1)
 mainDirectory = sys.argv[1]
 serverName    = sys.argv[2]
-print(len(sys.argv))
 if len(sys.argv) > 3:
    subjectAltName = sys.argv[3]
 else:
