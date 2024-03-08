@@ -639,7 +639,8 @@ int main(int argc, char** argv)
                      << "* Burst              = " << jitterParameters.Rounds              << "\n"
                      << "* TTL                = " << jitterParameters.InitialMaxTTL       << "\n"
                      << "* Packet Size        = " << jitterParameters.PacketSize          << " B\n"
-                     << "* Destination Port   = " << jitterParameters.DestinationPort;
+                     << "* Ports              = (none for ICMP) / UDP: "
+                        << jitterUDPSourcePort << " -> " << jitterUDPDestinationPort << "\n";
    }
    if(servicePing) {
       HPCT_LOG(info) << "Ping Service:" << std:: endl
@@ -649,7 +650,8 @@ int main(int argc, char** argv)
                      << "* Burst              = " << pingParameters.Rounds                << "\n"
                      << "* TTL                = " << pingParameters.InitialMaxTTL         << "\n"
                      << "* Packet Size        = " << pingParameters.PacketSize            << " B\n"
-                     << "* Destination Port   = " << pingParameters.DestinationPort;
+                     << "* Ports              = (none for ICMP) / UDP: "
+                        << pingUDPSourcePort << " -> " << pingUDPDestinationPort << "\n";
    }
    if(serviceTraceroute) {
       HPCT_LOG(info) << "Traceroute Service:" << std:: endl
@@ -661,8 +663,10 @@ int main(int argc, char** argv)
                      << "* Final MaxTTL       = " << tracerouteParameters.FinalMaxTTL     << "\n"
                      << "* Increment MaxTTL   = " << tracerouteParameters.IncrementMaxTTL << "\n"
                      << "* Packet Size        = " << tracerouteParameters.PacketSize      << " B\n"
-                     << "* Destination Port   = " << tracerouteParameters.DestinationPort;
+                     << "* Ports              = (none for ICMP) / UDP: "
+                        << tracerouteUDPSourcePort << " -> " << tracerouteUDPDestinationPort << "\n";
    }
+
    HPCT_LOG(info) << "Trigger:" << std::endl
                   << "* Ping Trigger Age     = " << PingTriggerAge << " s" << std::endl
                   << "* Ping Trigger Length  = " << PingTriggerLength      << std::endl
