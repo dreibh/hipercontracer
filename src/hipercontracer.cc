@@ -466,7 +466,7 @@ int main(int argc, char** argv)
                      << "* Burst              = " << jitterParameters.Rounds              << "\n"
                      << "* TTL                = " << jitterParameters.InitialMaxTTL       << "\n"
                      << "* Packet Size        = " << jitterParameters.PacketSize          << " B\n"
-                     << "* Ports              = UDP: "
+                     << "* Ports              = (none for ICMP) / UDP: "
                         << jitterUDPSourcePort << " -> " << jitterUDPDestinationPort << "\n";
    }
    if(servicePing) {
@@ -477,7 +477,7 @@ int main(int argc, char** argv)
                      << "* Burst              = " << pingParameters.Rounds                << "\n"
                      << "* TTL                = " << pingParameters.InitialMaxTTL         << "\n"
                      << "* Packet Size        = " << pingParameters.PacketSize            << " B\n"
-                     << "* Ports              = UDP: "
+                     << "* Ports              = (none for ICMP) / UDP: "
                         << pingUDPSourcePort << " -> " << pingUDPDestinationPort << "\n";
    }
    if(serviceTraceroute) {
@@ -490,7 +490,7 @@ int main(int argc, char** argv)
                      << "* Final MaxTTL       = " << tracerouteParameters.FinalMaxTTL     << "\n"
                      << "* Increment MaxTTL   = " << tracerouteParameters.IncrementMaxTTL << "\n"
                      << "* Packet Size        = " << tracerouteParameters.PacketSize      << " B\n"
-                     << "* Ports              = UDP: "
+                     << "* Ports              = (none for ICMP) / UDP: "
                         << tracerouteUDPSourcePort << " -> " << tracerouteUDPDestinationPort << "\n";
    }
 
