@@ -254,6 +254,9 @@ int main(int argc, char** argv)
       ( "jitterinterval",
            boost::program_options::value<unsigned long long>(&jitterParameters.Interval)->default_value(10000),
            "Jitter interval in ms" )
+      ( "jitterintervaldeviation",
+           boost::program_options::value<float>(&jitterParameters.Deviation)->default_value(0.1),
+           "Jitter interval deviation fraction (0.0 to 1.0)" )
       ( "jitterexpiration",
            boost::program_options::value<unsigned int>(&jitterParameters.Expiration)->default_value(5000),
            "Jitter expiration timeout in ms" )
@@ -317,6 +320,7 @@ int main(int argc, char** argv)
       checkEnvironment("HiPerConTracer");
       return 0;
    }
+
    if(vm.count("source")) {
       const std::vector<std::string>& sourceAddressVector = vm["source"].as<std::vector<std::string>>();
       for(std::vector<std::string>::const_iterator iterator = sourceAddressVector.begin();
@@ -384,6 +388,11 @@ int main(int argc, char** argv)
 #if 0
    if(jitterParameters.Expiration >= jitterParameters.Interval) {
       std::cerr << "ERROR: Jitter expiration must be smaller than jitter interval" << "\n";
+      return 1;
+   }
+   if( (jitterParameters.Deviation < 0.0) || (jitterParameters.Deviation > 1.0) ) {
+      std::cerr << "ERROR: Invalid Jitter interval deviation setting: "
+                << jitterParameters.Deviation << "\n";
       return 1;
    }
 #endif
@@ -462,30 +471,36 @@ int main(int argc, char** argv)
 #if 0
    if(serviceJitter) {
       HPCT_LOG(info) << "Jitter Service:" << std:: endl
-                     << "* Interval           = " << jitterParameters.Interval   << " ms" << "\n"
+                     << "* Interval           = " << jitterParameters.Interval            << " ms ± "
+                     << 100.0 * jitterParameters.Deviation << "%\n"
                      << "* Expiration         = " << jitterParameters.Expiration << " ms" << "\n"
                      << "* Burst              = " << jitterParameters.Rounds              << "\n"
                      << "* TTL                = " << jitterParameters.InitialMaxTTL       << "\n"
-                     << "* Packet Size        = " << jitterParameters.PacketSize          << " B";
+                     << "* Packet Size        = " << jitterParameters.PacketSize          << " B\n"
+                     << "* Destination Port   = " << jitterParameters.DestinationPort;
    }
 #endif
    if(servicePing) {
       HPCT_LOG(info) << "Ping Service:" << std:: endl
-                     << "* Interval           = " << pingParameters.Interval   << " ms" << "\n"
-                     << "* Expiration         = " << pingParameters.Expiration << " ms" << "\n"
-                     << "* Burst              = " << pingParameters.Rounds              << "\n"
-                     << "* TTL                = " << pingParameters.InitialMaxTTL       << "\n"
-                     << "* Packet Size        = " << pingParameters.PacketSize          << " B";
+                     << "* Interval           = " << pingParameters.Interval              << " ms ± "
+                     << 100.0 * pingParameters.Deviation << "%\n"
+                     << "* Expiration         = " << pingParameters.Expiration            << " ms" << "\n"
+                     << "* Burst              = " << pingParameters.Rounds                << "\n"
+                     << "* TTL                = " << pingParameters.InitialMaxTTL         << "\n"
+                     << "* Packet Size        = " << pingParameters.PacketSize            << " B\n"
+                     << "* Destination Port   = " << pingParameters.DestinationPort;
    }
    if(serviceTraceroute) {
       HPCT_LOG(info) << "Traceroute Service:" << std:: endl
-                     << "* Interval           = " << tracerouteParameters.Interval        << " ms" << "\n"
+                     << "* Interval           = " << tracerouteParameters.Interval        << " ms ± "
+                     << 100.0 * tracerouteParameters.Deviation << "%\n"
                      << "* Expiration         = " << tracerouteParameters.Expiration      << " ms" << "\n"
                      << "* Rounds             = " << tracerouteParameters.Rounds          << "\n"
                      << "* Initial MaxTTL     = " << tracerouteParameters.InitialMaxTTL   << "\n"
                      << "* Final MaxTTL       = " << tracerouteParameters.FinalMaxTTL     << "\n"
                      << "* Increment MaxTTL   = " << tracerouteParameters.IncrementMaxTTL << "\n"
-                     << "* Packet Size        = " << tracerouteParameters.PacketSize      << " B";
+                     << "* Packet Size        = " << tracerouteParameters.PacketSize      << " B\n"
+                     << "* Destination Port   = " << tracerouteParameters.DestinationPort;
    }
 
 

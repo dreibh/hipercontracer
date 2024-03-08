@@ -184,6 +184,9 @@ Sets the Ping destination port for the UDP module (default: 7, for Echo).
 .\" .It \-\-jitterinterval milliseconds
 .\" Sets the Jitter interval (time for each full round of destinations).
 .\" Default is 5000 ms.
+.\" .It \-\-jitterintervaldeviation fraction
+.\" Randomly deviate the Jitter interval by the given fraction (as 0.0 to 1.0), that is to chose out of [interval - fraction * interval, interval + fraction * interval], in order to avoid synchronisation effects.
+.\" Default is 0.1 (10%).
 .\" .It \-\-jitterexpiration milliseconds
 .\" Sets the Jitter duration (timeout for each destination).
 .\" Default is 10000 ms.
