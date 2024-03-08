@@ -62,6 +62,7 @@ struct TracerouteParameters
 {
    unsigned long long Interval;
    unsigned int       Expiration;
+   float              Deviation;
    unsigned int       Rounds;
    unsigned int       InitialMaxTTL;
    unsigned int       FinalMaxTTL ;
@@ -109,6 +110,8 @@ class Traceroute : public Service
    virtual void sendRequests();
    virtual void processResults();
 
+   static unsigned long long makeDeviation(const unsigned long long interval,
+                                           const float              deviation);
    unsigned int getInitialMaxTTL(const DestinationInfo&   destination) const;
    void         newResult(const ResultEntry* resultEntry);
 

@@ -326,6 +326,9 @@ int main(int argc, char** argv)
       ( "tracerouteinterval",
            boost::program_options::value<unsigned long long>(&tracerouteParameters.Interval)->default_value(10000),
            "Traceroute interval in ms" )
+      ( "tracerouteintervaldeviation",
+           boost::program_options::value<float>(&tracerouteParameters.Deviation)->default_value(0.1),
+           "Traceroute interval deviation fraction (0.0 to 1.0)" )
       ( "tracerouteduration",
            boost::program_options::value<unsigned int>(&tracerouteParameters.Expiration)->default_value(3000),
            "Traceroute duration in ms" )
@@ -354,6 +357,9 @@ int main(int argc, char** argv)
       ( "pinginterval",
            boost::program_options::value<unsigned long long>(&pingParameters.Interval)->default_value(1000),
            "Ping interval in ms" )
+      ( "pingintervaldeviation",
+           boost::program_options::value<float>(&pingParameters.Deviation)->default_value(0.1),
+           "Ping interval deviation fraction (0.0 to 1.0)" )
       ( "pingexpiration",
            boost::program_options::value<unsigned int>(&pingParameters.Expiration)->default_value(30000),
            "Ping expiration timeout in ms" )
@@ -496,6 +502,15 @@ int main(int argc, char** argv)
       std::cerr << "ERROR: Invalid Identifier setting: " << measurementID << "\n";
       return 1;
    }
+   if( (pingParameters.Deviation < 0.0) || (pingParameters.Deviation > 1.0) ) {
+      std::cerr << "ERROR: Invalid Ping interval deviation setting: "
+                << pingParameters.Deviation << "\n";
+      return 1;
+   }
+   if( (tracerouteParameters.Deviation < 0.0) || (tracerouteParameters.Deviation > 1.0) ) {
+      std::cerr << "ERROR: Invalid Traceroute interval deviation setting: "
+                << tracerouteParameters.Deviation << "\n";
+   }
    if( (resultsFormatVersion < OutputFormatVersionType::OFT_Min) ||
        (resultsFormatVersion > OutputFormatVersionType::OFT_Max) ) {
       std::cerr << "ERROR: Invalid results format version: " << resultsFormatVersion << "\n";
@@ -537,7 +552,7 @@ int main(int argc, char** argv)
       return 1;
    }
 
-   std::srand(std::time(0));
+   std::srand(std::time(nullptr));
 #if 0
    jitterParameters.Interval            = std::min(std::max(100ULL, jitterParameters.Interval),        3600U*10000ULL);
    jitterParameters.Expiration          = std::min(std::max(100U, jitterParameters.Expiration),        3600U*10000U);

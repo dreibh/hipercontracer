@@ -96,9 +96,8 @@ void Ping::scheduleTimeoutEvent()
 {
    // ====== Schedule event =================================================
    if((Iterations == 0) || (IterationNumber < Iterations)) {
-      // Deviate next send interval by 20%, to avoid synchronisation!
-      const unsigned long long deviation = std::max(10ULL, Parameters.Interval / 5ULL);   // 20% deviation
-      const unsigned long long duration  = Parameters.Interval + (std::rand() % deviation);
+      // Deviate next send, to avoid synchronisation!
+      const unsigned long long duration = makeDeviation(Parameters.Interval, Parameters.Deviation);
       TimeoutTimer.expires_from_now(boost::posix_time::milliseconds(duration));
    }
    else {
