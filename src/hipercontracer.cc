@@ -466,7 +466,8 @@ int main(int argc, char** argv)
                      << "* Burst              = " << jitterParameters.Rounds              << "\n"
                      << "* TTL                = " << jitterParameters.InitialMaxTTL       << "\n"
                      << "* Packet Size        = " << jitterParameters.PacketSize          << " B\n"
-                     << "* Destination Port   = " << jitterParameters.DestinationPort;
+                     << "* Ports              = UDP: "
+                        << jitterUDPSourcePort << " -> " << jitterUDPDestinationPort << "\n";
    }
    if(servicePing) {
       HPCT_LOG(info) << "Ping Service:" << std:: endl
@@ -476,7 +477,8 @@ int main(int argc, char** argv)
                      << "* Burst              = " << pingParameters.Rounds                << "\n"
                      << "* TTL                = " << pingParameters.InitialMaxTTL         << "\n"
                      << "* Packet Size        = " << pingParameters.PacketSize            << " B\n"
-                     << "* Destination Port   = " << pingParameters.DestinationPort;
+                     << "* Ports              = UDP: "
+                        << pingUDPSourcePort << " -> " << pingUDPDestinationPort << "\n";
    }
    if(serviceTraceroute) {
       HPCT_LOG(info) << "Traceroute Service:" << std:: endl
@@ -488,7 +490,8 @@ int main(int argc, char** argv)
                      << "* Final MaxTTL       = " << tracerouteParameters.FinalMaxTTL     << "\n"
                      << "* Increment MaxTTL   = " << tracerouteParameters.IncrementMaxTTL << "\n"
                      << "* Packet Size        = " << tracerouteParameters.PacketSize      << " B\n"
-                     << "* Destination Port   = " << tracerouteParameters.DestinationPort;
+                     << "* Ports              = UDP: "
+                        << tracerouteUDPSourcePort << " -> " << tracerouteUDPDestinationPort << "\n";
    }
 
 
