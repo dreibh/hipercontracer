@@ -640,7 +640,8 @@ int main(int argc, char** argv)
                      << "* TTL                = " << jitterParameters.InitialMaxTTL       << "\n"
                      << "* Packet Size        = " << jitterParameters.PacketSize          << " B\n"
                      << "* Ports              = (none for ICMP) / UDP: "
-                        << jitterUDPSourcePort << " -> " << jitterUDPDestinationPort << "\n";
+                        << jitterUDPSourcePort << " -> " << jitterUDPDestinationPort << " / TCP: "
+                        << jitterTCPSourcePort << " -> " << jitterTCPDestinationPort << "\n";
    }
    if(servicePing) {
       HPCT_LOG(info) << "Ping Service:" << std:: endl
@@ -651,7 +652,8 @@ int main(int argc, char** argv)
                      << "* TTL                = " << pingParameters.InitialMaxTTL         << "\n"
                      << "* Packet Size        = " << pingParameters.PacketSize            << " B\n"
                      << "* Ports              = (none for ICMP) / UDP: "
-                        << pingUDPSourcePort << " -> " << pingUDPDestinationPort << "\n";
+                        << pingUDPSourcePort << " -> " << pingUDPDestinationPort << " / TCP: "
+                        << pingTCPSourcePort << " -> " << pingTCPDestinationPort << "\n";
    }
    if(serviceTraceroute) {
       HPCT_LOG(info) << "Traceroute Service:" << std:: endl
@@ -664,7 +666,8 @@ int main(int argc, char** argv)
                      << "* Increment MaxTTL   = " << tracerouteParameters.IncrementMaxTTL << "\n"
                      << "* Packet Size        = " << tracerouteParameters.PacketSize      << " B\n"
                      << "* Ports              = (none for ICMP) / UDP: "
-                        << tracerouteUDPSourcePort << " -> " << tracerouteUDPDestinationPort << "\n";
+                        << tracerouteUDPSourcePort << " -> " << tracerouteUDPDestinationPort << " / TCP: "
+                        << tracerouteTCPSourcePort << " -> " << tracerouteTCPDestinationPort << "\n";
    }
 
    HPCT_LOG(info) << "Trigger:" << std::endl
