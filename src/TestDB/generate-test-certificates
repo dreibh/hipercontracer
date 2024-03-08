@@ -30,32 +30,34 @@ from CertificateHelper import *
 
 # ====== Handle command-line parameters =====================================
 if len(sys.argv) < 3:
-   sys.stderr.write('Usage: ' + sys.argv[0] + ' ssl_directory server\n')
+   sys.stderr.write('Usage: ' + sys.argv[0] + ' ssl_directory server [subjectAltName]\n')
    sys.exit(1)
 mainDirectory = sys.argv[1]
 serverName    = sys.argv[2]
+if len(sys.argv) > 3:
+   subjectAltName = sys.argv[3]
+else:
+   # ====== Prepare subjectAltName: current hostname+localhost+all addresses ===
+   subjectAltName = 'DNS:localhost'
 
-# ====== Prepare subjectAltName: current hostname+localhost+all addresses ===
-subjectAltName = 'DNS:localhost'
+   # ------ Add FQDN of current hostname ---------------------------------------
+   fqdn = socket.getfqdn()
+   subjectAltName = subjectAltName + ',DNS:' + fqdn
 
-# ------ Add FQDN of current hostname ---------------------------------------
-fqdn = socket.getfqdn()
-subjectAltName = subjectAltName + ',DNS:' + fqdn
+   # ------ Add all IP addresses -----------------------------------------------
+   localAddressSet = set()
+   for interfaceName in netifaces.interfaces():
+      for family in [ netifaces.AF_INET, netifaces.AF_INET6 ]:
+         addresses = netifaces.ifaddresses(interfaceName).get(family)
+         if addresses:
+            for address in addresses:
+               if not '%' in address['addr']:   # Not a IPv6 link-local address
+                  localAddressSet.add(str(ipaddress.ip_address(address['addr'])))
 
-# ------ Add all IP addresses -----------------------------------------------
-localAddressSet = set()
-for interfaceName in netifaces.interfaces():
-    for family in [ netifaces.AF_INET, netifaces.AF_INET6 ]:
-       addresses = netifaces.ifaddresses(interfaceName).get(family)
-       if addresses:
-          for address in addresses:
-            if not '%' in address['addr']:   # Not a IPv6 link-local address
-               localAddressSet.add(str(ipaddress.ip_address(address['addr'])))
+   for localAddress in localAddressSet:
+      subjectAltName = subjectAltName + ',IP:' + localAddress
 
-for localAddress in localAddressSet:
-   subjectAltName = subjectAltName + ',IP:' + localAddress
-
-# print(subjectAltName)
+print(subjectAltName)
 
 
 
