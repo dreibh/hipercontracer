@@ -173,6 +173,26 @@ ELSE()
    FIND_PATH(INotify_INCLUDE_DIRS NAMES sys/inotify.h)
 ENDIF()
 
+# ###### libbz2 #############################################################
+FIND_LIBRARY(BZ2_LIBRARY NAMES bz2)
+IF (NOT BZ2_LIBRARY)
+   MESSAGE(FATAL_ERROR
+           " Cannot find BZ2 library! Try:\n"
+           " * Ubuntu/Debian: sudo apt install -y libbz2-dev\n"
+           " * Fedora:        sudo dnf install -y bzip2-devel\n"
+           " * FreeBSD:       sudo pkg install -y bzip2")
+ENDIF()
+
+# ###### liblzma ############################################################
+FIND_LIBRARY(LZMA_LIBRARY NAMES lzma)
+IF (NOT LZMA_LIBRARY)
+   MESSAGE(FATAL_ERROR
+           " Cannot find LZMA library! Try:\n"
+           " * Ubuntu/Debian: sudo apt install -y liblzma-dev\n"
+           " * Fedora:        sudo dnf install -y xz-devel\n"
+           " * FreeBSD:       sudo pkg install -y lzmalib")
+ENDIF()
+
 # ###### C-ARES #############################################################
 FIND_LIBRARY(CARES_LIBRARY NAMES cares libcares)
 IF (NOT CARES_LIBRARY)
