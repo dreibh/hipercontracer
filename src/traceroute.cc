@@ -269,12 +269,26 @@ void Traceroute::run()
 }
 
 
+// ###### Randomly deviate interval with given deviation percentage #########
+// The random value will be chosen out of:
+// [interval - deviation * interval, interval + deviation * interval]
+unsigned long long Traceroute::makeDeviation(const unsigned long long interval,
+                                             const float              deviation)
+{
+   assert(deviation >= 0.0);
+   assert(deviation <= 1.0);
+
+   const long long          d     = (long long)(interval * deviation);
+   const unsigned long long value =
+      ((long long)interval - d) + (std::rand() % (2 * d + 1));
+   return value;
+}
+
+
 // ###### Schedule timeout timer ############################################
 void Traceroute::scheduleTimeoutEvent()
 {
-   const unsigned int deviation = std::max(10U, Parameters.Expiration / 5);   // 20% deviation
-   const unsigned int duration  = Parameters.Expiration + (std::rand() % deviation);
-   TimeoutTimer.expires_from_now(boost::posix_time::milliseconds(duration));
+   TimeoutTimer.expires_from_now(boost::posix_time::milliseconds(Parameters.Expiration));
    TimeoutTimer.async_wait(std::bind(&Traceroute::handleTimeoutEvent, this,
                                      std::placeholders::_1));
 }
@@ -333,8 +347,7 @@ void Traceroute::scheduleIntervalEvent()
           millisecondsToWait = 24*3600*1000;
       }
       else {
-         const unsigned long long deviation       = std::max(10ULL, Parameters.Interval / 5);   // 20% deviation
-         const unsigned long long waitingDuration = Parameters.Interval + (std::rand() % deviation);
+         const unsigned long long waitingDuration = makeDeviation(Parameters.Interval, Parameters.Deviation);
          const std::chrono::steady_clock::duration howLongToWait =
             (RunStartTimeStamp + std::chrono::milliseconds(waitingDuration)) - std::chrono::steady_clock::now();
          millisecondsToWait = std::max(0LL, (long long)std::chrono::duration_cast<std::chrono::milliseconds>(howLongToWait).count());

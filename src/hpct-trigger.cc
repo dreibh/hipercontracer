@@ -328,6 +328,9 @@ int main(int argc, char** argv)
       ( "tracerouteinterval",
            boost::program_options::value<unsigned long long>(&tracerouteParameters.Interval)->default_value(10000),
            "Traceroute interval in ms" )
+      ( "tracerouteintervaldeviation",
+           boost::program_options::value<float>(&tracerouteParameters.Deviation)->default_value(0.1),
+           "Traceroute interval deviation fraction (0.0 to 1.0)" )
       ( "tracerouteduration",
            boost::program_options::value<unsigned int>(&tracerouteParameters.Expiration)->default_value(3000),
            "Traceroute duration in ms" )
@@ -362,6 +365,9 @@ int main(int argc, char** argv)
       ( "pinginterval",
            boost::program_options::value<unsigned long long>(&pingParameters.Interval)->default_value(1000),
            "Ping interval in ms" )
+      ( "pingintervaldeviation",
+           boost::program_options::value<float>(&pingParameters.Deviation)->default_value(0.1),
+           "Ping interval deviation fraction (0.0 to 1.0)" )
       ( "pingexpiration",
            boost::program_options::value<unsigned int>(&pingParameters.Expiration)->default_value(30000),
            "Ping expiration timeout in ms" )
@@ -390,6 +396,9 @@ int main(int argc, char** argv)
       ( "jitterinterval",
            boost::program_options::value<unsigned long long>(&jitterParameters.Interval)->default_value(10000),
            "Jitter interval in ms" )
+      ( "jitterintervaldeviation",
+           boost::program_options::value<float>(&jitterParameters.Deviation)->default_value(0.1),
+           "Jitter interval deviation fraction (0.0 to 1.0)" )
       ( "jitterexpiration",
            boost::program_options::value<unsigned int>(&jitterParameters.Expiration)->default_value(5000),
            "Jitter expiration timeout in ms" )
@@ -469,6 +478,7 @@ int main(int argc, char** argv)
       checkEnvironment("HPCT Trigger");
       return 0;
    }
+
    if(vm.count("source")) {
       const std::vector<std::string>& sourceAddressVector = vm["source"].as<std::vector<std::string>>();
       for(std::vector<std::string>::const_iterator iterator = sourceAddressVector.begin();
@@ -511,12 +521,44 @@ int main(int argc, char** argv)
       ioModules.insert("ICMP");
    }
    if(measurementID > 0x7fffffff) {
-      std::cerr << "ERROR: Invalid Identifier setting: " << measurementID << "\n";
+      std::cerr << "ERROR: Invalid MeasurementID setting: " << measurementID << "\n";
       return 1;
+   }
+   if( (pingParameters.Deviation < 0.0) || (pingParameters.Deviation > 1.0) ) {
+      std::cerr << "ERROR: Invalid Ping interval deviation setting: "
+                << pingParameters.Deviation << "\n";
+      return 1;
+   }
+   if( (tracerouteParameters.Deviation < 0.0) || (tracerouteParameters.Deviation > 1.0) ) {
+      std::cerr << "ERROR: Invalid Traceroute interval deviation setting: "
+                << tracerouteParameters.Deviation << "\n";
+   }
+   if(tracerouteParameters.InitialMaxTTL > tracerouteParameters.FinalMaxTTL) {
+      std::cerr << "NOTE: Setting TracerouteInitialMaxTTL to TracerouteFinalMaxTTL=" << tracerouteParameters.FinalMaxTTL << "!\n";
+      tracerouteParameters.InitialMaxTTL = tracerouteParameters.FinalMaxTTL;
+      return 1;
+   }
+   if( (pingParameters.Deviation < 0.0) || (pingParameters.Deviation > 1.0) ) {
+      std::cerr << "ERROR: Invalid Ping interval deviation setting: "
+                << pingParameters.Deviation << "\n";
+      return 1;
+   }
+   if( (tracerouteParameters.Deviation < 0.0) || (tracerouteParameters.Deviation > 1.0) ) {
+      std::cerr << "ERROR: Invalid Traceroute interval deviation setting: "
+                << tracerouteParameters.Deviation << "\n";
    }
    if( (resultsFormatVersion < OutputFormatVersionType::OFT_Min) ||
        (resultsFormatVersion > OutputFormatVersionType::OFT_Max) ) {
       std::cerr << "ERROR: Invalid results format version: " << resultsFormatVersion << "\n";
+      return 1;
+   }
+   if(jitterParameters.Expiration >= jitterParameters.Interval) {
+      std::cerr << "ERROR: Jitter expiration must be smaller than jitter interval" << "\n";
+      return 1;
+   }
+   if( (jitterParameters.Deviation < 0.0) || (jitterParameters.Deviation > 1.0) ) {
+      std::cerr << "ERROR: Invalid Jitter interval deviation setting: "
+                << jitterParameters.Deviation << "\n";
       return 1;
    }
    boost::algorithm::to_upper(resultsCompressionString);
@@ -555,7 +597,14 @@ int main(int argc, char** argv)
       return 1;
    }
 
-   std::srand(std::time(0));
+   std::srand(std::time(nullptr));
+   jitterParameters.Interval            = std::min(std::max(100ULL, jitterParameters.Interval),        3600U*10000ULL);
+   jitterParameters.Expiration          = std::min(std::max(100U, jitterParameters.Expiration),        3600U*10000U);
+   jitterParameters.InitialMaxTTL       = std::min(std::max(1U, jitterParameters.InitialMaxTTL),       255U);
+   jitterParameters.FinalMaxTTL         = jitterParameters.InitialMaxTTL;
+   jitterParameters.IncrementMaxTTL     = 1;
+   jitterParameters.Rounds              = std::min(std::max(2U, jitterParameters.Rounds),              1024U);
+   jitterParameters.PacketSize          = std::min(65535U, jitterParameters.PacketSize);
    pingParameters.Interval              = std::min(std::max(100ULL, pingParameters.Interval),          3600U*60000ULL);
    pingParameters.Expiration            = std::min(std::max(100U, pingParameters.Expiration),          3600U*60000U);
    pingParameters.InitialMaxTTL         = std::min(std::max(1U, pingParameters.InitialMaxTTL),         255U);
@@ -584,30 +633,40 @@ int main(int argc, char** argv)
 
    if(serviceJitter) {
       HPCT_LOG(info) << "Jitter Service:" << std:: endl
-                     << "* Interval           = " << jitterParameters.Interval   << " ms" << "\n"
+                     << "* Interval           = " << jitterParameters.Interval            << " ms ± "
+                     << 100.0 * jitterParameters.Deviation << "%\n"
                      << "* Expiration         = " << jitterParameters.Expiration << " ms" << "\n"
                      << "* Burst              = " << jitterParameters.Rounds              << "\n"
                      << "* TTL                = " << jitterParameters.InitialMaxTTL       << "\n"
-                     << "* Packet Size        = " << jitterParameters.PacketSize          << " B";
+                     << "* Packet Size        = " << jitterParameters.PacketSize          << " B\n"
+                     << "* Ports              = (none for ICMP) / UDP: "
+                        << jitterUDPSourcePort << " -> " << jitterUDPDestinationPort << "\n";
    }
    if(servicePing) {
       HPCT_LOG(info) << "Ping Service:" << std:: endl
-                     << "* Interval           = " << pingParameters.Interval   << " ms" << "\n"
-                     << "* Expiration         = " << pingParameters.Expiration << " ms" << "\n"
-                     << "* Burst              = " << pingParameters.Rounds              << "\n"
-                     << "* TTL                = " << pingParameters.InitialMaxTTL       << "\n"
-                     << "* Packet Size        = " << pingParameters.PacketSize          << " B";
+                     << "* Interval           = " << pingParameters.Interval              << " ms ± "
+                     << 100.0 * pingParameters.Deviation << "%\n"
+                     << "* Expiration         = " << pingParameters.Expiration            << " ms" << "\n"
+                     << "* Burst              = " << pingParameters.Rounds                << "\n"
+                     << "* TTL                = " << pingParameters.InitialMaxTTL         << "\n"
+                     << "* Packet Size        = " << pingParameters.PacketSize            << " B\n"
+                     << "* Ports              = (none for ICMP) / UDP: "
+                        << pingUDPSourcePort << " -> " << pingUDPDestinationPort << "\n";
    }
    if(serviceTraceroute) {
       HPCT_LOG(info) << "Traceroute Service:" << std:: endl
-                     << "* Interval           = " << tracerouteParameters.Interval        << " ms" << "\n"
+                     << "* Interval           = " << tracerouteParameters.Interval        << " ms ± "
+                     << 100.0 * tracerouteParameters.Deviation << "%\n"
                      << "* Expiration         = " << tracerouteParameters.Expiration      << " ms" << "\n"
                      << "* Rounds             = " << tracerouteParameters.Rounds          << "\n"
                      << "* Initial MaxTTL     = " << tracerouteParameters.InitialMaxTTL   << "\n"
                      << "* Final MaxTTL       = " << tracerouteParameters.FinalMaxTTL     << "\n"
                      << "* Increment MaxTTL   = " << tracerouteParameters.IncrementMaxTTL << "\n"
-                     << "* Packet Size        = " << tracerouteParameters.PacketSize      << " B";
+                     << "* Packet Size        = " << tracerouteParameters.PacketSize      << " B\n"
+                     << "* Ports              = (none for ICMP) / UDP: "
+                        << tracerouteUDPSourcePort << " -> " << tracerouteUDPDestinationPort << "\n";
    }
+
    HPCT_LOG(info) << "Trigger:" << std::endl
                   << "* Ping Trigger Age     = " << PingTriggerAge << " s" << std::endl
                   << "* Ping Trigger Length  = " << PingTriggerLength      << std::endl
