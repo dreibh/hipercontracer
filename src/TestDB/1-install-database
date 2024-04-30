@@ -220,7 +220,7 @@ EOF
    # to the configured user (root):
    cp /etc/mongod.conf /tmp/
    sudo sed \
-      -e "s!  bindIp: 127.0.0.1!  ipv6: true\n  bindIpAll: true\n  tls:\n    mode: requireTLS\n    CAFile: ${MONGODB_CA_FILE}\n    CRLFile: ${MONGODB_CRL_FILE}\n    certificateKeyFile: ${MONGODB_CRT_KEY_FILE}\n    disabledProtocols: TLS1_0,TLS1_1,TLS1_2!" \
+      -e "s!  bindIp: 127.0.0.1!  ipv6: true\n  bindIpAll: true\n  tls:\n    mode: requireTLS\n    CAFile: ${MONGODB_CA_FILE}\n    CRLFile: ${MONGODB_CRL_FILE}\n    certificateKeyFile: ${MONGODB_CRT_KEY_FILE}\n    disabledProtocols: TLS1_0,TLS1_1,TLS1_2\n    allowConnectionsWithoutCertificates: true!" \
       -e "s!#security:!security:\n  authorization: enabled!" \
       -e "s!#  engine:!  directoryPerDB: true!" \
       -e "s!#  wiredTiger:!  wiredTiger:\n    engineConfig:\n      directoryForIndexes: true!" \
