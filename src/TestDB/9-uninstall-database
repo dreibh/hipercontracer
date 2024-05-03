@@ -77,7 +77,7 @@ elif [ "$1" == "postgresql" ] ; then
    elif [ -x /usr/bin/dnf ] ; then
       sudo dnf remove -y 'postgresql-*'
    elif [ -x /usr/sbin/pkg ] ; then
-      false
+      sudo pkg remove -y 'postgresql*-*' || true
    fi
 
    sudo rm -rf /var/lib/postgresql/*
@@ -93,7 +93,7 @@ elif [ "$1" == "mongodb" ] ; then
    elif [ -x /usr/bin/dnf ] ; then
       sudo dnf remove -y 'mongodb-*'
    elif [ -x /usr/sbin/pkg ] ; then
-      false
+      sudo pkg remove -y 'mongodb*' || true
    fi
 
    sudo rm -rf /var/lib/mongodb/*

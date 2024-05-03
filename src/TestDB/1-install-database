@@ -149,7 +149,7 @@ elif [ "$1" == "postgresql" ] ; then
       sudo systemctl enable postgresql.service
       sudo systemctl start postgresql.service
    elif [ -x /usr/sbin/pkg ] ; then
-      false
+      sudo pkg install -y postgresql16-server openssl
    fi
 
    # ====== Basic configuration =============================================
@@ -227,7 +227,7 @@ EOF
       sudo systemctl enable mongod.service
       sudo systemctl start mongod.service
    elif [ -x /usr/sbin/pkg ] ; then
-      false
+      sudo pkg install -y mongodb70
    fi
 
    # ====== Basic configuration =============================================
@@ -240,7 +240,7 @@ EOF
    sudo touch ${MONGODB_CRT_KEY_FILE}
    sudo chmod 600 ${MONGODB_CRT_KEY_FILE}
    sudo cat /etc/ssl/mongodb.domain.test/mongodb.domain.test.key /etc/ssl/mongodb.domain.test/mongodb.domain.test.crt /etc/ssl/TestLeaf/certs/TestLeaf-chain.pem | sudo tee ${MONGODB_CRT_KEY_FILE} >/dev/null
-   if [ -x /usr/bin/apt ] ; then
+   if [ ! -x /usr/bin/dnf ] ; then
       sudo chown mongodb:mongodb ${MONGODB_CRT_KEY_FILE}
    else
       sudo chown mongod:mongod ${MONGODB_CRT_KEY_FILE}
