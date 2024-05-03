@@ -66,16 +66,6 @@ if [ "$1" == "mariadb" ] ; then
    # ====== Install MariaDB =================================================
    echo "Installing MariaDB ..."
 
-   # MariaDB needs separate certificate and key files.
-   # The chain is in the CA file, it must not be in the certificate file!
-   # Details: https://mariadb.com/kb/en/securing-connections-for-client-and-server/
-   MARIADB_CA_FILE="/etc/ssl/TestLeaf/certs/TestLeaf-chain.pem"
-   MARIADB_CRL_FILE="/etc/ssl/TestGlobal.crl"
-   MARIADB_CRT_FILE="/etc/ssl/mariadb.domain.test/mariadb.domain.test.crt"
-   MARIADB_KEY_FILE="/etc/ssl/mariadb.domain.test/mariadb.domain.test.key"
-   sudo chown mysql:mysql ${MARIADB_KEY_FILE}
-   sudo openssl verify -CAfile ${MARIADB_CA_FILE} ${MARIADB_CRT_FILE}
-
    if [ -x /usr/bin/apt ] ; then
       sudo DEBIAN_FRONTEND=noninteractive apt install -y -o APT::Keep-Downloaded-Packages=true mariadb-server mariadb-backup mariadb-client openssl
    elif [ -x /usr/bin/dnf ] ; then
@@ -88,6 +78,16 @@ if [ "$1" == "mariadb" ] ; then
 
    # ====== Basic configuration =============================================
    sudo ./generate-test-certificates /etc/ssl mariadb.domain.test
+
+   # MariaDB needs separate certificate and key files.
+   # The chain is in the CA file, it must not be in the certificate file!
+   # Details: https://mariadb.com/kb/en/securing-connections-for-client-and-server/
+   MARIADB_CA_FILE="/etc/ssl/TestLeaf/certs/TestLeaf-chain.pem"
+   MARIADB_CRL_FILE="/etc/ssl/TestGlobal.crl"
+   MARIADB_CRT_FILE="/etc/ssl/mariadb.domain.test/mariadb.domain.test.crt"
+   MARIADB_KEY_FILE="/etc/ssl/mariadb.domain.test/mariadb.domain.test.key"
+   sudo chown mysql:mysql ${MARIADB_KEY_FILE}
+   sudo openssl verify -CAfile ${MARIADB_CA_FILE} ${MARIADB_CRT_FILE}
 
    sudo mysqladmin password "${ROOT_PASSWORD}"
    sudo mariadb --user=root <<EOF
@@ -188,9 +188,9 @@ elif [ "$1" == "mongodb" ] ; then
    echo "Installing MongoDB ..."
 
    if [ -x /usr/bin/apt ] ; then
-      wget -qO - https://www.mongodb.org/static/pgp/server-6.0.asc | gpg --dearmor | sudo tee /usr/share/keyrings/mongodb.gpg >/dev/null
-      if [ ! -e /etc/apt/sources.list.d/mongodb-org-6.0.list ] ; then
-         echo "deb [ signed-by=/usr/share/keyrings/mongodb.gpg arch=amd64,arm64 ] https://repo.mongodb.org/apt/ubuntu jammy/mongodb-org/6.0 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-6.0.list
+      wget -qO - https://www.mongodb.org/static/pgp/server-7.0.asc | gpg --dearmor | sudo tee /usr/share/keyrings/mongodb.gpg >/dev/null
+      if [ ! -e /etc/apt/sources.list.d/mongodb-org.list ] ; then
+         echo "deb [ signed-by=/usr/share/keyrings/mongodb.gpg arch=amd64,arm64 ] https://repo.mongodb.org/apt/ubuntu jammy/mongodb-org/7.0 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org.list
       fi
       sudo apt update -qq
       sudo DEBIAN_FRONTEND=noninteractive apt install -y -o APT::Keep-Downloaded-Packages=true mongodb-org openssl
@@ -263,7 +263,7 @@ EOF
    # to the configured user (root):
    cp /etc/mongod.conf /tmp/
    sudo sed \
-      -e "s!^  bindIp: 127.0.0.1.*$!  ipv6: true\n  bindIpAll: true\n  tls:\n    mode: requireTLS\n    CAFile: ${MONGODB_CA_FILE}\n    CRLFile: ${MONGODB_CRL_FILE}\n    certificateKeyFile: ${MONGODB_CRT_KEY_FILE}\n    disabledProtocols: TLS1_0,TLS1_1,TLS1_2\n    allowConnectionsWithoutCertificates: true!" \
+      -e "s!^  bindIp: 127.0.0.1.*!  ipv6: true\n  bindIpAll: true\n  tls:\n    mode: requireTLS\n    CAFile: ${MONGODB_CA_FILE}\n    CRLFile: ${MONGODB_CRL_FILE}\n    certificateKeyFile: ${MONGODB_CRT_KEY_FILE}\n    disabledProtocols: TLS1_0,TLS1_1,TLS1_2\n    allowConnectionsWithoutCertificates: true!" \
       -e "s!#security:!security:\n  authorization: enabled!" \
       -e "s!#  engine:!  directoryPerDB: true!" \
       -e "s!#  wiredTiger:!  wiredTiger:\n    engineConfig:\n      directoryForIndexes: true!" \

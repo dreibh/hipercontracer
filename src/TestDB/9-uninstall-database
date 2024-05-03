@@ -55,9 +55,9 @@ if [ "$1" == "mariadb" ] ; then
    echo "Uninstalling MariaDB ..."
 
    if [ -x /usr/bin/apt ] ; then
-      sudo DEBIAN_FRONTEND=noninteractive apt autopurge -y mariadb-server mariadb-backup mariadb-client
+      sudo DEBIAN_FRONTEND=noninteractive apt purge -y 'mariadb-*'
    elif [ -x /usr/bin/dnf ] ; then
-      sudo dnf autoremove -y mariadb-server mariadb-backup
+      sudo dnf remove -y 'mariadb-*'
    elif [ -x /usr/sbin/pkg ] ; then
       false
    fi
@@ -71,9 +71,9 @@ elif [ "$1" == "postgresql" ] ; then
    echo "Uninstalling PostgreSQL ..."
 
    if [ -x /usr/bin/apt ] ; then
-      sudo DEBIAN_FRONTEND=noninteractive apt purge -y postgresql-all postgresql-contrib
+      sudo DEBIAN_FRONTEND=noninteractive apt purge -y 'postgresql-*'
    elif [ -x /usr/bin/dnf ] ; then
-      sudo dnf autoremove -y postgresql-server
+      sudo dnf remove -y 'postgresql-*'
    elif [ -x /usr/sbin/pkg ] ; then
       false
    fi
@@ -87,9 +87,9 @@ elif [ "$1" == "mongodb" ] ; then
    echo "Uninstalling MongoDB ..."
 
    if [ -x /usr/bin/apt ] ; then
-      sudo DEBIAN_FRONTEND=noninteractive apt purge -y 'mongodb*'
+      sudo DEBIAN_FRONTEND=noninteractive apt purge -y 'mongodb-*'
    elif [ -x /usr/bin/dnf ] ; then
-      sudo dnf autoremove -y mongodb-org
+      sudo dnf remove -y 'mongodb-*'
    elif [ -x /usr/sbin/pkg ] ; then
       false
    fi
