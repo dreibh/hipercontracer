@@ -73,7 +73,9 @@ if [ "$1" == "mariadb" ] ; then
       sudo systemctl enable mariadb.service
       sudo systemctl start mariadb.service
    elif [ -x /usr/sbin/pkg ] ; then
-      false
+      sudo pkg install -y mariadb1011-server
+      sudo service mysql-server enable
+      sudo service mysql-server start
    fi
 
    # ====== Basic configuration =============================================

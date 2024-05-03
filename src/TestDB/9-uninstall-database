@@ -59,7 +59,9 @@ if [ "$1" == "mariadb" ] ; then
    elif [ -x /usr/bin/dnf ] ; then
       sudo dnf remove -y 'mariadb-*'
    elif [ -x /usr/sbin/pkg ] ; then
-      false
+      sudo service mysql-server disable || true
+      sudo service mysql-server stop    || true
+      sudo pkg remove -y 'mariadb*-*'   || true
    fi
 
    sudo rm -rf /var/lib/mysql/*
