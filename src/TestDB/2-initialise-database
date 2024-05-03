@@ -96,8 +96,7 @@ if [ "$1" == "mysql" -o "$1" == "mariadb" ] ; then
          --ssl-ca=/etc/ssl/TestLevel1/certs/TestLevel1.crt \
          --ssl-crl=/etc/ssl/TestGlobal.crl \
          --user=root \
-         --password="${ROOT_PASSWORD}" \
-         --database=sys
+         --password="${ROOT_PASSWORD}"
 
    # ====== Create schema ===================================================
    echo -e "\x1b[33mCreating schema ...\x1b[0m"
