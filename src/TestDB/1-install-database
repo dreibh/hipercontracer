@@ -73,7 +73,7 @@ if [ "$1" == "mariadb" ] ; then
       sudo systemctl enable mariadb.service
       sudo systemctl start mariadb.service
    elif [ -x /usr/sbin/pkg ] ; then
-      sudo pkg install -y mariadb1011-server
+      sudo pkg install -y mysql80-server openssl
       sudo service mysql-server enable
       sudo service mysql-server start
    fi
@@ -110,17 +110,22 @@ EOF
          /etc/mysql/mariadb.conf.d/50-server.cnf | sudo tee /etc/mysql/mariadb.conf.d/50-server.cnf.new >/dev/null && \
       sudo diff --color /etc/mysql/mariadb.conf.d/50-server.cnf /etc/mysql/mariadb.conf.d/50-server.cnf.new || true && \
       sudo mv /etc/mysql/mariadb.conf.d/50-server.cnf.new /etc/mysql/mariadb.conf.d/50-server.cnf
+      sudo service mariadb restart
    elif [ -x /usr/bin/dnf ] ; then
       sudo sed \
          -e "s%^#bind-address[ \t]*=.*%bind-address = *\nssl-ca = ${MARIADB_CA_FILE}\nssl-crl = ${MARIADB_CRL_FILE}\nssl-cert = ${MARIADB_CRT_FILE}\nssl-key = ${MARIADB_KEY_FILE}\nrequire-secure-transport = on\ntls_version = TLSv1.3%g" \
          </etc/my.cnf.d/mariadb-server.cnf >/etc/my.cnf.d/mariadb-server.cnf.new && \
       sudo diff --color /etc/my.cnf.d/mariadb-server.cnf /etc/my.cnf.d/mariadb-server.cnf.new || true && \
       sudo mv /etc/my.cnf.d/mariadb-server.cnf.new /etc/my.cnf.d/mariadb-server.cnf
+      sudo service mariadb restart
    elif [ -x /usr/sbin/pkg ] ; then
-      false
+      sudo sed \
+         -e "s%^bind-address[ \t]*=.*%bind-address = *\nssl-ca = ${MARIADB_CA_FILE}\nssl-crl = ${MARIADB_CRL_FILE}\nssl-cert = ${MARIADB_CRT_FILE}\nssl-key = ${MARIADB_KEY_FILE}\nrequire-secure-transport = on\ntls_version = TLSv1.3%g" \
+         </usr/local/etc/mysql/conf.d/server.cnf >/usr/local/etc/mysql/conf.d/server.cnf.new && \
+      sudo diff --color /usr/local/etc/mysql/conf.d/server.cnf /usr/local/etc/mysql/conf.d/server.cnf.new || true && \
+      sudo mv /usr/local/etc/mysql/conf.d/server.cnf.new /usr/local/etc/mysql/conf.d/server.cnf
+      sudo service mysql-server restart
    fi
-
-   sudo service mariadb restart
 
    # ====== Test configuration ==============================================
    ./test-tls-connection localhost:3306 /etc/ssl/TestLevel1/certs/TestLevel1.crt -starttls mysql
