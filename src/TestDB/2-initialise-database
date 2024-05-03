@@ -183,6 +183,7 @@ elif [ "$1" == "mongodb" ] ; then
          --tls \
          --tlsDisabledProtocols TLS1_0,TLS1_1,TLS1_2 \
          --tlsCAFile /etc/ssl/TestLevel1/certs/TestLevel1.crt \
+         --tlsCertificateKeyFile /etc/ssl/root@mongodb.domain.test/root@mongodb.domain.test-chain+key.pem \
          --username root --password "${ROOT_PASSWORD}" \
          --quiet
 
