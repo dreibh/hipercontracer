@@ -91,13 +91,17 @@ if [ "$1" == "mariadb" ] ; then
    sudo chown mysql:mysql ${MARIADB_KEY_FILE}
    sudo openssl verify -CAfile ${MARIADB_CA_FILE} ${MARIADB_CRT_FILE}
 
-   sudo mysqladmin password "${ROOT_PASSWORD}"
-   sudo mariadb --user=root <<EOF
+   # Set root password, and remove test user and database.
+   (
+      cat <<EOF
+ALTER USER 'root'@'localhost' IDENTIFIED BY '${ROOT_PASSWORD}';
 DELETE FROM mysql.user WHERE User='';
+DELETE FROM mysql.user WHERE User='root' AND Host NOT IN ('localhost', '127.0.0.1', '::1');
 DROP DATABASE IF EXISTS test;
 DELETE FROM mysql.db WHERE Db='test' OR Db='test\\_%';
 FLUSH PRIVILEGES;
 EOF
+   ) | sudo mysql --user=root
 
    # Enable network access:
    if [ -x /usr/bin/apt ] ; then
@@ -227,7 +231,9 @@ EOF
       sudo systemctl enable mongod.service
       sudo systemctl start mongod.service
    elif [ -x /usr/sbin/pkg ] ; then
-      sudo pkg install -y mongodb70
+      sudo pkg install -y mongodb70 mongodb-tools
+      sudo service mongod enable
+      sudo service mongod start
    fi
 
    # ====== Basic configuration =============================================
@@ -251,12 +257,18 @@ EOF
    #          full access!
    # The following settings enable authorization check, restricting access
    # to the configured user (root).
-   cp /etc/mongod.conf /tmp/
+   if [ ! -x /usr/sbin/pkg ] ; then
+      mongodConf=/etc/mongod.conf
+   else
+      mongodConf=/usr/local/etc/mongodb.conf
+   fi
+
+   cp ${mongodConf} /tmp/
    sudo sed \
       -e "s!#  engine:!  directoryPerDB: true!" \
       -e "s!#  wiredTiger:!  wiredTiger:\n    engineConfig:\n      directoryForIndexes: true!" \
-      /etc/mongod.conf | sudo tee /etc/mongod.conf.new
-   sudo mv /etc/mongod.conf.new /etc/mongod.conf
+      ${mongodConf} | sudo tee ${mongodConf}.new
+   sudo mv ${mongodConf}.new ${mongodConf}
 
    # ====== Make sure there is a root user ==================================
    sudo service mongod restart
@@ -279,14 +291,14 @@ EOF
    # ====== Configure MongoDB ===============================================
    # The following settings enable authorization check, restricting access
    # to the configured user (root):
-   cp /etc/mongod.conf /tmp/
+   cp ${mongodConf} /tmp/
    sudo sed \
       -e "s!^  bindIp: 127.0.0.1.*!  ipv6: true\n  bindIpAll: true\n  tls:\n    mode: requireTLS\n    CAFile: ${MONGODB_CA_FILE}\n    CRLFile: ${MONGODB_CRL_FILE}\n    certificateKeyFile: ${MONGODB_CRT_KEY_FILE}\n    disabledProtocols: TLS1_0,TLS1_1,TLS1_2\n    allowConnectionsWithoutCertificates: true!" \
       -e "s!#security:!security:\n  authorization: enabled!" \
       -e "s!#  engine:!  directoryPerDB: true!" \
       -e "s!#  wiredTiger:!  wiredTiger:\n    engineConfig:\n      directoryForIndexes: true!" \
-      /etc/mongod.conf | sudo tee /etc/mongod.conf.new
-   sudo mv /etc/mongod.conf.new /etc/mongod.conf
+      ${mongodConf} | sudo tee ${mongodConf}.new
+   sudo mv ${mongodConf}.new ${mongodConf}
 
    sudo systemctl restart mongod
    sleep 5

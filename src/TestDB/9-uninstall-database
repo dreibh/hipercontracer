@@ -64,8 +64,7 @@ if [ "$1" == "mariadb" ] ; then
       sudo pkg remove -y 'mysql*-server' || true
    fi
 
-   sudo rm -rf /var/lib/mysql/*
-   sudo rmdir /var/lib/mysql || true
+   sudo rm -rf /var/lib/mysql /var/db/mysql || true
 
 
 # ###### PostgreSQL #########################################################
