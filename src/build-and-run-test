@@ -1,0 +1,70 @@
+#!/usr/bin/env bash
+
+# Bash options:
+set -e
+
+
+# ===========================================================================
+# This script is for testing HiPerConTracer in a clean environment,
+# e.g. a minimal container:
+# docker run --rm -it debian
+# docker run --rm -it fedora
+# docker run --rm -it alpine
+# docker run --rm -it ...
+# ===========================================================================
+
+
+# Handle arguments:
+if [ $# -lt 2 ] ; then
+   echo >&2 "Usage: $0 echo_server results_directory"
+   exit 1
+fi
+ECHO_SERVER="$1"
+RESULTS_DIRECTORY="$2"
+
+
+# ====== Install dependencies ===============================================
+. ./etc/os-release || exit 1
+if [ "${ID}" == "debian" ] || [ "${ID}" == "ubuntu" ] ; then
+   apt update
+   apt install -y git cmake debhelper libboost-date-time-dev libboost-filesystem-dev libboost-iostreams-dev libboost-log-dev libboost-program-options-dev libboost-system-dev libboost-thread-dev libbz2-dev libc-ares-dev liblzma-dev pkg-config zlib1g-dev
+elif [ "${ID}" == "fedora" ] ; then
+   dnf install -y git boost-devel bzip2-devel c-ares-devel cmake gcc gcc-c++ xz-devel zlib-devel
+elif [ "${ID}" == "alpine" ] ; then
+   apk add git make gcc g++ cmake boost-dev c-ares-dev
+fi
+
+
+# ====== Get the HiPerConTracer sources =====================================
+cd ~
+if [ ! -d hipercontracer ] ; then
+   git clone https://dreibh@github.com/dreibh/hipercontracer
+fi
+cd ~/hipercontracer
+git checkout dreibh/udpping
+
+
+# ====== Set MAKEFLAGS, to utilise all cores ================================
+cores="$(getconf _NPROCESSORS_ONLN 2>/dev/null)" || \
+   cores="$(sysctl -a | grep 'hw.ncpu' | cut -d ':' -f2 | tr -d ' ')" || \
+   cores="1"
+echo "This system has ${cores} cores!"
+export MAKEFLAGS=-j${cores}
+
+
+# ====== Build only the HiPerConTracer tool itself ==========================
+rm -f CMakeCache.txt
+cmake . -DCMAKE_BUILD_TYPE=RelWithDebInfo \
+   -DSTATIC_BUILD=OFF                     \
+   -DWITH_TRIGGER=OFF                     \
+   -DWITH_IMPORTER=OFF                    \
+   -DWITH_QUERY=OFF                       \
+   -DWITH_RESULTS=OFF                     \
+   -DWITH_PIPE_CHECKSUM=OFF               \
+   -DWITH_UDP_ECHO_SERVER=OFF
+make
+
+
+# ====== Run HiPerConTracer =================================================
+cd ~/hipercontracer/src
+./hipercontracer --source :: --source 0.0.0.0 --destination ${ECHO_SERVER} --ping --traceroute -M UDP -M ICMP -R ${RESULTS_DIRECTORY} --verbose
