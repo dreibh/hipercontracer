@@ -39,7 +39,7 @@
 // conflicts with netinet/ip_icmp.h. Just adding the needed definitions here:
 #define ICMP_FILTER 1
 struct icmp_filter {
-   __u32 data;
+   uint32_t data;
 };
 #endif
 
