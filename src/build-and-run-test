@@ -47,8 +47,11 @@ fi
 cd ~
 if [ ! -d hipercontracer ] ; then
    git clone https://dreibh@github.com/dreibh/hipercontracer
+   cd ~/hipercontracer
+else
+   cd ~/hipercontracer
+   git pull
 fi
-cd ~/hipercontracer
 git checkout dreibh/udpping
 
 
