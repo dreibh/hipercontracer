@@ -44,7 +44,8 @@
 #endif
 
 
-REGISTER_IOMODULE(ProtocolType::PT_ICMP, "ICMP", ICMPModule);
+// NOTE: The registration was moved to iomodule-base.cc, due to linking issues!
+// REGISTER_IOMODULE(ProtocolType::PT_ICMP, "ICMP", ICMPModule);
 
 
 // ###### Constructor #######################################################

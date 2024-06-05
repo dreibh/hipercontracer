@@ -44,6 +44,17 @@
 #endif
 
 
+//  ###### IO Module Registry ###############################################
+
+#include "iomodule-icmp.h"
+#include "iomodule-udp.h"
+
+REGISTER_IOMODULE(ProtocolType::PT_ICMP, "ICMP", ICMPModule);
+REGISTER_IOMODULE(ProtocolType::PT_UDP,  "UDP",   UDPModule);
+
+//  #########################################################################
+
+
 std::list<IOModuleBase::RegisteredIOModule*>* IOModuleBase::IOModuleList = nullptr;
 
 
@@ -412,6 +423,7 @@ bool IOModuleBase::registerIOModule(
       IOModuleList = new std::list<RegisteredIOModule*>;
       assert(IOModuleList != nullptr);
    }
+   printf("REG: <%s>\n", moduleName.c_str());
    RegisteredIOModule* registeredIOModule = new RegisteredIOModule;
    registeredIOModule->Type                   = moduleType;
    registeredIOModule->Name                   = moduleName;

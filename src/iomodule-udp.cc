@@ -46,7 +46,8 @@
 #endif
 
 
-REGISTER_IOMODULE(ProtocolType::PT_UDP, "UDP", UDPModule);
+// NOTE: The registration was moved to iomodule-base.cc, due to linking issues!
+// REGISTER_IOMODULE(ProtocolType::PT_UDP, "UDP", UDPModule);
 
 
 // ###### Constructor #######################################################
