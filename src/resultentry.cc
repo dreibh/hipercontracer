@@ -103,16 +103,20 @@ void ResultEntry::failedToSend(const boost::system::error_code& errorCode)
 {
    HopStatus hopStatus;
    switch(errorCode.value()) {
-      case boost::system::errc::permission_denied:
+      case boost::system::errc::permission_denied:       // EACCES
          hopStatus = NotSentPermissionDenied;
        break;
-      case boost::system::errc::network_unreachable:
+      case boost::system::errc::network_unreachable:     // ENETUNREACH
          hopStatus = NotSentNetworkUnreachable;
        break;
-      case boost::asio::error::host_unreachable:
+      case boost::system::errc::host_unreachable:        // EHOSTUNREACH
          hopStatus = NotSentHostUnreachable;
        break;
-      default:
+      case boost::system::errc::address_not_available:   // EADDRNOTAVAIL
+         hopStatus = NotAvailableAddress;
+       break;
+      default:   // all other errors
+         HPCT_LOG(debug) << "failedToSend(" << (int)errorCode.value() << ")";
          hopStatus = NotSentGenericError;
        break;
    }

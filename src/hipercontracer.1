@@ -264,9 +264,11 @@ Each Ping entry consists of a #P<m> line, with m=i for ICMP and m=u for UDP (acc
 .It - 105 = ICMP response: Unreachable, prohibited (firewall)
 .It - 110 = ICMP response: Unreachable, unknown reason
 .It - 200 = Timeout (no response from a router)
-.It - 210 = sendto() error: permission denied (EACCES)
-.It - 211 = sendto() error: network unreachable (ENETUNREACH)
-.It - 212 = sendto() error: host unreachable (EHOSTUNREACH)
+.It - 210 = sendto() call failed (generic error)
+.It - 211 = sendto() error: permission denied (EACCES)
+.It - 212 = sendto() error: network unreachable (ENETUNREACH)
+.It - 213 = sendto() error: host unreachable (EHOSTUNREACH)
+.It - 214 = sendto() error: address not available (EADDRNOTAVAIL)
 .It - 255 = Success (destination has responded)
 .El
 Status values from 100 to 199 denote unreachability, as reported by ICMP error from a router. The rtt_* fields contain the response time of the corresponding router.
