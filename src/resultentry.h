@@ -68,6 +68,8 @@ enum HopStatus {
    NotSentNetworkUnreachable = 212,   // sendto() error: ENETUNREACH
    NotSentHostUnreachable    = 213,   // sendto() error: EHOSTUNREACH
    NotAvailableAddress       = 214,   // sendto() error: EADDRNOTAVAIL
+   NotValidMsgSize           = 215,   // sendto() error: EMSGSIZE
+   NotEnoughBufferSpace      = 216,   // sendto() error: ENOBUFS
 
    // ====== Destination's response (from destination) ====
    // NOTE: Successful response, destination is in HopIP field.

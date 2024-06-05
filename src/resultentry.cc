@@ -115,6 +115,12 @@ void ResultEntry::failedToSend(const boost::system::error_code& errorCode)
       case boost::system::errc::address_not_available:   // EADDRNOTAVAIL
          hopStatus = NotAvailableAddress;
        break;
+      case boost::system::errc::message_size:            // EMSGSIZE
+         hopStatus = NotValidMsgSize;
+       break;
+      case boost::system::errc::no_buffer_space:         // ENOBUFS
+         hopStatus = NotEnoughBufferSpace;
+       break;
       default:   // all other errors
          HPCT_LOG(debug) << "failedToSend(" << (int)errorCode.value() << ")";
          hopStatus = NotSentGenericError;
