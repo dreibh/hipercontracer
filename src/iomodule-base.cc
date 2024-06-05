@@ -296,7 +296,9 @@ boost::asio::ip::address IOModuleBase::findSourceForDestination(const boost::asi
       return sourceAddress;
    }
    catch(...) {
-      return boost::asio::ip::address();
+      return (destinationAddress.is_v6() == true) ?
+                (boost::asio::ip::address)boost::asio::ip::address_v6() :
+                (boost::asio::ip::address)boost::asio::ip::address_v4();
    }
 }
 
