@@ -7,9 +7,10 @@ set -e
 # ===========================================================================
 # This script is for testing HiPerConTracer in a clean environment,
 # e.g. a minimal container:
-# docker run --rm -it debian
-# docker run --rm -it fedora
-# docker run --rm -it alpine
+# docker run --rm -it --volume $(pwd)/build-and-run-test:/root/build-and-run-test debian
+# docker run --rm -it --volume $(pwd)/build-and-run-test:/root/build-and-run-test fedora
+# docker run --rm -it --volume $(pwd)/build-and-run-test:/root/build-and-run-test alpine
+# docker run --rm -it --volume $(pwd)/build-and-run-test:/root/build-and-run-test opensuse/tumbleweed
 # docker run --rm -it ...
 # ===========================================================================
 
@@ -24,7 +25,12 @@ RESULTS_DIRECTORY="$2"
 
 
 # ====== Install dependencies ===============================================
-. ./etc/os-release || exit 1
+if [ -e /etc/os-release ] ; then
+   . /etc/os-release
+else
+   echo >&2 "ERROR: /etc/os-release is not available => unknown system!"
+   exit 1
+fi
 if [ "${ID}" == "debian" ] || [ "${ID}" == "ubuntu" ] ; then
    apt update
    apt install -y git cmake debhelper libboost-date-time-dev libboost-filesystem-dev libboost-iostreams-dev libboost-log-dev libboost-program-options-dev libboost-system-dev libboost-thread-dev libbz2-dev libc-ares-dev liblzma-dev pkg-config zlib1g-dev
@@ -32,6 +38,8 @@ elif [ "${ID}" == "fedora" ] ; then
    dnf install -y git boost-devel bzip2-devel c-ares-devel cmake gcc gcc-c++ xz-devel zlib-devel
 elif [ "${ID}" == "alpine" ] ; then
    apk add git make gcc g++ cmake boost-dev c-ares-dev
+elif [[ "${ID_LIKE}" =~ ^opensuse ]] ; then
+   zypper --non-interactive install git libboost_log-devel libboost_thread-devel libboost_system-devel libboost_iostreams-devel libboost_program_options-devel c-ares-devel cmake gcc gcc-c++ xz-devel zlib-devel
 fi
 
 
