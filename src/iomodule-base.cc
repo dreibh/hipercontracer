@@ -423,7 +423,6 @@ bool IOModuleBase::registerIOModule(
       IOModuleList = new std::list<RegisteredIOModule*>;
       assert(IOModuleList != nullptr);
    }
-   printf("REG: <%s>\n", moduleName.c_str());
    RegisteredIOModule* registeredIOModule = new RegisteredIOModule;
    registeredIOModule->Type                   = moduleType;
    registeredIOModule->Name                   = moduleName;
