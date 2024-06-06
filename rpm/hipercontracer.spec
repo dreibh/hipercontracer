@@ -16,6 +16,7 @@ BuildRequires: gcc
 BuildRequires: gcc-c++
 BuildRequires: libbson-devel
 BuildRequires: libpqxx-devel
+BuildRequires: mariadb-connector-c-devel
 BuildRequires: mongo-c-driver-devel
 BuildRequires: openssl-devel
 BuildRequires: xz-devel
@@ -40,7 +41,7 @@ imported into an SQL or NoSQL database.
 %build
 # NOTE: CMAKE_VERBOSE_MAKEFILE=OFF for reduced log output!
 # NOTE: ENABLE_BACKEND_MARIADB=OFF, since mysql-connector-c++ is not provided by Fedora.
-%cmake -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_VERBOSE_MAKEFILE=OFF -DENABLE_BACKEND_MARIADB=OFF .
+%cmake -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_VERBOSE_MAKEFILE=OFF .
 %cmake_build
 
 %pre

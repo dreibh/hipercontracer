@@ -94,7 +94,7 @@ IF (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 ELSEIF (${CMAKE_SYSTEM_NAME} MATCHES "FreeBSD")
     MESSAGE(STATUS ${CMAKE_SYSTEM_NAME} " supported")
     SET(CMAKE_REQUIRED_INCLUDES "/usr/local/include" "/usr/include")
-    SET(CMAKE_LIBRARY_PATH "/usr/local/lib")
+    SET(CMAKE_LIBRARY_PATH "/usr/local/lib" "/usr/local/lib/mariadb")
     INCLUDE_DIRECTORIES("/usr/local/include")
 
 ELSEIF (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
@@ -265,8 +265,8 @@ IF (WITH_IMPORTER)
                  " Cannot find MySQL/MariaDB C client library! Try:\n"
                  " * Ubuntu/Debian: sudo apt install -y libmariadb-dev\n"
                  " * Fedora:        sudo dnf install -y mariadb-connector-c-devel\n"
-                 " * SuSE:          (FIXME!)\n"
-                 " * Alpine:        (needs PPA!)\n"
+                 " * SuSE:          sudo zypper install -y libmariadb-devel\n"
+                 " * Alpine:        sudo apk add mariadb-connector-c-dev\n"
                  " * FreeBSD:       sudo pkg install -y mariadb-connector-c")
       ENDIF()
    ELSE()
