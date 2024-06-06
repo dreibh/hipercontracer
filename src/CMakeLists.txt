@@ -94,7 +94,7 @@ FOREACH(TYPE shared;static)
          VERSION   ${BUILD_VERSION}
          SOVERSION ${BUILD_MAJOR}
       )
-      TARGET_LINK_LIBRARIES (libhipercontracer-${TYPE} ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
+      TARGET_LINK_LIBRARIES (libhipercontracer-${TYPE} ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} ${LZMA_LIBRARY} ${BZ2_LIBRARY} ${Z_LIBRARY})
       INSTALL(TARGETS libhipercontracer-${TYPE} DESTINATION ${CMAKE_INSTALL_LIBDIR})
    ENDIF()
 ENDFOREACH()
@@ -156,7 +156,7 @@ IF (WITH_IMPORTER)
             SOVERSION ${BUILD_MAJOR}
          )
          TARGET_INCLUDE_DIRECTORIES(libuniversalimporter-${TYPE} PUBLIC ${MYSQLCPPCONN_INCLUDE_DIR} ${LIBMONGOC_INCLUDE_DIR} ${LIBBSON_INCLUDE_DIR} ${INotify_INCLUDE_DIRS})
-         TARGET_LINK_LIBRARIES(libuniversalimporter-${TYPE} ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} ${MYSQLCPPCONN_LIBRARY} ${LIBPQXX_LIBRARY} ${LIBMONGOC_LIBRARY} ${LIBBSON_LIBRARY} ${INotify_LIBRARIES})
+         TARGET_LINK_LIBRARIES(libuniversalimporter-${TYPE} ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} ${LZMA_LIBRARY} ${BZ2_LIBRARY} ${Z_LIBRARY} ${MYSQLCPPCONN_LIBRARY} ${LIBPQXX_LIBRARY} ${LIBMONGOC_LIBRARY} ${LIBBSON_LIBRARY} ${INotify_LIBRARIES})
          INSTALL(TARGETS libuniversalimporter-${TYPE} DESTINATION ${CMAKE_INSTALL_LIBDIR})
       ENDIF()
    ENDFOREACH()
@@ -175,14 +175,14 @@ ENDIF()
 
 # ====== HiPerConTracer =====================================================
 ADD_EXECUTABLE(hipercontracer hipercontracer.cc)
-TARGET_LINK_LIBRARIES(hipercontracer libhipercontracer-${libraryType} ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} -llzma -lbz2 -lz)
+TARGET_LINK_LIBRARIES(hipercontracer libhipercontracer-${libraryType} ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
 INSTALL(TARGETS hipercontracer RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
 INSTALL(FILES hipercontracer.1 DESTINATION ${CMAKE_INSTALL_MANDIR}/man1)
 
 # ====== HiPerConTracer Trigger =============================================
 IF (WITH_TRIGGER)
    ADD_EXECUTABLE(hpct-trigger hpct-trigger.cc)
-   TARGET_LINK_LIBRARIES(hpct-trigger libhipercontracer-${libraryType} ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} -llzma -lbz2 -lz)
+   TARGET_LINK_LIBRARIES(hpct-trigger libhipercontracer-${libraryType} ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
    INSTALL(TARGETS hpct-trigger RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
    INSTALL(FILES hpct-trigger.1 DESTINATION ${CMAKE_INSTALL_MANDIR}/man1)
 ENDIF()
@@ -195,7 +195,7 @@ IF (WITH_IMPORTER)
       reader-ping.cc
       reader-traceroute.cc
    )
-   TARGET_LINK_LIBRARIES(hpct-importer libuniversalimporter-${libraryType} ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} -llzma -lbz2 -lz)
+   TARGET_LINK_LIBRARIES(hpct-importer libuniversalimporter-${libraryType} ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
    INSTALL(TARGETS hpct-importer RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
    INSTALL(FILES hpct-importer.1 DESTINATION ${CMAKE_INSTALL_MANDIR}/man1)
    INSTALL(FILES hpct-importer.service DESTINATION /lib/systemd/system)
@@ -205,7 +205,7 @@ ENDIF()
 # ====== HiPerConTracer Query Tool ==========================================
 IF (WITH_QUERY)
    ADD_EXECUTABLE(hpct-query hpct-query.cc)
-   TARGET_LINK_LIBRARIES(hpct-query libuniversalimporter-${libraryType} ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} -llzma -lbz2 -lz)
+   TARGET_LINK_LIBRARIES(hpct-query libuniversalimporter-${libraryType} ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
    INSTALL(TARGETS hpct-query
            DESTINATION ${CMAKE_INSTALL_BINDIR})
    INSTALL(FILES hpct-query.1
@@ -215,7 +215,7 @@ ENDIF()
 # ====== HiPerConTracer Results Tool ========================================
 IF (WITH_RESULTS)
    ADD_EXECUTABLE(hpct-results hpct-results.cc conversions.cc)
-   TARGET_LINK_LIBRARIES(hpct-results libuniversalimporter-${libraryType} ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} -llzma -lbz2 -lz)
+   TARGET_LINK_LIBRARIES(hpct-results libuniversalimporter-${libraryType} ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
    INSTALL(TARGETS hpct-results RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
    INSTALL(FILES hpct-results.1
            DESTINATION ${CMAKE_INSTALL_MANDIR}/man1)
@@ -233,7 +233,7 @@ ENDIF()
 # ====== UDP Echo Server ====================================================
 IF (WITH_UDP_ECHO_SERVER)
    ADD_EXECUTABLE(udp-echo-server udp-echo-server.cc logger.cc tools.cc)
-   TARGET_LINK_LIBRARIES(udp-echo-server ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} -llzma -lbz2 -lz)
+   TARGET_LINK_LIBRARIES(udp-echo-server ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
    INSTALL(TARGETS udp-echo-server
            DESTINATION ${CMAKE_INSTALL_BINDIR})
    INSTALL(FILES udp-echo-server.1

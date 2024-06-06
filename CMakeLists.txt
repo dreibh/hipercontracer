@@ -120,7 +120,7 @@ ENDIF()
 #############################################################################
 
 OPTION(WITH_STATIC_LIBRARIES "Build static libraries" 1)
-OPTION(WITH_SHARED_LIBRARIES "Build shared libraries" 0)
+OPTION(WITH_SHARED_LIBRARIES "Build shared libraries" 1)
 IF ((NOT WITH_STATIC_LIBRARIES) AND (NOT WITH_SHARED_LIBRARIES))
    MESSAGE(FATAL_ERROR "Static (WITH_STATIC_LIBRARIES) or shared (WITH_SHARED_LIBRARIES) libraries must be enabled!")
 ENDIF()
@@ -133,7 +133,11 @@ IF (STATIC_BUILD)
    MESSAGE("Building static executables")
    SET(CMAKE_FIND_LIBRARY_SUFFIXES ".a")
    SET(Boost_USE_STATIC_LIBS ON)
-   # SET(CMAKE_EXE_LINKER_FLAGS "-static")
+   SET(CMAKE_EXE_LINKER_FLAGS "-static")
+ELSE()
+   IF (NOT WITH_SHARED_LIBRARIES)
+      MESSAGE(FATAL_ERROR "STATIC_BUILD=OFF cannot be used with WITH_SHARED_LIBRARIES=OFF!")
+   ENDIF()
 ENDIF()
 
 OPTION(WITH_TRIGGER         "Build HiPerConTracer Trigger"      1)
@@ -180,6 +184,16 @@ IF(CMAKE_SYSTEM_NAME MATCHES "Linux")
 ELSE()
    FIND_LIBRARY(INotify_LIBRARIES NAMES inotify)
    FIND_PATH(INotify_INCLUDE_DIRS NAMES sys/inotify.h)
+ENDIF()
+
+# ###### libz ###############################################################
+FIND_LIBRARY(Z_LIBRARY NAMES z)
+IF (NOT Z_LIBRARY)
+   MESSAGE(FATAL_ERROR
+           " Cannot find Z library! Try:\n"
+           " * Ubuntu/Debian: sudo apt install -y zlib1g-dev\n"
+           " * Fedora:        sudo dnf install -y zlib-ng-compat-devel\n"
+           " * FreeBSD:       sudo pkg install -y ???")
 ENDIF()
 
 # ###### libbz2 #############################################################
