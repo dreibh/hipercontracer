@@ -37,9 +37,9 @@ if [ "${ID}" == "debian" ] || [ "${ID}" == "ubuntu" ] ; then
 elif [ "${ID}" == "fedora" ] ; then
    dnf install -y git boost-devel bzip2-devel c-ares-devel cmake gcc gcc-c++ xz-devel zlib-devel
 elif [ "${ID}" == "alpine" ] ; then
-   apk add git make gcc g++ cmake boost-dev c-ares-dev
+   apk add git make gcc g++ cmake boost-dev c-ares-dev zlib-ng-dev
 elif [[ "${ID_LIKE}" =~ ^opensuse ]] ; then
-   zypper --non-interactive install git libboost_log-devel libboost_thread-devel libboost_system-devel libboost_iostreams-devel libboost_program_options-devel c-ares-devel cmake gcc gcc-c++ xz-devel zlib-devel
+   zypper --non-interactive install git libboost_log-devel libboost_thread-devel libboost_system-devel libboost_iostreams-devel libboost_program_options-devel c-ares-devel cmake gcc gcc-c++ xz-devel zlib-devel libbz2-devel
 fi
 
 
