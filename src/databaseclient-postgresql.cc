@@ -33,7 +33,8 @@
 #include "logger.h"
 
 
-REGISTER_BACKEND(DatabaseBackendType::SQL_PostgreSQL, "PostgreSQL", PostgreSQLClient)
+// NOTE: The registration was moved to database-configuration.cc, due to linking issues!
+// REGISTER_BACKEND(DatabaseBackendType::SQL_PostgreSQL, "PostgreSQL", PostgreSQLClient)
 
 
 // ###### Constructor #######################################################
