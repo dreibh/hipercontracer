@@ -7,7 +7,7 @@ export DEB_BUILD_MAINT_OPTIONS = hardening=+all
 	dh $@ --buildsystem=cmake
 
 override_dh_auto_configure:
-	dh_auto_configure -- -DCMAKE_BUILD_RPATH_USE_ORIGIN=ON
+	dh_auto_configure -- -DCMAKE_BUILD_RPATH_USE_ORIGIN=ON -DWITH_STATIC_LIBRARIES=ON -DWITH_SHARED_LIBRARIES=ON
 
 # Use upstream ChangeLog for installation
 override_dh_installchangelogs:

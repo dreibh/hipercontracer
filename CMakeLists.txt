@@ -119,7 +119,7 @@ ENDIF()
 #### OPTIONS                                                             ####
 #############################################################################
 
-OPTION(WITH_STATIC_LIBRARIES "Build static libraries" 1)
+OPTION(WITH_STATIC_LIBRARIES "Build static libraries" 0)
 OPTION(WITH_SHARED_LIBRARIES "Build shared libraries" 1)
 IF ((NOT WITH_STATIC_LIBRARIES) AND (NOT WITH_SHARED_LIBRARIES))
    MESSAGE(FATAL_ERROR "Static (WITH_STATIC_LIBRARIES) or shared (WITH_SHARED_LIBRARIES) libraries must be enabled!")
