@@ -193,6 +193,8 @@ IF (NOT Z_LIBRARY)
            " Cannot find Z library! Try:\n"
            " * Ubuntu/Debian: sudo apt install -y zlib1g-dev\n"
            " * Fedora:        sudo dnf install -y zlib-ng-compat-devel\n"
+           " * SuSE:          sudo zypper install -y zlib-devel\n"
+           " * Alpine:        sudo apk add zlib-ng-dev\n"
            " * FreeBSD:       sudo pkg install -y ???")
 ENDIF()
 
@@ -203,6 +205,8 @@ IF (NOT BZ2_LIBRARY)
            " Cannot find BZ2 library! Try:\n"
            " * Ubuntu/Debian: sudo apt install -y libbz2-dev\n"
            " * Fedora:        sudo dnf install -y bzip2-devel\n"
+           " * SuSE:          sudo zypper install -y libbz2-devel\n"
+           " * Alpine:        sudo apk add bzip2-dev\n"
            " * FreeBSD:       sudo pkg install -y bzip2")
 ENDIF()
 
@@ -213,6 +217,8 @@ IF (NOT LZMA_LIBRARY)
            " Cannot find LZMA library! Try:\n"
            " * Ubuntu/Debian: sudo apt install -y liblzma-dev\n"
            " * Fedora:        sudo dnf install -y xz-devel\n"
+           " * SuSE:          sudo zypper install -y xz-devel\n"
+           " * Alpine:        sudo apk add xz-dev\n"
            " * FreeBSD:       sudo pkg install -y lzmalib")
 ENDIF()
 
@@ -223,6 +229,8 @@ IF (NOT CARES_LIBRARY)
            " Cannot find C-ARES DNS resolver library! Try:\n"
            " * Ubuntu/Debian: sudo apt install -y libc-ares-dev\n"
            " * Fedora:        sudo dnf install -y c-ares-devel\n"
+           " * SuSE:          sudo zypper install -y c-ares-devel\n"
+           " * Alpine:        sudo apk add c-ares-dev\n"
            " * FreeBSD:       sudo pkg install -y c-ares")
 ENDIF()
 
@@ -231,10 +239,12 @@ IF (WITH_PIPE_CHECKSUM)
    FIND_LIBRARY(CRYPTO_LIBRARY crypto libcrypto)
    IF (NOT CRYPTO_LIBRARY)
       MESSAGE(FATAL_ERROR
-            " Cannot find libcrypto library! Try:\n"
-            " * Ubuntu/Debian: sudo apt install -y libssl-dev\n"
-            " * Fedora:        sudo dnf install -y openssl-devel\n"
-            " * FreeBSD:       sudo pkg install -y openssl")
+              " Cannot find libcrypto library! Try:\n"
+              " * Ubuntu/Debian: sudo apt install -y libssl-dev\n"
+              " * Fedora:        sudo dnf install -y openssl-devel\n"
+              " * SuSE:          sudo zypper install -y openssl-devel\n"
+              " * Alpine:        sudo apk add openssl-dev\n"
+              " * FreeBSD:       sudo pkg install -y openssl")
    ENDIF()
 ENDIF()
 
@@ -255,6 +265,8 @@ IF (WITH_IMPORTER)
                  " Cannot find MySQL/MariaDB C++ client library! Try:\n"
                  " * Ubuntu/Debian: sudo apt install -y libmysqlcppconn-dev\n"
                  " * Fedora:        sudo dnf install -y mysql-connector-c++-devel (needs PPA!)\n"
+                 " * SuSE:          (needs PPA!)\n"
+                 " * Alpine:        (needs PPA!)\n"
                  " * FreeBSD:       sudo pkg install -y mysql-connector-c++")
       ENDIF()
    ELSE()
@@ -276,6 +288,8 @@ IF (WITH_IMPORTER)
                  " Cannot find PostgreSQL C++  client library! Try:\n"
                  " * Ubuntu/Debian: sudo apt install -y libpqxx-dev\n"
                  " * Fedora:        sudo dnf install -y libpqxx-devel\n"
+                 " * SuSE:          sudo zypper install -y libpqxx-devel\n"
+                 " * Alpine:        (needs PPA!)\n"
                  " * FreeBSD:       sudo pkg install -y postgresql-libpqxx")
       ENDIF()
    ELSE()
@@ -297,6 +311,8 @@ IF (WITH_IMPORTER)
                  " Cannot find MongoDB C client library! Try:\n"
                  " * Ubuntu/Debian: sudo apt install -y libmongoc-dev\n"
                  " * Fedora:        sudo dnf install -y mongo-c-driver-devel\n"
+                 " * SuSE:          (needs PPA!)\n"
+                 " * Alpine:        sudo apk add mongo-c-driver-dev\n"
                  " * FreeBSD:       sudo pkg install -y mongo-c-driver")
       ENDIF()
 
@@ -310,6 +326,8 @@ IF (WITH_IMPORTER)
                  " Cannot find MongoDB BSON library! Try:\n"
                  " * Ubuntu/Debian: sudo apt install -y libbson-dev\n"
                  " * Fedora:        sudo dnf install -y libbson-devel\n"
+                 " * SuSE:          (needs PPA!)\n"
+                 " * Alpine:        sudo apk add libbson-dev\n"
                  " * FreeBSD:       sudo pkg install -y libbson")
       ENDIF()
    ELSE()
