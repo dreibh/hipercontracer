@@ -256,18 +256,18 @@ IF (WITH_IMPORTER)
       MESSAGE("Building with MySQL/MariaDB backend (ENABLE_BACKEND_MARIADB=${ENABLE_BACKEND_MARIADB})")
 
       MESSAGE("Looking for MySQL/MariaDB C++ Client library:")
-      FIND_LIBRARY(MYSQLCPPCONN_LIBRARY NAMES mysqlcppconn)
-      MESSAGE(" * Library: ${MYSQLCPPCONN_LIBRARY}")
-      FIND_PATH(MYSQLCPPCONN_INCLUDE_DIR NAMES driver.h PATH_SUFFIXES cppconn jdbc/cppconn mysql-cppconn/jdbc/cppconn mysql-cppconn-8/jdbc/cppconn)
-      MESSAGE(" * Includes: ${MYSQLCPPCONN_INCLUDE_DIR}")
-      IF ((NOT MYSQLCPPCONN_INCLUDE_DIR) OR (NOT MYSQLCPPCONN_LIBRARY))
+      FIND_LIBRARY(LIBMARIADB_LIBRARY NAMES mariadb)
+      MESSAGE(" * Library: ${LIBMARIADB_LIBRARY}")
+      FIND_PATH(LIBMARIADB_INCLUDE_DIR NAMES mysql.h PATH_SUFFIXES mariadb mysql)
+      MESSAGE(" * Includes: ${LIBMARIADB_INCLUDE_DIR}")
+      IF ((NOT LIBMARIADB_INCLUDE_DIR) OR (NOT LIBMARIADB_LIBRARY))
          MESSAGE(FATAL_ERROR
-                 " Cannot find MySQL/MariaDB C++ client library! Try:\n"
-                 " * Ubuntu/Debian: sudo apt install -y libmysqlcppconn-dev\n"
-                 " * Fedora:        sudo dnf install -y mysql-connector-c++-devel (needs PPA!)\n"
-                 " * SuSE:          (needs PPA!)\n"
+                 " Cannot find MySQL/MariaDB C client library! Try:\n"
+                 " * Ubuntu/Debian: sudo apt install -y libmariadb-dev\n"
+                 " * Fedora:        sudo dnf install -y mariadb-connector-c-devel\n"
+                 " * SuSE:          (FIXME!)\n"
                  " * Alpine:        (needs PPA!)\n"
-                 " * FreeBSD:       sudo pkg install -y mysql-connector-c++")
+                 " * FreeBSD:       sudo pkg install -y mariadb-connector-c")
       ENDIF()
    ELSE()
       MESSAGE("MySQL/MariaDB backend disabled!")
@@ -289,7 +289,7 @@ IF (WITH_IMPORTER)
                  " * Ubuntu/Debian: sudo apt install -y libpqxx-dev\n"
                  " * Fedora:        sudo dnf install -y libpqxx-devel\n"
                  " * SuSE:          sudo zypper install -y libpqxx-devel\n"
-                 " * Alpine:        (needs PPA!)\n"
+                 " * Alpine:        sudo apk add mariadb-connector-c\n"
                  " * FreeBSD:       sudo pkg install -y postgresql-libpqxx")
       ENDIF()
    ELSE()
