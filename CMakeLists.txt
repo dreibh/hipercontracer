@@ -153,8 +153,8 @@ OPTION(WITH_UDP_ECHO_SERVER "Build UDP Echo Server"             1)
 #############################################################################
 
 IF(CMAKE_SYSTEM_PROCESSOR STREQUAL "riscv64")
-  STRING(APPEND CMAKE_C_STANDARD_LIBRARIES   " -latomic")
-  STRING(APPEND CMAKE_CXX_STANDARD_LIBRARIES " -latomic")
+   STRING(APPEND CMAKE_C_STANDARD_LIBRARIES   " -latomic")
+   STRING(APPEND CMAKE_CXX_STANDARD_LIBRARIES " -latomic")
 ENDIF()
 
 

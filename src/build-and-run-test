@@ -7,6 +7,7 @@ set -e
 # ===========================================================================
 # This script is for testing HiPerConTracer in a clean environment,
 # e.g. a minimal container:
+# docker run --rm -it --volume $(pwd)/build-and-run-test:/root/build-and-run-test ubuntu
 # docker run --rm -it --volume $(pwd)/build-and-run-test:/root/build-and-run-test debian
 # docker run --rm -it --volume $(pwd)/build-and-run-test:/root/build-and-run-test fedora
 # docker run --rm -it --volume $(pwd)/build-and-run-test:/root/build-and-run-test alpine
@@ -37,7 +38,7 @@ if [ "${ID}" == "debian" ] || [ "${ID}" == "ubuntu" ] ; then
 elif [ "${ID}" == "fedora" ] ; then
    dnf install -y git boost-devel bzip2-devel c-ares-devel cmake gcc gcc-c++ xz-devel zlib-devel
 elif [ "${ID}" == "alpine" ] ; then
-   apk add git make gcc g++ cmake boost-dev c-ares-dev zlib-ng-dev
+   apk add git make gcc g++ cmake boost-dev c-ares-dev zlib-dev
 elif [[ "${ID_LIKE}" =~ ^opensuse ]] ; then
    zypper --non-interactive install git libboost_log-devel libboost_thread-devel libboost_system-devel libboost_iostreams-devel libboost_program_options-devel c-ares-devel cmake gcc gcc-c++ xz-devel zlib-devel libbz2-devel
 fi
@@ -66,9 +67,9 @@ export MAKEFLAGS=-j${cores}
 # ====== Build only the HiPerConTracer tool itself ==========================
 rm -f CMakeCache.txt
 cmake . -DCMAKE_BUILD_TYPE=RelWithDebInfo \
-   -DSTATIC_BUILD=ON                      \
-   -DWITH_STATIC_LIBRARIES=ON             \
-   -DWITH_SHARED_LIBRARIES=OFF            \
+   -DSTATIC_BUILD=OFF                     \
+   -DWITH_STATIC_LIBRARIES=OFF            \
+   -DWITH_SHARED_LIBRARIES=ON             \
    -DWITH_TRIGGER=OFF                     \
    -DWITH_IMPORTER=OFF                    \
    -DWITH_QUERY=OFF                       \
