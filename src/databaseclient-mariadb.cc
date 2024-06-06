@@ -32,12 +32,6 @@
 #include "databaseclient-mariadb.h"
 #include "logger.h"
 
-// Ubuntu: libmysqlcppconn-dev
-#include <driver.h>
-#include <exception.h>
-#include <resultset.h>
-#include <statement.h>
-
 
 REGISTER_BACKEND(DatabaseBackendType::SQL_MariaDB, "MariaDB", MariaDBClient)
 REGISTER_BACKEND_ALIAS(DatabaseBackendType::SQL_MariaDB, "MySQL", MariaDBClient, 2)
@@ -47,11 +41,13 @@ REGISTER_BACKEND_ALIAS(DatabaseBackendType::SQL_MariaDB, "MySQL", MariaDBClient,
 MariaDBClient::MariaDBClient(const DatabaseConfiguration& configuration)
    : DatabaseClientBase(configuration)
 {
-   Driver = get_driver_instance();
-   assert(Driver != nullptr);
+   mysql_thread_init();
+
+//    Driver = get_driver_instance();
+//    assert(Driver != nullptr);
    Connection  = nullptr;
-   Transaction = nullptr;
-   ResultSet   = nullptr;
+//    Transaction = nullptr;
+//    ResultSet   = nullptr;
 }
 
 
@@ -83,6 +79,11 @@ bool MariaDBClient::open()
       HPCT_LOG(warning) << "TLS certificate check explicitliy disabled. CONFIGURE TLS PROPERLY!!";
    }
 
+   Connection = mysql_init(nullptr);
+   assert(Connection != nullptr);
+
+abort();
+#if 0
    sql::ConnectOptionsMap connectionProperties;
    connectionProperties["hostName"] = Configuration.getServer();
    connectionProperties["userName"] = Configuration.getUser();
@@ -129,22 +130,23 @@ bool MariaDBClient::open()
    }
 
    return true;
+#endif
 }
 
 
 // ###### Close connection to database ######################################
 void MariaDBClient::close()
 {
-   if(ResultSet != nullptr) {
-      delete ResultSet;
-      ResultSet = nullptr;
-   }
-   if(Transaction) {
-      delete Transaction;
-      Transaction = nullptr;
-   }
+//    if(ResultSet != nullptr) {
+//       delete ResultSet;
+//       ResultSet = nullptr;
+//    }
+//    if(Transaction) {
+//       delete Transaction;
+//       Transaction = nullptr;
+//    }
    if(Connection != nullptr) {
-      delete Connection;
+      mysql_close(Connection);
       Connection = nullptr;
    }
 }
@@ -157,6 +159,7 @@ void MariaDBClient::reconnect()
 }
 
 
+#if 0
 // ###### Handle SQLException ###############################################
 void MariaDBClient::handleDatabaseException(const sql::SQLException& exception,
                                             const std::string&       where,
@@ -289,3 +292,4 @@ std::string MariaDBClient::getString(unsigned int column) const
    assert(ResultSet != nullptr);
    return ResultSet->getString(column);
 }
+#endif
