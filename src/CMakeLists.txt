@@ -80,12 +80,15 @@ LIST(APPEND libhipercontracer_sources
 
 INSTALL(FILES ${libhipercontracer_headers} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/hipercontracer)
 
-IF (NOT STATIC_BUILD)
+IF (WITH_STATIC_LIBRARIES)
+   ADD_LIBRARY(libhipercontracer-static STATIC ${libhipercontracer_sources})
+ENDIF()
+IF (WITH_SHARED_LIBRARIES)
    ADD_LIBRARY(libhipercontracer-shared SHARED ${libhipercontracer_sources})
 ENDIF()
-ADD_LIBRARY(libhipercontracer-static STATIC ${libhipercontracer_sources})
 FOREACH(TYPE shared;static)
-   IF (("${TYPE}" STREQUAL "static") OR (NOT STATIC_BUILD))
+   IF ( (("${TYPE}" STREQUAL "static") AND (WITH_STATIC_LIBRARIES)) OR
+        (("${TYPE}" STREQUAL "shared") AND (WITH_SHARED_LIBRARIES)) )
       SET_TARGET_PROPERTIES(libhipercontracer-${TYPE} PROPERTIES OUTPUT_NAME hipercontracer CLEAN_DIRECT_OUTPUT 1)
       SET_TARGET_PROPERTIES(libhipercontracer-${TYPE} PROPERTIES
          VERSION   ${BUILD_VERSION}
@@ -138,12 +141,15 @@ IF (WITH_IMPORTER)
 
    INSTALL(FILES ${libuniversalimporter_headers} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/universalimporter)
 
-   IF (NOT STATIC_BUILD)
+   IF (WITH_STATIC_LIBRARIES)
+      ADD_LIBRARY(libuniversalimporter-static STATIC ${libuniversalimporter_sources})
+   ENDIF()
+   IF (WITH_SHARED_LIBRARIES)
       ADD_LIBRARY(libuniversalimporter-shared SHARED ${libuniversalimporter_sources})
    ENDIF()
-   ADD_LIBRARY(libuniversalimporter-static STATIC ${libuniversalimporter_sources})
    FOREACH(TYPE shared;static)
-      IF (("${TYPE}" STREQUAL "static") OR (NOT STATIC_BUILD))
+      IF ( (("${TYPE}" STREQUAL "static") AND (WITH_STATIC_LIBRARIES)) OR
+           (("${TYPE}" STREQUAL "shared") AND (WITH_SHARED_LIBRARIES)) )
          SET_TARGET_PROPERTIES(libuniversalimporter-${TYPE} PROPERTIES OUTPUT_NAME universalimporter CLEAN_DIRECT_OUTPUT 1)
          SET_TARGET_PROPERTIES(libuniversalimporter-${TYPE} PROPERTIES
             VERSION   ${BUILD_VERSION}

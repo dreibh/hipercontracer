@@ -119,12 +119,21 @@ ENDIF()
 #### OPTIONS                                                             ####
 #############################################################################
 
+OPTION(WITH_STATIC_LIBRARIES "Build static libraries" 1)
+OPTION(WITH_SHARED_LIBRARIES "Build shared libraries" 0)
+IF ((NOT WITH_STATIC_LIBRARIES) AND (NOT WITH_SHARED_LIBRARIES))
+   MESSAGE(FATAL_ERROR "Static (WITH_STATIC_LIBRARIES) or shared (WITH_SHARED_LIBRARIES) libraries must be enabled!")
+ENDIF()
+
 OPTION(STATIC_BUILD "Build statically-linked executables" 0)
 IF (STATIC_BUILD)
-   MESSAGE("Trying to build static executables")
-   LIST(REMOVE_ITEM CMAKE_FIND_LIBRARY_SUFFIXES   ".a" )
-   LIST(INSERT      CMAKE_FIND_LIBRARY_SUFFIXES 0 ".a" )
+   IF (WITH_SHARED_LIBRARIES)
+      MESSAGE(FATAL_ERROR "STATIC_BUILD=ON cannot be used with WITH_SHARED_LIBRARIES=ON!")
+   ENDIF()
+   MESSAGE("Building static executables")
+   SET(CMAKE_FIND_LIBRARY_SUFFIXES ".a")
    SET(Boost_USE_STATIC_LIBS ON)
+   # SET(CMAKE_EXE_LINKER_FLAGS "-static")
 ENDIF()
 
 OPTION(WITH_TRIGGER         "Build HiPerConTracer Trigger"      1)
