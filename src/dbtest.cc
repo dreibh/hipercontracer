@@ -21,7 +21,7 @@ int main(int argc, char** argv)
 {
    std::chrono::high_resolution_clock::time_point s;
    std::chrono::high_resolution_clock::time_point e;
-   const unsigned int                             items = 1000;
+   const unsigned int                             items = 10;
 
    // ====== Read database configuration ====================================
    DatabaseConfiguration databaseConfiguration;
@@ -97,6 +97,7 @@ int main(int argc, char** argv)
    std::cout << "Duration: " << std::chrono::duration_cast<std::chrono::milliseconds>(e - s).count() << " ms\n";
 
 
+#if 0
    // ====== Test ===========================================================
    prepareTable(client);
 
@@ -112,4 +113,15 @@ int main(int argc, char** argv)
    std::cout << "Duration: " << std::chrono::duration_cast<std::chrono::milliseconds>(e - s).count() << " ms\n";
 
    return 0;
+#endif
+
+
+   // ====== Test ===========================================================
+   printf("Test F\n");
+   ((DatabaseClientBase&)client).executeQuery("SELECT * FROM test1");
+   while(client.fetchNextTuple()) {
+      const int id            = client.getInteger(1);
+      const std::string label = client.getString(2);
+      printf("%6d: %s\n", id, label.c_str());
+   }
 }
