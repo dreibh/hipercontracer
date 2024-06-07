@@ -21,14 +21,13 @@ int main(int argc, char** argv)
 {
    std::chrono::high_resolution_clock::time_point s;
    std::chrono::high_resolution_clock::time_point e;
-   const unsigned int                             items = 100000;
+   const unsigned int                             items = 1000;
 
    // ====== Read database configuration ====================================
    DatabaseConfiguration databaseConfiguration;
-   if(!databaseConfiguration.readConfiguration("/home/dreibh/soyuz.conf")) {
+   if(!databaseConfiguration.readConfiguration("/home/dreibh/testdb-users-mariadb-maintainer.conf")) {
       exit(1);
    }
-   // databaseConfiguration.printConfiguration(std::cout);
 
 
    // ====== Connect ========================================================
@@ -56,24 +55,26 @@ int main(int argc, char** argv)
    std::cout << "Duration: " << std::chrono::duration_cast<std::chrono::milliseconds>(e - s).count() << " ms\n";
 
 
-//    // ====== Test ===========================================================
-//    prepareTable(client);
-//
-//    printf("Test 3\n");
-//    s = std::chrono::high_resolution_clock::now();
-//    sql::PreparedStatement* pstmt = client.getConnection()->prepareStatement(
-//       "INSERT INTO test1 VALUES (?, ?)"
-//    );
-//    for(unsigned int i = 0; i < items; i++) {
-//       pstmt->setInt(1, i);
-//       pstmt->setString(2, ("Test #" + std::to_string(i)).c_str());
-//       pstmt->executeUpdate();
-//    }
-//    delete pstmt;
-//    client.commit();
-//    e = std::chrono::high_resolution_clock::now();
-//
-//    std::cout << "Duration: " << std::chrono::duration_cast<std::chrono::milliseconds>(e - s).count() << " ms\n";
+   // ====== Test ===========================================================
+#if 0
+   prepareTable(client);
+
+   printf("Test 3\n");
+   s = std::chrono::high_resolution_clock::now();
+   sql::PreparedStatement* pstmt = client.getConnection()->prepareStatement(
+      "INSERT INTO test1 VALUES (?, ?)"
+   );
+   for(unsigned int i = 0; i < items; i++) {
+      pstmt->setInt(1, i);
+      pstmt->setString(2, ("Test #" + std::to_string(i)).c_str());
+      pstmt->executeUpdate();
+   }
+   delete pstmt;
+   client.commit();
+   e = std::chrono::high_resolution_clock::now();
+
+   std::cout << "Duration: " << std::chrono::duration_cast<std::chrono::milliseconds>(e - s).count() << " ms\n";
+#endif
 
 
    // ====== Test ===========================================================

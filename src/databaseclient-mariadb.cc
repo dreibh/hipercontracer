@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <cassert>
+#include <iostream>
 
 #include <mysql.h>
 
@@ -151,9 +152,9 @@ bool MariaDBClient::open()
       mysql_options(&Connection, MYSQL_OPT_SSL_KEY, Configuration.getCertKeyFile().c_str());
    }
 
+   // ====== Connect to database =========================================
    mysql_autocommit(&Connection, 0);
    mysql_options(&Connection, MYSQL_INIT_COMMAND,"SET SESSION TRANSACTION ISOLATION LEVEL READ COMMITTED");
-
    if(!mysql_real_connect(&Connection,
                           Configuration.getServer().c_str(),
                           Configuration.getUser().c_str(),
@@ -164,6 +165,14 @@ bool MariaDBClient::open()
                           CLIENT_FOUND_ROWS)) {
       HPCT_LOG(error) << "Unable to connect MySQL/MariaDB client to "
                       << Configuration.getServer() << ": " << mysql_error(&Connection);
+      close();
+      return false;
+   }
+
+   // ====== Create statement ===============================================
+   Transaction = mysql_stmt_init(&Connection);
+   if(Transaction == nullptr) {
+      handleDatabaseError("Init Statement");
       close();
       return false;
    }
@@ -253,9 +262,8 @@ void MariaDBClient::handleDatabaseError(const std::string& where,
 // ###### Begin transaction #################################################
 void MariaDBClient::startTransaction()
 {
-   if(!mysql_stmt_execute(Transaction)) {
-      handleDatabaseError("Start of transaction");
-   }
+   static const std::string startTransaction("START TRANSACTION");
+   DatabaseClientBase::executeUpdate(startTransaction);
 }
 
 
@@ -264,14 +272,14 @@ void MariaDBClient::endTransaction(const bool commit)
 {
    // ====== Commit transaction =============================================
    if(commit) {
-      if(!mysql_commit(&Connection)) {
+      if(mysql_commit(&Connection)) {
          handleDatabaseError("Commit");
       }
    }
 
-   // ====== Commit transaction =============================================
+   // ====== Roll back transaction ==========================================
    else {
-      if(!mysql_rollback(&Connection)) {
+      if(mysql_rollback(&Connection)) {
          handleDatabaseError("Rollback");
       }
    }
@@ -283,34 +291,40 @@ void MariaDBClient::executeUpdate(Statement& statement)
 {
    assert(statement.isValid());
 
-   if(!mysql_stmt_prepare(Transaction, statement.str().c_str(), statement.str().size())) {
+   puts("X1");
+   if(mysql_stmt_reset(Transaction)) {
+      handleDatabaseError("Reset", statement);
+   }
+   if(mysql_stmt_prepare(Transaction, statement.str().c_str(), statement.str().size())) {
       handleDatabaseError("Prepare", statement);
    }
-   if(!mysql_stmt_execute(Transaction)) {
+   puts("X2");
+      if(mysql_stmt_execute(Transaction)) {
       handleDatabaseError("Execute", statement);
    }
+   puts("X3");
 
    statement.clear();
 }
 
 
-#if 0
-
 // ###### Execute statement #################################################
 void MariaDBClient::executeQuery(Statement& statement)
 {
-   assert(statement.isValid());
 
-   if(ResultSet != nullptr) {
-      delete ResultSet;
-      ResultSet = nullptr;
-   }
-   try {
-      ResultSet = Transaction->executeQuery(statement.str());
-   }
-   catch(const sql::SQLException& exception) {
-      handleDatabaseException(exception, "Execute", statement.str());
-   }
+//    FIXME!
+   abort();
+
+//    if(ResultSet != nullptr) {
+//       delete ResultSet;
+//       ResultSet = nullptr;
+//    }
+//    try {
+//       ResultSet = Transaction->executeQuery(statement.str());
+//    }
+//    catch(const sql::SQLException& exception) {
+//       handleDatabaseException(exception, "Execute", statement.str());
+//    }
 
    statement.clear();
 }
@@ -319,13 +333,16 @@ void MariaDBClient::executeQuery(Statement& statement)
 // ###### Fetch next tuple ##################################################
 bool MariaDBClient::fetchNextTuple()
 {
-   if(ResultSet != nullptr) {
-      return ResultSet->next();
-   }
+//    FIXME!
+   abort();
+//    if(ResultSet != nullptr) {
+//       return ResultSet->next();
+//    }
    return false;
 }
 
 
+#if 0
 // ###### Get integer value #################################################
 int32_t MariaDBClient::getInteger(unsigned int column) const
 {
