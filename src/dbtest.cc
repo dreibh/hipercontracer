@@ -4,7 +4,11 @@
 #include <chrono>
 #include <iostream>
 
-// #include <cppconn/prepared_statement.h>
+// #define TEST1
+#define TEST2
+#define TEST3
+#define TEST4
+// #define TEST5
 
 
 void prepareTable(DatabaseClientBase& client)
@@ -21,7 +25,7 @@ int main(int argc, char** argv)
 {
    std::chrono::high_resolution_clock::time_point s;
    std::chrono::high_resolution_clock::time_point e;
-   const unsigned int                             items = 10;
+   const unsigned int                             items = 100000;
 
    // ====== Read database configuration ====================================
    DatabaseConfiguration databaseConfiguration;
@@ -36,7 +40,8 @@ int main(int argc, char** argv)
    printf("Online!\n");
 
 
-   // ====== Test ===========================================================
+   // ====== Test 4 ==========================================================
+#ifdef TEST4
    prepareTable(client);
 
    printf("Test 4\n");
@@ -53,36 +58,80 @@ int main(int argc, char** argv)
    e = std::chrono::high_resolution_clock::now();
 
    std::cout << "Duration: " << std::chrono::duration_cast<std::chrono::milliseconds>(e - s).count() << " ms\n";
+#endif
 
 
-   // ====== Test ===========================================================
-#if 0
+   // ====== Test 3 =========================================================
+#ifdef TEST3
    prepareTable(client);
+
+   // Based on: https://mariadb.com/kb/en/bulk-insert-row-wise-binding/
 
    printf("Test 3\n");
    s = std::chrono::high_resolution_clock::now();
-   sql::PreparedStatement* pstmt = client.getConnection()->prepareStatement(
-      "INSERT INTO test1 VALUES (?, ?)"
-   );
-   for(unsigned int i = 0; i < items; i++) {
-      pstmt->setInt(1, i);
-      pstmt->setString(2, ("Test #" + std::to_string(i)).c_str());
-      pstmt->executeUpdate();
+
+   MYSQL_STMT* stmt= mysql_stmt_init(client.getConnection());
+   const char* insert = "INSERT INTO test1 VALUES (?,?)";
+   if(mysql_stmt_prepare(stmt, insert, strlen(insert))) {
+      puts("PREPARE FAILED!");
+      exit(1);
    }
-   delete pstmt;
-   client.commit();
+
+   struct DataDefinition {
+      unsigned long ID;
+      char ID_ind;
+      char Label[32];
+      char Label_ind;
+   };
+   DataDefinition data[items];
+   // memset(data, 0, sizeof(data));
+   for(unsigned int i = 0; i < items; i++) {
+      data[i].ID = i;
+      data[i].ID_ind = STMT_INDICATOR_NULL;
+      // memset((char*)&data[i].Label, 0, sizeof(data[i].Label));
+      snprintf((char*)&data[i].Label, sizeof(data[i].Label), "Test #%u", i);
+      data[i].Label_ind = STMT_INDICATOR_NTS;
+   }
+
+   MYSQL_BIND bind[2];
+   memset(bind, 0, sizeof(bind));
+
+   bind[0].buffer_type= MYSQL_TYPE_LONG;
+   bind[0].buffer  = &data[0].ID;
+   bind[0].is_null = 0;
+//    bind[0].length  = 0;
+//    bind[0].u.indicator= &data[0].ID_ind;
+
+   bind[1].buffer_type= MYSQL_TYPE_STRING;
+   bind[1].buffer  = &data[0].Label;
+   bind[1].is_null = 0;
+   bind[1].u.indicator= &data[0].Label_ind;
+
+   const unsigned int array_size = items;
+   mysql_stmt_attr_set(stmt, STMT_ATTR_ARRAY_SIZE, &array_size);
+   const size_t row_size = sizeof(struct DataDefinition);   // size_t !!!
+   mysql_stmt_attr_set(stmt, STMT_ATTR_ROW_SIZE, &row_size);
+
+   mysql_stmt_bind_param(stmt, bind);
+
+   if(mysql_stmt_execute(stmt)) {
+      puts("EXECUTE FAILED!");
+   }
+   mysql_stmt_close(stmt);
+
    e = std::chrono::high_resolution_clock::now();
 
    std::cout << "Duration: " << std::chrono::duration_cast<std::chrono::milliseconds>(e - s).count() << " ms\n";
 #endif
 
 
-   // ====== Test ===========================================================
+   // ====== Test 2 =========================================================
+   Statement statement(DatabaseBackendType::SQL_MariaDB);
+#ifdef TEST2
    prepareTable(client);
 
    printf("Test 2\n");
    s = std::chrono::high_resolution_clock::now();
-   Statement statement(DatabaseBackendType::SQL_MariaDB);
    statement << "INSERT INTO test1 VALUES ";
    for(unsigned int i = 0; i < items; i++) {
       if(i > 0) {
@@ -95,10 +144,11 @@ int main(int argc, char** argv)
    e = std::chrono::high_resolution_clock::now();
 
    std::cout << "Duration: " << std::chrono::duration_cast<std::chrono::milliseconds>(e - s).count() << " ms\n";
+#endif
 
 
-#if 0
-   // ====== Test ===========================================================
+   // ====== Test 1 =========================================================
+#ifdef TEST1
    prepareTable(client);
 
    printf("Test 1\n");
@@ -111,17 +161,19 @@ int main(int argc, char** argv)
    e = std::chrono::high_resolution_clock::now();
 
    std::cout << "Duration: " << std::chrono::duration_cast<std::chrono::milliseconds>(e - s).count() << " ms\n";
-
-   return 0;
 #endif
 
 
    // ====== Test ===========================================================
-   printf("Test F\n");
+#ifdef TEST5
+   printf("Test 5\n");
    ((DatabaseClientBase&)client).executeQuery("SELECT * FROM test1");
    while(client.fetchNextTuple()) {
       const int id            = client.getInteger(1);
       const std::string label = client.getString(2);
       printf("%6d: %s\n", id, label.c_str());
    }
+#endif
+
+   return 0;
 }
