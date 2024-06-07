@@ -43,7 +43,6 @@ MariaDBClient::MariaDBClient(const DatabaseConfiguration& configuration)
    : DatabaseClientBase(configuration)
 {
    mysql_init(&Connection);
-   Transaction   = nullptr;
    ResultCursor  = nullptr;
    ResultColumns = 0;
 }
@@ -95,7 +94,7 @@ bool MariaDBClient::open()
 
    // ====== Connect to database =========================================
    mysql_autocommit(&Connection, 0);
-   // mysql_options(&Connection, MYSQL_OPT_COMPRESS, (void*)1);
+   mysql_options(&Connection, MYSQL_OPT_COMPRESS, (void*)1);
    mysql_options(&Connection, MYSQL_INIT_COMMAND,"SET SESSION TRANSACTION ISOLATION LEVEL READ COMMITTED");
    if(!mysql_real_connect(&Connection,
                           Configuration.getServer().c_str(),
@@ -112,15 +111,6 @@ bool MariaDBClient::open()
    }
    HPCT_LOG(debug) << "MySQL/MariaDB Server Info: " << mysql_get_server_info(&Connection);
 
-
-   // ====== Create statement ===============================================
-   Transaction = mysql_stmt_init(&Connection);
-   if(Transaction == nullptr) {
-      handleDatabaseError("Init Statement");
-      close();
-      return false;
-   }
-
    return true;
 }
 
@@ -131,10 +121,6 @@ void MariaDBClient::close()
    if(ResultCursor) {
       mysql_free_result(ResultCursor);
       ResultCursor = nullptr;
-   }
-   if(Transaction) {
-      mysql_stmt_close(Transaction);
-      Transaction = nullptr;
    }
    mysql_close(&Connection);
 }
@@ -152,14 +138,14 @@ void MariaDBClient::reconnect()
 void MariaDBClient::handleDatabaseError(const std::string& where,
                                         const std::string& statement)
 {
-   const unsigned int errorCode = (Transaction != nullptr) ? mysql_stmt_errno(Transaction) : mysql_errno(&Connection);
-   const std::string  sqlState  = (Transaction != nullptr) ? mysql_stmt_sqlstate(Transaction) : mysql_sqlstate(&Connection);
+   const unsigned int errorCode = mysql_errno(&Connection);
+   const std::string  sqlState  = mysql_sqlstate(&Connection);
 
    // ====== Log error ======================================================
    const std::string what = where + " error " +
                                sqlState + "/E" +
                                std::to_string(errorCode) + ": " +
-                               mysql_stmt_error(Transaction);
+                               mysql_error(&Connection);
    HPCT_LOG(error) << what;
    if(statement.size() > 0) {
       HPCT_LOG(debug) << statement;
@@ -182,8 +168,10 @@ void MariaDBClient::handleDatabaseError(const std::string& where,
 // ###### Begin transaction #################################################
 void MariaDBClient::startTransaction()
 {
-   static const std::string startTransaction("START TRANSACTION");
-   DatabaseClientBase::executeUpdate(startTransaction);
+   static const std::string statement("START TRANSACTION");
+   if(mysql_query(&Connection, statement.c_str())) {
+      handleDatabaseError("Start Transaction", statement);
+   }
 }
 
 
@@ -215,11 +203,8 @@ void MariaDBClient::executeUpdate(Statement& statement)
       ResultCursor = nullptr;
    }
 
-   if(mysql_stmt_prepare(Transaction, statement.str().c_str(), statement.str().size())) {
-      handleDatabaseError("Prepare", statement.str());
-   }
-   if(mysql_stmt_execute(Transaction)) {
-      handleDatabaseError("Execute", statement.str());
+   if(mysql_query(&Connection, statement.str().c_str())) {
+      handleDatabaseError("Query", statement.str());
    }
 
    statement.clear();

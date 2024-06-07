@@ -59,12 +59,13 @@ class MariaDBClient : public DatabaseClientBase
    virtual int64_t getBigInt(unsigned int column) const;
    virtual std::string getString(unsigned int column) const;
 
+   inline MYSQL* getConnection() { return &Connection; }
+
    private:
    void handleDatabaseError(const std::string& where,
                             const std::string& statement = std::string());
 
    MYSQL        Connection;
-   MYSQL_STMT * Transaction;
    MYSQL_RES*   ResultCursor;
    MYSQL_ROW    ResultRow;
    unsigned int ResultColumns;
