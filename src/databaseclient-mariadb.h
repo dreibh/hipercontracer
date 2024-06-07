@@ -55,18 +55,19 @@ class MariaDBClient : public DatabaseClientBase
    virtual void endTransaction(const bool commit);
 
    virtual bool fetchNextTuple();
-//    virtual int32_t getInteger(unsigned int column) const;
-//    virtual int64_t getBigInt(unsigned int column) const;
-//    virtual std::string getString(unsigned int column) const;
+   virtual int32_t getInteger(unsigned int column) const;
+   virtual int64_t getBigInt(unsigned int column) const;
+   virtual std::string getString(unsigned int column) const;
 
    private:
-   void handleDatabaseError(const std::string& where);
    void handleDatabaseError(const std::string& where,
-                            const Statement&   statement);
+                            const std::string& statement = std::string());
 
-   MYSQL       Connection;
-   MYSQL_STMT* Transaction;
-//    sql::ResultSet*  ResultSet;
+   MYSQL        Connection;
+   MYSQL_STMT * Transaction;
+   MYSQL_RES*   ResultCursor;
+   MYSQL_ROW    ResultRow;
+   unsigned int ResultColumns;
 };
 
 #endif
