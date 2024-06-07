@@ -67,7 +67,7 @@ if [ "$1" == "mariadb" ] ; then
    echo "Installing MariaDB ..."
 
    if [ -x /usr/bin/apt ] ; then
-      sudo DEBIAN_FRONTEND=noninteractive apt install -y -o APT::Keep-Downloaded-Packages=true mariadb-server mariadb-backup mariadb-client openssl
+      sudo DEBIAN_FRONTEND=noninteractive apt install -y -o APT::Keep-Downloaded-Packages=true mariadb-server mariadb-backup mariadb-client libmariadb-dev openssl
    elif [ -x /usr/bin/dnf ] ; then
       sudo dnf install -y mariadb-server mariadb-backup openssl
       sudo systemctl enable mariadb.service
