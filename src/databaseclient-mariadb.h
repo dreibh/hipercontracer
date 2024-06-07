@@ -59,17 +59,13 @@ class MariaDBClient : public DatabaseClientBase
    virtual int64_t getBigInt(unsigned int column) const;
    virtual std::string getString(unsigned int column) const;
 
-//    inline sql::Driver*     getDriver()     { return Driver;     }
-   inline MYSQL* getConnection() { return Connection; }
-
    private:
-//    void handleDatabaseException(const sql::SQLException& exception,
-//                                 const std::string&       where,
-//                                 const std::string&       statement = std::string());
+   void handleDatabaseError(const std::string& where);
+   void handleDatabaseError(const std::string& where,
+                            const Statement&   statement);
 
-//    sql::Driver*     Driver;
-   MYSQL* Connection;
-//    sql::Statement*  Transaction;
+   MYSQL       Connection;
+   MYSQL_STMT* Transaction;
 //    sql::ResultSet*  ResultSet;
 };
 

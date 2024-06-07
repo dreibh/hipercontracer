@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Copy configuration from dbtest VM:
-DBTEST=192.168.56.200
+DBTEST=10.193.4.69
 
 scp nornetpp@${DBTEST}:testdb-* ${HOME}/
 scp nornetpp@${DBTEST}:/etc/ssl/TestLevel1/certs/TestLevel1.crt ${HOME}/

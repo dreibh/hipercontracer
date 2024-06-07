@@ -1,3 +1,61 @@
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+#include <cassert>
+
+#include <mysql.h>
+
+int main(int argc, char **argv)
+{
+  MYSQL mysql;
+  mysql_init(&mysql);
+
+  my_bool onoff;
+  onoff = true;
+  mysql_options(&mysql, MYSQL_OPT_SSL_ENFORCE, &onoff);
+  onoff = false;
+  mysql_options(&mysql, MYSQL_OPT_SSL_VERIFY_SERVER_CERT, &onoff);
+  mysql_options(&mysql, MYSQL_OPT_TLS_VERSION, "TLSv1.3");
+  mysql_options(&mysql, MYSQL_OPT_COMPRESS, nullptr);
+
+   mysql_optionsv(&mysql, MYSQL_OPT_SSL_CA, "/home/dreibh/TestLevel1.crt");
+   mysql_optionsv(&mysql, MYSQL_OPT_SSL_CRL, "/home/dreibh/TestGlobal.crl");
+
+   mysql_autocommit(&mysql, 0);
+   mysql_options(&mysql, MYSQL_INIT_COMMAND,"SET SESSION TRANSACTION ISOLATION LEVEL READ COMMITTED");
+
+   puts("connecting...");
+  if (!mysql_real_connect(&mysql,
+                          "10.193.4.69",
+                          "importer",         /* mysql user */
+                          "2TlTz3z0voJFK9CmOyBG2YjC6lm1I96SACdgB3dbAjt2nTxlGpOXgoPRmN0lMttGsAnKFKdLC7yg3aK7CYtrF3j49yTfvSEM7lVyPB2h4GIlnGPjAE3q8ulGeJKQ4L9T",          /* password */
+                          "testonly",               /* default database to use, NULL for none */
+                          3306,           /* port number, 0 for default */
+                          nullptr,        /* socket file or named pipe name */
+                          CLIENT_FOUND_ROWS /* connection flags */ )) {
+    puts("Connect failed\n");
+  exit(1);
+  }
+  puts("OK!");
+
+
+  printf("MySQL Server Info: %s\n", mysql_get_server_info(&mysql));
+
+
+   MYSQL_STMT* stmt = mysql_stmt_init(&mysql);
+   assert(stmt != nullptr);
+
+
+   mysql_stmt_close(stmt);
+
+
+
+   mysql_close(&mysql);
+
+   return 0;
+}
+
+
 // =================================================================
 //          #     #                 #     #
 //          ##    #   ####   #####  ##    #  ######   #####
@@ -42,12 +100,8 @@
 MariaDBClient::MariaDBClient(const DatabaseConfiguration& configuration)
    : DatabaseClientBase(configuration)
 {
-   mysql_thread_init();
-
-//    Driver = get_driver_instance();
-//    assert(Driver != nullptr);
-   Connection  = nullptr;
-//    Transaction = nullptr;
+   mysql_init(&Connection);
+   Transaction = nullptr;
 //    ResultSet   = nullptr;
 }
 
@@ -69,8 +123,8 @@ const DatabaseBackendType MariaDBClient::getBackend() const
 // ###### Prepare connection to database ####################################
 bool MariaDBClient::open()
 {
-   bool sslEnforce = true;
-   bool sslVerify  = true;
+   my_bool sslEnforce = true;
+   my_bool sslVerify  = true;
    if(Configuration.getConnectionFlags() & DisableTLS) {
       sslEnforce = false;
       HPCT_LOG(warning) << "TLS explicitly disabled. CONFIGURE TLS PROPERLY!!";
@@ -80,58 +134,41 @@ bool MariaDBClient::open()
       HPCT_LOG(warning) << "TLS certificate check explicitliy disabled. CONFIGURE TLS PROPERLY!!";
    }
 
-   Connection = mysql_init(nullptr);
-   assert(Connection != nullptr);
-
-abort();
-#if 0
-   sql::ConnectOptionsMap connectionProperties;
-   connectionProperties["hostName"] = Configuration.getServer();
-   connectionProperties["userName"] = Configuration.getUser();
-   connectionProperties["password"] = Configuration.getPassword();
-   connectionProperties["schema"]   = Configuration.getDatabase();
-   connectionProperties["port"]     = (Configuration.getPort() != 0) ? Configuration.getPort() : 3306;
+   mysql_options(&Connection, MYSQL_OPT_SSL_ENFORCE, &sslEnforce);
+   mysql_options(&Connection, MYSQL_OPT_SSL_VERIFY_SERVER_CERT, &sslVerify);
+   mysql_options(&Connection, MYSQL_OPT_TLS_VERSION, "TLSv1.3");
+   mysql_options(&Connection, MYSQL_OPT_COMPRESS, nullptr);
    if(Configuration.getCAFile().size() > 0) {
-      connectionProperties["sslCA"]   = Configuration.getCAFile();
-   }
-   if(Configuration.getCertFile().size() > 0) {
-      connectionProperties["sslCert"] = Configuration.getCertFile();
-   }
-   if(Configuration.getCertKeyFile().size() > 0) {
-      HPCT_LOG(error) << "MySQL/MariaDB backend expects separate certificate and key files, not one certificate+key file!";
-      return false;
+      mysql_options(&Connection, MYSQL_OPT_SSL_CA, Configuration.getCAFile().c_str());
    }
    if( (sslVerify) && (Configuration.getCRLFile().size() > 0) ) {
-      connectionProperties["sslCRL"] = Configuration.getCRLFile();
+      mysql_options(&Connection, MYSQL_OPT_SSL_CRL, Configuration.getCRLFile().c_str());
    }
-   connectionProperties["sslVerify"]       = sslVerify;
-   connectionProperties["sslEnforce"]      = sslEnforce;
-   connectionProperties["OPT_TLS_VERSION"] = "TLSv1.3";
-   connectionProperties["CLIENT_COMPRESS"] = true;
-
-   assert(Connection == nullptr);
-   try {
-      // ====== Connect to database =========================================
-      Connection = Driver->connect(connectionProperties);
-      assert(Connection != nullptr);
-      Connection->setSchema(Configuration.getDatabase().c_str());
-      // SET SESSION TRANSACTION ISOLATION LEVEL READ COMMITTED
-      Connection->setTransactionIsolation(sql::TRANSACTION_READ_COMMITTED);
-      Connection->setAutoCommit(false);
-
-      // ====== Create statement ============================================
-      Transaction = Connection->createStatement();
-      assert(Transaction != nullptr);
+   if(Configuration.getCertFile().size() > 0) {
+      mysql_options(&Connection, MYSQL_OPT_SSL_CERT, Configuration.getCertFile().c_str());
    }
-   catch(const sql::SQLException& e) {
+   if(Configuration.getCertKeyFile().size() > 0) {
+      mysql_options(&Connection, MYSQL_OPT_SSL_KEY, Configuration.getCertKeyFile().c_str());
+   }
+
+   mysql_autocommit(&Connection, 0);
+   mysql_options(&Connection, MYSQL_INIT_COMMAND,"SET SESSION TRANSACTION ISOLATION LEVEL READ COMMITTED");
+
+   if(!mysql_real_connect(&Connection,
+                          Configuration.getServer().c_str(),
+                          Configuration.getUser().c_str(),
+                          Configuration.getPassword().c_str(),
+                          Configuration.getDatabase().c_str(),
+                          (Configuration.getPort() != 0) ? Configuration.getPort() : 3306,
+                          nullptr,
+                          CLIENT_FOUND_ROWS)) {
       HPCT_LOG(error) << "Unable to connect MySQL/MariaDB client to "
-                      << Configuration.getServer() << ": " << e.what();
+                      << Configuration.getServer() << ": " << mysql_error(&Connection);
       close();
       return false;
    }
 
    return true;
-#endif
 }
 
 
@@ -142,47 +179,72 @@ void MariaDBClient::close()
 //       delete ResultSet;
 //       ResultSet = nullptr;
 //    }
-//    if(Transaction) {
-//       delete Transaction;
-//       Transaction = nullptr;
-//    }
-   if(Connection != nullptr) {
-      mysql_close(Connection);
-      Connection = nullptr;
+   if(Transaction) {
+      mysql_stmt_close(Transaction);
+      Transaction = nullptr;
    }
+   mysql_close(&Connection);
 }
 
 
 // ###### Reconnect connection to database ##################################
 void MariaDBClient::reconnect()
 {
-   Connection->reconnect();
+   close();
+   open();
 }
 
 
-#if 0
-// ###### Handle SQLException ###############################################
-void MariaDBClient::handleDatabaseException(const sql::SQLException& exception,
-                                            const std::string&       where,
-                                            const std::string&       statement)
+// ###### Handle non-statement error ########################################
+void MariaDBClient::handleDatabaseError(const std::string& where)
 {
+   const unsigned int errorCode = mysql_errno(&Connection);
+   const std::string  sqlState  = mysql_sqlstate(&Connection);
+
    // ====== Log error ======================================================
    const std::string what = where + " error " +
-                               exception.getSQLState() + "/E" +
-                               std::to_string(exception.getErrorCode()) + ": " +
-                               exception.what();
+                               sqlState + "/E" +
+                               std::to_string(errorCode) + ": " +
+                               mysql_error(&Connection);
    HPCT_LOG(error) << what;
-   HPCT_LOG(debug) << statement;
 
    // ====== Throw exception ================================================
-   const std::string e = exception.getSQLState().substr(0, 2);
-   //  Based on mysql/connector/errors.py:
+   const std::string e = sqlState.substr(0, 2);
    if( (e == "42") || (e == "23") || (e == "22") || (e == "XA")) {
+      //  Based on mysql/connector/errors.py:
       // For this type, the input file should be moved to the bad directory.
       throw ResultsDatabaseDataErrorException(what);
    }
-   // Other error
    else {
+      // Other error
+      throw ResultsDatabaseException(what);
+   }
+}
+
+
+// ###### Handle statement error ########################################
+void MariaDBClient::handleDatabaseError(const std::string& where,
+                                        const Statement&   statement)
+{
+   const unsigned int errorCode = mysql_stmt_errno(Transaction);
+   const std::string  sqlState  = mysql_stmt_sqlstate(Transaction);
+
+   // ====== Log error ======================================================
+   const std::string what = where + " statement error " +
+                               sqlState + "/E" +
+                               std::to_string(errorCode) + ": " +
+                               mysql_stmt_error(Transaction);
+   HPCT_LOG(error) << what;
+
+   // ====== Throw exception ================================================
+   const std::string e = sqlState.substr(0, 2);
+   if( (e == "42") || (e == "23") || (e == "22") || (e == "XA")) {
+      //  Based on mysql/connector/errors.py:
+      // For this type, the input file should be moved to the bad directory.
+      throw ResultsDatabaseDataErrorException(what);
+   }
+   else {
+      // Other error
       throw ResultsDatabaseException(what);
    }
 }
@@ -191,11 +253,8 @@ void MariaDBClient::handleDatabaseException(const sql::SQLException& exception,
 // ###### Begin transaction #################################################
 void MariaDBClient::startTransaction()
 {
-   try {
-      Transaction->execute("START TRANSACTION");
-   }
-   catch(const sql::SQLException& exception) {
-      handleDatabaseException(exception, "Start of transaction");
+   if(!mysql_stmt_execute(Transaction)) {
+      handleDatabaseError("Start of transaction");
    }
 }
 
@@ -205,21 +264,15 @@ void MariaDBClient::endTransaction(const bool commit)
 {
    // ====== Commit transaction =============================================
    if(commit) {
-      try {
-         Connection->commit();
-      }
-      catch(const sql::SQLException& exception) {
-         handleDatabaseException(exception, "Commit");
+      if(!mysql_commit(&Connection)) {
+         handleDatabaseError("Commit");
       }
    }
 
    // ====== Commit transaction =============================================
    else {
-      try {
-         Connection->rollback();
-      }
-      catch(const sql::SQLException& exception) {
-         handleDatabaseException(exception, "Rollback");
+      if(!mysql_rollback(&Connection)) {
+         handleDatabaseError("Rollback");
       }
    }
 }
@@ -230,16 +283,18 @@ void MariaDBClient::executeUpdate(Statement& statement)
 {
    assert(statement.isValid());
 
-   try {
-      Transaction->executeUpdate(statement.str());
+   if(!mysql_stmt_prepare(Transaction, statement.str().c_str(), statement.str().size())) {
+      handleDatabaseError("Prepare", statement);
    }
-   catch(const sql::SQLException& exception) {
-      handleDatabaseException(exception, "Execute", statement.str());
+   if(!mysql_stmt_execute(Transaction)) {
+      handleDatabaseError("Execute", statement);
    }
 
    statement.clear();
 }
 
+
+#if 0
 
 // ###### Execute statement #################################################
 void MariaDBClient::executeQuery(Statement& statement)

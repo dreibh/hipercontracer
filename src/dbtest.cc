@@ -2,8 +2,9 @@
 #include "tools.h"
 
 #include <chrono>
+#include <iostream>
 
-#include <cppconn/prepared_statement.h>
+// #include <cppconn/prepared_statement.h>
 
 
 void prepareTable(DatabaseClientBase& client)
@@ -55,24 +56,24 @@ int main(int argc, char** argv)
    std::cout << "Duration: " << std::chrono::duration_cast<std::chrono::milliseconds>(e - s).count() << " ms\n";
 
 
-   // ====== Test ===========================================================
-   prepareTable(client);
-
-   printf("Test 3\n");
-   s = std::chrono::high_resolution_clock::now();
-   sql::PreparedStatement* pstmt = client.getConnection()->prepareStatement(
-      "INSERT INTO test1 VALUES (?, ?)"
-   );
-   for(unsigned int i = 0; i < items; i++) {
-      pstmt->setInt(1, i);
-      pstmt->setString(2, ("Test #" + std::to_string(i)).c_str());
-      pstmt->executeUpdate();
-   }
-   delete pstmt;
-   client.commit();
-   e = std::chrono::high_resolution_clock::now();
-
-   std::cout << "Duration: " << std::chrono::duration_cast<std::chrono::milliseconds>(e - s).count() << " ms\n";
+//    // ====== Test ===========================================================
+//    prepareTable(client);
+//
+//    printf("Test 3\n");
+//    s = std::chrono::high_resolution_clock::now();
+//    sql::PreparedStatement* pstmt = client.getConnection()->prepareStatement(
+//       "INSERT INTO test1 VALUES (?, ?)"
+//    );
+//    for(unsigned int i = 0; i < items; i++) {
+//       pstmt->setInt(1, i);
+//       pstmt->setString(2, ("Test #" + std::to_string(i)).c_str());
+//       pstmt->executeUpdate();
+//    }
+//    delete pstmt;
+//    client.commit();
+//    e = std::chrono::high_resolution_clock::now();
+//
+//    std::cout << "Duration: " << std::chrono::duration_cast<std::chrono::milliseconds>(e - s).count() << " ms\n";
 
 
    // ====== Test ===========================================================
