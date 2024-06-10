@@ -33,6 +33,7 @@
 #define UNIVERSAL_IMPORTER_H
 
 #include "databaseclient-base.h"
+#include "importer-configuration.h"
 #include "reader-base.h"
 
 #include <boost/asio.hpp>
@@ -47,6 +48,7 @@ class UniversalImporter
 {
    public:
    UniversalImporter(boost::asio::io_service&     ioService,
+                     const ImporterConfiguration& importerConfiguration,
                      const DatabaseConfiguration& databaseConfiguration,
                      const unsigned int           statusTimerInterval = 60);
    ~UniversalImporter();
@@ -85,7 +87,8 @@ class UniversalImporter
                          const UniversalImporter::WorkerMapping& b);
 
    boost::asio::io_service&                 IOService;
-   const DatabaseConfiguration&             Configuration;
+   const DatabaseConfiguration&             DatabaseConfig;
+   const ImporterConfiguration&             ImporterConfig;
 
    boost::asio::signal_set                  Signals;
    std::list<ReaderBase*>                   ReaderList;

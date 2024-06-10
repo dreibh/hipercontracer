@@ -108,6 +108,7 @@ IF (WITH_IMPORTER)
       database-statement.h
       databaseclient-base.h
       databaseclient-debug.h
+      importer-configuration.h
       reader-base.h
       results-exception.h
       universal-importer.h
@@ -120,6 +121,7 @@ IF (WITH_IMPORTER)
       database-statement.cc
       databaseclient-base.cc
       databaseclient-debug.cc
+      importer-configuration.cc
       reader-base.cc
       universal-importer.cc
       worker.cc
@@ -270,6 +272,8 @@ INSTALL(FILES get-default-ips.1
 #### EXAMPLES                                                            ####
 #############################################################################
 
+INSTALL(FILES hipercontracer-importer.conf
+        DESTINATION ${CMAKE_INSTALL_DATADIR}/doc/hipercontracer/examples)
 INSTALL(FILES hipercontracer-database.conf
         DESTINATION ${CMAKE_INSTALL_DATADIR}/doc/hipercontracer/examples)
 

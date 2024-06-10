@@ -247,6 +247,7 @@ HiPerConTracer into an SQL or NoSQL database.
 %{_datadir}/doc/hipercontracer/examples/TestDB/test-tls-connection
 %{_datadir}/doc/hipercontracer/examples/TestDB/users.conf.example
 %{_datadir}/doc/hipercontracer/examples/hipercontracer-database.conf
+%{_datadir}/doc/hipercontracer/examples/hipercontracer-importer.conf
 %{_sysconfdir}/hipercontracer/hpct-importer.conf
 /lib/systemd/system/hpct-importer.service
 
