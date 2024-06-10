@@ -360,7 +360,7 @@ void Worker::run()
 
    while(!StopRequested) {
       // ====== Look for new input files ====================================
-      HPCT_LOG(trace) << getIdentification() << ": Looking for new input files ...";
+      HPCT_LOG(trace) << getIdentification() << ": Processing new input files ...";
 
       // ====== Fast import: try to combine files ===========================
       std::list<std::filesystem::path> dataFileList;

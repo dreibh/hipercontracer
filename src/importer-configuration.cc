@@ -34,6 +34,7 @@
 #include "tools.h"
 
 #include <fstream>
+#include <regex>
 
 
 // ###### Constructor #######################################################
@@ -83,11 +84,12 @@ bool ImporterConfiguration::readConfiguration(const std::filesystem::path& confi
    }
 
    // ====== Check options ==================================================
-   if(!setImportMode(ImportModeName))     return false;
-   if(!setImportMaxDepth(ImportMaxDepth)) return false;
-   if(!setImportFilePath(ImportFilePath)) return false;
-   if(!setGoodFilePath(GoodFilePath))     return false;
-   if(!setBadFilePath(BadFilePath))       return false;
+   if(!setImportMode(ImportModeName))         return false;
+   if(!setImportMaxDepth(ImportMaxDepth))     return false;
+   if(!setImportPathFilter(ImportPathFilter)) return false;
+   if(!setImportFilePath(ImportFilePath))     return false;
+   if(!setGoodFilePath(GoodFilePath))         return false;
+   if(!setBadFilePath(BadFilePath))           return false;
 
    return true;
 }
@@ -130,6 +132,14 @@ bool ImporterConfiguration::setImportMaxDepth(const unsigned int importMaxDepth)
 bool ImporterConfiguration::setImportPathFilter(const std::string& importPathFilter)
 {
    ImportPathFilter = importPathFilter;
+   try {
+      const std::regex importPathFilterRegExp(ImportPathFilter);
+   }
+   catch(const std::regex_error& e) {
+      HPCT_LOG(error) << "Invalid regular expression for import path filter \""
+                      << ImportPathFilter << "\": " << e.what();
+      return false;
+   }
    return true;
 }
 

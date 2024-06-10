@@ -57,7 +57,7 @@ class UniversalImporter
                   DatabaseClientBase** databaseClientArray,
                   const size_t         databaseClients);
    void removeReader(ReaderBase& reader);
-   void lookForFiles(const std::string& importFilePathFilter = std::string());
+   void lookForFiles();
    bool start(const bool quitWhenIdle = false);
    void stop();
    void waitForFinish();
@@ -72,8 +72,7 @@ class UniversalImporter
                            const std::size_t                length);
    unsigned long long lookForFiles(const std::filesystem::path& importFilePath,
                                    const unsigned int           currentDepth,
-                                   const unsigned int           maxDepth,
-                                   const std::regex&            directoryFilterRegExp);
+                                   const unsigned int           maxDepth);
    bool addFile(const std::filesystem::path& dataFile);
    bool removeFile(const std::filesystem::path& dataFile);
    void handleStatusTimer(const boost::system::error_code& errorCode);
@@ -88,6 +87,8 @@ class UniversalImporter
    boost::asio::io_service&                 IOService;
    const DatabaseConfiguration&             DatabaseConfig;
    const ImporterConfiguration&             ImporterConfig;
+   const std::string                        ImportPathFilter;
+   const std::regex                         ImportPathFilterRegEx;
 
    boost::asio::signal_set                  Signals;
    std::list<ReaderBase*>                   ReaderList;
