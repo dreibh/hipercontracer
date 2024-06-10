@@ -7,6 +7,7 @@ set -e
 # ===========================================================================
 # This script is for testing HiPerConTracer in a clean environment,
 # e.g. a minimal container:
+# docker run --rm -it --volume $(pwd)/build-and-run-test:/root/build-and-run-test ubuntu
 # docker run --rm -it --volume $(pwd)/build-and-run-test:/root/build-and-run-test debian
 # docker run --rm -it --volume $(pwd)/build-and-run-test:/root/build-and-run-test fedora
 # docker run --rm -it --volume $(pwd)/build-and-run-test:/root/build-and-run-test alpine
@@ -33,13 +34,13 @@ else
 fi
 if [ "${ID}" == "debian" ] || [ "${ID}" == "ubuntu" ] ; then
    apt update
-   apt install -y git cmake debhelper libboost-date-time-dev libboost-filesystem-dev libboost-iostreams-dev libboost-log-dev libboost-program-options-dev libboost-system-dev libboost-thread-dev libbz2-dev libc-ares-dev liblzma-dev pkg-config zlib1g-dev
+   apt install -y cmake debhelper git libboost-date-time-dev libboost-filesystem-dev libboost-iostreams-dev libboost-log-dev libboost-program-options-dev libboost-system-dev libboost-thread-dev libbz2-dev libc-ares-dev liblzma-dev zlib1g-dev
 elif [ "${ID}" == "fedora" ] ; then
-   dnf install -y git boost-devel bzip2-devel c-ares-devel cmake gcc gcc-c++ xz-devel zlib-devel
+   dnf install -y boost-devel bzip2-devel c-ares-devel cmake gcc gcc-c++ git xz-devel zlib-devel
 elif [ "${ID}" == "alpine" ] ; then
-   apk add git make gcc g++ cmake boost-dev c-ares-dev
+   apk add boost-dev c-ares-dev cmake g++ gcc git make zlib-dev
 elif [[ "${ID_LIKE}" =~ ^opensuse ]] ; then
-   zypper --non-interactive install git libboost_log-devel libboost_thread-devel libboost_system-devel libboost_iostreams-devel libboost_program_options-devel c-ares-devel cmake gcc gcc-c++ xz-devel zlib-devel
+   zypper --non-interactive install c-ares-devel cmake gcc gcc-c++ git libboost_iostreams-devel libboost_log-devel libboost_program_options-devel libboost_system-devel libboost_thread-devel libbz2-devel xz-devel zlib-devel
 fi
 
 
@@ -67,6 +68,8 @@ export MAKEFLAGS=-j${cores}
 rm -f CMakeCache.txt
 cmake . -DCMAKE_BUILD_TYPE=RelWithDebInfo \
    -DSTATIC_BUILD=OFF                     \
+   -DWITH_STATIC_LIBRARIES=OFF            \
+   -DWITH_SHARED_LIBRARIES=ON             \
    -DWITH_TRIGGER=OFF                     \
    -DWITH_IMPORTER=OFF                    \
    -DWITH_QUERY=OFF                       \
@@ -78,4 +81,4 @@ make
 
 # ====== Run HiPerConTracer =================================================
 cd ~/hipercontracer/src
-./hipercontracer --source :: --source 0.0.0.0 --destination ${ECHO_SERVER} --ping --traceroute -M UDP -M ICMP -R ${RESULTS_DIRECTORY} --verbose
+./hipercontracer --source :: --source 0.0.0.0 --destination "${ECHO_SERVER}" --ping --traceroute -M UDP -M ICMP -R "${RESULTS_DIRECTORY}" --verbose

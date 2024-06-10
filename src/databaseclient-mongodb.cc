@@ -53,7 +53,8 @@
 // http://mongoc.org/libmongoc/current/tutorial.html#starting-mongodb
 
 
-REGISTER_BACKEND(DatabaseBackendType::NoSQL_MongoDB, "MongoDB", MongoDBClient)
+// NOTE: The registration was moved to database-configuration.cc, due to linking issues!
+// REGISTER_BACKEND(DatabaseBackendType::NoSQL_MongoDB, "MongoDB", MongoDBClient)
 
 
 // ###### Constructor #######################################################
