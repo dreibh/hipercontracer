@@ -290,7 +290,7 @@ IF (WITH_IMPORTER)
       MESSAGE("MySQL/MariaDB backend disabled!")
    ENDIF()
 
-   # ------ PostgreSQL ---------------------------------------------------------
+   # ------ PostgreSQL ------------------------------------------------------
    OPTION(ENABLE_BACKEND_POSTGRESQL "Enable PostgreSQL backed" 1)
    IF (ENABLE_BACKEND_POSTGRESQL)
       MESSAGE("Building with PostgreSQL backend (ENABLE_BACKEND_POSTGRESQL=${ENABLE_BACKEND_POSTGRESQL})")
@@ -313,7 +313,7 @@ IF (WITH_IMPORTER)
       MESSAGE("PostgreSQL backend disabled!")
    ENDIF()
 
-   # ------ MongoDB ------------------------------------------------------------
+   # ------ MongoDB ---------------------------------------------------------
    OPTION(ENABLE_BACKEND_MONGODB "Enable MongoDB backed" 1)
    IF (ENABLE_BACKEND_MONGODB)
       MESSAGE("Building with MongoDB backend (ENABLE_BACKEND_MONGODB=${ENABLE_BACKEND_MONGODB})")
