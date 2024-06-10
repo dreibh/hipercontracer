@@ -1,0 +1,84 @@
+#!/usr/bin/env bash
+
+# Bash options:
+set -e
+
+
+# ===========================================================================
+# This script is for testing HiPerConTracer in a clean environment,
+# e.g. a minimal container:
+# docker run --rm -it --volume $(pwd)/build-and-run-test:/root/build-and-run-test ubuntu
+# docker run --rm -it --volume $(pwd)/build-and-run-test:/root/build-and-run-test debian
+# docker run --rm -it --volume $(pwd)/build-and-run-test:/root/build-and-run-test fedora
+# docker run --rm -it --volume $(pwd)/build-and-run-test:/root/build-and-run-test alpine
+# docker run --rm -it --volume $(pwd)/build-and-run-test:/root/build-and-run-test opensuse/tumbleweed
+# docker run --rm -it ...
+# ===========================================================================
+
+
+# Handle arguments:
+if [ $# -lt 2 ] ; then
+   echo >&2 "Usage: $0 echo_server results_directory"
+   exit 1
+fi
+ECHO_SERVER="$1"
+RESULTS_DIRECTORY="$2"
+
+
+# ====== Install dependencies ===============================================
+if [ -e /etc/os-release ] ; then
+   . /etc/os-release
+else
+   echo >&2 "ERROR: /etc/os-release is not available => unknown system!"
+   exit 1
+fi
+if [ "${ID}" == "debian" ] || [ "${ID}" == "ubuntu" ] ; then
+   apt update
+   apt install -y cmake debhelper git libboost-date-time-dev libboost-filesystem-dev libboost-iostreams-dev libboost-log-dev libboost-program-options-dev libboost-system-dev libboost-thread-dev libbz2-dev libc-ares-dev liblzma-dev zlib1g-dev
+elif [ "${ID}" == "fedora" ] ; then
+   dnf install -y boost-devel bzip2-devel c-ares-devel cmake gcc gcc-c++ git xz-devel zlib-devel
+elif [ "${ID}" == "alpine" ] ; then
+   apk add boost-dev c-ares-dev cmake g++ gcc git make zlib-dev
+elif [[ "${ID_LIKE}" =~ ^opensuse ]] ; then
+   zypper --non-interactive install c-ares-devel cmake gcc gcc-c++ git libboost_iostreams-devel libboost_log-devel libboost_program_options-devel libboost_system-devel libboost_thread-devel libbz2-devel xz-devel zlib-devel
+fi
+
+
+# ====== Get the HiPerConTracer sources =====================================
+cd ~
+if [ ! -d hipercontracer ] ; then
+   git clone https://dreibh@github.com/dreibh/hipercontracer
+   cd ~/hipercontracer
+else
+   cd ~/hipercontracer
+   git pull
+fi
+git checkout dreibh/udpping
+
+
+# ====== Set MAKEFLAGS, to utilise all cores ================================
+cores="$(getconf _NPROCESSORS_ONLN 2>/dev/null)" || \
+   cores="$(sysctl -a | grep 'hw.ncpu' | cut -d ':' -f2 | tr -d ' ')" || \
+   cores="1"
+echo "This system has ${cores} cores!"
+export MAKEFLAGS=-j${cores}
+
+
+# ====== Build only the HiPerConTracer tool itself ==========================
+rm -f CMakeCache.txt
+cmake . -DCMAKE_BUILD_TYPE=RelWithDebInfo \
+   -DSTATIC_BUILD=OFF                     \
+   -DWITH_STATIC_LIBRARIES=OFF            \
+   -DWITH_SHARED_LIBRARIES=ON             \
+   -DWITH_TRIGGER=OFF                     \
+   -DWITH_IMPORTER=OFF                    \
+   -DWITH_QUERY=OFF                       \
+   -DWITH_RESULTS=OFF                     \
+   -DWITH_PIPE_CHECKSUM=OFF               \
+   -DWITH_UDP_ECHO_SERVER=OFF
+make
+
+
+# ====== Run HiPerConTracer =================================================
+cd ~/hipercontracer/src
+./hipercontracer --source :: --source 0.0.0.0 --destination "${ECHO_SERVER}" --ping --traceroute -M UDP -M ICMP -R "${RESULTS_DIRECTORY}" --verbose

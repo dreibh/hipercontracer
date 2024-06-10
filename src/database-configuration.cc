@@ -38,6 +38,26 @@
 #include <boost/algorithm/string.hpp>
 
 
+//  ###### Database Backend Registry ########################################
+
+#include "databaseclient-debug.h"
+#include "databaseclient-mariadb.h"
+#include "databaseclient-postgresql.h"
+#include "databaseclient-mongodb.h"
+
+REGISTER_BACKEND(DatabaseBackendType::SQL_Debug, "DebugSQL", DebugClient)
+REGISTER_BACKEND_ALIAS(DatabaseBackendType::NoSQL_Debug, "DebugNoSQL", DebugClient, 2)
+
+REGISTER_BACKEND(DatabaseBackendType::SQL_MariaDB, "MariaDB", MariaDBClient)
+REGISTER_BACKEND_ALIAS(DatabaseBackendType::SQL_MariaDB, "MySQL", MariaDBClient, 2)
+
+REGISTER_BACKEND(DatabaseBackendType::SQL_PostgreSQL, "PostgreSQL", PostgreSQLClient)
+
+REGISTER_BACKEND(DatabaseBackendType::NoSQL_MongoDB, "MongoDB", MongoDBClient)
+
+//  #########################################################################
+
+
 std::list<DatabaseConfiguration::RegisteredBackend*>* DatabaseConfiguration::BackendList = nullptr;
 
 

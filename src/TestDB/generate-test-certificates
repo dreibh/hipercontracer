@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/usr/bin/env python3
 #
 # Create Test CA Hierarchy and Test Certificates
 # Copyright (C) 2022-2024 by Thomas Dreibholz
@@ -112,63 +112,18 @@ TestLeaf = CA(mainDirectory, 'TestLeaf',
               keyLength = caKeyLength, globalCRLFileName = globalCRLFileName)
 
 
-
-## ====== Create Test Servers and Users ======================================
-#subject        = '/C=NO/ST=Oslo/L=Oslo/O=Simula Metropolitan Centre for Digital Engineering/OU=SMIL Lab'
-#subjectAltName = 'DNS:localhost'
-
-#servers = {}
-#for server in ['mariadb', 'postgresql', 'mongodb', 'revoked' ]:
-   #servers[server] = Certificate(mainDirectory, server + '.domain.test', TestLeaf,
-                                 #subject, subjectAltName, CRT_Server,
-                                 #keyLength = certKeyLength)
-#servers['revoked'].revoke()
-
-#users = {}
-#for user in [ 'maintainer', 'importer', 'researcher', 'revoked' ] :
-   #users[user] = Certificate(mainDirectory, user + '@domain.test', TestLeaf, subject, '', CRT_User,
-                             #keyLength = certKeyLength)
-#users['revoked'].revoke()
-
-
-## ====== Some more testing ==================================================
-
-## Create Test Intermediate CA certificate (signed by Test Root Level-2):
-#TestCA = CA(mainDirectory, 'DatabaseTestCA',
-            #parentCA  = TestLevel2,
-            #subject   = '/CN=*/C=NO/ST=Oslo/L=Oslo/O=Simula Metropolitan Centre for Digital Engineering/OU=Database Test Environment',
-            #certType  = CRT_IntermediateCA,
-            #keyLength = caKeyLength, globalCRLFileName = globalCRLFileName)
-
-#TestUserCA = CA(mainDirectory, 'DatabaseTestUserCA',
-                #parentCA  = TestCA,
-                #subject   = '/CN=*/C=NO/ST=Oslo/L=Oslo/O=Simula Metropolitan Centre for Digital Engineering/OU=Database Test Users',
-                #certType  = CRT_LeafCA,
-                #keyLength = caKeyLength, globalCRLFileName = globalCRLFileName)
-#for username in [ 'maintainer', 'importer', 'researcher' ] :
-   #user = Certificate(mainDirectory, username + '@domain.test', TestUserCA,
-                      #subject, '', CRT_User)
-
-#TestServerCA = CA(mainDirectory, 'DatabaseTestServerCA',
-                  #parentCA  = TestCA,
-                  #subject   = '/CN=*/C=NO/ST=Oslo/L=Oslo/O=Simula Metropolitan Centre for Digital Engineering/OU=Database Test Servers',
-                  #certType  = CRT_LeafCA,
-                  #keyLength = caKeyLength, globalCRLFileName = globalCRLFileName)
-#for dbname in ['mariadb', 'postgresql', 'mongodb' ]:
-   #server = Certificate(mainDirectory, dbname + '.domain.test', TestServerCA,
-                        #subject, subjectAltName, CRT_Server,
-                        #keyLength = certKeyLength)
-
-
-#for server in [ 'brunost', 'rekesmoerbroed', 'pinnekjoett' ]:
-   #server = Certificate(mainDirectory, server + '.domain.test', TestLeaf, subject, subjectAltName,
-                        #keyLength = certKeyLength)
-
-#user1 = Certificate(mainDirectory, 'test1@mail.test', TestLeaf, subject, subjectAltName, CRT_User,
-                    #keyLength = certKeyLength)
-
-
-# ====== Create Test Server =================================================
+# ====== Create Test Servers ================================================
 subject = '/C=NO/ST=Oslo/L=Oslo/O=Simula Metropolitan Centre for Digital Engineering/OU=SMIL Lab'
-server  = Certificate(mainDirectory, serverName, TestLeaf, subject, subjectAltName,
-                      keyLength = certKeyLength)
+servers = {}
+for server in [ serverName, 'revoked' ]:
+   servers[server] = Certificate(mainDirectory, server, TestLeaf, subject, subjectAltName,
+                                 keyLength = certKeyLength)
+servers['revoked'].revoke()
+
+
+# ====== Create Test Users ==================================================
+users = {}
+for user in [ 'root', 'maintainer', 'importer', 'researcher', 'revoked' ] :
+   users[user] = Certificate(mainDirectory, user + '@' + serverName, TestLeaf, subject, '', CRT_User,
+                             keyLength = certKeyLength)
+users['revoked'].revoke()
