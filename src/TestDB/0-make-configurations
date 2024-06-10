@@ -72,7 +72,7 @@ EOF
 for backend in MariaDB PostgreSQL MongoDB ; do
    for user in maintainer researcher importer ; do
       # shellcheck disable=SC2001
-      name="$(echo "${CONFIG}" | sed -e "s/.users\.conf$/-${backend,,}-${user}.conf/")"
+      name="$(echo "${CONFIG}" | sed -e "s/.users\.conf$/-${user}-${backend,,}.conf/")"
       if [ "${user}" == "maintainer" ] ; then
          password="${MAINTAINER_PASSWORD}"
       elif [ "${user}" == "researcher" ] ; then
