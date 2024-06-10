@@ -44,14 +44,15 @@ if [ ! -e "$2" ] ; then
 fi
 
 DATABASE="just_a_test_database"
-MAINTAINER_PASSWORD=
-IMPORTER_PASSWORD=
+# MAINTAINER_PASSWORD=
+# IMPORTER_PASSWORD=
 RESEARCHER_PASSWORD=
+# shellcheck disable=SC1090
 . "$2"
 
 
 # ###### MySQL/MariaDB ######################################################
-if [ "$1" == "mysql" -o "$1" == "mariadb" ] ; then
+if [ "$1" == "mysql" ] || [ "$1" == "mariadb" ] ; then
    # Documentation: https://www.digitalocean.com/community/tutorials/how-to-install-mariadb-on-ubuntu-22-04
 
    echo -e "\x1b[34mTesting access to MySQL/MariaDB database ...\x1b[0m"

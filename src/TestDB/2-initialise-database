@@ -56,11 +56,13 @@ if [ $# -gt 2 ] ; then
 else
    OPTION=""
 fi
+# shellcheck disable=SC1090
 . "${CONFIG}"
 
-if [ "${MAINTAINER_PASSWORD}" = "!maintainer!" -o \
-     "${IMPORTER_PASSWORD}"   = "!importer!"   -o \
-     "${RESEARCHER_PASSWORD}" = "!researcher!" ] ; then
+if [ "${ROOT_PASSWORD}"       == "!root!"       ] || \
+   [ "${MAINTAINER_PASSWORD}" == "!maintainer!" ] || \
+   [ "${IMPORTER_PASSWORD}"   == "!importer!"   ] || \
+   [ "${RESEARCHER_PASSWORD}" == "!researcher!" ] ; then
    echo >&2 "DO NOT USE THE EXAMPLE PASSWORDS!"
    exit 1
 fi
@@ -76,7 +78,7 @@ fi
 
 
 # ###### MySQL/MariaDB ######################################################
-if [ "$1" == "mysql" -o "$1" == "mariadb" ] ; then
+if [ "$1" == "mysql" ] || [ "$1" == "mariadb" ] ; then
    # Documentation: https://www.digitalocean.com/community/tutorials/how-to-install-mariadb-on-ubuntu-22-04
 
    echo -e "\x1b[34mPreparing admin user for MySQL/MariaDB ...\x1b[0m"

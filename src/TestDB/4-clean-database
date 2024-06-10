@@ -62,6 +62,7 @@ DATABASE="just_a_test_database"
 MAINTAINER_PASSWORD=
 IMPORTER_PASSWORD=
 RESEARCHER_PASSWORD=
+# shellcheck disable=SC1090
 . "$2"
 
 
@@ -86,7 +87,7 @@ if [ "$1" == "mysql" -o "$1" == "mariadb" ] ; then
 # ###### PostgreSQL #########################################################
 elif [ "$1" == "postgresql" ] ; then
 
-   echo -e "\x1b[34mRemoving all rows from PostgreSQL database ...\x1b[0m"      
+   echo -e "\x1b[34mRemoving all rows from PostgreSQL database ...\x1b[0m"
    PGPASSWORD="${MAINTAINER_PASSWORD}" \
    PGSSLMODE="verify-full" \
    PGSSLROOTCERT="/etc/ssl/TestLevel1/certs/TestLevel1.crt" \

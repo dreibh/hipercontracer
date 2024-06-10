@@ -48,12 +48,13 @@ DATABASE="just_a_test_database"
 MAINTAINER_PASSWORD="!maintainer!"
 IMPORTER_PASSWORD="!importer!"
 RESEARCHER_PASSWORD="!researcher!"
+# shellcheck disable=SC1090
 . "$2"
 
-if [ "${ROOT_PASSWORD}"       = "!root!"       -o \
-     "${MAINTAINER_PASSWORD}" = "!maintainer!" -o \
-     "${IMPORTER_PASSWORD}"   = "!importer!"   -o \
-     "${RESEARCHER_PASSWORD}" = "!researcher!" ] ; then
+if [ "${ROOT_PASSWORD}"       == "!root!"       ] || \
+   [ "${MAINTAINER_PASSWORD}" == "!maintainer!" ] || \
+   [ "${IMPORTER_PASSWORD}"   == "!importer!"   ] || \
+   [ "${RESEARCHER_PASSWORD}" == "!researcher!" ] ; then
    echo >&2 "DO NOT USE THE EXAMPLE PASSWORDS!"
    exit 1
 fi
@@ -97,7 +98,7 @@ if [ "$1" == "mariadb" ] ; then
 ALTER USER 'root'@'localhost' IDENTIFIED BY '${ROOT_PASSWORD}';
 DELETE FROM mysql.user WHERE User='';
 DELETE FROM mysql.user WHERE User='root' AND Host NOT IN ('localhost', '127.0.0.1', '::1');
-DROP DATABASE IF EXISTS test;
+DROP DATABASE IF EXISTS ${DATABASE};
 DELETE FROM mysql.db WHERE Db='test' OR Db='test\\_%';
 FLUSH PRIVILEGES;
 EOF
@@ -118,14 +119,14 @@ EOF
    elif [ -x /usr/bin/dnf ] ; then
       sudo sed \
          -e "s%^#bind-address[ \t]*=.*%bind-address = *\nssl-ca = ${MARIADB_CA_FILE}\nssl-crl = ${MARIADB_CRL_FILE}\nssl-cert = ${MARIADB_CRT_FILE}\nssl-key = ${MARIADB_KEY_FILE}\nrequire-secure-transport = on\ntls_version = TLSv1.3%g" \
-         </etc/my.cnf.d/mariadb-server.cnf >/etc/my.cnf.d/mariadb-server.cnf.new && \
+         /etc/my.cnf.d/mariadb-server.cnf | sudo tee /etc/my.cnf.d/mariadb-server.cnf.new && \
       sudo diff --color /etc/my.cnf.d/mariadb-server.cnf /etc/my.cnf.d/mariadb-server.cnf.new || true && \
       sudo mv /etc/my.cnf.d/mariadb-server.cnf.new /etc/my.cnf.d/mariadb-server.cnf
       sudo service mariadb restart
    elif [ -x /usr/sbin/pkg ] ; then
       sudo sed \
          -e "s%^bind-address[ \t]*=.*%bind-address = *\nssl-ca = ${MARIADB_CA_FILE}\nssl-crl = ${MARIADB_CRL_FILE}\nssl-cert = ${MARIADB_CRT_FILE}\nssl-key = ${MARIADB_KEY_FILE}\nrequire-secure-transport = on\ntls_version = TLSv1.3%g" \
-         </usr/local/etc/mysql/conf.d/server.cnf >/usr/local/etc/mysql/conf.d/server.cnf.new && \
+         /usr/local/etc/mysql/conf.d/server.cnf | sudo tee /usr/local/etc/mysql/conf.d/server.cnf.new && \
       sudo diff --color /usr/local/etc/mysql/conf.d/server.cnf /usr/local/etc/mysql/conf.d/server.cnf.new || true && \
       sudo mv /usr/local/etc/mysql/conf.d/server.cnf.new /usr/local/etc/mysql/conf.d/server.cnf
       sudo service mysql-server restart
