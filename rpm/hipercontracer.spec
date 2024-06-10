@@ -169,6 +169,7 @@ own programs.
 # universalimporter/databaseclient-mariadb.h
 %{_includedir}/universalimporter/databaseclient-mongodb.h
 %{_includedir}/universalimporter/databaseclient-postgresql.h
+%{_includedir}/universalimporter/importer-configuration.h
 %{_includedir}/universalimporter/logger.h
 %{_includedir}/universalimporter/reader-base.h
 %{_includedir}/universalimporter/results-exception.h
