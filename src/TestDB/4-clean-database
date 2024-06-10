@@ -62,7 +62,7 @@ DATABASE="just_a_test_database"
 MAINTAINER_PASSWORD=
 IMPORTER_PASSWORD=
 RESEARCHER_PASSWORD=
-. $2
+. "$2"
 
 
 # ###### MySQL/MariaDB ######################################################
