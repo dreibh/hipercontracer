@@ -38,7 +38,7 @@
 class PingReader : public TracerouteReader
 {
    public:
-   PingReader(const DatabaseConfiguration& databaseConfiguration,
+   PingReader(const ImporterConfiguration& importerConfiguration,
               const unsigned int           workers            = 1,
               const unsigned int           maxTransactionSize = 4,
               const std::string&           table              = "Ping");

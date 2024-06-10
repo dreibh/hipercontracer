@@ -30,3 +30,4 @@ debian/tmp/usr/share/doc/hipercontracer/examples/TestDB/run-full-test
 debian/tmp/usr/share/doc/hipercontracer/examples/TestDB/test-tls-connection
 debian/tmp/usr/share/doc/hipercontracer/examples/TestDB/users.conf.example
 debian/tmp/usr/share/doc/hipercontracer/examples/hipercontracer-database.conf
+debian/tmp/usr/share/doc/hipercontracer/examples/hipercontracer-importer.conf

@@ -40,16 +40,17 @@ Type=simple
 User=hipercontracer
 Group=hipercontracer
 WorkingDirectory=/var/hipercontracer
-EnvironmentFile=/etc/hipercontracer/hpct-importer.conf
+EnvironmentFile=/etc/hipercontracer/hpct-importer-service.conf
 
 ExecStart=/usr/bin/hpct-importer \
-   -c ${CONFIG} \
+   --importer-config "${IMPORTER_CONFIG}" \
+   --database-config "${DATABASE_CONFIG}" \
    --import-file-path-filter "${IMPORT_FILTER}" \
-   --loglevel ${LOGLEVEL} \
-   --ping-workers ${PING_WORKERS} \
-   --ping-files ${PING_FILES} \
-   --traceroute-workers ${TRACEROUTE_WORKERS} \
-   --traceroute-files ${TRACEROUTE_FILES}
+   --loglevel "${LOGLEVEL}" \
+   --ping-workers "${PING_WORKERS}" \
+   --ping-files "${PING_FILES}" \
+   --traceroute-workers "${TRACEROUTE_WORKERS}" \
+   --traceroute-files "${TRACEROUTE_FILES}"
 
 KillSignal=SIGINT
 KillMode=control-group

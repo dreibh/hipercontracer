@@ -45,11 +45,11 @@ const std::regex  PingReader::FileNameRegExp(
 
 
 // ###### Constructor #######################################################
-PingReader::PingReader(const DatabaseConfiguration& databaseConfiguration,
+PingReader::PingReader(const ImporterConfiguration& importerConfiguration,
                        const unsigned int           workers,
                        const unsigned int           maxTransactionSize,
                        const std::string&           table)
-   : TracerouteReader(databaseConfiguration, workers, maxTransactionSize, table)
+   : TracerouteReader(importerConfiguration, workers, maxTransactionSize, table)
 {
 }
 
@@ -164,7 +164,7 @@ void PingReader::parseContents(
          }
          if(columns < PingMinColumns) {
             throw ResultsReaderDataErrorException("Too few columns in input file " +
-                                                  relativeTo(dataFile, Configuration.getImportFilePath()).string());
+                                                  relativeTo(dataFile, ImporterConfig.getImportFilePath()).string());
          }
 
          // ====== Generate import statement ================================
@@ -252,7 +252,7 @@ void PingReader::parseContents(
 
       else {
          throw ResultsReaderDataErrorException("Unexpected input in input file " +
-                                               relativeTo(dataFile, Configuration.getImportFilePath()).string());
+                                               relativeTo(dataFile, ImporterConfig.getImportFilePath()).string());
       }
    }
 }

@@ -107,6 +107,7 @@ IF (WITH_IMPORTER)
       database-configuration.h
       database-statement.h
       databaseclient-base.h
+      importer-configuration.h
       reader-base.h
       results-exception.h
       universal-importer.h
@@ -118,6 +119,7 @@ IF (WITH_IMPORTER)
       database-configuration.cc
       database-statement.cc
       databaseclient-base.cc
+      importer-configuration.cc
       reader-base.cc
       universal-importer.cc
       worker.cc
@@ -278,6 +280,8 @@ TARGET_LINK_LIBRARIES(dbtest libuniversalimporter-${libraryType} ${Boost_LIBRARI
 #### EXAMPLES                                                            ####
 #############################################################################
 
+INSTALL(FILES hipercontracer-importer.conf
+        DESTINATION ${CMAKE_INSTALL_DATADIR}/doc/hipercontracer/examples)
 INSTALL(FILES hipercontracer-database.conf
         DESTINATION ${CMAKE_INSTALL_DATADIR}/doc/hipercontracer/examples)
 

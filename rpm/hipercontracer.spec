@@ -170,6 +170,7 @@ own programs.
 # universalimporter/databaseclient-mariadb.h
 %{_includedir}/universalimporter/databaseclient-mongodb.h
 %{_includedir}/universalimporter/databaseclient-postgresql.h
+%{_includedir}/universalimporter/importer-configuration.h
 %{_includedir}/universalimporter/logger.h
 %{_includedir}/universalimporter/reader-base.h
 %{_includedir}/universalimporter/results-exception.h
@@ -248,6 +249,7 @@ HiPerConTracer into an SQL or NoSQL database.
 %{_datadir}/doc/hipercontracer/examples/TestDB/test-tls-connection
 %{_datadir}/doc/hipercontracer/examples/TestDB/users.conf.example
 %{_datadir}/doc/hipercontracer/examples/hipercontracer-database.conf
+%{_datadir}/doc/hipercontracer/examples/hipercontracer-importer.conf
 %{_sysconfdir}/hipercontracer/hpct-importer.conf
 /lib/systemd/system/hpct-importer.service
 

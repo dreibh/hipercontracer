@@ -33,6 +33,7 @@
 #define WORKER_H
 
 #include "databaseclient-base.h"
+#include "importer-configuration.h"
 #include "reader-base.h"
 
 #include <atomic>
@@ -46,6 +47,7 @@ class Worker
    Worker(const unsigned int           workerID,
           ReaderBase&                  reader,
           DatabaseClientBase&          databaseClient,
+          const ImporterConfiguration& importerConfiguration,
           const DatabaseConfiguration& databaseConfiguration);
    ~Worker();
 
@@ -76,7 +78,8 @@ class Worker
    const unsigned int           WorkerID;
    ReaderBase&                  Reader;
    DatabaseClientBase&          DatabaseClient;
-   const DatabaseConfiguration& Configuration;
+   const ImporterConfiguration& ImporterConfig;
+   const DatabaseConfiguration& DatabaseConfig;
    const std::string            Identification;
    std::thread                  Thread;
    std::mutex                   Mutex;
