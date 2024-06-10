@@ -51,14 +51,16 @@ class ImporterConfiguration
    ImporterConfiguration();
    ~ImporterConfiguration();
 
-   inline ImportModeType               getImportMode()      const { return ImportMode;     }
-   inline unsigned int                 getImportMaxDepth()  const { return ImportMaxDepth; }
-   inline const std::filesystem::path& getImportFilePath()  const { return ImportFilePath; }
-   inline const std::filesystem::path& getGoodFilePath()    const { return GoodFilePath;   }
-   inline const std::filesystem::path& getBadFilePath()     const { return BadFilePath;    }
+   inline ImportModeType               getImportMode()        const { return ImportMode;       }
+   inline unsigned int                 getImportMaxDepth()    const { return ImportMaxDepth;   }
+   inline const std::string&           getImportPathFilter()  const { return ImportPathFilter; }
+   inline const std::filesystem::path& getImportFilePath()    const { return ImportFilePath;   }
+   inline const std::filesystem::path& getGoodFilePath()      const { return GoodFilePath;     }
+   inline const std::filesystem::path& getBadFilePath()       const { return BadFilePath;      }
 
    bool setImportMode(const std::string& importModeName);
    bool setImportMaxDepth(const unsigned int importMaxDepth);
+   bool setImportPathFilter(const std::string& importPathFilter);
    bool setImportFilePath(const std::filesystem::path& importFilePath);
    bool setGoodFilePath(const std::filesystem::path& goodFilePath);
    bool setBadFilePath(const std::filesystem::path& badFilePath);
@@ -73,6 +75,7 @@ class ImporterConfiguration
    std::string           ImportModeName;
    ImportModeType        ImportMode;
    unsigned int          ImportMaxDepth;
+   std::string           ImportPathFilter;
    std::filesystem::path ImportFilePath;
    std::filesystem::path BadFilePath;
    std::filesystem::path GoodFilePath;

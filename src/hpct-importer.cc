@@ -96,7 +96,7 @@ int main(int argc, char** argv)
       ("import-file-path,I",        boost::program_options::value<std::filesystem::path>(&importFilePath),          "Override path for input files")
       ("bad-file-path,B",           boost::program_options::value<std::filesystem::path>(&badFilePath),             "Override path for bad files")
       ("good-file-path,G",          boost::program_options::value<std::filesystem::path>(&goodFilePath),            "Override path for good files")
-      ("import-file-path-filter,F", boost::program_options::value<std::string>(&importFilePathFilter),              "Import path filter (regular expression)")
+      ("import-file-path-filter,F", boost::program_options::value<std::string>(&importFilePathFilter),              "Override import path filter (regular expression)")
       ("quit-when-idle,Q",
           boost::program_options::value<bool>(&quitWhenIdle)->implicit_value(true)->default_value(false),
           "Quit importer when idle")
@@ -182,6 +182,9 @@ int main(int argc, char** argv)
    if(badFilePath.string().size() > 0) {
       if(!importerConfiguration.setBadFilePath(badFilePath)) return 1;
    }
+   if(importFilePathFilter.size() > 0) {
+      if(!importerConfiguration.setImportPathFilter(importFilePathFilter)) return 1;
+   }
 
    // ====== Read database configuration ====================================
    DatabaseConfiguration databaseConfiguration;
@@ -257,7 +260,7 @@ int main(int argc, char** argv)
 
 
    // ====== Main loop ======================================================
-   if(importer.start(importFilePathFilter, quitWhenIdle) == false) {
+   if(importer.start(quitWhenIdle) == false) {
       exit(1);
    }
    if(quitWhenIdle) {

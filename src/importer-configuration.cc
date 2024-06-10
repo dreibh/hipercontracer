@@ -41,14 +41,15 @@ ImporterConfiguration::ImporterConfiguration()
    : OptionsDescription("Options")
 {
    OptionsDescription.add_options()
-      ("import_mode",       boost::program_options::value<std::string>(&ImportModeName),                    "import mode")
-      ("import_max_depth",  boost::program_options::value<unsigned int>(&ImportMaxDepth)->default_value(6), "import max depth)")
-      ("import_file_path",  boost::program_options::value<std::filesystem::path>(&ImportFilePath),          "path for input data")
-      ("bad_file_path",     boost::program_options::value<std::filesystem::path>(&BadFilePath),             "path for bad files")
-      ("good_file_path",    boost::program_options::value<std::filesystem::path>(&GoodFilePath),            "path for good files")
+      ("import_mode",        boost::program_options::value<std::string>(&ImportModeName),                                 "import mode")
+      ("import_max_depth",   boost::program_options::value<unsigned int>(&ImportMaxDepth)->default_value(6),              "import max depth)")
+      ("import_path_filter", boost::program_options::value<std::string>(&ImportPathFilter)->default_value(std::string()), "import path filter")
+      ("import_file_path",   boost::program_options::value<std::filesystem::path>(&ImportFilePath),                       "path for input data")
+      ("bad_file_path",      boost::program_options::value<std::filesystem::path>(&BadFilePath),                          "path for bad files")
+      ("good_file_path",     boost::program_options::value<std::filesystem::path>(&GoodFilePath),                         "path for good files")
 
       // Deprecated option names:
-      ("transactions_path", boost::program_options::value<std::filesystem::path>(&ImportFilePath),          "path for input data (deprecated, use \"import_file_path\")")
+      ("transactions_path",  boost::program_options::value<std::filesystem::path>(&ImportFilePath),                       "path for input data (deprecated, use \"import_file_path\")")
    ;
    ImportModeName = "KeepImportedFiles";
    ImportMode     = ImportModeType::KeepImportedFiles;
@@ -125,6 +126,14 @@ bool ImporterConfiguration::setImportMaxDepth(const unsigned int importMaxDepth)
 }
 
 
+// ###### Set import path filter ############################################
+bool ImporterConfiguration::setImportPathFilter(const std::string& importPathFilter)
+{
+   ImportPathFilter = importPathFilter;
+   return true;
+}
+
+
 // ###### Set import file path ##############################################
 bool ImporterConfiguration::setImportFilePath(const std::filesystem::path& importFilePath)
 {
@@ -190,8 +199,9 @@ std::ostream& operator<<(std::ostream& os, const ImporterConfiguration& configur
        break;
    }
    os << "\n"
-      << "Import File Path = " << configuration.ImportFilePath << " (max depth: " << configuration.ImportMaxDepth << ")" << "\n"
-      << "Good File Path   = " << configuration.GoodFilePath   << "\n"
-      << "Bad File Path    = " << configuration.BadFilePath    << "\n";
+      << "Import Path Filter = " << configuration.ImportPathFilter << "\n"
+      << "Import File Path   = " << configuration.ImportFilePath   << " (max depth: " << configuration.ImportMaxDepth << ")" << "\n"
+      << "Good File Path     = " << configuration.GoodFilePath     << "\n"
+      << "Bad File Path      = " << configuration.BadFilePath      << "\n";
    return os;
 }

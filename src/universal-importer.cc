@@ -83,8 +83,7 @@ UniversalImporter::~UniversalImporter()
 
 
 // ###### Start importer ####################################################
-bool UniversalImporter::start(const std::string& importFilePathFilter,
-                              const bool         quitWhenIdle)
+bool UniversalImporter::start(const bool quitWhenIdle)
 {
    // ====== Intercept signals ==============================================
    Signals.async_wait(std::bind(&UniversalImporter::handleSignalEvent, this,
@@ -112,7 +111,7 @@ bool UniversalImporter::start(const std::string& importFilePathFilter,
 
    // ====== Look for files =================================================
    HPCT_LOG(info) << "Performing initial directory traversal to look for input files ...";
-   lookForFiles(importFilePathFilter);
+   lookForFiles(ImporterConfig.getImportPathFilter());
    HPCT_LOG(info) << "Importer status after initial directory traversal:\n" << *this;
 
    // ====== Start workers ==================================================

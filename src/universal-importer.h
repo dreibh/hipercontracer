@@ -58,8 +58,7 @@ class UniversalImporter
                   const size_t         databaseClients);
    void removeReader(ReaderBase& reader);
    void lookForFiles(const std::string& importFilePathFilter = std::string());
-   bool start(const std::string& importFilePathFilter = std::string(),
-              const bool         quitWhenIdle         = false);
+   bool start(const bool quitWhenIdle = false);
    void stop();
    void waitForFinish();
    void run();
