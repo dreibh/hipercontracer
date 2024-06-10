@@ -61,13 +61,13 @@ ImporterConfiguration::~ImporterConfiguration()
 }
 
 
-// ###### Read database configuration #######################################
+// ###### Read importer configuration #######################################
 bool ImporterConfiguration::readConfiguration(const std::filesystem::path& configurationFile)
 {
    std::ifstream configurationInputStream(configurationFile);
 
    if(!configurationInputStream.good()) {
-      HPCT_LOG(error) << "Unable to read database configuration from " << configurationFile;
+      HPCT_LOG(error) << "Unable to read importer configuration from " << configurationFile;
       return false;
    }
 
