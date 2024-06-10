@@ -44,6 +44,19 @@
 #endif
 
 
+//  ###### IO Module Registry ###############################################
+
+#include "iomodule-icmp.h"
+#include "iomodule-udp.h"
+#include "iomodule-tcp.h"
+
+REGISTER_IOMODULE(ProtocolType::PT_ICMP, "ICMP", ICMPModule);
+REGISTER_IOMODULE(ProtocolType::PT_UDP,  "UDP",   UDPModule);
+REGISTER_IOMODULE(ProtocolType::PT_TCP,  "TCP",   TCPModule);
+
+//  #########################################################################
+
+
 std::list<IOModuleBase::RegisteredIOModule*>* IOModuleBase::IOModuleList = nullptr;
 
 
@@ -286,7 +299,9 @@ boost::asio::ip::address IOModuleBase::findSourceForDestination(const boost::asi
       return sourceAddress;
    }
    catch(...) {
-      return boost::asio::ip::address();
+      return (destinationAddress.is_v6() == true) ?
+                (boost::asio::ip::address)boost::asio::ip::address_v6() :
+                (boost::asio::ip::address)boost::asio::ip::address_v4();
    }
 }
 

@@ -437,11 +437,12 @@ class Certificate:
       else:
          raise Exception('Invalid certificate type')
 
-      self.KeyLength     = keyLength
-      self.KeyFileName   = os.path.join(self.Directory, name + '.key')
-      self.CSRFileName   = os.path.join(self.Directory, name + '.csr')
-      self.CertFileName  = os.path.join(self.Directory, name + '.crt')
-      self.ChainFileName = os.path.join(self.Directory, name + '-chain.pem')
+      self.KeyLength        = keyLength
+      self.KeyFileName      = os.path.join(self.Directory, name + '.key')
+      self.CSRFileName      = os.path.join(self.Directory, name + '.csr')
+      self.CertFileName     = os.path.join(self.Directory, name + '.crt')
+      self.ChainFileName    = os.path.join(self.Directory, name + '-chain.pem')
+      self.ChainKeyFileName = os.path.join(self.Directory, name + '-chain+key.pem')
 
       os.makedirs(self.Directory, exist_ok = True)
 
@@ -458,7 +459,7 @@ class Certificate:
          assert os.path.isfile(self.KeyFileName)
 
          # Make sure invalid files are removed:
-         for fileName in [ self.CSRFileName, self.CertFileName, self.ChainFileName ]:
+         for fileName in [ self.CSRFileName, self.CertFileName, self.ChainFileName, self.ChainKeyFileName ]:
             if os.path.exists(fileName):
                os.remove(fileName)
 
@@ -482,6 +483,15 @@ class Certificate:
 
          # Provide chain file:
          shutil.copy2(self.CA.ChainFileName, self.ChainFileName)
+
+         # Combine chain and key into a single file:
+         shutil.copy2(self.CA.ChainFileName, self.ChainKeyFileName)
+         chainKeyFile = open(self.ChainKeyFileName, 'a', encoding='utf-8')
+         keyFile      = open(self.KeyFileName,  'r', encoding='utf-8')
+         for line in keyFile:
+            chainKeyFile.write(line)
+         keyFile.close()
+         chainKeyFile.close()
 
       self.verify()
 

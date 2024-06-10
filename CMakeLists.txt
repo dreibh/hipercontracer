@@ -67,6 +67,7 @@ ADD_CUSTOM_TARGET(dist COMMAND ${CMAKE_MAKE_PROGRAM} clean package_source)
 
 INCLUDE(CheckIncludeFile)
 INCLUDE(CheckStructHasMember)
+INCLUDE(CheckCCompilerFlag)
 
 
 #############################################################################
@@ -119,12 +120,25 @@ ENDIF()
 #### OPTIONS                                                             ####
 #############################################################################
 
+OPTION(WITH_STATIC_LIBRARIES "Build static libraries" 0)
+OPTION(WITH_SHARED_LIBRARIES "Build shared libraries" 1)
+IF ((NOT WITH_STATIC_LIBRARIES) AND (NOT WITH_SHARED_LIBRARIES))
+   MESSAGE(FATAL_ERROR "Static (WITH_STATIC_LIBRARIES) or shared (WITH_SHARED_LIBRARIES) libraries must be enabled!")
+ENDIF()
+
 OPTION(STATIC_BUILD "Build statically-linked executables" 0)
 IF (STATIC_BUILD)
-   MESSAGE("Trying to build static executables")
-   LIST(REMOVE_ITEM CMAKE_FIND_LIBRARY_SUFFIXES   ".a" )
-   LIST(INSERT      CMAKE_FIND_LIBRARY_SUFFIXES 0 ".a" )
+   IF (WITH_SHARED_LIBRARIES)
+      MESSAGE(FATAL_ERROR "STATIC_BUILD=ON cannot be used with WITH_SHARED_LIBRARIES=ON!")
+   ENDIF()
+   MESSAGE("Building static executables")
+   SET(CMAKE_FIND_LIBRARY_SUFFIXES ".a")
    SET(Boost_USE_STATIC_LIBS ON)
+   SET(CMAKE_EXE_LINKER_FLAGS "-static")
+ELSE()
+   IF (NOT WITH_SHARED_LIBRARIES)
+      MESSAGE(FATAL_ERROR "STATIC_BUILD=OFF cannot be used with WITH_SHARED_LIBRARIES=OFF!")
+   ENDIF()
 ENDIF()
 
 OPTION(WITH_TRIGGER         "Build HiPerConTracer Trigger"      1)
@@ -140,8 +154,15 @@ OPTION(WITH_UDP_ECHO_SERVER "Build UDP Echo Server"             1)
 #############################################################################
 
 IF(CMAKE_SYSTEM_PROCESSOR STREQUAL "riscv64")
-  STRING(APPEND CMAKE_C_STANDARD_LIBRARIES   " -latomic")
-  STRING(APPEND CMAKE_CXX_STANDARD_LIBRARIES " -latomic")
+   STRING(APPEND CMAKE_C_STANDARD_LIBRARIES   " -latomic")
+   STRING(APPEND CMAKE_CXX_STANDARD_LIBRARIES " -latomic")
+ENDIF()
+
+# ------ Check for "vla-cxx-extension" --------------------------
+CHECK_C_COMPILER_FLAG("-Wvla-cxx-extension -Werror" HAS_VLA_CXX_EXTENSION)
+IF (HAS_VLA_CXX_EXTENSION)
+   # Disable "vla-cxx-extension" warning:
+   SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-vla-cxx-extension")
 ENDIF()
 
 
@@ -173,6 +194,18 @@ ELSE()
    FIND_PATH(INotify_INCLUDE_DIRS NAMES sys/inotify.h)
 ENDIF()
 
+# ###### libz ###############################################################
+FIND_LIBRARY(Z_LIBRARY NAMES z)
+IF (NOT Z_LIBRARY)
+   MESSAGE(FATAL_ERROR
+           " Cannot find Z library! Try:\n"
+           " * Ubuntu/Debian: sudo apt install -y zlib1g-dev\n"
+           " * Fedora:        sudo dnf install -y zlib-ng-compat-devel\n"
+           " * SuSE:          sudo zypper install -y zlib-devel\n"
+           " * Alpine:        sudo apk add zlib-ng-dev\n"
+           " * FreeBSD:       sudo pkg install -y ???")
+ENDIF()
+
 # ###### libbz2 #############################################################
 FIND_LIBRARY(BZ2_LIBRARY NAMES bz2)
 IF (NOT BZ2_LIBRARY)
@@ -180,6 +213,8 @@ IF (NOT BZ2_LIBRARY)
            " Cannot find BZ2 library! Try:\n"
            " * Ubuntu/Debian: sudo apt install -y libbz2-dev\n"
            " * Fedora:        sudo dnf install -y bzip2-devel\n"
+           " * SuSE:          sudo zypper install -y libbz2-devel\n"
+           " * Alpine:        sudo apk add bzip2-dev\n"
            " * FreeBSD:       sudo pkg install -y bzip2")
 ENDIF()
 
@@ -190,6 +225,8 @@ IF (NOT LZMA_LIBRARY)
            " Cannot find LZMA library! Try:\n"
            " * Ubuntu/Debian: sudo apt install -y liblzma-dev\n"
            " * Fedora:        sudo dnf install -y xz-devel\n"
+           " * SuSE:          sudo zypper install -y xz-devel\n"
+           " * Alpine:        sudo apk add xz-dev\n"
            " * FreeBSD:       sudo pkg install -y lzmalib")
 ENDIF()
 
@@ -200,6 +237,8 @@ IF (NOT CARES_LIBRARY)
            " Cannot find C-ARES DNS resolver library! Try:\n"
            " * Ubuntu/Debian: sudo apt install -y libc-ares-dev\n"
            " * Fedora:        sudo dnf install -y c-ares-devel\n"
+           " * SuSE:          sudo zypper install -y c-ares-devel\n"
+           " * Alpine:        sudo apk add c-ares-dev\n"
            " * FreeBSD:       sudo pkg install -y c-ares")
 ENDIF()
 
@@ -208,10 +247,12 @@ IF (WITH_PIPE_CHECKSUM)
    FIND_LIBRARY(CRYPTO_LIBRARY crypto libcrypto)
    IF (NOT CRYPTO_LIBRARY)
       MESSAGE(FATAL_ERROR
-            " Cannot find libcrypto library! Try:\n"
-            " * Ubuntu/Debian: sudo apt install -y libssl-dev\n"
-            " * Fedora:        sudo dnf install -y openssl-devel\n"
-            " * FreeBSD:       sudo pkg install -y openssl")
+              " Cannot find libcrypto library! Try:\n"
+              " * Ubuntu/Debian: sudo apt install -y libssl-dev\n"
+              " * Fedora:        sudo dnf install -y openssl-devel\n"
+              " * SuSE:          sudo zypper install -y openssl-devel\n"
+              " * Alpine:        sudo apk add openssl-dev\n"
+              " * FreeBSD:       sudo pkg install -y openssl")
    ENDIF()
 ENDIF()
 
@@ -225,13 +266,15 @@ IF (WITH_IMPORTER)
       MESSAGE("Looking for MySQL/MariaDB C++ Client library:")
       FIND_LIBRARY(MYSQLCPPCONN_LIBRARY NAMES mysqlcppconn)
       MESSAGE(" * Library: ${MYSQLCPPCONN_LIBRARY}")
-      FIND_PATH(MYSQLCPPCONN_INCLUDE_DIR NAMES driver.h PATH_SUFFIXES cppconn mysql-cppconn/jdbc/cppconn)
+      FIND_PATH(MYSQLCPPCONN_INCLUDE_DIR NAMES driver.h PATH_SUFFIXES cppconn jdbc/cppconn mysql-cppconn/jdbc/cppconn mysql-cppconn-8/jdbc/cppconn)
       MESSAGE(" * Includes: ${MYSQLCPPCONN_INCLUDE_DIR}")
       IF ((NOT MYSQLCPPCONN_INCLUDE_DIR) OR (NOT MYSQLCPPCONN_LIBRARY))
          MESSAGE(FATAL_ERROR
                  " Cannot find MySQL/MariaDB C++ client library! Try:\n"
                  " * Ubuntu/Debian: sudo apt install -y libmysqlcppconn-dev\n"
                  " * Fedora:        sudo dnf install -y mysql-connector-c++-devel (needs PPA!)\n"
+                 " * SuSE:          (needs PPA!)\n"
+                 " * Alpine:        (needs PPA!)\n"
                  " * FreeBSD:       sudo pkg install -y mysql-connector-c++")
       ENDIF()
    ELSE()
@@ -253,6 +296,8 @@ IF (WITH_IMPORTER)
                  " Cannot find PostgreSQL C++  client library! Try:\n"
                  " * Ubuntu/Debian: sudo apt install -y libpqxx-dev\n"
                  " * Fedora:        sudo dnf install -y libpqxx-devel\n"
+                 " * SuSE:          sudo zypper install -y libpqxx-devel\n"
+                 " * Alpine:        (needs PPA!)\n"
                  " * FreeBSD:       sudo pkg install -y postgresql-libpqxx")
       ENDIF()
    ELSE()
@@ -274,6 +319,8 @@ IF (WITH_IMPORTER)
                  " Cannot find MongoDB C client library! Try:\n"
                  " * Ubuntu/Debian: sudo apt install -y libmongoc-dev\n"
                  " * Fedora:        sudo dnf install -y mongo-c-driver-devel\n"
+                 " * SuSE:          (needs PPA!)\n"
+                 " * Alpine:        sudo apk add mongo-c-driver-dev\n"
                  " * FreeBSD:       sudo pkg install -y mongo-c-driver")
       ENDIF()
 
@@ -287,6 +334,8 @@ IF (WITH_IMPORTER)
                  " Cannot find MongoDB BSON library! Try:\n"
                  " * Ubuntu/Debian: sudo apt install -y libbson-dev\n"
                  " * Fedora:        sudo dnf install -y libbson-devel\n"
+                 " * SuSE:          (needs PPA!)\n"
+                 " * Alpine:        sudo apk add libbson-dev\n"
                  " * FreeBSD:       sudo pkg install -y libbson")
       ENDIF()
    ELSE()

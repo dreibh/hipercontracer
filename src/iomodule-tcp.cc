@@ -46,7 +46,8 @@
 #endif
 
 
-REGISTER_IOMODULE(ProtocolType::PT_TCP, "TCP", TCPModule);
+// NOTE: The registration was moved to iomodule-base.cc, due to linking issues!
+// REGISTER_IOMODULE(ProtocolType::PT_TCP, "TCP", TCPModule);
 
 
 // ###### Constructor #######################################################

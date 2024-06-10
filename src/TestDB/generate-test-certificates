@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/usr/bin/env python3
 #
 # Create Test CA Hierarchy and Test Certificates
 # Copyright (C) 2022-2024 by Thomas Dreibholz
@@ -30,32 +30,34 @@ from CertificateHelper import *
 
 # ====== Handle command-line parameters =====================================
 if len(sys.argv) < 3:
-   sys.stderr.write('Usage: ' + sys.argv[0] + ' ssl_directory server\n')
+   sys.stderr.write('Usage: ' + sys.argv[0] + ' ssl_directory server [subjectAltName]\n')
    sys.exit(1)
 mainDirectory = sys.argv[1]
 serverName    = sys.argv[2]
+if len(sys.argv) > 3:
+   subjectAltName = sys.argv[3]
+else:
+   # ====== Prepare subjectAltName: current hostname+localhost+all addresses ===
+   subjectAltName = 'DNS:localhost'
 
-# ====== Prepare subjectAltName: current hostname+localhost+all addresses ===
-subjectAltName = 'DNS:localhost'
+   # ------ Add FQDN of current hostname ---------------------------------------
+   fqdn = socket.getfqdn()
+   subjectAltName = subjectAltName + ',DNS:' + fqdn
 
-# ------ Add FQDN of current hostname ---------------------------------------
-fqdn = socket.getfqdn()
-subjectAltName = subjectAltName + ',DNS:' + fqdn
+   # ------ Add all IP addresses -----------------------------------------------
+   localAddressSet = set()
+   for interfaceName in netifaces.interfaces():
+      for family in [ netifaces.AF_INET, netifaces.AF_INET6 ]:
+         addresses = netifaces.ifaddresses(interfaceName).get(family)
+         if addresses:
+            for address in addresses:
+               if not '%' in address['addr']:   # Not a IPv6 link-local address
+                  localAddressSet.add(str(ipaddress.ip_address(address['addr'])))
 
-# ------ Add all IP addresses -----------------------------------------------
-localAddressSet = set()
-for interfaceName in netifaces.interfaces():
-    for family in [ netifaces.AF_INET, netifaces.AF_INET6 ]:
-       addresses = netifaces.ifaddresses(interfaceName).get(family)
-       if addresses:
-          for address in addresses:
-            if not '%' in address['addr']:   # Not a IPv6 link-local address
-               localAddressSet.add(str(ipaddress.ip_address(address['addr'])))
+   for localAddress in localAddressSet:
+      subjectAltName = subjectAltName + ',IP:' + localAddress
 
-for localAddress in localAddressSet:
-   subjectAltName = subjectAltName + ',IP:' + localAddress
-
-# print(subjectAltName)
+print(subjectAltName)
 
 
 
@@ -110,63 +112,18 @@ TestLeaf = CA(mainDirectory, 'TestLeaf',
               keyLength = caKeyLength, globalCRLFileName = globalCRLFileName)
 
 
-
-## ====== Create Test Servers and Users ======================================
-#subject        = '/C=NO/ST=Oslo/L=Oslo/O=Simula Metropolitan Centre for Digital Engineering/OU=SMIL Lab'
-#subjectAltName = 'DNS:localhost'
-
-#servers = {}
-#for server in ['mariadb', 'postgresql', 'mongodb', 'revoked' ]:
-   #servers[server] = Certificate(mainDirectory, server + '.domain.test', TestLeaf,
-                                 #subject, subjectAltName, CRT_Server,
-                                 #keyLength = certKeyLength)
-#servers['revoked'].revoke()
-
-#users = {}
-#for user in [ 'maintainer', 'importer', 'researcher', 'revoked' ] :
-   #users[user] = Certificate(mainDirectory, user + '@domain.test', TestLeaf, subject, '', CRT_User,
-                             #keyLength = certKeyLength)
-#users['revoked'].revoke()
-
-
-## ====== Some more testing ==================================================
-
-## Create Test Intermediate CA certificate (signed by Test Root Level-2):
-#TestCA = CA(mainDirectory, 'DatabaseTestCA',
-            #parentCA  = TestLevel2,
-            #subject   = '/CN=*/C=NO/ST=Oslo/L=Oslo/O=Simula Metropolitan Centre for Digital Engineering/OU=Database Test Environment',
-            #certType  = CRT_IntermediateCA,
-            #keyLength = caKeyLength, globalCRLFileName = globalCRLFileName)
-
-#TestUserCA = CA(mainDirectory, 'DatabaseTestUserCA',
-                #parentCA  = TestCA,
-                #subject   = '/CN=*/C=NO/ST=Oslo/L=Oslo/O=Simula Metropolitan Centre for Digital Engineering/OU=Database Test Users',
-                #certType  = CRT_LeafCA,
-                #keyLength = caKeyLength, globalCRLFileName = globalCRLFileName)
-#for username in [ 'maintainer', 'importer', 'researcher' ] :
-   #user = Certificate(mainDirectory, username + '@domain.test', TestUserCA,
-                      #subject, '', CRT_User)
-
-#TestServerCA = CA(mainDirectory, 'DatabaseTestServerCA',
-                  #parentCA  = TestCA,
-                  #subject   = '/CN=*/C=NO/ST=Oslo/L=Oslo/O=Simula Metropolitan Centre for Digital Engineering/OU=Database Test Servers',
-                  #certType  = CRT_LeafCA,
-                  #keyLength = caKeyLength, globalCRLFileName = globalCRLFileName)
-#for dbname in ['mariadb', 'postgresql', 'mongodb' ]:
-   #server = Certificate(mainDirectory, dbname + '.domain.test', TestServerCA,
-                        #subject, subjectAltName, CRT_Server,
-                        #keyLength = certKeyLength)
-
-
-#for server in [ 'brunost', 'rekesmoerbroed', 'pinnekjoett' ]:
-   #server = Certificate(mainDirectory, server + '.domain.test', TestLeaf, subject, subjectAltName,
-                        #keyLength = certKeyLength)
-
-#user1 = Certificate(mainDirectory, 'test1@mail.test', TestLeaf, subject, subjectAltName, CRT_User,
-                    #keyLength = certKeyLength)
-
-
-# ====== Create Test Server =================================================
+# ====== Create Test Servers ================================================
 subject = '/C=NO/ST=Oslo/L=Oslo/O=Simula Metropolitan Centre for Digital Engineering/OU=SMIL Lab'
-server  = Certificate(mainDirectory, serverName, TestLeaf, subject, subjectAltName,
-                      keyLength = certKeyLength)
+servers = {}
+for server in [ serverName, 'revoked' ]:
+   servers[server] = Certificate(mainDirectory, server, TestLeaf, subject, subjectAltName,
+                                 keyLength = certKeyLength)
+servers['revoked'].revoke()
+
+
+# ====== Create Test Users ==================================================
+users = {}
+for user in [ 'root', 'maintainer', 'importer', 'researcher', 'revoked' ] :
+   users[user] = Certificate(mainDirectory, user + '@' + serverName, TestLeaf, subject, '', CRT_User,
+                             keyLength = certKeyLength)
+users['revoked'].revoke()

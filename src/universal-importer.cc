@@ -109,9 +109,9 @@ bool UniversalImporter::start(const std::string& importFilePathFilter,
                                            std::placeholders::_2));
 
    // ====== Look for files =================================================
-   HPCT_LOG(info) << "Looking for input files ...";
+   HPCT_LOG(info) << "Performing initial directory traversal to look for input files ...";
    lookForFiles(importFilePathFilter);
-   HPCT_LOG(info) << "Importer status after directory traversal:\n" << *this;
+   HPCT_LOG(info) << "Importer status after initial directory traversal:\n" << *this;
 
    // ====== Start workers ==================================================
    HPCT_LOG(info) << "Starting " << WorkerMap.size() << " worker threads ...";
@@ -307,6 +307,7 @@ void UniversalImporter::lookForFiles(const std::string& importFilePathFilter)
 {
    const std::string filterString =
       "^(" + (Configuration.getImportFilePath() / ")(").string() + importFilePathFilter + ")(.*)$";
+   HPCT_LOG(info) << "Looking for input files (filter: " << filterString << ") ...";
    lookForFiles(Configuration.getImportFilePath(),
                 1, Configuration.getImportMaxDepth(),
                 std::regex(filterString.c_str()));
