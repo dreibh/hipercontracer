@@ -1,5 +1,5 @@
 Name: hipercontracer
-Version: 2.0.0~beta2
+Version: 2.0.0~beta4
 Release: 1
 Summary: High-Performance Connectivity Tracer (HiPerConTracer)
 Group: Applications/Internet
@@ -112,6 +112,7 @@ This package provides header files for the HiPerConTracer library. You need
 them to integrate HiPerConTracer into own programs.
 
 %files libhipercontracer-devel
+%{_includedir}/hipercontracer/check.h
 %{_includedir}/hipercontracer/destinationinfo.h
 %{_includedir}/hipercontracer/iomodule-base.h
 %{_includedir}/hipercontracer/iomodule-icmp.h

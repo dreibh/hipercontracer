@@ -12,7 +12,7 @@
 // =================================================================
 //
 // High-Performance Connectivity Tracer (HiPerConTracer)
-// Copyright (C) 2015-2023 by Thomas Dreibholz
+// Copyright (C) 2015-2024 by Thomas Dreibholz
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -107,7 +107,8 @@ class DatabaseConfiguration
    bool setGoodFilePath(const std::filesystem::path& goodFilePath);
    bool setBadFilePath(const std::filesystem::path& badFilePath);
 
-   bool readConfiguration(const std::filesystem::path& configurationFile);
+   bool readConfiguration(const std::filesystem::path& configurationFile,
+                          const bool                   isImporter = true);
    DatabaseClientBase* createClient();
    static bool registerBackend(const DatabaseBackendType type,
                                const std::string&        name,
@@ -150,8 +151,8 @@ class DatabaseConfiguration
 
 #define REGISTER_BACKEND(type, name, backend) \
    static DatabaseClientBase* createClient_##backend(const DatabaseConfiguration& configuration) { return new backend(configuration); } \
-   static bool Registered = DatabaseConfiguration::registerBackend(type, name, createClient_##backend);
+   static bool Registered_##backend = DatabaseConfiguration::registerBackend(type, name, createClient_##backend);
 #define REGISTER_BACKEND_ALIAS(type, name, backend, alias) \
-   static bool Registered##alias = DatabaseConfiguration::registerBackend(type, name, createClient_##backend);
+   static bool Registered_##backend##alias = DatabaseConfiguration::registerBackend(type, name, createClient_##backend);
 
 #endif

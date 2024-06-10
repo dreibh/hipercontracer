@@ -12,7 +12,7 @@
 // =================================================================
 //
 // High-Performance Connectivity Tracer (HiPerConTracer)
-// Copyright (C) 2015-2023 by Thomas Dreibholz
+// Copyright (C) 2015-2024 by Thomas Dreibholz
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -32,6 +32,7 @@
 #include "database-configuration.h"
 #include "databaseclient-base.h"
 #include "logger.h"
+#include "package-version.h"
 #include "tools.h"
 
 #include <filesystem>
@@ -50,6 +51,8 @@
 typedef std::chrono::high_resolution_clock ResultClock;
 typedef ResultClock::time_point            ResultTimePoint;
 typedef ResultClock::duration              ResultDuration;
+
+static const std::string                   ProgramID = std::string("HPCT-Query/") + HPCT_VERSION;
 
 
 // ###### Add WHERE clause to SELECT statement ##############################
@@ -77,7 +80,7 @@ static void addSQLWhere(Statement&               statement,
       }
       if(toMeasurementID > 0) {
          statement << ((needsAnd == true) ? " AND" : "") << " (MeasurementID <= " << toMeasurementID << ")";
-         needsAnd = true;
+         // needsAnd = true;
       }
    }
 }
@@ -252,7 +255,7 @@ int main(int argc, char** argv)
 
    // ====== Read database configuration ====================================
    DatabaseConfiguration databaseConfiguration;
-   if(!databaseConfiguration.readConfiguration(databaseConfigurationFile)) {
+   if(!databaseConfiguration.readConfiguration(databaseConfigurationFile, false)) {
       exit(1);
    }
    HPCT_LOG(info) << "Startup:\n" << databaseConfiguration;
@@ -309,7 +312,7 @@ int main(int argc, char** argv)
                << "SELECT SendTimestamp,MeasurementID,SourceIP,DestinationIP,Protocol,TrafficClass,BurstSeq,PacketSize,ResponseSize,Checksum,SourcePort,DestinationPort,Status,TimeSource,Delay_AppSend,Delay_Queuing, Delay_AppReceive,RTT_App,RTT_SW,RTT_HW"
                   " FROM Ping";
             addSQLWhere(statement, "SendTimestamp", fromTimeStamp, toTimeStamp, fromMeasurementID, toMeasurementID);
-            statement << " ORDER BY SendTimestamp, MeasurementID, SourceIP, DestinationIP, Protocol, TrafficClass";
+            statement << " ORDER BY SendTimestamp,MeasurementID,SourceIP,DestinationIP,Protocol,TrafficClass";
 
             HPCT_LOG(debug) << "Query: " << statement;
             databaseClient->executeQuery(statement);
@@ -335,6 +338,9 @@ int main(int argc, char** argv)
                const long long                rttSoftware     = databaseClient->getBigInt(19);
                const long long                rttHardware     = databaseClient->getBigInt(20);
 
+               if(lines == 0) {
+                  outputStream << "#? HPCT Ping 2 " << ProgramID << "\n";
+               }
                outputStream <<
                   str(boost::format("#P%c %d %s %s %x %d %x %d %d %x %d %d %d %08x %d %d %d %d %d %d\n")
                      % protocol
@@ -394,6 +400,9 @@ int main(int argc, char** argv)
                   const long long                rttSoftware     = databaseClient->getBigInt("rtt.sw");
                   const long long                rttHardware     = databaseClient->getBigInt("rtt.hw");
 
+                  if(lines == 0) {
+                     outputStream << "#? HPCT Ping 2 " << ProgramID << "\n";
+                  }
                   outputStream <<
                      str(boost::format("#P%c %d %s %s %x %d %x %d %d %x %d %d %d %08x %d %d %d %d %d %d\n")
                         % protocol
@@ -433,7 +442,6 @@ int main(int argc, char** argv)
          }
       }
 
-
       // ====== Traceroute ==================================================
       else if(queryType == "traceroute") {
          if(backend & DatabaseBackendType::SQL_Generic) {
@@ -471,6 +479,9 @@ int main(int argc, char** argv)
                const long long                rttHardware     = databaseClient->getBigInt(25);
 
                if(hopNumber == 1) {
+                  if(lines == 0) {
+                     outputStream << "#? HPCT Traceroute 2 " << ProgramID << "\n";
+                  }
                   const unsigned int statusFlags = status - (status & 0xff);
                   outputStream <<
                      str(boost::format("#T%c %d %s %s %x %d %d %x %d %x %d %d %x %x\n")
@@ -539,6 +550,9 @@ int main(int argc, char** argv)
                   const unsigned int             statusFlags     = databaseClient->getInteger("statusFlags");
                   const long long                pathHash        = databaseClient->getBigInt("pathHash");
 
+                  if(lines == 0) {
+                     outputStream << "#? HPCT Traceroute 2 " << ProgramID << "\n";
+                  }
                   outputStream <<
                      str(boost::format("#T%c %d %s %s %x %d %d %x %d %x %d %d %x %x\n")
                         % protocol
@@ -614,7 +628,205 @@ int main(int argc, char** argv)
 
       // ====== Jitter ======================================================
       else if(queryType == "jitter") {
-         abort();   // FIXME! TBD
+         if(backend & DatabaseBackendType::SQL_Generic) {
+            statement
+               << "SELECT Timestamp,MeasurementID,SourceIP,DestinationIP,Protocol,TrafficClass,RoundNumber,PacketSize,Checksum,SourcePort,DestinationPort,Status,JitterType,TimeSource,Packets_AppSend,MeanDelay_AppSend,Jitter_AppSend,Packets_Queuing,MeanDelay_Queuing,Jitter_Queuing,Packets_AppReceive,MeanDelay_AppReceive,Jitter_AppReceive,Packets_App,MeanRTT_App,Jitter_App,Packets_SW,MeanRTT_SW,Jitter_SW,Packets_HW,MeanRTT_HW,Jitter_HW"
+                  " FROM Jitter";
+            addSQLWhere(statement, "Timestamp", fromTimeStamp, toTimeStamp, fromMeasurementID, toMeasurementID);
+            statement << " ORDER BY Timestamp,MeasurementID,SourceIP,DestinationIP,Protocol,TrafficClass,RoundNumber";
+
+            HPCT_LOG(debug) << "Query: " << statement;
+            databaseClient->executeQuery(statement);
+            while(databaseClient->fetchNextTuple()) {
+               const unsigned long long       timeStamp             = databaseClient->getBigInt(1);
+               const unsigned long long       measurementID         = databaseClient->getInteger(2);
+               const boost::asio::ip::address sourceIP              = statement.decodeAddress(databaseClient->getString(3));
+               const boost::asio::ip::address destinationIP         = statement.decodeAddress(databaseClient->getString(4));
+               const char                     protocol              = databaseClient->getInteger(5);
+               const uint8_t                  trafficClass          = databaseClient->getInteger(6);
+               const unsigned int             roundNumber           = databaseClient->getInteger(7);
+               const unsigned int             packetSize            = databaseClient->getInteger(8);
+               const uint16_t                 checksum              = databaseClient->getInteger(9);
+               const uint16_t                 sourcePort            = databaseClient->getInteger(10);
+               const uint16_t                 destinationPort       = databaseClient->getInteger(11);
+               const unsigned int             status                = databaseClient->getInteger(12);
+               const unsigned int             jitterType            = databaseClient->getInteger(13);
+               const unsigned int             timeSource            = databaseClient->getInteger(14);
+
+               const unsigned long long       appSendPackets        = databaseClient->getInteger(15);
+               const unsigned long long       appSendMeanLatency    = databaseClient->getBigInt(16);
+               const unsigned long long       appSendJitter         = databaseClient->getBigInt(17);
+
+               const unsigned long long       queuingPackets        = databaseClient->getInteger(18);
+               const unsigned long long       queuingMeanLatency    = databaseClient->getBigInt(19);
+               const unsigned long long       queuingJitter         = databaseClient->getBigInt(20);
+
+               const unsigned long long       appReceivePackets     = databaseClient->getInteger(21);
+               const unsigned long long       appReceiveMeanLatency = databaseClient->getBigInt(22);
+               const unsigned long long       appReceiveJitter      = databaseClient->getBigInt(23);
+
+               const unsigned long long       applicationPackets    = databaseClient->getInteger(24);
+               const unsigned long long       applicationMeanRTT    = databaseClient->getBigInt(25);
+               const unsigned long long       applicationJitter     = databaseClient->getBigInt(26);
+
+               const unsigned long long       softwarePackets       = databaseClient->getInteger(27);
+               const unsigned long long       softwareMeanRTT       = databaseClient->getBigInt(28);
+               const unsigned long long       softwareJitter        = databaseClient->getBigInt(29);
+
+               const unsigned long long       hardwarePackets       = databaseClient->getInteger(30);
+               const unsigned long long       hardwareMeanRTT       = databaseClient->getBigInt(31);
+               const unsigned long long       hardwareJitter        = databaseClient->getBigInt(32);
+
+               if(lines == 0) {
+                  outputStream << "#? HPCT Jitter 2 " << ProgramID << "\n";
+               }
+               outputStream <<
+                  str(boost::format("#J%c %d %s %s %x %d %x %d %x %d %d %d %08x %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d\n")
+                     % protocol
+                     % measurementID
+                     % sourceIP.to_string()
+                     % destinationIP.to_string()
+                     % timeStamp
+                     % roundNumber
+                     % (unsigned int)trafficClass
+                     % packetSize
+                     % checksum
+                     % sourcePort
+                     % destinationPort
+                     % status
+                     % timeSource
+                     % jitterType
+
+                     % appSendPackets
+                     % appSendMeanLatency
+                     % appSendJitter
+
+                     % queuingPackets
+                     % queuingMeanLatency
+                     % queuingJitter
+
+                     % appReceivePackets
+                     % appReceiveMeanLatency
+                     % appReceiveJitter
+
+                     % applicationPackets
+                     % applicationMeanRTT
+                     % applicationJitter
+
+                     % softwarePackets
+                     % softwareMeanRTT
+                     % softwareJitter
+
+                     % hardwarePackets
+                     % hardwareMeanRTT
+                     % hardwareJitter
+                  );
+               lines++;
+            }
+         }
+         else if(backend & DatabaseBackendType::NoSQL_Generic) {
+            statement << "{ \"jitter\": { ";
+            addNoSQLFilter(statement, "timestamp", fromTimeStamp, toTimeStamp, fromMeasurementID, toMeasurementID);
+            statement << " } }";
+
+            HPCT_LOG(debug) << "Query: " << statement;
+            databaseClient->executeQuery(statement);
+            while(databaseClient->fetchNextTuple()) {
+               try {
+                  const unsigned long long       timeStamp             = databaseClient->getBigInt("timestamp");
+                  const unsigned long long       measurementID         = databaseClient->getInteger("measurementID");
+                  const boost::asio::ip::address sourceIP              = statement.decodeAddress(databaseClient->getString("sourceIP"));
+                  const boost::asio::ip::address destinationIP         = statement.decodeAddress(databaseClient->getString("destinationIP"));
+                  const char                     protocol              = databaseClient->getInteger("protocol");
+                  const uint8_t                  trafficClass          = databaseClient->getInteger("trafficClass");
+                  const unsigned int             roundNumber           = databaseClient->getInteger("roundNumber");
+                  const unsigned int             packetSize            = databaseClient->getInteger("packetSize");
+                  const uint16_t                 checksum              = databaseClient->getInteger("checksum");
+                  const uint16_t                 sourcePort            = databaseClient->getInteger("sourcePort");
+                  const uint16_t                 destinationPort       = databaseClient->getInteger("destinationPort");
+                  const unsigned int             status                = databaseClient->getInteger("status");
+                  const unsigned int             jitterType            = databaseClient->getInteger("jitterType");
+                  const unsigned int             timeSource            = databaseClient->getInteger("timeSource");
+
+                  const unsigned long long       appSendPackets        = databaseClient->getInteger("appSendPackets");
+                  const unsigned long long       appSendMeanLatency    = databaseClient->getBigInt("appSendMeanLatency");
+                  const unsigned long long       appSendJitter         = databaseClient->getBigInt("appSendJitter");
+
+                  const unsigned long long       queuingPackets        = databaseClient->getInteger("queuingPackets");
+                  const unsigned long long       queuingMeanLatency    = databaseClient->getBigInt("queuingMeanLatency");
+                  const unsigned long long       queuingJitter         = databaseClient->getBigInt("queuingJitter");
+
+                  const unsigned long long       appReceivePackets     = databaseClient->getInteger("appReceivePackets");
+                  const unsigned long long       appReceiveMeanLatency = databaseClient->getBigInt("appReceiveMeanLatency");
+                  const unsigned long long       appReceiveJitter      = databaseClient->getBigInt("appReceiveJitter");
+
+                  const unsigned long long       applicationPackets    = databaseClient->getInteger("applicationPackets");
+                  const unsigned long long       applicationMeanRTT    = databaseClient->getBigInt("applicationMeanRTT");
+                  const unsigned long long       applicationJitter     = databaseClient->getBigInt("applicationJitter");
+
+                  const unsigned long long       softwarePackets       = databaseClient->getInteger("softwarePackets");
+                  const unsigned long long       softwareMeanRTT       = databaseClient->getBigInt("softwareMeanRTT");
+                  const unsigned long long       softwareJitter        = databaseClient->getBigInt("softwareJitter");
+
+                  const unsigned long long       hardwarePackets       = databaseClient->getInteger("hardwarePackets");
+                  const unsigned long long       hardwareMeanRTT       = databaseClient->getBigInt("hardwareMeanRTT");
+                  const unsigned long long       hardwareJitter        = databaseClient->getBigInt("hardwareJitter");
+
+                  if(lines == 0) {
+                     outputStream << "#? HPCT Jitter 2 " << ProgramID << "\n";
+                  }
+                  outputStream <<
+                     str(boost::format("#J%c %d %s %s %x %d %x %d %x %d %d %d %08x %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d\n")
+                        % protocol
+                        % measurementID
+                        % sourceIP.to_string()
+                        % destinationIP.to_string()
+                        % timeStamp
+                        % roundNumber
+                        % (unsigned int)trafficClass
+                        % packetSize
+                        % checksum
+                        % sourcePort
+                        % destinationPort
+                        % status
+                        % timeSource
+                        % jitterType
+
+                        % appSendPackets
+                        % appSendMeanLatency
+                        % appSendJitter
+
+                        % queuingPackets
+                        % queuingMeanLatency
+                        % queuingJitter
+
+                        % appReceivePackets
+                        % appReceiveMeanLatency
+                        % appReceiveJitter
+
+                        % applicationPackets
+                        % applicationMeanRTT
+                        % applicationJitter
+
+                        % softwarePackets
+                        % softwareMeanRTT
+                        % softwareJitter
+
+                        % hardwarePackets
+                        % hardwareMeanRTT
+                        % hardwareJitter
+                     );
+                  lines++;
+               }
+               catch(const std::exception& e) {
+                  HPCT_LOG(warning) << "Bad data: " << e.what();
+               }
+            }
+         }
+         else {
+            HPCT_LOG(fatal) << "Unknown backend";
+            abort();
+         }
       }
 
       // ====== Invalid query ===============================================

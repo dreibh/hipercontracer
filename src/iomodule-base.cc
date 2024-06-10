@@ -12,7 +12,7 @@
 // =================================================================
 //
 // High-Performance Connectivity Tracer (HiPerConTracer)
-// Copyright (C) 2015-2023 by Thomas Dreibholz
+// Copyright (C) 2015-2024 by Thomas Dreibholz
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -44,6 +44,19 @@
 #endif
 
 
+//  ###### IO Module Registry ###############################################
+
+#include "iomodule-icmp.h"
+#include "iomodule-udp.h"
+#include "iomodule-tcp.h"
+
+REGISTER_IOMODULE(ProtocolType::PT_ICMP, "ICMP", ICMPModule);
+REGISTER_IOMODULE(ProtocolType::PT_UDP,  "UDP",   UDPModule);
+REGISTER_IOMODULE(ProtocolType::PT_TCP,  "TCP",   TCPModule);
+
+//  #########################################################################
+
+
 std::list<IOModuleBase::RegisteredIOModule*>* IOModuleBase::IOModuleList = nullptr;
 
 
@@ -51,10 +64,14 @@ std::list<IOModuleBase::RegisteredIOModule*>* IOModuleBase::IOModuleList = nullp
 IOModuleBase::IOModuleBase(boost::asio::io_service&                 ioService,
                            std::map<unsigned short, ResultEntry*>&  resultsMap,
                            const boost::asio::ip::address&          sourceAddress,
+                           const uint16_t                           sourcePort,
+                           const uint16_t                           destinationPort,
                            std::function<void (const ResultEntry*)> newResultCallback)
    : IOService(ioService),
      ResultsMap(resultsMap),
      SourceAddress(sourceAddress),
+     SourcePort(sourcePort),
+     DestinationPort(destinationPort),
      NewResultCallback(newResultCallback),
      MagicNumber( ((std::rand() & 0xffff) << 16) | (std::rand() & 0xffff) )
 {
@@ -282,7 +299,9 @@ boost::asio::ip::address IOModuleBase::findSourceForDestination(const boost::asi
       return sourceAddress;
    }
    catch(...) {
-      return boost::asio::ip::address();
+      return (destinationAddress.is_v6() == true) ?
+                (boost::asio::ip::address)boost::asio::ip::address_v6() :
+                (boost::asio::ip::address)boost::asio::ip::address_v4();
    }
 }
 
@@ -400,9 +419,10 @@ bool IOModuleBase::registerIOModule(
       boost::asio::io_service&                 ioService,
       std::map<unsigned short, ResultEntry*>&  resultsMap,
       const boost::asio::ip::address&          sourceAddress,
+      const uint16_t                           sourcePort,
+      const uint16_t                           destinationPort,
       std::function<void (const ResultEntry*)> newResultCallback,
-      const unsigned int                       packetSize,
-      const uint16_t                           destinationPort))
+      const unsigned int                       packetSize))
 {
    if(IOModuleList == nullptr) {
       IOModuleList = new std::list<RegisteredIOModule*>;
@@ -422,15 +442,17 @@ IOModuleBase* IOModuleBase::createIOModule(const std::string&                   
                                            boost::asio::io_service&                 ioService,
                                            std::map<unsigned short, ResultEntry*>&  resultsMap,
                                            const boost::asio::ip::address&          sourceAddress,
+                                           const uint16_t                           sourcePort,
+                                           const uint16_t                           destinationPort,
                                            std::function<void (const ResultEntry*)> newResultCallback,
-                                           const unsigned int                       packetSize,
-                                           const uint16_t                           destinationPort)
+                                           const unsigned int                       packetSize)
 {
    for(RegisteredIOModule* registeredIOModule : *IOModuleList) {
       if(registeredIOModule->Name == moduleName) {
          return registeredIOModule->CreateIOModuleFunction(
-                   ioService, resultsMap, sourceAddress,
-                   newResultCallback, packetSize, destinationPort);
+                   ioService, resultsMap, sourceAddress, sourcePort, destinationPort,
+                   newResultCallback,
+                   packetSize);
       }
    }
    return nullptr;

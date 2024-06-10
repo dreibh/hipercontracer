@@ -12,7 +12,7 @@
 // =================================================================
 //
 // High-Performance Connectivity Tracer (HiPerConTracer)
-// Copyright (C) 2015-2023 by Thomas Dreibholz
+// Copyright (C) 2015-2024 by Thomas Dreibholz
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -36,6 +36,26 @@
 #include <fstream>
 
 #include <boost/algorithm/string.hpp>
+
+
+//  ###### Database Backend Registry ########################################
+
+#include "databaseclient-debug.h"
+#include "databaseclient-mariadb.h"
+#include "databaseclient-postgresql.h"
+#include "databaseclient-mongodb.h"
+
+REGISTER_BACKEND(DatabaseBackendType::SQL_Debug, "DebugSQL", DebugClient)
+REGISTER_BACKEND_ALIAS(DatabaseBackendType::NoSQL_Debug, "DebugNoSQL", DebugClient, 2)
+
+REGISTER_BACKEND(DatabaseBackendType::SQL_MariaDB, "MariaDB", MariaDBClient)
+REGISTER_BACKEND_ALIAS(DatabaseBackendType::SQL_MariaDB, "MySQL", MariaDBClient, 2)
+
+REGISTER_BACKEND(DatabaseBackendType::SQL_PostgreSQL, "PostgreSQL", PostgreSQLClient)
+
+REGISTER_BACKEND(DatabaseBackendType::NoSQL_MongoDB, "MongoDB", MongoDBClient)
+
+//  #########################################################################
 
 
 std::list<DatabaseConfiguration::RegisteredBackend*>* DatabaseConfiguration::BackendList = nullptr;
@@ -83,7 +103,8 @@ DatabaseConfiguration::~DatabaseConfiguration()
 
 
 // ###### Read database configuration #######################################
-bool DatabaseConfiguration::readConfiguration(const std::filesystem::path& configurationFile)
+bool DatabaseConfiguration::readConfiguration(const std::filesystem::path& configurationFile,
+                                              const bool                   isImporter)
 {
    std::ifstream configurationInputStream(configurationFile);
 
@@ -105,11 +126,13 @@ bool DatabaseConfiguration::readConfiguration(const std::filesystem::path& confi
    // ====== Check options ==================================================
    if(!setBackend(BackendName))           return false;
    if(!setConnectionFlags(FlagNames))     return false;
-   if(!setImportMode(ImportModeName))     return false;
-   if(!setImportMaxDepth(ImportMaxDepth)) return false;
-   if(!setImportFilePath(ImportFilePath)) return false;
-   if(!setGoodFilePath(GoodFilePath))     return false;
-   if(!setBadFilePath(BadFilePath))       return false;
+   if(isImporter) {
+      if(!setImportMode(ImportModeName))     return false;
+      if(!setImportMaxDepth(ImportMaxDepth)) return false;
+      if(!setImportFilePath(ImportFilePath)) return false;
+      if(!setGoodFilePath(GoodFilePath))     return false;
+      if(!setBadFilePath(BadFilePath))       return false;
+   }
 
    // Legacy parameter settings:
    if(boost::iequals(CAFile, "NONE") || boost::iequals(CAFile, "IGNORE")) {

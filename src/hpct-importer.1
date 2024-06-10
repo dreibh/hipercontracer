@@ -1,5 +1,5 @@
 .\" High-Performance Connectivity Tracer (HiPerConTracer)
-.\" Copyright (C) 2015-2023 by Thomas Dreibholz
+.\" Copyright (C) 2015-2024 by Thomas Dreibholz
 .\"
 .\" This program is free software: you can redistribute it and/or modify
 .\" it under the terms of the GNU General Public License as published by
@@ -17,7 +17,7 @@
 .\" Contact: thomas.dreibholz@gmail.com
 .\"
 .\" ###### Setup ############################################################
-.Dd November 8, 2023
+.Dd December 1, 2023
 .Dt hpct-importer 1
 .Os hpct-importer
 .\" ###### Name #############################################################
@@ -44,6 +44,8 @@ database_configuration
 .Op \-\-ping-files NUMBER
 .Op \-\-traceroute-workers NUMBER
 .Op \-\-traceroute-files NUMBER
+.Op \-\-jitter-workers NUMBER
+.Op \-\-jitter-files NUMBER
 .\" ###### Description ######################################################
 .Sh DESCRIPTION
 .Nm hpct-importer
@@ -125,6 +127,12 @@ An import file is distributed to a worker by hashing the source address
 given in the file name.
 .It \-\-traceroute-files NUMBER
 Sets the number of Traceroute import files per database transaction. Default: 1.
+.It \-\-jitter-workers NUMBER
+Sets the number of Jitter import workers. Default: 1.
+An import file is distributed to a worker by hashing the source address
+given in the file name.
+.It \-\-jitter-files NUMBER
+Sets the number of Jitter import files per database transaction. Default: 1.
 .El
 .\" ###### Arguments ########################################################
 .Sh EXAMPLES

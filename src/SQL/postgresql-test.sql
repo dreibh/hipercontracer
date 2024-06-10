@@ -12,7 +12,7 @@
 -- =================================================================
 --
 -- High-Performance Connectivity Tracer (HiPerConTracer)
--- Copyright (C) 2015-2023 by Thomas Dreibholz
+-- Copyright (C) 2015-2024 by Thomas Dreibholz
 --
 -- This program is free software: you can redistribute it and/or modify
 -- it under the terms of the GNU General Public License as published by
@@ -34,3 +34,5 @@ SELECT COUNT(*) FROM Ping;
 SELECT * FROM Ping LIMIT 10;
 SELECT COUNT(*) FROM Traceroute;
 SELECT * FROM Traceroute LIMIT 30;
+SELECT COUNT(*) FROM Jitter;
+SELECT * FROM Jitter LIMIT 5;

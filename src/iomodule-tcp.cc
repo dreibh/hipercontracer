@@ -12,7 +12,7 @@
 // =================================================================
 //
 // High-Performance Connectivity Tracer (HiPerConTracer)
-// Copyright (C) 2015-2023 by Thomas Dreibholz
+// Copyright (C) 2015-2024 by Thomas Dreibholz
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -46,19 +46,21 @@
 #endif
 
 
-REGISTER_IOMODULE(ProtocolType::PT_TCP, "TCP", TCPModule);
+// NOTE: The registration was moved to iomodule-base.cc, due to linking issues!
+// REGISTER_IOMODULE(ProtocolType::PT_TCP, "TCP", TCPModule);
 
 
 // ###### Constructor #######################################################
 TCPModule::TCPModule(boost::asio::io_service&                 ioService,
                      std::map<unsigned short, ResultEntry*>&  resultsMap,
                      const boost::asio::ip::address&          sourceAddress,
+                     const uint16_t                           sourcePort,
+                     const uint16_t                           destinationPort,
                      std::function<void (const ResultEntry*)> newResultCallback,
-                     const unsigned int                       packetSize,
-                     const uint16_t                           destinationPort)
-   : ICMPModule(ioService, resultsMap, sourceAddress,
-                newResultCallback, packetSize),
-     DestinationPort(destinationPort),
+                     const unsigned int                       packetSize)
+   : ICMPModule(ioService, resultsMap, sourceAddress, sourcePort, destinationPort,
+                newResultCallback,
+                packetSize),
      RawTCPSocket(IOService, (sourceAddress.is_v6() == true) ? raw_tcp::v6() :
                                                                raw_tcp::v4() )
 {
@@ -83,6 +85,16 @@ bool TCPModule::prepareSocket()
 {
    // ====== Prepare ICMP socket and create TCP socket ======================
    if(!ICMPModule::prepareSocket()) {
+      return false;
+   }
+
+   // ====== Bind TCP raw socket to given source address ====================
+   boost::system::error_code errorCode;
+   raw_tcp::endpoint tcpRawSourceEndpoint(SourceAddress, UDPSocketEndpoint.port());
+   RawTCPSocket.bind(tcpRawSourceEndpoint, errorCode);
+   if(errorCode != boost::system::errc::success) {
+      HPCT_LOG(error) << getName() << ": Unable to bind TCP socket to source address "
+                      << tcpRawSourceEndpoint << "!";
       return false;
    }
 
@@ -278,7 +290,7 @@ unsigned int TCPModule::sendRequest(const DestinationInfo& destination,
    // ------ BEGIN OF TIMING-CRITICAL PART ----------------------------------
    for(unsigned int round = fromRound; round <= toRound; round++) {
       // NOTE: Using forward direction for TCP!
-      for(int ttl = toTTL; ttl <= fromTTL; ttl++) {
+      for(unsigned int ttl = toTTL; ttl <= fromTTL; ttl++) {
 
          assert(currentEntry < entries);
          seqNumber++;   // New sequence number!

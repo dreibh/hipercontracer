@@ -12,7 +12,7 @@
 // =================================================================
 //
 // High-Performance Connectivity Tracer (HiPerConTracer)
-// Copyright (C) 2015-2023 by Thomas Dreibholz
+// Copyright (C) 2015-2024 by Thomas Dreibholz
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -63,10 +63,13 @@ enum HopStatus {
    //       IP in their HopIP field. However, there is no response!
    Timeout                   = 200,
 
-   NotSentGenericError       = 210,   // sendto() call failed
+   NotSentGenericError       = 210,   // sendto() call failed (generic error)
    NotSentPermissionDenied   = 211,   // sendto() error: EACCES
    NotSentNetworkUnreachable = 212,   // sendto() error: ENETUNREACH
    NotSentHostUnreachable    = 213,   // sendto() error: EHOSTUNREACH
+   NotAvailableAddress       = 214,   // sendto() error: EADDRNOTAVAIL
+   NotValidMsgSize           = 215,   // sendto() error: EMSGSIZE
+   NotEnoughBufferSpace      = 216,   // sendto() error: ENOBUFS
 
    // ====== Destination's response (from destination) ====
    // NOTE: Successful response, destination is in HopIP field.

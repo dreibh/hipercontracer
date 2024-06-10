@@ -12,7 +12,7 @@
 -- =================================================================
 --
 -- High-Performance Connectivity Tracer (HiPerConTracer)
--- Copyright (C) 2015-2023 by Thomas Dreibholz
+-- Copyright (C) 2015-2024 by Thomas Dreibholz
 --
 -- This program is free software: you can redistribute it and/or modify
 -- it under the terms of the GNU General Public License as published by
@@ -52,6 +52,7 @@ CREATE USER importer WITH LOGIN ENCRYPTED PASSWORD '${IMPORTER_PASSWORD}';
 GRANT CONNECT ON DATABASE ${DATABASE} TO importer;
 GRANT INSERT, UPDATE ON TABLE Ping TO importer;
 GRANT INSERT, UPDATE ON TABLE Traceroute TO importer;
+GRANT INSERT, UPDATE ON TABLE Jitter TO importer;
 
 REASSIGN OWNED BY researcher TO postgres;
 DROP USER IF EXISTS researcher;

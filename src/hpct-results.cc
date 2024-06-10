@@ -12,7 +12,7 @@
 // =================================================================
 //
 // High-Performance Connectivity Tracer (HiPerConTracer)
-// Copyright (C) 2015-2023 by Thomas Dreibholz
+// Copyright (C) 2015-2024 by Thomas Dreibholz
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -57,7 +57,7 @@
 
 struct OutputEntry
 {
-   OutputEntry(const int                       measurementID,
+   OutputEntry(const unsigned int              measurementID,
                const boost::asio::ip::address& sourceIP,
                const boost::asio::ip::address& destinationIP,
                const unsigned long long        timeStamp,
@@ -69,9 +69,18 @@ struct OutputEntry
       TimeStamp(timeStamp),
       RoundNumber(roundNumber),
       SeqNumber(0),
-      Line(line) { };
+      Line(line) {
+         /*
+         std::cout << MeasurementID  << "\t"
+                   <<  SourceIP      << "\t"
+                   <<  DestinationIP << "\t"
+                   <<  TimeStamp     << "\t"
+                   <<  RoundNumber   << "\t"
+                   <<  SeqNumber     << "\n";
+         */
+      };
 
-   const int                      MeasurementID;
+   const unsigned int             MeasurementID;
    const boost::asio::ip::address SourceIP;
    const boost::asio::ip::address DestinationIP;
    const unsigned long long       TimeStamp;
@@ -221,12 +230,14 @@ static bool getFormatIdentifier(const std::string& line,
 
 // ###### Check format of file ##############################################
 static bool checkFormat(boost::iostreams::filtering_ostream* outputStream,
+                        std::mutex*                          outputMutex,
                         const std::filesystem::path&         fileName,
                         InputFormat&                         format,
                         unsigned int&                        version,
                         unsigned int&                        columns,
                         const std::string&                   line,
-                        const char                           separator)
+                        const char                           separator,
+                        bool*                                foundFormat)
 {
    const unsigned int inputColumns = countColumns(line);
 
@@ -333,31 +344,32 @@ static bool checkFormat(boost::iostreams::filtering_ostream* outputStream,
             "SourcePort "             // 09: Source port (decimal)
             "DestinationPort "        // 10: Destination port (decimal)
             "Status "                 // 11: Status (decimal)
-            "TimeSource "             // 12: Source of the timing information (hexadecimal) as: AAQQSSHH
+            "JitterType "             // 12: Jitter type (decimal, 0 for calculation as in RFC 3550, Appendix A.8).
+            "TimeSource "             // 13: Source of the timing information (hexadecimal) as: AAQQSSHH
 
-            "Packets.AppSend "        // 13: Number of packets for application send jitter/mean RTT computation
-            "MeanDelay.AppSend "      // 14: Mean application send
-            "Jitter.AppSend "         // 15: Jitter of application send (computed based on RFC 3550, Subsubsection 6.4.1)
+            "Packets.AppSend "        // 14: Number of packets for application send delay jitter/mean RTT computation
+            "MeanDelay.AppSend "      // 15: Mean application send delay
+            "Jitter.AppSend "         // 16: Jitter of application send delay
 
-            "Packets.Queuing "        // 16: Number of packets for queuing jitter/mean RTT computation
-            "MeanDelay.Queuing "      // 17: Mean queuing
-            "Jitter.Queuing "         // 18: Jitter of queuing (computed based on RFC 3550, Subsubsection 6.4.1)
+            "Packets.Queuing "        // 17: Number of packets for queuing delay jitter/mean RTT computation
+            "MeanDelay.Queuing "      // 18: Mean queuing delay
+            "Jitter.Queuing "         // 19: Jitter of queuing delay
 
-            "Packets.AppReceive "     // 19: Number of packets for application receive jitter/mean RTT computation
-            "MeanDelay.AppReceive "   // 20: Mean application receive
-            "Jitter.AppReceive "      // 21: Jitter of application receive (computed based on RFC 3550, Subsubsection 6.4.1)
+            "Packets.AppReceive "     // 20: Number of packets for application receive delay jitter/mean RTT computation
+            "MeanDelay.AppReceive "   // 21: Mean application receive delay
+            "Jitter.AppReceive "      // 22: Jitter of application receive delay
 
-            "Packets.App "            // 22: Number of packets for application RTT jitter/mean RTT computation
-            "MeanRTT.App "            // 23: Mean application RTT
-            "Jitter.App "             // 24: Jitter of application RTT (computed based on RFC 3550, Subsubsection 6.4.1)
+            "Packets.App "            // 23: Number of packets for application RTT jitter/mean RTT computation
+            "MeanRTT.App "            // 24: Mean application RTT
+            "Jitter.App "             // 25: Jitter of application RTT
 
-            "Packets.SW "             // 25: Number of packets for kernel software RTT jitter/mean RTT computation
-            "MeanRTT.SW "             // 26: Mean kernel software RTT
-            "Jitter.SW "              // 27: Jitter of kernel software RTT (computed based on RFC 3550, Subsubsection 6.4.1)
+            "Packets.SW "             // 26: Number of packets for kernel software RTT jitter/mean RTT computation
+            "MeanRTT.SW "             // 27: Mean kernel software RTT
+            "Jitter.SW "              // 28: Jitter of kernel software RTT
 
-            "Packets.HW "             // 28: Number of packets for kernel hardware RTT jitter/mean RTT computation
-            "MeanRTT.HW "             // 29: Mean kernel hardware RTT
-            "Jitter.HW";              // 30: Jitter of kernel hardware RTT (computed based on RFC 3550, Subsubsection 6.4.1)
+            "Packets.HW "             // 29: Number of packets for kernel hardware RTT jitter/mean RTT computation
+            "MeanRTT.HW "             // 30: Mean kernel hardware RTT
+            "Jitter.HW";              // 31: Jitter of kernel hardware RTT
       }
 
       // ====== Error =======================================================
@@ -366,9 +378,13 @@ static bool checkFormat(boost::iostreams::filtering_ostream* outputStream,
                          << " in input file " << fileName;
          return false;
       }
-
       columns = applySeparator(columnNames, separator);
-      *outputStream << columnNames << "\n";
+
+      const std::lock_guard<std::mutex> lock(*outputMutex);
+      if(*foundFormat == false) {
+         *outputStream << columnNames << "\n";
+         *foundFormat = true;
+      }
    }
 
    // ====== Compatibility check ============================================
@@ -449,6 +465,7 @@ static bool dumpResultsFile(std::atomic<unsigned int>*                          
                             InputFormat&                                           format,
                             unsigned int&                                          columns,
                             const char                                             separator,
+                            bool*                                                  foundFormat,
                             const bool                                             checkOnly = false)
 {
    // ====== Open input file ================================================
@@ -492,7 +509,7 @@ static bool dumpResultsFile(std::atomic<unsigned int>*                          
       }
       else if(line[0] == '#') {
          if(version == 0) {
-            if(!checkFormat(outputStream, fileName, format, version, columns, line, separator)) {
+            if(!checkFormat(outputStream, outputMutex, fileName, format, version, columns, line, separator, foundFormat)) {
                (*errorCounter)++;
                return false;
             }
@@ -593,7 +610,7 @@ static bool dumpResultsFile(std::atomic<unsigned int>*                          
                if(outputSet) {
                   auto success = outputSet->insert(newEntry);
                   if(!success.second) {
-                     HPCT_LOG(fatal) << "Duplicate tab entry"
+                     HPCT_LOG(fatal) << "Duplicate entry"
                                     << " in input file " << fileName << ", line " << lineNumber;
                      (*errorCounter)++;
                      return false;
@@ -880,9 +897,10 @@ int main(int argc, char** argv)
    std::atomic<unsigned int> errorCounter = 0;
    const std::filesystem::path firstInputFileName = *(inputFileNameSet.begin());
    HPCT_LOG(info) << "Identifying format from " << firstInputFileName << " ...";
+   bool foundFormat = false;
    if(!dumpResultsFile(&errorCounter,
                        (sorted == true) ? &outputSet : nullptr, &outputStream, &outputMutex,
-                       firstInputFileName, format, columns, separator,
+                       firstInputFileName, format, columns, separator, &foundFormat,
                        inputResultsFromStdin ? false : true)) {
       return 1;
    }
@@ -897,11 +915,10 @@ int main(int argc, char** argv)
       boost::asio::post(threadPool, std::bind(dumpResultsFile,
                         &errorCounter,
                         (sorted == true) ? &outputSet : nullptr, &outputStream, &outputMutex,
-                        inputFileName, format, columns, separator,
+                        inputFileName, format, columns, separator, &foundFormat,
                         false));
    }
    threadPool.join();
-   unsigned int e = errorCounter;
    if(errorCounter > 0) {
       exit(1);
    }
@@ -921,7 +938,7 @@ int main(int argc, char** argv)
       }
       catch(const std::exception& e) {
          HPCT_LOG(fatal) << "Unable to rename " << tmpOutputFileName << " to " << outputFileName
-                        << ": " << e.what();
+                         << ": " << e.what();
          exit(1);
       }
    }

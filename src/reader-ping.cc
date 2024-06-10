@@ -12,7 +12,7 @@
 // =================================================================
 //
 // High-Performance Connectivity Tracer (HiPerConTracer)
-// Copyright (C) 2015-2023 by Thomas Dreibholz
+// Copyright (C) 2015-2024 by Thomas Dreibholz
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -137,36 +137,44 @@ void PingReader::parseContents(
    std::string tuple[PingMaxColumns];
    const ReaderTimePoint now = ReaderClock::now();
    while(std::getline(dataStream, inputLine)) {
-      // ====== Conversion from old versions ================================
-      if(inputLine.substr(0, 3) == "#P ") {
-         inputLine = convertOldPingLine(inputLine);
+
+      // ====== Format identifier ===========================================
+      if(inputLine.substr(0, 2) == "#?") {
+         // Nothing to do here!
+         continue;
       }
 
-      // ====== Parse line ==================================================
-      size_t columns = 0;
-      size_t start;
-      size_t end = 0;
-      while((start = inputLine.find_first_not_of(PingDelimiter, end)) != std::string::npos) {
-         end = inputLine.find(PingDelimiter, start);
-         if(columns == PingMaxColumns) {
-            // Skip additional columns
-            break;
+      // ====== Parse Ping line =============================================
+      if(inputLine.substr(0, 2) == "#P") {
+         // ====== Conversion from old versions =============================
+         if(inputLine.substr(0, 3) == "#P ") {
+            inputLine = convertOldPingLine(inputLine);
          }
-         tuple[columns++] = inputLine.substr(start, end - start);
-      }
-      if(columns < PingMinColumns) {
-         throw ResultsReaderDataErrorException("Too few columns in input file " + dataFile.string());
-      }
 
-      // ====== Generate import statement ===================================
-      if( (tuple[0].size() >= 3) && (tuple[0][0] == '#') && (tuple[0][1] == 'P') ) {
+         size_t columns = 0;
+         size_t start;
+         size_t end = 0;
+         while((start = inputLine.find_first_not_of(PingDelimiter, end)) != std::string::npos) {
+            end = inputLine.find(PingDelimiter, start);
+            if(columns == PingMaxColumns) {
+               // Skip additional columns
+               break;
+            }
+            tuple[columns++] = inputLine.substr(start, end - start);
+         }
+         if(columns < PingMinColumns) {
+            throw ResultsReaderDataErrorException("Too few columns in input file " +
+                                                  relativeTo(dataFile, Configuration.getImportFilePath()).string());
+         }
+
+         // ====== Generate import statement ================================
          const char                     protocol        = tuple[0][2];
          const unsigned int             measurementID   = parseMeasurementID(tuple[1], dataFile);
          const boost::asio::ip::address sourceIP        = parseAddress(tuple[2], dataFile);
          const boost::asio::ip::address destinationIP   = parseAddress(tuple[3], dataFile);
          const ReaderTimePoint          sendTimeStamp   = parseTimeStamp(tuple[4], now, true, dataFile);
-         uint8_t                        trafficClass    = parseTrafficClass(tuple[6], dataFile);
          const unsigned int             burstSeq        = parseRoundNumber(tuple[5], dataFile);
+         uint8_t                        trafficClass    = parseTrafficClass(tuple[6], dataFile);
          unsigned int                   packetSize      = parsePacketSize(tuple[7], dataFile);
          const unsigned int             responseSize    = parseResponseSize(tuple[8], dataFile);
          const uint16_t                 checksum        = parseChecksum(tuple[9], dataFile);
@@ -241,8 +249,10 @@ void PingReader::parseContents(
             throw ResultsLogicException("Unknown output format");
          }
       }
+
       else {
-         throw ResultsReaderDataErrorException("Unexpected input in input file " + dataFile.string());
+         throw ResultsReaderDataErrorException("Unexpected input in input file " +
+                                               relativeTo(dataFile, Configuration.getImportFilePath()).string());
       }
    }
 }

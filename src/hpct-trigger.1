@@ -1,5 +1,5 @@
 .\" High-Performance Connectivity Tracer (HiPerConTracer)
-.\" Copyright (C) 2015-2023 by Thomas Dreibholz
+.\" Copyright (C) 2015-2024 by Thomas Dreibholz
 .\"
 .\" This program is free software: you can redistribute it and/or modify
 .\" it under the terms of the GNU General Public License as published by
@@ -17,7 +17,7 @@
 .\" Contact: thomas.dreibholz@gmail.com
 .\"
 .\" ###### Setup ############################################################
-.Dd November 8, 2023
+.Dd December 1, 2023
 .Dt hpct-trigger 1
 .Os hpct-trigger
 .\" ###### Name #############################################################
@@ -36,25 +36,49 @@
 .Op \-v|\-\-verbose
 .Op \-U|\-\-user user|uid
 .Op \-#|\-\-measurement-id identifier
-.Op \-S|\-\-source address[,traffic_class[,...]]
-.Op \-D|\-\-destination address
 .Op \-S|\-\-source address|hostname[,traffic_class[,...]]
 .Op \-D|\-\-destination address|hostname
-.Op \-M|\-\-iomodule ICMP|UDP
+.Op \-\-sources-from-file file
+.Op \-\-destinations-from-file file
+.Op \-M|\-\-iomodule ICMP|UDP|TCP
 .Op \-\-tracerouteinterval milliseconds
+.Op \-\-tracerouteintervaldeviation fraction
 .Op \-\-tracerouteduration milliseconds
 .Op \-\-tracerouterounds rounds
 .Op \-\-tracerouteinitialmaxttl value
 .Op \-\-traceroutefinalmaxttl value
 .Op \-\-tracerouteincrementmaxttl value
+.Op \-\-traceroutepacketsize bytes
+.Op \-\-tracerouteudpsourceport port
+.Op \-\-tracerouteudpdestinationport port
+.Op \-\-traceroutetcpsourceport port
+.Op \-\-traceroutetcpdestinationport port
 .Op \-\-pinginterval milliseconds
+.Op \-\-pingintervaldeviation fraction
 .Op \-\-pingexpiration milliseconds
+.Op \-\-pingburst packets
 .Op \-\-pingttl value
+.Op \-\-pingpacketsize bytes
+.Op \-\-pingudpsourceport port
+.Op \-\-pingudpdestinationport port
+.Op \-\-pingtcpsourceport port
+.Op \-\-pingtcpdestinationport port
+.Op \-\-jitterinterval milliseconds
+.Op \-\-jitterintervaldeviation fraction
+.Op \-\-jitterexpiration milliseconds
+.Op \-\-jitterburst packets
+.Op \-\-jitterttl value
+.Op \-\-jitterpacketsize bytes
+.Op \-\-jitterrecordraw
+.Op \-\-jitterudpsourceport port
+.Op \-\-jitterudpdestinationport port
+.Op \-\-jittertcpsourceport port
+.Op \-\-jittertcpdestinationport port
 .Op \-R|\-\-resultsdirectory directory
-.Op \-\-resultstransactionlength seconds
-.Op \-\-pingtriggerage seconds
-.Op \-\-pingtriggerlength payload_length
-.Op \-\-pingsbeforequeuing count
+.Op \-l|\-\-resultstransactionlength seconds
+.Op \-C|\-\-resultscompression none|XZ|BZip2|GZip
+.Op \-F|\-\-resultsformat version
+.Op \-\-check
 .\" ###### Description ######################################################
 .Sh DESCRIPTION
 .Nm hpct-trigger

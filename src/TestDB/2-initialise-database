@@ -13,7 +13,7 @@
 #  =================================================================
 #
 #  High-Performance Connectivity Tracer (HiPerConTracer)
-#  Copyright (C) 2015-2023 by Thomas Dreibholz
+#  Copyright (C) 2015-2024 by Thomas Dreibholz
 #
 #  This program is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -96,8 +96,7 @@ if [ "$1" == "mysql" -o "$1" == "mariadb" ] ; then
          --ssl-ca=/etc/ssl/TestLevel1/certs/TestLevel1.crt \
          --ssl-crl=/etc/ssl/TestGlobal.crl \
          --user=root \
-         --password="${ROOT_PASSWORD}" \
-         --database=sys
+         --password="${ROOT_PASSWORD}"
 
    # ====== Create schema ===================================================
    echo -e "\x1b[33mCreating schema ...\x1b[0m"
@@ -185,6 +184,8 @@ elif [ "$1" == "mongodb" ] ; then
          --tlsCAFile /etc/ssl/TestLevel1/certs/TestLevel1.crt \
          --username root --password "${ROOT_PASSWORD}" \
          --quiet
+
+      # --tlsCertificateKeyFile /etc/ssl/root@mongodb.domain.test/root@mongodb.domain.test-chain+key.pem \
 
    # ====== Create schema ===================================================
    echo -e "\x1b[33mCreating schema ...\x1b[0m"

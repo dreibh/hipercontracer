@@ -1,35 +1,47 @@
-#include <iostream>
-#include <filesystem>
+#include <assert.h>
+#include <stdio.h>
+#include <math.h>
+#include <algorithm>
+#include <cstdlib>
+#include <ctime>
 
-// ###### Extract NodeID from path ##########################################
-unsigned int getNodeIDFromPath(const std::filesystem::path& path)
+
+// ###### Randomly deviate interval with given deviation percentage #########
+// The random value will be chosen out of:
+// [interval - deviation * interval, interval + deviation * interval]
+unsigned long long deviatedInterval(const unsigned long long interval,
+                                    const double             deviation)
 {
-   unsigned int nodeID = 0;
+   assert(deviation >= 0.0);
+   assert(deviation <= 1.0);
 
-   std::filesystem::path parent = path.parent_path();
-   while(parent.has_filename()) {
-      if(parent.filename().string().size() >= 3) {
-         const unsigned int n = atol(parent.filename().string().c_str());
-         if( (n >=100) && (n <= 9999) ) {
-            nodeID = n;
-         }
-      }
-      parent = parent.parent_path();
-   }
-
-   return nodeID;
+   const long long          d     = (long long)(interval * deviation);
+   const unsigned long long value =
+      ((long long)interval - d) + (std::rand() % (2 * d + 1));
+   return value;
 }
+
 
 int main(int argc, char** argv)
 {
-   std::filesystem::path p1 = "data/4121/2022/01/02/12:00/nne4125-metadatacollector-20220728T021116.json";
-   std::filesystem::path p2 = "data/4444//nne4444-metadatacollector-20220728T021116.json";
+   const unsigned int n = 1000000000;
 
-   unsigned int n1 = getNodeIDFromPath(p1);
-   printf("%s -> NodeID=%u\n", p1.string().c_str(), n1);
+   std::srand(std::time(nullptr));
 
-   unsigned int n2 = getNodeIDFromPath(p2);
-   printf("%s -> NodeID=%u\n", p2.string().c_str(), n2);
+   long long a = +1000000000;
+   long long b = -1000000000;
+   double c = 0;
+   for(unsigned int i = 0; i < n; i++) {
+      const long long x = deviatedInterval(1000000, 0.1);
+      a = std::min(a, (long long)x);
+      b = std::max(b, (long long)x);
+      c = c + x;
+   }
+   c /= n;
+
+   printf("min = %llu\n", a);
+   printf("max = %llu\n", b);
+   printf("avg = %1.2f\n", c);
 
    return 0;
 }

@@ -13,7 +13,7 @@
 #  =================================================================
 #
 #  High-Performance Connectivity Tracer (HiPerConTracer)
-#  Copyright (C) 2015-2023 by Thomas Dreibholz
+#  Copyright (C) 2015-2024 by Thomas Dreibholz
 #
 #  This program is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -63,8 +63,22 @@ fi
 if [ "$1" == "mariadb" ] ; then
    # Documentation: https://www.digitalocean.com/community/tutorials/how-to-install-mariadb-on-ubuntu-22-04
 
+   # ====== Install MariaDB =================================================
    echo "Installing MariaDB ..."
 
+   if [ -x /usr/bin/apt ] ; then
+      sudo DEBIAN_FRONTEND=noninteractive apt install -y -o APT::Keep-Downloaded-Packages=true mariadb-server mariadb-backup mariadb-client openssl
+   elif [ -x /usr/bin/dnf ] ; then
+      sudo dnf install -y mariadb-server mariadb-backup openssl
+      sudo systemctl enable mariadb.service
+      sudo systemctl start mariadb.service
+   elif [ -x /usr/sbin/pkg ] ; then
+      sudo pkg install -y mysql80-server openssl
+      sudo service mysql-server enable
+      sudo service mysql-server start
+   fi
+
+   # ====== Basic configuration =============================================
    sudo ./generate-test-certificates /etc/ssl mariadb.domain.test
 
    # MariaDB needs separate certificate and key files.
@@ -77,30 +91,47 @@ if [ "$1" == "mariadb" ] ; then
    sudo chown mysql:mysql ${MARIADB_KEY_FILE}
    sudo openssl verify -CAfile ${MARIADB_CA_FILE} ${MARIADB_CRT_FILE}
 
-   sudo DEBIAN_FRONTEND=noninteractive apt install -y -o APT::Keep-Downloaded-Packages=true mariadb-server mariadb-backup mariadb-client
-
-   # sudo mariadb-secure-installation
-
-   sudo mysqladmin password "${ROOT_PASSWORD}"
-   sudo mariadb --user=root <<EOF
+   # Set root password, and remove test user and database.
+   (
+      cat <<EOF
+ALTER USER 'root'@'localhost' IDENTIFIED BY '${ROOT_PASSWORD}';
 DELETE FROM mysql.user WHERE User='';
+DELETE FROM mysql.user WHERE User='root' AND Host NOT IN ('localhost', '127.0.0.1', '::1');
 DROP DATABASE IF EXISTS test;
 DELETE FROM mysql.db WHERE Db='test' OR Db='test\\_%';
 FLUSH PRIVILEGES;
 EOF
+   ) | sudo mysql --user=root
 
    # Enable network access:
-   sudo sed \
-      -e 's/^\(bind-address[ \t]*\)=.*$/\1= */g' \
-      -e "s%\([#]\|\)ssl-ca[ ]*=[ ]*.*%ssl-ca = ${MARIADB_CA_FILE}\nssl-crl = ${MARIADB_CRL_FILE}%" \
-      -e "s%\([#]\|\)ssl-cert[ ]*=[ ]*.*%ssl-cert = ${MARIADB_CRT_FILE}%" \
-      -e "s%\([#]\|\)ssl-key[ ]*=[ ]*.*%ssl-key = ${MARIADB_KEY_FILE}%" \
-      -e "s%\([#]\|\)require-secure-transport[ ]*=[ ]*.*%require-secure-transport = on\ntls_version = TLSv1.3%" \
-      /etc/mysql/mariadb.conf.d/50-server.cnf | sudo tee /etc/mysql/mariadb.conf.d/50-server.cnf.new >/dev/null && \
-   sudo diff --color /etc/mysql/mariadb.conf.d/50-server.cnf.new /etc/mysql/mariadb.conf.d/50-server.cnf || true && \
-   sudo mv /etc/mysql/mariadb.conf.d/50-server.cnf.new /etc/mysql/mariadb.conf.d/50-server.cnf
-   sudo service mariadb restart
+   if [ -x /usr/bin/apt ] ; then
+      sudo sed \
+         -e 's/^\(bind-address[ \t]*\)=.*$/\1= */g' \
+         -e "s%\([#][ \t]*\|\)ssl-ca[ ]*=[ ]*.*%ssl-ca = ${MARIADB_CA_FILE}\nssl-crl = ${MARIADB_CRL_FILE}%" \
+         -e "s%\([#][ \t]*\|\)ssl-cert[ ]*=[ ]*.*%ssl-cert = ${MARIADB_CRT_FILE}%" \
+         -e "s%\([#][ \t]*\|\)ssl-key[ ]*=[ ]*.*%ssl-key = ${MARIADB_KEY_FILE}%" \
+         -e "s%\([#][ \t]*\|\)require-secure-transport[ ]*=[ ]*.*%require-secure-transport = on\ntls_version = TLSv1.3%" \
+         /etc/mysql/mariadb.conf.d/50-server.cnf | sudo tee /etc/mysql/mariadb.conf.d/50-server.cnf.new >/dev/null && \
+      sudo diff --color /etc/mysql/mariadb.conf.d/50-server.cnf /etc/mysql/mariadb.conf.d/50-server.cnf.new || true && \
+      sudo mv /etc/mysql/mariadb.conf.d/50-server.cnf.new /etc/mysql/mariadb.conf.d/50-server.cnf
+      sudo service mariadb restart
+   elif [ -x /usr/bin/dnf ] ; then
+      sudo sed \
+         -e "s%^#bind-address[ \t]*=.*%bind-address = *\nssl-ca = ${MARIADB_CA_FILE}\nssl-crl = ${MARIADB_CRL_FILE}\nssl-cert = ${MARIADB_CRT_FILE}\nssl-key = ${MARIADB_KEY_FILE}\nrequire-secure-transport = on\ntls_version = TLSv1.3%g" \
+         </etc/my.cnf.d/mariadb-server.cnf >/etc/my.cnf.d/mariadb-server.cnf.new && \
+      sudo diff --color /etc/my.cnf.d/mariadb-server.cnf /etc/my.cnf.d/mariadb-server.cnf.new || true && \
+      sudo mv /etc/my.cnf.d/mariadb-server.cnf.new /etc/my.cnf.d/mariadb-server.cnf
+      sudo service mariadb restart
+   elif [ -x /usr/sbin/pkg ] ; then
+      sudo sed \
+         -e "s%^bind-address[ \t]*=.*%bind-address = *\nssl-ca = ${MARIADB_CA_FILE}\nssl-crl = ${MARIADB_CRL_FILE}\nssl-cert = ${MARIADB_CRT_FILE}\nssl-key = ${MARIADB_KEY_FILE}\nrequire-secure-transport = on\ntls_version = TLSv1.3%g" \
+         </usr/local/etc/mysql/conf.d/server.cnf >/usr/local/etc/mysql/conf.d/server.cnf.new && \
+      sudo diff --color /usr/local/etc/mysql/conf.d/server.cnf /usr/local/etc/mysql/conf.d/server.cnf.new || true && \
+      sudo mv /usr/local/etc/mysql/conf.d/server.cnf.new /usr/local/etc/mysql/conf.d/server.cnf
+      sudo service mysql-server restart
+   fi
 
+   # ====== Test configuration ==============================================
    ./test-tls-connection localhost:3306 /etc/ssl/TestLevel1/certs/TestLevel1.crt -starttls mysql
 
    # Install MySQL Workbench:
@@ -112,8 +143,20 @@ EOF
 elif [ "$1" == "postgresql" ] ; then
    # Documentation: https://www.digitalocean.com/community/tutorials/how-to-install-postgresql-on-ubuntu-22-04-quickstart
 
+   # ====== Install PostgreSQL ==============================================
    echo "Installing PostgreSQL ..."
 
+   if [ -x /usr/bin/apt ] ; then
+      sudo DEBIAN_FRONTEND=noninteractive apt install -y -o APT::Keep-Downloaded-Packages=true openssl postgresql-all postgresql-contrib
+   elif [ -x /usr/bin/dnf ] ; then
+      sudo dnf install -y openssl postgresql-server
+      sudo systemctl enable postgresql.service
+      sudo systemctl start postgresql.service
+   elif [ -x /usr/sbin/pkg ] ; then
+      sudo pkg install -y postgresql16-server openssl
+   fi
+
+   # ====== Basic configuration =============================================
    sudo ./generate-test-certificates /etc/ssl postgresql.domain.test
 
    # PostgreSQL needs separate certificate and key files.
@@ -124,8 +167,6 @@ elif [ "$1" == "postgresql" ] ; then
    POSTGRESQL_KEY_FILE="/etc/ssl/postgresql.domain.test/postgresql.domain.test.key"
    sudo chown postgres:postgres ${POSTGRESQL_KEY_FILE}
    sudo openssl verify -CAfile ${POSTGRESQL_CA_FILE} ${POSTGRESQL_CRT_FILE}
-
-   sudo DEBIAN_FRONTEND=noninteractive apt install -y -o APT::Keep-Downloaded-Packages=true postgresql-all postgresql-contrib
 
    POSTGRESETC=`find /etc/postgresql/ -mindepth 1 -maxdepth 1 -type d | grep "[0-9]$" | sort -r | head -n1`
    if [ "${POSTGRESETC}" == "" ] ; then
@@ -157,6 +198,7 @@ elif [ "$1" == "postgresql" ] ; then
 
    sudo service postgresql restart
 
+   # ====== Test configuration ==============================================
    ./test-tls-connection localhost:5432 /etc/ssl/TestLevel1/certs/TestLevel1.crt -starttls postgres
 
 
@@ -164,8 +206,37 @@ elif [ "$1" == "postgresql" ] ; then
 elif [ "$1" == "mongodb" ] ; then
    # Documentation: https://www.mongodb.com/docs/manual/tutorial/install-mongodb-on-ubuntu/
 
+   # ====== Install MongoDB =================================================
    echo "Installing MongoDB ..."
 
+   if [ -x /usr/bin/apt ] ; then
+      wget -qO - https://www.mongodb.org/static/pgp/server-7.0.asc | gpg --dearmor | sudo tee /usr/share/keyrings/mongodb.gpg >/dev/null
+      if [ ! -e /etc/apt/sources.list.d/mongodb-org.list ] ; then
+         echo "deb [ signed-by=/usr/share/keyrings/mongodb.gpg arch=amd64,arm64 ] https://repo.mongodb.org/apt/ubuntu jammy/mongodb-org/7.0 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org.list
+      fi
+      sudo apt update -qq
+      sudo DEBIAN_FRONTEND=noninteractive apt install -y -o APT::Keep-Downloaded-Packages=true mongodb-org openssl
+   elif [ -x /usr/bin/dnf ] ; then
+      (
+         cat <<EOF
+[mongodb-org]
+name=MongoDB Repository
+baseurl=https://repo.mongodb.org/yum/redhat/9/mongodb-org/7.0/x86_64/
+gpgcheck=1
+enabled=1
+gpgkey=https://www.mongodb.org/static/pgp/server-7.0.asc
+EOF
+      ) | sudo tee /etc/yum.repos.d/mongodb-org.repo
+      sudo dnf install -y mongodb-org openssl
+      sudo systemctl enable mongod.service
+      sudo systemctl start mongod.service
+   elif [ -x /usr/sbin/pkg ] ; then
+      sudo pkg install -y mongodb70 mongodb-tools
+      sudo service mongod enable
+      sudo service mongod start
+   fi
+
+   # ====== Basic configuration =============================================
    sudo ./generate-test-certificates /etc/ssl mongodb.domain.test
 
    # MongoDB wants key + certificate + chain (in this order!) in the PEM file:
@@ -175,30 +246,32 @@ elif [ "$1" == "mongodb" ] ; then
    sudo touch ${MONGODB_CRT_KEY_FILE}
    sudo chmod 600 ${MONGODB_CRT_KEY_FILE}
    sudo cat /etc/ssl/mongodb.domain.test/mongodb.domain.test.key /etc/ssl/mongodb.domain.test/mongodb.domain.test.crt /etc/ssl/TestLeaf/certs/TestLeaf-chain.pem | sudo tee ${MONGODB_CRT_KEY_FILE} >/dev/null
-   sudo chown mongodb:mongodb ${MONGODB_CRT_KEY_FILE}
-
-   # ====== Install MongoDB =================================================
-   wget -qO - https://www.mongodb.org/static/pgp/server-6.0.asc | gpg --dearmor | sudo tee /usr/share/keyrings/mongodb.gpg >/dev/null
-   if [ ! -e /etc/apt/sources.list.d/mongodb-org-6.0.list ] ; then
-      echo "deb [ signed-by=/usr/share/keyrings/mongodb.gpg arch=amd64,arm64 ] https://repo.mongodb.org/apt/ubuntu jammy/mongodb-org/6.0 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-6.0.list
+   if [ ! -x /usr/bin/dnf ] ; then
+      sudo chown mongodb:mongodb ${MONGODB_CRT_KEY_FILE}
+   else
+      sudo chown mongod:mongod ${MONGODB_CRT_KEY_FILE}
    fi
-   sudo apt update -qq
-   sudo DEBIAN_FRONTEND=noninteractive apt install -y -o APT::Keep-Downloaded-Packages=true mongodb-org
 
-   # ====== Basic engine configuration ======================================
+
    # WARNING: After installation, MongoDB gives everybody on 127.0.0.1
    #          full access!
    # The following settings enable authorization check, restricting access
    # to the configured user (root).
-   cp /etc/mongod.conf /tmp/
+   if [ ! -x /usr/sbin/pkg ] ; then
+      mongodConf=/etc/mongod.conf
+   else
+      mongodConf=/usr/local/etc/mongodb.conf
+   fi
+
+   cp ${mongodConf} /tmp/
    sudo sed \
       -e "s!#  engine:!  directoryPerDB: true!" \
       -e "s!#  wiredTiger:!  wiredTiger:\n    engineConfig:\n      directoryForIndexes: true!" \
-      /etc/mongod.conf | sudo tee /etc/mongod.conf.new
-   sudo mv /etc/mongod.conf.new /etc/mongod.conf
+      ${mongodConf} | sudo tee ${mongodConf}.new
+   sudo mv ${mongodConf}.new ${mongodConf}
 
    # ====== Make sure there is a root user ==================================
-   sudo service mongod start
+   sudo service mongod restart
    sleep 10
    mongosh --quiet <<EOF
 use admin
@@ -218,19 +291,19 @@ EOF
    # ====== Configure MongoDB ===============================================
    # The following settings enable authorization check, restricting access
    # to the configured user (root):
-   cp /etc/mongod.conf /tmp/
+   cp ${mongodConf} /tmp/
    sudo sed \
-      -e "s!  bindIp: 127.0.0.1!  ipv6: true\n  bindIpAll: true\n  tls:\n    mode: requireTLS\n    # CAFile: ${MONGODB_CA_FILE}\n    # CRLFile: ${MONGODB_CRL_FILE}\n    certificateKeyFile: ${MONGODB_CRT_KEY_FILE}\n    disabledProtocols: TLS1_0,TLS1_1,TLS1_2!" \
+      -e "s!^  bindIp: 127.0.0.1.*!  ipv6: true\n  bindIpAll: true\n  tls:\n    mode: requireTLS\n    CAFile: ${MONGODB_CA_FILE}\n    CRLFile: ${MONGODB_CRL_FILE}\n    certificateKeyFile: ${MONGODB_CRT_KEY_FILE}\n    disabledProtocols: TLS1_0,TLS1_1,TLS1_2\n    allowConnectionsWithoutCertificates: true!" \
       -e "s!#security:!security:\n  authorization: enabled!" \
       -e "s!#  engine:!  directoryPerDB: true!" \
       -e "s!#  wiredTiger:!  wiredTiger:\n    engineConfig:\n      directoryForIndexes: true!" \
-      /etc/mongod.conf | sudo tee /etc/mongod.conf.new
-   sudo mv /etc/mongod.conf.new /etc/mongod.conf
+      ${mongodConf} | sudo tee ${mongodConf}.new
+   sudo mv ${mongodConf}.new ${mongodConf}
 
-   sudo systemctl start mongod
-   sudo systemctl enable mongod
-
+   sudo systemctl restart mongod
    sleep 5
+
+   # ====== Test configuration ==============================================
    ./test-tls-connection localhost:27017 /etc/ssl/TestLevel1/certs/TestLevel1.crt
 
 

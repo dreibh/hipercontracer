@@ -12,7 +12,7 @@
 // =================================================================
 //
 // High-Performance Connectivity Tracer (HiPerConTracer)
-// Copyright (C) 2015-2023 by Thomas Dreibholz
+// Copyright (C) 2015-2024 by Thomas Dreibholz
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -103,16 +103,26 @@ void ResultEntry::failedToSend(const boost::system::error_code& errorCode)
 {
    HopStatus hopStatus;
    switch(errorCode.value()) {
-      case boost::system::errc::permission_denied:
+      case boost::system::errc::permission_denied:       // EACCES
          hopStatus = NotSentPermissionDenied;
        break;
-      case boost::system::errc::network_unreachable:
+      case boost::system::errc::network_unreachable:     // ENETUNREACH
          hopStatus = NotSentNetworkUnreachable;
        break;
-      case boost::asio::error::host_unreachable:
+      case boost::system::errc::host_unreachable:        // EHOSTUNREACH
          hopStatus = NotSentHostUnreachable;
        break;
-      default:
+      case boost::system::errc::address_not_available:   // EADDRNOTAVAIL
+         hopStatus = NotAvailableAddress;
+       break;
+      case boost::system::errc::message_size:            // EMSGSIZE
+         hopStatus = NotValidMsgSize;
+       break;
+      case boost::system::errc::no_buffer_space:         // ENOBUFS
+         hopStatus = NotEnoughBufferSpace;
+       break;
+      default:   // all other errors
+         HPCT_LOG(debug) << "failedToSend(" << (int)errorCode.value() << ")";
          hopStatus = NotSentGenericError;
        break;
    }
