@@ -60,14 +60,14 @@ fi
 
 DATABASE="just_a_test_database"
 MAINTAINER_PASSWORD=
-IMPORTER_PASSWORD=
-RESEARCHER_PASSWORD=
+# IMPORTER_PASSWORD=
+# RESEARCHER_PASSWORD=
 # shellcheck disable=SC1090
 . "$2"
 
 
 # ###### MySQL/MariaDB ######################################################
-if [ "$1" == "mysql" -o "$1" == "mariadb" ] ; then
+if [ "$1" == "mysql" ] || [ "$1" == "mariadb" ] ; then
 
    echo -e "\x1b[34mRemoving all rows from MySQL/MariaDB database ...\x1b[0m"
    mysql \
