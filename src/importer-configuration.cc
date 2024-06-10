@@ -43,11 +43,11 @@ ImporterConfiguration::ImporterConfiguration()
 {
    OptionsDescription.add_options()
       ("import_mode",        boost::program_options::value<std::string>(&ImportModeName),                                 "import mode")
-      ("import_max_depth",   boost::program_options::value<unsigned int>(&ImportMaxDepth)->default_value(6),              "import max depth)")
+      ("import_max_depth",   boost::program_options::value<unsigned int>(&ImportMaxDepth)->default_value(6),              "import max depth")
       ("import_path_filter", boost::program_options::value<std::string>(&ImportPathFilter)->default_value(std::string()), "import path filter")
       ("import_file_path",   boost::program_options::value<std::filesystem::path>(&ImportFilePath),                       "path for input data")
       ("bad_file_path",      boost::program_options::value<std::filesystem::path>(&BadFilePath),                          "path for bad files")
-      ("good_file_path",     boost::program_options::value<std::filesystem::path>(&GoodFilePath),                         "path for good files")
+      ("good_file_path",     boost::program_options::value<std::filesystem::path>(&GoodFilePath),                         "path for good files");
 
    ImportModeName = "KeepImportedFiles";
    ImportMode     = ImportModeType::KeepImportedFiles;
