@@ -46,9 +46,13 @@ if [ "${HOSTNAME}" != "localhost" ] && [ "${HOSTNAME}" != "dbtest" ] && [ "${HOS
 fi
 
 if [ "$1" == "ALL" ] ; then
-   $0 mariadb    "$2"
-   $0 postgresql "$2"
-   $0 mongodb    "$2"
+   shift
+   # shellcheck disable=SC2068
+   $0 mariadb    $@
+   # shellcheck disable=SC2068
+   $0 postgresql $@
+   # shellcheck disable=SC2068
+   $0 mongodb    $@
    exit 0
 fi
 
