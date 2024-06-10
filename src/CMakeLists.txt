@@ -107,7 +107,6 @@ IF (WITH_IMPORTER)
       database-configuration.h
       database-statement.h
       databaseclient-base.h
-      databaseclient-debug.h
       reader-base.h
       results-exception.h
       universal-importer.h
@@ -119,23 +118,30 @@ IF (WITH_IMPORTER)
       database-configuration.cc
       database-statement.cc
       databaseclient-base.cc
-      databaseclient-debug.cc
       reader-base.cc
       universal-importer.cc
       worker.cc
    )
 
+   IF (ENABLE_BACKEND_DEBUG)
+      LIST(APPEND libuniversalimporter_headers databaseclient-debug.h)
+      LIST(APPEND libuniversalimporter_sources databaseclient-debug.cc)
+      SET_PROPERTY(SOURCE database-configuration.cc APPEND PROPERTY COMPILE_DEFINITIONS ENABLE_BACKEND_DEBUG)
+   ENDIF()
    IF (ENABLE_BACKEND_MARIADB)
       LIST(APPEND libuniversalimporter_headers databaseclient-mariadb.h)
       LIST(APPEND libuniversalimporter_sources databaseclient-mariadb.cc)
+      SET_PROPERTY(SOURCE database-configuration.cc APPEND PROPERTY COMPILE_DEFINITIONS ENABLE_BACKEND_MARIADB)
    ENDIF()
    IF (ENABLE_BACKEND_POSTGRESQL)
       LIST(APPEND libuniversalimporter_headers databaseclient-postgresql.h)
       LIST(APPEND libuniversalimporter_sources databaseclient-postgresql.cc)
+      SET_PROPERTY(SOURCE database-configuration.cc APPEND PROPERTY COMPILE_DEFINITIONS ENABLE_BACKEND_POSTGRESQL)
    ENDIF()
    IF (ENABLE_BACKEND_MONGODB)
       LIST(APPEND libuniversalimporter_headers databaseclient-mongodb.h)
       LIST(APPEND libuniversalimporter_sources databaseclient-mongodb.cc)
+      SET_PROPERTY(SOURCE database-configuration.cc APPEND PROPERTY COMPILE_DEFINITIONS ENABLE_BACKEND_MONGODB)
    ENDIF()
 
 

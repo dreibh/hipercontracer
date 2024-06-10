@@ -40,20 +40,27 @@
 
 //  ###### Database Backend Registry ########################################
 
+#ifdef ENABLE_BACKEND_DEBUG
 #include "databaseclient-debug.h"
-#include "databaseclient-mariadb.h"
-#include "databaseclient-postgresql.h"
-#include "databaseclient-mongodb.h"
-
 REGISTER_BACKEND(DatabaseBackendType::SQL_Debug, "DebugSQL", DebugClient)
 REGISTER_BACKEND_ALIAS(DatabaseBackendType::NoSQL_Debug, "DebugNoSQL", DebugClient, 2)
+#endif
 
+#ifdef ENABLE_BACKEND_MARIADB
+#include "databaseclient-mariadb.h"
 REGISTER_BACKEND(DatabaseBackendType::SQL_MariaDB, "MariaDB", MariaDBClient)
 REGISTER_BACKEND_ALIAS(DatabaseBackendType::SQL_MariaDB, "MySQL", MariaDBClient, 2)
+#endif
 
+#ifdef ENABLE_BACKEND_POSTGRESQL
+#include "databaseclient-postgresql.h"
 REGISTER_BACKEND(DatabaseBackendType::SQL_PostgreSQL, "PostgreSQL", PostgreSQLClient)
+#endif
 
+#ifdef ENABLE_BACKEND_MONGODB
+#include "databaseclient-mongodb.h"
 REGISTER_BACKEND(DatabaseBackendType::NoSQL_MongoDB, "MongoDB", MongoDBClient)
+#endif
 
 //  #########################################################################
 

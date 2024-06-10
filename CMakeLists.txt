@@ -250,6 +250,15 @@ ENDIF()
 
 # ###### Database client libraries ##########################################
 IF (WITH_IMPORTER)
+
+   # ------ Debug backend ---------------------------------------------------
+   OPTION(ENABLE_BACKEND_DEBUG "Enable SQL/NoSQL Debug dummy backed" 1)
+   IF (ENABLE_BACKEND_DEBUG)
+      MESSAGE("Building with SQL/NoSQL Debug dummy backend (ENABLE_BACKEND_DEBUG=${ENABLE_BACKEND_DEBUG})")
+   ELSE()
+      MESSAGE("SQL/NoSQL Debug dummy backend disabled!")
+   ENDIF()
+
    # ------ MariaDB/MySQL ---------------------------------------------------
    OPTION(ENABLE_BACKEND_MARIADB "Enable MySQL/MariaDB backed" 1)
    IF (ENABLE_BACKEND_MARIADB)
