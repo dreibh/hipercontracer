@@ -60,7 +60,8 @@ fi
 
 
 # ====== Write HiPerConTracer Importer configuration files ==================
-cat >importer.conf <<EOF
+name="$(dirname "${CONFIG}")/importer.conf"
+cat >"${name}" <<EOF
 # ====== Importer Configuration =============================================
 
 # Import modes: DeleteImportedFiles MoveImportedFiles KeepImportedFiles
@@ -68,10 +69,10 @@ cat >importer.conf <<EOF
 # MoveImportedFiles   = Move successfully imported files to good path
 # KeepImportedFiles   = Keep successfully imported files where they are
 #                       Use only for debugging! Any importer rerun will process them again!
-import_mode        = KeepImportedFiles
+import_mode        = MoveImportedFiles
 
 # Regular expression to filter input files:
-import_path_filter = .*
+import_path_filter =
 
 # Import directory and maximum search depth (1 = only the directory itself):
 import_file_path   = data/
@@ -97,6 +98,21 @@ for backend in MariaDB PostgreSQL MongoDB ; do
 
       cat >"${name}" <<EOF
 # ====== Database Server Configuration ======================================
+
+# ----- TLS configuration options -------------------------------------------
+# NOTE:
+# dbcafile sets a TLS CA file.
+# dbcertkeyfile sets a TLS client certificate file.
+# dbconnectionflags sets TLS connection flags (space-separated):
+# * NONE: default, i.e. require properly configured TLS
+# * DisableTLS: disable TLS
+# * AllowInvalidHostname: allow invalid hostnames in certificate
+# * AllowInvalidCertificate: allow invalid certificate
+# WARNING: Do *not* use these options! Instead, configure TLS properly!!
+# ---------------------------------------------------------------------------
+
+
+# ****** Configuration with ${backend} server: ***************
 dbbackend         = ${backend}
 dbserver          = localhost
 dbport            = 0
@@ -108,7 +124,7 @@ dbconnectionflags = NONE
 dbuser            = ${user}
 dbpassword        = ${password}
 database          = ${DATABASE}
-dbreconnectdelay  = 30
+dbreconnectdelay  = 5
 EOF
       if [ "${backend}" == "MongoDB" ] ; then
          sed -e "s/^dbcertfile   /dbcertkeyfile/" \
