@@ -148,8 +148,8 @@ unsigned long long TracerouteReader::parseMeasurementID(const std::string&      
    }
    catch(...) { }
    throw ResultsReaderDataErrorException("Bad measurement ID value " + value +
-                                          " in input file " +
-                                          relativeTo(dataFile, ImporterConfig.getImportFilePath()).string());
+                                         " in input file " +
+                                         relativeTo(dataFile, ImporterConfig.getImportFilePath()).string());
 }
 
 
