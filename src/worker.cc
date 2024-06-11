@@ -97,6 +97,7 @@ void Worker::requestStop()
 // ###### Wake up worker loop ###############################################
 void Worker::wakeUp()
 {
+   std::unique_lock lock(Mutex);
    Notification.notify_one();
 }
 
