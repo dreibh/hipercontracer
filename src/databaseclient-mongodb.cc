@@ -182,6 +182,13 @@ void MongoDBClient::close()
 }
 
 
+// ###### Reconnect connection to database ##################################
+void MongoDBClient::reconnect()
+{
+   // MongoC automatically reconnects -> nothing to do here!
+}
+
+
 // ###### Begin transaction #################################################
 void MongoDBClient::startTransaction()
 {
