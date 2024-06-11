@@ -17,7 +17,7 @@
 .\" Contact: thomas.dreibholz@gmail.com
 .\"
 .\" ###### Setup ############################################################
-.Dd December 1, 2023
+.Dd June 11, 2024
 .Dt hpct-importer 1
 .Os hpct-importer
 .\" ###### Name #############################################################
@@ -56,10 +56,6 @@ MySQL/MariaDB (SQL),
 PostgreSQL (SQL),
 MongoDB (NoSQL).
 .br
-See
-/usr/share/doc/hipercontracer/examples/hipercontracer-database.conf
-for a commented database configuration example.
-.br
 Results files imported successfully can be moved into a "good" directory,
 deleted or kept as-in (for debugging only!).
 Results files which failed to import a re moved into a "bad" directory.
@@ -84,8 +80,12 @@ Enables (on) or disables (off) the usage of ANSI color escape sequences to color
 Sets a file name for appending the log output to. If a file is set, no log output is made to the console. Otherwise, all log output will be written to the console.
 .It \-I|\-\-importer-config importer_configuration
 Sets the name of the importer configuration file. This option must be provided!
+.br
+See /usr/share/doc/hipercontracer/examples/hipercontracer-importer.conf for an example.
 .It \-D|\-\-database-config database_configuration
 Sets the name of the database configuration file. This option must be provided!
+.br
+See /usr/share/doc/hipercontracer/examples/hipercontracer-database.conf for an example.
 .It \-X|\-\-import-mode MODE
 Specifies the import mode,
 overriding the mode read from the database configuration file:
@@ -144,6 +144,7 @@ Sets the number of Traceroute import files per database transaction. Default: 1.
 .Bl -tag -width indent
 .It hpct-importer -C hipercontracer-importer.conf -D hipercontracer-database.conf
 .It hpct-importer --importer-config hipercontracer-importer.conf --database-config hipercontracer-database.conf --verbose
+.It hpct-importer -C hipercontracer-importer.conf -D hipercontracer-database.conf -F "1234/.*"
 .El
 .\" ###### Authors ##########################################################
 .Sh AUTHORS
