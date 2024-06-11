@@ -373,8 +373,6 @@ bool Worker::importFiles(const std::list<std::filesystem::path>& dataFileList)
 // ###### Worker loop #######################################################
 void Worker::run()
 {
-   std::unique_lock lock(Mutex);
-
    while(!StopRequested) {
       // ====== Look for new input files ====================================
       HPCT_LOG(trace) << getIdentification() << ": Processing new input files ...";
@@ -412,6 +410,7 @@ void Worker::run()
 
       // ====== Wait for new data ===========================================
       if(!StopRequested) {
+         std::unique_lock lock(Mutex);
          HPCT_LOG(trace) << getIdentification() << ": Sleeping ...";
          Notification.wait(lock);
          HPCT_LOG(trace) << getIdentification() << ": Wakeup!";
