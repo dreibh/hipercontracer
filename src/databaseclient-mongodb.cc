@@ -101,7 +101,7 @@ bool MongoDBClient::open()
 {
    assert(Connection == nullptr);
 
-   // ====== Create URI =====================================================
+   // ====== Prepare parameters =============================================
    const std::string url = "mongodb://" +
       Configuration.getServer() + ":" +
       std::to_string((Configuration.getPort() != 0) ? Configuration.getPort() : 27017) +
@@ -175,12 +175,17 @@ bool MongoDBClient::open()
 void MongoDBClient::close()
 {
    freeResults();
+   if(Connection != nullptr) {
+      mongoc_client_destroy(Connection);
+      Connection = nullptr;
+   }
 }
 
 
 // ###### Reconnect connection to database ##################################
 void MongoDBClient::reconnect()
 {
+   // MongoC automatically reconnects -> nothing to do here!
 }
 
 

@@ -23,7 +23,7 @@ LIB_DEPENDS=	bzip2 \
 		libboost_system.so:devel/boost-libs \
 		libboost_thread.so:devel/boost-libs \
 		lzmalib \
-		mysql-connector-c++ \
+		mariadb-connector-c \
 		postgresql-libpqxx \
 		mongo-c-driver
 

@@ -40,8 +40,9 @@ if [ $# -lt 1 ] ; then
    exit 1
 fi
 
+IMPORTER_CONFIG="${HOME}/importer.conf"
 # Access to database as "importer" user:
-DATABASE_CONFIG="${HOME}/testdb-users-$1-importer.conf"
+DATABASE_CONFIG="${HOME}/testdb-importer-$1.conf"
 
 if [ ! -v VALGRIND_CMD ] ; then
    VALGRIND_CMD=""
@@ -66,7 +67,8 @@ if [ -e "${DATABASE_CONFIG}" ] ; then
 
    cp ../examples/*.results.* data/
    ${VALGRIND_CMD} ../hpct-importer \
-      -c "${DATABASE_CONFIG}" \
+      -C "${IMPORTER_CONFIG}" \
+      -D "${DATABASE_CONFIG}" \
       --quit-when-idle \
       --loglevel 0
 

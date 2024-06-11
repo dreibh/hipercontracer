@@ -32,12 +32,6 @@
 #include "databaseclient-mariadb.h"
 #include "logger.h"
 
-// Ubuntu: libmysqlcppconn-dev
-#include <driver.h>
-#include <exception.h>
-#include <resultset.h>
-#include <statement.h>
-
 
 // NOTE: The registration was moved to database-configuration.cc, due to linking issues!
 // REGISTER_BACKEND(DatabaseBackendType::SQL_MariaDB, "MariaDB", MariaDBClient)
@@ -48,11 +42,9 @@
 MariaDBClient::MariaDBClient(const DatabaseConfiguration& configuration)
    : DatabaseClientBase(configuration)
 {
-   Driver = get_driver_instance();
-   assert(Driver != nullptr);
-   Connection  = nullptr;
-   Transaction = nullptr;
-   ResultSet   = nullptr;
+   mysql_init(&Connection);
+   ResultCursor  = nullptr;
+   ResultColumns = 0;
 }
 
 
@@ -73,8 +65,9 @@ const DatabaseBackendType MariaDBClient::getBackend() const
 // ###### Prepare connection to database ####################################
 bool MariaDBClient::open()
 {
-   bool sslEnforce = true;
-   bool sslVerify  = true;
+   // ====== Prepare parameters =============================================
+   my_bool sslEnforce = true;
+   my_bool sslVerify  = true;
    if(Configuration.getConnectionFlags() & DisableTLS) {
       sslEnforce = false;
       HPCT_LOG(warning) << "TLS explicitly disabled. CONFIGURE TLS PROPERLY!!";
@@ -84,50 +77,40 @@ bool MariaDBClient::open()
       HPCT_LOG(warning) << "TLS certificate check explicitliy disabled. CONFIGURE TLS PROPERLY!!";
    }
 
-   sql::ConnectOptionsMap connectionProperties;
-   connectionProperties["hostName"] = Configuration.getServer();
-   connectionProperties["userName"] = Configuration.getUser();
-   connectionProperties["password"] = Configuration.getPassword();
-   connectionProperties["schema"]   = Configuration.getDatabase();
-   connectionProperties["port"]     = (Configuration.getPort() != 0) ? Configuration.getPort() : 3306;
+   mysql_options(&Connection, MYSQL_OPT_SSL_ENFORCE,            &sslEnforce);
+   mysql_options(&Connection, MYSQL_OPT_SSL_VERIFY_SERVER_CERT, &sslVerify);
+   mysql_options(&Connection, MYSQL_OPT_TLS_VERSION,            "TLSv1.3");
    if(Configuration.getCAFile().size() > 0) {
-      connectionProperties["sslCA"]   = Configuration.getCAFile();
-   }
-   if(Configuration.getCertFile().size() > 0) {
-      connectionProperties["sslCert"] = Configuration.getCertFile();
-   }
-   if(Configuration.getCertKeyFile().size() > 0) {
-      HPCT_LOG(error) << "MySQL/MariaDB backend expects separate certificate and key files, not one certificate+key file!";
-      return false;
+      mysql_options(&Connection, MYSQL_OPT_SSL_CA, Configuration.getCAFile().c_str());
    }
    if( (sslVerify) && (Configuration.getCRLFile().size() > 0) ) {
-      connectionProperties["sslCRL"] = Configuration.getCRLFile();
+      mysql_options(&Connection, MYSQL_OPT_SSL_CRL, Configuration.getCRLFile().c_str());
    }
-   connectionProperties["sslVerify"]       = sslVerify;
-   connectionProperties["sslEnforce"]      = sslEnforce;
-   connectionProperties["OPT_TLS_VERSION"] = "TLSv1.3";
-   connectionProperties["CLIENT_COMPRESS"] = true;
-
-   assert(Connection == nullptr);
-   try {
-      // ====== Connect to database =========================================
-      Connection = Driver->connect(connectionProperties);
-      assert(Connection != nullptr);
-      Connection->setSchema(Configuration.getDatabase().c_str());
-      // SET SESSION TRANSACTION ISOLATION LEVEL READ COMMITTED
-      Connection->setTransactionIsolation(sql::TRANSACTION_READ_COMMITTED);
-      Connection->setAutoCommit(false);
-
-      // ====== Create statement ============================================
-      Transaction = Connection->createStatement();
-      assert(Transaction != nullptr);
+   if(Configuration.getCertFile().size() > 0) {
+      mysql_options(&Connection, MYSQL_OPT_SSL_CERT, Configuration.getCertFile().c_str());
    }
-   catch(const sql::SQLException& e) {
+   if(Configuration.getCertKeyFile().size() > 0) {
+      mysql_options(&Connection, MYSQL_OPT_SSL_KEY, Configuration.getCertKeyFile().c_str());
+   }
+
+   // ====== Connect to database =========================================
+   mysql_autocommit(&Connection, 0);
+   mysql_options(&Connection, MYSQL_OPT_COMPRESS, (void*)1);
+   mysql_options(&Connection, MYSQL_INIT_COMMAND,"SET SESSION TRANSACTION ISOLATION LEVEL READ COMMITTED");
+   if(!mysql_real_connect(&Connection,
+                          Configuration.getServer().c_str(),
+                          Configuration.getUser().c_str(),
+                          Configuration.getPassword().c_str(),
+                          Configuration.getDatabase().c_str(),
+                          (Configuration.getPort() != 0) ? Configuration.getPort() : 3306,
+                          nullptr,
+                          CLIENT_FOUND_ROWS)) {
       HPCT_LOG(error) << "Unable to connect MySQL/MariaDB client to "
-                      << Configuration.getServer() << ": " << e.what();
+                      << Configuration.getServer() << ": " << mysql_error(&Connection);
       close();
       return false;
    }
+   HPCT_LOG(debug) << "MySQL/MariaDB Server Info: " << mysql_get_server_info(&Connection);
 
    return true;
 }
@@ -136,50 +119,41 @@ bool MariaDBClient::open()
 // ###### Close connection to database ######################################
 void MariaDBClient::close()
 {
-   if(ResultSet != nullptr) {
-      delete ResultSet;
-      ResultSet = nullptr;
+   if(ResultCursor) {
+      mysql_free_result(ResultCursor);
+      ResultCursor = nullptr;
    }
-   if(Transaction) {
-      delete Transaction;
-      Transaction = nullptr;
-   }
-   if(Connection != nullptr) {
-      delete Connection;
-      Connection = nullptr;
-   }
+   mysql_close(&Connection);
+   mysql_init(&Connection);
 }
 
 
-// ###### Reconnect connection to database ##################################
-void MariaDBClient::reconnect()
+// ###### Handle database error #############################################
+void MariaDBClient::handleDatabaseError(const std::string& where,
+                                        const std::string& statement)
 {
-   Connection->reconnect();
-}
+   const unsigned int errorCode = mysql_errno(&Connection);
+   const std::string  sqlState  = mysql_sqlstate(&Connection);
 
-
-// ###### Handle SQLException ###############################################
-void MariaDBClient::handleDatabaseException(const sql::SQLException& exception,
-                                            const std::string&       where,
-                                            const std::string&       statement)
-{
    // ====== Log error ======================================================
    const std::string what = where + " error " +
-                               exception.getSQLState() + "/E" +
-                               std::to_string(exception.getErrorCode()) + ": " +
-                               exception.what();
+                               sqlState + "/E" +
+                               std::to_string(errorCode) + ": " +
+                               mysql_error(&Connection);
    HPCT_LOG(error) << what;
-   HPCT_LOG(debug) << statement;
+   if(statement.size() > 0) {
+      HPCT_LOG(debug) << statement;
+   }
 
    // ====== Throw exception ================================================
-   const std::string e = exception.getSQLState().substr(0, 2);
-   //  Based on mysql/connector/errors.py:
+   const std::string e = sqlState.substr(0, 2);
    if( (e == "42") || (e == "23") || (e == "22") || (e == "XA")) {
+      //  Based on mysql/connector/errors.py:
       // For this type, the input file should be moved to the bad directory.
       throw ResultsDatabaseDataErrorException(what);
    }
-   // Other error
    else {
+      // Other error
       throw ResultsDatabaseException(what);
    }
 }
@@ -188,11 +162,9 @@ void MariaDBClient::handleDatabaseException(const sql::SQLException& exception,
 // ###### Begin transaction #################################################
 void MariaDBClient::startTransaction()
 {
-   try {
-      Transaction->execute("START TRANSACTION");
-   }
-   catch(const sql::SQLException& exception) {
-      handleDatabaseException(exception, "Start of transaction");
+   static const std::string statement("START TRANSACTION");
+   if(mysql_query(&Connection, statement.c_str())) {
+      handleDatabaseError("Start Transaction", statement);
    }
 }
 
@@ -202,21 +174,15 @@ void MariaDBClient::endTransaction(const bool commit)
 {
    // ====== Commit transaction =============================================
    if(commit) {
-      try {
-         Connection->commit();
-      }
-      catch(const sql::SQLException& exception) {
-         handleDatabaseException(exception, "Commit");
+      if(mysql_commit(&Connection)) {
+         handleDatabaseError("Commit");
       }
    }
 
-   // ====== Commit transaction =============================================
+   // ====== Roll back transaction ==========================================
    else {
-      try {
-         Connection->rollback();
-      }
-      catch(const sql::SQLException& exception) {
-         handleDatabaseException(exception, "Rollback");
+      if(mysql_rollback(&Connection)) {
+         handleDatabaseError("Rollback");
       }
    }
 }
@@ -226,12 +192,13 @@ void MariaDBClient::endTransaction(const bool commit)
 void MariaDBClient::executeUpdate(Statement& statement)
 {
    assert(statement.isValid());
-
-   try {
-      Transaction->executeUpdate(statement.str());
+   if(ResultCursor) {
+      mysql_free_result(ResultCursor);
+      ResultCursor = nullptr;
    }
-   catch(const sql::SQLException& exception) {
-      handleDatabaseException(exception, "Execute", statement.str());
+
+   if(mysql_query(&Connection, statement.str().c_str())) {
+      handleDatabaseError("Query", statement.str());
    }
 
    statement.clear();
@@ -242,17 +209,19 @@ void MariaDBClient::executeUpdate(Statement& statement)
 void MariaDBClient::executeQuery(Statement& statement)
 {
    assert(statement.isValid());
+   if(ResultCursor) {
+      mysql_free_result(ResultCursor);
+      ResultCursor = nullptr;
+   }
 
-   if(ResultSet != nullptr) {
-      delete ResultSet;
-      ResultSet = nullptr;
+   if(mysql_query(&Connection, statement.str().c_str())) {
+      handleDatabaseError("Query", statement.str());
    }
-   try {
-      ResultSet = Transaction->executeQuery(statement.str());
+   ResultCursor = mysql_store_result(&Connection);
+   if(ResultCursor == nullptr) {
+      handleDatabaseError("Store", statement.str());
    }
-   catch(const sql::SQLException& exception) {
-      handleDatabaseException(exception, "Execute", statement.str());
-   }
+   ResultColumns = mysql_num_fields(ResultCursor);
 
    statement.clear();
 }
@@ -261,9 +230,18 @@ void MariaDBClient::executeQuery(Statement& statement)
 // ###### Fetch next tuple ##################################################
 bool MariaDBClient::fetchNextTuple()
 {
-   if(ResultSet != nullptr) {
-      return ResultSet->next();
+   assert(ResultCursor != nullptr);
+
+   ResultRow = mysql_fetch_row(ResultCursor);
+   if(ResultRow != nullptr) {
+      return true;
    }
+
+   if(mysql_errno(&Connection) != 0) {
+      handleDatabaseError("Fetch");
+   }
+   mysql_free_result(ResultCursor);
+   ResultCursor = nullptr;
    return false;
 }
 
@@ -271,22 +249,25 @@ bool MariaDBClient::fetchNextTuple()
 // ###### Get integer value #################################################
 int32_t MariaDBClient::getInteger(unsigned int column) const
 {
-   assert(ResultSet != nullptr);
-   return ResultSet->getInt(column);
+   assert(ResultCursor != nullptr);
+   assert( (column >= 1) && (column <= ResultColumns) );
+   return atoi(ResultRow[column - 1]);
 }
 
 
 // ###### Get big integer value #############################################
 int64_t MariaDBClient::getBigInt(unsigned int column) const
 {
-   assert(ResultSet != nullptr);
-   return ResultSet->getInt64(column);
+   assert(ResultCursor != nullptr);
+   assert( (column >= 1) && (column <= ResultColumns) );
+   return atoll(ResultRow[column - 1]);
 }
 
 
 // ###### Get string value ##################################################
 std::string MariaDBClient::getString(unsigned int column) const
 {
-   assert(ResultSet != nullptr);
-   return ResultSet->getString(column);
+   assert(ResultCursor != nullptr);
+   assert( (column >= 1) && (column <= ResultColumns) );
+   return std::string(ResultRow[column - 1]);
 }

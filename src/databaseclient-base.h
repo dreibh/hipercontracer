@@ -47,7 +47,7 @@ class DatabaseClientBase
    virtual const DatabaseBackendType getBackend() const = 0;
    virtual bool open()  = 0;
    virtual void close() = 0;
-   virtual void reconnect() = 0;
+   virtual void reconnect();
 
    virtual void startTransaction() = 0;
    virtual void executeUpdate(Statement& statement) = 0;

@@ -34,10 +34,10 @@
 
 // ###### Constructor #######################################################
 ReaderBase::ReaderBase(
-   const DatabaseConfiguration& databaseConfiguration,
+   const ImporterConfiguration& importerConfiguration,
    const unsigned int           workers,
    const unsigned int           maxTransactionSize)
-   : Configuration(databaseConfiguration),
+   : ImporterConfig(importerConfiguration),
      Workers(workers),
      MaxTransactionSize(maxTransactionSize)
 {

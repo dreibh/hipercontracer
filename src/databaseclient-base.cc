@@ -30,6 +30,7 @@
 // Contact: dreibh@simula.no
 
 #include "databaseclient-base.h"
+#include "logger.h"
 
 #include <boost/asio/ip/address.hpp>
 #include <boost/beast/core/detail/base64.hpp>
@@ -51,6 +52,15 @@ DatabaseClientBase::~DatabaseClientBase()
       StatementMap.erase(iterator);
       iterator = StatementMap.begin();
    }
+}
+
+
+// ###### Reconnect connection to database ##################################
+void DatabaseClientBase::reconnect()
+{
+   HPCT_LOG(debug) << "Reconnect ...";
+   close();
+   open();
 }
 
 

@@ -1,14 +1,16 @@
 #!/bin/bash
 
 # Copy configuration from dbtest VM:
-DBTEST=192.168.56.200
+DBTEST=10.193.4.69
 
-scp nornetpp@${DBTEST}:testdb-* ${HOME}/
-scp nornetpp@${DBTEST}:/etc/ssl/TestLevel1/certs/TestLevel1.crt ${HOME}/
-scp nornetpp@${DBTEST}:/etc/ssl/TestGlobal.crl ${HOME}/
+rsync -v nornetpp@${DBTEST}:testdb-* "${HOME}/"
+rsync -v nornetpp@${DBTEST}:importer.conf "${HOME}/"
+rsync -v nornetpp@${DBTEST}:/etc/ssl/TestLevel1/certs/TestLevel1.crt "${HOME}/"
+rsync -v nornetpp@${DBTEST}:/etc/ssl/TestGlobal.crl "${HOME}/"
+
 sed -e "s/^\(dbserver[ \t]*\)=.*\$/\1= $DBTEST/g" \
     -e "s#^\(dbcafile[ \t]*\)=.*\$#\1= $HOME/TestLevel1.crt#g" \
     -e "s#^\(dbcrlfile[ \t]*\)=.*\$#\1= $HOME/TestGlobal.crl#g" \
-    -i ${HOME}/testdb-*.conf
+    -i "${HOME}/"testdb-*.conf
 sed -e 's/^\(dbconnectionflags[ \t]*\)=.*$/\1= AllowInvalidHostname/g' \
-    -i ${HOME}/testdb-*postgresql*.conf
+    -i "${HOME}/"testdb-*postgresql*.conf

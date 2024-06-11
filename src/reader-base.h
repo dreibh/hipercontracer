@@ -33,6 +33,7 @@
 #define READER_BASE_H
 
 #include "databaseclient-base.h"
+#include "importer-configuration.h"
 
 #include "logger.h"
 #include "tools.h"
@@ -49,9 +50,9 @@
 
 
 enum ReaderPriority {
-   Low    = 0,
-   High   = 1,
-   Max    = High
+   Low  = 0,
+   High = 1,
+   Max  = High
 };
 typedef std::chrono::high_resolution_clock   ReaderClock;
 typedef std::chrono::time_point<ReaderClock> ReaderTimePoint;
@@ -62,7 +63,7 @@ typedef ReaderClock::duration                ReaderTimeDuration;
 class ReaderBase
 {
    public:
-   ReaderBase(const DatabaseConfiguration& databaseConfiguration,
+   ReaderBase(const ImporterConfiguration& importerConfiguration,
               const unsigned int           workers,
               const unsigned int           maxTransactionSize);
    virtual ~ReaderBase();
@@ -95,10 +96,10 @@ class ReaderBase
                               boost::iostreams::filtering_istream& dataStream) = 0;
 
    protected:
-   const DatabaseConfiguration&    Configuration;
-   const unsigned int              Workers;
-   const unsigned int              MaxTransactionSize;
-   std::mutex                      Mutex;
+   const ImporterConfiguration& ImporterConfig;
+   const unsigned int           Workers;
+   const unsigned int           MaxTransactionSize;
+   std::mutex                   Mutex;
 
    struct WorkerStatistics {
       unsigned long long Processed;
@@ -114,7 +115,7 @@ template<typename ReaderInputFileEntry>
 class ReaderImplementation : public ReaderBase
 {
    public:
-   ReaderImplementation(const DatabaseConfiguration& databaseConfiguration,
+   ReaderImplementation(const ImporterConfiguration& importerConfiguration,
                         const unsigned int           workers,
                         const unsigned int           maxTransactionSize);
    virtual ~ReaderImplementation();
@@ -140,10 +141,10 @@ class ReaderImplementation : public ReaderBase
 // ###### Constructor #######################################################
 template<typename ReaderInputFileEntry>
 ReaderImplementation<ReaderInputFileEntry>::ReaderImplementation(
-   const DatabaseConfiguration& databaseConfiguration,
+   const ImporterConfiguration& importerConfiguration,
    const unsigned int           workers,
    const unsigned int           maxTransactionSize)
-   : ReaderBase(databaseConfiguration, workers, maxTransactionSize)
+   : ReaderBase(importerConfiguration, workers, maxTransactionSize)
 {
    for(int p = ReaderPriority::Max; p >= 0; p--) {
       DataFileSet[p] = new std::set<ReaderInputFileEntry>[Workers];
@@ -197,7 +198,7 @@ int ReaderImplementation<ReaderInputFileEntry>::addFile(
       // ====== Insert file entry into list =================================
       if(DataFileSet[p][workerID].insert(inputFileEntry).second) {
          HPCT_LOG(trace) << getIdentification() << ": Added input file "
-                         << relativeTo(dataFile, Configuration.getImportFilePath()) << " to reader";
+                         << relativeTo(dataFile, ImporterConfig.getImportFilePath()) << " to reader";
          return workerID;
       }
    }
@@ -215,7 +216,7 @@ bool ReaderImplementation<ReaderInputFileEntry>::removeFile(
    const int workerID = makeInputFileEntry(dataFile, match, inputFileEntry, Workers);
    if(workerID >= 0) {
       HPCT_LOG(trace) << getIdentification() << ": Removing input file "
-                      << relativeTo(dataFile, Configuration.getImportFilePath()) << " from reader";
+                      << relativeTo(dataFile, ImporterConfig.getImportFilePath()) << " from reader";
       std::unique_lock lock(Mutex);
 
       for(int p = ReaderPriority::Max; p >= 0; p--) {

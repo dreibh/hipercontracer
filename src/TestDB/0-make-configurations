@@ -45,24 +45,49 @@ CONFIG="$1"
 # ====== Generate secure test user passwords ================================
 if [ ! -e "${CONFIG}" ] ; then
    echo -e "\x1b[34mGenerating ${CONFIG} ...\x1b[0m"
-   cat users.conf.example | \
-   while read line ; do
+   while read -r line ; do
+      echo >&2 "$line"
       if [[ "${line}" =~ ^(.*[\"])(!.*!)([\"])$ ]] ; then
-         echo "${BASH_REMATCH[1]}`pwgen -s 128`${BASH_REMATCH[3]}"
+         echo "${BASH_REMATCH[1]}$(pwgen -s 128)${BASH_REMATCH[3]}"
       else
          echo "${line}"
       fi
-   done | tee "${CONFIG}"
+   done <users.conf.example | tee "${CONFIG}"
 fi
 
+# shellcheck disable=SC1090
 . "${CONFIG}"
 
 
-# ====== Write HiPerConTracer Importer database configuration files =========
+# ====== Write HiPerConTracer Importer configuration files ==================
+name="$(dirname "${CONFIG}")/importer.conf"
+cat >"${name}" <<EOF
+# ====== Importer Configuration =============================================
+
+# Import modes: DeleteImportedFiles MoveImportedFiles KeepImportedFiles
+# DeleteImportedFiles = Delete successfully imported files
+# MoveImportedFiles   = Move successfully imported files to good path
+# KeepImportedFiles   = Keep successfully imported files where they are
+#                       Use only for debugging! Any importer rerun will process them again!
+import_mode        = MoveImportedFiles
+
+# Regular expression to filter input files:
+import_path_filter =
+
+# Import directory and maximum search depth (1 = only the directory itself):
+import_file_path   = data/
+import_max_depth   = 6
+
+# NOTE: good and bad file directories MUST NOT be a subdirectory of the
+#       import directory!
+bad_file_path      = bad/
+good_file_path     = good/
+EOF
+
 for backend in MariaDB PostgreSQL MongoDB ; do
    for user in maintainer researcher importer ; do
-      name=`echo "${CONFIG}" | sed -e "s/\.conf$/-${backend,,}-${user}.conf/"`
-      echo "$name"
+      # shellcheck disable=SC2001
+      name="$(echo "${CONFIG}" | sed -e "s/.users\.conf$/-${user}-${backend,,}.conf/")"
       if [ "${user}" == "maintainer" ] ; then
          password="${MAINTAINER_PASSWORD}"
       elif [ "${user}" == "researcher" ] ; then
@@ -70,15 +95,24 @@ for backend in MariaDB PostgreSQL MongoDB ; do
       elif [ "${user}" == "importer" ] ; then
          password="${IMPORTER_PASSWORD}"
       fi
-      cat >${name} <<EOF
-# ====== Trace configuration ================================================
-import_file_path = data/
-import_max_depth = 6
-bad_file_path    = bad/
-good_file_path   = good/
-import_mode      = MoveImportedFiles
 
-# ====== Database server ====================================================
+      cat >"${name}" <<EOF
+# ====== Database Server Configuration ======================================
+
+# ----- TLS configuration options -------------------------------------------
+# NOTE:
+# dbcafile sets a TLS CA file.
+# dbcertkeyfile sets a TLS client certificate file.
+# dbconnectionflags sets TLS connection flags (space-separated):
+# * NONE: default, i.e. require properly configured TLS
+# * DisableTLS: disable TLS
+# * AllowInvalidHostname: allow invalid hostnames in certificate
+# * AllowInvalidCertificate: allow invalid certificate
+# WARNING: Do *not* use these options! Instead, configure TLS properly!!
+# ---------------------------------------------------------------------------
+
+
+# ****** Configuration with ${backend} server: ***************
 dbbackend         = ${backend}
 dbserver          = localhost
 dbport            = 0
@@ -90,13 +124,13 @@ dbconnectionflags = NONE
 dbuser            = ${user}
 dbpassword        = ${password}
 database          = ${DATABASE}
-dbreconnectdelay  = 30
+dbreconnectdelay  = 5
 EOF
       if [ "${backend}" == "MongoDB" ] ; then
          sed -e "s/^dbcertfile   /dbcertkeyfile/" \
              -e "/^dbkeyfile/d" \
-             <${name} >${name}.new && \
-         mv ${name}.new ${name}
+             <"${name}" >"${name}".new && \
+         mv "${name}".new "${name}"
       fi
    done
 done

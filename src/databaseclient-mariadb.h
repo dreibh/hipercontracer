@@ -34,11 +34,8 @@
 
 #include "databaseclient-base.h"
 
-// Ubuntu: libmysqlcppconn-dev
-#include <driver.h>
-#include <exception.h>
-#include <resultset.h>
-#include <statement.h>
+// Ubuntu: libmariadb-dev
+#include <mysql.h>
 
 
 class MariaDBClient : public DatabaseClientBase
@@ -50,7 +47,6 @@ class MariaDBClient : public DatabaseClientBase
    virtual const DatabaseBackendType getBackend() const;
    virtual bool open();
    virtual void close();
-   virtual void reconnect();
 
    virtual void startTransaction();
    virtual void executeUpdate(Statement& statement);
@@ -62,18 +58,16 @@ class MariaDBClient : public DatabaseClientBase
    virtual int64_t getBigInt(unsigned int column) const;
    virtual std::string getString(unsigned int column) const;
 
-   inline sql::Driver*     getDriver()     { return Driver;     }
-   inline sql::Connection* getConnection() { return Connection; }
+   inline MYSQL* getConnection() { return &Connection; }
 
    private:
-   void handleDatabaseException(const sql::SQLException& exception,
-                                const std::string&       where,
-                                const std::string&       statement = std::string());
+   void handleDatabaseError(const std::string& where,
+                            const std::string& statement = std::string());
 
-   sql::Driver*     Driver;
-   sql::Connection* Connection;
-   sql::Statement*  Transaction;
-   sql::ResultSet*  ResultSet;
+   MYSQL        Connection;
+   MYSQL_RES*   ResultCursor;
+   MYSQL_ROW    ResultRow;
+   unsigned int ResultColumns;
 };
 
 #endif

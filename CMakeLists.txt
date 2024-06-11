@@ -95,7 +95,7 @@ IF (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 ELSEIF (${CMAKE_SYSTEM_NAME} MATCHES "FreeBSD")
     MESSAGE(STATUS ${CMAKE_SYSTEM_NAME} " supported")
     SET(CMAKE_REQUIRED_INCLUDES "/usr/local/include" "/usr/include")
-    SET(CMAKE_LIBRARY_PATH "/usr/local/lib")
+    SET(CMAKE_LIBRARY_PATH "/usr/local/lib" "/usr/local/lib/mariadb")
     INCLUDE_DIRECTORIES("/usr/local/include")
 
 ELSEIF (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
@@ -265,30 +265,39 @@ ENDIF()
 
 # ###### Database client libraries ##########################################
 IF (WITH_IMPORTER)
+
+   # ------ Debug backend ---------------------------------------------------
+   OPTION(ENABLE_BACKEND_DEBUG "Enable SQL/NoSQL Debug dummy backed" 1)
+   IF (ENABLE_BACKEND_DEBUG)
+      MESSAGE("Building with SQL/NoSQL Debug dummy backend (ENABLE_BACKEND_DEBUG=${ENABLE_BACKEND_DEBUG})")
+   ELSE()
+      MESSAGE("SQL/NoSQL Debug dummy backend disabled!")
+   ENDIF()
+
    # ------ MariaDB/MySQL ---------------------------------------------------
    OPTION(ENABLE_BACKEND_MARIADB "Enable MySQL/MariaDB backed" 1)
    IF (ENABLE_BACKEND_MARIADB)
       MESSAGE("Building with MySQL/MariaDB backend (ENABLE_BACKEND_MARIADB=${ENABLE_BACKEND_MARIADB})")
 
-      MESSAGE("Looking for MySQL/MariaDB C++ Client library:")
-      FIND_LIBRARY(MYSQLCPPCONN_LIBRARY NAMES mysqlcppconn)
-      MESSAGE(" * Library: ${MYSQLCPPCONN_LIBRARY}")
-      FIND_PATH(MYSQLCPPCONN_INCLUDE_DIR NAMES driver.h PATH_SUFFIXES cppconn jdbc/cppconn mysql-cppconn/jdbc/cppconn mysql-cppconn-8/jdbc/cppconn)
-      MESSAGE(" * Includes: ${MYSQLCPPCONN_INCLUDE_DIR}")
-      IF ((NOT MYSQLCPPCONN_INCLUDE_DIR) OR (NOT MYSQLCPPCONN_LIBRARY))
+      MESSAGE("Looking for MySQL/MariaDB C Client library:")
+      FIND_LIBRARY(LIBMARIADB_LIBRARY NAMES mariadb)
+      MESSAGE(" * Library: ${LIBMARIADB_LIBRARY}")
+      FIND_PATH(LIBMARIADB_INCLUDE_DIR NAMES mysql.h PATH_SUFFIXES mariadb mysql)
+      MESSAGE(" * Includes: ${LIBMARIADB_INCLUDE_DIR}")
+      IF ((NOT LIBMARIADB_INCLUDE_DIR) OR (NOT LIBMARIADB_LIBRARY))
          MESSAGE(FATAL_ERROR
-                 " Cannot find MySQL/MariaDB C++ client library! Try:\n"
-                 " * Ubuntu/Debian: sudo apt install -y libmysqlcppconn-dev\n"
-                 " * Fedora:        sudo dnf install -y mysql-connector-c++-devel (needs PPA!)\n"
-                 " * SuSE:          (needs PPA!)\n"
-                 " * Alpine:        (needs PPA!)\n"
-                 " * FreeBSD:       sudo pkg install -y mysql-connector-c++")
+                 " Cannot find MySQL/MariaDB C Client Library! Try:\n"
+                 " * Ubuntu/Debian: sudo apt install -y libmariadb-dev\n"
+                 " * Fedora:        sudo dnf install -y mariadb-connector-c-devel\n"
+                 " * SuSE:          sudo zypper install -y libmariadb-devel\n"
+                 " * Alpine:        sudo apk add mariadb-connector-c-dev\n"
+                 " * FreeBSD:       sudo pkg install -y mariadb-connector-c")
       ENDIF()
    ELSE()
       MESSAGE("MySQL/MariaDB backend disabled!")
    ENDIF()
 
-   # ------ PostgreSQL ---------------------------------------------------------
+   # ------ PostgreSQL ------------------------------------------------------
    OPTION(ENABLE_BACKEND_POSTGRESQL "Enable PostgreSQL backed" 1)
    IF (ENABLE_BACKEND_POSTGRESQL)
       MESSAGE("Building with PostgreSQL backend (ENABLE_BACKEND_POSTGRESQL=${ENABLE_BACKEND_POSTGRESQL})")
@@ -300,18 +309,18 @@ IF (WITH_IMPORTER)
       MESSAGE(" * Includes: ${LIBPQXX_INCLUDE_DIR}")
       IF ((NOT LIBPQXX_INCLUDE_DIR) OR (NOT LIBPQXX_LIBRARY))
          MESSAGE(FATAL_ERROR
-                 " Cannot find PostgreSQL C++  client library! Try:\n"
+                 " Cannot find PostgreSQL C++ Client Library! Try:\n"
                  " * Ubuntu/Debian: sudo apt install -y libpqxx-dev\n"
                  " * Fedora:        sudo dnf install -y libpqxx-devel\n"
                  " * SuSE:          sudo zypper install -y libpqxx-devel\n"
-                 " * Alpine:        (needs PPA!)\n"
+                 " * Alpine:        sudo apk add mariadb-connector-c\n"
                  " * FreeBSD:       sudo pkg install -y postgresql-libpqxx")
       ENDIF()
    ELSE()
       MESSAGE("PostgreSQL backend disabled!")
    ENDIF()
 
-   # ------ MongoDB ------------------------------------------------------------
+   # ------ MongoDB ---------------------------------------------------------
    OPTION(ENABLE_BACKEND_MONGODB "Enable MongoDB backed" 1)
    IF (ENABLE_BACKEND_MONGODB)
       MESSAGE("Building with MongoDB backend (ENABLE_BACKEND_MONGODB=${ENABLE_BACKEND_MONGODB})")
@@ -323,7 +332,7 @@ IF (WITH_IMPORTER)
       MESSAGE(" * Includes: ${LIBMONGOC_INCLUDE_DIR}")
       IF ((NOT LIBMONGOC_INCLUDE_DIR) OR (NOT LIBMONGOC_LIBRARY))
          MESSAGE(FATAL_ERROR
-                 " Cannot find MongoDB C client library! Try:\n"
+                 " Cannot find MongoDB C Client Library! Try:\n"
                  " * Ubuntu/Debian: sudo apt install -y libmongoc-dev\n"
                  " * Fedora:        sudo dnf install -y mongo-c-driver-devel\n"
                  " * SuSE:          (needs PPA!)\n"

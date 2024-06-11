@@ -57,14 +57,6 @@ enum DatabaseBackendType {
    NoSQL_MongoDB  = NoSQL_Generic | (1 << 25)
 };
 
-
-enum ImportModeType {
-   KeepImportedFiles   = 0,   // Keep the files where they are
-   MoveImportedFiles   = 1,   // Move into "good file" directory
-   DeleteImportedFiles = 2    // Delete
-};
-
-
 enum ConnectionFlags {
    None                    = 0,
    DisableTLS              = (1 << 0),
@@ -92,23 +84,10 @@ class DatabaseConfiguration
    inline const std::string&           getDatabase()        const { return Database;                     }
    inline unsigned int                 getReconnectDelay()  const { return ReconnectDelay;               }
 
-   inline ImportModeType               getImportMode()      const { return ImportMode;                   }
-   inline unsigned int                 getImportMaxDepth()  const { return ImportMaxDepth;               }
-   inline const std::filesystem::path& getImportFilePath()  const { return ImportFilePath;               }
-   inline const std::filesystem::path& getGoodFilePath()    const { return GoodFilePath;                 }
-   inline const std::filesystem::path& getBadFilePath()     const { return BadFilePath;                  }
-
    bool setBackend(const std::string& backendName);
    bool setConnectionFlags(const std::string& connectionFlagNames);
 
-   bool setImportMode(const std::string& importModeName);
-   bool setImportMaxDepth(const unsigned int importMaxDepth);
-   bool setImportFilePath(const std::filesystem::path& importFilePath);
-   bool setGoodFilePath(const std::filesystem::path& goodFilePath);
-   bool setBadFilePath(const std::filesystem::path& badFilePath);
-
-   bool readConfiguration(const std::filesystem::path& configurationFile,
-                          const bool                   isImporter = true);
+   bool readConfiguration(const std::filesystem::path& configurationFile);
    DatabaseClientBase* createClient();
    static bool registerBackend(const DatabaseBackendType type,
                                const std::string&        name,
@@ -140,12 +119,6 @@ class DatabaseConfiguration
    std::string                                 KeyFile;
    std::string                                 CertKeyFile;
    std::string                                 Database;
-   std::string                                 ImportModeName;
-   ImportModeType                              ImportMode;
-   unsigned int                                ImportMaxDepth;
-   std::filesystem::path                       ImportFilePath;
-   std::filesystem::path                       BadFilePath;
-   std::filesystem::path                       GoodFilePath;
 };
 
 
