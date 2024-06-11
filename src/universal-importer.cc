@@ -240,11 +240,11 @@ void UniversalImporter::handleINotifyEvent(const boost::system::error_code& erro
                else {
                   const std::filesystem::path dataFile = directory / std::string(event->name);
                   if(event->mask & (IN_CLOSE_WRITE | IN_MOVED_TO)) {
-                     HPCT_LOG(warning) << "INotify event for new file " << dataFile;
+                     HPCT_LOG(trace) << "INotify event for new file " << dataFile;
                      addFile(dataFile);
                   }
                   else if(event->mask & IN_DELETE) {
-                     HPCT_LOG(warning) << "INotify event for deleted file " << dataFile;
+                     HPCT_LOG(trace) << "INotify event for deleted file " << dataFile;
                      removeFile(dataFile);
                   }
                }
