@@ -34,7 +34,7 @@ else
 fi
 if [ "${ID}" == "debian" ] || [ "${ID}" == "ubuntu" ] ; then
    apt update
-   apt install -y cmake debhelper git libboost-date-time-dev libboost-filesystem-dev libboost-iostreams-dev libboost-log-dev libboost-program-options-dev libboost-system-dev libboost-thread-dev libbz2-dev libc-ares-dev liblzma-dev zlib1g-dev
+   DEBIAN_FRONTEND=noninteractive apt install -y cmake debhelper git libboost-date-time-dev libboost-filesystem-dev libboost-iostreams-dev libboost-log-dev libboost-program-options-dev libboost-system-dev libboost-thread-dev libbz2-dev libc-ares-dev liblzma-dev zlib1g-dev
 elif [ "${ID}" == "fedora" ] ; then
    dnf install -y boost-devel bzip2-devel c-ares-devel cmake gcc gcc-c++ git xz-devel zlib-devel
 elif [ "${ID}" == "alpine" ] ; then
