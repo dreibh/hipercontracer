@@ -127,15 +127,6 @@ void MariaDBClient::close()
 }
 
 
-// ###### Reconnect connection to database ##################################
-void MariaDBClient::reconnect()
-{
-   HPCT_LOG(debug) << "Reconnect ...";
-   close();
-   open();
-}
-
-
 // ###### Handle database error #############################################
 void MariaDBClient::handleDatabaseError(const std::string& where,
                                         const std::string& statement)

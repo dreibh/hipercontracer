@@ -178,12 +178,6 @@ void MongoDBClient::close()
 }
 
 
-// ###### Reconnect connection to database ##################################
-void MongoDBClient::reconnect()
-{
-}
-
-
 // ###### Begin transaction #################################################
 void MongoDBClient::startTransaction()
 {

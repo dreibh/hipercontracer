@@ -124,12 +124,6 @@ void PostgreSQLClient::close()
 }
 
 
-// ###### Reconnect connection to database ##################################
-void PostgreSQLClient::reconnect()
-{
-}
-
-
 // ###### Handle SQLException ###############################################
 void PostgreSQLClient::handleDatabaseException(const pqxx::failure& exception,
                                                const std::string&   where,

@@ -47,7 +47,6 @@ class MariaDBClient : public DatabaseClientBase
    virtual const DatabaseBackendType getBackend() const;
    virtual bool open();
    virtual void close();
-   virtual void reconnect();
 
    virtual void startTransaction();
    virtual void executeUpdate(Statement& statement);
