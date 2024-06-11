@@ -195,19 +195,19 @@ bool DatabaseConfiguration::setConnectionFlags(const std::string& connectionFlag
 std::ostream& operator<<(std::ostream& os, const DatabaseConfiguration& configuration)
 {
    os << "Database configuration:\n"
-      << "Backend          = " << configuration.BackendName    << "\n"
-      << "Reconnect Delay  = " << configuration.ReconnectDelay << " s" << "\n"
-      << "Server           = " << configuration.Server         << "\n"
-      << "Port             = " << configuration.Port           << "\n"
-      << "User             = " << configuration.User           << "\n"
-      << "Password         = " << ((configuration.Password.size() > 0) ? "****************" : "(none)") << "\n"
-      << "CA File          = " << configuration.CAFile         << "\n"
-      << "CRL File         = " << configuration.CRLFile        << "\n"
-      << "Certificate File = " << configuration.CertFile       << "\n"
-      << "Key File         = " << configuration.KeyFile        << "\n"
-      << "Cert.+Key File   = " << configuration.CertKeyFile    << "\n"
-      << "Database         = " << configuration.Database       << "\n"
-      << "Flags            =";
+      << "  Backend          = " << configuration.BackendName    << "\n"
+      << "  Reconnect Delay  = " << configuration.ReconnectDelay << " s" << "\n"
+      << "  Server           = " << configuration.Server         << "\n"
+      << "  Port             = " << configuration.Port           << "\n"
+      << "  User             = " << configuration.User           << "\n"
+      << "  Password         = " << ((configuration.Password.size() > 0) ? "****************" : "(none)") << "\n"
+      << "  CA File          = " << configuration.CAFile         << "\n"
+      << "  CRL File         = " << configuration.CRLFile        << "\n"
+      << "  Certificate File = " << configuration.CertFile       << "\n"
+      << "  Key File         = " << configuration.KeyFile        << "\n"
+      << "  Cert.+Key File   = " << configuration.CertKeyFile    << "\n"
+      << "  Database         = " << configuration.Database       << "\n"
+      << "  Flags            =";
    if(configuration.Flags & ConnectionFlags::DisableTLS) {
       os << " DisableTLS";
    }

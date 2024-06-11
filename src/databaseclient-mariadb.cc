@@ -76,9 +76,9 @@ bool MariaDBClient::open()
       HPCT_LOG(warning) << "TLS certificate check explicitliy disabled. CONFIGURE TLS PROPERLY!!";
    }
 
-   mysql_options(&Connection, MYSQL_OPT_SSL_ENFORCE, &sslEnforce);
+   mysql_options(&Connection, MYSQL_OPT_SSL_ENFORCE,            &sslEnforce);
    mysql_options(&Connection, MYSQL_OPT_SSL_VERIFY_SERVER_CERT, &sslVerify);
-   mysql_options(&Connection, MYSQL_OPT_TLS_VERSION, "TLSv1.3");
+   mysql_options(&Connection, MYSQL_OPT_TLS_VERSION,            "TLSv1.3");
    if(Configuration.getCAFile().size() > 0) {
       mysql_options(&Connection, MYSQL_OPT_SSL_CA, Configuration.getCAFile().c_str());
    }
@@ -123,12 +123,14 @@ void MariaDBClient::close()
       ResultCursor = nullptr;
    }
    mysql_close(&Connection);
+   mysql_init(&Connection);
 }
 
 
 // ###### Reconnect connection to database ##################################
 void MariaDBClient::reconnect()
 {
+   HPCT_LOG(debug) << "Reconnect ...";
    close();
    open();
 }

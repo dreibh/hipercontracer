@@ -66,6 +66,7 @@ UniversalImporter::UniversalImporter(boost::asio::io_service&     ioService,
    StatusTimer(IOService),
    StatusTimerInterval(boost::posix_time::seconds(statusTimerInterval)),
    INotifyStream(IOService),
+   HasImportPathFilter(ImporterConfig.getImportPathFilter().size() > 0),
    ImportPathFilter("^(" + (ImporterConfig.getImportFilePath() / ")(").string() + ImporterConfig.getImportPathFilter() + ")(.*)$"),
    ImportPathFilterRegEx(ImportPathFilter)
 {
@@ -210,9 +211,9 @@ void UniversalImporter::handleINotifyEvent(const boost::system::error_code& erro
                      // created before adding the INotify watch!
                      const unsigned int currentDepth = subDirectoryOf(dataDirectory, ImporterConfig.getImportFilePath());
                      if(currentDepth > 0) {
-                        HPCT_LOG(info) << "Looking for input files in new directory " << dataDirectory
-                                       << " (depth " << 1 + currentDepth << " of " << ImporterConfig.getImportMaxDepth()
-                                       << ", filter " << ImportPathFilter << ") ...";
+                        HPCT_LOG(debug) << "Looking for input files in new directory " << dataDirectory
+                                        << " (depth " << 1 + currentDepth << " of " << ImporterConfig.getImportMaxDepth()
+                                        << ", filter " << ImportPathFilter << ") ...";
                         lookForFiles(dataDirectory,
                                      1 + currentDepth, ImporterConfig.getImportMaxDepth());
                      }
@@ -324,10 +325,13 @@ unsigned long long UniversalImporter::lookForFiles(const std::filesystem::path& 
    for(const std::filesystem::directory_entry& dirEntry : std::filesystem::directory_iterator(importFilePath)) {
 
       // ====== Filter name =================================================
-      const std::string d = (dirEntry.path() / "").string();
-      if(!std::regex_match(d, match, ImportPathFilterRegEx)) {
-         HPCT_LOG(info) << "Skipping " << d;
-         continue;
+      // Optimisation: only check if there actually is a filter!
+      if(HasImportPathFilter) {
+         const std::string d = (dirEntry.path() / "").string();
+         if(!std::regex_match(d, match, ImportPathFilterRegEx)) {
+            HPCT_LOG(info) << "Skipping " << d;
+            continue;
+         }
       }
 
       // ====== Add file ====================================================

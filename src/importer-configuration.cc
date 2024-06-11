@@ -190,7 +190,7 @@ bool ImporterConfiguration::setBadFilePath(const std::filesystem::path& badFileP
 std::ostream& operator<<(std::ostream& os, const ImporterConfiguration& configuration)
 {
    os << "Importer configuration:" << "\n"
-      << "Import mode      = ";
+      << "  Import Mode      = ";
    switch(configuration.ImportMode) {
       case KeepImportedFiles:
          os << "KeepImportedFiles";
@@ -206,9 +206,9 @@ std::ostream& operator<<(std::ostream& os, const ImporterConfiguration& configur
        break;
    }
    os << "\n"
-      << "Import Path Filter = " << configuration.ImportPathFilter << "\n"
-      << "Import File Path   = " << configuration.ImportFilePath   << " (max depth: " << configuration.ImportMaxDepth << ")" << "\n"
-      << "Good File Path     = " << configuration.GoodFilePath     << "\n"
-      << "Bad File Path      = " << configuration.BadFilePath      << "\n";
+      << "  Import Filter    = " << configuration.ImportPathFilter << "\n"
+      << "  Import File Path = " << configuration.ImportFilePath   << " (max depth: " << configuration.ImportMaxDepth << ")" << "\n"
+      << "  Good File Path   = " << configuration.GoodFilePath     << "\n"
+      << "  Bad File Path    = " << configuration.BadFilePath      << "\n";
    return os;
 }
