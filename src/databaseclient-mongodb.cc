@@ -175,6 +175,10 @@ bool MongoDBClient::open()
 void MongoDBClient::close()
 {
    freeResults();
+   if(Connection != nullptr) {
+      mongoc_client_destroy(Connection);
+      Connection = nullptr;
+   }
 }
 
 
