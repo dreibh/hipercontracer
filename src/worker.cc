@@ -318,9 +318,15 @@ bool Worker::importFiles(const std::list<std::filesystem::path>& dataFileList)
       HPCT_LOG(warning) << getIdentification() << ": Import in "
                         << ((fastMode == true) ? "fast" : "slow") << " mode failed with reader data error: "
                         << exception.what();
-      DatabaseClient.rollback();
-      if( (!fastMode) && (dataFile != std::filesystem::path()) ) {
-         finishedFile(dataFile, false);
+      try {
+         DatabaseClient.rollback();
+         if( (!fastMode) && (dataFile != std::filesystem::path()) ) {
+            finishedFile(dataFile, false);
+         }
+         return false;
+      }
+      catch(ResultsDatabaseException& exception) {
+         // Now, the database connection is broken -> reconnect.
       }
    }
 
@@ -330,9 +336,15 @@ bool Worker::importFiles(const std::list<std::filesystem::path>& dataFileList)
       HPCT_LOG(warning) << getIdentification() << ": Import in "
                         << ((fastMode == true) ? "fast" : "slow") << " mode failed with database data error: "
                         << exception.what();
-      DatabaseClient.rollback();
-      if(!fastMode) {
-         finishedFile(dataFile, false);
+      try {
+         DatabaseClient.rollback();
+         if(!fastMode) {
+            finishedFile(dataFile, false);
+         }
+         return false;
+      }
+      catch(ResultsDatabaseException& exception) {
+         // Now, the database connection is broken -> reconnect.
       }
    }
 
@@ -342,12 +354,15 @@ bool Worker::importFiles(const std::list<std::filesystem::path>& dataFileList)
       HPCT_LOG(warning) << getIdentification() << ": Import in "
                         << ((fastMode == true) ? "fast" : "slow") << " mode failed with database exception: "
                         << exception.what();
-      DatabaseClient.rollback();
-      HPCT_LOG(warning) << getIdentification() << ": Waiting " << DatabaseConfig.getReconnectDelay() << " ...";
-      std::this_thread::sleep_for(std::chrono::seconds(DatabaseConfig.getReconnectDelay()));
-      HPCT_LOG(warning) << getIdentification() << ": Trying reconnect ...";
-      DatabaseClient.reconnect();
+      // The database connection is broken -> reconnect.
    }
+
+
+   // ====== Reconnect ======================================================
+   HPCT_LOG(warning) << getIdentification() << ": Waiting " << DatabaseConfig.getReconnectDelay() << " ...";
+   std::this_thread::sleep_for(std::chrono::seconds(DatabaseConfig.getReconnectDelay()));
+   HPCT_LOG(warning) << getIdentification() << ": Trying reconnect ...";
+   DatabaseClient.reconnect();
 
    return false;
 }
