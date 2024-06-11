@@ -65,6 +65,7 @@ const DatabaseBackendType MariaDBClient::getBackend() const
 // ###### Prepare connection to database ####################################
 bool MariaDBClient::open()
 {
+   // ====== Prepare parameters =============================================
    my_bool sslEnforce = true;
    my_bool sslVerify  = true;
    if(Configuration.getConnectionFlags() & DisableTLS) {

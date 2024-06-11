@@ -101,7 +101,7 @@ bool MongoDBClient::open()
 {
    assert(Connection == nullptr);
 
-   // ====== Create URI =====================================================
+   // ====== Prepare parameters =============================================
    const std::string url = "mongodb://" +
       Configuration.getServer() + ":" +
       std::to_string((Configuration.getPort() != 0) ? Configuration.getPort() : 27017) +
