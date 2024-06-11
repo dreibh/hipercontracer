@@ -87,6 +87,7 @@ class UniversalImporter
    boost::asio::io_service&                 IOService;
    const DatabaseConfiguration&             DatabaseConfig;
    const ImporterConfiguration&             ImporterConfig;
+   const bool                               HasImportPathFilter;
    const std::string                        ImportPathFilter;
    const std::regex                         ImportPathFilterRegEx;
 
