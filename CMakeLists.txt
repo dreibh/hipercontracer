@@ -272,14 +272,14 @@ IF (WITH_IMPORTER)
    IF (ENABLE_BACKEND_MARIADB)
       MESSAGE("Building with MySQL/MariaDB backend (ENABLE_BACKEND_MARIADB=${ENABLE_BACKEND_MARIADB})")
 
-      MESSAGE("Looking for MySQL/MariaDB C++ Client library:")
+      MESSAGE("Looking for MySQL/MariaDB C Client library:")
       FIND_LIBRARY(LIBMARIADB_LIBRARY NAMES mariadb)
       MESSAGE(" * Library: ${LIBMARIADB_LIBRARY}")
       FIND_PATH(LIBMARIADB_INCLUDE_DIR NAMES mysql.h PATH_SUFFIXES mariadb mysql)
       MESSAGE(" * Includes: ${LIBMARIADB_INCLUDE_DIR}")
       IF ((NOT LIBMARIADB_INCLUDE_DIR) OR (NOT LIBMARIADB_LIBRARY))
          MESSAGE(FATAL_ERROR
-                 " Cannot find MySQL/MariaDB C client library! Try:\n"
+                 " Cannot find MySQL/MariaDB C Client Library! Try:\n"
                  " * Ubuntu/Debian: sudo apt install -y libmariadb-dev\n"
                  " * Fedora:        sudo dnf install -y mariadb-connector-c-devel\n"
                  " * SuSE:          sudo zypper install -y libmariadb-devel\n"
@@ -302,7 +302,7 @@ IF (WITH_IMPORTER)
       MESSAGE(" * Includes: ${LIBPQXX_INCLUDE_DIR}")
       IF ((NOT LIBPQXX_INCLUDE_DIR) OR (NOT LIBPQXX_LIBRARY))
          MESSAGE(FATAL_ERROR
-                 " Cannot find PostgreSQL C++  client library! Try:\n"
+                 " Cannot find PostgreSQL C++ Client Library! Try:\n"
                  " * Ubuntu/Debian: sudo apt install -y libpqxx-dev\n"
                  " * Fedora:        sudo dnf install -y libpqxx-devel\n"
                  " * SuSE:          sudo zypper install -y libpqxx-devel\n"
@@ -325,7 +325,7 @@ IF (WITH_IMPORTER)
       MESSAGE(" * Includes: ${LIBMONGOC_INCLUDE_DIR}")
       IF ((NOT LIBMONGOC_INCLUDE_DIR) OR (NOT LIBMONGOC_LIBRARY))
          MESSAGE(FATAL_ERROR
-                 " Cannot find MongoDB C client library! Try:\n"
+                 " Cannot find MongoDB C Client Library! Try:\n"
                  " * Ubuntu/Debian: sudo apt install -y libmongoc-dev\n"
                  " * Fedora:        sudo dnf install -y mongo-c-driver-devel\n"
                  " * SuSE:          (needs PPA!)\n"
