@@ -94,7 +94,7 @@ MoveImportedFiles (move successfully imported files into "good" directory),
 KeepImportedFiles (keep successfully imported files where they are).
 Do not use KeepImportedFiles execpt for testing. Otherwise, the next re-run of
 hpct-importer tries to import them again! They may create duplicates when the
-underlying database system (NoSQL without unique indices) does not ensure
+underlying database system (e.g. NoSQL without unique indices) does not ensure
 uniqueness!
 .It \-Y|\-\-import-max-depth DEPTH
 Specifies the import directory traversal depth,

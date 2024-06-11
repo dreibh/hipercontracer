@@ -185,6 +185,11 @@ int main(int argc, char** argv)
    if(importFilePathFilter.size() > 0) {
       if(!importerConfiguration.setImportPathFilter(importFilePathFilter)) return 1;
    }
+   if( (importerConfiguration.getImportMode() == ImportModeType::KeepImportedFiles) &&
+       (!quitWhenIdle) ) {
+      std::cerr << "ERROR: Import mode \"KeepImportedFiles\" is only useful with --quit-when-idle option!\n";
+      exit(1);
+   }
 
    // ====== Read database configuration ====================================
    DatabaseConfiguration databaseConfiguration;
