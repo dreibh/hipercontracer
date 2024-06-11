@@ -56,14 +56,18 @@ bool operator<(const UniversalImporter::WorkerMapping& a,
 
 // ###### Constructor #######################################################
 UniversalImporter::UniversalImporter(boost::asio::io_service&     ioService,
+                                     const ImporterConfiguration& importerConfiguration,
                                      const DatabaseConfiguration& databaseConfiguration,
                                      const unsigned int           statusTimerInterval)
  : IOService(ioService),
-   Configuration(databaseConfiguration),
+   ImporterConfig(importerConfiguration),
+   DatabaseConfig(databaseConfiguration),
    Signals(IOService, SIGINT, SIGTERM),
    StatusTimer(IOService),
    StatusTimerInterval(boost::posix_time::seconds(statusTimerInterval)),
-   INotifyStream(IOService)
+   INotifyStream(IOService),
+   ImportPathFilter("^(" + (ImporterConfig.getImportFilePath() / ")(").string() + ImporterConfig.getImportPathFilter() + ")(.*)$"),
+   ImportPathFilterRegEx(ImportPathFilter)
 {
    INotifyFD = -1;
    StatusTimer.expires_from_now(StatusTimerInterval);
@@ -81,8 +85,7 @@ UniversalImporter::~UniversalImporter()
 
 
 // ###### Start importer ####################################################
-bool UniversalImporter::start(const std::string& importFilePathFilter,
-                              const bool         quitWhenIdle)
+bool UniversalImporter::start(const bool quitWhenIdle)
 {
    // ====== Intercept signals ==============================================
    Signals.async_wait(std::bind(&UniversalImporter::handleSignalEvent, this,
@@ -93,15 +96,15 @@ bool UniversalImporter::start(const std::string& importFilePathFilter,
    INotifyFD = inotify_init1(IN_NONBLOCK|IN_CLOEXEC);
    assert(INotifyFD > 0);
    INotifyStream.assign(INotifyFD);
-   int wd = inotify_add_watch(INotifyFD, Configuration.getImportFilePath().c_str(),
+   int wd = inotify_add_watch(INotifyFD, ImporterConfig.getImportFilePath().c_str(),
                               IN_CREATE | IN_DELETE | IN_CLOSE_WRITE | IN_MOVED_TO);
    if(wd < 0) {
-      HPCT_LOG(error) << "Adding INotify watch for " << Configuration.getImportFilePath()
+      HPCT_LOG(error) << "Adding INotify watch for " << ImporterConfig.getImportFilePath()
                       << " failed: " << strerror(errno);
       return false;
    }
    INotifyWatchDescriptors.insert(boost::bimap<int, std::filesystem::path>::value_type(
-                                  wd, Configuration.getImportFilePath()));
+                                  wd, ImporterConfig.getImportFilePath()));
 
    INotifyStream.async_read_some(boost::asio::buffer(&INotifyEventBuffer, sizeof(INotifyEventBuffer)),
                                  std::bind(&UniversalImporter::handleINotifyEvent, this,
@@ -110,7 +113,7 @@ bool UniversalImporter::start(const std::string& importFilePathFilter,
 
    // ====== Look for files =================================================
    HPCT_LOG(info) << "Performing initial directory traversal to look for input files ...";
-   lookForFiles(importFilePathFilter);
+   lookForFiles();
    HPCT_LOG(info) << "Importer status after initial directory traversal:\n" << *this;
 
    // ====== Start workers ==================================================
@@ -205,14 +208,13 @@ void UniversalImporter::handleINotifyEvent(const boost::system::error_code& erro
                      // A directory traversal is necessary in this new
                      // directory, since files/directories may have been
                      // created before adding the INotify watch!
-                     const unsigned int currentDepth = subDirectoryOf(dataDirectory, Configuration.getImportFilePath());
+                     const unsigned int currentDepth = subDirectoryOf(dataDirectory, ImporterConfig.getImportFilePath());
                      if(currentDepth > 0) {
-                        HPCT_LOG(debug) << "Looking for files in new directory " << dataDirectory
-                                        << " (depth " << 1 + currentDepth << " of "
-                                        << Configuration.getImportMaxDepth() << ") ...";
+                        HPCT_LOG(info) << "Looking for input files in new directory " << dataDirectory
+                                       << " (depth " << 1 + currentDepth << " of " << ImporterConfig.getImportMaxDepth()
+                                       << ", filter " << ImportPathFilter << ") ...";
                         lookForFiles(dataDirectory,
-                                     1 + currentDepth, Configuration.getImportMaxDepth(),
-                                     std::regex(std::string()));
+                                     1 + currentDepth, ImporterConfig.getImportMaxDepth());
                      }
                      else {
                         HPCT_LOG(error) << "Not a subdirectory of the import path: " << dataDirectory;
@@ -265,7 +267,7 @@ void UniversalImporter::addReader(ReaderBase&          reader,
    ReaderList.push_back(&reader);
    for(unsigned int w = 0; w < databaseClients; w++) {
       Worker* worker = new Worker(w, reader, *databaseClientArray[w],
-                                  Configuration);
+                                  ImporterConfig, DatabaseConfig);
       assert(worker != nullptr);
       WorkerMapping workerMapping;
       workerMapping.Reader   = &reader;
@@ -303,22 +305,19 @@ void UniversalImporter::removeReader(ReaderBase& reader)
 
 
 // ###### Look for input files (full directory traversal) ###################
-void UniversalImporter::lookForFiles(const std::string& importFilePathFilter)
+void UniversalImporter::lookForFiles()
 {
-   const std::string filterString =
-      "^(" + (Configuration.getImportFilePath() / ")(").string() + importFilePathFilter + ")(.*)$";
-   HPCT_LOG(info) << "Looking for input files (filter: " << filterString << ") ...";
-   lookForFiles(Configuration.getImportFilePath(),
-                1, Configuration.getImportMaxDepth(),
-                std::regex(filterString.c_str()));
+   HPCT_LOG(info) << "Looking for input files in directory " << ImporterConfig.getImportFilePath()
+                  << " (filter \"" << ImportPathFilter << "\") ...";
+   lookForFiles(ImporterConfig.getImportFilePath(),
+                1, ImporterConfig.getImportMaxDepth());
 }
 
 
 // ###### Look for input files (limited directory traversal) ################
 unsigned long long UniversalImporter::lookForFiles(const std::filesystem::path& importFilePath,
                                                    const unsigned int           currentDepth,
-                                                   const unsigned int           maxDepth,
-                                                   const std::regex&            directoryFilterRegExp)
+                                                   const unsigned int           maxDepth)
 {
    std::smatch match;
    unsigned long long n = 0;
@@ -326,7 +325,7 @@ unsigned long long UniversalImporter::lookForFiles(const std::filesystem::path& 
 
       // ====== Filter name =================================================
       const std::string d = (dirEntry.path() / "").string();
-      if(!std::regex_match(d, match, directoryFilterRegExp)) {
+      if(!std::regex_match(d, match, ImportPathFilterRegEx)) {
          HPCT_LOG(info) << "Skipping " << d;
          continue;
       }
@@ -352,18 +351,17 @@ unsigned long long UniversalImporter::lookForFiles(const std::filesystem::path& 
 
          // ------ Recursive directory traversal ----------------------------
          if(currentDepth < maxDepth) {
-            const unsigned long long m = lookForFiles(dirEntry.path(), currentDepth + 1, maxDepth,
-                                                      directoryFilterRegExp);
+            const unsigned long long m = lookForFiles(dirEntry.path(), currentDepth + 1, maxDepth);
 
             // ------ Remove empty directory --------------------------------
             if( (m == 0) &&
                 (currentDepth > 1) &&
-                (Configuration.getImportMode() != ImportModeType::KeepImportedFiles) ) {
+                (ImporterConfig.getImportMode() != ImportModeType::KeepImportedFiles) ) {
                std::error_code ec;
                std::filesystem::remove(dirEntry.path(), ec);
                if(!ec) {
                   HPCT_LOG(trace) << "Deleted empty directory "
-                                  << relativeTo(dirEntry.path(), Configuration.getImportFilePath());
+                                  << relativeTo(dirEntry.path(), ImporterConfig.getImportFilePath());
                }
                else {
                   n++;   // Upper level still has one sub-directory

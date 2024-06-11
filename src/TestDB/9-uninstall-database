@@ -55,7 +55,7 @@ if [ "$1" == "mariadb" ] ; then
    echo "Uninstalling MariaDB ..."
 
    if [ -x /usr/bin/apt ] ; then
-      sudo DEBIAN_FRONTEND=noninteractive apt purge -y 'mariadb-*'
+      sudo DEBIAN_FRONTEND=noninteractive apt purge -y mariadb-client mariadb-server mariadb-backup
    elif [ -x /usr/bin/dnf ] ; then
       sudo dnf remove -y 'mariadb-*'
    elif [ -x /usr/sbin/pkg ] ; then

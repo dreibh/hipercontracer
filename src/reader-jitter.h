@@ -38,7 +38,7 @@
 class JitterReader : public PingReader
 {
    public:
-   JitterReader(const DatabaseConfiguration& databaseConfiguration,
+   JitterReader(const ImporterConfiguration& importerConfiguration,
                 const unsigned int           workers            = 1,
                 const unsigned int           maxTransactionSize = 4,
                 const std::string&           table              = "Jitter");

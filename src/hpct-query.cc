@@ -255,7 +255,7 @@ int main(int argc, char** argv)
 
    // ====== Read database configuration ====================================
    DatabaseConfiguration databaseConfiguration;
-   if(!databaseConfiguration.readConfiguration(databaseConfigurationFile, false)) {
+   if(!databaseConfiguration.readConfiguration(databaseConfigurationFile)) {
       exit(1);
    }
    HPCT_LOG(info) << "Startup:\n" << databaseConfiguration;

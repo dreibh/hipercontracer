@@ -42,7 +42,7 @@ fi
 
 # Access to database as "researcher" user:
 DBMS="$1"
-DATABASE_CONFIG="${HOME}/testdb-users-${DBMS}-researcher.conf"
+DATABASE_CONFIG="${HOME}/testdb-researcher-${DBMS}.conf"
 
 if [ ! -v VALGRIND_CMD ] ; then
    VALGRIND_CMD=""
@@ -51,7 +51,7 @@ fi
 # ###### Run test ###########################################################
 if [ -e "${DATABASE_CONFIG}" ] ; then
 
-   if [ ! -e good -o ! -e bad -o ! -e data ] ; then
+   if [ ! -e good ] || [ ! -e bad ] || [ ! -e data ] ; then
       echo >&2 "ERROR: Directories missing! Did 5-perform-hpct-importer-test succeed?"
       exit 1
    fi
@@ -62,15 +62,15 @@ if [ -e "${DATABASE_CONFIG}" ] ; then
       find good/ -name "${table}-*.results.*" | ../hpct-results --input-file-names-from-stdin -o imported-${table,,}.csv
 
       echo "Querying ${table} data from database ..."
-      ${VALGRIND_CMD} ../hpct-query "${DATABASE_CONFIG}" ${table,,} -o queried-${table,,}-${DBMS}.results
-      ${VALGRIND_CMD} ../hpct-results queried-${table,,}-${DBMS}.results -o queried-${table,,}-${DBMS}.csv
+      ${VALGRIND_CMD} ../hpct-query "${DATABASE_CONFIG}" ${table,,} -o queried-${table,,}-"${DBMS}".results
+      ${VALGRIND_CMD} ../hpct-results queried-${table,,}-"${DBMS}".results -o queried-${table,,}-"${DBMS}".csv
 
       echo "Checking for differences in ${table}:"
       wc -ml imported-${table,,}.csv
-      wc -ml queried-${table,,}-${DBMS}.csv
-      if ! diff imported-${table,,}.csv queried-${table,,}-${DBMS}.csv ; then
+      wc -ml queried-${table,,}-"${DBMS}".csv
+      if ! diff imported-${table,,}.csv queried-${table,,}-"${DBMS}".csv ; then
          echo "RESULTS DIFFER!"
-         diff --color=always imported-${table,,}.csv queried-${table,,}-${DBMS}.csv | head -n32
+         diff --color=always imported-${table,,}.csv queried-${table,,}-"${DBMS}".csv | head -n32
          exit 1
       fi
 
