@@ -241,17 +241,17 @@ void Worker::finishedFile(const std::filesystem::path& dataFile,
    const bool         isMatching = std::regex_match(filename, match, Reader.getFileNameRegExp());
    assert(isMatching);
 
-   // ====== File has been imported successfully ===============================
+   // ====== File has been imported successfully ============================
    if(success) {
-      // ====== Delete imported file ===========================================
+      // ------ Delete imported file ----------------------------------------
       if(ImporterConfig.getImportMode() == ImportModeType::DeleteImportedFiles) {
          deleteImportedFile(dataFile);
       }
-      // ====== Move imported file =============================================
+      // ------ Move imported file ------------------------------------------
       else if(ImporterConfig.getImportMode() == ImportModeType::MoveImportedFiles) {
          moveImportedFile(dataFile, match, true);
       }
-      // ====== Keep imported file where it is =================================
+      // ------ Keep imported file where it is ------------------------------
       else  if(ImporterConfig.getImportMode() == ImportModeType::KeepImportedFiles) {
          // Nothing to do here!
       }
@@ -314,6 +314,7 @@ bool Worker::importFiles(const std::list<std::filesystem::path>& dataFileList)
    }
 
    //  ====== Error in input data ===========================================
+   // NOTE: The database connection is still okay!
    catch(ResultsReaderDataErrorException& exception) {
       HPCT_LOG(warning) << getIdentification() << ": Import in "
                         << ((fastMode == true) ? "fast" : "slow") << " mode failed with reader data error: "
