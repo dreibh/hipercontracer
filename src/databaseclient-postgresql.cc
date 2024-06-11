@@ -63,6 +63,9 @@ const DatabaseBackendType PostgreSQLClient::getBackend() const
 // ###### Prepare connection to database ####################################
 bool PostgreSQLClient::open()
 {
+   assert(Connection == nullptr);
+
+   // ====== Prepare parameters =============================================
    const char* ssl_mode = "verify-full";
    if(Configuration.getConnectionFlags() & DisableTLS) {
       ssl_mode = "disable";
@@ -93,7 +96,6 @@ bool PostgreSQLClient::open()
       " password="    + Configuration.getPassword() +
       " dbname="      + Configuration.getDatabase();
 
-   assert(Connection == nullptr);
    try {
       // ====== Connect to database =========================================
       Connection = new pqxx::connection(parameters.c_str());
@@ -140,7 +142,7 @@ void PostgreSQLClient::handleDatabaseException(const pqxx::failure& exception,
 
    // ====== Throw exception ================================================
    // Query error
-   if( (Connection->is_open()) && (sqlError != nullptr) ) {
+   if( (Connection != nullptr) && (Connection->is_open()) && (sqlError != nullptr) ) {
       // For this type, the input file should be moved to the bad directory.
       throw ResultsDatabaseDataErrorException(what);
    }
@@ -158,6 +160,9 @@ void PostgreSQLClient::startTransaction()
 
    // ====== Create transaction =============================================
    try {
+      if(Connection == nullptr) {
+         throw ResultsDatabaseException("Not connected");
+      }
       Transaction = new pqxx::work(*Connection);
    }
    catch(const pqxx::failure& exception) {
