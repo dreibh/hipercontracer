@@ -42,12 +42,14 @@ ImporterConfiguration::ImporterConfiguration()
    : OptionsDescription("Options")
 {
    OptionsDescription.add_options()
-      ("import_mode",        boost::program_options::value<std::string>(&ImportModeName),                                 "import mode")
-      ("import_max_depth",   boost::program_options::value<unsigned int>(&ImportMaxDepth)->default_value(6),              "import max depth")
-      ("import_path_filter", boost::program_options::value<std::string>(&ImportPathFilter)->default_value(std::string()), "import path filter")
-      ("import_file_path",   boost::program_options::value<std::filesystem::path>(&ImportFilePath),                       "path for input data")
-      ("bad_file_path",      boost::program_options::value<std::filesystem::path>(&BadFilePath),                          "path for bad files")
-      ("good_file_path",     boost::program_options::value<std::filesystem::path>(&GoodFilePath),                         "path for good files");
+      ("import_mode",          boost::program_options::value<std::string>(&ImportModeName),                                 "import mode")
+      ("import_max_depth",     boost::program_options::value<unsigned int>(&ImportMaxDepth)->default_value(6),              "import max depth")
+      ("import_path_filter",   boost::program_options::value<std::string>(&ImportPathFilter)->default_value(std::string()), "import path filter")
+      ("move_directory_depth", boost::program_options::value<unsigned int>(&MoveDirectoryDepth)->default_value(1),          "move directory depth")
+      ("move_timestamp_depth", boost::program_options::value<unsigned int>(&MoveTimestampDepth)->default_value(3),          "move timestamp depth")
+      ("import_file_path",     boost::program_options::value<std::filesystem::path>(&ImportFilePath),                       "path for input data")
+      ("bad_file_path",        boost::program_options::value<std::filesystem::path>(&BadFilePath),                          "path for bad files")
+      ("good_file_path",       boost::program_options::value<std::filesystem::path>(&GoodFilePath),                         "path for good files");
 
    ImportModeName = "KeepImportedFiles";
    ImportMode     = ImportModeType::KeepImportedFiles;
@@ -186,11 +188,27 @@ bool ImporterConfiguration::setBadFilePath(const std::filesystem::path& badFileP
 }
 
 
+// ###### Set move directory depth ##########################################
+bool ImporterConfiguration::setMoveDirectoryDepth(const unsigned int moveDirectoryDepth)
+{
+   MoveDirectoryDepth = moveDirectoryDepth;
+   return true;
+}
+
+
+// ###### Set move timestamp depth ##########################################
+bool ImporterConfiguration::setMoveTimestampDepth(const unsigned int moveTimestampDepth)
+{
+   MoveTimestampDepth = moveTimestampDepth;
+   return true;
+}
+
+
 // ###### << operator #######################################################
 std::ostream& operator<<(std::ostream& os, const ImporterConfiguration& configuration)
 {
    os << "Importer configuration:" << "\n"
-      << "  Import Mode      = ";
+      << "  Import Mode          = ";
    switch(configuration.ImportMode) {
       case KeepImportedFiles:
          os << "KeepImportedFiles";
@@ -206,9 +224,11 @@ std::ostream& operator<<(std::ostream& os, const ImporterConfiguration& configur
        break;
    }
    os << "\n"
-      << "  Import Filter    = " << configuration.ImportPathFilter << "\n"
-      << "  Import File Path = " << configuration.ImportFilePath   << " (max depth: " << configuration.ImportMaxDepth << ")" << "\n"
-      << "  Good File Path   = " << configuration.GoodFilePath     << "\n"
-      << "  Bad File Path    = " << configuration.BadFilePath      << "\n";
+      << "  Import Filter        = " << configuration.ImportPathFilter   << "\n"
+      << "  Import File Path     = " << configuration.ImportFilePath     << " (max depth: " << configuration.ImportMaxDepth << ")" << "\n"
+      << "  Good File Path       = " << configuration.GoodFilePath       << "\n"
+      << "  Bad File Path        = " << configuration.BadFilePath        << "\n"
+      << "  Move Directory Depth = " << configuration.MoveDirectoryDepth << "\n"
+      << "  Move Timestamp Depth = " << configuration.MoveTimestampDepth << "\n";
    return os;
 }

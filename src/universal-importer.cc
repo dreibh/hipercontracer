@@ -80,7 +80,6 @@ UniversalImporter::UniversalImporter(boost::asio::io_service&     ioService,
 // ###### Destructor ########################################################
 UniversalImporter::~UniversalImporter()
 {
-   StatusTimer.cancel();
    stop();
 }
 
@@ -139,6 +138,8 @@ bool UniversalImporter::start(const bool quitWhenIdle)
 // ###### Stop importer #####################################################
 void UniversalImporter::stop()
 {
+   StatusTimer.cancel();
+
    // ====== Remove INotify =================================================
    if(INotifyFD >= 0) {
       boost::bimap<int, std::filesystem::path>::iterator iterator = INotifyWatchDescriptors.begin();
@@ -169,6 +170,8 @@ void UniversalImporter::waitForFinish()
       Worker* worker = workerMappingIterator->second;
       worker->join();
    }
+   HPCT_LOG(info) << "Importer final status:\n" << *this;
+   stop();
 }
 
 
@@ -446,7 +449,7 @@ std::ostream& operator<<(std::ostream& os, const UniversalImporter& importer)
       else {
          os << "\n";
       }
-      reader->printStatus(os);
+      os << *reader;
    }
    return os;
 }

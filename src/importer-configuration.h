@@ -51,12 +51,14 @@ class ImporterConfiguration
    ImporterConfiguration();
    ~ImporterConfiguration();
 
-   inline ImportModeType               getImportMode()        const { return ImportMode;       }
-   inline unsigned int                 getImportMaxDepth()    const { return ImportMaxDepth;   }
-   inline const std::string&           getImportPathFilter()  const { return ImportPathFilter; }
-   inline const std::filesystem::path& getImportFilePath()    const { return ImportFilePath;   }
-   inline const std::filesystem::path& getGoodFilePath()      const { return GoodFilePath;     }
-   inline const std::filesystem::path& getBadFilePath()       const { return BadFilePath;      }
+   inline ImportModeType               getImportMode()         const { return ImportMode;         }
+   inline unsigned int                 getImportMaxDepth()     const { return ImportMaxDepth;     }
+   inline const std::string&           getImportPathFilter()   const { return ImportPathFilter;   }
+   inline const std::filesystem::path& getImportFilePath()     const { return ImportFilePath;     }
+   inline const std::filesystem::path& getGoodFilePath()       const { return GoodFilePath;       }
+   inline const std::filesystem::path& getBadFilePath()        const { return BadFilePath;        }
+   inline unsigned int                 getMoveDirectoryDepth() const { return MoveDirectoryDepth; }
+   inline unsigned int                 getMoveTimestampDepth() const { return MoveTimestampDepth; }
 
    bool setImportMode(const std::string& importModeName);
    bool setImportMaxDepth(const unsigned int importMaxDepth);
@@ -64,6 +66,8 @@ class ImporterConfiguration
    bool setImportFilePath(const std::filesystem::path& importFilePath);
    bool setGoodFilePath(const std::filesystem::path& goodFilePath);
    bool setBadFilePath(const std::filesystem::path& badFilePath);
+   bool setMoveDirectoryDepth(const unsigned int moveDirectoryDepth);
+   bool setMoveTimestampDepth(const unsigned int moveTimestampDepth);
 
    bool readConfiguration(const std::filesystem::path& configurationFile);
 
@@ -76,6 +80,8 @@ class ImporterConfiguration
    ImportModeType        ImportMode;
    unsigned int          ImportMaxDepth;
    std::string           ImportPathFilter;
+   unsigned int          MoveDirectoryDepth;
+   unsigned int          MoveTimestampDepth;
    std::filesystem::path ImportFilePath;
    std::filesystem::path BadFilePath;
    std::filesystem::path GoodFilePath;

@@ -48,6 +48,7 @@ if [ ! -v VALGRIND_CMD ] ; then
    VALGRIND_CMD=""
 fi
 
+
 # ###### Run test ###########################################################
 if [ -e "${DATABASE_CONFIG}" ] ; then
 

@@ -82,8 +82,7 @@ class ReaderBase
                                    const unsigned int                worker,
                                    const unsigned int                limit = 1) = 0;
    virtual std::filesystem::path getDirectoryHierarchy(const std::filesystem::path& dataFile,
-                                                       const std::smatch            match,
-                                                       const unsigned int           levels) = 0;
+                                                       const std::smatch            match) = 0;
    virtual void printStatus(std::ostream& os = std::cout) = 0;
 
    virtual void beginParsing(DatabaseClientBase& databaseClient,
@@ -96,6 +95,9 @@ class ReaderBase
                               boost::iostreams::filtering_istream& dataStream) = 0;
 
    protected:
+   std::filesystem::path makeDirectoryHierarchy(const std::filesystem::path& dataFile,
+                                                const ReaderTimePoint&       timeStamp) const;
+
    const ImporterConfiguration& ImporterConfig;
    const unsigned int           Workers;
    const unsigned int           MaxTransactionSize;
@@ -108,6 +110,14 @@ class ReaderBase
    WorkerStatistics* Statistics;
    ReaderTimePoint   LastStatisticsUpdate;
 };
+
+
+// ###### Output operator ###################################################
+inline std::ostream& operator<<(std::ostream& os, ReaderBase& reader)
+{
+   reader.printStatus(os);
+   return os;
+}
 
 
 // ###### Reader type-specific base  class ##################################
@@ -129,8 +139,7 @@ class ReaderImplementation : public ReaderBase
                                    const unsigned int                worker,
                                    const unsigned int                limit = 1);
    virtual std::filesystem::path getDirectoryHierarchy(const std::filesystem::path& dataFile,
-                                                       const std::smatch            match,
-                                                       const unsigned int           levels);
+                                                       const std::smatch            match);
    virtual void printStatus(std::ostream& os = std::cout);
 
    protected:
@@ -260,32 +269,15 @@ unsigned int ReaderImplementation<ReaderInputFileEntry>::fetchFiles(
 template<typename ReaderInputFileEntry>
 std::filesystem::path ReaderImplementation<ReaderInputFileEntry>::getDirectoryHierarchy(
    const std::filesystem::path& dataFile,
-   const std::smatch            match,
-   const unsigned int           levels)
+   const std::smatch            match)
 {
-   if(levels > 1) {
+   if( (ImporterConfig.getMoveDirectoryDepth() > 0) ||
+       (ImporterConfig.getMoveTimestampDepth() > 0) ) {
       ReaderInputFileEntry inputFileEntry;
       const int workerID = makeInputFileEntry(dataFile, match, inputFileEntry, 1);
       if(workerID >= 0) {
          const ReaderTimePoint& timeStamp = inputFileEntry.TimeStamp;
-         const char* format;
-         switch(levels) {
-             default:  // 5:
-               format = "%Y/%m/%d/%H:00";
-             break;
-            case 4:
-               format = "%Y/%m/%d";
-             break;
-            case 3:
-               format = "%Y/%m";
-             break;
-            case 2:
-               format = "%Y";
-             break;
-         }
-         const std::filesystem::path hierarchy = timePointToString<ReaderTimePoint>(timeStamp, 0, format);
-         // std::cout << timePointToString<ReaderTimePoint>(timeStamp) << " -> " << hierarchy << "\n";
-         return hierarchy;
+         return makeDirectoryHierarchy(dataFile, timeStamp);
       }
    }
    return std::filesystem::path();
