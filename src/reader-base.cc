@@ -134,6 +134,6 @@ std::filesystem::path ReaderBase::makeDirectoryHierarchy(const std::filesystem::
       hierarchy = hierarchy / timePointToString<ReaderTimePoint>(timeStamp, 0, format);
    }
 
-   std::cout << dataFile << " -> " << hierarchy << "\n";
+   // std::cout << dataFile << " -> " << hierarchy << "\n";
    return hierarchy;
 }
