@@ -145,7 +145,7 @@ PGPASSWORD="<PASSWORD>" \
 
 See [TestDB](../TestDB) for example scripts to install, configure and prepare a test database, as well as to run a full import and query test run with this test database:
 - **[run-full-test](../TestDB/run-full-test)**
-- [0-make-users.conf](../TestDB/0-make-users.conf)
+- [0-make-configurations](../TestDB/0-make-configurations)
 - [1-install-database](../TestDB/1-install-database)
 - [2-initialise-database](../TestDB/2-initialise-database)
 - [3-test-database](../TestDB/3-test-database)

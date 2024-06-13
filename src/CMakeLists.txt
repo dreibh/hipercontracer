@@ -206,8 +206,10 @@ IF (WITH_IMPORTER)
    TARGET_LINK_LIBRARIES(hpct-importer libuniversalimporter-${libraryType} ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
    INSTALL(TARGETS hpct-importer RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
    INSTALL(FILES hpct-importer.1 DESTINATION ${CMAKE_INSTALL_MANDIR}/man1)
-   INSTALL(FILES hpct-importer.service DESTINATION /lib/systemd/system)
-   INSTALL(FILES hpct-importer.conf    DESTINATION /etc/hipercontracer)
+   IF (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+      INSTALL(FILES hpct-importer.service DESTINATION /lib/systemd/system)
+      INSTALL(FILES hpct-importer.conf    DESTINATION /etc/hipercontracer)
+   ENDIF()
 ENDIF()
 
 # ====== HiPerConTracer Query Tool ==========================================
@@ -246,8 +248,10 @@ IF (WITH_UDP_ECHO_SERVER)
            DESTINATION ${CMAKE_INSTALL_BINDIR})
    INSTALL(FILES udp-echo-server.1
            DESTINATION ${CMAKE_INSTALL_MANDIR}/man1)
-   INSTALL(FILES udp-echo-server.service DESTINATION /lib/systemd/system)
-   INSTALL(FILES udp-echo-server.conf    DESTINATION /etc/hipercontracer)
+   IF (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+      INSTALL(FILES udp-echo-server.service DESTINATION /lib/systemd/system)
+      INSTALL(FILES udp-echo-server.conf    DESTINATION /etc/hipercontracer)
+   ENDIF()
 ENDIF()
 
 # ====== Scripts ============================================================
