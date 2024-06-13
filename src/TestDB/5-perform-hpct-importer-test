@@ -42,7 +42,8 @@ fi
 
 IMPORTER_CONFIG="${HOME}/importer.conf"
 # Access to database as "importer" user:
-DATABASE_CONFIG="${HOME}/testdb-importer-$1.conf"
+DBMS="$1"
+DATABASE_CONFIG="${HOME}/testdb-importer-${DBMS}.conf"
 
 if [ ! -v VALGRIND_CMD ] ; then
    VALGRIND_CMD=""
