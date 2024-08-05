@@ -199,11 +199,33 @@ This tool triggers HiPerConTracer by incoming "Ping" packets.
 %{_mandir}/man1/hpct-trigger.1.gz
 
 
+%package hipercontracer-dbshell
+Summary: HiPerConTracer results data dbshell
+Group: Applications/Database
+Requires: %{name}-libuniversaldbshell = %{version}-%{release}
+Recommends: %{name} = %{version}-%{release}
+
+%description hipercontracer-dbshell
+High-Performance Connectivity Tracer (HiPerConTracer) is a
+Ping/Traceroute service. It performs regular Ping and Traceroute runs
+among sites. The results are written to data files, which can be
+imported into an SQL or NoSQL database.
+This package contains a simple script to start a database shell, based on the
+settings from a given database configuration file. It is mainly intended to
+test database access using the configuration files for HiPerConTracer Importer
+and HiPerConTracer Query Tool.
+
+%files hipercontracer-dbshell
+%{_bindir}/dbshell
+%{_mandir}/man1/dbshell.1.gz
+
+
 %package hipercontracer-importer
 Summary: HiPerConTracer results data importer
 Group: Applications/Database
 Requires: %{name}-libuniversalimporter = %{version}-%{release}
 Recommends: %{name} = %{version}-%{release}
+Recommends: %{name}-dbshell = %{version}-%{release}
 Recommends: pwgen
 
 %description hipercontracer-importer
@@ -258,6 +280,7 @@ HiPerConTracer into an SQL or NoSQL database.
 Summary: HiPerConTracer Query Tool to query results from a database
 Group: Applications/Database
 Recommends: %{name} = %{version}-%{release}
+Recommends: %{name}-dbshell = %{version}-%{release}
 Recommends: %{name}-results = %{version}-%{release}
 
 %description hipercontracer-query-tool
