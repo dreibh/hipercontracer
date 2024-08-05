@@ -38,14 +38,22 @@ if [ $# -ne 1 ] ; then
    echo >&2 "Usage: $0 configuration_file"
    exit 1
 fi
-if [ ! -e $1 ] ; then
-   echo >&2 "ERROR: Use configuration $1 does not exist!"
-fi
 CONFIGURATION_FILE="$1"
+if [ ! -e "${CONFIGURATION_FILE}" ] ; then
+   echo >&2 "ERROR: Use configuration ${CONFIGURATION_FILE} does not exist!"
+fi
 
 
 # ====== Read configuration file ============================================
-configContent=$(cat "${CONFIGURATION_FILE}" | sed -r '/[^=#]+=[^=]+/!d' | sed -r 's/\s+=\s/=/g')
+dbbackend=""
+dbserver=""
+dbport=""
+dbuser=""
+dbpassword=""
+database=""
+dbcafile=""
+dbcrlfile=""
+configContent=$(sed -r '/[^=#]+=[^=]+/!d' <"${CONFIGURATION_FILE}" | sed -r 's/\s+=\s/=/g')
 eval "${configContent}"
 
 
@@ -56,6 +64,7 @@ if [ "${dbbackend}" == "MariaDB" ] ; then
    if [ "${dbport}" == "0" ] ; then
       dbport="3306"
    fi
+   # shellcheck disable=SC2001
    command="mariadb --host=\"${dbserver}\" --port=${dbport} --protocol=tcp --user=\"${dbuser}\" --password=\"${dbpassword}\" --database=\"${database}\" --ssl-verify-server-cert --ssl-ca=\"${dbcafile}\" --ssl-crl=\"$(echo "${dbcrlfile}" | sed -e 's/^NONE$//g')\""
 
 elif [ "${dbbackend}" == "PostgreSQL" ] ; then
@@ -63,6 +72,7 @@ elif [ "${dbbackend}" == "PostgreSQL" ] ; then
    export PGPASSWORD="${dbpassword}"
    export PGSSLMODE="verify-full"
    export PGSSLROOTCERT="${dbcafile}"
+   # shellcheck disable=SC2001,SC2155
    export PGSSLCRL="$(echo "${dbcrlfile}" | sed -e 's/^NONE$//g')"
    if [ "${dbport}" == "0" ] ; then
       dbport="5432"
@@ -74,7 +84,7 @@ elif [ "${dbbackend}" == "MongoDB" ] ; then
    if [ "${dbport}" == "0" ] ; then
       dbport="27017"
    fi
-   command="mongosh \"mongodb://${dbserver}:${dbport}/${database}\" --username \"${dbuser}\" --password "${dbpassword}" --tls --tlsDisabledProtocols TLS1_0,TLS1_1,TLS1_2 --tlsCAFile \"${dbcafile}\""
+   command="mongosh \"mongodb://${dbserver}:${dbport}/${database}\" --username \"${dbuser}\" --password \"${dbpassword}\" --tls --tlsDisabledProtocols TLS1_0,TLS1_1,TLS1_2 --tlsCAFile \"${dbcafile}\""
    # FIXME: --tlsCRLFile \"${dbcrlfile}\" does not work!
 
 else
