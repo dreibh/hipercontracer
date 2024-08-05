@@ -127,3 +127,7 @@ for user in [ 'root', 'maintainer', 'importer', 'researcher', 'revoked' ] :
    users[user] = Certificate(mainDirectory, user + '@' + serverName, TestLeaf, subject, '', CRT_User,
                              keyLength = certKeyLength)
 users['revoked'].revoke()
+
+
+# ====== Finally, force regeneration of the CRL to ensure it is up-to-date ==
+TestLevel1.generateCRL()
