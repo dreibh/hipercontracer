@@ -38,10 +38,6 @@ SET(BUILD_MINOR "0")
 SET(BUILD_PATCH "0~beta4")
 SET(BUILD_VERSION ${BUILD_MAJOR}.${BUILD_MINOR}.${BUILD_PATCH})
 
-SET(CMAKE_CXX_STANDARD 17)
-SET(CMAKE_CXX_STANDARD_REQUIRED ON)
-SET(CMAKE_CXX_EXTENSIONS OFF)
-
 
 #############################################################################
 #### INSTALLATION_DIRECTORIES                                            ####
@@ -75,7 +71,7 @@ INCLUDE(CheckCCompilerFlag)
 #############################################################################
 
 IF(NOT TARGET uninstall)
-   configure_file(
+   CONFIGURE_FILE(
       "${CMAKE_CURRENT_SOURCE_DIR}/cmake_uninstall.cmake.in"
       "${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake"
       IMMEDIATE @ONLY)
@@ -157,13 +153,6 @@ OPTION(WITH_UDP_ECHO_SERVER "Build UDP Echo Server"               1)
 IF(CMAKE_SYSTEM_PROCESSOR STREQUAL "riscv64")
    STRING(APPEND CMAKE_C_STANDARD_LIBRARIES   " -latomic")
    STRING(APPEND CMAKE_CXX_STANDARD_LIBRARIES " -latomic")
-ENDIF()
-
-# ------ Check for "vla-cxx-extension" --------------------------
-CHECK_C_COMPILER_FLAG("-Wvla-cxx-extension -Werror" HAS_VLA_CXX_EXTENSION)
-IF (HAS_VLA_CXX_EXTENSION)
-   # Disable "vla-cxx-extension" warning:
-   SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-vla-cxx-extension")
 ENDIF()
 
 
