@@ -231,6 +231,12 @@ IF (WITH_RESULTS)
            DESTINATION ${CMAKE_INSTALL_MANDIR}/man1)
 ENDIF()
 
+# ====== HiPerConTracer Database Shell ======================================
+IF (WITH_DBSHELL)
+   INSTALL(FILES dbshell   DESTINATION ${CMAKE_INSTALL_BINDIR})
+   INSTALL(FILES dbshell.1 DESTINATION ${CMAKE_INSTALL_MANDIR}/man1)
+ENDIF()
+
 # ====== Pipe Checksum Tool =================================================
 IF (WITH_PIPE_CHECKSUM)
    ADD_EXECUTABLE(pipe-checksum pipe-checksum.cc)
