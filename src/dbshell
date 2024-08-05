@@ -71,7 +71,10 @@ elif [ "${dbbackend}" == "PostgreSQL" ] ; then
 
 elif [ "${dbbackend}" == "MongoDB" ] ; then
 
-   command="mongosh"
+   if [ "${dbport}" == "0" ] ; then
+      dbport="27017"
+   fi
+   command="mongosh \"mongodb://${dbserver}:${dbport}/${database}\" --username \"${dbuser}\" --password "${dbpassword}" --tls --tlsDisabledProtocols TLS1_0,TLS1_1,TLS1_2 --tlsCAFile \"${dbcafile}\" --tlsCRLFile \"${dbcrlfile}\""
 
 else
 
