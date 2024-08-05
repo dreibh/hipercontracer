@@ -65,13 +65,15 @@ MAINTAINER_PASSWORD=
 # shellcheck disable=SC1090
 . "$2"
 
+SERVER="$(hostname -f)"
+
 
 # ###### MySQL/MariaDB ######################################################
 if [ "$1" == "mysql" ] || [ "$1" == "mariadb" ] ; then
 
    echo -e "\x1b[34mRemoving all rows from MySQL/MariaDB database ...\x1b[0m"
    mysql \
-      --host=localhost \
+      --host="${SERVER}" \
       --port 3306 \
       --protocol=tcp \
       --ssl \
@@ -93,7 +95,7 @@ elif [ "$1" == "postgresql" ] ; then
    PGSSLROOTCERT="/etc/ssl/TestLevel1/certs/TestLevel1.crt" \
    PGSSLCRL="/etc/ssl/TestGlobal.crl" \
    psql \
-      --host=localhost \
+      --host="${SERVER}" \
       --port=5432 \
       --username=maintainer \
       --dbname="${DATABASE}" \
@@ -105,7 +107,7 @@ elif [ "$1" == "mongodb" ] ; then
 
    echo -e "\x1b[34mRemoving all rows from MongoDB database ...\x1b[0m"
    mongosh \
-      "mongodb://localhost:27017/${DATABASE}" \
+      "mongodb://${SERVER}:27017/${DATABASE}" \
       --tls \
       --tlsDisabledProtocols TLS1_0,TLS1_1,TLS1_2 \
       --tlsCAFile /etc/ssl/TestLevel1/certs/TestLevel1.crt \

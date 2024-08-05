@@ -58,6 +58,7 @@ if [ "${ROOT_PASSWORD}"       == "!root!"       ] || \
    echo >&2 "DO NOT USE THE EXAMPLE PASSWORDS!"
    exit 1
 fi
+SERVER="$(hostname -f)"
 
 
 # ###### MariaDB ############################################################
@@ -133,7 +134,7 @@ EOF
    fi
 
    # ====== Test configuration ==============================================
-   ./test-tls-connection localhost:3306 /etc/ssl/TestLevel1/certs/TestLevel1.crt -starttls mysql
+   ./test-tls-connection ${SERVER}:3306 /etc/ssl/TestLevel1/certs/TestLevel1.crt -starttls mysql
 
    # Install MySQL Workbench:
    # wget https://dev.mysql.com/get/Downloads/MySQLGUITools/mysql-workbench-community_8.0.31-1ubuntu22.10_amd64.deb
@@ -200,7 +201,7 @@ elif [ "$1" == "postgresql" ] ; then
    sudo service postgresql restart
 
    # ====== Test configuration ==============================================
-   ./test-tls-connection localhost:5432 /etc/ssl/TestLevel1/certs/TestLevel1.crt -starttls postgres
+   ./test-tls-connection ${SERVER}:5432 /etc/ssl/TestLevel1/certs/TestLevel1.crt -starttls postgres
 
 
 # ###### MongoDB ############################################################
@@ -305,7 +306,7 @@ EOF
    sleep 5
 
    # ====== Test configuration ==============================================
-   ./test-tls-connection localhost:27017 /etc/ssl/TestLevel1/certs/TestLevel1.crt
+   ./test-tls-connection ${SERVER}:27017 /etc/ssl/TestLevel1/certs/TestLevel1.crt
 
 
 # ###### Error ##############################################################

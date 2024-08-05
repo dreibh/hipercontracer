@@ -61,6 +61,7 @@ fi
 
 # ====== Write HiPerConTracer Importer configuration files ==================
 name="$(dirname "${CONFIG}")/importer.conf"
+server="$(hostname -f)"
 cat >"${name}" <<EOF
 # ====== Importer Configuration =============================================
 
@@ -119,7 +120,7 @@ for backend in MariaDB PostgreSQL MongoDB ; do
 
 # ****** Configuration with ${backend} server: ***************
 dbbackend         = ${backend}
-dbserver          = localhost
+dbserver          = ${server}
 dbport            = 0
 dbcafile          = /etc/ssl/TestLevel1/certs/TestLevel1.crt
 dbcrlfile         = /etc/ssl/TestGlobal.crl

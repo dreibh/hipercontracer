@@ -66,6 +66,7 @@ if [ "${ROOT_PASSWORD}"       == "!root!"       ] || \
    echo >&2 "DO NOT USE THE EXAMPLE PASSWORDS!"
    exit 1
 fi
+SERVER="$(hostname -f)"
 
 if [ "${OPTION}" != "--force-removal-without-confirmation" ] ; then
    echo -n "WARNING: THIS SCRIPT WILL ERASE THE EXISTING DATABASES. To proceed, type \"I am sure!\": "
@@ -89,7 +90,7 @@ if [ "$1" == "mysql" ] || [ "$1" == "mariadb" ] ; then
        <../SQL/mariadb-database.sql | \
       tee | \
       mysql \
-         --host=localhost \
+         --host="${SERVER}" \
          --port 3306 \
          --protocol=tcp \
          --ssl \
@@ -102,7 +103,7 @@ if [ "$1" == "mysql" ] || [ "$1" == "mariadb" ] ; then
    # ====== Create schema ===================================================
    echo -e "\x1b[33mCreating schema ...\x1b[0m"
    mysql \
-      --host=localhost \
+      --host="${SERVER}" \
       --port 3306 \
       --protocol=tcp \
       --ssl \
@@ -123,7 +124,7 @@ if [ "$1" == "mysql" ] || [ "$1" == "mariadb" ] ; then
        <../SQL/mariadb-users.sql | \
       tee | \
       mysql \
-      --host=localhost \
+      --host="${SERVER}" \
       --port 3306 \
       --protocol=tcp \
       --ssl \
@@ -175,7 +176,7 @@ elif [ "$1" == "mongodb" ] ; then
        <../NoSQL/mongodb-database.ms | \
       tee | \
       mongosh \
-         "mongodb://localhost:27017" \
+         "mongodb://${SERVER}:27017" \
          --tls \
          --tlsDisabledProtocols TLS1_0,TLS1_1,TLS1_2 \
          --tlsCAFile /etc/ssl/TestLevel1/certs/TestLevel1.crt \
@@ -190,7 +191,7 @@ elif [ "$1" == "mongodb" ] ; then
        <../NoSQL/mongodb-schema.ms | \
       tee | \
       mongosh \
-         "mongodb://localhost:27017" \
+         "mongodb://${SERVER}:27017" \
          --tls \
          --tlsDisabledProtocols TLS1_0,TLS1_1,TLS1_2 \
          --tlsCAFile /etc/ssl/TestLevel1/certs/TestLevel1.crt \
@@ -206,7 +207,7 @@ elif [ "$1" == "mongodb" ] ; then
        <../NoSQL/mongodb-users.ms | \
       tee | \
       mongosh \
-         "mongodb://localhost:27017" \
+         "mongodb://${SERVER}:27017" \
          --tls \
          --tlsDisabledProtocols TLS1_0,TLS1_1,TLS1_2 \
          --tlsCAFile /etc/ssl/TestLevel1/certs/TestLevel1.crt \
