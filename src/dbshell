@@ -43,9 +43,11 @@ if [ ! -e $1 ] ; then
 fi
 CONFIGURATION_FILE="$1"
 
+
 # ====== Read configuration file ============================================
 configContent=$(cat "${CONFIGURATION_FILE}" | sed -r '/[^=#]+=[^=]+/!d' | sed -r 's/\s+=\s/=/g')
 eval "${configContent}"
+
 
 # ====== Build command line =================================================
 command=""
@@ -54,14 +56,14 @@ if [ "${dbbackend}" == "MariaDB" ] ; then
    if [ "${dbport}" == "0" ] ; then
       dbport="3306"
    fi
-   command="mariadb --host=\"${dbserver}\" --port=${dbport} --protocol=tcp --user=\"${dbuser}\" --database=\"${database}\" --ssl-verify-server-cert --ssl-ca=\"${dbcafile}\" --ssl-crl=\"$(echo "${dbcrlfile}" | sed -e 's/^NONE$//g')\""
+   command="mariadb --host=\"${dbserver}\" --port=${dbport} --protocol=tcp --user=\"${dbuser}\" --password=\"${dbpassword}\" --database=\"${database}\" --ssl-verify-server-cert --ssl-ca=\"${dbcafile}\" --ssl-crl=\"$(echo "${dbcrlfile}" | sed -e 's/^NONE$//g')\""
 
 elif [ "${dbbackend}" == "PostgreSQL" ] ; then
 
-   PGPASSWORD="${dbpassword}"
-   PGSSLMODE="verify-full"
-   PGSSLROOTCERT="${dbcafile}"
-   PGSSLCRL="$(echo "${dbcrlfile}" | sed -e 's/^NONE$//g')"
+   export PGPASSWORD="${dbpassword}"
+   export PGSSLMODE="verify-full"
+   export PGSSLROOTCERT="${dbcafile}"
+   export PGSSLCRL="$(echo "${dbcrlfile}" | sed -e 's/^NONE$//g')"
    if [ "${dbport}" == "0" ] ; then
       dbport="5432"
    fi
@@ -74,6 +76,7 @@ elif [ "${dbbackend}" == "MongoDB" ] ; then
 else
 
    echo >&2 "ERROR: Invalid dbbackend setting \"${dbbackend}!\""
+   exit 1
 
 fi
 
