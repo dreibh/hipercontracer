@@ -54,14 +54,14 @@ if [ "${dbbackend}" == "MariaDB" ] ; then
    if [ "${dbport}" == "0" ] ; then
       dbport="3306"
    fi
-   command="mariadb --host=\"${dbserver}\" --port=${dbport} --protocol=tcp --user=\"${dbuser}\" --database=\"${database}\" --ssl-verify-server-cert --ssl-ca=\"${dbcafile}\" --ssl-crl=\"${dbcrlfile}\""
+   command="mariadb --host=\"${dbserver}\" --port=${dbport} --protocol=tcp --user=\"${dbuser}\" --database=\"${database}\" --ssl-verify-server-cert --ssl-ca=\"${dbcafile}\" --ssl-crl=\"$(echo "${dbcrlfile}" | sed -e 's/^NONE$//g')\""
 
 elif [ "${dbbackend}" == "PostgreSQL" ] ; then
 
    PGPASSWORD="${dbpassword}"
    PGSSLMODE="verify-full"
    PGSSLROOTCERT="${dbcafile}"
-   PGSSLCRL="${dbcrlfile//NONE/}"
+   PGSSLCRL="$(echo "${dbcrlfile}" | sed -e 's/^NONE$//g')"
    if [ "${dbport}" == "0" ] ; then
       dbport="5432"
    fi
