@@ -1,0 +1,82 @@
+#!/usr/bin/env bash
+#  =================================================================
+#           #     #                 #     #
+#           ##    #   ####   #####  ##    #  ######   #####
+#           # #   #  #    #  #    # # #   #  #          #
+#           #  #  #  #    #  #    # #  #  #  #####      #
+#           #   # #  #    #  #####  #   # #  #          #
+#           #    ##  #    #  #   #  #    ##  #          #
+#           #     #   ####   #    # #     #  ######     #
+#
+#        ---   The NorNet Testbed for Multi-Homed Systems  ---
+#                        https://www.nntb.no
+#  =================================================================
+#
+#  High-Performance Connectivity Tracer (HiPerConTracer)
+#  Copyright (C) 2015-2024 by Thomas Dreibholz
+#
+#  This program is free software: you can redistribute it and/or modify
+#  it under the terms of the GNU General Public License as published by
+#  the Free Software Foundation, either version 3 of the License, or
+#  (at your option) any later version.
+#
+#  This program is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
+#
+#  You should have received a copy of the GNU General Public License
+#  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+#  Contact: dreibh@simula.no
+
+# Bash options:
+set -e
+
+
+if [ $# -ne 1 ] ; then
+   echo >&2 "Usage: $0 configuration_file"
+   exit 1
+fi
+if [ ! -e $1 ] ; then
+   echo >&2 "ERROR: Use configuration $1 does not exist!"
+fi
+CONFIGURATION_FILE="$1"
+
+# ====== Read configuration file ============================================
+configContent=$(cat "${CONFIGURATION_FILE}" | sed -r '/[^=#]+=[^=]+/!d' | sed -r 's/\s+=\s/=/g')
+eval "${configContent}"
+
+# ====== Build command line =================================================
+command=""
+if [ "${dbbackend}" == "MariaDB" ] ; then
+
+   if [ "${dbport}" == "0" ] ; then
+      dbport="3306"
+   fi
+   command="mariadb --host=\"${dbserver}\" --port=${dbport} --protocol=tcp --user=\"${dbuser}\" --database=\"${database}\" --ssl-verify-server-cert --ssl-ca=\"${dbcafile}\" --ssl-crl=\"${dbcrlfile}\""
+
+elif [ "${dbbackend}" == "PostgreSQL" ] ; then
+
+   PGPASSWORD="${dbpassword}"
+   PGSSLMODE="verify-full"
+   PGSSLROOTCERT="${dbcafile}"
+   PGSSLCRL="${dbcrlfile//NONE/}"
+   if [ "${dbport}" == "0" ] ; then
+      dbport="5432"
+   fi
+   command="psql --host=\"${dbserver}\" --port=${dbport} --username=\"${dbuser}\" --dbname=\"${database}\""
+
+elif [ "${dbbackend}" == "MongoDB" ] ; then
+
+   command="mongosh"
+
+else
+
+   echo >&2 "ERROR: Invalid dbbackend setting \"${dbbackend}!\""
+
+fi
+
+echo -e "\x1b[34mConnecting to database ...\x1b[0m"
+echo -e "\x1b[37m${command}\x1b[0m"
+sh -c "${command}"
