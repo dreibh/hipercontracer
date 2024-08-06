@@ -66,7 +66,7 @@ if [ "$1" == "mariadb" ] ; then
    # Documentation: https://www.digitalocean.com/community/tutorials/how-to-install-mariadb-on-ubuntu-22-04
 
    # ====== Install MariaDB =================================================
-   echo "Installing MariaDB ..."
+   echo -e "\x1b[34m$(date +"%F %H:%M:%S"): Installing MariaDB ...\x1b[0m"
 
    if [ -x /usr/bin/apt ] ; then
       sudo DEBIAN_FRONTEND=noninteractive apt install -y -o APT::Keep-Downloaded-Packages=true mariadb-server mariadb-backup mariadb-client libmariadb-dev openssl
@@ -146,7 +146,7 @@ elif [ "$1" == "postgresql" ] ; then
    # Documentation: https://www.digitalocean.com/community/tutorials/how-to-install-postgresql-on-ubuntu-22-04-quickstart
 
    # ====== Install PostgreSQL ==============================================
-   echo "Installing PostgreSQL ..."
+   echo -e "\x1b[34m$(date +"%F %H:%M:%S"): Installing PostgreSQL ...\x1b[0m"
 
    if [ -x /usr/bin/apt ] ; then
       sudo DEBIAN_FRONTEND=noninteractive apt install -y -o APT::Keep-Downloaded-Packages=true openssl postgresql-all postgresql-contrib
@@ -209,7 +209,7 @@ elif [ "$1" == "mongodb" ] ; then
    # Documentation: https://www.mongodb.com/docs/manual/tutorial/install-mongodb-on-ubuntu/
 
    # ====== Install MongoDB =================================================
-   echo "Installing MongoDB ..."
+   echo -e "\x1b[34m$(date +"%F %H:%M:%S"): Installing MongoDB ...\x1b[0m"
 
    if [ -x /usr/bin/apt ] ; then
       wget -qO - https://www.mongodb.org/static/pgp/server-7.0.asc | gpg --dearmor | sudo tee /usr/share/keyrings/mongodb.gpg >/dev/null
