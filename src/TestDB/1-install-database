@@ -136,10 +136,6 @@ EOF
    # ====== Test configuration ==============================================
    ./test-tls-connection "${SERVER}:3306" /etc/ssl/TestLevel1/certs/TestLevel1.crt -starttls mysql
 
-   # Install MySQL Workbench:
-   # wget https://dev.mysql.com/get/Downloads/MySQLGUITools/mysql-workbench-community_8.0.31-1ubuntu22.10_amd64.deb
-   # sudo DEBIAN_FRONTEND=noninteractive apt install ./mysql-workbench-community_8.0.31-1ubuntu22.10_amd64.deb
-
 
 # ###### PostgreSQL #########################################################
 elif [ "$1" == "postgresql" ] ; then
@@ -211,10 +207,14 @@ elif [ "$1" == "mongodb" ] ; then
    # ====== Install MongoDB =================================================
    echo -e "\x1b[34m$(date +"%F %H:%M:%S"): Installing MongoDB ...\x1b[0m"
 
+   MONGODB_VERSION="development"
+   MONGODB_KEY="dev"
+
    if [ -x /usr/bin/apt ] ; then
-      wget -qO - https://www.mongodb.org/static/pgp/server-7.0.asc | gpg --dearmor | sudo tee /usr/share/keyrings/mongodb.gpg >/dev/null
+      CODENAME="$(lsb_release -cs | tail -n1)"
+      wget -qO - https://www.mongodb.org/static/pgp/server-${MONGODB_KEY}.asc | gpg --dearmor | sudo tee /usr/share/keyrings/mongodb.gpg >/dev/null
       if [ ! -e /etc/apt/sources.list.d/mongodb-org.list ] ; then
-         echo "deb [ signed-by=/usr/share/keyrings/mongodb.gpg arch=amd64,arm64 ] https://repo.mongodb.org/apt/ubuntu jammy/mongodb-org/7.0 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org.list
+         echo "deb [ signed-by=/usr/share/keyrings/mongodb.gpg arch=amd64,arm64 ] https://repo.mongodb.org/apt/ubuntu ${CODENAME}/mongodb-org/${MONGODB_VERSION} multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org.list
       fi
       sudo apt update -qq
       sudo DEBIAN_FRONTEND=noninteractive apt install -y -o APT::Keep-Downloaded-Packages=true mongodb-org openssl
@@ -223,10 +223,10 @@ elif [ "$1" == "mongodb" ] ; then
          cat <<EOF
 [mongodb-org]
 name=MongoDB Repository
-baseurl=https://repo.mongodb.org/yum/redhat/9/mongodb-org/7.0/x86_64/
+baseurl=https://repo.mongodb.org/yum/redhat/9/mongodb-org/${MONGODB_VERSION}/x86_64/
 gpgcheck=1
 enabled=1
-gpgkey=https://www.mongodb.org/static/pgp/server-7.0.asc
+gpgkey=https://www.mongodb.org/static/pgp/server-${MONGODB_KEY}.asc
 EOF
       ) | sudo tee /etc/yum.repos.d/mongodb-org.repo
       sudo dnf install -y mongodb-org openssl
