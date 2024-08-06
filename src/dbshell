@@ -76,12 +76,12 @@ parameters=""
 if [ "${dbbackend}" == "MariaDB" ] || [ "${dbbackend}" == "MySQL" ] ; then
 
    if [ "${dbbackend}" == "MariaDB" ] ; then
-      command="$(which mariadb)"
+      command="$(which mariadb || true)"
       if [ "${command}" == "" ] ; then
          command="mariadb"
       fi
    else
-      command="$(which mysql)"
+      command="$(which mysql || true)"
       if [ "${command}" == "" ] ; then
          command="mysql"
       fi
@@ -100,7 +100,7 @@ if [ "${dbbackend}" == "MariaDB" ] || [ "${dbbackend}" == "MySQL" ] ; then
 
 elif [ "${dbbackend}" == "PostgreSQL" ] ; then
 
-   command="$(which psql)"
+   command="$(which psql || true)"
    if [ "${command}" == "" ] ; then
       command="psql"
    fi
@@ -119,9 +119,9 @@ elif [ "${dbbackend}" == "PostgreSQL" ] ; then
 
 elif [ "${dbbackend}" == "MongoDB" ] ; then
 
-   command="$(which mongosh)"
+   command="$(which mongosh || true)"
    if [ "${command}" == "" ] ; then
-      command="$(which mongo)"
+      command="$(which mongo || true)"
       if [ "${command}" == "" ] ; then
          command="mongosh"
       else
