@@ -14,7 +14,8 @@ fi
 
 echo -e "\x1b[34mCopying database access configuration from test server ...\x1b[0m"
 
-scp ${USER}@${SERVER}:testdb-* ${HOME}/ && \
+scp ${USER}@${SERVER}:importer.conf ${HOME}/ && \
+scp ${USER}@${SERVER}:testdb-*.conf ${HOME}/ && \
 scp ${USER}@${SERVER}:/etc/ssl/TestLevel1/certs/TestLevel1.crt ${HOME}/ && \
 scp ${USER}@${SERVER}:/etc/ssl/TestGlobal.crl ${HOME}/
 sed -e "s/^\(dbserver[ \t]*\)=.*\$/\1= ${SERVER}/g" \
