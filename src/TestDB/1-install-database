@@ -209,15 +209,24 @@ elif [ "$1" == "mongodb" ] ; then
 
    MONGODB_VERSION="development"
    MONGODB_KEY="dev"
+   # MONGODB_VERSION="8.0"
+   # MONGODB_KEY="${MONGODB_VERSION}"
 
    if [ -x /usr/bin/apt ] ; then
       CODENAME="$(lsb_release -cs | tail -n1)"
-      wget -qO - https://www.mongodb.org/static/pgp/server-${MONGODB_KEY}.asc | gpg --dearmor | sudo tee /usr/share/keyrings/mongodb.gpg >/dev/null
+      for key in 8.0 ${MONGODB_KEY} ; do
+         wget -qO - https://www.mongodb.org/static/pgp/server-${key}.asc | gpg --dearmor | sudo tee /usr/share/keyrings/mongodb-${key}.gpg >/dev/null
+      done
       if [ ! -e /etc/apt/sources.list.d/mongodb-org.list ] ; then
-         echo "deb [ signed-by=/usr/share/keyrings/mongodb.gpg arch=amd64,arm64 ] https://repo.mongodb.org/apt/ubuntu ${CODENAME}/mongodb-org/${MONGODB_VERSION} multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org.list
+         (
+cat <<EOF
+deb [ signed-by=/usr/share/keyrings/mongodb-8.0.gpg ] https://repo.mongodb.org/apt/ubuntu ${CODENAME}/mongodb-org/8.0 multiverse
+deb [ signed-by=/usr/share/keyrings/mongodb-${MONGODB_KEY}.gpg ] https://repo.mongodb.org/apt/ubuntu ${CODENAME}/mongodb-org/${MONGODB_VERSION} multiverse
+EOF
+         ) | sudo tee /etc/apt/sources.list.d/mongodb-org.list >/dev/null
       fi
       sudo apt update -qq
-      sudo DEBIAN_FRONTEND=noninteractive apt install -y -o APT::Keep-Downloaded-Packages=true mongodb-org openssl
+      sudo DEBIAN_FRONTEND=noninteractive apt install -y -o APT::Keep-Downloaded-Packages=true mongodb-org mongodb-mongosh openssl
    elif [ -x /usr/bin/dnf ] ; then
       (
          cat <<EOF
