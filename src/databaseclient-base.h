@@ -76,6 +76,7 @@ class DatabaseClientBase
    }
 
    virtual bool fetchNextTuple() = 0;
+   virtual bool hasColumn(const char* column) const;
    virtual int32_t getInteger(unsigned int column) const;
    virtual int32_t getInteger(const char* column) const;
    virtual int64_t getBigInt(unsigned int column) const;

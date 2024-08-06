@@ -55,6 +55,7 @@ class MongoDBClient : public DatabaseClientBase
    virtual void endTransaction(const bool commit);
 
    virtual bool fetchNextTuple();
+   virtual bool hasColumn(const char* column) const;
    virtual int32_t getInteger(const char* column) const;
    virtual int64_t getBigInt(const char* column) const;
    virtual std::string getString(const char* column) const;

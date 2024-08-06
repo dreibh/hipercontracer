@@ -87,6 +87,13 @@ Statement& DatabaseClientBase::getStatement(const std::string& name,
 }
 
 
+// ###### Check whether column exists #######################################
+bool DatabaseClientBase::hasColumn(const char* column) const
+{
+   abort();   // To be implemented by subclass!
+}
+
+
 // ###### Get integer value #################################################
 int32_t DatabaseClientBase::getInteger(unsigned int column) const
 {
