@@ -152,6 +152,36 @@ PARTITION BY RANGE ( Timestamp ) (
 CREATE INDEX TracerouteRelationIndex ON Traceroute (MeasurementID ASC, DestinationIP ASC, Timestamp ASC);
 
 
+-- ###### Traceroute version 1 view #########################################
+-- NOTE: This view is only for backwards compatibility, trying to provide the
+--       same structure as old HiPerConTracer version 1 databases!
+--       RTT uses the most accurate value available, i.e. HW -> SW -> App!
+DROP VIEW IF EXISTS Traceroute_v1;
+CREATE VIEW Traceroute_v1 AS
+   SELECT
+      CAST(FROM_UNIXTIME(Timestamp / 1000000000) AS DATETIME(6)) AS TimeStamp,
+      SourceIP                                                   AS FromIP,
+      DestinationIP                                              AS ToIP,
+      PacketSize                                                 AS PktSize,
+      TrafficClass                                               AS TC,
+      HopNumber,
+      TotalHops,
+      Status,
+      IF(RTT_HW > 0, RTT_HW / 1000,
+         IF(RTT_SW > 0, RTT_SW / 1000,
+            RTT_App / 1000))                                     AS RTT,
+      HopIP,
+      PathHash,
+      RoundNumber                                                AS Round
+   FROM Traceroute;
+
+
+-- ###### Traceroute version 2 view #########################################
+DROP VIEW IF EXISTS Traceroute_v2;
+CREATE VIEW Traceroute_v2 AS
+   SELECT * FROM Traceroute;
+
+
 -- ###### Jitter ############################################################
 DROP TABLE IF EXISTS Jitter;
 CREATE TABLE Jitter (
@@ -206,3 +236,10 @@ PARTITION BY RANGE ( Timestamp ) (
 );
 
 CREATE INDEX JitterRelationIndex ON Jitter (MeasurementID ASC, DestinationIP ASC, Timestamp ASC);
+
+
+-- ###### Jitter version 2 view #############################################
+-- NOTE: There is no Jitter version 1!
+DROP VIEW IF EXISTS Jitter_v2;
+CREATE VIEW Jitter_v2 AS
+   SELECT * FROM Jitter;
