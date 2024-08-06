@@ -69,33 +69,45 @@ configContent=$(sed -r '/[^=#]+=[^=]+/!d' <"${CONFIGURATION_FILE}" | sed -r 's/\
 eval "${configContent}"
 
 
-# ====== Build the command line =============================================
+# ====== Build the parameters line =============================================
+oldCommand=0
 command=""
+parameters=""
 if [ "${dbbackend}" == "MariaDB" ] || [ "${dbbackend}" == "MySQL" ] ; then
 
    if [ "${dbbackend}" == "MariaDB" ] ; then
-      command="mariadb"
+      command="$(which mariadb)"
+      if [ "${command}" == "" ] ; then
+         command="mariadb"
+      fi
    else
-      command="mysql"
+      command="$(which mysql)"
+      if [ "${command}" == "" ] ; then
+         command="mysql"
+      fi
    fi
    if [ "${dbport}" == "0" ] ; then
       dbport="3306"
    fi
    export MYSQL_PWD="${dbpassword}"
-   command="${command} --host=\"${dbserver}\" --port=${dbport} --protocol=tcp --user=\"${dbuser}\" --database=\"${database}\""
+   parameters="${parameters} --host=\"${dbserver}\" --port=${dbport} --protocol=tcp --user=\"${dbuser}\" --database=\"${database}\""
    if [ "${dbcafile}" != "NONE" ] ; then
-      command="${command} --ssl-verify-server-cert --ssl-ca=\"${dbcafile}\" --ssl-crl=\"${dbcafile}\""
+      parameters="${parameters} --ssl-verify-server-cert --ssl-ca=\"${dbcafile}\" --ssl-crl=\"${dbcafile}\""
       if [ "${dbcrlfile}" != "NONE" ] ; then
-         command="${command} --ssl-crl \"${dbcrlfile}\""
+         parameters="${parameters} --ssl-crl \"${dbcrlfile}\""
       fi
    fi
 
 elif [ "${dbbackend}" == "PostgreSQL" ] ; then
 
+   command="$(which psql)"
+   if [ "${command}" == "" ] ; then
+      command="psql"
+   fi
    if [ "${dbport}" == "0" ] ; then
       dbport="5432"
    fi
-   command="psql --host=\"${dbserver}\" --port=${dbport} --username=\"${dbuser}\" --dbname=\"${database}\""
+   parameters="--host=\"${dbserver}\" --port=${dbport} --username=\"${dbuser}\" --dbname=\"${database}\""
    export PGPASSWORD="${dbpassword}"
    if [ "${dbcafile}" != "NONE" ] ; then
       export PGSSLMODE="verify-full"
@@ -107,16 +119,32 @@ elif [ "${dbbackend}" == "PostgreSQL" ] ; then
 
 elif [ "${dbbackend}" == "MongoDB" ] ; then
 
+   command="$(which mongosh)"
+   if [ "${command}" == "" ] ; then
+      command="$(which mongo)"
+      if [ "${command}" == "" ] ; then
+         command="mongosh"
+      else
+         oldCommand=1
+      fi
+   fi
    if [ "${dbport}" == "0" ] ; then
       dbport="27017"
    fi
-   command="mongosh \"mongodb://${dbserver}:${dbport}/${database}\" --username \"${dbuser}\" --password \"${dbpassword}\""
+   parameters="\"mongodb://${dbserver}:${dbport}/${database}\" --username \"${dbuser}\" --password \"${dbpassword}\""
    if [ "${dbcafile}" != "NONE" ] ; then
-      command="${command} --tls --tlsDisabledProtocols TLS1_0,TLS1_1,TLS1_2 --tlsCAFile \"${dbcafile}\""
-      if [ "${dbcrlfile}" != "NONE" ] ; then
-         # FIXME: --tlsCRLFile \"${dbcrlfile}\" does not work!
-         # command="${command} --tlsCRLFile \"${dbcrlfile}\""
-         true
+      if [ ${oldCommand} -eq 0 ] ; then
+         parameters="${parameters} --tls --tlsDisabledProtocols TLS1_0,TLS1_1,TLS1_2 --tlsCAFile \"${dbcafile}\""
+         if [ "${dbcrlfile}" != "NONE" ] ; then
+            # FIXME: --tlsCRLFile \"${dbcrlfile}\" does not work!
+            # parameters="${parameters} --tlsCRLFile \"${dbcrlfile}\""
+            true
+         fi
+      else
+         parameters="${parameters} --ssl --sslDisabledProtocols TLS1_0,TLS1_1,TLS1_2 --sslCAFile \"${dbcafile}\""
+         if [ "${dbcrlfile}" != "NONE" ] ; then
+            parameters="${parameters} --sslCRLFile \"${dbcrlfile}\""
+         fi
       fi
    fi
 
@@ -128,7 +156,7 @@ else
 fi
 
 
-# ====== Run the command line ===============================================
+# ====== Run the parameters line ===============================================
 if [ ${DRY_RUN} -eq 0 ] ; then
    echo -e "\x1b[34mConnecting to database ...\x1b[0m"
    echo -en "\x1b[37m"
@@ -137,9 +165,9 @@ fi
 if [ "${dbbackend}" == "MariaDB" ] || [ "${dbbackend}" == "MySQL" ] || [ "${dbbackend}" == "PostgreSQL" ] ; then
    export | grep "MYSQL_PWD=\|PGPASSWORD=\|PGSSL[A-Z]*=" | sort || true
 fi
-echo "${command}"
+echo "${command} ${parameters}"
 
 if [ ${DRY_RUN} -eq 0 ] ; then
    echo -en "\x1b[0m"
-   sh -c "${command}"
+   sh -c "${command} ${parameters}"
 fi
