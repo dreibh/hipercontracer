@@ -52,6 +52,9 @@ fi
 
 # ###### Run test ###########################################################
 if [ -e "${DATABASE_CONFIG}" ] ; then
+
+   echo -e "\x1b[34m$(date +"%F %H:%M:%S"): Running importer ...\x1b[0m"
+
    cd ..
    if [ ! -e Makefile ] ; then
       cd ..

@@ -52,7 +52,7 @@ fi
 
 # ###### MariaDB ############################################################
 if [ "$1" == "mariadb" ] ; then
-   echo "Uninstalling MariaDB ..."
+   echo -e "\x1b[34m$(date +"%F %H:%M:%S"): Uninstalling MariaDB ...\x1b[0m"
 
    if [ -x /usr/bin/apt ] ; then
       sudo DEBIAN_FRONTEND=noninteractive apt purge -y mariadb-client mariadb-server mariadb-backup
@@ -69,7 +69,7 @@ if [ "$1" == "mariadb" ] ; then
 
 # ###### PostgreSQL #########################################################
 elif [ "$1" == "postgresql" ] ; then
-   echo "Uninstalling PostgreSQL ..."
+   echo -e "\x1b[34m$(date +"%F %H:%M:%S"): Uninstalling PostgreSQL ...\x1b[0m"
 
    if [ -x /usr/bin/apt ] ; then
       sudo DEBIAN_FRONTEND=noninteractive apt purge -y 'postgresql-*'
@@ -85,7 +85,7 @@ elif [ "$1" == "postgresql" ] ; then
 
 # ###### MongoDB ############################################################
 elif [ "$1" == "mongodb" ] ; then
-   echo "Uninstalling MongoDB ..."
+   echo -e "\x1b[34m$(date +"%F %H:%M:%S"): Uninstalling MongoDB ...\x1b[0m"
 
    if [ -x /usr/bin/apt ] ; then
       sudo DEBIAN_FRONTEND=noninteractive apt purge -y 'mongodb-*'

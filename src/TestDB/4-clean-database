@@ -71,7 +71,7 @@ SERVER="$(hostname -f)"
 # ###### MySQL/MariaDB ######################################################
 if [ "$1" == "mysql" ] || [ "$1" == "mariadb" ] ; then
 
-   echo -e "\x1b[34mRemoving all rows from MySQL/MariaDB database ...\x1b[0m"
+   echo -e "\x1b[34m$(date +"%F %H:%M:%S"): Removing all rows from MySQL/MariaDB database ...\x1b[0m"
    mysql \
       --host="${SERVER}" \
       --port 3306 \
@@ -89,7 +89,7 @@ if [ "$1" == "mysql" ] || [ "$1" == "mariadb" ] ; then
 # ###### PostgreSQL #########################################################
 elif [ "$1" == "postgresql" ] ; then
 
-   echo -e "\x1b[34mRemoving all rows from PostgreSQL database ...\x1b[0m"
+   echo -e "\x1b[34m$(date +"%F %H:%M:%S"): Removing all rows from PostgreSQL database ...\x1b[0m"
    PGPASSWORD="${MAINTAINER_PASSWORD}" \
    PGSSLMODE="verify-full" \
    PGSSLROOTCERT="/etc/ssl/TestLevel1/certs/TestLevel1.crt" \
@@ -105,7 +105,7 @@ elif [ "$1" == "postgresql" ] ; then
 # ###### MongoDB ############################################################
 elif [ "$1" == "mongodb" ] ; then
 
-   echo -e "\x1b[34mRemoving all rows from MongoDB database ...\x1b[0m"
+   echo -e "\x1b[34m$(date +"%F %H:%M:%S"): Removing all rows from MongoDB database ...\x1b[0m"
    mongosh \
       "mongodb://${SERVER}:27017/${DATABASE}" \
       --tls \
