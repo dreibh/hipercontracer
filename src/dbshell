@@ -34,14 +34,26 @@
 set -e
 
 
-if [ $# -ne 1 ] ; then
-   echo >&2 "Usage: $0 configuration_file"
+# ====== Handle arguments ===================================================
+if [ $# -lt 1 ] ; then
+   echo >&2 "Usage: $0 configuration_file [-d|--dry-run]"
    exit 1
 fi
 CONFIGURATION_FILE="$1"
+shift
 if [ ! -e "${CONFIGURATION_FILE}" ] ; then
    echo >&2 "ERROR: Use configuration ${CONFIGURATION_FILE} does not exist!"
 fi
+DRY_RUN=0
+while [ $# -gt 0 ] ; do
+   if [ "$1" == "-d" ] || [ "$1" == "--dry-run" ] ; then
+      DRY_RUN=1
+   else
+      echo >&2 "ERROR: Invalid argument $1!"
+      exit 1
+   fi
+   shift
+done
 
 
 # ====== Read configuration file ============================================
@@ -57,35 +69,56 @@ configContent=$(sed -r '/[^=#]+=[^=]+/!d' <"${CONFIGURATION_FILE}" | sed -r 's/\
 eval "${configContent}"
 
 
-# ====== Build command line =================================================
+# ====== Build the command line =============================================
 command=""
-if [ "${dbbackend}" == "MariaDB" ] ; then
+if [ "${dbbackend}" == "MariaDB" ] || [ "${dbbackend}" == "MySQL" ] ; then
 
+   if [ "${dbbackend}" == "MariaDB" ] ; then
+      command="mariadb"
+   else
+      command="mysql"
+   fi
    if [ "${dbport}" == "0" ] ; then
       dbport="3306"
    fi
-   # shellcheck disable=SC2001
-   command="mariadb --host=\"${dbserver}\" --port=${dbport} --protocol=tcp --user=\"${dbuser}\" --password=\"${dbpassword}\" --database=\"${database}\" --ssl-verify-server-cert --ssl-ca=\"${dbcafile}\" --ssl-crl=\"$(echo "${dbcrlfile}" | sed -e 's/^NONE$//g')\""
+   export MYSQL_PWD="${dbpassword}"
+   command="${command} --host=\"${dbserver}\" --port=${dbport} --protocol=tcp --user=\"${dbuser}\" --database=\"${database}\""
+   if [ "${dbcafile}" != "NONE" ] ; then
+      command="${command} --ssl-verify-server-cert --ssl-ca=\"${dbcafile}\" --ssl-crl=\"${dbcafile}\""
+      if [ "${dbcrlfile}" != "NONE" ] ; then
+         command="${command} --ssl-crl \"${dbcrlfile}\""
+      fi
+   fi
 
 elif [ "${dbbackend}" == "PostgreSQL" ] ; then
 
-   export PGPASSWORD="${dbpassword}"
-   export PGSSLMODE="verify-full"
-   export PGSSLROOTCERT="${dbcafile}"
-   # shellcheck disable=SC2001,SC2155
-   export PGSSLCRL="$(echo "${dbcrlfile}" | sed -e 's/^NONE$//g')"
    if [ "${dbport}" == "0" ] ; then
       dbport="5432"
    fi
    command="psql --host=\"${dbserver}\" --port=${dbport} --username=\"${dbuser}\" --dbname=\"${database}\""
+   export PGPASSWORD="${dbpassword}"
+   if [ "${dbcafile}" != "NONE" ] ; then
+      export PGSSLMODE="verify-full"
+      export PGSSLROOTCERT="${dbcafile}"
+      if [ "${dbcrlfile}" != "NONE" ] ; then
+         export PGSSLCRL="${dbcrlfile}"
+      fi
+   fi
 
 elif [ "${dbbackend}" == "MongoDB" ] ; then
 
    if [ "${dbport}" == "0" ] ; then
       dbport="27017"
    fi
-   command="mongosh \"mongodb://${dbserver}:${dbport}/${database}\" --username \"${dbuser}\" --password \"${dbpassword}\" --tls --tlsDisabledProtocols TLS1_0,TLS1_1,TLS1_2 --tlsCAFile \"${dbcafile}\""
-   # FIXME: --tlsCRLFile \"${dbcrlfile}\" does not work!
+   command="mongosh \"mongodb://${dbserver}:${dbport}/${database}\" --username \"${dbuser}\" --password \"${dbpassword}\""
+   if [ "${dbcafile}" != "NONE" ] ; then
+      command="${command} --tls --tlsDisabledProtocols TLS1_0,TLS1_1,TLS1_2 --tlsCAFile \"${dbcafile}\""
+      if [ "${dbcrlfile}" != "NONE" ] ; then
+         # FIXME: --tlsCRLFile \"${dbcrlfile}\" does not work!
+         # command="${command} --tlsCRLFile \"${dbcrlfile}\""
+         true
+      fi
+   fi
 
 else
 
@@ -94,6 +127,19 @@ else
 
 fi
 
-echo -e "\x1b[34mConnecting to database ...\x1b[0m"
-echo -e "\x1b[37m${command}\x1b[0m"
-sh -c "${command}"
+
+# ====== Run the command line ===============================================
+if [ ${DRY_RUN} -eq 0 ] ; then
+   echo -e "\x1b[34mConnecting to database ...\x1b[0m"
+   echo -en "\x1b[37m"
+fi
+
+if [ "${dbbackend}" == "MariaDB" ] || [ "${dbbackend}" == "MySQL" ] || [ "${dbbackend}" == "PostgreSQL" ] ; then
+   export | grep "MYSQL_PWD=\|PGPASSWORD=\|PGSSL[A-Z]*=" | sort || true
+fi
+echo "${command}"
+
+if [ ${DRY_RUN} -eq 0 ] ; then
+   echo -en "\x1b[0m"
+   sh -c "${command}"
+fi

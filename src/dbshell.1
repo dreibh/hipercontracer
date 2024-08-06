@@ -28,6 +28,7 @@
 .Sh SYNOPSIS
 .Nm dbshell
 database_configuration
+.Op \-d|\-\-dry-run
 .\" ###### Description ######################################################
 .Sh DESCRIPTION
 .Nm dbshell
@@ -41,12 +42,17 @@ The following argument may be provided:
 .Bl -tag -width indent
 .It database_configuration
 Sets the name of the database configuration file.
+.It \-d|\-\-dry-run
+Just shows the command-line call to start the database shell, but does not
+execute it.
 .El
 .\" ###### Arguments ########################################################
 .Sh EXAMPLES
 .Bl -tag -width indent
 .It dbshell hipercontracer-importer.conf
 .It dbshell hipercontracer-database.conf
+.It dbshell hipercontracer-importer.conf -d
+.It dbshell hipercontracer-database.conf --dry-run
 .El
 .\" ###### Authors ##########################################################
 .Sh AUTHORS
