@@ -35,6 +35,7 @@ ping|traceroute
 .Op \-q|\-\-quiet
 .Op \-v|\-\-verbose
 .Op \-o|\-\-output filename
+.Op \-T|\-\-table table_name
 .Op \-\-from-time timestamp
 .Op \-\-to_time timestamp
 .Op \-\-from-measurement-id measurement_identifier
@@ -63,6 +64,8 @@ Enables (on) or disables (off) the usage of ANSI color escape sequences to color
 Sets a file name for appending the log output to. If a file is set, no log output is made to the console. Otherwise, all log output will be written to the console.
 .It \-o|\-\-output filename
 Sets the specified filename as output file. Extensions \.gz, \.bz2, and \.xz are recognised to enable compression.
+.It \-T|\-\-table table_name
+Sets a custom table name to query from.
 .It \-\-from-time timestamp
 Set the beginning of the time range as string in format "%Y-%m-%d %H:%M:%S.%F".
 If not provided, all results will be queried.
@@ -85,6 +88,7 @@ If not provided, all results will be queried.
 .It hpct-query hipercontracer-database.conf traceroute --from-time "2022-09-29 00:00:00" --to-time "2022-09-29 12:00:00"
 .It hpct-query hipercontracer-database.conf traceroute --from-measurement-id 1000 --to-measurement-id 2000
 .It hpct-query hipercontracer-database.conf traceroute --from-measurement-id 1000 --to-measurement-id 2000 --output results.xz
+.It hpct-query hipercontracer-database.conf ping --table test_ping_table
 .El
 .\" ###### Authors ##########################################################
 .Sh AUTHORS

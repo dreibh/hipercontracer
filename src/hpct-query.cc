@@ -137,6 +137,8 @@ int main(int argc, char** argv)
    std::filesystem::path databaseConfigurationFile;
    std::filesystem::path outputFileName;
    std::string           queryType;
+   std::string           tableName;
+   unsigned int          tableVersion;
    std::string           fromTimeString;
    std::string           toTimeString;
    unsigned long long    fromTimeStamp = 0;
@@ -168,6 +170,13 @@ int main(int argc, char** argv)
       ( "output,o",
            boost::program_options::value<std::filesystem::path>(&outputFileName)->default_value(std::filesystem::path()),
            "Output file" )
+
+      ( "table,T",
+           boost::program_options::value<std::string>(&tableName)->default_value(std::string()),
+           "Table name to query from" )
+      ( "table-version,V",
+           boost::program_options::value<unsigned int>(&tableVersion)->default_value(0),
+           "Table version to query from (0 for current)" )
 
       ( "from-time",
            boost::program_options::value<std::string>(&fromTimeString)->default_value(std::string()),
@@ -310,7 +319,7 @@ int main(int argc, char** argv)
          if(backend & DatabaseBackendType::SQL_Generic) {
             statement
                << "SELECT SendTimestamp,MeasurementID,SourceIP,DestinationIP,Protocol,TrafficClass,BurstSeq,PacketSize,ResponseSize,Checksum,SourcePort,DestinationPort,Status,TimeSource,Delay_AppSend,Delay_Queuing, Delay_AppReceive,RTT_App,RTT_SW,RTT_HW"
-                  " FROM Ping";
+                  " FROM " << ((tableName.size() == 0) ? "Ping" : tableName);
             addSQLWhere(statement, "SendTimestamp", fromTimeStamp, toTimeStamp, fromMeasurementID, toMeasurementID);
             statement << " ORDER BY SendTimestamp,MeasurementID,SourceIP,DestinationIP,Protocol,TrafficClass";
 
@@ -371,7 +380,7 @@ int main(int argc, char** argv)
             }
          }
          else if(backend & DatabaseBackendType::NoSQL_Generic) {
-            statement << "{ \"ping\": { ";
+            statement << "{ \"" <<  ((tableName.size() == 0 ? "ping" : tableName)) << "\": { ";
             addNoSQLFilter(statement, "sendTimestamp", fromTimeStamp, toTimeStamp, fromMeasurementID, toMeasurementID);
             statement << " } }";
 
@@ -432,7 +441,8 @@ int main(int argc, char** argv)
                   lines++;
                }
                catch(const std::exception& e) {
-                  HPCT_LOG(warning) << "Bad data: " << e.what();
+                  HPCT_LOG(fatal) << "Bad data: " << e.what();
+                  exit(1);
                }
             }
          }
@@ -447,7 +457,7 @@ int main(int argc, char** argv)
          if(backend & DatabaseBackendType::SQL_Generic) {
             statement
                << "SELECT Timestamp,MeasurementID,SourceIP,DestinationIP,Protocol,TrafficClass,RoundNumber,HopNumber,TotalHops,PacketSize,ResponseSize,Checksum,SourcePort,DestinationPort,Status,PathHash,SendTimestamp,HopIP,TimeSource,Delay_AppSend,Delay_Queuing,Delay_AppReceive,RTT_App,RTT_SW,RTT_HW"
-                  " FROM Traceroute";
+                  " FROM " << ((tableName.size() == 0) ? "Traceroute" : tableName);
             addSQLWhere(statement, "Timestamp", fromTimeStamp, toTimeStamp, fromMeasurementID, toMeasurementID);
             statement << " ORDER BY Timestamp,MeasurementID,SourceIP,DestinationIP,Protocol,TrafficClass,RoundNumber,HopNumber";
             databaseClient->executeQuery(statement);
@@ -527,7 +537,7 @@ int main(int argc, char** argv)
             }
          }
          else if(backend & DatabaseBackendType::NoSQL_Generic) {
-            statement << "{ \"traceroute\": { ";
+            statement << "{ \"" <<  ((tableName.size() == 0 ? "traceroute" : tableName)) << "\": { ";
             addNoSQLFilter(statement, "timestamp", fromTimeStamp, toTimeStamp, fromMeasurementID, toMeasurementID);
             statement << " } }";
 
@@ -616,7 +626,8 @@ int main(int argc, char** argv)
                   databaseClient->getArrayEnd();
                }
                catch(const std::exception& e) {
-                  HPCT_LOG(warning) << "Bad data: " << e.what();
+                  HPCT_LOG(fatal) << "Bad data: " << e.what();
+                  exit(1);
                }
             }
          }
@@ -632,7 +643,7 @@ int main(int argc, char** argv)
          if(backend & DatabaseBackendType::SQL_Generic) {
             statement
                << "SELECT Timestamp,MeasurementID,SourceIP,DestinationIP,Protocol,TrafficClass,RoundNumber,PacketSize,Checksum,SourcePort,DestinationPort,Status,JitterType,TimeSource,Packets_AppSend,MeanDelay_AppSend,Jitter_AppSend,Packets_Queuing,MeanDelay_Queuing,Jitter_Queuing,Packets_AppReceive,MeanDelay_AppReceive,Jitter_AppReceive,Packets_App,MeanRTT_App,Jitter_App,Packets_SW,MeanRTT_SW,Jitter_SW,Packets_HW,MeanRTT_HW,Jitter_HW"
-                  " FROM Jitter";
+                  " FROM " << ((tableName.size() == 0) ? "Jitter" : tableName);
             addSQLWhere(statement, "Timestamp", fromTimeStamp, toTimeStamp, fromMeasurementID, toMeasurementID);
             statement << " ORDER BY Timestamp,MeasurementID,SourceIP,DestinationIP,Protocol,TrafficClass,RoundNumber";
 
@@ -726,7 +737,7 @@ int main(int argc, char** argv)
             }
          }
          else if(backend & DatabaseBackendType::NoSQL_Generic) {
-            statement << "{ \"jitter\": { ";
+            statement << "{ \"" <<  ((tableName.size() == 0 ? "jitter" : tableName)) << "\": { ";
             addNoSQLFilter(statement, "timestamp", fromTimeStamp, toTimeStamp, fromMeasurementID, toMeasurementID);
             statement << " } }";
 
@@ -820,7 +831,8 @@ int main(int argc, char** argv)
                   lines++;
                }
                catch(const std::exception& e) {
-                  HPCT_LOG(warning) << "Bad data: " << e.what();
+                  HPCT_LOG(fatal) << "Bad data: " << e.what();
+                  exit(1);
                }
             }
          }
