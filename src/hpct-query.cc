@@ -503,28 +503,59 @@ int main(int argc, char** argv)
             HPCT_LOG(debug) << "Query: " << statement;
             databaseClient->executeQuery(statement);
             try {
-               while(databaseClient->fetchNextTuple()) {
-                  const unsigned long long       sendTimeStamp   = databaseClient->getBigInt("sendTimestamp");
-                  const unsigned long long       measurementID   = databaseClient->getInteger("measurementID");
-                  const boost::asio::ip::address sourceIP        = statement.decodeAddress(databaseClient->getString("sourceIP"));
-                  const boost::asio::ip::address destinationIP   = statement.decodeAddress(databaseClient->getString("destinationIP"));
-                  const char                     protocol        = databaseClient->getInteger("protocol");
-                  const uint8_t                  trafficClass    = databaseClient->getInteger("trafficClass");
-                  const unsigned int             burstSeq        = databaseClient->getInteger("burstSeq");
-                  const unsigned int             packetSize      = databaseClient->getInteger("packetSize");
-                  const unsigned int             responseSize    = databaseClient->getInteger("responseSize");
-                  const uint16_t                 checksum        = databaseClient->getInteger("checksum");
-                  const uint16_t                 sourcePort      = databaseClient->getInteger("sourcePort");
-                  const uint16_t                 destinationPort = databaseClient->getInteger("destinationPort");
-                  const unsigned int             status          = databaseClient->getInteger("status");
-                  const unsigned int             timeSource      = databaseClient->getInteger("timeSource");
-                  const long long                delayAppSend    = databaseClient->getBigInt("delay.appSend");
-                  const long long                delayQueuing    = databaseClient->getBigInt("delay.queuing");
-                  const long long                delayAppReceive = databaseClient->getBigInt("delay.appRecv");
-                  const long long                rttApplication  = databaseClient->getBigInt("rtt.app");
-                  const long long                rttSoftware     = databaseClient->getBigInt("rtt.sw");
-                  const long long                rttHardware     = databaseClient->getBigInt("rtt.hw");
-                  OUTPUT_PING_V2;
+               // ====== Old version 1 table ================================
+               if(tableVersion == 1) {
+                  while(databaseClient->fetchNextTuple()) {
+                     const unsigned long long       sendTimeStamp   = 1000 * databaseClient->getBigInt("timestamp");
+                     const unsigned long long       measurementID   = 0;
+                     const boost::asio::ip::address sourceIP        = statement.decodeAddress(databaseClient->getString("source"));
+                     const boost::asio::ip::address destinationIP   = statement.decodeAddress(databaseClient->getString("destination"));
+                     const char                     protocol        = 'i';
+                     const uint8_t                  trafficClass    = (databaseClient->hasColumn("trafficClass") == true) ?
+                                                                         databaseClient->getInteger("trafficClass") : 0x00;
+                     const unsigned int             burstSeq        = 0;
+                     const unsigned int             packetSize      = (databaseClient->hasColumn("packetSize") == true) ?
+                                                                         databaseClient->getInteger("packetSize") : 0;
+                     const unsigned int             responseSize    = 0;
+                     const uint16_t                 checksum        = databaseClient->getInteger("checksum");
+                     const uint16_t                 sourcePort      = 0;
+                     const uint16_t                 destinationPort = 0;
+                     const unsigned int             status          = databaseClient->getInteger("status");
+                     const unsigned int             timeSource      = 0x00000000;
+                     const long long                delayAppSend    = -1;
+                     const long long                delayQueuing    = -1;
+                     const long long                delayAppReceive = -1;
+                     const long long                rttApplication  = databaseClient->getBigInt("rtt");
+                     const long long                rttSoftware     = 0;
+                     const long long                rttHardware     = 0;
+                     OUTPUT_PING_V2;
+                  }
+               }
+               // ====== Current version 2 table ============================
+               else {
+                  while(databaseClient->fetchNextTuple()) {
+                     const unsigned long long       sendTimeStamp   = databaseClient->getBigInt("sendTimestamp");
+                     const unsigned long long       measurementID   = databaseClient->getInteger("measurementID");
+                     const boost::asio::ip::address sourceIP        = statement.decodeAddress(databaseClient->getString("sourceIP"));
+                     const boost::asio::ip::address destinationIP   = statement.decodeAddress(databaseClient->getString("destinationIP"));
+                     const char                     protocol        = databaseClient->getInteger("protocol");
+                     const uint8_t                  trafficClass    = databaseClient->getInteger("trafficClass");
+                     const unsigned int             burstSeq        = databaseClient->getInteger("burstSeq");
+                     const unsigned int             packetSize      = databaseClient->getInteger("packetSize");
+                     const unsigned int             responseSize    = databaseClient->getInteger("responseSize");
+                     const uint16_t                 checksum        = databaseClient->getInteger("checksum");
+                     const uint16_t                 sourcePort      = databaseClient->getInteger("sourcePort");
+                     const uint16_t                 destinationPort = databaseClient->getInteger("destinationPort");
+                     const unsigned int             status          = databaseClient->getInteger("status");
+                     const unsigned int             timeSource      = databaseClient->getInteger("timeSource");
+                     const long long                delayAppSend    = databaseClient->getBigInt("delay.appSend");
+                     const long long                delayQueuing    = databaseClient->getBigInt("delay.queuing");
+                     const long long                delayAppReceive = databaseClient->getBigInt("delay.appRecv");
+                     const long long                rttApplication  = databaseClient->getBigInt("rtt.app");
+                     const long long                rttSoftware     = databaseClient->getBigInt("rtt.sw");
+                     const long long                rttHardware     = databaseClient->getBigInt("rtt.hw");
+                     OUTPUT_PING_V2;
+                  }
                }
             }
             catch(const std::exception& e) {
@@ -588,48 +619,94 @@ int main(int argc, char** argv)
 
             HPCT_LOG(debug) << "Query: " << statement;
             databaseClient->executeQuery(statement);
-            while(databaseClient->fetchNextTuple()) {
-               try {
-                  const unsigned long long       timeStamp       = databaseClient->getBigInt("timestamp");
-                  const unsigned long long       measurementID   = databaseClient->getBigInt("measurementID");
-                  const boost::asio::ip::address sourceIP        = statement.decodeAddress(databaseClient->getString("sourceIP"));
-                  const boost::asio::ip::address destinationIP   = statement.decodeAddress(databaseClient->getString("destinationIP"));
-                  const char                     protocol        = databaseClient->getInteger("protocol");
-                  const uint8_t                  trafficClass    = databaseClient->getInteger("trafficClass");
-                  const unsigned int             roundNumber     = databaseClient->getInteger("roundNumber");
-                  const unsigned int             totalHops       = databaseClient->getInteger("totalHops");
-                  const unsigned int             packetSize      = databaseClient->getInteger("packetSize");
-                  const uint16_t                 checksum        = databaseClient->getInteger("checksum");
-                  const uint16_t                 sourcePort      = databaseClient->getInteger("sourcePort");
-                  const uint16_t                 destinationPort = databaseClient->getInteger("destinationPort");
-                  const unsigned int             statusFlags     = databaseClient->getInteger("statusFlags");
-                  const long long                pathHash        = databaseClient->getBigInt("pathHash");
-                  OUTPUT_TRACEROUTE_HEADER_V2;
+            try {
+               // ====== Old version 1 table ================================
+               if(tableVersion == 1) {
+                  while(databaseClient->fetchNextTuple()) {
+                     const unsigned long long       timeStamp       = 1000 * databaseClient->getBigInt("timestamp");
+                     const unsigned long long       measurementID   = 0;
+                     const boost::asio::ip::address sourceIP        = statement.decodeAddress(databaseClient->getString("source"));
+                     const boost::asio::ip::address destinationIP   = statement.decodeAddress(databaseClient->getString("destination"));
+                     const char                     protocol        = 'i';
+                     const uint8_t                  trafficClass    = (databaseClient->hasColumn("trafficClass") == true) ?
+                                                                         databaseClient->getInteger("trafficClass") : 0x00;
+                     const unsigned int             roundNumber     = databaseClient->getInteger("round");
+                     const unsigned int             totalHops       = databaseClient->getInteger("totalHops");
+                     const unsigned int             packetSize      = (databaseClient->hasColumn("packetSize") == true) ?
+                                                                         databaseClient->getInteger("packetSize") : 0;
+                     const uint16_t                 checksum        = databaseClient->getInteger("checksum");
+                     const uint16_t                 sourcePort      = 0;
+                     const uint16_t                 destinationPort = 0;
+                     const unsigned int             statusFlags     = databaseClient->getInteger("statusFlags");
+                     const long long                pathHash        = databaseClient->getBigInt("pathHash");
+                     OUTPUT_TRACEROUTE_HEADER_V2;
 
-                  databaseClient->getArrayBegin("hops");
-                  unsigned int hopNumber = 0;
-                  while(databaseClient->fetchNextArrayTuple()) {
-                     hopNumber++;
+                     databaseClient->getArrayBegin("hops");
+                     unsigned int hopNumber = 0;
+                     while(databaseClient->fetchNextArrayTuple()) {
+                        hopNumber++;
 
-                     const unsigned long long       sendTimeStamp   = databaseClient->getBigInt("sendTimestamp");
-                     const unsigned int             responseSize    = databaseClient->getInteger("responseSize");
-                     const boost::asio::ip::address hopIP           = statement.decodeAddress(databaseClient->getString("hopIP"));
-                     const unsigned int             status          = databaseClient->getInteger("status");
-                     const unsigned int             timeSource      = databaseClient->getInteger("timeSource");
-                     const long long                delayAppSend    = databaseClient->getBigInt("delay.appSend");
-                     const long long                delayQueuing    = databaseClient->getBigInt("delay.queuing");
-                     const long long                delayAppReceive = databaseClient->getBigInt("delay.appRecv");
-                     const long long                rttApplication  = databaseClient->getBigInt("rtt.app");
-                     const long long                rttSoftware     = databaseClient->getBigInt("rtt.sw");
-                     const long long                rttHardware     = databaseClient->getBigInt("rtt.hw");
-                     OUTPUT_TRACEROUTE_HOP_V2;
+                        const unsigned long long       sendTimeStamp   = timeStamp;
+                        const unsigned int             responseSize    = 0;
+                        const boost::asio::ip::address hopIP           = statement.decodeAddress(databaseClient->getString("hop"));
+                        const unsigned int             status          = databaseClient->getInteger("status");
+                        const unsigned int             timeSource      = 0x00000000;
+                        const long long                delayAppSend    = 0;
+                        const long long                delayQueuing    = 0;
+                        const long long                delayAppReceive = 0;
+                        const long long                rttApplication  = databaseClient->getBigInt("rtt");
+                        const long long                rttSoftware     = -1;
+                        const long long                rttHardware     = -1;
+                        OUTPUT_TRACEROUTE_HOP_V2;
+                     }
+                     databaseClient->getArrayEnd();
                   }
-                  databaseClient->getArrayEnd();
                }
-               catch(const std::exception& e) {
-                  HPCT_LOG(fatal) << "Bad data: " << e.what();
-                  exit(1);
+
+               else {
+                  // ====== Current version 2 table =========================
+                  while(databaseClient->fetchNextTuple()) {
+                     const unsigned long long       timeStamp       = databaseClient->getBigInt("timestamp");
+                     const unsigned long long       measurementID   = databaseClient->getBigInt("measurementID");
+                     const boost::asio::ip::address sourceIP        = statement.decodeAddress(databaseClient->getString("sourceIP"));
+                     const boost::asio::ip::address destinationIP   = statement.decodeAddress(databaseClient->getString("destinationIP"));
+                     const char                     protocol        = databaseClient->getInteger("protocol");
+                     const uint8_t                  trafficClass    = databaseClient->getInteger("trafficClass");
+                     const unsigned int             roundNumber     = databaseClient->getInteger("roundNumber");
+                     const unsigned int             totalHops       = databaseClient->getInteger("totalHops");
+                     const unsigned int             packetSize      = databaseClient->getInteger("packetSize");
+                     const uint16_t                 checksum        = databaseClient->getInteger("checksum");
+                     const uint16_t                 sourcePort      = databaseClient->getInteger("sourcePort");
+                     const uint16_t                 destinationPort = databaseClient->getInteger("destinationPort");
+                     const unsigned int             statusFlags     = databaseClient->getInteger("statusFlags");
+                     const long long                pathHash        = databaseClient->getBigInt("pathHash");
+                     OUTPUT_TRACEROUTE_HEADER_V2;
+
+                     databaseClient->getArrayBegin("hops");
+                     unsigned int hopNumber = 0;
+                     while(databaseClient->fetchNextArrayTuple()) {
+                        hopNumber++;
+
+                        const unsigned long long       sendTimeStamp   = databaseClient->getBigInt("sendTimestamp");
+                        const unsigned int             responseSize    = databaseClient->getInteger("responseSize");
+                        const boost::asio::ip::address hopIP           = statement.decodeAddress(databaseClient->getString("hopIP"));
+                        const unsigned int             status          = databaseClient->getInteger("status");
+                        const unsigned int             timeSource      = databaseClient->getInteger("timeSource");
+                        const long long                delayAppSend    = databaseClient->getBigInt("delay.appSend");
+                        const long long                delayQueuing    = databaseClient->getBigInt("delay.queuing");
+                        const long long                delayAppReceive = databaseClient->getBigInt("delay.appRecv");
+                        const long long                rttApplication  = databaseClient->getBigInt("rtt.app");
+                        const long long                rttSoftware     = databaseClient->getBigInt("rtt.sw");
+                        const long long                rttHardware     = databaseClient->getBigInt("rtt.hw");
+                        OUTPUT_TRACEROUTE_HOP_V2;
+                     }
+                     databaseClient->getArrayEnd();
+                  }
                }
+            }
+            catch(const std::exception& e) {
+               HPCT_LOG(fatal) << "Bad data: " << e.what();
+               exit(1);
             }
          }
          else {
@@ -701,6 +778,7 @@ int main(int argc, char** argv)
             HPCT_LOG(debug) << "Query: " << statement;
             databaseClient->executeQuery(statement);
             try {
+               // ====== Current version 2 table ============================
                while(databaseClient->fetchNextTuple()) {
                   const unsigned long long       timeStamp             = databaseClient->getBigInt("timestamp");
                   const unsigned long long       measurementID         = databaseClient->getInteger("measurementID");
