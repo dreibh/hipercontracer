@@ -34,6 +34,7 @@
 #include "tools.h"
 
 #include <fstream>
+#include <iostream>   // FIXME!
 #include <regex>
 
 
@@ -49,7 +50,8 @@ ImporterConfiguration::ImporterConfiguration()
       ("move_timestamp_depth", boost::program_options::value<unsigned int>(&MoveTimestampDepth)->default_value(3),          "move timestamp depth")
       ("import_file_path",     boost::program_options::value<std::filesystem::path>(&ImportFilePath),                       "path for input data")
       ("bad_file_path",        boost::program_options::value<std::filesystem::path>(&BadFilePath),                          "path for bad files")
-      ("good_file_path",       boost::program_options::value<std::filesystem::path>(&GoodFilePath),                         "path for good files");
+      ("good_file_path",       boost::program_options::value<std::filesystem::path>(&GoodFilePath),                         "path for good files")
+      ("table",                boost::program_options::value<std::vector<std::string>>(&Tables),                            "mapping of reader:table");
 
    ImportModeName = "KeepImportedFiles";
    ImportMode     = ImportModeType::KeepImportedFiles;
@@ -65,7 +67,8 @@ ImporterConfiguration::~ImporterConfiguration()
 // ###### Read importer configuration #######################################
 bool ImporterConfiguration::readConfiguration(const std::filesystem::path& configurationFile)
 {
-   std::ifstream configurationInputStream(configurationFile);
+   const static std::regex tableRegEx("^([[a-zA-Z][a-zA-Z0-9]*):([a-zA-Z][a-zA-Z0-9_]*)$");
+   std::ifstream           configurationInputStream(configurationFile);
 
    if(!configurationInputStream.good()) {
       HPCT_LOG(error) << "Unable to read importer configuration from " << configurationFile;
@@ -82,6 +85,17 @@ bool ImporterConfiguration::readConfiguration(const std::filesystem::path& confi
       return false;
    }
 
+   TableMap.clear();
+   for(const std::string& table : Tables) {
+      std::smatch match;
+      if(!std::regex_match(table, match, tableRegEx)) {
+         HPCT_LOG(error) << "Parsing configuration file " << configurationFile
+                        << " had invalid table maapping "  << table;
+         return false;
+      }
+      TableMap.insert_or_assign(match[1], match[2]);
+   }
+
    // ====== Check options ==================================================
    if(!setImportMode(ImportModeName))         return false;
    if(!setImportMaxDepth(ImportMaxDepth))     return false;
@@ -91,6 +105,18 @@ bool ImporterConfiguration::readConfiguration(const std::filesystem::path& confi
    if(!setBadFilePath(BadFilePath))           return false;
 
    return true;
+}
+
+
+// ###### Get table name ####################################################
+const std::string& ImporterConfiguration::getTableName(const std::string& readerName,
+                                                       const std::string& defaultTableName) const
+{
+   std::map<std::string, std::string>::const_iterator found = TableMap.find(readerName);
+   if(found == TableMap.end()) {
+      return(defaultTableName);
+   }
+   return found->second;
 }
 
 
@@ -229,6 +255,12 @@ std::ostream& operator<<(std::ostream& os, const ImporterConfiguration& configur
       << "  Good File Path       = " << configuration.GoodFilePath       << "\n"
       << "  Bad File Path        = " << configuration.BadFilePath        << "\n"
       << "  Move Directory Depth = " << configuration.MoveDirectoryDepth << "\n"
-      << "  Move Timestamp Depth = " << configuration.MoveTimestampDepth << "\n";
+      << "  Move Timestamp Depth = " << configuration.MoveTimestampDepth << "\n"
+      << "  Custom Table Mapping = {";
+   for(std::map<std::string, std::string>::const_iterator iterator = configuration.TableMap.begin();
+      iterator != configuration.TableMap.end(); iterator++) {
+      os << " " << iterator->first << ":" << iterator->second;
+   }
+   os << " }\n";
    return os;
 }
