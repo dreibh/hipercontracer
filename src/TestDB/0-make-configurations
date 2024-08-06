@@ -88,6 +88,11 @@ good_file_path     = good/
 # original file name's directory hierarchy as well as of the timestamp:
 move_directory_depth = 2
 move_timestamp_depth = 3
+
+# Custom table mappings (Reader:Table):
+# table = Ping:Ping
+# table = Traceroute:Traceroute
+# table = Jitter:Jitter
 EOF
 
 for backend in MariaDB PostgreSQL MongoDB ; do
