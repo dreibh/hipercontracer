@@ -78,7 +78,7 @@ CREATE INDEX PingRelationIndex ON PingTracerouteDB.Ping (MeasurementID ASC, Dest
 DROP VIEW IF EXISTS Ping_v1;
 CREATE VIEW Ping_v1 AS
    SELECT
-      TO_TIMESTAMP(SendTimestamp / 1000000000)::TIMESTAMP WITHOUT TIME ZONE AS TimeStamp,
+      TO_TIMESTAMP(SendTimestamp / 1000000000.0)::TIMESTAMP WITHOUT TIME ZONE AS TimeStamp,
       SourceIP                                             AS FromIP,
       DestinationIP                                        AS ToIP,
       PacketSize                                           AS PktSize,
@@ -141,7 +141,7 @@ CREATE INDEX TracerouteRelationIndex ON PingTracerouteDB.Traceroute (Measurement
 DROP VIEW IF EXISTS Traceroute_v1;
 CREATE VIEW Traceroute_v1 AS
    SELECT
-      TO_TIMESTAMP(Timestamp / 1000000000)::TIMESTAMP WITHOUT TIME ZONE AS TimeStamp,
+      TO_TIMESTAMP(Timestamp / 1000000000.0)::TIMESTAMP WITHOUT TIME ZONE AS TimeStamp,
       SourceIP                                             AS FromIP,
       DestinationIP                                        AS ToIP,
       PacketSize                                           AS PktSize,
