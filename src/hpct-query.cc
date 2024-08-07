@@ -463,36 +463,79 @@ int main(int argc, char** argv)
       unsigned long long lines = 0;
       if(queryType == "ping") {
          if(backend & DatabaseBackendType::SQL_Generic) {
-            statement
-               << "SELECT SendTimestamp,MeasurementID,SourceIP,DestinationIP,Protocol,TrafficClass,BurstSeq,PacketSize,ResponseSize,Checksum,SourcePort,DestinationPort,Status,TimeSource,Delay_AppSend,Delay_Queuing, Delay_AppReceive,RTT_App,RTT_SW,RTT_HW"
-                  " FROM " << ((tableName.size() == 0) ? "Ping" : tableName);
-            addSQLWhere(statement, "SendTimestamp", fromTimeStamp, toTimeStamp, fromMeasurementID, toMeasurementID);
+            // ====== Old version 1 table ===================================
+            if(tableVersion == 1) {
+               std::string ts;
+               if( (backend & DatabaseBackendType::SQL_PostgreSQL) == backend & DatabaseBackendType::SQL_PostgreSQL ) {
+                  ts = "(1000000000 * CAST(EXTRACT(EPOCH FROM Timestamp) AS BIGINT))";
+               }
+               else {
+                  ts = "(1000000000 * CAST(UNIX_TIMESTAMP(TimeStamp) AS UNSIGNED))";
+               }
+               statement
+                  << "SELECT"
+                     " " << ts << " AS SendTimestamp,"
+                     "  0       AS MeasurementID,"
+                     "  FromIP  AS SourceIP,"
+                     "  ToIP    AS DestinationIP,"
+                     "  105     AS Protocol,"         /* 'i', since HiPerConTracer 1.x only supports ICMP */
+                     "  TC      AS TrafficClass,"
+                     "  0       AS BurstSeq,"
+                     "  PktSize AS PacketSize,"
+                     "  0       AS ResponseSize,"
+                     "  65535   AS Checksum,"         /* 0xffff = invalid checksum; not supported by HiPerConTracer 1.x SQL! */
+                     "  0       AS SourcePort,"
+                     "  0       AS DestinationPort,"
+                     "  Status  AS Status,"
+                     "  0       AS TimeSource,"
+                     "  -1      AS Delay_AppSend,"
+                     "  -1      AS Delay_Queuing,"
+                     "  -1      AS Delay_AppReceive,"
+                     "  RTT     AS RTT_App,"
+                     "  -1      AS RTT_SW,"
+                     "  -1      AS RTT_HW "
+                     "FROM " << ((tableName.size() == 0) ? "Ping" : tableName);
+               addSQLWhere(statement, ts, fromTimeStamp, toTimeStamp, fromMeasurementID, toMeasurementID);
+            }
+            // ====== Current version 2 table ============================
+            else {
+               statement
+                  << "SELECT SendTimestamp,MeasurementID,SourceIP,DestinationIP,Protocol,TrafficClass,BurstSeq,PacketSize,ResponseSize,Checksum,SourcePort,DestinationPort,Status,TimeSource,Delay_AppSend,Delay_Queuing, Delay_AppReceive,RTT_App,RTT_SW,RTT_HW "
+                     "FROM " << ((tableName.size() == 0) ? "Ping" : tableName);
+               addSQLWhere(statement, "SendTimestamp", fromTimeStamp, toTimeStamp, fromMeasurementID, toMeasurementID);
+            }
             statement << " ORDER BY SendTimestamp,MeasurementID,SourceIP,DestinationIP,Protocol,TrafficClass";
 
             HPCT_LOG(debug) << "Query: " << statement;
             databaseClient->executeQuery(statement);
-            while(databaseClient->fetchNextTuple()) {
-               const unsigned long long       sendTimeStamp   = databaseClient->getBigInt(1);
-               const unsigned long long       measurementID   = databaseClient->getInteger(2);
-               const boost::asio::ip::address sourceIP        = statement.decodeAddress(databaseClient->getString(3));
-               const boost::asio::ip::address destinationIP   = statement.decodeAddress(databaseClient->getString(4));
-               const char                     protocol        = databaseClient->getInteger(5);
-               const uint8_t                  trafficClass    = databaseClient->getInteger(6);
-               const unsigned int             burstSeq        = databaseClient->getInteger(7);
-               const unsigned int             packetSize      = databaseClient->getInteger(8);
-               const unsigned int             responseSize    = databaseClient->getInteger(9);
-               const uint16_t                 checksum        = databaseClient->getInteger(10);
-               const uint16_t                 sourcePort      = databaseClient->getInteger(11);
-               const uint16_t                 destinationPort = databaseClient->getInteger(12);
-               const unsigned int             status          = databaseClient->getInteger(13);
-               const unsigned int             timeSource      = databaseClient->getInteger(14);
-               const long long                delayAppSend    = databaseClient->getBigInt(15);
-               const long long                delayQueuing    = databaseClient->getBigInt(16);
-               const long long                delayAppReceive = databaseClient->getBigInt(17);
-               const long long                rttApplication  = databaseClient->getBigInt(18);
-               const long long                rttSoftware     = databaseClient->getBigInt(19);
-               const long long                rttHardware     = databaseClient->getBigInt(20);
-               OUTPUT_PING_V2;
+            try {
+               while(databaseClient->fetchNextTuple()) {
+                  const unsigned long long       sendTimeStamp   = databaseClient->getBigInt(1);
+                  const unsigned long long       measurementID   = databaseClient->getInteger(2);
+                  const boost::asio::ip::address sourceIP        = statement.decodeAddress(databaseClient->getString(3));
+                  const boost::asio::ip::address destinationIP   = statement.decodeAddress(databaseClient->getString(4));
+                  const char                     protocol        = databaseClient->getInteger(5);
+                  const uint8_t                  trafficClass    = databaseClient->getInteger(6);
+                  const unsigned int             burstSeq        = databaseClient->getInteger(7);
+                  const unsigned int             packetSize      = databaseClient->getInteger(8);
+                  const unsigned int             responseSize    = databaseClient->getInteger(9);
+                  const uint16_t                 checksum        = databaseClient->getInteger(10);
+                  const uint16_t                 sourcePort      = databaseClient->getInteger(11);
+                  const uint16_t                 destinationPort = databaseClient->getInteger(12);
+                  const unsigned int             status          = databaseClient->getInteger(13);
+                  const unsigned int             timeSource      = databaseClient->getInteger(14);
+                  const long long                delayAppSend    = databaseClient->getBigInt(15);
+                  const long long                delayQueuing    = databaseClient->getBigInt(16);
+                  const long long                delayAppReceive = databaseClient->getBigInt(17);
+                  const long long                rttApplication  = databaseClient->getBigInt(18);
+                  const long long                rttSoftware     = databaseClient->getBigInt(19);
+                  const long long                rttHardware     = databaseClient->getBigInt(20);
+                  OUTPUT_PING_V2;
+               }
+            }
+            catch(const std::exception& e) {
+               HPCT_LOG(fatal) << "Bad data: " << e.what();
+               exit(1);
             }
          }
          else if(backend & DatabaseBackendType::NoSQL_Generic) {
