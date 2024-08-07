@@ -475,25 +475,25 @@ int main(int argc, char** argv)
                statement
                   << "SELECT"
                      " " << ts << " AS SendTimestamp,"
-                     "  0       AS MeasurementID,"
-                     "  FromIP  AS SourceIP,"
-                     "  ToIP    AS DestinationIP,"
-                     "  105     AS Protocol,"         /* 'i', since HiPerConTracer 1.x only supports ICMP */
-                     "  TC      AS TrafficClass,"
-                     "  0       AS BurstSeq,"
-                     "  PktSize AS PacketSize,"
-                     "  0       AS ResponseSize,"
-                     "  65535   AS Checksum,"         /* 0xffff = invalid checksum; not supported by HiPerConTracer 1.x SQL! */
-                     "  0       AS SourcePort,"
-                     "  0       AS DestinationPort,"
-                     "  Status  AS Status,"
-                     "  0       AS TimeSource,"
-                     "  -1      AS Delay_AppSend,"
-                     "  -1      AS Delay_Queuing,"
-                     "  -1      AS Delay_AppReceive,"
-                     "  RTT     AS RTT_App,"
-                     "  -1      AS RTT_SW,"
-                     "  -1      AS RTT_HW "
+                     "  0         AS MeasurementID,"
+                     "  FromIP    AS SourceIP,"
+                     "  ToIP      AS DestinationIP,"
+                     "  105       AS Protocol,"         /* 'i', since HiPerConTracer 1.x only supports ICMP */
+                     "  TC        AS TrafficClass,"
+                     "  0         AS BurstSeq,"
+                     "  PktSize   AS PacketSize,"
+                     "  0         AS ResponseSize,"
+                     "  65535     AS Checksum,"         /* 0xffff = invalid checksum; not supported by HiPerConTracer 1.x SQL! */
+                     "  0         AS SourcePort,"
+                     "  0         AS DestinationPort,"
+                     "  Status    AS Status,"
+                     "  0         AS TimeSource,"
+                     "  -1        AS Delay_AppSend,"
+                     "  -1        AS Delay_Queuing,"
+                     "  -1        AS Delay_AppReceive,"
+                     " 1000 * RTT AS RTT_App,"
+                     "  -1        AS RTT_SW,"
+                     "  -1        AS RTT_HW "
                      "FROM " << ((tableName.size() == 0) ? "Ping" : tableName);
                addSQLWhere(statement, ts, fromTimeStamp, toTimeStamp, fromMeasurementID, toMeasurementID);
             }
@@ -615,44 +615,94 @@ int main(int argc, char** argv)
       // ====== Traceroute ==================================================
       else if(queryType == "traceroute") {
          if(backend & DatabaseBackendType::SQL_Generic) {
-            statement
-               << "SELECT Timestamp,MeasurementID,SourceIP,DestinationIP,Protocol,TrafficClass,RoundNumber,HopNumber,TotalHops,PacketSize,ResponseSize,Checksum,SourcePort,DestinationPort,Status,PathHash,SendTimestamp,HopIP,TimeSource,Delay_AppSend,Delay_Queuing,Delay_AppReceive,RTT_App,RTT_SW,RTT_HW"
-                  " FROM " << ((tableName.size() == 0) ? "Traceroute" : tableName);
-            addSQLWhere(statement, "Timestamp", fromTimeStamp, toTimeStamp, fromMeasurementID, toMeasurementID);
-            statement << " ORDER BY Timestamp,MeasurementID,SourceIP,DestinationIP,Protocol,TrafficClass,RoundNumber,HopNumber";
-            databaseClient->executeQuery(statement);
-            while(databaseClient->fetchNextTuple()) {
-               const unsigned long long       timeStamp       = databaseClient->getBigInt(1);
-               const unsigned long long       measurementID   = databaseClient->getBigInt(2);
-               const boost::asio::ip::address sourceIP        = statement.decodeAddress(databaseClient->getString(3));
-               const boost::asio::ip::address destinationIP   = statement.decodeAddress(databaseClient->getString(4));
-               const char                     protocol        = databaseClient->getInteger(5);
-               const uint8_t                  trafficClass    = databaseClient->getInteger(6);
-               const unsigned int             roundNumber     = databaseClient->getInteger(7);
-               const unsigned int             hopNumber       = databaseClient->getInteger(8);
-               const unsigned int             totalHops       = databaseClient->getInteger(9);
-               const unsigned int             packetSize      = databaseClient->getInteger(10);
-               const unsigned int             responseSize    = databaseClient->getInteger(11);
-               const uint16_t                 checksum        = databaseClient->getInteger(12);
-               const uint16_t                 sourcePort      = databaseClient->getInteger(13);
-               const uint16_t                 destinationPort = databaseClient->getInteger(14);
-               const unsigned int             status          = databaseClient->getInteger(15);
-               const long long                pathHash        = databaseClient->getBigInt(16);
-               const unsigned long long       sendTimeStamp   = databaseClient->getBigInt(17);
-               const boost::asio::ip::address hopIP           = statement.decodeAddress(databaseClient->getString(18));
-               const unsigned int             timeSource      = databaseClient->getInteger(19);
-               const long long                delayAppSend    = databaseClient->getBigInt(20);
-               const long long                delayQueuing    = databaseClient->getBigInt(21);
-               const long long                delayAppReceive = databaseClient->getBigInt(22);
-               const long long                rttApplication  = databaseClient->getBigInt(23);
-               const long long                rttSoftware     = databaseClient->getBigInt(24);
-               const long long                rttHardware     = databaseClient->getBigInt(25);
-
-               if(hopNumber == 1) {
-                  const unsigned int statusFlags = status - (status & 0xff);
-                  OUTPUT_TRACEROUTE_HEADER_V2;
+            // ====== Old version 1 table ===================================
+            if(tableVersion == 1) {
+               std::string ts;
+               if( (backend & DatabaseBackendType::SQL_PostgreSQL) == backend & DatabaseBackendType::SQL_PostgreSQL ) {
+                  ts = "(1000000000 * CAST(EXTRACT(EPOCH FROM Timestamp) AS BIGINT))";
                }
-               OUTPUT_TRACEROUTE_HOP_V2;
+               else {
+                  ts = "(1000000000 * CAST(UNIX_TIMESTAMP(TimeStamp) AS UNSIGNED))";
+               }
+               statement
+                  << "SELECT"
+                     " " << ts << " AS SendTimestamp,"
+                     " 0          AS MeasurementID,"
+                     " FromIP     AS SourceIP,"
+                     " ToIP       AS DestinationIP,"
+                     " 105        AS Protocol,"     /* 'i', since HiPerConTracer 1.x only supports ICMP */
+                     " TC         AS TrafficClass,"
+                     " Round      AS RoundNumber,"
+                     " HopNumber  AS HopNumber,"
+                     " TotalHops  AS TotalHops,"
+                     " PktSize    AS PacketSize,"
+                     " 0          AS ResponseSize,"
+                     " 65535      AS Checksum,"     /* 0xffff = invalid checksum; not supported by HiPerConTracer 1.x SQL! */
+                     " 0          AS SourcePort,"
+                     " 0          AS DestinationPort,"
+                     " Status     AS Status,"
+                     " PathHash   AS PathHash,"
+                     " " << ts << " AS SendTimestamp,"
+                     " HopIP      AS HopIP,"
+                     " 0x00000000 AS TimeSource,"
+                     " -1         AS Delay_AppSend,"
+                     " -1         AS Delay_Queuing,"
+                     " -1         AS Delay_AppReceive,"
+                     " 1000 * RTT AS RTT_App,"
+                     " -1         AS RTT_SW,"
+                     " -1         AS RTT_HW "
+                     "FROM " << ((tableName.size() == 0) ? "Traceroute" : tableName);
+               addSQLWhere(statement, ts, fromTimeStamp, toTimeStamp, fromMeasurementID, toMeasurementID);
+            }
+            // ====== Current version 2 table ============================
+            else {
+               statement
+                  << "SELECT Timestamp,MeasurementID,SourceIP,DestinationIP,Protocol,TrafficClass,RoundNumber,HopNumber,TotalHops,PacketSize,ResponseSize,Checksum,SourcePort,DestinationPort,Status,PathHash,SendTimestamp,HopIP,TimeSource,Delay_AppSend,Delay_Queuing,Delay_AppReceive,RTT_App,RTT_SW,RTT_HW"
+                     " FROM " << ((tableName.size() == 0) ? "Traceroute" : tableName);
+               addSQLWhere(statement, "Timestamp", fromTimeStamp, toTimeStamp, fromMeasurementID, toMeasurementID);
+            }
+            statement << " ORDER BY Timestamp,MeasurementID,SourceIP,DestinationIP,Protocol,TrafficClass,RoundNumber,HopNumber";
+
+            HPCT_LOG(debug) << "Query: " << statement;
+            databaseClient->executeQuery(statement);
+            try {
+               while(databaseClient->fetchNextTuple()) {
+                  const unsigned long long       timeStamp       = databaseClient->getBigInt(1);
+                  const unsigned long long       measurementID   = databaseClient->getBigInt(2);
+                  const boost::asio::ip::address sourceIP        = statement.decodeAddress(databaseClient->getString(3));
+                  const boost::asio::ip::address destinationIP   = statement.decodeAddress(databaseClient->getString(4));
+                  const char                     protocol        = databaseClient->getInteger(5);
+                  const uint8_t                  trafficClass    = databaseClient->getInteger(6);
+                  const unsigned int             roundNumber     = databaseClient->getInteger(7);
+                  const unsigned int             hopNumber       = databaseClient->getInteger(8);
+                  const unsigned int             totalHops       = databaseClient->getInteger(9);
+                  const unsigned int             packetSize      = databaseClient->getInteger(10);
+                  const unsigned int             responseSize    = databaseClient->getInteger(11);
+                  const uint16_t                 checksum        = databaseClient->getInteger(12);
+                  const uint16_t                 sourcePort      = databaseClient->getInteger(13);
+                  const uint16_t                 destinationPort = databaseClient->getInteger(14);
+                  const unsigned int             status          = databaseClient->getInteger(15);
+                  const long long                pathHash        = databaseClient->getBigInt(16);
+                  const unsigned long long       sendTimeStamp   = databaseClient->getBigInt(17);
+                  const boost::asio::ip::address hopIP           = statement.decodeAddress(databaseClient->getString(18));
+                  const unsigned int             timeSource      = databaseClient->getInteger(19);
+                  const long long                delayAppSend    = databaseClient->getBigInt(20);
+                  const long long                delayQueuing    = databaseClient->getBigInt(21);
+                  const long long                delayAppReceive = databaseClient->getBigInt(22);
+                  const long long                rttApplication  = databaseClient->getBigInt(23);
+                  const long long                rttSoftware     = databaseClient->getBigInt(24);
+                  const long long                rttHardware     = databaseClient->getBigInt(25);
+
+                  if(hopNumber == 1) {
+                     const unsigned int statusFlags = status - (status & 0xff);
+                     OUTPUT_TRACEROUTE_HEADER_V2;
+                  }
+                  OUTPUT_TRACEROUTE_HOP_V2;
+               }
+            }
+            catch(const std::exception& e) {
+               HPCT_LOG(fatal) << "Bad data: " << e.what();
+               exit(1);
             }
          }
          else if(backend & DatabaseBackendType::NoSQL_Generic) {
