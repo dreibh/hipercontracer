@@ -97,9 +97,9 @@ CREATE VIEW Ping_v1 AS
       PacketSize                                AS PktSize,
       TrafficClass                              AS TC,
       Status                                    AS Status,
-      IF(RTT_HW > 0, FLOOR(RTT_HW / 1000),
-         IF(RTT_SW > 0, FLOOR(RTT_SW / 1000),
-            FLOOR(RTT_App / 1000)))             AS RTT
+      CAST(IF(RTT_HW > 0, RTT_HW / 1000,
+              IF(RTT_SW > 0, RTT_SW / 1000,
+                 RTT_App / 1000)) AS INTEGER)   AS RTT
    FROM Ping;
 
 
@@ -168,9 +168,9 @@ CREATE VIEW Traceroute_v1 AS
       HopNumber                                 AS HopNumber,
       TotalHops                                 AS TotalHops,
       Status                                    AS Status,
-      IF(RTT_HW > 0, FLOOR(RTT_HW / 1000),
-         IF(RTT_SW > 0, FLOOR(RTT_SW / 1000),
-            FLOOR(RTT_App / 1000)))             AS RTT
+      CAST(IF(RTT_HW > 0, RTT_HW / 1000,
+              IF(RTT_SW > 0, RTT_SW / 1000,
+                 RTT_App / 1000)) AS INTEGER)   AS RTT,
       HopIP                                     AS HopIP,
       PathHash                                  AS PathHash,
       RoundNumber                               AS Round
