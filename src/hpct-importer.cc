@@ -51,7 +51,8 @@ int main(int argc, char** argv)
    unsigned int          logLevel;
    bool                  logColor;
    std::filesystem::path logFile;
-   std::filesystem::path databaseConfigurationFile;
+   std::filesystem::path databaseConfigFile;
+   std::filesystem::path importerConfigFile;
    std::string           importModeName;
    unsigned int          importMaxDepth;
    std::filesystem::path importFilePath;
@@ -87,12 +88,15 @@ int main(int argc, char** argv)
            boost::program_options::value<unsigned int>(&logLevel)->implicit_value(boost::log::trivial::severity_level::warning),
            "Quiet logging level" )
 
+      ( "importer-config,C",        boost::program_options::value<std::filesystem::path>(&importerConfigFile),      "Importer configuration file")
+      ( "database-config,D",        boost::program_options::value<std::filesystem::path>(&databaseConfigFile),      "Database configuration file")
+
       ("import-mode,X",             boost::program_options::value<std::string>(&importModeName),                    "Override import mode")
-      ("import-max-depth,D",        boost::program_options::value<unsigned int>(&importMaxDepth)->default_value(0), "Override import max depth")
+      ("import-max-depth,M",        boost::program_options::value<unsigned int>(&importMaxDepth)->default_value(0), "Override import max depth")
       ("import-file-path,I",        boost::program_options::value<std::filesystem::path>(&importFilePath),          "Override path for input files")
       ("bad-file-path,B",           boost::program_options::value<std::filesystem::path>(&badFilePath),             "Override path for bad files")
       ("good-file-path,G",          boost::program_options::value<std::filesystem::path>(&goodFilePath),            "Override path for good files")
-      ("import-file-path-filter,F", boost::program_options::value<std::string>(&importFilePathFilter),              "Import path filter (regular expression)")
+      ("import-file-path-filter,F", boost::program_options::value<std::string>(&importFilePathFilter),              "Override import path filter (regular expression)")
       ("quit-when-idle,Q",
           boost::program_options::value<bool>(&quitWhenIdle)->implicit_value(true)->default_value(false),
           "Quit importer when idle")
@@ -116,16 +120,6 @@ int main(int argc, char** argv)
            boost::program_options::value<unsigned int>(&jitterTransactionSize)->default_value(1),
            "Number of Jitter files per transaction" )
    ;
-   boost::program_options::options_description hiddenOptions;
-   hiddenOptions.add_options()
-      ( "config", boost::program_options::value<std::filesystem::path>(&databaseConfigurationFile) )
-   ;
-   boost::program_options::options_description allOptions;
-   allOptions.add(commandLineOptions);
-   allOptions.add(hiddenOptions);
-   boost::program_options::positional_options_description positionalParameters;
-   positionalParameters.add("config", 1);
-
 
    // ====== Handle command-line arguments ==================================
    boost::program_options::variables_map vm;
@@ -135,12 +129,12 @@ int main(int argc, char** argv)
                                           boost::program_options::command_line_style::style_t::default_style|
                                           boost::program_options::command_line_style::style_t::allow_long_disguise
                                        ).
-                                       options(allOptions).positional(positionalParameters).
+                                       options(commandLineOptions).
                                        run(), vm);
       boost::program_options::notify(vm);
    }
    catch(std::exception& e) {
-      std::cerr << "Bad parameter: " << e.what() << "!\n";
+      std::cerr << "ERROR: Bad parameter: " << e.what() << "\n";
       return 1;
    }
 
@@ -150,7 +144,11 @@ int main(int argc, char** argv)
        return 1;
    }
 
-   if(databaseConfigurationFile.empty()) {
+   if(importerConfigFile.empty()) {
+      std::cerr << "ERROR: No importer configuration file provided!\n";
+      return 1;
+   }
+   if(databaseConfigFile.empty()) {
       std::cerr << "ERROR: No database configuration file provided!\n";
       return 1;
    }
@@ -159,38 +157,51 @@ int main(int argc, char** argv)
       return 1;
    }
 
-   // ====== Read database configuration ====================================
-   DatabaseConfiguration databaseConfiguration;
-   if(!databaseConfiguration.readConfiguration(databaseConfigurationFile)) {
+   // ====== Read Importer configuration ====================================
+   ImporterConfiguration importerConfiguration;
+   if(!importerConfiguration.readConfiguration(importerConfigFile)) {
       exit(1);
    }
    if(importModeName.size() > 0) {
-      if(!databaseConfiguration.setImportMode(importModeName)) return 1;
+      if(!importerConfiguration.setImportMode(importModeName)) return 1;
    }
    if(importMaxDepth) {
-      if(!databaseConfiguration.setImportMaxDepth(importMaxDepth)) return 1;
+      if(!importerConfiguration.setImportMaxDepth(importMaxDepth)) return 1;
    }
    if(importFilePath.string().size() > 0) {
-      if(!databaseConfiguration.setImportFilePath(importFilePath)) return 1;
+      if(!importerConfiguration.setImportFilePath(importFilePath)) return 1;
    }
    if(goodFilePath.string().size() > 0) {
-      if(!databaseConfiguration.setGoodFilePath(goodFilePath)) return 1;
+      if(!importerConfiguration.setGoodFilePath(goodFilePath)) return 1;
    }
    if(goodFilePath.string().size() > 0) {
-      if(!databaseConfiguration.setGoodFilePath(goodFilePath)) return 1;
+      if(!importerConfiguration.setGoodFilePath(goodFilePath)) return 1;
    }
    if(badFilePath.string().size() > 0) {
-      if(!databaseConfiguration.setBadFilePath(badFilePath)) return 1;
+      if(!importerConfiguration.setBadFilePath(badFilePath)) return 1;
    }
-   HPCT_LOG(info) << "Startup:\n" << databaseConfiguration;
+   if(importFilePathFilter.size() > 0) {
+      if(!importerConfiguration.setImportPathFilter(importFilePathFilter)) return 1;
+   }
+   if( (importerConfiguration.getImportMode() == ImportModeType::KeepImportedFiles) &&
+       (!quitWhenIdle) ) {
+      std::cerr << "ERROR: Import mode \"KeepImportedFiles\" is only useful with --quit-when-idle option!\n";
+      exit(1);
+   }
 
+   // ====== Read database configuration ====================================
+   DatabaseConfiguration databaseConfiguration;
+   if(!databaseConfiguration.readConfiguration(databaseConfigFile)) {
+      exit(1);
+   }
 
    // ====== Initialise importer ============================================
+   HPCT_LOG(info) << "Startup:\n" << importerConfiguration << databaseConfiguration;
    initialiseLogger(logLevel, logColor,
                     (logFile != std::filesystem::path()) ? logFile.string().c_str() : nullptr);
 
    boost::asio::io_service ioService;
-   UniversalImporter importer(ioService, databaseConfiguration);
+   UniversalImporter importer(ioService, importerConfiguration, databaseConfiguration);
 
 
    // ====== Initialise database clients and readers ========================
@@ -205,8 +216,10 @@ int main(int argc, char** argv)
             exit(1);
          }
       }
-      pingReader = new PingReader(databaseConfiguration,
-                                  pingWorkers, pingTransactionSize);
+      pingReader = new PingReader(importerConfiguration,
+                                  pingWorkers, pingTransactionSize,
+                                  importerConfiguration.getTableName(PingReader::Identification,
+                                                                     PingReader::Identification));
       assert(pingReader != nullptr);
       importer.addReader(*pingReader,
                          (DatabaseClientBase**)&pingDatabaseClients, pingWorkers);
@@ -223,8 +236,10 @@ int main(int argc, char** argv)
             exit(1);
          }
       }
-      tracerouteReader = new TracerouteReader(databaseConfiguration,
-                                              tracerouteWorkers, tracerouteTransactionSize);
+      tracerouteReader = new TracerouteReader(importerConfiguration,
+                                              tracerouteWorkers, tracerouteTransactionSize,
+                                              importerConfiguration.getTableName(TracerouteReader::Identification,
+                                                                                 TracerouteReader::Identification));
       assert(tracerouteReader != nullptr);
       importer.addReader(*tracerouteReader,
                          (DatabaseClientBase**)&tracerouteDatabaseClients, tracerouteWorkers);
@@ -241,8 +256,10 @@ int main(int argc, char** argv)
             exit(1);
          }
       }
-      jitterReader = new JitterReader(databaseConfiguration,
-                                              jitterWorkers, jitterTransactionSize);
+      jitterReader = new JitterReader(importerConfiguration,
+                                      jitterWorkers, jitterTransactionSize,
+                                      importerConfiguration.getTableName(JitterReader::Identification,
+                                                                         JitterReader::Identification));
       assert(jitterReader != nullptr);
       importer.addReader(*jitterReader,
                          (DatabaseClientBase**)&jitterDatabaseClients, jitterWorkers);
@@ -250,7 +267,7 @@ int main(int argc, char** argv)
 
 
    // ====== Main loop ======================================================
-   if(importer.start(importFilePathFilter, quitWhenIdle) == false) {
+   if(importer.start(quitWhenIdle) == false) {
       exit(1);
    }
    if(quitWhenIdle) {

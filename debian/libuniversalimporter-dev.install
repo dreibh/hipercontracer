@@ -5,6 +5,7 @@ usr/include/universalimporter/databaseclient-debug.h
 usr/include/universalimporter/databaseclient-mariadb.h
 usr/include/universalimporter/databaseclient-mongodb.h
 usr/include/universalimporter/databaseclient-postgresql.h
+usr/include/universalimporter/importer-configuration.h
 usr/include/universalimporter/logger.h
 usr/include/universalimporter/reader-base.h
 usr/include/universalimporter/results-exception.h

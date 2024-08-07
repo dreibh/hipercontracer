@@ -44,11 +44,11 @@ const std::regex  JitterReader::FileNameRegExp(
 
 
 // ###### Constructor #######################################################
-JitterReader::JitterReader(const DatabaseConfiguration& databaseConfiguration,
+JitterReader::JitterReader(const ImporterConfiguration& importerConfiguration,
                            const unsigned int           workers,
                            const unsigned int           maxTransactionSize,
                            const std::string&           table)
-   : PingReader(databaseConfiguration, workers, maxTransactionSize, table)
+   : PingReader(importerConfiguration, workers, maxTransactionSize, table)
 {
 }
 
@@ -95,7 +95,7 @@ unsigned int JitterReader::parseJitterType(const std::string&           value,
    if(index != value.size()) {
       throw ResultsReaderDataErrorException("Bad jitter type format " + value +
                                             " in input file " +
-                                            relativeTo(dataFile, Configuration.getImportFilePath()).string());
+                                            relativeTo(dataFile, ImporterConfig.getImportFilePath()).string());
    }
    return jitterType;
 }
@@ -113,7 +113,7 @@ unsigned int JitterReader::parsePackets(const std::string&           value,
    if(index != value.size()) {
       throw ResultsReaderDataErrorException("Bad packets format " + value +
                                             " in input file " +
-                                            relativeTo(dataFile, Configuration.getImportFilePath()).string());
+                                            relativeTo(dataFile, ImporterConfig.getImportFilePath()).string());
    }
    return packets;
 }

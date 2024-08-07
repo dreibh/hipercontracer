@@ -196,12 +196,14 @@ bool ResultsWriter::mayStartNewTransaction()
 // ###### Generate INSERT statement #########################################
 void ResultsWriter::insert(const std::string& tuple)
 {
-   if( (Inserts == 0) && (!OutputFormatName.empty()) ) {
-      // Write header
-      OutputStream << "#? HPCT "
-                   << OutputFormatName    << " "
-                   << OutputFormatVersion << " "
-                   << ProgramID           << "\n";
+   if(__builtin_expect(Inserts == 0, 0)) {
+      if(!OutputFormatName.empty()) {
+         // Write header
+         OutputStream << "#? HPCT "
+                     << OutputFormatName    << " "
+                     << OutputFormatVersion << " "
+                     << ProgramID           << "\n";
+      }
    }
    OutputStream << tuple << "\n";
    Inserts++;

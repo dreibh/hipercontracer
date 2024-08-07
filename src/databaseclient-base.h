@@ -47,7 +47,7 @@ class DatabaseClientBase
    virtual const DatabaseBackendType getBackend() const = 0;
    virtual bool open()  = 0;
    virtual void close() = 0;
-   virtual void reconnect() = 0;
+   virtual void reconnect();
 
    virtual void startTransaction() = 0;
    virtual void executeUpdate(Statement& statement) = 0;
@@ -76,6 +76,7 @@ class DatabaseClientBase
    }
 
    virtual bool fetchNextTuple() = 0;
+   virtual bool hasColumn(const char* column) const;
    virtual int32_t getInteger(unsigned int column) const;
    virtual int32_t getInteger(const char* column) const;
    virtual int64_t getBigInt(unsigned int column) const;

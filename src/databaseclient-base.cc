@@ -30,6 +30,7 @@
 // Contact: dreibh@simula.no
 
 #include "databaseclient-base.h"
+#include "logger.h"
 
 #include <boost/asio/ip/address.hpp>
 #include <boost/beast/core/detail/base64.hpp>
@@ -54,6 +55,15 @@ DatabaseClientBase::~DatabaseClientBase()
 }
 
 
+// ###### Reconnect connection to database ##################################
+void DatabaseClientBase::reconnect()
+{
+   HPCT_LOG(debug) << "Reconnect ...";
+   close();
+   open();
+}
+
+
 // ###### Get or create new statement #######################################
 Statement& DatabaseClientBase::getStatement(const std::string& name,
                                             const bool         mustExist,
@@ -74,6 +84,13 @@ Statement& DatabaseClientBase::getStatement(const std::string& name,
       }
    }
    return *statement;
+}
+
+
+// ###### Check whether column exists #######################################
+bool DatabaseClientBase::hasColumn(const char* column) const
+{
+   abort();   // To be implemented by subclass!
 }
 
 

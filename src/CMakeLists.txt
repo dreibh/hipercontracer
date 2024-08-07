@@ -109,7 +109,7 @@ IF (WITH_IMPORTER)
       database-configuration.h
       database-statement.h
       databaseclient-base.h
-      databaseclient-debug.h
+      importer-configuration.h
       reader-base.h
       results-exception.h
       universal-importer.h
@@ -121,23 +121,31 @@ IF (WITH_IMPORTER)
       database-configuration.cc
       database-statement.cc
       databaseclient-base.cc
-      databaseclient-debug.cc
+      importer-configuration.cc
       reader-base.cc
       universal-importer.cc
       worker.cc
    )
 
+   IF (ENABLE_BACKEND_DEBUG)
+      LIST(APPEND libuniversalimporter_headers databaseclient-debug.h)
+      LIST(APPEND libuniversalimporter_sources databaseclient-debug.cc)
+      SET_PROPERTY(SOURCE database-configuration.cc APPEND PROPERTY COMPILE_DEFINITIONS ENABLE_BACKEND_DEBUG)
+   ENDIF()
    IF (ENABLE_BACKEND_MARIADB)
       LIST(APPEND libuniversalimporter_headers databaseclient-mariadb.h)
       LIST(APPEND libuniversalimporter_sources databaseclient-mariadb.cc)
+      SET_PROPERTY(SOURCE database-configuration.cc APPEND PROPERTY COMPILE_DEFINITIONS ENABLE_BACKEND_MARIADB)
    ENDIF()
    IF (ENABLE_BACKEND_POSTGRESQL)
       LIST(APPEND libuniversalimporter_headers databaseclient-postgresql.h)
       LIST(APPEND libuniversalimporter_sources databaseclient-postgresql.cc)
+      SET_PROPERTY(SOURCE database-configuration.cc APPEND PROPERTY COMPILE_DEFINITIONS ENABLE_BACKEND_POSTGRESQL)
    ENDIF()
    IF (ENABLE_BACKEND_MONGODB)
       LIST(APPEND libuniversalimporter_headers databaseclient-mongodb.h)
       LIST(APPEND libuniversalimporter_sources databaseclient-mongodb.cc)
+      SET_PROPERTY(SOURCE database-configuration.cc APPEND PROPERTY COMPILE_DEFINITIONS ENABLE_BACKEND_MONGODB)
    ENDIF()
 
 
@@ -157,8 +165,8 @@ IF (WITH_IMPORTER)
             VERSION   ${BUILD_VERSION}
             SOVERSION ${BUILD_MAJOR}
          )
-         TARGET_INCLUDE_DIRECTORIES(libuniversalimporter-${TYPE} PUBLIC ${MYSQLCPPCONN_INCLUDE_DIR} ${LIBMONGOC_INCLUDE_DIR} ${LIBBSON_INCLUDE_DIR} ${INotify_INCLUDE_DIRS})
-         TARGET_LINK_LIBRARIES(libuniversalimporter-${TYPE} ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} ${LZMA_LIBRARY} ${BZ2_LIBRARY} ${Z_LIBRARY} ${MYSQLCPPCONN_LIBRARY} ${LIBPQXX_LIBRARY} ${LIBMONGOC_LIBRARY} ${LIBBSON_LIBRARY} ${INotify_LIBRARIES})
+         TARGET_INCLUDE_DIRECTORIES(libuniversalimporter-${TYPE} PUBLIC ${LIBMARIADB_INCLUDE_DIR} ${LIBMONGOC_INCLUDE_DIR} ${LIBBSON_INCLUDE_DIR} ${INotify_INCLUDE_DIRS})
+         TARGET_LINK_LIBRARIES(libuniversalimporter-${TYPE} ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} ${LZMA_LIBRARY} ${BZ2_LIBRARY} ${Z_LIBRARY} ${LIBMARIADB_LIBRARY} ${LIBPQXX_LIBRARY} ${LIBMONGOC_LIBRARY} ${LIBBSON_LIBRARY} ${INotify_LIBRARIES})
          INSTALL(TARGETS libuniversalimporter-${TYPE} DESTINATION ${CMAKE_INSTALL_LIBDIR})
       ENDIF()
    ENDFOREACH()
@@ -200,8 +208,10 @@ IF (WITH_IMPORTER)
    TARGET_LINK_LIBRARIES(hpct-importer libuniversalimporter-${libraryType} ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
    INSTALL(TARGETS hpct-importer RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
    INSTALL(FILES hpct-importer.1 DESTINATION ${CMAKE_INSTALL_MANDIR}/man1)
-   INSTALL(FILES hpct-importer.service DESTINATION /lib/systemd/system)
-   INSTALL(FILES hpct-importer.conf    DESTINATION /etc/hipercontracer)
+   IF (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+      INSTALL(FILES hpct-importer.service DESTINATION /lib/systemd/system)
+      INSTALL(FILES hpct-importer.conf    DESTINATION /etc/hipercontracer)
+   ENDIF()
 ENDIF()
 
 # ====== HiPerConTracer Query Tool ==========================================
@@ -223,6 +233,12 @@ IF (WITH_RESULTS)
            DESTINATION ${CMAKE_INSTALL_MANDIR}/man1)
 ENDIF()
 
+# ====== HiPerConTracer Database Shell ======================================
+IF (WITH_DBSHELL)
+   INSTALL(FILES dbshell   DESTINATION ${CMAKE_INSTALL_BINDIR})
+   INSTALL(FILES dbshell.1 DESTINATION ${CMAKE_INSTALL_MANDIR}/man1)
+ENDIF()
+
 # ====== Pipe Checksum Tool =================================================
 IF (WITH_PIPE_CHECKSUM)
    ADD_EXECUTABLE(pipe-checksum pipe-checksum.cc)
@@ -240,8 +256,10 @@ IF (WITH_UDP_ECHO_SERVER)
            DESTINATION ${CMAKE_INSTALL_BINDIR})
    INSTALL(FILES udp-echo-server.1
            DESTINATION ${CMAKE_INSTALL_MANDIR}/man1)
-   INSTALL(FILES udp-echo-server.service DESTINATION /lib/systemd/system)
-   INSTALL(FILES udp-echo-server.conf    DESTINATION /etc/hipercontracer)
+   IF (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+      INSTALL(FILES udp-echo-server.service DESTINATION /lib/systemd/system)
+      INSTALL(FILES udp-echo-server.conf    DESTINATION /etc/hipercontracer)
+   ENDIF()
 ENDIF()
 
 # ====== Scripts ============================================================
@@ -266,12 +284,16 @@ INSTALL(FILES get-default-ips.1
 # TARGET_LINK_LIBRARIES(t3 ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
 # ADD_EXECUTABLE(t7 t7.cc)
 # TARGET_LINK_LIBRARIES(t7 ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
+ADD_EXECUTABLE(dbtest dbtest.cc)
+TARGET_LINK_LIBRARIES(dbtest libuniversalimporter-${libraryType} ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
 
 
 #############################################################################
 #### EXAMPLES                                                            ####
 #############################################################################
 
+INSTALL(FILES hipercontracer-importer.conf
+        DESTINATION ${CMAKE_INSTALL_DATADIR}/doc/hipercontracer/examples)
 INSTALL(FILES hipercontracer-database.conf
         DESTINATION ${CMAKE_INSTALL_DATADIR}/doc/hipercontracer/examples)
 

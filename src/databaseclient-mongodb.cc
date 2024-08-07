@@ -101,7 +101,7 @@ bool MongoDBClient::open()
 {
    assert(Connection == nullptr);
 
-   // ====== Create URI =====================================================
+   // ====== Prepare parameters =============================================
    const std::string url = "mongodb://" +
       Configuration.getServer() + ":" +
       std::to_string((Configuration.getPort() != 0) ? Configuration.getPort() : 27017) +
@@ -116,7 +116,7 @@ bool MongoDBClient::open()
    // Set options (http://mongoc.org/libmongoc/1.12.0/mongoc_uri_t.html):
    mongoc_uri_set_username(URI, Configuration.getUser().c_str());
    mongoc_uri_set_password(URI, Configuration.getPassword().c_str());
-   mongoc_uri_set_auth_mechanism(URI, "SCRAM-SHA-256");
+   // mongoc_uri_set_auth_mechanism(URI, "SCRAM-SHA-256");
 
    mongoc_uri_set_option_as_utf8(URI, MONGOC_URI_APPNAME,       "UniversalImporter");
    mongoc_uri_set_option_as_utf8(URI, MONGOC_URI_COMPRESSORS,   "snappy,zlib,zstd");
@@ -175,12 +175,17 @@ bool MongoDBClient::open()
 void MongoDBClient::close()
 {
    freeResults();
+   if(Connection != nullptr) {
+      mongoc_client_destroy(Connection);
+      Connection = nullptr;
+   }
 }
 
 
 // ###### Reconnect connection to database ##################################
 void MongoDBClient::reconnect()
 {
+   // MongoC automatically reconnects -> nothing to do here!
 }
 
 
@@ -395,6 +400,19 @@ bool MongoDBClient::fetchNextTuple()
    return false;
 }
 
+
+
+// ###### Check whether column exists #######################################
+bool MongoDBClient::hasColumn(const char* column) const
+{
+   assert(ResultDoc != nullptr);
+
+   bson_iter_t iterator;
+   if(bson_iter_init_find(&iterator, ResultDoc, column)) {
+      return true;
+   }
+   return false;
+}
 
 
 // ###### Get integer value #################################################
