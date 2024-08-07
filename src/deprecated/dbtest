@@ -10,7 +10,7 @@ import QueryHelper
 
 # ###### Main program #######################################################
 if len(sys.argv) < 2:
-   sys.stderr.write('Usage: ' + sys.argv[0] + ' database_configuration ping|traceroute from_time to_time\n')
+   sys.stderr.write('Usage: ' + sys.argv[0] + ' database_configuration\n')
    sys.exit(1)
 configurationFile = sys.argv[1]
 
