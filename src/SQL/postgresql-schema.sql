@@ -79,16 +79,16 @@ DROP VIEW IF EXISTS Ping_v1;
 CREATE VIEW Ping_v1 AS
    SELECT
       TO_TIMESTAMP(SendTimestamp / 1000000000.0)::TIMESTAMP WITHOUT TIME ZONE AS TimeStamp,
-      SourceIP                                             AS FromIP,
-      DestinationIP                                        AS ToIP,
-      PacketSize                                           AS PktSize,
-      TrafficClass                                         AS TC,
+      SourceIP                                 AS FromIP,
+      DestinationIP                            AS ToIP,
+      PacketSize                               AS PktSize,
+      TrafficClass                             AS TC,
       Status,
       CASE
          WHEN RTT_HW > 0 THEN RTT_HW / 1000
          WHEN RTT_SW > 0 THEN RTT_SW / 1000
          ELSE                 RTT_App / 1000
-      END                                                  AS RTT
+      END                                      AS RTT
    FROM Ping;
 
 
@@ -142,10 +142,10 @@ DROP VIEW IF EXISTS Traceroute_v1;
 CREATE VIEW Traceroute_v1 AS
    SELECT
       TO_TIMESTAMP(Timestamp / 1000000000.0)::TIMESTAMP WITHOUT TIME ZONE AS TimeStamp,
-      SourceIP                                             AS FromIP,
-      DestinationIP                                        AS ToIP,
-      PacketSize                                           AS PktSize,
-      TrafficClass                                         AS TC,
+      SourceIP                                 AS FromIP,
+      DestinationIP                            AS ToIP,
+      PacketSize                               AS PktSize,
+      TrafficClass                             AS TC,
       HopNumber,
       TotalHops,
       Status,
@@ -153,10 +153,10 @@ CREATE VIEW Traceroute_v1 AS
          WHEN RTT_HW > 0 THEN RTT_HW / 1000
          WHEN RTT_SW > 0 THEN RTT_SW / 1000
          ELSE                 RTT_App / 1000
-      END                                                  AS RTT,
+      END                                      AS RTT
       HopIP,
       PathHash,
-      RoundNumber                                          AS Round
+      RoundNumber                              AS Round
    FROM Traceroute;
 
 
