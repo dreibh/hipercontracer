@@ -260,7 +260,7 @@ int main(int argc, char** argv)
          }
       }
       jitterReader = new JitterReader(importerConfiguration,
-                                      jitterWorkers, jitterTransactionSize);
+                                      jitterWorkers, jitterTransactionSize,
                                       importerConfiguration.getTableName(JitterReader::Identification,
                                                                          JitterReader::Identification));
       assert(jitterReader != nullptr);
