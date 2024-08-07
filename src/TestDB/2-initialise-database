@@ -39,7 +39,7 @@ if [ $# -lt 2 ] ; then
    echo >&2 "Usage: $0 mariadb|mongodb|mysql|postgresql users.conf [--force-removal-without-confirmation]"
    exit 1
 fi
-if [ ! -e $2 ] ; then
+if [ ! -e "$2" ] ; then
    echo >&2 "ERROR: Use configuration $2 does not exist!"
 fi
 
@@ -56,14 +56,17 @@ if [ $# -gt 2 ] ; then
 else
    OPTION=""
 fi
-. ${CONFIG}
+# shellcheck disable=SC1090
+. "${CONFIG}"
 
-if [ "${MAINTAINER_PASSWORD}" = "!maintainer!" -o \
-     "${IMPORTER_PASSWORD}"   = "!importer!"   -o \
-     "${RESEARCHER_PASSWORD}" = "!researcher!" ] ; then
+if [ "${ROOT_PASSWORD}"       == "!root!"       ] || \
+   [ "${MAINTAINER_PASSWORD}" == "!maintainer!" ] || \
+   [ "${IMPORTER_PASSWORD}"   == "!importer!"   ] || \
+   [ "${RESEARCHER_PASSWORD}" == "!researcher!" ] ; then
    echo >&2 "DO NOT USE THE EXAMPLE PASSWORDS!"
    exit 1
 fi
+SERVER="$(hostname -f)"
 
 if [ "${OPTION}" != "--force-removal-without-confirmation" ] ; then
    echo -n "WARNING: THIS SCRIPT WILL ERASE THE EXISTING DATABASES. To proceed, type \"I am sure!\": "
@@ -76,19 +79,18 @@ fi
 
 
 # ###### MySQL/MariaDB ######################################################
-if [ "$1" == "mysql" -o "$1" == "mariadb" ] ; then
+if [ "$1" == "mysql" ] || [ "$1" == "mariadb" ] ; then
    # Documentation: https://www.digitalocean.com/community/tutorials/how-to-install-mariadb-on-ubuntu-22-04
 
-   echo -e "\x1b[34mPreparing admin user for MySQL/MariaDB ...\x1b[0m"
+   echo -e "\x1b[34m$(date +"%F %H:%M:%S"): Preparing admin user for MySQL/MariaDB ...\x1b[0m"
 
    # ====== Create database =================================================
-   echo -e "\x1b[33mCreating database ...\x1b[0m"
-   cat ../SQL/mariadb-database.sql | \
-      sed \
-         -e "s%\${DATABASE}%${DATABASE}%" | \
+   echo -e "\x1b[33m$(date +"%F %H:%M:%S"): Creating database ...\x1b[0m"
+   sed -e "s%\${DATABASE}%${DATABASE}%" \
+       <../SQL/mariadb-database.sql | \
       tee | \
       mysql \
-         --host=localhost \
+         --host="${SERVER}" \
          --port 3306 \
          --protocol=tcp \
          --ssl \
@@ -99,9 +101,9 @@ if [ "$1" == "mysql" -o "$1" == "mariadb" ] ; then
          --password="${ROOT_PASSWORD}"
 
    # ====== Create schema ===================================================
-   echo -e "\x1b[33mCreating schema ...\x1b[0m"
+   echo -e "\x1b[33m$(date +"%F %H:%M:%S"): Creating schema ...\x1b[0m"
    mysql \
-      --host=localhost \
+      --host="${SERVER}" \
       --port 3306 \
       --protocol=tcp \
       --ssl \
@@ -114,16 +116,15 @@ if [ "$1" == "mysql" -o "$1" == "mariadb" ] ; then
       <../SQL/mariadb-schema.sql
 
    # ====== Create users and roles ==========================================
-   echo -e "\x1b[33mCreating users and roles ...\x1b[0m"
-   cat ../SQL/mariadb-users.sql | \
-      sed \
-         -e "s%\${DATABASE}%${DATABASE}%" \
-         -e "s%\${MAINTAINER_PASSWORD}%${MAINTAINER_PASSWORD}%" \
-         -e "s%\${RESEARCHER_PASSWORD}%${RESEARCHER_PASSWORD}%" \
-         -e "s%\${IMPORTER_PASSWORD}%${IMPORTER_PASSWORD}%" | \
+   echo -e "\x1b[33m$(date +"%F %H:%M:%S"): Creating users and roles ...\x1b[0m"
+   sed -e "s%\${DATABASE}%${DATABASE}%" \
+       -e "s%\${MAINTAINER_PASSWORD}%${MAINTAINER_PASSWORD}%" \
+       -e "s%\${RESEARCHER_PASSWORD}%${RESEARCHER_PASSWORD}%" \
+       -e "s%\${IMPORTER_PASSWORD}%${IMPORTER_PASSWORD}%" \
+       <../SQL/mariadb-users.sql | \
       tee | \
       mysql \
-      --host=localhost \
+      --host="${SERVER}" \
       --port 3306 \
       --protocol=tcp \
       --ssl \
@@ -139,28 +140,27 @@ if [ "$1" == "mysql" -o "$1" == "mariadb" ] ; then
 elif [ "$1" == "postgresql" ] ; then
    # Documentation: https://www.digitalocean.com/community/tutorials/how-to-install-postgresql-on-ubuntu-22-04-quickstart
 
-   echo -e "\x1b[34mPreparing admin user for PostgreSQL ...\x1b[0m"
+   echo -e "\x1b[34m$(date +"%F %H:%M:%S"): Preparing admin user for PostgreSQL ...\x1b[0m"
 
    # ====== Create database =================================================
-   echo -e "\x1b[33mCreating database ...\x1b[0m"
-   cat ../SQL/postgresql-database.sql | \
-      sed \
-         -e "s%\${DATABASE}%${DATABASE}%" | \
+   echo -e "\x1b[33m$(date +"%F %H:%M:%S"): Creating database ...\x1b[0m"
+   sed -e "s%\${DATABASE}%${DATABASE}%" \
+       <../SQL/postgresql-database.sql | \
       tee | \
       sudo -u postgres psql
 
    # ====== Create schema ===================================================
-   echo -e "\x1b[33mCreating schema ...\x1b[0m"
+   echo -e "\x1b[33m$(date +"%F %H:%M:%S"): Creating schema ...\x1b[0m"
+   # shellcheck disable=SC2024
    sudo -u postgres psql -d "${DATABASE}" <../SQL/postgresql-schema.sql
 
    # ====== Create users and roles ==========================================
-   echo -e "\x1b[33mCreating users and roles ...\x1b[0m"
-   cat ../SQL/postgresql-users.sql | \
-      sed \
-         -e "s%\${DATABASE}%${DATABASE}%" \
-         -e "s%\${MAINTAINER_PASSWORD}%${MAINTAINER_PASSWORD}%" \
-         -e "s%\${RESEARCHER_PASSWORD}%${RESEARCHER_PASSWORD}%" \
-         -e "s%\${IMPORTER_PASSWORD}%${IMPORTER_PASSWORD}%" | \
+   echo -e "\x1b[33m$(date +"%F %H:%M:%S"): Creating users and roles ...\x1b[0m"
+   sed -e "s%\${DATABASE}%${DATABASE}%" \
+       -e "s%\${MAINTAINER_PASSWORD}%${MAINTAINER_PASSWORD}%" \
+       -e "s%\${RESEARCHER_PASSWORD}%${RESEARCHER_PASSWORD}%" \
+       -e "s%\${IMPORTER_PASSWORD}%${IMPORTER_PASSWORD}%" \
+       <../SQL/postgresql-users.sql | \
       tee | \
       sudo -u postgres psql -d "${DATABASE}"
 
@@ -169,16 +169,15 @@ elif [ "$1" == "postgresql" ] ; then
 elif [ "$1" == "mongodb" ] ; then
    # Documentation: https://www.mongodb.com/docs/manual/tutorial/install-mongodb-on-ubuntu/
 
-   echo -e "\x1b[34mPreparing admin user for MongoDB ...\x1b[0m"
+   echo -e "\x1b[34m$(date +"%F %H:%M:%S"): Preparing admin user for MongoDB ...\x1b[0m"
 
    # ====== Create database =================================================
-   echo -e "\x1b[33mCreating database ...\x1b[0m"
-   cat ../NoSQL/mongodb-database.ms | \
-      sed \
-         -e "s%\${DATABASE}%${DATABASE}%" | \
+   echo -e "\x1b[33m$(date +"%F %H:%M:%S"): Creating database ...\x1b[0m"
+   sed -e "s%\${DATABASE}%${DATABASE}%" \
+       <../NoSQL/mongodb-database.ms | \
       tee | \
       mongosh \
-         "mongodb://localhost:27017" \
+         "mongodb://${SERVER}:27017" \
          --tls \
          --tlsDisabledProtocols TLS1_0,TLS1_1,TLS1_2 \
          --tlsCAFile /etc/ssl/TestLevel1/certs/TestLevel1.crt \
@@ -188,13 +187,12 @@ elif [ "$1" == "mongodb" ] ; then
       # --tlsCertificateKeyFile /etc/ssl/root@mongodb.domain.test/root@mongodb.domain.test-chain+key.pem \
 
    # ====== Create schema ===================================================
-   echo -e "\x1b[33mCreating schema ...\x1b[0m"
-   cat ../NoSQL/mongodb-schema.ms | \
-      sed \
-         -e "s%\${DATABASE}%${DATABASE}%" | \
+   echo -e "\x1b[33m$(date +"%F %H:%M:%S"): Creating schema ...\x1b[0m"
+   sed -e "s%\${DATABASE}%${DATABASE}%" \
+       <../NoSQL/mongodb-schema.ms | \
       tee | \
       mongosh \
-         "mongodb://localhost:27017" \
+         "mongodb://${SERVER}:27017" \
          --tls \
          --tlsDisabledProtocols TLS1_0,TLS1_1,TLS1_2 \
          --tlsCAFile /etc/ssl/TestLevel1/certs/TestLevel1.crt \
@@ -202,16 +200,15 @@ elif [ "$1" == "mongodb" ] ; then
          --quiet
 
    # ====== Create users and roles ==========================================
-   echo -e "\x1b[33mCreating user and roles ...\x1b[0m"
-   cat ../NoSQL/mongodb-users.ms | \
-      sed \
-         -e "s%\${DATABASE}%${DATABASE}%" \
-         -e "s%\${MAINTAINER_PASSWORD}%${MAINTAINER_PASSWORD}%" \
-         -e "s%\${RESEARCHER_PASSWORD}%${RESEARCHER_PASSWORD}%" \
-         -e "s%\${IMPORTER_PASSWORD}%${IMPORTER_PASSWORD}%" | \
+   echo -e "\x1b[33m$(date +"%F %H:%M:%S"): Creating user and roles ...\x1b[0m"
+   sed -e "s%\${DATABASE}%${DATABASE}%" \
+       -e "s%\${MAINTAINER_PASSWORD}%${MAINTAINER_PASSWORD}%" \
+       -e "s%\${RESEARCHER_PASSWORD}%${RESEARCHER_PASSWORD}%" \
+       -e "s%\${IMPORTER_PASSWORD}%${IMPORTER_PASSWORD}%" \
+       <../NoSQL/mongodb-users.ms | \
       tee | \
       mongosh \
-         "mongodb://localhost:27017" \
+         "mongodb://${SERVER}:27017" \
          --tls \
          --tlsDisabledProtocols TLS1_0,TLS1_1,TLS1_2 \
          --tlsCAFile /etc/ssl/TestLevel1/certs/TestLevel1.crt \

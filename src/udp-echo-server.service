@@ -42,8 +42,8 @@ KillMode=process
 Restart=on-failure
 EnvironmentFile=/etc/hipercontracer/udp-echo-server.conf
 ExecStart=/usr/bin/udp-echo-server \
-   --from-port ${FROM_PORT} \
-   --to-port ${TO_PORT} \
+   --from-port "${FROM_PORT}" \
+   --to-port "${TO_PORT}" \
    --user nobody
 CPUSchedulingPolicy=fifo
 CPUSchedulingPriority=99

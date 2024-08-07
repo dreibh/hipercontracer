@@ -1,7 +1,7 @@
 # Created by: Thomas Dreibholz <thomas.dreibholz@gmail.com>
 
 PORTNAME=	hipercontracer
-PORTVERSION=	2.0.0~beta4
+DISTVERSION=	2.0.0~beta4
 PORTREVISION=	1
 CATEGORIES=	benchmarks
 MASTER_SITES=	https://www.nntb.no/~dreibh/hipercontracer/download/
@@ -23,7 +23,7 @@ LIB_DEPENDS=	bzip2 \
 		libboost_system.so:devel/boost-libs \
 		libboost_thread.so:devel/boost-libs \
 		lzmalib \
-		mysql-connector-c++ \
+		mariadb-connector-c \
 		postgresql-libpqxx \
 		mongo-c-driver
 

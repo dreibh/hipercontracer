@@ -42,35 +42,38 @@ fi
 
 # Access to database as "researcher" user:
 DBMS="$1"
-DATABASE_CONFIG="${HOME}/testdb-users-${DBMS}-researcher.conf"
+DATABASE_CONFIG="${HOME}/testdb-researcher-${DBMS}.conf"
 
 if [ ! -v VALGRIND_CMD ] ; then
    VALGRIND_CMD=""
 fi
 
+
 # ###### Run test ###########################################################
 if [ -e "${DATABASE_CONFIG}" ] ; then
 
-   if [ ! -e good -o ! -e bad -o ! -e data ] ; then
+   echo -e "\x1b[34m$(date +"%F %H:%M:%S"): Querying results ...\x1b[0m"
+
+   if [ ! -e good ] || [ ! -e bad ] || [ ! -e data ] ; then
       echo >&2 "ERROR: Directories missing! Did 5-perform-hpct-importer-test succeed?"
       exit 1
    fi
 
    for table in Ping Traceroute Jitter ; do
 
-      echo "Obtaining ${table} data from good/ directory ..."
+      echo -e "\x1b[33m$(date +"%F %H:%M:%S"): Obtaining ${table} data from good/ directory ...\x1b[0m"
       find good/ -name "${table}-*.results.*" | ../hpct-results --input-file-names-from-stdin -o imported-${table,,}.csv
 
-      echo "Querying ${table} data from database ..."
-      ${VALGRIND_CMD} ../hpct-query "${DATABASE_CONFIG}" ${table,,} -o queried-${table,,}-${DBMS}.results
-      ${VALGRIND_CMD} ../hpct-results queried-${table,,}-${DBMS}.results -o queried-${table,,}-${DBMS}.csv
+      echo -e "\x1b[33m$(date +"%F %H:%M:%S"): Querying ${table} data from database ...\x1b[0m"
+      ${VALGRIND_CMD} ../hpct-query "${DATABASE_CONFIG}" ${table,,} -o queried-${table,,}-"${DBMS}".results
+      ${VALGRIND_CMD} ../hpct-results queried-${table,,}-"${DBMS}".results -o queried-${table,,}-"${DBMS}".csv
 
-      echo "Checking for differences in ${table}:"
+      echo -e "\x1b[33m$(date +"%F %H:%M:%S"): Checking for differences in ${table}:\x1b[0m"
       wc -ml imported-${table,,}.csv
-      wc -ml queried-${table,,}-${DBMS}.csv
-      if ! diff imported-${table,,}.csv queried-${table,,}-${DBMS}.csv ; then
+      wc -ml queried-${table,,}-"${DBMS}".csv
+      if ! diff imported-${table,,}.csv queried-${table,,}-"${DBMS}".csv ; then
          echo "RESULTS DIFFER!"
-         diff --color=always imported-${table,,}.csv queried-${table,,}-${DBMS}.csv | head -n32
+         diff --color=always imported-${table,,}.csv queried-${table,,}-"${DBMS}".csv | head -n32
          exit 1
       fi
 

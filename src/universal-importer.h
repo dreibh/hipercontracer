@@ -33,6 +33,7 @@
 #define UNIVERSAL_IMPORTER_H
 
 #include "databaseclient-base.h"
+#include "importer-configuration.h"
 #include "reader-base.h"
 
 #include <boost/asio.hpp>
@@ -47,6 +48,7 @@ class UniversalImporter
 {
    public:
    UniversalImporter(boost::asio::io_service&     ioService,
+                     const ImporterConfiguration& importerConfiguration,
                      const DatabaseConfiguration& databaseConfiguration,
                      const unsigned int           statusTimerInterval = 60);
    ~UniversalImporter();
@@ -55,9 +57,8 @@ class UniversalImporter
                   DatabaseClientBase** databaseClientArray,
                   const size_t         databaseClients);
    void removeReader(ReaderBase& reader);
-   void lookForFiles(const std::string& importFilePathFilter = std::string());
-   bool start(const std::string& importFilePathFilter = std::string(),
-              const bool         quitWhenIdle         = false);
+   void lookForFiles();
+   bool start(const bool quitWhenIdle = false);
    void stop();
    void waitForFinish();
    void run();
@@ -71,8 +72,7 @@ class UniversalImporter
                            const std::size_t                length);
    unsigned long long lookForFiles(const std::filesystem::path& importFilePath,
                                    const unsigned int           currentDepth,
-                                   const unsigned int           maxDepth,
-                                   const std::regex&            directoryFilterRegExp);
+                                   const unsigned int           maxDepth);
    bool addFile(const std::filesystem::path& dataFile);
    bool removeFile(const std::filesystem::path& dataFile);
    void handleStatusTimer(const boost::system::error_code& errorCode);
@@ -85,7 +85,11 @@ class UniversalImporter
                          const UniversalImporter::WorkerMapping& b);
 
    boost::asio::io_service&                 IOService;
-   const DatabaseConfiguration&             Configuration;
+   const DatabaseConfiguration&             DatabaseConfig;
+   const ImporterConfiguration&             ImporterConfig;
+   const bool                               HasImportPathFilter;
+   const std::string                        ImportPathFilter;
+   const std::regex                         ImportPathFilterRegEx;
 
    boost::asio::signal_set                  Signals;
    std::list<ReaderBase*>                   ReaderList;

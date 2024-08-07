@@ -39,7 +39,7 @@ if [ $# -ne 2 ] ; then
    echo >&2 "Usage: $0 mariadb|mongodb|mysql|postgresql users.conf"
    exit 1
 fi
-if [ ! -e $2 ] ; then
+if [ ! -e "$2" ] ; then
    echo >&2 "ERROR: Use configuration $2 does not exist!"
 fi
 
@@ -48,15 +48,17 @@ DATABASE="just_a_test_database"
 MAINTAINER_PASSWORD="!maintainer!"
 IMPORTER_PASSWORD="!importer!"
 RESEARCHER_PASSWORD="!researcher!"
-. $2
+# shellcheck disable=SC1090
+. "$2"
 
-if [ "${ROOT_PASSWORD}"       = "!root!"       -o \
-     "${MAINTAINER_PASSWORD}" = "!maintainer!" -o \
-     "${IMPORTER_PASSWORD}"   = "!importer!"   -o \
-     "${RESEARCHER_PASSWORD}" = "!researcher!" ] ; then
+if [ "${ROOT_PASSWORD}"       == "!root!"       ] || \
+   [ "${MAINTAINER_PASSWORD}" == "!maintainer!" ] || \
+   [ "${IMPORTER_PASSWORD}"   == "!importer!"   ] || \
+   [ "${RESEARCHER_PASSWORD}" == "!researcher!" ] ; then
    echo >&2 "DO NOT USE THE EXAMPLE PASSWORDS!"
    exit 1
 fi
+SERVER="$(hostname -f)"
 
 
 # ###### MariaDB ############################################################
@@ -64,10 +66,10 @@ if [ "$1" == "mariadb" ] ; then
    # Documentation: https://www.digitalocean.com/community/tutorials/how-to-install-mariadb-on-ubuntu-22-04
 
    # ====== Install MariaDB =================================================
-   echo "Installing MariaDB ..."
+   echo -e "\x1b[34m$(date +"%F %H:%M:%S"): Installing MariaDB ...\x1b[0m"
 
    if [ -x /usr/bin/apt ] ; then
-      sudo DEBIAN_FRONTEND=noninteractive apt install -y -o APT::Keep-Downloaded-Packages=true mariadb-server mariadb-backup mariadb-client openssl
+      sudo DEBIAN_FRONTEND=noninteractive apt install -y -o APT::Keep-Downloaded-Packages=true mariadb-server mariadb-backup mariadb-client libmariadb-dev openssl
    elif [ -x /usr/bin/dnf ] ; then
       sudo dnf install -y mariadb-server mariadb-backup openssl
       sudo systemctl enable mariadb.service
@@ -97,7 +99,7 @@ if [ "$1" == "mariadb" ] ; then
 ALTER USER 'root'@'localhost' IDENTIFIED BY '${ROOT_PASSWORD}';
 DELETE FROM mysql.user WHERE User='';
 DELETE FROM mysql.user WHERE User='root' AND Host NOT IN ('localhost', '127.0.0.1', '::1');
-DROP DATABASE IF EXISTS test;
+DROP DATABASE IF EXISTS ${DATABASE};
 DELETE FROM mysql.db WHERE Db='test' OR Db='test\\_%';
 FLUSH PRIVILEGES;
 EOF
@@ -118,25 +120,21 @@ EOF
    elif [ -x /usr/bin/dnf ] ; then
       sudo sed \
          -e "s%^#bind-address[ \t]*=.*%bind-address = *\nssl-ca = ${MARIADB_CA_FILE}\nssl-crl = ${MARIADB_CRL_FILE}\nssl-cert = ${MARIADB_CRT_FILE}\nssl-key = ${MARIADB_KEY_FILE}\nrequire-secure-transport = on\ntls_version = TLSv1.3%g" \
-         </etc/my.cnf.d/mariadb-server.cnf >/etc/my.cnf.d/mariadb-server.cnf.new && \
+         /etc/my.cnf.d/mariadb-server.cnf | sudo tee /etc/my.cnf.d/mariadb-server.cnf.new && \
       sudo diff --color /etc/my.cnf.d/mariadb-server.cnf /etc/my.cnf.d/mariadb-server.cnf.new || true && \
       sudo mv /etc/my.cnf.d/mariadb-server.cnf.new /etc/my.cnf.d/mariadb-server.cnf
       sudo service mariadb restart
    elif [ -x /usr/sbin/pkg ] ; then
       sudo sed \
          -e "s%^bind-address[ \t]*=.*%bind-address = *\nssl-ca = ${MARIADB_CA_FILE}\nssl-crl = ${MARIADB_CRL_FILE}\nssl-cert = ${MARIADB_CRT_FILE}\nssl-key = ${MARIADB_KEY_FILE}\nrequire-secure-transport = on\ntls_version = TLSv1.3%g" \
-         </usr/local/etc/mysql/conf.d/server.cnf >/usr/local/etc/mysql/conf.d/server.cnf.new && \
+         /usr/local/etc/mysql/conf.d/server.cnf | sudo tee /usr/local/etc/mysql/conf.d/server.cnf.new && \
       sudo diff --color /usr/local/etc/mysql/conf.d/server.cnf /usr/local/etc/mysql/conf.d/server.cnf.new || true && \
       sudo mv /usr/local/etc/mysql/conf.d/server.cnf.new /usr/local/etc/mysql/conf.d/server.cnf
       sudo service mysql-server restart
    fi
 
    # ====== Test configuration ==============================================
-   ./test-tls-connection localhost:3306 /etc/ssl/TestLevel1/certs/TestLevel1.crt -starttls mysql
-
-   # Install MySQL Workbench:
-   # wget https://dev.mysql.com/get/Downloads/MySQLGUITools/mysql-workbench-community_8.0.31-1ubuntu22.10_amd64.deb
-   # sudo DEBIAN_FRONTEND=noninteractive apt install ./mysql-workbench-community_8.0.31-1ubuntu22.10_amd64.deb
+   ./test-tls-connection "${SERVER}:3306" /etc/ssl/TestLevel1/certs/TestLevel1.crt -starttls mysql
 
 
 # ###### PostgreSQL #########################################################
@@ -144,7 +142,7 @@ elif [ "$1" == "postgresql" ] ; then
    # Documentation: https://www.digitalocean.com/community/tutorials/how-to-install-postgresql-on-ubuntu-22-04-quickstart
 
    # ====== Install PostgreSQL ==============================================
-   echo "Installing PostgreSQL ..."
+   echo -e "\x1b[34m$(date +"%F %H:%M:%S"): Installing PostgreSQL ...\x1b[0m"
 
    if [ -x /usr/bin/apt ] ; then
       sudo DEBIAN_FRONTEND=noninteractive apt install -y -o APT::Keep-Downloaded-Packages=true openssl postgresql-all postgresql-contrib
@@ -168,7 +166,7 @@ elif [ "$1" == "postgresql" ] ; then
    sudo chown postgres:postgres ${POSTGRESQL_KEY_FILE}
    sudo openssl verify -CAfile ${POSTGRESQL_CA_FILE} ${POSTGRESQL_CRT_FILE}
 
-   POSTGRESETC=`find /etc/postgresql/ -mindepth 1 -maxdepth 1 -type d | grep "[0-9]$" | sort -r | head -n1`
+   POSTGRESETC=$(find /etc/postgresql/ -mindepth 1 -maxdepth 1 -type d | grep "[0-9]$" | sort -r | head -n1)
    if [ "${POSTGRESETC}" == "" ] ; then
       echo >&2 "ERROR: Cannot find the /etc/postgresql/* directory!"
       exit 1
@@ -179,9 +177,9 @@ elif [ "$1" == "postgresql" ] ; then
    sudo sed \
       -e 's#^host    all             all             127.0.0.1/32            scram-sha-256#host    all             all             0.0.0.0/0               scram-sha-256#' \
       -e 's#^host    all             all             ::1/128                 scram-sha-256#host    all             all             ::/0                    scram-sha-256#' \
-      ${POSTGRESETC}/main/pg_hba.conf | sudo tee ${POSTGRESETC}/main/pg_hba.conf.new >/dev/null && \
-   diff --color ${POSTGRESETC}/main/pg_hba.conf.new ${POSTGRESETC}/main/pg_hba.conf || true && \
-   sudo mv ${POSTGRESETC}/main/pg_hba.conf.new ${POSTGRESETC}/main/pg_hba.conf
+      "${POSTGRESETC}"/main/pg_hba.conf | sudo tee "${POSTGRESETC}"/main/pg_hba.conf.new >/dev/null && \
+   diff --color "${POSTGRESETC}"/main/pg_hba.conf.new "${POSTGRESETC}"/main/pg_hba.conf || true && \
+   sudo mv "${POSTGRESETC}"/main/pg_hba.conf.new "${POSTGRESETC}"/main/pg_hba.conf
 
    sudo sed \
       -e "s%#listen_addresses = 'localhost'%listen_addresses = '*'        %" \
@@ -192,14 +190,14 @@ elif [ "$1" == "postgresql" ] ; then
       -e "s%#ssl_ciphers = '.*'%ssl_ciphers = 'ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-AES256-SHA384:ECDHE-RSA-AES256-SHA384:ECDHE-ECDSA-AES256-SHA:ECDHE-RSA-AES256'%" \
       -e "s%#ssl_prefer_server_ciphers = on%ssl_prefer_server_ciphers = on%" \
       -e "s%#ssl_min_protocol_version = 'TLSv1.2'%ssl_min_protocol_version = 'TLSv1.3'%" \
-      ${POSTGRESETC}/main/postgresql.conf | sudo tee ${POSTGRESETC}/main/postgresql.conf.new >/dev/null && \
-   diff --color ${POSTGRESETC}/main/postgresql.conf.new ${POSTGRESETC}/main/postgresql.conf || true && \
-   sudo mv ${POSTGRESETC}/main/postgresql.conf.new ${POSTGRESETC}/main/postgresql.conf
+      "${POSTGRESETC}"/main/postgresql.conf | sudo tee "${POSTGRESETC}"/main/postgresql.conf.new >/dev/null && \
+   diff --color "${POSTGRESETC}"/main/postgresql.conf.new "${POSTGRESETC}"/main/postgresql.conf || true && \
+   sudo mv "${POSTGRESETC}"/main/postgresql.conf.new "${POSTGRESETC}"/main/postgresql.conf
 
    sudo service postgresql restart
 
    # ====== Test configuration ==============================================
-   ./test-tls-connection localhost:5432 /etc/ssl/TestLevel1/certs/TestLevel1.crt -starttls postgres
+   ./test-tls-connection "${SERVER}:5432" /etc/ssl/TestLevel1/certs/TestLevel1.crt -starttls postgres
 
 
 # ###### MongoDB ############################################################
@@ -207,24 +205,37 @@ elif [ "$1" == "mongodb" ] ; then
    # Documentation: https://www.mongodb.com/docs/manual/tutorial/install-mongodb-on-ubuntu/
 
    # ====== Install MongoDB =================================================
-   echo "Installing MongoDB ..."
+   echo -e "\x1b[34m$(date +"%F %H:%M:%S"): Installing MongoDB ...\x1b[0m"
+
+   MONGODB_VERSION="development"
+   MONGODB_KEY="dev"
+   # MONGODB_VERSION="8.0"
+   # MONGODB_KEY="${MONGODB_VERSION}"
 
    if [ -x /usr/bin/apt ] ; then
-      wget -qO - https://www.mongodb.org/static/pgp/server-7.0.asc | gpg --dearmor | sudo tee /usr/share/keyrings/mongodb.gpg >/dev/null
+      CODENAME="$(lsb_release -cs | tail -n1)"
+      for key in 8.0 ${MONGODB_KEY} ; do
+         wget -qO - https://www.mongodb.org/static/pgp/server-${key}.asc | gpg --dearmor | sudo tee /usr/share/keyrings/mongodb-${key}.gpg >/dev/null
+      done
       if [ ! -e /etc/apt/sources.list.d/mongodb-org.list ] ; then
-         echo "deb [ signed-by=/usr/share/keyrings/mongodb.gpg arch=amd64,arm64 ] https://repo.mongodb.org/apt/ubuntu jammy/mongodb-org/7.0 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org.list
+         (
+cat <<EOF
+deb [ signed-by=/usr/share/keyrings/mongodb-8.0.gpg ] https://repo.mongodb.org/apt/ubuntu ${CODENAME}/mongodb-org/8.0 multiverse
+deb [ signed-by=/usr/share/keyrings/mongodb-${MONGODB_KEY}.gpg ] https://repo.mongodb.org/apt/ubuntu ${CODENAME}/mongodb-org/${MONGODB_VERSION} multiverse
+EOF
+         ) | sudo tee /etc/apt/sources.list.d/mongodb-org.list >/dev/null
       fi
       sudo apt update -qq
-      sudo DEBIAN_FRONTEND=noninteractive apt install -y -o APT::Keep-Downloaded-Packages=true mongodb-org openssl
+      sudo DEBIAN_FRONTEND=noninteractive apt install -y -o APT::Keep-Downloaded-Packages=true mongodb-org mongodb-mongosh openssl
    elif [ -x /usr/bin/dnf ] ; then
       (
          cat <<EOF
 [mongodb-org]
 name=MongoDB Repository
-baseurl=https://repo.mongodb.org/yum/redhat/9/mongodb-org/7.0/x86_64/
+baseurl=https://repo.mongodb.org/yum/redhat/9/mongodb-org/${MONGODB_VERSION}/x86_64/
 gpgcheck=1
 enabled=1
-gpgkey=https://www.mongodb.org/static/pgp/server-7.0.asc
+gpgkey=https://www.mongodb.org/static/pgp/server-${MONGODB_KEY}.asc
 EOF
       ) | sudo tee /etc/yum.repos.d/mongodb-org.repo
       sudo dnf install -y mongodb-org openssl
@@ -304,7 +315,7 @@ EOF
    sleep 5
 
    # ====== Test configuration ==============================================
-   ./test-tls-connection localhost:27017 /etc/ssl/TestLevel1/certs/TestLevel1.crt
+   ./test-tls-connection "${SERVER}:27017" /etc/ssl/TestLevel1/certs/TestLevel1.crt
 
 
 # ###### Error ##############################################################

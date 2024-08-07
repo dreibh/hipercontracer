@@ -5,7 +5,7 @@
 INSTALL(FILES
            CertificateHelper.py
            README.md
-           0-make-users.conf
+           0-make-configurations
            1-install-database
            2-initialise-database
            3-test-database
