@@ -34,6 +34,7 @@
 
 #include <math.h>
 #include <pwd.h>
+#include <time.h>
 
 #include <chrono>
 #include <filesystem>
@@ -114,7 +115,6 @@ template<typename TimePoint> TimePoint nowInUTC()
 }
 
 
-#if 0
 // ###### Convert microseconds since the epoch to time point ################
 template <typename TimePoint> TimePoint microsecondsToTimePoint(const unsigned long long microTime)
 {
@@ -131,7 +131,6 @@ template <typename TimePoint> unsigned long long timePointToMicroseconds(const T
       std::chrono::duration_cast<std::chrono::microseconds>(timePoint.time_since_epoch());
    return microseconds.count();
 }
-#endif
 
 
 // ###### Convert nanoseconds since the epoch to time point #################
@@ -185,7 +184,8 @@ template <typename TimePoint> std::string timePointToString(
 template <typename TimePoint> bool stringToTimePoint(
                                       const std::string& string,
                                       TimePoint&         timePoint,
-                                      const char*        format = "%Y-%m-%d %H:%M:%S")
+                                      const char*        format = "%Y-%m-%d %H:%M:%S",
+                                      const bool         utc    = true)
 {
    // ====== Handle time in seconds granularity =============================
    std::istringstream iss(string);
@@ -193,7 +193,8 @@ template <typename TimePoint> bool stringToTimePoint(
    if(!(iss >> std::get_time(&tm, format))) {
       return false;
    }
-   timePoint = TimePoint(std::chrono::seconds(std::mktime(&tm)));
+   const std::time_t t = (utc == true) ? timegm(&tm) : mktime(&tm);
+   timePoint = TimePoint(std::chrono::seconds(t));
    if(iss.eof()) {
       return true;
    }

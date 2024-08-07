@@ -34,10 +34,10 @@
 
 // ###### Constructor #######################################################
 ReaderBase::ReaderBase(
-   const DatabaseConfiguration& databaseConfiguration,
+   const ImporterConfiguration& importerConfiguration,
    const unsigned int           workers,
    const unsigned int           maxTransactionSize)
-   : Configuration(databaseConfiguration),
+   : ImporterConfig(importerConfiguration),
      Workers(workers),
      MaxTransactionSize(maxTransactionSize)
 {
@@ -58,4 +58,82 @@ ReaderBase::~ReaderBase()
 {
    delete [] Statistics;
    Statistics = nullptr;
+}
+
+
+// ###### Make directory hierarchy from a file, relative to importer path ###
+// Example:
+// dataFile="4133/udpping/2024-06-12/uping_10382.dat.2024-06-12_13-10-22.xz"
+// timestamp=(2024-06-12 13:10:22)
+// directoryLevels=0 timestampLevels=5 -> "2024/06/11/15:00"
+// directoryLevels=0 timestampLevels=4 -> "2024/06/11/15:00"
+// directoryLevels=0 timestampLevels=3 -> "2024/06/11"
+// directoryLevels=0 timestampLevels=2 -> "2024/06"
+// directoryLevels=0 timestampLevels=1 -> "2024"
+// directoryLevels=0 timestampLevels=0 -> ""
+// directoryLevels=1 timestampLevels=5 -> "4133/2024/06/11/15:00"
+// directoryLevels=1 timestampLevels=4 -> "4133/2024/06/11/15:00"
+// directoryLevels=1 timestampLevels=3 -> "4133/2024/06/11"
+// directoryLevels=1 timestampLevels=2 -> "4133/2024/06"
+// directoryLevels=1 timestampLevels=1 -> "4133/2024"
+// directoryLevels=1 timestampLevels=0 -> "4133"
+// directoryLevels=2 timestampLevels=5 -> "4133/udpping/2024/06/11/15:00"
+// directoryLevels=2 timestampLevels=4 -> "4133/udpping/2024/06/11/15:00"
+// directoryLevels=2 timestampLevels=3 -> "4133/udpping/2024/06/11"
+// directoryLevels=2 timestampLevels=2 -> "4133/udpping/2024/06"
+// directoryLevels=2 timestampLevels=1 -> "4133/udpping/2024"
+// directoryLevels=2 timestampLevels=0 -> "4133/udpping"
+std::filesystem::path ReaderBase::makeDirectoryHierarchy(const std::filesystem::path& dataFile,
+                                                         const ReaderTimePoint&       timeStamp) const
+{
+   const int             directoryLevels = ImporterConfig.getMoveDirectoryDepth();
+   const int             timestampLevels = ImporterConfig.getMoveTimestampDepth();
+   std::filesystem::path hierarchy;
+
+   // FIXME!
+   std::filesystem::path ABS("/home/nornetpp/src/nne-server-utils/universal-importer/src/TestDB/data/");
+
+
+   // Get the relative directory the file is located in:
+   std::error_code             ec;
+   const std::filesystem::path relPath =
+      std::filesystem::relative(dataFile.parent_path(), ImporterConfig.getImportFilePath(), ec);
+
+   if( (!ec) /* && (relPath .has_parent_path())  */ ) {
+      unsigned int d = 0;
+      for(std::filesystem::path::const_iterator iterator = relPath.begin(); iterator != relPath.end(); iterator++) {
+         if(d++ >= directoryLevels) {
+            break;
+         }
+         else if( (d == 1) && ((*iterator) == ".") ) {
+            // First directory is ".": there is no hierarchy -> stop here.
+            break;
+         }
+         // std::cout << "i=" << (*iterator) << "\t";
+         hierarchy = hierarchy / (*iterator);
+      }
+   }
+
+   if(timestampLevels > 0) {
+      const char* format = nullptr;
+      if(timestampLevels >= 5) {
+         format = "%Y/%m/%d/%H:%M";
+      }
+      else if(timestampLevels == 4) {
+         format = "%Y/%m/%d/%H:00";
+      }
+      else if(timestampLevels == 3) {
+         format = "%Y/%m/%d";
+      }
+      else if(timestampLevels == 2) {
+         format = "%Y/%m";
+      }
+      else if(timestampLevels == 1) {
+         format = "%Y";
+      }
+      hierarchy = hierarchy / timePointToString<ReaderTimePoint>(timeStamp, 0, format);
+   }
+
+   // std::cout << dataFile << " -> " << hierarchy << "\n";
+   return hierarchy;
 }

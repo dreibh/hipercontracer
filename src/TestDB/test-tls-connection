@@ -47,4 +47,5 @@ if [ ! -e "${CAFILE}" ] ; then
    exit 1
 fi
 
-echo "" | openssl s_client -showcerts -connect ${ENDPOINT}  -CAfile "${CAFILE}" $@ | head
+# shellcheck disable=SC2068
+echo "" | openssl s_client -showcerts -connect "${ENDPOINT}" -CAfile "${CAFILE}" $@ | head

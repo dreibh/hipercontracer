@@ -16,6 +16,7 @@ BuildRequires: gcc
 BuildRequires: gcc-c++
 BuildRequires: libbson-devel
 BuildRequires: libpqxx-devel
+BuildRequires: mariadb-connector-c-devel
 BuildRequires: mongo-c-driver-devel
 BuildRequires: openssl-devel
 BuildRequires: xz-devel
@@ -40,7 +41,7 @@ imported into an SQL or NoSQL database.
 %build
 # NOTE: CMAKE_VERBOSE_MAKEFILE=OFF for reduced log output!
 # NOTE: ENABLE_BACKEND_MARIADB=OFF, since mysql-connector-c++ is not provided by Fedora.
-%cmake -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_VERBOSE_MAKEFILE=OFF -DENABLE_BACKEND_MARIADB=OFF .
+%cmake -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_VERBOSE_MAKEFILE=OFF .
 %cmake_build
 
 %pre
@@ -169,6 +170,7 @@ own programs.
 # universalimporter/databaseclient-mariadb.h
 %{_includedir}/universalimporter/databaseclient-mongodb.h
 %{_includedir}/universalimporter/databaseclient-postgresql.h
+%{_includedir}/universalimporter/importer-configuration.h
 %{_includedir}/universalimporter/logger.h
 %{_includedir}/universalimporter/reader-base.h
 %{_includedir}/universalimporter/results-exception.h
@@ -197,11 +199,33 @@ This tool triggers HiPerConTracer by incoming "Ping" packets.
 %{_mandir}/man1/hpct-trigger.1.gz
 
 
+%package hipercontracer-dbshell
+Summary: HiPerConTracer results data dbshell
+Group: Applications/Database
+Requires: %{name}-libuniversaldbshell = %{version}-%{release}
+Recommends: %{name} = %{version}-%{release}
+
+%description hipercontracer-dbshell
+High-Performance Connectivity Tracer (HiPerConTracer) is a
+Ping/Traceroute service. It performs regular Ping and Traceroute runs
+among sites. The results are written to data files, which can be
+imported into an SQL or NoSQL database.
+This package contains a simple script to start a database shell, based on the
+settings from a given database configuration file. It is mainly intended to
+test database access using the configuration files for HiPerConTracer Importer
+and HiPerConTracer Query Tool.
+
+%files hipercontracer-dbshell
+%{_bindir}/dbshell
+%{_mandir}/man1/dbshell.1.gz
+
+
 %package hipercontracer-importer
 Summary: HiPerConTracer results data importer
 Group: Applications/Database
 Requires: %{name}-libuniversalimporter = %{version}-%{release}
 Recommends: %{name} = %{version}-%{release}
+Recommends: %{name}-dbshell = %{version}-%{release}
 Recommends: pwgen
 
 %description hipercontracer-importer
@@ -247,6 +271,7 @@ HiPerConTracer into an SQL or NoSQL database.
 %{_datadir}/doc/hipercontracer/examples/TestDB/test-tls-connection
 %{_datadir}/doc/hipercontracer/examples/TestDB/users.conf.example
 %{_datadir}/doc/hipercontracer/examples/hipercontracer-database.conf
+%{_datadir}/doc/hipercontracer/examples/hipercontracer-importer.conf
 %{_sysconfdir}/hipercontracer/hpct-importer.conf
 /lib/systemd/system/hpct-importer.service
 
@@ -255,6 +280,7 @@ HiPerConTracer into an SQL or NoSQL database.
 Summary: HiPerConTracer Query Tool to query results from a database
 Group: Applications/Database
 Recommends: %{name} = %{version}-%{release}
+Recommends: %{name}-dbshell = %{version}-%{release}
 Recommends: %{name}-results = %{version}-%{release}
 
 %description hipercontracer-query-tool

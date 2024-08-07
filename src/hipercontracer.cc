@@ -277,7 +277,7 @@ int main(int argc, char** argv)
       ( "resultsdirectory,R",
            boost::program_options::value<std::filesystem::path>(&resultsDirectory)->default_value(std::string()),
            "Results directory" )
-      ( "resultstransactionlength,l",
+      ( "resultstransactionlength,x",
            boost::program_options::value<unsigned int>(&resultsTransactionLength)->default_value(60),
            "Results directory in s" )
       ( "resultscompression,C",

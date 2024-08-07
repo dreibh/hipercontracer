@@ -15,12 +15,11 @@ Build-Depends: cmake (>= 3.10),
                libbz2-dev,
                libc-ares-dev,
                liblzma-dev,
+               libmariadb-dev,
                libmongoc-dev,
-               libmysqlcppconn-dev,
                libpqxx-dev,
-               pkg-config,
                zlib1g-dev
-Standards-Version: 4.6.2
+Standards-Version: 4.7.0
 Rules-Requires-Root: no
 
 Package: libhipercontracer2
@@ -123,12 +122,29 @@ Description: Triggered HiPerConTracer service
  .
  This tool triggers HiPerConTracer by incoming "Ping" packets.
 
+Package: hipercontracer-dbhsell
+Architecture: all
+Depends: ${misc:Depends}
+Recommends: hipercontracer,
+            pwgen
+Description: HiPerConTracer Database Shell for access testing to a database
+ High-Performance Connectivity Tracer (HiPerConTracer) is a
+ Ping/Traceroute service. It performs regular Ping and Traceroute runs
+ among sites. The results are written to data files, which can be
+ imported into an SQL or NoSQL database.
+ .
+ This package contains a simple script to start a database shell, based on the
+ settings from a given database configuration file. It is mainly intended to
+ test database access using the configuration files for HiPerConTracer Importer
+ and HiPerConTracer Query Tool.
+
 Package: hipercontracer-importer
 Architecture: any
 Depends: libuniversalimporter2 (= ${binary:Version}),
          ${misc:Depends},
          ${shlibs:Depends}
 Recommends: hipercontracer,
+            hipercontracer-dbhsell (= ${binary:Version}),
             pwgen
 Description: HiPerConTracer Importer for importing results into a database
  High-Performance Connectivity Tracer (HiPerConTracer) is a
@@ -141,7 +157,8 @@ Description: HiPerConTracer Importer for importing results into a database
 
 Package: hipercontracer-query-tool
 Architecture: any
-Depends: libuniversalimporter2 (= ${binary:Version}),
+Depends: hipercontracer-dbhsell (= ${binary:Version}),
+         libuniversalimporter2 (= ${binary:Version}),
          ${misc:Depends},
          ${shlibs:Depends}
 Recommends: hipercontracer,

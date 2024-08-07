@@ -121,11 +121,11 @@ ReaderPriority getPriorityOfFileEntry(const TracerouteFileEntry& inputFileEntry)
 
 
 // ###### Constructor #######################################################
-TracerouteReader::TracerouteReader(const DatabaseConfiguration& databaseConfiguration,
+TracerouteReader::TracerouteReader(const ImporterConfiguration& importerConfiguration,
                                    const unsigned int           workers,
                                    const unsigned int           maxTransactionSize,
                                    const std::string&           table)
-   : ReaderImplementation<TracerouteFileEntry>(databaseConfiguration, workers, maxTransactionSize),
+   : ReaderImplementation<TracerouteFileEntry>(importerConfiguration, workers, maxTransactionSize),
      Table(table)
 { }
 
@@ -148,8 +148,8 @@ unsigned long long TracerouteReader::parseMeasurementID(const std::string&      
    }
    catch(...) { }
    throw ResultsReaderDataErrorException("Bad measurement ID value " + value +
-                                          " in input file " +
-                                          relativeTo(dataFile, Configuration.getImportFilePath()).string());
+                                         " in input file " +
+                                         relativeTo(dataFile, ImporterConfig.getImportFilePath()).string());
 }
 
 
@@ -164,7 +164,7 @@ boost::asio::ip::address TracerouteReader::parseAddress(const std::string&      
    catch(...) { }
    throw ResultsReaderDataErrorException("Bad address " + value +
                                          " in input file " +
-                                         relativeTo(dataFile, Configuration.getImportFilePath()).string());
+                                         relativeTo(dataFile, ImporterConfig.getImportFilePath()).string());
 }
 
 
@@ -184,7 +184,7 @@ ReaderTimePoint TracerouteReader::parseTimeStamp(const std::string&           va
             (timeStamp > now + std::chrono::hours(24)) ) {             /* 1 day in the future  */
             throw ResultsReaderDataErrorException("Invalid time stamp value (too old, or in the future) " + value +
                                                 " in input file " +
-                                                relativeTo(dataFile, Configuration.getImportFilePath()).string());
+                                                relativeTo(dataFile, ImporterConfig.getImportFilePath()).string());
          }
          return timeStamp;
       }
@@ -193,7 +193,7 @@ ReaderTimePoint TracerouteReader::parseTimeStamp(const std::string&           va
    std::cerr << value << "\n";
    throw ResultsReaderDataErrorException("Bad time stamp format " + value +
                                          " in input file " +
-                                         relativeTo(dataFile, Configuration.getImportFilePath()).string());
+                                         relativeTo(dataFile, ImporterConfig.getImportFilePath()).string());
 }
 
 
@@ -209,7 +209,7 @@ unsigned int TracerouteReader::parseRoundNumber(const std::string&           val
    if(index != value.size()) {
       throw ResultsReaderDataErrorException("Bad round number " + value +
                                             " in input file " +
-                                            relativeTo(dataFile, Configuration.getImportFilePath()).string());
+                                            relativeTo(dataFile, ImporterConfig.getImportFilePath()).string());
    }
    return roundNumber;
 }
@@ -227,12 +227,12 @@ uint8_t TracerouteReader::parseTrafficClass(const std::string&           value,
    if(index != value.size()) {
       throw ResultsReaderDataErrorException("Bad traffic class format " + value +
                                             " in input file " +
-                                            relativeTo(dataFile, Configuration.getImportFilePath()).string());
+                                            relativeTo(dataFile, ImporterConfig.getImportFilePath()).string());
    }
    if(trafficClass > 0xff) {
       throw ResultsReaderDataErrorException("Invalid traffic class value " + value +
                                             " in input file " +
-                                            relativeTo(dataFile, Configuration.getImportFilePath()).string());
+                                            relativeTo(dataFile, ImporterConfig.getImportFilePath()).string());
    }
    return (uint8_t)trafficClass;
 }
@@ -250,7 +250,7 @@ unsigned int TracerouteReader::parsePacketSize(const std::string&           valu
    if(index != value.size()) {
       throw ResultsReaderDataErrorException("Bad packet size format " + value +
                                             " in input file " +
-                                            relativeTo(dataFile, Configuration.getImportFilePath()).string());
+                                            relativeTo(dataFile, ImporterConfig.getImportFilePath()).string());
    }
    return packetSize;
 }
@@ -268,7 +268,7 @@ unsigned int TracerouteReader::parseResponseSize(const std::string&           va
    if(index != value.size()) {
       throw ResultsReaderDataErrorException("Bad response size format " + value +
                                             " in input file " +
-                                            relativeTo(dataFile, Configuration.getImportFilePath()).string());
+                                            relativeTo(dataFile, ImporterConfig.getImportFilePath()).string());
    }
    return responseSize;
 }
@@ -286,12 +286,12 @@ uint16_t TracerouteReader::parseChecksum(const std::string&           value,
    if(index != value.size()) {
       throw ResultsReaderDataErrorException("Bad checksum format " + value +
                                             " in input file " +
-                                            relativeTo(dataFile, Configuration.getImportFilePath()).string());
+                                            relativeTo(dataFile, ImporterConfig.getImportFilePath()).string());
    }
    if(checksum > 0xffff) {
       throw ResultsReaderDataErrorException("Invalid checksum value " + value +
                                             " in input file " +
-                                            relativeTo(dataFile, Configuration.getImportFilePath()).string());
+                                            relativeTo(dataFile, ImporterConfig.getImportFilePath()).string());
    }
    return (uint16_t)checksum;
 }
@@ -309,12 +309,12 @@ uint16_t TracerouteReader::parsePort(const std::string&           value,
    if(index != value.size()) {
       throw ResultsReaderDataErrorException("Bad port format " + value +
                                             " in input file " +
-                                            relativeTo(dataFile, Configuration.getImportFilePath()).string());
+                                            relativeTo(dataFile, ImporterConfig.getImportFilePath()).string());
    }
    if(port > 65535) {
       throw ResultsReaderDataErrorException("Invalid port value " + value +
                                             " in input file " +
-                                            relativeTo(dataFile, Configuration.getImportFilePath()).string());
+                                            relativeTo(dataFile, ImporterConfig.getImportFilePath()).string());
    }
    return (uint16_t)port;
 }
@@ -333,7 +333,7 @@ unsigned int TracerouteReader::parseStatus(const std::string&           value,
    if(index != value.size()) {
       throw ResultsReaderDataErrorException("Bad status format " + value +
                                             " in input file " +
-                                            relativeTo(dataFile, Configuration.getImportFilePath()).string());
+                                            relativeTo(dataFile, ImporterConfig.getImportFilePath()).string());
    }
    return status;
 }
@@ -351,7 +351,7 @@ long long TracerouteReader::parsePathHash(const std::string&           value,
    if(index != value.size()) {
       throw ResultsReaderDataErrorException("Bad path hash " + value +
                                             " in input file " +
-                                            relativeTo(dataFile, Configuration.getImportFilePath()).string());
+                                            relativeTo(dataFile, ImporterConfig.getImportFilePath()).string());
    }
    // Cast to signed long long as-is:
    return (long long)pathHash;
@@ -370,12 +370,12 @@ unsigned int TracerouteReader::parseTotalHops(const std::string&           value
    if(index != value.size()) {
       throw ResultsReaderDataErrorException("Bad total hops value " + value +
                                             " in input file " +
-                                            relativeTo(dataFile, Configuration.getImportFilePath()).string());
+                                            relativeTo(dataFile, ImporterConfig.getImportFilePath()).string());
    }
    if( (totalHops < 1) || (totalHops > 255) ) {
       throw ResultsReaderDataErrorException("Invalid total hops value " + value +
                                             " in input file " +
-                                            relativeTo(dataFile, Configuration.getImportFilePath()).string());
+                                            relativeTo(dataFile, ImporterConfig.getImportFilePath()).string());
    }
    return totalHops;
 }
@@ -393,12 +393,12 @@ unsigned int TracerouteReader::parseHopNumber(const std::string&           value
    if(index != value.size()) {
       throw ResultsReaderDataErrorException("Bad hopNumber value " + value +
                                             " in input file " +
-                                            relativeTo(dataFile, Configuration.getImportFilePath()).string());
+                                            relativeTo(dataFile, ImporterConfig.getImportFilePath()).string());
    }
    if( (hopNumber < 1) || (hopNumber > 255) ) {
       throw ResultsReaderDataErrorException("Invalid hopNumber value " + value +
                                             " in input file " +
-                                            relativeTo(dataFile, Configuration.getImportFilePath()).string());
+                                            relativeTo(dataFile, ImporterConfig.getImportFilePath()).string());
    }
    return hopNumber;
 }
@@ -416,7 +416,7 @@ unsigned int TracerouteReader::parseTimeSource(const std::string&           valu
    if(index != value.size()) {
       throw ResultsReaderDataErrorException("Bad time source format " + value +
                                             " in input file " +
-                                            relativeTo(dataFile, Configuration.getImportFilePath()).string());
+                                            relativeTo(dataFile, ImporterConfig.getImportFilePath()).string());
    }
    return timeSource;
 }
@@ -434,7 +434,7 @@ long long TracerouteReader::parseNanoseconds(const std::string&           value,
    if(index != value.size()) {
       throw ResultsReaderDataErrorException("Bad nanoseconds format " + value +
                                             " in input file " +
-                                            relativeTo(dataFile, Configuration.getImportFilePath()).string());
+                                            relativeTo(dataFile, ImporterConfig.getImportFilePath()).string());
    }
    return ns;
 }
@@ -563,7 +563,7 @@ void TracerouteReader::parseContents(
       }
       if(columns < TracerouteMinColumns) {
          throw ResultsReaderDataErrorException("Too few columns in input file " +
-                                               relativeTo(dataFile, Configuration.getImportFilePath()).string());
+                                               relativeTo(dataFile, ImporterConfig.getImportFilePath()).string());
       }
 
       // ====== Generate import statement ===================================
@@ -684,7 +684,7 @@ void TracerouteReader::parseContents(
       }
       else {
          throw ResultsReaderDataErrorException("Unexpected input in input file " +
-                                               relativeTo(dataFile, Configuration.getImportFilePath()).string());
+                                               relativeTo(dataFile, ImporterConfig.getImportFilePath()).string());
       }
    }
    if( (statusFlags != ~0U) && (backend & DatabaseBackendType::NoSQL_Generic) ) {

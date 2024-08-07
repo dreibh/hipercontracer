@@ -40,20 +40,27 @@
 
 //  ###### Database Backend Registry ########################################
 
+#ifdef ENABLE_BACKEND_DEBUG
 #include "databaseclient-debug.h"
-#include "databaseclient-mariadb.h"
-#include "databaseclient-postgresql.h"
-#include "databaseclient-mongodb.h"
-
 REGISTER_BACKEND(DatabaseBackendType::SQL_Debug, "DebugSQL", DebugClient)
 REGISTER_BACKEND_ALIAS(DatabaseBackendType::NoSQL_Debug, "DebugNoSQL", DebugClient, 2)
+#endif
 
+#ifdef ENABLE_BACKEND_MARIADB
+#include "databaseclient-mariadb.h"
 REGISTER_BACKEND(DatabaseBackendType::SQL_MariaDB, "MariaDB", MariaDBClient)
 REGISTER_BACKEND_ALIAS(DatabaseBackendType::SQL_MariaDB, "MySQL", MariaDBClient, 2)
+#endif
 
+#ifdef ENABLE_BACKEND_POSTGRESQL
+#include "databaseclient-postgresql.h"
 REGISTER_BACKEND(DatabaseBackendType::SQL_PostgreSQL, "PostgreSQL", PostgreSQLClient)
+#endif
 
+#ifdef ENABLE_BACKEND_MONGODB
+#include "databaseclient-mongodb.h"
 REGISTER_BACKEND(DatabaseBackendType::NoSQL_MongoDB, "MongoDB", MongoDBClient)
+#endif
 
 //  #########################################################################
 
@@ -79,20 +86,10 @@ DatabaseConfiguration::DatabaseConfiguration()
       ("dbbackend",         boost::program_options::value<std::string>(&BackendName),                        "database backend")
       ("dbreconnectdelay",  boost::program_options::value<unsigned int>(&ReconnectDelay)->default_value(60), "database reconnect delay (in s)")
       ("dbconnectionflags", boost::program_options::value<std::string>(&FlagNames),                          "database connection flags")
-      ("import_mode",       boost::program_options::value<std::string>(&ImportModeName),                     "import mode")
-      ("import_max_depth",  boost::program_options::value<unsigned int>(&ImportMaxDepth)->default_value(6),  "import max depth)")
-      ("import_file_path",  boost::program_options::value<std::filesystem::path>(&ImportFilePath),           "path for input data")
-      ("bad_file_path",     boost::program_options::value<std::filesystem::path>(&BadFilePath),              "path for bad files")
-      ("good_file_path",    boost::program_options::value<std::filesystem::path>(&GoodFilePath),             "path for good files")
-
-      // Deprecated option names:
-      ("transactions_path", boost::program_options::value<std::filesystem::path>(&ImportFilePath),           "path for input data (deprecated, use \"import_file_path\")")
    ;
-   BackendName    = "Invalid";
-   Backend        = DatabaseBackendType::Invalid;
-   Flags          = ConnectionFlags::None;
-   ImportModeName = "KeepImportedFiles";
-   ImportMode     = ImportModeType::KeepImportedFiles;
+   BackendName = "Invalid";
+   Backend     = DatabaseBackendType::Invalid;
+   Flags       = ConnectionFlags::None;
 }
 
 
@@ -103,8 +100,7 @@ DatabaseConfiguration::~DatabaseConfiguration()
 
 
 // ###### Read database configuration #######################################
-bool DatabaseConfiguration::readConfiguration(const std::filesystem::path& configurationFile,
-                                              const bool                   isImporter)
+bool DatabaseConfiguration::readConfiguration(const std::filesystem::path& configurationFile)
 {
    std::ifstream configurationInputStream(configurationFile);
 
@@ -126,13 +122,6 @@ bool DatabaseConfiguration::readConfiguration(const std::filesystem::path& confi
    // ====== Check options ==================================================
    if(!setBackend(BackendName))           return false;
    if(!setConnectionFlags(FlagNames))     return false;
-   if(isImporter) {
-      if(!setImportMode(ImportModeName))     return false;
-      if(!setImportMaxDepth(ImportMaxDepth)) return false;
-      if(!setImportFilePath(ImportFilePath)) return false;
-      if(!setGoodFilePath(GoodFilePath))     return false;
-      if(!setBadFilePath(BadFilePath))       return false;
-   }
 
    // Legacy parameter settings:
    if(boost::iequals(CAFile, "NONE") || boost::iequals(CAFile, "IGNORE")) {
@@ -202,122 +191,23 @@ bool DatabaseConfiguration::setConnectionFlags(const std::string& connectionFlag
 }
 
 
-// ###### Set import mode ###################################################
-bool DatabaseConfiguration::setImportMode(const std::string& importModeName)
-{
-   ImportModeName = importModeName;
-   if(ImportModeName == "KeepImportedFiles") {
-      ImportMode = ImportModeType::KeepImportedFiles;
-   }
-   else if(ImportModeName == "MoveImportedFiles") {
-      ImportMode = ImportModeType::MoveImportedFiles;
-   }
-   else if(ImportModeName == "DeleteImportedFiles") {
-      ImportMode = ImportModeType::DeleteImportedFiles;
-   }
-   else {
-      HPCT_LOG(error) << "Invalid import mode name " << ImportModeName;
-      return false;
-   }
-   return true;
-}
-
-
-// ###### Set import max depth ##############################################
-bool DatabaseConfiguration::setImportMaxDepth(const unsigned int importMaxDepth)
-{
-   ImportMaxDepth = importMaxDepth;
-   if(ImportMaxDepth < 1) {
-      HPCT_LOG(error) << "Import max depth must be at least 1!";
-      return false;
-   }
-   return true;
-}
-
-
-// ###### Set import file path ##############################################
-bool DatabaseConfiguration::setImportFilePath(const std::filesystem::path& importFilePath)
-{
-   try {
-      ImportFilePath = std::filesystem::canonical(std::filesystem::absolute(importFilePath));
-      if(std::filesystem::is_directory(ImportFilePath)) {
-         return true;
-      }
-   }
-   catch(...) { }
-   HPCT_LOG(error) << "Invalid or inaccessible import file path " << ImportFilePath;
-   return false;
-}
-
-
-// ###### Set good file path ################################################
-bool DatabaseConfiguration::setGoodFilePath(const std::filesystem::path& goodFilePath)
-{
-   try {
-      GoodFilePath = std::filesystem::canonical(std::filesystem::absolute(goodFilePath));
-      if(std::filesystem::is_directory(GoodFilePath)) {
-         return true;
-      }
-   }
-   catch(...) { }
-   HPCT_LOG(error) << "Invalid or inaccessible good file path " << GoodFilePath;
-   return false;
-}
-
-
-// ###### Set bad file path #################################################
-bool DatabaseConfiguration::setBadFilePath(const std::filesystem::path& badFilePath)
-{
-   try {
-      BadFilePath = std::filesystem::canonical(std::filesystem::absolute(badFilePath));
-      if(std::filesystem::is_directory(BadFilePath)) {
-         return true;
-      }
-   }
-   catch(...) { }
-   HPCT_LOG(error) << "Invalid or inaccessible bad file path " << BadFilePath;
-   return false;
-}
-
-
 // ###### << operator #######################################################
 std::ostream& operator<<(std::ostream& os, const DatabaseConfiguration& configuration)
 {
-   os << "Import configuration:" << "\n"
-      << "Import mode      = ";
-   switch(configuration.ImportMode) {
-      case KeepImportedFiles:
-         os << "KeepImportedFiles";
-       break;
-      case MoveImportedFiles:
-         os << "MoveImportedFiles";
-       break;
-      case DeleteImportedFiles:
-         os << "DeleteImportedFiles";
-       break;
-      default:
-         abort();
-       break;
-   }
-   os << "\n"
-      << "Import File Path = " << configuration.ImportFilePath << " (max depth: " << configuration.ImportMaxDepth << ")" << "\n"
-      << "Good File Path   = " << configuration.GoodFilePath   << "\n"
-      << "Bad File Path    = " << configuration.BadFilePath    << "\n"
-
-      << "Database configuration:"               << "\n"
-      << "Backend          = " << configuration.BackendName    << "\n"
-      << "Reconnect Delay  = " << configuration.ReconnectDelay << " s" << "\n"
-      << "Server           = " << configuration.Server         << "\n"
-      << "Port             = " << configuration.Port           << "\n"
-      << "User             = " << configuration.User           << "\n"
-      << "Password         = " << ((configuration.Password.size() > 0) ? "****************" : "(none)") << "\n"
-      << "CA File          = " << configuration.CAFile         << "\n"
-      << "CRL File         = " << configuration.CRLFile        << "\n"
-      << "Certificate File = " << configuration.CertFile       << "\n"
-      << "Key File         = " << configuration.KeyFile        << "\n"
-      << "Cert.+Key File   = " << configuration.CertKeyFile    << "\n"
-      << "Database         = " << configuration.Database       << "\n"
-      << "Flags            =";
+   os << "Database configuration:\n"
+      << "  Backend              = " << configuration.BackendName    << "\n"
+      << "  Reconnect Delay      = " << configuration.ReconnectDelay << " s" << "\n"
+      << "  Server               = " << configuration.Server         << "\n"
+      << "  Port                 = " << configuration.Port           << "\n"
+      << "  User                 = " << configuration.User           << "\n"
+      << "  Password             = " << ((configuration.Password.size() > 0) ? "****************" : "(none)") << "\n"
+      << "  CA File              = " << configuration.CAFile         << "\n"
+      << "  CRL File             = " << configuration.CRLFile        << "\n"
+      << "  Certificate File     = " << configuration.CertFile       << "\n"
+      << "  Key File             = " << configuration.KeyFile        << "\n"
+      << "  Certificate+Key File = " << configuration.CertKeyFile    << "\n"
+      << "  Database             = " << configuration.Database       << "\n"
+      << "  Flags                =";
    if(configuration.Flags & ConnectionFlags::DisableTLS) {
       os << " DisableTLS";
    }

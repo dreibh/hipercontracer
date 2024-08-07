@@ -1,0 +1,173 @@
+#!/usr/bin/env bash
+#  =================================================================
+#           #     #                 #     #
+#           ##    #   ####   #####  ##    #  ######   #####
+#           # #   #  #    #  #    # # #   #  #          #
+#           #  #  #  #    #  #    # #  #  #  #####      #
+#           #   # #  #    #  #####  #   # #  #          #
+#           #    ##  #    #  #   #  #    ##  #          #
+#           #     #   ####   #    # #     #  ######     #
+#
+#        ---   The NorNet Testbed for Multi-Homed Systems  ---
+#                        https://www.nntb.no
+#  =================================================================
+#
+#  High-Performance Connectivity Tracer (HiPerConTracer)
+#  Copyright (C) 2015-2024 by Thomas Dreibholz
+#
+#  This program is free software: you can redistribute it and/or modify
+#  it under the terms of the GNU General Public License as published by
+#  the Free Software Foundation, either version 3 of the License, or
+#  (at your option) any later version.
+#
+#  This program is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
+#
+#  You should have received a copy of the GNU General Public License
+#  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+#  Contact: dreibh@simula.no
+
+# Bash options:
+set -e
+
+
+# ====== Handle arguments ===================================================
+if [ $# -lt 1 ] ; then
+   echo >&2 "Usage: $0 configuration_file [-d|--dry-run]"
+   exit 1
+fi
+CONFIGURATION_FILE="$1"
+shift
+if [ ! -e "${CONFIGURATION_FILE}" ] ; then
+   echo >&2 "ERROR: Use configuration ${CONFIGURATION_FILE} does not exist!"
+fi
+DRY_RUN=0
+while [ $# -gt 0 ] ; do
+   if [ "$1" == "-d" ] || [ "$1" == "--dry-run" ] ; then
+      DRY_RUN=1
+   else
+      echo >&2 "ERROR: Invalid argument $1!"
+      exit 1
+   fi
+   shift
+done
+
+
+# ====== Read configuration file ============================================
+dbbackend=""
+dbserver=""
+dbport=""
+dbuser=""
+dbpassword=""
+database=""
+dbcafile=""
+dbcrlfile=""
+configContent=$(sed -r '/[^=#]+=[^=]+/!d' <"${CONFIGURATION_FILE}" | sed -r 's/\s+=\s/=/g')
+eval "${configContent}"
+
+
+# ====== Build the parameters line =============================================
+oldCommand=0
+command=""
+parameters=""
+if [ "${dbbackend}" == "MariaDB" ] || [ "${dbbackend}" == "MySQL" ] ; then
+
+   if [ "${dbbackend}" == "MariaDB" ] ; then
+      command="$(which mariadb || true)"
+      if [ "${command}" == "" ] ; then
+         command="mariadb"
+      fi
+   else
+      command="$(which mysql || true)"
+      if [ "${command}" == "" ] ; then
+         command="mysql"
+      fi
+   fi
+   if [ "${dbport}" == "0" ] ; then
+      dbport="3306"
+   fi
+   export MYSQL_PWD="${dbpassword}"
+   parameters="${parameters} --host=\"${dbserver}\" --port=${dbport} --protocol=tcp --user=\"${dbuser}\" --database=\"${database}\""
+   if [ "${dbcafile}" != "NONE" ] ; then
+      parameters="${parameters} --ssl-verify-server-cert --ssl-ca=\"${dbcafile}\" --ssl-crl=\"${dbcafile}\""
+      if [ "${dbcrlfile}" != "NONE" ] ; then
+         parameters="${parameters} --ssl-crl \"${dbcrlfile}\""
+      fi
+   fi
+
+elif [ "${dbbackend}" == "PostgreSQL" ] ; then
+
+   command="$(which psql || true)"
+   if [ "${command}" == "" ] ; then
+      command="psql"
+   fi
+   if [ "${dbport}" == "0" ] ; then
+      dbport="5432"
+   fi
+   parameters="--host=\"${dbserver}\" --port=${dbport} --username=\"${dbuser}\" --dbname=\"${database}\""
+   export PGPASSWORD="${dbpassword}"
+   if [ "${dbcafile}" != "NONE" ] ; then
+      export PGSSLMODE="verify-full"
+      export PGSSLROOTCERT="${dbcafile}"
+      if [ "${dbcrlfile}" != "NONE" ] ; then
+         export PGSSLCRL="${dbcrlfile}"
+      fi
+   fi
+
+elif [ "${dbbackend}" == "MongoDB" ] ; then
+
+   command="$(which mongosh || true)"
+   if [ "${command}" == "" ] ; then
+      command="$(which mongo || true)"
+      if [ "${command}" == "" ] ; then
+         command="mongosh"
+      else
+         oldCommand=1
+      fi
+   fi
+   if [ "${dbport}" == "0" ] ; then
+      dbport="27017"
+   fi
+   parameters="\"mongodb://${dbserver}:${dbport}/${database}\" --username \"${dbuser}\" --password \"${dbpassword}\""
+   if [ "${dbcafile}" != "NONE" ] ; then
+      if [ ${oldCommand} -eq 0 ] ; then
+         parameters="${parameters} --tls --tlsDisabledProtocols TLS1_0,TLS1_1,TLS1_2 --tlsCAFile \"${dbcafile}\""
+         if [ "${dbcrlfile}" != "NONE" ] ; then
+            # FIXME: --tlsCRLFile \"${dbcrlfile}\" does not work!
+            # parameters="${parameters} --tlsCRLFile \"${dbcrlfile}\""
+            true
+         fi
+      else
+         parameters="${parameters} --ssl --sslDisabledProtocols TLS1_0,TLS1_1,TLS1_2 --sslCAFile \"${dbcafile}\""
+         if [ "${dbcrlfile}" != "NONE" ] ; then
+            parameters="${parameters} --sslCRLFile \"${dbcrlfile}\""
+         fi
+      fi
+   fi
+
+else
+
+   echo >&2 "ERROR: Invalid dbbackend setting \"${dbbackend}!\""
+   exit 1
+
+fi
+
+
+# ====== Run the parameters line ===============================================
+if [ ${DRY_RUN} -eq 0 ] ; then
+   echo -e "\x1b[34mConnecting to database ...\x1b[0m"
+   echo -en "\x1b[37m"
+fi
+
+if [ "${dbbackend}" == "MariaDB" ] || [ "${dbbackend}" == "MySQL" ] || [ "${dbbackend}" == "PostgreSQL" ] ; then
+   export | grep "MYSQL_PWD=\|PGPASSWORD=\|PGSSL[A-Z]*=" | sort || true
+fi
+echo "${command} ${parameters}"
+
+if [ ${DRY_RUN} -eq 0 ] ; then
+   echo -en "\x1b[0m"
+   sh -c "${command} ${parameters}"
+fi

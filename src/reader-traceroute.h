@@ -57,7 +57,7 @@ ReaderPriority getPriorityOfFileEntry(const TracerouteFileEntry& inputFileEntry)
 class TracerouteReader : public ReaderImplementation<TracerouteFileEntry>
 {
    public:
-   TracerouteReader(const DatabaseConfiguration& databaseConfiguration,
+   TracerouteReader(const ImporterConfiguration& importerConfiguration,
                     const unsigned int           workers            = 1,
                     const unsigned int           maxTransactionSize = 4,
                     const std::string&           table              = "Traceroute");
@@ -115,7 +115,7 @@ class TracerouteReader : public ReaderImplementation<TracerouteFileEntry>
    protected:
    const std::string        Table;
 
-   private:
+   public:
    static const std::string Identification;
    static const std::regex  FileNameRegExp;
 };

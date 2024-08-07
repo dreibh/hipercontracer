@@ -33,6 +33,7 @@
 #define READER_BASE_H
 
 #include "databaseclient-base.h"
+#include "importer-configuration.h"
 
 #include "logger.h"
 #include "tools.h"
@@ -49,9 +50,9 @@
 
 
 enum ReaderPriority {
-   Low    = 0,
-   High   = 1,
-   Max    = High
+   Low  = 0,
+   High = 1,
+   Max  = High
 };
 typedef std::chrono::high_resolution_clock   ReaderClock;
 typedef std::chrono::time_point<ReaderClock> ReaderTimePoint;
@@ -62,7 +63,7 @@ typedef ReaderClock::duration                ReaderTimeDuration;
 class ReaderBase
 {
    public:
-   ReaderBase(const DatabaseConfiguration& databaseConfiguration,
+   ReaderBase(const ImporterConfiguration& importerConfiguration,
               const unsigned int           workers,
               const unsigned int           maxTransactionSize);
    virtual ~ReaderBase();
@@ -81,8 +82,7 @@ class ReaderBase
                                    const unsigned int                worker,
                                    const unsigned int                limit = 1) = 0;
    virtual std::filesystem::path getDirectoryHierarchy(const std::filesystem::path& dataFile,
-                                                       const std::smatch            match,
-                                                       const unsigned int           levels) = 0;
+                                                       const std::smatch            match) = 0;
    virtual void printStatus(std::ostream& os = std::cout) = 0;
 
    virtual void beginParsing(DatabaseClientBase& databaseClient,
@@ -95,10 +95,13 @@ class ReaderBase
                               boost::iostreams::filtering_istream& dataStream) = 0;
 
    protected:
-   const DatabaseConfiguration&    Configuration;
-   const unsigned int              Workers;
-   const unsigned int              MaxTransactionSize;
-   std::mutex                      Mutex;
+   std::filesystem::path makeDirectoryHierarchy(const std::filesystem::path& dataFile,
+                                                const ReaderTimePoint&       timeStamp) const;
+
+   const ImporterConfiguration& ImporterConfig;
+   const unsigned int           Workers;
+   const unsigned int           MaxTransactionSize;
+   std::mutex                   Mutex;
 
    struct WorkerStatistics {
       unsigned long long Processed;
@@ -109,12 +112,20 @@ class ReaderBase
 };
 
 
+// ###### Output operator ###################################################
+inline std::ostream& operator<<(std::ostream& os, ReaderBase& reader)
+{
+   reader.printStatus(os);
+   return os;
+}
+
+
 // ###### Reader type-specific base  class ##################################
 template<typename ReaderInputFileEntry>
 class ReaderImplementation : public ReaderBase
 {
    public:
-   ReaderImplementation(const DatabaseConfiguration& databaseConfiguration,
+   ReaderImplementation(const ImporterConfiguration& importerConfiguration,
                         const unsigned int           workers,
                         const unsigned int           maxTransactionSize);
    virtual ~ReaderImplementation();
@@ -128,8 +139,7 @@ class ReaderImplementation : public ReaderBase
                                    const unsigned int                worker,
                                    const unsigned int                limit = 1);
    virtual std::filesystem::path getDirectoryHierarchy(const std::filesystem::path& dataFile,
-                                                       const std::smatch            match,
-                                                       const unsigned int           levels);
+                                                       const std::smatch            match);
    virtual void printStatus(std::ostream& os = std::cout);
 
    protected:
@@ -140,10 +150,10 @@ class ReaderImplementation : public ReaderBase
 // ###### Constructor #######################################################
 template<typename ReaderInputFileEntry>
 ReaderImplementation<ReaderInputFileEntry>::ReaderImplementation(
-   const DatabaseConfiguration& databaseConfiguration,
+   const ImporterConfiguration& importerConfiguration,
    const unsigned int           workers,
    const unsigned int           maxTransactionSize)
-   : ReaderBase(databaseConfiguration, workers, maxTransactionSize)
+   : ReaderBase(importerConfiguration, workers, maxTransactionSize)
 {
    for(int p = ReaderPriority::Max; p >= 0; p--) {
       DataFileSet[p] = new std::set<ReaderInputFileEntry>[Workers];
@@ -197,7 +207,7 @@ int ReaderImplementation<ReaderInputFileEntry>::addFile(
       // ====== Insert file entry into list =================================
       if(DataFileSet[p][workerID].insert(inputFileEntry).second) {
          HPCT_LOG(trace) << getIdentification() << ": Added input file "
-                         << relativeTo(dataFile, Configuration.getImportFilePath()) << " to reader";
+                         << relativeTo(dataFile, ImporterConfig.getImportFilePath()) << " to reader";
          return workerID;
       }
    }
@@ -215,7 +225,7 @@ bool ReaderImplementation<ReaderInputFileEntry>::removeFile(
    const int workerID = makeInputFileEntry(dataFile, match, inputFileEntry, Workers);
    if(workerID >= 0) {
       HPCT_LOG(trace) << getIdentification() << ": Removing input file "
-                      << relativeTo(dataFile, Configuration.getImportFilePath()) << " from reader";
+                      << relativeTo(dataFile, ImporterConfig.getImportFilePath()) << " from reader";
       std::unique_lock lock(Mutex);
 
       for(int p = ReaderPriority::Max; p >= 0; p--) {
@@ -259,32 +269,15 @@ unsigned int ReaderImplementation<ReaderInputFileEntry>::fetchFiles(
 template<typename ReaderInputFileEntry>
 std::filesystem::path ReaderImplementation<ReaderInputFileEntry>::getDirectoryHierarchy(
    const std::filesystem::path& dataFile,
-   const std::smatch            match,
-   const unsigned int           levels)
+   const std::smatch            match)
 {
-   if(levels > 1) {
+   if( (ImporterConfig.getMoveDirectoryDepth() > 0) ||
+       (ImporterConfig.getMoveTimestampDepth() > 0) ) {
       ReaderInputFileEntry inputFileEntry;
       const int workerID = makeInputFileEntry(dataFile, match, inputFileEntry, 1);
       if(workerID >= 0) {
          const ReaderTimePoint& timeStamp = inputFileEntry.TimeStamp;
-         const char* format;
-         switch(levels) {
-             default:  // 5:
-               format = "%Y/%m/%d/%H:00";
-             break;
-            case 4:
-               format = "%Y/%m/%d";
-             break;
-            case 3:
-               format = "%Y/%m";
-             break;
-            case 2:
-               format = "%Y";
-             break;
-         }
-         const std::filesystem::path hierarchy = timePointToString<ReaderTimePoint>(timeStamp, 0, format);
-         // std::cout << timePointToString<ReaderTimePoint>(timeStamp) << " -> " << hierarchy << "\n";
-         return hierarchy;
+         return makeDirectoryHierarchy(dataFile, timeStamp);
       }
    }
    return std::filesystem::path();

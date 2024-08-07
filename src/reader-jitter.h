@@ -38,7 +38,7 @@
 class JitterReader : public PingReader
 {
    public:
-   JitterReader(const DatabaseConfiguration& databaseConfiguration,
+   JitterReader(const ImporterConfiguration& importerConfiguration,
                 const unsigned int           workers            = 1,
                 const unsigned int           maxTransactionSize = 4,
                 const std::string&           table              = "Jitter");
@@ -62,7 +62,7 @@ class JitterReader : public PingReader
    unsigned int parsePackets(const std::string&           value,
                              const std::filesystem::path& dataFile);
 
-   private:
+   public:
    static const std::string Identification;
    static const std::regex  FileNameRegExp;
 };
