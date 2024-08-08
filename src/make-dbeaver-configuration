@@ -2,7 +2,7 @@
 
 tempDirectory="$(mktemp -d -t "make-dbeaver-configuration-XXXXXX")"
 while [ $# -gt 0 ] ; do
-   ./dbshell "$1" --dry-run -B "${tempDirectory}/$(basename "${1//.conf/}")"
+   ./dbshell "$1" --dry-run -q -B "${tempDirectory}/$(basename "${1//.conf/}")"
    shift
 done
 
@@ -30,6 +30,8 @@ EOF
 
 jq -s '.' "${tempDirectory}/init.json" ${tempDirectory}/*-data-source.json >data-sources.json
 jq -s '.' ${tempDirectory}/*-credentials-config.json >"${tempDirectory}/credentials-config.json.orig"
+echo "FIXME! This does not work!"
+exit 1
 
 
 # credentials-config.json.in is in plain text.
@@ -42,9 +44,8 @@ openssl aes-128-cbc \
 
 # To decrypt:
 # (See also: https://stackoverflow.com/questions/39928401/recover-db-password-stored-in-my-dbeaver-connection)
-
-openssl aes-128-cbc -d \
-   -K babb4a9f774ab853c96c2d653dfe544a -iv 00000000000000000000000000000000 \
-   -in credentials-config.json | dd bs=1 skip=16 | jq .
+# openssl aes-128-cbc -d \
+#    -K babb4a9f774ab853c96c2d653dfe544a -iv 00000000000000000000000000000000 \
+#    -in credentials-config.json | dd bs=1 skip=16 | jq .
 
 rm -rf "${tempDirectory}"
