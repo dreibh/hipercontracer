@@ -36,7 +36,7 @@ set -e
 
 # ====== Handle arguments ===================================================
 if [ $# -lt 1 ] ; then
-   echo >&2 "Usage: $0 configuration_file [-d|--dry-run]"
+   echo >&2 "Usage: $0 configuration_file [-d|--dry-run] [--write-dbeaver-config file]"
    exit 1
 fi
 CONFIGURATION_FILE="$1"
@@ -45,9 +45,13 @@ if [ ! -e "${CONFIGURATION_FILE}" ] ; then
    echo >&2 "ERROR: Use configuration ${CONFIGURATION_FILE} does not exist!"
 fi
 DRY_RUN=0
+DBEAVER_CONFIG=""
 while [ $# -gt 0 ] ; do
    if [ "$1" == "-d" ] || [ "$1" == "--dry-run" ] ; then
       DRY_RUN=1
+   elif [ "$1" == "-B" ] || [ "$1" == "--get-dbeaver-config" ] ; then
+      DBEAVER_CONFIG="$2"
+      shift
    else
       echo >&2 "ERROR: Invalid argument $1!"
       exit 1
@@ -67,6 +71,18 @@ dbcafile=""
 dbcrlfile=""
 configContent=$(sed -r '/[^=#]+=[^=]+/!d' <"${CONFIGURATION_FILE}" | sed -r 's/\s+=\s/=/g')
 eval "${configContent}"
+if [ "${dbcafile}" == "NONE" ] ; then
+   dbcafile=""
+fi
+if [ "${dbcrlfile}" == "NONE" ] ; then
+   dbcrlfile=""
+fi
+if [ "${dbkeyfile}" == "NONE" ] ; then
+   dbkeyfile=""
+fi
+if [ "${dbcertfile}" == "NONE" ] ; then
+   dbcertfile=""
+fi
 
 
 # ====== Build the parameters line =============================================
@@ -91,9 +107,9 @@ if [ "${dbbackend}" == "MariaDB" ] || [ "${dbbackend}" == "MySQL" ] ; then
    fi
    export MYSQL_PWD="${dbpassword}"
    parameters="${parameters} --host=\"${dbserver}\" --port=${dbport} --protocol=tcp --user=\"${dbuser}\" --database=\"${database}\""
-   if [ "${dbcafile}" != "NONE" ] ; then
+   if [ "${dbcafile}" != "" ] ; then
       parameters="${parameters} --ssl-verify-server-cert --ssl-ca=\"${dbcafile}\" --ssl-crl=\"${dbcafile}\""
-      if [ "${dbcrlfile}" != "NONE" ] ; then
+      if [ "${dbcrlfile}" != "" ] ; then
          parameters="${parameters} --ssl-crl \"${dbcrlfile}\""
       fi
    fi
@@ -109,10 +125,10 @@ elif [ "${dbbackend}" == "PostgreSQL" ] ; then
    fi
    parameters="--host=\"${dbserver}\" --port=${dbport} --username=\"${dbuser}\" --dbname=\"${database}\""
    export PGPASSWORD="${dbpassword}"
-   if [ "${dbcafile}" != "NONE" ] ; then
+   if [ "${dbcafile}" != "" ] ; then
       export PGSSLMODE="verify-full"
       export PGSSLROOTCERT="${dbcafile}"
-      if [ "${dbcrlfile}" != "NONE" ] ; then
+      if [ "${dbcrlfile}" != "" ] ; then
          export PGSSLCRL="${dbcrlfile}"
       fi
    fi
@@ -132,17 +148,17 @@ elif [ "${dbbackend}" == "MongoDB" ] ; then
       dbport="27017"
    fi
    parameters="\"mongodb://${dbserver}:${dbport}/${database}\" --username \"${dbuser}\" --password \"${dbpassword}\""
-   if [ "${dbcafile}" != "NONE" ] ; then
+   if [ "${dbcafile}" != "" ] ; then
       if [ ${oldCommand} -eq 0 ] ; then
          parameters="${parameters} --tls --tlsDisabledProtocols TLS1_0,TLS1_1,TLS1_2 --tlsCAFile \"${dbcafile}\""
-         if [ "${dbcrlfile}" != "NONE" ] ; then
+         if [ "${dbcrlfile}" != "" ] ; then
             # FIXME: --tlsCRLFile \"${dbcrlfile}\" does not work!
             # parameters="${parameters} --tlsCRLFile \"${dbcrlfile}\""
             true
          fi
       else
          parameters="${parameters} --ssl --sslDisabledProtocols TLS1_0,TLS1_1,TLS1_2 --sslCAFile \"${dbcafile}\""
-         if [ "${dbcrlfile}" != "NONE" ] ; then
+         if [ "${dbcrlfile}" != "" ] ; then
             parameters="${parameters} --sslCRLFile \"${dbcrlfile}\""
          fi
       fi
@@ -156,7 +172,80 @@ else
 fi
 
 
-# ====== Run the parameters line ===============================================
+# ====== Generate DBeaver configuration file ================================
+
+if [ "${DBEAVER_CONFIG}" ] ; then
+   driver=""
+   provider=""
+   handler=""
+   custom=""
+   if [ "${dbbackend}" == "MariaDB" ] || [ "${dbbackend}" == "MySQL" ] ; then
+      driver="mysql8"
+      provider="mysql"
+      handler="mysql_ssl"
+      custom=",
+							\"ssl.require\": \"true\",
+							\"ssl.verify.server\": \"true\",
+							\"ssl.public.key.retrieve\": \"false\""
+   elif [ "${dbbackend}" == "PostgreSQL" ] ; then
+      driver="postgres-jdbc"
+      provider="postgresql"
+      handler="mysql_ssl"
+      custom=",
+							\"sslMode\": \"verify-full\",
+							\"sslFactory\": \"\""
+   else
+      echo >&2 "WARNING: DBeaver does not support ${dbbackend} backend!"
+   fi
+   if [ "${driver}" != "" ] ; then
+      echo -e "\x1b[34mWriting DBeaver configuration to ${DBEAVER_CONFIG} ...\x1b[0m"
+      uuid="$(uuid)"
+      (
+         cat << EOF
+{
+	"connections": {
+		"${driver}-${uuid}": {
+			"provider": "${provider}",
+			"driver": "${driver}",
+			"name": "${dbserver}:${dbport}/${database}: ${dbbackend} ${dbuser}",
+			"save-password": true,
+			"configuration": {
+				"host": "${dbserver}",
+				"port": "${dbport}",
+				"database": "${database}",
+				"url": "jdbc:mysql://${dbserver}:${dbport}/${database}",
+				"configurationType": "MANUAL",
+				"type": "dev",
+				"closeIdleConnection": true,
+				"auth-model": "native",
+				"handlers": {
+					"mysql_ssl": {
+						"type": "CONFIG",
+						"enabled": true,
+						"save-password": true,
+						"properties": {
+							"ssl.ca.cert": "${dbcafile}",
+							"ssl.client.cert": "${dbcertfile}",
+							"ssl.client.key": "${dbkeyfile}",
+							"ssl.method": "CERTIFICATES",
+							"ssl.require": "true",
+							"ssl.verify.server": "true",
+							"ssl.public.key.retrieve": "false",
+							"ssl.cipher.suites": ""${custom}
+						}
+					}
+				}
+			}
+		}
+	}
+}
+EOF
+      ) >${DBEAVER_CONFIG}
+   fi
+fi
+
+
+# ====== Run the parameters line ============================================
 if [ ${DRY_RUN} -eq 0 ] ; then
    echo -e "\x1b[34mConnecting to database ...\x1b[0m"
    echo -en "\x1b[37m"
