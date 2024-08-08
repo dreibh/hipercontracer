@@ -36,7 +36,7 @@ set -e
 
 # ====== Handle arguments ===================================================
 if [ $# -lt 1 ] ; then
-   echo >&2 "Usage: $0 configuration_file [-d|--dry-run] [-B|--write-dbeaver-config file_prefix]"
+   echo >&2 "Usage: $0 configuration_file [-d|--dry-run] [-q|--quiet] [-B|--write-dbeaver-config file_prefix]"
    exit 1
 fi
 CONFIGURATION_FILE="$1"
@@ -45,10 +45,13 @@ if [ ! -e "${CONFIGURATION_FILE}" ] ; then
    echo >&2 "ERROR: Use configuration ${CONFIGURATION_FILE} does not exist!"
 fi
 DRY_RUN=0
+QUIET=0
 DBEAVER_CONFIG_PREFIX=""
 while [ $# -gt 0 ] ; do
    if [ "$1" == "-d" ] || [ "$1" == "--dry-run" ] ; then
       DRY_RUN=1
+   elif [ "$1" == "-q" ] || [ "$1" == "--quiet" ] ; then
+      QUIET=1
    elif [ "$1" == "-B" ] || [ "$1" == "--get-dbeaver-config" ] ; then
       DBEAVER_CONFIG_PREFIX="$2"
       shift
@@ -263,17 +266,21 @@ fi
 
 
 # ====== Run the parameters line ============================================
-if [ ${DRY_RUN} -eq 0 ] ; then
-   echo -e "\x1b[34mConnecting to database ...\x1b[0m"
-   echo -en "\x1b[37m"
-fi
+if [ ${QUIET} -eq 0 ] ; then
+   if [ ${DRY_RUN} -eq 0 ] ; then
+      echo -e "\x1b[34mConnecting to database ...\x1b[0m"
+      echo -en "\x1b[37m"
+   fi
 
-if [ "${dbbackend}" == "MariaDB" ] || [ "${dbbackend}" == "MySQL" ] || [ "${dbbackend}" == "PostgreSQL" ] ; then
-   export | grep "MYSQL_PWD=\|PGPASSWORD=\|PGSSL[A-Z]*=" | sort || true
-fi
-echo "${command} ${parameters}"
+   if [ "${dbbackend}" == "MariaDB" ] || [ "${dbbackend}" == "MySQL" ] || [ "${dbbackend}" == "PostgreSQL" ] ; then
+      export | grep "MYSQL_PWD=\|PGPASSWORD=\|PGSSL[A-Z]*=" | sort || true
+   fi
+   echo "${command} ${parameters}"
+   fi
 
 if [ ${DRY_RUN} -eq 0 ] ; then
-   echo -en "\x1b[0m"
+   if [ ${QUIET} -eq 0 ] ; then
+      echo -en "\x1b[0m"
+   fi
    sh -c "${command} ${parameters}"
 fi
