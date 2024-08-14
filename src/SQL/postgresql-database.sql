@@ -34,8 +34,11 @@
 -- IMPORTANT NOTE:
 -- This script requires changing the placeholders below first:
 -- * DATABASE
+-- * ROOT_PASSWORD
 -- ##########################################################################
 
 
 DROP DATABASE IF EXISTS ${DATABASE};
 CREATE DATABASE ${DATABASE};
+
+ALTER USER postgres WITH PASSWORD '${ROOT_PASSWORD}';
