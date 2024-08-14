@@ -198,7 +198,9 @@ if [ "${DBEAVER_CONFIG_PREFIX}" ] ; then
 							\"sslMode\": \"verify-full\",
 							\"sslFactory\": \"\""
    else
-      echo >&2 "WARNING: DBeaver does not support ${dbbackend} backend!"
+      if [ ${QUIET} -eq 0 ] ; then
+         echo >&2 "WARNING: DBeaver does not support ${dbbackend} backend!"
+      fi
       echo "" >"${DBEAVER_CONFIG_PREFIX}-data-source.json"
       echo "" >"${DBEAVER_CONFIG_PREFIX}-credentials-config.json"
    fi
@@ -211,7 +213,9 @@ if [ "${DBEAVER_CONFIG_PREFIX}" ] ; then
       elif [ "${dbuser}" == "maintainer" ] ; then
          color="114,159,207"
       fi
-      echo -e "\x1b[34mWriting DBeaver configuration to ${DBEAVER_CONFIG_PREFIX} ...\x1b[0m"
+      if [ ${QUIET} -eq 0 ] ; then
+         echo -e "\x1b[34m$(date +"%F %H:%M:%S"): Writing DBeaver configuration to ${DBEAVER_CONFIG_PREFIX} ...\x1b[0m"
+      fi
       identifier="$(echo "${provider}://${dbuser}@${dbserver}:${dbport}/${database}" | md5sum --tag |  cut -d' ' -f4)"
       (
          cat << EOF
@@ -291,7 +295,7 @@ fi
 # ====== Run the parameters line ============================================
 if [ ${QUIET} -eq 0 ] ; then
    if [ ${DRY_RUN} -eq 0 ] ; then
-      echo -e "\x1b[34mConnecting to database ...\x1b[0m"
+      echo -e "\x1b[34m$(date +"%F %H:%M:%S"): Connecting to database ...\x1b[0m"
       echo -en "\x1b[37m"
    fi
 
