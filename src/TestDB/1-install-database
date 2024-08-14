@@ -317,6 +317,7 @@ EOF
       ${mongodConf} | sudo tee ${mongodConf}.new
    sudo mv ${mongodConf}.new ${mongodConf}
 
+   sudo systemctl enable mongod
    sudo systemctl restart mongod
    sleep 5
 
