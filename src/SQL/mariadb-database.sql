@@ -39,5 +39,3 @@
 
 DROP DATABASE IF EXISTS ${DATABASE};
 CREATE DATABASE ${DATABASE};
-
-RENAME USER 'root'@'localhost' TO 'root'@'%';

@@ -39,6 +39,8 @@
 -- ##########################################################################
 
 
+RENAME USER 'root'@'localhost' TO 'root'@'%';
+
 DROP USER IF EXISTS maintainer;
 CREATE USER maintainer IDENTIFIED BY '${MAINTAINER_PASSWORD}';
 GRANT ALL PRIVILEGES ON * TO maintainer;

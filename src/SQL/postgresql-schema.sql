@@ -41,7 +41,7 @@
 
 
 -- ###### Ping ##############################################################
-DROP TABLE IF EXISTS Ping;
+DROP TABLE IF EXISTS Ping CASCADE;
 CREATE TABLE Ping (
    SendTimestamp    BIGINT      NOT NULL,              -- Send timestamp (nanoseconds since 1970-01-01, 00:00:00 UTC)
    MeasurementID    INTEGER     NOT NULL DEFAULT 0,    -- MeasurementID
@@ -68,7 +68,7 @@ CREATE TABLE Ping (
    PRIMARY KEY (SendTimestamp, MeasurementID, SourceIP, DestinationIP, Protocol, TrafficClass, BurstSeq)
 );
 
-CREATE INDEX PingRelationIndex ON PingTracerouteDB.Ping (MeasurementID ASC, DestinationIP ASC, SendTimestamp ASC);
+CREATE INDEX PingRelationIndex ON Ping (MeasurementID ASC, DestinationIP ASC, SendTimestamp ASC);
 
 
 -- ###### Ping version 1 view ###############################################
@@ -99,7 +99,7 @@ CREATE VIEW Ping_v2 AS
 
 
 -- ###### Traceroute ########################################################
-DROP TABLE IF EXISTS Traceroute;
+DROP TABLE IF EXISTS Traceroute CASCADE;
 CREATE TABLE Traceroute (
    Timestamp        BIGINT      NOT NULL,              -- Timestamp *for sorting* (nanoseconds since 1970-01-01, 00:00:00 UTC)
    MeasurementID    INTEGER     NOT NULL DEFAULT 0,    -- MeasurementID
@@ -131,7 +131,7 @@ CREATE TABLE Traceroute (
    PRIMARY KEY (Timestamp, MeasurementID, SourceIP, DestinationIP, Protocol, TrafficClass, RoundNumber, HopNumber)
 );
 
-CREATE INDEX TracerouteRelationIndex ON PingTracerouteDB.Traceroute (MeasurementID ASC, DestinationIP ASC, Timestamp ASC);
+CREATE INDEX TracerouteRelationIndex ON Traceroute (MeasurementID ASC, DestinationIP ASC, Timestamp ASC);
 
 
 -- ###### Traceroute version 1 view #########################################
@@ -153,7 +153,7 @@ CREATE VIEW Traceroute_v1 AS
          WHEN RTT_HW > 0 THEN RTT_HW / 1000
          WHEN RTT_SW > 0 THEN RTT_SW / 1000
          ELSE                 RTT_App / 1000
-      END                                      AS RTT
+      END                                      AS RTT,
       HopIP,
       PathHash,
       RoundNumber                              AS Round
@@ -167,7 +167,7 @@ CREATE VIEW Traceroute_v2 AS
 
 
 -- ###### Jitter ############################################################
-DROP TABLE IF EXISTS Jitter;
+DROP TABLE IF EXISTS Jitter CASCADE;
 CREATE TABLE Jitter (
    Timestamp            BIGINT   NOT NULL,             -- Timestamp *for sorting* (nanoseconds since 1970-01-01, 00:00:00 UTC)
    MeasurementID        INTEGER  NOT NULL DEFAULT 0,   -- MeasurementID
@@ -211,7 +211,7 @@ CREATE TABLE Jitter (
    PRIMARY KEY (Timestamp, MeasurementID, SourceIP, DestinationIP, Protocol, TrafficClass, RoundNumber)
 );
 
-CREATE INDEX JitterRelationIndex ON PingTracerouteDB.Jitter (MeasurementID ASC, DestinationIP ASC, Timestamp ASC);
+CREATE INDEX JitterRelationIndex ON Jitter (MeasurementID ASC, DestinationIP ASC, Timestamp ASC);
 
 
 -- ###### Jitter version 2 view #############################################
