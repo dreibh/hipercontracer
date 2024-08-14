@@ -119,6 +119,7 @@ if [ "$1" == "mysql" ] || [ "$1" == "mariadb" ] ; then
    # ====== Create users and roles ==========================================
    echo -e "\x1b[33m$(date +"%F %H:%M:%S"): Creating users and roles ...\x1b[0m"
    sed -e "s%\${DATABASE}%${DATABASE}%" \
+       -e "s%\${ROOT_PASSWORD}%${ROOT_PASSWORD}%" \
        -e "s%\${MAINTAINER_PASSWORD}%${MAINTAINER_PASSWORD}%" \
        -e "s%\${RESEARCHER_PASSWORD}%${RESEARCHER_PASSWORD}%" \
        -e "s%\${IMPORTER_PASSWORD}%${IMPORTER_PASSWORD}%" \
@@ -159,6 +160,7 @@ elif [ "$1" == "postgresql" ] ; then
    # ====== Create users and roles ==========================================
    echo -e "\x1b[33m$(date +"%F %H:%M:%S"): Creating users and roles ...\x1b[0m"
    sed -e "s%\${DATABASE}%${DATABASE}%" \
+       -e "s%\${ROOT_PASSWORD}%${ROOT_PASSWORD}%" \
        -e "s%\${MAINTAINER_PASSWORD}%${MAINTAINER_PASSWORD}%" \
        -e "s%\${RESEARCHER_PASSWORD}%${RESEARCHER_PASSWORD}%" \
        -e "s%\${IMPORTER_PASSWORD}%${IMPORTER_PASSWORD}%" \
