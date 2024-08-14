@@ -180,8 +180,8 @@ fi
 if [ "${DBEAVER_CONFIG_PREFIX}" ] ; then
    driver=""
    provider=""
-   handler=""
    custom=""
+   dbusername="${dbuser}"
    if [ "${dbbackend}" == "MariaDB" ] || [ "${dbbackend}" == "MySQL" ] ; then
       driver="mysql8"
       provider="mysql"
@@ -193,10 +193,12 @@ if [ "${DBEAVER_CONFIG_PREFIX}" ] ; then
    elif [ "${dbbackend}" == "PostgreSQL" ] ; then
       driver="postgres-jdbc"
       provider="postgresql"
-      handler="mysql_ssl"
       custom=",
 							\"sslMode\": \"verify-full\",
 							\"sslFactory\": \"\""
+      if [ "${dbuser}" == "postgres" ] ; then
+         dbusername="root"
+      fi
    else
       if [ ${QUIET} -eq 0 ] ; then
          echo >&2 "WARNING: DBeaver does not support ${dbbackend} backend!"
@@ -206,26 +208,28 @@ if [ "${DBEAVER_CONFIG_PREFIX}" ] ; then
    fi
    if [ "${driver}" != "" ] ; then
       color="211,215,207"
-      if [ "${dbuser}" == "importer" ] ; then
+      if [ "${dbusername}" == "importer" ] ; then
          color="237,212,0"
-      elif [ "${dbuser}" == "researcher" ] ; then
+      elif [ "${dbusername}" == "researcher" ] ; then
          color="org.jkiss.dbeaver.color.connectionType.qa.background"
-      elif [ "${dbuser}" == "maintainer" ] ; then
+      elif [ "${dbusername}" == "maintainer" ] ; then
          color="114,159,207"
+      elif [ "${dbusername}" == "root" ] ; then
+         color="239,41,41"
       fi
       if [ ${QUIET} -eq 0 ] ; then
          echo -e "\x1b[34m$(date +"%F %H:%M:%S"): Writing DBeaver configuration to ${DBEAVER_CONFIG_PREFIX} ...\x1b[0m"
       fi
-      identifier="$(echo "${provider}://${dbuser}@${dbserver}:${dbport}/${database}" | md5sum --tag |  cut -d' ' -f4)"
+      identifier="$(echo "${provider}://${dbusername}@${dbserver}:${dbport}/${database}" | md5sum --tag |  cut -d' ' -f4)"
       (
          cat << EOF
 {
 	"folders": {},
 	"connection-types": {
-		"${dbuser}": {
-			"name": "${dbuser}",
+		"${dbusername}": {
+			"name": "${dbusername}",
 			"color": "${color}",
-			"description": "Regular database access for ${dbuser}",
+			"description": "Regular database access for ${dbusername}",
 			"auto-commit": true,
 			"confirm-execute": false,
 			"confirm-data-change": false,
@@ -241,7 +245,7 @@ if [ "${DBEAVER_CONFIG_PREFIX}" ] ; then
 		"${driver}-${identifier}": {
 			"provider": "${provider}",
 			"driver": "${driver}",
-			"name": "${dbuser}@${dbserver}:${dbport}/${database} ${dbbackend}",
+			"name": "${dbusername}@${dbserver}:${dbport}/${database} ${dbbackend}",
 			"save-password": true,
 			"configuration": {
 				"host": "${dbserver}",
@@ -249,7 +253,7 @@ if [ "${DBEAVER_CONFIG_PREFIX}" ] ; then
 				"database": "${database}",
 				"url": "jdbc:${provider}://${dbserver}:${dbport}/${database}",
 				"configurationType": "MANUAL",
-				"type": "${dbuser}",
+				"type": "${dbusername}",
 				"closeIdleConnection": true,
 				"auth-model": "native",
 				"handlers": {
