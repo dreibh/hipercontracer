@@ -204,12 +204,12 @@ if [ "${DBEAVER_CONFIG_PREFIX}" ] ; then
    fi
    if [ "${driver}" != "" ] ; then
       echo -e "\x1b[34mWriting DBeaver configuration to ${DBEAVER_CONFIG_PREFIX} ...\x1b[0m"
-      uuid="$(uuid)"
+      identifier="$(echo "${provider}://${dbuser}@${dbserver}:${dbport}/${database}" | md5sum --tag |  cut -d' ' -f4)"
       (
          cat << EOF
 {
 	"connections": {
-		"${driver}-${uuid}": {
+		"${driver}-${identifier}": {
 			"provider": "${provider}",
 			"driver": "${driver}",
 			"name": "${dbserver}:${dbport}/${database}: ${dbbackend} ${dbuser}",
@@ -250,7 +250,7 @@ EOF
       (
          cat << EOF
 {
-	"${driver}-${uuid}": {
+	"${driver}-${identifier}": {
 		"#connection": {
 			"user": "${dbuser}",
 			"password": "${dbpassword}"

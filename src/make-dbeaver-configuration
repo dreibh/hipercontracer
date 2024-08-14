@@ -28,8 +28,8 @@ cat >"${tempDirectory}/init.json" <<EOF
 }
 EOF
 
-jq --slurp 'reduce .[] as $item ({}; . * $item)' "${tempDirectory}/init.json" ${tempDirectory}/*-data-source.json >data-sources.json
-jq --slurp 'reduce .[] as $item ({}; . * $item)' ${tempDirectory}/*-credentials-config.json >"${tempDirectory}/credentials-config.json.orig"
+jq --sort-keys --slurp 'reduce .[] as $item ({}; . * $item)' "${tempDirectory}/init.json" ${tempDirectory}/*-data-source.json >data-sources.json
+jq --sort-keys --slurp 'reduce .[] as $item ({}; . * $item)' ${tempDirectory}/*-credentials-config.json >"${tempDirectory}/credentials-config.json.orig"
 
 
 # credentials-config.json.in is in plain text.
