@@ -209,7 +209,7 @@ if [ "${DBEAVER_CONFIG_PREFIX}" ] ; then
       elif [ "${dbuser}" == "researcher" ] ; then
          color="org.jkiss.dbeaver.color.connectionType.qa.background"
       elif [ "${dbuser}" == "maintainer" ] ; then
-         color="org.jkiss.dbeaver.color.connectionType.prod.background"
+         color="114,159,207"
       fi
       echo -e "\x1b[34mWriting DBeaver configuration to ${DBEAVER_CONFIG_PREFIX} ...\x1b[0m"
       identifier="$(echo "${provider}://${dbuser}@${dbserver}:${dbport}/${database}" | md5sum --tag |  cut -d' ' -f4)"
@@ -219,9 +219,9 @@ if [ "${DBEAVER_CONFIG_PREFIX}" ] ; then
 	"folders": {},
 	"connection-types": {
 		"${dbuser}": {
-			"name": "Development",
+			"name": "${dbuser}",
 			"color": "${color}",
-			"description": "Regular development database",
+			"description": "Regular database access for ${dbuser}",
 			"auto-commit": true,
 			"confirm-execute": false,
 			"confirm-data-change": false,
