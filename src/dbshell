@@ -203,16 +203,41 @@ if [ "${DBEAVER_CONFIG_PREFIX}" ] ; then
       echo "" >"${DBEAVER_CONFIG_PREFIX}-credentials-config.json"
    fi
    if [ "${driver}" != "" ] ; then
+      color="211,215,207"
+      if [ "${dbuser}" == "importer" ] ; then
+         color="237,212,0"
+      elif [ "${dbuser}" == "researcher" ] ; then
+         color="org.jkiss.dbeaver.color.connectionType.qa.background"
+      elif [ "${dbuser}" == "maintainer" ] ; then
+         color="org.jkiss.dbeaver.color.connectionType.prod.background"
+      fi
       echo -e "\x1b[34mWriting DBeaver configuration to ${DBEAVER_CONFIG_PREFIX} ...\x1b[0m"
       identifier="$(echo "${provider}://${dbuser}@${dbserver}:${dbport}/${database}" | md5sum --tag |  cut -d' ' -f4)"
       (
          cat << EOF
 {
+	"folders": {},
+	"connection-types": {
+		"${dbuser}": {
+			"name": "Development",
+			"color": "${color}",
+			"description": "Regular development database",
+			"auto-commit": true,
+			"confirm-execute": false,
+			"confirm-data-change": false,
+			"smart-commit": false,
+			"smart-commit-recover": true,
+			"auto-close-transactions": true,
+			"close-transactions-period": 1800,
+			"auto-close-connections": true,
+			"close-connections-period": 14400
+		}
+	},
 	"connections": {
 		"${driver}-${identifier}": {
 			"provider": "${provider}",
 			"driver": "${driver}",
-			"name": "${dbserver}:${dbport}/${database}: ${dbbackend} ${dbuser}",
+			"name": "${dbuser}@${dbserver}:${dbport}/${database} ${dbbackend}",
 			"save-password": true,
 			"configuration": {
 				"host": "${dbserver}",
@@ -220,7 +245,7 @@ if [ "${DBEAVER_CONFIG_PREFIX}" ] ; then
 				"database": "${database}",
 				"url": "jdbc:${provider}://${dbserver}:${dbport}/${database}",
 				"configurationType": "MANUAL",
-				"type": "dev",
+				"type": "${dbuser}",
 				"closeIdleConnection": true,
 				"auth-model": "native",
 				"handlers": {
