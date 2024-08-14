@@ -1,6 +1,9 @@
 # Set the database user passwords here.
 # Hint: "pwgen -s 128" generates secure ones!
 
+# Domain for generating hostnames:
+DOMAIN="domain.test"
+
 # DBMS root:
 ROOT_PASSWORD="!root!"
 

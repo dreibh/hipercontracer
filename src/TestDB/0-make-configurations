@@ -44,7 +44,7 @@ CONFIG="$1"
 
 # ====== Generate secure test user passwords ================================
 if [ ! -e "${CONFIG}" ] ; then
-   echo -e "\x1b[34mGenerating ${CONFIG} ...\x1b[0m"
+   echo -e "\x1b[34m$(date +"%F %H:%M:%S"): Generating ${CONFIG} ...\x1b[0m"
    while read -r line ; do
       echo >&2 "$line"
       if [[ "${line}" =~ ^(.*[\"])(!.*!)([\"])$ ]] ; then
@@ -61,7 +61,6 @@ fi
 
 # ====== Write HiPerConTracer Importer configuration files ==================
 name="$(dirname "${CONFIG}")/importer.conf"
-server="$(hostname -f)"
 cat >"${name}" <<EOF
 # ====== Importer Configuration =============================================
 
@@ -96,6 +95,8 @@ move_timestamp_depth = 3
 EOF
 
 for backend in MariaDB PostgreSQL MongoDB ; do
+   host="${backend,,}"
+   server="${host}.${DOMAIN}"
    for user in root maintainer researcher importer ; do
       # shellcheck disable=SC2001
       name="$(echo "${CONFIG}" | sed -e "s/.users\.conf$/-${user}-${backend,,}.conf/")"
@@ -150,3 +151,7 @@ EOF
       fi
    done
 done
+
+
+# ====== Write DBeaver configuration files ==================================
+../make-dbeaver-configuration ~/testdb-*-*.conf --join

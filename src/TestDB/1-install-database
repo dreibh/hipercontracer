@@ -43,6 +43,7 @@ if [ ! -e "$2" ] ; then
    echo >&2 "ERROR: Use configuration $2 does not exist!"
 fi
 
+DOMAIN="test.local"
 ROOT_PASSWORD="!root!"
 DATABASE="just_a_test_database"
 MAINTAINER_PASSWORD="!maintainer!"
@@ -58,12 +59,12 @@ if [ "${ROOT_PASSWORD}"       == "!root!"       ] || \
    echo >&2 "DO NOT USE THE EXAMPLE PASSWORDS!"
    exit 1
 fi
-SERVER="$(hostname -f)"
 
 
 # ###### MariaDB ############################################################
 if [ "$1" == "mariadb" ] ; then
    # Documentation: https://www.digitalocean.com/community/tutorials/how-to-install-mariadb-on-ubuntu-22-04
+   server="mariadb"
 
    # ====== Install MariaDB =================================================
    echo -e "\x1b[34m$(date +"%F %H:%M:%S"): Installing MariaDB ...\x1b[0m"
@@ -81,15 +82,16 @@ if [ "$1" == "mariadb" ] ; then
    fi
 
    # ====== Basic configuration =============================================
-   sudo ./generate-test-certificates /etc/ssl mariadb.domain.test
+   sudo ./name-in-etc-hosts "${server}.${DOMAIN}"
+   sudo ./generate-test-certificates /etc/ssl "${server}.${DOMAIN}"
 
    # MariaDB needs separate certificate and key files.
    # The chain is in the CA file, it must not be in the certificate file!
    # Details: https://mariadb.com/kb/en/securing-connections-for-client-and-server/
    MARIADB_CA_FILE="/etc/ssl/TestLeaf/certs/TestLeaf-chain.pem"
    MARIADB_CRL_FILE="/etc/ssl/TestGlobal.crl"
-   MARIADB_CRT_FILE="/etc/ssl/mariadb.domain.test/mariadb.domain.test.crt"
-   MARIADB_KEY_FILE="/etc/ssl/mariadb.domain.test/mariadb.domain.test.key"
+   MARIADB_CRT_FILE="/etc/ssl/${server}.${DOMAIN}/${server}.${DOMAIN}.crt"
+   MARIADB_KEY_FILE="/etc/ssl/${server}.${DOMAIN}/${server}.${DOMAIN}.key"
    sudo chown mysql:mysql ${MARIADB_KEY_FILE}
    sudo openssl verify -CAfile ${MARIADB_CA_FILE} ${MARIADB_CRT_FILE}
 
@@ -134,12 +136,13 @@ EOF
    fi
 
    # ====== Test configuration ==============================================
-   ./test-tls-connection "${SERVER}:3306" /etc/ssl/TestLevel1/certs/TestLevel1.crt -starttls mysql
+   ./test-tls-connection "${server}.${DOMAIN}:3306" /etc/ssl/TestLevel1/certs/TestLevel1.crt -starttls mysql
 
 
 # ###### PostgreSQL #########################################################
 elif [ "$1" == "postgresql" ] ; then
    # Documentation: https://www.digitalocean.com/community/tutorials/how-to-install-postgresql-on-ubuntu-22-04-quickstart
+   server="postgresql"
 
    # ====== Install PostgreSQL ==============================================
    echo -e "\x1b[34m$(date +"%F %H:%M:%S"): Installing PostgreSQL ...\x1b[0m"
@@ -155,14 +158,15 @@ elif [ "$1" == "postgresql" ] ; then
    fi
 
    # ====== Basic configuration =============================================
-   sudo ./generate-test-certificates /etc/ssl postgresql.domain.test
+   sudo ./name-in-etc-hosts "${server}.${DOMAIN}"
+   sudo ./generate-test-certificates /etc/ssl "${server}.${DOMAIN}"
 
    # PostgreSQL needs separate certificate and key files.
    # The chain is in the CA file, it must not be in the certificate file!
    POSTGRESQL_CA_FILE="/etc/ssl/TestLeaf/certs/TestLeaf-chain.pem"
    POSTGRESQL_CRL_FILE="/etc/ssl/TestGlobal.crl"
-   POSTGRESQL_CRT_FILE="/etc/ssl/postgresql.domain.test/postgresql.domain.test.crt"
-   POSTGRESQL_KEY_FILE="/etc/ssl/postgresql.domain.test/postgresql.domain.test.key"
+   POSTGRESQL_CRT_FILE="/etc/ssl/${server}.${DOMAIN}/${server}.${DOMAIN}.crt"
+   POSTGRESQL_KEY_FILE="/etc/ssl/${server}.${DOMAIN}/${server}.${DOMAIN}.key"
    sudo chown postgres:postgres ${POSTGRESQL_KEY_FILE}
    sudo openssl verify -CAfile ${POSTGRESQL_CA_FILE} ${POSTGRESQL_CRT_FILE}
 
@@ -197,12 +201,13 @@ elif [ "$1" == "postgresql" ] ; then
    sudo service postgresql restart
 
    # ====== Test configuration ==============================================
-   ./test-tls-connection "${SERVER}:5432" /etc/ssl/TestLevel1/certs/TestLevel1.crt -starttls postgres
+   ./test-tls-connection "${server}.${DOMAIN}:5432" /etc/ssl/TestLevel1/certs/TestLevel1.crt -starttls postgres
 
 
 # ###### MongoDB ############################################################
 elif [ "$1" == "mongodb" ] ; then
    # Documentation: https://www.mongodb.com/docs/manual/tutorial/install-mongodb-on-ubuntu/
+   server="mongodb"
 
    # ====== Install MongoDB =================================================
    echo -e "\x1b[34m$(date +"%F %H:%M:%S"): Installing MongoDB ...\x1b[0m"
@@ -215,7 +220,7 @@ elif [ "$1" == "mongodb" ] ; then
    if [ -x /usr/bin/apt ] ; then
       CODENAME="$(lsb_release -cs | tail -n1)"
       for key in 8.0 ${MONGODB_KEY} ; do
-         wget -qO - https://www.mongodb.org/static/pgp/server-${key}.asc | gpg --dearmor | sudo tee /usr/share/keyrings/mongodb-${key}.gpg >/dev/null
+         wget -qO - "https://www.mongodb.org/static/pgp/server-${key}.asc" | gpg --dearmor | sudo tee "/usr/share/keyrings/mongodb-${key}.gpg" >/dev/null
       done
       if [ ! -e /etc/apt/sources.list.d/mongodb-org.list ] ; then
          (
@@ -248,15 +253,16 @@ EOF
    fi
 
    # ====== Basic configuration =============================================
-   sudo ./generate-test-certificates /etc/ssl mongodb.domain.test
+   sudo ./name-in-etc-hosts "${server}.${DOMAIN}"
+   sudo ./generate-test-certificates /etc/ssl "${server}.${DOMAIN}"
 
    # MongoDB wants key + certificate + chain (in this order!) in the PEM file:
    MONGODB_CA_FILE="/etc/ssl/TestLeaf/certs/TestLeaf-chain.pem"
    MONGODB_CRL_FILE="/etc/ssl/TestGlobal.crl"
-   MONGODB_CRT_KEY_FILE="/etc/ssl/mongodb.domain.test/mongodb.domain.test.crt+key+chain"
+   MONGODB_CRT_KEY_FILE="/etc/ssl/${server}.${DOMAIN}/${server}.${DOMAIN}.crt+key+chain"
    sudo touch ${MONGODB_CRT_KEY_FILE}
    sudo chmod 600 ${MONGODB_CRT_KEY_FILE}
-   sudo cat /etc/ssl/mongodb.domain.test/mongodb.domain.test.key /etc/ssl/mongodb.domain.test/mongodb.domain.test.crt /etc/ssl/TestLeaf/certs/TestLeaf-chain.pem | sudo tee ${MONGODB_CRT_KEY_FILE} >/dev/null
+   sudo cat /etc/ssl/${server}.${DOMAIN}/${server}.${DOMAIN}.key /etc/ssl/${server}.${DOMAIN}/${server}.${DOMAIN}.crt /etc/ssl/TestLeaf/certs/TestLeaf-chain.pem | sudo tee ${MONGODB_CRT_KEY_FILE} >/dev/null
    if [ ! -x /usr/bin/dnf ] ; then
       sudo chown mongodb:mongodb ${MONGODB_CRT_KEY_FILE}
    else
@@ -315,7 +321,7 @@ EOF
    sleep 5
 
    # ====== Test configuration ==============================================
-   ./test-tls-connection "${SERVER}:27017" /etc/ssl/TestLevel1/certs/TestLevel1.crt
+   ./test-tls-connection "${server}.${DOMAIN}:27017" /etc/ssl/TestLevel1/certs/TestLevel1.crt
 
 
 # ###### Error ##############################################################
