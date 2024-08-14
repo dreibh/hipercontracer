@@ -218,7 +218,7 @@ if [ "${DBEAVER_CONFIG_PREFIX}" ] ; then
 				"host": "${dbserver}",
 				"port": "${dbport}",
 				"database": "${database}",
-				"url": "jdbc:mysql://${dbserver}:${dbport}/${database}",
+				"url": "jdbc:${provider}://${dbserver}:${dbport}/${database}",
 				"configurationType": "MANUAL",
 				"type": "dev",
 				"closeIdleConnection": true,
@@ -250,12 +250,10 @@ EOF
       (
          cat << EOF
 {
-	"connections": {
-		"${driver}-${uuid}": {
-			"#connection": {
-				"user": "${dbuser}",
-				"password": "${dbpassword}"
-			}
+	"${driver}-${uuid}": {
+		"#connection": {
+			"user": "${dbuser}",
+			"password": "${dbpassword}"
 		}
 	}
 }
