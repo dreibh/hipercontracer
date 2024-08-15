@@ -94,7 +94,6 @@ move_timestamp_depth = 3
 # table = Jitter:Jitter
 EOF
 
-cp /etc/ssl/TestLevel1/certs/TestLevel1.crt /etc/ssl/TestGlobal.crl "${HOME}/"
 for backend in MariaDB PostgreSQL MongoDB ; do
    host="${backend,,}"
    server="${host}.${DOMAIN}"

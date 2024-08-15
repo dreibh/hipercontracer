@@ -80,6 +80,9 @@ USERS_CONFIG=~/testdb-users.conf
 
 # Install the DBMS and configure it:
 ./1-install-database        "$1" ${USERS_CONFIG}
+# Copy the CA certificate and CRL:
+cp /etc/ssl/TestLevel1/certs/TestLevel1.crt /etc/ssl/TestGlobal.crl "${HOME}/"
+
 ./2-initialise-database     "$1" ${USERS_CONFIG} --force-removal-without-confirmation
 ./3-test-database           "$1" ${USERS_CONFIG}
 
