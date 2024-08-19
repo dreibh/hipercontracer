@@ -87,14 +87,14 @@ bool PostgreSQLClient::open()
    const std::string parameters =
       "host="         + Configuration.getServer() +
       " port="        + std::to_string((Configuration.getPort() != 0) ? Configuration.getPort() : 5432) +
+      " user="        + Configuration.getUser() +
+      " password="    + Configuration.getPassword() +
+      " dbname="      + Configuration.getDatabase() +
       " sslmode="     + ssl_mode +
       " sslrootcert=" + Configuration.getCAFile() +
       " sslcrl="      + Configuration.getCRLFile() +
       " sslcert="     + Configuration.getCertFile() +
-      " sslkey="      + Configuration.getKeyFile() +
-      " user="        + Configuration.getUser() +
-      " password="    + Configuration.getPassword() +
-      " dbname="      + Configuration.getDatabase();
+      " sslkey="      + Configuration.getKeyFile();
 
    try {
       // ====== Connect to database =========================================
