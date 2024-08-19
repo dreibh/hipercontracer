@@ -61,17 +61,32 @@ static void addSQLWhere(Statement&               statement,
                         const unsigned long long fromTimeStamp,
                         const unsigned long long toTimeStamp,
                         const unsigned int       fromMeasurementID,
-                        const unsigned int       toMeasurementID)
+                        const unsigned int       toMeasurementID,
+                        const bool               timestampIsTimeStampType = false)
 {
    if( (fromTimeStamp > 0) || (toTimeStamp > 0) || (fromMeasurementID > 0) || (toMeasurementID > 0) ) {
       statement << " WHERE";
       bool needsAnd = false;
       if(fromTimeStamp > 0) {
-         statement << " (" << timeStampField << " >= " << fromTimeStamp << ")";
+         statement << " (" << timeStampField << " >= ";
+         if(!timestampIsTimeStampType) {
+            statement << fromTimeStamp;
+         }
+         else {
+            statement << "'" << timePointToString<ResultTimePoint>(nanosecondsToTimePoint<ResultTimePoint>(fromTimeStamp), 9) << "'";
+         }
+         statement << ")";
          needsAnd = true;
       }
       if(toTimeStamp > 0) {
-         statement << ((needsAnd == true) ? " AND" : "") << " (" << timeStampField << " < " << toTimeStamp << ")";
+         statement << ((needsAnd == true) ? " AND" : "") << " (" << timeStampField << " < ";
+         if(!timestampIsTimeStampType) {
+            statement << toTimeStamp;
+         }
+         else {
+            statement << "'" << timePointToString<ResultTimePoint>(nanosecondsToTimePoint<ResultTimePoint>(toTimeStamp) , 9) << "'";
+         }
+         statement << ")";
          needsAnd = true;
       }
       if(fromMeasurementID > 0) {
@@ -475,27 +490,27 @@ int main(int argc, char** argv)
                statement
                   << "SELECT"
                      " " << ts << " AS SendTimestamp,"
-                     "  0         AS MeasurementID,"
-                     "  FromIP    AS SourceIP,"
-                     "  ToIP      AS DestinationIP,"
-                     "  105       AS Protocol,"         /* 'i', since HiPerConTracer 1.x only supports ICMP */
-                     "  TC        AS TrafficClass,"
-                     "  0         AS BurstSeq,"
-                     "  PktSize   AS PacketSize,"
-                     "  0         AS ResponseSize,"
-                     "  65535     AS Checksum,"         /* 0xffff = invalid checksum; not supported by HiPerConTracer 1.x SQL! */
-                     "  0         AS SourcePort,"
-                     "  0         AS DestinationPort,"
-                     "  Status    AS Status,"
-                     "  0         AS TimeSource,"
-                     "  -1        AS Delay_AppSend,"
-                     "  -1        AS Delay_Queuing,"
-                     "  -1        AS Delay_AppReceive,"
-                     " 1000 * RTT AS RTT_App,"
-                     "  -1        AS RTT_SW,"
-                     "  -1        AS RTT_HW "
+                     "  0        AS MeasurementID,"
+                     "  FromIP   AS SourceIP,"
+                     "  ToIP     AS DestinationIP,"
+                     "  105      AS Protocol,"         /* 'i', since HiPerConTracer 1.x only supports ICMP */
+                     "  TC       AS TrafficClass,"
+                     "  0        AS BurstSeq,"
+                     "  PktSize  AS PacketSize,"
+                     "  0        AS ResponseSize,"
+                     "  Checksum AS Checksum,"
+                     "  0        AS SourcePort,"
+                     "  0        AS DestinationPort,"
+                     "  Status   AS Status,"
+                     "  0        AS TimeSource,"
+                     "  -1       AS Delay_AppSend,"
+                     "  -1       AS Delay_Queuing,"
+                     "  -1       AS Delay_AppReceive,"
+                     " 1000 * CAST(RTT AS BIGINT) AS RTT_App,"
+                     "  -1       AS RTT_SW,"
+                     "  -1       AS RTT_HW "
                      "FROM " << ((tableName.size() == 0) ? "Ping" : tableName);
-               addSQLWhere(statement, ts, fromTimeStamp, toTimeStamp, fromMeasurementID, toMeasurementID);
+               addSQLWhere(statement, "TimeStamp", fromTimeStamp, toTimeStamp, fromMeasurementID, toMeasurementID, true);
             }
             // ====== Current version 2 table ============================
             else {
@@ -627,32 +642,32 @@ int main(int argc, char** argv)
                statement
                   << "SELECT"
                      " " << ts << " AS SendTimestamp,"
-                     " 0          AS MeasurementID,"
-                     " FromIP     AS SourceIP,"
-                     " ToIP       AS DestinationIP,"
-                     " 105        AS Protocol,"     /* 'i', since HiPerConTracer 1.x only supports ICMP */
-                     " TC         AS TrafficClass,"
-                     " Round      AS RoundNumber,"
-                     " HopNumber  AS HopNumber,"
-                     " TotalHops  AS TotalHops,"
-                     " PktSize    AS PacketSize,"
-                     " 0          AS ResponseSize,"
-                     " 65535      AS Checksum,"     /* 0xffff = invalid checksum; not supported by HiPerConTracer 1.x SQL! */
-                     " 0          AS SourcePort,"
-                     " 0          AS DestinationPort,"
-                     " Status     AS Status,"
-                     " PathHash   AS PathHash,"
+                     " 0         AS MeasurementID,"
+                     " FromIP    AS SourceIP,"
+                     " ToIP      AS DestinationIP,"
+                     " 105       AS Protocol,"     /* 'i', since HiPerConTracer 1.x only supports ICMP */
+                     " TC        AS TrafficClass,"
+                     " Round     AS RoundNumber,"
+                     " HopNumber AS HopNumber,"
+                     " TotalHops AS TotalHops,"
+                     " PktSize   AS PacketSize,"
+                     " 0         AS ResponseSize,"
+                     " Checksum  AS Checksum,"
+                     " 0         AS SourcePort,"
+                     " 0         AS DestinationPort,"
+                     " Status    AS Status,"
+                     " PathHash  AS PathHash,"
                      " " << ts << " AS SendTimestamp,"
-                     " HopIP      AS HopIP,"
-                     " 0x00000000 AS TimeSource,"
-                     " -1         AS Delay_AppSend,"
-                     " -1         AS Delay_Queuing,"
-                     " -1         AS Delay_AppReceive,"
-                     " 1000 * RTT AS RTT_App,"
-                     " -1         AS RTT_SW,"
-                     " -1         AS RTT_HW "
+                     " HopIP     AS HopIP,"
+                     " 0         AS TimeSource,"
+                     " -1        AS Delay_AppSend,"
+                     " -1        AS Delay_Queuing,"
+                     " -1        AS Delay_AppReceive,"
+                     " 1000 * CAST(RTT AS BIGINT) AS RTT_App,"
+                     " -1        AS RTT_SW,"
+                     " -1        AS RTT_HW "
                      "FROM " << ((tableName.size() == 0) ? "Traceroute" : tableName);
-               addSQLWhere(statement, ts, fromTimeStamp, toTimeStamp, fromMeasurementID, toMeasurementID);
+               addSQLWhere(statement, "TimeStamp", fromTimeStamp, toTimeStamp, fromMeasurementID, toMeasurementID, true);
             }
             // ====== Current version 2 table ============================
             else {
