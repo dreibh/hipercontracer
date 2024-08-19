@@ -40,7 +40,7 @@ if [ $# -lt 1 ] ; then
    exit 1
 fi
 
-IMPORTER_CONFIG="${HOME}/importer.conf"
+IMPORTER_CONFIG="${HOME}/importer-testdb.conf"
 # Access to database as "importer" user:
 DBMS="$1"
 DATABASE_CONFIG="${HOME}/testdb-importer-${DBMS}.conf"

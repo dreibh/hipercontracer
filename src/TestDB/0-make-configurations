@@ -60,7 +60,7 @@ fi
 
 
 # ====== Write HiPerConTracer Importer configuration files ==================
-name="$(dirname "${CONFIG}")/importer.conf"
+name="$(dirname "${CONFIG}")/importer-testdb.conf"
 cat >"${name}" <<EOF
 # ====== Importer Configuration =============================================
 
