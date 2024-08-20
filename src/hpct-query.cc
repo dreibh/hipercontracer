@@ -482,35 +482,36 @@ int main(int argc, char** argv)
             if(tableVersion == 1) {
                std::string ts;
                if( (backend & DatabaseBackendType::SQL_PostgreSQL) == backend & DatabaseBackendType::SQL_PostgreSQL ) {
-                  ts = "(1000000000 * CAST(EXTRACT(EPOCH FROM Timestamp) AS BIGINT))";
+                  ts = "(1000000000 * CAST(EXTRACT(EPOCH FROM p.TimeStamp) AS BIGINT))";
                }
                else {
-                  ts = "(1000000000 * CAST(UNIX_TIMESTAMP(TimeStamp) AS UNSIGNED))";
+                  ts = "(1000000000 * CAST(UNIX_TIMESTAMP(p.TimeStamp) AS UNSIGNED))";
                }
                statement
                   << "SELECT"
                      " " << ts << " AS SendTimestamp,"
-                     "  0        AS MeasurementID,"
-                     "  FromIP   AS SourceIP,"
-                     "  ToIP     AS DestinationIP,"
-                     "  105      AS Protocol,"         /* 'i', since HiPerConTracer 1.x only supports ICMP */
-                     "  TC       AS TrafficClass,"
-                     "  0        AS BurstSeq,"
-                     "  PktSize  AS PacketSize,"
-                     "  0        AS ResponseSize,"
-                     "  Checksum AS Checksum,"
-                     "  0        AS SourcePort,"
-                     "  0        AS DestinationPort,"
-                     "  Status   AS Status,"
-                     "  0        AS TimeSource,"
-                     "  -1       AS Delay_AppSend,"
-                     "  -1       AS Delay_Queuing,"
-                     "  -1       AS Delay_AppReceive,"
-                     " 1000 * CAST(RTT AS BIGINT) AS RTT_App,"
-                     "  -1       AS RTT_SW,"
-                     "  -1       AS RTT_HW "
-                     "FROM " << ((tableName.size() == 0) ? "Ping" : tableName);
+                     " a.SiteIndex  AS MeasurementID,"
+                     " p.FromIP     AS SourceIP,"
+                     " p.ToIP       AS DestinationIP,"
+                     " 105          AS Protocol,"         /* 'i', since HiPerConTracer 1.x only supports ICMP */
+                     " p.TC         AS TrafficClass,"
+                     " 0            AS BurstSeq,"
+                     " p.PktSize    AS PacketSize,"
+                     " 0            AS ResponseSize,"
+                     " p.Checksum   AS Checksum,"
+                     " 0            AS SourcePort,"
+                     " 0            AS DestinationPort,"
+                     " p.Status     AS Status,"
+                     " 0            AS TimeSource,"
+                     " -1           AS Delay_AppSend,"
+                     " -1           AS Delay_Queuing,"
+                     " -1           AS Delay_AppReceive,"
+                     " 1000 * CAST(p.RTT AS BIGINT) AS RTT_App,"
+                     " -1           AS RTT_SW,"
+                     " -1           AS RTT_HW "
+                     "FROM " << ((tableName.size() == 0) ? "Ping" : tableName) << " p, AddressInfo a";
                addSQLWhere(statement, "TimeStamp", fromTimeStamp, toTimeStamp, fromMeasurementID, toMeasurementID, true);
+               statement << " AND p.FromIP = a.IP";
             }
             // ====== Current version 2 table ============================
             else {
@@ -634,40 +635,41 @@ int main(int argc, char** argv)
             if(tableVersion == 1) {
                std::string ts;
                if( (backend & DatabaseBackendType::SQL_PostgreSQL) == backend & DatabaseBackendType::SQL_PostgreSQL ) {
-                  ts = "(1000000000 * CAST(EXTRACT(EPOCH FROM Timestamp) AS BIGINT))";
+                  ts = "(1000000000 * CAST(EXTRACT(EPOCH FROM t.TimeStamp) AS BIGINT))";
                }
                else {
-                  ts = "(1000000000 * CAST(UNIX_TIMESTAMP(TimeStamp) AS UNSIGNED))";
+                  ts = "(1000000000 * CAST(UNIX_TIMESTAMP(t.TimeStamp) AS UNSIGNED))";
                }
                statement
                   << "SELECT"
+                     " " << ts << " AS Timestamp,"
+                     " a.SiteIndex  AS MeasurementID,"
+                     " t.FromIP     AS SourceIP,"
+                     " t.ToIP       AS DestinationIP,"
+                     " 105          AS Protocol,"     /* 'i', since HiPerConTracer 1.x only supports ICMP */
+                     " t.TC         AS TrafficClass,"
+                     " t.Round      AS RoundNumber,"
+                     " t.HopNumber  AS HopNumber,"
+                     " t.TotalHops  AS TotalHops,"
+                     " t.PktSize    AS PacketSize,"
+                     " 0            AS ResponseSize,"
+                     " t.Checksum   AS Checksum,"
+                     " 0            AS SourcePort,"
+                     " 0            AS DestinationPort,"
+                     " t.Status     AS Status,"
+                     " t.PathHash   AS PathHash,"
                      " " << ts << " AS SendTimestamp,"
-                     " 0         AS MeasurementID,"
-                     " FromIP    AS SourceIP,"
-                     " ToIP      AS DestinationIP,"
-                     " 105       AS Protocol,"     /* 'i', since HiPerConTracer 1.x only supports ICMP */
-                     " TC        AS TrafficClass,"
-                     " Round     AS RoundNumber,"
-                     " HopNumber AS HopNumber,"
-                     " TotalHops AS TotalHops,"
-                     " PktSize   AS PacketSize,"
-                     " 0         AS ResponseSize,"
-                     " Checksum  AS Checksum,"
-                     " 0         AS SourcePort,"
-                     " 0         AS DestinationPort,"
-                     " Status    AS Status,"
-                     " PathHash  AS PathHash,"
-                     " " << ts << " AS SendTimestamp,"
-                     " HopIP     AS HopIP,"
-                     " 0         AS TimeSource,"
-                     " -1        AS Delay_AppSend,"
-                     " -1        AS Delay_Queuing,"
-                     " -1        AS Delay_AppReceive,"
-                     " 1000 * CAST(RTT AS BIGINT) AS RTT_App,"
-                     " -1        AS RTT_SW,"
-                     " -1        AS RTT_HW "
-                     "FROM " << ((tableName.size() == 0) ? "Traceroute" : tableName);
-               addSQLWhere(statement, "TimeStamp", fromTimeStamp, toTimeStamp, fromMeasurementID, toMeasurementID, true);
+                     " t.HopIP      AS HopIP,"
+                     " 0            AS TimeSource,"
+                     " -1           AS Delay_AppSend,"
+                     " -1           AS Delay_Queuing,"
+                     " -1           AS Delay_AppReceive,"
+                     " 1000 * CAST(t.RTT AS BIGINT) AS RTT_App,"
+                     " -1           AS RTT_SW,"
+                     " -1           AS RTT_HW "
+                     "FROM " << ((tableName.size() == 0) ? "Traceroute" : tableName) << " t, AddressInfo a";
+               addSQLWhere(statement, "t.TimeStamp", fromTimeStamp, toTimeStamp, fromMeasurementID, toMeasurementID, true);
+               statement << " AND t.FromIP = a.IP";
             }
             // ====== Current version 2 table ============================
             else {
