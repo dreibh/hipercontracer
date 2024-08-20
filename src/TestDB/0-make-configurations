@@ -35,11 +35,12 @@ set -o nounset
 set -o errexit
 
 
-if [ $# -ne 1 ] ; then
-   echo >&2 "Usage: $0 users.conf"
+if [ $# -ne 2 ] ; then
+   echo >&2 "Usage: $0 template.conf generated.conf"
    exit 1
 fi
-CONFIG="$1"
+TEMPLATE="$1"
+CONFIG="$2"
 
 
 # ====== Generate secure test user passwords ================================
@@ -52,7 +53,7 @@ if [ ! -e "${CONFIG}" ] ; then
       else
          echo "${line}"
       fi
-   done <users.conf.example | tee "${CONFIG}"
+   done <"${TEMPLATE}" | tee "${CONFIG}"
 fi
 
 # shellcheck disable=SC1090
@@ -60,7 +61,7 @@ fi
 
 
 # ====== Write HiPerConTracer Importer configuration files ==================
-name="$(dirname "${CONFIG}")/importer-testdb.conf"
+name="$(dirname "${CONFIG}")/importer-${DATABASE}.conf"
 cat >"${name}" <<EOF
 # ====== Importer Configuration =============================================
 
@@ -154,4 +155,4 @@ done
 
 
 # ====== Write DBeaver configuration files ==================================
-../make-dbeaver-configuration ~/testdb-*-*.conf --join
+../make-dbeaver-configuration ~/"${DATABASE}"-*-*.conf --join

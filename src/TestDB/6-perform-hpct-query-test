@@ -35,14 +35,20 @@ set -o nounset
 set -o errexit
 
 
-if [ $# -lt 1 ] ; then
-   echo >&2 "Usage: $0 mariadb|mongodb|mysql|postgresql"
+if [ $# -ne 2 ] ; then
+   echo >&2 "Usage: $0 mariadb|mongodb|mysql|postgresql users.conf"
    exit 1
 fi
+if [ ! -e "$2" ] ; then
+   echo >&2 "ERROR: Use configuration $2 does not exist!"
+fi
 
-# Access to database as "researcher" user:
+DATABASE="just_a_test_database"
+# shellcheck disable=SC1090
+. "$2"
+
 DBMS="$1"
-DATABASE_CONFIG="${HOME}/testdb-researcher-${DBMS}.conf"
+DATABASE_CONFIG="${HOME}/${DATABASE}-researcher-${DBMS}.conf"
 
 if [ ! -v VALGRIND_CMD ] ; then
    VALGRIND_CMD=""
