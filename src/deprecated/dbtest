@@ -24,7 +24,7 @@ client = configuration.createClient()
 # ------ SQL: MySQL/MariaDB/PostgreSQL --------------------------------------
 if configuration.getBackend() in [ 'MySQL', 'MariaDB', 'PostgreSQL' ]:
 
-   query = 'SELECT DISTINCT(SourceIP) FROM Ping'
+   query = 'SELECT DISTINCT(SourceIP) FROM Traceroute'
    print(query)
    rows = configuration.query(query)
    for row in rows:
@@ -33,6 +33,6 @@ if configuration.getBackend() in [ 'MySQL', 'MariaDB', 'PostgreSQL' ]:
 # ------ NoSQL: MongoDB -----------------------------------------------------
 elif configuration.getBackend() == 'MongoDB':
 
-   rows = configuration.database['ping'].distinct('sourceIP')
+   rows = configuration.database['traceroute'].distinct('sourceIP')
    for row in rows:
       print(QueryHelper.unmap(ipaddress.ip_address(row)))

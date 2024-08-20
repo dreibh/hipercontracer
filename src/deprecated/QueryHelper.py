@@ -153,7 +153,17 @@ class DatabaseConfiguration:
 
       # ====== MySQL/MariaDB ================================================
       if self.Configuration['dbBackend'] in [ 'MySQL', 'MariaDB' ]:
-         import mysql.connector
+         try:
+            import mysql.connector
+         except Exception as e:
+            sys.stderr.write('ERROR: Cannot load the Python MySQL Connector module: ' + str(e) + """
+Try:
+ * Ubuntu/Debian: (get DEB package from: https://downloads.mysql.com/archives/c-python/)
+ * Fedora:        sudo dnf install -y mysql-connector-python3
+ * FreeBSD:       sudo pkg install -y py311-mysql-connector-python
+""")
+            sys.exit(1)
+
          ssl_disabled                = False
          ssl_verify_cert             = True
          ssl_verify_identity         = True
@@ -196,7 +206,17 @@ class DatabaseConfiguration:
 
       # ====== PostgreSQL ===================================================
       elif self.Configuration['dbBackend'] == 'PostgreSQL':
-         import psycopg2
+         try:
+            import psycopg2
+         except Exception as e:
+            sys.stderr.write('ERROR: Cannot load the Python PostgreSQL module: ' + str(e) + """
+Try:
+ * Ubuntu/Debian: sudo apt get install -y python3-psycopg
+ * Fedora:        sudo dnf install -y python3-psycopg2
+ * FreeBSD:       sudo pkg install -y py311-psycopg2
+""")
+            sys.exit(1)
+
          ssl_mode = 'verify-full'
          if self.Configuration['dbConnectionFlags'] != None:
             for flag in self.Configuration['dbConnectionFlags']:
@@ -231,7 +251,17 @@ class DatabaseConfiguration:
 
       # ====== MongoDB ======================================================
       if self.Configuration['dbBackend'] == 'MongoDB':
-         import pymongo
+         try:
+            import pymongo
+         except Exception as e:
+            sys.stderr.write('ERROR: Cannot load the Python MongoDB module: ' + str(e) + """
+Try:
+ * Ubuntu/Debian: sudo apt install -y python3-pymongo python3-snappy python3-zstandard
+ * Fedora:        sudo dnf install -y python3-pymongo python3-snappy python3-zstandard
+ * FreeBSD:       sudo pkg install -y py311-pymongo py311-python-snappy py311-zstandard
+""")
+            sys.exit(1)
+
          tls                         = True
          tlsAllowInvalidHostnames    = False
          tlsAllowInvalidCertificates = False
