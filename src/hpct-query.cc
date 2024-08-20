@@ -141,6 +141,22 @@ static void addNoSQLFilter(Statement&               statement,
 }
 
 
+// ###### Remap measurement ID using address ################################
+static inline unsigned int mapMeasurementID(
+   const unsigned long long                          measurementID,
+   std::map<boost::asio::ip::address, unsigned int>& addressToMeasurementID,
+   const boost::asio::ip::address&                   address)
+{
+   if(measurementID == 0) {
+      std::map<boost::asio::ip::address, unsigned int>::iterator found = addressToMeasurementID.find(address);
+      if(found != addressToMeasurementID.end()) {
+         return found->second;
+      }
+   }
+   return measurementID;
+}
+
+
 
 // ##########################################################################
 // #### Macros                                                           ####
@@ -292,20 +308,22 @@ static void addNoSQLFilter(Statement&               statement,
 int main(int argc, char** argv)
 {
    // ====== Initialize =====================================================
-   unsigned int          logLevel;
-   bool                  logColor;
-   std::filesystem::path logFile;
-   std::filesystem::path databaseConfigurationFile;
-   std::filesystem::path outputFileName;
-   std::string           queryType;
-   std::string           tableName;
-   unsigned int          tableVersion;
-   std::string           fromTimeString;
-   std::string           toTimeString;
-   unsigned long long    fromTimeStamp = 0;
-   unsigned long long    toTimeStamp   = 0;
-   unsigned int          fromMeasurementID;
-   unsigned int          toMeasurementID;
+   unsigned int                                     logLevel;
+   bool                                             logColor;
+   std::filesystem::path                            logFile;
+   std::filesystem::path                            databaseConfigurationFile;
+   std::filesystem::path                            outputFileName;
+   std::string                                      queryType;
+   std::string                                      tableName;
+   unsigned int                                     tableVersion;
+   std::string                                      fromTimeString;
+   std::string                                      toTimeString;
+   std::map<boost::asio::ip::address, unsigned int> addressToMeasurementID;
+   std::filesystem::path                            addressToMeasurementIDFile;
+   unsigned long long                               fromTimeStamp = 0;
+   unsigned long long                               toTimeStamp   = 0;
+   unsigned int                                     fromMeasurementID;
+   unsigned int                                     toMeasurementID;
 
    boost::program_options::options_description commandLineOptions;
    commandLineOptions.add_options()
@@ -338,6 +356,9 @@ int main(int argc, char** argv)
       ( "table-version,V",
            boost::program_options::value<unsigned int>(&tableVersion)->default_value(0),
            "Table version to query from (0 for current)" )
+      ( "address-to-measurementid,M",
+           boost::program_options::value<std::filesystem::path>(&addressToMeasurementIDFile)->default_value(std::filesystem::path()),
+           "Address to Measurement ID mapping file" )
 
       ( "from-time",
            boost::program_options::value<std::string>(&fromTimeString)->default_value(std::string()),
@@ -417,6 +438,28 @@ int main(int argc, char** argv)
       std::cerr << "ERROR: to measurement identifier < from measurement identifier!\n";
       return 1;
    }
+   if(addressToMeasurementIDFile != std::filesystem::path()) {
+      std::ifstream mappingFile(addressToMeasurementIDFile);
+      if(!mappingFile.good()) {
+         std::cerr << "ERROR: Unable to read mapping file " << addressToMeasurementIDFile << "!\n";
+         return 1;
+      }
+      try {
+         std::string  addressString;
+         unsigned int measurementID;
+         while(!mappingFile.eof()) {
+            mappingFile >> addressString >> measurementID;
+            addressToMeasurementID.insert(std::pair<boost::asio::ip::address, unsigned int>(
+                                             boost::asio::ip::make_address(addressString),
+                                             measurementID));
+         }
+      }
+      catch(const std::exception& e) {
+         std::cerr << "ERROR: Parsing mapping file " << addressToMeasurementIDFile
+                   << " failed: " << e.what() << "!\n";
+         return 1;
+      }
+   }
 
 
    // ====== Initialise importer ============================================
@@ -482,36 +525,35 @@ int main(int argc, char** argv)
             if(tableVersion == 1) {
                std::string ts;
                if( (backend & DatabaseBackendType::SQL_PostgreSQL) == backend & DatabaseBackendType::SQL_PostgreSQL ) {
-                  ts = "(1000000000 * CAST(EXTRACT(EPOCH FROM p.TimeStamp) AS BIGINT))";
+                  ts = "(1000000000 * CAST(EXTRACT(EPOCH FROM TimeStamp) AS BIGINT))";
                }
                else {
-                  ts = "(1000000000 * CAST(UNIX_TIMESTAMP(p.TimeStamp) AS UNSIGNED))";
+                  ts = "(1000000000 * CAST(UNIX_TIMESTAMP(TimeStamp) AS UNSIGNED))";
                }
                statement
                   << "SELECT"
                      " " << ts << " AS SendTimestamp,"
-                     " a.SiteIndex  AS MeasurementID,"
-                     " p.FromIP     AS SourceIP,"
-                     " p.ToIP       AS DestinationIP,"
+                     " 0            AS MeasurementID,"
+                     " FromIP       AS SourceIP,"
+                     " ToIP         AS DestinationIP,"
                      " 105          AS Protocol,"         /* 'i', since HiPerConTracer 1.x only supports ICMP */
-                     " p.TC         AS TrafficClass,"
+                     " TC           AS TrafficClass,"
                      " 0            AS BurstSeq,"
-                     " p.PktSize    AS PacketSize,"
+                     " PktSize      AS PacketSize,"
                      " 0            AS ResponseSize,"
-                     " p.Checksum   AS Checksum,"
+                     " Checksum     AS Checksum,"
                      " 0            AS SourcePort,"
                      " 0            AS DestinationPort,"
-                     " p.Status     AS Status,"
+                     " Status       AS Status,"
                      " 0            AS TimeSource,"
                      " -1           AS Delay_AppSend,"
                      " -1           AS Delay_Queuing,"
                      " -1           AS Delay_AppReceive,"
-                     " 1000 * CAST(p.RTT AS BIGINT) AS RTT_App,"
+                     " 1000 * CAST(RTT AS BIGINT) AS RTT_App,"
                      " -1           AS RTT_SW,"
                      " -1           AS RTT_HW "
-                     "FROM " << ((tableName.size() == 0) ? "Ping" : tableName) << " p, AddressInfo a";
+                     "FROM " << ((tableName.size() == 0) ? "Ping" : tableName);
                addSQLWhere(statement, "TimeStamp", fromTimeStamp, toTimeStamp, fromMeasurementID, toMeasurementID, true);
-               statement << " AND p.FromIP = a.IP";
             }
             // ====== Current version 2 table ============================
             else {
@@ -527,9 +569,10 @@ int main(int argc, char** argv)
             try {
                while(databaseClient->fetchNextTuple()) {
                   const unsigned long long       sendTimeStamp   = databaseClient->getBigInt(1);
-                  const unsigned long long       measurementID   = databaseClient->getInteger(2);
                   const boost::asio::ip::address sourceIP        = statement.decodeAddress(databaseClient->getString(3));
                   const boost::asio::ip::address destinationIP   = statement.decodeAddress(databaseClient->getString(4));
+                  const unsigned long long       measurementID   = mapMeasurementID(databaseClient->getInteger(2),
+                                                                                    addressToMeasurementID, sourceIP);
                   const char                     protocol        = databaseClient->getInteger(5);
                   const uint8_t                  trafficClass    = databaseClient->getInteger(6);
                   const unsigned int             burstSeq        = databaseClient->getInteger(7);
@@ -566,9 +609,9 @@ int main(int argc, char** argv)
                if(tableVersion == 1) {
                   while(databaseClient->fetchNextTuple()) {
                      const unsigned long long       sendTimeStamp   = 1000 * databaseClient->getBigInt("timestamp");
-                     const unsigned long long       measurementID   = 0;
                      const boost::asio::ip::address sourceIP        = statement.decodeAddress(databaseClient->getString("source"));
                      const boost::asio::ip::address destinationIP   = statement.decodeAddress(databaseClient->getString("destination"));
+                     const unsigned long long       measurementID   = mapMeasurementID(0, addressToMeasurementID, sourceIP);
                      const char                     protocol        = 'i';
                      const uint8_t                  trafficClass    = (databaseClient->hasColumn("trafficClass") == true) ?
                                                                          databaseClient->getInteger("trafficClass") : 0x00;
@@ -594,9 +637,10 @@ int main(int argc, char** argv)
                else {
                   while(databaseClient->fetchNextTuple()) {
                      const unsigned long long       sendTimeStamp   = databaseClient->getBigInt("sendTimestamp");
-                     const unsigned long long       measurementID   = databaseClient->getInteger("measurementID");
                      const boost::asio::ip::address sourceIP        = statement.decodeAddress(databaseClient->getString("sourceIP"));
                      const boost::asio::ip::address destinationIP   = statement.decodeAddress(databaseClient->getString("destinationIP"));
+                     const unsigned long long       measurementID   = mapMeasurementID(databaseClient->getInteger("measurementID"),
+                                                                                       addressToMeasurementID, sourceIP);
                      const char                     protocol        = databaseClient->getInteger("protocol");
                      const uint8_t                  trafficClass    = databaseClient->getInteger("trafficClass");
                      const unsigned int             burstSeq        = databaseClient->getInteger("burstSeq");
@@ -635,41 +679,40 @@ int main(int argc, char** argv)
             if(tableVersion == 1) {
                std::string ts;
                if( (backend & DatabaseBackendType::SQL_PostgreSQL) == backend & DatabaseBackendType::SQL_PostgreSQL ) {
-                  ts = "(1000000000 * CAST(EXTRACT(EPOCH FROM t.TimeStamp) AS BIGINT))";
+                  ts = "(1000000000 * CAST(EXTRACT(EPOCH FROM TimeStamp) AS BIGINT))";
                }
                else {
-                  ts = "(1000000000 * CAST(UNIX_TIMESTAMP(t.TimeStamp) AS UNSIGNED))";
+                  ts = "(1000000000 * CAST(UNIX_TIMESTAMP(TimeStamp) AS UNSIGNED))";
                }
                statement
                   << "SELECT"
                      " " << ts << " AS Timestamp,"
-                     " a.SiteIndex  AS MeasurementID,"
-                     " t.FromIP     AS SourceIP,"
-                     " t.ToIP       AS DestinationIP,"
+                     " 0            AS MeasurementID,"
+                     " FromIP       AS SourceIP,"
+                     " ToIP         AS DestinationIP,"
                      " 105          AS Protocol,"     /* 'i', since HiPerConTracer 1.x only supports ICMP */
-                     " t.TC         AS TrafficClass,"
-                     " t.Round      AS RoundNumber,"
-                     " t.HopNumber  AS HopNumber,"
-                     " t.TotalHops  AS TotalHops,"
-                     " t.PktSize    AS PacketSize,"
+                     " TC           AS TrafficClass,"
+                     " Round        AS RoundNumber,"
+                     " HopNumber    AS HopNumber,"
+                     " TotalHops    AS TotalHops,"
+                     " PktSize      AS PacketSize,"
                      " 0            AS ResponseSize,"
-                     " t.Checksum   AS Checksum,"
+                     " Checksum     AS Checksum,"
                      " 0            AS SourcePort,"
                      " 0            AS DestinationPort,"
-                     " t.Status     AS Status,"
-                     " t.PathHash   AS PathHash,"
+                     " Status       AS Status,"
+                     " PathHash     AS PathHash,"
                      " " << ts << " AS SendTimestamp,"
-                     " t.HopIP      AS HopIP,"
+                     " HopIP        AS HopIP,"
                      " 0            AS TimeSource,"
                      " -1           AS Delay_AppSend,"
                      " -1           AS Delay_Queuing,"
                      " -1           AS Delay_AppReceive,"
-                     " 1000 * CAST(t.RTT AS BIGINT) AS RTT_App,"
+                     " 1000 * CAST(RTT AS BIGINT) AS RTT_App,"
                      " -1           AS RTT_SW,"
                      " -1           AS RTT_HW "
-                     "FROM " << ((tableName.size() == 0) ? "Traceroute" : tableName) << " t, AddressInfo a";
-               addSQLWhere(statement, "t.TimeStamp", fromTimeStamp, toTimeStamp, fromMeasurementID, toMeasurementID, true);
-               statement << " AND t.FromIP = a.IP";
+                     "FROM " << ((tableName.size() == 0) ? "Traceroute" : tableName);
+               addSQLWhere(statement, "TimeStamp", fromTimeStamp, toTimeStamp, fromMeasurementID, toMeasurementID, true);
             }
             // ====== Current version 2 table ============================
             else {
@@ -685,9 +728,10 @@ int main(int argc, char** argv)
             try {
                while(databaseClient->fetchNextTuple()) {
                   const unsigned long long       timeStamp       = databaseClient->getBigInt(1);
-                  const unsigned long long       measurementID   = databaseClient->getBigInt(2);
                   const boost::asio::ip::address sourceIP        = statement.decodeAddress(databaseClient->getString(3));
                   const boost::asio::ip::address destinationIP   = statement.decodeAddress(databaseClient->getString(4));
+                  const unsigned long long       measurementID   = mapMeasurementID(databaseClient->getBigInt(2),
+                                                                                    addressToMeasurementID, sourceIP);
                   const char                     protocol        = databaseClient->getInteger(5);
                   const uint8_t                  trafficClass    = databaseClient->getInteger(6);
                   const unsigned int             roundNumber     = databaseClient->getInteger(7);
@@ -734,9 +778,9 @@ int main(int argc, char** argv)
                if(tableVersion == 1) {
                   while(databaseClient->fetchNextTuple()) {
                      const unsigned long long       timeStamp       = 1000 * databaseClient->getBigInt("timestamp");
-                     const unsigned long long       measurementID   = 0;
                      const boost::asio::ip::address sourceIP        = statement.decodeAddress(databaseClient->getString("source"));
                      const boost::asio::ip::address destinationIP   = statement.decodeAddress(databaseClient->getString("destination"));
+                     const unsigned long long       measurementID   = mapMeasurementID(0, addressToMeasurementID, sourceIP);
                      const char                     protocol        = 'i';
                      const uint8_t                  trafficClass    = (databaseClient->hasColumn("trafficClass") == true) ?
                                                                          databaseClient->getInteger("trafficClass") : 0x00;
@@ -777,9 +821,10 @@ int main(int argc, char** argv)
                   // ====== Current version 2 table =========================
                   while(databaseClient->fetchNextTuple()) {
                      const unsigned long long       timeStamp       = databaseClient->getBigInt("timestamp");
-                     const unsigned long long       measurementID   = databaseClient->getBigInt("measurementID");
                      const boost::asio::ip::address sourceIP        = statement.decodeAddress(databaseClient->getString("sourceIP"));
                      const boost::asio::ip::address destinationIP   = statement.decodeAddress(databaseClient->getString("destinationIP"));
+                     const unsigned long long       measurementID   = mapMeasurementID(databaseClient->getBigInt("measurementID"),
+                                                                                       addressToMeasurementID, sourceIP);
                      const char                     protocol        = databaseClient->getInteger("protocol");
                      const uint8_t                  trafficClass    = databaseClient->getInteger("trafficClass");
                      const unsigned int             roundNumber     = databaseClient->getInteger("roundNumber");
@@ -839,9 +884,10 @@ int main(int argc, char** argv)
             databaseClient->executeQuery(statement);
             while(databaseClient->fetchNextTuple()) {
                const unsigned long long       timeStamp             = databaseClient->getBigInt(1);
-               const unsigned long long       measurementID         = databaseClient->getInteger(2);
                const boost::asio::ip::address sourceIP              = statement.decodeAddress(databaseClient->getString(3));
                const boost::asio::ip::address destinationIP         = statement.decodeAddress(databaseClient->getString(4));
+               const unsigned long long       measurementID         = mapMeasurementID(databaseClient->getInteger(2),
+                                                                                       addressToMeasurementID, sourceIP);
                const char                     protocol              = databaseClient->getInteger(5);
                const uint8_t                  trafficClass          = databaseClient->getInteger(6);
                const unsigned int             roundNumber           = databaseClient->getInteger(7);
@@ -891,9 +937,10 @@ int main(int argc, char** argv)
                // ====== Current version 2 table ============================
                while(databaseClient->fetchNextTuple()) {
                   const unsigned long long       timeStamp             = databaseClient->getBigInt("timestamp");
-                  const unsigned long long       measurementID         = databaseClient->getInteger("measurementID");
                   const boost::asio::ip::address sourceIP              = statement.decodeAddress(databaseClient->getString("sourceIP"));
                   const boost::asio::ip::address destinationIP         = statement.decodeAddress(databaseClient->getString("destinationIP"));
+                  const unsigned long long       measurementID         = mapMeasurementID(databaseClient->getInteger("measurementID")
+                                                                                          addressToMeasurementID, sourceIP);
                   const char                     protocol              = databaseClient->getInteger("protocol");
                   const uint8_t                  trafficClass          = databaseClient->getInteger("trafficClass");
                   const unsigned int             roundNumber           = databaseClient->getInteger("roundNumber");
