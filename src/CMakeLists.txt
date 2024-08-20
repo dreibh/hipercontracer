@@ -282,8 +282,8 @@ INSTALL(FILES get-default-ips.1
 # TARGET_LINK_LIBRARIES(t3 ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
 # ADD_EXECUTABLE(t7 t7.cc)
 # TARGET_LINK_LIBRARIES(t7 ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
-ADD_EXECUTABLE(dbtest dbtest.cc)
-TARGET_LINK_LIBRARIES(dbtest libuniversalimporter-${libraryType} ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
+# ADD_EXECUTABLE(dbtest dbtest.cc)
+# TARGET_LINK_LIBRARIES(dbtest libuniversalimporter-${libraryType} ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
 
 
 #############################################################################
