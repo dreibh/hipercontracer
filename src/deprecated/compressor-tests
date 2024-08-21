@@ -1,7 +1,7 @@
 #!/bin/bash -e
 
 IN="Traceroute-2015-10-16.results"
-LEVELS="0 1 2 3"   #  3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19"
+LEVELS="0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19"
 ROUNDS="0"
 
 declare -A COMPRESSORS
@@ -32,6 +32,9 @@ for round in $ROUNDS ; do
             fi
             if [ ! -e $round/$IN.$level.zz ] ; then
                /bin/time -p -o $round/$IN.$level.zz.time    zlib-flate -compress=$level <$IN >$round/$IN.$level.zz.tmp && mv $round/$IN.$level.zz.tmp $round/$IN.$level.zz
+            fi
+            if [ ! -e $round/$IN.$level.lzma ] ; then
+               /bin/time -p -o $round/$IN.$level.lzma.time   lzma -T 0 -$level -c $IN >$round/$IN.$level.lzma.tmp && mv $round/$IN.$level.lzma.tmp $round/$IN.$level.lzma
             fi
          fi
       fi
