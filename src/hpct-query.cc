@@ -40,6 +40,7 @@
 #include <iostream>
 
 #include <boost/algorithm/string.hpp>
+#include <boost/filesystem.hpp>
 #include <boost/iostreams/filtering_stream.hpp>
 #include <boost/iostreams/filtering_streambuf.hpp>
 #include <boost/iostreams/filter/bzip2.hpp>
@@ -200,7 +201,8 @@ static inline unsigned int mapMeasurementID(
          % rttSoftware                                                                       \
          % rttHardware                                                                       \
       );                                                                                     \
-   lines++;
+   lines++;                                                                                  \
+   lastTimeStamp = sendTimeStamp;
 
 
 // ###### Traceroute ########################################################
@@ -229,7 +231,8 @@ static inline unsigned int mapMeasurementID(
                                                                                              \
          % pathHash                                                                          \
       );                                                                                     \
-   lines++;
+   lines++;                                                                                  \
+   lastTimeStamp = timeStamp;
 
 #define OUTPUT_TRACEROUTE_HOP_V2                                                             \
    outputStream <<                                                                           \
@@ -299,7 +302,8 @@ static inline unsigned int mapMeasurementID(
          % hardwareMeanRTT                                                                   \
          % hardwareJitter                                                                    \
       );                                                                                     \
-   lines++;
+   lines++;                                                                                  \
+   lastTimeStamp = timeStamp;
 #endif
 
 
@@ -484,8 +488,11 @@ int main(int argc, char** argv)
    std::string                         extension(outputFileName.extension());
    std::ofstream                       outputFile;
    boost::iostreams::filtering_ostream outputStream;
+   const std::filesystem::path         tmpOutputFileName(outputFileName.string() + ".tmp");
    if(outputFileName != std::filesystem::path()) {
-      outputFile.open(outputFileName, std::ios_base::out | std::ios_base::binary);
+      std::error_code ec;
+      std::filesystem::remove(outputFileName, ec);
+      outputFile.open(tmpOutputFileName, std::ios_base::out | std::ios_base::binary);
       if(!outputFile.is_open()) {
          HPCT_LOG(fatal) << "Failed to create output file " << outputFileName;
          exit(1);
@@ -511,11 +518,10 @@ int main(int argc, char** argv)
 
 
    // ====== Prepare query ==================================================
-   const DatabaseBackendType backend = databaseClient->getBackend();
-   Statement& statement              = databaseClient->getStatement(queryType, false, true);
-   const std::chrono::system_clock::time_point t1 = std::chrono::system_clock::now();
-
-
+   const DatabaseBackendType                   backend       = databaseClient->getBackend();
+   Statement&                                  statement     = databaseClient->getStatement(queryType, false, true);
+   const std::chrono::system_clock::time_point t1            = std::chrono::system_clock::now();
+   unsigned long long                          lastTimeStamp = 0;
    try {
       // ====== Ping ========================================================
       unsigned long long lines = 0;
@@ -997,7 +1003,7 @@ int main(int argc, char** argv)
          exit(1);
       }
 
-      outputStream.flush();
+      outputStream.reset();
 
       const std::chrono::system_clock::time_point t2 = std::chrono::system_clock::now();
       HPCT_LOG(info) << "Wrote " << lines << " results lines in "
@@ -1008,6 +1014,17 @@ int main(int argc, char** argv)
       exit(1);
    }
 
+   try {
+      std::filesystem::rename(tmpOutputFileName, outputFileName);
+
+      // Set timestamp to the latest timestamp in the data. Note: the timestamp is UTC!
+      const std::time_t t = (std::time_t)(lastTimeStamp / 1000000000);
+      boost::filesystem::last_write_time(boost::filesystem::path(outputFileName), t);
+   }
+   catch(const std::exception& e) {
+      HPCT_LOG(fatal) << "Writing results failed: " << e.what();
+      exit(1);
+   }
 
    // ====== Clean up =======================================================
    delete databaseClient;
