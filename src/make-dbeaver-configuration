@@ -75,7 +75,8 @@ jq --sort-keys --slurp 'reduce .[] as $item ({}; . * $item)' ${dbeaverCredential
 # credentials-config.json.in is in plain text.
 # DBeaver expects a simple encrypted file:
 dd if=/dev/urandom of="${tempDirectory}/credentials-config.json.in" bs=16 count=1 2>/dev/null   # 16 bytes random number
-dd if="${tempDirectory}/credentials-config.json.orig" of="${tempDirectory}/credentials-config.json.in" oflag=append conv=notrunc 2>/dev/null
+# dd if="${tempDirectory}/credentials-config.json.orig" of="${tempDirectory}/credentials-config.json.in" oflag=append conv=notrunc 2>/dev/null
+cat "${tempDirectory}/credentials-config.json.orig" >>"${tempDirectory}/credentials-config.json.in"
 openssl aes-128-cbc \
    -K babb4a9f774ab853c96c2d653dfe544a -iv 00000000000000000000000000000000 \
    -in "${tempDirectory}/credentials-config.json.in" >credentials-config.json
