@@ -73,9 +73,9 @@ fi
 
 
 # ====== Find template ======================================================
-template="$(find -name "*-users.conf.example" | head -n1)"
+template="$(find . -name "*-users.conf.example" | head -n1)"
 if [ ! -e "${template}" ] ; then
-   echo >&2 "ERROR: Configuration emplate not found!"
+   echo >&2 "ERROR: Configuration template not found!"
    exit
 fi
 echo "Template is: ${template}"
