@@ -530,7 +530,7 @@ int main(int argc, char** argv)
             // ====== Old version 1 table ===================================
             if(tableVersion == 1) {
                std::string ts;
-               if( (backend & DatabaseBackendType::SQL_PostgreSQL) == backend & DatabaseBackendType::SQL_PostgreSQL ) {
+               if( (backend & DatabaseBackendType::SQL_PostgreSQL) == DatabaseBackendType::SQL_PostgreSQL ) {
                   ts = "(1000000000 * CAST(EXTRACT(EPOCH FROM TimeStamp) AS BIGINT))";
                }
                else {
@@ -684,7 +684,7 @@ int main(int argc, char** argv)
             // ====== Old version 1 table ===================================
             if(tableVersion == 1) {
                std::string ts;
-               if( (backend & DatabaseBackendType::SQL_PostgreSQL) == backend & DatabaseBackendType::SQL_PostgreSQL ) {
+               if( (backend & DatabaseBackendType::SQL_PostgreSQL) == DatabaseBackendType::SQL_PostgreSQL ) {
                   ts = "(1000000000 * CAST(EXTRACT(EPOCH FROM TimeStamp) AS BIGINT))";
                }
                else {
