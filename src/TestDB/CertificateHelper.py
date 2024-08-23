@@ -356,10 +356,24 @@ subjectAltName         = ${ENV::SAN}
 
       sys.stdout.write('\x1b[33mVerifying certificate ' + self.CertFileName + ' via ' +
                        self.ChainFileName + ' ...\x1b[0m\n')
+
+      # Check chain -> certificate
       execute('openssl verify ' +
               ' -show_chain' +
               ' -verbose'    +
               ' -CAfile '    + self.ChainFileName +
+              ' ' + self.CertFileName)
+
+      # Check root CA -> ... -> certificate
+      # NOTE: Using option "-untrusted" to mark the whole chain as untrusted
+      #       works! The CAfile is always trusted, and OpenSSL will verify
+      #       all certificates of the chain.
+      #       -> https://stackoverflow.com/questions/25482199/verify-a-certificate-chain-using-openssl-verify
+      execute('openssl verify ' +
+              ' -show_chain' +
+              ' -verbose'    +
+              ' -CAfile '    + self.RootCA.CertFileName +
+              ' -untrusted ' + self.ChainFileName +
               ' ' + self.CertFileName)
 
 
