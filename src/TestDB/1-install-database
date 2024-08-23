@@ -212,14 +212,12 @@ elif [ "$1" == "mongodb" ] ; then
    # ====== Install MongoDB =================================================
    echo -e "\x1b[34m$(date +"%F %H:%M:%S"): Installing MongoDB ...\x1b[0m"
 
-   MONGODB_VERSION="development"
-   MONGODB_KEY="dev"
-   # MONGODB_VERSION="8.0"
-   # MONGODB_KEY="${MONGODB_VERSION}"
+   MONGODB_VERSION="8.0"
+   MONGODB_KEY="${MONGODB_VERSION}"
 
    if [ -x /usr/bin/apt ] ; then
       . /etc/os-release
-      for key in 8.0 ${MONGODB_KEY} ; do
+      for key in ${MONGODB_VERSION} dev ; do
          wget -qO - "https://www.mongodb.org/static/pgp/server-${key}.asc" | gpg --dearmor | sudo tee "/usr/share/keyrings/mongodb-${key}.gpg" >/dev/null
       done
       . /etc/os-release
@@ -227,13 +225,13 @@ elif [ "$1" == "mongodb" ] ; then
          (
             if [ "${ID}" == "ubuntu" ] ; then
                cat <<EOF
-deb [ signed-by=/usr/share/keyrings/mongodb-8.0.gpg ] https://repo.mongodb.org/apt/ubuntu ${UBUNTU_CODENAME}/mongodb-org/8.0 multiverse
 deb [ signed-by=/usr/share/keyrings/mongodb-${MONGODB_KEY}.gpg ] https://repo.mongodb.org/apt/ubuntu ${UBUNTU_CODENAME}/mongodb-org/${MONGODB_VERSION} multiverse
+deb [ signed-by=/usr/share/keyrings/mongodb-dev.gpg ] https://repo.mongodb.org/apt/ubuntu ${UBUNTU_CODENAME}/mongodb-org/development multiverse
 EOF
             else
                cat <<EOF
-deb [ signed-by=/usr/share/keyrings/mongodb-8.0.gpg ] https://repo.mongodb.org/apt/${ID} ${VERSION_CODENAME}/mongodb-org/8.0 main
-deb [ signed-by=/usr/share/keyrings/mongodb-${MONGODB_KEY}.gpg ] https://repo.mongodb.org/apt/${ID} ${VERSION_CODENAME}/mongodb-org/${MONGODB_VERSION} main
+deb [ signed-by=/usr/share/keyrings/mongodb-${MONGODB_KEY}.gpg ] https://repo.mongodb.org/apt/${ID} ${VERSION_CODENAME}/mongodb-org/$deb [ signed-by=/usr/share/keyrings/mongodb-dev.gpg ] https://repo.mongodb.org/apt/${ID} ${VERSION_CODENAME}/mongodb-org/development main
+{MONGODB_VERSION} main
 EOF
             fi
          ) | sudo tee /etc/apt/sources.list.d/mongodb-org.list >/dev/null
@@ -244,13 +242,23 @@ EOF
       (
          cat <<EOF
 [mongodb-org]
-name=MongoDB Repository
+name=MongoDB ${MONGODB_VERSION} Repository
 baseurl=https://repo.mongodb.org/yum/redhat/9/mongodb-org/${MONGODB_VERSION}/x86_64/
 gpgcheck=1
 enabled=1
 gpgkey=https://www.mongodb.org/static/pgp/server-${MONGODB_KEY}.asc
 EOF
       ) | sudo tee /etc/yum.repos.d/mongodb-org.repo
+      (
+         cat <<EOF
+[mongodb-org-dev]
+name=MongoDB Development Repository
+baseurl=https://repo.mongodb.org/yum/redhat/9/mongodb-org/development/x86_64/
+gpgcheck=1
+enabled=1
+gpgkey=https://www.mongodb.org/static/pgp/server-dev.asc
+EOF
+      ) | sudo tee /etc/yum.repos.d/mongodb-org-dev.repo
       sudo dnf install -y mongodb-org openssl
       sudo systemctl enable mongod.service
       sudo systemctl start mongod.service
