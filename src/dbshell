@@ -72,7 +72,7 @@ dbpassword=""
 database=""
 dbcafile=""
 dbcrlfile=""
-configContent=$(sed -r '/[^=#]+=[^=]+/!d' <"${CONFIGURATION_FILE}" | sed -r "s/\s+=\s(.*)\s*/='\1'/g")
+configContent=$(sed -r '/[^=#]+=[^=]+/!d' <"${CONFIGURATION_FILE}" | sed -r "s/[[:space:]]*=[[:space:]]*(.*)[[:space:]]*/='\1'/g")
 eval "${configContent}"
 if [ "${dbcafile}" == "NONE" ] ; then
    dbcafile=""
@@ -176,7 +176,6 @@ fi
 
 
 # ====== Generate DBeaver configuration file ================================
-
 if [ "${DBEAVER_CONFIG_PREFIX}" ] ; then
    driver=""
    provider=""
