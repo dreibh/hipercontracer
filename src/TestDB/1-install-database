@@ -151,6 +151,7 @@ elif [ "$1" == "postgresql" ] ; then
       sudo DEBIAN_FRONTEND=noninteractive apt install -y -o APT::Keep-Downloaded-Packages=true openssl postgresql-all postgresql-contrib
    elif [ -x /usr/bin/dnf ] ; then
       sudo dnf install -y openssl postgresql-server
+      sudo -u postgres /usr/bin/postgresql-setup --initdb || true
       sudo systemctl enable postgresql.service
       sudo systemctl start postgresql.service
    elif [ -x /usr/sbin/pkg ] ; then

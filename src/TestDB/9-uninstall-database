@@ -79,7 +79,12 @@ elif [ "$1" == "postgresql" ] ; then
       sudo pkg remove -y 'postgresql*-*' || true
    fi
 
-   sudo rm -rf /var/lib/postgresql/*
+   if [ -d /var/lib/postgresql ] ; then
+      sudo rm -rf /var/lib/postgresql/*
+   fi
+   if [ -d /var/lib/pgsql ] ; then
+      sudo rm -rf /var/lib/pgsql/*
+   fi
    sudo rmdir /var/lib/postgresql || true
 
 
