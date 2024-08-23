@@ -260,7 +260,7 @@ enabled=1
 gpgkey=https://www.mongodb.org/static/pgp/server-dev.asc
 EOF
       ) | sudo tee /etc/yum.repos.d/mongodb-org-dev.repo
-      sudo dnf install -y mongodb-org openssl
+      sudo dnf install -y mongodb-org mongodb-mongosh-shared-openssl3 openssl
       sudo systemctl enable mongod.service
       sudo systemctl start mongod.service
    elif [ -x /usr/sbin/pkg ] ; then
