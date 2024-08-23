@@ -13,8 +13,8 @@ WWW=		https://www.nntb.no/~dreibh/hipercontracer/
 LICENSE=	GPLv3+
 LICENSE_FILE=	${WRKSRC}/COPYING
 
-LIB_DEPENDS=	bzip2 \
-		c-ares \
+LIB_DEPENDS=	libbz2.so:archivers/bzip2 \
+		libcares.so:dns/c-ares \
 		libboost_date_time.so:devel/boost-libs \
 		libboost_filesystem.so:devel/boost-libs \
 		libboost_iostreams.so:devel/boost-libs \
@@ -22,12 +22,12 @@ LIB_DEPENDS=	bzip2 \
 		libboost_program_options.so:devel/boost-libs \
 		libboost_system.so:devel/boost-libs \
 		libboost_thread.so:devel/boost-libs \
-		lzmalib \
-		mariadb-connector-c \
-		postgresql-libpqxx \
-		mongo-c-driver
+		liblzma.so:archivers/lzma \
+		mariadb-connector-c.so:databases/mariadb-connector-c \
+		libpqxx.so:databases/postgresql-libpqxx \
+		libmongo-c-driver.so:devel/mongo-c-driver
 
-USES=		cmake compiler:c++17-lang python shebangfix tar:xz
+USES=		cmake compiler:c++ python shebangfix tar:xz
 USE_LDCONFIG=	yes
 
 PLIST_SUB=	PORTVERSION=${PORTVERSION}
