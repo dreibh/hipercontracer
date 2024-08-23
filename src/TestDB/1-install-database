@@ -76,7 +76,7 @@ if [ "$1" == "mariadb" ] ; then
       sudo systemctl enable mariadb.service
       sudo systemctl start mariadb.service
    elif [ -x /usr/sbin/pkg ] ; then
-      sudo pkg install -y mysql80-server openssl
+      sudo pkg install -y mariadb106-server mariadb106-client py311-netifaces openssl
       sudo service mysql-server enable
       sudo service mysql-server start
    fi
@@ -93,7 +93,6 @@ if [ "$1" == "mariadb" ] ; then
    MARIADB_CRT_FILE="/etc/ssl/${server}.${DOMAIN}/${server}.${DOMAIN}.crt"
    MARIADB_KEY_FILE="/etc/ssl/${server}.${DOMAIN}/${server}.${DOMAIN}.key"
    sudo chown mysql:mysql ${MARIADB_KEY_FILE}
-   sudo openssl verify -CAfile ${MARIADB_CA_FILE} ${MARIADB_CRT_FILE}
 
    # Set root password, and remove test user and database.
    (
@@ -169,7 +168,6 @@ elif [ "$1" == "postgresql" ] ; then
    POSTGRESQL_CRT_FILE="/etc/ssl/${server}.${DOMAIN}/${server}.${DOMAIN}.crt"
    POSTGRESQL_KEY_FILE="/etc/ssl/${server}.${DOMAIN}/${server}.${DOMAIN}.key"
    sudo chown postgres:postgres ${POSTGRESQL_KEY_FILE}
-   sudo openssl verify -CAfile ${POSTGRESQL_CA_FILE} ${POSTGRESQL_CRT_FILE}
 
    POSTGRESETC=$(find /etc/postgresql/ -mindepth 1 -maxdepth 1 -type d | grep "[0-9]$" | sort -r | head -n1)
    if [ "${POSTGRESETC}" == "" ] ; then

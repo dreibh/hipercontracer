@@ -61,10 +61,15 @@ if [ "$1" == "mariadb" ] ; then
    elif [ -x /usr/sbin/pkg ] ; then
       sudo service mysql-server stop     || true
       sudo service mysql-server disable  || true
-      sudo pkg remove -y 'mysql*-server' || true
+      sudo pkg remove -y 'mariadb*-server' || true
    fi
 
-   sudo rm -rf /var/lib/mysql /var/db/mysql || true
+   if [ -d /var/lib/mysql ] ; then
+      sudo rm -rf /var/lib/mysql
+   fi
+   if [ -d /var/db/mysql ] ; then
+      sudo rm -rf /var/db/mysql
+   fi
 
 
 # ###### PostgreSQL #########################################################
@@ -80,12 +85,11 @@ elif [ "$1" == "postgresql" ] ; then
    fi
 
    if [ -d /var/lib/postgresql ] ; then
-      sudo rm -rf /var/lib/postgresql/*
+      sudo rm -rf /var/lib/postgresql
    fi
    if [ -d /var/lib/pgsql ] ; then
-      sudo rm -rf /var/lib/pgsql/*
+      sudo rm -rf /var/lib/pgsql
    fi
-   sudo rmdir /var/lib/postgresql || true
 
 
 # ###### MongoDB ############################################################
@@ -100,8 +104,9 @@ elif [ "$1" == "mongodb" ] ; then
       sudo pkg remove -y 'mongodb*' || true
    fi
 
-   sudo rm -rf /var/lib/mongodb/*
-   sudo rmdir /var/lib/mongodb || true
+   if [ -d /var/lib/mongodb ] ; then
+      sudo rm -rf /var/lib/mongodb
+   fi
 
 # ###### Error ##############################################################
 else
