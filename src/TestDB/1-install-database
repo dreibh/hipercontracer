@@ -218,16 +218,24 @@ elif [ "$1" == "mongodb" ] ; then
    # MONGODB_KEY="${MONGODB_VERSION}"
 
    if [ -x /usr/bin/apt ] ; then
-      CODENAME="$(lsb_release -cs | tail -n1)"
+      . /etc/os-release
       for key in 8.0 ${MONGODB_KEY} ; do
          wget -qO - "https://www.mongodb.org/static/pgp/server-${key}.asc" | gpg --dearmor | sudo tee "/usr/share/keyrings/mongodb-${key}.gpg" >/dev/null
       done
+      . /etc/os-release
       if [ ! -e /etc/apt/sources.list.d/mongodb-org.list ] ; then
          (
-cat <<EOF
-deb [ signed-by=/usr/share/keyrings/mongodb-8.0.gpg ] https://repo.mongodb.org/apt/ubuntu ${CODENAME}/mongodb-org/8.0 multiverse
-deb [ signed-by=/usr/share/keyrings/mongodb-${MONGODB_KEY}.gpg ] https://repo.mongodb.org/apt/ubuntu ${CODENAME}/mongodb-org/${MONGODB_VERSION} multiverse
+            if [ "${ID}" == "ubuntu" ] ; then
+               cat <<EOF
+deb [ signed-by=/usr/share/keyrings/mongodb-8.0.gpg ] https://repo.mongodb.org/apt/ubuntu ${UBUNTU_CODENAME}/mongodb-org/8.0 multiverse
+deb [ signed-by=/usr/share/keyrings/mongodb-${MONGODB_KEY}.gpg ] https://repo.mongodb.org/apt/ubuntu ${UBUNTU_CODENAME}/mongodb-org/${MONGODB_VERSION} multiverse
 EOF
+            else
+               cat <<EOF
+deb [ signed-by=/usr/share/keyrings/mongodb-8.0.gpg ] https://repo.mongodb.org/apt/${ID} ${VERSION_CODENAME}/mongodb-org/8.0 main
+deb [ signed-by=/usr/share/keyrings/mongodb-${MONGODB_KEY}.gpg ] https://repo.mongodb.org/apt/${ID} ${VERSION_CODENAME}/mongodb-org/${MONGODB_VERSION} main
+EOF
+            fi
          ) | sudo tee /etc/apt/sources.list.d/mongodb-org.list >/dev/null
       fi
       sudo apt update -qq
