@@ -164,6 +164,10 @@ ENDIF()
 FIND_PACKAGE(Threads REQUIRED)
 
 # ###### Boost ##############################################################
+IF(CMAKE_VERSION VERSION_GREATER_EQUAL "3.30")
+   # Use BoostConfig.cmake to find BOOST libraries, if possible.
+   CMAKE_POLICY(SET CMP0167 NEW)
+ENDIF()
 FIND_PACKAGE(Boost REQUIRED COMPONENTS log date_time system thread iostreams filesystem program_options)
 IF (NOT Boost_FOUND)
    MESSAGE(FATAL_ERROR "Cannot find Boost libraries!")
