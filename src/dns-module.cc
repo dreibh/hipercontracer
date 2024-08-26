@@ -4,7 +4,7 @@
 #include <map>
 
 #include <boost/asio.hpp>
-#include <boost/bind.hpp>
+#include <boost/bind/bind.hpp>
 
 #include <ares.h>
 #include <ares_dns.h>
@@ -128,10 +128,13 @@ DNSLookup::DNSLookup()
       exit(1);
    }
 
-   result = ares_set_servers_ports_csv(Channel, "10.193.4.20,10.193.4.21");
+   /*
+   result = ares_set_servers_ports_csv(Channel, "1.1.1.1,9.9.9.9");
    if(result != ARES_SUCCESS) {
       std::cerr << "ERROR: Unable to set DNS server addresses: " << ares_strerror(result) << std::endl;
+      exit(1);
    }
+   */
 }
 
 
@@ -351,9 +354,9 @@ void DNSLookup::handlePtrResult(void* arg, int status, int timeouts, struct host
          dnsLookup->queryName(host->h_name, ns_c_in, ns_t_any);
       }
    }
-//    else {
-//       printf("status=%d\n", status);
-//    }
+   else {
+      printf("status=%d (%s)\n", status, ares_strerror(status));
+   }
 }
 
 
@@ -530,6 +533,20 @@ void DNSLookup::handleGenericResult(void* arg, int status, int timeouts, unsigne
                 }
                 break;
 
+               // ------ MX RR ----------------------------------------------
+               case ns_t_mx: {
+                  // FIXME! TBD
+                  char* cname;
+                  long  cnamelen;
+                  status = ares_expand_name(aptr, abuf, alen, &cname, &cnamelen);
+                  if(status != ARES_SUCCESS) {
+                     goto done;
+                  }
+                  printf("MX for %s: %s\n", name, cname);
+                  ares_free_string(cname);
+                }
+                break;
+
                // ------ Other RR -------------------------------------------
                default:
                   printf("RR Type %u for %s\n", type, name);
@@ -640,16 +657,17 @@ int main() {
 //       }
 //    }
 
-   drl.queryName("ringnes.fire.smil.",   ns_c_in, ns_t_any);
+//    drl.queryName("ringnes.fire.smil.",   ns_c_in, ns_t_any);
 
    drl.queryName("se-tug.nordu.net.",    ns_c_in, ns_t_any);
    drl.queryName("oslo-gw1.uninett.no.", ns_c_in, ns_t_any);
    drl.queryName("bergen-gw3.uninett.no.", ns_c_in, ns_t_any);
 
-   drl.queryName("mack.fire.smil.",      ns_c_in, ns_t_any);
-   drl.queryName("hansa.fire.smil.",     ns_c_in, ns_t_any);
+//    drl.queryName("mack.fire.smil.",      ns_c_in, ns_t_any);
+//    drl.queryName("hansa.fire.smil.",     ns_c_in, ns_t_any);
    drl.queryName("www.ietf.org.",        ns_c_in, ns_t_aaaa);
    drl.queryName("www.nntb.no.",         ns_c_in, ns_t_a);
+   drl.queryName("crnalab.net.",         ns_c_in, ns_t_mx);
 
    drl.run();
    return 0;
