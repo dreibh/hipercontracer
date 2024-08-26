@@ -23,7 +23,7 @@ LIB_DEPENDS=	libbz2.so:archivers/bzip2 \
 		libboost_system.so:devel/boost-libs \
 		libboost_thread.so:devel/boost-libs \
 		liblzma.so:archivers/lzma \
-		mariadb-connector-c.so:databases/mariadb-connector-c \
+		libmariadb.so:databases/mariadb106-client \
 		libpqxx.so:databases/postgresql-libpqxx \
 		libmongo-c-driver.so:devel/mongo-c-driver
 
