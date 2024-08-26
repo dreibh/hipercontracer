@@ -1,3 +1,21 @@
+commit ad7d5f20f6da74930cbde48ce473d6f06d83bf54
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Sep 21 16:24:23 2023 +0200
+
+    Updated build scripts
+
+commit a6e7fadbff3936e00fdbf2b0e928c20a70066c09
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Apr 27 09:34:35 2023 +0200
+
+    Updated build scripts
+
+commit 4eb2e3cc607cbec2787ca9e0cee05db5d920e77a
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Apr 18 21:09:51 2023 +0200
+
+    New release hipercontracer-1.6.8.
+
 commit e1931d7a4d1f1b258559c32fc53027aefa778023
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Tue Apr 18 20:17:26 2023 +0200
