@@ -108,8 +108,7 @@ if [ "${dbbackend}" == "MariaDB" ] || [ "${dbbackend}" == "MySQL" ] ; then
    if [ "${dbport}" == "0" ] ; then
       dbport="3306"
    fi
-   export MYSQL_PWD="${dbpassword}"
-   parameters="${parameters} --host=\"${dbserver}\" --port=${dbport} --protocol=tcp --user=\"${dbuser}\" --database=\"${database}\""
+   parameters="${parameters} --host=\"${dbserver}\" --port=${dbport} --protocol=tcp --user=\"${dbuser}\" --password=\"${dbpassword}\" --database=\"${database}\""
    if [ "${dbcafile}" != "" ] ; then
       parameters="${parameters} --ssl-verify-server-cert --ssl-ca=\"${dbcafile}\" --ssl-crl=\"${dbcafile}\""
       if [ "${dbcrlfile}" != "" ] ; then
@@ -303,7 +302,7 @@ if [ ${QUIET} -eq 0 ] ; then
    fi
 
    if [ "${dbbackend}" == "MariaDB" ] || [ "${dbbackend}" == "MySQL" ] || [ "${dbbackend}" == "PostgreSQL" ] ; then
-      export | grep "MYSQL_PWD=\|PGPASSWORD=\|PGSSL[A-Z]*=" | sort || true
+      export | grep "PGPASSWORD=\|PGSSL[A-Z]*=" | sort || true
    fi
    echo "${command} ${parameters}"
    fi
