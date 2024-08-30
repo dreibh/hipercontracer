@@ -44,6 +44,10 @@ int main(int argc, char** argv)
    std::cout << "sysTSE= " << sysTSE << "\n";
 
    std::cout << "OFFSET= " << sysTSE - nowTSE << "\n";
+   unsigned long long offset =
+      timePointToNanoseconds<SystemTimePoint>(SystemClock::now()) -
+      timePointToNanoseconds<ResultTimePoint>(ReaderClock::now());
+   std::cout << "OFFSET= " << offset << "\n";
 
    return 0;
 }
