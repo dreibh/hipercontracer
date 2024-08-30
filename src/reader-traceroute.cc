@@ -180,7 +180,8 @@ ReaderTimePoint TracerouteReader::parseTimeStamp(const std::string&           va
       const ReaderTimePoint timeStamp = (inNanoseconds == true) ? nanosecondsToTimePoint<ReaderTimePoint>(ts) :
                                                                   nanosecondsToTimePoint<ReaderTimePoint>(1000ULL * ts);
       if( (timeStamp < now - std::chrono::hours(10 * 365 * 24)) ||   /* 10 years in the past */
-            (timeStamp > now + std::chrono::hours(24)) ) {             /* 1 day in the future  */
+          (timeStamp > now + std::chrono::hours(24)) ) {             /* 1 day in the future  */
+         std::cerr << "timeStamp=" << timePointToString<ReaderTimePoint>(timeStamp, 9) << " now=" <<  timePointToString<ReaderTimePoint>(now, 9) << "\n";
          throw ResultsReaderDataErrorException("Invalid time stamp value (too old, or in the future) " + value +
                                                " in input file " +
                                                relativeTo(dataFile, ImporterConfig.getImportFilePath()).string());
