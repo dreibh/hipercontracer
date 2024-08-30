@@ -22,6 +22,12 @@ int main(int argc, char** argv)
              << "\ttp=" << timePointToString<ReaderTimePoint>(nowTimePoint, 9) << "\n";
    std::cout << "nowInSeconds=" << nowTimeStamp / 1000000000 << "\n";
 
+   const SystemTimePoint    sysTimePoint  = SystemClock::sys();
+   const unsigned long long sysTimeStamp  = timePointToNanoseconds<SystemTimePoint>(sysTimePoint);
+   std::cout << "sys:   ts=" << sysTimeStamp
+             << "\ttp=" << timePointToString<SystemTimePoint>(sysTimePoint, 9) << "\n";
+   std::cout << "sysInSeconds=" << sysTimeStamp / 1000000000 << "\n";
+
    if(testTimeStamp > nowTimeStamp) {
       std::cerr << "Jævla faen TS!\n";
    }
