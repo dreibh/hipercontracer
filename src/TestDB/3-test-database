@@ -43,6 +43,7 @@ if [ ! -e "$2" ] ; then
    echo >&2 "ERROR: Use configuration $2 does not exist!"
 fi
 
+DOMAIN="test.local"
 DATABASE="just_a_test_database"
 # MAINTAINER_PASSWORD=
 # IMPORTER_PASSWORD=
@@ -54,10 +55,11 @@ RESEARCHER_PASSWORD=
 # ###### MySQL/MariaDB ######################################################
 if [ "$1" == "mysql" ] || [ "$1" == "mariadb" ] ; then
    # Documentation: https://www.digitalocean.com/community/tutorials/how-to-install-mariadb-on-ubuntu-22-04
+   server="mariadb"
 
-   echo -e "\x1b[34mTesting access to MySQL/MariaDB database ...\x1b[0m"
+   echo -e "\x1b[34m$(date +"%F %H:%M:%S"): Testing access to MySQL/MariaDB database ...\x1b[0m"
    mysql \
-      --host=localhost \
+      --host="${server}.${DOMAIN}" \
       --port 3306 \
       --protocol=tcp \
       --ssl \
@@ -73,14 +75,15 @@ if [ "$1" == "mysql" ] || [ "$1" == "mariadb" ] ; then
 # ###### PostgreSQL #########################################################
 elif [ "$1" == "postgresql" ] ; then
    # Documentation: https://www.digitalocean.com/community/tutorials/how-to-install-postgresql-on-ubuntu-22-04-quickstart
+   server="postgresql"
 
-   echo -e "\x1b[34mTesting access to PostgreSQL database ...\x1b[0m"
+   echo -e "\x1b[34m$(date +"%F %H:%M:%S"): Testing access to PostgreSQL database ...\x1b[0m"
    PGPASSWORD="${RESEARCHER_PASSWORD}" \
    PGSSLMODE="verify-full" \
    PGSSLROOTCERT="/etc/ssl/TestLevel1/certs/TestLevel1.crt" \
    PGSSLCRL="/etc/ssl/TestGlobal.crl" \
    psql \
-      --host=localhost \
+      --host="${server}.${DOMAIN}" \
       --port=5432 \
       --username=researcher \
       --dbname="${DATABASE}" \
@@ -90,10 +93,11 @@ elif [ "$1" == "postgresql" ] ; then
 # ###### MongoDB ############################################################
 elif [ "$1" == "mongodb" ] ; then
    # Documentation: https://www.mongodb.com/docs/manual/tutorial/install-mongodb-on-ubuntu/
+   server="mongodb"
 
-   echo -e "\x1b[34mTesting access to MongoDB database ...\x1b[0m"
+   echo -e "\x1b[34m$(date +"%F %H:%M:%S"): Testing access to MongoDB database ...\x1b[0m"
    mongosh \
-      "mongodb://localhost:27017/${DATABASE}" \
+      "mongodb://${server}.${DOMAIN}:27017/${DATABASE}" \
       --tls \
       --tlsDisabledProtocols TLS1_0,TLS1_1,TLS1_2 \
       --tlsCAFile /etc/ssl/TestLevel1/certs/TestLevel1.crt \

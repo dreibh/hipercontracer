@@ -209,25 +209,29 @@ void Worker::moveImportedFile(const std::filesystem::path& dataFile,
                               const bool                   isGood)
 {
    // ====== Construct destination path =====================================
-   assert(subDirectoryOf(dataFile, ImporterConfig.getImportFilePath()) > 0);
-   const std::filesystem::path subdirs =
-      std::filesystem::relative(dataFile.parent_path(), ImporterConfig.getImportFilePath()) /
-      Reader.getDirectoryHierarchy(dataFile, match, ImporterConfig.getImportMaxDepth() - 1);
-   const std::filesystem::path targetPath =
-      ((isGood == true) ? ImporterConfig.getGoodFilePath() : ImporterConfig.getBadFilePath()) / subdirs;
+   if(subDirectoryOf(dataFile, ImporterConfig.getImportFilePath()) > 0) {
+      const std::filesystem::path targetPath =
+         ((isGood == true) ? ImporterConfig.getGoodFilePath() : ImporterConfig.getBadFilePath()) /
+         Reader.getDirectoryHierarchy(dataFile, match);
 
-   // ====== Create destination directory and move file =====================
-   try {
-      std::filesystem::create_directories(targetPath);
-      std::filesystem::rename(dataFile, targetPath / dataFile.filename());
-      HPCT_LOG(debug) << getIdentification() << ": Moved " << ((isGood == true) ? "good" : "bad") <<  " file "
-                      << relativeTo(dataFile, ImporterConfig.getImportFilePath());
-      deleteEmptyDirectories(dataFile.parent_path());
+      // ====== Create destination directory and move file =====================
+      try {
+         std::filesystem::create_directories(targetPath);
+         std::filesystem::rename(dataFile, targetPath / dataFile.filename());
+         HPCT_LOG(debug) << getIdentification() << ": Moved " << ((isGood == true) ? "good" : "bad") <<  " file "
+                         << relativeTo(dataFile, ImporterConfig.getImportFilePath());
+         deleteEmptyDirectories(dataFile.parent_path());
+      }
+      catch(std::filesystem::filesystem_error& e) {
+         HPCT_LOG(warning) << getIdentification() << ": Moving " << ((isGood == true) ? "good" : "bad") <<  " file "
+                           << relativeTo(dataFile, ImporterConfig.getImportFilePath())
+                           << " to " << targetPath << " failed: " << e.what();
+      }
    }
-   catch(std::filesystem::filesystem_error& e) {
-      HPCT_LOG(warning) << getIdentification() << ": Moving " << ((isGood == true) ? "good" : "bad") <<  " file "
-                        << relativeTo(dataFile, ImporterConfig.getImportFilePath())
-                        << " to " << targetPath << " failed: " << e.what();
+   else {
+      HPCT_LOG(error) << getIdentification() << ": "
+                      << dataFile << " is not in a sub-directory of the import path "
+                      << ImporterConfig.getImportFilePath();
    }
 }
 

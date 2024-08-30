@@ -62,7 +62,7 @@ class JitterReader : public PingReader
    unsigned int parsePackets(const std::string&           value,
                              const std::filesystem::path& dataFile);
 
-   private:
+   public:
    static const std::string Identification;
    static const std::regex  FileNameRegExp;
 };

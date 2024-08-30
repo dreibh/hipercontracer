@@ -1,0 +1,38 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+
+import sys
+import datetime
+import ipaddress
+
+import QueryHelper
+
+
+# ###### Main program #######################################################
+if len(sys.argv) < 2:
+   sys.stderr.write('Usage: ' + sys.argv[0] + ' database_configuration\n')
+   sys.exit(1)
+configurationFile = sys.argv[1]
+
+# ====== Connect to database ================================================
+configuration = QueryHelper.DatabaseConfiguration(sys.argv[1])
+client = configuration.createClient()
+
+
+# ====== Query test =========================================================
+
+# ------ SQL: MySQL/MariaDB/PostgreSQL --------------------------------------
+if configuration.getBackend() in [ 'MySQL', 'MariaDB', 'PostgreSQL' ]:
+
+   query = 'SELECT DISTINCT(SourceIP) FROM Traceroute'
+   print(query)
+   rows = configuration.query(query)
+   for row in rows:
+      print(QueryHelper.unmap(ipaddress.ip_address(row[0])))
+
+# ------ NoSQL: MongoDB -----------------------------------------------------
+elif configuration.getBackend() == 'MongoDB':
+
+   rows = configuration.database['traceroute'].distinct('sourceIP')
+   for row in rows:
+      print(QueryHelper.unmap(ipaddress.ip_address(row)))

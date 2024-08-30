@@ -1,0 +1,117 @@
+#!/usr/bin/env bash
+#  =================================================================
+#           #     #                 #     #
+#           ##    #   ####   #####  ##    #  ######   #####
+#           # #   #  #    #  #    # # #   #  #          #
+#           #  #  #  #    #  #    # #  #  #  #####      #
+#           #   # #  #    #  #####  #   # #  #          #
+#           #    ##  #    #  #   #  #    ##  #          #
+#           #     #   ####   #    # #     #  ######     #
+#
+#        ---   The NorNet Testbed for Multi-Homed Systems  ---
+#                        https://www.nntb.no
+#  =================================================================
+#
+#  High-Performance Connectivity Tracer (HiPerConTracer)
+#  Copyright (C) 2015-2024 by Thomas Dreibholz
+#
+#  This program is free software: you can redistribute it and/or modify
+#  it under the terms of the GNU General Public License as published by
+#  the Free Software Foundation, either version 3 of the License, or
+#  (at your option) any later version.
+#
+#  This program is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
+#
+#  You should have received a copy of the GNU General Public License
+#  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+#  Contact: dreibh@simula.no
+
+# Bash options:
+set -e
+
+
+# ====== Generate DBeaver configuration files ===============================
+echo -e "\x1b[34m$(date +"%F %H:%M:%S"): Generating DBeaver configuration ...\x1b[0m"
+tempDirectory="$(mktemp -d -t "make-dbeaver-configuration-XXXXXX")"
+dbeaverConfig=""
+dbeaverCredentials=""
+while [ $# -gt 0 ] ; do
+   if [ "$1" == "--join" ] ; then
+      for dbeaverDirectory in "${HOME}/snap/dbeaver-ce/current/.local/share/DBeaverData/workspace6/General/.dbeaver/" "${HOME}/.local/share/DBeaverData/workspace6/General/.dbeaver/" ; do
+         if [ -e "${dbeaverDirectory}" ] ; then
+            if [ -e "${dbeaverDirectory}/data-sources.json" ] ; then
+               dbeaverConfig="${dbeaverDirectory}/data-sources.json"
+               echo -e "\x1b[37mJoining data sources in ${dbeaverConfig}\x1b[0m"
+            fi
+            if [ -e "${dbeaverDirectory}/credentials-config.json" ] ; then
+               dbeaverCredentials="${tempDirectory}/credentials-config.json"
+               echo -e "\x1b[37mJoining credentials in ${dbeaverDirectory}/credentials-config.json\x1b[0m"
+               openssl aes-128-cbc -d \
+                  -K babb4a9f774ab853c96c2d653dfe544a -iv 00000000000000000000000000000000 \
+                  -in "${dbeaverDirectory}/credentials-config.json" | dd bs=1 skip=16 2>/dev/null | jq . >"${dbeaverCredentials}"
+            fi
+            break
+         fi
+      done
+   else
+      echo -e "\x1b[37mProcessing $(basename "$1") ...\x1b[0m"
+      "$(dirname "$0")"/dbshell "$1" --dry-run -q -B "${tempDirectory}/$(basename "${1//.conf/}")"
+   fi
+   shift
+done
+
+
+# ====== Join DBeaver configuration files ===================================
+echo -e "\x1b[37mJoining configurations ...\x1b[0m"
+# shellcheck disable=SC2086
+jq --sort-keys --slurp 'reduce .[] as $item ({}; . * $item)' ${dbeaverConfig}      "${tempDirectory}"/*-data-source.json >data-sources.json
+# shellcheck disable=SC2086
+jq --sort-keys --slurp 'reduce .[] as $item ({}; . * $item)' ${dbeaverCredentials} "${tempDirectory}"/*-credentials-config.json >"${tempDirectory}/credentials-config.json.orig"
+
+# credentials-config.json.in is in plain text.
+# DBeaver expects a simple encrypted file:
+dd if=/dev/urandom of="${tempDirectory}/credentials-config.json.in" bs=16 count=1 2>/dev/null   # 16 bytes random number
+# dd if="${tempDirectory}/credentials-config.json.orig" of="${tempDirectory}/credentials-config.json.in" oflag=append conv=notrunc 2>/dev/null
+cat "${tempDirectory}/credentials-config.json.orig" >>"${tempDirectory}/credentials-config.json.in"
+openssl aes-128-cbc \
+   -K babb4a9f774ab853c96c2d653dfe544a -iv 00000000000000000000000000000000 \
+   -in "${tempDirectory}/credentials-config.json.in" >credentials-config.json
+
+# To decrypt:
+# (See also: https://stackoverflow.com/questions/39928401/recover-db-password-stored-in-my-dbeaver-connection)
+# openssl aes-128-cbc -d \
+#    -K babb4a9f774ab853c96c2d653dfe544a -iv 00000000000000000000000000000000 \
+#    -in credentials-config.json | dd bs=1 skip=16 | jq .
+
+
+# ====== Replace configurations =============================================
+if [ -e "${dbeaverDirectory}" ] ; then
+   if [ "${dbeaverConfig}" != "" ] ; then
+      if ! diff data-sources.json "${dbeaverDirectory}/data-sources.json" >/dev/null ; then
+         dbeaverConfigBackup="${dbeaverConfig}.backup-$(date +"%F-%H:%M:%S")"
+         echo -e "\x1b[37mMaking data sources backup in ${dbeaverConfigBackup} ...\x1b[0m"
+         cp "${dbeaverConfig}" "${dbeaverConfigBackup}"
+      fi
+   fi
+   echo -e "\x1b[37mUpdating data sources ${dbeaverDirectory}/data-sources.json ...\x1b[0m"
+   cp data-sources.json "${dbeaverDirectory}/data-sources.json"
+
+   if [ "${dbeaverCredentials}" != "" ] ; then
+      if ! diff "${dbeaverCredentials}" "${tempDirectory}/credentials-config.json.orig" >/dev/null ; then
+         dbeaverCredentialsBackup="${dbeaverDirectory}/credentials-config.json-$(date +"%F-%H:%M:%S")"
+         echo -e "\x1b[37mKeeping backup in ${dbeaverCredentialsBackup} ...\x1b[0m"
+         cp "${dbeaverCredentials}" "${dbeaverCredentialsBackup}"
+      fi
+   fi
+   echo -e "\x1b[37mUpdating credentials ${dbeaverDirectory}/credentials-config.json ...\x1b[0m"
+   cp credentials-config.json "${dbeaverDirectory}/credentials-config.json"
+fi
+
+
+# ====== Clean up ===========================================================
+echo -e "\x1b[37mDone!\x1b[0m"
+rm -rf "${tempDirectory}"

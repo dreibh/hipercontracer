@@ -35,14 +35,21 @@ set -o nounset
 set -o errexit
 
 
-if [ $# -lt 1 ] ; then
-   echo >&2 "Usage: $0 mariadb|mongodb|mysql|postgresql"
+if [ $# -ne 2 ] ; then
+   echo >&2 "Usage: $0 mariadb|mongodb|mysql|postgresql users.conf"
    exit 1
 fi
+if [ ! -e "$2" ] ; then
+   echo >&2 "ERROR: Use configuration $2 does not exist!"
+fi
 
-IMPORTER_CONFIG="${HOME}/importer.conf"
-# Access to database as "importer" user:
-DATABASE_CONFIG="${HOME}/testdb-importer-$1.conf"
+DATABASE="just_a_test_database"
+# shellcheck disable=SC1090
+. "$2"
+
+DBMS="$1"
+DATABASE_CONFIG="${HOME}/${DATABASE}-importer-${DBMS}.conf"
+IMPORTER_CONFIG="${HOME}/importer-${DATABASE}.conf"
 
 if [ ! -v VALGRIND_CMD ] ; then
    VALGRIND_CMD=""
@@ -51,6 +58,9 @@ fi
 
 # ###### Run test ###########################################################
 if [ -e "${DATABASE_CONFIG}" ] ; then
+
+   echo -e "\x1b[34m$(date +"%F %H:%M:%S"): Running importer ...\x1b[0m"
+
    cd ..
    if [ ! -e Makefile ] ; then
       cd ..
@@ -70,7 +80,7 @@ if [ -e "${DATABASE_CONFIG}" ] ; then
       -C "${IMPORTER_CONFIG}" \
       -D "${DATABASE_CONFIG}" \
       --quit-when-idle \
-      --loglevel 0
+      --loglevel 2
 
 
 # ###### Error ##############################################################

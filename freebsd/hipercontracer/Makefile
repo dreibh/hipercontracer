@@ -1,7 +1,7 @@
 # Created by: Thomas Dreibholz <thomas.dreibholz@gmail.com>
 
 PORTNAME=	hipercontracer
-PORTVERSION=	2.0.0~beta4
+DISTVERSION=	2.0.0~beta4
 PORTREVISION=	1
 CATEGORIES=	benchmarks
 MASTER_SITES=	https://www.nntb.no/~dreibh/hipercontracer/download/
@@ -22,9 +22,12 @@ LIB_DEPENDS=	libbz2.so:archivers/bzip2 \
 		libboost_program_options.so:devel/boost-libs \
 		libboost_system.so:devel/boost-libs \
 		libboost_thread.so:devel/boost-libs \
-		liblzma.so:archivers/lzma
+		liblzma.so:archivers/lzma \
+		libmariadb.so:databases/mariadb106-client \
+		libpqxx.so:databases/postgresql-libpqxx \
+		libmongo-c-driver.so:devel/mongo-c-driver
 
-USES=		cmake shebangfix tar:xz
+USES=		cmake compiler:c++ python shebangfix tar:xz
 USE_LDCONFIG=	yes
 
 PLIST_SUB=	PORTVERSION=${PORTVERSION}

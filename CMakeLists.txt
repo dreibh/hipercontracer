@@ -38,10 +38,6 @@ SET(BUILD_MINOR "0")
 SET(BUILD_PATCH "0~beta4")
 SET(BUILD_VERSION ${BUILD_MAJOR}.${BUILD_MINOR}.${BUILD_PATCH})
 
-SET(CMAKE_CXX_STANDARD 17)
-SET(CMAKE_CXX_STANDARD_REQUIRED ON)
-SET(CMAKE_CXX_EXTENSIONS OFF)
-
 
 #############################################################################
 #### INSTALLATION_DIRECTORIES                                            ####
@@ -75,7 +71,7 @@ INCLUDE(CheckCCompilerFlag)
 #############################################################################
 
 IF(NOT TARGET uninstall)
-   configure_file(
+   CONFIGURE_FILE(
       "${CMAKE_CURRENT_SOURCE_DIR}/cmake_uninstall.cmake.in"
       "${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake"
       IMMEDIATE @ONLY)
@@ -141,12 +137,13 @@ ELSE()
    ENDIF()
 ENDIF()
 
-OPTION(WITH_TRIGGER         "Build HiPerConTracer Trigger"      1)
-OPTION(WITH_IMPORTER        "Build HiPerConTracer Importer"     1)
-OPTION(WITH_QUERY           "Build HiPerConTracer Query Tool"   1)
-OPTION(WITH_RESULTS         "Build HiPerConTracer Results Tool" 1)
-OPTION(WITH_PIPE_CHECKSUM   "Build Pipe Checksum Tool"          1)
-OPTION(WITH_UDP_ECHO_SERVER "Build UDP Echo Server"             1)
+OPTION(WITH_TRIGGER         "Build HiPerConTracer Trigger"        1)
+OPTION(WITH_IMPORTER        "Build HiPerConTracer Importer"       1)
+OPTION(WITH_QUERY           "Build HiPerConTracer Query Tool"     1)
+OPTION(WITH_RESULTS         "Build HiPerConTracer Results Tool"   1)
+OPTION(WITH_DBSHELL         "Build HiPerConTracer Database Shell" 1)
+OPTION(WITH_PIPE_CHECKSUM   "Build Pipe Checksum Tool"            1)
+OPTION(WITH_UDP_ECHO_SERVER "Build UDP Echo Server"               1)
 
 
 #############################################################################
@@ -158,20 +155,6 @@ IF(CMAKE_SYSTEM_PROCESSOR STREQUAL "riscv64")
    STRING(APPEND CMAKE_CXX_STANDARD_LIBRARIES " -latomic")
 ENDIF()
 
-# ------ Check for "vla-cxx-extension" --------------------------
-CHECK_C_COMPILER_FLAG("-Wvla-cxx-extension -Werror" HAS_VLA_CXX_EXTENSION)
-IF (HAS_VLA_CXX_EXTENSION)
-   # Disable "vla-cxx-extension" warning:
-   SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-vla-cxx-extension")
-ENDIF()
-
-# ------ Check for "vla-cxx-extension" --------------------------
-CHECK_C_COMPILER_FLAG("-Wvla-cxx-extension -Werror" HAS_VLA_CXX_EXTENSION)
-IF (HAS_VLA_CXX_EXTENSION)
-   # Disable "vla-cxx-extension" warning:
-   SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-vla-cxx-extension")
-ENDIF()
-
 
 #############################################################################
 #### REQUIREMENTS                                                        ####
@@ -181,6 +164,10 @@ ENDIF()
 FIND_PACKAGE(Threads REQUIRED)
 
 # ###### Boost ##############################################################
+IF(CMAKE_VERSION VERSION_GREATER_EQUAL "3.30")
+   # Use BoostConfig.cmake to find BOOST libraries, if possible.
+   CMAKE_POLICY(SET CMP0167 NEW)
+ENDIF()
 FIND_PACKAGE(Boost REQUIRED COMPONENTS log date_time system thread iostreams filesystem program_options)
 IF (NOT Boost_FOUND)
    MESSAGE(FATAL_ERROR "Cannot find Boost libraries!")
@@ -280,7 +267,7 @@ IF (WITH_IMPORTER)
       MESSAGE("Building with MySQL/MariaDB backend (ENABLE_BACKEND_MARIADB=${ENABLE_BACKEND_MARIADB})")
 
       MESSAGE("Looking for MySQL/MariaDB C Client library:")
-      FIND_LIBRARY(LIBMARIADB_LIBRARY NAMES mariadb)
+      FIND_LIBRARY(LIBMARIADB_LIBRARY NAMES mariadb  PATH_SUFFIXES mariadb mysql)
       MESSAGE(" * Library: ${LIBMARIADB_LIBRARY}")
       FIND_PATH(LIBMARIADB_INCLUDE_DIR NAMES mysql.h PATH_SUFFIXES mariadb mysql)
       MESSAGE(" * Includes: ${LIBMARIADB_INCLUDE_DIR}")

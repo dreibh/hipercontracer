@@ -35,17 +35,27 @@ set -o nounset
 set -o errexit
 
 
-if [ $# -lt 2 ] ; then
-   echo >&2 "Usage: $0 host:port cafile [openssl_args ...]"
+if [ $# -lt 1 ] ; then
+   echo >&2 "Usage: $0 name ..."
    exit 1
 fi
-ENDPOINT="$1"
-CAFILE="$2"
-shift 2
-if [ ! -e "${CAFILE}" ] ; then
-   echo >&2 "ERROR: ${CAFILE} does not exist!"
-   exit 1
+HEADER="# Testbed:"
+if ! grep -q "^${HEADER}" /etc/hosts ; then
+   cat >>/etc/hosts <<EOF
+
+${HEADER}
+EOF
 fi
 
-# shellcheck disable=SC2068
-echo "" | openssl s_client -showcerts -connect "${ENDPOINT}" -CAfile "${CAFILE}" $@ | head
+while [ $# -gt 0 ] ;do
+   NAME="$1"
+   shift
+   name="$(echo "${NAME}" | sed -e "s/\..*$//g")"
+   domain="$(echo "${NAME}" | sed -e "s/^[^\.]*\.//g")"
+   echo "${name}.${domain}"
+   sed \
+      -e "/${name}\.${domain}/d" \
+      -e "s/^\(${HEADER}.*\)$/\1\n127.0.0.1 ${name}.${domain} ${name}\n::1       ${name}.${domain} ${name}/" \
+      </etc/hosts >/etc/hosts.new && \
+   mv /etc/hosts.new /etc/hosts
+done

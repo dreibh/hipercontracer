@@ -35,21 +35,30 @@ set -o nounset
 set -o errexit
 
 
-if [ $# -lt 1 ] ; then
-   echo >&2 "Usage: $0 mariadb|mongodb|mysql|postgresql"
+if [ $# -ne 2 ] ; then
+   echo >&2 "Usage: $0 mariadb|mongodb|mysql|postgresql users.conf"
    exit 1
 fi
+if [ ! -e "$2" ] ; then
+   echo >&2 "ERROR: Use configuration $2 does not exist!"
+fi
 
-# Access to database as "researcher" user:
+DATABASE="just_a_test_database"
+# shellcheck disable=SC1090
+. "$2"
+
 DBMS="$1"
-DATABASE_CONFIG="${HOME}/testdb-researcher-${DBMS}.conf"
+DATABASE_CONFIG="${HOME}/${DATABASE}-researcher-${DBMS}.conf"
 
 if [ ! -v VALGRIND_CMD ] ; then
    VALGRIND_CMD=""
 fi
 
+
 # ###### Run test ###########################################################
 if [ -e "${DATABASE_CONFIG}" ] ; then
+
+   echo -e "\x1b[34m$(date +"%F %H:%M:%S"): Querying results ...\x1b[0m"
 
    if [ ! -e good ] || [ ! -e bad ] || [ ! -e data ] ; then
       echo >&2 "ERROR: Directories missing! Did 5-perform-hpct-importer-test succeed?"
@@ -58,14 +67,18 @@ if [ -e "${DATABASE_CONFIG}" ] ; then
 
    for table in Ping Traceroute ; do   # Jitter
 
-      echo "Obtaining ${table} data from good/ directory ..."
+      echo -e "\x1b[33m$(date +"%F %H:%M:%S"): Obtaining ${table} data from good/ directory ...\x1b[0m"
       find good/ -name "${table}-*.results.*" | ../hpct-results --input-file-names-from-stdin -o imported-${table,,}.csv
+      if [ ! -e imported-${table,,}.csv ] ; then
+         echo >&2 "ERROR: There is no ${table} data from good/ directory!"
+         exit 1
+      fi
 
-      echo "Querying ${table} data from database ..."
+      echo -e "\x1b[33m$(date +"%F %H:%M:%S"): Querying ${table} data from database ...\x1b[0m"
       ${VALGRIND_CMD} ../hpct-query "${DATABASE_CONFIG}" ${table,,} -o queried-${table,,}-"${DBMS}".results
       ${VALGRIND_CMD} ../hpct-results queried-${table,,}-"${DBMS}".results -o queried-${table,,}-"${DBMS}".csv
 
-      echo "Checking for differences in ${table}:"
+      echo -e "\x1b[33m$(date +"%F %H:%M:%S"): Checking for differences in ${table}:\x1b[0m"
       wc -ml imported-${table,,}.csv
       wc -ml queried-${table,,}-"${DBMS}".csv
       if ! diff imported-${table,,}.csv queried-${table,,}-"${DBMS}".csv ; then

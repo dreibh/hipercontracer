@@ -37,5 +37,5 @@
 -- ##########################################################################
 
 
-DROP DATABASE IF EXISTS ${DATABASE};
+DROP DATABASE IF EXISTS ${DATABASE} WITH (FORCE);
 CREATE DATABASE ${DATABASE};

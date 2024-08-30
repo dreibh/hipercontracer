@@ -74,14 +74,42 @@ CREATE TABLE Ping (
 )
 PAGE_COMPRESSED=1   -- Enable page compression!
 PARTITION BY RANGE ( SendTimestamp ) (
+   PARTITION p2021 VALUES LESS THAN ( 1000000000 * UNIX_TIMESTAMP('2022-01-01') ),
    PARTITION p2022 VALUES LESS THAN ( 1000000000 * UNIX_TIMESTAMP('2023-01-01') ),
    PARTITION p2023 VALUES LESS THAN ( 1000000000 * UNIX_TIMESTAMP('2024-01-01') ),
    PARTITION p2024 VALUES LESS THAN ( 1000000000 * UNIX_TIMESTAMP('2025-01-01') ),
    PARTITION p2025 VALUES LESS THAN ( 1000000000 * UNIX_TIMESTAMP('2026-01-01') ),
-   PARTITION p2026 VALUES LESS THAN MAXVALUE
+   PARTITION p2026 VALUES LESS THAN ( 1000000000 * UNIX_TIMESTAMP('2027-01-01') ),
+   PARTITION p2027 VALUES LESS THAN ( 1000000000 * UNIX_TIMESTAMP('2028-01-01') ),
+   PARTITION p2028 VALUES LESS THAN MAXVALUE
 );
 
 CREATE INDEX PingRelationIndex ON Ping (MeasurementID ASC, DestinationIP ASC, SendTimestamp ASC);
+
+
+-- ###### Ping version 1 view ###############################################
+-- NOTE: This view is only for backwards compatibility, trying to provide the
+--       same structure as old HiPerConTracer version 1 databases!
+--       RTT uses the most accurate value available, i.e. HW -> SW -> App!
+DROP VIEW IF EXISTS Ping_v1;
+CREATE VIEW Ping_v1 AS
+   SELECT
+      CAST(FROM_UNIXTIME(SendTimestamp / 1000000000) AS DATETIME(6)) AS TimeStamp,
+      SourceIP                                  AS FromIP,
+      DestinationIP                             AS ToIP,
+      PacketSize                                AS PktSize,
+      TrafficClass                              AS TC,
+      Status                                    AS Status,
+      CAST(IF(RTT_HW > 0, RTT_HW / 1000,
+              IF(RTT_SW > 0, RTT_SW / 1000,
+                 RTT_App / 1000)) AS INTEGER)   AS RTT
+   FROM Ping;
+
+
+-- ###### Ping version 2 view ###############################################
+DROP VIEW IF EXISTS Ping_v2;
+CREATE VIEW Ping_v2 AS
+   SELECT * FROM Ping;
 
 
 -- ###### Traceroute ########################################################
@@ -118,14 +146,47 @@ CREATE TABLE Traceroute (
 )
 PAGE_COMPRESSED=1   -- Enable page compression!
 PARTITION BY RANGE ( Timestamp ) (
+   PARTITION p2021 VALUES LESS THAN ( 1000000000 * UNIX_TIMESTAMP('2022-01-01') ),
    PARTITION p2022 VALUES LESS THAN ( 1000000000 * UNIX_TIMESTAMP('2023-01-01') ),
    PARTITION p2023 VALUES LESS THAN ( 1000000000 * UNIX_TIMESTAMP('2024-01-01') ),
    PARTITION p2024 VALUES LESS THAN ( 1000000000 * UNIX_TIMESTAMP('2025-01-01') ),
    PARTITION p2025 VALUES LESS THAN ( 1000000000 * UNIX_TIMESTAMP('2026-01-01') ),
-   PARTITION p2026 VALUES LESS THAN MAXVALUE
+   PARTITION p2026 VALUES LESS THAN ( 1000000000 * UNIX_TIMESTAMP('2027-01-01') ),
+   PARTITION p2027 VALUES LESS THAN ( 1000000000 * UNIX_TIMESTAMP('2028-01-01') ),
+   PARTITION p2028 VALUES LESS THAN MAXVALUE
 );
 
 CREATE INDEX TracerouteRelationIndex ON Traceroute (MeasurementID ASC, DestinationIP ASC, Timestamp ASC);
+
+
+-- ###### Traceroute version 1 view #########################################
+-- NOTE: This view is only for backwards compatibility, trying to provide the
+--       same structure as old HiPerConTracer version 1 databases!
+--       RTT uses the most accurate value available, i.e. HW -> SW -> App!
+DROP VIEW IF EXISTS Traceroute_v1;
+CREATE VIEW Traceroute_v1 AS
+   SELECT
+      CAST(FROM_UNIXTIME(Timestamp / 1000000000) AS DATETIME(6)) AS TimeStamp,
+      SourceIP                                  AS FromIP,
+      DestinationIP                             AS ToIP,
+      PacketSize                                AS PktSize,
+      TrafficClass                              AS TC,
+      HopNumber                                 AS HopNumber,
+      TotalHops                                 AS TotalHops,
+      Status                                    AS Status,
+      CAST(IF(RTT_HW > 0, RTT_HW / 1000,
+              IF(RTT_SW > 0, RTT_SW / 1000,
+                 RTT_App / 1000)) AS INTEGER)   AS RTT,
+      HopIP                                     AS HopIP,
+      PathHash                                  AS PathHash,
+      RoundNumber                               AS Round
+   FROM Traceroute;
+
+
+-- ###### Traceroute version 2 view #########################################
+DROP VIEW IF EXISTS Traceroute_v2;
+CREATE VIEW Traceroute_v2 AS
+   SELECT * FROM Traceroute;
 
 
 -- ###### Jitter ############################################################
@@ -174,11 +235,21 @@ CREATE TABLE Jitter (
 )
 PAGE_COMPRESSED=1   -- Enable page compression!
 PARTITION BY RANGE ( Timestamp ) (
+   PARTITION p2021 VALUES LESS THAN ( 1000000000 * UNIX_TIMESTAMP('2022-01-01') ),
    PARTITION p2022 VALUES LESS THAN ( 1000000000 * UNIX_TIMESTAMP('2023-01-01') ),
    PARTITION p2023 VALUES LESS THAN ( 1000000000 * UNIX_TIMESTAMP('2024-01-01') ),
    PARTITION p2024 VALUES LESS THAN ( 1000000000 * UNIX_TIMESTAMP('2025-01-01') ),
    PARTITION p2025 VALUES LESS THAN ( 1000000000 * UNIX_TIMESTAMP('2026-01-01') ),
-   PARTITION p2026 VALUES LESS THAN MAXVALUE
+   PARTITION p2026 VALUES LESS THAN ( 1000000000 * UNIX_TIMESTAMP('2027-01-01') ),
+   PARTITION p2027 VALUES LESS THAN ( 1000000000 * UNIX_TIMESTAMP('2028-01-01') ),
+   PARTITION p2028 VALUES LESS THAN MAXVALUE
 );
 
 CREATE INDEX JitterRelationIndex ON Jitter (MeasurementID ASC, DestinationIP ASC, Timestamp ASC);
+
+
+-- ###### Jitter version 2 view #############################################
+-- NOTE: There is no Jitter version 1!
+DROP VIEW IF EXISTS Jitter_v2;
+CREATE VIEW Jitter_v2 AS
+   SELECT * FROM Jitter;

@@ -206,8 +206,10 @@ IF (WITH_IMPORTER)
    TARGET_LINK_LIBRARIES(hpct-importer libuniversalimporter-${libraryType} ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
    INSTALL(TARGETS hpct-importer RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
    INSTALL(FILES hpct-importer.1 DESTINATION ${CMAKE_INSTALL_MANDIR}/man1)
-   INSTALL(FILES hpct-importer.service DESTINATION /lib/systemd/system)
-   INSTALL(FILES hpct-importer.conf    DESTINATION /etc/hipercontracer)
+   IF (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+      INSTALL(FILES hpct-importer.service DESTINATION /lib/systemd/system)
+      INSTALL(FILES hpct-importer.conf    DESTINATION /etc/hipercontracer)
+   ENDIF()
 ENDIF()
 
 # ====== HiPerConTracer Query Tool ==========================================
@@ -229,6 +231,12 @@ IF (WITH_RESULTS)
            DESTINATION ${CMAKE_INSTALL_MANDIR}/man1)
 ENDIF()
 
+# ====== HiPerConTracer Database Shell ======================================
+IF (WITH_DBSHELL)
+   INSTALL(FILES dbshell   DESTINATION ${CMAKE_INSTALL_BINDIR})
+   INSTALL(FILES dbshell.1 DESTINATION ${CMAKE_INSTALL_MANDIR}/man1)
+ENDIF()
+
 # ====== Pipe Checksum Tool =================================================
 IF (WITH_PIPE_CHECKSUM)
    ADD_EXECUTABLE(pipe-checksum pipe-checksum.cc)
@@ -246,8 +254,10 @@ IF (WITH_UDP_ECHO_SERVER)
            DESTINATION ${CMAKE_INSTALL_BINDIR})
    INSTALL(FILES udp-echo-server.1
            DESTINATION ${CMAKE_INSTALL_MANDIR}/man1)
-   INSTALL(FILES udp-echo-server.service DESTINATION /lib/systemd/system)
-   INSTALL(FILES udp-echo-server.conf    DESTINATION /etc/hipercontracer)
+   IF (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+      INSTALL(FILES udp-echo-server.service DESTINATION /lib/systemd/system)
+      INSTALL(FILES udp-echo-server.conf    DESTINATION /etc/hipercontracer)
+   ENDIF()
 ENDIF()
 
 # ====== Scripts ============================================================
@@ -272,8 +282,8 @@ INSTALL(FILES get-default-ips.1
 # TARGET_LINK_LIBRARIES(t3 ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
 # ADD_EXECUTABLE(t7 t7.cc)
 # TARGET_LINK_LIBRARIES(t7 ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
-ADD_EXECUTABLE(dbtest dbtest.cc)
-TARGET_LINK_LIBRARIES(dbtest libuniversalimporter-${libraryType} ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
+# ADD_EXECUTABLE(dbtest dbtest.cc)
+# TARGET_LINK_LIBRARIES(dbtest libuniversalimporter-${libraryType} ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
 
 
 #############################################################################

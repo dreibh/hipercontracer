@@ -1,11 +1,14 @@
 # Set the database user passwords here.
 # Hint: "pwgen -s 128" generates secure ones!
 
+# Domain for generating hostnames:
+DOMAIN="hipercontracer.test"
+
 # DBMS root:
 ROOT_PASSWORD="!root!"
 
 # Test database:
-DATABASE="testonly"
+DATABASE="test4hpct"
 
 # Users for the test database:
 MAINTAINER_PASSWORD="!maintainer!"

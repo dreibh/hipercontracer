@@ -219,7 +219,9 @@ int main(int argc, char** argv)
          }
       }
       pingReader = new PingReader(importerConfiguration,
-                                  pingWorkers, pingTransactionSize);
+                                  pingWorkers, pingTransactionSize,
+                                  importerConfiguration.getTableName(PingReader::Identification,
+                                                                     PingReader::Identification));
       assert(pingReader != nullptr);
       importer.addReader(*pingReader,
                          (DatabaseClientBase**)&pingDatabaseClients, pingWorkers);
@@ -237,7 +239,9 @@ int main(int argc, char** argv)
          }
       }
       tracerouteReader = new TracerouteReader(importerConfiguration,
-                                              tracerouteWorkers, tracerouteTransactionSize);
+                                              tracerouteWorkers, tracerouteTransactionSize,
+                                              importerConfiguration.getTableName(TracerouteReader::Identification,
+                                                                                 TracerouteReader::Identification));
       assert(tracerouteReader != nullptr);
       importer.addReader(*tracerouteReader,
                          (DatabaseClientBase**)&tracerouteDatabaseClients, tracerouteWorkers);
@@ -256,7 +260,9 @@ int main(int argc, char** argv)
          }
       }
       jitterReader = new JitterReader(importerConfiguration,
-                                      jitterWorkers, jitterTransactionSize);
+                                      jitterWorkers, jitterTransactionSize,
+                                      importerConfiguration.getTableName(JitterReader::Identification,
+                                                                         JitterReader::Identification));
       assert(jitterReader != nullptr);
       importer.addReader(*jitterReader,
                          (DatabaseClientBase**)&jitterDatabaseClients, jitterWorkers);

@@ -56,7 +56,7 @@ class PingReader : public TracerouteReader
                               const std::filesystem::path&         dataFile,
                               boost::iostreams::filtering_istream& dataStream);
 
-   private:
+   public:
    static const std::string Identification;
    static const std::regex  FileNameRegExp;
 };
