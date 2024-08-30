@@ -46,8 +46,8 @@ int main(int argc, char** argv)
    std::cout << "OFFSET= " << sysTSE - nowTSE << "\n";
 
    static const std::chrono::nanoseconds offset = std::chrono::nanoseconds(
-      nsSinceEpoch<SystemTimePoint>(SystemClock::now()) -
-      nsSinceEpoch<ReaderTimePoint>(ReaderClock::now())
+      nsSinceEpoch<ReaderTimePoint>(ReaderClock::now()) -
+      nsSinceEpoch<SystemTimePoint>(SystemClock::now())
    );
    std::cout << "OFFSET= " << offset.count() << "\n";
 
