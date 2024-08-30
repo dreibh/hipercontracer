@@ -169,20 +169,25 @@ elif [ "$1" == "postgresql" ] ; then
    POSTGRESQL_KEY_FILE="/etc/ssl/${server}.${DOMAIN}/${server}.${DOMAIN}.key"
    sudo chown postgres:postgres ${POSTGRESQL_KEY_FILE}
 
-   POSTGRESETC=$(find /etc/postgresql/ -mindepth 1 -maxdepth 1 -type d | grep "[0-9]$" | sort -r | head -n1)
-   if [ "${POSTGRESETC}" == "" ] ; then
-      echo >&2 "ERROR: Cannot find the /etc/postgresql/* directory!"
+   POSTGRESDIR=""
+   if [ -d /etc/postgresql ] ; then
+      POSTGRESDIR="$(find /etc/postgresql/ -mindepth 2 -maxdepth 2 -type d -name main | sort -r | head -n1)"
+   elif sudo -u postgres test -d /var/lib/pgsql/data ; then
+      POSTGRESDIR="/var/lib/pgsql/data"
+   fi
+   if [ "${POSTGRESDIR}" == "" ] ; then
+      echo >&2 "ERROR: Cannot find the PostgreSQL configuration directory!"
       exit 1
    fi
-   echo "Using PostgreSQL settings in ${POSTGRESETC}!"
+   echo "Using PostgreSQL settings in ${POSTGRESDIR}!"
 
    # Enable network access:
    sudo sed \
       -e 's#^host    all             all             127.0.0.1/32            scram-sha-256#host    all             all             0.0.0.0/0               scram-sha-256#' \
       -e 's#^host    all             all             ::1/128                 scram-sha-256#host    all             all             ::/0                    scram-sha-256#' \
-      "${POSTGRESETC}"/main/pg_hba.conf | sudo tee "${POSTGRESETC}"/main/pg_hba.conf.new >/dev/null && \
-   diff --color "${POSTGRESETC}"/main/pg_hba.conf.new "${POSTGRESETC}"/main/pg_hba.conf || true && \
-   sudo mv "${POSTGRESETC}"/main/pg_hba.conf.new "${POSTGRESETC}"/main/pg_hba.conf
+      "${POSTGRESDIR}"/pg_hba.conf | sudo tee "${POSTGRESDIR}"/pg_hba.conf.new >/dev/null && \
+   diff --color "${POSTGRESDIR}"/pg_hba.conf.new "${POSTGRESDIR}"/pg_hba.conf || true && \
+   sudo mv "${POSTGRESDIR}"/pg_hba.conf.new "${POSTGRESDIR}"/pg_hba.conf
 
    sudo sed \
       -e "s%#listen_addresses = 'localhost'%listen_addresses = '*'        %" \
@@ -193,9 +198,9 @@ elif [ "$1" == "postgresql" ] ; then
       -e "s%#ssl_ciphers = '.*'%ssl_ciphers = 'ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-AES256-SHA384:ECDHE-RSA-AES256-SHA384:ECDHE-ECDSA-AES256-SHA:ECDHE-RSA-AES256'%" \
       -e "s%#ssl_prefer_server_ciphers = on%ssl_prefer_server_ciphers = on%" \
       -e "s%#ssl_min_protocol_version = 'TLSv1.2'%ssl_min_protocol_version = 'TLSv1.3'%" \
-      "${POSTGRESETC}"/main/postgresql.conf | sudo tee "${POSTGRESETC}"/main/postgresql.conf.new >/dev/null && \
-   diff --color "${POSTGRESETC}"/main/postgresql.conf.new "${POSTGRESETC}"/main/postgresql.conf || true && \
-   sudo mv "${POSTGRESETC}"/main/postgresql.conf.new "${POSTGRESETC}"/main/postgresql.conf
+      "${POSTGRESDIR}"/postgresql.conf | sudo tee "${POSTGRESDIR}"/postgresql.conf.new >/dev/null && \
+   diff --color "${POSTGRESDIR}"/postgresql.conf.new "${POSTGRESDIR}"/postgresql.conf || true && \
+   sudo mv "${POSTGRESDIR}"/postgresql.conf.new "${POSTGRESDIR}"/postgresql.conf
 
    sudo service postgresql restart
 
