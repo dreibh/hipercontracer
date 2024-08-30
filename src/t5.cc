@@ -16,6 +16,7 @@ int main(int argc, char** argv)
    const unsigned long long nowTimeStamp  = timePointToNanoseconds<ReaderTimePoint>(nowTimePoint);
    std::cout << "now:   ts=" << nowTimeStamp
              << "\ttp=" << timePointToString<ReaderTimePoint>(nowTimePoint, 9) << "\n";
+   std::cout << "nowInSeconds=" << nowTimeStamp / 1000000000 << "\n";
 
    if(testTimeStamp > nowTimeStamp) {
       std::cerr << "Jævla faen TS!\n";
