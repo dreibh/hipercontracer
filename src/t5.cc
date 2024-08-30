@@ -43,5 +43,7 @@ int main(int argc, char** argv)
    const unsigned long long sysTSE = nsSinceEpoch<SystemTimePoint>(sysTimePoint);
    std::cout << "sysTSE= " << sysTSE << "\n";
 
+   std::cout << "OFFSET= " << sysTSE - nowTSE << "\n";
+
    return 0;
 }
