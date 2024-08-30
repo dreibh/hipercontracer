@@ -182,15 +182,16 @@ elif [ "$1" == "postgresql" ] ; then
    echo "Using PostgreSQL settings in ${POSTGRESDIR}!"
 
    # Enable network access:
-   sudo sed \
-      -e 's#^host    all             all             127.0.0.1/32            scram-sha-256#host    all             all             0.0.0.0/0               scram-sha-256#' \
-      -e 's#^host    all             all             ::1/128                 scram-sha-256#host    all             all             ::/0                    scram-sha-256#' \
-      "${POSTGRESDIR}"/pg_hba.conf | sudo tee "${POSTGRESDIR}"/pg_hba.conf.new >/dev/null && \
-   diff --color "${POSTGRESDIR}"/pg_hba.conf.new "${POSTGRESDIR}"/pg_hba.conf || true && \
-   sudo mv "${POSTGRESDIR}"/pg_hba.conf.new "${POSTGRESDIR}"/pg_hba.conf
+   sudo -u postgres sed \
+      -e 's%^\(host[ \t]*all[ \t]*all[ \t]*\)127.0.0.1/32\([ \t]*\).*$%\10.0.0.0/0   \2scram-sha-256%g' \
+      -e 's%^\(host[ \t]*all[ \t]*all[ \t]*\)::1/128\([ \t]*\).*$%\1::/0   \2scram-sha-256%g' \
+      "${POSTGRESDIR}"/pg_hba.conf | sudo -u postgres tee "${POSTGRESDIR}"/pg_hba.conf.new >/dev/null && \
+   sudo -u postgres diff --color "${POSTGRESDIR}"/pg_hba.conf.new "${POSTGRESDIR}"/pg_hba.conf || true && \
+   sudo -u postgres mv -f "${POSTGRESDIR}"/pg_hba.conf.new "${POSTGRESDIR}"/pg_hba.conf
 
-   sudo sed \
+   sudo -u postgres sed \
       -e "s%#listen_addresses = 'localhost'%listen_addresses = '*'        %" \
+      -e "s%\([#]\|\)ssl =.*%ssl = on%" \
       -e "s%\([#]\|\)ssl_ca_file = '.*'%ssl_ca_file = '${POSTGRESQL_CA_FILE}'%" \
       -e "s%\([#]\|\)ssl_crl_file = '.*'%ssl_crl_file = '${POSTGRESQL_CRL_FILE}'%" \
       -e "s%\([#]\|\)ssl_cert_file = '.*'%ssl_cert_file = '${POSTGRESQL_CRT_FILE}'%" \
@@ -198,9 +199,9 @@ elif [ "$1" == "postgresql" ] ; then
       -e "s%#ssl_ciphers = '.*'%ssl_ciphers = 'ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-AES256-SHA384:ECDHE-RSA-AES256-SHA384:ECDHE-ECDSA-AES256-SHA:ECDHE-RSA-AES256'%" \
       -e "s%#ssl_prefer_server_ciphers = on%ssl_prefer_server_ciphers = on%" \
       -e "s%#ssl_min_protocol_version = 'TLSv1.2'%ssl_min_protocol_version = 'TLSv1.3'%" \
-      "${POSTGRESDIR}"/postgresql.conf | sudo tee "${POSTGRESDIR}"/postgresql.conf.new >/dev/null && \
-   diff --color "${POSTGRESDIR}"/postgresql.conf.new "${POSTGRESDIR}"/postgresql.conf || true && \
-   sudo mv "${POSTGRESDIR}"/postgresql.conf.new "${POSTGRESDIR}"/postgresql.conf
+      "${POSTGRESDIR}"/postgresql.conf | sudo -u postgres tee "${POSTGRESDIR}"/postgresql.conf.new >/dev/null && \
+   sudo -u postgres diff --color "${POSTGRESDIR}"/postgresql.conf.new "${POSTGRESDIR}"/postgresql.conf || true && \
+   sudo -u postgres mv -f "${POSTGRESDIR}"/postgresql.conf.new "${POSTGRESDIR}"/postgresql.conf
 
    sudo service postgresql restart
 
