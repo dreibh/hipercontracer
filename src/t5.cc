@@ -7,15 +7,21 @@ typedef ReaderClock::duration                ReaderTimeDuration;
 
 int main(int argc, char** argv)
 {
-   const unsigned long long ts = 0x17972cfc4c932d87ULL;
+   const unsigned long long testTimeStamp = 0x17972cfc4c932d87ULL;
+   const ReaderTimePoint    testTimePoint = nanosecondsToTimePoint<ReaderTimePoint>(testTimeStamp);
+   std::cout << "now :  ts=" << testTimeStamp
+             << "\ttp=" << timePointToString<ReaderTimePoint>(testTimePoint, 9) << "\n";
 
-   const ReaderTimePoint now       = ReaderClock::now();
-   const ReaderTimePoint timeStamp = nanosecondsToTimePoint<ReaderTimePoint>(ts);
+   const ReaderTimePoint    nowTimePoint  = ReaderClock::now();
+   const unsigned long long nowTimeStamp  = timePointToNanoseconds<ReaderTimePoint>(nowTimePoint);
+   std::cout << "now :  ts=" << nowTimeStamp
+             << "\ttp=" << timePointToString<ReaderTimePoint>(nowTimePoint, 9) << "\n";
 
-   std::cout << "n=" << timePointToString<ReaderTimePoint>(now, 9)       << "\n";
-   std::cout << "t=" << timePointToString<ReaderTimePoint>(timeStamp, 9) << "\n";
-   if(now < timeStamp) {
-      std::cerr << "Jævla faen!\n";
+   if(testTimeStamp > nowTimeStamp) {
+      std::cerr << "Jævla faen TS!\n";
+   }
+   if(testTimePoint > nowTimePoint) {
+      std::cerr << "Jævla faen TP!\n";
    }
    return 0;
 }
