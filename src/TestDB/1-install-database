@@ -43,6 +43,14 @@ if [ ! -e "$2" ] ; then
    echo >&2 "ERROR: Use configuration $2 does not exist!"
 fi
 
+
+# ====== Check/set environment variables ====================================
+if [ ! -e /etc/os-release ] ; then
+   echo >&2 "ERROR: /etc/os-release does not exist!"
+   exit 1
+fi
+. /etc/os-release
+
 DOMAIN="test.local"
 ROOT_PASSWORD="!root!"
 DATABASE="just_a_test_database"
@@ -69,16 +77,19 @@ if [ "$1" == "mariadb" ] ; then
    # ====== Install MariaDB =================================================
    echo -e "\x1b[34m$(date +"%F %H:%M:%S"): Installing MariaDB ...\x1b[0m"
 
-   if [ -x /usr/bin/apt ] ; then
+   if [ "${ID}" == "ubuntu" ] || [ "${ID}" == "debian" ] ; then
       sudo DEBIAN_FRONTEND=noninteractive apt install -y -o APT::Keep-Downloaded-Packages=true mariadb-server mariadb-backup mariadb-client libmariadb-dev openssl
-   elif [ -x /usr/bin/dnf ] ; then
+   elif [ "${ID}" == "fedora" ] ; then
       sudo dnf install -y mariadb-server mariadb-backup mariadb-connector-c-devel openssl
       sudo systemctl enable mariadb.service
       sudo systemctl start mariadb.service
-   elif [ -x /usr/sbin/pkg ] ; then
+   elif [ "${ID}" == "freebsd" ] ; then
       sudo pkg install -y mariadb106-server mariadb106-client py311-netifaces openssl
       sudo service mysql-server enable
       sudo service mysql-server start
+   else
+      echo >&2 "ERROR: Unknown ID ${ID} in /etc/os-release. The installation script may need an update for supporting this system!"
+      exit 1
    fi
 
    # ====== Basic configuration =============================================
@@ -107,7 +118,7 @@ EOF
    ) | sudo mysql --user=root
 
    # Enable network access:
-   if [ -x /usr/bin/apt ] ; then
+   if [ "${ID}" == "ubuntu" ] || [ "${ID}" == "debian" ] ; then
       sudo sed \
          -e 's/^\(bind-address[ \t]*\)=.*$/\1= */g' \
          -e "s%\([#][ \t]*\|\)ssl-ca[ ]*=[ ]*.*%ssl-ca = ${MARIADB_CA_FILE}\nssl-crl = ${MARIADB_CRL_FILE}%" \
@@ -118,14 +129,14 @@ EOF
       sudo diff --color /etc/mysql/mariadb.conf.d/50-server.cnf /etc/mysql/mariadb.conf.d/50-server.cnf.new || true && \
       sudo mv /etc/mysql/mariadb.conf.d/50-server.cnf.new /etc/mysql/mariadb.conf.d/50-server.cnf
       sudo service mariadb restart
-   elif [ -x /usr/bin/dnf ] ; then
+   elif [ "${ID}" == "fedora" ] ; then
       sudo sed \
          -e "s%^#bind-address[ \t]*=.*%bind-address = *\nssl-ca = ${MARIADB_CA_FILE}\nssl-crl = ${MARIADB_CRL_FILE}\nssl-cert = ${MARIADB_CRT_FILE}\nssl-key = ${MARIADB_KEY_FILE}\nrequire-secure-transport = on\ntls_version = TLSv1.3%g" \
          /etc/my.cnf.d/mariadb-server.cnf | sudo tee /etc/my.cnf.d/mariadb-server.cnf.new && \
       sudo diff --color /etc/my.cnf.d/mariadb-server.cnf /etc/my.cnf.d/mariadb-server.cnf.new || true && \
       sudo mv /etc/my.cnf.d/mariadb-server.cnf.new /etc/my.cnf.d/mariadb-server.cnf
       sudo service mariadb restart
-   elif [ -x /usr/sbin/pkg ] ; then
+   elif [ "${ID}" == "freebsd" ] ; then
       sudo sed \
          -e "s%^bind-address[ \t]*=.*%bind-address = *\nssl-ca = ${MARIADB_CA_FILE}\nssl-crl = ${MARIADB_CRL_FILE}\nssl-cert = ${MARIADB_CRT_FILE}\nssl-key = ${MARIADB_KEY_FILE}\nrequire-secure-transport = on\ntls_version = TLSv1.3%g" \
          /usr/local/etc/mysql/conf.d/server.cnf | sudo tee /usr/local/etc/mysql/conf.d/server.cnf.new && \
@@ -146,15 +157,18 @@ elif [ "$1" == "postgresql" ] ; then
    # ====== Install PostgreSQL ==============================================
    echo -e "\x1b[34m$(date +"%F %H:%M:%S"): Installing PostgreSQL ...\x1b[0m"
 
-   if [ -x /usr/bin/apt ] ; then
+   if [ "${ID}" == "ubuntu" ] || [ "${ID}" == "debian" ] ; then
       sudo DEBIAN_FRONTEND=noninteractive apt install -y -o APT::Keep-Downloaded-Packages=true openssl postgresql-all postgresql-contrib
-   elif [ -x /usr/bin/dnf ] ; then
+   elif [ "${ID}" == "fedora" ] ; then
       sudo dnf install -y openssl postgresql-server libpqxx-devel
       sudo -u postgres /usr/bin/postgresql-setup --initdb || true
       sudo systemctl enable postgresql.service
       sudo systemctl start postgresql.service
-   elif [ -x /usr/sbin/pkg ] ; then
+   elif [ "${ID}" == "freebsd" ] ; then
       sudo pkg install -y postgresql16-server openssl
+   else
+      echo >&2 "ERROR: Unknown ID ${ID} in /etc/os-release. The installation script may need an update for supporting this system!"
+      exit 1
    fi
 
    # ====== Basic configuration =============================================
@@ -220,30 +234,28 @@ elif [ "$1" == "mongodb" ] ; then
    MONGODB_VERSION="8.0"
    MONGODB_KEY="${MONGODB_VERSION}"
 
-   if [ -x /usr/bin/apt ] ; then
-      . /etc/os-release
+   if [ "${ID}" == "ubuntu" ] || [ "${ID}" == "debian" ] ; then
       for key in ${MONGODB_VERSION} dev ; do
          wget -qO - "https://www.mongodb.org/static/pgp/server-${key}.asc" | gpg --dearmor | sudo tee "/usr/share/keyrings/mongodb-${key}.gpg" >/dev/null
       done
       . /etc/os-release
-      if [ ! -e /etc/apt/sources.list.d/mongodb-org.list ] ; then
-         (
-            if [ "${ID}" == "ubuntu" ] ; then
-               cat <<EOF
+      (
+         if [ "${ID}" == "ubuntu" ] ; then
+            cat <<EOF
 deb [ signed-by=/usr/share/keyrings/mongodb-${MONGODB_KEY}.gpg ] https://repo.mongodb.org/apt/ubuntu ${UBUNTU_CODENAME}/mongodb-org/${MONGODB_VERSION} multiverse
 deb [ signed-by=/usr/share/keyrings/mongodb-dev.gpg ] https://repo.mongodb.org/apt/ubuntu ${UBUNTU_CODENAME}/mongodb-org/development multiverse
 EOF
-            else
-               cat <<EOF
-deb [ signed-by=/usr/share/keyrings/mongodb-${MONGODB_KEY}.gpg ] https://repo.mongodb.org/apt/${ID} ${VERSION_CODENAME}/mongodb-org/$deb [ signed-by=/usr/share/keyrings/mongodb-dev.gpg ] https://repo.mongodb.org/apt/${ID} ${VERSION_CODENAME}/mongodb-org/development main
-{MONGODB_VERSION} main
+         else
+            cat <<EOF
+deb [ signed-by=/usr/share/keyrings/mongodb-${MONGODB_KEY}.gpg ] https://repo.mongodb.org/apt/debian ${VERSION_CODENAME}/mongodb-org/${MONGODB_VERSION} main
+deb [ signed-by=/usr/share/keyrings/mongodb-dev.gpg ] https://repo.mongodb.org/apt/debian ${VERSION_CODENAME}/mongodb-org/development main
 EOF
-            fi
-         ) | sudo tee /etc/apt/sources.list.d/mongodb-org.list >/dev/null
-      fi
+         fi
+      ) | sudo tee /etc/apt/sources.list.d/mongodb-org.list >/dev/null
       sudo apt update -qq
       sudo DEBIAN_FRONTEND=noninteractive apt install -y -o APT::Keep-Downloaded-Packages=true mongodb-org mongodb-mongosh openssl
-   elif [ -x /usr/bin/dnf ] ; then
+
+   elif [ "${ID}" == "fedora" ] ; then
       (
          cat <<EOF
 [mongodb-org]
@@ -267,10 +279,15 @@ EOF
       sudo dnf install -y mongodb-org mongodb-mongosh-shared-openssl3 openssl
       sudo systemctl enable mongod.service
       sudo systemctl start mongod.service
-   elif [ -x /usr/sbin/pkg ] ; then
+
+   elif [ "${ID}" == "freebsd" ] ; then
       sudo pkg install -y mongodb70 mongodb-tools
       sudo service mongod enable
       sudo service mongod start
+
+   else
+      echo >&2 "ERROR: Unknown ID ${ID} in /etc/os-release. The installation script may need an update for supporting this system!"
+      exit 1
    fi
 
    # ====== Basic configuration =============================================
@@ -284,10 +301,10 @@ EOF
    sudo touch ${MONGODB_CRT_KEY_FILE}
    sudo chmod 600 ${MONGODB_CRT_KEY_FILE}
    sudo cat /etc/ssl/${server}.${DOMAIN}/${server}.${DOMAIN}.key /etc/ssl/${server}.${DOMAIN}/${server}.${DOMAIN}.crt /etc/ssl/TestLeaf/certs/TestLeaf-chain.pem | sudo tee ${MONGODB_CRT_KEY_FILE} >/dev/null
-   if [ ! -x /usr/bin/dnf ] ; then
-      sudo chown mongodb:mongodb ${MONGODB_CRT_KEY_FILE}
-   else
+   if [ "${ID}" == "fedora" ] ; then
       sudo chown mongod:mongod ${MONGODB_CRT_KEY_FILE}
+   else
+      sudo chown mongodb:mongodb ${MONGODB_CRT_KEY_FILE}
    fi
 
 
@@ -295,10 +312,10 @@ EOF
    #          full access!
    # The following settings enable authorization check, restricting access
    # to the configured user (root).
-   if [ ! -x /usr/sbin/pkg ] ; then
-      mongodConf=/etc/mongod.conf
-   else
+   if [ "${ID}" == "freebsd" ] ; then
       mongodConf=/usr/local/etc/mongodb.conf
+   else
+      mongodConf=/etc/mongod.conf
    fi
 
    cp ${mongodConf} /tmp/
