@@ -40,7 +40,7 @@ int main(int argc, char** argv)
    std::cout << "testTSE=" << testTSE << "\n";
    const unsigned long long nowTSE = nsSinceEpoch<ReaderTimePoint>(nowTimePoint);
    std::cout << "nowTSE= " << nowTSE << "\n";
-   const unsigned long long sysTSE = nsSinceEpoch<ReaderTimePoint>(sysTimePoint);
+   const unsigned long long sysTSE = nsSinceEpoch<SystemTimePoint>(sysTimePoint);
    std::cout << "sysTSE= " << sysTSE << "\n";
 
    return 0;
