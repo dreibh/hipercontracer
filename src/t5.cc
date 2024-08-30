@@ -22,7 +22,7 @@ int main(int argc, char** argv)
              << "\ttp=" << timePointToString<ReaderTimePoint>(nowTimePoint, 9) << "\n";
    std::cout << "nowInSeconds=" << nowTimeStamp / 1000000000 << "\n";
 
-   const SystemTimePoint    sysTimePoint  = SystemClock::sys();
+   const SystemTimePoint    sysTimePoint  = SystemClock::now();
    const unsigned long long sysTimeStamp  = timePointToNanoseconds<SystemTimePoint>(sysTimePoint);
    std::cout << "sys:   ts=" << sysTimeStamp
              << "\ttp=" << timePointToString<SystemTimePoint>(sysTimePoint, 9) << "\n";
@@ -40,6 +40,8 @@ int main(int argc, char** argv)
    std::cout << "testTSE=" << testTSE << "\n";
    const unsigned long long nowTSE = nsSinceEpoch<ReaderTimePoint>(nowTimePoint);
    std::cout << "nowTSE= " << nowTSE << "\n";
+   const unsigned long long sysTSE = nsSinceEpoch<ReaderTimePoint>(sysTimePoint);
+   std::cout << "sysTSE= " << sysTSE << "\n";
 
    return 0;
 }
