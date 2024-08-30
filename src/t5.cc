@@ -44,10 +44,10 @@ int main(int argc, char** argv)
    std::cout << "sysTSE= " << sysTSE << "\n";
 
    std::cout << "OFFSET= " << sysTSE - nowTSE << "\n";
-   long long offset =
+   std::chrono::nanoseconds offset = std::chrono::nanoseconds(
       nsSinceEpoch<SystemTimePoint>(SystemClock::now()) -
-      nsSinceEpoch<ReaderTimePoint>(ReaderClock::now());
-   std::cout << "OFFSET= " << offset << "\n";
+      nsSinceEpoch<ReaderTimePoint>(ReaderClock::now()) );
+   std::cout << "OFFSET= " << offset.count() << "\n";
 
    return 0;
 }

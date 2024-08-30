@@ -528,7 +528,11 @@ void TracerouteReader::parseContents(
 
    std::string inputLine;
    std::string tuple[TracerouteMaxColumns];
-   const ReaderTimePoint now = ReaderClock::now();
+   static const std::chrono::nanoseconds offset = std::chrono::nanoseconds(
+      nsSinceEpoch<SystemTimePoint>(SystemClock::now()) -
+      nsSinceEpoch<ReaderTimePoint>(ReaderClock::now())
+   );
+   const ReaderTimePoint now = ReaderClock::now() + offset;
    while(std::getline(dataStream, inputLine)) {
 
       // ====== Format identifier ===========================================
