@@ -24,5 +24,12 @@ int main(int argc, char** argv)
    if(testTimePoint > nowTimePoint) {
       std::cerr << "Jævla faen TP!\n";
    }
+
+
+   const unsigned long long testTSE = nsSinceEpoch<ReaderTimePoint>(testTimePoint);
+   std::cout << "testTSE=" << testTSE << "\n";
+   const unsigned long long nowTSE = nsSinceEpoch<ReaderTimePoint>(nowTimePoint);
+   std::cout << "nowTSE= " << nowTSE << "\n";
+
    return 0;
 }
