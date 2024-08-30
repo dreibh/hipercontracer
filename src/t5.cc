@@ -5,6 +5,10 @@ typedef std::chrono::high_resolution_clock   ReaderClock;
 typedef std::chrono::time_point<ReaderClock> ReaderTimePoint;
 typedef ReaderClock::duration                ReaderTimeDuration;
 
+typedef std::chrono::system_clock            SystemClock;
+typedef std::chrono::time_point<SystemClock> SystemTimePoint;
+typedef SystemClock::duration                SystemTimeDuration;
+
 int main(int argc, char** argv)
 {
    const unsigned long long testTimeStamp = 0x17972cfc4c932d87ULL;
