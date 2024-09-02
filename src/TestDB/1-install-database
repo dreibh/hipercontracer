@@ -33,6 +33,7 @@
 # Bash options:
 set -o nounset
 set -o errexit
+set -x
 
 
 if [ $# -ne 2 ] ; then
@@ -166,6 +167,9 @@ elif [ "$1" == "postgresql" ] ; then
       sudo systemctl start postgresql.service
    elif [ "${ID}" == "freebsd" ] ; then
       sudo pkg install -y postgresql16-server openssl
+      sudo sysrc postgresql_enable="YES"
+      sudo /usr/local/etc/rc.d/postgresql initdb
+      sudo service postgresql start
    else
       echo >&2 "ERROR: Unknown ID ${ID} in /etc/os-release. The installation script may need an update for supporting this system!"
       exit 1
@@ -186,6 +190,8 @@ elif [ "$1" == "postgresql" ] ; then
    POSTGRESDIR=""
    if [ -d /etc/postgresql ] ; then
       POSTGRESDIR="$(find /etc/postgresql/ -mindepth 2 -maxdepth 2 -type d -name main | sort -r | head -n1)"
+   elif [ -d /var/db/postgres ] ; then
+      POSTGRESDIR="$(find /var/db/postgres -mindepth 1 -maxdepth 1 -type d -name "data*" | sort -r | head -n1)"
    elif sudo -u postgres test -d /var/lib/pgsql/data ; then
       POSTGRESDIR="/var/lib/pgsql/data"
    fi
