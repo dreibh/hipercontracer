@@ -250,8 +250,9 @@ void MongoDBClient::executeUpdate(Statement& statement)
 
 
    // ====== Split BSON into rows ===========================================
-   bson_t  documentArray[statement.getRows()];
-   bson_t* documentPtrArray[statement.getRows()];
+   const unsigned int rows             = statement.getRows();
+   bson_t*            documentArray    = new bson_t[rows];
+   bson_t**           documentPtrArray = new bson_t*[rows];
    if(bson_iter_init(&iterator, &rowsToInsert)) {
       unsigned int i = 0;
       while(bson_iter_next(&iterator)) {
@@ -268,6 +269,8 @@ void MongoDBClient::executeUpdate(Statement& statement)
             i++;
          }
          else {
+            delete [] documentArray;
+            delete [] documentPtrArray;
             throw ResultsDatabaseDataErrorException("Data error: Unexpected format (not list of documents)");
          }
       }
@@ -292,11 +295,14 @@ void MongoDBClient::executeUpdate(Statement& statement)
                                    collectionName.c_str());
    assert(collection != nullptr);
    bool success = mongoc_collection_insert_many(collection,
-                                                (const bson_t**)&documentPtrArray,
+                                                (const bson_t**)documentPtrArray,
                                                 statement.getRows(),
                                                 nullptr, nullptr, &error);
    mongoc_collection_destroy(collection);
    bson_destroy(&bson);
+   delete [] documentArray;
+   delete [] documentPtrArray;
+
    if(!success) {
       const std::string errorMessage = std::string("Insert error ") +
                                           std::to_string(error.domain) + "." +
