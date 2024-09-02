@@ -93,8 +93,7 @@ elif [ "$1" == "postgresql" ] ; then
    elif [ "${ID}" == "fedora" ] ; then
       sudo dnf remove -y 'postgresql-*'
    elif [ "${ID}" == "freebsd" ] ; then
-      sudo service postgres stop     || true
-      sudo service postgres disable  || true
+      sudo service postgresql stop || true
       sudo pkg remove -y 'postgresql*-*' || true
    else
       echo >&2 "ERROR: Unknown ID ${ID} in /etc/os-release. The installation script may need an update for supporting this system!"
