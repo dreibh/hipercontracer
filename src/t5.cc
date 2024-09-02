@@ -1,13 +1,24 @@
 #include "tools.h"
 #include <iostream>
 
+typedef std::chrono::system_clock            SystemClock;
+typedef std::chrono::time_point<SystemClock> SystemTimePoint;
+typedef SystemClock::duration                SystemTimeDuration;
+
 typedef std::chrono::high_resolution_clock   ReaderClock;
 typedef std::chrono::time_point<ReaderClock> ReaderTimePoint;
 typedef ReaderClock::duration                ReaderTimeDuration;
 
-typedef std::chrono::system_clock            SystemClock;
-typedef std::chrono::time_point<SystemClock> SystemTimePoint;
-typedef SystemClock::duration                SystemTimeDuration;
+// Approximate offset to system time:
+// NOTE: This is an *approximation*, for checking whether a time time
+//       appears to be resonable!
+const ReaderTimeDuration ReaderClockOffsetFromSystemTime(
+   std::chrono::nanoseconds(
+      nsSinceEpoch<SystemTimePoint>(SystemClock::now()) -
+      nsSinceEpoch<ReaderTimePoint>(ReaderClock::now())
+   )
+);
+
 
 int main(int argc, char** argv)
 {
@@ -45,13 +56,8 @@ int main(int argc, char** argv)
 
    std::cout << "OFFSET= " << sysTSE - nowTSE << "\n";
 
-   static const std::chrono::nanoseconds offset = std::chrono::nanoseconds(
-      nsSinceEpoch<ReaderTimePoint>(ReaderClock::now()) -
-      nsSinceEpoch<SystemTimePoint>(SystemClock::now())
-   );
-   std::cout << "OFFSET= " << offset.count() << "\n";
 
-   const ReaderTimePoint now = ReaderClock::now() + offset;
+   const ReaderTimePoint now = ReaderClock::now() + ReaderClockOffsetFromSystemTime;
    std::cout << "offsettedNow:   tp=" << timePointToString<ReaderTimePoint>(now, 9) << "\n";
 
    return 0;

@@ -55,13 +55,16 @@ enum ReaderPriority {
    Max  = High
 };
 
+typedef std::chrono::system_clock            SystemClock;
+typedef std::chrono::time_point<SystemClock> SystemTimePoint;
+typedef SystemClock::duration                SystemTimeDuration;
+
 typedef std::chrono::high_resolution_clock   ReaderClock;
 typedef std::chrono::time_point<ReaderClock> ReaderTimePoint;
 typedef ReaderClock::duration                ReaderTimeDuration;
 
-typedef std::chrono::system_clock            SystemClock;
-typedef std::chrono::time_point<SystemClock> SystemTimePoint;
-typedef SystemClock::duration                SystemTimeDuration;
+// Approximated offset to system time:
+extern const ReaderTimeDuration ReaderClockOffsetFromSystemTime;
 
 
 // ###### Reader base class #################################################

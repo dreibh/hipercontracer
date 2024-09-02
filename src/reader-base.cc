@@ -32,6 +32,17 @@
 #include "reader-base.h"
 
 
+// Approximated offset to system time:
+// NOTE: This is an *approximation*, for checking whether a time time
+//       appears to be resonable!
+const ReaderTimeDuration ReaderClockOffsetFromSystemTime(
+   std::chrono::nanoseconds(
+      nsSinceEpoch<SystemTimePoint>(SystemClock::now()) -
+      nsSinceEpoch<ReaderTimePoint>(ReaderClock::now())
+   )
+);
+
+
 // ###### Constructor #######################################################
 ReaderBase::ReaderBase(
    const ImporterConfiguration& importerConfiguration,
