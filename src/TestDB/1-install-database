@@ -281,7 +281,9 @@ EOF
       sudo systemctl start mongod.service
 
    elif [ "${ID}" == "freebsd" ] ; then
-      sudo pkg install -y mongodb70 mongodb-tools
+      # FIXME: There is no mongosh port, yet! Using npm to install it ...
+      sudo pkg install -y mongodb70 mongodb-tools npm
+      sudo npm install -g mongosh
       sudo service mongod enable
       sudo service mongod start
 
