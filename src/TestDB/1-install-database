@@ -224,6 +224,7 @@ elif [ "$1" == "postgresql" ] ; then
    sudo -u postgres mv -f "${POSTGRESDIR}"/postgresql.conf.new "${POSTGRESDIR}"/postgresql.conf
 
    sudo service postgresql restart
+   sleep 5
 
    # ====== Test configuration ==============================================
    ./test-tls-connection "${server}.${DOMAIN}:5432" /etc/ssl/TestLevel1/certs/TestLevel1.crt -starttls postgres
@@ -290,7 +291,6 @@ EOF
       # FIXME: There is no mongosh port, yet! Using npm to install it ...
       sudo pkg install -y mongodb70 mongodb-tools npm
       sudo npm install -g mongosh
-      sudo service mongod enable
       sudo service mongod start
 
    else
@@ -331,11 +331,12 @@ EOF
       -e "s!#  engine:!  directoryPerDB: true!" \
       -e "s!#  wiredTiger:!  wiredTiger:\n    engineConfig:\n      directoryForIndexes: true!" \
       ${mongodConf} | sudo tee ${mongodConf}.new
+   sudo service mongod stop
    sudo mv ${mongodConf}.new ${mongodConf}
+   sudo service mongod start
+   sleep 5
 
    # ====== Make sure there is a root user ==================================
-   sudo service mongod restart
-   sleep 10
    mongosh --quiet <<EOF
 use admin
 db.dropUser("root")
@@ -349,7 +350,6 @@ db.createUser({ user: "root",
                 ] })
 quit()
 EOF
-   sudo service mongod stop
 
    # ====== Configure MongoDB ===============================================
    # The following settings enable authorization check, restricting access
@@ -361,10 +361,9 @@ EOF
       -e "s!#  engine:!  directoryPerDB: true!" \
       -e "s!#  wiredTiger:!  wiredTiger:\n    engineConfig:\n      directoryForIndexes: true!" \
       ${mongodConf} | sudo tee ${mongodConf}.new
+   sudo service mongod stop
    sudo mv ${mongodConf}.new ${mongodConf}
-
-   sudo systemctl enable mongod
-   sudo systemctl restart mongod
+   sudo service mongod start
    sleep 5
 
    # ====== Test configuration ==============================================
