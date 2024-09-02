@@ -326,7 +326,7 @@ void ReaderImplementation<ReaderInputFileEntry>::printStatus(std::ostream& os)
       << totalWaiting << " total in queue; ";
    if(totalWaiting > 0) {
       os << "estimated completion at "
-         << timePointToString<ReaderTimePoint>(estimatedFinishTime, 0, "%Y-%m-%d %H:%M:%S %Z", false) << "\n";
+         << timePointToString<SystemTimePoint>(estimatedFinishTime, 0, "%Y-%m-%d %H:%M:%S %Z", false) << "\n";
    }
    else {
       os << "idle\n";
