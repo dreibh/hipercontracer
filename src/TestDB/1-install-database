@@ -85,7 +85,7 @@ if [ "$1" == "mariadb" ] ; then
       sudo systemctl enable mariadb.service
       sudo systemctl start mariadb.service
    elif [ "${ID}" == "freebsd" ] ; then
-      sudo pkg install -y mariadb106-server mariadb106-client py311-netifaces openssl
+      sudo pkg install -y mariadb106-server mariadb106-client openssl
       sudo service mysql-server enable
       sudo service mysql-server start
    else
