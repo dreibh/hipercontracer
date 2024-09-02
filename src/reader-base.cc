@@ -60,7 +60,7 @@ ReaderBase::ReaderBase(
    for(unsigned int w = 0; w < Workers + 1; w++) {
       Statistics[w].Processed = Statistics[w].OldProcessed = 0;
    }
-   LastStatisticsUpdate = ReaderClock::now();
+   LastStatisticsUpdate = SystemClock::now();
 }
 
 

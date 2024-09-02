@@ -116,7 +116,7 @@ class ReaderBase
       unsigned long long OldProcessed;
    };
    WorkerStatistics* Statistics;
-   ReaderTimePoint   LastStatisticsUpdate;
+   SystemTimePoint   LastStatisticsUpdate;
 };
 
 
@@ -309,13 +309,13 @@ void ReaderImplementation<ReaderInputFileEntry>::printStatus(std::ostream& os)
    }
    assert(Statistics[Workers].Processed == totalProcessed);
 
-   const ReaderTimePoint now = ReaderClock::now();
+   const SystemTimePoint now = SystemClock::now();
    const double duration =
       std::chrono::duration_cast<std::chrono::microseconds>(now - LastStatisticsUpdate).count() / 1000000.0;
    const double fps = (Statistics[Workers].Processed - Statistics[Workers].OldProcessed) / duration;
    LastStatisticsUpdate = now;
 
-   const ReaderTimePoint estimatedFinishTime = now +
+   const SystemTimePoint estimatedFinishTime = now +
       std::chrono::seconds((unsigned long long)ceil(totalWaiting / fps));
 
 
