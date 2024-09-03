@@ -22,10 +22,7 @@ LIB_DEPENDS=	libbz2.so:archivers/bzip2 \
 		libboost_program_options.so:devel/boost-libs \
 		libboost_system.so:devel/boost-libs \
 		libboost_thread.so:devel/boost-libs \
-		liblzma.so:archivers/lzma \
-		libmariadb.so:databases/mariadb106-client \
-		libpqxx.so:databases/postgresql-libpqxx \
-		libmongo-c-driver.so:devel/mongo-c-driver
+		liblzma.so:archivers/lzma
 
 USES=		cmake compiler:c++ python shebangfix tar:xz
 USE_LDCONFIG=	yes
@@ -51,12 +48,12 @@ RESULTSTOOL_CMAKE_BOOL=	WITH_RESULTS
 UDPECHO_CMAKE_BOOK=	WITH_UDP_ECHO_SERVER
 
 IMPMARIADB_CMAKE_BOOL=	ENABLE_BACKEND_MARIADB
-IMPMARIADB_LIB_DEPENDS=	mariadb-connector-c
+IMPMARIADB_LIB_DEPENDS=	libmariadb.so:databases/mariadb106-client
 
 IMPPGSQL_MAKE_BOOL=	ENABLE_BACKEND_POSTGRESQL
-IMPPGSQL_LIB_DEPENDS=	postgresql-libpqxx
+IMPPGSQL_LIB_DEPENDS=	libpqxx.so:databases/postgresql-libpqxx
 
 IMPMONGO_CMAKE_BOOL=	ENABLE_BACKEND_MONGODB
-IMPMONGO_LIB_DEPENDS=	mongo-c-driver
+IMPMONGO_LIB_DEPENDS=	libmongo-c-driver.so:devel/mongo-c-driver
 
 .include <bsd.port.mk>
