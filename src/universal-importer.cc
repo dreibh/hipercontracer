@@ -272,8 +272,9 @@ void UniversalImporter::addReader(ReaderBase&          reader,
 {
    ReaderList.push_back(&reader);
    for(unsigned int w = 0; w < databaseClients; w++) {
-      Worker* worker = new Worker(w, reader, *databaseClientArray[w],
-                                  ImporterConfig, DatabaseConfig);
+      Worker* worker = new Worker(w, reader,
+                                  ImporterConfig, DatabaseConfig,
+                                  *databaseClientArray[w]);
       assert(worker != nullptr);
       WorkerMapping workerMapping;
       workerMapping.Reader   = &reader;
