@@ -1,2 +1,4 @@
+etc/hipercontracer/hipercontracer-12345678.conf
+lib/systemd/system/hipercontracer@.service
 usr/bin/get-default-ips
 usr/bin/hipercontracer

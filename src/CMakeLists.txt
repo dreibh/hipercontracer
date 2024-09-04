@@ -186,6 +186,10 @@ ADD_EXECUTABLE(hipercontracer hipercontracer.cc)
 TARGET_LINK_LIBRARIES(hipercontracer libhipercontracer-${libraryType} ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
 INSTALL(TARGETS hipercontracer RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
 INSTALL(FILES hipercontracer.1 DESTINATION ${CMAKE_INSTALL_MANDIR}/man1)
+IF (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+   INSTALL(FILES hipercontracer@.service      DESTINATION /lib/systemd/system)
+   INSTALL(FILES hipercontracer-12345678.conf DESTINATION /etc/hipercontracer)
+ENDIF()
 
 # ====== HiPerConTracer Trigger =============================================
 IF (WITH_TRIGGER)
