@@ -200,7 +200,20 @@ IF (WITH_TRIGGER)
    INSTALL(FILES hpct-trigger.1 DESTINATION ${CMAKE_INSTALL_MANDIR}/man1)
 ENDIF()
 
-# ====== HiPerConTracer Importer ============================================
+
+# ====== HiPerConTracer Sync Tool ===========================================
+IF (WITH_SYNC)
+   INSTALL(PROGRAMS hpct-sync DESTINATION ${CMAKE_INSTALL_BINDIR})
+   INSTALL(FILES hpct-sync.1  DESTINATION ${CMAKE_INSTALL_MANDIR}/man1)
+   IF (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+      INSTALL(FILES hpct-sync.service DESTINATION /lib/systemd/system)
+      INSTALL(FILES hpct-sync.timer   DESTINATION /lib/systemd/system)
+      INSTALL(FILES hpct-sync.conf    DESTINATION /etc/hpct)
+   ENDIF()
+ENDIF()
+
+
+# ====== HiPerConTracer Importer Tool =======================================
 IF (WITH_IMPORTER)
    ADD_EXECUTABLE(hpct-importer hpct-importer.cc
       conversions.cc
