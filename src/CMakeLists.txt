@@ -187,6 +187,7 @@ TARGET_LINK_LIBRARIES(hipercontracer libhipercontracer-${libraryType} ${Boost_LI
 INSTALL(TARGETS hipercontracer RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
 INSTALL(FILES hipercontracer.1 DESTINATION ${CMAKE_INSTALL_MANDIR}/man1)
 IF (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+   INSTALL(FILES hipercontracer.service       DESTINATION /lib/systemd/system)
    INSTALL(FILES hipercontracer@.service      DESTINATION /lib/systemd/system)
    INSTALL(FILES hipercontracer-12345678.conf DESTINATION /etc/hipercontracer)
 ENDIF()

@@ -81,6 +81,7 @@ rmdir /var/hipercontracer >/dev/null 2>&1 || true
 %{_datadir}/doc/hipercontracer/examples/r-ping-example
 %{_datadir}/doc/hipercontracer/examples/r-traceroute-example
 %{_sysconfdir}/hipercontracer/hipercontracer-12345678.conf
+/lib/systemd/system/hipercontracer.service
 /lib/systemd/system/hipercontracer@.service
 
 
