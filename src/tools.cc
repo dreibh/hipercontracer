@@ -85,7 +85,8 @@ int subDirectoryOf(const std::filesystem::path& path1,
       // Full overlap of all parts of path2
       // -> path1 is a subdirectory of path 2, if path1 is not yet fully iterated
       unsigned int depth = 0;
-      while(it1++ != ca1.end()) {
+      while(it1 != ca1.end()) {
+         it1++;
          depth++;
       }
       return depth;

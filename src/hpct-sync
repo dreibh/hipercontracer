@@ -1,0 +1,151 @@
+#!/usr/bin/env bash
+#  =================================================================
+#           #     #                 #     #
+#           ##    #   ####   #####  ##    #  ######   #####
+#           # #   #  #    #  #    # # #   #  #          #
+#           #  #  #  #    #  #    # #  #  #  #####      #
+#           #   # #  #    #  #####  #   # #  #          #
+#           #    ##  #    #  #   #  #    ##  #          #
+#           #     #   ####   #    # #     #  ######     #
+#
+#        ---   The NorNet Testbed for Multi-Homed Systems  ---
+#                        https://www.nntb.no
+#  =================================================================
+#
+#  High-Performance Connectivity Tracer (HiPerConTracer)
+#  Copyright (C) 2015-2024 by Thomas Dreibholz
+#
+#  This program is free software: you can redistribute it and/or modify
+#  it under the terms of the GNU General Public License as published by
+#  the Free Software Foundation, either version 3 of the License, or
+#  (at your option) any later version.
+#
+#  This program is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
+#
+#  You should have received a copy of the GNU General Public License
+#  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+#  Contact: dreibh@simula.no
+
+set -e
+
+
+# ====== Handle arguments ===================================================
+usage () {
+   echo >&2 "Usage: $0 [-h|--help] [--verbose|-v] [--quiet|-q] [--local|-L local_directory] [--remote|-R remote_location] [--collector|-C collector] [--key|-K ssh_private_key_file]"
+   exit 1
+}
+
+# shellcheck disable=SC2068
+options=$(getopt -o hN:L:R:C:K:H:vq --long help,nodeid:,local:,remote:,collector:,key:,known-hosts:,verbose,quiet -a -- $@)
+if [[ $? -ne 0 ]]; then
+   usage
+fi
+
+NODE_ID=
+LOCAL="/var/hipercontracer"
+REMOTE="/var/hipercontracer"
+COLLECTOR=
+KEY="/var/hipercontracer/ssh/id_ed25519"
+KNOWN_HOSTS="/var/hipercontracer/ssh/known_hosts"
+VERBOSE=1
+
+eval set -- "${options}"
+while [ $# -gt 0 ] ; do
+   case "$1" in
+      -N | --nodeid)
+         NODE_ID="$2"
+         shift 2
+         ;;
+      -L | --local)
+         LOCAL="$2"
+         shift 2
+         ;;
+      -R | --remote)
+         REMOTE="$2"
+         shift 2
+         ;;
+      -C | --collector)
+         COLLECTOR="$2"
+         shift 2
+         ;;
+      -K | --key)
+         KEY="$2"
+         shift 2
+         ;;
+      -H | --known-hosts)
+         KNOWN_HOSTS="$2"
+         shift 2
+         ;;
+      -h | --help)
+         usage
+         ;;
+      -v | --verbose)
+         VERBOSE=1
+         shift
+         ;;
+      -q | --quiet)
+         VERBOSE=0
+         shift
+         ;;
+      --)
+         shift
+         break
+         ;;
+  esac
+done
+
+if [ "${LOCAL}" == "" ] || [ "${REMOTE}" == "" ] || [ "${COLLECTOR}" == "" ] ; then
+   usage
+fi
+if [ ! -d "${LOCAL}" ] ; then
+   echo >&2 "ERROR: Local directory ${LOCAL} does not exist!"
+   exit 1
+fi
+if [ ! -d "${LOCAL}/data" ] ; then
+   echo >&2 "ERROR: Local data directory ${LOCAL}/data does not exist!"
+   exit 1
+fi
+if [ ! -e "${KEY}" ] ; then
+   echo >&2 "ERROR: SSH private key file ${KEY} does not exist!"
+   exit 1
+fi
+
+if [[ ! "${NODE_ID}" =~ [0-9]+ ]] ; then
+   echo >&2 "ERROR: No or invalid Node ID specified!"
+   exit 1
+fi
+if [ "${NODE_ID}" -lt 1 ] || [ "${NODE_ID}" -gt 999999999 ] ; then
+   echo >&2 "ERROR: Invalid number for Node ID: ${NODE_ID}!"
+   exit 1
+fi
+
+
+# ====== Run RSync ==========================================================
+rsyncOptions=""   # --remove-source-files
+if [ ${VERBOSE} -ne 0 ] ; then
+   rsyncOptions="${rsyncOptions}  --info=progress2"
+else
+   rsyncOptions="${rsyncOptions} -q"
+fi
+rsyncOptions=" --exclude '*.tmp'"
+rsyncOptions="${rsyncOptions} -e 'ssh -i ${KEY} -oUserKnownHostsFile=${KNOWN_HOSTS}'"
+
+user="node${NODE_ID}"
+command="rsync -a ${rsyncOptions} ${LOCAL}/data/ ${user}@${COLLECTOR}:${REMOTE}/${user}/"
+if [ ${VERBOSE} -ne 0 ] ; then
+   echo -e "\x1b[34m$(date +"%Y-%m-%d %H:%M:%S") Running RSync: ${command}\x1b[0m"
+fi
+sh -c "${command}" && status=0 || status=$?
+if [ ${status} -ne 0 ] ; then
+   echo -e "\x1b[34m$(date +"%Y-%m-%d %H:%M:%S") RSync failed: ${command}\x1b[0m"
+   exit 1
+else
+   ssh -tt -i "${KEY}" -oUserKnownHostsFile="${KNOWN_HOSTS}" "${user}"@"${COLLECTOR}" 'date >last-sync.txt' || true
+   if [ ${VERBOSE} -ne 0 ] ; then
+      echo -e "\x1b[34m$(date +"%Y-%m-%d %H:%M:%S") Done.\x1b[0m"
+   fi
+fi

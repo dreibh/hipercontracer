@@ -170,7 +170,8 @@ void JitterReader::parseContents(
 
    std::string inputLine;
    std::string tuple[JitterMaxColumns];
-   const ReaderTimePoint now = ReaderClock::now();
+   const ReaderTimePoint now =
+      ReaderClock::now() + ReaderClockOffsetFromSystemTime;
    while(std::getline(dataStream, inputLine)) {
 
       // ====== Format identifier ===========================================

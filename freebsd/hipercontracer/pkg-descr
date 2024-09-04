@@ -1,6 +1,4 @@
-High-Performance Connectivity Tracer (HiPerConTracer) is
-a ping/traceroute service. It performs regular ping and
-traceroute runs among sites and can export the results
-into an SQL database.
-
-WWW: https://www.nntb.no/~dreibh/hipercontracer/
+High-Performance Connectivity Tracer (HiPerConTracer) is a
+Ping/Traceroute service. It performs regular Ping and Traceroute runs
+among sites. The results are written to data files, which can be
+imported into an SQL or NoSQL database.

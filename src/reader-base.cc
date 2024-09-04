@@ -32,6 +32,17 @@
 #include "reader-base.h"
 
 
+// Approximated offset to system time:
+// NOTE: This is an *approximation*, for checking whether a time time
+//       appears to be resonable!
+const ReaderTimeDuration ReaderClockOffsetFromSystemTime(
+   std::chrono::nanoseconds(
+      nsSinceEpoch<SystemTimePoint>(SystemClock::now()) -
+      nsSinceEpoch<ReaderTimePoint>(ReaderClock::now())
+   )
+);
+
+
 // ###### Constructor #######################################################
 ReaderBase::ReaderBase(
    const ImporterConfiguration& importerConfiguration,
@@ -49,7 +60,7 @@ ReaderBase::ReaderBase(
    for(unsigned int w = 0; w < Workers + 1; w++) {
       Statistics[w].Processed = Statistics[w].OldProcessed = 0;
    }
-   LastStatisticsUpdate = ReaderClock::now();
+   LastStatisticsUpdate = SystemClock::now();
 }
 
 
@@ -86,13 +97,9 @@ ReaderBase::~ReaderBase()
 std::filesystem::path ReaderBase::makeDirectoryHierarchy(const std::filesystem::path& dataFile,
                                                          const ReaderTimePoint&       timeStamp) const
 {
-   const int             directoryLevels = ImporterConfig.getMoveDirectoryDepth();
-   const int             timestampLevels = ImporterConfig.getMoveTimestampDepth();
+   const unsigned int    directoryLevels = ImporterConfig.getMoveDirectoryDepth();
+   const unsigned int    timestampLevels = ImporterConfig.getMoveTimestampDepth();
    std::filesystem::path hierarchy;
-
-   // FIXME!
-   std::filesystem::path ABS("/home/nornetpp/src/nne-server-utils/universal-importer/src/TestDB/data/");
-
 
    // Get the relative directory the file is located in:
    std::error_code             ec;

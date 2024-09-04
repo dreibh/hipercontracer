@@ -1,0 +1,72 @@
+#!/bin/bash -e
+
+IN="Traceroute-2015-10-16.results"
+LEVELS="0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19"
+ROUNDS="0"
+
+declare -A COMPRESSORS
+COMPRESSORS["gz"]="GZip"
+COMPRESSORS["bz2"]="BZip2"
+COMPRESSORS["xz"]="XZ"
+COMPRESSORS["zz"]="ZLib"
+COMPRESSORS["lzma"]="LZMA"
+COMPRESSORS["zstd"]="ZStandard"
+
+
+# ====== Run tests ==========================================================
+echo -e "\x1b[34m$(date +"%F %H:%M:%S"): Running measurements\x1b[0m"
+for round in $ROUNDS ; do
+   mkdir -p $round
+   for level in $LEVELS ; do
+      echo -e "\x1b[34m$(date +"%F %H:%M:%S"): Running measurements: round $round, level $level\x1b[0m"
+      if [ $level -le 9 ] ; then
+         if [ ! -e $round/$IN.$level.xz ] ; then
+            /bin/time -p -o $round/$IN.$level.xz.time   xz -T 0 -$level -c $IN >$round/$IN.$level.xz.tmp && mv $round/$IN.$level.xz.tmp $round/$IN.$level.xz
+         fi
+         if [ $level -gt 0 ] ; then
+            if [ ! -e $round/$IN.$level.gz ] ; then
+               /bin/time -p -o $round/$IN.$level.gz.time    gzip -$level -c $IN >$round/$IN.$level.gz.tmp && mv $round/$IN.$level.gz.tmp $round/$IN.$level.gz
+            fi
+            if [ ! -e $round/$IN.$level.bz2 ] ; then
+               /bin/time -p -o $round/$IN.$level.bz2.time   bzip2 -$level -c $IN >$round/$IN.$level.bz2.tmp && mv $round/$IN.$level.bz2.tmp $round/$IN.$level.bz2
+            fi
+            if [ ! -e $round/$IN.$level.zz ] ; then
+               /bin/time -p -o $round/$IN.$level.zz.time    zlib-flate -compress=$level <$IN >$round/$IN.$level.zz.tmp && mv $round/$IN.$level.zz.tmp $round/$IN.$level.zz
+            fi
+            if [ ! -e $round/$IN.$level.lzma ] ; then
+               /bin/time -p -o $round/$IN.$level.lzma.time   lzma -T 0 -$level -c $IN >$round/$IN.$level.lzma.tmp && mv $round/$IN.$level.lzma.tmp $round/$IN.$level.lzma
+            fi
+         fi
+      fi
+      if [ ! -e $round/$IN.$level.zstd ] ; then
+         /bin/time -p -o $round/$IN.$level.zstd.time   zstd -T0 -$level $IN -kfq -o $round/$IN.$level.zstd.tmp && mv $round/$IN.$level.zstd.tmp $round/$IN.$level.zstd
+      fi
+   done
+done
+
+
+# ====== Collect results ====================================================
+echo -e "\x1b[34m$(date +"%F %H:%M:%S"): Collecting results\x1b[0m"
+(
+   echo "Round Input OriginalSize Compression Level Size Real User Sys"
+   originalSize="$(wc -c $IN | cut -d' ' -f1)"
+   for round in $ROUNDS ; do
+      for level in $LEVELS ; do
+         for ext in ${!COMPRESSORS[@]} ; do
+            compressor="$ext"
+            if [ -e $round/$IN.$level.$ext ] && [ -e $round/$IN.$level.$ext.time ] ; then
+               size="$(wc -c $round/$IN.$level.$ext | cut -d' ' -f1)"
+               real="$(grep "^real" $round/$IN.$level.$ext.time | cut -d' ' -f2)"
+               user="$(grep "^user" $round/$IN.$level.$ext.time | cut -d' ' -f2)"
+               sys="$(grep "^sys" $round/$IN.$level.$ext.time | cut -d' ' -f2)"
+               echo "$round $IN $originalSize ${COMPRESSORS[$ext]} $level $size $real $user $sys"
+            fi
+         done
+      done
+   done
+) | tee results.data
+
+
+# for level in 1 2 3 ; do
+#    /bin/time -p -o $IN.$level.zz.time   zlib-flate -compress=$level <$IN >$IN.$level.zz
+# done

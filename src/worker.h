@@ -46,9 +46,9 @@ class Worker
    public:
    Worker(const unsigned int           workerID,
           ReaderBase&                  reader,
-          DatabaseClientBase&          databaseClient,
           const ImporterConfiguration& importerConfiguration,
-          const DatabaseConfiguration& databaseConfiguration);
+          const DatabaseConfiguration& databaseConfiguration,
+          DatabaseClientBase&          databaseClient);
    ~Worker();
 
    void start(const bool quitWhenIdle = false);

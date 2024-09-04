@@ -35,56 +35,27 @@ set -o nounset
 set -o errexit
 
 
-if [ $# -ne 2 ] ; then
-   echo >&2 "Usage: $0 mariadb|mongodb|mysql|postgresql users.conf"
+if [ $# -lt 1 ] ; then
+   echo >&2 "Usage: $0 name ..."
    exit 1
 fi
-if [ ! -e "$2" ] ; then
-   echo >&2 "ERROR: Use configuration $2 does not exist!"
+HEADER="# Testbed:"
+if ! grep -q "^${HEADER}" /etc/hosts ; then
+   cat >>/etc/hosts <<EOF
+
+${HEADER}
+EOF
 fi
 
-DATABASE="just_a_test_database"
-# shellcheck disable=SC1090
-. "$2"
-
-DBMS="$1"
-DATABASE_CONFIG="${HOME}/${DATABASE}-importer-${DBMS}.conf"
-IMPORTER_CONFIG="${HOME}/importer-${DATABASE}.conf"
-
-if [ ! -v VALGRIND_CMD ] ; then
-   VALGRIND_CMD=""
-fi
-
-
-# ###### Run test ###########################################################
-if [ -e "${DATABASE_CONFIG}" ] ; then
-
-   echo -e "\x1b[34m$(date +"%F %H:%M:%S"): Running importer ...\x1b[0m"
-
-   cd ..
-   if [ ! -e Makefile ] ; then
-      cd ..
-      ./autogen.sh
-      cd src
-   fi
-   make hpct-importer
-   rm -f core
-   cd TestDB
-
-   mkdir -p data/ good/ bad/
-   rm -rf good/*
-   rm -rf bad/*
-
-   cp ../examples/*.results.* data/
-   ${VALGRIND_CMD} ../hpct-importer \
-      -C "${IMPORTER_CONFIG}" \
-      -D "${DATABASE_CONFIG}" \
-      --quit-when-idle \
-      --loglevel 2
-
-
-# ###### Error ##############################################################
-else
-   echo >&2 "ERROR: ${DATABASE_CONFIG} not found!"
-   exit 1
-fi
+while [ $# -gt 0 ] ;do
+   NAME="$1"
+   shift
+   name="$(echo "${NAME}" | sed -e "s/\..*$//g")"
+   domain="$(echo "${NAME}" | sed -e "s/^[^\.]*\.//g")"
+   echo "${name}.${domain}"
+   sed \
+      -e "/${name}\.${domain}/d" \
+      -e "s/^\(${HEADER}.*\)$/\1\n127.0.0.1 ${name}.${domain} ${name}\n::1       ${name}.${domain} ${name}/" \
+      </etc/hosts >/etc/hosts.new && \
+   mv /etc/hosts.new /etc/hosts
+done

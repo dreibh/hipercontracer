@@ -34,19 +34,28 @@
 -- IMPORTANT NOTE:
 -- This script requires changing the placeholders below first:
 -- * DATABASE
+-- * ROOT_PASSWORD
 -- * MAINTAINER_PASSWORD
 -- * IMPORTER_PASSWORD
 -- * RESEARCHER_PASSWORD
 -- ##########################################################################
 
 
+ALTER USER postgres WITH PASSWORD '${ROOT_PASSWORD}';
+
 REASSIGN OWNED BY maintainer TO postgres;
+DROP OWNED BY maintainer;
 DROP USER IF EXISTS maintainer;
 CREATE USER maintainer WITH LOGIN ENCRYPTED PASSWORD '${MAINTAINER_PASSWORD}';
 GRANT ALL PRIVILEGES ON DATABASE ${DATABASE} TO maintainer;
 GRANT ALL PRIVILEGES ON SCHEMA public TO maintainer;
+ALTER DATABASE ${DATABASE} OWNER TO maintainer;
+ALTER TABLE Ping OWNER TO maintainer;
+ALTER TABLE Traceroute OWNER TO maintainer;
+ALTER TABLE Jitter OWNER TO maintainer;
 
 REASSIGN OWNED BY importer TO postgres;
+DROP OWNED BY importer;
 DROP USER IF EXISTS importer;
 CREATE USER importer WITH LOGIN ENCRYPTED PASSWORD '${IMPORTER_PASSWORD}';
 GRANT CONNECT ON DATABASE ${DATABASE} TO importer;
@@ -55,6 +64,7 @@ GRANT INSERT, UPDATE ON TABLE Traceroute TO importer;
 GRANT INSERT, UPDATE ON TABLE Jitter TO importer;
 
 REASSIGN OWNED BY researcher TO postgres;
+DROP OWNED BY researcher;
 DROP USER IF EXISTS researcher;
 CREATE USER researcher WITH LOGIN ENCRYPTED PASSWORD '${RESEARCHER_PASSWORD}';
 GRANT CONNECT ON DATABASE ${DATABASE} TO researcher;
