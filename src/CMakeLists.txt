@@ -208,7 +208,7 @@ IF (WITH_SYNC)
    IF (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
       INSTALL(FILES hpct-sync.service DESTINATION /lib/systemd/system)
       INSTALL(FILES hpct-sync.timer   DESTINATION /lib/systemd/system)
-      INSTALL(FILES hpct-sync.conf    DESTINATION /etc/hpct)
+      INSTALL(FILES hpct-sync.conf    DESTINATION /etc/hipercontracer)
    ENDIF()
 ENDIF()
 
