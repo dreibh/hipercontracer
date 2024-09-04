@@ -38,7 +38,7 @@ imported into an SQL or NoSQL database.
 
 %build
 # NOTE: CMAKE_VERBOSE_MAKEFILE=OFF for reduced log output!
-%cmake -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_VERBOSE_MAKEFILE=OFF .
+%cmake -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_VERBOSE_MAKEFILE=OFF -DWITH_STATIC_LIBRARIES=ON -DWITH_SHARED_LIBRARIES=ON .
 %cmake_build
 
 %pre
@@ -239,6 +239,9 @@ synchronisation of data to a central collection server.
 %files hipercontracer-sync-tool
 %{_bindir}/hpct-sync
 %{_mandir}/man1/hpct-sync.1.gz
+%{_sysconfdir}/hipercontracer/hpct-sync.conf
+/lib/systemd/system/hpct-sync.service
+/lib/systemd/system/hpct-sync.timer
 
 
 %package hipercontracer-importer
@@ -277,7 +280,7 @@ HiPerConTracer into an SQL or NoSQL database.
 %{_datadir}/doc/hipercontracer/examples/SQL/postgresql-schema.sql
 %{_datadir}/doc/hipercontracer/examples/SQL/postgresql-test.sql
 %{_datadir}/doc/hipercontracer/examples/SQL/postgresql-users.sql
-%{_datadir}/doc/hipercontracer/examples/TestDB/0-make-users.conf
+%{_datadir}/doc/hipercontracer/examples/TestDB/0-make-configurations
 %{_datadir}/doc/hipercontracer/examples/TestDB/1-install-database
 %{_datadir}/doc/hipercontracer/examples/TestDB/2-initialise-database
 %{_datadir}/doc/hipercontracer/examples/TestDB/3-test-database
