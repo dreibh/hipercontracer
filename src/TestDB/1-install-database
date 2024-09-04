@@ -33,6 +33,7 @@
 # Bash options:
 set -o nounset
 set -o errexit
+set -x
 
 
 if [ $# -ne 2 ] ; then
@@ -43,6 +44,15 @@ if [ ! -e "$2" ] ; then
    echo >&2 "ERROR: Use configuration $2 does not exist!"
 fi
 
+
+# ====== Check/set environment variables ====================================
+if [ ! -e /etc/os-release ] ; then
+   echo >&2 "ERROR: /etc/os-release does not exist!"
+   exit 1
+fi
+. /etc/os-release
+
+DOMAIN="test.local"
 ROOT_PASSWORD="!root!"
 DATABASE="just_a_test_database"
 MAINTAINER_PASSWORD="!maintainer!"
@@ -58,40 +68,43 @@ if [ "${ROOT_PASSWORD}"       == "!root!"       ] || \
    echo >&2 "DO NOT USE THE EXAMPLE PASSWORDS!"
    exit 1
 fi
-SERVER="$(hostname -f)"
 
 
 # ###### MariaDB ############################################################
 if [ "$1" == "mariadb" ] ; then
    # Documentation: https://www.digitalocean.com/community/tutorials/how-to-install-mariadb-on-ubuntu-22-04
+   server="mariadb"
 
    # ====== Install MariaDB =================================================
    echo -e "\x1b[34m$(date +"%F %H:%M:%S"): Installing MariaDB ...\x1b[0m"
 
-   if [ -x /usr/bin/apt ] ; then
+   if [ "${ID}" == "ubuntu" ] || [ "${ID}" == "debian" ] ; then
       sudo DEBIAN_FRONTEND=noninteractive apt install -y -o APT::Keep-Downloaded-Packages=true mariadb-server mariadb-backup mariadb-client libmariadb-dev openssl
-   elif [ -x /usr/bin/dnf ] ; then
-      sudo dnf install -y mariadb-server mariadb-backup openssl
+   elif [ "${ID}" == "fedora" ] ; then
+      sudo dnf install -y mariadb-server mariadb-backup mariadb-connector-c-devel openssl
       sudo systemctl enable mariadb.service
       sudo systemctl start mariadb.service
-   elif [ -x /usr/sbin/pkg ] ; then
-      sudo pkg install -y mysql80-server openssl
-      sudo service mysql-server enable
+   elif [ "${ID}" == "freebsd" ] ; then
+      sudo pkg install -y mariadb106-server mariadb106-client openssl
+      sudo sysrc mysql_enable=YES
       sudo service mysql-server start
+   else
+      echo >&2 "ERROR: Unknown ID ${ID} in /etc/os-release. The installation script may need an update for supporting this system!"
+      exit 1
    fi
 
    # ====== Basic configuration =============================================
-   sudo ./generate-test-certificates /etc/ssl mariadb.domain.test
+   sudo ./name-in-etc-hosts "${server}.${DOMAIN}"
+   sudo ./generate-test-certificates /etc/ssl "${server}.${DOMAIN}"
 
    # MariaDB needs separate certificate and key files.
    # The chain is in the CA file, it must not be in the certificate file!
    # Details: https://mariadb.com/kb/en/securing-connections-for-client-and-server/
    MARIADB_CA_FILE="/etc/ssl/TestLeaf/certs/TestLeaf-chain.pem"
    MARIADB_CRL_FILE="/etc/ssl/TestGlobal.crl"
-   MARIADB_CRT_FILE="/etc/ssl/mariadb.domain.test/mariadb.domain.test.crt"
-   MARIADB_KEY_FILE="/etc/ssl/mariadb.domain.test/mariadb.domain.test.key"
+   MARIADB_CRT_FILE="/etc/ssl/${server}.${DOMAIN}/${server}.${DOMAIN}.crt"
+   MARIADB_KEY_FILE="/etc/ssl/${server}.${DOMAIN}/${server}.${DOMAIN}.key"
    sudo chown mysql:mysql ${MARIADB_KEY_FILE}
-   sudo openssl verify -CAfile ${MARIADB_CA_FILE} ${MARIADB_CRT_FILE}
 
    # Set root password, and remove test user and database.
    (
@@ -106,7 +119,7 @@ EOF
    ) | sudo mysql --user=root
 
    # Enable network access:
-   if [ -x /usr/bin/apt ] ; then
+   if [ "${ID}" == "ubuntu" ] || [ "${ID}" == "debian" ] ; then
       sudo sed \
          -e 's/^\(bind-address[ \t]*\)=.*$/\1= */g' \
          -e "s%\([#][ \t]*\|\)ssl-ca[ ]*=[ ]*.*%ssl-ca = ${MARIADB_CA_FILE}\nssl-crl = ${MARIADB_CRL_FILE}%" \
@@ -117,14 +130,14 @@ EOF
       sudo diff --color /etc/mysql/mariadb.conf.d/50-server.cnf /etc/mysql/mariadb.conf.d/50-server.cnf.new || true && \
       sudo mv /etc/mysql/mariadb.conf.d/50-server.cnf.new /etc/mysql/mariadb.conf.d/50-server.cnf
       sudo service mariadb restart
-   elif [ -x /usr/bin/dnf ] ; then
+   elif [ "${ID}" == "fedora" ] ; then
       sudo sed \
          -e "s%^#bind-address[ \t]*=.*%bind-address = *\nssl-ca = ${MARIADB_CA_FILE}\nssl-crl = ${MARIADB_CRL_FILE}\nssl-cert = ${MARIADB_CRT_FILE}\nssl-key = ${MARIADB_KEY_FILE}\nrequire-secure-transport = on\ntls_version = TLSv1.3%g" \
          /etc/my.cnf.d/mariadb-server.cnf | sudo tee /etc/my.cnf.d/mariadb-server.cnf.new && \
       sudo diff --color /etc/my.cnf.d/mariadb-server.cnf /etc/my.cnf.d/mariadb-server.cnf.new || true && \
       sudo mv /etc/my.cnf.d/mariadb-server.cnf.new /etc/my.cnf.d/mariadb-server.cnf
       sudo service mariadb restart
-   elif [ -x /usr/sbin/pkg ] ; then
+   elif [ "${ID}" == "freebsd" ] ; then
       sudo sed \
          -e "s%^bind-address[ \t]*=.*%bind-address = *\nssl-ca = ${MARIADB_CA_FILE}\nssl-crl = ${MARIADB_CRL_FILE}\nssl-cert = ${MARIADB_CRT_FILE}\nssl-key = ${MARIADB_KEY_FILE}\nrequire-secure-transport = on\ntls_version = TLSv1.3%g" \
          /usr/local/etc/mysql/conf.d/server.cnf | sudo tee /usr/local/etc/mysql/conf.d/server.cnf.new && \
@@ -134,133 +147,173 @@ EOF
    fi
 
    # ====== Test configuration ==============================================
-   ./test-tls-connection "${SERVER}:3306" /etc/ssl/TestLevel1/certs/TestLevel1.crt -starttls mysql
+   ./test-tls-connection "${server}.${DOMAIN}:3306" /etc/ssl/TestLevel1/certs/TestLevel1.crt -starttls mysql
 
 
 # ###### PostgreSQL #########################################################
 elif [ "$1" == "postgresql" ] ; then
    # Documentation: https://www.digitalocean.com/community/tutorials/how-to-install-postgresql-on-ubuntu-22-04-quickstart
+   server="postgresql"
 
    # ====== Install PostgreSQL ==============================================
    echo -e "\x1b[34m$(date +"%F %H:%M:%S"): Installing PostgreSQL ...\x1b[0m"
 
-   if [ -x /usr/bin/apt ] ; then
+   if [ "${ID}" == "ubuntu" ] || [ "${ID}" == "debian" ] ; then
       sudo DEBIAN_FRONTEND=noninteractive apt install -y -o APT::Keep-Downloaded-Packages=true openssl postgresql-all postgresql-contrib
-   elif [ -x /usr/bin/dnf ] ; then
-      sudo dnf install -y openssl postgresql-server
+   elif [ "${ID}" == "fedora" ] ; then
+      sudo dnf install -y openssl postgresql-server libpqxx-devel
+      sudo -u postgres /usr/bin/postgresql-setup --initdb || true
       sudo systemctl enable postgresql.service
       sudo systemctl start postgresql.service
-   elif [ -x /usr/sbin/pkg ] ; then
-      sudo pkg install -y postgresql16-server openssl
+   elif [ "${ID}" == "freebsd" ] ; then
+      sudo pkg install -y postgresql16-server postgresql-libpqxx openssl
+      sudo sysrc postgresql_enable="YES"
+      sudo /usr/local/etc/rc.d/postgresql initdb
+      sudo service postgresql start
+   else
+      echo >&2 "ERROR: Unknown ID ${ID} in /etc/os-release. The installation script may need an update for supporting this system!"
+      exit 1
    fi
 
    # ====== Basic configuration =============================================
-   sudo ./generate-test-certificates /etc/ssl postgresql.domain.test
+   sudo ./name-in-etc-hosts "${server}.${DOMAIN}"
+   sudo ./generate-test-certificates /etc/ssl "${server}.${DOMAIN}"
 
    # PostgreSQL needs separate certificate and key files.
    # The chain is in the CA file, it must not be in the certificate file!
    POSTGRESQL_CA_FILE="/etc/ssl/TestLeaf/certs/TestLeaf-chain.pem"
    POSTGRESQL_CRL_FILE="/etc/ssl/TestGlobal.crl"
-   POSTGRESQL_CRT_FILE="/etc/ssl/postgresql.domain.test/postgresql.domain.test.crt"
-   POSTGRESQL_KEY_FILE="/etc/ssl/postgresql.domain.test/postgresql.domain.test.key"
+   POSTGRESQL_CRT_FILE="/etc/ssl/${server}.${DOMAIN}/${server}.${DOMAIN}.crt"
+   POSTGRESQL_KEY_FILE="/etc/ssl/${server}.${DOMAIN}/${server}.${DOMAIN}.key"
    sudo chown postgres:postgres ${POSTGRESQL_KEY_FILE}
-   sudo openssl verify -CAfile ${POSTGRESQL_CA_FILE} ${POSTGRESQL_CRT_FILE}
 
-   POSTGRESETC=$(find /etc/postgresql/ -mindepth 1 -maxdepth 1 -type d | grep "[0-9]$" | sort -r | head -n1)
-   if [ "${POSTGRESETC}" == "" ] ; then
-      echo >&2 "ERROR: Cannot find the /etc/postgresql/* directory!"
+   POSTGRESDIR=""
+   if [ -d /etc/postgresql ] ; then
+      POSTGRESDIR="$(find /etc/postgresql/ -mindepth 2 -maxdepth 2 -type d -name main | sort -r | head -n1)"
+   elif [ -d /var/db/postgres ] ; then
+      POSTGRESDIR="$(find /var/db/postgres -mindepth 1 -maxdepth 1 -type d -name "data*" | sort -r | head -n1)"
+   elif sudo -u postgres test -d /var/lib/pgsql/data ; then
+      POSTGRESDIR="/var/lib/pgsql/data"
+   fi
+   if [ "${POSTGRESDIR}" == "" ] ; then
+      echo >&2 "ERROR: Cannot find the PostgreSQL configuration directory!"
       exit 1
    fi
-   echo "Using PostgreSQL settings in ${POSTGRESETC}!"
+   echo "Using PostgreSQL settings in ${POSTGRESDIR}!"
 
    # Enable network access:
-   sudo sed \
-      -e 's#^host    all             all             127.0.0.1/32            scram-sha-256#host    all             all             0.0.0.0/0               scram-sha-256#' \
-      -e 's#^host    all             all             ::1/128                 scram-sha-256#host    all             all             ::/0                    scram-sha-256#' \
-      "${POSTGRESETC}"/main/pg_hba.conf | sudo tee "${POSTGRESETC}"/main/pg_hba.conf.new >/dev/null && \
-   diff --color "${POSTGRESETC}"/main/pg_hba.conf.new "${POSTGRESETC}"/main/pg_hba.conf || true && \
-   sudo mv "${POSTGRESETC}"/main/pg_hba.conf.new "${POSTGRESETC}"/main/pg_hba.conf
+   sudo -u postgres sed \
+      -e 's%^\(host[ \t]*all[ \t]*all[ \t]*\)127.0.0.1/32\([ \t]*\).*$%\10.0.0.0/0   \2scram-sha-256%g' \
+      -e 's%^\(host[ \t]*all[ \t]*all[ \t]*\)::1/128\([ \t]*\).*$%\1::/0   \2scram-sha-256%g' \
+      "${POSTGRESDIR}"/pg_hba.conf | sudo -u postgres tee "${POSTGRESDIR}"/pg_hba.conf.new >/dev/null && \
+   sudo -u postgres diff --color "${POSTGRESDIR}"/pg_hba.conf.new "${POSTGRESDIR}"/pg_hba.conf || true && \
+   sudo -u postgres mv -f "${POSTGRESDIR}"/pg_hba.conf.new "${POSTGRESDIR}"/pg_hba.conf
 
-   sudo sed \
+   sudo -u postgres sed -r \
       -e "s%#listen_addresses = 'localhost'%listen_addresses = '*'        %" \
-      -e "s%\([#]\|\)ssl_ca_file = '.*'%ssl_ca_file = '${POSTGRESQL_CA_FILE}'%" \
-      -e "s%\([#]\|\)ssl_crl_file = '.*'%ssl_crl_file = '${POSTGRESQL_CRL_FILE}'%" \
-      -e "s%\([#]\|\)ssl_cert_file = '.*'%ssl_cert_file = '${POSTGRESQL_CRT_FILE}'%" \
-      -e "s%\([#]\|\)ssl_key_file = '.*'%ssl_key_file = '${POSTGRESQL_KEY_FILE}'%" \
+      -e "s%^(#ssl|ssl) =.*%ssl = on%" \
+      -e "s%^(#ssl|ssl)_ca_file = '.*'%ssl_ca_file = '${POSTGRESQL_CA_FILE}'%" \
+      -e "s%^(#ssl|ssl)_crl_file = '.*'%ssl_crl_file = '${POSTGRESQL_CRL_FILE}'%" \
+      -e "s%^(#ssl|ssl)_cert_file = '.*'%ssl_cert_file = '${POSTGRESQL_CRT_FILE}'%" \
+      -e "s%^(#ssl|ssl)_key_file = '.*'%ssl_key_file = '${POSTGRESQL_KEY_FILE}'%" \
       -e "s%#ssl_ciphers = '.*'%ssl_ciphers = 'ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-AES256-SHA384:ECDHE-RSA-AES256-SHA384:ECDHE-ECDSA-AES256-SHA:ECDHE-RSA-AES256'%" \
       -e "s%#ssl_prefer_server_ciphers = on%ssl_prefer_server_ciphers = on%" \
       -e "s%#ssl_min_protocol_version = 'TLSv1.2'%ssl_min_protocol_version = 'TLSv1.3'%" \
-      "${POSTGRESETC}"/main/postgresql.conf | sudo tee "${POSTGRESETC}"/main/postgresql.conf.new >/dev/null && \
-   diff --color "${POSTGRESETC}"/main/postgresql.conf.new "${POSTGRESETC}"/main/postgresql.conf || true && \
-   sudo mv "${POSTGRESETC}"/main/postgresql.conf.new "${POSTGRESETC}"/main/postgresql.conf
+      "${POSTGRESDIR}"/postgresql.conf | sudo -u postgres tee "${POSTGRESDIR}"/postgresql.conf.new >/dev/null && \
+   sudo -u postgres diff --color "${POSTGRESDIR}"/postgresql.conf.new "${POSTGRESDIR}"/postgresql.conf || true && \
+   sudo -u postgres mv -f "${POSTGRESDIR}"/postgresql.conf.new "${POSTGRESDIR}"/postgresql.conf
 
    sudo service postgresql restart
+   sleep 5
 
    # ====== Test configuration ==============================================
-   ./test-tls-connection "${SERVER}:5432" /etc/ssl/TestLevel1/certs/TestLevel1.crt -starttls postgres
+   ./test-tls-connection "${server}.${DOMAIN}:5432" /etc/ssl/TestLevel1/certs/TestLevel1.crt -starttls postgres
 
 
 # ###### MongoDB ############################################################
 elif [ "$1" == "mongodb" ] ; then
    # Documentation: https://www.mongodb.com/docs/manual/tutorial/install-mongodb-on-ubuntu/
+   server="mongodb"
 
    # ====== Install MongoDB =================================================
    echo -e "\x1b[34m$(date +"%F %H:%M:%S"): Installing MongoDB ...\x1b[0m"
 
-   MONGODB_VERSION="development"
-   MONGODB_KEY="dev"
-   # MONGODB_VERSION="8.0"
-   # MONGODB_KEY="${MONGODB_VERSION}"
+   MONGODB_VERSION="8.0"
+   MONGODB_KEY="${MONGODB_VERSION}"
 
-   if [ -x /usr/bin/apt ] ; then
-      CODENAME="$(lsb_release -cs | tail -n1)"
-      for key in 8.0 ${MONGODB_KEY} ; do
-         wget -qO - https://www.mongodb.org/static/pgp/server-${key}.asc | gpg --dearmor | sudo tee /usr/share/keyrings/mongodb-${key}.gpg >/dev/null
+   if [ "${ID}" == "ubuntu" ] || [ "${ID}" == "debian" ] ; then
+      for key in ${MONGODB_VERSION} dev ; do
+         wget -qO - "https://www.mongodb.org/static/pgp/server-${key}.asc" | gpg --dearmor | sudo tee "/usr/share/keyrings/mongodb-${key}.gpg" >/dev/null
       done
-      if [ ! -e /etc/apt/sources.list.d/mongodb-org.list ] ; then
-         (
-cat <<EOF
-deb [ signed-by=/usr/share/keyrings/mongodb-8.0.gpg ] https://repo.mongodb.org/apt/ubuntu ${CODENAME}/mongodb-org/8.0 multiverse
-deb [ signed-by=/usr/share/keyrings/mongodb-${MONGODB_KEY}.gpg ] https://repo.mongodb.org/apt/ubuntu ${CODENAME}/mongodb-org/${MONGODB_VERSION} multiverse
+      . /etc/os-release
+      (
+         if [ "${ID}" == "ubuntu" ] ; then
+            cat <<EOF
+deb [ signed-by=/usr/share/keyrings/mongodb-${MONGODB_KEY}.gpg ] https://repo.mongodb.org/apt/ubuntu ${UBUNTU_CODENAME}/mongodb-org/${MONGODB_VERSION} multiverse
+deb [ signed-by=/usr/share/keyrings/mongodb-dev.gpg ] https://repo.mongodb.org/apt/ubuntu ${UBUNTU_CODENAME}/mongodb-org/development multiverse
 EOF
-         ) | sudo tee /etc/apt/sources.list.d/mongodb-org.list >/dev/null
-      fi
+         else
+            cat <<EOF
+deb [ signed-by=/usr/share/keyrings/mongodb-${MONGODB_KEY}.gpg ] https://repo.mongodb.org/apt/debian ${VERSION_CODENAME}/mongodb-org/${MONGODB_VERSION} main
+deb [ signed-by=/usr/share/keyrings/mongodb-dev.gpg ] https://repo.mongodb.org/apt/debian ${VERSION_CODENAME}/mongodb-org/development main
+EOF
+         fi
+      ) | sudo tee /etc/apt/sources.list.d/mongodb-org.list >/dev/null
       sudo apt update -qq
       sudo DEBIAN_FRONTEND=noninteractive apt install -y -o APT::Keep-Downloaded-Packages=true mongodb-org mongodb-mongosh openssl
-   elif [ -x /usr/bin/dnf ] ; then
+
+   elif [ "${ID}" == "fedora" ] ; then
       (
          cat <<EOF
 [mongodb-org]
-name=MongoDB Repository
+name=MongoDB ${MONGODB_VERSION} Repository
 baseurl=https://repo.mongodb.org/yum/redhat/9/mongodb-org/${MONGODB_VERSION}/x86_64/
 gpgcheck=1
 enabled=1
 gpgkey=https://www.mongodb.org/static/pgp/server-${MONGODB_KEY}.asc
 EOF
       ) | sudo tee /etc/yum.repos.d/mongodb-org.repo
-      sudo dnf install -y mongodb-org openssl
+      (
+         cat <<EOF
+[mongodb-org-dev]
+name=MongoDB Development Repository
+baseurl=https://repo.mongodb.org/yum/redhat/9/mongodb-org/development/x86_64/
+gpgcheck=1
+enabled=1
+gpgkey=https://www.mongodb.org/static/pgp/server-dev.asc
+EOF
+      ) | sudo tee /etc/yum.repos.d/mongodb-org-dev.repo
+      sudo dnf install -y mongodb-org mongodb-mongosh-shared-openssl3 openssl
       sudo systemctl enable mongod.service
       sudo systemctl start mongod.service
-   elif [ -x /usr/sbin/pkg ] ; then
-      sudo pkg install -y mongodb70 mongodb-tools
-      sudo service mongod enable
+
+   elif [ "${ID}" == "freebsd" ] ; then
+      # FIXME: There is no mongosh port, yet! Using npm to install it ...
+      sudo pkg install -y mongodb70 mongodb-tools npm
+      sudo npm install -g mongosh
+      sudo sysrc mongod_enable="YES"
       sudo service mongod start
+
+   else
+      echo >&2 "ERROR: Unknown ID ${ID} in /etc/os-release. The installation script may need an update for supporting this system!"
+      exit 1
    fi
 
    # ====== Basic configuration =============================================
-   sudo ./generate-test-certificates /etc/ssl mongodb.domain.test
+   sudo ./name-in-etc-hosts "${server}.${DOMAIN}"
+   sudo ./generate-test-certificates /etc/ssl "${server}.${DOMAIN}"
 
    # MongoDB wants key + certificate + chain (in this order!) in the PEM file:
    MONGODB_CA_FILE="/etc/ssl/TestLeaf/certs/TestLeaf-chain.pem"
    MONGODB_CRL_FILE="/etc/ssl/TestGlobal.crl"
-   MONGODB_CRT_KEY_FILE="/etc/ssl/mongodb.domain.test/mongodb.domain.test.crt+key+chain"
+   MONGODB_CRT_KEY_FILE="/etc/ssl/${server}.${DOMAIN}/${server}.${DOMAIN}.crt+key+chain"
    sudo touch ${MONGODB_CRT_KEY_FILE}
    sudo chmod 600 ${MONGODB_CRT_KEY_FILE}
-   sudo cat /etc/ssl/mongodb.domain.test/mongodb.domain.test.key /etc/ssl/mongodb.domain.test/mongodb.domain.test.crt /etc/ssl/TestLeaf/certs/TestLeaf-chain.pem | sudo tee ${MONGODB_CRT_KEY_FILE} >/dev/null
-   if [ ! -x /usr/bin/dnf ] ; then
-      sudo chown mongodb:mongodb ${MONGODB_CRT_KEY_FILE}
-   else
+   sudo cat /etc/ssl/${server}.${DOMAIN}/${server}.${DOMAIN}.key /etc/ssl/${server}.${DOMAIN}/${server}.${DOMAIN}.crt /etc/ssl/TestLeaf/certs/TestLeaf-chain.pem | sudo tee ${MONGODB_CRT_KEY_FILE} >/dev/null
+   if [ "${ID}" == "fedora" ] ; then
       sudo chown mongod:mongod ${MONGODB_CRT_KEY_FILE}
+   else
+      sudo chown mongodb:mongodb ${MONGODB_CRT_KEY_FILE}
    fi
 
 
@@ -268,10 +321,10 @@ EOF
    #          full access!
    # The following settings enable authorization check, restricting access
    # to the configured user (root).
-   if [ ! -x /usr/sbin/pkg ] ; then
-      mongodConf=/etc/mongod.conf
-   else
+   if [ "${ID}" == "freebsd" ] ; then
       mongodConf=/usr/local/etc/mongodb.conf
+   else
+      mongodConf=/etc/mongod.conf
    fi
 
    cp ${mongodConf} /tmp/
@@ -279,11 +332,12 @@ EOF
       -e "s!#  engine:!  directoryPerDB: true!" \
       -e "s!#  wiredTiger:!  wiredTiger:\n    engineConfig:\n      directoryForIndexes: true!" \
       ${mongodConf} | sudo tee ${mongodConf}.new
+   sudo service mongod stop
    sudo mv ${mongodConf}.new ${mongodConf}
+   sudo service mongod start
+   sleep 5
 
    # ====== Make sure there is a root user ==================================
-   sudo service mongod restart
-   sleep 10
    mongosh --quiet <<EOF
 use admin
 db.dropUser("root")
@@ -297,7 +351,6 @@ db.createUser({ user: "root",
                 ] })
 quit()
 EOF
-   sudo service mongod stop
 
    # ====== Configure MongoDB ===============================================
    # The following settings enable authorization check, restricting access
@@ -309,13 +362,13 @@ EOF
       -e "s!#  engine:!  directoryPerDB: true!" \
       -e "s!#  wiredTiger:!  wiredTiger:\n    engineConfig:\n      directoryForIndexes: true!" \
       ${mongodConf} | sudo tee ${mongodConf}.new
+   sudo service mongod stop
    sudo mv ${mongodConf}.new ${mongodConf}
-
-   sudo systemctl restart mongod
+   sudo service mongod start
    sleep 5
 
    # ====== Test configuration ==============================================
-   ./test-tls-connection "${SERVER}:27017" /etc/ssl/TestLevel1/certs/TestLevel1.crt
+   ./test-tls-connection "${server}.${DOMAIN}:27017" /etc/ssl/TestLevel1/certs/TestLevel1.crt
 
 
 # ###### Error ##############################################################

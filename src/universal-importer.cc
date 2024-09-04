@@ -62,13 +62,13 @@ UniversalImporter::UniversalImporter(boost::asio::io_service&     ioService,
  : IOService(ioService),
    ImporterConfig(importerConfiguration),
    DatabaseConfig(databaseConfiguration),
+   HasImportPathFilter(ImporterConfig.getImportPathFilter().size() > 0),
+   ImportPathFilter("^(" + (ImporterConfig.getImportFilePath() / ")(").string() + ImporterConfig.getImportPathFilter() + ")(.*)$"),
+   ImportPathFilterRegEx(ImportPathFilter),
    Signals(IOService, SIGINT, SIGTERM),
    StatusTimer(IOService),
    StatusTimerInterval(boost::posix_time::seconds(statusTimerInterval)),
-   INotifyStream(IOService),
-   HasImportPathFilter(ImporterConfig.getImportPathFilter().size() > 0),
-   ImportPathFilter("^(" + (ImporterConfig.getImportFilePath() / ")(").string() + ImporterConfig.getImportPathFilter() + ")(.*)$"),
-   ImportPathFilterRegEx(ImportPathFilter)
+   INotifyStream(IOService)
 {
    INotifyFD = -1;
    StatusTimer.expires_from_now(StatusTimerInterval);
@@ -272,8 +272,9 @@ void UniversalImporter::addReader(ReaderBase&          reader,
 {
    ReaderList.push_back(&reader);
    for(unsigned int w = 0; w < databaseClients; w++) {
-      Worker* worker = new Worker(w, reader, *databaseClientArray[w],
-                                  ImporterConfig, DatabaseConfig);
+      Worker* worker = new Worker(w, reader,
+                                  ImporterConfig, DatabaseConfig,
+                                  *databaseClientArray[w]);
       assert(worker != nullptr);
       WorkerMapping workerMapping;
       workerMapping.Reader   = &reader;

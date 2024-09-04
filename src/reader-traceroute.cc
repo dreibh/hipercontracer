@@ -175,22 +175,19 @@ ReaderTimePoint TracerouteReader::parseTimeStamp(const std::string&           va
                                                  const std::filesystem::path& dataFile)
 {
    size_t index;
-   try {
-      const unsigned long long ts = std::stoull(value, &index, 16);
-      if(index == value.size()) {
-         const ReaderTimePoint timeStamp = (inNanoseconds == true) ? nanosecondsToTimePoint<ReaderTimePoint>(ts) :
-                                                                     nanosecondsToTimePoint<ReaderTimePoint>(1000ULL * ts);
-         if( (timeStamp < now - std::chrono::hours(10 * 365 * 24)) ||   /* 10 years in the past */
-            (timeStamp > now + std::chrono::hours(24)) ) {             /* 1 day in the future  */
-            throw ResultsReaderDataErrorException("Invalid time stamp value (too old, or in the future) " + value +
-                                                " in input file " +
-                                                relativeTo(dataFile, ImporterConfig.getImportFilePath()).string());
-         }
-         return timeStamp;
+   const unsigned long long ts = std::stoull(value, &index, 16);
+   if(index == value.size()) {
+      const ReaderTimePoint timeStamp = (inNanoseconds == true) ? nanosecondsToTimePoint<ReaderTimePoint>(ts) :
+                                                                  nanosecondsToTimePoint<ReaderTimePoint>(1000ULL * ts);
+      if( (timeStamp < now - std::chrono::hours(10 * 365 * 24)) ||   /* 10 years in the past */
+          (timeStamp > now + std::chrono::hours(24)) ) {             /* 1 day in the future  */
+         std::cerr << "timeStamp=" << timePointToString<ReaderTimePoint>(timeStamp, 9) << " now=" <<  timePointToString<ReaderTimePoint>(now, 9) << "\n";
+         throw ResultsReaderDataErrorException("Invalid time stamp value (too old, or in the future) " + value +
+                                               " in input file " +
+                                               relativeTo(dataFile, ImporterConfig.getImportFilePath()).string());
       }
+      return timeStamp;
    }
-   catch(...) { }
-   std::cerr << value << "\n";
    throw ResultsReaderDataErrorException("Bad time stamp format " + value +
                                          " in input file " +
                                          relativeTo(dataFile, ImporterConfig.getImportFilePath()).string());
@@ -532,7 +529,8 @@ void TracerouteReader::parseContents(
 
    std::string inputLine;
    std::string tuple[TracerouteMaxColumns];
-   const ReaderTimePoint now = ReaderClock::now();
+   const ReaderTimePoint now =
+      ReaderClock::now() + ReaderClockOffsetFromSystemTime;
    while(std::getline(dataStream, inputLine)) {
 
       // ====== Format identifier ===========================================

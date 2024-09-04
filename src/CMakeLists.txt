@@ -188,6 +188,11 @@ ADD_EXECUTABLE(hipercontracer hipercontracer.cc)
 TARGET_LINK_LIBRARIES(hipercontracer libhipercontracer-${libraryType} ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
 INSTALL(TARGETS hipercontracer RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
 INSTALL(FILES hipercontracer.1 DESTINATION ${CMAKE_INSTALL_MANDIR}/man1)
+IF (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+   INSTALL(FILES hipercontracer.service       DESTINATION /lib/systemd/system)
+   INSTALL(FILES hipercontracer@.service      DESTINATION /lib/systemd/system)
+   INSTALL(FILES hipercontracer-12345678.conf DESTINATION /etc/hipercontracer)
+ENDIF()
 
 # ====== HiPerConTracer Trigger =============================================
 IF (WITH_TRIGGER)
@@ -197,7 +202,20 @@ IF (WITH_TRIGGER)
    INSTALL(FILES hpct-trigger.1 DESTINATION ${CMAKE_INSTALL_MANDIR}/man1)
 ENDIF()
 
-# ====== HiPerConTracer Importer ============================================
+
+# ====== HiPerConTracer Sync Tool ===========================================
+IF (WITH_SYNC)
+   INSTALL(PROGRAMS hpct-sync DESTINATION ${CMAKE_INSTALL_BINDIR})
+   INSTALL(FILES hpct-sync.1  DESTINATION ${CMAKE_INSTALL_MANDIR}/man1)
+   IF (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+      INSTALL(FILES hpct-sync.service DESTINATION /lib/systemd/system)
+      INSTALL(FILES hpct-sync.timer   DESTINATION /lib/systemd/system)
+      INSTALL(FILES hpct-sync.conf    DESTINATION /etc/hipercontracer)
+   ENDIF()
+ENDIF()
+
+
+# ====== HiPerConTracer Importer Tool =======================================
 IF (WITH_IMPORTER)
    ADD_EXECUTABLE(hpct-importer hpct-importer.cc
       conversions.cc
@@ -277,6 +295,8 @@ INSTALL(FILES get-default-ips.1
 # ADD_EXECUTABLE(t3 t3.cc)
 # ADD_EXECUTABLE(t4 t4.cc)
 # TARGET_LINK_LIBRARIES(t4 ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
+# ADD_EXECUTABLE(t5 t5.cc)
+# TARGET_LINK_LIBRARIES(t5 ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
 # ADD_EXECUTABLE(t9 t9.cc)
 # TARGET_LINK_LIBRARIES(t9 ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
 # ADD_EXECUTABLE(t9b t9b.cc)
@@ -284,8 +304,8 @@ INSTALL(FILES get-default-ips.1
 # TARGET_LINK_LIBRARIES(t3 ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
 # ADD_EXECUTABLE(t7 t7.cc)
 # TARGET_LINK_LIBRARIES(t7 ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
-ADD_EXECUTABLE(dbtest dbtest.cc)
-TARGET_LINK_LIBRARIES(dbtest libuniversalimporter-${libraryType} ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
+# ADD_EXECUTABLE(dbtest dbtest.cc)
+# TARGET_LINK_LIBRARIES(dbtest libuniversalimporter-${libraryType} ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
 
 
 #############################################################################

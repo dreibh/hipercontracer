@@ -118,8 +118,8 @@ class DatabaseConfiguration:
          if self.Configuration['dbCertKeyFile'] != None:
             sys.stderr.write('ERROR: MySQL/MariaDB backend expects dbCertFile+dbKeyFile, not dbCertKeyFile!\n')
             sys.exit(1)
-         # if self.Configuration['dbCRLFile'] != None:
-         #    sys.stderr.write('WARNING: MySQL/MariaDB backend (based on mysql-connector-python) does not support dbCRLFile!\n')
+         if self.Configuration['dbCRLFile'] != None:
+            sys.stderr.write('WARNING: MySQL/MariaDB backend (based on mysql-connector-python) does not support dbCRLFile!\n')
       elif self.Configuration['dbBackend'] == 'PostgreSQL':
          if self.Configuration['dbCertKeyFile'] != None:
             sys.stderr.write('ERROR: PostgreSQL backend expects dbCertFile+dbKeyFile, not dbCertKeyFile!\n')
@@ -153,7 +153,17 @@ class DatabaseConfiguration:
 
       # ====== MySQL/MariaDB ================================================
       if self.Configuration['dbBackend'] in [ 'MySQL', 'MariaDB' ]:
-         import mysql.connector
+         try:
+            import mysql.connector
+         except Exception as e:
+            sys.stderr.write('ERROR: Cannot load the Python MySQL Connector module: ' + str(e) + """
+Try:
+ * Ubuntu/Debian: (get DEB package from: https://downloads.mysql.com/archives/c-python/)
+ * Fedora:        sudo dnf install -y mysql-connector-python3
+ * FreeBSD:       sudo pkg install -y py311-mysql-connector-python
+""")
+            sys.exit(1)
+
          ssl_disabled                = False
          ssl_verify_cert             = True
          ssl_verify_identity         = True
@@ -182,10 +192,11 @@ class DatabaseConfiguration:
                ssl_verify_identity = ssl_verify_identity,
                ssl_verify_cert     = ssl_verify_cert,
                ssl_ca              = caFile,
-               # ssl_crl             = self.Configuration['dbCRLFile'],
+               # !!! ssl_crl             = self.Configuration['dbCRLFile'],
                ssl_key             = self.Configuration['dbCertFile'],
                ssl_cert            = self.Configuration['dbKeyFile'],
             )
+            self.dbConnection.autocommit = False
             self.dbCursor = self.dbConnection.cursor()
          except Exception as e:
             sys.stderr.write('ERROR: Unable to connect to the database: ' + str(e) + '\n')
@@ -195,7 +206,17 @@ class DatabaseConfiguration:
 
       # ====== PostgreSQL ===================================================
       elif self.Configuration['dbBackend'] == 'PostgreSQL':
-         import psycopg2
+         try:
+            import psycopg2
+         except Exception as e:
+            sys.stderr.write('ERROR: Cannot load the Python PostgreSQL module: ' + str(e) + """
+Try:
+ * Ubuntu/Debian: sudo apt get install -y python3-psycopg
+ * Fedora:        sudo dnf install -y python3-psycopg2
+ * FreeBSD:       sudo pkg install -y py311-psycopg2
+""")
+            sys.exit(1)
+
          ssl_mode = 'verify-full'
          if self.Configuration['dbConnectionFlags'] != None:
             for flag in self.Configuration['dbConnectionFlags']:
@@ -210,18 +231,16 @@ class DatabaseConfiguration:
                   sys.stderr.write("TLS hostname check explicitliy disabled. CONFIGURE TLS PROPERLY!!\n")
          try:
             self.dbConnection = psycopg2.connect(
-               host     = self.Configuration['dbServer'],
-               port     = self.Configuration['dbPort'],
-               user     = self.Configuration['dbUser'],
-               password = self.Configuration['dbPassword'],
-               dbname   = self.Configuration['database'],
-               sslmode                  = ssl_mode,
-               sslrootcert              = self.Configuration['dbCAFile'],
-               sslcrl                   = self.Configuration['dbCRLFile'],
-               sslkey                   = self.Configuration['dbCertFile'],
-               sslcert                  = self.Configuration['dbKeyFile'],
-
-               )
+               host        = self.Configuration['dbServer'],
+               port        = self.Configuration['dbPort'],
+               user        = self.Configuration['dbUser'],
+               password    = self.Configuration['dbPassword'],
+               dbname      = self.Configuration['database'],
+               sslmode     = ssl_mode,
+               sslrootcert = self.Configuration['dbCAFile'],
+               sslcrl      = self.Configuration['dbCRLFile'],
+               sslkey      = self.Configuration['dbCertFile'],
+               sslcert     = self.Configuration['dbKeyFile'])
             self.dbConnection.autocommit = False
             self.dbCursor = self.dbConnection.cursor()
          except Exception as e:
@@ -232,7 +251,17 @@ class DatabaseConfiguration:
 
       # ====== MongoDB ======================================================
       if self.Configuration['dbBackend'] == 'MongoDB':
-         import pymongo
+         try:
+            import pymongo
+         except Exception as e:
+            sys.stderr.write('ERROR: Cannot load the Python MongoDB module: ' + str(e) + """
+Try:
+ * Ubuntu/Debian: sudo apt install -y python3-pymongo python3-snappy python3-zstandard
+ * Fedora:        sudo dnf install -y python3-pymongo python3-snappy python3-zstandard
+ * FreeBSD:       sudo pkg install -y py311-pymongo py311-python-snappy py311-zstandard
+""")
+            sys.exit(1)
+
          tls                         = True
          tlsAllowInvalidHostnames    = False
          tlsAllowInvalidCertificates = False
@@ -261,8 +290,7 @@ class DatabaseConfiguration:
             )
             self.database = self.dbConnection[str(self.Configuration['database'])]
             self.database.authenticate(self.Configuration['dbUser'],
-                                       self.Configuration['dbPassword'],
-                                       mechanism = 'SCRAM-SHA-256')
+                                       self.Configuration['dbPassword'])
          except Exception as e:
             sys.stderr.write('ERROR: Unable to connect to the database: ' + str(e) + '\n')
             sys.exit(1)
@@ -298,28 +326,88 @@ class DatabaseConfiguration:
 
    # ###### Query database ##################################################
    def query(self, request):
+      self.execute(request)
+
+      # ====== MySQL/MariaDB ================================================
+      if self.Configuration['dbBackend'] in [ 'MySQL', 'MariaDB' ]:
+         rows = self.dbCursor.fetchall()
+         return rows
+
+      # ====== PostgreSQL ===================================================
+      elif self.Configuration['dbBackend'] == 'PostgreSQL':
+         rows = self.dbCursor.fetchall()
+         return rows
+
+      raise Exception('Backend not implemented!')
+
+
+   # ###### Execute update ##################################################
+   def execute(self, request):
 
       # ====== MySQL/MariaDB ================================================
       if self.Configuration['dbBackend'] in [ 'MySQL', 'MariaDB' ]:
          try:
             self.dbCursor.execute(request)
          except Exception as e:
-            sys.stderr.write('ERROR: Query failed: ' + str(e) + '\n')
+            sys.stderr.write('ERROR: Execution failed: ' + str(e) + '\n')
             sys.exit(1)
-         return self.dbCursor
 
       # ====== PostgreSQL ===================================================
       elif self.Configuration['dbBackend'] == 'PostgreSQL':
          try:
             self.dbCursor.execute(request)
+         except Exception as e:
+            sys.stderr.write('ERROR: Execution failed: ' + str(e) + '\n')
+            sys.exit(1)
+
+      else:
+         raise Exception('Backend not implemented!')
+
+
+   # ###### Commit ##########################################################
+   def commit(self):
+
+      # ====== MySQL/MariaDB ================================================
+      if self.Configuration['dbBackend'] in [ 'MySQL', 'MariaDB' ]:
+         try:
             self.dbConnection.commit()
          except Exception as e:
-            sys.stderr.write('ERROR: Query failed: ' + str(e) + '\n')
+            sys.stderr.write('ERROR: Commit failed: ' + str(e) + '\n')
             sys.exit(1)
-         rows = self.dbCursor.fetchall()
-         return rows
 
-      raise Exception('Backend not implemented!')
+      # ====== PostgreSQL ===================================================
+      elif self.Configuration['dbBackend'] == 'PostgreSQL':
+         try:
+            self.dbConnection.commit()
+         except Exception as e:
+            sys.stderr.write('ERROR: Commit failed: ' + str(e) + '\n')
+            sys.exit(1)
+
+      else:
+         raise Exception('Backend not implemented!')
+
+
+   # ###### Rollback ########################################################
+   def rollback(self):
+
+      # ====== MySQL/MariaDB ================================================
+      if self.Configuration['dbBackend'] in [ 'MySQL', 'MariaDB' ]:
+         try:
+            self.dbConnection.rollback()
+         except Exception as e:
+            sys.stderr.write('ERROR: Rollback failed: ' + str(e) + '\n')
+            sys.exit(1)
+
+      # ====== PostgreSQL ===================================================
+      elif self.Configuration['dbBackend'] == 'PostgreSQL':
+         try:
+            self.dbConnection.rollback()
+         except Exception as e:
+            sys.stderr.write('ERROR: Rollback failed: ' + str(e) + '\n')
+            sys.exit(1)
+
+      else:
+         raise Exception('Backend not implemented!')
 
 
    # ###### Query MongoDB database ###########################################

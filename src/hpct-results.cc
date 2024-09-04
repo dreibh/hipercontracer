@@ -952,7 +952,8 @@ int main(int argc, char** argv)
          outputStream << (*iterator)->Line << "\n";
          delete *iterator;
       }
-      outputStream.flush();
+      outputStream.reset();
+
       const std::chrono::system_clock::time_point t4 = std::chrono::system_clock::now();
       HPCT_LOG(info) << "Wrote " << outputSet.size() << " results rows in "
                      << std::chrono::duration_cast<std::chrono::milliseconds>(t4 - t3).count() << " ms";

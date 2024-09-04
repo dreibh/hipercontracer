@@ -26,8 +26,8 @@ debian/tmp/usr/share/doc/hipercontracer/examples/TestDB/9-uninstall-database
 debian/tmp/usr/share/doc/hipercontracer/examples/TestDB/CertificateHelper.py
 debian/tmp/usr/share/doc/hipercontracer/examples/TestDB/README.md
 debian/tmp/usr/share/doc/hipercontracer/examples/TestDB/generate-test-certificates
+debian/tmp/usr/share/doc/hipercontracer/examples/TestDB/hpct-users.conf.example
 debian/tmp/usr/share/doc/hipercontracer/examples/TestDB/run-full-test
 debian/tmp/usr/share/doc/hipercontracer/examples/TestDB/test-tls-connection
-debian/tmp/usr/share/doc/hipercontracer/examples/TestDB/users.conf.example
 debian/tmp/usr/share/doc/hipercontracer/examples/hipercontracer-database.conf
 debian/tmp/usr/share/doc/hipercontracer/examples/hipercontracer-importer.conf

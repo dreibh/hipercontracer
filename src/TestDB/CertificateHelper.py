@@ -210,7 +210,6 @@ authorityKeyIdentifier = keyid:always
 [ v3_ca ]
 # See `man x509v3_config` for details!
 subjectKeyIdentifier   = hash
-authorityKeyIdentifier = keyid:always,issuer
 basicConstraints       = critical, CA:true              # <<-- CA certificate
 keyUsage               = critical, digitalSignature, cRLSign, keyCertSign
 
@@ -219,7 +218,7 @@ keyUsage               = critical, digitalSignature, cRLSign, keyCertSign
 # See `man x509v3_config` for details!
 subjectKeyIdentifier   = hash
 authorityKeyIdentifier = keyid:always,issuer
-basicConstraints       = critical, CA:true
+basicConstraints       = critical, CA:true              # <<-- CA certificate
 keyUsage               = critical, digitalSignature, cRLSign, keyCertSign
 
 # ====== Settings for a leaf CA =============================================
@@ -235,7 +234,6 @@ keyUsage               = critical, digitalSignature, cRLSign, keyCertSign
 # Extensions for client certificates (`man x509v3_config`).
 basicConstraints       = CA:FALSE
 subjectKeyIdentifier   = hash
-authorityKeyIdentifier = keyid,issuer
 keyUsage               = critical, nonRepudiation, digitalSignature, keyEncipherment
 extendedKeyUsage       = clientAuth, emailProtection
 
@@ -244,7 +242,6 @@ extendedKeyUsage       = clientAuth, emailProtection
 # Extensions for server certificates (`man x509v3_config`).
 basicConstraints       = CA:FALSE
 subjectKeyIdentifier   = hash
-authorityKeyIdentifier = keyid,issuer:always
 keyUsage               = critical, digitalSignature, keyEncipherment
 extendedKeyUsage       = serverAuth
 subjectAltName         = ${ENV::SAN}
@@ -359,10 +356,24 @@ subjectAltName         = ${ENV::SAN}
 
       sys.stdout.write('\x1b[33mVerifying certificate ' + self.CertFileName + ' via ' +
                        self.ChainFileName + ' ...\x1b[0m\n')
+
+      # Check chain -> certificate
       execute('openssl verify ' +
               ' -show_chain' +
               ' -verbose'    +
               ' -CAfile '    + self.ChainFileName +
+              ' ' + self.CertFileName)
+
+      # Check root CA -> ... -> certificate
+      # NOTE: Using option "-untrusted" to mark the whole chain as untrusted
+      #       works! The CAfile is always trusted, and OpenSSL will verify
+      #       all certificates of the chain.
+      #       -> https://stackoverflow.com/questions/25482199/verify-a-certificate-chain-using-openssl-verify
+      execute('openssl verify ' +
+              ' -show_chain' +
+              ' -verbose'    +
+              ' -CAfile '    + self.RootCA.CertFileName +
+              ' -untrusted ' + self.ChainFileName +
               ' ' + self.CertFileName)
 
 

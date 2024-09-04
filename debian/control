@@ -98,6 +98,7 @@ Depends: libhipercontracer2 (= ${binary:Version}),
 Recommends: hipercontracer-importer,
             hipercontracer-query-tool,
             hipercontracer-results-tool,
+            hipercontracer-sync-tool,
             hipercontracer-trigger,
             hipercontracer-udp-echo-server
 Description: Command-line programs for HiPerConTracer
@@ -137,6 +138,21 @@ Description: HiPerConTracer Database Shell for access testing to a database
  settings from a given database configuration file. It is mainly intended to
  test database access using the configuration files for HiPerConTracer Importer
  and HiPerConTracer Query Tool.
+
+Package: hipercontracer-sync-tool
+Architecture: all
+Depends: rsync,
+         ${misc:Depends}
+Recommends: hipercontracer,
+            hipercontracer-results-tool
+Description: HiPerConTracer Query Tool to query results from a database
+ High-Performance Connectivity Tracer (HiPerConTracer) is a
+ Ping/Traceroute service. It performs regular Ping and Traceroute runs
+ among sites. The results are written to data files, which can be
+ imported into an SQL or NoSQL database.
+ .
+ This package contains a simple synchronisation tool to run RSync
+ synchronisation of data to a central collection server.
 
 Package: hipercontracer-importer
 Architecture: any

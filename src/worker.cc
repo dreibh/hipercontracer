@@ -46,14 +46,14 @@
 // ###### Constructor #######################################################
 Worker::Worker(const unsigned int           workerID,
                ReaderBase&                  reader,
-               DatabaseClientBase&          databaseClient,
                const ImporterConfiguration& importerConfiguration,
-               const DatabaseConfiguration& databaseConfiguration)
+               const DatabaseConfiguration& databaseConfiguration,
+               DatabaseClientBase&          databaseClient)
    : WorkerID(workerID),
      Reader(reader),
      DatabaseClient(databaseClient),
-     DatabaseConfig(databaseConfiguration),
      ImporterConfig(importerConfiguration),
+     DatabaseConfig(databaseConfiguration),
      Identification(Reader.getIdentification() + "/" + std::to_string(WorkerID))
 {
    StopRequested.exchange(false);

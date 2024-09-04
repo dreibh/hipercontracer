@@ -54,9 +54,17 @@ enum ReaderPriority {
    High = 1,
    Max  = High
 };
+
+typedef std::chrono::system_clock            SystemClock;
+typedef std::chrono::time_point<SystemClock> SystemTimePoint;
+typedef SystemClock::duration                SystemTimeDuration;
+
 typedef std::chrono::high_resolution_clock   ReaderClock;
 typedef std::chrono::time_point<ReaderClock> ReaderTimePoint;
 typedef ReaderClock::duration                ReaderTimeDuration;
+
+// Approximated offset to system time:
+extern const ReaderTimeDuration ReaderClockOffsetFromSystemTime;
 
 
 // ###### Reader base class #################################################
@@ -108,7 +116,7 @@ class ReaderBase
       unsigned long long OldProcessed;
    };
    WorkerStatistics* Statistics;
-   ReaderTimePoint   LastStatisticsUpdate;
+   SystemTimePoint   LastStatisticsUpdate;
 };
 
 
@@ -301,13 +309,13 @@ void ReaderImplementation<ReaderInputFileEntry>::printStatus(std::ostream& os)
    }
    assert(Statistics[Workers].Processed == totalProcessed);
 
-   const ReaderTimePoint now = ReaderClock::now();
+   const SystemTimePoint now = SystemClock::now();
    const double duration =
       std::chrono::duration_cast<std::chrono::microseconds>(now - LastStatisticsUpdate).count() / 1000000.0;
    const double fps = (Statistics[Workers].Processed - Statistics[Workers].OldProcessed) / duration;
    LastStatisticsUpdate = now;
 
-   const ReaderTimePoint estimatedFinishTime = now +
+   const SystemTimePoint estimatedFinishTime = now +
       std::chrono::seconds((unsigned long long)ceil(totalWaiting / fps));
 
 
@@ -318,7 +326,7 @@ void ReaderImplementation<ReaderInputFileEntry>::printStatus(std::ostream& os)
       << totalWaiting << " total in queue; ";
    if(totalWaiting > 0) {
       os << "estimated completion at "
-         << timePointToString<ReaderTimePoint>(estimatedFinishTime, 0, "%Y-%m-%d %H:%M:%S %Z", false) << "\n";
+         << timePointToString<SystemTimePoint>(estimatedFinishTime, 0, "%Y-%m-%d %H:%M:%S %Z", false) << "\n";
    }
    else {
       os << "idle\n";
