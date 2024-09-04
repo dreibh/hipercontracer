@@ -37,18 +37,17 @@ Wants=network-online.target
 
 [Service]
 Type=simple
-# User will be changed to "hipercontracer" after startup!
+# NOTE: User will be changed to "hipercontracer" after startup!
 User=root
 Group=hipercontracer
 WorkingDirectory=/var/hipercontracer
 EnvironmentFile=/etc/hipercontracer/hipercontracer-%i.conf
-
-ExecStart=/usr/bin/hipercontracer \
-   --user hipercontracer \
+ExecStart=/bin/sh -cx "/usr/bin/hipercontracer \
+   --user root \
    --loglevel ${LOGLEVEL} \
    --measurement-id %i \
-   --results-directory /var/hipercontracer \
-   ${HPCT_OPTIONS}
+   --resultsdirectory /var/hipercontracer \
+   ${HPCT_OPTIONS}"
 
 KillSignal=SIGINT
 KillMode=control-group
@@ -57,7 +56,7 @@ Restart=on-failure
 RestartSec=60
 
 PrivateNetwork=no
-PrivateTmp=yes
+PrivateTmp=no
 InaccessibleDirectories=/home
 CapabilityBoundingSet=
 
