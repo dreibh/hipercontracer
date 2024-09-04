@@ -39,6 +39,7 @@ usage () {
    exit 1
 }
 
+# shellcheck disable=SC2068
 options=$(getopt -o hN:L:R:C:K:H:vq --long help,nodeid:,local:,remote:,collector:,key:,known-hosts:,verbose,quiet -a -- $@)
 if [[ $? -ne 0 ]]; then
    usage
@@ -97,7 +98,7 @@ while [ $# -gt 0 ] ; do
   esac
 done
 
-if [ "${LOCAL}" == "" -o "${REMOTE}" == "" -o "${COLLECTOR}" == "" ] ; then
+if [ "${LOCAL}" == "" ] || [ "${REMOTE}" == "" ] || [ "${COLLECTOR}" == "" ] ; then
    usage
 fi
 if [ ! -d "${LOCAL}" ] ; then
@@ -117,7 +118,7 @@ if [[ ! "${NODE_ID}" =~ [0-9]+ ]] ; then
    echo >&2 "ERROR: No or invalid Node ID specified!"
    exit 1
 fi
-if [ ${NODE_ID} -lt 1 -o ${NODE_ID} -gt 9999 ] ; then
+if [ "${NODE_ID}" -lt 1 ] || [ "${NODE_ID}" -gt 999999999 ] ; then
    echo >&2 "ERROR: Invalid number for Node ID: ${NODE_ID}!"
    exit 1
 fi
@@ -136,15 +137,15 @@ rsyncOptions="${rsyncOptions} -e 'ssh -i ${KEY} -oUserKnownHostsFile=${KNOWN_HOS
 user="node${NODE_ID}"
 command="rsync -a ${rsyncOptions} ${LOCAL}/data/ ${user}@${COLLECTOR}:${REMOTE}/${user}/"
 if [ ${VERBOSE} -ne 0 ] ; then
-   echo -e "\x1b[34m`date +"%Y-%m-%d %H:%M:%S"` Running RSync: ${command}\x1b[0m"
+   echo -e "\x1b[34m$(date +"%Y-%m-%d %H:%M:%S") Running RSync: ${command}\x1b[0m"
 fi
 sh -c "${command}" && status=0 || status=$?
 if [ ${status} -ne 0 ] ; then
-   echo -e "\x1b[34m`date +"%Y-%m-%d %H:%M:%S"` RSync failed: ${command}\x1b[0m"
+   echo -e "\x1b[34m$(date +"%Y-%m-%d %H:%M:%S") RSync failed: ${command}\x1b[0m"
    exit 1
 else
-   ssh -tt -i ${KEY} -oUserKnownHostsFile=${KNOWN_HOSTS} ${user}@${COLLECTOR} 'date >last-sync.txt' || true
+   ssh -tt -i "${KEY}" -oUserKnownHostsFile="${KNOWN_HOSTS}" "${user}"@"${COLLECTOR}" 'date >last-sync.txt' || true
    if [ ${VERBOSE} -ne 0 ] ; then
-      echo -e "\x1b[34m`date +"%Y-%m-%d %H:%M:%S"` Done.\x1b[0m"
+      echo -e "\x1b[34m$(date +"%Y-%m-%d %H:%M:%S") Done.\x1b[0m"
    fi
 fi
