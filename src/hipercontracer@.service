@@ -40,13 +40,13 @@ Type=simple
 # NOTE: User will be changed to "hipercontracer" after startup!
 User=root
 Group=hipercontracer
-WorkingDirectory=/var/hipercontracer
+WorkingDirectory=/var/hipercontracer/data
 EnvironmentFile=/etc/hipercontracer/hipercontracer-%i.conf
 ExecStart=/bin/sh -cx "/usr/bin/hipercontracer \
-   --user root \
+   --user hipercontracer \
    --loglevel ${LOGLEVEL} \
    --measurement-id %i \
-   --resultsdirectory /var/hipercontracer \
+   --resultsdirectory /var/hipercontracer/data \
    ${HPCT_OPTIONS}"
 
 KillSignal=SIGINT
@@ -56,9 +56,9 @@ Restart=on-failure
 RestartSec=60
 
 PrivateNetwork=no
-PrivateTmp=no
+PrivateTmp=yes
 InaccessibleDirectories=/home
-CapabilityBoundingSet=
+# CapabilityBoundingSet=
 
 [Install]
 WantedBy=default.target
