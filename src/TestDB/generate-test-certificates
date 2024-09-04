@@ -38,10 +38,12 @@ if len(sys.argv) > 3:
    subjectAltName = sys.argv[3]
 else:
    # ====== Prepare subjectAltName: current hostname+all addresses ==========
+   subjectAltName = 'DNS:' + serverName
 
    # ------ Add FQDN of current hostname ------------------------------------
    fqdn = socket.getfqdn()
-   subjectAltName = 'DNS:' + fqdn
+   if ((fqdn != serverName) and (fqdn != 'localhost')):
+      subjectAltName = subjectAltName + ',DNS:' + fqdn
 
    # ------ Add all IP addresses --------------------------------------------
    interfaces = netifaces.interfaces()

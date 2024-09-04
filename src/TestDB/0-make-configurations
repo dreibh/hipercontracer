@@ -35,16 +35,17 @@ set -o nounset
 set -o errexit
 
 
-if [ $# -ne 1 ] ; then
-   echo >&2 "Usage: $0 users.conf"
+if [ $# -ne 2 ] ; then
+   echo >&2 "Usage: $0 template.conf generated.conf"
    exit 1
 fi
-CONFIG="$1"
+TEMPLATE="$1"
+CONFIG="$2"
 
 
 # ====== Generate secure test user passwords ================================
 if [ ! -e "${CONFIG}" ] ; then
-   echo -e "\x1b[34mGenerating ${CONFIG} ...\x1b[0m"
+   echo -e "\x1b[34m$(date +"%F %H:%M:%S"): Generating ${CONFIG} ...\x1b[0m"
    while read -r line ; do
       echo >&2 "$line"
       if [[ "${line}" =~ ^(.*[\"])(!.*!)([\"])$ ]] ; then
@@ -52,7 +53,7 @@ if [ ! -e "${CONFIG}" ] ; then
       else
          echo "${line}"
       fi
-   done <users.conf.example | tee "${CONFIG}"
+   done <"${TEMPLATE}" | tee "${CONFIG}"
 fi
 
 # shellcheck disable=SC1090
@@ -60,8 +61,7 @@ fi
 
 
 # ====== Write HiPerConTracer Importer configuration files ==================
-name="$(dirname "${CONFIG}")/importer.conf"
-server="$(hostname -f)"
+name="$(dirname "${CONFIG}")/importer-${DATABASE}.conf"
 cat >"${name}" <<EOF
 # ====== Importer Configuration =============================================
 
@@ -96,10 +96,17 @@ move_timestamp_depth = 3
 EOF
 
 for backend in MariaDB PostgreSQL MongoDB ; do
-   for user in maintainer researcher importer ; do
+   host="${backend,,}"
+   server="${host}.${DOMAIN}"
+   for user in root maintainer researcher importer ; do
       # shellcheck disable=SC2001
       name="$(echo "${CONFIG}" | sed -e "s/.users\.conf$/-${user}-${backend,,}.conf/")"
-      if [ "${user}" == "maintainer" ] ; then
+      if [ "${user}" == "root" ] ; then
+         password="${ROOT_PASSWORD}"
+         if [ "${backend}" == "PostgreSQL" ] ; then
+            user="postgres"   # The PostgreSQL root user is "postgres", not "root"!
+         fi
+      elif [ "${user}" == "maintainer" ] ; then
          password="${MAINTAINER_PASSWORD}"
       elif [ "${user}" == "researcher" ] ; then
          password="${RESEARCHER_PASSWORD}"
@@ -127,8 +134,8 @@ for backend in MariaDB PostgreSQL MongoDB ; do
 dbbackend         = ${backend}
 dbserver          = ${server}
 dbport            = 0
-dbcafile          = /etc/ssl/TestLevel1/certs/TestLevel1.crt
-dbcrlfile         = /etc/ssl/TestGlobal.crl
+dbcafile          = ${HOME}/TestLevel1.crt
+dbcrlfile         = ${HOME}/TestGlobal.crl
 dbcertfile        = NONE
 dbkeyfile         = NONE
 dbconnectionflags = NONE
@@ -145,3 +152,7 @@ EOF
       fi
    done
 done
+
+
+# ====== Write DBeaver configuration files ==================================
+../make-dbeaver-configuration ~/"${DATABASE}"-*-*.conf --join

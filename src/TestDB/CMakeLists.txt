@@ -16,5 +16,5 @@ INSTALL(FILES
            generate-test-certificates
            run-full-test
            test-tls-connection
-           users.conf.example
+           hpct-users.conf.example
         DESTINATION ${CMAKE_INSTALL_DATADIR}/doc/hipercontracer/examples/TestDB)

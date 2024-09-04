@@ -1,6 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-#
 #  =================================================================
 #           #     #                 #     #
 #           ##    #   ####   #####  ##    #  ######   #####
@@ -32,28 +29,39 @@
 #
 #  Contact: dreibh@simula.no
 
-from distutils.core import setup
+[Unit]
+Description=HiPerConTracer Measurement %i
+PartOf=hipercontracer.service
+Documentation=man:hipercontracer(1)
+After=network-online.target
+Wants=network-online.target
 
+[Service]
+Type=simple
+# NOTE: User will be changed to "hipercontracer" after startup!
+User=root
+Group=hipercontracer
+WorkingDirectory=/var/hipercontracer/data
+EnvironmentFile=/etc/hipercontracer/hipercontracer-%i.conf
+ExecStart=/bin/sh -cx "/usr/bin/hipercontracer \
+   --user hipercontracer \
+   --loglevel ${LOGLEVEL} \
+   --measurement-id %i \
+   --resultsdirectory /var/hipercontracer/data \
+   --resultscompression XZ \
+   ${HPCT_OPTIONS}"
 
-setup(name='QueryHelper',
-   author='Thomas Dreibholz',
-   author_email='dreibh@simula.no',
-   maintainer='Thomas Dreibholz',
-   maintainer_email='dreibh@simula.no',
-   version='${BUILD_VERSION}',
-   url='https://www.nntb.no',
-   license='GPL, Version 3.0',
-   package_dir={ '': '${CMAKE_CURRENT_SOURCE_DIR}' },
-   classifiers=[
-       'Development Status :: 5 - Production/Stable',
-       'Intended Audience :: Developers',
-       'License :: OSI Approved :: GNU General Public License (GPL)',
-       'Operating System :: OS Independent',
-       'Programming Language :: Python',
-       'Topic :: Internet',
-       'Topic :: Software Development :: Database',
-       'Topic :: System :: Database'],
-   py_modules=[
-      'QueryHelper'
-   ]
-)
+KillSignal=SIGINT
+KillMode=control-group
+TimeoutStopSec=60
+Restart=on-failure
+RestartSec=60
+
+ProtectSystem=true
+ProtectHome=true
+PrivateNetwork=no
+PrivateTmp=yes
+CapabilityBoundingSet=CAP_NET_ADMIN CAP_NET_BIND_SERVICE CAP_NET_RAW CAP_SETGID CAP_SETUID CAP_CHOWN CAP_DAC_OVERRIDE LimitNPROC=64
+
+[Install]
+WantedBy=default.target

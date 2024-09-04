@@ -137,13 +137,14 @@ ELSE()
    ENDIF()
 ENDIF()
 
-OPTION(WITH_TRIGGER         "Build HiPerConTracer Trigger"        1)
-OPTION(WITH_IMPORTER        "Build HiPerConTracer Importer"       1)
-OPTION(WITH_QUERY           "Build HiPerConTracer Query Tool"     1)
-OPTION(WITH_RESULTS         "Build HiPerConTracer Results Tool"   1)
-OPTION(WITH_DBSHELL         "Build HiPerConTracer Database Shell" 1)
-OPTION(WITH_PIPE_CHECKSUM   "Build Pipe Checksum Tool"            1)
-OPTION(WITH_UDP_ECHO_SERVER "Build UDP Echo Server"               1)
+OPTION(WITH_TRIGGER         "Build HiPerConTracer Trigger"              1)
+OPTION(WITH_IMPORTER        "Build HiPerConTracer Importer"             1)
+OPTION(WITH_SYNC            "Build HiPerConTracer Synchronisation Tool" 1)
+OPTION(WITH_QUERY           "Build HiPerConTracer Query Tool"           1)
+OPTION(WITH_RESULTS         "Build HiPerConTracer Results Tool"         1)
+OPTION(WITH_DBSHELL         "Build HiPerConTracer Database Shell"       1)
+OPTION(WITH_PIPE_CHECKSUM   "Build Pipe Checksum Tool"                  1)
+OPTION(WITH_UDP_ECHO_SERVER "Build UDP Echo Server"                     1)
 
 
 #############################################################################
@@ -164,6 +165,10 @@ ENDIF()
 FIND_PACKAGE(Threads REQUIRED)
 
 # ###### Boost ##############################################################
+IF(CMAKE_VERSION VERSION_GREATER_EQUAL "3.30")
+   # Use BoostConfig.cmake to find BOOST libraries, if possible.
+   CMAKE_POLICY(SET CMP0167 NEW)
+ENDIF()
 FIND_PACKAGE(Boost REQUIRED COMPONENTS log date_time system thread iostreams filesystem program_options)
 IF (NOT Boost_FOUND)
    MESSAGE(FATAL_ERROR "Cannot find Boost libraries!")
@@ -263,7 +268,7 @@ IF (WITH_IMPORTER)
       MESSAGE("Building with MySQL/MariaDB backend (ENABLE_BACKEND_MARIADB=${ENABLE_BACKEND_MARIADB})")
 
       MESSAGE("Looking for MySQL/MariaDB C Client library:")
-      FIND_LIBRARY(LIBMARIADB_LIBRARY NAMES mariadb)
+      FIND_LIBRARY(LIBMARIADB_LIBRARY NAMES mariadb  PATH_SUFFIXES mariadb mysql)
       MESSAGE(" * Library: ${LIBMARIADB_LIBRARY}")
       FIND_PATH(LIBMARIADB_INCLUDE_DIR NAMES mysql.h PATH_SUFFIXES mariadb mysql)
       MESSAGE(" * Includes: ${LIBMARIADB_INCLUDE_DIR}")

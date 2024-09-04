@@ -1,0 +1,80 @@
+.\" High-Performance Connectivity Tracer (HiPerConTracer)
+.\" Copyright (C) 2015-2024 by Thomas Dreibholz
+.\"
+.\" This program is free software: you can redistribute it and/or modify
+.\" it under the terms of the GNU General Public License as published by
+.\" the Free Software Foundation, either version 3 of the License, or
+.\" (at your option) any later version.
+.\"
+.\" This program is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\" GNU General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU General Public License
+.\" along with this program.  If not, see <http://www.gnu.org/licenses/>.
+.\"
+.\" Contact: thomas.dreibholz@gmail.com
+.\"
+.\" ###### Setup ############################################################
+.Dd September 4, 2024
+.Dt hpct-sync 1
+.Os hpct-sync
+.\" ###### Name #############################################################
+.Sh NAME
+.Nm hpct-sync
+.Nd HiPerConTracer Synchroniser
+.\" ###### Synopsis #########################################################
+.Sh SYNOPSIS
+.Nm hpct-sync
+.Op \-h|\-\-help
+.Op \-v|\-\-verbose
+.Op \-q|\-\-quiet
+.Op \-N|\-\-nodeid NODE_ID
+.Op \-L|\-\-local LOCAL_DIRECTORY
+.Op \-R|\-\-remote REMOTE_LOCATION
+.Op \-K|\-\-key SSH_PRIVATE_KEY_FILE
+.Op \-H|\-\-known-hosts SSH_KNOWN_HOSTS_FILE
+.\" ###### Description ######################################################
+.Sh DESCRIPTION
+.Nm hpct-sync
+is the HiPerConTracer synchroniser application.
+.Pp
+.\" ###### Arguments ########################################################
+.Sh ARGUMENTS
+The following arguments may be provided:
+.Bl -tag -width indent
+.It \-h|\-\-help
+Prints command help.
+.It \-q|\--quiet
+Turns off status output.
+.It \-v|\--verbose
+Turns on status output.
+.It \-N|\-\-nodeid NODE_ID
+Sets the node ID, a number from 1 to 9999.
+.It \-L|\-\-local LOCAL_DIRECTORY
+Sets the local data directory. Default: /var/hipercontracer.
+.It \-R|\-\-remote REMOTE_LOCATION
+Sets the remote data directory on the collector. Default: /var/hipercontracer.
+.It \-R|\-\-collector COLLECTOR
+Sets the collector (hostname or address).
+.It \-K|\-\-key SSH_PRIVATE_KEY_FILE
+Sets the SSH private key file used for authentication. Default: /var/hipercontracer/ssh/id_ed25519.
+.It \-H|\-\-known-hosts SSH_KNOWN_HOSTS_FILE
+Sets the SSH known hosts file. Default: /var/hipercontracer/ssh/known_hosts.
+.El
+.\" ###### Examples #########################################################
+.Sh EXAMPLES
+.Bl -tag -width indent
+.It sudo -u hipercontracer   hpct-sync --nodeid 1000 --local /var/hipercontracer --remote /var/hipercontracer --collector sognsvann.example --key /var/hipercontracer/ssh/id_ed25519 --known-hosts /var/hipercontracer/ssh/known_hosts --verbose
+.It sudo -u hipercontracer   hpct-sync --nodeid 1 --local /var/hipercontracer --remote /var/hipercontracer --collector sognsvann.example --key /var/hipercontracer/ssh/id_ed25519 --known-hosts /var/hipercontracer/ssh/known_hosts --quiet
+.It sudo -u hipercontracer   hpct-sync --nodeid 2 --collector sognsvann.example
+.El
+.\" ###### Authors ##########################################################
+.Sh AUTHORS
+Thomas Dreibholz
+.br
+https://www.simula.no/people/dreibh
+.br
+mailto://dreibh@simula.no
+.br

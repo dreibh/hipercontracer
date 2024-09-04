@@ -50,53 +50,88 @@ if [ "$2" != "--force-removal-without-confirmation" ] ; then
 fi
 
 
+# ====== Check/set environment variables ====================================
+if [ ! -e /etc/os-release ] ; then
+   echo >&2 "ERROR: /etc/os-release does not exist!"
+   exit 1
+fi
+. /etc/os-release
+
+
+
 # ###### MariaDB ############################################################
 if [ "$1" == "mariadb" ] ; then
    echo -e "\x1b[34m$(date +"%F %H:%M:%S"): Uninstalling MariaDB ...\x1b[0m"
 
-   if [ -x /usr/bin/apt ] ; then
+   if [ "${ID}" == "ubuntu" ] || [ "${ID}" == "debian" ] ; then
       sudo DEBIAN_FRONTEND=noninteractive apt purge -y mariadb-client mariadb-server mariadb-backup
-   elif [ -x /usr/bin/dnf ] ; then
+   elif [ "${ID}" == "fedora" ] ; then
       sudo dnf remove -y 'mariadb-*'
-   elif [ -x /usr/sbin/pkg ] ; then
+   elif [ "${ID}" == "freebsd" ] ; then
       sudo service mysql-server stop     || true
       sudo service mysql-server disable  || true
-      sudo pkg remove -y 'mysql*-server' || true
+      sudo pkg remove -y 'mariadb*-server' || true
+   else
+      echo >&2 "ERROR: Unknown ID ${ID} in /etc/os-release. The installation script may need an update for supporting this system!"
+      exit 1
    fi
 
-   sudo rm -rf /var/lib/mysql /var/db/mysql || true
+   if [ -d /var/lib/mysql ] ; then
+      sudo rm -rf /var/lib/mysql
+   fi
+   if [ -d /var/db/mysql ] ; then
+      sudo rm -rf /var/db/mysql
+   fi
 
 
 # ###### PostgreSQL #########################################################
 elif [ "$1" == "postgresql" ] ; then
    echo -e "\x1b[34m$(date +"%F %H:%M:%S"): Uninstalling PostgreSQL ...\x1b[0m"
 
-   if [ -x /usr/bin/apt ] ; then
+   if [ "${ID}" == "ubuntu" ] || [ "${ID}" == "debian" ] ; then
       sudo DEBIAN_FRONTEND=noninteractive apt purge -y 'postgresql-*'
-   elif [ -x /usr/bin/dnf ] ; then
+   elif [ "${ID}" == "fedora" ] ; then
       sudo dnf remove -y 'postgresql-*'
-   elif [ -x /usr/sbin/pkg ] ; then
+   elif [ "${ID}" == "freebsd" ] ; then
+      sudo service postgresql stop || true
       sudo pkg remove -y 'postgresql*-*' || true
+   else
+      echo >&2 "ERROR: Unknown ID ${ID} in /etc/os-release. The installation script may need an update for supporting this system!"
+      exit 1
    fi
 
-   sudo rm -rf /var/lib/postgresql/*
-   sudo rmdir /var/lib/postgresql || true
+   if [ -d /var/lib/postgresql ] ; then
+      sudo rm -rf /var/lib/postgresql
+   fi
+   if [ -d /var/lib/pgsql ] ; then
+      sudo rm -rf /var/lib/pgsql
+   fi
+   if [ -d /var/db/postgres ] ; then
+      sudo rm -rf /var/db/postgres
+   fi
 
 
 # ###### MongoDB ############################################################
 elif [ "$1" == "mongodb" ] ; then
    echo -e "\x1b[34m$(date +"%F %H:%M:%S"): Uninstalling MongoDB ...\x1b[0m"
 
-   if [ -x /usr/bin/apt ] ; then
+   if [ "${ID}" == "ubuntu" ] || [ "${ID}" == "debian" ] ; then
       sudo DEBIAN_FRONTEND=noninteractive apt purge -y 'mongodb-*'
-   elif [ -x /usr/bin/dnf ] ; then
+   elif [ "${ID}" == "fedora" ] ; then
       sudo dnf remove -y 'mongodb-*'
-   elif [ -x /usr/sbin/pkg ] ; then
+   elif [ "${ID}" == "freebsd" ] ; then
+      sudo service mongod stop || true
       sudo pkg remove -y 'mongodb*' || true
+      sudo npm uninstall mongosh || true
+      sudo rm -f /usr/local/etc/mongodb.conf || true
+   else
+      echo >&2 "ERROR: Unknown ID ${ID} in /etc/os-release. The installation script may need an update for supporting this system!"
+      exit 1
    fi
 
-   sudo rm -rf /var/lib/mongodb/*
-   sudo rmdir /var/lib/mongodb || true
+   if [ -d /var/lib/mongodb ] ; then
+      sudo rm -rf /var/lib/mongodb
+   fi
 
 # ###### Error ##############################################################
 else

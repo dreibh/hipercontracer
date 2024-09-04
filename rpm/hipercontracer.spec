@@ -21,8 +21,6 @@ BuildRequires: mongo-c-driver-devel
 BuildRequires: openssl-devel
 BuildRequires: xz-devel
 BuildRequires: zlib-devel
-# Not provided by Fedora:
-# BuildRequires: mysql-connector-c++-devel
 BuildRoot: %{_tmppath}/%{name}-%{version}-build
 
 # TEST ONLY:
@@ -40,8 +38,7 @@ imported into an SQL or NoSQL database.
 
 %build
 # NOTE: CMAKE_VERBOSE_MAKEFILE=OFF for reduced log output!
-# NOTE: ENABLE_BACKEND_MARIADB=OFF, since mysql-connector-c++ is not provided by Fedora.
-%cmake -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_VERBOSE_MAKEFILE=OFF .
+%cmake -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_VERBOSE_MAKEFILE=OFF -DWITH_STATIC_LIBRARIES=ON -DWITH_SHARED_LIBRARIES=ON .
 %cmake_build
 
 %pre
@@ -80,6 +77,9 @@ rmdir /var/hipercontracer >/dev/null 2>&1 || true
 %{_datadir}/doc/hipercontracer/examples/README.md
 %{_datadir}/doc/hipercontracer/examples/r-ping-example
 %{_datadir}/doc/hipercontracer/examples/r-traceroute-example
+%{_sysconfdir}/hipercontracer/hipercontracer-12345678.conf
+/lib/systemd/system/hipercontracer.service
+/lib/systemd/system/hipercontracer@.service
 
 
 %package libhipercontracer
@@ -167,7 +167,7 @@ own programs.
 %{_includedir}/universalimporter/database-statement.h
 %{_includedir}/universalimporter/databaseclient-base.h
 %{_includedir}/universalimporter/databaseclient-debug.h
-# universalimporter/databaseclient-mariadb.h
+%{_includedir}/universalimporter/databaseclient-mariadb.h
 %{_includedir}/universalimporter/databaseclient-mongodb.h
 %{_includedir}/universalimporter/databaseclient-postgresql.h
 %{_includedir}/universalimporter/importer-configuration.h
@@ -220,6 +220,30 @@ and HiPerConTracer Query Tool.
 %{_mandir}/man1/dbshell.1.gz
 
 
+%package hipercontracer-sync-tool
+Summary: HiPerConTracer Synchronisation Tool to RSync results to a central server
+Group: Applications/Database
+Recommends: %{name} = %{version}-%{release}
+Recommends: %{name}-dbshell = %{version}-%{release}
+Recommends: %{name}-results = %{version}-%{release}
+
+%description hipercontracer-sync-tool
+High-Performance Connectivity Tracer (HiPerConTracer) is a
+Ping/Traceroute service. It performs regular Ping and Traceroute runs
+among sites. The results are written to data files, which can be
+imported into an SQL or NoSQL database.
+This package contains a simple synchronisation tool to run RSync
+synchronisation of data to a central collection server.
+
+
+%files hipercontracer-sync-tool
+%{_bindir}/hpct-sync
+%{_mandir}/man1/hpct-sync.1.gz
+%{_sysconfdir}/hipercontracer/hpct-sync.conf
+/lib/systemd/system/hpct-sync.service
+/lib/systemd/system/hpct-sync.timer
+
+
 %package hipercontracer-importer
 Summary: HiPerConTracer results data importer
 Group: Applications/Database
@@ -256,7 +280,7 @@ HiPerConTracer into an SQL or NoSQL database.
 %{_datadir}/doc/hipercontracer/examples/SQL/postgresql-schema.sql
 %{_datadir}/doc/hipercontracer/examples/SQL/postgresql-test.sql
 %{_datadir}/doc/hipercontracer/examples/SQL/postgresql-users.sql
-%{_datadir}/doc/hipercontracer/examples/TestDB/0-make-users.conf
+%{_datadir}/doc/hipercontracer/examples/TestDB/0-make-configurations
 %{_datadir}/doc/hipercontracer/examples/TestDB/1-install-database
 %{_datadir}/doc/hipercontracer/examples/TestDB/2-initialise-database
 %{_datadir}/doc/hipercontracer/examples/TestDB/3-test-database
@@ -269,7 +293,7 @@ HiPerConTracer into an SQL or NoSQL database.
 %{_datadir}/doc/hipercontracer/examples/TestDB/generate-test-certificates
 %{_datadir}/doc/hipercontracer/examples/TestDB/run-full-test
 %{_datadir}/doc/hipercontracer/examples/TestDB/test-tls-connection
-%{_datadir}/doc/hipercontracer/examples/TestDB/users.conf.example
+%{_datadir}/doc/hipercontracer/examples/TestDB/hpct-users.conf.example
 %{_datadir}/doc/hipercontracer/examples/hipercontracer-database.conf
 %{_datadir}/doc/hipercontracer/examples/hipercontracer-importer.conf
 %{_sysconfdir}/hipercontracer/hpct-importer.conf

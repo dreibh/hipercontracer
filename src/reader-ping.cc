@@ -135,7 +135,8 @@ void PingReader::parseContents(
 
    std::string inputLine;
    std::string tuple[PingMaxColumns];
-   const ReaderTimePoint now = ReaderClock::now();
+   const ReaderTimePoint now =
+      ReaderClock::now() + ReaderClockOffsetFromSystemTime;
    while(std::getline(dataStream, inputLine)) {
 
       // ====== Format identifier ===========================================

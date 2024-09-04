@@ -1,4 +1,38 @@
-#!/bin/bash
+#!/usr/bin/env bash
+#  =================================================================
+#           #     #                 #     #
+#           ##    #   ####   #####  ##    #  ######   #####
+#           # #   #  #    #  #    # # #   #  #          #
+#           #  #  #  #    #  #    # #  #  #  #####      #
+#           #   # #  #    #  #####  #   # #  #          #
+#           #    ##  #    #  #   #  #    ##  #          #
+#           #     #   ####   #    # #     #  ######     #
+#
+#        ---   The NorNet Testbed for Multi-Homed Systems  ---
+#                        https://www.nntb.no
+#  =================================================================
+#
+#  High-Performance Connectivity Tracer (HiPerConTracer)
+#  Copyright (C) 2015-2024 by Thomas Dreibholz
+#
+#  This program is free software: you can redistribute it and/or modify
+#  it under the terms of the GNU General Public License as published by
+#  the Free Software Foundation, either version 3 of the License, or
+#  (at your option) any later version.
+#
+#  This program is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
+#
+#  You should have received a copy of the GNU General Public License
+#  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+#  Contact: dreibh@simula.no
+
+# Bash options:
+set -e
+
 
 # Copy configuration from dbtest VM:
 if [ $# -ne 1 ] ; then
@@ -14,13 +48,11 @@ fi
 
 echo -e "\x1b[34mCopying database access configuration from test server ...\x1b[0m"
 
-scp ${USER}@${SERVER}:importer.conf ${HOME}/ && \
-scp ${USER}@${SERVER}:testdb-*.conf ${HOME}/ && \
-scp ${USER}@${SERVER}:/etc/ssl/TestLevel1/certs/TestLevel1.crt ${HOME}/ && \
-scp ${USER}@${SERVER}:/etc/ssl/TestGlobal.crl ${HOME}/
-sed -e "s/^\(dbserver[ \t]*\)=.*\$/\1= ${SERVER}/g" \
-    -e "s#^\(dbcafile[ \t]*\)=.*\$#\1= ${HOME}/TestLevel1.crt#g" \
-    -e "s#^\(dbcrlfile[ \t]*\)=.*\$#\1= ${HOME}/TestGlobal.crl#g" \
-    -i ${HOME}/testdb-*.conf
+rsync -v "${USER}@${SERVER}":*.{conf,crt,crl,pem} "${HOME}/" || true
+
+# -e "s/^\(dbserver[ \t]*\)=.*\$/\1= ${SERVER}/g"
+sed -e "s#^\(dbcafile[ \t]*\)=[[:space:]]*/home/${USER}/\(.*\)#\1= ${HOME}/\2#g" \
+    -e "s#^\(dbcrlfile[ \t]*\)=[[:space:]]*/home/${USER}/\(.*\)#\1= ${HOME}/\2#g" \
+    -i "${HOME}"/*.conf
 
 echo -e "\x1b[34mDone!\x1b[0m"
