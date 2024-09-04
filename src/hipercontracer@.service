@@ -1,0 +1,65 @@
+#  =================================================================
+#           #     #                 #     #
+#           ##    #   ####   #####  ##    #  ######   #####
+#           # #   #  #    #  #    # # #   #  #          #
+#           #  #  #  #    #  #    # #  #  #  #####      #
+#           #   # #  #    #  #####  #   # #  #          #
+#           #    ##  #    #  #   #  #    ##  #          #
+#           #     #   ####   #    # #     #  ######     #
+#
+#        ---   The NorNet Testbed for Multi-Homed Systems  ---
+#                        https://www.nntb.no
+#  =================================================================
+#
+#  High-Performance Connectivity Tracer (HiPerConTracer)
+#  Copyright (C) 2015-2024 by Thomas Dreibholz
+#
+#  This program is free software: you can redistribute it and/or modify
+#  it under the terms of the GNU General Public License as published by
+#  the Free Software Foundation, either version 3 of the License, or
+#  (at your option) any later version.
+#
+#  This program is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
+#
+#  You should have received a copy of the GNU General Public License
+#  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+#  Contact: dreibh@simula.no
+
+[Unit]
+Description=HiPerConTracer
+Documentation=man:hipercontracer(1)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+# User will be changed to "hipercontracer" after startup!
+User=root
+Group=hipercontracer
+WorkingDirectory=/var/hipercontracer
+EnvironmentFile=/etc/hipercontracer/hipercontracer-%i.conf
+
+ExecStart=/usr/bin/hipercontracer \
+   --user hipercontracer \
+   --loglevel ${LOGLEVEL} \
+   --measurement-id %i \
+   --results-directory /var/hipercontracer \
+   ${HPCT_OPTIONS}
+
+KillSignal=SIGINT
+KillMode=control-group
+TimeoutStopSec=60
+Restart=on-failure
+RestartSec=60
+
+PrivateNetwork=no
+PrivateTmp=yes
+InaccessibleDirectories=/home
+CapabilityBoundingSet=
+
+[Install]
+WantedBy=default.target
