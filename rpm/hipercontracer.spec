@@ -204,6 +204,7 @@ Summary: HiPerConTracer results data dbshell
 Group: Applications/Database
 Requires: %{name}-libuniversaldbshell = %{version}-%{release}
 Recommends: %{name} = %{version}-%{release}
+BuildArch: noarch
 
 %description hipercontracer-dbshell
 High-Performance Connectivity Tracer (HiPerConTracer) is a
@@ -223,9 +224,13 @@ and HiPerConTracer Query Tool.
 %package hipercontracer-sync-tool
 Summary: HiPerConTracer Synchronisation Tool to RSync results to a central server
 Group: Applications/Database
+Requires: openssh-clients
 Recommends: %{name} = %{version}-%{release}
 Recommends: %{name}-dbshell = %{version}-%{release}
 Recommends: %{name}-results = %{version}-%{release}
+Requires: openssh-clients
+Requires: rsync
+BuildArch: noarch
 
 %description hipercontracer-sync-tool
 High-Performance Connectivity Tracer (HiPerConTracer) is a
