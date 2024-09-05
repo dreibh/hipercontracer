@@ -141,7 +141,8 @@ Description: HiPerConTracer Database Shell for access testing to a database
 
 Package: hipercontracer-sync-tool
 Architecture: all
-Depends: rsync,
+Depends: openssh-client,
+         rsync,
          ${misc:Depends}
 Recommends: hipercontracer,
             hipercontracer-results-tool
