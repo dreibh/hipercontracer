@@ -52,8 +52,8 @@ int main(int argc, char** argv)
    bool        success    = false;
    const char* digestName = "SHA256";
    for(int i = 2; i < argc; i++) {
-      if( ((strcmp(argv[i], "-D")) || (strcmp(argv[i], "--digest"))) && (i + 1 < argc) ) {
-         digestName = argv[++i];
+      if( (strcmp(argv[i], "-D")) || (strcmp(argv[i], "--digest")) ) {
+         digestName = (i + 1 < argc) ? argv[++i] : "";
       }
       else {
          std::cerr << "ERROR: Invalid option " << argv[i] << "!\n";
