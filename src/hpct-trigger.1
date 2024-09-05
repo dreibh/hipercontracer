@@ -27,51 +27,57 @@
 .\" ###### Synopsis #########################################################
 .Sh SYNOPSIS
 .Nm hpct-trigger
-.Op \-P|\-\-ping
-.Op \-T|\-\-traceroute
-.\" .Op \-J|\-\-jitter
-.Op \-L|\-\-loglevel level
-.Op \-Z|\-\-logcolor on|off
-.Op \-O|\-\-logfile file
-.Op \-q|\-\-quiet
-.Op \-v|\-\-verbose
-.Op \-U|\-\-user user|uid
-.Op \-#|\-\-measurement-id identifier
-.Op \-S|\-\-source address|hostname[,traffic_class[,...]]
-.Op \-D|\-\-destination address|hostname
-.Op \-\-sources-from-file file
-.Op \-\-destinations-from-file file
-.Op \-M|\-\-iomodule ICMP|UDP
-.Op \-\-tracerouteinterval milliseconds
-.Op \-\-tracerouteduration milliseconds
-.Op \-\-tracerouterounds rounds
-.Op \-\-tracerouteinitialmaxttl value
-.Op \-\-traceroutefinalmaxttl value
-.Op \-\-tracerouteincrementmaxttl value
-.Op \-\-traceroutepacketsize bytes
-.Op \-\-tracerouteudpsourceport port
-.Op \-\-tracerouteudpdestinationport port
-.Op \-\-pinginterval milliseconds
-.Op \-\-pingexpiration milliseconds
-.Op \-\-pingburst packets
-.Op \-\-pingttl value
-.Op \-\-pingpacketsize bytes
-.Op \-\-pingudpsourceport port
-.Op \-\-pingudpdestinationport port
-.\" .Op \-\-jitterinterval milliseconds
-.\" .Op \-\-jitterintervaldeviation fraction
-.\" .Op \-\-jitterexpiration milliseconds
-.\" .Op \-\-jitterburst packets
-.\" .Op \-\-jitterttl value
-.\" .Op \-\-jitterpacketsize bytes
-.\" .Op \-\-jitterrecordraw
-.\" .Op \-\-jitterudpsourceport port
-.\" .Op \-\-jitterudpdestinationport port
-.Op \-R|\-\-resultsdirectory directory
-.Op \-x|\-\-resultstransactionlength seconds
-.Op \-C|\-\-resultscompression none|XZ|BZip2|GZip
-.Op \-F|\-\-resultsformat version
-.Op \-\-check
+.Op Fl Fl pingtriggerage Ar seconds
+.Op Fl Fl pingtriggerlength Ar payload_length
+.Op Fl Fl pingsbeforequeuing Ar count
+.Op Fl P | Fl Fl ping
+.Op Fl T | Fl Fl traceroute
+.\" .Op Fl J | Fl Fl jitter
+.Op Fl L Ar level | Fl Fl loglevel Ar level
+.Op Fl Z Ar on|off | Fl Fl logcolor Ar on|off
+.Op Fl O Ar file | Fl Fl logfile Ar file
+.Op Fl q | Fl Fl quiet
+.Op Fl v | Fl Fl verbose
+.Op Fl U Ar user|uid |  Fl Fl user Ar user|uid
+.Op Fl # Ar identifier |  Fl Fl measurement-id Ar identifier
+.Op Fl S Ar address|hostname[,traffic_class[,...]] | Fl Fl source Ar address|hostname[,traffic_class[,...]]
+.Op Fl D Ar address|hostname | Fl Fl destination Ar address|hostname
+.Op Fl Fl sources-from-file Ar file
+.Op Fl Fl destinations-from-file Ar file
+.Op Fl M Ar ICMP|UDP | Fl Fl iomodule Ar ICMP|UDP
+.Op Fl Fl iterations Ar number_of_iterations
+.Op Fl Fl tracerouteinterval Ar milliseconds
+.Op Fl Fl tracerouteintervaldeviation Ar fraction
+.Op Fl Fl tracerouteduration Ar milliseconds
+.Op Fl Fl tracerouterounds Ar rounds
+.Op Fl Fl tracerouteinitialmaxttl Ar value
+.Op Fl Fl traceroutefinalmaxttl Ar value
+.Op Fl Fl tracerouteincrementmaxttl Ar value
+.Op Fl Fl traceroutepacketsize Ar bytes
+.Op Fl Fl tracerouteudpsourceport Ar port
+.Op Fl Fl tracerouteudpdestinationport Ar port
+.Op Fl Fl pinginterval Ar milliseconds
+.Op Fl Fl pingintervaldeviation Ar fraction
+.Op Fl Fl pingexpiration Ar milliseconds
+.Op Fl Fl pingburst Ar packets
+.Op Fl Fl pingttl Ar value
+.Op Fl Fl pingpacketsize Ar bytes
+.Op Fl Fl pingudpsourceport Ar port
+.Op Fl Fl pingudpdestinationport Ar port
+.\" .Op Fl Fl jitterinterval Ar milliseconds
+.\" .Op Fl Fl jitterintervaldeviation Ar fraction
+.\" .Op Fl Fl jitterexpiration Ar milliseconds
+.\" .Op Fl Fl jitterburst Ar packets
+.\" .Op Fl Fl jitterttl Ar value
+.\" .Op Fl Fl jitterpacketsize Ar bytes
+.\" .Op Fl Fl jitterrecordraw
+.\" .Op Fl Fl jitterudpsourceport Ar port
+.\" .Op Fl Fl jitterudpdestinationport Ar port
+.Op Fl R Ar directory | Fl Fl resultsdirectory Ar directory
+.Op Fl x Ar seconds | Fl Fl resultstransactionlength Ar seconds
+.Op Fl C Ar none|XZ|BZip2|GZip | Fl Fl resultscompression Ar none|XZ|BZip2|GZip
+.Op Fl F Ar version | Fl Fl resultsformat Ar version
+.Op Fl Fl check
 .\" ###### Description ######################################################
 .Sh DESCRIPTION
 .Nm hpct-trigger
@@ -84,11 +90,11 @@ address.
 .Sh ARGUMENTS
 The following arguments may be provided:
 .Bl -tag -width indent
-.It \-\-pingtriggerage seconds
+.It Fl Fl pingtriggerage Ar seconds
 Sets the maximum number of seconds between two trigger "Pings" (default: 300).
-.It \-\-pingtriggerlength payload_length
+.It Fl Fl pingtriggerlength Ar payload_length
 Sets the "Ping" payload length to trigger HiPerConTracer (default: 53).
-.It \-\-pingsbeforequeuing count
+.It Fl Fl pingsbeforequeuing Ar count
 Sets the number of observed "Ping" packets before triggering HiPerConTracer
 (default: 3).
 .El
