@@ -27,14 +27,14 @@
 .\" ###### Synopsis #########################################################
 .Sh SYNOPSIS
 .Nm hpct-sync
-.Op \-h|\-\-help
-.Op \-v|\-\-verbose
-.Op \-q|\-\-quiet
-.Op \-N|\-\-nodeid NODE_ID
-.Op \-L|\-\-local LOCAL_DIRECTORY
-.Op \-R|\-\-remote REMOTE_LOCATION
-.Op \-K|\-\-key SSH_PRIVATE_KEY_FILE
-.Op \-H|\-\-known-hosts SSH_KNOWN_HOSTS_FILE
+.Op Fl h | Fl Fl help
+.Op Fl v | Fl Fl verbose
+.Op Fl q | Fl Fl quiet
+.Op Fl N Ar node_id | Fl Fl nodeid Ar node_id
+.Op Fl L Ar local_directory | Fl Fl local Ar local_directory
+.Op Fl R Ar remote_location | Fl Fl remote Ar remote_location
+.Op Fl K Ar ssh_private_key_file | Fl Fl key Ar ssh_private_key_file
+.Op Fl H Ar ssh_known_hosts_file| Fl Fl known-hosts Ar ssh_known_hosts_file
 .\" ###### Description ######################################################
 .Sh DESCRIPTION
 .Nm hpct-sync
@@ -44,23 +44,21 @@ is the HiPerConTracer synchroniser application.
 .Sh ARGUMENTS
 The following arguments may be provided:
 .Bl -tag -width indent
-.It \-h|\-\-help
+.It Fl h | Fl Fl help
 Prints command help.
-.It \-q|\--quiet
+.It Fl q | Fl Fl quiet
 Turns off status output.
-.It \-v|\--verbose
+.It Fl v | Fl Fl verbose
 Turns on status output.
-.It \-N|\-\-nodeid NODE_ID
+.It Fl N Ar node_id | Fl Fl nodeid Ar node_id
 Sets the node ID, a number from 1 to 9999.
-.It \-L|\-\-local LOCAL_DIRECTORY
+.It Fl L Ar local_directory | Fl Fl local Ar local_directory
 Sets the local data directory. Default: /var/hipercontracer.
-.It \-R|\-\-remote REMOTE_LOCATION
+.It Fl R Ar remote_location | Fl Fl remote Ar remote_location
 Sets the remote data directory on the collector. Default: /var/hipercontracer.
-.It \-R|\-\-collector COLLECTOR
-Sets the collector (hostname or address).
-.It \-K|\-\-key SSH_PRIVATE_KEY_FILE
+.It Fl K Ar ssh_private_key_file | Fl Fl key Ar ssh_private_key_file
 Sets the SSH private key file used for authentication. Default: /var/hipercontracer/ssh/id_ed25519.
-.It \-H|\-\-known-hosts SSH_KNOWN_HOSTS_FILE
+.It Fl H Ar ssh_known_hosts_file| Fl Fl known-hosts Ar ssh_known_hosts_file
 Sets the SSH known hosts file. Default: /var/hipercontracer/ssh/known_hosts.
 .El
 .\" ###### Examples #########################################################
