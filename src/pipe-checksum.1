@@ -28,7 +28,7 @@
 .Sh SYNOPSIS
 .Nm pipe-checksum
 file
-.Op \-\-digest=MD5|SHA1|SHA256|SHA384|SHA512|...
+.Op Fl D Ar MD5|SHA1|SHA256|SHA384|SHA512|... | Fl Fl digest Ar MD5|SHA1|SHA256|SHA384|SHA512|...
 .\" ###### Description ######################################################
 .Sh DESCRIPTION
 .Nm pipe-checksum
@@ -43,7 +43,7 @@ for comparison.
 .Sh ARGUMENTS
 The following arguments may be provided:
 .Bl -tag -width indent
-.It \-\-digest=MD5|SHA1|SHA256|SHA384|SHA512|...
+.It Fl D Ar MD5|SHA1|SHA256|SHA384|SHA512|... | Fl Fl digest Ar MD5|SHA1|SHA256|SHA384|SHA512|...
 Sets the message digest. Any digest supported by the underlying libcrypto
 library is possible. Default: SHA256.
 .El
@@ -52,9 +52,9 @@ library is possible. Default: SHA256.
 .Bl -tag -width indent
 .It date | pipe-checksum date.txt
 .It sha256sum --check date.txt.checksum
-.It date | pipe-checksum date.txt --digest=SHA384
+.It date | pipe-checksum date.txt --digest SHA384
 .It dd if=/dev/urandom bs=12345 count=67 | hexdump | pipe-checksum random.txt
-.It dd if=/dev/urandom bs=12345 count=67 | pipe-checksum random.txt --digest=SHA512
+.It dd if=/dev/urandom bs=12345 count=67 | pipe-checksum random.txt --digest SHA512
 .It sha512sum --check random.txt.checksum
 .El
 .\" ###### Authors ##########################################################
