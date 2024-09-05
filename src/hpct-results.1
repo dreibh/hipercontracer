@@ -28,7 +28,7 @@
 .Sh SYNOPSIS
 .Nm hpct-results
 input_file ...
-.Op Fl L Ar level| Fl Fl loglevel Ar level
+.Op Fl L Ar level | Fl Fl loglevel Ar level
 .Op Fl Z Ar on|off | Fl Fl logcolor Ar on|off
 .Op Fl O Ar file | Fl Fl logfile Ar file
 .Op Fl q | Fl Fl quiet
@@ -59,14 +59,15 @@ The following argument may be provided:
 A HiPerConTracer results file. Multiple files may be provided, they results will be joined.
 .It Fl L Ar level | Fl Fl loglevel Ar level
 Sets the minimum logging level to the provided value: 0=trace, 1=debug, 2=info, 3=warning, 4=error, 5=fatal.
+.It Fl Z Ar on|off | Fl Fl logcolor Ar on|off
+Enables (on) or disables (off) the usage of ANSI color escape sequences to colorise the log output according to its level.
+.It Fl O Ar file | Fl Fl logfile Ar file
+Sets a file name for appending the log output to. If a file is set, no log output is made to the console.
+Otherwise, all log output will be written to the console.
 .It Fl q | Fl Fl quiet
 Sets the minimum logging level to 3 (warning).
 .It Fl v | Fl Fl verbose
 Sets the minimum logging level to 0 (trace).
-.It Fl Z Ar on|off | Fl Fl logcolor Ar on|off
-Enables (on) or disables (off) the usage of ANSI color escape sequences to colorise the log output according to its level.
-.It Fl O Ar file | Fl Fl logfile Ar file
-Sets a file name for appending the log output to. If a file is set, no log output is made to the console. Otherwise, all log output will be written to the console.
 .It Fl o Ar filename | Fl Fl output Ar filename
 Sets the specified filename as output file. Extensions \.gz, \.bz2, and \.xz are recognised to enable compression.
 .It Fl s Ar character | Fl Fl separator Ar character
@@ -82,7 +83,7 @@ Sets the maximum number of threads. By default, it is the number of CPU cores.
 Read the results from standard input.
 .It Fl N | Fl Fl input-file-names-from-stdin
 Read the input file names from standard input.
-.It Fl F | Fl Fl input-file-names-from-file file
+.It Fl F Ar file | Fl Fl input-file-names-from-file Ar file
 Read the input file names from file. The option may be provided multiple times to read from multiple files.
 .El
 .\" ###### Arguments ########################################################
