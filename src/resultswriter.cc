@@ -143,12 +143,14 @@ bool ResultsWriter::changeFile(const bool createNewFile)
             default:
              break;
          }
-         const std::string name = UniqueID + str(boost::format("-%09d.results%s") % SeqNumber % extension);
+         const std::string name = UniqueID +
+            str(boost::format("-%09d.results%s") % SeqNumber % extension);
          std::filesystem::path targetPath =
             Directory /
-               makeDirectoryHierarchy<ResultTimePoint>(std::filesystem::path(),
-                                                       name, ResultClock::now(),
-                                                       0, TimestampDepth);
+               makeDirectoryHierarchy<std::chrono::system_clock::time_point>(
+                  std::filesystem::path(),
+                  name, std::chrono::system_clock::now(),
+                  0, TimestampDepth);
          TargetFileName = targetPath / name;
          TempFileName   = TargetFileName;
          TempFileName += ".tmp";
@@ -156,7 +158,8 @@ bool ResultsWriter::changeFile(const bool createNewFile)
             std::filesystem::create_directories(targetPath);
          }
          catch(std::filesystem::filesystem_error& e) {
-            HPCT_LOG(warning) << "Creating directory hierarchy " << targetPath << " failed: " << e.what();
+            HPCT_LOG(warning) << "Creating directory hierarchy " << targetPath
+                              << " failed: " << e.what();
             return false;
          }
          OutputFile.open(TempFileName.c_str(), std::ios_base::out | std::ios_base::binary);
