@@ -33,12 +33,12 @@
 #define RESULTSWRITER_H
 
 #include <chrono>
+#include <filesystem>
 #include <fstream>
 #include <set>
 #include <string>
 
 #include <boost/asio/ip/address.hpp>
-#include <boost/filesystem.hpp>
 #include <boost/iostreams/filtering_stream.hpp>
 
 
@@ -90,7 +90,7 @@ class ResultsWriter
    protected:
    const std::string                     ProgramID;
    const unsigned int                    MeasurementID;
-   const boost::filesystem::path         Directory;
+   const std::filesystem::path           Directory;
    const std::string                     Prefix;
    const unsigned int                    TransactionLength;
    const uid_t                           UID;
@@ -98,8 +98,8 @@ class ResultsWriter
    const ResultsWriterCompressor         Compressor;
 
    std::string                           UniqueID;
-   boost::filesystem::path               TempFileName;
-   boost::filesystem::path               TargetFileName;
+   std::filesystem::path                 TempFileName;
+   std::filesystem::path                 TargetFileName;
    size_t                                Inserts;
    unsigned long long                    SeqNumber;
    std::ofstream                         OutputFile;

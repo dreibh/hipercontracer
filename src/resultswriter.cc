@@ -31,6 +31,8 @@
 
 #include "resultswriter.h"
 #include "logger.h"
+#include "tools.h"
+#include "resultentry.h"
 
 #include <unistd.h>
 
@@ -88,9 +90,9 @@ void ResultsWriter::specifyOutputFormat(const std::string& outputFormatName,
 bool ResultsWriter::prepare()
 {
    try {
-      const boost::filesystem::path tempDirectory = Directory / "tmp";
-      boost::filesystem::create_directory(Directory);
-      boost::filesystem::create_directory(tempDirectory);
+      const std::filesystem::path tempDirectory = Directory / "tmp";
+      std::filesystem::create_directory(Directory);
+      std::filesystem::create_directory(tempDirectory);
       const int r1 = chown(Directory.string().c_str(), UID, GID);
       const int r2 = chown(tempDirectory.string().c_str(), UID, GID);
       if(r1 || r2) {
@@ -100,7 +102,7 @@ bool ResultsWriter::prepare()
    }
    catch(std::exception const& e) {
       HPCT_LOG(error) << "Unable to prepare directories - " << e.what();
-      return(false);
+      return false;
    }
    return(changeFile());
 }
@@ -116,11 +118,11 @@ bool ResultsWriter::changeFile(const bool createNewFile)
       try {
          if(Inserts == 0) {
             // empty file -> just remove it!
-            boost::filesystem::remove(TempFileName);
+            std::filesystem::remove(TempFileName);
          }
          else {
             // file has contents -> move it!
-            boost::filesystem::rename(TempFileName, TargetFileName);
+            std::filesystem::rename(TempFileName, TargetFileName);
          }
       }
       catch(std::exception const& e) {
@@ -148,8 +150,24 @@ bool ResultsWriter::changeFile(const bool createNewFile)
              break;
          }
          const std::string name = UniqueID + str(boost::format("-%09d.results%s") % SeqNumber % extension);
-         TempFileName   = Directory / "tmp" / ("tmp-" + name);
-         TargetFileName = Directory / name;
+         std::filesystem::path targetPath =
+            Directory /
+               makeDirectoryHierarchy<ResultTimePoint>(std::filesystem::path(),
+                                                       name, ResultClock::now(),
+                                                       0, 5);
+         std::cout << "N1=" <<   targetPath << "\n";
+         TargetFileName = targetPath / name;
+         std::cout << "N2=" <<   TargetFileName << "\n";
+         TempFileName   = TargetFileName;
+         TempFileName += ".tmp";
+         try {
+            std::cout << "CREATE=" <<   targetPath << "\n";
+            std::filesystem::create_directories(TargetFileName);
+         }
+         catch(std::filesystem::filesystem_error& e) {
+            HPCT_LOG(warning) << "Creating directory hierarchy for " << TargetFileName << " failed: " << e.what();
+            return false;
+         }
          OutputFile.open(TempFileName.c_str(), std::ios_base::out | std::ios_base::binary);
          switch(Compressor) {
             case XZ:
@@ -175,10 +193,10 @@ bool ResultsWriter::changeFile(const bool createNewFile)
       }
       catch(std::exception const& e) {
          HPCT_LOG(error) << "ResultsWriter::changeFile() - " << e.what();
-         return(false);
+         return false;
       }
    }
-   return(true);
+   return true;
 }
 
 
@@ -189,7 +207,7 @@ bool ResultsWriter::mayStartNewTransaction()
    if(std::chrono::duration_cast<std::chrono::seconds>(now - OutputCreationTime).count() > TransactionLength) {
       return(changeFile());
    }
-   return(true);
+   return true;
 }
 
 
@@ -242,5 +260,5 @@ ResultsWriter* ResultsWriter::makeResultsWriter(std::set<ResultsWriter*>&       
       }
       delete resultsWriter;
    }
-   return(nullptr);
+   return nullptr;
 }
