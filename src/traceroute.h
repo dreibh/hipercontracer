@@ -48,16 +48,6 @@
 class ICMPHeader;
 
 
-enum OutputFormatVersionType
-{
-   OFT_HiPerConTracer_Version1 = 1,
-   OFT_HiPerConTracer_Version2 = 2,
-
-   OFT_Min = OFT_HiPerConTracer_Version1,
-   OFT_Max = OFT_HiPerConTracer_Version2
-};
-
-
 struct TracerouteParameters
 {
    unsigned long long Interval;
@@ -91,6 +81,7 @@ class Traceroute : public Service
    virtual bool addDestination(const DestinationInfo& destination);
 
    virtual const std::string& getName() const;
+   virtual bool prepare(const bool privileged);
    virtual bool start();
    virtual void requestStop();
    virtual bool joinable();
@@ -139,10 +130,6 @@ class Traceroute : public Service
                                    uint16_t&          checksumCheck);
 
    const std::string                       TracerouteInstanceName;
-   ResultsWriter*                          ResultsOutput;
-   const std::string                       OutputFormatName;
-   const OutputFormatVersionType           OutputFormatVersion;
-   const unsigned int                      Iterations;
    const bool                              RemoveDestinationAfterRun;
    const TracerouteParameters              Parameters;
    boost::asio::io_service                 IOService;
