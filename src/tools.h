@@ -219,19 +219,19 @@ template <typename TimePoint> bool stringToTimePoint(
 // Example:
 // dataFile="4133/udpping/2024-06-12/uping_10382.dat.2024-06-12_13-10-22.xz"
 // timestamp=(2024-06-12 13:10:22)
-// directoryLevels=0 timestampLevels=5 -> "2024/06/11/15:00"
+// directoryLevels=0 timestampLevels=5 -> "2024/06/11/15:10"
 // directoryLevels=0 timestampLevels=4 -> "2024/06/11/15:00"
 // directoryLevels=0 timestampLevels=3 -> "2024/06/11"
 // directoryLevels=0 timestampLevels=2 -> "2024/06"
 // directoryLevels=0 timestampLevels=1 -> "2024"
 // directoryLevels=0 timestampLevels=0 -> ""
-// directoryLevels=1 timestampLevels=5 -> "4133/2024/06/11/15:00"
+// directoryLevels=1 timestampLevels=5 -> "4133/2024/06/11/15:10"
 // directoryLevels=1 timestampLevels=4 -> "4133/2024/06/11/15:00"
 // directoryLevels=1 timestampLevels=3 -> "4133/2024/06/11"
 // directoryLevels=1 timestampLevels=2 -> "4133/2024/06"
 // directoryLevels=1 timestampLevels=1 -> "4133/2024"
 // directoryLevels=1 timestampLevels=0 -> "4133"
-// directoryLevels=2 timestampLevels=5 -> "4133/udpping/2024/06/11/15:00"
+// directoryLevels=2 timestampLevels=5 -> "4133/udpping/2024/06/11/15:10"
 // directoryLevels=2 timestampLevels=4 -> "4133/udpping/2024/06/11/15:00"
 // directoryLevels=2 timestampLevels=3 -> "4133/udpping/2024/06/11"
 // directoryLevels=2 timestampLevels=2 -> "4133/udpping/2024/06"
@@ -251,7 +251,7 @@ template <typename TimePoint>
    const std::filesystem::path relPath =
       std::filesystem::relative(dataFile.parent_path(), basePath, ec);
 
-   if( (!ec) /* && (relPath .has_parent_path())  */ ) {
+   if(!ec) {
       unsigned int d = 0;
       for(std::filesystem::path::const_iterator iterator = relPath.begin(); iterator != relPath.end(); iterator++) {
          if(d++ >= directoryLevels) {
@@ -261,7 +261,6 @@ template <typename TimePoint>
             // First directory is ".": there is no hierarchy -> stop here.
             break;
          }
-         // std::cout << "i=" << (*iterator) << "\t";
          hierarchy = hierarchy / (*iterator);
       }
    }
