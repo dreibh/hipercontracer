@@ -36,11 +36,15 @@ set -o errexit
 
 
 if [ $# -ne 2 ] ; then
-   echo >&2 "Usage: $0 template.conf generated.conf"
+   echo >&2 "Usage: $0 template-users.conf mydatabase-users.conf"
    exit 1
 fi
 TEMPLATE="$1"
 CONFIG="$2"
+if [[ ! "${CONFIG}" =~ (-users\.conf)$ ]] ; then
+   echo >&2 "ERROR: Name must be <PREFIX>-users.conf!"
+   exit 1
+fi
 
 
 # ====== Generate secure test user passwords ================================
@@ -98,20 +102,13 @@ EOF
 for backend in MariaDB PostgreSQL MongoDB ; do
    host="${backend,,}"
    server="${host}.${DOMAIN}"
-   for user in root maintainer researcher importer ; do
+   for user in ${USERS} ; do
       # shellcheck disable=SC2001
-      name="$(echo "${CONFIG}" | sed -e "s/.users\.conf$/-${user}-${backend,,}.conf/")"
-      if [ "${user}" == "root" ] ; then
-         password="${ROOT_PASSWORD}"
-         if [ "${backend}" == "PostgreSQL" ] ; then
-            user="postgres"   # The PostgreSQL root user is "postgres", not "root"!
-         fi
-      elif [ "${user}" == "maintainer" ] ; then
-         password="${MAINTAINER_PASSWORD}"
-      elif [ "${user}" == "researcher" ] ; then
-         password="${RESEARCHER_PASSWORD}"
-      elif [ "${user}" == "importer" ] ; then
-         password="${IMPORTER_PASSWORD}"
+      name="$(echo "${CONFIG}" | sed -e "s/-users\.conf$/-${user}-${backend,,}.conf/")"
+      passwordVariable="${user^^}_PASSWORD"
+      password="${!passwordVariable}"
+      if [ "${user}" == "root" ] && [ "${backend}" == "PostgreSQL" ] ; then
+         user="postgres"   # The PostgreSQL root user is "postgres", not "root"!
       fi
 
       cat >"${name}" <<EOF
@@ -155,4 +152,5 @@ done
 
 
 # ====== Write DBeaver configuration files ==================================
-../make-dbeaver-configuration ~/"${DATABASE}"-*-*.conf --join
+prefix="$(echo "${CONFIG}" | sed -e "s/-users\.conf$//")"
+../make-dbeaver-configuration "${prefix}"-*-*.conf --join

@@ -1,16 +1,19 @@
-# Set the database user passwords here.
-# Hint: "pwgen -s 128" generates secure ones!
+# 0-make-configurations is going to generate secure passwords by using pwgen.
+# The passwords here are just placeholders.
 
 # Domain for generating hostnames:
 DOMAIN="hipercontracer.test"
-
-# DBMS root:
-ROOT_PASSWORD="!root!"
 
 # Test database:
 DATABASE="test4hpct"
 
 # Users for the test database:
+USERS="root maintainer importer researcher"
+
+# DBMS root user:
+ROOT_PASSWORD="!root!"
+
+# Other users:
 MAINTAINER_PASSWORD="!maintainer!"
 IMPORTER_PASSWORD="!importer!"
 RESEARCHER_PASSWORD="!researcher!"
