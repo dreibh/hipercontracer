@@ -17,7 +17,7 @@
 .\" Contact: thomas.dreibholz@gmail.com
 .\"
 .\" ###### Setup ############################################################
-.Dd September 5, 2024
+.Dd September 17, 2024
 .Dt hipercontracer 1
 .Os hipercontracer
 .\" ###### Name #############################################################
@@ -74,6 +74,7 @@
 .Op Fl x Ar seconds | Fl Fl resultstransactionlength Ar seconds
 .Op Fl C Ar none|XZ|BZip2|GZip | Fl Fl resultscompression Ar none|XZ|BZip2|GZip
 .Op Fl F Ar version | Fl Fl resultsformat Ar version
+.Op Fl z Ar depth | Fl Fl resultstimestampdepth Ar depth
 .Op Fl Fl check
 .\" ###### Description ######################################################
 .Sh DESCRIPTION
@@ -218,6 +219,9 @@ Default: XZ.
 Sets the results file format version.
 Default: 2 (current version). Range (currently): 1-2.
 Note: A future version of HiPerConTracer may increase this default setting!
+.It Fl z Ar depth | Fl Fl resultstimestampdepth Ar depth
+Create a timestamp-based directory hierarchy for the results, of given depth (default: 0).
+0 = none, 1 = year, 2 = year/month, 3 = year/month/day, 4 = year/month/day/hour:00, 5 = year/month/day/hour:00/hour:minute.
 .It Fl Fl check
 Print build environment information for debugging.
 .El
@@ -448,8 +452,8 @@ This entry has been added with HiPerConTracer 2.0.0!
 .Bl -tag -width indent
 .It hipercontracer \-S 10.1.1.51 \-D 10.1.1.6 \-D 10.1.1.7 \-D 10.1.1.8 \-T \-\-tracerouteinterval 10000 \-\-tracerouteduration 1000 \-v
 .It hipercontracer \-\-source 10.1.1.51 \-\-destination 10.1.1.6 \-\-destination 10.1.1.7 \-\-destination 10.1.1.8 \-\-traceroute \-\-tracerouteinterval 10000 \-\-tracerouteduration 1000
-.It hipercontracer \-\-source 172.16.0.127 \-\-destination 8.8.8.8 \-\-destination 193.99.144.80 \-\-destination 132.252.181.87 \-\-destination 10.254.254.254 \-\-destination 91.189.93.5 \-\-destination 128.112.139.90 \-\-destination 4.31.198.44 \-\-destination 136.186.1.10 \-\-destination 101.4.112.170 \-\-destination 77.36.144.2 \-\-source 2a02:270:2014:40:92e2:baff:fe48:bde1 \-\-destination 2400:cb00:2048:1::6814:155 \-\-destination 2a02:2e0:3fe:1001:7777:772e:2:85 \-\-destination 2a00:1450:400f:805::2004 \-\-traceroute \-\-ping \-\-tracerouteduration 1000 \-\-tracerouteinitialmaxttl 4 \-\-traceroutefinalmaxttl 32 \-\-tracerouteincrementmaxttl 4 \-\-pinginterval 1000 \-\-pingexpiration 7500 \-\-pingttl 56 \-\-resultsdirectory results
-.It hipercontracer \-\-source=0.0.0.0,00,AF11 \-\-source=::,BE,EF,AF11 \-\-destination=8.8.8.8 \-\-destination=2606:4700:10::6814:155 \-\-ping \-\-traceroute \-\-tracerouteduration=1000 \-\-tracerouteinitialmaxttl=4 \-\-traceroutefinalmaxttl=32 \-\-tracerouteincrementmaxttl=4 \-\-pinginterval=1000 \-\-pingexpiration=7500 \-\-pingttl=56 \-\-resultsdirectory=/storage/hpct-results \-\-resultstransactionlength=20 \-\-quiet
+.It hipercontracer \-\-source 172.16.0.127 \-\-destination 8.8.8.8 \-\-destination 193.99.144.80 \-\-destination 132.252.181.87 \-\-destination 10.254.254.254 \-\-destination 91.189.93.5 \-\-destination 128.112.139.90 \-\-destination 4.31.198.44 \-\-destination 136.186.1.10 \-\-destination 101.4.112.170 \-\-destination 77.36.144.2 \-\-source 2a02:270:2014:40:92e2:baff:fe48:bde1 \-\-destination 2400:cb00:2048:1::6814:155 \-\-destination 2a02:2e0:3fe:1001:7777:772e:2:85 \-\-destination 2a00:1450:400f:805::2004 \-\-traceroute \-\-ping \-\-tracerouteduration 1000 \-\-tracerouteinitialmaxttl 4 \-\-traceroutefinalmaxttl 32 \-\-tracerouteincrementmaxttl 4 \-\-pinginterval 1000 \-\-pingexpiration 7500 \-\-pingttl 56 \-\-resultsdirectory results \-\-resultstimestampdepth 3
+.It hipercontracer \-\-source=0.0.0.0,00,AF11 \-\-source=::,BE,EF,AF11 \-\-destination=8.8.8.8 \-\-destination=2606:4700:10::6814:155 \-\-ping \-\-traceroute \-\-tracerouteduration=1000 \-\-tracerouteinitialmaxttl=4 \-\-traceroutefinalmaxttl=32 \-\-tracerouteincrementmaxttl=4 \-\-pinginterval=1000 \-\-pingexpiration=7500 \-\-pingttl=56 \-\-resultsdirectory=/storage/hpct-results \-\-resultstransactionlength=20 \-\-resultstimestampdepth=4 \-\-quiet
 .It hipercontracer \-\-user=hipercontracer \-\-source=10.1.1.51 \-\-destination=10.1.1.6 \-\-destination=10.1.1.7 \-\-destination=10.1.1.8 \-\-traceroute \-\-tracerouteinterval=10000 \-\-tracerouteduration=1000
 .It hipercontracer \-\-user=hipercontracer \-\-source=0.0.0.0 \-\-destination=8.8.8.8 \-M ICMP \-\-ping \-\-verbose
 .It hipercontracer \-\-user=hipercontracer \-\-source=0.0.0.0 \-\-source=::\-\-destination=www.ietf.org \-\-iomodule ICMP \-\-ping \-\-verbose

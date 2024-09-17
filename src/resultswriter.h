@@ -59,6 +59,7 @@ class ResultsWriter
                  const std::string&            uniqueID,
                  const std::string&            prefix,
                  const unsigned int            transactionLength,
+                 const unsigned int            timestampDepth,
                  const uid_t                   uid,
                  const gid_t                   gid,
                  const ResultsWriterCompressor compressor);
@@ -83,6 +84,7 @@ class ResultsWriter
                                            const std::string&              resultsPrefix,
                                            const std::string&              resultsDirectory,
                                            const unsigned int              resultsTransactionLength,
+                                           const unsigned int              resultsTimestampDepth,
                                            const uid_t                     uid,
                                            const gid_t                     gid,
                                            const ResultsWriterCompressor   compressor = ResultsWriterCompressor::XZ);
@@ -93,6 +95,7 @@ class ResultsWriter
    const std::filesystem::path           Directory;
    const std::string                     Prefix;
    const unsigned int                    TransactionLength;
+   const unsigned int                    TimestampDepth;
    const uid_t                           UID;
    const gid_t                           GID;
    const ResultsWriterCompressor         Compressor;

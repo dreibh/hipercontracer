@@ -52,6 +52,7 @@ ResultsWriter::ResultsWriter(const std::string&            programID,
                              const std::string&            uniqueID,
                              const std::string&            prefix,
                              const unsigned int            transactionLength,
+                             const unsigned int            timestampDepth,
                              const uid_t                   uid,
                              const gid_t                   gid,
                              const ResultsWriterCompressor compressor)
@@ -60,6 +61,7 @@ ResultsWriter::ResultsWriter(const std::string&            programID,
      Directory(directory),
      Prefix(prefix),
      TransactionLength(transactionLength),
+     TimestampDepth(timestampDepth),
      UID(uid),
      GID(gid),
      Compressor(compressor),
@@ -146,7 +148,7 @@ bool ResultsWriter::changeFile(const bool createNewFile)
             Directory /
                makeDirectoryHierarchy<ResultTimePoint>(std::filesystem::path(),
                                                        name, ResultClock::now(),
-                                                       0, 5);
+                                                       0, TimestampDepth);
          TargetFileName = targetPath / name;
          TempFileName   = TargetFileName;
          TempFileName += ".tmp";
@@ -220,6 +222,7 @@ ResultsWriter* ResultsWriter::makeResultsWriter(std::set<ResultsWriter*>&       
                                                 const std::string&              resultsPrefix,
                                                 const std::string&              resultsDirectory,
                                                 const unsigned int              resultsTransactionLength,
+                                                const unsigned int              resultsTimestampDepth,
                                                 const uid_t                     uid,
                                                 const gid_t                     gid,
                                                 const ResultsWriterCompressor   compressor)
@@ -236,7 +239,7 @@ ResultsWriter* ResultsWriter::makeResultsWriter(std::set<ResultsWriter*>&       
 
       ResultsWriter* resultsWriter =
          new ResultsWriter(programID, measurementID, resultsDirectory, uniqueID,
-                           resultsPrefix, resultsTransactionLength,
+                           resultsPrefix, resultsTransactionLength, resultsTimestampDepth,
                            uid, gid, compressor);
       assert(resultsWriter != nullptr);
       resultsWriterSet.insert(resultsWriter);

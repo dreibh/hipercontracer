@@ -6,6 +6,7 @@ sudo ./hipercontracer \
    -# 12345678 \
    --resultsdirectory results \
    --resultstransactionlength 60 \
+   --resultstimestampdepth=4 \
    --iomodule icmp \
    --source 0.0.0.0 \
    --source :: \

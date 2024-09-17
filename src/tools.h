@@ -268,7 +268,7 @@ template <typename TimePoint>
    if(timestampLevels > 0) {
       const char* format = nullptr;
       if(timestampLevels >= 5) {
-         format = "%Y/%m/%d/%H:%M";
+         format = "%Y/%m/%d/%H:00/%H:%M";
       }
       else if(timestampLevels == 4) {
          format = "%Y/%m/%d/%H:00";

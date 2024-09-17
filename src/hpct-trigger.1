@@ -17,7 +17,7 @@
 .\" Contact: thomas.dreibholz@gmail.com
 .\"
 .\" ###### Setup ############################################################
-.Dd September 5, 2024
+.Dd September 17, 2024
 .Dt hpct-trigger 1
 .Os hpct-trigger
 .\" ###### Name #############################################################
@@ -77,6 +77,7 @@
 .Op Fl x Ar seconds | Fl Fl resultstransactionlength Ar seconds
 .Op Fl C Ar none|XZ|BZip2|GZip | Fl Fl resultscompression Ar none|XZ|BZip2|GZip
 .Op Fl F Ar version | Fl Fl resultsformat Ar version
+.Op Fl z Ar depth | Fl Fl resultstimestampdepth Ar depth
 .Op Fl Fl check
 .\" ###### Description ######################################################
 .Sh DESCRIPTION
@@ -105,7 +106,7 @@ format.
 .Bl -tag -width indent
 .It hpct-trigger \-\-source 10.1.1.51 \-\-traceroute \-\-verbose \-\-pingsbeforequeuing 2 \-\-pingtriggerlength 88
 .It hpct-trigger \-\-source 10.1.1.51 \-\-pingtriggerage 1800 \-\-ping \-\-verbose
-.It hpct-trigger \-\-source=10.1.1.51 \-\-traceroute \-\-resultsdirectory=/tmp/results \-\-resultstransactionlength=60
+.It hpct-trigger \-\-source=10.1.1.51 \-\-traceroute \-\-resultsdirectory=/tmp/results \-\-resultstransactionlength=60 \-\-resultstimestampdepth 3
 .It hpct-trigger \-\-source=172.16.1.2,BE,EF \-\-source=172.17.1.2,BE,AF11,AF21 \-\-pingtriggerage=1800 \-\-ping \-\-verbose
 .It hpct-trigger \-\-source 10.1.1.51 \-\-pingtriggerage 1800 \-\-ping \-\-traceroute \-\-iomodule ICMP \-\-iomodule UDP
 .El

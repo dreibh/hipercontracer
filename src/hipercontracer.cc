@@ -133,6 +133,7 @@ int main(int argc, char** argv)
    std::string                        resultsCompressionString;
    ResultsWriterCompressor            resultsCompression;
    unsigned int                       resultsFormatVersion;
+   unsigned int                       resultsTimestampDepth;
 
    boost::program_options::options_description commandLineOptions;
    commandLineOptions.add_options()
@@ -292,6 +293,9 @@ int main(int argc, char** argv)
       ( "resultsformat,F",
            boost::program_options::value<unsigned int>(&resultsFormatVersion)->default_value(OutputFormatVersionType::OFT_HiPerConTracer_Version2),
            "Results format version" )
+      ( "resultstimestampdepth,z",
+           boost::program_options::value<unsigned int>(&resultsTimestampDepth)->default_value(0),
+           "Results timestamp depth" )
     ;
 
    // ====== Handle command-line arguments ==================================
@@ -540,7 +544,7 @@ int main(int argc, char** argv)
                   resultsWriter = ResultsWriter::makeResultsWriter(
                                      ResultsWriterSet, ProgramID, measurementID,
                                      sourceAddress, "Jitter-" + ioModule,
-                                     resultsDirectory, resultsTransactionLength,
+                                     resultsDirectory, resultsTransactionLength, resultsTimestampDepth,
                                      (pw != nullptr) ? pw->pw_uid : 0, (pw != nullptr) ? pw->pw_gid : 0,
                                      resultsCompression);
                   assert(resultsWriter != nullptr);
@@ -574,7 +578,7 @@ int main(int argc, char** argv)
                   resultsWriter = ResultsWriter::makeResultsWriter(
                                      ResultsWriterSet, ProgramID, measurementID,
                                      sourceAddress, "Ping-" + ioModule,
-                                     resultsDirectory, resultsTransactionLength,
+                                     resultsDirectory, resultsTransactionLength, resultsTimestampDepth,
                                      (pw != nullptr) ? pw->pw_uid : 0, (pw != nullptr) ? pw->pw_gid : 0,
                                      resultsCompression);
                   assert(resultsWriter != nullptr);
@@ -606,7 +610,7 @@ int main(int argc, char** argv)
                   resultsWriter = ResultsWriter::makeResultsWriter(
                                      ResultsWriterSet, ProgramID, measurementID,
                                      sourceAddress, "Traceroute-" + ioModule,
-                                     resultsDirectory, resultsTransactionLength,
+                                     resultsDirectory, resultsTransactionLength, resultsTimestampDepth,
                                      (pw != nullptr) ? pw->pw_uid : 0, (pw != nullptr) ? pw->pw_gid : 0,
                                      resultsCompression);
                   assert(resultsWriter != nullptr);
