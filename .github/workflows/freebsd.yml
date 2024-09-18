@@ -24,6 +24,8 @@ on:
       - master
       - dreibh/github-actions
       - dreibh/github-actions-freebsd
+      - dreibh/udpping
+      - tartan
 
 jobs:
   build_job:
