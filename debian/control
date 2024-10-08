@@ -123,7 +123,7 @@ Description: Triggered HiPerConTracer service
  .
  This tool triggers HiPerConTracer by incoming "Ping" packets.
 
-Package: hipercontracer-dbhsell
+Package: hipercontracer-dbshell
 Architecture: all
 Depends: ${misc:Depends}
 Recommends: hipercontracer,
@@ -161,7 +161,7 @@ Depends: libuniversalimporter2 (= ${binary:Version}),
          ${misc:Depends},
          ${shlibs:Depends}
 Recommends: hipercontracer,
-            hipercontracer-dbhsell (= ${binary:Version}),
+            hipercontracer-dbshell (>= ${source:Version}),
             pwgen
 Description: HiPerConTracer Importer for importing results into a database
  High-Performance Connectivity Tracer (HiPerConTracer) is a
@@ -174,7 +174,7 @@ Description: HiPerConTracer Importer for importing results into a database
 
 Package: hipercontracer-query-tool
 Architecture: any
-Depends: hipercontracer-dbhsell (= ${binary:Version}),
+Depends: hipercontracer-dbshell (>= ${source:Version}),
          libuniversalimporter2 (= ${binary:Version}),
          ${misc:Depends},
          ${shlibs:Depends}

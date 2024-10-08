@@ -1,3 +1,4 @@
+etc/hipercontracer/hpct-importer.conf
 lib/systemd/system/hpct-importer.service
 usr/bin/hpct-importer
 usr/bin/hpct-importer
