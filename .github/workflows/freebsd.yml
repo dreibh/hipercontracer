@@ -24,8 +24,6 @@ on:
       - master
       - dreibh/github-actions
       - dreibh/github-actions-freebsd
-      - dreibh/udpping
-      - tartan
 
 jobs:
   build_job:
@@ -35,9 +33,9 @@ jobs:
       matrix:
         include:
 
-          # ====== FreeBSD 13.2 =============================================
-          - label: "FreeBSD 13.2: Clang/x86_64"
-            release: 13.2
+          # ====== FreeBSD 14.1 =============================================
+          - label: "FreeBSD 14.1: Clang/x86_64"
+            release: 14.1
             cc: clang
             cxx: clang++
 
