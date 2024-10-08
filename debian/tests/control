@@ -1,2 +1,3 @@
 Tests: 10-hipercontracer
 Restrictions: needs-root, needs-internet, allow-stderr
+Depends: hipercontracer
