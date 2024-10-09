@@ -30,7 +30,7 @@ jobs:
   # ====== Ubuntu Linux =====================================================
   ubuntu-packaging:
     name: Ubuntu Packaging
-    runs-on: ubuntu-latest
+    runs-on: ubuntu:24.04
     steps:
     - uses: actions/checkout@v4
     - name: Packaging
