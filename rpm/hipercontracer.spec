@@ -181,7 +181,7 @@ own programs.
 %{_libdir}/libuniversalimporter.a
 
 
-%package hipercontracer-trigger
+%package trigger
 Summary: Triggered HiPerConTracer service
 Group: Applications/Internet
 Requires: %{name} = %{version}-%{release}
@@ -199,7 +199,7 @@ This tool triggers HiPerConTracer by incoming "Ping" packets.
 %{_mandir}/man1/hpct-trigger.1.gz
 
 
-%package hipercontracer-dbshell
+%package dbshell
 Summary: HiPerConTracer results data dbshell
 Group: Applications/Database
 Requires: %{name}-libuniversaldbshell = %{version}-%{release}
@@ -221,7 +221,7 @@ and HiPerConTracer Query Tool.
 %{_mandir}/man1/dbshell.1.gz
 
 
-%package hipercontracer-sync-tool
+%package sync-tool
 Summary: HiPerConTracer Synchronisation Tool to RSync results to a central server
 Group: Applications/Database
 Requires: openssh-clients
@@ -249,7 +249,7 @@ synchronisation of data to a central collection server.
 /lib/systemd/system/hpct-sync.timer
 
 
-%package hipercontracer-importer
+%package importer
 Summary: HiPerConTracer results data importer
 Group: Applications/Database
 Requires: %{name}-libuniversalimporter = %{version}-%{release}
@@ -305,7 +305,7 @@ HiPerConTracer into an SQL or NoSQL database.
 /lib/systemd/system/hpct-importer.service
 
 
-%package hipercontracer-query-tool
+%package query-tool
 Summary: HiPerConTracer Query Tool to query results from a database
 Group: Applications/Database
 Recommends: %{name} = %{version}-%{release}
@@ -325,7 +325,7 @@ from a HiPerConTracer SQL or NoSQL database.
 %{_mandir}/man1/hpct-query.1.gz
 
 
-%package hipercontracer-results-tool
+%package results-tool
 Summary: HiPerConTracer Results Tool to process results files
 Group: Applications/Database
 Requires: %{name}-libuniversalimporter = %{version}-%{release}
@@ -347,7 +347,7 @@ reading them into spreadsheets, analysis tools, etc.
 %{_mandir}/man1/pipe-checksum.1.gz
 
 
-%package hipercontracer-udp-echo-server
+%package udp-echo-server
 Summary: HiPerConTracer UDP Echo server for responding to UDP Pings
 Group: Applications/Internet
 Recommends: %{name} = %{version}-%{release}
