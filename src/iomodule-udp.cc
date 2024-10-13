@@ -240,15 +240,15 @@ unsigned int UDPModule::sendRequest(const DestinationInfo& destination,
          boost::asio::buffer(ipv6Header.data(), ipv6Header.size()),
          boost::asio::buffer(udpHeader.data(), udpHeader.size()),
          boost::asio::buffer(tsHeader.data(),  tsHeader.size())
+      };
 #else
          boost::asio::buffer(ipv6Header.data(), ipv6Header.size()),
          boost::asio::buffer(udpHeader.data(), udpHeader.size())
-         if(destination.address() != UDPSocketEndpoint.address()) {
-            HPCT_LOG(error) << "Cannot set source IPv6 address without IPV6_HDRINCL! Explicitly set source address!";
-            return 0;
-         }
-#endif
       };
+      if(destination.address() != UDPSocketEndpoint.address()) {
+         HPCT_LOG(warning) << "Cannot set source IPv6 address without IPV6_HDRINCL! Explicitly set source address!";
+      }
+#endif
    }
    else {
       buffer = {
@@ -256,15 +256,15 @@ unsigned int UDPModule::sendRequest(const DestinationInfo& destination,
          boost::asio::buffer(ipv4Header.data(), ipv4Header.size()),
          boost::asio::buffer(udpHeader.data(), udpHeader.size()),
          boost::asio::buffer(tsHeader.data(),  tsHeader.size())
+      };
 #else
          boost::asio::buffer(ipv4Header.data(), ipv4Header.size()),
          boost::asio::buffer(udpHeader.data(), udpHeader.size())
-         if(destination.address() != UDPSocketEndpoint.address()) {
-            HPCT_LOG(error) << "Cannot set source IPv4 address without IP_HDRINCL! Explicitly set source address!";
-            return 0;
-         }
-#endif
       };
+      if(destination.address() != UDPSocketEndpoint.address()) {
+         HPCT_LOG(warning) << "Cannot set source IPv4 address without IP_HDRINCL! Explicitly set source address!";
+      }
+#endif
    }
 
    // ====== Prepare ResultEntry array ======================================
