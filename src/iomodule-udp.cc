@@ -238,15 +238,15 @@ unsigned int UDPModule::sendRequest(const DestinationInfo& destination,
       buffer = {
 #if defined(IPV6_HDRINCL)
          boost::asio::buffer(ipv6Header.data(), ipv6Header.size()),
-         boost::asio::buffer(udpHeader.data(), udpHeader.size()),
-         boost::asio::buffer(tsHeader.data(),  tsHeader.size())
+#endif
+         boost::asio::buffer(udpHeader.data(),  udpHeader.size()),
+         boost::asio::buffer(tsHeader.data(),   tsHeader.size())
       };
-#else
-         boost::asio::buffer(ipv6Header.data(), ipv6Header.size()),
-         boost::asio::buffer(udpHeader.data(), udpHeader.size())
-      };
-      if(destination.address() != UDPSocketEndpoint.address()) {
-         HPCT_LOG(warning) << "Cannot set source IPv6 address without IPV6_HDRINCL! Explicitly set source address!";
+#if !defined(IPV6_HDRINCL)
+      if(localEndpoint.address() != UDPSocketEndpoint.address()) {
+         HPCT_LOG(warning) << "Cannot set source IPv6 address without IPV6_HDRINCL! Explicitly set source address!\n"
+                           << "localEndpoint="     << localEndpoint.address()     << "\n"
+                           << "UDPSocketEndpoint=" << UDPSocketEndpoint.address() << "\n";
       }
 #endif
    }
@@ -254,15 +254,15 @@ unsigned int UDPModule::sendRequest(const DestinationInfo& destination,
       buffer = {
 #if defined(IP_HDRINCL)
          boost::asio::buffer(ipv4Header.data(), ipv4Header.size()),
-         boost::asio::buffer(udpHeader.data(), udpHeader.size()),
-         boost::asio::buffer(tsHeader.data(),  tsHeader.size())
+#endif
+         boost::asio::buffer(udpHeader.data(),  udpHeader.size()),
+         boost::asio::buffer(tsHeader.data(),   tsHeader.size())
       };
-#else
-         boost::asio::buffer(ipv4Header.data(), ipv4Header.size()),
-         boost::asio::buffer(udpHeader.data(), udpHeader.size())
-      };
-      if(destination.address() != UDPSocketEndpoint.address()) {
-         HPCT_LOG(warning) << "Cannot set source IPv4 address without IP_HDRINCL! Explicitly set source address!";
+#if !defined(IP_HDRINCL)
+      if(localEndpoint.address() != UDPSocketEndpoint.address()) {
+         HPCT_LOG(warning) << "Cannot set source IPv4 address without IP_HDRINCL! Explicitly set source address!\n"
+                           << "localEndpoint="     << localEndpoint.address()     << "\n"
+                           << "UDPSocketEndpoint=" << UDPSocketEndpoint.address() << "\n";
       }
 #endif
    }
