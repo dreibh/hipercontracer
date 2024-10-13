@@ -33,12 +33,12 @@
 #define RESULTSWRITER_H
 
 #include <chrono>
+#include <filesystem>
 #include <fstream>
 #include <set>
 #include <string>
 
 #include <boost/asio/ip/address.hpp>
-#include <boost/filesystem.hpp>
 #include <boost/iostreams/filtering_stream.hpp>
 
 
@@ -59,6 +59,7 @@ class ResultsWriter
                  const std::string&            uniqueID,
                  const std::string&            prefix,
                  const unsigned int            transactionLength,
+                 const unsigned int            timestampDepth,
                  const uid_t                   uid,
                  const gid_t                   gid,
                  const ResultsWriterCompressor compressor);
@@ -83,6 +84,7 @@ class ResultsWriter
                                            const std::string&              resultsPrefix,
                                            const std::string&              resultsDirectory,
                                            const unsigned int              resultsTransactionLength,
+                                           const unsigned int              resultsTimestampDepth,
                                            const uid_t                     uid,
                                            const gid_t                     gid,
                                            const ResultsWriterCompressor   compressor = ResultsWriterCompressor::XZ);
@@ -90,16 +92,17 @@ class ResultsWriter
    protected:
    const std::string                     ProgramID;
    const unsigned int                    MeasurementID;
-   const boost::filesystem::path         Directory;
+   const std::filesystem::path           Directory;
    const std::string                     Prefix;
    const unsigned int                    TransactionLength;
+   const unsigned int                    TimestampDepth;
    const uid_t                           UID;
    const gid_t                           GID;
    const ResultsWriterCompressor         Compressor;
 
    std::string                           UniqueID;
-   boost::filesystem::path               TempFileName;
-   boost::filesystem::path               TargetFileName;
+   std::filesystem::path                 TempFileName;
+   std::filesystem::path                 TargetFileName;
    size_t                                Inserts;
    unsigned long long                    SeqNumber;
    std::ofstream                         OutputFile;

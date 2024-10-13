@@ -266,6 +266,7 @@ int main(int argc, char** argv)
    std::string                        resultsCompressionString;
    ResultsWriterCompressor            resultsCompression;
    unsigned int                       resultsFormatVersion;
+   unsigned int                       resultsTimestampDepth;
 
    boost::program_options::options_description commandLineOptions;
    commandLineOptions.add_options()
@@ -449,6 +450,9 @@ int main(int argc, char** argv)
       ( "resultsformat,F",
            boost::program_options::value<unsigned int>(&resultsFormatVersion)->default_value(OutputFormatVersionType::OFT_HiPerConTracer_Version2),
            "Results format version" )
+      ( "resultstimestampdepth,z",
+           boost::program_options::value<unsigned int>(&resultsTimestampDepth)->default_value(0),
+           "Results timestamp depth" )
     ;
 
 
@@ -707,13 +711,10 @@ int main(int argc, char** argv)
                   resultsWriter = ResultsWriter::makeResultsWriter(
                                      ResultsWriterSet, ProgramID, measurementID,
                                      sourceAddress, "TriggeredJitter-" + ioModule,
-                                     resultsDirectory, resultsTransactionLength,
+                                     resultsDirectory, resultsTransactionLength, resultsTimestampDepth,
                                      (pw != nullptr) ? pw->pw_uid : 0, (pw != nullptr) ? pw->pw_gid : 0,
                                      resultsCompression);
-                  if(resultsWriter == nullptr) {
-                     HPCT_LOG(fatal) << "Cannot initialise results directory " << resultsDirectory << "!";
-                     return 1;
-                  }
+                  assert(resultsWriter != nullptr);
                }
                if(ioModule == "UDP") {
                   jitterParameters.SourcePort      = jitterUDPSourcePort;
@@ -731,9 +732,6 @@ int main(int argc, char** argv)
                                              resultsWriter, "Jitter", (OutputFormatVersionType)resultsFormatVersion, iterations, true,
                                              sourceAddress, destinationsForSource,
                                              jitterParameters);
-               if(service->start() == false) {
-                  return 1;
-               }
                ServiceSet.insert(service);
             }
             catch (std::exception& e) {
@@ -748,13 +746,10 @@ int main(int argc, char** argv)
                   resultsWriter = ResultsWriter::makeResultsWriter(
                                      ResultsWriterSet, ProgramID, measurementID,
                                      sourceAddress, "TriggeredPing-" + ioModule,
-                                     resultsDirectory, resultsTransactionLength,
+                                     resultsDirectory, resultsTransactionLength, resultsTimestampDepth,
                                      (pw != nullptr) ? pw->pw_uid : 0, (pw != nullptr) ? pw->pw_gid : 0,
                                      resultsCompression);
-                  if(resultsWriter == nullptr) {
-                     HPCT_LOG(fatal) << "Cannot initialise results directory " << resultsDirectory << "!";
-                     return 1;
-                  }
+                  assert(resultsWriter != nullptr);
                }
                if(ioModule == "UDP") {
                   pingParameters.SourcePort      = pingUDPSourcePort;
@@ -772,9 +767,6 @@ int main(int argc, char** argv)
                                            resultsWriter, "Ping", (OutputFormatVersionType)resultsFormatVersion, iterations, true,
                                            sourceAddress, destinationsForSource,
                                            pingParameters);
-               if(service->start() == false) {
-                  return 1;
-               }
                ServiceSet.insert(service);
             }
             catch (std::exception& e) {
@@ -789,13 +781,10 @@ int main(int argc, char** argv)
                   resultsWriter = ResultsWriter::makeResultsWriter(
                                      ResultsWriterSet, ProgramID, measurementID,
                                      sourceAddress, "TriggeredTraceroute-" + ioModule,
-                                     resultsDirectory, resultsTransactionLength,
+                                     resultsDirectory, resultsTransactionLength, resultsTimestampDepth,
                                      (pw != nullptr) ? pw->pw_uid : 0, (pw != nullptr) ? pw->pw_gid : 0,
                                      resultsCompression);
-                  if(resultsWriter == nullptr) {
-                     HPCT_LOG(fatal) << "Cannot initialise results directory " << resultsDirectory << "!";
-                     return 1;
-                  }
+                  assert(resultsWriter != nullptr);
                }
                if(ioModule == "UDP") {
                   tracerouteParameters.SourcePort      = tracerouteUDPSourcePort;
@@ -813,9 +802,6 @@ int main(int argc, char** argv)
                                                  resultsWriter, "Traceroute", (OutputFormatVersionType)resultsFormatVersion, iterations, true,
                                                  sourceAddress, destinationsForSource,
                                                  tracerouteParameters);
-               if(service->start() == false) {
-                  return 1;
-               }
                ServiceSet.insert(service);
             }
             catch (std::exception& e) {
@@ -834,10 +820,34 @@ int main(int argc, char** argv)
    SnifferSocketV6.async_receive_from(boost::asio::buffer(IncomingPingMessageBuffer), IncomingPingSource, receivedPingV6);
 
 
+   // ====== Prepare service start (before reducing privileges) =============
+   for(std::set<Service*>::iterator serviceIterator = ServiceSet.begin(); serviceIterator != ServiceSet.end(); serviceIterator++) {
+      Service* service = *serviceIterator;
+      if(!service->prepare(true)) {
+         HPCT_LOG(fatal) << "Preparing service start failed";
+         return 1;
+      }
+   }
+
+
    // ====== Reduce privileges ==============================================
    if(reducePrivileges(pw) == false) {
       HPCT_LOG(fatal) << "Failed to reduce privileges!";
       return 1;
+   }
+
+
+   // ====== Prepare service start (after reducing privileges) ==============
+   for(std::set<Service*>::iterator serviceIterator = ServiceSet.begin(); serviceIterator != ServiceSet.end(); serviceIterator++) {
+      Service* service = *serviceIterator;
+      if(!service->prepare(false)) {
+         HPCT_LOG(fatal) << "Preparing service start failed";
+         return 1;
+      }
+      if(service->start() == false) {
+         HPCT_LOG(fatal) << "Service start failed";
+         return 1;
+      }
    }
 
 

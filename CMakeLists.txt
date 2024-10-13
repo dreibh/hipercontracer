@@ -38,6 +38,9 @@ SET(BUILD_MINOR "0")
 SET(BUILD_PATCH "0~beta4")
 SET(BUILD_VERSION ${BUILD_MAJOR}.${BUILD_MINOR}.${BUILD_PATCH})
 
+# HiPerConTracer needs at least C++17!
+SET(CMAKE_CXX_STANDARD 17)
+
 
 #############################################################################
 #### INSTALLATION_DIRECTORIES                                            ####

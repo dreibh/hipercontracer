@@ -1,0 +1,41 @@
+#!/usr/bin/env python3
+# Work-around for VirtualBox FreeBSD guest issue with IPv6 over WiFi
+# See https://www.virtualbox.org/ticket/22153
+
+import ipaddress
+import netifaces
+import subprocess
+
+
+queryDefaultRoute = subprocess.run('netstat -rn | grep "^default .* fe80::" | sed -r "s/[ ]+/ /g" | head -n1', shell=True, check=True, capture_output=True)
+route = queryDefaultRoute.stdout.decode('ascii').strip().split(' ')
+if len(route) != 4:
+   sys.stdout.write('ERROR: Did not find link-local IPv6 address of route!\n')
+   sys.exit(1)
+
+defaultInterface                   = route[3]
+defaultGatewayNetwork              = ipaddress.IPv6Network(route[1] + '/64', strict = False)
+defaultGatewayAddress              = ipaddress.IPv6Address(route[1])
+defaultGatewayAddressGlobalAddress = None
+
+addresses = netifaces.ifaddresses(defaultInterface)
+if netifaces.AF_INET6 in addresses:
+   for address in addresses[netifaces.AF_INET6]:
+      if ('addr' in address) and ('netmask' in address):
+         m = ipaddress.IPv6Network(address['netmask'])
+         a = ipaddress.IPv6Network(str(address['addr']) + '/' + str(m.prefixlen), strict = False)
+         if not a.is_link_local:
+            defaultGatewayAddressGlobalAddress = \
+               ipaddress.IPv6Address(
+                  int(a.network_address) + (int(defaultGatewayAddress) -
+                                            int(defaultGatewayNetwork.network_address)) )
+
+if defaultGatewayAddressGlobalAddress == None:
+   sys.stdout.write('ERROR: Did not find global IPv6 address of router!\n')
+   sys.exit(1)
+
+print("Global router address: " + str(defaultGatewayAddressGlobalAddress))
+try:
+   subprocess.run([ 'ping', str(defaultGatewayAddressGlobalAddress) ])
+except:
+   pass

@@ -52,8 +52,8 @@ int main(int argc, char** argv)
    bool        success    = false;
    const char* digestName = "SHA256";
    for(int i = 2; i < argc; i++) {
-      if(!strncmp(argv[i], "--digest=", 9)) {
-         digestName = (const char*)&argv[i][9];
+      if( (strcmp(argv[i], "-D")) || (strcmp(argv[i], "--digest")) ) {
+         digestName = (i + 1 < argc) ? argv[++i] : "";
       }
       else {
          std::cerr << "ERROR: Invalid option " << argv[i] << "!\n";
@@ -65,12 +65,12 @@ int main(int argc, char** argv)
       std::cerr << "ERROR: Unknown message digest " << digestName << "!\n";
       exit(1);
    }
-   const std::string outputFileName      = argv[1];
-   const std::string checksumFileName    = outputFileName + ".checksum";
-   const std::string tmpOutputFileName   = outputFileName + ".tmp";
-   const std::string tmpChecksumFileName = checksumFileName + ".tmp";
-   unsigned long long                          totalBytesWritten = 0;
-   const std::chrono::system_clock::time_point t1                 = std::chrono::system_clock::now();
+   const std::string                           outputFileName      = argv[1];
+   const std::string                           checksumFileName    = outputFileName + ".checksum";
+   const std::string                           tmpOutputFileName   = outputFileName + ".tmp";
+   const std::string                           tmpChecksumFileName = checksumFileName + ".tmp";
+   unsigned long long                          totalBytesWritten   = 0;
+   const std::chrono::system_clock::time_point t1                  = std::chrono::system_clock::now();
 
 
    // ====== Create files ===================================================

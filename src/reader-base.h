@@ -103,9 +103,6 @@ class ReaderBase
                               boost::iostreams::filtering_istream& dataStream) = 0;
 
    protected:
-   std::filesystem::path makeDirectoryHierarchy(const std::filesystem::path& dataFile,
-                                                const ReaderTimePoint&       timeStamp) const;
-
    const ImporterConfiguration& ImporterConfig;
    const unsigned int           Workers;
    const unsigned int           MaxTransactionSize;
@@ -285,7 +282,10 @@ std::filesystem::path ReaderImplementation<ReaderInputFileEntry>::getDirectoryHi
       const int workerID = makeInputFileEntry(dataFile, match, inputFileEntry, 1);
       if(workerID >= 0) {
          const ReaderTimePoint& timeStamp = inputFileEntry.TimeStamp;
-         return makeDirectoryHierarchy(dataFile, timeStamp);
+         return makeDirectoryHierarchy(ImporterConfig.getImportFilePath(),
+                                       dataFile, timeStamp,
+                                       ImporterConfig.getMoveDirectoryDepth(),
+                                       ImporterConfig.getMoveTimestampDepth());
       }
    }
    return std::filesystem::path();
