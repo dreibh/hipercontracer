@@ -35,4 +35,7 @@ if defaultGatewayAddressGlobalAddress == None:
    sys.exit(1)
 
 print("Global router address: " + str(defaultGatewayAddressGlobalAddress))
-subprocess.run([ 'ping', str(defaultGatewayAddressGlobalAddress) ])
+try:
+   subprocess.run([ 'ping', str(defaultGatewayAddressGlobalAddress) ])
+except:
+   pass
