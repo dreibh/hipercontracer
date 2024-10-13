@@ -17,7 +17,7 @@
 .\" Contact: thomas.dreibholz@gmail.com
 .\"
 .\" ###### Setup ############################################################
-.Dd November 8, 2023
+.Dd September 5, 2024
 .Dt hpct-results 1
 .Os hpct-results
 .\" ###### Name #############################################################
@@ -28,19 +28,19 @@
 .Sh SYNOPSIS
 .Nm hpct-results
 input_file ...
-.Op \-L|\-\-loglevel level
-.Op \-Z|\-\-logcolor on|off
-.Op \-O|\-\-logfile file
-.Op \-q|\-\-quiet
-.Op \-v|\-\-verbose
-.Op \-o|\-\-output filename
-.Op \-s|\-\-separator character
-.Op \-S|\-\-sorted
-.Op \-U|\-\-unsorted
-.Op \-T|\-\-maxthreads
-.Op \-R|\-\-input-results-from-stdin
-.Op \-N|\-\-input-file-names-from-stdin
-.Op \-F|\-\-input-file-names-from-file file
+.Op Fl L Ar level | Fl Fl loglevel Ar level
+.Op Fl Z Ar on|off | Fl Fl logcolor Ar on|off
+.Op Fl O Ar file | Fl Fl logfile Ar file
+.Op Fl q | Fl Fl quiet
+.Op Fl v | Fl Fl verbose
+.Op Fl o Ar filename | Fl Fl output Ar filename
+.Op Fl s Ar character | Fl Fl separator Ar character
+.Op Fl S | Fl Fl sorted
+.Op Fl U | Fl Fl unsorted
+.Op Fl T Ar threads | Fl Fl maxthreads Ar threads
+.Op Fl R | Fl Fl input-results-from-stdin
+.Op Fl N | Fl Fl input-file-names-from-stdin
+.Op Fl F | Fl Fl input-file-names-from-file file
 .\" ###### Description ######################################################
 .Sh DESCRIPTION
 .Nm hpct-results
@@ -57,32 +57,33 @@ The following argument may be provided:
 .Bl -tag -width indent
 .It input_file ...
 A HiPerConTracer results file. Multiple files may be provided, they results will be joined.
-.It \-L|\-\-loglevel level
+.It Fl L Ar level | Fl Fl loglevel Ar level
 Sets the minimum logging level to the provided value: 0=trace, 1=debug, 2=info, 3=warning, 4=error, 5=fatal.
-.It \-q|\-\-quiet
-Sets the minimum logging level to 3 (warning).
-.It \-v|\-\-verbose
-Sets the minimum logging level to 0 (trace).
-.It \-Z|\-\-logcolor on|off
+.It Fl Z Ar on|off | Fl Fl logcolor Ar on|off
 Enables (on) or disables (off) the usage of ANSI color escape sequences to colorise the log output according to its level.
-.It \-O|\-\-logfile file
-Sets a file name for appending the log output to. If a file is set, no log output is made to the console. Otherwise, all log output will be written to the console.
-.It \-o|\-\-output filename
+.It Fl O Ar file | Fl Fl logfile Ar file
+Sets a file name for appending the log output to. If a file is set, no log output is made to the console.
+Otherwise, all log output will be written to the console.
+.It Fl q | Fl Fl quiet
+Sets the minimum logging level to 3 (warning).
+.It Fl v | Fl Fl verbose
+Sets the minimum logging level to 0 (trace).
+.It Fl o Ar filename | Fl Fl output Ar filename
 Sets the specified filename as output file. Extensions \.gz, \.bz2, and \.xz are recognised to enable compression.
-.It \-s|\-\-separator character
+.It Fl s Ar character | Fl Fl separator Ar character
 Configures the character used as separator of the CSV output. Default: ",".
-Possible values: " ", ";",  ":", "|".
-.It \-S|\-\-sorted
+Possible values: " ", ";",  ":", " | ".
+.It Fl S | Fl Fl sorted
 Sort the output data (Timestamp, MeasurementID, Source, Destination, RoundNumber, SeqNumber). This is the default.
-.It \-U|\-\-unsorted
+.It Fl U | Fl Fl unsorted
 Do not sort the output data. This saves time, but multi-threading makes the output order non-deterministic.
-.It \-T|\-\-maxthreads
+.It Fl T Ar threads | Fl Fl maxthreads Ar threads
 Sets the maximum number of threads. By default, it is the number of CPU cores.
-.It \-R|\-\-input-results-from-stdin
+.It Fl R | Fl Fl input-results-from-stdin
 Read the results from standard input.
-.It \-N|\-\-input-file-names-from-stdin
+.It Fl N | Fl Fl input-file-names-from-stdin
 Read the input file names from standard input.
-.It \-F|\-\-input-file-names-from-file file
+.It Fl F Ar file | Fl Fl input-file-names-from-file Ar file
 Read the input file names from file. The option may be provided multiple times to read from multiple files.
 .El
 .\" ###### Arguments ########################################################

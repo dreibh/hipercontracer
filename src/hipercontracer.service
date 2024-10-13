@@ -31,6 +31,7 @@
 
 [Unit]
 Description=HiPerConTracer
+Documentation=man:hipercontracer(1)
 After=network-online.target
 
 [Service]

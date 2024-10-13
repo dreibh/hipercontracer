@@ -1,0 +1,2 @@
+# libuniversalimporter is a C++ library =>  symbols file is not recommended
+libuniversalimporter2: no-symbols-control-file

@@ -17,7 +17,7 @@
 .\" Contact: thomas.dreibholz@gmail.com
 .\"
 .\" ###### Setup ############################################################
-.Dd November 8, 2023
+.Dd September 5, 2024
 .Dt udp-echo-server 1
 .Os udp-echo-server
 .\" ###### Name #############################################################
@@ -27,16 +27,16 @@
 .\" ###### Synopsis #########################################################
 .Sh SYNOPSIS
 .Nm udp-echo-server
-.Op \-L|\-\-loglevel level
-.Op \-Z|\-\-logcolor on|off
-.Op \-O|\-\-logfile file
-.Op \-q|\-\-quiet
-.Op \-v|\-\-verbose
-.Op \-U|\-\-user user|uid
-.Op \-A|\-\-address address
-.Op \-P|\-\-port port
-.Op \-f|\-\-from-port port
-.Op \-t|\-\-to-port port
+.Op Fl L Ar level | Fl Fl loglevel Ar level
+.Op Fl Z | Fl Fl logcolor Ar on|off
+.Op Fl O Ar file | Fl Fl logfile Ar file
+.Op Fl q | Fl Fl quiet
+.Op Fl v | Fl Fl verbose
+.Op Fl U Ar user|uid | Fl Fl user Ar user|uid
+.Op Fl A Ar address | Fl Fl address Ar address
+.Op Fl P Ar port | Fl Fl port Ar port
+.Op Fl f Ar port | Fl Fl from-port Ar port
+.Op Fl t Ar port | Fl Fl to-port Ar port
 .\" ###### Description ######################################################
 .Sh DESCRIPTION
 .Nm udp-echo-server
@@ -51,25 +51,25 @@ from the same port as the listening port are ignored.
 .Sh ARGUMENTS
 The following arguments may be provided:
 .Bl -tag -width indent
-.It \-L|\-\-loglevel level
+.It Fl L Ar level | Fl Fl loglevel Ar level
 Sets the minimum logging level to the provided value: 0=trace, 1=debug, 2=info, 3=warning, 4=error, 5=fatal.
-.It \-q|\-\-quiet
+.It Fl q | Fl Fl quiet
 Sets the minimum logging level to 3 (warning).
-.It \-v|\-\-verbose
+.It Fl v | Fl Fl verbose
 Sets the minimum logging level to 0 (trace).
-.It \-Z|\-\-logcolor on|off
+.It Fl Z Ar on|off| Fl Fl logcolor Ar on|off
 Enables (on) or disables (off) the usage of ANSI color escape sequences to colorise the log output according to its level.
-.It \-O|\-\-logfile file
+.It Fl O Ar file | Fl Fl logfile Ar file
 Sets a file name for appending the log output to. If a file is set, no log output is made to the console. Otherwise, all log output will be written to the console.
-.It \-U|\-\-user user|uid
+.It Fl U Ar user|uid | Fl Fl user Ar user|uid
 After startup, the server uses UID and GID of the given user (by name or GID).
-.It \-A|\-\-address address
+.It Fl A Ar address | Fl Fl address Ar address
 Sets the local address (default: ::).
-.It \-P|\-\-port port
+.It Fl P Ar port | Fl Fl port Ar port
 Sets the local port (default: 7).
-.It \-P|\-\-from-port port
+.It Fl P Ar port | Fl Fl from-port Ar port
 Sets the first local port of a range (default: 7).
-.It \-P|\-\-to-port port
+.It Fl P Ar port | Fl Fl to-port Ar port
 Sets the last local port of a range (default: 0; 0 uses the "from" port).
 .El
 .\" ###### Examples #########################################################

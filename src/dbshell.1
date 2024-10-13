@@ -17,7 +17,7 @@
 .\" Contact: thomas.dreibholz@gmail.com
 .\"
 .\" ###### Setup ############################################################
-.Dd August 5, 2024
+.Dd September 5, 2024
 .Dt dbshell 1
 .Os dbshell
 .\" ###### Name #############################################################
@@ -28,7 +28,9 @@
 .Sh SYNOPSIS
 .Nm dbshell
 database_configuration
-.Op \-d|\-\-dry-run
+.Op Fl q | Fl Fl quiet
+.Op Fl d | Fl Fl dry-run
+.Op Fl B Ar file_prefix  | Fl Fl write-dbeaver-config Ar file_prefix
 .\" ###### Description ######################################################
 .Sh DESCRIPTION
 .Nm dbshell
@@ -42,17 +44,22 @@ The following argument may be provided:
 .Bl -tag -width indent
 .It database_configuration
 Sets the name of the database configuration file.
-.It \-d|\-\-dry-run
+.It Fl q | Fl Fl quiet
+Quiet mode.
+.It Fl d | Fl Fl dry-run
 Just shows the command-line call to start the database shell, but does not
 execute it.
+.It Fl B Ar file_prefix  | Fl Fl write-dbeaver-config Ar file_prefix
+Write DBeaver configuration files (the configuration file itself, as well as a credentials file) with the given file name prefix.
 .El
 .\" ###### Arguments ########################################################
 .Sh EXAMPLES
 .Bl -tag -width indent
 .It dbshell hipercontracer-importer.conf
-.It dbshell hipercontracer-database.conf
-.It dbshell hipercontracer-importer.conf -d
-.It dbshell hipercontracer-database.conf --dry-run
+.It dbshell hipercontracer-database.conf \-q
+.It dbshell hipercontracer-importer.conf \-d
+.It dbshell hipercontracer-database.conf \-\-dry-run
+.It dbshell hipercontracer-database.conf \-\-dry-run \-q \-B dbeaver-config
 .El
 .\" ###### Authors ##########################################################
 .Sh AUTHORS

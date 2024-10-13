@@ -79,17 +79,17 @@ class ImporterConfiguration
    private:
    boost::program_options::options_description OptionsDescription;
 
-   std::string                        ImportModeName;
-   ImportModeType                     ImportMode;
-   unsigned int                       ImportMaxDepth;
-   std::string                        ImportPathFilter;
-   unsigned int                       MoveDirectoryDepth;
-   unsigned int                       MoveTimestampDepth;
-   std::filesystem::path              ImportFilePath;
-   std::filesystem::path              BadFilePath;
-   std::filesystem::path              GoodFilePath;
-   std::vector<std::string>           Tables;
-   std::map<std::string, std::string> TableMap;
+   std::string                                 ImportModeName;
+   ImportModeType                              ImportMode;
+   unsigned int                                ImportMaxDepth;
+   std::string                                 ImportPathFilter;
+   unsigned int                                MoveDirectoryDepth;
+   unsigned int                                MoveTimestampDepth;
+   std::filesystem::path                       ImportFilePath;
+   std::filesystem::path                       BadFilePath;
+   std::filesystem::path                       GoodFilePath;
+   std::vector<std::string>                    Tables;
+   std::map<std::string, std::string>          TableMap;
 };
 
 #endif

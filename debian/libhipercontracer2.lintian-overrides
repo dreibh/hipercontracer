@@ -1,0 +1,2 @@
+# libhipercontracer is a C++ library =>  symbols file is not recommended
+libhipercontracer2: no-symbols-control-file

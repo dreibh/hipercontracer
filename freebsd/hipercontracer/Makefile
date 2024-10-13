@@ -1,5 +1,3 @@
-# Created by: Thomas Dreibholz <thomas.dreibholz@gmail.com>
-
 PORTNAME=	hipercontracer
 DISTVERSION=	2.0.0~beta4
 PORTREVISION=	1
@@ -56,5 +54,7 @@ IMPPGSQL_LIB_DEPENDS=	libpqxx.so:databases/postgresql-libpqxx
 
 IMPMONGO_CMAKE_BOOL=	ENABLE_BACKEND_MONGODB
 IMPMONGO_LIB_DEPENDS=	libmongo-c-driver.so:devel/mongo-c-driver
+
+PLIST_SUB=	PORTVERSION=${PORTVERSION}
 
 .include <bsd.port.mk>

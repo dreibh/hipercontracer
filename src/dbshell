@@ -52,7 +52,7 @@ while [ $# -gt 0 ] ; do
       DRY_RUN=1
    elif [ "$1" == "-q" ] || [ "$1" == "--quiet" ] ; then
       QUIET=1
-   elif [ "$1" == "-B" ] || [ "$1" == "--get-dbeaver-config" ] ; then
+   elif [ "$1" == "-B" ] || [ "$1" == "--write-dbeaver-config" ] ; then
       DBEAVER_CONFIG_PREFIX="$2"
       shift
    else

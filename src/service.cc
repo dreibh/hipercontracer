@@ -33,7 +33,14 @@
 
 
 // ###### Constructor #######################################################
-Service::Service()
+Service::Service(ResultsWriter*                resultsWriter,
+                 const char*                   outputFormatName,
+                 const OutputFormatVersionType outputFormatVersion,
+                 const unsigned int            iterations) :
+   ResultsOutput(resultsWriter),
+   OutputFormatName(outputFormatName),
+   OutputFormatVersion(outputFormatVersion),
+   Iterations(iterations)
 {
    ResultCallback = nullptr;
 }
@@ -49,4 +56,17 @@ Service::~Service()
 void Service::setResultCallback(const ResultCallbackType& resultCallback)
 {
    ResultCallback = resultCallback;
+}
+
+
+// ###### Prepare service start #############################################
+bool Service::prepare(const bool privileged)
+{
+   if(privileged == false) {
+      // No special privileges needed for preparing files.
+      if(ResultsOutput != nullptr) {
+         return ResultsOutput->prepare();
+      }
+   }
+   return true;
 }

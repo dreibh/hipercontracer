@@ -17,7 +17,7 @@
 .\" Contact: thomas.dreibholz@gmail.com
 .\"
 .\" ###### Setup ############################################################
-.Dd November 8, 2023
+.Dd September 5, 2024
 .Dt hpct-query 1
 .Os hpct-query
 .\" ###### Name #############################################################
@@ -29,19 +29,19 @@
 .Nm hpct-query
 database_configuration
 ping|traceroute|jitter
-.Op \-L|\-\-loglevel LEVEL
-.Op \-Z|\-\-logcolor on|off
-.Op \-O|\-\-logfile FILE
-.Op \-q|\-\-quiet
-.Op \-v|\-\-verbose
-.Op \-o|\-\-output filename
-.Op \-T|\-\-table table_name
-.Op \-V|\-\-table\-version version
-.Op \-M|\-\-address\-to\-measurementid mapping_file
-.Op \-\-from-time timestamp
-.Op \-\-to_time timestamp
-.Op \-\-from-measurement-id measurement_identifier
-.Op \-\-to_measurement-id measurement_identifier
+.Op Fl L Ar level | Fl Fl loglevel Ar level
+.Op Fl Z Ar on|off | Fl Fl logcolor Ar on|off
+.Op Fl O Ar file | Fl Fl logfile Ar file
+.Op Fl q | Fl Fl quiet
+.Op Fl v | Fl Fl verbose
+.Op Fl o Ar filename | Fl Fl output Ar filename
+.Op Fl T Ar table_name | Fl Fl table Ar table_name
+.Op Fl V Ar version | Fl Fl table-version Ar version
+.Op Fl M Ar mapping_file | Fl Fl address\-to\-measurementid Ar mapping_file
+.Op Fl Fl from-time Ar timestamp
+.Op Fl Fl to_time Ar timestamp
+.Op Fl Fl from-measurement-id Ar measurement_identifier
+.Op Fl Fl to_measurement-id Ar measurement_identifier
 .\" ###### Description ######################################################
 .Sh DESCRIPTION
 .Nm hpct-query
@@ -54,23 +54,24 @@ HiPerConTracer manpage for the format description.
 .Sh ARGUMENTS
 The following argument may be provided:
 .Bl -tag -width indent
-.It \-L|\-\-loglevel LEVEL
+.It Fl L Ar level | Fl Fl loglevel Ar level
 Sets the minimum logging level to the provided value: 0=trace, 1=debug, 2=info, 3=warning, 4=error, 5=fatal.
-.It \-q|\-\-quiet
-Sets the minimum logging level to 3 (warning).
-.It \-v|\-\-verbose
-Sets the minimum logging level to 0 (trace).
-.It \-Z|\-\-logcolor on|off
+.It Fl Z Ar on|off | Fl Fl logcolor Ar on|off
 Enables (on) or disables (off) the usage of ANSI color escape sequences to colorise the log output according to its level.
-.It \-O|\-\-logfile FILE
-Sets a file name for appending the log output to. If a file is set, no log output is made to the console. Otherwise, all log output will be written to the console.
-.It \-o|\-\-output filename
+.It Fl O Ar file | Fl Fl logfile Ar file
+Sets a file name for appending the log output to. If a file is set, no log output is made to the console.
+Otherwise, all log output will be written to the console.
+.It Fl q | Fl Fl quiet
+Sets the minimum logging level to 3 (warning).
+.It Fl v | Fl Fl verbose
+Sets the minimum logging level to 0 (trace).
+.It Fl o Ar filename | Fl Fl output Ar filename
 Sets the specified filename as output file. Extensions \.gz, \.bz2, and \.xz are recognised to enable compression.
-.It \-T|\-\-table table_name
+.It Fl T Ar table_name | Fl Fl table Ar table_name
 Sets a custom table name to query from.
-.It \-V|\-\-table\-version version
+.It Fl V Ar version | Fl Fl tabl-version Ar version
 Sets the table version (default is: 2). This option is to be used to read a table from on older HiPerConTracer schema version.
-.It \-M|\-\-address\-to\-measurementid mapping_file
+.It Fl M Ar mapping_file | Fl Fl address-to-measurementid Ar mapping_file
 Sets a mapping file, containing space-separated IP address to measurement ID mappings with one mapping per line. Where measurement ID is zero, the measurement ID is looked up from the mappings. This option can be used to later map measurements to a useful measurement ID for export.
 Example mapping file contents:
 .br
@@ -83,16 +84,16 @@ Example mapping file contents:
 2001::1:2:3 2222
 .br
  ...
-.It \-\-from-time timestamp
+.It Fl Fl from-time Ar timestamp
 Set the beginning of the time range as string in format "%Y-%m-%d %H:%M:%S.%F".
 If not provided, all results will be queried.
-.It \-\-to_time timestamp
+.It Fl Fl to_time Ar timestamp
 Set the end of the time range as string in format "%Y-%m-%d %H:%M:%S.%F".
 If not provided, all results after a given from-time will be queried.
-.It \-\-from-measurement-id measurement_identifier
+.It Fl Fl from-measurement-id Ar measurement_identifier
 Set the beginning of the measurement identifier range.
 If not provided, all results will be queried.
-.It \-\-to_measurement-id measurement_identifier
+.It Fl Fl to_measurement-id Ar measurement_identifier
 Set the end of the measurement identifier range.
 If not provided, all results will be queried.
 .El

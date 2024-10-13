@@ -66,11 +66,8 @@ Traceroute::Traceroute(const std::string                moduleName,
                        const boost::asio::ip::address&  sourceAddress,
                        const std::set<DestinationInfo>& destinationArray,
                        const TracerouteParameters&      parameters)
-   : TracerouteInstanceName(std::string("Traceroute(") + sourceAddress.to_string() + std::string(")")),
-     ResultsOutput(resultsWriter),
-     OutputFormatName(outputFormatName),
-     OutputFormatVersion(outputFormatVersion),
-     Iterations(iterations),
+   : Service(resultsWriter, outputFormatName, outputFormatVersion, iterations),
+     TracerouteInstanceName(std::string("Traceroute(") + sourceAddress.to_string() + std::string(")")),
      RemoveDestinationAfterRun(removeDestinationAfterRun),
      Parameters(parameters),
      IOService(),
@@ -175,15 +172,26 @@ const std::string& Traceroute::getName() const
 }
 
 
-// ###### Start thread ######################################################
+// ###### Prepare service start #############################################
+bool Traceroute::prepare(const bool privileged)
+{
+   if(!Service::prepare(privileged)) {
+      return false;
+   }
+   if(privileged == true)  {
+      // The socket preparation requires privileges.
+      return IOModule->prepareSocket();
+   }
+   return true;
+}
+
+
+// ###### Start service #####################################################
 bool Traceroute::start()
 {
-   if(IOModule->prepareSocket()) {
-      StopRequested.exchange(false);
-      Thread = std::thread(&Traceroute::run, this);
-      return true;
-   }
-   return false;
+   StopRequested.exchange(false);
+   Thread = std::thread(&Traceroute::run, this);
+   return true;
 }
 
 

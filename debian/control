@@ -123,7 +123,7 @@ Description: Triggered HiPerConTracer service
  .
  This tool triggers HiPerConTracer by incoming "Ping" packets.
 
-Package: hipercontracer-dbhsell
+Package: hipercontracer-dbshell
 Architecture: all
 Depends: ${misc:Depends}
 Recommends: hipercontracer,
@@ -141,11 +141,12 @@ Description: HiPerConTracer Database Shell for access testing to a database
 
 Package: hipercontracer-sync-tool
 Architecture: all
-Depends: rsync,
+Depends: openssh-client,
+         rsync,
          ${misc:Depends}
 Recommends: hipercontracer,
             hipercontracer-results-tool
-Description: HiPerConTracer Query Tool to query results from a database
+Description: HiPerConTracer Sync Tool to synchronise results files to a server
  High-Performance Connectivity Tracer (HiPerConTracer) is a
  Ping/Traceroute service. It performs regular Ping and Traceroute runs
  among sites. The results are written to data files, which can be
@@ -160,7 +161,7 @@ Depends: libuniversalimporter2 (= ${binary:Version}),
          ${misc:Depends},
          ${shlibs:Depends}
 Recommends: hipercontracer,
-            hipercontracer-dbhsell (= ${binary:Version}),
+            hipercontracer-dbshell (>= ${source:Version}),
             pwgen
 Description: HiPerConTracer Importer for importing results into a database
  High-Performance Connectivity Tracer (HiPerConTracer) is a
@@ -173,7 +174,7 @@ Description: HiPerConTracer Importer for importing results into a database
 
 Package: hipercontracer-query-tool
 Architecture: any
-Depends: hipercontracer-dbhsell (= ${binary:Version}),
+Depends: hipercontracer-dbshell (>= ${source:Version}),
          libuniversalimporter2 (= ${binary:Version}),
          ${misc:Depends},
          ${shlibs:Depends}
