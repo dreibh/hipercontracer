@@ -64,7 +64,9 @@ bool Service::prepare(const bool privileged)
 {
    if(privileged == false) {
       // No special privileges needed for preparing files.
-      return ResultsOutput->prepare();
+      if(ResultsOutput != nullptr) {
+         return ResultsOutput->prepare();
+      }
    }
    return true;
 }
