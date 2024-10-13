@@ -34,8 +34,19 @@
 
 #include "destinationinfo.h"
 #include "resultentry.h"
+#include "resultswriter.h"
 
 #include <functional>
+
+
+enum OutputFormatVersionType
+{
+   OFT_HiPerConTracer_Version1 = 1,
+   OFT_HiPerConTracer_Version2 = 2,
+
+   OFT_Min = OFT_HiPerConTracer_Version1,
+   OFT_Max = OFT_HiPerConTracer_Version2
+};
 
 
 class Service;
@@ -46,7 +57,10 @@ typedef std::function<void(Service* service, const ResultEntry* resultEntry)> Re
 class Service
 {
    public:
-   Service();
+   Service(ResultsWriter*                resultsWriter,
+           const char*                   outputFormatName,
+           const OutputFormatVersionType outputFormatVersion,
+           const unsigned int            iterations);
    virtual ~Service();
 
    virtual const boost::asio::ip::address& getSource() = 0;
@@ -54,13 +68,18 @@ class Service
    virtual void setResultCallback(const ResultCallbackType& resultCallback);
 
    virtual const std::string& getName() const = 0;
+   virtual bool prepare(const bool privileged);
    virtual bool start() = 0;
    virtual void requestStop() = 0;
    virtual bool joinable() = 0;
    virtual void join() = 0;
 
    protected:
-   ResultCallbackType ResultCallback;
+   ResultCallbackType            ResultCallback;
+   ResultsWriter*                ResultsOutput;
+   const std::string             OutputFormatName;
+   const OutputFormatVersionType OutputFormatVersion;
+   const unsigned int            Iterations;
 };
 
 #endif

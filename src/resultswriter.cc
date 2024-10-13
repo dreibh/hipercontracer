@@ -31,6 +31,8 @@
 
 #include "resultswriter.h"
 #include "logger.h"
+#include "tools.h"
+#include "resultentry.h"
 
 #include <unistd.h>
 
@@ -50,6 +52,7 @@ ResultsWriter::ResultsWriter(const std::string&            programID,
                              const std::string&            uniqueID,
                              const std::string&            prefix,
                              const unsigned int            transactionLength,
+                             const unsigned int            timestampDepth,
                              const uid_t                   uid,
                              const gid_t                   gid,
                              const ResultsWriterCompressor compressor)
@@ -58,6 +61,7 @@ ResultsWriter::ResultsWriter(const std::string&            programID,
      Directory(directory),
      Prefix(prefix),
      TransactionLength(transactionLength),
+     TimestampDepth(timestampDepth),
      UID(uid),
      GID(gid),
      Compressor(compressor),
@@ -88,21 +92,13 @@ void ResultsWriter::specifyOutputFormat(const std::string& outputFormatName,
 bool ResultsWriter::prepare()
 {
    try {
-      const boost::filesystem::path tempDirectory = Directory / "tmp";
-      boost::filesystem::create_directory(Directory);
-      boost::filesystem::create_directory(tempDirectory);
-      const int r1 = chown(Directory.string().c_str(), UID, GID);
-      const int r2 = chown(tempDirectory.string().c_str(), UID, GID);
-      if(r1 || r2) {
-         HPCT_LOG(warning) << "Setting ownership of " << Directory << " and " << tempDirectory
-                           << " to UID " << UID << ", GID " << GID << " failed: " << strerror(errno);
-      }
+      std::filesystem::create_directory(Directory);
    }
    catch(std::exception const& e) {
       HPCT_LOG(error) << "Unable to prepare directories - " << e.what();
-      return(false);
+      return false;
    }
-   return(changeFile());
+   return changeFile();
 }
 
 
@@ -116,11 +112,11 @@ bool ResultsWriter::changeFile(const bool createNewFile)
       try {
          if(Inserts == 0) {
             // empty file -> just remove it!
-            boost::filesystem::remove(TempFileName);
+            std::filesystem::remove(TempFileName);
          }
          else {
             // file has contents -> move it!
-            boost::filesystem::rename(TempFileName, TargetFileName);
+            std::filesystem::rename(TempFileName, TargetFileName);
          }
       }
       catch(std::exception const& e) {
@@ -147,9 +143,25 @@ bool ResultsWriter::changeFile(const bool createNewFile)
             default:
              break;
          }
-         const std::string name = UniqueID + str(boost::format("-%09d.results%s") % SeqNumber % extension);
-         TempFileName   = Directory / "tmp" / ("tmp-" + name);
-         TargetFileName = Directory / name;
+         const std::string name = UniqueID +
+            str(boost::format("-%09d.results%s") % SeqNumber % extension);
+         std::filesystem::path targetPath =
+            Directory /
+               makeDirectoryHierarchy<std::chrono::system_clock::time_point>(
+                  std::filesystem::path(),
+                  name, std::chrono::system_clock::now(),
+                  0, TimestampDepth);
+         TargetFileName = targetPath / name;
+         TempFileName   = TargetFileName;
+         TempFileName += ".tmp";
+         try {
+            std::filesystem::create_directories(targetPath);
+         }
+         catch(std::filesystem::filesystem_error& e) {
+            HPCT_LOG(warning) << "Creating directory hierarchy " << targetPath
+                              << " failed: " << e.what();
+            return false;
+         }
          OutputFile.open(TempFileName.c_str(), std::ios_base::out | std::ios_base::binary);
          switch(Compressor) {
             case XZ:
@@ -166,19 +178,14 @@ bool ResultsWriter::changeFile(const bool createNewFile)
          }
          OutputStream.push(OutputFile);
          OutputCreationTime = std::chrono::steady_clock::now();
-         if( (OutputStream.good()) && (chown(TempFileName.c_str(), UID, GID) != 0) ) {
-            HPCT_LOG(warning) << "Setting ownership of " << TempFileName
-                              << " to UID " << UID << ", GID " << GID
-                              << " failed: " << strerror(errno);
-         }
-         return(OutputStream.good());
+         return OutputStream.good();
       }
       catch(std::exception const& e) {
          HPCT_LOG(error) << "ResultsWriter::changeFile() - " << e.what();
-         return(false);
+         return false;
       }
    }
-   return(true);
+   return true;
 }
 
 
@@ -187,9 +194,9 @@ bool ResultsWriter::mayStartNewTransaction()
 {
    const std::chrono::steady_clock::time_point now = std::chrono::steady_clock::now();
    if(std::chrono::duration_cast<std::chrono::seconds>(now - OutputCreationTime).count() > TransactionLength) {
-      return(changeFile());
+      return changeFile();
    }
-   return(true);
+   return true;
 }
 
 
@@ -218,6 +225,7 @@ ResultsWriter* ResultsWriter::makeResultsWriter(std::set<ResultsWriter*>&       
                                                 const std::string&              resultsPrefix,
                                                 const std::string&              resultsDirectory,
                                                 const unsigned int              resultsTransactionLength,
+                                                const unsigned int              resultsTimestampDepth,
                                                 const uid_t                     uid,
                                                 const gid_t                     gid,
                                                 const ResultsWriterCompressor   compressor)
@@ -234,13 +242,11 @@ ResultsWriter* ResultsWriter::makeResultsWriter(std::set<ResultsWriter*>&       
 
       ResultsWriter* resultsWriter =
          new ResultsWriter(programID, measurementID, resultsDirectory, uniqueID,
-                           resultsPrefix, resultsTransactionLength,
+                           resultsPrefix, resultsTransactionLength, resultsTimestampDepth,
                            uid, gid, compressor);
-      if(resultsWriter->prepare() == true) {
-         resultsWriterSet.insert(resultsWriter);
-         return(resultsWriter);
-      }
-      delete resultsWriter;
+      assert(resultsWriter != nullptr);
+      resultsWriterSet.insert(resultsWriter);
+      return resultsWriter;
    }
-   return(nullptr);
+   return nullptr;
 }

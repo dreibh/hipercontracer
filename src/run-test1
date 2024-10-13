@@ -2,10 +2,11 @@
 
 make -j8 hipercontracer && \
 rm -f core && \
-sudo ./debug.memcheck ./hipercontracer \
+sudo ./hipercontracer \
    -# 12345678 \
    --resultsdirectory results \
-   --resultstransactionlength 900 \
+   --resultstransactionlength 60 \
+   --resultstimestampdepth=4 \
    --iomodule icmp \
    --source 0.0.0.0 \
    --source :: \
@@ -13,7 +14,6 @@ sudo ./debug.memcheck ./hipercontracer \
    --destination 2001:4860:4860::8888 --destination 2a02:2e0:3fe:1001:7777:772e:2:85 --destination 2606:4700::6810:2c63 \
    --traceroute \
    --ping \
-   --jitter \
    --tracerouteduration 1000 \
    --tracerouteinitialmaxttl 4 \
    --traceroutefinalmaxttl 32 \
@@ -22,5 +22,4 @@ sudo ./debug.memcheck ./hipercontracer \
    --pingexpiration 7500 \
    --pingttl 56 \
    --pingburst 2 \
-   --jitterinterval 300000 \
    $@
