@@ -22,15 +22,13 @@ addresses = netifaces.ifaddresses(defaultInterface)
 if netifaces.AF_INET6 in addresses:
    for address in addresses[netifaces.AF_INET6]:
       if ('addr' in address) and ('netmask' in address):
-        m = ipaddress.IPv6Network(address['netmask'])
-        a = ipaddress.IPv6Network(str(address['addr']) + '/' + str(m.prefixlen), strict = False)
-        if not a.is_link_local:
-           print(str(a.network_address))
-
-           defaultGatewayAddressGlobalAddress = \
-              ipaddress.IPv6Address(
-                 int(a.network_address) + (int(defaultGatewayAddress) -
-                                           int(defaultGatewayNetwork.network_address)) )
+         m = ipaddress.IPv6Network(address['netmask'])
+         a = ipaddress.IPv6Network(str(address['addr']) + '/' + str(m.prefixlen), strict = False)
+         if not a.is_link_local:
+            defaultGatewayAddressGlobalAddress = \
+               ipaddress.IPv6Address(
+                  int(a.network_address) + (int(defaultGatewayAddress) -
+                                            int(defaultGatewayNetwork.network_address)) )
 
 if defaultGatewayAddressGlobalAddress == None:
    sys.stdout.write('ERROR: Did not find global IPv6 address of router!\n')
