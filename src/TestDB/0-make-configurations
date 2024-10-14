@@ -153,4 +153,4 @@ done
 
 # ====== Write DBeaver configuration files ==================================
 prefix="$(echo "${CONFIG}" | sed -e "s/-users\.conf$//")"
-../make-dbeaver-configuration "${prefix}"-*-*.conf --join
+../make-dbeaver-configuration "${prefix}"-*-*.conf

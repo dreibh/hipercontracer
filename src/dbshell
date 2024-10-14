@@ -31,7 +31,7 @@
 #  Contact: dreibh@simula.no
 
 # Bash options:
-set -e
+set -eu
 
 
 # ====== Handle arguments ===================================================
@@ -67,11 +67,15 @@ done
 dbbackend=""
 dbserver=""
 dbport=""
+dbcafile=""
+dbcrlfile=""
+dbkeyfile=""
+dbcertfile=""
+dbcertkeyfile=""
+dbconnectionflags=""
 dbuser=""
 dbpassword=""
 database=""
-dbcafile=""
-dbcrlfile=""
 configContent=$(sed -r '/[^=#]+=[^=]+/!d' <"${CONFIGURATION_FILE}" | sed -r "s/[[:space:]]*=[[:space:]]*(.*)[[:space:]]*/='\1'/g")
 eval "${configContent}"
 if [ "${dbcafile}" == "NONE" ] ; then
@@ -82,6 +86,12 @@ if [ "${dbcrlfile}" == "NONE" ] ; then
 fi
 if [ "${dbkeyfile}" == "NONE" ] ; then
    dbkeyfile=""
+fi
+if [ "${dbcertfile}" == "NONE" ] ; then
+   dbcertfile=""
+fi
+if [ "${dbcertkeyfile}" == "NONE" ] ; then
+   dbcertkeyfile=""
 fi
 if [ "${dbcertfile}" == "NONE" ] ; then
    dbcertfile=""
