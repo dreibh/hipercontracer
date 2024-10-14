@@ -140,7 +140,7 @@ if [ ${VERBOSE} -ne 0 ] ; then
    echo -e "\x1b[34m$(date +"%Y-%m-%d %H:%M:%S") Running RSync: ${command}\x1b[0m"
 fi
 sh -c "${command}" && status=0 || status=$?
-if [ ${status} -ne 0 ] ; then
+if [ "${status}" -ne 0 ] ; then
    echo -e "\x1b[34m$(date +"%Y-%m-%d %H:%M:%S") RSync failed: ${command}\x1b[0m"
    exit 1
 else

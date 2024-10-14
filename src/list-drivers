@@ -34,15 +34,15 @@
 
 echo "Active devices and drivers:"
 for name in /sys/class/net/* ; do
-   device="`basename ${name}`"
-   driverModule="`readlink ${name}/device/driver/module`"
+   device="$(basename "${name}")"
+   driverModule="$(readlink "${name}"/device/driver/module)"
    if [ "${driverModule}" != "" ]; then
-      driverModule="`basename ${driverModule}`"
+      driverModule="$(basename "${driverModule}")"
    fi
-   operstate="`cat ${name}/operstate`"
+   operstate="$(cat "${name}"/operstate)"
    if [ "${operstate}" != "down" ] ; then
-      mac="`cat ${name}/address`"
-      businfo="`ethtool -i ${device} 2>/dev/null | grep "^bus-info:" | sed -e "s/[^:]*: //g"`"
+      mac="$(cat "${name}"/address)"
+      businfo="$(ethtool -i "${device}" 2>/dev/null | grep "^bus-info:" | sed -e "s/[^:]*: //g")"
       printf "%-16s %-18s %-18s %-20s %-16s\n" "${device}" "${mac}" "${driverModule}" "${operstate}" "${businfo}"
    fi
 done
