@@ -219,7 +219,9 @@ and HiPerConTracer Query Tool.
 
 %files hipercontracer-dbshell
 %{_bindir}/dbshell
+%{_bindir}/make-dbeaver-configuration
 %{_mandir}/man1/dbshell.1.gz
+%{_mandir}/man1/make-dbeaver-configuration.1.gz
 
 
 %package sync-tool
