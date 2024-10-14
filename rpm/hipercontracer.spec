@@ -211,7 +211,35 @@ This tool triggers HiPerConTracer by incoming "Ping" packets.
 %package dbeaver-tools
 Summary: HiPerConTracer DBeaver tools
 Group: Applications/Database
+Requires: jq
+Requires: openssl
 BuildArch: noarch
+
+%description hipercontracer-dbeaver-tools
+High-Performance Connectivity Tracer (HiPerConTracer) is a
+Ping/Traceroute service. It performs regular Ping and Traceroute runs
+among sites. The results are written to data files, which can be
+imported into an SQL or NoSQL database.
+This package contains helper scripts to merge HiPerConTracer database
+configurations into DBeaver configurations, for maintaining databases
+in DBeaver.
+
+%files hipercontracer-dbeaver-tools
+%{_bindir}/decrypt-dbeaver-configuration
+%{_bindir}/encrypt-dbeaver-configuration
+%{_bindir}/make-dbeaver-configuration
+%{_mandir}/man1/decrypt-dbeaver-configuration.1.gz
+%{_mandir}/man1/encrypt-dbeaver-configuration.1.gz
+%{_mandir}/man1/make-dbeaver-configuration.1.gz
+
+
+%package dbshell
+Summary: HiPerConTracer database shell tool
+Group: Applications/Database
+BuildArch: noarch
+Recommends: %{name} = %{version}-%{release}
+Recommends: %{name}-dbeaver-tools = %{version}-%{release}
+Recommends: pwgen
 Requires: jq
 Requires: openssl
 
@@ -253,9 +281,7 @@ and HiPerConTracer Query Tool.
 
 %files dbshell
 %{_bindir}/dbshell
-%{_bindir}/make-dbeaver-configuration
 %{_mandir}/man1/dbshell.1.gz
-%{_mandir}/man1/make-dbeaver-configuration.1.gz
 
 
 %package sync-tool
