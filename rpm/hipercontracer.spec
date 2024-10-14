@@ -23,8 +23,17 @@ BuildRequires: xz-devel
 BuildRequires: zlib-devel
 BuildRoot: %{_tmppath}/%{name}-%{version}-build
 
-# TEST ONLY:
-# define _unpackaged_files_terminate_build 0
+Requires: %{name} = %{version}-%{release}
+Requires: %{name}-libhipercontracer = %{version}-%{release}
+Recommends: %{name}-dbeaver-tools = %{version}-%{release}
+Recommends: %{name}-dbshell = %{version}-%{release}
+Recommends: %{name}-importer = %{version}-%{release}
+Recommends: %{name}-query-tool = %{version}-%{release}
+Recommends: %{name}-results-tool = %{version}-%{release}
+Recommends: %{name}-sync-tool = %{version}-%{release}
+Recommends: %{name}-trigger = %{version}-%{release}
+Recommends: %{name}-udp-echo-server = %{version}-%{release}
+Suggests: td-system-info
 
 
 %description
@@ -184,8 +193,8 @@ own programs.
 %package trigger
 Summary: Triggered HiPerConTracer service
 Group: Applications/Internet
-Requires: %{name} = %{version}-%{release}
 Requires: %{name}-libhipercontracer = %{version}-%{release}
+Recommends: %{name} = %{version}-%{release}
 
 %description trigger
 High-Performance Connectivity Tracer (HiPerConTracer) is a
@@ -202,9 +211,9 @@ This tool triggers HiPerConTracer by incoming "Ping" packets.
 %package dbeaver-tools
 Summary: HiPerConTracer DBeaver tools
 Group: Applications/Database
+BuildArch: noarch
 Requires: jq
 Requires: openssl
-BuildArch: noarch
 
 %description hipercontracer-dbeaver-tools
 High-Performance Connectivity Tracer (HiPerConTracer) is a
@@ -225,13 +234,12 @@ in DBeaver.
 
 
 %package dbshell
-Summary: HiPerConTracer database shell tool
+Summary: HiPerConTracer Database Shell Tool
 Group: Applications/Database
-Requires: %{name}-libuniversaldbshell = %{version}-%{release}
+BuildArch: noarch
 Recommends: %{name} = %{version}-%{release}
 Recommends: %{name}-dbeaver-tools = %{version}-%{release}
 Recommends: pwgen
-BuildArch: noarch
 
 %description dbshell
 High-Performance Connectivity Tracer (HiPerConTracer) is a
@@ -250,14 +258,12 @@ and HiPerConTracer Query Tool.
 
 %package sync-tool
 Summary: HiPerConTracer Synchronisation Tool to RSync results to a central server
-Group: Applications/Database
-Requires: openssh-clients
+Group: Applications/File
+BuildArch: noarch
 Recommends: %{name} = %{version}-%{release}
-Recommends: %{name}-dbshell = %{version}-%{release}
 Recommends: %{name}-results = %{version}-%{release}
 Requires: openssh-clients
 Requires: rsync
-BuildArch: noarch
 
 %description sync-tool
 High-Performance Connectivity Tracer (HiPerConTracer) is a
@@ -277,12 +283,11 @@ synchronisation of data to a central collection server.
 
 
 %package importer
-Summary: HiPerConTracer results data importer
+Summary: HiPerConTracer Importer Tool to import results into a database
 Group: Applications/Database
 Requires: %{name}-libuniversalimporter = %{version}-%{release}
 Recommends: %{name} = %{version}-%{release}
 Recommends: %{name}-dbshell = %{version}-%{release}
-Recommends: pwgen
 
 %description importer
 High-Performance Connectivity Tracer (HiPerConTracer) is a
@@ -335,6 +340,7 @@ HiPerConTracer into an SQL or NoSQL database.
 %package query-tool
 Summary: HiPerConTracer Query Tool to query results from a database
 Group: Applications/Database
+Requires: %{name}-libuniversalimporter = %{version}-%{release}
 Recommends: %{name} = %{version}-%{release}
 Recommends: %{name}-dbshell = %{version}-%{release}
 Recommends: %{name}-results = %{version}-%{release}
@@ -354,7 +360,7 @@ from a HiPerConTracer SQL or NoSQL database.
 
 %package results-tool
 Summary: HiPerConTracer Results Tool to process results files
-Group: Applications/Database
+Group: Applications/File
 Requires: %{name}-libuniversalimporter = %{version}-%{release}
 Recommends: %{name} = %{version}-%{release}
 
