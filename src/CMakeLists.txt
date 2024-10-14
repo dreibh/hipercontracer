@@ -253,6 +253,9 @@ ENDIF()
 IF (WITH_DBSHELL)
    INSTALL(FILES dbshell   DESTINATION ${CMAKE_INSTALL_BINDIR})
    INSTALL(FILES dbshell.1 DESTINATION ${CMAKE_INSTALL_MANDIR}/man1)
+
+   INSTALL(FILES make-dbeaver-configuration   DESTINATION ${CMAKE_INSTALL_BINDIR})
+   INSTALL(FILES make-dbeaver-configuration.1 DESTINATION ${CMAKE_INSTALL_MANDIR}/man1)
 ENDIF()
 
 # ====== HiPerConTracer DBeaver Tools =======================================
