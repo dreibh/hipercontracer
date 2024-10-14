@@ -1,0 +1,61 @@
+.\" High-Performance Connectivity Tracer (HiPerConTracer)
+.\" Copyright (C) 2015-2024 by Thomas Dreibholz
+.\"
+.\" This program is free software: you can redistribute it and/or modify
+.\" it under the terms of the GNU General Public License as published by
+.\" the Free Software Foundation, either version 3 of the License, or
+.\" (at your option) any later version.
+.\"
+.\" This program is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\" GNU General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU General Public License
+.\" along with this program.  If not, see <http://www.gnu.org/licenses/>.
+.\"
+.\" Contact: thomas.dreibholz@gmail.com
+.\"
+.\" ###### Setup ############################################################
+.Dd October 14, 2024
+.Dt decrypt-dbeaver-configuration 1
+.Os decrypt-dbeaver-configuration
+.\" ###### Name #############################################################
+.Sh NAME
+.Nm decrypt-dbeaver-configuration
+.Nd Decrypt DBeaver Credentials Configuration File
+.\" ###### Synopsis #########################################################
+.Sh SYNOPSIS
+.Nm decrypt-dbeaver-configuration
+encrypted_dbeaver_credentials_config_json
+plain_dbeaver_credentials_config_json
+.\" ###### Description ######################################################
+.Sh DESCRIPTION
+.Nm decrypt-dbeaver-configuration
+decrypts a plain-text DBeaver credentials configuration file.
+"-" can be used as placeholder for /dev/stdout, to write the output file to
+stdandard output.
+.Pp
+.\" ###### Arguments ########################################################
+.\" .Sh ARGUMENTS
+.\" The following argument may be provided:
+.\" .Bl -tag -width indent
+.\" .It ...
+.\" ...
+.\" .El
+.\" ###### Arguments ########################################################
+.Sh EXAMPLES
+.Bl -tag -width indent
+.It ~/.local/share/DBeaverData/workspace6/General/.dbeaver/credentials-config.json /dev/stdout
+.It decrypt-dbeaver-configuration ~/.local/share/DBeaverData/workspace6/General/.dbeaver/credentials-config.json /dev/stdout
+.It decrypt-dbeaver-configuration ~/.local/share/DBeaverData/workspace6/General/.dbeaver/credentials-config.json plaintext-credentials-config.json
+.It decrypt-dbeaver-configuration /home/dreibh/snap/dbeaver-ce/current/.local/share/DBeaverData/workspace6/General/.dbeaver/credentials-config.json plaintext-credentials-config.json
+.El
+.\" ###### Authors ##########################################################
+.Sh AUTHORS
+Thomas Dreibholz
+.br
+https://www.nntb.no/~dreibh/hipercontracer
+.br
+mailto://thomas.dreibholz@gmail.com
+.br
