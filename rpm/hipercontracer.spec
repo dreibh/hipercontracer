@@ -211,9 +211,9 @@ This tool triggers HiPerConTracer by incoming "Ping" packets.
 %package dbeaver-tools
 Summary: HiPerConTracer DBeaver tools
 Group: Applications/Database
+BuildArch: noarch
 Requires: jq
 Requires: openssl
-BuildArch: noarch
 
 %description hipercontracer-dbeaver-tools
 High-Performance Connectivity Tracer (HiPerConTracer) is a
@@ -234,14 +234,12 @@ in DBeaver.
 
 
 %package dbshell
-Summary: HiPerConTracer database shell tool
+Summary: HiPerConTracer Database Shell Tool
 Group: Applications/Database
 BuildArch: noarch
 Recommends: %{name} = %{version}-%{release}
 Recommends: %{name}-dbeaver-tools = %{version}-%{release}
 Recommends: pwgen
-Requires: jq
-Requires: openssl
 
 %description hipercontracer-dbeaver-tools
 High-Performance Connectivity Tracer (HiPerConTracer) is a
