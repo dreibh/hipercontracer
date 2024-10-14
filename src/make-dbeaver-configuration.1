@@ -1,0 +1,57 @@
+.\" High-Performance Connectivity Tracer (HiPerConTracer)
+.\" Copyright (C) 2015-2024 by Thomas Dreibholz
+.\"
+.\" This program is free software: you can redistribute it and/or modify
+.\" it under the terms of the GNU General Public License as published by
+.\" the Free Software Foundation, either version 3 of the License, or
+.\" (at your option) any later version.
+.\"
+.\" This program is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\" GNU General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU General Public License
+.\" along with this program.  If not, see <http://www.gnu.org/licenses/>.
+.\"
+.\" Contact: thomas.dreibholz@gmail.com
+.\"
+.\" ###### Setup ############################################################
+.Dd October 14, 2024
+.Dt make-dbeaver-configuration 1
+.Os make-dbeaver-configuration
+.\" ###### Name #############################################################
+.Sh NAME
+.Nm make-dbeaver-configuration
+.Nd Make DBeaver Configuration from HiPerConTracer Database Configuration Files
+.\" ###### Synopsis #########################################################
+.Sh SYNOPSIS
+.Nm make-dbeaver-configuration
+database_configuration_file ...
+.\" ###### Description ######################################################
+.Sh DESCRIPTION
+.Nm make-dbeaver-configuration
+takes HiPerConTracer configuration files and merges them into the DBeaver
+configuration file.
+.Pp
+.\" ###### Arguments ########################################################
+.\" .Sh ARGUMENTS
+.\" The following argument may be provided:
+.\" .Bl -tag -width indent
+.\" .It ...
+.\" ...
+.\" .El
+.\" ###### Arguments ########################################################
+.Sh EXAMPLES
+.Bl -tag -width indent
+.It make-dbeaver-configuration hipercontracer-database.conf
+.It make-dbeaver-configuration project1-database.conf project2-database.conf project3-database.conf
+.El
+.\" ###### Authors ##########################################################
+.Sh AUTHORS
+Thomas Dreibholz
+.br
+https://www.nntb.no/~dreibh/hipercontracer
+.br
+mailto://thomas.dreibholz@gmail.com
+.br

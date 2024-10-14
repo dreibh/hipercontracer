@@ -34,6 +34,13 @@
 set -e
 
 
+# ====== Handle arguments ===================================================
+if [ $# -lt 2 ] ; then
+   echo >&2 "Usage: $0 database_configuration_file ..."
+   exit 1
+fi
+
+
 # ====== Generate DBeaver configuration files ===============================
 echo -e "\x1b[34m$(date +"%F %H:%M:%S"): Generating DBeaver configuration ...\x1b[0m"
 tempDirectory="$(mktemp -d -t "make-dbeaver-configuration-XXXXXX")"
