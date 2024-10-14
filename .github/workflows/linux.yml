@@ -1,5 +1,5 @@
 # GitHub Actions Scripts
-# Copyright (C) 2021-2022 by Thomas Dreibholz
+# Copyright (C) 2021-2024 by Thomas Dreibholz
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -23,6 +23,8 @@ on:
     branches:
       - master
       - dreibh/github-actions
+      - dreibh/udpping
+      - tartan
 
 jobs:
   build_job:
@@ -33,20 +35,16 @@ jobs:
         include:
 
           # ====== Ubuntu Linux =============================================
+          - label: "Ubuntu 24.04 (Noble Numbat) with GCC"
+            image: ubuntu:24.04
+            cc: gcc
+            cxx: g++
           - label: "Ubuntu 22.04 (Jammy Jellyfish) with GCC"
             image: ubuntu:22.04
             cc: gcc
             cxx: g++
           - label: "Ubuntu 20.04 (Focal Fossa) with GCC"
             image: ubuntu:20.04
-            cc: gcc
-            cxx: g++
-          - label: "Ubuntu 18.04 (Bionic Beaver) with GCC"
-            image: ubuntu:18.04
-            cc: gcc
-            cxx: g++
-          - label: "Ubuntu 16.04 (Xenial Xerus) with GCC"
-            image: ubuntu:16.04
             cc: gcc
             cxx: g++
 
@@ -65,12 +63,8 @@ jobs:
             cxx: g++
 
           # ====== Fedora Linux =============================================
-          - label: "Fedora 35 with Clang"
-            image: fedora:35
-            cc: clang
-            cxx: clang++
-          - label: "Fedora 34 with Clang"
-            image: fedora:34
+          - label: "Fedora 40 with Clang"
+            image: fedora:40
             cc: clang
             cxx: clang++
 
@@ -81,7 +75,8 @@ jobs:
     container:
       image: ${{ matrix.image }}
     steps:
-      - uses: actions/checkout@v2
+      # NOTE: actions/checkout@v4 does not work for old Ubuntu 18.04!
+      - uses: actions/checkout@v4
       - name: Build
         shell: bash
         run: |
