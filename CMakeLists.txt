@@ -146,6 +146,7 @@ OPTION(WITH_SYNC            "Build HiPerConTracer Synchronisation Tool" 1)
 OPTION(WITH_QUERY           "Build HiPerConTracer Query Tool"           1)
 OPTION(WITH_RESULTS         "Build HiPerConTracer Results Tool"         1)
 OPTION(WITH_DBSHELL         "Build HiPerConTracer Database Shell"       1)
+OPTION(WITH_DBEAVER_TOOLS   "Build HiPerConTracer DBeaver Tools"        1)
 OPTION(WITH_PIPE_CHECKSUM   "Build Pipe Checksum Tool"                  1)
 OPTION(WITH_UDP_ECHO_SERVER "Build UDP Echo Server"                     1)
 

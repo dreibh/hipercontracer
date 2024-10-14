@@ -103,6 +103,10 @@ for backend in MariaDB PostgreSQL MongoDB ; do
    host="${backend,,}"
    server="${host}.${DOMAIN}"
    for user in ${USERS} ; do
+      database="${DATABASE}"
+      if [ "${backend}" == "MongoDB" ] && [ "${user}" == "root" ] ; then
+         database="admin"   # MongoDB's root user is in database "admin"!
+      fi
       # shellcheck disable=SC2001
       name="$(echo "${CONFIG}" | sed -e "s/-users\.conf$/-${user}-${backend,,}.conf/")"
       passwordVariable="${user^^}_PASSWORD"
@@ -138,7 +142,7 @@ dbkeyfile         = NONE
 dbconnectionflags = NONE
 dbuser            = ${user}
 dbpassword        = ${password}
-database          = ${DATABASE}
+database          = ${database}
 dbreconnectdelay  = 5
 EOF
       if [ "${backend}" == "MongoDB" ] ; then
@@ -153,4 +157,4 @@ done
 
 # ====== Write DBeaver configuration files ==================================
 prefix="$(echo "${CONFIG}" | sed -e "s/-users\.conf$//")"
-../make-dbeaver-configuration "${prefix}"-*-*.conf --join
+../make-dbeaver-configuration "${prefix}"-*-*.conf
