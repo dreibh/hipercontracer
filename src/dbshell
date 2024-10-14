@@ -96,6 +96,25 @@ fi
 if [ "${dbcertfile}" == "NONE" ] ; then
    dbcertfile=""
 fi
+tls_enabled=1
+tls_check_certificate=1
+tls_check_hostname=1
+for dbconnectionflag in ${dbconnectionflags} ; do
+   if [ "${dbconnectionflag}" == "DisableTLS" ] ; then
+      tls_enabled=0
+      tls_check_certificate=0
+      tls_check_hostname=0
+   elif [ "${dbconnectionflag}" == "AllowInvalidCertificate" ] ; then
+      tls_check_certificate=0
+      tls_check_hostname=0
+   elif [ "${dbconnectionflag}" == "AllowInvalidHostname" ] ; then
+      tls_check_certificate=1
+      tls_check_hostname=0
+   elif [ "${dbconnectionflag}" != "NONE" ] ; then
+      echo >&2 "ERROR: Invalid connection flag ${dbconnectionflag}!"
+      exit 1
+   fi
+done
 
 
 # ====== Build the parameters line =============================================
@@ -119,8 +138,11 @@ if [ "${dbbackend}" == "MariaDB" ] || [ "${dbbackend}" == "MySQL" ] ; then
       dbport="3306"
    fi
    parameters="${parameters} --host=\"${dbserver}\" --port=${dbport} --protocol=tcp --user=\"${dbuser}\" --password=\"${dbpassword}\" --database=\"${database}\""
-   if [ "${dbcafile}" != "" ] ; then
-      parameters="${parameters} --ssl-verify-server-cert --ssl-ca=\"${dbcafile}\" --ssl-crl=\"${dbcafile}\""
+   if [ ${tls_enabled} -eq 1 ] && [ "${dbcafile}" != "" ] ; then
+      if [ ${tls_check_certificate} -eq 1 ] || [ ${tls_check_hostname} -eq 1 ] ; then
+         parameters="${parameters} --ssl-verify-server-cert"
+      fi
+      parameters="${parameters} --ssl-ca=\"${dbcafile}\" --ssl-crl=\"${dbcafile}\""
       if [ "${dbcrlfile}" != "" ] ; then
          parameters="${parameters} --ssl-crl \"${dbcrlfile}\""
       fi
@@ -137,12 +159,22 @@ elif [ "${dbbackend}" == "PostgreSQL" ] ; then
    fi
    parameters="--host=\"${dbserver}\" --port=${dbport} --username=\"${dbuser}\" --dbname=\"${database}\""
    export PGPASSWORD="${dbpassword}"
-   if [ "${dbcafile}" != "" ] ; then
-      export PGSSLMODE="verify-full"
+   if [ ${tls_enabled} -eq 1 ] && [ "${dbcafile}" != "" ] ; then
+      if [ ${tls_check_certificate} -eq 1 ] ; then
+         if [ ${tls_check_hostname} -eq 1 ] ; then
+            export PGSSLMODE="verify-full"
+         else
+            export PGSSLMODE="verify-ca"
+         fi
+      else
+         export PGSSLMODE="require"
+      fi
       export PGSSLROOTCERT="${dbcafile}"
       if [ "${dbcrlfile}" != "" ] ; then
          export PGSSLCRL="${dbcrlfile}"
       fi
+   else
+      export PGSSLMODE="prefer"
    fi
 
 elif [ "${dbbackend}" == "MongoDB" ] ; then
@@ -160,9 +192,14 @@ elif [ "${dbbackend}" == "MongoDB" ] ; then
       dbport="27017"
    fi
    parameters="\"mongodb://${dbserver}:${dbport}/${database}\" --username \"${dbuser}\" --password \"${dbpassword}\""
-   if [ "${dbcafile}" != "" ] ; then
+   if [ ${tls_enabled} -eq 1 ] && [ "${dbcafile}" != "" ] ; then
       if [ ${oldCommand} -eq 0 ] ; then
          parameters="${parameters} --tls --tlsDisabledProtocols TLS1_0,TLS1_1,TLS1_2 --tlsCAFile \"${dbcafile}\""
+         if [ ${tls_check_certificate} -eq 0 ] ; then
+            parameters="${parameters} --tlsAllowInvalidCertificates"
+         elif [ ${tls_check_hostname} -eq 0 ] ; then
+            parameters="${parameters} --tlsAllowInvalidHostnames"
+         fi
          if [ "${dbcrlfile}" != "" ] ; then
             # FIXME: --tlsCRLFile \"${dbcrlfile}\" does not work!
             # parameters="${parameters} --tlsCRLFile \"${dbcrlfile}\""
@@ -189,6 +226,7 @@ if [ "${DBEAVER_CONFIG_PREFIX}" ] ; then
    driver=""
    provider=""
    custom=""
+   handler=""
    dbusername="${dbuser}"
    if [ "${dbbackend}" == "MariaDB" ] || [ "${dbbackend}" == "MySQL" ] ; then
       driver="mysql8"
@@ -201,6 +239,7 @@ if [ "${DBEAVER_CONFIG_PREFIX}" ] ; then
    elif [ "${dbbackend}" == "PostgreSQL" ] ; then
       driver="postgres-jdbc"
       provider="postgresql"
+      handler="postgre_ssl"
       custom=",
 							\"sslMode\": \"verify-full\",
 							\"sslFactory\": \"\""
@@ -265,7 +304,7 @@ if [ "${DBEAVER_CONFIG_PREFIX}" ] ; then
 				"closeIdleConnection": true,
 				"auth-model": "native",
 				"handlers": {
-					"mysql_ssl": {
+					"${handler}": {
 						"type": "CONFIG",
 						"enabled": true,
 						"save-password": true,

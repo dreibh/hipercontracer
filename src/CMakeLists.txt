@@ -255,9 +255,16 @@ ENDIF()
 IF (WITH_DBSHELL)
    INSTALL(FILES dbshell   DESTINATION ${CMAKE_INSTALL_BINDIR})
    INSTALL(FILES dbshell.1 DESTINATION ${CMAKE_INSTALL_MANDIR}/man1)
+ENDIF()
 
-   INSTALL(FILES make-dbeaver-configuration   DESTINATION ${CMAKE_INSTALL_BINDIR})
-   INSTALL(FILES make-dbeaver-configuration.1 DESTINATION ${CMAKE_INSTALL_MANDIR}/man1)
+# ====== HiPerConTracer DBeaver Tools =======================================
+IF (WITH_DBEAVER_TOOLS)
+   INSTALL(FILES make-dbeaver-configuration      DESTINATION ${CMAKE_INSTALL_BINDIR})
+   INSTALL(FILES make-dbeaver-configuration.1    DESTINATION ${CMAKE_INSTALL_MANDIR}/man1)
+   INSTALL(FILES decrypt-dbeaver-configuration   DESTINATION ${CMAKE_INSTALL_BINDIR})
+   INSTALL(FILES decrypt-dbeaver-configuration.1 DESTINATION ${CMAKE_INSTALL_MANDIR}/man1)
+   INSTALL(FILES encrypt-dbeaver-configuration   DESTINATION ${CMAKE_INSTALL_BINDIR})
+   INSTALL(FILES encrypt-dbeaver-configuration.1 DESTINATION ${CMAKE_INSTALL_MANDIR}/man1)
 ENDIF()
 
 # ====== Pipe Checksum Tool =================================================
