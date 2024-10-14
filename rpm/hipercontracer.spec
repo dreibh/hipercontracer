@@ -242,14 +242,6 @@ Recommends: %{name} = %{version}-%{release}
 Recommends: %{name}-dbeaver-tools = %{version}-%{release}
 Recommends: pwgen
 
-%package dbshell
-Summary: HiPerConTracer Database Shell Tool
-Group: Applications/Database
-BuildArch: noarch
-Recommends: %{name} = %{version}-%{release}
-Recommends: %{name}-dbeaver-tools = %{version}-%{release}
-Recommends: pwgen
-
 %description dbshell
 High-Performance Connectivity Tracer (HiPerConTracer) is a
 Ping/Traceroute service. It performs regular Ping and Traceroute runs
