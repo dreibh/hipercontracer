@@ -126,8 +126,9 @@ them to integrate HiPerConTracer into own programs.
 %{_includedir}/hipercontracer/destinationinfo.h
 %{_includedir}/hipercontracer/iomodule-base.h
 %{_includedir}/hipercontracer/iomodule-icmp.h
+%{_includedir}/hipercontracer/iomodule-tcp.h
 %{_includedir}/hipercontracer/iomodule-udp.h
-# %{_includedir}/hipercontracer/jitter.h
+%{_includedir}/hipercontracer/jitter.h
 %{_includedir}/hipercontracer/logger.h
 %{_includedir}/hipercontracer/ping.h
 %{_includedir}/hipercontracer/resultentry.h
@@ -215,7 +216,7 @@ BuildArch: noarch
 Requires: jq
 Requires: openssl
 
-%description hipercontracer-dbeaver-tools
+%description dbeaver-tools
 High-Performance Connectivity Tracer (HiPerConTracer) is a
 Ping/Traceroute service. It performs regular Ping and Traceroute runs
 among sites. The results are written to data files, which can be
@@ -224,14 +225,13 @@ This package contains helper scripts to merge HiPerConTracer database
 configurations into DBeaver configurations, for maintaining databases
 in DBeaver.
 
-%files hipercontracer-dbeaver-tools
+%files dbeaver-tools
 %{_bindir}/decrypt-dbeaver-configuration
 %{_bindir}/encrypt-dbeaver-configuration
 %{_bindir}/make-dbeaver-configuration
 %{_mandir}/man1/decrypt-dbeaver-configuration.1.gz
 %{_mandir}/man1/encrypt-dbeaver-configuration.1.gz
 %{_mandir}/man1/make-dbeaver-configuration.1.gz
-
 
 
 %package dbshell
@@ -242,7 +242,15 @@ Recommends: %{name} = %{version}-%{release}
 Recommends: %{name}-dbeaver-tools = %{version}-%{release}
 Recommends: pwgen
 
-%description hipercontracer-dbshell
+%package dbshell
+Summary: HiPerConTracer Database Shell Tool
+Group: Applications/Database
+BuildArch: noarch
+Recommends: %{name} = %{version}-%{release}
+Recommends: %{name}-dbeaver-tools = %{version}-%{release}
+Recommends: pwgen
+
+%description dbshell
 High-Performance Connectivity Tracer (HiPerConTracer) is a
 Ping/Traceroute service. It performs regular Ping and Traceroute runs
 among sites. The results are written to data files, which can be
@@ -252,7 +260,7 @@ settings from a given database configuration file. It is mainly intended to
 test database access using the configuration files for HiPerConTracer Importer
 and HiPerConTracer Query Tool.
 
-%files hipercontracer-dbshell
+%files dbshell
 %{_bindir}/dbshell
 %{_mandir}/man1/dbshell.1.gz
 
