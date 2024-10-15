@@ -5,6 +5,9 @@
 INSTALL(FILES
            CertificateHelper.py
            README.md
+           hpct-users.conf.example
+        DESTINATION ${CMAKE_INSTALL_DATADIR}/doc/hipercontracer/examples/TestDB)
+INSTALL(PROGRAMS
            0-make-configurations
            1-install-database
            2-initialise-database
@@ -16,5 +19,4 @@ INSTALL(FILES
            generate-test-certificates
            run-full-test
            test-tls-connection
-           hpct-users.conf.example
         DESTINATION ${CMAKE_INSTALL_DATADIR}/doc/hipercontracer/examples/TestDB)
