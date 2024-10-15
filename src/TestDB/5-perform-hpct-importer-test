@@ -63,20 +63,32 @@ if [ -e "${DATABASE_CONFIG}" ] ; then
 
    cd ..
    if [ ! -e Makefile ] ; then
-      cd ..
-      ./autogen.sh
-      cd src
+      # Running in development environment:
+      if [ -x ../autogen.sh ] ; then
+         cd ..
+         ./autogen.sh
+         cd src
+      fi
    fi
-   make hpct-importer
-   rm -f core
+   if [ -e Makefile ] ; then
+      # Running in development environment:
+      make hpct-importer
+      rm -f core
+   fi
    cd TestDB
 
    mkdir -p data/ good/ bad/
    rm -rf good/*
    rm -rf bad/*
 
-   cp ../examples/*.results.* data/
-   ${VALGRIND_CMD} ../hpct-importer \
+   cp ../results-examples/*.results.* data/
+   if [ -x ../hpct-importer ] ; then
+      # Running in development environment:
+      importer="../hpct-importer"
+   else
+      importer="hpct-importer"
+   fi
+   ${VALGRIND_CMD} "${importer}" \
       -C "${IMPORTER_CONFIG}" \
       -D "${DATABASE_CONFIG}" \
       --quit-when-idle \

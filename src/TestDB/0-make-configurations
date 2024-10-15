@@ -35,12 +35,13 @@ set -o nounset
 set -o errexit
 
 
-if [ $# -ne 2 ] ; then
-   echo >&2 "Usage: $0 template-users.conf mydatabase-users.conf"
+if [ $# -ne 3 ] ; then
+   echo >&2 "Usage: $0 template-users.conf mydatabase-users.conf database"
    exit 1
 fi
 TEMPLATE="$1"
 CONFIG="$2"
+DATABASE="$3"
 if [[ ! "${CONFIG}" =~ (-users\.conf)$ ]] ; then
    echo >&2 "ERROR: Name must be <PREFIX>-users.conf!"
    exit 1
@@ -156,5 +157,11 @@ done
 
 
 # ====== Write DBeaver configuration files ==================================
+# shellcheck disable=SC2001
 prefix="$(echo "${CONFIG}" | sed -e "s/-users\.conf$//")"
-../make-dbeaver-configuration "${prefix}"-*-*.conf --join
+if [ -x ../make-dbeaver-configuration ] ; then
+   # Running in development environment:
+   ../make-dbeaver-configuration "${prefix}"-*-*.conf --join
+else
+   make-dbeaver-configuration "${prefix}"-*-*.conf --join
+fi
