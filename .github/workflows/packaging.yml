@@ -30,7 +30,7 @@ jobs:
   # ====== Ubuntu Linux =====================================================
   ubuntu-packaging:
     name: Ubuntu Packaging
-    runs-on: ubuntu:24.04
+    runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
     - name: Packaging
@@ -47,7 +47,7 @@ jobs:
     runs-on: ubuntu-latest
     container:
       image: debian:unstable
-      options: "--privileged"
+      options: --privileged
     steps:
       - uses: actions/checkout@v4
       - name: Packaging
@@ -65,10 +65,10 @@ jobs:
   # ====== Fedora Linux =====================================================
   fedora-packaging:
     name: Fedora Packaging
-    runs-on: ubuntu-latest
+    runs-on: ubuntu:22.04
     container:
       image: fedora:latest
-      options: "--privileged"
+      options: --privileged
     steps:
       - uses: actions/checkout@v4
       - name: Packaging
