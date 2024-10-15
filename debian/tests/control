@@ -19,7 +19,7 @@ Depends: hipercontracer,
          @recommends@
 
 Tests: 50-full-database-test
-Restrictions: breaks-testbed, needs-sudo, needs-internet, allow-stderr
+Restrictions: isolation-machine, breaks-testbed, needs-sudo, needs-internet, allow-stderr
 Depends: hipercontracer-dbeaver-tools,
          hipercontracer-dbshell,
          hipercontracer-importer,
