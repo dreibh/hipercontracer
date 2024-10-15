@@ -28,24 +28,32 @@
 .Sh SYNOPSIS
 .Nm make-dbeaver-configuration
 database_configuration_file ...
+.Op Fl Fl join
 .\" ###### Description ######################################################
 .Sh DESCRIPTION
 .Nm make-dbeaver-configuration
 takes HiPerConTracer configuration files and merges them into the DBeaver
 configuration file.
 .Pp
-.\" ###### Arguments ########################################################
-.\" .Sh ARGUMENTS
-.\" The following argument may be provided:
-.\" .Bl -tag -width indent
-.\" .It ...
-.\" ...
-.\" .El
+###### Arguments ########################################################
+.Sh ARGUMENTS
+The following argument may be provided:
+.Bl -tag -width indent
+.It Fl Fl join
+Join with existing DBeaver configuration. The existing configuration is
+searched in the following directories:
+.Bl -tag
+.It ~/.local/share/DBeaverData/workspace6/General/.dbeaver
+.It ~/snap/dbeaver-ce/current/.local/share/DBeaverData/workspace6/General/.dbeaver
+.El
+.El
 .\" ###### Arguments ########################################################
 .Sh EXAMPLES
 .Bl -tag -width indent
 .It make-dbeaver-configuration hipercontracer-database.conf
-.It make-dbeaver-configuration project1-database.conf project2-database.conf project3-database.conf
+.It make-dbeaver-configuration ~/test4hpct-*-*.conf --join
+.It make-dbeaver-configuration hipercontracer-database.conf --join
+.It make-dbeaver-configuration project1-database.conf project2-database.conf project3-database.conf --join
 .El
 .\" ###### Authors ##########################################################
 .Sh AUTHORS
