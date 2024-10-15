@@ -34,24 +34,10 @@
 # Bash options:
 set -eu
 
-echo "Testing HiPerConTracer with ICMP in the Internet ..."
+# Make empty directory, if necessary:
+mkdir -p "${HOME}/.local/share/DBeaverData/workspace6/General/.dbeaver"
 
-# Prepare results directory writable by user "hipercontracer":
-mkdir -p results1
-sudo chown hipercontracer:hipercontracer results1
-
-# Run HiPerConTracer:
-sudo hipercontracer \
-   -# 12345678 \
-   --user hipercontracer \
-   --source 0.0.0.0 --source :: \
-   --destination www.ietf.org \
-   --ping --traceroute \
-   --iterations=1 \
-   --resultscompression BZip2 \
-   --verbose \
-   -R results1
-
-bzcat results1/*-#12345678*.results.bz2
+cd /usr/share/doc/hipercontracer/examples/TestDB
+./run-full-test mariadb --really-run-i-know-that-it-may-mess-up-the-system
 
 echo "Test passed!"
