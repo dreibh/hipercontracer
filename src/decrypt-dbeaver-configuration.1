@@ -17,7 +17,7 @@
 .\" Contact: thomas.dreibholz@gmail.com
 .\"
 .\" ###### Setup ############################################################
-.Dd October 14, 2024
+.Dd October 15, 2024
 .Dt decrypt-dbeaver-configuration 1
 .Os decrypt-dbeaver-configuration
 .\" ###### Name #############################################################
@@ -33,6 +33,8 @@ plain_dbeaver_credentials_config_json
 .Sh DESCRIPTION
 .Nm decrypt-dbeaver-configuration
 decrypts a plain-text DBeaver credentials configuration file.
+"-" can be used as placeholder for /dev/stdin, to read the input file from
+standard input.
 "-" can be used as placeholder for /dev/stdout, to write the output file to
 stdandard output.
 .Pp
@@ -46,7 +48,7 @@ stdandard output.
 .\" ###### Arguments ########################################################
 .Sh EXAMPLES
 .Bl -tag -width indent
-.It ~/.local/share/DBeaverData/workspace6/General/.dbeaver/credentials-config.json /dev/stdout
+.It ~/.local/share/DBeaverData/workspace6/General/.dbeaver/credentials-config.json -
 .It decrypt-dbeaver-configuration ~/.local/share/DBeaverData/workspace6/General/.dbeaver/credentials-config.json /dev/stdout
 .It decrypt-dbeaver-configuration ~/.local/share/DBeaverData/workspace6/General/.dbeaver/credentials-config.json plaintext-credentials-config.json
 .It decrypt-dbeaver-configuration /home/dreibh/snap/dbeaver-ce/current/.local/share/DBeaverData/workspace6/General/.dbeaver/credentials-config.json plaintext-credentials-config.json
