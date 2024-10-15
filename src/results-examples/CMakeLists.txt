@@ -8,4 +8,4 @@ INSTALL(FILES HiPerConTracer.R
               README.md
               r-ping-example
               r-traceroute-example
-        DESTINATION ${CMAKE_INSTALL_DATADIR}/doc/hipercontracer/examples)
+        DESTINATION ${CMAKE_INSTALL_DATADIR}/doc/hipercontracer/examples/results-examples)
