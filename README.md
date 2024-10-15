@@ -93,7 +93,7 @@ See [src/examples](src/examples) for some examples.
 
 ## GNU R
 
-See [src/examples/install-packages.R](src/examples/install-packages.R) to get the necessary library packages installed!
+See [src/examples/install-packages.R](src/results-examples/install-packages.R) to get the necessary library packages installed!
 
 - ./r-ping-example ../ping.csv
 - ./r-traceroute-example ../traceroute.csv.gz

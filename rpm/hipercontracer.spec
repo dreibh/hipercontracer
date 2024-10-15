@@ -33,6 +33,8 @@ Recommends: %{name}-results-tool = %{version}-%{release}
 Recommends: %{name}-sync-tool = %{version}-%{release}
 Recommends: %{name}-trigger = %{version}-%{release}
 Recommends: %{name}-udp-echo-server = %{version}-%{release}
+Suggests: R-base
+Suggests: python3
 Suggests: td-system-info
 
 
@@ -81,11 +83,11 @@ rmdir /var/hipercontracer >/dev/null 2>&1 || true
 %{_bindir}/hipercontracer
 %{_mandir}/man1/get-default-ips.1.gz
 %{_mandir}/man1/hipercontracer.1.gz
-%{_datadir}/doc/hipercontracer/examples/results-examples/HiPerConTracer.R
-%{_datadir}/doc/hipercontracer/examples/results-examples/*-*.results.*
-%{_datadir}/doc/hipercontracer/examples/results-examples/README.md
-%{_datadir}/doc/hipercontracer/examples/results-examples/r-ping-example
-%{_datadir}/doc/hipercontracer/examples/results-examples/r-traceroute-example
+%{_datadir}/hipercontracer/results-examples/HiPerConTracer.R
+%{_datadir}/hipercontracer/results-examples/*-*.results.*
+%{_datadir}/hipercontracer/results-examples/README.md
+%{_datadir}/hipercontracer/results-examples/r-ping-example
+%{_datadir}/hipercontracer/results-examples/r-traceroute-example
 %{_sysconfdir}/hipercontracer/hipercontracer-12345678.conf
 /lib/systemd/system/hipercontracer.service
 /lib/systemd/system/hipercontracer@.service
@@ -290,6 +292,7 @@ Group: Applications/Database
 Requires: %{name}-libuniversalimporter = %{version}-%{release}
 Recommends: %{name} = %{version}-%{release}
 Recommends: %{name}-dbshell = %{version}-%{release}
+Suggests: python3
 
 %description importer
 High-Performance Connectivity Tracer (HiPerConTracer) is a
@@ -302,39 +305,42 @@ HiPerConTracer into an SQL or NoSQL database.
 %files importer
 %{_bindir}/hpct-importer
 %{_mandir}/man1/hpct-importer.1.gz
-%{_datadir}/doc/hipercontracer/examples/NoSQL/R-query-example.R
-%{_datadir}/doc/hipercontracer/examples/NoSQL/README-MongoDB.md
-%{_datadir}/doc/hipercontracer/examples/NoSQL/mongodb-database.ms
-%{_datadir}/doc/hipercontracer/examples/NoSQL/mongodb-schema.ms
-%{_datadir}/doc/hipercontracer/examples/NoSQL/mongodb-test.ms
-%{_datadir}/doc/hipercontracer/examples/NoSQL/mongodb-users.ms
-%{_datadir}/doc/hipercontracer/examples/NoSQL/nornet-tools.R
-%{_datadir}/doc/hipercontracer/examples/SQL/README-MySQL+MariaDB.md
-%{_datadir}/doc/hipercontracer/examples/SQL/README-PostgreSQL.md
-%{_datadir}/doc/hipercontracer/examples/SQL/mariadb-database.sql
-%{_datadir}/doc/hipercontracer/examples/SQL/mariadb-schema.sql
-%{_datadir}/doc/hipercontracer/examples/SQL/mariadb-test.sql
-%{_datadir}/doc/hipercontracer/examples/SQL/mariadb-users.sql
-%{_datadir}/doc/hipercontracer/examples/SQL/postgresql-database.sql
-%{_datadir}/doc/hipercontracer/examples/SQL/postgresql-schema.sql
-%{_datadir}/doc/hipercontracer/examples/SQL/postgresql-test.sql
-%{_datadir}/doc/hipercontracer/examples/SQL/postgresql-users.sql
-%{_datadir}/doc/hipercontracer/examples/TestDB/0-make-configurations
-%{_datadir}/doc/hipercontracer/examples/TestDB/1-install-database
-%{_datadir}/doc/hipercontracer/examples/TestDB/2-initialise-database
-%{_datadir}/doc/hipercontracer/examples/TestDB/3-test-database
-%{_datadir}/doc/hipercontracer/examples/TestDB/4-clean-database
-%{_datadir}/doc/hipercontracer/examples/TestDB/5-perform-hpct-importer-test
-%{_datadir}/doc/hipercontracer/examples/TestDB/6-perform-hpct-query-test
-%{_datadir}/doc/hipercontracer/examples/TestDB/9-uninstall-database
-%{_datadir}/doc/hipercontracer/examples/TestDB/CertificateHelper.py
-%{_datadir}/doc/hipercontracer/examples/TestDB/README.md
-%{_datadir}/doc/hipercontracer/examples/TestDB/generate-test-certificates
-%{_datadir}/doc/hipercontracer/examples/TestDB/run-full-test
-%{_datadir}/doc/hipercontracer/examples/TestDB/test-tls-connection
-%{_datadir}/doc/hipercontracer/examples/TestDB/hpct-users.conf.example
-%{_datadir}/doc/hipercontracer/examples/hipercontracer-database.conf
-%{_datadir}/doc/hipercontracer/examples/hipercontracer-importer.conf
+%{_datadir}/hipercontracer/NoSQL/R-query-example.R
+%{_datadir}/hipercontracer/NoSQL/README-MongoDB.md
+%{_datadir}/hipercontracer/NoSQL/mongodb-database.ms
+%{_datadir}/hipercontracer/NoSQL/mongodb-schema.ms
+%{_datadir}/hipercontracer/NoSQL/mongodb-test.ms
+%{_datadir}/hipercontracer/NoSQL/mongodb-users.ms
+%{_datadir}/hipercontracer/NoSQL/nornet-tools.R
+%{_datadir}/hipercontracer/SQL/README-MySQL+MariaDB.md
+%{_datadir}/hipercontracer/SQL/README-PostgreSQL.md
+%{_datadir}/hipercontracer/SQL/mariadb-database.sql
+%{_datadir}/hipercontracer/SQL/mariadb-delete-all-rows.sql
+%{_datadir}/hipercontracer/SQL/mariadb-schema.sql
+%{_datadir}/hipercontracer/SQL/mariadb-test.sql
+%{_datadir}/hipercontracer/SQL/mariadb-users.sql
+%{_datadir}/hipercontracer/SQL/postgresql-database.sql
+%{_datadir}/hipercontracer/SQL/postgresql-delete-all-rows.sql
+%{_datadir}/hipercontracer/SQL/postgresql-schema.sql
+%{_datadir}/hipercontracer/SQL/postgresql-test.sql
+%{_datadir}/hipercontracer/SQL/postgresql-users.sql
+%{_datadir}/hipercontracer/TestDB/0-make-configurations
+%{_datadir}/hipercontracer/TestDB/1-install-database
+%{_datadir}/hipercontracer/TestDB/2-initialise-database
+%{_datadir}/hipercontracer/TestDB/3-test-database
+%{_datadir}/hipercontracer/TestDB/4-clean-database
+%{_datadir}/hipercontracer/TestDB/5-perform-hpct-importer-test
+%{_datadir}/hipercontracer/TestDB/6-perform-hpct-query-test
+%{_datadir}/hipercontracer/TestDB/9-uninstall-database
+%{_datadir}/hipercontracer/TestDB/CertificateHelper.py
+%{_datadir}/hipercontracer/TestDB/README.md
+%{_datadir}/hipercontracer/TestDB/generate-test-certificates
+%{_datadir}/hipercontracer/TestDB/hpct-users.conf.example
+%{_datadir}/hipercontracer/TestDB/name-in-etc-hosts
+%{_datadir}/hipercontracer/TestDB/run-full-test
+%{_datadir}/hipercontracer/TestDB/test-tls-connection
+%{_datadir}/hipercontracer/hipercontracer-database.conf
+%{_datadir}/hipercontracer/hipercontracer-importer.conf
 %{_sysconfdir}/hipercontracer/hpct-importer.conf
 /lib/systemd/system/hpct-importer.service
 

@@ -1,2 +1,2 @@
-# False positive: files for different databases. A symlink is not useful.
-hipercontracer-importer: duplicate-files
+# The documentation files describe the contents of the directory. Moving them to /usr/share/doc is not useful.
+hipercontracer-importer: package-contains-documentation-outside-usr-share-doc

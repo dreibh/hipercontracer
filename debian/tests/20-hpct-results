@@ -35,14 +35,14 @@
 set -eux
 
 echo "Testing HiPerConTracer Results Tool plain-text CSV generation ..."
-ls -al /usr/share/doc/hipercontracer/examples/
-ls -al /usr/share/doc/hipercontracer/examples/results-examples/
-hpct-results -o test1.csv --loglevel 0 /usr/share/doc/hipercontracer/examples/results-examples/Ping-*.results*
+ls -al /usr/share/hipercontracer/
+ls -al /usr/share/hipercontracer/results-examples/
+hpct-results -o test1.csv --loglevel 0 /usr/share/hipercontracer/results-examples/Ping-*.results*
 
 # Compressed CSVs
 for compression in gz bz2 xz ; do
    echo "Testing HiPerConTracer Results Tool compressed CSV generation (${compression}) ..."
-   hpct-results -o test2.csv.${compression} --separator ';' /usr/share/doc/hipercontracer/examples/results-examples/Traceroute-*.results*
+   hpct-results -o test2.csv.${compression} --separator ';' /usr/share/hipercontracer/results-examples/Traceroute-*.results*
 done
 
 echo "Test passed!"

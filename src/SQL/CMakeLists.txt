@@ -15,4 +15,4 @@ INSTALL(FILES
            postgresql-schema.sql
            postgresql-test.sql
            postgresql-users.sql
-        DESTINATION ${CMAKE_INSTALL_DATADIR}/doc/hipercontracer/examples/SQL)
+        DESTINATION ${CMAKE_INSTALL_DATADIR}/hipercontracer/SQL)
