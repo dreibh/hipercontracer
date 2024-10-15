@@ -1,5 +1,5 @@
 Name: hipercontracer
-Version: 2.0.0~beta4
+Version: 2.0.0~rc0
 Release: 1
 Summary: High-Performance Connectivity Tracer (HiPerConTracer)
 Group: Applications/Internet
@@ -81,11 +81,11 @@ rmdir /var/hipercontracer >/dev/null 2>&1 || true
 %{_bindir}/hipercontracer
 %{_mandir}/man1/get-default-ips.1.gz
 %{_mandir}/man1/hipercontracer.1.gz
-%{_datadir}/doc/hipercontracer/examples/HiPerConTracer.R
-%{_datadir}/doc/hipercontracer/examples/*-*.results.*
-%{_datadir}/doc/hipercontracer/examples/README.md
-%{_datadir}/doc/hipercontracer/examples/r-ping-example
-%{_datadir}/doc/hipercontracer/examples/r-traceroute-example
+%{_datadir}/doc/hipercontracer/examples/results-examples/HiPerConTracer.R
+%{_datadir}/doc/hipercontracer/examples/results-examples/*-*.results.*
+%{_datadir}/doc/hipercontracer/examples/results-examples/README.md
+%{_datadir}/doc/hipercontracer/examples/results-examples/r-ping-example
+%{_datadir}/doc/hipercontracer/examples/results-examples/r-traceroute-example
 %{_sysconfdir}/hipercontracer/hipercontracer-12345678.conf
 /lib/systemd/system/hipercontracer.service
 /lib/systemd/system/hipercontracer@.service
@@ -213,6 +213,7 @@ This tool triggers HiPerConTracer by incoming "Ping" packets.
 Summary: HiPerConTracer DBeaver tools
 Group: Applications/Database
 BuildArch: noarch
+Recommends: %{name}-dbshell = %{version}-%{release}
 Requires: jq
 Requires: openssl
 

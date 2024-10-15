@@ -40,6 +40,9 @@ echo "Testing HiPerConTracer with ICMP in the Internet ..."
 mkdir -p results1
 sudo chown hipercontracer:hipercontracer results1
 
+echo "Default IPs: "
+get-default-ips
+
 # Run HiPerConTracer:
 sudo hipercontracer \
    -# 12345678 \
@@ -49,7 +52,6 @@ sudo hipercontracer \
    --ping --traceroute \
    --iterations=1 \
    --resultscompression BZip2 \
-   --verbose \
    -R results1
 
 bzcat results1/*-#12345678*.results.bz2

@@ -132,6 +132,7 @@ Package: hipercontracer-dbeaver-tools
 Architecture: all
 Depends: jq,
          openssl,
+         hipercontracer-dbshell (>= ${source:Version}),
          ${misc:Depends}
 Description: HiPerConTracer Database Shell for access testing to a database
  High-Performance Connectivity Tracer (HiPerConTracer) is a

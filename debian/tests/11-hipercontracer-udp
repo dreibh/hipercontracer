@@ -36,19 +36,29 @@ set -eu
 
 echo "Testing HiPerConTracer with ICMP and UDP on localhost, IPv4 and IPv6 ..."
 
-systemctl start udp-echo-server
+# Prepare results directory writable by user "hipercontracer":
+mkdir -p results2
+sudo chown hipercontracer:hipercontracer results2
 
-hipercontracer \
+udpPort=10000
+udp-echo-server --port ${udpPort} &
+pid=$!
+
+# Run HiPerConTracer:
+sudo hipercontracer \
    -# 88888888 \
+   --user hipercontracer \
    --source      0.0.0.0   --source :: \
    --destination 127.0.0.1 --destination ::1 \
    --ping --traceroute \
    -M UDP \
+   --pingudpdestinationport       ${udpPort} \
+   --tracerouteudpdestinationport ${udpPort} \
    --iterations=3 \
    -R results2
 
 xzcat results2/*-#88888888*.results.xz
 
-systemctl stop udp-echo-server
+kill "${pid}"
 
 echo "Test passed!"
