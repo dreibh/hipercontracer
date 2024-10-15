@@ -13,6 +13,7 @@ LICENSE_FILE=	${WRKSRC}/COPYING
 
 LIB_DEPENDS=	libbz2.so:archivers/bzip2 \
 		libcares.so:dns/c-ares \
+		libinotify.so:devel/libinotify \
 		libboost_date_time.so:devel/boost-libs \
 		libboost_filesystem.so:devel/boost-libs \
 		libboost_iostreams.so:devel/boost-libs \
