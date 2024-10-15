@@ -65,7 +65,7 @@ jobs:
   # ====== Fedora Linux =====================================================
   fedora-packaging:
     name: Fedora Packaging
-    runs-on: ubuntu:22.04
+    runs-on: ubuntu-22.04
     container:
       image: fedora:latest
       options: --privileged
