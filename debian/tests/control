@@ -1,3 +1,11 @@
-Tests: 10-hipercontracer
+Tests: 10-hipercontracer-icmp
 Restrictions: needs-root, needs-internet, allow-stderr
 Depends: hipercontracer
+
+Tests: 11-hipercontracer-udp
+Restrictions: needs-root, needs-internet, allow-stderr
+Depends: hipercontracer, hipercontracer-udp-echo-server
+
+Tests: 20-hpct-results
+Restrictions: allow-stderr
+Depends: hipercontracer-results-tool

@@ -1,0 +1,46 @@
+#!/usr/bin/env bash
+#
+#  =================================================================
+#           #     #                 #     #
+#           ##    #   ####   #####  ##    #  ######   #####
+#           # #   #  #    #  #    # # #   #  #          #
+#           #  #  #  #    #  #    # #  #  #  #####      #
+#           #   # #  #    #  #####  #   # #  #          #
+#           #    ##  #    #  #   #  #    ##  #          #
+#           #     #   ####   #    # #     #  ######     #
+#
+#        ---   The NorNet Testbed for Multi-Homed Systems  ---
+#                        https://www.nntb.no
+#  =================================================================
+#
+#  High-Performance Connectivity Tracer (HiPerConTracer)
+#  Copyright (C) 2015-2024 by Thomas Dreibholz
+#
+#  This program is free software: you can redistribute it and/or modify
+#  it under the terms of the GNU General Public License as published by
+#  the Free Software Foundation, either version 3 of the License, or
+#  (at your option) any later version.
+#
+#  This program is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
+#
+#  You should have received a copy of the GNU General Public License
+#  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+#  Contact: dreibh@simula.no
+
+# Bash options:
+set -eu
+
+echo "Testing HiPerConTracer Results Tool plain-text CSV generation ..."
+hpct-results -o test1.csv --loglevel 0 /usr/share/doc/hipercontracer/examples/Ping-*.results*
+
+# Compressed CSVs
+for compression in gz bz2 xz ; do
+   echo "Testing HiPerConTracer Results Tool compressed CSV generation (${compression}) ..."
+   hpct-results -o test2.csv.${compression} --separator ';' /usr/share/doc/hipercontracer/examples/Traceroute-*.results*
+done
+
+echo "Test passed!"
