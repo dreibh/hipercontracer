@@ -44,8 +44,8 @@ hipercontracer \
    --iterations=1 \
    --resultscompression BZip2 \
    --verbose \
-   -R results
+   -R results1
 
-bzcat results/*-#12345678*.results.bz2
+bzcat results1/*-#12345678*.results.bz2
 
 echo "Test passed!"

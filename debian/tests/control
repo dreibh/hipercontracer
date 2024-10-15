@@ -9,3 +9,7 @@ Depends: hipercontracer, hipercontracer-udp-echo-server
 Tests: 20-hpct-results
 Restrictions: allow-stderr
 Depends: hipercontracer-results-tool
+
+Tests: 30-dbeaver-tools
+Restrictions: allow-stderr
+Depends: hipercontracer-dbeaver-tools

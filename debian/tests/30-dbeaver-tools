@@ -34,21 +34,40 @@
 # Bash options:
 set -eu
 
-echo "Testing HiPerConTracer with ICMP and UDP on localhost, IPv4 and IPv6 ..."
+cat >database1.conf <<EOF
+dbbackend         = MariaDB
+dbserver          = mariadb.hipercontracer.example
+dbport            = 12345
+dbcafile          = /just/a/test/TestCA.crt
+dbcrlfile         = /just/a/test/TestCRL.crl
+dbcertfile        = NONE
+dbkeyfile         = NONE
+dbconnectionflags = NONE
+dbuser            = importer
+dbpassword        = $(pwgen -s 64)
+database          = test4hpct
+dbreconnectdelay  = 5
+EOF
 
-systemctl start udp-echo-server
+cat >database2.conf <<EOF
+dbbackend         = PostgreSQL
+dbserver          = postgresql.hipercontracer.example
+dbport            = 11111
+dbcafile          = /just/a/test/TestCA.crt
+dbcrlfile         = /just/a/test/TestCRL.crl
+dbcertfile        = NONE
+dbkeyfile         = NONE
+dbconnectionflags = NONE
+dbuser            = importer
+dbpassword        = $(pwgen -s 64)
+database          = test4hpct
+dbreconnectdelay  = 5
+EOF
 
-hipercontracer \
-   -# 88888888 \
-   --source      0.0.0.0   --source :: \
-   --destination 127.0.0.1 --destination ::1 \
-   --ping --traceroute \
-   -M UDP \
-   --iterations=3 \
-   -R results2
+/usr/bin/make-dbeaver-configuration database1.conf database2.conf
 
-xzcat results2/*-#88888888*.results.xz
+cat data-sources.json
+cat credentials-config.json | decrypt-dbeaver-configuration - -
 
-systemctl stop udp-echo-server
 
 echo "Test passed!"
