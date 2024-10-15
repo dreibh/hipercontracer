@@ -40,6 +40,9 @@ if [ $# -ne 2 ] ; then
 fi
 
 inputFile="$1"
+if [ "${inputFile}" == "-" ] ; then
+   inputFile="/dev/stdin"
+fi
 outputFile="$2"
 if [ "${outputFile}" == "-" ] ; then
    outputFile="/dev/stdout"

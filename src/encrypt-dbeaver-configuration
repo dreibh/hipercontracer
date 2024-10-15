@@ -44,6 +44,9 @@ if [ "${inputFile}" == "-" ] ; then
    inputFile="/dev/stdin"
 fi
 outputFile="$2"
+if [ "${outputFile}" == "-" ] ; then
+   outputFile="/dev/stdout"
+fi
 
 (
    dd if=/dev/urandom of="/dev/stdout" bs=16 count=1 status=none 2>/dev/null   # 16 bytes random number
