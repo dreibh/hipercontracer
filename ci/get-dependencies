@@ -19,7 +19,7 @@
 #
 # Contact: thomas.dreibholz@gmail.com
 
-
+import distro
 import glob
 import os
 import re
@@ -33,6 +33,7 @@ depItem = re.compile(r'^([a-zA-Z0-9-+\.]+)[\s]*(|\|.*|\(.*)[\s]*$')
 
 def extractDependencies(line, system):
    dependencies = []
+   distribution = distro.codename()
 
    # Remove "build-depends:", etc.:
    m = depLine.match(line)
@@ -52,8 +53,6 @@ def extractDependencies(line, system):
          if ((dependency == 'cmake') or (dependency == 'cmake3')):
             if ((system == 'debian') or (system == 'ubuntu')):
                try:
-                  distribution = subprocess.check_output( ["lsb_release", "-cs"] ).decode('utf-8').strip()
-                  # print("distribution=", distribution, ".")
                   if distribution in [ 'trusty' ]:
                      dependency = 'cmake3'
                except:

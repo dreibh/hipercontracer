@@ -42,7 +42,7 @@ fi
 
 # ====== Ubuntu/Deban =======================================================
 if [ "${ID}" == "ubuntu" ] || [ "${ID}" == "debian" ] ; then
-   PACKAGES="python3"
+   PACKAGES="python3 python3-distro"
    if [ -v CC ] ; then
       if [[ "${CC}" =~ .*gcc.* ]] ; then
          PACKAGES="${PACKAGES} gcc"
@@ -52,13 +52,13 @@ if [ "${ID}" == "ubuntu" ] || [ "${ID}" == "debian" ] ; then
    fi
    if [ ${USE_PACKAGING} -eq 1 ] ; then
       # Need to install pbuilder as well:
-      PACKAGES="${PACKAGES} blhc build-essential debian-archive-keyring debian-ports-archive-keyring devscripts eatmydata fakeroot lintian pbuilder python3-debian python3-distro qemu-user-static"
+      PACKAGES="${PACKAGES} build-essential debian-archive-keyring debian-ports-archive-keyring devscripts distro-info eatmydata fakeroot pbuilder qemu-user-static"
    fi
 
    apt-get update -qq
    # DEBIAN_FRONTEND=noninteractive apt-get dist-upgrade -qy
    # shellcheck disable=SC2086
-   DEBIAN_FRONTEND=noninteractive apt-get install -qqy  -o Dpkg::Options::=--force-confold -o Dpkg::Options::=--force-confdef --no-install-recommends \
+   DEBIAN_FRONTEND=noninteractive apt-get install -y -o Dpkg::Options::=--force-confold -o Dpkg::Options::=--force-confdef --no-install-recommends \
       ${PACKAGES}
 
    if [ "${ID}" == "ubuntu" ] ; then
@@ -167,10 +167,10 @@ EOF
 
 # ====== Fedora =============================================================
 elif [ "${ID}" == "fedora" ] ; then
-   PACKAGES="clang make python3 python3-distro redhat-lsb-core"
+   PACKAGES="clang make python3 python3-distro"
    if [ ${USE_PACKAGING} -eq 1 ] ; then
       # Need to install mock as well:
-      PACKAGES="${PACKAGES} fedora-release findutils mock nosync rpmdevtools"
+      PACKAGES="${PACKAGES} fedora-release findutils mock nosync rpmdevtools   which strace sudo"
    fi
 
    # dnf upgrade -qy
@@ -206,8 +206,10 @@ elif [ "${ID}" == "fedora" ] ; then
 
 # ====== FreeBSD ============================================================
 elif [ "${ID}" == "freebsd" ] ; then
+   PACKAGES="autoconf automake bash gcc libtool git python3 py311-distro"
 
-   ASSUME_ALWAYS_YES=yes pkg install -y autoconf automake bash gcc libtool git python3
+   # shellcheck disable=SC2086
+   ASSUME_ALWAYS_YES=yes pkg install -y ${PACKAGES}
 
    if [ ! -e /usr/ports/.git ] ; then
       rm -rf /usr/ports/* /usr/ports/.??* || true
