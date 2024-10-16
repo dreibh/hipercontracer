@@ -17,7 +17,7 @@
 .\" Contact: thomas.dreibholz@gmail.com
 .\"
 .\" ###### Setup ############################################################
-.Dd October 15, 2024
+.Dd October 16, 2024
 .Dt encrypt-dbeaver-configuration 1
 .Os encrypt-dbeaver-configuration
 .\" ###### Name #############################################################
@@ -48,8 +48,7 @@ stdandard output.
 .\" ###### Arguments ########################################################
 .Sh EXAMPLES
 .Bl -tag -width indent
-.It encrypt-dbeaver-configuration plaintext-credentials-config.json ~/.local/share/DBeaverData/workspace6/General/.dbeaver/credentials-config.json
-.It encrypt-dbeaver-configuration plaintext-credentials-config.json /home/dreibh/snap/dbeaver-ce/current/.local/share/DBeaverData/workspace6/General/.dbeaver/credentials-config.json
+.It encrypt-dbeaver-configuration plaintext.json $DBEAVER_DIR/credentials-config.json
 .El
 .\" ###### Authors ##########################################################
 .Sh AUTHORS

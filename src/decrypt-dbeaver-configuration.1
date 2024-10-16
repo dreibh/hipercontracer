@@ -17,7 +17,7 @@
 .\" Contact: thomas.dreibholz@gmail.com
 .\"
 .\" ###### Setup ############################################################
-.Dd October 15, 2024
+.Dd October 16, 2024
 .Dt decrypt-dbeaver-configuration 1
 .Os decrypt-dbeaver-configuration
 .\" ###### Name #############################################################
@@ -48,10 +48,9 @@ stdandard output.
 .\" ###### Arguments ########################################################
 .Sh EXAMPLES
 .Bl -tag -width indent
-.It ~/.local/share/DBeaverData/workspace6/General/.dbeaver/credentials-config.json -
-.It decrypt-dbeaver-configuration ~/.local/share/DBeaverData/workspace6/General/.dbeaver/credentials-config.json /dev/stdout
-.It decrypt-dbeaver-configuration ~/.local/share/DBeaverData/workspace6/General/.dbeaver/credentials-config.json plaintext-credentials-config.json
-.It decrypt-dbeaver-configuration /home/dreibh/snap/dbeaver-ce/current/.local/share/DBeaverData/workspace6/General/.dbeaver/credentials-config.json plaintext-credentials-config.json
+.It decrypt-dbeaver-configuration $DBEAVER_DIR/credentials-config.json /dev/stdout
+.It decrypt-dbeaver-configuration $DBEAVER_DIR/credentials-config.json -
+.It decrypt-dbeaver-configuration $DBEAVER_DIR/credentials-config.json plaintext-credentials-config.json
 .El
 .\" ###### Authors ##########################################################
 .Sh AUTHORS
