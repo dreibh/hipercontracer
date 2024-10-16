@@ -184,9 +184,11 @@ ENDIF()
 # ====== HiPerConTracer =====================================================
 ADD_EXECUTABLE(hipercontracer hipercontracer.cc)
 TARGET_LINK_LIBRARIES(hipercontracer libhipercontracer-${libraryType} ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
-INSTALL(TARGETS hipercontracer               RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
-INSTALL(FILES hipercontracer.1               DESTINATION         ${CMAKE_INSTALL_MANDIR}/man1)
-INSTALL(FILES hipercontracer.bash-completion DESTINATION         ${CMAKE_INSTALL_DATADIR}/bash-completion/completions)
+INSTALL(TARGETS     hipercontracer   RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
+INSTALL(FILES       hipercontracer.1 DESTINATION         ${CMAKE_INSTALL_MANDIR}/man1)
+INSTALL(FILES       hipercontracer.bash-completion
+        DESTINATION ${CMAKE_INSTALL_DATADIR}/bash-completion/completions
+        RENAME      hipercontracer)
 IF (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
    INSTALL(FILES hipercontracer.service       DESTINATION /lib/systemd/system)
    INSTALL(FILES hipercontracer@.service      DESTINATION /lib/systemd/system)
@@ -249,9 +251,11 @@ ENDIF()
 
 # ====== HiPerConTracer Database Shell ======================================
 IF (WITH_DBSHELL)
-   INSTALL(PROGRAMS dbshell                 DESTINATION ${CMAKE_INSTALL_BINDIR})
-   INSTALL(FILES    dbshell.1               DESTINATION ${CMAKE_INSTALL_MANDIR}/man1)
-   INSTALL(FILES    dbshell.bash-completion DESTINATION ${CMAKE_INSTALL_DATADIR}/bash-completion/completions)
+   INSTALL(PROGRAMS    dbshell   DESTINATION ${CMAKE_INSTALL_BINDIR})
+   INSTALL(FILES       dbshell.1 DESTINATION ${CMAKE_INSTALL_MANDIR}/man1)
+   INSTALL(FILES       dbshell.bash-completion
+           DESTINATION ${CMAKE_INSTALL_DATADIR}/bash-completion/completions
+           RENAME      dbshell)
 ENDIF()
 
 # ====== HiPerConTracer DBeaver Tools =======================================
@@ -276,9 +280,11 @@ ENDIF()
 IF (WITH_UDP_ECHO_SERVER)
    ADD_EXECUTABLE(udp-echo-server udp-echo-server.cc logger.cc tools.cc)
    TARGET_LINK_LIBRARIES(udp-echo-server ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
-   INSTALL(TARGETS udp-echo-server               RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
-   INSTALL(FILES udp-echo-server.1               DESTINATION         ${CMAKE_INSTALL_MANDIR}/man1)
-   INSTALL(FILES udp-echo-server.bash-completion DESTINATION         ${CMAKE_INSTALL_DATADIR}/bash-completion/completions)
+   INSTALL(TARGETS udp-echo-server   RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
+   INSTALL(FILES   udp-echo-server.1 DESTINATION         ${CMAKE_INSTALL_MANDIR}/man1)
+   INSTALL(FILES   udp-echo-server.bash-completion
+           DESTINATION ${CMAKE_INSTALL_DATADIR}/bash-completion/completions
+           RENAME      udp-echo-server)
    IF (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
       INSTALL(FILES udp-echo-server.service DESTINATION /lib/systemd/system)
       INSTALL(FILES udp-echo-server.conf    DESTINATION /etc/hipercontracer)

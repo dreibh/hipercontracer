@@ -258,6 +258,7 @@ and HiPerConTracer Query Tool.
 
 %files dbshell
 %{_bindir}/dbshell
+%{_datadir}/bash-completion/completions/dbshell
 %{_mandir}/man1/dbshell.1.gz
 
 
@@ -404,6 +405,7 @@ UDP Pings.
 
 %files udp-echo-server
 %{_bindir}/udp-echo-server
+%{_datadir}/bash-completion/completions/udp-echo-server
 %{_mandir}/man1/udp-echo-server.1.gz
 %{_sysconfdir}/hipercontracer/udp-echo-server.conf
 /lib/systemd/system/udp-echo-server.service
