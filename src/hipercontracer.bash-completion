@@ -37,9 +37,138 @@ _hipercontracer()
    local cur prev words cword
    _init_completion || return
 
-   local opts="-# --check --destinations-from-file --iterations --pingburst --pingexpiration --pinginterval --pingintervaldeviation --pingpacketsize --pingttl --pingudpdestinationport --pingudpsourceport --sources-from-file --tracerouteduration --traceroutefinalmaxttl --tracerouteincrementmaxttl --tracerouteinitialmaxttl --tracerouteinterval --tracerouteintervaldeviation --traceroutepacketsize --tracerouterounds --tracerouteudpdestinationport --tracerouteudpsourceport -C -D -F -L -M -O -P -R -S -T -U -Z -q -v -x -z"
-   COMPREPLY=( $( compgen -W "${opts}" "${cur}" ) )
+   case "${prev}" in
+      #  ====== Generic value ===============================================
+      -U | --loglevel                 | \
+      -U | --userid                   | \
+      -# | --measurement-id           | \
+      -D | --destination              | \
+      --iterations                    | \
+      --tracerouteinterval            | \
+      --tracerouteintervaldeviation   | \
+      --tracerouteduration            | \
+      --tracerouterounds              | \
+      --tracerouteinitialmaxttl       | \
+      --traceroutefinalmaxttl         | \
+      --tracerouteincrementmaxttl     | \
+      --traceroutepacketsize          | \
+      --tracerouteudpsourceport       | \
+      --tracerouteudpdestinationport  | \
+      --pinginterval                  | \
+      --pingintervaldeviation         | \
+      --pingexpiration                | \
+      --pingburst                     | \
+      --pingttl                       | \
+      --pingpacketsize                | \
+      --pingudpsourceport             | \
+      --pingudpdestinationport        | \
+      -x | --resultstransactionlength | \
+      -F | --resultsformat            | \
+      -z | --resultstimestampdepth)
+         return
+         ;;
+      # ====== Special case: compression ====================================
+      -C | --resultscompression)
+         COMPREPLY=($(compgen -W "none XZ BZip2 GZip" -- "${cur}"))
+         return
+         ;;
+      # ====== Special case: IO Module ======================================
+      -M | --iomodule)
+         COMPREPLY=($(compgen -W "ICMP UDP" -- "${cur}"))
+         return
+         ;;
+      # ====== Special case: log file =======================================
+      -O | --logfile)
+         # Files with extension .log:
+         COMPREPLY=( $( compgen -f -X "!*.log" -- "${cur}" ) )
+         return
+         ;;
+      # ====== Special case: source address =================================
+      -S | --source)
+         # Obtain addresses with default route by using "get-default-ips":
+         COMPREPLY=( $( compgen -W "$(get-default-ips)" -- "${cur}" ) )
+         return
+         ;;
+      # ====== Special case: on/off =========================================
+      -Z | --logcolor)
+         COMPREPLY=($(compgen -W "on off" --  "${cur}"))
+         return
+         ;;
+      # ====== Special case: file ===========================================
+      --sources-from-file | \
+      --destinations-from-file)
+         # Arbitrary file names:
+         COMPREPLY=( $( compgen -f -- "${cur}" ) )
+         return
+         ;;
+      # ====== Special case: directory ======================================
+      -R | --resultsdirectory)
+         # Arbitrary directories:
+         COMPREPLY=( $( compgen -A directory -- "${cur}" ) )
+         return
+         ;;
+   esac
 
+   # ====== All options =====================================================
+   local opts="
+-P
+--ping
+-T
+--traceroute
+-L
+--loglevel
+-Z
+--logcolor
+-O
+--logfile
+-q
+--quiet
+-v
+--verbose
+-U
+--user
+-#
+--measurement-id
+-S
+--source
+-D
+--destination
+--sources-from-file
+--destinations-from-file
+-M
+--iomodule
+--iterations
+--tracerouteinterval
+--tracerouteintervaldeviation
+--tracerouteduration
+--tracerouterounds
+--tracerouteinitialmaxttl
+--traceroutefinalmaxttl
+--tracerouteincrementmaxttl
+--traceroutepacketsize
+--tracerouteudpsourceport
+--tracerouteudpdestinationport
+--pinginterval
+--pingintervaldeviation
+--pingexpiration
+--pingburst
+--pingttl
+--pingpacketsize
+--pingudpsourceport
+--pingudpdestinationport
+-R
+--resultsdirectory
+-x
+--resultstransactionlength
+-C
+--resultscompression
+-F
+--resultsformat
+-z
+--resultstimestampdepth
+--check
+"
+   COMPREPLY=( $( compgen -W "${opts}" -- "${cur}" ) )
    return 0
 }
 
