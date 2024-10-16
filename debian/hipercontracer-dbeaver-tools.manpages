@@ -1,3 +1,3 @@
-debian/tmp/usr/share/man/man1/decrypt-dbeaver-configuration.1
-debian/tmp/usr/share/man/man1/encrypt-dbeaver-configuration.1
-debian/tmp/usr/share/man/man1/make-dbeaver-configuration.1
+usr/share/man/man1/decrypt-dbeaver-configuration.1
+usr/share/man/man1/encrypt-dbeaver-configuration.1
+usr/share/man/man1/make-dbeaver-configuration.1
