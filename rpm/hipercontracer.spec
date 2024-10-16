@@ -81,13 +81,14 @@ rmdir /var/hipercontracer >/dev/null 2>&1 || true
 %files
 %{_bindir}/get-default-ips
 %{_bindir}/hipercontracer
-%{_mandir}/man1/get-default-ips.1.gz
-%{_mandir}/man1/hipercontracer.1.gz
+%{_datadir}/bash-completion/completions/hipercontracer
 %{_datadir}/hipercontracer/results-examples/HiPerConTracer.R
 %{_datadir}/hipercontracer/results-examples/*-*.results.*
 %{_datadir}/hipercontracer/results-examples/README.md
 %{_datadir}/hipercontracer/results-examples/r-ping-example
 %{_datadir}/hipercontracer/results-examples/r-traceroute-example
+%{_mandir}/man1/get-default-ips.1.gz
+%{_mandir}/man1/hipercontracer.1.gz
 %{_sysconfdir}/hipercontracer/hipercontracer-12345678.conf
 /lib/systemd/system/hipercontracer.service
 /lib/systemd/system/hipercontracer@.service

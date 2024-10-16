@@ -1,0 +1,46 @@
+#  =================================================================
+#           #     #                 #     #
+#           ##    #   ####   #####  ##    #  ######   #####
+#           # #   #  #    #  #    # # #   #  #          #
+#           #  #  #  #    #  #    # #  #  #  #####      #
+#           #   # #  #    #  #####  #   # #  #          #
+#           #    ##  #    #  #   #  #    ##  #          #
+#           #     #   ####   #    # #     #  ######     #
+#
+#        ---   The NorNet Testbed for Multi-Homed Systems  ---
+#                        https://www.nntb.no
+#  =================================================================
+#
+#  High-Performance Connectivity Tracer (HiPerConTracer)
+#  Copyright (C) 2015-2024 by Thomas Dreibholz
+#
+#  This program is free software: you can redistribute it and/or modify
+#  it under the terms of the GNU General Public License as published by
+#  the Free Software Foundation, either version 3 of the License, or
+#  (at your option) any later version.
+#
+#  This program is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
+#
+#  You should have received a copy of the GNU General Public License
+#  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+#  Contact: dreibh@simula.no
+
+
+# ###### Bash completion for hipercontracer #################################
+_hipercontracer()
+{
+   # Based on: https://www.benningtons.net/index.php/bash-completion/
+   local cur prev words cword
+   _init_completion || return
+
+   local opts="-# --check --destinations-from-file --iterations --pingburst --pingexpiration --pinginterval --pingintervaldeviation --pingpacketsize --pingttl --pingudpdestinationport --pingudpsourceport --sources-from-file --tracerouteduration --traceroutefinalmaxttl --tracerouteincrementmaxttl --tracerouteinitialmaxttl --tracerouteinterval --tracerouteintervaldeviation --traceroutepacketsize --tracerouterounds --tracerouteudpdestinationport --tracerouteudpsourceport -C -D -F -L -M -O -P -R -S -T -U -Z -q -v -x -z"
+   COMPREPLY=( $( compgen -W "${opts}" "${cur}" ) )
+
+   return 0
+}
+
+complete -F _hipercontracer hipercontracer
