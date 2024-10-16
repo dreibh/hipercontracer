@@ -235,10 +235,8 @@ ENDIF()
 IF (WITH_QUERY)
    ADD_EXECUTABLE(hpct-query hpct-query.cc)
    TARGET_LINK_LIBRARIES(hpct-query libuniversalimporter-${libraryType} ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
-   INSTALL(TARGETS hpct-query
-           DESTINATION ${CMAKE_INSTALL_BINDIR})
-   INSTALL(FILES hpct-query.1
-           DESTINATION ${CMAKE_INSTALL_MANDIR}/man1)
+   INSTALL(TARGETS hpct-query RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
+   INSTALL(FILES hpct-query.1 DESTINATION         ${CMAKE_INSTALL_MANDIR}/man1)
 ENDIF()
 
 # ====== HiPerConTracer Results Tool ========================================
@@ -246,14 +244,14 @@ IF (WITH_RESULTS)
    ADD_EXECUTABLE(hpct-results hpct-results.cc conversions.cc)
    TARGET_LINK_LIBRARIES(hpct-results libuniversalimporter-${libraryType} ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
    INSTALL(TARGETS hpct-results RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
-   INSTALL(FILES hpct-results.1
-           DESTINATION ${CMAKE_INSTALL_MANDIR}/man1)
+   INSTALL(FILES hpct-results.1 DESTINATION         ${CMAKE_INSTALL_MANDIR}/man1)
 ENDIF()
 
 # ====== HiPerConTracer Database Shell ======================================
 IF (WITH_DBSHELL)
-   INSTALL(PROGRAMS dbshell   DESTINATION ${CMAKE_INSTALL_BINDIR})
-   INSTALL(FILES    dbshell.1 DESTINATION ${CMAKE_INSTALL_MANDIR}/man1)
+   INSTALL(PROGRAMS dbshell                 DESTINATION ${CMAKE_INSTALL_BINDIR})
+   INSTALL(FILES    dbshell.1               DESTINATION ${CMAKE_INSTALL_MANDIR}/man1)
+   INSTALL(FILES    dbshell.bash-completion DESTINATION ${CMAKE_INSTALL_DATADIR}/bash-completion/completions/dbshell)
 ENDIF()
 
 # ====== HiPerConTracer DBeaver Tools =======================================
@@ -270,19 +268,16 @@ ENDIF()
 IF (WITH_PIPE_CHECKSUM)
    ADD_EXECUTABLE(pipe-checksum pipe-checksum.cc)
    TARGET_LINK_LIBRARIES(pipe-checksum ${CRYPTO_LIBRARY})
-   INSTALL(TARGETS pipe-checksum RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
-   INSTALL(FILES pipe-checksum.1
-           DESTINATION ${CMAKE_INSTALL_MANDIR}/man1)
+   INSTALL(TARGETS pipe-checksum   RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
+   INSTALL(FILES   pipe-checksum.1 DESTINATION         ${CMAKE_INSTALL_MANDIR}/man1)
 ENDIF()
 
 # ====== UDP Echo Server ====================================================
 IF (WITH_UDP_ECHO_SERVER)
    ADD_EXECUTABLE(udp-echo-server udp-echo-server.cc logger.cc tools.cc)
    TARGET_LINK_LIBRARIES(udp-echo-server ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
-   INSTALL(TARGETS udp-echo-server
-           DESTINATION ${CMAKE_INSTALL_BINDIR})
-   INSTALL(FILES udp-echo-server.1
-           DESTINATION ${CMAKE_INSTALL_MANDIR}/man1)
+   INSTALL(TARGETS udp-echo-server RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
+   INSTALL(FILES udp-echo-server.1 DESTINATION         ${CMAKE_INSTALL_MANDIR}/man1)
    IF (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
       INSTALL(FILES udp-echo-server.service DESTINATION /lib/systemd/system)
       INSTALL(FILES udp-echo-server.conf    DESTINATION /etc/hipercontracer)
