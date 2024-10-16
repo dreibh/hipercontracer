@@ -39,7 +39,7 @@ _hipercontracer()
 
    case "${prev}" in
       #  ====== Generic value ===============================================
-      -U | --loglevel                 | \
+      -L | --loglevel                 | \
       -U | --userid                   | \
       -# | --measurement-id           | \
       -D | --destination              | \
