@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mime-info xmlns="http://www.freedesktop.org/standards/shared-mime-info">
+  <mime-type type="application/x-hipercontracer">
+    <comment>HiPerConTracer results file</comment>
+    <comment xml:lang="de">HiPerConTracer-Ergebnisdatei</comment>
+    <comment xml:lang="nb">HiPerConTracer resultatfil</comment>
+    <magic priority="80">
+      <match type="string" offset="0" value="#? HPCT " />
+    </magic>
+    <glob pattern="*.results" />
+    <generic-icon name="x-office-spreadsheet" />
+  </mime-type>
+  <mime-type type="application/x-hipercontracer+ping">
+    <comment>HiPerConTracer Ping results file</comment>
+    <comment xml:lang="de">HiPerConTracer Ping-Ergebnisdatei</comment>
+    <comment xml:lang="nb">HiPerConTracer Ping resultatfil</comment>
+    <sub-class-of type="application/x-hipercontracer" />
+    <magic priority="95">
+      <match type="string" offset="0" value="#? HPCT Ping" />
+      <match type="string" offset="0" value="#P" />
+    </magic>
+    <glob pattern="*.results" />
+    <generic-icon name="x-office-spreadsheet" />
+  </mime-type>
+  <mime-type type="application/x-hipercontracer+traceroute">
+    <comment>HiPerConTracer Traceroute results file</comment>
+    <comment xml:lang="de">HiPerConTracer Traceroute-Ergebnisdatei</comment>
+    <comment xml:lang="nb">HiPerConTracer Traceroute resultatfil</comment>
+    <sub-class-of type="application/x-hipercontracer" />
+    <magic priority="95">
+      <match type="string" offset="0" value="#? HPCT Traceroute" />
+      <match type="string" offset="0" value="#T" />
+    </magic>
+   <glob pattern="*.results" />
+   <generic-icon name="x-office-spreadsheet" />
+  </mime-type>
+  <mime-type type="application/x-hipercontracer+jitter">
+    <comment>HiPerConTracer Jitter results file</comment>
+    <comment xml:lang="de">HiPerConTracer Jitter-Ergebnisdatei</comment>
+    <comment xml:lang="nb">HiPerConTracer Jitter resultatfil</comment>
+    <sub-class-of type="application/x-hipercontracer" />
+    <magic priority="95">
+      <match type="string" value="#? HPCT Jitter" offset="0:32"/>
+    </magic>
+    <glob pattern="*.results" />
+    <generic-icon name="x-office-spreadsheet" />
+  </mime-type>
+</mime-info>

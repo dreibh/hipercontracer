@@ -182,8 +182,10 @@ ENDIF()
 # ====== HiPerConTracer =====================================================
 ADD_EXECUTABLE(hipercontracer hipercontracer.cc)
 TARGET_LINK_LIBRARIES(hipercontracer libhipercontracer-${libraryType} ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
-INSTALL(TARGETS     hipercontracer   RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
-INSTALL(FILES       hipercontracer.1 DESTINATION         ${CMAKE_INSTALL_MANDIR}/man1)
+INSTALL(TARGETS     hipercontracer     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
+INSTALL(FILES       hipercontracer.1   DESTINATION         ${CMAKE_INSTALL_MANDIR}/man1)
+INSTALL(FILES       hipercontracer.xml DESTINATION         ${CMAKE_INSTALL_DATAROOTDIR}/mime/packages)
+
 INSTALL(FILES       hipercontracer.bash-completion
         DESTINATION ${CMAKE_INSTALL_DATADIR}/bash-completion/completions
         RENAME      hipercontracer)
