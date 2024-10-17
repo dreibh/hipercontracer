@@ -1,7 +1,7 @@
 Source: hipercontracer
 Section: net
 Priority: optional
-Maintainer: Thomas Dreibholz <thomas.dreibholz@gmail.com>
+Maintainer: Thomas Dreibholz <dreibh@simula.no>
 Homepage: https://www.nntb.no/~dreibh/hipercontracer/
 Vcs-Git: https://github.com/dreibh/hipercontracer.git
 Vcs-Browser: https://github.com/dreibh/hipercontracer

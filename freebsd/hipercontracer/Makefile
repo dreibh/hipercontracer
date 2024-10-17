@@ -4,7 +4,7 @@ PORTREVISION=	1
 CATEGORIES=	benchmarks
 MASTER_SITES=	https://www.nntb.no/~dreibh/hipercontracer/download/
 
-MAINTAINER=	thomas.dreibholz@gmail.com
+MAINTAINER=	dreibh@simula.no
 COMMENT=	High-Performance Connectivity Tracer (HiPerConTracer)
 WWW=		https://www.nntb.no/~dreibh/hipercontracer/
 
