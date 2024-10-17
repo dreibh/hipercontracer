@@ -130,9 +130,9 @@ class DatabaseConfiguration:
             sys.stderr.write('ERROR: MongoDB backend expects dbCertKeyFile, not dbCertFile+dbKeyFile!\n')
             sys.exit(1)
          if self.Configuration['dbCRLFile'] != None:
+            # NOTE: Using a CRL with PyMongo fails with "ssl_crlfile cannot be used with PyOpenSSL"!
             sys.stderr.write('WARNING: MongoDB backend (based on pymongo) does not support dbCRLFile!\n')
             self.Configuration['dbCRLFile'] = None
-            # PyMongo: Using a CRL fails, with "ssl_crlfile cannot be used with PyOpenSSL"!
 
       # Legacy parameter settings:
       for option in [ 'dbCAFile', 'dbCRLFile', 'dbCertFile', 'dbKeyFile', 'dbCertKeyFile' ]:
@@ -192,7 +192,7 @@ Try:
                ssl_verify_identity = ssl_verify_identity,
                ssl_verify_cert     = ssl_verify_cert,
                ssl_ca              = caFile,
-               # !!! ssl_crl             = self.Configuration['dbCRLFile'],
+               # ssl_crl             = self.Configuration['dbCRLFile'],   !!! This does not work! !!!
                ssl_key             = self.Configuration['dbCertFile'],
                ssl_cert            = self.Configuration['dbKeyFile'],
             )
