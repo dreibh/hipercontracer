@@ -85,6 +85,7 @@ rmdir /var/hipercontracer >/dev/null 2>&1 || true
 %{_datadir}/hipercontracer/results-examples/HiPerConTracer.R
 %{_datadir}/hipercontracer/results-examples/*-*.results.*
 %{_datadir}/hipercontracer/results-examples/README.md
+%{_datadir}/hipercontracer/results-examples/r-install-dependencies
 %{_datadir}/hipercontracer/results-examples/r-ping-example
 %{_datadir}/hipercontracer/results-examples/r-traceroute-example
 %{_mandir}/man1/get-default-ips.1.gz
