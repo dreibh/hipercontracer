@@ -140,7 +140,7 @@ if [ "${dbbackend}" == "MariaDB" ] || [ "${dbbackend}" == "MySQL" ] ; then
       if [ ${tls_check_certificate} -eq 1 ] || [ ${tls_check_hostname} -eq 1 ] ; then
          parameters="${parameters} --ssl-verify-server-cert"
       fi
-      parameters="${parameters} --ssl-ca=\"${dbcafile}\" --ssl-crl=\"${dbcafile}\""
+      parameters="${parameters} --ssl-ca=\"${dbcafile}\""
       if [ "${dbcrlfile}" != "" ] ; then
          parameters="${parameters} --ssl-crl \"${dbcrlfile}\""
       fi
