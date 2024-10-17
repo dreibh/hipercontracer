@@ -23,7 +23,7 @@ BuildRequires: xz-devel
 BuildRequires: zlib-devel
 BuildRoot: %{_tmppath}/%{name}-%{version}-build
 
-Requires: %{name} = %{version}-%{release}
+Requires: %{name}-common = %{version}-%{release}
 Requires: %{name}-libhipercontracer = %{version}-%{release}
 Recommends: %{name}-dbeaver-tools = %{version}-%{release}
 Recommends: %{name}-dbshell = %{version}-%{release}
@@ -52,7 +52,38 @@ imported into an SQL or NoSQL database.
 %cmake -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_VERBOSE_MAKEFILE=OFF -DWITH_STATIC_LIBRARIES=ON -DWITH_SHARED_LIBRARIES=ON .
 %cmake_build
 
-%pre
+%install
+%cmake_install
+
+%files
+%{_bindir}/get-default-ips
+%{_bindir}/hipercontracer
+%{_datadir}/bash-completion/completions/hipercontracer
+%{_mandir}/man1/get-default-ips.1.gz
+%{_mandir}/man1/hipercontracer.1.gz
+%{_sysconfdir}/hipercontracer/hipercontracer-12345678.conf
+/lib/systemd/system/hipercontracer.service
+/lib/systemd/system/hipercontracer@.service
+
+
+%package common
+Summary: HiPerConTracer common files
+Group: Applications/File
+BuildArch: noarch
+Recommends: %{name} = %{version}-%{release}
+Recommends: %{name}-results = %{version}-%{release}
+Requires: openssh-clients
+Requires: rsync
+
+%description common
+High-Performance Connectivity Tracer (HiPerConTracer) is a
+Ping/Traceroute service. It performs regular Ping and Traceroute runs
+among sites. The results are written to data files, which can be
+imported into an SQL or NoSQL database.
+The package contains common files for HiPerConTracer and the
+HiPerConTracer tools packages.
+
+%pre common
 # Make sure the administrative user exists
 if ! getent group hipercontracer >/dev/null 2>&1; then
    groupadd -r hipercontracer
@@ -66,7 +97,7 @@ mkdir -p /var/hipercontracer
 mkdir -p -m 755 /var/hipercontracer/data /var/hipercontracer/good /var/hipercontracer/bad
 chown hipercontracer:hipercontracer /var/hipercontracer/data /var/hipercontracer/good /var/hipercontracer/bad || true
 
-%postun
+%postun common
 # Remove administrative user
 userdel hipercontracer >/dev/null 2>&1 || true
 groupdel hipercontracer >/dev/null 2>&1 || true
@@ -75,24 +106,14 @@ groupdel hipercontracer >/dev/null 2>&1 || true
 rmdir /var/hipercontracer/data /var/hipercontracer/good /var/hipercontracer/bad || true
 rmdir /var/hipercontracer >/dev/null 2>&1 || true
 
-%install
-%cmake_install
-
-%files
-%{_bindir}/get-default-ips
-%{_bindir}/hipercontracer
-%{_datadir}/bash-completion/completions/hipercontracer
+%files common
 %{_datadir}/hipercontracer/results-examples/HiPerConTracer.R
 %{_datadir}/hipercontracer/results-examples/*-*.results.*
 %{_datadir}/hipercontracer/results-examples/README.md
 %{_datadir}/hipercontracer/results-examples/r-install-dependencies
 %{_datadir}/hipercontracer/results-examples/r-ping-example
 %{_datadir}/hipercontracer/results-examples/r-traceroute-example
-%{_mandir}/man1/get-default-ips.1.gz
-%{_mandir}/man1/hipercontracer.1.gz
-%{_sysconfdir}/hipercontracer/hipercontracer-12345678.conf
-/lib/systemd/system/hipercontracer.service
-/lib/systemd/system/hipercontracer@.service
+%{_datadir}/mime/packages/hipercontracer.xml
 
 
 %package libhipercontracer

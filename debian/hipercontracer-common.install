@@ -1,0 +1,7 @@
+usr/share/hipercontracer/results-examples/*-*.results.*
+usr/share/hipercontracer/results-examples/HiPerConTracer.R
+usr/share/hipercontracer/results-examples/README.md
+usr/share/hipercontracer/results-examples/r-install-dependencies
+usr/share/hipercontracer/results-examples/r-ping-example
+usr/share/hipercontracer/results-examples/r-traceroute-example
+usr/share/mime/packages/hipercontracer.xml
