@@ -30,15 +30,15 @@ jobs:
   # ====== Ubuntu Linux =====================================================
   ubuntu-packaging:
     name: Ubuntu Packaging
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
     - uses: actions/checkout@v4
     - name: Packaging
       shell: bash
       run: |
-        sudo CC=gcc CXX=g++ OS=ubuntu DIST=focal ARCH= ci/ci-setup   package
-        sudo CC=gcc CXX=g++ OS=ubuntu DIST=focal ARCH= ci/ci-install package
-        sudo CC=gcc CXX=g++ OS=ubuntu DIST=focal ARCH= ci/ci-build   package
+        sudo CC=gcc CXX=g++ OS=ubuntu DIST=noble ARCH= ci/ci-setup   package
+        sudo CC=gcc CXX=g++ OS=ubuntu DIST=noble ARCH= ci/ci-install package
+        sudo CC=gcc CXX=g++ OS=ubuntu DIST=noble ARCH= ci/ci-build   package
         sudo ci/ci-test
 
   # ====== Debian Linux =====================================================
@@ -65,10 +65,10 @@ jobs:
   # ====== Fedora Linux =====================================================
   fedora-packaging:
     name: Fedora Packaging
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
     container:
-      image: fedora:latest
-      options: --privileged
+      image: fedora:39
+      options: --privileged --cap-add=SYS_ADMIN
     steps:
       - uses: actions/checkout@v4
       - name: Packaging
