@@ -230,16 +230,30 @@ if [ "${DBEAVER_CONFIG_PREFIX}" ] ; then
       driver="mysql8"
       provider="mysql"
       handler="mysql_ssl"
+      if [ ${tls_check_certificate} -eq 1 ] || [ ${tls_check_hostname} -eq 1 ] ; then
+         ssl_verify_server="true"
+      else
+         ssl_verify_server="false"
+      fi
       custom=",
-							\"ssl.require\": \"true\",
-							\"ssl.verify.server\": \"true\",
+							\"ssl_require\": \"true\",
+							\"ssl_verify.server\": \"${ssl_verify_server}\",
 							\"ssl.public.key.retrieve\": \"false\""
    elif [ "${dbbackend}" == "PostgreSQL" ] ; then
       driver="postgres-jdbc"
       provider="postgresql"
       handler="postgre_ssl"
+      if [ ${tls_check_certificate} -eq 1 ] ; then
+         if [ ${tls_check_hostname} -eq 1 ] ; then
+            ssl_mode="verify-full"
+         else
+            ssl_mode="verify-ca"
+         fi
+      else
+         ssl_mode="require"
+      fi
       custom=",
-							\"sslMode\": \"verify-full\",
+							\"sslMode\": \"${ssl_mode}\",
 							\"sslFactory\": \"\""
       if [ "${dbuser}" == "postgres" ] ; then
          dbusername="root"
