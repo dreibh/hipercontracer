@@ -44,7 +44,7 @@ jobs:
   # ====== Debian Linux =====================================================
   debian-packaging:
     name: Debian Packaging
-    runs-on: ubuntu-latest
+    runs-on: debian-unstable
     container:
       image: debian:unstable
       options: --privileged
@@ -52,11 +52,7 @@ jobs:
       - uses: actions/checkout@v4
       - name: Packaging
         shell: bash
-        # NOTE: The Debian container has no "sudo". It is necessary to install
-        #       it first, for the scripts to work.
         run: |
-          apt-get update -q
-          DEBIAN_FRONTEND=noninteractive apt-get install -qqy sudo
           CC=gcc CXX=g++ OS=debian DIST=unstable ARCH= ci/ci-setup   package
           CC=gcc CXX=g++ OS=debian DIST=unstable ARCH= ci/ci-install package
           CC=gcc CXX=g++ OS=debian DIST=unstable ARCH= ci/ci-build   package
