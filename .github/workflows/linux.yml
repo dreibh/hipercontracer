@@ -43,10 +43,18 @@ jobs:
             image: ubuntu:22.04
             cc: gcc
             cxx: g++
+          - label: "Ubuntu 20.04 (Focal Fossa) with GCC"
+            image: ubuntu:20.04
+            cc: gcc
+            cxx: g++
 
           # ====== Debian Linux =============================================
           - label: "Debian 12 (Bookworm) with GCC"
             image: debian:bookworm
+            cc: gcc
+            cxx: g++
+          - label: "Debian 11 (Bullseye) with GCC"
+            image: debian:bullseye
             cc: gcc
             cxx: g++
 

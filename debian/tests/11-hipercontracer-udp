@@ -1,0 +1,61 @@
+#!/usr/bin/env bash
+# ==========================================================================
+#     _   _ _ ____            ____          _____
+#    | | | (_)  _ \ ___ _ __ / ___|___  _ _|_   _| __ __ _  ___ ___ _ __
+#    | |_| | | |_) / _ \ '__| |   / _ \| '_ \| || '__/ _` |/ __/ _ \ '__|
+#    |  _  | |  __/  __/ |  | |__| (_) | | | | || | | (_| | (_|  __/ |
+#    |_| |_|_|_|   \___|_|   \____\___/|_| |_|_||_|  \__,_|\___\___|_|
+#
+#       ---  High-Performance Connectivity Tracer (HiPerConTracer)  ---
+#                 https://www.nntb.no/~dreibh/hipercontracer/
+# ==========================================================================
+#
+# High-Performance Connectivity Tracer (HiPerConTracer)
+# Copyright (C) 2015-2025 by Thomas Dreibholz
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+# Contact: dreibh@simula.no
+
+# Bash options:
+set -eu
+
+echo "Testing HiPerConTracer with ICMP and UDP on localhost, IPv4 and IPv6 ..."
+
+# Prepare results directory writable by user "hipercontracer":
+mkdir -p results2
+sudo chown hipercontracer:hipercontracer results2
+
+udpPort=10000
+udp-echo-server --port ${udpPort} &
+pid=$!
+
+# Run HiPerConTracer:
+sudo hipercontracer \
+   -# 88888888 \
+   --user hipercontracer \
+   --source      0.0.0.0   --source :: \
+   --destination 127.0.0.1 --destination ::1 \
+   --ping --traceroute \
+   -M UDP \
+   --pingudpdestinationport       ${udpPort} \
+   --tracerouteudpdestinationport ${udpPort} \
+   --iterations=3 \
+   -R results2
+
+xzcat results2/*-#88888888*.hpct.xz
+
+kill "${pid}"
+
+echo "Test passed!"

@@ -1,0 +1,192 @@
+# ==========================================================================
+#     _   _ _ ____            ____          _____
+#    | | | (_)  _ \ ___ _ __ / ___|___  _ _|_   _| __ __ _  ___ ___ _ __
+#    | |_| | | |_) / _ \ '__| |   / _ \| '_ \| || '__/ _` |/ __/ _ \ '__|
+#    |  _  | |  __/  __/ |  | |__| (_) | | | | || | | (_| | (_|  __/ |
+#    |_| |_|_|_|   \___|_|   \____\___/|_| |_|_||_|  \__,_|\___\___|_|
+#
+#       ---  High-Performance Connectivity Tracer (HiPerConTracer)  ---
+#                 https://www.nntb.no/~dreibh/hipercontracer/
+# ==========================================================================
+#
+# High-Performance Connectivity Tracer (HiPerConTracer)
+# Copyright (C) 2015-2025 by Thomas Dreibholz
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+# Contact: dreibh@simula.no
+
+
+# ###### Bash completion for hipercontracer #################################
+_hipercontracer()
+{
+   # Based on: https://www.benningtons.net/index.php/bash-completion/
+   local cur prev words cword
+   _init_completion || return
+
+   case "${prev}" in
+      #  ====== Generic value ===============================================
+      -L | --loglevel                 | \
+      -U | --userid                   | \
+      -# | --measurement-id           | \
+      -D | --destination              | \
+      --iterations                    | \
+      --jitterinterval                | \
+      --jitterintervaldeviation       | \
+      --jitterexpiration              | \
+      --jitterburst                   | \
+      --jitterttl                     | \
+      --jitterpacketsize              | \
+      --jitterudpsourceport           | \
+      --jitterudpdestinationport      | \
+      --tracerouteinterval            | \
+      --tracerouteintervaldeviation   | \
+      --tracerouteduration            | \
+      --tracerouterounds              | \
+      --tracerouteinitialmaxttl       | \
+      --traceroutefinalmaxttl         | \
+      --tracerouteincrementmaxttl     | \
+      --traceroutepacketsize          | \
+      --tracerouteudpsourceport       | \
+      --tracerouteudpdestinationport  | \
+      --pinginterval                  | \
+      --pingintervaldeviation         | \
+      --pingexpiration                | \
+      --pingburst                     | \
+      --pingttl                       | \
+      --pingpacketsize                | \
+      --pingudpsourceport             | \
+      --pingudpdestinationport        | \
+      -x | --resultstransactionlength | \
+      -F | --resultsformat            | \
+      -z | --resultstimestampdepth)
+         return
+         ;;
+      # ====== Special case: compression ====================================
+      -C | --resultscompression)
+         COMPREPLY=($(compgen -W "none XZ BZip2 GZip" -- "${cur}"))
+         return
+         ;;
+      # ====== Special case: IO Module ======================================
+      -M | --iomodule)
+         COMPREPLY=($(compgen -W "ICMP TCP UDP" -- "${cur}"))
+         return
+         ;;
+      # ====== Special case: log file =======================================
+      -O | --logfile)
+         # Files with extension .log:
+         COMPREPLY=( $( compgen -f -X "!*.log" -- "${cur}" ) )
+         return
+         ;;
+      # ====== Special case: source address =================================
+      -S | --source)
+         # Obtain addresses with default route by using "get-default-ips":
+         COMPREPLY=( $( compgen -W "$(get-default-ips)" -- "${cur}" ) )
+         return
+         ;;
+      # ====== Special case: on/off =========================================
+      -Z | --logcolor)
+         COMPREPLY=($(compgen -W "on off" --  "${cur}"))
+         return
+         ;;
+      # ====== Special case: file ===========================================
+      --sources-from-file | \
+      --destinations-from-file)
+         # Arbitrary file names:
+         COMPREPLY=( $( compgen -f -- "${cur}" ) )
+         return
+         ;;
+      # ====== Special case: directory ======================================
+      -R | --resultsdirectory)
+         # Arbitrary directories:
+         COMPREPLY=( $( compgen -A directory -- "${cur}" ) )
+         return
+         ;;
+   esac
+
+   # ====== All options =====================================================
+   local opts="
+-P
+--ping
+-T
+--traceroute
+-J
+--jitter
+-L
+--loglevel
+-Z
+--logcolor
+-O
+--logfile
+-q
+--quiet
+-v
+--verbose
+-U
+--user
+-#
+--measurement-id
+-S
+--source
+-D
+--destination
+--sources-from-file
+--destinations-from-file
+-M
+--iomodule
+--iterations
+--tracerouteinterval
+--tracerouteintervaldeviation
+--tracerouteduration
+--tracerouterounds
+--tracerouteinitialmaxttl
+--traceroutefinalmaxttl
+--tracerouteincrementmaxttl
+--traceroutepacketsize
+--tracerouteudpsourceport
+--tracerouteudpdestinationport
+--pinginterval
+--pingintervaldeviation
+--pingexpiration
+--pingburst
+--pingttl
+--pingpacketsize
+--pingudpsourceport
+--pingudpdestinationport
+--jitterinterval
+--jitterintervaldeviation
+--jitterexpiration
+--jitterburst
+--jitterttl
+--jitterpacketsize
+--jitterrecordraw
+--jitterudpsourceport
+--jitterudpdestinationport
+-R
+--resultsdirectory
+-x
+--resultstransactionlength
+-C
+--resultscompression
+-F
+--resultsformat
+-z
+--resultstimestampdepth
+--check
+"
+   COMPREPLY=( $( compgen -W "${opts}" -- "${cur}" ) )
+   return 0
+}
+
+complete -F _hipercontracer hipercontracer

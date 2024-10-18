@@ -1613,7 +1613,7 @@ def buildRPM(packageInfo, releases, architectures, skipPackageSigning, summaryFi
          configuration = release + '-' + buildArchitecture
          if not os.path.isfile('/etc/mock/' + configuration + '.cfg'):
             sys.stderr.write('ERROR: Configuration ' + '/etc/mock/' + configuration + '.cfg does not exist!\n')
-            #sys.exit(1)
+            sys.exit(1)
 
          # ====== Delete old RPM ============================================
          rpmFile = '/var/lib/mock/' + configuration + '/result/' + \
@@ -1630,9 +1630,9 @@ def buildRPM(packageInfo, releases, architectures, skipPackageSigning, summaryFi
             # NOTE: using old chroot instead of container, to allow running
             #       mock inside a container!
             commands = [
-                  [ 'mock', '-r', configuration, '--isolation=simple', '--init' ],
-                  [ 'mock', '-r', configuration, '--isolation=simple', '--installdeps', srpmFile ],
-                  [ 'mock', '-r', configuration, '--isolation=simple', '--rebuild', '--no-clean', srpmFile ]
+                  [ 'mock', '-r', configuration, '--isolation=auto', '--init' ],
+                  [ 'mock', '-r', configuration, '--isolation=auto', '--installdeps', srpmFile ],
+                  [ 'mock', '-r', configuration, '--isolation=auto', '--rebuild', '--no-clean', srpmFile ]
                ]
             for command in commands:
                print(command)

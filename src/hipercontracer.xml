@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mime-info xmlns="http://www.freedesktop.org/standards/shared-mime-info">
+  <mime-type type="application/x-hipercontracer">
+    <comment>HiPerConTracer results file</comment>
+    <comment xml:lang="de">HiPerConTracer-Ergebnisdatei</comment>
+    <comment xml:lang="nb">HiPerConTracer resultatfil</comment>
+    <magic priority="80">
+      <match type="string" offset="0" value="#? HPCT " />
+    </magic>
+    <glob weight="80" pattern="*.hpct" />
+    <glob weight="80" pattern="*.hpct.gz" />
+    <glob weight="80" pattern="*.hpct.bz2" />
+    <glob weight="80" pattern="*.hpct.xz" />
+    <glob weight="60" pattern="*.results" />
+    <glob weight="60" pattern="*.results.gz" />
+    <glob weight="60" pattern="*.results.bz2" />
+    <glob weight="60" pattern="*.results.xz" />
+    <generic-icon name="fractgen" />
+  </mime-type>
+</mime-info>
