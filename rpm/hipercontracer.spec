@@ -109,7 +109,7 @@ rmdir /var/hipercontracer >/dev/null 2>&1 || true
 %files common
 %{_datadir}/hipercontracer/results-examples/HiPerConTracer.R
 %{_datadir}/hipercontracer/results-examples/*-*.results.*
-%{_datadir}/hipercontracer/results-examples/*/*/*/*-*.hpct.*
+%{_datadir}/hipercontracer/results-examples/*-*.hpct.*
 %{_datadir}/hipercontracer/results-examples/README.md
 %{_datadir}/hipercontracer/results-examples/r-install-dependencies
 %{_datadir}/hipercontracer/results-examples/r-ping-example

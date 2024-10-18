@@ -31,10 +31,14 @@
 #### EXAMPLES                                                            ####
 #############################################################################
 
-EXECUTE_PROCESS(COMMAND         git ls-files .
-                COMMAND         grep -E "\\.(hpct|results)\\..*$"
-                OUTPUT_VARIABLE EXAMPLE_RESULTS)
-MESSAGE("Example results files: ${EXAMPLE_RESULTS}")
+FILE(GLOB_RECURSE EXAMPLE_RESULTS "*.hpct*" "*.results*")
+
+# This does not work with the tarball package:
+# EXECUTE_PROCESS(COMMAND         git ls-files .
+#                 COMMAND         grep -E "\\.(hpct|results)\\..*$"
+#                 OUTPUT_VARIABLE EXAMPLE_RESULTS)
+# FILE(GLOB_RECURSE EXAMPLE_RESULTS "*.hpct*" "*.results*")
+# MESSAGE("Example results files: ${EXAMPLE_RESULTS}")
 
 INSTALL(FILES HiPerConTracer.R
               ${EXAMPLE_RESULTS}
