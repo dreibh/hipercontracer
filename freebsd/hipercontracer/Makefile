@@ -1,10 +1,10 @@
 PORTNAME=	hipercontracer
-DISTVERSION=	2.0.0~beta4
+DISTVERSION=	2.0.0~rc0
 PORTREVISION=	1
 CATEGORIES=	benchmarks
 MASTER_SITES=	https://www.nntb.no/~dreibh/hipercontracer/download/
 
-MAINTAINER=	thomas.dreibholz@gmail.com
+MAINTAINER=	dreibh@simula.no
 COMMENT=	High-Performance Connectivity Tracer (HiPerConTracer)
 WWW=		https://www.nntb.no/~dreibh/hipercontracer/
 
@@ -13,6 +13,7 @@ LICENSE_FILE=	${WRKSRC}/COPYING
 
 LIB_DEPENDS=	libbz2.so:archivers/bzip2 \
 		libcares.so:dns/c-ares \
+		libinotify.so:devel/libinotify \
 		libboost_date_time.so:devel/boost-libs \
 		libboost_filesystem.so:devel/boost-libs \
 		libboost_iostreams.so:devel/boost-libs \

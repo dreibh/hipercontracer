@@ -1,5 +1,5 @@
 Name: hipercontracer
-Version: 2.0.0~beta4
+Version: 2.0.0~rc0
 Release: 1
 Summary: High-Performance Connectivity Tracer (HiPerConTracer)
 Group: Applications/Internet
@@ -23,7 +23,7 @@ BuildRequires: xz-devel
 BuildRequires: zlib-devel
 BuildRoot: %{_tmppath}/%{name}-%{version}-build
 
-Requires: %{name} = %{version}-%{release}
+Requires: %{name}-common = %{version}-%{release}
 Requires: %{name}-libhipercontracer = %{version}-%{release}
 Recommends: %{name}-dbeaver-tools = %{version}-%{release}
 Recommends: %{name}-dbshell = %{version}-%{release}
@@ -50,7 +50,38 @@ imported into an SQL or NoSQL database.
 %cmake -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_VERBOSE_MAKEFILE=OFF -DWITH_STATIC_LIBRARIES=ON -DWITH_SHARED_LIBRARIES=ON .
 %cmake_build
 
-%pre
+%install
+%cmake_install
+
+%files
+%{_bindir}/get-default-ips
+%{_bindir}/hipercontracer
+%{_datadir}/bash-completion/completions/hipercontracer
+%{_mandir}/man1/get-default-ips.1.gz
+%{_mandir}/man1/hipercontracer.1.gz
+%{_sysconfdir}/hipercontracer/hipercontracer-12345678.conf
+/lib/systemd/system/hipercontracer.service
+/lib/systemd/system/hipercontracer@.service
+
+
+%package common
+Summary: HiPerConTracer common files
+Group: Applications/File
+BuildArch: noarch
+Recommends: %{name} = %{version}-%{release}
+Recommends: %{name}-results = %{version}-%{release}
+Suggests: R-base
+Suggests: python3
+
+%description common
+High-Performance Connectivity Tracer (HiPerConTracer) is a
+Ping/Traceroute service. It performs regular Ping and Traceroute runs
+among sites. The results are written to data files, which can be
+imported into an SQL or NoSQL database.
+The package contains common files for HiPerConTracer and the
+HiPerConTracer tools packages.
+
+%pre common
 # Make sure the administrative user exists
 if ! getent group hipercontracer >/dev/null 2>&1; then
    groupadd -r hipercontracer
@@ -64,7 +95,7 @@ mkdir -p /var/hipercontracer
 mkdir -p -m 755 /var/hipercontracer/data /var/hipercontracer/good /var/hipercontracer/bad
 chown hipercontracer:hipercontracer /var/hipercontracer/data /var/hipercontracer/good /var/hipercontracer/bad || true
 
-%postun
+%postun common
 # Remove administrative user
 userdel hipercontracer >/dev/null 2>&1 || true
 groupdel hipercontracer >/dev/null 2>&1 || true
@@ -73,22 +104,15 @@ groupdel hipercontracer >/dev/null 2>&1 || true
 rmdir /var/hipercontracer/data /var/hipercontracer/good /var/hipercontracer/bad || true
 rmdir /var/hipercontracer >/dev/null 2>&1 || true
 
-%install
-%cmake_install
-
-%files
-%{_bindir}/get-default-ips
-%{_bindir}/hipercontracer
-%{_mandir}/man1/get-default-ips.1.gz
-%{_mandir}/man1/hipercontracer.1.gz
-%{_datadir}/doc/hipercontracer/examples/HiPerConTracer.R
-%{_datadir}/doc/hipercontracer/examples/*-*.results.*
-%{_datadir}/doc/hipercontracer/examples/README.md
-%{_datadir}/doc/hipercontracer/examples/r-ping-example
-%{_datadir}/doc/hipercontracer/examples/r-traceroute-example
-%{_sysconfdir}/hipercontracer/hipercontracer-12345678.conf
-/lib/systemd/system/hipercontracer.service
-/lib/systemd/system/hipercontracer@.service
+%files common
+%{_datadir}/hipercontracer/results-examples/HiPerConTracer.R
+%{_datadir}/hipercontracer/results-examples/*-*.results.*
+%{_datadir}/hipercontracer/results-examples/*-*.hpct.*
+%{_datadir}/hipercontracer/results-examples/README.md
+%{_datadir}/hipercontracer/results-examples/r-install-dependencies
+%{_datadir}/hipercontracer/results-examples/r-ping-example
+%{_datadir}/hipercontracer/results-examples/r-traceroute-example
+%{_datadir}/mime/packages/hipercontracer.xml
 
 
 %package libhipercontracer
@@ -126,9 +150,8 @@ them to integrate HiPerConTracer into own programs.
 %{_includedir}/hipercontracer/destinationinfo.h
 %{_includedir}/hipercontracer/iomodule-base.h
 %{_includedir}/hipercontracer/iomodule-icmp.h
-%{_includedir}/hipercontracer/iomodule-tcp.h
 %{_includedir}/hipercontracer/iomodule-udp.h
-%{_includedir}/hipercontracer/jitter.h
+# %{_includedir}/hipercontracer/jitter.h
 %{_includedir}/hipercontracer/logger.h
 %{_includedir}/hipercontracer/ping.h
 %{_includedir}/hipercontracer/resultentry.h
@@ -213,6 +236,7 @@ This tool triggers HiPerConTracer by incoming "Ping" packets.
 Summary: HiPerConTracer DBeaver tools
 Group: Applications/Database
 BuildArch: noarch
+Recommends: %{name}-dbshell = %{version}-%{release}
 Requires: jq
 Requires: openssl
 
@@ -254,6 +278,7 @@ and HiPerConTracer Query Tool.
 
 %files dbshell
 %{_bindir}/dbshell
+%{_datadir}/bash-completion/completions/dbshell
 %{_mandir}/man1/dbshell.1.gz
 
 
@@ -289,6 +314,7 @@ Group: Applications/Database
 Requires: %{name}-libuniversalimporter = %{version}-%{release}
 Recommends: %{name} = %{version}-%{release}
 Recommends: %{name}-dbshell = %{version}-%{release}
+Suggests: python3
 
 %description importer
 High-Performance Connectivity Tracer (HiPerConTracer) is a
@@ -301,39 +327,42 @@ HiPerConTracer into an SQL or NoSQL database.
 %files importer
 %{_bindir}/hpct-importer
 %{_mandir}/man1/hpct-importer.1.gz
-%{_datadir}/doc/hipercontracer/examples/NoSQL/R-query-example.R
-%{_datadir}/doc/hipercontracer/examples/NoSQL/README-MongoDB.md
-%{_datadir}/doc/hipercontracer/examples/NoSQL/mongodb-database.ms
-%{_datadir}/doc/hipercontracer/examples/NoSQL/mongodb-schema.ms
-%{_datadir}/doc/hipercontracer/examples/NoSQL/mongodb-test.ms
-%{_datadir}/doc/hipercontracer/examples/NoSQL/mongodb-users.ms
-%{_datadir}/doc/hipercontracer/examples/NoSQL/nornet-tools.R
-%{_datadir}/doc/hipercontracer/examples/SQL/README-MySQL+MariaDB.md
-%{_datadir}/doc/hipercontracer/examples/SQL/README-PostgreSQL.md
-%{_datadir}/doc/hipercontracer/examples/SQL/mariadb-database.sql
-%{_datadir}/doc/hipercontracer/examples/SQL/mariadb-schema.sql
-%{_datadir}/doc/hipercontracer/examples/SQL/mariadb-test.sql
-%{_datadir}/doc/hipercontracer/examples/SQL/mariadb-users.sql
-%{_datadir}/doc/hipercontracer/examples/SQL/postgresql-database.sql
-%{_datadir}/doc/hipercontracer/examples/SQL/postgresql-schema.sql
-%{_datadir}/doc/hipercontracer/examples/SQL/postgresql-test.sql
-%{_datadir}/doc/hipercontracer/examples/SQL/postgresql-users.sql
-%{_datadir}/doc/hipercontracer/examples/TestDB/0-make-configurations
-%{_datadir}/doc/hipercontracer/examples/TestDB/1-install-database
-%{_datadir}/doc/hipercontracer/examples/TestDB/2-initialise-database
-%{_datadir}/doc/hipercontracer/examples/TestDB/3-test-database
-%{_datadir}/doc/hipercontracer/examples/TestDB/4-clean-database
-%{_datadir}/doc/hipercontracer/examples/TestDB/5-perform-hpct-importer-test
-%{_datadir}/doc/hipercontracer/examples/TestDB/6-perform-hpct-query-test
-%{_datadir}/doc/hipercontracer/examples/TestDB/9-uninstall-database
-%{_datadir}/doc/hipercontracer/examples/TestDB/CertificateHelper.py
-%{_datadir}/doc/hipercontracer/examples/TestDB/README.md
-%{_datadir}/doc/hipercontracer/examples/TestDB/generate-test-certificates
-%{_datadir}/doc/hipercontracer/examples/TestDB/run-full-test
-%{_datadir}/doc/hipercontracer/examples/TestDB/test-tls-connection
-%{_datadir}/doc/hipercontracer/examples/TestDB/hpct-users.conf.example
-%{_datadir}/doc/hipercontracer/examples/hipercontracer-database.conf
-%{_datadir}/doc/hipercontracer/examples/hipercontracer-importer.conf
+%{_datadir}/hipercontracer/NoSQL/R-query-example.R
+%{_datadir}/hipercontracer/NoSQL/README-MongoDB.md
+%{_datadir}/hipercontracer/NoSQL/mongodb-database.ms
+%{_datadir}/hipercontracer/NoSQL/mongodb-schema.ms
+%{_datadir}/hipercontracer/NoSQL/mongodb-test.ms
+%{_datadir}/hipercontracer/NoSQL/mongodb-users.ms
+%{_datadir}/hipercontracer/NoSQL/nornet-tools.R
+%{_datadir}/hipercontracer/SQL/README-MySQL+MariaDB.md
+%{_datadir}/hipercontracer/SQL/README-PostgreSQL.md
+%{_datadir}/hipercontracer/SQL/mariadb-database.sql
+%{_datadir}/hipercontracer/SQL/mariadb-delete-all-rows.sql
+%{_datadir}/hipercontracer/SQL/mariadb-schema.sql
+%{_datadir}/hipercontracer/SQL/mariadb-test.sql
+%{_datadir}/hipercontracer/SQL/mariadb-users.sql
+%{_datadir}/hipercontracer/SQL/postgresql-database.sql
+%{_datadir}/hipercontracer/SQL/postgresql-delete-all-rows.sql
+%{_datadir}/hipercontracer/SQL/postgresql-schema.sql
+%{_datadir}/hipercontracer/SQL/postgresql-test.sql
+%{_datadir}/hipercontracer/SQL/postgresql-users.sql
+%{_datadir}/hipercontracer/TestDB/0-make-configurations
+%{_datadir}/hipercontracer/TestDB/1-install-database
+%{_datadir}/hipercontracer/TestDB/2-initialise-database
+%{_datadir}/hipercontracer/TestDB/3-test-database
+%{_datadir}/hipercontracer/TestDB/4-clean-database
+%{_datadir}/hipercontracer/TestDB/5-perform-hpct-importer-test
+%{_datadir}/hipercontracer/TestDB/6-perform-hpct-query-test
+%{_datadir}/hipercontracer/TestDB/9-uninstall-database
+%{_datadir}/hipercontracer/TestDB/CertificateHelper.py
+%{_datadir}/hipercontracer/TestDB/README.md
+%{_datadir}/hipercontracer/TestDB/generate-test-certificates
+%{_datadir}/hipercontracer/TestDB/hpct-users.conf.example
+%{_datadir}/hipercontracer/TestDB/name-in-etc-hosts
+%{_datadir}/hipercontracer/TestDB/run-full-test
+%{_datadir}/hipercontracer/TestDB/test-tls-connection
+%{_datadir}/hipercontracer/hipercontracer-database.conf
+%{_datadir}/hipercontracer/hipercontracer-importer.conf
 %{_sysconfdir}/hipercontracer/hpct-importer.conf
 /lib/systemd/system/hpct-importer.service
 
@@ -396,6 +425,7 @@ UDP Pings.
 
 %files udp-echo-server
 %{_bindir}/udp-echo-server
+%{_datadir}/bash-completion/completions/udp-echo-server
 %{_mandir}/man1/udp-echo-server.1.gz
 %{_sysconfdir}/hipercontracer/udp-echo-server.conf
 /lib/systemd/system/udp-echo-server.service
