@@ -1,4 +1,5 @@
 usr/share/hipercontracer/results-examples/*-*.results.*
+usr/share/hipercontracer/results-examples/*/*/*/*-*.hpct.*
 usr/share/hipercontracer/results-examples/HiPerConTracer.R
 usr/share/hipercontracer/results-examples/README.md
 usr/share/hipercontracer/results-examples/r-install-dependencies

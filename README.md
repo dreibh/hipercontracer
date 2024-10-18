@@ -23,8 +23,8 @@ See the the manpage "hipercontracer" for all options, including a description of
 
 # Convert Results into a CSV File
 
-- find ./data -maxdepth 1 -name "Ping*.results.*" | ./hpct-results --input-file-names-from-stdin --separator=, -o ping.csv.gz
-- find ./data -maxdepth 1 -name "Traceroute*.results.*" | ./hpct-results --input-file-names-from-stdin --separator=, -o traceroute.csv.gz
+- find ./data -maxdepth 1 -name "Ping*.hpct.*" | ./hpct-results --input-file-names-from-stdin --separator=, -o ping.csv.gz
+- find ./data -maxdepth 1 -name "Traceroute*.hpct.*" | ./hpct-results --input-file-names-from-stdin --separator=, -o traceroute.csv.gz
 
 Hint: You can use extension .gz for GZip, .bz for BZip2, .xz for XZ, or none for uncompressed output into the output CSV file!
 
@@ -68,11 +68,11 @@ See [src/hipercontracer-database.conf](src/hipercontracer-database.conf) for an 
 ## Run the Query Tool
 
 Examples:
-- ./hpct-query ~/testdb-users-mariadb-researcher.conf ping -o ping.results.gz
-- ./hpct-query ~/testdb-users-mariadb-researcher.conf ping -o ping.results.gz --from-measurement-id 1000 --to-measurement-id 1000
-- ./hpct-query ~/testdb-users-mariadb-researcher.conf traceroute -o traceroute.results.gz --loglevel 0 --from-measurement-id 1000 --to-measurement-id 1000
-- ./hpct-query ~/testdb-users-mariadb-researcher.conf traceroute -o traceroute.results.gz --verbose --from-time "2023-09-22 00:00:00"
-- ./hpct-query ~/testdb-users-mariadb-researcher.conf traceroute -o traceroute.results.gz --verbose --from-time "2023-09-22 00:00:00" --to-time "2023-09-23 00:00:00"
+- ./hpct-query ~/testdb-users-mariadb-researcher.conf ping -o ping.hpct.gz
+- ./hpct-query ~/testdb-users-mariadb-researcher.conf ping -o ping.hpct.gz --from-measurement-id 1000 --to-measurement-id 1000
+- ./hpct-query ~/testdb-users-mariadb-researcher.conf traceroute -o traceroute.hpct.gz --loglevel 0 --from-measurement-id 1000 --to-measurement-id 1000
+- ./hpct-query ~/testdb-users-mariadb-researcher.conf traceroute -o traceroute.hpct.gz --verbose --from-time "2023-09-22 00:00:00"
+- ./hpct-query ~/testdb-users-mariadb-researcher.conf traceroute -o traceroute.hpct.gz --verbose --from-time "2023-09-22 00:00:00" --to-time "2023-09-23 00:00:00"
 
 The output is in the same format as the originally written HiPerConTracer results. See the the manpage "hipercontracer" for all options, including a description of the results file formats!
 
@@ -83,8 +83,8 @@ Hint: You can use extension .gz for GZip, .bz for BZip2, .xz for XZ, or none for
 See the the manpage "hpct-query" for all options!
 
 To convert the results to CSV format, use for example:
-- ./hpct-results ping.results.gz --separator=, --output ping.csv.gz
-- ./hpct-results traceroute.results.gz --separator=, --output traceroute.csv.gz
+- ./hpct-results ping.hpct.gz --separator=, --output ping.csv.gz
+- ./hpct-results traceroute.hpct.gz --separator=, --output traceroute.csv.gz
 
 
 # Examples to Process Results from CSV

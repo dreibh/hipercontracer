@@ -54,7 +54,7 @@ sudo hipercontracer \
    --iterations=3 \
    -R results2
 
-xzcat results2/*-#88888888*.results.xz
+xzcat results2/*-#88888888*.hpct.xz
 
 kill "${pid}"
 

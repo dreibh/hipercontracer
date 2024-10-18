@@ -7,6 +7,10 @@
     <magic priority="80">
       <match type="string" offset="0" value="#? HPCT " />
     </magic>
+    <glob weight="80" pattern="*.hpct" />
+    <glob weight="80" pattern="*.hpct.gz" />
+    <glob weight="80" pattern="*.hpct.bz2" />
+    <glob weight="80" pattern="*.hpct.xz" />
     <glob weight="60" pattern="*.results" />
     <glob weight="60" pattern="*.results.gz" />
     <glob weight="60" pattern="*.results.bz2" />

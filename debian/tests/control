@@ -24,4 +24,5 @@ Depends: hipercontracer-dbeaver-tools,
          hipercontracer-dbshell,
          hipercontracer-importer,
          hipercontracer-query-tool,
-         hipercontracer-results-tool
+         hipercontracer-results-tool,
+         rsync

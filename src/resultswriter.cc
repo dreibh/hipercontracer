@@ -142,7 +142,7 @@ bool ResultsWriter::changeFile(const bool createNewFile)
              break;
          }
          const std::string name = UniqueID +
-            str(boost::format("-%09d.results%s") % SeqNumber % extension);
+            str(boost::format("-%09d.hpct%s") % SeqNumber % extension);
          std::filesystem::path targetPath =
             Directory /
                makeDirectoryHierarchy<std::chrono::system_clock::time_point>(

@@ -31,7 +31,11 @@
 #### EXAMPLES                                                            ####
 #############################################################################
 
-FILE(GLOB EXAMPLE_RESULTS "*.results.*")
+EXECUTE_PROCESS(COMMAND         git ls-files .
+                COMMAND         grep -E "\\.(hpct|results)\\..*$"
+                OUTPUT_VARIABLE EXAMPLE_RESULTS)
+MESSAGE("Example results files: ${EXAMPLE_RESULTS}")
+
 INSTALL(FILES HiPerConTracer.R
               ${EXAMPLE_RESULTS}
               README.md

@@ -78,7 +78,7 @@ if [ -e "${DATABASE_CONFIG}" ] ; then
    rm -rf good/*
    rm -rf bad/*
 
-   cp ../results-examples/*.results.* data/
+   rsync -a --include='*hpct.*' --include='*results.*' --include='*/' --exclude='*' ../results-examples/ data/
    if [ -x ../hpct-importer ] ; then
       # Running in development environment:
       importer="../hpct-importer"

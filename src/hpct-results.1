@@ -103,7 +103,7 @@ Read the input file names from file. The option may be provided multiple times t
 .It hpct-results results/Ping* --output ping.csv.xz --sorted --separator ';'
 .It hpct-results results/Traceroute* --output traceroute.csv.bz2 --unsorted
 .It hpct-results results/Traceroute* --sorted | head -n 64
-.It find results/ -name 'Traceroute-*.results.*' | hpct-results --input-file-names-from-stdin -o results.csv.gz
+.It find results/ -name 'Traceroute-*.hpct.*' | hpct-results --input-file-names-from-stdin -o results.csv.gz
 .It hpct-results --input-file-names-from-file results-files.list -o results.csv.xz
 .El
 .\" ###### Authors ##########################################################

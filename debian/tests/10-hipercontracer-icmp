@@ -51,6 +51,6 @@ sudo hipercontracer \
    --resultscompression BZip2 \
    -R results1
 
-bzcat results1/*-#12345678*.results.bz2
+bzcat results1/*-#12345678*.hpct.bz2
 
 echo "Test passed!"
