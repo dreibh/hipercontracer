@@ -40,7 +40,9 @@ Description: API library of HiPerConTracer
 Package: hipercontracer-common
 Architecture: all
 Depends: ${misc:Depends}
-Description: API library of HiPerConTracer
+Suggests: python3,
+          r-base-core
+Description: HiPerConTracer common files
  High-Performance Connectivity Tracer (HiPerConTracer) is a
  Ping/Traceroute service. It performs regular Ping and Traceroute runs
  among sites. The results are written to data files, which can be
@@ -63,9 +65,7 @@ Recommends: hipercontracer-common,
             hipercontracer-sync-tool,
             hipercontracer-trigger,
             hipercontracer-udp-echo-server
-Suggests: python3,
-          r-base-core,
-          td-system-info
+Suggests: td-system-info
 Description: High-Performance Connectivity Tracer (HiPerConTracer)
  High-Performance Connectivity Tracer (HiPerConTracer) is a
  Ping/Traceroute service. It performs regular Ping and Traceroute runs

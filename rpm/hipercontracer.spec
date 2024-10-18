@@ -33,8 +33,6 @@ Recommends: %{name}-results-tool = %{version}-%{release}
 Recommends: %{name}-sync-tool = %{version}-%{release}
 Recommends: %{name}-trigger = %{version}-%{release}
 Recommends: %{name}-udp-echo-server = %{version}-%{release}
-Suggests: R-base
-Suggests: python3
 Suggests: td-system-info
 
 
@@ -72,8 +70,8 @@ Group: Applications/File
 BuildArch: noarch
 Recommends: %{name} = %{version}-%{release}
 Recommends: %{name}-results = %{version}-%{release}
-Requires: openssh-clients
-Requires: rsync
+Suggests: R-base
+Suggests: python3
 
 %description common
 High-Performance Connectivity Tracer (HiPerConTracer) is a
