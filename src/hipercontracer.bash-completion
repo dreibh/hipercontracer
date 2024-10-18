@@ -80,7 +80,7 @@ _hipercontracer()
          ;;
       # ====== Special case: IO Module ======================================
       -M | --iomodule)
-         COMPREPLY=($(compgen -W "ICMP UDP" -- "${cur}"))
+         COMPREPLY=($(compgen -W "ICMP TCP UDP" -- "${cur}"))
          return
          ;;
       # ====== Special case: log file =======================================
