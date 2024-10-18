@@ -42,6 +42,14 @@ _hipercontracer()
       -# | --measurement-id           | \
       -D | --destination              | \
       --iterations                    | \
+      --jitterinterval                | \
+      --jitterintervaldeviation       | \
+      --jitterexpiration              | \
+      --jitterburst                   | \
+      --jitterttl                     | \
+      --jitterpacketsize              | \
+      --jitterudpsourceport           | \
+      --jitterudpdestinationport      | \
       --tracerouteinterval            | \
       --tracerouteintervaldeviation   | \
       --tracerouteduration            | \
@@ -113,6 +121,8 @@ _hipercontracer()
 --ping
 -T
 --traceroute
+-J
+--jitter
 -L
 --loglevel
 -Z
@@ -154,6 +164,15 @@ _hipercontracer()
 --pingpacketsize
 --pingudpsourceport
 --pingudpdestinationport
+--jitterinterval
+--jitterintervaldeviation
+--jitterexpiration
+--jitterburst
+--jitterttl
+--jitterpacketsize
+--jitterrecordraw
+--jitterudpsourceport
+--jitterudpdestinationport
 -R
 --resultsdirectory
 -x
