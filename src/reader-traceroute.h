@@ -114,8 +114,9 @@ class TracerouteReader : public ReaderImplementation<TracerouteFileEntry>
    const std::string        Table;
 
    public:
-   static const std::string Identification;
-   static const std::regex  FileNameRegExp;
+   static const std::string  Identification;
+   static const std::regex   FileNameRegExp;
+   static const unsigned int FileNameRegExpMatchSize;
 };
 
 #endif

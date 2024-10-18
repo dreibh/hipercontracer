@@ -36,8 +36,8 @@
 
 const std::string JitterReader::Identification("Jitter");
 const std::regex  JitterReader::FileNameRegExp(
-   // Format: Jitter-(Protocol-|)[P#]<ID>-<Source>-<YYYYMMDD>T<Seconds.Microseconds>-<Sequence>.(hpct|results)<EXT>
-   "^Jitter-([A-Z]+-|)([#P])([0-9]+)-([0-9a-f:\\.]+)-([0-9]{8}T[0-9]+\\.[0-9]{6})-([0-9]*)\\.(hpct|results).*$"
+   // Format: Jitter-(Protocol-|)[P#]<ID>-<Source>-<YYYYMMDD>T<Seconds.Microseconds>-<Sequence>.(hpct|results)(<EXT>)
+   "^Jitter-([A-Z]+-|)([#P])([0-9]+)-([0-9a-f:\\.]+)-([0-9]{8}T[0-9]+\\.[0-9]{6})-([0-9]*)\\.(hpct|results)(.*)$"
 );
 
 

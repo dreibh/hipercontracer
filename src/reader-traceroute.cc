@@ -33,11 +33,12 @@
 #include "tools.h"
 
 
-const std::string TracerouteReader::Identification("Traceroute");
-const std::regex  TracerouteReader::FileNameRegExp(
-   // Format: Traceroute-(Protocol-|)[P#]<ID>-<Source>-<YYYYMMDD>T<Seconds.Microseconds>-<Sequence>.(hpct|results)<EXT>
-   "^Traceroute-([A-Z]+-|)([#P])([0-9]+)-([0-9a-f:\\.]+)-([0-9]{8}T[0-9]+\\.[0-9]{6})-([0-9]*)\\.(hpct|results).*$"
+const std::string  TracerouteReader::Identification("Traceroute");
+const std::regex   TracerouteReader::FileNameRegExp(
+   // Format: Traceroute-(Protocol-|)[P#]<ID>-<Source>-<YYYYMMDD>T<Seconds.Microseconds>-<Sequence>.(hpct|results)(<EXT>)
+   "^Traceroute-([A-Z]+-|)([#P])([0-9]+)-([0-9a-f:\\.]+)-([0-9]{8}T[0-9]+\\.[0-9]{6})-([0-9]*)\\.(hpct|results)(.*)$"
 );
+const unsigned int TracerouteReader::FileNameRegExpMatchSize = 9;   // Number if groups in regexp above
 
 
 // ###### < operator for sorting ############################################
@@ -89,7 +90,7 @@ int makeInputFileEntry(const std::filesystem::path& dataFile,
                        TracerouteFileEntry&         inputFileEntry,
                        const unsigned int           workers)
 {
-   if(match.size() == 7) {
+   if(match.size() == TracerouteReader::FileNameRegExpMatchSize) {
       ReaderTimePoint timeStamp;
       if(stringToTimePoint<ReaderTimePoint>(match[5].str(), timeStamp, "%Y%m%dT%H%M%S")) {
          inputFileEntry.Source    = match[4];
