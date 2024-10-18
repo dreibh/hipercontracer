@@ -1,1 +1,2 @@
 usr/bin/dbshell
+usr/share/bash-completion/completions/dbshell
