@@ -28,8 +28,8 @@
 # Contact: dreibh@simula.no
 
 
-# ###### Bash completion for hpct-query #####################################
-_hpct_query()
+# ###### Bash completion for hpct-importer ##################################
+_hpct_importer()
 {
    # Based on: https://www.benningtons.net/index.php/bash-completion/
    local cur prev words cword
@@ -48,19 +48,27 @@ _hpct_query()
 
    case "${prev}" in
       #  ====== Generic value ===============================================
-      -L | --loglevel       | \
-      -T | --table          | \
-      -V | --table-version  | \
-      --from-time           | \
-      --to_time             | \
-      --from-measurement-id | \
-      --to_measurement-id)
+      -L | --loglevel           | \
+      -X | --import-mode        | \
+      -Y | --import-max-depth   | \
+      --import-file-path-filter | \
+      --ping-workers            | \
+      --ping-files              | \
+      --traceroute-workers      | \
+      --traceroute-files)
          return
          ;;
-      # ====== Special case: file ===========================================
-      -o | --output | \
-      -M | --address-to-measurementid)
-         COMPREPLY=( $( compgen -f -- "${cur}" ) )
+      # ====== Special case: directory ======================================
+      -I | --import-file-path | \
+      --bad-file-path  | -G   | \
+      --good-file-path | -F)
+         COMPREPLY=( $( compgen -d -- "${cur}" ) )
+         return
+         ;;
+      # ====== Special case: configuration file =============================
+      -C | --importer-config | \
+      -D | --database-config)
+         COMPREPLY=( $( compgen -f -X "!*.conf" -- "${cur}" ) )
          return
          ;;
       # ====== Special case: log file =======================================
@@ -78,6 +86,10 @@ _hpct_query()
 
    # ====== All options =====================================================
    local opts="
+-C
+--importer-config
+-D
+--database-config
 -L
 --loglevel
 -Z
@@ -88,21 +100,27 @@ _hpct_query()
 --quiet
 -v
 --verbose
--o
---output
--T
---table
--V
---table-version
--M
---address-to-measurementid
---from-time
---to_time
---from-measurement-id
---to_measurement-id
+-X
+--import-mode
+-Y
+--import-max-depth
+-I
+--import-file-path
+-B
+--bad-file-path
+-G
+--good-file-path
+-F
+--import-file-path-filter
+-Q
+--quit-when-idle
+--ping-workers
+--ping-files
+--traceroute-workers
+--traceroute-files
 "
    COMPREPLY=( $( compgen -W "${opts}" -- "${cur}" ) )
    return 0
 }
 
-complete -F _hpct_query hpct-query
+complete -F _hpct_importer hpct-importer

@@ -28,8 +28,8 @@
 # Contact: dreibh@simula.no
 
 
-# ###### Bash completion for hpct-query #####################################
-_hpct_query()
+# ###### Bash completion for hpct-sync ######################################
+_hpct_sync()
 {
    # Based on: https://www.benningtons.net/index.php/bash-completion/
    local cur prev words cword
@@ -48,19 +48,19 @@ _hpct_query()
 
    case "${prev}" in
       #  ====== Generic value ===============================================
-      -L | --loglevel       | \
-      -T | --table          | \
-      -V | --table-version  | \
-      --from-time           | \
-      --to_time             | \
-      --from-measurement-id | \
-      --to_measurement-id)
+      -N | --nodeid | \
+      -R | --remote)
+         return
+         ;;
+      # ====== Special case: directory ======================================
+      -L | --local)
+         COMPREPLY=( $( compgen -d -- "${cur}" ) )
          return
          ;;
       # ====== Special case: file ===========================================
-      -o | --output | \
-      -M | --address-to-measurementid)
-         COMPREPLY=( $( compgen -f -- "${cur}" ) )
+      -K | --key | \
+      -H | --known-hosts)
+      COMPREPLY=( $( compgen -f -- "${cur}" ) )
          return
          ;;
       # ====== Special case: log file =======================================
@@ -78,31 +78,24 @@ _hpct_query()
 
    # ====== All options =====================================================
    local opts="
--L
---loglevel
--Z
---logcolor
--O
---logfile
--q
---quiet
+-h
+--help
 -v
 --verbose
--o
---output
--T
---table
--V
---table-version
--M
---address-to-measurementid
---from-time
---to_time
---from-measurement-id
---to_measurement-id
+-q
+--quiet
+-N
+--nodeid
+-L
+--local
+-R
+--remote
+-K
+--key
+-H
 "
    COMPREPLY=( $( compgen -W "${opts}" -- "${cur}" ) )
    return 0
 }
 
-complete -F _hpct_query hpct-query
+complete -F _hpct_sync hpct-sync

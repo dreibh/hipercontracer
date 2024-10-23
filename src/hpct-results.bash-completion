@@ -28,8 +28,8 @@
 # Contact: dreibh@simula.no
 
 
-# ###### Bash completion for hpct-query #####################################
-_hpct_query()
+# ###### Bash completion for hpct-results ###################################
+_hpct_results()
 {
    # Based on: https://www.benningtons.net/index.php/bash-completion/
    local cur prev words cword
@@ -48,18 +48,14 @@ _hpct_query()
 
    case "${prev}" in
       #  ====== Generic value ===============================================
-      -L | --loglevel       | \
-      -T | --table          | \
-      -V | --table-version  | \
-      --from-time           | \
-      --to_time             | \
-      --from-measurement-id | \
-      --to_measurement-id)
+      -L | --loglevel  | \
+      -s | --separator | \
+      -T | --maxthreads)
          return
          ;;
       # ====== Special case: file ===========================================
       -o | --output | \
-      -M | --address-to-measurementid)
+      -F | --input-file-names-from-file)
          COMPREPLY=( $( compgen -f -- "${cur}" ) )
          return
          ;;
@@ -90,19 +86,23 @@ _hpct_query()
 --verbose
 -o
 --output
+-s
+--separator
+-S
+--sorted
+-U
+--unsorted
 -T
---table
--V
---table-version
--M
---address-to-measurementid
---from-time
---to_time
---from-measurement-id
---to_measurement-id
+--maxthreads
+-R
+--input-results-from-stdin
+-N
+--input-file-names-from-stdin
+-F
+--input-file-names-from-file
 "
    COMPREPLY=( $( compgen -W "${opts}" -- "${cur}" ) )
    return 0
 }
 
-complete -F _hpct_query hpct-query
+complete -F _hpct_results hpct-results
