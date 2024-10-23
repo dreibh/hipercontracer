@@ -305,6 +305,7 @@ synchronisation of data to a central collection server.
 %files sync-tool
 %{_bindir}/hpct-sync
 %{_mandir}/man1/hpct-sync.1.gz
+%{_datadir}/bash-completion/completions/hpct-sync
 %{_sysconfdir}/hipercontracer/hpct-sync.conf
 /lib/systemd/system/hpct-sync.service
 /lib/systemd/system/hpct-sync.timer
@@ -328,6 +329,7 @@ HiPerConTracer into an SQL or NoSQL database.
 
 %files importer
 %{_bindir}/hpct-importer
+%{_datadir}/bash-completion/completions/hpct-importer
 %{_mandir}/man1/hpct-importer.1.gz
 %{_datadir}/hipercontracer/NoSQL/R-query-example.R
 %{_datadir}/hipercontracer/NoSQL/README-MongoDB.md
@@ -387,6 +389,7 @@ from a HiPerConTracer SQL or NoSQL database.
 
 %files query-tool
 %{_bindir}/hpct-query
+%{_datadir}/bash-completion/completions/hpct-query
 %{_mandir}/man1/hpct-query.1.gz
 
 
@@ -408,6 +411,8 @@ reading them into spreadsheets, analysis tools, etc.
 %files results-tool
 %{_bindir}/hpct-results
 %{_bindir}/pipe-checksum
+%{_datadir}/bash-completion/completions/hpct-results
+%{_datadir}/bash-completion/completions/pipe-checksum
 %{_mandir}/man1/hpct-results.1.gz
 %{_mandir}/man1/pipe-checksum.1.gz
 

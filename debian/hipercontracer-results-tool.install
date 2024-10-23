@@ -1,2 +1,4 @@
 usr/bin/hpct-results
 usr/bin/pipe-checksum
+usr/share/bash-completion/completions/hpct-results
+usr/share/bash-completion/completions/pipe-checksum
