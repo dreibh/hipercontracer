@@ -231,6 +231,7 @@ This tool triggers HiPerConTracer by incoming "Ping" packets.
 
 %files trigger
 %{_bindir}/hpct-trigger
+%{_datadir}/bash-completion/completions/hpct-trigger
 %{_mandir}/man1/hpct-trigger.1.gz
 
 

@@ -201,6 +201,9 @@ IF (WITH_TRIGGER)
    TARGET_LINK_LIBRARIES(hpct-trigger libhipercontracer-${libraryType} ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
    INSTALL(TARGETS hpct-trigger RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
    INSTALL(FILES hpct-trigger.1 DESTINATION         ${CMAKE_INSTALL_MANDIR}/man1)
+   INSTALL(FILES       hpct-trigger.bash-completion
+           DESTINATION ${CMAKE_INSTALL_DATADIR}/bash-completion/completions
+           RENAME      hpct-trigger)
 ENDIF()
 
 
