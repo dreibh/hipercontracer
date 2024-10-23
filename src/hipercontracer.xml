@@ -45,6 +45,6 @@
     <glob weight="60" pattern="*.results.gz" />
     <glob weight="60" pattern="*.results.bz2" />
     <glob weight="60" pattern="*.results.xz" />
-    <generic-icon name="fractgen" />
+    <icon name="fractgen" />
   </mime-type>
 </mime-info>

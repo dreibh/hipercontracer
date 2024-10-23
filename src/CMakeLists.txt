@@ -319,9 +319,10 @@ INSTALL(FILES hipercontracer-database.conf
 #### SUBDIRECTORIES                                                      ####
 #############################################################################
 
-IF (WITH_IMPORTER)
+ADD_SUBDIRECTORY(logo)
+ADD_SUBDIRECTORY(results-examples)
+IF (WITH_IMPORTER OR WITH_QUERY)
    ADD_SUBDIRECTORY(SQL)
    ADD_SUBDIRECTORY(NoSQL)
    ADD_SUBDIRECTORY(TestDB)
-   ADD_SUBDIRECTORY(results-examples)
 ENDIF()

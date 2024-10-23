@@ -112,6 +112,8 @@ rmdir /var/hipercontracer >/dev/null 2>&1 || true
 %{_datadir}/hipercontracer/results-examples/r-install-dependencies
 %{_datadir}/hipercontracer/results-examples/r-ping-example
 %{_datadir}/hipercontracer/results-examples/r-traceroute-example
+%{_datadir}/icons/hicolor/512x512/apps/hipercontracer.png
+%{_datadir}/icons/hicolor/scalable/apps/hipercontracer.svg
 %{_datadir}/mime/packages/hipercontracer.xml
 
 
