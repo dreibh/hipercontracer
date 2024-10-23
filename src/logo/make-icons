@@ -1,0 +1,47 @@
+#!/bin/sh -e
+# ==========================================================================
+#     _   _ _ ____            ____          _____
+#    | | | (_)  _ \ ___ _ __ / ___|___  _ _|_   _| __ __ _  ___ ___ _ __
+#    | |_| | | |_) / _ \ '__| |   / _ \| '_ \| || '__/ _` |/ __/ _ \ '__|
+#    |  _  | |  __/  __/ |  | |__| (_) | | | | || | | (_| | (_|  __/ |
+#    |_| |_|_|_|   \___|_|   \____\___/|_| |_|_||_|  \__,_|\___\___|_|
+#
+#       ---  High-Performance Connectivity Tracer (HiPerConTracer)  ---
+#                 https://www.nntb.no/~dreibh/hipercontracer/
+# ==========================================================================
+#
+# High-Performance Connectivity Tracer (HiPerConTracer)
+# Copyright (C) 2015-2025 by Thomas Dreibholz
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+# Contact: dreibh@simula.no
+
+# Conversion of Dia to EPS and PDF:
+dia -n -t eps-pango -e hipercontracer.eps Logo-HiPerConTracer.dia
+epstopdf --outfile=hipercontracer.pdf.tmp hipercontracer.eps
+pdfcrop --hires hipercontracer.pdf.tmp hipercontracer.pdf
+rm -f hipercontracer.pdf.tmp
+
+# Conversion of PDF to PNG with alpha channel:
+# * Add border of 1 pixel
+# * Make color #eeeeee transparent (the background)
+# * Crop the image, removing possibly non-transparent border lines
+gm convert hipercontracer.pdf \
+   -transparent "#eeeeee" -resize 514x -crop 512x512+1+1 -background \
+   none -gravity center -extent 512x512 \
+   hipercontracer.png
+
+# Conversion of PDF to SVG:
+pdf2svg hipercontracer.pdf hipercontracer.svg
