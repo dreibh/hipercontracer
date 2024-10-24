@@ -42,13 +42,13 @@ class DestinationInfo {
                    const uint32_t                  identifier = 0);
 
    inline const boost::asio::ip::address& address() const {
-      return(Address);
+      return Address;
    }
    inline const uint8_t& trafficClass() const {
-      return(TrafficClass);
+      return TrafficClass;
    }
    inline uint32_t identifier() const {
-      return(Identifier);
+      return Identifier;
    }
 
    inline void setAddress(const boost::asio::ip::address& address) {

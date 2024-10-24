@@ -509,5 +509,5 @@ std::ostream& operator<<(std::ostream& os, const ResultEntry& resultEntry)
       << "Hw: " << nsSinceEpoch(resultEntry.sendTime(TXTimeStampType::TXTST_TransmissionHW)) << " -> "
                 << nsSinceEpoch(resultEntry.receiveTime(RXTimeStampType::RXTST_ReceptionHW)) << "\n";
 #endif
-   return(os);
+   return os;
 }

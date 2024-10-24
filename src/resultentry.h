@@ -161,23 +161,23 @@ class ResultEntry {
    void expire(const unsigned int expiration);
    void failedToSend(const boost::system::error_code& errorCode);
 
-   inline uint32_t     timeStampSeqID()                 const { return(TimeStampSeqID);         }
-   inline unsigned int roundNumber()                    const { return(RoundNumber);            }
-   inline unsigned int seqNumber()                      const { return(SeqNumber);              }
-   inline unsigned int hopNumber()                      const { return(HopNumber);              }
-   inline unsigned int packetSize()                     const { return(PacketSize);             }
-   inline unsigned int responseSize()                   const { return(ResponseSize);           }
-   inline uint16_t     checksum()                       const { return(Checksum);               }
-   inline uint16_t     sourcePort()                     const { return(SourcePort);             }
-   inline uint16_t     destinationPort()                const { return(DestinationPort);        }
+   inline uint32_t     timeStampSeqID()                 const { return TimeStampSeqID;         }
+   inline unsigned int roundNumber()                    const { return RoundNumber;            }
+   inline unsigned int seqNumber()                      const { return SeqNumber;              }
+   inline unsigned int hopNumber()                      const { return HopNumber;              }
+   inline unsigned int packetSize()                     const { return PacketSize;             }
+   inline unsigned int responseSize()                   const { return ResponseSize;           }
+   inline uint16_t     checksum()                       const { return Checksum;               }
+   inline uint16_t     sourcePort()                     const { return SourcePort;             }
+   inline uint16_t     destinationPort()                const { return DestinationPort;        }
 
-   const boost::asio::ip::address& sourceAddress()      const { return(Source);                 }
-   const DestinationInfo& destination()                 const { return(Destination);            }
-   const boost::asio::ip::address& destinationAddress() const { return(Destination.address());  }
-   const boost::asio::ip::address& hopAddress()         const { return(Hop);                    }
-   inline HopStatus status()                            const { return(Status);                 }
-   inline ResultTimePoint sendTime(const TXTimeStampType txTimeStampType)    const { return(SendTime[txTimeStampType]);    }
-   inline ResultTimePoint receiveTime(const RXTimeStampType rxTimeStampType) const { return(ReceiveTime[rxTimeStampType]); }
+   const boost::asio::ip::address& sourceAddress()      const { return Source;                 }
+   const DestinationInfo& destination()                 const { return Destination;            }
+   const boost::asio::ip::address& destinationAddress() const { return Destination.address();  }
+   const boost::asio::ip::address& hopAddress()         const { return Hop;                    }
+   inline HopStatus status()                            const { return Status;                 }
+   inline ResultTimePoint sendTime(const TXTimeStampType txTimeStampType)    const { return SendTime[txTimeStampType];    }
+   inline ResultTimePoint receiveTime(const RXTimeStampType rxTimeStampType) const { return ReceiveTime[rxTimeStampType]; }
 
    inline void setStatus(const HopStatus status)                      { Status       = status;               }
    inline void setResponseSize(const unsigned int responseSize)       { ResponseSize = responseSize;         }
@@ -230,7 +230,7 @@ class ResultEntry {
                                         unsigned int&         timeSource) const;
 
    inline friend bool operator<(const ResultEntry& resultEntry1, const ResultEntry& resultEntry2) {
-      return(resultEntry1.SeqNumber < resultEntry2.SeqNumber);
+      return resultEntry1.SeqNumber < resultEntry2.SeqNumber;
    }
    friend std::ostream& operator<<(std::ostream& os, const ResultEntry& resultEntry);
 

@@ -134,7 +134,7 @@ Traceroute::~Traceroute()
 // ###### Get source address ################################################
 const boost::asio::ip::address& Traceroute::getSource()
 {
-    return(SourceAddress);
+    return SourceAddress;
 }
 
 
@@ -262,7 +262,7 @@ bool Traceroute::prepareRun(const bool newRound)
    RunStartTimeStamp   = std::chrono::steady_clock::now();
 
    // Return whether end of the list is reached. Then, a rewind is necessary.
-   return(DestinationIterator == Destinations.end());
+   return DestinationIterator == Destinations.end();
 }
 
 
@@ -420,9 +420,9 @@ bool Traceroute::notReachedWithCurrentTTL()
       HPCT_LOG(debug) << getName() << ": Cannot reach " << *DestinationIterator
                       << " with TTL " << MinTTL - 1 << ", now trying TTLs "
                       << MinTTL << " to " << MaxTTL << " ...";
-      return(true);
+      return true;
    }
-   return(false);
+   return false;
 }
 
 
@@ -459,9 +459,9 @@ unsigned int Traceroute::getInitialMaxTTL(const DestinationInfo& destination) co
 {
    const std::map<DestinationInfo, unsigned int>::const_iterator found = TTLCache.find(destination);
    if(found != TTLCache.end()) {
-      return(std::min(found->second, Parameters.FinalMaxTTL));
+      return std::min(found->second, Parameters.FinalMaxTTL);
    }
-   return(Parameters.InitialMaxTTL);
+   return Parameters.InitialMaxTTL;
 }
 
 

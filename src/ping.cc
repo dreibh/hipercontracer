@@ -85,7 +85,7 @@ bool Ping::prepareRun(const bool newRound)
    }
 
    RunStartTimeStamp = std::chrono::steady_clock::now();
-   return(Destinations.begin() == Destinations.end());
+   return Destinations.begin() == Destinations.end();
 }
 
 
@@ -123,7 +123,7 @@ void Ping::noMoreOutstandingRequests()
 bool Ping::notReachedWithCurrentTTL()
 {
    // Nothing to do for Ping!
-   return(false);
+   return false;
 }
 
 
