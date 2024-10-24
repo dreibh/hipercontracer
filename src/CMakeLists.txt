@@ -58,6 +58,7 @@ LIST(APPEND libhipercontracer_headers
    traceroute.h
 )
 LIST(APPEND libhipercontracer_sources
+   assure.cc
    check.cc
    destinationinfo.cc
    internet16.cc

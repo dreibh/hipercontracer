@@ -62,7 +62,8 @@ class TraceServiceHeader
    TraceServiceHeader(const size_t size = MIN_TRACESERVICE_HEADER_SIZE)
       : Size(size)
    {
-      assert((Size >= MIN_TRACESERVICE_HEADER_SIZE) && (Size <= MAX_TRACESERVICE_HEADER_SIZE));
+      assert((Size >= MIN_TRACESERVICE_HEADER_SIZE) &&
+             (Size <= MAX_TRACESERVICE_HEADER_SIZE));
       std::fill(Data, Data + std::min(Size, (size_t)64), 0);
       for(unsigned int i = 64;i < Size; i++) {
          Data[i] = i & 0xff;

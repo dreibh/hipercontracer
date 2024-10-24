@@ -28,6 +28,7 @@
 // Contact: dreibh@simula.no
 
 #include "ping.h"
+#include "assure.h"
 #include "tools.h"
 #include "logger.h"
 
@@ -52,7 +53,7 @@ Ping::Ping(const std::string                moduleName,
                 parameters),
      PingInstanceName(std::string("Ping(") + sourceAddress.to_string() + std::string(")"))
 {
-   assert(Parameters.FinalMaxTTL == Parameters.InitialMaxTTL);
+   assure(Parameters.FinalMaxTTL == Parameters.InitialMaxTTL);
    IOModule->setName(PingInstanceName);
 }
 
@@ -146,7 +147,7 @@ void Ping::sendRequests()
       // ====== Send requests, if there are destination addresses ===========
       std::lock_guard<std::recursive_mutex> lock(DestinationMutex);
       if(Destinations.begin() != Destinations.end()) {
-         assert(Parameters.Rounds > 0);
+         assure(Parameters.Rounds > 0);
 
          for(const DestinationInfo& destination : Destinations) {
             OutstandingRequests +=
@@ -218,7 +219,7 @@ void Ping::processResults()
       // ====== Remove completed entries ====================================
       if(resultEntry->status() != Unknown) {
          const std::size_t elementsErased = ResultsMap.erase(resultEntry->seqNumber());
-         assert(elementsErased == 1);
+         assure(elementsErased == 1);
          delete resultEntry;
          if(OutstandingRequests > 0) {
             OutstandingRequests--;
