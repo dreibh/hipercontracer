@@ -97,7 +97,7 @@ Architecture: all
 Depends: ${misc:Depends}
 Recommends: hipercontracer,
             hipercontracer-dbeaver-tools,
-            mariadb-client | mysql-client,
+            mariadb-client | default-mysql-client,
             mongodb-mongosh,
             postgresql-client,
             pwgen
