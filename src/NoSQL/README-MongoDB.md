@@ -14,23 +14,12 @@ NOTE: The MongoDB PPA has to be added first!
 ```
 cat <<EOF
 [mongodb-org]
-name=MongoDB ${MONGODB_VERSION} Repository
-baseurl=https://repo.mongodb.org/yum/redhat/9/mongodb-org/${MONGODB_VERSION}/x86_64/
+name=MongoDB 8.0 Repository
+baseurl=https://repo.mongodb.org/yum/redhat/9/mongodb-org/8.0/x86_64/
 gpgcheck=1
 enabled=1
-gpgkey=https://www.mongodb.org/static/pgp/server-${MONGODB_KEY}.asc
-EOF
+gpgkey=https://www.mongodb.org/static/pgp/server-8.0.asc
 ) | sudo tee /etc/yum.repos.d/mongodb-org.repo
-(
-cat <<EOF
-[mongodb-org-dev]
-name=MongoDB Development Repository
-baseurl=https://repo.mongodb.org/yum/redhat/9/mongodb-org/development/x86_64/
-gpgcheck=1
-enabled=1
-gpgkey=https://www.mongodb.org/static/pgp/server-dev.asc
-EOF
-) | sudo tee /etc/yum.repos.d/mongodb-org-dev.repo
 sudo dnf install -y mongodb-org mongodb-mongosh-shared-openssl3
 sudo systemctl enable mongod.service
 sudo systemctl start mongod.service
