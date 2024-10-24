@@ -31,11 +31,14 @@
 # Bash options:
 set -eu
 
+TESTUSER="test"
+
+
 echo "Testing HiPerConTracer with ICMP in the Internet ..."
 
 # Prepare results directory writable by user "hipercontracer":
 mkdir -p results1
-sudo chown hipercontracer:hipercontracer results1
+sudo chown "${TESTUSER}" results1
 
 echo "Default IPs: "
 get-default-ips
@@ -43,7 +46,7 @@ get-default-ips
 # Run HiPerConTracer:
 sudo hipercontracer \
    -# 12345678 \
-   --user hipercontracer \
+   --user "${TESTUSER}" \
    --source 0.0.0.0 --source :: \
    --destination www.ietf.org \
    --ping --traceroute \
