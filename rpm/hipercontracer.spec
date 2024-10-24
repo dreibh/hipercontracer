@@ -269,7 +269,7 @@ Group: Applications/Database
 BuildArch: noarch
 Recommends: %{name} = %{version}-%{release}
 Recommends: %{name}-dbeaver-tools = %{version}-%{release}
-Recommends: (mariadb OR mysql)
+Recommends: (mariadb or mysql)
 Recommends: mongodb-mongosh
 Recommends: postgresql
 Recommends: pwgen
