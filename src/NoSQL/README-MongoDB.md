@@ -6,14 +6,42 @@ NOTE: This is a very brief overview of the steps to install, configure and prepa
 ## Basic Installation
 
 ### Ubuntu:
-NOTE: The MongoDB PPA has to be added first!
 ```
-sudo apt install mongodb-org
+sudo apt install -y mongodb-org mongodb-mongosh
 ```
 ### Fedora:
 NOTE: The MongoDB PPA has to be added first!
 ```
-sudo dnf install (FIXME: TBD!)
+cat <<EOF
+[mongodb-org]
+name=MongoDB ${MONGODB_VERSION} Repository
+baseurl=https://repo.mongodb.org/yum/redhat/9/mongodb-org/${MONGODB_VERSION}/x86_64/
+gpgcheck=1
+enabled=1
+gpgkey=https://www.mongodb.org/static/pgp/server-${MONGODB_KEY}.asc
+EOF
+) | sudo tee /etc/yum.repos.d/mongodb-org.repo
+(
+cat <<EOF
+[mongodb-org-dev]
+name=MongoDB Development Repository
+baseurl=https://repo.mongodb.org/yum/redhat/9/mongodb-org/development/x86_64/
+gpgcheck=1
+enabled=1
+gpgkey=https://www.mongodb.org/static/pgp/server-dev.asc
+EOF
+) | sudo tee /etc/yum.repos.d/mongodb-org-dev.repo
+sudo dnf install -y mongodb-org mongodb-mongosh-shared-openssl3
+sudo systemctl enable mongod.service
+sudo systemctl start mongod.service
+```
+### FreeBSD:
+NOTE: MongoSH is currently not in the Ports Collection, and needs to be installed by NPM!
+```
+sudo pkg install -y mongodb70 mongodb-tools npm
+sudo npm install -g mongosh
+sudo sysrc mongod_enable="YES"
+sudo service mongod start
 ```
 
 
@@ -37,7 +65,7 @@ storage:
 Choose a secure root password. Then:
 
 ```
-   mongosh --quiet <<EOF
+mongosh --quiet <<EOF
 use admin
 db.dropUser("root")
 db.createUser({ user: "root",
@@ -131,19 +159,20 @@ pwgen -s 128
 
 ### Test Connectivity
 ```
-PGPASSWORD="<PASSWORD>" \
-     PGSSLMODE="verify-full" \
-     PGSSLROOTCERT="/etc/ssl/RootCA/RootCA.crt" \
-     psql \
-        --host=<SERVER> --port=<PORT> \
-        --username=<USER> \
-        --dbname="<DATABASE>"
+mongosh \
+ "mongodb://<SERVER>:27017/<DATABASE>" \
+ --tls \
+ --tlsDisabledProtocols TLS1_0,TLS1_1,TLS1_2 \
+ --tlsCAFile /etc/ssl/TestLevel1/certs/TestLevel1.crt \
+ --username <USER> \
+ --password "<PASSWORD>"
 ```
 
 
 ## Test Database Example Scripts
 
 See [TestDB](../TestDB) for example scripts to install, configure and prepare a test database, as well as to run a full import and query test run with this test database:
+
 - **[run-full-test](../TestDB/run-full-test)**
 - [0-make-configurations](../TestDB/0-make-configurations)
 - [1-install-database](../TestDB/1-install-database)
@@ -157,4 +186,4 @@ See [TestDB](../TestDB) for example scripts to install, configure and prepare a 
 
 ## GNU R Query Example
 
-See [R-query-example.R](R-query-example.R) for an example of how to query the results from a MongoDB in GNU R.
+See [R-query-example.R](R-query-example.R) for an example of how to directly query the results from a MongoDB in GNU R.
