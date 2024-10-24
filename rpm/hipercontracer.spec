@@ -33,6 +33,8 @@ Recommends: %{name}-results-tool = %{version}-%{release}
 Recommends: %{name}-sync-tool = %{version}-%{release}
 Recommends: %{name}-trigger = %{version}-%{release}
 Recommends: %{name}-udp-echo-server = %{version}-%{release}
+Recommends: ethtool
+Suggests: netperfmeter
 Suggests: td-system-info
 
 
@@ -267,6 +269,9 @@ Group: Applications/Database
 BuildArch: noarch
 Recommends: %{name} = %{version}-%{release}
 Recommends: %{name}-dbeaver-tools = %{version}-%{release}
+Recommends: (mariadb OR mysql)
+Recommends: mongodb-mongosh
+Recommends: postgresql
 Recommends: pwgen
 
 %description dbshell
