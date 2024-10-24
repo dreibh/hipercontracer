@@ -45,6 +45,6 @@
     <glob weight="60" pattern="*.results.gz" />
     <glob weight="60" pattern="*.results.bz2" />
     <glob weight="60" pattern="*.results.xz" />
-    <icon name="fractgen" />
+    <icon name="hipercontracer" />
   </mime-type>
 </mime-info>
