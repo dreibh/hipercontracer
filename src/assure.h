@@ -27,49 +27,28 @@
 //
 // Contact: dreibh@simula.no
 
-#ifndef DESTINATIONINFO_H
-#define DESTINATIONINFO_H
+#ifndef ASSURE_H
+#define ASSURE_H
 
-#include <boost/asio/ip/address.hpp>
-
-
-class DestinationInfo {
-   public:
-   DestinationInfo();
-   DestinationInfo(const DestinationInfo& destinationInfo);
-   DestinationInfo(const boost::asio::ip::address& address,
-                   const uint8_t                   trafficClassValue,
-                   const uint32_t                  identifier = 0);
-
-   inline const boost::asio::ip::address& address() const {
-      return Address;
-   }
-   inline const uint8_t& trafficClass() const {
-      return TrafficClass;
-   }
-   inline uint32_t identifier() const {
-      return Identifier;
+// Assertion like assert(), but which will be checked in all build types,
+// i.e. not only for Debug builds but also in Release builds
+#define assure(expression) \
+   if(__builtin_expect(!(expression), 0)) { \
+      __assure_fail(#expression, __FILE__, __LINE__, __func__); \
    }
 
-   inline void setAddress(const boost::asio::ip::address& address) {
-      Address = address;
-   }
-   inline void setTrafficClass(const uint8_t trafficClass) {
-      TrafficClass = trafficClass;
-   }
-   inline void setIdentifier(const uint32_t identifier) {
-      Identifier = identifier;
+#define assure_perror(expression) \
+   if(__builtin_expect(!(expression), 0)) { \
+      __assure_fail_perror(#expression, __FILE__, __LINE__, __func__); \
    }
 
-   private:
-   uint32_t                 Identifier;
-   boost::asio::ip::address Address;
-   uint8_t                  TrafficClass;
-};
-
-
-std::ostream& operator<<(std::ostream& os, const DestinationInfo& destinationInfo);
-int operator<(const DestinationInfo& destinationInfo1, const DestinationInfo& destinationInfo2);
-int operator==(const DestinationInfo& destinationInfo1, const DestinationInfo& destinationInfo2);
+void __assure_fail(const char*  expression,
+                   const char*  file,
+                   unsigned int line,
+                   const char*  function) __attribute__ ((__noreturn__));
+void __assure_fail_perror(const char*  expression,
+                          const char*  file,
+                          unsigned int line,
+                          const char*  function) __attribute__ ((__noreturn__));
 
 #endif

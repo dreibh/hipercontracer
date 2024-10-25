@@ -111,7 +111,7 @@ const std::string& ImporterConfiguration::getTableName(const std::string& reader
 {
    std::map<std::string, std::string>::const_iterator found = TableMap.find(readerName);
    if(found == TableMap.end()) {
-      return(defaultTableName);
+      return defaultTableName;
    }
    return found->second;
 }

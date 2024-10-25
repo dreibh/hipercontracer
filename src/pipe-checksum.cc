@@ -36,6 +36,22 @@
 #include <cstring>
 #include <iostream>
 
+// ###### Print digest algorithm ############################################
+void printDigest(const OBJ_NAME *obj, void* arg)
+{
+  std::cout << obj->name << " ";
+}
+
+// ###### List all supported digest algorithms ##############################
+void listDigests()
+{
+   std::cerr << "Supported digests: ";
+   OpenSSL_add_all_digests();
+   OBJ_NAME_do_all(OBJ_NAME_TYPE_MD_METH, printDigest, nullptr);
+   std::cerr << "\n";
+}
+
+
 
 // ###### Main program ######################################################
 int main(int argc, char** argv)
@@ -43,7 +59,8 @@ int main(int argc, char** argv)
    // ====== Handle arguments ===============================================
    if(argc < 2) {
       std::cerr << "Usage: " << argv[0] << " file [--digest=SHA256|...]\n";
-      exit(1);
+      listDigests();
+      return 1;
    }
 
    bool        success    = false;
@@ -51,16 +68,21 @@ int main(int argc, char** argv)
    for(int i = 2; i < argc; i++) {
       if( (strcmp(argv[i], "-D")) || (strcmp(argv[i], "--digest")) ) {
          digestName = (i + 1 < argc) ? argv[++i] : "";
+         if(strcmp(digestName, "") == 0) {
+            listDigests();
+            return 1;
+         }
       }
       else {
          std::cerr << "ERROR: Invalid option " << argv[i] << "!\n";
-         exit(1);
+         return 1;
       }
    }
    const EVP_MD* md = EVP_get_digestbyname(digestName);
    if(md == nullptr) {
       std::cerr << "ERROR: Unknown message digest " << digestName << "!\n";
-      exit(1);
+      listDigests();
+      return 1;
    }
    const std::string                           outputFileName      = argv[1];
    const std::string                           checksumFileName    = outputFileName + ".checksum";

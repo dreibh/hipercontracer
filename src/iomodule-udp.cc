@@ -28,6 +28,7 @@
 // Contact: dreibh@simula.no
 
 #include "iomodule-udp.h"
+#include "assure.h"
 #include "tools.h"
 #include "logger.h"
 #include "icmpheader.h"
@@ -293,13 +294,13 @@ unsigned int UDPModule::sendRequest(const DestinationInfo& destination,
    }
 
    // ====== Sender loop ====================================================
-   assert(fromRound <= toRound);
-   assert(fromTTL >= toTTL);
+   assure(fromRound <= toRound);
+   assure(fromTTL >= toTTL);
    unsigned int messagesSent = 0;
    // ------ BEGIN OF TIMING-CRITICAL PART ----------------------------------
    for(unsigned int round = fromRound; round <= toRound; round++) {
       for(int ttl = (int)fromTTL; ttl >= (int)toTTL; ttl--) {
-         assert(currentEntry < entries);
+         assure(currentEntry < entries);
          seqNumber++;   // New sequence number!
 
          // ====== Update IP header =========================================
@@ -360,7 +361,7 @@ unsigned int UDPModule::sendRequest(const DestinationInfo& destination,
       }
    }
    // ------ END OF TIMING-CRITICAL PART ------------------------------------
-   assert(currentEntry == entries);
+   assure(currentEntry == entries);
 
    // ====== Check results ==================================================
    for(unsigned int i = 0; i < entries; i++) {
@@ -368,7 +369,7 @@ unsigned int UDPModule::sendRequest(const DestinationInfo& destination,
          ResultsMap.insert(std::pair<unsigned short, ResultEntry*>(
                               resultEntryArray[i]->seqNumber(),
                               resultEntryArray[i]));
-      assert(result.second == true);
+      assure(result.second == true);
       if( (errorCodeArray[i]) || (sentArray[i] <= 0) ) {
          resultEntryArray[i]->failedToSend(errorCodeArray[i]);
          HPCT_LOG(debug) << getName() << ": sendRequest() - send_to("

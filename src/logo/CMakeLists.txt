@@ -1,4 +1,3 @@
-#!/usr/bin/env bash
 # ==========================================================================
 #     _   _ _ ____            ____          _____
 #    | | | (_)  _ \ ___ _ __ / ___|___  _ _|_   _| __ __ _  ___ ___ _ __
@@ -28,32 +27,9 @@
 #
 # Contact: dreibh@simula.no
 
-# Bash options:
-set -eu
+#############################################################################
+#### EXAMPLES                                                            ####
+#############################################################################
 
-TESTUSER="test"
-
-
-echo "Testing HiPerConTracer with ICMP in the Internet ..."
-
-# Prepare results directory writable by user "hipercontracer":
-mkdir -p results1
-sudo chown "${TESTUSER}" results1
-
-echo "Default IPs: "
-get-default-ips
-
-# Run HiPerConTracer:
-sudo hipercontracer \
-   -# 12345678 \
-   --user "${TESTUSER}" \
-   --source 0.0.0.0 --source :: \
-   --destination www.ietf.org \
-   --ping --traceroute \
-   --iterations=1 \
-   --resultscompression BZip2 \
-   -R results1
-
-bzcat results1/*-#12345678*.hpct.bz2
-
-echo "Test passed!"
+INSTALL(FILES hipercontracer.png DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/icons/hicolor/512x512/apps)
+INSTALL(FILES hipercontracer.svg DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/icons/hicolor/scalable/apps)

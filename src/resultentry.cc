@@ -28,6 +28,7 @@
 // Contact: dreibh@simula.no
 
 #include "logger.h"
+#include "assure.h"
 #include "resultentry.h"
 #include "tools.h"
 
@@ -137,7 +138,7 @@ bool ResultEntry::obtainSendReceiveTime(const RXTimeStampType rxTimeStampType,
                                         ResultTimePoint&      sendTime,
                                         ResultTimePoint&      receiveTime) const
 {
-   assert((unsigned int)rxTimeStampType <= RXTimeStampType::RXTST_MAX);
+   assure((unsigned int)rxTimeStampType <= RXTimeStampType::RXTST_MAX);
 
    // Get receiver/sender time stamp source as byte:
    timeSource = (ReceiveTimeSource[rxTimeStampType] << 4) | SendTimeSource[rxTimeStampType];
@@ -218,8 +219,8 @@ bool ResultEntry::obtainSchedulingSendTime(unsigned int&    timeSource,
       goto not_available;
    }
 
-   assert(SendTime[TXTST_SchedulerSW]    != ResultTimePoint());
-   assert(SendTime[TXTST_TransmissionSW] != ResultTimePoint());
+   assure(SendTime[TXTST_SchedulerSW]    != ResultTimePoint());
+   assure(SendTime[TXTST_TransmissionSW] != ResultTimePoint());
 
    // ====== Check whether the time stamps make sense =======================
    if(SendTime[TXTST_SchedulerSW] > SendTime[TXTST_TransmissionSW]) {
@@ -261,8 +262,8 @@ bool ResultEntry::obtainApplicationSendSchedulingTime(unsigned int&    timeSourc
       goto not_available;
    }
 
-   assert(SendTime[TXTST_Application] != ResultTimePoint());
-   assert(SendTime[TXTST_SchedulerSW] != ResultTimePoint());
+   assure(SendTime[TXTST_Application] != ResultTimePoint());
+   assure(SendTime[TXTST_SchedulerSW] != ResultTimePoint());
 
    // ====== Check whether the time stamps make sense =======================
    if(SendTime[TXTST_SchedulerSW] < SendTime[TXTST_Application]) {
@@ -304,8 +305,8 @@ bool ResultEntry::obtainReceptionApplicationReceiveTime(unsigned int&    timeSou
       goto not_available;
    }
 
-   assert(ReceiveTime[RXTST_ReceptionSW] != ResultTimePoint());
-   assert(ReceiveTime[RXTST_Application] != ResultTimePoint());
+   assure(ReceiveTime[RXTST_ReceptionSW] != ResultTimePoint());
+   assure(ReceiveTime[RXTST_Application] != ResultTimePoint());
 
    // ====== Check whether the time stamps make sense =======================
    if(ReceiveTime[RXTST_Application] < ReceiveTime[RXTST_ReceptionSW]) {
@@ -509,5 +510,5 @@ std::ostream& operator<<(std::ostream& os, const ResultEntry& resultEntry)
       << "Hw: " << nsSinceEpoch(resultEntry.sendTime(TXTimeStampType::TXTST_TransmissionHW)) << " -> "
                 << nsSinceEpoch(resultEntry.receiveTime(RXTimeStampType::RXTST_ReceptionHW)) << "\n";
 #endif
-   return(os);
+   return os;
 }

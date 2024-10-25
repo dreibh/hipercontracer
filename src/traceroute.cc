@@ -28,6 +28,7 @@
 // Contact: dreibh@simula.no
 
 #include "traceroute.h"
+#include "assure.h"
 #include "tools.h"
 #include "logger.h"
 #include "icmpheader.h"
@@ -73,10 +74,10 @@ Traceroute::Traceroute(const std::string                moduleName,
      TimeoutTimer(IOService),
      IntervalTimer(IOService)
 {
-   assert(Parameters.Rounds >= 1);
-   assert(Parameters.InitialMaxTTL >= 1);
-   assert(Parameters.InitialMaxTTL <= Parameters.FinalMaxTTL);
-   assert( (Parameters.InitialMaxTTL >= 1) &&
+   assure(Parameters.Rounds >= 1);
+   assure(Parameters.InitialMaxTTL >= 1);
+   assure(Parameters.InitialMaxTTL <= Parameters.FinalMaxTTL);
+   assure( (Parameters.InitialMaxTTL >= 1) &&
            (Parameters.InitialMaxTTL <= Parameters.FinalMaxTTL) );
 
    // ====== Some initialisations ===========================================
@@ -96,7 +97,7 @@ Traceroute::Traceroute(const std::string                moduleName,
    MinTTL              = 1;
    MaxTTL              = Parameters.InitialMaxTTL;
    TargetChecksumArray = new uint32_t[Parameters.Rounds];
-   assert(TargetChecksumArray != nullptr);
+   assure(TargetChecksumArray != nullptr);
    StopRequested.exchange(false);
 
    // ====== Prepare destination endpoints ==================================
@@ -134,7 +135,7 @@ Traceroute::~Traceroute()
 // ###### Get source address ################################################
 const boost::asio::ip::address& Traceroute::getSource()
 {
-    return(SourceAddress);
+    return SourceAddress;
 }
 
 
@@ -262,7 +263,7 @@ bool Traceroute::prepareRun(const bool newRound)
    RunStartTimeStamp   = std::chrono::steady_clock::now();
 
    // Return whether end of the list is reached. Then, a rewind is necessary.
-   return(DestinationIterator == Destinations.end());
+   return DestinationIterator == Destinations.end();
 }
 
 
@@ -281,8 +282,8 @@ void Traceroute::run()
 unsigned long long Traceroute::makeDeviation(const unsigned long long interval,
                                              const float              deviation)
 {
-   assert(deviation >= 0.0);
-   assert(deviation <= 1.0);
+   assure(deviation >= 0.0);
+   assure(deviation <= 1.0);
 
    const long long          d     = (long long)(interval * deviation);
    const unsigned long long value =
@@ -420,9 +421,9 @@ bool Traceroute::notReachedWithCurrentTTL()
       HPCT_LOG(debug) << getName() << ": Cannot reach " << *DestinationIterator
                       << " with TTL " << MinTTL - 1 << ", now trying TTLs "
                       << MinTTL << " to " << MaxTTL << " ...";
-      return(true);
+      return true;
    }
-   return(false);
+   return false;
 }
 
 
@@ -438,7 +439,7 @@ void Traceroute::sendRequests()
                       << " to " << destination << " ...";
 
       // ====== Send Echo Requests ==========================================
-      assert(MinTTL > 0);
+      assure(MinTTL > 0);
       OutstandingRequests +=
          IOModule->sendRequest(destination,
                                MaxTTL, MinTTL, 0, Parameters.Rounds - 1,
@@ -459,9 +460,9 @@ unsigned int Traceroute::getInitialMaxTTL(const DestinationInfo& destination) co
 {
    const std::map<DestinationInfo, unsigned int>::const_iterator found = TTLCache.find(destination);
    if(found != TTLCache.end()) {
-      return(std::min(found->second, Parameters.FinalMaxTTL));
+      return std::min(found->second, Parameters.FinalMaxTTL);
    }
-   return(Parameters.InitialMaxTTL);
+   return Parameters.InitialMaxTTL;
 }
 
 
@@ -525,7 +526,7 @@ void Traceroute::processResults()
       std::string pathString         = SourceAddress.to_string();
       for(ResultEntry* resultEntry : resultsVector) {
          if(resultEntry->roundNumber() == round) {
-            assert(resultEntry->hopNumber() > totalHops);
+            assure(resultEntry->hopNumber() > totalHops);
             currentHop++;
             totalHops = resultEntry->hopNumber();
 
@@ -555,7 +556,7 @@ void Traceroute::processResults()
             }
          }
       }
-      assert(currentHop == totalHops);
+      assure(currentHop == totalHops);
 
       // ====== Compute path hash ===========================================
       // Checksum: the first 64 bits of the SHA-1 sum over path string
@@ -719,6 +720,6 @@ void Traceroute::writeTracerouteResultEntry(const ResultEntry* resultEntry,
          ));
       }
 
-      assert(resultEntry->checksum() == checksumCheck);
+      assure(resultEntry->checksum() == checksumCheck);
    }
 }

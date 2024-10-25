@@ -269,16 +269,16 @@ enabled=1
 gpgkey=https://www.mongodb.org/static/pgp/server-${MONGODB_KEY}.asc
 EOF
       ) | sudo tee /etc/yum.repos.d/mongodb-org.repo
-      (
-         cat <<EOF
-[mongodb-org-dev]
-name=MongoDB Development Repository
-baseurl=https://repo.mongodb.org/yum/redhat/9/mongodb-org/development/x86_64/
-gpgcheck=1
-enabled=1
-gpgkey=https://www.mongodb.org/static/pgp/server-dev.asc
-EOF
-      ) | sudo tee /etc/yum.repos.d/mongodb-org-dev.repo
+#       (
+#          cat <<EOF
+# [mongodb-org-dev]
+# name=MongoDB Development Repository
+# baseurl=https://repo.mongodb.org/yum/redhat/9/mongodb-org/development/x86_64/
+# gpgcheck=1
+# enabled=1
+# gpgkey=https://www.mongodb.org/static/pgp/server-dev.asc
+# EOF
+#       ) | sudo tee /etc/yum.repos.d/mongodb-org-dev.repo
       sudo dnf install -y mongodb-org mongodb-mongosh-shared-openssl3 openssl
       sudo systemctl enable mongod.service
       sudo systemctl start mongod.service

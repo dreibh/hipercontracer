@@ -28,8 +28,8 @@
 # Contact: dreibh@simula.no
 
 
-# ###### Bash completion for udp-echo-server ################################
-_udp_echo_server()
+# ###### Bash completion for hpct-results ###################################
+_hpct_results()
 {
    # Based on: https://www.benningtons.net/index.php/bash-completion/
    local cur prev words cword
@@ -49,11 +49,14 @@ _udp_echo_server()
    case "${prev}" in
       #  ====== Generic value ===============================================
       -L | --loglevel  | \
-      -U | --user      | \
-      -A | --address   | \
-      -P | --port      | \
-      -f | --from-port | \
-      -t | --to-port)
+      -s | --separator | \
+      -T | --maxthreads)
+         return
+         ;;
+      # ====== Special case: file ===========================================
+      -o | --output | \
+      -F | --input-file-names-from-file)
+         COMPREPLY=( $( compgen -f -- "${cur}" ) )
          return
          ;;
       # ====== Special case: log file =======================================
@@ -81,19 +84,25 @@ _udp_echo_server()
 --quiet
 -v
 --verbose
+-o
+--output
+-s
+--separator
+-S
+--sorted
 -U
---user
--A
---address
--P
---port
--f
---from-port
--t
---to-port
+--unsorted
+-T
+--maxthreads
+-R
+--input-results-from-stdin
+-N
+--input-file-names-from-stdin
+-F
+--input-file-names-from-file
 "
    COMPREPLY=( $( compgen -W "${opts}" -- "${cur}" ) )
    return 0
 }
 
-complete -F _udp_echo_server udp-echo-server
+complete -F _hpct_results hpct-results

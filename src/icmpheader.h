@@ -108,16 +108,16 @@ class ICMPHeader
    }
 
    inline friend std::istream& operator>>(std::istream& is, ICMPHeader& header) {
-      return(is.read(reinterpret_cast<char*>(header.Data), 8));
+      return is.read(reinterpret_cast<char*>(header.Data), 8);
    }
 
    inline friend std::ostream& operator<<(std::ostream& os, const ICMPHeader& header) {
-      return(os.write(reinterpret_cast<const char*>(header.Data), 8));
+      return os.write(reinterpret_cast<const char*>(header.Data), 8);
    }
 
    private:
    inline uint16_t decode(const unsigned int a, const unsigned int b) const {
-      return(((uint16_t)Data[a] << 8) + Data[b]);
+      return ((uint16_t)Data[a] << 8) + Data[b];
    }
 
    inline void encode(const unsigned int a, const unsigned int b, const uint16_t n) {

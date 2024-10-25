@@ -28,8 +28,8 @@
 # Contact: dreibh@simula.no
 
 
-# ###### Bash completion for hipercontracer #################################
-_hipercontracer()
+# ###### Bash completion for hpct-trigger ###################################
+_hpct_trigger()
 {
    # Based on: https://www.benningtons.net/index.php/bash-completion/
    local cur prev words cword
@@ -48,19 +48,14 @@ _hipercontracer()
 
    case "${prev}" in
       #  ====== Generic value ===============================================
+      --pingtriggerage                | \
+      --pingtriggerlength             | \
+      --pingsbeforequeuing            | \
       -L | --loglevel                 | \
       -U | --userid                   | \
       -# | --measurement-id           | \
       -D | --destination              | \
       --iterations                    | \
-      --jitterinterval                | \
-      --jitterintervaldeviation       | \
-      --jitterexpiration              | \
-      --jitterburst                   | \
-      --jitterttl                     | \
-      --jitterpacketsize              | \
-      --jitterudpsourceport           | \
-      --jitterudpdestinationport      | \
       --tracerouteinterval            | \
       --tracerouteintervaldeviation   | \
       --tracerouteduration            | \
@@ -91,7 +86,7 @@ _hipercontracer()
          ;;
       # ====== Special case: IO Module ======================================
       -M | --iomodule)
-         COMPREPLY=($(compgen -W "ICMP TCP UDP" -- "${cur}"))
+         COMPREPLY=($(compgen -W "ICMP UDP" -- "${cur}"))
          return
          ;;
       # ====== Special case: log file =======================================
@@ -128,12 +123,13 @@ _hipercontracer()
 
    # ====== All options =====================================================
    local opts="
+--pingtriggerage
+--pingtriggerlength
+--pingsbeforequeuing
 -P
 --ping
 -T
 --traceroute
--J
---jitter
 -L
 --loglevel
 -Z
@@ -175,15 +171,6 @@ _hipercontracer()
 --pingpacketsize
 --pingudpsourceport
 --pingudpdestinationport
---jitterinterval
---jitterintervaldeviation
---jitterexpiration
---jitterburst
---jitterttl
---jitterpacketsize
---jitterrecordraw
---jitterudpsourceport
---jitterudpdestinationport
 -R
 --resultsdirectory
 -x
@@ -200,4 +187,4 @@ _hipercontracer()
    return 0
 }
 
-complete -F _hipercontracer hipercontracer
+complete -F _hpct_trigger hpct-trigger

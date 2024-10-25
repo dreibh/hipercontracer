@@ -12,6 +12,15 @@ sudo apt install postgresql-all postgresql-contrib
 ### Fedora:
 ```
 sudo dnf install postgresql-server postgresql-contrib
+sudo systemctl enable postgresql.service
+sudo systemctl start postgresql.service
+```
+### FreeBSD:
+```
+sudo pkg install -y postgresql16-server postgresql-libpqxx
+sudo sysrc postgresql_enable="YES"
+sudo /usr/local/etc/rc.d/postgresql initdb
+sudo service postgresql start
 ```
 
 
@@ -97,6 +106,7 @@ PGPASSWORD="<PASSWORD>" \
 ## Test Database Example Scripts
 
 See [TestDB](../TestDB) for example scripts to install, configure and prepare a test database, as well as to run a full import and query test run with this test database:
+
 - **[run-full-test](../TestDB/run-full-test)**
 - [0-make-configurations](../TestDB/0-make-configurations)
 - [1-install-database](../TestDB/1-install-database)
