@@ -31,11 +31,14 @@
 # Bash options:
 set -eu
 
+TESTUSER="test"
+
+
 echo "Testing HiPerConTracer with ICMP and UDP on localhost, IPv4 and IPv6 ..."
 
 # Prepare results directory writable by user "hipercontracer":
 mkdir -p results2
-sudo chown hipercontracer:hipercontracer results2
+sudo chown "${TESTUSER}" results2
 
 udpPort=10000
 udp-echo-server --port ${udpPort} &
@@ -44,7 +47,7 @@ pid=$!
 # Run HiPerConTracer:
 sudo hipercontracer \
    -# 88888888 \
-   --user hipercontracer \
+   --user "${TESTUSER}" \
    --source      0.0.0.0   --source :: \
    --destination 127.0.0.1 --destination ::1 \
    --ping --traceroute \

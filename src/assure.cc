@@ -27,49 +27,34 @@
 //
 // Contact: dreibh@simula.no
 
-#ifndef DESTINATIONINFO_H
-#define DESTINATIONINFO_H
+#include "assure.h"
 
-#include <boost/asio/ip/address.hpp>
-
-
-class DestinationInfo {
-   public:
-   DestinationInfo();
-   DestinationInfo(const DestinationInfo& destinationInfo);
-   DestinationInfo(const boost::asio::ip::address& address,
-                   const uint8_t                   trafficClassValue,
-                   const uint32_t                  identifier = 0);
-
-   inline const boost::asio::ip::address& address() const {
-      return Address;
-   }
-   inline const uint8_t& trafficClass() const {
-      return TrafficClass;
-   }
-   inline uint32_t identifier() const {
-      return Identifier;
-   }
-
-   inline void setAddress(const boost::asio::ip::address& address) {
-      Address = address;
-   }
-   inline void setTrafficClass(const uint8_t trafficClass) {
-      TrafficClass = trafficClass;
-   }
-   inline void setIdentifier(const uint32_t identifier) {
-      Identifier = identifier;
-   }
-
-   private:
-   uint32_t                 Identifier;
-   boost::asio::ip::address Address;
-   uint8_t                  TrafficClass;
-};
+#include <cstring>
+#include <iostream>
 
 
-std::ostream& operator<<(std::ostream& os, const DestinationInfo& destinationInfo);
-int operator<(const DestinationInfo& destinationInfo1, const DestinationInfo& destinationInfo2);
-int operator==(const DestinationInfo& destinationInfo1, const DestinationInfo& destinationInfo2);
+// ###### Print error message and abort #####################################
+void __assure_fail(const char*  expression,
+                   const char*  file,
+                   unsigned int line,
+                   const char*  function)
+{
+   std::cerr << "assure(" << expression << ") failed in "
+             << function << " (" << file << ":" << line << ")!"
+             << std::endl;
+   abort();
+}
 
-#endif
+
+// ###### Print error message and abort with error from errno ###############
+void __assure_fail_perror(const char*  expression,
+                          const char*  file,
+                          unsigned int line,
+                          const char*  function)
+{
+   std::cerr << "assure(" << expression << ") failed in "
+             << function << " (" << file << ":" << line << "): "
+             << strerror(errno)
+             << std::endl;
+   abort();
+}

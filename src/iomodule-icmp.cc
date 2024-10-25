@@ -28,6 +28,7 @@
 // Contact: dreibh@simula.no
 
 #include "iomodule-icmp.h"
+#include "assure.h"
 #include "tools.h"
 #include "logger.h"
 #include "icmpheader.h"
@@ -99,7 +100,7 @@ bool ICMPModule::prepareSocket()
       Identifier = ntohs(((sockaddr_in*)in)->sin_port);
    }
    else {
-      assert(in->sa_family == AF_INET6);
+      assure(in->sa_family == AF_INET6);
       Identifier = ntohs(((sockaddr_in6*)in)->sin6_port);
    }
 
@@ -158,7 +159,7 @@ void ICMPModule::expectNextReply(const int  socketDescriptor,
 {
    if(socketDescriptor == ICMPSocket.native_handle()) {
       if(readFromErrorQueue == true) {
-         assert(ExpectingError == false);
+         assure(ExpectingError == false);
          ICMPSocket.async_wait(
             boost::asio::ip::icmp::socket::wait_error,
             std::bind(&ICMPModule::handleResponse, this,
@@ -167,7 +168,7 @@ void ICMPModule::expectNextReply(const int  socketDescriptor,
          ExpectingError = true;
       }
       else {
-         assert(ExpectingReply == false);
+         assure(ExpectingReply == false);
          ICMPSocket.async_wait(
             boost::asio::ip::icmp::socket::wait_read,
             std::bind(&ICMPModule::handleResponse, this,
@@ -248,14 +249,14 @@ unsigned int ICMPModule::sendRequest(const DestinationInfo& destination,
    }
 
    // ====== Sender loop ====================================================
-   assert(fromRound <= toRound);
-   assert(fromTTL >= toTTL);
+   assure(fromRound <= toRound);
+   assure(fromTTL >= toTTL);
    unsigned int messagesSent = 0;
    int currentTTL            = -1;
    // ------ BEGIN OF TIMING-CRITICAL PART ----------------------------------
    for(unsigned int round = fromRound; round <= toRound; round++) {
       for(int ttl = (int)fromTTL; ttl >= (int)toTTL; ttl--) {
-         assert(currentEntry < entries);
+         assure(currentEntry < entries);
          seqNumber++;   // New sequence number!
 
          // ====== Set TTL ==================================================
@@ -290,7 +291,7 @@ unsigned int ICMPModule::sendRequest(const DestinationInfo& destination,
          else {
             // RFC 1624: Checksum 0xffff == -0 cannot occur, since there is
             //           always at least one non-zero field in each packet!
-            assert(targetChecksumArray[round] != 0xffff);
+            assure(targetChecksumArray[round] != 0xffff);
 
             const uint16_t originalChecksum = echoRequest.checksum();
 
@@ -307,9 +308,9 @@ unsigned int ICMPModule::sendRequest(const DestinationInfo& destination,
             echoRequest.computeInternet16(icmpChecksum);
             tsHeader.computeInternet16(icmpChecksum);
             echoRequest.checksum(finishInternet16(icmpChecksum));
-            assert(echoRequest.checksum() == targetChecksumArray[round]);
+            assure(echoRequest.checksum() == targetChecksumArray[round]);
          }
-         assert((targetChecksumArray[round] & ~0xffff) == 0);
+         assure((targetChecksumArray[round] & ~0xffff) == 0);
 
          // ====== Send the request =========================================
          sentArray[currentEntry] =
@@ -332,7 +333,7 @@ unsigned int ICMPModule::sendRequest(const DestinationInfo& destination,
       }
    }
    // ------ END OF TIMING-CRITICAL PART ------------------------------------
-   assert(currentEntry == entries);
+   assure(currentEntry == entries);
 
    // ====== Check results ==================================================
    for(unsigned int i = 0; i < entries; i++) {
@@ -340,7 +341,7 @@ unsigned int ICMPModule::sendRequest(const DestinationInfo& destination,
          ResultsMap.insert(std::pair<unsigned short, ResultEntry*>(
                               resultEntryArray[i]->seqNumber(),
                               resultEntryArray[i]));
-      assert(result.second == true);
+      assure(result.second == true);
       if( (errorCodeArray[i]) || (sentArray[i] <= 0) ) {
          resultEntryArray[i]->failedToSend(errorCodeArray[i]);
          HPCT_LOG(debug) << getName() << ": sendRequest() - send_to("
@@ -392,7 +393,7 @@ void ICMPModule::handleResponse(const boost::system::error_code& errorCode,
                recvmsg(socketDescriptor, &msg,
                        (readFromErrorQueue == true) ? MSG_ERRQUEUE|MSG_DONTWAIT : MSG_DONTWAIT);
 #else
-            assert(readFromErrorQueue == false);
+            assure(readFromErrorQueue == false);
             const ssize_t length = recvmsg(socketDescriptor, &msg, MSG_DONTWAIT);
 #endif
             // NOTE: length == 0 for control data without user data!

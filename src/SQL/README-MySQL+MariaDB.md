@@ -7,11 +7,19 @@ NOTE: This is a very brief overview of the steps to install, configure and prepa
 
 ### Ubuntu:
 ```
-sudo apt install mariadb-server mariadb-backup mariadb-client
+sudo apt install mariadb-server mariadb-backup mariadb-client libmariadb-dev
 ```
 ### Fedora:
 ```
-sudo dnf install mariadb-server mariadb-backup community-mysql
+sudo dnf install mariadb-server mariadb-backup mariadb-connector-c-devel openssl
+sudo systemctl enable mariadb.service
+sudo systemctl start mariadb.service
+```
+### FreeBSD:
+```
+sudo dnf install mariadb106-server mariadb106-client
+sudo sysrc mysql_enable=YES
+sudo service mysql-server start
 ```
 
 
@@ -71,16 +79,17 @@ pwgen -s 128
 ### Test Connectivity
 ```
 mysql \
-      --host=<SERVER> --port <PORT> --protocol=tcp \
-      --ssl --ssl-verify-server-cert --ssl-ca=/etc/ssl/RootCA/RootCA.crt \
-      --user=<USER> --password="<PASSWORD>" \
-      --database="${DATABASE}"
+ --host=<SERVER> --port <PORT> --protocol=tcp \
+ --ssl --ssl-verify-server-cert --ssl-ca=/etc/ssl/RootCA/RootCA.crt \
+ --user=<USER> --password="<PASSWORD>" \
+ --database="${DATABASE}"
 ```
 
 
 ## Test Database Example Scripts
 
 See [TestDB](../TestDB) for example scripts to install, configure and prepare a test database, as well as to run a full import and query test run with this test database:
+
 - **[run-full-test](../TestDB/run-full-test)**
 - [0-make-configurations](../TestDB/0-make-configurations)
 - [1-install-database](../TestDB/1-install-database)

@@ -158,7 +158,7 @@ done
 prefix="$(echo "${CONFIG}" | sed -e "s/-users\.conf$//")"
 if [ -x ../make-dbeaver-configuration ] ; then
    # Running in development environment:
-   ../make-dbeaver-configuration "${prefix}"-*-*.conf --join
+   ../make-dbeaver-configuration "${prefix}"-*-*.conf --join || true
 else
-   make-dbeaver-configuration "${prefix}"-*-*.conf --join
+   make-dbeaver-configuration "${prefix}"-*-*.conf --join || true
 fi

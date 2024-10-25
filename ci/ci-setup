@@ -52,7 +52,7 @@ if [ "${ID}" == "ubuntu" ] || [ "${ID}" == "debian" ] ; then
    fi
    if [ ${USE_PACKAGING} -eq 1 ] ; then
       # Need to install pbuilder as well:
-      PACKAGES="${PACKAGES} build-essential debian-archive-keyring debian-ports-archive-keyring devscripts distro-info eatmydata fakeroot pbuilder qemu-user-static"
+      PACKAGES="${PACKAGES} build-essential debian-archive-keyring debian-ports-archive-keyring devscripts distro-info eatmydata fakeroot pbuilder qemu-user-static sudo"
    fi
 
    apt-get update -qq
@@ -86,7 +86,7 @@ if [ "${ID}" == "ubuntu" ] || [ "${ID}" == "debian" ] ; then
 
       if [ "${OS}" == "ubuntu" ] ; then
          COMPONENTS="main universe"
-         MIRRORSITE=http://no.archive.ubuntu.com/ubuntu/
+         MIRRORSITE=http://dk.archive.ubuntu.com/ubuntu/
          KEYRING="/usr/share/keyrings/ubuntu-archive-keyring.gpg"
       elif [ "${OS}" == "debian" ] ; then
          COMPONENTS="main"
@@ -96,7 +96,7 @@ if [ "${ID}" == "ubuntu" ] || [ "${ID}" == "debian" ] ; then
             KEYRING="/usr/share/keyrings/debian-ports-archive-keyring.gpg"
          else
             # Debian (supported architectures)
-            MIRRORSITE="http://ftp.no.debian.org/debian/"
+            MIRRORSITE="http://ftp.dk.debian.org/debian/"
             KEYRING="/usr/share/keyrings/debian-archive-keyring.gpg"
          fi
       else

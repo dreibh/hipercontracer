@@ -28,8 +28,8 @@
 # Contact: dreibh@simula.no
 
 
-# ###### Bash completion for udp-echo-server ################################
-_udp_echo_server()
+# ###### Bash completion for hpct-sync ######################################
+_hpct_sync()
 {
    # Based on: https://www.benningtons.net/index.php/bash-completion/
    local cur prev words cword
@@ -48,12 +48,19 @@ _udp_echo_server()
 
    case "${prev}" in
       #  ====== Generic value ===============================================
-      -L | --loglevel  | \
-      -U | --user      | \
-      -A | --address   | \
-      -P | --port      | \
-      -f | --from-port | \
-      -t | --to-port)
+      -N | --nodeid | \
+      -R | --remote)
+         return
+         ;;
+      # ====== Special case: directory ======================================
+      -L | --local)
+         COMPREPLY=( $( compgen -d -- "${cur}" ) )
+         return
+         ;;
+      # ====== Special case: file ===========================================
+      -K | --key | \
+      -H | --known-hosts)
+      COMPREPLY=( $( compgen -f -- "${cur}" ) )
          return
          ;;
       # ====== Special case: log file =======================================
@@ -71,29 +78,24 @@ _udp_echo_server()
 
    # ====== All options =====================================================
    local opts="
--L
---loglevel
--Z
---logcolor
--O
---logfile
--q
---quiet
+-h
+--help
 -v
 --verbose
--U
---user
--A
---address
--P
---port
--f
---from-port
--t
---to-port
+-q
+--quiet
+-N
+--nodeid
+-L
+--local
+-R
+--remote
+-K
+--key
+-H
 "
    COMPREPLY=( $( compgen -W "${opts}" -- "${cur}" ) )
    return 0
 }
 
-complete -F _udp_echo_server udp-echo-server
+complete -F _hpct_sync hpct-sync

@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/sh -e
 # ==========================================================================
 #     _   _ _ ____            ____          _____
 #    | | | (_)  _ \ ___ _ __ / ___|___  _ _|_   _| __ __ _  ___ ___ _ __
@@ -28,32 +28,20 @@
 #
 # Contact: dreibh@simula.no
 
-# Bash options:
-set -eu
+# Conversion of Dia to EPS and PDF:
+dia -n -t eps-pango -e hipercontracer.eps Logo-HiPerConTracer.dia
+epstopdf --outfile=hipercontracer.pdf.tmp hipercontracer.eps
+pdfcrop --hires hipercontracer.pdf.tmp hipercontracer.pdf
+rm -f hipercontracer.pdf.tmp
 
-TESTUSER="test"
+# Conversion of PDF to PNG with alpha channel:
+# * Add border of 1 pixel
+# * Make color #eeeeee transparent (the background)
+# * Crop the image, removing possibly non-transparent border lines
+gm convert hipercontracer.pdf \
+   -transparent "#eeeeee" -resize 514x -crop 512x512+1+1 -background \
+   none -gravity center -extent 512x512 \
+   hipercontracer.png
 
-
-echo "Testing HiPerConTracer with ICMP in the Internet ..."
-
-# Prepare results directory writable by user "hipercontracer":
-mkdir -p results1
-sudo chown "${TESTUSER}" results1
-
-echo "Default IPs: "
-get-default-ips
-
-# Run HiPerConTracer:
-sudo hipercontracer \
-   -# 12345678 \
-   --user "${TESTUSER}" \
-   --source 0.0.0.0 --source :: \
-   --destination www.ietf.org \
-   --ping --traceroute \
-   --iterations=1 \
-   --resultscompression BZip2 \
-   -R results1
-
-bzcat results1/*-#12345678*.hpct.bz2
-
-echo "Test passed!"
+# Conversion of PDF to SVG:
+pdf2svg hipercontracer.pdf hipercontracer.svg

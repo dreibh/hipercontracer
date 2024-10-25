@@ -28,6 +28,7 @@
 // Contact: dreibh@simula.no
 
 #include "iomodule-base.h"
+#include "assure.h"
 #include "tools.h"
 #include "logger.h"
 #include "icmpheader.h"
@@ -421,7 +422,7 @@ bool IOModuleBase::registerIOModule(
 {
    if(IOModuleList == nullptr) {
       IOModuleList = new std::list<RegisteredIOModule*>;
-      assert(IOModuleList != nullptr);
+      assure(IOModuleList != nullptr);
    }
    RegisteredIOModule* registeredIOModule = new RegisteredIOModule;
    registeredIOModule->Type                   = moduleType;

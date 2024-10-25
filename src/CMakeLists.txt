@@ -58,6 +58,7 @@ LIST(APPEND libhipercontracer_headers
    traceroute.h
 )
 LIST(APPEND libhipercontracer_sources
+   assure.cc
    check.cc
    destinationinfo.cc
    internet16.cc
@@ -201,6 +202,9 @@ IF (WITH_TRIGGER)
    TARGET_LINK_LIBRARIES(hpct-trigger libhipercontracer-${libraryType} ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
    INSTALL(TARGETS hpct-trigger RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
    INSTALL(FILES hpct-trigger.1 DESTINATION         ${CMAKE_INSTALL_MANDIR}/man1)
+   INSTALL(FILES       hpct-trigger.bash-completion
+           DESTINATION ${CMAKE_INSTALL_DATADIR}/bash-completion/completions
+           RENAME      hpct-trigger)
 ENDIF()
 
 
@@ -208,6 +212,9 @@ ENDIF()
 IF (WITH_SYNC)
    INSTALL(PROGRAMS hpct-sync DESTINATION ${CMAKE_INSTALL_BINDIR})
    INSTALL(FILES hpct-sync.1  DESTINATION ${CMAKE_INSTALL_MANDIR}/man1)
+   INSTALL(FILES       hpct-sync.bash-completion
+           DESTINATION ${CMAKE_INSTALL_DATADIR}/bash-completion/completions
+           RENAME      hpct-sync)
    IF (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
       INSTALL(FILES hpct-sync.service DESTINATION /lib/systemd/system)
       INSTALL(FILES hpct-sync.timer   DESTINATION /lib/systemd/system)
@@ -227,6 +234,9 @@ IF (WITH_IMPORTER)
    TARGET_LINK_LIBRARIES(hpct-importer libuniversalimporter-${libraryType} ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
    INSTALL(TARGETS hpct-importer RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
    INSTALL(FILES hpct-importer.1 DESTINATION         ${CMAKE_INSTALL_MANDIR}/man1)
+   INSTALL(FILES       hpct-importer.bash-completion
+           DESTINATION ${CMAKE_INSTALL_DATADIR}/bash-completion/completions
+           RENAME      hpct-importer)
    IF (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
       INSTALL(FILES hpct-importer.service DESTINATION /lib/systemd/system)
       INSTALL(FILES hpct-importer.conf    DESTINATION /etc/hipercontracer)
@@ -239,6 +249,9 @@ IF (WITH_QUERY)
    TARGET_LINK_LIBRARIES(hpct-query libuniversalimporter-${libraryType} ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
    INSTALL(TARGETS hpct-query RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
    INSTALL(FILES hpct-query.1 DESTINATION         ${CMAKE_INSTALL_MANDIR}/man1)
+   INSTALL(FILES       hpct-query.bash-completion
+           DESTINATION ${CMAKE_INSTALL_DATADIR}/bash-completion/completions
+           RENAME      hpct-query)
 ENDIF()
 
 # ====== HiPerConTracer Results Tool ========================================
@@ -247,6 +260,9 @@ IF (WITH_RESULTS)
    TARGET_LINK_LIBRARIES(hpct-results libuniversalimporter-${libraryType} ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
    INSTALL(TARGETS hpct-results RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
    INSTALL(FILES hpct-results.1 DESTINATION         ${CMAKE_INSTALL_MANDIR}/man1)
+   INSTALL(FILES       hpct-results.bash-completion
+           DESTINATION ${CMAKE_INSTALL_DATADIR}/bash-completion/completions
+           RENAME      hpct-results)
 ENDIF()
 
 # ====== HiPerConTracer Database Shell ======================================
@@ -274,6 +290,9 @@ IF (WITH_PIPE_CHECKSUM)
    TARGET_LINK_LIBRARIES(pipe-checksum ${CRYPTO_LIBRARY})
    INSTALL(TARGETS pipe-checksum   RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
    INSTALL(FILES   pipe-checksum.1 DESTINATION         ${CMAKE_INSTALL_MANDIR}/man1)
+   INSTALL(FILES       pipe-checksum.bash-completion
+           DESTINATION ${CMAKE_INSTALL_DATADIR}/bash-completion/completions
+           RENAME      pipe-checksum)
 ENDIF()
 
 # ====== UDP Echo Server ====================================================
@@ -319,9 +338,10 @@ INSTALL(FILES hipercontracer-database.conf
 #### SUBDIRECTORIES                                                      ####
 #############################################################################
 
-IF (WITH_IMPORTER)
+ADD_SUBDIRECTORY(logo)
+ADD_SUBDIRECTORY(results-examples)
+IF (WITH_IMPORTER OR WITH_QUERY)
    ADD_SUBDIRECTORY(SQL)
    ADD_SUBDIRECTORY(NoSQL)
    ADD_SUBDIRECTORY(TestDB)
-   ADD_SUBDIRECTORY(results-examples)
 ENDIF()
