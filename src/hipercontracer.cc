@@ -709,5 +709,5 @@ int main(int argc, char** argv)
       delete *resultsWriterIterator;
    }
 
-   return(0);
+   return 0;
 }

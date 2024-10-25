@@ -871,5 +871,5 @@ int main(int argc, char** argv)
       iterator = TargetMap.begin();
    }
 
-   return(0);
+   return 0;
 }

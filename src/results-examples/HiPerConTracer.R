@@ -81,8 +81,8 @@ readHiPerConTracerResultsFromDirectory <- function(cacheLabel, path, pattern, pr
 
    # !!!!!! TEST ONLY! !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
    # cat("****** TEST ONLY! ******\n")
-   # files <- sample(files, 128)   # FIXME!
-   # files <- head(files, 16)   # FIXME!
+   # files <- sample(files, 128)
+   # files <- head(files, 16)
    # !!!!!! TEST ONLY! !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
    # ====== Read data =======================================================

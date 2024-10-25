@@ -28,6 +28,7 @@
 // Contact: dreibh@simula.no
 
 #include "resultswriter.h"
+#include "assure.h"
 #include "logger.h"
 #include "tools.h"
 #include "resultentry.h"
@@ -242,7 +243,7 @@ ResultsWriter* ResultsWriter::makeResultsWriter(std::set<ResultsWriter*>&       
          new ResultsWriter(programID, measurementID, resultsDirectory, uniqueID,
                            resultsPrefix, resultsTransactionLength, resultsTimestampDepth,
                            uid, gid, compressor);
-      assert(resultsWriter != nullptr);
+      assure(resultsWriter != nullptr);
       resultsWriterSet.insert(resultsWriter);
       return resultsWriter;
    }

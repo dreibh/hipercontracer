@@ -28,7 +28,7 @@
 .\" Contact: dreibh@simula.no
 .\"
 .\" ###### Setup ############################################################
-.Dd October 17, 2024
+.Dd October 23, 2024
 .Dt pipe-checksum 1
 .Os pipe-checksum
 .\" ###### Name #############################################################
@@ -56,7 +56,7 @@ The following arguments may be provided:
 .Bl -tag -width indent
 .It Fl D Ar MD5|SHA1|SHA256|SHA384|SHA512|... | Fl Fl digest Ar MD5|SHA1|SHA256|SHA384|SHA512|...
 Sets the message digest. Any digest supported by the underlying libcrypto
-library is possible. Default: SHA256.
+library is possible. Calling pipe-checksum with no options, or with invalid digest, provides the list of all supported digests. Default: SHA256.
 .El
 .\" ###### Examples #########################################################
 .Sh EXAMPLES

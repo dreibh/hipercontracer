@@ -44,7 +44,7 @@ jobs:
   # ====== Debian Linux =====================================================
   debian-packaging:
     name: Debian Packaging
-    runs-on: debian-unstable
+    runs-on: ubuntu-latest
     container:
       image: debian:unstable
       options: --privileged
@@ -56,7 +56,7 @@ jobs:
           CC=gcc CXX=g++ OS=debian DIST=unstable ARCH= ci/ci-setup   package
           CC=gcc CXX=g++ OS=debian DIST=unstable ARCH= ci/ci-install package
           CC=gcc CXX=g++ OS=debian DIST=unstable ARCH= ci/ci-build   package
-          ci/ci-test
+          # ci/ci-test   <- Not running on Ubuntu!
 
   # ====== Fedora Linux =====================================================
   fedora-packaging:

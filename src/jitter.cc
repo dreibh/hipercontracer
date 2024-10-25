@@ -28,6 +28,7 @@
 // Contact: dreibh@simula.no
 
 #include "jitter.h"
+#include "assure.h"
 #include "jitter-rfc3550.h"
 #include "tools.h"
 #include "logger.h"
@@ -151,7 +152,7 @@ void Jitter::computeJitter(const std::vector<ResultEntry*>::const_iterator& star
    // HPCT_LOG(trace) << getName() << ": computeJitter()";
    for(std::vector<ResultEntry*>::const_iterator iterator = start; iterator != end; iterator++) {
       const ResultEntry* resultEntry = *iterator;
-      assert(resultEntry->roundNumber() == roundNumber);
+      assure(resultEntry->roundNumber() == roundNumber);
       roundNumber++;
 
       HPCT_LOG(trace) << getName() << ": " << *resultEntry;
@@ -236,7 +237,7 @@ void Jitter::computeJitter(const std::vector<ResultEntry*>::const_iterator& star
    for(std::vector<ResultEntry*>::const_iterator iterator = start; iterator != end; iterator++) {
       const ResultEntry* resultEntry    = *iterator;
       const std::size_t  elementsErased = ResultsMap.erase(resultEntry->seqNumber());
-      assert(elementsErased == 1);
+      assure(elementsErased == 1);
       delete resultEntry;
       if(OutstandingRequests > 0) {
          OutstandingRequests--;

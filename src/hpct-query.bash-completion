@@ -28,8 +28,8 @@
 # Contact: dreibh@simula.no
 
 
-# ###### Bash completion for udp-echo-server ################################
-_udp_echo_server()
+# ###### Bash completion for hpct-query #####################################
+_hpct_query()
 {
    # Based on: https://www.benningtons.net/index.php/bash-completion/
    local cur prev words cword
@@ -48,12 +48,19 @@ _udp_echo_server()
 
    case "${prev}" in
       #  ====== Generic value ===============================================
-      -L | --loglevel  | \
-      -U | --user      | \
-      -A | --address   | \
-      -P | --port      | \
-      -f | --from-port | \
-      -t | --to-port)
+      -L | --loglevel       | \
+      -T | --table          | \
+      -V | --table-version  | \
+      --from-time           | \
+      --to_time             | \
+      --from-measurement-id | \
+      --to_measurement-id)
+         return
+         ;;
+      # ====== Special case: file ===========================================
+      -o | --output | \
+      -M | --address-to-measurementid)
+         COMPREPLY=( $( compgen -f -- "${cur}" ) )
          return
          ;;
       # ====== Special case: log file =======================================
@@ -81,19 +88,21 @@ _udp_echo_server()
 --quiet
 -v
 --verbose
--U
---user
--A
---address
--P
---port
--f
---from-port
--t
---to-port
+-o
+--output
+-T
+--table
+-V
+--table-version
+-M
+--address-to-measurementid
+--from-time
+--to_time
+--from-measurement-id
+--to_measurement-id
 "
    COMPREPLY=( $( compgen -W "${opts}" -- "${cur}" ) )
    return 0
 }
 
-complete -F _udp_echo_server udp-echo-server
+complete -F _hpct_query hpct-query

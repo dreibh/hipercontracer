@@ -1,4 +1,3 @@
-#!/usr/bin/env bash
 # ==========================================================================
 #     _   _ _ ____            ____          _____
 #    | | | (_)  _ \ ___ _ __ / ___|___  _ _|_   _| __ __ _  ___ ___ _ __
@@ -28,32 +27,40 @@
 #
 # Contact: dreibh@simula.no
 
-# Bash options:
-set -eu
 
-TESTUSER="test"
+# ###### Bash completion for pipe-checksum ######################################
+_pipe_checksum()
+{
+   # Based on: https://www.benningtons.net/index.php/bash-completion/
+   local cur prev words cword
+   if type -t _comp_initialize >/dev/null; then
+      _comp_initialize || return
+   elif type -t _init_completion >/dev/null; then
+      _init_completion || return
+   else
+      # Manual initialization for older bash completion versions:
+      COMPREPLY=()
+      cur="${COMP_WORDS[COMP_CWORD]}"
+      prev="${COMP_WORDS[COMP_CWORD-1]}"
+      words="${COMP_WORDS}"
+      cword="${COMP_CWORD}"
+   fi
 
+   case "${prev}" in
+      # ====== Special case: on/off =========================================
+      -D | --digest)
+         COMPREPLY=($(compgen -W "$(pipe-checksum 2>&1 | grep '^Supported digests:' | sed -e 's/.*://')" --  "${cur}"))
+         return
+         ;;
+   esac
 
-echo "Testing HiPerConTracer with ICMP in the Internet ..."
+   # ====== All options =====================================================
+   local opts="
+-D
+--digest
+"
+   COMPREPLY=( $( compgen -W "${opts}" -- "${cur}" ) )
+   return 0
+}
 
-# Prepare results directory writable by user "hipercontracer":
-mkdir -p results1
-sudo chown "${TESTUSER}" results1
-
-echo "Default IPs: "
-get-default-ips
-
-# Run HiPerConTracer:
-sudo hipercontracer \
-   -# 12345678 \
-   --user "${TESTUSER}" \
-   --source 0.0.0.0 --source :: \
-   --destination www.ietf.org \
-   --ping --traceroute \
-   --iterations=1 \
-   --resultscompression BZip2 \
-   -R results1
-
-bzcat results1/*-#12345678*.hpct.bz2
-
-echo "Test passed!"
+complete -F _pipe_checksum pipe-checksum
