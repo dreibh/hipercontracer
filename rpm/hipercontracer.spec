@@ -12,6 +12,8 @@ BuildRequires: boost-devel
 BuildRequires: bzip2-devel
 BuildRequires: c-ares-devel
 BuildRequires: cmake
+BuildRequires: ghostscript
+BuildRequires: GraphicsMagick
 BuildRequires: gcc
 BuildRequires: gcc-c++
 BuildRequires: libbson-devel
@@ -19,6 +21,7 @@ BuildRequires: libpqxx-devel
 BuildRequires: mariadb-connector-c-devel
 BuildRequires: mongo-c-driver-devel
 BuildRequires: openssl-devel
+BuildRequires: pdf2svg
 BuildRequires: xz-devel
 BuildRequires: zlib-devel
 BuildRoot: %{_tmppath}/%{name}-%{version}-build

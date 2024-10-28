@@ -152,6 +152,7 @@ OPTION(WITH_DBSHELL         "Build HiPerConTracer Database Shell"       1)
 OPTION(WITH_DBEAVER_TOOLS   "Build HiPerConTracer DBeaver Tools"        1)
 OPTION(WITH_PIPE_CHECKSUM   "Build Pipe Checksum Tool"                  1)
 OPTION(WITH_UDP_ECHO_SERVER "Build UDP Echo Server"                     1)
+OPTION(WITH_ICONS           "Build HiPerConTracer icons and logo files" 1)
 
 
 #############################################################################
@@ -351,6 +352,37 @@ IF (WITH_IMPORTER)
       ENDIF()
    ELSE()
       MESSAGE("MongoDB backend disabled!")
+   ENDIF()
+
+ENDIF()
+
+# ###### Graphics tools for icons and logo ##################################
+IF (WITH_ICONS)
+   FIND_PROGRAM(GS gs PATHS /bin /usr/bin /usr/local/bin)
+   IF(NOT GS)
+      MESSAGE(FATAL_ERROR
+            " Cannot find GhostScript! Try:\n"
+            " * Ubuntu/Debian: sudo apt install -y ghostscript\n"
+            " * Fedora:        sudo dnf install -y ghostscript\n"
+            " * FreeBSD:       sudo pkg install -y ghostscript10")
+   ENDIF()
+
+   FIND_PROGRAM(PDF2SVG pdf2svg PATHS /bin /usr/bin /usr/local/bin)
+   IF(NOT PDF2SVG)
+      MESSAGE(FATAL_ERROR
+            " Cannot find PDF2SVG! Try:\n"
+            " * Ubuntu/Debian: sudo apt install -y pdf2svg\n"
+            " * Fedora:        sudo dnf install -y pdf2svg\n"
+            " * FreeBSD:       sudo pkg install -y pdf2svg")
+   ENDIF()
+
+   FIND_PROGRAM(GM gm PATHS /bin /usr/bin /usr/local/bin)
+   IF(NOT GM)
+      MESSAGE(FATAL_ERROR
+            " Cannot find GraphicsMagick! Try:\n"
+            " * Ubuntu/Debian: sudo apt install -y GraphicsMagick\n"
+            " * Fedora:        sudo dnf install -y GraphicsMagick\n"
+            " * FreeBSD:       sudo pkg install -y GraphicsMagick")
    ENDIF()
 ENDIF()
 
