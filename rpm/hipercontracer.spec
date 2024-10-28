@@ -111,6 +111,8 @@ rmdir /var/hipercontracer/data /var/hipercontracer/good /var/hipercontracer/bad 
 rmdir /var/hipercontracer >/dev/null 2>&1 || true
 
 %files common
+%{_datadir}/hipercontracer/hipercontracer.pdf
+%{_datadir}/hipercontracer/hipercontracer.png
 %{_datadir}/hipercontracer/results-examples/HiPerConTracer.R
 %{_datadir}/hipercontracer/results-examples/*-*.results.*
 %{_datadir}/hipercontracer/results-examples/*-*.hpct.*
@@ -118,7 +120,7 @@ rmdir /var/hipercontracer >/dev/null 2>&1 || true
 %{_datadir}/hipercontracer/results-examples/r-install-dependencies
 %{_datadir}/hipercontracer/results-examples/r-ping-example
 %{_datadir}/hipercontracer/results-examples/r-traceroute-example
-%{_datadir}/icons/hicolor/512x512/apps/hipercontracer.png
+%{_datadir}/icons/hicolor/*x*/apps/hipercontracer.png
 %{_datadir}/icons/hicolor/scalable/apps/hipercontracer.svg
 %{_datadir}/mime/packages/hipercontracer.xml
 
