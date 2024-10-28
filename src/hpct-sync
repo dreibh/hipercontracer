@@ -28,7 +28,7 @@
 #
 # Contact: dreibh@simula.no
 
-set -e
+set -eu
 
 
 # ====== Handle arguments ===================================================

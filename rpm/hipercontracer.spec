@@ -107,6 +107,7 @@ rmdir /var/hipercontracer/data /var/hipercontracer/good /var/hipercontracer/bad 
 rmdir /var/hipercontracer >/dev/null 2>&1 || true
 
 %files common
+%{_datadir}/applications/hipercontracer.desktop
 %{_datadir}/hipercontracer/results-examples/HiPerConTracer.R
 %{_datadir}/hipercontracer/results-examples/*-*.results.*
 %{_datadir}/hipercontracer/results-examples/*-*.hpct.*

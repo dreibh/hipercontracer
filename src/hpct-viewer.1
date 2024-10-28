@@ -1,0 +1,67 @@
+.\" ========================================================================
+.\"    _   _ _ ____            ____          _____
+.\"   | | | (_)  _ \ ___ _ __ / ___|___  _ _|_   _| __ __ _  ___ ___ _ __
+.\"   | |_| | | |_) / _ \ '__| |   / _ \| '_ \| || '__/ _` |/ __/ _ \ '__|
+.\"   |  _  | |  __/  __/ |  | |__| (_) | | | | || | | (_| | (_|  __/ |
+.\"   |_| |_|_|_|   \___|_|   \____\___/|_| |_|_||_|  \__,_|\___\___|_|
+.\"
+.\"      ---  High-Performance Connectivity Tracer (HiPerConTracer)  ---
+.\"                https://www.nntb.no/~dreibh/hipercontracer/
+.\" ========================================================================
+.\"
+.\" High-Performance Connectivity Tracer (HiPerConTracer)
+.\" Copyright (C) 2015-2025 by Thomas Dreibholz
+.\"
+.\" This program is free software: you can redistribute it and/or modify
+.\" it under the terms of the GNU General Public License as published by
+.\" the Free Software Foundation, either version 3 of the License, or
+.\" (at your option) any later version.
+.\"
+.\" This program is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\" GNU General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU General Public License
+.\" along with this program.  If not, see <http://www.gnu.org/licenses/>.
+.\"
+.\" Contact: dreibh@simula.no
+.\"
+.\" ###### Setup ############################################################
+.Dd October 28, 2024
+.Dt hpct-viewer 1
+.Os hpct-viewer
+.\" ###### Name #############################################################
+.Sh NAME
+.Nm hpct-viewer
+.Nd View HiPerConTracer Results File
+.\" ###### Synopsis #########################################################
+.Sh SYNOPSIS
+.Nm hpct-viewer
+results_file
+.\" ###### Description ######################################################
+.Sh DESCRIPTION
+.Nm hpct-viewer
+displays the contents of a HiPerConTracer results file.
+.Pp
+.\" ###### Arguments ########################################################
+.\" .Sh ARGUMENTS
+.\" The following argument may be provided:
+.\" .Bl -tag -width indent
+.\" .It ...
+.\" ...
+.\" .El
+.\" ###### Arguments ########################################################
+.Sh EXAMPLES
+.Bl -tag -width indent
+.It hpct-viewer Traceroute-UDP-#88888888-fdb6:6d27:be73:4::50-20231018T102656.821891-000000001.results.xz
+.It hpct-viewer Traceroute-ICMP-#12345678-::-20231108T134229.533947-000000001.results.gz
+.El
+.\" ###### Authors ##########################################################
+.Sh AUTHORS
+Thomas Dreibholz
+.br
+https://www.nntb.no/~dreibh/hipercontracer
+.br
+mailto://dreibh@simula.no
+.br

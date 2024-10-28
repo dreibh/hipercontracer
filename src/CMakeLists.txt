@@ -183,9 +183,10 @@ ENDIF()
 # ====== HiPerConTracer =====================================================
 ADD_EXECUTABLE(hipercontracer hipercontracer.cc)
 TARGET_LINK_LIBRARIES(hipercontracer libhipercontracer-${libraryType} ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
-INSTALL(TARGETS     hipercontracer     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
-INSTALL(FILES       hipercontracer.1   DESTINATION         ${CMAKE_INSTALL_MANDIR}/man1)
-INSTALL(FILES       hipercontracer.xml DESTINATION         ${CMAKE_INSTALL_DATAROOTDIR}/mime/packages)
+INSTALL(TARGETS     hipercontracer         RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
+INSTALL(FILES       hipercontracer.1       DESTINATION         ${CMAKE_INSTALL_MANDIR}/man1)
+INSTALL(FILES       hipercontracer.xml     DESTINATION         ${CMAKE_INSTALL_DATAROOTDIR}/mime/packages)
+INSTALL(FILES       hipercontracer.desktop DESTINATION         ${CMAKE_INSTALL_DATAROOTDIR}/applications)
 
 INSTALL(FILES       hipercontracer.bash-completion
         DESTINATION ${CMAKE_INSTALL_DATADIR}/bash-completion/completions
@@ -263,6 +264,15 @@ IF (WITH_RESULTS)
    INSTALL(FILES       hpct-results.bash-completion
            DESTINATION ${CMAKE_INSTALL_DATADIR}/bash-completion/completions
            RENAME      hpct-results)
+ENDIF()
+
+# ====== HiPerConTracer Viewer Tool =========================================
+IF (WITH_VIEWER)
+   INSTALL(PROGRAMS    hpct-viewer   DESTINATION ${CMAKE_INSTALL_BINDIR})
+   INSTALL(FILES       hpct-viewer.1 DESTINATION ${CMAKE_INSTALL_MANDIR}/man1)
+   INSTALL(FILES       hpct-viewer.bash-completion
+           DESTINATION ${CMAKE_INSTALL_DATADIR}/bash-completion/completions
+           RENAME      hpct-viewer)
 ENDIF()
 
 # ====== HiPerConTracer Database Shell ======================================

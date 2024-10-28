@@ -1,4 +1,3 @@
-#!/usr/bin/env bash
 # ==========================================================================
 #     _   _ _ ____            ____          _____
 #    | | | (_)  _ \ ___ _ __ / ___|___  _ _|_   _| __ __ _  ___ ___ _ __
@@ -28,29 +27,18 @@
 #
 # Contact: dreibh@simula.no
 
-# Bash options:
-set -eu
-
-
-# ====== Handle arguments ===================================================
-if [ $# -ne 2 ] ; then
-   echo >&2 "Usage: $0 plain_dbeaver_credentials_config_json encrypted_dbeaver_credentials_config_json"
-   exit 1
-fi
-
-inputFile="$1"
-if [ "${inputFile}" == "-" ] ; then
-   inputFile="/dev/stdin"
-fi
-outputFile="$2"
-if [ "${outputFile}" == "-" ] ; then
-   outputFile="/dev/stdout"
-fi
-
-# ====== Process file =======================================================
-(
-   dd if=/dev/urandom of="/dev/stdout" bs=16 count=1 status=none 2>/dev/null   # 16 bytes random number
-   cat "${inputFile}"
-) | openssl aes-128-cbc \
-   -K babb4a9f774ab853c96c2d653dfe544a -iv 00000000000000000000000000000000 \
-   -in /dev/stdin >"${outputFile}"
+[Desktop Entry]
+Version=1.0
+Name=HiPerConTracer Viewer
+GenericName=Results Viewer
+Comment=View HiPerConTracer results files
+MimeType=application/x-hipercontracer
+Exec=hpct-viewer %F
+TryExec=hpct-viewer
+Icon=hipercontracer
+Type=Application
+Terminal=true
+Categories=Application;FileTools;Network;Utility
+Keywords=HiPerConTracer;Data
+Keywords[de]=HiPerConTracer;Daten
+Keywords[nb]=HiPerConTracer;data
