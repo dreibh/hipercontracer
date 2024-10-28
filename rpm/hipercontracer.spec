@@ -273,6 +273,7 @@ Group: Applications/Database
 Requires: %{name}-libuniversalimporter = %{version}-%{release}
 Recommends: %{name} = %{version}-%{release}
 Recommends: %{name}-dbshell = %{version}-%{release}
+Suggests: python3
 
 %description importer
 High-Performance Connectivity Tracer (HiPerConTracer) is a

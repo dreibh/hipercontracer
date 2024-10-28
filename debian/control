@@ -170,6 +170,7 @@ Depends: libuniversalimporter2 (= ${binary:Version}),
 Recommends: hipercontracer,
             hipercontracer-common,
             hipercontracer-dbshell
+Suggests: python3
 Description: HiPerConTracer Importer for importing results into a database
  High-Performance Connectivity Tracer (HiPerConTracer) is a
  Ping/Traceroute service. It performs regular Ping and Traceroute runs
