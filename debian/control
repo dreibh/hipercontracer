@@ -8,6 +8,7 @@ Vcs-Browser: https://github.com/dreibh/hipercontracer
 Build-Depends: cmake (>= 3.10),
                debhelper (>= 12),
                ghostscript,
+               graphicsmagick,
                libboost-date-time-dev,
                libboost-filesystem-dev,
                libboost-iostreams-dev,
@@ -22,8 +23,7 @@ Build-Depends: cmake (>= 3.10),
                libmongoc-dev,
                libpqxx-dev,
                pdf2svg,
-               zlib1g-dev,
-               GraphicsMagick
+               zlib1g-dev
 Standards-Version: 4.7.0
 Rules-Requires-Root: no
 

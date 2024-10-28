@@ -62,27 +62,27 @@ SET(LOGO_LENGTH 1920)
 IF (WITH_ICONS)
    FOREACH(iconLength IN ITEMS ${ICON_LENGTHS};${LOGO_LENGTH})
    # PNG with fixed width, height as necessary:
-   ADD_CUSTOM_COMMAND(OUTPUT  ${LOGO}-${iconLength}x.png
-                      COMMAND ${GS} -dNOSAFER -dQUIET -dBATCH -dNOPAUSE -dNOPROMPT -dEPSCrop -dAlignToPixels=0 -dGridFitTT=2 -sDEVICE=pngalpha -r${iconLength}x -sOUTPUTFILE="${LOGO}-${iconLength}x.png" "${LOGO}.pdf")
-   ADD_CUSTOM_TARGET(generate_${LOGO}_${iconLength}x_png ALL DEPENDS ${LOGO}-${iconLength}x.png)
+   ADD_CUSTOM_COMMAND(OUTPUT  ${CMAKE_CURRENT_BINARY_DIR}/${LOGO}-${iconLength}x.png
+                      COMMAND ${GS} -dNOSAFER -dQUIET -dBATCH -dNOPAUSE -dNOPROMPT -dEPSCrop -dAlignToPixels=0 -dGridFitTT=2 -sDEVICE=pngalpha -r${iconLength}x -sOUTPUTFILE="${CMAKE_CURRENT_BINARY_DIR}/${LOGO}-${iconLength}x.png" "${CMAKE_CURRENT_SOURCE_DIR}/${LOGO}.pdf")
+   ADD_CUSTOM_TARGET(generate_${LOGO}_${iconLength}x_png ALL DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/${LOGO}-${iconLength}x.png)
 
    # PNG with fixed, same width and height:
    IF(NOT ${iconLength} STREQUAL "1920")
-      ADD_CUSTOM_COMMAND(OUTPUT  ${LOGO}-${iconLength}x${iconLength}.png
+      ADD_CUSTOM_COMMAND(OUTPUT  ${CMAKE_CURRENT_BINARY_DIR}/${LOGO}-${iconLength}x${iconLength}.png
                          COMMAND ${GM} convert ${LOGO}-${iconLength}x.png -resize ${iconLength}x -background none -gravity center -extent ${iconLength}x${iconLength} ${LOGO}-${iconLength}x${iconLength}.png
                          DEPENDS generate_${LOGO}_${iconLength}x_png
-                                 ${LOGO}-${iconLength}x.png)
-      ADD_CUSTOM_TARGET(generate_${LOGO}_${iconLength}x${iconLength}_png ALL DEPENDS ${LOGO}-${iconLength}x${iconLength}.png)
+                                 ${CMAKE_CURRENT_BINARY_DIR}/${LOGO}-${iconLength}x.png)
+      ADD_CUSTOM_TARGET(generate_${LOGO}_${iconLength}x${iconLength}_png ALL DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/${LOGO}-${iconLength}x${iconLength}.png)
 
       # PNG icon of dimension ${iconLength}x${iconLength}:
-      INSTALL(FILES       ${LOGO}-${iconLength}x${iconLength}.png
+      INSTALL(FILES       ${CMAKE_CURRENT_BINARY_DIR}/${LOGO}-${iconLength}x${iconLength}.png
               DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/icons/hicolor/${iconLength}x${iconLength}/apps
               RENAME      ${LOGO}.png)
    ENDIF()
    ENDFOREACH()
 
    # A high-resolution logo PNG file:
-   INSTALL(FILES       ${LOGO}-${LOGO_LENGTH}x.png
+   INSTALL(FILES       ${CMAKE_CURRENT_BINARY_DIR}/${LOGO}-${LOGO_LENGTH}x.png
            DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/hipercontracer
            RENAME      ${LOGO}.png)
 
@@ -90,8 +90,9 @@ IF (WITH_ICONS)
    INSTALL(FILES ${LOGO}.pdf DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/hipercontracer)
 
    # Scalable SVG icon:
-   ADD_CUSTOM_COMMAND(OUTPUT  ${LOGO}.svg
-                      COMMAND ${PDF2SVG} ${LOGO}.pdf ${LOGO}.svg)
-   ADD_CUSTOM_TARGET(generate_${LOGO}_svg ALL DEPENDS ${LOGO}.svg)
-   INSTALL(FILES ${LOGO}.svg DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/icons/hicolor/scalable/apps)
+   ADD_CUSTOM_COMMAND(OUTPUT  ${CMAKE_CURRENT_BINARY_DIR}/${LOGO}.svg
+                      COMMAND ${PDF2SVG} ${CMAKE_CURRENT_SOURCE_DIR}/${LOGO}.pdf ${LOGO}.svg)
+   ADD_CUSTOM_TARGET(generate_${LOGO}_svg ALL DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/${LOGO}.svg)
+   INSTALL(FILES       ${CMAKE_CURRENT_BINARY_DIR}/${LOGO}.svg
+           DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/icons/hicolor/scalable/apps)
 ENDIF()

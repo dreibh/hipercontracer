@@ -380,7 +380,7 @@ IF (WITH_ICONS)
    IF(NOT GM)
       MESSAGE(FATAL_ERROR
             " Cannot find GraphicsMagick! Try:\n"
-            " * Ubuntu/Debian: sudo apt install -y GraphicsMagick\n"
+            " * Ubuntu/Debian: sudo apt install -y graphicsmagick\n"
             " * Fedora:        sudo dnf install -y GraphicsMagick\n"
             " * FreeBSD:       sudo pkg install -y GraphicsMagick")
    ENDIF()
