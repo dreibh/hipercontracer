@@ -439,9 +439,10 @@ This package contains the viewer tool to simply display
 HiPerConTracer results files.
 
 %files viewer-tool
-%{_bindir}/hpct-results
+%{_bindir}/hpct-viewer
 %{_datadir}/applications/hpct-viewer.desktop
-%{_datadir}/bash-completion/completions/hpct-results
+%{_datadir}/bash-completion/completions/hpct-viewer
+%{_mandir}/man1/hpct-viewer.1.gz
 
 
 %package udp-echo-server
