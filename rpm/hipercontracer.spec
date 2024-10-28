@@ -33,6 +33,7 @@ Recommends: %{name}-results-tool = %{version}-%{release}
 Recommends: %{name}-sync-tool = %{version}-%{release}
 Recommends: %{name}-trigger = %{version}-%{release}
 Recommends: %{name}-udp-echo-server = %{version}-%{release}
+Recommends: %{name}-viewer = %{version}-%{release}
 Recommends: ethtool
 Suggests: netperfmeter
 Suggests: td-system-info
@@ -422,6 +423,26 @@ reading them into spreadsheets, analysis tools, etc.
 %{_datadir}/bash-completion/completions/pipe-checksum
 %{_mandir}/man1/hpct-results.1.gz
 %{_mandir}/man1/pipe-checksum.1.gz
+
+
+%package viewer-tool
+Summary: HiPerConTracer Viewer Tool to display results files
+Group: Applications/File
+Requires: %{name}-libuniversalimporter = %{version}-%{release}
+Recommends: %{name} = %{version}-%{release}
+
+%description viewer-tool
+High-Performance Connectivity Tracer (HiPerConTracer) is a
+Ping/Traceroute service. It performs regular Ping and Traceroute runs
+among sites. The results are written to data files, which can be
+imported into an SQL or NoSQL database.
+This package contains the viewer tool to simply display
+HiPerConTracer results files.
+
+%files viewer-tool
+%{_bindir}/hpct-results
+%{_datadir}/bash-completion/completions/hpct-results
+%{_mandir}/applications/hpct-viewer.desktop
 
 
 %package udp-echo-server
