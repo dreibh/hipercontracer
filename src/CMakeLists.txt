@@ -205,6 +205,11 @@ IF (WITH_TRIGGER)
    INSTALL(FILES       hpct-trigger.bash-completion
            DESTINATION ${CMAKE_INSTALL_DATADIR}/bash-completion/completions
            RENAME      hpct-trigger)
+   IF (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+      INSTALL(FILES hpct-trigger.service       DESTINATION /lib/systemd/system)
+      INSTALL(FILES hpct-trigger@.service      DESTINATION /lib/systemd/system)
+      INSTALL(FILES hpct-trigger-87654321.conf DESTINATION /etc/hipercontracer)
+   ENDIF()
 ENDIF()
 
 

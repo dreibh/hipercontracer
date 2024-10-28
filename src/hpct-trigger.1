@@ -38,9 +38,9 @@
 .\" ###### Synopsis #########################################################
 .Sh SYNOPSIS
 .Nm hpct-trigger
-.Op Fl Fl pingtriggerage Ar seconds
-.Op Fl Fl pingtriggerlength Ar payload_length
-.Op Fl Fl pingsbeforequeuing Ar count
+.Op Fl Fl triggerpingage Ar seconds
+.Op Fl Fl triggerpinglength Ar payload_length
+.Op Fl Fl triggerpingsbeforequeuing Ar count
 .Op Fl P | Fl Fl ping
 .Op Fl T | Fl Fl traceroute
 .\" .Op Fl J | Fl Fl jitter
@@ -102,11 +102,11 @@ address.
 .Sh ARGUMENTS
 The following arguments may be provided:
 .Bl -tag -width indent
-.It Fl Fl pingtriggerage Ar seconds
+.It Fl Fl triggerpingage Ar seconds
 Sets the maximum number of seconds between two trigger "Pings" (default: 300).
-.It Fl Fl pingtriggerlength Ar payload_length
+.It Fl Fl triggerpinglength Ar payload_length
 Sets the "Ping" payload length to trigger HiPerConTracer (default: 53).
-.It Fl Fl pingsbeforequeuing Ar count
+.It Fl Fl triggerpingsbeforequeuing Ar count
 Sets the number of observed "Ping" packets before triggering HiPerConTracer
 (default: 3).
 .El
@@ -115,11 +115,11 @@ format.
 .\" ###### Examples #########################################################
 .Sh EXAMPLES
 .Bl -tag -width indent
-.It hpct-trigger \-\-source 10.1.1.51 \-\-traceroute \-\-verbose \-\-pingsbeforequeuing 2 \-\-pingtriggerlength 88
-.It hpct-trigger \-\-source 10.1.1.51 \-\-pingtriggerage 1800 \-\-ping \-\-verbose
+.It hpct-trigger \-\-source 10.1.1.51 \-\-traceroute \-\-verbose \-\-triggerpingsbeforequeuing 2 \-\-triggerpinglength 88
+.It hpct-trigger \-\-source 10.1.1.51 \-\-triggerpingage 1800 \-\-ping \-\-verbose
 .It hpct-trigger \-\-source=10.1.1.51 \-\-traceroute \-\-resultsdirectory=/tmp/results \-\-resultstransactionlength=60 \-\-resultstimestampdepth 3
-.It hpct-trigger \-\-source=172.16.1.2,BE,EF \-\-source=172.17.1.2,BE,AF11,AF21 \-\-pingtriggerage=1800 \-\-ping \-\-verbose
-.It hpct-trigger \-\-source 10.1.1.51 \-\-pingtriggerage 1800 \-\-ping \-\-traceroute \-\-iomodule ICMP \-\-iomodule UDP
+.It hpct-trigger \-\-source=172.16.1.2,BE,EF \-\-source=172.17.1.2,BE,AF11,AF21 \-\-triggerpingage=1800 \-\-ping \-\-verbose
+.It hpct-trigger \-\-source 10.1.1.51 \-\-triggerpingage 1800 \-\-ping \-\-traceroute \-\-iomodule ICMP \-\-iomodule UDP
 .El
 .\" ###### Authors ##########################################################
 .Sh AUTHORS

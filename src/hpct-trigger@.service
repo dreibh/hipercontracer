@@ -28,9 +28,9 @@
 # Contact: dreibh@simula.no
 
 [Unit]
-Description=HiPerConTracer Measurement %i
+Description=HiPerConTracer Trigger Measurement %i
 PartOf=hipercontracer.service
-Documentation=man:hipercontracer(1)
+Documentation=man:hipercontracer-trigger(1)
 After=network-online.target
 Wants=network-online.target
 
@@ -40,12 +40,15 @@ Type=simple
 User=root
 Group=hipercontracer
 WorkingDirectory=/var/hipercontracer/data
-EnvironmentFile=/etc/hipercontracer/hipercontracer-%i.conf
-ExecStart=/bin/sh -cx "/usr/bin/hipercontracer \
+EnvironmentFile=/etc/hipercontracer/hpct-trigger-%i.conf
+ExecStart=/bin/sh -cx "/usr/bin/hpct-trigger \
    --user hipercontracer \
    --loglevel ${LOGLEVEL} \
    --measurement-id %i \
    --resultsdirectory /var/hipercontracer/data \
+   --triggerpingage ${TRIGGER_PING_AGE} \
+   --triggerpinglength ${TRIGGER_PING_LENGTH} \
+   --triggerpingsbeforequeuing ${TRIGGER_PINGS_BEFORE_QUEUING} \
    ${HPCT_OPTIONS}"
 
 KillSignal=SIGINT

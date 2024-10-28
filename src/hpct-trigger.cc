@@ -67,9 +67,9 @@ static boost::asio::signal_set                               Signals(IOService, 
 static boost::posix_time::milliseconds                       CleanupTimerInterval(1000);
 static boost::asio::deadline_timer                           CleanupTimer(IOService, CleanupTimerInterval);
 
-static unsigned int                                          PingsBeforeQueuing = 3;
-static unsigned int                                          PingTriggerLength  = 53;
-static unsigned int                                          PingTriggerAge     = 300;
+static unsigned int                                          TriggerPingsBeforeQueuing = 3;
+static unsigned int                                          TriggerPingLength         = 53;
+static unsigned int                                          TriggerPingAge            = 300;
 
 
 // ###### Signal handler ####################################################
@@ -108,7 +108,7 @@ static void tryCleanup(const boost::system::error_code& errorCode)
          std::map<boost::asio::ip::address, TargetInfo*>::iterator current = iterator;
          iterator++;
          TargetInfo* targetInfo = current->second;
-         if(now - targetInfo->LastSeen >= std::chrono::seconds(PingTriggerAge)) {
+         if(now - targetInfo->LastSeen >= std::chrono::seconds(TriggerPingAge)) {
             TargetMap.erase(current);
             delete targetInfo;
          }
@@ -128,7 +128,7 @@ static void handlePing(const ICMPHeader& header, const std::size_t payloadLength
    HPCT_LOG(trace) << "Ping from " << IncomingPingSource.address()
                    << ", payload " << payloadLength;
 
-   if(payloadLength == PingTriggerLength) {
+   if(payloadLength == TriggerPingLength) {
       std::map<boost::asio::ip::address, TargetInfo*>::iterator found =
          TargetMap.find(IncomingPingSource.address());
       if(found != TargetMap.end()) {
@@ -137,7 +137,7 @@ static void handlePing(const ICMPHeader& header, const std::size_t payloadLength
          targetInfo->LastSeen = std::chrono::steady_clock::now();
          HPCT_LOG(trace) << "Triggered: " <<  IncomingPingSource.address()
                          << ", n=" << targetInfo->TriggerCounter;
-         if(targetInfo->TriggerCounter >= PingsBeforeQueuing) {
+         if(targetInfo->TriggerCounter >= TriggerPingsBeforeQueuing) {
             for(std::set<Service*>::iterator serviceIterator = ServiceSet.begin(); serviceIterator != ServiceSet.end(); serviceIterator++) {
                Service* service = *serviceIterator;
 
@@ -408,14 +408,14 @@ int main(int argc, char** argv)
            "Record raw Ping results for Jitter computation" )
 #endif
 
-      ( "pingsbeforequeuing",
-           boost::program_options::value<unsigned int>(&PingsBeforeQueuing)->default_value(3),
+      ( "triggerpingsbeforequeuing",
+           boost::program_options::value<unsigned int>(&TriggerPingsBeforeQueuing)->default_value(3),
            "Pings before queuing" )
-      ( "pingtriggerlength",
-           boost::program_options::value<unsigned int>(&PingTriggerLength)->default_value(53),
+      ( "triggerpinglength",
+           boost::program_options::value<unsigned int>(&TriggerPingLength)->default_value(53),
            "Ping trigger length in B" )
-      ( "pingtriggerage",
-           boost::program_options::value<unsigned int>(&PingTriggerAge)->default_value(300),
+      ( "triggerpingage",
+           boost::program_options::value<unsigned int>(&TriggerPingAge)->default_value(300),
            "Ping trigger age in s" )
 
       ( "resultsdirectory,R",
@@ -649,9 +649,9 @@ int main(int argc, char** argv)
    }
 
    HPCT_LOG(info) << "Trigger:" << std::endl
-                  << "* Ping Trigger Age     = " << PingTriggerAge << " s" << std::endl
-                  << "* Ping Trigger Length  = " << PingTriggerLength      << std::endl
-                  << "* Pings before Queuing = " << PingsBeforeQueuing;
+                  << "* Trigger Ping  Age     = " << TriggerPingAge << " s" << std::endl
+                  << "* Trigger Ping  Length  = " << TriggerPingLength      << std::endl
+                  << "* Trigger Pings b. Qng. = " << TriggerPingsBeforeQueuing;
 
 
    // ====== Start service threads ==========================================
