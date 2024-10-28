@@ -108,7 +108,6 @@ rmdir /var/hipercontracer/data /var/hipercontracer/good /var/hipercontracer/bad 
 rmdir /var/hipercontracer >/dev/null 2>&1 || true
 
 %files common
-%{_datadir}/applications/hipercontracer.desktop
 %{_datadir}/hipercontracer/results-examples/HiPerConTracer.R
 %{_datadir}/hipercontracer/results-examples/*-*.results.*
 %{_datadir}/hipercontracer/results-examples/*-*.hpct.*
@@ -441,8 +440,8 @@ HiPerConTracer results files.
 
 %files viewer-tool
 %{_bindir}/hpct-results
+%{_datadir}/applications/hpct-viewer.desktop
 %{_datadir}/bash-completion/completions/hpct-results
-%{_mandir}/applications/hpct-viewer.desktop
 
 
 %package udp-echo-server
