@@ -348,23 +348,17 @@ void Traceroute::scheduleIntervalEvent()
       std::lock_guard<std::recursive_mutex> lock(DestinationMutex);
 
       // ====== Schedule event ==============================================
-      long long millisecondsToWait;
-      if(Destinations.begin() == Destinations.end()) {
-          // Nothing to do -> wait 1 day
-          millisecondsToWait = 24*3600*1000;
-      }
-      else {
-         const unsigned long long waitingDuration = makeDeviation(Parameters.Interval, Parameters.Deviation);
-         const std::chrono::steady_clock::duration howLongToWait =
-            (RunStartTimeStamp + std::chrono::milliseconds(waitingDuration)) - std::chrono::steady_clock::now();
-         millisecondsToWait = std::max(0LL, (long long)std::chrono::duration_cast<std::chrono::milliseconds>(howLongToWait).count());
-      }
+      const unsigned long long waitingDuration = makeDeviation(Parameters.Interval, Parameters.Deviation);
+      const std::chrono::steady_clock::duration howLongToWait =
+         (RunStartTimeStamp + std::chrono::milliseconds(waitingDuration)) - std::chrono::steady_clock::now();
+      const long long millisecondsToWait =
+         std::max(0LL, (long long)std::chrono::duration_cast<std::chrono::milliseconds>(howLongToWait).count());
 
       IntervalTimer.expires_from_now(boost::posix_time::milliseconds(millisecondsToWait));
       IntervalTimer.async_wait(std::bind(&Traceroute::handleIntervalEvent, this,
                                          std::placeholders::_1));
       HPCT_LOG(debug) << getName() << ": Waiting " << millisecondsToWait / 1000.0
-                      << "s before iteration " << (IterationNumber + 1) << " ...";
+                      << " s before iteration " << (IterationNumber + 1) << " ...";
 
       // ====== Check, whether it is time for starting a new transaction ====
       if(ResultsOutput) {
