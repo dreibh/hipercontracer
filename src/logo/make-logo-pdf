@@ -37,20 +37,7 @@ epstopdf --outfile="${OUTPUT}.pdf.tmp" "${OUTPUT}.eps"
 pdfcrop --hires "${OUTPUT}.pdf.tmp" "${OUTPUT}.pdf"
 rm -f "${OUTPUT}.pdf.tmp"
 
-# # Conversion of PDF to PNG with transparent background:
-# gs -dNOSAFER -dBATCH -dNOPAUSE -dNOPROMPT -dEPSCrop \
-#    -dAlignToPixels=0 -dGridFitTT=2 -sDEVICE=pngalpha \
-#    -r600x \
-#    -sOUTPUTFILE="${OUTPUT}.png" "${OUTPUT}.pdf"
-#
-#    # Conversion of PDF to SVG:
-# pdf2svg "${OUTPUT}.pdf" "${OUTPUT}.svg"
-
-# # Conversion of PDF to PNG with alpha channel:
-# # * Add border of 1 pixel
-# # * Make color #eeeeee transparent (the background)
-# # * Crop the image, removing possibly non-transparent border lines
-# gm convert "${OUTPUT}.pdf \
-#    -transparent "#eeeeee" -resize 514x -crop 512x512+1+1 -background \
-#    none -gravity center -extent 512x512 \
-#    "${OUTPUT}.png
+# Conversion of Dia to PDF:
+# dia -n -t cairo-pdf -e "${OUTPUT}.pdf.tmp" "${INPUT}"
+# pdfcrop --hires "${OUTPUT}.pdf.tmp" "${OUTPUT}.pdf"
+# rm -f "${OUTPUT}.pdf.tmp"
