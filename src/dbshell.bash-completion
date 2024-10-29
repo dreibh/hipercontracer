@@ -48,7 +48,8 @@ _dbshell()
 
    # ====== Database configuration file =====================================
    if [ "${cword}" -eq 1 ] ; then
-      COMPREPLY=( $( compgen -f -X "!*.conf" -- "${cur}" ) )
+      # Files with extension .conf:
+      _filedir '@(conf)'
       return
    fi
 
@@ -56,7 +57,7 @@ _dbshell()
       # ====== Special case: file ===========================================
       -B | --write-dbeaver-config)
          # Arbitrary file names:
-         COMPREPLY=( $( compgen -f -- "${cur}" ) )
+         _filedir
          return
          ;;
    esac

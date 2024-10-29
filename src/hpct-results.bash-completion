@@ -56,13 +56,14 @@ _hpct_results()
       # ====== Special case: file ===========================================
       -o | --output | \
       -F | --input-file-names-from-file)
-         COMPREPLY=( $( compgen -f -- "${cur}" ) )
+         # Arbitrary file names:
+         _filedir
          return
          ;;
       # ====== Special case: log file =======================================
       -O | --logfile)
          # Files with extension .log:
-         COMPREPLY=( $( compgen -f -X "!*.log" -- "${cur}" ) )
+         _filedir '@(log)'
          return
          ;;
       # ====== Special case: on/off =========================================

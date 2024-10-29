@@ -59,7 +59,7 @@ _udp_echo_server()
       # ====== Special case: log file =======================================
       -O | --logfile)
          # Files with extension .log:
-         COMPREPLY=( $( compgen -f -X "!*.log" -- "${cur}" ) )
+         _filedir '@(log)'
          return
          ;;
       # ====== Special case: on/off =========================================

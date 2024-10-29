@@ -62,19 +62,21 @@ _hpct_importer()
       -I | --import-file-path | \
       --bad-file-path  | -G   | \
       --good-file-path | -F)
-         COMPREPLY=( $( compgen -d -- "${cur}" ) )
+         # Arbitrary directories:
+         _filedir -d
          return
          ;;
       # ====== Special case: configuration file =============================
       -C | --importer-config | \
       -D | --database-config)
-         COMPREPLY=( $( compgen -f -X "!*.conf" -- "${cur}" ) )
+         # Files with extension .conf:
+         _filedir '@(conf)'
          return
          ;;
       # ====== Special case: log file =======================================
       -O | --logfile)
          # Files with extension .log:
-         COMPREPLY=( $( compgen -f -X "!*.log" -- "${cur}" ) )
+         _filedir '@(log)'
          return
          ;;
       # ====== Special case: on/off =========================================
