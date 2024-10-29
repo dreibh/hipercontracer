@@ -46,10 +46,11 @@ _hpct_viewer()
       cword="${COMP_CWORD}"
    fi
 
-   # ====== All options =====================================================
-   local opts="
-"
-   COMPREPLY=( $( compgen -W "${opts}" -- "${cur}" ) )
+   if [ "${cword}" -eq 1 ] ; then
+      _filedir '@(hpct\.xz|hpct\.bz2|hpct\.gz|hpct|results\.xz|results\.bz2|results\.gz|results)'
+      return
+   fi
+
    return 0
 }
 
