@@ -116,7 +116,12 @@ void Ping::scheduleTimeoutEvent()
 // ###### All requests have received a response #############################
 void Ping::noMoreOutstandingRequests()
 {
-   // Nothing to do for Ping!
+   if((Iterations > 0) && (IterationNumber >= Iterations)) {
+      // No more outstanding requests in last iteration
+      // => No need to wait any longer!
+      HPCT_LOG(trace) << getName() << ": No more outstanding requests in last iteration -> done!";
+      TimeoutTimer.cancel();
+   }
 }
 
 
