@@ -41,4 +41,12 @@ inputFile="$1"
 # ====== Process file =======================================================
 # Currently, just run "less". In the future, a more powerful anaylsis tool
 # may be started here ...
-less "${inputFile}"
+if [[ "${inputFile}" =~ \.xz$ ]] ; then
+   xzless "${inputFile}"
+elif [[ "${inputFile}" =~ \.bz2$ ]] ; then
+   bzless "${inputFile}"
+elif [[ "${inputFile}" =~ \.gz$ ]] ; then
+   zless "${inputFile}"
+else
+   less "${inputFile}"
+fi
