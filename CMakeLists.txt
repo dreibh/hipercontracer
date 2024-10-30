@@ -127,10 +127,10 @@ IF ((NOT WITH_STATIC_LIBRARIES) AND (NOT WITH_SHARED_LIBRARIES))
    MESSAGE(FATAL_ERROR "Static (WITH_STATIC_LIBRARIES) or shared (WITH_SHARED_LIBRARIES) libraries must be enabled!")
 ENDIF()
 
-OPTION(STATIC_BUILD "Build statically-linked executables" 0)
-IF (STATIC_BUILD)
+OPTION(WITH_STATIC_LIBRARIES "Build statically-linked executables" 0)
+IF (WITH_STATIC_LIBRARIES)
    IF (WITH_SHARED_LIBRARIES)
-      MESSAGE(FATAL_ERROR "STATIC_BUILD=ON cannot be used with WITH_SHARED_LIBRARIES=ON!")
+      MESSAGE(FATAL_ERROR "WITH_STATIC_LIBRARIES=ON cannot be used with WITH_SHARED_LIBRARIES=ON!")
    ENDIF()
    MESSAGE("Building static executables")
    SET(CMAKE_FIND_LIBRARY_SUFFIXES ".a")
@@ -138,10 +138,11 @@ IF (STATIC_BUILD)
    SET(CMAKE_EXE_LINKER_FLAGS "-static")
 ELSE()
    IF (NOT WITH_SHARED_LIBRARIES)
-      MESSAGE(FATAL_ERROR "STATIC_BUILD=OFF cannot be used with WITH_SHARED_LIBRARIES=OFF!")
+      MESSAGE(FATAL_ERROR "WITH_STATIC_LIBRARIES=OFF cannot be used with WITH_SHARED_LIBRARIES=OFF!")
    ENDIF()
 ENDIF()
 
+OPTION(WITH_HIPERCONTRACER  "Build HiPerConTracer"                      1)
 OPTION(WITH_TRIGGER         "Build HiPerConTracer Trigger"              1)
 OPTION(WITH_IMPORTER        "Build HiPerConTracer Importer"             1)
 OPTION(WITH_SYNC            "Build HiPerConTracer Synchronisation Tool" 1)
@@ -234,15 +235,17 @@ IF (NOT LZMA_LIBRARY)
 ENDIF()
 
 # ###### C-ARES #############################################################
-FIND_LIBRARY(CARES_LIBRARY NAMES cares libcares)
-IF (NOT CARES_LIBRARY)
-   MESSAGE(FATAL_ERROR
-           " Cannot find C-ARES DNS resolver library! Try:\n"
-           " * Ubuntu/Debian: sudo apt install -y libc-ares-dev\n"
-           " * Fedora:        sudo dnf install -y c-ares-devel\n"
-           " * SuSE:          sudo zypper install -y c-ares-devel\n"
-           " * Alpine:        sudo apk add c-ares-dev\n"
-           " * FreeBSD:       sudo pkg install -y c-ares")
+IF (WITH_HIPERCONTRACER)
+   FIND_LIBRARY(CARES_LIBRARY NAMES cares libcares)
+   IF (NOT CARES_LIBRARY)
+      MESSAGE(FATAL_ERROR
+            " Cannot find C-ARES DNS resolver library! Try:\n"
+            " * Ubuntu/Debian: sudo apt install -y libc-ares-dev\n"
+            " * Fedora:        sudo dnf install -y c-ares-devel\n"
+            " * SuSE:          sudo zypper install -y c-ares-devel\n"
+            " * Alpine:        sudo apk add c-ares-dev\n"
+            " * FreeBSD:       sudo pkg install -y c-ares")
+   ENDIF()
 ENDIF()
 
 # ###### libcrypto ##########################################################
