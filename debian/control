@@ -221,11 +221,16 @@ Description: HiPerConTracer Results Tool to process results files
 
 Package: hipercontracer-viewer-tool
 Architecture: all
-Depends: hipercontracer-common,
+Depends: bzip2,
+         gzip,
+         hipercontracer-common,
          less,
+         xz-utils,
          ${misc:Depends},
          ${shlibs:Depends}
-Recommends: hipercontracer
+Recommends: hipercontracer,
+            hipercontracer-results,
+            tree
 Description: HiPerConTracer Viewer Tool to display results files
  High-Performance Connectivity Tracer (HiPerConTracer) is a
  Ping/Traceroute service. It performs regular Ping and Traceroute runs

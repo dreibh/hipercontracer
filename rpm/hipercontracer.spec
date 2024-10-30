@@ -385,8 +385,12 @@ Summary: HiPerConTracer Viewer Tool to display results files
 Group: Applications/File
 BuildArch: noarch
 Requires: %{name}-libuniversalimporter = %{version}-%{release}
+Requires: bzip2
+Requires: gzip
 Requires: less
+Requires: xz
 Recommends: %{name} = %{version}-%{release}
+Recommends: %{name}-results = %{version}-%{release}
 
 %description viewer-tool
 High-Performance Connectivity Tracer (HiPerConTracer) is a
