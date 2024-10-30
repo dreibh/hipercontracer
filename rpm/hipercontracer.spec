@@ -38,6 +38,7 @@ Recommends: %{name}-trigger = %{version}-%{release}
 Recommends: %{name}-udp-echo-server = %{version}-%{release}
 Recommends: %{name}-viewer = %{version}-%{release}
 Recommends: ethtool
+Recommends: iproute
 Suggests: netperfmeter
 Suggests: td-system-info
 

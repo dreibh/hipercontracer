@@ -42,7 +42,8 @@ Recommends: ethtool,
             hipercontracer-sync-tool,
             hipercontracer-trigger,
             hipercontracer-udp-echo-server,
-            hipercontracer-viewer-tool
+            hipercontracer-viewer-tool,
+            iproute
 Suggests: netperfmeter,
           td-system-info
 Description: High-Performance Connectivity Tracer (HiPerConTracer)
