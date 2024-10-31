@@ -35,8 +35,8 @@
 
 const std::string  TracerouteReader::Identification("Traceroute");
 const std::regex   TracerouteReader::FileNameRegExp(
-   // Format: Traceroute-(Protocol-|)[P#]<ID>-<Source>-<YYYYMMDD>T<Seconds.Microseconds>-<Sequence>.(hpct|results)(<EXT>)
-   "^Traceroute-([A-Z]+-|)([#P])([0-9]+)-([0-9a-f:\\.]+)-([0-9]{8}T[0-9]+\\.[0-9]{6})-([0-9]*)\\.(hpct|results)(.*)$"
+   // Format: Traceroute-(Protocol-|)[P#]<ID>-<Source>-<YYYYMMDD>T<Seconds.Microseconds>-<Sequence>.(hpct|results)(<.xz|.bz2|.gz|>)
+   "^Traceroute-([A-Z]+-|)([#P])([0-9]+)-([0-9a-f:\\.]+)-([0-9]{8}T[0-9]+\\.[0-9]{6})-([0-9]*)\\.(hpct|results)(\\.xz|\\.bz2|\\.gz|)$"
 );
 const unsigned int TracerouteReader::FileNameRegExpMatchSize = 9;   // Number if groups in regexp above
 
