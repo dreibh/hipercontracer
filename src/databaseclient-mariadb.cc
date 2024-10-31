@@ -50,6 +50,7 @@ MariaDBClient::MariaDBClient(const DatabaseConfiguration& configuration)
 MariaDBClient::~MariaDBClient()
 {
    close();
+   mysql_close(&Connection);
 }
 
 
