@@ -163,7 +163,8 @@ void Worker::processFile(DatabaseClientBase&          databaseClient,
    }
 }
 
-
+#if 0
+FIXME!
 // ###### Remove empty directories ##########################################
 void Worker::deleteEmptyDirectories(std::filesystem::path path)
 {
@@ -183,6 +184,7 @@ void Worker::deleteEmptyDirectories(std::filesystem::path path)
    }
    catch(...) { }
 }
+#endif
 
 
 // ###### Delete successfully imported file #################################
@@ -192,7 +194,7 @@ void Worker::deleteImportedFile(const std::filesystem::path& dataFile)
       std::filesystem::remove(dataFile);
       HPCT_LOG(trace) << getIdentification() << ": Deleted imported file "
                       << relativeTo(dataFile, ImporterConfig.getImportFilePath());
-      deleteEmptyDirectories(dataFile.parent_path());
+//       deleteEmptyDirectories(dataFile.parent_path());
    }
    catch(std::filesystem::filesystem_error& e) {
       HPCT_LOG(warning) << getIdentification() << ": Deleting imported file "
@@ -218,7 +220,7 @@ void Worker::moveImportedFile(const std::filesystem::path& dataFile,
          std::filesystem::rename(dataFile, targetPath / dataFile.filename());
          HPCT_LOG(debug) << getIdentification() << ": Moved " << ((isGood == true) ? "good" : "bad") <<  " file "
                          << relativeTo(dataFile, ImporterConfig.getImportFilePath());
-         deleteEmptyDirectories(dataFile.parent_path());
+//          deleteEmptyDirectories(dataFile.parent_path());
       }
       catch(std::filesystem::filesystem_error& e) {
          HPCT_LOG(warning) << getIdentification() << ": Moving " << ((isGood == true) ? "good" : "bad") <<  " file "

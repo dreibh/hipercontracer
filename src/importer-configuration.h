@@ -50,14 +50,17 @@ class ImporterConfiguration
    ImporterConfiguration();
    ~ImporterConfiguration();
 
-   inline ImportModeType               getImportMode()         const { return ImportMode;         }
-   inline unsigned int                 getImportMaxDepth()     const { return ImportMaxDepth;     }
-   inline const std::string&           getImportPathFilter()   const { return ImportPathFilter;   }
-   inline const std::filesystem::path& getImportFilePath()     const { return ImportFilePath;     }
-   inline const std::filesystem::path& getGoodFilePath()       const { return GoodFilePath;       }
-   inline const std::filesystem::path& getBadFilePath()        const { return BadFilePath;        }
-   inline unsigned int                 getMoveDirectoryDepth() const { return MoveDirectoryDepth; }
-   inline unsigned int                 getMoveTimestampDepth() const { return MoveTimestampDepth; }
+   inline ImportModeType               getImportMode()                const { return ImportMode;                }
+   inline unsigned int                 getImportMaxDepth()            const { return ImportMaxDepth;            }
+   inline const std::string&           getImportPathFilter()          const { return ImportPathFilter;          }
+   inline const std::filesystem::path& getImportFilePath()            const { return ImportFilePath;            }
+   inline const std::filesystem::path& getGoodFilePath()              const { return GoodFilePath;              }
+   inline const std::filesystem::path& getBadFilePath()               const { return BadFilePath;               }
+   inline unsigned int                 getMoveDirectoryDepth()        const { return MoveDirectoryDepth;        }
+   inline unsigned int                 getMoveTimestampDepth()        const { return MoveTimestampDepth;        }
+   inline unsigned int                 getGarbageCollectionInterval() const { return GarbageCollectionInterval; }
+   inline unsigned int                 getGarbageCollectionMaxAge()   const { return GarbageCollectionMaxAge;   }
+   inline unsigned int                 getStatusInterval()            const { return StatusInterval;            }
    const std::string& getTableName(const std::string& readerName,
                                    const std::string& defaultTableName) const;
 
@@ -88,6 +91,9 @@ class ImporterConfiguration
    std::filesystem::path                       GoodFilePath;
    std::vector<std::string>                    Tables;
    std::map<std::string, std::string>          TableMap;
+   unsigned int                                StatusInterval;
+   unsigned int                                GarbageCollectionInterval;
+   unsigned int                                GarbageCollectionMaxAge;
 };
 
 #endif

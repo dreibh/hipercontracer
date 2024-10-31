@@ -47,10 +47,7 @@ class UniversalImporter
    public:
    UniversalImporter(boost::asio::io_service&     ioService,
                      const ImporterConfiguration& importerConfiguration,
-                     const DatabaseConfiguration& databaseConfiguration,
-                     const unsigned int           statusTimerInterval            = 60,
-                     const unsigned int           garbageCollectionTimerInterval = 30,
-                     const unsigned int           garbageCollectionMaxAge        = 15);
+                     const DatabaseConfiguration& databaseConfiguration);
    ~UniversalImporter();
 
    void addReader(ReaderBase&          reader,
@@ -81,9 +78,9 @@ class UniversalImporter
    static bool getLastWriteTimePoint(
                   const std::filesystem::path                         path,
                   std::chrono::time_point<std::chrono::system_clock>& lastWriteTimePoint);
-   void addGarbageDirectory(const std::filesystem::path directory);
-   void removeGarbageDirectory(const std::filesystem::path directory);
-   void performGarbageDirectoryCleanUp();
+   void addOrUpdateLastWriteTimePoint(const std::filesystem::path directory);
+   void removeLastWriteTimePoint(const std::filesystem::path directory);
+   void performDirectoryCleanUp();
    void handleGarbageCollectionTimer(const boost::system::error_code& errorCode);
 
    struct WorkerMapping {
@@ -105,13 +102,13 @@ class UniversalImporter
    std::map<const WorkerMapping, Worker*>   WorkerMap;
    boost::asio::deadline_timer              StatusTimer;
    const boost::posix_time::seconds         StatusTimerInterval;
-   std::map<const std::filesystem::path,
-            SystemTimePoint>                GarbageDirectoryMap;
    boost::asio::deadline_timer              GarbageCollectionTimer;
    const boost::posix_time::seconds         GarbageCollectionTimerInterval;
    const std::chrono::seconds               GarbageCollectionMaxAge;
    int                                      INotifyFD;
    boost::bimap<int, std::filesystem::path> INotifyWatchDescriptors;
+   std::map<const std::filesystem::path,
+            SystemTimePoint>                INotifyWatchLastWrite;
    boost::asio::posix::stream_descriptor    INotifyStream;
    char                                     INotifyEventBuffer[65536 * sizeof(inotify_event)];
 };
