@@ -49,7 +49,7 @@ _hpct_trigger()
    case "${prev}" in
       #  ====== Generic value ===============================================
       --triggerpingage                | \
-      --triggerpinglength             | \
+      --triggerpingpacketsize             | \
       --triggerpingsbeforequeuing     | \
       -L | --loglevel                 | \
       -U | --userid                   | \
@@ -124,7 +124,7 @@ _hpct_trigger()
    # ====== All options =====================================================
    local opts="
 --triggerpingage
---triggerpinglength
+--triggerpingpacketsize
 --triggerpingsbeforequeuing
 -P
 --ping

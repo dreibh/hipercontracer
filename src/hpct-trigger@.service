@@ -47,7 +47,7 @@ ExecStart=/bin/sh -cx "/usr/bin/hpct-trigger \
    --measurement-id %i \
    --resultsdirectory /var/hipercontracer/data \
    --triggerpingage ${TRIGGER_PING_AGE} \
-   --triggerpinglength ${TRIGGER_PING_LENGTH} \
+   --triggerpingpacketsize ${TRIGGER_PING_PACKET_SIZE} \
    --triggerpingsbeforequeuing ${TRIGGER_PINGS_BEFORE_QUEUING} \
    ${HPCT_OPTIONS}"
 

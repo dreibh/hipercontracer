@@ -68,7 +68,7 @@ static boost::posix_time::milliseconds                       CleanupTimerInterva
 static boost::asio::deadline_timer                           CleanupTimer(IOService, CleanupTimerInterval);
 
 static unsigned int                                          TriggerPingsBeforeQueuing;
-static unsigned int                                          TriggerPingLength;
+static unsigned int                                          TriggerPingPacketSize;
 static unsigned int                                          TriggerPingAge;
 
 
@@ -131,7 +131,7 @@ static void handlePing(const ICMPHeader& header,
                    << ", total "   << totalLength
                    << ", payload " << payloadLength;
 
-   if(totalLength == TriggerPingLength) {
+   if(totalLength == TriggerPingPacketSize) {
       std::map<boost::asio::ip::address, TargetInfo*>::iterator found =
          TargetMap.find(IncomingPingSource.address());
       if(found != TargetMap.end()) {
@@ -414,8 +414,8 @@ int main(int argc, char** argv)
       ( "triggerpingsbeforequeuing",
            boost::program_options::value<unsigned int>(&TriggerPingsBeforeQueuing)->default_value(3),
            "Pings before queuing" )
-      ( "triggerpinglength",
-           boost::program_options::value<unsigned int>(&TriggerPingLength)->default_value(67),
+      ( "triggerpingpacketsize",
+           boost::program_options::value<unsigned int>(&TriggerPingPacketSize)->default_value(67),
            "Ping trigger length in B" )
       ( "triggerpingage",
            boost::program_options::value<unsigned int>(&TriggerPingAge)->default_value(300),
@@ -578,7 +578,9 @@ int main(int argc, char** argv)
    }
 
    std::srand(std::time(nullptr));
-   TriggerPingsBeforeQueuing            = std::min(std::max(64U, TriggerPingsBeforeQueuing), 65535U);
+   TriggerPingAge                       = std::max(1U, TriggerPingAge);
+   TriggerPingsBeforeQueuing            = std::max(1U, TriggerPingsBeforeQueuing);
+   TriggerPingPacketSize                = std::min(std::max(64U, TriggerPingPacketSize), 65535U);
 #if 0
    jitterParameters.Interval            = std::min(std::max(100ULL, jitterParameters.Interval),        3600U*10000ULL);
    jitterParameters.Expiration          = std::min(std::max(100U, jitterParameters.Expiration),        3600U*10000U);
@@ -654,7 +656,7 @@ int main(int argc, char** argv)
 
    HPCT_LOG(info) << "Trigger:" << std::endl
                   << "* Trigger Ping  Age     = " << TriggerPingAge << " s" << std::endl
-                  << "* Trigger Ping  Length  = " << TriggerPingLength      << std::endl
+                  << "* Trigger Ping  Length  = " << TriggerPingPacketSize      << std::endl
                   << "* Trigger Pings b. Qng. = " << TriggerPingsBeforeQueuing;
 
 

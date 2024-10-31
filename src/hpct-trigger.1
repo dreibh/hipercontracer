@@ -39,7 +39,7 @@
 .Sh SYNOPSIS
 .Nm hpct-trigger
 .Op Fl Fl triggerpingage Ar seconds
-.Op Fl Fl triggerpinglength Ar payload_length
+.Op Fl Fl triggerpingpacketsize Ar payload_length
 .Op Fl Fl triggerpingsbeforequeuing Ar count
 .Op Fl P | Fl Fl ping
 .Op Fl T | Fl Fl traceroute
@@ -101,7 +101,7 @@ The following arguments may be provided:
 .Bl -tag -width indent
 .It Fl Fl triggerpingage Ar seconds
 Sets the maximum number of seconds between two trigger "Pings" (default: 300).
-.It Fl Fl triggerpinglength Ar payload_length
+.It Fl Fl triggerpingpacketsize Ar payload_length
 Sets the "Ping" total length (IP header + ICMP header + HiPerCOnTracer header) to trigger a HiPerConTracer measurement (default: 67).
 .It Fl Fl triggerpingsbeforequeuing Ar count
 Sets the number of observed "Ping" packets before triggering HiPerConTracer
@@ -112,7 +112,7 @@ format.
 .\" ###### Examples #########################################################
 .Sh EXAMPLES
 .Bl -tag -width indent
-.It hpct-trigger \-\-source 10.1.1.51 \-\-traceroute \-\-verbose \-\-triggerpingsbeforequeuing 2 \-\-triggerpinglength 88
+.It hpct-trigger \-\-source 10.1.1.51 \-\-traceroute \-\-verbose \-\-triggerpingsbeforequeuing 2 \-\-triggerpingpacketsize 88
 .It hpct-trigger \-\-source 10.1.1.51 \-\-triggerpingage 1800 \-\-ping \-\-verbose
 .It hpct-trigger \-\-source=10.1.1.51 \-\-traceroute \-\-resultsdirectory=/tmp/results \-\-resultstransactionlength=60 \-\-resultstimestampdepth 3
 .It hpct-trigger \-\-source=172.16.1.2,BE,EF \-\-source=172.17.1.2,BE,AF11,AF21 \-\-triggerpingage=1800 \-\-ping \-\-verbose
