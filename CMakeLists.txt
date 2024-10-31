@@ -235,18 +235,18 @@ IF (NOT LZMA_LIBRARY)
 ENDIF()
 
 # ###### C-ARES #############################################################
-IF (WITH_HIPERCONTRACER)
-   FIND_LIBRARY(CARES_LIBRARY NAMES cares libcares)
-   IF (NOT CARES_LIBRARY)
-      MESSAGE(FATAL_ERROR
-            " Cannot find C-ARES DNS resolver library! Try:\n"
-            " * Ubuntu/Debian: sudo apt install -y libc-ares-dev\n"
-            " * Fedora:        sudo dnf install -y c-ares-devel\n"
-            " * SuSE:          sudo zypper install -y c-ares-devel\n"
-            " * Alpine:        sudo apk add c-ares-dev\n"
-            " * FreeBSD:       sudo pkg install -y c-ares")
-   ENDIF()
-ENDIF()
+# IF (WITH_HIPERCONTRACER)
+#    FIND_LIBRARY(CARES_LIBRARY NAMES cares libcares)
+#    IF (NOT CARES_LIBRARY)
+#       MESSAGE(FATAL_ERROR
+#             " Cannot find C-ARES DNS resolver library! Try:\n"
+#             " * Ubuntu/Debian: sudo apt install -y libc-ares-dev\n"
+#             " * Fedora:        sudo dnf install -y c-ares-devel\n"
+#             " * SuSE:          sudo zypper install -y c-ares-devel\n"
+#             " * Alpine:        sudo apk add c-ares-dev\n"
+#             " * FreeBSD:       sudo pkg install -y c-ares")
+#    ENDIF()
+# ENDIF()
 
 # ###### libcrypto ##########################################################
 IF (WITH_PIPE_CHECKSUM)

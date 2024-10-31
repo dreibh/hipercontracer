@@ -10,7 +10,6 @@ Source: https://www.nntb.no/~dreibh/hipercontracer/download/%{name}-%{version}.t
 AutoReqProv: on
 BuildRequires: boost-devel
 BuildRequires: bzip2-devel
-BuildRequires: c-ares-devel
 BuildRequires: cmake
 BuildRequires: ghostscript
 BuildRequires: GraphicsMagick
