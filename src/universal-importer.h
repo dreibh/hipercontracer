@@ -40,6 +40,15 @@
 #include <sys/inotify.h>
 
 
+typedef std::chrono::system_clock            SystemClock;
+typedef std::chrono::time_point<SystemClock> SystemTimePoint;
+typedef SystemClock::duration                SystemDuration;
+
+typedef std::chrono::file_clock              FileClock;
+typedef FileClock::time_point                FileTimePoint;
+typedef FileClock::duration                  FileDuration;
+
+
 class Worker;
 
 class UniversalImporter
@@ -48,7 +57,8 @@ class UniversalImporter
    UniversalImporter(boost::asio::io_service&     ioService,
                      const ImporterConfiguration& importerConfiguration,
                      const DatabaseConfiguration& databaseConfiguration,
-                     const unsigned int           statusTimerInterval = 60);
+                     const unsigned int           statusTimerInterval            = 60,
+                     const unsigned int           garbageCollectionTimerInterval = 33);
    ~UniversalImporter();
 
    void addReader(ReaderBase&          reader,
@@ -61,7 +71,8 @@ class UniversalImporter
    void waitForFinish();
    void run();
 
-   friend std::ostream& operator<<(std::ostream& os, const UniversalImporter& importer);
+   friend std::ostream& operator<<(std::ostream&            os,
+                                   const UniversalImporter& importer);
 
    private:
    void handleSignalEvent(const boost::system::error_code& errorCode,
@@ -74,6 +85,11 @@ class UniversalImporter
    bool addFile(const std::filesystem::path& dataFile);
    bool removeFile(const std::filesystem::path& dataFile);
    void handleStatusTimer(const boost::system::error_code& errorCode);
+
+   void addGarbageDirectory(const std::filesystem::path directory);
+   void removeGarbageDirectory(const std::filesystem::path directory);
+   void performGarbageDirectoryCleanUp(const SystemDuration& maxAge);
+   void handleGarbageCollectionTimer(const boost::system::error_code& errorCode);
 
    struct WorkerMapping {
       ReaderBase*  Reader;
@@ -94,6 +110,10 @@ class UniversalImporter
    std::map<const WorkerMapping, Worker*>   WorkerMap;
    boost::asio::deadline_timer              StatusTimer;
    const boost::posix_time::seconds         StatusTimerInterval;
+   std::map<const std::filesystem::path,
+            SystemTimePoint>                GarbageDirectoryMap;
+   boost::asio::deadline_timer              GarbageCollectionTimer;
+   const boost::posix_time::seconds         GarbageCollectionTimerInterval;
    int                                      INotifyFD;
    boost::bimap<int, std::filesystem::path> INotifyWatchDescriptors;
    boost::asio::posix::stream_descriptor    INotifyStream;
