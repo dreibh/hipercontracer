@@ -685,7 +685,7 @@ int main(int argc, char** argv)
                if(!resultsDirectory.empty()) {
                   resultsWriter = ResultsWriter::makeResultsWriter(
                                      ResultsWriterSet, ProgramID, measurementID,
-                                     sourceAddress, "TriggeredJitter-" + ioModule,
+                                     sourceAddress, "Jitter-" + ioModule,
                                      resultsDirectory, resultsTransactionLength, resultsTimestampDepth,
                                      (pw != nullptr) ? pw->pw_uid : 0, (pw != nullptr) ? pw->pw_gid : 0,
                                      resultsCompression);
@@ -717,7 +717,7 @@ int main(int argc, char** argv)
                if(!resultsDirectory.empty()) {
                   resultsWriter = ResultsWriter::makeResultsWriter(
                                      ResultsWriterSet, ProgramID, measurementID,
-                                     sourceAddress, "TriggeredPing-" + ioModule,
+                                     sourceAddress, "Ping-" + ioModule,
                                      resultsDirectory, resultsTransactionLength, resultsTimestampDepth,
                                      (pw != nullptr) ? pw->pw_uid : 0, (pw != nullptr) ? pw->pw_gid : 0,
                                      resultsCompression);
@@ -748,7 +748,7 @@ int main(int argc, char** argv)
                if(!resultsDirectory.empty()) {
                   resultsWriter = ResultsWriter::makeResultsWriter(
                                      ResultsWriterSet, ProgramID, measurementID,
-                                     sourceAddress, "TriggeredTraceroute-" + ioModule,
+                                     sourceAddress, "Traceroute-" + ioModule,
                                      resultsDirectory, resultsTransactionLength, resultsTimestampDepth,
                                      (pw != nullptr) ? pw->pw_uid : 0, (pw != nullptr) ? pw->pw_gid : 0,
                                      resultsCompression);
