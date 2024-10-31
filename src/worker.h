@@ -63,7 +63,6 @@ class Worker
                     const std::filesystem::path& dataFile);
    void finishedFile(const std::filesystem::path& dataFile,
                      const bool                   success = true);
-   void deleteEmptyDirectories(std::filesystem::path path);
    void deleteImportedFile(const std::filesystem::path& dataFile);
    void moveImportedFile(const std::filesystem::path& dataFile,
                          const std::smatch            match,

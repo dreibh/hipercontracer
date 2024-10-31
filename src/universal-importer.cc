@@ -372,24 +372,6 @@ unsigned long long UniversalImporter::lookForFiles(const std::filesystem::path& 
          // ------ Recursive directory traversal ----------------------------
          if(currentDepth < maxDepth) {
             const unsigned long long m = lookForFiles(dirEntry.path(), currentDepth + 1, maxDepth);
-#if 0
-            FIXME!
-            // ------ Remove empty directory --------------------------------
-            if( (m == 0) &&
-                (currentDepth > 1) &&
-                (ImporterConfig.getImportMode() != ImportModeType::KeepImportedFiles) ) {
-               // FIXME!!! addGarbageDirectory(dirEntry.path());
-               std::error_code ec;
-               std::filesystem::remove(dirEntry.path(), ec);
-               if(!ec) {
-                  HPCT_LOG(trace) << "Deleted empty directory "
-                                  << relativeTo(dirEntry.path(), ImporterConfig.getImportFilePath());
-               }
-               else {
-                  n++;   // Upper level still has one sub-directory
-               }
-            }
-#endif
             n += m;
          }
       }
@@ -490,10 +472,10 @@ void UniversalImporter::performDirectoryCleanUp()
 {
    const SystemTimePoint now       = SystemClock::now();
    const SystemTimePoint threshold = now - GarbageCollectionMaxAge;
-   HPCT_LOG(debug) << "Performing garbage directory clean-up of directories older than "
+   HPCT_LOG(debug) << "Performing directory clean-up of directories older than "
                    << timePointToString<SystemTimePoint>(threshold);
 
-   const size_t n1 = INotifyWatchLastWrite.size();
+   size_t n = 0;
    std::map<const std::filesystem::path, SystemTimePoint>::reverse_iterator iterator =
       INotifyWatchLastWrite.rbegin();
    while(iterator != INotifyWatchLastWrite.rend()) {
@@ -521,6 +503,7 @@ void UniversalImporter::performDirectoryCleanUp()
             std::error_code ec;
             std::filesystem::remove(directory, ec);
             if(!ec) {
+               n++;
                HPCT_LOG(trace) << "Deleted empty directory "
                                << relativeTo(directory, ImporterConfig.getImportFilePath());
                // NOTE: No need to erase the iterator here. It will be removed
@@ -535,9 +518,10 @@ void UniversalImporter::performDirectoryCleanUp()
 
       iterator++;
    }
-   const size_t n2 = INotifyWatchLastWrite.size();
 
-   HPCT_LOG(trace) << "Finished garbage directory clean-up: " << n1 << " -> " << n2;
+   if(n > 0) {
+      HPCT_LOG(trace) << "Cleaned up " << n << " directories";
+   }
 }
 
 

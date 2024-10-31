@@ -163,29 +163,6 @@ void Worker::processFile(DatabaseClientBase&          databaseClient,
    }
 }
 
-#if 0
-FIXME!
-// ###### Remove empty directories ##########################################
-void Worker::deleteEmptyDirectories(std::filesystem::path path)
-{
-   try {
-      path = std::filesystem::canonical(std::filesystem::absolute(path));
-
-      if(subDirectoryOf(path, ImporterConfig.getImportFilePath()) > 0) {
-         if(path != ImporterConfig.getImportFilePath()) {
-            while(path.parent_path() != ImporterConfig.getImportFilePath()) {
-               std::filesystem::remove(path);
-               HPCT_LOG(trace) << getIdentification() << ": Deleted empty directory "
-                               << relativeTo(path, ImporterConfig.getImportFilePath());
-               path = path.parent_path();
-            }
-         }
-      }
-   }
-   catch(...) { }
-}
-#endif
-
 
 // ###### Delete successfully imported file #################################
 void Worker::deleteImportedFile(const std::filesystem::path& dataFile)
@@ -194,7 +171,6 @@ void Worker::deleteImportedFile(const std::filesystem::path& dataFile)
       std::filesystem::remove(dataFile);
       HPCT_LOG(trace) << getIdentification() << ": Deleted imported file "
                       << relativeTo(dataFile, ImporterConfig.getImportFilePath());
-//       deleteEmptyDirectories(dataFile.parent_path());
    }
    catch(std::filesystem::filesystem_error& e) {
       HPCT_LOG(warning) << getIdentification() << ": Deleting imported file "
@@ -220,7 +196,6 @@ void Worker::moveImportedFile(const std::filesystem::path& dataFile,
          std::filesystem::rename(dataFile, targetPath / dataFile.filename());
          HPCT_LOG(debug) << getIdentification() << ": Moved " << ((isGood == true) ? "good" : "bad") <<  " file "
                          << relativeTo(dataFile, ImporterConfig.getImportFilePath());
-//          deleteEmptyDirectories(dataFile.parent_path());
       }
       catch(std::filesystem::filesystem_error& e) {
          HPCT_LOG(warning) << getIdentification() << ": Moving " << ((isGood == true) ? "good" : "bad") <<  " file "
