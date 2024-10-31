@@ -67,9 +67,9 @@ static boost::asio::signal_set                               Signals(IOService, 
 static boost::posix_time::milliseconds                       CleanupTimerInterval(1000);
 static boost::asio::deadline_timer                           CleanupTimer(IOService, CleanupTimerInterval);
 
-static unsigned int                                          TriggerPingsBeforeQueuing = 3;
-static unsigned int                                          TriggerPingLength         = 53;
-static unsigned int                                          TriggerPingAge            = 300;
+static unsigned int                                          TriggerPingsBeforeQueuing;
+static unsigned int                                          TriggerPingLength;
+static unsigned int                                          TriggerPingAge;
 
 
 // ###### Signal handler ####################################################
@@ -415,7 +415,7 @@ int main(int argc, char** argv)
            boost::program_options::value<unsigned int>(&TriggerPingsBeforeQueuing)->default_value(3),
            "Pings before queuing" )
       ( "triggerpinglength",
-           boost::program_options::value<unsigned int>(&TriggerPingLength)->default_value(53),
+           boost::program_options::value<unsigned int>(&TriggerPingLength)->default_value(67),
            "Ping trigger length in B" )
       ( "triggerpingage",
            boost::program_options::value<unsigned int>(&TriggerPingAge)->default_value(300),
@@ -578,6 +578,7 @@ int main(int argc, char** argv)
    }
 
    std::srand(std::time(nullptr));
+   TriggerPingsBeforeQueuing            = std::min(std::max(64U, TriggerPingsBeforeQueuing), 65535U);
 #if 0
    jitterParameters.Interval            = std::min(std::max(100ULL, jitterParameters.Interval),        3600U*10000ULL);
    jitterParameters.Expiration          = std::min(std::max(100U, jitterParameters.Expiration),        3600U*10000U);

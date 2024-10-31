@@ -48,9 +48,9 @@ _hpct_trigger()
 
    case "${prev}" in
       #  ====== Generic value ===============================================
-      --pingtriggerage                | \
-      --pingtriggerlength             | \
-      --pingsbeforequeuing            | \
+      --triggerpingage                | \
+      --triggerpinglength             | \
+      --triggerpingsbeforequeuing     | \
       -L | --loglevel                 | \
       -U | --userid                   | \
       -# | --measurement-id           | \
@@ -123,9 +123,9 @@ _hpct_trigger()
 
    # ====== All options =====================================================
    local opts="
---pingtriggerage
---pingtriggerlength
---pingsbeforequeuing
+--triggerpingage
+--triggerpinglength
+--triggerpingsbeforequeuing
 -P
 --ping
 -T

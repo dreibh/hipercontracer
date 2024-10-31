@@ -93,10 +93,7 @@
 .\" ###### Description ######################################################
 .Sh DESCRIPTION
 .Nm hpct-trigger
-is a tool to trigger HiPerConTracer runs, based on observed incoming "Ping"
-packets. Once the given number of such packets with a given size has been
-observed from a source, a Ping or Traceroute is triggered to the corresponding
-address.
+is a tool to trigger HiPerConTracer measurement, based on observed incoming ICMP Ping packets. Once the given number of such packets with a given size has been observed from a source, a Ping or Traceroute is triggered to the corresponding remote address.
 .Pp
 .\" ###### Arguments ########################################################
 .Sh ARGUMENTS
@@ -105,7 +102,7 @@ The following arguments may be provided:
 .It Fl Fl triggerpingage Ar seconds
 Sets the maximum number of seconds between two trigger "Pings" (default: 300).
 .It Fl Fl triggerpinglength Ar payload_length
-Sets the "Ping" payload length to trigger HiPerConTracer (default: 53).
+Sets the "Ping" total length (IP header + ICMP header + HiPerCOnTracer header) to trigger a HiPerConTracer measurement (default: 67).
 .It Fl Fl triggerpingsbeforequeuing Ar count
 Sets the number of observed "Ping" packets before triggering HiPerConTracer
 (default: 3).
@@ -120,7 +117,7 @@ format.
 .It hpct-trigger \-\-source=10.1.1.51 \-\-traceroute \-\-resultsdirectory=/tmp/results \-\-resultstransactionlength=60 \-\-resultstimestampdepth 3
 .It hpct-trigger \-\-source=172.16.1.2,BE,EF \-\-source=172.17.1.2,BE,AF11,AF21 \-\-triggerpingage=1800 \-\-ping \-\-verbose
 .It hpct-trigger \-\-source 10.1.1.51 \-\-triggerpingage 1800 \-\-ping \-\-traceroute \-\-iomodule ICMP \-\-iomodule UDP
-.It hipercontracer -S 0.0.0.0 -S :: -D <TARGET> --ping --pingpacketsize 53 --iterations 3 --verbose
+.It hipercontracer -S 0.0.0.0 -S :: -D <TARGET> --ping --pingpacketsize 67 --iterations 3 --verbose
 .It hipercontracer -S 0.0.0.0 -S :: -D <TARGET> -P --pingpacketsize 88 -I 3 -v
 .El
 .\" ###### Authors ##########################################################
