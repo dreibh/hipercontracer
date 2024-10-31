@@ -28,7 +28,7 @@
 .\" Contact: dreibh@simula.no
 .\"
 .\" ###### Setup ############################################################
-.Dd October 30, 2024
+.Dd October 31, 2024
 .Dt hipercontracer 1
 .Os hipercontracer
 .\" ###### Name #############################################################
@@ -53,7 +53,7 @@
 .Op Fl Fl sources-from-file Ar file
 .Op Fl Fl destinations-from-file Ar file
 .Op Fl M Ar ICMP|UDP | Fl Fl iomodule Ar ICMP|UDP
-.Op Fl Fl iterations Ar number_of_iterations
+.Op Fl I Ar number_of_iterations | Fl Fl iterations Ar number_of_iterations
 .Op Fl Fl tracerouteinterval Ar milliseconds
 .Op Fl Fl tracerouteintervaldeviation Ar fraction
 .Op Fl Fl tracerouteduration Ar milliseconds
@@ -138,7 +138,7 @@ Read sources from given file. This option may be used multiple times, to read fr
 Read destinations from given file. This option may be used multiple times, to read from multiple files.
 .It Fl M Ar ICMP|UDP | Fl Fl iomodule Ar ICMP|UDP
 Adds an I/O module: ICMP or UDP. The option may be specified multiple times with different modules.
-.It Fl Fl iterations Ar number_of_iterations
+.It Fl I Ar number_of_iterations | Fl Fl iterations Ar number_of_iterations
 Limit the number of measurement iterations (measurement for all source/destination
 pairs) to the given number of iterations. The default 0 lets HiPerConTracer run
 continuously.

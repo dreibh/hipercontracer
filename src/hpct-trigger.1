@@ -28,7 +28,7 @@
 .\" Contact: dreibh@simula.no
 .\"
 .\" ###### Setup ############################################################
-.Dd October 30, 2024
+.Dd October 31, 2024
 .Dt hpct-trigger 1
 .Os hpct-trigger
 .\" ###### Name #############################################################
@@ -56,7 +56,7 @@
 .Op Fl Fl sources-from-file Ar file
 .Op Fl Fl destinations-from-file Ar file
 .Op Fl M Ar ICMP|UDP | Fl Fl iomodule Ar ICMP|UDP
-.Op Fl Fl iterations Ar number_of_iterations
+.Op Fl I Ar number_of_iterations | Fl Fl iterations Ar number_of_iterations
 .Op Fl Fl tracerouteinterval Ar milliseconds
 .Op Fl Fl tracerouteintervaldeviation Ar fraction
 .Op Fl Fl tracerouteduration Ar milliseconds
@@ -120,6 +120,8 @@ format.
 .It hpct-trigger \-\-source=10.1.1.51 \-\-traceroute \-\-resultsdirectory=/tmp/results \-\-resultstransactionlength=60 \-\-resultstimestampdepth 3
 .It hpct-trigger \-\-source=172.16.1.2,BE,EF \-\-source=172.17.1.2,BE,AF11,AF21 \-\-triggerpingage=1800 \-\-ping \-\-verbose
 .It hpct-trigger \-\-source 10.1.1.51 \-\-triggerpingage 1800 \-\-ping \-\-traceroute \-\-iomodule ICMP \-\-iomodule UDP
+.It hipercontracer -S 0.0.0.0 -S :: -D <TARGET> --ping --pingpacketsize 53 --iterations 3 --verbose
+.It hipercontracer -S 0.0.0.0 -S :: -D <TARGET> -P --pingpacketsize 88 -I 3 -v
 .El
 .\" ###### Authors ##########################################################
 .Sh AUTHORS
