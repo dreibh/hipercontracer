@@ -40,15 +40,6 @@
 #include <sys/inotify.h>
 
 
-typedef std::chrono::system_clock            SystemClock;
-typedef std::chrono::time_point<SystemClock> SystemTimePoint;
-typedef SystemClock::duration                SystemDuration;
-
-typedef std::chrono::file_clock              FileClock;
-typedef FileClock::time_point                FileTimePoint;
-typedef FileClock::duration                  FileDuration;
-
-
 class Worker;
 
 class UniversalImporter
@@ -58,7 +49,8 @@ class UniversalImporter
                      const ImporterConfiguration& importerConfiguration,
                      const DatabaseConfiguration& databaseConfiguration,
                      const unsigned int           statusTimerInterval            = 60,
-                     const unsigned int           garbageCollectionTimerInterval = 33);
+                     const unsigned int           garbageCollectionTimerInterval = 30,
+                     const unsigned int           garbageCollectionMaxAge        = 15);
    ~UniversalImporter();
 
    void addReader(ReaderBase&          reader,
@@ -86,9 +78,12 @@ class UniversalImporter
    bool removeFile(const std::filesystem::path& dataFile);
    void handleStatusTimer(const boost::system::error_code& errorCode);
 
+   static bool getLastWriteTimePoint(
+                  const std::filesystem::path                         path,
+                  std::chrono::time_point<std::chrono::system_clock>& lastWriteTimePoint);
    void addGarbageDirectory(const std::filesystem::path directory);
    void removeGarbageDirectory(const std::filesystem::path directory);
-   void performGarbageDirectoryCleanUp(const SystemDuration& maxAge);
+   void performGarbageDirectoryCleanUp();
    void handleGarbageCollectionTimer(const boost::system::error_code& errorCode);
 
    struct WorkerMapping {
@@ -114,6 +109,7 @@ class UniversalImporter
             SystemTimePoint>                GarbageDirectoryMap;
    boost::asio::deadline_timer              GarbageCollectionTimer;
    const boost::posix_time::seconds         GarbageCollectionTimerInterval;
+   const std::chrono::seconds               GarbageCollectionMaxAge;
    int                                      INotifyFD;
    boost::bimap<int, std::filesystem::path> INotifyWatchDescriptors;
    boost::asio::posix::stream_descriptor    INotifyStream;

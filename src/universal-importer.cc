@@ -33,6 +33,8 @@
 #include "tools.h"
 #include "worker.h"
 
+#include <boost/filesystem/operations.hpp>
+
 
 
 // ###### < operator for sorting ############################################
@@ -57,7 +59,8 @@ UniversalImporter::UniversalImporter(boost::asio::io_service&     ioService,
                                      const ImporterConfiguration& importerConfiguration,
                                      const DatabaseConfiguration& databaseConfiguration,
                                      const unsigned int           statusTimerInterval,
-                                     const unsigned int           garbageCollectionTimerInterval)
+                                     const unsigned int           garbageCollectionTimerInterval,
+                                     const unsigned int           garbageCollectionMaxAge)
  : IOService(ioService),
    ImporterConfig(importerConfiguration),
    DatabaseConfig(databaseConfiguration),
@@ -69,6 +72,7 @@ UniversalImporter::UniversalImporter(boost::asio::io_service&     ioService,
    StatusTimerInterval(boost::posix_time::seconds(statusTimerInterval)),
    GarbageCollectionTimer(IOService),
    GarbageCollectionTimerInterval(boost::posix_time::seconds(garbageCollectionTimerInterval)),
+   GarbageCollectionMaxAge(std::chrono::seconds()),
    INotifyStream(IOService)
 {
    INotifyFD = -1;
@@ -371,6 +375,7 @@ unsigned long long UniversalImporter::lookForFiles(const std::filesystem::path& 
             if( (m == 0) &&
                 (currentDepth > 1) &&
                 (ImporterConfig.getImportMode() != ImportModeType::KeepImportedFiles) ) {
+               // FIXME!!! addGarbageDirectory(dirEntry.path());
                std::error_code ec;
                std::filesystem::remove(dirEntry.path(), ec);
                if(!ec) {
@@ -431,23 +436,33 @@ bool UniversalImporter::removeFile(const std::filesystem::path& dataFile)
 }
 
 
+// ###### Get time point of last write to directory or file #################
+bool UniversalImporter::getLastWriteTimePoint(const std::filesystem::path path,
+                                              SystemTimePoint&            lastWriteTimePoint)
+{
+    try {
+       const time_t lastWriteTimeT = boost::filesystem::last_write_time(boost::filesystem::path(path));
+       lastWriteTimePoint = std::chrono::system_clock::from_time_t(lastWriteTimeT);
+       return true;
+    }
+    catch(...) { }
+    return false;
+}
+
+
 // ###### Add directory to garbage collector ################################
 void UniversalImporter::addGarbageDirectory(const std::filesystem::path directory)
 {
-   std::error_code ec;
-   const FileTimePoint lastWriteFileTime = std::filesystem::last_write_time(directory, ec);
-   if(!ec) {
-      std::cout << std::format("File write time is {}\n", lastWriteFileTime);
-      const SystemTimePoint lastWriteSystemTime = FileClock::to_sys(lastWriteFileTime);
+   SystemTimePoint lastWriteTimePoint;
+   if(getLastWriteTimePoint(directory, lastWriteTimePoint)) {
       std::map<const std::filesystem::path, SystemTimePoint>::iterator found =
          GarbageDirectoryMap.find(directory);
       if(found != GarbageDirectoryMap.end()) {
-         found->second = lastWriteSystemTime;
+         found->second = lastWriteTimePoint;
       }
       else {
-         std::cout << "UPDATE\n";
          GarbageDirectoryMap.insert(std::pair<const std::filesystem::path, SystemTimePoint>(
-                                directory, lastWriteSystemTime));
+                                directory, lastWriteTimePoint));
       }
    }
 }
@@ -465,13 +480,14 @@ void UniversalImporter::removeGarbageDirectory(const std::filesystem::path direc
 
 
 // ###### Perform directory garbage collection ##############################
-void UniversalImporter::performGarbageDirectoryCleanUp(const SystemDuration& maxAge)
+void UniversalImporter::performGarbageDirectoryCleanUp()
 {
-   const SystemTimePoint threshold = SystemClock::now() - maxAge;
-   const size_t          n1        = GarbageDirectoryMap.size();
-   HPCT_LOG(debug) << "Starting garbage directory clean-up of directories older than "
+   const std::chrono::time_point<std::chrono::system_clock> threshold =
+      std::chrono::system_clock::now() - GarbageCollectionMaxAge;
+   HPCT_LOG(debug) << "Performing garbage directory clean-up of directories older than "
                    << timePointToString<SystemTimePoint>(threshold);
 
+   const size_t n1 = GarbageDirectoryMap.size();
    std::map<const std::filesystem::path, SystemTimePoint>::iterator iterator =
       GarbageDirectoryMap.begin();
    while(iterator != GarbageDirectoryMap.end()) {
@@ -479,18 +495,16 @@ void UniversalImporter::performGarbageDirectoryCleanUp(const SystemDuration& max
          const std::filesystem::path& directory = iterator->first;
 
          // ====== Update last write time ===================================
-         std::error_code ec;
-         const FileTimePoint lastWriteFileTime =
-            std::filesystem::last_write_time(directory, ec);
-         if(!ec) {
-            const SystemTimePoint lastWriteSystemTime = FileClock::to_sys(lastWriteFileTime);
-            iterator->second = lastWriteSystemTime;
+         SystemTimePoint lastWriteTimePoint;
+         if(getLastWriteTimePoint(directory, lastWriteTimePoint)) {
+            iterator->second = lastWriteTimePoint;
          }
          // ====== Out of date -> remove directory ==========================
          if(iterator->second <= threshold) {
+             std::error_code ec;
              std::filesystem::remove(directory, ec);
              if(!ec) {
-                 HPCT_LOG(debug) << "Deleted empty directory "
+                 HPCT_LOG(trace) << "Deleted empty directory "
                                  << relativeTo(directory, ImporterConfig.getImportFilePath());
              }
              iterator = GarbageDirectoryMap.erase(iterator);
@@ -499,9 +513,9 @@ void UniversalImporter::performGarbageDirectoryCleanUp(const SystemDuration& max
       }
       iterator++;
    }
-
    const size_t n2 = GarbageDirectoryMap.size();
-   HPCT_LOG(debug) << "Finished garbage directory clean-up: " << n1 << " -> " << n2 << "\n";
+
+   HPCT_LOG(trace) << "Finished garbage directory clean-up: " << n1 << " -> " << n2;
 }
 
 
@@ -521,7 +535,7 @@ void UniversalImporter::handleStatusTimer(const boost::system::error_code& error
 void UniversalImporter::handleGarbageCollectionTimer(const boost::system::error_code& errorCode)
 {
    if(!errorCode) {
-      performGarbageDirectoryCleanUp(std::chrono::seconds(33));
+      performGarbageDirectoryCleanUp();
       StatusTimer.expires_from_now(GarbageCollectionTimerInterval);
       StatusTimer.async_wait(std::bind(&UniversalImporter::handleGarbageCollectionTimer, this,
                                        std::placeholders::_1));
