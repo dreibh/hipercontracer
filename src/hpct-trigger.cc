@@ -123,12 +123,15 @@ static void tryCleanup(const boost::system::error_code& errorCode)
 
 
 // ###### Handle Ping #######################################################
-static void handlePing(const ICMPHeader& header, const std::size_t payloadLength)
+static void handlePing(const ICMPHeader& header,
+                       const std::size_t totalLength,
+                       const std::size_t payloadLength)
 {
    HPCT_LOG(trace) << "Ping from " << IncomingPingSource.address()
+                   << ", total "   << totalLength
                    << ", payload " << payloadLength;
 
-   if(payloadLength == TriggerPingLength) {
+   if(totalLength == TriggerPingLength) {
       std::map<boost::asio::ip::address, TargetInfo*>::iterator found =
          TargetMap.find(IncomingPingSource.address());
       if(found != TargetMap.end()) {
@@ -188,7 +191,7 @@ static void receivedPingV4(const boost::system::error_code& errorCode, std::size
                  ICMPHeader header((const char*)&IncomingPingMessageBuffer[headerLength],
                                    length - headerLength);
                  if(header.type() == ICMPHeader::IPv4EchoRequest) {
-                    handlePing(header, length - headerLength - 8);
+                    handlePing(header, length, length - headerLength - 8);
                  }
              }
          }
@@ -210,7 +213,7 @@ static void receivedPingV6(const boost::system::error_code& errorCode, std::size
          if(length >= 8) {
             ICMPHeader header((const char*)&IncomingPingMessageBuffer, length);
             if(header.type() == ICMPHeader::IPv6EchoRequest) {
-               handlePing(header, length - 8);
+               handlePing(header, 40 + length, length - 8);
             }
          }
       }
