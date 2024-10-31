@@ -177,10 +177,10 @@ ENDIF()
 #### PROGRAMS                                                            ####
 #############################################################################
 
-IF (WITH_SHARED_LIBRARIES)
-   SET(libraryType shared)
-ELSE()
+IF (STATIC_BUILD)
    SET(libraryType static)
+ELSE()
+   SET(libraryType shared)
 ENDIF()
 
 # ====== HiPerConTracer =====================================================
