@@ -479,40 +479,40 @@ void UniversalImporter::performDirectoryCleanUp()
    std::map<const std::filesystem::path, SystemTimePoint>::reverse_iterator iterator =
       INotifyWatchLastWrite.rbegin();
    while(iterator != INotifyWatchLastWrite.rend()) {
+      const std::filesystem::path& directory = iterator->first;
 
       // ====== Check directory =============================================
-      const std::filesystem::path& directory = iterator->first;
-      HPCT_LOG(trace) << "Directory " << relativeTo(directory, ImporterConfig.getImportFilePath())
-                      << ": last activity was "
-                      << std::chrono::duration_cast<std::chrono::seconds>(now - iterator->second).count() << " s ago";
       if(iterator->second < threshold) {
-
          // ====== Update last write time ===================================
          SystemTimePoint lastWriteTimePoint;
          if(getLastWriteTimePoint(directory, lastWriteTimePoint)) {
             if(iterator->second != lastWriteTimePoint) {
-               HPCT_LOG(trace) << "Directory " << relativeTo(directory, ImporterConfig.getImportFilePath())
-                               << ": last activity (updated) was "
-                               << std::chrono::duration_cast<std::chrono::seconds>(now - iterator->second).count() << " s ago";
+               iterator->second = lastWriteTimePoint;
             }
-            iterator->second = lastWriteTimePoint;
          }
+      }
+      HPCT_LOG(trace) << "Directory " << relativeTo(directory, ImporterConfig.getImportFilePath())
+                      << ": last activity was "
+                      << std::chrono::duration_cast<std::chrono::seconds>(now - iterator->second).count() << " s ago";
 
-         // ====== Out of date -> remove directory ==========================
-         if(iterator->second < threshold) {
-            std::error_code ec;
-            std::filesystem::remove(directory, ec);
-            if(!ec) {
-               n++;
-               HPCT_LOG(trace) << "Deleted empty directory "
-                               << relativeTo(directory, ImporterConfig.getImportFilePath());
-               // NOTE: No need to erase the iterator here. It will be removed
-               // after the INotify notification of the directory removal!
-            }
-            else {
-               HPCT_LOG(trace) << "Still in-use directory "
-                               << relativeTo(directory, ImporterConfig.getImportFilePath());
-            }
+      // ====== Out of date -> remove directory =============================
+      if(iterator->second < threshold) {
+         std::error_code ec;
+         std::filesystem::remove(directory, ec);
+         if(!ec) {
+            n++;
+            HPCT_LOG(trace) << "Deleted empty directory "
+                            << relativeTo(directory, ImporterConfig.getImportFilePath())
+                            << ", last activity was "
+                            << std::chrono::duration_cast<std::chrono::seconds>(now - iterator->second).count() << " s ago";
+            // NOTE: No need to erase the iterator here. It will be removed
+            // after the INotify notification of the directory removal!
+         }
+         else {
+            HPCT_LOG(trace) << "Still in-use directory "
+                            << relativeTo(directory, ImporterConfig.getImportFilePath());
+            // No need to try again too soon!
+            iterator->second = now;
          }
       }
 
