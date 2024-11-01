@@ -46,32 +46,46 @@ _hpct_results()
       cword="${COMP_CWORD}"
    fi
 
-   case "${prev}" in
-      #  ====== Generic value ===============================================
-      -L | --loglevel  | \
-      -s | --separator | \
-      -T | --maxthreads)
-         return
-         ;;
-      # ====== Special case: file ===========================================
-      -o | --output | \
-      -F | --input-file-names-from-file)
-         # Arbitrary file names:
-         _filedir
-         return
-         ;;
-      # ====== Special case: log file =======================================
-      -O | --logfile)
-         # Files with extension .log:
-         _filedir '@(log)'
-         return
-         ;;
-      # ====== Special case: on/off =========================================
-      -Z | --logcolor)
-         COMPREPLY=($(compgen -W "on off" --  "${cur}"))
-         return
-         ;;
-   esac
+   # ====== Results file ====================================================
+   if [ "${cword}" -eq 1 ] || [ "${cur}" != "" ] && [[ ! "${cur}" =~ ^- ]] ; then
+      # HiPerConTracer results file names:
+      _filedir '@(hpct\.xz|hpct\.bz2|hpct\.gz|hpct|results\.xz|results\.bz2|results\.gz|results)'
+      return
+
+   # ====== Options =========================================================
+   else
+      case "${prev}" in
+         #  ====== Generic value ============================================
+         -L | --loglevel  | \
+         -s | --separator | \
+         -T | --maxthreads)
+            return
+            ;;
+         # ====== Special case: file ========================================
+         -o | --output)
+            # HiPerConTracer results file names:
+            _filedir '@(hpct\.xz|hpct\.bz2|hpct\.gz|hpct|results\.xz|results\.bz2|results\.gz|results)'
+            return
+            ;;
+         # ====== Special case: file ========================================
+         -F | --input-file-names-from-file)
+            # Arbitrary file names:
+            _filedir
+            return
+            ;;
+         # ====== Special case: log file ====================================
+         -O | --logfile)
+            # Files with extension .log:
+            _filedir '@(log)'
+            return
+            ;;
+         # ====== Special case: on/off ======================================
+         -Z | --logcolor)
+            COMPREPLY=($(compgen -W "on off" --  "${cur}"))
+            return
+            ;;
+      esac
+   fi
 
    # ====== All options =====================================================
    local opts="
