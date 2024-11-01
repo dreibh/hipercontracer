@@ -68,7 +68,7 @@ UniversalImporter::UniversalImporter(boost::asio::io_service&     ioService,
    StatusTimer(IOService),
    StatusTimerInterval(boost::posix_time::seconds(importerConfiguration.getStatusInterval())),
    GarbageCollectionTimer(IOService),
-   GarbageCollectionTimerInterval(boost::posix_time::seconds(importerConfiguration.getGarbageCollectionInterval())),
+   GarbageCollectionTimerInterval(0, 0, importerConfiguration.getGarbageCollectionInterval(), 0),
    GarbageCollectionMaxAge(std::chrono::seconds(importerConfiguration.getGarbageCollectionMaxAge())),
    INotifyStream(IOService)
 {
@@ -133,6 +133,7 @@ bool UniversalImporter::start(const bool quitWhenIdle)
    if(quitWhenIdle) {
       INotifyStream.cancel();
       StatusTimer.cancel();
+      GarbageCollectionTimer.cancel();
       Signals.cancel();
    }
 
@@ -542,9 +543,9 @@ void UniversalImporter::handleGarbageCollectionTimer(const boost::system::error_
 {
    if(!errorCode) {
       performDirectoryCleanUp();
-      StatusTimer.expires_from_now(GarbageCollectionTimerInterval);
-      StatusTimer.async_wait(std::bind(&UniversalImporter::handleGarbageCollectionTimer, this,
-                                       std::placeholders::_1));
+      GarbageCollectionTimer.expires_from_now(GarbageCollectionTimerInterval);
+      GarbageCollectionTimer.async_wait(std::bind(&UniversalImporter::handleGarbageCollectionTimer, this,
+                                        std::placeholders::_1));
    }
 }
 

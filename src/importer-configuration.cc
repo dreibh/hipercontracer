@@ -49,7 +49,7 @@ ImporterConfiguration::ImporterConfiguration()
       ("bad_file_path",        boost::program_options::value<std::filesystem::path>(&BadFilePath),                          "path for bad files")
       ("good_file_path",       boost::program_options::value<std::filesystem::path>(&GoodFilePath),                         "path for good files")
       ("status_interval",      boost::program_options::value<unsigned int>(&StatusInterval)->default_value(60),             "status interval (s)")
-      ("gc_interval",          boost::program_options::value<unsigned int>(&GarbageCollectionInterval)->default_value(300), "garbage collection interval (s)")
+      ("gc_interval",          boost::program_options::value<unsigned int>(&GarbageCollectionInterval)->default_value(275), "garbage collection interval (s)")
       ("gc_max_age",           boost::program_options::value<unsigned int>(&GarbageCollectionMaxAge)->default_value(3600),  "garbage collection max age (s)")
       ("table",                boost::program_options::value<std::vector<std::string>>(&Tables),                            "mapping of reader:table");
 
@@ -104,7 +104,7 @@ bool ImporterConfiguration::readConfiguration(const std::filesystem::path& confi
    if(!setGoodFilePath(GoodFilePath))         return false;
    if(!setBadFilePath(BadFilePath))           return false;
    StatusInterval            = std::max(5U,  StatusInterval);
-   GarbageCollectionInterval = std::max(60U, GarbageCollectionInterval);
+   GarbageCollectionInterval = std::max(10U, GarbageCollectionInterval);
    GarbageCollectionMaxAge   = std::max(60U, GarbageCollectionMaxAge);
 
    return true;

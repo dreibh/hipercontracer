@@ -101,9 +101,9 @@ class UniversalImporter
    std::list<ReaderBase*>                   ReaderList;
    std::map<const WorkerMapping, Worker*>   WorkerMap;
    boost::asio::deadline_timer              StatusTimer;
-   const boost::posix_time::seconds         StatusTimerInterval;
+   const boost::posix_time::time_duration   StatusTimerInterval;
    boost::asio::deadline_timer              GarbageCollectionTimer;
-   const boost::posix_time::seconds         GarbageCollectionTimerInterval;
+   const boost::posix_time::time_duration   GarbageCollectionTimerInterval;
    const std::chrono::seconds               GarbageCollectionMaxAge;
    int                                      INotifyFD;
    boost::bimap<int, std::filesystem::path> INotifyWatchDescriptors;
