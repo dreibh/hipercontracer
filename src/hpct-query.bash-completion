@@ -71,7 +71,7 @@ _hpct_query()
             ;;
          # ====== Special case: file ========================================
          -o | --output)
-            # Arbitrary file names:
+            # HiPerConTracer results file names:
             _filedir '@(hpct\.xz|hpct\.bz2|hpct\.gz|hpct|results\.xz|results\.bz2|results\.gz|results)'
             return
             ;;
