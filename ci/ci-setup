@@ -143,19 +143,19 @@ EOF
       cat /etc/pbuilderrc
       echo "-----------------------------------------------------------------------------"
 
-      OS="${OS}" DIST="${DIST}" ARCH="${ARCH}" pbuilder create \
+      OS="${OS}" DISTRIBUTION="${DIST}" ARCHITECTURE="${ARCH}" pbuilder create \
          --debootstrapopts --variant=buildd \
          | grep -v "^I: Retrieving\|^I: Validating\|^I: Unpacking\|^I: Extracting\|^I: Configuring\|^I: new cache content"
          # --debootstrapopts --keyring=/etc/apt/trusted.gpg
 
       # Speed up pbuilder:
       echo "echo \"force-unsafe-io\" > /etc/dpkg/dpkg.cfg.d/02apt-speedup" | \
-         OS="${OS}" DIST="${DIST}" ARCH="${ARCH}" pbuilder login --save-after-exec
+         OS="${OS}" DISTRIBUTION="${DIST}" ARCHITECTURE="${ARCH}" pbuilder login --save-after-exec
 
       # ====== Add ppa:dreibh/ppa, updates and backports =================
       if [ "${OS}" == "ubuntu" ] ; then
          # Add PPA dreibh/ppa for Ubuntu:
-         OS="${OS}" DIST="${DIST}" ARCH="${ARCH}" pbuilder login --save-after-login <<EOF
+         OS="${OS}" DISTRIBUTION="${DIST}" ARCHITECTURE="${ARCH}" pbuilder login --save-after-login <<EOF
 DEBIAN_FRONTEND=noninteractive apt-get install -qqy -o Dpkg::Options::=--force-confold -o Dpkg::Options::=--force-confdef --no-install-recommends \
 software-properties-common
 apt-add-repository -y ppa:dreibh/ppa
