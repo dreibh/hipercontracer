@@ -146,7 +146,7 @@ void MariaDBClient::handleDatabaseError(const std::string& where,
 
    // ====== Throw exception ================================================
    const std::string e = sqlState.substr(0, 2);
-   if( (e == "42") || (e == "23") || (e == "22") || (e == "XA")) {
+   if( (e == "42") || (e == "23") || (e == "22") || (e == "XA") || (e == "99") ) {
       //  Based on mysql/connector/errors.py:
       // For this type, the input file should be moved to the bad directory.
       throw ResultsDatabaseDataErrorException(what);

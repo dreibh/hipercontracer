@@ -32,7 +32,7 @@ PROJECT(hipercontracer LANGUAGES C CXX)
 
 SET(BUILD_MAJOR "2")
 SET(BUILD_MINOR "0")
-SET(BUILD_PATCH "0~rc1.4")
+SET(BUILD_PATCH "0~rc1.5")
 SET(BUILD_VERSION ${BUILD_MAJOR}.${BUILD_MINOR}.${BUILD_PATCH})
 
 # HiPerConTracer needs at least C++17!
@@ -170,10 +170,10 @@ ENDIF()
 #### REQUIREMENTS                                                        ####
 #############################################################################
 
-# ###### Threads ############################################################
+# ====== Threads ============================================================
 FIND_PACKAGE(Threads REQUIRED)
 
-# ###### Boost ##############################################################
+# ====== Boost ==============================================================
 IF(CMAKE_VERSION VERSION_GREATER_EQUAL "3.30")
    # Use BoostConfig.cmake to find BOOST libraries, if possible.
    CMAKE_POLICY(SET CMP0167 NEW)
@@ -188,7 +188,7 @@ IF (${CMAKE_SYSTEM_NAME} MATCHES "FreeBSD")
    ADD_DEFINITIONS(-DBOOST_ALL_DYN_LINK)   # <<-- Required to handle BOOST Log link problem!
 ENDIF()
 
-# ###### INotify ############################################################
+# ====== INotify ============================================================
 IF(CMAKE_SYSTEM_NAME MATCHES "Linux")
    SET(INotify_FOUND TRUE)
    SET(INotify_LIBRARIES "")
@@ -198,7 +198,7 @@ ELSE()
    FIND_PATH(INotify_INCLUDE_DIRS NAMES sys/inotify.h)
 ENDIF()
 
-# ###### libz ###############################################################
+# ====== libz ===============================================================
 FIND_LIBRARY(Z_LIBRARY NAMES z)
 IF (NOT Z_LIBRARY)
    MESSAGE(FATAL_ERROR
@@ -210,7 +210,7 @@ IF (NOT Z_LIBRARY)
            " * FreeBSD:       sudo pkg install -y ???")
 ENDIF()
 
-# ###### libbz2 #############################################################
+# ====== libbz2 =============================================================
 FIND_LIBRARY(BZ2_LIBRARY NAMES bz2)
 IF (NOT BZ2_LIBRARY)
    MESSAGE(FATAL_ERROR
@@ -222,7 +222,7 @@ IF (NOT BZ2_LIBRARY)
            " * FreeBSD:       sudo pkg install -y bzip2")
 ENDIF()
 
-# ###### liblzma ############################################################
+# ====== liblzma ============================================================
 FIND_LIBRARY(LZMA_LIBRARY NAMES lzma)
 IF (NOT LZMA_LIBRARY)
    MESSAGE(FATAL_ERROR
@@ -234,7 +234,7 @@ IF (NOT LZMA_LIBRARY)
            " * FreeBSD:       sudo pkg install -y lzmalib")
 ENDIF()
 
-# ###### C-ARES #############################################################
+# ====== C-ARES =============================================================
 # IF (WITH_HIPERCONTRACER)
 #    FIND_LIBRARY(CARES_LIBRARY NAMES cares libcares)
 #    IF (NOT CARES_LIBRARY)
@@ -248,7 +248,7 @@ ENDIF()
 #    ENDIF()
 # ENDIF()
 
-# ###### libcrypto ##########################################################
+# ====== libcrypto ==========================================================
 IF (WITH_PIPE_CHECKSUM)
    FIND_LIBRARY(CRYPTO_LIBRARY crypto libcrypto)
    IF (NOT CRYPTO_LIBRARY)
@@ -262,7 +262,7 @@ IF (WITH_PIPE_CHECKSUM)
    ENDIF()
 ENDIF()
 
-# ###### Database client libraries ##########################################
+# ====== Database client libraries ==========================================
 IF (WITH_IMPORTER)
 
    # ------ Debug backend ---------------------------------------------------
@@ -359,7 +359,7 @@ IF (WITH_IMPORTER)
 
 ENDIF()
 
-# ###### Graphics tools for icons and logo ##################################
+# ====== Graphics tools for icons and logo ==================================
 IF (WITH_ICONS)
    FIND_PROGRAM(GS gs PATHS /bin /usr/bin /usr/local/bin)
    IF(NOT GS)
