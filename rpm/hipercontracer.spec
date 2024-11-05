@@ -1,5 +1,5 @@
 Name: hipercontracer
-Version: 2.0.0~rc1
+Version: 2.0.0~rc1.4
 Release: 1
 Summary: High-Performance Connectivity Tracer (HiPerConTracer)
 Group: Applications/Internet
@@ -111,6 +111,7 @@ rmdir /var/hipercontracer/data /var/hipercontracer/good /var/hipercontracer/bad 
 rmdir /var/hipercontracer >/dev/null 2>&1 || true
 
 %files common
+%{_datadir}/hipercontracer/hipercontracer.bib
 %{_datadir}/hipercontracer/hipercontracer.pdf
 %{_datadir}/hipercontracer/hipercontracer.png
 %{_datadir}/hipercontracer/results-examples/HiPerConTracer.R

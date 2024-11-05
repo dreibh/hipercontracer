@@ -190,6 +190,7 @@ IF (WITH_HIPERCONTRACER)
    INSTALL(TARGETS     hipercontracer     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
    INSTALL(FILES       hipercontracer.1   DESTINATION         ${CMAKE_INSTALL_MANDIR}/man1)
    INSTALL(FILES       hipercontracer.xml DESTINATION         ${CMAKE_INSTALL_DATAROOTDIR}/mime/packages)
+   INSTALL(FILES       hipercontracer.bib DESTINATION         ${CMAKE_INSTALL_DATADIR}/hipercontracer)
 
    INSTALL(FILES       hipercontracer.bash-completion
          DESTINATION ${CMAKE_INSTALL_DATADIR}/bash-completion/completions

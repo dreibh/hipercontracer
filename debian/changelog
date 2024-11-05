@@ -1,8 +1,8 @@
-hipercontracer (2.0.0~rc1-1ubuntu1) jammy; urgency=medium
+hipercontracer (2.0.0~rc1.4-1ubuntu1) jammy; urgency=medium
 
   * New upstream release.
 
- -- Thomas Dreibholz <dreibh@simula.no>  Tue, 29 Oct 2024 22:11:30 +0100
+ -- Thomas Dreibholz <dreibh@simula.no>  Fri, 01 Nov 2024 11:34:14 +0100
 
 hipercontracer (1.6.10-1ubuntu1) jammy; urgency=medium
 
