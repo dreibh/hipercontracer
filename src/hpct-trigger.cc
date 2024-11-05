@@ -190,7 +190,7 @@ static void receivedPingV4(const boost::system::error_code& errorCode, std::size
              if( (headerLength + 8 <= length) && (protocol == IPPROTO_ICMP) ) {
                  ICMPHeader header((const char*)&IncomingPingMessageBuffer[headerLength],
                                    length - headerLength);
-                 if(header.type() == ICMPHeader::IPv4EchoRequest) {
+                 if(header.type() == ICMP_ECHO) {
                     handlePing(header, length, length - headerLength - 8);
                  }
              }
@@ -212,7 +212,7 @@ static void receivedPingV6(const boost::system::error_code& errorCode, std::size
          // NOTE: raw socket for IPv6 just delivery the IPv6 payload!
          if(length >= 8) {
             ICMPHeader header((const char*)&IncomingPingMessageBuffer, length);
-            if(header.type() == ICMPHeader::IPv6EchoRequest) {
+            if(header.type() == ICMP6_ECHO_REQUEST) {
                handlePing(header, 40 + length, length - 8);
             }
          }
