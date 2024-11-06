@@ -1,5 +1,5 @@
 Name: hipercontracer
-Version: 2.0.0~rc1.5
+Version: 2.0.0~rc1.7
 Release: 1
 Summary: High-Performance Connectivity Tracer (HiPerConTracer)
 Group: Applications/Internet
@@ -228,6 +228,7 @@ own programs.
 %package trigger
 Summary: Triggered HiPerConTracer service
 Group: Applications/Internet
+Requires: %{name}-common = %{version}-%{release}
 Requires: %{name}-libhipercontracer = %{version}-%{release}
 Recommends: %{name} = %{version}-%{release}
 
@@ -251,10 +252,11 @@ This tool triggers HiPerConTracer by incoming "Ping" packets.
 Summary: HiPerConTracer Sync Tool to synchronise results files to a server
 Group: Applications/File
 BuildArch: noarch
-Recommends: %{name} = %{version}-%{release}
-Recommends: %{name}-results = %{version}-%{release}
+Requires: %{name}-common = %{version}-%{release}
 Requires: openssh-clients
 Requires: rsync
+Recommends: %{name} = %{version}-%{release}
+Recommends: %{name}-results = %{version}-%{release}
 
 %description sync-tool
 High-Performance Connectivity Tracer (HiPerConTracer) is a
@@ -276,6 +278,7 @@ synchronisation of data to a central collection server.
 %package importer
 Summary: HiPerConTracer Importer for importing results into a database
 Group: Applications/Database
+Requires: %{name}-common = %{version}-%{release}
 Requires: %{name}-libuniversalimporter = %{version}-%{release}
 Recommends: %{name} = %{version}-%{release}
 Recommends: %{name}-dbshell = %{version}-%{release}
@@ -336,6 +339,7 @@ HiPerConTracer into an SQL or NoSQL database.
 %package query-tool
 Summary: HiPerConTracer Query Tool to query results from a database
 Group: Applications/Database
+Requires: %{name}-common = %{version}-%{release}
 Requires: %{name}-libuniversalimporter = %{version}-%{release}
 Recommends: %{name} = %{version}-%{release}
 Recommends: %{name}-dbshell = %{version}-%{release}
@@ -359,6 +363,7 @@ from a HiPerConTracer SQL or NoSQL database.
 %package results-tool
 Summary: HiPerConTracer Results Tool to process results files
 Group: Applications/File
+Requires: %{name}-common = %{version}-%{release}
 Requires: %{name}-libuniversalimporter = %{version}-%{release}
 Recommends: %{name} = %{version}-%{release}
 Recommends: %{name}-viewer = %{version}-%{release}
@@ -385,6 +390,7 @@ reading them into spreadsheets, analysis tools, etc.
 Summary: HiPerConTracer Viewer Tool to display results files
 Group: Applications/File
 BuildArch: noarch
+Requires: %{name}-common = %{version}-%{release}
 Requires: %{name}-libuniversalimporter = %{version}-%{release}
 Requires: bzip2
 Requires: gzip

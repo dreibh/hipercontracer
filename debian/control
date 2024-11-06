@@ -28,11 +28,11 @@ Rules-Requires-Root: no
 
 Package: hipercontracer
 Architecture: any
-Depends: libhipercontracer2 (= ${binary:Version}),
+Depends: hipercontracer-common,
+         libhipercontracer2 (= ${binary:Version}),
          ${misc:Depends},
          ${shlibs:Depends}
 Recommends: ethtool,
-            hipercontracer-common,
             hipercontracer-dbeaver-tools,
             hipercontracer-dbshell,
             hipercontracer-importer,
@@ -137,7 +137,8 @@ Description: Development files for HiPerConTracer Universal Importer API library
 
 Package: hipercontracer-trigger
 Architecture: any
-Depends: libhipercontracer2 (= ${binary:Version}),
+Depends: hipercontracer-common,
+         libhipercontracer2 (= ${binary:Version}),
          ${misc:Depends},
          ${shlibs:Depends}
 Recommends: hipercontracer
@@ -151,7 +152,8 @@ Description: Triggered HiPerConTracer service
 
 Package: hipercontracer-sync-tool
 Architecture: all
-Depends: openssh-client,
+Depends: hipercontracer-common,
+         openssh-client,
          rsync,
          ${misc:Depends}
 Recommends: hipercontracer,
@@ -167,11 +169,11 @@ Description: HiPerConTracer Sync Tool to synchronise results files to a server
 
 Package: hipercontracer-importer
 Architecture: any
-Depends: libuniversalimporter2 (= ${binary:Version}),
+Depends: hipercontracer-common,
+         libuniversalimporter2 (= ${binary:Version}),
          ${misc:Depends},
          ${shlibs:Depends}
 Recommends: hipercontracer,
-            hipercontracer-common,
             hipercontracer-dbshell
 Suggests: python3
 Description: HiPerConTracer Importer for importing results into a database
@@ -185,11 +187,11 @@ Description: HiPerConTracer Importer for importing results into a database
 
 Package: hipercontracer-query-tool
 Architecture: any
-Depends: libuniversalimporter2 (= ${binary:Version}),
+Depends: hipercontracer-common,
+         libuniversalimporter2 (= ${binary:Version}),
          ${misc:Depends},
          ${shlibs:Depends}
 Recommends: hipercontracer,
-            hipercontracer-common,
             hipercontracer-dbshell,
             hipercontracer-results-tool,
             hipercontracer-viewer-tool
