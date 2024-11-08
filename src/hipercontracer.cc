@@ -100,6 +100,18 @@ static void cleanAddresses(unsigned int& sourcesIPv4,
          destinationsIPv4++;
       }
    }
+   if( (sourcesIPv4 == 0) && (sourcesIPv6 == 0) ) {
+      if(destinationsIPv4 > 0) {
+         HPCT_LOG(info) << "NOTE: Adding 0.0.0.0 as IPv4 source, since none is given!";
+         addSourceAddress(SourceArray, "0.0.0.0");
+         sourcesIPv4++;
+      }
+      if(destinationsIPv6 > 0) {
+         HPCT_LOG(info) << "NOTE: Adding :: as IPv6 source, since none is given!";
+         addSourceAddress(SourceArray, "::");
+         sourcesIPv6++;
+      }
+   }
    if( (sourcesIPv4 == 0) || (destinationsIPv4 == 0) ) {
       HPCT_LOG(info) << "No IPv4 source-destination pair -> removing IPv4!";
       std::map<boost::asio::ip::address, std::set<uint8_t>>::iterator sourceIterator = SourceArray.begin();

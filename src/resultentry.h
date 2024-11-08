@@ -89,6 +89,19 @@ inline bool statusIsUnreachable(const HopStatus hopStatus)
 }
 
 
+// ###### Is send error? ####################################################
+inline bool statusIsSendError(const HopStatus hopStatus)
+{
+   // Values 200 to 254 => the packet cannot be sent by the sender
+   return( (hopStatus > Timeout) &&
+           (hopStatus < Success) );
+}
+
+
+const char* getStatusColor(const HopStatus hopStatus);
+const char* getStatusName(const HopStatus hopStatus);
+
+
 enum ProtocolType
 {
    PT_ICMP = 'i',

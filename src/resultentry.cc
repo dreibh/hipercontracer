@@ -35,6 +35,59 @@
 #include <boost/format.hpp>
 
 
+// ###### Get ANSI coloring sequence according to hop status ################
+const char* getStatusColor(const HopStatus hopStatus)
+{
+   if(hopStatus == Timeout) {
+      return "\e[37m";
+   }
+   else if(hopStatus == TimeExceeded) {
+      return "\e[36m";
+   }
+   else if(statusIsUnreachable(hopStatus)) {
+      return "\e[31m";
+   }
+   else if(statusIsSendError(hopStatus)) {
+      return "\e[31;47m";
+   }
+   else if(hopStatus == Success) {
+      return "\e[32m";
+   }
+   return "\e[38m";
+}
+
+
+// ###### Get name for status ###############################################
+#define MakeCase(x) \
+   case x: \
+      return #x; \
+    break;
+const char* getStatusName(const HopStatus hopStatus)
+{
+   switch(hopStatus) {
+      MakeCase(Success)
+      MakeCase(Timeout)
+      MakeCase(Unknown)
+      MakeCase(TimeExceeded)
+      MakeCase(UnreachableScope)
+      MakeCase(UnreachableNetwork)
+      MakeCase(UnreachableHost)
+      MakeCase(UnreachableProtocol)
+      MakeCase(UnreachablePort)
+      MakeCase(UnreachableProhibited)
+      MakeCase(UnreachableUnknown)
+      MakeCase(NotSentGenericError)
+      MakeCase(NotSentPermissionDenied)
+      MakeCase(NotSentNetworkUnreachable)
+      MakeCase(NotSentHostUnreachable)
+      MakeCase(NotAvailableAddress)
+      MakeCase(NotValidMsgSize)
+      MakeCase(NotEnoughBufferSpace)
+   }
+   return "Unknown";
+}
+
+
 // ###### Constructor #######################################################
 ResultEntry::ResultEntry()
 {
