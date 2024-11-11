@@ -363,7 +363,7 @@ void Ping::writePingResultEntry(const ResultEntry* resultEntry,
                       % s
                       % q
                       % r
-                      % (std::chrono::duration_cast<std::chrono::nanoseconds>(rttApplication).count() / 1000000.0)
+                      % ap
                       % sw
                       % hw;
    }
