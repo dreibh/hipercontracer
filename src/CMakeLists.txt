@@ -33,8 +33,9 @@
 
 CONFIGURE_FILE (
    "${CMAKE_CURRENT_SOURCE_DIR}/package-version.h.in"
-   "${CMAKE_CURRENT_SOURCE_DIR}/package-version.h"
+   "${CMAKE_CURRENT_BINARY_DIR}/package-version.h"
 )
+INCLUDE_DIRECTORIES(${CMAKE_CURRENT_BINARY_DIR})
 
 
 #############################################################################
@@ -42,61 +43,63 @@ CONFIGURE_FILE (
 #############################################################################
 
 # ====== libhipercontracer ==================================================
-LIST(APPEND libhipercontracer_headers
-   check.h
-   destinationinfo.h
-   iomodule-base.h
-   iomodule-icmp.h
-   iomodule-udp.h
-   jitter.h
-   logger.h
-   ping.h
-   resultentry.h
-   resultswriter.h
-   service.h
-   tools.h
-   traceroute.h
-)
-LIST(APPEND libhipercontracer_sources
-   assure.cc
-   check.cc
-   destinationinfo.cc
-   internet16.cc
-   iomodule-base.cc
-   iomodule-icmp.cc
-   iomodule-udp.cc
-   jitter.cc
-   jitter-rfc3550.cc
-   logger.cc
-   ping.cc
-   resultentry.cc
-   resultswriter.cc
-   service.cc
-   tools.cc
-   traceroute.cc
-   traceserviceheader.cc
-)
+IF (WITH_HIPERCONTRACER)
+   LIST(APPEND libhipercontracer_headers
+      check.h
+      destinationinfo.h
+      iomodule-base.h
+      iomodule-icmp.h
+      iomodule-udp.h
+      # jitter.h
+      logger.h
+      ping.h
+      resultentry.h
+      resultswriter.h
+      service.h
+      tools.h
+      traceroute.h
+   )
+   LIST(APPEND libhipercontracer_sources
+      assure.cc
+      check.cc
+      destinationinfo.cc
+      internet16.cc
+      iomodule-base.cc
+      iomodule-icmp.cc
+      iomodule-udp.cc
+      jitter.cc
+      jitter-rfc3550.cc
+      logger.cc
+      ping.cc
+      resultentry.cc
+      resultswriter.cc
+      service.cc
+      tools.cc
+      traceroute.cc
+      traceserviceheader.cc
+   )
 
-INSTALL(FILES ${libhipercontracer_headers} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/hipercontracer)
+   INSTALL(FILES ${libhipercontracer_headers} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/hipercontracer)
 
-IF (WITH_STATIC_LIBRARIES)
-   ADD_LIBRARY(libhipercontracer-static STATIC ${libhipercontracer_sources})
-ENDIF()
-IF (WITH_SHARED_LIBRARIES)
-   ADD_LIBRARY(libhipercontracer-shared SHARED ${libhipercontracer_sources})
-ENDIF()
-FOREACH(TYPE shared;static)
-   IF ( (("${TYPE}" STREQUAL "static") AND (WITH_STATIC_LIBRARIES)) OR
-        (("${TYPE}" STREQUAL "shared") AND (WITH_SHARED_LIBRARIES)) )
-      SET_TARGET_PROPERTIES(libhipercontracer-${TYPE} PROPERTIES OUTPUT_NAME hipercontracer CLEAN_DIRECT_OUTPUT 1)
-      SET_TARGET_PROPERTIES(libhipercontracer-${TYPE} PROPERTIES
-         VERSION   ${BUILD_VERSION}
-         SOVERSION ${BUILD_MAJOR}
-      )
-      TARGET_LINK_LIBRARIES (libhipercontracer-${TYPE} ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} ${LZMA_LIBRARY} ${BZ2_LIBRARY} ${Z_LIBRARY})
-      INSTALL(TARGETS libhipercontracer-${TYPE} DESTINATION ${CMAKE_INSTALL_LIBDIR})
+   IF (WITH_STATIC_LIBRARIES)
+      ADD_LIBRARY(libhipercontracer-static STATIC ${libhipercontracer_sources})
    ENDIF()
-ENDFOREACH()
+   IF (WITH_SHARED_LIBRARIES)
+      ADD_LIBRARY(libhipercontracer-shared SHARED ${libhipercontracer_sources})
+   ENDIF()
+   FOREACH(TYPE shared;static)
+      IF ( (("${TYPE}" STREQUAL "static") AND (WITH_STATIC_LIBRARIES)) OR
+         (("${TYPE}" STREQUAL "shared") AND (WITH_SHARED_LIBRARIES)) )
+         SET_TARGET_PROPERTIES(libhipercontracer-${TYPE} PROPERTIES OUTPUT_NAME hipercontracer CLEAN_DIRECT_OUTPUT 1)
+         SET_TARGET_PROPERTIES(libhipercontracer-${TYPE} PROPERTIES
+            VERSION   ${BUILD_VERSION}
+            SOVERSION ${BUILD_MAJOR}
+         )
+         TARGET_LINK_LIBRARIES (libhipercontracer-${TYPE} ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} ${LZMA_LIBRARY} ${BZ2_LIBRARY} ${Z_LIBRARY})
+         INSTALL(TARGETS libhipercontracer-${TYPE} DESTINATION ${CMAKE_INSTALL_LIBDIR})
+      ENDIF()
+   ENDFOREACH()
+ENDIF()
 
 # ====== libuniversalimporter ==================================================
 IF (WITH_IMPORTER)
@@ -181,19 +184,22 @@ ELSE()
 ENDIF()
 
 # ====== HiPerConTracer =====================================================
-ADD_EXECUTABLE(hipercontracer hipercontracer.cc)
-TARGET_LINK_LIBRARIES(hipercontracer libhipercontracer-${libraryType} ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
-INSTALL(TARGETS     hipercontracer     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
-INSTALL(FILES       hipercontracer.1   DESTINATION         ${CMAKE_INSTALL_MANDIR}/man1)
-INSTALL(FILES       hipercontracer.xml DESTINATION         ${CMAKE_INSTALL_DATAROOTDIR}/mime/packages)
+IF (WITH_HIPERCONTRACER)
+   ADD_EXECUTABLE(hipercontracer hipercontracer.cc)
+   TARGET_LINK_LIBRARIES(hipercontracer libhipercontracer-${libraryType} ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
+   INSTALL(TARGETS     hipercontracer     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
+   INSTALL(FILES       hipercontracer.1   DESTINATION         ${CMAKE_INSTALL_MANDIR}/man1)
+   INSTALL(FILES       hipercontracer.xml DESTINATION         ${CMAKE_INSTALL_DATAROOTDIR}/mime/packages)
+   INSTALL(FILES       hipercontracer.bib DESTINATION         ${CMAKE_INSTALL_DATADIR}/hipercontracer)
 
-INSTALL(FILES       hipercontracer.bash-completion
-        DESTINATION ${CMAKE_INSTALL_DATADIR}/bash-completion/completions
-        RENAME      hipercontracer)
-IF (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
-   INSTALL(FILES hipercontracer.service       DESTINATION /lib/systemd/system)
-   INSTALL(FILES hipercontracer@.service      DESTINATION /lib/systemd/system)
-   INSTALL(FILES hipercontracer-12345678.conf DESTINATION /etc/hipercontracer)
+   INSTALL(FILES       hipercontracer.bash-completion
+         DESTINATION ${CMAKE_INSTALL_DATADIR}/bash-completion/completions
+         RENAME      hipercontracer)
+   IF (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+      INSTALL(FILES hipercontracer.service       DESTINATION /lib/systemd/system)
+      INSTALL(FILES hipercontracer@.service      DESTINATION /lib/systemd/system)
+      INSTALL(FILES hipercontracer-12345678.conf DESTINATION /etc/hipercontracer)
+   ENDIF()
 ENDIF()
 
 # ====== HiPerConTracer Trigger =============================================
@@ -205,6 +211,11 @@ IF (WITH_TRIGGER)
    INSTALL(FILES       hpct-trigger.bash-completion
            DESTINATION ${CMAKE_INSTALL_DATADIR}/bash-completion/completions
            RENAME      hpct-trigger)
+   IF (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+      INSTALL(FILES hpct-trigger.service       DESTINATION /lib/systemd/system)
+      INSTALL(FILES hpct-trigger@.service      DESTINATION /lib/systemd/system)
+      INSTALL(FILES hpct-trigger-87654321.conf DESTINATION /etc/hipercontracer)
+   ENDIF()
 ENDIF()
 
 
@@ -263,6 +274,16 @@ IF (WITH_RESULTS)
    INSTALL(FILES       hpct-results.bash-completion
            DESTINATION ${CMAKE_INSTALL_DATADIR}/bash-completion/completions
            RENAME      hpct-results)
+ENDIF()
+
+# ====== HiPerConTracer Viewer Tool =========================================
+IF (WITH_VIEWER)
+   INSTALL(PROGRAMS    hpct-viewer         DESTINATION ${CMAKE_INSTALL_BINDIR})
+   INSTALL(FILES       hpct-viewer.1       DESTINATION ${CMAKE_INSTALL_MANDIR}/man1)
+   INSTALL(FILES       hpct-viewer.desktop DESTINATION         ${CMAKE_INSTALL_DATAROOTDIR}/applications)
+   INSTALL(FILES       hpct-viewer.bash-completion
+           DESTINATION ${CMAKE_INSTALL_DATADIR}/bash-completion/completions
+           RENAME      hpct-viewer)
 ENDIF()
 
 # ====== HiPerConTracer Database Shell ======================================

@@ -67,9 +67,9 @@ static boost::asio::signal_set                               Signals(IOService, 
 static boost::posix_time::milliseconds                       CleanupTimerInterval(1000);
 static boost::asio::deadline_timer                           CleanupTimer(IOService, CleanupTimerInterval);
 
-static unsigned int                                          PingsBeforeQueuing = 3;
-static unsigned int                                          PingTriggerLength  = 53;
-static unsigned int                                          PingTriggerAge     = 300;
+static unsigned int                                          TriggerPingsBeforeQueuing;
+static unsigned int                                          TriggerPingPacketSize;
+static unsigned int                                          TriggerPingAge;
 
 
 // ###### Signal handler ####################################################
@@ -108,7 +108,7 @@ static void tryCleanup(const boost::system::error_code& errorCode)
          std::map<boost::asio::ip::address, TargetInfo*>::iterator current = iterator;
          iterator++;
          TargetInfo* targetInfo = current->second;
-         if(now - targetInfo->LastSeen >= std::chrono::seconds(PingTriggerAge)) {
+         if(now - targetInfo->LastSeen >= std::chrono::seconds(TriggerPingAge)) {
             TargetMap.erase(current);
             delete targetInfo;
          }
@@ -123,12 +123,15 @@ static void tryCleanup(const boost::system::error_code& errorCode)
 
 
 // ###### Handle Ping #######################################################
-static void handlePing(const ICMPHeader& header, const std::size_t payloadLength)
+static void handlePing(const ICMPHeader& header,
+                       const std::size_t totalLength,
+                       const std::size_t payloadLength)
 {
    HPCT_LOG(trace) << "Ping from " << IncomingPingSource.address()
+                   << ", total "   << totalLength
                    << ", payload " << payloadLength;
 
-   if(payloadLength == PingTriggerLength) {
+   if(totalLength == TriggerPingPacketSize) {
       std::map<boost::asio::ip::address, TargetInfo*>::iterator found =
          TargetMap.find(IncomingPingSource.address());
       if(found != TargetMap.end()) {
@@ -137,7 +140,7 @@ static void handlePing(const ICMPHeader& header, const std::size_t payloadLength
          targetInfo->LastSeen = std::chrono::steady_clock::now();
          HPCT_LOG(trace) << "Triggered: " <<  IncomingPingSource.address()
                          << ", n=" << targetInfo->TriggerCounter;
-         if(targetInfo->TriggerCounter >= PingsBeforeQueuing) {
+         if(targetInfo->TriggerCounter >= TriggerPingsBeforeQueuing) {
             for(std::set<Service*>::iterator serviceIterator = ServiceSet.begin(); serviceIterator != ServiceSet.end(); serviceIterator++) {
                Service* service = *serviceIterator;
 
@@ -187,8 +190,8 @@ static void receivedPingV4(const boost::system::error_code& errorCode, std::size
              if( (headerLength + 8 <= length) && (protocol == IPPROTO_ICMP) ) {
                  ICMPHeader header((const char*)&IncomingPingMessageBuffer[headerLength],
                                    length - headerLength);
-                 if(header.type() == ICMPHeader::IPv4EchoRequest) {
-                    handlePing(header, length - headerLength - 8);
+                 if(header.type() == ICMP_ECHO) {
+                    handlePing(header, length, length - headerLength - 8);
                  }
              }
          }
@@ -209,8 +212,8 @@ static void receivedPingV6(const boost::system::error_code& errorCode, std::size
          // NOTE: raw socket for IPv6 just delivery the IPv6 payload!
          if(length >= 8) {
             ICMPHeader header((const char*)&IncomingPingMessageBuffer, length);
-            if(header.type() == ICMPHeader::IPv6EchoRequest) {
-               handlePing(header, length - 8);
+            if(header.type() == ICMP6_ECHO_REQUEST) {
+               handlePing(header, 40 + length, length - 8);
             }
          }
       }
@@ -402,14 +405,14 @@ int main(int argc, char** argv)
            boost::program_options::value<bool>(&jitterRecordRawResults)->default_value(false)->implicit_value(true),
            "Record raw Ping results for Jitter computation" )
 
-      ( "pingsbeforequeuing",
-           boost::program_options::value<unsigned int>(&PingsBeforeQueuing)->default_value(3),
+      ( "triggerpingsbeforequeuing",
+           boost::program_options::value<unsigned int>(&TriggerPingsBeforeQueuing)->default_value(3),
            "Pings before queuing" )
-      ( "pingtriggerlength",
-           boost::program_options::value<unsigned int>(&PingTriggerLength)->default_value(53),
+      ( "triggerpingpacketsize",
+           boost::program_options::value<unsigned int>(&TriggerPingPacketSize)->default_value(67),
            "Ping trigger length in B" )
-      ( "pingtriggerage",
-           boost::program_options::value<unsigned int>(&PingTriggerAge)->default_value(300),
+      ( "triggerpingage",
+           boost::program_options::value<unsigned int>(&TriggerPingAge)->default_value(300),
            "Ping trigger age in s" )
 
       ( "resultsdirectory,R",
@@ -567,6 +570,9 @@ int main(int argc, char** argv)
    }
 
    std::srand(std::time(nullptr));
+   TriggerPingAge                       = std::max(1U, TriggerPingAge);
+   TriggerPingsBeforeQueuing            = std::max(1U, TriggerPingsBeforeQueuing);
+   TriggerPingPacketSize                = std::min(std::max(64U, TriggerPingPacketSize), 65535U);
    jitterParameters.Interval            = std::min(std::max(100ULL, jitterParameters.Interval),        3600U*10000ULL);
    jitterParameters.Expiration          = std::min(std::max(100U, jitterParameters.Expiration),        3600U*10000U);
    jitterParameters.InitialMaxTTL       = std::min(std::max(1U, jitterParameters.InitialMaxTTL),       255U);
@@ -637,9 +643,9 @@ int main(int argc, char** argv)
    }
 
    HPCT_LOG(info) << "Trigger:" << std::endl
-                  << "* Ping Trigger Age     = " << PingTriggerAge << " s" << std::endl
-                  << "* Ping Trigger Length  = " << PingTriggerLength      << std::endl
-                  << "* Pings before Queuing = " << PingsBeforeQueuing;
+                  << "* Trigger Ping  Age     = " << TriggerPingAge << " s" << std::endl
+                  << "* Trigger Ping  Length  = " << TriggerPingPacketSize      << std::endl
+                  << "* Trigger Pings b. Qng. = " << TriggerPingsBeforeQueuing;
 
 
    // ====== Start service threads ==========================================
@@ -672,7 +678,7 @@ int main(int argc, char** argv)
                if(!resultsDirectory.empty()) {
                   resultsWriter = ResultsWriter::makeResultsWriter(
                                      ResultsWriterSet, ProgramID, measurementID,
-                                     sourceAddress, "TriggeredJitter-" + ioModule,
+                                     sourceAddress, "Jitter-" + ioModule,
                                      resultsDirectory, resultsTransactionLength, resultsTimestampDepth,
                                      (pw != nullptr) ? pw->pw_uid : 0, (pw != nullptr) ? pw->pw_gid : 0,
                                      resultsCompression);
@@ -703,7 +709,7 @@ int main(int argc, char** argv)
                if(!resultsDirectory.empty()) {
                   resultsWriter = ResultsWriter::makeResultsWriter(
                                      ResultsWriterSet, ProgramID, measurementID,
-                                     sourceAddress, "TriggeredPing-" + ioModule,
+                                     sourceAddress, "Ping-" + ioModule,
                                      resultsDirectory, resultsTransactionLength, resultsTimestampDepth,
                                      (pw != nullptr) ? pw->pw_uid : 0, (pw != nullptr) ? pw->pw_gid : 0,
                                      resultsCompression);
@@ -734,7 +740,7 @@ int main(int argc, char** argv)
                if(!resultsDirectory.empty()) {
                   resultsWriter = ResultsWriter::makeResultsWriter(
                                      ResultsWriterSet, ProgramID, measurementID,
-                                     sourceAddress, "TriggeredTraceroute-" + ioModule,
+                                     sourceAddress, "Traceroute-" + ioModule,
                                      resultsDirectory, resultsTransactionLength, resultsTimestampDepth,
                                      (pw != nullptr) ? pw->pw_uid : 0, (pw != nullptr) ? pw->pw_gid : 0,
                                      resultsCompression);

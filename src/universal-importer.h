@@ -47,8 +47,7 @@ class UniversalImporter
    public:
    UniversalImporter(boost::asio::io_service&     ioService,
                      const ImporterConfiguration& importerConfiguration,
-                     const DatabaseConfiguration& databaseConfiguration,
-                     const unsigned int           statusTimerInterval = 60);
+                     const DatabaseConfiguration& databaseConfiguration);
    ~UniversalImporter();
 
    void addReader(ReaderBase&          reader,
@@ -61,7 +60,8 @@ class UniversalImporter
    void waitForFinish();
    void run();
 
-   friend std::ostream& operator<<(std::ostream& os, const UniversalImporter& importer);
+   friend std::ostream& operator<<(std::ostream&            os,
+                                   const UniversalImporter& importer);
 
    private:
    void handleSignalEvent(const boost::system::error_code& errorCode,
@@ -74,6 +74,14 @@ class UniversalImporter
    bool addFile(const std::filesystem::path& dataFile);
    bool removeFile(const std::filesystem::path& dataFile);
    void handleStatusTimer(const boost::system::error_code& errorCode);
+
+   static bool getLastWriteTimePoint(
+                  const std::filesystem::path                         path,
+                  std::chrono::time_point<std::chrono::system_clock>& lastWriteTimePoint);
+   void addOrUpdateLastWriteTimePoint(const std::filesystem::path directory);
+   void removeLastWriteTimePoint(const std::filesystem::path directory);
+   void performDirectoryCleanUp();
+   void handleGarbageCollectionTimer(const boost::system::error_code& errorCode);
 
    struct WorkerMapping {
       ReaderBase*  Reader;
@@ -93,9 +101,14 @@ class UniversalImporter
    std::list<ReaderBase*>                   ReaderList;
    std::map<const WorkerMapping, Worker*>   WorkerMap;
    boost::asio::deadline_timer              StatusTimer;
-   const boost::posix_time::seconds         StatusTimerInterval;
+   const boost::posix_time::time_duration   StatusTimerInterval;
+   boost::asio::deadline_timer              GarbageCollectionTimer;
+   const boost::posix_time::time_duration   GarbageCollectionTimerInterval;
+   const std::chrono::seconds               GarbageCollectionMaxAge;
    int                                      INotifyFD;
    boost::bimap<int, std::filesystem::path> INotifyWatchDescriptors;
+   std::map<const std::filesystem::path,
+            SystemTimePoint>                INotifyWatchLastWrite;
    boost::asio::posix::stream_descriptor    INotifyStream;
    char                                     INotifyEventBuffer[65536 * sizeof(inotify_event)];
 };

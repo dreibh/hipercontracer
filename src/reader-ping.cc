@@ -37,8 +37,8 @@
 
 const std::string PingReader::Identification("Ping");
 const std::regex  PingReader::FileNameRegExp(
-   // Format: Ping-(Protocol-|)[P#]<ID>-<Source>-<YYYYMMDD>T<Seconds.Microseconds>-<Sequence>.(hpct|results)(<EXT>)
-   "^Ping-([A-Z]+-|)([#P])([0-9]+)-([0-9a-f:\\.]+)-([0-9]{8}T[0-9]+\\.[0-9]{6})-([0-9]*)\\.(hpct|results)(.*)$"
+   // Format: Ping-(Protocol-|)[P#]<ID>-<Source>-<YYYYMMDD>T<Seconds.Microseconds>-<Sequence>.(hpct|results)(<.xz|.bz2|.gz|>)
+   "^Ping-([A-Z]+-|)([#P])([0-9]+)-([0-9a-f:\\.]+)-([0-9]{8}T[0-9]+\\.[0-9]{6})-([0-9]*)\\.(hpct|results)(\\.xz|\\.bz2|\\.gz|)$"
 );
 
 

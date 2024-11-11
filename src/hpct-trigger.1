@@ -28,7 +28,7 @@
 .\" Contact: dreibh@simula.no
 .\"
 .\" ###### Setup ############################################################
-.Dd October 17, 2024
+.Dd October 31, 2024
 .Dt hpct-trigger 1
 .Os hpct-trigger
 .\" ###### Name #############################################################
@@ -38,9 +38,9 @@
 .\" ###### Synopsis #########################################################
 .Sh SYNOPSIS
 .Nm hpct-trigger
-.Op Fl Fl pingtriggerage Ar seconds
-.Op Fl Fl pingtriggerlength Ar payload_length
-.Op Fl Fl pingsbeforequeuing Ar count
+.Op Fl Fl triggerpingage Ar seconds
+.Op Fl Fl triggerpingpacketsize Ar payload_length
+.Op Fl Fl triggerpingsbeforequeuing Ar count
 .Op Fl P | Fl Fl ping
 .Op Fl T | Fl Fl traceroute
 .Op Fl J | Fl Fl jitter
@@ -56,7 +56,7 @@
 .Op Fl Fl sources-from-file Ar file
 .Op Fl Fl destinations-from-file Ar file
 .Op Fl M Ar ICMP|UDP | Fl Fl iomodule Ar ICMP|UDP
-.Op Fl Fl iterations Ar number_of_iterations
+.Op Fl I Ar number_of_iterations | Fl Fl iterations Ar number_of_iterations
 .Op Fl Fl tracerouteinterval Ar milliseconds
 .Op Fl Fl tracerouteintervaldeviation Ar fraction
 .Op Fl Fl tracerouteduration Ar milliseconds
@@ -93,20 +93,17 @@
 .\" ###### Description ######################################################
 .Sh DESCRIPTION
 .Nm hpct-trigger
-is a tool to trigger HiPerConTracer runs, based on observed incoming "Ping"
-packets. Once the given number of such packets with a given size has been
-observed from a source, a Ping or Traceroute is triggered to the corresponding
-address.
+is a tool to trigger HiPerConTracer measurement, based on observed incoming ICMP Ping packets. Once the given number of such packets with a given size has been observed from a source, a Ping or Traceroute is triggered to the corresponding remote address.
 .Pp
 .\" ###### Arguments ########################################################
 .Sh ARGUMENTS
 The following arguments may be provided:
 .Bl -tag -width indent
-.It Fl Fl pingtriggerage Ar seconds
+.It Fl Fl triggerpingage Ar seconds
 Sets the maximum number of seconds between two trigger "Pings" (default: 300).
-.It Fl Fl pingtriggerlength Ar payload_length
-Sets the "Ping" payload length to trigger HiPerConTracer (default: 53).
-.It Fl Fl pingsbeforequeuing Ar count
+.It Fl Fl triggerpingpacketsize Ar payload_length
+Sets the "Ping" total length (IP header + ICMP header + HiPerCOnTracer header) to trigger a HiPerConTracer measurement (default: 67).
+.It Fl Fl triggerpingsbeforequeuing Ar count
 Sets the number of observed "Ping" packets before triggering HiPerConTracer
 (default: 3).
 .El
@@ -115,11 +112,13 @@ format.
 .\" ###### Examples #########################################################
 .Sh EXAMPLES
 .Bl -tag -width indent
-.It hpct-trigger \-\-source 10.1.1.51 \-\-traceroute \-\-verbose \-\-pingsbeforequeuing 2 \-\-pingtriggerlength 88
-.It hpct-trigger \-\-source 10.1.1.51 \-\-pingtriggerage 1800 \-\-ping \-\-verbose
+.It hpct-trigger \-\-source 10.1.1.51 \-\-traceroute \-\-verbose \-\-triggerpingsbeforequeuing 2 \-\-triggerpingpacketsize 88
+.It hpct-trigger \-\-source 10.1.1.51 \-\-triggerpingage 1800 \-\-ping \-\-verbose
 .It hpct-trigger \-\-source=10.1.1.51 \-\-traceroute \-\-resultsdirectory=/tmp/results \-\-resultstransactionlength=60 \-\-resultstimestampdepth 3
-.It hpct-trigger \-\-source=172.16.1.2,BE,EF \-\-source=172.17.1.2,BE,AF11,AF21 \-\-pingtriggerage=1800 \-\-ping \-\-verbose
-.It hpct-trigger \-\-source 10.1.1.51 \-\-pingtriggerage 1800 \-\-ping \-\-traceroute \-\-iomodule ICMP \-\-iomodule UDP
+.It hpct-trigger \-\-source=172.16.1.2,BE,EF \-\-source=172.17.1.2,BE,AF11,AF21 \-\-triggerpingage=1800 \-\-ping \-\-verbose
+.It hpct-trigger \-\-source 10.1.1.51 \-\-triggerpingage 1800 \-\-ping \-\-traceroute \-\-iomodule ICMP \-\-iomodule UDP
+.It hipercontracer -S 0.0.0.0 -S :: -D <TARGET> --ping --pingpacketsize 67 --iterations 3 --verbose
+.It hipercontracer -S 0.0.0.0 -S :: -D <TARGET> -P --pingpacketsize 88 -I 3 -v
 .El
 .\" ###### Authors ##########################################################
 .Sh AUTHORS

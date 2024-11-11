@@ -33,6 +33,7 @@
 #include "logger.h"
 
 #include <functional>
+#include <iostream>
 #include <boost/format.hpp>
 
 
@@ -116,7 +117,12 @@ void Ping::scheduleTimeoutEvent()
 // ###### All requests have received a response #############################
 void Ping::noMoreOutstandingRequests()
 {
-   // Nothing to do for Ping!
+   if((Iterations > 0) && (IterationNumber >= Iterations)) {
+      // No more outstanding requests in last iteration
+      // => No need to wait any longer!
+      HPCT_LOG(trace) << getName() << ": No more outstanding requests in last iteration -> done!";
+      TimeoutTimer.cancel();
+   }
 }
 
 
@@ -243,6 +249,7 @@ void Ping::processResults()
 void Ping::writePingResultEntry(const ResultEntry* resultEntry,
                                 const char*        indentation)
 {
+   // ====== Write to results file ==========================================
    if(ResultsOutput) {
 
       // ====== Current output format =======================================
@@ -313,5 +320,51 @@ void Ping::writePingResultEntry(const ResultEntry* resultEntry,
          ));
       }
 
+   }
+
+   // ====== Write to stdout ================================================
+   // This output is made when no results file is written. Then, the user
+   // should get a useful (i.e. reduced, readable) stdout output.
+   else {
+      unsigned int   timeSource;
+      ResultDuration rttApplication;
+      ResultDuration rttSoftware;
+      ResultDuration rttHardware;
+      ResultDuration delayAppSend;
+      ResultDuration delayAppReceive;
+      ResultDuration delayQueuing;
+
+      resultEntry->obtainResultsValues(timeSource,
+                                       rttApplication, rttSoftware, rttHardware,
+                                       delayQueuing, delayAppSend, delayAppReceive);
+
+      const long long usSend        = std::chrono::duration_cast<std::chrono::nanoseconds>(delayAppSend).count();
+      const long long usQueuing     = std::chrono::duration_cast<std::chrono::nanoseconds>(delayQueuing).count();
+      const long long usReceive     = std::chrono::duration_cast<std::chrono::nanoseconds>(delayAppReceive).count();
+      const long long nsApplication = std::chrono::duration_cast<std::chrono::nanoseconds>(rttApplication).count();
+      const long long nsSoftware    = std::chrono::duration_cast<std::chrono::nanoseconds>(rttSoftware).count();
+      const long long nsHardware    = std::chrono::duration_cast<std::chrono::nanoseconds>(rttHardware).count();
+      const std::string s  = (usSend < 0)     ? "-----" : str(boost::format("%3.0fµs") % (usSend     / 1000.0));
+      const std::string q  = (usQueuing < 0)  ? "-----" : str(boost::format("%3.0fµs") % (usQueuing  / 1000.0));
+      const std::string r  = (usReceive < 0)  ? "-----" : str(boost::format("%3.0fµs") % (usReceive  / 1000.0));
+      const std::string ap = (resultEntry->status() == Timeout) ?
+                                "TIMEOUT" :
+                                str(boost::format("%3.3fms") % (nsApplication / 1000000.0));
+      const std::string sw = (nsSoftware < 0) ? "---" : str(boost::format("%3.3fms") % (nsSoftware / 1000000.0));
+      const std::string hw = (nsHardware < 0) ? "---" : str(boost::format("%3.3fms") % (nsHardware / 1000000.0));
+
+      std::cout << boost::format("%s%s: Ping %-4s  %-36s %-36s %s\ts:%s q:%s r:%s\tA:%-9s S:%-9s H:%-9s\e[0m\n")
+                      % getStatusColor(resultEntry->status())
+                      % timePointToString<ResultTimePoint>(resultEntry->sendTime(TXTimeStampType::TXTST_Application), 3)
+                      % IOModule->getProtocolName()
+                      % resultEntry->sourceAddress().to_string()
+                      % resultEntry->destinationAddress().to_string()
+                      % getStatusName(resultEntry->status())
+                      % s
+                      % q
+                      % r
+                      % ap
+                      % sw
+                      % hw;
    }
 }

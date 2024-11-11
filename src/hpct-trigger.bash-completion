@@ -1,3 +1,4 @@
+# shellcheck shell=bash
 # ==========================================================================
 #     _   _ _ ____            ____          _____
 #    | | | (_)  _ \ ___ _ __ / ___|___  _ _|_   _| __ __ _  ___ ___ _ __
@@ -48,9 +49,9 @@ _hpct_trigger()
 
    case "${prev}" in
       #  ====== Generic value ===============================================
-      --pingtriggerage                | \
-      --pingtriggerlength             | \
-      --pingsbeforequeuing            | \
+      --triggerpingage                | \
+      --triggerpingpacketsize             | \
+      --triggerpingsbeforequeuing     | \
       -L | --loglevel                 | \
       -U | --userid                   | \
       -# | --measurement-id           | \
@@ -92,7 +93,7 @@ _hpct_trigger()
       # ====== Special case: log file =======================================
       -O | --logfile)
          # Files with extension .log:
-         COMPREPLY=( $( compgen -f -X "!*.log" -- "${cur}" ) )
+         _filedir '@(log)'
          return
          ;;
       # ====== Special case: source address =================================
@@ -110,22 +111,22 @@ _hpct_trigger()
       --sources-from-file | \
       --destinations-from-file)
          # Arbitrary file names:
-         COMPREPLY=( $( compgen -f -- "${cur}" ) )
+         _filedir
          return
          ;;
       # ====== Special case: directory ======================================
       -R | --resultsdirectory)
          # Arbitrary directories:
-         COMPREPLY=( $( compgen -A directory -- "${cur}" ) )
+         _filedir -d
          return
          ;;
    esac
 
    # ====== All options =====================================================
    local opts="
---pingtriggerage
---pingtriggerlength
---pingsbeforequeuing
+--triggerpingage
+--triggerpingpacketsize
+--triggerpingsbeforequeuing
 -P
 --ping
 -T

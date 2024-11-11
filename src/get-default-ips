@@ -35,14 +35,14 @@ set -eu
 # ###### Find all interfaces with configured default route ##################
 OS=$(uname)
 if [ "${OS}" == "Linux" ] ; then
-   INTERFACES_WITH_DEFAULT_ROUTE_IPv4=$(/bin/ip -4 route show default | (
+   INTERFACES_WITH_DEFAULT_ROUTE_IPv4=$(/sbin/ip -4 route show default | (
       while read -r line ; do
          if [[ "${line}" =~ ^(default)([[:space:]]*)(.*)(dev)([[:space:]]*)([^[:space:]]*)([[:space:]]*) ]] ; then
             echo "${BASH_REMATCH[6]}"
          fi
       done
    ) | sort -u | xargs)
-   INTERFACES_WITH_DEFAULT_ROUTE_IPv6=$(/bin/ip -6 route show default | (
+   INTERFACES_WITH_DEFAULT_ROUTE_IPv6=$(/sbin/ip -6 route show default | (
       while read -r line ; do
          if [[ "${line}" =~ ^(default)([[:space:]]*)(.*)(dev)([[:space:]]*)([^[:space:]]*)([[:space:]]*) ]] ; then
             echo "${BASH_REMATCH[6]}"

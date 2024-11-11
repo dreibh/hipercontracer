@@ -38,7 +38,7 @@ Type=simple
 User=hipercontracer
 Group=hipercontracer
 WorkingDirectory=/var/hipercontracer
-EnvironmentFile=/etc/hipercontracer/hpct-importer-service.conf
+EnvironmentFile=/etc/hipercontracer/hpct-importer.conf
 
 ExecStart=/usr/bin/hpct-importer \
    --importer-config "${IMPORTER_CONFIG}" \

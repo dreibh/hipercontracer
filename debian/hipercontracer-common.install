@@ -1,3 +1,6 @@
+usr/share/hipercontracer/hipercontracer.bib
+usr/share/hipercontracer/hipercontracer.pdf
+usr/share/hipercontracer/hipercontracer.png
 usr/share/hipercontracer/results-examples/*-*.hpct.*
 usr/share/hipercontracer/results-examples/*-*.results.*
 usr/share/hipercontracer/results-examples/HiPerConTracer.R
@@ -5,6 +8,6 @@ usr/share/hipercontracer/results-examples/README.md
 usr/share/hipercontracer/results-examples/r-install-dependencies
 usr/share/hipercontracer/results-examples/r-ping-example
 usr/share/hipercontracer/results-examples/r-traceroute-example
-usr/share/icons/hicolor/512x512/apps/hipercontracer.png
+usr/share/icons/hicolor/*x*/apps/hipercontracer.png
 usr/share/icons/hicolor/scalable/apps/hipercontracer.svg
 usr/share/mime/packages/hipercontracer.xml

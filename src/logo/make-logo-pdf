@@ -1,3 +1,4 @@
+#!/bin/sh -e
 # ==========================================================================
 #     _   _ _ ____            ____          _____
 #    | | | (_)  _ \ ___ _ __ / ___|___  _ _|_   _| __ __ _  ___ ___ _ __
@@ -27,38 +28,16 @@
 #
 # Contact: dreibh@simula.no
 
-[Unit]
-Description=HiPerConTracer Measurement %i
-PartOf=hipercontracer.service
-Documentation=man:hipercontracer(1)
-After=network-online.target
-Wants=network-online.target
+INPUT="Logo-HiPerConTracer.dia"
+OUTPUT="hipercontracer"
 
-[Service]
-Type=simple
-# NOTE: User will be changed to "hipercontracer" after startup!
-User=root
-Group=hipercontracer
-WorkingDirectory=/var/hipercontracer/data
-EnvironmentFile=/etc/hipercontracer/hipercontracer-%i.conf
-ExecStart=/bin/sh -cx "/usr/bin/hipercontracer \
-   --user hipercontracer \
-   --loglevel ${LOGLEVEL} \
-   --measurement-id %i \
-   --resultsdirectory /var/hipercontracer/data \
-   ${HPCT_OPTIONS}"
+# Conversion of Dia to EPS and PDF:
+dia -n -t eps-pango -e "${OUTPUT}.eps" "${INPUT}"
+epstopdf --outfile="${OUTPUT}.pdf.tmp" "${OUTPUT}.eps"
+pdfcrop --hires "${OUTPUT}.pdf.tmp" "${OUTPUT}.pdf"
+rm -f "${OUTPUT}.pdf.tmp"
 
-KillSignal=SIGINT
-KillMode=control-group
-TimeoutStopSec=60
-Restart=on-failure
-RestartSec=60
-
-ProtectSystem=true
-ProtectHome=true
-PrivateNetwork=no
-PrivateTmp=yes
-CapabilityBoundingSet=CAP_NET_ADMIN CAP_NET_BIND_SERVICE CAP_NET_RAW CAP_SETGID CAP_SETUID CAP_CHOWN CAP_DAC_OVERRIDE LimitNPROC=64
-
-[Install]
-WantedBy=default.target
+# Conversion of Dia to PDF:
+# dia -n -t cairo-pdf -e "${OUTPUT}.pdf.tmp" "${INPUT}"
+# pdfcrop --hires "${OUTPUT}.pdf.tmp" "${OUTPUT}.pdf"
+# rm -f "${OUTPUT}.pdf.tmp"

@@ -410,8 +410,8 @@ void UDPModule::handlePayloadResponse(const int     socketDescriptor,
          if(is) {
 
             // ------ IPv6 -> ICMPv6[Error] ---------------------------------
-            if( (icmpHeader.type() == ICMPHeader::IPv6TimeExceeded) ||
-                (icmpHeader.type() == ICMPHeader::IPv6Unreachable) ) {
+            if( (icmpHeader.type() == ICMP6_TIME_EXCEEDED) ||
+                (icmpHeader.type() == ICMP6_DST_UNREACH) ) {
                // ------ IPv6 -> ICMPv6[Error] -> IPv6 ----------------------
                IPv6Header innerIPv6Header;
                is >> innerIPv6Header;
@@ -451,8 +451,8 @@ void UDPModule::handlePayloadResponse(const int     socketDescriptor,
             if(is) {
 
                // ------ IPv4 -> ICMP[Error] --------------------------------
-               if( (icmpHeader.type() == ICMPHeader::IPv4TimeExceeded) ||
-                   (icmpHeader.type() == ICMPHeader::IPv4Unreachable) ) {
+               if( (icmpHeader.type() == ICMP_TIMXCEED) ||
+                   (icmpHeader.type() == ICMP_UNREACH) ) {
                   // ------ IPv4 -> ICMP[Error] -> IPv4 ---------------------
                   IPv4Header innerIPv4Header;
                   is >> innerIPv4Header;

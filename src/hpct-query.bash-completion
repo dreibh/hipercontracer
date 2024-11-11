@@ -1,3 +1,4 @@
+# shellcheck shell=bash
 # ==========================================================================
 #     _   _ _ ____            ____          _____
 #    | | | (_)  _ \ ___ _ __ / ___|___  _ _|_   _| __ __ _  ___ ___ _ __
@@ -46,35 +47,54 @@ _hpct_query()
       cword="${COMP_CWORD}"
    fi
 
-   case "${prev}" in
-      #  ====== Generic value ===============================================
-      -L | --loglevel       | \
-      -T | --table          | \
-      -V | --table-version  | \
-      --from-time           | \
-      --to_time             | \
-      --from-measurement-id | \
-      --to_measurement-id)
-         return
-         ;;
-      # ====== Special case: file ===========================================
-      -o | --output | \
-      -M | --address-to-measurementid)
-         COMPREPLY=( $( compgen -f -- "${cur}" ) )
-         return
-         ;;
-      # ====== Special case: log file =======================================
-      -O | --logfile)
-         # Files with extension .log:
-         COMPREPLY=( $( compgen -f -X "!*.log" -- "${cur}" ) )
-         return
-         ;;
-      # ====== Special case: on/off =========================================
-      -Z | --logcolor)
-         COMPREPLY=($(compgen -W "on off" --  "${cur}"))
-         return
-         ;;
-   esac
+   # ====== Database configuration file =====================================
+   if [ "${cword}" -eq 1 ] ; then
+      _filedir '@(conf)'
+      return
+
+   # ====== Measurement type ================================================
+   elif [ "${cword}" -eq 2 ] ; then
+      COMPREPLY=($(compgen -W "ping traceroute" --  "${cur}"))
+      return
+
+   # ====== Options =========================================================
+   else
+      case "${prev}" in
+         #  ====== Generic value ============================================
+         -L | --loglevel       | \
+         -T | --table          | \
+         -V | --table-version  | \
+         --from-time           | \
+         --to-time             | \
+         --from-measurement-id | \
+         --to-measurement-id)
+            return
+            ;;
+         # ====== Special case: file ========================================
+         -o | --output)
+            # HiPerConTracer results file names:
+            _filedir '@(hpct\.xz|hpct\.bz2|hpct\.gz|hpct|results\.xz|results\.bz2|results\.gz|results)'
+            return
+            ;;
+         # ====== Special case: file ========================================
+         -M | --address-to-measurementid)
+            # Arbitrary file names:
+            _filedir
+            return
+            ;;
+         # ====== Special case: log file ====================================
+         -O | --logfile)
+            # Files with extension .log:
+            _filedir '@(log)'
+            return
+            ;;
+         # ====== Special case: on/off ======================================
+         -Z | --logcolor)
+            COMPREPLY=($(compgen -W "on off" --  "${cur}"))
+            return
+            ;;
+      esac
+   fi
 
    # ====== All options =====================================================
    local opts="
@@ -97,9 +117,9 @@ _hpct_query()
 -M
 --address-to-measurementid
 --from-time
---to_time
+--to-time
 --from-measurement-id
---to_measurement-id
+--to-measurement-id
 "
    COMPREPLY=( $( compgen -W "${opts}" -- "${cur}" ) )
    return 0

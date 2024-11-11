@@ -327,6 +327,7 @@ void IOModuleBase::recordResult(const ReceivedData&  receivedData,
    }
 
    // ====== Get status =====================================================
+
    if(resultEntry->status() == Unknown) {
       resultEntry->setResponseSize(responseLength);
 
@@ -346,59 +347,66 @@ void IOModuleBase::recordResult(const ReceivedData&  receivedData,
 
       // Set ICMP error status:
       HopStatus status = Unknown;
-      if( (icmpType == ICMPHeader::IPv6TimeExceeded) ||
-          (icmpType == ICMPHeader::IPv4TimeExceeded) ) {
-         status = TimeExceeded;
-      }
-      else if( (icmpType == ICMPHeader::IPv6Unreachable) ||
-               (icmpType == ICMPHeader::IPv4Unreachable) ) {
-         if(SourceAddress.is_v6()) {
-            switch(icmpCode) {
-               case ICMP6_DST_UNREACH_ADMIN:
-                  status = UnreachableProhibited;
-               break;
-               case ICMP6_DST_UNREACH_BEYONDSCOPE:
-                  status = UnreachableScope;
-               break;
-               case ICMP6_DST_UNREACH_NOROUTE:
-                  status = UnreachableNetwork;
-               break;
-               case ICMP6_DST_UNREACH_ADDR:
-                  status = UnreachableHost;
-               break;
-               case ICMP6_DST_UNREACH_NOPORT:
-                  status = UnreachablePort;
-               break;
-               default:
-                  status = UnreachableUnknown;
-               break;
+      if(SourceAddress.is_v6()) {
+         if(icmpType == ICMP6_TIME_EXCEEDED) {
+            status = TimeExceeded;
+         }
+         else if(icmpType == ICMP6_DST_UNREACH) {
+            if(SourceAddress.is_v6()) {
+               switch(icmpCode) {
+                  case ICMP6_DST_UNREACH_ADMIN:
+                     status = UnreachableProhibited;
+                   break;
+                  case ICMP6_DST_UNREACH_BEYONDSCOPE:
+                     status = UnreachableScope;
+                   break;
+                  case ICMP6_DST_UNREACH_NOROUTE:
+                     status = UnreachableNetwork;
+                   break;
+                  case ICMP6_DST_UNREACH_ADDR:
+                     status = UnreachableHost;
+                   break;
+                  case ICMP6_DST_UNREACH_NOPORT:
+                     status = UnreachablePort;
+                   break;
+                  default:
+                     status = UnreachableUnknown;
+                  break;
+               }
             }
          }
-         else {
+         else if(icmpType == ICMP6_ECHO_REPLY) {
+            status = Success;
+         }
+      }
+      else {
+         if(icmpType == ICMP_TIMXCEED) {
+            status = TimeExceeded;
+         }
+         else if(icmpType == ICMP_UNREACH) {
             switch(icmpCode) {
                case ICMP_UNREACH_FILTER_PROHIB:
                   status = UnreachableProhibited;
-               break;
+                break;
                case ICMP_UNREACH_NET:
                case ICMP_UNREACH_NET_UNKNOWN:
                   status = UnreachableNetwork;
-               break;
+                break;
                case ICMP_UNREACH_HOST:
                case ICMP_UNREACH_HOST_UNKNOWN:
                   status = UnreachableHost;
-               break;
+                break;
                case ICMP_UNREACH_PORT:
                   status = UnreachablePort;
-               break;
+                break;
                default:
                   status = UnreachableUnknown;
-               break;
+                break;
             }
          }
-      }
-      else if( (icmpType == ICMPHeader::IPv6EchoReply) ||
-               (icmpType == ICMPHeader::IPv4EchoReply) ) {
-         status = Success;
+         else if(icmpType == ICMP_ECHOREPLY) {
+            status = Success;
+         }
       }
       resultEntry->setStatus(status);
 
