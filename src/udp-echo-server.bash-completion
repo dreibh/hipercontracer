@@ -1,3 +1,4 @@
+# shellcheck shell=bash
 # ==========================================================================
 #     _   _ _ ____            ____          _____
 #    | | | (_)  _ \ ___ _ __ / ___|___  _ _|_   _| __ __ _  ___ ___ _ __
@@ -59,7 +60,7 @@ _udp_echo_server()
       # ====== Special case: log file =======================================
       -O | --logfile)
          # Files with extension .log:
-         COMPREPLY=( $( compgen -f -X "!*.log" -- "${cur}" ) )
+         _filedir '@(log)'
          return
          ;;
       # ====== Special case: on/off =========================================

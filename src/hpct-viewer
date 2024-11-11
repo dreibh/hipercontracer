@@ -1,3 +1,4 @@
+#!/usr/bin/env bash
 # ==========================================================================
 #     _   _ _ ____            ____          _____
 #    | | | (_)  _ \ ___ _ __ / ___|___  _ _|_   _| __ __ _  ___ ___ _ __
@@ -27,38 +28,25 @@
 #
 # Contact: dreibh@simula.no
 
-[Unit]
-Description=HiPerConTracer Measurement %i
-PartOf=hipercontracer.service
-Documentation=man:hipercontracer(1)
-After=network-online.target
-Wants=network-online.target
+set -eu
 
-[Service]
-Type=simple
-# NOTE: User will be changed to "hipercontracer" after startup!
-User=root
-Group=hipercontracer
-WorkingDirectory=/var/hipercontracer/data
-EnvironmentFile=/etc/hipercontracer/hipercontracer-%i.conf
-ExecStart=/bin/sh -cx "/usr/bin/hipercontracer \
-   --user hipercontracer \
-   --loglevel ${LOGLEVEL} \
-   --measurement-id %i \
-   --resultsdirectory /var/hipercontracer/data \
-   ${HPCT_OPTIONS}"
 
-KillSignal=SIGINT
-KillMode=control-group
-TimeoutStopSec=60
-Restart=on-failure
-RestartSec=60
+# ====== Handle arguments ===================================================
+if [ $# -ne 1 ] ; then
+   echo >&2 "Usage: $0 results_file"
+   exit 1
+fi
+inputFile="$1"
 
-ProtectSystem=true
-ProtectHome=true
-PrivateNetwork=no
-PrivateTmp=yes
-CapabilityBoundingSet=CAP_NET_ADMIN CAP_NET_BIND_SERVICE CAP_NET_RAW CAP_SETGID CAP_SETUID CAP_CHOWN CAP_DAC_OVERRIDE LimitNPROC=64
-
-[Install]
-WantedBy=default.target
+# ====== Process file =======================================================
+# Currently, just run "less". In the future, a more powerful anaylsis tool
+# may be started here ...
+if [[ "${inputFile}" =~ \.xz$ ]] ; then
+   xzless "${inputFile}"
+elif [[ "${inputFile}" =~ \.bz2$ ]] ; then
+   bzless "${inputFile}"
+elif [[ "${inputFile}" =~ \.gz$ ]] ; then
+   zless "${inputFile}"
+else
+   less "${inputFile}"
+fi

@@ -1,3 +1,4 @@
+# shellcheck shell=bash
 # ==========================================================================
 #     _   _ _ ____            ____          _____
 #    | | | (_)  _ \ ___ _ __ / ___|___  _ _|_   _| __ __ _  ___ ___ _ __
@@ -27,38 +28,32 @@
 #
 # Contact: dreibh@simula.no
 
-[Unit]
-Description=HiPerConTracer Measurement %i
-PartOf=hipercontracer.service
-Documentation=man:hipercontracer(1)
-After=network-online.target
-Wants=network-online.target
 
-[Service]
-Type=simple
-# NOTE: User will be changed to "hipercontracer" after startup!
-User=root
-Group=hipercontracer
-WorkingDirectory=/var/hipercontracer/data
-EnvironmentFile=/etc/hipercontracer/hipercontracer-%i.conf
-ExecStart=/bin/sh -cx "/usr/bin/hipercontracer \
-   --user hipercontracer \
-   --loglevel ${LOGLEVEL} \
-   --measurement-id %i \
-   --resultsdirectory /var/hipercontracer/data \
-   ${HPCT_OPTIONS}"
+# ###### Bash completion for hpct-viewer ####################################
+_hpct_viewer()
+{
+   # Based on: https://www.benningtons.net/index.php/bash-completion/
+   local cur prev words cword
+   if type -t _comp_initialize >/dev/null; then
+      _comp_initialize || return
+   elif type -t _init_completion >/dev/null; then
+      _init_completion || return
+   else
+      # Manual initialization for older bash completion versions:
+      COMPREPLY=()
+      cur="${COMP_WORDS[COMP_CWORD]}"
+      prev="${COMP_WORDS[COMP_CWORD-1]}"
+      words="${COMP_WORDS}"
+      cword="${COMP_CWORD}"
+   fi
 
-KillSignal=SIGINT
-KillMode=control-group
-TimeoutStopSec=60
-Restart=on-failure
-RestartSec=60
+   if [ "${cword}" -eq 1 ] ; then
+      # HiPerConTracer results file names:
+      _filedir '@(hpct\.xz|hpct\.bz2|hpct\.gz|hpct|results\.xz|results\.bz2|results\.gz|results)'
+      return
+   fi
 
-ProtectSystem=true
-ProtectHome=true
-PrivateNetwork=no
-PrivateTmp=yes
-CapabilityBoundingSet=CAP_NET_ADMIN CAP_NET_BIND_SERVICE CAP_NET_RAW CAP_SETGID CAP_SETUID CAP_CHOWN CAP_DAC_OVERRIDE LimitNPROC=64
+   return 0
+}
 
-[Install]
-WantedBy=default.target
+complete -F _hpct_viewer hpct-viewer

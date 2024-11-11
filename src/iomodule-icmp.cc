@@ -240,7 +240,7 @@ unsigned int ICMPModule::sendRequest(const DestinationInfo& destination,
    // ====== Prepare ICMP header ============================================
    ICMPHeader echoRequest;
    echoRequest.type((SourceAddress.is_v6() == true) ?
-      ICMPHeader::IPv6EchoRequest : ICMPHeader::IPv4EchoRequest);
+                       ICMP6_ECHO_REQUEST : ICMP_ECHO);
    echoRequest.code(0);
    echoRequest.identifier(Identifier);
 
@@ -645,7 +645,7 @@ void ICMPModule::handlePayloadResponse(const int     socketDescriptor,
       if(is) {
 
          // ------ IPv6 -> ICMPv6[Echo Reply] -------------------------------
-         if( (icmpHeader.type() == ICMPHeader::IPv6EchoReply) &&
+         if( (icmpHeader.type() == ICMP6_ECHO_REPLY) &&
              (icmpHeader.identifier() == Identifier) ) {
             // ------ TraceServiceHeader ------------------------------------
             TraceServiceHeader tsHeader;
@@ -663,8 +663,8 @@ void ICMPModule::handlePayloadResponse(const int     socketDescriptor,
          }
 
          // ------ IPv6 -> ICMPv6[Error] ------------------------------------
-         else if( (icmpHeader.type() == ICMPHeader::IPv6TimeExceeded) ||
-                  (icmpHeader.type() == ICMPHeader::IPv6Unreachable) ) {
+         else if( (icmpHeader.type() == ICMP6_TIME_EXCEEDED) ||
+                  (icmpHeader.type() == ICMP6_DST_UNREACH) ) {
             IPv6Header innerIPv6Header;
             ICMPHeader innerICMPHeader;
             TraceServiceHeader tsHeader;
@@ -695,7 +695,7 @@ void ICMPModule::handlePayloadResponse(const int     socketDescriptor,
          if(is) {
 
             // ------ IPv4 -> ICMP[Echo Reply] ------------------------------
-            if( (icmpHeader.type() == ICMPHeader::IPv4EchoReply) &&
+            if( (icmpHeader.type() == ICMP_ECHOREPLY) &&
                 (icmpHeader.identifier() == Identifier) ) {
                // ------ TraceServiceHeader ---------------------------------
                TraceServiceHeader tsHeader;
@@ -713,8 +713,8 @@ void ICMPModule::handlePayloadResponse(const int     socketDescriptor,
             }
 
             // ------ IPv4 -> ICMP[Error] -----------------------------------
-            else if( (icmpHeader.type() == ICMPHeader::IPv4TimeExceeded) ||
-                     (icmpHeader.type() == ICMPHeader::IPv4Unreachable) ) {
+            else if( (icmpHeader.type() == ICMP_TIMXCEED) ||
+                     (icmpHeader.type() == ICMP_UNREACH) ) {
                IPv4Header innerIPv4Header;
                ICMPHeader innerICMPHeader;
                is >> innerIPv4Header >> innerICMPHeader;

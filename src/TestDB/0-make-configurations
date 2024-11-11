@@ -91,6 +91,13 @@ good_file_path     = good/
 move_directory_depth = 2
 move_timestamp_depth = 3
 
+# Interval for showing current importer status in output log (in s, minimum 5):
+status_interval = 60
+# Interval for directory garbage collection (in s, minimum 10):
+gc_interval = 65
+# Maximum age for unused, empty directories (in s, minimum 60):
+gc_max_age = 120
+
 # Custom table mappings (Reader:Table):
 # table = Ping:Ping
 # table = Traceroute:Traceroute

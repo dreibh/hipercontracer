@@ -32,7 +32,7 @@ PROJECT(hipercontracer LANGUAGES C CXX)
 
 SET(BUILD_MAJOR "2")
 SET(BUILD_MINOR "0")
-SET(BUILD_PATCH "0~rc0")
+SET(BUILD_PATCH "0~rc1.7")
 SET(BUILD_VERSION ${BUILD_MAJOR}.${BUILD_MINOR}.${BUILD_PATCH})
 
 # HiPerConTracer needs at least C++17!
@@ -121,36 +121,39 @@ INCLUDE(CheckIncludeFile)
 INCLUDE(CheckStructHasMember)
 INCLUDE(CheckCCompilerFlag)
 
-OPTION(WITH_STATIC_LIBRARIES "Build static libraries" 0)
-OPTION(WITH_SHARED_LIBRARIES "Build shared libraries" 1)
+OPTION(WITH_STATIC_LIBRARIES "Build static libraries"              0)
+OPTION(WITH_SHARED_LIBRARIES "Build shared libraries"              1)
+OPTION(STATIC_BUILD          "Build statically-linked executables" 0)
 IF ((NOT WITH_STATIC_LIBRARIES) AND (NOT WITH_SHARED_LIBRARIES))
    MESSAGE(FATAL_ERROR "Static (WITH_STATIC_LIBRARIES) or shared (WITH_SHARED_LIBRARIES) libraries must be enabled!")
 ENDIF()
 
-OPTION(STATIC_BUILD "Build statically-linked executables" 0)
 IF (STATIC_BUILD)
    IF (WITH_SHARED_LIBRARIES)
-      MESSAGE(FATAL_ERROR "STATIC_BUILD=ON cannot be used with WITH_SHARED_LIBRARIES=ON!")
+      MESSAGE(FATAL_ERROR "WITH_STATIC_LIBRARIES=ON cannot be used with WITH_SHARED_LIBRARIES=ON!")
    ENDIF()
    MESSAGE("Building static executables")
    SET(CMAKE_FIND_LIBRARY_SUFFIXES ".a")
-   SET(Boost_USE_STATIC_LIBS ON)
-   SET(CMAKE_EXE_LINKER_FLAGS "-static")
+   SET(Boost_USE_STATIC_LIBS       ON)
+   SET(CMAKE_EXE_LINKER_FLAGS      "-static")
 ELSE()
    IF (NOT WITH_SHARED_LIBRARIES)
       MESSAGE(FATAL_ERROR "STATIC_BUILD=OFF cannot be used with WITH_SHARED_LIBRARIES=OFF!")
    ENDIF()
 ENDIF()
 
+OPTION(WITH_HIPERCONTRACER  "Build HiPerConTracer"                      1)
 OPTION(WITH_TRIGGER         "Build HiPerConTracer Trigger"              1)
 OPTION(WITH_IMPORTER        "Build HiPerConTracer Importer"             1)
 OPTION(WITH_SYNC            "Build HiPerConTracer Synchronisation Tool" 1)
 OPTION(WITH_QUERY           "Build HiPerConTracer Query Tool"           1)
 OPTION(WITH_RESULTS         "Build HiPerConTracer Results Tool"         1)
+OPTION(WITH_VIEWER          "Build HiPerConTracer Viewer Tool"          1)
 OPTION(WITH_DBSHELL         "Build HiPerConTracer Database Shell"       1)
 OPTION(WITH_DBEAVER_TOOLS   "Build HiPerConTracer DBeaver Tools"        1)
 OPTION(WITH_PIPE_CHECKSUM   "Build Pipe Checksum Tool"                  1)
 OPTION(WITH_UDP_ECHO_SERVER "Build UDP Echo Server"                     1)
+OPTION(WITH_ICONS           "Build HiPerConTracer icons and logo files" 1)
 
 
 #############################################################################
@@ -167,10 +170,10 @@ ENDIF()
 #### REQUIREMENTS                                                        ####
 #############################################################################
 
-# ###### Threads ############################################################
+# ====== Threads ============================================================
 FIND_PACKAGE(Threads REQUIRED)
 
-# ###### Boost ##############################################################
+# ====== Boost ==============================================================
 IF(CMAKE_VERSION VERSION_GREATER_EQUAL "3.30")
    # Use BoostConfig.cmake to find BOOST libraries, if possible.
    CMAKE_POLICY(SET CMP0167 NEW)
@@ -185,7 +188,7 @@ IF (${CMAKE_SYSTEM_NAME} MATCHES "FreeBSD")
    ADD_DEFINITIONS(-DBOOST_ALL_DYN_LINK)   # <<-- Required to handle BOOST Log link problem!
 ENDIF()
 
-# ###### INotify ############################################################
+# ====== INotify ============================================================
 IF(CMAKE_SYSTEM_NAME MATCHES "Linux")
    SET(INotify_FOUND TRUE)
    SET(INotify_LIBRARIES "")
@@ -195,7 +198,7 @@ ELSE()
    FIND_PATH(INotify_INCLUDE_DIRS NAMES sys/inotify.h)
 ENDIF()
 
-# ###### libz ###############################################################
+# ====== libz ===============================================================
 FIND_LIBRARY(Z_LIBRARY NAMES z)
 IF (NOT Z_LIBRARY)
    MESSAGE(FATAL_ERROR
@@ -207,7 +210,7 @@ IF (NOT Z_LIBRARY)
            " * FreeBSD:       sudo pkg install -y ???")
 ENDIF()
 
-# ###### libbz2 #############################################################
+# ====== libbz2 =============================================================
 FIND_LIBRARY(BZ2_LIBRARY NAMES bz2)
 IF (NOT BZ2_LIBRARY)
    MESSAGE(FATAL_ERROR
@@ -219,7 +222,7 @@ IF (NOT BZ2_LIBRARY)
            " * FreeBSD:       sudo pkg install -y bzip2")
 ENDIF()
 
-# ###### liblzma ############################################################
+# ====== liblzma ============================================================
 FIND_LIBRARY(LZMA_LIBRARY NAMES lzma)
 IF (NOT LZMA_LIBRARY)
    MESSAGE(FATAL_ERROR
@@ -231,19 +234,21 @@ IF (NOT LZMA_LIBRARY)
            " * FreeBSD:       sudo pkg install -y lzmalib")
 ENDIF()
 
-# ###### C-ARES #############################################################
-FIND_LIBRARY(CARES_LIBRARY NAMES cares libcares)
-IF (NOT CARES_LIBRARY)
-   MESSAGE(FATAL_ERROR
-           " Cannot find C-ARES DNS resolver library! Try:\n"
-           " * Ubuntu/Debian: sudo apt install -y libc-ares-dev\n"
-           " * Fedora:        sudo dnf install -y c-ares-devel\n"
-           " * SuSE:          sudo zypper install -y c-ares-devel\n"
-           " * Alpine:        sudo apk add c-ares-dev\n"
-           " * FreeBSD:       sudo pkg install -y c-ares")
-ENDIF()
+# ====== C-ARES =============================================================
+# IF (WITH_HIPERCONTRACER)
+#    FIND_LIBRARY(CARES_LIBRARY NAMES cares libcares)
+#    IF (NOT CARES_LIBRARY)
+#       MESSAGE(FATAL_ERROR
+#             " Cannot find C-ARES DNS resolver library! Try:\n"
+#             " * Ubuntu/Debian: sudo apt install -y libc-ares-dev\n"
+#             " * Fedora:        sudo dnf install -y c-ares-devel\n"
+#             " * SuSE:          sudo zypper install -y c-ares-devel\n"
+#             " * Alpine:        sudo apk add c-ares-dev\n"
+#             " * FreeBSD:       sudo pkg install -y c-ares")
+#    ENDIF()
+# ENDIF()
 
-# ###### libcrypto ##########################################################
+# ====== libcrypto ==========================================================
 IF (WITH_PIPE_CHECKSUM)
    FIND_LIBRARY(CRYPTO_LIBRARY crypto libcrypto)
    IF (NOT CRYPTO_LIBRARY)
@@ -257,7 +262,7 @@ IF (WITH_PIPE_CHECKSUM)
    ENDIF()
 ENDIF()
 
-# ###### Database client libraries ##########################################
+# ====== Database client libraries ==========================================
 IF (WITH_IMPORTER)
 
    # ------ Debug backend ---------------------------------------------------
@@ -350,6 +355,37 @@ IF (WITH_IMPORTER)
       ENDIF()
    ELSE()
       MESSAGE("MongoDB backend disabled!")
+   ENDIF()
+
+ENDIF()
+
+# ====== Graphics tools for icons and logo ==================================
+IF (WITH_ICONS)
+   FIND_PROGRAM(GS gs PATHS /bin /usr/bin /usr/local/bin)
+   IF(NOT GS)
+      MESSAGE(FATAL_ERROR
+            " Cannot find GhostScript! Try:\n"
+            " * Ubuntu/Debian: sudo apt install -y ghostscript\n"
+            " * Fedora:        sudo dnf install -y ghostscript\n"
+            " * FreeBSD:       sudo pkg install -y ghostscript10")
+   ENDIF()
+
+   FIND_PROGRAM(PDF2SVG pdf2svg PATHS /bin /usr/bin /usr/local/bin)
+   IF(NOT PDF2SVG)
+      MESSAGE(FATAL_ERROR
+            " Cannot find PDF2SVG! Try:\n"
+            " * Ubuntu/Debian: sudo apt install -y pdf2svg\n"
+            " * Fedora:        sudo dnf install -y pdf2svg\n"
+            " * FreeBSD:       sudo pkg install -y pdf2svg")
+   ENDIF()
+
+   FIND_PROGRAM(GM gm PATHS /bin /usr/bin /usr/local/bin)
+   IF(NOT GM)
+      MESSAGE(FATAL_ERROR
+            " Cannot find GraphicsMagick! Try:\n"
+            " * Ubuntu/Debian: sudo apt install -y graphicsmagick\n"
+            " * Fedora:        sudo dnf install -y GraphicsMagick\n"
+            " * FreeBSD:       sudo pkg install -y GraphicsMagick")
    ENDIF()
 ENDIF()
 

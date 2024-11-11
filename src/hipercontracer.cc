@@ -70,6 +70,101 @@ static void signalHandler(const boost::system::error_code& error, int signal_num
 }
 
 
+// ###### Filter source/destination addresses ###############################
+static void cleanAddresses(unsigned int& sourcesIPv4,
+                           unsigned int& sourcesIPv6,
+                           unsigned int& destinationsIPv4,
+                           unsigned int& destinationsIPv6)
+{
+   sourcesIPv4 = 0;
+   sourcesIPv6 = 0;
+   for(std::map<boost::asio::ip::address, std::set<uint8_t>>::iterator sourceIterator = SourceArray.begin();
+      sourceIterator != SourceArray.end(); sourceIterator++) {
+      const boost::asio::ip::address& sourceAddress = sourceIterator->first;
+      if(sourceAddress.is_v6()) {
+         sourcesIPv6++;
+      }
+      else {
+         sourcesIPv4++;
+      }
+   }
+   destinationsIPv4 = 0;
+   destinationsIPv6 = 0;
+   for(std::set<boost::asio::ip::address>::iterator destinationIterator = DestinationArray.begin();
+         destinationIterator != DestinationArray.end(); destinationIterator++) {
+      const boost::asio::ip::address& destinationAddress = *destinationIterator;
+      if(destinationAddress.is_v6()) {
+         destinationsIPv6++;
+      }
+      else {
+         destinationsIPv4++;
+      }
+   }
+   if( (sourcesIPv4 == 0) && (sourcesIPv6 == 0) ) {
+      if(destinationsIPv4 > 0) {
+         HPCT_LOG(info) << "NOTE: Adding 0.0.0.0 as IPv4 source, since none is given!";
+         addSourceAddress(SourceArray, "0.0.0.0");
+         sourcesIPv4++;
+      }
+      if(destinationsIPv6 > 0) {
+         HPCT_LOG(info) << "NOTE: Adding :: as IPv6 source, since none is given!";
+         addSourceAddress(SourceArray, "::");
+         sourcesIPv6++;
+      }
+   }
+   if( (sourcesIPv4 == 0) || (destinationsIPv4 == 0) ) {
+      HPCT_LOG(info) << "No IPv4 source-destination pair -> removing IPv4!";
+      std::map<boost::asio::ip::address, std::set<uint8_t>>::iterator sourceIterator = SourceArray.begin();
+      while(sourceIterator != SourceArray.end()) {
+         const boost::asio::ip::address& sourceAddress = sourceIterator->first;
+         if(sourceAddress.is_v4()) {
+            sourceIterator = SourceArray.erase(sourceIterator);
+            sourcesIPv4--;
+         }
+         else {
+            sourceIterator++;
+         }
+      }
+      std::set<boost::asio::ip::address>::iterator destinationIterator = DestinationArray.begin();
+      while(destinationIterator != DestinationArray.end()) {
+         const boost::asio::ip::address& destinationAddress = *destinationIterator;
+         if(destinationAddress.is_v4()) {
+            destinationIterator = DestinationArray.erase(destinationIterator);
+            destinationsIPv4--;
+         }
+         else {
+            destinationIterator++;
+         }
+      }
+   }
+   if( (sourcesIPv6 == 0) || (destinationsIPv6 == 0) ) {
+      HPCT_LOG(info) << "No IPv6 source-destination pair -> removing IPv6!";
+      std::map<boost::asio::ip::address, std::set<uint8_t>>::iterator sourceIterator = SourceArray.begin();
+      while(sourceIterator != SourceArray.end()) {
+         const boost::asio::ip::address& sourceAddress = sourceIterator->first;
+         if(sourceAddress.is_v6()) {
+            sourceIterator = SourceArray.erase(sourceIterator);
+            sourcesIPv6--;
+         }
+         else {
+            sourceIterator++;
+         }
+      }
+      std::set<boost::asio::ip::address>::iterator destinationIterator = DestinationArray.begin();
+      while(destinationIterator != DestinationArray.end()) {
+         const boost::asio::ip::address& destinationAddress = *destinationIterator;
+         if(destinationAddress.is_v6()) {
+            destinationIterator = DestinationArray.erase(destinationIterator);
+            destinationsIPv6--;
+         }
+         else {
+            destinationIterator++;
+         }
+      }
+   }
+}
+
+
 // ###### Check whether services can be cleaned up ##########################
 static void tryCleanup(const boost::system::error_code& errorCode)
 {
@@ -441,6 +536,11 @@ int main(int argc, char** argv)
       HPCT_LOG(fatal) << "Cannot find user \"" << user << "\"!";
       return 1;
    }
+   unsigned int sourcesIPv4;
+   unsigned int sourcesIPv6;
+   unsigned int destinationsIPv4;
+   unsigned int destinationsIPv6;
+   cleanAddresses(sourcesIPv4, sourcesIPv6, destinationsIPv4, destinationsIPv6);
    if( (SourceArray.size() < 1) || (DestinationArray.size() < 1) ) {
       HPCT_LOG(fatal) << "At least one source and one destination are needed!";
       return 1;
@@ -449,6 +549,9 @@ int main(int argc, char** argv)
       HPCT_LOG(fatal) << "Enable at least on service (Traceroute, Ping, Jitter)!";
       return 1;
    }
+   HPCT_LOG(info) << "Addresses:" << "\n"
+                  << "* Sources            = " << sourcesIPv4 << " IPv4 / " << sourcesIPv6 << " IPv6\n"
+                  << "* Destinations       = " << destinationsIPv4 << " IPv4 / " << destinationsIPv6 << " IPv6";
 
    std::srand(std::time(nullptr));
    jitterParameters.Interval            = std::min(std::max(100ULL, jitterParameters.Interval),        3600U*10000ULL);

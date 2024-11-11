@@ -1,3 +1,4 @@
+# shellcheck shell=bash
 # ==========================================================================
 #     _   _ _ ____            ____          _____
 #    | | | (_)  _ \ ___ _ __ / ___|___  _ _|_   _| __ __ _  ___ ___ _ __
@@ -48,7 +49,8 @@ _dbshell()
 
    # ====== Database configuration file =====================================
    if [ "${cword}" -eq 1 ] ; then
-      COMPREPLY=( $( compgen -f -X "!*.conf" -- "${cur}" ) )
+      # Files with extension .conf:
+      _filedir '@(conf)'
       return
    fi
 
@@ -56,7 +58,7 @@ _dbshell()
       # ====== Special case: file ===========================================
       -B | --write-dbeaver-config)
          # Arbitrary file names:
-         COMPREPLY=( $( compgen -f -- "${cur}" ) )
+         _filedir
          return
          ;;
    esac
