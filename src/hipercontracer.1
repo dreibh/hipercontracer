@@ -28,7 +28,7 @@
 .\" Contact: dreibh@simula.no
 .\"
 .\" ###### Setup ############################################################
-.Dd October 17, 2024
+.Dd November 7, 2024
 .Dt hipercontracer 1
 .Os hipercontracer
 .\" ###### Name #############################################################
@@ -53,7 +53,7 @@
 .Op Fl Fl sources-from-file Ar file
 .Op Fl Fl destinations-from-file Ar file
 .Op Fl M Ar ICMP|UDP|TCP | Fl Fl iomodule Ar ICMP|UDP|TCP
-.Op Fl Fl iterations Ar number_of_iterations
+.Op Fl I Ar number_of_iterations | Fl Fl iterations Ar number_of_iterations
 .Op Fl Fl tracerouteinterval Ar milliseconds
 .Op Fl Fl tracerouteintervaldeviation Ar fraction
 .Op Fl Fl tracerouteduration Ar milliseconds
@@ -135,6 +135,7 @@ Adds the given source address or hostname. It is possible to use the ANY address
 If no traffic class is given, Best Effort (00) is used. Otherwise, the list of given traffic classes (in hexadecimal) is used. Alternatively, a traffic class can be specified by PHB name (BE, EF, AF11, AF12, AF13, AF21, AF22, AF23, AF31, AF32, AF33, AF41, AF42, AF43, CS1, CS2, CS3, CS4, CS5, CS6, CS7). In this case, the corresponding traffic class with ECN bits set to 0 is used.
 Note: use lower-case hexadecimal letters to avoid ambiguities with PHB name (e.g. be for 0xbe instead of BE PHB)!
 If a hostname is provided, a DNS resolution is performed and all returned addresses are added.
+If no source address is provided, HiPerConTracer automatically adds 0.0.0.0 if there is an IPv4 destination, and :: if there is an IPv6 destination given.
 .It Fl D Ar address|hostname | Fl Fl destination Ar address|hostname
 Adds the given destination address or hostname.
 If a hostname is provided, a DNS resolution is performed and all returned addresses are added.
@@ -142,9 +143,15 @@ If a hostname is provided, a DNS resolution is performed and all returned addres
 Read sources from given file. This option may be used multiple times, to read from multiple files.
 .It Fl Fl destinations-from-file Ar file
 Read destinations from given file. This option may be used multiple times, to read from multiple files.
+<<<<<<< HEAD
 .It Fl M Ar ICMP|UDP|TCP | Fl Fl iomodule Ar ICMP|UDP|TCP
 Adds an I/O module: ICMP, UDP or TCP. The option may be specified multiple times with different modules.
 .It Fl Fl iterations Ar number_of_iterations
+=======
+.It Fl M Ar ICMP|UDP | Fl Fl iomodule Ar ICMP|UDP
+Adds an I/O module: ICMP or UDP. The option may be specified multiple times with different modules.
+.It Fl I Ar number_of_iterations | Fl Fl iterations Ar number_of_iterations
+>>>>>>> dreibh/jitter
 Limit the number of measurement iterations (measurement for all source/destination
 pairs) to the given number of iterations. The default 0 lets HiPerConTracer run
 continuously.

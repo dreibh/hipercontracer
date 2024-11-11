@@ -7,6 +7,8 @@ Vcs-Git: https://github.com/dreibh/hipercontracer.git
 Vcs-Browser: https://github.com/dreibh/hipercontracer
 Build-Depends: cmake (>= 3.10),
                debhelper (>= 12),
+               ghostscript,
+               graphicsmagick,
                libboost-date-time-dev,
                libboost-filesystem-dev,
                libboost-iostreams-dev,
@@ -15,35 +17,22 @@ Build-Depends: cmake (>= 3.10),
                libboost-system-dev,
                libboost-thread-dev,
                libbz2-dev,
-               libc-ares-dev,
                liblzma-dev,
                libmariadb-dev,
                libmongoc-dev,
                libpqxx-dev,
+               pdf2svg,
                zlib1g-dev
 Standards-Version: 4.7.0
 Rules-Requires-Root: no
 
-Package: libhipercontracer2
-Section: libs
-Architecture: any
-Depends: ${misc:Depends},
-         ${shlibs:Depends}
-Description: API library of HiPerConTracer
- High-Performance Connectivity Tracer (HiPerConTracer) is a
- Ping/Traceroute service. It performs regular Ping and Traceroute runs
- among sites. The results are written to data files, which can be
- imported into an SQL or NoSQL database.
- .
- The HiPerConTracer library is provided by this package.
-
 Package: hipercontracer
 Architecture: any
-Depends: libhipercontracer2 (= ${binary:Version}),
+Depends: hipercontracer-common,
+         libhipercontracer2 (= ${binary:Version}),
          ${misc:Depends},
          ${shlibs:Depends}
 Recommends: ethtool,
-            hipercontracer-common,
             hipercontracer-dbeaver-tools,
             hipercontracer-dbshell,
             hipercontracer-importer,
@@ -51,7 +40,9 @@ Recommends: ethtool,
             hipercontracer-results-tool,
             hipercontracer-sync-tool,
             hipercontracer-trigger,
-            hipercontracer-udp-echo-server
+            hipercontracer-udp-echo-server,
+            hipercontracer-viewer-tool,
+            iproute
 Suggests: netperfmeter,
           td-system-info
 Description: High-Performance Connectivity Tracer (HiPerConTracer)
@@ -76,137 +67,18 @@ Description: HiPerConTracer common files
  The package contains common files for HiPerConTracer and the
  HiPerConTracer tools packages.
 
-Package: hipercontracer-dbeaver-tools
-Architecture: all
-Depends: hipercontracer-dbshell (>= ${source:Version}),
-         jq,
-         openssl,
-         ${misc:Depends}
-Description: HiPerConTracer DBeaver Tools for configuring access to databases
- High-Performance Connectivity Tracer (HiPerConTracer) is a
- Ping/Traceroute service. It performs regular Ping and Traceroute runs
- among sites. The results are written to data files, which can be
- imported into an SQL or NoSQL database.
- .
- This package contains helper scripts to merge HiPerConTracer database
- configurations into DBeaver configurations, for maintaining databases
- in DBeaver.
-
-Package: hipercontracer-dbshell
-Architecture: all
-Depends: ${misc:Depends}
-Recommends: hipercontracer,
-            hipercontracer-dbeaver-tools,
-            mariadb-client | default-mysql-client,
-            mongodb-mongosh,
-            postgresql-client,
-            pwgen
-Description: HiPerConTracer Database Shell for access testing to a database
- High-Performance Connectivity Tracer (HiPerConTracer) is a
- Ping/Traceroute service. It performs regular Ping and Traceroute runs
- among sites. The results are written to data files, which can be
- imported into an SQL or NoSQL database.
- .
- This package contains a simple script to start a database shell, based on the
- settings from a given database configuration file. It is mainly intended to
- test database access using the configuration files for HiPerConTracer Importer
- and HiPerConTracer Query Tool.
-
-Package: hipercontracer-importer
-Architecture: any
-Depends: libuniversalimporter2 (= ${binary:Version}),
-         ${misc:Depends},
-         ${shlibs:Depends}
-Recommends: hipercontracer,
-            hipercontracer-common,
-            hipercontracer-dbshell
-Suggests: python3
-Description: HiPerConTracer Importer for importing results into a database
- High-Performance Connectivity Tracer (HiPerConTracer) is a
- Ping/Traceroute service. It performs regular Ping and Traceroute runs
- among sites. The results are written to data files, which can be
- imported into an SQL or NoSQL database.
- .
- This package contains the importer tool to import results from
- HiPerConTracer into an SQL or NoSQL database.
-
-Package: hipercontracer-query-tool
-Architecture: any
-Depends: libuniversalimporter2 (= ${binary:Version}),
-         ${misc:Depends},
-         ${shlibs:Depends}
-Recommends: hipercontracer,
-            hipercontracer-common,
-            hipercontracer-dbshell,
-            hipercontracer-results-tool
-Description: HiPerConTracer Query Tool to query results from a database
- High-Performance Connectivity Tracer (HiPerConTracer) is a
- Ping/Traceroute service. It performs regular Ping and Traceroute runs
- among sites. The results are written to data files, which can be
- imported into an SQL or NoSQL database.
- .
- This package contains a simple query tool to obtain results
- from a HiPerConTracer SQL or NoSQL database.
-
-Package: hipercontracer-results-tool
-Architecture: any
-Depends: hipercontracer-common,
-         ${misc:Depends},
-         ${shlibs:Depends}
-Recommends: hipercontracer
-Description: HiPerConTracer Results Tool to process results files
- High-Performance Connectivity Tracer (HiPerConTracer) is a
- Ping/Traceroute service. It performs regular Ping and Traceroute runs
- among sites. The results are written to data files, which can be
- imported into an SQL or NoSQL database.
- .
- This package contains the results tool to process HiPerConTracer
- results files, particularly for converting them to CSV files for
- reading them into spreadsheets, analysis tools, etc.
-
-Package: hipercontracer-sync-tool
-Architecture: all
-Depends: openssh-client,
-         rsync,
-         ${misc:Depends}
-Recommends: hipercontracer,
-            hipercontracer-results-tool
-Description: HiPerConTracer Sync Tool to synchronise results files to a server
- High-Performance Connectivity Tracer (HiPerConTracer) is a
- Ping/Traceroute service. It performs regular Ping and Traceroute runs
- among sites. The results are written to data files, which can be
- imported into an SQL or NoSQL database.
- .
- This package contains a simple synchronisation tool to run RSync
- synchronisation of data to a central collection server.
-
-Package: hipercontracer-trigger
-Architecture: any
-Depends: libhipercontracer2 (= ${binary:Version}),
-         ${misc:Depends},
-         ${shlibs:Depends}
-Recommends: hipercontracer
-Description: Triggered HiPerConTracer service
- High-Performance Connectivity Tracer (HiPerConTracer) is a
- Ping/Traceroute service. It performs regular Ping and Traceroute runs
- among sites. The results are written to data files, which can be
- imported into an SQL or NoSQL database.
- .
- This tool triggers HiPerConTracer by incoming "Ping" packets.
-
-Package: hipercontracer-udp-echo-server
+Package: libhipercontracer2
+Section: libs
 Architecture: any
 Depends: ${misc:Depends},
          ${shlibs:Depends}
-Recommends: hipercontracer
-Description: HiPerConTracer UDP Echo server for responding to UDP Pings
+Description: API library of HiPerConTracer
  High-Performance Connectivity Tracer (HiPerConTracer) is a
  Ping/Traceroute service. It performs regular Ping and Traceroute runs
  among sites. The results are written to data files, which can be
  imported into an SQL or NoSQL database.
  .
- This package contains a simple UDP Echo server to respond to
- UDP Pings.
+ The HiPerConTracer library is provided by this package.
 
 Package: libhipercontracer-dev
 Section: libdevel
@@ -227,6 +99,20 @@ Description: Development files for HiPerConTracer API library
  .
  This package provides header files for the HiPerConTracer library. You need
  them to integrate HiPerConTracer into own programs.
+
+Package: libuniversalimporter2
+Section: libs
+Architecture: any
+Depends: ${misc:Depends},
+         ${shlibs:Depends}
+Description: API library of HiPerConTracer Universal Importer
+ High-Performance Connectivity Tracer (HiPerConTracer) is a
+ Ping/Traceroute service. It performs regular Ping and Traceroute runs
+ among sites. The results are written to data files, which can be
+ imported into an SQL or NoSQL database.
+ .
+ The HiPerConTracer Universal Importer library is provided by this
+ package.
 
 Package: libuniversalimporter-dev
 Section: libdevel
@@ -249,16 +135,159 @@ Description: Development files for HiPerConTracer Universal Importer API library
  library. You need them to integrate HiPerConTracer Universal Importer into
  own programs.
 
-Package: libuniversalimporter2
-Section: libs
+Package: hipercontracer-trigger
 Architecture: any
-Depends: ${misc:Depends},
+Depends: hipercontracer-common,
+         libhipercontracer2 (= ${binary:Version}),
+         ${misc:Depends},
          ${shlibs:Depends}
-Description: API library of HiPerConTracer Universal Importer
+Recommends: hipercontracer
+Description: Triggered HiPerConTracer service
  High-Performance Connectivity Tracer (HiPerConTracer) is a
  Ping/Traceroute service. It performs regular Ping and Traceroute runs
  among sites. The results are written to data files, which can be
  imported into an SQL or NoSQL database.
  .
- The HiPerConTracer Universal Importer library is provided by this
- package.
+ This tool triggers HiPerConTracer by incoming "Ping" packets.
+
+Package: hipercontracer-sync-tool
+Architecture: all
+Depends: hipercontracer-common,
+         openssh-client,
+         rsync,
+         ${misc:Depends}
+Recommends: hipercontracer,
+            hipercontracer-results-tool
+Description: HiPerConTracer Sync Tool to synchronise results files to a server
+ High-Performance Connectivity Tracer (HiPerConTracer) is a
+ Ping/Traceroute service. It performs regular Ping and Traceroute runs
+ among sites. The results are written to data files, which can be
+ imported into an SQL or NoSQL database.
+ .
+ This package contains a simple synchronisation tool to run RSync
+ synchronisation of data to a central collection server.
+
+Package: hipercontracer-importer
+Architecture: any
+Depends: hipercontracer-common,
+         libuniversalimporter2 (= ${binary:Version}),
+         ${misc:Depends},
+         ${shlibs:Depends}
+Recommends: hipercontracer,
+            hipercontracer-dbshell
+Suggests: python3
+Description: HiPerConTracer Importer for importing results into a database
+ High-Performance Connectivity Tracer (HiPerConTracer) is a
+ Ping/Traceroute service. It performs regular Ping and Traceroute runs
+ among sites. The results are written to data files, which can be
+ imported into an SQL or NoSQL database.
+ .
+ This package contains the importer tool to import results from
+ HiPerConTracer into an SQL or NoSQL database.
+
+Package: hipercontracer-query-tool
+Architecture: any
+Depends: hipercontracer-common,
+         libuniversalimporter2 (= ${binary:Version}),
+         ${misc:Depends},
+         ${shlibs:Depends}
+Recommends: hipercontracer,
+            hipercontracer-dbshell,
+            hipercontracer-results-tool,
+            hipercontracer-viewer-tool
+Description: HiPerConTracer Query Tool to query results from a database
+ High-Performance Connectivity Tracer (HiPerConTracer) is a
+ Ping/Traceroute service. It performs regular Ping and Traceroute runs
+ among sites. The results are written to data files, which can be
+ imported into an SQL or NoSQL database.
+ .
+ This package contains a simple query tool to obtain results
+ from a HiPerConTracer SQL or NoSQL database.
+
+Package: hipercontracer-results-tool
+Architecture: any
+Depends: hipercontracer-common,
+         hipercontracer-viewer-tool,
+         ${misc:Depends},
+         ${shlibs:Depends}
+Recommends: hipercontracer
+Description: HiPerConTracer Results Tool to process results files
+ High-Performance Connectivity Tracer (HiPerConTracer) is a
+ Ping/Traceroute service. It performs regular Ping and Traceroute runs
+ among sites. The results are written to data files, which can be
+ imported into an SQL or NoSQL database.
+ .
+ This package contains the results tool to process HiPerConTracer
+ results files, particularly for converting them to CSV files for
+ reading them into spreadsheets, analysis tools, etc.
+
+Package: hipercontracer-viewer-tool
+Architecture: all
+Depends: bzip2,
+         gzip,
+         hipercontracer-common,
+         less,
+         xz-utils,
+         ${misc:Depends},
+         ${shlibs:Depends}
+Recommends: hipercontracer,
+            hipercontracer-results,
+            tree
+Description: HiPerConTracer Viewer Tool to display results files
+ High-Performance Connectivity Tracer (HiPerConTracer) is a
+ Ping/Traceroute service. It performs regular Ping and Traceroute runs
+ among sites. The results are written to data files, which can be
+ imported into an SQL or NoSQL database.
+ .
+ This package contains the viewer tool to simply display
+ HiPerConTracer results files.
+
+Package: hipercontracer-udp-echo-server
+Architecture: any
+Depends: ${misc:Depends},
+         ${shlibs:Depends}
+Recommends: hipercontracer
+Description: HiPerConTracer UDP Echo server for responding to UDP Pings
+ High-Performance Connectivity Tracer (HiPerConTracer) is a
+ Ping/Traceroute service. It performs regular Ping and Traceroute runs
+ among sites. The results are written to data files, which can be
+ imported into an SQL or NoSQL database.
+ .
+ This package contains a simple UDP Echo server to respond to
+ UDP Pings.
+
+Package: hipercontracer-dbshell
+Architecture: all
+Depends: ${misc:Depends}
+Recommends: hipercontracer,
+            hipercontracer-dbeaver-tools,
+            mariadb-client | default-mysql-client,
+            mongodb-mongosh,
+            postgresql-client,
+            pwgen
+Description: HiPerConTracer Database Shell for access testing to a database
+ High-Performance Connectivity Tracer (HiPerConTracer) is a
+ Ping/Traceroute service. It performs regular Ping and Traceroute runs
+ among sites. The results are written to data files, which can be
+ imported into an SQL or NoSQL database.
+ .
+ This package contains a simple script to start a database shell, based on the
+ settings from a given database configuration file. It is mainly intended to
+ test database access using the configuration files for HiPerConTracer Importer
+ and HiPerConTracer Query Tool.
+
+Package: hipercontracer-dbeaver-tools
+Architecture: all
+Depends: hipercontracer-dbshell (>= ${source:Version}),
+         jq,
+         openssl,
+         ${misc:Depends}
+Description: HiPerConTracer DBeaver Tools for configuring access to databases
+ High-Performance Connectivity Tracer (HiPerConTracer) is a
+ Ping/Traceroute service. It performs regular Ping and Traceroute runs
+ among sites. The results are written to data files, which can be
+ imported into an SQL or NoSQL database.
+ .
+ This package contains helper scripts to merge HiPerConTracer database
+ configurations into DBeaver configurations, for maintaining databases
+ in DBeaver.

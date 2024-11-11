@@ -41,6 +41,7 @@
 
 #include <exception>
 #include <functional>
+#include <iostream>
 #include <boost/format.hpp>
 #include <boost/version.hpp>
 #include <boost/interprocess/streams/bufferstream.hpp>
@@ -348,23 +349,17 @@ void Traceroute::scheduleIntervalEvent()
       std::lock_guard<std::recursive_mutex> lock(DestinationMutex);
 
       // ====== Schedule event ==============================================
-      long long millisecondsToWait;
-      if(Destinations.begin() == Destinations.end()) {
-          // Nothing to do -> wait 1 day
-          millisecondsToWait = 24*3600*1000;
-      }
-      else {
-         const unsigned long long waitingDuration = makeDeviation(Parameters.Interval, Parameters.Deviation);
-         const std::chrono::steady_clock::duration howLongToWait =
-            (RunStartTimeStamp + std::chrono::milliseconds(waitingDuration)) - std::chrono::steady_clock::now();
-         millisecondsToWait = std::max(0LL, (long long)std::chrono::duration_cast<std::chrono::milliseconds>(howLongToWait).count());
-      }
+      const unsigned long long waitingDuration = makeDeviation(Parameters.Interval, Parameters.Deviation);
+      const std::chrono::steady_clock::duration howLongToWait =
+         (RunStartTimeStamp + std::chrono::milliseconds(waitingDuration)) - std::chrono::steady_clock::now();
+      const long long millisecondsToWait =
+         std::max(0LL, (long long)std::chrono::duration_cast<std::chrono::milliseconds>(howLongToWait).count());
 
       IntervalTimer.expires_from_now(boost::posix_time::milliseconds(millisecondsToWait));
       IntervalTimer.async_wait(std::bind(&Traceroute::handleIntervalEvent, this,
                                          std::placeholders::_1));
       HPCT_LOG(debug) << getName() << ": Waiting " << millisecondsToWait / 1000.0
-                      << "s before iteration " << (IterationNumber + 1) << " ...";
+                      << " s before iteration " << (IterationNumber + 1) << " ...";
 
       // ====== Check, whether it is time for starting a new transaction ====
       if(ResultsOutput) {
@@ -609,19 +604,19 @@ void Traceroute::writeTracerouteResultEntry(const ResultEntry* resultEntry,
                                             const uint64_t     pathHash,
                                             uint16_t&          checksumCheck)
 {
+   if(timeStamp == 0) {
+      // NOTE:
+      // - The time stamp for this traceroute run is the first entry's send time!
+      //   This is necessary, in order to ensure that all entries use the same
+      //   time stamp for identification!
+      // - Also, entries of additional rounds are using this time stamp!
+      timeStamp = nsSinceEpoch<ResultTimePoint>(
+         resultEntry->sendTime(TXTimeStampType::TXTST_Application));
+   }
+
    if(ResultsOutput) {
-      if(timeStamp == 0) {
-         // NOTE:
-         // - The time stamp for this traceroute run is the first entry's send time!
-         //   This is necessary, in order to ensure that all entries use the same
-         //   time stamp for identification!
-         // - Also, entries of additional rounds are using this time stamp!
-         timeStamp = nsSinceEpoch<ResultTimePoint>(
-            resultEntry->sendTime(TXTimeStampType::TXTST_Application));
-      }
 
       if(writeHeader) {
-
          // ====== Current output format =================================
          if(OutputFormatVersion >= OFT_HiPerConTracer_Version2) {
             ResultsOutput->insert(
@@ -721,5 +716,58 @@ void Traceroute::writeTracerouteResultEntry(const ResultEntry* resultEntry,
       }
 
       assure(resultEntry->checksum() == checksumCheck);
+   }
+
+   // ====== Write to stdout ================================================
+   // This output is made when no results file is written. Then, the user
+   // should get a useful (i.e. reduced, readable) stdout output.
+   else {
+      unsigned int   timeSource;
+      ResultDuration rttApplication;
+      ResultDuration rttSoftware;
+      ResultDuration rttHardware;
+      ResultDuration delayAppSend;
+      ResultDuration delayAppReceive;
+      ResultDuration delayQueuing;
+
+      resultEntry->obtainResultsValues(timeSource,
+                                       rttApplication, rttSoftware, rttHardware,
+                                       delayQueuing, delayAppSend, delayAppReceive);
+
+      const long long usSend        = std::chrono::duration_cast<std::chrono::nanoseconds>(delayAppSend).count();
+      const long long usQueuing     = std::chrono::duration_cast<std::chrono::nanoseconds>(delayQueuing).count();
+      const long long usReceive     = std::chrono::duration_cast<std::chrono::nanoseconds>(delayAppReceive).count();
+      const long long nsApplication = std::chrono::duration_cast<std::chrono::nanoseconds>(rttApplication).count();
+      const long long nsSoftware    = std::chrono::duration_cast<std::chrono::nanoseconds>(rttSoftware).count();
+      const long long nsHardware    = std::chrono::duration_cast<std::chrono::nanoseconds>(rttHardware).count();
+      const std::string s  = (usSend < 0)     ? "-----" : str(boost::format("%3.0fµs") % (usSend     / 1000.0));
+      const std::string q  = (usQueuing < 0)  ? "-----" : str(boost::format("%3.0fµs") % (usQueuing  / 1000.0));
+      const std::string r  = (usReceive < 0)  ? "-----" : str(boost::format("%3.0fµs") % (usReceive  / 1000.0));
+      const std::string ap = (resultEntry->status() == Timeout) ?
+                                "TIMEOUT" :
+                                str(boost::format("%3.3fms") % (nsApplication / 1000000.0));
+      const std::string sw = (nsSoftware < 0) ? "---" : str(boost::format("%3.3fms") % (nsSoftware / 1000000.0));
+      const std::string hw = (nsHardware < 0) ? "---" : str(boost::format("%3.3fms") % (nsHardware / 1000000.0));
+
+      if(writeHeader) {
+         std::cout << boost::format("\e[34m%s: Traceroute %s\t%s %s\e[0m\n")
+                        % timePointToString<ResultTimePoint>(resultEntry->sendTime(TXTimeStampType::TXTST_Application), 3)
+                        % IOModule->getProtocolName()
+                        % resultEntry->sourceAddress().to_string()
+                        % resultEntry->destinationAddress().to_string();
+         writeHeader = false;
+      }
+
+      std::cout << boost::format("%s%2d: %-40s\t%-16s\ts:%s q:%s r:%s\tA:%-9s S:%-9s H:%-9s\e[0m\n")
+                      % getStatusColor(resultEntry->status())
+                      % resultEntry->hopNumber()
+                      % resultEntry->hopAddress().to_string()
+                      % getStatusName(resultEntry->status())
+                      % s
+                      % q
+                      % r
+                      % ap
+                      % sw
+                      % hw;
    }
 }

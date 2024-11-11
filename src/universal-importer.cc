@@ -33,6 +33,8 @@
 #include "tools.h"
 #include "worker.h"
 
+#include <boost/filesystem/operations.hpp>
+
 
 
 // ###### < operator for sorting ############################################
@@ -55,8 +57,7 @@ bool operator<(const UniversalImporter::WorkerMapping& a,
 // ###### Constructor #######################################################
 UniversalImporter::UniversalImporter(boost::asio::io_service&     ioService,
                                      const ImporterConfiguration& importerConfiguration,
-                                     const DatabaseConfiguration& databaseConfiguration,
-                                     const unsigned int           statusTimerInterval)
+                                     const DatabaseConfiguration& databaseConfiguration)
  : IOService(ioService),
    ImporterConfig(importerConfiguration),
    DatabaseConfig(databaseConfiguration),
@@ -65,12 +66,18 @@ UniversalImporter::UniversalImporter(boost::asio::io_service&     ioService,
    ImportPathFilterRegEx(ImportPathFilter),
    Signals(IOService, SIGINT, SIGTERM),
    StatusTimer(IOService),
-   StatusTimerInterval(boost::posix_time::seconds(statusTimerInterval)),
+   StatusTimerInterval(boost::posix_time::seconds(importerConfiguration.getStatusInterval())),
+   GarbageCollectionTimer(IOService),
+   GarbageCollectionTimerInterval(0, 0, importerConfiguration.getGarbageCollectionInterval(), 0),
+   GarbageCollectionMaxAge(std::chrono::seconds(importerConfiguration.getGarbageCollectionMaxAge())),
    INotifyStream(IOService)
 {
    INotifyFD = -1;
    StatusTimer.expires_from_now(StatusTimerInterval);
    StatusTimer.async_wait(std::bind(&UniversalImporter::handleStatusTimer, this,
+                                    std::placeholders::_1));
+   GarbageCollectionTimer.expires_from_now(GarbageCollectionTimerInterval);
+   GarbageCollectionTimer.async_wait(std::bind(&UniversalImporter::handleGarbageCollectionTimer, this,
                                     std::placeholders::_1));
 }
 
@@ -126,6 +133,7 @@ bool UniversalImporter::start(const bool quitWhenIdle)
    if(quitWhenIdle) {
       INotifyStream.cancel();
       StatusTimer.cancel();
+      GarbageCollectionTimer.cancel();
       Signals.cancel();
    }
 
@@ -143,12 +151,14 @@ void UniversalImporter::stop()
       boost::bimap<int, std::filesystem::path>::iterator iterator = INotifyWatchDescriptors.begin();
       while(iterator != INotifyWatchDescriptors.end()) {
          inotify_rm_watch(INotifyFD, iterator->left);
+         removeLastWriteTimePoint(iterator->right);
          INotifyWatchDescriptors.erase(iterator);
          iterator = INotifyWatchDescriptors.begin();
       }
       close(INotifyFD);
       INotifyFD = -1;
    }
+   assert(INotifyWatchDescriptors.size() == INotifyWatchLastWrite.size());   // == 0!
 
    // ====== Remove readers =================================================
    for(std::list<ReaderBase*>::iterator readerIterator = ReaderList.begin(); readerIterator != ReaderList.end(); ) {
@@ -207,6 +217,7 @@ void UniversalImporter::handleINotifyEvent(const boost::system::error_code& erro
                                                       IN_CREATE | IN_DELETE | IN_CLOSE_WRITE | IN_MOVED_TO);
                      if(wd >= 0) {
                         INotifyWatchDescriptors.insert(boost::bimap<int, std::filesystem::path>::value_type(wd, dataDirectory));
+                        addOrUpdateLastWriteTimePoint(dataDirectory);
 
                         // A directory traversal is necessary in this new
                         // directory, since files/directories may have been
@@ -232,6 +243,7 @@ void UniversalImporter::handleINotifyEvent(const boost::system::error_code& erro
                      HPCT_LOG(trace) << "INotify event for deleted directory: " << dataDirectory;
                      boost::bimap<int, std::filesystem::path>::right_map::const_iterator wdToDelete = INotifyWatchDescriptors.right.find(dataDirectory);
                      if(wdToDelete != INotifyWatchDescriptors.right.end()) {
+                        removeLastWriteTimePoint(dataDirectory);
                         INotifyWatchDescriptors.left.erase(wdToDelete->second);
                      }
                   }
@@ -351,6 +363,7 @@ unsigned long long UniversalImporter::lookForFiles(const std::filesystem::path& 
                                           IN_CREATE | IN_DELETE | IN_CLOSE_WRITE | IN_MOVED_TO);
          if(wd >= 0) {
             INotifyWatchDescriptors.insert(boost::bimap<int, std::filesystem::path>::value_type(wd, dirEntry.path()));
+            addOrUpdateLastWriteTimePoint(dirEntry.path());
          }
          else {
             HPCT_LOG(error) << "Adding INotify watch for " << dirEntry.path()
@@ -360,21 +373,6 @@ unsigned long long UniversalImporter::lookForFiles(const std::filesystem::path& 
          // ------ Recursive directory traversal ----------------------------
          if(currentDepth < maxDepth) {
             const unsigned long long m = lookForFiles(dirEntry.path(), currentDepth + 1, maxDepth);
-
-            // ------ Remove empty directory --------------------------------
-            if( (m == 0) &&
-                (currentDepth > 1) &&
-                (ImporterConfig.getImportMode() != ImportModeType::KeepImportedFiles) ) {
-               std::error_code ec;
-               std::filesystem::remove(dirEntry.path(), ec);
-               if(!ec) {
-                  HPCT_LOG(trace) << "Deleted empty directory "
-                                  << relativeTo(dirEntry.path(), ImporterConfig.getImportFilePath());
-               }
-               else {
-                  n++;   // Upper level still has one sub-directory
-               }
-            }
             n += m;
          }
       }
@@ -408,7 +406,7 @@ bool UniversalImporter::addFile(const std::filesystem::path& dataFile)
 }
 
 
-// ###### Add input file ####################################################
+// ###### Remove input file #################################################
 bool UniversalImporter::removeFile(const std::filesystem::path& dataFile)
 {
    const std::string& filename = dataFile.filename().string();
@@ -425,6 +423,109 @@ bool UniversalImporter::removeFile(const std::filesystem::path& dataFile)
 }
 
 
+// ###### Get time point of last write to directory or file #################
+bool UniversalImporter::getLastWriteTimePoint(const std::filesystem::path path,
+                                              SystemTimePoint&            lastWriteTimePoint)
+{
+    try {
+       const time_t lastWriteTimeT = boost::filesystem::last_write_time(boost::filesystem::path(path));
+       lastWriteTimePoint = std::chrono::system_clock::from_time_t(lastWriteTimeT);
+       return true;
+    }
+    catch(...) { }
+    return false;
+}
+
+
+// ###### Add directory to garbage collector ################################
+void UniversalImporter::addOrUpdateLastWriteTimePoint(const std::filesystem::path directory)
+{
+   assert(directory != ImporterConfig.getImportFilePath());
+
+   SystemTimePoint lastWriteTimePoint;
+   if(getLastWriteTimePoint(directory, lastWriteTimePoint)) {
+      std::map<const std::filesystem::path, SystemTimePoint>::iterator found =
+         INotifyWatchLastWrite.find(directory);
+      if(found != INotifyWatchLastWrite.end()) {
+         found->second = lastWriteTimePoint;
+      }
+      else {
+         INotifyWatchLastWrite.insert(std::pair<const std::filesystem::path, SystemTimePoint>(
+                              directory, lastWriteTimePoint));
+      }
+   }
+}
+
+
+// ###### Remove directory from garbage collector ###########################
+void UniversalImporter::removeLastWriteTimePoint(const std::filesystem::path directory)
+{
+   std::map<const std::filesystem::path, SystemTimePoint>::iterator found =
+      INotifyWatchLastWrite.find(directory);
+   if(found != INotifyWatchLastWrite.end()) {
+      INotifyWatchLastWrite.erase(found);
+   }
+}
+
+
+// ###### Perform directory garbage collection ##############################
+void UniversalImporter::performDirectoryCleanUp()
+{
+   const SystemTimePoint now       = SystemClock::now();
+   const SystemTimePoint threshold = now - GarbageCollectionMaxAge;
+   HPCT_LOG(debug) << "Performing directory clean-up of directories older than "
+                   << timePointToString<SystemTimePoint>(threshold);
+
+   size_t n = 0;
+   std::map<const std::filesystem::path, SystemTimePoint>::reverse_iterator iterator =
+      INotifyWatchLastWrite.rbegin();
+   while(iterator != INotifyWatchLastWrite.rend()) {
+      const std::filesystem::path& directory = iterator->first;
+
+      // ====== Check directory =============================================
+      if(iterator->second < threshold) {
+         // ====== Update last write time ===================================
+         SystemTimePoint lastWriteTimePoint;
+         if(getLastWriteTimePoint(directory, lastWriteTimePoint)) {
+            if(iterator->second != lastWriteTimePoint) {
+               iterator->second = lastWriteTimePoint;
+            }
+         }
+      }
+      HPCT_LOG(trace) << "Directory " << relativeTo(directory, ImporterConfig.getImportFilePath())
+                      << ": last activity was "
+                      << std::chrono::duration_cast<std::chrono::seconds>(now - iterator->second).count() << " s ago";
+
+      // ====== Out of date -> remove directory =============================
+      if(iterator->second < threshold) {
+         std::error_code ec;
+         std::filesystem::remove(directory, ec);
+         if(!ec) {
+            n++;
+            HPCT_LOG(trace) << "Deleted empty directory "
+                            << relativeTo(directory, ImporterConfig.getImportFilePath())
+                            << ", last activity was "
+                            << std::chrono::duration_cast<std::chrono::seconds>(now - iterator->second).count() << " s ago";
+            // NOTE: No need to erase the iterator here. It will be removed
+            // after the INotify notification of the directory removal!
+         }
+         else {
+            HPCT_LOG(trace) << "Still in-use directory "
+                            << relativeTo(directory, ImporterConfig.getImportFilePath());
+            // No need to try again too soon!
+            iterator->second = now;
+         }
+      }
+
+      iterator++;
+   }
+
+   if(n > 0) {
+      HPCT_LOG(trace) << "Cleaned up " << n << " directories";
+   }
+}
+
+
 // ###### Show status #######################################################
 void UniversalImporter::handleStatusTimer(const boost::system::error_code& errorCode)
 {
@@ -433,6 +534,18 @@ void UniversalImporter::handleStatusTimer(const boost::system::error_code& error
       StatusTimer.expires_from_now(StatusTimerInterval);
       StatusTimer.async_wait(std::bind(&UniversalImporter::handleStatusTimer, this,
                                        std::placeholders::_1));
+   }
+}
+
+
+// ###### Perform gargabe collection ########################################
+void UniversalImporter::handleGarbageCollectionTimer(const boost::system::error_code& errorCode)
+{
+   if(!errorCode) {
+      performDirectoryCleanUp();
+      GarbageCollectionTimer.expires_from_now(GarbageCollectionTimerInterval);
+      GarbageCollectionTimer.async_wait(std::bind(&UniversalImporter::handleGarbageCollectionTimer, this,
+                                        std::placeholders::_1));
    }
 }
 

@@ -48,6 +48,9 @@ ImporterConfiguration::ImporterConfiguration()
       ("import_file_path",     boost::program_options::value<std::filesystem::path>(&ImportFilePath),                       "path for input data")
       ("bad_file_path",        boost::program_options::value<std::filesystem::path>(&BadFilePath),                          "path for bad files")
       ("good_file_path",       boost::program_options::value<std::filesystem::path>(&GoodFilePath),                         "path for good files")
+      ("status_interval",      boost::program_options::value<unsigned int>(&StatusInterval)->default_value(60),             "status interval (s)")
+      ("gc_interval",          boost::program_options::value<unsigned int>(&GarbageCollectionInterval)->default_value(275), "garbage collection interval (s)")
+      ("gc_max_age",           boost::program_options::value<unsigned int>(&GarbageCollectionMaxAge)->default_value(3600),  "garbage collection max age (s)")
       ("table",                boost::program_options::value<std::vector<std::string>>(&Tables),                            "mapping of reader:table");
 
    ImportModeName = "KeepImportedFiles";
@@ -100,6 +103,9 @@ bool ImporterConfiguration::readConfiguration(const std::filesystem::path& confi
    if(!setImportFilePath(ImportFilePath))     return false;
    if(!setGoodFilePath(GoodFilePath))         return false;
    if(!setBadFilePath(BadFilePath))           return false;
+   StatusInterval            = std::max(5U,  StatusInterval);
+   GarbageCollectionInterval = std::max(10U, GarbageCollectionInterval);
+   GarbageCollectionMaxAge   = std::max(60U, GarbageCollectionMaxAge);
 
    return true;
 }
@@ -247,13 +253,16 @@ std::ostream& operator<<(std::ostream& os, const ImporterConfiguration& configur
        break;
    }
    os << "\n"
-      << "  Import Filter        = " << configuration.ImportPathFilter   << "\n"
-      << "  Import File Path     = " << configuration.ImportFilePath     << " (max depth: " << configuration.ImportMaxDepth << ")" << "\n"
-      << "  Good File Path       = " << configuration.GoodFilePath       << "\n"
-      << "  Bad File Path        = " << configuration.BadFilePath        << "\n"
-      << "  Move Directory Depth = " << configuration.MoveDirectoryDepth << "\n"
-      << "  Move Timestamp Depth = " << configuration.MoveTimestampDepth << "\n"
-      << "  Custom Table Mapping = {";
+      << "  Import Filter         = " << configuration.ImportPathFilter          << "\n"
+      << "  Import File Path      = " << configuration.ImportFilePath            << " (max depth: " << configuration.ImportMaxDepth << ")" << "\n"
+      << "  Good File Path        = " << configuration.GoodFilePath              << "\n"
+      << "  Bad File Path         = " << configuration.BadFilePath               << "\n"
+      << "  Move Directory Depth  = " << configuration.MoveDirectoryDepth        << "\n"
+      << "  Move Timestamp Depth  = " << configuration.MoveTimestampDepth        << "\n"
+      << "  Status Interval       = " << configuration.StatusInterval            << " s\n"
+      << "  Directory GC Interval = " << configuration.GarbageCollectionInterval << " s\n"
+      << "  Directory GC Max Age  = " << configuration.GarbageCollectionMaxAge   << " s\n"
+      << "  Custom Table Mapping  = {";
    for(std::map<std::string, std::string>::const_iterator iterator = configuration.TableMap.begin();
       iterator != configuration.TableMap.end(); iterator++) {
       os << " " << iterator->first << ":" << iterator->second;

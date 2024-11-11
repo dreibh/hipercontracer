@@ -60,23 +60,6 @@
 class ICMPHeader
 {
    public:
-   enum {
-      IPv4EchoRequest           = ICMP_ECHO,
-      IPv4EchoReply             = ICMP_ECHOREPLY,
-      IPv4TimeExceeded          = ICMP_TIMXCEED,
-      IPv4Unreachable           = ICMP_UNREACH,
-
-      IPv6EchoRequest           = ICMP6_ECHO_REQUEST,
-      IPv6EchoReply             = ICMP6_ECHO_REPLY,
-      IPv6TimeExceeded          = ICMP6_TIME_EXCEEDED,
-      IPv6Unreachable           = ICMP6_DST_UNREACH,
-
-      IPv6NeighborSolicitation  = ND_NEIGHBOR_SOLICIT,
-      IPv6NeighborAdvertisement = ND_NEIGHBOR_ADVERT,
-      IPv6RouterSolicitation    = ND_ROUTER_SOLICIT,
-      IPv6RouterAdvertisement   = ND_ROUTER_ADVERT
-   };
-
    ICMPHeader() {
       std::fill(Data, Data + sizeof(Data), 0);
    }

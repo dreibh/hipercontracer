@@ -32,6 +32,7 @@
 set -eu
 
 
+# ====== Handle arguments ===================================================
 if [ $# -ne 2 ] ; then
    echo >&2 "Usage: $0 encrypted_dbeaver_credentials_config_json plain_dbeaver_credentials_config_json"
    exit 1
@@ -46,6 +47,7 @@ if [ "${outputFile}" == "-" ] ; then
    outputFile="/dev/stdout"
 fi
 
+# ====== Process file =======================================================
 openssl aes-128-cbc -d \
    -K babb4a9f774ab853c96c2d653dfe544a -iv 00000000000000000000000000000000 \
    -in "${inputFile}" | dd bs=1 skip=16 status=none | jq . >"${outputFile}"

@@ -223,13 +223,23 @@ fi
 if [ "${DBEAVER_CONFIG_PREFIX}" ] ; then
    driver=""
    provider=""
+   jdbc=""
    custom=""
    handler=""
    dbusername="${dbuser}"
    if [ "${dbbackend}" == "MariaDB" ] || [ "${dbbackend}" == "MySQL" ] ; then
-      driver="mysql8"
       provider="mysql"
       handler="mysql_ssl"
+      # FIXME!
+      # Currently, the MariaDB driver is not working. Using MySQL driver instead
+      # => https://github.com/dbeaver/dbeaver/issues/35242
+#       if [ "${dbbackend}" == "MariaDB" ] ; then
+#          driver="mariaDB"
+#          jdbc="mariadb"
+#       else
+         driver="mysql8"
+         jdbc="mysql"
+#       fi
       if [ ${tls_check_certificate} -eq 1 ] || [ ${tls_check_hostname} -eq 1 ] ; then
          ssl_verify_server="true"
       else
@@ -242,6 +252,7 @@ if [ "${DBEAVER_CONFIG_PREFIX}" ] ; then
    elif [ "${dbbackend}" == "PostgreSQL" ] ; then
       driver="postgres-jdbc"
       provider="postgresql"
+      jdbc="postgresql"
       handler="postgre_ssl"
       if [ ${tls_check_certificate} -eq 1 ] ; then
          if [ ${tls_check_hostname} -eq 1 ] ; then
@@ -310,7 +321,7 @@ if [ "${DBEAVER_CONFIG_PREFIX}" ] ; then
 				"host": "${dbserver}",
 				"port": "${dbport}",
 				"database": "${database}",
-				"url": "jdbc:${provider}://${dbserver}:${dbport}/${database}",
+				"url": "jdbc:${jdbc}://${dbserver}:${dbport}/${database}",
 				"configurationType": "MANUAL",
 				"type": "${dbusername}",
 				"closeIdleConnection": true,

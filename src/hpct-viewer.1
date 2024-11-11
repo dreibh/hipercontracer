@@ -28,26 +28,21 @@
 .\" Contact: dreibh@simula.no
 .\"
 .\" ###### Setup ############################################################
-.Dd October 30, 2024
-.Dt encrypt-dbeaver-configuration 1
-.Os encrypt-dbeaver-configuration
+.Dd November 1, 2024
+.Dt hpct-viewer 1
+.Os hpct-viewer
 .\" ###### Name #############################################################
 .Sh NAME
-.Nm encrypt-dbeaver-configuration
-.Nd Encrypt DBeaver Credentials Configuration File
+.Nm hpct-viewer
+.Nd View HiPerConTracer Results File
 .\" ###### Synopsis #########################################################
 .Sh SYNOPSIS
-.Nm encrypt-dbeaver-configuration
-plain_dbeaver_credentials_config_json
-encrypted_dbeaver_credentials_config_json
+.Nm hpct-viewer
+results_file
 .\" ###### Description ######################################################
 .Sh DESCRIPTION
-.Nm encrypt-dbeaver-configuration
-encrypts a plain-text DBeaver credentials configuration file.
-"-" can be used as placeholder for /dev/stdin, to read the input file from
-standard input.
-"-" can be used as placeholder for /dev/stdout, to write the output file to
-stdandard output.
+.Nm hpct-viewer
+displays the contents of a HiPerConTracer results file.
 .Pp
 .\" ###### Arguments ########################################################
 .\" .Sh ARGUMENTS
@@ -59,7 +54,11 @@ stdandard output.
 .\" ###### Arguments ########################################################
 .Sh EXAMPLES
 .Bl -tag -width indent
-.It encrypt-dbeaver-configuration plaintext.json $DBEAVER_DIR/credentials-config.json
+.It hpct-viewer Traceroute-UDP-#88888888-fdb6:6d27:be73:4::50-20231018T102656.821891-000000001.hpct.xz
+.It hpct-viewer Traceroute-ICMP-#12345678-::-20231108T134229.533947-000000001.hpct.gz
+.It hpct-viewer Ping-P13735-2001:700:4100:4::2-20221012T142120.713761-000003330.results.bz2
+.It hpct-viewer Traceroute-ICMP-#12345678-0.0.0.0-20231108T134228.409798-000000001.results.gz
+.It hpct-viewer results.hpct
 .El
 .\" ###### Authors ##########################################################
 .Sh AUTHORS

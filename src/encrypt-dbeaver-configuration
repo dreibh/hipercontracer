@@ -32,6 +32,7 @@
 set -eu
 
 
+# ====== Handle arguments ===================================================
 if [ $# -ne 2 ] ; then
    echo >&2 "Usage: $0 plain_dbeaver_credentials_config_json encrypted_dbeaver_credentials_config_json"
    exit 1
@@ -46,6 +47,7 @@ if [ "${outputFile}" == "-" ] ; then
    outputFile="/dev/stdout"
 fi
 
+# ====== Process file =======================================================
 (
    dd if=/dev/urandom of="/dev/stdout" bs=16 count=1 status=none 2>/dev/null   # 16 bytes random number
    cat "${inputFile}"

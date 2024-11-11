@@ -1,5 +1,5 @@
 Name: hipercontracer
-Version: 2.0.0~rc0
+Version: 2.0.0~rc1.7
 Release: 1
 Summary: High-Performance Connectivity Tracer (HiPerConTracer)
 Group: Applications/Internet
@@ -10,8 +10,9 @@ Source: https://www.nntb.no/~dreibh/hipercontracer/download/%{name}-%{version}.t
 AutoReqProv: on
 BuildRequires: boost-devel
 BuildRequires: bzip2-devel
-BuildRequires: c-ares-devel
 BuildRequires: cmake
+BuildRequires: ghostscript
+BuildRequires: GraphicsMagick
 BuildRequires: gcc
 BuildRequires: gcc-c++
 BuildRequires: libbson-devel
@@ -19,6 +20,7 @@ BuildRequires: libpqxx-devel
 BuildRequires: mariadb-connector-c-devel
 BuildRequires: mongo-c-driver-devel
 BuildRequires: openssl-devel
+BuildRequires: pdf2svg
 BuildRequires: xz-devel
 BuildRequires: zlib-devel
 BuildRoot: %{_tmppath}/%{name}-%{version}-build
@@ -33,7 +35,9 @@ Recommends: %{name}-results-tool = %{version}-%{release}
 Recommends: %{name}-sync-tool = %{version}-%{release}
 Recommends: %{name}-trigger = %{version}-%{release}
 Recommends: %{name}-udp-echo-server = %{version}-%{release}
+Recommends: %{name}-viewer = %{version}-%{release}
 Recommends: ethtool
+Recommends: iproute
 Suggests: netperfmeter
 Suggests: td-system-info
 
@@ -107,6 +111,9 @@ rmdir /var/hipercontracer/data /var/hipercontracer/good /var/hipercontracer/bad 
 rmdir /var/hipercontracer >/dev/null 2>&1 || true
 
 %files common
+%{_datadir}/hipercontracer/hipercontracer.bib
+%{_datadir}/hipercontracer/hipercontracer.pdf
+%{_datadir}/hipercontracer/hipercontracer.png
 %{_datadir}/hipercontracer/results-examples/HiPerConTracer.R
 %{_datadir}/hipercontracer/results-examples/*-*.results.*
 %{_datadir}/hipercontracer/results-examples/*-*.hpct.*
@@ -114,7 +121,7 @@ rmdir /var/hipercontracer >/dev/null 2>&1 || true
 %{_datadir}/hipercontracer/results-examples/r-install-dependencies
 %{_datadir}/hipercontracer/results-examples/r-ping-example
 %{_datadir}/hipercontracer/results-examples/r-traceroute-example
-%{_datadir}/icons/hicolor/512x512/apps/hipercontracer.png
+%{_datadir}/icons/hicolor/*x*/apps/hipercontracer.png
 %{_datadir}/icons/hicolor/scalable/apps/hipercontracer.svg
 %{_datadir}/mime/packages/hipercontracer.xml
 
@@ -221,6 +228,7 @@ own programs.
 %package trigger
 Summary: Triggered HiPerConTracer service
 Group: Applications/Internet
+Requires: %{name}-common = %{version}-%{release}
 Requires: %{name}-libhipercontracer = %{version}-%{release}
 Recommends: %{name} = %{version}-%{release}
 
@@ -235,69 +243,20 @@ This tool triggers HiPerConTracer by incoming "Ping" packets.
 %{_bindir}/hpct-trigger
 %{_datadir}/bash-completion/completions/hpct-trigger
 %{_mandir}/man1/hpct-trigger.1.gz
-
-
-%package dbeaver-tools
-Summary: HiPerConTracer DBeaver tools
-Group: Applications/Database
-BuildArch: noarch
-Recommends: %{name}-dbshell = %{version}-%{release}
-Requires: jq
-Requires: openssl
-
-%description dbeaver-tools
-High-Performance Connectivity Tracer (HiPerConTracer) is a
-Ping/Traceroute service. It performs regular Ping and Traceroute runs
-among sites. The results are written to data files, which can be
-imported into an SQL or NoSQL database.
-This package contains helper scripts to merge HiPerConTracer database
-configurations into DBeaver configurations, for maintaining databases
-in DBeaver.
-
-%files dbeaver-tools
-%{_bindir}/decrypt-dbeaver-configuration
-%{_bindir}/encrypt-dbeaver-configuration
-%{_bindir}/make-dbeaver-configuration
-%{_mandir}/man1/decrypt-dbeaver-configuration.1.gz
-%{_mandir}/man1/encrypt-dbeaver-configuration.1.gz
-%{_mandir}/man1/make-dbeaver-configuration.1.gz
-
-
-%package dbshell
-Summary: HiPerConTracer Database Shell Tool
-Group: Applications/Database
-BuildArch: noarch
-Recommends: %{name} = %{version}-%{release}
-Recommends: %{name}-dbeaver-tools = %{version}-%{release}
-Recommends: (mariadb or mysql)
-Recommends: mongodb-mongosh
-Recommends: postgresql
-Recommends: pwgen
-
-%description dbshell
-High-Performance Connectivity Tracer (HiPerConTracer) is a
-Ping/Traceroute service. It performs regular Ping and Traceroute runs
-among sites. The results are written to data files, which can be
-imported into an SQL or NoSQL database.
-This package contains a simple script to start a database shell, based on the
-settings from a given database configuration file. It is mainly intended to
-test database access using the configuration files for HiPerConTracer Importer
-and HiPerConTracer Query Tool.
-
-%files dbshell
-%{_bindir}/dbshell
-%{_datadir}/bash-completion/completions/dbshell
-%{_mandir}/man1/dbshell.1.gz
+%{_sysconfdir}/hipercontracer/hpct-trigger-87654321.conf
+/lib/systemd/system/hpct-trigger.service
+/lib/systemd/system/hpct-trigger@.service
 
 
 %package sync-tool
-Summary: HiPerConTracer Synchronisation Tool to RSync results to a central server
+Summary: HiPerConTracer Sync Tool to synchronise results files to a server
 Group: Applications/File
 BuildArch: noarch
-Recommends: %{name} = %{version}-%{release}
-Recommends: %{name}-results = %{version}-%{release}
+Requires: %{name}-common = %{version}-%{release}
 Requires: openssh-clients
 Requires: rsync
+Recommends: %{name} = %{version}-%{release}
+Recommends: %{name}-results = %{version}-%{release}
 
 %description sync-tool
 High-Performance Connectivity Tracer (HiPerConTracer) is a
@@ -306,7 +265,6 @@ among sites. The results are written to data files, which can be
 imported into an SQL or NoSQL database.
 This package contains a simple synchronisation tool to run RSync
 synchronisation of data to a central collection server.
-
 
 %files sync-tool
 %{_bindir}/hpct-sync
@@ -318,8 +276,9 @@ synchronisation of data to a central collection server.
 
 
 %package importer
-Summary: HiPerConTracer Importer Tool to import results into a database
+Summary: HiPerConTracer Importer for importing results into a database
 Group: Applications/Database
+Requires: %{name}-common = %{version}-%{release}
 Requires: %{name}-libuniversalimporter = %{version}-%{release}
 Recommends: %{name} = %{version}-%{release}
 Recommends: %{name}-dbshell = %{version}-%{release}
@@ -380,10 +339,12 @@ HiPerConTracer into an SQL or NoSQL database.
 %package query-tool
 Summary: HiPerConTracer Query Tool to query results from a database
 Group: Applications/Database
+Requires: %{name}-common = %{version}-%{release}
 Requires: %{name}-libuniversalimporter = %{version}-%{release}
 Recommends: %{name} = %{version}-%{release}
 Recommends: %{name}-dbshell = %{version}-%{release}
 Recommends: %{name}-results = %{version}-%{release}
+Recommends: %{name}-viewer = %{version}-%{release}
 
 %description query-tool
 High-Performance Connectivity Tracer (HiPerConTracer) is a
@@ -402,8 +363,10 @@ from a HiPerConTracer SQL or NoSQL database.
 %package results-tool
 Summary: HiPerConTracer Results Tool to process results files
 Group: Applications/File
+Requires: %{name}-common = %{version}-%{release}
 Requires: %{name}-libuniversalimporter = %{version}-%{release}
 Recommends: %{name} = %{version}-%{release}
+Recommends: %{name}-viewer = %{version}-%{release}
 
 %description results-tool
 High-Performance Connectivity Tracer (HiPerConTracer) is a
@@ -421,6 +384,34 @@ reading them into spreadsheets, analysis tools, etc.
 %{_datadir}/bash-completion/completions/pipe-checksum
 %{_mandir}/man1/hpct-results.1.gz
 %{_mandir}/man1/pipe-checksum.1.gz
+
+
+%package viewer-tool
+Summary: HiPerConTracer Viewer Tool to display results files
+Group: Applications/File
+BuildArch: noarch
+Requires: %{name}-common = %{version}-%{release}
+Requires: %{name}-libuniversalimporter = %{version}-%{release}
+Requires: bzip2
+Requires: gzip
+Requires: less
+Requires: xz
+Recommends: %{name} = %{version}-%{release}
+Recommends: %{name}-results = %{version}-%{release}
+
+%description viewer-tool
+High-Performance Connectivity Tracer (HiPerConTracer) is a
+Ping/Traceroute service. It performs regular Ping and Traceroute runs
+among sites. The results are written to data files, which can be
+imported into an SQL or NoSQL database.
+This package contains the viewer tool to simply display
+HiPerConTracer results files.
+
+%files viewer-tool
+%{_bindir}/hpct-viewer
+%{_datadir}/applications/hpct-viewer.desktop
+%{_datadir}/bash-completion/completions/hpct-viewer
+%{_mandir}/man1/hpct-viewer.1.gz
 
 
 %package udp-echo-server
@@ -442,6 +433,59 @@ UDP Pings.
 %{_mandir}/man1/udp-echo-server.1.gz
 %{_sysconfdir}/hipercontracer/udp-echo-server.conf
 /lib/systemd/system/udp-echo-server.service
+
+
+%package dbshell
+Summary: HiPerConTracer Database Shell for access testing to a database
+Group: Applications/Database
+BuildArch: noarch
+Recommends: %{name} = %{version}-%{release}
+Recommends: %{name}-dbeaver-tools = %{version}-%{release}
+Recommends: (mariadb or mysql)
+Recommends: mongodb-mongosh
+Recommends: postgresql
+Recommends: pwgen
+
+%description dbshell
+High-Performance Connectivity Tracer (HiPerConTracer) is a
+Ping/Traceroute service. It performs regular Ping and Traceroute runs
+among sites. The results are written to data files, which can be
+imported into an SQL or NoSQL database.
+This package contains a simple script to start a database shell, based on the
+settings from a given database configuration file. It is mainly intended to
+test database access using the configuration files for HiPerConTracer Importer
+and HiPerConTracer Query Tool.
+
+%files dbshell
+%{_bindir}/dbshell
+%{_datadir}/bash-completion/completions/dbshell
+%{_mandir}/man1/dbshell.1.gz
+
+
+%package dbeaver-tools
+Summary: HiPerConTracer DBeaver Tools for configuring access to databases
+Group: Applications/Database
+BuildArch: noarch
+Recommends: %{name}-dbshell = %{version}-%{release}
+Requires: jq
+Requires: openssl
+
+%description dbeaver-tools
+High-Performance Connectivity Tracer (HiPerConTracer) is a
+Ping/Traceroute service. It performs regular Ping and Traceroute runs
+among sites. The results are written to data files, which can be
+imported into an SQL or NoSQL database.
+This package contains helper scripts to merge HiPerConTracer database
+configurations into DBeaver configurations, for maintaining databases
+in DBeaver.
+
+%files dbeaver-tools
+%{_bindir}/decrypt-dbeaver-configuration
+%{_bindir}/encrypt-dbeaver-configuration
+%{_bindir}/make-dbeaver-configuration
+%{_mandir}/man1/decrypt-dbeaver-configuration.1.gz
+%{_mandir}/man1/encrypt-dbeaver-configuration.1.gz
+%{_mandir}/man1/make-dbeaver-configuration.1.gz
 
 
 %changelog
