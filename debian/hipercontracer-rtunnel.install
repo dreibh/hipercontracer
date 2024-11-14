@@ -1,2 +1,3 @@
 lib/systemd/system/hpct-rtunnel.service
 usr/bin/hpct-rtunnel
+usr/share/bash-completion/completions/hpct-rtunnel

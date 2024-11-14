@@ -193,8 +193,8 @@ IF (WITH_HIPERCONTRACER)
    INSTALL(FILES       hipercontracer.bib DESTINATION         ${CMAKE_INSTALL_DATADIR}/hipercontracer)
 
    INSTALL(FILES       hipercontracer.bash-completion
-         DESTINATION ${CMAKE_INSTALL_DATADIR}/bash-completion/completions
-         RENAME      hipercontracer)
+           DESTINATION ${CMAKE_INSTALL_DATADIR}/bash-completion/completions
+           RENAME      hipercontracer)
    IF (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
       INSTALL(FILES hipercontracer.service       DESTINATION /lib/systemd/system)
       INSTALL(FILES hipercontracer@.service      DESTINATION /lib/systemd/system)
@@ -207,7 +207,7 @@ IF (WITH_TRIGGER)
    ADD_EXECUTABLE(hpct-trigger hpct-trigger.cc)
    TARGET_LINK_LIBRARIES(hpct-trigger libhipercontracer-${libraryType} ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
    INSTALL(TARGETS hpct-trigger RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
-   INSTALL(FILES hpct-trigger.1 DESTINATION         ${CMAKE_INSTALL_MANDIR}/man1)
+   INSTALL(FILES       hpct-trigger.1 DESTINATION   ${CMAKE_INSTALL_MANDIR}/man1)
    INSTALL(FILES       hpct-trigger.bash-completion
            DESTINATION ${CMAKE_INSTALL_DATADIR}/bash-completion/completions
            RENAME      hpct-trigger)
@@ -236,8 +236,11 @@ ENDIF()
 
 # ====== HiPerConTracer Reverse Tunnel Tool =================================
 IF (WITH_RTUNNEL)
-   INSTALL(PROGRAMS hpct-rtunnel      DESTINATION ${CMAKE_INSTALL_BINDIR})
-   INSTALL(FILES hpct-rtunnel.1       DESTINATION ${CMAKE_INSTALL_MANDIR}/man1)
+   INSTALL(PROGRAMS    hpct-rtunnel   DESTINATION ${CMAKE_INSTALL_BINDIR})
+   INSTALL(FILES       hpct-rtunnel.1 DESTINATION ${CMAKE_INSTALL_MANDIR}/man1)
+   INSTALL(FILES       hpct-rtunnel.bash-completion
+           DESTINATION ${CMAKE_INSTALL_DATADIR}/bash-completion/completions
+           RENAME      hpct-rtunnel)
    IF (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
       INSTALL(FILES hpct-rtunnel.service  DESTINATION /lib/systemd/system)
    ENDIF()
@@ -246,21 +249,24 @@ ENDIF()
 
 # ====== HiPerConTracer Node Tools ==========================================
 IF (WITH_NODE)
-   INSTALL(PROGRAMS hpct-node-setup   DESTINATION ${CMAKE_INSTALL_BINDIR})
-   INSTALL(FILES hpct-node-setup.1    DESTINATION ${CMAKE_INSTALL_MANDIR}/man1)
+   INSTALL(PROGRAMS hpct-node-setup DESTINATION ${CMAKE_INSTALL_BINDIR})
+   INSTALL(FILES hpct-node-setup.1  DESTINATION ${CMAKE_INSTALL_MANDIR}/man1)
 ENDIF()
 
 
 # ====== HiPerConTracer Collector Tools =====================================
 IF (WITH_COLLECTOR)
-   INSTALL(PROGRAMS hpct-node-removal DESTINATION ${CMAKE_INSTALL_BINDIR})
-   INSTALL(FILES hpct-node-removal.1  DESTINATION ${CMAKE_INSTALL_MANDIR}/man1)
+   INSTALL(PROGRAMS hpct-node-removal   DESTINATION ${CMAKE_INSTALL_BINDIR})
+   INSTALL(FILES    hpct-node-removal.1 DESTINATION ${CMAKE_INSTALL_MANDIR}/man1)
 
    INSTALL(PROGRAMS hpct-nodes-list   DESTINATION ${CMAKE_INSTALL_BINDIR})
-   INSTALL(FILES hpct-nodes-list.1    DESTINATION ${CMAKE_INSTALL_MANDIR}/man1)
+   INSTALL(FILES    hpct-nodes-list.1 DESTINATION ${CMAKE_INSTALL_MANDIR}/man1)
 
    INSTALL(PROGRAMS hpct-ssh          DESTINATION ${CMAKE_INSTALL_BINDIR})
-   INSTALL(FILES hpct-ssh.1           DESTINATION ${CMAKE_INSTALL_MANDIR}/man1)
+   INSTALL(FILES    hpct-ssh.1        DESTINATION ${CMAKE_INSTALL_MANDIR}/man1)
+   INSTALL(FILES       hpct-ssh.bash-completion
+           DESTINATION ${CMAKE_INSTALL_DATADIR}/bash-completion/completions
+           RENAME      hpct-ssh)
 ENDIF()
 
 

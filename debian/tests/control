@@ -4,19 +4,15 @@ Depends: hipercontracer
 
 Tests: 11-hipercontracer-udp
 Restrictions: needs-sudo, needs-internet, allow-stderr
-Depends: hipercontracer,
-         hipercontracer-udp-echo-server
+Depends: hipercontracer, hipercontracer-udp-echo-server
 
 Tests: 20-hpct-results
 Restrictions: allow-stderr
-Depends: hipercontracer-results-tool,
-         @recommends@
+Depends: hipercontracer-results-tool, @recommends@
 
 Tests: 30-dbeaver-tools
 Restrictions: allow-stderr
-Depends: hipercontracer,
-         hipercontracer-dbeaver-tools,
-         @recommends@
+Depends: hipercontracer, hipercontracer-dbeaver-tools, @recommends@
 
 Tests: 50-full-database-test
 Restrictions: isolation-machine, breaks-testbed, needs-sudo, needs-internet, allow-stderr
