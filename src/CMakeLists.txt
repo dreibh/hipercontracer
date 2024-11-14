@@ -234,6 +234,32 @@ IF (WITH_SYNC)
 ENDIF()
 
 
+# ====== HiPerConTracer Reverse Tunnel Tool =================================
+IF (WITH_RTUNNEL)
+   INSTALL(PROGRAMS hpct-rtunnel      DESTINATION ${CMAKE_INSTALL_BINDIR})
+   INSTALL(FILES hpct-rtunnel.1       DESTINATION ${CMAKE_INSTALL_MANDIR}/man1)
+   IF (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+      INSTALL(FILES hpct-rtunnel.service  DESTINATION /lib/systemd/system)
+   ENDIF()
+ENDIF()
+
+
+# ====== HiPerConTracer Node Tools ==========================================
+INSTALL(PROGRAMS hpct-node-setup   DESTINATION ${CMAKE_INSTALL_BINDIR})
+INSTALL(FILES hpct-node-setup.1    DESTINATION ${CMAKE_INSTALL_MANDIR}/man1)
+
+
+# ====== HiPerConTracer Collector Tools =====================================
+INSTALL(PROGRAMS hpct-node-removal DESTINATION ${CMAKE_INSTALL_BINDIR})
+INSTALL(FILES hpct-node-removal.1  DESTINATION ${CMAKE_INSTALL_MANDIR}/man1)
+
+INSTALL(PROGRAMS hpct-nodes-list   DESTINATION ${CMAKE_INSTALL_BINDIR})
+INSTALL(FILES hpct-nodes-list.1    DESTINATION ${CMAKE_INSTALL_MANDIR}/man1)
+
+INSTALL(PROGRAMS hpct-ssh          DESTINATION ${CMAKE_INSTALL_BINDIR})
+INSTALL(FILES hpct-ssh.1           DESTINATION ${CMAKE_INSTALL_MANDIR}/man1)
+
+
 # ====== HiPerConTracer Importer Tool =======================================
 IF (WITH_IMPORTER)
    ADD_EXECUTABLE(hpct-importer hpct-importer.cc

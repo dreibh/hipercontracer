@@ -28,58 +28,27 @@
 .\" Contact: dreibh@simula.no
 .\"
 .\" ###### Setup ############################################################
-.Dd May 10, 2022
-.Dt hpct-rtunnel 1
-.Os hpct-rtunnel
+.Dd September 2, 2022
+.Dt hpct-nodes-list 1
+.Os hpct-nodes-list
 .\" ###### Name #############################################################
 .Sh NAME
-.Nm hpct-rtunnel
-.Nd HiPerConTracer Reverse Tunnel
+.Nm hpct-nodes-list
+.Nd Get HiPerConTracer Nodes List on the Collector
 .\" ###### Synopsis #########################################################
 .Sh SYNOPSIS
-.Nm hpct-rtunnel
-.Op Fl h | Fl Fl help
-.Op Fl v | Fl Fl verbose
-.Op Fl q | Fl Fl quiet
-.Op Fl N | Fl Fl nodeid NODE_ID
-.Op Fl C | Fl Fl collector COLLECTOR
-.Op Fl K | Fl Fl key SSH_PRIVATE_KEY_FILE
-.Op Fl H | Fl Fl known-hosts SSH_KNOWN_HOSTS_FILE
+.Nm hpct-nodes-list
 .\" ###### Description ######################################################
 .Sh DESCRIPTION
-.Nm hpct-rtunnel
-is the HiPerConTracer remote tunnel script. It establishes an
-SSH tunnel from a node to a collected, allowing SSH forwarding to the node
-from port 10000+NodeID on the collector. It is intended to be used with the
-hpct-rtunnel service, to automatically establish the tunnel from a node with
-NAT'ed IP address for remote maintenance.
+.Nm hpct-nodes-list
+lists the HiPerConTracer configured on the Collector, as well as
+their connectivity (RTunnel) and data synchronisation (Sync) status.
 .Pp
-.\" ###### Arguments ########################################################
-.Sh ARGUMENTS
-The following arguments may be provided:
-.Bl -tag -width indent
-.\" .It Fl O | Fl -option
-.\" Enter description here!
-.It Fl h | Fl Fl help
-Prints command help.
-.It Fl q | Fl -quiet
-Turns off status output.
-.It Fl v | Fl -verbose
-Turns on status output.
-.It Fl N | Fl Fl nodeid NODE_ID
-Sets the node ID, a number from 1 to 9999.
-.It Fl R | Fl Fl collector COLLECTOR
-Sets the remote data location for RSync. Format: HOST:DIRECTORY.
-.It Fl K | Fl Fl key SSH_PRIVATE_KEY_FILE
-Sets the SSH private key file used for authentication. Default: ~/.ssh/id_rsa.
-.It Fl H | Fl Fl known-hosts SSH_KNOWN_HOSTS_FILE
-Sets the SSH known hosts file. Default: ~/.ssh/known_hosts.
-.El
 .\" ###### Examples #########################################################
 .Sh EXAMPLES
 .Bl -tag -width indent
-.It sudo -u hipercontracer   hpct-rtunnel -N 1000 -C 10.44.35.16 --key /var/hipercontracer/ssh/id_ed25519 --known-hosts /var/hipercontracer/ssh/known_hosts
-.It sudo -u hipercontracer   hpct-rtunnel -N 1 -C 10.44.35.16 --key /var/hipercontracer/ssh/id_ed25519 --known-hosts /var/hipercontracer/ssh/known_hosts
+.It hpct-nodes-list
+.It watch --color -n300 hpct-nodes-list
 .El
 .\" ###### Authors ##########################################################
 .Sh AUTHORS

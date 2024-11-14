@@ -1,0 +1,119 @@
+#!/usr/bin/env bash
+#!/usr/bin/env bash
+#  ____        ____     ____      _ _           _
+# / ___|  ___ |  _ \   / ___|___ | | | ___  ___| |_ ___  _ __
+# \___ \ / _ \| |_) | | |   / _ \| | |/ _ \/ __| __/ _ \| '__|
+#  ___) | (_) |  __/  | |__| (_) | | |  __/ (__| || (_) | |
+# |____/ \___/|_|      \____\___/|_|_|\___|\___|\__\___/|_|
+#
+# HiPerConTracer Collector
+# Copyright (C) 2022-2024 by Thomas Dreibholz
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+# Contact: dreibh@simula.no
+
+set -eu
+
+
+# ====== Handle arguments ===================================================
+usage () {
+   echo >&2 "Usage: $0 user@node_id [-h|--help] [--verbose|-v] [--quiet|-q] [-c|--copy-id] -- [ssh_arguments ...]"
+   exit 1
+}
+
+if [ $# -lt 1 ] ; then
+   usage
+fi
+
+SSH_USER=`echo "$1" | sed -e "s/@.*$//"`
+NODE_ID=`echo "$1" | sed -e "s/^.*@//"`
+VERBOSE=1
+COPY_ID=0
+shift
+
+options=$(getopt -o hqvc --long help,quiet,verbose,copy-id -a -- $@)
+if [[ $? -ne 0 ]]; then
+   usage
+fi
+
+eval set -- "${options}"
+while [ $# -gt 0 ] ; do
+   case "$1" in
+      -c | --copy-id)
+         COPY_ID=1
+         shift 2
+         ;;
+      -h | --help)
+         usage
+         ;;
+      -v | --verbose)
+         VERBOSE=1
+         shift
+         ;;
+      -q | --quiet)
+         VERBOSE=0
+         shift
+         ;;
+      --)
+         shift
+         break
+         ;;
+  esac
+done
+
+if [[ ! "${SSH_USER}" =~ ^[a-zA-Z0-9]+$ ]] ; then
+   echo >&2 "ERROR: Invalid user ${SSH_USER}!"
+   exit 1
+fi
+if [[ ! "${NODE_ID}" =~ ^[0-9]+$ ]] ; then
+   echo >&2 "ERROR: Invalid Node ID ${NODE_ID}!"
+   exit 1
+fi
+if [ ${NODE_ID} -lt 1 -o ${NODE_ID} -gt 9999 ] ; then
+   echo >&2 "ERROR: Invalid number for Node ID: ${NODE_ID}!"
+   exit 1
+fi
+
+
+# ====== SSH to node via Reverse Tunnel =====================================
+user="node${NODE_ID}"
+let port=10000+${NODE_ID}
+
+if [ ${COPY_ID} -eq 1 ] ; then
+   echo "Copying ID to remote machine ..."
+   ssh-copy-id -p ${port} ${SSH_USER}@localhost && status=0 || status=$?
+   if [ ${status} -ne 0 ] ; then
+      echo >&2 "ERROR: ssh-copy-id failed!"
+      exit 1
+   fi
+fi
+
+if [ ${VERBOSE} -ne 0 ] ; then
+   echo -e "\x1b[34m`date +"%Y-%m-%d %H:%M:%S"` Running SSH: ssh -p ${port} ${SSH_USER}@localhost $@\x1b[0m"
+fi
+ssh -p ${port} ${SSH_USER}@localhost $@ && status=0 || status=$?
+if [ ${status} -ne 0 ] ; then
+   if [ $# -eq 0 ] ; then
+      error="SSH failed with exit code ${status}."
+   else
+      error="SSH \"$@\" failed with exit code ${status}."
+   fi
+   echo -e "\x1b[34m`date +"%Y-%m-%d %H:%M:%S"` ${error}\x1b[0m"
+   exit ${status}
+else
+   if [ ${VERBOSE} -ne 0 ] ; then
+      echo -e "\x1b[34m`date +"%Y-%m-%d %H:%M:%S"` Done.\x1b[0m"
+   fi
+fi

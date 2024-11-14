@@ -28,58 +28,51 @@
 .\" Contact: dreibh@simula.no
 .\"
 .\" ###### Setup ############################################################
-.Dd May 10, 2022
-.Dt hpct-rtunnel 1
-.Os hpct-rtunnel
+.Dd May 11, 2022
+.Dt hpct-ssh 1
+.Os hpct-ssh
 .\" ###### Name #############################################################
 .Sh NAME
-.Nm hpct-rtunnel
-.Nd HiPerConTracer Reverse Tunnel
+.Nm hpct-ssh
+.Nd HiPerConTracer SSH via Reverse Tunnel
 .\" ###### Synopsis #########################################################
 .Sh SYNOPSIS
-.Nm hpct-rtunnel
-.Op Fl h | Fl Fl help
-.Op Fl v | Fl Fl verbose
-.Op Fl q | Fl Fl quiet
-.Op Fl N | Fl Fl nodeid NODE_ID
-.Op Fl C | Fl Fl collector COLLECTOR
-.Op Fl K | Fl Fl key SSH_PRIVATE_KEY_FILE
-.Op Fl H | Fl Fl known-hosts SSH_KNOWN_HOSTS_FILE
+.Nm hpct-ssh USER@NODE_ID
+.Op \-h|\-\-help
+.Op \-v|\-\-verbose
+.Op \-q|\-\-quiet
+.Op \-c|\-\-copy-id
+.Op \-\- SSH_ARGUMENTS ...
 .\" ###### Description ######################################################
 .Sh DESCRIPTION
-.Nm hpct-rtunnel
-is the HiPerConTracer remote tunnel script. It establishes an
-SSH tunnel from a node to a collected, allowing SSH forwarding to the node
-from port 10000+NodeID on the collector. It is intended to be used with the
-hpct-rtunnel service, to automatically establish the tunnel from a node with
-NAT'ed IP address for remote maintenance.
+.Nm hpct-ssh
+is the HiPerConTracer Reverse Tunnel SSH script. It is to be run
+on the Collector and provides SSH login via reverse tunnel to a given node.
 .Pp
 .\" ###### Arguments ########################################################
 .Sh ARGUMENTS
-The following arguments may be provided:
+The following arguments must be provided:
 .Bl -tag -width indent
-.\" .It Fl O | Fl -option
-.\" Enter description here!
-.It Fl h | Fl Fl help
+.It \-h|\-\-help
 Prints command help.
-.It Fl q | Fl -quiet
+.It \-q|\--quiet
 Turns off status output.
-.It Fl v | Fl -verbose
+.It \-v|\--verbose
 Turns on status output.
-.It Fl N | Fl Fl nodeid NODE_ID
-Sets the node ID, a number from 1 to 9999.
-.It Fl R | Fl Fl collector COLLECTOR
-Sets the remote data location for RSync. Format: HOST:DIRECTORY.
-.It Fl K | Fl Fl key SSH_PRIVATE_KEY_FILE
-Sets the SSH private key file used for authentication. Default: ~/.ssh/id_rsa.
-.It Fl H | Fl Fl known-hosts SSH_KNOWN_HOSTS_FILE
-Sets the SSH known hosts file. Default: ~/.ssh/known_hosts.
+.It \-c|\-\-copy-id
+Calls ssh-copy-id first, in order to configure public/private key-based
+authentication to the remote node. If successful, SSH is tried. This should
+provide a password-less login.
+.It \-\- SSH_ARGUMENTS ...
+All arguments after -- are provided to the SSH call.
 .El
 .\" ###### Examples #########################################################
 .Sh EXAMPLES
 .Bl -tag -width indent
-.It sudo -u hipercontracer   hpct-rtunnel -N 1000 -C 10.44.35.16 --key /var/hipercontracer/ssh/id_ed25519 --known-hosts /var/hipercontracer/ssh/known_hosts
-.It sudo -u hipercontracer   hpct-rtunnel -N 1 -C 10.44.35.16 --key /var/hipercontracer/ssh/id_ed25519 --known-hosts /var/hipercontracer/ssh/known_hosts
+.It hpct-ssh pi@1000
+.It hpct-ssh pi@1000 --verbose
+.It hpct-ssh pi@1000 --copy-id --verbose
+.It hpct-ssh pi@1000 --quiet -- 'hostname ; pactl list sources'
 .El
 .\" ###### Authors ##########################################################
 .Sh AUTHORS

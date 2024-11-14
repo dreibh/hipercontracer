@@ -1,0 +1,118 @@
+#!/usr/bin/env bash
+#  ____        ____     ____      _ _           _
+# / ___|  ___ |  _ \   / ___|___ | | | ___  ___| |_ ___  _ __
+# \___ \ / _ \| |_) | | |   / _ \| | |/ _ \/ __| __/ _ \| '__|
+#  ___) | (_) |  __/  | |__| (_) | | |  __/ (__| || (_) | |
+# |____/ \___/|_|      \____\___/|_|_|\___|\___|\__\___/|_|
+#
+# HiPerConTracer Collector
+# Copyright (C) 2022-2024 by Thomas Dreibholz
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+# Contact: dreibh@simula.no
+
+set -eu
+
+
+# ###### Compute time difference between time stamps ########################
+calculate_time_difference ()
+{
+   local t1=`date --utc --date "$1" +"%s" 2>/dev/null || true`
+   local t2=`date --utc --date "$2" +"%s" 2>/dev/null || true`
+   if [ "$1" == "" -o "$2" == "" -o "${t1}" == "" -o "${t2}" == "" ] ; then
+      echo "Unknown!"
+      return
+   fi
+   let difference=$t1-$t2 || true
+
+   let days=${difference}/86400 || true
+   let difference=${difference}-${days}*86400 || true
+   if [ ${difference} -lt 0 ] ; then
+      let difference=-${difference} || true
+   fi
+   let hours=${difference}/3600 || true
+   let difference=${difference}-${hours}*3600 || true
+   let minutes=${difference}/60 || true
+   let difference=${difference}-${minutes}*60 || true
+   seconds=${difference}
+
+   printf "%03dd %02d:%02d:%02d" "${days}" "${hours}" "${minutes}" "${seconds}"
+}
+
+
+# Get configured nodes and RTunnel ports ====================================
+CONFIGURED_NODES=( `find /home -maxdepth 1 -type d -name "node*" | xargs -r -n1 basename | sed -e "s/^node//" | sort -n` )
+# Get open ports bound to localhost (127.0.0.1 or ::1).
+LISTENING_TCP_PORTS=(`ss -tlwn | awk '/^tcp/ { if(($2 == "LISTEN") && ($5 ~ /^127.0.0.1|^\[::1\]/ )) { print $5 }}' | sed -e "s/.*://" | sort -un` )
+
+# for port in ${LISTENING_TCP_PORTS[@]} ; do
+#    echo "Port: ${port}"
+# done
+# echo "${LISTENING_TCP_PORTS[*]}"
+
+
+# ====== Show nodes and status ==============================================
+echo -e "\x1b[34mNode        Port    Tunnel    Last Seen       Last Sync       Last Boot       System                           Version\x1b[0m"
+now=`date -u +"%Y-%m-%d %H:%M:%S"`
+for nodeID in ${CONFIGURED_NODES[@]} ; do
+   nodeName="Node ${nodeID}"
+   nodeUser=node${nodeID}
+   let nodePort=10000+${nodeID}
+
+   # ====== RTunnel online? =================================================
+   if [[ ${LISTENING_TCP_PORTS[*]} =~ (^| )"${nodePort}"($| ) ]] ; then
+      nodeConnected="online "
+      echo -en "\x1b[32m"
+
+      nodeLastSeen="${now}"
+   else
+      nodeConnected="OFFLINE"
+      echo -en "\x1b[31m"
+
+      nodeLastSeen=""
+   fi
+
+   # ====== Last Seen ====================================================
+   # NOTE: last-seen.txt is accessible by user ${nodeUser} => sudo needed!
+   if sudo -u ${nodeUser} test -e /home/node${nodeID}/last-seen.txt ; then
+      nodeInfo="`sudo -u ${nodeUser} cat /home/node${nodeID}/last-seen.txt`"
+   else
+      nodeInfo="Unknown! (sudo needed to access last-seen.text?)"
+   fi
+   if [ "${nodeLastSeen}" == "" ] ; then
+      nodeLastSeen=`echo "${nodeInfo}" | head -n1`
+   fi
+   nodeSystem=`echo "${nodeInfo}" | grep "^lsb_release: " | sed -e "s/[^:]*: //"`
+   nodePackageVersion=`echo "${nodeInfo}" | grep "^node_package_version: " | sed -e "s/[^:]*: //"`
+   nodeUptime=`echo "${nodeInfo}" | grep "^node_uptime: " | sed -e "s/[^:]*: //"`
+   tunnelUptime=`echo "${nodeInfo}" | grep "^tunnel_uptime: " | sed -e "s/[^:]*: //"`
+
+   # ====== Last Sync =======================================================
+   # NOTE: last-seen.txt is accessible by user ${nodeUser} => sudo needed!
+   if sudo -u ${nodeUser} test -e /home/node${nodeID}/last-sync.txt ; then
+      nodeLastSync=`sudo -u ${nodeUser} cat /home/node${nodeID}/last-sync.txt`
+   else
+      nodeLastSync="Unknown!"
+   fi
+
+   printf "Node %-4d   %5d   %s   %-13s   %-13s   %-13s   %-30s   %-8s\x1b[0m\n" "\
+      ${nodeID}" "${nodePort}" "${nodeConnected}" \
+     "`calculate_time_difference \"${now}\" \"${nodeLastSeen}\"`" \
+     "`calculate_time_difference \"${now}\" \"${nodeLastSync}\"`" \
+     "`calculate_time_difference \"${now}\" \"${nodeUptime}\"`" \
+     "${nodeSystem}" \
+     "${nodePackageVersion}"
+
+done
