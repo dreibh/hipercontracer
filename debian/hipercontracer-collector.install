@@ -1,0 +1,5 @@
+# etc/system-info.d/35-hpct-collector
+# etc/system-maintenance.d/35-hpct-collector
+usr/bin/hpct-node-removal
+usr/bin/hpct-nodes-list
+usr/bin/hpct-ssh

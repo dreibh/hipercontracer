@@ -1,0 +1,3 @@
+# etc/system-info.d/30-hpct-node
+# etc/system-maintenance.d/30-hpct-node
+usr/bin/hpct-node-setup
