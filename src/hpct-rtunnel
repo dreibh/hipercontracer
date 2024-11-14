@@ -1,0 +1,150 @@
+#!/usr/bin/env bash
+# ==========================================================================
+#     _   _ _ ____            ____          _____
+#    | | | (_)  _ \ ___ _ __ / ___|___  _ _|_   _| __ __ _  ___ ___ _ __
+#    | |_| | | |_) / _ \ '__| |   / _ \| '_ \| || '__/ _` |/ __/ _ \ '__|
+#    |  _  | |  __/  __/ |  | |__| (_) | | | | || | | (_| | (_|  __/ |
+#    |_| |_|_|_|   \___|_|   \____\___/|_| |_|_||_|  \__,_|\___\___|_|
+#
+#       ---  High-Performance Connectivity Tracer (HiPerConTracer)  ---
+#                 https://www.nntb.no/~dreibh/hipercontracer/
+# ==========================================================================
+#
+# High-Performance Connectivity Tracer (HiPerConTracer)
+# Copyright (C) 2015-2025 by Thomas Dreibholz
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+# Contact: dreibh@simula.no
+
+set -e
+
+
+# ====== Handle arguments ===================================================
+usage () {
+   echo >&2 "Usage: $0 [-h|--help] [--verbose|-v] [--quiet|-q] [--collector|-C collector] [--key|-K ssh_private_key_file]"
+   exit 1
+}
+
+options=$(getopt -o hN:C:K:H:vq --long help,nodeid:,collector:,key:,known-hosts:,verbose,quiet -a -- $@)
+if [[ $? -ne 0 ]]; then
+   usage
+fi
+
+NODE_ID=
+COLLECTOR=
+KEY="${HOME}/.ssh/id_rsa"
+KNOWN_HOSTS="${HOME}/.ssh/known_hosts"
+VERBOSE=1
+
+eval set -- "${options}"
+while [ $# -gt 0 ] ; do
+   case "$1" in
+      -N | --nodeid)
+         NODE_ID="$2"
+         shift 2
+         ;;
+      -C | --collector)
+         COLLECTOR="$2"
+         shift 2
+         ;;
+      -K | --key)
+         KEY="$2"
+         shift 2
+         ;;
+      -H | --known-hosts)
+         KNOWN_HOSTS="$2"
+         shift 2
+         ;;
+      -h | --help)
+         usage
+         ;;
+      -v | --verbose)
+         VERBOSE=1
+         shift
+         ;;
+      -q | --quiet)
+         VERBOSE=0
+         shift
+         ;;
+      --)
+         shift
+         break
+         ;;
+  esac
+done
+
+if [ "${COLLECTOR}" == ""  ] ; then
+   usage
+fi
+if [ ! -e "${KEY}" ] ; then
+   echo >&2 "ERROR: SSH private key file ${KEY} does not exist!"
+   exit 1
+fi
+
+if [[ ! "${NODE_ID}" =~ [0-9]+ ]] ; then
+   echo >&2 "ERROR: No or invalid Node ID specified!"
+   exit 1
+fi
+if [ "${NODE_ID}" -lt 1 ] || [ "${NODE_ID}" -gt 9999 ] ; then
+   echo >&2 "ERROR: Invalid number for Node ID: ${NODE_ID}!"
+   exit 1
+fi
+
+
+# ====== Obtain node status =================================================
+if [ -x /usr/bin/lsb_release ] ; then
+   # Getting the version of hpct-common here, since it is a dependency of
+   # hpct-rtunnel. So, it should have been upgraded earlier.
+   if [ -x /usr/bin/dpkg ] ; then
+      nodePackageVersion=$(dpkg -s hpct-common | grep '^Version: ' | sed -e "s/^Version: //")
+   elif [ -x /usr/bin/rpm ] ; then
+      nodePackageVersion=$(rpm -q hpct-common | sed -e "s/^hpct-common-//")
+   else
+      nodePackageVersion=""
+   fi
+   nodeStatus="\
+lsb_release: $(lsb_release -ds)
+node_package_version: ${nodePackageVersion}
+node_uptime: $(uptime -s)
+tunnel_uptime: $(date -u +\"%Y-%m-%d %H:%M:%S\")"
+else
+   nodeStatus="\
+node_uptime: $(uptime)
+tunnel_uptime: $(date -u +\"%Y-%m-%d %H:%M:%S\")"
+fi
+
+
+# ====== Run remote tunnel ==================================================
+sshOptions="-i ${KEY} -oUserKnownHostsFile=${KNOWN_HOSTS}"
+
+user="node${NODE_ID}"
+port=$((10000+NODE_ID))
+
+if [ ${VERBOSE} -ne 0 ] ; then
+   echo -e "\x1b[34m$(date +"%Y-%m-%d %H:%M:%S") Running SSH (ssh -tt -R ${port}:localhost:22 ${sshOptions} ${user}@${COLLECTOR}) ...\x1b[0m"
+fi
+
+# ping -c1 ${COLLECTOR} || true
+
+ssh -tt -R ${port}:localhost:22 "${sshOptions}" "${user}"@"${COLLECTOR}" "while [ true ] ; do ( date -u +\"%Y-%m-%d %H:%M:%S\" ; echo \"${nodeStatus}\" ) >last-seen.txt.tmp && mv last-seen.txt.tmp last-seen.txt ; sleep 255 ; done" \
+   </dev/null >/dev/null 2>&1 && status=0 || status=$?
+if [ "${status}" -ne 0 ] ; then
+   echo -e "\x1b[34m$(date +"%Y-%m-%d %H:%M:%S") SSH failed!\x1b[0m"
+   exit 1
+else
+   if [ ${VERBOSE} -ne 0 ] ; then
+      echo -e "\x1b[34m$(date +"%Y-%m-%d %H:%M:%S") Done.\x1b[0m"
+   fi
+fi

@@ -1,0 +1,156 @@
+#!/usr/bin/env bash
+# ==========================================================================
+#     _   _ _ ____            ____          _____
+#    | | | (_)  _ \ ___ _ __ / ___|___  _ _|_   _| __ __ _  ___ ___ _ __
+#    | |_| | | |_) / _ \ '__| |   / _ \| '_ \| || '__/ _` |/ __/ _ \ '__|
+#    |  _  | |  __/  __/ |  | |__| (_) | | | | || | | (_| | (_|  __/ |
+#    |_| |_|_|_|   \___|_|   \____\___/|_| |_|_||_|  \__,_|\___\___|_|
+#
+#       ---  High-Performance Connectivity Tracer (HiPerConTracer)  ---
+#                 https://www.nntb.no/~dreibh/hipercontracer/
+# ==========================================================================
+#
+# High-Performance Connectivity Tracer (HiPerConTracer)
+# Copyright (C) 2015-2025 by Thomas Dreibholz
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+# Contact: dreibh@simula.no
+
+set -e
+
+
+# ====== Handle arguments ===================================================
+if [ $# -ne 2 ] ; then
+   echo >&2 "Usage: $0 collector node_id"
+   exit 1
+fi
+
+HPCT_COLLECTOR="$1"
+NODE_ID="$2"
+
+PRIVATE_KEY="/var/hipercontracer/ssh/id_ed25519"
+PUBLIC_KEY="/var/hipercontracer/ssh/id_ed25519.pub"
+KNOWN_HOSTS="/var/hipercontracer/ssh/known_hosts"
+TYPE="ed25519"
+
+# This is the public key of the SSH server on this machine:
+# It will be added to known_hosts in the collector!
+SERVER_KEY="/etc/ssh/ssh_host_ed25519_key.pub"
+
+if [[ ! "${NODE_ID}" =~ ^[0-9]+$ ]] ; then
+   echo >&2 "ERROR: Invalid Node ID ${NODE_ID}!"
+   exit 1
+fi
+if [ "${NODE_ID}" -lt 1 ] || [ "${NODE_ID}" -gt 9999 ] ; then
+   echo >&2 "ERROR: Invalid number for Node ID: ${NODE_ID}!"
+   exit 1
+fi
+if [ "${HPCT_COLLECTOR}" == "" ] ; then
+   echo >&2 "ERROR: No collector specified!"
+   exit 1
+fi
+
+
+# ====== Create server key ==================================================
+if [ ! -e "${SERVER_KEY}" ] ; then
+   echo >&2 "ERROR: The server public key file ${SERVER_KEY} does not exist!"
+   exit 1
+fi
+
+# ====== Create key pair ====================================================
+echo -e "\x1b[34m$(date +"%Y-%m-%d %H:%M:%S") Checking local key pair ${PRIVATE_KEY} / ${PUBLIC_KEY} ...\x1b[0m"
+directory="$(dirname ${PRIVATE_KEY})"
+if [ ! -d "${directory}" ] ; then
+   echo >&2 "ERROR: Key directory ${directory} does not exist!"
+   exit 1
+fi
+if [ ! -e ${PRIVATE_KEY} ] || [ ! -e ${PUBLIC_KEY} ] ; then
+   echo "Generating key pair ${PRIVATE_KEY} / ${PUBLIC_KEY} ..."
+   sudo -u hipercontracer ssh-keygen -f ${PRIVATE_KEY} -t ${TYPE} -P ""
+   if [ ! -e ${PRIVATE_KEY} ] || [ ! -e ${PUBLIC_KEY} ] ; then
+      echo >&2 "ERROR: Failed to create key pair"
+      exit 1
+   fi
+else
+   echo "Key pair ${PRIVATE_KEY} / ${PUBLIC_KEY} is already there."
+fi
+
+
+# ====== Copy public key ====================================================
+echo -e "\x1b[34m$(date +"%Y-%m-%d %H:%M:%S") Checking key on collector ${HPCT_COLLECTOR} ...\x1b[0m"
+
+user="node${NODE_ID}"
+port=$((10000+NODE_ID))
+nodePublicKey="$(cut -d ' ' -f 1-2 </etc/ssh/ssh_host_ed25519_key.pub)"
+
+cat ${PUBLIC_KEY} | sudo -u hipercontracer ssh -oUserKnownHostsFile=${KNOWN_HOSTS} "${HPCT_COLLECTOR}" "
+   mkdir -p keys && \\
+   cat ->keys/node${NODE_ID}.pub.new && \\
+   if [ -e keys/node${NODE_ID}.pub ] ; then
+      if ! diff keys/node${NODE_ID}.pub.new keys/node${NODE_ID}.pub ; then
+         echo >&2 \"ERROR: There is already a different key for this node!\"
+         echo >&2 \"       Check file keys/node${NODE_ID}.pub on ${HPCT_COLLECTOR}!\"
+         exit 2
+      else
+         echo \"Key node${NODE_ID}.pub already there.\"
+         rm -f keys/node${NODE_ID}.pub.new
+      fi
+   else
+      echo \"Key needs to be copied!\"
+      mv keys/node${NODE_ID}.pub.new keys/node${NODE_ID}.pub
+   fi && \\
+   if ! getent group ${user} >/dev/null 2>&1; then
+      echo \"Creating group ${user} ...\"
+      sudo groupadd ${user}
+   else
+      echo \"Group ${user} is already there.\"
+   fi && \\
+   echo \"Adding server public key to known_hosts ...\"
+   if [ ! -e .ssh/known_hosts ] ; then mkdir -p .ssh && chmod 700 .ssh && touch .ssh/known_hosts && chmod 600 .ssh/known_hosts ; fi && \\
+   ssh-keygen -q -R localhost:${port} -f .ssh/known_hosts && \\
+   echo "localhost:${port} "${nodePublicKey}"" >>.ssh/known_hosts && \\
+   ssh-keygen -H -f .ssh/known_hosts && \\
+   if ! getent passwd ${user} >/dev/null 2>&1; then
+      echo \"Creating user ${user} ...\"
+      sudo mkdir -p /home/${user}/.ssh
+      sudo chmod 700 /home/${user}
+      sudo chmod 700 /home/${user}/.ssh
+      sudo cp keys/node${NODE_ID}.pub /home/${user}/.ssh/authorized_keys
+      sudo chmod 600 /home/${user}/.ssh/authorized_keys
+      sudo useradd -M -g ${user} -d /home/${user} -s /bin/bash -c \"HiPerConTracer Node ${NODE_ID}\" ${user}
+      sudo chown ${user}:${user} /home/${user}
+      sudo chown ${user}:${user} /home/${user}/.ssh
+      sudo chown ${user}:${user} /home/${user}/.ssh/authorized_keys
+   else
+      echo \"User ${user} is already there.\"
+   fi && \\
+   sudo usermod -a -G hipercontracer ${user}
+" && status=0 || status=$?
+if [ "${status}" -ne 0 ] ; then
+   echo -e "\x1b[34m$(date +"%Y-%m-%d %H:%M:%S") FAILED!\x1b[0m"
+   exit 1
+else
+   if [ -e /etc/hipercontracer/hpct-sync.conf ] ; then
+      echo -e "\x1b[34m$(date +"%Y-%m-%d %H:%M:%S") Updating /etc/hipercontracer/hpct-sync.conf ...\x1b[0m"
+      collector="${HPCT_COLLECTOR//*@/}"
+      sed \
+         -e "s/^NODE_ID=.*$/NODE_ID=${NODE_ID}/g" \
+         -e "s/^COLLECTOR=.*$/COLLECTOR=""${collector}""/g" \
+         </etc/hipercontracer/hpct-sync.conf >/etc/hipercontracer/hpct-sync.conf.new
+      diff --color=always /etc/hipercontracer/hpct-sync.conf.new /etc/hipercontracer/hpct-sync.conf || true
+      mv /etc/hipercontracer/hpct-sync.conf.new /etc/hipercontracer/hpct-sync.conf
+   fi
+   echo -e "\x1b[34m$(date +"%Y-%m-%d %H:%M:%S") Done.\x1b[0m"
+fi
