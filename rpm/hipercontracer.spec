@@ -27,12 +27,14 @@ BuildRoot: %{_tmppath}/%{name}-%{version}-build
 
 Requires: %{name}-common = %{version}-%{release}
 Requires: %{name}-libhipercontracer = %{version}-%{release}
+Recommends: %{name}-collector = %{version}-%{release}
 Recommends: %{name}-dbeaver-tools = %{version}-%{release}
 Recommends: %{name}-dbshell = %{version}-%{release}
 Recommends: %{name}-importer = %{version}-%{release}
-Recommends: %{name}-query-tool = %{version}-%{release}
-Recommends: %{name}-results-tool = %{version}-%{release}
-Recommends: %{name}-sync-tool = %{version}-%{release}
+Recommends: %{name}-node = %{version}-%{release}
+Recommends: %{name}-query = %{version}-%{release}
+Recommends: %{name}-results = %{version}-%{release}
+Recommends: %{name}-sync = %{version}-%{release}
 Recommends: %{name}-trigger = %{version}-%{release}
 Recommends: %{name}-udp-echo-server = %{version}-%{release}
 Recommends: %{name}-viewer = %{version}-%{release}
@@ -96,10 +98,13 @@ if ! getent passwd hipercontracer >/dev/null 2>&1; then
    useradd -M -g hipercontracer -r -d /var/hipercontracer -s /sbin/nologin -c "HiPerConTracer User" hipercontracer
 fi
 
-# Make data directory
+# Make HiPerConTracer directory
 mkdir -p /var/hipercontracer
-mkdir -p -m 755 /var/hipercontracer/data /var/hipercontracer/good /var/hipercontracer/bad
-chown hipercontracer:hipercontracer /var/hipercontracer/data /var/hipercontracer/good /var/hipercontracer/bad || true
+for directory in /var/hipercontracer/data /var/hipercontracer/good /var/hipercontracer/bad /var/hipercontracer/ssh ; do
+   mkdir -p -m 755 $directory
+   chown hipercontracer:hipercontracer $directory || true
+done
+chmod 700 /var/hipercontracer/ssh
 
 %postun common
 # Remove administrative user
@@ -248,7 +253,7 @@ This tool triggers HiPerConTracer by incoming "Ping" packets.
 /lib/systemd/system/hpct-trigger@.service
 
 
-%package sync-tool
+%package sync
 Summary: HiPerConTracer Sync Tool to synchronise results files to a server
 Group: Applications/File
 BuildArch: noarch
@@ -258,7 +263,7 @@ Requires: rsync
 Recommends: %{name} = %{version}-%{release}
 Recommends: %{name}-results = %{version}-%{release}
 
-%description sync-tool
+%description sync
 High-Performance Connectivity Tracer (HiPerConTracer) is a
 Ping/Traceroute service. It performs regular Ping and Traceroute runs
 among sites. The results are written to data files, which can be
@@ -266,13 +271,86 @@ imported into an SQL or NoSQL database.
 This package contains a simple synchronisation tool to run RSync
 synchronisation of data to a central collection server.
 
-%files sync-tool
+%files sync
 %{_bindir}/hpct-sync
 %{_mandir}/man1/hpct-sync.1.gz
 %{_datadir}/bash-completion/completions/hpct-sync
 %{_sysconfdir}/hipercontracer/hpct-sync.conf
 /lib/systemd/system/hpct-sync.service
 /lib/systemd/system/hpct-sync.timer
+
+
+%package rtunnel
+Summary: HiPerConTracer Reverse Tunnel Tool for reverse SSH tunnel setup
+Requires: %{name}-common = %{version}-%{release}
+Requires: %{name}-sync = %{version}-%{release}
+Requires: ssh-server
+BuildArch: noarch
+
+%description rtunnel
+ High-Performance Connectivity Tracer (HiPerConTracer) is a
+ Ping/Traceroute service. It performs regular Ping and Traceroute runs
+ among sites. The results are written to data files, which can be
+ imported into an SQL or NoSQL database.
+ This is the HiPerConTracer Reverse Tunnel tool. It maintains an SSH
+ reverse tunnel from a measurement node to a Collector server.
+
+%files rtunnel
+%{_bindir}/hpct-rtunnel
+%{_mandir}/man1/hpct-rtunnel.1.gz
+/lib/systemd/system/hpct-rtunnel.service
+
+
+%package node
+Summary: HiPerConTracer Node Tools for maintaining a measurement node
+Requires: %{name} = %{version}-%{release}
+Requires: %{name}-rtunnel = %{version}-%{release}
+Requires: %{name}-sync = %{version}-%{release}
+Recommends: td-system-tools-system-info
+Recommends: td-system-tools-system-maintenance
+BuildArch: noarch
+
+%description node
+High-Performance Connectivity Tracer (HiPerConTracer) is a
+Ping/Traceroute service. It performs regular Ping and Traceroute runs
+among sites. The results are written to data files, which can be
+imported into an SQL or NoSQL database.
+This is the Node package. It contains helper scripts to attach a
+HiPerConTracer Node to a HiPerConTracer Collector server.
+
+%files node
+%{_bindir}/hpct-node-setup
+%{_mandir}/man1/hpct-node-setup.1.gz
+# %{_sysconfdir}/system-info.d/30-hpct-node
+# %{_sysconfdir}/system-maintenance.d/30-hpct-node
+
+
+%package collector
+Summary: HiPerConTracer Collector Tools for collecting measurement results
+Requires: %{name}-common = %{version}-%{release}
+Requires: openssh-clients
+Requires: iproute
+Requires: rsync
+Requires: ssh-server
+
+%description collector
+High-Performance Connectivity Tracer (HiPerConTracer) is a
+Ping/Traceroute service. It performs regular Ping and Traceroute runs
+among sites. The results are written to data files, which can be
+imported into an SQL or NoSQL database.
+This is the Node package. It contains helper scripts to attach a
+HiPerConTracer Node to a HiPerConTracer Collector server.
+
+%files collector
+%{_bindir}/hpct-node-removal
+%{_bindir}/hpct-nodes-list
+%{_bindir}/hpct-ssh
+%{_datadir}/doc/hpct-collector/config/sudoers/99-hpct-collector
+%{_mandir}/man1/hpct-node-removal.1.gz
+%{_mandir}/man1/hpct-nodes-list.1.gz
+%{_mandir}/man1/hpct-ssh.1.gz
+# %{_sysconfdir}/system-info.d/35-hpct-collector
+# %{_sysconfdir}/system-maintenance.d/35-hpct-collector
 
 
 %package importer
@@ -336,7 +414,7 @@ HiPerConTracer into an SQL or NoSQL database.
 /lib/systemd/system/hpct-importer.service
 
 
-%package query-tool
+%package query
 Summary: HiPerConTracer Query Tool to query results from a database
 Group: Applications/Database
 Requires: %{name}-common = %{version}-%{release}
@@ -346,7 +424,7 @@ Recommends: %{name}-dbshell = %{version}-%{release}
 Recommends: %{name}-results = %{version}-%{release}
 Recommends: %{name}-viewer = %{version}-%{release}
 
-%description query-tool
+%description query
 High-Performance Connectivity Tracer (HiPerConTracer) is a
 Ping/Traceroute service. It performs regular Ping and Traceroute runs
 among sites. The results are written to data files, which can be
@@ -354,13 +432,13 @@ imported into an SQL or NoSQL database.
 This package contains a simple query tool to obtain results
 from a HiPerConTracer SQL or NoSQL database.
 
-%files query-tool
+%files query
 %{_bindir}/hpct-query
 %{_datadir}/bash-completion/completions/hpct-query
 %{_mandir}/man1/hpct-query.1.gz
 
 
-%package results-tool
+%package results
 Summary: HiPerConTracer Results Tool to process results files
 Group: Applications/File
 Requires: %{name}-common = %{version}-%{release}
@@ -368,7 +446,7 @@ Requires: %{name}-libuniversalimporter = %{version}-%{release}
 Recommends: %{name} = %{version}-%{release}
 Recommends: %{name}-viewer = %{version}-%{release}
 
-%description results-tool
+%description results
 High-Performance Connectivity Tracer (HiPerConTracer) is a
 Ping/Traceroute service. It performs regular Ping and Traceroute runs
 among sites. The results are written to data files, which can be
@@ -377,7 +455,7 @@ This package contains the results tool to process HiPerConTracer
 results files, particularly for converting them to CSV files for
 reading them into spreadsheets, analysis tools, etc.
 
-%files results-tool
+%files results
 %{_bindir}/hpct-results
 %{_bindir}/pipe-checksum
 %{_datadir}/bash-completion/completions/hpct-results
