@@ -35,10 +35,10 @@ Wants=network-online.target
 
 [Service]
 Type=oneshot
-User=hpct
-Group=hpct
-WorkingDirectory=/var/hpct
-EnvironmentFile=/etc/hpct/hpct-sync.conf
+User=hipercontracer
+Group=hipercontracer
+WorkingDirectory=/var/hipercontracer
+EnvironmentFile=/etc/hipercontracer/hpct-sync.conf
 
 ExecStart=/usr/bin/hpct-sync \
    --nodeid ${NODE_ID} \
