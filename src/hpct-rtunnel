@@ -33,7 +33,7 @@ set -eu
 
 # ====== Handle arguments ===================================================
 usage () {
-   echo >&2 "Usage: $0 [-h|--help] [--verbose|-v] [--quiet|-q] [--collector|-C collector] [--key|-K ssh_private_key_file]"
+   echo >&2 "Usage: $0 [-h|--help] [--verbose|-v] [--quiet|-q] [--collector|-C collector] [--nodeid|-N node_id] [--key|-K ssh_private_key_file]"
    exit 1
 }
 
@@ -45,7 +45,7 @@ fi
 NODE_ID=
 COLLECTOR=
 KEY="${HOME}/.ssh/id_rsa"
-KNOWN_HOSTS="${HOME}/.ssh/known_hosts"
+KNOWN_HOSTS="/var/hipercontracer/ssh/known_hosts"
 VERBOSE=1
 
 eval set -- "${options}"
@@ -97,48 +97,46 @@ if [[ ! "${NODE_ID}" =~ [0-9]+ ]] ; then
    echo >&2 "ERROR: No or invalid Node ID specified!"
    exit 1
 fi
-if [ "${NODE_ID}" -lt 1 ] || [ "${NODE_ID}" -gt 9999 ] ; then
+if [ "${NODE_ID}" -lt 1 ] || [ "${NODE_ID}" -gt 2147483647 ] ; then
    echo >&2 "ERROR: Invalid number for Node ID: ${NODE_ID}!"
    exit 1
 fi
 
 
 # ====== Obtain node status =================================================
-if [ -x /usr/bin/lsb_release ] ; then
-   # Getting the version of hpct-common here, since it is a dependency of
-   # hpct-rtunnel. So, it should have been upgraded earlier.
-   if [ -x /usr/bin/dpkg ] ; then
-      nodePackageVersion=$(dpkg -s hpct-common | grep '^Version: ' | sed -e "s/^Version: //")
-   elif [ -x /usr/bin/rpm ] ; then
-      nodePackageVersion=$(rpm -q hpct-common | sed -e "s/^hpct-common-//")
-   else
-      nodePackageVersion=""
-   fi
-   nodeStatus="\
-lsb_release: $(lsb_release -ds)
+NAME="Unknown"
+VERSION="?.?"
+. /etc/os-release
+# Getting the version of hipercontracer-common here, since it is a dependency of
+# hpct-rtunnel. So, it should have been upgraded earlier.
+if [ -x /usr/bin/dpkg ] ; then
+  nodePackageVersion="$(dpkg -s hipercontracer-common | grep '^Version: ' | sed -e "s/^Version: //" || echo "N/A")"
+elif [ -x /usr/bin/rpm ] ; then
+  nodePackageVersion="$(rpm -q hipercontracer-common | sed -e "s/^hipercontracer-common-//" || echo "N/A")"
+else
+  nodePackageVersion=""
+fi
+nodeStatus="\
+lsb_release: ${NAME} ${VERSION}
 node_package_version: ${nodePackageVersion}
 node_uptime: $(uptime -s)
-tunnel_uptime: $(date -u +\"%Y-%m-%d %H:%M:%S\")"
-else
-   nodeStatus="\
-node_uptime: $(uptime)
-tunnel_uptime: $(date -u +\"%Y-%m-%d %H:%M:%S\")"
-fi
+tunnel_uptime: $(date -u +"%Y-%m-%d %H:%M:%S")"
 
 
-# ====== Run remote tunnel ==================================================
+# ====== Establish reverse tunnel ===========================================
 sshOptions="-i ${KEY} -oUserKnownHostsFile=${KNOWN_HOSTS}"
-
 user="node${NODE_ID}"
 port=$((10000+NODE_ID))
 
 if [ ${VERBOSE} -ne 0 ] ; then
    echo -e "\x1b[34m$(date +"%Y-%m-%d %H:%M:%S") Running SSH (ssh -tt -R ${port}:localhost:22 ${sshOptions} ${user}@${COLLECTOR}) ...\x1b[0m"
+   echo "Private key file: ${KEY}"
+   echo "Known hosts file: ${KNOWN_HOSTS}"
 fi
 
 # ping -c1 ${COLLECTOR} || true
 
-ssh -tt -R ${port}:localhost:22 "${sshOptions}" "${user}"@"${COLLECTOR}" "while [ true ] ; do ( date -u +\"%Y-%m-%d %H:%M:%S\" ; echo \"${nodeStatus}\" ) >last-seen.txt.tmp && mv last-seen.txt.tmp last-seen.txt ; sleep 255 ; done" \
+ssh -tt -R "${port}:localhost:22" ${sshOptions} "${user}"@"${COLLECTOR}" "while [ true ] ; do ( date -u +\"%Y-%m-%d %H:%M:%S\" ; echo \"${nodeStatus}\" ) >last-seen.txt.tmp && mv last-seen.txt.tmp last-seen.txt ; sleep 255 ; done" \
    </dev/null >/dev/null 2>&1 && status=0 || status=$?
 if [ "${status}" -ne 0 ] ; then
    echo -e "\x1b[34m$(date +"%Y-%m-%d %H:%M:%S") SSH failed!\x1b[0m"

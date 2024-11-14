@@ -81,7 +81,8 @@ if sudo -u hipercontracer test ! -e ${PRIVATE_KEY} || \
    sudo -u hipercontracer test ! -e ${PUBLIC_KEY} ; then
    echo "Generating key pair ${PRIVATE_KEY} / ${PUBLIC_KEY} ..."
    sudo -u hipercontracer ssh-keygen -f ${PRIVATE_KEY} -t ${TYPE} -P ""
-   if [ ! -e ${PRIVATE_KEY} ] || [ ! -e ${PUBLIC_KEY} ] ; then
+   if sudo -u hipercontracer test ! -e ${PRIVATE_KEY} || \
+      sudo -u hipercontracer test ! -e ${PUBLIC_KEY} ; then
       echo >&2 "ERROR: Failed to create key pair"
       exit 1
    fi
@@ -96,50 +97,51 @@ echo "This needs sudo permissions to generate/read the key pair!"
 
 user="node${NODE_ID}"
 port=$((10000+NODE_ID))
-nodePublicKey="$(sudo -u hipercontracer cat /etc/ssh/ssh_host_ed25519_key.pub | cut -d ' ' -f 1-2)"
+nodePublicKey="$(sudo -u hipercontracer cat /etc/ssh/ssh_host_ed25519_key.pub)"
+userPublicKey="$(sudo -u hipercontracer cat ${PUBLIC_KEY})"
 
 sudo -u hipercontracer ssh -oUserKnownHostsFile=${KNOWN_HOSTS} "${HPCT_COLLECTOR}" "
-   mkdir -p keys && \\
-   echo \"${nodePublicKey}\" >keys/node${NODE_ID}.pub.new && \\
-   if [ -e keys/node${NODE_ID}.pub ] ; then
-      if ! diff keys/node${NODE_ID}.pub.new keys/node${NODE_ID}.pub ; then
+   set -eux && mkdir -p keys && \\
+   echo \"${userPublicKey}\" >keys/node${NODE_ID}.pub.new && \\
+   if [ -e \"keys/node${NODE_ID}.pub\" ] ; then
+      if ! diff \"keys/node${NODE_ID}.pub.new\" \"keys/node${NODE_ID}.pub\" ; then
          echo >&2 \"ERROR: There is already a different key for this node!\"
          echo >&2 \"       Check file keys/node${NODE_ID}.pub on ${HPCT_COLLECTOR}!\"
          exit 2
       else
          echo \"Key node${NODE_ID}.pub already there.\"
-         rm -f keys/node${NODE_ID}.pub.new
+         rm -f \"keys/node${NODE_ID}.pub.new\"
       fi
    else
       echo \"Key needs to be copied!\"
-      mv keys/node${NODE_ID}.pub.new keys/node${NODE_ID}.pub
+      mv \"keys/node${NODE_ID}.pub.new\" \"keys/node${NODE_ID}.pub\"
    fi && \\
-   if ! getent group ${user} >/dev/null 2>&1; then
+   if ! getent group \"${user}\" >/dev/null 2>&1; then
       echo \"Creating group ${user} ...\"
-      sudo groupadd ${user}
+      sudo groupadd \"${user}\"
    else
       echo \"Group ${user} is already there.\"
    fi && \\
    echo \"Adding server public key to known_hosts ...\"
    if [ ! -e .ssh/known_hosts ] ; then mkdir -p .ssh && chmod 700 .ssh && touch .ssh/known_hosts && chmod 600 .ssh/known_hosts ; fi && \\
-   ssh-keygen -q -R localhost:${port} -f .ssh/known_hosts && \\
-   echo "localhost:${port} "${nodePublicKey}"" >>.ssh/known_hosts && \\
+   ssh-keygen -q -R \"localhost:${port}\" -f .ssh/known_hosts && \\
+   echo \"localhost:${port}\" \"${nodePublicKey}\" >>.ssh/known_hosts && \\
    ssh-keygen -H -f .ssh/known_hosts && \\
-   if ! getent passwd ${user} >/dev/null 2>&1; then
+   if ! getent passwd \"${user}\" >/dev/null 2>&1; then
       echo \"Creating user ${user} ...\"
-      sudo mkdir -p /home/${user}/.ssh
-      sudo chmod 700 /home/${user}
-      sudo chmod 700 /home/${user}/.ssh
-      sudo cp keys/node${NODE_ID}.pub /home/${user}/.ssh/authorized_keys
-      sudo chmod 600 /home/${user}/.ssh/authorized_keys
-      sudo useradd -M -g ${user} -d /home/${user} -s /bin/bash -c \"HiPerConTracer Node ${NODE_ID}\" ${user}
-      sudo chown ${user}:${user} /home/${user}
-      sudo chown ${user}:${user} /home/${user}/.ssh
-      sudo chown ${user}:${user} /home/${user}/.ssh/authorized_keys
+      sudo mkdir -p \"/home/${user}/.ssh\"
+      sudo chmod 700 \"/home/${user}\"
+      sudo chmod 700 \"/home/${user}/.ssh\"
+      sudo cp \"keys/node${NODE_ID}.pub\" \"/home/${user}/.ssh/authorized_keys\"
+      sudo chmod 600 \"/home/${user}/.ssh/authorized_keys\"
+      sudo useradd -M -g \"${user}\" -d \"/home/${user}\" -s /bin/bash -c \"HiPerConTracer Node ${NODE_ID}\" \"${user}\"
+      sudo chown \"${user}:${user}\" \"/home/${user}\"
+      sudo chown \"${user}:${user}\" \"/home/${user}/.ssh\"
+      sudo chown \"${user}:${user}\" \"/home/${user}/.ssh/authorized_keys\"
    else
       echo \"User ${user} is already there.\"
    fi && \\
-   sudo usermod -a -G hipercontracer ${user}
+   sudo usermod -a -G hipercontracer \"${user}\"
 " && status=0 || status=$?
 if [ "${status}" -ne 0 ] ; then
    echo -e "\x1b[34m$(date +"%Y-%m-%d %H:%M:%S") FAILED!\x1b[0m"

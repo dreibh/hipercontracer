@@ -38,9 +38,9 @@ Type=simple
 User=hipercontracer
 Group=hipercontracer
 WorkingDirectory=/var/hipercontracer
-EnvironmentFile=/etc/hipercontracer/hipercontracer-sync.conf
+EnvironmentFile=/etc/hipercontracer/hpct-sync.conf
 
-ExecStart=/usr/bin/hipercontracer-rtunnel \
+ExecStart=/usr/bin/hpct-rtunnel \
    --nodeid ${NODE_ID} \
    --collector ${COLLECTOR} \
    --key ${KEY} \
