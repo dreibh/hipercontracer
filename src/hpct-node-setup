@@ -53,7 +53,7 @@ if [[ ! "${NODE_ID}" =~ ^[0-9]+$ ]] ; then
    echo >&2 "ERROR: Invalid Node ID ${NODE_ID}!"
    exit 1
 fi
-if [ "${NODE_ID}" -lt 1 ] || [ "${NODE_ID}" -gt 9999 ] ; then
+if [ "${NODE_ID}" -lt 1 ] || [ "${NODE_ID}" -gt 2147483647 ] ; then
    echo >&2 "ERROR: Invalid number for Node ID: ${NODE_ID}!"
    exit 1
 fi
@@ -70,13 +70,15 @@ if [ ! -e "${SERVER_KEY}" ] ; then
 fi
 
 # ====== Create key pair ====================================================
-echo -e "\x1b[34m$(date +"%Y-%m-%d %H:%M:%S") Checking local key pair ${PRIVATE_KEY} / ${PUBLIC_KEY} ...\x1b[0m"
+set -eux
+echo -e "\x1b[34m$(date +"%Y-%m-%d %H:%M:%S") Checking local key pair ${PRIVATE_KEY} / ${PUBLIC_KEY} of Node ${NODE_ID} ...\x1b[0m"
 directory="$(dirname ${PRIVATE_KEY})"
-if [ ! -d "${directory}" ] ; then
+if sudo -u hipercontracer test ! -d "${directory}" ; then
    echo >&2 "ERROR: Key directory ${directory} does not exist!"
    exit 1
 fi
-if [ ! -e ${PRIVATE_KEY} ] || [ ! -e ${PUBLIC_KEY} ] ; then
+if sudo -u hipercontracer test ! -e ${PRIVATE_KEY} || \
+   sudo -u hipercontracer test ! -e ${PUBLIC_KEY} ; then
    echo "Generating key pair ${PRIVATE_KEY} / ${PUBLIC_KEY} ..."
    sudo -u hipercontracer ssh-keygen -f ${PRIVATE_KEY} -t ${TYPE} -P ""
    if [ ! -e ${PRIVATE_KEY} ] || [ ! -e ${PUBLIC_KEY} ] ; then
@@ -84,20 +86,21 @@ if [ ! -e ${PRIVATE_KEY} ] || [ ! -e ${PUBLIC_KEY} ] ; then
       exit 1
    fi
 else
-   echo "Key pair ${PRIVATE_KEY} / ${PUBLIC_KEY} is already there."
+   echo "Key pair ${PRIVATE_KEY} / ${PUBLIC_KEY} is already there -> okay!"
 fi
 
 
 # ====== Copy public key ====================================================
-echo -e "\x1b[34m$(date +"%Y-%m-%d %H:%M:%S") Checking key on collector ${HPCT_COLLECTOR} ...\x1b[0m"
+echo -e "\x1b[34m$(date +"%Y-%m-%d %H:%M:%S") Checking access of Node ${NODE_ID} to collector ${HPCT_COLLECTOR} ...\x1b[0m"
+echo "This needs sudo permissions to generate/read the key pair!"
 
 user="node${NODE_ID}"
 port=$((10000+NODE_ID))
-nodePublicKey="$(cut -d ' ' -f 1-2 </etc/ssh/ssh_host_ed25519_key.pub)"
+nodePublicKey="$(sudo -u hipercontracer cat /etc/ssh/ssh_host_ed25519_key.pub | cut -d ' ' -f 1-2)"
 
-cat ${PUBLIC_KEY} | sudo -u hipercontracer ssh -oUserKnownHostsFile=${KNOWN_HOSTS} "${HPCT_COLLECTOR}" "
+sudo -u hipercontracer ssh -oUserKnownHostsFile=${KNOWN_HOSTS} "${HPCT_COLLECTOR}" "
    mkdir -p keys && \\
-   cat ->keys/node${NODE_ID}.pub.new && \\
+   echo \"${nodePublicKey}\" >keys/node${NODE_ID}.pub.new && \\
    if [ -e keys/node${NODE_ID}.pub ] ; then
       if ! diff keys/node${NODE_ID}.pub.new keys/node${NODE_ID}.pub ; then
          echo >&2 \"ERROR: There is already a different key for this node!\"
@@ -144,21 +147,24 @@ if [ "${status}" -ne 0 ] ; then
 else
    if [ -e /etc/hipercontracer/hpct-sync.conf ] ; then
       echo -e "\x1b[34m$(date +"%Y-%m-%d %H:%M:%S") Updating /etc/hipercontracer/hpct-sync.conf ...\x1b[0m"
+      echo "This needs sudo permission to modify /etc/hipercontracer/hpct-sync.conf!"
       collector="${HPCT_COLLECTOR//*@/}"
-      sed \
-         -e "s/^NODE_ID=.*$/NODE_ID=${NODE_ID}/g" \
-         -e "s/^COLLECTOR=.*$/COLLECTOR=""${collector}""/g" \
-         </etc/hipercontracer/hpct-sync.conf >/etc/hipercontracer/hpct-sync.conf.new
-      diff --color=always /etc/hipercontracer/hpct-sync.conf.new /etc/hipercontracer/hpct-sync.conf || true
-      mv /etc/hipercontracer/hpct-sync.conf.new /etc/hipercontracer/hpct-sync.conf
+      sudo cat /etc/hipercontracer/hpct-sync.conf | \
+         sed \
+            -e "s/^NODE_ID=.*$/NODE_ID=${NODE_ID}/g" \
+            -e "s/^COLLECTOR=.*$/COLLECTOR=""${collector}""/g" | \
+         sudo tee /etc/hipercontracer/hpct-sync.conf.new >/dev/null
+      sudo diff --color=always /etc/hipercontracer/hpct-sync.conf.new /etc/hipercontracer/hpct-sync.conf || true
+      sudo mv /etc/hipercontracer/hpct-sync.conf.new /etc/hipercontracer/hpct-sync.conf
    fi
 
    echo -e "\x1b[34m`date +"%Y-%m-%d %H:%M:%S"` Enabling and starting HPCT RTunnel and HPCT Sync ...\x1b[0m"
+   echo "This needs sudo permission to enable and start the services!"
    # Not enabling HiPerConTracer service here, since it has to be enabled based on measurement ID(s)!
-   systemctl enable hpct-rtunnel.service
-   systemctl start hpct-rtunnel.service
-   systemctl enable hpct-sync.timer
-   systemctl start hpct-sync.timer
+   sudo systemctl enable hpct-rtunnel.service
+   sudo systemctl start hpct-rtunnel.service
+   sudo systemctl enable hpct-sync.timer
+   sudo systemctl start hpct-sync.timer
 
    echo -e "\x1b[34m$(date +"%Y-%m-%d %H:%M:%S") Done.\x1b[0m"
 fi
