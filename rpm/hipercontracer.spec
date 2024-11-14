@@ -297,6 +297,7 @@ BuildArch: noarch
 
 %files rtunnel
 %{_bindir}/hpct-rtunnel
+%{_datadir}/bash-completion/completions/hpct-rtunnel
 %{_mandir}/man1/hpct-rtunnel.1.gz
 /lib/systemd/system/hpct-rtunnel.service
 
@@ -345,7 +346,7 @@ HiPerConTracer Node to a HiPerConTracer Collector server.
 %{_bindir}/hpct-node-removal
 %{_bindir}/hpct-nodes-list
 %{_bindir}/hpct-ssh
-%{_datadir}/doc/hpct-collector/config/sudoers/99-hpct-collector
+%{_datadir}/bash-completion/completions/hpct-ssh
 %{_mandir}/man1/hpct-node-removal.1.gz
 %{_mandir}/man1/hpct-nodes-list.1.gz
 %{_mandir}/man1/hpct-ssh.1.gz
