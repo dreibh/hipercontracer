@@ -24,22 +24,21 @@ BuildRequires: pdf2svg
 BuildRequires: xz-devel
 BuildRequires: zlib-devel
 BuildRoot: %{_tmppath}/%{name}-%{version}-build
-
 Requires: %{name}-common = %{version}-%{release}
 Requires: %{name}-libhipercontracer = %{version}-%{release}
-Recommends: %{name}-collector = %{version}-%{release}
-Recommends: %{name}-dbeaver-tools = %{version}-%{release}
-Recommends: %{name}-dbshell = %{version}-%{release}
-Recommends: %{name}-importer = %{version}-%{release}
-Recommends: %{name}-node = %{version}-%{release}
-Recommends: %{name}-query = %{version}-%{release}
-Recommends: %{name}-results = %{version}-%{release}
-Recommends: %{name}-sync = %{version}-%{release}
-Recommends: %{name}-trigger = %{version}-%{release}
-Recommends: %{name}-udp-echo-server = %{version}-%{release}
 Recommends: %{name}-viewer = %{version}-%{release}
 Recommends: ethtool
 Recommends: iproute
+Suggests: %{name}-collector = %{version}-%{release}
+Suggests: %{name}-dbeaver-tools = %{version}-%{release}
+Suggests: %{name}-dbshell = %{version}-%{release}
+Suggests: %{name}-importer = %{version}-%{release}
+Suggests: %{name}-node = %{version}-%{release}
+Suggests: %{name}-query = %{version}-%{release}
+Suggests: %{name}-results = %{version}-%{release}
+Suggests: %{name}-sync = %{version}-%{release}
+Suggests: %{name}-trigger = %{version}-%{release}
+Suggests: %{name}-udp-echo-server = %{version}-%{release}
 Suggests: netperfmeter
 Suggests: td-system-info
 
@@ -565,6 +564,31 @@ in DBeaver.
 %{_mandir}/man1/decrypt-dbeaver-configuration.1.gz
 %{_mandir}/man1/encrypt-dbeaver-configuration.1.gz
 %{_mandir}/man1/make-dbeaver-configuration.1.gz
+
+
+%package all
+Summary: HiPerConTracer meta-package for all tools of the framework
+Group: Applications/Database
+BuildArch: noarch
+Requires: %{name} = %{version}-%{release}
+Requires: %{name}-collector = %{version}-%{release}
+Requires: %{name}-dbeaver-tools = %{version}-%{release}
+Requires: %{name}-dbshell = %{version}-%{release}
+Requires: %{name}-importer = %{version}-%{release}
+Requires: %{name}-node = %{version}-%{release}
+Requires: %{name}-query = %{version}-%{release}
+Requires: %{name}-results = %{version}-%{release}
+Requires: %{name}-sync = %{version}-%{release}
+Requires: %{name}-trigger = %{version}-%{release}
+Requires: %{name}-udp-echo-server = %{version}-%{release}
+Requires: %{name}-viewer = %{version}-%{release}
+
+%description all
+High-Performance Connectivity Tracer (HiPerConTracer) is a
+Ping/Traceroute service. It performs regular Ping and Traceroute runs
+among sites. The results are written to data files, which can be
+imported into an SQL or NoSQL database.
+This meta-package installs all sub-packages of the HiPerConTracer framework.
 
 
 %changelog
