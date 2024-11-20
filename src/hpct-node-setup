@@ -130,22 +130,22 @@ sudo -u hipercontracer ssh -t -oUserKnownHostsFile=${KNOWN_HOSTS} "${HPCT_COLLEC
    if ! getent passwd \"${user}\" >/dev/null 2>&1; then
       echo \"Creating user ${user} ...\" && \\
       sudo mkdir -p \"/home/${user}/.ssh\" && \\
-      sudo chmod 700 \"/home/${user}\"  && \\
-      sudo chmod 700 \"/home/${user}/.ssh\"  && \\
-      sudo cp \"keys/node${NODE_ID}.pub\" \"/home/${user}/.ssh/authorized_keys\"  && \\
-      sudo chmod 600 \"/home/${user}/.ssh/authorized_keys\"  && \\
-      sudo useradd -M -g \"${user}\" -d \"/home/${user}\" -s /bin/bash -c \"HiPerConTracer Node ${NODE_ID}\" \"${user}\"  && \\
-      sudo chown \"${user}:${user}\" \"/home/${user}\"  && \\
-      sudo chown \"${user}:${user}\" \"/home/${user}/.ssh\"  && \\
-      sudo chown \"${user}:${user}\" \"/home/${user}/.ssh/authorized_keys\"  && \\
-      echo \"Creating data directory /var/hipercontracer/data/${user} ...\"  && \\
-      sudo mkdir -p \"/var/hipercontracer/data/${user}\"  && \\
-      sudo chmod 770 \"/var/hipercontracer/data/${user}\"  && \\
-      sudo chown \"${user}:hipercontracer\" \"/var/hipercontracer/data/${user}\"
+      sudo chmod 700 \"/home/${user}\" && \\
+      sudo chmod 700 \"/home/${user}/.ssh\" && \\
+      sudo cp \"keys/node${NODE_ID}.pub\" \"/home/${user}/.ssh/authorized_keys\" && \\
+      sudo chmod 600 \"/home/${user}/.ssh/authorized_keys\" && \\
+      sudo useradd -M -g \"${user}\" -d \"/home/${user}\" -s /bin/bash -c \"HiPerConTracer Node ${NODE_ID}\" \"${user}\" && \\
+      sudo usermod -a -G hpct-nodes \"${user}\" && \\
+      sudo chown \"${user}:${user}\" \"/home/${user}\" && \\
+      sudo chown \"${user}:${user}\" \"/home/${user}/.ssh\" && \\
+      sudo chown \"${user}:${user}\" \"/home/${user}/.ssh/authorized_keys\" && \\
+      echo \"Creating data directory /var/hipercontracer/data/${user} ...\" && \\
+      sudo mkdir -p \"/var/hipercontracer/data/${user}\" && \\
+      sudo chmod 770 \"/var/hipercontracer/data/${user}\" && \\
+      sudo chown \"${user}:hpct-nodes\" \"/var/hipercontracer/data/${user}\"
    else
       echo \"User ${user} is already there.\"
-   fi && \\
-   sudo usermod -a -G hipercontracer \"${user}\"
+   fi
 " && status=0 || status=$?
 if [ "${status}" -ne 0 ] ; then
    echo -e "\x1b[34m$(date +"%Y-%m-%d %H:%M:%S") FAILED!\x1b[0m"
