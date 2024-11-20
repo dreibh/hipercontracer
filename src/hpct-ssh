@@ -37,13 +37,16 @@ if [ $# -lt 1 ] ; then
    usage
 fi
 
-SSH_USER=$(echo "$1" | sed -e "s/@.*$//")
-NODE_ID=$(echo "$1" | sed -e "s/^.*@//")
+# shellcheck disable=SC2001
+SSH_USER="$(echo "$1" | sed -e "s/@.*$//")"
+# shellcheck disable=SC2001
+NODE_ID="$(echo "$1" | sed -e "s/^.*@//")"
 VERBOSE=1
 COPY_ID=0
 shift
 
-options=$(getopt -o hqvc --long help,quiet,verbose,copy-id -a -- $@)
+# shellcheck disable=SC2068
+options="$(getopt -o hqvc --long help,quiet,verbose,copy-id -a -- $@)"
 if [[ $? -ne 0 ]]; then
    usage
 fi
@@ -81,15 +84,14 @@ if [[ ! "${NODE_ID}" =~ ^[0-9]+$ ]] ; then
    echo >&2 "ERROR: Invalid Node ID ${NODE_ID}!"
    exit 1
 fi
-if [ "${NODE_ID}" -lt 1 -o "${NODE_ID}" -gt 9999 ] ; then
+if [ "${NODE_ID}" -lt 1 ] || [ "${NODE_ID}" -gt 9999 ] ; then
    echo >&2 "ERROR: Invalid number for Node ID: ${NODE_ID}!"
    exit 1
 fi
 
 
 # ====== SSH to node via Reverse Tunnel =====================================
-user="node${NODE_ID}"
-let port=10000+${NODE_ID}
+port=$((10000+NODE_ID))
 
 if [ ${COPY_ID} -eq 1 ] ; then
    echo "Copying ID to remote machine ..."
