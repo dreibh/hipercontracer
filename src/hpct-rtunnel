@@ -44,7 +44,7 @@ fi
 
 NODE_ID=
 COLLECTOR=
-KEY="${HOME}/.ssh/id_rsa"
+KEY="~/.ssh/id_rsa"
 KNOWN_HOSTS="/var/hipercontracer/ssh/known_hosts"
 VERBOSE=1
 
@@ -97,7 +97,7 @@ if [[ ! "${NODE_ID}" =~ [0-9]+ ]] ; then
    echo >&2 "ERROR: No or invalid Node ID specified!"
    exit 1
 fi
-if [ "${NODE_ID}" -lt 1 ] || [ "${NODE_ID}" -gt 2147483647 ] ; then
+if [ "${NODE_ID}" -lt 1 ] || [ "${NODE_ID}" -gt 9999 ] ; then
    echo >&2 "ERROR: Invalid number for Node ID: ${NODE_ID}!"
    exit 1
 fi
