@@ -53,8 +53,9 @@ _hpct_sync()
 
    case "${prev}" in
       #  ====== Generic value ===============================================
-      -N | --nodeid | \
-      -R | --remote)
+      -N | --nodeid   | \
+      -R | --remote   | \
+      -C | --collector)
          return
          ;;
       # ====== Special case: directory ======================================
@@ -98,9 +99,12 @@ _hpct_sync()
 --local
 -R
 --remote
+-C
+--collector
 -K
 --key
 -H
+--known-hosts
 "
    # shellcheck disable=SC2207
    COMPREPLY=( $( compgen -W "${opts}" -- "${cur}" ) )
