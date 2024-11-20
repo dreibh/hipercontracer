@@ -47,7 +47,8 @@ shift
 
 # shellcheck disable=SC2068
 options="$(getopt -o hqvc --long help,quiet,verbose,copy-id -a -- $@)"
-if [[ $? -ne 0 ]]; then
+# shellcheck disable=SC2181
+if [[ $? -ne 0 ]] ; then
    usage
 fi
 
@@ -103,13 +104,16 @@ if [ ${COPY_ID} -eq 1 ] ; then
 fi
 
 if [ ${VERBOSE} -ne 0 ] ; then
+   # shellcheck disable=SC2145
    echo -e "\x1b[34m$(date +"%Y-%m-%d %H:%M:%S") Running SSH: ssh -p ${port} ${SSH_USER}@localhost $@\x1b[0m"
 fi
+# shellcheck disable=SC2068
 ssh -p ${port} "${SSH_USER}"@localhost $@ && status=0 || status=$?
 if [ "${status}" -ne 0 ] ; then
    if [ $# -eq 0 ] ; then
       error="SSH failed with exit code ${status}."
    else
+      # shellcheck disable=SC2124
       error="SSH \"$@\" failed with exit code ${status}."
    fi
    echo -e "\x1b[34m$(date +"%Y-%m-%d %H:%M:%S") ${error}\x1b[0m"
