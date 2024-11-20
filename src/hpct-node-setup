@@ -141,7 +141,7 @@ sudo -u hipercontracer ssh -t -oUserKnownHostsFile=${KNOWN_HOSTS} "${HPCT_COLLEC
       echo \"Creating data directory /var/hipercontracer/data/${user} ...\"  && \\
       sudo mkdir -p \"/var/hipercontracer/data/${user}\"  && \\
       sudo chmod 770 \"/var/hipercontracer/data/${user}\"  && \\
-      sudo chown \"hipercontracer:${user}\" \"/var/hipercontracer/data/${user}\"
+      sudo chown \"${user}:hipercontracer\" \"/var/hipercontracer/data/${user}\"
    else
       echo \"User ${user} is already there.\"
    fi && \\

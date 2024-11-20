@@ -103,10 +103,6 @@ if [ ! -d "${LOCAL}" ] ; then
    echo >&2 "ERROR: Local directory ${LOCAL} does not exist!"
    exit 1
 fi
-if [ ! -d "${LOCAL}/data" ] ; then
-   echo >&2 "ERROR: Local data directory ${LOCAL}/data does not exist!"
-   exit 1
-fi
 if [ ! -e "${KEY}" ] ; then
    echo >&2 "ERROR: SSH private key file ${KEY} does not exist!"
    exit 1
@@ -123,7 +119,7 @@ fi
 
 
 # ====== Run RSync ==========================================================
-rsyncOptions=""   # --remove-source-files
+rsyncOptions="-a"   # --remove-source-files
 if [ ${VERBOSE} -ne 0 ] ; then
    rsyncOptions="${rsyncOptions}  --info=progress2"
 else
@@ -133,7 +129,7 @@ rsyncOptions=" --exclude '*.tmp'"
 rsyncOptions="${rsyncOptions} -e 'ssh -i ${KEY} -oUserKnownHostsFile=${KNOWN_HOSTS}'"
 
 user="node${NODE_ID}"
-command="rsync -a ${rsyncOptions} ${LOCAL}/data/ ${user}@${COLLECTOR}:${REMOTE}/${user}/"
+command="rsync ${rsyncOptions} ${LOCAL}/ ${user}@${COLLECTOR}:${REMOTE}/${user}/"
 if [ ${VERBOSE} -ne 0 ] ; then
    echo -e "\x1b[34m$(date +"%Y-%m-%d %H:%M:%S") Running RSync: ${command}\x1b[0m"
 fi
