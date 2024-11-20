@@ -38,11 +38,12 @@
 .\" ###### Synopsis #########################################################
 .Sh SYNOPSIS
 .Nm hpct-ssh USER@NODE_ID
-.Op \-h|\-\-help
-.Op \-v|\-\-verbose
-.Op \-q|\-\-quiet
-.Op \-c|\-\-copy-id
-.Op \-\- SSH_ARGUMENTS ...
+.Op Fl h | Fl Fl help
+.Op Fl v | Fl Fl verbose
+.Op Fl q | Fl Fl quiet
+.Op Fl c | Fl Fl copy-id
+.Op Fl Fl
+SSH_ARGUMENTS ...
 .\" ###### Description ######################################################
 .Sh DESCRIPTION
 .Nm hpct-ssh
@@ -53,17 +54,17 @@ on the Collector and provides SSH login via reverse tunnel to a given node.
 .Sh ARGUMENTS
 The following arguments must be provided:
 .Bl -tag -width indent
-.It \-h|\-\-help
+.It Fl h | Fl Fl help
 Prints command help.
-.It \-q|\--quiet
+.It Fl q |\--quiet
 Turns off status output.
-.It \-v|\--verbose
+.It Fl v |\--verbose
 Turns on status output.
-.It \-c|\-\-copy-id
+.It Fl c | Fl Fl copy-id
 Calls ssh-copy-id first, in order to configure public/private key-based
 authentication to the remote node. If successful, SSH is tried. This should
 provide a password-less login.
-.It \-\- SSH_ARGUMENTS ...
+.It Fl Fl
 All arguments after -- are provided to the SSH call.
 .El
 .\" ###### Examples #########################################################

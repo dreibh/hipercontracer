@@ -33,19 +33,19 @@ Depends: hipercontracer-common,
          ${misc:Depends},
          ${shlibs:Depends}
 Recommends: ethtool,
-            hipercontracer-collector,
-            hipercontracer-dbeaver-tools,
-            hipercontracer-dbshell,
-            hipercontracer-importer,
-            hipercontracer-node,
-            hipercontracer-query,
-            hipercontracer-results,
-            hipercontracer-sync,
-            hipercontracer-trigger,
-            hipercontracer-udp-echo-server,
             hipercontracer-viewer,
-            iproute
-Suggests: netperfmeter,
+            iproute2
+Suggests: hipercontracer-collector,
+          hipercontracer-dbeaver-tools,
+          hipercontracer-dbshell,
+          hipercontracer-importer,
+          hipercontracer-node,
+          hipercontracer-query,
+          hipercontracer-results,
+          hipercontracer-sync,
+          hipercontracer-trigger,
+          hipercontracer-udp-echo-server,
+          netperfmeter,
           td-system-info
 Description: High-Performance Connectivity Tracer (HiPerConTracer)
  High-Performance Connectivity Tracer (HiPerConTracer) is a
@@ -357,3 +357,24 @@ Description: HiPerConTracer DBeaver Tools for configuring access to databases
  This package contains helper scripts to merge HiPerConTracer database
  configurations into DBeaver configurations, for maintaining databases
  in DBeaver.
+
+Package: hipercontracer-all
+Architecture: all
+Depends: hipercontracer,
+         hipercontracer-dbeaver-tools,
+         hipercontracer-dbshell,
+         hipercontracer-importer,
+         hipercontracer-query-tool,
+         hipercontracer-results-tool,
+         hipercontracer-sync-tool,
+         hipercontracer-trigger,
+         hipercontracer-udp-echo-server,
+         hipercontracer-viewer-tool,
+         ${misc:Depends}
+Description: HiPerConTracer meta-package for all tools of the framework
+ High-Performance Connectivity Tracer (HiPerConTracer) is a
+ Ping/Traceroute service. It performs regular Ping and Traceroute runs
+ among sites. The results are written to data files, which can be
+ imported into an SQL or NoSQL database.
+ .
+ This meta-package installs all sub-packages of the HiPerConTracer framework.
