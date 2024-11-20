@@ -12,10 +12,10 @@ case $2 in
    POST-INSTALL)
       # Make sure the administrative user exists
       if ! getent group hipercontracer >/dev/null 2>&1; then
-          pw group add hipercontracer
+          pw group add hipercontracer -g 299
       fi
       if ! getent passwd hipercontracer >/dev/null 2>&1; then
-          pw user add -n hipercontracer -g hipercontracer -d /var/hipercontracer -s /sbin/nologin -c "HiPerConTracer User"
+          pw user add -n hipercontracer -u 299 -g hipercontracer -d /var/hipercontracer -s /usr/sbin/nologin -c "HiPerConTracer User"
       fi
 
       # Make HiPerConTracer directory

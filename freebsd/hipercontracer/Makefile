@@ -24,7 +24,7 @@ LIB_DEPENDS=	libbz2.so:archivers/bzip2 \
 		liblzma.so:archivers/lzma
 
 USES=		cmake \
-		compiler:c++ \
+		compiler:c++20-lang \
 		desktop-file-utils \
 		python \
 		shared-mime-info \
