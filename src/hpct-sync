@@ -122,11 +122,11 @@ fi
 # ====== Run RSync ==========================================================
 rsyncOptions="-a"   # --remove-source-files
 if [ ${VERBOSE} -ne 0 ] ; then
-   rsyncOptions="${rsyncOptions}  --info=progress2"
+   rsyncOptions="${rsyncOptions} --info=progress2"
 else
    rsyncOptions="${rsyncOptions} -q"
 fi
-rsyncOptions=" --exclude '*.tmp'"
+rsyncOptions="${rsyncOptions} --exclude '*.tmp'"
 rsyncOptions="${rsyncOptions} -e 'ssh -i ${KEY} -oUserKnownHostsFile=${KNOWN_HOSTS}'"
 
 user="node${NODE_ID}"
