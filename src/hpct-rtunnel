@@ -110,7 +110,7 @@ VERSION="?.?"
 # Getting the version of hipercontracer-common here, since it is a dependency of
 # hpct-rtunnel. So, it should have been upgraded earlier.
 if [ -x /usr/bin/dpkg ] ; then
-  nodePackageVersion="$(dpkg -s hipercontracer-common | grep '^Version: ' | sed -e "s/^Version: //" || echo "N/A")"
+  nodePackageVersion="$(dpkg -s hipercontracer-common 2>/dev/null | grep '^Version: ' | sed -e "s/^Version: //" || echo "N/A")"
 elif [ -x /usr/bin/rpm ] ; then
   nodePackageVersion="$(rpm -q hipercontracer-common | sed -e "s/^hipercontracer-common-//" || echo "N/A")"
 else
