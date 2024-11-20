@@ -96,6 +96,10 @@ fi
 if ! getent passwd hipercontracer >/dev/null 2>&1; then
    useradd -M -g hipercontracer -r -d /var/hipercontracer -s /sbin/nologin -c "HiPerConTracer User" hipercontracer
 fi
+if ! getent group hpct-nodes >/dev/null 2>&1; then
+   groupadd -r hpct-nodes
+fi
+usermod -a -G hpct-nodes hipercontracer
 
 # Make HiPerConTracer directory
 mkdir -p /var/hipercontracer
@@ -107,8 +111,9 @@ chmod 700 /var/hipercontracer/ssh
 
 %postun common
 # Remove administrative user
-userdel hipercontracer >/dev/null 2>&1 || true
+userdel hipercontracer  >/dev/null 2>&1 || true
 groupdel hipercontracer >/dev/null 2>&1 || true
+groupdel hpct-nodes     >/dev/null 2>&1 || true
 
 # Remove data directory (if empty)
 rmdir /var/hipercontracer/data /var/hipercontracer/good /var/hipercontracer/bad || true
