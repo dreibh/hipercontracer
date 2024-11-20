@@ -38,7 +38,8 @@ usage () {
 }
 
 # shellcheck disable=SC2068
-options=$(getopt -o hN:R:C:K:H:vq --long help,nodeid:,remote:,collector:,key:,known-hosts:,verbose,quiet -a -- $@)
+options="$(getopt -o hN:R:C:K:H:vq --long help,nodeid:,remote:,collector:,key:,known-hosts:,verbose,quiet -a -- $@)"
+# shellcheck disable=SC2181
 if [[ $? -ne 0 ]]; then
    usage
 fi
