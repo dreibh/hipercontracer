@@ -100,7 +100,7 @@ port=$((10000+NODE_ID))
 nodePublicKey="$(sudo -u hipercontracer cat /etc/ssh/ssh_host_ed25519_key.pub)"
 userPublicKey="$(sudo -u hipercontracer cat ${PUBLIC_KEY})"
 
-sudo -u hipercontracer ssh -oUserKnownHostsFile=${KNOWN_HOSTS} "${HPCT_COLLECTOR}" "
+sudo -u hipercontracer ssh -t -oUserKnownHostsFile=${KNOWN_HOSTS} "${HPCT_COLLECTOR}" "
    set -eux && mkdir -p keys && \\
    echo \"${userPublicKey}\" >keys/node${NODE_ID}.pub.new && \\
    if [ -e \"keys/node${NODE_ID}.pub\" ] ; then
@@ -161,12 +161,16 @@ else
    fi
 
    echo -e "\x1b[34m`date +"%Y-%m-%d %H:%M:%S"` Enabling and starting HPCT RTunnel and HPCT Sync ...\x1b[0m"
-   echo "This needs sudo permission to enable and start the services!"
-   # Not enabling HiPerConTracer service here, since it has to be enabled based on measurement ID(s)!
-   sudo systemctl enable hpct-rtunnel.service
-   sudo systemctl start hpct-rtunnel.service
-   sudo systemctl enable hpct-sync.timer
-   sudo systemctl start hpct-sync.timer
+   if [ -x /usr/bin/systemctl ] ; then
+      echo "This needs sudo permission to enable and start the services!"
+      # Not enabling HiPerConTracer service here, since it has to be enabled based on measurement ID(s)!
+      sudo systemctl enable hpct-rtunnel.service
+      sudo systemctl start hpct-rtunnel.service
+      sudo systemctl enable hpct-sync.timer
+      sudo systemctl start hpct-sync.timer
+   else
+      echo "FIXME! TBD on systems without systemctl!"
+   fi
 
    echo -e "\x1b[34m$(date +"%Y-%m-%d %H:%M:%S") Done.\x1b[0m"
 fi
