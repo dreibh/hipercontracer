@@ -11,6 +11,10 @@ if [ "$1" = "configure" ]; then
    if ! getent passwd hipercontracer >/dev/null 2>&1; then
       useradd -M -g hipercontracer -r -d /var/hipercontracer -s /sbin/nologin -c "HiPerConTracer User" hipercontracer
    fi
+   if ! getent group hpct-nodes >/dev/null 2>&1; then
+      groupadd -r hpct-nodes
+   fi
+   usermod -a -G hpct-nodes hipercontracer
 
    # Make HiPerConTracer directory
    mkdir -p /var/hipercontracer
