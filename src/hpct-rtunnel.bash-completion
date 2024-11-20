@@ -54,6 +54,7 @@ _hpct_rtunnel()
    case "${prev}" in
       #  ====== Generic value ===============================================
       -N | --nodeid   | \
+      -R | --remote   | \
       -C | --collector)
          return
          ;;
@@ -76,6 +77,8 @@ _hpct_rtunnel()
 --quiet
 -N
 --nodeid
+-R
+--remote
 -C
 --collector
 -K
