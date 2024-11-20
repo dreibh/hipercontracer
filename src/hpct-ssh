@@ -37,8 +37,8 @@ if [ $# -lt 1 ] ; then
    usage
 fi
 
-SSH_USER=`echo "$1" | sed -e "s/@.*$//"`
-NODE_ID=`echo "$1" | sed -e "s/^.*@//"`
+SSH_USER=$(echo "$1" | sed -e "s/@.*$//")
+NODE_ID=$(echo "$1" | sed -e "s/^.*@//")
 VERBOSE=1
 COPY_ID=0
 shift
@@ -81,7 +81,7 @@ if [[ ! "${NODE_ID}" =~ ^[0-9]+$ ]] ; then
    echo >&2 "ERROR: Invalid Node ID ${NODE_ID}!"
    exit 1
 fi
-if [ ${NODE_ID} -lt 1 -o ${NODE_ID} -gt 9999 ] ; then
+if [ "${NODE_ID}" -lt 1 -o "${NODE_ID}" -gt 9999 ] ; then
    echo >&2 "ERROR: Invalid number for Node ID: ${NODE_ID}!"
    exit 1
 fi
@@ -93,27 +93,27 @@ let port=10000+${NODE_ID}
 
 if [ ${COPY_ID} -eq 1 ] ; then
    echo "Copying ID to remote machine ..."
-   ssh-copy-id -p ${port} ${SSH_USER}@localhost && status=0 || status=$?
-   if [ ${status} -ne 0 ] ; then
+   ssh-copy-id -p ${port} "${SSH_USER}"@localhost && status=0 || status=$?
+   if [ "${status}" -ne 0 ] ; then
       echo >&2 "ERROR: ssh-copy-id failed!"
       exit 1
    fi
 fi
 
 if [ ${VERBOSE} -ne 0 ] ; then
-   echo -e "\x1b[34m`date +"%Y-%m-%d %H:%M:%S"` Running SSH: ssh -p ${port} ${SSH_USER}@localhost $@\x1b[0m"
+   echo -e "\x1b[34m$(date +"%Y-%m-%d %H:%M:%S") Running SSH: ssh -p ${port} ${SSH_USER}@localhost $@\x1b[0m"
 fi
-ssh -p ${port} ${SSH_USER}@localhost $@ && status=0 || status=$?
-if [ ${status} -ne 0 ] ; then
+ssh -p ${port} "${SSH_USER}"@localhost $@ && status=0 || status=$?
+if [ "${status}" -ne 0 ] ; then
    if [ $# -eq 0 ] ; then
       error="SSH failed with exit code ${status}."
    else
       error="SSH \"$@\" failed with exit code ${status}."
    fi
-   echo -e "\x1b[34m`date +"%Y-%m-%d %H:%M:%S"` ${error}\x1b[0m"
-   exit ${status}
+   echo -e "\x1b[34m$(date +"%Y-%m-%d %H:%M:%S") ${error}\x1b[0m"
+   exit "${status}"
 else
    if [ ${VERBOSE} -ne 0 ] ; then
-      echo -e "\x1b[34m`date +"%Y-%m-%d %H:%M:%S"` Done.\x1b[0m"
+      echo -e "\x1b[34m$(date +"%Y-%m-%d %H:%M:%S") Done.\x1b[0m"
    fi
 fi

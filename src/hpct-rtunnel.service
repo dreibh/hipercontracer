@@ -42,6 +42,7 @@ EnvironmentFile=/etc/hipercontracer/hpct-sync.conf
 
 ExecStart=/usr/bin/hpct-rtunnel \
    --nodeid ${NODE_ID} \
+   --remote ${REMOTE} \
    --collector ${COLLECTOR} \
    --key ${KEY} \
    --known-hosts ${KNOWN_HOSTS} \

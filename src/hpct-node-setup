@@ -164,7 +164,7 @@ else
       sudo mv /etc/hipercontracer/hpct-sync.conf.new /etc/hipercontracer/hpct-sync.conf
    fi
 
-   echo -e "\x1b[34m`date +"%Y-%m-%d %H:%M:%S"` Enabling and starting HPCT RTunnel and HPCT Sync ...\x1b[0m"
+   echo -e "\x1b[34m$(date +"%Y-%m-%d %H:%M:%S") Enabling and starting HPCT RTunnel and HPCT Sync ...\x1b[0m"
    if [ -x /usr/bin/systemctl ] ; then
       echo "This needs sudo permission to enable and start the services!"
       # Not enabling HiPerConTracer service here, since it has to be enabled based on measurement ID(s)!

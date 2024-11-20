@@ -33,18 +33,20 @@ set -eu
 
 # ====== Handle arguments ===================================================
 usage () {
-   echo >&2 "Usage: $0 [-h|--help] [--verbose|-v] [--quiet|-q] [--collector|-C collector] [--nodeid|-N node_id] [--key|-K ssh_private_key_file]"
+   echo >&2 "Usage: $0 [-h|--help] [--verbose|-v] [--quiet|-q] [--remote|-R remote_location] [--collector|-C collector] [--nodeid|-N node_id] [--key|-K ssh_private_key_file]"
    exit 1
 }
 
-options=$(getopt -o hN:C:K:H:vq --long help,nodeid:,collector:,key:,known-hosts:,verbose,quiet -a -- $@)
+# shellcheck disable=SC2068
+options=$(getopt -o hN:R:C:K:H:vq --long help,nodeid:,remote:,collector:,key:,known-hosts:,verbose,quiet -a -- $@)
 if [[ $? -ne 0 ]]; then
    usage
 fi
 
 NODE_ID=
+REMOTE="/var/hipercontracer/data"
 COLLECTOR=
-KEY="~/.ssh/id_rsa"
+KEY="/var/hipercontracer/ssh/id_ed25519"
 KNOWN_HOSTS="/var/hipercontracer/ssh/known_hosts"
 VERBOSE=1
 
@@ -53,6 +55,10 @@ while [ $# -gt 0 ] ; do
    case "$1" in
       -N | --nodeid)
          NODE_ID="$2"
+         shift 2
+         ;;
+      -R | --remote)
+         REMOTE="$2"
          shift 2
          ;;
       -C | --collector)
@@ -127,6 +133,7 @@ tunnel_uptime: $(date -u +"%Y-%m-%d %H:%M:%S")"
 sshOptions="-i ${KEY} -oUserKnownHostsFile=${KNOWN_HOSTS}"
 user="node${NODE_ID}"
 port=$((10000+NODE_ID))
+lastSeen="${REMOTE}/${user}/last-seen.txt"
 
 if [ ${VERBOSE} -ne 0 ] ; then
    echo -e "\x1b[34m$(date +"%Y-%m-%d %H:%M:%S") Running SSH (ssh -tt -R ${port}:localhost:22 ${sshOptions} ${user}@${COLLECTOR}) ...\x1b[0m"
@@ -136,7 +143,8 @@ fi
 
 # ping -c1 ${COLLECTOR} || true
 
-ssh -tt -R "${port}:localhost:22" ${sshOptions} "${user}"@"${COLLECTOR}" "while [ true ] ; do ( date -u +\"%Y-%m-%d %H:%M:%S\" ; echo \"${nodeStatus}\" ) >last-seen.txt.tmp && mv last-seen.txt.tmp last-seen.txt ; sleep 255 ; done" \
+# shellcheck disable=SC2086
+ssh -tt -R "${port}:localhost:22" ${sshOptions} "${user}"@"${COLLECTOR}" "while [ true ] ; do ( date -u +\"%Y-%m-%d %H:%M:%S\" ; echo \"${nodeStatus}\" ) >${lastSeen}.tmp && mv ${lastSeen}.tmp ${lastSeen} ; sleep 255 ; done" \
    </dev/null >/dev/null 2>&1 && status=0 || status=$?
 if [ "${status}" -ne 0 ] ; then
    echo -e "\x1b[34m$(date +"%Y-%m-%d %H:%M:%S") SSH failed!\x1b[0m"

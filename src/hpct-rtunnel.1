@@ -41,10 +41,11 @@
 .Op Fl h | Fl Fl help
 .Op Fl v | Fl Fl verbose
 .Op Fl q | Fl Fl quiet
-.Op Fl N | Fl Fl nodeid NODE_ID
-.Op Fl C | Fl Fl collector COLLECTOR
-.Op Fl K | Fl Fl key SSH_PRIVATE_KEY_FILE
-.Op Fl H | Fl Fl known-hosts SSH_KNOWN_HOSTS_FILE
+.Op Fl N | Fl Fl nodeid node_id
+.Op Fl R Ar remote_location | Fl Fl remote Ar remote_location
+.Op Fl C | Fl Fl collector collector
+.Op Fl K Ar ssh_private_key_file | Fl Fl key Ar ssh_private_key_file
+.Op Fl H Ar ssh_known_hosts_file | Fl Fl known-hosts Ar ssh_known_hosts_file
 .\" ###### Description ######################################################
 .Sh DESCRIPTION
 .Nm hpct-rtunnel
@@ -66,14 +67,16 @@ Prints command help.
 Turns off status output.
 .It Fl v | Fl -verbose
 Turns on status output.
-.It Fl N | Fl Fl nodeid NODE_ID
+.It Fl N | Fl Fl nodeid node_id
 Sets the node ID, a number from 1 to 9999.
-.It Fl R | Fl Fl collector COLLECTOR
+.It Fl R Ar remote_location | Fl Fl remote Ar remote_location
+Sets the remote data directory on the collector. Default: /var/hipercontracer/data.
+.It Fl R | Fl Fl collector collector
 Sets the remote data location for RSync. Format: HOST:DIRECTORY.
-.It Fl K | Fl Fl key SSH_PRIVATE_KEY_FILE
-Sets the SSH private key file used for authentication. Default: ~/.ssh/id_rsa.
-.It Fl H | Fl Fl known-hosts SSH_KNOWN_HOSTS_FILE
-Sets the SSH known hosts file. Default: ~/.ssh/known_hosts.
+.It Fl K Ar ssh_private_key_file | Fl Fl key Ar ssh_private_key_file
+Sets the SSH private key file used for authentication. Default: /var/hipercontracer/ssh/id_ed25519.
+.It Fl H Ar ssh_known_hosts_file | Fl Fl known-hosts Ar ssh_known_hosts_file
+Sets the SSH known hosts file. Default: /var/hipercontracer/ssh/known_hosts.
 .El
 .\" ###### Examples #########################################################
 .Sh EXAMPLES
