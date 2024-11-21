@@ -23,8 +23,6 @@ on:
     branches:
       - master
       - dreibh/github-actions
-      - dreibh/udpping
-      - tartan
 
 jobs:
   # ====== Ubuntu Linux =====================================================
