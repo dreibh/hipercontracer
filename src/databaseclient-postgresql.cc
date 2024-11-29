@@ -39,8 +39,9 @@
 PostgreSQLClient::PostgreSQLClient(const DatabaseConfiguration& configuration)
    : DatabaseClientBase(configuration)
 {
-   Connection  = nullptr;
-   Transaction = nullptr;
+   Connection        = nullptr;
+   Transaction       = nullptr;
+   ResultIteratorPtr = nullptr;
 }
 
 
@@ -113,6 +114,7 @@ bool PostgreSQLClient::open()
 // ###### Close connection to database ######################################
 void PostgreSQLClient::close()
 {
+   ResultIteratorPtr = nullptr;
    if(Transaction) {
       delete Transaction;
       Transaction = nullptr;
@@ -230,8 +232,9 @@ void PostgreSQLClient::executeQuery(Statement& statement)
       if(Transaction == nullptr) {
          Transaction = new pqxx::work(*Connection);
       }
-      ResultSet      = Transaction->exec(statement.str());
-      ResultIterator = ResultSet.begin();
+      ResultSet         = Transaction->exec(statement.str());
+      ResultIterator    = ResultSet.begin();
+      ResultIteratorPtr = nullptr;
    }
    catch(const pqxx::failure& exception) {
       handleDatabaseException(exception, "Execute", statement.str());
@@ -244,7 +247,10 @@ void PostgreSQLClient::executeQuery(Statement& statement)
 // ###### Fetch next tuple ##################################################
 bool PostgreSQLClient::fetchNextTuple()
 {
-   if(ResultIterator != ResultSet.end()) {
+   if(ResultIteratorPtr == nullptr) {
+      ResultIteratorPtr = &ResultIterator;
+   }
+   else if(*ResultIteratorPtr != ResultSet.end()) {
       ResultIterator++;
    }
    return ResultIterator != ResultSet.end();
