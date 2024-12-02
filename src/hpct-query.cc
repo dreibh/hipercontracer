@@ -531,10 +531,10 @@ int main(int argc, char** argv)
             if(tableVersion == 1) {
                std::string ts;
                if( (backend & DatabaseBackendType::SQL_PostgreSQL) == DatabaseBackendType::SQL_PostgreSQL ) {
-                  ts = "(1000000000 * CAST(EXTRACT(EPOCH FROM TimeStamp) AS BIGINT))";
+                  ts = "CAST((1000000000.0 * EXTRACT(EPOCH FROM TimeStamp)) AS BIGINT)";
                }
                else {
-                  ts = "(1000000000 * CAST(UNIX_TIMESTAMP(TimeStamp) AS UNSIGNED))";
+                  ts = "CAST((1000000000.0 * UNIX_TIMESTAMP(TimeStamp)) AS UNSIGNED)";
                }
                statement
                   << "SELECT"
@@ -685,10 +685,10 @@ int main(int argc, char** argv)
             if(tableVersion == 1) {
                std::string ts;
                if( (backend & DatabaseBackendType::SQL_PostgreSQL) == DatabaseBackendType::SQL_PostgreSQL ) {
-                  ts = "(1000000000 * CAST(EXTRACT(EPOCH FROM TimeStamp) AS BIGINT))";
+                  ts = "CAST((1000000000.0 * EXTRACT(EPOCH FROM TimeStamp)) AS BIGINT)";
                }
                else {
-                  ts = "(1000000000 * CAST(UNIX_TIMESTAMP(TimeStamp) AS UNSIGNED))";
+                  ts = "CAST((1000000000.0 * UNIX_TIMESTAMP(TimeStamp)) AS UNSIGNED)";
                }
                statement
                   << "SELECT"
