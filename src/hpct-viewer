@@ -43,14 +43,9 @@ inputFile="$1"
 # may be started here ...
 if [[ "${inputFile}" =~ \.xz$ ]] ; then
    uname="$(uname -s)"
-   if  "${uname}" == "FreeBSD" ] ; then
-      if [ "$(stat -f "%z" "${inputFile}")" == "32" ] ; then
-         echo "Empty file." | less
-         return
-      fi
-   else
+   if [ "${uname}" == "Linux" ] ; then
       if [ "$(stat -c "%s" "${inputFile}")" == "32" ] ; then
-         echo "Empty file." | less
+         echo "" | less
          return
       fi
    fi
