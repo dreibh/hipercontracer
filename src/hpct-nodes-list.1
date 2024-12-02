@@ -29,48 +29,32 @@
 .\"
 .\" ###### Setup ############################################################
 .Dd November 29, 2024
-.Dt make-dbeaver-configuration 1
-.Os make-dbeaver-configuration
+.Dt hpct-nodes-list 1
+.Os hpct-nodes-list
 .\" ###### Name #############################################################
 .Sh NAME
-.Nm make-dbeaver-configuration
-.Nd Make DBeaver Configuration from HiPerConTracer Database Configuration Files
+.Nm hpct-nodes-list
+.Nd Get HiPerConTracer Nodes List on the Collector
 .\" ###### Synopsis #########################################################
 .Sh SYNOPSIS
-.Nm make-dbeaver-configuration
-database_configuration_file ...
-.Op Fl Fl join
+.Nm hpct-nodes-list
 .\" ###### Description ######################################################
 .Sh DESCRIPTION
-.Nm make-dbeaver-configuration
-takes HiPerConTracer configuration files and merges them into the DBeaver
-configuration file.
+.Nm hpct-nodes-list
+lists the HiPerConTracer configured on the Collector, as well as
+their connectivity (RTunnel) and data synchronisation (Sync) status.
 .Pp
-###### Arguments ########################################################
-.Sh ARGUMENTS
-The following argument may be provided:
-.Bl -tag -width indent
-.It Fl Fl join
-Join with existing DBeaver configuration. The existing configuration is
-searched in the following directories:
-.Bl -tag
-.It ~/.local/share/DBeaverData/workspace6/General/.dbeaver
-.It ~/snap/dbeaver-ce/current/.local/share/DBeaverData/workspace6/General/.dbeaver
-.El
-.El
-.\" ###### Arguments ########################################################
+.\" ###### Examples #########################################################
 .Sh EXAMPLES
 .Bl -tag -width indent
-.It make-dbeaver-configuration hipercontracer-database.conf
-.It make-dbeaver-configuration ~/test4hpct-*-*.conf --join
-.It make-dbeaver-configuration hipercontracer-database.conf --join
-.It make-dbeaver-configuration project1-database.conf project2-database.conf project3-database.conf --join
+.It hpct-nodes-list
+.It watch --color -n300 hpct-nodes-list
 .El
 .\" ###### Authors ##########################################################
 .Sh AUTHORS
 Thomas Dreibholz
 .br
-https://www.nntb.no/~dreibh/hipercontracer
+https://www.simula.no/people/dreibh
 .br
 mailto://dreibh@simula.no
 .br

@@ -446,10 +446,12 @@ int main(int argc, char** argv)
          std::cerr << "ERROR: Unable to read mapping file " << addressToMeasurementIDFile << "!\n";
          return 1;
       }
+      unsigned long long line = 0;
       try {
          std::string  addressString;
          unsigned int measurementID;
          while(!mappingFile.eof()) {
+            line++;
             mappingFile >> addressString >> measurementID;
             addressToMeasurementID.insert(std::pair<boost::asio::ip::address, unsigned int>(
                                              boost::asio::ip::make_address(addressString),
@@ -458,7 +460,7 @@ int main(int argc, char** argv)
       }
       catch(const std::exception& e) {
          std::cerr << "ERROR: Parsing mapping file " << addressToMeasurementIDFile
-                   << " failed: " << e.what() << "!\n";
+                   << " failed in line " << line << ": " << e.what() << "!\n";
          return 1;
       }
    }

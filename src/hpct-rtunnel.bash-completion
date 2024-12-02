@@ -29,8 +29,8 @@
 # Contact: dreibh@simula.no
 
 
-# ###### Bash completion for hpct-sync ######################################
-_hpct_sync()
+# ###### Bash completion for hpct-rtunnel ###################################
+_hpct_rtunnel()
 {
    # Based on: https://www.benningtons.net/index.php/bash-completion/
    local cur prev words cword
@@ -58,29 +58,11 @@ _hpct_sync()
       -C | --collector)
          return
          ;;
-      # ====== Special case: directory ======================================
-      -L | --local)
-         # Arbitrary directories:
-         _filedir -d
-         return
-         ;;
       # ====== Special case: file ===========================================
       -K | --key | \
       -H | --known-hosts)
          # Arbitrary file names:
          _filedir
-         return
-         ;;
-      # ====== Special case: log file =======================================
-      -O | --logfile)
-         # Files with extension .log:
-         _filedir '@(log)'
-         return
-         ;;
-      # ====== Special case: on/off =========================================
-      -Z | --logcolor)
-         # shellcheck disable=SC2207
-         COMPREPLY=( $(compgen -W "on off" --  "${cur}") )
          return
          ;;
    esac
@@ -95,8 +77,6 @@ _hpct_sync()
 --quiet
 -N
 --nodeid
--L
---local
 -R
 --remote
 -C
@@ -111,4 +91,4 @@ _hpct_sync()
    return 0
 }
 
-complete -F _hpct_sync hpct-sync
+complete -F _hpct_rtunnel hpct-rtunnel

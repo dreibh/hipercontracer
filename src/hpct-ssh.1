@@ -29,48 +29,57 @@
 .\"
 .\" ###### Setup ############################################################
 .Dd November 29, 2024
-.Dt make-dbeaver-configuration 1
-.Os make-dbeaver-configuration
+.Dt hpct-ssh 1
+.Os hpct-ssh
 .\" ###### Name #############################################################
 .Sh NAME
-.Nm make-dbeaver-configuration
-.Nd Make DBeaver Configuration from HiPerConTracer Database Configuration Files
+.Nm hpct-ssh
+.Nd HiPerConTracer SSH via Reverse Tunnel
 .\" ###### Synopsis #########################################################
 .Sh SYNOPSIS
-.Nm make-dbeaver-configuration
-database_configuration_file ...
-.Op Fl Fl join
+.Nm hpct-ssh USER@NODE_ID
+.Op Fl h | Fl Fl help
+.Op Fl v | Fl Fl verbose
+.Op Fl q | Fl Fl quiet
+.Op Fl c | Fl Fl copy-id
+.Op Fl Fl
+SSH_ARGUMENTS ...
 .\" ###### Description ######################################################
 .Sh DESCRIPTION
-.Nm make-dbeaver-configuration
-takes HiPerConTracer configuration files and merges them into the DBeaver
-configuration file.
+.Nm hpct-ssh
+is the HiPerConTracer Reverse Tunnel SSH script. It is to be run
+on the Collector and provides SSH login via reverse tunnel to a given node.
 .Pp
-###### Arguments ########################################################
-.Sh ARGUMENTS
-The following argument may be provided:
-.Bl -tag -width indent
-.It Fl Fl join
-Join with existing DBeaver configuration. The existing configuration is
-searched in the following directories:
-.Bl -tag
-.It ~/.local/share/DBeaverData/workspace6/General/.dbeaver
-.It ~/snap/dbeaver-ce/current/.local/share/DBeaverData/workspace6/General/.dbeaver
-.El
-.El
 .\" ###### Arguments ########################################################
+.Sh ARGUMENTS
+The following arguments must be provided:
+.Bl -tag -width indent
+.It Fl h | Fl Fl help
+Prints command help.
+.It Fl q |\--quiet
+Turns off status output.
+.It Fl v |\--verbose
+Turns on status output.
+.It Fl c | Fl Fl copy-id
+Calls ssh-copy-id first, in order to configure public/private key-based
+authentication to the remote node. If successful, SSH is tried. This should
+provide a password-less login.
+.It Fl Fl
+All arguments after -- are provided to the SSH call.
+.El
+.\" ###### Examples #########################################################
 .Sh EXAMPLES
 .Bl -tag -width indent
-.It make-dbeaver-configuration hipercontracer-database.conf
-.It make-dbeaver-configuration ~/test4hpct-*-*.conf --join
-.It make-dbeaver-configuration hipercontracer-database.conf --join
-.It make-dbeaver-configuration project1-database.conf project2-database.conf project3-database.conf --join
+.It hpct-ssh user@1000
+.It hpct-ssh user@1000 --verbose
+.It hpct-ssh user@1000 --copy-id --verbose
+.It hpct-ssh user@1000 --quiet -- 'hostname ; pactl list sources'
 .El
 .\" ###### Authors ##########################################################
 .Sh AUTHORS
 Thomas Dreibholz
 .br
-https://www.nntb.no/~dreibh/hipercontracer
+https://www.simula.no/people/dreibh
 .br
 mailto://dreibh@simula.no
 .br

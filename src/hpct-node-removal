@@ -1,3 +1,4 @@
+#!/usr/bin/env bash
 # ==========================================================================
 #     _   _ _ ____            ____          _____
 #    | | | (_)  _ \ ___ _ __ / ___|___  _ _|_   _| __ __ _  ___ ___ _ __
@@ -27,29 +28,44 @@
 #
 # Contact: dreibh@simula.no
 
-[Unit]
-Description=HiPerConTracer Synchronisation Service
-Documentation=man:hpct-sync(1)
-After=network-online.target
-Wants=network-online.target
+set -eu
 
-[Service]
-Type=oneshot
-User=hipercontracer
-Group=hipercontracer
-WorkingDirectory=/var/hipercontracer
-EnvironmentFile=/etc/hipercontracer/hpct-sync.conf
 
-ExecStart=/usr/bin/hpct-sync \
-   --nodeid ${NODE_ID} \
-   --local ${LOCAL} \
-   --remote ${REMOTE} \
-   --collector ${COLLECTOR} \
-   --key ${KEY} \
-   --known-hosts ${KNOWN_HOSTS} \
-   --verbose
+# ====== Handle arguments ===================================================
+if [ $# -ne 1 ] ; then
+   echo >&2 "Usage: $0 node_id"
+   exit 1
+fi
 
-PrivateNetwork=no
-PrivateTmp=yes
-InaccessibleDirectories=/home
-CapabilityBoundingSet=
+NODE_ID="$1"
+
+if [[ ! "${NODE_ID}" =~ ^[0-9]+$ ]] ; then
+   echo >&2 "ERROR: Invalid Node ID ${NODE_ID}!"
+   exit 1
+fi
+if [ "${NODE_ID}" -lt 1 ] || [ "${NODE_ID}" -gt 9999 ] ; then
+   echo >&2 "ERROR: Invalid number for Node ID: ${NODE_ID}!"
+   exit 1
+fi
+
+
+# ====== Remove user ========================================================
+user="node${NODE_ID}"
+echo -e "\x1b[34m$(date +"%Y-%m-%d %H:%M:%S") Deleting user ${user} ...\x1b[0m"
+
+if getent passwd "${user}" >/dev/null 2>&1; then
+   echo "Deleting user ${user} ..."
+   sudo userdel -r -f "${user}" || true
+fi
+if getent group "${user}" >/dev/null 2>&1; then
+   echo "Deleting group ${user} ..."
+   sudo groupdel "${user}" || true
+fi
+if [ "${SUDO_USER}" != "" ] ; then
+   rm -f /home/"${SUDO_USER}"/keys/"${user}".pub \
+        /home/"${SUDO_USER}"/keys/"${user}".pub.new
+else
+   rm -f ~/keys/"${user}".pub ~/keys/"${user}".pub.new
+fi
+
+echo -e "\x1b[34m$(date +"%Y-%m-%d %H:%M:%S") Done.\x1b[0m"

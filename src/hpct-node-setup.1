@@ -29,48 +29,47 @@
 .\"
 .\" ###### Setup ############################################################
 .Dd November 29, 2024
-.Dt make-dbeaver-configuration 1
-.Os make-dbeaver-configuration
+.Dt hpct-node-setup 1
+.Os hpct-node-setup
 .\" ###### Name #############################################################
 .Sh NAME
-.Nm make-dbeaver-configuration
-.Nd Make DBeaver Configuration from HiPerConTracer Database Configuration Files
+.Nm hpct-node-setup
+.Nd HiPerConTracer Node
 .\" ###### Synopsis #########################################################
 .Sh SYNOPSIS
-.Nm make-dbeaver-configuration
-database_configuration_file ...
-.Op Fl Fl join
+.Nm hpct-node-setup COLLECTOR NODE_ID
 .\" ###### Description ######################################################
 .Sh DESCRIPTION
-.Nm make-dbeaver-configuration
-takes HiPerConTracer configuration files and merges them into the DBeaver
-configuration file.
-.Pp
-###### Arguments ########################################################
-.Sh ARGUMENTS
-The following argument may be provided:
+.Nm hpct-node-setup
+is the HiPerConTracer node setup script. It is run on a node, in order to:
 .Bl -tag -width indent
-.It Fl Fl join
-Join with existing DBeaver configuration. The existing configuration is
-searched in the following directories:
-.Bl -tag
-.It ~/.local/share/DBeaverData/workspace6/General/.dbeaver
-.It ~/snap/dbeaver-ce/current/.local/share/DBeaverData/workspace6/General/.dbeaver
+.It 1. Create an SSH key pair (for public/private key-based authentication to collector);
+.It 2. Upload the public key to the collector;
+.It 3. Configure SSH public/private key-based authentication on the collector (for SSH node->collector; Note: this configures password-less login to the node user node<NODE_ID> on the collector!);
+.It 4. Update known_hosts on the collector with node's server key (for SSH collector->node via Reverse Tunnel; Note: this direction is *not* configured, for security!).
+.It 5. Update /etc/hipercontracer/hpct-sync.conf with the given ID and collector.
 .El
-.El
+.Pp
 .\" ###### Arguments ########################################################
+.Sh ARGUMENTS
+The following arguments must be provided:
+.Bl -tag -width indent
+.It COLLECTOR
+Sets the SSH location of the collector, i.e. USER@HOST.
+.It NODE_ID
+Sets the node ID, a number from 1 to 9999.
+.El
+.\" ###### Examples #########################################################
 .Sh EXAMPLES
 .Bl -tag -width indent
-.It make-dbeaver-configuration hipercontracer-database.conf
-.It make-dbeaver-configuration ~/test4hpct-*-*.conf --join
-.It make-dbeaver-configuration hipercontracer-database.conf --join
-.It make-dbeaver-configuration project1-database.conf project2-database.conf project3-database.conf --join
+.It sudo hpct-node-setup nornetpp@hpct-collector.example 1
+.It sudo hpct-node-setup nornetpp@hpct-collector.example 1000
 .El
 .\" ###### Authors ##########################################################
 .Sh AUTHORS
 Thomas Dreibholz
 .br
-https://www.nntb.no/~dreibh/hipercontracer
+https://www.simula.no/people/dreibh
 .br
 mailto://dreibh@simula.no
 .br

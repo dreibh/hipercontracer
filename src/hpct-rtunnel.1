@@ -29,50 +29,66 @@
 .\"
 .\" ###### Setup ############################################################
 .Dd November 29, 2024
-.Dt pipe-checksum 1
-.Os pipe-checksum
+.Dt hpct-rtunnel 1
+.Os hpct-rtunnel
 .\" ###### Name #############################################################
 .Sh NAME
-.Nm pipe-checksum
-.Nd Write stdin to file and create a file with the checksum of the data
+.Nm hpct-rtunnel
+.Nd HiPerConTracer Reverse Tunnel
 .\" ###### Synopsis #########################################################
 .Sh SYNOPSIS
-.Nm pipe-checksum
-file
-.Op Fl D Ar MD5|SHA1|SHA256|SHA384|SHA512|... | Fl Fl digest Ar MD5|SHA1|SHA256|SHA384|SHA512|...
+.Nm hpct-rtunnel
+.Op Fl h | Fl Fl help
+.Op Fl v | Fl Fl verbose
+.Op Fl q | Fl Fl quiet
+.Op Fl N | Fl Fl nodeid node_id
+.Op Fl R Ar remote_location | Fl Fl remote Ar remote_location
+.Op Fl C | Fl Fl collector collector
+.Op Fl K Ar ssh_private_key_file | Fl Fl key Ar ssh_private_key_file
+.Op Fl H Ar ssh_known_hosts_file | Fl Fl known-hosts Ar ssh_known_hosts_file
 .\" ###### Description ######################################################
 .Sh DESCRIPTION
-.Nm pipe-checksum
-writes all data from standard input into a given file "<file>". Furthermore, it
-computes the checksum of the data and writes it to a new file "<file>.checksum".
-The used message digest algorithm can be configured, it defaults to SHA256.
-The checksum format is BSD-style checksum format, as written for example by
-the sha256sum tool. Therefore, any tool supporting this format can be used
-for comparison.
+.Nm hpct-rtunnel
+is the HiPerConTracer remote tunnel script. It establishes an
+SSH tunnel from a node to a collected, allowing SSH forwarding to the node
+from port 10000+NodeID on the collector. It is intended to be used with the
+hpct-rtunnel service, to automatically establish the tunnel from a node with
+NAT'ed IP address for remote maintenance.
 .Pp
 .\" ###### Arguments ########################################################
 .Sh ARGUMENTS
 The following arguments may be provided:
 .Bl -tag -width indent
-.It Fl D Ar MD5|SHA1|SHA256|SHA384|SHA512|... | Fl Fl digest Ar MD5|SHA1|SHA256|SHA384|SHA512|...
-Sets the message digest. Any digest supported by the underlying libcrypto
-library is possible. Calling pipe-checksum with no options, or with invalid digest, provides the list of all supported digests. Default: SHA256.
+.\" .It Fl O | Fl -option
+.\" Enter description here!
+.It Fl h | Fl Fl help
+Prints command help.
+.It Fl q | Fl -quiet
+Turns off status output.
+.It Fl v | Fl -verbose
+Turns on status output.
+.It Fl N | Fl Fl nodeid node_id
+Sets the node ID, a number from 1 to 9999.
+.It Fl R Ar remote_location | Fl Fl remote Ar remote_location
+Sets the remote data directory on the collector. Default: /var/hipercontracer/data.
+.It Fl R | Fl Fl collector collector
+Sets the remote data location for RSync. Format: HOST:DIRECTORY.
+.It Fl K Ar ssh_private_key_file | Fl Fl key Ar ssh_private_key_file
+Sets the SSH private key file used for authentication. Default: /var/hipercontracer/ssh/id_ed25519.
+.It Fl H Ar ssh_known_hosts_file | Fl Fl known-hosts Ar ssh_known_hosts_file
+Sets the SSH known hosts file. Default: /var/hipercontracer/ssh/known_hosts.
 .El
 .\" ###### Examples #########################################################
 .Sh EXAMPLES
 .Bl -tag -width indent
-.It date | pipe-checksum date.txt
-.It sha256sum --check date.txt.checksum
-.It date | pipe-checksum date.txt --digest SHA384
-.It dd if=/dev/urandom bs=12345 count=67 | hexdump | pipe-checksum random.txt
-.It dd if=/dev/urandom bs=12345 count=67 | pipe-checksum random.txt --digest SHA512
-.It sha512sum --check random.txt.checksum
+.It sudo -u hipercontracer   hpct-rtunnel -N 1000 -C 10.44.35.16 --key /var/hipercontracer/ssh/id_ed25519 --known-hosts /var/hipercontracer/ssh/known_hosts
+.It sudo -u hipercontracer   hpct-rtunnel -N 1 -C 10.44.35.16 --key /var/hipercontracer/ssh/id_ed25519 --known-hosts /var/hipercontracer/ssh/known_hosts
 .El
 .\" ###### Authors ##########################################################
 .Sh AUTHORS
 Thomas Dreibholz
 .br
-https://www.nntb.no/~dreibh/hipercontracer
+https://www.simula.no/people/dreibh
 .br
 mailto://dreibh@simula.no
 .br

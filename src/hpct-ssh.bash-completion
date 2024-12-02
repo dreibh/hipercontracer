@@ -1,3 +1,4 @@
+# shellcheck shell=bash
 # ==========================================================================
 #     _   _ _ ____            ____          _____
 #    | | | (_)  _ \ ___ _ __ / ___|___  _ _|_   _| __ __ _  ___ ___ _ __
@@ -27,29 +28,43 @@
 #
 # Contact: dreibh@simula.no
 
-[Unit]
-Description=HiPerConTracer Synchronisation Service
-Documentation=man:hpct-sync(1)
-After=network-online.target
-Wants=network-online.target
 
-[Service]
-Type=oneshot
-User=hipercontracer
-Group=hipercontracer
-WorkingDirectory=/var/hipercontracer
-EnvironmentFile=/etc/hipercontracer/hpct-sync.conf
+# ###### Bash completion for hpct-ssh #######################################
+_hpct_ssh()
+{
+   # Based on: https://www.benningtons.net/index.php/bash-completion/
+   local cur prev words cword
+   if type -t _comp_initialize >/dev/null; then
+      _comp_initialize || return
+   elif type -t _init_completion >/dev/null; then
+      _init_completion || return
+   else
+      # Manual initialization for older bash completion versions:
+      COMPREPLY=()
+      # shellcheck disable=SC2034
+      cur="${COMP_WORDS[COMP_CWORD]}"
+      # shellcheck disable=SC2034
+      prev="${COMP_WORDS[COMP_CWORD-1]}"
+      # shellcheck disable=SC2034,SC2124
+      words="${COMP_WORDS[@]}"
+      # shellcheck disable=SC2034
+      cword="${COMP_CWORD}"
+   fi
 
-ExecStart=/usr/bin/hpct-sync \
-   --nodeid ${NODE_ID} \
-   --local ${LOCAL} \
-   --remote ${REMOTE} \
-   --collector ${COLLECTOR} \
-   --key ${KEY} \
-   --known-hosts ${KNOWN_HOSTS} \
-   --verbose
+   # ====== All options =====================================================
+   local opts="
+-h
+--help
+-v
+--verbose
+-q
+--quiet
+-c
+--copy-id
+"
+   # shellcheck disable=SC2207
+   COMPREPLY=( $( compgen -W "${opts}" -- "${cur}" ) )
+   return 0
+}
 
-PrivateNetwork=no
-PrivateTmp=yes
-InaccessibleDirectories=/home
-CapabilityBoundingSet=
+complete -F _hpct_ssh hpct-ssh

@@ -33,19 +33,18 @@ set -eu
 
 # ====== Handle arguments ===================================================
 usage () {
-   echo >&2 "Usage: $0 [-h|--help] [--verbose|-v] [--quiet|-q] [--local|-L local_directory] [--remote|-R remote_location] [--collector|-C collector] [--key|-K ssh_private_key_file]"
+   echo >&2 "Usage: $0 [-h|--help] [--verbose|-v] [--quiet|-q] [--remote|-R remote_location] [--collector|-C collector] [--nodeid|-N node_id] [--key|-K ssh_private_key_file]"
    exit 1
 }
 
 # shellcheck disable=SC2068
-options="$(getopt -o hN:L:R:C:K:H:vq --long help,nodeid:,local:,remote:,collector:,key:,known-hosts:,verbose,quiet -a -- $@)"
+options="$(getopt -o hN:R:C:K:H:vq --long help,nodeid:,remote:,collector:,key:,known-hosts:,verbose,quiet -a -- $@)"
 # shellcheck disable=SC2181
 if [[ $? -ne 0 ]]; then
    usage
 fi
 
 NODE_ID=
-LOCAL="/var/hipercontracer/data"
 REMOTE="/var/hipercontracer/data"
 COLLECTOR=
 KEY="/var/hipercontracer/ssh/id_ed25519"
@@ -57,10 +56,6 @@ while [ $# -gt 0 ] ; do
    case "$1" in
       -N | --nodeid)
          NODE_ID="$2"
-         shift 2
-         ;;
-      -L | --local)
-         LOCAL="$2"
          shift 2
          ;;
       -R | --remote)
@@ -97,12 +92,8 @@ while [ $# -gt 0 ] ; do
   esac
 done
 
-if [ "${LOCAL}" == "" ] || [ "${REMOTE}" == "" ] || [ "${COLLECTOR}" == "" ] ; then
+if [ "${COLLECTOR}" == ""  ] ; then
    usage
-fi
-if [ ! -d "${LOCAL}" ] ; then
-   echo >&2 "ERROR: Local directory ${LOCAL} does not exist!"
-   exit 1
 fi
 if [ ! -e "${KEY}" ] ; then
    echo >&2 "ERROR: SSH private key file ${KEY} does not exist!"
@@ -113,33 +104,53 @@ if [[ ! "${NODE_ID}" =~ [0-9]+ ]] ; then
    echo >&2 "ERROR: No or invalid Node ID specified!"
    exit 1
 fi
-if [ "${NODE_ID}" -lt 1 ] || [ "${NODE_ID}" -gt 999999999 ] ; then
+if [ "${NODE_ID}" -lt 1 ] || [ "${NODE_ID}" -gt 9999 ] ; then
    echo >&2 "ERROR: Invalid number for Node ID: ${NODE_ID}!"
    exit 1
 fi
 
 
-# ====== Run RSync ==========================================================
-rsyncOptions="-a"   # --remove-source-files
-if [ ${VERBOSE} -ne 0 ] ; then
-   rsyncOptions="${rsyncOptions} --info=progress2"
+# ====== Obtain node status =================================================
+NAME="Unknown"
+VERSION="?.?"
+. /etc/os-release
+# Getting the version of hipercontracer-common here, since it is a dependency of
+# hpct-rtunnel. So, it should have been upgraded earlier.
+if [ -x /usr/bin/dpkg ] ; then
+  nodePackageVersion="$(dpkg -s hipercontracer-common 2>/dev/null | grep '^Version: ' | sed -e "s/^Version: //" || echo "N/A")"
+elif [ -x /usr/bin/rpm ] ; then
+  nodePackageVersion="$(rpm -q hipercontracer-common | sed -e "s/^hipercontracer-common-//" || echo "N/A")"
 else
-   rsyncOptions="${rsyncOptions} -q"
+  nodePackageVersion=""
 fi
-rsyncOptions="${rsyncOptions} --exclude '*.tmp'"
-rsyncOptions="${rsyncOptions} -e 'ssh -i ${KEY} -oUserKnownHostsFile=${KNOWN_HOSTS}'"
+nodeStatus="\
+lsb_release: ${NAME} ${VERSION}
+node_package_version: ${nodePackageVersion}
+node_uptime: $(uptime -s)
+tunnel_uptime: $(date -u +"%Y-%m-%d %H:%M:%S")"
 
+
+# ====== Establish reverse tunnel ===========================================
+sshOptions="-i ${KEY} -oUserKnownHostsFile=${KNOWN_HOSTS}"
 user="node${NODE_ID}"
-command="rsync ${rsyncOptions} ${LOCAL}/ ${user}@${COLLECTOR}:${REMOTE}/${user}/"
+port=$((10000+NODE_ID))
+lastSeen="${REMOTE}/${user}/last-seen.txt"
+
 if [ ${VERBOSE} -ne 0 ] ; then
-   echo -e "\x1b[34m$(date +"%Y-%m-%d %H:%M:%S") Running RSync: ${command}\x1b[0m"
+   echo -e "\x1b[34m$(date +"%Y-%m-%d %H:%M:%S") Running SSH (ssh -tt -R ${port}:localhost:22 ${sshOptions} ${user}@${COLLECTOR}) ...\x1b[0m"
+   echo "Private key file: ${KEY}"
+   echo "Known hosts file: ${KNOWN_HOSTS}"
 fi
-sh -c "${command}" && status=0 || status=$?
+
+# ping -c1 ${COLLECTOR} || true
+
+# shellcheck disable=SC2086
+ssh -tt -R "${port}:localhost:22" ${sshOptions} "${user}"@"${COLLECTOR}" "while [ true ] ; do ( date -u +\"%Y-%m-%d %H:%M:%S\" ; echo \"${nodeStatus}\" ) >${lastSeen}.tmp && mv ${lastSeen}.tmp ${lastSeen} ; sleep 255 ; done" \
+   </dev/null >/dev/null 2>&1 && status=0 || status=$?
 if [ "${status}" -ne 0 ] ; then
-   echo -e "\x1b[34m$(date +"%Y-%m-%d %H:%M:%S") RSync failed: ${command}\x1b[0m"
+   echo -e "\x1b[34m$(date +"%Y-%m-%d %H:%M:%S") SSH failed!\x1b[0m"
    exit 1
 else
-   ssh -tt -i "${KEY}" -oUserKnownHostsFile="${KNOWN_HOSTS}" "${user}"@"${COLLECTOR}" "date >${REMOTE}/${user}/last-sync.txt" || true
    if [ ${VERBOSE} -ne 0 ] ; then
       echo -e "\x1b[34m$(date +"%Y-%m-%d %H:%M:%S") Done.\x1b[0m"
    fi

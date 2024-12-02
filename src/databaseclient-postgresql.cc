@@ -39,8 +39,9 @@
 PostgreSQLClient::PostgreSQLClient(const DatabaseConfiguration& configuration)
    : DatabaseClientBase(configuration)
 {
-   Connection  = nullptr;
-   Transaction = nullptr;
+   Connection        = nullptr;
+   Transaction       = nullptr;
+   ResultIteratorPtr = nullptr;
 }
 
 
@@ -113,6 +114,7 @@ bool PostgreSQLClient::open()
 // ###### Close connection to database ######################################
 void PostgreSQLClient::close()
 {
+   ResultIteratorPtr = nullptr;
    if(Transaction) {
       delete Transaction;
       Transaction = nullptr;
@@ -230,8 +232,9 @@ void PostgreSQLClient::executeQuery(Statement& statement)
       if(Transaction == nullptr) {
          Transaction = new pqxx::work(*Connection);
       }
-      ResultSet   = Transaction->exec(statement.str());
-      ResultIndex = ~((pqxx::result::size_type)0);
+      ResultSet         = Transaction->exec(statement.str());
+      ResultIterator    = ResultSet.begin();
+      ResultIteratorPtr = nullptr;
    }
    catch(const pqxx::failure& exception) {
       handleDatabaseException(exception, "Execute", statement.str());
@@ -244,38 +247,38 @@ void PostgreSQLClient::executeQuery(Statement& statement)
 // ###### Fetch next tuple ##################################################
 bool PostgreSQLClient::fetchNextTuple()
 {
-   if(ResultIndex == ~((pqxx::result::size_type)0)) {
-      ResultIndex = 0;
+   if(ResultIteratorPtr == nullptr) {
+      ResultIteratorPtr = &ResultIterator;
    }
-   else {
-      ResultIndex++;
+   else if(*ResultIteratorPtr != ResultSet.end()) {
+      ResultIterator++;
    }
-   return ResultIndex < ResultSet.size();
+   return ResultIterator != ResultSet.end();
 }
 
 
 // ###### Get integer value #################################################
 int32_t PostgreSQLClient::getInteger(unsigned int column) const
 {
-   assert(ResultIndex < ResultSet.size());
+   assert(ResultIterator != ResultSet.end());
    assert(column > 0);
-   return ResultSet[ResultIndex][column - 1].as<int32_t>();
+   return ResultIterator[column - 1].as<int32_t>();
 }
 
 
 // ###### Get big integer value #############################################
 int64_t PostgreSQLClient::getBigInt(unsigned int column) const
 {
-   assert(ResultIndex < ResultSet.size());
+   assert(ResultIterator != ResultSet.end());
    assert(column > 0);
-   return ResultSet[ResultIndex][column - 1].as<int64_t>();
+   return ResultIterator[column - 1].as<int64_t>();
 }
 
 
 // ###### Get string value ##################################################
 std::string PostgreSQLClient::getString(unsigned int column) const
 {
-   assert(ResultIndex < ResultSet.size());
+   assert(ResultIterator != ResultSet.end());
    assert(column > 0);
-   return ResultSet[ResultIndex][column - 1].as<std::string>();
+   return ResultIterator[column - 1].as<std::string>();
 }

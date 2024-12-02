@@ -29,48 +29,39 @@
 .\"
 .\" ###### Setup ############################################################
 .Dd November 29, 2024
-.Dt make-dbeaver-configuration 1
-.Os make-dbeaver-configuration
+.Dt hpct-node-removal 1
+.Os hpct-node-removal
 .\" ###### Name #############################################################
 .Sh NAME
-.Nm make-dbeaver-configuration
-.Nd Make DBeaver Configuration from HiPerConTracer Database Configuration Files
+.Nm hpct-node-removal
+.Nd HiPerConTracer Node
 .\" ###### Synopsis #########################################################
 .Sh SYNOPSIS
-.Nm make-dbeaver-configuration
-database_configuration_file ...
-.Op Fl Fl join
+.Nm hpct-node-removal NODE_ID
 .\" ###### Description ######################################################
 .Sh DESCRIPTION
-.Nm make-dbeaver-configuration
-takes HiPerConTracer configuration files and merges them into the DBeaver
-configuration file.
+.Nm hpct-node-removal
+is the HiPerConTracer node removal script. It is run on the
+collector to remove a given node (i.e. delete the corresponding user).
 .Pp
-###### Arguments ########################################################
-.Sh ARGUMENTS
-The following argument may be provided:
-.Bl -tag -width indent
-.It Fl Fl join
-Join with existing DBeaver configuration. The existing configuration is
-searched in the following directories:
-.Bl -tag
-.It ~/.local/share/DBeaverData/workspace6/General/.dbeaver
-.It ~/snap/dbeaver-ce/current/.local/share/DBeaverData/workspace6/General/.dbeaver
-.El
-.El
 .\" ###### Arguments ########################################################
+.Sh ARGUMENTS
+The following arguments must be provided:
+.Bl -tag -width indent
+.It NODE_ID
+Sets the node ID, a number from 1 to 9999.
+.El
+.\" ###### Examples #########################################################
 .Sh EXAMPLES
 .Bl -tag -width indent
-.It make-dbeaver-configuration hipercontracer-database.conf
-.It make-dbeaver-configuration ~/test4hpct-*-*.conf --join
-.It make-dbeaver-configuration hipercontracer-database.conf --join
-.It make-dbeaver-configuration project1-database.conf project2-database.conf project3-database.conf --join
+.It hpct-node-removal ./hpct-node-removal 1000
+.It hpct-node-removal ./hpct-node-removal 1
 .El
 .\" ###### Authors ##########################################################
 .Sh AUTHORS
 Thomas Dreibholz
 .br
-https://www.nntb.no/~dreibh/hipercontracer
+https://www.simula.no/people/dreibh
 .br
 mailto://dreibh@simula.no
 .br

@@ -28,7 +28,7 @@
 .\" Contact: dreibh@simula.no
 .\"
 .\" ###### Setup ############################################################
-.Dd October 30, 2024
+.Dd November 29, 2024
 .Dt hpct-sync 1
 .Os hpct-sync
 .\" ###### Name #############################################################
@@ -44,6 +44,7 @@
 .Op Fl N Ar node_id | Fl Fl nodeid Ar node_id
 .Op Fl L Ar local_directory | Fl Fl local Ar local_directory
 .Op Fl R Ar remote_location | Fl Fl remote Ar remote_location
+.Op Fl C | Fl Fl collector collector
 .Op Fl K Ar ssh_private_key_file | Fl Fl key Ar ssh_private_key_file
 .Op Fl H Ar ssh_known_hosts_file | Fl Fl known-hosts Ar ssh_known_hosts_file
 .\" ###### Description ######################################################
@@ -64,9 +65,9 @@ Turns on status output.
 .It Fl N Ar node_id | Fl Fl nodeid Ar node_id
 Sets the node ID, a number from 1 to 9999.
 .It Fl L Ar local_directory | Fl Fl local Ar local_directory
-Sets the local data directory. Default: /var/hipercontracer.
+Sets the local data directory. Default: /var/hipercontracer/data.
 .It Fl R Ar remote_location | Fl Fl remote Ar remote_location
-Sets the remote data directory on the collector. Default: /var/hipercontracer.
+Sets the remote data directory on the collector. Default: /var/hipercontracer/data.
 .It Fl K Ar ssh_private_key_file | Fl Fl key Ar ssh_private_key_file
 Sets the SSH private key file used for authentication. Default: /var/hipercontracer/ssh/id_ed25519.
 .It Fl H Ar ssh_known_hosts_file | Fl Fl known-hosts Ar ssh_known_hosts_file

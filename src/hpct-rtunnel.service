@@ -28,28 +28,36 @@
 # Contact: dreibh@simula.no
 
 [Unit]
-Description=HiPerConTracer Synchronisation Service
-Documentation=man:hpct-sync(1)
+Description=HiPerConTracer Reverse Tunnel Service
+Documentation=man:hpct-rtunnel(1)
 After=network-online.target
 Wants=network-online.target
 
 [Service]
-Type=oneshot
+Type=simple
 User=hipercontracer
 Group=hipercontracer
 WorkingDirectory=/var/hipercontracer
 EnvironmentFile=/etc/hipercontracer/hpct-sync.conf
 
-ExecStart=/usr/bin/hpct-sync \
+ExecStart=/usr/bin/hpct-rtunnel \
    --nodeid ${NODE_ID} \
-   --local ${LOCAL} \
    --remote ${REMOTE} \
    --collector ${COLLECTOR} \
    --key ${KEY} \
    --known-hosts ${KNOWN_HOSTS} \
    --verbose
 
+KillSignal=SIGINT
+KillMode=control-group
+TimeoutStopSec=60
+Restart=on-failure
+RestartSec=300
+
 PrivateNetwork=no
 PrivateTmp=yes
 InaccessibleDirectories=/home
 CapabilityBoundingSet=
+
+[Install]
+WantedBy=multi-user.target
