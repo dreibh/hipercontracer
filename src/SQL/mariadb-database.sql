@@ -37,3 +37,7 @@
 
 DROP DATABASE IF EXISTS ${DATABASE};
 CREATE DATABASE ${DATABASE};
+
+-- Ensure that the server accepts large data blocks from the importer.
+-- The default of 16 MiB is too small, setting 1 GiB instead:
+SET GLOBAL max_allowed_packet=1073741824;
