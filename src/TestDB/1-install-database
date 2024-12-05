@@ -117,6 +117,7 @@ EOF
    # Enable network access:
    if [ "${ID}" == "ubuntu" ] || [ "${ID}" == "debian" ] ; then
       sudo sed \
+         -e 's/^\([#]\|\)\(max_allowed_packet[ \t]*\)=.*$/\2= 1G/g' \
          -e 's/^\(bind-address[ \t]*\)=.*$/\1= */g' \
          -e "s%\([#][ \t]*\|\)ssl-ca[ ]*=[ ]*.*%ssl-ca = ${MARIADB_CA_FILE}\nssl-crl = ${MARIADB_CRL_FILE}%" \
          -e "s%\([#][ \t]*\|\)ssl-cert[ ]*=[ ]*.*%ssl-cert = ${MARIADB_CRT_FILE}%" \
