@@ -41,9 +41,13 @@ _hpct_query()
    else
       # Manual initialization for older bash completion versions:
       COMPREPLY=()
+      # shellcheck disable=SC2034
       cur="${COMP_WORDS[COMP_CWORD]}"
+      # shellcheck disable=SC2034
       prev="${COMP_WORDS[COMP_CWORD-1]}"
-      words="${COMP_WORDS}"
+      # shellcheck disable=SC2034,SC2124
+      words="${COMP_WORDS[@]}"
+      # shellcheck disable=SC2034
       cword="${COMP_CWORD}"
    fi
 
@@ -54,7 +58,8 @@ _hpct_query()
 
    # ====== Measurement type ================================================
    elif [ "${cword}" -eq 2 ] ; then
-      COMPREPLY=($(compgen -W "ping traceroute" --  "${cur}"))
+      # shellcheck disable=SC2207
+      COMPREPLY=( $(compgen -W "ping traceroute" --  "${cur}") )
       return
 
    # ====== Options =========================================================
@@ -90,7 +95,8 @@ _hpct_query()
             ;;
          # ====== Special case: on/off ======================================
          -Z | --logcolor)
-            COMPREPLY=($(compgen -W "on off" --  "${cur}"))
+            # shellcheck disable=SC2207
+            COMPREPLY=( $(compgen -W "on off" --  "${cur}") )
             return
             ;;
       esac
@@ -121,6 +127,7 @@ _hpct_query()
 --from-measurement-id
 --to-measurement-id
 "
+   # shellcheck disable=SC2207
    COMPREPLY=( $( compgen -W "${opts}" -- "${cur}" ) )
    return 0
 }

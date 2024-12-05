@@ -33,17 +33,19 @@ Depends: hipercontracer-common,
          ${misc:Depends},
          ${shlibs:Depends}
 Recommends: ethtool,
-            hipercontracer-dbeaver-tools,
-            hipercontracer-dbshell,
-            hipercontracer-importer,
-            hipercontracer-query-tool,
-            hipercontracer-results-tool,
-            hipercontracer-sync-tool,
-            hipercontracer-trigger,
-            hipercontracer-udp-echo-server,
-            hipercontracer-viewer-tool,
-            iproute
-Suggests: netperfmeter,
+            hipercontracer-viewer,
+            iproute2
+Suggests: hipercontracer-collector,
+          hipercontracer-dbeaver-tools,
+          hipercontracer-dbshell,
+          hipercontracer-importer,
+          hipercontracer-node,
+          hipercontracer-query,
+          hipercontracer-results,
+          hipercontracer-sync,
+          hipercontracer-trigger,
+          hipercontracer-udp-echo-server,
+          netperfmeter,
           td-system-info
 Description: High-Performance Connectivity Tracer (HiPerConTracer)
  High-Performance Connectivity Tracer (HiPerConTracer) is a
@@ -150,14 +152,17 @@ Description: Triggered HiPerConTracer service
  .
  This tool triggers HiPerConTracer by incoming "Ping" packets.
 
-Package: hipercontracer-sync-tool
+Package: hipercontracer-sync
 Architecture: all
+Provides: hipercontracer-sync-tool
+Replaces: hipercontracer-sync-tool
+Breaks: hipercontracer-sync-tool (<< ${source:Version})
 Depends: hipercontracer-common,
          openssh-client,
          rsync,
          ${misc:Depends}
 Recommends: hipercontracer,
-            hipercontracer-results-tool
+            hipercontracer-results
 Description: HiPerConTracer Sync Tool to synchronise results files to a server
  High-Performance Connectivity Tracer (HiPerConTracer) is a
  Ping/Traceroute service. It performs regular Ping and Traceroute runs
@@ -165,7 +170,60 @@ Description: HiPerConTracer Sync Tool to synchronise results files to a server
  imported into an SQL or NoSQL database.
  .
  This package contains a simple synchronisation tool to run RSync
- synchronisation of data to a central collection server.
+ synchronisation of data to a central HiPerConTracer Collector server.
+
+Package: hipercontracer-rtunnel
+Architecture: all
+Depends: hipercontracer-common,
+         hipercontracer-sync,
+         openssh-server,
+         ${misc:Depends}
+Description: HiPerConTracer Reverse Tunnel Tool for reverse SSH tunnel setup
+ High-Performance Connectivity Tracer (HiPerConTracer) is a
+ Ping/Traceroute service. It performs regular Ping and Traceroute runs
+ among sites. The results are written to data files, which can be
+ imported into an SQL or NoSQL database.
+ .
+ This is the HiPerConTracer Reverse Tunnel tool. It maintains an SSH
+ reverse tunnel from a measurement node to a Collector server.
+
+Package: hipercontracer-node
+Architecture: all
+Depends: hipercontracer,
+         hipercontracer-rtunnel,
+         hipercontracer-sync,
+         ${misc:Depends}
+Recommends: td-system-info,
+            td-system-maintenance,
+            unattended-upgrades
+Description: HiPerConTracer Node Tools for maintaining a measurement node
+ High-Performance Connectivity Tracer (HiPerConTracer) is a
+ Ping/Traceroute service. It performs regular Ping and Traceroute runs
+ among sites. The results are written to data files, which can be
+ imported into an SQL or NoSQL database.
+ .
+ This is the Node package. It contains helper scripts to attach a
+ HiPerConTracer Node to a HiPerConTracer Collector server.
+
+Package: hipercontracer-collector
+Architecture: all
+Depends: hipercontracer-common,
+         iproute2,
+         openssh-client,
+         openssh-server,
+         rsync,
+         ${misc:Depends}
+Recommends: td-system-info,
+            td-system-maintenance,
+            unattended-upgrades
+Description: HiPerConTracer Collector Tools for collecting measurement results
+ High-Performance Connectivity Tracer (HiPerConTracer) is a
+ Ping/Traceroute service. It performs regular Ping and Traceroute runs
+ among sites. The results are written to data files, which can be
+ imported into an SQL or NoSQL database.
+ .
+ This is the Collector Tools package. It contains helper scripts to set up
+ and maintain a HiPerConTracer Collector server.
 
 Package: hipercontracer-importer
 Architecture: any
@@ -185,16 +243,19 @@ Description: HiPerConTracer Importer for importing results into a database
  This package contains the importer tool to import results from
  HiPerConTracer into an SQL or NoSQL database.
 
-Package: hipercontracer-query-tool
+Package: hipercontracer-query
 Architecture: any
+Provides: hipercontracer-query-tool
+Replaces: hipercontracer-query-tool
+Breaks: hipercontracer-query-tool (<< ${source:Version})
 Depends: hipercontracer-common,
          libuniversalimporter2 (= ${binary:Version}),
          ${misc:Depends},
          ${shlibs:Depends}
 Recommends: hipercontracer,
             hipercontracer-dbshell,
-            hipercontracer-results-tool,
-            hipercontracer-viewer-tool
+            hipercontracer-results,
+            hipercontracer-viewer
 Description: HiPerConTracer Query Tool to query results from a database
  High-Performance Connectivity Tracer (HiPerConTracer) is a
  Ping/Traceroute service. It performs regular Ping and Traceroute runs
@@ -204,10 +265,13 @@ Description: HiPerConTracer Query Tool to query results from a database
  This package contains a simple query tool to obtain results
  from a HiPerConTracer SQL or NoSQL database.
 
-Package: hipercontracer-results-tool
+Package: hipercontracer-results
 Architecture: any
+Provides: hipercontracer-results-tool
+Replaces: hipercontracer-results-tool
+Breaks: hipercontracer-results-tool (<< ${source:Version})
 Depends: hipercontracer-common,
-         hipercontracer-viewer-tool,
+         hipercontracer-viewer,
          ${misc:Depends},
          ${shlibs:Depends}
 Recommends: hipercontracer
@@ -221,10 +285,12 @@ Description: HiPerConTracer Results Tool to process results files
  results files, particularly for converting them to CSV files for
  reading them into spreadsheets, analysis tools, etc.
 
-Package: hipercontracer-viewer-tool
+Package: hipercontracer-viewer
 Architecture: all
+Provides: hipercontracer-viewer-tool
+Replaces: hipercontracer-viewer-tool
+Breaks: hipercontracer-viewer-tool (<< ${source:Version})
 Depends: bzip2,
-         gzip,
          hipercontracer-common,
          less,
          xz-utils,
@@ -291,3 +357,24 @@ Description: HiPerConTracer DBeaver Tools for configuring access to databases
  This package contains helper scripts to merge HiPerConTracer database
  configurations into DBeaver configurations, for maintaining databases
  in DBeaver.
+
+Package: hipercontracer-all
+Architecture: all
+Depends: hipercontracer,
+         hipercontracer-dbeaver-tools,
+         hipercontracer-dbshell,
+         hipercontracer-importer,
+         hipercontracer-query-tool,
+         hipercontracer-results-tool,
+         hipercontracer-sync-tool,
+         hipercontracer-trigger,
+         hipercontracer-udp-echo-server,
+         hipercontracer-viewer-tool,
+         ${misc:Depends}
+Description: HiPerConTracer meta-package for all tools of the framework
+ High-Performance Connectivity Tracer (HiPerConTracer) is a
+ Ping/Traceroute service. It performs regular Ping and Traceroute runs
+ among sites. The results are written to data files, which can be
+ imported into an SQL or NoSQL database.
+ .
+ This meta-package installs all sub-packages of the HiPerConTracer framework.
