@@ -469,7 +469,7 @@ reading them into spreadsheets, analysis tools, etc.
 %{_mandir}/man1/pipe-checksum.1.gz
 
 
-%package viewer-tool
+%package viewer
 Summary: HiPerConTracer Viewer Tool to display results files
 Group: Applications/File
 BuildArch: noarch
@@ -482,7 +482,7 @@ Requires: xz
 Recommends: %{name} = %{version}-%{release}
 Recommends: %{name}-results = %{version}-%{release}
 
-%description viewer-tool
+%description viewer
 High-Performance Connectivity Tracer (HiPerConTracer) is a
 Ping/Traceroute service. It performs regular Ping and Traceroute runs
 among sites. The results are written to data files, which can be
@@ -490,7 +490,7 @@ imported into an SQL or NoSQL database.
 This package contains the viewer tool to simply display
 HiPerConTracer results files.
 
-%files viewer-tool
+%files viewer
 %{_bindir}/hpct-viewer
 %{_datadir}/applications/hpct-viewer.desktop
 %{_datadir}/bash-completion/completions/hpct-viewer
