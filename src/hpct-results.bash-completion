@@ -41,9 +41,13 @@ _hpct_results()
    else
       # Manual initialization for older bash completion versions:
       COMPREPLY=()
+      # shellcheck disable=SC2034
       cur="${COMP_WORDS[COMP_CWORD]}"
+      # shellcheck disable=SC2034
       prev="${COMP_WORDS[COMP_CWORD-1]}"
-      words="${COMP_WORDS}"
+      # shellcheck disable=SC2034,SC2124
+      words="${COMP_WORDS[@]}"
+      # shellcheck disable=SC2034
       cword="${COMP_CWORD}"
    fi
 
@@ -82,7 +86,8 @@ _hpct_results()
             ;;
          # ====== Special case: on/off ======================================
          -Z | --logcolor)
-            COMPREPLY=($(compgen -W "on off" --  "${cur}"))
+            # shellcheck disable=SC2207
+            COMPREPLY=( $(compgen -W "on off" --  "${cur}") )
             return
             ;;
       esac
@@ -117,6 +122,7 @@ _hpct_results()
 -F
 --input-file-names-from-file
 "
+   # shellcheck disable=SC2207
    COMPREPLY=( $( compgen -W "${opts}" -- "${cur}" ) )
    return 0
 }

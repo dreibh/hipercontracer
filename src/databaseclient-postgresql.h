@@ -63,10 +63,11 @@ class PostgreSQLClient : public DatabaseClientBase
                                 const std::string&   where,
                                 const std::string&   statement = std::string());
 
-   pqxx::connection*       Connection;
-   pqxx::work*             Transaction;
-   pqxx::result            ResultSet;
-   pqxx::result::size_type ResultIndex;
+   pqxx::connection*             Connection;
+   pqxx::work*                   Transaction;
+   pqxx::result                  ResultSet;
+   pqxx::result::const_iterator  ResultIterator;
+   pqxx::result::const_iterator* ResultIteratorPtr;
 };
 
 #endif

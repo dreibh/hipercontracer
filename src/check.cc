@@ -41,8 +41,7 @@
 // ###### Check environment #################################################
 void checkEnvironment(const char* programName)
 {
-   std::cout << programName << ":\n"
-             << "* Version:\t" << HPCT_VERSION << "\n";
+   std::cout << programName << " " << HPCT_VERSION << "\n";
 
    // ====== System information =============================================
    utsname sysInfo;

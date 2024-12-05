@@ -69,7 +69,7 @@ done
 
 # ====== Hostname check =====================================================
 HOSTNAME="$(hostname -s)"
-if [ "${HOSTNAME}" != "localhost" ] && [ "${HOSTNAME}" != "dbtest" ] ; then
+if [ "${HOSTNAME}" != "localhost" ] && [ "${HOSTNAME}" != "dbtest" ] && [ "${HOSTNAME}" != "vbox" ] ; then
    if [ "${REALLY_RUN}" != "--really-run-i-know-that-it-may-mess-up-the-system" ] ; then
       echo >&2 "Hostname is not \"localhost\" or \"dbtest\". This script assumes to be run on a TEST SYSTEM only, since it replaces (i.e. erases!) existing installations of PostgreSQL, MariaDB/MySQL and MongoDB!"
       echo >&2 "Stopping here."

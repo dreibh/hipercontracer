@@ -1,0 +1,94 @@
+.\" ========================================================================
+.\"    _   _ _ ____            ____          _____
+.\"   | | | (_)  _ \ ___ _ __ / ___|___  _ _|_   _| __ __ _  ___ ___ _ __
+.\"   | |_| | | |_) / _ \ '__| |   / _ \| '_ \| || '__/ _` |/ __/ _ \ '__|
+.\"   |  _  | |  __/  __/ |  | |__| (_) | | | | || | | (_| | (_|  __/ |
+.\"   |_| |_|_|_|   \___|_|   \____\___/|_| |_|_||_|  \__,_|\___\___|_|
+.\"
+.\"      ---  High-Performance Connectivity Tracer (HiPerConTracer)  ---
+.\"                https://www.nntb.no/~dreibh/hipercontracer/
+.\" ========================================================================
+.\"
+.\" High-Performance Connectivity Tracer (HiPerConTracer)
+.\" Copyright (C) 2015-2025 by Thomas Dreibholz
+.\"
+.\" This program is free software: you can redistribute it and/or modify
+.\" it under the terms of the GNU General Public License as published by
+.\" the Free Software Foundation, either version 3 of the License, or
+.\" (at your option) any later version.
+.\"
+.\" This program is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\" GNU General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU General Public License
+.\" along with this program.  If not, see <http://www.gnu.org/licenses/>.
+.\"
+.\" Contact: dreibh@simula.no
+.\"
+.\" ###### Setup ############################################################
+.Dd November 29, 2024
+.Dt hpct-rtunnel 1
+.Os hpct-rtunnel
+.\" ###### Name #############################################################
+.Sh NAME
+.Nm hpct-rtunnel
+.Nd HiPerConTracer Reverse Tunnel
+.\" ###### Synopsis #########################################################
+.Sh SYNOPSIS
+.Nm hpct-rtunnel
+.Op Fl h | Fl Fl help
+.Op Fl v | Fl Fl verbose
+.Op Fl q | Fl Fl quiet
+.Op Fl N | Fl Fl nodeid node_id
+.Op Fl R Ar remote_location | Fl Fl remote Ar remote_location
+.Op Fl C | Fl Fl collector collector
+.Op Fl K Ar ssh_private_key_file | Fl Fl key Ar ssh_private_key_file
+.Op Fl H Ar ssh_known_hosts_file | Fl Fl known-hosts Ar ssh_known_hosts_file
+.\" ###### Description ######################################################
+.Sh DESCRIPTION
+.Nm hpct-rtunnel
+is the HiPerConTracer remote tunnel script. It establishes an
+SSH tunnel from a node to a collected, allowing SSH forwarding to the node
+from port 10000+NodeID on the collector. It is intended to be used with the
+hpct-rtunnel service, to automatically establish the tunnel from a node with
+NAT'ed IP address for remote maintenance.
+.Pp
+.\" ###### Arguments ########################################################
+.Sh ARGUMENTS
+The following arguments may be provided:
+.Bl -tag -width indent
+.\" .It Fl O | Fl -option
+.\" Enter description here!
+.It Fl h | Fl Fl help
+Prints command help.
+.It Fl q | Fl -quiet
+Turns off status output.
+.It Fl v | Fl -verbose
+Turns on status output.
+.It Fl N | Fl Fl nodeid node_id
+Sets the node ID, a number from 1 to 9999.
+.It Fl R Ar remote_location | Fl Fl remote Ar remote_location
+Sets the remote data directory on the collector. Default: /var/hipercontracer/data.
+.It Fl R | Fl Fl collector collector
+Sets the remote data location for RSync. Format: HOST:DIRECTORY.
+.It Fl K Ar ssh_private_key_file | Fl Fl key Ar ssh_private_key_file
+Sets the SSH private key file used for authentication. Default: /var/hipercontracer/ssh/id_ed25519.
+.It Fl H Ar ssh_known_hosts_file | Fl Fl known-hosts Ar ssh_known_hosts_file
+Sets the SSH known hosts file. Default: /var/hipercontracer/ssh/known_hosts.
+.El
+.\" ###### Examples #########################################################
+.Sh EXAMPLES
+.Bl -tag -width indent
+.It sudo -u hipercontracer   hpct-rtunnel -N 1000 -C 10.44.35.16 --key /var/hipercontracer/ssh/id_ed25519 --known-hosts /var/hipercontracer/ssh/known_hosts
+.It sudo -u hipercontracer   hpct-rtunnel -N 1 -C 10.44.35.16 --key /var/hipercontracer/ssh/id_ed25519 --known-hosts /var/hipercontracer/ssh/known_hosts
+.El
+.\" ###### Authors ##########################################################
+.Sh AUTHORS
+Thomas Dreibholz
+.br
+https://www.simula.no/people/dreibh
+.br
+mailto://dreibh@simula.no
+.br
