@@ -32,7 +32,7 @@ PROJECT(hipercontracer LANGUAGES C CXX)
 
 SET(BUILD_MAJOR "2")
 SET(BUILD_MINOR "0")
-SET(BUILD_PATCH "0~rc1.7")
+SET(BUILD_PATCH "0~rc2.0")
 SET(BUILD_VERSION ${BUILD_MAJOR}.${BUILD_MINOR}.${BUILD_PATCH})
 
 # HiPerConTracer needs at least C++17!
@@ -146,6 +146,9 @@ OPTION(WITH_HIPERCONTRACER  "Build HiPerConTracer"                      1)
 OPTION(WITH_TRIGGER         "Build HiPerConTracer Trigger"              1)
 OPTION(WITH_IMPORTER        "Build HiPerConTracer Importer"             1)
 OPTION(WITH_SYNC            "Build HiPerConTracer Synchronisation Tool" 1)
+OPTION(WITH_RTUNNEL         "Build HiPerConTracer Reverse Tunnel Tool"  1)
+OPTION(WITH_NODE            "Build HiPerConTracer Node Tools"           1)
+OPTION(WITH_COLLECTOR       "Build HiPerConTracer Collector Tools"      1)
 OPTION(WITH_QUERY           "Build HiPerConTracer Query Tool"           1)
 OPTION(WITH_RESULTS         "Build HiPerConTracer Results Tool"         1)
 OPTION(WITH_VIEWER          "Build HiPerConTracer Viewer Tool"          1)

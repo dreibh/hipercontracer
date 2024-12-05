@@ -1,0 +1,67 @@
+.\" ========================================================================
+.\"    _   _ _ ____            ____          _____
+.\"   | | | (_)  _ \ ___ _ __ / ___|___  _ _|_   _| __ __ _  ___ ___ _ __
+.\"   | |_| | | |_) / _ \ '__| |   / _ \| '_ \| || '__/ _` |/ __/ _ \ '__|
+.\"   |  _  | |  __/  __/ |  | |__| (_) | | | | || | | (_| | (_|  __/ |
+.\"   |_| |_|_|_|   \___|_|   \____\___/|_| |_|_||_|  \__,_|\___\___|_|
+.\"
+.\"      ---  High-Performance Connectivity Tracer (HiPerConTracer)  ---
+.\"                https://www.nntb.no/~dreibh/hipercontracer/
+.\" ========================================================================
+.\"
+.\" High-Performance Connectivity Tracer (HiPerConTracer)
+.\" Copyright (C) 2015-2025 by Thomas Dreibholz
+.\"
+.\" This program is free software: you can redistribute it and/or modify
+.\" it under the terms of the GNU General Public License as published by
+.\" the Free Software Foundation, either version 3 of the License, or
+.\" (at your option) any later version.
+.\"
+.\" This program is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\" GNU General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU General Public License
+.\" along with this program.  If not, see <http://www.gnu.org/licenses/>.
+.\"
+.\" Contact: dreibh@simula.no
+.\"
+.\" ###### Setup ############################################################
+.Dd November 29, 2024
+.Dt hpct-node-removal 1
+.Os hpct-node-removal
+.\" ###### Name #############################################################
+.Sh NAME
+.Nm hpct-node-removal
+.Nd HiPerConTracer Node
+.\" ###### Synopsis #########################################################
+.Sh SYNOPSIS
+.Nm hpct-node-removal NODE_ID
+.\" ###### Description ######################################################
+.Sh DESCRIPTION
+.Nm hpct-node-removal
+is the HiPerConTracer node removal script. It is run on the
+collector to remove a given node (i.e. delete the corresponding user).
+.Pp
+.\" ###### Arguments ########################################################
+.Sh ARGUMENTS
+The following arguments must be provided:
+.Bl -tag -width indent
+.It NODE_ID
+Sets the node ID, a number from 1 to 9999.
+.El
+.\" ###### Examples #########################################################
+.Sh EXAMPLES
+.Bl -tag -width indent
+.It hpct-node-removal ./hpct-node-removal 1000
+.It hpct-node-removal ./hpct-node-removal 1
+.El
+.\" ###### Authors ##########################################################
+.Sh AUTHORS
+Thomas Dreibholz
+.br
+https://www.simula.no/people/dreibh
+.br
+mailto://dreibh@simula.no
+.br

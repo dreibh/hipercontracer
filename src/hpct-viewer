@@ -42,6 +42,13 @@ inputFile="$1"
 # Currently, just run "less". In the future, a more powerful anaylsis tool
 # may be started here ...
 if [[ "${inputFile}" =~ \.xz$ ]] ; then
+   uname="$(uname -s)"
+   if [ "${uname}" == "Linux" ] ; then
+      if [ "$(stat -c "%s" "${inputFile}")" == "32" ] ; then
+         echo "" | less
+         return
+      fi
+   fi
    xzless "${inputFile}"
 elif [[ "${inputFile}" =~ \.bz2$ ]] ; then
    bzless "${inputFile}"
