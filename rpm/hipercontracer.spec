@@ -288,7 +288,7 @@ synchronisation of data to a central collection server.
 Summary: HiPerConTracer Reverse Tunnel Tool for reverse SSH tunnel setup
 Requires: %{name}-common = %{version}-%{release}
 Requires: %{name}-sync = %{version}-%{release}
-Requires: ssh-server
+Requires: openssh-server
 BuildArch: noarch
 
 %description rtunnel
@@ -335,8 +335,8 @@ Summary: HiPerConTracer Collector Tools for collecting measurement results
 Requires: %{name}-common = %{version}-%{release}
 Requires: openssh-clients
 Requires: iproute
+Requires: openssh-server
 Requires: rsync
-Requires: ssh-server
 
 %description collector
 High-Performance Connectivity Tracer (HiPerConTracer) is a
