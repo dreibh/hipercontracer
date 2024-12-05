@@ -595,6 +595,8 @@ among sites. The results are written to data files, which can be
 imported into an SQL or NoSQL database.
 This meta-package installs all sub-packages of the HiPerConTracer framework.
 
+%files all
+
 
 %changelog
 * Wed Dec 06 2023 Thomas Dreibholz <thomas.dreibholz@gmail.com> - 1.6.10
