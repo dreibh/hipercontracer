@@ -604,9 +604,20 @@ int main(int argc, char** argv)
             }
          }
          else if(backend & DatabaseBackendType::NoSQL_Generic) {
-            statement << "{ \"" <<  ((tableName.size() == 0 ? "ping" : tableName)) << "\": { ";
-            addNoSQLFilter(statement, "sendTimestamp", fromTimeStamp, toTimeStamp, fromMeasurementID, toMeasurementID);
-            statement << " } }";
+            // ====== Old version 1 table ===================================
+            if(tableVersion == 1) {
+               statement << "{ \"" <<  ((tableName.size() == 0 ? "ping" : tableName)) << "\": { ";
+               addNoSQLFilter(statement, "timestamp", fromTimeStamp / 1000ULL, toTimeStamp / 1000ULL,
+                              fromMeasurementID, toMeasurementID);
+               statement << " } }";
+            }
+            // ====== Current version 2 table ============================
+            else {
+               statement << "{ \"" <<  ((tableName.size() == 0 ? "ping" : tableName)) << "\": { ";
+               addNoSQLFilter(statement, "sendTimestamp", fromTimeStamp, toTimeStamp,
+                              fromMeasurementID, toMeasurementID);
+               statement << " } }";
+            }
 
             HPCT_LOG(debug) << "Query: " << statement;
             databaseClient->executeQuery(statement);
@@ -773,9 +784,20 @@ int main(int argc, char** argv)
             }
          }
          else if(backend & DatabaseBackendType::NoSQL_Generic) {
-            statement << "{ \"" <<  ((tableName.size() == 0 ? "traceroute" : tableName)) << "\": { ";
-            addNoSQLFilter(statement, "timestamp", fromTimeStamp, toTimeStamp, fromMeasurementID, toMeasurementID);
-            statement << " } }";
+            // ====== Old version 1 table ===================================
+            if(tableVersion == 1) {
+               statement << "{ \"" <<  ((tableName.size() == 0 ? "traceroute" : tableName)) << "\": { ";
+               addNoSQLFilter(statement, "timestamp", fromTimeStamp/ 1000ULL, toTimeStamp/ 1000ULL,
+                              fromMeasurementID, toMeasurementID);
+               statement << " } }";
+            }
+            // ====== Current version 2 table ============================
+            else {
+               statement << "{ \"" <<  ((tableName.size() == 0 ? "traceroute" : tableName)) << "\": { ";
+               addNoSQLFilter(statement, "timestamp", fromTimeStamp, toTimeStamp,
+                              fromMeasurementID, toMeasurementID);
+               statement << " } }";
+            }
 
             HPCT_LOG(debug) << "Query: " << statement;
             databaseClient->executeQuery(statement);
