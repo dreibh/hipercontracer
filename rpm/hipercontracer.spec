@@ -288,7 +288,7 @@ synchronisation of data to a central collection server.
 Summary: HiPerConTracer Reverse Tunnel Tool for reverse SSH tunnel setup
 Requires: %{name}-common = %{version}-%{release}
 Requires: %{name}-sync = %{version}-%{release}
-Requires: ssh-server
+Requires: openssh-server
 BuildArch: noarch
 
 %description rtunnel
@@ -335,8 +335,8 @@ Summary: HiPerConTracer Collector Tools for collecting measurement results
 Requires: %{name}-common = %{version}-%{release}
 Requires: openssh-clients
 Requires: iproute
+Requires: openssh-server
 Requires: rsync
-Requires: ssh-server
 
 %description collector
 High-Performance Connectivity Tracer (HiPerConTracer) is a
@@ -469,7 +469,7 @@ reading them into spreadsheets, analysis tools, etc.
 %{_mandir}/man1/pipe-checksum.1.gz
 
 
-%package viewer-tool
+%package viewer
 Summary: HiPerConTracer Viewer Tool to display results files
 Group: Applications/File
 BuildArch: noarch
@@ -482,7 +482,7 @@ Requires: xz
 Recommends: %{name} = %{version}-%{release}
 Recommends: %{name}-results = %{version}-%{release}
 
-%description viewer-tool
+%description viewer
 High-Performance Connectivity Tracer (HiPerConTracer) is a
 Ping/Traceroute service. It performs regular Ping and Traceroute runs
 among sites. The results are written to data files, which can be
@@ -490,7 +490,7 @@ imported into an SQL or NoSQL database.
 This package contains the viewer tool to simply display
 HiPerConTracer results files.
 
-%files viewer-tool
+%files viewer
 %{_bindir}/hpct-viewer
 %{_datadir}/applications/hpct-viewer.desktop
 %{_datadir}/bash-completion/completions/hpct-viewer
@@ -594,6 +594,8 @@ Ping/Traceroute service. It performs regular Ping and Traceroute runs
 among sites. The results are written to data files, which can be
 imported into an SQL or NoSQL database.
 This meta-package installs all sub-packages of the HiPerConTracer framework.
+
+%files all
 
 
 %changelog

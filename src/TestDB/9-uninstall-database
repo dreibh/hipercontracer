@@ -37,7 +37,7 @@ if [ $# -lt 1 ] ; then
    exit 1
 fi
 
-if [ "$2" != "--force-removal-without-confirmation" ] ; then
+if [ $# -lt 2 ] || [ "$2" != "--force-removal-without-confirmation" ] ; then
    echo -n "WARNING: THIS SCRIPT WILL ERASE THE EXISTING DATABASES. To proceed, type \"I am sure!\": "
    read -er agree
    if [ "$agree" != "I am sure!" ] ; then

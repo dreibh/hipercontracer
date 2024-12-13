@@ -604,9 +604,20 @@ int main(int argc, char** argv)
             }
          }
          else if(backend & DatabaseBackendType::NoSQL_Generic) {
-            statement << "{ \"" <<  ((tableName.size() == 0 ? "ping" : tableName)) << "\": { ";
-            addNoSQLFilter(statement, "sendTimestamp", fromTimeStamp, toTimeStamp, fromMeasurementID, toMeasurementID);
-            statement << " } }";
+            // ====== Old version 1 table ===================================
+            if(tableVersion == 1) {
+               statement << "{ \"" <<  ((tableName.size() == 0 ? "ping" : tableName)) << "\": { ";
+               addNoSQLFilter(statement, "timestamp", fromTimeStamp / 1000ULL, toTimeStamp / 1000ULL,
+                              fromMeasurementID, toMeasurementID);
+               statement << " } }";
+            }
+            // ====== Current version 2 table ============================
+            else {
+               statement << "{ \"" <<  ((tableName.size() == 0 ? "ping" : tableName)) << "\": { ";
+               addNoSQLFilter(statement, "sendTimestamp", fromTimeStamp, toTimeStamp,
+                              fromMeasurementID, toMeasurementID);
+               statement << " } }";
+            }
 
             HPCT_LOG(debug) << "Query: " << statement;
             databaseClient->executeQuery(statement);
@@ -633,7 +644,7 @@ int main(int argc, char** argv)
                      const long long                delayAppSend    = -1;
                      const long long                delayQueuing    = -1;
                      const long long                delayAppReceive = -1;
-                     const long long                rttApplication  = databaseClient->getBigInt("rtt");
+                     const long long                rttApplication  = 1000 * databaseClient->getBigInt("rtt");
                      const long long                rttSoftware     = 0;
                      const long long                rttHardware     = 0;
                      OUTPUT_PING_V2;
@@ -773,9 +784,20 @@ int main(int argc, char** argv)
             }
          }
          else if(backend & DatabaseBackendType::NoSQL_Generic) {
-            statement << "{ \"" <<  ((tableName.size() == 0 ? "traceroute" : tableName)) << "\": { ";
-            addNoSQLFilter(statement, "timestamp", fromTimeStamp, toTimeStamp, fromMeasurementID, toMeasurementID);
-            statement << " } }";
+            // ====== Old version 1 table ===================================
+            if(tableVersion == 1) {
+               statement << "{ \"" <<  ((tableName.size() == 0 ? "traceroute" : tableName)) << "\": { ";
+               addNoSQLFilter(statement, "timestamp", fromTimeStamp/ 1000ULL, toTimeStamp/ 1000ULL,
+                              fromMeasurementID, toMeasurementID);
+               statement << " } }";
+            }
+            // ====== Current version 2 table ============================
+            else {
+               statement << "{ \"" <<  ((tableName.size() == 0 ? "traceroute" : tableName)) << "\": { ";
+               addNoSQLFilter(statement, "timestamp", fromTimeStamp, toTimeStamp,
+                              fromMeasurementID, toMeasurementID);
+               statement << " } }";
+            }
 
             HPCT_LOG(debug) << "Query: " << statement;
             databaseClient->executeQuery(statement);
@@ -811,10 +833,10 @@ int main(int argc, char** argv)
                         const boost::asio::ip::address hopIP           = statement.decodeAddress(databaseClient->getString("hop"));
                         const unsigned int             status          = databaseClient->getInteger("status");
                         const unsigned int             timeSource      = 0x00000000;
-                        const long long                delayAppSend    = 0;
-                        const long long                delayQueuing    = 0;
-                        const long long                delayAppReceive = 0;
-                        const long long                rttApplication  = databaseClient->getBigInt("rtt");
+                        const long long                delayAppSend    = -1;
+                        const long long                delayQueuing    = -1;
+                        const long long                delayAppReceive = -1;
+                        const long long                rttApplication  = 1000 * databaseClient->getBigInt("rtt");
                         const long long                rttSoftware     = -1;
                         const long long                rttHardware     = -1;
                         OUTPUT_TRACEROUTE_HOP_V2;
