@@ -1,5 +1,5 @@
 Name: hipercontracer
-Version: 2.0.0~rc2.0
+Version: 2.0.0~rc2.5
 Release: 1
 Summary: High-Performance Connectivity Tracer (HiPerConTracer)
 Group: Applications/Internet
@@ -67,8 +67,8 @@ imported into an SQL or NoSQL database.
 %{_mandir}/man1/get-default-ips.1.gz
 %{_mandir}/man1/hipercontracer.1.gz
 %{_sysconfdir}/hipercontracer/hipercontracer-12345678.conf
-/lib/systemd/system/hipercontracer.service
-/lib/systemd/system/hipercontracer@.service
+%{_prefix}/lib/systemd/system/hipercontracer.service
+%{_prefix}/lib/systemd/system/hipercontracer@.service
 
 
 %package common
@@ -253,8 +253,8 @@ This tool triggers HiPerConTracer by incoming "Ping" packets.
 %{_datadir}/bash-completion/completions/hpct-trigger
 %{_mandir}/man1/hpct-trigger.1.gz
 %{_sysconfdir}/hipercontracer/hpct-trigger-87654321.conf
-/lib/systemd/system/hpct-trigger.service
-/lib/systemd/system/hpct-trigger@.service
+%{_prefix}/lib/systemd/system/hpct-trigger.service
+%{_prefix}/lib/systemd/system/hpct-trigger@.service
 
 
 %package sync
@@ -280,8 +280,8 @@ synchronisation of data to a central collection server.
 %{_mandir}/man1/hpct-sync.1.gz
 %{_datadir}/bash-completion/completions/hpct-sync
 %{_sysconfdir}/hipercontracer/hpct-sync.conf
-/lib/systemd/system/hpct-sync.service
-/lib/systemd/system/hpct-sync.timer
+%{_prefix}/lib/systemd/system/hpct-sync.service
+%{_prefix}/lib/systemd/system/hpct-sync.timer
 
 
 %package rtunnel
@@ -303,7 +303,7 @@ BuildArch: noarch
 %{_bindir}/hpct-rtunnel
 %{_datadir}/bash-completion/completions/hpct-rtunnel
 %{_mandir}/man1/hpct-rtunnel.1.gz
-/lib/systemd/system/hpct-rtunnel.service
+%{_prefix}/lib/systemd/system/hpct-rtunnel.service
 
 
 %package node
@@ -416,7 +416,7 @@ HiPerConTracer into an SQL or NoSQL database.
 %{_datadir}/hipercontracer/hipercontracer-database.conf
 %{_datadir}/hipercontracer/hipercontracer-importer.conf
 %{_sysconfdir}/hipercontracer/hpct-importer.conf
-/lib/systemd/system/hpct-importer.service
+%{_prefix}/lib/systemd/system/hpct-importer.service
 
 
 %package query
@@ -515,7 +515,7 @@ UDP Pings.
 %{_datadir}/bash-completion/completions/udp-echo-server
 %{_mandir}/man1/udp-echo-server.1.gz
 %{_sysconfdir}/hipercontracer/udp-echo-server.conf
-/lib/systemd/system/udp-echo-server.service
+%{_prefix}/lib/systemd/system/udp-echo-server.service
 
 
 %package dbshell

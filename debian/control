@@ -371,10 +371,10 @@ Depends: hipercontracer,
          hipercontracer-udp-echo-server,
          hipercontracer-viewer-tool,
          ${misc:Depends}
-Description: HiPerConTracer meta-package for all tools of the framework
+Description: HiPerConTracer metapackage for all tools of the framework
  High-Performance Connectivity Tracer (HiPerConTracer) is a
  Ping/Traceroute service. It performs regular Ping and Traceroute runs
  among sites. The results are written to data files, which can be
  imported into an SQL or NoSQL database.
  .
- This meta-package installs all sub-packages of the HiPerConTracer framework.
+ This metapackage installs all sub-packages of the HiPerConTracer framework.
