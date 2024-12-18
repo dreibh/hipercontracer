@@ -24,4 +24,6 @@ Depends: hipercontracer-dbeaver-tools,
          hipercontracer-importer,
          hipercontracer-query,
          hipercontracer-results,
+         pwgen,
+         python3-netifaces,
          rsync
