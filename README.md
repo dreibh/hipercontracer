@@ -83,12 +83,12 @@ Some simple results file examples (from [src/results-examples](https://github.co
 
 Notes:
 
-- See the the [manpage of "hipercontracer"](https://github.com/dreibh/hipercontracer/blob/master/src/hipercontracer.1) for a detailed description of the results file formats: ```man hipercontracer```
+- See the [manpage of "hipercontracer"](https://github.com/dreibh/hipercontracer/blob/master/src/hipercontracer.1) for a detailed description of the results file formats: ```man hipercontracer```
 - The HiPerConTracer Viewer Tool can be used to display results files, including uncompressed ones.
 - The HiPerConTracer Results Tool can be used to merge and/or convert the results files.
 
 ## Further Details
-See the the manpage of "hipercontracer" for all options, including a description of the results file formats!
+See the manpage of "hipercontracer" for all options, including a description of the results file formats!
 
 
 # The HiPerConTracer Viewer Tool
@@ -101,7 +101,7 @@ hpct-viewer src/results-examples/Traceroute-UDP-#88888888-fdb6:6d27:be73:4::50-2
 ```
 
 ## Further Details
-See the the [manpage of "hpct-viewer"](https://github.com/dreibh/hipercontracer/blob/master/src/hpct-viewer.1) for a detailed description of the available options: ```man hpct-viewer```
+See the [manpage of "hpct-viewer"](https://github.com/dreibh/hipercontracer/blob/master/src/hpct-viewer.1) for a detailed description of the available options: ```man hpct-viewer```
 
 
 # The HiPerConTracer Results Tool
@@ -144,7 +144,7 @@ Hints:
 - Choose column separator (" ", ",", etc.), if not automatically detected.
 
 ## Further Details
-See the the [manpage of "hpct-results"](https://github.com/dreibh/hipercontracer/blob/master/src/hpct-results.1) for a detailed description of the available options: ```man hpct-results```
+See the [manpage of "hpct-results"](https://github.com/dreibh/hipercontracer/blob/master/src/hpct-results.1) for a detailed description of the available options: ```man hpct-results```
 
 
 # Setting Up a Database
@@ -190,7 +190,7 @@ hpct-importer \
 Note: If running without "--quit-when-idle" (recommended), the importer keeps running and imports new files as soon as they appear in the results directory. The importer uses INotify!
 
 ## Further Details
-See the the [manpage of "hpct-importer"](https://github.com/dreibh/hipercontracer/blob/master/src/hpct-importer.1) for a detailed description of the available options: ```man hpct-importer```
+See the [manpage of "hpct-importer"](https://github.com/dreibh/hipercontracer/blob/master/src/hpct-importer.1) for a detailed description of the available options: ```man hpct-importer```
 
 
 # The HiPerConTracer Query Tool
@@ -210,7 +210,7 @@ hpct-query ~/testdb-users-mariadb-researcher.conf ping -o ping.hpct.gz
 Notes:
 
 - Make sure to specify a Measurement ID range, or a time range. Otherwise, the Query tool will export **everything**!
-- The output is in the same format as the originally written HiPerConTracer results. See the the manpage "hipercontracer" for all options, including a description of the results file formats!
+- The output is in the same format as the originally written HiPerConTracer results. See the manpage "hipercontracer" for all options, including a description of the results file formats!
 - You can use extension .gz for GZip, .bz for BZip2, .xz for XZ, or none for uncompressed output!
 
 ### Example 2
@@ -236,15 +236,15 @@ Export all Traceroute data from time interval [2023-09-22 00:00:00, 2023-09-23 0
 ```
 hpct-query ~/testdb-users-mariadb-researcher.conf traceroute -o traceroute.hpct.xz --verbose --from-time "2023-09-22 00:00:00" --to-time "2023-09-23 00:00:00"
 ```
-Note: 2023-09-23 00:00:00 is **not** included, only time stamps less than 2023-09-23 00:00:00. This ensures the possibility to e.g.&nbp;& export daily batches without having the same value in two files!
+Note: data for time stamp 2023-09-23 00:00:00 will **not** be included, only data for time stamps **less than** 2023-09-23 00:00:00, i.e.&nbsp;data within the time interval [to-time, from-time). This ensures the possibility to e.g.&nbsp;export daily batches without having the same value included in two files!
 
 ## Further Details
-See the the [manpage of "hpct-query"](https://github.com/dreibh/hipercontracer/blob/master/src/hpct-query.1) for a detailed description of the available options: ```man hpct-query```
+See the [manpage of "hpct-query"](https://github.com/dreibh/hipercontracer/blob/master/src/hpct-query.1) for a detailed description of the available options: ```man hpct-query```
 
 
 # The HiPerConTracer Sync Tool
 
-The HiPerConTracer Sync Tool helps synchronising collected results files to a collection server (denoted as Collector), using [RSync](https://rsync.samba.org/)/[SSH](https://www.openssh.com/)).
+The HiPerConTracer Sync Tool helps synchronising collected results files to a collection server (denoted as Collector), using [RSync](https://rsync.samba.org/)/[SSH](https://www.openssh.com/).
 
 ## Example
 Synchronise results files, with the following settings:
@@ -252,21 +252,22 @@ Synchronise results files, with the following settings:
 - local node is Node 1000;
 - run as user "hipercontracer";
 - from local directory /var/hipercontracer;
-- to remote server's directory /var/hipercontracer;
-- remote server is sognsvann.example (must be a resolvable hostname);
+- to remote server's directory /var/hipercontracer (here, the data is going to be stored in sub-directory "1000");
+- remote server is sognsvann.domain.example (must be a resolvable hostname);
 - private key for logging into the remote server via SSH is in /var/hipercontracer/ssh/id_ed25519;
 - known_hosts file for SSH is /var/hipercontracer/ssh/known_hosts;
 - run with verbose output
 ```
 sudo -u  hipercontracer  hpct-sync \
-   --nodeid 1000 --collector sognsvann.example \
+   --nodeid 1000 \
+   --collector sognsvann.domain.example \
    --local /var/hipercontracer --remote /var/hipercontracer \
    --key /var/hipercontracer/ssh/id_ed25519 \
    --known-hosts /var/hipercontracer/ssh/known_hosts --verbose
 ```
 
 ## Further Details
-See the the [manpage of "hpct-sync"](https://github.com/dreibh/hipercontracer/blob/master/src/hpct-sync.1) for a detailed description of the available options: ```man hpct-sync```
+See the [manpage of "hpct-sync"](https://github.com/dreibh/hipercontracer/blob/master/src/hpct-sync.1) for a detailed description of the available options: ```man hpct-sync```
 
 
 # The HiPerConTracer Reverse Tunnel Tool
@@ -278,7 +279,9 @@ Establish a Reverse Tunnel, with the following settings:
 
 - local node is Node 1000;
 - run as user "hipercontracer";
-- connect to Collector server 10.44.35.16, using SSH private key from /var/hipercontracer/ssh/id_ed25519, with SSH known_hosts file /var/hipercontracer/ssh/known_hosts
+- connect to Collector server 10.44.35.16;
+- using SSH private key from /var/hipercontracer/ssh/id_ed25519;
+- with SSH known_hosts file /var/hipercontracer/ssh/known_hosts
 ```
 sudo -u hipercontracer hpct-rtunnel \
    --nodeid 1000 --collector 10.44.35.16 \
@@ -292,13 +295,14 @@ hpct-ssh <user>@1000
 ```
 
 ## Further Details
-See the the [manpage of "hpct-rtunnel"](https://github.com/dreibh/hipercontracer/blob/master/src/hpct-rtunnel.1) for a detailed description of the available options for hpct-rtunnel: ```man hpct-rtunnel```
+See the [manpage of "hpct-rtunnel"](https://github.com/dreibh/hipercontracer/blob/master/src/hpct-rtunnel.1) for a detailed description of the available options for hpct-rtunnel: ```man hpct-rtunnel```
+
 Also see the [manpage of "hpct-ssh"](https://github.com/dreibh/hipercontracer/blob/master/src/hpct-ssh.1) for a detailed description of the available options for hpct-ssh: ```man hpct-ssh```
 
 
 # The HiPerConTracer Trigger Tool
 
-The HiPerConTracer Trigger Tool triggers HiPerConTracer measurements in the reverse direction, when a given number of Pings reaches the local node with a given size.
+The HiPerConTracer Trigger Tool triggers HiPerConTracer measurements in the reverse direction, when a given number of Pings having a given size reaching the local node.
 
 ## Example:
 Queue a received Ping's sender address after having received 2 Pings of 88 bytes for a Traceroute measurement from 10.1.1.51, run as user "hipercontracer" and use results directory "/var/hipercontracer":
@@ -313,12 +317,12 @@ sudo hpct-trigger \
 ```
 
 ## Further Details
-See the the [manpage of "hpct-trigger"](https://github.com/dreibh/hipercontracer/blob/master/src/hpct-trigger.1) for a detailed description of the available options: ```man hpct-trigger```
+See the [manpage of "hpct-trigger"](https://github.com/dreibh/hipercontracer/blob/master/src/hpct-trigger.1) for a detailed description of the available options: ```man hpct-trigger```
 
 
 # The HiPerConTracer Database Shell
 
-The HiPerConTracer Database Shell (DBShell) is a simple tool to test a database configuration file by running a database client with the settings of the file. It will then provide an interactive shell.
+The HiPerConTracer Database Shell (DBShell) is a simple tool to test a database configuration file by running a database client with the settings from the file. It will then provide an interactive shell.
 
 ## Example 1:
 Connect to the database, using the configuration from "hipercontracer-importer.conf":
@@ -333,14 +337,14 @@ dbshell hipercontracer-database.conf --write-dbeaver-config dbeaver-config
 ```
 
 ## Further Details
-See the the [manpage of "dbshell"](https://github.com/dreibh/hipercontracer/blob/master/src/dbshell.1) for a detailed description of the available options: ```man dbshell```
+See the [manpage of "dbshell"](https://github.com/dreibh/hipercontracer/blob/master/src/dbshell.1) for a detailed description of the available options: ```man dbshell```
 
 
 # The HiPerConTracer Database Tools
 
 The HiPerConTracer Database Tools are some helper programs to e.g.&nbsp;join HiPerConTracer database configurations into an existing [DBeaver](https://dbeaver.io/) configuration:
 
-- make-dbeaver-configuration: Make DBeaver configuration from HiPerConTracer database configuration files
+- make-dbeaver-configuration: Make DBeaver configuration from HiPerConTracer database configuration files, with possibility to join with existing DBeaver configuration
 - encrypt-dbeaver-configuration: Encrypt DBeaver credentials configuration file
 - decrypt-dbeaver-configuration: Decrypt DBeaver credentials configuration file
 
@@ -373,4 +377,4 @@ sudo udp-echo-server --user hipercontracer --port 7
 ```
 
 ## Further Details
-See the the [manpage of "udp-echo-server"](https://github.com/dreibh/hipercontracer/blob/master/src/udp-echo-server.1) for a detailed description of the available options: ```man udp-echo-server```
+See the [manpage of "udp-echo-server"](https://github.com/dreibh/hipercontracer/blob/master/src/udp-echo-server.1) for a detailed description of the available options: ```man udp-echo-server```
