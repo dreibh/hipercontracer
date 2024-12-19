@@ -401,5 +401,13 @@ sudo udp-echo-server --user hipercontracer --port 7
 See the [manpage of "udp-echo-server"](https://github.com/dreibh/hipercontracer/blob/master/src/udp-echo-server.1) for a detailed description of the available options: ```man udp-echo-server```
 
 
-# Wireshark
+# Wireshark Dissector for HiPerConTracer Packets
 The [Wireshark](https://www.wireshark.org/) network protocol analyzer provides built-in support for the HiPerConTracer packet format. This support is included upstream, i.e.&nbsp;Wireshark provides it out-of-the-box.
+
+
+# Citing HiPerConTracer in Publications
+
+HiPerConTracer BibTeX entries can be found in [src/hipercontracer.bib](src/hipercontracer.bib)!
+
+1. Dreibholz, Thomas: [HiPerConTracer - A Versatile Tool for IP Connectivity Tracing in Multi-Path Setups](https://web-backend.simula.no/sites/default/files/2024-06/SoftCOM2020-HiPerConTracer.pdf), in Proceedings of the 28th IEEE International Conference on Software, Telecommunications and Computer Networks (SoftCOM), pp. 1–6, DOI 10.23919/SoftCOM50211.2020.9238278, ISBN 978-953-290-099-6, Hvar, Dalmacija/Croatia, September 17, 2020.
+2. Dreibholz, Thomas: [High-Precision Round-Trip Time Measurements in the Internet with HiPerConTracer](https://web-backend.simula.no/sites/default/files/2023-10/SoftCOM2023-Timestamping.pdf), in Proceedings of the 31st International Conference on Software, Telecommunications and Computer Networks (SoftCOM), DOI 10.23919/SoftCOM58365.2023.10271612, ISBN 979-8-3503-0107-6, Split, Dalmacija/Croatia, September 22, 2023.
