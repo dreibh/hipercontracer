@@ -6,6 +6,7 @@ Group: Applications/Internet
 License: GPL-3.0-or-later
 URL: https://www.nntb.no/~dreibh/hipercontracer/
 Source: https://www.nntb.no/~dreibh/hipercontracer/download/%{name}-%{version}.tar.xz
+Packager: Thomas Dreibholz <dreibh@simula.no>
 
 AutoReqProv: on
 BuildRequires: boost-devel
@@ -125,6 +126,7 @@ rmdir /var/hipercontracer >/dev/null 2>&1 || true
 %{_datadir}/hipercontracer/hipercontracer.png
 %{_datadir}/hipercontracer/results-examples/HiPerConTracer.R
 %{_datadir}/hipercontracer/results-examples/*-*.results.*
+%{_datadir}/hipercontracer/results-examples/*-*.hpct
 %{_datadir}/hipercontracer/results-examples/*-*.hpct.*
 %{_datadir}/hipercontracer/results-examples/README.md
 %{_datadir}/hipercontracer/results-examples/r-install-dependencies
