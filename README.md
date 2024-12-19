@@ -6,12 +6,12 @@ The HiPerConTracer framework furthermore provides additional tools for helping t
 * [HiPerConTracer Results Tool](#the-hipercontracer-results-tool) for merging and converting results files, e.g.&nbsp;to create a Comma-Separated Value&nbsp;(CSV) file;
 * [HiPerConTracer Sync Tool](#the-hipercontracer-sync-tool) for copying data to a remote collector (via [RSync](https://rsync.samba.org/)/[SSH](https://www.openssh.com/));
 * [HiPerConTracer Reverse Tunnel Tool](#the-hipercontracer-reverse-tunnel-tool) for maintaining a reverse [SSH](https://www.openssh.com/) from a remote measurement node to a collector server;
-* [HiPerConTracer Trigger Tool]() for triggering HiPerConTracer measurements in the reverse direction;
+* [HiPerConTracer Trigger Tool](#the-hipercontracer-trigger-tool) for triggering HiPerConTracer measurements in the reverse direction;
 * [HiPerConTracer Importer Tool](#the-hipercontracer-importer-tool) for storing measurement data from results files into SQL or NoSQL databases. Currently, database backends for [MariaDB](https://mariadb.com/)/[MySQL](https://www.mysql.com/), [PostgreSQL](https://www.postgresql.org/) and [MongoDB](https://www.mongodb.com/) are provided;
 * [HiPerConTracer Query Tool](#the-hipercontracer-query-tool) for querying data from a database and storing it into a data file;
-* [HiPerConTracer Database Shell]() as simple command-line front-end for the underlying database backends;
-* [HiPerConTracer Database Tools]() with some helper programs to e.g.&nbsp;join HiPerConTracer database configurations into an existing DBeaver (SQL database GUI) configuration;
-* [HiPerConTracer UDP Echo Server]() as UDP Echo ([RFC&nbsp;862](https://datatracker.ietf.org/doc/html/rfc862)) protocol endpoint.
+* [HiPerConTracer Database Shell](#the-hipercontracer-database-shell) as simple command-line front-end for the underlying database backends;
+* [HiPerConTracer Database Tools](#the-hipercontracer-database-tools) with some helper programs to e.g.&nbsp;join HiPerConTracer database configurations into an existing DBeaver (SQL database GUI) configuration;
+* [HiPerConTracer UDP Echo Server](#the-hipercontracer-udp-echo-server) as UDP Echo ([RFC&nbsp;862](https://datatracker.ietf.org/doc/html/rfc862)) protocol endpoint.
 
 <center>
 <img alt="The HiPerConTracer Framework" src="src/figures/HiPerConTracer-Data-Collection-System.png" width="90%" />
@@ -248,6 +248,8 @@ See the the [manpage of "hpct-sync"](https://github.com/dreibh/hipercontracer/bl
 The HiPerConTracer Reverse Tunnel (RTunnel) Tool maintains a reverse [SSH](https://www.openssh.com/) from a remote measurement node to a collector server. The purpose is to allow for SSH login from the collector server to the measurement node, via the reverse tunnel. Then, the measurement node does not need a publicly-reachable IP address (e.g.&nbsp;the node only has a private IP address behind a firewall).
 
 ## Example
+Establish a Reverse Tunnel, with the following settings:
+
 - local node is Node 1000;
 - run as user "hipercontracer";
 - connect to Collector server 10.44.35.16, using SSH private key from /var/hipercontracer/ssh/id_ed25519, with SSH known_hosts file /var/hipercontracer/ssh/known_hosts
@@ -258,10 +260,91 @@ sudo -u hipercontracer hpct-rtunnel \
    --known-hosts /var/hipercontracer/ssh/known_hosts
 ```
 
+On the Collector, to connect to Node 1000:
+```
+hpct-ssh <user>@1000
+```
+
 ## Further Details
-See the the [manpage of "hpct-rtunnel"](https://github.com/dreibh/hipercontracer/blob/master/src/hpct-rtunnel.1) for a detailed description of the available options: ```man hpct-rtunnel```
+See the the [manpage of "hpct-rtunnel"](https://github.com/dreibh/hipercontracer/blob/master/src/hpct-rtunnel.1) for a detailed description of the available options for hpct-rtunnel: ```man hpct-rtunnel```
+Also see the [manpage of "hpct-ssh"](https://github.com/dreibh/hipercontracer/blob/master/src/hpct-ssh.1) for a detailed description of the available options for hpct-ssh: ```man hpct-ssh```
 
 
+# The HiPerConTracer Trigger Tool
+
+The HiPerConTracer Trigger Tool triggers HiPerConTracer measurements in the reverse direction, when a given number of Pings reaches the local node with a given size.
+
+## Example:
+Queue a received Ping's sender address after having received 2 Pings of 88 bytes for a Traceroute measurement from 10.1.1.51, run as user "hipercontracer" and use results directory "/var/hipercontracer":
+```
+sudo hpct-trigger \
+   --user hipercontracer \
+   --source 10.1.1.51 \
+   --resultsdirectory=/var/hipercontracer \
+   --traceroute \
+   --triggerpingsbeforequeuing 2 --triggerpingpacketsize 88 \
+   --verbose
+```
+
+## Further Details
+See the the [manpage of "hpct-trigger"](https://github.com/dreibh/hipercontracer/blob/master/src/hpct-trigger.1) for a detailed description of the available options: ```man hpct-trigger```
 
 
-* [HiPerConTracer Trigger Tool]() for triggering HiPerConTracer measurements in the reverse direction;
+# The HiPerConTracer Database Shell
+
+The HiPerConTracer Database Shell (DBShell) is a simple tool to test a database configuration file by running a database client with the settings of the file. It will then provide an interactive shell.
+
+## Example 1:
+Connect to the database, using the configuration from "hipercontracer-importer.conf":
+```
+dbshell hipercontracer-importer.conf
+```
+
+## Example 2:
+As Example 1, but also export the database configuration as DBeaver configuration files (JSON for database, plain-text JSON for user credentials) with the prefix "dbeaver-config":
+```
+dbshell hipercontracer-database.conf --write-dbeaver-config dbeaver-config
+```
+
+## Further Details
+See the the [manpage of "dbshell"](https://github.com/dreibh/hipercontracer/blob/master/src/dbshell.1) for a detailed description of the available options: ```man dbshell```
+
+
+# The HiPerConTracer Database Tools
+
+The HiPerConTracer Database Tools are some helper programs to e.g.&nbsp;join HiPerConTracer database configurations into an existing DBeaver configuration:
+
+- make-dbeaver-configuration: Make DBeaver configuration from HiPerConTracer database configuration files
+- encrypt-dbeaver-configuration: Encrypt DBeaver credentials configuration file
+- decrypt-dbeaver-configuration: Decrypt DBeaver credentials configuration file
+
+See the manpages of the tools for further details!
+
+
+# The HiPerConTracer UDP Echo Server
+The HiPerConTracer UDP Echo Server provides an UDP Echo ([RFC&nbsp;862](https://datatracker.ietf.org/doc/html/rfc862)) service, particularly as endpoint of HiPerConTracer Ping and Traceroute measurements over UDP.
+
+Important security notes:
+
+- The UDP Echo Server only responds to source ports >= 1024, to avoid using the  server in attacks, like spoofing a packet from another Echo server (port 7) to create a flooding loop.
+- Also, packets from the same port as the listening port are ignored!
+
+## Example 1:
+Start UDP Echo server on port 7777:
+```
+udp-echo-server --port 7777
+```
+
+A corresponding HiPerConTracer Ping measurement to this server could be run like:
+```
+sudo hipercontracer -D <SERVER_ADDRESS> -M UDP --ping --verbose --pingudpdestinationport 7777
+```
+
+## Example 2:
+Start UDP Echo server on port 7 as user "hipercontracer":
+```
+sudo udp-echo-server --user hipercontracer --port 7
+```
+
+## Further Details
+See the the [manpage of "udp-echo-server"](https://github.com/dreibh/hipercontracer/blob/master/src/udp-echo-server.1) for a detailed description of the available options: ```man udp-echo-server```
