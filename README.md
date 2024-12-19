@@ -1,17 +1,27 @@
-High-Performance Connectivity Tracer (HiPerConTracer) is a Ping/Traceroute measurement framework. It performs regular Ping and Traceroute runs among sites and can import the results into an SQL or NoSQL database. HiPerConTracer currently offers runs over ICMP and UDP.
-The HiPerConTracer framework furthermore provides additional tools for helping to obtain, process, collect, store, and retrieve measurement data:
+High-Performance Connectivity Tracer (HiPerConTracer) is a Ping/Traceroute measurement framework. [HiPerConTracer](#run-a-hipercontracer-measurement) denotes the actual measurement tool. It performs regular Ping and Traceroute runs among sites, featuring:
 
-* [HiPerConTracer](#run-a-hipercontracer-measurement) for the actual measurement runs;
+- multi-transport-protocol support (ICMP, UDP);
+- multi-homing and parallelism support;
+- handling of load balancing in the network;
+- multi-platform support (currently Linux and FreeBSD);
+- [high-precision (nanoseconds) timing support (Linux timestamping, both software and hardware)](https://www.nntb.no/~dreibh/hipercontracer/#Publications-SoftCOM2023-Timestamping);
+- a library (shared/static) to integrate measurement functionality into other software (libhipercontracer);
+- open source and written in a performance- and portability-focused programming language (C++) with only limited dependencies.
+
+Furthermore, the HiPerConTracer Framework furthermore provides additional tools for helping to obtain, process, collect, store, and retrieve measurement data:
+
 * [HiPerConTracer Viewer Tool](#the-hipercontracer-viewer-tool) for displaying the contents of results files;
 * [HiPerConTracer Results Tool](#the-hipercontracer-results-tool) for merging and converting results files, e.g.&nbsp;to create a Comma-Separated Value&nbsp;(CSV) file;
-* [HiPerConTracer Sync Tool](#the-hipercontracer-sync-tool) for copying data from a measurement node (vantage point) to a remote collector server (via [RSync](https://rsync.samba.org/)/[SSH](https://www.openssh.com/));
-* [HiPerConTracer Reverse Tunnel Tool](#the-hipercontracer-reverse-tunnel-tool) for maintaining a reverse [SSH](https://www.openssh.com/) tunnel from a remote measurement node to a collector server;
+* [HiPerConTracer Sync Tool](#the-hipercontracer-sync-tool) for copying data from a measurement node (vantage point) to a remote HiPerConTracer Collector server (via [RSync](https://rsync.samba.org/)/[SSH](https://www.openssh.com/));
+* [HiPerConTracer Reverse Tunnel Tool](#the-hipercontracer-reverse-tunnel-tool) for maintaining a reverse [SSH](https://www.openssh.com/) tunnel from a remote measurement node to a HiPerConTracer Collector server;
+* [HiPerConTracer Collector/Node Tools](#the-hipercontracer-collectornode-tools) for simplifying the setup of HiPerConTracer Nodes and a HiPerConTracer Collector server;
 * [HiPerConTracer Trigger Tool](#the-hipercontracer-trigger-tool) for triggering HiPerConTracer measurements in the reverse direction;
 * [HiPerConTracer Importer Tool](#the-hipercontracer-importer-tool) for storing measurement data from results files into SQL or NoSQL databases. Currently, database backends for [MariaDB](https://mariadb.com/)/[MySQL](https://www.mysql.com/), [PostgreSQL](https://www.postgresql.org/) and [MongoDB](https://www.mongodb.com/) are provided;
 * [HiPerConTracer Query Tool](#the-hipercontracer-query-tool) for querying data from a database and storing it into a results file;
 * [HiPerConTracer Database Shell](#the-hipercontracer-database-shell) as simple command-line front-end for the underlying database backends;
 * [HiPerConTracer Database Tools](#the-hipercontracer-database-tools) with some helper programs to e.g.&nbsp;to join HiPerConTracer database configurations into an existing [DBeaver](https://dbeaver.io/) (a popular SQL database GUI application) configuration;
-* [HiPerConTracer UDP Echo Server](#the-hipercontracer-udp-echo-server) as UDP Echo ([RFC&nbsp;862](https://datatracker.ietf.org/doc/html/rfc862)) protocol endpoint.
+* [HiPerConTracer UDP Echo Server](#the-hipercontracer-udp-echo-server) as UDP Echo ([RFC&nbsp;862](https://datatracker.ietf.org/doc/html/rfc862)) protocol endpoint;
+* [Wireshark](https://www.wireshark.org/) dissector for HiPerConTracer packets.
 
 <center>
 <img alt="The HiPerConTracer Framework" src="src/figures/HiPerConTracer-Data-Collection-System.png" width="90%" />
@@ -244,7 +254,7 @@ See the [manpage of "hpct-query"](https://github.com/dreibh/hipercontracer/blob/
 
 # The HiPerConTracer Sync Tool
 
-The HiPerConTracer Sync Tool helps synchronising collected results files to a collection server (denoted as Collector), using [RSync](https://rsync.samba.org/)/[SSH](https://www.openssh.com/).
+The HiPerConTracer Sync Tool helps synchronising collected results files from a vantage point (denoted as HiPerConTracer Node) to a collection server (denoted as HiPerConTracer Collector), using [RSync](https://rsync.samba.org/)/[SSH](https://www.openssh.com/).
 
 ## Example
 Synchronise results files, with the following settings:
@@ -272,7 +282,7 @@ See the [manpage of "hpct-sync"](https://github.com/dreibh/hipercontracer/blob/m
 
 # The HiPerConTracer Reverse Tunnel Tool
 
-The HiPerConTracer Reverse Tunnel (RTunnel) Tool maintains a reverse [SSH](https://www.openssh.com/) from a remote measurement node to a collector server. The purpose is to allow for SSH login from the collector server to the measurement node, via the reverse tunnel. Then, the measurement node does not need a publicly-reachable IP address (e.g.&nbsp;the node only has a private IP address behind a firewall).
+The HiPerConTracer Reverse Tunnel (RTunnel) Tool maintains a reverse [SSH](https://www.openssh.com/) from a remote HiPerConTracer Node to a HiPerConTracer Collector server. The purpose is to allow for SSH login from the Collector server to the Node, via the reverse tunnel. Then, the Node does not need a publicly-reachable IP address (e.g.&nbsp;a Node only having a private IP address behind a NAT/PAT firewall).
 
 ## Example
 Establish a Reverse Tunnel, with the following settings:
@@ -298,6 +308,17 @@ hpct-ssh <user>@1000
 See the [manpage of "hpct-rtunnel"](https://github.com/dreibh/hipercontracer/blob/master/src/hpct-rtunnel.1) for a detailed description of the available options for hpct-rtunnel: ```man hpct-rtunnel```
 
 Also see the [manpage of "hpct-ssh"](https://github.com/dreibh/hipercontracer/blob/master/src/hpct-ssh.1) for a detailed description of the available options for hpct-ssh: ```man hpct-ssh```
+
+
+# The HiPerConTracer Collector/Node Tools
+
+The HiPerConTracer Collector/Node Tools are some scripts for simplifying the setup of Nodes and a Collector server. Mainly, they ensure the creation of Node configurations on the Collector, and corresponding setup of HiPerConTracer Sync Tool and HiPerConTracer Reverse Tunnel.
+
+- [hpct-node-setup](https://github.com/dreibh/hipercontracer/blob/master/src/hpct-node-setup) (on a Node): Connect the node to a Collector.
+- [hpct-nodes-list](https://github.com/dreibh/hipercontracer/blob/master/src/hpct-nodes-list) (on the Collector): List connected nodes, together with status information about last data synchronisation and reverse tunnel setup.
+- [hpct-node-removal](https://github.com/dreibh/hipercontracer/blob/master/src/hpct-node-removal) (on the Collector): Remove a node from the Collector.
+
+See the manpages of these tools for further details!
 
 
 # The HiPerConTracer Trigger Tool
@@ -342,13 +363,13 @@ See the [manpage of "dbshell"](https://github.com/dreibh/hipercontracer/blob/mas
 
 # The HiPerConTracer Database Tools
 
-The HiPerConTracer Database Tools are some helper programs to e.g.&nbsp;join HiPerConTracer database configurations into an existing [DBeaver](https://dbeaver.io/) configuration:
+The HiPerConTracer Database Tools are some helper scripts to e.g.&nbsp;join HiPerConTracer database configurations into an existing [DBeaver](https://dbeaver.io/) configuration:
 
-- make-dbeaver-configuration: Make DBeaver configuration from HiPerConTracer database configuration files, with possibility to join with existing DBeaver configuration
-- encrypt-dbeaver-configuration: Encrypt DBeaver credentials configuration file
-- decrypt-dbeaver-configuration: Decrypt DBeaver credentials configuration file
+- [make-dbeaver-configuration](https://github.com/dreibh/hipercontracer/blob/master/src/make-dbeaver-configuration): Make DBeaver configuration from HiPerConTracer database configuration files, with possibility to join with existing DBeaver configuration
+- [encrypt-dbeaver-configuration](https://github.com/dreibh/hipercontracer/blob/master/src/encrypt-dbeaver-configuration): Encrypt DBeaver credentials configuration file
+- [decrypt-dbeaver-configuration](https://github.com/dreibh/hipercontracer/blob/master/src/decrypt-dbeaver-configuration): Decrypt DBeaver credentials configuration file
 
-See the manpages of the tools for further details!
+See the manpages of these tools for further details!
 
 
 # The HiPerConTracer UDP Echo Server
@@ -378,3 +399,7 @@ sudo udp-echo-server --user hipercontracer --port 7
 
 ## Further Details
 See the [manpage of "udp-echo-server"](https://github.com/dreibh/hipercontracer/blob/master/src/udp-echo-server.1) for a detailed description of the available options: ```man udp-echo-server```
+
+
+# Wireshark
+The [Wireshark](https://www.wireshark.org/) network protocol analyzer provides built-in support for the HiPerConTracer packet format. This support is included upstream, i.e.&nbsp;Wireshark provides it out-of-the-box.
