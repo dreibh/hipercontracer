@@ -9,8 +9,8 @@ Depends: hipercontracer,
 
 Tests: 20-hpct-results
 Restrictions: allow-stderr
-Depends: hipercontracer-results,
-         hipercontracer-common
+Depends: hipercontracer-common,
+         hipercontracer-results
 
 Tests: 30-dbeaver-tools
 Restrictions: allow-stderr
@@ -24,4 +24,6 @@ Depends: hipercontracer-dbeaver-tools,
          hipercontracer-importer,
          hipercontracer-query,
          hipercontracer-results,
+         pwgen,
+         python3-netifaces,
          rsync
