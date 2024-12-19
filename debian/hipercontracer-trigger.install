@@ -1,5 +1,5 @@
 etc/hipercontracer/hpct-trigger-87654321.conf
-lib/systemd/system/hpct-trigger.service
-lib/systemd/system/hpct-trigger@.service
 usr/bin/hpct-trigger
+usr/lib/systemd/system/hpct-trigger.service
+usr/lib/systemd/system/hpct-trigger@.service
 usr/share/bash-completion/completions/hpct-trigger

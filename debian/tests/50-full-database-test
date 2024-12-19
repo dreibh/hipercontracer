@@ -34,8 +34,12 @@ set -eu
 # Make empty directory, if necessary:
 mkdir -p "${HOME}/.local/share/DBeaverData/workspace6/General/.dbeaver"
 
-cd /usr/share/hipercontracer/TestDB
-ls -al
+rm -rf /tmp/TestDB /tmp/SQL /tmp/NoSQL /tmp/results-examples
+cp -a /usr/share/hipercontracer/TestDB /tmp/TestDB
+cp -a /usr/share/hipercontracer/SQL    /tmp/SQL
+cp -a /usr/share/hipercontracer/NoSQL  /tmp/NoSQL
+cp -a /usr/share/hipercontracer/results-examples /tmp/results-examples
+cd /tmp/TestDB
 ./run-full-test mariadb --really-run-i-know-that-it-may-mess-up-the-system
 
 echo "Test passed!"

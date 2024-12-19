@@ -28,7 +28,7 @@
 .\" Contact: dreibh@simula.no
 .\"
 .\" ###### Setup ############################################################
-.Dd November 29, 2024
+.Dd December 19, 2024
 .Dt hpct-query 1
 .Os hpct-query
 .\" ###### Name #############################################################
@@ -101,6 +101,7 @@ If not provided, all results will be queried.
 .It Fl Fl to-time Ar timestamp
 Set the end of the time range as string in format "%Y-%m-%d %H:%M:%S.%F".
 If not provided, all results after a given from-time will be queried.
+Note: data at to-time timestamp is not included in the export, only time stamps less than to-time! That is, the time interval for export is [from-timestamp, to-timestamp). This ensures the possibility to for example export daily batches without having the same value included in two files!
 .It Fl Fl from-measurement-id Ar measurement_identifier
 Set the beginning of the measurement identifier range.
 If not provided, all results will be queried.

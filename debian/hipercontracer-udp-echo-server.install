@@ -1,4 +1,4 @@
 etc/hipercontracer/udp-echo-server.conf
-lib/systemd/system/udp-echo-server.service
 usr/bin/udp-echo-server
+usr/lib/systemd/system/udp-echo-server.service
 usr/share/bash-completion/completions/udp-echo-server

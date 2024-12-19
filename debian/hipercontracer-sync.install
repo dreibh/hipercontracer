@@ -1,5 +1,5 @@
 etc/hipercontracer/hpct-sync.conf
-lib/systemd/system/hpct-sync.service
-lib/systemd/system/hpct-sync.timer
 usr/bin/hpct-sync
+usr/lib/systemd/system/hpct-sync.service
+usr/lib/systemd/system/hpct-sync.timer
 usr/share/bash-completion/completions/hpct-sync

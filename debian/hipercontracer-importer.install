@@ -1,6 +1,6 @@
 etc/hipercontracer/hpct-importer.conf
-lib/systemd/system/hpct-importer.service
 usr/bin/hpct-importer
+usr/lib/systemd/system/hpct-importer.service
 usr/share/bash-completion/completions/hpct-importer
 usr/share/hipercontracer/NoSQL/R-query-example.R
 usr/share/hipercontracer/NoSQL/README-MongoDB.md
