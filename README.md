@@ -1,15 +1,16 @@
 High-Performance Connectivity Tracer (HiPerConTracer) is a Ping/Traceroute measurement framework. It performs regular Ping and Traceroute runs among sites and can import the results into an SQL or NoSQL database. HiPerConTracer currently offers runs over ICMP and UDP.
 The HiPerConTracer framework furthermore provides additional tools for helping to obtain, process, collect, store, and retrieve measurement data:
 
-* [HiPerConTracer](#run-a-hipercontracer-measurement) is the measurement tool itself.
-* [HiPerConTracer Viewer Tool](#the-hipercontracer-viewer-tool) for displaying the contents of data files.
-* [HiPerConTracer Results Tool](#the-hipercontracer-results-tool) for merging and converting data files, e.g.&nbsp;to create a Comma-Separated Value&nbsp;(CSV) file.
-* [HiPerConTracer Sync Tool]() for copying data to a remote collector (via [RSync](https://rsync.samba.org/)/[SSH](https://www.openssh.com/)).
-* [HiPerConTracer Trigger Tool]() for triggering HiPerConTracer measurements in the reverse direction.
-* [HiPerConTracer Importer Tool](#the-hipercontracer-importer-tool) for storing measurement data from data files into SQL or NoSQL databases. Currently, database backends for [MariaDB](https://mariadb.com/)/[MySQL](https://www.mysql.com/), [PostgreSQL](https://www.postgresql.org/) and [MongoDB](https://www.mongodb.com/) are provided.
-* [HiPerConTracer Query Tool](#the-hipercontracer-query-tool) for querying data from a database and storing it into a data file.
-* [HiPerConTracer Database Shell]() as simple command-line front-end for the underlying database backends.
-* [HiPerConTracer Database Tools]() with some helper programs to e.g.&nbsp;join HiPerConTracer database configurations into an existing DBeaver (SQL database GUI) configuration.
+* [HiPerConTracer](#run-a-hipercontracer-measurement) is the measurement tool itself;
+* [HiPerConTracer Viewer Tool](#the-hipercontracer-viewer-tool) for displaying the contents of results files;
+* [HiPerConTracer Results Tool](#the-hipercontracer-results-tool) for merging and converting results files, e.g.&nbsp;to create a Comma-Separated Value&nbsp;(CSV) file;
+* [HiPerConTracer Sync Tool](#the-hipercontracer-sync-tool) for copying data to a remote collector (via [RSync](https://rsync.samba.org/)/[SSH](https://www.openssh.com/));
+* [HiPerConTracer Reverse Tunnel Tool](#the-hipercontracer-reverse-tunnel-tool) for maintaining a reverse [SSH](https://www.openssh.com/) from a remote measurement node to a collector server;
+* [HiPerConTracer Trigger Tool]() for triggering HiPerConTracer measurements in the reverse direction;
+* [HiPerConTracer Importer Tool](#the-hipercontracer-importer-tool) for storing measurement data from results files into SQL or NoSQL databases. Currently, database backends for [MariaDB](https://mariadb.com/)/[MySQL](https://www.mysql.com/), [PostgreSQL](https://www.postgresql.org/) and [MongoDB](https://www.mongodb.com/) are provided;
+* [HiPerConTracer Query Tool](#the-hipercontracer-query-tool) for querying data from a database and storing it into a data file;
+* [HiPerConTracer Database Shell]() as simple command-line front-end for the underlying database backends;
+* [HiPerConTracer Database Tools]() with some helper programs to e.g.&nbsp;join HiPerConTracer database configurations into an existing DBeaver (SQL database GUI) configuration;
 * [HiPerConTracer UDP Echo Server]() as UDP Echo ([RFC&nbsp;862](https://datatracker.ietf.org/doc/html/rfc862)) protocol endpoint.
 
 # Build the HiPerConTracer Framework from Sources
@@ -73,7 +74,7 @@ See the the manpage of "hipercontracer" for all options, including a description
 
 # The HiPerConTracer Viewer Tool
 
-The HiPerConTracer Viewer Tool displays the contents of data files.
+The HiPerConTracer Viewer Tool displays the contents of results files.
 
 ## Example
 ```
@@ -86,7 +87,7 @@ See the the [manpage of "hpct-viewer"](https://github.com/dreibh/hipercontracer/
 
 # The HiPerConTracer Results Tool
 
-The HiPerConTracer Results Tool provides merging and converting data files, e.g.&nbsp;to create a Comma-Separated Value&nbsp;(CSV) file.
+The HiPerConTracer Results Tool provides merging and converting results files, e.g.&nbsp;to create a Comma-Separated Value&nbsp;(CSV) file.
 
 ## Example 1
 Merge all files matching the pattern "Ping\*.hpct.\*" into CSV file, with "," as separator:
@@ -134,7 +135,7 @@ Hint: All HiPerConTracer tools support TLS setup. It is **strongly** recommended
 
 # The HiPerConTracer Importer Tool
 
-The HiPerConTracer Importer Tool provides the continuous storage of collected measurement data from data files into SQL or NoSQL databases. Currently, database backends for [MariaDB](https://mariadb.com/)/[MySQL](https://www.mysql.com/), [PostgreSQL](https://www.postgresql.org/) and [MongoDB](https://www.mongodb.com/) are provided.
+The HiPerConTracer Importer Tool provides the continuous storage of collected measurement data from results files into SQL or NoSQL databases. Currently, database backends for [MariaDB](https://mariadb.com/)/[MySQL](https://www.mysql.com/), [PostgreSQL](https://www.postgresql.org/) and [MongoDB](https://www.mongodb.com/) are provided.
 
 ## Write a Configuration File for the Importer
 
@@ -208,3 +209,54 @@ hpct-query ~/testdb-users-mariadb-researcher.conf traceroute -o traceroute.hpct.
 
 ## Further Details
 See the the [manpage of "hpct-query"](https://github.com/dreibh/hipercontracer/blob/master/src/hpct-query.1) for a detailed description of the available options: ```man hpct-query```
+
+
+# The HiPerConTracer Sync Tool
+
+The HiPerConTracer Sync Tool helps synchronising collected results files to a collection server (denoted as Collector), using [RSync](https://rsync.samba.org/)/[SSH](https://www.openssh.com/)).
+
+## Example
+Synchronise results files, with the following settings:
+
+- local node is Node 1000;
+- run as user "hipercontracer";
+- from local directory /var/hipercontracer;
+- to remote server's directory /var/hipercontracer;
+- remote server is sognsvann.example (must be a resolvable hostname);
+- private key for logging into the remote server via SSH is in /var/hipercontracer/ssh/id_ed25519;
+- known_hosts file for SSH is /var/hipercontracer/ssh/known_hosts;
+- run with verbose output
+```
+sudo -u  hipercontracer  hpct-sync \
+   --nodeid 1000 --collector sognsvann.example \
+   --local /var/hipercontracer --remote /var/hipercontracer \
+   --key /var/hipercontracer/ssh/id_ed25519 \
+   --known-hosts /var/hipercontracer/ssh/known_hosts --verbose
+```
+
+## Further Details
+See the the [manpage of "hpct-sync"](https://github.com/dreibh/hipercontracer/blob/master/src/hpct-sync.1) for a detailed description of the available options: ```man hpct-sync```
+
+
+# The HiPerConTracer Reverse Tunnel Tool
+
+The HiPerConTracer Reverse Tunnel (RTunnel) Tool maintains a reverse [SSH](https://www.openssh.com/) from a remote measurement node to a collector server. The purpose is to allow for SSH login from the collector server to the measurement node, via the reverse tunnel. Then, the measurement node does not need a publicly-reachable IP address (e.g.&nbsp;the node only has a private IP address behind a firewall).
+
+## Example
+- local node is Node 1000;
+- run as user "hipercontracer";
+- connect to Collector server 10.44.35.16, using SSH private key from /var/hipercontracer/ssh/id_ed25519, with SSH known_hosts file /var/hipercontracer/ssh/known_hosts
+```
+sudo -u hipercontracer hpct-rtunnel \
+   --nodeid 1000 --collector 10.44.35.16 \
+   --key /var/hipercontracer/ssh/id_ed25519 \
+   --known-hosts /var/hipercontracer/ssh/known_hosts
+```
+
+## Further Details
+See the the [manpage of "hpct-rtunnel"](https://github.com/dreibh/hipercontracer/blob/master/src/hpct-rtunnel.1) for a detailed description of the available options: ```man hpct-rtunnel```
+
+
+
+
+* [HiPerConTracer Trigger Tool]() for triggering HiPerConTracer measurements in the reverse direction;
