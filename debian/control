@@ -541,7 +541,7 @@ Recommends: td-system-info,
             td-system-maintenance,
             unattended-upgrades
 Description: HiPerConTracer Collector Tools for collecting measurement results
-  High-Performance Connectivity Tracer (HiPerConTracer) is a Ping/Traceroute
+ High-Performance Connectivity Tracer (HiPerConTracer) is a Ping/Traceroute
  measurement framework. HiPerConTracer denotes the actual measurement tool. It
  performs regular Ping and Traceroute runs among sites, featuring:
  multi-transport-protocol support (ICMP, UDP);
@@ -581,7 +581,7 @@ Description: HiPerConTracer Collector Tools for collecting measurement results
  GUI application) configuration;
  UDP Echo Server as UDP Echo (RFC 862) protocol endpoint;
  Wireshark dissector for HiPerConTracer packets.
-.
+ .
  This is the Collector Tools package. It contains helper scripts to set up
  and maintain a HiPerConTracer Collector server.
 
