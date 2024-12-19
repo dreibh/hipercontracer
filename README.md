@@ -1,16 +1,16 @@
 High-Performance Connectivity Tracer (HiPerConTracer) is a Ping/Traceroute measurement framework. It performs regular Ping and Traceroute runs among sites and can import the results into an SQL or NoSQL database. HiPerConTracer currently offers runs over ICMP and UDP.
 The HiPerConTracer framework furthermore provides additional tools for helping to obtain, process, collect, store, and retrieve measurement data:
 
-* [HiPerConTracer](#run-a-hipercontracer-measurement) is the measurement tool itself;
+* [HiPerConTracer](#run-a-hipercontracer-measurement) for the actual measurement runs;
 * [HiPerConTracer Viewer Tool](#the-hipercontracer-viewer-tool) for displaying the contents of results files;
 * [HiPerConTracer Results Tool](#the-hipercontracer-results-tool) for merging and converting results files, e.g.&nbsp;to create a Comma-Separated Value&nbsp;(CSV) file;
-* [HiPerConTracer Sync Tool](#the-hipercontracer-sync-tool) for copying data to a remote collector (via [RSync](https://rsync.samba.org/)/[SSH](https://www.openssh.com/));
-* [HiPerConTracer Reverse Tunnel Tool](#the-hipercontracer-reverse-tunnel-tool) for maintaining a reverse [SSH](https://www.openssh.com/) from a remote measurement node to a collector server;
+* [HiPerConTracer Sync Tool](#the-hipercontracer-sync-tool) for copying data from a measurement node (vantage point) to a remote collector server (via [RSync](https://rsync.samba.org/)/[SSH](https://www.openssh.com/));
+* [HiPerConTracer Reverse Tunnel Tool](#the-hipercontracer-reverse-tunnel-tool) for maintaining a reverse [SSH](https://www.openssh.com/) tunnel from a remote measurement node to a collector server;
 * [HiPerConTracer Trigger Tool](#the-hipercontracer-trigger-tool) for triggering HiPerConTracer measurements in the reverse direction;
 * [HiPerConTracer Importer Tool](#the-hipercontracer-importer-tool) for storing measurement data from results files into SQL or NoSQL databases. Currently, database backends for [MariaDB](https://mariadb.com/)/[MySQL](https://www.mysql.com/), [PostgreSQL](https://www.postgresql.org/) and [MongoDB](https://www.mongodb.com/) are provided;
-* [HiPerConTracer Query Tool](#the-hipercontracer-query-tool) for querying data from a database and storing it into a data file;
+* [HiPerConTracer Query Tool](#the-hipercontracer-query-tool) for querying data from a database and storing it into a results file;
 * [HiPerConTracer Database Shell](#the-hipercontracer-database-shell) as simple command-line front-end for the underlying database backends;
-* [HiPerConTracer Database Tools](#the-hipercontracer-database-tools) with some helper programs to e.g.&nbsp;join HiPerConTracer database configurations into an existing DBeaver (SQL database GUI) configuration;
+* [HiPerConTracer Database Tools](#the-hipercontracer-database-tools) with some helper programs to e.g.&nbsp;to join HiPerConTracer database configurations into an existing [DBeaver](https://dbeaver.io/) (a popular SQL database GUI application) configuration;
 * [HiPerConTracer UDP Echo Server](#the-hipercontracer-udp-echo-server) as UDP Echo ([RFC&nbsp;862](https://datatracker.ietf.org/doc/html/rfc862)) protocol endpoint.
 
 <center>
@@ -30,7 +30,7 @@ sudo make install
 Notes:
 
 - There are various CMake options to enable/disable database backends and tools. A GUI tool like CCMake provides a comfortable way of configuration.
-- The CMake run will show missing dependencies, and provide help for installing them on Debian, Ubuntu, Fedora and FreeBSD.
+- The CMake run will show missing dependencies, and provide help for installing them on Debian, Ubuntu and Fedora Linux as well as FreeBSD.
 
 
 # Run a HiPerConTracer Measurement
@@ -38,29 +38,43 @@ Notes:
 HiPerConTracer is the measurement tool itself.
 
 ## Example 1
-A simply Ping run, without data storage, from arbitrary local addresses, to all IPv4 and IPv6 addresses of [www.heise.de](https://www.heise.de) via ICMP (default):
+A simple Ping run, without data storage, from arbitrary local addresses, to all IPv4 and IPv6 addresses of [www.heise.de](https://www.heise.de) (resolved via DNS) via ICMP (default):
 ```
 sudo hipercontracer --destination www.heise.de --ping --verbose
 ```
 
 ## Example 2
-Run HiPerConTracer measurement #1000000, from arbitrary local IPv4 address to destination 193.99.144.80 with Traceroute and Ping. Store data into sub-directory "data" in the current directory; run as current user $USER:
+Run HiPerConTracer measurement #1000000, from arbitrary local IPv4 address to destination 193.99.144.80, using Traceroute and Ping. Store data into sub-directory "data" in the current directory; run as current user $USER:
 ```
-sudo hipercontracer --user $USER -#1000000 --source 0.0.0.0 --destination 193.99.144.80 --traceroute --ping --resultsdirectory data --verbose
+sudo hipercontracer \
+   --user $USER -#1000000 \
+   --source 0.0.0.0 --destination 193.99.144.80 \
+   --traceroute --ping \
+   --resultsdirectory data \
+   --verbose
 ```
 Notes:
-- HiPerConTracer expects the sub-directory "data" (provided with "--resultsdirectory") to write the results files to. The directory must be writable for the user $USER!
-- See the manpage "hipercontracer" for various options to set Ping and Traceroute intervals, results file lengths, results file compression, etc.!
+
+- Run HiPerConTracer as a non-privileged user ("\-\-user" option). HiPerConTracer only needs superuser permissions to create the raw sockets.
+- HiPerConTracer uses the sub-directory "data" (provided by "\-\-resultsdirectory") to write the results files to. This directory must be writable for the user $USER!
+- See the [manpage of "hipercontracer"](https://github.com/dreibh/hipercontracer/blob/master/src/hipercontracer.1) for various options to set Ping and Traceroute intervals, results file lengths, results file compression, etc.!
 
 ## Example 3
-Run HiPerConTracer measurement #1000001, from arbitrary local IPv4 (0.0.0.0) and IPv6 (::) addresses to destinations 193.99.144.80 and 2a02:2e0:3fe:1001:302:: with Traceroute and Ping via ICMP (default). Store data into sub-directory "data" in the current directory; run as current user $USER:
+Run HiPerConTracer measurement #1000001, from arbitrary local IPv4 (0.0.0.0) and IPv6 (::) addresses to destinations 193.99.144.80 and 2a02:2e0:3fe:1001:302:: with Traceroute and Ping via ICMP (default). Store results files into sub-directory "data" in the current directory; run as current user $USER:
 ```
-sudo hipercontracer --user $USER -#1000001 --source 0.0.0.0 --source :: --destination 193.99.144.80 --destination 2a02:2e0:3fe:1001:302:: --traceroute --ping --resultsdirectory data --verbose
+sudo hipercontracer \
+   --user $USER \
+   -#1000001 \
+   --source 0.0.0.0 --source :: \
+   --destination 193.99.144.80 --destination 2a02:2e0:3fe:1001:302:: \
+   --traceroute --ping \
+   --resultsdirectory data \
+   --verbose
 ```
 
-## Data Examples
+## Results File Examples
 
-Some simple data file examples (from [src/results-examples](https://github.com/dreibh/hipercontracer/tree/master/src/results-examples)):
+Some simple results file examples (from [src/results-examples](https://github.com/dreibh/hipercontracer/tree/master/src/results-examples)):
 
 - [HiPerConTracer ICMP Ping over IPv4](https://github.com/dreibh/hipercontracer/blob/master/src/results-examples/Ping-ICMP-%231000001-0.0.0.0-20241219T090830.364329-000000001.hpct)
 - [HiPerConTracer ICMP Ping over IPv6](https://github.com/dreibh/hipercontracer/blob/master/src/results-examples/Ping-ICMP-%231000001-%3A%3A-20241219T090830.364464-000000001.hpct)
@@ -79,7 +93,7 @@ See the the manpage of "hipercontracer" for all options, including a description
 
 # The HiPerConTracer Viewer Tool
 
-The HiPerConTracer Viewer Tool displays the contents of results files.
+The HiPerConTracer Viewer Tool displays the contents of a results file.
 
 ## Example
 ```
@@ -92,19 +106,21 @@ See the the [manpage of "hpct-viewer"](https://github.com/dreibh/hipercontracer/
 
 # The HiPerConTracer Results Tool
 
-The HiPerConTracer Results Tool provides merging and converting results files, e.g.&nbsp;to create a Comma-Separated Value&nbsp;(CSV) file.
+The HiPerConTracer Results Tool provides merging and converting data from results files, e.g.&nbsp;to create a Comma-Separated Value&nbsp;(CSV) file.
 
 ## Example 1
-Merge all files matching the pattern "Ping\*.hpct.\*" into CSV file, with "," as separator:
+Merge the data from all files matching the pattern "Ping\*.hpct.\*" into CSV file "ping.csv.gz", with "," as separator:
 ```
-find data -maxdepth 1 -name "Ping*.hpct.*" | hpct-results --input-file-names-from-stdin --separator=, -o ping.csv.gz
+find data -maxdepth 1 -name "Ping*.hpct.*" | \
+   hpct-results --input-file-names-from-stdin --separator=, -o ping.csv.gz
 ```
 Hint: You can use extension .gz for GZip, .bz for BZip2, .xz for XZ, or none for uncompressed output into the output CSV file!
 
 ## Example 2
-Merge all files matching the pattern "Traceroute\*.hpct.\*" into CSV file, with ";" as separator:
+Merge the data from all files matching the pattern "Traceroute\*.hpct.\*" into CSV file "traceroute.csv.xz", with ";" as separator:
 ```
-find data -maxdepth 1 -name "Traceroute*.hpct.*" | hpct-results --input-file-names-from-stdin --separator=; -o traceroute.csv.gz
+find data -maxdepth 1 -name "Traceroute*.hpct.*" | \
+   hpct-results --input-file-names-from-stdin --separator=; -o traceroute.csv.xz
 ```
 
 ## Processing Results from a CSV File
@@ -301,7 +317,7 @@ dbshell hipercontracer-importer.conf
 ```
 
 ## Example 2:
-As Example 1, but also export the database configuration as DBeaver configuration files (JSON for database, plain-text JSON for user credentials) with the prefix "dbeaver-config":
+As Example 1, but also export the database configuration as [DBeaver](https://dbeaver.io/) configuration files (JSON for database, plain-text JSON for user credentials) with the prefix "dbeaver-config":
 ```
 dbshell hipercontracer-database.conf --write-dbeaver-config dbeaver-config
 ```
@@ -312,7 +328,7 @@ See the the [manpage of "dbshell"](https://github.com/dreibh/hipercontracer/blob
 
 # The HiPerConTracer Database Tools
 
-The HiPerConTracer Database Tools are some helper programs to e.g.&nbsp;join HiPerConTracer database configurations into an existing DBeaver configuration:
+The HiPerConTracer Database Tools are some helper programs to e.g.&nbsp;join HiPerConTracer database configurations into an existing [DBeaver](https://dbeaver.io/) configuration:
 
 - make-dbeaver-configuration: Make DBeaver configuration from HiPerConTracer database configuration files
 - encrypt-dbeaver-configuration: Encrypt DBeaver credentials configuration file
