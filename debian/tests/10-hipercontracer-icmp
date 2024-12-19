@@ -31,7 +31,7 @@
 # Bash options:
 set -eu
 
-TESTUSER="test"
+TESTUSER="hipercontracer"
 
 
 echo "Testing HiPerConTracer with ICMP in the Internet ..."

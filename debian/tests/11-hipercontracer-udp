@@ -31,7 +31,7 @@
 # Bash options:
 set -eu
 
-TESTUSER="test"
+TESTUSER="hipercontracer"
 
 
 echo "Testing HiPerConTracer with ICMP and UDP on localhost, IPv4 and IPv6 ..."
