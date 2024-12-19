@@ -13,6 +13,11 @@ The HiPerConTracer framework furthermore provides additional tools for helping t
 * [HiPerConTracer Database Tools]() with some helper programs to e.g.&nbsp;join HiPerConTracer database configurations into an existing DBeaver (SQL database GUI) configuration;
 * [HiPerConTracer UDP Echo Server]() as UDP Echo ([RFC&nbsp;862](https://datatracker.ietf.org/doc/html/rfc862)) protocol endpoint.
 
+<center>
+<img alt="The HiPerConTracer Framework" src="src/figures/HiPerConTracer-Data-Collection-System.png" width="90%" />
+</center>
+
+
 # Build the HiPerConTracer Framework from Sources
 
 Basic procedure:
