@@ -1,23 +1,56 @@
-High-Performance Connectivity Tracer (HiPerConTracer) is a Ping/Traceroute service. It performs regular Ping and Traceroute runs among sites and can import the results into an SQL or NoSQL database. HiPerConTracer currently offers runs over ICMP and UDP. Currently, database backends for MariaDB/MySQL, PostgreSQL and MongoDB are provided. Furthermore, it provides tools to query databases (export reesults files), as well as to process results files (either written by HiPerConTracer directly, or exported from a database).
+High-Performance Connectivity Tracer (HiPerConTracer) is a Ping/Traceroute measurement framework. It performs regular Ping and Traceroute runs among sites and can import the results into an SQL or NoSQL database. HiPerConTracer currently offers runs over ICMP and UDP.
+The HiPerConTracer framework furthermore provides additional tools for helping to process the collected data:
 
+* HiPerConTracer Trigger Tool for triggering HiPerConTracer measurements in the reverse direction.
+* HiPerConTracer Sync Tool for copying data to a remote collector (via [RSync](https://rsync.samba.org/)/[SSH](https://www.openssh.com/)).
+* HiPerConTracer Viewer Tool for displaying the contents of data files.
+* HiPerConTracer UDP Echo Server as UDP Echo ([RFC&nbsp;862](https://datatracker.ietf.org/doc/html/rfc862)) protocol endpoint.
+* HiPerConTracer Importer Tool for storing measurement data from data files into SQL or NoSQL databases. Currently, database backends for [MariaDB](https://mariadb.com/)/[MySQL](https://www.mysql.com/), [PostgreSQL](https://www.postgresql.org/) and [MongoDB](https://www.mongodb.com/) are provided.
+* HiPerConTracer Query Tool for querying data from a database and storing it into a data file.
+* HiPerConTracer Results Tool for merging and converting data files, e.g. to create a Comma-Separated Value (CSV) file.
+* HiPerConTracer Database Shell as simple command-line front-end for the underlying database backends.
+* HiPerConTracer Database Tools with some helper programs to e.g. join HiPerConTracer database configurations into an existing DBeaver (SQL database GUI) configuration.
 
-# Build HiPerConTracer
+# Build the HiPerConTracer Framework from Sources
 
+Basic procedure:
+```
 cmake .
-
 make
-
 sudo make install
+```
+
+Notes:
+
+- There are various CMake options to enable/disable database backends and tools. A GUI tool like CCMake provides a comfortable way of configuration.
+- The CMake run will show missing dependencies, and provide help for installing them on Debian, Ubuntu, Fedora and FreeBSD.
 
 
-# Run HiPerConTracer
+# Run a HiPerConTracer Measurement
 
-Examples:
-- sudo ./hipercontracer -#1000 --source 0.0.0.0 --destination 193.99.144.80 --traceroute --ping --resultsdirectory ./data --verbose
-- sudo ./hipercontracer -#1000 --source 0.0.0.0 --source :: --destination 193.99.144.80 --destination 2a02:2e0:3fe:1001:302:: --traceroute --ping --resultsdirectory ./data --verbose
 
-Note: HiPerConTracer expects the directory "./data" (provided with "--resultsdirectory") to write the results files to!
+## Example 1
+A simply Ping run, without data storage, to any address of [www.heise.de](https://www.heise.de) via ICMP (default):
+```
+sudo hipercontracer --destination www.heise.de --ping --verbose
+```
 
+## Example 2
+Run HiPerConTracer measurement #1000, from arbitrary local IPv4 address to destination 193.99.144.80 with Traceroute and Ping. Store data into sub-directory "data" in the current directory; run as current user $USER:
+```
+sudo ./hipercontracer --user $USER -#1000 --source 0.0.0.0 --destination 193.99.144.80 --traceroute --ping --resultsdirectory data --verbose
+```
+Notes:
+- HiPerConTracer expects the sub-directory "data" (provided with "--resultsdirectory") to write the results files to. The directory must be writable for the user $USER!
+- See the manpage "hipercontracer" for various options to set Ping and Traceroute intervals, results file lengths, etc.!
+
+## Example 3
+Run HiPerConTracer measurement #1001, from arbitrary local IPv4 (0.0.0.0) and IPv6 (::) addresses to destinations 193.99.144.80 and 2a02:2e0:3fe:1001:302:: with Traceroute and Ping via ICMP (default). Store data into sub-directory "data" in the current directory; run as current user $USER:
+```
+sudo ./hipercontracer --user $USER -#1001 --source 0.0.0.0 --source :: --destination 193.99.144.80 --destination 2a02:2e0:3fe:1001:302:: --traceroute --ping --resultsdirectory data --verbose
+```
+
+## Further Details
 See the the manpage "hipercontracer" for all options, including a description of the results file formats!
 
 
