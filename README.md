@@ -30,7 +30,17 @@ Furthermore, the HiPerConTracer Framework furthermore provides additional tools 
 </p>
 
 
-# Build the HiPerConTracer Framework from Sources
+# Installation
+
+## Installing the HiPerConTracer Framework from Binary Packages
+
+See [Binary Package Installation](https://www.nntb.no/~dreibh/hipercontracer/#Binaries) for ready-to-use binary package installation from repositories for:
+
+- Ubuntu Linux (via [Launchpad PPA](https://launchpad.net/~dreibh/+archive/ubuntu/ppa/+packages?field.name_filter=hipercontracer&field.status_filter=published&field.series_filter=))
+- Fedora Linux (via [COPR PPA](https://copr.fedorainfracloud.org/coprs/dreibh/ppa/package/hipercontracer/))
+- FreeBSD (via [Ports Collection](https://ports.freebsd.org/cgi/ports.cgi?query=hipercontracer&stype=all&sektion=all))
+
+## Building the HiPerConTracer Framework from Sources
 
 Basic procedure:
 ```
