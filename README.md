@@ -1,4 +1,6 @@
-High-Performance Connectivity Tracer (HiPerConTracer) is a Ping/Traceroute measurement framework. [HiPerConTracer](#run-a-hipercontracer-measurement) denotes the actual measurement tool. It performs regular Ping and Traceroute runs among sites, featuring:
+# What is High-Performance Connectivity Tracer&nbsp;(HiPerConTracer)?
+
+High-Performance Connectivity Tracer&nbsp;(HiPerConTracer) is a Ping/Traceroute measurement framework. [HiPerConTracer](#run-a-hipercontracer-measurement) denotes the actual measurement tool. It performs regular Ping and Traceroute runs among sites, featuring:
 
 - multi-transport-protocol support (ICMP, UDP);
 - multi-homing and parallelism support;
@@ -23,9 +25,9 @@ Furthermore, the HiPerConTracer Framework furthermore provides additional tools 
 * [HiPerConTracer UDP Echo Server](#the-hipercontracer-udp-echo-server) as UDP Echo ([RFC&nbsp;862](https://datatracker.ietf.org/doc/html/rfc862)) protocol endpoint;
 * [Wireshark](https://www.wireshark.org/) dissector for HiPerConTracer packets.
 
-<center>
-<img alt="The HiPerConTracer Framework" src="src/figures/HiPerConTracer-Data-Collection-System.png" width="90%" />
-</center>
+<p align="center">
+ <img alt="The HiPerConTracer Framework" src="src/figures/HiPerConTracer-Data-Collection-System.png" width="80%" />
+</p>
 
 
 # Build the HiPerConTracer Framework from Sources
@@ -409,5 +411,5 @@ The [Wireshark](https://www.wireshark.org/) network protocol analyzer provides b
 
 HiPerConTracer BibTeX entries can be found in [src/hipercontracer.bib](src/hipercontracer.bib)!
 
-1. Dreibholz, Thomas: [HiPerConTracer - A Versatile Tool for IP Connectivity Tracing in Multi-Path Setups](https://web-backend.simula.no/sites/default/files/2024-06/SoftCOM2020-HiPerConTracer.pdf), in Proceedings of the 28th IEEE International Conference on Software, Telecommunications and Computer Networks (SoftCOM), pp. 1–6, DOI 10.23919/SoftCOM50211.2020.9238278, ISBN 978-953-290-099-6, Hvar, Dalmacija/Croatia, September 17, 2020.
-2. Dreibholz, Thomas: [High-Precision Round-Trip Time Measurements in the Internet with HiPerConTracer](https://web-backend.simula.no/sites/default/files/2023-10/SoftCOM2023-Timestamping.pdf), in Proceedings of the 31st International Conference on Software, Telecommunications and Computer Networks (SoftCOM), DOI 10.23919/SoftCOM58365.2023.10271612, ISBN 979-8-3503-0107-6, Split, Dalmacija/Croatia, September 22, 2023.
+1. Dreibholz, Thomas: [HiPerConTracer - A Versatile Tool for IP Connectivity Tracing in Multi-Path Setups](https://web-backend.simula.no/sites/default/files/2024-06/SoftCOM2020-HiPerConTracer.pdf), in Proceedings of the 28th IEEE International Conference on Software, Telecommunications and Computer Networks (SoftCOM), pp. 1–6, DOI [10.23919/SoftCOM50211.2020.9238278](https://dx.doi.org/10.23919/SoftCOM50211.2020.9238278), ISBN 978-953-290-099-6, Hvar, Dalmacija/Croatia, September 17, 2020.
+2. Dreibholz, Thomas: [High-Precision Round-Trip Time Measurements in the Internet with HiPerConTracer](https://web-backend.simula.no/sites/default/files/2023-10/SoftCOM2023-Timestamping.pdf), in Proceedings of the 31st International Conference on Software, Telecommunications and Computer Networks (SoftCOM), [DOI 10.23919/SoftCOM58365.2023.10271612](https://dx.doi.org/10.23919/SoftCOM58365.2023.10271612), ISBN 979-8-3503-0107-6, Split, Dalmacija/Croatia, September 22, 2023.
