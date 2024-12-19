@@ -149,18 +149,20 @@ See the the [manpage of "hpct-results"](https://github.com/dreibh/hipercontracer
 
 # Setting Up a Database
 
-See [src/SQL](https://github.com/dreibh/hipercontracer/tree/master/src/SQL) and [src/NoSQL](https://github.com/dreibh/hipercontracer/tree/master/src/NoSQL) for schema, user and permission setups. Use the database of your choice (MariaDB/MySQL, PostgreSQL, MongoDB).
+See [src/SQL](https://github.com/dreibh/hipercontracer/tree/master/src/SQL) and [src/NoSQL](https://github.com/dreibh/hipercontracer/tree/master/src/NoSQL) for schema, user and permission setups. Create the database of your choice ([MariaDB](https://mariadb.com/)/[MySQL](https://www.mysql.com/), [PostgreSQL](https://www.postgresql.org/), or [MongoDB](https://www.mongodb.com/)).
 
-Hint: All HiPerConTracer tools support TLS setup. It is **strongly** recommended to properly setup TLS for secure access to a database! See [src/TestDB](https://github.com/dreibh/hipercontracer/tree/master/src/TestDB) as example; this is the CI test, which includes a full TLS setup with all supported database backends.
+Use separate users for importer (import access only), researcher (read-only access to the data) and maintainer (full access), for improved security.
+
+Hint: The HiPerConTracer tools support Transport Layer Security&nbsp;(TLS) setup. It is **strongly** recommended to properly setup TLS for secure access to a database! See [src/TestDB](https://github.com/dreibh/hipercontracer/tree/master/src/TestDB) as example; this is the CI test, which includes a full TLS setup with all supported database backends.
 
 
 # The HiPerConTracer Importer Tool
 
 The HiPerConTracer Importer Tool provides the continuous storage of collected measurement data from results files into SQL or NoSQL databases. Currently, database backends for [MariaDB](https://mariadb.com/)/[MySQL](https://www.mysql.com/), [PostgreSQL](https://www.postgresql.org/) and [MongoDB](https://www.mongodb.com/) are provided.
 
-## Write a Configuration File for the Importer
+## Write Configuration Files for the Importer
 
-See [src/hipercontracer-database.conf](src/hipercontracer-database.conf) for an example. Make sure that the database access details are correct, so that the Query tool can connect to the right database and has the required permissions! See [src/SQL](https://github.com/dreibh/hipercontracer/tree/master/src/SQL) and [src/NoSQL](https://github.com/dreibh/hipercontracer/tree/master/src/NoSQL) for schema, user and permission setups.
+See [src/hipercontracer-importer.conf](src/hipercontracer-importer.conf) (importer configuration) and [src/hipercontracer-database.conf](src/hipercontracer-database.conf) (database configuration) for an examples. Make sure that the database access details are correct, so that Importer Tool and Query Tool can connect to the right database and has the required permissions! See [src/SQL](https://github.com/dreibh/hipercontracer/tree/master/src/SQL) and [src/NoSQL](https://github.com/dreibh/hipercontracer/tree/master/src/NoSQL) for schema, user and permission setups. Use the Database Shell tool to verify access.
 
 Note: Make sure the "data" directory, as well as the directory for "good" imports and the directory for "bad" (i.e. failed) imports are existing and accessible by the user running the importer!
 
@@ -169,13 +171,20 @@ Note: Make sure the "data" directory, as well as the directory for "good" import
 ### Example 1
 Continuously run, waiting for new files to import:
 ```
-hpct-importer ~/testdb-users-mariadb-importer.conf -verbose
+hpct-importer \
+   --importer-config hipercontracer-importer.conf \
+   --database-config hipercontracer-database.conf \
+   --verbose
 ```
 
 ### Example 2
 Just run one import round, quit when there are no more files to import:
 ```
-hpct-importer ~/testdb-users-mariadb-importer.conf -verbose --quit-when-idle
+hpct-importer \
+   --importer-config hipercontracer-importer.conf \
+   --database-config hipercontracer-database.conf \
+   --verbose \
+   --quit-when-idle
 ```
 
 Note: If running without "--quit-when-idle" (recommended), the importer keeps running and imports new files as soon as they appear in the results directory. The importer uses INotify!
@@ -223,10 +232,11 @@ hpct-query ~/testdb-users-mariadb-researcher.conf traceroute -o traceroute.hpct.
 ```
 
 ### Example 5
-Export all Traceroute data between 2023-09-22 00:00:00 and 2023-09-23 00:00:00 to traceroute.hpct.xz (XZ-compressed data file):
+Export all Traceroute data from time interval [2023-09-22 00:00:00, 2023-09-23 00:00:00) to traceroute.hpct.xz (XZ-compressed data file):
 ```
 hpct-query ~/testdb-users-mariadb-researcher.conf traceroute -o traceroute.hpct.xz --verbose --from-time "2023-09-22 00:00:00" --to-time "2023-09-23 00:00:00"
 ```
+Note: 2023-09-23 00:00:00 is **not** included, only time stamps less than 2023-09-23 00:00:00. This ensures the possibility to e.g.&nbp;& export daily batches without having the same value in two files!
 
 ## Further Details
 See the the [manpage of "hpct-query"](https://github.com/dreibh/hipercontracer/blob/master/src/hpct-query.1) for a detailed description of the available options: ```man hpct-query```
