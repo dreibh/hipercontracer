@@ -55,7 +55,7 @@ Notes:
 - The CMake run will show missing dependencies, and provide help for installing them on Debian, Ubuntu and Fedora Linux as well as FreeBSD.
 
 
-# Run a HiPerConTracer Measurement
+# Running a HiPerConTracer Measurement
 
 HiPerConTracer is the measurement tool itself.
 
