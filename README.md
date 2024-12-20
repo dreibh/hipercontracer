@@ -7,7 +7,9 @@
 
 # What is High-Performance Connectivity Tracer&nbsp;(HiPerConTracer)?
 
-High-Performance Connectivity Tracer&nbsp;(HiPerConTracer) is a Ping/Traceroute measurement framework. [HiPerConTracer](#run-a-hipercontracer-measurement) denotes the actual measurement tool. It performs regular Ping and Traceroute runs among sites, featuring:
+High-Performance Connectivity Tracer&nbsp;(HiPerConTracer) is a Ping/Traceroute measurement framework.
+
+[HiPerConTracer](#running-a-hipercontracer-measurement) denotes the actual measurement tool. It performs regular Ping and Traceroute runs among sites, featuring:
 
 - multi-transport-protocol support (ICMP, UDP);
 - multi-homing and parallelism support;
