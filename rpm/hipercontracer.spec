@@ -140,7 +140,7 @@ HiPerConTracer database configurations into an existing DBeaver (a popular
 SQL database GUI application) configuration; UDP Echo Server as UDP Echo
 (RFC 862) protocol endpoint; Wireshark dissector for HiPerConTracer packets.
 The package contains common files for HiPerConTracer and the HiPerConTracer
-tools packages.
+Tools packages.
 
 %pre common
 # Make sure the administrative user exists
@@ -483,8 +483,8 @@ database backends; Database Tools with some helper scripts to e.g. to join
 HiPerConTracer database configurations into an existing DBeaver (a popular
 SQL database GUI application) configuration; UDP Echo Server as UDP Echo
 (RFC 862) protocol endpoint; Wireshark dissector for HiPerConTracer packets.
-This package contains a simple synchronisation tool to run RSync
-synchronisation of data to a central collection server.
+This package contains the HiPerConTracer Sync Tool for running RSync
+synchronisation of data to a central HiPerConTracer Collector server.
 
 %files sync
 %{_bindir}/hpct-sync
@@ -533,8 +533,8 @@ database backends; Database Tools with some helper scripts to e.g. to join
 HiPerConTracer database configurations into an existing DBeaver (a popular
 SQL database GUI application) configuration; UDP Echo Server as UDP Echo
 (RFC 862) protocol endpoint; Wireshark dissector for HiPerConTracer packets.
-This is the HiPerConTracer Reverse Tunnel tool. It maintains an SSH
-reverse tunnel from a measurement node to a Collector server.
+This is the HiPerConTracer Reverse Tunnel Tool. It maintains an SSH
+reverse tunnel from a measurement node to a HiPerConTracer Collector server.
 
 %files rtunnel
 %{_bindir}/hpct-rtunnel
@@ -583,7 +583,7 @@ database backends; Database Tools with some helper scripts to e.g. to join
 HiPerConTracer database configurations into an existing DBeaver (a popular
 SQL database GUI application) configuration; UDP Echo Server as UDP Echo
 (RFC 862) protocol endpoint; Wireshark dissector for HiPerConTracer packets.
-This is the Node package. It contains helper scripts to attach a
+This is the HiPerConTracer Node package. It contains helper scripts to attach a
 HiPerConTracer Node to a HiPerConTracer Collector server.
 
 %files node
@@ -632,8 +632,8 @@ database backends; Database Tools with some helper scripts to e.g. to join
 HiPerConTracer database configurations into an existing DBeaver (a popular
 SQL database GUI application) configuration; UDP Echo Server as UDP Echo
 (RFC 862) protocol endpoint; Wireshark dissector for HiPerConTracer packets.
-This is the Collector Tools package. It contains helper scripts to set up
-and maintain a HiPerConTracer Collector server.
+This is the HiPerConTracer Collector Tools package. It contains helper scripts
+to set up and maintain a HiPerConTracer Collector server.
 
 %files collector
 %{_bindir}/hpct-node-removal
@@ -687,8 +687,8 @@ database backends; Database Tools with some helper scripts to e.g. to join
 HiPerConTracer database configurations into an existing DBeaver (a popular
 SQL database GUI application) configuration; UDP Echo Server as UDP Echo
 (RFC 862) protocol endpoint; Wireshark dissector for HiPerConTracer packets.
-This package contains the importer tool to import results from
-HiPerConTracer into an SQL or NoSQL database.
+This package contains the HiPerConTracer Importer Tool to import data from
+HiPerConTracer results files into an SQL or NoSQL database.
 
 %files importer
 %{_bindir}/hpct-importer
@@ -775,8 +775,8 @@ database backends; Database Tools with some helper scripts to e.g. to join
 HiPerConTracer database configurations into an existing DBeaver (a popular
 SQL database GUI application) configuration; UDP Echo Server as UDP Echo
 (RFC 862) protocol endpoint; Wireshark dissector for HiPerConTracer packets.
-This package contains a simple query tool to obtain results
-from a HiPerConTracer SQL or NoSQL database.
+This package contains HiPerConTracer Query Tool to retrieve results from a
+HiPerConTracer SQL or NoSQL database.
 
 %files query
 %{_bindir}/hpct-query
@@ -823,9 +823,9 @@ database backends; Database Tools with some helper scripts to e.g. to join
 HiPerConTracer database configurations into an existing DBeaver (a popular
 SQL database GUI application) configuration; UDP Echo Server as UDP Echo
 (RFC 862) protocol endpoint; Wireshark dissector for HiPerConTracer packets.
-This package contains the results tool to process HiPerConTracer
-results files, particularly for converting them to CSV files for
-reading them into spreadsheets, analysis tools, etc.
+This package contains the HiPerConTracer Results Tool to process
+HiPerConTracer results files, particularly for converting them to CSV files
+for reading them into spreadsheets, analysis tools, etc.
 
 %files results
 %{_bindir}/hpct-results
@@ -880,7 +880,7 @@ database backends; Database Tools with some helper scripts to e.g. to join
 HiPerConTracer database configurations into an existing DBeaver (a popular
 SQL database GUI application) configuration; UDP Echo Server as UDP Echo
 (RFC 862) protocol endpoint; Wireshark dissector for HiPerConTracer packets.
-This package contains the viewer tool to simply display
+This package contains the HiPerConTracer Viewer Tool to display
 HiPerConTracer results files.
 
 %files viewer

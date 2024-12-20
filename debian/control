@@ -121,7 +121,7 @@ Description: HiPerConTracer common files
  (RFC 862) protocol endpoint; Wireshark dissector for HiPerConTracer packets.
  .
  The package contains common files for HiPerConTracer and the HiPerConTracer
- tools packages.
+ Tools packages.
 
 Package: libhipercontracer2
 Section: libs
@@ -339,7 +339,7 @@ Description: Triggered HiPerConTracer service
  SQL database GUI application) configuration; UDP Echo Server as UDP Echo
  (RFC 862) protocol endpoint; Wireshark dissector for HiPerConTracer packets.
  .
- This tool triggers HiPerConTracer by incoming "Ping" packets.
+ This tool triggers HiPerConTracer measurements by incoming "Ping" packets.
 
 Package: hipercontracer-sync
 Architecture: all
@@ -385,7 +385,7 @@ Description: HiPerConTracer Sync Tool to synchronise results files to a server
  SQL database GUI application) configuration; UDP Echo Server as UDP Echo
  (RFC 862) protocol endpoint; Wireshark dissector for HiPerConTracer packets.
  .
- This package contains a simple synchronisation tool to run RSync
+ This package contains the HiPerConTracer Sync Tool for running RSync
  synchronisation of data to a central HiPerConTracer Collector server.
 
 Package: hipercontracer-rtunnel
@@ -427,8 +427,8 @@ Description: HiPerConTracer Reverse Tunnel Tool for reverse SSH tunnel setup
  SQL database GUI application) configuration; UDP Echo Server as UDP Echo
  (RFC 862) protocol endpoint; Wireshark dissector for HiPerConTracer packets.
  .
- This is the HiPerConTracer Reverse Tunnel tool. It maintains an SSH
- reverse tunnel from a measurement node to a Collector server.
+ This is the HiPerConTracer Reverse Tunnel Tool. It maintains an SSH
+ reverse tunnel from a measurement node to a HiPerConTracer Collector server.
 
 Package: hipercontracer-node
 Architecture: all
@@ -472,7 +472,7 @@ Description: HiPerConTracer Node Tools for maintaining a measurement node
  SQL database GUI application) configuration; UDP Echo Server as UDP Echo
  (RFC 862) protocol endpoint; Wireshark dissector for HiPerConTracer packets.
  .
- This is the Node package. It contains helper scripts to attach a
+ This is the HiPerConTracer Node package. It contains helper scripts to attach a
  HiPerConTracer Node to a HiPerConTracer Collector server.
 
 Package: hipercontracer-collector
@@ -519,8 +519,8 @@ Description: HiPerConTracer Collector Tools for collecting measurement results
  SQL database GUI application) configuration; UDP Echo Server as UDP Echo
  (RFC 862) protocol endpoint; Wireshark dissector for HiPerConTracer packets.
  .
- This is the Collector Tools package. It contains helper scripts to set up
- and maintain a HiPerConTracer Collector server.
+ This is the HiPerConTracer Collector Tools package. It contains helper scripts
+ to set up and maintain a HiPerConTracer Collector server.
 
 Package: hipercontracer-importer
 Architecture: any
@@ -564,8 +564,8 @@ Description: HiPerConTracer Importer for importing results into a database
  SQL database GUI application) configuration; UDP Echo Server as UDP Echo
  (RFC 862) protocol endpoint; Wireshark dissector for HiPerConTracer packets.
  .
- This package contains the importer tool to import results from
- HiPerConTracer into an SQL or NoSQL database.
+ This package contains the HiPerConTracer Importer Tool to import data from
+ HiPerConTracer results files into an SQL or NoSQL database.
 
 Package: hipercontracer-query
 Architecture: any
@@ -613,8 +613,8 @@ Description: HiPerConTracer Query Tool to query results from a database
  SQL database GUI application) configuration; UDP Echo Server as UDP Echo
  (RFC 862) protocol endpoint; Wireshark dissector for HiPerConTracer packets.
  .
- This package contains a simple query tool to obtain results
- from a HiPerConTracer SQL or NoSQL database.
+ This package contains HiPerConTracer Query Tool to retrieve results from a
+ HiPerConTracer SQL or NoSQL database.
 
 Package: hipercontracer-results
 Architecture: any
@@ -659,9 +659,9 @@ Description: HiPerConTracer Results Tool to process results files
  SQL database GUI application) configuration; UDP Echo Server as UDP Echo
  (RFC 862) protocol endpoint; Wireshark dissector for HiPerConTracer packets.
  .
- This package contains the results tool to process HiPerConTracer
- results files, particularly for converting them to CSV files for
- reading them into spreadsheets, analysis tools, etc.
+ This package contains the HiPerConTracer Results Tool to process
+ HiPerConTracer results files, particularly for converting them to CSV files
+ for reading them into spreadsheets, analysis tools, etc.
 
 Package: hipercontracer-viewer
 Architecture: all
@@ -710,7 +710,7 @@ Description: HiPerConTracer Viewer Tool to display results files
  SQL database GUI application) configuration; UDP Echo Server as UDP Echo
  (RFC 862) protocol endpoint; Wireshark dissector for HiPerConTracer packets.
  .
- This package contains the viewer tool to simply display
+ This package contains the HiPerConTracer Viewer Tool to display
  HiPerConTracer results files.
 
 Package: hipercontracer-udp-echo-server
@@ -751,8 +751,7 @@ Description: HiPerConTracer UDP Echo server for responding to UDP Pings
  SQL database GUI application) configuration; UDP Echo Server as UDP Echo
  (RFC 862) protocol endpoint; Wireshark dissector for HiPerConTracer packets.
  .
- This package contains a simple UDP Echo server to respond to
- UDP Pings.
+ This package contains a simple UDP Echo server to respond to UDP Pings.
 
 Package: hipercontracer-dbshell
 Architecture: all
@@ -796,7 +795,7 @@ Description: HiPerConTracer Database Shell for access testing to a database
  SQL database GUI application) configuration; UDP Echo Server as UDP Echo
  (RFC 862) protocol endpoint; Wireshark dissector for HiPerConTracer packets.
  .
- This package contains a simple script to start a database shell, based on the
+ This package contains a simple tool to start a database shell, based on the
  settings from a given database configuration file. It is mainly intended to
  test database access using the configuration files for HiPerConTracer Importer
  and HiPerConTracer Query Tool.
@@ -890,4 +889,4 @@ Description: HiPerConTracer metapackage for all tools of the framework
  SQL database GUI application) configuration; UDP Echo Server as UDP Echo
  (RFC 862) protocol endpoint; Wireshark dissector for HiPerConTracer packets.
  .
- This metapackage installs all sub-packages of the HiPerConTracer framework.
+ This metapackage installs all sub-packages of the HiPerConTracer Framework.
