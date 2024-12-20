@@ -17,6 +17,10 @@ case $2 in
       if ! getent passwd hipercontracer >/dev/null 2>&1; then
           pw user add -n hipercontracer -u 299 -g hipercontracer -d /var/hipercontracer -s /usr/sbin/nologin -c "HiPerConTracer User"
       fi
+      if ! getent group hpct-nodes >/dev/null 2>&1; then
+         pw group add hpct-nodes -g 298
+      fi
+      pw group mod hpct-nodes -m hipercontracer
 
       # Make HiPerConTracer directory
       mkdir -p /var/hipercontracer
