@@ -17,7 +17,7 @@ High-Performance Connectivity Tracer&nbsp;(HiPerConTracer) is a Ping/Traceroute 
 - a library (shared/static) to integrate measurement functionality into other software (libhipercontracer);
 - open source and written in a performance- and portability-focused programming language (C++) with only limited dependencies.
 
-Furthermore, the HiPerConTracer Framework furthermore provides additional tools for helping to obtain, process, collect, store, and retrieve measurement data:
+Furthermore, the HiPerConTracer Framework provides additional tools for helping to obtain, process, collect, store, and retrieve measurement data:
 
 * [HiPerConTracer Viewer Tool](#the-hipercontracer-viewer-tool) for displaying the contents of results files;
 * [HiPerConTracer Results Tool](#the-hipercontracer-results-tool) for merging and converting results files, e.g.&nbsp;to create a Comma-Separated Value&nbsp;(CSV) file;
@@ -61,7 +61,7 @@ sudo make install
 Notes:
 
 - There are various CMake options to enable/disable database backends and tools. A GUI tool like CCMake provides a comfortable way of configuration.
-- The CMake run will show missing dependencies, and provide help for installing them on Debian, Ubuntu and Fedora Linux as well as FreeBSD.
+- The CMake run will show missing dependencies, and provide help for installing them on Debian, Ubuntu and Fedora Linux as well as on FreeBSD.
 
 
 # Running a HiPerConTracer Measurement
@@ -69,7 +69,7 @@ Notes:
 HiPerConTracer is the measurement tool itself.
 
 ## Example 1
-A simple Ping run, without data storage, from arbitrary local addresses, to all IPv4 and IPv6 addresses of [www.heise.de](https://www.heise.de) (resolved via DNS) via ICMP (default):
+A simple Ping run, without data storage, from arbitrary local addresses, to all IPv4 and IPv6 addresses of [www.heise.de](https://www.heise.de) (resolved by DNS) via ICMP (default):
 ```
 sudo hipercontracer --destination www.heise.de --ping --verbose
 ```
@@ -119,7 +119,10 @@ Notes:
 - The HiPerConTracer Results Tool can be used to merge and/or convert the results files.
 
 ## Further Details
-See the manpage of "hipercontracer" for all options, including a description of the results file formats!
+See the [manpage of "hipercontracer"](https://github.com/dreibh/hipercontracer/blob/master/src/hipercontracer.1) for all options, including a description of the results file formats:
+```
+man hipercontracer
+```
 
 
 # The HiPerConTracer Viewer Tool
@@ -132,7 +135,10 @@ hpct-viewer src/results-examples/Traceroute-UDP-#88888888-fdb6:6d27:be73:4::50-2
 ```
 
 ## Further Details
-See the [manpage of "hpct-viewer"](https://github.com/dreibh/hipercontracer/blob/master/src/hpct-viewer.1) for a detailed description of the available options: ```man hpct-viewer```
+See the [manpage of "hpct-viewer"](https://github.com/dreibh/hipercontracer/blob/master/src/hpct-viewer.1) for a detailed description of the available options:
+```
+man hpct-viewer
+```
 
 
 # The HiPerConTracer Results Tool
@@ -175,16 +181,21 @@ Hints:
 - Choose column separator (" ", ",", etc.), if not automatically detected.
 
 ## Further Details
-See the [manpage of "hpct-results"](https://github.com/dreibh/hipercontracer/blob/master/src/hpct-results.1) for a detailed description of the available options: ```man hpct-results```
+See the [manpage of "hpct-results"](https://github.com/dreibh/hipercontracer/blob/master/src/hpct-results.1) for a detailed description of the available options:
+```
+man hpct-results
+```
 
 
-# Setting Up a Database
+# Setting Up a Database for Results Collection
 
 See [src/SQL](https://github.com/dreibh/hipercontracer/tree/master/src/SQL) and [src/NoSQL](https://github.com/dreibh/hipercontracer/tree/master/src/NoSQL) for schema, user and permission setups. Create the database of your choice ([MariaDB](https://mariadb.com/)/[MySQL](https://www.mysql.com/), [PostgreSQL](https://www.postgresql.org/), or [MongoDB](https://www.mongodb.com/)).
 
 Use separate users for importer (import access only), researcher (read-only access to the data) and maintainer (full access), for improved security.
 
-Hint: The HiPerConTracer tools support Transport Layer Security&nbsp;(TLS) setup. It is **strongly** recommended to properly setup TLS for secure access to a database! See [src/TestDB](https://github.com/dreibh/hipercontracer/tree/master/src/TestDB) as example; this is the CI test, which includes a full TLS setup with all supported database backends.
+Hint: The HiPerConTracer tools support Transport Layer Security&nbsp;(TLS) configuration. It is **strongly** recommended to properly setup TLS for secure access to a database!
+
+See [src/TestDB](https://github.com/dreibh/hipercontracer/tree/master/src/TestDB) as example. This is the CI test, which includes a full database setup and test cycle with all supported database backends. Of course, this setup also includes proper TLS setup as well.
 
 
 # The HiPerConTracer Importer Tool
@@ -193,22 +204,13 @@ The HiPerConTracer Importer Tool provides the continuous storage of collected me
 
 ## Write Configuration Files for the Importer
 
-See [src/hipercontracer-importer.conf](src/hipercontracer-importer.conf) (importer configuration) and [src/hipercontracer-database.conf](src/hipercontracer-database.conf) (database configuration) for an examples. Make sure that the database access details are correct, so that Importer Tool and Query Tool can connect to the right database and has the required permissions! See [src/SQL](https://github.com/dreibh/hipercontracer/tree/master/src/SQL) and [src/NoSQL](https://github.com/dreibh/hipercontracer/tree/master/src/NoSQL) for schema, user and permission setups. Use the Database Shell tool to verify access.
+See [src/hipercontracer-importer.conf](src/hipercontracer-importer.conf) (importer configuration) and [src/hipercontracer-database.conf](src/hipercontracer-database.conf) (database configuration) for examples. Make sure that the database access details are correct, so that Importer Tool and Query Tool can connect to the right database and has the required permissions! See [src/SQL](https://github.com/dreibh/hipercontracer/tree/master/src/SQL) and [src/NoSQL](https://github.com/dreibh/hipercontracer/tree/master/src/NoSQL) for schema, user and permission setups. Use the [HiPerConTracer Database Shell](#the-hipercontracer-database-shell) tool to verify and debug access.
 
 Note: Make sure the "data" directory, as well as the directory for "good" imports and the directory for "bad" (i.e. failed) imports are existing and accessible by the user running the importer!
 
 ## Run the Importer Tool
 
 ### Example 1
-Continuously run, waiting for new files to import:
-```
-hpct-importer \
-   --importer-config hipercontracer-importer.conf \
-   --database-config hipercontracer-database.conf \
-   --verbose
-```
-
-### Example 2
 Just run one import round, quit when there are no more files to import:
 ```
 hpct-importer \
@@ -218,17 +220,29 @@ hpct-importer \
    --quit-when-idle
 ```
 
-Note: If running without "--quit-when-idle" (recommended), the importer keeps running and imports new files as soon as they appear in the results directory. The importer uses INotify!
+### Example 2
+Continuously run, waiting for new files to import:
+```
+hpct-importer \
+   --importer-config hipercontracer-importer.conf \
+   --database-config hipercontracer-database.conf \
+   --verbose
+```
+
+Note: If running without "--quit-when-idle" (recommended), the importer keeps running and imports new files as soon as they appear in the results directory. The importer uses [INotify](https://en.wikipedia.org/wiki/Inotify)!
 
 ## Further Details
-See the [manpage of "hpct-importer"](https://github.com/dreibh/hipercontracer/blob/master/src/hpct-importer.1) for a detailed description of the available options: ```man hpct-importer```
+See the [manpage of "hpct-importer"](https://github.com/dreibh/hipercontracer/blob/master/src/hpct-importer.1) for a detailed description of the available options:
+```
+man hpct-importer
+```
 
 
 # The HiPerConTracer Query Tool
 
 ## Write a Configuration File for the Query Tool
 
-See [src/hipercontracer-database.conf](src/hipercontracer-database.conf) for an example. Make sure that the database access details are correct, so that the Query tool can connect to the right database and has the required permissions! See [src/SQL](https://github.com/dreibh/hipercontracer/tree/master/src/SQL) and [src/NoSQL](https://github.com/dreibh/hipercontracer/tree/master/src/NoSQL) for schema, user and permission setups.
+See [src/hipercontracer-database.conf](src/hipercontracer-database.conf) for an example. Make sure that the database access details are correct, so that the Query tool can connect to the right database and has the required permissions! See [src/SQL](https://github.com/dreibh/hipercontracer/tree/master/src/SQL) and [src/NoSQL](https://github.com/dreibh/hipercontracer/tree/master/src/NoSQL) for schema, user and permission setups. Use the [HiPerConTracer Database Shell](#the-hipercontracer-database-shell) tool to verify and debug access.
 
 ## Run the Query Tool
 
@@ -270,7 +284,10 @@ hpct-query ~/testdb-users-mariadb-researcher.conf traceroute -o traceroute.hpct.
 Note: data for time stamp 2023-09-23 00:00:00 will **not** be included, only data for time stamps **less than** 2023-09-23 00:00:00, i.e.&nbsp;data within the time interval [to-time, from-time). This ensures the possibility to e.g.&nbsp;export daily batches without having the same value included in two files!
 
 ## Further Details
-See the [manpage of "hpct-query"](https://github.com/dreibh/hipercontracer/blob/master/src/hpct-query.1) for a detailed description of the available options: ```man hpct-query```
+See the [manpage of "hpct-query"](https://github.com/dreibh/hipercontracer/blob/master/src/hpct-query.1) for a detailed description of the available options:
+```
+man hpct-query
+```
 
 
 # The HiPerConTracer Sync Tool
@@ -298,7 +315,10 @@ sudo -u  hipercontracer  hpct-sync \
 ```
 
 ## Further Details
-See the [manpage of "hpct-sync"](https://github.com/dreibh/hipercontracer/blob/master/src/hpct-sync.1) for a detailed description of the available options: ```man hpct-sync```
+See the [manpage of "hpct-sync"](https://github.com/dreibh/hipercontracer/blob/master/src/hpct-sync.1) for a detailed description of the available options:
+```
+man hpct-sync
+```
 
 
 # The HiPerConTracer Reverse Tunnel Tool
@@ -326,9 +346,15 @@ hpct-ssh <user>@1000
 ```
 
 ## Further Details
-See the [manpage of "hpct-rtunnel"](https://github.com/dreibh/hipercontracer/blob/master/src/hpct-rtunnel.1) for a detailed description of the available options for hpct-rtunnel: ```man hpct-rtunnel```
+See the [manpage of "hpct-rtunnel"](https://github.com/dreibh/hipercontracer/blob/master/src/hpct-rtunnel.1) for a detailed description of the available options for hpct-rtunnel:
+```
+man hpct-rtunnel
+```
 
-Also see the [manpage of "hpct-ssh"](https://github.com/dreibh/hipercontracer/blob/master/src/hpct-ssh.1) for a detailed description of the available options for hpct-ssh: ```man hpct-ssh```
+Also see the [manpage of "hpct-ssh"](https://github.com/dreibh/hipercontracer/blob/master/src/hpct-ssh.1) for a detailed description of the available options for hpct-ssh:
+```
+man hpct-ssh
+```
 
 
 # The HiPerConTracer Collector/Node Tools
@@ -359,7 +385,10 @@ sudo hpct-trigger \
 ```
 
 ## Further Details
-See the [manpage of "hpct-trigger"](https://github.com/dreibh/hipercontracer/blob/master/src/hpct-trigger.1) for a detailed description of the available options: ```man hpct-trigger```
+See the [manpage of "hpct-trigger"](https://github.com/dreibh/hipercontracer/blob/master/src/hpct-trigger.1) for a detailed description of the available options:
+```
+man hpct-trigger
+```
 
 
 # The HiPerConTracer Database Shell
@@ -379,7 +408,10 @@ dbshell hipercontracer-database.conf --write-dbeaver-config dbeaver-config
 ```
 
 ## Further Details
-See the [manpage of "dbshell"](https://github.com/dreibh/hipercontracer/blob/master/src/dbshell.1) for a detailed description of the available options: ```man dbshell```
+See the [manpage of "dbshell"](https://github.com/dreibh/hipercontracer/blob/master/src/dbshell.1) for a detailed description of the available options:
+```
+man dbshell
+```
 
 
 # The HiPerConTracer Database Tools
@@ -419,7 +451,10 @@ sudo udp-echo-server --user hipercontracer --port 7
 ```
 
 ## Further Details
-See the [manpage of "udp-echo-server"](https://github.com/dreibh/hipercontracer/blob/master/src/udp-echo-server.1) for a detailed description of the available options: ```man udp-echo-server```
+See the [manpage of "udp-echo-server"](https://github.com/dreibh/hipercontracer/blob/master/src/udp-echo-server.1) for a detailed description of the available options:
+```
+man udp-echo-server
+```
 
 
 # Wireshark Dissector for HiPerConTracer Packets
