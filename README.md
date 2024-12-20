@@ -151,7 +151,7 @@ Merge the data from all files matching the pattern "Ping\*.hpct.\*" into CSV fil
 find data -maxdepth 1 -name "Ping*.hpct.*" | \
    hpct-results --input-file-names-from-stdin --separator=, -o ping.csv.gz
 ```
-Hint: You can use extension .gz for GZip, .bz for BZip2, .xz for XZ, or none for uncompressed output into the output CSV file!
+Hint: You can use the extension .gz for GZip, .bz for BZip2, .xz for XZ, or none for uncompressed output into the output CSV file!
 
 ## Example 2
 Merge the data from all files matching the pattern "Traceroute\*.hpct.\*" into CSV file "traceroute.csv.xz", with ";" as separator:
@@ -255,31 +255,39 @@ hpct-query ~/testdb-users-mariadb-researcher.conf ping -o ping.hpct.gz
 Notes:
 
 - Make sure to specify a Measurement ID range, or a time range. Otherwise, the Query tool will export **everything**!
-- The output is in the same format as the originally written HiPerConTracer results. See the manpage "hipercontracer" for all options, including a description of the results file formats!
-- You can use extension .gz for GZip, .bz for BZip2, .xz for XZ, or none for uncompressed output!
+- The output is in the same format as the originally written HiPerConTracer results. See the [manpage of "hipercontracer"](https://github.com/dreibh/hipercontracer/blob/master/src/hipercontracer.1) for all options, including a description of the results file formats: ```man hipercontracer```
+- You can use the extension .gz for GZip, .bz for BZip2, .xz for XZ, or none for uncompressed output!
 
 ### Example 2
 Export all Ping data of Measurement ID #1000 to ping.hpct.gz (GZip-compressed data file):
 ```
-hpct-query ~/testdb-users-mariadb-researcher.conf ping -o ping.hpct.gz --from-measurement-id 1000 --to-measurement-id 1000
+hpct-query ~/testdb-users-mariadb-researcher.conf \
+   ping -o ping.hpct.gz \
+   --from-measurement-id 1000 --to-measurement-id 1000
 ```
 
 ### Example 3
 Export all Traceroute data of Measurement ID #1000 to traceroute.hpct.bz2 (BZip2-compressed data file), with verbose logging:
 ```
-hpct-query ~/testdb-users-mariadb-researcher.conf traceroute -o traceroute.hpct.bz2 --loglevel 0 --from-measurement-id 1000 --to-measurement-id 1000
+hpct-query ~/testdb-users-mariadb-researcher.conf \
+   traceroute -o traceroute.hpct.bz2 --loglevel 0 \
+   --from-measurement-id 1000 --to-measurement-id 1000
 ```
 
 ### Example 4
 Export all Traceroute data from 2023-09-22 00:00:00 to traceroute.hpct.xz (XZ-compressed data file), with verbose logging:
 ```
-hpct-query ~/testdb-users-mariadb-researcher.conf traceroute -o traceroute.hpct.xz --verbose --from-time "2023-09-22 00:00:00"
+hpct-query ~/testdb-users-mariadb-researcher.conf \
+   traceroute -o traceroute.hpct.xz --verbose \
+   --from-time "2023-09-22 00:00:00"
 ```
 
 ### Example 5
 Export all Traceroute data from time interval [2023-09-22 00:00:00, 2023-09-23 00:00:00) to traceroute.hpct.xz (XZ-compressed data file):
 ```
-hpct-query ~/testdb-users-mariadb-researcher.conf traceroute -o traceroute.hpct.xz --verbose --from-time "2023-09-22 00:00:00" --to-time "2023-09-23 00:00:00"
+hpct-query ~/testdb-users-mariadb-researcher.conf \
+   traceroute -o traceroute.hpct.xz --verbose \
+   --from-time "2023-09-22 00:00:00" --to-time "2023-09-23 00:00:00"
 ```
 Note: data for time stamp 2023-09-23 00:00:00 will **not** be included, only data for time stamps **less than** 2023-09-23 00:00:00, i.e.&nbsp;data within the time interval [to-time, from-time). This ensures the possibility to e.g.&nbsp;export daily batches without having the same value included in two files!
 
@@ -306,7 +314,7 @@ Synchronise results files, with the following settings:
 - known_hosts file for SSH is /var/hipercontracer/ssh/known_hosts;
 - run with verbose output
 ```
-sudo -u  hipercontracer  hpct-sync \
+sudo -u hipercontracer hpct-sync \
    --nodeid 1000 \
    --collector sognsvann.domain.example \
    --local /var/hipercontracer --remote /var/hipercontracer \
@@ -323,7 +331,7 @@ man hpct-sync
 
 # The HiPerConTracer Reverse Tunnel Tool
 
-The HiPerConTracer Reverse Tunnel (RTunnel) Tool maintains a reverse [SSH](https://www.openssh.com/) from a remote HiPerConTracer Node to a HiPerConTracer Collector server. The purpose is to allow for SSH login from the Collector server to the Node, via the reverse tunnel. Then, the Node does not need a publicly-reachable IP address (e.g.&nbsp;a Node only having a private IP address behind a NAT/PAT firewall).
+The HiPerConTracer Reverse Tunnel (RTunnel) Tool maintains a reverse [SSH](https://www.openssh.com/) tunnel from a remote HiPerConTracer Node to a HiPerConTracer Collector server. The purpose is to allow for SSH login from the Collector server to the Node, via this reverse tunnel. Then, the Node does not need a publicly-reachable IP address (e.g.&nbsp;a Node only having a private IP address behind a NAT/PAT firewall).
 
 ## Example
 Establish a Reverse Tunnel, with the following settings:
@@ -393,7 +401,7 @@ man hpct-trigger
 
 # The HiPerConTracer Database Shell
 
-The HiPerConTracer Database Shell (DBShell) is a simple tool to test a database configuration file by running a database client with the settings from the file. It will then provide an interactive shell.
+The HiPerConTracer Database Shell (DBShell) is a simple tool to test a database configuration file by running a database client with the settings from the file. It then provides an interactive shell for the database.
 
 ## Example 1:
 Connect to the database, using the configuration from "hipercontracer-importer.conf":
@@ -418,7 +426,7 @@ man dbshell
 
 The HiPerConTracer Database Tools are some helper scripts to e.g.&nbsp;join HiPerConTracer database configurations into an existing [DBeaver](https://dbeaver.io/) configuration:
 
-- [make-dbeaver-configuration](https://github.com/dreibh/hipercontracer/blob/master/src/make-dbeaver-configuration): Make DBeaver configuration from HiPerConTracer database configuration files, with possibility to join with existing DBeaver configuration
+- [make-dbeaver-configuration](https://github.com/dreibh/hipercontracer/blob/master/src/make-dbeaver-configuration): Make DBeaver configuration from HiPerConTracer database configuration files, with possibility to join with an existing DBeaver configuration
 - [encrypt-dbeaver-configuration](https://github.com/dreibh/hipercontracer/blob/master/src/encrypt-dbeaver-configuration): Encrypt DBeaver credentials configuration file
 - [decrypt-dbeaver-configuration](https://github.com/dreibh/hipercontracer/blob/master/src/decrypt-dbeaver-configuration): Decrypt DBeaver credentials configuration file
 
@@ -439,7 +447,7 @@ Start UDP Echo server on port 7777:
 udp-echo-server --port 7777
 ```
 
-A corresponding HiPerConTracer Ping measurement to this server could be run like:
+A corresponding HiPerConTracer Ping measurement via UDP to this server could be run like:
 ```
 sudo hipercontracer -D <SERVER_ADDRESS> -M UDP --ping --verbose --pingudpdestinationport 7777
 ```
@@ -458,7 +466,7 @@ man udp-echo-server
 
 
 # Wireshark Dissector for HiPerConTracer Packets
-The [Wireshark](https://www.wireshark.org/) network protocol analyzer provides built-in support for the HiPerConTracer packet format. This support is included upstream, i.e.&nbsp;Wireshark provides it out-of-the-box.
+The [Wireshark](https://www.wireshark.org/) network protocol analyzer provides built-in support for the HiPerConTracer packet format. This support is already included upstream, i.e.&nbsp;Wireshark provides it out-of-the-box.
 
 
 # Citing HiPerConTracer in Publications
