@@ -1,3 +1,10 @@
+<p align="center">
+ <a href="https://www.nntb.no/~dreibh/hipercontracer/">
+ <img alt="HiPerConTracer Logo" src="src/figures/HiPerConTracer-Logo.svg" width="25%" /><br />
+ https://www.nntb.no/~dreibh/hipercontracer/
+ </a>
+</p>
+
 # What is High-Performance Connectivity Tracer&nbsp;(HiPerConTracer)?
 
 High-Performance Connectivity Tracer&nbsp;(HiPerConTracer) is a Ping/Traceroute measurement framework. [HiPerConTracer](#run-a-hipercontracer-measurement) denotes the actual measurement tool. It performs regular Ping and Traceroute runs among sites, featuring:
@@ -26,11 +33,13 @@ Furthermore, the HiPerConTracer Framework furthermore provides additional tools 
 * [Wireshark](https://www.wireshark.org/) dissector for HiPerConTracer packets.
 
 <p align="center">
- <img alt="The HiPerConTracer Framework" src="src/figures/HiPerConTracer-Data-Collection-System.png" width="80%" />
+ <img alt="The HiPerConTracer Framework" src="src/figures/HiPerConTracer-Data-Collection-System.svg" width="80%" />
 </p>
 
 
 # Installation
+
+Also see the [HiPerConTracer Homepage](https://www.nntb.no/~dreibh/hipercontracer/) for details!
 
 ## Installing the HiPerConTracer Framework from Binary Packages
 
