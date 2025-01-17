@@ -27,6 +27,7 @@
 //
 // Contact: dreibh@simula.no
 
+#include "assure.h"
 #include "logger.h"
 #include "assure.h"
 #include "resultentry.h"
@@ -136,6 +137,15 @@ void ResultEntry::initialise(const uint32_t                  timeStampSeqID,
    setSendTime(TXTimeStampType::TXTST_Application,    TimeSourceType::TST_SysClock, sendTime);
    // Set TXTST_TransmissionSW to system clock for now. It may be updated later!
    setSendTime(TXTimeStampType::TXTST_TransmissionSW, TimeSourceType::TST_SysClock, sendTime);
+}
+
+
+// ###### Update source address #############################################
+void ResultEntry::updateSourceAddress(const boost::asio::ip::address& sourceAddress)
+{
+   // Only allow update from unspecified address!
+   assure(Source.is_unspecified());
+   Source = sourceAddress;
 }
 
 

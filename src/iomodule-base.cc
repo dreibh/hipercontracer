@@ -261,6 +261,20 @@ bool IOModuleBase::configureSocket(const int                      socketDescript
 }
 
 
+
+// ###### Get unspecified IPv4 or IPv6 address ##############################
+boost::asio::ip::address IOModuleBase::UnspecIPv4 = boost::asio::ip::address_v4();
+boost::asio::ip::address IOModuleBase::UnspecIPv6 = boost::asio::ip::address_v6();
+const boost::asio::ip::address& IOModuleBase::unspecifiedAddress(const bool ipv6)
+{
+   if(ipv6) {
+      return UnspecIPv6;
+   }
+   return UnspecIPv4;
+}
+
+
+#if 0
 std::map<boost::asio::ip::address, boost::asio::ip::address> IOModuleBase::SourceForDestinationMap;
 std::mutex                                                   IOModuleBase::SourceForDestinationMapMutex;
 
@@ -295,11 +309,10 @@ boost::asio::ip::address IOModuleBase::findSourceForDestination(const boost::asi
       return sourceAddress;
    }
    catch(...) {
-      return (destinationAddress.is_v6() == true) ?
-                (boost::asio::ip::address)boost::asio::ip::address_v6() :
-                (boost::asio::ip::address)boost::asio::ip::address_v4();
+      return unspecifiedAddress(destinationAddress.is_v6());
    }
 }
+#endif
 
 
 // ###### Record result from response message ###############################
@@ -326,8 +339,13 @@ void IOModuleBase::recordResult(const ReceivedData&  receivedData,
       return;
    }
 
-   // ====== Get status =====================================================
+   // ====== Update source address from unspecified one =====================
+   if( (resultEntry->sourceAddress().is_unspecified()) &&
+       (!receivedData.Source.address().is_unspecified()) ) {
+      resultEntry->updateSourceAddress(receivedData.Source.address());
+   }
 
+   // ====== Get status =====================================================
    if(resultEntry->status() == Unknown) {
       resultEntry->setResponseSize(responseLength);
 

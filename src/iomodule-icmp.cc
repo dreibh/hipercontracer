@@ -197,7 +197,7 @@ unsigned int ICMPModule::sendRequest(const DestinationInfo& destination,
                                      uint32_t*              targetChecksumArray)
 {
    const boost::asio::ip::icmp::endpoint localEndpoint(SourceAddress.is_unspecified() ?
-                                                          findSourceForDestination(destination.address()) :
+                                                          unspecifiedAddress(destination.address().is_v6()) :
                                                           SourceAddress,
                                                        0);
    const boost::asio::ip::icmp::endpoint remoteEndpoint(destination.address(), 0);

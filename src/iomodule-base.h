@@ -75,7 +75,10 @@ class IOModuleBase
    static bool configureSocket(const int                      socketDescriptor,
                                const boost::asio::ip::address sourceAddress);
 
+   static const boost::asio::ip::address& unspecifiedAddress(const bool ipv6);
+#if 0
    static boost::asio::ip::address findSourceForDestination(const boost::asio::ip::address& destinationAddress);
+#endif
 
 
    struct ReceivedData {
@@ -118,8 +121,12 @@ class IOModuleBase
    static bool checkIOModule(const std::string& moduleName);
 
    protected:
+   static boost::asio::ip::address UnspecIPv4;
+   static boost::asio::ip::address UnspecIPv6;
+#if 0
    static std::map<boost::asio::ip::address, boost::asio::ip::address> SourceForDestinationMap;
    static std::mutex                                                   SourceForDestinationMapMutex;
+#endif
 
    std::string                              Name;
    boost::asio::io_service&                 IOService;
