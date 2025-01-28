@@ -29,12 +29,12 @@ Rules-Requires-Root: no
 Package: hipercontracer
 Architecture: any
 Depends: hipercontracer-common,
+         iproute2,
          libhipercontracer2 (= ${binary:Version}),
          ${misc:Depends},
          ${shlibs:Depends}
 Recommends: ethtool,
-            hipercontracer-viewer,
-            iproute2
+            hipercontracer-viewer
 Suggests: hipercontracer-collector,
           hipercontracer-dbeaver-tools,
           hipercontracer-dbshell,
@@ -84,7 +84,8 @@ Description: High-Performance Connectivity Tracer (HiPerConTracer)
 
 Package: hipercontracer-common
 Architecture: all
-Depends: ${misc:Depends}
+Depends: passwd,
+         ${misc:Depends}
 Suggests: python3,
           r-base-core
 Description: HiPerConTracer common files

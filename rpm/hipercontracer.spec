@@ -27,9 +27,9 @@ BuildRequires: zlib-devel
 BuildRoot: %{_tmppath}/%{name}-%{version}-build
 Requires: %{name}-common = %{version}-%{release}
 Requires: %{name}-libhipercontracer = %{version}-%{release}
+Requires: iproute
 Recommends: %{name}-viewer = %{version}-%{release}
 Recommends: ethtool
-Recommends: iproute
 Suggests: %{name}-collector = %{version}-%{release}
 Suggests: %{name}-dbeaver-tools = %{version}-%{release}
 Suggests: %{name}-dbshell = %{version}-%{release}
