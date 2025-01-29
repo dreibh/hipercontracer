@@ -1,3 +1,64 @@
+commit 3a7ef4c227d4296ec599424d8e8cd681d564ab08
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Jan 28 16:28:00 2025 +0100
+
+    Bugfix: SendTimeStamp in the packet (used for debugging only) in nanoseconds.
+
+commit f4c3c15271482be71da165040d7332d9b5c4549a
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Jan 28 15:07:38 2025 +0100
+
+    Dependency fixes.
+
+commit a1428ce0dca07300dd9ad12fb17e2002d4bc336b
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Jan 28 11:41:16 2025 +0100
+
+    Bugfix: Properly obtain status code when response message is UDP over IPv6.
+
+commit 51956d7fa18f456035762289c4d661aa5665e760
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Sat Jan 18 08:53:46 2025 +1300
+
+    Bugfix: Properly handle source address changes of the system.
+
+commit 86fbde2fc7cc63d2197f321c74889a696ed5e1fb
+Merge: ee6729d b989dc6
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Fri Dec 20 17:16:36 2024 +0100
+
+    Merge branch 'master' of github.com:dreibh/hipercontracer
+
+commit b989dc643e57f46f0437aa02cb6b023cc8b1575a
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Fri Dec 20 17:12:18 2024 +0100
+
+    Updated FreeBSD installation scripts.
+
+commit a30e5cf9ce0c3d682d4d44ebe6524eab54ce7f62
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Fri Dec 20 17:01:18 2024 +0100
+
+    FreeBSD packaging updates.
+
+commit bfe90895c9bd224f75b800fe7479f3bcaaf9eeeb
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Fri Dec 20 16:11:55 2024 +0100
+
+    Updated test script.
+
+commit ee6729d0e82c12731bfe9c3a986ef8b84df7cb30
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Fri Dec 20 13:48:33 2024 +0100
+
+    Configuration update.
+
+commit 1495b7a9d314183d7a98e4c24880aff7527f5a30
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Fri Dec 20 13:37:15 2024 +0100
+
+    New release hipercontracer-2.0.0.
+
 commit 684873782238d962b0ba2d933d949df4c3c2cd53
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Fri Dec 20 12:18:58 2024 +0100

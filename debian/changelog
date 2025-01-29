@@ -1,3 +1,9 @@
+hipercontracer (2.0.1-1ubuntu1) noble; urgency=medium
+
+  * New upstream release.
+
+ -- Thomas Dreibholz <dreibh@simula.no>  Tue, 28 Jan 2025 16:41:15 +0100
+
 hipercontracer (2.0.0-1ubuntu1) noble; urgency=medium
 
   * New upstream release.
