@@ -188,7 +188,7 @@ unsigned int UDPModule::sendRequest(const DestinationInfo& destination,
    const raw_udp::endpoint remoteEndpoint(destination.address(),
                                           SourceAddress.is_v6() ? 0 : DestinationPort);
    const raw_udp::endpoint localEndpoint((UDPSocketEndpoint.address().is_unspecified() ?
-                                            unspecifiedAddress(destination.address().is_v6()) :
+                                            findSourceForDestination(destination.address()) :
                                             UDPSocketEndpoint.address()),
                                          UDPSocketEndpoint.port());
 
