@@ -1,4 +1,4 @@
-// ==========================================================================
+
 //     _   _ _ ____            ____          _____
 //    | | | (_)  _ \ ___ _ __ / ___|___  _ _|_   _| __ __ _  ___ ___ _ __
 //    | |_| | | |_) / _ \ '__| |   / _ \| '_ \| || '__/ _` |/ __/ _ \ '__|
@@ -557,9 +557,9 @@ void Traceroute::processResults()
       // Checksum: the first 64 bits of the SHA-1 sum over path string
       boost::uuids::detail::sha1 sha1Hash;
       sha1Hash.process_bytes(pathString.c_str(), pathString.length());
-      uint32_t digest[5];
+      boost::uuids::detail::sha1::digest_type digest;
       sha1Hash.get_digest(digest);
-      const uint64_t pathHash    = ((uint64_t)digest[0] << 32) | (uint64_t)digest[1];
+      const uint64_t pathHash    = ((uint64_t)((uint32_t*)&digest)[0] << 32) | (uint64_t)((uint32_t*)&digest)[1];
       unsigned int   statusFlags = 0x0000;
       if(!completeTraceroute) {
          statusFlags |= Flag_StarredRoute;
