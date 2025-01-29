@@ -15,7 +15,8 @@ Depends: hipercontracer-common,
 Tests: 30-dbeaver-tools
 Restrictions: allow-stderr
 Depends: hipercontracer,
-         hipercontracer-dbeaver-tools
+         hipercontracer-dbeaver-tools,
+         pwgen
 
 Tests: 50-full-database-test
 Restrictions: isolation-machine, breaks-testbed, needs-sudo, needs-internet, allow-stderr

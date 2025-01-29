@@ -189,7 +189,7 @@ unsigned int TCPModule::sendRequest(const DestinationInfo& destination,
    const raw_tcp::endpoint remoteEndpoint(destination.address(),
                                           SourceAddress.is_v6() ? 0 : DestinationPort);
    const raw_tcp::endpoint localEndpoint((TCPSocketEndpoint.address().is_unspecified() ?
-                                            findSourceForDestination(destination.address()) :
+                                            unspecifiedAddress(destination.address().is_v6()) :
                                             TCPSocketEndpoint.address()),
                                          TCPSocketEndpoint.port());
    if(localEndpoint.address().is_unspecified()) {

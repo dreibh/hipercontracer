@@ -149,6 +149,8 @@ typedef std::chrono::system_clock            SystemClock;
 typedef std::chrono::time_point<SystemClock> SystemTimePoint;
 typedef SystemClock::duration                SystemDuration;
 
+#include <iostream>
+
 typedef std::chrono::high_resolution_clock   ResultClock;
 typedef ResultClock::time_point              ResultTimePoint;
 typedef ResultClock::duration                ResultDuration;
@@ -192,6 +194,7 @@ class ResultEntry {
    inline ResultTimePoint sendTime(const TXTimeStampType txTimeStampType)    const { return SendTime[txTimeStampType];    }
    inline ResultTimePoint receiveTime(const RXTimeStampType rxTimeStampType) const { return ReceiveTime[rxTimeStampType]; }
 
+   void updateSourceAddress(const boost::asio::ip::address& sourceAddress);
    inline void setStatus(const HopStatus status)                      { Status       = status;               }
    inline void setResponseSize(const unsigned int responseSize)       { ResponseSize = responseSize;         }
    inline void setHopAddress(const boost::asio::ip::address& address) { Hop          = dropScopeID(address); }
