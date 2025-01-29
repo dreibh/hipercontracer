@@ -1,3 +1,27 @@
+commit 9326ed30253013edf3cf0aac3fa84acd7bf0392a
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Jan 29 13:30:47 2025 +0100
+
+    UDP handling fix.
+
+commit c393f98c0ba7d9d186334efb92f7bff82daf71ed
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Jan 29 11:34:23 2025 +0100
+
+    Build fix for latest BOOST version.
+
+commit 347e78ec9199026f9afb711f2ba0b53dba7dbf5b
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Jan 29 09:41:10 2025 +0100
+
+    Dependency update.
+
+commit 2cb6fdf5be3bc58483427c65a52a58694ada695f
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Jan 28 16:41:17 2025 +0100
+
+    New release hipercontracer-2.0.1.
+
 commit 3a7ef4c227d4296ec599424d8e8cd681d564ab08
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Tue Jan 28 16:28:00 2025 +0100
