@@ -13,6 +13,7 @@ case $2 in
       # Remove administrative user
       pw user del hipercontracer >/dev/null 2>&1 || true
       pw group del hipercontracer >/dev/null 2>&1 || true
+      pw group del hpct-nodes >/dev/null 2>&1 || true
 
       # Remove data directory (if empty)
       rmdir /var/hipercontracer/data /var/hipercontracer/good /var/hipercontracer/bad || true

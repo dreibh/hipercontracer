@@ -1,5 +1,5 @@
 Name: hipercontracer
-Version: 2.0.0
+Version: 2.0.1
 Release: 1
 Summary: High-Performance Connectivity Tracer (HiPerConTracer)
 Group: Applications/Internet
@@ -27,9 +27,9 @@ BuildRequires: zlib-devel
 BuildRoot: %{_tmppath}/%{name}-%{version}-build
 Requires: %{name}-common = %{version}-%{release}
 Requires: %{name}-libhipercontracer = %{version}-%{release}
+Requires: iproute
 Recommends: %{name}-viewer = %{version}-%{release}
 Recommends: ethtool
-Recommends: iproute
 Suggests: %{name}-collector = %{version}-%{release}
 Suggests: %{name}-dbeaver-tools = %{version}-%{release}
 Suggests: %{name}-dbshell = %{version}-%{release}
@@ -1095,6 +1095,8 @@ This metapackage installs all sub-packages of the HiPerConTracer Framework.
 
 
 %changelog
+* Tue Jan 28 2025 Thomas Dreibholz <dreibh@simula.no> - 2.0.1
+- New upstream release.
 * Fri Dec 20 2024 Thomas Dreibholz <dreibh@simula.no> - 2.0.0
 - New upstream release.
 * Wed Dec 06 2023 Thomas Dreibholz <thomas.dreibholz@gmail.com> - 1.6.10
