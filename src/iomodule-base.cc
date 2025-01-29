@@ -274,22 +274,9 @@ const boost::asio::ip::address& IOModuleBase::unspecifiedAddress(const bool ipv6
 }
 
 
-#if 0
-std::map<boost::asio::ip::address, boost::asio::ip::address> IOModuleBase::SourceForDestinationMap;
-std::mutex                                                   IOModuleBase::SourceForDestinationMapMutex;
-
 // ###### Find source address for given destination address #################
 boost::asio::ip::address IOModuleBase::findSourceForDestination(const boost::asio::ip::address& destinationAddress)
 {
-   std::lock_guard<std::mutex> lock(SourceForDestinationMapMutex);
-
-   // ====== Cache lookup ===================================================
-   std::map<boost::asio::ip::address, boost::asio::ip::address>::const_iterator found =
-      SourceForDestinationMap.find(destinationAddress);
-   if(found != SourceForDestinationMap.end()) {
-      return found->second;
-   }
-
    // ====== Get source address from kernel =================================
    // Procedure:
    // - Create UDP socket
@@ -303,16 +290,12 @@ boost::asio::ip::address IOModuleBase::findSourceForDestination(const boost::asi
                                                              boost::asio::ip::udp::v6() :
                                                              boost::asio::ip::udp::v4());
       udpSpcket.connect(destinationEndpoint);
-      const boost::asio::ip::address sourceAddress = udpSpcket.local_endpoint().address();
-      SourceForDestinationMap.insert(std::pair<boost::asio::ip::address, boost::asio::ip::address>(destinationAddress,
-                                                                                                   sourceAddress));
-      return sourceAddress;
+      return udpSpcket.local_endpoint().address();
    }
    catch(...) {
       return unspecifiedAddress(destinationAddress.is_v6());
    }
 }
-#endif
 
 
 // ###### Record result from response message ###############################
