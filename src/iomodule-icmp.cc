@@ -60,7 +60,9 @@ ICMPModule::ICMPModule(boost::asio::io_service&                 ioService,
      ICMPSocket(IOService, (sourceAddress.is_v6() == true) ? boost::asio::ip::icmp::v6() :
                                                              boost::asio::ip::icmp::v4() ),
      UDPSocket(IOService, (sourceAddress.is_v6() == true) ? boost::asio::ip::udp::v6() :
-                                                            boost::asio::ip::udp::v4() )
+                                                            boost::asio::ip::udp::v4() ),
+     TCPSocket(IOService, (sourceAddress.is_v6() == true) ? boost::asio::ip::tcp::v6() :
+                                                            boost::asio::ip::tcp::v4() )
 {
    // Overhead: IPv4 Header (20)/IPv6 Header (40) + ICMP Header (8)
    PayloadSize      = std::max((ssize_t)MIN_TRACESERVICE_HEADER_SIZE,
@@ -103,6 +105,16 @@ bool ICMPModule::prepareSocket()
       assure(in->sa_family == AF_INET6);
       Identifier = ntohs(((sockaddr_in6*)in)->sin6_port);
    }
+
+   // ====== Bind TCP socket to given source address ========================
+   boost::asio::ip::tcp::endpoint tcpSourceEndpoint(SourceAddress, 0);
+   TCPSocket.bind(tcpSourceEndpoint, errorCode);
+   if(errorCode !=  boost::system::errc::success) {
+      HPCT_LOG(error) << getName() << ": Unable to bind TCP socket to source address "
+                      << tcpSourceEndpoint << "!";
+      return false;
+   }
+   TCPSocketEndpoint = TCPSocket.local_endpoint();
 
    // ====== Bind ICMP socket to given source address =======================
    ICMPSocket.bind(boost::asio::ip::icmp::endpoint(SourceAddress, 0), errorCode);

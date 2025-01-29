@@ -102,7 +102,7 @@ bool UDPModule::prepareSocket()
    if(!configureSocket(RawUDPSocket.native_handle(), SourceAddress)) {
       return false;
    }
-   int on = 1;
+   const int on = 1;
    if(SourceAddress.is_v6() == true) {
 #if defined(IPV6_HDRINCL)
       if(setsockopt(RawUDPSocket.native_handle(), IPPROTO_IPV6, IPV6_HDRINCL, &on, sizeof(on)) < 0) {

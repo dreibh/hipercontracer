@@ -71,7 +71,7 @@ if [ -e "${DATABASE_CONFIG}" ] ; then
       resultsTool="hpct-results"
    fi
 
-   for table in Ping Traceroute ; do   # Jitter
+   for table in Ping Traceroute Jitter ; do
 
       echo -e "\x1b[33m$(date +"%F %H:%M:%S"): Obtaining ${table} data from good/ directory ...\x1b[0m"
       find good/ -name "${table}-*.hpct.*" -or -name "${table}-*.results.*" | \

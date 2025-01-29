@@ -253,7 +253,6 @@ static inline unsigned int mapMeasurementID(
    lines++;
 
 
-#if 0
 // ###### Jitter ############################################################
 #define OUTPUT_JITTER_V2                                                                     \
    if(__builtin_expect(lines == 0, 0)) {                                                     \
@@ -302,7 +301,6 @@ static inline unsigned int mapMeasurementID(
       );                                                                                     \
    lines++;                                                                                  \
    lastTimeStamp = timeStamp;
-#endif
 
 
 
@@ -898,7 +896,6 @@ int main(int argc, char** argv)
          }
       }
 
-#if 0
       // ====== Jitter ======================================================
       else if(queryType == "jitter") {
          if(backend & DatabaseBackendType::SQL_Generic) {
@@ -967,7 +964,7 @@ int main(int argc, char** argv)
                   const unsigned long long       timeStamp             = databaseClient->getBigInt("timestamp");
                   const boost::asio::ip::address sourceIP              = statement.decodeAddress(databaseClient->getString("sourceIP"));
                   const boost::asio::ip::address destinationIP         = statement.decodeAddress(databaseClient->getString("destinationIP"));
-                  const unsigned long long       measurementID         = mapMeasurementID(databaseClient->getInteger("measurementID")
+                  const unsigned long long       measurementID         = mapMeasurementID(databaseClient->getInteger("measurementID"),
                                                                                           addressToMeasurementID, sourceIP);
                   const char                     protocol              = databaseClient->getInteger("protocol");
                   const uint8_t                  trafficClass          = databaseClient->getInteger("trafficClass");
@@ -1017,7 +1014,6 @@ int main(int argc, char** argv)
             abort();
          }
       }
-#endif
 
       // ====== Invalid query ===============================================
       else {

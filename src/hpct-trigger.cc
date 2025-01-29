@@ -36,7 +36,7 @@
 
 #include "check.h"
 #include "icmpheader.h"
-// #include "jitter.h"
+#include "jitter.h"
 #include "logger.h"
 #include "package-version.h"
 #include "ping.h"
@@ -234,7 +234,7 @@ int main(int argc, char** argv)
    bool                               logColor;
    std::filesystem::path              logFile;
    std::string                        user((getlogin() != nullptr) ? getlogin() : "0");
-   // bool                               serviceJitter;
+   bool                               serviceJitter;
    bool                               servicePing;
    bool                               serviceTraceroute;
    unsigned int                       iterations;
@@ -246,17 +246,21 @@ int main(int argc, char** argv)
    TracerouteParameters               tracerouteParameters;
    uint16_t                           tracerouteUDPSourcePort;
    uint16_t                           tracerouteUDPDestinationPort;
+   uint16_t                           tracerouteTCPSourcePort;
+   uint16_t                           tracerouteTCPDestinationPort;
 
    TracerouteParameters               pingParameters;
    uint16_t                           pingUDPSourcePort;
    uint16_t                           pingUDPDestinationPort;
+   uint16_t                           pingTCPSourcePort;
+   uint16_t                           pingTCPDestinationPort;
 
-#if 0
    TracerouteParameters               jitterParameters;
    uint16_t                           jitterUDPSourcePort;
    uint16_t                           jitterUDPDestinationPort;
+   uint16_t                           jitterTCPSourcePort;
+   uint16_t                           jitterTCPDestinationPort;
    bool                               jitterRecordRawResults;
-#endif
 
    unsigned int                       resultsTransactionLength;
    std::filesystem::path              resultsDirectory;
@@ -310,11 +314,9 @@ int main(int argc, char** argv)
            boost::program_options::value<std::vector<std::string>>(&ioModulesList),
            "I/O module" )
 
-#if 0
       ( "jitter,J",
            boost::program_options::value<bool>(&serviceJitter)->default_value(false)->implicit_value(true),
            "Start Jitter service" )
-#endif
       ( "ping,P",
            boost::program_options::value<bool>(&servicePing)->default_value(false)->implicit_value(true),
            "Start Ping service" )
@@ -355,6 +357,12 @@ int main(int argc, char** argv)
       ( "tracerouteudpdestinationport",
            boost::program_options::value<uint16_t>(&tracerouteUDPDestinationPort)->default_value(7),
            "Traceroute UDP destination port" )
+      ( "traceroutetcpsourceport",
+           boost::program_options::value<uint16_t>(&tracerouteTCPSourcePort)->default_value(0),
+           "Traceroute TCP source port" )
+      ( "traceroutetcpdestinationport",
+           boost::program_options::value<uint16_t>(&tracerouteTCPDestinationPort)->default_value(80),
+           "Traceroute TCP destination port" )
 
       ( "pinginterval",
            boost::program_options::value<unsigned long long>(&pingParameters.Interval)->default_value(1000),
@@ -380,8 +388,13 @@ int main(int argc, char** argv)
       ( "pingudpdestinationport",
            boost::program_options::value<uint16_t>(&pingUDPDestinationPort)->default_value(7),
            "Ping UDP destination port" )
+      ( "pingtcpsourceport",
+           boost::program_options::value<uint16_t>(&pingTCPSourcePort)->default_value(0),
+           "Ping TCP source port" )
+      ( "pingtcpdestinationport",
+           boost::program_options::value<uint16_t>(&pingTCPDestinationPort)->default_value(80),
+           "Ping TCP destination port" )
 
-#if 0
       ( "jitterinterval",
            boost::program_options::value<unsigned long long>(&jitterParameters.Interval)->default_value(10000),
            "Jitter interval in ms" )
@@ -406,10 +419,15 @@ int main(int argc, char** argv)
       ( "jitterudpdestinationport",
            boost::program_options::value<uint16_t>(&jitterUDPDestinationPort)->default_value(7),
            "Jitter UDP destination port" )
+      ( "jittertcpsourceport",
+           boost::program_options::value<uint16_t>(&jitterTCPSourcePort)->default_value(0),
+           "Jitter TCP source port" )
+      ( "jittertcpdestinationport",
+           boost::program_options::value<uint16_t>(&jitterTCPDestinationPort)->default_value(80),
+           "Jitter TCP destination port" )
       ( "jitterrecordraw",
            boost::program_options::value<bool>(&jitterRecordRawResults)->default_value(false)->implicit_value(true),
            "Record raw Ping results for Jitter computation" )
-#endif
 
       ( "triggerpingsbeforequeuing",
            boost::program_options::value<unsigned int>(&TriggerPingsBeforeQueuing)->default_value(3),
@@ -525,12 +543,20 @@ int main(int argc, char** argv)
       tracerouteParameters.InitialMaxTTL = tracerouteParameters.FinalMaxTTL;
       return 1;
    }
+   if( (pingParameters.Deviation < 0.0) || (pingParameters.Deviation > 1.0) ) {
+      std::cerr << "ERROR: Invalid Ping interval deviation setting: "
+                << pingParameters.Deviation << "\n";
+      return 1;
+   }
+   if( (tracerouteParameters.Deviation < 0.0) || (tracerouteParameters.Deviation > 1.0) ) {
+      std::cerr << "ERROR: Invalid Traceroute interval deviation setting: "
+                << tracerouteParameters.Deviation << "\n";
+   }
    if( (resultsFormatVersion < OutputFormatVersionType::OFT_Min) ||
        (resultsFormatVersion > OutputFormatVersionType::OFT_Max) ) {
       std::cerr << "ERROR: Invalid results format version: " << resultsFormatVersion << "\n";
       return 1;
    }
-#if 0
    if(jitterParameters.Expiration >= jitterParameters.Interval) {
       std::cerr << "ERROR: Jitter expiration must be smaller than jitter interval" << "\n";
       return 1;
@@ -540,7 +566,6 @@ int main(int argc, char** argv)
                 << jitterParameters.Deviation << "\n";
       return 1;
    }
-#endif
    boost::algorithm::to_upper(resultsCompressionString);
    if(resultsCompressionString == "XZ") {
       resultsCompression = ResultsWriterCompressor::XZ;
@@ -572,7 +597,7 @@ int main(int argc, char** argv)
       HPCT_LOG(fatal) << "At least one source is needed!";
       return 1;
    }
-   if( /* (serviceJitter == false) && */ (servicePing == false) && (serviceTraceroute == false) ) {
+   if( (serviceJitter == false) && (servicePing == false) && (serviceTraceroute == false) ) {
       HPCT_LOG(fatal) << "Enable at least on service (Traceroute, Ping, Jitter)!";
       return 1;
    }
@@ -581,7 +606,6 @@ int main(int argc, char** argv)
    TriggerPingAge                       = std::max(1U, TriggerPingAge);
    TriggerPingsBeforeQueuing            = std::max(1U, TriggerPingsBeforeQueuing);
    TriggerPingPacketSize                = std::min(std::max(64U, TriggerPingPacketSize), 65535U);
-#if 0
    jitterParameters.Interval            = std::min(std::max(100ULL, jitterParameters.Interval),        3600U*10000ULL);
    jitterParameters.Expiration          = std::min(std::max(100U, jitterParameters.Expiration),        3600U*10000U);
    jitterParameters.InitialMaxTTL       = std::min(std::max(1U, jitterParameters.InitialMaxTTL),       255U);
@@ -589,7 +613,6 @@ int main(int argc, char** argv)
    jitterParameters.IncrementMaxTTL     = 1;
    jitterParameters.Rounds              = std::min(std::max(2U, jitterParameters.Rounds),              1024U);
    jitterParameters.PacketSize          = std::min(65535U, jitterParameters.PacketSize);
-#endif
    pingParameters.Interval              = std::min(std::max(100ULL, pingParameters.Interval),          3600U*60000ULL);
    pingParameters.Expiration            = std::min(std::max(100U, pingParameters.Expiration),          3600U*60000U);
    pingParameters.InitialMaxTTL         = std::min(std::max(1U, pingParameters.InitialMaxTTL),         255U);
@@ -616,7 +639,6 @@ int main(int argc, char** argv)
                      << "-- turned off--";
    }
 
-#if 0
    if(serviceJitter) {
       HPCT_LOG(info) << "Jitter Service:" << std:: endl
                      << "* Interval           = " << jitterParameters.Interval            << " ms ± "
@@ -626,9 +648,9 @@ int main(int argc, char** argv)
                      << "* TTL                = " << jitterParameters.InitialMaxTTL       << "\n"
                      << "* Packet Size        = " << jitterParameters.PacketSize          << " B\n"
                      << "* Ports              = (none for ICMP) / UDP: "
-                        << jitterUDPSourcePort << " -> " << jitterUDPDestinationPort << "\n";
+                        << jitterUDPSourcePort << " -> " << jitterUDPDestinationPort << " / TCP: "
+                        << jitterTCPSourcePort << " -> " << jitterTCPDestinationPort << "\n";
    }
-#endif
    if(servicePing) {
       HPCT_LOG(info) << "Ping Service:" << std:: endl
                      << "* Interval           = " << pingParameters.Interval              << " ms ± "
@@ -638,7 +660,8 @@ int main(int argc, char** argv)
                      << "* TTL                = " << pingParameters.InitialMaxTTL         << "\n"
                      << "* Packet Size        = " << pingParameters.PacketSize            << " B\n"
                      << "* Ports              = (none for ICMP) / UDP: "
-                        << pingUDPSourcePort << " -> " << pingUDPDestinationPort << "\n";
+                        << pingUDPSourcePort << " -> " << pingUDPDestinationPort << " / TCP: "
+                        << pingTCPSourcePort << " -> " << pingTCPDestinationPort << "\n";
    }
    if(serviceTraceroute) {
       HPCT_LOG(info) << "Traceroute Service:" << std:: endl
@@ -651,7 +674,8 @@ int main(int argc, char** argv)
                      << "* Increment MaxTTL   = " << tracerouteParameters.IncrementMaxTTL << "\n"
                      << "* Packet Size        = " << tracerouteParameters.PacketSize      << " B\n"
                      << "* Ports              = (none for ICMP) / UDP: "
-                        << tracerouteUDPSourcePort << " -> " << tracerouteUDPDestinationPort << "\n";
+                        << tracerouteUDPSourcePort << " -> " << tracerouteUDPDestinationPort << " / TCP: "
+                        << tracerouteTCPSourcePort << " -> " << tracerouteTCPDestinationPort << "\n";
    }
 
    HPCT_LOG(info) << "Trigger:" << std::endl
@@ -684,7 +708,6 @@ int main(int argc, char** argv)
       }
 
       for(const std::string& ioModule : ioModules) {
-#if 0
          if(serviceJitter) {
             try {
                ResultsWriter* resultsWriter = nullptr;
@@ -701,6 +724,10 @@ int main(int argc, char** argv)
                   jitterParameters.SourcePort      = jitterUDPSourcePort;
                   jitterParameters.DestinationPort = jitterUDPDestinationPort;
                }
+               else if(ioModule == "TCP") {
+                  jitterParameters.SourcePort      = jitterTCPSourcePort;
+                  jitterParameters.DestinationPort = jitterTCPDestinationPort;
+               }
                else {
                   jitterParameters.SourcePort      = 0;
                   jitterParameters.DestinationPort = 0;
@@ -716,7 +743,6 @@ int main(int argc, char** argv)
                return 1;
             }
          }
-#endif
          if(servicePing) {
             try {
                ResultsWriter* resultsWriter = nullptr;
@@ -732,6 +758,10 @@ int main(int argc, char** argv)
                if(ioModule == "UDP") {
                   pingParameters.SourcePort      = pingUDPSourcePort;
                   pingParameters.DestinationPort = pingUDPDestinationPort;
+               }
+               else if(ioModule == "TCP") {
+                  pingParameters.SourcePort      = pingTCPSourcePort;
+                  pingParameters.DestinationPort = pingTCPDestinationPort;
                }
                else {
                   pingParameters.SourcePort      = 0;
@@ -763,6 +793,10 @@ int main(int argc, char** argv)
                if(ioModule == "UDP") {
                   tracerouteParameters.SourcePort      = tracerouteUDPSourcePort;
                   tracerouteParameters.DestinationPort = tracerouteUDPDestinationPort;
+               }
+               else if(ioModule == "TCP") {
+                  tracerouteParameters.SourcePort      = tracerouteTCPSourcePort;
+                  tracerouteParameters.DestinationPort = tracerouteTCPDestinationPort;
                }
                else {
                   tracerouteParameters.SourcePort      = 0;

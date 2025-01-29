@@ -94,6 +94,10 @@ class ICMPModule : public IOModuleBase
    boost::asio::ip::udp::socket   UDPSocket;
    boost::asio::ip::udp::endpoint UDPSocketEndpoint;
 
+   // The TCP socket is only used to generate RST for unexpected SYN+ACK!
+   boost::asio::ip::tcp::socket   TCPSocket;
+   boost::asio::ip::tcp::endpoint TCPSocketEndpoint;
+
    char                           MessageBuffer[65536 + 40];
    char                           ControlBuffer[1024];
 

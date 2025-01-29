@@ -47,9 +47,11 @@
 
 #include "iomodule-icmp.h"
 #include "iomodule-udp.h"
+#include "iomodule-tcp.h"
 
 REGISTER_IOMODULE(ProtocolType::PT_ICMP, "ICMP", ICMPModule);
 REGISTER_IOMODULE(ProtocolType::PT_UDP,  "UDP",   UDPModule);
+REGISTER_IOMODULE(ProtocolType::PT_TCP,  "TCP",   TCPModule);
 
 //  #########################################################################
 
@@ -96,7 +98,8 @@ bool IOModuleBase::configureSocket(const int                      socketDescript
                  (sourceAddress.is_v6() == true) ? SOL_IPV6: SOL_IP,
                  (sourceAddress.is_v6() == true) ? IPV6_RECVERR : IP_RECVERR,
                  &on, sizeof(on)) < 0) {
-      HPCT_LOG(error) << "Unable to enable IP_RECVERR/IPV6_RECVERR option on socket";
+      HPCT_LOG(error) << "Unable to enable IP_RECVERR/IPV6_RECVERR option on socket: "
+                      << strerror(errno);
       return false;
    }
 #else

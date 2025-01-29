@@ -56,8 +56,8 @@
 .Op Fl Fl ping-files Ar number
 .Op Fl Fl traceroute-workers Ar number
 .Op Fl Fl traceroute-files Ar number
-.\" .Op Fl Fl jitter-workers Ar number
-.\" .Op Fl Fl jitter-files Ar number
+.Op Fl Fl jitter-workers Ar number
+.Op Fl Fl jitter-files Ar number
 .\" ###### Description ######################################################
 .Sh DESCRIPTION
 .Nm hpct-importer
@@ -144,12 +144,12 @@ An import file is distributed to a worker by hashing the source address
 given in the file name.
 .It Fl Fl traceroute-files Ar number
 Sets the number of Traceroute import files per database transaction. Default: 1.
-.\" .It Fl Fl jitter-workers Ar number
-.\" Sets the number of Jitter import workers. Default: 1.
-.\" An import file is distributed to a worker by hashing the source address
-.\" given in the file name.
-.\" .It Fl Fl jitter-files Ar number
-.\" Sets the number of Jitter import files per database transaction. Default: 1.
+.It Fl Fl jitter-workers Ar number
+Sets the number of Jitter import workers. Default: 1.
+An import file is distributed to a worker by hashing the source address
+given in the file name.
+.It Fl Fl jitter-files Ar number
+Sets the number of Jitter import files per database transaction. Default: 1.
 .El
 .\" ###### Arguments ########################################################
 .Sh EXAMPLES

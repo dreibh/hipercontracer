@@ -58,6 +58,14 @@ _hipercontracer()
       -# | --measurement-id           | \
       -D | --destination              | \
       --iterations                    | \
+      --jitterinterval                | \
+      --jitterintervaldeviation       | \
+      --jitterexpiration              | \
+      --jitterburst                   | \
+      --jitterttl                     | \
+      --jitterpacketsize              | \
+      --jitterudpsourceport           | \
+      --jitterudpdestinationport      | \
       --tracerouteinterval            | \
       --tracerouteintervaldeviation   | \
       --tracerouteduration            | \
@@ -90,7 +98,7 @@ _hipercontracer()
       # ====== Special case: IO Module ======================================
       -M | --iomodule)
          # shellcheck disable=SC2207
-         COMPREPLY=( $(compgen -W "ICMP UDP" -- "${cur}") )
+         COMPREPLY=( $(compgen -W "ICMP TCP UDP" -- "${cur}") )
          return
          ;;
       # ====== Special case: log file =======================================
@@ -133,6 +141,8 @@ _hipercontracer()
 --ping
 -T
 --traceroute
+-J
+--jitter
 -L
 --loglevel
 -Z
@@ -174,6 +184,15 @@ _hipercontracer()
 --pingpacketsize
 --pingudpsourceport
 --pingudpdestinationport
+--jitterinterval
+--jitterintervaldeviation
+--jitterexpiration
+--jitterburst
+--jitterttl
+--jitterpacketsize
+--jitterrecordraw
+--jitterudpsourceport
+--jitterudpdestinationport
 -R
 --resultsdirectory
 -x
