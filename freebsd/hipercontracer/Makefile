@@ -27,6 +27,8 @@ USES=		cmake \
 		desktop-file-utils \
 		python \
 		shared-mime-info \
+		shebangfix \
+		ssl \
 		tar:xz
 USE_LDCONFIG=	yes
 
@@ -73,7 +75,8 @@ IMPPGSQL_MAKE_BOOL=		ENABLE_BACKEND_POSTGRESQL
 IMPPGSQL_LIB_DEPENDS=		libpqxx.so:databases/postgresql-libpqxx
 
 IMPMONGO_CMAKE_BOOL=		ENABLE_BACKEND_MONGODB
-IMPMONGO_LIB_DEPENDS=		libmongoc-1.0.so:devel/mongo-c-driver
+IMPMONGO_LIB_DEPENDS=		libmongoc-1.0.so:devel/mongo-c-driver \
+                                libbson-1.0.so:devel/libbson
 
 ICONS_CMAKE_BOOL=		WITH_ICONS
 ICONS_BUILD_DEPENDS=		gm:graphics/GraphicsMagick \
