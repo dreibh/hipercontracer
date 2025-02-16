@@ -16,7 +16,7 @@ case $2 in
       pw group del hpct-nodes >/dev/null 2>&1 || true
 
       # Remove data directory (if empty)
-      rmdir /var/hipercontracer/data /var/hipercontracer/good /var/hipercontracer/bad || true
+      rmdir /var/hipercontracer/data /var/hipercontracer/good /var/hipercontracer/bad /var/hipercontracer/ssh || true
       rmdir /var/hipercontracer >/dev/null 2>&1 || true
       ;;
    *)
