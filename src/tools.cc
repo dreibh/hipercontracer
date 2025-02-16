@@ -187,7 +187,7 @@ bool addSourceAddress(std::map<boost::asio::ip::address, std::set<uint8_t>>& arr
             boost::asio::ip::tcp::resolver resolver(ioContext);
             boost::asio::ip::tcp::resolver::results_type endpoints =
                resolver.resolve(addressString, "0",
-                              boost::asio::ip::tcp::resolver::query::numeric_service, errorCode);
+                              boost::asio::ip::tcp::resolver::numeric_service, errorCode);
             if(errorCode) {
                HPCT_LOG(error) << "Failed to resolve DNS name " << addressString << ": " << errorCode.message();
                return false;
@@ -252,7 +252,7 @@ bool addDestinationAddress(std::set<boost::asio::ip::address>& array,
          boost::asio::ip::tcp::resolver resolver(ioContext);
          boost::asio::ip::tcp::resolver::results_type endpoints =
             resolver.resolve(addressString, "0",
-                             boost::asio::ip::tcp::resolver::query::numeric_service, errorCode);
+                             boost::asio::ip::tcp::resolver::numeric_service, errorCode);
          if(errorCode) {
             HPCT_LOG(error) << "Failed to resolve DNS name " << addressString << ": " << errorCode.message();
             return false;
