@@ -100,7 +100,9 @@ bool IOModuleBase::configureSocket(const int                      socketDescript
       return false;
    }
 #else
+#if !defined(__FreeBSD__)
 #warning No IP_RECVERR/IPV6_RECVERR!
+#endif
 #endif
 
    // ====== Try to use SO_TIMESTAMPING option ==============================
@@ -127,7 +129,9 @@ bool IOModuleBase::configureSocket(const int                      socketDescript
       HPCT_LOG(error) << "Unable to enable SO_TIMESTAMPING option on socket: "
                       << strerror(errno);
 #else
+#if !defined(__FreeBSD__)
 #warning No SO_TIMESTAMPING!
+#endif
 #endif
 
       // ====== Try to use SO_TIMESTAMPNS ===================================
@@ -136,7 +140,9 @@ bool IOModuleBase::configureSocket(const int                      socketDescript
                     &on, sizeof(on)) < 0) {
 
 #else
+#if !defined(__FreeBSD__)
 #warning No SO_TIMESTAMPNS!
+#endif
 #endif
 
          // ====== Try to use SO_TIMESTAMP ==================================

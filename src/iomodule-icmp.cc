@@ -142,7 +142,9 @@ bool ICMPModule::prepareSocket()
       }
   }
 #else
+#if !defined(__FreeBSD__)
 #warning No ICMP_FILTER!
+#endif
 #endif
 
    // ====== Await incoming message or error ================================
