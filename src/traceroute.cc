@@ -70,10 +70,10 @@ Traceroute::Traceroute(const std::string                moduleName,
      TracerouteInstanceName(std::string("Traceroute(") + sourceAddress.to_string() + std::string(")")),
      RemoveDestinationAfterRun(removeDestinationAfterRun),
      Parameters(parameters),
-     IOService(),
+     IOContext(),
      SourceAddress(sourceAddress),
-     TimeoutTimer(IOService),
-     IntervalTimer(IOService)
+     TimeoutTimer(IOContext),
+     IntervalTimer(IOContext)
 {
    assure(Parameters.Rounds >= 1);
    assure(Parameters.InitialMaxTTL >= 1);
@@ -84,7 +84,7 @@ Traceroute::Traceroute(const std::string                moduleName,
    // ====== Some initialisations ===========================================
    IOModule = IOModuleBase::createIOModule(
                  moduleName,
-                 IOService, ResultsMap, SourceAddress, Parameters.SourcePort, Parameters.DestinationPort,
+                 IOContext, ResultsMap, SourceAddress, Parameters.SourcePort, Parameters.DestinationPort,
                  std::bind(&Traceroute::newResult, this, std::placeholders::_1),
                  Parameters.PacketSize);
    if(IOModule == nullptr) {
@@ -198,9 +198,9 @@ bool Traceroute::start()
 // ###### Request stop of thread ############################################
 void Traceroute::requestStop() {
    StopRequested.exchange(true);
-   IOService.post(std::bind(&Traceroute::cancelIntervalEvent, this));
-   IOService.post(std::bind(&Traceroute::cancelTimeoutEvent, this));
-   IOService.post(std::bind(&IOModuleBase::cancelSocket, IOModule));
+   IOContext.post(std::bind(&Traceroute::cancelIntervalEvent, this));
+   IOContext.post(std::bind(&Traceroute::cancelTimeoutEvent, this));
+   IOContext.post(std::bind(&IOModuleBase::cancelSocket, IOModule));
 }
 
 
@@ -273,7 +273,7 @@ void Traceroute::run()
 {
    prepareRun(true);
    sendRequests();
-   IOService.run();
+   IOContext.run();
 }
 
 

@@ -55,22 +55,22 @@ bool operator<(const UniversalImporter::WorkerMapping& a,
 
 
 // ###### Constructor #######################################################
-UniversalImporter::UniversalImporter(boost::asio::io_context&     ioService,
+UniversalImporter::UniversalImporter(boost::asio::io_context&     ioContext,
                                      const ImporterConfiguration& importerConfiguration,
                                      const DatabaseConfiguration& databaseConfiguration)
- : IOService(ioService),
+ : IOContext(ioContext),
    ImporterConfig(importerConfiguration),
    DatabaseConfig(databaseConfiguration),
    HasImportPathFilter(ImporterConfig.getImportPathFilter().size() > 0),
    ImportPathFilter("^(" + (ImporterConfig.getImportFilePath() / ")(").string() + ImporterConfig.getImportPathFilter() + ")(.*)$"),
    ImportPathFilterRegEx(ImportPathFilter),
-   Signals(IOService, SIGINT, SIGTERM),
-   StatusTimer(IOService),
+   Signals(IOContext, SIGINT, SIGTERM),
+   StatusTimer(IOContext),
    StatusTimerInterval(boost::posix_time::seconds(importerConfiguration.getStatusInterval())),
-   GarbageCollectionTimer(IOService),
+   GarbageCollectionTimer(IOContext),
    GarbageCollectionTimerInterval(0, 0, importerConfiguration.getGarbageCollectionInterval(), 0),
    GarbageCollectionMaxAge(std::chrono::seconds(importerConfiguration.getGarbageCollectionMaxAge())),
-   INotifyStream(IOService)
+   INotifyStream(IOContext)
 {
    INotifyFD = -1;
    StatusTimer.expires_from_now(StatusTimerInterval);
@@ -189,7 +189,7 @@ void UniversalImporter::handleSignalEvent(const boost::system::error_code& error
 {
    if(errorCode != boost::asio::error::operation_aborted) {
       puts("\n*** Shutting down! ***\n");   // Avoids a false positive from Helgrind.
-      IOService.stop();
+      IOContext.stop();
    }
 }
 

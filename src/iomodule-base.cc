@@ -58,13 +58,13 @@ std::list<IOModuleBase::RegisteredIOModule*>* IOModuleBase::IOModuleList = nullp
 
 
 // ###### Constructor #######################################################
-IOModuleBase::IOModuleBase(boost::asio::io_context&                 ioService,
+IOModuleBase::IOModuleBase(boost::asio::io_context&                 ioContext,
                            std::map<unsigned short, ResultEntry*>&  resultsMap,
                            const boost::asio::ip::address&          sourceAddress,
                            const uint16_t                           sourcePort,
                            const uint16_t                           destinationPort,
                            std::function<void (const ResultEntry*)> newResultCallback)
-   : IOService(ioService),
+   : IOContext(ioContext),
      ResultsMap(resultsMap),
      SourceAddress(sourceAddress),
      SourcePort(sourcePort),
@@ -290,9 +290,9 @@ boost::asio::ip::address IOModuleBase::findSourceForDestination(const boost::asi
    // - Obtain local address
    // - Write this information into a cache for later lookup
    try {
-      boost::asio::io_context        ioService;
+      boost::asio::io_context        ioContext;
       boost::asio::ip::udp::endpoint destinationEndpoint(destinationAddress, 7);
-      boost::asio::ip::udp::socket   udpSpcket(ioService, (destinationAddress.is_v6() == true) ?
+      boost::asio::ip::udp::socket   udpSpcket(ioContext, (destinationAddress.is_v6() == true) ?
                                                              boost::asio::ip::udp::v6() :
                                                              boost::asio::ip::udp::v4());
       udpSpcket.connect(destinationEndpoint);
@@ -438,7 +438,7 @@ bool IOModuleBase::registerIOModule(
    const ProtocolType  moduleType,
    const std::string&  moduleName,
    IOModuleBase*       (*createIOModuleFunction)(
-      boost::asio::io_context&                 ioService,
+      boost::asio::io_context&                 ioContext,
       std::map<unsigned short, ResultEntry*>&  resultsMap,
       const boost::asio::ip::address&          sourceAddress,
       const uint16_t                           sourcePort,
@@ -461,7 +461,7 @@ bool IOModuleBase::registerIOModule(
 
 // ###### Create new IO module ##############################################
 IOModuleBase* IOModuleBase::createIOModule(const std::string&                       moduleName,
-                                           boost::asio::io_context&                 ioService,
+                                           boost::asio::io_context&                 ioContext,
                                            std::map<unsigned short, ResultEntry*>&  resultsMap,
                                            const boost::asio::ip::address&          sourceAddress,
                                            const uint16_t                           sourcePort,
@@ -472,7 +472,7 @@ IOModuleBase* IOModuleBase::createIOModule(const std::string&                   
    for(RegisteredIOModule* registeredIOModule : *IOModuleList) {
       if(registeredIOModule->Name == moduleName) {
          return registeredIOModule->CreateIOModuleFunction(
-                   ioService, resultsMap, sourceAddress, sourcePort, destinationPort,
+                   ioContext, resultsMap, sourceAddress, sourcePort, destinationPort,
                    newResultCallback,
                    packetSize);
       }

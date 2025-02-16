@@ -48,18 +48,18 @@
 
 
 // ###### Constructor #######################################################
-ICMPModule::ICMPModule(boost::asio::io_context&                 ioService,
+ICMPModule::ICMPModule(boost::asio::io_context&                 ioContext,
                        std::map<unsigned short, ResultEntry*>&  resultsMap,
                        const boost::asio::ip::address&          sourceAddress,
                        const uint16_t                           sourcePort,
                        const uint16_t                           destinationPort,
                        std::function<void (const ResultEntry*)> newResultCallback,
                        const unsigned int                       packetSize)
-   : IOModuleBase(ioService, resultsMap, sourceAddress, sourcePort, destinationPort,
+   : IOModuleBase(ioContext, resultsMap, sourceAddress, sourcePort, destinationPort,
                   newResultCallback),
-     ICMPSocket(IOService, (sourceAddress.is_v6() == true) ? boost::asio::ip::icmp::v6() :
+     ICMPSocket(IOContext, (sourceAddress.is_v6() == true) ? boost::asio::ip::icmp::v6() :
                                                              boost::asio::ip::icmp::v4() ),
-     UDPSocket(IOService, (sourceAddress.is_v6() == true) ? boost::asio::ip::udp::v6() :
+     UDPSocket(IOContext, (sourceAddress.is_v6() == true) ? boost::asio::ip::udp::v6() :
                                                             boost::asio::ip::udp::v4() )
 {
    // Overhead: IPv4 Header (20)/IPv6 Header (40) + ICMP Header (8)
