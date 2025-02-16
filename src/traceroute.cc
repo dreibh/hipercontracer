@@ -198,9 +198,9 @@ bool Traceroute::start()
 // ###### Request stop of thread ############################################
 void Traceroute::requestStop() {
    StopRequested.exchange(true);
-   boost::asio::post(std::bind(&Traceroute::cancelIntervalEvent, this));
-   boost::asio::post(std::bind(&Traceroute::cancelTimeoutEvent, this));
-   boost::asio::post(std::bind(&IOModuleBase::cancelSocket, IOModule));
+   boost::asio::post(IOContext, std::bind(&Traceroute::cancelIntervalEvent, this));
+   boost::asio::post(IOContext, std::bind(&Traceroute::cancelTimeoutEvent, this));
+   boost::asio::post(IOContext, std::bind(&IOModuleBase::cancelSocket, IOModule));
 }
 
 
