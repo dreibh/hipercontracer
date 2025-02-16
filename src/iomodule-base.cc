@@ -58,7 +58,7 @@ std::list<IOModuleBase::RegisteredIOModule*>* IOModuleBase::IOModuleList = nullp
 
 
 // ###### Constructor #######################################################
-IOModuleBase::IOModuleBase(boost::asio::io_service&                 ioService,
+IOModuleBase::IOModuleBase(boost::asio::io_context&                 ioService,
                            std::map<unsigned short, ResultEntry*>&  resultsMap,
                            const boost::asio::ip::address&          sourceAddress,
                            const uint16_t                           sourcePort,
@@ -284,7 +284,7 @@ boost::asio::ip::address IOModuleBase::findSourceForDestination(const boost::asi
    // - Obtain local address
    // - Write this information into a cache for later lookup
    try {
-      boost::asio::io_service        ioService;
+      boost::asio::io_context        ioService;
       boost::asio::ip::udp::endpoint destinationEndpoint(destinationAddress, 7);
       boost::asio::ip::udp::socket   udpSpcket(ioService, (destinationAddress.is_v6() == true) ?
                                                              boost::asio::ip::udp::v6() :
@@ -432,7 +432,7 @@ bool IOModuleBase::registerIOModule(
    const ProtocolType  moduleType,
    const std::string&  moduleName,
    IOModuleBase*       (*createIOModuleFunction)(
-      boost::asio::io_service&                 ioService,
+      boost::asio::io_context&                 ioService,
       std::map<unsigned short, ResultEntry*>&  resultsMap,
       const boost::asio::ip::address&          sourceAddress,
       const uint16_t                           sourcePort,
@@ -455,7 +455,7 @@ bool IOModuleBase::registerIOModule(
 
 // ###### Create new IO module ##############################################
 IOModuleBase* IOModuleBase::createIOModule(const std::string&                       moduleName,
-                                           boost::asio::io_service&                 ioService,
+                                           boost::asio::io_context&                 ioService,
                                            std::map<unsigned short, ResultEntry*>&  resultsMap,
                                            const boost::asio::ip::address&          sourceAddress,
                                            const uint16_t                           sourcePort,

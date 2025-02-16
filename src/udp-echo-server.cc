@@ -38,7 +38,7 @@
 class UDPEchoInstance
 {
    public:
-   UDPEchoInstance(boost::asio::io_service&        ioService,
+   UDPEchoInstance(boost::asio::io_context&        ioService,
                    const boost::asio::ip::address& localAddress,
                    const uint16_t                  localPort);
    ~UDPEchoInstance();
@@ -46,7 +46,7 @@ class UDPEchoInstance
    void handleMessage(const boost::system::error_code& errorCode,
                       std::size_t                      bytesReceived);
 
-   boost::asio::io_service&             IOService;
+   boost::asio::io_context&             IOService;
    const boost::asio::ip::udp::endpoint LocalEndpoint;
    boost::asio::ip::udp::socket         UDPSocket;
    boost::asio::ip::udp::endpoint       RemoteEndpoint;
@@ -55,7 +55,7 @@ class UDPEchoInstance
 
 
 // ###### Constructor #######################################################
-UDPEchoInstance::UDPEchoInstance(boost::asio::io_service&        ioService,
+UDPEchoInstance::UDPEchoInstance(boost::asio::io_context&        ioService,
                                  const boost::asio::ip::address& localAddress,
                                  const uint16_t                  localPort)
    : IOService(ioService),
@@ -125,7 +125,7 @@ void UDPEchoInstance::handleMessage(const boost::system::error_code& errorCode,
 
 
 // ###### Handle SIGINT #####################################################
-static void signalHandler(boost::asio::io_service*         ioService,
+static void signalHandler(boost::asio::io_context*         ioService,
                           const boost::system::error_code& errorCode,
                           int                              signalNumber)
 {
@@ -235,7 +235,7 @@ int main(int argc, char *argv[])
    }
 
    // ------ Handle SIGINT --------------------------------------------------
-   boost::asio::io_service ioService;
+   boost::asio::io_context ioService;
    boost::asio::signal_set signals(ioService, SIGINT);
    signals.async_wait(std::bind(&signalHandler, &ioService,
                                 std::placeholders::_1,

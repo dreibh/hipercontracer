@@ -48,7 +48,7 @@
 
 
 // ###### Constructor #######################################################
-ICMPModule::ICMPModule(boost::asio::io_service&                 ioService,
+ICMPModule::ICMPModule(boost::asio::io_context&                 ioService,
                        std::map<unsigned short, ResultEntry*>&  resultsMap,
                        const boost::asio::ip::address&          sourceAddress,
                        const uint16_t                           sourcePort,

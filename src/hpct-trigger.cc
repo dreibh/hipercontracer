@@ -58,7 +58,7 @@ static std::set<boost::asio::ip::address>                    DestinationArray;
 static std::map<boost::asio::ip::address, TargetInfo*>       TargetMap;
 static std::set<ResultsWriter*>                              ResultsWriterSet;
 static std::set<Service*>                                    ServiceSet;
-static boost::asio::io_service                               IOService;
+static boost::asio::io_context                               IOService;
 static boost::asio::basic_raw_socket<boost::asio::ip::icmp>  SnifferSocketV4(IOService);
 static boost::asio::basic_raw_socket<boost::asio::ip::icmp>  SnifferSocketV6(IOService);
 static boost::asio::ip::icmp::endpoint                       IncomingPingSource;

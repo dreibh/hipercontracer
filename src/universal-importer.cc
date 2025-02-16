@@ -55,7 +55,7 @@ bool operator<(const UniversalImporter::WorkerMapping& a,
 
 
 // ###### Constructor #######################################################
-UniversalImporter::UniversalImporter(boost::asio::io_service&     ioService,
+UniversalImporter::UniversalImporter(boost::asio::io_context&     ioService,
                                      const ImporterConfiguration& importerConfiguration,
                                      const DatabaseConfiguration& databaseConfiguration)
  : IOService(ioService),

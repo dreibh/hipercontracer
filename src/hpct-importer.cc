@@ -200,7 +200,7 @@ int main(int argc, char** argv)
    initialiseLogger(logLevel, logColor,
                     (logFile != std::filesystem::path()) ? logFile.string().c_str() : nullptr);
 
-   boost::asio::io_service ioService;
+   boost::asio::io_context ioService;
    UniversalImporter importer(ioService, importerConfiguration, databaseConfiguration);
 
 

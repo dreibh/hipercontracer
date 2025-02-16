@@ -50,7 +50,7 @@
 
 
 // ###### Constructor #######################################################
-UDPModule::UDPModule(boost::asio::io_service&                 ioService,
+UDPModule::UDPModule(boost::asio::io_context&                 ioService,
                      std::map<unsigned short, ResultEntry*>&  resultsMap,
                      const boost::asio::ip::address&          sourceAddress,
                      const uint16_t                           sourcePort,
