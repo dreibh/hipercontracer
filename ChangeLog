@@ -1,3 +1,27 @@
+commit 08682cc15e649de39bf58e676cfa7b17c8cf1278
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Sun Feb 16 11:48:38 2025 +0100
+
+    Output formatting improvement.
+
+commit 8073144d03cba23271e135824ebc365e618e3ec7
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Sun Feb 16 11:48:16 2025 +0100
+
+    Bugfix: Properly handle IPv6 source address changes of the system in ICMP module.
+
+commit 4b83a5d7cfdf3554442ddf176a00dbc3f1b023a7
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Sun Feb 16 11:23:26 2025 +0100
+
+    BOOST renamed boost::asio::ip::tcp::resolver::iterator to boost::asio::ip::tcp::resolver::results_type.
+
+commit c349fd7fb7eacda29e384f14248e95bfceb92258
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Sun Feb 16 11:00:17 2025 +0100
+
+    New release hipercontracer-2.0.3.
+
 commit 334d8f552fde0de5bd86623515085ef05bcd5165
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Sun Feb 16 10:56:41 2025 +0100
