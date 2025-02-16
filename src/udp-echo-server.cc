@@ -211,7 +211,7 @@ int main(int argc, char *argv[])
    const unsigned int ports = 1U + localPortTo - localPortFrom;
 
    try {
-      localAddress = boost::asio::ip::address::from_string(localAddressString);
+      localAddress = boost::asio::ip::make_address(localAddressString);
    }
    catch(std::exception& e) {
       std::cerr << "ERROR: Invalid address: " << e.what() << "\n";
