@@ -65,7 +65,9 @@ const char* getStatusColor(const HopStatus hopStatus)
     break;
 const char* getStatusName(const HopStatus hopStatus)
 {
-   switch(hopStatus) {
+   // Mask out the flags here, so only the status remains:
+   const unsigned int status = (unsigned int)hopStatus & 0xff;
+   switch(status) {
       MakeCase(Success)
       MakeCase(Timeout)
       MakeCase(Unknown)
@@ -84,8 +86,10 @@ const char* getStatusName(const HopStatus hopStatus)
       MakeCase(NotAvailableAddress)
       MakeCase(NotValidMsgSize)
       MakeCase(NotEnoughBufferSpace)
+      default:
+         return "Unknown";
+       break;
    }
-   return "Unknown";
 }
 
 
