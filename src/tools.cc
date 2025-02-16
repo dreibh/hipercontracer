@@ -188,13 +188,13 @@ bool addSourceAddress(std::map<boost::asio::ip::address, std::set<uint8_t>>& arr
                addressString, "0", boost::asio::ip::tcp::resolver::query::numeric_service);
             boost::asio::ip::tcp::resolver resolver(ios);
             boost::system::error_code ec;
-            boost::asio::ip::tcp::resolver::iterator iterator =
+            boost::asio::ip::tcp::resolver::results_type iterator =
                resolver.resolve(resolver_query, ec);
             if(ec) {
                HPCT_LOG(error) << "Failed to resolve a DNS name " << addressString << ": " << ec.message();
                return false;
             }
-            for(   ; iterator != boost::asio::ip::tcp::resolver::iterator(); iterator++) {
+            for(   ; iterator != boost::asio::ip::tcp::resolver::results_type(); iterator++) {
                const boost::asio::ip::tcp::endpoint& endpoint = *iterator;
                HPCT_LOG(info) << addressString << " -> " << endpoint.address().to_string();
                addSourceAddress(array, endpoint.address().to_string(), false);
@@ -256,13 +256,13 @@ bool addDestinationAddress(std::set<boost::asio::ip::address>& array,
             addressString, "0", boost::asio::ip::tcp::resolver::query::numeric_service);
          boost::asio::ip::tcp::resolver resolver(ios);
          boost::system::error_code ec;
-         boost::asio::ip::tcp::resolver::iterator iterator =
+         boost::asio::ip::tcp::resolver::results_type iterator =
             resolver.resolve(resolver_query, ec);
          if(ec) {
             HPCT_LOG(error) << "Failed to resolve a DNS name " << addressString << ": " << ec.message();
             return false;
          }
-         for(   ; iterator != boost::asio::ip::tcp::resolver::iterator(); iterator++) {
+         for(   ; iterator != boost::asio::ip::tcp::resolver::results_type(); iterator++) {
             const boost::asio::ip::tcp::endpoint endpoint = *iterator;
             HPCT_LOG(info) << addressString << " -> " << endpoint.address().to_string();
             addDestinationAddress(array, endpoint.address().to_string(), false);
