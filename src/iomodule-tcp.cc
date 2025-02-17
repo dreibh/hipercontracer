@@ -61,7 +61,7 @@ TCPModule::TCPModule(boost::asio::io_service&                 ioService,
    : ICMPModule(ioService, resultsMap, sourceAddress, sourcePort, destinationPort,
                 newResultCallback,
                 packetSize),
-     RawTCPSocket(IOService, (sourceAddress.is_v6() == true) ? raw_tcp::v6() :
+     RawTCPSocket(IOContext, (sourceAddress.is_v6() == true) ? raw_tcp::v6() :
                                                                raw_tcp::v4() )
 {
    // Overhead: IPv4 Header (20)/IPv6 Header (40) + TCP Header (20) + TCP Options (16)

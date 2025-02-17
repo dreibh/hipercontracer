@@ -38,7 +38,7 @@
 class UDPEchoInstance
 {
    public:
-   UDPEchoInstance(boost::asio::io_service&        ioService,
+   UDPEchoInstance(boost::asio::io_context&        ioContext,
                    const boost::asio::ip::address& localAddress,
                    const uint16_t                  localPort);
    ~UDPEchoInstance();
@@ -46,7 +46,7 @@ class UDPEchoInstance
    void handleMessage(const boost::system::error_code& errorCode,
                       std::size_t                      bytesReceived);
 
-   boost::asio::io_service&             IOService;
+   boost::asio::io_context&             IOContext;
    const boost::asio::ip::udp::endpoint LocalEndpoint;
    boost::asio::ip::udp::socket         UDPSocket;
    boost::asio::ip::udp::endpoint       RemoteEndpoint;
@@ -55,12 +55,12 @@ class UDPEchoInstance
 
 
 // ###### Constructor #######################################################
-UDPEchoInstance::UDPEchoInstance(boost::asio::io_service&        ioService,
+UDPEchoInstance::UDPEchoInstance(boost::asio::io_context&        ioContext,
                                  const boost::asio::ip::address& localAddress,
                                  const uint16_t                  localPort)
-   : IOService(ioService),
+   : IOContext(ioContext),
      LocalEndpoint(localAddress, localPort),
-     UDPSocket(IOService, (localAddress.is_v6() == true) ?
+     UDPSocket(IOContext, (localAddress.is_v6() == true) ?
                               boost::asio::ip::udp::v6() :
                               boost::asio::ip::udp::v4())
 {
@@ -125,12 +125,12 @@ void UDPEchoInstance::handleMessage(const boost::system::error_code& errorCode,
 
 
 // ###### Handle SIGINT #####################################################
-static void signalHandler(boost::asio::io_service*         ioService,
+static void signalHandler(boost::asio::io_context*         ioContext,
                           const boost::system::error_code& errorCode,
                           int                              signalNumber)
 {
    std::cout << "\nGot signal " << signalNumber << "\n";
-   ioService->stop();
+   ioContext->stop();
 }
 
 
@@ -211,7 +211,7 @@ int main(int argc, char *argv[])
    const unsigned int ports = 1U + localPortTo - localPortFrom;
 
    try {
-      localAddress = boost::asio::ip::address::from_string(localAddressString);
+      localAddress = boost::asio::ip::make_address(localAddressString);
    }
    catch(std::exception& e) {
       std::cerr << "ERROR: Invalid address: " << e.what() << "\n";
@@ -235,9 +235,9 @@ int main(int argc, char *argv[])
    }
 
    // ------ Handle SIGINT --------------------------------------------------
-   boost::asio::io_service ioService;
-   boost::asio::signal_set signals(ioService, SIGINT);
-   signals.async_wait(std::bind(&signalHandler, &ioService,
+   boost::asio::io_context ioContext;
+   boost::asio::signal_set signals(ioContext, SIGINT);
+   signals.async_wait(std::bind(&signalHandler, &ioContext,
                                 std::placeholders::_1,
                                 std::placeholders::_2));
 
@@ -246,7 +246,7 @@ int main(int argc, char *argv[])
    for(unsigned int p = 0; p  < ports; p++) {
       const uint16_t localPort = p + localPortFrom;
       try {
-         udpEchoInstance[p] = new UDPEchoInstance(ioService, localAddress, localPort);
+         udpEchoInstance[p] = new UDPEchoInstance(ioContext, localAddress, localPort);
       }
       catch(std::exception& e) {
          HPCT_LOG(fatal) << "Unable to bind UDP socket to source address "
@@ -268,7 +268,7 @@ int main(int argc, char *argv[])
    }
 
    // ====== Main loop ======================================================
-   ioService.run();
+   ioContext.run();
 
    // ====== Clean up =======================================================
    for(unsigned int p = 0; p  < ports; p++) {
