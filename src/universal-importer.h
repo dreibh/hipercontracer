@@ -45,7 +45,7 @@ class Worker;
 class UniversalImporter
 {
    public:
-   UniversalImporter(boost::asio::io_service&     ioService,
+   UniversalImporter(boost::asio::io_context&     ioContext,
                      const ImporterConfiguration& importerConfiguration,
                      const DatabaseConfiguration& databaseConfiguration);
    ~UniversalImporter();
@@ -90,7 +90,7 @@ class UniversalImporter
    friend bool operator<(const UniversalImporter::WorkerMapping& a,
                          const UniversalImporter::WorkerMapping& b);
 
-   boost::asio::io_service&                 IOService;
+   boost::asio::io_context&                 IOContext;
    const ImporterConfiguration&             ImporterConfig;
    const DatabaseConfiguration&             DatabaseConfig;
    const bool                               HasImportPathFilter;

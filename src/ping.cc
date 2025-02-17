@@ -353,7 +353,7 @@ void Ping::writePingResultEntry(const ResultEntry* resultEntry,
       const std::string sw = (nsSoftware < 0) ? "---" : str(boost::format("%3.3fms") % (nsSoftware / 1000000.0));
       const std::string hw = (nsHardware < 0) ? "---" : str(boost::format("%3.3fms") % (nsHardware / 1000000.0));
 
-      std::cout << boost::format("%s%s: Ping %-4s  %-36s %-36s %s  s:%s q:%s r:%s  A:%-9s S:%-9s H:%-9s\e[0m\n")
+      std::cout << boost::format("%s%s: Ping %-4s  %-39s %-39s %s  s:%s q:%s r:%s  A:%-9s S:%-9s H:%-9s\e[0m\n")
                       % getStatusColor(resultEntry->status())
                       % timePointToString<ResultTimePoint>(resultEntry->sendTime(TXTimeStampType::TXTST_Application), 3)
                       % IOModule->getProtocolName()

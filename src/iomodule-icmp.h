@@ -45,7 +45,7 @@ struct icmp_filter {
 class ICMPModule : public IOModuleBase
 {
    public:
-   ICMPModule(boost::asio::io_service&                 ioService,
+   ICMPModule(boost::asio::io_context&                 ioContext,
               std::map<unsigned short, ResultEntry*>&  resultsMap,
               const boost::asio::ip::address&          sourceAddress,
               const uint16_t                           sourcePort,

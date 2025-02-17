@@ -1,4 +1,4 @@
-// ==========================================================================
+
 //     _   _ _ ____            ____          _____
 //    | | | (_)  _ \ ___ _ __ / ___|___  _ _|_   _| __ __ _  ___ ___ _ __
 //    | |_| | | |_) / _ \ '__| |   / _ \| '_ \| || '__/ _` |/ __/ _ \ '__|
@@ -70,10 +70,10 @@ Traceroute::Traceroute(const std::string                moduleName,
      TracerouteInstanceName(std::string("Traceroute(") + sourceAddress.to_string() + std::string(")")),
      RemoveDestinationAfterRun(removeDestinationAfterRun),
      Parameters(parameters),
-     IOService(),
+     IOContext(),
      SourceAddress(sourceAddress),
-     TimeoutTimer(IOService),
-     IntervalTimer(IOService)
+     TimeoutTimer(IOContext),
+     IntervalTimer(IOContext)
 {
    assure(Parameters.Rounds >= 1);
    assure(Parameters.InitialMaxTTL >= 1);
@@ -84,7 +84,7 @@ Traceroute::Traceroute(const std::string                moduleName,
    // ====== Some initialisations ===========================================
    IOModule = IOModuleBase::createIOModule(
                  moduleName,
-                 IOService, ResultsMap, SourceAddress, Parameters.SourcePort, Parameters.DestinationPort,
+                 IOContext, ResultsMap, SourceAddress, Parameters.SourcePort, Parameters.DestinationPort,
                  std::bind(&Traceroute::newResult, this, std::placeholders::_1),
                  Parameters.PacketSize);
    if(IOModule == nullptr) {
@@ -198,9 +198,9 @@ bool Traceroute::start()
 // ###### Request stop of thread ############################################
 void Traceroute::requestStop() {
    StopRequested.exchange(true);
-   IOService.post(std::bind(&Traceroute::cancelIntervalEvent, this));
-   IOService.post(std::bind(&Traceroute::cancelTimeoutEvent, this));
-   IOService.post(std::bind(&IOModuleBase::cancelSocket, IOModule));
+   boost::asio::post(IOContext, std::bind(&Traceroute::cancelIntervalEvent, this));
+   boost::asio::post(IOContext, std::bind(&Traceroute::cancelTimeoutEvent, this));
+   boost::asio::post(IOContext, std::bind(&IOModuleBase::cancelSocket, IOModule));
 }
 
 
@@ -273,7 +273,7 @@ void Traceroute::run()
 {
    prepareRun(true);
    sendRequests();
-   IOService.run();
+   IOContext.run();
 }
 
 
@@ -557,9 +557,9 @@ void Traceroute::processResults()
       // Checksum: the first 64 bits of the SHA-1 sum over path string
       boost::uuids::detail::sha1 sha1Hash;
       sha1Hash.process_bytes(pathString.c_str(), pathString.length());
-      uint32_t digest[5];
+      boost::uuids::detail::sha1::digest_type digest;
       sha1Hash.get_digest(digest);
-      const uint64_t pathHash    = ((uint64_t)digest[0] << 32) | (uint64_t)digest[1];
+      const uint64_t pathHash    = ((uint64_t)((uint32_t*)&digest)[0] << 32) | (uint64_t)((uint32_t*)&digest)[1];
       unsigned int   statusFlags = 0x0000;
       if(!completeTraceroute) {
          statusFlags |= Flag_StarredRoute;

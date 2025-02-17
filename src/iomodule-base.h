@@ -45,7 +45,7 @@ struct sock_extended_err;
 class IOModuleBase
 {
    public:
-   IOModuleBase(boost::asio::io_service&                 ioService,
+   IOModuleBase(boost::asio::io_context&                 ioContext,
                 std::map<unsigned short, ResultEntry*>&  resultsMap,
                 const boost::asio::ip::address&          sourceAddress,
                 const uint16_t                           sourcePort,
@@ -76,9 +76,7 @@ class IOModuleBase
                                const boost::asio::ip::address sourceAddress);
 
    static const boost::asio::ip::address& unspecifiedAddress(const bool ipv6);
-#if 0
    static boost::asio::ip::address findSourceForDestination(const boost::asio::ip::address& destinationAddress);
-#endif
 
 
    struct ReceivedData {
@@ -103,7 +101,7 @@ class IOModuleBase
    static bool registerIOModule(const ProtocolType  moduleType,
                                 const std::string&  moduleName,
                                 IOModuleBase* (*createIOModuleFunction)(
-                                   boost::asio::io_service&                 ioService,
+                                   boost::asio::io_context&                 ioContext,
                                    std::map<unsigned short, ResultEntry*>&  resultsMap,
                                    const boost::asio::ip::address&          sourceAddress,
                                    const uint16_t                           sourcePort,
@@ -111,7 +109,7 @@ class IOModuleBase
                                    std::function<void (const ResultEntry*)> newResultCallback,
                                    const unsigned int                       packetSize));
    static IOModuleBase* createIOModule(const std::string&                       moduleName,
-                                       boost::asio::io_service&                 ioService,
+                                       boost::asio::io_context&                 ioContext,
                                        std::map<unsigned short, ResultEntry*>&  resultsMap,
                                        const boost::asio::ip::address&          sourceAddress,
                                        const uint16_t                           sourcePort,
@@ -121,15 +119,11 @@ class IOModuleBase
    static bool checkIOModule(const std::string& moduleName);
 
    protected:
-   static boost::asio::ip::address UnspecIPv4;
-   static boost::asio::ip::address UnspecIPv6;
-#if 0
-   static std::map<boost::asio::ip::address, boost::asio::ip::address> SourceForDestinationMap;
-   static std::mutex                                                   SourceForDestinationMapMutex;
-#endif
+   static boost::asio::ip::address          UnspecIPv4;
+   static boost::asio::ip::address          UnspecIPv6;
 
    std::string                              Name;
-   boost::asio::io_service&                 IOService;
+   boost::asio::io_context&                 IOContext;
    std::map<unsigned short, ResultEntry*>&  ResultsMap;
    const boost::asio::ip::address&          SourceAddress;
    const uint16_t                           SourcePort;
@@ -146,7 +140,7 @@ class IOModuleBase
       std::string  Name;
       ProtocolType Type;
       IOModuleBase* (*CreateIOModuleFunction)(
-         boost::asio::io_service&                 ioService,
+         boost::asio::io_context&                 ioContext,
          std::map<unsigned short, ResultEntry*>&  resultsMap,
          const boost::asio::ip::address&          sourceAddress,
          const uint16_t                           sourcePort,
@@ -159,14 +153,14 @@ class IOModuleBase
 };
 
 #define REGISTER_IOMODULE(moduleType, moduleName, iomodule) \
-   static IOModuleBase* createIOModule_##iomodule(boost::asio::io_service&                 ioService, \
+   static IOModuleBase* createIOModule_##iomodule(boost::asio::io_context&                 ioContext, \
                                                   std::map<unsigned short, ResultEntry*>&  resultsMap, \
                                                   const boost::asio::ip::address&          sourceAddress, \
                                                   const uint16_t                           sourcePort, \
                                                   const uint16_t                           destinationPort, \
                                                   std::function<void (const ResultEntry*)> newResultCallback, \
                                                   const unsigned int                       packetSize) { \
-      return new iomodule(ioService, resultsMap, sourceAddress, sourcePort, destinationPort, newResultCallback, packetSize); \
+      return new iomodule(ioContext, resultsMap, sourceAddress, sourcePort, destinationPort, newResultCallback, packetSize); \
    } \
    static bool Registered_##iomodule = IOModuleBase::registerIOModule(moduleType, moduleName, createIOModule_##iomodule);
 
