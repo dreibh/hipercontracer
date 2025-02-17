@@ -1,5 +1,5 @@
 PORTNAME=	hipercontracer
-DISTVERSION=	2.0.1
+DISTVERSION=	2.0.5
 CATEGORIES=	benchmarks
 MASTER_SITES=	https://www.nntb.no/~dreibh/hipercontracer/download/
 
@@ -10,25 +10,29 @@ WWW=		https://www.nntb.no/~dreibh/hipercontracer/
 LICENSE=	GPLv3+
 LICENSE_FILE=	${WRKSRC}/COPYING
 
-LIB_DEPENDS=	libbz2.so:archivers/bzip2 \
-		libcares.so:dns/c-ares \
-		libinotify.so:devel/libinotify \
+LIB_DEPENDS=	libinotify.so:devel/libinotify \
 		libboost_date_time.so:devel/boost-libs \
 		libboost_filesystem.so:devel/boost-libs \
 		libboost_iostreams.so:devel/boost-libs \
 		libboost_log.so:devel/boost-libs \
 		libboost_program_options.so:devel/boost-libs \
 		libboost_system.so:devel/boost-libs \
-		libboost_thread.so:devel/boost-libs \
-		liblzma.so:archivers/lzma
+		libboost_thread.so:devel/boost-libs
 
 USES=		cmake \
 		compiler:c++20-lang \
 		desktop-file-utils \
 		python \
 		shared-mime-info \
+		shebangfix \
+		ssl \
 		tar:xz
 USE_LDCONFIG=	yes
+
+SHEBANG_FILES=	src/results-examples/r-traceroute-example \
+		src/results-examples/r-ping-example \
+		src/results-examples/r-install-dependencies \
+		src/TestDB/generate-test-certificates
 
 PLIST_SUB=	PORTVERSION=${PORTVERSION}
 
@@ -73,7 +77,8 @@ IMPPGSQL_MAKE_BOOL=		ENABLE_BACKEND_POSTGRESQL
 IMPPGSQL_LIB_DEPENDS=		libpqxx.so:databases/postgresql-libpqxx
 
 IMPMONGO_CMAKE_BOOL=		ENABLE_BACKEND_MONGODB
-IMPMONGO_LIB_DEPENDS=		libmongoc-1.0.so:devel/mongo-c-driver
+IMPMONGO_LIB_DEPENDS=		libmongoc-1.0.so:devel/mongo-c-driver \
+                                libbson-1.0.so:devel/libbson
 
 ICONS_CMAKE_BOOL=		WITH_ICONS
 ICONS_BUILD_DEPENDS=		gm:graphics/GraphicsMagick \

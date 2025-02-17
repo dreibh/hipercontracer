@@ -48,20 +48,20 @@
 
 
 // ###### Constructor #######################################################
-ICMPModule::ICMPModule(boost::asio::io_service&                 ioService,
+ICMPModule::ICMPModule(boost::asio::io_context&                 ioContext,
                        std::map<unsigned short, ResultEntry*>&  resultsMap,
                        const boost::asio::ip::address&          sourceAddress,
                        const uint16_t                           sourcePort,
                        const uint16_t                           destinationPort,
                        std::function<void (const ResultEntry*)> newResultCallback,
                        const unsigned int                       packetSize)
-   : IOModuleBase(ioService, resultsMap, sourceAddress, sourcePort, destinationPort,
+   : IOModuleBase(ioContext, resultsMap, sourceAddress, sourcePort, destinationPort,
                   newResultCallback),
-     ICMPSocket(IOService, (sourceAddress.is_v6() == true) ? boost::asio::ip::icmp::v6() :
+     ICMPSocket(IOContext, (sourceAddress.is_v6() == true) ? boost::asio::ip::icmp::v6() :
                                                              boost::asio::ip::icmp::v4() ),
-     UDPSocket(IOService, (sourceAddress.is_v6() == true) ? boost::asio::ip::udp::v6() :
+     UDPSocket(IOContext, (sourceAddress.is_v6() == true) ? boost::asio::ip::udp::v6() :
                                                             boost::asio::ip::udp::v4() ),
-     TCPSocket(IOService, (sourceAddress.is_v6() == true) ? boost::asio::ip::tcp::v6() :
+     TCPSocket(IOContext, (sourceAddress.is_v6() == true) ? boost::asio::ip::tcp::v6() :
                                                             boost::asio::ip::tcp::v4() )
 {
    // Overhead: IPv4 Header (20)/IPv6 Header (40) + ICMP Header (8)
@@ -154,7 +154,9 @@ bool ICMPModule::prepareSocket()
       }
   }
 #else
+#if !defined(__FreeBSD__)
 #warning No ICMP_FILTER!
+#endif
 #endif
 
    // ====== Await incoming message or error ================================
@@ -208,11 +210,11 @@ unsigned int ICMPModule::sendRequest(const DestinationInfo& destination,
                                      uint16_t&              seqNumber,
                                      uint32_t*              targetChecksumArray)
 {
+   const boost::asio::ip::icmp::endpoint remoteEndpoint(destination.address(), 0);
    const boost::asio::ip::icmp::endpoint localEndpoint(SourceAddress.is_unspecified() ?
-                                                          unspecifiedAddress(destination.address().is_v6()) :
+                                                          findSourceForDestination(destination.address()) :
                                                           SourceAddress,
                                                        0);
-   const boost::asio::ip::icmp::endpoint remoteEndpoint(destination.address(), 0);
 
    // ====== Set TOS/Traffic Class ==========================================
    int level;

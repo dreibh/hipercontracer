@@ -66,7 +66,7 @@ class raw_udp
 class UDPModule : public ICMPModule
 {
    public:
-   UDPModule(boost::asio::io_service&                 ioService,
+   UDPModule(boost::asio::io_context&                 ioContext,
              std::map<unsigned short, ResultEntry*>&  resultsMap,
              const boost::asio::ip::address&          sourceAddress,
              const uint16_t                           sourcePort,

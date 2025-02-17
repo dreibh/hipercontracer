@@ -130,7 +130,7 @@ class Traceroute : public Service
    const std::string                       TracerouteInstanceName;
    const bool                              RemoveDestinationAfterRun;
    const TracerouteParameters              Parameters;
-   boost::asio::io_service                 IOService;
+   boost::asio::io_context                 IOContext;
    boost::asio::ip::address                SourceAddress;
    std::recursive_mutex                    DestinationMutex;
    std::set<DestinationInfo>               Destinations;

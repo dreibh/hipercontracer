@@ -60,13 +60,13 @@ std::list<IOModuleBase::RegisteredIOModule*>* IOModuleBase::IOModuleList = nullp
 
 
 // ###### Constructor #######################################################
-IOModuleBase::IOModuleBase(boost::asio::io_service&                 ioService,
+IOModuleBase::IOModuleBase(boost::asio::io_context&                 ioContext,
                            std::map<unsigned short, ResultEntry*>&  resultsMap,
                            const boost::asio::ip::address&          sourceAddress,
                            const uint16_t                           sourcePort,
                            const uint16_t                           destinationPort,
                            std::function<void (const ResultEntry*)> newResultCallback)
-   : IOService(ioService),
+   : IOContext(ioContext),
      ResultsMap(resultsMap),
      SourceAddress(sourceAddress),
      SourcePort(sourcePort),
@@ -103,7 +103,9 @@ bool IOModuleBase::configureSocket(const int                      socketDescript
       return false;
    }
 #else
+#if !defined(__FreeBSD__)
 #warning No IP_RECVERR/IPV6_RECVERR!
+#endif
 #endif
 
    // ====== Try to use SO_TIMESTAMPING option ==============================
@@ -130,7 +132,9 @@ bool IOModuleBase::configureSocket(const int                      socketDescript
       HPCT_LOG(error) << "Unable to enable SO_TIMESTAMPING option on socket: "
                       << strerror(errno);
 #else
+#if !defined(__FreeBSD__)
 #warning No SO_TIMESTAMPING!
+#endif
 #endif
 
       // ====== Try to use SO_TIMESTAMPNS ===================================
@@ -139,7 +143,9 @@ bool IOModuleBase::configureSocket(const int                      socketDescript
                     &on, sizeof(on)) < 0) {
 
 #else
+#if !defined(__FreeBSD__)
 #warning No SO_TIMESTAMPNS!
+#endif
 #endif
 
          // ====== Try to use SO_TIMESTAMP ==================================
@@ -277,22 +283,9 @@ const boost::asio::ip::address& IOModuleBase::unspecifiedAddress(const bool ipv6
 }
 
 
-#if 0
-std::map<boost::asio::ip::address, boost::asio::ip::address> IOModuleBase::SourceForDestinationMap;
-std::mutex                                                   IOModuleBase::SourceForDestinationMapMutex;
-
 // ###### Find source address for given destination address #################
 boost::asio::ip::address IOModuleBase::findSourceForDestination(const boost::asio::ip::address& destinationAddress)
 {
-   std::lock_guard<std::mutex> lock(SourceForDestinationMapMutex);
-
-   // ====== Cache lookup ===================================================
-   std::map<boost::asio::ip::address, boost::asio::ip::address>::const_iterator found =
-      SourceForDestinationMap.find(destinationAddress);
-   if(found != SourceForDestinationMap.end()) {
-      return found->second;
-   }
-
    // ====== Get source address from kernel =================================
    // Procedure:
    // - Create UDP socket
@@ -300,22 +293,18 @@ boost::asio::ip::address IOModuleBase::findSourceForDestination(const boost::asi
    // - Obtain local address
    // - Write this information into a cache for later lookup
    try {
-      boost::asio::io_service        ioService;
+      boost::asio::io_context        ioContext;
       boost::asio::ip::udp::endpoint destinationEndpoint(destinationAddress, 7);
-      boost::asio::ip::udp::socket   udpSpcket(ioService, (destinationAddress.is_v6() == true) ?
+      boost::asio::ip::udp::socket   udpSpcket(ioContext, (destinationAddress.is_v6() == true) ?
                                                              boost::asio::ip::udp::v6() :
                                                              boost::asio::ip::udp::v4());
       udpSpcket.connect(destinationEndpoint);
-      const boost::asio::ip::address sourceAddress = udpSpcket.local_endpoint().address();
-      SourceForDestinationMap.insert(std::pair<boost::asio::ip::address, boost::asio::ip::address>(destinationAddress,
-                                                                                                   sourceAddress));
-      return sourceAddress;
+      return udpSpcket.local_endpoint().address();
    }
    catch(...) {
       return unspecifiedAddress(destinationAddress.is_v6());
    }
 }
-#endif
 
 
 // ###### Record result from response message ###############################
@@ -452,7 +441,7 @@ bool IOModuleBase::registerIOModule(
    const ProtocolType  moduleType,
    const std::string&  moduleName,
    IOModuleBase*       (*createIOModuleFunction)(
-      boost::asio::io_service&                 ioService,
+      boost::asio::io_context&                 ioContext,
       std::map<unsigned short, ResultEntry*>&  resultsMap,
       const boost::asio::ip::address&          sourceAddress,
       const uint16_t                           sourcePort,
@@ -475,7 +464,7 @@ bool IOModuleBase::registerIOModule(
 
 // ###### Create new IO module ##############################################
 IOModuleBase* IOModuleBase::createIOModule(const std::string&                       moduleName,
-                                           boost::asio::io_service&                 ioService,
+                                           boost::asio::io_context&                 ioContext,
                                            std::map<unsigned short, ResultEntry*>&  resultsMap,
                                            const boost::asio::ip::address&          sourceAddress,
                                            const uint16_t                           sourcePort,
@@ -486,7 +475,7 @@ IOModuleBase* IOModuleBase::createIOModule(const std::string&                   
    for(RegisteredIOModule* registeredIOModule : *IOModuleList) {
       if(registeredIOModule->Name == moduleName) {
          return registeredIOModule->CreateIOModuleFunction(
-                   ioService, resultsMap, sourceAddress, sourcePort, destinationPort,
+                   ioContext, resultsMap, sourceAddress, sourcePort, destinationPort,
                    newResultCallback,
                    packetSize);
       }

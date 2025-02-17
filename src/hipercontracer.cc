@@ -51,10 +51,10 @@ static std::map<boost::asio::ip::address, std::set<uint8_t>> SourceArray;
 static std::set<boost::asio::ip::address>                    DestinationArray;
 static std::set<ResultsWriter*>                              ResultsWriterSet;
 static std::set<Service*>                                    ServiceSet;
-static boost::asio::io_service                               IOService;
-static boost::asio::signal_set                               Signals(IOService, SIGINT, SIGTERM);
+static boost::asio::io_context                               IOContext;
+static boost::asio::signal_set                               Signals(IOContext, SIGINT, SIGTERM);
 static boost::posix_time::milliseconds                       CleanupTimerInterval(1000);
-static boost::asio::deadline_timer                           CleanupTimer(IOService, CleanupTimerInterval);
+static boost::asio::deadline_timer                           CleanupTimer(IOContext, CleanupTimerInterval);
 
 
 // ###### Signal handler ####################################################
@@ -799,7 +799,7 @@ int main(int argc, char** argv)
    // ====== Wait for termination signal ====================================
    Signals.async_wait(signalHandler);
    CleanupTimer.async_wait(tryCleanup);
-   IOService.run();
+   IOContext.run();
 
 
    // ====== Shut down service threads ======================================

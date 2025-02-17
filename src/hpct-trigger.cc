@@ -58,14 +58,14 @@ static std::set<boost::asio::ip::address>                    DestinationArray;
 static std::map<boost::asio::ip::address, TargetInfo*>       TargetMap;
 static std::set<ResultsWriter*>                              ResultsWriterSet;
 static std::set<Service*>                                    ServiceSet;
-static boost::asio::io_service                               IOService;
-static boost::asio::basic_raw_socket<boost::asio::ip::icmp>  SnifferSocketV4(IOService);
-static boost::asio::basic_raw_socket<boost::asio::ip::icmp>  SnifferSocketV6(IOService);
+static boost::asio::io_context                               IOContext;
+static boost::asio::basic_raw_socket<boost::asio::ip::icmp>  SnifferSocketV4(IOContext);
+static boost::asio::basic_raw_socket<boost::asio::ip::icmp>  SnifferSocketV6(IOContext);
 static boost::asio::ip::icmp::endpoint                       IncomingPingSource;
 static char                                                  IncomingPingMessageBuffer[4096];
-static boost::asio::signal_set                               Signals(IOService, SIGINT, SIGTERM);
+static boost::asio::signal_set                               Signals(IOContext, SIGINT, SIGTERM);
 static boost::posix_time::milliseconds                       CleanupTimerInterval(1000);
-static boost::asio::deadline_timer                           CleanupTimer(IOService, CleanupTimerInterval);
+static boost::asio::deadline_timer                           CleanupTimer(IOContext, CleanupTimerInterval);
 
 static unsigned int                                          TriggerPingsBeforeQueuing;
 static unsigned int                                          TriggerPingPacketSize;
@@ -77,7 +77,7 @@ static void signalHandler(const boost::system::error_code& error, int signal_num
 {
    if(error != boost::asio::error::operation_aborted) {
       puts("\n*** Shutting down! ***\n");   // Avoids a false positive from Helgrind.
-      IOService.stop();
+      IOContext.stop();
       for(std::set<Service*>::iterator serviceIterator = ServiceSet.begin(); serviceIterator != ServiceSet.end(); serviceIterator++) {
          Service* service = *serviceIterator;
          service->requestStop();
@@ -858,7 +858,7 @@ int main(int argc, char** argv)
    // ====== Wait for termination signal ====================================
    Signals.async_wait(signalHandler);
    CleanupTimer.async_wait(tryCleanup);
-   IOService.run();
+   IOContext.run();
 
 
    // ====== Shut down service threads ======================================

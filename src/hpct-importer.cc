@@ -198,8 +198,8 @@ int main(int argc, char** argv)
    initialiseLogger(logLevel, logColor,
                     (logFile != std::filesystem::path()) ? logFile.string().c_str() : nullptr);
 
-   boost::asio::io_service ioService;
-   UniversalImporter importer(ioService, importerConfiguration, databaseConfiguration);
+   boost::asio::io_context ioContext;
+   UniversalImporter importer(ioContext, importerConfiguration, databaseConfiguration);
 
 
    // ====== Initialise database clients and readers ========================
@@ -271,7 +271,7 @@ int main(int argc, char** argv)
    if(quitWhenIdle) {
      importer.waitForFinish();
    }
-   ioService.run();
+   ioContext.run();
    importer.stop();
 
 
