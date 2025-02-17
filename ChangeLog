@@ -1,3 +1,76 @@
+commit ee053201af23ab521f6a49dd84cac2db92f9608f
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Sun Feb 16 14:27:05 2025 +0100
+
+    Updated CI scripts
+
+commit 049078d8819887a7b5ee53aabf9a4b4c82ed0351
+Merge: a2262211 38be8f34
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Sun Feb 16 14:24:00 2025 +0100
+
+    Merge branch 'master' of https://github.com/dreibh/hipercontracer
+
+commit a2262211c52e8c6f691a759a5d7343c9edcdb89b
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Sun Feb 16 14:23:52 2025 +0100
+
+    FreeBSD packaging update.
+
+commit 38be8f346836ca696b1fdd5e0160dc64a8850da8
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Sun Feb 16 14:04:18 2025 +0100
+
+    R example shebang update to work under FreeBSD.
+
+commit 4116aa071117704c988724b3fd41e4c5956a9ca7
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Sun Feb 16 13:42:40 2025 +0100
+
+    BOOST renamed boost::asio::ip::address::from_string() to boost::asio::ip::make_address().
+
+commit 2af05c314413cb233ed9c0db82ebd919fbe7044f
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Sun Feb 16 13:18:33 2025 +0100
+
+    A fix.
+
+commit 7e2c21f4d6b9c20582ceadae03a203a8206f9ff8
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Sun Feb 16 13:03:32 2025 +0100
+
+    Updated API usage for BOOST resolver, part 3.
+
+commit 11445ed73e7e00bec6f4da56fc6aed78c2ac27a2
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Sun Feb 16 13:00:20 2025 +0100
+
+    Updated API usage for BOOST resolver, part 2.
+
+commit 2e87043cee160bec382bab72cfc9d2fa240ddd47
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Sun Feb 16 12:55:07 2025 +0100
+
+    Updated API usage for BOOST resolver, part 1.
+
+commit 0e3e625a68edd5c972288b2448dbf918ba2d2d24
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Sun Feb 16 12:43:19 2025 +0100
+
+    BOOST changed io_context::post to boost::asio::post.
+
+commit fa8775e9bb736f671cbab9839620785600c961d3
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Sun Feb 16 12:40:07 2025 +0100
+
+    Renamed attribute to reflect new BOOST naming.
+
+commit f20eef884108e58cbe9b656e4fce93c6a701ee2d
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Sun Feb 16 11:52:25 2025 +0100
+
+    New release hipercontracer-2.0.4.
+
 commit 08682cc15e649de39bf58e676cfa7b17c8cf1278
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Sun Feb 16 11:48:38 2025 +0100
