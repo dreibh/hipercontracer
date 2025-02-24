@@ -23,13 +23,16 @@ USES=		cmake compiler:c++20-lang desktop-file-utils python \
 		shared-mime-info shebangfix ssl tar:xz
 USE_LDCONFIG=	yes
 
+USERS=		hipercontracer
+GROUPS=		hipercontracer hpct-nodes
+
 SHEBANG_FILES=	src/results-examples/r-install-dependencies \
 		src/results-examples/r-ping-example \
 		src/results-examples/r-traceroute-example \
 		src/TestDB/generate-test-certificates
 
 SUB_FILES=	pkg-deinstall pkg-install
-PLIST_SUB=	PORTVERSION=${PORTVERSION}
+PLIST_SUB=	DISTVERSION=${DISTVERSION}
 
 OPTIONS_DEFINE=		COLLECTOR DBEAVERTOOLS DBSHELL ICONS IMPMARIADB \
 			IMPMONGO IMPORTER IMPPGSQL NODE QUERYTOOL RESULTSTOOL \
