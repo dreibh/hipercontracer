@@ -31,7 +31,6 @@ SHEBANG_FILES=	src/results-examples/r-install-dependencies \
 		src/results-examples/r-traceroute-example \
 		src/TestDB/generate-test-certificates
 
-SUB_FILES=	pkg-deinstall pkg-install
 PLIST_SUB=	DISTVERSION=${DISTVERSION}
 
 OPTIONS_DEFINE=		COLLECTOR DBEAVERTOOLS DBSHELL ICONS IMPMARIADB \
