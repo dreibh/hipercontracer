@@ -52,7 +52,7 @@ For ready-to-install Ubuntu Linux packages of HiPerConTracer, see [Launchpad PPA
 ```
 sudo apt-add-repository -sy ppa:dreibh/ppa
 sudo apt-get update
-sudo apt-get install td-hipercontracer
+sudo apt-get install hipercontracer
 ```
 
 ### Fedora Linux
@@ -61,19 +61,21 @@ For ready-to-install Fedora Linux packages of HiPerConTracer, see [COPR PPA for 
 
 ```
 sudo dnf copr enable -y dreibh/ppa
-sudo dnf install td-hipercontracer
+sudo dnf install hipercontracer
 ```
 
 ### FreeBSD
 
-For ready-to-install FreeBSD packages of HiPerConTracer, it is included in the ports collection, see [FreeBSD ports tree index of net/td-hipercontracer/](https://cgit.freebsd.org/ports/tree/net/td-hipercontracer/)!
+For ready-to-install FreeBSD packages of HiPerConTracer, it is included in the ports collection, see [FreeBSD ports tree index of net/hipercontracer/](https://cgit.freebsd.org/ports/tree/net/hipercontracer/)!
 
-   pkg install td-hipercontracer
+```
+pkg install hipercontracer
+```
 
 Alternatively, to compile it from the ports sources:
 
 ```
-cd /usr/ports/net/td-hipercontracer
+cd /usr/ports/net/hipercontracer
 make
 make install
 ```
@@ -105,7 +107,7 @@ Contributions:
 
 - CI build tests of HiPerConTracer: [https://github.com/dreibh/hipercontracer/actions](https://github.com/dreibh/hipercontracer/actions).
 
-- Coverity Scan analysis of HiPerConTracer: [https://scan.coverity.com/projects/dreibh-td-hipercontracer](https://scan.coverity.com/projects/dreibh-td-hipercontracer).
+- Coverity Scan analysis of HiPerConTracer: [https://scan.coverity.com/projects/dreibh-hipercontracer](https://scan.coverity.com/projects/dreibh-hipercontracer).
 
 ### Current Stable Release
 
