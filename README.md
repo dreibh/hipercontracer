@@ -43,7 +43,7 @@ Furthermore, the HiPerConTracer Framework provides additional tools for helping 
 
 ## Binary Package Installation
 
-Please use the issue tracker at https://github.com/dreibh/hipercontracer/issues to report bugs and issues!
+Please use the issue tracker at [https://github.com/dreibh/hipercontracer/issues](https://github.com/dreibh/hipercontracer/issues) to report bugs and issues!
 
 ### Ubuntu Linux
 
