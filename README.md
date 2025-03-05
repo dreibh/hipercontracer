@@ -111,7 +111,7 @@ Contributions:
 
 ### Current Stable Release
 
-See [https://www.nntb.no/~dreibh/hipercontracer/#Download](https://www.nntb.no/~dreibh/hipercontracer/#Download)!
+See [https://www.nntb.no/~dreibh/hipercontracer/#StableRelease](https://www.nntb.no/~dreibh/hipercontracer/#StableRelease)!
 
 
 # Running a HiPerConTracer Measurement
