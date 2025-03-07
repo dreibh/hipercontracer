@@ -41,29 +41,77 @@ Furthermore, the HiPerConTracer Framework provides additional tools for helping 
 
 # Installation
 
-Also see the [HiPerConTracer Homepage](https://www.nntb.no/~dreibh/hipercontracer/) for details!
+## Binary Package Installation
 
-## Installing the HiPerConTracer Framework from Binary Packages
+Please use the issue tracker at [https://github.com/dreibh/hipercontracer/issues](https://github.com/dreibh/hipercontracer/issues) to report bugs and issues!
 
-See [Binary Package Installation](https://www.nntb.no/~dreibh/hipercontracer/#Binaries) for ready-to-use binary package installation from repositories for:
+### Ubuntu Linux
 
-- Ubuntu Linux (via [Launchpad PPA](https://launchpad.net/~dreibh/+archive/ubuntu/ppa/+packages?field.name_filter=hipercontracer&field.status_filter=published&field.series_filter=))
-- Fedora Linux (via [COPR PPA](https://copr.fedorainfracloud.org/coprs/dreibh/ppa/package/hipercontracer/))
-- FreeBSD (via [Ports Collection](https://ports.freebsd.org/cgi/ports.cgi?query=hipercontracer&stype=all&sektion=all))
+For ready-to-install Ubuntu Linux packages of HiPerConTracer, see [Launchpad PPA for Thomas Dreibholz](https://launchpad.net/~dreibh/+archive/ubuntu/ppa/+packages?field.name_filter=hipercontracer&field.status_filter=published&field.series_filter=)!
 
-## Building the HiPerConTracer Framework from Sources
-
-Basic procedure:
 ```
+sudo apt-add-repository -sy ppa:dreibh/ppa
+sudo apt-get update
+sudo apt-get install hipercontracer
+```
+
+### Fedora Linux
+
+For ready-to-install Fedora Linux packages of HiPerConTracer, see [COPR PPA for Thomas Dreibholz](https://copr.fedorainfracloud.org/coprs/dreibh/ppa/package/hipercontracer/)!
+
+```
+sudo dnf copr enable -y dreibh/ppa
+sudo dnf install hipercontracer
+```
+
+### FreeBSD
+
+For ready-to-install FreeBSD packages of HiPerConTracer, it is included in the ports collection, see [FreeBSD ports tree index of benchmarks/hipercontracer/](https://cgit.freebsd.org/ports/tree/benchmarks/hipercontracer/)!
+
+```
+pkg install hipercontracer
+```
+
+Alternatively, to compile it from the ports sources:
+
+```
+cd /usr/ports/benchmarks/hipercontracer
+make
+make install
+```
+
+## Sources Download
+
+HiPerConTracer is released under the GNU General Public Licence (GPL).
+
+Please use the issue tracker at [https://github.com/dreibh/hipercontracer/issues](https://github.com/dreibh/hipercontracer/issues) to report bugs and issues!
+
+### Development Version
+
+The Git repository of the HiPerConTracer sources can be found at [https://github.com/dreibh/hipercontracer](https://github.com/dreibh/hipercontracer):
+
+```
+git clone https://github.com/dreibh/hipercontracer
+cd hipercontracer
 cmake .
 make
-sudo make install
 ```
 
-Notes:
+Contributions:
 
-- There are various CMake options to enable/disable database backends and tools. A GUI tool like CCMake provides a comfortable way of configuration.
-- The CMake run will show missing dependencies, and provide help for installing them on Debian, Ubuntu and Fedora Linux as well as on FreeBSD.
+- Issue tracker: [https://github.com/dreibh/hipercontracer/issues](https://github.com/dreibh/hipercontracer/issues).
+  Please submit bug reports, issues, questions, etc. in the issue tracker!
+
+- Pull Requests for HiPerConTracer: [https://github.com/dreibh/hipercontracer/pulls](https://github.com/dreibh/hipercontracer/pulls).
+  Your contributions to HiPerConTracer are always welcome!
+
+- CI build tests of HiPerConTracer: [https://github.com/dreibh/hipercontracer/actions](https://github.com/dreibh/hipercontracer/actions).
+
+- Coverity Scan analysis of HiPerConTracer: [https://scan.coverity.com/projects/dreibh-hipercontracer](https://scan.coverity.com/projects/dreibh-hipercontracer).
+
+### Current Stable Release
+
+See [https://www.nntb.no/~dreibh/hipercontracer/#StableRelease](https://www.nntb.no/~dreibh/hipercontracer/#StableRelease)!
 
 
 # Running a HiPerConTracer Measurement
