@@ -61,7 +61,7 @@ JitterModuleBase::~JitterModuleBase()
 bool JitterModuleBase::registerJitterModule(
    const unsigned int  moduleType,
    const std::string&  moduleName,
-   JitterModuleBase*   (*createJitterModuleFunction)())
+   JitterModuleBase*   (*createJitterModuleFunction)(const unsigned int elements))
 {
    if(JitterModuleList == nullptr) {
       JitterModuleList = new std::list<RegisteredJitterModule*>;
@@ -77,11 +77,12 @@ bool JitterModuleBase::registerJitterModule(
 
 
 // ###### Create new Jitter module ##########################################
-JitterModuleBase* JitterModuleBase::createJitterModule(const JitterType moduleType)
+JitterModuleBase* JitterModuleBase::createJitterModule(const JitterType   moduleType,
+                                                       const unsigned int elements)
 {
    for(RegisteredJitterModule* registeredJitterModule : *JitterModuleList) {
       if(registeredJitterModule->Type == moduleType) {
-         return registeredJitterModule->CreateJitterModuleFunction();
+         return registeredJitterModule->CreateJitterModuleFunction(elements);
       }
    }
    return nullptr;

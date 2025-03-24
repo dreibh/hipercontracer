@@ -38,8 +38,9 @@ const JitterType  JitterModuleIQR::JitterTypeIQR = JT_IQR;
 
 
 // ###### Constructor #######################################################
-JitterModuleIQR::JitterModuleIQR()
+JitterModuleIQR::JitterModuleIQR(const unsigned int elements)
 {
+   RTTVector.reserve(elements);
 }
 
 
@@ -72,7 +73,7 @@ unsigned long long JitterModuleIQR::jitter()
       const unsigned int qi = RTTVector.size() / 4;
       const unsigned int qi25 = qi;
       const unsigned int qi75 = RTTVector.size() - 1 - qi;
-      printf("s=%u i1=%u i2=%u\n", (unsigned int)RTTVector.size(), qi25, qi75);
+      // printf("s=%u i1=%u i2=%u\n", (unsigned int)RTTVector.size(), qi25, qi75);
       return RTTVector[qi75] - RTTVector[qi25];
    }
    return 0;

@@ -38,7 +38,7 @@ const JitterType  JitterModuleRFC3550::JitterTypeRFC3550 = JT_RFC3550;
 
 
 // ###### Constructor #######################################################
-JitterModuleRFC3550::JitterModuleRFC3550()
+JitterModuleRFC3550::JitterModuleRFC3550(const unsigned int elements)
 {
    Packets              = 0;
    Jitter               = 0.0;

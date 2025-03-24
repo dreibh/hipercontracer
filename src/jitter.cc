@@ -134,12 +134,12 @@ void Jitter::computeJitter(const std::vector<ResultEntry*>::const_iterator& star
                            const std::vector<ResultEntry*>::const_iterator& end)
 {
    const ResultEntry* referenceEntry    = nullptr;
-   JitterModuleBase*  jitterQueuing     = JitterModule.CreateJitterModuleFunction();
-   JitterModuleBase*  jitterAppSend     = JitterModule.CreateJitterModuleFunction();
-   JitterModuleBase*  jitterAppReceive  = JitterModule.CreateJitterModuleFunction();
-   JitterModuleBase*  jitterApplication = JitterModule.CreateJitterModuleFunction();
-   JitterModuleBase*  jitterSoftware    = JitterModule.CreateJitterModuleFunction();
-   JitterModuleBase*  jitterHardware    = JitterModule.CreateJitterModuleFunction();
+   JitterModuleBase*  jitterQueuing     = JitterModule.CreateJitterModuleFunction(Parameters.Rounds);
+   JitterModuleBase*  jitterAppSend     = JitterModule.CreateJitterModuleFunction(Parameters.Rounds);
+   JitterModuleBase*  jitterAppReceive  = JitterModule.CreateJitterModuleFunction(Parameters.Rounds);
+   JitterModuleBase*  jitterApplication = JitterModule.CreateJitterModuleFunction(Parameters.Rounds);
+   JitterModuleBase*  jitterSoftware    = JitterModule.CreateJitterModuleFunction(Parameters.Rounds);
+   JitterModuleBase*  jitterHardware    = JitterModule.CreateJitterModuleFunction(Parameters.Rounds);
    unsigned int       timeSource = 0;
    unsigned int       timeSourceApplication;
    unsigned int       timeSourceSoftware;

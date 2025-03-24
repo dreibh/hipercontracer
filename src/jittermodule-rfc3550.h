@@ -36,7 +36,7 @@
 class JitterModuleRFC3550 : public JitterModuleBase
 {
    public:
-   JitterModuleRFC3550();
+   JitterModuleRFC3550(const unsigned int elements);
 
    virtual const JitterType   getJitterType() const { return JitterModuleRFC3550::JitterTypeRFC3550; }
    virtual const std::string& getJitterName() const { return JitterModuleRFC3550::JitterNameRFC3550; }

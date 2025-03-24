@@ -40,7 +40,7 @@ class JitterModuleBase;
 struct RegisteredJitterModule {
    std::string  Name;
    unsigned int Type;
-   JitterModuleBase* (*CreateJitterModuleFunction)();
+   JitterModuleBase* (*CreateJitterModuleFunction)(const unsigned int elements);
 };
 
 
@@ -62,8 +62,9 @@ class JitterModuleBase
 
    static bool registerJitterModule(const unsigned int moduleType,
                                     const std::string& moduleName,
-                                    JitterModuleBase* (*createJitterModuleFunction)());
-   static JitterModuleBase* createJitterModule(const JitterType moduleType);
+                                    JitterModuleBase* (*createJitterModuleFunction)(const unsigned int elements));
+   static JitterModuleBase* createJitterModule(const JitterType   moduleType,
+                                               const unsigned int elements);
    static const RegisteredJitterModule* checkJitterModule(const std::string& moduleName);
 
    private:
@@ -71,8 +72,8 @@ class JitterModuleBase
 };
 
 #define REGISTER_JITTERMODULE(moduleType, moduleName, jitterModule) \
-   static JitterModuleBase* createJitterModule_##jitterModule() { \
-      return new jitterModule(); \
+   static JitterModuleBase* createJitterModule_##jitterModule(const unsigned int elements) { \
+      return new jitterModule(elements); \
    } \
    static bool Registered_##jitterModule = JitterModuleBase::registerJitterModule(moduleType, moduleName, createJitterModule_##jitterModule);
 

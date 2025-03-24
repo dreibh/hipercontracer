@@ -38,7 +38,7 @@
 class JitterModuleIQR : public JitterModuleBase
 {
    public:
-   JitterModuleIQR();
+   JitterModuleIQR(const unsigned int elements);
 
    virtual const JitterType   getJitterType() const { return JitterModuleIQR::JitterTypeIQR; }
    virtual const std::string& getJitterName() const { return JitterModuleIQR::JitterNameIQR; }
