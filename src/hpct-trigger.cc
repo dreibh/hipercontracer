@@ -34,6 +34,7 @@
 #include <boost/asio/ip/address.hpp>
 #include <boost/program_options.hpp>
 
+#include "assure.h"
 #include "check.h"
 #include "icmpheader.h"
 #include "jitter.h"
@@ -255,6 +256,8 @@ int main(int argc, char** argv)
    uint16_t                           jitterUDPSourcePort;
    uint16_t                           jitterUDPDestinationPort;
    bool                               jitterRecordRawResults;
+   std::string                        jitterName;
+   const RegisteredJitterModule*      jitterModule;
 
    unsigned int                       resultsTransactionLength;
    std::filesystem::path              resultsDirectory;
@@ -377,6 +380,9 @@ int main(int argc, char** argv)
            boost::program_options::value<uint16_t>(&pingUDPDestinationPort)->default_value(7),
            "Ping UDP destination port" )
 
+      ( "jittertype",
+           boost::program_options::value<std::string>(&jitterName)->default_value("RFC3550"),
+           "Jitter type" )
       ( "jitterinterval",
            boost::program_options::value<unsigned long long>(&jitterParameters.Interval)->default_value(10000),
            "Jitter interval in ms" )
@@ -500,6 +506,13 @@ int main(int argc, char** argv)
    }
    else {
       ioModules.insert("ICMP");
+   }
+   assure(vm.count("jittertype"));
+   boost::algorithm::to_upper(jitterName);
+   jitterModule = JitterModuleBase::checkJitterModule(jitterName);
+   if(jitterModule == nullptr) {
+      std::cerr << "ERROR: Bad jitter module name: " << jitterName << "\n";
+      return 1;
    }
    if(measurementID > 0x7fffffff) {
       std::cerr << "ERROR: Invalid MeasurementID setting: " << measurementID << "\n";
@@ -695,7 +708,9 @@ int main(int argc, char** argv)
                Service* service = new Jitter(ioModule,
                                              resultsWriter, "Jitter", (OutputFormatVersionType)resultsFormatVersion, iterations, true,
                                              sourceAddress, destinationsForSource,
-                                             jitterParameters);
+                                             jitterParameters,
+                                             *jitterModule,
+                                             jitterRecordRawResults);
                ServiceSet.insert(service);
             }
             catch (std::exception& e) {

@@ -38,7 +38,6 @@
 #include "check.h"
 #include "icmpheader.h"
 #include "jitter.h"
-#include "jittermodule-base.h"
 #include "logger.h"
 #include "package-version.h"
 #include "ping.h"
