@@ -47,6 +47,7 @@ Jitter::Jitter(const std::string                moduleName,
                const boost::asio::ip::address&  sourceAddress,
                const std::set<DestinationInfo>& destinationArray,
                const TracerouteParameters&      parameters,
+               const RegisteredJitterModule&    jitterModule,
                const bool                       recordRawResults)
    : Ping(moduleName,
           resultsWriter, outputFormatName, outputFormatVersion,
@@ -54,6 +55,7 @@ Jitter::Jitter(const std::string                moduleName,
           sourceAddress, destinationArray,
           parameters),
      JitterInstanceName(std::string("Jitter(") + sourceAddress.to_string() + std::string(")")),
+     JitterModule(jitterModule),
      RecordRawResults(recordRawResults)
 {
    IOModule->setName(JitterInstanceName);

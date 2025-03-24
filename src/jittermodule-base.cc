@@ -40,7 +40,7 @@ REGISTER_JITTERMODULE(0, "RFC3550", JitterModuleRFC3550);
 //  #########################################################################
 
 
-std::list<JitterModuleBase::RegisteredJitterModule*>* JitterModuleBase::JitterModuleList = nullptr;
+std::list<RegisteredJitterModule*>* JitterModuleBase::JitterModuleList = nullptr;
 
 
 // ###### Constructor #######################################################
@@ -75,10 +75,10 @@ bool JitterModuleBase::registerJitterModule(
 
 
 // ###### Create new Jitter module ##########################################
-JitterModuleBase* JitterModuleBase::createJitterModule(const std::string& moduleName)
+JitterModuleBase* JitterModuleBase::createJitterModule(const JitterType moduleType)
 {
    for(RegisteredJitterModule* registeredJitterModule : *JitterModuleList) {
-      if(registeredJitterModule->Name == moduleName) {
+      if(registeredJitterModule->Type == moduleType) {
          return registeredJitterModule->CreateJitterModuleFunction();
       }
    }
@@ -87,12 +87,12 @@ JitterModuleBase* JitterModuleBase::createJitterModule(const std::string& module
 
 
 // ###### Check existence of Jitter module ##################################
-bool JitterModuleBase::checkJitterModule(const std::string& moduleName)
+const RegisteredJitterModule* JitterModuleBase::checkJitterModule(const std::string& moduleName)
 {
    for(RegisteredJitterModule* registeredJitterModule : *JitterModuleList) {
       if(registeredJitterModule->Name == moduleName) {
-         return true;
+         return registeredJitterModule;
       }
    }
-   return false;
+   return nullptr;
 }

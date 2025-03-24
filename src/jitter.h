@@ -30,7 +30,7 @@
 #ifndef JITTER_H
 #define JITTER_H
 
-// #include "jittermodule-base.h"
+#include "jittermodule-base.h"
 #include "ping.h"
 
 
@@ -48,6 +48,7 @@ class Jitter : public Ping
           const boost::asio::ip::address&  sourceAddress,
           const std::set<DestinationInfo>& destinationArray,
           const TracerouteParameters&      parameters,
+          const RegisteredJitterModule&    jitterModule,
           const bool                       recordRawResults = false);
    virtual ~Jitter();
 
@@ -68,8 +69,9 @@ class Jitter : public Ping
                                const JitterModuleBase& jitterHardware);
 
    private:
-   const std::string JitterInstanceName;
-   const bool        RecordRawResults;
+   const std::string             JitterInstanceName;
+   const bool                    RecordRawResults;
+   const RegisteredJitterModule& JitterModule;
 };
 
 #endif

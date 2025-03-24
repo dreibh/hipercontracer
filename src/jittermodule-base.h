@@ -30,12 +30,18 @@
 #ifndef JITTERMODULE_BASE_H
 #define JITTERMODULE_BASE_H
 
+#include <list>
+
 #include "resultentry.h"
 
-#include <stdint.h>
 
-#include <list>
-#include <string>
+class JitterModuleBase;
+
+struct RegisteredJitterModule {
+   std::string  Name;
+   unsigned int Type;
+   JitterModuleBase* (*CreateJitterModuleFunction)();
+};
 
 
 class JitterModuleBase
@@ -57,16 +63,10 @@ class JitterModuleBase
    static bool registerJitterModule(const unsigned int moduleType,
                                     const std::string& moduleName,
                                     JitterModuleBase* (*createJitterModuleFunction)());
-   static JitterModuleBase* createJitterModule(const std::string& moduleName);
-   static bool checkJitterModule(const std::string& moduleName);
+   static JitterModuleBase* createJitterModule(const JitterType moduleType);
+   static const RegisteredJitterModule* checkJitterModule(const std::string& moduleName);
 
    private:
-   struct RegisteredJitterModule {
-      std::string  Name;
-      unsigned int Type;
-      JitterModuleBase* (*CreateJitterModuleFunction)();
-   };
-
    static std::list<RegisteredJitterModule*>* JitterModuleList;
 };
 
