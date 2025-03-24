@@ -579,7 +579,7 @@ int main(int argc, char** argv)
       HPCT_LOG(info) << "Jitter Service:" << std:: endl
                      << "* Jitter Type        = " << jitterModule->Name                   << "\n"
                      << "* Interval           = " << jitterParameters.Interval            << " ms ± "
-                     << 100.0 * jitterParameters.Deviation                                << "%\n"
+                        << 100.0 * jitterParameters.Deviation << "%\n"
                      << "* Expiration         = " << jitterParameters.Expiration << " ms" << "\n"
                      << "* Burst              = " << jitterParameters.Rounds              << "\n"
                      << "* TTL                = " << jitterParameters.InitialMaxTTL       << "\n"
@@ -590,7 +590,7 @@ int main(int argc, char** argv)
    if(servicePing) {
       HPCT_LOG(info) << "Ping Service:" << std:: endl
                      << "* Interval           = " << pingParameters.Interval              << " ms ± "
-                     << 100.0 * pingParameters.Deviation << "%\n"
+                        << 100.0 * pingParameters.Deviation << "%\n"
                      << "* Expiration         = " << pingParameters.Expiration            << " ms" << "\n"
                      << "* Burst              = " << pingParameters.Rounds                << "\n"
                      << "* TTL                = " << pingParameters.InitialMaxTTL         << "\n"
@@ -601,7 +601,7 @@ int main(int argc, char** argv)
    if(serviceTraceroute) {
       HPCT_LOG(info) << "Traceroute Service:" << std:: endl
                      << "* Interval           = " << tracerouteParameters.Interval        << " ms ± "
-                     << 100.0 * tracerouteParameters.Deviation << "%\n"
+                        << 100.0 * tracerouteParameters.Deviation << "%\n"
                      << "* Expiration         = " << tracerouteParameters.Expiration      << " ms" << "\n"
                      << "* Rounds             = " << tracerouteParameters.Rounds          << "\n"
                      << "* Initial MaxTTL     = " << tracerouteParameters.InitialMaxTTL   << "\n"
