@@ -50,7 +50,9 @@ IF (WITH_HIPERCONTRACER)
       iomodule-base.h
       iomodule-icmp.h
       iomodule-udp.h
-      # jitter.h
+      jitter.h
+      jittermodule-base.h
+      jittermodule-rfc3550.h
       logger.h
       ping.h
       resultentry.h
@@ -68,7 +70,8 @@ IF (WITH_HIPERCONTRACER)
       iomodule-icmp.cc
       iomodule-udp.cc
       jitter.cc
-      jitter-rfc3550.cc
+      jittermodule-base.cc
+      jittermodule-rfc3550.cc
       logger.cc
       ping.cc
       resultentry.cc

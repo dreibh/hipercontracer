@@ -27,21 +27,53 @@
 //
 // Contact: dreibh@simula.no
 
-#include "jitter-rfc3550.h"
+#include "jittermodule-rfc3550.h"
 #include "logger.h"
+
+#include <math.h>
+
+
+const std::string JitterModuleRFC3550::JitterNameRFC3550 = "RFC3550";
+const JitterType  JitterModuleRFC3550::JitterTypeRFC3550 = JT_RFC3550;
 
 
 // ###### Constructor #######################################################
-JitterRFC3550::JitterRFC3550()
+JitterModuleRFC3550::JitterModuleRFC3550()
 {
-   Packets    = 0;
-   Jitter     = 0.0;
-   LatencySum = 0.0;
+   Packets              = 0;
+   Jitter               = 0.0;
+   LatencySum           = 0.0;
+   PrevSendTimeStamp    = 0;
+   PrevReceiveTimeStamp = 0;
+}
+
+
+// ###### Get number of packets #############################################
+unsigned int JitterModuleRFC3550::packets() const
+{
+   return Packets;
+}
+
+
+// ###### Get jitter ########################################################
+unsigned long long JitterModuleRFC3550::jitter() const
+{
+   return (unsigned long long)rint(Jitter);
+}
+
+
+// ###### Get mean latency ##################################################
+unsigned long long JitterModuleRFC3550::meanLatency() const
+{
+   if(Packets > 0) {
+      return (unsigned long long)(LatencySum / Packets);
+   }
+   return 0;
 }
 
 
 // ###### Process new packet's time stamps ##################################
-void JitterRFC3550::process(const uint8_t            timeSource,
+void JitterModuleRFC3550::process(const uint8_t            timeSource,
                             const unsigned long long sendTimeStamp,
                             const unsigned long long receiveTimeStamp)
 {
@@ -79,7 +111,7 @@ void JitterRFC3550::process(const uint8_t            timeSource,
 
 int main(int argc, char *argv[])
 {
-   JitterRFC3550 j;
+   JitterModuleRFC3550 j;
 
    j.process(0xaa, 1000000000, 1100000000);
    j.process(0xaa, 2000000000, 2200000000);

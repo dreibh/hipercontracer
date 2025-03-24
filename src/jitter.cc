@@ -29,7 +29,7 @@
 
 #include "jitter.h"
 #include "assure.h"
-#include "jitter-rfc3550.h"
+#include "jittermodule-rfc3550.h"
 #include "tools.h"
 #include "logger.h"
 
@@ -132,12 +132,12 @@ void Jitter::computeJitter(const std::vector<ResultEntry*>::const_iterator& star
                            const std::vector<ResultEntry*>::const_iterator& end)
 {
    const ResultEntry* referenceEntry = nullptr;
-   JitterRFC3550      jitterQueuing;
-   JitterRFC3550      jitterAppSend;
-   JitterRFC3550      jitterAppReceive;
-   JitterRFC3550      jitterApplication;
-   JitterRFC3550      jitterSoftware;
-   JitterRFC3550      jitterHardware;
+   JitterModuleRFC3550      jitterQueuing;
+   JitterModuleRFC3550      jitterAppSend;
+   JitterModuleRFC3550      jitterAppReceive;
+   JitterModuleRFC3550      jitterApplication;
+   JitterModuleRFC3550      jitterSoftware;
+   JitterModuleRFC3550      jitterHardware;
    unsigned int       timeSource = 0;
    unsigned int       timeSourceApplication;
    unsigned int       timeSourceSoftware;
@@ -247,14 +247,14 @@ void Jitter::computeJitter(const std::vector<ResultEntry*>::const_iterator& star
 
 
 // ###### Write Jitter result entry to output file ############################
-void Jitter::writeJitterResultEntry(const ResultEntry*   referenceEntry,
-                                    const unsigned int   timeSource,
-                                    const JitterRFC3550& jitterQueuing,
-                                    const JitterRFC3550& jitterAppSend,
-                                    const JitterRFC3550& jitterAppReceive,
-                                    const JitterRFC3550& jitterApplication,
-                                    const JitterRFC3550& jitterSoftware,
-                                    const JitterRFC3550& jitterHardware)
+void Jitter::writeJitterResultEntry(const ResultEntry*      referenceEntry,
+                                    const unsigned int      timeSource,
+                                    const JitterModuleBase& jitterQueuing,
+                                    const JitterModuleBase& jitterAppSend,
+                                    const JitterModuleBase& jitterAppReceive,
+                                    const JitterModuleBase& jitterApplication,
+                                    const JitterModuleBase& jitterSoftware,
+                                    const JitterModuleBase& jitterHardware)
 {
    HPCT_LOG(debug) << getName() << ": "
                    << referenceEntry->destinationAddress()
@@ -294,7 +294,7 @@ void Jitter::writeJitterResultEntry(const ResultEntry*   referenceEntry,
 
             % timeSource
 
-            % 0   /* Jitter Type for future extension */
+            % jitterApplication.getJitterType()   /* Jitter Type is the same for all computations! */
 
             % jitterAppSend.packets()
             % jitterAppSend.meanLatency()

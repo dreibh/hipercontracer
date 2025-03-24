@@ -27,38 +27,37 @@
 //
 // Contact: dreibh@simula.no
 
-#ifndef JITTER_RFC3550_H
-#define JITTER_RFC3550_H
+#ifndef JITTERMODULE_RFC3550_H
+#define JITTERMODULE_RFC3550_H
 
-#include <math.h>
-#include <stdint.h>
+#include "jittermodule-base.h"
 
 
-class JitterRFC3550
+class JitterModuleRFC3550 : public JitterModuleBase
 {
    public:
-   JitterRFC3550();
+   JitterModuleRFC3550();
 
-   inline unsigned int       packets()     const { return Packets;                          }
-   inline unsigned long long jitter()      const { return (unsigned long long)rint(Jitter); }
-   inline unsigned long long meanLatency() const {
-      if(Packets > 0) {
-         return (unsigned long long)(LatencySum / Packets);
-      }
-      return 0;
-   }
+   virtual const JitterType   getJitterType() const { return JitterModuleRFC3550::JitterTypeRFC3550; }
+   virtual const std::string& getJitterName() const { return JitterModuleRFC3550::JitterNameRFC3550; }
 
-   void process(const uint8_t            timeSource,
-                const unsigned long long sendTimeStamp,
-                const unsigned long long receiveTimeStamp);
+   virtual unsigned int       packets()       const;
+   virtual unsigned long long jitter()        const;
+   virtual unsigned long long meanLatency()   const;
+   virtual void process(const uint8_t            timeSource,
+                        const unsigned long long sendTimeStamp,
+                        const unsigned long long receiveTimeStamp);
 
    private:
-   unsigned long long PrevSendTimeStamp;
-   unsigned long long PrevReceiveTimeStamp;
-   unsigned int       Packets;
-   double             Jitter;
-   double             LatencySum;
-   uint8_t            TimeSource;
+   static const std::string JitterNameRFC3550;
+   static const JitterType  JitterTypeRFC3550;
+
+   unsigned long long       PrevSendTimeStamp;
+   unsigned long long       PrevReceiveTimeStamp;
+   unsigned int             Packets;
+   double                   Jitter;
+   double                   LatencySum;
+   uint8_t                  TimeSource;
 };
 
 #endif

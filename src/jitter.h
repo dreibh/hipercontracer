@@ -30,10 +30,11 @@
 #ifndef JITTER_H
 #define JITTER_H
 
+// #include "jittermodule-base.h"
 #include "ping.h"
 
 
-class JitterRFC3550;
+class JitterModuleBase;
 
 class Jitter : public Ping
 {
@@ -59,12 +60,12 @@ class Jitter : public Ping
                       const std::vector<ResultEntry*>::const_iterator& end);
    void writeJitterResultEntry(const ResultEntry* referenceEntry,
                                const unsigned int timeSource,
-                               const JitterRFC3550& jitterQueuing,
-                               const JitterRFC3550& jitterAppSend,
-                               const JitterRFC3550& jitterAppReceive,
-                               const JitterRFC3550& jitterApplication,
-                               const JitterRFC3550& jitterSoftware,
-                               const JitterRFC3550& jitterHardware);
+                               const JitterModuleBase& jitterQueuing,
+                               const JitterModuleBase& jitterAppSend,
+                               const JitterModuleBase& jitterAppReceive,
+                               const JitterModuleBase& jitterApplication,
+                               const JitterModuleBase& jitterSoftware,
+                               const JitterModuleBase& jitterHardware);
 
    private:
    const std::string JitterInstanceName;
