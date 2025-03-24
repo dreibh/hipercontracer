@@ -129,17 +129,17 @@ void Jitter::processResults()
 }
 
 
-// ###### Compute jitter, according to RFC 3550 #############################
+// ###### Compute jitter ####################################################
 void Jitter::computeJitter(const std::vector<ResultEntry*>::const_iterator& start,
                            const std::vector<ResultEntry*>::const_iterator& end)
 {
-   const ResultEntry* referenceEntry = nullptr;
-   JitterModuleRFC3550      jitterQueuing;
-   JitterModuleRFC3550      jitterAppSend;
-   JitterModuleRFC3550      jitterAppReceive;
-   JitterModuleRFC3550      jitterApplication;
-   JitterModuleRFC3550      jitterSoftware;
-   JitterModuleRFC3550      jitterHardware;
+   const ResultEntry* referenceEntry    = nullptr;
+   JitterModuleBase*  jitterQueuing     = JitterModule.CreateJitterModuleFunction();
+   JitterModuleBase*  jitterAppSend     = JitterModule.CreateJitterModuleFunction();
+   JitterModuleBase*  jitterAppReceive  = JitterModule.CreateJitterModuleFunction();
+   JitterModuleBase*  jitterApplication = JitterModule.CreateJitterModuleFunction();
+   JitterModuleBase*  jitterSoftware    = JitterModule.CreateJitterModuleFunction();
+   JitterModuleBase*  jitterHardware    = JitterModule.CreateJitterModuleFunction();
    unsigned int       timeSource = 0;
    unsigned int       timeSourceApplication;
    unsigned int       timeSourceSoftware;
@@ -166,38 +166,38 @@ void Jitter::computeJitter(const std::vector<ResultEntry*>::const_iterator& star
       if(resultEntry->status() == Success) {
          if(resultEntry->obtainSchedulingSendTime(timeSourceQueuing, sendTime, receiveTime)) {
             // NOTE: For queuing: sendTime = schedulingTime ; receiveTime = actual send time!
-            jitterQueuing.process(timeSourceQueuing,
-                                  nsSinceEpoch<ResultTimePoint>(sendTime),
-                                  nsSinceEpoch<ResultTimePoint>(receiveTime));
+            jitterQueuing->process(timeSourceQueuing,
+                                   nsSinceEpoch<ResultTimePoint>(sendTime),
+                                   nsSinceEpoch<ResultTimePoint>(receiveTime));
          }
 
          if(resultEntry->obtainApplicationSendSchedulingTime(timeSourceAppSend, sendTime, receiveTime)) {
             // NOTE: For queuing: sendTime = schedulingTime ; receiveTime = actual send time!
-            jitterAppSend.process(timeSourceAppSend,
-                                  nsSinceEpoch<ResultTimePoint>(sendTime),
-                                  nsSinceEpoch<ResultTimePoint>(receiveTime));
+            jitterAppSend->process(timeSourceAppSend,
+                                   nsSinceEpoch<ResultTimePoint>(sendTime),
+                                   nsSinceEpoch<ResultTimePoint>(receiveTime));
          }
          if(resultEntry->obtainReceptionApplicationReceiveTime(timeSourceAppReceive, sendTime, receiveTime)) {
             // NOTE: For queuing: sendTime = schedulingTime ; receiveTime = actual send time!
-            jitterAppReceive.process(timeSourceAppReceive,
-                                     nsSinceEpoch<ResultTimePoint>(sendTime),
-                                     nsSinceEpoch<ResultTimePoint>(receiveTime));
-         }
-
-         if(resultEntry->obtainSendReceiveTime(RXTimeStampType::RXTST_Application, timeSourceApplication, sendTime, receiveTime)) {
-            jitterApplication.process(timeSourceApplication,
+            jitterAppReceive->process(timeSourceAppReceive,
                                       nsSinceEpoch<ResultTimePoint>(sendTime),
                                       nsSinceEpoch<ResultTimePoint>(receiveTime));
          }
+
+         if(resultEntry->obtainSendReceiveTime(RXTimeStampType::RXTST_Application, timeSourceApplication, sendTime, receiveTime)) {
+            jitterApplication->process(timeSourceApplication,
+                                       nsSinceEpoch<ResultTimePoint>(sendTime),
+                                       nsSinceEpoch<ResultTimePoint>(receiveTime));
+         }
          if(resultEntry->obtainSendReceiveTime(RXTimeStampType::RXTST_ReceptionSW, timeSourceSoftware, sendTime, receiveTime)) {
-            jitterSoftware.process(timeSourceSoftware,
-                                   nsSinceEpoch<ResultTimePoint>(sendTime),
-                                   nsSinceEpoch<ResultTimePoint>(receiveTime));
+            jitterSoftware->process(timeSourceSoftware,
+                                    nsSinceEpoch<ResultTimePoint>(sendTime),
+                                    nsSinceEpoch<ResultTimePoint>(receiveTime));
          }
          if(resultEntry->obtainSendReceiveTime(RXTimeStampType::RXTST_ReceptionHW, timeSourceHardware, sendTime, receiveTime)) {
-            jitterHardware.process(timeSourceHardware,
-                                   nsSinceEpoch<ResultTimePoint>(sendTime),
-                                   nsSinceEpoch<ResultTimePoint>(receiveTime));
+            jitterHardware->process(timeSourceHardware,
+                                    nsSinceEpoch<ResultTimePoint>(sendTime),
+                                    nsSinceEpoch<ResultTimePoint>(receiveTime));
          }
       }
 
@@ -222,9 +222,9 @@ void Jitter::computeJitter(const std::vector<ResultEntry*>::const_iterator& star
 
    if(referenceEntry) {
       // ====== Record Jitter entry =========================================
-      writeJitterResultEntry(referenceEntry,    timeSource,
-                             jitterQueuing,     jitterAppSend,  jitterAppReceive,
-                             jitterApplication, jitterSoftware, jitterHardware);
+      writeJitterResultEntry(referenceEntry,     timeSource,
+                             *jitterQueuing,     *jitterAppSend,  *jitterAppReceive,
+                             *jitterApplication, *jitterSoftware, *jitterHardware);
 
       // ====== Record raw Ping results as well =============================
       if(RecordRawResults) {
@@ -245,6 +245,13 @@ void Jitter::computeJitter(const std::vector<ResultEntry*>::const_iterator& star
          OutstandingRequests--;
       }
    }
+
+   delete jitterQueuing;
+   delete jitterAppSend;
+   delete jitterAppReceive;
+   delete jitterApplication;
+   delete jitterSoftware;
+   delete jitterHardware;
 }
 
 
