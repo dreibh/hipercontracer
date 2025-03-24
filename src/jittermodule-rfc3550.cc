@@ -74,8 +74,8 @@ unsigned long long JitterModuleRFC3550::meanLatency() const
 
 // ###### Process new packet's time stamps ##################################
 void JitterModuleRFC3550::process(const uint8_t            timeSource,
-                            const unsigned long long sendTimeStamp,
-                            const unsigned long long receiveTimeStamp)
+                                  const unsigned long long sendTimeStamp,
+                                  const unsigned long long receiveTimeStamp)
 {
    if(Packets > 0) {
       if(timeSource != TimeSource) {
