@@ -256,14 +256,14 @@ void Jitter::computeJitter(const std::vector<ResultEntry*>::const_iterator& star
 
 
 // ###### Write Jitter result entry to output file ############################
-void Jitter::writeJitterResultEntry(const ResultEntry*      referenceEntry,
-                                    const unsigned int      timeSource,
-                                    const JitterModuleBase& jitterQueuing,
-                                    const JitterModuleBase& jitterAppSend,
-                                    const JitterModuleBase& jitterAppReceive,
-                                    const JitterModuleBase& jitterApplication,
-                                    const JitterModuleBase& jitterSoftware,
-                                    const JitterModuleBase& jitterHardware)
+void Jitter::writeJitterResultEntry(const ResultEntry* referenceEntry,
+                                    const unsigned int timeSource,
+                                    JitterModuleBase&  jitterQueuing,
+                                    JitterModuleBase&  jitterAppSend,
+                                    JitterModuleBase&  jitterAppReceive,
+                                    JitterModuleBase&  jitterApplication,
+                                    JitterModuleBase&  jitterSoftware,
+                                    JitterModuleBase&  jitterHardware)
 {
    HPCT_LOG(debug) << getName() << ": "
                    << referenceEntry->destinationAddress()

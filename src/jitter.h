@@ -61,12 +61,12 @@ class Jitter : public Ping
                       const std::vector<ResultEntry*>::const_iterator& end);
    void writeJitterResultEntry(const ResultEntry* referenceEntry,
                                const unsigned int timeSource,
-                               const JitterModuleBase& jitterQueuing,
-                               const JitterModuleBase& jitterAppSend,
-                               const JitterModuleBase& jitterAppReceive,
-                               const JitterModuleBase& jitterApplication,
-                               const JitterModuleBase& jitterSoftware,
-                               const JitterModuleBase& jitterHardware);
+                               JitterModuleBase&  jitterQueuing,
+                               JitterModuleBase&  jitterAppSend,
+                               JitterModuleBase&  jitterAppReceive,
+                               JitterModuleBase&  jitterApplication,
+                               JitterModuleBase&  jitterSoftware,
+                               JitterModuleBase&  jitterHardware);
 
    private:
    const std::string             JitterInstanceName;

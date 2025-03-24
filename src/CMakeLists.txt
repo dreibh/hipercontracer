@@ -52,6 +52,7 @@ IF (WITH_HIPERCONTRACER)
       iomodule-udp.h
       jitter.h
       jittermodule-base.h
+      jittermodule-iqr.h
       jittermodule-rfc3550.h
       logger.h
       ping.h
@@ -71,6 +72,7 @@ IF (WITH_HIPERCONTRACER)
       iomodule-udp.cc
       jitter.cc
       jittermodule-base.cc
+      jittermodule-iqr.cc
       jittermodule-rfc3550.cc
       logger.cc
       ping.cc
@@ -379,7 +381,7 @@ INSTALL(FILES get-default-ips.1
 
 # ====== TEST ONLY ==========================================================
 # ADD_EXECUTABLE(t1 t1.cc)
-# TARGET_LINK_LIBRARIES(t1 ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
+# TARGET_LINK_LIBRARIES(t1 libhipercontracer-${libraryType} ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
 # ADD_EXECUTABLE(dbtest dbtest.cc)
 # TARGET_LINK_LIBRARIES(dbtest libuniversalimporter-${libraryType} ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
 

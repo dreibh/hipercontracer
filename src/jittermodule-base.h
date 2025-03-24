@@ -54,8 +54,8 @@ class JitterModuleBase
    virtual const std::string& getJitterName() const = 0;
 
    virtual unsigned int       packets()       const = 0;
-   virtual unsigned long long jitter()        const = 0;
    virtual unsigned long long meanLatency()   const = 0;
+   virtual unsigned long long jitter()              = 0;
    virtual void process(const uint8_t            timeSource,
                         const unsigned long long sendTimeStamp,
                         const unsigned long long receiveTimeStamp) = 0;

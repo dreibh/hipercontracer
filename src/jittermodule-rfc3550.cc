@@ -55,13 +55,6 @@ unsigned int JitterModuleRFC3550::packets() const
 }
 
 
-// ###### Get jitter ########################################################
-unsigned long long JitterModuleRFC3550::jitter() const
-{
-   return (unsigned long long)rint(Jitter);
-}
-
-
 // ###### Get mean latency ##################################################
 unsigned long long JitterModuleRFC3550::meanLatency() const
 {
@@ -69,6 +62,13 @@ unsigned long long JitterModuleRFC3550::meanLatency() const
       return (unsigned long long)(LatencySum / Packets);
    }
    return 0;
+}
+
+
+// ###### Get jitter ########################################################
+unsigned long long JitterModuleRFC3550::jitter()
+{
+   return (unsigned long long)rint(Jitter);
 }
 
 
@@ -104,25 +104,3 @@ void JitterModuleRFC3550::process(const uint8_t            timeSource,
    PrevSendTimeStamp    = sendTimeStamp;
    PrevReceiveTimeStamp = receiveTimeStamp;
 }
-
-
-#if 0
-#include <stdio.h>
-
-int main(int argc, char *argv[])
-{
-   JitterModuleRFC3550 j;
-
-   j.process(0xaa, 1000000000, 1100000000);
-   j.process(0xaa, 2000000000, 2200000000);
-   j.process(0xaa, 3000000000, 3100000000);
-   j.process(0xaa, 4000000000, 4200000000);
-   j.process(0x66, 5000000000, 5200000000);
-
-   printf("P=%u\n", j.packets());
-   printf("J=%llu\n", j.jitter() / 1000000ULL);
-   printf("L=%llu\n", j.meanLatency() / 1000000ULL);
-
-   return 0;
-}
-#endif

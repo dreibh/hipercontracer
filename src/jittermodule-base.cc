@@ -34,8 +34,10 @@
 //  ###### Jitter Module Registry ###############################################
 
 #include "jittermodule-rfc3550.h"
+#include "jittermodule-iqr.h"
 
 REGISTER_JITTERMODULE(0, "RFC3550", JitterModuleRFC3550);
+REGISTER_JITTERMODULE(0, "IQR",     JitterModuleIQR);
 
 //  #########################################################################
 
