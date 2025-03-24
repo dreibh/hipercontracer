@@ -199,7 +199,7 @@ Sets the Ping destination port for the UDP module (default: 7, for Echo).
 .It Fl Fl jittertype Ar type
 Sets the Jitter type. Available types:
 .Bl -tag -width indent
-.It RFC3550: Jitter computation according to RFC 3550 (Real-Time Transport Protocol). This is the default.
+.It RFC3550: Jitter computation according to RFC 3550 (Real-Time Transport Protocol), Appendix A.8. This is the default.
 .It IQR: Inter-Quartile Range.
 .El
 .It Fl Fl jitterinterval Ar milliseconds
@@ -443,7 +443,7 @@ packets_hw jitter_hw meanrtt_hw
 .It * destinationPort: Destination port, 0 for ICMP (decimal).
 .It * status: Status code (decimal):
 .It * timesource: Source of the timing information (hexadecimal) as: AAQQSSHH (same as for Ping, see above).
-.It * jitter_type: 0 for calculation as in RFC 3550, Appendix A.8 (decimal).
+.It * jitter_type: 1 for calculation as in RFC 3550, Appendix A.8 (decimal), 2 for IQR.
 .It * packets_app_send: Number of packets for application send jitter/mean RTT computation.
 .It * meandelay_app_send: Mean application send (nanoseconds, decimal; -1 if not available).
 .It * jitter_app_send: Jitter of application send.
