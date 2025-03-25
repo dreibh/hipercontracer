@@ -28,6 +28,7 @@
 -- Contact: dreibh@simula.no
 
 
+# ###### Basic database features test #######################################
 SELECT COUNT(*) FROM Ping;
 SELECT * FROM Ping LIMIT 10;
 SELECT COUNT(*) FROM Traceroute;

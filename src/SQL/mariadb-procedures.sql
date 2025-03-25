@@ -184,13 +184,3 @@ CREATE EVENT JitterMaintenance ON SCHEDULE EVERY 1 DAY STARTS CURRENT_TIMESTAMP 
    CALL CreateNewPartitions("test4hpct", "Jitter", "Timestamp");
 $$
 DELIMITER ;
-
-
-# ###### Manual tests #######################################################
--- CALL CreateNewPartitions("test4hpct", "Ping", "SendTimestamp");
--- CALL CreateNewPartitions("test4hpct", "Traceroute", "Timestamp");
--- CALL CreateNewPartitions("test4hpct", "Jitter", "Timestamp");
---
--- CALL CheckPartitions("test4hpct", "Ping");
--- CALL CheckPartitions("test4hpct", "Traceroute");
--- CALL CheckPartitions("test4hpct", "Jitter");

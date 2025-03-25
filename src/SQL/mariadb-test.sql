@@ -28,9 +28,23 @@
 -- Contact: dreibh@simula.no
 
 
+# ###### Basic database features test #######################################
 SELECT COUNT(*) FROM Ping;
 SELECT * FROM Ping LIMIT 10;
 SELECT COUNT(*) FROM Traceroute;
 SELECT * FROM Traceroute LIMIT 30;
 SELECT COUNT(*) FROM Jitter;
 SELECT * FROM Jitter LIMIT 5;
+
+
+# ###### Advanced database features test ####################################
+-- The Event Scheduler will run the procedures daily.
+-- For testing, make sure they run immediately:
+CALL CreateNewPartitions("test4hpct", "Ping", "SendTimestamp");
+CALL CreateNewPartitions("test4hpct", "Traceroute", "Timestamp");
+CALL CreateNewPartitions("test4hpct", "Jitter", "Timestamp");
+
+-- List the created partitions:
+CALL CheckPartitions("test4hpct", "Ping");
+CALL CheckPartitions("test4hpct", "Traceroute");
+CALL CheckPartitions("test4hpct", "Jitter");
