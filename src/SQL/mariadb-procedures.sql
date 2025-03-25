@@ -88,14 +88,18 @@ proc:BEGIN
    END IF;
 
    -- ====== Start partitioning, if there is no partitioning ================
-   IF @dateOfLastPartition IS NULL THEN
-     SET startDate = @minTimestamp;
+   IF NOT tableIsPartitioned THEN
+      SET @sqlText = CONCAT('ALTER TABLE `', schemaName, '`.`', tableName, '` PARTITION BY RANGE ( ', timestampName, ' ) ( ');
+   ELSE
+      SET @sqlText = CONCAT('ALTER TABLE `', schemaName, '`.`', tableName, '` ADD PARTITION ( ');
    END IF;
 
-   IF NOT tableIsPartitioned THEN
-     SET @sqlText = CONCAT('ALTER TABLE `', schemaName, '`.`', tableName, '` PARTITION BY RANGE ( ', timestampName, ' ) ( ');
-   ELSE
-     SET @sqlText = CONCAT('ALTER TABLE `', schemaName, '`.`', tableName, '` ADD PARTITION ( ');
+   -- Some safety checks, to prevent creating a huge amount of partitions:
+   IF @dateOfLastPartition < "2010-01-01" THEN
+      SET @dateOfLastPartition = "2010-01-01";
+   END IF;
+   IF @maxTimestamp > CAST((NOW() + INTERVAL 1 DAY) AS DATE) THEN
+      SET @maxTimestamp = CAST((NOW() + INTERVAL 1 DAY) AS DATE);
    END IF;
 
    SET startDate   = @dateOfLastPartition;
