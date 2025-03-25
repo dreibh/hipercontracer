@@ -170,9 +170,9 @@ DELIMITER ;
 
 
 # ###### Add events to create partitions ####################################
-DROP EVENT PingMaintenance;
-DROP EVENT TracerouteMaintenance;
-DROP EVENT JitterMaintenance;
+DROP EVENT IF EXISTS PingMaintenance;
+DROP EVENT IF EXISTS TracerouteMaintenance;
+DROP EVENT IF EXISTS JitterMaintenance;
 DELIMITER $$
 CREATE EVENT PingMaintenance ON SCHEDULE EVERY 1 DAY STARTS CURRENT_TIMESTAMP + INTERVAL 0 HOUR DO
    CALL CreateNewPartitions("test4hpct", "Ping", "SendTimestamp");
