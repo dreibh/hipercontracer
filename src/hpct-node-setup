@@ -134,15 +134,16 @@ sudo -u hipercontracer ssh -t -oUserKnownHostsFile=${KNOWN_HOSTS} "${HPCT_COLLEC
       sudo chmod 700 \"/home/${user}/.ssh\" && \\
       sudo cp \"keys/node${NODE_ID}.pub\" \"/home/${user}/.ssh/authorized_keys\" && \\
       sudo chmod 600 \"/home/${user}/.ssh/authorized_keys\" && \\
-      sudo useradd -M -g \"${user}\" -d \"/home/${user}\" -s /bin/bash -c \"HiPerConTracer Node ${NODE_ID}\" \"${user}\" && \\
+      sudo useradd -M -g \"${user}\" -d \"/home/${user}\" -s /bin/sh -c \"HiPerConTracer Node ${NODE_ID}\" \"${user}\" && \\
       sudo usermod -a -G hpct-nodes \"${user}\" && \\
       sudo chown \"${user}:${user}\" \"/home/${user}\" && \\
       sudo chown \"${user}:${user}\" \"/home/${user}/.ssh\" && \\
       sudo chown \"${user}:${user}\" \"/home/${user}/.ssh/authorized_keys\" && \\
       echo \"Creating data directory /var/hipercontracer/data/${user} ...\" && \\
       sudo mkdir -p \"/var/hipercontracer/data/${user}\" && \\
-      sudo chmod 770 \"/var/hipercontracer/data/${user}\" && \\
-      sudo chown \"${user}:hpct-nodes\" \"/var/hipercontracer/data/${user}\"
+      sudo chown \"${user}:hipercontracer\" \"/var/hipercontracer/data/${user}\" && \\
+      sudo chmod 2770 \"/var/hipercontracer/data/${user}\" && \\
+      sudo setfacl -Rm d:u:hipercontracer:rwx,u:hipercontracer:rwx \"/var/hipercontracer/data/${user}\"
    else
       echo \"User ${user} is already there.\"
    fi

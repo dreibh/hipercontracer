@@ -120,7 +120,7 @@ fi
 
 
 # ====== Run RSync ==========================================================
-rsyncOptions="-a"   # --remove-source-files
+rsyncOptions="-rt"   # --remove-source-files
 if [ ${VERBOSE} -ne 0 ] ; then
    rsyncOptions="${rsyncOptions} --info=progress2"
 else
@@ -130,7 +130,7 @@ rsyncOptions="${rsyncOptions} --exclude '*.tmp'"
 rsyncOptions="${rsyncOptions} -e 'ssh -i ${KEY} -oUserKnownHostsFile=${KNOWN_HOSTS}'"
 
 user="node${NODE_ID}"
-command="rsync ${rsyncOptions} --chmod=D770,F660 ${LOCAL}/ ${user}@${COLLECTOR}:${REMOTE}/${user}/"
+command="rsync ${rsyncOptions} ${LOCAL}/ ${user}@${COLLECTOR}:${REMOTE}/${user}/"
 if [ ${VERBOSE} -ne 0 ] ; then
    echo -e "\x1b[34m$(date +"%Y-%m-%d %H:%M:%S") Running RSync: ${command}\x1b[0m"
 fi
