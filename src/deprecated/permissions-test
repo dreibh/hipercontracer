@@ -2,8 +2,12 @@
 
 set -eux
 
-
 DIRECTORY="/tmp/test"
+
+
+# FreeBSD NFSv4 ACLs:
+# => https://docs.freebsd.org/en/books/handbook/security/#fs-acl
+# => https://man.freebsd.org/cgi/man.cgi?query=setfacl&sektion=1&format=html
 
 
 # ======Initialise ==========================================================
@@ -11,18 +15,33 @@ mkdir -p "${DIRECTORY}"
 rm -rf "${DIRECTORY}/data" "${DIRECTORY}/good" "${DIRECTORY}/bad"
 mkdir -p "${DIRECTORY}/data" "${DIRECTORY}/good" "${DIRECTORY}/bad"
 sudo chown -R hipercontracer:hipercontracer "${DIRECTORY}/data" "${DIRECTORY}/good" "${DIRECTORY}/bad"
-sudo setfacl -Rm d:u:hipercontracer:rwx,u:hipercontracer:rwx "${DIRECTORY}/data" "${DIRECTORY}/good" "${DIRECTORY}/bad"
+if [ "$(uname)" != "FreeBSD" ] ; then
+   sudo setfacl -Rm d:u:hipercontracer:rwx,u:hipercontracer:rwx "${DIRECTORY}/data" "${DIRECTORY}/good" "${DIRECTORY}/bad"
+else
+   sudo setfacl -Rm u:hipercontracer:modify_set:file_inherit/dir_inherit:allow "${DIRECTORY}/data" "${DIRECTORY}/good" "${DIRECTORY}/bad"
+fi
 for n in 9000 9001 9002 9003 ; do
-   userdel "node$n" || true
+   if [ "$(uname)" != "FreeBSD" ] ; then
+      userdel "node$n" || true
+   else
+      pw userdel "node$n" || true
+   fi
    rm -rf "${DIRECTORY}/data/node$n"
    mkdir "${DIRECTORY}/data/node$n"
-   useradd -M -d "${DIRECTORY}/data/node$n" -s /bin/sh -c "User $n" "node$n"
+   if [ "$(uname)" != "FreeBSD" ] ; then
+      useradd -M -d "${DIRECTORY}/data/node$n" -s /bin/sh -c "Node $n" "node$n"
+   else
+      pw useradd "node$n" -d "${DIRECTORY}/data/node$n" -s /bin/sh -c "Node $n"
+   fi
 
    chown "node$n:node$n" "${DIRECTORY}/data/node$n"
    chmod 700 "${DIRECTORY}/data/node$n"
 
-   sudo setfacl -Rm d:u:hipercontracer:rwx,u:hipercontracer:rwx "${DIRECTORY}/data/node$n"
-
+   if [ "$(uname)" != "FreeBSD" ] ; then
+      sudo setfacl -Rm d:u:hipercontracer:rwx,u:hipercontracer:rwx "${DIRECTORY}/data/node$n"
+   else
+      sudo setfacl -Rm u:hipercontracer:modify_set:file_inherit/dir_inherit:allow "${DIRECTORY}/data/node$n"
+   fi
 
    sudo -u "node$n" mkdir -p "${DIRECTORY}/data/node$n/test"
    # sudo -u "node$n" chmod 770 "${DIRECTORY}/data/node$n/test"
@@ -57,7 +76,11 @@ done
 ls -al ${DIRECTORY}/data/
 
 
-# # ====== Clean up ===========================================================
+# ====== Clean up ===========================================================
 # for n in 9000 9001 9002 9003 ; do
-#    userdel "node$n" || true
+#   if [ "$(uname)" != "FreeBSD" ] ; then
+#      userdel "node$n" || true
+#   else
+#      pw userdel "node$n" || true
+#   fi
 # done
