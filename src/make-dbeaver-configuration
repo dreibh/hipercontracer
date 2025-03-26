@@ -34,7 +34,7 @@ set -eu
 
 # ====== Handle arguments ===================================================
 if [ $# -lt 1 ] ; then
-   echo >&2 "Usage: $0 database_configuration_file ..."
+   echo >&2 "Usage: $0 database_configuration_file ... [--join]"
    exit 1
 fi
 DIRNAME="$(dirname "$0")"
