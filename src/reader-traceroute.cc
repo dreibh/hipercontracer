@@ -91,14 +91,34 @@ int makeInputFileEntry(const std::filesystem::path& dataFile,
                        const unsigned int           workers)
 {
    if(match.size() == TracerouteReader::FileNameRegExpMatchSize) {
+      // ====== Extract information from file name ==========================
       ReaderTimePoint timeStamp;
       if(stringToTimePoint<ReaderTimePoint>(match[5].str(), timeStamp, "%Y%m%dT%H%M%S")) {
          inputFileEntry.Source    = match[4];
          inputFileEntry.TimeStamp = timeStamp;
          inputFileEntry.SeqNumber = atol(match[6].str().c_str());
          inputFileEntry.DataFile  = dataFile;
-         const std::size_t workerID = std::hash<std::string>{}(inputFileEntry.Source) % workers;
-         // std::cout << inputFileEntry.Source << "\t" << timePointToString<ReaderTimePoint>(inputFileEntry.TimeStamp, 6) << "\t" << inputFileEntry.SeqNumber << "\t" << inputFileEntry.DataFile << " -> " << workerID << "\n";
+
+         // ====== Map file to worker =======================================
+         // Use the hash of the source address for worker mapping:
+         std::size_t sourceIdentifier;
+         if( (inputFileEntry.Source == "::") || (inputFileEntry.Source == "0.0.0.0") ) {
+            // Source is unspecific -> use Process ID or Measurement ID:
+            sourceIdentifier = (std::size_t)atol(match[3].str().c_str());
+         }
+         else {
+            sourceIdentifier = 0;
+         }
+         const std::size_t workerID =
+            ((std::size_t)(std::hash<std::string>{}(inputFileEntry.Source)) ^ sourceIdentifier) % workers;
+
+/*
+         std::cout << inputFileEntry.Source << "\t"
+                   << timePointToString<ReaderTimePoint>(inputFileEntry.TimeStamp, 6)
+                   << "\t" << inputFileEntry.SeqNumber << "\t"
+                   << inputFileEntry.DataFile
+                   << " -> " << workerID << "\n";
+*/
          return workerID;
       }
    }
