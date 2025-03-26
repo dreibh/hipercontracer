@@ -478,7 +478,8 @@ Description: HiPerConTracer Node Tools for maintaining a measurement node
 
 Package: hipercontracer-collector
 Architecture: all
-Depends: hipercontracer-common,
+Depends: acl,
+         hipercontracer-common,
          iproute2,
          openssh-client,
          openssh-server,

@@ -596,6 +596,7 @@ HiPerConTracer Node to a HiPerConTracer Collector server.
 %package collector
 Summary: HiPerConTracer Collector Tools for collecting measurement results
 Requires: %{name}-common = %{version}-%{release}
+Requires: acl
 Requires: openssh-clients
 Requires: iproute
 Requires: openssh-server
