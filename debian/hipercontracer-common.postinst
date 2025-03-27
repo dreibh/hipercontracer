@@ -17,7 +17,7 @@ if [ "$1" = "configure" ]; then
    usermod -a -G hpct-nodes hipercontracer
 
    # Set up HiPerConTracer directories:
-   mkdir -p /var/hipercontracer
+   mkdir -p -m 755 /var/hipercontracer
    chown hipercontracer:hipercontracer /var/hipercontracer || true
 
    for subDirectory in data good bad ; do
