@@ -32,12 +32,22 @@ set -eu
 
 
 # ====== Handle arguments ===================================================
-if [ $# -ne 1 ] ; then
-   echo >&2 "Usage: $0 node_id"
+if [ $# -lt 1 ] ; then
+   echo >&2 "Usage: $0 node_id [-r|--remove-data]"
    exit 1
 fi
-
 NODE_ID="$1"
+REMOVE_DATA=0
+shift
+while [ $# -gt 0 ] ; do
+   if [ "$1" == "-r" ] || [ "$1" == "--remove-data" ] ; then
+      REMOVE_DATA=1
+   else
+      echo >&2 "ERROR: Invalid argument $1!"
+      exit 1
+   fi
+   shift
+done
 
 if [[ ! "${NODE_ID}" =~ ^[0-9]+$ ]] ; then
    echo >&2 "ERROR: Invalid Node ID ${NODE_ID}!"
@@ -66,6 +76,15 @@ if [ ! -v SUDO_USER ] || [ "${SUDO_USER}" == "" ] ; then
 else
    rm -f /home/"${SUDO_USER}"/keys/"${user}".pub \
          /home/"${SUDO_USER}"/keys/"${user}".pub.new
+fi
+if [ -d "/var/hipercontracer/data/${user}" ] ; then
+   if [ ${REMOVE_DATA} -eq 1 ] ; then
+      rm -rf "/var/hipercontracer/data/${user}"
+   else
+      echo "Keeping the data directory /var/hipercontracer/data/${user}, since data removal is not requested!"
+      # The node user is not existing anymore; set ownership to "root" instead:
+      sudo chown -R root:root "/var/hipercontracer/data/${user}"
+   fi
 fi
 
 echo -e "\x1b[34m$(date +"%Y-%m-%d %H:%M:%S") Done.\x1b[0m"
