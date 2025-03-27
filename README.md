@@ -32,7 +32,7 @@ Furthermore, the HiPerConTracer Framework provides additional tools for helping 
 * [HiPerConTracer Database Shell](#the-hipercontracer-database-shell) as simple command-line front-end for the underlying database backends;
 * [HiPerConTracer Database Tools](#the-hipercontracer-database-tools) with some helper scripts to e.g.&nbsp;to join HiPerConTracer database configurations into an existing [DBeaver](https://dbeaver.io/) (a popular SQL database GUI application) configuration;
 * [HiPerConTracer UDP Echo Server](#the-hipercontracer-udp-echo-server) as UDP Echo ([RFC&nbsp;862](https://datatracker.ietf.org/doc/html/rfc862)) protocol endpoint;
-* [Wireshark](https://www.wireshark.org/) dissector for HiPerConTracer packets.
+* [Wireshark Dissector for HiPerConTracer Packets](#wireshark-dissector-for-hipercontracer-packets)
 
 <p align="center">
  <img alt="The HiPerConTracer Framework" src="src/figures/HiPerConTracer-Data-Collection-System.svg" width="80%" />
@@ -112,6 +112,84 @@ Contributions:
 ### Current Stable Release
 
 See [https://www.nntb.no/~dreibh/hipercontracer/#StableRelease](https://www.nntb.no/~dreibh/hipercontracer/#StableRelease)!
+
+
+# Recommended Directory Structure and File Permissions
+
+In the simple case, HiPerConTracer can just be used as a measurement tool without creating special directory setups; to be described in [Running a HiPerConTracer Measurement](#running-a-hipercontracer-measurement).
+
+For a larger setup, particularly consisting of measurement nodes and/or database import, it is recommended to properly set up storage directories. As current best practises for using the HiPerConTracer framework securely, the following directory structure and file permissions are recommended:
+
+## Users
+
+* hipercontracer:
+  Unprivileged user to run [HiPerConTracer](#running-a-hipercontracer-measurement) or one of the framework tools.
+* node<1-9999>:
+  Unprivileged user on a [HiPerConTracer Collector](#the-hipercontracer-collectornode-tools), to store the data collected by a remote [HiPerConTracer Node](#the-hipercontracer-collectornode-tools).
+
+## Groups
+
+* node<1-9999>: A group for each node user.
+* hpct-nodes: A group to provide read access to the data stored on a Collector. User hipercontracer should be a member of this group, but <b>not</b> the node<1-9999> users!
+
+## Directories and Permissions
+
+* /var/hipercontracer (ownership: hipercontracer:hipercontracer; permissions: 755 = rwxr-xr-x)
+
+   * /var/hipercontracer/data (ownership: hipercontracer:hpct-nodes; permissions: 755 = rwxr-xr-x)
+
+     Storage for data recorded by [HiPerConTracer](#running-a-hipercontracer-measurement).
+
+   * /var/hipercontracer/data/node<1-9999>: (ownership: node<1-9999>:hpct-nodes; permissions: 755 = rwxr-xr-x)
+
+     Storage for data transferred from a remote Node using the [HiPerConTracer Sync Tool](#the-hipercontracer-sync-tool). Each of these node directories corresponds to a Node.
+
+     Data is stored as node<1-9999>:node<1-9999>. The permissions only allow the user itself to modify files in its own directory. A node<1-9999> user is <b>not</b> able to modify data of another node<1-9999> user!
+
+   * /var/hipercontracer/good (ownership: hipercontracer:hpct-nodes; permissions: 755 = rwxr-xr-x)
+
+     Storage for data that was successfully imported into a database by using the [HiPerConTracer Importer Tool](#the-hipercontracer-importer-tool). The Importer moves the data from /var/hipercontracer/data after import.
+
+   * /var/hipercontracer/bad (ownership: hipercontracer:hpct-nodes; permissions: 755 = rwxr-xr-x)
+
+     Storage for data that was not successfully imported into a database by using the [HiPerConTracer Importer Tool](#the-hipercontracer-importer-tool). The Importer moves the data from /var/hipercontracer/data after import failure.
+
+   * /etc/hipercontracer/ssh (ownership: hipercontracer:hipercontracer; permissions: 700 = rwx------)
+
+     Storage for the SSH private/public key pair, as well as the known_hosts file, on a [HiPerConTracer Node](#the-hipercontracer-collectornode-tools), to be used by [HiPerConTracer Sync Tool](#the-hipercontracer-sync-tool) and [HiPerConTracer Reverse Tunnel Tool](#the-hipercontracer-reverse-tunnel-tool).
+
+   That is:
+
+   ```
+   sudo mkdir -p -m 755 /var/hipercontracer
+   sudo chown hipercontracer:hipercontracer /var/hipercontracer
+   for subDirectory in data good bad ; do
+      sudo mkdir -p -m 755 /var/hipercontracer/$subDirectory
+      sudo chown hipercontracer:hpct-nodes /var/hipercontracer/$subDirectory
+   done
+   sudo mkdir -p -m 700 /var/hipercontracer/ssh
+   sudo chown hipercontracer:hipercontracer /var/hipercontracer/ssh
+   ```
+
+* /etc/hipercontracer (ownership: root:root; permissions: 755 = rwx------)
+
+  Configuration files, e.g. for importer or database.
+
+## Access Control Lists (ACL)
+
+* /var/hipercontracer/data, /var/hipercontracer/good, and /var/hipercontracer/bad:
+
+   These directories must be <b>writable</b> for the [HiPerConTracer Importer Tool](#the-hipercontracer-importer-tool), to allow it moving files owned by node<1-9999>:hpct-nodes without superuser permissions, as well as <b>readable</b> for members of the group hpct-nodes, for reading the node status files:
+   * Linux (POSIX ACLs):
+     ```
+     sudo setfacl -Rm d:u:hipercontracer:rwx,u:hipercontracer:rwx,d:g:hpct-nodes:rx,g:hpct-nodes:rx \
+        /var/hipercontracer/data /var/hipercontracer/good /var/hipercontracer/bad
+     ```
+   * FreeBSD (NFSv4 ACLs):
+     ```
+     sudo setfacl -Rm u:hipercontracer:modify_set:file_inherit/dir_inherit:allow,g:hpct-nodes:read_set:file_inherit/dir_inherit:allow \
+        /var/hipercontracer/data /var/hipercontracer/good /var/hipercontracer/bad
+     ```
 
 
 # Running a HiPerConTracer Measurement
