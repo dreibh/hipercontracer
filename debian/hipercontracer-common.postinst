@@ -1,6 +1,6 @@
 #!/bin/sh
 
-set -e
+set -eu
 
 if [ "$1" = "configure" ]; then
 
@@ -16,13 +16,18 @@ if [ "$1" = "configure" ]; then
    fi
    usermod -a -G hpct-nodes hipercontracer
 
-   # Make HiPerConTracer directory
+   # Set up HiPerConTracer directories:
    mkdir -p /var/hipercontracer
-   for directory in /var/hipercontracer/data /var/hipercontracer/good /var/hipercontracer/bad /var/hipercontracer/ssh ; do
-      mkdir -p -m 755 $directory
-      chown hipercontracer:hipercontracer $directory || true
+   chown hipercontracer:hipercontracer /var/hipercontracer || true
+
+   for subDirectory in data good bad ; do
+      mkdir -p -m 755 /var/hipercontracer/$subDirectory
+      chown hipercontracer:hpct-nodes /var/hipercontracer/$subDirectory || true
    done
-   chmod 700 /var/hipercontracer/ssh
+   setfacl -Rm d:u:hipercontracer:rwx,u:hipercontracer:rwx /var/hipercontracer || true
+
+   mkdir -p -m 700 /var/hipercontracer/ssh
+   chown hipercontracer:hipercontracer /var/hipercontracer/ssh || true
 
 fi
 
