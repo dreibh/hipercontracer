@@ -32,22 +32,17 @@ set -eu
 
 
 # ====== Handle arguments ===================================================
-if [ $# -lt 1 ] ; then
-   echo >&2 "Usage: $0 node_id [-r|--remove-data]"
+usage () {
+   echo >&2 "Usage: $0 node_id [-h|--help] [-r|--remove-data]"
    exit 1
+}
+
+if [ $# -lt 1 ] ; then
+   usage
 fi
+
 NODE_ID="$1"
-REMOVE_DATA=0
 shift
-while [ $# -gt 0 ] ; do
-   if [ "$1" == "-r" ] || [ "$1" == "--remove-data" ] ; then
-      REMOVE_DATA=1
-   else
-      echo >&2 "ERROR: Invalid argument $1!"
-      exit 1
-   fi
-   shift
-done
 
 if [[ ! "${NODE_ID}" =~ ^[0-9]+$ ]] ; then
    echo >&2 "ERROR: Invalid Node ID ${NODE_ID}!"
@@ -57,6 +52,31 @@ if [ "${NODE_ID}" -lt 1 ] || [ "${NODE_ID}" -gt 9999 ] ; then
    echo >&2 "ERROR: Invalid number for Node ID: ${NODE_ID}!"
    exit 1
 fi
+
+# shellcheck disable=SC2068
+options="$(getopt -o hr --long help,remove-data -a -- $@)"
+# shellcheck disable=SC2181
+if [[ $? -ne 0 ]] ; then
+   usage
+fi
+
+REMOVE_DATA=0
+eval set -- "${options}"
+while [ $# -gt 0 ] ; do
+   case "$1" in
+      -h | --help)
+         usage
+         ;;
+      -r | --remove-data)
+         REMOVE_DATA=1
+         shift
+         ;;
+      --)
+         shift
+         break
+         ;;
+  esac
+done
 
 
 # ====== Remove user ========================================================
