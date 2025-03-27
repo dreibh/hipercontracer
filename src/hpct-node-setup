@@ -137,33 +137,34 @@ sudo -u hipercontracer ssh -t -oUserKnownHostsFile=${KNOWN_HOSTS} "${HPCT_COLLEC
    if [ ${VERBOSE} -eq 1 ] ; then set -eux ; else set -eu ; fi && mkdir -p keys && \\
    echo \"${userPublicKey}\" >keys/node${NODE_ID}.pub.new && \\
    if [ -e \"keys/node${NODE_ID}.pub\" ] ; then
-      if ! diff \"keys/node${NODE_ID}.pub.new\" \"keys/node${NODE_ID}.pub\" ; then
-         echo >&2 \"ERROR: There is already a different key for this node!\"
-         echo >&2 \"       Check file keys/node${NODE_ID}.pub on ${HPCT_COLLECTOR}!\"
-         exit 2
-      else
-         echo -e \"\\x1b[33mKey node${NODE_ID}.pub already there.\\x1b[0m\"
-         rm -f \"keys/node${NODE_ID}.pub.new\"
+      if ! diff \"keys/node${NODE_ID}.pub.new\" \"keys/node${NODE_ID}.pub\" ; then \\
+         echo >&2 \"ERROR: There is already a different key for this node!\" && \\
+         echo >&2 \"       Check file keys/node${NODE_ID}.pub on ${HPCT_COLLECTOR}!\" && \\
+         exit 2 ; \\
+      else \\
+         echo -e \"\\x1b[33mKey node${NODE_ID}.pub already there.\\x1b[0m\" && \\
+         rm -f \"keys/node${NODE_ID}.pub.new\" ; \\
       fi
    else
-      echo -e \"\\x1b[33mPublic key needs to be copied ...\\x1b[0m\"
-      mv \"keys/node${NODE_ID}.pub.new\" \"keys/node${NODE_ID}.pub\"
+      echo -e \"\\x1b[33mPublic key needs to be copied ...\\x1b[0m\" && \\
+      mv \"keys/node${NODE_ID}.pub.new\" \"keys/node${NODE_ID}.pub\" ; \\
    fi && \\
-   if ! getent group \"${user}\" >/dev/null 2>&1; then
-      echo -e \"\\x1b[33mCreating group ${user} ...\\x1b[0m\"
-      sudo groupadd \"${user}\"
-   else
-      echo -e \"\\x1b[33mGroup ${user} is already there.\\x1b[0m\"
-   fi && \\
-   echo -e \"\\x1b[33mAdding server public key to known_hosts ...\\x1b[0m\"
+   echo -e \"\\x1b[33mAdding server public key to .ssh/known_hosts of \${USER} ...\\x1b[0m\"
    if [ ! -e .ssh/known_hosts ] ; then \\
-      mkdir -p .ssh && chmod 700 .ssh && \\
+      mkdir -p .ssh && \\
+      chmod 700 .ssh && \\
       touch .ssh/known_hosts && \\
       chmod 600 .ssh/known_hosts ; \\
    fi && \\
-   ssh-keygen -q -R \"localhost:${port}\" -f .ssh/known_hosts && \\
-   echo \"localhost:${port}\" \"${nodePublicKey}\" >>.ssh/known_hosts && \\
-   ssh-keygen -H -f .ssh/known_hosts && \\
+   ssh-keygen -q -R \"localhost:${port}\" -f .ssh/known_hosts >/dev/null 2>&1 || ssh-keygen -q -R \"localhost:${port}\" -f .ssh/known_hosts && \\
+   echo \"localhost:${port} ${nodePublicKey}\" >>.ssh/known_hosts && \\
+   ssh-keygen -q -H -f .ssh/known_hosts >/dev/null 2>&1 || ssh-keygen -q -H -f .ssh/known_hosts && \\
+   if ! getent group \"${user}\" >/dev/null 2>&1; then
+      echo -e \"\\x1b[33mCreating group ${user} ...\\x1b[0m\" && \\
+      sudo groupadd \"${user}\" ; \\
+   else
+      echo -e \"\\x1b[33mGroup ${user} is already there.\\x1b[0m\" ; \\
+   fi && \\
    if ! getent passwd \"${user}\" >/dev/null 2>&1; then
       echo -e \"\\x1b[33mCreating user ${user} ...\\x1b[0m\" && \\
       sudo mkdir -p \"/home/${user}/.ssh\" && \\
@@ -184,10 +185,10 @@ sudo -u hipercontracer ssh -t -oUserKnownHostsFile=${KNOWN_HOSTS} "${HPCT_COLLEC
    fi && \\
    echo -e \"\\x1b[33mCreating data directory /var/hipercontracer/data/${user} for user ${user} ...\\x1b[0m\" && \\
    sudo mkdir -p \"/var/hipercontracer/data/${user}\" && \\
-   sudo chown -R \"${user}:${user}\" \"/var/hipercontracer/data/${user}\" && \\
-   sudo chmod 700 \"/var/hipercontracer/data/${user}\" && \\
+   sudo chown -R \"${user}\" \"/var/hipercontracer/data/${user}\" && \\
+   sudo chmod 750 \"/var/hipercontracer/data/${user}\" && \\
    sudo setfacl -Rm d:u:hipercontracer:rwx,u:hipercontracer:rwx \"/var/hipercontracer/data/${user}\" && \\
-   echo \"Done!\"
+   echo -e \"\\x1b[33mDone!\\x1b[0m\"
 " && status=0 || status=$?
 if [ "${status}" -ne 0 ] ; then
    echo -e "\x1b[34m$(date +"%Y-%m-%d %H:%M:%S") FAILED!\x1b[0m"
