@@ -27,6 +27,7 @@ BuildRequires: zlib-devel
 BuildRoot: %{_tmppath}/%{name}-%{version}-build
 Requires: %{name}-common = %{version}-%{release}
 Requires: %{name}-libhipercontracer = %{version}-%{release}
+Requires: acl
 Requires: iproute
 Recommends: %{name}-viewer = %{version}-%{release}
 Recommends: ethtool
@@ -155,22 +156,29 @@ if ! getent group hpct-nodes >/dev/null 2>&1; then
 fi
 usermod -a -G hpct-nodes hipercontracer
 
-# Make HiPerConTracer directory
+# Set up HiPerConTracer directories:
 mkdir -p /var/hipercontracer
-for directory in /var/hipercontracer/data /var/hipercontracer/good /var/hipercontracer/bad /var/hipercontracer/ssh ; do
-   mkdir -p -m 755 $directory
-   chown hipercontracer:hipercontracer $directory || true
+chown hipercontracer:hipercontracer /var/hipercontracer || true
+
+for subDirectory in data good bad ; do
+   mkdir -p -m 755 /var/hipercontracer/$subDirectory
+   chown hipercontracer:hpct-nodes /var/hipercontracer/$subDirectory || true
 done
-chmod 700 /var/hipercontracer/ssh
+setfacl -Rm d:u:hipercontracer:rwx,u:hipercontracer:rwx /var/hipercontracer || true
+
+mkdir -p -m 700 /var/hipercontracer/ssh
+chown hipercontracer:hipercontracer /var/hipercontracer/ssh || true
 
 %postun common
-# Remove administrative user
-userdel hipercontracer  >/dev/null 2>&1 || true
+# Remove administrative user:
+userdel  hipercontracer >/dev/null 2>&1 || true
 groupdel hipercontracer >/dev/null 2>&1 || true
 groupdel hpct-nodes     >/dev/null 2>&1 || true
 
-# Remove data directory (if empty)
-rmdir /var/hipercontracer/data /var/hipercontracer/good /var/hipercontracer/bad || true
+# Remove data directory (if empty):
+for subDirectory in data good bad ssh ; do
+   rmdir /var/hipercontracer/$subDirectory || true
+done
 rmdir /var/hipercontracer >/dev/null 2>&1 || true
 
 %files common
@@ -598,7 +606,6 @@ HiPerConTracer Node to a HiPerConTracer Collector server.
 %package collector
 Summary: HiPerConTracer Collector Tools for collecting measurement results
 Requires: %{name}-common = %{version}-%{release}
-Requires: acl
 Requires: openssh-clients
 Requires: iproute
 Requires: openssh-server
