@@ -32,9 +32,13 @@ set -eu
 
 
 # ====== Handle arguments ===================================================
-if [ $# -ne 2 ] ; then
-   echo >&2 "Usage: $0 collector node_id"
+usage () {
+   echo >&2 "Usage: $0 collector node_id [-h|--help] [--verbose|-v] [--quiet|-q]"
    exit 1
+}
+
+if [ $# -lt 2 ] ; then
+   usage
 fi
 
 HPCT_COLLECTOR="$1"
@@ -62,6 +66,35 @@ if [ "${HPCT_COLLECTOR}" == "" ] ; then
    exit 1
 fi
 
+# shellcheck disable=SC2068
+options="$(getopt -o hqvc --long help,quiet,verbose,copy-id -a -- $@)"
+# shellcheck disable=SC2181
+if [[ $? -ne 0 ]] ; then
+   usage
+fi
+
+VERBOSE=0
+eval set -- "${options}"
+while [ $# -gt 0 ] ; do
+   case "$1" in
+      -h | --help)
+         usage
+         ;;
+      -v | --verbose)
+         VERBOSE=1
+         shift
+         ;;
+      -q | --quiet)
+         VERBOSE=0
+         shift
+         ;;
+      --)
+         shift
+         break
+         ;;
+  esac
+done
+
 
 # ====== Create server key ==================================================
 if [ ! -e "${SERVER_KEY}" ] ; then
@@ -70,7 +103,7 @@ if [ ! -e "${SERVER_KEY}" ] ; then
 fi
 
 # ====== Create key pair ====================================================
-set -eux
+if [ "${VERBOSE}" -eq 1 ] ; then set -eux ; else set -eu ; fi
 echo -e "\x1b[34m$(date +"%Y-%m-%d %H:%M:%S") Checking local key pair ${PRIVATE_KEY} / ${PUBLIC_KEY} of Node ${NODE_ID} ...\x1b[0m"
 directory="$(dirname ${PRIVATE_KEY})"
 if sudo -u hipercontracer test ! -d "${directory}" ; then
@@ -101,7 +134,7 @@ nodePublicKey="$(sudo -u hipercontracer cat /etc/ssh/ssh_host_ed25519_key.pub)"
 userPublicKey="$(sudo -u hipercontracer cat ${PUBLIC_KEY})"
 
 sudo -u hipercontracer ssh -t -oUserKnownHostsFile=${KNOWN_HOSTS} "${HPCT_COLLECTOR}" "
-   set -eux && mkdir -p keys && \\
+   if [ "${VERBOSE}" -eq 1 ] ; then set -eux ; else set -eu ; fi && mkdir -p keys && \\
    echo \"${userPublicKey}\" >keys/node${NODE_ID}.pub.new && \\
    if [ -e \"keys/node${NODE_ID}.pub\" ] ; then
       if ! diff \"keys/node${NODE_ID}.pub.new\" \"keys/node${NODE_ID}.pub\" ; then
@@ -109,26 +142,26 @@ sudo -u hipercontracer ssh -t -oUserKnownHostsFile=${KNOWN_HOSTS} "${HPCT_COLLEC
          echo >&2 \"       Check file keys/node${NODE_ID}.pub on ${HPCT_COLLECTOR}!\"
          exit 2
       else
-         echo \"Key node${NODE_ID}.pub already there.\"
+         echo -e \"\\x1b[33mKey node${NODE_ID}.pub already there.\\x1b[0m\"
          rm -f \"keys/node${NODE_ID}.pub.new\"
       fi
    else
-      echo \"Key needs to be copied!\"
+      echo -e \"\\x1b[33mKey needs to be copied ...\\x1b[0m\"
       mv \"keys/node${NODE_ID}.pub.new\" \"keys/node${NODE_ID}.pub\"
    fi && \\
    if ! getent group \"${user}\" >/dev/null 2>&1; then
-      echo \"Creating group ${user} ...\"
+      echo -e \"\\x1b[33mCreating group ${user} ...\\x1b[0m\"
       sudo groupadd \"${user}\"
    else
-      echo \"Group ${user} is already there.\"
+      echo -e \"\\x1b[33mGroup ${user} is already there.\\x1b[0m\"
    fi && \\
-   echo \"Adding server public key to known_hosts ...\"
+   echo -e \"\\x1b[33mAdding server public key to known_hosts ...\\x1b[0m\"
    if [ ! -e .ssh/known_hosts ] ; then mkdir -p .ssh && chmod 700 .ssh && touch .ssh/known_hosts && chmod 600 .ssh/known_hosts ; fi && \\
    ssh-keygen -q -R \"localhost:${port}\" -f .ssh/known_hosts && \\
    echo \"localhost:${port}\" \"${nodePublicKey}\" >>.ssh/known_hosts && \\
    ssh-keygen -H -f .ssh/known_hosts && \\
    if ! getent passwd \"${user}\" >/dev/null 2>&1; then
-      echo \"Creating user ${user} ...\" && \\
+      echo -e \"\\x1b[33mCreating user ${user} ...\\x1b[0m\" && \\
       sudo mkdir -p \"/home/${user}/.ssh\" && \\
       sudo chmod 700 \"/home/${user}\" && \\
       sudo chmod 700 \"/home/${user}/.ssh\" && \\
@@ -139,13 +172,13 @@ sudo -u hipercontracer ssh -t -oUserKnownHostsFile=${KNOWN_HOSTS} "${HPCT_COLLEC
       sudo chown \"${user}:${user}\" \"/home/${user}\" && \\
       sudo chown \"${user}:${user}\" \"/home/${user}/.ssh\" && \\
       sudo chown \"${user}:${user}\" \"/home/${user}/.ssh/authorized_keys\" && \\
-      echo \"Creating data directory /var/hipercontracer/data/${user} ...\" && \\
+      echo -e \"\\x1b[33mCreating data directory /var/hipercontracer/data/${user} ...\\x1b[0m\" && \\
       sudo mkdir -p \"/var/hipercontracer/data/${user}\" && \\
       sudo chown \"${user}:hipercontracer\" \"/var/hipercontracer/data/${user}\" && \\
       sudo chmod 2770 \"/var/hipercontracer/data/${user}\" && \\
       sudo setfacl -Rm d:u:hipercontracer:rwx,u:hipercontracer:rwx \"/var/hipercontracer/data/${user}\"
    else
-      echo \"User ${user} is already there.\"
+      echo -e \"\\x1b[33mUser ${user} is already there.\\x1b[0m\"
    fi
 " && status=0 || status=$?
 if [ "${status}" -ne 0 ] ; then

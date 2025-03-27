@@ -38,6 +38,9 @@
 .\" ###### Synopsis #########################################################
 .Sh SYNOPSIS
 .Nm hpct-node-setup COLLECTOR NODE_ID
+.Op Fl h | Fl Fl help
+.Op Fl v | Fl Fl verbose
+.Op Fl q | Fl Fl quiet
 .\" ###### Description ######################################################
 .Sh DESCRIPTION
 .Nm hpct-node-setup
@@ -58,12 +61,20 @@ The following arguments must be provided:
 Sets the SSH location of the collector, i.e. USER@HOST.
 .It NODE_ID
 Sets the node ID, a number from 1 to 9999.
+.It Fl h | Fl Fl help
+Prints command help.
+.It Fl q |\--quiet
+Turns off status output.
+.It Fl v |\--verbose
+Turns on status output.
 .El
 .\" ###### Examples #########################################################
 .Sh EXAMPLES
 .Bl -tag -width indent
 .It sudo hpct-node-setup nornetpp@hpct-collector.example 1
 .It sudo hpct-node-setup nornetpp@hpct-collector.example 1000
+.It sudo hpct-node-setup nornetpp@hpct-collector.example 2000 --verbose
+.It sudo hpct-node-setup nornetpp@hpct-collector.example 2001 -v
 .El
 .\" ###### Authors ##########################################################
 .Sh AUTHORS

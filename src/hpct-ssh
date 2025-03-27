@@ -45,6 +45,19 @@ VERBOSE=1
 COPY_ID=0
 shift
 
+if [[ ! "${SSH_USER}" =~ ^[a-zA-Z0-9]+$ ]] ; then
+   echo >&2 "ERROR: Invalid user ${SSH_USER}!"
+   exit 1
+fi
+if [[ ! "${NODE_ID}" =~ ^[0-9]+$ ]] ; then
+   echo >&2 "ERROR: Invalid Node ID ${NODE_ID}!"
+   exit 1
+fi
+if [ "${NODE_ID}" -lt 1 ] || [ "${NODE_ID}" -gt 9999 ] ; then
+   echo >&2 "ERROR: Invalid number for Node ID: ${NODE_ID}!"
+   exit 1
+fi
+
 # shellcheck disable=SC2068
 options="$(getopt -o hqvc --long help,quiet,verbose,copy-id -a -- $@)"
 # shellcheck disable=SC2181
@@ -76,19 +89,6 @@ while [ $# -gt 0 ] ; do
          ;;
   esac
 done
-
-if [[ ! "${SSH_USER}" =~ ^[a-zA-Z0-9]+$ ]] ; then
-   echo >&2 "ERROR: Invalid user ${SSH_USER}!"
-   exit 1
-fi
-if [[ ! "${NODE_ID}" =~ ^[0-9]+$ ]] ; then
-   echo >&2 "ERROR: Invalid Node ID ${NODE_ID}!"
-   exit 1
-fi
-if [ "${NODE_ID}" -lt 1 ] || [ "${NODE_ID}" -gt 9999 ] ; then
-   echo >&2 "ERROR: Invalid number for Node ID: ${NODE_ID}!"
-   exit 1
-fi
 
 
 # ====== SSH to node via Reverse Tunnel =====================================
