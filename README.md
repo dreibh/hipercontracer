@@ -430,6 +430,9 @@ man hpct-query
 
 The HiPerConTracer Sync Tool helps synchronising collected results files from a vantage point (denoted as HiPerConTracer Node) to a collection server (denoted as HiPerConTracer Collector), using [RSync](https://rsync.samba.org/)/[SSH](https://www.openssh.com/).
 
+For information about the necessary underlying directory structure and file permissions, see
+[Recommended Directory Structure and File Permissions](#recommended-directory-structure-and-file-permissions). In case of problems, a misconfiguration of these is the most likely issue!
+
 ## Example
 Synchronise results files, with the following settings:
 
@@ -460,6 +463,9 @@ man hpct-sync
 # The HiPerConTracer Reverse Tunnel Tool
 
 The HiPerConTracer Reverse Tunnel (RTunnel) Tool maintains a reverse [SSH](https://www.openssh.com/) tunnel from a remote HiPerConTracer Node to a HiPerConTracer Collector server. The purpose is to allow for SSH login from the Collector server to the Node, via this reverse tunnel. Then, the Node does not need a publicly-reachable IP address (e.g.&nbsp;a Node only having a private IP address behind a NAT/PAT firewall).
+
+For information about the necessary underlying directory structure and file permissions, see
+[Recommended Directory Structure and File Permissions](#recommended-directory-structure-and-file-permissions). In case of problems, a misconfiguration of these is the most likely issue!
 
 ## Example
 Establish a Reverse Tunnel, with the following settings:
@@ -502,6 +508,9 @@ The HiPerConTracer Collector/Node Tools are some scripts for simplifying the set
 - [hpct-node-removal](https://github.com/dreibh/hipercontracer/blob/master/src/hpct-node-removal) (on the Collector): Remove a node from the Collector.
 
 See the manpages of these tools for further details!
+
+For information about the necessary underlying directory structure and file permissions, see
+[Recommended Directory Structure and File Permissions](#recommended-directory-structure-and-file-permissions). In case of problems, a misconfiguration of these is the most likely issue!
 
 
 # The HiPerConTracer Trigger Tool
