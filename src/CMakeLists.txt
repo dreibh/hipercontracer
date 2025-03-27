@@ -256,14 +256,17 @@ ENDIF()
 
 # ====== HiPerConTracer Collector Tools =====================================
 IF (WITH_COLLECTOR)
-   INSTALL(PROGRAMS hpct-node-removal   DESTINATION ${CMAKE_INSTALL_BINDIR})
-   INSTALL(FILES    hpct-node-removal.1 DESTINATION ${CMAKE_INSTALL_MANDIR}/man1)
+   INSTALL(PROGRAMS    hpct-node-removal  DESTINATION ${CMAKE_INSTALL_BINDIR})
+   INSTALL(FILES       hpct-node-removal.1 DESTINATION ${CMAKE_INSTALL_MANDIR}/man1)
+   INSTALL(FILES       hpct-node-removal.bash-completion
+           DESTINATION ${CMAKE_INSTALL_DATADIR}/bash-completion/completions
+           RENAME      hpct-node-removal)
 
-   INSTALL(PROGRAMS hpct-nodes-list   DESTINATION ${CMAKE_INSTALL_BINDIR})
-   INSTALL(FILES    hpct-nodes-list.1 DESTINATION ${CMAKE_INSTALL_MANDIR}/man1)
+   INSTALL(PROGRAMS    hpct-nodes-list   DESTINATION ${CMAKE_INSTALL_BINDIR})
+   INSTALL(FILES       hpct-nodes-list.1 DESTINATION ${CMAKE_INSTALL_MANDIR}/man1)
 
-   INSTALL(PROGRAMS hpct-ssh          DESTINATION ${CMAKE_INSTALL_BINDIR})
-   INSTALL(FILES    hpct-ssh.1        DESTINATION ${CMAKE_INSTALL_MANDIR}/man1)
+   INSTALL(PROGRAMS    hpct-ssh          DESTINATION ${CMAKE_INSTALL_BINDIR})
+   INSTALL(FILES       hpct-ssh.1        DESTINATION ${CMAKE_INSTALL_MANDIR}/man1)
    INSTALL(FILES       hpct-ssh.bash-completion
            DESTINATION ${CMAKE_INSTALL_DATADIR}/bash-completion/completions
            RENAME      hpct-ssh)
