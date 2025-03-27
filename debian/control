@@ -436,6 +436,7 @@ Architecture: all
 Depends: hipercontracer,
          hipercontracer-rtunnel,
          hipercontracer-sync,
+         sudo,
          ${misc:Depends}
 Recommends: td-system-info,
             td-system-maintenance,
@@ -484,6 +485,7 @@ Depends: acl,
          openssh-client,
          openssh-server,
          rsync,
+         sudo,
          ${misc:Depends}
 Recommends: td-system-info,
             td-system-maintenance,

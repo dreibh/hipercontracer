@@ -548,6 +548,7 @@ Summary: HiPerConTracer Node Tools for maintaining a measurement node
 Requires: %{name} = %{version}-%{release}
 Requires: %{name}-rtunnel = %{version}-%{release}
 Requires: %{name}-sync = %{version}-%{release}
+Requires: sudo
 Recommends: td-system-tools-system-info
 Recommends: td-system-tools-system-maintenance
 BuildArch: noarch
@@ -602,6 +603,7 @@ Requires: openssh-clients
 Requires: iproute
 Requires: openssh-server
 Requires: rsync
+Requires: sudo
 
 %description collector
 High-Performance Connectivity Tracer (HiPerConTracer) is a Ping/Traceroute
