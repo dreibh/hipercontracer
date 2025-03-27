@@ -18,7 +18,8 @@ sudo chown -R hipercontracer:hipercontracer "${DIRECTORY}/data" "${DIRECTORY}/go
 if [ "$(uname)" != "FreeBSD" ] ; then
    sudo setfacl -Rm d:u:hipercontracer:rwx,u:hipercontracer:rwx "${DIRECTORY}/data" "${DIRECTORY}/good" "${DIRECTORY}/bad"
 else
-   sudo setfacl -Rm u:hipercontracer:modify_set:file_inherit/dir_inherit:allow "${DIRECTORY}/data" "${DIRECTORY}/good" "${DIRECTORY}/bad"
+   sudo setfacl -Rm u:hipercontracer:modify_set:file_inherit/dir_inherit:allow,g:hpct-nodes:read_set:file_inherit/dir_inherit:allow \
+      "${DIRECTORY}/data" "${DIRECTORY}/good" "${DIRECTORY}/bad"
 fi
 for n in 9000 9001 9002 9003 ; do
    if [ "$(uname)" != "FreeBSD" ] ; then
