@@ -51,8 +51,8 @@ COLLECTOR_HIPERCONTRACER_GROUP="hpct-nodes"
 COLLECTOR_HIPERCONTRACER_DIRECTORY="/var/hipercontracer"
 
 KEY_TYPE="ed25519"
-PRIVATE_KEY="${NODE_HIPERCONTRACER_DIRECTORY}/ssh/${KEY_TYPE}"
-PUBLIC_KEY="${NODE_HIPERCONTRACER_DIRECTORY}/ssh/${KEY_TYPE}.pub"
+PRIVATE_KEY="${NODE_HIPERCONTRACER_DIRECTORY}/ssh/id_${KEY_TYPE}"
+PUBLIC_KEY="${NODE_HIPERCONTRACER_DIRECTORY}/ssh/id_${KEY_TYPE}.pub"
 KNOWN_HOSTS="${NODE_HIPERCONTRACER_DIRECTORY}/ssh/known_hosts"
 
 # This is the public key of the SSH server on this machine:
@@ -125,13 +125,16 @@ if sudo -u "${NODE_HIPERCONTRACER_USER}" test ! -e ${PRIVATE_KEY} || \
       echo >&2 "ERROR: Failed to create key pair"
       exit 1
    fi
-   sudo -u "${NODE_HIPERCONTRACER_USER}" chmod 600 ${PRIVATE_KEY} ${PUBLIC_KEY} ${KNOWN_HOSTS}
+   sudo -u "${NODE_HIPERCONTRACER_USER}" chmod 600 ${PRIVATE_KEY} ${PUBLIC_KEY}
+   if sudo -u "${NODE_HIPERCONTRACER_USER}" test -e ${KNOWN_HOSTS} ] ; then
+      sudo -u "${NODE_HIPERCONTRACER_USER}" chmod 600  ${KNOWN_HOSTS}
+   fi
 else
    echo "Key pair ${PRIVATE_KEY} / ${PUBLIC_KEY} is already there, using it."
 fi
 
 
-# ====== Copy public key ====================================================
+# ====== Perform configuration of the node on the collector =================
 echo -e "\x1b[34m$(date +"%Y-%m-%d %H:%M:%S") Checking access of Node ${NODE_ID} to collector ${COLLECTOR} ...\x1b[0m"
 echo "*** This session needs sudo permissions *on the collector* to set up the node user and directories there! ***"
 
@@ -198,39 +201,57 @@ sudo -u "${NODE_HIPERCONTRACER_USER}" ssh -t -oUserKnownHostsFile=${KNOWN_HOSTS}
    if [ \"\$(uname)\" != \"FreeBSD\" ] ; then \\
       sudo setfacl -Rm d:u:${COLLECTOR_HIPERCONTRACER_USER}:rwx,u:${COLLECTOR_HIPERCONTRACER_USER}:rwx,d:g:${COLLECTOR_HIPERCONTRACER_GROUP}:rx,g:${COLLECTOR_HIPERCONTRACER_GROUP}:rx \"${COLLECTOR_HIPERCONTRACER_DIRECTORY}/data/${user}\" ; \\
    else \\
-      sudo setfacl -Rm u:${COLLECTOR_HIPERCONTRACER_USER}:modify_set:file_inherit/dir_inherit:allow\"${COLLECTOR_HIPERCONTRACER_DIRECTORY}/data/${user}\" ; \\
-      sudo setfacl -Rm g:${COLLECTOR_HIPERCONTRACER_GROUP}:read_set:file_inherit/dir_inherit:allow\"${COLLECTOR_HIPERCONTRACER_DIRECTORY}/data/${user}\" && \\
+      sudo setfacl -Rm u:${COLLECTOR_HIPERCONTRACER_USER}:modify_set:file_inherit/dir_inherit:allow\"${COLLECTOR_HIPERCONTRACER_DIRECTORY}/data/${user}\" && \\
+      sudo setfacl -Rm g:${COLLECTOR_HIPERCONTRACER_GROUP}:read_set:file_inherit/dir_inherit:allow\"${COLLECTOR_HIPERCONTRACER_DIRECTORY}/data/${user}\" ; \\
    fi && \\
    echo -e \"\\x1b[33mDone!\\x1b[0m\"
 " && status=0 || status=$?
 if [ "${status}" -ne 0 ] ; then
    echo -e "\x1b[34m$(date +"%Y-%m-%d %H:%M:%S") FAILED!\x1b[0m"
    exit 1
-else
-   if [ -e /etc/hipercontracer/hpct-sync.conf ] ; then
-      echo -e "\x1b[34m$(date +"%Y-%m-%d %H:%M:%S") Updating /etc/hipercontracer/hpct-sync.conf ...\x1b[0m"
-      echo "This needs sudo permission to modify /etc/hipercontracer/hpct-sync.conf!"
-      collector="${COLLECTOR//*@/}"
-      sudo cat /etc/hipercontracer/hpct-sync.conf | \
-         sed \
-            -e "s/^NODE_ID=.*$/NODE_ID=${NODE_ID}/g" \
-            -e "s/^COLLECTOR=.*$/COLLECTOR=""${collector}""/g" | \
-         sudo tee /etc/hipercontracer/hpct-sync.conf.new >/dev/null
-      sudo diff --color=always /etc/hipercontracer/hpct-sync.conf.new /etc/hipercontracer/hpct-sync.conf || true
-      sudo mv /etc/hipercontracer/hpct-sync.conf.new /etc/hipercontracer/hpct-sync.conf
-   fi
-
-   echo -e "\x1b[34m$(date +"%Y-%m-%d %H:%M:%S") Enabling and starting HPCT RTunnel and HPCT Sync ...\x1b[0m"
-   if [ -x /usr/bin/systemctl ] ; then
-      echo "This needs sudo permission to enable and start the services!"
-      # Not enabling HiPerConTracer service here, since it has to be enabled based on measurement ID(s)!
-      sudo systemctl enable hpct-rtunnel.service
-      sudo systemctl start hpct-rtunnel.service
-      sudo systemctl enable hpct-sync.timer
-      sudo systemctl start hpct-sync.timer
-   else
-      echo "FIXME! TBD on systems without systemctl!"
-   fi
-
-   echo -e "\x1b[34m$(date +"%Y-%m-%d %H:%M:%S") Done.\x1b[0m"
 fi
+
+
+# ====== Test connectivity ==================================================
+echo -e "\x1b[34m$(date +"%Y-%m-%d %H:%M:%S") Testing connectivity to ${COLLECTOR} ...\x1b[0m"
+collector="${COLLECTOR//*@/}"
+sudo -u "${NODE_HIPERCONTRACER_USER}" ssh -t -oUserKnownHostsFile=${KNOWN_HOSTS} -i "${PRIVATE_KEY}" "node${NODE_ID}@${collector}" "
+   hostname -f
+" && status=0 || status=$?
+if [ "${status}" -ne 0 ] ; then
+   echo -e "\x1b[34m$(date +"%Y-%m-%d %H:%M:%S") FAILED!\x1b[0m"
+   exit 1
+fi
+
+
+# ====== Update HPCT Sync configuration =====================================
+if [ -e /etc/hipercontracer/hpct-sync.conf ] ; then
+   echo -e "\x1b[34m$(date +"%Y-%m-%d %H:%M:%S") Updating /etc/hipercontracer/hpct-sync.conf ...\x1b[0m"
+   echo "This needs sudo permission to modify /etc/hipercontracer/hpct-sync.conf!"
+   collector="${COLLECTOR//*@/}"
+   sudo cat /etc/hipercontracer/hpct-sync.conf | \
+      sed \
+         -e "s/^NODE_ID=.*$/NODE_ID=${NODE_ID}/g" \
+         -e "s/^COLLECTOR=.*$/COLLECTOR=""${collector}""/g" | \
+      sudo tee /etc/hipercontracer/hpct-sync.conf.new >/dev/null
+   sudo diff --color=always /etc/hipercontracer/hpct-sync.conf.new /etc/hipercontracer/hpct-sync.conf || true
+   sudo mv /etc/hipercontracer/hpct-sync.conf.new /etc/hipercontracer/hpct-sync.conf
+fi
+
+
+# ====== Enable and start HPCT Sync and HPCT RTunnel ========================
+echo -e "\x1b[34m$(date +"%Y-%m-%d %H:%M:%S") Enabling and starting HPCT RTunnel and HPCT Sync ...\x1b[0m"
+if [ -x /usr/bin/systemctl ] ; then
+   echo "*** This session needs sudo permissions *on this machine* to to enable and start the services! ***"
+   # Not enabling HiPerConTracer service here, since it has to be enabled based on measurement ID(s)!
+   sudo systemctl stop hpct-rtunnel.service
+   sudo systemctl enable hpct-rtunnel.service
+   sudo systemctl start hpct-rtunnel.service
+   sudo systemctl stop hpct-sync.timer
+   sudo systemctl enable hpct-sync.timer
+   sudo systemctl start hpct-sync.timer
+else
+   echo "FIXME! TBD on systems without systemctl!"
+fi
+
+echo -e "\x1b[34m$(date +"%Y-%m-%d %H:%M:%S") Done.\x1b[0m"
