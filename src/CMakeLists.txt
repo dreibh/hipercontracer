@@ -249,8 +249,11 @@ ENDIF()
 
 # ====== HiPerConTracer Node Tools ==========================================
 IF (WITH_NODE)
-   INSTALL(PROGRAMS hpct-node-setup DESTINATION ${CMAKE_INSTALL_BINDIR})
-   INSTALL(FILES hpct-node-setup.1  DESTINATION ${CMAKE_INSTALL_MANDIR}/man1)
+   INSTALL(PROGRAMS    hpct-node-setup   DESTINATION ${CMAKE_INSTALL_BINDIR})
+   INSTALL(FILES       hpct-node-setup.1 DESTINATION ${CMAKE_INSTALL_MANDIR}/man1)
+   INSTALL(FILES       hpct-node-setup.bash-completion
+           DESTINATION ${CMAKE_INSTALL_DATADIR}/bash-completion/completions
+           RENAME      hpct-node-setup)
 ENDIF()
 
 

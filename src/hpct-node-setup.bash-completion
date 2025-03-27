@@ -1,0 +1,70 @@
+# shellcheck shell=bash
+# ==========================================================================
+#     _   _ _ ____            ____          _____
+#    | | | (_)  _ \ ___ _ __ / ___|___  _ _|_   _| __ __ _  ___ ___ _ __
+#    | |_| | | |_) / _ \ '__| |   / _ \| '_ \| || '__/ _` |/ __/ _ \ '__|
+#    |  _  | |  __/  __/ |  | |__| (_) | | | | || | | (_| | (_|  __/ |
+#    |_| |_|_|_|   \___|_|   \____\___/|_| |_|_||_|  \__,_|\___\___|_|
+#
+#       ---  High-Performance Connectivity Tracer (HiPerConTracer)  ---
+#                 https://www.nntb.no/~dreibh/hipercontracer/
+# ==========================================================================
+#
+# High-Performance Connectivity Tracer (HiPerConTracer)
+# Copyright (C) 2015-2025 by Thomas Dreibholz
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+# Contact: dreibh@simula.no
+
+
+# ###### Bash completion for hpct-node-setup ##############################
+_hpct_node_setup()
+{
+   # Based on: https://www.benningtons.net/index.php/bash-completion/
+   local cur prev words cword
+   if type -t _comp_initialize >/dev/null; then
+      _comp_initialize || return
+   elif type -t _init_completion >/dev/null; then
+      _init_completion || return
+   else
+      # Manual initialization for older bash completion versions:
+      COMPREPLY=()
+      # shellcheck disable=SC2034
+      cur="${COMP_WORDS[COMP_CWORD]}"
+      # shellcheck disable=SC2034
+      prev="${COMP_WORDS[COMP_CWORD-1]}"
+      # shellcheck disable=SC2034,SC2124
+      words="${COMP_WORDS[@]}"
+      # shellcheck disable=SC2034
+      cword="${COMP_CWORD}"
+   fi
+
+   if [ "${cword}" -eq 2 ] ; then
+      return
+   fi
+
+   # ====== All options =====================================================
+   local opts="
+-h
+--help
+-r
+--remove-data
+"
+   # shellcheck disable=SC2207
+   COMPREPLY=( $( compgen -W "${opts}" -- "${cur}" ) )
+   return 0
+}
+
+complete -F _hpct_node_setup hpct-node-setup
