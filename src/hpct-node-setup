@@ -201,8 +201,7 @@ sudo -u "${NODE_HIPERCONTRACER_USER}" ssh -t -oUserKnownHostsFile=${KNOWN_HOSTS}
    if [ \"\$(uname)\" != \"FreeBSD\" ] ; then \\
       sudo setfacl -Rm d:u:${COLLECTOR_HIPERCONTRACER_USER}:rwx,u:${COLLECTOR_HIPERCONTRACER_USER}:rwx,d:g:${COLLECTOR_HIPERCONTRACER_GROUP}:rx,g:${COLLECTOR_HIPERCONTRACER_GROUP}:rx \"${COLLECTOR_HIPERCONTRACER_DIRECTORY}/data/${user}\" ; \\
    else \\
-      sudo setfacl -Rm u:${COLLECTOR_HIPERCONTRACER_USER}:modify_set:file_inherit/dir_inherit:allow\"${COLLECTOR_HIPERCONTRACER_DIRECTORY}/data/${user}\" && \\
-      sudo setfacl -Rm g:${COLLECTOR_HIPERCONTRACER_GROUP}:read_set:file_inherit/dir_inherit:allow\"${COLLECTOR_HIPERCONTRACER_DIRECTORY}/data/${user}\" ; \\
+      sudo setfacl -Rm u:${COLLECTOR_HIPERCONTRACER_USER}:modify_set:file_inherit/dir_inherit:allow,g:${COLLECTOR_HIPERCONTRACER_GROUP}:read_set:file_inherit/dir_inherit:allow \"${COLLECTOR_HIPERCONTRACER_DIRECTORY}/data/${user}\" ; \\
    fi && \\
    echo -e \"\\x1b[33mDone!\\x1b[0m\"
 " && status=0 || status=$?
