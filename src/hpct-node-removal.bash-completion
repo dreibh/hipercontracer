@@ -51,6 +51,10 @@ _hpct_node_removal()
       cword="${COMP_CWORD}"
    fi
 
+   if [ "${cword}" -eq 1 ] ; then
+      return
+   fi
+
    # ====== All options =====================================================
    local opts="
 -h
