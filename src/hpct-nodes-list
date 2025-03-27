@@ -25,6 +25,8 @@
 
 set -eu
 
+HIPERCONTRACER_DIRECTORY="/var/hipercontracer"
+
 
 # ###### Compute time difference between time stamps ########################
 calculate_time_difference ()
@@ -87,11 +89,11 @@ for nodeID in "${CONFIGURED_NODES[@]}" ; do
    fi
 
    # ====== Last Seen ====================================================
-   # NOTE: last-seen.txt is accessible by the user!
-   if [ -e "/var/hipercontracer/data/node${nodeID}/last-seen.txt" ] ; then
-      nodeInfo="$(cat "/var/hipercontracer/data/node${nodeID}/last-seen.txt")"
+   # NOTE: last-seen.txt must be accessible by the user!
+   if [ -e "${HIPERCONTRACER_DIRECTORY}/data/node${nodeID}/last-seen.txt" ] ; then
+      nodeInfo="$(cat "${HIPERCONTRACER_DIRECTORY}/data/node${nodeID}/last-seen.txt")"
    else
-      nodeInfo="Unknown! (no access last-seen.text?)"
+      nodeInfo="Unknown! (no access to last-seen.txt?)"
    fi
    if [ "${nodeLastSeen}" == "" ] ; then
       nodeLastSeen="$(echo "${nodeInfo}" | head -n1)"
@@ -102,11 +104,11 @@ for nodeID in "${CONFIGURED_NODES[@]}" ; do
    # tunnelUptime=$(echo "${nodeInfo}" | grep "^tunnel_uptime: " | sed -e "s/[^:]*: //")
 
    # ====== Last Sync =======================================================
-   # NOTE: last-seen.txt is accessible by the user!
-   if [ -e "/var/hipercontracer/data/node${nodeID}/last-sync.txt" ] ; then
-      nodeLastSync="$(cat "/var/hipercontracer/data/node${nodeID}/last-sync.txt")"
+   # NOTE: last-seen.txt must be accessible by the user!
+   if [ -e "${HIPERCONTRACER_DIRECTORY}/data/node${nodeID}/last-sync.txt" ] ; then
+      nodeLastSync="$(cat "${HIPERCONTRACER_DIRECTORY}/data/node${nodeID}/last-sync.txt")"
    else
-      nodeLastSync="Unknown!"
+      nodeLastSync="Unknown! (no access to last-sync.txt?)"
    fi
 
    printf "Node %-4d   %5d   %s   %-13s   %-13s   %-13s   %-30s   %-8s\x1b[0m\n" \
