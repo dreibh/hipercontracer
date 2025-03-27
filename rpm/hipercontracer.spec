@@ -157,14 +157,14 @@ fi
 usermod -a -G hpct-nodes hipercontracer
 
 # Set up HiPerConTracer directories:
-mkdir -p /var/hipercontracer
+mkdir -p -m 755 /var/hipercontracer
 chown hipercontracer:hipercontracer /var/hipercontracer || true
 
 for subDirectory in data good bad ; do
    mkdir -p -m 755 /var/hipercontracer/$subDirectory
    chown hipercontracer:hpct-nodes /var/hipercontracer/$subDirectory || true
+   setfacl -Rm d:u:hipercontracer:rwx,u:hipercontracer:rwx /var/hipercontracer/$subDirectory || true
 done
-setfacl -Rm d:u:hipercontracer:rwx,u:hipercontracer:rwx /var/hipercontracer || true
 
 mkdir -p -m 700 /var/hipercontracer/ssh
 chown hipercontracer:hipercontracer /var/hipercontracer/ssh || true
