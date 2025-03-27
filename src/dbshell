@@ -210,6 +210,9 @@ elif [ "${dbbackend}" == "MongoDB" ] ; then
          fi
       fi
    fi
+   if [ ${oldCommand} -eq 0 ] ; then
+      parameters="${parameters} --quiet"
+   fi
 
 else
 
