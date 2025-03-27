@@ -588,6 +588,7 @@ HiPerConTracer Node to a HiPerConTracer Collector server.
 
 %files node
 %{_bindir}/hpct-node-setup
+%{_datadir}/bash-completion/completions/hpct-node-setup
 %{_mandir}/man1/hpct-node-setup.1.gz
 # %{_sysconfdir}/system-info.d/30-hpct-node
 # %{_sysconfdir}/system-maintenance.d/30-hpct-node
