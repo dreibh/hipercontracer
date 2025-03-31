@@ -26,6 +26,7 @@
 set -eu
 
 HIPERCONTRACER_DIRECTORY="/var/hipercontracer"
+UNAME="$(uname)"
 
 
 # ###### Compute time difference between time stamps ########################
@@ -33,10 +34,15 @@ calculate_time_difference ()
 {
    local t1
    local t2
-   t1="$(date --utc --date "$1" +"%s" 2>/dev/null || true)"
-   t2="$(date --utc --date "$2" +"%s" 2>/dev/null || true)"
+   if [ "${UNAME}" != "FreeBSD" ] ; then
+      t1="$(date --utc --date "$1" +"%s" 2>/dev/null || true)"
+      t2="$(date --utc --date "$2" +"%s" 2>/dev/null || true)"
+   else
+      t1="$(date -j -f "%Y-%m-%d %H:%M:%S" "$1" +"%s" 2>/dev/null || true)"
+      t2="$(date -j -f "%Y-%m-%d %H:%M:%S" "$2" +"%s" 2>/dev/null || true)"
+   fi
    if [ "$1" == "" ] || [ "$2" == "" ] || [ "${t1}" == "" ] || [ "${t2}" == "" ] ; then
-      echo "Unknown!"
+      echo "Invalid time!"
       return
    fi
    difference=$((t1-t2)) || true
@@ -58,10 +64,14 @@ calculate_time_difference ()
 
 # Get configured nodes and RTunnel ports ====================================
 # shellcheck disable=SC2207
-CONFIGURED_NODES=( $(find /home -maxdepth 1 -type d -name "node*" -print0 | xargs -0 -r -n1 basename | sed -e "s/^node//" | sort -n) )
+CONFIGURED_NODES="( $(find /home -follow -mindepth 1 -maxdepth 1 -type d -name "node*" -print0 | xargs -0 -r -n1 basename | sed -e "s/^node//" | sort -n) )"
 # Get open ports bound to localhost (127.0.0.1 or ::1).
 # shellcheck disable=SC2207
-LISTENING_TCP_PORTS=( $(ss -tlwn | awk '/^tcp/ { if(($2 == "LISTEN") && ($5 ~ /^127.0.0.1|^\[::1\]/ )) { print $5 }}' | sed -e "s/.*://" | sort -un) )
+if [ "${UNAME}" != "FreeBSD" ] ; then
+   LISTENING_TCP_PORTS="( $(ss -tlwn | awk '/^tcp/ { if(($2 == "LISTEN") && ($5 ~ /^127.0.0.1|^\[::1\]/ )) { print $5 }}' | sed -e "s/.*://" | sort -un) )"
+else
+   LISTENING_TCP_PORTS="( $(sockstat -46ln -P tcp | awk '/^[0-9]+/ { if($6 ~ /^127.0.0.1|^\[::1\]/) { print $6 } }' | sed -e 's/^.*://' | sort -u) )"
+fi
 
 # for port in ${LISTENING_TCP_PORTS[@]} ; do
 #    echo "Port: ${port}"
@@ -73,6 +83,7 @@ LISTENING_TCP_PORTS=( $(ss -tlwn | awk '/^tcp/ { if(($2 == "LISTEN") && ($5 ~ /^
 echo -e "\x1b[34mNode        Port    Tunnel    Last Seen       Last Sync       Last Boot       System                           Version\x1b[0m"
 now=$(date -u +"%Y-%m-%d %H:%M:%S")
 for nodeID in "${CONFIGURED_NODES[@]}" ; do
+   nodeID=$((nodeID))   # Convert string to number. Necessary!
    nodePort=$((10000+nodeID))
 
    # ====== RTunnel online? =================================================
