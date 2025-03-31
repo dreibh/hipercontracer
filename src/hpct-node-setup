@@ -171,8 +171,12 @@ sudo -u "${NODE_HIPERCONTRACER_USER}" ssh -t -oUserKnownHostsFile=${KNOWN_HOSTS}
    ssh-keygen -q -H -f .ssh/known_hosts >/dev/null 2>&1 || ssh-keygen -q -H -f .ssh/known_hosts && \\
    if ! getent group \"${user}\" >/dev/null 2>&1; then
       echo -e \"\\x1b[33mCreating group ${user} ...\\x1b[0m\" && \\
-      sudo groupadd \"${user}\" ; \\
-   else
+      if [ \"\$(uname)\" != \"FreeBSD\" ] ; then \\
+         sudo groupadd \"${user}\" ; \\
+      else \\
+         sudo pw group add \"${user}\" ; \\
+      fi ; \\
+   else \\
       echo -e \"\\x1b[33mGroup ${user} is already there.\\x1b[0m\" ; \\
    fi && \\
    if ! getent passwd \"${user}\" >/dev/null 2>&1; then
