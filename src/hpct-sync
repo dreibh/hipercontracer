@@ -139,7 +139,7 @@ if [ "${status}" -ne 0 ] ; then
    echo -e "\x1b[34m$(date +"%Y-%m-%d %H:%M:%S") RSync failed: ${command}\x1b[0m"
    exit 1
 else
-   ssh -tt -i "${KEY}" -oUserKnownHostsFile="${KNOWN_HOSTS}" "${user}"@"${COLLECTOR}" "date >${REMOTE}/${user}/last-sync.txt" || true
+   ssh -tt -i "${KEY}" -oUserKnownHostsFile="${KNOWN_HOSTS}" "${user}"@"${COLLECTOR}" "date -u +\"%Y-%m-%d %H:%M:%S\" >${REMOTE}/${user}/last-sync.txt" || true
    if [ ${VERBOSE} -ne 0 ] ; then
       echo -e "\x1b[34m$(date +"%Y-%m-%d %H:%M:%S") Done.\x1b[0m"
    fi
