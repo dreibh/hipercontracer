@@ -135,7 +135,7 @@ if [ "${dbbackend}" == "MariaDB" ] || [ "${dbbackend}" == "MySQL" ] ; then
    if [ "${dbport}" == "0" ] ; then
       dbport="3306"
    fi
-   parameters="${parameters} --host=\"${dbserver}\" --port=${dbport} --protocol=tcp --user=\"${dbuser}\" --password=\"${dbpassword}\" --database=\"${database}\""
+   parameters="${parameters} --silent --host=\"${dbserver}\" --port=${dbport} --protocol=tcp --user=\"${dbuser}\" --password=\"${dbpassword}\" --database=\"${database}\""
    if [ ${tls_enabled} -eq 1 ] && [ "${dbcafile}" != "" ] ; then
       if [ ${tls_check_certificate} -eq 1 ] || [ ${tls_check_hostname} -eq 1 ] ; then
          parameters="${parameters} --ssl-verify-server-cert"
@@ -155,7 +155,7 @@ elif [ "${dbbackend}" == "PostgreSQL" ] ; then
    if [ "${dbport}" == "0" ] ; then
       dbport="5432"
    fi
-   parameters="--host=\"${dbserver}\" --port=${dbport} --username=\"${dbuser}\" --dbname=\"${database}\""
+   parameters="--quiet --host=\"${dbserver}\" --port=${dbport} --username=\"${dbuser}\" --dbname=\"${database}\""
    export PGPASSWORD="${dbpassword}"
    if [ ${tls_enabled} -eq 1 ] && [ "${dbcafile}" != "" ] ; then
       if [ ${tls_check_certificate} -eq 1 ] ; then
