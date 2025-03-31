@@ -409,7 +409,7 @@ int main(int argc, char** argv)
    }
 
    if(vm.count("help")) {
-       std::cerr << "Usage: " << argv[0] << " parameters" << "\n"
+       std::cerr << "Usage: " << argv[0] << " OPTIONS" << "\n"
                  << commandLineOptions;
        return 1;
    }
