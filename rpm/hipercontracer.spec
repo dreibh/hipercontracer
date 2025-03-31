@@ -27,6 +27,7 @@ BuildRequires: zlib-devel
 BuildRoot: %{_tmppath}/%{name}-%{version}-build
 Requires: %{name}-common = %{version}-%{release}
 Requires: %{name}-libhipercontracer = %{version}-%{release}
+Requires: acl
 Requires: iproute
 Recommends: %{name}-viewer = %{version}-%{release}
 Recommends: ethtool
@@ -155,22 +156,29 @@ if ! getent group hpct-nodes >/dev/null 2>&1; then
 fi
 usermod -a -G hpct-nodes hipercontracer
 
-# Make HiPerConTracer directory
-mkdir -p /var/hipercontracer
-for directory in /var/hipercontracer/data /var/hipercontracer/good /var/hipercontracer/bad /var/hipercontracer/ssh ; do
-   mkdir -p -m 755 $directory
-   chown hipercontracer:hipercontracer $directory || true
+# Set up HiPerConTracer directories:
+mkdir -p -m 755 /var/hipercontracer
+chown hipercontracer:hipercontracer /var/hipercontracer || true
+
+for subDirectory in data good bad ; do
+   mkdir -p -m 755 /var/hipercontracer/$subDirectory
+   chown hipercontracer:hpct-nodes /var/hipercontracer/$subDirectory || true
+   setfacl -Rm d:u:hipercontracer:rwx,u:hipercontracer:rwx /var/hipercontracer/$subDirectory || true
 done
-chmod 700 /var/hipercontracer/ssh
+
+mkdir -p -m 700 /var/hipercontracer/ssh
+chown hipercontracer:hipercontracer /var/hipercontracer/ssh || true
 
 %postun common
-# Remove administrative user
-userdel hipercontracer  >/dev/null 2>&1 || true
+# Remove administrative user:
+userdel  hipercontracer >/dev/null 2>&1 || true
 groupdel hipercontracer >/dev/null 2>&1 || true
 groupdel hpct-nodes     >/dev/null 2>&1 || true
 
-# Remove data directory (if empty)
-rmdir /var/hipercontracer/data /var/hipercontracer/good /var/hipercontracer/bad || true
+# Remove data directory (if empty):
+for subDirectory in data good bad ssh ; do
+   rmdir /var/hipercontracer/$subDirectory || true
+done
 rmdir /var/hipercontracer >/dev/null 2>&1 || true
 
 %files common
@@ -548,6 +556,7 @@ Summary: HiPerConTracer Node Tools for maintaining a measurement node
 Requires: %{name} = %{version}-%{release}
 Requires: %{name}-rtunnel = %{version}-%{release}
 Requires: %{name}-sync = %{version}-%{release}
+Requires: sudo
 Recommends: td-system-tools-system-info
 Recommends: td-system-tools-system-maintenance
 BuildArch: noarch
@@ -588,6 +597,7 @@ HiPerConTracer Node to a HiPerConTracer Collector server.
 
 %files node
 %{_bindir}/hpct-node-setup
+%{_datadir}/bash-completion/completions/hpct-node-setup
 %{_mandir}/man1/hpct-node-setup.1.gz
 # %{_sysconfdir}/system-info.d/30-hpct-node
 # %{_sysconfdir}/system-maintenance.d/30-hpct-node
@@ -600,6 +610,7 @@ Requires: openssh-clients
 Requires: iproute
 Requires: openssh-server
 Requires: rsync
+Requires: sudo
 
 %description collector
 High-Performance Connectivity Tracer (HiPerConTracer) is a Ping/Traceroute
@@ -639,6 +650,7 @@ to set up and maintain a HiPerConTracer Collector server.
 %{_bindir}/hpct-node-removal
 %{_bindir}/hpct-nodes-list
 %{_bindir}/hpct-ssh
+%{_datadir}/bash-completion/completions/hpct-node-removal
 %{_datadir}/bash-completion/completions/hpct-ssh
 %{_mandir}/man1/hpct-node-removal.1.gz
 %{_mandir}/man1/hpct-nodes-list.1.gz

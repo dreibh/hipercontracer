@@ -293,20 +293,25 @@ if [ "${DBEAVER_CONFIG_PREFIX}" ] ; then
    fi
 
    if [ "${driver}" != "" ] ; then
+      identifier="$(echo "${provider}://${dbusername}@${dbserver}:${dbport}/${database}" | md5sum --tag |  cut -d' ' -f4)"
+
       color="211,215,207"
       if [ "${dbusername}" == "importer" ] ; then
          color="237,212,0"
       elif [ "${dbusername}" == "researcher" ] ; then
-         color="org.jkiss.dbeaver.color.connectionType.qa.background"
+         color="0,127,253"
       elif [ "${dbusername}" == "maintainer" ] ; then
          color="114,159,207"
       elif [ "${dbusername}" == "root" ] ; then
          color="239,41,41"
       fi
+      ansiColor="${color//,/;}"
+      # echo >&2 -e "\x1b[38;2;${ansiColor}mdbusername=${dbusername} database=${database} color=${color}\x1b[0m"
+
+      # ====== Generate DBeaver configuration ==================================
       if [ ${QUIET} -eq 0 ] ; then
          echo -e "\x1b[34m$(date +"%F %H:%M:%S"): Writing DBeaver configuration to ${DBEAVER_CONFIG_PREFIX} ...\x1b[0m"
       fi
-      identifier="$(echo "${provider}://${dbusername}@${dbserver}:${dbport}/${database}" | md5sum --tag |  cut -d' ' -f4)"
       (
          cat << EOF
 {

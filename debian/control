@@ -436,6 +436,7 @@ Architecture: all
 Depends: hipercontracer,
          hipercontracer-rtunnel,
          hipercontracer-sync,
+         sudo,
          ${misc:Depends}
 Recommends: td-system-info,
             td-system-maintenance,
@@ -483,6 +484,7 @@ Depends: hipercontracer-common,
          openssh-client,
          openssh-server,
          rsync,
+         sudo,
          ${misc:Depends}
 Recommends: td-system-info,
             td-system-maintenance,
@@ -525,7 +527,8 @@ Description: HiPerConTracer Collector Tools for collecting measurement results
 
 Package: hipercontracer-importer
 Architecture: any
-Depends: hipercontracer-common,
+Depends: acl,
+         hipercontracer-common,
          libuniversalimporter2 (= ${binary:Version}),
          ${misc:Depends},
          ${shlibs:Depends}
