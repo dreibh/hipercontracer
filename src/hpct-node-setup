@@ -72,8 +72,9 @@ if [ "${COLLECTOR}" == "" ] ; then
    exit 1
 fi
 
+GETOPT="$(PATH=/usr/local/bin:$PATH which getopt)"
 # shellcheck disable=SC2068
-options="$(getopt -o hqvc --long help,quiet,verbose,copy-id -a -- $@)"
+options="$(${GETOPT} -o hqvc --long help,quiet,verbose,copy-id -a -- $@)"
 # shellcheck disable=SC2181
 if [[ $? -ne 0 ]] ; then
    usage
@@ -126,8 +127,8 @@ if sudo -u "${NODE_HIPERCONTRACER_USER}" test ! -e ${PRIVATE_KEY} || \
       exit 1
    fi
    sudo -u "${NODE_HIPERCONTRACER_USER}" chmod 600 ${PRIVATE_KEY} ${PUBLIC_KEY}
-   if sudo -u "${NODE_HIPERCONTRACER_USER}" test -e ${KNOWN_HOSTS} ] ; then
-      sudo -u "${NODE_HIPERCONTRACER_USER}" chmod 600  ${KNOWN_HOSTS}
+   if sudo -u "${NODE_HIPERCONTRACER_USER}" test -e "${KNOWN_HOSTS}" ; then
+      sudo -u "${NODE_HIPERCONTRACER_USER}" chmod 600 "${KNOWN_HOSTS}"
    fi
 else
    echo "Key pair ${PRIVATE_KEY} / ${PUBLIC_KEY} is already there, using it."
