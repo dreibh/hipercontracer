@@ -43,14 +43,14 @@ proc:BEGIN
    DECLARE currentPartition    VARCHAR(32);
    DECLARE iteration           INTEGER;
    DECLARE limitNewPartitions  INTEGER DEFAULT 1000000;   -- partitions
-   DECLARE futurePartitions    INTEGER DEFAULT 7;        -- days
+   DECLARE futurePartitions    INTEGER DEFAULT 7;         -- days
 
    -- ====== Get minimum timestamp ==========================================
    SET @minTimestamp = NULL;
    SET @maxTimestamp = NULL;
    SET @sqlText = CONCAT('SELECT ',
-                         'CAST(FROM_UNIXTIME(FLOOR(MIN(`', timestampName, '`)/1000000000.0)) AS DATE), ',
-                         'CAST(FROM_UNIXTIME(CEIL(MAX(`', timestampName, '`)/1000000000.0)) AS DATE) ',
+                         'CAST(FROM_UNIXTIME(FLOOR(MIN(`', timestampName, '`) / 1000000000.0)) AS DATE), ',
+                         'CAST(FROM_UNIXTIME(CEIL(MAX(`', timestampName, '`) / 1000000000.0)) AS DATE) ',
                          'INTO @minTimestamp, @maxTimestamp ',
                          'FROM `', schemaName, '`.`', tableName, '`;');
    PREPARE statement FROM @sqlText;
@@ -67,7 +67,8 @@ proc:BEGIN
                           'FROM INFORMATION_SCHEMA.PARTITIONS ',
                           'WHERE ',
                              'TABLE_SCHEMA="', schemaName, '" AND ',
-                             'TABLE_NAME="', tableName, '" ',
+                             'TABLE_NAME="', tableName, '" AND ',
+                             'PARTITION_NAME != "pMAX" ',
                           'ORDER BY PARTITION_NAME DESC ',
                           'LIMIT 1;');
    PREPARE statement FROM @sqlText;
@@ -91,7 +92,7 @@ proc:BEGIN
    IF NOT tableIsPartitioned THEN
       SET @sqlText = CONCAT('ALTER TABLE `', schemaName, '`.`', tableName, '` PARTITION BY RANGE ( ', timestampName, ' ) ( ');
    ELSE
-      SET @sqlText = CONCAT('ALTER TABLE `', schemaName, '`.`', tableName, '` ADD PARTITION ( ');
+      SET @sqlText = CONCAT('ALTER TABLE `', schemaName, '`.`', tableName, '` REORGANIZE PARTITION pMAX INTO ( ');
    END IF;
 
    -- Some safety checks, to prevent creating a huge amount of partitions:
@@ -126,7 +127,8 @@ proc:BEGIN
    END LOOP;
 
    IF iteration > 0 THEN
-      SET @sqlText = CONCAT(@sqlText, ' );');
+      SET @sqlText = CONCAT(@sqlText,
+                               ', PARTITION pMAX VALUES LESS THAN MAXVALUE );');
       PREPARE statement FROM @sqlText;
       EXECUTE statement;
       DEALLOCATE PREPARE statement;
@@ -144,21 +146,23 @@ CREATE PROCEDURE CheckPartitions(schemaName VARCHAR(32),
 proc:BEGIN
 
    SET @sqlText1 = CONCAT('SELECT PARTITION_NAME ',
-                           'INTO @firstPartition ',
-                           'FROM INFORMATION_SCHEMA.PARTITIONS ',
-                           'WHERE ',
-                              'TABLE_SCHEMA="', schemaName, '" AND ',
-                              'TABLE_NAME="', tableName, '" ',
-                           'ORDER BY PARTITION_NAME ASC ',
-                           'LIMIT 1;');
+                          'INTO @firstPartition ',
+                          'FROM INFORMATION_SCHEMA.PARTITIONS ',
+                          'WHERE ',
+                             'TABLE_SCHEMA="', schemaName, '" AND ',
+                             'TABLE_NAME="', tableName, '" AND ',
+                             'PARTITION_NAME != "pMAX" ',
+                          'ORDER BY PARTITION_NAME ASC ',
+                          'LIMIT 1;');
    SET @sqlText2 = CONCAT('SELECT PARTITION_NAME ',
-                           'INTO @lastPartition ',
-                           'FROM INFORMATION_SCHEMA.PARTITIONS ',
-                           'WHERE ',
-                              'TABLE_SCHEMA="', schemaName, '" AND ',
-                              'TABLE_NAME="', tableName, '" ',
-                           'ORDER BY PARTITION_NAME DESC ',
-                           'LIMIT 1;');
+                          'INTO @lastPartition ',
+                          'FROM INFORMATION_SCHEMA.PARTITIONS ',
+                          'WHERE ',
+                             'TABLE_SCHEMA="', schemaName, '" AND ',
+                             'TABLE_NAME="', tableName, '" AND ',
+                             'PARTITION_NAME != "pMAX" ',
+                          'ORDER BY PARTITION_NAME DESC ',
+                          'LIMIT 1;');
    PREPARE statement FROM @sqlText1;
    EXECUTE statement;
    DEALLOCATE PREPARE statement;
