@@ -43,6 +43,10 @@
 .Nm hpct-nodes-list
 lists the HiPerConTracer configured on the Collector, as well as
 their connectivity (RTunnel) and data synchronisation (Sync) status.
+.br
+Note that reading the last status of nodes needs access of the user to the nodes' data
+directories (usually: /var/hipercontracer/data/node<NODE>/). The status is
+read from last-seen.txt and last-sync.txt.
 .Pp
 .\" ###### Examples #########################################################
 .Sh EXAMPLES
