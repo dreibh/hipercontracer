@@ -27,38 +27,35 @@
 //
 // Contact: dreibh@simula.no
 
-#ifndef JITTER_RFC3550_H
-#define JITTER_RFC3550_H
+#ifndef JITTERMODULE_IQR_H
+#define JITTERMODULE_IQR_H
 
-#include <math.h>
-#include <stdint.h>
+#include "jittermodule-base.h"
+
+#include <vector>
 
 
-class JitterRFC3550
+class JitterModuleIQR : public JitterModuleBase
 {
    public:
-   JitterRFC3550();
+   JitterModuleIQR(const unsigned int elements);
 
-   inline unsigned int       packets()     const { return Packets;                          }
-   inline unsigned long long jitter()      const { return (unsigned long long)rint(Jitter); }
-   inline unsigned long long meanLatency() const {
-      if(Packets > 0) {
-         return (unsigned long long)(LatencySum / Packets);
-      }
-      return 0;
-   }
+   virtual const JitterType   getJitterType() const { return JitterModuleIQR::JitterTypeIQR; }
+   virtual const std::string& getJitterName() const { return JitterModuleIQR::JitterNameIQR; }
 
-   void process(const uint8_t            timeSource,
-                const unsigned long long sendTimeStamp,
-                const unsigned long long receiveTimeStamp);
+   virtual unsigned int       packets()       const;
+   virtual unsigned long long meanLatency()   const;
+   virtual unsigned long long jitter();
+   virtual void process(const uint8_t            timeSource,
+                        const unsigned long long sendTimeStamp,
+                        const unsigned long long receiveTimeStamp);
 
    private:
-   unsigned long long PrevSendTimeStamp;
-   unsigned long long PrevReceiveTimeStamp;
-   unsigned int       Packets;
-   double             Jitter;
-   double             LatencySum;
-   uint8_t            TimeSource;
+   static const std::string JitterNameIQR;
+   static const JitterType  JitterTypeIQR;
+
+   std::vector<unsigned long long> RTTVector;
+   uint8_t                         TimeSource;
 };
 
 #endif

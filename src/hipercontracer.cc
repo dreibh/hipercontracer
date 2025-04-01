@@ -34,6 +34,7 @@
 #include <boost/asio/ip/address.hpp>
 #include <boost/program_options.hpp>
 
+#include "assure.h"
 #include "check.h"
 #include "icmpheader.h"
 #include "jitter.h"
@@ -41,7 +42,6 @@
 #include "package-version.h"
 #include "ping.h"
 #include "resultswriter.h"
-#include "service.h"
 #include "tools.h"
 #include "traceroute.h"
 
@@ -224,6 +224,8 @@ int main(int argc, char** argv)
    uint16_t                           jitterTCPSourcePort;
    uint16_t                           jitterTCPDestinationPort;
    bool                               jitterRecordRawResults;
+   std::string                        jitterName;
+   const RegisteredJitterModule*      jitterModule;
 
    unsigned int                       resultsTransactionLength;
    std::filesystem::path              resultsDirectory;
@@ -358,6 +360,9 @@ int main(int argc, char** argv)
            boost::program_options::value<uint16_t>(&pingTCPDestinationPort)->default_value(80),
            "Ping TCP destination port" )
 
+      ( "jittertype",
+           boost::program_options::value<std::string>(&jitterName)->default_value("RFC3550"),
+           "Jitter type" )
       ( "jitterinterval",
            boost::program_options::value<unsigned long long>(&jitterParameters.Interval)->default_value(10000),
            "Jitter interval in ms" )
@@ -427,7 +432,7 @@ int main(int argc, char** argv)
    }
 
    if(vm.count("help")) {
-       std::cerr << "Usage: " << argv[0] << " parameters" << "\n"
+       std::cerr << "Usage: " << argv[0] << " OPTIONS" << "\n"
                  << commandLineOptions;
        return 1;
    }
@@ -476,6 +481,13 @@ int main(int argc, char** argv)
    }
    else {
       ioModules.insert("ICMP");
+   }
+   assure(vm.count("jittertype"));
+   boost::algorithm::to_upper(jitterName);
+   jitterModule = JitterModuleBase::checkJitterModule(jitterName);
+   if(jitterModule == nullptr) {
+      std::cerr << "ERROR: Bad jitter module name: " << jitterName << "\n";
+      return 1;
    }
    if(measurementID > 0x7fffffff) {
       std::cerr << "ERROR: Invalid MeasurementID setting: " << measurementID << "\n";
@@ -589,8 +601,9 @@ int main(int argc, char** argv)
 
    if(serviceJitter) {
       HPCT_LOG(info) << "Jitter Service:" << std:: endl
+                     << "* Jitter Type        = " << jitterModule->Name                   << "\n"
                      << "* Interval           = " << jitterParameters.Interval            << " ms ± "
-                     << 100.0 * jitterParameters.Deviation << "%\n"
+                        << 100.0 * jitterParameters.Deviation << "%\n"
                      << "* Expiration         = " << jitterParameters.Expiration << " ms" << "\n"
                      << "* Burst              = " << jitterParameters.Rounds              << "\n"
                      << "* TTL                = " << jitterParameters.InitialMaxTTL       << "\n"
@@ -602,7 +615,7 @@ int main(int argc, char** argv)
    if(servicePing) {
       HPCT_LOG(info) << "Ping Service:" << std:: endl
                      << "* Interval           = " << pingParameters.Interval              << " ms ± "
-                     << 100.0 * pingParameters.Deviation << "%\n"
+                        << 100.0 * pingParameters.Deviation << "%\n"
                      << "* Expiration         = " << pingParameters.Expiration            << " ms" << "\n"
                      << "* Burst              = " << pingParameters.Rounds                << "\n"
                      << "* TTL                = " << pingParameters.InitialMaxTTL         << "\n"
@@ -614,7 +627,7 @@ int main(int argc, char** argv)
    if(serviceTraceroute) {
       HPCT_LOG(info) << "Traceroute Service:" << std:: endl
                      << "* Interval           = " << tracerouteParameters.Interval        << " ms ± "
-                     << 100.0 * tracerouteParameters.Deviation << "%\n"
+                        << 100.0 * tracerouteParameters.Deviation << "%\n"
                      << "* Expiration         = " << tracerouteParameters.Expiration      << " ms" << "\n"
                      << "* Rounds             = " << tracerouteParameters.Rounds          << "\n"
                      << "* Initial MaxTTL     = " << tracerouteParameters.InitialMaxTTL   << "\n"
@@ -681,6 +694,7 @@ int main(int argc, char** argv)
                                              iterations, false,
                                              sourceAddress, destinationsForSource,
                                              jitterParameters,
+                                             *jitterModule,
                                              jitterRecordRawResults);
                ServiceSet.insert(service);
             }

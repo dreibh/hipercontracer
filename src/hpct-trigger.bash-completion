@@ -61,6 +61,15 @@ _hpct_trigger()
       -# | --measurement-id           | \
       -D | --destination              | \
       --iterations                    | \
+      --jitterinterval                | \
+      --jitterintervaldeviation       | \
+      --jitterexpiration              | \
+      --jitterburst                   | \
+      --jitterttl                     | \
+      --jittertype                    | \
+      --jitterpacketsize              | \
+      --jitterudpsourceport           | \
+      --jitterudpdestinationport      | \
       --tracerouteinterval            | \
       --tracerouteintervaldeviation   | \
       --tracerouteduration            | \
@@ -162,6 +171,24 @@ _hpct_trigger()
 -M
 --iomodule
 --iterations
+--jitterinterval
+--jitterintervaldeviation
+--jitterexpiration
+--jitterburst
+--jitterttl
+--jittertype
+--jitterpacketsize
+--jitterrecordraw
+--jitterudpsourceport
+--jitterudpdestinationport
+--pinginterval
+--pingintervaldeviation
+--pingexpiration
+--pingburst
+--pingttl
+--pingpacketsize
+--pingudpsourceport
+--pingudpdestinationport
 --tracerouteinterval
 --tracerouteintervaldeviation
 --tracerouteduration
@@ -172,14 +199,6 @@ _hpct_trigger()
 --traceroutepacketsize
 --tracerouteudpsourceport
 --tracerouteudpdestinationport
---pinginterval
---pingintervaldeviation
---pingexpiration
---pingburst
---pingttl
---pingpacketsize
---pingudpsourceport
---pingudpdestinationport
 -R
 --resultsdirectory
 -x

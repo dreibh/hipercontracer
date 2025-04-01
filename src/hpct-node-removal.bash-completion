@@ -29,8 +29,8 @@
 # Contact: dreibh@simula.no
 
 
-# ###### Bash completion for hpct-ssh #######################################
-_hpct_ssh()
+# ###### Bash completion for hpct-node-removal ##############################
+_hpct_node_removal()
 {
    # Based on: https://www.benningtons.net/index.php/bash-completion/
    local cur prev words cword
@@ -59,16 +59,12 @@ _hpct_ssh()
    local opts="
 -h
 --help
--v
---verbose
--q
---quiet
--c
---copy-id
+-r
+--remove-data
 "
    # shellcheck disable=SC2207
    COMPREPLY=( $( compgen -W "${opts}" -- "${cur}" ) )
    return 0
 }
 
-complete -F _hpct_ssh hpct-ssh
+complete -F _hpct_node_removal hpct-node-removal

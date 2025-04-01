@@ -28,7 +28,7 @@
 .\" Contact: dreibh@simula.no
 .\"
 .\" ###### Setup ############################################################
-.Dd December 19, 2024
+.Dd April 01, 2025
 .Dt hipercontracer 1
 .Os hipercontracer
 .\" ###### Name #############################################################
@@ -76,6 +76,7 @@
 .Op Fl Fl pingudpdestinationport Ar port
 .Op Fl Fl pingtcpsourceport Ar port
 .Op Fl Fl pingtcpdestinationport Ar port
+.Op Fl Fl jittertype Ar type
 .Op Fl Fl jitterinterval Ar milliseconds
 .Op Fl Fl jitterintervaldeviation Ar fraction
 .Op Fl Fl jitterexpiration Ar milliseconds
@@ -143,15 +144,9 @@ If a hostname is provided, a DNS resolution is performed and all returned addres
 Read sources from given file. This option may be used multiple times, to read from multiple files.
 .It Fl Fl destinations-from-file Ar file
 Read destinations from given file. This option may be used multiple times, to read from multiple files.
-<<<<<<< HEAD
 .It Fl M Ar ICMP|UDP|TCP | Fl Fl iomodule Ar ICMP|UDP|TCP
 Adds an I/O module: ICMP, UDP or TCP. The option may be specified multiple times with different modules.
-.It Fl Fl iterations Ar number_of_iterations
-=======
-.It Fl M Ar ICMP|UDP | Fl Fl iomodule Ar ICMP|UDP
-Adds an I/O module: ICMP or UDP. The option may be specified multiple times with different modules.
 .It Fl I Ar number_of_iterations | Fl Fl iterations Ar number_of_iterations
->>>>>>> dreibh/jitter
 Limit the number of measurement iterations (measurement for all source/destination
 pairs) to the given number of iterations. The default 0 lets HiPerConTracer run
 continuously.
@@ -215,6 +210,12 @@ Sets the Ping destination port for the UDP module (default: 7, for Echo).
 Sets the Ping source port for the TCP module (default: 0, for automatic allocation). Note: If using a fixed TCP port for Ping, different TCP source ports must be used for any other services!
 .It Fl Fl pingtcpdestinationport port
 Sets the Ping destination port for the TCP module (default: 80, for HTTP).
+.It Fl Fl jittertype Ar type
+Sets the Jitter type. Available types:
+.Bl -tag -width indent
+.It RFC3550: Jitter computation according to RFC 3550 (Real-Time Transport Protocol), Appendix A.8. This is the default.
+.It IQR: Inter-Quartile Range.
+.El
 .It Fl Fl jitterinterval Ar milliseconds
 Sets the Jitter interval (time for each full round of destinations).
 Default is 5000 ms.
@@ -460,7 +461,7 @@ packets_hw jitter_hw meanrtt_hw
 .It * destinationPort: Destination port, 0 for ICMP (decimal).
 .It * status: Status code (decimal):
 .It * timesource: Source of the timing information (hexadecimal) as: AAQQSSHH (same as for Ping, see above).
-.It * jitter_type: 0 for calculation as in RFC 3550, Appendix A.8 (decimal).
+.It * jitter_type: 1 for calculation as in RFC 3550, Appendix A.8 (decimal), 2 for IQR.
 .It * packets_app_send: Number of packets for application send jitter/mean RTT computation.
 .It * meandelay_app_send: Mean application send (nanoseconds, decimal; -1 if not available).
 .It * jitter_app_send: Jitter of application send.

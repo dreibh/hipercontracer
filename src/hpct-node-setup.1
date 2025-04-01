@@ -28,7 +28,7 @@
 .\" Contact: dreibh@simula.no
 .\"
 .\" ###### Setup ############################################################
-.Dd December 19, 2024
+.Dd April 01, 2025
 .Dt hpct-node-setup 1
 .Os hpct-node-setup
 .\" ###### Name #############################################################
@@ -37,7 +37,10 @@
 .Nd HiPerConTracer Node
 .\" ###### Synopsis #########################################################
 .Sh SYNOPSIS
-.Nm hpct-node-setup COLLECTOR NODE_ID
+.Nm hpct-node-setup USER@COLLECTOR NODE_ID
+.Op Fl h | Fl Fl help
+.Op Fl v | Fl Fl verbose
+.Op Fl q | Fl Fl quiet
 .\" ###### Description ######################################################
 .Sh DESCRIPTION
 .Nm hpct-node-setup
@@ -54,16 +57,24 @@ is the HiPerConTracer node setup script. It is run on a node, in order to:
 .Sh ARGUMENTS
 The following arguments must be provided:
 .Bl -tag -width indent
-.It COLLECTOR
-Sets the SSH location of the collector, i.e. USER@HOST.
+.It USER@COLLECTOR
+Sets the SSH location of the collector, i.e. USER@HOST.EXAMPLE.
 .It NODE_ID
 Sets the node ID, a number from 1 to 9999.
+.It Fl h | Fl Fl help
+Prints command help.
+.It Fl q |\--quiet
+Turns off status output.
+.It Fl v |\--verbose
+Turns on status output.
 .El
 .\" ###### Examples #########################################################
 .Sh EXAMPLES
 .Bl -tag -width indent
 .It sudo hpct-node-setup nornetpp@hpct-collector.example 1
 .It sudo hpct-node-setup nornetpp@hpct-collector.example 1000
+.It sudo hpct-node-setup nornetpp@hpct-collector.example 2000 --verbose
+.It sudo hpct-node-setup nornetpp@hpct-collector.example 2001 -v
 .El
 .\" ###### Authors ##########################################################
 .Sh AUTHORS
