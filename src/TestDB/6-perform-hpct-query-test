@@ -62,7 +62,7 @@ if [ -e "${DATABASE_CONFIG}" ] ; then
       exit 1
    fi
 
-   if [ -x ../hpct-query ] && [ -x ../hpct-query ] ; then
+   if [ -x ../hpct-query ] && [ -x ../hpct-results ] ; then
       # Running in development environment:
       queryTool="../hpct-query"
       resultsTool="../hpct-results"

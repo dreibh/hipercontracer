@@ -135,7 +135,7 @@ if [ "${dbbackend}" == "MariaDB" ] || [ "${dbbackend}" == "MySQL" ] ; then
    if [ "${dbport}" == "0" ] ; then
       dbport="3306"
    fi
-   parameters="${parameters} --host=\"${dbserver}\" --port=${dbport} --protocol=tcp --user=\"${dbuser}\" --password=\"${dbpassword}\" --database=\"${database}\""
+   parameters="${parameters} --silent --host=\"${dbserver}\" --port=${dbport} --protocol=tcp --user=\"${dbuser}\" --password=\"${dbpassword}\" --database=\"${database}\""
    if [ ${tls_enabled} -eq 1 ] && [ "${dbcafile}" != "" ] ; then
       if [ ${tls_check_certificate} -eq 1 ] || [ ${tls_check_hostname} -eq 1 ] ; then
          parameters="${parameters} --ssl-verify-server-cert"
@@ -155,7 +155,7 @@ elif [ "${dbbackend}" == "PostgreSQL" ] ; then
    if [ "${dbport}" == "0" ] ; then
       dbport="5432"
    fi
-   parameters="--host=\"${dbserver}\" --port=${dbport} --username=\"${dbuser}\" --dbname=\"${database}\""
+   parameters="--quiet --host=\"${dbserver}\" --port=${dbport} --username=\"${dbuser}\" --dbname=\"${database}\""
    export PGPASSWORD="${dbpassword}"
    if [ ${tls_enabled} -eq 1 ] && [ "${dbcafile}" != "" ] ; then
       if [ ${tls_check_certificate} -eq 1 ] ; then
@@ -293,20 +293,25 @@ if [ "${DBEAVER_CONFIG_PREFIX}" ] ; then
    fi
 
    if [ "${driver}" != "" ] ; then
+      identifier="$(echo "${provider}://${dbusername}@${dbserver}:${dbport}/${database}" | md5sum --tag |  cut -d' ' -f4)"
+
       color="211,215,207"
       if [ "${dbusername}" == "importer" ] ; then
          color="237,212,0"
       elif [ "${dbusername}" == "researcher" ] ; then
-         color="org.jkiss.dbeaver.color.connectionType.qa.background"
+         color="0,127,253"
       elif [ "${dbusername}" == "maintainer" ] ; then
          color="114,159,207"
       elif [ "${dbusername}" == "root" ] ; then
          color="239,41,41"
       fi
+      ansiColor="${color//,/;}"
+      # echo >&2 -e "\x1b[38;2;${ansiColor}mdbusername=${dbusername} database=${database} color=${color}\x1b[0m"
+
+      # ====== Generate DBeaver configuration ==================================
       if [ ${QUIET} -eq 0 ] ; then
          echo -e "\x1b[34m$(date +"%F %H:%M:%S"): Writing DBeaver configuration to ${DBEAVER_CONFIG_PREFIX} ...\x1b[0m"
       fi
-      identifier="$(echo "${provider}://${dbusername}@${dbserver}:${dbport}/${database}" | md5sum --tag |  cut -d' ' -f4)"
       (
          cat << EOF
 {

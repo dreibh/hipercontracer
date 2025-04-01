@@ -32,18 +32,28 @@ set -eu
 
 
 # ====== Handle arguments ===================================================
-if [ $# -ne 2 ] ; then
-   echo >&2 "Usage: $0 collector node_id"
+usage () {
+   echo >&2 "Usage: $0 user@collector node_id [-h|--help] [--verbose|-v] [--quiet|-q]"
    exit 1
+}
+
+if [ $# -lt 2 ] ; then
+   usage
 fi
 
-HPCT_COLLECTOR="$1"
+COLLECTOR="$1"
 NODE_ID="$2"
 
-PRIVATE_KEY="/var/hipercontracer/ssh/id_ed25519"
-PUBLIC_KEY="/var/hipercontracer/ssh/id_ed25519.pub"
-KNOWN_HOSTS="/var/hipercontracer/ssh/known_hosts"
-TYPE="ed25519"
+NODE_HIPERCONTRACER_USER="hipercontracer"
+NODE_HIPERCONTRACER_DIRECTORY="/var/hipercontracer"
+COLLECTOR_HIPERCONTRACER_USER="hipercontracer"
+COLLECTOR_HIPERCONTRACER_GROUP="hpct-nodes"
+COLLECTOR_HIPERCONTRACER_DIRECTORY="/var/hipercontracer"
+
+KEY_TYPE="ed25519"
+PRIVATE_KEY="${NODE_HIPERCONTRACER_DIRECTORY}/ssh/id_${KEY_TYPE}"
+PUBLIC_KEY="${NODE_HIPERCONTRACER_DIRECTORY}/ssh/id_${KEY_TYPE}.pub"
+KNOWN_HOSTS="${NODE_HIPERCONTRACER_DIRECTORY}/ssh/known_hosts"
 
 # This is the public key of the SSH server on this machine:
 # It will be added to known_hosts in the collector!
@@ -57,10 +67,40 @@ if [ "${NODE_ID}" -lt 1 ] || [ "${NODE_ID}" -gt 9999 ] ; then
    echo >&2 "ERROR: Invalid number for Node ID: ${NODE_ID}!"
    exit 1
 fi
-if [ "${HPCT_COLLECTOR}" == "" ] ; then
+if [ "${COLLECTOR}" == "" ] ; then
    echo >&2 "ERROR: No collector specified!"
    exit 1
 fi
+
+GETOPT="$(PATH=/usr/local/bin:$PATH which getopt)"
+# shellcheck disable=SC2068
+options="$(${GETOPT} -o hqvc --long help,quiet,verbose,copy-id -a -- $@)"
+# shellcheck disable=SC2181
+if [[ $? -ne 0 ]] ; then
+   usage
+fi
+
+VERBOSE=0
+eval set -- "${options}"
+while [ $# -gt 0 ] ; do
+   case "$1" in
+      -h | --help)
+         usage
+         ;;
+      -v | --verbose)
+         VERBOSE=1
+         shift
+         ;;
+      -q | --quiet)
+         VERBOSE=0
+         shift
+         ;;
+      --)
+         shift
+         break
+         ;;
+  esac
+done
 
 
 # ====== Create server key ==================================================
@@ -70,111 +110,152 @@ if [ ! -e "${SERVER_KEY}" ] ; then
 fi
 
 # ====== Create key pair ====================================================
-set -eux
+# if [ "${VERBOSE}" -eq 1 ] ; then set -eux ; else set -eu ; fi
 echo -e "\x1b[34m$(date +"%Y-%m-%d %H:%M:%S") Checking local key pair ${PRIVATE_KEY} / ${PUBLIC_KEY} of Node ${NODE_ID} ...\x1b[0m"
 directory="$(dirname ${PRIVATE_KEY})"
-if sudo -u hipercontracer test ! -d "${directory}" ; then
+if sudo -u "${NODE_HIPERCONTRACER_USER}" test ! -d "${directory}" ; then
    echo >&2 "ERROR: Key directory ${directory} does not exist!"
    exit 1
 fi
-if sudo -u hipercontracer test ! -e ${PRIVATE_KEY} || \
-   sudo -u hipercontracer test ! -e ${PUBLIC_KEY} ; then
+if sudo -u "${NODE_HIPERCONTRACER_USER}" test ! -e ${PRIVATE_KEY} || \
+   sudo -u "${NODE_HIPERCONTRACER_USER}" test ! -e ${PUBLIC_KEY} ; then
    echo "Generating key pair ${PRIVATE_KEY} / ${PUBLIC_KEY} ..."
-   sudo -u hipercontracer ssh-keygen -f ${PRIVATE_KEY} -t ${TYPE} -P ""
-   if sudo -u hipercontracer test ! -e ${PRIVATE_KEY} || \
-      sudo -u hipercontracer test ! -e ${PUBLIC_KEY} ; then
+   sudo -u "${NODE_HIPERCONTRACER_USER}" ssh-keygen -f ${PRIVATE_KEY} -t ${KEY_TYPE} -P ""
+   if sudo -u "${NODE_HIPERCONTRACER_USER}" test ! -e ${PRIVATE_KEY} || \
+      sudo -u "${NODE_HIPERCONTRACER_USER}" test ! -e ${PUBLIC_KEY} ; then
       echo >&2 "ERROR: Failed to create key pair"
       exit 1
    fi
+   sudo -u "${NODE_HIPERCONTRACER_USER}" chmod 600 ${PRIVATE_KEY} ${PUBLIC_KEY}
+   if sudo -u "${NODE_HIPERCONTRACER_USER}" test -e "${KNOWN_HOSTS}" ; then
+      sudo -u "${NODE_HIPERCONTRACER_USER}" chmod 600 "${KNOWN_HOSTS}"
+   fi
 else
-   echo "Key pair ${PRIVATE_KEY} / ${PUBLIC_KEY} is already there -> okay!"
+   echo "Key pair ${PRIVATE_KEY} / ${PUBLIC_KEY} is already there, using it."
 fi
 
 
-# ====== Copy public key ====================================================
-echo -e "\x1b[34m$(date +"%Y-%m-%d %H:%M:%S") Checking access of Node ${NODE_ID} to collector ${HPCT_COLLECTOR} ...\x1b[0m"
-echo "This needs sudo permissions to generate/read the key pair!"
+# ====== Perform configuration of the node on the collector =================
+echo -e "\x1b[34m$(date +"%Y-%m-%d %H:%M:%S") Checking access of Node ${NODE_ID} to collector ${COLLECTOR} ...\x1b[0m"
+echo "*** This session needs sudo permissions *on the collector* to set up the node user and directories there! ***"
 
 user="node${NODE_ID}"
 port=$((10000+NODE_ID))
-nodePublicKey="$(sudo -u hipercontracer cat /etc/ssh/ssh_host_ed25519_key.pub)"
-userPublicKey="$(sudo -u hipercontracer cat ${PUBLIC_KEY})"
+nodePublicKey="$(sudo -u "${NODE_HIPERCONTRACER_USER}" cat /etc/ssh/ssh_host_ed25519_key.pub)"
+userPublicKey="$(sudo -u "${NODE_HIPERCONTRACER_USER}" cat ${PUBLIC_KEY})"
 
-sudo -u hipercontracer ssh -t -oUserKnownHostsFile=${KNOWN_HOSTS} "${HPCT_COLLECTOR}" "
-   set -eux && mkdir -p keys && \\
+sudo -u "${NODE_HIPERCONTRACER_USER}" ssh -t -oUserKnownHostsFile=${KNOWN_HOSTS} "${COLLECTOR}" "
+   if [ ${VERBOSE} -eq 1 ] ; then set -eux ; else set -eu ; fi && mkdir -p keys && \\
    echo \"${userPublicKey}\" >keys/node${NODE_ID}.pub.new && \\
    if [ -e \"keys/node${NODE_ID}.pub\" ] ; then
-      if ! diff \"keys/node${NODE_ID}.pub.new\" \"keys/node${NODE_ID}.pub\" ; then
-         echo >&2 \"ERROR: There is already a different key for this node!\"
-         echo >&2 \"       Check file keys/node${NODE_ID}.pub on ${HPCT_COLLECTOR}!\"
-         exit 2
-      else
-         echo \"Key node${NODE_ID}.pub already there.\"
-         rm -f \"keys/node${NODE_ID}.pub.new\"
+      if ! diff \"keys/node${NODE_ID}.pub.new\" \"keys/node${NODE_ID}.pub\" ; then \\
+         echo >&2 \"ERROR: There is already a different key for this node!\" && \\
+         echo >&2 \"       Check file keys/node${NODE_ID}.pub on ${COLLECTOR}!\" && \\
+         exit 2 ; \\
+      else \\
+         echo -e \"\\x1b[33mKey node${NODE_ID}.pub already there.\\x1b[0m\" && \\
+         rm -f \"keys/node${NODE_ID}.pub.new\" ; \\
       fi
    else
-      echo \"Key needs to be copied!\"
-      mv \"keys/node${NODE_ID}.pub.new\" \"keys/node${NODE_ID}.pub\"
+      echo -e \"\\x1b[33mPublic key needs to be copied ...\\x1b[0m\" && \\
+      mv \"keys/node${NODE_ID}.pub.new\" \"keys/node${NODE_ID}.pub\" ; \\
    fi && \\
+   echo -e \"\\x1b[33mAdding server public key to .ssh/known_hosts of \${USER} ...\\x1b[0m\"
+   if [ ! -e .ssh/known_hosts ] ; then \\
+      mkdir -p .ssh && \\
+      chmod 700 .ssh && \\
+      touch .ssh/known_hosts && \\
+      chmod 600 .ssh/known_hosts ; \\
+   fi && \\
+   ssh-keygen -q -R \"localhost:${port}\" -f .ssh/known_hosts >/dev/null 2>&1 || ssh-keygen -q -R \"localhost:${port}\" -f .ssh/known_hosts && \\
+   echo \"localhost:${port} ${nodePublicKey}\" >>.ssh/known_hosts && \\
+   ssh-keygen -q -H -f .ssh/known_hosts >/dev/null 2>&1 || ssh-keygen -q -H -f .ssh/known_hosts && \\
    if ! getent group \"${user}\" >/dev/null 2>&1; then
-      echo \"Creating group ${user} ...\"
-      sudo groupadd \"${user}\"
-   else
-      echo \"Group ${user} is already there.\"
+      echo -e \"\\x1b[33mCreating group ${user} ...\\x1b[0m\" && \\
+      if [ \"\$(uname)\" != \"FreeBSD\" ] ; then \\
+         sudo groupadd \"${user}\" ; \\
+      else \\
+         sudo pw group add \"${user}\" ; \\
+      fi ; \\
+   else \\
+      echo -e \"\\x1b[33mGroup ${user} is already there.\\x1b[0m\" ; \\
    fi && \\
-   echo \"Adding server public key to known_hosts ...\"
-   if [ ! -e .ssh/known_hosts ] ; then mkdir -p .ssh && chmod 700 .ssh && touch .ssh/known_hosts && chmod 600 .ssh/known_hosts ; fi && \\
-   ssh-keygen -q -R \"localhost:${port}\" -f .ssh/known_hosts && \\
-   echo \"localhost:${port}\" \"${nodePublicKey}\" >>.ssh/known_hosts && \\
-   ssh-keygen -H -f .ssh/known_hosts && \\
    if ! getent passwd \"${user}\" >/dev/null 2>&1; then
-      echo \"Creating user ${user} ...\" && \\
+      echo -e \"\\x1b[33mCreating user ${user} ...\\x1b[0m\" && \\
       sudo mkdir -p \"/home/${user}/.ssh\" && \\
       sudo chmod 700 \"/home/${user}\" && \\
       sudo chmod 700 \"/home/${user}/.ssh\" && \\
       sudo cp \"keys/node${NODE_ID}.pub\" \"/home/${user}/.ssh/authorized_keys\" && \\
       sudo chmod 600 \"/home/${user}/.ssh/authorized_keys\" && \\
-      sudo useradd -M -g \"${user}\" -d \"/home/${user}\" -s /bin/bash -c \"HiPerConTracer Node ${NODE_ID}\" \"${user}\" && \\
-      sudo usermod -a -G hpct-nodes \"${user}\" && \\
+      if [ \"\$(uname)\" != \"FreeBSD\" ] ; then \\
+         sudo useradd -M -g \"${user}\" -d \"/home/${user}\" -s /bin/sh -c \"HiPerConTracer Node ${NODE_ID}\" \"${user}\" ; \\
+      else \\
+         sudo pw useradd \"${user}\" -d \"/home/${user}\" -s /bin/sh -c \"HiPerConTracer Node ${NODE_ID}\" ; \\
+      fi && \\
       sudo chown \"${user}:${user}\" \"/home/${user}\" && \\
       sudo chown \"${user}:${user}\" \"/home/${user}/.ssh\" && \\
-      sudo chown \"${user}:${user}\" \"/home/${user}/.ssh/authorized_keys\" && \\
-      echo \"Creating data directory /var/hipercontracer/data/${user} ...\" && \\
-      sudo mkdir -p \"/var/hipercontracer/data/${user}\" && \\
-      sudo chmod 770 \"/var/hipercontracer/data/${user}\" && \\
-      sudo chown \"${user}:hpct-nodes\" \"/var/hipercontracer/data/${user}\"
+      sudo chown \"${user}:${user}\" \"/home/${user}/.ssh/authorized_keys\" ; \\
    else
-      echo \"User ${user} is already there.\"
-   fi
+      echo -e \"\\x1b[33mUser ${user} is already there.\\x1b[0m\" ; \\
+   fi && \\
+   echo -e \"\\x1b[33mCreating data directory ${COLLECTOR_HIPERCONTRACER_DIRECTORY}/data/${user} for user ${user} ...\\x1b[0m\" && \\
+   sudo mkdir -p \"${COLLECTOR_HIPERCONTRACER_DIRECTORY}/data/${user}\" && \\
+   sudo chown -R \"${user}:${COLLECTOR_HIPERCONTRACER_GROUP}\" \"${COLLECTOR_HIPERCONTRACER_DIRECTORY}/data/${user}\" && \\
+   sudo chmod 750 \"${COLLECTOR_HIPERCONTRACER_DIRECTORY}/data/${user}\" && \\
+   echo -e \"\\x1b[33mAllowing access to ${COLLECTOR_HIPERCONTRACER_DIRECTORY}/data/${user} for user ${COLLECTOR_HIPERCONTRACER_USER} (rw) and group ${COLLECTOR_HIPERCONTRACER_DIRECTORY} (ro) via ACLs ...\\x1b[0m\" && \\
+   if [ \"\$(uname)\" != \"FreeBSD\" ] ; then \\
+      sudo setfacl -Rm d:u:${COLLECTOR_HIPERCONTRACER_USER}:rwx,u:${COLLECTOR_HIPERCONTRACER_USER}:rwx,d:g:${COLLECTOR_HIPERCONTRACER_GROUP}:rx,g:${COLLECTOR_HIPERCONTRACER_GROUP}:rx \"${COLLECTOR_HIPERCONTRACER_DIRECTORY}/data/${user}\" ; \\
+   else \\
+      sudo setfacl -Rm u:${COLLECTOR_HIPERCONTRACER_USER}:modify_set:file_inherit/dir_inherit:allow,g:${COLLECTOR_HIPERCONTRACER_GROUP}:read_set:file_inherit/dir_inherit:allow \"${COLLECTOR_HIPERCONTRACER_DIRECTORY}/data/${user}\" ; \\
+   fi && \\
+   echo -e \"\\x1b[33mDone!\\x1b[0m\"
 " && status=0 || status=$?
 if [ "${status}" -ne 0 ] ; then
    echo -e "\x1b[34m$(date +"%Y-%m-%d %H:%M:%S") FAILED!\x1b[0m"
    exit 1
-else
-   if [ -e /etc/hipercontracer/hpct-sync.conf ] ; then
-      echo -e "\x1b[34m$(date +"%Y-%m-%d %H:%M:%S") Updating /etc/hipercontracer/hpct-sync.conf ...\x1b[0m"
-      echo "This needs sudo permission to modify /etc/hipercontracer/hpct-sync.conf!"
-      collector="${HPCT_COLLECTOR//*@/}"
-      sudo cat /etc/hipercontracer/hpct-sync.conf | \
-         sed \
-            -e "s/^NODE_ID=.*$/NODE_ID=${NODE_ID}/g" \
-            -e "s/^COLLECTOR=.*$/COLLECTOR=""${collector}""/g" | \
-         sudo tee /etc/hipercontracer/hpct-sync.conf.new >/dev/null
-      sudo diff --color=always /etc/hipercontracer/hpct-sync.conf.new /etc/hipercontracer/hpct-sync.conf || true
-      sudo mv /etc/hipercontracer/hpct-sync.conf.new /etc/hipercontracer/hpct-sync.conf
-   fi
-
-   echo -e "\x1b[34m$(date +"%Y-%m-%d %H:%M:%S") Enabling and starting HPCT RTunnel and HPCT Sync ...\x1b[0m"
-   if [ -x /usr/bin/systemctl ] ; then
-      echo "This needs sudo permission to enable and start the services!"
-      # Not enabling HiPerConTracer service here, since it has to be enabled based on measurement ID(s)!
-      sudo systemctl enable hpct-rtunnel.service
-      sudo systemctl start hpct-rtunnel.service
-      sudo systemctl enable hpct-sync.timer
-      sudo systemctl start hpct-sync.timer
-   else
-      echo "FIXME! TBD on systems without systemctl!"
-   fi
-
-   echo -e "\x1b[34m$(date +"%Y-%m-%d %H:%M:%S") Done.\x1b[0m"
 fi
+
+
+# ====== Test connectivity ==================================================
+echo -e "\x1b[34m$(date +"%Y-%m-%d %H:%M:%S") Testing connectivity to ${COLLECTOR} ...\x1b[0m"
+collector="${COLLECTOR//*@/}"
+sudo -u "${NODE_HIPERCONTRACER_USER}" ssh -t -oUserKnownHostsFile=${KNOWN_HOSTS} -i "${PRIVATE_KEY}" "node${NODE_ID}@${collector}" "
+   hostname -f
+" && status=0 || status=$?
+if [ "${status}" -ne 0 ] ; then
+   echo -e "\x1b[34m$(date +"%Y-%m-%d %H:%M:%S") FAILED!\x1b[0m"
+   exit 1
+fi
+
+
+# ====== Update HPCT Sync configuration =====================================
+if [ -e /etc/hipercontracer/hpct-sync.conf ] ; then
+   echo -e "\x1b[34m$(date +"%Y-%m-%d %H:%M:%S") Updating /etc/hipercontracer/hpct-sync.conf ...\x1b[0m"
+   echo "This needs sudo permission to modify /etc/hipercontracer/hpct-sync.conf!"
+   collector="${COLLECTOR//*@/}"
+   sudo cat /etc/hipercontracer/hpct-sync.conf | \
+      sed \
+         -e "s/^NODE_ID=.*$/NODE_ID=${NODE_ID}/g" \
+         -e "s/^COLLECTOR=.*$/COLLECTOR=""${collector}""/g" | \
+      sudo tee /etc/hipercontracer/hpct-sync.conf.new >/dev/null
+   sudo diff --color=always /etc/hipercontracer/hpct-sync.conf.new /etc/hipercontracer/hpct-sync.conf || true
+   sudo mv /etc/hipercontracer/hpct-sync.conf.new /etc/hipercontracer/hpct-sync.conf
+fi
+
+
+# ====== Enable and start HPCT Sync and HPCT RTunnel ========================
+echo -e "\x1b[34m$(date +"%Y-%m-%d %H:%M:%S") Enabling and starting HPCT RTunnel and HPCT Sync ...\x1b[0m"
+if [ -x /usr/bin/systemctl ] ; then
+   echo "*** This session needs sudo permissions *on this machine* to to enable and start the services! ***"
+   # Not enabling HiPerConTracer service here, since it has to be enabled based on measurement ID(s)!
+   sudo systemctl stop hpct-rtunnel.service
+   sudo systemctl enable hpct-rtunnel.service
+   sudo systemctl start hpct-rtunnel.service
+   sudo systemctl stop hpct-sync.timer
+   sudo systemctl enable hpct-sync.timer
+   sudo systemctl start hpct-sync.timer
+else
+   echo "FIXME! TBD on systems without systemctl!"
+fi
+
+echo -e "\x1b[34m$(date +"%Y-%m-%d %H:%M:%S") Done.\x1b[0m"
