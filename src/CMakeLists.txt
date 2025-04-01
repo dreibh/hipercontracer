@@ -51,7 +51,10 @@ IF (WITH_HIPERCONTRACER)
       iomodule-icmp.h
       iomodule-tcp.h
       iomodule-udp.h
-      # jitter.h
+      jitter.h
+      jittermodule-base.h
+      jittermodule-iqr.h
+      jittermodule-rfc3550.h
       logger.h
       ping.h
       resultentry.h
@@ -70,7 +73,9 @@ IF (WITH_HIPERCONTRACER)
       iomodule-tcp.cc
       iomodule-udp.cc
       jitter.cc
-      jitter-rfc3550.cc
+      jittermodule-base.cc
+      jittermodule-iqr.cc
+      jittermodule-rfc3550.cc
       logger.cc
       ping.cc
       resultentry.cc
@@ -251,21 +256,27 @@ ENDIF()
 
 # ====== HiPerConTracer Node Tools ==========================================
 IF (WITH_NODE)
-   INSTALL(PROGRAMS hpct-node-setup DESTINATION ${CMAKE_INSTALL_BINDIR})
-   INSTALL(FILES hpct-node-setup.1  DESTINATION ${CMAKE_INSTALL_MANDIR}/man1)
+   INSTALL(PROGRAMS    hpct-node-setup   DESTINATION ${CMAKE_INSTALL_BINDIR})
+   INSTALL(FILES       hpct-node-setup.1 DESTINATION ${CMAKE_INSTALL_MANDIR}/man1)
+   INSTALL(FILES       hpct-node-setup.bash-completion
+           DESTINATION ${CMAKE_INSTALL_DATADIR}/bash-completion/completions
+           RENAME      hpct-node-setup)
 ENDIF()
 
 
 # ====== HiPerConTracer Collector Tools =====================================
 IF (WITH_COLLECTOR)
-   INSTALL(PROGRAMS hpct-node-removal   DESTINATION ${CMAKE_INSTALL_BINDIR})
-   INSTALL(FILES    hpct-node-removal.1 DESTINATION ${CMAKE_INSTALL_MANDIR}/man1)
+   INSTALL(PROGRAMS    hpct-node-removal  DESTINATION ${CMAKE_INSTALL_BINDIR})
+   INSTALL(FILES       hpct-node-removal.1 DESTINATION ${CMAKE_INSTALL_MANDIR}/man1)
+   INSTALL(FILES       hpct-node-removal.bash-completion
+           DESTINATION ${CMAKE_INSTALL_DATADIR}/bash-completion/completions
+           RENAME      hpct-node-removal)
 
-   INSTALL(PROGRAMS hpct-nodes-list   DESTINATION ${CMAKE_INSTALL_BINDIR})
-   INSTALL(FILES    hpct-nodes-list.1 DESTINATION ${CMAKE_INSTALL_MANDIR}/man1)
+   INSTALL(PROGRAMS    hpct-nodes-list   DESTINATION ${CMAKE_INSTALL_BINDIR})
+   INSTALL(FILES       hpct-nodes-list.1 DESTINATION ${CMAKE_INSTALL_MANDIR}/man1)
 
-   INSTALL(PROGRAMS hpct-ssh          DESTINATION ${CMAKE_INSTALL_BINDIR})
-   INSTALL(FILES    hpct-ssh.1        DESTINATION ${CMAKE_INSTALL_MANDIR}/man1)
+   INSTALL(PROGRAMS    hpct-ssh          DESTINATION ${CMAKE_INSTALL_BINDIR})
+   INSTALL(FILES       hpct-ssh.1        DESTINATION ${CMAKE_INSTALL_MANDIR}/man1)
    INSTALL(FILES       hpct-ssh.bash-completion
            DESTINATION ${CMAKE_INSTALL_DATADIR}/bash-completion/completions
            RENAME      hpct-ssh)
@@ -378,7 +389,7 @@ INSTALL(FILES get-default-ips.1
 
 # ====== TEST ONLY ==========================================================
 # ADD_EXECUTABLE(t1 t1.cc)
-# TARGET_LINK_LIBRARIES(t1 ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
+# TARGET_LINK_LIBRARIES(t1 libhipercontracer-${libraryType} ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
 # ADD_EXECUTABLE(dbtest dbtest.cc)
 # TARGET_LINK_LIBRARIES(dbtest libuniversalimporter-${libraryType} ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
 

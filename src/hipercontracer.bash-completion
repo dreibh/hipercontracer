@@ -63,6 +63,7 @@ _hipercontracer()
       --jitterexpiration              | \
       --jitterburst                   | \
       --jitterttl                     | \
+      --jittertype                    | \
       --jitterpacketsize              | \
       --jitterudpsourceport           | \
       --jitterudpdestinationport      | \
@@ -166,6 +167,24 @@ _hipercontracer()
 -M
 --iomodule
 --iterations
+--jitterinterval
+--jitterintervaldeviation
+--jitterexpiration
+--jitterburst
+--jitterttl
+--jittertype
+--jitterpacketsize
+--jitterrecordraw
+--jitterudpsourceport
+--jitterudpdestinationport
+--pinginterval
+--pingintervaldeviation
+--pingexpiration
+--pingburst
+--pingttl
+--pingpacketsize
+--pingudpsourceport
+--pingudpdestinationport
 --tracerouteinterval
 --tracerouteintervaldeviation
 --tracerouteduration
@@ -176,23 +195,6 @@ _hipercontracer()
 --traceroutepacketsize
 --tracerouteudpsourceport
 --tracerouteudpdestinationport
---pinginterval
---pingintervaldeviation
---pingexpiration
---pingburst
---pingttl
---pingpacketsize
---pingudpsourceport
---pingudpdestinationport
---jitterinterval
---jitterintervaldeviation
---jitterexpiration
---jitterburst
---jitterttl
---jitterpacketsize
---jitterrecordraw
---jitterudpsourceport
---jitterudpdestinationport
 -R
 --resultsdirectory
 -x

@@ -109,6 +109,13 @@ enum ProtocolType
    PT_TCP  = 't'
 };
 
+enum JitterType
+{
+   JT_Unknown = 0,   /* Unknown -> RFC 3550         */
+   JT_RFC3550 = 1,   /* RFC 3550                    */
+   JT_IQR     = 2    /* Inter--Quartile Range (IRQ) */
+};
+
 enum TimeSourceType
 {
    TST_Unknown         = 0x0,

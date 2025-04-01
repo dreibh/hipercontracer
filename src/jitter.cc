@@ -29,7 +29,7 @@
 
 #include "jitter.h"
 #include "assure.h"
-#include "jitter-rfc3550.h"
+#include "jittermodule-rfc3550.h"
 #include "tools.h"
 #include "logger.h"
 
@@ -47,6 +47,7 @@ Jitter::Jitter(const std::string                moduleName,
                const boost::asio::ip::address&  sourceAddress,
                const std::set<DestinationInfo>& destinationArray,
                const TracerouteParameters&      parameters,
+               const RegisteredJitterModule&    jitterModule,
                const bool                       recordRawResults)
    : Ping(moduleName,
           resultsWriter, outputFormatName, outputFormatVersion,
@@ -54,6 +55,7 @@ Jitter::Jitter(const std::string                moduleName,
           sourceAddress, destinationArray,
           parameters),
      JitterInstanceName(std::string("Jitter(") + sourceAddress.to_string() + std::string(")")),
+     JitterModule(jitterModule),
      RecordRawResults(recordRawResults)
 {
    IOModule->setName(JitterInstanceName);
@@ -127,17 +129,17 @@ void Jitter::processResults()
 }
 
 
-// ###### Compute jitter, according to RFC 3550 #############################
+// ###### Compute jitter ####################################################
 void Jitter::computeJitter(const std::vector<ResultEntry*>::const_iterator& start,
                            const std::vector<ResultEntry*>::const_iterator& end)
 {
-   const ResultEntry* referenceEntry = nullptr;
-   JitterRFC3550      jitterQueuing;
-   JitterRFC3550      jitterAppSend;
-   JitterRFC3550      jitterAppReceive;
-   JitterRFC3550      jitterApplication;
-   JitterRFC3550      jitterSoftware;
-   JitterRFC3550      jitterHardware;
+   const ResultEntry* referenceEntry    = nullptr;
+   JitterModuleBase*  jitterQueuing     = JitterModule.CreateJitterModuleFunction(Parameters.Rounds);
+   JitterModuleBase*  jitterAppSend     = JitterModule.CreateJitterModuleFunction(Parameters.Rounds);
+   JitterModuleBase*  jitterAppReceive  = JitterModule.CreateJitterModuleFunction(Parameters.Rounds);
+   JitterModuleBase*  jitterApplication = JitterModule.CreateJitterModuleFunction(Parameters.Rounds);
+   JitterModuleBase*  jitterSoftware    = JitterModule.CreateJitterModuleFunction(Parameters.Rounds);
+   JitterModuleBase*  jitterHardware    = JitterModule.CreateJitterModuleFunction(Parameters.Rounds);
    unsigned int       timeSource = 0;
    unsigned int       timeSourceApplication;
    unsigned int       timeSourceSoftware;
@@ -164,38 +166,38 @@ void Jitter::computeJitter(const std::vector<ResultEntry*>::const_iterator& star
       if(resultEntry->status() == Success) {
          if(resultEntry->obtainSchedulingSendTime(timeSourceQueuing, sendTime, receiveTime)) {
             // NOTE: For queuing: sendTime = schedulingTime ; receiveTime = actual send time!
-            jitterQueuing.process(timeSourceQueuing,
-                                  nsSinceEpoch<ResultTimePoint>(sendTime),
-                                  nsSinceEpoch<ResultTimePoint>(receiveTime));
+            jitterQueuing->process(timeSourceQueuing,
+                                   nsSinceEpoch<ResultTimePoint>(sendTime),
+                                   nsSinceEpoch<ResultTimePoint>(receiveTime));
          }
 
          if(resultEntry->obtainApplicationSendSchedulingTime(timeSourceAppSend, sendTime, receiveTime)) {
             // NOTE: For queuing: sendTime = schedulingTime ; receiveTime = actual send time!
-            jitterAppSend.process(timeSourceAppSend,
-                                  nsSinceEpoch<ResultTimePoint>(sendTime),
-                                  nsSinceEpoch<ResultTimePoint>(receiveTime));
+            jitterAppSend->process(timeSourceAppSend,
+                                   nsSinceEpoch<ResultTimePoint>(sendTime),
+                                   nsSinceEpoch<ResultTimePoint>(receiveTime));
          }
          if(resultEntry->obtainReceptionApplicationReceiveTime(timeSourceAppReceive, sendTime, receiveTime)) {
             // NOTE: For queuing: sendTime = schedulingTime ; receiveTime = actual send time!
-            jitterAppReceive.process(timeSourceAppReceive,
-                                     nsSinceEpoch<ResultTimePoint>(sendTime),
-                                     nsSinceEpoch<ResultTimePoint>(receiveTime));
-         }
-
-         if(resultEntry->obtainSendReceiveTime(RXTimeStampType::RXTST_Application, timeSourceApplication, sendTime, receiveTime)) {
-            jitterApplication.process(timeSourceApplication,
+            jitterAppReceive->process(timeSourceAppReceive,
                                       nsSinceEpoch<ResultTimePoint>(sendTime),
                                       nsSinceEpoch<ResultTimePoint>(receiveTime));
          }
+
+         if(resultEntry->obtainSendReceiveTime(RXTimeStampType::RXTST_Application, timeSourceApplication, sendTime, receiveTime)) {
+            jitterApplication->process(timeSourceApplication,
+                                       nsSinceEpoch<ResultTimePoint>(sendTime),
+                                       nsSinceEpoch<ResultTimePoint>(receiveTime));
+         }
          if(resultEntry->obtainSendReceiveTime(RXTimeStampType::RXTST_ReceptionSW, timeSourceSoftware, sendTime, receiveTime)) {
-            jitterSoftware.process(timeSourceSoftware,
-                                   nsSinceEpoch<ResultTimePoint>(sendTime),
-                                   nsSinceEpoch<ResultTimePoint>(receiveTime));
+            jitterSoftware->process(timeSourceSoftware,
+                                    nsSinceEpoch<ResultTimePoint>(sendTime),
+                                    nsSinceEpoch<ResultTimePoint>(receiveTime));
          }
          if(resultEntry->obtainSendReceiveTime(RXTimeStampType::RXTST_ReceptionHW, timeSourceHardware, sendTime, receiveTime)) {
-            jitterHardware.process(timeSourceHardware,
-                                   nsSinceEpoch<ResultTimePoint>(sendTime),
-                                   nsSinceEpoch<ResultTimePoint>(receiveTime));
+            jitterHardware->process(timeSourceHardware,
+                                    nsSinceEpoch<ResultTimePoint>(sendTime),
+                                    nsSinceEpoch<ResultTimePoint>(receiveTime));
          }
       }
 
@@ -220,9 +222,9 @@ void Jitter::computeJitter(const std::vector<ResultEntry*>::const_iterator& star
 
    if(referenceEntry) {
       // ====== Record Jitter entry =========================================
-      writeJitterResultEntry(referenceEntry,    timeSource,
-                             jitterQueuing,     jitterAppSend,  jitterAppReceive,
-                             jitterApplication, jitterSoftware, jitterHardware);
+      writeJitterResultEntry(referenceEntry,     timeSource,
+                             *jitterQueuing,     *jitterAppSend,  *jitterAppReceive,
+                             *jitterApplication, *jitterSoftware, *jitterHardware);
 
       // ====== Record raw Ping results as well =============================
       if(RecordRawResults) {
@@ -243,18 +245,25 @@ void Jitter::computeJitter(const std::vector<ResultEntry*>::const_iterator& star
          OutstandingRequests--;
       }
    }
+
+   delete jitterQueuing;
+   delete jitterAppSend;
+   delete jitterAppReceive;
+   delete jitterApplication;
+   delete jitterSoftware;
+   delete jitterHardware;
 }
 
 
 // ###### Write Jitter result entry to output file ############################
-void Jitter::writeJitterResultEntry(const ResultEntry*   referenceEntry,
-                                    const unsigned int   timeSource,
-                                    const JitterRFC3550& jitterQueuing,
-                                    const JitterRFC3550& jitterAppSend,
-                                    const JitterRFC3550& jitterAppReceive,
-                                    const JitterRFC3550& jitterApplication,
-                                    const JitterRFC3550& jitterSoftware,
-                                    const JitterRFC3550& jitterHardware)
+void Jitter::writeJitterResultEntry(const ResultEntry* referenceEntry,
+                                    const unsigned int timeSource,
+                                    JitterModuleBase&  jitterQueuing,
+                                    JitterModuleBase&  jitterAppSend,
+                                    JitterModuleBase&  jitterAppReceive,
+                                    JitterModuleBase&  jitterApplication,
+                                    JitterModuleBase&  jitterSoftware,
+                                    JitterModuleBase&  jitterHardware)
 {
    HPCT_LOG(debug) << getName() << ": "
                    << referenceEntry->destinationAddress()
@@ -294,7 +303,7 @@ void Jitter::writeJitterResultEntry(const ResultEntry*   referenceEntry,
 
             % timeSource
 
-            % 0   /* Jitter Type for future extension */
+            % jitterApplication.getJitterType()   /* Jitter Type is the same for all computations! */
 
             % jitterAppSend.packets()
             % jitterAppSend.meanLatency()
