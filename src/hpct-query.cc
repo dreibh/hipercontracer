@@ -276,7 +276,7 @@ static inline unsigned int mapMeasurementID(
 
 #if 0
 // ###### Jitter ############################################################
-#define OUTPUT_JITTER_V2(timeStampVariable) {              \                                                       \
+#define OUTPUT_JITTER_V2(timeStampVariable) {              \
    const std::string outputString = str(boost::format      \
       ("#J%c %d %s %s %x %d %x %d %x %d %d %d %08x %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d\n") \
          % protocol                                        \
@@ -992,7 +992,7 @@ int main(int argc, char** argv)
                   const unsigned long long       timeStamp             = databaseClient->getBigInt("timestamp");
                   const boost::asio::ip::address sourceIP              = statement.decodeAddress(databaseClient->getString("sourceIP"));
                   const boost::asio::ip::address destinationIP         = statement.decodeAddress(databaseClient->getString("destinationIP"));
-                  const unsigned long long       measurementID         = mapMeasurementID(databaseClient->getInteger("measurementID")
+                  const unsigned long long       measurementID         = mapMeasurementID(databaseClient->getInteger("measurementID"),
                                                                                           addressToMeasurementID, sourceIP);
                   const char                     protocol              = databaseClient->getInteger("protocol");
                   const uint8_t                  trafficClass          = databaseClient->getInteger("trafficClass");
