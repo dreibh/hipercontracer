@@ -1,16 +1,18 @@
 #!/bin/sh
 
-set -e
+set -eu
 
 if [ "$1" = "purge" ]; then
 
-   # Remove administrative user
-   userdel hipercontracer  >/dev/null 2>&1 || true
+   # Remove administrative user:
+   userdel  hipercontracer >/dev/null 2>&1 || true
    groupdel hipercontracer >/dev/null 2>&1 || true
    groupdel hpct-nodes     >/dev/null 2>&1 || true
 
-   # Remove data directory (if empty)
-   rmdir /var/hipercontracer/data /var/hipercontracer/good /var/hipercontracer/bad || true
+   # Remove data directory (if empty):
+   for subDirectory in data good bad ssh ; do
+      rmdir /var/hipercontracer/$subDirectory || true
+   done
    rmdir /var/hipercontracer >/dev/null 2>&1 || true
 
 fi

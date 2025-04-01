@@ -1,3 +1,10 @@
+hipercontracer (2.0.6-1ubuntu1) noble; urgency=medium
+
+  * New upstream release.
+  * debian/control: Updated standards version to 4.7.1.
+
+ -- Thomas Dreibholz <dreibh@simula.no>  Mon, 31 Mar 2025 15:51:05 +0200
+
 hipercontracer (2.0.5-1ubuntu1) noble; urgency=medium
 
   * New upstream release.

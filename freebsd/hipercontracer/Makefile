@@ -1,5 +1,5 @@
 PORTNAME=	hipercontracer
-DISTVERSION=	2.0.5
+DISTVERSION=	2.0.6
 CATEGORIES=	benchmarks
 MASTER_SITES=	https://www.nntb.no/~dreibh/hipercontracer/download/
 
@@ -18,13 +18,13 @@ LIB_DEPENDS=	libboost_date_time.so:devel/boost-libs \
 		libboost_system.so:devel/boost-libs \
 		libboost_thread.so:devel/boost-libs \
 		libinotify.so:devel/libinotify
+RUN_DEPENDS=	getopt>=0:misc/getopt
 
 USES=		cmake compiler:c++20-lang desktop-file-utils python \
 		shared-mime-info shebangfix ssl tar:xz
 USE_LDCONFIG=	yes
-
-USERS=		hipercontracer
-GROUPS=		hipercontracer hpct-nodes
+# Work-around for build issue #285706 on ARM (https://bugs.freebsd.org/bugzilla/show_bug.cgi?id=285706):
+MAKE_ENV=	OMP_NUM_THREADS=1
 
 SHEBANG_FILES=	src/results-examples/r-install-dependencies \
 		src/results-examples/r-ping-example \

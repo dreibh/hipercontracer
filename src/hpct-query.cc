@@ -406,7 +406,7 @@ int main(int argc, char** argv)
    }
 
    if(vm.count("help")) {
-       std::cerr << "Usage: " << argv[0] << " parameters" << "\n"
+       std::cerr << "Usage: " << argv[0] << " database_configuration ping|traceroute OPTIONS" << "\n"
                  << commandLineOptions;
        return 1;
    }
@@ -1036,16 +1036,18 @@ int main(int argc, char** argv)
       exit(1);
    }
 
-   try {
-      std::filesystem::rename(tmpOutputFileName, outputFileName);
+   if(outputFileName != std::filesystem::path()) {
+      try {
+         std::filesystem::rename(tmpOutputFileName, outputFileName);
 
-      // Set timestamp to the latest timestamp in the data. Note: the timestamp is UTC!
-      const std::time_t t = (std::time_t)(lastTimeStamp / 1000000000);
-      boost::filesystem::last_write_time(boost::filesystem::path(outputFileName), t);
-   }
-   catch(const std::exception& e) {
-      HPCT_LOG(fatal) << "Writing results failed: " << e.what();
-      exit(1);
+         // Set timestamp to the latest timestamp in the data. Note: the timestamp is UTC!
+         const std::time_t t = (std::time_t)(lastTimeStamp / 1000000000);
+         boost::filesystem::last_write_time(boost::filesystem::path(outputFileName), t);
+      }
+      catch(const std::exception& e) {
+         HPCT_LOG(fatal) << "Writing results failed: " << e.what();
+         exit(1);
+      }
    }
 
    // ====== Clean up =======================================================

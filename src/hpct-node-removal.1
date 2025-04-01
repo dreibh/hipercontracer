@@ -28,7 +28,7 @@
 .\" Contact: dreibh@simula.no
 .\"
 .\" ###### Setup ############################################################
-.Dd December 19, 2024
+.Dd April 01, 2025
 .Dt hpct-node-removal 1
 .Os hpct-node-removal
 .\" ###### Name #############################################################
@@ -38,6 +38,7 @@
 .\" ###### Synopsis #########################################################
 .Sh SYNOPSIS
 .Nm hpct-node-removal NODE_ID
+.Op Fl r | Fl Fl remove-data
 .\" ###### Description ######################################################
 .Sh DESCRIPTION
 .Nm hpct-node-removal
@@ -50,12 +51,16 @@ The following arguments must be provided:
 .Bl -tag -width indent
 .It NODE_ID
 Sets the node ID, a number from 1 to 9999.
+.It Fl r | Fl Fl remove-data
+Also remove the data of the node. Default: Keep the data.
 .El
 .\" ###### Examples #########################################################
 .Sh EXAMPLES
 .Bl -tag -width indent
 .It hpct-node-removal ./hpct-node-removal 1000
 .It hpct-node-removal ./hpct-node-removal 1
+.It hpct-node-removal ./hpct-node-removal 2 --remove-data
+.It hpct-node-removal ./hpct-node-removal 3 -r
 .El
 .\" ###### Authors ##########################################################
 .Sh AUTHORS
