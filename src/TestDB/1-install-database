@@ -117,6 +117,7 @@ EOF
    # Enable network access:
    if [ "${ID}" == "ubuntu" ] || [ "${ID}" == "debian" ] ; then
       sudo sed \
+         -e '/^event_scheduler[ \t]*=.*$/d' -e 's/\(^\[mysqld\].*\)$/\1\nevent_scheduler = ON/' \
          -e 's/^\([#]\|\)\(max_allowed_packet[ \t]*\)=.*$/\2= 1G/g' \
          -e 's/^\(bind-address[ \t]*\)=.*$/\1= */g' \
          -e "s%\([#][ \t]*\|\)ssl-ca[ ]*=[ ]*.*%ssl-ca = ${MARIADB_CA_FILE}\nssl-crl = ${MARIADB_CRL_FILE}%" \
@@ -129,6 +130,7 @@ EOF
       sudo service mariadb restart
    elif [ "${ID}" == "fedora" ] ; then
       sudo sed \
+         -e '/^event_scheduler[ \t]*=.*$/d' -e 's/\(^\[mysqld\].*\)$/\1\nevent_scheduler = ON/' \
          -e "s%^#bind-address[ \t]*=.*%max_allowed_packet = 1G\nbind-address = *\nssl-ca = ${MARIADB_CA_FILE}\nssl-crl = ${MARIADB_CRL_FILE}\nssl-cert = ${MARIADB_CRT_FILE}\nssl-key = ${MARIADB_KEY_FILE}\nrequire-secure-transport = on\ntls_version = TLSv1.3%g" \
          /etc/my.cnf.d/mariadb-server.cnf | sudo tee /etc/my.cnf.d/mariadb-server.cnf.new && \
       sudo diff --color /etc/my.cnf.d/mariadb-server.cnf /etc/my.cnf.d/mariadb-server.cnf.new || true && \
@@ -136,6 +138,7 @@ EOF
       sudo service mariadb restart
    elif [ "${ID}" == "freebsd" ] ; then
       sudo sed \
+         -e '/^event_scheduler[ \t]*=.*$/d' -e 's/\(^\[mysqld\].*\)$/\1\nevent_scheduler = ON/' \
          -e "s%^bind-address[ \t]*=.*%max_allowed_packet = 1G\nbind-address = *\nssl-ca = ${MARIADB_CA_FILE}\nssl-crl = ${MARIADB_CRL_FILE}\nssl-cert = ${MARIADB_CRT_FILE}\nssl-key = ${MARIADB_KEY_FILE}\nrequire-secure-transport = on\ntls_version = TLSv1.3%g" \
          /usr/local/etc/mysql/conf.d/server.cnf | sudo tee /usr/local/etc/mysql/conf.d/server.cnf.new && \
       sudo diff --color /usr/local/etc/mysql/conf.d/server.cnf /usr/local/etc/mysql/conf.d/server.cnf.new || true && \
