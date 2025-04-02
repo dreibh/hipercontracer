@@ -40,11 +40,11 @@ SELECT * FROM Jitter LIMIT 5;
 # ###### Advanced database features test ####################################
 -- The Event Scheduler will run the procedures daily.
 -- For testing, make sure they run immediately:
-CALL CreateNewPartitions("test4hpct", "Ping", "SendTimestamp");
-CALL CreateNewPartitions("test4hpct", "Traceroute", "Timestamp");
-CALL CreateNewPartitions("test4hpct", "Jitter", "Timestamp");
+CALL CreateDailyPartitionsForTable("test4hpct", "Ping", "SendTimestamp");
+CALL CreateDailyPartitionsForTable("test4hpct", "Traceroute", "Timestamp");
+CALL CreateDailyPartitionsForTable("test4hpct", "Jitter", "Timestamp");
 
 -- List the created partitions:
-CALL CheckPartitions("test4hpct", "Ping");
-CALL CheckPartitions("test4hpct", "Traceroute");
-CALL CheckPartitions("test4hpct", "Jitter");
+CALL ObtainDailyPartitionsOfTable("test4hpct", "Ping");
+CALL ObtainDailyPartitionsOfTable("test4hpct", "Traceroute");
+CALL ObtainDailyPartitionsOfTable("test4hpct", "Jitter");

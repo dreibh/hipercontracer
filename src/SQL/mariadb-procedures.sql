@@ -28,149 +28,211 @@
 -- Contact: dreibh@simula.no
 
 
--- ###### Function to create new partitions, according to data timestamps ###
-DROP PROCEDURE IF EXISTS CreateNewPartitions;
+-- ###### Partitioning by Date in Daily Partitions ##########################
+-- Idea: 1 partition per day
+-- Partitions:
+-- * p<YYYY><mm><dd> daily partitions
+-- * pMAX partition for values higher than the last daily partition
+-- Procedures:
+-- * ObtainDailyPartitionsOfTable()  -- obtain daily partitions of a table
+-- * ObtainDailyPartitionsOfSchema() -- obtain daily partitions of a schema
+-- * CreateDailyPartitionsForTable() -- create daily partitions, if necessary
+-- ##########################################################################
+
+
+-- ###### Obtain first and last partition names of a table ##################
+DROP PROCEDURE IF EXISTS ObtainDailyPartitionsOfTable;
 DELIMITER $$
-CREATE PROCEDURE CreateNewPartitions(schemaName    VARCHAR(32),
-                                     tableName     VARCHAR(32),
-                                     timestampName VARCHAR(32))
+CREATE PROCEDURE ObtainDailyPartitionsOfTable(pSchemaName VARCHAR(32),
+                                              pTableName  VARCHAR(32))
 proc:BEGIN
-   DECLARE tableIsPartitioned  BOOLEAN;
-   DECLARE dateOfLastPartition DATE;
-   DECLARE startDate           DATE;
-   DECLARE endDate             DATE;
-   DECLARE currentDate         DATE;
-   DECLARE currentPartition    VARCHAR(32);
-   DECLARE iteration           INTEGER;
-   DECLARE limitNewPartitions  INTEGER DEFAULT 1000000;   -- partitions
-   DECLARE futurePartitions    INTEGER DEFAULT 7;         -- days
-
-   -- ====== Get minimum timestamp ==========================================
-   SET @minTimestamp = NULL;
-   SET @maxTimestamp = NULL;
-   SET @sqlText = CONCAT('SELECT ',
-                         'CAST(FROM_UNIXTIME(FLOOR(MIN(`', timestampName, '`) / 1000000000.0)) AS DATE), ',
-                         'CAST(FROM_UNIXTIME(CEIL(MAX(`', timestampName, '`) / 1000000000.0)) AS DATE) ',
-                         'INTO @minTimestamp, @maxTimestamp ',
-                         'FROM `', schemaName, '`.`', tableName, '`;');
-   PREPARE statement FROM @sqlText;
-   EXECUTE statement;
-   DEALLOCATE PREPARE statement;
-   IF @minTimestamp IS NULL OR @maxTimestamp IS NULL THEN
-      LEAVE proc;
-   END IF;
-
-   -- ====== Find latest partition ==========================================
-   SET @lastPartition = NULL;
-   SET @sqlText = CONCAT('SELECT PARTITION_NAME ',
-                          'INTO @lastPartition ',
-                          'FROM INFORMATION_SCHEMA.PARTITIONS ',
-                          'WHERE ',
-                             'TABLE_SCHEMA="', schemaName, '" AND ',
-                             'TABLE_NAME="', tableName, '" AND ',
-                             'PARTITION_NAME != "pMAX" ',
-                          'ORDER BY PARTITION_NAME DESC ',
-                          'LIMIT 1;');
-   PREPARE statement FROM @sqlText;
-   EXECUTE statement;
-   DEALLOCATE PREPARE statement;
-
-   -- ====== Get data of latest partition ===================================
-   IF @lastPartition IS NOT NULL THEN
-      SET tableIsPartitioned   = TRUE;
-      SET @dateOfLastPartition = (
-         SELECT DATE(CONCAT(SUBSTRING(@lastPartition, 2, 4), "-",
-                            SUBSTRING(@lastPartition, 6, 2), "-",
-                            SUBSTRING(@lastPartition, 8, 2)))
-      );
-   ELSE
-      SET tableIsPartitioned   = FALSE;
-      SET @dateOfLastPartition = @minTimeStamp;
-   END IF;
-
-   -- ====== Start partitioning, if there is no partitioning ================
-   IF NOT tableIsPartitioned THEN
-      SET @sqlText = CONCAT('ALTER TABLE `', schemaName, '`.`', tableName, '` PARTITION BY RANGE ( ', timestampName, ' ) ( ');
-   ELSE
-      SET @sqlText = CONCAT('ALTER TABLE `', schemaName, '`.`', tableName, '` REORGANIZE PARTITION pMAX INTO ( ');
-   END IF;
-
-   -- Some safety checks, to prevent creating a huge amount of partitions:
-   IF @dateOfLastPartition < "2010-01-01" THEN
-      SET @dateOfLastPartition = "2010-01-01";
-   END IF;
-   IF @maxTimestamp > CAST((NOW() + INTERVAL 1 DAY) AS DATE) THEN
-      SET @maxTimestamp = CAST((NOW() + INTERVAL 1 DAY) AS DATE);
-   END IF;
-
-   SET startDate   = @dateOfLastPartition;
-   SET endDate     = DATE_ADD(@maxTimestamp, INTERVAL futurePartitions DAY);
-   SET currentDate = startDate;
-   SET iteration   = 0;
-   partitioningLoop: LOOP
-      SET currentDate = DATE_ADD(currentDate, INTERVAL 1 DAY);
-      IF currentDate > endDate THEN
-	     LEAVE partitioningLoop;
-      END IF;
-
-      SET currentPartition = DATE_FORMAT(currentDate, "p%Y%m%d");
-      IF iteration > 0 THEN
-         SET @sqlText = CONCAT(@sqlText, ', ');
-      END IF;
-      SET @sqlText = CONCAT(@sqlText,
-                               'PARTITION ', currentPartition,
-                               ' VALUES LESS THAN (', 1000000000 * UNIX_TIMESTAMP(currentDate), ')');
-      SET iteration = iteration + 1;
-      IF tableIsPartitioned AND (iteration > limitNewPartitions) THEN
-	     LEAVE partitioningLoop;
-      END IF;
-   END LOOP;
-
-   IF iteration > 0 THEN
-      SET @sqlText = CONCAT(@sqlText,
-                               ', PARTITION pMAX VALUES LESS THAN MAXVALUE );');
-      PREPARE statement FROM @sqlText;
-      EXECUTE statement;
-      DEALLOCATE PREPARE statement;
-   END IF;
+   SELECT
+      TABLE_SCHEMA          AS schemaName,
+      TABLE_NAME            AS tableName,
+      COUNT(PARTITION_NAME) AS dailyPartitions,
+      MIN(PARTITION_NAME)   AS firstPartition,
+      MAX(PARTITION_NAME)   AS lastPartition,
+      ( SELECT
+           PARTITION_NAME
+        FROM
+           INFORMATION_SCHEMA.PARTITIONS
+        WHERE
+           TABLE_SCHEMA = pSchemaName AND
+           TABLE_NAME   = pTableName  AND
+           PARTITION_NAME = "pMAX"
+      ) AS maxValuePartition
+   FROM
+      INFORMATION_SCHEMA.PARTITIONS
+   WHERE
+      TABLE_SCHEMA = pSchemaName AND
+      TABLE_NAME   = pTableName  AND
+      PARTITION_NAME RLIKE "p[0-9]+";
 END;
 $$
 DELIMITER ;
 
 
--- ###### Obtain first and last partition names #############################
-DROP PROCEDURE IF EXISTS CheckPartitions;
+-- ###### Obtain first and last partition names of a table ##################
+DROP PROCEDURE IF EXISTS ObtainDailyPartitionsOfSchema;
 DELIMITER $$
-CREATE PROCEDURE CheckPartitions(schemaName VARCHAR(32),
-                                 tableName  VARCHAR(32))
+CREATE PROCEDURE ObtainDailyPartitionsOfSchema(pSchemaName VARCHAR(32))
 proc:BEGIN
+   SELECT
+      TABLE_SCHEMA          AS schemaName,
+      TABLE_NAME            AS tableName,
+      COUNT(PARTITION_NAME) AS dailyPartitions,
+      MIN(PARTITION_NAME)   AS firstPartition,
+      MAX(PARTITION_NAME)   AS lastPartition
+   FROM
+      INFORMATION_SCHEMA.PARTITIONS
+   WHERE
+      TABLE_SCHEMA = pSchemaName AND
+      PARTITION_NAME RLIKE "p[0-9]+"
+   GROUP BY
+      schemaName,
+      tableName
+   ORDER BY
+      tableName ASC;
+END;
+$$
+DELIMITER ;
 
-   SET @sqlText1 = CONCAT('SELECT PARTITION_NAME ',
-                          'INTO @firstPartition ',
-                          'FROM INFORMATION_SCHEMA.PARTITIONS ',
-                          'WHERE ',
-                             'TABLE_SCHEMA="', schemaName, '" AND ',
-                             'TABLE_NAME="', tableName, '" AND ',
-                             'PARTITION_NAME != "pMAX" ',
-                          'ORDER BY PARTITION_NAME ASC ',
-                          'LIMIT 1;');
-   SET @sqlText2 = CONCAT('SELECT PARTITION_NAME ',
-                          'INTO @lastPartition ',
-                          'FROM INFORMATION_SCHEMA.PARTITIONS ',
-                          'WHERE ',
-                             'TABLE_SCHEMA="', schemaName, '" AND ',
-                             'TABLE_NAME="', tableName, '" AND ',
-                             'PARTITION_NAME != "pMAX" ',
-                          'ORDER BY PARTITION_NAME DESC ',
-                          'LIMIT 1;');
-   PREPARE statement FROM @sqlText1;
+
+-- ###### Function to create new partitions, according to data timestamps ###
+DROP PROCEDURE IF EXISTS CreateDailyPartitionsForTable;
+DELIMITER $$
+CREATE PROCEDURE CreateDailyPartitionsForTable(pSchemaName     VARCHAR(32),
+                                              pTableName       VARCHAR(32),
+                                              pTimestampColumn VARCHAR(32))
+proc:BEGIN
+   DECLARE done                  BOOLEAN     DEFAULT FALSE;
+   DECLARE firstPartitionName    VARCHAR(32) DEFAULT NULL;
+   DECLARE firstPartitionDate    DATE        DEFAULT NULL;
+   DECLARE lastPartitionName     VARCHAR(32) DEFAULT NULL;
+   DECLARE lastPartitionDate     DATE        DEFAULT NULL;
+   DECLARE maxValuePartitionName VARCHAR(32) DEFAULT NULL;
+   DECLARE tableIsPartitioned    BOOLEAN     DEFAULT NULL;
+   DECLARE partitioningStartDate DATE        DEFAULT NULL;
+   DECLARE partitioningEndDate   DATE        DEFAULT NULL;
+   DECLARE currentDate           DATE;
+   DECLARE currentPartition      VARCHAR(32);
+   DECLARE iteration             INTEGER;
+
+   DECLARE limitNewPartitions    INTEGER DEFAULT 4000;   -- partitions
+   DECLARE futurePartitions      INTEGER DEFAULT 7;      -- days
+
+   -- ====== Handle for "not found" =========================================
+   DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = TRUE;
+
+   -- ====== Get first and last dates of the data in the table ==============
+   SET @firstDateInData := NULL;
+   SET @lastDateInData  := NULL;
+   SET @sqlText := CONCAT('SELECT ',
+                             'CAST(FROM_UNIXTIME(FLOOR(MIN(`', pTimestampColumn, '`) / 1000000000.0)) AS DATE), ',
+                             'CAST(FROM_UNIXTIME(CEIL(MAX(`', pTimestampColumn, '`) / 1000000000.0)) AS DATE) ',
+                          'INTO @firstDateInData, @lastDateInData ',
+                          'FROM `', pSchemaName, '`.`', pTableName, '`;');
+   PREPARE statement FROM @sqlText;
    EXECUTE statement;
    DEALLOCATE PREPARE statement;
-   PREPARE statement FROM @sqlText2;
-   EXECUTE statement;
-   DEALLOCATE PREPARE statement;
+   IF (@firstDateInData IS NULL) OR (@lastDateInData IS NULL) THEN
+      -- The table is empty => nothing to do!
+      SELECT NULL;
+      LEAVE proc;
+   END IF;
 
-   SELECT @firstPartition, @lastPartition;
+   -- ====== Get first and last daily partitions of the table ===============
+   SELECT
+      ( CASE WHEN MAX(PARTITION_NAME) IS NULL THEN FALSE ELSE TRUE END) AS tableIsPartitioned,
+      MIN(PARTITION_NAME) AS firstPartitionName,
+      CAST(CONCAT(SUBSTRING(MIN(PARTITION_NAME), 2, 4), "-",
+                  SUBSTRING(MIN(PARTITION_NAME), 6, 2), "-",
+                  SUBSTRING(MIN(PARTITION_NAME), 8, 2)) AS DATE) AS firstPartitionDate,
+      MAX(PARTITION_NAME) AS lastPartitionName,
+      CAST(CONCAT(SUBSTRING(MAX(PARTITION_NAME), 2, 4), "-",
+                  SUBSTRING(MAX(PARTITION_NAME), 6, 2), "-",
+                  SUBSTRING(MAX(PARTITION_NAME), 8, 2)) AS DATE) AS lastPartitionDate,
+      ( SELECT
+           PARTITION_NAME
+        FROM
+           INFORMATION_SCHEMA.PARTITIONS
+        WHERE
+           TABLE_SCHEMA = pSchemaName AND
+           TABLE_NAME   = pTableName  AND
+           PARTITION_NAME = "pMAX"
+      ) AS maxValuePartition
+   INTO
+      tableIsPartitioned,
+      firstPartitionName,
+      firstPartitionDate,
+      lastPartitionName,
+      lastPartitionDate,
+      maxValuePartitionName
+   FROM
+      INFORMATION_SCHEMA.PARTITIONS
+   WHERE
+      TABLE_SCHEMA = pSchemaName AND
+      TABLE_NAME   = pTableName  AND
+      PARTITION_NAME RLIKE "p[0-9]+";
+
+   -- ====== Obtain date range for new partitions ===========================
+   IF tableIsPartitioned = FALSE THEN
+      -- There is no partitioning, yet. Use the first data item's time stamp
+      -- to begin the partitioning:
+      SET partitioningStartDate = @firstDateInData;
+   ELSE
+      -- There is already an existing partitioning:
+      SET partitioningStartDate = lastPartitionDate;
+   END IF;
+   IF @lastDateInData < CAST((NOW() + INTERVAL 1 DAY) AS DATE) THEN
+      -- Useful date in @lastDateInData (the usual case) -> use it:
+      SET partitioningEndDate = DATE_ADD(@lastDateInData, INTERVAL futurePartitions DAY);
+   ELSE
+      -- The latest data in the table has a timestamp far in the future
+      -- -> use today's date instead:
+      SET partitioningEndDate = CAST((NOW() + INTERVAL futurePartitions DAY) AS DATE);
+   END IF;
+
+   -- ====== Start partitioning, if there is no partitioning ================
+   IF NOT tableIsPartitioned THEN
+      SET @sqlText := CONCAT('ALTER TABLE `', pSchemaName, '`.`', pTableName, '` PARTITION BY RANGE ( ', pTimestampColumn, ' ) ( ');
+   ELSE
+      SET @sqlText := CONCAT('ALTER TABLE `', pSchemaName, '`.`', pTableName, '` REORGANIZE PARTITION `', maxValuePartitionName, '` INTO ( ');
+   END IF;
+
+   SET currentDate = partitioningStartDate;
+   SET iteration   = 0;
+   partitioningLoop: WHILE currentDate < partitioningEndDate DO
+      -- ------ Check limit -------------------------------------------------
+      SET iteration = iteration + 1;
+      IF iteration > limitNewPartitions THEN
+	     LEAVE partitioningLoop;
+      END IF;
+
+      -- ------ Add daily partition -----------------------------------------
+      SET currentDate      = DATE_ADD(currentDate, INTERVAL 1 DAY);
+      SET currentPartition = DATE_FORMAT(currentDate, "p%Y%m%d");
+      IF iteration > 1 THEN
+         SET @sqlText = CONCAT(@sqlText, ', ');
+      END IF;
+      SET @sqlText = CONCAT(@sqlText,
+                            'PARTITION ', currentPartition,
+                            ' VALUES LESS THAN (', 1000000000 * UNIX_TIMESTAMP(currentDate), ')');
+   END WHILE;
+
+   -- ------ Create partitions ----------------------------------------------
+   IF iteration > 0 THEN
+      SET @sqlText = CONCAT(@sqlText,
+                            ', PARTITION pMAX VALUES LESS THAN MAXVALUE );');
+      PREPARE statement FROM @sqlText;
+      EXECUTE statement;
+      DEALLOCATE PREPARE statement;
+   ELSE
+      SET @sqlText = NULL;
+   END IF;
+
+   -- SELECT tableIsPartitioned, @firstDateInData, @lastDateInData, firstPartitionName, firstPartitionDate, lastPartitionName, lastPartitionDate, maxValuePartitionName, @sqlText;
+   SELECT iteration AS iterations, partitioningStartDate, partitioningEndDate, @sqlText;
 
 END;
 $$
@@ -183,12 +245,12 @@ DROP EVENT IF EXISTS TracerouteMaintenance;
 DROP EVENT IF EXISTS JitterMaintenance;
 DELIMITER $$
 CREATE EVENT PingMaintenance ON SCHEDULE EVERY 1 DAY STARTS CURRENT_TIMESTAMP + INTERVAL 0 HOUR DO
-   CALL CreateNewPartitions("test4hpct", "Ping", "SendTimestamp");
+   CALL CreateDailyPartitionsForTable("test4hpct", "Ping", "SendTimestamp");
 $$
 CREATE EVENT TracerouteMaintenance ON SCHEDULE EVERY 1 DAY STARTS CURRENT_TIMESTAMP + INTERVAL 3 HOUR DO
-   CALL CreateNewPartitions("test4hpct", "Traceroute", "Timestamp");
+   CALL CreateDailyPartitionsForTable("test4hpct", "Traceroute", "Timestamp");
 $$
 CREATE EVENT JitterMaintenance ON SCHEDULE EVERY 1 DAY STARTS CURRENT_TIMESTAMP + INTERVAL 6 HOUR DO
-   CALL CreateNewPartitions("test4hpct", "Jitter", "Timestamp");
+   CALL CreateDailyPartitionsForTable("test4hpct", "Jitter", "Timestamp");
 $$
 DELIMITER ;
