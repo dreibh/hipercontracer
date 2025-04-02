@@ -50,8 +50,14 @@ proc:BEGIN
       TABLE_SCHEMA          AS schemaName,
       TABLE_NAME            AS tableName,
       COUNT(PARTITION_NAME) AS dailyPartitions,
-      MIN(PARTITION_NAME)   AS firstPartition,
-      MAX(PARTITION_NAME)   AS lastPartition,
+      MIN(PARTITION_NAME)   AS firstPartitionName,
+      CAST(CONCAT(SUBSTRING(MIN(PARTITION_NAME), 2, 4), "-",
+                  SUBSTRING(MIN(PARTITION_NAME), 6, 2), "-",
+                  SUBSTRING(MIN(PARTITION_NAME), 8, 2)) AS DATE) AS firstPartitionDate,
+      MAX(PARTITION_NAME) AS lastPartitionName,
+      CAST(CONCAT(SUBSTRING(MAX(PARTITION_NAME), 2, 4), "-",
+                  SUBSTRING(MAX(PARTITION_NAME), 6, 2), "-",
+                  SUBSTRING(MAX(PARTITION_NAME), 8, 2)) AS DATE) AS lastPartitionDate,
       ( SELECT
            PARTITION_NAME
         FROM
@@ -81,8 +87,14 @@ proc:BEGIN
       TABLE_SCHEMA          AS schemaName,
       TABLE_NAME            AS tableName,
       COUNT(PARTITION_NAME) AS dailyPartitions,
-      MIN(PARTITION_NAME)   AS firstPartition,
-      MAX(PARTITION_NAME)   AS lastPartition
+      MIN(PARTITION_NAME)   AS firstPartitionName,
+      CAST(CONCAT(SUBSTRING(MIN(PARTITION_NAME), 2, 4), "-",
+                  SUBSTRING(MIN(PARTITION_NAME), 6, 2), "-",
+                  SUBSTRING(MIN(PARTITION_NAME), 8, 2)) AS DATE) AS firstPartitionDate,
+      MAX(PARTITION_NAME) AS lastPartitionName,
+      CAST(CONCAT(SUBSTRING(MAX(PARTITION_NAME), 2, 4), "-",
+                  SUBSTRING(MAX(PARTITION_NAME), 6, 2), "-",
+                  SUBSTRING(MAX(PARTITION_NAME), 8, 2)) AS DATE) AS lastPartitionDate
    FROM
       INFORMATION_SCHEMA.PARTITIONS
    WHERE
