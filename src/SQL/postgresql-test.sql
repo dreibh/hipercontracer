@@ -35,3 +35,8 @@ SELECT COUNT(*) FROM Traceroute;
 SELECT * FROM Traceroute LIMIT 30;
 SELECT COUNT(*) FROM Jitter;
 SELECT * FROM Jitter LIMIT 5;
+
+
+# ###### Test helper functions ##############################################
+SELECT UTCDateTime2UnixTimestamp('2014-09-29 11:22:33.789123');
+SELECT UnixTimestamp2UTCDateTime(1411989753789123000);

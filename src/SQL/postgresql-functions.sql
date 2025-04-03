@@ -28,4 +28,29 @@
 -- Contact: dreibh@simula.no
 
 
--- Nothing to be done here, yet!
+-- ###### Convert Unix Timestamp in Nanoseconds to TIMESTAMP in UTC ##########
+-- WARNING: TIMESTAMP only provides microseconds, not nanoseconds!
+--          => Nanoseconds precision is lost!
+DROP FUNCTION IF EXISTS UTCDateTime2UnixTimestamp;
+CREATE FUNCTION UTCDateTime2UnixTimestamp(utcDateTime TIMESTAMP WITHOUT TIME ZONE)
+RETURNS BIGINT
+AS $$
+BEGIN
+   RETURN CAST((1000000000.0 * EXTRACT(EPOCH FROM utcDateTime)) AS BIGINT);
+END;
+$$
+LANGUAGE plpgsql;
+
+
+-- ###### Convert Unix Timestamp in Nanoseconds to TIMESTAMP in UTC #########
+-- WARNING: TIMESTAMP only provides microseconds, not nanoseconds!
+--          => Nanoseconds precision is lost!
+DROP FUNCTION IF EXISTS UnixTimestamp2UTCDateTime;
+CREATE FUNCTION UnixTimestamp2UTCDateTime(unixTimestamp BIGINT)
+RETURNS TIMESTAMP WITHOUT TIME ZONE
+AS $$
+BEGIN
+   RETURN TO_TIMESTAMP(unixTimestamp / 1000000000.0)::TIMESTAMP WITHOUT TIME ZONE;
+END;
+$$
+LANGUAGE plpgsql;
