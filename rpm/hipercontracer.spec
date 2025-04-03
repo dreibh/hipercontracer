@@ -1,5 +1,5 @@
 Name: hipercontracer
-Version: 2.0.6
+Version: 2.0.7
 Release: 1
 Summary: High-Performance Connectivity Tracer (HiPerConTracer)
 Group: Applications/Internet
@@ -1107,6 +1107,8 @@ This metapackage installs all sub-packages of the HiPerConTracer Framework.
 
 
 %changelog
+* Thu Apr 03 2025 Thomas Dreibholz <dreibh@simula.no> - 2.0.7
+- New upstream release.
 * Mon Mar 31 2025 Thomas Dreibholz <dreibh@simula.no> - 2.0.6
 - New upstream release.
 * Mon Feb 17 2025 Thomas Dreibholz <dreibh@simula.no> - 2.0.5

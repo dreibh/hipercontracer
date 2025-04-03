@@ -199,13 +199,25 @@ void MongoDBClient::endTransaction(const bool commit)
 }
 
 
+// ###### Output operator for bson_t ########################################
+std::ostream& operator<<(std::ostream& os, const bson_t& bson)
+{
+   char* str = bson_as_canonical_extended_json(&bson, nullptr);
+   if(str != nullptr) {
+      os << str;
+      bson_free(str);
+   }
+   return os;
+}
+
+
 // ###### Execute statement #################################################
 // Expected input format of the statement:
 // JSON object 'collection_name': [ item1, item2, ..., itemN ]
 void MongoDBClient::executeUpdate(Statement& statement)
 {
    assert(statement.isValid());
-   // printf("JSON: %s\n", statement.str().c_str());
+   // std::cout << "JSON: " << statement.str() << "\n";
 
    // ====== Prepare BSON ===================================================
    bson_error_t error;
@@ -217,13 +229,6 @@ void MongoDBClient::executeUpdate(Statement& statement)
                                           ": " + error.message;
       throw ResultsDatabaseDataErrorException(errorMessage);
    }
-/*
-   char* json;
-   if((json = bson_as_canonical_extended_json(&bson, nullptr))) {
-      printf ("%s\n", json);
-      bson_free(json);
-   }
-*/
 
    // ====== Find collection ================================================
    bson_iter_t iterator;
@@ -274,15 +279,10 @@ void MongoDBClient::executeUpdate(Statement& statement)
       }
    }
 
-
-   // ====== Print rows =====================================================
 /*
-   char* json;
+   // ====== Print rows =====================================================
    for(unsigned int i = 0;i < statement.getRows(); i++) {
-      if((json = bson_as_canonical_extended_json(documentPtrArray[i], nullptr))) {
-         printf ("%s\n", json);
-         bson_free(json);
-      }
+      std::cout << documentPtrArray[i] << "\n";
    }
 */
 
@@ -338,43 +338,65 @@ void MongoDBClient::freeResults()
 void MongoDBClient::executeQuery(Statement& statement)
 {
    assert(statement.isValid());
+   // std::cout << "JSON: " << statement.str() << "\n";
 
    freeResults();
-
-   // printf("JSON: %s\n", statement.str().c_str());
 
    // ====== Prepare BSON ===================================================
    bson_error_t error;
    bson_t       bson;
    if(!bson_init_from_json(&bson, statement.str().c_str(), -1, &error)) {
-      const std::string errorMessage = std::string("Data error ") +
+      const std::string errorMessage = std::string("Query error ") +
                                           std::to_string(error.domain) + "." +
                                           std::to_string(error.code) +
                                           ": " + error.message;
-      throw ResultsDatabaseDataErrorException(errorMessage);
+      throw ResultsDatabaseException(errorMessage);
    }
 
    // ====== Find collection ================================================
-   bson_iter_t iterator;
+   bson_iter_t queryParametersIterator;
+   bson_iter_t queryFilterIterator;
+   bson_iter_t queryOptionsIterator;
    const char* key;
-   bson_t      query;
+   bson_t      queryFilter;
+   bson_t      queryOptions;
    std::string collectionName;
-   if( (bson_iter_init(&iterator, &bson)) &&
-       (bson_iter_next(&iterator)) &&
-       ( (key = bson_iter_key(&iterator)) != nullptr ) &&
-       (bson_iter_type(&iterator) == BSON_TYPE_DOCUMENT) ) {
-      collectionName = boost::to_lower_copy<std::string>(key);
 
-      uint32_t       len;
-      const uint8_t* data;
-      bson_iter_document(&iterator, &len, &data);
-      const bool success = bson_init_static(&query, data, len);
-      assert(success);
-      assert(!bson_iter_next(&iterator));   // Only one collection is supported!
+   // ====== Read array [ collection_information, options ] =================
+
+   // ------ Read collection_information ( "table": { filter_options } ) ----
+   if( (bson_iter_init(&queryParametersIterator, &bson)) &&
+       (bson_iter_next(&queryParametersIterator)) &&
+       (bson_iter_type(&queryParametersIterator) == BSON_TYPE_DOCUMENT) ) {
+      bson_iter_recurse(&queryParametersIterator, &queryFilterIterator);
+      if( (bson_iter_next(&queryFilterIterator)) &&
+          ( (key = bson_iter_key(&queryFilterIterator)) != nullptr ) &&
+          (bson_iter_type(&queryFilterIterator) == BSON_TYPE_DOCUMENT) ) {
+         collectionName = boost::to_lower_copy<std::string>(key);
+         uint32_t       len;
+         const uint8_t* data;
+         bson_iter_document(&queryFilterIterator, &len, &data);
+         const bool success = bson_init_static(&queryFilter, data, len);
+         assert(success);
+         assert(!bson_iter_next(&queryFilterIterator));   // Only one collection is supported!
+      }
    }
    else {
       bson_destroy(&bson);
-      throw ResultsDatabaseDataErrorException("Data error: Unexpected format (not collection -> [ ... ])");
+      throw ResultsDatabaseException("Query error: Unexpected query format (not [ collection, options ])!");
+   }
+
+   // ------ Read options ( e.g.: "sort": { sort_options } ) ----------------
+   if( (bson_iter_next(&queryParametersIterator)) &&
+       (bson_iter_type(&queryParametersIterator) == BSON_TYPE_DOCUMENT) ) {
+      uint32_t       len;
+      const uint8_t* data;
+      bson_iter_document(&queryParametersIterator, &len, &data);
+      const bool success = bson_init_static(&queryOptions, data, len);
+      assert(success);
+   }
+   else {
+      bson_init_static(&queryOptions, nullptr, 0);
    }
 
    ResultCollection = mongoc_client_get_collection(Connection,
@@ -383,8 +405,21 @@ void MongoDBClient::executeQuery(Statement& statement)
    assert(ResultCollection != nullptr);
 
    // ====== Submit query ===================================================
-   ResultCursor = mongoc_collection_find_with_opts(ResultCollection, &query, NULL, NULL);
+   // std::cout << "Query filter:  " << queryFilter << "\n"
+   //           << "Query options: " << queryOptions << "\n";
+   ResultCursor = mongoc_collection_find_with_opts(ResultCollection, &queryFilter, &queryOptions, NULL);
    assert(ResultCursor != nullptr);
+
+   // unsigned int n = 0;
+   // unsigned long long last = 0;
+   // while(fetchNextTuple()) {
+   //    unsigned long long t = getBigInt("sendTimestamp");
+   //    printf("%u:\t%llu\n", ++n, t);
+   //    if(t < last) {
+   //       abort();
+   //    }
+   //    last = t;
+   // }
 
    bson_destroy(&bson);
 }

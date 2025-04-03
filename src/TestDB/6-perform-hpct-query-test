@@ -82,7 +82,7 @@ if [ -e "${DATABASE_CONFIG}" ] ; then
       fi
 
       echo -e "\x1b[33m$(date +"%F %H:%M:%S"): Querying ${table} data from database ...\x1b[0m"
-      ${VALGRIND_CMD} "${queryTool}" "${DATABASE_CONFIG}" ${table,,} -o queried-${table,,}-"${DBMS}".hpct
+      ${VALGRIND_CMD} "${queryTool}" "${DATABASE_CONFIG}" ${table,,} --deduplication off -o queried-${table,,}-"${DBMS}".hpct
       ${VALGRIND_CMD} "${resultsTool}" queried-${table,,}-"${DBMS}".hpct -o queried-${table,,}-"${DBMS}".csv
 
       echo -e "\x1b[33m$(date +"%F %H:%M:%S"): Checking for differences in ${table}:\x1b[0m"
