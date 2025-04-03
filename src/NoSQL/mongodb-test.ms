@@ -1,3 +1,4 @@
+// ###### Basic database features test ######################################
 db.ping.countDocuments()
 db.ping.findOne()
 db.traceroute.countDocuments()
