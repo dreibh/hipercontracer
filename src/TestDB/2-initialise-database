@@ -98,25 +98,10 @@ if [ "$1" == "mysql" ] || [ "$1" == "mariadb" ] ; then
          --user=root \
          --password="${ROOT_PASSWORD}"
 
-   # ====== Create schema ===================================================
-   echo -e "\x1b[33m$(date +"%F %H:%M:%S"): Creating schema ...\x1b[0m"
-   mysql \
-      --host="${server}.${DOMAIN}" \
-      --port 3306 \
-      --protocol=tcp \
-      --ssl \
-      --ssl-verify-server-cert \
-      --ssl-ca=/etc/ssl/TestLevel1/certs/TestLevel1.crt \
-      --ssl-crl=/etc/ssl/TestGlobal.crl \
-      --user=root \
-      --password="${ROOT_PASSWORD}" \
-      --database="${DATABASE}" \
-      <../SQL/mariadb-schema.sql
-
-   # ====== Create functions and procedures =================================
-   for addition in functions procedures ; do
-      if [ -e ../SQL/mariadb-${addition}.sql ] ; then
-         echo -e "\x1b[33m$(date +"%F %H:%M:%S"): Creating ${addition} ...\x1b[0m"
+   # ====== Create schema, functions and procedures =========================
+   for item in functions procedures schema ; do
+      if [ -e ../SQL/mariadb-${item}.sql ] ; then
+         echo -e "\x1b[33m$(date +"%F %H:%M:%S"): Creating ${item} ...\x1b[0m"
          mysql \
             --host="${server}.${DOMAIN}" \
             --port 3306 \
@@ -128,7 +113,7 @@ if [ "$1" == "mysql" ] || [ "$1" == "mariadb" ] ; then
             --user=root \
             --password="${ROOT_PASSWORD}" \
             --database="${DATABASE}" \
-            <../SQL/mariadb-${addition}.sql
+            <../SQL/mariadb-${item}.sql
       fi
    done
 
@@ -168,16 +153,11 @@ elif [ "$1" == "postgresql" ] ; then
       tee | \
       sudo -u postgres psql
 
-   # ====== Create schema ===================================================
-   echo -e "\x1b[33m$(date +"%F %H:%M:%S"): Creating schema ...\x1b[0m"
-   # shellcheck disable=SC2024
-   sudo -u postgres psql -d "${DATABASE}" <../SQL/postgresql-schema.sql
-
-   # ====== Create functions and procedures =================================
-   for addition in functions procedures ; do
-      if [ -e ../SQL/postgresql-${addition}.sql ] ; then
-         echo -e "\x1b[33m$(date +"%F %H:%M:%S"): Creating ${addition} ...\x1b[0m"
-         sudo -u postgres psql -d "${DATABASE}" <../SQL/postgresql-${addition}.sql
+   # ====== Create schema, functions and procedures =========================
+   for item in functions procedures schema ; do
+      if [ -e ../SQL/postgresql-${item}.sql ] ; then
+         echo -e "\x1b[33m$(date +"%F %H:%M:%S"): Creating ${item} ...\x1b[0m"
+         sudo -u postgres psql -d "${DATABASE}" <../SQL/postgresql-${item}.sql
       fi
    done
 
