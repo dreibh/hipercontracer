@@ -263,3 +263,20 @@ proc:BEGIN
 END;
 $$
 DELIMITER ;
+
+
+# ###### Add events to create partitions ####################################
+DROP EVENT IF EXISTS PingMaintenance;
+DROP EVENT IF EXISTS TracerouteMaintenance;
+DROP EVENT IF EXISTS JitterMaintenance;
+DELIMITER $$
+CREATE EVENT PingMaintenance ON SCHEDULE EVERY 1 DAY STARTS CURRENT_TIMESTAMP + INTERVAL 0 HOUR DO
+   CALL CreateDailyPartitionsForTable("test4hpct", "Ping", "SendTimestamp");
+$$
+CREATE EVENT TracerouteMaintenance ON SCHEDULE EVERY 1 DAY STARTS CURRENT_TIMESTAMP + INTERVAL 3 HOUR DO
+   CALL CreateDailyPartitionsForTable("test4hpct", "Traceroute", "Timestamp");
+$$
+CREATE EVENT JitterMaintenance ON SCHEDULE EVERY 1 DAY STARTS CURRENT_TIMESTAMP + INTERVAL 6 HOUR DO
+   CALL CreateDailyPartitionsForTable("test4hpct", "Jitter", "Timestamp");
+$$
+DELIMITER ;
