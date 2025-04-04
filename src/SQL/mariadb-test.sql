@@ -50,6 +50,7 @@ CALL CreateDailyPartitionsForTable("test4hpct", "Traceroute", "Timestamp");
 CALL CreateDailyPartitionsForTable("test4hpct", "Jitter", "Timestamp");
 
 -- List the created partitions:
+CALL ObtainDailyPartitionsOfSchema("test4hpct");
 CALL ObtainDailyPartitionsOfTable("test4hpct", "Ping");
 CALL ObtainDailyPartitionsOfTable("test4hpct", "Traceroute");
 CALL ObtainDailyPartitionsOfTable("test4hpct", "Jitter");
