@@ -1,3 +1,134 @@
+commit 2f3faadf21ff9b1f3b8daf1b57a4ae8fa019a414
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Apr 3 17:59:39 2025 +0200
+
+    Improved test script.
+
+commit 43d6102b6a276a85b44075dfb277ecb6a61640f0
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Mar 26 11:20:01 2025 +0100
+
+    Improved file to worker mapping when source is :: or 0.0.0.0 -> use process ID/measurement ID.
+
+commit 42e44d0439675864c637341443df5dd15671adf6
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Apr 3 17:37:41 2025 +0200
+
+    Added comment.
+
+commit f484e5006a49ec4720a891d5c0763b261c797104
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Apr 3 17:37:24 2025 +0200
+
+    Added function tests for SQL.
+
+commit f3c8918cf9105dc9ae552bf8cb26704cae10dc64
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Apr 3 17:35:03 2025 +0200
+
+    Updated test scripts.
+
+commit b94413ed1ab4831b4213c6c6316d255bdc2f8190
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Apr 3 17:33:35 2025 +0200
+
+    Bugfix: MariaDB v1 compatibility views need time zone handling.
+
+commit e4ff32c135162155d17e1fc899800372da2d00e0
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Apr 3 11:51:38 2025 +0200
+
+    New release hipercontracer-2.0.7.
+
+commit 5ed5909537c7353804548c237ff42f8da55ed439
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Apr 3 10:05:31 2025 +0200
+
+    Updated CI configuration
+
+commit e5c601a683e99d0cf8d8f64d18eaa26cc80d958d
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Apr 3 10:05:30 2025 +0200
+
+    Updated CI scripts
+
+commit 297d985c49847ca362fc4c6da8f230b3dc371d60
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Apr 3 09:59:16 2025 +0200
+
+    Bugfix: HPCT Results' short options for --separator and --sorted conflicted. Using "-A" for "--sorted" now.
+
+commit a71ea9cc03801821515f879f3912b861af2e1b95
+Merge: aa8704c a27d718
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Apr 3 09:54:00 2025 +0200
+
+    Merge branch 'master' into dreibh/db-deduplication
+
+commit a27d71865c9665e16764344539249db7650c3cf2
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Apr 1 14:47:41 2025 +0200
+
+    Only show PostgreSQL environment variables when the database backend is PostgreSQL.
+
+commit aa8704cb019f38d5f5b9e62faa700b5f39989eec
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Apr 1 13:09:56 2025 +0200
+
+    Manpage formatting fix.
+
+commit 4864db1d6521249a4f22e44e737900d964bad058
+Merge: 68f5458 ad7f1fb
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Apr 1 12:41:01 2025 +0200
+
+    Merge branch 'master' into dreibh/db-deduplication
+
+commit ad7f1fb91d724fe0eced4897d47a01f1a807ab31
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Apr 1 12:32:53 2025 +0200
+
+    Updated manpages.
+
+commit 68f5458c6e09124803339d7e76505bcde993ecb0
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Apr 1 12:30:19 2025 +0200
+
+    Minor clean-ups.
+
+commit a7daeb064e43c1072d99fe6d62bcfc5a38e369df
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Apr 1 12:22:34 2025 +0200
+
+    Added option for testing.
+
+commit 0b84f08caf36e60edac6781ae3a2fd444ba768ed
+Merge: fbbe120 efc0bd0
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Apr 1 12:18:42 2025 +0200
+
+    Merge remote-tracking branch 'origin/master' into dreibh/db-deduplication
+
+commit fbbe120bcdbc678d232eeb5c9a6400791887e38e
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Apr 1 12:14:44 2025 +0200
+
+    MongoDB backend improvements and deduplication function for HPCT Query:
+    - Added proper order-by option to MongoDB query, to ensure the data is in the expected order.
+    - Added deduplication option for debugging and handling broken database schemata.
+
+commit efc0bd0dbd5580a2a03c1be8d8b9141f3916c9cb
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Apr 1 09:17:23 2025 +0200
+
+    A small fix.
+
+commit 30e5bb4c1223ffae77811be8c50e26d13b2632f9
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Mon Mar 31 15:51:07 2025 +0200
+
+    New release hipercontracer-2.0.6.
+
 commit e7869cc78739670d4366cb3ede6e2a0332266c34
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Mon Mar 31 15:50:19 2025 +0200
