@@ -40,3 +40,6 @@ SELECT * FROM Jitter LIMIT 5;
 # ###### Test helper functions ##############################################
 SELECT UTCDateTime2UnixTimestamp('2014-09-29 11:22:33.789123');
 SELECT UnixTimestamp2UTCDateTime(1411989753789123000);
+
+SELECT UTCDateTime2UnixTimestamp('2025-06-15 15:06:40.123567');
+SELECT UnixTimestamp2UTCDateTime(1750000000000000000);
