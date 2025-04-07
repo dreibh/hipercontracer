@@ -98,8 +98,8 @@ if [ "$1" == "mysql" ] || [ "$1" == "mariadb" ] ; then
          --user=root \
          --password="${ROOT_PASSWORD}"
 
-   # ====== Create schema, functions and procedures =========================
-   for item in functions procedures schema ; do
+   # ====== Create schema, views, functions and procedures ==================
+   for item in functions procedures schema views ; do
       if [ -e ../SQL/mariadb-${item}.sql ] ; then
          echo -e "\x1b[33m$(date +"%F %H:%M:%S"): Creating ${item} ...\x1b[0m"
          mysql \
@@ -153,8 +153,8 @@ elif [ "$1" == "postgresql" ] ; then
       tee | \
       sudo -u postgres psql
 
-   # ====== Create schema, functions and procedures =========================
-   for item in functions procedures schema ; do
+   # ====== Create schema, views, functions and procedures ==================
+   for item in functions procedures schema views ; do
       if [ -e ../SQL/postgresql-${item}.sql ] ; then
          echo -e "\x1b[33m$(date +"%F %H:%M:%S"): Creating ${item} ...\x1b[0m"
          sudo -u postgres psql -d "${DATABASE}" <../SQL/postgresql-${item}.sql
