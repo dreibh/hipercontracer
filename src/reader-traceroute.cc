@@ -29,7 +29,6 @@
 
 #include "conversions.h"
 #include "reader-traceroute.h"
-#include "logger.h"
 #include "tools.h"
 
 
@@ -165,7 +164,11 @@ unsigned long long TracerouteReader::parseMeasurementID(const std::string&      
          return measurementID;
       }
    }
-   catch(...) { }
+   catch(std::exception& e) {
+      throw ResultsReaderDataErrorException("Bad measurement ID value " + value +
+                                            " in input file " +
+                                            relativeTo(dataFile, ImporterConfig.getImportFilePath()).string() + ": " + e.what());
+   }
    throw ResultsReaderDataErrorException("Bad measurement ID value " + value +
                                          " in input file " +
                                          relativeTo(dataFile, ImporterConfig.getImportFilePath()).string());
@@ -180,7 +183,11 @@ boost::asio::ip::address TracerouteReader::parseAddress(const std::string&      
       const boost::asio::ip::address address = boost::asio::ip::make_address(value);
       return address;
    }
-   catch(...) { }
+   catch(std::exception& e) {
+      throw ResultsReaderDataErrorException("Bad address " + value +
+                                            " in input file " +
+                                            relativeTo(dataFile, ImporterConfig.getImportFilePath()).string() + ": " + e.what());
+   }
    throw ResultsReaderDataErrorException("Bad address " + value +
                                          " in input file " +
                                          relativeTo(dataFile, ImporterConfig.getImportFilePath()).string());
@@ -197,7 +204,12 @@ ReaderTimePoint TracerouteReader::parseTimeStamp(const std::string&           va
    unsigned long long ts    = 0;
    try {
       ts = std::stoull(value, &index, 16);
-   } catch(...) { }
+   }
+   catch(std::exception& e) {
+      throw ResultsReaderDataErrorException("Bad time stamp format " + value +
+                                            " in input file " +
+                                            relativeTo(dataFile, ImporterConfig.getImportFilePath()).string() + ": " + e.what());
+   }
    if(index == value.size()) {
       const ReaderTimePoint timeStamp = (inNanoseconds == true) ? nanosecondsToTimePoint<ReaderTimePoint>(ts) :
                                                                   nanosecondsToTimePoint<ReaderTimePoint>(1000ULL * ts);
@@ -224,7 +236,12 @@ unsigned int TracerouteReader::parseRoundNumber(const std::string&           val
    unsigned long roundNumber = 0;
    try {
       roundNumber = std::stoul(value, &index, 10);
-   } catch(...) { }
+   }
+   catch(std::exception& e) {
+      throw ResultsReaderDataErrorException("Bad round number " + value +
+                                            " in input file " +
+                                            relativeTo(dataFile, ImporterConfig.getImportFilePath()).string() + ": " + e.what());
+   }
    if(index != value.size()) {
       throw ResultsReaderDataErrorException("Bad round number " + value +
                                             " in input file " +
@@ -242,7 +259,12 @@ uint8_t TracerouteReader::parseTrafficClass(const std::string&           value,
    unsigned long trafficClass = 0;
    try {
       trafficClass = std::stoul(value, &index, 16);
-   } catch(...) { }
+   }
+   catch(std::exception& e) {
+      throw ResultsReaderDataErrorException("Bad traffic class format " + value +
+                                            " in input file " +
+                                            relativeTo(dataFile, ImporterConfig.getImportFilePath()).string() + ": " + e.what());
+   }
    if(index != value.size()) {
       throw ResultsReaderDataErrorException("Bad traffic class format " + value +
                                             " in input file " +
@@ -265,7 +287,12 @@ unsigned int TracerouteReader::parsePacketSize(const std::string&           valu
    unsigned long packetSize = 0;
    try {
       packetSize = std::stoul(value, &index, 10);
-   } catch(...) { }
+   }
+   catch(std::exception& e) {
+      throw ResultsReaderDataErrorException("Bad packet size format " + value +
+                                            " in input file " +
+                                            relativeTo(dataFile, ImporterConfig.getImportFilePath()).string() + ": " + e.what());
+   }
    if(index != value.size()) {
       throw ResultsReaderDataErrorException("Bad packet size format " + value +
                                             " in input file " +
@@ -283,7 +310,12 @@ unsigned int TracerouteReader::parseResponseSize(const std::string&           va
    unsigned long responseSize = 0;
    try {
       responseSize = std::stoul(value, &index, 10);
-   } catch(...) { }
+   }
+   catch(std::exception& e) {
+      throw ResultsReaderDataErrorException("Bad response size format " + value +
+                                            " in input file " +
+                                            relativeTo(dataFile, ImporterConfig.getImportFilePath()).string() + ": " + e.what());
+   }
    if(index != value.size()) {
       throw ResultsReaderDataErrorException("Bad response size format " + value +
                                             " in input file " +
@@ -301,7 +333,12 @@ uint16_t TracerouteReader::parseChecksum(const std::string&           value,
    unsigned long checksum = 0;
    try {
       checksum = std::stoul(value, &index, 16);
-   } catch(...) { }
+   }
+   catch(std::exception& e) {
+      throw ResultsReaderDataErrorException("Bad checksum format " + value +
+                                            " in input file " +
+                                            relativeTo(dataFile, ImporterConfig.getImportFilePath()).string() + ": " + e.what());
+   }
    if(index != value.size()) {
       throw ResultsReaderDataErrorException("Bad checksum format " + value +
                                             " in input file " +
@@ -324,7 +361,12 @@ uint16_t TracerouteReader::parsePort(const std::string&           value,
    unsigned long port  = 0;
    try {
       port = std::stoul(value, &index, 10);
-   } catch(...) { }
+   }
+   catch(std::exception& e) {
+      throw ResultsReaderDataErrorException("Bad port format " + value +
+                                            " in input file " +
+                                            relativeTo(dataFile, ImporterConfig.getImportFilePath()).string() + ": " + e.what());
+   }
    if(index != value.size()) {
       throw ResultsReaderDataErrorException("Bad port format " + value +
                                             " in input file " +
@@ -348,7 +390,12 @@ unsigned int TracerouteReader::parseStatus(const std::string&           value,
    unsigned long status = 0;
    try {
       status = std::stoul(value, &index, base);
-   } catch(...) { }
+   }
+   catch(std::exception& e) {
+      throw ResultsReaderDataErrorException("Bad status format " + value +
+                                            " in input file " +
+                                            relativeTo(dataFile, ImporterConfig.getImportFilePath()).string() + ": " + e.what());
+   }
    if(index != value.size()) {
       throw ResultsReaderDataErrorException("Bad status format " + value +
                                             " in input file " +
@@ -366,7 +413,12 @@ long long TracerouteReader::parsePathHash(const std::string&           value,
    uint64_t pathHash = 0;
    try {
       pathHash = std::stoull(value, &index, 16);
-   } catch(...) { }
+   }
+   catch(std::exception& e) {
+      throw ResultsReaderDataErrorException("Bad path hash " + value +
+                                            " in input file " +
+                                            relativeTo(dataFile, ImporterConfig.getImportFilePath()).string() + ": " + e.what());
+   }
    if(index != value.size()) {
       throw ResultsReaderDataErrorException("Bad path hash " + value +
                                             " in input file " +
@@ -385,7 +437,12 @@ unsigned int TracerouteReader::parseTotalHops(const std::string&           value
    unsigned long totalHops = 0;
    try {
       totalHops = std::stoul(value, &index, 10);
-   } catch(...) { }
+   }
+   catch(std::exception& e) {
+      throw ResultsReaderDataErrorException("Bad total hops value " + value +
+                                            " in input file " +
+                                            relativeTo(dataFile, ImporterConfig.getImportFilePath()).string() + ": " + e.what());
+   }
    if(index != value.size()) {
       throw ResultsReaderDataErrorException("Bad total hops value " + value +
                                             " in input file " +
@@ -408,14 +465,19 @@ unsigned int TracerouteReader::parseHopNumber(const std::string&           value
    unsigned long hopNumber = 0;
    try {
       hopNumber = std::stoul(value, &index, 10);
-   } catch(...) { }
+   }
+   catch(std::exception& e) {
+      throw ResultsReaderDataErrorException("Bad hop number value " + value +
+                                            " in input file " +
+                                            relativeTo(dataFile, ImporterConfig.getImportFilePath()).string() + ": " + e.what());
+   }
    if(index != value.size()) {
-      throw ResultsReaderDataErrorException("Bad hopNumber value " + value +
+      throw ResultsReaderDataErrorException("Bad hop number value " + value +
                                             " in input file " +
                                             relativeTo(dataFile, ImporterConfig.getImportFilePath()).string());
    }
    if( (hopNumber < 1) || (hopNumber > 255) ) {
-      throw ResultsReaderDataErrorException("Invalid hopNumber value " + value +
+      throw ResultsReaderDataErrorException("Invalid hop number value " + value +
                                             " in input file " +
                                             relativeTo(dataFile, ImporterConfig.getImportFilePath()).string());
    }
@@ -431,7 +493,12 @@ unsigned int TracerouteReader::parseTimeSource(const std::string&           valu
    unsigned int timeSource = 0;
    try {
       timeSource = std::stoul(value, &index, 16);
-   } catch(...) { }
+   }
+   catch(std::exception& e) {
+      throw ResultsReaderDataErrorException("Bad time source format " + value +
+                                            " in input file " +
+                                            relativeTo(dataFile, ImporterConfig.getImportFilePath()).string() + ": " + e.what());
+   }
    if(index != value.size()) {
       throw ResultsReaderDataErrorException("Bad time source format " + value +
                                             " in input file " +
@@ -449,7 +516,12 @@ long long TracerouteReader::parseNanoseconds(const std::string&           value,
    unsigned long ns    = 0;
    try {
       ns = std::stoul(value, &index, 10);
-   } catch(...) { }
+   }
+   catch(std::exception& e) {
+      throw ResultsReaderDataErrorException("Bad nanoseconds format " + value +
+                                            " in input file " +
+                                            relativeTo(dataFile, ImporterConfig.getImportFilePath()).string() + ": " + e.what());
+   }
    if(index != value.size()) {
       throw ResultsReaderDataErrorException("Bad nanoseconds format " + value +
                                             " in input file " +

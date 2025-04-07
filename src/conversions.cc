@@ -63,44 +63,49 @@ std::string convertOldPingLine(const std::string& line)
    c++;
 
    // ====== Generate data line in version 2 ================================
-   if(c >= 7) {
-      size_t                   timeStampIndex;
-      const unsigned long long timeStamp = 1000ULL * std::stoull(value[3], &timeStampIndex, 16);
-      if(timeStampIndex != length[3]) {
-         throw ResultsReaderDataErrorException("Bad time stamp");
-      }
-      size_t                   rttIndex;
-      const unsigned long long rtt = 1000ULL * std::stoull(value[6], &rttIndex, 10);
-      if(rttIndex != length[6]) {
-         throw ResultsReaderDataErrorException("Bad RTT value");
-      }
+   try {
+      if(c >= 7) {
+         size_t                   timeStampIndex;
+         const unsigned long long timeStamp = 1000ULL * std::stoull(value[3], &timeStampIndex, 16);
+         if(timeStampIndex != length[3]) {
+            throw ResultsReaderDataErrorException("Bad time stamp");
+         }
+         size_t                   rttIndex;
+         const unsigned long long rtt = 1000ULL * std::stoull(value[6], &rttIndex, 10);
+         if(rttIndex != length[6]) {
+            throw ResultsReaderDataErrorException("Bad RTT value");
+         }
 
-      const std::string newLine =
-         std::string(value[0], length[0]) + "i " +                // "#P<p>"
-         "0 " +                                                   // Measurement ID
-         std::string(value[1], length[1]) + " " +                 // Source address
-         std::string(value[2], length[2]) + " " +                 // Destination address
-         (boost::format("%x ") % timeStamp).str() +               // Timestamp
-         "0 " +                                                   // Sequence number within a burst (0, not supported in version 1)
-         ((c >= 8) ?
-             /* TrafficClass was added in HiPerConTracer 1.4.0! */
-             (boost::format("%x ") % std::string(value[7], length[7])).str() : std::string("0 ")) +
-         ((c >= 9) ?
-             /* PacketSize was added in HiPerConTracer 1.6.0! */
-             std::string(value[8], length[8]) : std::string("0")) + " " +
-         "0 " +                                                   // Response size (0, not supported in version 1)
-         std::string(value[4], length[4]) + " " +                 // Checksum
-         "0 0 " +                                                 // Source and destination port
-         std::string(value[5], length[5]) + " " +                 // Status
-         ((c >= 10) ?
-             /* TimeSource was added in HiPerConTracer 2.0.0! */
-             (boost::format("%x ") % std::string(value[9], length[9])).str() : std::string("00000000 ")) +   // Source of the timing information
-         "-1 -1 -1 " +
-         std::to_string(rtt) + " -1 -1";
+         const std::string newLine =
+            std::string(value[0], length[0]) + "i " +                // "#P<p>"
+            "0 " +                                                   // Measurement ID
+            std::string(value[1], length[1]) + " " +                 // Source address
+            std::string(value[2], length[2]) + " " +                 // Destination address
+            (boost::format("%x ") % timeStamp).str() +               // Timestamp
+            "0 " +                                                   // Sequence number within a burst (0, not supported in version 1)
+            ((c >= 8) ?
+               /* TrafficClass was added in HiPerConTracer 1.4.0! */
+               (boost::format("%x ") % std::string(value[7], length[7])).str() : std::string("0 ")) +
+            ((c >= 9) ?
+               /* PacketSize was added in HiPerConTracer 1.6.0! */
+               std::string(value[8], length[8]) : std::string("0")) + " " +
+            "0 " +                                                   // Response size (0, not supported in version 1)
+            std::string(value[4], length[4]) + " " +                 // Checksum
+            "0 0 " +                                                 // Source and destination port
+            std::string(value[5], length[5]) + " " +                 // Status
+            ((c >= 10) ?
+               /* TimeSource was added in HiPerConTracer 2.0.0! */
+               (boost::format("%x ") % std::string(value[9], length[9])).str() : std::string("00000000 ")) +   // Source of the timing information
+            "-1 -1 -1 " +
+            std::to_string(rtt) + " -1 -1";
 
-      // std::cout << "<= " << line    << "\n"
-      //           << "=> " << newLine << "\n";
-      return newLine;
+         // std::cout << "<= " << line    << "\n"
+         //           << "=> " << newLine << "\n";
+         return newLine;
+      }
+   }
+   catch(std::exception& e) {
+      throw ResultsReaderDataErrorException(e.what());
    }
    throw ResultsReaderDataErrorException("Unexpected number of columns");
 }

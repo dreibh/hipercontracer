@@ -31,9 +31,10 @@
 #include "assure.h"
 #include "tools.h"
 #include "logger.h"
-#include "icmpheader.h"
 
 #include <ifaddrs.h>
+#include <netinet/icmp6.h>
+#include <netinet/ip_icmp.h>
 #include <sys/types.h>
 #include <sys/socket.h>
 #ifdef __linux__
