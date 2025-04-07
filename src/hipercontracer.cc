@@ -40,7 +40,6 @@
 #include "package-version.h"
 #include "ping.h"
 #include "resultswriter.h"
-#include "service.h"
 #include "tools.h"
 #include "traceroute.h"
 
