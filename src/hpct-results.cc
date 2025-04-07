@@ -44,6 +44,7 @@
 #include <boost/asio/ip/address.hpp>
 #include <boost/asio/post.hpp>
 #include <boost/asio/thread_pool.hpp>
+#include <boost/iostreams/device/file_descriptor.hpp>
 #include <boost/iostreams/filtering_stream.hpp>
 #include <boost/iostreams/filtering_streambuf.hpp>
 #include <boost/iostreams/filter/bzip2.hpp>
@@ -467,16 +468,37 @@ static bool dumpResultsFile(std::atomic<unsigned int>*                          
                             const bool                                             checkOnly = false)
 {
    // ====== Open input file ================================================
-   std::string                         extension(fileName.extension());
-   std::ifstream                       inputFile;
-   boost::iostreams::filtering_istream inputStream;
-
-   inputFile.open(fileName, std::ios_base::in | std::ios_base::binary);
-   if(!inputFile.is_open()) {
-      HPCT_LOG(fatal) << "Failed to read input file " << fileName;
+#ifdef POSIX_FADV_SEQUENTIAL
+   // With fadvise() to optimise caching:
+   int handle = open(fileName.c_str(), 0, O_RDONLY);
+   if(handle < 0) {
+      HPCT_LOG(error) << "Failed to read input file " << fileName;
       (*errorCounter)++;
       return false;
    }
+   if(posix_fadvise(handle, 0, 0, POSIX_FADV_SEQUENTIAL|POSIX_FADV_WILLNEED|POSIX_FADV_NOREUSE) < 0) {
+      HPCT_LOG(warning) << "posix_fadvise() failed:" << strerror(errno);
+   }
+
+   boost::iostreams::stream_buffer<boost::iostreams::file_descriptor_source> fstreambuffer(
+      handle,
+      boost::iostreams::file_descriptor_flags::close_handle);
+   std::istream inputFile(&fstreambuffer);
+#else
+#warning Without fadvise()
+      // Without fadvise():
+   std::ifstream                       inputFile;
+   inputFile.open(fileName, std::ios_base::in | std::ios_base::binary);
+   if(!inputFile.is_open()) {
+      HPCT_LOG(error) << "Failed to read input file " << fileName;
+      (*errorCounter)++;
+      return false;
+   }
+#endif
+
+      // ====== Prepare input stream ========================================
+   boost::iostreams::filtering_istream inputStream;
+   std::string                         extension(fileName.extension());
    boost::algorithm::to_lower(extension);
    if(extension == ".xz") {
       const boost::iostreams::lzma_params params(
