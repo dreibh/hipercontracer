@@ -305,7 +305,7 @@ if [ "${DBEAVER_CONFIG_PREFIX}" ] ; then
       elif [ "${dbusername}" == "root" ] ; then
          color="239,41,41"
       fi
-      ansiColor="${color//,/;}"
+      # ansiColor="${color//,/;}"
       # echo >&2 -e "\x1b[38;2;${ansiColor}mdbusername=${dbusername} database=${database} color=${color}\x1b[0m"
 
       # ====== Generate DBeaver configuration ==================================
