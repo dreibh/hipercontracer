@@ -31,7 +31,6 @@
 #include "assure.h"
 #include "logger.h"
 #include "tools.h"
-#include "resultentry.h"
 
 #include <unistd.h>
 

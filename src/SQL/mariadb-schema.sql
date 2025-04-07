@@ -92,12 +92,12 @@ CREATE INDEX PingRelationIndex ON Ping (MeasurementID ASC, DestinationIP ASC, Se
 DROP VIEW IF EXISTS Ping_v1;
 CREATE VIEW Ping_v1 AS
    SELECT
-      CAST(FROM_UNIXTIME(SendTimestamp / 1000000000) AS DATETIME(6)) AS TimeStamp,
-      SourceIP                                  AS FromIP,
-      DestinationIP                             AS ToIP,
-      PacketSize                                AS PktSize,
-      TrafficClass                              AS TC,
-      Status                                    AS Status,
+      UnixTimestamp2UTCDateTime(SendTimestamp) AS TimeStamp,
+      SourceIP                                 AS FromIP,
+      DestinationIP                            AS ToIP,
+      PacketSize                               AS PktSize,
+      TrafficClass                             AS TC,
+      Status                                   AS Status,
       CAST(IF(RTT_HW > 0, RTT_HW / 1000,
               IF(RTT_SW > 0, RTT_SW / 1000,
                  RTT_App / 1000)) AS INTEGER)   AS RTT
@@ -164,20 +164,20 @@ CREATE INDEX TracerouteRelationIndex ON Traceroute (MeasurementID ASC, Destinati
 DROP VIEW IF EXISTS Traceroute_v1;
 CREATE VIEW Traceroute_v1 AS
    SELECT
-      CAST(FROM_UNIXTIME(Timestamp / 1000000000) AS DATETIME(6)) AS TimeStamp,
-      SourceIP                                  AS FromIP,
-      DestinationIP                             AS ToIP,
-      PacketSize                                AS PktSize,
-      TrafficClass                              AS TC,
-      HopNumber                                 AS HopNumber,
-      TotalHops                                 AS TotalHops,
-      Status                                    AS Status,
+      UnixTimestamp2UTCDateTime(Timestamp)    AS TimeStamp,
+      SourceIP                                AS FromIP,
+      DestinationIP                           AS ToIP,
+      PacketSize                              AS PktSize,
+      TrafficClass                            AS TC,
+      HopNumber                               AS HopNumber,
+      TotalHops                               AS TotalHops,
+      Status                                  AS Status,
       CAST(IF(RTT_HW > 0, RTT_HW / 1000,
               IF(RTT_SW > 0, RTT_SW / 1000,
-                 RTT_App / 1000)) AS INTEGER)   AS RTT,
-      HopIP                                     AS HopIP,
-      PathHash                                  AS PathHash,
-      RoundNumber                               AS Round
+                 RTT_App / 1000)) AS INTEGER) AS RTT,
+      HopIP                                   AS HopIP,
+      PathHash                                AS PathHash,
+      RoundNumber                             AS Round
    FROM Traceroute;
 
 

@@ -63,8 +63,8 @@ if [ "$1" == "mysql" ] || [ "$1" == "mariadb" ] ; then
       --ssl-verify-server-cert \
       --ssl-ca=/etc/ssl/TestLevel1/certs/TestLevel1.crt \
       --ssl-crl=/etc/ssl/TestGlobal.crl \
-      --user=researcher \
-      --password="${RESEARCHER_PASSWORD}" \
+      --user=maintainer \
+      --password="${MAINTAINER_PASSWORD}" \
       --database="${DATABASE}" \
       <../SQL/mariadb-test.sql
 
@@ -75,14 +75,14 @@ elif [ "$1" == "postgresql" ] ; then
    server="postgresql"
 
    echo -e "\x1b[34m$(date +"%F %H:%M:%S"): Testing access to PostgreSQL database ...\x1b[0m"
-   PGPASSWORD="${RESEARCHER_PASSWORD}" \
+   PGPASSWORD="${MAINTAINER_PASSWORD}" \
    PGSSLMODE="verify-full" \
    PGSSLROOTCERT="/etc/ssl/TestLevel1/certs/TestLevel1.crt" \
    PGSSLCRL="/etc/ssl/TestGlobal.crl" \
    psql \
       --host="${server}.${DOMAIN}" \
       --port=5432 \
-      --username=researcher \
+      --username=maintainer \
       --dbname="${DATABASE}" \
       <../SQL/postgresql-test.sql
 
@@ -98,8 +98,8 @@ elif [ "$1" == "mongodb" ] ; then
       --tls \
       --tlsDisabledProtocols TLS1_0,TLS1_1,TLS1_2 \
       --tlsCAFile /etc/ssl/TestLevel1/certs/TestLevel1.crt \
-      --username researcher \
-      --password "${RESEARCHER_PASSWORD}" \
+      --username maintainer \
+      --password "${MAINTAINER_PASSWORD}" \
       --quiet \
       <../NoSQL/mongodb-test.ms
    # FIXME! --tlsCRLFile /etc/ssl/TestGlobal.crl

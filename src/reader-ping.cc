@@ -29,7 +29,6 @@
 
 #include "conversions.h"
 #include "reader-ping.h"
-#include "logger.h"
 #include "tools.h"
 
 #include <boost/asio.hpp>

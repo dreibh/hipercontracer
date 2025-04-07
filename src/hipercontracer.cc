@@ -36,7 +36,6 @@
 
 #include "assure.h"
 #include "check.h"
-#include "icmpheader.h"
 #include "jitter.h"
 #include "logger.h"
 #include "package-version.h"
