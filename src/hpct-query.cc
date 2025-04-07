@@ -559,7 +559,7 @@ int main(int argc, char** argv)
                   ts = "CAST((1000000000.0 * EXTRACT(EPOCH FROM TimeStamp)) AS BIGINT)";
                }
                else {
-                  ts = "CAST((1000000000.0 * UNIX_TIMESTAMP(TimeStamp)) AS UNSIGNED)";
+                  ts = "UNIX_TIMESTAMP(CONVERT_TZ(TimeStamp, '+00:00', @@global.time_zone)) * 1000000000";
                }
                statement
                   << "SELECT"
@@ -580,7 +580,7 @@ int main(int argc, char** argv)
                      " -1           AS Delay_AppSend,"
                      " -1           AS Delay_Queuing,"
                      " -1           AS Delay_AppReceive,"
-                     " 1000 * CAST(RTT AS BIGINT) AS RTT_App,"
+                     " 1000 * RTT   AS RTT_App,"
                      " -1           AS RTT_SW,"
                      " -1           AS RTT_HW "
                      "FROM " << ((tableName.size() == 0) ? "Ping" : tableName);
@@ -724,7 +724,7 @@ int main(int argc, char** argv)
                   ts = "CAST((1000000000.0 * EXTRACT(EPOCH FROM TimeStamp)) AS BIGINT)";
                }
                else {
-                  ts = "CAST((1000000000.0 * UNIX_TIMESTAMP(TimeStamp)) AS UNSIGNED)";
+                  ts = "UNIX_TIMESTAMP(CONVERT_TZ(TimeStamp, '+00:00', @@global.time_zone)) * 1000000000";
                }
                statement
                   << "SELECT"
@@ -750,7 +750,7 @@ int main(int argc, char** argv)
                      " -1           AS Delay_AppSend,"
                      " -1           AS Delay_Queuing,"
                      " -1           AS Delay_AppReceive,"
-                     " 1000 * CAST(RTT AS BIGINT) AS RTT_App,"
+                     " 1000 * RTT   AS RTT_App,"
                      " -1           AS RTT_SW,"
                      " -1           AS RTT_HW "
                      "FROM " << ((tableName.size() == 0) ? "Traceroute" : tableName);

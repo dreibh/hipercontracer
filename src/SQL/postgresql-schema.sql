@@ -86,9 +86,10 @@ CREATE VIEW Ping_v1 AS
       TO_TIMESTAMP(SendTimestamp / 1000000000.0)::TIMESTAMP WITHOUT TIME ZONE AS TimeStamp,
       SourceIP                                 AS FromIP,
       DestinationIP                            AS ToIP,
+      Checksum                                 AS Checksum,
       PacketSize                               AS PktSize,
       TrafficClass                             AS TC,
-      Status,
+      Status                                   AS Status,
       CASE
          WHEN RTT_HW > 0 THEN RTT_HW / 1000
          WHEN RTT_SW > 0 THEN RTT_SW / 1000
@@ -156,11 +157,12 @@ CREATE VIEW Traceroute_v1 AS
       TO_TIMESTAMP(Timestamp / 1000000000.0)::TIMESTAMP WITHOUT TIME ZONE AS TimeStamp,
       SourceIP                                 AS FromIP,
       DestinationIP                            AS ToIP,
+      Checksum                                 AS Checksum,
       PacketSize                               AS PktSize,
       TrafficClass                             AS TC,
-      HopNumber,
-      TotalHops,
-      Status,
+      HopNumber                                AS HopNumber,
+      TotalHops                                AS TotalHops,
+      Status                                   AS Status,
       CASE
          WHEN RTT_HW > 0 THEN RTT_HW / 1000
          WHEN RTT_SW > 0 THEN RTT_SW / 1000
