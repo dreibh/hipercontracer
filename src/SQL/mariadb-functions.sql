@@ -35,17 +35,18 @@ DROP FUNCTION IF EXISTS UTCDateTime2UnixTimestamp;
 DELIMITER $$
 CREATE FUNCTION UTCDateTime2UnixTimestamp(utcDateTime DATETIME(6)) RETURNS INT8 DETERMINISTIC
 BEGIN
-   DECLARE year INT4;
-   SET year = YEAR(utcDateTime);
-   RETURN (year - 1970)              * 365 * 24 * 60 * 60000000000   -- year
-      + FLOOR((year - 1969) / 4)     * 24 * 60 * 60000000000         -- 1 day more in a leap year
-      - FLOOR((year - 1901) / 100)   * 24 * 60 * 60000000000         -- with 100-year exception
-      + FLOOR((year - 1601) / 400)   * 24 * 60 * 60000000000         -- with 400-year exception
-      + (DAYOFYEAR(utcDateTime) - 1) * 24 * 60 * 60000000000         -- day
-      + HOUR(utcDateTime)            * 60 * 60000000000              -- hour
-      + MINUTE(utcDateTime)          * 60000000000                   -- minute
-      + SECOND(utcDateTime)          * 1000000000                    -- second
-      + MICROSECOND(utcDateTime)     * 1000;                         -- microsecond
+   RETURN UNIX_TIMESTAMP(CONVERT_TZ(utcDateTime, '+00:00', @@global.time_zone)) * 1000000000;
+   -- DECLARE year INT4;
+   -- SET year = YEAR(utcDateTime);
+   -- RETURN (year - 1970)              * 365 * 24 * 60 * 60000000000   -- year
+   --    + FLOOR((year - 1969) / 4)     * 24 * 60 * 60000000000         -- 1 day more in a leap year
+   --    - FLOOR((year - 1901) / 100)   * 24 * 60 * 60000000000         -- with 100-year exception
+   --    + FLOOR((year - 1601) / 400)   * 24 * 60 * 60000000000         -- with 400-year exception
+   --    + (DAYOFYEAR(utcDateTime) - 1) * 24 * 60 * 60000000000         -- day
+   --    + HOUR(utcDateTime)            * 60 * 60000000000              -- hour
+   --    + MINUTE(utcDateTime)          * 60000000000                   -- minute
+   --    + SECOND(utcDateTime)          * 1000000000                    -- second
+   --    + MICROSECOND(utcDateTime)     * 1000;                         -- microsecond
 END
 $$
 DELIMITER ;
