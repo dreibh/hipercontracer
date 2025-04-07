@@ -36,7 +36,6 @@
 #include <boost/filesystem/operations.hpp>
 
 
-
 // ###### < operator for sorting ############################################
 bool operator<(const UniversalImporter::WorkerMapping& a,
                const UniversalImporter::WorkerMapping& b) {

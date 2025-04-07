@@ -28,7 +28,6 @@
 // Contact: dreibh@simula.no
 
 #include "logger.h"
-#include "tools.h"
 
 // #include "reader-jitter.h"
 #include "reader-ping.h"

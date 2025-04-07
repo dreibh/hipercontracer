@@ -29,7 +29,6 @@
 
 #include "importer-configuration.h"
 #include "logger.h"
-#include "tools.h"
 
 #include <fstream>
 #include <regex>
@@ -181,8 +180,10 @@ bool ImporterConfiguration::setImportFilePath(const std::filesystem::path& impor
          return true;
       }
    }
-   catch(...) { }
-   HPCT_LOG(error) << "Invalid or inaccessible import file path " << ImportFilePath;
+   catch(std::filesystem::filesystem_error& e) {
+      HPCT_LOG(error) << "Invalid or inaccessible import file path "
+                      << ImportFilePath << ": " << e.what();
+   }
    return false;
 }
 
