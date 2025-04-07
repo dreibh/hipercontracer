@@ -83,7 +83,7 @@ CREATE INDEX PingRelationIndex ON Ping (MeasurementID ASC, DestinationIP ASC, Se
 DROP VIEW IF EXISTS Ping_v1;
 CREATE VIEW Ping_v1 AS
    SELECT
-      TO_TIMESTAMP(SendTimestamp / 1000000000.0)::TIMESTAMP WITHOUT TIME ZONE AS TimeStamp,
+      UnixTimestamp2UTCDateTime(SendTimestamp) AS TimeStamp,
       SourceIP                                 AS FromIP,
       DestinationIP                            AS ToIP,
       Checksum                                 AS Checksum,
@@ -154,20 +154,20 @@ CREATE INDEX TracerouteRelationIndex ON Traceroute (MeasurementID ASC, Destinati
 DROP VIEW IF EXISTS Traceroute_v1;
 CREATE VIEW Traceroute_v1 AS
    SELECT
-      TO_TIMESTAMP(Timestamp / 1000000000.0)::TIMESTAMP WITHOUT TIME ZONE AS TimeStamp,
-      SourceIP                                 AS FromIP,
-      DestinationIP                            AS ToIP,
-      Checksum                                 AS Checksum,
-      PacketSize                               AS PktSize,
-      TrafficClass                             AS TC,
-      HopNumber                                AS HopNumber,
-      TotalHops                                AS TotalHops,
-      Status                                   AS Status,
+      UnixTimestamp2UTCDateTime(Timestamp) AS TimeStamp,
+      SourceIP                             AS FromIP,
+      DestinationIP                        AS ToIP,
+      Checksum                             AS Checksum,
+      PacketSize                           AS PktSize,
+      TrafficClass                         AS TC,
+      HopNumber                            AS HopNumber,
+      TotalHops                            AS TotalHops,
+      Status                               AS Status,
       CASE
          WHEN RTT_HW > 0 THEN RTT_HW / 1000
          WHEN RTT_SW > 0 THEN RTT_SW / 1000
          ELSE                 RTT_App / 1000
-      END                                      AS RTT,
+      END                                  AS RTT,
       HopIP,
       PathHash,
       RoundNumber                              AS Round
