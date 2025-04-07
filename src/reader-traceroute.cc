@@ -193,8 +193,11 @@ ReaderTimePoint TracerouteReader::parseTimeStamp(const std::string&           va
                                                  const bool                   inNanoseconds,
                                                  const std::filesystem::path& dataFile)
 {
-   size_t index;
-   const unsigned long long ts = std::stoull(value, &index, 16);
+   size_t             index = 0;
+   unsigned long long ts    = 0;
+   try {
+      ts = std::stoull(value, &index, 16);
+   } catch(...) { }
    if(index == value.size()) {
       const ReaderTimePoint timeStamp = (inNanoseconds == true) ? nanosecondsToTimePoint<ReaderTimePoint>(ts) :
                                                                   nanosecondsToTimePoint<ReaderTimePoint>(1000ULL * ts);
