@@ -30,8 +30,6 @@
 #include "databaseclient-mongodb.h"
 #include "logger.h"
 
-#include <vector>
-
 #include <boost/algorithm/string.hpp>
 
 

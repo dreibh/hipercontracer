@@ -28,7 +28,6 @@
 // Contact: dreibh@simula.no
 
 #include "reader-jitter.h"
-#include "logger.h"
 #include "tools.h"
 
 #include <boost/asio.hpp>

@@ -29,7 +29,6 @@
 
 #include "importer-configuration.h"
 #include "logger.h"
-#include "tools.h"
 
 #include <fstream>
 #include <regex>

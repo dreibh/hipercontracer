@@ -29,7 +29,6 @@
 
 #include "conversions.h"
 #include "reader-traceroute.h"
-#include "logger.h"
 #include "tools.h"
 
 
