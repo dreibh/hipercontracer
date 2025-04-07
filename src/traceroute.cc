@@ -31,15 +31,10 @@
 #include "assure.h"
 #include "tools.h"
 #include "logger.h"
-#include "icmpheader.h"
-#include "ipv4header.h"
-#include "ipv6header.h"
-#include "traceserviceheader.h"
 
 #include <netinet/in.h>
 #include <netinet/ip.h>
 
-#include <exception>
 #include <functional>
 #include <iostream>
 #include <boost/format.hpp>

@@ -141,9 +141,9 @@ bool ICMPModule::prepareSocket()
                     &filter, sizeof(struct icmp6_filter)) < 0) {
          HPCT_LOG(warning) << "Unable to set ICMP6_FILTER!";
       }
-  }
+   }
 #if defined (ICMP_FILTER)
-  else {
+   else {
       icmp_filter filter;
       filter.data = ~( (1 << ICMP_ECHOREPLY)      |
                        (1 << ICMP_TIME_EXCEEDED)  |

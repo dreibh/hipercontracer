@@ -28,15 +28,29 @@
 -- Contact: dreibh@simula.no
 
 
-# ###### Basic database features test #######################################
-SELECT COUNT(*) FROM Ping;
-SELECT * FROM Ping LIMIT 10;
-SELECT COUNT(*) FROM Traceroute;
-SELECT * FROM Traceroute LIMIT 30;
-SELECT COUNT(*) FROM Jitter;
-SELECT * FROM Jitter LIMIT 5;
+-- ###### Convert Unix Timestamp in Nanoseconds to TIMESTAMP in UTC ##########
+-- WARNING: TIMESTAMP only provides microseconds, not nanoseconds!
+--          => Nanoseconds precision is lost!
+DROP FUNCTION IF EXISTS UTCDateTime2UnixTimestamp;
+CREATE FUNCTION UTCDateTime2UnixTimestamp(utcDateTime TIMESTAMP WITHOUT TIME ZONE)
+RETURNS BIGINT
+AS $$
+BEGIN
+   RETURN CAST((1000000000.0 * EXTRACT(EPOCH FROM utcDateTime)) AS BIGINT);
+END;
+$$
+LANGUAGE plpgsql;
 
 
-# ###### Test helper functions ##############################################
-SELECT UTCDateTime2UnixTimestamp('2014-09-29 11:22:33.789123');
-SELECT UnixTimestamp2UTCDateTime(1411989753789123000);
+-- ###### Convert Unix Timestamp in Nanoseconds to TIMESTAMP in UTC #########
+-- WARNING: TIMESTAMP only provides microseconds, not nanoseconds!
+--          => Nanoseconds precision is lost!
+DROP FUNCTION IF EXISTS UnixTimestamp2UTCDateTime;
+CREATE FUNCTION UnixTimestamp2UTCDateTime(unixTimestamp BIGINT)
+RETURNS TIMESTAMP WITHOUT TIME ZONE
+AS $$
+BEGIN
+   RETURN TO_TIMESTAMP(unixTimestamp / 1000000000.0)::TIMESTAMP WITHOUT TIME ZONE;
+END;
+$$
+LANGUAGE plpgsql;

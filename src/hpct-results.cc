@@ -763,7 +763,7 @@ int main(int argc, char** argv)
       ( "separator,s",
            boost::program_options::value<char>(&separator)->default_value(' '),
            "Separator character" )
-      ( "sorted,S",
+      ( "sorted,A",
            boost::program_options::value<bool>(&sorted)->implicit_value(true)->default_value(true),
            "Sorted results" )
       ( "unsorted,U",

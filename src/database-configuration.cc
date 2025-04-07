@@ -29,10 +29,8 @@
 
 #include "database-configuration.h"
 #include "logger.h"
-#include "tools.h"
 
 #include <fstream>
-
 #include <boost/algorithm/string.hpp>
 
 

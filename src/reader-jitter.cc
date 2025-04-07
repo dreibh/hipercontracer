@@ -28,7 +28,6 @@
 // Contact: dreibh@simula.no
 
 #include "reader-jitter.h"
-#include "logger.h"
 #include "tools.h"
 
 #include <boost/asio.hpp>
@@ -89,7 +88,12 @@ unsigned int JitterReader::parseJitterType(const std::string&           value,
    unsigned int jitterType = 0;
    try {
       jitterType = std::stoul(value, &index, 10);
-   } catch(...) { }
+   }
+   catch(std::exception& e) {
+      throw ResultsReaderDataErrorException("Bad jitter type format " + value +
+                                            " in input file " +
+                                            relativeTo(dataFile, ImporterConfig.getImportFilePath()).string() + ": " + e.what());
+   }
    if(index != value.size()) {
       throw ResultsReaderDataErrorException("Bad jitter type format " + value +
                                             " in input file " +
@@ -107,7 +111,12 @@ unsigned int JitterReader::parsePackets(const std::string&           value,
    unsigned int packets = 0;
    try {
       packets = std::stoul(value, &index, 10);
-   } catch(...) { }
+   }
+   catch(std::exception& e) {
+      throw ResultsReaderDataErrorException("Bad packets format " + value +
+                                            " in input file " +
+                                            relativeTo(dataFile, ImporterConfig.getImportFilePath()).string() + ": " + e.what());
+   }
    if(index != value.size()) {
       throw ResultsReaderDataErrorException("Bad packets format " + value +
                                             " in input file " +
