@@ -39,7 +39,6 @@
 
 #include <boost/algorithm/string.hpp>
 #include <boost/filesystem.hpp>
-#include <boost/iostreams/device/file_descriptor.hpp>
 #include <boost/iostreams/filtering_stream.hpp>
 #include <boost/iostreams/filtering_streambuf.hpp>
 #include <boost/iostreams/filter/bzip2.hpp>
@@ -507,30 +506,19 @@ int main(int argc, char** argv)
       exit(1);
    }
 
-   // ====== Prepare output stream ==========================================
+   // ====== Open output file ===============================================
+   std::string                         extension(outputFileName.extension());
+   std::ofstream                       outputFile;
    boost::iostreams::filtering_ostream outputStream;
    const std::filesystem::path         tmpOutputFileName(outputFileName.string() + ".tmp");
    if(outputFileName != std::filesystem::path()) {
-      // ------ Open output file --------------------------------------------
-      int handle = open(tmpOutputFileName.c_str(), 0, O_CREAT);
-      if(handle < 0) {
-         HPCT_LOG(fatal) << "Failed to create output file " << tmpOutputFileName;
+      std::error_code ec;
+      std::filesystem::remove(outputFileName, ec);
+      outputFile.open(tmpOutputFileName, std::ios_base::out | std::ios_base::binary);
+      if(!outputFile.is_open()) {
+         HPCT_LOG(fatal) << "Failed to create output file " << outputFileName;
          exit(1);
       }
-#ifdef POSIX_FADV_SEQUENTIAL
-      if(posix_fadvise(handle, 0, 0, POSIX_FADV_SEQUENTIAL|POSIX_FADV_NOREUSE) < 0) {
-         HPCT_LOG(warning) << "posix_fadvise() failed:" << strerror(errno);
-      }
-#else
-#warning No posix_fadvise() available.
-#endif
-      boost::iostreams::stream_buffer<boost::iostreams::file_descriptor_source> fstreambuffer(
-         handle,
-         boost::iostreams::file_descriptor_flags::close_handle);
-      std::ostream outputFile(&fstreambuffer);
-
-      // ------ Configure the compressor ------------------------------------
-      std::string extension(outputFileName.extension());
       boost::algorithm::to_lower(extension);
       if(extension == ".xz") {
          const boost::iostreams::lzma_params params(
