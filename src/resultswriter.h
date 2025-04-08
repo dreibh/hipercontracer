@@ -30,6 +30,9 @@
 #ifndef RESULTSWRITER_H
 #define RESULTSWRITER_H
 
+#include "compressortype.h"
+#include "outputstream.h"
+
 #include <chrono>
 #include <filesystem>
 #include <fstream>
@@ -40,27 +43,19 @@
 #include <boost/iostreams/filtering_stream.hpp>
 
 
-enum ResultsWriterCompressor {
-   None  = 0,
-   GZip  = 1,
-   BZip2 = 2,
-   XZ    = 3
-};
-
-
 class ResultsWriter
 {
    public:
-   ResultsWriter(const std::string&            programID,
-                 const unsigned int            measurementID,
-                 const std::string&            directory,
-                 const std::string&            uniqueID,
-                 const std::string&            prefix,
-                 const unsigned int            transactionLength,
-                 const unsigned int            timestampDepth,
-                 const uid_t                   uid,
-                 const gid_t                   gid,
-                 const ResultsWriterCompressor compressor);
+   ResultsWriter(const std::string&   programID,
+                 const unsigned int   measurementID,
+                 const std::string&   directory,
+                 const std::string&   uniqueID,
+                 const std::string&   prefix,
+                 const unsigned int   transactionLength,
+                 const unsigned int   timestampDepth,
+                 const uid_t          uid,
+                 const gid_t          gid,
+                 const CompressorType compressor);
    virtual ~ResultsWriter();
 
    void specifyOutputFormat(const std::string& outputFormatName,
@@ -85,7 +80,7 @@ class ResultsWriter
                                            const unsigned int              resultsTimestampDepth,
                                            const uid_t                     uid,
                                            const gid_t                     gid,
-                                           const ResultsWriterCompressor   compressor = ResultsWriterCompressor::XZ);
+                                           const CompressorType            compressor = CompressorType::XZ);
 
    protected:
    const std::string                     ProgramID;
@@ -96,15 +91,14 @@ class ResultsWriter
    const unsigned int                    TimestampDepth;
    const uid_t                           UID;
    const gid_t                           GID;
-   const ResultsWriterCompressor         Compressor;
+   const CompressorType                  Compressor;
 
    std::string                           UniqueID;
    std::filesystem::path                 TempFileName;
    std::filesystem::path                 TargetFileName;
    size_t                                Inserts;
    unsigned long long                    SeqNumber;
-   std::ofstream                         OutputFile;
-   boost::iostreams::filtering_ostream   OutputStream;
+   OutputStream                          Output;
    std::chrono::steady_clock::time_point OutputCreationTime;
    std::string                           OutputFormatName;
    unsigned int                          OutputFormatVersion;
