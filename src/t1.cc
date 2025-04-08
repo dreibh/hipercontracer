@@ -12,6 +12,7 @@
 #include <boost/iostreams/filter/bzip2.hpp>
 #include <boost/iostreams/filter/gzip.hpp>
 #include <boost/iostreams/filter/lzma.hpp>
+#include <boost/iostreams/filter/zstd.hpp>
 #include <boost/program_options.hpp>
 
 
@@ -20,8 +21,34 @@ enum FileCompressorType {
    None          = 1,
    GZip          = 2,
    BZip2         = 3,
-   XZ            = 4
+   XZ            = 4,
+   ZSTD          = 5
 };
+
+
+// ###### Obtain compressor from file name extension ########################
+FileCompressorType obtainCompressorFromExtension(const std::filesystem::path& fileName)
+{
+   FileCompressorType compressor;
+   std::string extension(fileName.extension());
+   boost::algorithm::to_lower(extension);
+   if(extension == ".xz") {
+      compressor = XZ;
+   }
+   else if(extension == ".bz2") {
+      compressor = BZip2;
+   }
+   else if(extension == ".zst") {
+      compressor = ZSTD;
+   }
+   else if(extension == ".gz") {
+      compressor = GZip;
+   }
+   else {
+      compressor = None;
+   }
+   return compressor;
+}
 
 
 class OutputStream : public boost::iostreams::filtering_ostream
@@ -37,20 +64,18 @@ class OutputStream : public boost::iostreams::filtering_ostream
    bool closeStream(const bool sync = true);
 
    private:
-   std::filesystem::path                                                      FileName;
-   std::filesystem::path                                                      TmpFileName;
-   boost::iostreams::stream_buffer<boost::iostreams::file_descriptor_source>* StreamBuffer;
-   std::ostream*                                                              OutputFileStream;
-   FileCompressorType                                                         Compressor;
+   std::filesystem::path                                                    FileName;
+   std::filesystem::path                                                    TmpFileName;
+   boost::iostreams::stream_buffer<boost::iostreams::file_descriptor_sink>* StreamBuffer;
+   FileCompressorType                                                       Compressor;
 };
 
 
 // ###### Constructor #######################################################
 OutputStream::OutputStream()
 {
-   StreamBuffer     = nullptr;
-   OutputFileStream = nullptr;
-   Compressor       = None;
+   StreamBuffer = nullptr;
+   Compressor   = None;
 }
 
 
@@ -87,7 +112,6 @@ bool OutputStream::openStream(const std::filesystem::path& fileName,
       std::filesystem::remove(FileName);
 
       // ------ Open temporary output file ----------------------------------
-      std::cout << "tmp=" << TmpFileName << "\n";
       int handle = ::open(TmpFileName.c_str(),
                           O_CREAT|O_TRUNC|O_WRONLY,
                           S_IRUSR|S_IWUSR|S_IRGRP|S_IROTH);
@@ -97,29 +121,13 @@ bool OutputStream::openStream(const std::filesystem::path& fileName,
 #ifdef POSIX_FADV_SEQUENTIAL
       posix_fadvise(handle, 0, 0, POSIX_FADV_SEQUENTIAL|POSIX_FADV_NOREUSE);
 #endif
-      ::write(handle, "TEst\n",5);
-
-      StreamBuffer = new boost::iostreams::stream_buffer<boost::iostreams::file_descriptor_source>(
+      StreamBuffer = new boost::iostreams::stream_buffer<boost::iostreams::file_descriptor_sink>(
                         handle, boost::iostreams::file_descriptor_flags::close_handle);
       assert(StreamBuffer != nullptr);
-      OutputFileStream = new std::ostream(StreamBuffer);
 
       // ------ Configure the compressor ------------------------------------
       if(Compressor == FromExtension) {
-         std::string extension(FileName.extension());
-         boost::algorithm::to_lower(extension);
-         if(extension == ".xz") {
-            Compressor = XZ;
-         }
-         else if(extension == ".bz2") {
-            Compressor = BZip2;
-         }
-         else if(extension == ".gz") {
-            Compressor = GZip;
-         }
-         else {
-            Compressor = None;
-         }
+         Compressor = obtainCompressorFromExtension(FileName);
       }
       switch(Compressor) {
          case XZ: {
@@ -132,13 +140,16 @@ bool OutputStream::openStream(const std::filesystem::path& fileName,
          case BZip2:
             push(boost::iostreams::bzip2_compressor());
           break;
+         case ZSTD:
+            push(boost::iostreams::zstd_compressor());
+          break;
          case GZip:
             push(boost::iostreams::gzip_compressor());
           break;
          default:
           break;
       }
-      push(*OutputFileStream);
+      push(*StreamBuffer);
 
       return true;
    }
@@ -153,35 +164,21 @@ bool OutputStream::closeStream(const bool sync)
    bool success = false;
    if(sync) {
       if(FileName != std::filesystem::path()) {
-   puts("CLOSE!");
          // ------ Synchronise, then rename temporary output file --------------
-         puts("a-1");
          boost::iostreams::filtering_ostream::strict_sync();
          success = good();
-         puts("a-2");
          if(success) {
-            puts("a-4");
-            // std::filesystem::rename(TmpFileName, FileName);
+            std::filesystem::rename(TmpFileName, FileName);
             success = true;
          }
          else {
-            std::error_code ec;
-            // std::filesystem::remove(TmpFileName, ec);
+            std::filesystem::remove(TmpFileName);
          }
       }
    }
-   // if(!empty()) {
-   //    pop();
-   // }
-   // pop();
-   // pop();
    reset();
 
    // ====== Clean up =======================================================
-   if(OutputFileStream) {
-      delete OutputFileStream;
-      OutputFileStream = nullptr;
-   }
    if(StreamBuffer) {
       delete StreamBuffer;
       StreamBuffer = nullptr;
@@ -222,8 +219,9 @@ int main(int argc, char** argv)
    of.closeStream();
 
    test("test.txt");
-   // test("test.txt.gz");
-   // test("test.txt.bz2");
-   // test("test.txt.xz");
+   test("test.txt.gz");
+   test("test.txt.zst");
+   test("test.txt.bz2");
+   test("test.txt.xz");
    return 0;
 }
