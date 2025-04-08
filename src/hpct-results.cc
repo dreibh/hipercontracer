@@ -468,35 +468,25 @@ static bool dumpResultsFile(std::atomic<unsigned int>*                          
                             const bool                                             checkOnly = false)
 {
    // ====== Open input file ================================================
-#ifdef POSIX_FADV_SEQUENTIAL
-   // With fadvise() to optimise caching:
    int handle = open(fileName.c_str(), 0, O_RDONLY);
    if(handle < 0) {
       HPCT_LOG(error) << "Failed to read input file " << fileName;
       (*errorCounter)++;
       return false;
    }
+#ifdef POSIX_FADV_SEQUENTIAL
    if(posix_fadvise(handle, 0, 0, POSIX_FADV_SEQUENTIAL|POSIX_FADV_WILLNEED|POSIX_FADV_NOREUSE) < 0) {
       HPCT_LOG(warning) << "posix_fadvise() failed:" << strerror(errno);
    }
-
+#else
+#warning No posix_fadvise() available.
+#endif
    boost::iostreams::stream_buffer<boost::iostreams::file_descriptor_source> fstreambuffer(
       handle,
       boost::iostreams::file_descriptor_flags::close_handle);
    std::istream inputFile(&fstreambuffer);
-#else
-#warning Without fadvise()
-      // Without fadvise():
-   std::ifstream                       inputFile;
-   inputFile.open(fileName, std::ios_base::in | std::ios_base::binary);
-   if(!inputFile.is_open()) {
-      HPCT_LOG(error) << "Failed to read input file " << fileName;
-      (*errorCounter)++;
-      return false;
-   }
-#endif
 
-      // ====== Prepare input stream ========================================
+   // ====== Prepare input stream ===========================================
    boost::iostreams::filtering_istream inputStream;
    std::string                         extension(fileName.extension());
    boost::algorithm::to_lower(extension);
@@ -515,8 +505,8 @@ static bool dumpResultsFile(std::atomic<unsigned int>*                          
    inputStream.push(inputFile);
 
    // ====== Process lines of the input file ================================
-   unsigned int       version    = 0;
    std::string        line;
+   unsigned int       version    = 0;
    unsigned long long lineNumber = 0;
    OutputEntry*       newEntry   = nullptr;
    unsigned long long oldTimeStamp;   // Just used for version 1 conversion!
@@ -876,17 +866,30 @@ int main(int argc, char** argv)
    initialiseLogger(logLevel, logColor,
                     (logFile != std::filesystem::path()) ? logFile.string().c_str() : nullptr);
 
-   // ====== Open output file ===============================================
-   std::string                         extension(outputFileName.extension());
-   std::ofstream                       outputFile;
+   // ====== Prepare output stream ==========================================
    boost::iostreams::filtering_ostream outputStream;
-   const std::filesystem::path         tmpOutputFileName = outputFileName.string() + ".tmp";
+   const std::filesystem::path         tmpOutputFileName(outputFileName.string() + ".tmp");
    if(outputFileName != std::filesystem::path()) {
-      outputFile.open(tmpOutputFileName, std::ios_base::out | std::ios_base::binary);
-      if(!outputFile.is_open()) {
+      // ------ Open output file --------------------------------------------
+      int handle = open(tmpOutputFileName.c_str(), 0, O_CREAT);
+      if(handle < 0) {
          HPCT_LOG(fatal) << "Failed to create output file " << tmpOutputFileName;
          exit(1);
       }
+#ifdef POSIX_FADV_SEQUENTIAL
+      if(posix_fadvise(handle, 0, 0, POSIX_FADV_SEQUENTIAL|POSIX_FADV_NOREUSE) < 0) {
+         HPCT_LOG(warning) << "posix_fadvise() failed:" << strerror(errno);
+      }
+#else
+#warning No posix_fadvise() available.
+#endif
+      boost::iostreams::stream_buffer<boost::iostreams::file_descriptor_source> fstreambuffer(
+         handle,
+         boost::iostreams::file_descriptor_flags::close_handle);
+      std::ostream outputFile(&fstreambuffer);
+
+      // ------ Configure the compressor ------------------------------------
+      std::string extension(outputFileName.extension());
       boost::algorithm::to_lower(extension);
       if(extension == ".xz") {
          const boost::iostreams::lzma_params params(
