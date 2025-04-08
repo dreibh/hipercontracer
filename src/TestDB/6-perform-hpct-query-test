@@ -75,7 +75,7 @@ if [ -e "${DATABASE_CONFIG}" ] ; then
 
       echo -e "\x1b[33m$(date +"%F %H:%M:%S"): Obtaining ${table} data from good/ directory ...\x1b[0m"
       find good/ -name "${table}-*.hpct.*" -or -name "${table}-*.results.*" | \
-         "${resultsTool}" --input-file-names-from-stdin -o imported-${table,,}.csv
+         ${VALGRIND_CMD} "${resultsTool}" --input-file-names-from-stdin -o imported-${table,,}.csv
       if [ ! -e imported-${table,,}.csv ] ; then
          echo >&2 "ERROR: There is no ${table} data from good/ directory!"
          exit 1
