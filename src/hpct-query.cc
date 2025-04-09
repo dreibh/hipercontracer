@@ -500,10 +500,10 @@ int main(int argc, char** argv)
       exit(1);
    }
 
-   // ====== Open output file ===============================================
+   // ====== Open output stream =============================================
    OutputStream outputStream;
    try {
-      if(outputFileName != boost::filesystem::path()) {
+      if(!outputFileName.empty()) {
          outputStream.openStream(outputFileName);
       }
       else {
@@ -1043,7 +1043,7 @@ int main(int argc, char** argv)
    // ====== Close output file ==============================================
    try {
       outputStream.closeStream();
-      if(outputFileName != boost::filesystem::path()) {
+      if(!outputFileName.empty()) {
          // Set timestamp to the latest timestamp in the data. Note: the timestamp is UTC!
          const std::time_t t = (std::time_t)(lastTimeStamp / 1000000000);
          boost::filesystem::last_write_time(boost::filesystem::path(outputFileName), t);

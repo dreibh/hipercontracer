@@ -29,6 +29,8 @@
 
 #include "logger.h"
 #include "conversions.h"
+#include "inputstream.h"
+#include "outputstream.h"
 
 #include <atomic>
 #include <chrono>
@@ -44,12 +46,7 @@
 #include <boost/asio/ip/address.hpp>
 #include <boost/asio/post.hpp>
 #include <boost/asio/thread_pool.hpp>
-#include <boost/iostreams/device/file_descriptor.hpp>
-#include <boost/iostreams/filtering_stream.hpp>
-#include <boost/iostreams/filtering_streambuf.hpp>
-#include <boost/iostreams/filter/bzip2.hpp>
-#include <boost/iostreams/filter/gzip.hpp>
-#include <boost/iostreams/filter/lzma.hpp>
+#include <boost/filesystem.hpp>
 #include <boost/program_options.hpp>
 #include <boost/tokenizer.hpp>
 
@@ -457,6 +454,7 @@ static bool checkFormat(boost::iostreams::filtering_ostream* outputStream,
 
 // ###### Dump results file #################################################
 static bool dumpResultsFile(std::atomic<unsigned int>*                             errorCounter,
+                            unsigned long long*                                    lastTimeStamp,
                             std::set<OutputEntry*, pointer_lessthan<OutputEntry>>* outputSet,
                             boost::iostreams::filtering_ostream*                   outputStream,
                             std::mutex*                                            outputMutex,
@@ -467,52 +465,21 @@ static bool dumpResultsFile(std::atomic<unsigned int>*                          
                             bool*                                                  foundFormat,
                             const bool                                             checkOnly = false)
 {
-   // ====== Open input file ================================================
-#ifdef POSIX_FADV_SEQUENTIAL
-   // With fadvise() to optimise caching:
-   int handle = open(fileName.c_str(), 0, O_RDONLY);
-   if(handle < 0) {
-      HPCT_LOG(error) << "Failed to read input file " << fileName;
+   // ====== Open input stream ==============================================
+   InputStream inputStream;
+   try {
+      if(fileName != std::filesystem::path()) {
+         inputStream.openStream(fileName);
+      }
+      else {
+         inputStream.openStream(std::cin);
+      }
+   }
+   catch(std::exception& e) {
+      HPCT_LOG(fatal) << "Failed to open input file " << fileName << ": " << e.what();
       (*errorCounter)++;
       return false;
    }
-   if(posix_fadvise(handle, 0, 0, POSIX_FADV_SEQUENTIAL|POSIX_FADV_WILLNEED|POSIX_FADV_NOREUSE) < 0) {
-      HPCT_LOG(warning) << "posix_fadvise() failed:" << strerror(errno);
-   }
-
-   boost::iostreams::stream_buffer<boost::iostreams::file_descriptor_source> fstreambuffer(
-      handle,
-      boost::iostreams::file_descriptor_flags::close_handle);
-   std::istream inputFile(&fstreambuffer);
-#else
-#warning Without fadvise()
-      // Without fadvise():
-   std::ifstream                       inputFile;
-   inputFile.open(fileName, std::ios_base::in | std::ios_base::binary);
-   if(!inputFile.is_open()) {
-      HPCT_LOG(error) << "Failed to read input file " << fileName;
-      (*errorCounter)++;
-      return false;
-   }
-#endif
-
-      // ====== Prepare input stream ========================================
-   boost::iostreams::filtering_istream inputStream;
-   std::string                         extension(fileName.extension());
-   boost::algorithm::to_lower(extension);
-   if(extension == ".xz") {
-      const boost::iostreams::lzma_params params(
-         boost::iostreams::lzma::default_compression,
-         std::thread::hardware_concurrency());
-      inputStream.push(boost::iostreams::lzma_decompressor(params));
-   }
-   else if(extension == ".bz2") {
-      inputStream.push(boost::iostreams::bzip2_decompressor());
-   }
-   else if(extension == ".gz") {
-      inputStream.push(boost::iostreams::gzip_decompressor());
-   }
-   inputStream.push(inputFile);
 
    // ====== Process lines of the input file ================================
    unsigned int       version    = 0;
@@ -627,6 +594,7 @@ static bool dumpResultsFile(std::atomic<unsigned int>*                          
                }
 
                const std::lock_guard<std::mutex> lock(*outputMutex);
+               *lastTimeStamp = std::max(*lastTimeStamp, newEntry->TimeStamp);
                if(outputSet) {
                   auto success = outputSet->insert(newEntry);
                   if(!success.second) {
@@ -693,6 +661,7 @@ static bool dumpResultsFile(std::atomic<unsigned int>*                          
             }
 
             const std::lock_guard<std::mutex> lock(*outputMutex);
+            *lastTimeStamp = std::max(*lastTimeStamp, newSubEntry->TimeStamp);
             if(outputSet) {
                auto success = outputSet->insert(newSubEntry);
                if(!success.second) {
@@ -876,53 +845,39 @@ int main(int argc, char** argv)
    initialiseLogger(logLevel, logColor,
                     (logFile != std::filesystem::path()) ? logFile.string().c_str() : nullptr);
 
-   // ====== Open output file ===============================================
-   std::string                         extension(outputFileName.extension());
-   std::ofstream                       outputFile;
-   boost::iostreams::filtering_ostream outputStream;
-   const std::filesystem::path         tmpOutputFileName = outputFileName.string() + ".tmp";
-   if(outputFileName != std::filesystem::path()) {
-      outputFile.open(tmpOutputFileName, std::ios_base::out | std::ios_base::binary);
-      if(!outputFile.is_open()) {
-         HPCT_LOG(fatal) << "Failed to create output file " << tmpOutputFileName;
-         exit(1);
+   // ====== Open output stream =============================================
+   OutputStream outputStream;
+   try {
+      if(!outputFileName.empty()) {
+         outputStream.openStream(outputFileName);
       }
-      boost::algorithm::to_lower(extension);
-      if(extension == ".xz") {
-         const boost::iostreams::lzma_params params(
-            boost::iostreams::lzma::default_compression,
-            std::thread::hardware_concurrency());
-         outputStream.push(boost::iostreams::lzma_compressor(params));
+      else {
+         outputStream.openStream(std::cout);
       }
-      else if(extension == ".bz2") {
-         outputStream.push(boost::iostreams::bzip2_compressor());
-      }
-      else if(extension == ".gz") {
-         outputStream.push(boost::iostreams::gzip_compressor());
-      }
-      outputStream.push(outputFile);
    }
-   else {
-      outputStream.push(std::cout);
+   catch(std::exception& e) {
+      HPCT_LOG(fatal) << "Failed to create output file " << outputFileName << ": " << e.what();
+      exit(1);
    }
 
    // ====== Read the input files ===========================================
    const std::set<std::filesystem::path>                 inputFileNameSet(inputFileNameList.begin(), inputFileNameList.end());
    std::set<OutputEntry*, pointer_lessthan<OutputEntry>> outputSet;
    std::mutex                                            outputMutex;
+   unsigned long long                                    lastTimeStamp = 0;
+   unsigned int                                          columns       = 0;
    InputFormat                                           format { InputType::IT_Unknown };
-   unsigned int                                          columns = 0;
 
    // ------ Identify format of the first file ------------------------------
-   std::atomic<unsigned int> errorCounter = 0;
+   std::atomic<unsigned int>   errorCounter  = 0;
    const std::filesystem::path firstInputFileName = *(inputFileNameSet.begin());
    HPCT_LOG(info) << "Identifying format from " << firstInputFileName << " ...";
    bool foundFormat = false;
-   if(!dumpResultsFile(&errorCounter,
+   if(!dumpResultsFile(&errorCounter, &lastTimeStamp,
                        (sorted == true) ? &outputSet : nullptr, &outputStream, &outputMutex,
                        firstInputFileName, format, columns, separator, &foundFormat,
                        inputResultsFromStdin ? false : true)) {
-      return 1;
+      exit(1);
    }
    HPCT_LOG(info) << "Format: Type=" << (char)format.Type;
 
@@ -932,11 +887,12 @@ int main(int argc, char** argv)
                   << maxThreads << " threads ...";
    const std::chrono::system_clock::time_point t1 = std::chrono::system_clock::now();
    for(const std::filesystem::path& inputFileName : inputFileNameSet) {
-      boost::asio::post(threadPool, std::bind(dumpResultsFile,
-                        &errorCounter,
-                        (sorted == true) ? &outputSet : nullptr, &outputStream, &outputMutex,
-                        inputFileName, format, columns, separator, &foundFormat,
-                        false));
+      boost::asio::post(threadPool,
+                        std::bind(dumpResultsFile,
+                                  &errorCounter, &lastTimeStamp,
+                                  (sorted == true) ? &outputSet : nullptr, &outputStream, &outputMutex,
+                                  inputFileName, format, columns, separator, &foundFormat,
+                                  false));
    }
    threadPool.join();
    if(errorCounter > 0) {
@@ -968,15 +924,19 @@ int main(int argc, char** argv)
                      << std::chrono::duration_cast<std::chrono::milliseconds>(t4 - t3).count() << " ms";
    }
 
-   if(outputFileName != std::filesystem::path()) {
-      try {
-         std::filesystem::rename(tmpOutputFileName, outputFileName);
+   // ====== Close output file ==============================================
+   try {
+      outputStream.closeStream();
+      if(!outputFileName.empty()) {
+         // Set timestamp to the latest timestamp in the data. Note: the timestamp is UTC!
+         const std::time_t t = (std::time_t)(lastTimeStamp / 1000000000);
+         boost::filesystem::last_write_time(boost::filesystem::path(outputFileName), t);
       }
-      catch(const std::exception& e) {
-         HPCT_LOG(fatal) << "Unable to rename " << tmpOutputFileName << " to " << outputFileName
-                         << ": " << e.what();
-         exit(1);
-      }
+   }
+   catch(const std::exception& e) {
+      HPCT_LOG(fatal) << "Failed to close output file "
+                      << outputFileName << ": " << e.what();
+      exit(1);
    }
 
    return 0;

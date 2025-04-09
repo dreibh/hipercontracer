@@ -27,8 +27,8 @@
 //
 // Contact: dreibh@simula.no
 
-#ifndef INPUTSTREAM_H
-#define INPUTSTREAM_H
+#ifndef OUTPUTSTREAM_H
+#define OUTPUTSTREAM_H
 
 #include "compressortype.h"
 

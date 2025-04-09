@@ -109,7 +109,8 @@ bool ResultsWriter::changeFile(const bool createNewFile)
       Output.closeStream( (Inserts > 0) );
    }
    catch(std::exception const& e) {
-      HPCT_LOG(error) << "Closing output file failed: " << e.what();
+      HPCT_LOG(error) << "Failed to close output file "
+                      << TargetFileName << ": " << e.what();
    }
 
    // ====== Create new file ================================================
@@ -142,7 +143,8 @@ bool ResultsWriter::changeFile(const bool createNewFile)
          return Output.good();
       }
       catch(std::exception const& e) {
-         HPCT_LOG(error) << "Creating output file failed:" << e.what();
+         HPCT_LOG(error) << "Failed to create output file "
+                         << TargetFileName << ": " << e.what();
          return false;
       }
    }
