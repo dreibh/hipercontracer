@@ -133,29 +133,35 @@ bool OutputStream::openStream(const std::filesystem::path& fileName,
 // ###### Close output stream ###############################################
 bool OutputStream::closeStream(const bool sync)
 {
-   // ====== Synchronise and close file =====================================
    bool success = false;
-   if(FileName != std::filesystem::path()) {
-      if(sync) {
-         // ------ Synchronise, then rename temporary output file --------------
-         strict_sync();
-         success = good();
-         if(success) {
-            std::filesystem::rename(TmpFileName, FileName);
-            success = true;
-         }
-      }
-      if(!success) {
-         std::filesystem::remove(TmpFileName);
-      }
-   }
-   reset();
 
-   // ====== Clean up =======================================================
+   // ====== Synchronise ====================================================
+   if(sync) {
+      flush();
+      strict_sync();
+      success = good();
+   }
+
+   // ====== Close file =====================================================
+   reset();
    if(Sink) {
+      Sink->close();
       delete Sink;
       Sink = nullptr;
    }
+
+   // ====== Rename temporary output file ===================================
+   if(!FileName.empty()) {
+      if(success) {
+         std::filesystem::rename(TmpFileName, FileName);
+         success = true;
+      }
+      else {
+         std::filesystem::remove(TmpFileName);
+      }
+   }
+
+   // ====== Clean up =======================================================
    FileName    = std::filesystem::path();
    TmpFileName = std::filesystem::path();
 
