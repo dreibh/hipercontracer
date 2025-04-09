@@ -29,15 +29,9 @@
 
 #include "worker.h"
 #include "database-configuration.h"
+#include "inputstream.h"
 #include "logger.h"
 #include "tools.h"
-
-#include <boost/algorithm/string.hpp>
-#include <boost/iostreams/device/file_descriptor.hpp>
-#include <boost/iostreams/filter/bzip2.hpp>
-#include <boost/iostreams/filter/gzip.hpp>
-#include <boost/iostreams/filter/lzma.hpp>
-#include <boost/iostreams/stream.hpp>
 
 
 // ###### Constructor #######################################################
@@ -113,49 +107,16 @@ void Worker::processFile(DatabaseClientBase&          databaseClient,
    }
 
    else {
-      // ====== Open input file =============================================
-#ifdef POSIX_FADV_SEQUENTIAL
-      // With fadvise() to optimise caching:
-      int handle = open(dataFile.string().c_str(), 0, O_RDONLY);
-      if(handle < 0) {
-         HPCT_LOG(warning) << getIdentification() << ": Unable to open input file "
-                           << relativeTo(dataFile, ImporterConfig.getImportFilePath());
+      // ====== Open input stream ===========================================
+      InputStream inputStream;
+      try {
+         inputStream.openStream(dataFile);
+      }
+      catch(std::exception& e) {
+         HPCT_LOG(fatal) << "Failed to open input file "
+                         << relativeTo(dataFile, ImporterConfig.getImportFilePath()) << ": " << e.what();
          return;
       }
-      if(posix_fadvise(handle, 0, 0, POSIX_FADV_SEQUENTIAL|POSIX_FADV_WILLNEED|POSIX_FADV_NOREUSE) < 0) {
-         HPCT_LOG(warning) << "posix_fadvise() failed:" << strerror(errno);
-      }
-
-      boost::iostreams::stream_buffer<boost::iostreams::file_descriptor_source> fstreambuffer(
-         handle,
-         boost::iostreams::file_descriptor_flags::close_handle);
-      std::istream inputFile(&fstreambuffer);
-#else
-#warning Without fadvise()
-      // Without fadvise():
-      std::ifstream inputFile;
-      inputFile.open(dataFile, std::ios_base::in | std::ios_base::binary);
-      if(!inputFile.is_open()) {
-         HPCT_LOG(warning) << getIdentification() << ": Unable to open input file "
-                           << relativeTo(dataFile, ImporterConfig.getImportFilePath());
-         return;
-      }
-#endif
-
-      // ====== Prepare input stream ========================================
-      boost::iostreams::filtering_istream inputStream;
-      std::string                         extension(dataFile.extension());
-      boost::algorithm::to_lower(extension);
-      if(extension == ".xz") {
-         inputStream.push(boost::iostreams::lzma_decompressor());
-      }
-      else if(extension == ".bz2") {
-         inputStream.push(boost::iostreams::bzip2_decompressor());
-      }
-      else if(extension == ".gz") {
-         inputStream.push(boost::iostreams::gzip_decompressor());
-      }
-      inputStream.push(inputFile);
 
       // ====== Read contents ============================================
       Reader.parseContents(databaseClient, rows, dataFile, inputStream);

@@ -116,7 +116,6 @@ bool InputStream::openStream(const std::filesystem::path& fileName,
           break;
       }
       push(*Source);
-      // push(*StreamBuffer);
 
       return true;
    }
