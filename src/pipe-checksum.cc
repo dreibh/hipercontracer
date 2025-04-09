@@ -100,7 +100,7 @@ int main(int argc, char** argv)
    if(outputFile != nullptr) {
 #ifdef POSIX_FADV_SEQUENTIAL
       if(posix_fadvise(fileno(outputFile), 0, 0, POSIX_FADV_SEQUENTIAL|POSIX_FADV_NOREUSE) < 0) {
-         std::cerr << "WARNING: posix_fadvise() failed:" << strerror(errno);
+         std::cerr << "WARNING: posix_fadvise() failed: " << strerror(errno);
       }
 #endif
 
