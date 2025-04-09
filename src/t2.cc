@@ -5,6 +5,8 @@
 
 void test(const char* name)
 {
+   const std::chrono::system_clock::time_point t1 = std::chrono::system_clock::now();
+
    unsigned int n = 0;
    InputStream is;
    try {
@@ -18,7 +20,9 @@ void test(const char* name)
    catch(std::exception& e) {
       std::cerr << "ERROR: " << e.what() << "\n";
    }
-   std::cerr << "OK " << name << "\t" << n << "\n";
+
+   const std::chrono::system_clock::time_point t2 = std::chrono::system_clock::now();
+   std::cerr << "OK " << name << "\t" << n << "\t" << std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1).count() << " ms\n";
 }
 
 

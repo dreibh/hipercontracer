@@ -45,6 +45,7 @@
 // ###### Constructor #######################################################
 OutputStream::OutputStream()
 {
+   Sink         = nullptr;
    StreamBuffer = nullptr;
    Compressor   = None;
 }
@@ -92,6 +93,8 @@ bool OutputStream::openStream(const std::filesystem::path& fileName,
 #ifdef POSIX_FADV_SEQUENTIAL
       posix_fadvise(handle, 0, 0, POSIX_FADV_SEQUENTIAL|POSIX_FADV_NOREUSE);
 #endif
+      // Sink = new boost::iostreams::file_descriptor_sink(handle, boost::iostreams::file_descriptor_flags::close_handle);
+      // assert(Sink != nullptr);
       StreamBuffer = new boost::iostreams::stream_buffer<boost::iostreams::file_descriptor_sink>(
                         handle, boost::iostreams::file_descriptor_flags::close_handle);
       assert(StreamBuffer != nullptr);
@@ -123,6 +126,7 @@ bool OutputStream::openStream(const std::filesystem::path& fileName,
          default:
           break;
       }
+      // push(*Sink);
       push(*StreamBuffer);
 
       return true;
@@ -156,6 +160,10 @@ bool OutputStream::closeStream(const bool sync)
    if(StreamBuffer) {
       delete StreamBuffer;
       StreamBuffer = nullptr;
+   }
+   if(Sink) {
+      delete Sink;
+      Sink = nullptr;
    }
    FileName    = std::filesystem::path();
    TmpFileName = std::filesystem::path();

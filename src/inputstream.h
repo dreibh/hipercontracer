@@ -50,6 +50,8 @@ class InputStream : public boost::iostreams::filtering_istream
 
    private:
    std::filesystem::path                                                      FileName;
+
+   boost::iostreams::file_descriptor_source* Source;
    boost::iostreams::stream_buffer<boost::iostreams::file_descriptor_source>* StreamBuffer;
    CompressorType                                                             Compressor;
 };

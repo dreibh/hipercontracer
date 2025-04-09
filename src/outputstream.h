@@ -51,7 +51,10 @@ class OutputStream : public boost::iostreams::filtering_ostream
    private:
    std::filesystem::path                                                    FileName;
    std::filesystem::path                                                    TmpFileName;
+
+   boost::iostreams::file_descriptor_sink* Sink;
    boost::iostreams::stream_buffer<boost::iostreams::file_descriptor_sink>* StreamBuffer;
+
    CompressorType                                                           Compressor;
 };
 

@@ -45,6 +45,7 @@
 // ###### Constructor #######################################################
 InputStream::InputStream()
 {
+   Source       = nullptr;
    StreamBuffer = nullptr;
    Compressor   = None;
 }
@@ -85,9 +86,11 @@ bool InputStream::openStream(const std::filesystem::path& fileName,
 #ifdef POSIX_FADV_SEQUENTIAL
       posix_fadvise(handle, 0, 0, POSIX_FADV_SEQUENTIAL|POSIX_FADV_WILLNEED|POSIX_FADV_NOREUSE);
 #endif
-      StreamBuffer = new boost::iostreams::stream_buffer<boost::iostreams::file_descriptor_source>(
-                        handle, boost::iostreams::file_descriptor_flags::close_handle);
-      assert(StreamBuffer != nullptr);
+      Source = new boost::iostreams::file_descriptor_source(handle, boost::iostreams::file_descriptor_flags::close_handle);
+      assert(Source != nullptr);
+      // StreamBuffer = new boost::iostreams::stream_buffer<boost::iostreams::file_descriptor_source>(
+      //                   handle, boost::iostreams::file_descriptor_flags::close_handle);
+      // assert(StreamBuffer != nullptr);
 
       // ------ Configure the compressor ------------------------------------
       if(Compressor == FromExtension) {
@@ -116,7 +119,8 @@ bool InputStream::openStream(const std::filesystem::path& fileName,
          default:
           break;
       }
-      push(*StreamBuffer);
+      push(*Source);
+      // push(*StreamBuffer);
 
       return true;
    }
@@ -130,6 +134,10 @@ void InputStream::closeStream()
    reset();
 
    // ====== Clean up =======================================================
+   if(Source) {
+      delete Source;
+      Source = nullptr;
+   }
    if(StreamBuffer) {
       delete StreamBuffer;
       StreamBuffer = nullptr;

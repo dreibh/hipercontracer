@@ -5,11 +5,13 @@
 
 void test(const char* name)
 {
+   const std::chrono::system_clock::time_point t1 = std::chrono::system_clock::now();
+
    OutputStream of;
    try {
       of.openStream(name);
-      for(unsigned int i = 0; i < 1000; i++) {
-         of << "Test! " << name << "\n";
+      for(unsigned int i = 0; i < 10000000; i++) {
+         of << "Test! " << name << " abcdefghijklmnopqrstuvwxyz ABCDEFGHIJKLMNOPQRSTUVWXYZ\n";
       }
       of.flush();
       if(!of.closeStream()) {
@@ -19,7 +21,9 @@ void test(const char* name)
    catch(std::exception& e) {
       std::cerr << "ERROR: " << e.what() << "\n";
    }
-   std::cerr << "OK " << name << "\n";
+
+   const std::chrono::system_clock::time_point t2 = std::chrono::system_clock::now();
+   std::cerr << "OK " << name << "\t" << std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1).count() << " ms\n";
 }
 
 

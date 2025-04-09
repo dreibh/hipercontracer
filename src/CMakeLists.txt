@@ -42,36 +42,40 @@ INCLUDE_DIRECTORIES(${CMAKE_CURRENT_BINARY_DIR})
 #### LIBRARIES                                                           ####
 #############################################################################
 
-# ====== libiostream ========================================================
-LIST(APPEND libiostream_headers
+# ====== libhpctio ==========================================================
+LIST(APPEND libhpctio_headers
    compressortype.h
    inputstream.h
+   logger.h
    outputstream.h
+   tools.h
 )
-LIST(APPEND libiostream_sources
+LIST(APPEND libhpctio_sources
    compressortype.cc
    inputstream.cc
+   logger.cc
    outputstream.cc
+   tools.cc
 )
 
-INSTALL(FILES ${libiostream_headers} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/hipercontracer)
+INSTALL(FILES ${libhpctio_headers} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/hipercontracer)
 
 IF (WITH_STATIC_LIBRARIES)
-   ADD_LIBRARY(libiostream-static STATIC ${libiostream_sources})
+   ADD_LIBRARY(libhpctio-static STATIC ${libhpctio_sources})
 ENDIF()
 IF (WITH_SHARED_LIBRARIES)
-   ADD_LIBRARY(libiostream-shared SHARED ${libiostream_sources})
+   ADD_LIBRARY(libhpctio-shared SHARED ${libhpctio_sources})
 ENDIF()
 FOREACH(TYPE shared;static)
    IF ( (("${TYPE}" STREQUAL "static") AND (WITH_STATIC_LIBRARIES)) OR
       (("${TYPE}" STREQUAL "shared") AND (WITH_SHARED_LIBRARIES)) )
-      SET_TARGET_PROPERTIES(libiostream-${TYPE} PROPERTIES OUTPUT_NAME iostream CLEAN_DIRECT_OUTPUT 1)
-      SET_TARGET_PROPERTIES(libiostream-${TYPE} PROPERTIES
+      SET_TARGET_PROPERTIES(libhpctio-${TYPE} PROPERTIES OUTPUT_NAME iostream CLEAN_DIRECT_OUTPUT 1)
+      SET_TARGET_PROPERTIES(libhpctio-${TYPE} PROPERTIES
          VERSION   ${BUILD_VERSION}
          SOVERSION ${BUILD_MAJOR}
       )
-      TARGET_LINK_LIBRARIES (libiostream-${TYPE} ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} ${LZMA_LIBRARY} ${BZ2_LIBRARY} ${Z_LIBRARY})
-      INSTALL(TARGETS libiostream-${TYPE} DESTINATION ${CMAKE_INSTALL_LIBDIR})
+      TARGET_LINK_LIBRARIES (libhpctio-${TYPE} ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} ${LZMA_LIBRARY} ${BZ2_LIBRARY} ${Z_LIBRARY})
+      INSTALL(TARGETS libhpctio-${TYPE} DESTINATION ${CMAKE_INSTALL_LIBDIR})
    ENDIF()
 ENDFOREACH()
 
@@ -84,12 +88,10 @@ IF (WITH_HIPERCONTRACER)
       iomodule-icmp.h
       iomodule-udp.h
       # jitter.h
-      logger.h
       ping.h
       resultentry.h
       resultswriter.h
       service.h
-      tools.h
       traceroute.h
    )
    LIST(APPEND libhipercontracer_sources
@@ -102,12 +104,10 @@ IF (WITH_HIPERCONTRACER)
       iomodule-udp.cc
       # jitter.cc
       # jitter-rfc3550.cc
-      logger.cc
       ping.cc
       resultentry.cc
       resultswriter.cc
       service.cc
-      tools.cc
       traceroute.cc
       traceserviceheader.cc
    )
@@ -128,7 +128,7 @@ IF (WITH_HIPERCONTRACER)
             VERSION   ${BUILD_VERSION}
             SOVERSION ${BUILD_MAJOR}
          )
-         TARGET_LINK_LIBRARIES (libhipercontracer-${TYPE} libiostream-${TYPE} ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} ${LZMA_LIBRARY} ${BZ2_LIBRARY} ${Z_LIBRARY})
+         TARGET_LINK_LIBRARIES (libhipercontracer-${TYPE} libhpctio-${TYPE} ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} ${LZMA_LIBRARY} ${BZ2_LIBRARY} ${Z_LIBRARY})
          INSTALL(TARGETS libhipercontracer-${TYPE} DESTINATION ${CMAKE_INSTALL_LIBDIR})
       ENDIF()
    ENDFOREACH()
@@ -137,8 +137,6 @@ ENDIF()
 # ====== libuniversalimporter ==================================================
 IF (WITH_IMPORTER)
    LIST(APPEND libuniversalimporter_headers
-      logger.h
-      tools.h
       database-configuration.h
       database-statement.h
       databaseclient-base.h
@@ -149,8 +147,6 @@ IF (WITH_IMPORTER)
       worker.h
    )
    LIST(APPEND libuniversalimporter_sources
-      logger.cc
-      tools.cc
       database-configuration.cc
       database-statement.cc
       databaseclient-base.cc
@@ -199,7 +195,7 @@ IF (WITH_IMPORTER)
             SOVERSION ${BUILD_MAJOR}
          )
          TARGET_INCLUDE_DIRECTORIES(libuniversalimporter-${TYPE} PUBLIC ${LIBMARIADB_INCLUDE_DIR} ${LIBMONGOC_INCLUDE_DIR} ${LIBBSON_INCLUDE_DIR} ${INotify_INCLUDE_DIRS})
-         TARGET_LINK_LIBRARIES(libuniversalimporter-${TYPE} libiostream-${TYPE} ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} ${LZMA_LIBRARY} ${BZ2_LIBRARY} ${Z_LIBRARY} ${LIBMARIADB_LIBRARY} ${LIBPQXX_LIBRARY} ${LIBMONGOC_LIBRARY} ${LIBBSON_LIBRARY} ${INotify_LIBRARIES})
+         TARGET_LINK_LIBRARIES(libuniversalimporter-${TYPE} libhpctio-${TYPE} ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} ${LZMA_LIBRARY} ${BZ2_LIBRARY} ${Z_LIBRARY} ${LIBMARIADB_LIBRARY} ${LIBPQXX_LIBRARY} ${LIBMONGOC_LIBRARY} ${LIBBSON_LIBRARY} ${INotify_LIBRARIES})
          INSTALL(TARGETS libuniversalimporter-${TYPE} DESTINATION ${CMAKE_INSTALL_LIBDIR})
       ENDIF()
    ENDFOREACH()
@@ -415,9 +411,9 @@ INSTALL(FILES get-default-ips.1
 
 # ====== TEST ONLY ==========================================================
 ADD_EXECUTABLE(t1 t1.cc)
-TARGET_LINK_LIBRARIES(t1 ${Boost_LIBRARIES} libiostream-${libraryType} ${CMAKE_THREAD_LIBS_INIT})
+TARGET_LINK_LIBRARIES(t1 ${Boost_LIBRARIES} libhpctio-${libraryType} ${CMAKE_THREAD_LIBS_INIT})
 ADD_EXECUTABLE(t2 t2.cc)
-TARGET_LINK_LIBRARIES(t2 ${Boost_LIBRARIES} libiostream-${libraryType} ${CMAKE_THREAD_LIBS_INIT})
+TARGET_LINK_LIBRARIES(t2 ${Boost_LIBRARIES} libhpctio-${libraryType} ${CMAKE_THREAD_LIBS_INIT})
 # ADD_EXECUTABLE(dbtest dbtest.cc)
 # TARGET_LINK_LIBRARIES(dbtest libuniversalimporter-${libraryType} ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
 
