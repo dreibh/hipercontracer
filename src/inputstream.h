@@ -49,11 +49,9 @@ class InputStream : public boost::iostreams::filtering_istream
    void closeStream();
 
    private:
-   std::filesystem::path                                                      FileName;
-
+   std::filesystem::path                     FileName;
    boost::iostreams::file_descriptor_source* Source;
-   boost::iostreams::stream_buffer<boost::iostreams::file_descriptor_source>* StreamBuffer;
-   CompressorType                                                             Compressor;
+   CompressorType                            Compressor;
 };
 
 #endif

@@ -45,9 +45,8 @@
 // ###### Constructor #######################################################
 InputStream::InputStream()
 {
-   Source       = nullptr;
-   StreamBuffer = nullptr;
-   Compressor   = CT_None;
+   Source     = nullptr;
+   Compressor = CT_None;
 }
 
 
@@ -88,9 +87,6 @@ bool InputStream::openStream(const std::filesystem::path& fileName,
 #endif
       Source = new boost::iostreams::file_descriptor_source(handle, boost::iostreams::file_descriptor_flags::close_handle);
       assert(Source != nullptr);
-      // StreamBuffer = new boost::iostreams::stream_buffer<boost::iostreams::file_descriptor_source>(
-      //                   handle, boost::iostreams::file_descriptor_flags::close_handle);
-      // assert(StreamBuffer != nullptr);
 
       // ------ Configure the compressor ------------------------------------
       if(Compressor == CT_FromExtension) {
@@ -137,10 +133,6 @@ void InputStream::closeStream()
    if(Source) {
       delete Source;
       Source = nullptr;
-   }
-   if(StreamBuffer) {
-      delete StreamBuffer;
-      StreamBuffer = nullptr;
    }
    FileName = std::filesystem::path();
 }
