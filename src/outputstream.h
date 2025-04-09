@@ -49,13 +49,10 @@ class OutputStream : public boost::iostreams::filtering_ostream
    bool closeStream(const bool sync = true);
 
    private:
-   std::filesystem::path                                                    FileName;
-   std::filesystem::path                                                    TmpFileName;
-
+   std::filesystem::path                   FileName;
+   std::filesystem::path                   TmpFileName;
    boost::iostreams::file_descriptor_sink* Sink;
-   boost::iostreams::stream_buffer<boost::iostreams::file_descriptor_sink>* StreamBuffer;
-
-   CompressorType                                                           Compressor;
+   CompressorType                          Compressor;
 };
 
 #endif

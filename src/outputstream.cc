@@ -45,9 +45,8 @@
 // ###### Constructor #######################################################
 OutputStream::OutputStream()
 {
-   Sink         = nullptr;
-   StreamBuffer = nullptr;
-   Compressor   = None;
+   Sink       = nullptr;
+   Compressor = None;
 }
 
 
@@ -93,11 +92,8 @@ bool OutputStream::openStream(const std::filesystem::path& fileName,
 #ifdef POSIX_FADV_SEQUENTIAL
       posix_fadvise(handle, 0, 0, POSIX_FADV_SEQUENTIAL|POSIX_FADV_NOREUSE);
 #endif
-      // Sink = new boost::iostreams::file_descriptor_sink(handle, boost::iostreams::file_descriptor_flags::close_handle);
-      // assert(Sink != nullptr);
-      StreamBuffer = new boost::iostreams::stream_buffer<boost::iostreams::file_descriptor_sink>(
-                        handle, boost::iostreams::file_descriptor_flags::close_handle);
-      assert(StreamBuffer != nullptr);
+      Sink = new boost::iostreams::file_descriptor_sink(handle, boost::iostreams::file_descriptor_flags::close_handle);
+      assert(Sink != nullptr);
 
       // ------ Configure the compressor ------------------------------------
       if(Compressor == FromExtension) {
@@ -126,8 +122,7 @@ bool OutputStream::openStream(const std::filesystem::path& fileName,
          default:
           break;
       }
-      // push(*Sink);
-      push(*StreamBuffer);
+      push(*Sink);
 
       return true;
    }
@@ -143,7 +138,7 @@ bool OutputStream::closeStream(const bool sync)
    if(FileName != std::filesystem::path()) {
       if(sync) {
          // ------ Synchronise, then rename temporary output file --------------
-         boost::iostreams::filtering_ostream::strict_sync();
+         strict_sync();
          success = good();
          if(success) {
             std::filesystem::rename(TmpFileName, FileName);
@@ -157,10 +152,6 @@ bool OutputStream::closeStream(const bool sync)
    reset();
 
    // ====== Clean up =======================================================
-   if(StreamBuffer) {
-      delete StreamBuffer;
-      StreamBuffer = nullptr;
-   }
    if(Sink) {
       delete Sink;
       Sink = nullptr;
