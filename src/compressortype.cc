@@ -33,19 +33,19 @@
 
 struct CompressorTableEntry
 {
-   CompressorType Type;
+   CompressorType     Type;
    const std::string  Name;
-   const char*    Extension;
+   const char*        Extension;
 };
 
 static const CompressorTableEntry CompressorTable[] = {
-   { None,    "None",  "",     },
-   { XZ,      "XZ",    ".xz"   },
-   { BZip2,   "BZip2", ".bz2"  },
-   { GZip,    "GZip",  ".gz"   },
-   { ZSTD,    "ZSTD",  ".zst"  },
-   { ZLIB,    "ZLIB",  ".zz"   },
-   { Invalid, "",      nullptr }
+   { None,    "None",        "",     },
+   { XZ,      "XZ",          ".xz"   },
+   { BZip2,   "BZip2",       ".bz2"  },
+   { GZip,    "GZip",        ".gz"   },
+   { ZSTD,    "ZSTD",        ".zst"  },
+   { ZLIB,    "ZLIB",        ".zz"   },
+   { Invalid, std::string(), nullptr }
 };
 
 
