@@ -94,7 +94,7 @@ bool ResultsWriter::prepare()
       std::filesystem::create_directory(Directory);
    }
    catch(std::exception const& e) {
-      HPCT_LOG(error) << "Unable to prepare directories - " << e.what();
+      HPCT_LOG(error) << "Unable to prepare directories: " << e.what();
       return false;
    }
    return changeFile();
@@ -109,7 +109,7 @@ bool ResultsWriter::changeFile(const bool createNewFile)
       Output.closeStream( (Inserts > 0) );
    }
    catch(std::exception const& e) {
-      HPCT_LOG(error) << "Closing output file failed - " << e.what();
+      HPCT_LOG(error) << "Closing output file failed: " << e.what();
    }
 
    // ====== Create new file ================================================
@@ -142,7 +142,7 @@ bool ResultsWriter::changeFile(const bool createNewFile)
          return Output.good();
       }
       catch(std::exception const& e) {
-         HPCT_LOG(error) << "Creating output file failed - " << e.what();
+         HPCT_LOG(error) << "Creating output file failed:" << e.what();
          return false;
       }
    }

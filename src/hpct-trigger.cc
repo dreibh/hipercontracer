@@ -699,7 +699,7 @@ int main(int argc, char** argv)
                ServiceSet.insert(service);
             }
             catch (std::exception& e) {
-               HPCT_LOG(fatal) << "Cannot create Jitter service - " << e.what();
+               HPCT_LOG(fatal) << "Cannot create Jitter service:" << e.what();
                return 1;
             }
          }
@@ -731,7 +731,7 @@ int main(int argc, char** argv)
                ServiceSet.insert(service);
             }
             catch (std::exception& e) {
-               HPCT_LOG(fatal) << "Cannot create Ping service - " << e.what();
+               HPCT_LOG(fatal) << "Cannot create Ping service:" << e.what();
                return 1;
             }
          }
@@ -762,7 +762,7 @@ int main(int argc, char** argv)
                ServiceSet.insert(service);
             }
             catch (std::exception& e) {
-               HPCT_LOG(fatal) << "Cannot create Traceroute service - " << e.what();
+               HPCT_LOG(fatal) << "Cannot create Traceroute service:" << e.what();
                return 1;
             }
          }
