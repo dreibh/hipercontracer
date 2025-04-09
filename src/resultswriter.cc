@@ -109,7 +109,7 @@ bool ResultsWriter::changeFile(const bool createNewFile)
       Output.closeStream( (Inserts > 0) );
    }
    catch(std::exception const& e) {
-      HPCT_LOG(warning) << "ResultsWriter::changeFile() - " << e.what();
+      HPCT_LOG(warning) << "Closing output file failed - " << e.what();
    }
 
    // ====== Create new file ================================================
@@ -117,15 +117,15 @@ bool ResultsWriter::changeFile(const bool createNewFile)
    SeqNumber++;
    if(createNewFile) {
       try {
+         // ------ Prepare directory hierachy -------------------------------
          const std::string name = UniqueID +
-            str(boost::format("-%09d.hpct%s") % SeqNumber % getExtensionForCompressor(Compressor));
-         std::filesystem::path targetPath =
-            Directory /
-               makeDirectoryHierarchy<std::chrono::system_clock::time_point>(
-                  std::filesystem::path(),
-                  name, std::chrono::system_clock::now(),
-                  0, TimestampDepth);
-         TargetFileName = targetPath / name;
+            str(boost::format("-%09d.hpct%s")
+                   % SeqNumber
+                   % getExtensionForCompressor(Compressor));
+         std::filesystem::path targetPath = Directory /
+            makeDirectoryHierarchy<std::chrono::system_clock::time_point>(
+               std::filesystem::path(), name, std::chrono::system_clock::now(),
+               0, TimestampDepth);
          try {
             std::filesystem::create_directories(targetPath);
          }
@@ -134,12 +134,15 @@ bool ResultsWriter::changeFile(const bool createNewFile)
                               << " failed: " << e.what();
             return false;
          }
+
+         // ------ Open new output file -------------------------------------
+         TargetFileName = targetPath / name;
          Output.openStream(TargetFileName);
          OutputCreationTime = std::chrono::steady_clock::now();
          return Output.good();
       }
       catch(std::exception const& e) {
-         HPCT_LOG(error) << "ResultsWriter::changeFile() - " << e.what();
+         HPCT_LOG(error) << "Creating output file failed - " << e.what();
          return false;
       }
    }
@@ -176,17 +179,18 @@ void ResultsWriter::insert(const std::string& tuple)
 
 
 // ###### Prepare results writer ############################################
-ResultsWriter* ResultsWriter::makeResultsWriter(std::set<ResultsWriter*>&       resultsWriterSet,
-                                                const std::string&              programID,
-                                                const unsigned int              measurementID,
-                                                const boost::asio::ip::address& sourceAddress,
-                                                const std::string&              resultsPrefix,
-                                                const std::string&              resultsDirectory,
-                                                const unsigned int              resultsTransactionLength,
-                                                const unsigned int              resultsTimestampDepth,
-                                                const uid_t                     uid,
-                                                const gid_t                     gid,
-                                                const CompressorType   compressor)
+ResultsWriter* ResultsWriter::makeResultsWriter(
+   std::set<ResultsWriter*>&       resultsWriterSet,
+   const std::string&              programID,
+   const unsigned int              measurementID,
+   const boost::asio::ip::address& sourceAddress,
+   const std::string&              resultsPrefix,
+   const std::string&              resultsDirectory,
+   const unsigned int              resultsTransactionLength,
+   const unsigned int              resultsTimestampDepth,
+   const uid_t                     uid,
+   const gid_t                     gid,
+   const CompressorType            compressor)
 {
    if(!resultsDirectory.empty()) {
       std::string uniqueID =

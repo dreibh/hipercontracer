@@ -70,17 +70,18 @@ class ResultsWriter
    bool mayStartNewTransaction();
    void insert(const std::string& tuple);
 
-   static ResultsWriter* makeResultsWriter(std::set<ResultsWriter*>&       resultsWriterSet,
-                                           const std::string&              programID,
-                                           const unsigned int              measurementID,
-                                           const boost::asio::ip::address& sourceAddress,
-                                           const std::string&              resultsPrefix,
-                                           const std::string&              resultsDirectory,
-                                           const unsigned int              resultsTransactionLength,
-                                           const unsigned int              resultsTimestampDepth,
-                                           const uid_t                     uid,
-                                           const gid_t                     gid,
-                                           const CompressorType            compressor = CompressorType::XZ);
+   static ResultsWriter* makeResultsWriter(
+      std::set<ResultsWriter*>&       resultsWriterSet,
+      const std::string&              programID,
+      const unsigned int              measurementID,
+      const boost::asio::ip::address& sourceAddress,
+      const std::string&              resultsPrefix,
+      const std::string&              resultsDirectory,
+      const unsigned int              resultsTransactionLength,
+      const unsigned int              resultsTimestampDepth,
+      const uid_t                     uid,
+      const gid_t                     gid,
+      const CompressorType            compressor = CompressorType::XZ);
 
    protected:
    const std::string                     ProgramID;
