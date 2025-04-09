@@ -45,7 +45,7 @@ class InputStream : public boost::iostreams::filtering_istream
 
    bool openStream(std::istream& os);
    bool openStream(const std::filesystem::path& fileName,
-                   const CompressorType         compressor = FromExtension);
+                   const CompressorType         compressor = CT_FromExtension);
    void closeStream();
 
    private:

@@ -39,13 +39,13 @@ struct CompressorTableEntry
 };
 
 static const CompressorTableEntry CompressorTable[] = {
-   { None,    "None",        "",     },
-   { XZ,      "XZ",          ".xz"   },
-   { BZip2,   "BZip2",       ".bz2"  },
-   { GZip,    "GZip",        ".gz"   },
-   { ZSTD,    "ZSTD",        ".zst"  },
-   { ZLIB,    "ZLIB",        ".zz"   },
-   { Invalid, std::string(), nullptr }
+   { CT_None,    "None",        "",     },
+   { CT_XZ,      "XZ",          ".xz"   },
+   { CT_BZip2,   "BZip2",       ".bz2"  },
+   { CT_GZip,    "GZip",        ".gz"   },
+   { CT_ZSTD,    "ZSTD",        ".zst"  },
+   { CT_ZLIB,    "ZLIB",        ".zz"   },
+   { CT_Invalid, std::string(), nullptr }
 };
 
 
@@ -56,14 +56,14 @@ CompressorType getCompressorTypeFromName(const std::string& name)
    boost::algorithm::to_lower(lowercaseName);
 
    unsigned int i = 0;
-   while(CompressorTable[i].Type != Invalid) {
+   while(CompressorTable[i].Type != CT_Invalid) {
       if(CompressorTable[i].Name == name) {
          return CompressorTable[i].Type;
       }
       i++;
    }
 
-   return Invalid;
+   return CT_Invalid;
 }
 
 
@@ -74,14 +74,14 @@ CompressorType obtainCompressorFromExtension(const std::filesystem::path& fileNa
    boost::algorithm::to_lower(extension);
 
    unsigned int i = 0;
-   while(CompressorTable[i].Type != Invalid) {
+   while(CompressorTable[i].Type != CT_Invalid) {
       if(CompressorTable[i].Extension == extension) {
          return CompressorTable[i].Type;
       }
       i++;
    }
 
-   return None;
+   return CT_None;
 }
 
 
@@ -89,7 +89,7 @@ CompressorType obtainCompressorFromExtension(const std::filesystem::path& fileNa
 const char* getExtensionForCompressor(const CompressorType type)
 {
    unsigned int i = 0;
-   while(CompressorTable[i].Type != Invalid) {
+   while(CompressorTable[i].Type != CT_Invalid) {
       if(CompressorTable[i].Type == type) {
          return CompressorTable[i].Extension;
       }

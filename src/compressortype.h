@@ -35,15 +35,15 @@
 
 
 enum CompressorType {
-   Invalid       = 0,
-   FromExtension = 1,
+   CT_Invalid       = 0,
+   CT_FromExtension = 1,
 
-   None          = 2,
-   GZip          = 3,
-   BZip2         = 4,
-   XZ            = 5,
-   ZSTD          = 6,
-   ZLIB          = 7
+   CT_None          = 2,
+   CT_GZip          = 3,
+   CT_BZip2         = 4,
+   CT_XZ            = 5,
+   CT_ZSTD          = 6,
+   CT_ZLIB          = 7
 };
 
 CompressorType getCompressorTypeFromName(const std::string& name);

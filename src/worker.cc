@@ -32,7 +32,6 @@
 #include "logger.h"
 #include "tools.h"
 
-#include <fstream>
 #include <boost/algorithm/string.hpp>
 #include <boost/iostreams/device/file_descriptor.hpp>
 #include <boost/iostreams/filter/bzip2.hpp>

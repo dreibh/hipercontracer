@@ -10,7 +10,7 @@ void test(const char* name)
    OutputStream of;
    try {
       of.openStream(name);
-      for(unsigned int i = 0; i < 10000000; i++) {
+      for(unsigned int i = 0; i < 100000000; i++) {
          of << "Test! " << name << " abcdefghijklmnopqrstuvwxyz ABCDEFGHIJKLMNOPQRSTUVWXYZ\n";
       }
       of.flush();

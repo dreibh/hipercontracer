@@ -81,7 +81,7 @@ class ResultsWriter
       const unsigned int              resultsTimestampDepth,
       const uid_t                     uid,
       const gid_t                     gid,
-      const CompressorType            compressor = CompressorType::XZ);
+      const CompressorType            compressor = CT_XZ);
 
    protected:
    const std::string                     ProgramID;

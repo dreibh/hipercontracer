@@ -47,7 +47,7 @@ InputStream::InputStream()
 {
    Source       = nullptr;
    StreamBuffer = nullptr;
-   Compressor   = None;
+   Compressor   = CT_None;
 }
 
 
@@ -93,27 +93,27 @@ bool InputStream::openStream(const std::filesystem::path& fileName,
       // assert(StreamBuffer != nullptr);
 
       // ------ Configure the compressor ------------------------------------
-      if(Compressor == FromExtension) {
+      if(Compressor == CT_FromExtension) {
          Compressor = obtainCompressorFromExtension(FileName);
       }
       switch(Compressor) {
-         case XZ: {
+         case CT_XZ: {
             const boost::iostreams::lzma_params params(
                boost::iostreams::lzma::default_compression,
                std::thread::hardware_concurrency());
             push(boost::iostreams::lzma_decompressor(params));
            }
           break;
-         case BZip2:
+         case CT_BZip2:
             push(boost::iostreams::bzip2_decompressor());
           break;
-         case GZip:
+         case CT_GZip:
             push(boost::iostreams::gzip_decompressor());
           break;
-         case ZSTD:
+         case CT_ZSTD:
             push(boost::iostreams::zstd_decompressor());
           break;
-         case ZLIB:
+         case CT_ZLIB:
             push(boost::iostreams::zlib_decompressor());
           break;
          default:

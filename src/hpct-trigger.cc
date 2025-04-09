@@ -541,7 +541,7 @@ int main(int argc, char** argv)
 #endif
    const CompressorType resultsCompression =
       getCompressorTypeFromName(resultsCompressionString);
-   if(resultsCompression == CompressorType::Invalid) {
+   if(resultsCompression == CT_Invalid) {
       std::cerr << "ERROR: Invalid results compression: " << resultsCompressionString << "\n";
       return 1;
    }

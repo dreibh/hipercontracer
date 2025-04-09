@@ -30,20 +30,14 @@
 #include "database-configuration.h"
 #include "databaseclient-base.h"
 #include "logger.h"
+#include "outputstream.h"
 #include "package-version.h"
 #include "tools.h"
 
 #include <filesystem>
 #include <fstream>
 #include <iostream>
-
-#include <boost/algorithm/string.hpp>
 #include <boost/filesystem.hpp>
-#include <boost/iostreams/filtering_stream.hpp>
-#include <boost/iostreams/filtering_streambuf.hpp>
-#include <boost/iostreams/filter/bzip2.hpp>
-#include <boost/iostreams/filter/gzip.hpp>
-#include <boost/iostreams/filter/lzma.hpp>
 #include <boost/program_options.hpp>
 
 
@@ -507,37 +501,14 @@ int main(int argc, char** argv)
    }
 
    // ====== Open output file ===============================================
-   std::string                         extension(outputFileName.extension());
-   std::ofstream                       outputFile;
-   boost::iostreams::filtering_ostream outputStream;
-   const std::filesystem::path         tmpOutputFileName(outputFileName.string() + ".tmp");
-   if(outputFileName != std::filesystem::path()) {
-      std::error_code ec;
-      std::filesystem::remove(outputFileName, ec);
-      outputFile.open(tmpOutputFileName, std::ios_base::out | std::ios_base::binary);
-      if(!outputFile.is_open()) {
-         HPCT_LOG(fatal) << "Failed to create output file " << outputFileName;
-         exit(1);
-      }
-      boost::algorithm::to_lower(extension);
-      if(extension == ".xz") {
-         const boost::iostreams::lzma_params params(
-            boost::iostreams::lzma::default_compression,
-            std::thread::hardware_concurrency());
-         outputStream.push(boost::iostreams::lzma_compressor(params));
-      }
-      else if(extension == ".bz2") {
-         outputStream.push(boost::iostreams::bzip2_compressor());
-      }
-      else if(extension == ".gz") {
-         outputStream.push(boost::iostreams::gzip_compressor());
-      }
-      outputStream.push(outputFile);
+   OutputStream outputStream;
+   try {
+      outputStream.openStream(outputFileName);
    }
-   else {
-      outputStream.push(std::cout);
+   catch(std::exception& e) {
+      HPCT_LOG(fatal) << "Failed to create output file " << outputFileName << ": " << e.what();
+      exit(1);
    }
-
 
    // ====== Prepare query ==================================================
    const DatabaseBackendType                   backend       = databaseClient->getBackend();
@@ -1064,18 +1035,17 @@ int main(int argc, char** argv)
       exit(1);
    }
 
-   if(outputFileName != std::filesystem::path()) {
-      try {
-         std::filesystem::rename(tmpOutputFileName, outputFileName);
+   // ====== Close output file ==============================================
+   try {
+      outputStream.closeStream();
 
-         // Set timestamp to the latest timestamp in the data. Note: the timestamp is UTC!
-         const std::time_t t = (std::time_t)(lastTimeStamp / 1000000000);
-         boost::filesystem::last_write_time(boost::filesystem::path(outputFileName), t);
-      }
-      catch(const std::exception& e) {
-         HPCT_LOG(fatal) << "Writing results failed: " << e.what();
-         exit(1);
-      }
+      // Set timestamp to the latest timestamp in the data. Note: the timestamp is UTC!
+      const std::time_t t = (std::time_t)(lastTimeStamp / 1000000000);
+      boost::filesystem::last_write_time(boost::filesystem::path(outputFileName), t);
+   }
+   catch(const std::exception& e) {
+      HPCT_LOG(fatal) << "Writing results failed: " << e.what();
+      exit(1);
    }
 
    // ====== Clean up =======================================================
