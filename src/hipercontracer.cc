@@ -30,12 +30,12 @@
 #include <iostream>
 #include <vector>
 
-#include <boost/algorithm/string.hpp>
 #include <boost/asio/ip/address.hpp>
 #include <boost/program_options.hpp>
 
 #include "check.h"
 // #include "jitter.h"
+#include "compressortype.h"
 #include "logger.h"
 #include "package-version.h"
 #include "ping.h"
@@ -222,7 +222,6 @@ int main(int argc, char** argv)
    unsigned int                       resultsTransactionLength;
    std::filesystem::path              resultsDirectory;
    std::string                        resultsCompressionString;
-   ResultsWriterCompressor            resultsCompression;
    unsigned int                       resultsFormatVersion;
    unsigned int                       resultsTimestampDepth;
 
@@ -491,20 +490,9 @@ int main(int argc, char** argv)
       return 1;
    }
 #endif
-   boost::algorithm::to_upper(resultsCompressionString);
-   if(resultsCompressionString == "XZ") {
-      resultsCompression = ResultsWriterCompressor::XZ;
-   }
-   else if(resultsCompressionString == "BZIP2") {
-      resultsCompression = ResultsWriterCompressor::BZip2;
-   }
-   else if(resultsCompressionString == "GZIP") {
-      resultsCompression = ResultsWriterCompressor::GZip;
-   }
-   else if(resultsCompressionString == "NONE") {
-      resultsCompression = ResultsWriterCompressor::None;
-   }
-   else {
+   const CompressorType resultsCompression =
+      getCompressorTypeFromName(resultsCompressionString);
+   if(resultsCompression == CompressorType::Invalid) {
       std::cerr << "ERROR: Invalid results compression: " << resultsCompressionString << "\n";
       return 1;
    }
