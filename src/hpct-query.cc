@@ -503,7 +503,12 @@ int main(int argc, char** argv)
    // ====== Open output file ===============================================
    OutputStream outputStream;
    try {
-      outputStream.openStream(outputFileName);
+      if(outputFileName != boost::filesystem::path()) {
+         outputStream.openStream(outputFileName);
+      }
+      else {
+         outputStream.openStream(std::cout);
+      }
    }
    catch(std::exception& e) {
       HPCT_LOG(fatal) << "Failed to create output file " << outputFileName << ": " << e.what();
@@ -1038,10 +1043,11 @@ int main(int argc, char** argv)
    // ====== Close output file ==============================================
    try {
       outputStream.closeStream();
-
-      // Set timestamp to the latest timestamp in the data. Note: the timestamp is UTC!
-      const std::time_t t = (std::time_t)(lastTimeStamp / 1000000000);
-      boost::filesystem::last_write_time(boost::filesystem::path(outputFileName), t);
+      if(outputFileName != boost::filesystem::path()) {
+         // Set timestamp to the latest timestamp in the data. Note: the timestamp is UTC!
+         const std::time_t t = (std::time_t)(lastTimeStamp / 1000000000);
+         boost::filesystem::last_write_time(boost::filesystem::path(outputFileName), t);
+      }
    }
    catch(const std::exception& e) {
       HPCT_LOG(fatal) << "Writing results failed: " << e.what();
