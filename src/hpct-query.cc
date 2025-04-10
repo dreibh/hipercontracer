@@ -461,7 +461,7 @@ int main(int argc, char** argv)
       std::cerr << "ERROR: to measurement identifier < from measurement identifier!\n";
       return 1;
    }
-   if(addressToMeasurementIDFile != std::filesystem::path()) {
+   if(!addressToMeasurementIDFile.empty()) {
       std::ifstream mappingFile(addressToMeasurementIDFile);
       if(!mappingFile.good()) {
          std::cerr << "ERROR: Unable to read mapping file " << addressToMeasurementIDFile << "!\n";
@@ -489,7 +489,7 @@ int main(int argc, char** argv)
 
    // ====== Initialise importer ============================================
    initialiseLogger(logLevel, logColor,
-                    (logFile != std::filesystem::path()) ? logFile.string().c_str() : nullptr);
+                    (!logFile.empty()) ? logFile.string().c_str() : nullptr);
 
    // ====== Read database configuration ====================================
    DatabaseConfiguration databaseConfiguration;
@@ -1046,7 +1046,8 @@ int main(int argc, char** argv)
       }
    }
    catch(const std::exception& e) {
-      HPCT_LOG(fatal) << "Writing results failed: " << e.what();
+      HPCT_LOG(fatal) << "Failed to close output file "
+                      << outputFileName << ": " << e.what();
       exit(1);
    }
 

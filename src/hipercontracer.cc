@@ -505,7 +505,7 @@ int main(int argc, char** argv)
 
    // ====== Initialize =====================================================
    initialiseLogger(logLevel, logColor,
-                    (logFile != std::filesystem::path()) ? logFile.string().c_str() : nullptr);
+                    (!logFile.empty()) ? logFile.string().c_str() : nullptr);
    const passwd* pw = getUser(user.c_str());
    if(pw == nullptr) {
       HPCT_LOG(fatal) << "Cannot find user \"" << user << "\"!";
