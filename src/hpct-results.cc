@@ -31,6 +31,7 @@
 #include "conversions.h"
 #include "inputstream.h"
 #include "outputstream.h"
+#include "package-version.h"
 
 #include <atomic>
 #include <chrono>
@@ -716,6 +717,8 @@ int main(int argc, char** argv)
    commandLineOptions.add_options()
       ( "help,h",
            "Print help message" )
+      ( "version",
+           "Show program version" )
 
       ( "loglevel,L",
            boost::program_options::value<unsigned int>(&logLevel)->default_value(boost::log::trivial::severity_level::info),
@@ -793,6 +796,11 @@ int main(int argc, char** argv)
                  << commandLineOptions;
        return 1;
    }
+   else if(vm.count("version")) {
+      std::cerr << "HPCT Results" << " " << HPCT_VERSION << "\n";
+      return 0;
+   }
+
    if( (separator != ' ')  &&
        (separator != '\t') &&
        (separator != ',')  &&

@@ -267,6 +267,8 @@ int main(int argc, char** argv)
    commandLineOptions.add_options()
       ( "help,h",
            "Print help message" )
+      ( "version",
+           "Show program version" )
       ( "check",
            "Check environment" )
 
@@ -458,6 +460,10 @@ int main(int argc, char** argv)
        std::cerr << "Usage: " << argv[0] << " OPTIONS" << "\n"
                  << commandLineOptions;
        return 1;
+   }
+   else if(vm.count("version")) {
+      std::cerr << "HPCT Trigger" << " " << HPCT_VERSION << "\n";
+      return 0;
    }
    else if(vm.count("check")) {
       checkEnvironment("HPCT Trigger");

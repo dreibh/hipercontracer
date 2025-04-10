@@ -344,6 +344,8 @@ int main(int argc, char** argv)
    commandLineOptions.add_options()
       ( "help,h",
            "Print help message" )
+      ( "version",
+           "Show program version" )
 
       ( "loglevel,L",
            boost::program_options::value<unsigned int>(&logLevel)->default_value(boost::log::trivial::severity_level::info),
@@ -425,6 +427,10 @@ int main(int argc, char** argv)
        std::cerr << "Usage: " << argv[0] << " database_configuration ping|traceroute OPTIONS" << "\n"
                  << commandLineOptions;
        return 1;
+   }
+   else if(vm.count("version")) {
+      std::cerr << "HPCT Query" << " " << HPCT_VERSION << "\n";
+      return 0;
    }
    boost::algorithm::to_lower(queryType);
 

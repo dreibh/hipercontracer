@@ -52,6 +52,10 @@ input_file ...
 .Op Fl R | Fl Fl input-results-from-stdin
 .Op Fl N | Fl Fl input-file-names-from-stdin
 .Op Fl F Ar filename | Fl Fl input-file-names-from-file Ar filename
+.Nm hpct-results
+.Op Fl h | Fl Fl help
+.Nm hpct-results
+.Op Fl Fl version
 .\" ###### Description ######################################################
 .Sh DESCRIPTION
 .Nm hpct-results
@@ -96,6 +100,10 @@ Read the results from standard input.
 Read the input file names from standard input.
 .It Fl F Ar file | Fl Fl input-file-names-from-file Ar file
 Read the input file names from file. The option may be provided multiple times to read from multiple files.
+.It Fl h | Fl Fl help
+Prints command help.
+.It Fl Fl version
+Prints progam version.
 .El
 .\" ###### Arguments ########################################################
 .Sh EXAMPLES
@@ -105,6 +113,8 @@ Read the input file names from file. The option may be provided multiple times t
 .It hpct-results results/Traceroute* --sorted | head -n 64
 .It find results/ -name 'Traceroute-*.hpct.*' | hpct-results --input-file-names-from-stdin -o results.csv.gz
 .It hpct-results --input-file-names-from-file results-files.list -o results.csv.xz
+.It hpct-results --version
+.It hpct-results --h
 .El
 .\" ###### Authors ##########################################################
 .Sh AUTHORS

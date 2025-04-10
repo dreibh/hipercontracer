@@ -58,6 +58,10 @@
 .Op Fl Fl traceroute-files Ar number
 .\" .Op Fl Fl jitter-workers Ar number
 .\" .Op Fl Fl jitter-files Ar number
+.Nm hpct-importer
+.Op Fl h | Fl Fl help
+.Nm hpct-importer
+.Op Fl Fl version
 .\" ###### Description ######################################################
 .Sh DESCRIPTION
 .Nm hpct-importer
@@ -150,6 +154,10 @@ Sets the number of Traceroute import files per database transaction. Default: 1.
 .\" given in the file name.
 .\" .It Fl Fl jitter-files Ar number
 .\" Sets the number of Jitter import files per database transaction. Default: 1.
+.It Fl h | Fl Fl help
+Prints command help.
+.It Fl Fl version
+Prints progam version.
 .El
 .\" ###### Arguments ########################################################
 .Sh EXAMPLES
@@ -157,6 +165,8 @@ Sets the number of Traceroute import files per database transaction. Default: 1.
 .It hpct-importer -C hipercontracer-importer.conf -D hipercontracer-database.conf
 .It hpct-importer --importer-config hipercontracer-importer.conf --database-config hipercontracer-database.conf --verbose
 .It hpct-importer -C hipercontracer-importer.conf -D hipercontracer-database.conf -F "1234/.*"
+.It hpct-importer --version
+.It hpct-importer --h
 .El
 .\" ###### Authors ##########################################################
 .Sh AUTHORS

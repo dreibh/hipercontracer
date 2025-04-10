@@ -379,7 +379,7 @@ ENDIF()
 # ====== Pipe Checksum Tool =================================================
 IF (WITH_PIPE_CHECKSUM)
    ADD_EXECUTABLE(pipe-checksum pipe-checksum.cc)
-   TARGET_LINK_LIBRARIES(pipe-checksum ${CRYPTO_LIBRARY})
+   TARGET_LINK_LIBRARIES(pipe-checksum ${Boost_LIBRARIES} ${CRYPTO_LIBRARY})
    INSTALL(TARGETS pipe-checksum   RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
    INSTALL(FILES   pipe-checksum.1 DESTINATION         ${CMAKE_INSTALL_MANDIR}/man1)
    INSTALL(FILES       pipe-checksum.bash-completion
