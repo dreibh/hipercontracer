@@ -1,3 +1,27 @@
+commit ea5ccd8b69c1483ecf90e465a0593983590ef44c
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Apr 10 10:56:57 2025 +0200
+
+    Some more clean-ups.
+
+commit 16502cc08a6581f52c0ccfbbce632efd650a6b1e
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Apr 10 10:53:49 2025 +0200
+
+    Minor clean-ups.
+
+commit 5c40b515aef6cfe5f24a225d58045af48b74358b
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Apr 10 09:39:06 2025 +0200
+
+    Bugfix: Fixed handling of long options, to prevent ambiguity with short options.
+
+commit 6bbaad0ae8db2cbbca97125d9c1906490661b352
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Apr 8 17:38:10 2025 +0200
+
+    New release hipercontracer-2.0.9.
+
 commit 02a0cb84cde644bd785e3f9705ffda49a4c5a95f
 Merge: 2d794d3 ec5cb11
 Author: Thomas Dreibholz <dreibh@simula.no>
