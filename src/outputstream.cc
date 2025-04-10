@@ -71,7 +71,7 @@ bool OutputStream::openStream(const std::filesystem::path& fileName,
                               const CompressorType         compressor)
 {
    // ====== Reset ==========================================================
-   closeStream();
+   closeStream(false);
 
    // ====== Initialise output steam to file ================================
    Compressor = compressor;
@@ -131,15 +131,21 @@ bool OutputStream::openStream(const std::filesystem::path& fileName,
 
 
 // ###### Close output stream ###############################################
-bool OutputStream::closeStream(const bool sync)
+void OutputStream::closeStream(const bool sync)
 {
    bool success = false;
 
    // ====== Synchronise ====================================================
    if(sync) {
-      flush();
-      strict_sync();
-      success = good();
+      puts("SYNC!");
+      if(is_complete()) {
+         flush();
+         strict_sync();
+         success = ( is_complete() && good() );
+      }
+      if(!success) {
+         throw std::runtime_error("Incomplete output stream");
+      }
    }
 
    // ====== Close file =====================================================
@@ -154,7 +160,6 @@ bool OutputStream::closeStream(const bool sync)
    if(!FileName.empty()) {
       if(success) {
          std::filesystem::rename(TmpFileName, FileName);
-         success = true;
       }
       else {
          std::filesystem::remove(TmpFileName);
@@ -164,6 +169,4 @@ bool OutputStream::closeStream(const bool sync)
    // ====== Clean up =======================================================
    FileName    = std::filesystem::path();
    TmpFileName = std::filesystem::path();
-
-   return success;
 }

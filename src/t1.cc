@@ -13,10 +13,7 @@ void test(const char* name)
       for(unsigned int i = 0; i < 100000000; i++) {
          of << "Test! " << name << " abcdefghijklmnopqrstuvwxyz ABCDEFGHIJKLMNOPQRSTUVWXYZ\n";
       }
-      of.flush();
-      if(!of.closeStream()) {
-         std::cerr << "SYNC FAILED " << name << "\n";
-      }
+      of.strict_sync();
    }
    catch(std::exception& e) {
       std::cerr << "ERROR: " << e.what() << "\n";

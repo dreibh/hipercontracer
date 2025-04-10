@@ -905,30 +905,22 @@ int main(int argc, char** argv)
    if(errorCounter > 0) {
       exit(1);
    }
+
+   // ====== Print statistics ===============================================
    const std::chrono::system_clock::time_point t2 = std::chrono::system_clock::now();
    if(sorted == true) {
       HPCT_LOG(info) << "Read " << outputSet.size() << " results rows in "
-                     << std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1).count() << " ms";
-   }
-   else {
-      HPCT_LOG(info) << "Reading input and writing output took "
                      << std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1).count() << " ms";
    }
 
    // ====== Print the results ==============================================
    if(sorted == true) {
       HPCT_LOG(info) << "Writing " << outputSet.size() << " results rows ...";
-      const std::chrono::system_clock::time_point t3 = std::chrono::system_clock::now();
       for(std::set<OutputEntry*, pointer_lessthan<OutputEntry>>::const_iterator iterator = outputSet.begin();
          iterator != outputSet.end(); iterator++) {
          outputStream << (*iterator)->Line << "\n";
          delete *iterator;
       }
-      outputStream.reset();
-
-      const std::chrono::system_clock::time_point t4 = std::chrono::system_clock::now();
-      HPCT_LOG(info) << "Wrote " << outputSet.size() << " results rows in "
-                     << std::chrono::duration_cast<std::chrono::milliseconds>(t4 - t3).count() << " ms";
    }
 
    // ====== Close output file ==============================================
@@ -944,6 +936,18 @@ int main(int argc, char** argv)
       HPCT_LOG(fatal) << "Failed to close output file "
                       << outputFileName << ": " << e.what();
       exit(1);
+   }
+
+   // ====== Print statistics ===============================================
+   const std::chrono::system_clock::time_point t3 = std::chrono::system_clock::now();
+   if(sorted == true) {
+      HPCT_LOG(info) << "Wrote " << outputSet.size() << " results rows in "
+                     << std::chrono::duration_cast<std::chrono::milliseconds>(t3 - t2).count() << " ms";
+
+   }
+   else {
+      HPCT_LOG(info) << "Reading input and writing output took "
+                     << std::chrono::duration_cast<std::chrono::milliseconds>(t3 - t1).count() << " ms";
    }
 
    return 0;

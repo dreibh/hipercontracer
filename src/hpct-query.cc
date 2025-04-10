@@ -525,12 +525,12 @@ int main(int argc, char** argv)
    Statement&                                  statement     = databaseClient->getStatement(queryType, false, true);
    const std::chrono::system_clock::time_point t1            = std::chrono::system_clock::now();
    unsigned long long                          lastTimeStamp = 0;
+   unsigned long long                          lines         = 0;
    std::string                                 dedupLastItem;
    bool                                        dedupInProgress;
    unsigned long long                          dedupDuplicatesRemoved = 0;
    try {
       // ====== Ping ========================================================
-      unsigned long long lines = 0;
       if(queryType == "ping") {
          if(backend & DatabaseBackendType::SQL_Generic) {
             // ====== Old version 1 table ===================================
@@ -1030,15 +1030,6 @@ int main(int argc, char** argv)
          HPCT_LOG(fatal) << "Invalid query type " << queryType;
          exit(1);
       }
-
-      outputStream.reset();
-
-      const std::chrono::system_clock::time_point t2 = std::chrono::system_clock::now();
-      HPCT_LOG(info) << "Wrote " << lines << " results lines in "
-                     << std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1).count() << " ms";
-      if( (deduplication) && (dedupDuplicatesRemoved > 0) ) {
-         HPCT_LOG(warning) << "Found and removed " << dedupDuplicatesRemoved << " duplicates from output!";
-      }
    }
    catch(const std::exception& e) {
       HPCT_LOG(fatal) << "Query failed: " << e.what();
@@ -1057,6 +1048,14 @@ int main(int argc, char** argv)
    catch(const std::exception& e) {
       HPCT_LOG(fatal) << "Writing results failed: " << e.what();
       exit(1);
+   }
+
+   // ====== Print statistics ===============================================
+   const std::chrono::system_clock::time_point t2 = std::chrono::system_clock::now();
+   HPCT_LOG(info) << "Wrote " << lines << " results lines in "
+                  << std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1).count() << " ms";
+   if( (deduplication) && (dedupDuplicatesRemoved > 0) ) {
+      HPCT_LOG(warning) << "Found and removed " << dedupDuplicatesRemoved << " duplicates from output!";
    }
 
    // ====== Clean up =======================================================
