@@ -880,7 +880,7 @@ int main(int argc, char** argv)
    std::ofstream                       outputFile;
    boost::iostreams::filtering_ostream outputStream;
    const std::filesystem::path         tmpOutputFileName = outputFileName.string() + ".tmp";
-   if(outputFileName != std::filesystem::path()) {
+   if(!outputFileName.empty()) {
       outputFile.open(tmpOutputFileName, std::ios_base::out | std::ios_base::binary);
       if(!outputFile.is_open()) {
          HPCT_LOG(fatal) << "Failed to create output file " << tmpOutputFileName;
@@ -967,7 +967,7 @@ int main(int argc, char** argv)
                      << std::chrono::duration_cast<std::chrono::milliseconds>(t4 - t3).count() << " ms";
    }
 
-   if(outputFileName != std::filesystem::path()) {
+   if(!outputFileName.empty()) {
       try {
          std::filesystem::rename(tmpOutputFileName, outputFileName);
       }

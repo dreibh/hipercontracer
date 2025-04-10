@@ -301,7 +301,7 @@ bool Worker::importFiles(const std::list<std::filesystem::path>& dataFileList)
                         << exception.what();
       try {
          DatabaseClient.rollback();
-         if( (!fastMode) && (dataFile != std::filesystem::path()) ) {
+         if( (!fastMode) && (!dataFile.empty()) ) {
             finishedFile(dataFile, false);
          }
          return false;

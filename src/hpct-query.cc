@@ -461,7 +461,7 @@ int main(int argc, char** argv)
       std::cerr << "ERROR: to measurement identifier < from measurement identifier!\n";
       return 1;
    }
-   if(addressToMeasurementIDFile != std::filesystem::path()) {
+   if(!addressToMeasurementIDFile.empty()) {
       std::ifstream mappingFile(addressToMeasurementIDFile);
       if(!mappingFile.good()) {
          std::cerr << "ERROR: Unable to read mapping file " << addressToMeasurementIDFile << "!\n";
@@ -510,7 +510,7 @@ int main(int argc, char** argv)
    std::ofstream                       outputFile;
    boost::iostreams::filtering_ostream outputStream;
    const std::filesystem::path         tmpOutputFileName(outputFileName.string() + ".tmp");
-   if(outputFileName != std::filesystem::path()) {
+   if(!outputFileName.empty()) {
       std::error_code ec;
       std::filesystem::remove(outputFileName, ec);
       outputFile.open(tmpOutputFileName, std::ios_base::out | std::ios_base::binary);
@@ -1063,7 +1063,7 @@ int main(int argc, char** argv)
       exit(1);
    }
 
-   if(outputFileName != std::filesystem::path()) {
+   if(!outputFileName.empty()) {
       try {
          std::filesystem::rename(tmpOutputFileName, outputFileName);
 
