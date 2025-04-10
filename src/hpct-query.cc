@@ -489,7 +489,7 @@ int main(int argc, char** argv)
 
    // ====== Initialise importer ============================================
    initialiseLogger(logLevel, logColor,
-                    (logFile != std::filesystem::path()) ? logFile.string().c_str() : nullptr);
+                    (!logFile.empty()) ? logFile.string().c_str() : nullptr);
 
    // ====== Read database configuration ====================================
    DatabaseConfiguration databaseConfiguration;

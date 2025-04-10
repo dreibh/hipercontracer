@@ -196,7 +196,7 @@ int main(int argc, char** argv)
    // ====== Initialise importer ============================================
    HPCT_LOG(info) << "Startup:\n" << importerConfiguration << databaseConfiguration;
    initialiseLogger(logLevel, logColor,
-                    (logFile != std::filesystem::path()) ? logFile.string().c_str() : nullptr);
+                    (!logFile.empty()) ? logFile.string().c_str() : nullptr);
 
    boost::asio::io_context ioContext;
    UniversalImporter importer(ioContext, importerConfiguration, databaseConfiguration);

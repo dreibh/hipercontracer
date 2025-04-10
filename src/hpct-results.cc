@@ -873,7 +873,7 @@ int main(int argc, char** argv)
 
    // ====== Initialize =====================================================
    initialiseLogger(logLevel, logColor,
-                    (logFile != std::filesystem::path()) ? logFile.string().c_str() : nullptr);
+                    (!logFile.empty()) ? logFile.string().c_str() : nullptr);
 
    // ====== Open output file ===============================================
    std::string                         extension(outputFileName.extension());
