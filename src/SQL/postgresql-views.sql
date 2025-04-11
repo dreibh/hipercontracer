@@ -35,6 +35,11 @@
 DROP VIEW IF EXISTS Ping_v1;
 CREATE VIEW Ping_v1 AS
    SELECT
+      -- Providing new BIGINT timestamp here, to speed up queries:
+      SendTimestamp                            AS TimeStampNS,
+      -- WARNING:  The original v1 time stamp is TIMESTAMP WITHOUT TIME ZONE
+      --           This conversion prevents index usage, which
+      --           is *very* slow on SELECTs with time ranges!
       UnixTimestamp2UTCDateTime(SendTimestamp) AS TimeStamp,
       SourceIP                                 AS FromIP,
       DestinationIP                            AS ToIP,
@@ -63,6 +68,11 @@ CREATE VIEW Ping_v2 AS
 DROP VIEW IF EXISTS Traceroute_v1;
 CREATE VIEW Traceroute_v1 AS
    SELECT
+      -- Providing new BIGINT timestamp here, to speed up queries:
+      Timestamp                            AS TimeStampNS,
+      -- WARNING:  The original v1 time stamp is TIMESTAMP WITHOUT TIME ZONE
+      --           This conversion prevents index usage, which
+      --           is *very* slow on SELECTs with time ranges!
       UnixTimestamp2UTCDateTime(Timestamp) AS TimeStamp,
       SourceIP                             AS FromIP,
       DestinationIP                        AS ToIP,
