@@ -415,8 +415,7 @@ int main(int argc, char** argv)
    try {
       boost::program_options::store(boost::program_options::command_line_parser(argc, argv).
                                        style(
-                                          boost::program_options::command_line_style::style_t::default_style|
-                                          boost::program_options::command_line_style::style_t::allow_long_disguise
+                                          boost::program_options::command_line_style::style_t::unix_style
                                        ).
                                        options(allOptions).positional(positionalParameters).
                                        run(), vm);
@@ -462,7 +461,7 @@ int main(int argc, char** argv)
       std::cerr << "ERROR: to measurement identifier < from measurement identifier!\n";
       return 1;
    }
-   if(addressToMeasurementIDFile != std::filesystem::path()) {
+   if(!addressToMeasurementIDFile.empty()) {
       std::ifstream mappingFile(addressToMeasurementIDFile);
       if(!mappingFile.good()) {
          std::cerr << "ERROR: Unable to read mapping file " << addressToMeasurementIDFile << "!\n";
@@ -490,7 +489,7 @@ int main(int argc, char** argv)
 
    // ====== Initialise importer ============================================
    initialiseLogger(logLevel, logColor,
-                    (logFile != std::filesystem::path()) ? logFile.string().c_str() : nullptr);
+                    (!logFile.empty()) ? logFile.string().c_str() : nullptr);
 
    // ====== Read database configuration ====================================
    DatabaseConfiguration databaseConfiguration;
@@ -511,7 +510,7 @@ int main(int argc, char** argv)
    std::ofstream                       outputFile;
    boost::iostreams::filtering_ostream outputStream;
    const std::filesystem::path         tmpOutputFileName(outputFileName.string() + ".tmp");
-   if(outputFileName != std::filesystem::path()) {
+   if(!outputFileName.empty()) {
       std::error_code ec;
       std::filesystem::remove(outputFileName, ec);
       outputFile.open(tmpOutputFileName, std::ios_base::out | std::ios_base::binary);
@@ -1064,7 +1063,7 @@ int main(int argc, char** argv)
       exit(1);
    }
 
-   if(outputFileName != std::filesystem::path()) {
+   if(!outputFileName.empty()) {
       try {
          std::filesystem::rename(tmpOutputFileName, outputFileName);
 

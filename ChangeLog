@@ -1,3 +1,209 @@
+commit ea5ccd8b69c1483ecf90e465a0593983590ef44c
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Apr 10 10:56:57 2025 +0200
+
+    Some more clean-ups.
+
+commit 16502cc08a6581f52c0ccfbbce632efd650a6b1e
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Apr 10 10:53:49 2025 +0200
+
+    Minor clean-ups.
+
+commit 5c40b515aef6cfe5f24a225d58045af48b74358b
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Apr 10 09:39:06 2025 +0200
+
+    Bugfix: Fixed handling of long options, to prevent ambiguity with short options.
+
+commit 6bbaad0ae8db2cbbca97125d9c1906490661b352
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Apr 8 17:38:10 2025 +0200
+
+    New release hipercontracer-2.0.9.
+
+commit 02a0cb84cde644bd785e3f9705ffda49a4c5a95f
+Merge: 2d794d3 ec5cb11
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Apr 8 17:32:11 2025 +0200
+
+    Merge branch 'master' of https://github.com/dreibh/hipercontracer
+
+commit ec5cb110bfdb45b9023213a6d12a0c30dea58a9f
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Apr 8 17:31:24 2025 +0200
+
+    Reverted posix_fadvise() changes.
+
+commit 2d794d3ab65b41ae397371adc21e3dece7de8191
+Merge: c902bc8 981eebe
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Apr 8 17:26:11 2025 +0200
+
+    Merge branch 'master' of https://github.com/dreibh/hipercontracer
+
+commit 6977fb1c8e46bd154da74c167f4e639f755fd786
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Apr 8 16:30:29 2025 +0200
+
+    Some more testing.
+
+commit f9b674f7e5e53196ea23a2c36ef783f97ead4926
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Apr 8 16:09:00 2025 +0200
+
+    An update.
+
+commit 20fd5c634f39798afbe924987e5f412e6cf9c550
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Apr 8 15:43:24 2025 +0200
+
+    Some testing.
+
+commit 981eebe2db6b4ba07d91d7c0d52a73f517b3baa8
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Apr 8 12:58:27 2025 +0200
+
+    Some debugging.
+
+commit c902bc8f0e05017b6d972160a511b22502d1ab83
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Apr 8 12:10:48 2025 +0200
+
+    Improved script.
+
+commit 0a67466146c9d0d85ab632b9bc1db0ebdd5b8077
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Apr 8 10:12:18 2025 +0200
+
+    Using posix_fadvise() to provide access pattern hints.
+
+commit 20685a968b35070c4f6e2355b984e0d754fb04a9
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Apr 8 10:08:29 2025 +0200
+
+    Some clean-ups. Also added posix_fadvise() support.
+
+commit e6b98d39a199fb778268025cc605635b5ac160e2
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Mon Apr 7 17:47:29 2025 +0200
+
+    Some clean-ups.
+
+commit a6e0a075b4c2bf2e4ea22479bd8264c6dba61298
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Mon Apr 7 17:47:04 2025 +0200
+
+    posix_fadvise() support for HPCT Results.
+
+commit ba72913fad5b794b9248acb80702a940a1abed9e
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Mon Apr 7 17:35:48 2025 +0200
+
+    Improved worker mapping.
+
+commit 4c03ea83f7d2a38a61a38ecee56f07048fe3d018
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Mon Apr 7 15:03:02 2025 +0200
+
+    Another ShellCheck clean-up.
+
+commit 27f22cfc4e49d6bddf8dac4ebbab827825171394
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Mon Apr 7 15:01:20 2025 +0200
+
+    ShellCheck clean-ups.
+
+commit a2d4794c2a5cc295e03679db331e301ab56f8830
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Mon Apr 7 14:56:26 2025 +0200
+
+    Moved SQL views into separate files.
+
+commit daa88975d18f1cba9b751c2d030a6dd84a1728d0
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Mon Apr 7 14:50:12 2025 +0200
+
+    PostgreSQL permissions fix.
+
+commit 3ec7cc0a6e7d423ec6b324c20b7c327dd0065b9c
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Mon Apr 7 14:36:18 2025 +0200
+
+    Fixed PostgreSQL legacy v1 view as well.
+
+commit 9f1f98fb19cb491d90eb08f286237373448c9d03
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Mon Apr 7 13:35:37 2025 +0200
+
+    Bugfix: Fixed MariaDB legacy v1 export.
+
+commit 13cbc3897ad41ef8ff29a2b86ca57ed95b4616a5
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Mon Apr 7 13:09:28 2025 +0200
+
+    Legacy v1 view fixes.
+
+commit 2536dedc6b0a1e0273f57c4751d5ba704f1c3b92
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Mon Apr 7 13:09:13 2025 +0200
+
+    MariaDB SQL functions clean-up.
+
+commit ebac6fe10583f1fb732a204321799b87f112b265
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Mon Apr 7 10:24:18 2025 +0200
+
+    Removed unnecessary #include.
+
+commit 77dfa163dc5a1cc0cf68e4f152c4c1de0b233424
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Mon Apr 7 10:10:13 2025 +0200
+
+    Log output improvement.
+
+commit 5766923ee5f178497a695dd785df0fa316486977
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Mon Apr 7 10:09:46 2025 +0200
+
+    Bugfix: Added missing exception handling to convertOldPingLine() as well.
+
+commit 49ed26b20ddb64c7dfaf977c90b5e8008222069f
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Mon Apr 7 10:09:07 2025 +0200
+
+    Improved reader exception handling to provide more informative log output.
+
+commit f747e18367d7d41d524127dc3773e0667d192a4b
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Mon Apr 7 09:37:48 2025 +0200
+
+    Minor #includes clean-up.
+
+commit 1942ae6883b66d66285fe705b5ba0341fc0a657e
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Mon Apr 7 09:34:00 2025 +0200
+
+    Indentation fix.
+
+commit 73334a74932f68affbdf59ce45dc55267b093ec8
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Mon Apr 7 09:32:50 2025 +0200
+
+    Removed unnecessary #includes.
+
+commit 5e1492e4f5ecec58b6163ff4acac4396f37cbe4a
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Mon Apr 7 09:19:27 2025 +0200
+
+    Bugfix: Added missing exception handling.
+
+commit 6182b5c02e30da3fec433125bcd11fced6320bcf
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Fri Apr 4 16:04:14 2025 +0200
+
+    New release hipercontracer-2.0.8.
+
 commit 2f3faadf21ff9b1f3b8daf1b57a4ae8fa019a414
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Thu Apr 3 17:59:39 2025 +0200
