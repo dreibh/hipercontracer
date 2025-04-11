@@ -122,10 +122,14 @@ _hpct_query()
 --table-version
 -M
 --address-to-measurementid
+--deduplication
 --from-time
 --to-time
 --from-measurement-id
 --to-measurement-id
+-h
+--help
+--version
 "
    # shellcheck disable=SC2207
    COMPREPLY=( $( compgen -W "${opts}" -- "${cur}" ) )

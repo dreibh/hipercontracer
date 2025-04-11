@@ -109,7 +109,7 @@ _hpct_results()
 --output
 -s
 --separator
--S
+-A
 --sorted
 -U
 --unsorted
@@ -121,6 +121,9 @@ _hpct_results()
 --input-file-names-from-stdin
 -F
 --input-file-names-from-file
+-h
+--help
+--version
 "
    # shellcheck disable=SC2207
    COMPREPLY=( $( compgen -W "${opts}" -- "${cur}" ) )
