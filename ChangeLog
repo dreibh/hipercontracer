@@ -1,3 +1,27 @@
+commit 5d2ded7ee39c3b71b4794e432654925052007b79
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Fri Apr 11 12:41:20 2025 +0200
+
+    Manpage updates.
+
+commit 25650368b01c0a4451582258fbef3ce2dc166d26
+Author: NorNet Praesum Presum <nornetpp@vbox.oslomet.no>
+Date:   Fri Apr 11 12:32:36 2025 +0200
+
+    Bugfix: DBShell needs to check whether client is available. To prevent installing unnecessary DB packages, the clients are not strict dependencies.
+
+commit 80df76241b7e49dc61332ee3e1abfc0a35e65c88
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Fri Apr 11 11:46:20 2025 +0200
+
+    Improvement for SQL v1 legacy views: adding timestamp as value, for improved SELECT query performance.
+
+commit 3478e9225f941e734ded3e4658cf2aaa54934084
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Apr 10 11:39:33 2025 +0200
+
+    New release hipercontracer-2.0.10.
+
 commit ea5ccd8b69c1483ecf90e465a0593983590ef44c
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Thu Apr 10 10:56:57 2025 +0200
