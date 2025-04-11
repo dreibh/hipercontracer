@@ -137,7 +137,6 @@ void OutputStream::closeStream(const bool sync)
 
    // ====== Synchronise ====================================================
    if(sync) {
-      puts("SYNC!");
       if(is_complete()) {
          flush();
          strict_sync();
