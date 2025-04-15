@@ -1,3 +1,15 @@
+commit 9129b811e40779de47ebb5d6a4ef8611e0a2d34c
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Apr 15 11:25:48 2025 +0200
+
+    Bugfix: Fixed missing variable initialisation.
+
+commit 0297fb27e0fca9310fb8c61c8be1b6baf45dfb4d
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Fri Apr 11 16:19:46 2025 +0200
+
+    New release hipercontracer-2.0.11.
+
 commit 5d2ded7ee39c3b71b4794e432654925052007b79
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Fri Apr 11 12:41:20 2025 +0200
