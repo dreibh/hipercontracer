@@ -171,7 +171,7 @@ static inline unsigned int mapMeasurementID(
 // ###### Generic ###########################################################
 #define OUTPUT_ITEM(outputType, timeStampVariable)                             \
    if( (!deduplication) || (lastTimeStamp != timeStampVariable) ||             \
-         (dedupLastItem != outputString) ) {                                   \
+       (dedupLastItem != outputString) ) {                                     \
       if(__builtin_expect(lines == 0, 0)) {                                    \
          outputStream << "#? HPCT " << outputType << " " << ProgramID << "\n"; \
       }                                                                        \
@@ -544,7 +544,7 @@ int main(int argc, char** argv)
    const std::chrono::system_clock::time_point t1            = std::chrono::system_clock::now();
    unsigned long long                          lastTimeStamp = 0;
    std::string                                 dedupLastItem;
-   bool                                        dedupInProgress;
+   bool                                        dedupInProgress        = false;
    unsigned long long                          dedupDuplicatesRemoved = 0;
    try {
       // ====== Ping ========================================================
