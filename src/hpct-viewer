@@ -54,7 +54,7 @@ elif [[ "${inputFile}" =~ \.bz2$ ]] ; then
    bzless "${inputFile}"
 elif [[ "${inputFile}" =~ \.gz$ ]] ; then
    zless "${inputFile}"
-elif [[ "${inputFile}" =~ \.zstd$ ]] ; then
+elif [[ "${inputFile}" =~ \.zst$ ]] ; then
    zstdless "${inputFile}"
 else
    less "${inputFile}"
