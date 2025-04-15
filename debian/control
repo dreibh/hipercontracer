@@ -162,7 +162,7 @@ Description: I/O library of HiPerConTracer
  SQL database GUI application) configuration; UDP Echo Server as UDP Echo
  (RFC 862) protocol endpoint; Wireshark dissector for HiPerConTracer packets.
  .
- The library shares I/O functions commonly used by libhipercontracer and
+ This library shares I/O functions commonly used by libhipercontracer and
  libuniversalimporter.
 
 Package: libhpctio-dev
