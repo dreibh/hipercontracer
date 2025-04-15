@@ -24,6 +24,7 @@ BuildRequires: openssl-devel
 BuildRequires: pdf2svg
 BuildRequires: xz-devel
 BuildRequires: zlib-devel
+BuildRequires: libzstd-devel
 BuildRoot: %{_tmppath}/%{name}-%{version}-build
 Requires: %{name}-common = %{version}-%{release}
 Requires: %{name}-libhipercontracer = %{version}-%{release}

@@ -21,6 +21,7 @@ Build-Depends: cmake (>= 3.10),
                libmariadb-dev,
                libmongoc-dev,
                libpqxx-dev,
+               libzstd-dev,
                pdf2svg,
                zlib1g-dev
 Standards-Version: 4.7.2

@@ -237,6 +237,18 @@ IF (NOT LZMA_LIBRARY)
            " * FreeBSD:       sudo pkg install -y lzmalib")
 ENDIF()
 
+# ====== libzstd ============================================================
+FIND_LIBRARY(ZSTD_LIBRARY NAMES zstd)
+IF (NOT ZSTD_LIBRARY)
+   MESSAGE(FATAL_ERROR
+           " Cannot find ZSTD library! Try:\n"
+           " * Ubuntu/Debian: sudo apt install -y libzstd-dev\n"
+           " * Fedora:        sudo dnf install -y libzstd-devel\n"
+           " * SuSE:          sudo zypper install -y libzstd-devel\n"
+           " * Alpine:        sudo apk add libzstd-devel\n"
+           " * FreeBSD:       sudo pkg install -y zstd")
+ENDIF()
+
 # ====== C-ARES =============================================================
 # IF (WITH_HIPERCONTRACER)
 #    FIND_LIBRARY(CARES_LIBRARY NAMES cares libcares)
