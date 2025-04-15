@@ -858,6 +858,7 @@ Requires: bzip2
 Requires: gzip
 Requires: less
 Requires: xz
+Requires: zstd
 Recommends: %{name} = %{version}-%{release}
 Recommends: %{name}-results = %{version}-%{release}
 
