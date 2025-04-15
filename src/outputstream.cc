@@ -30,6 +30,7 @@
 #include "outputstream.h"
 
 #include <fcntl.h>
+#include <sys/stat.h>
 
 #include <thread>
 #include <boost/iostreams/device/file_descriptor.hpp>
