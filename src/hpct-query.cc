@@ -165,7 +165,7 @@ static inline unsigned int mapMeasurementID(
 // ###### Generic ###########################################################
 #define OUTPUT_ITEM(outputType, timeStampVariable)                             \
    if( (!deduplication) || (lastTimeStamp != timeStampVariable) ||             \
-         (dedupLastItem != outputString) ) {                                   \
+       (dedupLastItem != outputString) ) {                                     \
       if(__builtin_expect(lines == 0, 0)) {                                    \
          outputStream << "#? HPCT " << outputType << " " << ProgramID << "\n"; \
       }                                                                        \
@@ -527,7 +527,7 @@ int main(int argc, char** argv)
    unsigned long long                          lastTimeStamp = 0;
    unsigned long long                          lines         = 0;
    std::string                                 dedupLastItem;
-   bool                                        dedupInProgress;
+   bool                                        dedupInProgress        = false;
    unsigned long long                          dedupDuplicatesRemoved = 0;
    try {
       // ====== Ping ========================================================
