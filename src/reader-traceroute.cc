@@ -31,6 +31,8 @@
 #include "reader-traceroute.h"
 #include "tools.h"
 
+#include <boost/crc.hpp>
+
 
 const std::string  TracerouteReader::Identification("Traceroute");
 const std::regex   TracerouteReader::FileNameRegExp(
@@ -99,18 +101,24 @@ int makeInputFileEntry(const std::filesystem::path& dataFile,
          inputFileEntry.DataFile  = dataFile;
 
          // ====== Map file to worker =======================================
-         // Use the hash of the source address for worker mapping:
-         std::size_t sourceIdentifier;
+         uint32_t sourceIdentifier;
          if( (inputFileEntry.Source == "::") || (inputFileEntry.Source == "0.0.0.0") ) {
             // Source is unspecific -> use Process ID or Measurement ID:
-            sourceIdentifier = (std::size_t)atol(match[3].str().c_str());
+            sourceIdentifier = (uint32_t)atol(match[3].str().c_str());
          }
          else {
             sourceIdentifier = 0;
          }
-         const std::size_t workerID =
-            ((std::size_t)(std::hash<std::string>{}(inputFileEntry.Source)) ^ sourceIdentifier) % workers;
 
+         // Addresses are somewhat systematic
+         // => Using CRC32 as hash algorithm, for improved worker mapping.
+         boost::crc_32_type crc32hasher;
+         crc32hasher.process_bytes(inputFileEntry.Source.data(),
+                                   inputFileEntry.Source.length());
+         crc32hasher.process_bytes((const char*)&sourceIdentifier,
+                                   sizeof(sourceIdentifier));
+         const uint32_t hash = crc32hasher.checksum();
+         const int workerID = hash % workers;
 /*
          std::cout << inputFileEntry.Source << "\t"
                    << timePointToString<ReaderTimePoint>(inputFileEntry.TimeStamp, 6)

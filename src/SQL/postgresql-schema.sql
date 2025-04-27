@@ -76,33 +76,6 @@ CREATE TABLE Ping_p2027 PARTITION OF Ping FOR VALUES FROM (1000000000 * EXTRACT(
 CREATE INDEX PingRelationIndex ON Ping (MeasurementID ASC, DestinationIP ASC, SendTimestamp ASC);
 
 
--- ###### Ping version 1 view ###############################################
--- NOTE: This view is only for backwards compatibility, trying to provide the
---       same structure as old HiPerConTracer version 1 databases!
---       RTT uses the most accurate value available, i.e. HW -> SW -> App!
-DROP VIEW IF EXISTS Ping_v1;
-CREATE VIEW Ping_v1 AS
-   SELECT
-      TO_TIMESTAMP(SendTimestamp / 1000000000.0)::TIMESTAMP WITHOUT TIME ZONE AS TimeStamp,
-      SourceIP                                 AS FromIP,
-      DestinationIP                            AS ToIP,
-      PacketSize                               AS PktSize,
-      TrafficClass                             AS TC,
-      Status,
-      CASE
-         WHEN RTT_HW > 0 THEN RTT_HW / 1000
-         WHEN RTT_SW > 0 THEN RTT_SW / 1000
-         ELSE                 RTT_App / 1000
-      END                                      AS RTT
-   FROM Ping;
-
-
--- ###### Ping version 2 view ###############################################
-DROP VIEW IF EXISTS Ping_v2;
-CREATE VIEW Ping_v2 AS
-   SELECT * FROM Ping;
-
-
 -- ###### Traceroute ########################################################
 DROP TABLE IF EXISTS Traceroute CASCADE;
 CREATE TABLE Traceroute (
@@ -144,38 +117,6 @@ CREATE TABLE Traceroute_p2026 PARTITION OF Traceroute FOR VALUES FROM (100000000
 CREATE TABLE Traceroute_p2027 PARTITION OF Traceroute FOR VALUES FROM (1000000000 * EXTRACT(EPOCH FROM TIMESTAMP '2027-01-01')) TO (1000000000 * EXTRACT(EPOCH FROM TIMESTAMP '2028-01-01'));
 
 CREATE INDEX TracerouteRelationIndex ON Traceroute (MeasurementID ASC, DestinationIP ASC, Timestamp ASC);
-
-
--- ###### Traceroute version 1 view #########################################
--- NOTE: This view is only for backwards compatibility, trying to provide the
---       same structure as old HiPerConTracer version 1 databases!
---       RTT uses the most accurate value available, i.e. HW -> SW -> App!
-DROP VIEW IF EXISTS Traceroute_v1;
-CREATE VIEW Traceroute_v1 AS
-   SELECT
-      TO_TIMESTAMP(Timestamp / 1000000000.0)::TIMESTAMP WITHOUT TIME ZONE AS TimeStamp,
-      SourceIP                                 AS FromIP,
-      DestinationIP                            AS ToIP,
-      PacketSize                               AS PktSize,
-      TrafficClass                             AS TC,
-      HopNumber,
-      TotalHops,
-      Status,
-      CASE
-         WHEN RTT_HW > 0 THEN RTT_HW / 1000
-         WHEN RTT_SW > 0 THEN RTT_SW / 1000
-         ELSE                 RTT_App / 1000
-      END                                      AS RTT,
-      HopIP,
-      PathHash,
-      RoundNumber                              AS Round
-   FROM Traceroute;
-
-
--- ###### Traceroute version 2 view #########################################
-DROP VIEW IF EXISTS Traceroute_v2;
-CREATE VIEW Traceroute_v2 AS
-   SELECT * FROM Traceroute;
 
 
 -- ###### Jitter ############################################################
@@ -231,10 +172,3 @@ CREATE TABLE Jitter_p2026 PARTITION OF Jitter FOR VALUES FROM (1000000000 * EXTR
 CREATE TABLE Jitter_p2027 PARTITION OF Jitter FOR VALUES FROM (1000000000 * EXTRACT(EPOCH FROM TIMESTAMP '2027-01-01')) TO (1000000000 * EXTRACT(EPOCH FROM TIMESTAMP '2028-01-01'));
 
 CREATE INDEX JitterRelationIndex ON Jitter (MeasurementID ASC, DestinationIP ASC, Timestamp ASC);
-
-
--- ###### Jitter version 2 view #############################################
--- NOTE: There is no Jitter version 1!
-DROP VIEW IF EXISTS Jitter_v2;
-CREATE VIEW Jitter_v2 AS
-   SELECT * FROM Jitter;

@@ -1,3 +1,26 @@
+<<<<<<< HEAD
+#include "jittermodule-iqr.h"
+#include "jittermodule-rfc3550.h"
+
+#include <stdio.h>
+
+
+int main(int argc, char *argv[])
+{
+   JitterModuleIQR j;
+   // JitterModuleRFC3550 j;
+
+   j.process(0xaa, 1000000000, 1100000000);
+   j.process(0xaa, 2000000000, 2200000000);
+   j.process(0xaa, 3000000000, 3100000000);
+   j.process(0xaa, 4000000000, 4200000000);
+   j.process(0x66, 5000000000, 5200000000);
+
+   printf("P=%u\n", j.packets());
+   printf("J=%llu\n", j.jitter() / 1000000ULL);
+   printf("L=%llu\n", j.meanLatency() / 1000000ULL);
+
+=======
 #include <fcntl.h>
 
 #include <filesystem>
@@ -12,6 +35,7 @@
 #include <boost/iostreams/filter/bzip2.hpp>
 #include <boost/iostreams/filter/gzip.hpp>
 #include <boost/iostreams/filter/lzma.hpp>
+#include <boost/iostreams/filter/zlib.hpp>
 #include <boost/iostreams/filter/zstd.hpp>
 #include <boost/program_options.hpp>
 
@@ -55,28 +79,27 @@ FileCompressorType obtainCompressorFromExtension(const std::filesystem::path& fi
 }
 
 
-class OutputStream : public boost::iostreams::filtering_ostream
+class InputStream : public boost::iostreams::filtering_istream
 {
 
    public:
-   OutputStream();
-   ~OutputStream();
+   InputStream();
+   ~InputStream();
 
-   bool openStream(std::ostream& os);
+   bool openStream(std::istream& os);
    bool openStream(const std::filesystem::path& fileName,
                    const FileCompressorType     compressor = FromExtension);
-   bool closeStream(const bool sync = true);
+   void closeStream();
 
    private:
-   std::filesystem::path                                                    FileName;
-   std::filesystem::path                                                    TmpFileName;
-   boost::iostreams::stream_buffer<boost::iostreams::file_descriptor_sink>* StreamBuffer;
-   FileCompressorType                                                       Compressor;
+   std::filesystem::path                                                      FileName;
+   boost::iostreams::stream_buffer<boost::iostreams::file_descriptor_source>* StreamBuffer;
+   FileCompressorType                                                         Compressor;
 };
 
 
 // ###### Constructor #######################################################
-OutputStream::OutputStream()
+InputStream::InputStream()
 {
    StreamBuffer = nullptr;
    Compressor   = None;
@@ -84,48 +107,41 @@ OutputStream::OutputStream()
 
 
 // ###### Destructor ########################################################
-OutputStream::~OutputStream()
+InputStream::~InputStream()
 {
-   closeStream(false);
+   closeStream();
 }
 
 
-// ###### Initialise output stream to std::ostream ##########################
-bool OutputStream::openStream(std::ostream& os)
+// ###### Initialise input stream to std::istream ###########################
+bool InputStream::openStream(std::istream& os)
 {
-   closeStream(false);
+   closeStream();
    push(os);
    return true;
 }
 
 
-// ###### Initialise output stream to output file ###########################
-bool OutputStream::openStream(const std::filesystem::path& fileName,
+// ###### Initialise input stream to input file #############################
+bool InputStream::openStream(const std::filesystem::path& fileName,
                               const FileCompressorType     compressor)
 {
    // ====== Reset ==========================================================
    closeStream();
 
-   // ====== Initialise output steam to file ================================
+   // ====== Initialise input steam to file =================================
    Compressor = compressor;
    FileName   = fileName;
    if(FileName != std::filesystem::path()) {
-      TmpFileName = FileName.string() + ".tmp";
-
-      // ------ Remove output file, if it is existing -----------------------
-      std::filesystem::remove(FileName);
-
-      // ------ Open temporary output file ----------------------------------
-      int handle = ::open(TmpFileName.c_str(),
-                          O_CREAT|O_TRUNC|O_WRONLY,
-                          S_IRUSR|S_IWUSR|S_IRGRP|S_IROTH);
+      // ------ Open temporary input file -----------------------------------
+      int handle = ::open(FileName.c_str(), O_RDONLY);
       if(handle < 0) {
          throw std::runtime_error(std::string(strerror(errno)));
       }
 #ifdef POSIX_FADV_SEQUENTIAL
-      posix_fadvise(handle, 0, 0, POSIX_FADV_SEQUENTIAL|POSIX_FADV_NOREUSE);
+      posix_fadvise(handle, 0, 0, POSIX_FADV_SEQUENTIAL|POSIX_FADV_WILLNEED|POSIX_FADV_NOREUSE);
 #endif
-      StreamBuffer = new boost::iostreams::stream_buffer<boost::iostreams::file_descriptor_sink>(
+      StreamBuffer = new boost::iostreams::stream_buffer<boost::iostreams::file_descriptor_source>(
                         handle, boost::iostreams::file_descriptor_flags::close_handle);
       assert(StreamBuffer != nullptr);
 
@@ -138,20 +154,20 @@ bool OutputStream::openStream(const std::filesystem::path& fileName,
             const boost::iostreams::lzma_params params(
                boost::iostreams::lzma::default_compression,
                std::thread::hardware_concurrency());
-            push(boost::iostreams::lzma_compressor(params));
+            push(boost::iostreams::lzma_decompressor(params));
            }
           break;
          case BZip2:
-            push(boost::iostreams::bzip2_compressor());
+            push(boost::iostreams::bzip2_decompressor());
           break;
          case GZip:
-            push(boost::iostreams::gzip_compressor());
+            push(boost::iostreams::gzip_decompressor());
           break;
          case ZSTD:
-            push(boost::iostreams::zstd_compressor());
+            push(boost::iostreams::zstd_decompressor());
           break;
          case ZLIB:
-            push(boost::iostreams::zlib_compressor());
+            push(boost::iostreams::zlib_decompressor());
           break;
          default:
           break;
@@ -164,25 +180,9 @@ bool OutputStream::openStream(const std::filesystem::path& fileName,
 }
 
 
-// ###### Close output stream ###############################################
-bool OutputStream::closeStream(const bool sync)
+// ###### Close input stream ###############################################
+void InputStream::closeStream()
 {
-   // ====== Synchronise and close file =====================================
-   bool success = false;
-   if(sync) {
-      if(FileName != std::filesystem::path()) {
-         // ------ Synchronise, then rename temporary output file --------------
-         boost::iostreams::filtering_ostream::strict_sync();
-         success = good();
-         if(success) {
-            std::filesystem::rename(TmpFileName, FileName);
-            success = true;
-         }
-         else {
-            std::filesystem::remove(TmpFileName);
-         }
-      }
-   }
    reset();
 
    // ====== Clean up =======================================================
@@ -190,40 +190,37 @@ bool OutputStream::closeStream(const bool sync)
       delete StreamBuffer;
       StreamBuffer = nullptr;
    }
-   FileName    = std::filesystem::path();
-   TmpFileName = std::filesystem::path();
-
-   return success;
+   FileName = std::filesystem::path();
 }
 
 
 
 void test(const char* name)
 {
-   OutputStream of;
+   unsigned int n = 0;
+   InputStream is;
    try {
-      of.openStream(name);
-      for(unsigned int i = 0; i < 1000; i++) {
-         of << "Test! " << name << "\n";
+      is.openStream(name);
+      std::string line;
+      while(std::getline(is, line)) {
+         n++;
       }
-      of.flush();
-      if(!of.closeStream()) {
-         std::cerr << "SYNC FAILED " << name << "\n";
-      }
+      is.closeStream();
    }
    catch(std::exception& e) {
       std::cerr << "ERROR: " << e.what() << "\n";
    }
-   std::cerr << "OK " << name << "\n";
+   std::cerr << "OK " << name << "\t" << n << "\n";
 }
+
 
 int main(int argc, char** argv)
 {
-   OutputStream of;
-
-   of.openStream(std::cout);
-   of << "COUT-TEST\n";
-   of.closeStream();
+   // InputStream is;
+   //
+   // is.openStream(std::cout);
+   // is << "COUT-TEST\n";
+   // is.closeStream();
 
    test("test.txt");
    test("test.txt.gz");
@@ -231,5 +228,6 @@ int main(int argc, char** argv)
    test("test.txt.xz");
    test("test.txt.zst");
    test("test.txt.zz");
+>>>>>>> master
    return 0;
 }

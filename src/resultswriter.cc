@@ -162,8 +162,12 @@ bool ResultsWriter::changeFile(const bool createNewFile)
          }
          OutputFile.open(TempFileName.c_str(), std::ios_base::out | std::ios_base::binary);
          switch(Compressor) {
-            case XZ:
-               OutputStream.push(boost::iostreams::lzma_compressor());
+            case XZ: {
+               const boost::iostreams::lzma_params params(
+                  boost::iostreams::lzma::default_compression,
+                  std::thread::hardware_concurrency());
+               OutputStream.push(boost::iostreams::lzma_compressor(params));
+              }
              break;
             case BZip2:
                OutputStream.push(boost::iostreams::bzip2_compressor());

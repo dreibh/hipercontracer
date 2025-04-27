@@ -4,3 +4,23 @@ Repository-Browse: https://github.com/dreibh/hipercontracer
 Bug-Submit: https://github.com/dreibh/hipercontracer/issues
 Contact: Thomas Dreibholz <dreibh@simula.no>
 Security-Contact: Thomas Dreibholz <dreibh@simula.no>
+Reference:
+ - Author: Thomas Dreibholz
+   Booktitle: Proceedings of the 28th IEEE International Conference on Software, Telecommunications and Computer Networks (SoftCOM)
+   Pages: 1–6
+   Title: HiPerConTracer - A Versatile Tool for IP Connectivity Tracing in Multi-Path Setups
+   ISBN: ISBN 978-953-290-099-6
+   DOI: 10.23919/SoftCOM50211.2020.9238278
+   Year: 2020
+   Month: sep
+   Day: 17
+   URL: https://web-backend.simula.no/sites/default/files/2024-06/SoftCOM2020-HiPerConTracer.pdf
+ - Author: Thomas Dreibholz
+   Booktitle: Proceedings of the 31st International Conference on Software, Telecommunications and Computer Networks (SoftCOM)
+   Title: High-Precision Round-Trip Time Measurements in the Internet with HiPerConTracer
+   ISBN: ISBN 979-8-3503-0107-6
+   DOI: 10.23919/SoftCOM58365.2023.10271612
+   Year: 2023
+   Month: sep
+   Day: 22
+   URL: https://web-backend.simula.no/sites/default/files/2023-10/SoftCOM2023-Timestamping.pdf
