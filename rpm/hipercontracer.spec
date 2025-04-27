@@ -1,5 +1,5 @@
 Name: hipercontracer
-Version: 2.0.14
+Version: 2.1.0
 Release: 1
 Summary: High-Performance Connectivity Tracer (HiPerConTracer)
 Group: Applications/Internet
@@ -24,6 +24,7 @@ BuildRequires: openssl-devel
 BuildRequires: pdf2svg
 BuildRequires: xz-devel
 BuildRequires: zlib-devel
+BuildRequires: libzstd-devel
 BuildRoot: %{_tmppath}/%{name}-%{version}-build
 Requires: %{name}-common = %{version}-%{release}
 Requires: %{name}-libhipercontracer = %{version}-%{release}
@@ -198,10 +199,105 @@ rmdir /var/hipercontracer >/dev/null 2>&1 || true
 %{_datadir}/mime/packages/hipercontracer.xml
 
 
+%package libhpctio
+Summary: I/O library of HiPerConTracer
+Group: System Environment/Libraries
+Requires: %{name}-libhpctio = %{version}-%{release}
+
+%description libhpctio
+High-Performance Connectivity Tracer (HiPerConTracer) is a Ping/Traceroute
+measurement framework. HiPerConTracer denotes the actual measurement
+tool. It performs regular Ping and Traceroute runs among sites, featuring:
+multi-transport-protocol support (ICMP, UDP); multi-homing and parallelism
+support; handling of load balancing in the network; multi-platform
+support (currently Linux and FreeBSD); high-precision (nanoseconds)
+timing support (Linux timestamping, both software and hardware); a
+library (shared/static) to integrate measurement functionality into other
+software (libhpctio); open source and written in a performance-
+and portability-focused programming language (C++) with only limited
+dependencies.
+Furthermore, the HiPerConTracer Framework furthermore provides additional
+tools for helping to obtain, process, collect, store, and retrieve
+measurement data: HiPerConTracer Viewer Tool for displaying the contents
+of results files; Results Tool for merging and converting results files,
+e.g. to create a Comma-Separated Value (CSV) file; Sync Tool for copying data
+from a measurement node (vantage point) to a remote HiPerConTracer Collector
+server (via RSync/SSH); Reverse Tunnel Tool for maintaining a reverse SSH
+tunnel from a remote measurement node to a HiPerConTracer Collector server;
+Collector/Node Tools for simplifying the setup of HiPerConTracer Nodes and a
+HiPerConTracer Collector server; Trigger Tool for triggering HiPerConTracer
+measurements in the reverse direction; Importer Tool for storing measurement
+data from results files into SQL or NoSQL databases. Currently, database
+backends for MariaDB/MySQL PostgreSQL, MongoDB) are provided; Query
+Tool for querying data from a database and storing it into a results
+file; Database Shell as simple command-line front-end for the underlying
+database backends; Database Tools with some helper scripts to e.g. to join
+HiPerConTracer database configurations into an existing DBeaver (a popular
+SQL database GUI application) configuration; UDP Echo Server as UDP Echo
+(RFC 862) protocol endpoint; Wireshark dissector for HiPerConTracer packets.
+This library shares I/O functions commonly used by libhipercontracer and
+libuniversalimporter.
+
+%files libhpctio
+%{_libdir}/libhpctio.so.*
+
+
+%package libhpctio-devel
+Summary: Development files for the HiPerConTracer I/O library
+Group: Development/Libraries
+Requires: %{name}-libhpctio = %{version}-%{release}
+Requires: boost-devel
+
+%description libhpctio-devel
+High-Performance Connectivity Tracer (HiPerConTracer) is a Ping/Traceroute
+measurement framework. HiPerConTracer denotes the actual measurement
+tool. It performs regular Ping and Traceroute runs among sites, featuring:
+multi-transport-protocol support (ICMP, UDP); multi-homing and parallelism
+support; handling of load balancing in the network; multi-platform
+support (currently Linux and FreeBSD); high-precision (nanoseconds)
+timing support (Linux timestamping, both software and hardware); a
+library (shared/static) to integrate measurement functionality into other
+software (libhpctio); open source and written in a performance-
+and portability-focused programming language (C++) with only limited
+dependencies.
+Furthermore, the HiPerConTracer Framework furthermore provides additional
+tools for helping to obtain, process, collect, store, and retrieve
+measurement data: HiPerConTracer Viewer Tool for displaying the contents
+of results files; Results Tool for merging and converting results files,
+e.g. to create a Comma-Separated Value (CSV) file; Sync Tool for copying data
+from a measurement node (vantage point) to a remote HiPerConTracer Collector
+server (via RSync/SSH); Reverse Tunnel Tool for maintaining a reverse SSH
+tunnel from a remote measurement node to a HiPerConTracer Collector server;
+Collector/Node Tools for simplifying the setup of HiPerConTracer Nodes and a
+HiPerConTracer Collector server; Trigger Tool for triggering HiPerConTracer
+measurements in the reverse direction; Importer Tool for storing measurement
+data from results files into SQL or NoSQL databases. Currently, database
+backends for MariaDB/MySQL PostgreSQL, MongoDB) are provided; Query
+Tool for querying data from a database and storing it into a results
+file; Database Shell as simple command-line front-end for the underlying
+database backends; Database Tools with some helper scripts to e.g. to join
+HiPerConTracer database configurations into an existing DBeaver (a popular
+SQL database GUI application) configuration; UDP Echo Server as UDP Echo
+(RFC 862) protocol endpoint; Wireshark dissector for HiPerConTracer packets.
+This package provides header files for the HiPerConTracer library. You need
+them to integrate HiPerConTracer into own programs.
+
+%files libhpctio-devel
+%{_includedir}/hipercontracer/compressortype.h
+%{_includedir}/hipercontracer/inputstream.h
+%{_includedir}/hipercontracer/logger.h
+%{_includedir}/hipercontracer/outputstream.h
+%{_includedir}/hipercontracer/tools.h
+%{_includedir}/hipercontracer/logger.h
+%{_includedir}/hipercontracer/tools.h
+%{_libdir}/libhpctio*.so
+%{_libdir}/libhpctio.a
+
+
 %package libhipercontracer
 Summary: API library of HiPerConTracer
 Group: System Environment/Libraries
-Requires: %{name}-libhipercontracer = %{version}-%{release}
+Requires: %{name}-libhpctio = %{version}-%{release}
 
 %description libhipercontracer
 High-Performance Connectivity Tracer (HiPerConTracer) is a Ping/Traceroute
@@ -244,6 +340,7 @@ The HiPerConTracer library is provided by this package.
 Summary: Development files for HiPerConTracer API library
 Group: Development/Libraries
 Requires: %{name}-libhipercontracer = %{version}-%{release}
+Requires: %{name}-libhpctio-devel = %{version}-%{release}
 Requires: boost-devel
 
 %description libhipercontracer-devel
@@ -301,7 +398,7 @@ them to integrate HiPerConTracer into own programs.
 %package libuniversalimporter
 Summary: API library of HiPerConTracer Universal Importer
 Group: System Environment/Libraries
-Requires: %{name}-libuniversalimporter = %{version}-%{release}
+Requires: %{name}-libhpctio = %{version}-%{release}
 
 %description libuniversalimporter
 High-Performance Connectivity Tracer (HiPerConTracer) is a Ping/Traceroute
@@ -345,6 +442,7 @@ package.
 Summary: Development files for HiPerConTracer Universal Importer API library
 Group: Development/Libraries
 Requires: %{name}-libuniversalimporter = %{version}-%{release}
+Requires: %{name}-libhpctio-devel = %{version}-%{release}
 Requires: boost-devel
 
 %description libuniversalimporter-devel
@@ -858,6 +956,7 @@ Requires: bzip2
 Requires: gzip
 Requires: less
 Requires: xz
+Requires: zstd
 Recommends: %{name} = %{version}-%{release}
 Recommends: %{name}-results = %{version}-%{release}
 
@@ -1107,9 +1206,13 @@ This metapackage installs all sub-packages of the HiPerConTracer Framework.
 
 
 %changelog
+<<<<<<< HEAD
+* Tue Apr 15 2025 Thomas Dreibholz <dreibh@simula.no> - 2.1.0
+=======
 * Sun Apr 27 2025 Thomas Dreibholz <dreibh@simula.no> - 2.0.14
 - New upstream release.
 * Wed Apr 16 2025 Thomas Dreibholz <dreibh@simula.no> - 2.0.13
+>>>>>>> master
 - New upstream release.
 * Tue Apr 15 2025 Thomas Dreibholz <dreibh@simula.no> - 2.0.12
 - New upstream release.

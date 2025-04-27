@@ -27,6 +27,8 @@
 //
 // Contact: dreibh@simula.no
 
+#include "package-version.h"
+
 #include <fcntl.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -36,15 +38,18 @@
 #include <string>
 #include <cstring>
 #include <iostream>
+#include <boost/program_options.hpp>
+
 
 // ###### Print digest algorithm ############################################
-void printDigest(const OBJ_NAME *obj, void* arg)
+static void printDigest(const OBJ_NAME *obj, void* arg)
 {
   std::cout << obj->name << " ";
 }
 
+
 // ###### List all supported digest algorithms ##############################
-void listDigests()
+static void listDigests()
 {
    std::cerr << "Supported digests: ";
    OpenSSL_add_all_digests();
@@ -64,43 +69,90 @@ int main(int argc, char** argv)
       return 1;
    }
 
-   bool        success    = false;
-   const char* digestName = "SHA256";
-   for(int i = 2; i < argc; i++) {
-      if( (strcmp(argv[i], "-D")) || (strcmp(argv[i], "--digest")) ) {
-         digestName = (i + 1 < argc) ? argv[++i] : "";
-         if(strcmp(digestName, "") == 0) {
-            listDigests();
-            return 1;
-         }
-      }
-      else {
-         std::cerr << "ERROR: Invalid option " << argv[i] << "!\n";
-         return 1;
-      }
+
+   // ====== Initialize =====================================================
+   std::string digestName("SHA256");
+   std::string outputFileName;
+
+   boost::program_options::options_description visibleOptions;
+   visibleOptions.add_options()
+      ( "help,h",
+           "Print help message" )
+      ( "version",
+           "Show program version" )
+      ( "digest,D",
+           boost::program_options::value<std::string>(&digestName),
+           "Digest" )
+      ;
+   boost::program_options::options_description hiddenOptions;
+   hiddenOptions.add_options()
+      ( "output,o",
+        boost::program_options::value<std::string>(&outputFileName),
+        "Output file" )
+      ;
+   boost::program_options::options_description commandLineOptions;
+   commandLineOptions.add(visibleOptions);
+   commandLineOptions.add(hiddenOptions);
+   boost::program_options::positional_options_description positionalOptions;
+   positionalOptions.add("output", 1);
+
+   // ====== Handle command-line arguments ==================================
+   boost::program_options::variables_map vm;
+   try {
+      boost::program_options::store(boost::program_options::command_line_parser(argc, argv).
+                                       style(
+                                          boost::program_options::command_line_style::style_t::unix_style
+                                       ).
+                                       options(commandLineOptions).
+                                       positional(positionalOptions).
+                                       run(), vm);
+      boost::program_options::notify(vm);
    }
-   const EVP_MD* md = EVP_get_digestbyname(digestName);
+   catch(std::exception& e) {
+      std::cerr << "ERROR: Bad parameter: " << e.what() << "\n";
+      return 1;
+   }
+
+   if(vm.count("help")) {
+      std::cerr << "Usage: " << argv[0] << " OPTIONS" << "\n"
+                << commandLineOptions;
+      return 0;
+   }
+   if(vm.count("version")) {
+      std::cerr << "Pipe Checksum" << " " << HPCT_VERSION << "\n";
+      return 0;
+   }
+   if(digestName == "") {
+      listDigests();
+      return 0;
+   }
+   const EVP_MD* md = EVP_get_digestbyname(digestName.c_str());
    if(md == nullptr) {
       std::cerr << "ERROR: Unknown message digest " << digestName << "!\n";
       listDigests();
       return 1;
    }
-   const std::string                           outputFileName    = argv[1];
+   if(outputFileName.empty()) {
+      std::cerr << "ERROR: No output file given!\n";
+      return 1;
+   }
+
+
+   // ====== Create output files ============================================
    const std::string                           checksumFileName(outputFileName + ".checksum");
    const std::string                           tmpOutputFileName(outputFileName + ".tmp");
    const std::string                           tmpChecksumFileName(checksumFileName + ".tmp");
    unsigned long long                          totalBytesWritten = 0;
+   bool                                        success           = false;
    const std::chrono::system_clock::time_point t1                = std::chrono::system_clock::now();
 
-
-   // ====== Create files ===================================================
    remove(outputFileName.c_str());
    remove(checksumFileName.c_str());
    FILE* outputFile = fopen(tmpOutputFileName.c_str(), "w");
    if(outputFile != nullptr) {
 #ifdef POSIX_FADV_SEQUENTIAL
       if(posix_fadvise(fileno(outputFile), 0, 0, POSIX_FADV_SEQUENTIAL|POSIX_FADV_NOREUSE) < 0) {
-         std::cerr << "WARNING: posix_fadvise() failed:" << strerror(errno);
+         std::cerr << "WARNING: posix_fadvise() failed: " << strerror(errno);
       }
 #endif
 
@@ -127,7 +179,7 @@ int main(int argc, char** argv)
             unsigned char mdValue[EVP_MAX_MD_SIZE];
             unsigned int  mdLength;
             EVP_DigestFinal_ex(digestNameContext, mdValue, &mdLength);
-            fprintf(checksumFile, "%s (%s) = ", digestName, outputFileName.c_str());
+            fprintf(checksumFile, "%s (%s) = ", digestName.c_str(), outputFileName.c_str());
             for(unsigned int i = 0; i < mdLength; i++) {
                fprintf(checksumFile, "%02x", mdValue[i]);
             }

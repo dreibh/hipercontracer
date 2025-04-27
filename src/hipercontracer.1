@@ -28,7 +28,7 @@
 .\" Contact: dreibh@simula.no
 .\"
 .\" ###### Setup ############################################################
-.Dd April 11, 2025
+.Dd April 15, 2025
 .Dt hipercontracer 1
 .Os hipercontracer
 .\" ###### Name #############################################################
@@ -83,10 +83,15 @@
 .\" .Op Fl Fl jitterudpdestinationport Ar port
 .Op Fl R Ar directory | Fl Fl resultsdirectory Ar directory
 .Op Fl x Ar seconds | Fl Fl resultstransactionlength Ar seconds
-.Op Fl C Ar none|XZ|BZip2|GZip | Fl Fl resultscompression Ar none|XZ|BZip2|GZip
+.Op Fl C Ar none|XZ|BZip2|GZip|ZLIB|ZSTD | Fl Fl resultscompression Ar none|XZ|BZip2|GZip|ZLIB|ZSTD
 .Op Fl F Ar version | Fl Fl resultsformat Ar version
 .Op Fl z Ar depth | Fl Fl resultstimestampdepth Ar depth
+.Nm hipercontracer
 .Op Fl Fl check
+.Nm hipercontracer
+.Op Fl h | Fl Fl help
+.Nm hipercontracer
+.Op Fl Fl version
 .\" ###### Description ######################################################
 .Sh DESCRIPTION
 .Nm hipercontracer
@@ -224,7 +229,7 @@ Sets the Ping destination port for the UDP module (default: 7, for Echo).
 Sets the results files directory. The results will be stored there. If not specified, to results will be stored.
 .It Fl l Ar seconds | Fl Fl resultstransactionlength Ar seconds
 After a given number of seconds, begin a new results file.
-.It Fl C Ar none|XZ|BZip2|GZip | Fl Fl resultscompression Ar none|XZ|BZip2|GZip
+.It Fl C Ar none|XZ|BZip2|GZip|ZLIB|ZSTD | Fl Fl resultscompression Ar none|XZ|BZip2|GZip|ZLIB|ZSTD
 Sets the compression for the output files.
 Default: XZ.
 .It Fl F Ar version | Fl Fl resultsformat Ar version
@@ -236,6 +241,10 @@ Create a timestamp-based directory hierarchy for the results, of given depth (de
 0 = none, 1 = year, 2 = year/month, 3 = year/month/day, 4 = year/month/day/hour:00, 5 = year/month/day/hour:00/hour:minute.
 .It Fl Fl check
 Print build environment information for debugging.
+.It Fl h | Fl Fl help
+Prints command help.
+.It Fl Fl version
+Prints program version.
 .El
 .\" ###### Output format ####################################################
 .Sh OUTPUT FORMAT
@@ -470,6 +479,8 @@ This entry has been added with HiPerConTracer 2.0.0!
 .It hipercontracer \-\-user=hipercontracer \-\-source=0.0.0.0 \-\-destination=8.8.8.8 \-M ICMP \-\-ping \-\-verbose
 .It hipercontracer \-\-user=hipercontracer \-\-source=0.0.0.0 \-\-source=::\-\-destination=www.ietf.org \-\-iomodule ICMP \-\-ping \-\-verbose
 .It hipercontracer \-\-user=hipercontracer \-\-source=10.193.4.64 \-\-destination 1.2.3.4 \-\-iomodule ICMP \-\-iomodule UDP \-\-ping \-\-traceroute
+.It hipercontracer --version
+.It hipercontracer --h
 .El
 .\" ###### Authors ##########################################################
 .Sh AUTHORS

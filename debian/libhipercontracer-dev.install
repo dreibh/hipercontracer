@@ -4,12 +4,10 @@ usr/include/hipercontracer/destinationinfo.h
 usr/include/hipercontracer/iomodule-base.h
 usr/include/hipercontracer/iomodule-icmp.h
 usr/include/hipercontracer/iomodule-udp.h
-usr/include/hipercontracer/logger.h
 usr/include/hipercontracer/ping.h
 usr/include/hipercontracer/resultentry.h
 usr/include/hipercontracer/resultswriter.h
 usr/include/hipercontracer/service.h
-usr/include/hipercontracer/tools.h
 usr/include/hipercontracer/traceroute.h
 usr/lib/*/libhipercontracer*.so
 usr/lib/*/libhipercontracer.a

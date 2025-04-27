@@ -1,4 +1,9 @@
-commit f7d3f468f054ecdd9810e508fa62d03e5e92779d
+commit f9e4a01523500fbe305e575c7bc01fa64d8336cb
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Apr 15 13:51:48 2025 +0200
+
+    Manpage updates.
+
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Sun Apr 27 20:48:15 2025 +0200
 
@@ -29,22 +34,115 @@ Date:   Tue Apr 15 14:19:08 2025 +0200
     MongoDB fix: setting MONGOC_URI_SOCKETTIMEOUTMS to 1 hour, to avoid connection problems with long-running queries.
 
 commit 4c2dc51236408751647beb18486c84350769c971
+>>>>>>> master
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Tue Apr 15 13:40:56 2025 +0200
 
     Bugfix: SELECT from legacy v1 table in PostgreSQL needs cast.
 
+<<<<<<< HEAD
+commit 79f0085fb7ac6aef8027e9f33876a57dfd5d9a40
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Apr 15 13:03:33 2025 +0200
+
+    Version bump.
+
+commit c10b918428f6850da05dc52e30fc05e59f4b51a5
+Merge: 3729061 d34e9ef
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Apr 15 13:01:22 2025 +0200
+
+    Merge branch 'master' into dreibh/libiostreams
+
+=======
+>>>>>>> master
 commit d34e9ef16d6a3037d16f23acd1d7d40c0558e5bd
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Tue Apr 15 13:00:19 2025 +0200
 
     New release hipercontracer-2.0.12.
 
+<<<<<<< HEAD
+commit 3729061647d6c0d4340101a34e7501e608aba5bb
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Apr 15 12:54:31 2025 +0200
+
+    Dependency clean-ups.
+
+commit 5bbe9164702c7f589d98cf73492d7868a4beb167
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Apr 15 11:55:53 2025 +0200
+
+    Fixed typo.
+
+commit d84f15eaa279c5f4aa7ca6624d546b491c4d5166
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Apr 15 11:49:39 2025 +0200
+
+    Added missing #includes.
+
+=======
+>>>>>>> master
 commit 9129b811e40779de47ebb5d6a4ef8611e0a2d34c
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Tue Apr 15 11:25:48 2025 +0200
 
     Bugfix: Fixed missing variable initialisation.
+
+commit 77c0db112dbf21ba4ce7b5533c32a4bcf3abf829
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Apr 15 11:25:48 2025 +0200
+
+    Bugfix: Fixed missing variable initialisation.
+
+commit 45f896e0685844e96a15e2e119b5257aa598641c
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Apr 15 11:22:50 2025 +0200
+
+    Removed unused variable.
+
+commit 44ebc204ef274be15b8fd7c766d3ab0dd91ae61a
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Apr 15 11:19:32 2025 +0200
+
+    Minor update.
+
+commit 8d1329e4c994ca27d73b4d47bd0742a5d6ae4de7
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Apr 15 11:19:26 2025 +0200
+
+    Fedora packaging update.
+
+commit 5a2c5d14729faed45ef68b94b019364ea6c405a5
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Apr 15 11:13:41 2025 +0200
+
+    Added ZSTD support to HPCT Viewer.
+
+commit 5ecdbda64d6fbfa6047827c24dab2d3edd9a459b
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Apr 15 11:08:11 2025 +0200
+
+    Manpage fix.
+
+commit 4ac2aad66ae82d3eefb1079718003e8e6ad8d01e
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Apr 15 11:06:31 2025 +0200
+
+    Debian packaging update.
+
+commit e891967f13521d365e19010ec1da99fcfb6c15eb
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Apr 15 11:02:59 2025 +0200
+
+    Fixed typo.
+
+commit 2855adb57e0b5cba7a8668607d2a8e19b64eae4b
+Merge: 95b8920 0297fb2
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Apr 15 10:31:11 2025 +0200
+
+    Merge branch 'master' into dreibh/libiostreams
 
 commit 0297fb27e0fca9310fb8c61c8be1b6baf45dfb4d
 Author: Thomas Dreibholz <dreibh@simula.no>
@@ -52,11 +150,25 @@ Date:   Fri Apr 11 16:19:46 2025 +0200
 
     New release hipercontracer-2.0.11.
 
+commit 95b892035a69529761bc060292478d205259d803
+Merge: ef86d11 5d2ded7
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Fri Apr 11 14:22:45 2025 +0200
+
+    Merge branch 'master' into dreibh/libiostreams
+
 commit 5d2ded7ee39c3b71b4794e432654925052007b79
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Fri Apr 11 12:41:20 2025 +0200
 
     Manpage updates.
+
+commit ef86d113b8a6401e014608b2a28a485ca1c7f6c5
+Merge: d0cd954 2565036
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Fri Apr 11 12:34:33 2025 +0200
+
+    Merge branch 'master' into dreibh/libiostreams
 
 commit 25650368b01c0a4451582258fbef3ce2dc166d26
 Author: NorNet Praesum Presum <nornetpp@vbox.oslomet.no>
@@ -64,17 +176,61 @@ Date:   Fri Apr 11 12:32:36 2025 +0200
 
     Bugfix: DBShell needs to check whether client is available. To prevent installing unnecessary DB packages, the clients are not strict dependencies.
 
+commit d0cd9544d27368541896573198ada7a13829e09b
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Fri Apr 11 12:15:21 2025 +0200
+
+    Updated shell completions.
+
+commit 2ab1fed108dffdd576bd2fd69257dff51a20c7d9
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Fri Apr 11 12:01:26 2025 +0200
+
+    Removed debug output.
+
 commit 80df76241b7e49dc61332ee3e1abfc0a35e65c88
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Fri Apr 11 11:46:20 2025 +0200
 
     Improvement for SQL v1 legacy views: adding timestamp as value, for improved SELECT query performance.
 
+commit 04298a1cfab4fde0a0ab418d205fed5027059cbc
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Fri Apr 11 11:46:20 2025 +0200
+
+    Improvement for SQL v1 legacy views: adding timestamp as value, for improved SELECT query performance.
+
+commit a789711744e7fa7cfdeaeb489c61fdad740432bd
+Merge: 7488c3e 3478e92
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Apr 10 15:11:07 2025 +0200
+
+    Merge branch 'master' into dreibh/libiostreams
+
 commit 3478e9225f941e734ded3e4658cf2aaa54934084
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Thu Apr 10 11:39:33 2025 +0200
 
     New release hipercontracer-2.0.10.
+
+commit 7488c3e9309d747d7dc41fd346aeb44cb0cd70cd
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Apr 10 11:24:33 2025 +0200
+
+    Improved manpage.
+
+commit 52b23601f88e92a02925fbdcb806b872da8814fb
+Merge: abdb9dc ea5ccd8
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Apr 10 11:18:01 2025 +0200
+
+    Merge remote-tracking branch 'origin/master' into dreibh/libiostreams
+
+commit abdb9dcc92b54e1ed1c9f5789abc80673b727778
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Apr 10 10:57:24 2025 +0200
+
+    Improved output file handling.
 
 commit ea5ccd8b69c1483ecf90e465a0593983590ef44c
 Author: Thomas Dreibholz <dreibh@simula.no>
@@ -88,17 +244,147 @@ Date:   Thu Apr 10 10:53:49 2025 +0200
 
     Minor clean-ups.
 
+commit 7b499fccdbe8d79c64629aa821345d4ba31f9551
+Merge: 24cf8a0 5c40b51
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Apr 10 09:48:04 2025 +0200
+
+    Merge branch 'master' into dreibh/libiostreams
+
 commit 5c40b515aef6cfe5f24a225d58045af48b74358b
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Thu Apr 10 09:39:06 2025 +0200
 
     Bugfix: Fixed handling of long options, to prevent ambiguity with short options.
 
+commit 24cf8a0849fad98ba66fccbf0dde0073f7ef76db
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Apr 10 09:36:42 2025 +0200
+
+    Added option "--version" to show the program version.
+
+commit 2bc3d5bf9ac834615889329ccbe21965c028ec1c
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Apr 10 09:36:29 2025 +0200
+
+    Some improvements.
+
+commit 731204ca7cbc4e7abf88097286daeb9e2219fe07
+Merge: 68cb6a7 6bbaad0
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Apr 10 08:18:16 2025 +0200
+
+    Merge branch 'master' into dreibh/libiostreams
+
+commit 68cb6a70763e771b312bc4e9f4fa2b4425039ae4
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Apr 9 19:38:06 2025 +0200
+
+    Manpage updates.
+
+commit d4b33eacb2b5118708733d6c88b8a7eb694e0ec1
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Apr 9 19:33:04 2025 +0200
+
+    Code clean-up.
+
+commit 0e9d6c1bc645fd9910f769ba077b635484c7bb68
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Apr 9 18:42:23 2025 +0200
+
+    Improved parameter handling.
+
+commit e12bb168eb762a361694adf8b2573aba90c7794e
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Apr 9 17:22:31 2025 +0200
+
+    Updated HPCT Importer.
+
+commit a8ec66928a6b26a3749149a077767b94dee7809c
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Apr 9 17:13:04 2025 +0200
+
+    Some clean-ups.
+
+commit 949d85b86880bb4e8391984484829c3b80f65ff7
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Apr 9 17:10:04 2025 +0200
+
+    Fixed missing space.
+
+commit 157125736f5aeb6b10991eaa377387890c405c22
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Apr 9 17:09:00 2025 +0200
+
+    * Updated HPCT Results.
+    * Some clean-ups.
+
+commit 4db937b3aeaa62d50d3df6334d2f008471524c0b
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Apr 9 14:44:35 2025 +0200
+
+    Fixed parameter handling.
+
+commit 409712e5194fb0bce2e5c0c2c937b3e11bbf4919
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Apr 9 14:41:34 2025 +0200
+
+    Log output clean-ups.
+
+commit dfd230ea1eb20632ddfc672fae406fff7316955d
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Apr 9 14:38:49 2025 +0200
+
+    Updated HPCT Query.
+
+commit 10c668e813beba2fb6103143c4d0f86d5d7f70cd
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Apr 9 14:22:32 2025 +0200
+
+    More informative error output.
+
+commit 379e32c8f975e49c083bc4c3757f4ac3b384d887
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Apr 9 14:22:15 2025 +0200
+
+    Further clean-ups.
+
+commit 198245b1978ac698d740b8f9f7a447ff17912ed2
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Apr 9 14:07:37 2025 +0200
+
+    Further clean-ups.
+
+commit e990d4de18f800bb9fcf30569115df74ce036369
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Apr 9 13:44:58 2025 +0200
+
+    Updated options handling.
+
+commit 2467fd8f78056c2309560a02a2ef3d7496298a2a
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Apr 9 13:44:17 2025 +0200
+
+    Some clean-ups.
+
+commit d4ed1d5196406a29f2047b5fc057aee1fe33b9d5
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Apr 9 09:20:00 2025 +0200
+
+    Some progress.
+
 commit 6bbaad0ae8db2cbbca97125d9c1906490661b352
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Tue Apr 8 17:38:10 2025 +0200
 
     New release hipercontracer-2.0.9.
+
+commit a5c54256b7cdf2c4bf1bb520d35955fb405eb232
+Merge: 5bf4383 02a0cb8
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Apr 8 17:36:21 2025 +0200
+
+    Merge branch 'master' into dreibh/libiostreams
 
 commit 02a0cb84cde644bd785e3f9705ffda49a4c5a95f
 Merge: 2d794d3a ec5cb110
@@ -119,6 +405,12 @@ Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Tue Apr 8 17:26:11 2025 +0200
 
     Merge branch 'master' of https://github.com/dreibh/hipercontracer
+
+commit 5bf4383dea5333b42099eb51ebf872279a3025a7
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Apr 8 17:24:00 2025 +0200
+
+    Towards moving file I/O into own library.
 
 commit 6977fb1c8e46bd154da74c167f4e639f755fd786
 Author: Thomas Dreibholz <dreibh@simula.no>

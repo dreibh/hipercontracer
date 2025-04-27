@@ -27,6 +27,8 @@
 //
 // Contact: dreibh@simula.no
 
+#include "package-version.h"
+
 #include <iostream>
 #include <boost/asio.hpp>
 #include <boost/program_options.hpp>
@@ -152,6 +154,8 @@ int main(int argc, char *argv[])
    commandLineOptions.add_options()
       ( "help,h",
            "Print help message" )
+      ( "version",
+           "Show program version" )
 
       ( "loglevel,L",
            boost::program_options::value<unsigned int>(&logLevel)->default_value(boost::log::trivial::severity_level::info),
@@ -221,6 +225,10 @@ int main(int argc, char *argv[])
        std::cerr << "Usage: " << argv[0] << " OPTIONS" << "\n"
                  << commandLineOptions;
        return 1;
+   }
+   else if(vm.count("version")) {
+      std::cerr << "UDP Echo Server" << " " << HPCT_VERSION << "\n";
+      return 0;
    }
 
 

@@ -150,9 +150,7 @@ _hpct_trigger()
 -v
 --verbose
 -U
---user
 -#
---measurement-id
 -S
 --source
 -D
@@ -161,6 +159,7 @@ _hpct_trigger()
 --destinations-from-file
 -M
 --iomodule
+-I
 --iterations
 --tracerouteinterval
 --tracerouteintervaldeviation
@@ -191,6 +190,9 @@ _hpct_trigger()
 -z
 --resultstimestampdepth
 --check
+-h
+--help
+--version
 "
    # shellcheck disable=SC2207
    COMPREPLY=( $( compgen -W "${opts}" -- "${cur}" ) )

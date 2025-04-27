@@ -31,8 +31,8 @@ CMAKE_MINIMUM_REQUIRED(VERSION 3.10)
 PROJECT(hipercontracer LANGUAGES C CXX)
 
 SET(BUILD_MAJOR "2")
-SET(BUILD_MINOR "0")
-SET(BUILD_PATCH "14")
+SET(BUILD_MINOR "1")
+SET(BUILD_PATCH "0")
 SET(BUILD_VERSION ${BUILD_MAJOR}.${BUILD_MINOR}.${BUILD_PATCH})
 
 # HiPerConTracer needs at least C++17!
@@ -235,6 +235,18 @@ IF (NOT LZMA_LIBRARY)
            " * SuSE:          sudo zypper install -y xz-devel\n"
            " * Alpine:        sudo apk add xz-dev\n"
            " * FreeBSD:       sudo pkg install -y lzmalib")
+ENDIF()
+
+# ====== libzstd ============================================================
+FIND_LIBRARY(ZSTD_LIBRARY NAMES zstd)
+IF (NOT ZSTD_LIBRARY)
+   MESSAGE(FATAL_ERROR
+           " Cannot find ZSTD library! Try:\n"
+           " * Ubuntu/Debian: sudo apt install -y libzstd-dev\n"
+           " * Fedora:        sudo dnf install -y libzstd-devel\n"
+           " * SuSE:          sudo zypper install -y libzstd-devel\n"
+           " * Alpine:        sudo apk add libzstd-devel\n"
+           " * FreeBSD:       sudo pkg install -y zstd")
 ENDIF()
 
 # ====== C-ARES =============================================================
