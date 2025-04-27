@@ -1,3 +1,27 @@
+commit f7d3f468f054ecdd9810e508fa62d03e5e92779d
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Sun Apr 27 20:48:15 2025 +0200
+
+    FreeBSD build fix.
+
+commit 5beff3d29fe9d4ed957995c3928ee0f25b650c50
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Apr 24 17:08:51 2025 +0200
+
+    Improved test script.
+
+commit 5d2da63f0f1706f1f47882cc35241ebbc4e36d7d
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Mon Apr 21 19:49:48 2025 +0200
+
+    Updated debian/metadata with references.
+
+commit ba5c655a41208cc6e3482c59cb869106ec54a702
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Apr 16 08:52:14 2025 +0200
+
+    New release hipercontracer-2.0.13.
+
 commit ac62e88482380b38109f346478c8c4881f4af394
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Tue Apr 15 14:19:08 2025 +0200
