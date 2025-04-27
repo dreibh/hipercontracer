@@ -261,6 +261,7 @@ EOF
       ) | sudo tee /etc/apt/sources.list.d/mongodb-org.list >/dev/null
       sudo apt update -qq
       sudo DEBIAN_FRONTEND=noninteractive apt install -y -o APT::Keep-Downloaded-Packages=true mongodb-org mongodb-mongosh openssl
+      sudo systemctl enable mongod.service
 
    elif [ "${ID}" == "fedora" ] ; then
       (

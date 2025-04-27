@@ -44,7 +44,7 @@ DOMAIN="test.local"
 DATABASE="just_a_test_database"
 # MAINTAINER_PASSWORD=
 # IMPORTER_PASSWORD=
-RESEARCHER_PASSWORD=
+# RESEARCHER_PASSWORD=
 # shellcheck disable=SC1090
 . "$2"
 
