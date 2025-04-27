@@ -32,6 +32,8 @@
 #include "logger.h"
 #include "tools.h"
 
+#include <fstream>
+#include <boost/algorithm/string.hpp>
 #include <boost/iostreams/device/file_descriptor.hpp>
 #include <boost/iostreams/filter/bzip2.hpp>
 #include <boost/iostreams/filter/gzip.hpp>
@@ -112,9 +114,6 @@ void Worker::processFile(DatabaseClientBase&          databaseClient,
    }
 
    else {
-      // ====== Prepare input stream ========================================
-      boost::iostreams::filtering_istream inputStream;
-
       // ====== Open input file =============================================
 #ifdef POSIX_FADV_SEQUENTIAL
       // With fadvise() to optimise caching:
@@ -125,7 +124,6 @@ void Worker::processFile(DatabaseClientBase&          databaseClient,
          return;
       }
       if(posix_fadvise(handle, 0, 0, POSIX_FADV_SEQUENTIAL|POSIX_FADV_WILLNEED|POSIX_FADV_NOREUSE) < 0) {
-         perror("posix_fadvise:");
          HPCT_LOG(warning) << "posix_fadvise() failed:" << strerror(errno);
       }
 
@@ -138,26 +136,30 @@ void Worker::processFile(DatabaseClientBase&          databaseClient,
       // Without fadvise():
       std::ifstream inputFile;
       inputFile.open(dataFile, std::ios_base::in | std::ios_base::binary);
-#endif
-      if(inputFile.good()) {
-         if(dataFile.extension() == ".xz") {
-            inputStream.push(boost::iostreams::lzma_decompressor());
-         }
-         else if(dataFile.extension() == ".bz2") {
-            inputStream.push(boost::iostreams::bzip2_decompressor());
-         }
-         else if(dataFile.extension() == ".gz") {
-            inputStream.push(boost::iostreams::gzip_decompressor());
-         }
-         inputStream.push(inputFile);
-
-         // ====== Read contents ============================================
-         Reader.parseContents(databaseClient, rows, dataFile, inputStream);
-      }
-      else {
+      if(!inputFile.is_open()) {
          HPCT_LOG(warning) << getIdentification() << ": Unable to open input file "
                            << relativeTo(dataFile, ImporterConfig.getImportFilePath());
+         return;
       }
+#endif
+
+      // ====== Prepare input stream ========================================
+      boost::iostreams::filtering_istream inputStream;
+      std::string                         extension(dataFile.extension());
+      boost::algorithm::to_lower(extension);
+      if(extension == ".xz") {
+         inputStream.push(boost::iostreams::lzma_decompressor());
+      }
+      else if(extension == ".bz2") {
+         inputStream.push(boost::iostreams::bzip2_decompressor());
+      }
+      else if(extension == ".gz") {
+         inputStream.push(boost::iostreams::gzip_decompressor());
+      }
+      inputStream.push(inputFile);
+
+      // ====== Read contents ============================================
+      Reader.parseContents(databaseClient, rows, dataFile, inputStream);
    }
 }
 
@@ -299,7 +301,7 @@ bool Worker::importFiles(const std::list<std::filesystem::path>& dataFileList)
                         << exception.what();
       try {
          DatabaseClient.rollback();
-         if( (!fastMode) && (dataFile != std::filesystem::path()) ) {
+         if( (!fastMode) && (!dataFile.empty()) ) {
             finishedFile(dataFile, false);
          }
          return false;

@@ -171,7 +171,7 @@ static inline unsigned int mapMeasurementID(
 // ###### Generic ###########################################################
 #define OUTPUT_ITEM(outputType, timeStampVariable)                             \
    if( (!deduplication) || (lastTimeStamp != timeStampVariable) ||             \
-         (dedupLastItem != outputString) ) {                                   \
+       (dedupLastItem != outputString) ) {                                     \
       if(__builtin_expect(lines == 0, 0)) {                                    \
          outputStream << "#? HPCT " << outputType << " " << ProgramID << "\n"; \
       }                                                                        \
@@ -413,8 +413,7 @@ int main(int argc, char** argv)
    try {
       boost::program_options::store(boost::program_options::command_line_parser(argc, argv).
                                        style(
-                                          boost::program_options::command_line_style::style_t::default_style|
-                                          boost::program_options::command_line_style::style_t::allow_long_disguise
+                                          boost::program_options::command_line_style::style_t::unix_style
                                        ).
                                        options(allOptions).positional(positionalParameters).
                                        run(), vm);
@@ -460,7 +459,7 @@ int main(int argc, char** argv)
       std::cerr << "ERROR: to measurement identifier < from measurement identifier!\n";
       return 1;
    }
-   if(addressToMeasurementIDFile != std::filesystem::path()) {
+   if(!addressToMeasurementIDFile.empty()) {
       std::ifstream mappingFile(addressToMeasurementIDFile);
       if(!mappingFile.good()) {
          std::cerr << "ERROR: Unable to read mapping file " << addressToMeasurementIDFile << "!\n";
@@ -488,7 +487,7 @@ int main(int argc, char** argv)
 
    // ====== Initialise importer ============================================
    initialiseLogger(logLevel, logColor,
-                    (logFile != std::filesystem::path()) ? logFile.string().c_str() : nullptr);
+                    (!logFile.empty()) ? logFile.string().c_str() : nullptr);
 
    // ====== Read database configuration ====================================
    DatabaseConfiguration databaseConfiguration;
@@ -509,7 +508,7 @@ int main(int argc, char** argv)
    std::ofstream                       outputFile;
    boost::iostreams::filtering_ostream outputStream;
    const std::filesystem::path         tmpOutputFileName(outputFileName.string() + ".tmp");
-   if(outputFileName != std::filesystem::path()) {
+   if(!outputFileName.empty()) {
       std::error_code ec;
       std::filesystem::remove(outputFileName, ec);
       outputFile.open(tmpOutputFileName, std::ios_base::out | std::ios_base::binary);
@@ -543,7 +542,7 @@ int main(int argc, char** argv)
    const std::chrono::system_clock::time_point t1            = std::chrono::system_clock::now();
    unsigned long long                          lastTimeStamp = 0;
    std::string                                 dedupLastItem;
-   bool                                        dedupInProgress;
+   bool                                        dedupInProgress        = false;
    unsigned long long                          dedupDuplicatesRemoved = 0;
    try {
       // ====== Ping ========================================================
@@ -553,34 +552,37 @@ int main(int argc, char** argv)
             // ====== Old version 1 table ===================================
             if(tableVersion == 1) {
                std::string ts;
+               std::string rtt;
                if( (backend & DatabaseBackendType::SQL_PostgreSQL) == DatabaseBackendType::SQL_PostgreSQL ) {
-                  ts = "CAST((1000000000.0 * EXTRACT(EPOCH FROM TimeStamp)) AS BIGINT)";
+                  ts  = "CAST((1000000000.0 * EXTRACT(EPOCH FROM TimeStamp)) AS BIGINT)";
+                  rtt = "1000 * CAST(RTT AS BIGINT)";
                }
                else {
-                  ts = "CAST((1000000000.0 * UNIX_TIMESTAMP(TimeStamp)) AS UNSIGNED)";
+                  ts  = "UNIX_TIMESTAMP(CONVERT_TZ(TimeStamp, '+00:00', @@global.time_zone)) * 1000000000";
+                  rtt = "1000 * RTT";
                }
                statement
                   << "SELECT"
-                     " " << ts << " AS SendTimestamp,"
-                     " 0            AS MeasurementID,"
-                     " FromIP       AS SourceIP,"
-                     " ToIP         AS DestinationIP,"
-                     " 105          AS Protocol,"         /* 'i', since HiPerConTracer 1.x only supports ICMP */
-                     " TC           AS TrafficClass,"
-                     " 0            AS BurstSeq,"
-                     " PktSize      AS PacketSize,"
-                     " 0            AS ResponseSize,"
-                     " Checksum     AS Checksum,"
-                     " 0            AS SourcePort,"
-                     " 0            AS DestinationPort,"
-                     " Status       AS Status,"
-                     " 0            AS TimeSource,"
-                     " -1           AS Delay_AppSend,"
-                     " -1           AS Delay_Queuing,"
-                     " -1           AS Delay_AppReceive,"
-                     " 1000 * CAST(RTT AS BIGINT) AS RTT_App,"
-                     " -1           AS RTT_SW,"
-                     " -1           AS RTT_HW "
+                     " " << ts <<  " AS SendTimestamp,"
+                     " 0             AS MeasurementID,"
+                     " FromIP        AS SourceIP,"
+                     " ToIP          AS DestinationIP,"
+                     " 105           AS Protocol,"         /* 'i', since HiPerConTracer 1.x only supports ICMP */
+                     " TC            AS TrafficClass,"
+                     " 0             AS BurstSeq,"
+                     " PktSize       AS PacketSize,"
+                     " 0             AS ResponseSize,"
+                     " Checksum      AS Checksum,"
+                     " 0             AS SourcePort,"
+                     " 0             AS DestinationPort,"
+                     " Status        AS Status,"
+                     " 0             AS TimeSource,"
+                     " -1            AS Delay_AppSend,"
+                     " -1            AS Delay_Queuing,"
+                     " -1            AS Delay_AppReceive,"
+                     " " << rtt << " AS RTT_App,"
+                     " -1            AS RTT_SW,"
+                     " -1            AS RTT_HW "
                      "FROM " << ((tableName.size() == 0) ? "Ping" : tableName);
                addSQLWhere(statement, "TimeStamp", fromTimeStamp, toTimeStamp, fromMeasurementID, toMeasurementID, true);
             }
@@ -718,39 +720,42 @@ int main(int argc, char** argv)
             // ====== Old version 1 table ===================================
             if(tableVersion == 1) {
                std::string ts;
+               std::string rtt;
                if( (backend & DatabaseBackendType::SQL_PostgreSQL) == DatabaseBackendType::SQL_PostgreSQL ) {
-                  ts = "CAST((1000000000.0 * EXTRACT(EPOCH FROM TimeStamp)) AS BIGINT)";
+                  ts  = "CAST((1000000000.0 * EXTRACT(EPOCH FROM TimeStamp)) AS BIGINT)";
+                  rtt = "1000 * CAST(RTT AS BIGINT)";
                }
                else {
-                  ts = "CAST((1000000000.0 * UNIX_TIMESTAMP(TimeStamp)) AS UNSIGNED)";
+                  ts  = "UNIX_TIMESTAMP(CONVERT_TZ(TimeStamp, '+00:00', @@global.time_zone)) * 1000000000";
+                  rtt = "1000 * RTT";
                }
                statement
                   << "SELECT"
-                     " " << ts << " AS Timestamp,"
-                     " 0            AS MeasurementID,"
-                     " FromIP       AS SourceIP,"
-                     " ToIP         AS DestinationIP,"
-                     " 105          AS Protocol,"     /* 'i', since HiPerConTracer 1.x only supports ICMP */
-                     " TC           AS TrafficClass,"
-                     " Round        AS RoundNumber,"
-                     " HopNumber    AS HopNumber,"
-                     " TotalHops    AS TotalHops,"
-                     " PktSize      AS PacketSize,"
-                     " 0            AS ResponseSize,"
-                     " Checksum     AS Checksum,"
-                     " 0            AS SourcePort,"
-                     " 0            AS DestinationPort,"
-                     " Status       AS Status,"
-                     " PathHash     AS PathHash,"
-                     " " << ts << " AS SendTimestamp,"
-                     " HopIP        AS HopIP,"
-                     " 0            AS TimeSource,"
-                     " -1           AS Delay_AppSend,"
-                     " -1           AS Delay_Queuing,"
-                     " -1           AS Delay_AppReceive,"
-                     " 1000 * CAST(RTT AS BIGINT) AS RTT_App,"
-                     " -1           AS RTT_SW,"
-                     " -1           AS RTT_HW "
+                     " " << ts << "  AS Timestamp,"
+                     " 0             AS MeasurementID,"
+                     " FromIP        AS SourceIP,"
+                     " ToIP          AS DestinationIP,"
+                     " 105           AS Protocol,"     /* 'i', since HiPerConTracer 1.x only supports ICMP */
+                     " TC            AS TrafficClass,"
+                     " Round         AS RoundNumber,"
+                     " HopNumber     AS HopNumber,"
+                     " TotalHops     AS TotalHops,"
+                     " PktSize       AS PacketSize,"
+                     " 0             AS ResponseSize,"
+                     " Checksum      AS Checksum,"
+                     " 0             AS SourcePort,"
+                     " 0             AS DestinationPort,"
+                     " Status        AS Status,"
+                     " PathHash      AS PathHash,"
+                     " " << ts << "  AS SendTimestamp,"
+                     " HopIP         AS HopIP,"
+                     " 0             AS TimeSource,"
+                     " -1            AS Delay_AppSend,"
+                     " -1            AS Delay_Queuing,"
+                     " -1            AS Delay_AppReceive,"
+                     " " << rtt << " AS RTT_App,"
+                     " -1            AS RTT_SW,"
+                     " -1            AS RTT_HW "
                      "FROM " << ((tableName.size() == 0) ? "Traceroute" : tableName);
                addSQLWhere(statement, "TimeStamp", fromTimeStamp, toTimeStamp, fromMeasurementID, toMeasurementID, true);
             }
@@ -1060,7 +1065,7 @@ int main(int argc, char** argv)
       exit(1);
    }
 
-   if(outputFileName != std::filesystem::path()) {
+   if(!outputFileName.empty()) {
       try {
          std::filesystem::rename(tmpOutputFileName, outputFileName);
 

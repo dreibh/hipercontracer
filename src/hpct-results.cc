@@ -44,6 +44,7 @@
 #include <boost/asio/ip/address.hpp>
 #include <boost/asio/post.hpp>
 #include <boost/asio/thread_pool.hpp>
+#include <boost/iostreams/device/file_descriptor.hpp>
 #include <boost/iostreams/filtering_stream.hpp>
 #include <boost/iostreams/filtering_streambuf.hpp>
 #include <boost/iostreams/filter/bzip2.hpp>
@@ -467,16 +468,37 @@ static bool dumpResultsFile(std::atomic<unsigned int>*                          
                             const bool                                             checkOnly = false)
 {
    // ====== Open input file ================================================
-   std::string                         extension(fileName.extension());
-   std::ifstream                       inputFile;
-   boost::iostreams::filtering_istream inputStream;
-
-   inputFile.open(fileName, std::ios_base::in | std::ios_base::binary);
-   if(!inputFile.is_open()) {
-      HPCT_LOG(fatal) << "Failed to read input file " << fileName;
+#ifdef POSIX_FADV_SEQUENTIAL
+   // With fadvise() to optimise caching:
+   int handle = open(fileName.c_str(), 0, O_RDONLY);
+   if(handle < 0) {
+      HPCT_LOG(error) << "Failed to read input file " << fileName;
       (*errorCounter)++;
       return false;
    }
+   if(posix_fadvise(handle, 0, 0, POSIX_FADV_SEQUENTIAL|POSIX_FADV_WILLNEED|POSIX_FADV_NOREUSE) < 0) {
+      HPCT_LOG(warning) << "posix_fadvise() failed:" << strerror(errno);
+   }
+
+   boost::iostreams::stream_buffer<boost::iostreams::file_descriptor_source> fstreambuffer(
+      handle,
+      boost::iostreams::file_descriptor_flags::close_handle);
+   std::istream inputFile(&fstreambuffer);
+#else
+#warning Without fadvise()
+      // Without fadvise():
+   std::ifstream                       inputFile;
+   inputFile.open(fileName, std::ios_base::in | std::ios_base::binary);
+   if(!inputFile.is_open()) {
+      HPCT_LOG(error) << "Failed to read input file " << fileName;
+      (*errorCounter)++;
+      return false;
+   }
+#endif
+
+      // ====== Prepare input stream ========================================
+   boost::iostreams::filtering_istream inputStream;
+   std::string                         extension(fileName.extension());
    boost::algorithm::to_lower(extension);
    if(extension == ".xz") {
       const boost::iostreams::lzma_params params(
@@ -785,8 +807,7 @@ int main(int argc, char** argv)
    try {
       boost::program_options::store(boost::program_options::command_line_parser(argc, argv).
                                        style(
-                                          boost::program_options::command_line_style::style_t::default_style|
-                                          boost::program_options::command_line_style::style_t::allow_long_disguise
+                                          boost::program_options::command_line_style::style_t::unix_style
                                        ).
                                        options(allOptions).positional(positionalParameters).
                                        run(), vm);
@@ -852,14 +873,14 @@ int main(int argc, char** argv)
 
    // ====== Initialize =====================================================
    initialiseLogger(logLevel, logColor,
-                    (logFile != std::filesystem::path()) ? logFile.string().c_str() : nullptr);
+                    (!logFile.empty()) ? logFile.string().c_str() : nullptr);
 
    // ====== Open output file ===============================================
    std::string                         extension(outputFileName.extension());
    std::ofstream                       outputFile;
    boost::iostreams::filtering_ostream outputStream;
    const std::filesystem::path         tmpOutputFileName = outputFileName.string() + ".tmp";
-   if(outputFileName != std::filesystem::path()) {
+   if(!outputFileName.empty()) {
       outputFile.open(tmpOutputFileName, std::ios_base::out | std::ios_base::binary);
       if(!outputFile.is_open()) {
          HPCT_LOG(fatal) << "Failed to create output file " << tmpOutputFileName;
@@ -930,17 +951,6 @@ int main(int argc, char** argv)
                      << std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1).count() << " ms";
    }
 
-   if(outputFileName != std::filesystem::path()) {
-      try {
-         std::filesystem::rename(tmpOutputFileName, outputFileName);
-      }
-      catch(const std::exception& e) {
-         HPCT_LOG(fatal) << "Unable to rename " << tmpOutputFileName << " to " << outputFileName
-                         << ": " << e.what();
-         exit(1);
-      }
-   }
-
    // ====== Print the results ==============================================
    if(sorted == true) {
       HPCT_LOG(info) << "Writing " << outputSet.size() << " results rows ...";
@@ -955,6 +965,17 @@ int main(int argc, char** argv)
       const std::chrono::system_clock::time_point t4 = std::chrono::system_clock::now();
       HPCT_LOG(info) << "Wrote " << outputSet.size() << " results rows in "
                      << std::chrono::duration_cast<std::chrono::milliseconds>(t4 - t3).count() << " ms";
+   }
+
+   if(!outputFileName.empty()) {
+      try {
+         std::filesystem::rename(tmpOutputFileName, outputFileName);
+      }
+      catch(const std::exception& e) {
+         HPCT_LOG(fatal) << "Unable to rename " << tmpOutputFileName << " to " << outputFileName
+                         << ": " << e.what();
+         exit(1);
+      }
    }
 
    return 0;

@@ -27,6 +27,7 @@
 //
 // Contact: dreibh@simula.no
 
+#include <fcntl.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <openssl/evp.h>
@@ -84,12 +85,12 @@ int main(int argc, char** argv)
       listDigests();
       return 1;
    }
-   const std::string                           outputFileName      = argv[1];
-   const std::string                           checksumFileName    = outputFileName + ".checksum";
-   const std::string                           tmpOutputFileName   = outputFileName + ".tmp";
-   const std::string                           tmpChecksumFileName = checksumFileName + ".tmp";
-   unsigned long long                          totalBytesWritten   = 0;
-   const std::chrono::system_clock::time_point t1                  = std::chrono::system_clock::now();
+   const std::string                           outputFileName    = argv[1];
+   const std::string                           checksumFileName(outputFileName + ".checksum");
+   const std::string                           tmpOutputFileName(outputFileName + ".tmp");
+   const std::string                           tmpChecksumFileName(checksumFileName + ".tmp");
+   unsigned long long                          totalBytesWritten = 0;
+   const std::chrono::system_clock::time_point t1                = std::chrono::system_clock::now();
 
 
    // ====== Create files ===================================================
@@ -97,6 +98,12 @@ int main(int argc, char** argv)
    remove(checksumFileName.c_str());
    FILE* outputFile = fopen(tmpOutputFileName.c_str(), "w");
    if(outputFile != nullptr) {
+#ifdef POSIX_FADV_SEQUENTIAL
+      if(posix_fadvise(fileno(outputFile), 0, 0, POSIX_FADV_SEQUENTIAL|POSIX_FADV_NOREUSE) < 0) {
+         std::cerr << "WARNING: posix_fadvise() failed:" << strerror(errno);
+      }
+#endif
+
       FILE* checksumFile = fopen(tmpChecksumFileName.c_str(), "wt");
       if(checksumFile != nullptr) {
          EVP_MD_CTX* digestNameContext;
