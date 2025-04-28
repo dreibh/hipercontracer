@@ -114,8 +114,9 @@ bool MongoDBClient::open()
    mongoc_uri_set_password(URI, Configuration.getPassword().c_str());
    // mongoc_uri_set_auth_mechanism(URI, "SCRAM-SHA-256");
 
-   mongoc_uri_set_option_as_utf8(URI, MONGOC_URI_APPNAME,       "UniversalImporter");
-   mongoc_uri_set_option_as_utf8(URI, MONGOC_URI_COMPRESSORS,   "snappy,zlib,zstd");
+   mongoc_uri_set_option_as_utf8(URI,  MONGOC_URI_APPNAME,         "UniversalImporter");
+   mongoc_uri_set_option_as_int32(URI, MONGOC_URI_SOCKETTIMEOUTMS, 3600000);
+   mongoc_uri_set_option_as_utf8(URI,  MONGOC_URI_COMPRESSORS,     "snappy,zlib,zstd");
    if(!(Configuration.getConnectionFlags() & ConnectionFlags::DisableTLS)) {
       mongoc_uri_set_option_as_bool(URI, MONGOC_URI_TLS, true);
    }
