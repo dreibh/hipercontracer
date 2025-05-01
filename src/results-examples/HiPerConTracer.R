@@ -33,6 +33,10 @@ library("digest")
 library("data.table", warn.conflicts = FALSE)
 library("dplyr",      warn.conflicts = FALSE)
 library("ipaddress")
+library("vroom")
+
+
+hpct_results_tool = "hpct-results"
 
 
 # ###### Process HiPerConTracer Ping results ################################
