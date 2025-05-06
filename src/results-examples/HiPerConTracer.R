@@ -36,7 +36,8 @@ library("ipaddress")
 library("vroom")
 
 
-hpct_results_tool = "hpct-results"
+# Path to HPCT Results:
+hpct_results_tool = 'hpct-results'
 
 
 # ###### Process HiPerConTracer Ping results ################################
