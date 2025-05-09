@@ -1,0 +1,131 @@
+#!/usr/bin/env python3
+# ==========================================================================
+#     _   _ _ ____            ____          _____
+#    | | | (_)  _ \ ___ _ __ / ___|___  _ _|_   _| __ __ _  ___ ___ _ __
+#    | |_| | | |_) / _ \ '__| |   / _ \| '_ \| || '__/ _` |/ __/ _ \ '__|
+#    |  _  | |  __/  __/ |  | |__| (_) | | | | || | | (_| | (_|  __/ |
+#    |_| |_|_|_|   \___|_|   \____\___/|_| |_|_||_|  \__,_|\___\___|_|
+#
+#       ---  High-Performance Connectivity Tracer (HiPerConTracer)  ---
+#                 https://www.nntb.no/~dreibh/hipercontracer/
+# ==========================================================================
+#
+# High-Performance Connectivity Tracer (HiPerConTracer)
+# Copyright (C) 2015-2025 by Thomas Dreibholz
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+# Contact: dreibh@simula.no
+
+import ipaddress
+import os
+import sys
+import time
+import typing
+import subprocess
+
+
+# ###########################################################################
+# #### HiPerConTracer Measurement                                        ####
+# ###########################################################################
+
+class HiPerConTracerMeasurement:
+
+   # ###### Constructor #####################################################
+   def __init__(
+      self,
+      measurementID:    int,
+      services:         list[str],
+      modules:          list[str],
+      sources:          list[ipaddress.ip_address],
+      destinations:     list[ipaddress.ip_address],
+      resultsDirectory: str,
+      resultsTrLength:  int,
+      details:          dict = { },
+      sudoNeeded:       bool = False) -> None:
+
+      self.MeasurementID    = measurementID
+      self.Services         = services
+      self.Modules          = modules
+      self.Sources          = sources
+      self.Destinations     = destinations
+      self.ResultsDirectory = resultsDirectory
+      self.ResultsTrLength  = resultsTrLength
+      self.Details          = details
+
+      if sudoNeeded:
+         self.Command = [ 'sudo', 'hipercontracer' ]
+      else:
+         self.Command = [ 'hipercontracer' ]
+      for service in self.Services:
+         if service == 'Ping':
+            self.Command.append('--ping')
+         elif service == 'Traceroute':
+            self.Command.append('--traceroute')
+         elif service == 'Jitter':
+            self.Command.append('--jitter')
+         else:
+            raise Exception('Invalid service: ' + service)
+      self.Command.append('--resultsdirectory')
+      self.Command.append(self.ResultsDirectory)
+      self.Command.append('--resultstransactionlength')
+      self.Command.append(str(self.ResultsTrLength))
+      for module in self.Modules:
+         self.Command.append('--iomodule')
+         self.Command.append(str(module))
+      for source in self.Sources:
+         self.Command.append('--source')
+         self.Command.append(str(source))
+      for destination in self.Destinations:
+         self.Command.append('--destination')
+         self.Command.append(str(destination))
+      for key, value in self.Details.items():
+         self.Command.append('--' + key)
+         self.Command.append(str(value))
+
+      self.Process = None
+      print(self.Command)
+
+
+   # ###### Start process ###################################################
+   def start(self) -> None:
+      if not self.Process == None:
+         raise('Process already exists!')
+      self.Process = subprocess.Popen(self.Command)
+
+   # ###### Stop process ####################################################
+   def stop(self) -> None:
+
+      True
+
+   # ###### Check process status ############################################
+   def check(self) -> bool:
+
+      False
+
+
+h = HiPerConTracerMeasurement(12345678, [ 'Ping' ], [ 'ICMP', 'UDP' ],
+                              [ ipaddress.ip_address('0.0.0.0') ],
+                              [ ipaddress.ip_address('8.8.8.8') ],
+                              'data', 300,
+                              { 'pingudpdestinationport':       7,
+                                'tracerouteudpdestinationport': 7 },
+                              True)
+h.start()
+
+for i in range(1,10):
+   time.sleep(1)
+   print(h.check())
+
+h.stop()
