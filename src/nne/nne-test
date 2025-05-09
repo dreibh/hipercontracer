@@ -54,8 +54,10 @@ class HiPerConTracerMeasurement:
       resultsDirectory: str,
       resultsTrLength:  int,
       details:          dict = { },
+      logFile:          str  = None,
       sudoNeeded:       bool = False) -> None:
 
+      # ====== Initialise main parameters ===================================
       self.MeasurementID    = measurementID
       self.Services         = services
       self.Modules          = modules
@@ -64,7 +66,9 @@ class HiPerConTracerMeasurement:
       self.ResultsDirectory = resultsDirectory
       self.ResultsTrLength  = resultsTrLength
       self.Details          = details
+      self.LogFile          = logFile
 
+      # ====== Create command ===============================================
       if sudoNeeded:
          self.Command = [ 'sudo', 'hipercontracer' ]
       else:
@@ -82,6 +86,9 @@ class HiPerConTracerMeasurement:
       self.Command.append(self.ResultsDirectory)
       self.Command.append('--resultstransactionlength')
       self.Command.append(str(self.ResultsTrLength))
+      if self.LogFile:
+         self.Command.append('--logfile')
+         self.Command.append(self.LogFile)
       for module in self.Modules:
          self.Command.append('--iomodule')
          self.Command.append(str(module))
@@ -91,6 +98,8 @@ class HiPerConTracerMeasurement:
       for destination in self.Destinations:
          self.Command.append('--destination')
          self.Command.append(str(destination))
+
+      # ====== Add custom parameters ========================================
       for key, value in self.Details.items():
          self.Command.append('--' + key)
          self.Command.append(str(value))
@@ -124,13 +133,15 @@ class HiPerConTracerMeasurement:
       return (self.Process.poll() == None)
 
 
+
+# ###### Main program #######################################################
 h = HiPerConTracerMeasurement(12345678, [ 'Ping' ], [ 'ICMP', 'UDP' ],
                               [ ipaddress.ip_address('0.0.0.0') ],
                               [ ipaddress.ip_address('8.8.8.8') ],
                               'data', 300,
                               { 'pingudpdestinationport':       7,
                                 'tracerouteudpdestinationport': 7 },
-                              True)
+                              'hpct.log', True)
 h.start()
 
 for i in range(1,20):
