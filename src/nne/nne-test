@@ -33,6 +33,7 @@ import os
 import sys
 import time
 import typing
+import signal
 import subprocess
 
 
@@ -100,19 +101,27 @@ class HiPerConTracerMeasurement:
 
    # ###### Start process ###################################################
    def start(self) -> None:
-      if not self.Process == None:
-         raise('Process already exists!')
-      self.Process = subprocess.Popen(self.Command)
+      if self.Process:
+         raise Exception('Process already exists!')
+      self.Process = subprocess.Popen(self.Command, stdin = None)
+
 
    # ###### Stop process ####################################################
-   def stop(self) -> None:
+   def stop(self, timeout = 10) -> None:
+      if self.Process:
+         # Send SIGINT, to gracefully shut down HiPerConTracer
+         self.Process.send_signal(signal.SIGINT)
+         if not self.Process.wait(timeout):
+            # Something seems to be wrong -> send SIGKILL to terminate it!
+            self.Process.send_signal(signal.SIGKILL)
+         self.Process = None
 
-      True
 
    # ###### Check process status ############################################
    def check(self) -> bool:
-
-      False
+      if not self.Process:
+         return False
+      return (self.Process.poll() == None)
 
 
 h = HiPerConTracerMeasurement(12345678, [ 'Ping' ], [ 'ICMP', 'UDP' ],
@@ -124,8 +133,16 @@ h = HiPerConTracerMeasurement(12345678, [ 'Ping' ], [ 'ICMP', 'UDP' ],
                               True)
 h.start()
 
-for i in range(1,10):
-   time.sleep(1)
-   print(h.check())
+for i in range(1,20):
 
-h.stop()
+   time.sleep(1)
+   running = h.check()
+
+   if running:
+      sys.stdout.write('Still running...\n')
+   else:
+      sys.stdout.write('Stopped!\n')
+      break
+
+   if i == 8:
+      h.stop()
