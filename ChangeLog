@@ -1,3 +1,58 @@
+commit 06ea126d631f397b582579b2b859127217690467
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Mon May 12 22:45:57 2025 +0200
+
+    Updated year range in debian/copyright.
+
+commit ce3db1c3a4dbfc31d2db7ead8547af3837f0b77f
+Merge: eb58d338 7fe30417
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Mon May 12 22:19:49 2025 +0200
+
+    Merge branch 'master' of github.com:dreibh/hipercontracer
+
+commit eb58d3386dd3b84510332667951b3b8e7b832e43
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Mon May 12 22:18:22 2025 +0200
+
+    Improved manpages.
+
+commit 7fe30417c2f708c6be817a0b8fdb62689dfc9bdd
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue May 6 13:23:38 2025 +0200
+
+    Bugfix: Also handle generic std::exception in importer. This may occur e.g. for a decompression error.
+
+commit 8816ddc82676a996989f78c44de81663710ab540
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue May 6 12:53:05 2025 +0200
+
+    Improved data handling in example script.
+
+commit 4b6c4470704d256f4d36122fe6600aa88619c7f8
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue May 6 12:38:47 2025 +0200
+
+    Updated example.
+
+commit 384d8af7dda22ac4cc7084eef4abff9422042948
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu May 1 09:37:45 2025 +0200
+
+    Improved R example.
+
+commit 31287f1f6e44b57f4ab53e5e62f02e8e8a77201c
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Sun Apr 27 20:53:43 2025 +0200
+
+    Updated FreeBSD port.
+
+commit 756d21e904465b2be7d8dfe18094d45fbdc7d8b1
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Sun Apr 27 20:49:07 2025 +0200
+
+    New release hipercontracer-2.0.14.
+
 commit f7d3f468f054ecdd9810e508fa62d03e5e92779d
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Sun Apr 27 20:48:15 2025 +0200
