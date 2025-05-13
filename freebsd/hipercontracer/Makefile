@@ -3,7 +3,7 @@ DISTVERSION=	2.0.15
 CATEGORIES=	benchmarks
 MASTER_SITES=	https://www.nntb.no/~dreibh/hipercontracer/download/
 
-MAINTAINER=	dreibh@simula.no
+MAINTAINER=	thomas.dreibholz@gmail.com
 COMMENT=	High-Performance Connectivity Tracer (HiPerConTracer)
 WWW=		https://www.nntb.no/~dreibh/hipercontracer/
 
