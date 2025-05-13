@@ -1,8 +1,14 @@
-hipercontracer (2.1.0-1ubuntu1) noble; urgency=medium
+hipercontracer (2.1.0~rc0-1ubuntu1) noble; urgency=medium
 
   * New upstream release.
 
  -- Thomas Dreibholz <dreibh@simula.no>  Tue, 15 Apr 2025 13:58:00 +0200
+
+hipercontracer (2.0.15-1ubuntu1) noble; urgency=medium
+
+  * New upstream release.
+
+ -- Thomas Dreibholz <dreibh@simula.no>  Mon, 12 May 2025 22:50:03 +0200
 
 hipercontracer (2.0.14-1ubuntu1) noble; urgency=medium
 
@@ -15,7 +21,6 @@ hipercontracer (2.0.13-1ubuntu1) noble; urgency=medium
   * New upstream release.
 
  -- Thomas Dreibholz <dreibh@simula.no>  Wed, 16 Apr 2025 08:52:12 +0200
->>>>>>> master
 
 hipercontracer (2.0.12-1ubuntu1) noble; urgency=medium
 
