@@ -104,6 +104,8 @@ This package contains the actual HiPerConTracer program.
 Summary: HiPerConTracer common files
 Group: Applications/File
 BuildArch: noarch
+Requires: acl
+Requires: shadow-utils
 Recommends: %{name} = %{version}-%{release}
 Recommends: %{name}-results = %{version}-%{release}
 Suggests: R-base
