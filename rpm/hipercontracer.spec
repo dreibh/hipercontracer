@@ -719,11 +719,15 @@ HiPerConTracer results files into an SQL or NoSQL database.
 %{_datadir}/hipercontracer/SQL/README-PostgreSQL.md
 %{_datadir}/hipercontracer/SQL/mariadb-database.sql
 %{_datadir}/hipercontracer/SQL/mariadb-delete-all-rows.sql
+%{_datadir}/hipercontracer/SQL/mariadb-functions.sql
+%{_datadir}/hipercontracer/SQL/mariadb-procedures.sql
 %{_datadir}/hipercontracer/SQL/mariadb-schema.sql
 %{_datadir}/hipercontracer/SQL/mariadb-test.sql
 %{_datadir}/hipercontracer/SQL/mariadb-users.sql
 %{_datadir}/hipercontracer/SQL/postgresql-database.sql
 %{_datadir}/hipercontracer/SQL/postgresql-delete-all-rows.sql
+%{_datadir}/hipercontracer/SQL/postgresql-functions.sql
+%{_datadir}/hipercontracer/SQL/postgresql-procedures.sql
 %{_datadir}/hipercontracer/SQL/postgresql-schema.sql
 %{_datadir}/hipercontracer/SQL/postgresql-test.sql
 %{_datadir}/hipercontracer/SQL/postgresql-users.sql
