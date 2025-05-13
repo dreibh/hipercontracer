@@ -23,7 +23,7 @@ RUN_DEPENDS=	getopt>=0:misc/getopt
 USES=		cmake compiler:c++20-lang desktop-file-utils python \
 		shared-mime-info shebangfix ssl tar:xz
 USE_LDCONFIG=	yes
-# Work-around for build issue #285706 on ARM (https://bugs.freebsd.org/bugzilla/show_bug.cgi?id=285706):
+# Work-around for build issue #285706 on ARM (https://bugs.freebsd.org/285706):
 MAKE_ENV=	OMP_NUM_THREADS=1
 
 SHEBANG_FILES=	src/results-examples/r-install-dependencies \
