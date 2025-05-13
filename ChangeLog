@@ -1,3 +1,73 @@
+commit 3183f4266b510b94fb117842a7960b391c87b1e6
+Merge: f4c21b7 d849e09
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue May 13 10:06:27 2025 +0200
+
+    Merge branch 'master' into dreibh/libiostreams
+
+commit d849e096b9610b797a7e3ce20770565284f7e098
+Merge: 834f894 af1a8ad
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue May 13 09:57:43 2025 +0200
+
+    Merge branch 'dreibh/db-partitioning'
+
+commit 834f89464462e67cf0f28b19d2dc8fe70b9b70b2
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Mon May 12 22:50:38 2025 +0200
+
+    New release hipercontracer-2.0.15.
+
+commit 06ea126d631f397b582579b2b859127217690467
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Mon May 12 22:45:57 2025 +0200
+
+    Updated year range in debian/copyright.
+
+commit ce3db1c3a4dbfc31d2db7ead8547af3837f0b77f
+Merge: eb58d33 7fe3041
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Mon May 12 22:19:49 2025 +0200
+
+    Merge branch 'master' of github.com:dreibh/hipercontracer
+
+commit eb58d3386dd3b84510332667951b3b8e7b832e43
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Mon May 12 22:18:22 2025 +0200
+
+    Improved manpages.
+
+commit 7fe30417c2f708c6be817a0b8fdb62689dfc9bdd
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue May 6 13:23:38 2025 +0200
+
+    Bugfix: Also handle generic std::exception in importer. This may occur e.g. for a decompression error.
+
+commit 8816ddc82676a996989f78c44de81663710ab540
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue May 6 12:53:05 2025 +0200
+
+    Improved data handling in example script.
+
+commit 4b6c4470704d256f4d36122fe6600aa88619c7f8
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue May 6 12:38:47 2025 +0200
+
+    Updated example.
+
+commit 384d8af7dda22ac4cc7084eef4abff9422042948
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu May 1 09:37:45 2025 +0200
+
+    Improved R example.
+
+commit af1a8ad8a57bc9f00d8d5ca8091e4f9b536728f9
+Merge: b2d374d 5beff3d
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Mon Apr 28 17:40:26 2025 +0200
+
+    Merge branch 'master' into dreibh/db-partitioning
+
 commit f4c21b79d8872fe0fdb58bc34d4db86a319a7d5d
 Merge: b861a60 31287f1
 Author: Thomas Dreibholz <dreibh@simula.no>
@@ -200,6 +270,13 @@ Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Fri Apr 11 12:41:20 2025 +0200
 
     Manpage updates.
+
+commit b2d374d6c7af9b313837fa336437c406f0e5bddf
+Merge: de6072b 2565036
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Fri Apr 11 12:40:37 2025 +0200
+
+    Merge branch 'master' into dreibh/db-partitioning
 
 commit ef86d113b8a6401e014608b2a28a485ca1c7f6c5
 Merge: d0cd954 2565036
@@ -540,6 +617,13 @@ Date:   Mon Apr 7 14:36:18 2025 +0200
 
     Fixed PostgreSQL legacy v1 view as well.
 
+commit de6072b36aeeaeb8b34d0d2bbb3ad5305b5e6015
+Merge: a5dcd00 9f1f98f
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Mon Apr 7 13:36:54 2025 +0200
+
+    Merge branch 'master' into dreibh/db-partitioning
+
 commit 9f1f98fb19cb491d90eb08f286237373448c9d03
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Mon Apr 7 13:35:37 2025 +0200
@@ -557,6 +641,13 @@ Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Mon Apr 7 13:09:13 2025 +0200
 
     MariaDB SQL functions clean-up.
+
+commit a5dcd009ce4caba992f2ac9f7d5b477f2ef8fccf
+Merge: f07c61b ebac6fe
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Mon Apr 7 10:30:14 2025 +0200
+
+    Merge branch 'master' into dreibh/db-partitioning
 
 commit ebac6fe10583f1fb732a204321799b87f112b265
 Author: Thomas Dreibholz <dreibh@simula.no>
@@ -606,17 +697,44 @@ Date:   Mon Apr 7 09:19:27 2025 +0200
 
     Bugfix: Added missing exception handling.
 
+commit f07c61b0dd0d6d39a220480890ef0590a8098a64
+Merge: 6fabac6 6182b5c
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Fri Apr 4 16:42:54 2025 +0200
+
+    Merge branch 'master' into dreibh/db-partitioning
+
 commit 6182b5c02e30da3fec433125bcd11fced6320bcf
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Fri Apr 4 16:04:14 2025 +0200
 
     New release hipercontracer-2.0.8.
 
+commit 6fabac6574a57deffe85f9c09feb64b7b9e8b781
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Fri Apr 4 09:33:39 2025 +0200
+
+    Minor test script update.
+
+commit 68786dbf336bc0e4fa41ab3c2f7bfda2ee2c7311
+Merge: 807d8f5 2f3faad
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Apr 3 18:01:10 2025 +0200
+
+    Merge branch 'master' into dreibh/db-partitioning
+
 commit 2f3faadf21ff9b1f3b8daf1b57a4ae8fa019a414
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Thu Apr 3 17:59:39 2025 +0200
 
     Improved test script.
+
+commit 807d8f5f9d4a047de8800eced30263f0abfcfeb4
+Merge: d0a159a 43d6102
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Apr 3 17:41:11 2025 +0200
+
+    Merge branch 'master' into dreibh/db-partitioning
 
 commit 43d6102b6a276a85b44075dfb277ecb6a61640f0
 Author: Thomas Dreibholz <dreibh@simula.no>
@@ -647,6 +765,31 @@ Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Thu Apr 3 17:33:35 2025 +0200
 
     Bugfix: MariaDB v1 compatibility views need time zone handling.
+
+commit d0a159ac28f282ccbe40527ddf14df607b6807cd
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Apr 3 17:22:13 2025 +0200
+
+    A fix.
+
+commit 58b4892963311c04fe1c5f682ba17e5305960e61
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Apr 3 17:12:59 2025 +0200
+
+    Updated helper functions for timestamp conversion.
+
+commit a926f0ef80e66753f40c26ffa7a30b3d94775b7f
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Apr 3 15:55:22 2025 +0200
+
+    MariaDB: Improved partitioning handling and added helper functions.
+
+commit 7c673040dbcbeae1f1d45be60bec291a910716b0
+Merge: 865e9bc e4ff32c
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Apr 3 13:19:42 2025 +0200
+
+    Merge branch 'master' into dreibh/db-partitioning
 
 commit e4ff32c135162155d17e1fc899800372da2d00e0
 Author: Thomas Dreibholz <dreibh@simula.no>
@@ -679,11 +822,49 @@ Date:   Thu Apr 3 09:54:00 2025 +0200
 
     Merge branch 'master' into dreibh/db-deduplication
 
+commit 865e9bcae4d047f8516888054b463fff3f76169b
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Apr 2 14:25:22 2025 +0200
+
+    Enabling event scheduler in MariaDB test.
+
+commit 659e6bac8e7f5d2c7160a7ff183b2daeda7d65b0
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Apr 2 13:53:50 2025 +0200
+
+    Further improvements.
+
+commit 0d083af65cddce6effc607f2e944810e431382ce
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Apr 2 12:39:24 2025 +0200
+
+    Improved MariaDB stored procedures.
+
+commit 9de151910afe209bd65f1a46439fe69bb25cd16e
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Apr 1 15:24:04 2025 +0200
+
+    Improved partitioning function.
+
+commit 25b42682223f5d78f0a73cbf205b862018a0603b
+Merge: ef0a6c7 a27d718
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Apr 1 14:49:07 2025 +0200
+
+    Merge branch 'master' into dreibh/db-partitioning
+
 commit a27d71865c9665e16764344539249db7650c3cf2
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Tue Apr 1 14:47:41 2025 +0200
 
     Only show PostgreSQL environment variables when the database backend is PostgreSQL.
+
+commit ef0a6c743997b65b576dfa913c6786dfafab5324
+Merge: cc21783 ad7f1fb
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Apr 1 14:44:41 2025 +0200
+
+    Merge branch 'master' into dreibh/db-partitioning
 
 commit aa8704cb019f38d5f5b9e62faa700b5f39989eec
 Author: Thomas Dreibholz <dreibh@simula.no>
@@ -1035,11 +1216,53 @@ Date:   Wed Mar 26 14:54:17 2025 +0100
 
     Some testing.
 
+commit cc217832e84869f4133fdc9dd2ab4b6d43f980bb
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Mar 26 11:20:01 2025 +0100
+
+    Improved file to worker mapping when source is :: or 0.0.0.0 -> use process ID/measurement ID.
+
 commit 8babc156d152fd4fec83613869b3cce3c95c81d2
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Wed Mar 26 09:57:31 2025 +0100
 
     Minor fix.
+
+commit be9352d2acdd7406c70282ec11966ec0435c3909
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Mar 25 16:40:23 2025 +0100
+
+    Some improvements.
+
+commit f86040374a66fce9823cf64e21b9a2f163edf4fc
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Mar 25 16:21:03 2025 +0100
+
+    Minor clean-ups.
+
+commit e1a31a5f57bb420579d7c94c0571023418b3d05c
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Mar 25 16:20:56 2025 +0100
+
+    Updated test script.
+
+commit cf6ed188e6746e929e9ada0637c8eec4e6b409af
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Mar 25 16:20:33 2025 +0100
+
+    Improved MariaDB database partitions handling.
+
+commit b2b22e260f8bfa3cc6100f3b975fdc5be2dedd8c
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Mar 25 15:54:44 2025 +0100
+
+    A small fix.
+
+commit 5a051588742be43a131e7a240549875f9d2be59f
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Mar 25 15:44:06 2025 +0100
+
+    Improved partition handling.
 
 commit 51df507632aa7f1d99440dcbd35de9cd1e3e1b29
 Author: Thomas Dreibholz <dreibh@simula.no>
