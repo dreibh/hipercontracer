@@ -33,6 +33,11 @@ library("digest")
 library("data.table", warn.conflicts = FALSE)
 library("dplyr",      warn.conflicts = FALSE)
 library("ipaddress")
+library("vroom")
+
+
+# Path to HPCT Results:
+hpct_results_tool = 'hpct-results'
 
 
 # ###### Process HiPerConTracer Ping results ################################
@@ -40,7 +45,7 @@ processHiPerConTracerPingResults <- function(dataTable)
 {
    # print(colnames(dataTable))
    dataTable <- dataTable %>%
-                   mutate(Timestamp    = as.numeric(paste(sep="", "0x", Timestamp)),
+                   mutate(Timestamp    = anytime(as.numeric(paste(sep="", "0x", Timestamp)) / 1e9),
                           Protocol     = substr(Ping, 3, 1000000),
                           Checksum     = as.numeric(paste(sep="", "0x", Checksum)),
                           TrafficClass = as.numeric(paste(sep="", "0x", TrafficClass))) %>%
@@ -54,7 +59,7 @@ processHiPerConTracerTracerouteResults <- function(dataTable)
 {
    # print(colnames(dataTable))
    dataTable <- dataTable %>%
-                   mutate(Timestamp    = as.numeric(paste(sep="", "0x", Timestamp)),
+                   mutate(Timestamp    = anytime(as.numeric(paste(sep="", "0x", Timestamp)) / 1e9),
                           Protocol     = substr(Traceroute, 3, 1000000),
                           IPVersion    = ifelse(is_ipv4(as_ip_address(DestinationIP)), 4, 6),
                           Checksum     = as.numeric(paste(sep="", "0x", Checksum)),

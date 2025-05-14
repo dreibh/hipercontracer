@@ -338,6 +338,23 @@ bool Worker::importFiles(const std::list<std::filesystem::path>& dataFileList)
       // The database connection is broken -> reconnect.
    }
 
+   //  ====== Other error (e.g. decompression) ==============================
+   // NOTE: The database connection is still okay!
+   catch(std::exception& exception) {
+      HPCT_LOG(warning) << getIdentification() << ": Import in "
+                        << ((fastMode == true) ? "fast" : "slow") << " mode failed with generic error: "
+                        << exception.what();
+      try {
+         DatabaseClient.rollback();
+         if(!fastMode) {
+            finishedFile(dataFile, false);
+         }
+         return false;
+      }
+      catch(ResultsDatabaseException& exception) {
+         // Now, the database connection is broken -> reconnect.
+      }
+   }
 
    // ====== Reconnect ======================================================
    HPCT_LOG(warning) << getIdentification() << ": Waiting " << DatabaseConfig.getReconnectDelay() << " ...";
