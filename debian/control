@@ -85,7 +85,8 @@ Description: High-Performance Connectivity Tracer (HiPerConTracer)
 
 Package: hipercontracer-common
 Architecture: all
-Depends: passwd,
+Depends: acl,
+         passwd,
          ${misc:Depends}
 Suggests: python3,
           r-base-core

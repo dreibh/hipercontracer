@@ -1,3 +1,41 @@
+commit 6033be8324bb7544dd9047121a747f04dc3a04b9
+Merge: ce7836d b1c1ee2
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue May 13 12:15:09 2025 +0200
+
+    Merge branch 'master' into dreibh/libiostreams
+
+commit b1c1ee29b5104ab9765258b8e83cf9ec6018aded
+Merge: d849e09 ac44df2
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue May 13 12:14:50 2025 +0200
+
+    Merge branch 'master' of github.com:dreibh/hipercontracer
+
+commit ac44df2d8b53b6105dbb80828ed608679482cc6b
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue May 13 11:35:12 2025 +0200
+
+    Updated FreeBSD port.
+
+commit 7662ee8becd065d01c76a69e320f66437ee69cb4
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue May 13 10:21:46 2025 +0200
+
+    Updated FreeBSD port.
+
+commit 3266df07b7638d100250012ea918a94ff4e0c574
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue May 13 10:16:09 2025 +0200
+
+    Updated FreeBSD port.
+
+commit ce7836d22dfbb79b4052228884c0aff3bbe449bc
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue May 13 10:07:19 2025 +0200
+
+    Fixed merge conflict in ChangeLog.
+
 commit 3183f4266b510b94fb117842a7960b391c87b1e6
 Merge: f4c21b7 d849e09
 Author: Thomas Dreibholz <dreibh@simula.no>
