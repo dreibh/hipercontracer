@@ -49,3 +49,16 @@ SELECT TimeStamp FROM Ping_v1 ORDER BY TimeStamp LIMIT 10;
 
 SELECT UnixTimestamp2UTCDateTime(Timestamp), Timestamp FROM Traceroute ORDER BY Timestamp LIMIT 10;
 SELECT TimeStamp FROM Traceroute_v1 ORDER BY Timestamp LIMIT 10;
+
+# ###### Advanced database features test ####################################
+-- The Event Scheduler will run the procedures daily.
+-- For testing, make sure they run immediately:
+CALL CreateDailyPartitionsForTable("test4hpct", "Ping", "SendTimestamp");
+CALL CreateDailyPartitionsForTable("test4hpct", "Traceroute", "Timestamp");
+CALL CreateDailyPartitionsForTable("test4hpct", "Jitter", "Timestamp");
+
+-- List the created partitions:
+CALL ObtainDailyPartitionsOfSchema("test4hpct");
+CALL ObtainDailyPartitionsOfTable("test4hpct", "Ping");
+CALL ObtainDailyPartitionsOfTable("test4hpct", "Traceroute");
+CALL ObtainDailyPartitionsOfTable("test4hpct", "Jitter");

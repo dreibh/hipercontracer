@@ -1,5 +1,5 @@
 Name: hipercontracer
-Version: 2.0.14
+Version: 2.0.16
 Release: 1
 Summary: High-Performance Connectivity Tracer (HiPerConTracer)
 Group: Applications/Internet
@@ -104,6 +104,8 @@ This package contains the actual HiPerConTracer program.
 Summary: HiPerConTracer common files
 Group: Applications/File
 BuildArch: noarch
+Requires: acl
+Requires: shadow-utils
 Recommends: %{name} = %{version}-%{release}
 Recommends: %{name}-results = %{version}-%{release}
 Suggests: R-base
@@ -717,14 +719,20 @@ HiPerConTracer results files into an SQL or NoSQL database.
 %{_datadir}/hipercontracer/SQL/README-PostgreSQL.md
 %{_datadir}/hipercontracer/SQL/mariadb-database.sql
 %{_datadir}/hipercontracer/SQL/mariadb-delete-all-rows.sql
+%{_datadir}/hipercontracer/SQL/mariadb-functions.sql
+%{_datadir}/hipercontracer/SQL/mariadb-procedures.sql
 %{_datadir}/hipercontracer/SQL/mariadb-schema.sql
 %{_datadir}/hipercontracer/SQL/mariadb-test.sql
 %{_datadir}/hipercontracer/SQL/mariadb-users.sql
+%{_datadir}/hipercontracer/SQL/mariadb-views.sql
 %{_datadir}/hipercontracer/SQL/postgresql-database.sql
 %{_datadir}/hipercontracer/SQL/postgresql-delete-all-rows.sql
+%{_datadir}/hipercontracer/SQL/postgresql-functions.sql
+%{_datadir}/hipercontracer/SQL/postgresql-procedures.sql
 %{_datadir}/hipercontracer/SQL/postgresql-schema.sql
 %{_datadir}/hipercontracer/SQL/postgresql-test.sql
 %{_datadir}/hipercontracer/SQL/postgresql-users.sql
+%{_datadir}/hipercontracer/SQL/postgresql-views.sql
 %{_datadir}/hipercontracer/TestDB/0-make-configurations
 %{_datadir}/hipercontracer/TestDB/1-install-database
 %{_datadir}/hipercontracer/TestDB/2-initialise-database
@@ -1107,6 +1115,10 @@ This metapackage installs all sub-packages of the HiPerConTracer Framework.
 
 
 %changelog
+* Wed May 14 2025 Thomas Dreibholz <dreibh@simula.no> - 2.0.16
+- New upstream release.
+* Mon May 12 2025 Thomas Dreibholz <dreibh@simula.no> - 2.0.15
+- New upstream release.
 * Sun Apr 27 2025 Thomas Dreibholz <dreibh@simula.no> - 2.0.14
 - New upstream release.
 * Wed Apr 16 2025 Thomas Dreibholz <dreibh@simula.no> - 2.0.13
