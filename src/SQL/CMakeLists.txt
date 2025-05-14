@@ -41,6 +41,7 @@ INSTALL(FILES
            mariadb-schema.sql
            mariadb-test.sql
            mariadb-users.sql
+           mariadb-views.sql
            postgresql-database.sql
            postgresql-delete-all-rows.sql
            postgresql-functions.sql
@@ -48,4 +49,5 @@ INSTALL(FILES
            postgresql-schema.sql
            postgresql-test.sql
            postgresql-users.sql
+           postgresql-views.sql
         DESTINATION ${CMAKE_INSTALL_DATADIR}/hipercontracer/SQL)

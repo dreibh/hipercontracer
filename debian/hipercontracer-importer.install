@@ -18,6 +18,7 @@ usr/share/hipercontracer/SQL/mariadb-procedures.sql
 usr/share/hipercontracer/SQL/mariadb-schema.sql
 usr/share/hipercontracer/SQL/mariadb-test.sql
 usr/share/hipercontracer/SQL/mariadb-users.sql
+usr/share/hipercontracer/SQL/mariadb-views.sql
 usr/share/hipercontracer/SQL/postgresql-database.sql
 usr/share/hipercontracer/SQL/postgresql-delete-all-rows.sql
 usr/share/hipercontracer/SQL/postgresql-functions.sql
@@ -25,6 +26,7 @@ usr/share/hipercontracer/SQL/postgresql-procedures.sql
 usr/share/hipercontracer/SQL/postgresql-schema.sql
 usr/share/hipercontracer/SQL/postgresql-test.sql
 usr/share/hipercontracer/SQL/postgresql-users.sql
+usr/share/hipercontracer/SQL/postgresql-views.sql
 usr/share/hipercontracer/TestDB/0-make-configurations
 usr/share/hipercontracer/TestDB/1-install-database
 usr/share/hipercontracer/TestDB/2-initialise-database

@@ -724,6 +724,7 @@ HiPerConTracer results files into an SQL or NoSQL database.
 %{_datadir}/hipercontracer/SQL/mariadb-schema.sql
 %{_datadir}/hipercontracer/SQL/mariadb-test.sql
 %{_datadir}/hipercontracer/SQL/mariadb-users.sql
+%{_datadir}/hipercontracer/SQL/mariadb-views.sql
 %{_datadir}/hipercontracer/SQL/postgresql-database.sql
 %{_datadir}/hipercontracer/SQL/postgresql-delete-all-rows.sql
 %{_datadir}/hipercontracer/SQL/postgresql-functions.sql
@@ -731,6 +732,7 @@ HiPerConTracer results files into an SQL or NoSQL database.
 %{_datadir}/hipercontracer/SQL/postgresql-schema.sql
 %{_datadir}/hipercontracer/SQL/postgresql-test.sql
 %{_datadir}/hipercontracer/SQL/postgresql-users.sql
+%{_datadir}/hipercontracer/SQL/postgresql-views.sql
 %{_datadir}/hipercontracer/TestDB/0-make-configurations
 %{_datadir}/hipercontracer/TestDB/1-install-database
 %{_datadir}/hipercontracer/TestDB/2-initialise-database
