@@ -1,3 +1,65 @@
+commit c0bbf1a0a890391cca0591ad9ba0b4b5ed89ae43
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed May 14 11:43:28 2025 +0200
+
+    Debian test dependency fix.
+
+commit 99c10a2b09d29cdd82171e4f26905eec22058eeb
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed May 14 10:58:52 2025 +0200
+
+    Packaging fix: The SQL views files were missing as well.
+
+commit 9d99e103f6fe953928037ef77dce7ce8dc91e47d
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue May 13 17:28:00 2025 +0200
+
+    Bugfix: SQL files for functions and procedures were missing in installation packages.
+
+commit 97d51a99179e98d53d712f2e46859809e2752e65
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue May 13 13:58:17 2025 +0200
+
+    Dependency fix: setfacl is required.
+
+commit b1c1ee29b5104ab9765258b8e83cf9ec6018aded
+Merge: d849e09 ac44df2
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue May 13 12:14:50 2025 +0200
+
+    Merge branch 'master' of github.com:dreibh/hipercontracer
+
+commit ac44df2d8b53b6105dbb80828ed608679482cc6b
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue May 13 11:35:12 2025 +0200
+
+    Updated FreeBSD port.
+
+commit 7662ee8becd065d01c76a69e320f66437ee69cb4
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue May 13 10:21:46 2025 +0200
+
+    Updated FreeBSD port.
+
+commit 3266df07b7638d100250012ea918a94ff4e0c574
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue May 13 10:16:09 2025 +0200
+
+    Updated FreeBSD port.
+
+commit d849e096b9610b797a7e3ce20770565284f7e098
+Merge: 834f894 af1a8ad
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue May 13 09:57:43 2025 +0200
+
+    Merge branch 'dreibh/db-partitioning'
+
+commit 834f89464462e67cf0f28b19d2dc8fe70b9b70b2
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Mon May 12 22:50:38 2025 +0200
+
+    New release hipercontracer-2.0.15.
+
 commit 06ea126d631f397b582579b2b859127217690467
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Mon May 12 22:45:57 2025 +0200
@@ -5,7 +67,7 @@ Date:   Mon May 12 22:45:57 2025 +0200
     Updated year range in debian/copyright.
 
 commit ce3db1c3a4dbfc31d2db7ead8547af3837f0b77f
-Merge: eb58d338 7fe30417
+Merge: eb58d33 7fe3041
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Mon May 12 22:19:49 2025 +0200
 
@@ -40,6 +102,13 @@ Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Thu May 1 09:37:45 2025 +0200
 
     Improved R example.
+
+commit af1a8ad8a57bc9f00d8d5ca8091e4f9b536728f9
+Merge: b2d374d 5beff3d
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Mon Apr 28 17:40:26 2025 +0200
+
+    Merge branch 'master' into dreibh/db-partitioning
 
 commit 31287f1f6e44b57f4ab53e5e62f02e8e8a77201c
 Author: Thomas Dreibholz <dreibh@simula.no>
@@ -113,6 +182,13 @@ Date:   Fri Apr 11 12:41:20 2025 +0200
 
     Manpage updates.
 
+commit b2d374d6c7af9b313837fa336437c406f0e5bddf
+Merge: de6072b 2565036
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Fri Apr 11 12:40:37 2025 +0200
+
+    Merge branch 'master' into dreibh/db-partitioning
+
 commit 25650368b01c0a4451582258fbef3ce2dc166d26
 Author: NorNet Praesum Presum <nornetpp@vbox.oslomet.no>
 Date:   Fri Apr 11 12:32:36 2025 +0200
@@ -156,7 +232,7 @@ Date:   Tue Apr 8 17:38:10 2025 +0200
     New release hipercontracer-2.0.9.
 
 commit 02a0cb84cde644bd785e3f9705ffda49a4c5a95f
-Merge: 2d794d3a ec5cb110
+Merge: 2d794d3 ec5cb11
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Tue Apr 8 17:32:11 2025 +0200
 
@@ -169,7 +245,7 @@ Date:   Tue Apr 8 17:31:24 2025 +0200
     Reverted posix_fadvise() changes.
 
 commit 2d794d3ab65b41ae397371adc21e3dece7de8191
-Merge: c902bc8f 981eebe2
+Merge: c902bc8 981eebe
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Tue Apr 8 17:26:11 2025 +0200
 
@@ -265,6 +341,13 @@ Date:   Mon Apr 7 14:36:18 2025 +0200
 
     Fixed PostgreSQL legacy v1 view as well.
 
+commit de6072b36aeeaeb8b34d0d2bbb3ad5305b5e6015
+Merge: a5dcd00 9f1f98f
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Mon Apr 7 13:36:54 2025 +0200
+
+    Merge branch 'master' into dreibh/db-partitioning
+
 commit 9f1f98fb19cb491d90eb08f286237373448c9d03
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Mon Apr 7 13:35:37 2025 +0200
@@ -282,6 +365,13 @@ Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Mon Apr 7 13:09:13 2025 +0200
 
     MariaDB SQL functions clean-up.
+
+commit a5dcd009ce4caba992f2ac9f7d5b477f2ef8fccf
+Merge: f07c61b ebac6fe
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Mon Apr 7 10:30:14 2025 +0200
+
+    Merge branch 'master' into dreibh/db-partitioning
 
 commit ebac6fe10583f1fb732a204321799b87f112b265
 Author: Thomas Dreibholz <dreibh@simula.no>
@@ -331,17 +421,44 @@ Date:   Mon Apr 7 09:19:27 2025 +0200
 
     Bugfix: Added missing exception handling.
 
+commit f07c61b0dd0d6d39a220480890ef0590a8098a64
+Merge: 6fabac6 6182b5c
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Fri Apr 4 16:42:54 2025 +0200
+
+    Merge branch 'master' into dreibh/db-partitioning
+
 commit 6182b5c02e30da3fec433125bcd11fced6320bcf
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Fri Apr 4 16:04:14 2025 +0200
 
     New release hipercontracer-2.0.8.
 
+commit 6fabac6574a57deffe85f9c09feb64b7b9e8b781
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Fri Apr 4 09:33:39 2025 +0200
+
+    Minor test script update.
+
+commit 68786dbf336bc0e4fa41ab3c2f7bfda2ee2c7311
+Merge: 807d8f5 2f3faad
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Apr 3 18:01:10 2025 +0200
+
+    Merge branch 'master' into dreibh/db-partitioning
+
 commit 2f3faadf21ff9b1f3b8daf1b57a4ae8fa019a414
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Thu Apr 3 17:59:39 2025 +0200
 
     Improved test script.
+
+commit 807d8f5f9d4a047de8800eced30263f0abfcfeb4
+Merge: d0a159a 43d6102
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Apr 3 17:41:11 2025 +0200
+
+    Merge branch 'master' into dreibh/db-partitioning
 
 commit 43d6102b6a276a85b44075dfb277ecb6a61640f0
 Author: Thomas Dreibholz <dreibh@simula.no>
@@ -373,6 +490,31 @@ Date:   Thu Apr 3 17:33:35 2025 +0200
 
     Bugfix: MariaDB v1 compatibility views need time zone handling.
 
+commit d0a159ac28f282ccbe40527ddf14df607b6807cd
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Apr 3 17:22:13 2025 +0200
+
+    A fix.
+
+commit 58b4892963311c04fe1c5f682ba17e5305960e61
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Apr 3 17:12:59 2025 +0200
+
+    Updated helper functions for timestamp conversion.
+
+commit a926f0ef80e66753f40c26ffa7a30b3d94775b7f
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Apr 3 15:55:22 2025 +0200
+
+    MariaDB: Improved partitioning handling and added helper functions.
+
+commit 7c673040dbcbeae1f1d45be60bec291a910716b0
+Merge: 865e9bc e4ff32c
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Apr 3 13:19:42 2025 +0200
+
+    Merge branch 'master' into dreibh/db-partitioning
+
 commit e4ff32c135162155d17e1fc899800372da2d00e0
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Thu Apr 3 11:51:38 2025 +0200
@@ -398,17 +540,55 @@ Date:   Thu Apr 3 09:59:16 2025 +0200
     Bugfix: HPCT Results' short options for --separator and --sorted conflicted. Using "-A" for "--sorted" now.
 
 commit a71ea9cc03801821515f879f3912b861af2e1b95
-Merge: aa8704cb a27d7186
+Merge: aa8704c a27d718
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Thu Apr 3 09:54:00 2025 +0200
 
     Merge branch 'master' into dreibh/db-deduplication
+
+commit 865e9bcae4d047f8516888054b463fff3f76169b
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Apr 2 14:25:22 2025 +0200
+
+    Enabling event scheduler in MariaDB test.
+
+commit 659e6bac8e7f5d2c7160a7ff183b2daeda7d65b0
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Apr 2 13:53:50 2025 +0200
+
+    Further improvements.
+
+commit 0d083af65cddce6effc607f2e944810e431382ce
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Apr 2 12:39:24 2025 +0200
+
+    Improved MariaDB stored procedures.
+
+commit 9de151910afe209bd65f1a46439fe69bb25cd16e
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Apr 1 15:24:04 2025 +0200
+
+    Improved partitioning function.
+
+commit 25b42682223f5d78f0a73cbf205b862018a0603b
+Merge: ef0a6c7 a27d718
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Apr 1 14:49:07 2025 +0200
+
+    Merge branch 'master' into dreibh/db-partitioning
 
 commit a27d71865c9665e16764344539249db7650c3cf2
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Tue Apr 1 14:47:41 2025 +0200
 
     Only show PostgreSQL environment variables when the database backend is PostgreSQL.
+
+commit ef0a6c743997b65b576dfa913c6786dfafab5324
+Merge: cc21783 ad7f1fb
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Apr 1 14:44:41 2025 +0200
+
+    Merge branch 'master' into dreibh/db-partitioning
 
 commit aa8704cb019f38d5f5b9e62faa700b5f39989eec
 Author: Thomas Dreibholz <dreibh@simula.no>
@@ -417,7 +597,7 @@ Date:   Tue Apr 1 13:09:56 2025 +0200
     Manpage formatting fix.
 
 commit 4864db1d6521249a4f22e44e737900d964bad058
-Merge: 68f5458c ad7f1fb9
+Merge: 68f5458 ad7f1fb
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Tue Apr 1 12:41:01 2025 +0200
 
@@ -442,7 +622,7 @@ Date:   Tue Apr 1 12:22:34 2025 +0200
     Added option for testing.
 
 commit 0b84f08caf36e60edac6781ae3a2fd444ba768ed
-Merge: fbbe120b efc0bd0d
+Merge: fbbe120 efc0bd0
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Tue Apr 1 12:18:42 2025 +0200
 
@@ -475,7 +655,7 @@ Date:   Mon Mar 31 15:50:19 2025 +0200
     DBShell: Also using quiet mode for MariaDB and PostgreSQL.
 
 commit 9403981db868996b2a078c8e94df133cb554b54a
-Merge: f19500d9 c75ad255
+Merge: f19500d c75ad25
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Mon Mar 31 15:34:27 2025 +0200
 
@@ -530,7 +710,7 @@ Date:   Mon Mar 31 13:14:15 2025 +0200
     Bugfix: rename() is only useful when output is going into a file.
 
 commit de0159efd8da22117a4c8b52dc61e6f2ba1bb5d0
-Merge: 7f9e0fcf 1997c21a
+Merge: 7f9e0fc 1997c21
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Thu Mar 27 23:27:18 2025 +0100
 
@@ -543,7 +723,7 @@ Date:   Thu Mar 27 23:24:48 2025 +0100
     DBShell improvement: start mongosh with "--quiet", to prevent displaying version information each time it is started.
 
 commit 7f9e0fcfa2b95f4a28d0facc19871162132107f3
-Merge: 7849d684 905adea7
+Merge: 7849d68 905adea
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Thu Mar 27 22:01:54 2025 +0100
 
@@ -753,11 +933,53 @@ Date:   Wed Mar 26 14:54:17 2025 +0100
 
     Some testing.
 
+commit cc217832e84869f4133fdc9dd2ab4b6d43f980bb
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Mar 26 11:20:01 2025 +0100
+
+    Improved file to worker mapping when source is :: or 0.0.0.0 -> use process ID/measurement ID.
+
 commit 8babc156d152fd4fec83613869b3cce3c95c81d2
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Wed Mar 26 09:57:31 2025 +0100
 
     Minor fix.
+
+commit be9352d2acdd7406c70282ec11966ec0435c3909
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Mar 25 16:40:23 2025 +0100
+
+    Some improvements.
+
+commit f86040374a66fce9823cf64e21b9a2f163edf4fc
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Mar 25 16:21:03 2025 +0100
+
+    Minor clean-ups.
+
+commit e1a31a5f57bb420579d7c94c0571023418b3d05c
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Mar 25 16:20:56 2025 +0100
+
+    Updated test script.
+
+commit cf6ed188e6746e929e9ada0637c8eec4e6b409af
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Mar 25 16:20:33 2025 +0100
+
+    Improved MariaDB database partitions handling.
+
+commit b2b22e260f8bfa3cc6100f3b975fdc5be2dedd8c
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Mar 25 15:54:44 2025 +0100
+
+    A small fix.
+
+commit 5a051588742be43a131e7a240549875f9d2be59f
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Mar 25 15:44:06 2025 +0100
+
+    Improved partition handling.
 
 commit 51df507632aa7f1d99440dcbd35de9cd1e3e1b29
 Author: Thomas Dreibholz <dreibh@simula.no>
@@ -838,7 +1060,7 @@ Date:   Sun Feb 16 14:27:05 2025 +0100
     Updated CI scripts
 
 commit 049078d8819887a7b5ee53aabf9a4b4c82ed0351
-Merge: a2262211 38be8f34
+Merge: a226221 38be8f3
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Sun Feb 16 14:24:00 2025 +0100
 
@@ -1013,7 +1235,7 @@ Date:   Sat Jan 18 08:53:46 2025 +1300
     Bugfix: Properly handle source address changes of the system.
 
 commit 86fbde2fc7cc63d2197f321c74889a696ed5e1fb
-Merge: ee6729d0 b989dc64
+Merge: ee6729d b989dc6
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Fri Dec 20 17:16:36 2024 +0100
 
@@ -1290,7 +1512,7 @@ Date:   Fri Dec 13 22:45:31 2024 +0100
     Version bump.
 
 commit c7e94d078c8059c99fa8c7a0277d64b5f6abb9fb
-Merge: c9827e6e 42088ecb
+Merge: c9827e6 42088ec
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Fri Dec 13 20:47:21 2024 +0100
 
@@ -1411,7 +1633,7 @@ Date:   Mon Dec 2 18:20:22 2024 +0100
     Fixed cast for version 1 timestamp export.
 
 commit 82f965f2d567058e94b9be17776ea9cdf855f9b8
-Merge: a8144e20 75170c3f
+Merge: a8144e2 75170c3
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Mon Dec 2 11:32:27 2024 +0100
 
@@ -1430,7 +1652,7 @@ Date:   Mon Dec 2 11:26:06 2024 +0100
     Version bump.
 
 commit 2c156492e3e286fc3824e9ef2395abc16aeff42f
-Merge: d0cee36f 0adb40ac
+Merge: d0cee36 0adb40a
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Mon Dec 2 11:25:20 2024 +0100
 
@@ -1503,7 +1725,7 @@ Date:   Thu Nov 21 09:04:02 2024 +0100
     Updated script.
 
 commit 804572295c5ae38598a0676f2c65ada1dee78a40
-Merge: ece83e99 71cdf973
+Merge: ece83e9 71cdf97
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Wed Nov 20 16:52:08 2024 +0100
 
@@ -1528,7 +1750,7 @@ Date:   Wed Nov 20 16:12:38 2024 +0100
     Minor clean-ups.
 
 commit 5c359ca164bd9a0f2b520e55e3099f4a75d7ebcf
-Merge: ff3a8e25 b7593cc0
+Merge: ff3a8e2 b7593cc
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Wed Nov 20 16:11:18 2024 +0100
 
@@ -1541,7 +1763,7 @@ Date:   Wed Nov 20 16:10:27 2024 +0100
     Improved scripts.
 
 commit b7593cc011d874f7ab4541f1acfc5e54edd21031
-Merge: d2a20c4a 010e0d5e
+Merge: d2a20c4 010e0d5
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Wed Nov 20 16:09:47 2024 +0100
 
@@ -1572,7 +1794,7 @@ Date:   Wed Nov 20 16:02:25 2024 +0100
     Improved script.
 
 commit 010e0d5e56ca247299cc3f955ab4b7371c7400dd
-Merge: d90a2f83 9036b7f5
+Merge: d90a2f8 9036b7f
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Wed Nov 20 14:54:23 2024 +0100
 
@@ -1585,7 +1807,7 @@ Date:   Wed Nov 20 14:54:07 2024 +0100
     Minor clean-ups.
 
 commit 9036b7f514187305ac41a37f419702a0c23d4bd6
-Merge: 82b408fe 091795a0
+Merge: 82b408f 091795a
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Wed Nov 20 14:33:27 2024 +0100
 
@@ -1640,7 +1862,7 @@ Date:   Wed Nov 20 12:34:22 2024 +0100
     FreeBSD Makefile updates.
 
 commit f23c16c81ade98b929326075053b23b35d9014a6
-Merge: c25ceee6 94fee743
+Merge: c25ceee 94fee74
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Wed Nov 20 12:05:40 2024 +0100
 
@@ -1779,7 +2001,7 @@ Date:   Mon Nov 11 10:46:19 2024 +0100
     Bugfix: fixed rounding in time point to string conversion.
 
 commit ed0cbfa19b888c46dacb24e99331ba95d873d007
-Merge: b2b7da20 55b78b7c
+Merge: b2b7da2 55b78b7
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Fri Nov 8 12:34:05 2024 +0100
 
@@ -1816,7 +2038,7 @@ Date:   Wed Nov 6 13:26:10 2024 +0100
     Dependency fixes.
 
 commit eaa8bf97160ee79d83f9df546d10260ffea91952
-Merge: a5b968eb 016bef3f
+Merge: a5b968e 016bef3
 Author: NorNet Praesum Presum <nornetpp@dbtest.hipercontracer.nornet>
 Date:   Tue Nov 5 16:55:55 2024 +0100
 
@@ -1955,7 +2177,7 @@ Date:   Thu Oct 31 16:50:04 2024 +0100
     Added garbage directory collection, for delayed removal of empty directories.
 
 commit 8c17e2e9589da566a5e2663598c2aeaf6569770e
-Merge: 3b78e476 010dbaaa
+Merge: 3b78e47 010dbaa
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Thu Oct 31 16:30:05 2024 +0100
 
@@ -2136,7 +2358,7 @@ Date:   Mon Oct 28 22:38:48 2024 +0100
     Added missing PDF file.
 
 commit 7a6874c58a84d2605db5aac923d2523ad4f13e2d
-Merge: 1e4338e2 856bceb7
+Merge: 1e4338e 856bceb
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Mon Oct 28 22:28:12 2024 +0100
 
@@ -2371,7 +2593,7 @@ Date:   Fri Oct 18 10:26:38 2024 +0200
     Workflow update.
 
 commit 90040a8967314025b61483f01262495ac35ef478
-Merge: ec923f28 a5007748
+Merge: ec923f2 a500774
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Fri Oct 18 10:13:44 2024 +0200
 
@@ -2540,7 +2762,7 @@ Date:   Wed Oct 16 14:25:56 2024 +0200
     Added initial Bash completion script for HiPerConTracer.
 
 commit 1ee969c24a9bc764ae3575b06ee88328faa6a262
-Merge: 49454972 b9b389a8
+Merge: 4945497 b9b389a
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Wed Oct 16 13:16:25 2024 +0200
 
@@ -2649,7 +2871,7 @@ Date:   Tue Oct 15 10:11:58 2024 +0200
     CMakeLists.txt improvements.
 
 commit 62404e41e136a2b86a8fd29af890f33c73446dd4
-Merge: b078d5e9 894fe74f
+Merge: b078d5e 894fe74
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Tue Oct 15 09:17:15 2024 +0200
 
@@ -2830,7 +3052,7 @@ Date:   Sun Oct 13 14:27:29 2024 +0200
     Updated script.
 
 commit 227237b89ec28f5fe0697cca57b6ec2249b8e759
-Merge: c8cb6784 5072cd22
+Merge: c8cb678 5072cd2
 Author: NorNet Praesum Presum <nornetpp@dbtest.hipercontracer.nornet>
 Date:   Sun Oct 13 14:20:04 2024 +0200
 
@@ -2963,7 +3185,7 @@ Date:   Tue Oct 8 15:30:36 2024 +0200
     Updated multiarch workflow.
 
 commit 65bfe1e5ab5eaf90d2295f2e7efcd8fcbc84678d
-Merge: e906bd09 c06ab142
+Merge: e906bd0 c06ab14
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Tue Oct 8 14:48:48 2024 +0200
 
@@ -3270,7 +3492,7 @@ Date:   Mon Sep 2 15:06:13 2024 +0200
     FreeBSD: Runtime estimation has to use system clock.
 
 commit 2da3cbdbec8f903ada2511062250de5d30b038e5
-Merge: 466e71a4 6bcd133c
+Merge: 466e71a 6bcd133
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Mon Sep 2 14:56:42 2024 +0200
 
@@ -3439,7 +3661,7 @@ Date:   Fri Aug 30 16:35:28 2024 +0200
     Added test.
 
 commit 86114b01d9acd974eb2487deb4a8087ebfeb35d9
-Merge: 2d822acc 39515f6f
+Merge: 2d822ac 39515f6
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Fri Aug 30 16:22:34 2024 +0200
 
@@ -3458,7 +3680,7 @@ Date:   Fri Aug 30 13:19:55 2024 +0200
     PostgreSQL test is now working under Fedora as well.
 
 commit 8c712528a19fb67d4591cace2ecbb9decc0c7a11
-Merge: 66b8afcf d250ce1b
+Merge: 66b8afc d250ce1
 Author: NorNet Praesum Presum <nornetpp@localhost>
 Date:   Fri Aug 30 13:11:57 2024 +0200
 
@@ -3471,7 +3693,7 @@ Date:   Fri Aug 30 13:11:46 2024 +0200
     Improved PostgreSQL installation.
 
 commit d250ce1bb5b3321218cd0f92b883fd73634d1c0d
-Merge: fbe35b15 a8317e73
+Merge: fbe35b1 a8317e7
 Author: NorNet Praesum Presum <nornetpp@localhost>
 Date:   Fri Aug 30 13:11:19 2024 +0200
 
@@ -3634,7 +3856,7 @@ Date:   Wed Aug 21 12:39:59 2024 +0200
     Improved output handling.
 
 commit a431cecd56c37a743c97bb1a4be452871d311a6e
-Merge: 76996412 0feb3792
+Merge: 7699641 0feb379
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Tue Aug 20 16:42:56 2024 +0200
 
@@ -4073,7 +4295,7 @@ Date:   Mon Aug 5 17:14:45 2024 +0200
     Improved test scripts.
 
 commit c8804b651cf853e56a2085004412e39ef85df815
-Merge: 53b5257b 938545d1
+Merge: 53b5257 938545d
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Mon Aug 5 14:25:32 2024 +0200
 
@@ -4086,7 +4308,7 @@ Date:   Mon Aug 5 14:25:01 2024 +0200
     Minor update.
 
 commit 938545d18f1a1876e6f656bb0618605c5d5ecbd2
-Merge: 2b84e523 d2e35459
+Merge: 2b84e52 d2e3545
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Mon Aug 5 14:16:48 2024 +0200
 
@@ -4183,7 +4405,7 @@ Date:   Tue Jun 11 16:56:00 2024 +0200
     Updated FreeBSD packaging files. Not working, yet.
 
 commit 9c3730b6431ba78ec13093a82e714284e56543f8
-Merge: ce85303b 16c964d2
+Merge: ce85303 16c964d
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Tue Jun 11 16:25:48 2024 +0200
 
@@ -4262,7 +4484,7 @@ Date:   Tue Jun 11 12:42:03 2024 +0200
     Updated comments.
 
 commit d7f62222e12e9db98d544bcd621c4bbb0224fff5
-Merge: def1f876 632d9987
+Merge: def1f87 632d998
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Tue Jun 11 12:18:50 2024 +0200
 
@@ -4287,7 +4509,7 @@ Date:   Tue Jun 11 12:12:38 2024 +0200
     Improved comments.
 
 commit 632d9987c4f03ecb82d0198636e268a3e3c866a6
-Merge: 8fdc8617 bafbb0ea
+Merge: 8fdc861 bafbb0e
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Tue Jun 11 12:04:33 2024 +0200
 
@@ -4342,7 +4564,7 @@ Date:   Mon Jun 10 21:15:29 2024 +0200
     Indentation fix.
 
 commit 4e85c3ec2791f39e8edeb11b3cdf9ea9ebb9ab4f
-Merge: 8ec22fa9 7872cddf
+Merge: 8ec22fa 7872cdd
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Mon Jun 10 21:05:42 2024 +0200
 
@@ -4409,7 +4631,7 @@ Date:   Mon Jun 10 16:49:52 2024 +0200
     Another set of ShellCheck clean-ups.
 
 commit d0dca1afc7c72cf9d71ca017bba6cfae72cfa18c
-Merge: b3c11664 e8f8d5b0
+Merge: b3c1166 e8f8d5b
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Mon Jun 10 16:45:45 2024 +0200
 
@@ -4470,7 +4692,7 @@ Date:   Mon Jun 10 15:46:01 2024 +0200
     Splitted configuration into importer and database configuration.
 
 commit 080e6091356f4ce6e225597904d1b0453d5df117
-Merge: 129d722f 426b214c
+Merge: 129d722 426b214
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Mon Jun 10 14:35:32 2024 +0200
 
@@ -4495,7 +4717,7 @@ Date:   Mon Jun 10 12:17:02 2024 +0200
     Bugfix: --resultstransactionlength cannot use -l as short form, using -x instead.
 
 commit ce85303bdc0116b0617074825bbd1d82c745d0d1
-Merge: 52ec7687 426b214c
+Merge: 52ec768 426b214
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Mon Jun 10 09:47:20 2024 +0200
 
@@ -4550,7 +4772,7 @@ Date:   Fri Jun 7 11:53:32 2024 +0200
     Some progress.
 
 commit a7e3d47c6ae7c4b45d7326e0a87d5f97b670c0b4
-Merge: b2fcc73b 1670612e
+Merge: b2fcc73 1670612
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Thu Jun 6 15:38:55 2024 +0200
 
@@ -4575,7 +4797,7 @@ Date:   Thu Jun 6 14:57:24 2024 +0200
     Packaging configuration update.
 
 commit b2fcc73b357e2527e1d241729a8a50fa1d56fac0
-Merge: b8519698 daf76bb7
+Merge: b851969 daf76bb
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Thu Jun 6 14:49:11 2024 +0200
 
@@ -4696,7 +4918,7 @@ Date:   Wed Jun 5 14:56:31 2024 +0200
     Moved IO module registration, to handle gcc linking issues: The registration was optimised out, leaving no available IO modules.
 
 commit 3f5095b5a76cd96ebd6f30f42321eae9fbc79e4d
-Merge: 3e5a2755 70f55049
+Merge: 3e5a275 70f5504
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Thu May 23 15:13:23 2024 +0200
 
@@ -4727,7 +4949,7 @@ Date:   Fri May 3 15:05:39 2024 +0200
     FreeBSD port Makefile update.
 
 commit 09dc0b4001b5931d0d728faa5d3e5ff6258fc0c5
-Merge: 1d028284 230bc63b
+Merge: 1d02828 230bc63
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Fri May 3 14:43:04 2024 +0200
 
@@ -4842,7 +5064,7 @@ Date:   Fri Mar 8 10:41:43 2024 +0100
     Minor update.
 
 commit 61cbdcc1eca3e6f243b4137bb05f730f119cfe86
-Merge: eec87544 82ddc04b
+Merge: eec8754 82ddc04
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Fri Mar 8 10:37:28 2024 +0100
 
@@ -5119,7 +5341,7 @@ Date:   Fri Dec 1 14:09:31 2023 +0100
     Added missing Jitter importer.
 
 commit 9298eab61ccad44ce00bb75e23cac95f523185e8
-Merge: 8b0e7cfa 880def52
+Merge: 8b0e7cf 880def5
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Fri Dec 1 10:50:49 2023 +0100
 
@@ -5180,7 +5402,7 @@ Date:   Wed Nov 15 12:21:27 2023 +0100
     Header updates.
 
 commit 181f3b569bae5663f62a66adb5173cf31befc582
-Merge: 0afe3eb9 5df191a4
+Merge: 0afe3eb 5df191a
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Wed Nov 15 12:20:26 2023 +0100
 
@@ -5241,14 +5463,14 @@ Date:   Mon Nov 13 15:14:59 2023 +0100
     Minor code formatting update.
 
 commit 0afe3eb9a5dd705405edbd084440b4e9124dc1fd
-Merge: 08613801 a84c678a
+Merge: 0861380 a84c678
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Mon Nov 13 13:09:58 2023 +0100
 
     Merge branch 'dreibh/udpping' into dreibh/jitter
 
 commit a84c678a64638bd3488d5bd501a04bd06941e3f2
-Merge: a91510f5 4c2c3472
+Merge: a91510f 4c2c347
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Mon Nov 13 13:09:24 2023 +0100
 
@@ -5267,7 +5489,7 @@ Date:   Mon Nov 13 13:00:41 2023 +0100
     Minor update.
 
 commit 49ccfb3f320549a452e3a6ca83a408d57de4321f
-Merge: 1b1cd67a a91510f5
+Merge: 1b1cd67 a91510f
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Mon Nov 13 12:57:04 2023 +0100
 
@@ -5280,7 +5502,7 @@ Date:   Mon Nov 13 12:56:09 2023 +0100
     Removed unnecessary statements.
 
 commit 01004f0e1b8165270982fe59a1cdd825019d4f5b
-Merge: b7d5f8f9 5468685e
+Merge: b7d5f8f 5468685
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Mon Nov 13 12:52:11 2023 +0100
 
@@ -5293,7 +5515,7 @@ Date:   Mon Nov 13 12:47:43 2023 +0100
     Reader clean-ups.
 
 commit 5468685e1b7c952d11a82babb2d76e05c5ca349b
-Merge: 4ca4f7c6 f8c82974
+Merge: 4ca4f7c f8c8297
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Sat Nov 11 18:17:28 2023 +0100
 
@@ -5312,14 +5534,14 @@ Date:   Fri Nov 10 10:46:48 2023 +0100
     Added type field for jitter, to allow for easy future extension.
 
 commit 53d6787c2da7aa330b3d14c7a2e8dbaa8079331b
-Merge: c13ea530 4ca4f7c6
+Merge: c13ea53 4ca4f7c
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Fri Nov 10 10:34:29 2023 +0100
 
     Merge branch 'dreibh/udpping' into dreibh/jitter
 
 commit 4ca4f7c60d6a83020166f62fcb706a9d49c40ac0
-Merge: 365d4734 501d29d7
+Merge: 365d473 501d29d
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Fri Nov 10 10:33:11 2023 +0100
 
@@ -5332,7 +5554,7 @@ Date:   Fri Nov 10 10:31:46 2023 +0100
     Query Tool does not need import paths -> added option to DatabaseConfiguration::readConfiguration().
 
 commit c13ea530dbd88d44414589c004abb61c2870e38c
-Merge: c389c732 365d4734
+Merge: c389c73 365d473
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Fri Nov 10 10:24:59 2023 +0100
 
@@ -5345,7 +5567,7 @@ Date:   Thu Nov 9 14:00:00 2023 +0100
     Added check for TTL settings.
 
 commit ce8b618718a568266e68f05564df9569370d7f15
-Merge: f77e7b94 a6356199
+Merge: f77e7b9 a635619
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Thu Nov 9 13:55:06 2023 +0100
 
@@ -5364,7 +5586,7 @@ Date:   Thu Nov 9 13:54:28 2023 +0100
     Some clean-ups.
 
 commit 3608a747901306f4bc9fb0e2e8f741c042b3b4b3
-Merge: 7213a876 4cba2ecc
+Merge: 7213a87 4cba2ec
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Thu Nov 9 13:54:13 2023 +0100
 
@@ -5443,7 +5665,7 @@ Date:   Wed Nov 8 13:11:12 2023 +0100
     Output format improvements.
 
 commit 43fc66266c4de0f9c8234faccd854564a0ec6788
-Merge: 1aa713fe 4cba2ecc
+Merge: 1aa713f 4cba2ec
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Wed Nov 8 12:11:04 2023 +0100
 
@@ -5462,21 +5684,21 @@ Date:   Wed Nov 8 12:01:02 2023 +0100
     Packaging update.
 
 commit d1e2a4c13206c0f493c0f776e3fb4a1c4c847d6e
-Merge: 47f4ef0e 90301153
+Merge: 47f4ef0 9030115
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Wed Nov 8 11:03:57 2023 +0100
 
     Merge branch 'dreibh/udpping' into dreibh/version
 
 commit 1aa713fee9a8c57d8a18432d6b8118b57fc7b14e
-Merge: 64ca7436 90301153
+Merge: 64ca743 9030115
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Wed Nov 8 11:02:41 2023 +0100
 
     Merge branch 'dreibh/udpping' into dreibh/database-tools
 
 commit 7213a876a097f0ea35f8bc251a0ffc7a47029e6e
-Merge: d52cc969 90301153
+Merge: d52cc96 9030115
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Wed Nov 8 10:53:33 2023 +0100
 
@@ -5513,7 +5735,7 @@ Date:   Thu Oct 26 17:22:08 2023 +0200
     Added version header to results files.
 
 commit 62c314d2c480b9a3ec5bf7c14a330db807c6d331
-Merge: 2e2050f0 13823df9
+Merge: 2e2050f 13823df
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Thu Oct 26 15:11:01 2023 +0200
 
@@ -5532,7 +5754,7 @@ Date:   Wed Oct 25 15:48:33 2023 +0200
     Improved scripts.
 
 commit e8e346616c17d0c22e8df9c9a7f83257833c5626
-Merge: 1eff9f9f 5d46f756
+Merge: 1eff9f9 5d46f75
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Wed Oct 25 15:18:33 2023 +0200
 
@@ -5617,7 +5839,7 @@ Date:   Fri Oct 20 11:18:00 2023 +0200
     Updated script.
 
 commit f74538b871815608a04926d7c8dd017da79839ec
-Merge: f997b534 596dc9a1
+Merge: f997b53 596dc9a
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Fri Oct 20 10:54:24 2023 +0200
 
@@ -5642,7 +5864,7 @@ Date:   Wed Oct 18 16:51:30 2023 +0200
     Renamed hpct-results-tool to hpct-results.
 
 commit 218e6a9a27bfad19391a9fa7fa2efe85ed6185ad
-Merge: e290faa4 fc55462e
+Merge: e290faa fc55462
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Wed Oct 18 14:58:15 2023 +0200
 
@@ -5763,7 +5985,7 @@ Date:   Wed Oct 11 11:06:31 2023 +0200
     Added option to print some timing information.
 
 commit 4e6d5eafb1718e55e44d7b98504b9b1366c64faf
-Merge: 5f06b47f 704e1ccb
+Merge: 5f06b47 704e1cc
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Tue Oct 10 16:34:24 2023 +0200
 
@@ -5866,7 +6088,7 @@ Date:   Thu Sep 21 17:25:17 2023 +0200
     Version bump.
 
 commit 14aa6e49c105a344862cdb585b7f2a0d767aa2c3
-Merge: 425cc9d7 2e495459
+Merge: 425cc9d 2e49545
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Thu Sep 21 17:23:41 2023 +0200
 
@@ -6053,14 +6275,14 @@ Date:   Fri Jun 23 15:37:29 2023 +0200
     Minor clean-ups.
 
 commit 83cbef74ad55f38ff9771802a13cf63f63683b6d
-Merge: f31623be e753cdb5
+Merge: f31623b e753cdb
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Fri Jun 23 15:08:24 2023 +0200
 
     Merge branch 'dreibh/database-tools' of https://github.com/dreibh/hipercontracer into dreibh/database-tools
 
 commit e753cdb548cb1def8885f7e900f9b3d5f5e360db
-Merge: e80ae042 b52933eb
+Merge: e80ae04 b52933e
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Fri Jun 23 14:59:27 2023 +0200
 
@@ -6073,7 +6295,7 @@ Date:   Fri Jun 23 14:59:11 2023 +0200
     Updated RPM spec file.
 
 commit b52933eb7a66d02243e27cd6dd88c58610ffe71b
-Merge: c0154b15 0fddc3ad
+Merge: c0154b1 0fddc3a
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Fri Jun 23 13:44:12 2023 +0200
 
@@ -6086,7 +6308,7 @@ Date:   Fri Jun 23 13:43:54 2023 +0200
     Packaging update for UDP Echo server.
 
 commit f31623bea2b7a2dd521ea719d0e6991eace426fe
-Merge: e54b4889 0fddc3ad
+Merge: e54b488 0fddc3a
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Fri Jun 23 13:33:15 2023 +0200
 
@@ -6099,7 +6321,7 @@ Date:   Fri Jun 23 13:33:01 2023 +0200
     A fix.
 
 commit 0fddc3ad23aeb94005ae2ac75f6024daabf9d5ef
-Merge: 22ef5a5c 6c85e8e8
+Merge: 22ef5a5 6c85e8e
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Fri Jun 23 13:26:08 2023 +0200
 
@@ -6154,7 +6376,7 @@ Date:   Fri Jun 23 12:13:08 2023 +0200
     Updated Debian packaging files.
 
 commit fb92ca89470a6f7328e0efb2ba2ba8fee61e3947
-Merge: 453caf75 8f54d9e4
+Merge: 453caf7 8f54d9e
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Fri Jun 23 11:45:31 2023 +0200
 
@@ -6287,7 +6509,7 @@ Date:   Thu Jun 22 12:24:46 2023 +0200
     A fix.
 
 commit 96dc71f36e642333a2a6603146735c88ae940dad
-Merge: 9527b44b 8113208d
+Merge: 9527b44 8113208
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Thu Jun 22 11:53:21 2023 +0200
 
@@ -6306,7 +6528,7 @@ Date:   Thu Jun 22 11:46:44 2023 +0200
     Minor clean-up.
 
 commit a0a038f29c30b230bcc6ce5740f90afe3217e8de
-Merge: 2ce9be57 17bd688b
+Merge: 2ce9be5 17bd688
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Thu Jun 22 11:40:53 2023 +0200
 
@@ -6391,7 +6613,7 @@ Date:   Wed Jun 21 15:42:48 2023 +0200
     Further improvements.
 
 commit ea490e3e0ef4bf8ede0734f30142ce6d9bcb5e5f
-Merge: f1b90568 a2746ba1
+Merge: f1b9056 a2746ba
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Wed Jun 21 15:42:38 2023 +0200
 
@@ -6506,7 +6728,7 @@ Date:   Mon Jun 12 11:31:11 2023 +0200
     Minor update.
 
 commit cc7f0e9ed11ffc16fc0c081517d6c0a17a5b96ba
-Merge: efe75b31 d6b30f17
+Merge: efe75b3 d6b30f1
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Mon Jun 12 11:24:15 2023 +0200
 
@@ -6597,7 +6819,7 @@ Date:   Thu Jun 8 16:48:47 2023 +0200
     Updated examples.
 
 commit 3e62db4ec50e439f6676845ad21e4094ae60b163
-Merge: 121d93f9 0df34d1e
+Merge: 121d93f 0df34d1
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Tue Jun 6 16:57:37 2023 +0200
 
@@ -6664,7 +6886,7 @@ Date:   Mon Jun 5 11:04:47 2023 +0200
     Updated schema.
 
 commit 4f345d265bb9b920a22d8b4973cb29e48b4a720f
-Merge: de40fbb0 27821102
+Merge: de40fbb 2782110
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Mon Jun 5 10:51:02 2023 +0200
 
@@ -6845,7 +7067,7 @@ Date:   Tue May 23 12:23:13 2023 +0200
     Some clean-ups.
 
 commit 12495402e760b7829481f7057c62063e51c1c5f3
-Merge: 1a759368 659a6e63
+Merge: 1a75936 659a6e6
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Tue May 23 11:14:46 2023 +0200
 
@@ -6990,7 +7212,7 @@ Date:   Thu May 4 17:26:06 2023 +0200
     Fixed typo.
 
 commit 11f51f654a503b51042d22acc94889bd0aef319b
-Merge: 5b31531f 92c44ce5
+Merge: 5b31531 92c44ce
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Thu May 4 17:15:57 2023 +0200
 
@@ -7003,7 +7225,7 @@ Date:   Thu May 4 17:15:33 2023 +0200
     Bugfix: Perform directory traversal on new directory.
 
 commit 92c44ce58015e8e44eb5be2bae1539e2244f8f8a
-Merge: 54efd5b5 474fb78c
+Merge: 54efd5b 474fb78
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Thu May 4 17:11:06 2023 +0200
 
@@ -7016,7 +7238,7 @@ Date:   Thu May 4 17:10:51 2023 +0200
     Some clean-ups.
 
 commit 474fb78cf7fa86398bfb32b2d052be53666c4519
-Merge: 5498eaa7 8a6d07eb
+Merge: 5498eaa 8a6d07e
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Thu May 4 16:18:29 2023 +0200
 
@@ -7083,7 +7305,7 @@ Date:   Thu Apr 27 09:38:17 2023 +0200
     Header updates.
 
 commit 8bdc436fc93883ad1d335635b41988ec51d13b34
-Merge: 4f6ff130 a6e7fadb
+Merge: 4f6ff13 a6e7fad
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Thu Apr 27 09:34:53 2023 +0200
 
@@ -7096,7 +7318,7 @@ Date:   Thu Apr 27 09:34:35 2023 +0200
     Updated build scripts
 
 commit 4f6ff130777c87dfae00dd029de3f74bbce3da93
-Merge: dbd15ed5 9a0b3af1
+Merge: dbd15ed 9a0b3af
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Thu Apr 27 09:32:41 2023 +0200
 
@@ -7211,7 +7433,7 @@ Date:   Wed Feb 1 09:24:32 2023 +0100
     Update for container usage.
 
 commit a28a01bb492b5bb06f1581c83a5c7d3a571051b4
-Merge: bd09c8d1 e56d4b7d
+Merge: bd09c8d e56d4b7
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Tue Jan 31 16:47:03 2023 +0100
 
@@ -7578,7 +7800,7 @@ Date:   Mon Dec 12 19:28:45 2022 +0100
     Minor update.
 
 commit 5ff87ca4471c27186acad235cb67c57c992d1c37
-Merge: c6f9af82 e17fc401
+Merge: c6f9af8 e17fc40
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Mon Dec 12 19:25:45 2022 +0100
 
@@ -7603,7 +7825,7 @@ Date:   Mon Dec 12 15:52:24 2022 +0100
     Some clean-ups.
 
 commit e17fc401cfd0a256ad1651be7cb59685ea53672d
-Merge: d72d8282 27864732
+Merge: d72d828 2786473
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Mon Dec 12 11:38:50 2022 +0100
 
@@ -7808,7 +8030,7 @@ Date:   Wed Dec 7 17:24:27 2022 +0100
     Some more clean-ups.
 
 commit df8de3b4d001e21e0a347b77698d4855586737ac
-Merge: 79bfd806 c8626423
+Merge: 79bfd80 c862642
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Wed Dec 7 17:23:27 2022 +0100
 
@@ -7833,7 +8055,7 @@ Date:   Wed Dec 7 17:01:20 2022 +0100
     Some clean-up.
 
 commit ab78a3a02005dd91bb1c67b982c4f1482e5d8f38
-Merge: ca39a2ca 49e78f6a
+Merge: ca39a2c 49e78f6
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Wed Dec 7 16:44:09 2022 +0100
 
@@ -7846,7 +8068,7 @@ Date:   Wed Dec 7 16:43:52 2022 +0100
     Improved MongoDB role configuration.
 
 commit ca39a2ca6fdd4cd5ddca8425b1aa2cd45e61d744
-Merge: be7b9cac fb37a4b2
+Merge: be7b9ca fb37a4b
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Wed Dec 7 16:43:43 2022 +0100
 
@@ -7883,7 +8105,7 @@ Date:   Wed Dec 7 16:04:29 2022 +0100
     Improved scripts.
 
 commit 21db5e585b0751ca0c64cbba0fc4f0ce02cb5d1a
-Merge: 168edc4a 64cfdf0a
+Merge: 168edc4 64cfdf0
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Wed Dec 7 15:30:56 2022 +0100
 
@@ -8016,7 +8238,7 @@ Date:   Mon Dec 5 11:38:07 2022 +0100
     Small improvements.
 
 commit 01c85213afa8aaa83012b80da4b2fbe56a3d9594
-Merge: cf91d359 17f417b4
+Merge: cf91d35 17f417b
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Mon Dec 5 11:27:21 2022 +0100
 
@@ -8281,7 +8503,7 @@ Date:   Mon Nov 28 15:24:05 2022 +0100
     Some improvements.
 
 commit a1819a906a3af522e50844061efc00335c587c49
-Merge: e37a51fe 20ab03f5
+Merge: e37a51f 20ab03f
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Mon Nov 28 14:37:41 2022 +0100
 
@@ -8336,7 +8558,7 @@ Date:   Mon Nov 28 12:32:43 2022 +0100
     Improved script.
 
 commit 65b3261823f54c642438e72d452a90df9d4a65f6
-Merge: ceca441f 09f0c747
+Merge: ceca441 09f0c74
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Mon Nov 28 12:23:02 2022 +0100
 
@@ -8349,7 +8571,7 @@ Date:   Mon Nov 28 12:22:45 2022 +0100
     Further updates.
 
 commit ceca441fc3a442d6a956359783caf928de230cc5
-Merge: d6de9de9 69e09bf9
+Merge: d6de9de 69e09bf
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Mon Nov 28 12:04:10 2022 +0100
 
@@ -8368,7 +8590,7 @@ Date:   Mon Nov 28 11:58:56 2022 +0100
     Improved scripts.
 
 commit a1509adcd86bc9e9087535d6179fbd26f69d8882
-Merge: d80fddff 6fd33223
+Merge: d80fddf 6fd3322
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Mon Nov 28 11:07:48 2022 +0100
 
@@ -8603,7 +8825,7 @@ Date:   Wed Nov 23 15:39:02 2022 +0100
     Minor update.
 
 commit af0a280eacb85e0ff7f92d020b239da39d020f23
-Merge: 0f2cd597 b44797b1
+Merge: 0f2cd59 b44797b
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Wed Nov 23 15:38:15 2022 +0100
 
@@ -8646,7 +8868,7 @@ Date:   Wed Nov 23 13:06:46 2022 +0100
     Minor updates.
 
 commit f9467b11236f2d6a15523cd44b2c7b1253eaeeb2
-Merge: 3f2a05be 4ffc3678
+Merge: 3f2a05b 4ffc367
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Wed Nov 23 13:02:41 2022 +0100
 
@@ -8665,7 +8887,7 @@ Date:   Wed Nov 23 12:55:37 2022 +0100
     Improved scripts.
 
 commit 074c713b9df308d59d2eecbb969ccac3cd06f690
-Merge: 66d1d005 9b65dc84
+Merge: 66d1d00 9b65dc8
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Wed Nov 23 09:30:55 2022 +0100
 
@@ -8696,7 +8918,7 @@ Date:   Tue Nov 22 14:57:41 2022 +0100
     An update.
 
 commit 66d1d0055bd189118c1543af24b4b0ecf7c8e803
-Merge: 5b3a32cc 659b8266
+Merge: 5b3a32c 659b826
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Tue Nov 22 12:36:46 2022 +0100
 
@@ -8721,7 +8943,7 @@ Date:   Tue Nov 22 12:13:57 2022 +0100
     Added helper script.
 
 commit 6390f3cd97afd739b4badb75fe3b7013101eb0f2
-Merge: e30a9a52 791ec2f2
+Merge: e30a9a5 791ec2f
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Tue Nov 22 12:05:54 2022 +0100
 
@@ -8776,7 +8998,7 @@ Date:   Mon Nov 21 16:09:54 2022 +0100
     A fix.
 
 commit 48571cd10330313aa1f3033b4d48f1fe28b48825
-Merge: 0c64874f 99ed12da
+Merge: 0c64874 99ed12d
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Mon Nov 21 15:57:10 2022 +0100
 
@@ -8789,7 +9011,7 @@ Date:   Mon Nov 21 15:56:36 2022 +0100
     A fix.
 
 commit 99ed12da74fbcde26638da3229bda18e843311c2
-Merge: 566e5c34 063eeceb
+Merge: 566e5c3 063eece
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Mon Nov 21 15:51:53 2022 +0100
 
@@ -8832,7 +9054,7 @@ Date:   Mon Nov 21 12:09:50 2022 +0100
     Updated scripts.
 
 commit 3391171fa29a0af92e00dac168c3fa8e968250d3
-Merge: f5f6713f 814c39ae
+Merge: f5f6713 814c39a
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Mon Nov 21 12:02:23 2022 +0100
 
@@ -9301,7 +9523,7 @@ Date:   Tue Nov 15 11:32:43 2022 +0100
     Minor update.
 
 commit ee5c1a85b0b11d77bb42316b5518431051b8aaa3
-Merge: 14a499fd 01dcb436
+Merge: 14a499f 01dcb43
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Tue Nov 15 11:11:47 2022 +0100
 
@@ -9332,7 +9554,7 @@ Date:   Mon Nov 14 20:44:20 2022 +0100
     Some clean-ups.
 
 commit 099a8aeb3d624786d9bbffd7185a9d63c5838038
-Merge: 3179024b 84f9f4a4
+Merge: 3179024 84f9f4a
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Mon Nov 14 17:44:24 2022 +0100
 
@@ -9459,7 +9681,7 @@ Date:   Fri Nov 11 14:10:41 2022 +0100
     Some updates.
 
 commit d90300e953e304611cd6983ecc0ad39a3d9562b9
-Merge: 18c1ef47 37d98891
+Merge: 18c1ef4 37d9889
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Fri Nov 11 14:03:13 2022 +0100
 
@@ -10036,7 +10258,7 @@ Date:   Sun Sep 11 13:05:12 2022 +0200
     New release hipercontracer-1.6.6.
 
 commit 1ef81a3ad6c957e1882e31eda1950f45c3e80a41
-Merge: 06429201 acba95d3
+Merge: 0642920 acba95d
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Wed Aug 31 21:39:48 2022 +0200
 
@@ -10061,7 +10283,7 @@ Date:   Wed Aug 31 11:18:41 2022 +0200
     Updated build scripts
 
 commit 06429201189cc21e420f51ad75ebf8f221696ef0
-Merge: 63a29337 36d94382
+Merge: 63a2933 36d9438
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Tue Aug 30 09:07:41 2022 +0200
 
@@ -10074,7 +10296,7 @@ Date:   Fri Aug 26 15:10:43 2022 +0200
     Some clean-ups.
 
 commit 63a29337520b446e4c5a53377c099e8de8200f1a
-Merge: bd3e1fa4 bca8c9ba
+Merge: bd3e1fa bca8c9b
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Wed Feb 16 18:57:26 2022 +0100
 
@@ -10099,7 +10321,7 @@ Date:   Wed Feb 16 12:21:37 2022 +0100
     Updated build scripts
 
 commit bd3e1fa41c49697acb7b7584dff2286f4b3a3ff7
-Merge: 69d9ccc8 6cba709f
+Merge: 69d9ccc 6cba709
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Fri Jan 21 15:06:30 2022 +0100
 
@@ -10355,7 +10577,7 @@ Date:   Thu Nov 4 18:22:48 2021 +0100
     BOOST dependency update.
 
 commit 9f7336c26dda7d8d965780c61ea9becbf0926faf
-Merge: 71d2b4e7 4147de8b
+Merge: 71d2b4e 4147de8
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Thu Nov 4 18:16:02 2021 +0100
 
@@ -10470,7 +10692,7 @@ Date:   Mon May 3 14:22:00 2021 +0200
     Updated build scripts
 
 commit 181ce2311429858421f72dd1058ffbc5c724171c
-Merge: ce708583 a3167962
+Merge: ce70858 a316796
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Mon May 3 14:21:20 2021 +0200
 
@@ -10867,7 +11089,7 @@ Date:   Tue Apr 28 16:32:43 2020 +0200
     Improved user handling for reducing privileges after startup.
 
 commit 4fba848f6fd92bb348bbda4bd80ece4af6a14ad3
-Merge: d9bc780b 6a853947
+Merge: d9bc780 6a85394
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Tue Apr 28 15:33:15 2020 +0200
 
@@ -10904,7 +11126,7 @@ Date:   Tue Apr 28 11:33:06 2020 +0200
     Added log output for empty transaction file.
 
 commit ad696edd707da6783e97d62a6d919565226a8dc4
-Merge: 4062bab0 7d211ca9
+Merge: 4062bab 7d211ca9
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Tue Apr 28 11:26:23 2020 +0200
 
@@ -11145,7 +11367,7 @@ Date:   Mon Aug 19 12:12:58 2019 +0200
     Updated Travis CI configuration.
 
 commit 5eb39dfff52255070a211612126ff0a2c1354a54
-Merge: 7e8b6a24 dbc5805e
+Merge: 7e8b6a2 dbc5805
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Mon Aug 19 11:25:53 2019 +0200
 
@@ -11158,7 +11380,7 @@ Date:   Mon Aug 19 11:24:59 2019 +0200
     Improved script.
 
 commit 7e8b6a24556875cfaaec83f829a81bd888fc5505
-Merge: 2b25b94d 12c01c70
+Merge: 2b25b94 12c01c7
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Mon Aug 19 10:52:34 2019 +0200
 
@@ -11201,7 +11423,7 @@ Date:   Sat Aug 17 22:43:29 2019 +0200
     Updated Travis CI configuration.
 
 commit d5662c09be43346b7cdf91437a3c35e5324b94f2
-Merge: e24b95c3 42dc8c3a
+Merge: e24b95c 42dc8c3
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Wed Aug 14 11:45:18 2019 +0200
 
@@ -11256,7 +11478,7 @@ Date:   Mon Aug 12 12:32:40 2019 +0200
     Made code platform-independent.
 
 commit 7ddca62f35747b04fb37a1a8b9106d8cb08adbc0
-Merge: df655d13 0c95c8a4
+Merge: df655d1 0c95c8a
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Mon Aug 12 12:11:53 2019 +0200
 
@@ -11269,7 +11491,7 @@ Date:   Mon Aug 12 12:10:32 2019 +0200
     Fixed build issue with latest BOOST libraries (usage of deprecated method).
 
 commit 0c95c8a453e9a34603c2d383f4818717dd43e826
-Merge: 16c6889b 10d6d44e
+Merge: 16c6889 10d6d44
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Mon Aug 12 10:59:30 2019 +0200
 
@@ -11660,7 +11882,7 @@ Date:   Fri Jul 19 15:13:39 2019 +0200
     Further clean-ups.
 
 commit f8bcf411fd69ed58b0869fa6dc33cd8c1e547656
-Merge: afa8aa2a 8032d08c
+Merge: afa8aa2 8032d08
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Fri Jul 19 15:12:01 2019 +0200
 
@@ -11709,7 +11931,7 @@ Date:   Fri Jul 19 14:28:12 2019 +0200
     Moved ResultEntry into separate files.
 
 commit 0c71cbe6f5539d9fb562cbe234818a7c275f293e
-Merge: 78e44cc2 ca2af819
+Merge: 78e44cc ca2af81
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Fri Jul 19 14:13:41 2019 +0200
 
@@ -11974,7 +12196,7 @@ Date:   Thu Jun 13 13:03:48 2019 +0200
     New release 1.3.2.
 
 commit e6c23a4c2515b97b85523689e6acee4cacc78313
-Merge: f5bbb341 a8996148
+Merge: f5bbb34 a899614
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Thu Jun 13 12:35:29 2019 +0200
 
@@ -12017,7 +12239,7 @@ Date:   Thu Jun 13 11:56:03 2019 +0200
     Simplified CMakeLists.txt.
 
 commit 9aecb16bf89be2f03708e9443471e6f186307cee
-Merge: 9be140b3 34fd7f10
+Merge: 9be140b 34fd7f1
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Thu Jun 13 11:48:15 2019 +0200
 
@@ -12072,7 +12294,7 @@ Date:   Thu Jun 6 15:15:36 2019 +0200
     Minor clean-ups.
 
 commit c645a55c117c3d85296b0c24cd04a446c8a69471
-Merge: 29bbd182 2a2b2c31
+Merge: 29bbd18 2a2b2c3
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Thu Jun 6 15:14:16 2019 +0200
 
@@ -12139,7 +12361,7 @@ Date:   Thu Jun 6 11:31:36 2019 +0200
     Restructured Traffic Class handling code.
 
 commit 31ca9a7ddd803bd0187a95d08ded7e1d08b542df
-Merge: d0dcf3f6 50a13e75
+Merge: d0dcf3f 50a13e7
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Thu Jun 6 09:23:26 2019 +0200
 
@@ -12176,7 +12398,7 @@ Date:   Mon May 6 13:25:47 2019 +0200
     Updated build script.
 
 commit b438bfa0244f630cace56d54e1ef402919ff3fc9
-Merge: 2dceb3b2 cedfa024
+Merge: 2dceb3b cedfa02
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Tue Apr 9 21:27:00 2019 +0200
 
@@ -12754,14 +12976,14 @@ Date:   Tue Feb 19 16:12:00 2019 +0100
     Packaging updates.
 
 commit d412569b9401b8fbc024d367c390b0beb1208f06
-Merge: e9a1ffed 962e583e
+Merge: e9a1ffe 962e583
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Tue Feb 19 14:04:42 2019 +0100
 
     Merge branch 'dreibh/noloop'
 
 commit e9a1ffed0111b62c8517f8fd831389f6f8d3d76c
-Merge: 6c44b777 4b20de4c
+Merge: 6c44b77 4b20de4
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Tue Feb 19 14:04:35 2019 +0100
 
@@ -13104,7 +13326,7 @@ Date:   Wed Oct 17 17:24:20 2018 +0200
     Updated FreeBSD packaging files.
 
 commit 3d1ff7ae1f214dc5c6cb2a6d10b849e8b024b817
-Merge: dfec71e1 3f9ecdfa
+Merge: dfec71e 3f9ecdf
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Wed Oct 17 16:18:37 2018 +0200
 
@@ -13525,7 +13747,7 @@ Date:   Fri Feb 2 22:00:23 2018 +0100
     Handling file ownership with UID/GID.
 
 commit 9976179997fa5224fd3feebd2c7aa2cc456c356c
-Merge: 1942500b a4874297
+Merge: 1942500 a487429
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Fri Feb 2 21:44:07 2018 +0100
 
@@ -13634,7 +13856,7 @@ Date:   Tue Jan 23 12:19:37 2018 +0100
     RPM packaging update.
 
 commit 7be2d40e034715e07f907fa0b23974ce21d91262
-Merge: ba6d7c73 49847ddc
+Merge: ba6d7c7 49847dd
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Tue Jan 23 12:17:54 2018 +0100
 
@@ -13732,7 +13954,7 @@ Date:   Wed Jan 10 17:52:59 2018 +0100
     Added test.
 
 commit 4ae708d9917d31cdaf5f4a8b0f4de91d619faafc
-Merge: 35633ce1 0e3f085d
+Merge: 35633ce 0e3f085
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Wed Jan 10 12:44:59 2018 +0100
 
@@ -13949,7 +14171,7 @@ Date:   Mon Nov 20 18:35:24 2017 +0100
     Updated RPM spec file.
 
 commit 1d8a03f6b507a327a6daf52d6eb2901416fb8daf
-Merge: 4082fc75 b835b56b
+Merge: 4082fc7 b835b56
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Mon Nov 20 18:26:41 2017 +0100
 
@@ -14004,7 +14226,7 @@ Date:   Sun Nov 19 10:47:56 2017 +0100
     Updated flags.
 
 commit 1ca226e5fc17412df42d9bbb6b37e85cbfdab063
-Merge: 9df48bb6 705ecc93
+Merge: 9df48bb 705ecc9
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Sun Nov 19 10:43:19 2017 +0100
 
@@ -14257,7 +14479,7 @@ Date:   Mon Jun 27 15:15:32 2016 +0200
     Updated note.
 
 commit da5599ab73f2868b8777e3fd6e1e8f92b369c339
-Merge: 9c6622ec 6a696db6
+Merge: 9c6622e 6a696db
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Mon Jun 27 15:10:38 2016 +0200
 
@@ -14270,7 +14492,7 @@ Date:   Mon Jun 27 15:05:25 2016 +0200
     Added note.
 
 commit 9c6622ecb5e1fad0c0d4f174b950fc893d690e39
-Merge: 6e66ccf1 4b40cc7b
+Merge: 6e66ccf 4b40cc7
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Mon Jun 27 15:01:50 2016 +0200
 
@@ -14307,7 +14529,7 @@ Date:   Mon Jun 27 11:09:12 2016 +0200
     Another update.
 
 commit 1ca31cafc07aa542c47139c2d71c0828c71557eb
-Merge: b0e9db3b 3040d05d
+Merge: b0e9db3 3040d05
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Mon Jun 20 16:46:07 2016 +0200
 
@@ -14410,7 +14632,7 @@ Date:   Thu Mar 10 13:40:43 2016 +0100
     Minor improvements for fix-hashpath script.
 
 commit 05c7fde0568ce6c92a5ae86a1d8288c2e1c735be
-Merge: ac532b78 f3082e38
+Merge: ac532b7 f3082e3
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Thu Mar 10 13:06:32 2016 +0100
 
@@ -14429,7 +14651,7 @@ Date:   Thu Mar 10 13:05:45 2016 +0100
     Packaging file updates.
 
 commit 7115a4bf2359ffd286a50b668fd9ca43650d6729
-Merge: 79abb06d 8cd787c2
+Merge: 79abb06 8cd787c
 Author: Priv.-Doz. Dr. Thomas Dreibholz <dreibh@iem.uni-due.de>
 Date:   Thu Mar 10 12:53:29 2016 +0100
 
@@ -14442,7 +14664,7 @@ Date:   Thu Mar 10 12:45:39 2016 +0100
     Minor improvements.
 
 commit 79abb06d2913d846686be4c258a7b014a1ed1be3
-Merge: 779a5d00 9f387755
+Merge: 779a5d0 9f38775
 Author: Priv.-Doz. Dr. Thomas Dreibholz <dreibh@iem.uni-due.de>
 Date:   Thu Mar 10 12:27:17 2016 +0100
 
@@ -14677,7 +14899,7 @@ Date:   Thu Oct 15 13:11:12 2015 +0200
     Added compatibility option.
 
 commit 99e4d758bacb502c1d4f68dc49f975e036f2a448
-Merge: b6441060 d6c7862e
+Merge: b644106 d6c7862
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Thu Oct 15 12:51:51 2015 +0200
 
@@ -14877,7 +15099,7 @@ Date:   Tue Oct 13 21:30:00 2015 +0200
     Added libboost detection in configure.ac.
 
 commit 7a10a3271d3334b424be64755aa560e7914cf5d0
-Merge: 46c01116 6b3af091
+Merge: 46c0111 6b3af09
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Tue Oct 13 21:20:31 2015 +0200
 
@@ -14914,7 +15136,7 @@ Date:   Tue Oct 13 20:59:50 2015 +0200
     Added SQL scripts.
 
 commit 008c50e63cb28584ba6457f5d3ce70ca1e345aff
-Merge: 50f0c087 6e184bc9
+Merge: 50f0c08 6e184bc
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Tue Oct 13 20:19:05 2015 +0200
 
