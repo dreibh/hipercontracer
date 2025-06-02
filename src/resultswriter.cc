@@ -41,7 +41,6 @@
 #include <boost/iostreams/filter/bzip2.hpp>
 #include <boost/iostreams/filter/gzip.hpp>
 #include <boost/iostreams/filter/lzma.hpp>
-#include <boost/process/environment.hpp>
 
 
 // ###### Constructor #######################################################
@@ -199,7 +198,7 @@ ResultsWriter* ResultsWriter::makeResultsWriter(
          resultsPrefix + "-" +
          ((measurementID != 0) ?
             "#" + std::to_string(measurementID) :
-            "P" + std::to_string(boost::this_process::get_id())) + "-" +
+            "P" + std::to_string(getpid())) + "-" +
          sourceAddress.to_string() + "-" +
          boost::posix_time::to_iso_string(boost::posix_time::microsec_clock::universal_time());
       replace(uniqueID.begin(), uniqueID.end(), ' ', '-');

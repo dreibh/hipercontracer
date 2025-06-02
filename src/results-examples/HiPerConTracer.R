@@ -45,7 +45,8 @@ processHiPerConTracerPingResults <- function(dataTable)
 {
    # print(colnames(dataTable))
    dataTable <- dataTable %>%
-                   mutate(Timestamp    = anytime(as.numeric(paste(sep="", "0x", Timestamp)) / 1e9),
+                   mutate(Timestamp    = anytime(as.numeric(paste(sep="", "0x", Timestamp)) / 1e9,
+                                                 asUTC = TRUE),
                           Protocol     = substr(Ping, 3, 1000000),
                           Checksum     = as.numeric(paste(sep="", "0x", Checksum)),
                           TrafficClass = as.numeric(paste(sep="", "0x", TrafficClass))) %>%
@@ -59,7 +60,8 @@ processHiPerConTracerTracerouteResults <- function(dataTable)
 {
    # print(colnames(dataTable))
    dataTable <- dataTable %>%
-                   mutate(Timestamp    = anytime(as.numeric(paste(sep="", "0x", Timestamp)) / 1e9),
+                   mutate(Timestamp    = anytime(as.numeric(paste(sep="", "0x", Timestamp)) / 1e9,
+                                                 asUTC = TRUE),
                           Protocol     = substr(Traceroute, 3, 1000000),
                           IPVersion    = ifelse(is_ipv4(as_ip_address(DestinationIP)), 4, 6),
                           Checksum     = as.numeric(paste(sep="", "0x", Checksum)),
