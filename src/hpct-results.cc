@@ -343,8 +343,8 @@ static bool checkFormat(boost::iostreams::filtering_ostream* outputStream,
             "SourcePort "             // 09: Source port (decimal)
             "DestinationPort "        // 10: Destination port (decimal)
             "Status "                 // 11: Status (decimal)
-            "JitterType "             // 12: Jitter type (decimal, 0 for calculation as in RFC 3550, Appendix A.8).
-            "TimeSource "             // 13: Source of the timing information (hexadecimal) as: AAQQSSHH
+            "TimeSource "             // 12: Source of the timing information (hexadecimal) as: AAQQSSHH
+            "JitterType "             // 13: Jitter type (decimal, 0 for calculation as in RFC 3550, Appendix A.8).
 
             "Packets.AppSend "        // 14: Number of packets for application send delay jitter/mean RTT computation
             "MeanDelay.AppSend "      // 15: Mean application send delay
