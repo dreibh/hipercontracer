@@ -64,6 +64,9 @@ _pipe_checksum()
    local opts="
 -D
 --digest
+-h
+--help
+--version
 "
    # shellcheck disable=SC2207
    COMPREPLY=( $( compgen -W "${opts}" -- "${cur}" ) )

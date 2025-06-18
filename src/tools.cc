@@ -173,7 +173,7 @@ bool addSourceAddress(std::map<boost::asio::ip::address, std::set<uint8_t>>& arr
                       const std::string&                                     addressString,
                       bool                                                   tryToResolve)
 {
-   std::vector<std::string>  addressParameters;
+   std::vector<std::string> addressParameters;
 
    boost::split(addressParameters, addressString, boost::is_any_of(","));
    if(addressParameters.size() > 0) {
@@ -184,14 +184,14 @@ bool addSourceAddress(std::map<boost::asio::ip::address, std::set<uint8_t>>& arr
             boost::asio::io_context        ioContext;
             boost::asio::ip::tcp::resolver resolver(ioContext);
             boost::asio::ip::tcp::resolver::results_type endpoints =
-               resolver.resolve(addressString, "0",
-                              boost::asio::ip::tcp::resolver::numeric_service, errorCode);
+               resolver.resolve(addressParameters[0], "0",
+                                boost::asio::ip::tcp::resolver::numeric_service, errorCode);
             if(errorCode) {
-               HPCT_LOG(error) << "Failed to resolve DNS name " << addressString << ": " << errorCode.message();
+               HPCT_LOG(error) << "Failed to resolve DNS name " << addressParameters[0] << ": " << errorCode.message();
                return false;
             }
             for(boost::asio::ip::tcp::endpoint endpoint : endpoints) {
-               HPCT_LOG(info) << addressString << " -> " << endpoint.address().to_string();
+               HPCT_LOG(info) << addressParameters[0] << " -> " << endpoint.address().to_string();
                addSourceAddress(array, endpoint.address().to_string(), false);
             }
             return true;

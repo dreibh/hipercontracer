@@ -355,7 +355,6 @@ void MongoDBClient::executeQuery(Statement& statement)
    // ====== Find collection ================================================
    bson_iter_t queryParametersIterator;
    bson_iter_t queryFilterIterator;
-   bson_iter_t queryOptionsIterator;
    const char* key;
    bson_t      queryFilter;
    bson_t      queryOptions;

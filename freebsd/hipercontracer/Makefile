@@ -1,5 +1,5 @@
 PORTNAME=	hipercontracer
-DISTVERSION=	2.0.16
+DISTVERSION=	2.1.0
 CATEGORIES=	benchmarks
 MASTER_SITES=	https://www.nntb.no/~dreibh/hipercontracer/download/
 
@@ -10,6 +10,7 @@ WWW=		https://www.nntb.no/~dreibh/hipercontracer/
 LICENSE=	GPLv3+
 LICENSE_FILE=	${WRKSRC}/COPYING
 
+BUILD_DEPENDS=	boost-libs>=1.88:devel/boost-libs
 LIB_DEPENDS=	libboost_date_time.so:devel/boost-libs \
 		libboost_filesystem.so:devel/boost-libs \
 		libboost_iostreams.so:devel/boost-libs \
@@ -23,13 +24,14 @@ RUN_DEPENDS=	getopt>=0:misc/getopt
 USES=		cmake compiler:c++20-lang desktop-file-utils python \
 		shared-mime-info shebangfix ssl tar:xz
 USE_LDCONFIG=	yes
-# Work-around for build issue #285706 on ARM (https://bugs.freebsd.org/285706):
-MAKE_ENV=	OMP_NUM_THREADS=1
 
 SHEBANG_FILES=	src/results-examples/r-install-dependencies \
 		src/results-examples/r-ping-example \
 		src/results-examples/r-traceroute-example \
 		src/TestDB/generate-test-certificates
+
+# Work-around for build issue on ARM (https://bugs.freebsd.org/285706):
+MAKE_ENV=	OMP_NUM_THREADS=1
 
 PLIST_SUB=	DISTVERSION=${DISTVERSION}
 
@@ -39,7 +41,7 @@ OPTIONS_DEFINE=		COLLECTOR DBEAVERTOOLS DBSHELL ICONS IMPMARIADB \
 OPTIONS_DEFAULT=	COLLECTOR DBEAVERTOOLS DBSHELL ICONS IMPMARIADB \
 			IMPMONGO IMPORTER IMPPGSQL NODE QUERYTOOL RESULTSTOOL \
 			RTUNNEL SYNC TRIGGER UDPECHO VIEWERTOOL
-COLLECTOR_DESC=		Build HiPerConTracer Collector Tools"
+COLLECTOR_DESC=		Build HiPerConTracer Collector Tools
 DBEAVERTOOLS_DESC=	Build DBeaver Tools
 DBSHELL_DESC=		Build DBShell
 ICONS_DESC=		Build Icons and Logo Files
@@ -47,10 +49,10 @@ IMPMARIADB_DESC=	Enable MariaDB/MySQL support for HiPerConTracer Importer Tool
 IMPMONGO_DESC=		Enable MongoDB support for HiPerConTracer Importer Tool
 IMPORTER_DESC=		Build HiPerConTracer Importer Tool
 IMPPGSQL_DESC=		Enable PostgreSQL support for HiPerConTracer Importer Tool
-NODE_DESC=		Build HiPerConTracer Node Tools"
+NODE_DESC=		Build HiPerConTracer Node Tools
 QUERYTOOL_DESC=		Build HiPerConTracer Query Tool
 RESULTSTOOL_DESC=	Build HiPerConTracer Results Tool
-RTUNNEL_DESC=		Build HiPerConTracer Reverse Tunnel Tool"
+RTUNNEL_DESC=		Build HiPerConTracer Reverse Tunnel Tool
 SYNC_DESC=		Build HiPerConTracer Synchronisation Tool
 TRIGGER_DESC=		Build HiPerConTracer Trigger Tool
 UDPECHO_DESC=		Build UDP Echo Server

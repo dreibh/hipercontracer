@@ -30,20 +30,14 @@
 #include "database-configuration.h"
 #include "databaseclient-base.h"
 #include "logger.h"
+#include "outputstream.h"
 #include "package-version.h"
 #include "tools.h"
 
 #include <filesystem>
 #include <fstream>
 #include <iostream>
-
-#include <boost/algorithm/string.hpp>
 #include <boost/filesystem.hpp>
-#include <boost/iostreams/filtering_stream.hpp>
-#include <boost/iostreams/filtering_streambuf.hpp>
-#include <boost/iostreams/filter/bzip2.hpp>
-#include <boost/iostreams/filter/gzip.hpp>
-#include <boost/iostreams/filter/lzma.hpp>
 #include <boost/program_options.hpp>
 
 
@@ -348,6 +342,8 @@ int main(int argc, char** argv)
    commandLineOptions.add_options()
       ( "help,h",
            "Print help message" )
+      ( "version",
+           "Show program version" )
 
       ( "loglevel,L",
            boost::program_options::value<unsigned int>(&logLevel)->default_value(boost::log::trivial::severity_level::info),
@@ -429,6 +425,10 @@ int main(int argc, char** argv)
                  << commandLineOptions;
        return 1;
    }
+   else if(vm.count("version")) {
+      std::cerr << "HPCT Query" << " " << HPCT_VERSION << "\n";
+      return 0;
+   }
    boost::algorithm::to_lower(queryType);
 
    if(databaseConfigurationFile.empty()) {
@@ -503,50 +503,32 @@ int main(int argc, char** argv)
       exit(1);
    }
 
-   // ====== Open output file ===============================================
-   std::string                         extension(outputFileName.extension());
-   std::ofstream                       outputFile;
-   boost::iostreams::filtering_ostream outputStream;
-   const std::filesystem::path         tmpOutputFileName(outputFileName.string() + ".tmp");
-   if(!outputFileName.empty()) {
-      std::error_code ec;
-      std::filesystem::remove(outputFileName, ec);
-      outputFile.open(tmpOutputFileName, std::ios_base::out | std::ios_base::binary);
-      if(!outputFile.is_open()) {
-         HPCT_LOG(fatal) << "Failed to create output file " << outputFileName;
-         exit(1);
+   // ====== Open output stream =============================================
+   OutputStream outputStream;
+   try {
+      if(!outputFileName.empty()) {
+         outputStream.openStream(outputFileName);
       }
-      boost::algorithm::to_lower(extension);
-      if(extension == ".xz") {
-         const boost::iostreams::lzma_params params(
-            boost::iostreams::lzma::default_compression,
-            std::thread::hardware_concurrency());
-         outputStream.push(boost::iostreams::lzma_compressor(params));
+      else {
+         outputStream.openStream(std::cout);
       }
-      else if(extension == ".bz2") {
-         outputStream.push(boost::iostreams::bzip2_compressor());
-      }
-      else if(extension == ".gz") {
-         outputStream.push(boost::iostreams::gzip_compressor());
-      }
-      outputStream.push(outputFile);
    }
-   else {
-      outputStream.push(std::cout);
+   catch(std::exception& e) {
+      HPCT_LOG(fatal) << "Failed to create output file " << outputFileName << ": " << e.what();
+      exit(1);
    }
-
 
    // ====== Prepare query ==================================================
    const DatabaseBackendType                   backend       = databaseClient->getBackend();
    Statement&                                  statement     = databaseClient->getStatement(queryType, false, true);
    const std::chrono::system_clock::time_point t1            = std::chrono::system_clock::now();
    unsigned long long                          lastTimeStamp = 0;
+   unsigned long long                          lines         = 0;
    std::string                                 dedupLastItem;
    bool                                        dedupInProgress        = false;
    unsigned long long                          dedupDuplicatesRemoved = 0;
    try {
       // ====== Ping ========================================================
-      unsigned long long lines = 0;
       if(queryType == "ping") {
          if(backend & DatabaseBackendType::SQL_Generic) {
             // ====== Old version 1 table ===================================
@@ -1050,33 +1032,33 @@ int main(int argc, char** argv)
          HPCT_LOG(fatal) << "Invalid query type " << queryType;
          exit(1);
       }
-
-      outputStream.reset();
-
-      const std::chrono::system_clock::time_point t2 = std::chrono::system_clock::now();
-      HPCT_LOG(info) << "Wrote " << lines << " results lines in "
-                     << std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1).count() << " ms";
-      if( (deduplication) && (dedupDuplicatesRemoved > 0) ) {
-         HPCT_LOG(warning) << "Found and removed " << dedupDuplicatesRemoved << " duplicates from output!";
-      }
    }
    catch(const std::exception& e) {
       HPCT_LOG(fatal) << "Query failed: " << e.what();
       exit(1);
    }
 
-   if(!outputFileName.empty()) {
-      try {
-         std::filesystem::rename(tmpOutputFileName, outputFileName);
-
+   // ====== Close output file ==============================================
+   try {
+      outputStream.closeStream();
+      if(!outputFileName.empty()) {
          // Set timestamp to the latest timestamp in the data. Note: the timestamp is UTC!
          const std::time_t t = (std::time_t)(lastTimeStamp / 1000000000);
          boost::filesystem::last_write_time(boost::filesystem::path(outputFileName), t);
       }
-      catch(const std::exception& e) {
-         HPCT_LOG(fatal) << "Writing results failed: " << e.what();
-         exit(1);
-      }
+   }
+   catch(const std::exception& e) {
+      HPCT_LOG(fatal) << "Failed to close output file "
+                      << outputFileName << ": " << e.what();
+      exit(1);
+   }
+
+   // ====== Print statistics ===============================================
+   const std::chrono::system_clock::time_point t2 = std::chrono::system_clock::now();
+   HPCT_LOG(info) << "Wrote " << lines << " results lines in "
+                  << std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1).count() << " ms";
+   if( (deduplication) && (dedupDuplicatesRemoved > 0) ) {
+      HPCT_LOG(warning) << "Found and removed " << dedupDuplicatesRemoved << " duplicates from output!";
    }
 
    // ====== Clean up =======================================================
