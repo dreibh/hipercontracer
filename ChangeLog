@@ -1,3 +1,134 @@
+commit 97c3a25c54c30b2b06fbb7341164ae256d7561dc
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Jun 18 14:24:45 2025 +0200
+
+    RPM fix.
+
+commit 908372f5b91029048e0a986c631c2db6776ab636
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Jun 18 13:03:35 2025 +0200
+
+    Version bump.
+
+commit 71b025ecf2283bb16cb41596b2e9695fc344c42a
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Jun 18 12:51:40 2025 +0200
+
+    Improved MariaDB/MySQL database user permissions.
+
+commit 7d42401c19f3acf08dc7e9b9d009f8cede660d41
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Jun 18 12:33:55 2025 +0200
+
+    Bugfix: Fixed missing double-quoting in getopt call.
+
+commit 7cbab133fe0e9126c6ca69427a99ebadb91e266b
+Merge: dd5a8b7e dae5c0e4
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Jun 18 11:53:58 2025 +0200
+
+    Merge branch 'master' into dreibh/libiostreams
+
+commit dae5c0e4f2d7ad56db6cab6af4feb0df0603ce03
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Jun 10 13:39:53 2025 +0200
+
+    Updated manpage.
+
+commit ef23310c3c1f9b07e6feb742a85a65ddaf09c587
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Sun Jun 8 16:24:55 2025 +0200
+
+    Label fix.
+
+commit 81d7f856e054224e4b59f77a6837808bfacf1e27
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Jun 5 11:00:15 2025 +0200
+
+    Updated FreeBSD Makefile.
+
+commit 4525f2fb5578aff2075069d7cc0552a8205caa73
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Jun 5 09:03:33 2025 +0200
+
+    Updated FreeBSD port.
+
+commit 36ac37a1dab58ac5688bc0b1e6b65d7a137100ca
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Jun 5 08:57:04 2025 +0200
+
+    New release hipercontracer-2.0.17.
+
+commit dd5a8b7e49b95ea750bd64fb14d5009540161c70
+Merge: a1485b8a 0c1eff1c
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Mon Jun 2 18:41:44 2025 +0200
+
+    Merge branch 'master' into dreibh/libiostreams
+
+commit 0c1eff1c3f482b94f0c7fb1d7d80393185419e36
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Mon Jun 2 18:39:22 2025 +0200
+
+    Build fix for BOOST 1.88: this_process was removed => obtaining process ID via getpid() now.
+
+commit 7d4434d72c000c5816c4c48ea1e7821add4c5360
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Mon Jun 2 17:51:31 2025 +0200
+
+    Improved example script.
+
+commit 35f14a737bb5e1d44759d6f5223caabda17ee41d
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu May 15 00:02:34 2025 +0200
+
+    FreeBSD Makefile update.
+
+commit 0dd7acc2f5c4167b632de7f549c816de35b3087c
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed May 14 23:55:31 2025 +0200
+
+    Updated FreeBSD port.
+
+commit a1485b8a77987eff1a9246bd9b75aec2bbcee9d2
+Merge: 6033be83 31ca25fd
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed May 14 17:45:37 2025 -0400
+
+    Merge branch 'master' into dreibh/libiostreams
+
+commit 31ca25fdf28a59ea30ec40ed28ef7e73078eda62
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed May 14 11:44:55 2025 +0200
+
+    New release hipercontracer-2.0.16.
+
+commit c0bbf1a0a890391cca0591ad9ba0b4b5ed89ae43
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed May 14 11:43:28 2025 +0200
+
+    Debian test dependency fix.
+
+commit 99c10a2b09d29cdd82171e4f26905eec22058eeb
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed May 14 10:58:52 2025 +0200
+
+    Packaging fix: The SQL views files were missing as well.
+
+commit 9d99e103f6fe953928037ef77dce7ce8dc91e47d
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue May 13 17:28:00 2025 +0200
+
+    Bugfix: SQL files for functions and procedures were missing in installation packages.
+
+commit 97d51a99179e98d53d712f2e46859809e2752e65
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue May 13 13:58:17 2025 +0200
+
+    Dependency fix: setfacl is required.
+
+commit 6033be8324bb7544dd9047121a747f04dc3a04b9
+Merge: ce7836d2 b1c1ee29
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Tue May 13 12:15:09 2025 +0200
 
@@ -35,7 +166,7 @@ Date:   Tue May 13 10:07:19 2025 +0200
     Fixed merge conflict in ChangeLog.
 
 commit 3183f4266b510b94fb117842a7960b391c87b1e6
-Merge: f4c21b7 d849e09
+Merge: f4c21b79 d849e096
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Tue May 13 10:06:27 2025 +0200
 
@@ -105,7 +236,7 @@ Date:   Mon Apr 28 17:40:26 2025 +0200
     Merge branch 'master' into dreibh/db-partitioning
 
 commit f4c21b79d8872fe0fdb58bc34d4db86a319a7d5d
-Merge: b861a60 31287f1
+Merge: b861a60e 31287f1f
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Sun Apr 27 21:09:36 2025 +0200
 
@@ -154,7 +285,7 @@ Date:   Wed Apr 16 08:52:14 2025 +0200
     New release hipercontracer-2.0.13.
 
 commit 5fc996268f7c180b9a21add7c7a0902a67313ad3
-Merge: 35493da ac62e88
+Merge: 35493daf ac62e884
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Tue Apr 15 14:20:21 2025 +0200
 
@@ -197,7 +328,7 @@ Date:   Tue Apr 15 13:03:33 2025 +0200
     Version bump.
 
 commit c10b918428f6850da05dc52e30fc05e59f4b51a5
-Merge: 3729061 d34e9ef
+Merge: 37290616 d34e9ef1
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Tue Apr 15 13:01:22 2025 +0200
 
@@ -282,7 +413,7 @@ Date:   Tue Apr 15 11:02:59 2025 +0200
     Fixed typo.
 
 commit 2855adb57e0b5cba7a8668607d2a8e19b64eae4b
-Merge: 95b8920 0297fb2
+Merge: 95b89203 0297fb27
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Tue Apr 15 10:31:11 2025 +0200
 
@@ -295,7 +426,7 @@ Date:   Fri Apr 11 16:19:46 2025 +0200
     New release hipercontracer-2.0.11.
 
 commit 95b892035a69529761bc060292478d205259d803
-Merge: ef86d11 5d2ded7
+Merge: ef86d113 5d2ded7e
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Fri Apr 11 14:22:45 2025 +0200
 
@@ -315,7 +446,7 @@ Date:   Fri Apr 11 12:40:37 2025 +0200
     Merge branch 'master' into dreibh/db-partitioning
 
 commit ef86d113b8a6401e014608b2a28a485ca1c7f6c5
-Merge: d0cd954 2565036
+Merge: d0cd9544 25650368
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Fri Apr 11 12:34:33 2025 +0200
 
@@ -352,7 +483,7 @@ Date:   Fri Apr 11 11:46:20 2025 +0200
     Improvement for SQL v1 legacy views: adding timestamp as value, for improved SELECT query performance.
 
 commit a789711744e7fa7cfdeaeb489c61fdad740432bd
-Merge: 7488c3e 3478e92
+Merge: 7488c3e9 3478e922
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Thu Apr 10 15:11:07 2025 +0200
 
@@ -371,7 +502,7 @@ Date:   Thu Apr 10 11:24:33 2025 +0200
     Improved manpage.
 
 commit 52b23601f88e92a02925fbdcb806b872da8814fb
-Merge: abdb9dc ea5ccd8
+Merge: abdb9dcc ea5ccd8b
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Thu Apr 10 11:18:01 2025 +0200
 
@@ -396,7 +527,7 @@ Date:   Thu Apr 10 10:53:49 2025 +0200
     Minor clean-ups.
 
 commit 7b499fccdbe8d79c64629aa821345d4ba31f9551
-Merge: 24cf8a0 5c40b51
+Merge: 24cf8a08 5c40b515
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Thu Apr 10 09:48:04 2025 +0200
 
@@ -421,7 +552,7 @@ Date:   Thu Apr 10 09:36:29 2025 +0200
     Some improvements.
 
 commit 731204ca7cbc4e7abf88097286daeb9e2219fe07
-Merge: 68cb6a7 6bbaad0
+Merge: 68cb6a70 6bbaad0a
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Thu Apr 10 08:18:16 2025 +0200
 
@@ -531,7 +662,7 @@ Date:   Tue Apr 8 17:38:10 2025 +0200
     New release hipercontracer-2.0.9.
 
 commit a5c54256b7cdf2c4bf1bb520d35955fb405eb232
-Merge: 5bf4383 02a0cb8
+Merge: 5bf4383d 02a0cb84
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Tue Apr 8 17:36:21 2025 +0200
 
@@ -1094,13 +1225,6 @@ Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Thu Mar 27 16:12:25 2025 +0100
 
     Some clean-ups.
-
-commit b725d4336f536758859d25c6a759eb60b003c752
-Merge: 95ede2b df967bf
-Author: Thomas Dreibholz <dreibh@simula.no>
-Date:   Thu Mar 27 15:06:03 2025 +0100
-
-    Merge branch 'master' into dreibh/node-and-collector
 
 commit df967bf248aa03235fc50253992f4b881979aedc
 Author: Thomas Dreibholz <dreibh@simula.no>
@@ -4876,13 +5000,6 @@ Date:   Tue Jun 11 09:26:04 2024 +0200
 
     Improved filter regex handling: only perform filtering if there actually is a filter configured.
 
-commit 548edece4b7687bf7c4a77e831c7b6ca2410920a
-Merge: 564c0e6 88d1330
-Author: Thomas Dreibholz <dreibh@simula.no>
-Date:   Tue Jun 11 08:57:00 2024 +0200
-
-    Merge branch 'dreibh/mariadb-c-client' of github.com:dreibh/hipercontracer into dreibh/mariadb-c-client
-
 commit 88d1330d662dc52a6080cd8ba389ecc0f3692ffa
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Mon Jun 10 21:15:29 2024 +0200
@@ -5025,12 +5142,6 @@ Date:   Mon Jun 10 14:35:32 2024 +0200
     Merge branch 'dreibh/udpping' of github.com:dreibh/hipercontracer into dreibh/udpping
 
 commit 129d722fdfa509e6f50abde3d027bc576c0e6a89
-Author: Thomas Dreibholz <dreibh@simula.no>
-Date:   Mon Jun 10 14:34:56 2024 +0200
-
-    Improved debug output.
-
-commit 564c0e6efaffeca51b3c123acb2722c933b67278
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Mon Jun 10 14:34:56 2024 +0200
 
@@ -5364,13 +5475,6 @@ Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Fri Mar 8 11:37:26 2024 +0100
 
     Removed debug output.
-
-commit 619d1659c51e5b7995642d4e9d28e5fe201c23a2
-Merge: b1691e4 73c1546
-Author: Thomas Dreibholz <dreibh@simula.no>
-Date:   Fri Mar 8 11:37:18 2024 +0100
-
-    Merge branch 'dreibh/database-tools' of github.com:dreibh/hipercontracer into dreibh/database-tools
 
 commit b1691e4dd92da5548099b3e3eb2d8eefeec0587a
 Author: Thomas Dreibholz <dreibh@simula.no>
@@ -5734,12 +5838,6 @@ Date:   Thu Nov 30 17:02:28 2023 +0100
 
     Reorganised parameter handling. Not complete, yet!
 
-commit 73c15466dc148ffc2abff843faaa07e8c341ddae
-Author: Thomas Dreibholz <dreibh@simula.no>
-Date:   Fri Nov 17 13:14:47 2023 +0100
-
-    Improved script.
-
 commit 8b0e7cfa518fabf95129d5c17944168225f32bcd
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Wed Nov 15 12:21:27 2023 +0100
@@ -5985,31 +6083,11 @@ Date:   Wed Nov 8 15:38:50 2023 +0100
 
     Improved Results Tool.
 
-commit f18e46474897c2c32fa91912c24e42bd2336e3cd
-Merge: a42379f a0de90a
-Author: Thomas Dreibholz <dreibh@simula.no>
-Date:   Wed Nov 8 14:37:44 2023 +0100
-
-    Merge branch 'dreibh/database-tools' of github.com:dreibh/hipercontracer into dreibh/database-tools
-
 commit a42379fb9b2466d116b80d3110f8ee8b6c2b63e6
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Wed Nov 8 14:37:28 2023 +0100
 
     Improved error handling.
-
-commit a0de90a48c9a8112101e289b2bdf55f447b91c49
-Merge: 6f4eac2 fdd3876
-Author: Thomas Dreibholz <dreibh@simula.no>
-Date:   Wed Nov 8 14:13:20 2023 +0100
-
-    Merge branch 'dreibh/database-tools' of https://github.com/dreibh/hipercontracer into dreibh/database-tools
-
-commit 6f4eac299eb1361a51eb508dce78e3187578a42b
-Author: Thomas Dreibholz <dreibh@simula.no>
-Date:   Wed Nov 8 14:13:14 2023 +0100
-
-    Improved script.
 
 commit fdd38764ebbad2a3597adf57d393a21b97368f5b
 Author: Thomas Dreibholz <dreibh@simula.no>
@@ -6081,13 +6159,6 @@ Date:   Wed Nov 8 10:45:49 2023 +0100
 
     Added options to read sources/destinations from file.
 
-commit d52cc9695a76eb808fca3af003b45106bf114d18
-Merge: e06270f 49cc3af
-Author: Thomas Dreibholz <dreibh@simula.no>
-Date:   Wed Nov 8 09:38:28 2023 +0100
-
-    Merge branch 'dreibh/jitter' of github.com:dreibh/hipercontracer into dreibh/jitter
-
 commit e06270f0cc0e96ebbe2c1016fbca2258d87f7a09
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Wed Nov 8 09:38:18 2023 +0100
@@ -6143,12 +6214,6 @@ Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Wed Oct 25 15:18:19 2023 +0200
 
     Minor update.
-
-commit 49cc3af8b83152514b323d2e8675473d79a39330
-Author: Thomas Dreibholz <dreibh@simula.no>
-Date:   Wed Oct 25 15:08:50 2023 +0200
-
-    A fix.
 
 commit fb2c517c6c6287482184a6a50db8ba5f875fc64a
 Author: Thomas Dreibholz <dreibh@simula.no>
@@ -7577,13 +7642,6 @@ Date:   Thu May 18 11:39:01 2023 +0200
 
     FreeBSD support needs more work.
 
-commit 5531fe208267be6e2f055dc29156e406274a6282
-Merge: b6127d9 0ed4e04
-Author: Thomas Dreibholz <dreibh@simula.no>
-Date:   Wed May 17 13:13:32 2023 +0200
-
-    Merge branch 'dreibh/udpping' of github.com:dreibh/hipercontracer into dreibh/udpping
-
 commit 0ed4e044b509a70e7d2189e989996ce265d6fafe
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Thu May 4 17:32:05 2023 +0200
@@ -7701,13 +7759,6 @@ Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Thu Apr 27 09:34:35 2023 +0200
 
     Updated build scripts
-
-commit ccee4c1b6a59965cbd40a092052685665ae9b988
-Merge: 9a0b3af 4eb2e3c
-Author: Thomas Dreibholz <dreibh@simula.no>
-Date:   Thu Apr 27 09:34:19 2023 +0200
-
-    Merge branch 'master' of github.com:dreibh/hipercontracer
 
 commit 4f6ff130777c87dfae00dd029de3f74bbce3da93
 Merge: dbd15ed5 9a0b3af1
@@ -7864,18 +7915,6 @@ Date:   Fri Jan 6 10:41:55 2023 +1100
 commit cc513442b608861ffa044540ea92ede2b8031f71
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Fri Jan 6 10:41:54 2023 +1100
-
-    Updated build scripts
-
-commit b6127d97c972190677be44196daf3678d0117c64
-Author: Thomas Dreibholz <dreibh@simula.no>
-Date:   Fri Jan 6 10:22:01 2023 +1100
-
-    Updated CI scripts
-
-commit 5c8512626246d403890a44c6fa654b2cdbda349e
-Author: Thomas Dreibholz <dreibh@simula.no>
-Date:   Fri Jan 6 10:21:46 2023 +1100
 
     Updated build scripts
 
@@ -10920,25 +10959,6 @@ Date:   Sun Nov 7 18:50:58 2021 +0100
 
     Version update.
 
-commit 108e8a1ff5b96e45e8082a9460edd5fa14594787
-Merge: a5c1453 074a9eb
-Author: Thomas Dreibholz <dreibh@simula.no>
-Date:   Sun Nov 7 16:45:19 2021 +0100
-
-    Merge branch 'master' of github.com:dreibh/hipercontracer
-
-commit 074a9eb64055848657372e50f32135dfb96314b9
-Author: Thomas Dreibholz <dreibh@simula.no>
-Date:   Sun Nov 7 14:27:37 2021 +0100
-
-    Updated build scripts.
-
-commit be0cfadd2c6c72d28748abaeca3e1080922193b0
-Author: Thomas Dreibholz <dreibh@simula.no>
-Date:   Sun Nov 7 14:26:27 2021 +0100
-
-    Updated build scripts
-
 commit a5c145351dea9eeb26be224c7ebffb93b5eb9cd8
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Sat Nov 6 20:43:11 2021 +0100
@@ -11567,13 +11587,6 @@ Date:   Tue Apr 28 11:25:53 2020 +0200
 
     Properly handle empty transactions.
 
-commit eb8c4948631f9231b3167f282bd164d7594727a9
-Merge: b929052 f4267d5
-Author: Thomas Dreibholz <dreibh@simula.no>
-Date:   Tue Apr 28 11:05:06 2020 +0200
-
-    Merge branch 'master' of https://github.com/dreibh/hipercontracer
-
 commit f4267d5556323aaa822a5a46a63f9e4119e19920
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Fri Apr 24 12:41:53 2020 +0200
@@ -11711,12 +11724,6 @@ Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Thu Sep 26 15:25:43 2019 +0200
 
     Linux address handling fix.
-
-commit b929052570b11d163846d08fa55215b324830a2b
-Author: Thomas Dreibholz <dreibh@simula.no>
-Date:   Thu Sep 26 15:25:43 2019 +0200
-
-    Address handling fix.
 
 commit e11b7137b86369763a43d9ab6c8f0a0a3094959c
 Author: Thomas Dreibholz <dreibh@iem.uni-due.de>
