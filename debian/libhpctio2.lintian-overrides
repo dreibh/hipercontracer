@@ -1,0 +1,2 @@
+# libhpctio is a C++ library =>  symbols file is not recommended
+libhpctio2: no-symbols-control-file

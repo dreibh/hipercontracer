@@ -1,202 +1,12 @@
-<<<<<<< HEAD
-#include "jittermodule-iqr.h"
-#include "jittermodule-rfc3550.h"
-
-#include <stdio.h>
-
-
-int main(int argc, char *argv[])
-{
-   JitterModuleIQR j;
-   // JitterModuleRFC3550 j;
-
-   j.process(0xaa, 1000000000, 1100000000);
-   j.process(0xaa, 2000000000, 2200000000);
-   j.process(0xaa, 3000000000, 3100000000);
-   j.process(0xaa, 4000000000, 4200000000);
-   j.process(0x66, 5000000000, 5200000000);
-
-   printf("P=%u\n", j.packets());
-   printf("J=%llu\n", j.jitter() / 1000000ULL);
-   printf("L=%llu\n", j.meanLatency() / 1000000ULL);
-
-=======
-#include <fcntl.h>
-
-#include <filesystem>
 #include <iostream>
-#include <thread>
 
-#include <boost/algorithm/string.hpp>
-#include <boost/filesystem.hpp>
-#include <boost/iostreams/device/file_descriptor.hpp>
-#include <boost/iostreams/filtering_stream.hpp>
-#include <boost/iostreams/filtering_streambuf.hpp>
-#include <boost/iostreams/filter/bzip2.hpp>
-#include <boost/iostreams/filter/gzip.hpp>
-#include <boost/iostreams/filter/lzma.hpp>
-#include <boost/iostreams/filter/zlib.hpp>
-#include <boost/iostreams/filter/zstd.hpp>
-#include <boost/program_options.hpp>
-
-
-enum FileCompressorType {
-   FromExtension = 0,
-   None          = 1,
-   GZip          = 2,
-   BZip2         = 3,
-   XZ            = 4,
-   ZSTD          = 5,
-   ZLIB          = 6
-};
-
-
-// ###### Obtain compressor from file name extension ########################
-FileCompressorType obtainCompressorFromExtension(const std::filesystem::path& fileName)
-{
-   FileCompressorType compressor;
-   std::string extension(fileName.extension());
-   boost::algorithm::to_lower(extension);
-   if(extension == ".xz") {
-      compressor = XZ;
-   }
-   else if(extension == ".bz2") {
-      compressor = BZip2;
-   }
-   else if(extension == ".gz") {
-      compressor = GZip;
-   }
-   else if(extension == ".zst") {
-      compressor = ZSTD;
-   }
-   else if(extension == ".zz") {
-      compressor = ZLIB;
-   }
-   else {
-      compressor = None;
-   }
-   return compressor;
-}
-
-
-class InputStream : public boost::iostreams::filtering_istream
-{
-
-   public:
-   InputStream();
-   ~InputStream();
-
-   bool openStream(std::istream& os);
-   bool openStream(const std::filesystem::path& fileName,
-                   const FileCompressorType     compressor = FromExtension);
-   void closeStream();
-
-   private:
-   std::filesystem::path                                                      FileName;
-   boost::iostreams::stream_buffer<boost::iostreams::file_descriptor_source>* StreamBuffer;
-   FileCompressorType                                                         Compressor;
-};
-
-
-// ###### Constructor #######################################################
-InputStream::InputStream()
-{
-   StreamBuffer = nullptr;
-   Compressor   = None;
-}
-
-
-// ###### Destructor ########################################################
-InputStream::~InputStream()
-{
-   closeStream();
-}
-
-
-// ###### Initialise input stream to std::istream ###########################
-bool InputStream::openStream(std::istream& os)
-{
-   closeStream();
-   push(os);
-   return true;
-}
-
-
-// ###### Initialise input stream to input file #############################
-bool InputStream::openStream(const std::filesystem::path& fileName,
-                              const FileCompressorType     compressor)
-{
-   // ====== Reset ==========================================================
-   closeStream();
-
-   // ====== Initialise input steam to file =================================
-   Compressor = compressor;
-   FileName   = fileName;
-   if(FileName != std::filesystem::path()) {
-      // ------ Open temporary input file -----------------------------------
-      int handle = ::open(FileName.c_str(), O_RDONLY);
-      if(handle < 0) {
-         throw std::runtime_error(std::string(strerror(errno)));
-      }
-#ifdef POSIX_FADV_SEQUENTIAL
-      posix_fadvise(handle, 0, 0, POSIX_FADV_SEQUENTIAL|POSIX_FADV_WILLNEED|POSIX_FADV_NOREUSE);
-#endif
-      StreamBuffer = new boost::iostreams::stream_buffer<boost::iostreams::file_descriptor_source>(
-                        handle, boost::iostreams::file_descriptor_flags::close_handle);
-      assert(StreamBuffer != nullptr);
-
-      // ------ Configure the compressor ------------------------------------
-      if(Compressor == FromExtension) {
-         Compressor = obtainCompressorFromExtension(FileName);
-      }
-      switch(Compressor) {
-         case XZ: {
-            const boost::iostreams::lzma_params params(
-               boost::iostreams::lzma::default_compression,
-               std::thread::hardware_concurrency());
-            push(boost::iostreams::lzma_decompressor(params));
-           }
-          break;
-         case BZip2:
-            push(boost::iostreams::bzip2_decompressor());
-          break;
-         case GZip:
-            push(boost::iostreams::gzip_decompressor());
-          break;
-         case ZSTD:
-            push(boost::iostreams::zstd_decompressor());
-          break;
-         case ZLIB:
-            push(boost::iostreams::zlib_decompressor());
-          break;
-         default:
-          break;
-      }
-      push(*StreamBuffer);
-
-      return true;
-   }
-   return false;
-}
-
-
-// ###### Close input stream ###############################################
-void InputStream::closeStream()
-{
-   reset();
-
-   // ====== Clean up =======================================================
-   if(StreamBuffer) {
-      delete StreamBuffer;
-      StreamBuffer = nullptr;
-   }
-   FileName = std::filesystem::path();
-}
-
+#include "inputstream.h"
 
 
 void test(const char* name)
 {
+   const std::chrono::system_clock::time_point t1 = std::chrono::system_clock::now();
+
    unsigned int n = 0;
    InputStream is;
    try {
@@ -210,7 +20,9 @@ void test(const char* name)
    catch(std::exception& e) {
       std::cerr << "ERROR: " << e.what() << "\n";
    }
-   std::cerr << "OK " << name << "\t" << n << "\n";
+
+   const std::chrono::system_clock::time_point t2 = std::chrono::system_clock::now();
+   std::cerr << "OK " << name << "\t" << n << "\t" << std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1).count() << " ms\n";
 }
 
 
@@ -228,6 +40,5 @@ int main(int argc, char** argv)
    test("test.txt.xz");
    test("test.txt.zst");
    test("test.txt.zz");
->>>>>>> master
    return 0;
 }

@@ -31,6 +31,7 @@
 -- ##########################################################################
 -- IMPORTANT NOTE:
 -- This script requires changing the placeholders below first:
+-- * DATABASE
 -- * MAINTAINER_PASSWORD
 -- * IMPORTER_PASSWORD
 -- * RESEARCHER_PASSWORD
@@ -41,7 +42,7 @@ RENAME USER 'root'@'localhost' TO 'root'@'%';
 
 DROP USER IF EXISTS maintainer;
 CREATE USER maintainer IDENTIFIED BY '${MAINTAINER_PASSWORD}';
-GRANT ALL PRIVILEGES ON * TO maintainer;
+GRANT ALL PRIVILEGES ON ${DATABASE}.* TO maintainer WITH GRANT OPTION;
 
 DROP USER IF EXISTS importer;
 CREATE USER importer IDENTIFIED BY '${IMPORTER_PASSWORD}';
@@ -52,5 +53,7 @@ GRANT INSERT, UPDATE ON Jitter TO importer;
 DROP USER IF EXISTS researcher;
 CREATE USER researcher IDENTIFIED BY '${RESEARCHER_PASSWORD}';
 GRANT SELECT, INSERT, UPDATE ON * TO researcher;
+GRANT EXECUTE ON FUNCTION UTCDateTime2UnixTimestamp TO researcher;
+GRANT EXECUTE ON FUNCTION UnixTimestamp2UTCDateTime TO researcher;
 
 FLUSH PRIVILEGES;

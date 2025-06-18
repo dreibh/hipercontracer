@@ -54,6 +54,10 @@ ping|traceroute|jitter
 .Op Fl Fl to-time Ar timestamp
 .Op Fl Fl from-measurement-id Ar measurement_identifier
 .Op Fl Fl to-measurement-id Ar measurement_identifier
+.Nm hpct-query
+.Op Fl h | Fl Fl help
+.Nm hpct-query
+.Op Fl Fl version
 .\" ###### Description ######################################################
 .Sh DESCRIPTION
 .Nm hpct-query
@@ -111,6 +115,10 @@ If not provided, all results will be queried.
 .It Fl Fl to-measurement-id Ar measurement_identifier
 Set the end of the measurement identifier range.
 If not provided, all results will be queried.
+.It Fl h | Fl Fl help
+Prints command help.
+.It Fl Fl version
+Prints program version.
 .El
 .\" ###### Arguments ########################################################
 .Sh EXAMPLES
@@ -123,6 +131,8 @@ If not provided, all results will be queried.
 .It hpct-query hipercontracer-database.conf traceroute --from-measurement-id 1000 --to-measurement-id 2000 --output results.xz
 .It hpct-query hipercontracer-database.conf ping --table test_ping_table
 .It hpct-query hipercontracer-database.conf traceroute -T Traceroute_v1 -V 1 --from-time 2015-10-16 --to-time 2015-10-17 -o "Traceroute-2015-10-16.hpct.xz" -M addressmappings.txt
+.It hpct-query --version
+.It hpct-query --h
 .El
 .\" ###### Authors ##########################################################
 .Sh AUTHORS

@@ -38,8 +38,7 @@ usage () {
 }
 
 GETOPT="$(PATH=/usr/local/bin:$PATH which getopt)"
-# shellcheck disable=SC2068
-options="$(${GETOPT} -o hN:L:R:C:K:H:vq --long help,nodeid:,local:,remote:,collector:,key:,known-hosts:,verbose,quiet -a -- $@)"
+options="$(${GETOPT} -o hN:L:R:C:K:H:vq --long help,nodeid:,local:,remote:,collector:,key:,known-hosts:,verbose,quiet -a -- "$@")"
 # shellcheck disable=SC2181
 if [[ $? -ne 0 ]]; then
    usage
