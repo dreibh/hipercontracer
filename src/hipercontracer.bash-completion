@@ -166,6 +166,7 @@ _hipercontracer()
 --destinations-from-file
 -M
 --iomodule
+-I
 --iterations
 --jitterinterval
 --jitterintervaldeviation
@@ -206,6 +207,9 @@ _hipercontracer()
 -z
 --resultstimestampdepth
 --check
+-h
+--help
+--version
 "
    # shellcheck disable=SC2207
    COMPREPLY=( $( compgen -W "${opts}" -- "${cur}" ) )

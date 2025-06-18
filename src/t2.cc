@@ -1,36 +1,38 @@
 #include <iostream>
 
-#include "outputstream.h"
+#include "inputstream.h"
 
 
 void test(const char* name)
 {
    const std::chrono::system_clock::time_point t1 = std::chrono::system_clock::now();
 
-   OutputStream of;
+   unsigned int n = 0;
+   InputStream is;
    try {
-      of.openStream(name);
-      for(unsigned int i = 0; i < 100000000; i++) {
-         of << "Test! " << name << " abcdefghijklmnopqrstuvwxyz ABCDEFGHIJKLMNOPQRSTUVWXYZ\n";
+      is.openStream(name);
+      std::string line;
+      while(std::getline(is, line)) {
+         n++;
       }
-      of.strict_sync();
+      is.closeStream();
    }
    catch(std::exception& e) {
       std::cerr << "ERROR: " << e.what() << "\n";
    }
 
    const std::chrono::system_clock::time_point t2 = std::chrono::system_clock::now();
-   std::cerr << "OK " << name << "\t" << std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1).count() << " ms\n";
+   std::cerr << "OK " << name << "\t" << n << "\t" << std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1).count() << " ms\n";
 }
 
 
 int main(int argc, char** argv)
 {
-   OutputStream of;
-
-   of.openStream(std::cout);
-   of << "COUT-TEST\n";
-   of.closeStream();
+   // InputStream is;
+   //
+   // is.openStream(std::cout);
+   // is << "COUT-TEST\n";
+   // is.closeStream();
 
    test("test.txt");
    test("test.txt.gz");

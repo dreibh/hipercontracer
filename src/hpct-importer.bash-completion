@@ -126,6 +126,9 @@ _hpct_importer()
 --ping-files
 --traceroute-workers
 --traceroute-files
+-h
+--help
+--version
 "
    # shellcheck disable=SC2207
    COMPREPLY=( $( compgen -W "${opts}" -- "${cur}" ) )
