@@ -58,8 +58,7 @@ if [ "${NODE_ID}" -lt 1 ] || [ "${NODE_ID}" -gt 9999 ] ; then
 fi
 
 GETOPT="$(PATH=/usr/local/bin:$PATH which getopt)"
-# shellcheck disable=SC2068
-options="$(${GETOPT} -o hqvc --long help,quiet,verbose,copy-id -a -- $@)"
+options="$(${GETOPT} -o hqvc --long help,quiet,verbose,copy-id -a -- "$@")"
 # shellcheck disable=SC2181
 if [[ $? -ne 0 ]] ; then
    usage
