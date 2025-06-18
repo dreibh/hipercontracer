@@ -10,14 +10,8 @@ WWW=		https://www.nntb.no/~dreibh/hipercontracer/
 LICENSE=	GPLv3+
 LICENSE_FILE=	${WRKSRC}/COPYING
 
-LIB_DEPENDS=	libboost_date_time.so:devel/boost-libs \
-		libboost_filesystem.so:devel/boost-libs \
-		libboost_iostreams.so:devel/boost-libs \
-		libboost_log.so:devel/boost-libs \
-		libboost_program_options.so:devel/boost-libs \
-		libboost_system.so:devel/boost-libs \
-		libboost_thread.so:devel/boost-libs \
-		libinotify.so:devel/libinotify
+BUILD_DEPENDS=	boost-libs>=1.88:devel/boost-libs
+LIB_DEPENDS=	libinotify.so:devel/libinotify
 RUN_DEPENDS=	getopt>=0:misc/getopt
 
 USES=		cmake compiler:c++20-lang desktop-file-utils python \
