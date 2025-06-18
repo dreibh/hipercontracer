@@ -28,7 +28,7 @@
 .\" Contact: dreibh@simula.no
 .\"
 .\" ###### Setup ############################################################
-.Dd May 12, 2025
+.Dd June 10, 2025
 .Dt hipercontracer 1
 .Os hipercontracer
 .\" ###### Name #############################################################
@@ -172,7 +172,7 @@ Default is 36.
 Increase the maximum TTL by the given value (when destination is not reached with current TTL setting).
 Default is 6.
 .It Fl Fl traceroutepacketsize Ar bytes
-Sets the Traceroute packet size, that is IP header (20 for IPv4/40 for IPv6) + ICMP header (8) + HiPerConTracer header (16) + payload, in bytes.
+Sets the Traceroute packet size, that is IP header (20 for IPv4/40 for IPv6) + ICMP header (8)/UDP header (8) + HiPerConTracer header (16) + payload, in bytes.
 The actually sent packet size always covers at least the headers for IPv4/IPv6, ICMP and HiPerConTracer. Maximum packet size is 65535.
 .It Fl Fl tracerouteudpsourceport Ar port
 Sets the Traceroute source port for the UDP module (default: 0, for automatic allocation). Note: If using a fixed UDP port for Traceroute, different UDP source ports must be used for any other services!
@@ -194,7 +194,7 @@ Default is 1 packet. Range: 1-1024.
 Sets the Ping TTL value.
 Default is 64. Range: 1-255.
 .It Fl Fl pingpacketsize Ar bytes
-Sets the Jitter packet size, that is IP header (20 for IPv4/40 for IPv6) + ICMP header (8)/UDP header (8) + HiPerConTracer header (16) + payload, in bytes.
+Sets the Ping packet size, that is IP header (20 for IPv4/40 for IPv6) + ICMP header (8)/UDP header (8) + HiPerConTracer header (16) + payload, in bytes.
 The actually sent packet size always covers at least the headers for IPv4/IPv6, transport protocol and HiPerConTracer. Default is 0 (use minimum possible value). Range: 0-65535.
 .It Fl Fl pingudpsourceport Ar port
 Sets the Ping source port for the UDP module (default: 0, for automatic allocation). Note: If using a fixed UDP port for Ping, different UDP source ports must be used for any other services!
