@@ -290,8 +290,6 @@ them to integrate HiPerConTracer into own programs.
 %{_includedir}/hipercontracer/logger.h
 %{_includedir}/hipercontracer/outputstream.h
 %{_includedir}/hipercontracer/tools.h
-%{_includedir}/hipercontracer/logger.h
-%{_includedir}/hipercontracer/tools.h
 %{_libdir}/libhpctio*.so
 %{_libdir}/libhpctio.a
 
@@ -386,12 +384,10 @@ them to integrate HiPerConTracer into own programs.
 %{_includedir}/hipercontracer/iomodule-icmp.h
 %{_includedir}/hipercontracer/iomodule-udp.h
 # %{_includedir}/hipercontracer/jitter.h
-%{_includedir}/hipercontracer/logger.h
 %{_includedir}/hipercontracer/ping.h
 %{_includedir}/hipercontracer/resultentry.h
 %{_includedir}/hipercontracer/resultswriter.h
 %{_includedir}/hipercontracer/service.h
-%{_includedir}/hipercontracer/tools.h
 %{_includedir}/hipercontracer/traceroute.h
 %{_libdir}/libhipercontracer*.so
 %{_libdir}/libhipercontracer.a
@@ -491,10 +487,8 @@ own programs.
 %{_includedir}/universalimporter/databaseclient-mongodb.h
 %{_includedir}/universalimporter/databaseclient-postgresql.h
 %{_includedir}/universalimporter/importer-configuration.h
-%{_includedir}/universalimporter/logger.h
 %{_includedir}/universalimporter/reader-base.h
 %{_includedir}/universalimporter/results-exception.h
-%{_includedir}/universalimporter/tools.h
 %{_includedir}/universalimporter/universal-importer.h
 %{_includedir}/universalimporter/worker.h
 %{_libdir}/libuniversalimporter*.so
