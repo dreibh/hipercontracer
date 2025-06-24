@@ -10,7 +10,6 @@ WWW=		https://www.nntb.no/~dreibh/hipercontracer/
 LICENSE=	GPLv3+
 LICENSE_FILE=	${WRKSRC}/COPYING
 
-BUILD_DEPENDS=	boost-libs>=1.88:devel/boost-libs
 LIB_DEPENDS=	libboost_date_time.so:devel/boost-libs \
 		libboost_filesystem.so:devel/boost-libs \
 		libboost_iostreams.so:devel/boost-libs \
