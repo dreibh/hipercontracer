@@ -30,42 +30,48 @@
 
 from enum import Enum
 
-HopStatus = Enum( 'HopStatus', [
-   ( 'Unknown',                    0),
+class HopStatus(Enum):
+   # ====== Status byte ===================================
+   Unknown                   = 0
 
    # ====== ICMP responses (from routers) =================
    # NOTE: Status values from 1 to 199 have a given
    #       router IP in their HopIP result!
 
    # ------ TTL/Hop Count ---------------------------------
-   ( 'TimeExceeded',               1),      # ICMP response
-
-   # ====== ICMP responses (from routers) =================
+   TimeExceeded              = 1    # ICMP response
 
    # ------ Reported as "unreachable" ---------------------
    # NOTE: Status values from 100 to 199 denote unreachability
-   ( 'UnreachableScope',           100),   # ICMP response
-   ( 'UnreachableNetwork',         101),   # ICMP response
-   ( 'UnreachableHost',            102),   # ICMP response
-   ( 'UnreachableProtocol',        103),   # ICMP response
-   ( 'UnreachablePort',            104),   # ICMP response
-   ( 'UnreachableProhibited',      105),   # ICMP response
-   ( 'UnreachableUnknown',         110),   # ICMP response
+   UnreachableScope          = 100  # ICMP response
+   UnreachableNetwork        = 101  # ICMP response
+   UnreachableHost           = 102  # ICMP response
+   UnreachableProtocol       = 103  # ICMP response
+   UnreachablePort           = 104  # ICMP response
+   UnreachableProhibited     = 105  # ICMP response
+   UnreachableUnknown        = 110  # ICMP response
 
    # ====== No response  ==================================
    # NOTE: Status values from 200 to 254 have the destination
-   #       IP in their HopIP field. However, there is no response!
-   ( 'Timeout',                     200),
+   #       IP in their HopIP field. However there is no response!
+   Timeout                   = 200
 
-   ( 'NotSentGenericError',         210),   # sendto() call failed (generic error)
-   ( 'NotSentPermissionDenied',     211),   # sendto() error: EACCES
-   ( 'NotSentNetworkUnreachable',   212),   # sendto() error: ENETUNREACH
-   ( 'NotSentHostUnreachable',      213),   # sendto() error: EHOSTUNREACH
-   ( 'NotAvailableAddress',         214),   # sendto() error: EADDRNOTAVAIL
-   ( 'NotValidMsgSize',             215),   # sendto() error: EMSGSIZE
-   ( 'NotEnoughBufferSpace',        216),   # sendto() error: ENOBUFS
+   NotSentGenericError       = 210  # sendto() call failed (generic error)
+   NotSentPermissionDenied   = 211  # sendto() error: EACCES
+   NotSentNetworkUnreachable = 212  # sendto() error: ENETUNREACH
+   NotSentHostUnreachable    = 213  # sendto() error: EHOSTUNREACH
+   NotAvailableAddress       = 214  # sendto() error: EADDRNOTAVAIL
+   NotValidMsgSize           = 215  # sendto() error: EMSGSIZE
+   NotEnoughBufferSpace      = 216  # sendto() error: ENOBUFS
 
    # ====== Destination's response (from destination) =====
-   # NOTE: Successful response, destination is in HopIP field.
-   ( 'Success',                     255),   # Success!
-])
+   # NOTE: Successful response destination is in HopIP field.
+   Success                   = 255  # Success!
+
+
+# ###### Is destination not reachable? ######################################
+def statusIsUnreachable(hopStatus : HopStatus) -> bool:
+   # Values 100 to 199 => the destination cannot be reached any more, since
+   # a router on the way reported unreachability.
+   return ( (hopStatus.value >= HopStatus.UnreachableScope.value) and
+            (hopStatus.value < HopStatus.Timeout.value) )
