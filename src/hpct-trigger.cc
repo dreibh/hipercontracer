@@ -30,7 +30,6 @@
 #include <iostream>
 #include <vector>
 
-#include <boost/algorithm/string.hpp>
 #include <boost/asio/ip/address.hpp>
 #include <boost/program_options.hpp>
 
@@ -261,7 +260,6 @@ int main(int argc, char** argv)
    unsigned int                       resultsTransactionLength;
    std::filesystem::path              resultsDirectory;
    std::string                        resultsCompressionString;
-   ResultsWriterCompressor            resultsCompression;
    unsigned int                       resultsFormatVersion;
    unsigned int                       resultsTimestampDepth;
 
@@ -269,6 +267,8 @@ int main(int argc, char** argv)
    commandLineOptions.add_options()
       ( "help,h",
            "Print help message" )
+      ( "version",
+           "Show program version" )
       ( "check",
            "Check environment" )
 
@@ -460,6 +460,10 @@ int main(int argc, char** argv)
                  << commandLineOptions;
        return 1;
    }
+   else if(vm.count("version")) {
+      std::cerr << "HPCT Trigger" << " " << HPCT_VERSION << "\n";
+      return 0;
+   }
    else if(vm.count("check")) {
       checkEnvironment("HPCT Trigger");
       return 0;
@@ -540,20 +544,9 @@ int main(int argc, char** argv)
       return 1;
    }
 #endif
-   boost::algorithm::to_upper(resultsCompressionString);
-   if(resultsCompressionString == "XZ") {
-      resultsCompression = ResultsWriterCompressor::XZ;
-   }
-   else if(resultsCompressionString == "BZIP2") {
-      resultsCompression = ResultsWriterCompressor::BZip2;
-   }
-   else if(resultsCompressionString == "GZIP") {
-      resultsCompression = ResultsWriterCompressor::GZip;
-   }
-   else if(resultsCompressionString == "NONE") {
-      resultsCompression = ResultsWriterCompressor::None;
-   }
-   else {
+   const CompressorType resultsCompression =
+      getCompressorTypeFromName(resultsCompressionString);
+   if(resultsCompression == CT_Invalid) {
       std::cerr << "ERROR: Invalid results compression: " << resultsCompressionString << "\n";
       return 1;
    }
@@ -711,7 +704,7 @@ int main(int argc, char** argv)
                ServiceSet.insert(service);
             }
             catch (std::exception& e) {
-               HPCT_LOG(fatal) << "Cannot create Jitter service - " << e.what();
+               HPCT_LOG(fatal) << "Cannot create Jitter service:" << e.what();
                return 1;
             }
          }
@@ -743,7 +736,7 @@ int main(int argc, char** argv)
                ServiceSet.insert(service);
             }
             catch (std::exception& e) {
-               HPCT_LOG(fatal) << "Cannot create Ping service - " << e.what();
+               HPCT_LOG(fatal) << "Cannot create Ping service:" << e.what();
                return 1;
             }
          }
@@ -774,7 +767,7 @@ int main(int argc, char** argv)
                ServiceSet.insert(service);
             }
             catch (std::exception& e) {
-               HPCT_LOG(fatal) << "Cannot create Traceroute service - " << e.what();
+               HPCT_LOG(fatal) << "Cannot create Traceroute service:" << e.what();
                return 1;
             }
          }

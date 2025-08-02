@@ -52,6 +52,10 @@ input_file ...
 .Op Fl R | Fl Fl input-results-from-stdin
 .Op Fl N | Fl Fl input-file-names-from-stdin
 .Op Fl F Ar filename | Fl Fl input-file-names-from-file Ar filename
+.Nm hpct-results
+.Op Fl h | Fl Fl help
+.Nm hpct-results
+.Op Fl Fl version
 .\" ###### Description ######################################################
 .Sh DESCRIPTION
 .Nm hpct-results
@@ -85,9 +89,9 @@ Sets the specified filename as output file. Extensions \.gz, \.bz2, and \.xz are
 Configures the character used as separator of the CSV output. Default: ",".
 Possible values: " ", ";",  ":", " | ".
 .It Fl A | Fl Fl sorted
-Sort the output data (Timestamp, MeasurementID, Source, Destination, RoundNumber, SeqNumber). This is the default.
+Sort the output data (by Timestamp, MeasurementID, Source, Destination, RoundNumber, SeqNumber). This is the default.
 .It Fl U | Fl Fl unsorted
-Do not sort the output data. This saves time, but multi-threading makes the output order non-deterministic.
+Do not sort the output data. This reduces processing time and memory usage, but multi-threading makes the output order non-deterministic.
 .It Fl T Ar threads | Fl Fl maxthreads Ar threads
 Sets the maximum number of threads. By default, it is the number of CPU cores.
 .It Fl R | Fl Fl input-results-from-stdin
@@ -96,6 +100,10 @@ Read the results from standard input.
 Read the input file names from standard input.
 .It Fl F Ar file | Fl Fl input-file-names-from-file Ar file
 Read the input file names from file. The option may be provided multiple times to read from multiple files.
+.It Fl h | Fl Fl help
+Prints command help.
+.It Fl Fl version
+Prints program version.
 .El
 .\" ###### Arguments ########################################################
 .Sh EXAMPLES
@@ -105,6 +113,8 @@ Read the input file names from file. The option may be provided multiple times t
 .It hpct-results results/Traceroute* --sorted | head -n 64
 .It find results/ -name 'Traceroute-*.hpct.*' | hpct-results --input-file-names-from-stdin -o results.csv.gz
 .It hpct-results --input-file-names-from-file results-files.list -o results.csv.xz
+.It hpct-results --version
+.It hpct-results --h
 .El
 .\" ###### Authors ##########################################################
 .Sh AUTHORS

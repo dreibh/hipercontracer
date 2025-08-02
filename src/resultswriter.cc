@@ -29,6 +29,7 @@
 
 #include "resultswriter.h"
 #include "assure.h"
+#include "compressortype.h"
 #include "logger.h"
 #include "tools.h"
 
@@ -43,16 +44,16 @@
 
 
 // ###### Constructor #######################################################
-ResultsWriter::ResultsWriter(const std::string&            programID,
-                             const unsigned int            measurementID,
-                             const std::string&            directory,
-                             const std::string&            uniqueID,
-                             const std::string&            prefix,
-                             const unsigned int            transactionLength,
-                             const unsigned int            timestampDepth,
-                             const uid_t                   uid,
-                             const gid_t                   gid,
-                             const ResultsWriterCompressor compressor)
+ResultsWriter::ResultsWriter(const std::string&   programID,
+                             const unsigned int   measurementID,
+                             const std::string&   directory,
+                             const std::string&   uniqueID,
+                             const std::string&   prefix,
+                             const unsigned int   transactionLength,
+                             const unsigned int   timestampDepth,
+                             const uid_t          uid,
+                             const gid_t          gid,
+                             const CompressorType compressor)
    : ProgramID(programID),
      MeasurementID(measurementID),
      Directory(directory),
@@ -92,7 +93,7 @@ bool ResultsWriter::prepare()
       std::filesystem::create_directory(Directory);
    }
    catch(std::exception const& e) {
-      HPCT_LOG(error) << "Unable to prepare directories - " << e.what();
+      HPCT_LOG(error) << "Unable to prepare directories: " << e.what();
       return false;
    }
    return changeFile();
@@ -103,22 +104,12 @@ bool ResultsWriter::prepare()
 bool ResultsWriter::changeFile(const bool createNewFile)
 {
    // ====== Close current file =============================================
-   if(OutputFile.is_open()) {
-      OutputStream.reset();
-      OutputFile.close();
-      try {
-         if(Inserts == 0) {
-            // empty file -> just remove it!
-            std::filesystem::remove(TempFileName);
-         }
-         else {
-            // file has contents -> move it!
-            std::filesystem::rename(TempFileName, TargetFileName);
-         }
-      }
-      catch(std::exception const& e) {
-         HPCT_LOG(warning) << "ResultsWriter::changeFile() - " << e.what();
-      }
+   try {
+      Output.closeStream( (Inserts > 0) );
+   }
+   catch(std::exception const& e) {
+      HPCT_LOG(error) << "Failed to close output file "
+                      << TargetFileName << ": " << e.what();
    }
 
    // ====== Create new file ================================================
@@ -126,31 +117,15 @@ bool ResultsWriter::changeFile(const bool createNewFile)
    SeqNumber++;
    if(createNewFile) {
       try {
-         const char* extension = "";
-         switch(Compressor) {
-            case XZ:
-               extension = ".xz";
-             break;
-            case BZip2:
-               extension = ".bz2";
-             break;
-            case GZip:
-               extension = ".gz";
-             break;
-            default:
-             break;
-         }
+         // ------ Prepare directory hierachy -------------------------------
          const std::string name = UniqueID +
-            str(boost::format("-%09d.hpct%s") % SeqNumber % extension);
-         std::filesystem::path targetPath =
-            Directory /
-               makeDirectoryHierarchy<std::chrono::system_clock::time_point>(
-                  std::filesystem::path(),
-                  name, std::chrono::system_clock::now(),
-                  0, TimestampDepth);
-         TargetFileName = targetPath / name;
-         TempFileName   = TargetFileName;
-         TempFileName += ".tmp";
+            str(boost::format("-%09d.hpct%s")
+                   % SeqNumber
+                   % getExtensionForCompressor(Compressor));
+         std::filesystem::path targetPath = Directory /
+            makeDirectoryHierarchy<std::chrono::system_clock::time_point>(
+               std::filesystem::path(), name, std::chrono::system_clock::now(),
+               0, TimestampDepth);
          try {
             std::filesystem::create_directories(targetPath);
          }
@@ -159,30 +134,16 @@ bool ResultsWriter::changeFile(const bool createNewFile)
                               << " failed: " << e.what();
             return false;
          }
-         OutputFile.open(TempFileName.c_str(), std::ios_base::out | std::ios_base::binary);
-         switch(Compressor) {
-            case XZ: {
-               const boost::iostreams::lzma_params params(
-                  boost::iostreams::lzma::default_compression,
-                  std::thread::hardware_concurrency());
-               OutputStream.push(boost::iostreams::lzma_compressor(params));
-              }
-             break;
-            case BZip2:
-               OutputStream.push(boost::iostreams::bzip2_compressor());
-             break;
-            case GZip:
-               OutputStream.push(boost::iostreams::gzip_compressor());
-             break;
-            default:
-             break;
-         }
-         OutputStream.push(OutputFile);
+
+         // ------ Open new output file -------------------------------------
+         TargetFileName = targetPath / name;
+         Output.openStream(TargetFileName);
          OutputCreationTime = std::chrono::steady_clock::now();
-         return OutputStream.good();
+         return Output.good();
       }
       catch(std::exception const& e) {
-         HPCT_LOG(error) << "ResultsWriter::changeFile() - " << e.what();
+         HPCT_LOG(error) << "Failed to create output file "
+                         << TargetFileName << ": " << e.what();
          return false;
       }
    }
@@ -207,29 +168,30 @@ void ResultsWriter::insert(const std::string& tuple)
    if(__builtin_expect(Inserts == 0, 0)) {
       if(!OutputFormatName.empty()) {
          // Write header
-         OutputStream << "#? HPCT "
-                     << OutputFormatName    << " "
-                     << OutputFormatVersion << " "
-                     << ProgramID           << "\n";
+         Output << "#? HPCT "
+                       << OutputFormatName    << " "
+                       << OutputFormatVersion << " "
+                       << ProgramID           << "\n";
       }
    }
-   OutputStream << tuple << "\n";
+   Output << tuple << "\n";
    Inserts++;
 }
 
 
 // ###### Prepare results writer ############################################
-ResultsWriter* ResultsWriter::makeResultsWriter(std::set<ResultsWriter*>&       resultsWriterSet,
-                                                const std::string&              programID,
-                                                const unsigned int              measurementID,
-                                                const boost::asio::ip::address& sourceAddress,
-                                                const std::string&              resultsPrefix,
-                                                const std::string&              resultsDirectory,
-                                                const unsigned int              resultsTransactionLength,
-                                                const unsigned int              resultsTimestampDepth,
-                                                const uid_t                     uid,
-                                                const gid_t                     gid,
-                                                const ResultsWriterCompressor   compressor)
+ResultsWriter* ResultsWriter::makeResultsWriter(
+   std::set<ResultsWriter*>&       resultsWriterSet,
+   const std::string&              programID,
+   const unsigned int              measurementID,
+   const boost::asio::ip::address& sourceAddress,
+   const std::string&              resultsPrefix,
+   const std::string&              resultsDirectory,
+   const unsigned int              resultsTransactionLength,
+   const unsigned int              resultsTimestampDepth,
+   const uid_t                     uid,
+   const gid_t                     gid,
+   const CompressorType            compressor)
 {
    if(!resultsDirectory.empty()) {
       std::string uniqueID =

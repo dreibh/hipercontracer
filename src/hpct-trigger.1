@@ -86,10 +86,15 @@
 .\" .Op Fl Fl jitterudpdestinationport Ar port
 .Op Fl R Ar directory | Fl Fl resultsdirectory Ar directory
 .Op Fl x Ar seconds | Fl Fl resultstransactionlength Ar seconds
-.Op Fl C Ar none|\%XZ|\%BZip2|\%GZip |\% Fl Fl resultscompression Ar none|\%XZ|\%BZip2|\%GZip
+.Op Fl C Ar none|\%XZ|\%BZip2|\%GZip|\%ZLIB|\%ZSTD |\% Fl Fl resultscompression Ar none|\%XZ|\%BZip2|\%GZip|\%ZLIB|\%ZSTD
 .Op Fl F Ar version | Fl Fl resultsformat Ar version
 .Op Fl z Ar depth | Fl Fl resultstimestampdepth Ar depth
+.Nm hpct-trigger
 .Op Fl Fl check
+.Nm hpct-trigger
+.Op Fl h | Fl Fl help
+.Nm hpct-trigger
+.Op Fl Fl version
 .\" ###### Description ######################################################
 .Sh DESCRIPTION
 .Nm hpct-trigger
