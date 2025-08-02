@@ -68,6 +68,10 @@ class HopStatus(Enum):
    # NOTE: Successful response destination is in HopIP field.
    Success                   = 255  # Success!
 
+   # ------ Response received -----------------------------
+   Flag_StarredRoute         = (1 << 8)   # Route with * (router did not respond)
+   Flag_DestinationReached   = (1 << 9)   # Destination has responded
+
 
 # ###### Is destination not reachable? ######################################
 def statusIsUnreachable(hopStatus : HopStatus) -> bool:
