@@ -82,7 +82,7 @@ make install
 
 ## Sources Download
 
-HiPerConTracer is released under the GNU General Public Licence (GPL).
+HiPerConTracer is released under the GNU General Public Licence&nbsp;(GPL).
 
 Please use the issue tracker at [https://github.com/dreibh/hipercontracer/issues](https://github.com/dreibh/hipercontracer/issues) to report bugs and issues!
 
