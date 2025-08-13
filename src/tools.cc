@@ -106,6 +106,26 @@ std::filesystem::path relativeTo(const std::filesystem::path& dataFile,
 }
 
 
+// ###### Set file modification time ########################################
+// NOTE:
+// * std::filesystem::last_write_time() is unusable in C++17, and C++20 is
+//   too new (not even in Ubuntu 24.04, etc.).
+// * boost::filesystem::last_write_time() has issues with Debian 13 on ARMv7.
+// => Using POSIX function in ANSI C instead:
+bool set_last_write_time(const std::filesystem::path& path,
+                         const unsigned long long     newTime)
+{
+   timespec ts[2];
+   // Access time:
+   ts[0].tv_sec  = 0;
+   ts[0].tv_nsec = UTIME_OMIT;   // Leave unchanged
+   // Modification time:
+   ts[1].tv_sec  = newTime / 1000000000ULL;
+   ts[1].tv_nsec = newTime % 1000000000ULL;
+   return (utimensat(AT_FDCWD, path.c_str(), (const timespec*)&ts, 0) == 0);
+}
+
+
 // ###### Reduce privileges of process ######################################
 bool reducePrivileges(const passwd* pw)
 {
