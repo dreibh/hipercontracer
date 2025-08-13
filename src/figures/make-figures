@@ -1,9 +1,11 @@
-#!/bin/sh -e
+#!/bin/sh -eu
 
 for figure in HiPerConTracer-Data-Collection-System ; do
    dia -n -t cairo-pdf -e tmp1.pdf $figure.dia
    epstopdf --outfile=tmp1.eps tmp1.pdf
    pdfcrop --hires tmp1.eps $figure.pdf
+   pdf2svg $figure.pdf $figure.svg
    gm convert -density 300x300 $figure.pdf $figure.png
+   gm convert -density 300x300 $figure.pdf $figure.webp
    rm -f tmp1.pdf tmp1.eps
 done
