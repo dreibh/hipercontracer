@@ -414,6 +414,8 @@ INSTALL(FILES get-default-ips.1
 # TARGET_LINK_LIBRARIES(t1 ${Boost_LIBRARIES} libhpctio-${libraryType} ${CMAKE_THREAD_LIBS_INIT})
 # ADD_EXECUTABLE(t2 t2.cc)
 # TARGET_LINK_LIBRARIES(t2 ${Boost_LIBRARIES} libhpctio-${libraryType} ${CMAKE_THREAD_LIBS_INIT})
+ADD_EXECUTABLE(t3 t3.cc)
+TARGET_LINK_LIBRARIES(t3 ${Boost_LIBRARIES} libhpctio-${libraryType} ${CMAKE_THREAD_LIBS_INIT})
 # ADD_EXECUTABLE(dbtest dbtest.cc)
 # TARGET_LINK_LIBRARIES(dbtest libuniversalimporter-${libraryType} ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
 
