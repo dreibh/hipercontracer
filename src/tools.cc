@@ -92,7 +92,7 @@ int subDirectoryOf(const std::filesystem::path& path1,
 }
 
 
-// ###### Destructor ########################################################
+// ###### Obtain path relative to other path ################################
 std::filesystem::path relativeTo(const std::filesystem::path& dataFile,
                                  const std::filesystem::path& basePath)
 {
