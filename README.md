@@ -1,11 +1,14 @@
 <p align="center">
+ HiPerConTracer<br />
+ <span style="font-size:75%">High-Performance Connectivity Tracer</span><br />
  <a href="https://www.nntb.no/~dreibh/hipercontracer/">
  <img alt="HiPerConTracer Logo" src="src/figures/HiPerConTracer-Logo.svg" width="25%" /><br />
  https://www.nntb.no/~dreibh/hipercontracer/
  </a>
 </p>
 
-# What is High-Performance Connectivity Tracer&nbsp;(HiPerConTracer)?
+
+# 💡 What is High-Performance Connectivity Tracer&nbsp;(HiPerConTracer)?
 
 High-Performance Connectivity Tracer&nbsp;(HiPerConTracer) is a Ping/Traceroute measurement framework.
 
@@ -39,82 +42,81 @@ Furthermore, the HiPerConTracer Framework provides additional tools for helping 
 </p>
 
 
-# Installation
-
-## Binary Package Installation
+# 📦 Binary Package Installation
 
 Please use the issue tracker at [https://github.com/dreibh/hipercontracer/issues](https://github.com/dreibh/hipercontracer/issues) to report bugs and issues!
 
-### Ubuntu Linux
+## Ubuntu Linux
 
 For ready-to-install Ubuntu Linux packages of HiPerConTracer, see [Launchpad PPA for Thomas Dreibholz](https://launchpad.net/~dreibh/+archive/ubuntu/ppa/+packages?field.name_filter=hipercontracer&field.status_filter=published&field.series_filter=)!
 
-```
+<pre>
 sudo apt-add-repository -sy ppa:dreibh/ppa
 sudo apt-get update
 sudo apt-get install hipercontracer
-```
+</pre>
 
-### Fedora Linux
+## Fedora Linux
 
 For ready-to-install Fedora Linux packages of HiPerConTracer, see [COPR PPA for Thomas Dreibholz](https://copr.fedorainfracloud.org/coprs/dreibh/ppa/package/hipercontracer/)!
 
-```
+<pre>
 sudo dnf copr enable -y dreibh/ppa
 sudo dnf install hipercontracer
-```
+</pre>
 
-### FreeBSD
+## FreeBSD
 
 For ready-to-install FreeBSD packages of HiPerConTracer, it is included in the ports collection, see [FreeBSD ports tree index of benchmarks/hipercontracer/](https://cgit.freebsd.org/ports/tree/benchmarks/hipercontracer/)!
 
-```
+<pre>
 pkg install hipercontracer
-```
+</pre>
 
 Alternatively, to compile it from the ports sources:
 
-```
+<pre>
 cd /usr/ports/benchmarks/hipercontracer
 make
 make install
-```
+</pre>
 
-## Sources Download
 
-HiPerConTracer is released under the GNU General Public Licence&nbsp;(GPL).
+# 💾 Build from Sources
+
+HiPerConTracer is released under the [GNU General Public Licence&nbsp;(GPL)](https://www.gnu.org/licenses/gpl-3.0.en.html#license-text).
 
 Please use the issue tracker at [https://github.com/dreibh/hipercontracer/issues](https://github.com/dreibh/hipercontracer/issues) to report bugs and issues!
 
-### Development Version
+## Development Version
 
 The Git repository of the HiPerConTracer sources can be found at [https://github.com/dreibh/hipercontracer](https://github.com/dreibh/hipercontracer):
 
-```
+<pre>
 git clone https://github.com/dreibh/hipercontracer
 cd hipercontracer
 cmake .
 make
-```
+</pre>
 
 Contributions:
 
-- Issue tracker: [https://github.com/dreibh/hipercontracer/issues](https://github.com/dreibh/hipercontracer/issues).
+* Issue tracker: [https://github.com/dreibh/hipercontracer/issues](https://github.com/dreibh/hipercontracer/issues).
   Please submit bug reports, issues, questions, etc. in the issue tracker!
 
-- Pull Requests for HiPerConTracer: [https://github.com/dreibh/hipercontracer/pulls](https://github.com/dreibh/hipercontracer/pulls).
+* Pull Requests for HiPerConTracer: [https://github.com/dreibh/hipercontracer/pulls](https://github.com/dreibh/hipercontracer/pulls).
   Your contributions to HiPerConTracer are always welcome!
 
-- CI build tests of HiPerConTracer: [https://github.com/dreibh/hipercontracer/actions](https://github.com/dreibh/hipercontracer/actions).
+* CI build tests of HiPerConTracer: [https://github.com/dreibh/hipercontracer/actions](https://github.com/dreibh/hipercontracer/actions).
 
-- Coverity Scan analysis of HiPerConTracer: [https://scan.coverity.com/projects/dreibh-hipercontracer](https://scan.coverity.com/projects/dreibh-hipercontracer).
+* Coverity Scan analysis of HiPerConTracer: [https://scan.coverity.com/projects/dreibh-hipercontracer](https://scan.coverity.com/projects/dreibh-hipercontracer).
 
-### Current Stable Release
+## Release Versions
 
-See [https://www.nntb.no/~dreibh/hipercontracer/#StableRelease](https://www.nntb.no/~dreibh/hipercontracer/#StableRelease)!
+See [https://www.nntb.no/~dreibh/hipercontracer/#current-stable-release](https://www.nntb.no/~dreibh/hipercontracer/#current-stable-release) for release packages!
 
 
-# Recommended Directory Structure and File Permissions
+# 🗃️ Recommended Directory Structure and File Permissions
 
 In the simple case, HiPerConTracer can just be used as a measurement tool without creating special directory setups; to be described in [Running a HiPerConTracer Measurement](#running-a-hipercontracer-measurement).
 
@@ -192,7 +194,7 @@ For a larger setup, particularly consisting of measurement nodes and/or database
      ```
 
 
-# Running a HiPerConTracer Measurement
+# 😀 Running a HiPerConTracer Measurement
 
 HiPerConTracer is the measurement tool itself.
 
@@ -253,7 +255,7 @@ man hipercontracer
 ```
 
 
-# The HiPerConTracer Viewer Tool
+# 📚 The HiPerConTracer Viewer Tool
 
 The HiPerConTracer Viewer Tool displays the contents of a results file.
 
@@ -269,7 +271,7 @@ man hpct-viewer
 ```
 
 
-# The HiPerConTracer Results Tool
+# 📚 The HiPerConTracer Results Tool
 
 The HiPerConTracer Results Tool provides merging and converting data from results files, e.g.&nbsp;to create a Comma-Separated Value&nbsp;(CSV) file.
 
@@ -315,7 +317,7 @@ man hpct-results
 ```
 
 
-# Setting Up a Database for Results Collection
+# 🗃️ Setting Up a Database for Results Collection
 
 See [src/SQL](https://github.com/dreibh/hipercontracer/tree/master/src/SQL) and [src/NoSQL](https://github.com/dreibh/hipercontracer/tree/master/src/NoSQL) for schema, user and permission setups. Create the database of your choice ([MariaDB](https://mariadb.com/)/[MySQL](https://www.mysql.com/), [PostgreSQL](https://www.postgresql.org/), or [MongoDB](https://www.mongodb.com/)).
 
@@ -326,7 +328,7 @@ Hint: The HiPerConTracer tools support Transport Layer Security&nbsp;(TLS) confi
 See [src/TestDB](https://github.com/dreibh/hipercontracer/tree/master/src/TestDB) as example. This is the CI test, which includes a full database setup and test cycle with all supported database backends. Of course, this setup also includes proper TLS setup as well.
 
 
-# The HiPerConTracer Importer Tool
+# 📚 The HiPerConTracer Importer Tool
 
 The HiPerConTracer Importer Tool provides the continuous storage of collected measurement data from results files into SQL or NoSQL databases. Currently, database backends for [MariaDB](https://mariadb.com/)/[MySQL](https://www.mysql.com/), [PostgreSQL](https://www.postgresql.org/) and [MongoDB](https://www.mongodb.com/) are provided.
 
@@ -366,7 +368,7 @@ man hpct-importer
 ```
 
 
-# The HiPerConTracer Query Tool
+# 📚 The HiPerConTracer Query Tool
 
 ## Write a Configuration File for the Query Tool
 
@@ -426,7 +428,7 @@ man hpct-query
 ```
 
 
-# The HiPerConTracer Sync Tool
+# 📚 The HiPerConTracer Sync Tool
 
 The HiPerConTracer Sync Tool helps synchronising collected results files from a vantage point (denoted as HiPerConTracer Node) to a collection server (denoted as HiPerConTracer Collector), using [RSync](https://rsync.samba.org/)/[SSH](https://www.openssh.com/).
 
@@ -460,7 +462,7 @@ man hpct-sync
 ```
 
 
-# The HiPerConTracer Reverse Tunnel Tool
+# 📚 The HiPerConTracer Reverse Tunnel Tool
 
 The HiPerConTracer Reverse Tunnel (RTunnel) Tool maintains a reverse [SSH](https://www.openssh.com/) tunnel from a remote HiPerConTracer Node to a HiPerConTracer Collector server. The purpose is to allow for SSH login from the Collector server to the Node, via this reverse tunnel. Then, the Node does not need a publicly-reachable IP address (e.g.&nbsp;a Node only having a private IP address behind a NAT/PAT firewall).
 
@@ -499,7 +501,7 @@ man hpct-ssh
 ```
 
 
-# The HiPerConTracer Collector/Node Tools
+# 📚 The HiPerConTracer Collector/Node Tools
 
 The HiPerConTracer Collector/Node Tools are some scripts for simplifying the setup of Nodes and a Collector server. Mainly, they ensure the creation of Node configurations on the Collector, and corresponding setup of HiPerConTracer Sync Tool and HiPerConTracer Reverse Tunnel.
 
@@ -513,7 +515,7 @@ For information about the necessary underlying directory structure and file perm
 [Recommended Directory Structure and File Permissions](#recommended-directory-structure-and-file-permissions). In case of problems, a misconfiguration of these is the most likely issue!
 
 
-# The HiPerConTracer Trigger Tool
+# 📚 The HiPerConTracer Trigger Tool
 
 The HiPerConTracer Trigger Tool triggers HiPerConTracer measurements in the reverse direction, when a given number of Pings having a given size reaching the local node.
 
@@ -536,7 +538,7 @@ man hpct-trigger
 ```
 
 
-# The HiPerConTracer Database Shell
+# 📚 The HiPerConTracer Database Shell
 
 The HiPerConTracer Database Shell (DBShell) is a simple tool to test a database configuration file by running a database client with the settings from the file. It then provides an interactive shell for the database.
 
@@ -559,7 +561,7 @@ man dbshell
 ```
 
 
-# The HiPerConTracer Database Tools
+# 📚 The HiPerConTracer Database Tools
 
 The HiPerConTracer Database Tools are some helper scripts to e.g.&nbsp;join HiPerConTracer database configurations into an existing [DBeaver](https://dbeaver.io/) configuration:
 
@@ -570,7 +572,7 @@ The HiPerConTracer Database Tools are some helper scripts to e.g.&nbsp;join HiPe
 See the manpages of these tools for further details!
 
 
-# The HiPerConTracer UDP Echo Server
+# 📚 The HiPerConTracer UDP Echo Server
 The HiPerConTracer UDP Echo Server provides an UDP Echo ([RFC&nbsp;862](https://datatracker.ietf.org/doc/html/rfc862)) service, particularly as endpoint of HiPerConTracer Ping and Traceroute measurements over UDP.
 
 Important security notes:
@@ -602,13 +604,30 @@ man udp-echo-server
 ```
 
 
-# Wireshark Dissector for HiPerConTracer Packets
+# 🦈 Wireshark Dissector for HiPerConTracer Packets
 The [Wireshark](https://www.wireshark.org/) network protocol analyzer provides built-in support for the HiPerConTracer packet format. This support is already included upstream, i.e.&nbsp;Wireshark provides it out-of-the-box.
 
 
-# Citing HiPerConTracer in Publications
+# 🖋️ Citing HiPerConTracer in Publications
 
 HiPerConTracer BibTeX entries can be found in [src/hipercontracer.bib](src/hipercontracer.bib)!
 
-1. Dreibholz, Thomas: [HiPerConTracer - A Versatile Tool for IP Connectivity Tracing in Multi-Path Setups](https://web-backend.simula.no/sites/default/files/2024-06/SoftCOM2020-HiPerConTracer.pdf), in Proceedings of the 28th IEEE International Conference on Software, Telecommunications and Computer Networks (SoftCOM), pp. 1–6, DOI [10.23919/SoftCOM50211.2020.9238278](https://dx.doi.org/10.23919/SoftCOM50211.2020.9238278), ISBN 978-953-290-099-6, Hvar, Dalmacija/Croatia, September 17, 2020.
-2. Dreibholz, Thomas: [High-Precision Round-Trip Time Measurements in the Internet with HiPerConTracer](https://web-backend.simula.no/sites/default/files/2023-10/SoftCOM2023-Timestamping.pdf), in Proceedings of the 31st International Conference on Software, Telecommunications and Computer Networks (SoftCOM), [DOI 10.23919/SoftCOM58365.2023.10271612](https://dx.doi.org/10.23919/SoftCOM58365.2023.10271612), ISBN 979-8-3503-0107-6, Split, Dalmacija/Croatia, September 22, 2023.
+* [Dreibholz, Thomas](https://www.nntb.no/~dreibh/): «[HiPerConTracer - A Versatile Tool for IP Connectivity Tracing in Multi-Path Setups](https://web-backend.simula.no/sites/default/files/2024-06/SoftCOM2020-HiPerConTracer.pdf)» ([PDF](https://web-backend.simula.no/sites/default/files/2024-06/SoftCOM2020-HiPerConTracer.pdf), 4898&nbsp;KiB, 6&nbsp;pages, 🇬🇧), in *Proceedings of the 28th IEEE International Conference on Software, Telecommunications and Computer Networks&nbsp;(SoftCOM)*, pp.&nbsp;1–6, DOI&nbsp;[10.23919/SoftCOM50211.2020.9238278](https://dx.doi.org/10.23919/SoftCOM50211.2020.9238278), ISBN&nbsp;978-953-290-099-6, Hvar, Dalmacija/Croatia, September&nbsp;17, 2020.
+
+* [Dreibholz, Thomas](https://www.nntb.no/~dreibh/): «[High-Precision Round-Trip Time Measurements in the Internet with HiPerConTracer](https://web-backend.simula.no/sites/default/files/2023-10/SoftCOM2023-Timestamping.pdf)» ([PDF](https://web-backend.simula.no/sites/default/files/2023-10/SoftCOM2023-Timestamping.pdf), 12474&nbsp;KiB, 7&nbsp;pages, 🇬🇧), in *Proceedings of the 31st International Conference on Software, Telecommunications and Computer Networks&nbsp;(SoftCOM)*, DOI&nbsp;[10.23919/SoftCOM58365.2023.10271612](https://dx.doi.org/10.23919/SoftCOM58365.2023.10271612), ISBN&nbsp;979-8-3503-0107-6, Split, Dalmacija/Croatia, September&nbsp;22, 2023.
+
+
+# 🔗 Useful Links
+
+* [NetPerfMeter – A TCP/MPTCP/UDP/SCTP/DCCP Network Performance Meter Tool](https://www.nntb.no/~dreibh/netperfmeter/index.html)
+* [Dynamic Multi-Homing Setup (DynMHS)](https://www.nntb.no/~dreibh/dynmhs/index.html)
+* [SubNetCalc – An IPv4/IPv6 Subnet Calculator](https://www.nntb.no/~dreibh/subnetcalc/index.html)
+* [TSCTP – An SCTP test tool](https://www.nntb.no/~dreibh/tsctp/index.html)
+* [System-Tools – Tools for Basic System Management](https://www.nntb.no/~dreibh/system-tools/index.html)
+* [Thomas Dreibholz's Multi-Path TCP (MPTCP) Page](https://www.nntb.no/~dreibh/mptcp/index.html)
+* [Thomas Dreibholz's SCTP Page](https://www.nntb.no/~dreibh/sctp/index.html)
+* [Michael Tüxen's SCTP page](https://www.sctp.de/)
+* [NorNet – A Real-World, Large-Scale Multi-Homing Testbed](https://www.nntb.no/)
+* [GAIA – Cyber Sovereignty](https://gaia.nntb.no/)
+* [NEAT – A New, Evolutive API and Transport-Layer Architecture for the Internet](https://neat.nntb.no/)
+* [Wireshark](https://www.wireshark.org/)
