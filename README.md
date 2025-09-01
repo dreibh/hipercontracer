@@ -682,7 +682,7 @@ The [Wireshark](https://www.wireshark.org/) network protocol analyzer provides b
 
 # 🖋️ Citing HiPerConTracer in Publications
 
-HiPerConTracer BibTeX entries can be found in [src/hipercontracer.bib](src/hipercontracer.bib)!
+HiPerConTracer BibTeX entries can be found in [hipercontracer.bib](https://github.com/dreibh/hipercontracer/blob/master/src/hipercontracer.bib)!
 
 * [Dreibholz, Thomas](https://www.nntb.no/~dreibh/): «[HiPerConTracer - A Versatile Tool for IP Connectivity Tracing in Multi-Path Setups](https://web-backend.simula.no/sites/default/files/2024-06/SoftCOM2020-HiPerConTracer.pdf)» ([PDF](https://web-backend.simula.no/sites/default/files/2024-06/SoftCOM2020-HiPerConTracer.pdf), 4898&nbsp;KiB, 6&nbsp;pages, 🇬🇧), in *Proceedings of the 28th IEEE International Conference on Software, Telecommunications and Computer Networks&nbsp;(SoftCOM)*, pp.&nbsp;1–6, DOI&nbsp;[10.23919/SoftCOM50211.2020.9238278](https://dx.doi.org/10.23919/SoftCOM50211.2020.9238278), ISBN&nbsp;978-953-290-099-6, Hvar, Dalmacija/Croatia, September&nbsp;17, 2020.
 
