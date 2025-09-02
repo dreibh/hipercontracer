@@ -1,8 +1,10 @@
 <h1 align="center">
  HiPerConTracer\
  <span style="font-size:75%">High-Performance Connectivity Tracer</span>\
- [![](src/figures/HiPerConTracer-Logo.svg){width=25% alt="HiPerConTracer Logo"}\
- <span style="font-size: 75%">https://www.nntb.no/~dreibh/hipercontracer</span>](https://www.nntb.no/~dreibh/hipercontracer/)
+ <a href="https://www.nntb.no/~dreibh/hipercontracer/">
+  <img alt="HiPerConTracer Logo" src="src/figures/HiPerConTracer-Logo.svg" width="25%" /><br />
+  <span style="font-size: 75%;">https://www.nntb.no/~dreibh/hipercontracer</span>
+ </a>
 </h1>
 
 
