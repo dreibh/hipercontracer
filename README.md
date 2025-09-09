@@ -316,7 +316,7 @@ find data -maxdepth 1 -name "Traceroute*.hpct.*" | \
 
 ## Processing Results from a CSV File
 
-See <tt>[src/results-examples](https://github.com/dreibh/hipercontracer/blob/master/src/results-examples)</tt> for some examples.
+See <tt>[src/results-examples](https://github.com/dreibh/hipercontracer/tree/master/src/results-examples)</tt> for some examples.
 
 ### GNU R
 
