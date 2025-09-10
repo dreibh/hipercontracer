@@ -160,18 +160,18 @@ For a larger setup, particularly consisting of measurement nodes and/or database
 
      Storage for the SSH private/public key pair, as well as the known_hosts file, on a [HiPerConTracer Node](#the-hipercontracer-collectornode-tools), to be used by [HiPerConTracer Sync Tool](#the-hipercontracer-sync-tool) and [HiPerConTracer Reverse Tunnel Tool](#the-hipercontracer-reverse-tunnel-tool).
 
-   That is:
+  That is:
 
-   <pre>
-   sudo mkdir -p -m 755 /var/hipercontracer
-   sudo chown hipercontracer:hipercontracer /var/hipercontracer
-   for subDirectory in data good bad ; do
-      sudo mkdir -p -m 755 /var/hipercontracer/$subDirectory
-      sudo chown hipercontracer:hpct-nodes /var/hipercontracer/$subDirectory
-   done
-   sudo mkdir -p -m 700 /var/hipercontracer/ssh
-   sudo chown hipercontracer:hipercontracer /var/hipercontracer/ssh
-   </pre>
+  <pre>
+  sudo mkdir -p -m 755 /var/hipercontracer
+  sudo chown hipercontracer:hipercontracer /var/hipercontracer
+  for subDirectory in data good bad ; do
+     sudo mkdir -p -m 755 /var/hipercontracer/$subDirectory
+     sudo chown hipercontracer:hpct-nodes /var/hipercontracer/$subDirectory
+  done
+  sudo mkdir -p -m 700 /var/hipercontracer/ssh
+  sudo chown hipercontracer:hipercontracer /var/hipercontracer/ssh
+  </pre>
 
 * <tt>/etc/hipercontracer</tt> (ownership: _root_:_root_; permissions: 755 = rwx------)
 
