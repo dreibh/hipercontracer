@@ -343,9 +343,9 @@ IF (WITH_IMPORTER)
       FIND_LIBRARY(LIBMONGOC_LIBRARY NAMES mongoc-1.0 mongoc2)
       MESSAGE(" * Library: ${LIBMONGOC_LIBRARY}")
       FILE(GLOB mongoSearchPaths
-         "/usr/include/mongoc-*/mongoc" "/usr/include/libmongoc*"
+         "/usr/include/mongoc-*" "/usr/include/libmongoc*"
       )
-      FIND_PATH(LIBMONGOC_INCLUDE_DIR NAMES mongoc.h HINTS ${mongoSearchPaths})
+      FIND_PATH(LIBMONGOC_INCLUDE_DIR NAMES mongoc/mongoc.h HINTS ${mongoSearchPaths})
       MESSAGE(" * Includes: ${LIBMONGOC_INCLUDE_DIR}")
       IF ((NOT LIBMONGOC_INCLUDE_DIR) OR (NOT LIBMONGOC_LIBRARY))
          MESSAGE(FATAL_ERROR
@@ -361,9 +361,9 @@ IF (WITH_IMPORTER)
       FIND_LIBRARY(LIBBSON_LIBRARY  NAMES bson-1.0 bson2)
       MESSAGE(" * Library: ${LIBBSON_LIBRARY}")
       FILE(GLOB bsonSearchPaths
-         "/usr/include/bson-*/bson" "/usr/include/libbson-*"
+         "/usr/include/bson-*" "/usr/include/libbson-*"
       )
-      FIND_PATH(LIBBSON_INCLUDE_DIR NAMES bson.h HINTS ${bsonSearchPaths})
+      FIND_PATH(LIBBSON_INCLUDE_DIR NAMES bson/bson.h HINTS ${bsonSearchPaths})
       MESSAGE(" * Includes: ${LIBBSON_INCLUDE_DIR}")
       IF ((NOT LIBBSON_INCLUDE_DIR) OR (NOT LIBBSON_LIBRARY))
          MESSAGE(FATAL_ERROR
