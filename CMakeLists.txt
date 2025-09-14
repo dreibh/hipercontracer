@@ -343,7 +343,8 @@ IF (WITH_IMPORTER)
       FIND_LIBRARY(LIBMONGOC_LIBRARY NAMES mongoc-1.0 mongoc2)
       MESSAGE(" * Library: ${LIBMONGOC_LIBRARY}")
       FILE(GLOB mongoSearchPaths
-         "/usr/include/mongoc-*" "/usr/include/libmongoc*"
+         "/usr/include/mongoc-*"       "/usr/include/libmongoc*"
+         "/usr/local/include/mongoc-*" "/usr/local/include/libmongoc*"
       )
       FIND_PATH(LIBMONGOC_INCLUDE_DIR NAMES mongoc/mongoc.h HINTS ${mongoSearchPaths})
       MESSAGE(" * Includes: ${LIBMONGOC_INCLUDE_DIR}")
@@ -361,7 +362,8 @@ IF (WITH_IMPORTER)
       FIND_LIBRARY(LIBBSON_LIBRARY  NAMES bson-1.0 bson2)
       MESSAGE(" * Library: ${LIBBSON_LIBRARY}")
       FILE(GLOB bsonSearchPaths
-         "/usr/include/bson-*" "/usr/include/libbson-*"
+         "/usr/include/bson-*"       "/usr/include/libbson-*"
+         "/usr/local/include/bson-*" "/usr/local/include/libbson-*"
       )
       FIND_PATH(LIBBSON_INCLUDE_DIR NAMES bson/bson.h HINTS ${bsonSearchPaths})
       MESSAGE(" * Includes: ${LIBBSON_INCLUDE_DIR}")
