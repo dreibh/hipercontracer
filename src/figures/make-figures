@@ -1,9 +1,63 @@
-#!/bin/sh -e
+#!/bin/sh -eu
+#
+# Dia Scripts
+# Copyright (C) 2007-2025 by Thomas Dreibholz
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+# Contact: thomas.dreibholz@gmail.com
 
-for figure in HiPerConTracer-Data-Collection-System ; do
-   dia -n -t cairo-pdf -e tmp1.pdf $figure.dia
-   epstopdf --outfile=tmp1.eps tmp1.pdf
-   pdfcrop --hires tmp1.eps $figure.pdf
-   gm convert -density 300x300 $figure.pdf $figure.png
-   rm -f tmp1.pdf tmp1.eps
+FIGURES="HiPerConTracer-Data-Collection-System"
+DENSITY="300x300"
+
+for figure in $FIGURES ; do
+   # ====== Export Dia to PDF ===============================================
+   dia -n -t cairo-pdf -e tmp1.pdf "$figure.dia"
+
+   # ====== Make PDF with transparent background ============================
+   # OLD:
+   # epstopdf --outfile=tmp1.eps tmp1.pdf
+   # pdfcrop --hires tmp1.eps tmp2.pdf
+
+   pdfcrop --quiet --hires tmp1.pdf tmp2.pdf
+
+   # The background is specified as something like:
+   # 1 1 1 rg /a0 gs
+   # 0 0 596 843 re f
+   # => Remove the first occurrence only
+   qpdf -qdf tmp2.pdf tmp1.qdf
+   sed -e '0,/^.* re\( f\|\)$/s/^\(.* re\)\( f\|\)$/%% \1/' \
+       -e '0,/^1 1 1 rg\( .*\|\)$/s/^\(1 1 1 rg\)\( .*\|\)$/%% \1/' \
+       <tmp1.qdf >tmp2.qdf
+   fix-qdf tmp2.qdf >"$figure.pdf"
+
+   # ls -l tmp1.qdf tmp2.qdf
+   # colordiff tmp1.qdf tmp2.qdf || true
+
+   # ====== Make SVG, with transparent background ===========================
+   pdf2svg "$figure.pdf" "$figure.svg"
+
+   # Should be unnecessary, since the background has already been removed:
+   # pdf2svg "$figure.pdf" tmp1.svg
+   # sed \
+   #    -e 's#\(<rect [^>]*fill-opacity="\)\([0-9\.]*\)\("/>\)#\10\3#g' \
+   #    <tmp1.svg >"$figure.svg"
+
+   # ====== Make PNG and WebP, with transparent background ==================
+   # NOTE: GraphicsMagick PDF to PNG with transparency is broken!
+   gs -dNOPAUSE -dBATCH -sDEVICE=pngalpha -r$DENSITY -q -sOutputFile="$figure.png" "$figure.pdf"
+   gm convert "$figure.png" "$figure.webp"
+
+   rm -f tmp1.pdf tmp2.pdf tmp1.eps tmp1.qdf tmp2.qdf tmp1.svg
 done

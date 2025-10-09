@@ -235,7 +235,7 @@ if [ -e /etc/hipercontracer/hpct-sync.conf ] ; then
    sudo cat /etc/hipercontracer/hpct-sync.conf | \
       sed \
          -e "s/^NODE_ID=.*$/NODE_ID=${NODE_ID}/g" \
-         -e "s/^COLLECTOR=.*$/COLLECTOR=""${collector}""/g" | \
+         -e "s/^COLLECTOR=.*$/COLLECTOR=${collector}/g" | \
       sudo tee /etc/hipercontracer/hpct-sync.conf.new >/dev/null
    sudo diff --color=always /etc/hipercontracer/hpct-sync.conf.new /etc/hipercontracer/hpct-sync.conf || true
    sudo mv /etc/hipercontracer/hpct-sync.conf.new /etc/hipercontracer/hpct-sync.conf

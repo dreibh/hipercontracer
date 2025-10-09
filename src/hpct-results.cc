@@ -32,6 +32,7 @@
 #include "inputstream.h"
 #include "outputstream.h"
 #include "package-version.h"
+#include "tools.h"
 
 #include <atomic>
 #include <chrono>
@@ -927,9 +928,9 @@ int main(int argc, char** argv)
    try {
       outputStream.closeStream();
       if(!outputFileName.empty()) {
-         // Set timestamp to the latest timestamp in the data. Note: the timestamp is UTC!
-         const std::time_t t = (std::time_t)(lastTimeStamp / 1000000000);
-         boost::filesystem::last_write_time(boost::filesystem::path(outputFileName), t);
+         // Set timestamp to the latest timestamp in the data.
+         // Note: the timestamp is UTC!
+         set_last_write_time(outputFileName, lastTimeStamp);
       }
    }
    catch(const std::exception& e) {

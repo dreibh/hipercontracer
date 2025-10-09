@@ -32,7 +32,7 @@ PROJECT(hipercontracer LANGUAGES C CXX)
 
 SET(BUILD_MAJOR "2")
 SET(BUILD_MINOR "1")
-SET(BUILD_PATCH "0")
+SET(BUILD_PATCH "1")
 SET(BUILD_VERSION ${BUILD_MAJOR}.${BUILD_MINOR}.${BUILD_PATCH})
 
 # HiPerConTracer needs at least C++17!
@@ -340,9 +340,13 @@ IF (WITH_IMPORTER)
       MESSAGE("Building with MongoDB backend (ENABLE_BACKEND_MONGODB=${ENABLE_BACKEND_MONGODB})")
 
       MESSAGE("Looking for MongoDB C Client library:")
-      FIND_LIBRARY(LIBMONGOC_LIBRARY  NAMES mongoc-1.0)
+      FIND_LIBRARY(LIBMONGOC_LIBRARY NAMES mongoc-1.0 mongoc2)
       MESSAGE(" * Library: ${LIBMONGOC_LIBRARY}")
-      FIND_PATH(LIBMONGOC_INCLUDE_DIR NAMES mongoc.h PATH_SUFFIXES libmongoc-1.0)
+      FILE(GLOB mongoSearchPaths
+         "/usr/include/mongoc-*"       "/usr/include/libmongoc*"
+         "/usr/local/include/mongoc-*" "/usr/local/include/libmongoc*"
+      )
+      FIND_PATH(LIBMONGOC_INCLUDE_DIR NAMES mongoc/mongoc.h HINTS ${mongoSearchPaths})
       MESSAGE(" * Includes: ${LIBMONGOC_INCLUDE_DIR}")
       IF ((NOT LIBMONGOC_INCLUDE_DIR) OR (NOT LIBMONGOC_LIBRARY))
          MESSAGE(FATAL_ERROR
@@ -355,9 +359,13 @@ IF (WITH_IMPORTER)
       ENDIF()
 
       MESSAGE("Looking for MongoDB BSON library:")
-      FIND_LIBRARY(LIBBSON_LIBRARY  NAMES bson-1.0)
+      FIND_LIBRARY(LIBBSON_LIBRARY  NAMES bson-1.0 bson2)
       MESSAGE(" * Library: ${LIBBSON_LIBRARY}")
-      FIND_PATH(LIBBSON_INCLUDE_DIR NAMES bson.h PATH_SUFFIXES libbson-1.0)
+      FILE(GLOB bsonSearchPaths
+         "/usr/include/bson-*"       "/usr/include/libbson-*"
+         "/usr/local/include/bson-*" "/usr/local/include/libbson-*"
+      )
+      FIND_PATH(LIBBSON_INCLUDE_DIR NAMES bson/bson.h HINTS ${bsonSearchPaths})
       MESSAGE(" * Includes: ${LIBBSON_INCLUDE_DIR}")
       IF ((NOT LIBBSON_INCLUDE_DIR) OR (NOT LIBBSON_LIBRARY))
          MESSAGE(FATAL_ERROR

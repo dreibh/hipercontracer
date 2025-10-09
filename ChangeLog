@@ -1,3 +1,215 @@
+commit 358939e7cffce9f658cf467461aa7ca99da93ef2
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Sun Sep 14 20:43:29 2025 +0200
+
+    Fixed handling of location for MongoDB headers under FreeBSD.
+
+commit 06464eb8b7aadf848f7351838e006c62a7feb097
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Sun Sep 14 18:36:04 2025 +0000
+
+    Fixed handling of location for MongoDB headers, to work with version 2.x.
+
+commit 711cd27af46d877d3953bcdcdb5d95f2ce3cfde7
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Sun Sep 14 17:05:19 2025 +0000
+
+    Improved MongoDB library detection in CMakeLists.txt.
+
+commit 681e4f07925d409c2be4b00fa803113109ffec71
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Sep 10 10:05:56 2025 +0200
+
+    Formatting fix.
+
+commit 3c478d7d90798569a9e47867c6e06bba0404a4de
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Sep 9 15:53:02 2025 +0200
+
+    Fixed URL.
+
+commit a3e94739689944e585df0b81440f4534170299e7
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Sep 2 17:28:13 2025 +0200
+
+    Minor update.
+
+commit 8fd5707199dd90bd2afe39a2926dad21e2deeb6c
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Sep 2 17:06:29 2025 +0200
+
+    A fix.
+
+commit 997d53c0f052ccfc4f629230d198168b45c176ac
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Sep 2 16:27:15 2025 +0200
+
+    Improved script.
+
+commit 9b199f8252103fee9a87f61aa64850ee82a300f1
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Sep 2 15:30:17 2025 +0200
+
+    Updated README.md.
+
+commit d1a60292d1b4d1be5fe36e4e8f129e48acf394ce
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Sep 2 15:30:07 2025 +0200
+
+    Updated logo.
+
+commit adf17148223418fa1f0c3074422e426866725309
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Sep 2 15:29:57 2025 +0200
+
+    Updated figures.
+
+commit 12fc3fa5767d2f6a7b6f0f88cce2bc8e44aae275
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Mon Sep 1 17:37:32 2025 +0200
+
+    Fixed URL.
+
+commit 3c5eb59d6cbbefc81bdc3ddbf00b479275f8c3ee
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Mon Sep 1 17:08:38 2025 +0200
+
+    Improved documentation.
+
+commit 48b85d1dc80e5c1201efe3004bc94e24a32307bf
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Mon Sep 1 15:46:29 2025 +0200
+
+    Improved README.md.
+
+commit 349c4a8df5b9c36fea32d2817018ff25897c7300
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Aug 13 14:03:01 2025 +0200
+
+    Updated script.
+
+commit 507e9956d8034bfa27b8a5848fa2b72fd73d3745
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Aug 13 13:24:42 2025 +0200
+
+    Updated CI configuration
+
+commit 4b281550115b1e33df085b4bd2981063ee8bd162
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Aug 13 11:43:55 2025 +0200
+
+    Build fix: Using POSIX utimensat() instead of last_write_time(), due to changes between C++17 and C++20, as well as BOOST build issues on Debian 13/ARMv7.
+
+commit 876e41186255334d27bb36951ad1f378b876499f
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Aug 13 11:39:56 2025 +0200
+
+    Fixed comment.
+
+commit 2c7e4b64211763400c62c10f6415546d5d760ec5
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Aug 12 13:17:32 2025 +0200
+
+    Updated CI scripts
+
+commit b25169c34b4a86db806f8f961058c398db817728
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Mon Aug 11 16:53:22 2025 +0200
+
+    Workflow updates.
+
+commit 3d3ef565b3c8f267e7b1744375a727e09c7a74d0
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Mon Aug 11 16:53:08 2025 +0200
+
+    Updated README.md.
+
+commit e7716b437244d6a6d3e493a0b0fa4bdaa989f2ef
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Sat Aug 2 13:43:58 2025 +0200
+
+    Improved script.
+
+commit b2650eb658bd03da12075283e77ea489fd974a5f
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Sat Aug 2 13:00:34 2025 +0200
+
+    Improved script.
+
+commit acce541d3d7da1057b8f4a6080bad020dbc2d337
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Sat Aug 2 12:49:49 2025 +0200
+
+    Added helper file.
+
+commit fcda2e74e7918f2e66f1b5abfb8cb8ede76f749a
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Sat Aug 2 12:30:28 2025 +0200
+
+    Moved file.
+
+commit 5850ad418e2e34ce20ec95a7502761405736395c
+Merge: 2019dfbc 10d5f9c1
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Sat Aug 2 11:43:36 2025 +0200
+
+    Merge branch 'master' of github.com:dreibh/hipercontracer
+
+commit 2019dfbcdff9d58985ff35493d5020f262e9389a
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Sat Aug 2 11:43:23 2025 +0200
+
+    Minor update.
+
+commit 10d5f9c185a66599e7681f983362ec5c301d75ae
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Fri Aug 1 16:17:09 2025 +0200
+
+    Another workflows update.
+
+commit 78bc495e194781613c5e04742a6168e255cfe750
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Mon Jun 30 14:25:42 2025 +0200
+
+    Improved R functions library.
+
+commit c5c5a19ac0368d0a20c21a481ef6919307e70b54
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Jun 25 00:01:44 2025 +0200
+
+    FreeBSD port update.
+
+commit a0f757a78dcfb57764c3a13b8bb60c4d85af0ee7
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Jun 19 11:04:38 2025 +0200
+
+    Packaging configuration update.
+
+commit caf699edb4df704d33b0febbea54131772391acc
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Jun 18 16:10:05 2025 +0200
+
+    FreeBSD port update.
+
+commit c6a13880ea451c6fbebbb6c4e475ad4ef9d91cf3
+Merge: 8eb52a22 7039ccda
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Jun 18 15:39:36 2025 +0200
+
+    Merge branch 'master' of github.com:dreibh/hipercontracer
+
+commit 8eb52a222fcaad3f097ef77e0bf445ca3578bc4a
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Jun 18 15:38:59 2025 +0200
+
+    New release hipercontracer-2.1.0.
+
+commit 7039ccdace4235aa709f52dd4512c78127491b13
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Jun 18 15:31:00 2025 +0200
+
+    Depend on BOOST 1.88 in FreeBSD port, due to broken ZSTD support in older versions of the FreeBSD BOOST port.
+
 commit 97c3a25c54c30b2b06fbb7341164ae256d7561dc
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Wed Jun 18 14:24:45 2025 +0200

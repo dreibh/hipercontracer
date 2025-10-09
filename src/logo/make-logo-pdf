@@ -31,13 +31,27 @@
 INPUT="Logo-HiPerConTracer.dia"
 OUTPUT="hipercontracer"
 
-# Conversion of Dia to EPS and PDF:
-dia -n -t eps-pango -e "${OUTPUT}.eps" "${INPUT}"
-epstopdf --outfile="${OUTPUT}.pdf.tmp" "${OUTPUT}.eps"
-pdfcrop --hires "${OUTPUT}.pdf.tmp" "${OUTPUT}.pdf"
-rm -f "${OUTPUT}.pdf.tmp"
+# ====== Export Dia to PDF ==================================================
+dia -n -t cairo-pdf -e "${OUTPUT}.pdf1.tmp" "${INPUT}"
 
-# Conversion of Dia to PDF:
-# dia -n -t cairo-pdf -e "${OUTPUT}.pdf.tmp" "${INPUT}"
-# pdfcrop --hires "${OUTPUT}.pdf.tmp" "${OUTPUT}.pdf"
-# rm -f "${OUTPUT}.pdf.tmp"
+# OLD:
+# dia -n -t eps-pango -e "${OUTPUT}.eps" "${INPUT}"
+# epstopdf --outfile="${OUTPUT}.pdf1.tmp" "${OUTPUT}.eps"
+
+pdfcrop --hires "${OUTPUT}.pdf1.tmp" "${OUTPUT}.pdf2.tmp"
+
+# ====== Make PDF with transparent background ===============================
+# The background is specified as something like:
+# 1 1 1 rg /a0 gs
+# 0 0 596 843 re f
+# => Remove the first occurrence only
+qpdf -qdf "${OUTPUT}.pdf2.tmp" "${OUTPUT}.qdf1.tmp"
+sed -e '0,/^.* re\( f\|\)$/s/^\(.* re\)\( f\|\)$/%% \1/' \
+    -e '0,/^1 1 1 rg\( .*\|\)$/s/^\(1 1 1 rg\)\( .*\|\)$/%% \1/' \
+   <"${OUTPUT}.qdf1.tmp" >"${OUTPUT}.qdf2.tmp"
+fix-qdf "${OUTPUT}.qdf2.tmp" >"${OUTPUT}.pdf"
+
+# ls -l "${OUTPUT}.qdf1.tmp" "${OUTPUT}.qdf2.tmp"
+# colordiff "${OUTPUT}.qdf1.tmp" "${OUTPUT}.qdf2.tmp" || true
+
+rm -f "${OUTPUT}.pdf1.tmp" "${OUTPUT}.pdf2.tmp" "${OUTPUT}.qdf1.tmp" "${OUTPUT}.qdf2.tmp"

@@ -28,7 +28,7 @@ set -eu
 
 # ====== Handle arguments ===================================================
 usage () {
-   echo >&2 "Usage: $0 user@node_id [-h|--help] [--verbose|-v] [--quiet|-q] [-c|--copy-id] -- [ssh_arguments ...]"
+   echo >&2 "Usage: $0 user@node_id [-h|--help] [--verbose|-v] [--quiet|-q] [--copy-id|-c] -- [ssh_arguments ...]"
    exit 1
 }
 
