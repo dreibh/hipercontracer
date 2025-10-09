@@ -28,12 +28,13 @@
 # Contact: dreibh@simula.no
 
 library("anytime")
+options(digits.secs = 9)
 library("assert")
 library("digest")
 library("data.table", warn.conflicts = FALSE)
 library("dplyr",      warn.conflicts = FALSE)
 library("ipaddress")
-library("vroom")
+library("vroom",      warn.conflicts = FALSE)
 
 
 # Path to HPCT Results:
@@ -77,6 +78,21 @@ processHiPerConTracerTracerouteResults <- function(dataTable)
                           LinkSourceIP = ifelse(HopNumber == 1,
                                                SourceIP,
                                                shift(LinkDestinationIP, 1, type="lag")))
+   return(dataTable)
+}
+
+
+# ###### Process HiPerConTracer Jitter results ##############################
+processHiPerConTracerJitterResults <- function(dataTable)
+{
+   # print(colnames(dataTable))
+   dataTable <- dataTable %>%
+                   mutate(Timestamp    = anytime(as.numeric(paste(sep="", "0x", Timestamp)) / 1e9,
+                                                 asUTC = TRUE),
+                          Protocol     = substr(Jitter, 3, 1000000),
+                          Checksum     = as.numeric(paste(sep="", "0x", Checksum)),
+                          TrafficClass = as.numeric(paste(sep="", "0x", TrafficClass))) %>%
+                   arrange(Timestamp, MeasurementID, SourceIP, DestinationIP, BurstSeq)
    return(dataTable)
 }
 
@@ -153,6 +169,14 @@ readHiPerConTracerTracerouteResultsFromDirectory <- function(cacheLabel, path, p
 {
    return(readHiPerConTracerResultsFromDirectory(cacheLabel, path, pattern,
                                                  processHiPerConTracerTracerouteResults))
+}
+
+
+# ##### Read HiPerConTracer Jitter results from directory #####################
+readHiPerConTracerJitterResultsFromDirectory <- function(cacheLabel, path, pattern)
+{
+   return(readHiPerConTracerResultsFromDirectory(cacheLabel, path, pattern,
+                                                 processHiPerConTracerJitterResults))
 }
 
 

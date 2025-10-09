@@ -51,6 +51,8 @@ int subDirectoryOf(const std::filesystem::path& path1,
                    const std::filesystem::path& path2);
 std::filesystem::path relativeTo(const std::filesystem::path& dataFile,
                                  const std::filesystem::path& basePath);
+bool set_last_write_time(const std::filesystem::path& path,
+                         const unsigned long long     newTime);
 
 bool addSourceAddress(std::map<boost::asio::ip::address, std::set<uint8_t>>& array,
                       const std::string&                                     addressString,
