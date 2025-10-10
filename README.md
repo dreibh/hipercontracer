@@ -12,7 +12,7 @@
 
 High-Performance Connectivity Tracer&nbsp;(HiPerConTracer) is a Ping/Traceroute measurement framework.
 
-[HiPerConTracer](#running-a-hipercontracer-measurement) denotes the actual measurement tool. It performs regular Ping and Traceroute runs among sites, featuring:
+[HiPerConTracer](#-running-a-hipercontracer-measurement) denotes the actual measurement tool. It performs regular Ping and Traceroute runs among sites, featuring:
 
 - multi-transport-protocol support (ICMP, UDP);
 - multi-homing and parallelism support;
@@ -24,18 +24,18 @@ High-Performance Connectivity Tracer&nbsp;(HiPerConTracer) is a Ping/Traceroute 
 
 Furthermore, the HiPerConTracer Framework provides additional tools for helping to obtain, process, collect, store, and retrieve measurement data:
 
-* [HiPerConTracer Viewer Tool](#the-hipercontracer-viewer-tool) for displaying the contents of results files;
-* [HiPerConTracer Results Tool](#the-hipercontracer-results-tool) for merging and converting results files, e.g.&nbsp;to create a Comma-Separated Value&nbsp;(CSV) file;
-* [HiPerConTracer Sync Tool](#the-hipercontracer-sync-tool) for copying data from a measurement node (vantage point) to a remote HiPerConTracer Collector server (via [RSync](https://rsync.samba.org/)/[SSH](https://www.openssh.com/));
-* [HiPerConTracer Reverse Tunnel Tool](#the-hipercontracer-reverse-tunnel-tool) for maintaining a reverse [SSH](https://www.openssh.com/) tunnel from a remote measurement node to a HiPerConTracer Collector server;
-* [HiPerConTracer Collector/Node Tools](#the-hipercontracer-collectornode-tools) for simplifying the setup of HiPerConTracer Nodes and a HiPerConTracer Collector server;
-* [HiPerConTracer Trigger Tool](#the-hipercontracer-trigger-tool) for triggering HiPerConTracer measurements in the reverse direction;
-* [HiPerConTracer Importer Tool](#the-hipercontracer-importer-tool) for storing measurement data from results files into SQL or NoSQL databases. Currently, database backends for [MariaDB](https://mariadb.com/)/[MySQL](https://www.mysql.com/), [PostgreSQL](https://www.postgresql.org/) and [MongoDB](https://www.mongodb.com/) are provided;
-* [HiPerConTracer Query Tool](#the-hipercontracer-query-tool) for querying data from a database and storing it into a results file;
-* [HiPerConTracer Database Shell](#the-hipercontracer-database-shell) as simple command-line front-end for the underlying database backends;
-* [HiPerConTracer Database Tools](#the-hipercontracer-database-tools) with some helper scripts to e.g.&nbsp;to join HiPerConTracer database configurations into an existing [DBeaver](https://dbeaver.io/) (a popular SQL database GUI application) configuration;
-* [HiPerConTracer UDP Echo Server](#the-hipercontracer-udp-echo-server) as UDP Echo ([RFC&nbsp;862](https://datatracker.ietf.org/doc/html/rfc862)) protocol endpoint;
-* [Wireshark Dissector for HiPerConTracer Packets](#wireshark-dissector-for-hipercontracer-packets)
+* [HiPerConTracer Viewer Tool](#-the-hipercontracer-viewer-tool) for displaying the contents of results files;
+* [HiPerConTracer Results Tool](#-the-hipercontracer-results-tool) for merging and converting results files, e.g.&nbsp;to create a Comma-Separated Value&nbsp;(CSV) file;
+* [HiPerConTracer Sync Tool](#-the-hipercontracer-sync-tool) for copying data from a measurement node (vantage point) to a remote HiPerConTracer Collector server (via [RSync](https://rsync.samba.org/)/[SSH](https://www.openssh.com/));
+* [HiPerConTracer Reverse Tunnel Tool](#-the-hipercontracer-reverse-tunnel-tool) for maintaining a reverse [SSH](https://www.openssh.com/) tunnel from a remote measurement node to a HiPerConTracer Collector server;
+* [HiPerConTracer Collector/Node Tools](#-the-hipercontracer-collectornode-tools) for simplifying the setup of HiPerConTracer Nodes and a HiPerConTracer Collector server;
+* [HiPerConTracer Trigger Tool](#-the-hipercontracer-trigger-tool) for triggering HiPerConTracer measurements in the reverse direction;
+* [HiPerConTracer Importer Tool](#-the-hipercontracer-importer-tool) for storing measurement data from results files into SQL or NoSQL databases. Currently, database backends for [MariaDB](https://mariadb.com/)/[MySQL](https://www.mysql.com/), [PostgreSQL](https://www.postgresql.org/) and [MongoDB](https://www.mongodb.com/) are provided;
+* [HiPerConTracer Query Tool](#-the-hipercontracer-query-tool) for querying data from a database and storing it into a results file;
+* [HiPerConTracer Database Shell](#-the-hipercontracer-database-shell) as simple command-line front-end for the underlying database backends;
+* [HiPerConTracer Database Tools](#-the-hipercontracer-database-tools) with some helper scripts to e.g.&nbsp;to join HiPerConTracer database configurations into an existing [DBeaver](https://dbeaver.io/) (a popular SQL database GUI application) configuration;
+* [HiPerConTracer UDP Echo Server](#-the-hipercontracer-udp-echo-server) as UDP Echo ([RFC&nbsp;862](https://datatracker.ietf.org/doc/html/rfc862)) protocol endpoint;
+* [Wireshark Dissector for HiPerConTracer Packets](#-wireshark-dissector-for-hipercontracer-packets)
 
 <p align="center">
  <img alt="The HiPerConTracer Framework" src="src/figures/HiPerConTracer-Data-Collection-System.svg" width="80%" />
@@ -118,16 +118,16 @@ See [https://www.nntb.no/~dreibh/hipercontracer/#current-stable-release](https:/
 
 # 🗃️ Recommended Directory Structure and File Permissions
 
-In the simple case, HiPerConTracer can just be used as a measurement tool without creating special directory setups; to be described in [Running a HiPerConTracer Measurement](#running-a-hipercontracer-measurement).
+In the simple case, HiPerConTracer can just be used as a measurement tool without creating special directory setups; to be described in [Running a HiPerConTracer Measurement](#-running-a-hipercontracer-measurement).
 
 For a larger setup, particularly consisting of measurement nodes and/or database import, it is recommended to properly set up storage directories. As current best practises for using the HiPerConTracer framework securely, the following directory structure and file permissions are recommended:
 
 ## Users
 
 * _hipercontracer_:
-  Unprivileged user to run [HiPerConTracer](#running-a-hipercontracer-measurement) or one of the framework tools.
+  Unprivileged user to run [HiPerConTracer](#-running-a-hipercontracer-measurement) or one of the framework tools.
 * _node<1-9999>_:
-  Unprivileged user on a [HiPerConTracer Collector](#the-hipercontracer-collectornode-tools), to store the data collected by a remote [HiPerConTracer Node](#the-hipercontracer-collectornode-tools).
+  Unprivileged user on a [HiPerConTracer Collector](#-the-hipercontracer-collectornode-tools), to store the data collected by a remote [HiPerConTracer Node](#-the-hipercontracer-collectornode-tools).
 
 ## Groups
 
@@ -140,25 +140,25 @@ For a larger setup, particularly consisting of measurement nodes and/or database
 
    * <tt>/var/hipercontracer/data</tt> (ownership: _hipercontracer_:_hpct-nodes_; permissions: 755 = rwxr-xr-x)
 
-     Storage for data recorded by [HiPerConTracer](#running-a-hipercontracer-measurement).
+     Storage for data recorded by [HiPerConTracer](#-running-a-hipercontracer-measurement).
 
    * <tt>/var/hipercontracer/data/node<1-9999></tt>: (ownership: _node<1-9999>_:_hpct-nodes_; permissions: 755 = rwxr-xr-x)
 
-     Storage for data transferred from a remote Node using the [HiPerConTracer Sync Tool](#the-hipercontracer-sync-tool). Each of these node directories corresponds to a Node.
+     Storage for data transferred from a remote Node using the [HiPerConTracer Sync Tool](#-the-hipercontracer-sync-tool). Each of these node directories corresponds to a Node.
 
      Data is stored as _node<1-9999>_:_node<1-9999>_. The permissions only allow the user itself to modify files in its own directory. A _node<1-9999>_ user is <b>not</b> able to modify data of another _node<1-9999>_ user!
 
    * <tt>/var/hipercontracer/good</tt> (ownership: _hipercontracer_:_hpct-nodes_; permissions: 755 = rwxr-xr-x)
 
-     Storage for data that was successfully imported into a database by using the [HiPerConTracer Importer Tool](#the-hipercontracer-importer-tool). The Importer moves the data from <tt>/var/hipercontracer/data</tt> after import.
+     Storage for data that was successfully imported into a database by using the [HiPerConTracer Importer Tool](#-the-hipercontracer-importer-tool). The Importer moves the data from <tt>/var/hipercontracer/data</tt> after import.
 
    * <tt>/var/hipercontracer/bad</tt> (ownership: _hipercontracer_:_hpct-nodes_; permissions: 755 = rwxr-xr-x)
 
-     Storage for data that was not successfully imported into a database by using the [HiPerConTracer Importer Tool](#the-hipercontracer-importer-tool). The Importer moves the data from <tt>/var/hipercontracer/data</tt> after import failure.
+     Storage for data that was not successfully imported into a database by using the [HiPerConTracer Importer Tool](#-the-hipercontracer-importer-tool). The Importer moves the data from <tt>/var/hipercontracer/data</tt> after import failure.
 
    * <tt>/etc/hipercontracer/ssh</tt> (ownership: _hipercontracer_:_hipercontracer_; permissions: 700 = rwx------)
 
-     Storage for the SSH private/public key pair, as well as the known_hosts file, on a [HiPerConTracer Node](#the-hipercontracer-collectornode-tools), to be used by [HiPerConTracer Sync Tool](#the-hipercontracer-sync-tool) and [HiPerConTracer Reverse Tunnel Tool](#the-hipercontracer-reverse-tunnel-tool).
+     Storage for the SSH private/public key pair, as well as the known_hosts file, on a [HiPerConTracer Node](#-the-hipercontracer-collectornode-tools), to be used by [HiPerConTracer Sync Tool](#-the-hipercontracer-sync-tool) and [HiPerConTracer Reverse Tunnel Tool](#-the-hipercontracer-reverse-tunnel-tool).
 
   That is:
 
@@ -181,7 +181,7 @@ For a larger setup, particularly consisting of measurement nodes and/or database
 
 * <tt>/var/hipercontracer/data</tt>, <tt>/var/hipercontracer/good</tt>, and <tt>/var/hipercontracer/bad</tt>:
 
-   These directories must be <b>writable</b> for the [HiPerConTracer Importer Tool](#the-hipercontracer-importer-tool), to allow it to move files owned by _node<1-9999>_:_hpct-nodes_ without superuser permissions, as well as <b>readable</b> for members of the group hpct-nodes, for reading the node status files:
+   These directories must be <b>writable</b> for the [HiPerConTracer Importer Tool](#-the-hipercontracer-importer-tool), to allow it to move files owned by _node<1-9999>_:_hpct-nodes_ without superuser permissions, as well as <b>readable</b> for members of the group hpct-nodes, for reading the node status files:
 
    * Linux (POSIX ACLs):
 
@@ -362,7 +362,7 @@ The HiPerConTracer Importer Tool provides the continuous storage of collected me
 
 ## Write Configuration Files for the Importer
 
-See <tt>[src/hipercontracer-importer.conf](src/hipercontracer-importer.conf)</tt> (importer configuration) and <tt>[src/hipercontracer-database.conf](src/hipercontracer-database.conf)</tt> (database configuration) for examples. Make sure that the database access details are correct, so that Importer Tool and Query Tool can connect to the right database and has the required permissions! See <tt>[src/SQL](https://github.com/dreibh/hipercontracer/tree/master/src/SQL)</tt> and <tt>[src/NoSQL](https://github.com/dreibh/hipercontracer/tree/master/src/NoSQL)</tt> for schema, user and permission setups. Use the [HiPerConTracer Database Shell](#the-hipercontracer-database-shell) tool to verify and debug access.
+See <tt>[src/hipercontracer-importer.conf](src/hipercontracer-importer.conf)</tt> (importer configuration) and <tt>[src/hipercontracer-database.conf](src/hipercontracer-database.conf)</tt> (database configuration) for examples. Make sure that the database access details are correct, so that Importer Tool and Query Tool can connect to the right database and has the required permissions! See <tt>[src/SQL](https://github.com/dreibh/hipercontracer/tree/master/src/SQL)</tt> and <tt>[src/NoSQL](https://github.com/dreibh/hipercontracer/tree/master/src/NoSQL)</tt> for schema, user and permission setups. Use the [HiPerConTracer Database Shell](#-the-hipercontracer-database-shell) tool to verify and debug access.
 
 Note: Make sure the <tt>data</tt> directory, as well as the directory for <tt>good</tt> imports and the directory for <tt>bad</tt> (i.e.&nbsp;failed) imports are existing and accessible by the user running the importer!
 
@@ -406,7 +406,7 @@ man hpct-importer
 
 ## Write a Configuration File for the Query Tool
 
-See <tt>[src/hipercontracer-database.conf](src/hipercontracer-database.conf)</tt> for an example. Make sure that the database access details are correct, so that the Query tool can connect to the right database and has the required permissions! See <tt>[src/SQL](https://github.com/dreibh/hipercontracer/tree/master/src/SQL)</tt> and <tt>[src/NoSQL](https://github.com/dreibh/hipercontracer/tree/master/src/NoSQL)</tt> for schema, user and permission setups. Use the [HiPerConTracer Database Shell](#the-hipercontracer-database-shell) tool to verify and debug access.
+See <tt>[src/hipercontracer-database.conf](src/hipercontracer-database.conf)</tt> for an example. Make sure that the database access details are correct, so that the Query tool can connect to the right database and has the required permissions! See <tt>[src/SQL](https://github.com/dreibh/hipercontracer/tree/master/src/SQL)</tt> and <tt>[src/NoSQL](https://github.com/dreibh/hipercontracer/tree/master/src/NoSQL)</tt> for schema, user and permission setups. Use the [HiPerConTracer Database Shell](#-the-hipercontracer-database-shell) tool to verify and debug access.
 
 ## Run the Query Tool
 
@@ -480,7 +480,7 @@ man hpct-query
 The HiPerConTracer Sync Tool helps synchronising collected results files from a vantage point (denoted as HiPerConTracer Node) to a collection server (denoted as HiPerConTracer Collector), using [RSync](https://rsync.samba.org/)/[SSH](https://www.openssh.com/).
 
 For information about the necessary underlying directory structure and file permissions, see
-[Recommended Directory Structure and File Permissions](#recommended-directory-structure-and-file-permissions). In case of problems, a misconfiguration of these is the most likely issue!
+[Recommended Directory Structure and File Permissions](#-recommended-directory-structure-and-file-permissions). In case of problems, a misconfiguration of these is the most likely issue!
 
 ## Example
 Synchronise results files, with the following settings:
@@ -517,7 +517,7 @@ man hpct-sync
 The HiPerConTracer Reverse Tunnel (RTunnel) Tool maintains a reverse [SSH](https://www.openssh.com/) tunnel from a remote HiPerConTracer Node to a HiPerConTracer Collector server. The purpose is to allow for SSH login from the Collector server to the Node, via this reverse tunnel. Then, the Node does not need a publicly-reachable IP address (e.g.&nbsp;a Node only having a private IP address behind a NAT/PAT firewall).
 
 For information about the necessary underlying directory structure and file permissions, see
-[Recommended Directory Structure and File Permissions](#recommended-directory-structure-and-file-permissions). In case of problems, a misconfiguration of these is the most likely issue!
+[Recommended Directory Structure and File Permissions](#-recommended-directory-structure-and-file-permissions). In case of problems, a misconfiguration of these is the most likely issue!
 
 ## Example
 Establish a Reverse Tunnel, with the following settings:
@@ -567,7 +567,7 @@ The HiPerConTracer Collector/Node Tools are some scripts for simplifying the set
 See the manpages of these tools for further details!
 
 For information about the necessary underlying directory structure and file permissions, see
-[Recommended Directory Structure and File Permissions](#recommended-directory-structure-and-file-permissions). In case of problems, a misconfiguration of these is the most likely issue!
+[Recommended Directory Structure and File Permissions](#-recommended-directory-structure-and-file-permissions). In case of problems, a misconfiguration of these is the most likely issue!
 
 
 # 📚 The HiPerConTracer Trigger Tool
