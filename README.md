@@ -92,12 +92,11 @@ Please use the issue tracker at [https://github.com/dreibh/hipercontracer/issues
 
 The Git repository of the HiPerConTracer sources can be found at [https://github.com/dreibh/hipercontracer](https://github.com/dreibh/hipercontracer):
 
-```bash
-git clone https://github.com/dreibh/hipercontracer
-cd hipercontracer
-cmake .
-make
-```
+<pre><code><span class="fu">git</span> clone <a href="https://github.com/dreibh/hipercontracer">https://github.com/dreibh/hipercontracer</a>
+<span class="bu">cd</span> hipercontracer
+<span class="fu">cmake</span> .
+<span class="fu">make</span>
+</code></pre>
 
 Contributions:
 
