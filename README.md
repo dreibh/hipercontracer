@@ -70,7 +70,7 @@ sudo dnf install hipercontracer
 For ready-to-install FreeBSD packages of HiPerConTracer, it is included in the ports collection, see [FreeBSD ports tree index of benchmarks/hipercontracer/](https://cgit.freebsd.org/ports/tree/benchmarks/hipercontracer/)!
 
 ```bash
-pkg install hipercontracer
+sudo pkg install hipercontracer
 ```
 
 Alternatively, to compile it from the ports sources:
@@ -78,7 +78,7 @@ Alternatively, to compile it from the ports sources:
 ```bash
 cd /usr/ports/benchmarks/hipercontracer
 make
-make install
+sudo make install
 ```
 
 
