@@ -45,17 +45,25 @@ class CertificateType(Enum):
    User            = 6
 
 # Some defaults:
-# DefaultCAKeyLength   = 8192
-# DefaultCertKeyLength = 4096
-DefaultCAKeyLength   = 1024
-DefaultCertKeyLength = 1024
+DefaultCAKeyLength   : Final[int] = 8192
+DefaultCertKeyLength : Final[int] = 4096
+
+# ***** TEST ONLY *******************************
+# These settings are for fast testing only:
+# DefaultCAKeyLength   : Final[int] = 1024
+# DefaultCertKeyLength : Final[int] = 1024
+# ***********************************************
+
+# Enable verbose logging for debugging here:
+VerboseMode : bool = False
 
 
 # ###### Execute command ####################################################
 def execute(command : str, mayFail : bool = False) -> int:
    result = 1
    try:
-      sys.stdout.write('\x1b[37m' + command + '\x1b[0m\n')
+      if VerboseMode:
+         sys.stdout.write('\x1b[37m' + command + '\x1b[0m\n')
       result = os.system(command)
    except Exception as e:
       sys.stderr.write('FAILED COMMAND:\n' + command + '\n')
@@ -189,6 +197,7 @@ copy_extensions                 = none         # Don't copy extensions from requ
 [ policy_any ]
 countryName                     = supplied
 stateOrProvinceName             = optional
+localityName                    = optional
 organizationName                = optional
 organizationalUnitName          = optional
 commonName                      = supplied

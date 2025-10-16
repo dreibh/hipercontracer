@@ -106,40 +106,47 @@ TestLevel1 = CA(mainDirectory, 'TestLevel1',
 # Create Test Root Level-2 CA certificate (signed by Test Root Level-1):
 TestLevel2 = CA(mainDirectory, 'TestLevel2',
                 parentCA  = TestLevel1,
-                subject   = '/C=NO/ST=Oslo/L=Oslo/O=Simula Research Laboratory/CN=Test Level-1 CA Certificate',
+                subject   = '/C=NO/ST=Oslo/L=Oslo/O=Simula Research Laboratory/CN=Test Level-2 CA Certificate',
                 certType  = CertificateType.IntermediateCA,
                 keyLength = caKeyLength, globalCRLFileName = globalCRLFileName)
 
 # Create Test Intermediate CA certificate (signed by Test Root Level-2):
-TestIntermediate = CA(mainDirectory, 'TestIntermediate',
-                      parentCA  = TestLevel2,
-                      subject   = '/C=NO/ST=Oslo/L=Oslo/O=Simula Metropolitan Centre for Digital Engineering/CN=*',
-                      certType  = CertificateType.IntermediateCA,
-                      keyLength = caKeyLength, globalCRLFileName = globalCRLFileName)
+TestIntermediate1 = CA(mainDirectory, 'TestIntermediate1',
+                       parentCA  = TestLevel2,
+                       subject   = '/C=NO/ST=Oslo/L=Oslo/O=Simula Metropolitan Centre for Digital Engineering (SimulaMet)/CN=*',
+                       certType  = CertificateType.IntermediateCA,
+                       keyLength = caKeyLength, globalCRLFileName = globalCRLFileName)
+
+# Create Test Intermediate CA certificate (signed by Test Root Level-2):
+TestIntermediate2 = CA(mainDirectory, 'TestIntermediate2',
+                       parentCA  = TestIntermediate1,
+                       subject   = '/C=NO/ST=Oslo/L=Oslo/O=Simula Metropolitan Centre for Digital Engineering (SimulaMet)/OU=Centre for Resilient Networks and Applications (CRNA)/CN=*',
+                       certType  = CertificateType.IntermediateCA,
+                       keyLength = caKeyLength, globalCRLFileName = globalCRLFileName)
 
 # Create Test Leaf CA certificate (signed by Test Intermediate):
 TestLeaf = CA(mainDirectory, 'TestLeaf',
-              parentCA  = TestIntermediate,
-              subject   = '/C=NO/ST=Oslo/L=Oslo/O=Simula Metropolitan Centre for Digital Engineering/OU=SMIL Lab/CN=*/',
+              parentCA  = TestIntermediate2,
+              subject   = '/C=NO/ST=Oslo/L=Oslo/O=Simula Metropolitan Centre for Digital Engineering (SimulaMet)/OU=SimulaMet Interoperability Lab (SMIL)/CN=*/',
               certType  = CertificateType.LeafCA,
               keyLength = caKeyLength, globalCRLFileName = globalCRLFileName)
 
 
 # ====== Create Test Servers ================================================
-subject = '/C=NO/ST=Oslo/L=Oslo/O=Simula Metropolitan Centre for Digital Engineering/OU=SMIL Lab'
+subject = '/C=NO/ST=Oslo/L=Oslo/O=Simula Metropolitan Centre for Digital Engineering (SimulaMet)/OU=SimulaMet Interoperability Lab (SMIL)'
 servers = {}
-for server in [ serverName, 'revoked' ]:
+for server in [ serverName ]:   # 'revoked'
    servers[server] = Certificate(mainDirectory, server, TestLeaf, subject, subjectAltName,
                                  keyLength = certKeyLength)
-servers['revoked'].revoke()
+# servers['revoked'].revoke()
 
 
-# ====== Create Test Users ==================================================
-users = {}
-for user in [ 'root', 'maintainer', 'importer', 'researcher', 'revoked' ] :
-   users[user] = Certificate(mainDirectory, user + '@' + serverName, TestLeaf, subject, '', CertificateType.User,
-                             keyLength = certKeyLength)
-users['revoked'].revoke()
+# # ====== Create Test Users ==================================================
+# users = {}
+# for user in [ 'root', 'maintainer', 'importer', 'researcher', 'revoked' ] :
+#    users[user] = Certificate(mainDirectory, user + '@' + serverName, TestLeaf, subject, '', CertificateType.User,
+#                              keyLength = certKeyLength)
+# users['revoked'].revoke()
 
 
 # ====== Finally, force regeneration of the CRL to ensure it is up-to-date ==
