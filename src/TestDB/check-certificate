@@ -30,21 +30,36 @@
 
 set -eu
 
-if [ $# -lt 1 ] ; then
-   echo >&2 "Usage: $0 certificate [ca_certificate]"
+if [ $# -lt 2 ] ; then
+   echo >&2 "Usage: $0 ca_certificate certificate ..."
    exit 1
 fi
-CERT="$1"
 CA="$1"
-if [ $# -ge 2 ] ; then
-   CA="$2"
-fi
+shift
 
-echo -e "\e[34mHierarchy in ${CERT}:\e[0m"
-openssl crl2pkcs7 -nocrl -certfile "${CERT}" | openssl pkcs7 -print_certs -noout
+while [ $# -gt 0 ] ; do
+   CERT="$1"
+   shift
 
-echo -e "\e[34mVerifying ${CERT} with CA ${CA}:\e[0m"
-if [ "${CERT}" == "${CA}" ] ; then
-   echo "WARNING: Only checking self-signature!"
-fi
-openssl verify -CAfile "${CA}" "${CERT}"
+   echo -e "\e[34mHierarchy in ${CERT}:\e[0m"
+   openssl crl2pkcs7 -nocrl -certfile "${CERT}" | \
+      openssl pkcs7 -print_certs -noout | awk '
+BEGIN {
+   S=0
+}
+/^$/       { next }
+/^issuer/  { next }
+/^subject/ { S++; N=sprintf("%d. ", S); print("\x1b[33m", N $0, "\x1b[0m"); next }
+# /^issuer/  { print "\x1b[37m   " $0 "\x1b[0m"; next }
+{ print }
+'
+
+   echo -e "\e[34mVerifying ${CERT} with CA ${CA}:\e[0m"
+   if [ "${CERT}" == "${CA}" ] ; then
+      echo "WARNING: Only checking self-signature!"
+   fi
+   openssl verify \
+      -CAfile "${CA}" \
+      --untrusted "${CERT}" \
+      "${CERT}"
+done
