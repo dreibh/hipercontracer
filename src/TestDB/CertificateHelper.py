@@ -32,14 +32,17 @@ import os
 import shutil
 import sys
 from typing import Final
+from enum   import Enum
 
 
 # Certificate Types:
-CRT_RootCA          = 1
-CRT_IntermediateCA  = 2
-CRT_LeafCA          = 3
-CRT_Server          = 4
-CRT_User            = 5
+class CertificateType(Enum):
+   RootCA          = 1
+   IntermediateCA  = 2
+   LeafCA          = 3
+   Server          = 4
+   Client          = 5
+   User            = 6
 
 # Some defaults:
 # DefaultCAKeyLength   = 8192
@@ -74,24 +77,24 @@ class CA:
                 name              : Final[str],
                 parentCA          : 'CA',
                 subject           : Final[str],
-                certType          : Final[int],
+                certType          : Final[CertificateType],
                 days              : Final[int]         = 10 * 365,
                 keyLength         : Final[int]         = DefaultCAKeyLength,
                 globalCRLFileName : Final[os.PathLike] = DefaultGlobalCRLFileName):
       sys.stdout.write('\x1b[34mCreating CA ' + name + ' ...\x1b[0m\n')
 
-      self.MainDirectory     : Final[os.PathLike] = os.path.abspath(mainDirectory)
-      self.Directory         : Final[os.PathLike] = os.path.join(self.MainDirectory, name)
-      self.GlobalCRLFileName : Final[os.PathLike] = os.path.join(self.MainDirectory, globalCRLFileName)
-      self.Subject           : Final[str]         = subject
-      self.CAName            : Final[str]         = name
-      self.CertType          : Final[int]         = certType
+      self.MainDirectory     : Final[os.PathLike]     = os.path.abspath(mainDirectory)
+      self.Directory         : Final[os.PathLike]     = os.path.join(self.MainDirectory, name)
+      self.GlobalCRLFileName : Final[os.PathLike]     = os.path.join(self.MainDirectory, globalCRLFileName)
+      self.Subject           : Final[str]             = subject
+      self.CAName            : Final[str]             = name
+      self.CertType          : Final[CertificateType] = certType
       self.Extension         : str
-      if self.CertType == CRT_RootCA:
+      if self.CertType == CertificateType.RootCA:
          self.Extension = 'v3_ca'
-      elif self.CertType == CRT_IntermediateCA:
+      elif self.CertType == CertificateType.IntermediateCA:
          self.Extension = 'v3_intermediate_ca'
-      elif self.CertType == CRT_LeafCA:
+      elif self.CertType == CertificateType.LeafCA:
          self.Extension = 'v3_leaf_ca'
       else:
          raise Exception('Invalid certificate type')
@@ -107,7 +110,6 @@ class CA:
 
       self.KeyFileName       : Final[os.PathLike] = os.path.join(self.PrivateDirectory, name + '.key')
       self.PasswordFileName  : Final[os.PathLike] = os.path.join(self.PrivateDirectory, name + '.password')
-      self.CSRFileName       : Final[os.PathLike] = os.path.join(self.Directory,        name + '.csr')
       self.CertFileName      : Final[os.PathLike] = os.path.join(self.CertsDirectory,   name + '.crt')
       self.CRLFileName       : Final[os.PathLike] = os.path.join(self.CRLDirectory,     name + '.crl')
 
@@ -248,22 +250,31 @@ authorityKeyIdentifier = keyid:always,issuer
 basicConstraints       = critical, CA:true, pathlen:0   # <<-- CA, but no sub-CAs
 keyUsage               = critical, digitalSignature, cRLSign, keyCertSign
 
-# ====== Settings for a user certificate ====================================
-[ user_cert ]
-# Extensions for client certificates (`man x509v3_config`).
-basicConstraints       = CA:FALSE
-subjectKeyIdentifier   = hash
-keyUsage               = critical, nonRepudiation, digitalSignature, keyEncipherment
-extendedKeyUsage       = clientAuth, emailProtection
-
 # ====== Settings for a server certificate ==================================
 [ server_cert ]
 # Extensions for server certificates (`man x509v3_config`).
 basicConstraints       = CA:FALSE
 subjectKeyIdentifier   = hash
 keyUsage               = critical, digitalSignature, keyEncipherment
-extendedKeyUsage       = serverAuth
+extendedKeyUsage       = critical, serverAuth
 subjectAltName         = ${ENV::SAN}
+
+# ====== Settings for a server certificate ==================================
+[ client_cert ]
+# Extensions for server certificates (`man x509v3_config`).
+basicConstraints       = CA:FALSE
+subjectKeyIdentifier   = hash
+keyUsage               = critical, digitalSignature, keyEncipherment
+extendedKeyUsage       = critical, clientAuth
+subjectAltName         = ${ENV::SAN}
+
+# ====== Settings for a user certificate ====================================
+[ user_cert ]
+# Extensions for client certificates (`man x509v3_config`).
+basicConstraints       = CA:FALSE
+subjectKeyIdentifier   = hash
+keyUsage               = critical, nonRepudiation, digitalSignature, keyEncipherment
+extendedKeyUsage       = critical, clientAuth, emailProtection
 """)
          configFile.close()
 
@@ -286,7 +297,7 @@ subjectAltName         = ${ENV::SAN}
          assert os.path.isfile(self.KeyFileName)
 
          # Make sure invalid files are removed:
-         for fileName in [ self.CSRFileName, self.CertFileName, self.CRLFileName ]:
+         for fileName in [ self.CertFileName, self.CRLFileName ]:
             if os.path.exists(fileName):
                os.remove(fileName)
 
@@ -312,23 +323,22 @@ subjectAltName         = ${ENV::SAN}
 
       # ====== Generate CA certificate signed by parent CA ==================
       else:
-         # ------ Create CSR ------------------------------------------------
          if not os.path.isfile(self.CertFileName):
-            self.CSRFileName = os.path.join(self.Directory, name + '.csr')
-            sys.stdout.write('\x1b[33mGenerating CSR ' + self.CSRFileName + ' ...\x1b[0m\n')
+            # ------ Generate CSR -------------------------------------------
+            csrFileName : Final[os.PathLike] = self.CertFileName + '.csr'
+            sys.stdout.write('\x1b[33mGenerating CSR ' + csrFileName + ' ...\x1b[0m\n')
             execute('SAN="" openssl req' +
-                    ' -new'              +   # Not self-signed
-                    ' -config '          + self.ConfigFileName     +
-                    ' -extensions v3_ca' +
-                    ' -utf8 -subj "'     + str(self.Subject) + '"' +
-                    ' -key '             + self.KeyFileName        +
-                    ' -passin file:'     + self.PasswordFileName   +
-                    ' -out '             + self.CSRFileName)
-            assert os.path.isfile(self.CSRFileName)
+                  ' -new'              +   # Not self-signed
+                  ' -config '          + self.ConfigFileName     +
+                  ' -extensions v3_ca' +
+                  ' -utf8 -subj "'     + str(self.Subject) + '"' +
+                  ' -key '             + self.KeyFileName        +
+                  ' -passin file:'     + self.PasswordFileName   +
+                  ' -out '             + csrFileName)
+            assert os.path.isfile(csrFileName)
 
-         # ------ Sign CSR --------------------------------------------------
-         if not os.path.isfile(self.CertFileName):
-            sys.stdout.write('\x1b[33mGetting CSR ' + self.CSRFileName + ' signed by ' + parentCA.CAName + ' ...\x1b[0m\n')
+            # ------ Get CSR signed by parent CA ----------------------------
+            sys.stdout.write('\x1b[33mGetting CSR ' + csrFileName + ' signed by ' + parentCA.CAName + ' ...\x1b[0m\n')
 
             tmpCertFileName = self.CertFileName + '.tmp'
             execute('SAN="" openssl ca' +
@@ -339,16 +349,20 @@ subjectAltName         = ${ENV::SAN}
                     ' -utf8 -subj "'     + str(self.Subject) + '"'    +
                     ' -days '            + str(parentCA.DefaultDays)  +
                     ' -passin file:'     + parentCA.PasswordFileName  +
-                    ' -in '              + self.CSRFileName           +
+                    ' -in '              + csrFileName           +
                     ' -out '             + tmpCertFileName)
             assert os.path.isfile(tmpCertFileName)
 
-            # ------ Add the whole chain ------------------------------------
+            # ------ Add the whole certificate chain ------------------------
             certFile  = open(tmpCertFileName, 'a', encoding='ascii')
             chainFile = open(self.ParentCA.CertFileName, 'r', encoding='ascii')
             for line in chainFile:
                certFile.write(line)
             os.rename(tmpCertFileName, self.CertFileName)
+
+            # ------ Remove CSR ---------------------------------------------
+            if os.path.exists(csrFileName):
+               os.remove(csrFileName)
 
          # ------ Set reference to root CA ----------------------------------
          if self.ParentCA == None:
@@ -387,11 +401,13 @@ subjectAltName         = ${ENV::SAN}
 
 
    # ###### Sign certificate ################################################
-   def signCertificate(self, certificate : 'Certificate') -> None:
+   def signCertificate(self,
+                       certificate : 'Certificate',
+                       csrFileName : os.PathLike) -> None:
 
       # ------ Sign CSR -----------------------------------------------------
-      sys.stdout.write('\x1b[33mGetting CSR ' + certificate.CSRFileName + ' signed by ' + self.CAName + ' ...\x1b[0m\n')
-      assert os.path.isfile(certificate.CSRFileName)
+      sys.stdout.write('\x1b[33mGetting CSR ' + csrFileName + ' signed by ' + self.CAName + ' ...\x1b[0m\n')
+      assert os.path.isfile(csrFileName)
 
       tmpCertFileName = certificate.CertFileName + '.tmp'
       execute('SAN="' + certificate.SubjectAltName + '" openssl ca' +
@@ -402,7 +418,7 @@ subjectAltName         = ${ENV::SAN}
               ' -utf8 -subj "'     + str(certificate.Subject) + '"' +
               ' -days '            + str(self.DefaultDays)          +
               ' -passin file:'     + self.PasswordFileName          +
-              ' -in '              + certificate.CSRFileName        +
+              ' -in '              + csrFileName                    +
               ' -out '             + tmpCertFileName)
       assert os.path.isfile(tmpCertFileName)
 
@@ -472,26 +488,27 @@ class Certificate:
                 ca               : CA,
                 subjectWithoutCN : Final[str],
                 subjectAltName   : Final[str],
-                certType         : Final[int] = CRT_Server,
-                keyLength        : Final[int] = DefaultCertKeyLength):
+                certType         : Final[CertificateType] = CertificateType.Server,
+                keyLength        : Final[int]             = DefaultCertKeyLength):
       sys.stdout.write('\x1b[34mCreating server ' + name + ' ...\x1b[0m\n')
 
-      self.CA             : CA                 = ca
-      self.Directory      : Final[os.PathLike] = os.path.join(os.path.abspath(mainDirectory), name)
-      self.Subject        : Final[str]         = subjectWithoutCN + '/CN=' + name
-      self.SubjectAltName : Final[str]         = subjectAltName
-      self.CertType       : Final[int]         = certType
+      self.CA             : CA                     = ca
+      self.Directory      : Final[os.PathLike]     = os.path.join(os.path.abspath(mainDirectory), name)
+      self.Subject        : Final[str]             = subjectWithoutCN + '/CN=' + name
+      self.SubjectAltName : Final[str]             = subjectAltName
+      self.CertType       : Final[CertificateType] = certType
       self.Extension      : str
-      if self.CertType == CRT_Server:
+      if self.CertType == CertificateType.Server:
          self.Extension = 'server_cert'
-      elif self.CertType == CRT_User:
+      elif self.CertType == CertificateType.Client:
+         self.Extension = 'client_server'
+      elif self.CertType == CertificateType.User:
          self.Extension = 'user_cert'
       else:
          raise Exception('Invalid certificate type')
 
       self.KeyLength    : Final[os.PathLike] = keyLength
       self.KeyFileName  : Final[os.PathLike] = os.path.join(self.Directory, name + '.key')
-      self.CSRFileName  : Final[os.PathLike] = os.path.join(self.Directory, name + '.csr')
       self.CertFileName : Final[os.PathLike] = os.path.join(self.Directory, name + '.crt')
 
       os.makedirs(self.Directory, exist_ok = True)
@@ -508,28 +525,33 @@ class Certificate:
                  ' ' + str(self.KeyLength))
          assert os.path.isfile(self.KeyFileName)
 
-         # Make sure invalid files are removed:
-         for fileName in [ self.CSRFileName, self.CertFileName ]:
-            if os.path.exists(fileName):
-               os.remove(fileName)
+         #  Make sure that an invalid cerfificate file is removed:
+         if os.path.exists(self.CertFileName):
+            os.remove(self.CertFileName)
 
-      # ====== Generate CSR =================================================
-      if not os.path.isfile(self.CSRFileName):
-         sys.stdout.write('\x1b[33mGenerating CSR ' + self.CSRFileName + ' ...\x1b[0m\n')
+      # ====== Generate certificate signed by CA ============================
+      if not os.path.isfile(self.CertFileName):
+         # ------ Generate CSR ----------------------------------------------
+         csrFileName : Final[os.PathLike] = os.path.join(self.Directory, name + '.csr')
+         sys.stdout.write('\x1b[33mGenerating CSR ' + csrFileName + ' ...\x1b[0m\n')
          execute('SAN="' + self.SubjectAltName + '" openssl req' +
                  ' -new'          +   # Not self-signed
                  ' -config '      + self.CA.ConfigFileName   +
                  ' -extensions '  + self.Extension           +
                  ' -utf8 -subj "' + str(self.Subject) + '"'  +
                  ' -key '         + self.KeyFileName         +
-                 ' -out '         + self.CSRFileName)
-         assert os.path.isfile(self.CSRFileName)
+                 ' -out '         + csrFileName)
+         assert os.path.isfile(csrFileName)
 
-      # ====== Get CSR signed by CA =========================================
-      if not os.path.isfile(self.CertFileName):
-         assert os.path.isfile(self.CSRFileName)
-         self.CA.signCertificate(self)
+         # ------ Get CSR signed by CA --------------------------------------
+         assert os.path.isfile(csrFileName)
+         self.CA.signCertificate(self, csrFileName)
          assert os.path.isfile(self.CertFileName)
+
+         # ====== Remove CSR ---------------------------------------------
+         if os.path.exists(csrFileName):
+            os.remove(csrFileName)
+
 
       assert self.verify()
 
@@ -550,10 +572,9 @@ class Certificate:
       if self.verify() == False:
          sys.stdout.write('Successfully revoked!\n')
 
-      # Make sure invalid files are removed:
-      for fileName in [ self.CSRFileName, self.CertFileName ]:
-         if os.path.exists(fileName):
-            os.remove(fileName)
+      # Remove the now-invalid certificate file:
+      if os.path.exists(self.CertFileName):
+         os.remove(self.CertFileName)
 
 
    # ###### Verify certificate ##############################################
