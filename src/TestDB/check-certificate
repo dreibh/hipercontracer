@@ -37,10 +37,22 @@ fi
 CA="$1"
 shift
 
+# ====== Look for CA certificate ============================================
+if [ ! -e "${CA}" ] ; then
+   echo >&2 "ERROR: Unable to find CA certificate file ${CA}!"
+   exit 1
+fi
+
 while [ $# -gt 0 ] ; do
+   # ====== Look for certificate ============================================
    CERT="$1"
    shift
+   if [ ! -e "${CERT}" ] ; then
+      echo >&2 "ERROR: Unable to find certificate file ${CERT}!"
+      exit 1
+   fi
 
+   # ====== Show hierarchy ==================================================
    echo -e "\e[34mHierarchy in ${CERT}:\e[0m"
    openssl crl2pkcs7 -nocrl -certfile "${CERT}" | \
       openssl pkcs7 -print_certs -noout | awk '
@@ -54,6 +66,7 @@ BEGIN {
 { print }
 '
 
+    # ====== Verify certificate with CA certificate =========================
    echo -e "\e[34mVerifying ${CERT} with CA ${CA}:\e[0m"
    if [ "${CERT}" == "${CA}" ] ; then
       echo "WARNING: Only checking self-signature!"
