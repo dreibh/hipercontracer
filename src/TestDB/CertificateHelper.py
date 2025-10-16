@@ -41,8 +41,10 @@ CRT_Server          = 4
 CRT_User            = 5
 
 # Some defaults:
-DefaultCAKeyLength   = 8192
-DefaultCertKeyLength = 4096
+# DefaultCAKeyLength   = 8192
+# DefaultCertKeyLength = 4096
+DefaultCAKeyLength   = 1024
+DefaultCertKeyLength = 1024
 
 
 # ###### Execute command ####################################################
@@ -99,7 +101,6 @@ class CA:
       self.PasswordFileName  = os.path.join(self.PrivateDirectory, name + '.password')
       self.CSRFileName       = os.path.join(self.Directory,        name + '.csr')
       self.CertFileName      = os.path.join(self.CertsDirectory,   name + '.crt')
-      self.ChainFileName     = os.path.join(self.CertsDirectory,   name + '-chain.pem')
       self.CRLFileName       = os.path.join(self.CRLDirectory,     name + '.crl')
 
       # ====== Create directories, if not already existing ==================
@@ -277,7 +278,7 @@ subjectAltName         = ${ENV::SAN}
          assert os.path.isfile(self.KeyFileName)
 
          # Make sure invalid files are removed:
-         for fileName in [ self.CSRFileName, self.CertFileName, self.ChainFileName, self.CRLFileName ]:
+         for fileName in [ self.CSRFileName, self.CertFileName, self.CRLFileName ]:
             if os.path.exists(fileName):
                os.remove(fileName)
 
@@ -296,9 +297,6 @@ subjectAltName         = ${ENV::SAN}
                     ' -passin file:'     + self.PasswordFileName    +
                     ' -out '             + self.CertFileName)
             assert os.path.isfile(self.CertFileName)
-
-            # Get the whole chain (just this certificate):
-            shutil.copy2(self.CertFileName, self.ChainFileName)
 
          # ------ Set reference to root CA (i.e. to itself) -----------------
          self.RootCA = self
@@ -322,6 +320,8 @@ subjectAltName         = ${ENV::SAN}
          # ------ Sign CSR --------------------------------------------------
          if not os.path.isfile(self.CertFileName):
             sys.stdout.write('\x1b[33mGetting CSR ' + self.CSRFileName + ' signed by ' + parentCA.CAName + ' ...\x1b[0m\n')
+
+            tmpCertFileName = self.CertFileName + '.tmp'
             execute('SAN="" openssl ca' +
                     ' -batch'            +
                     ' -notext'           +
@@ -331,17 +331,15 @@ subjectAltName         = ${ENV::SAN}
                     ' -days '            + str(parentCA.DefaultDays)  +
                     ' -passin file:'     + parentCA.PasswordFileName  +
                     ' -in '              + self.CSRFileName           +
-                    ' -out '             + self.CertFileName)
-            assert os.path.isfile(self.CertFileName)
+                    ' -out '             + tmpCertFileName)
+            assert os.path.isfile(tmpCertFileName)
 
-            # ------ Get the whole chain ------------------------------------
-            shutil.copy2(parentCA.ChainFileName, self.ChainFileName)
-            chainFile = open(self.ChainFileName, 'a', encoding='utf-8')
-            certFile  = open(self.CertFileName,  'r', encoding='utf-8')
-            for line in certFile:
-               chainFile.write(line)
-            certFile.close()
-            chainFile.close()
+            # ------ Add the whole chain ------------------------------------
+            certFile  = open(tmpCertFileName, 'a', encoding='ascii')
+            chainFile = open(self.ParentCA.CertFileName, 'r', encoding='ascii')
+            for line in chainFile:
+               certFile.write(line)
+            os.rename(tmpCertFileName, self.CertFileName)
 
          # ------ Set reference to root CA ----------------------------------
          if self.ParentCA == None:
@@ -358,39 +356,35 @@ subjectAltName         = ${ENV::SAN}
 
 
       # ====== Verify certificate ===========================================
-      # Print certificate:
+      # Print the certificate:
       execute('openssl x509 '                  +
               ' -noout'                        +   # Do not dump the encoded certificate
               ' -subject -ext subjectAltName ' +   # Print basic information
               ' -in ' + self.CertFileName)
-
-      sys.stdout.write('\x1b[33mVerifying certificate ' + self.CertFileName + ' via ' +
-                       self.ChainFileName + ' ...\x1b[0m\n')
-
-      # Check chain -> certificate
-      execute('openssl verify ' +
-              ' -show_chain' +
-              ' -verbose'    +
-              ' -CAfile '    + self.ChainFileName +
-              ' ' + self.CertFileName)
 
       # Check root CA -> ... -> certificate
       # NOTE: Using option "-untrusted" to mark the whole chain as untrusted
       #       works! The CAfile is always trusted, and OpenSSL will verify
       #       all certificates of the chain.
       #       -> https://stackoverflow.com/questions/25482199/verify-a-certificate-chain-using-openssl-verify
-      execute('openssl verify ' +
-              ' -show_chain' +
-              ' -verbose'    +
-              ' -CAfile '    + self.RootCA.CertFileName +
-              ' -untrusted ' + self.ChainFileName +
-              ' ' + self.CertFileName)
+      cmd = 'openssl verify ' + \
+            ' -show_chain'    + \
+            ' -verbose'       + \
+            ' -CAfile '       + self.RootCA.CertFileName
+      if self.ParentCA:
+         cmd += ' -untrusted ' + self.ParentCA.CertFileName
+      cmd +=' ' + self.CertFileName
+      execute(cmd)
 
 
    # ###### Sign certificate ################################################
    def signCertificate(self, certificate):
+
+      # ------ Sign CSR -----------------------------------------------------
       sys.stdout.write('\x1b[33mGetting CSR ' + certificate.CSRFileName + ' signed by ' + self.CAName + ' ...\x1b[0m\n')
-      assert os.path.isfile(self.CSRFileName)
+      assert os.path.isfile(certificate.CSRFileName)
+
+      tmpCertFileName = certificate.CertFileName + '.tmp'
       execute('SAN="' + certificate.SubjectAltName + '" openssl ca' +
               ' -batch'            +
               ' -notext'           +
@@ -400,8 +394,30 @@ subjectAltName         = ${ENV::SAN}
               ' -days '            + str(self.DefaultDays)          +
               ' -passin file:'     + self.PasswordFileName          +
               ' -in '              + certificate.CSRFileName        +
-              ' -out '             + certificate.CertFileName)
-      assert os.path.isfile(self.CertFileName)
+              ' -out '             + tmpCertFileName)
+      assert os.path.isfile(tmpCertFileName)
+
+      # ------ Add the whole chain ------------------------------------------
+      certFile  = open(tmpCertFileName, 'a', encoding='ascii')
+      chainFile = open(self.CertFileName, 'r', encoding='ascii')
+      for line in chainFile:
+         certFile.write(line)
+      os.rename(tmpCertFileName, certificate.CertFileName)
+
+
+   # ###### Verify certificate ##############################################
+   def verifyCertificate(self, certificate):
+
+      sys.stdout.write('\x1b[33mVerifying certificate ' + certificate.CertFileName + ' ...\x1b[0m\n')
+      result = execute('openssl verify ' +
+                       ' -show_chain' +
+                       ' -verbose'    +
+                       ' -crl_check'  +
+                       ' -CAfile '    + self.RootCA.CertFileName +
+                       ' -untrusted ' + self.CertFileName +
+                       ' -CRLfile '   + self.CRLFileName +
+                       ' ' + certificate.CertFileName, mayFail = True)
+      return result == 0
 
 
    # ###### Revoke certificate ##############################################
@@ -462,8 +478,6 @@ class Certificate:
       self.KeyFileName      = os.path.join(self.Directory, name + '.key')
       self.CSRFileName      = os.path.join(self.Directory, name + '.csr')
       self.CertFileName     = os.path.join(self.Directory, name + '.crt')
-      self.ChainFileName    = os.path.join(self.Directory, name + '-chain.pem')
-      self.ChainKeyFileName = os.path.join(self.Directory, name + '-chain+key.pem')
 
       os.makedirs(self.Directory, exist_ok = True)
 
@@ -480,7 +494,7 @@ class Certificate:
          assert os.path.isfile(self.KeyFileName)
 
          # Make sure invalid files are removed:
-         for fileName in [ self.CSRFileName, self.CertFileName, self.ChainFileName, self.ChainKeyFileName ]:
+         for fileName in [ self.CSRFileName, self.CertFileName ]:
             if os.path.exists(fileName):
                os.remove(fileName)
 
@@ -496,25 +510,13 @@ class Certificate:
                  ' -out '         + self.CSRFileName)
          assert os.path.isfile(self.CSRFileName)
 
-      # ====== Obtain the CRT from the CA ===================================
+      # ====== Get CSR signed by CA =========================================
       if not os.path.isfile(self.CertFileName):
          assert os.path.isfile(self.CSRFileName)
          self.CA.signCertificate(self)
          assert os.path.isfile(self.CertFileName)
 
-         # Provide chain file:
-         shutil.copy2(self.CA.ChainFileName, self.ChainFileName)
-
-         # Combine chain and key into a single file:
-         shutil.copy2(self.CA.ChainFileName, self.ChainKeyFileName)
-         chainKeyFile = open(self.ChainKeyFileName, 'a', encoding='utf-8')
-         keyFile      = open(self.KeyFileName,  'r', encoding='utf-8')
-         for line in keyFile:
-            chainKeyFile.write(line)
-         keyFile.close()
-         chainKeyFile.close()
-
-      self.verify()
+      assert self.verify()
 
       # ====== Verify certificate ===========================================
       # Print certificate:
@@ -534,20 +536,12 @@ class Certificate:
          sys.stdout.write('Successfully revoked!\n')
 
       # Make sure invalid files are removed:
-      for fileName in [ self.CSRFileName, self.CertFileName, self.ChainFileName ]:
+      for fileName in [ self.CSRFileName, self.CertFileName ]:
          if os.path.exists(fileName):
             os.remove(fileName)
 
 
    # ###### Verify certificate ##############################################
    def verify(self):
-      sys.stdout.write('\x1b[34mVerifying certificate ' + self.CertFileName + ' via ' +
-                       self.ChainFileName + ' ...\x1b[0m\n')
-      result = execute('openssl verify ' +
-                       ' -show_chain' +
-                       ' -verbose'    +
-                       ' -crl_check'  +
-                       ' -CAfile '    + self.ChainFileName +
-                       ' -CRLfile '   + self.CA.CRLFileName +
-                       ' ' + self.CertFileName, mayFail = True)
-      return result == 0
+
+      return self.CA.verifyCertificate(self)
