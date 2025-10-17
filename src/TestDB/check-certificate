@@ -37,12 +37,19 @@ fi
 CA="$1"
 shift
 
+CERTTOOL="$(which certtool || true)"
+CERTUTIL="$(which certutil || true)"
+
+
 # ====== Look for CA certificate ============================================
 if [ ! -e "${CA}" ] ; then
    echo >&2 "ERROR: Unable to find CA certificate file ${CA}!"
    exit 1
 fi
 
+
+# ====== Check each certificate =============================================
+errors=0
 while [ $# -gt 0 ] ; do
    # ====== Look for certificate ============================================
    CERT="$1"
@@ -66,28 +73,71 @@ BEGIN {
 { print }
 '
 
-    # ====== Verify certificate with CA certificate =========================
+   # ====== Verify certificate with CA certificate ==========================
    echo -e "\e[34mVerifying ${CERT} with CA ${CA}:\e[0m"
    if [ "${CERT}" == "${CA}" ] ; then
       echo "WARNING: Only checking self-signature!"
    fi
-   errors=0
 
+   # ------ OpenSSL ---------------------------------------------------------
    echo -en "\e[33mOpenSSL:\e[0m "
    if openssl verify -CAfile "${CA}" --untrusted "${CERT}" "${CERT}" >/dev/null 2>&1 ; then
-      echo "OK"
+      echo -e "\e[32;1mOKAY\e[0m"
    else
       errors=$((errors + 1))
-      echo "BAD!"
+      echo -e "\e[31;1mFAILED!\e[0m"
       openssl verify -CAfile "${CA}" --untrusted "${CERT}" "${CERT}" || true
    fi
 
+   # ------ GNU TLS ---------------------------------------------------------
    echo -en "\e[33mGNU TLS:\e[0m "
-   if certtool --verify --load-ca-certificate "${CA}" --infile "${CERT}" >/dev/null 2>&1 ; then
-      echo "OK"
+   if [ "${CERTTOOL}" != "" ] ; then
+      if "${CERTTOOL}" --verify --load-ca-certificate "${CA}" --infile "${CERT}" >/dev/null 2>&1 ; then
+         echo -e "\e[32;1mOKAY\e[0m"
+      else
+         errors=$((errors + 1))
+         echo -e "\e[31;1mFAILED!\e[0m"
+         "${CERTTOOL}" --verify --load-ca-certificate "${CA}" --infile "${CERT}" || true
+      fi
    else
-      errors=$((errors + 1))
-      echo "BAD!"
-      certtool --verify --load-ca-certificate "${CA}" --infile "${CERT}" || true
+      echo "(GnuTLS CertTool is not installed)"
    fi
+
+   # ------ NSS -------------------------------------------------------------
+   echo -en "\e[33mNSS:    \e[0m "
+   if [ "${CERTUTIL}" != "" ] ; then
+      db=$(mktemp --tmpdir -d "check-certificate-nss.XXXXXXXXXX")
+      trap 'rm -rf "${db}"' EXIT
+      "${CERTUTIL}" --empty-password -N -d "${db}"
+      "${CERTUTIL}" -A -n "My CA" -t "C,," -d "${db}" -i "${CA}"
+      "${CERTUTIL}" -A -n "My Certificate" -t "P,," -d "${db}" -i "${CERT}"
+
+      declare -A types=(
+         ["server"]="V"
+         ["client"]="C"
+         ["CA"]="L"
+         ["email_signer"]="S"
+         ["email_recipient"]="R"
+      )
+      good=0
+      for type in ${!types[@]} ; do
+         setting="${types[$type]}"
+         "${CERTUTIL}" -V -e -u "${setting}" -n "My Certificate" -d "${db}" >/dev/null 2>&1 && \
+            good=$((good + 1)) && \
+            if [ ${good} -eq 1 ] ; then echo -en "\e[32;1mOKAY\e[0m" ; fi && \
+            echo -en "   \e[36m${type}\e[0m"
+      done
+      echo ""
+      if [ ${good} -eq 0 ] ; then
+         errors=$((errors + 1))
+         echo -e "\e[31;1mFAILED!\e[0m"
+         "${CERTUTIL}" -V -n "My Certificate" -d "${db}" -u V
+      fi
+   else
+      echo "(NSS CertTool is not installed)"
+   fi
+
 done
+if [ ${errors} -gt 0 ] ; then
+   exit 1
+fi
