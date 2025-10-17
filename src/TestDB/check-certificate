@@ -71,8 +71,23 @@ BEGIN {
    if [ "${CERT}" == "${CA}" ] ; then
       echo "WARNING: Only checking self-signature!"
    fi
-   openssl verify \
-      -CAfile "${CA}" \
-      --untrusted "${CERT}" \
-      "${CERT}"
+   errors=0
+
+   echo -en "\e[33mOpenSSL:\e[0m "
+   if openssl verify -CAfile "${CA}" --untrusted "${CERT}" "${CERT}" >/dev/null 2>&1 ; then
+      echo "OK"
+   else
+      errors=$((errors + 1))
+      echo "BAD!"
+      openssl verify -CAfile "${CA}" --untrusted "${CERT}" "${CERT}" || true
+   fi
+
+   echo -en "\e[33mGNU TLS:\e[0m "
+   if certtool --verify --load-ca-certificate "${CA}" --infile "${CERT}" >/dev/null 2>&1 ; then
+      echo "OK"
+   else
+      errors=$((errors + 1))
+      echo "BAD!"
+      certtool --verify --load-ca-certificate "${CA}" --infile "${CERT}" || true
+   fi
 done
