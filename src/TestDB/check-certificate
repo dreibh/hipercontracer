@@ -51,6 +51,7 @@ fi
 # ====== Check each certificate =============================================
 errors=0
 while [ $# -gt 0 ] ; do
+
    # ====== Look for certificate ============================================
    CERT="$1"
    shift
@@ -75,11 +76,11 @@ BEGIN {
 
    # ====== Verify certificate with CA certificate ==========================
    echo -e "\e[34mVerifying ${CERT} with CA ${CA}:\e[0m"
-   if [ "${CERT}" == "${CA}" ] ; then
+   if [ "${CA}" == "${CERT}" ] ; then
       echo "WARNING: Only checking self-signature!"
    fi
 
-   # ------ OpenSSL ---------------------------------------------------------
+   # ====== OpenSSL =========================================================
    echo -en "\e[33mOpenSSL:\e[0m "
    if openssl verify -CAfile "${CA}" --untrusted "${CERT}" "${CERT}" >/dev/null 2>&1 ; then
       echo -e "\e[32;1mOKAY\e[0m"
@@ -89,7 +90,7 @@ BEGIN {
       openssl verify -CAfile "${CA}" --untrusted "${CERT}" "${CERT}" || true
    fi
 
-   # ------ GNU TLS ---------------------------------------------------------
+   # ====== GNU TLS =========================================================
    echo -en "\e[33mGNU TLS:\e[0m "
    if [ "${CERTTOOL}" != "" ] ; then
       if "${CERTTOOL}" --verify --load-ca-certificate "${CA}" --infile "${CERT}" >/dev/null 2>&1 ; then
@@ -103,26 +104,27 @@ BEGIN {
       echo "(GnuTLS CertTool is not installed)"
    fi
 
-   # ------ NSS -------------------------------------------------------------
+   # ====== NSS =============================================================
    echo -en "\e[33mNSS:    \e[0m "
    if [ "${CERTUTIL}" != "" ] ; then
-#       trap 'rm -rf "${db}"' EXIT
+
+      # NOTE:
+      # NSS does not support importing a certificate with CAs bundled! It is
+      # necessary to extract each CA, and then process them individually!
+
+      # ------ Create temporary directory for database ----------------------
+      trap 'rm -rf "${db}"' EXIT
       db=$(mktemp --tmpdir -d "check-certificate-nss.XXXXXXXXXX")
       "${CERTUTIL}" --empty-password -N -d "${db}"
-      "${CERTUTIL}" -A -n "My Root CA" -t "CT,C,C" -e -d "${db}" -a -i "${CA}" -u L
+      if [ "${CA}" != "${CERT}" ] ; then
+         "${CERTUTIL}" -A -n "My Root CA" -t "CT,C,C" -e -d "${db}" -a -i "${CA}" -u L
+      fi
+      "${CERTUTIL}" -A -n "My Certificate" -t ",," -e -d "${db}" -a -i "${CERT}"
 
-# #       "${CERTUTIL}" -A -n "My CA L1" -t "CT,C,C" -e -d "${db}" -i /etc/ssl/TestLevel1/certs/TestLevel1.crt
-#       "${CERTUTIL}" -A -n "My CA L2" -t ",," -e -d "${db}" -i /etc/ssl/TestLevel2/certs/TestLevel2.crt
-#       "${CERTUTIL}" -A -n "My CA I1" -t ",," -e -d "${db}" -i /etc/ssl/TestIntermediate1/certs/TestIntermediate1.crt
-#       "${CERTUTIL}" -A -n "My CA I2" -t ",," -e -d "${db}" -i /etc/ssl/TestIntermediate2/certs/TestIntermediate2.crt
-#       "${CERTUTIL}" -A -n "My CA L" -t ",," -e -d "${db}" -i /etc/ssl/TestLeaf/certs/TestLeaf.crt
-
-
+      # ------ Extract the certificate --------------------------------------
       mkdir -p "${db}/tmp"
       cp "${CERT}" "${db}/tmp/cert.crt"
-      pushd "${db}/tmp"
-
-      pwd
+      cd "${db}/tmp"
       awk '\
 BEGIN {
    component=0;
@@ -148,8 +150,8 @@ inBlock {
    print >outputFileName;
 }
 ' <cert.crt
-      ls -l
-      rm "01"
+
+      # ------ Process each sub-CA individually -----------------------------
       find . -name "[0-9][0-9]" -printf "%f\n" | sort | tail -n1 | xargs -r rm
       subCA=0
       find . -name "[0-9][0-9]" -printf "%f\n" | sort -r | \
@@ -157,14 +159,10 @@ inBlock {
             subCA=$((subCA + 1))
             "${CERTUTIL}" -A -n "My Sub CA ${subCA}" -t ",," -e -d "${db}" -a -i "${name}" -u L
          done
-      ls -l
 
-      popd
+      # "${CERTUTIL}" -L -d "${db}"
 
-      "${CERTUTIL}" -A -n "My Certificate" -t ",," -e -d "${db}" -a -i "${CERT}"
-
-      "${CERTUTIL}" -L -d "${db}"
-
+      # ------ Finally, it is possible to verify the validity chain ---------
       declare -A types=(
          ["server"]="V"
          ["client"]="C"
@@ -184,15 +182,15 @@ inBlock {
       if [ ${good} -eq 0 ] ; then
          errors=$((errors + 1))
          echo -e "\e[31;1mFAILED!\e[0m"
-         "${CERTUTIL}" -V -n "My Certificate" -d "${db}" -u V || true
+         "${CERTUTIL}" -V -e -u "${setting}" -n "My Certificate" -d "${db}" || true
          "${CERTUTIL}" -L "${db}" || true
       fi
-      echo "$db"
    else
       echo "(NSS CertTool is not installed)"
    fi
 
 done
 if [ ${errors} -gt 0 ] ; then
+   echo -e "\e[37;41;1m***** CERTIFICATE CHECKS FAILED! *****\e[0m"
    exit 1
 fi
