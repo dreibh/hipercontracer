@@ -60,7 +60,7 @@ DefaultCertKeyLength : Final[int] = 4096
 # ***********************************************
 
 # Enable verbose logging for debugging here:
-VerboseMode : bool = True
+VerboseMode : bool = False
 
 
 
@@ -153,7 +153,7 @@ def prepareSubjectAltName(certType : CertificateType,
       match = RE_USEREMAIL.match(name)
       if match:
          name           = match.group(1)
-         subjectAltName = 'EMAIL:' + match.group(3)
+         subjectAltName = 'email:' + match.group(3)
          return ( name, subjectAltName )
 
    return ( name, '' )
@@ -281,9 +281,9 @@ default_md                      = sha512
 policy                          = policy_any
 email_in_dn                     = yes
 
-name_opt                        = multiline,-esc_msb,utf8   # Subject name display option
-cert_opt                        = ca_default                # Certificate display option
-copy_extensions                 = none                      # Don't copy extensions from request
+name_opt                        = ca_default   # Subject name display option
+cert_opt                        = ca_default   # Certificate display option
+copy_extensions                 = none         # Don't copy extensions from request
 
 [ policy_any ]
 countryName                     = optional
@@ -493,7 +493,7 @@ subjectAltName         = ${ENV::SAN}
 
       # ====== Generate initial CRL =========================================
       GlobalCRLSet.add(self.CRLFileName)
-      # self.generateCRL()
+      self.generateCRL()
 
 
       # ====== Print certificate ============================================
