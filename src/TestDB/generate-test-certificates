@@ -28,9 +28,6 @@
 #
 # Contact: dreibh@simula.no
 
-import ipaddress
-import netifaces
-import socket
 import sys
 
 from CertificateHelper import *
@@ -40,38 +37,45 @@ from CertificateHelper import *
 
 # ====== Handle command-line parameters =====================================
 if len(sys.argv) < 3:
-   sys.stderr.write('Usage: ' + sys.argv[0] + ' ssl_directory server [subjectAltName]\n')
+   sys.stderr.write('Usage: ' + sys.argv[0] + ' ssl_directory [--server|--client|--user] [--revoke-if-existing|--ignore-if-existing] [--san subjectAltName|LOCAL|LOOKUP] name ...\n')
    sys.exit(1)
-mainDirectory = sys.argv[1]
-serverName    = sys.argv[2]
-if len(sys.argv) > 3:
-   subjectAltName = sys.argv[3]
-else:
-   # ====== Prepare subjectAltName: current hostname+all addresses ==========
-   subjectAltName = 'DNS:' + serverName
-
-   # ------ Add FQDN of current hostname ------------------------------------
-   fqdn = socket.getfqdn()
-   if ((fqdn != serverName) and (fqdn != 'localhost')):
-      subjectAltName = subjectAltName + ',DNS:' + fqdn
-
-   # ------ Add all IP addresses --------------------------------------------
-   interfaces = netifaces.interfaces()
-   for family in [ netifaces.AF_INET, netifaces.AF_INET6 ]:
-      localAddresses = set()
-      for interface in interfaces:
-         interfaceAddresses = netifaces.ifaddresses(interface).get(family)
-         if interfaceAddresses:
-            for interfaceAddress in interfaceAddresses:
-               address = ipaddress.ip_address(interfaceAddress['addr'])
-               if (not address.is_link_local) and (not address.is_loopback):
-                  localAddresses.add(address)
-
-      for localAddress in sorted(localAddresses):
-         subjectAltName = subjectAltName + ',IP:' + str(localAddress)
-
-print(subjectAltName)
-
+mainDirectory        : str                 = sys.argv[1]
+certificatesToCreate : list[dict[str,str]] = []
+subjectAltName       : str | None          = None
+certType             : CertificateType     = CertificateType.Server
+revokeIfExisting     : bool                = True
+i = 2
+while i < len(sys.argv):
+   if sys.argv[i] == '--server':
+      certType = CertificateType.Server
+   elif sys.argv[i] == '--client':
+      certType = CertificateType.Client
+   elif sys.argv[i] == '--user':
+      certType = CertificateType.user
+   elif sys.argv[i] == '--revoke-if-existing':
+      revokeIfExisting = True
+   elif sys.argv[i] == '--ignore-if-existing':
+      revokeIfExisting = False
+   elif (sys.argv[i] == '--san') or (sys.argv[i] == '--subjectAltName'):
+      if i + 1 < len(sys.argv[i + 1]):
+         subjectAltName = sys.argv[i + 1]
+         i += 1
+   elif sys.argv[i][0:2] == '--':
+      sys.stderr.write('ERROR: Invalid parameter ' + sys.argv[i] + '!\n')
+      sys.exit(1)
+   else:
+      name : str = sys.argv[i]
+      san  : str = subjectAltName
+      if san in [ None, 'LOCAL', 'LOOKUP' ]:
+         if (certType == CertificateType.Server) or (certType == CertificateType.Client):
+            san = prepareSubjectAltName(name, subjectAltName)
+         else:
+            san = ''
+      certificatesToCreate.append({ 'name'             : name,
+                                    'type'             : certType,
+                                    'subjectAltName'   : san,
+                                    'revokeIfExisting' : revokeIfExisting })
+   i += 1
 
 
 # ====== Create CA hierarchy, if not existing ===============================
@@ -134,19 +138,18 @@ TestLeaf = CA(mainDirectory, 'TestLeaf',
 
 # ====== Create Test Servers ================================================
 subject = '/C=NO/ST=Oslo/L=Oslo/O=Simula Metropolitan Centre for Digital Engineering (SimulaMet)/OU=SimulaMet Interoperability Lab (SMIL)'
-servers = {}
-for server in [ serverName ]:   # 'revoked'
-   servers[server] = Certificate(mainDirectory, server, TestLeaf, subject, subjectAltName,
-                                 keyLength = certKeyLength)
-# servers['revoked'].revoke()
 
+certificates = { }
+for certificateToCreate in certificatesToCreate:
+   print(certificateToCreate)
 
-# # ====== Create Test Users ==================================================
-# users = {}
-# for user in [ 'root', 'maintainer', 'importer', 'researcher', 'revoked' ] :
-#    users[user] = Certificate(mainDirectory, user + '@' + serverName, TestLeaf, subject, '', CertificateType.User,
-#                              keyLength = certKeyLength)
-# users['revoked'].revoke()
+   name = certificateToCreate['name']
+   certificates[name] = Certificate(mainDirectory, name, TestLeaf,
+                                    subject, certificateToCreate['subjectAltName'],
+                                    certificateToCreate['type'],
+                                    keyLength        = certKeyLength,
+                                    revokeIfExisting = revokeIfExisting)
+   # certificates[name].revoke()
 
 
 # ====== Finally, force regeneration of the CRL to ensure it is up-to-date ==
