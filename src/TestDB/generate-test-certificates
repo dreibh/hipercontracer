@@ -37,13 +37,14 @@ from CertificateHelper import *
 
 # ====== Handle command-line parameters =====================================
 if len(sys.argv) < 3:
-   sys.stderr.write('Usage: ' + sys.argv[0] + ' ssl_directory [--server|--client|--user] [--revoke-if-existing|--ignore-if-existing] [--san subjectAltName|LOCAL|LOOKUP] name ...\n')
+   sys.stderr.write('Usage: ' + sys.argv[0] + ' ssl_directory [--server|--client|--user] [--revoke-if-existing|--ignore-if-existing] [--revoke] [--san subjectAltName|LOCAL|LOOKUP] name ...\n')
    sys.exit(1)
 mainDirectory        : str                 = sys.argv[1]
 certificatesToCreate : list[dict[str,str]] = []
 subjectAltName       : str | None          = None
 certType             : CertificateType     = CertificateType.Server
 revokeIfExisting     : bool                = True
+revoke               : bool                = False
 i = 2
 while i < len(sys.argv):
    if sys.argv[i] == '--server':
@@ -52,6 +53,8 @@ while i < len(sys.argv):
       certType = CertificateType.Client
    elif sys.argv[i] == '--user':
       certType = CertificateType.User
+   elif sys.argv[i] == '--revoke':
+      revoke = True
    elif sys.argv[i] == '--revoke-if-existing':
       revokeIfExisting = True
    elif sys.argv[i] == '--ignore-if-existing':
@@ -143,7 +146,9 @@ for certificateToCreate in certificatesToCreate:
                                     certificateToCreate['type'],
                                     keyLength        = certKeyLength,
                                     revokeIfExisting = revokeIfExisting)
-   # certificates[name].revoke()
+
+   if revoke:
+      certificates[name].revoke()
 
 
 # ====== Finally, force regeneration of the CRL to ensure it is up-to-date ==
