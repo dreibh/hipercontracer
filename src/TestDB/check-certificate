@@ -111,17 +111,16 @@ BEGIN {
       "${CERTUTIL}" --empty-password -N -d "${db}"
       "${CERTUTIL}" -A -n "My Root CA" -t "CT,C,C" -e -d "${db}" -a -i "${CA}" -u L
 
-#       "${CERTUTIL}" -A -n "My CA L1" -t "C,C,C" -e -d "${db}" -i /etc/ssl/TestLevel1/certs/TestLevel1.crt
-#       "${CERTUTIL}" -A -n "My CA L2" -t "C,C,C" -e -d "${db}" -i /etc/ssl/TestLevel2/certs/TestLevel2.crt
-#       "${CERTUTIL}" -A -n "My CA I1" -t "C,C,C" -e -d "${db}" -i /etc/ssl/TestIntermediate1/certs/TestIntermediate1.crt
-#       "${CERTUTIL}" -A -n "My CA I2" -t "C,C,C" -e -d "${db}" -i /etc/ssl/TestIntermediate2/certs/TestIntermediate2.crt
-#       "${CERTUTIL}" -A -n "My CA L" -t "C,C,C" -e -d "${db}" -i /etc/ssl/TestLeaf/certs/TestLeaf.crt
+# #       "${CERTUTIL}" -A -n "My CA L1" -t "CT,C,C" -e -d "${db}" -i /etc/ssl/TestLevel1/certs/TestLevel1.crt
+#       "${CERTUTIL}" -A -n "My CA L2" -t ",," -e -d "${db}" -i /etc/ssl/TestLevel2/certs/TestLevel2.crt
+#       "${CERTUTIL}" -A -n "My CA I1" -t ",," -e -d "${db}" -i /etc/ssl/TestIntermediate1/certs/TestIntermediate1.crt
+#       "${CERTUTIL}" -A -n "My CA I2" -t ",," -e -d "${db}" -i /etc/ssl/TestIntermediate2/certs/TestIntermediate2.crt
+#       "${CERTUTIL}" -A -n "My CA L" -t ",," -e -d "${db}" -i /etc/ssl/TestLeaf/certs/TestLeaf.crt
+
 
       mkdir -p "${db}/tmp"
       cp "${CERT}" "${db}/tmp/cert.crt"
       pushd "${db}/tmp"
-
-      echo "------------------"
 
       pwd
       awk '\
@@ -152,7 +151,12 @@ inBlock {
       ls -l
       rm "01"
       find . -name "[0-9][0-9]" -printf "%f\n" | sort | tail -n1 | xargs -r rm
-      find . -name "[0-9][0-9]" -printf "%f\n" | sort -r | xargs -r -i{} "${CERTUTIL}" -A -n "My Sub CA {}" -t "C,C,C" -e -d "${db}" -a -i "{}" -u L
+      subCA=0
+      find . -name "[0-9][0-9]" -printf "%f\n" | sort -r | \
+         while read -r name ; do
+            subCA=$((subCA + 1))
+            "${CERTUTIL}" -A -n "My Sub CA ${subCA}" -t ",," -e -d "${db}" -a -i "${name}" -u L
+         done
       ls -l
 
       popd
