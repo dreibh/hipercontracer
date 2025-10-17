@@ -96,7 +96,7 @@ if [ "$1" == "mariadb" ] ; then
    # MariaDB needs separate certificate and key files.
    # The chain is in the CA file, it must not be in the certificate file!
    # Details: https://mariadb.com/kb/en/securing-connections-for-client-and-server/
-   MARIADB_CA_FILE="/etc/ssl/TestLeaf/certs/TestLeaf-chain.pem"
+   MARIADB_CA_FILE="/etc/ssl/TestLevel1/certs/TestLevel1.crt"
    MARIADB_CRL_FILE="/etc/ssl/TestGlobal.crl"
    MARIADB_CRT_FILE="/etc/ssl/${server}.${DOMAIN}/${server}.${DOMAIN}.crt"
    MARIADB_KEY_FILE="/etc/ssl/${server}.${DOMAIN}/${server}.${DOMAIN}.key"
@@ -181,7 +181,7 @@ elif [ "$1" == "postgresql" ] ; then
 
    # PostgreSQL needs separate certificate and key files.
    # The chain is in the CA file, it must not be in the certificate file!
-   POSTGRESQL_CA_FILE="/etc/ssl/TestLeaf/certs/TestLeaf-chain.pem"
+   POSTGRESQL_CA_FILE="/etc/ssl/TestLevel1/certs/TestLevel1.crt"
    POSTGRESQL_CRL_FILE="/etc/ssl/TestGlobal.crl"
    POSTGRESQL_CRT_FILE="/etc/ssl/${server}.${DOMAIN}/${server}.${DOMAIN}.crt"
    POSTGRESQL_KEY_FILE="/etc/ssl/${server}.${DOMAIN}/${server}.${DOMAIN}.key"
@@ -305,12 +305,15 @@ EOF
    sudo ./generate-test-certificates /etc/ssl "${server}.${DOMAIN}"
 
    # MongoDB wants key + certificate + chain (in this order!) in the PEM file:
-   MONGODB_CA_FILE="/etc/ssl/TestLeaf/certs/TestLeaf-chain.pem"
+   MONGODB_CA_FILE="/etc/ssl/TestLevel1/certs/TestLevel1.crt"
    MONGODB_CRL_FILE="/etc/ssl/TestGlobal.crl"
-   MONGODB_CRT_KEY_FILE="/etc/ssl/${server}.${DOMAIN}/${server}.${DOMAIN}.crt+key+chain"
+   MONGODB_CRT_KEY_FILE="/etc/ssl/${server}.${DOMAIN}/${server}.${DOMAIN}.key+crt"
    sudo touch ${MONGODB_CRT_KEY_FILE}
    sudo chmod 600 ${MONGODB_CRT_KEY_FILE}
-   sudo cat /etc/ssl/${server}.${DOMAIN}/${server}.${DOMAIN}.key /etc/ssl/${server}.${DOMAIN}/${server}.${DOMAIN}.crt /etc/ssl/TestLeaf/certs/TestLeaf-chain.pem | sudo tee ${MONGODB_CRT_KEY_FILE} >/dev/null
+   sudo cat /etc/ssl/${server}.${DOMAIN}/${server}.${DOMAIN}.key \
+            /etc/ssl/${server}.${DOMAIN}/${server}.${DOMAIN}.crt \
+            ${MONGODB_CA_FILE} | \
+      sudo tee ${MONGODB_CRT_KEY_FILE} >/dev/null
    if [ "${ID}" == "fedora" ] ; then
       sudo chown mongod:mongod ${MONGODB_CRT_KEY_FILE}
    else
