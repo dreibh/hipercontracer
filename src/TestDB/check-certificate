@@ -120,7 +120,7 @@ BEGIN {
          ["email_recipient"]="R"
       )
       good=0
-      for type in ${!types[@]} ; do
+      for type in "${!types[@]}" ; do
          setting="${types[$type]}"
          "${CERTUTIL}" -V -e -u "${setting}" -n "My Certificate" -d "${db}" >/dev/null 2>&1 && \
             good=$((good + 1)) && \
