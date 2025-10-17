@@ -106,11 +106,60 @@ BEGIN {
    # ------ NSS -------------------------------------------------------------
    echo -en "\e[33mNSS:    \e[0m "
    if [ "${CERTUTIL}" != "" ] ; then
+#       trap 'rm -rf "${db}"' EXIT
       db=$(mktemp --tmpdir -d "check-certificate-nss.XXXXXXXXXX")
-      trap 'rm -rf "${db}"' EXIT
       "${CERTUTIL}" --empty-password -N -d "${db}"
-      "${CERTUTIL}" -A -n "My CA" -t "C,," -d "${db}" -i "${CA}"
-      "${CERTUTIL}" -A -n "My Certificate" -t "P,," -d "${db}" -i "${CERT}"
+      "${CERTUTIL}" -A -n "My Root CA" -t "CT,C,C" -e -d "${db}" -a -i "${CA}" -u L
+
+#       "${CERTUTIL}" -A -n "My CA L1" -t "C,C,C" -e -d "${db}" -i /etc/ssl/TestLevel1/certs/TestLevel1.crt
+#       "${CERTUTIL}" -A -n "My CA L2" -t "C,C,C" -e -d "${db}" -i /etc/ssl/TestLevel2/certs/TestLevel2.crt
+#       "${CERTUTIL}" -A -n "My CA I1" -t "C,C,C" -e -d "${db}" -i /etc/ssl/TestIntermediate1/certs/TestIntermediate1.crt
+#       "${CERTUTIL}" -A -n "My CA I2" -t "C,C,C" -e -d "${db}" -i /etc/ssl/TestIntermediate2/certs/TestIntermediate2.crt
+#       "${CERTUTIL}" -A -n "My CA L" -t "C,C,C" -e -d "${db}" -i /etc/ssl/TestLeaf/certs/TestLeaf.crt
+
+      mkdir -p "${db}/tmp"
+      cp "${CERT}" "${db}/tmp/cert.crt"
+      pushd "${db}/tmp"
+
+      echo "------------------"
+
+      pwd
+      awk '\
+BEGIN {
+   component=0;
+   inBlock=0;
+}
+
+/-----BEGIN CERTIFICATE-----/ {
+   component++;
+   outputFileName = sprintf("%02u", component);
+   print >outputFileName;
+   inBlock=1;
+   next
+}
+
+/-----END CERTIFICATE-----/ {
+   print >outputFileName;
+   close(outputFileName);
+   inBlock=0;
+   next
+}
+
+inBlock {
+   print >outputFileName;
+}
+' <cert.crt
+      ls -l
+      rm "01"
+      find . -name "[0-9][0-9]" -printf "%f\n" | sort | tail -n1 | xargs -r rm
+      find . -name "[0-9][0-9]" -printf "%f\n" | sort -r | xargs -r -i{} "${CERTUTIL}" -A -n "My Sub CA {}" -t "C,C,C" -e -d "${db}" -a -i "{}" -u L
+      ls -l
+
+      popd
+
+      "${CERTUTIL}" -A -n "My Certificate" -t ",," -e -d "${db}" -a -i "${CERT}"
+
+      "${CERTUTIL}" -L -d "${db}"
 
       declare -A types=(
          ["server"]="V"
@@ -131,8 +180,10 @@ BEGIN {
       if [ ${good} -eq 0 ] ; then
          errors=$((errors + 1))
          echo -e "\e[31;1mFAILED!\e[0m"
-         "${CERTUTIL}" -V -n "My Certificate" -d "${db}" -u V
+         "${CERTUTIL}" -V -n "My Certificate" -d "${db}" -u V || true
+         "${CERTUTIL}" -L "${db}" || true
       fi
+      echo "$db"
    else
       echo "(NSS CertTool is not installed)"
    fi
