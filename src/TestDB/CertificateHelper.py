@@ -241,7 +241,7 @@ authorityKeyIdentifier = keyid:always
 # See `man x509v3_config` for details!
 subjectKeyIdentifier   = hash
 basicConstraints       = critical, CA:true              # <<-- CA certificate
-keyUsage               = critical, digitalSignature, cRLSign, keyCertSign
+keyUsage               = critical, cRLSign, keyCertSign
 
 # ====== Settings for intermediate CA =======================================
 [ v3_intermediate_ca ]
@@ -249,7 +249,7 @@ keyUsage               = critical, digitalSignature, cRLSign, keyCertSign
 subjectKeyIdentifier   = hash
 authorityKeyIdentifier = keyid:always,issuer
 basicConstraints       = critical, CA:true              # <<-- CA certificate
-keyUsage               = critical, digitalSignature, cRLSign, keyCertSign
+keyUsage               = critical, cRLSign, keyCertSign
 
 # ====== Settings for a leaf CA =============================================
 [ v3_leaf_ca ]
@@ -257,7 +257,7 @@ keyUsage               = critical, digitalSignature, cRLSign, keyCertSign
 subjectKeyIdentifier   = hash
 authorityKeyIdentifier = keyid:always,issuer
 basicConstraints       = critical, CA:true, pathlen:0   # <<-- CA, but no sub-CAs
-keyUsage               = critical, digitalSignature, cRLSign, keyCertSign
+keyUsage               = critical, cRLSign, keyCertSign
 
 # ====== Settings for a server certificate ==================================
 [ server_cert ]
@@ -283,7 +283,7 @@ subjectAltName         = ${ENV::SAN}
 basicConstraints       = CA:FALSE
 subjectKeyIdentifier   = hash
 keyUsage               = critical, nonRepudiation, digitalSignature, keyEncipherment
-extendedKeyUsage       = critical, clientAuth, emailProtection
+extendedKeyUsage       = critical, clientAuth, emailProtection, codeSigning
 """)
          configFile.close()
 
