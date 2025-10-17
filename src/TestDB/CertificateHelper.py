@@ -32,6 +32,7 @@ import functools
 import ipaddress
 import netifaces
 import os
+import re
 import shutil
 import socket
 import sys
@@ -59,7 +60,7 @@ DefaultCertKeyLength : Final[int] = 4096
 # ***********************************************
 
 # Enable verbose logging for debugging here:
-VerboseMode : bool = False
+VerboseMode : bool = True
 
 
 
@@ -92,52 +93,70 @@ def ip_address_comparator(a : ipaddress.ip_address,
          return 1
    return 0
 
-IP_COMPARATOR = functools.cmp_to_key(ip_address_comparator)
+IP_COMPARATOR              = functools.cmp_to_key(ip_address_comparator)
+RE_USEREMAIL  : re.Pattern = \
+   re.compile(r'^(.*)( <)([a-zA-Z0–9. _%+-]+@[a-zA-Z0–9. -]+\.[a-zA-Z]{2,})(>)$')
 
 
 # ###### Make "subjectAltName" string #######################################
-def prepareSubjectAltName(name : str, hint : str | None) -> str:
+def prepareSubjectAltName(certType : CertificateType,
+                          name     : str,
+                          hint     : str | None) -> tuple[str,str]:
 
-   # ====== Prepare subjectAltName: current hostname+all addresses ==========
-   subjectAltName : str                      = 'DNS:' + name
-   addresses      : set[ipaddress.ipaddress] = set()
+   # ====== Server or client cerfificate ====================================
+   if (certType == CertificateType.Server) or (certType == CertificateType.Client):
 
-   # ====== Get local addresses =============================================
-   if (hint == None) or (hint == 'LOCAL'):
-      # ------ Add FQDN of current hostname ---------------------------------
-      fqdn : str = socket.getfqdn()
-      if ((fqdn != name) and (fqdn != 'localhost')):
-         subjectAltName = subjectAltName + ',DNS:' + fqdn
+      # ====== Prepare subjectAltName: current hostname+all addresses =======
+      subjectAltName : str                      = 'DNS:' + name
+      addresses      : set[ipaddress.ipaddress] = set()
 
-      # ------ Add all IP addresses -----------------------------------------
-      interfaces = netifaces.interfaces()
-      for family in [ netifaces.AF_INET, netifaces.AF_INET6 ]:
-         for interface in interfaces:
-            interfaceAddresses = netifaces.ifaddresses(interface).get(family)
-            if interfaceAddresses:
-               for interfaceAddress in interfaceAddresses:
-                  address = ipaddress.ip_address(interfaceAddress['addr'])
-                  if (not address.is_link_local) and (not address.is_loopback):
-                     addresses.add(address)
+      # ====== Get local addresses ==========================================
+      if (hint == None) or (hint == 'LOCAL'):
+         # ------ Add FQDN of current hostname ------------------------------
+         fqdn : str = socket.getfqdn()
+         if ((fqdn != name) and (fqdn != 'localhost')):
+            subjectAltName = subjectAltName + ',DNS:' + fqdn
 
-   # ====== Look up addresses ===============================================
-   elif hint == 'LOOKUP':
-      print('Resolving ' + name + ' ...\n')
-      try:
-         resolveResults = socket.getaddrinfo(name, 80)
-      except socket.gaierror as e:
-         sys.stderr.write('ERROR: Resolving of ' + name + ' failed: ' + str(e) + '\n')
-         sys.exit(1)
-      for resolveEntry in resolveResults:
-         address = ipaddress.ip_address(resolveEntry[4][0])
-         addresses.add(address)
+         # ------ Add all IP addresses --------------------------------------
+         interfaces = netifaces.interfaces()
+         for family in [ netifaces.AF_INET, netifaces.AF_INET6 ]:
+            for interface in interfaces:
+               interfaceAddresses = netifaces.ifaddresses(interface).get(family)
+               if interfaceAddresses:
+                  for interfaceAddress in interfaceAddresses:
+                     address = ipaddress.ip_address(interfaceAddress['addr'])
+                     if (not address.is_link_local) and (not address.is_loopback):
+                        addresses.add(address)
 
-   # ====== Append IP addresses to subjectAltName ===========================
-   addresses = sorted(addresses, key=IP_COMPARATOR)
-   for address in addresses:
-      subjectAltName = subjectAltName + ',IP:' + str(address)
+      # ====== Look up addresses ============================================
+      elif hint == 'LOOKUP':
+         print('Resolving ' + name + ' ...\n')
+         try:
+            resolveResults = socket.getaddrinfo(name, 80)
+         except socket.gaierror as e:
+            sys.stderr.write('ERROR: Resolving of ' + name + ' failed: ' + str(e) + '\n')
+            sys.exit(1)
+         for resolveEntry in resolveResults:
+            address = ipaddress.ip_address(resolveEntry[4][0])
+            addresses.add(address)
 
-   return subjectAltName
+      # ====== Append IP addresses to subjectAltName ========================
+      addresses = sorted(addresses, key=IP_COMPARATOR)
+      for address in addresses:
+         subjectAltName = subjectAltName + ',IP:' + str(address)
+
+      return ( name, subjectAltName )
+
+   # ====== User certificate ================================================
+   elif certType == CertificateType.User:
+
+      match = RE_USEREMAIL.match(name)
+      if match:
+         name           = match.group(1)
+         subjectAltName = 'EMAIL:' + match.group(3)
+         return ( name, subjectAltName )
+
+   return ( name, '' )
 
 
 
@@ -158,8 +177,9 @@ class CA:
                 keyLength         : Final[int]         = DefaultCAKeyLength,
                 globalCRLFileName : Final[os.PathLike] = DefaultGlobalCRLFileName):
 
+      safeName               : Final[str] = re.sub('[^a-zA-Z0-9+-]', '_', name)
       self.MainDirectory     : Final[os.PathLike]     = os.path.abspath(mainDirectory)
-      self.Directory         : Final[os.PathLike]     = os.path.join(self.MainDirectory, name)
+      self.Directory         : Final[os.PathLike]     = os.path.join(self.MainDirectory, safeName)
       self.GlobalCRLFileName : Final[os.PathLike]     = os.path.join(self.MainDirectory, globalCRLFileName)
       self.Subject           : Final[str]             = subject
       self.CAName            : Final[str]             = name
@@ -186,12 +206,12 @@ class CA:
       self.IndexFileName     : Final[os.PathLike] = os.path.join(self.Directory, 'index.txt')
       self.SerialFileName    : Final[os.PathLike] = os.path.join(self.Directory, 'serial')
       self.CRLNumberFileName : Final[os.PathLike] = os.path.join(self.Directory, 'crlnumber')
-      self.ConfigFileName    : Final[os.PathLike] = os.path.join(self.Directory, name + '.conf')
+      self.ConfigFileName    : Final[os.PathLike] = os.path.join(self.Directory, safeName + '.conf')
 
-      self.KeyFileName       : Final[os.PathLike] = os.path.join(self.PrivateDirectory, name + '.key')
-      self.PasswordFileName  : Final[os.PathLike] = os.path.join(self.PrivateDirectory, name + '.password')
-      self.CertFileName      : Final[os.PathLike] = os.path.join(self.CertsDirectory,   name + '.crt')
-      self.CRLFileName       : Final[os.PathLike] = os.path.join(self.CRLDirectory,     name + '.crl')
+      self.KeyFileName       : Final[os.PathLike] = os.path.join(self.PrivateDirectory, safeName + '.key')
+      self.PasswordFileName  : Final[os.PathLike] = os.path.join(self.PrivateDirectory, safeName + '.password')
+      self.CertFileName      : Final[os.PathLike] = os.path.join(self.CertsDirectory,   safeName + '.crt')
+      self.CRLFileName       : Final[os.PathLike] = os.path.join(self.CRLDirectory,     safeName + '.crl')
 
       if VerboseMode or not os.path.isfile(self.CertFileName):
          sys.stdout.write('\x1b[34mCreating CA ' + name + ' ...\x1b[0m\n')
@@ -261,12 +281,12 @@ default_md                      = sha512
 policy                          = policy_any
 email_in_dn                     = yes
 
-name_opt                        = ca_default   # Subject name display option
-cert_opt                        = ca_default   # Certificate display option
-copy_extensions                 = none         # Don't copy extensions from request
+name_opt                        = multiline,-esc_msb,utf8   # Subject name display option
+cert_opt                        = ca_default                # Certificate display option
+copy_extensions                 = none                      # Don't copy extensions from request
 
 [ policy_any ]
-countryName                     = supplied
+countryName                     = optional
 stateOrProvinceName             = optional
 localityName                    = optional
 organizationName                = optional
@@ -280,6 +300,7 @@ emailAddress                    = optional
 default_bits                    = 4096
 default_md                      = sha512
 distinguished_name              = req_distinguished_name
+utf8                            = yes
 string_mask                     = utf8only
 
 # Extension to add when the -x509 option is used:
@@ -355,6 +376,7 @@ basicConstraints       = CA:FALSE
 subjectKeyIdentifier   = hash
 keyUsage               = critical, nonRepudiation, digitalSignature, keyEncipherment
 extendedKeyUsage       = critical, clientAuth, emailProtection, codeSigning
+subjectAltName         = ${ENV::SAN}
 """)
          configFile.close()
 
@@ -578,8 +600,9 @@ class Certificate:
 
       sys.stdout.write('\x1b[34mCreating certificate ' + name + ' ...\x1b[0m\n')
 
+      safeName            : Final[str] = re.sub('[^a-zA-Z0-9+-]', '_', name)
       self.CA             : CA                     = ca
-      self.Directory      : Final[os.PathLike]     = os.path.join(os.path.abspath(mainDirectory), name)
+      self.Directory      : Final[os.PathLike]     = os.path.join(os.path.abspath(mainDirectory), safeName)
       self.Subject        : Final[str]             = subjectWithoutCN + '/CN=' + name
       self.SubjectAltName : Final[str]             = subjectAltName
       self.CertType       : Final[CertificateType] = certType
@@ -593,9 +616,10 @@ class Certificate:
       else:
          raise Exception('Invalid certificate type')
 
+
       self.KeyLength    : Final[os.PathLike] = keyLength
-      self.KeyFileName  : Final[os.PathLike] = os.path.join(self.Directory, name + '.key')
-      self.CertFileName : Final[os.PathLike] = os.path.join(self.Directory, name + '.crt')
+      self.KeyFileName  : Final[os.PathLike] = os.path.join(self.Directory, safeName + '.key')
+      self.CertFileName : Final[os.PathLike] = os.path.join(self.Directory, safeName + '.crt')
 
       os.makedirs(self.Directory, exist_ok = True)
 
@@ -619,7 +643,7 @@ class Certificate:
       # ====== Generate certificate signed by CA ============================
       if not os.path.isfile(self.CertFileName):
          # ------ Generate CSR ----------------------------------------------
-         csrFileName : Final[os.PathLike] = os.path.join(self.Directory, name + '.csr')
+         csrFileName : Final[os.PathLike] = os.path.join(self.Directory, safeName + '.csr')
          sys.stdout.write('\x1b[33mGenerating CSR ' + csrFileName + ' ...\x1b[0m\n')
          execute('SAN="' + self.SubjectAltName + '" openssl req' +
                  ' -new'          +   # Not self-signed

@@ -51,7 +51,7 @@ while i < len(sys.argv):
    elif sys.argv[i] == '--client':
       certType = CertificateType.Client
    elif sys.argv[i] == '--user':
-      certType = CertificateType.user
+      certType = CertificateType.User
    elif sys.argv[i] == '--revoke-if-existing':
       revokeIfExisting = True
    elif sys.argv[i] == '--ignore-if-existing':
@@ -64,13 +64,7 @@ while i < len(sys.argv):
       sys.stderr.write('ERROR: Invalid parameter ' + sys.argv[i] + '!\n')
       sys.exit(1)
    else:
-      name : str = sys.argv[i]
-      san  : str = subjectAltName
-      if san in [ None, 'LOCAL', 'LOOKUP' ]:
-         if (certType == CertificateType.Server) or (certType == CertificateType.Client):
-            san = prepareSubjectAltName(name, subjectAltName)
-         else:
-            san = ''
+      ( name,  san ) = prepareSubjectAltName(certType, sys.argv[i], subjectAltName)
       certificatesToCreate.append({ 'name'             : name,
                                     'type'             : certType,
                                     'subjectAltName'   : san,
