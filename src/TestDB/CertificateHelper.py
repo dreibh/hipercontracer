@@ -28,8 +28,12 @@
 #
 # Contact: dreibh@simula.no
 
+import functools
+import ipaddress
+import netifaces
 import os
 import shutil
+import socket
 import sys
 from typing import Final
 from enum   import Enum
@@ -58,6 +62,7 @@ DefaultCertKeyLength : Final[int] = 4096
 VerboseMode : bool = False
 
 
+
 # ###### Execute command ####################################################
 def execute(command : str, mayFail : bool = False) -> int:
    result = 1
@@ -73,12 +78,75 @@ def execute(command : str, mayFail : bool = False) -> int:
    return result
 
 
+# ###### Helper function for sorting IP addresses ###########################
+def ip_address_comparator(a : ipaddress.ip_address,
+                          b : ipaddress.ip_address) -> int:
+   if a.version < b.version:
+      return -1
+   elif a.version > b.version:
+      return 1
+   else:
+      if a < b:
+         return -1
+      elif a > b:
+         return 1
+   return 0
+
+IP_COMPARATOR = functools.cmp_to_key(ip_address_comparator)
+
+
+# ###### Make "subjectAltName" string #######################################
+def prepareSubjectAltName(name : str, hint : str | None) -> str:
+
+   # ====== Prepare subjectAltName: current hostname+all addresses ==========
+   subjectAltName : str                      = 'DNS:' + name
+   addresses      : set[ipaddress.ipaddress] = set()
+
+   # ====== Get local addresses =============================================
+   if (hint == None) or (hint == 'LOCAL'):
+      # ------ Add FQDN of current hostname ---------------------------------
+      fqdn : str = socket.getfqdn()
+      if ((fqdn != name) and (fqdn != 'localhost')):
+         subjectAltName = subjectAltName + ',DNS:' + fqdn
+
+      # ------ Add all IP addresses -----------------------------------------
+      interfaces = netifaces.interfaces()
+      for family in [ netifaces.AF_INET, netifaces.AF_INET6 ]:
+         for interface in interfaces:
+            interfaceAddresses = netifaces.ifaddresses(interface).get(family)
+            if interfaceAddresses:
+               for interfaceAddress in interfaceAddresses:
+                  address = ipaddress.ip_address(interfaceAddress['addr'])
+                  if (not address.is_link_local) and (not address.is_loopback):
+                     addresses.add(address)
+
+   # ====== Look up addresses ===============================================
+   elif hint == 'LOOKUP':
+      print('Resolving ' + name + ' ...\n')
+      try:
+         resolveResults = socket.getaddrinfo(name, 80)
+      except socket.gaierror as e:
+         sys.stderr.write('ERROR: Resolving of ' + name + ' failed: ' + str(e) + '\n')
+         sys.exit(1)
+      for resolveEntry in resolveResults:
+         address = ipaddress.ip_address(resolveEntry[4][0])
+         addresses.add(address)
+
+   # ====== Append IP addresses to subjectAltName ===========================
+   addresses = sorted(addresses, key=IP_COMPARATOR)
+   for address in addresses:
+      subjectAltName = subjectAltName + ',IP:' + str(address)
+
+   return subjectAltName
+
+
 
 # ###### CA #################################################################
 GlobalCRLSet             : set[os.PathLike] = set([])
 DefaultGlobalCRLFileName : os.PathLike      = 'Test.crl'
 
 class CA:
+
    # ###### Constructor #####################################################
    def __init__(self,
                 mainDirectory     : Final[os.PathLike],
@@ -89,7 +157,6 @@ class CA:
                 days              : Final[int]         = 10 * 365,
                 keyLength         : Final[int]         = DefaultCAKeyLength,
                 globalCRLFileName : Final[os.PathLike] = DefaultGlobalCRLFileName):
-      sys.stdout.write('\x1b[34mCreating CA ' + name + ' ...\x1b[0m\n')
 
       self.MainDirectory     : Final[os.PathLike]     = os.path.abspath(mainDirectory)
       self.Directory         : Final[os.PathLike]     = os.path.join(self.MainDirectory, name)
@@ -116,10 +183,18 @@ class CA:
       self.CRLDirectory      : Final[os.PathLike] = os.path.join(self.Directory, 'crl')
       self.PrivateDirectory  : Final[os.PathLike] = os.path.join(self.Directory, 'private')
 
+      self.IndexFileName     : Final[os.PathLike] = os.path.join(self.Directory, 'index.txt')
+      self.SerialFileName    : Final[os.PathLike] = os.path.join(self.Directory, 'serial')
+      self.CRLNumberFileName : Final[os.PathLike] = os.path.join(self.Directory, 'crlnumber')
+      self.ConfigFileName    : Final[os.PathLike] = os.path.join(self.Directory, name + '.conf')
+
       self.KeyFileName       : Final[os.PathLike] = os.path.join(self.PrivateDirectory, name + '.key')
       self.PasswordFileName  : Final[os.PathLike] = os.path.join(self.PrivateDirectory, name + '.password')
       self.CertFileName      : Final[os.PathLike] = os.path.join(self.CertsDirectory,   name + '.crt')
       self.CRLFileName       : Final[os.PathLike] = os.path.join(self.CRLDirectory,     name + '.crl')
+
+      if VerboseMode or not os.path.isfile(self.CertFileName):
+         sys.stdout.write('\x1b[34mCreating CA ' + name + ' ...\x1b[0m\n')
 
       # ====== Create directories, if not already existing ==================
       for directory in [
@@ -136,25 +211,21 @@ class CA:
                   exist_ok = True)
 
       # ====== Create index.txt, serial and crlnumber files =================
-      self.IndexFileName : Final[os.PathLike] = os.path.join(self.Directory, 'index.txt')
       if not os.path.isfile(self.IndexFileName):
          indexFile = open(self.IndexFileName, 'w', encoding='ascii')
          indexFile.close()
 
-      self.SerialFileName : Final[os.PathLike] = os.path.join(self.Directory, 'serial')
       if not os.path.isfile(self.SerialFileName):
          serialFile = open(self.SerialFileName, 'w', encoding='ascii')
          serialFile.write('00')
          serialFile.close()
 
-      self.CRLNumberFileName : Final[os.PathLike] = os.path.join(self.Directory, 'crlnumber')
       if not os.path.isfile(self.CRLNumberFileName):
          crlnumberFile = open(self.CRLNumberFileName, 'w', encoding='ascii')
          crlnumberFile.write('00')
          crlnumberFile.close()
 
       # ====== Generate CA configuration file ===============================
-      self.ConfigFileName : Final[os.PathLike] = os.path.join(self.Directory, name + '.conf')
       if not os.path.isfile(self.ConfigFileName):
          configFile = open(os.path.join(self.ConfigFileName), 'w', encoding='utf-8')
          configFile.write("""
@@ -314,6 +385,9 @@ extendedKeyUsage       = critical, clientAuth, emailProtection, codeSigning
       # ====== Generate self-signed root CA certificate =====================
       self.RootCA : 'CA' = None
       if parentCA == None:
+         # ------ Set reference to root CA (i.e. to itself) -----------------
+         self.RootCA = self
+
          if not os.path.isfile(self.CertFileName):
             sys.stdout.write('\x1b[33mGenerating self-signed root CA certificate ' + self.CertFileName + ' ...\x1b[0m\n')
             execute('SAN="" openssl req' +
@@ -327,11 +401,17 @@ extendedKeyUsage       = critical, clientAuth, emailProtection, codeSigning
                     ' -out '             + self.CertFileName)
             assert os.path.isfile(self.CertFileName)
 
-         # ------ Set reference to root CA (i.e. to itself) -----------------
-         self.RootCA = self
 
       # ====== Generate CA certificate signed by parent CA ==================
       else:
+         # ------ Set reference to root CA ----------------------------------
+         if self.ParentCA == None:
+            self.RootCA = self
+         else:
+            self.RootCA = self.ParentCA
+            while self.RootCA.ParentCA != None:
+               self.RootCA = self.RootCA.ParentCA
+
          if not os.path.isfile(self.CertFileName):
             # ------ Generate CSR -------------------------------------------
             csrFileName : Final[os.PathLike] = self.CertFileName + '.csr'
@@ -373,40 +453,33 @@ extendedKeyUsage       = critical, clientAuth, emailProtection, codeSigning
             if os.path.exists(csrFileName):
                os.remove(csrFileName)
 
-         # ------ Set reference to root CA ----------------------------------
-         if self.ParentCA == None:
-            self.RootCA = self
-         else:
-            self.RootCA = self.ParentCA
-            while self.RootCA.ParentCA != None:
-               self.RootCA = self.RootCA.ParentCA
+
+            # Check root CA -> ... -> certificate
+            # NOTE: Using option "-untrusted" to mark the whole chain as untrusted
+            #       works! The CAfile is always trusted, and OpenSSL will verify
+            #       all certificates of the chain.
+            #       -> https://stackoverflow.com/questions/25482199/verify-a-certificate-chain-using-openssl-verify
+            cmd = 'openssl verify ' + \
+                  ' -show_chain'    + \
+                  ' -verbose'       + \
+                  ' -CAfile '       + self.RootCA.CertFileName
+            if self.ParentCA:
+               cmd += ' -untrusted ' + self.ParentCA.CertFileName
+            cmd +=' ' + self.CertFileName
+            execute(cmd)
 
 
       # ====== Generate initial CRL =========================================
       GlobalCRLSet.add(self.CRLFileName)
-      self.generateCRL()
+      # self.generateCRL()
 
 
-      # ====== Verify certificate ===========================================
-      # Print the certificate:
-      execute('openssl x509 '                  +
-              ' -noout'                        +   # Do not dump the encoded certificate
-              ' -subject -ext subjectAltName ' +   # Print basic information
-              ' -in ' + self.CertFileName)
-
-      # Check root CA -> ... -> certificate
-      # NOTE: Using option "-untrusted" to mark the whole chain as untrusted
-      #       works! The CAfile is always trusted, and OpenSSL will verify
-      #       all certificates of the chain.
-      #       -> https://stackoverflow.com/questions/25482199/verify-a-certificate-chain-using-openssl-verify
-      cmd = 'openssl verify ' + \
-            ' -show_chain'    + \
-            ' -verbose'       + \
-            ' -CAfile '       + self.RootCA.CertFileName
-      if self.ParentCA:
-         cmd += ' -untrusted ' + self.ParentCA.CertFileName
-      cmd +=' ' + self.CertFileName
-      execute(cmd)
+      # ====== Print certificate ============================================
+      if VerboseMode:
+         execute('openssl x509 '                  +
+               ' -noout'                        +   # Do not dump the encoded certificate
+               ' -subject -ext subjectAltName ' +   # Print basic information
+               ' -in ' + self.CertFileName)
 
 
    # ###### Sign certificate ################################################
@@ -491,6 +564,8 @@ extendedKeyUsage       = critical, clientAuth, emailProtection, codeSigning
 
 # ###### Server/User Certificate ############################################
 class Certificate:
+
+   # ###### Constructor #####################################################
    def __init__(self,
                 mainDirectory    : Final[os.PathLike],
                 name             : Final[str],
@@ -498,8 +573,10 @@ class Certificate:
                 subjectWithoutCN : Final[str],
                 subjectAltName   : Final[str],
                 certType         : Final[CertificateType] = CertificateType.Server,
-                keyLength        : Final[int]             = DefaultCertKeyLength):
-      sys.stdout.write('\x1b[34mCreating server ' + name + ' ...\x1b[0m\n')
+                keyLength        : Final[int]             = DefaultCertKeyLength,
+                revokeIfExisting : Final[bool]            = False):
+
+      sys.stdout.write('\x1b[34mCreating certificate ' + name + ' ...\x1b[0m\n')
 
       self.CA             : CA                     = ca
       self.Directory      : Final[os.PathLike]     = os.path.join(os.path.abspath(mainDirectory), name)
@@ -510,7 +587,7 @@ class Certificate:
       if self.CertType == CertificateType.Server:
          self.Extension = 'server_cert'
       elif self.CertType == CertificateType.Client:
-         self.Extension = 'client_server'
+         self.Extension = 'client_cert'
       elif self.CertType == CertificateType.User:
          self.Extension = 'user_cert'
       else:
@@ -523,8 +600,9 @@ class Certificate:
       os.makedirs(self.Directory, exist_ok = True)
 
       # ====== Revoke existing certificate first ============================
-      if os.path.isfile(self.CertFileName):
-         self.revoke()
+      if revokeIfExisting:
+         if os.path.isfile(self.CertFileName):
+            self.revoke()
 
       # ====== Generate key =================================================
       if not os.path.isfile(self.KeyFileName):
@@ -561,8 +639,7 @@ class Certificate:
          if os.path.exists(csrFileName):
             os.remove(csrFileName)
 
-
-      assert self.verify()
+         assert self.verify()
 
       # ====== Verify certificate ===========================================
       # Print certificate:
