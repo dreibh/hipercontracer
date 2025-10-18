@@ -41,6 +41,7 @@ usage () {
 # ###### Main program #######################################################
 
 # ====== Handle arguments ===================================================
+DIRNAME=$(dirname "$0")
 GETOPT="$(PATH=/usr/local/bin:${PATH} which getopt)"
 options="$(${GETOPT} -o c:h --long crl:,help -a -- "$@")"
 # shellcheck disable=SC2181
@@ -172,62 +173,39 @@ BEGIN {
       trap 'rm -rf "${db}"' EXIT
       db=$(mktemp --tmpdir -d "check-certificate-nss.XXXXXXXXXX")
       mkdir -p "${db}/tmp"
-      cp "${CERT}" "${db}/tmp/cert.crt"
 
       "${CERTUTIL}" --empty-password -N -d "${db}"
       if [ "${CA}" != "${CERT}" ] ; then
          "${CERTUTIL}" -A -n "My Root CA" -t "CT,C,C" -e -d "${db}" -a -i "${CA}" -u L
       fi
-      if [ "${CRL}" != "" ] ; then
-         # NSS wants the CRL in DER instead of PEM format:
-         "${OPENSSL}" crl -outform der -in "${CRL}" -out "${db}/tmp/crl.der"
-      fi
       "${CERTUTIL}" -A -n "My Certificate" -t ",," -e -d "${db}" -a -i "${CERT}"
 
-      # ------ Extract the certificate --------------------------------------
-      cd "${db}/tmp"
-      awk '\
-BEGIN {
-   component=0;
-   inBlock=0;
-}
-
-/-----BEGIN CERTIFICATE-----/ {
-   component++;
-   outputFileName = sprintf("%02u", component);
-   print >outputFileName;
-   inBlock=1;
-   next
-}
-
-/-----END CERTIFICATE-----/ {
-   print >outputFileName;
-   close(outputFileName);
-   inBlock=0;
-   next
-}
-
-inBlock {
-   print >outputFileName;
-}
-' <cert.crt
-
-      # ------ Process each sub-CA individually -----------------------------
-      find . -name "[0-9][0-9]" -printf "%f\n" | sort | tail -n1 | xargs -r rm
+      # ------ Extract certificate and process each sub-CA individually -----
+      "${DIRNAME}/extract-pem" "${CERT}" --skip-first-entry --skip-last-entry \
+         --output-prefix "${db}/tmp/certificate-"
       subCA=0
-      find . -name "[0-9][0-9]" -printf "%f\n" | sort -r | \
+      find "${db}/tmp" -name "certificate-[0-9]*.crt" | sort -r | \
          while read -r name ; do
             subCA=$((subCA + 1))
             "${CERTUTIL}" -A -n "My Sub CA ${subCA}" -t ",," -e -d "${db}" -a -i "${name}" -u L
          done
+      find "${db}/tmp" -name "certificate-[0-9]*.crl"
 
-      # Finally, add the CRL:
-      if [ -e crl.der ] ; then
-         "${CRLUTIL}" -I -d "${db}" -a -i crl.der
+      # ------ Extract CRL file and process each CRL individually -----------
+      if [ "${CRL}" != "" ] ; then
+         "${DIRNAME}/extract-pem" "${CRL}" --output-prefix "${db}/tmp/crl-"
+
+         # NSS wants the CRL in DER instead of PEM format, i.e. it needs
+         # to be converted first. Finally, it can be imported by NSS.
+         find "${db}/tmp" -name "crl-*.crl" | \
+            while read -r crl ; do
+               "${OPENSSL}" crl -outform der -in "${crl}" -out "${crl}.der"
+               "${CRLUTIL}" -I -d "${db}" -a -i "${crl}.der"
+            done
       fi
 
-      "${CERTUTIL}" -L -d "${db}"
-      "${CRLUTIL}" -L -d "${db}"
+      # "${CERTUTIL}" -L -d "${db}"
+      # "${CRLUTIL}" -L -d "${db}"
 
       # ------ Finally, it is possible to verify the validity chain ---------
       declare -A types=(
@@ -250,7 +228,8 @@ inBlock {
          errors=$((errors + 1))
          echo -e "\e[31;1mFAILED!\e[0m"
          "${CERTUTIL}" -V -e -u "${setting}" -n "My Certificate" -d "${db}" || true
-         "${CERTUTIL}" -L "${db}" || true
+         # "${CERTUTIL}" -L -d "${db}"
+         # "${CRLUTIL}" -L -d "${db}"
       fi
    else
       echo "(NSS CertTool is not installed)"
