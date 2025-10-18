@@ -1,0 +1,121 @@
+#!/usr/bin/env bash
+# ==========================================================================
+#     _   _ _ ____            ____          _____
+#    | | | (_)  _ \ ___ _ __ / ___|___  _ _|_   _| __ __ _  ___ ___ _ __
+#    | |_| | | |_) / _ \ '__| |   / _ \| '_ \| || '__/ _` |/ __/ _ \ '__|
+#    |  _  | |  __/  __/ |  | |__| (_) | | | | || | | (_| | (_|  __/ |
+#    |_| |_|_|_|   \___|_|   \____\___/|_| |_|_||_|  \__,_|\___\___|_|
+#
+#       ---  High-Performance Connectivity Tracer (HiPerConTracer)  ---
+#                 https://www.nntb.no/~dreibh/hipercontracer/
+# ==========================================================================
+#
+# High-Performance Connectivity Tracer (HiPerConTracer)
+# Copyright (C) 2015-2025 by Thomas Dreibholz
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+# Contact: dreibh@simula.no
+
+set -eu
+
+
+# ###### Usage ##############################################################
+usage () {
+   echo >&2 "Usage: $0 [-o|--output-prefix file_name_prefix] pem_file [...]"
+   exit 1
+}
+
+
+# ###### Main program #######################################################
+
+# ====== Handle arguments ===================================================
+GETOPT="$(PATH=/usr/local/bin:${PATH} which getopt)"
+options="$(${GETOPT} -o o:h --long output-prefix:,help -a -- "$@")"
+# shellcheck disable=SC2181
+if [[ $? -ne 0 ]]; then
+   usage
+fi
+
+OUTPUT_PREFIX="output"
+eval set -- "${options}"
+while [ $# -gt 0 ] ; do
+   case "$1" in
+      -o | --output-prefix)
+         OUTPUT_PREFIX="$2"
+         shift 2
+         ;;
+      --)
+         shift
+         break
+         ;;
+  esac
+done
+if [ $# -lt 1 ] ; then
+   usage
+fi
+
+# ====== Extract each PEM file ==============================================
+certificate=0
+csr=0
+crl=0
+key=0
+while [ $# -gt 0 ] ; do
+   PEM_FILE="$1"
+   shift
+   if [ ! -e "${PEM_FILE}" ] ; then
+      echo >&2 "ERROR: Unable to find PEM file ${PEM_FILE}!"
+      exit 1
+   fi
+
+   echo -e "\e[34mExtracting ${PEM_FILE} ...\e[0m"
+   outputFile=""
+   while read -e line ; do
+      if [ "${outputFile}" == "" ] ; then
+         if [[ "${line}" =~ ^(-----BEGIN )(CERTIFICATE|CERTIFICATE REQUEST|X509 CRL|PRIVATE KEY|ENCRYPTED PRIVATE KEY)(-----)$ ]] ; then
+            type="${BASH_REMATCH[2]}"
+            if [ "${type}" == "CERTIFICATE" ] ; then
+               certificate=$((certificate + 1))
+               outputFile="${OUTPUT_PREFIX}-${certificate}.crt"
+            elif [ "${type}" == "CERTIFICATE REQUEST" ] ; then
+               csr=$((csr + 1))
+               outputFile="${OUTPUT_PREFIX}-${csr}.csr"
+            elif [ "${type}" == "X509 CRL" ] ; then
+               crl=$((crl + 1))
+               outputFile="${OUTPUT_PREFIX}-${crl}.crl"
+            elif [ "${type}" == "PRIVATE KEY" ] || \
+                 [ "${type}" == "ENCRYPTED PRIVATE KEY" ] ; then
+               key=$((crl + 1))
+               outputFile="${OUTPUT_PREFIX}-${key}.key"
+               touch "${outputFile}"
+               chmod 600 "${outputFile}"
+            else
+               echo >&2 "ERROR: Unexpected type ${type} in ${PEM_FILE}!"
+               exit 1
+            fi
+            echo "${line}" >>"${outputFile}"
+         else
+            echo >&2 "ERROR: Unexpected data in ${PEM_FILE}!"
+         fi
+      else
+         if [[ "${line}" =~ ^(-----END ) ]] ; then
+            echo "${line}" >>"${outputFile}"
+            outputFile=""
+         else
+            echo "${line}" >>"${outputFile}"
+         fi
+      fi
+   done <"${PEM_FILE}"
+done
+echo -e "\e[34mDone: ${certificate} certificates, ${csr} CSRs, ${crl} CRLs, ${key} keys\e[0m"
