@@ -291,8 +291,14 @@ stateOrProvinceName             = optional
 localityName                    = optional
 organizationName                = optional
 organizationalUnitName          = optional
+streetAddress                   = optional
+postalCode                      = optional
 commonName                      = supplied
 emailAddress                    = optional
+title                           = optional
+surname                         = optional
+givenName                       = optional
+initials                        = optional
 
 # ====== PKCS#10 certificate request and certificate settings ===============
 [ req ]
@@ -317,7 +323,7 @@ emailAddress                    = Email Address
 
 # Optionally, specify some defaults.
 countryName_default             = NO
-stateOrProvinceName_default     = Norway
+stateOrProvinceName_default     = Oslo
 localityName_default            = Oslo
 0.organizationName_default      =
 organizationalUnitName_default  =
@@ -659,7 +665,7 @@ class Certificate:
          self.CA.signCertificate(self, csrFileName)
          assert os.path.isfile(self.CertFileName)
 
-         # ====== Remove CSR ---------------------------------------------
+         # ------ Remove CSR ------------------------------------------------
          if os.path.exists(csrFileName):
             os.remove(csrFileName)
 

@@ -100,41 +100,41 @@ globalCRLFileName = "TestGlobal.crl"
 # Create Test Root Level-1 CA certificate (self-signed):
 TestLevel1 = CA(mainDirectory, 'TestLevel1',
                 parentCA  = None,
-                subject   = '/C=NO/ST=Oslo/L=Oslo/O=Simula Research Laboratory/CN=Test Level-1 CA Certificate',
+                subject   = '/C=NO/ST=Oslo/L=Oslo/O=Simula Research Laboratory/streetAddress=Kristian Augusts gate 23/postalCode=0164/CN=Test Level-1 CA Certificate',
                 certType  = CertificateType.RootCA,
                 keyLength = caKeyLength, globalCRLFileName = globalCRLFileName)
 
 # Create Test Root Level-2 CA certificate (signed by Test Root Level-1):
 TestLevel2 = CA(mainDirectory, 'TestLevel2',
                 parentCA  = TestLevel1,
-                subject   = '/C=NO/ST=Oslo/L=Oslo/O=Simula Research Laboratory/CN=Test Level-2 CA Certificate',
+                subject   = '/C=NO/ST=Oslo/L=Oslo/O=Simula Research Laboratory/streetAddress=Kristian Augusts gate 23/postalCode=0164/CN=Test Level-2 CA Certificate',
                 certType  = CertificateType.IntermediateCA,
                 keyLength = caKeyLength, globalCRLFileName = globalCRLFileName)
 
 # Create Test Intermediate CA certificate (signed by Test Root Level-2):
 TestIntermediate1 = CA(mainDirectory, 'TestIntermediate1',
                        parentCA  = TestLevel2,
-                       subject   = '/C=NO/ST=Oslo/L=Oslo/O=Simula Metropolitan Centre for Digital Engineering (SimulaMet)/CN=*',
+                       subject   = '/C=NO/ST=Oslo/L=Oslo/O=Simula Metropolitan Centre for Digital Engineering (SimulaMet)/streetAddress=Stensberggata 27/postalCode=0170/CN=*',
                        certType  = CertificateType.IntermediateCA,
                        keyLength = caKeyLength, globalCRLFileName = globalCRLFileName)
 
 # Create Test Intermediate CA certificate (signed by Test Root Level-2):
 TestIntermediate2 = CA(mainDirectory, 'TestIntermediate2',
                        parentCA  = TestIntermediate1,
-                       subject   = '/C=NO/ST=Oslo/L=Oslo/O=Simula Metropolitan Centre for Digital Engineering (SimulaMet)/OU=Centre for Resilient Networks and Applications (CRNA)/CN=*',
+                       subject   = '/C=NO/ST=Oslo/L=Oslo/O=Simula Metropolitan Centre for Digital Engineering (SimulaMet)/OU=Centre for Resilient Networks and Applications (CRNA)/streetAddress=Stensberggata 27/postalCode=0170/CN=*',
                        certType  = CertificateType.IntermediateCA,
                        keyLength = caKeyLength, globalCRLFileName = globalCRLFileName)
 
 # Create Test Leaf CA certificate (signed by Test Intermediate):
 TestLeaf = CA(mainDirectory, 'TestLeaf',
               parentCA  = TestIntermediate2,
-              subject   = '/C=NO/ST=Oslo/L=Oslo/O=Simula Metropolitan Centre for Digital Engineering (SimulaMet)/OU=SimulaMet Interoperability Lab (SMIL)/CN=*/',
+              subject   = '/C=NO/ST=Oslo/L=Oslo/O=Simula Metropolitan Centre for Digital Engineering (SimulaMet)/OU=SimulaMet Interoperability Lab (SMIL)/streetAddress=Stensberggata 27/postalCode=0170/CN=*/',
               certType  = CertificateType.LeafCA,
               keyLength = caKeyLength, globalCRLFileName = globalCRLFileName)
 
 
 # ====== Create Test Servers ================================================
-subject = '/C=NO/ST=Oslo/L=Oslo/O=Simula Metropolitan Centre for Digital Engineering (SimulaMet)/OU=SimulaMet Interoperability Lab (SMIL)'
+subject = '/C=NO/ST=Oslo/L=Oslo/O=Simula Metropolitan Centre for Digital Engineering (SimulaMet)/OU=SimulaMet Interoperability Lab (SMIL)/streetAddress=Stensberggata 27/postalCode=0170'
 
 certificates = { }
 for certificateToCreate in certificatesToCreate:
