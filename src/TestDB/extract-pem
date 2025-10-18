@@ -66,6 +66,10 @@ while [ $# -gt 0 ] ; do
          SKIP_LAST=1
          shift
          ;;
+      -h | --help)
+         usage
+         # shift
+         ;;
       --)
          shift
          break
