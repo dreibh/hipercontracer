@@ -72,6 +72,7 @@ shift
 OPENSSL="$(which openssl || true)"
 CERTTOOL="$(which certtool || true)"
 CERTUTIL="$(which certutil || true)"
+CRLUTIL="$(which crlutil || true)"
 
 # ====== Look for CA certificate ============================================
 if [ ! -e "${CA}" ] ; then
@@ -127,7 +128,6 @@ BEGIN {
          crlOption="-CRLfile \"${CRL}\" -crl_check"
       fi
       command="\"${OPENSSL}\" verify -CAfile \"${CA}\" ${crlOption} --untrusted \"${CERT}\" \"${CERT}\""
-      echo "$command"
       if sh -c "${command}" >/dev/null 2>&1 ; then
          echo -e "\e[32;1mOKAY\e[0m"
       else
@@ -162,7 +162,7 @@ BEGIN {
 
    # ====== NSS =============================================================
    echo -en "\e[33mNSS:    \e[0m "
-   if [ "${CERTUTIL}" != "" ] ; then
+   if [ "${CERTUTIL}" != "" ] && [ "${CRLUTIL}" != "" ] ; then
 
       # NOTE:
       # NSS does not support importing a certificate with CAs bundled! It is
@@ -171,15 +171,20 @@ BEGIN {
       # ------ Create temporary directory for database ----------------------
       trap 'rm -rf "${db}"' EXIT
       db=$(mktemp --tmpdir -d "check-certificate-nss.XXXXXXXXXX")
+      mkdir -p "${db}/tmp"
+      cp "${CERT}" "${db}/tmp/cert.crt"
+
       "${CERTUTIL}" --empty-password -N -d "${db}"
       if [ "${CA}" != "${CERT}" ] ; then
          "${CERTUTIL}" -A -n "My Root CA" -t "CT,C,C" -e -d "${db}" -a -i "${CA}" -u L
       fi
+      if [ "${CRL}" != "" ] ; then
+         # NSS wants the CRL in DER instead of PEM format:
+         "${OPENSSL}" crl -outform der -in "${CRL}" -out "${db}/tmp/crl.der"
+      fi
       "${CERTUTIL}" -A -n "My Certificate" -t ",," -e -d "${db}" -a -i "${CERT}"
 
       # ------ Extract the certificate --------------------------------------
-      mkdir -p "${db}/tmp"
-      cp "${CERT}" "${db}/tmp/cert.crt"
       cd "${db}/tmp"
       awk '\
 BEGIN {
@@ -216,7 +221,13 @@ inBlock {
             "${CERTUTIL}" -A -n "My Sub CA ${subCA}" -t ",," -e -d "${db}" -a -i "${name}" -u L
          done
 
-      # "${CERTUTIL}" -L -d "${db}"
+      # Finally, add the CRL:
+      if [ -e crl.der ] ; then
+         "${CRLUTIL}" -I -d "${db}" -a -i crl.der
+      fi
+
+      "${CERTUTIL}" -L -d "${db}"
+      "${CRLUTIL}" -L -d "${db}"
 
       # ------ Finally, it is possible to verify the validity chain ---------
       declare -A types=(
