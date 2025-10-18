@@ -30,20 +30,58 @@
 
 set -eu
 
-if [ $# -lt 2 ] ; then
-   echo >&2 "Usage: $0 ca_certificate certificate ..."
+
+# ###### Usage ##############################################################
+usage () {
+   echo >&2 "Usage: $0 [-C|--crl crl] [-h|--help] ca_certificate certificate [...]"
    exit 1
+}
+
+
+# ###### Main program #######################################################
+
+# ====== Handle arguments ===================================================
+GETOPT="$(PATH=/usr/local/bin:${PATH} which getopt)"
+options="$(${GETOPT} -o c:h --long crl:,help -a -- "$@")"
+# shellcheck disable=SC2181
+if [[ $? -ne 0 ]]; then
+   usage
+fi
+
+CRL=""
+eval set -- "${options}"
+while [ $# -gt 0 ] ; do
+   case "$1" in
+      -C | --crl)
+         CRL="$2"
+         shift 2
+         ;;
+      --)
+         shift
+         break
+         ;;
+  esac
+done
+if [ $# -lt 1 ] ; then
+   usage
 fi
 CA="$1"
 shift
 
+# ====== Check availability of tools ========================================
+OPENSSL="$(which openssl || true)"
 CERTTOOL="$(which certtool || true)"
 CERTUTIL="$(which certutil || true)"
-
 
 # ====== Look for CA certificate ============================================
 if [ ! -e "${CA}" ] ; then
    echo >&2 "ERROR: Unable to find CA certificate file ${CA}!"
+   exit 1
+fi
+
+# ====== Look for CRL =======================================================
+if [ "${CRL}" != "" ] && [ ! -e "${CRL}" ] ; then
+   echo >&2 "ERROR: Unable to find CRL file ${CRL}!"
    exit 1
 fi
 
@@ -62,8 +100,8 @@ while [ $# -gt 0 ] ; do
 
    # ====== Show hierarchy ==================================================
    echo -e "\e[34mHierarchy in ${CERT}:\e[0m"
-   openssl crl2pkcs7 -nocrl -certfile "${CERT}" | \
-      openssl pkcs7 -print_certs -noout | awk '
+   "${OPENSSL}" crl2pkcs7 -nocrl -certfile "${CERT}" | \
+      "${OPENSSL}" pkcs7 -print_certs -noout | awk '
 BEGIN {
    S=0
 }
@@ -80,29 +118,47 @@ BEGIN {
       echo "WARNING: Only checking self-signature!"
    fi
 
+
    # ====== OpenSSL =========================================================
    echo -en "\e[33mOpenSSL:\e[0m "
-   if openssl verify -CAfile "${CA}" --untrusted "${CERT}" "${CERT}" >/dev/null 2>&1 ; then
-      echo -e "\e[32;1mOKAY\e[0m"
-   else
-      errors=$((errors + 1))
-      echo -e "\e[31;1mFAILED!\e[0m"
-      openssl verify -CAfile "${CA}" --untrusted "${CERT}" "${CERT}" || true
-   fi
-
-   # ====== GNU TLS =========================================================
-   echo -en "\e[33mGNU TLS:\e[0m "
-   if [ "${CERTTOOL}" != "" ] ; then
-      if "${CERTTOOL}" --verify --load-ca-certificate "${CA}" --infile "${CERT}" >/dev/null 2>&1 ; then
+   if [ "${OPENSSL}" != "" ] ; then
+      crlOption=""
+      if [ "${CRL}" != "" ] ; then
+         crlOption="-CRLfile \"${CRL}\" -crl_check"
+      fi
+      command="\"${OPENSSL}\" verify -CAfile \"${CA}\" ${crlOption} --untrusted \"${CERT}\" \"${CERT}\""
+      echo "$command"
+      if sh -c "${command}" >/dev/null 2>&1 ; then
          echo -e "\e[32;1mOKAY\e[0m"
       else
          errors=$((errors + 1))
          echo -e "\e[31;1mFAILED!\e[0m"
-         "${CERTTOOL}" --verify --load-ca-certificate "${CA}" --infile "${CERT}" || true
+         sh -c "${command}" || true
       fi
    else
       echo "(GnuTLS CertTool is not installed)"
    fi
+
+
+   # ====== GNU TLS =========================================================
+   echo -en "\e[33mGNU TLS:\e[0m "
+   if [ "${CERTTOOL}" != "" ] ; then
+      crlOption=""
+      if [ "${CRL}" != "" ] ; then
+         crlOption="--load-crl=\"${CRL}\""
+      fi
+      command="\"${CERTTOOL}\" --verify --verify-profile=high --load-ca-certificate=\"${CA}\" ${crlOption} --infile=\"${CERT}\""
+      if sh -c "${command}" >/dev/null 2>&1 ; then
+         echo -e "\e[32;1mOKAY\e[0m"
+      else
+         errors=$((errors + 1))
+         echo -e "\e[31;1mFAILED!\e[0m"
+         sh -c "${command}" || true
+      fi
+   else
+      echo "(GnuTLS CertTool is not installed)"
+   fi
+
 
    # ====== NSS =============================================================
    echo -en "\e[33mNSS:    \e[0m "
@@ -190,6 +246,8 @@ inBlock {
    fi
 
 done
+
+# ====== Check for errors ===================================================
 if [ ${errors} -gt 0 ] ; then
    echo -e "\e[37;41;1m***** CERTIFICATE CHECKS FAILED! *****\e[0m"
    exit 1
