@@ -236,7 +236,7 @@ BEGIN {
          # "${CRLUTIL}" -L -d "${db}"
       fi
    else
-      echo "(NSS CertTool is not installed)"
+      echo "(NSS CertUtil is not installed)"
    fi
 
 done
