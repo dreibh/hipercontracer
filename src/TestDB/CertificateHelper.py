@@ -177,7 +177,7 @@ class CA:
                 keyLength         : Final[int]         = DefaultCAKeyLength,
                 globalCRLFileName : Final[os.PathLike] = DefaultGlobalCRLFileName):
 
-      safeName               : Final[str] = re.sub('[^a-zA-Z0-9+-]', '_', name)
+      safeName               : Final[str] = re.sub('[^a-zA-Z0-9+-\.]', '_', name)
       self.MainDirectory     : Final[os.PathLike]     = os.path.abspath(mainDirectory)
       self.Directory         : Final[os.PathLike]     = os.path.join(self.MainDirectory, safeName)
       self.GlobalCRLFileName : Final[os.PathLike]     = os.path.join(self.MainDirectory, globalCRLFileName)
@@ -606,7 +606,7 @@ class Certificate:
 
       sys.stdout.write('\x1b[34mCreating certificate ' + name + ' ...\x1b[0m\n')
 
-      safeName            : Final[str] = re.sub('[^a-zA-Z0-9+-]', '_', name)
+      safeName            : Final[str] = re.sub('[^a-zA-Z0-9+-\.]', '_', name)
       self.CA             : CA                     = ca
       self.Directory      : Final[os.PathLike]     = os.path.join(os.path.abspath(mainDirectory), safeName)
       self.Subject        : Final[str]             = subjectWithoutCN + '/CN=' + name
