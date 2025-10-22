@@ -186,7 +186,7 @@ BEGIN {
 
       # ------ Extract certificate and process each sub-CA individually -----
       "${DIRNAME}/extract-pem" "${CERT}" --skip-first-entry --skip-last-entry \
-         --output-prefix "${db}/tmp/certificate-"
+         --quiet --output-prefix "${db}/tmp/certificate-"
       subCA=0
       find "${db}/tmp" -name "certificate-[0-9]*.crt" | sort -r | \
          while read -r name ; do
@@ -197,7 +197,7 @@ BEGIN {
 
       # ------ Extract CRL file and process each CRL individually -----------
       if [ "${CRL}" != "" ] ; then
-         "${DIRNAME}/extract-pem" "${CRL}" --output-prefix "${db}/tmp/crl-"
+         "${DIRNAME}/extract-pem" "${CRL}" --quiet --output-prefix "${db}/tmp/crl-"
 
          # NSS wants the CRL in DER instead of PEM format, i.e. it needs
          # to be converted first. Finally, it can be imported by NSS.
