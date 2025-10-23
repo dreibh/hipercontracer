@@ -81,7 +81,7 @@ if [ "$1" == "mariadb" ] ; then
       sudo systemctl enable mariadb.service
       sudo systemctl start mariadb.service
    elif [ "${ID}" == "freebsd" ] ; then
-      sudo pkg install -y mariadb106-server mariadb106-client openssl
+      sudo pkg install -y mariadb118-server mariadb118-client openssl
       sudo sysrc mysql_enable=YES
       sudo service mysql-server start
    else
@@ -166,7 +166,7 @@ elif [ "$1" == "postgresql" ] ; then
       sudo systemctl enable postgresql.service
       sudo systemctl start postgresql.service
    elif [ "${ID}" == "freebsd" ] ; then
-      sudo pkg install -y postgresql16-server postgresql-libpqxx openssl
+      sudo pkg install -y postgresql17-server postgresql17-client postgresql-libpqxx openssl
       sudo sysrc postgresql_enable="YES"
       sudo /usr/local/etc/rc.d/postgresql initdb
       sudo service postgresql start
@@ -289,9 +289,7 @@ EOF
       sudo systemctl start mongod.service
 
    elif [ "${ID}" == "freebsd" ] ; then
-      # FIXME: There is no mongosh port, yet! Using npm to install it ...
-      sudo pkg install -y mongodb70 mongodb-tools npm
-      sudo npm install -g mongosh
+      sudo pkg install -y mongodb80 mongodb-tools mongosh mongo-c-driver
       sudo sysrc mongod_enable="YES"
       sudo service mongod start
 
