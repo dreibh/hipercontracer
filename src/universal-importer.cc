@@ -65,9 +65,9 @@ UniversalImporter::UniversalImporter(boost::asio::io_context&     ioContext,
    ImportPathFilterRegEx(ImportPathFilter),
    Signals(IOContext, SIGINT, SIGTERM),
    StatusTimer(IOContext),
-   StatusTimerInterval(boost::posix_time::seconds(importerConfiguration.getStatusInterval())),
+   StatusTimerInterval(std::chrono::seconds(importerConfiguration.getStatusInterval())),
    GarbageCollectionTimer(IOContext),
-   GarbageCollectionTimerInterval(0, 0, importerConfiguration.getGarbageCollectionInterval(), 0),
+   GarbageCollectionTimerInterval(std::chrono::seconds(importerConfiguration.getGarbageCollectionInterval())),
    GarbageCollectionMaxAge(std::chrono::seconds(importerConfiguration.getGarbageCollectionMaxAge())),
    INotifyStream(IOContext)
 {

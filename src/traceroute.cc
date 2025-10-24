@@ -146,7 +146,7 @@ bool Traceroute::addDestination(const DestinationInfo& destination)
       if(destinationIterator == Destinations.end()) {
          if(DestinationIterator == Destinations.end()) {
             // Address will be the first destination in list -> abort interval timer
-            IntervalTimer.expires_from_now(boost::posix_time::milliseconds(0));
+            IntervalTimer.expires_from_now(std::chrono::milliseconds(0));
             IntervalTimer.async_wait(std::bind(&Traceroute::handleIntervalEvent, this,
                                                std::placeholders::_1));
          }
@@ -291,7 +291,7 @@ unsigned long long Traceroute::makeDeviation(const unsigned long long interval,
 // ###### Schedule timeout timer ############################################
 void Traceroute::scheduleTimeoutEvent()
 {
-   TimeoutTimer.expires_from_now(boost::posix_time::milliseconds(Parameters.Expiration));
+   TimeoutTimer.expires_from_now(std::chrono::milliseconds(Parameters.Expiration));
    TimeoutTimer.async_wait(std::bind(&Traceroute::handleTimeoutEvent, this,
                                      std::placeholders::_1));
 }
@@ -350,7 +350,7 @@ void Traceroute::scheduleIntervalEvent()
       const long long millisecondsToWait =
          std::max(0LL, (long long)std::chrono::duration_cast<std::chrono::milliseconds>(howLongToWait).count());
 
-      IntervalTimer.expires_from_now(boost::posix_time::milliseconds(millisecondsToWait));
+      IntervalTimer.expires_from_now(std::chrono::milliseconds(millisecondsToWait));
       IntervalTimer.async_wait(std::bind(&Traceroute::handleIntervalEvent, this,
                                          std::placeholders::_1));
       HPCT_LOG(debug) << getName() << ": Waiting " << millisecondsToWait / 1000.0
