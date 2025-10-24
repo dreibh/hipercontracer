@@ -1,16 +1,16 @@
 #!/usr/bin/env python3
 # ==========================================================================
-#     _   _ _ ____            ____          _____
-#    | | | (_)  _ \ ___ _ __ / ___|___  _ _|_   _| __ __ _  ___ ___ _ __
-#    | |_| | | |_) / _ \ '__| |   / _ \| '_ \| || '__/ _` |/ __/ _ \ '__|
-#    |  _  | |  __/  __/ |  | |__| (_) | | | | || | | (_| | (_|  __/ |
-#    |_| |_|_|_|   \___|_|   \____\___/|_| |_|_||_|  \__,_|\___\___|_|
-#
-#       ---  High-Performance Connectivity Tracer (HiPerConTracer)  ---
-#                 https://www.nntb.no/~dreibh/hipercontracer/
+#         ____            _                     _____           _
+#        / ___| _   _ ___| |_ ___ _ __ ___     |_   _|__   ___ | |___
+#        \___ \| | | / __| __/ _ \ '_ ` _ \ _____| |/ _ \ / _ \| / __|
+#         ___) | |_| \__ \ ||  __/ | | | | |_____| | (_) | (_) | \__ \
+#        |____/ \__, |___/\__\___|_| |_| |_|     |_|\___/ \___/|_|___/
+#               |___/
+#                             --- System-Tools ---
+#                  https://www.nntb.no/~dreibh/system-tools/
 # ==========================================================================
 #
-# High-Performance Connectivity Tracer (HiPerConTracer)
+# X.509 CA and Certificate Helper Library
 # Copyright (C) 2015-2025 by Thomas Dreibholz
 #
 # This program is free software: you can redistribute it and/or modify
@@ -26,9 +26,8 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
-# Contact: dreibh@simula.no
+# Contact: thomas.dreibholz@gmail.com
 
-import functools
 import ipaddress
 import netifaces
 import os
@@ -79,26 +78,9 @@ def execute(command : str, mayFail : bool = False) -> int:
    return result
 
 
-# ###### Helper function for sorting IP addresses ###########################
-def ip_address_comparator(a : ipaddress.ip_address,
-                          b : ipaddress.ip_address) -> int:
-   if a.version < b.version:
-      return -1
-   elif a.version > b.version:
-      return 1
-   else:
-      if a < b:
-         return -1
-      elif a > b:
-         return 1
-   return 0
-
-IP_COMPARATOR              = functools.cmp_to_key(ip_address_comparator)
-RE_USEREMAIL  : re.Pattern = \
-   re.compile(r'^(.*)( <)([a-zA-Z0–9. _%+-]+@[a-zA-Z0–9. -]+\.[a-zA-Z]{2,})(>)$')
-
-
 # ###### Make "subjectAltName" string #######################################
+RE_USEREMAIL : re.Pattern = \
+   re.compile(r'^(.*)( <)([a-zA-Z0–9. _%+-]+@[a-zA-Z0–9. -]+\.[a-zA-Z]{2,})(>)$')
 def prepareSubjectAltName(certType : CertificateType,
                           name     : str,
                           hint     : str | None) -> tuple[str,str]:
@@ -141,7 +123,7 @@ def prepareSubjectAltName(certType : CertificateType,
             addresses.add(address)
 
       # ====== Append IP addresses to subjectAltName ========================
-      addresses = sorted(addresses, key=IP_COMPARATOR)
+      addresses = sorted(addresses, key = lambda item: (item.version, int(item)))
       for address in addresses:
          subjectAltName = subjectAltName + ',IP:' + str(address)
 
