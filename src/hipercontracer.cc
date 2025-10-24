@@ -176,7 +176,8 @@ static void tryCleanup(const boost::system::error_code& errorCode)
    }
 
    if(!finished) {
-      CleanupTimer.expires_at(CleanupTimer.expires_at() + CleanupTimerInterval);
+      CleanupTimer.expires_at(std::chrono::steady_clock::now() +
+                              CleanupTimerInterval);
       CleanupTimer.async_wait(tryCleanup);
    }
    else {
