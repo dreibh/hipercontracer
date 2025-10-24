@@ -1,3 +1,45 @@
+commit d35c2ba379935b93790bed1350a0e16e9ebf9205
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Fri Oct 24 12:13:31 2025 +0200
+
+    Updated helper scripts.
+
+commit d93c901767ba4ee60c2e7c8ee2e7fd625a46aaa8
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Fri Oct 24 11:51:57 2025 +0200
+
+    Packaging update.
+
+commit de0eba2b6e21f2b0b9deac320fbd0ef5af5c25ab
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Fri Oct 24 11:50:42 2025 +0200
+
+    Updated CMakeLists.txt.
+
+commit 0851327284d51cb2098e57763f8efa7d666872c2
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Fri Oct 24 10:58:34 2025 +0200
+
+    CMakeLists.txt update for building with BOOST 1.89.
+
+commit 1c27fe10e0c0dd0312ba01d6255bf0b8725d7963
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Fri Oct 24 10:58:11 2025 +0200
+
+    Further replacements of deprecated boost::asio::deadline_timer by boost::asio::steady_timer, to allow for building with BOOST 1.89.
+
+commit 51a850b6083a02cdfaa4ae2a671785cc522218c5
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Fri Oct 24 10:48:17 2025 +0200
+
+    Replaced deprecated boost::asio::deadline_timer by boost::asio::steady_timer, to allow for building with BOOST 1.89.
+
+commit de44e42423a3056be0eadb72184a8bc0afc7a54c
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Oct 23 17:19:42 2025 +0200
+
+    New release hipercontracer-2.1.2.
+
 commit c0c5dd58d1659d06cfd459e6f3a64550f54c514f
 Merge: 4650293e 5a11fc94
 Author: Thomas Dreibholz <dreibh@simula.no>
