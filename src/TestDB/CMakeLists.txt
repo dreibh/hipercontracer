@@ -51,4 +51,5 @@ INSTALL(PROGRAMS
            name-in-etc-hosts
            run-full-test
            test-tls-connection
+           view-certificate
         DESTINATION ${CMAKE_INSTALL_DATADIR}/hipercontracer/TestDB)
