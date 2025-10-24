@@ -835,11 +835,14 @@ HiPerConTracer results files into an SQL or NoSQL database.
 %{_datadir}/hipercontracer/TestDB/9-uninstall-database
 %{_datadir}/hipercontracer/TestDB/CertificateHelper.py
 %{_datadir}/hipercontracer/TestDB/README.md
+%{_datadir}/hipercontracer/TestDB/check-certificate
+%{_datadir}/hipercontracer/TestDB/extract-pem
 %{_datadir}/hipercontracer/TestDB/generate-test-certificates
 %{_datadir}/hipercontracer/TestDB/hpct-users.conf.example
 %{_datadir}/hipercontracer/TestDB/name-in-etc-hosts
 %{_datadir}/hipercontracer/TestDB/run-full-test
 %{_datadir}/hipercontracer/TestDB/test-tls-connection
+%{_datadir}/share/hipercontracer/TestDB/view-certificate
 %{_datadir}/hipercontracer/hipercontracer-database.conf
 %{_datadir}/hipercontracer/hipercontracer-importer.conf
 %{_sysconfdir}/hipercontracer/hpct-importer.conf
