@@ -140,13 +140,13 @@ if [ "${dbbackend}" == "MariaDB" ] || [ "${dbbackend}" == "MySQL" ] ; then
 
    if [ "${dbbackend}" == "MariaDB" ] ; then
       command="$(which mariadb || true)"
-      if [ "${command}" == "" ] ; then
+      if [ "${DRY_RUN}" -eq 0 ] && [ "${command}" == "" ] ; then
          echo >&2 "ERROR: MariaDB client (mariadb) not found. Is it installed?"
          exit 1
       fi
    else
       command="$(which mysql || true)"
-      if [ "${command}" == "" ] ; then
+      if [ "${DRY_RUN}" -eq 0 ] && [ "${command}" == "" ] ; then
          echo >&2 "ERROR: MySQL client (mysql) not found. Is it installed?"
          exit 1
       fi
@@ -168,7 +168,7 @@ if [ "${dbbackend}" == "MariaDB" ] || [ "${dbbackend}" == "MySQL" ] ; then
 elif [ "${dbbackend}" == "PostgreSQL" ] ; then
 
    command="$(which psql || true)"
-   if [ "${command}" == "" ] ; then
+   if [ "${DRY_RUN}" -eq 0 ] && [ "${command}" == "" ] ; then
       echo >&2 "ERROR: PostgreSQL client (psql) not found. Is it installed?"
       exit 1
    fi
@@ -198,9 +198,9 @@ elif [ "${dbbackend}" == "PostgreSQL" ] ; then
 elif [ "${dbbackend}" == "MongoDB" ] ; then
 
    command="$(which mongosh || true)"
-   if [ "${command}" == "" ] ; then
+   if [ "${DRY_RUN}" -eq 0 ] && [ "${command}" == "" ] ; then
       command="$(which mongo || true)"
-      if [ "${command}" == "" ] ; then
+      if [ "${DRY_RUN}" -eq 0 ] && [ "${command}" == "" ] ; then
          echo >&2 "ERROR: MongoDB client (mongosh or mongo) not found. Is it installed?"
          exit 1
       else
