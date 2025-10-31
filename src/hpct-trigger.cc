@@ -64,8 +64,8 @@ static boost::asio::basic_raw_socket<boost::asio::ip::icmp>  SnifferSocketV6(IOC
 static boost::asio::ip::icmp::endpoint                       IncomingPingSource;
 static char                                                  IncomingPingMessageBuffer[4096];
 static boost::asio::signal_set                               Signals(IOContext, SIGINT, SIGTERM);
-static boost::posix_time::milliseconds                       CleanupTimerInterval(1000);
-static boost::asio::deadline_timer                           CleanupTimer(IOContext, CleanupTimerInterval);
+static std::chrono::milliseconds                             CleanupTimerInterval(1000);
+static boost::asio::steady_timer                             CleanupTimer(IOContext, CleanupTimerInterval);
 
 static unsigned int                                          TriggerPingsBeforeQueuing;
 static unsigned int                                          TriggerPingPacketSize;
@@ -99,7 +99,7 @@ static void tryCleanup(const boost::system::error_code& errorCode)
    }
 
    if(!finished) {
-      CleanupTimer.expires_at(CleanupTimer.expires_at() + CleanupTimerInterval);
+      CleanupTimer.expires_at(std::chrono::steady_clock::now() + CleanupTimerInterval);
       CleanupTimer.async_wait(tryCleanup);
 
       const std::chrono::steady_clock::time_point now = std::chrono::steady_clock::now();

@@ -45,8 +45,11 @@ INSTALL(PROGRAMS
            5-perform-hpct-importer-test
            6-perform-hpct-query-test
            9-uninstall-database
+           check-certificate
+           extract-pem
            generate-test-certificates
            name-in-etc-hosts
            run-full-test
            test-tls-connection
+           view-certificate
         DESTINATION ${CMAKE_INSTALL_DATADIR}/hipercontracer/TestDB)
