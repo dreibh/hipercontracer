@@ -147,7 +147,7 @@ EOF
    fi
 
    # ====== Test configuration ==============================================
-   ./test-tls-connection "${server}.${DOMAIN}:3306" /etc/ssl/TestLevel1/certs/TestLevel1.crt -starttls mysql
+   ./test-tls-connection "${server}.${DOMAIN}:3306" /etc/ssl/TestLevel1/certs/TestLevel1.crt -- -starttls mysql
 
 
 # ###### PostgreSQL #########################################################
@@ -227,7 +227,7 @@ elif [ "$1" == "postgresql" ] ; then
    sleep 5
 
    # ====== Test configuration ==============================================
-   ./test-tls-connection "${server}.${DOMAIN}:5432" /etc/ssl/TestLevel1/certs/TestLevel1.crt -starttls postgres
+   ./test-tls-connection "${server}.${DOMAIN}:5432" /etc/ssl/TestLevel1/certs/TestLevel1.crt -- -starttls postgres
 
 
 # ###### MongoDB ############################################################
