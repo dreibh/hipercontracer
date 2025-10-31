@@ -165,7 +165,7 @@ for certificateToCreate in certificatesToCreate:
 
    name = certificateToCreate['name']
    if certificateToCreate['type'] != CertificateType.User:
-      subjectWithoutCN = deviceSubjectWithoutCN
+      subjectWithoutCN = defaultSubjectWithoutCN
    else:
       subjectWithoutCN = defaultSubjectWithoutCN + prepareUserSubject(name)
    certificates[name] = Certificate(mainDirectory, name, TestLeaf,
