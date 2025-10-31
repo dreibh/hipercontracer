@@ -1,0 +1,201 @@
+#!/usr/bin/env bash
+# ==========================================================================
+#         ____            _                     _____           _
+#        / ___| _   _ ___| |_ ___ _ __ ___     |_   _|__   ___ | |___
+#        \___ \| | | / __| __/ _ \ '_ ` _ \ _____| |/ _ \ / _ \| / __|
+#         ___) | |_| \__ \ ||  __/ | | | | |_____| | (_) | (_) | \__ \
+#        |____/ \__, |___/\__\___|_| |_| |_|     |_|\___/ \___/|_|___/
+#               |___/
+#                             --- System-Tools ---
+#                  https://www.nntb.no/~dreibh/system-tools/
+# ==========================================================================
+#
+# PEM File Extractor
+# Copyright (C) 2025 by Thomas Dreibholz
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+# Contact: thomas.dreibholz@gmail.com
+
+# Bash options:
+set -eu
+
+# gettext options:
+export TEXTDOMAIN="extract-pem"
+# export TEXTDOMAINDIR="${PWD}/locale"   # Default: "/usr/share/locale"
+
+# shellcheck disable=SC1091
+. gettext.sh
+
+
+# ###### Usage ##############################################################
+usage () {
+   echo >&2 "$(gettext "Usage:") $0 pem_file [...] [-o|--output-prefix file_name_prefix] [-1|--only-first-entry] [-f|--skip-first-entry] [-l|--skip-last-entry] [-q|--quiet]"
+   exit 1
+}
+
+
+# ###### Main program #######################################################
+
+# ====== Handle arguments ===================================================
+GETOPT="$(PATH=/usr/local/bin:${PATH} which getopt)"
+options="$(${GETOPT} -o o:1flqh --long output-prefix:,only-first-entry,skip-first-entry,skip-last-entry,quiet,help -a -- "$@")"
+# shellcheck disable=SC2181
+if [[ $? -ne 0 ]]; then
+   usage
+fi
+
+OUTPUT_PREFIX="output-"
+ONLY_FIRST_ENTRY=0
+SKIP_FIRST_ENTRY=0
+SKIP_LAST_ENTRY=0
+QUIET=0
+eval set -- "${options}"
+while [ $# -gt 0 ] ; do
+   case "$1" in
+      -o | --output-prefix)
+         OUTPUT_PREFIX="$2"
+         shift 2
+         ;;
+      -1 | --only-first-entry)
+         ONLY_FIRST_ENTRY=1
+         shift
+         ;;
+      -f | --skip-first-entry)
+         SKIP_FIRST_ENTRY=1
+         shift
+         ;;
+      -l | --skip-last-entry)
+         SKIP_LAST_ENTRY=1
+         shift
+         ;;
+      -q | --quiet)
+         QUIET=1
+         shift
+         ;;
+      -h | --help)
+         usage
+         # shift
+         ;;
+      --)
+         shift
+         break
+         ;;
+  esac
+done
+if [ $# -lt 1 ] ; then
+   usage
+fi
+if [ ${ONLY_FIRST_ENTRY} -eq 1 ] ; then
+   if [ ${SKIP_FIRST_ENTRY} -ne 0 ] || [ ${SKIP_LAST_ENTRY} -ne 0 ] ; then
+      gettext >&2 "ERROR: --only-first-entry and --skip-first-entry/--skip-last-entry are mutually exclusive!"
+      echo >&2
+      exit 1
+   fi
+fi
+
+# ====== Extract each PEM file ==============================================
+certificate=0
+csr=0
+crl=0
+key=0
+lastOutputFile=""
+while [ $# -gt 0 ] ; do
+   PEM_FILE="$1"
+   shift
+   if [ ! -e "${PEM_FILE}" ] ; then
+      eval_gettext >&2 "ERROR: Unable to find PEM file \${PEM_FILE}!"
+      echo >&2
+      exit 1
+   fi
+
+   if [ ${QUIET} -eq 0 ] ; then
+      echo -e "\e[34m$(eval_gettext "Extracting \${PEM_FILE} ...")\e[0m"
+   fi
+   outputFile=""
+   entry=0
+   while read -r line ; do
+      if [ "${outputFile}" == "" ] ; then
+         if [[ "${line}" =~ ^(-----BEGIN )([^-]*)(-----) ]] ; then
+            if [ "${lastOutputFile}" != "" ] ; then
+               if [ ${QUIET} -eq 0 ] ; then
+                  echo "=> ${lastOutputFile}"
+               fi
+            fi
+            type="${BASH_REMATCH[2]}"
+            if [ "${type}" == "CERTIFICATE" ] ; then
+               certificate=$((certificate + 1))
+               outputFile="${OUTPUT_PREFIX}${certificate}.crt"
+            elif [ "${type}" == "CERTIFICATE REQUEST" ] ; then
+               csr=$((csr + 1))
+               outputFile="${OUTPUT_PREFIX}${csr}.csr"
+            elif [ "${type}" == "X509 CRL" ] ; then
+               crl=$((crl + 1))
+               outputFile="${OUTPUT_PREFIX}${crl}.crl"
+            elif [ "${type}" == "PRIVATE KEY" ] || \
+                 [ "${type}" == "ENCRYPTED PRIVATE KEY" ] ; then
+               key=$((crl + 1))
+               outputFile="${OUTPUT_PREFIX}${key}.key"
+               touch "${outputFile}"
+               chmod 600 "${outputFile}"
+            else
+               eval_gettext >&2 "ERROR: Unexpected type \${type} in \${PEM_FILE}!"
+               echo >&2
+               exit 1
+            fi
+            entry=$((entry + 1))
+            echo "${line}" >>"${outputFile}.tmp"
+         else
+            eval_gettext >&2 "ERROR: Unexpected data in \${PEM_FILE}!"
+            echo >&2
+            exit 1
+         fi
+      else
+         if [[ "${line}" =~ ^(-----END )([^-]*)(-----) ]] ; then
+            echo "${line}" >>"${outputFile}.tmp"
+            mv "${outputFile}.tmp" "${outputFile}"
+            lastOutputFile="${outputFile}"
+            if [ ${entry} -eq 1 ] ; then
+               if [ ${ONLY_FIRST_ENTRY} -eq 1 ] ; then
+                  continue
+               elif [ ${SKIP_FIRST_ENTRY} -eq 1 ] ; then
+                  rm "${lastOutputFile}"
+                  if [ ${QUIET} -eq 0 ] ; then
+                     echo "=> $(gettext "SKIPPING") ${lastOutputFile}"
+                  fi
+                  lastOutputFile=""
+               fi
+            fi
+            outputFile=""
+         else
+            echo "${line}" >>"${outputFile}.tmp"
+         fi
+      fi
+   done <"${PEM_FILE}"
+done
+if [ "${lastOutputFile}" != "" ] ; then
+   if [ ${SKIP_LAST_ENTRY} -eq 1 ] ; then
+      rm "${lastOutputFile}"
+      if [ ${QUIET} -eq 0 ] ; then
+         echo "=> $(gettext "SKIPPING") ${lastOutputFile}"
+      fi
+   else
+      if [ ${QUIET} -eq 0 ] ; then
+         echo "=> ${lastOutputFile}"
+      fi
+   fi
+fi
+if [ ${QUIET} -eq 0 ] ; then
+   echo -e "\e[34m$(eval_gettext "Done: \${certificate} certificates, \${csr} CSRs, \${crl} CRLs, \${key} keys")\e[0m"
+fi

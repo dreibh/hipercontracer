@@ -65,17 +65,19 @@ UniversalImporter::UniversalImporter(boost::asio::io_context&     ioContext,
    ImportPathFilterRegEx(ImportPathFilter),
    Signals(IOContext, SIGINT, SIGTERM),
    StatusTimer(IOContext),
-   StatusTimerInterval(boost::posix_time::seconds(importerConfiguration.getStatusInterval())),
+   StatusTimerInterval(std::chrono::seconds(importerConfiguration.getStatusInterval())),
    GarbageCollectionTimer(IOContext),
-   GarbageCollectionTimerInterval(0, 0, importerConfiguration.getGarbageCollectionInterval(), 0),
+   GarbageCollectionTimerInterval(std::chrono::seconds(importerConfiguration.getGarbageCollectionInterval())),
    GarbageCollectionMaxAge(std::chrono::seconds(importerConfiguration.getGarbageCollectionMaxAge())),
    INotifyStream(IOContext)
 {
    INotifyFD = -1;
-   StatusTimer.expires_from_now(StatusTimerInterval);
+   StatusTimer.expires_at(std::chrono::steady_clock::now() + +
+                          StatusTimerInterval);
    StatusTimer.async_wait(std::bind(&UniversalImporter::handleStatusTimer, this,
                                     std::placeholders::_1));
-   GarbageCollectionTimer.expires_from_now(GarbageCollectionTimerInterval);
+   GarbageCollectionTimer.expires_at(std::chrono::steady_clock::now() +
+                                     GarbageCollectionTimerInterval);
    GarbageCollectionTimer.async_wait(std::bind(&UniversalImporter::handleGarbageCollectionTimer, this,
                                     std::placeholders::_1));
 }
@@ -530,7 +532,7 @@ void UniversalImporter::handleStatusTimer(const boost::system::error_code& error
 {
    if(!errorCode) {
       HPCT_LOG(info) << "Importer status:\n" << *this;
-      StatusTimer.expires_from_now(StatusTimerInterval);
+      StatusTimer.expires_at(std::chrono::steady_clock::now() + StatusTimerInterval);
       StatusTimer.async_wait(std::bind(&UniversalImporter::handleStatusTimer, this,
                                        std::placeholders::_1));
    }
@@ -542,7 +544,7 @@ void UniversalImporter::handleGarbageCollectionTimer(const boost::system::error_
 {
    if(!errorCode) {
       performDirectoryCleanUp();
-      GarbageCollectionTimer.expires_from_now(GarbageCollectionTimerInterval);
+      GarbageCollectionTimer.expires_at(std::chrono::steady_clock::now() + GarbageCollectionTimerInterval);
       GarbageCollectionTimer.async_wait(std::bind(&UniversalImporter::handleGarbageCollectionTimer, this,
                                         std::placeholders::_1));
    }

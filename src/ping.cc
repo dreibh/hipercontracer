@@ -98,11 +98,13 @@ void Ping::scheduleTimeoutEvent()
    if((Iterations == 0) || (IterationNumber < Iterations)) {
       // Deviate next send, to avoid synchronisation!
       const unsigned long long duration = makeDeviation(Parameters.Interval, Parameters.Deviation);
-      TimeoutTimer.expires_from_now(boost::posix_time::milliseconds(duration));
+      TimeoutTimer.expires_at(std::chrono::steady_clock::now() +
+                              std::chrono::milliseconds(duration));
    }
    else {
       // Last ping run: no need to wait for interval, just wait for expiration!
-      TimeoutTimer.expires_from_now(boost::posix_time::milliseconds(Parameters.Expiration));
+      TimeoutTimer.expires_at(std::chrono::steady_clock::now() +
+                              std::chrono::milliseconds(Parameters.Expiration));
    }
    TimeoutTimer.async_wait(std::bind(&Ping::handleTimeoutEvent, this,
                                      std::placeholders::_1));

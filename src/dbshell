@@ -32,33 +32,54 @@
 set -eu
 
 
-# ====== Handle arguments ===================================================
-if [ $# -lt 1 ] ; then
-   echo >&2 "Usage: $0 configuration_file [-d|--dry-run] [-q|--quiet] [-B|--write-dbeaver-config file_prefix]"
+# ###### Usage ##############################################################
+usage () {
+   echo >&2 "Usage: $0 configuration_file [-h|--help] [-d|--dry-run] [-q|--quiet] [-B|--write-dbeaver-config file_prefix]"
    exit 1
+}
+
+
+# ###### Main program #######################################################
+
+# ====== Handle arguments ===================================================
+GETOPT="$(PATH=/usr/local/bin:$PATH which getopt)"
+options="$(${GETOPT} -o hdqB: --long help,dry-run,quiet,write-dbeaver-config: -a -- "$@")"
+# shellcheck disable=SC2181
+if [[ $? -ne 0 ]]; then
+   usage
 fi
-CONFIGURATION_FILE="$1"
-shift
-if [ ! -e "${CONFIGURATION_FILE}" ] ; then
-   echo >&2 "ERROR: Use configuration ${CONFIGURATION_FILE} does not exist!"
-fi
+
 DRY_RUN=0
 QUIET=0
 DBEAVER_CONFIG_PREFIX=""
+eval set -- "${options}"
 while [ $# -gt 0 ] ; do
-   if [ "$1" == "-d" ] || [ "$1" == "--dry-run" ] ; then
-      DRY_RUN=1
-   elif [ "$1" == "-q" ] || [ "$1" == "--quiet" ] ; then
-      QUIET=1
-   elif [ "$1" == "-B" ] || [ "$1" == "--write-dbeaver-config" ] ; then
-      DBEAVER_CONFIG_PREFIX="$2"
-      shift
-   else
-      echo >&2 "ERROR: Invalid argument $1!"
-      exit 1
-   fi
-   shift
+   case "$1" in
+      -B | --write-dbeaver-config)
+         DBEAVER_CONFIG_PREFIX="$2"
+         shift 2
+         ;;
+      -d | --dry-run)
+         DRY_RUN=1
+         shift
+         ;;
+      -q | --quiet)
+         QUIET=1
+         shift
+         ;;
+      --)
+         shift
+         break
+         ;;
+  esac
 done
+if [ $# -lt 1 ] ; then
+   usage
+fi
+CONFIGURATION_FILE="$1"
+if [ ! -e "${CONFIGURATION_FILE}" ] ; then
+   echo >&2 "ERROR: Use configuration ${CONFIGURATION_FILE} does not exist!"
+fi
 
 
 # ====== Read configuration file ============================================
@@ -123,13 +144,13 @@ if [ "${dbbackend}" == "MariaDB" ] || [ "${dbbackend}" == "MySQL" ] ; then
 
    if [ "${dbbackend}" == "MariaDB" ] ; then
       command="$(which mariadb || true)"
-      if [ "${command}" == "" ] ; then
+      if [ "${DRY_RUN}" -eq 0 ] && [ "${command}" == "" ] ; then
          echo >&2 "ERROR: MariaDB client (mariadb) not found. Is it installed?"
          exit 1
       fi
    else
       command="$(which mysql || true)"
-      if [ "${command}" == "" ] ; then
+      if [ "${DRY_RUN}" -eq 0 ] && [ "${command}" == "" ] ; then
          echo >&2 "ERROR: MySQL client (mysql) not found. Is it installed?"
          exit 1
       fi
@@ -151,7 +172,7 @@ if [ "${dbbackend}" == "MariaDB" ] || [ "${dbbackend}" == "MySQL" ] ; then
 elif [ "${dbbackend}" == "PostgreSQL" ] ; then
 
    command="$(which psql || true)"
-   if [ "${command}" == "" ] ; then
+   if [ "${DRY_RUN}" -eq 0 ] && [ "${command}" == "" ] ; then
       echo >&2 "ERROR: PostgreSQL client (psql) not found. Is it installed?"
       exit 1
    fi
@@ -181,9 +202,9 @@ elif [ "${dbbackend}" == "PostgreSQL" ] ; then
 elif [ "${dbbackend}" == "MongoDB" ] ; then
 
    command="$(which mongosh || true)"
-   if [ "${command}" == "" ] ; then
+   if [ "${DRY_RUN}" -eq 0 ] && [ "${command}" == "" ] ; then
       command="$(which mongo || true)"
-      if [ "${command}" == "" ] ; then
+      if [ "${DRY_RUN}" -eq 0 ] && [ "${command}" == "" ] ; then
          echo >&2 "ERROR: MongoDB client (mongosh or mongo) not found. Is it installed?"
          exit 1
       else

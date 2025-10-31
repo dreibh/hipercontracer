@@ -1,3 +1,312 @@
+commit d35c2ba379935b93790bed1350a0e16e9ebf9205
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Fri Oct 24 12:13:31 2025 +0200
+
+    Updated helper scripts.
+
+commit d93c901767ba4ee60c2e7c8ee2e7fd625a46aaa8
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Fri Oct 24 11:51:57 2025 +0200
+
+    Packaging update.
+
+commit de0eba2b6e21f2b0b9deac320fbd0ef5af5c25ab
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Fri Oct 24 11:50:42 2025 +0200
+
+    Updated CMakeLists.txt.
+
+commit 0851327284d51cb2098e57763f8efa7d666872c2
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Fri Oct 24 10:58:34 2025 +0200
+
+    CMakeLists.txt update for building with BOOST 1.89.
+
+commit 1c27fe10e0c0dd0312ba01d6255bf0b8725d7963
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Fri Oct 24 10:58:11 2025 +0200
+
+    Further replacements of deprecated boost::asio::deadline_timer by boost::asio::steady_timer, to allow for building with BOOST 1.89.
+
+commit 51a850b6083a02cdfaa4ae2a671785cc522218c5
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Fri Oct 24 10:48:17 2025 +0200
+
+    Replaced deprecated boost::asio::deadline_timer by boost::asio::steady_timer, to allow for building with BOOST 1.89.
+
+commit de44e42423a3056be0eadb72184a8bc0afc7a54c
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Oct 23 17:19:42 2025 +0200
+
+    New release hipercontracer-2.1.2.
+
+commit c0c5dd58d1659d06cfd459e6f3a64550f54c514f
+Merge: 4650293e 5a11fc94
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Oct 23 17:07:08 2025 +0200
+
+    Merge branch 'master' into dreibh/tls-setup
+
+commit 4650293e262768c47a4cd7badea39db4518008de
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Oct 23 17:00:52 2025 +0200
+
+    Updated FreeBSD port.
+
+commit 117cb84af142119e8e30bb100681d7f850f0bded
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Oct 23 17:00:40 2025 +0200
+
+    Updated FreeBSD test.
+
+commit 2a6d9eddfc57e4f03ad221b56b84d18c094f79eb
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Oct 23 15:37:19 2025 +0200
+
+    Minor string fix.
+
+commit 2062d1b4c2b5427b708762e94699c2bfdc5e1e3f
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Oct 22 19:38:42 2025 +0200
+
+    Improved scripts.
+
+commit 533d30cc11b43c08355af819862b9b1852da34bf
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Oct 21 13:58:41 2025 +0200
+
+    Output name fix.
+
+commit 49f7b135fca47ac04ef8bfc293cf5de57d56d357
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Oct 21 13:58:00 2025 +0200
+
+    Minor fix.
+
+commit 5a11fc947fb8da5c16402bb8fbfccbd58346f2f6
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Oct 21 13:22:12 2025 +0200
+
+    FreeBSD port fixes.
+
+commit 2a1e217073cd1b2cea0fe488cfe22751d4537fc5
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Sat Oct 18 18:34:09 2025 +0200
+
+    Some clean-ups.
+
+commit 99fe174cffdfe47a91fd92801e766b52a912680e
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Sat Oct 18 18:23:41 2025 +0200
+
+    Improved scripts.
+
+commit 03b1192c075d1eaff849f253fbc3de8964208575
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Sat Oct 18 18:22:27 2025 +0200
+
+    Added another script.
+
+commit 2baf89051c87a07fb9ae600aa067f361a7501647
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Sat Oct 18 17:26:39 2025 +0200
+
+    Improved scripts.
+
+commit 3c41efb263fc37aea9e3106de6297246df03f444
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Sat Oct 18 16:49:25 2025 +0200
+
+    Added script.
+
+commit 689df6481c3c949eb3ed9a55b1f219ff1e3a1d62
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Sat Oct 18 16:14:35 2025 +0200
+
+    Further improvements.
+
+commit 6fcbd9701ea98fd1b31e0904a709434c97a0a3d7
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Sat Oct 18 15:47:51 2025 +0200
+
+    Started to add option to include CRL check.
+
+commit 65cebb212a68e489d487c6a2e3118f7d6b245b27
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Fri Oct 17 23:57:21 2025 +0200
+
+    Some improvements.
+
+commit dd5cfe1b6650d0f375821048e9bbfc7511a48475
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Fri Oct 17 23:49:31 2025 +0200
+
+    Some clean-ups and small improvements.
+
+commit 2bb8e469ca44145dcde37431245ee04d65a003e4
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Fri Oct 17 23:35:43 2025 +0200
+
+    Further improvements.
+
+commit b4c2f378df8e58dd2c7dc7b533e946d45c5a3aee
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Fri Oct 17 22:34:56 2025 +0200
+
+    Improved script.
+
+commit 38c8792fe41edefda4d4b01ff2651a015ee36b71
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Fri Oct 17 22:34:41 2025 +0200
+
+    Improved CertificateHelper library.
+
+commit b82a84da7b02d1367b8d06cb5d2a405ff12906b1
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Fri Oct 17 20:35:02 2025 +0200
+
+    Improved configuration.
+
+commit 3761296064e0dd012f19527c4041ad6b62c41987
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Fri Oct 17 18:13:14 2025 +0200
+
+    Improved script.
+
+commit 7a09bb4bb9fd888b198c335dc5eaceb54059564c
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Fri Oct 17 17:55:37 2025 +0200
+
+    Some progress.
+
+commit a8e6ef1be5b1858b4d6673d6f1f7dc76f818c261
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Fri Oct 17 17:40:31 2025 +0200
+
+    Some testing.
+
+commit cbc12c9b85cdf4f180ee5bb61a34633c874c9483
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Fri Oct 17 13:13:22 2025 +0200
+
+    Minor fix.
+
+commit a9f55d65cb4342a53a9b7bb40f49c1707eb954ba
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Fri Oct 17 13:05:21 2025 +0200
+
+    Improved script.
+
+commit fd3b007594d88b22d4bdabc19a5b317c8d0538df
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Fri Oct 17 11:11:11 2025 +0200
+
+    Improved helper script.
+
+commit e3f84132383d3ffc32bcf8942e7a74aea167e0e1
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Fri Oct 17 11:10:58 2025 +0200
+
+    Improved database configurations.
+
+commit 7b8965b85bec6815d9a6ca15a58c8a866cf579fb
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Oct 16 23:54:24 2025 +0200
+
+    Some clean-ups.
+
+commit b2da4c11a0668daa68f22b1bd155745e64741a5b
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Oct 16 23:18:03 2025 +0200
+
+    Further improvements and clean-ups.
+
+commit 52be507a86c0ea1cd35e9a14626588ef05b102a9
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Oct 16 22:43:11 2025 +0200
+
+    Improved CertificateHelper library.
+
+commit a284f4184f6e4e3b99b1d505d2d09ee834c15201
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Oct 16 22:20:48 2025 +0200
+
+    Improved script.
+
+commit 5905226036d323dbe62dbf967b9d31104ca777bf
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Oct 16 22:02:12 2025 +0200
+
+    Simplified CertificateHelper library.
+
+commit 27b3ce5f1221ab7d8234a6b67471f9d2e4f3e186
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Oct 16 22:02:06 2025 +0200
+
+    Improved script.
+
+commit 944fcc9a3feba182788fe92225f34bf768e1543d
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Oct 16 20:23:25 2025 +0200
+
+    Added helper script.
+
+commit 6a69263fb7f9a6b81ba56fffee860e10dcd66933
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Oct 14 19:27:27 2025 +0200
+
+    Improved documentation.
+
+commit c439eda086eda64e569ce0c3987e6319763e0c79
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Mon Oct 13 21:43:48 2025 +0200
+
+    Minor documentation update.
+
+commit 40f919ea1c1e8276a57ec7f68a2c853cdf13d0ee
+Merge: 9fb3e3c7 de90f979
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Mon Oct 13 20:41:08 2025 +0200
+
+    Merge branch 'master' of github.com:dreibh/hipercontracer
+
+commit 9fb3e3c73beda6672efd2053e8626648eab79e2b
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Mon Oct 13 20:18:29 2025 +0200
+
+    Improved documentation.
+
+commit de90f979ef3d822b7be2975109dfb96be5776f10
+Merge: 8d981649 49dc7d52
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Fri Oct 10 11:15:38 2025 +0200
+
+    Merge branch 'master' of github.com:dreibh/hipercontracer
+
+commit 8d981649252c82248314e16357c5e3c7b19604d7
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Fri Oct 10 11:14:26 2025 +0200
+
+    Updated README.md.
+
+commit 49dc7d52034d68f1a43535dbaa0f3df638b3ef86
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Mon Oct 6 20:28:59 2025 +0200
+
+    Configuration improvement.
+
+commit 23297c5caadb4245828b55592a3dec919dfb382e
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Sep 25 17:13:53 2025 +0200
+
+    FreeBSD packaging update.
+
+commit 1f9d6a6194372522fcdf809f10e0d606a7f9324d
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Sun Sep 21 17:58:44 2025 +0200
+
+    New release hipercontracer-2.1.1.
+
 commit 358939e7cffce9f658cf467461aa7ca99da93ef2
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Sun Sep 14 20:43:29 2025 +0200

@@ -32,7 +32,7 @@ PROJECT(hipercontracer LANGUAGES C CXX)
 
 SET(BUILD_MAJOR "2")
 SET(BUILD_MINOR "1")
-SET(BUILD_PATCH "1")
+SET(BUILD_PATCH "3")
 SET(BUILD_VERSION ${BUILD_MAJOR}.${BUILD_MINOR}.${BUILD_PATCH})
 
 # HiPerConTracer needs at least C++17!
@@ -181,7 +181,7 @@ IF(CMAKE_VERSION VERSION_GREATER_EQUAL "3.30")
    # Use BoostConfig.cmake to find BOOST libraries, if possible.
    CMAKE_POLICY(SET CMP0167 NEW)
 ENDIF()
-FIND_PACKAGE(Boost REQUIRED COMPONENTS log date_time system thread iostreams filesystem program_options)
+FIND_PACKAGE(Boost REQUIRED COMPONENTS log date_time thread iostreams filesystem program_options)
 IF (NOT Boost_FOUND)
    MESSAGE(FATAL_ERROR "Cannot find Boost libraries!")
 ELSE()

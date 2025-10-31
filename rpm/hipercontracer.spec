@@ -1,5 +1,5 @@
 Name: hipercontracer
-Version: 2.1.1
+Version: 2.1.3
 Release: 1
 Summary: High-Performance Connectivity Tracer (HiPerConTracer)
 Group: Applications/Internet
@@ -835,11 +835,14 @@ HiPerConTracer results files into an SQL or NoSQL database.
 %{_datadir}/hipercontracer/TestDB/9-uninstall-database
 %{_datadir}/hipercontracer/TestDB/CertificateHelper.py
 %{_datadir}/hipercontracer/TestDB/README.md
+%{_datadir}/hipercontracer/TestDB/check-certificate
+%{_datadir}/hipercontracer/TestDB/extract-pem
 %{_datadir}/hipercontracer/TestDB/generate-test-certificates
 %{_datadir}/hipercontracer/TestDB/hpct-users.conf.example
 %{_datadir}/hipercontracer/TestDB/name-in-etc-hosts
 %{_datadir}/hipercontracer/TestDB/run-full-test
 %{_datadir}/hipercontracer/TestDB/test-tls-connection
+%{_datadir}/share/hipercontracer/TestDB/view-certificate
 %{_datadir}/hipercontracer/hipercontracer-database.conf
 %{_datadir}/hipercontracer/hipercontracer-importer.conf
 %{_sysconfdir}/hipercontracer/hpct-importer.conf
@@ -1208,6 +1211,10 @@ This metapackage installs all sub-packages of the HiPerConTracer Framework.
 
 
 %changelog
+* Fri Oct 24 2025 Thomas Dreibholz <dreibh@simula.no> - 2.1.3-1
+- New upstream release.
+* Thu Oct 23 2025 Thomas Dreibholz <dreibh@simula.no> - 2.1.2-1
+- New upstream release.
 * Sun Sep 21 2025 Thomas Dreibholz <dreibh@simula.no> - 2.1.1-1
 - New upstream release.
 * Wed Jun 18 2025 Thomas Dreibholz <dreibh@simula.no> - 2.1.0

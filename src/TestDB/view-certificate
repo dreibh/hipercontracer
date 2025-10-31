@@ -1,0 +1,170 @@
+#!/usr/bin/env bash
+# ==========================================================================
+#         ____            _                     _____           _
+#        / ___| _   _ ___| |_ ___ _ __ ___     |_   _|__   ___ | |___
+#        \___ \| | | / __| __/ _ \ '_ ` _ \ _____| |/ _ \ / _ \| / __|
+#         ___) | |_| \__ \ ||  __/ | | | | |_____| | (_) | (_) | \__ \
+#        |____/ \__, |___/\__\___|_| |_| |_|     |_|\___/ \___/|_|___/
+#               |___/
+#                             --- System-Tools ---
+#                  https://www.nntb.no/~dreibh/system-tools/
+# ==========================================================================
+#
+# X.509 Certificate Viewer
+# Copyright (C) 2025 by Thomas Dreibholz
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+# Contact: dreibh@simula.no
+
+# Bash options:
+set -eu
+
+# gettext options:
+export TEXTDOMAIN="view-certificate"
+# export TEXTDOMAINDIR="${PWD}/locale"   # Default: "/usr/share/locale"
+
+# shellcheck disable=SC1091
+. gettext.sh
+
+
+# ###### Usage ##############################################################
+usage () {
+   echo >&2 "$(gettext "Usage:") $0 [-h|--help] certificate [...]"
+   exit 1
+}
+
+
+# ###### Main program #######################################################
+
+# ====== Handle arguments ===================================================
+GETOPT="$(PATH=/usr/local/bin:${PATH} which getopt)"
+options="$(${GETOPT} -o h --long help -a -- "$@")"
+# shellcheck disable=SC2181
+if [[ $? -ne 0 ]]; then
+   usage
+fi
+
+eval set -- "${options}"
+while [ $# -gt 0 ] ; do
+   case "$1" in
+      -h | --help)
+         usage
+         # shift
+         ;;
+      --)
+         shift
+         break
+         ;;
+  esac
+done
+if [ $# -lt 1 ] ; then
+   usage
+fi
+
+# ====== Check availability of tools ========================================
+OPENSSL="$(which openssl || true)"
+if [ "${OPENSSL}" == "" ] ; then
+   gettext >&2 "ERROR: OpenSSL is not installed!"
+   echo >&2
+   exit 1
+fi
+
+# ====== Check each certificate =============================================
+while [ $# -gt 0 ] ; do
+
+   # ====== Look for certificate ============================================
+   CERTIFICATE_FILE="$1"
+   shift
+   if [ ! -e "${CERTIFICATE_FILE}" ] ; then
+      eval_gettext >&2 "ERROR: Unable to find certificate file ${CERTIFICATE_FILE}!"
+      echo >&2
+      exit 1
+   fi
+
+   # ====== Display certificate details =====================================
+   echo -e "\e[34m$(eval_gettext "Certificate in \${CERTIFICATE_FILE}:")\e[0m"
+   "${OPENSSL}" x509 -in "${CERTIFICATE_FILE}" -noout -subject -dates -ext subjectAltName,basicConstraints,keyUsage,extendedKeyUsage,subjectKeyIdentifier,authorityKeyIdentifier | (
+      validityFrom="?"
+      validityTo="?"
+      subject="?"
+      declare -A extensions=(
+         ["Subject Alternative Name"]="(none)"
+         ["Key Usage"]="(none)"
+         ["Basic Constraints"]="(none)"
+         ["Extended Key Usage"]="(none)"
+         ["Subject Key Identifier"]="(none)"
+         ["Authority Key Identifier"]="(none)"
+      )
+      while read -r line ; do
+         if [[ "${line}" =~ ^(subject=)(.*)$ ]] ; then
+            # Subject with underlined CN:
+            # shellcheck disable=SC2001
+            subject="$(echo "${BASH_REMATCH[2]}" | sed -e 's/\(CN = \)\([^,]*\)/\x1b[4m\1\2\x1b[24m/')"
+         elif [[ "${line}" =~ ^(notBefore=)(.*)$ ]] ; then
+            validityFrom="${BASH_REMATCH[2]}"
+         elif [[ "${line}" =~ ^(notAfter=)(.*)$ ]] ; then
+            validityTo="${BASH_REMATCH[2]}"
+         elif [[ "${line}" =~ ^([ \t]*)(X509v3 )(.*)(:[[:space:]]*)(.*)$ ]] ; then
+            extension="${BASH_REMATCH[3]}"
+            critical="${BASH_REMATCH[5]}"
+            if [ "${critical}" != "" ] ; then
+               extensions["${extension}"]="\\e[4m${critical}:\\e[24m "
+            else
+               extensions["${extension}"]=""
+            fi
+         elif [ "${extension}" != "" ] && [[ "${line}" =~ ^([[:space:]]*)(.*)$ ]] ; then
+            extensions["${extension}"]+="${BASH_REMATCH[2]}"
+            extension=""
+         fi
+      done
+      label="$(gettext "%-25s")"
+      printf "\e[33m${label} \e[35m%s\e[0m\n"          \
+         "$(gettext "Subject:")"  "$(echo -e "${subject}")"
+      printf "\e[33m${label} \e[35m%s\e[0m\n"          \
+         "$(gettext "Subject Alt Name:")"  "${extensions["Subject Alternative Name"]}"
+      printf "\e[33m${label} \e[36m%s — %s\e[0m\n"     \
+         "$(gettext "Validity:")" "${validityFrom}" "${validityTo}"
+      for extension in "Basic Constraints" \
+                       "Key Usage" "Extended Key Usage" \
+                       "Subject Key Identifier" "Authority Key Identifier" ; do
+         printf "\e[33m${label} \e[33m%s\e[0m\n"      \
+            "${extension}:" "$(echo -e "${extensions["${extension}"]}")"
+      done
+   )
+   echo -en "\e[0m"
+
+   # ====== Display certificate hierarchy ===================================
+   echo -e "\e[34m$(eval_gettext "Hierarchy in \${CERTIFICATE_FILE}"):\e[0m"
+   "${OPENSSL}" crl2pkcs7 -nocrl -certfile "${CERTIFICATE_FILE}" | \
+      "${OPENSSL}" pkcs7 -print_certs -noout | (
+         entry=0
+         while read -r line ; do
+            if [[ "${line}" =~ ^(subject=)(.*)$ ]] ; then
+               # Subject with underlined CN:
+               # shellcheck disable=SC2001
+               subject="$(echo "${BASH_REMATCH[2]}" | sed -e 's/\(CN = \)\([^,]*\)/\x1b[4m\1\2\x1b[24m/')"
+
+               entry=$((entry + 1))
+               echo -en " \x1b[33m$(eval_gettext "#\${entry}.") "
+               if [ ${entry} -eq 1 ] ; then
+                  echo -e "\e[35m${subject}\e[0m"
+               else
+                  echo -e "\e[37m${subject}\e[0m"
+               fi
+            fi
+         done
+      )
+
+done

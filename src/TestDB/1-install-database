@@ -81,7 +81,7 @@ if [ "$1" == "mariadb" ] ; then
       sudo systemctl enable mariadb.service
       sudo systemctl start mariadb.service
    elif [ "${ID}" == "freebsd" ] ; then
-      sudo pkg install -y mariadb106-server mariadb106-client openssl
+      sudo pkg install -y mariadb118-server mariadb118-client openssl
       sudo sysrc mysql_enable=YES
       sudo service mysql-server start
    else
@@ -96,7 +96,7 @@ if [ "$1" == "mariadb" ] ; then
    # MariaDB needs separate certificate and key files.
    # The chain is in the CA file, it must not be in the certificate file!
    # Details: https://mariadb.com/kb/en/securing-connections-for-client-and-server/
-   MARIADB_CA_FILE="/etc/ssl/TestLeaf/certs/TestLeaf-chain.pem"
+   MARIADB_CA_FILE="/etc/ssl/TestLevel1/certs/TestLevel1.crt"
    MARIADB_CRL_FILE="/etc/ssl/TestGlobal.crl"
    MARIADB_CRT_FILE="/etc/ssl/${server}.${DOMAIN}/${server}.${DOMAIN}.crt"
    MARIADB_KEY_FILE="/etc/ssl/${server}.${DOMAIN}/${server}.${DOMAIN}.key"
@@ -147,7 +147,7 @@ EOF
    fi
 
    # ====== Test configuration ==============================================
-   ./test-tls-connection "${server}.${DOMAIN}:3306" /etc/ssl/TestLevel1/certs/TestLevel1.crt -starttls mysql
+   ./test-tls-connection "${server}.${DOMAIN}:3306" /etc/ssl/TestLevel1/certs/TestLevel1.crt -- -starttls mysql
 
 
 # ###### PostgreSQL #########################################################
@@ -166,7 +166,7 @@ elif [ "$1" == "postgresql" ] ; then
       sudo systemctl enable postgresql.service
       sudo systemctl start postgresql.service
    elif [ "${ID}" == "freebsd" ] ; then
-      sudo pkg install -y postgresql16-server postgresql-libpqxx openssl
+      sudo pkg install -y postgresql17-server postgresql17-client postgresql-libpqxx openssl
       sudo sysrc postgresql_enable="YES"
       sudo /usr/local/etc/rc.d/postgresql initdb
       sudo service postgresql start
@@ -181,7 +181,7 @@ elif [ "$1" == "postgresql" ] ; then
 
    # PostgreSQL needs separate certificate and key files.
    # The chain is in the CA file, it must not be in the certificate file!
-   POSTGRESQL_CA_FILE="/etc/ssl/TestLeaf/certs/TestLeaf-chain.pem"
+   POSTGRESQL_CA_FILE="/etc/ssl/TestLevel1/certs/TestLevel1.crt"
    POSTGRESQL_CRL_FILE="/etc/ssl/TestGlobal.crl"
    POSTGRESQL_CRT_FILE="/etc/ssl/${server}.${DOMAIN}/${server}.${DOMAIN}.crt"
    POSTGRESQL_KEY_FILE="/etc/ssl/${server}.${DOMAIN}/${server}.${DOMAIN}.key"
@@ -227,7 +227,7 @@ elif [ "$1" == "postgresql" ] ; then
    sleep 5
 
    # ====== Test configuration ==============================================
-   ./test-tls-connection "${server}.${DOMAIN}:5432" /etc/ssl/TestLevel1/certs/TestLevel1.crt -starttls postgres
+   ./test-tls-connection "${server}.${DOMAIN}:5432" /etc/ssl/TestLevel1/certs/TestLevel1.crt -- -starttls postgres
 
 
 # ###### MongoDB ############################################################
@@ -289,9 +289,7 @@ EOF
       sudo systemctl start mongod.service
 
    elif [ "${ID}" == "freebsd" ] ; then
-      # FIXME: There is no mongosh port, yet! Using npm to install it ...
-      sudo pkg install -y mongodb70 mongodb-tools npm
-      sudo npm install -g mongosh
+      sudo pkg install -y mongodb80 mongodb-tools mongosh mongo-c-driver
       sudo sysrc mongod_enable="YES"
       sudo service mongod start
 
@@ -305,12 +303,15 @@ EOF
    sudo ./generate-test-certificates /etc/ssl "${server}.${DOMAIN}"
 
    # MongoDB wants key + certificate + chain (in this order!) in the PEM file:
-   MONGODB_CA_FILE="/etc/ssl/TestLeaf/certs/TestLeaf-chain.pem"
+   MONGODB_CA_FILE="/etc/ssl/TestLevel1/certs/TestLevel1.crt"
    MONGODB_CRL_FILE="/etc/ssl/TestGlobal.crl"
-   MONGODB_CRT_KEY_FILE="/etc/ssl/${server}.${DOMAIN}/${server}.${DOMAIN}.crt+key+chain"
+   MONGODB_CRT_KEY_FILE="/etc/ssl/${server}.${DOMAIN}/${server}.${DOMAIN}.key+crt"
    sudo touch ${MONGODB_CRT_KEY_FILE}
    sudo chmod 600 ${MONGODB_CRT_KEY_FILE}
-   sudo cat /etc/ssl/${server}.${DOMAIN}/${server}.${DOMAIN}.key /etc/ssl/${server}.${DOMAIN}/${server}.${DOMAIN}.crt /etc/ssl/TestLeaf/certs/TestLeaf-chain.pem | sudo tee ${MONGODB_CRT_KEY_FILE} >/dev/null
+   sudo cat /etc/ssl/${server}.${DOMAIN}/${server}.${DOMAIN}.key \
+            /etc/ssl/${server}.${DOMAIN}/${server}.${DOMAIN}.crt \
+            ${MONGODB_CA_FILE} | \
+      sudo tee ${MONGODB_CRT_KEY_FILE} >/dev/null
    if [ "${ID}" == "fedora" ] ; then
       sudo chown mongod:mongod ${MONGODB_CRT_KEY_FILE}
    else

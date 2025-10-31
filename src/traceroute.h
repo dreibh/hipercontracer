@@ -135,8 +135,8 @@ class Traceroute : public Service
    std::recursive_mutex                    DestinationMutex;
    std::set<DestinationInfo>               Destinations;
    std::set<DestinationInfo>::iterator     DestinationIterator;
-   boost::asio::deadline_timer             TimeoutTimer;
-   boost::asio::deadline_timer             IntervalTimer;
+   boost::asio::steady_timer               TimeoutTimer;
+   boost::asio::steady_timer               IntervalTimer;
 
    IOModuleBase*                           IOModule;
    std::thread                             Thread;

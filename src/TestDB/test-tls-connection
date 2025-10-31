@@ -1,16 +1,16 @@
 #!/usr/bin/env bash
 # ==========================================================================
-#     _   _ _ ____            ____          _____
-#    | | | (_)  _ \ ___ _ __ / ___|___  _ _|_   _| __ __ _  ___ ___ _ __
-#    | |_| | | |_) / _ \ '__| |   / _ \| '_ \| || '__/ _` |/ __/ _ \ '__|
-#    |  _  | |  __/  __/ |  | |__| (_) | | | | || | | (_| | (_|  __/ |
-#    |_| |_|_|_|   \___|_|   \____\___/|_| |_|_||_|  \__,_|\___\___|_|
-#
-#       ---  High-Performance Connectivity Tracer (HiPerConTracer)  ---
-#                 https://www.nntb.no/~dreibh/hipercontracer/
+#         ____            _                     _____           _
+#        / ___| _   _ ___| |_ ___ _ __ ___     |_   _|__   ___ | |___
+#        \___ \| | | / __| __/ _ \ '_ ` _ \ _____| |/ _ \ / _ \| / __|
+#         ___) | |_| \__ \ ||  __/ | | | | |_____| | (_) | (_) | \__ \
+#        |____/ \__, |___/\__\___|_| |_| |_|     |_|\___/ \___/|_|___/
+#               |___/
+#                             --- System-Tools ---
+#                  https://www.nntb.no/~dreibh/system-tools/
 # ==========================================================================
 #
-# High-Performance Connectivity Tracer (HiPerConTracer)
+# TLS Connection Tester
 # Copyright (C) 2015-2025 by Thomas Dreibholz
 #
 # This program is free software: you can redistribute it and/or modify
@@ -26,23 +26,103 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
-# Contact: dreibh@simula.no
+# Contact: thomas.dreibholz@gmail.com
 
 # Bash options:
 set -eu
 
+# gettext options:
+export TEXTDOMAIN="test-tls-connection"
+# export TEXTDOMAINDIR="${PWD}/locale"   # Default: "/usr/share/locale"
 
-if [ $# -lt 2 ] ; then
-   echo >&2 "Usage: $0 host:port cafile [openssl_args ...]"
+# shellcheck disable=SC1091
+. gettext.sh
+
+
+# ###### Usage ##############################################################
+usage () {
+   echo >&2 "$(gettext "Usage:") $0 host:port cafile [-s|--save-certificate certificate_file] [-n|--no-view-certificate] [-c|--no-check-certificate] [-- openssl_args ...]"
    exit 1
+}
+
+
+# ###### Main program #######################################################
+
+# ====== Handle arguments ===================================================
+DIRNAME="$(dirname "$0")"
+GETOPT="$(PATH=/usr/local/bin:${PATH} which getopt)"
+options="$(${GETOPT} -o s:nch --long save-certificate:,no-view-certificate,no-check-certificate,help -a -- "$@")"
+# shellcheck disable=SC2181
+if [[ $? -ne 0 ]]; then
+   usage
+fi
+
+VIEW_CERTIFICATE=1
+CHECK_CERTIFICATE=1
+CERTIFICATE_FILE=""
+eval set -- "${options}"
+while [ $# -gt 0 ] ; do
+   case "$1" in
+      -s | --save-certificate)
+         CERTIFICATE_FILE="$2"
+         shift 2
+         ;;
+      -n | --no-view-certificate)
+         VIEW_CERTIFICATE=0
+         shift
+         ;;
+      -c | --no-check-certificate)
+         CHECK_CERTIFICATE=0
+         shift
+         ;;
+      -h | --help)
+         usage
+         # shift
+         ;;
+      --)
+         shift
+         break
+         ;;
+  esac
+done
+if [ $# -lt 2 ] ; then
+   usage
 fi
 ENDPOINT="$1"
-CAFILE="$2"
+CA_FILE="$2"
 shift 2
-if [ ! -e "${CAFILE}" ] ; then
-   echo >&2 "ERROR: ${CAFILE} does not exist!"
+if [ ! -e "${CA_FILE}" ] ; then
+   eval_gettext >&2 "ERROR: Unable to find CA certificate file \${CA_FILE}!"
+   echo >&2
    exit 1
+fi
+
+# ====== Connect to endpoint ================================================
+echo -e "\e[34m$(eval_gettext "Connecting to \${ENDPOINT} ...")\e[0m"
+tempOutputFile=""
+tempCertFile=""
+trap 'rm -f "${tempCertFile}" "${tempOutputFile}"' EXIT INT TERM HUP
+tempOutputFile="$(mktemp -t test-tls-connection.XXXXXXXXXX.out)"
+if [ "${CERTIFICATE_FILE}" == "" ] ; then
+   tempCertFile="$(mktemp -t test-tls-connection.XXXXXXXXXX.pem)"
+   CERTIFICATE_FILE="${tempCertFile}"
 fi
 
 # shellcheck disable=SC2068
-echo "" | openssl s_client -showcerts -connect "${ENDPOINT}" -CAfile "${CAFILE}" $@ | head
+echo "" | openssl s_client -showcerts -connect "${ENDPOINT}" -CAfile "${CA_FILE}" $@ >"${tempOutputFile}"
+
+text-block --extract \
+           --begin-tag '-----BEGIN CERTIFICATE-----'  \
+           --end-tag '-----END CERTIFICATE-----' \
+           --full-tag-lines --include-tags --min-actions 1 \
+           --input "${tempOutputFile}" \
+           --output "${CERTIFICATE_FILE}"
+
+# ====== Display and verify certificate using check-certificate =============
+if [ ${VIEW_CERTIFICATE} -eq 1 ] && [ ${CHECK_CERTIFICATE} -eq 1 ] ; then
+   "${DIRNAME}/check-certificate" "${CA_FILE}" "${CERTIFICATE_FILE}"
+elif [ ${VIEW_CERTIFICATE} -eq 0 ] && [ ${CHECK_CERTIFICATE} -eq 1 ] ; then
+   "${DIRNAME}/check-certificate" "${CA_FILE}" "${CERTIFICATE_FILE}" --no-view-certificate
+elif [ ${VIEW_CERTIFICATE} -eq 1 ] && [ ${CHECK_CERTIFICATE} -eq 0 ] ; then
+   "${DIRNAME}/view-certificate" "${CERTIFICATE_FILE}"
+fi
