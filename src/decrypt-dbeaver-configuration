@@ -32,6 +32,8 @@
 set -eu
 
 
+# ###### Main program #######################################################
+
 # ====== Handle arguments ===================================================
 if [ $# -ne 2 ] ; then
    echo >&2 "Usage: $0 encrypted_dbeaver_credentials_config_json plain_dbeaver_credentials_config_json"

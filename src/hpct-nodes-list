@@ -23,6 +23,7 @@
 #
 # Contact: dreibh@simula.no
 
+# Bash options:
 set -eu
 
 HIPERCONTRACER_DIRECTORY="/var/hipercontracer"
@@ -61,6 +62,8 @@ calculate_time_difference ()
    printf "%03dd %02d:%02d:%02d" "${days}" "${hours}" "${minutes}" "${seconds}"
 }
 
+
+# ###### Main program #######################################################
 
 # Get configured nodes and RTunnel ports ====================================
 # shellcheck disable=SC2207

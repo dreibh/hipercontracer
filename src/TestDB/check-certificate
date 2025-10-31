@@ -1,0 +1,265 @@
+#!/usr/bin/env bash
+# ==========================================================================
+#         ____            _                     _____           _
+#        / ___| _   _ ___| |_ ___ _ __ ___     |_   _|__   ___ | |___
+#        \___ \| | | / __| __/ _ \ '_ ` _ \ _____| |/ _ \ / _ \| / __|
+#         ___) | |_| \__ \ ||  __/ | | | | |_____| | (_) | (_) | \__ \
+#        |____/ \__, |___/\__\___|_| |_| |_|     |_|\___/ \___/|_|___/
+#               |___/
+#                             --- System-Tools ---
+#                  https://www.nntb.no/~dreibh/system-tools/
+# ==========================================================================
+#
+# X.509 Certificate Checker
+# Copyright (C) 2025 by Thomas Dreibholz
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+# Contact: thomas.dreibholz@gmail.com
+
+# Bash options:
+set -eu
+
+# gettext options:
+export TEXTDOMAIN="check-certificate"
+# export TEXTDOMAINDIR="${PWD}/locale"   # Default: "/usr/share/locale"
+
+# shellcheck disable=SC1091
+. gettext.sh
+
+
+# ###### Usage ##############################################################
+usage () {
+   gettext >&2 "$(gettext "Usage:") $0 ca_certificate_file certificate_file [...] [-C|--crl crl] [-n|--no-view-certificate] [-h|--help]"
+   exit 1
+}
+
+
+# ###### Main program #######################################################
+
+# ====== Handle arguments ===================================================
+DIRNAME="$(dirname "$0")"
+GETOPT="$(PATH=/usr/local/bin:${PATH} which getopt)"
+options="$(${GETOPT} -o C:nh --long crl:,no-view-certificate,help -a -- "$@")"
+# shellcheck disable=SC2181
+if [[ $? -ne 0 ]]; then
+   usage
+fi
+
+CRL=""
+VIEW_CERTIFICATE=1
+eval set -- "${options}"
+while [ $# -gt 0 ] ; do
+   case "$1" in
+      -C | --crl)
+         CRL="$2"
+         shift 2
+         ;;
+      -n | --no-view-certificate)
+         VIEW_CERTIFICATE=0
+         shift
+         ;;
+      -h | --help)
+         usage
+         # shift
+         ;;
+      --)
+         shift
+         break
+         ;;
+  esac
+done
+if [ $# -lt 1 ] ; then
+   usage
+fi
+CA_FILE="$1"
+shift
+
+# ====== Check availability of tools ========================================
+OPENSSL="$(which openssl || true)"
+CCERTTOOL="$(which certtool || true)"
+CERTUTIL="$(which certutil || true)"
+CRLUTIL="$(which crlutil || true)"
+
+# ====== Look for CA certificate ============================================
+if [ ! -e "${CA_FILE}" ] ; then
+   eval_gettext >&2 "ERROR: Unable to find CA certificate file \${CA_FILE}!"
+   echo >&2
+   exit 1
+fi
+
+# ====== Look for CRL =======================================================
+if [ "${CRL}" != "" ] && [ ! -e "${CRL}" ] ; then
+   eval_gettext >&2 "ERROR: Unable to find CRL file \${CRL}!"
+   echo >&2
+   exit 1
+fi
+
+
+# ====== Check each certificate =============================================
+errors=0
+while [ $# -gt 0 ] ; do
+
+   # ====== Look for certificate ============================================
+   CERTIFICATE_FILE="$1"
+   shift
+   if [ ! -e "${CERTIFICATE_FILE}" ] ; then
+      eval_gettext >&2 "ERROR: Unable to find certificate file \${CERTIFICATE_FILE}!"
+      echo >&2
+      exit 1
+   fi
+
+   # ====== Display certificate  and hierarchy ==============================
+   if [ ${VIEW_CERTIFICATE} -eq 1 ] ; then
+      "${DIRNAME}/view-certificate" "${CERTIFICATE_FILE}"
+   fi
+
+
+   # ====== Verify certificate with CA certificate ==========================
+   echo -e "\e[34m$(eval_gettext "Verifying \${CERTIFICATE_FILE} with CA \${CA_FILE} ...")\e[0m"
+   if [ "${CA_FILE}" == "${CERTIFICATE_FILE}" ] ; then
+      gettext >&2 "WARNING: Only checking self-signature!"
+      echo >&2
+   fi
+
+   # ====== OpenSSL =========================================================
+   echo -en "\e[33mOpenSSL:\e[0m "
+   if [ "${OPENSSL}" != "" ] ; then
+      crlOption=""
+      if [ "${CRL}" != "" ] ; then
+         crlOption="-CRLfile \"${CRL}\" -crl_check"
+      fi
+      command="\"${OPENSSL}\" verify -CAfile \"${CA_FILE}\" ${crlOption} --untrusted \"${CERTIFICATE_FILE}\" \"${CERTIFICATE_FILE}\""
+      if sh -c "${command}" >/dev/null 2>&1 ; then
+         echo -e "\e[32;1m$(gettext "✓OKAY")\e[0m"
+      else
+         errors=$((errors + 1))
+         echo -e "\e[31;1m$(gettext "❌FAILED!")\e[0m"
+         sh -c "${command}" || true
+      fi
+   else
+      gettext "(OpenSSL is not installed)"
+      echo
+   fi
+
+
+   # ====== GNU TLS =========================================================
+   echo -en "\e[33mGNU TLS:\e[0m "
+   if [ "${CCERTTOOL}" != "" ] ; then
+      crlOption=""
+      if [ "${CRL}" != "" ] ; then
+         crlOption="--load-crl=\"${CRL}\""
+      fi
+      profiles="low medium high ultra future"
+      good=0
+      for profile in ${profiles} ; do
+         command="\"${CCERTTOOL}\" --verify --verify-profile=${profile} --load-ca-certificate=\"${CA_FILE}\" ${crlOption} --infile=\"${CERTIFICATE_FILE}\"" && sh -c "${command}" >/dev/null 2>&1 &&
+         good=$((good + 1)) && \
+            if [ ${good} -eq 1 ] ; then echo -en "\e[32;1m$(gettext "✓OKAY")\e[0m" ; fi && \
+            echo -en "   \e[32m${profile}\e[0m"
+      done
+      echo
+      if [ ${good} -eq 0 ] ; then
+         errors=$((errors + 1))
+         echo -e "\e[31;1m$(gettext "❌FAILED!")\e[0m"
+         sh -c "${command}" || true
+      fi
+   else
+      gettext "(GnuTLS CertTool is not installed)"
+      echo
+   fi
+
+
+   # ====== NSS =============================================================
+   echo -en "\e[33mNSS:    \e[0m "
+   if [ "${CERTUTIL}" != "" ] && [ "${CRLUTIL}" != "" ] ; then
+
+      # NOTE:
+      # NSS does not support importing a certificate with CAs bundled! It is
+      # necessary to extract each CA, and then process them individually!
+
+      # ------ Create temporary directory for database ----------------------
+      trap 'rm -rf "${db}"' EXIT
+      db=$(mktemp --tmpdir -d "check-certificate-nss.XXXXXXXXXX")
+      mkdir -p "${db}/tmp"
+
+      "${CERTUTIL}" --empty-password -N -d "${db}"
+      if [ "${CA_FILE}" != "${CERTIFICATE_FILE}" ] ; then
+         "${CERTUTIL}" -A -n "My Root CA" -t "CT,C,C" -e -d "${db}" -a -i "${CA_FILE}" -u L
+      fi
+      "${CERTUTIL}" -A -n "My Certificate" -t ",," -e -d "${db}" -a -i "${CERTIFICATE_FILE}"
+
+      # ------ Extract certificate and process each sub-CA individually -----
+      "${DIRNAME}/extract-pem" "${CERTIFICATE_FILE}" --skip-first-entry --skip-last-entry \
+         --quiet --output-prefix "${db}/tmp/certificate-"
+      subCA=0
+      find "${db}/tmp" -name "certificate-[0-9]*.crt" | sort -r | \
+         while read -r name ; do
+            subCA=$((subCA + 1))
+            "${CERTUTIL}" -A -n "My Sub CA ${subCA}" -t ",," -e -d "${db}" -a -i "${name}" -u L
+         done
+      find "${db}/tmp" -name "certificate-[0-9]*.crl"
+
+      # ------ Extract CRL file and process each CRL individually -----------
+      if [ "${CRL}" != "" ] ; then
+         "${DIRNAME}/extract-pem" "${CRL}" --quiet --output-prefix "${db}/tmp/crl-"
+
+         # NSS wants the CRL in DER instead of PEM format, i.e. it needs
+         # to be converted first. Finally, it can be imported by NSS.
+         find "${db}/tmp" -name "crl-*.crl" | \
+            while read -r crl ; do
+               "${OPENSSL}" crl -outform der -in "${crl}" -out "${crl}.der"
+               "${CRLUTIL}" -I -d "${db}" -a -i "${crl}.der"
+            done
+      fi
+
+      # "${CERTUTIL}" -L -d "${db}"
+      # "${CRLUTIL}" -L -d "${db}"
+
+      # ------ Finally, it is possible to verify the validity chain ---------
+      declare -A types=(
+         ["server"]="V"
+         ["client"]="C"
+         ["CA"]="L"
+         ["email_signer"]="S"
+         ["email_recipient"]="R"
+      )
+      good=0
+      for type in "${!types[@]}" ; do
+         setting="${types[$type]}"
+         command="\"${CERTUTIL}\" -V -e -u \"${setting}\" -n \"My Certificate\" -d \"${db}\"" && sh -c "${command}" >/dev/null 2>&1 && \
+            good=$((good + 1)) && \
+            if [ ${good} -eq 1 ] ; then echo -en "\e[32;1m$(gettext "✓OKAY")\e[0m" ; fi && \
+            echo -en "   \e[36m${type}\e[0m"
+      done
+      echo
+      if [ ${good} -eq 0 ] ; then
+         errors=$((errors + 1))
+         echo -e "\e[31;1m$(gettext "$(gettext "❌FAILED!")")\e[0m"
+         sh -c "${command}" || true
+         # "${CERTUTIL}" -L -d "${db}"
+         # "${CRLUTIL}" -L -d "${db}"
+      fi
+   else
+      gettext "(NSS CertUtil is not installed)"
+      echo
+   fi
+
+done
+
+# ====== Check for errors ===================================================
+if [ ${errors} -gt 0 ] ; then
+   echo -e "\e[37;41;1m***** $(gettext "CERTIFICATE VERIFICATIONS FAILED!") *****\e[0m"
+   exit 1
+fi

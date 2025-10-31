@@ -32,7 +32,9 @@
 set -eu
 
 
-# ###### Find all interfaces with configured default route ##################
+# ###### Main program #######################################################
+
+# ====== Find all interfaces with configured default route ==================
 OS=$(uname)
 if [ "${OS}" == "Linux" ] ; then
    INTERFACES_WITH_DEFAULT_ROUTE_IPv4=$(/sbin/ip -4 route show default | (
@@ -60,7 +62,7 @@ fi
 # echo "I: ${INTERFACES_WITH_DEFAULT_ROUTE_IPv4} ${INTERFACES_WITH_DEFAULT_ROUTE_IPv6}"
 
 
-# ###### Get addresses of these interfaces with global scope ################
+# ====== Get addresses of these interfaces with global scope ================
 if [ "${OS}" == "Linux" ] ; then
    ADDRESSES_WITH_DEFAULT_ROUTE_IPv4=$(
     ( for interface in ${INTERFACES_WITH_DEFAULT_ROUTE_IPv4} ; do

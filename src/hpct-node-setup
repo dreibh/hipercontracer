@@ -28,15 +28,20 @@
 #
 # Contact: dreibh@simula.no
 
+# Bash options:
 set -eu
 
 
-# ====== Handle arguments ===================================================
+# ###### Usage ##############################################################
 usage () {
    echo >&2 "Usage: $0 user@collector node_id [-h|--help] [--verbose|-v] [--quiet|-q]"
    exit 1
 }
 
+
+# ###### Main program #######################################################
+
+# ====== Handle arguments ===================================================
 if [ $# -lt 2 ] ; then
    usage
 fi
