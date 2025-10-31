@@ -31,10 +31,17 @@
 # Bash options:
 set -eu
 
+# gettext options:
+export TEXTDOMAIN="check-certificate"
+# export TEXTDOMAINDIR="${PWD}/locale"   # Default: "/usr/share/locale"
+
+# shellcheck disable=SC1091
+. gettext.sh
+
 
 # ###### Usage ##############################################################
 usage () {
-   echo >&2 "Usage: $0 [-C|--crl crl] [-h|--help] ca_certificate certificate [...]"
+   gettext >&2 "$(gettext "Usage:") $0 ca_certificate_file certificate_file [...] [-C|--crl crl] [-n|--no-view-certificate] [-h|--help]"
    exit 1
 }
 
@@ -42,21 +49,26 @@ usage () {
 # ###### Main program #######################################################
 
 # ====== Handle arguments ===================================================
-DIRNAME=$(dirname "$0")
+DIRNAME="$(dirname "$0")"
 GETOPT="$(PATH=/usr/local/bin:${PATH} which getopt)"
-options="$(${GETOPT} -o c:h --long crl:,help -a -- "$@")"
+options="$(${GETOPT} -o C:nh --long crl:,no-view-certificate,help -a -- "$@")"
 # shellcheck disable=SC2181
 if [[ $? -ne 0 ]]; then
    usage
 fi
 
 CRL=""
+VIEW_CERTIFICATE=1
 eval set -- "${options}"
 while [ $# -gt 0 ] ; do
    case "$1" in
       -C | --crl)
          CRL="$2"
          shift 2
+         ;;
+      -n | --no-view-certificate)
+         VIEW_CERTIFICATE=0
+         shift
          ;;
       -h | --help)
          usage
@@ -71,24 +83,26 @@ done
 if [ $# -lt 1 ] ; then
    usage
 fi
-CA="$1"
+CA_FILE="$1"
 shift
 
 # ====== Check availability of tools ========================================
 OPENSSL="$(which openssl || true)"
-CERTTOOL="$(which certtool || true)"
+CCERTTOOL="$(which certtool || true)"
 CERTUTIL="$(which certutil || true)"
 CRLUTIL="$(which crlutil || true)"
 
 # ====== Look for CA certificate ============================================
-if [ ! -e "${CA}" ] ; then
-   echo >&2 "ERROR: Unable to find CA certificate file ${CA}!"
+if [ ! -e "${CA_FILE}" ] ; then
+   eval_gettext >&2 "ERROR: Unable to find CA certificate file \${CA_FILE}!"
+   echo >&2
    exit 1
 fi
 
 # ====== Look for CRL =======================================================
 if [ "${CRL}" != "" ] && [ ! -e "${CRL}" ] ; then
-   echo >&2 "ERROR: Unable to find CRL file ${CRL}!"
+   eval_gettext >&2 "ERROR: Unable to find CRL file \${CRL}!"
+   echo >&2
    exit 1
 fi
 
@@ -98,33 +112,26 @@ errors=0
 while [ $# -gt 0 ] ; do
 
    # ====== Look for certificate ============================================
-   CERT="$1"
+   CERTIFICATE_FILE="$1"
    shift
-   if [ ! -e "${CERT}" ] ; then
-      echo >&2 "ERROR: Unable to find certificate file ${CERT}!"
+   if [ ! -e "${CERTIFICATE_FILE}" ] ; then
+      eval_gettext >&2 "ERROR: Unable to find certificate file \${CERTIFICATE_FILE}!"
+      echo >&2
       exit 1
    fi
 
-   # ====== Show hierarchy ==================================================
-   echo -e "\e[34mHierarchy in ${CERT}:\e[0m"
-   "${OPENSSL}" crl2pkcs7 -nocrl -certfile "${CERT}" | \
-      "${OPENSSL}" pkcs7 -print_certs -noout | awk '
-BEGIN {
-   S=0
-}
-/^$/       { next }
-/^issuer/  { next }
-/^subject/ { S++; N=sprintf("%d. ", S); print("\x1b[33m", N $0, "\x1b[0m"); next }
-# /^issuer/  { print "\x1b[37m   " $0 "\x1b[0m"; next }
-{ print }
-'
-
-   # ====== Verify certificate with CA certificate ==========================
-   echo -e "\e[34mVerifying ${CERT} with CA ${CA}:\e[0m"
-   if [ "${CA}" == "${CERT}" ] ; then
-      echo "WARNING: Only checking self-signature!"
+   # ====== Display certificate  and hierarchy ==============================
+   if [ ${VIEW_CERTIFICATE} -eq 1 ] ; then
+      "${DIRNAME}/view-certificate" "${CERTIFICATE_FILE}"
    fi
 
+
+   # ====== Verify certificate with CA certificate ==========================
+   echo -e "\e[34m$(eval_gettext "Verifying \${CERTIFICATE_FILE} with CA \${CA_FILE} ...")\e[0m"
+   if [ "${CA_FILE}" == "${CERTIFICATE_FILE}" ] ; then
+      gettext >&2 "WARNING: Only checking self-signature!"
+      echo >&2
+   fi
 
    # ====== OpenSSL =========================================================
    echo -en "\e[33mOpenSSL:\e[0m "
@@ -133,36 +140,44 @@ BEGIN {
       if [ "${CRL}" != "" ] ; then
          crlOption="-CRLfile \"${CRL}\" -crl_check"
       fi
-      command="\"${OPENSSL}\" verify -CAfile \"${CA}\" ${crlOption} --untrusted \"${CERT}\" \"${CERT}\""
+      command="\"${OPENSSL}\" verify -CAfile \"${CA_FILE}\" ${crlOption} --untrusted \"${CERTIFICATE_FILE}\" \"${CERTIFICATE_FILE}\""
       if sh -c "${command}" >/dev/null 2>&1 ; then
-         echo -e "\e[32;1mOKAY\e[0m"
+         echo -e "\e[32;1m$(gettext "✓OKAY")\e[0m"
       else
          errors=$((errors + 1))
-         echo -e "\e[31;1mFAILED!\e[0m"
+         echo -e "\e[31;1m$(gettext "❌FAILED!")\e[0m"
          sh -c "${command}" || true
       fi
    else
-      echo "(GnuTLS CertTool is not installed)"
+      gettext "(OpenSSL is not installed)"
+      echo
    fi
 
 
    # ====== GNU TLS =========================================================
    echo -en "\e[33mGNU TLS:\e[0m "
-   if [ "${CERTTOOL}" != "" ] ; then
+   if [ "${CCERTTOOL}" != "" ] ; then
       crlOption=""
       if [ "${CRL}" != "" ] ; then
          crlOption="--load-crl=\"${CRL}\""
       fi
-      command="\"${CERTTOOL}\" --verify --verify-profile=high --load-ca-certificate=\"${CA}\" ${crlOption} --infile=\"${CERT}\""
-      if sh -c "${command}" >/dev/null 2>&1 ; then
-         echo -e "\e[32;1mOKAY\e[0m"
-      else
+      profiles="low medium high ultra future"
+      good=0
+      for profile in ${profiles} ; do
+         command="\"${CCERTTOOL}\" --verify --verify-profile=${profile} --load-ca-certificate=\"${CA_FILE}\" ${crlOption} --infile=\"${CERTIFICATE_FILE}\"" && sh -c "${command}" >/dev/null 2>&1 &&
+         good=$((good + 1)) && \
+            if [ ${good} -eq 1 ] ; then echo -en "\e[32;1m$(gettext "✓OKAY")\e[0m" ; fi && \
+            echo -en "   \e[32m${profile}\e[0m"
+      done
+      echo
+      if [ ${good} -eq 0 ] ; then
          errors=$((errors + 1))
-         echo -e "\e[31;1mFAILED!\e[0m"
+         echo -e "\e[31;1m$(gettext "❌FAILED!")\e[0m"
          sh -c "${command}" || true
       fi
    else
-      echo "(GnuTLS CertTool is not installed)"
+      gettext "(GnuTLS CertTool is not installed)"
+      echo
    fi
 
 
@@ -180,13 +195,13 @@ BEGIN {
       mkdir -p "${db}/tmp"
 
       "${CERTUTIL}" --empty-password -N -d "${db}"
-      if [ "${CA}" != "${CERT}" ] ; then
-         "${CERTUTIL}" -A -n "My Root CA" -t "CT,C,C" -e -d "${db}" -a -i "${CA}" -u L
+      if [ "${CA_FILE}" != "${CERTIFICATE_FILE}" ] ; then
+         "${CERTUTIL}" -A -n "My Root CA" -t "CT,C,C" -e -d "${db}" -a -i "${CA_FILE}" -u L
       fi
-      "${CERTUTIL}" -A -n "My Certificate" -t ",," -e -d "${db}" -a -i "${CERT}"
+      "${CERTUTIL}" -A -n "My Certificate" -t ",," -e -d "${db}" -a -i "${CERTIFICATE_FILE}"
 
       # ------ Extract certificate and process each sub-CA individually -----
-      "${DIRNAME}/extract-pem" "${CERT}" --skip-first-entry --skip-last-entry \
+      "${DIRNAME}/extract-pem" "${CERTIFICATE_FILE}" --skip-first-entry --skip-last-entry \
          --quiet --output-prefix "${db}/tmp/certificate-"
       subCA=0
       find "${db}/tmp" -name "certificate-[0-9]*.crt" | sort -r | \
@@ -223,27 +238,28 @@ BEGIN {
       good=0
       for type in "${!types[@]}" ; do
          setting="${types[$type]}"
-         "${CERTUTIL}" -V -e -u "${setting}" -n "My Certificate" -d "${db}" >/dev/null 2>&1 && \
+         command="\"${CERTUTIL}\" -V -e -u \"${setting}\" -n \"My Certificate\" -d \"${db}\"" && sh -c "${command}" >/dev/null 2>&1 && \
             good=$((good + 1)) && \
-            if [ ${good} -eq 1 ] ; then echo -en "\e[32;1mOKAY\e[0m" ; fi && \
+            if [ ${good} -eq 1 ] ; then echo -en "\e[32;1m$(gettext "✓OKAY")\e[0m" ; fi && \
             echo -en "   \e[36m${type}\e[0m"
       done
-      echo ""
+      echo
       if [ ${good} -eq 0 ] ; then
          errors=$((errors + 1))
-         echo -e "\e[31;1mFAILED!\e[0m"
-         "${CERTUTIL}" -V -e -u "${setting}" -n "My Certificate" -d "${db}" || true
+         echo -e "\e[31;1m$(gettext "$(gettext "❌FAILED!")")\e[0m"
+         sh -c "${command}" || true
          # "${CERTUTIL}" -L -d "${db}"
          # "${CRLUTIL}" -L -d "${db}"
       fi
    else
-      echo "(NSS CertUtil is not installed)"
+      gettext "(NSS CertUtil is not installed)"
+      echo
    fi
 
 done
 
 # ====== Check for errors ===================================================
 if [ ${errors} -gt 0 ] ; then
-   echo -e "\e[37;41;1m***** CERTIFICATE CHECKS FAILED! *****\e[0m"
+   echo -e "\e[37;41;1m***** $(gettext "CERTIFICATE VERIFICATIONS FAILED!") *****\e[0m"
    exit 1
 fi
