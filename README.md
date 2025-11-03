@@ -92,11 +92,15 @@ Please use the issue tracker at [https://github.com/dreibh/hipercontracer/issues
 
 The Git repository of the HiPerConTracer sources can be found at [https://github.com/dreibh/hipercontracer](https://github.com/dreibh/hipercontracer):
 
-<pre><code><span class="fu">git</span> clone <a href="https://github.com/dreibh/hipercontracer">https://github.com/dreibh/hipercontracer</a>
-<span class="bu">cd</span> hipercontracer
-<span class="fu">cmake</span> .
-<span class="fu">make</span>
-</code></pre>
+```bash
+git clone https://github.com/dreibh/hipercontracer
+cd hipercontracer
+sudo ci/get-dependencies --install
+cmake .
+make
+```
+
+Note: The script [`ci/get-dependencies`](https://github.com/dreibh/hipercontracer/blob/master/ci/get-dependencies) automatically installs the build dependencies for Debian/Ubuntu Linux, Fedora Linux, and FreeBSD. For manual handling of the build dependencies, see the packaging configuration in [debian/control](https://github.com/dreibh/hipercontracer/blob/master/debian/control) (Debian/Ubuntu Linux), [hipercontracer.spec](https://github.com/dreibh/hipercontracer/blob/master/rpm/hipercontracer.spec) (Fedora Linux), and [Makefile](https://github.com/dreibh/hipercontracer/blob/master/freebsd/hipercontracer/Makefile) FreeBSD.
 
 Contributions:
 
