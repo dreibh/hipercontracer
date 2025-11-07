@@ -264,8 +264,8 @@ Some simple results file examples (from <tt>[src/results-examples](https://githu
 Notes:
 
 * See the [manpage of "hipercontracer"](https://github.com/dreibh/hipercontracer/blob/master/src/hipercontracer.1) for a detailed description of the results file formats: ```bashman hipercontracer```
-* The HiPerConTracer Viewer Tool can be used to display results files, including uncompressed ones.
-* The HiPerConTracer Results Tool can be used to merge and/or convert the results files.
+* [HiPerConTracer Viewer Tool](#-the-hipercontracer-viewer-tool) can be used to display results files, including uncompressed ones.
+* [HiPerConTracer Results Tool](#-the-hipercontracer-results-tool) can be used to merge and/or convert the results files.
 
 ## Further Details
 
