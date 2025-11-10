@@ -37,7 +37,7 @@ printRTT <- function(rtt)
    # Convert to ms, or NA if not available (-1)
    rttInMS <- ifelse(rtt > 0, rtt / 1e6, NA)
 
-   cat(sprintf("\x1b[32mmin=%1.6fms   Q10%%=%1.6fms   \x1b[34mmean=%1.6fms   \x1b[35mQ90%%=%1.6fms   max=%1.6fms\x1b[0m\n",
+   cat(sprintf("\x1b[32mmin=%1.6fms   Q10%%=%1.6fms \t \x1b[34mmean=%1.6fms \t \x1b[35mQ90%%=%1.6fms   max=%1.6fms\x1b[0m\n",
       min(rttInMS, na.rm = TRUE),
       quantile(rttInMS, 0.10, na.rm = TRUE),
       mean(rttInMS, na.rm = TRUE),
@@ -51,25 +51,38 @@ printRTT <- function(rtt)
 
 # ====== Handle arguments ===================================================
 args <- commandArgs(trailingOnly = TRUE)
-if (sys.nframe() == 0L) {
+if(sys.nframe() == 0L) {
    # Launched directly from shell:
    args <- commandArgs(trailingOnly = TRUE)
    # ------ Command-line start with Rscript ---------------------------------
-   if (length(args) < 1) {
-     stop("Usage: r-ping-example ping-csv-file")
+   if(length(args) < 1) {
+     stop("Usage: r-ping-example ping-hpct-file|ping-csv-file|results-directory")
    }
    name <- args[1]
 } else {
    # Launched via source(...) in R:
    name <- "ping.csv.gz"
-   print(paste("Using default name", name))
+   cat(paste(sep="", "Using default name ", name, "\n"))
 }
 
+
 # ====== Read input data ====================================================
-data <- readHiPerConTracerPingResultsFromCSV("", name)
+
+# ------ Name is a directory ------------------------------------------------
+if(dir.exists(name)) {
+   cat(sep="", "Reading all Ping results in directory ", name, " ...\n")
+   data <- readHiPerConTracerPingResultsFromDirectory(name, "Ping-[^/]*(\\.hpct|\\.results)[^/]*")
+# ------ Name is a HiPerConTracer results file (.hpct*) ---------------------
+} else if(grepl("(\\.hpct[^/]*|\\.results[^/]*)$", name)) {
+   cat(sep="", "Reading from HiPerConTracer results file ", name, " ...\n")
+   data <- readHiPerConTracerPingResults(name)
+# ------ Name is a CSV file -------------------------------------------------
+} else {
+   cat(sep="", "Reading from CSV file ", name, " ...\n")
+   data <- readHiPerConTracerPingResultsFromCSV(name)
+}
 
 cat("\x1b[33mData columns:\x1b[0m\n")
-print(colnames(data))
 
 # ====== Processing example =================================================
 for(measurementID in levels(factor(data$MeasurementID))) {
@@ -80,7 +93,8 @@ for(measurementID in levels(factor(data$MeasurementID))) {
                                            SourceIP == sourceIP,
                                            DestinationIP == destinationIP,
                                            Protocol == protocol,
-                                           Status == 255 )
+                                           Status == 255   # Only process successful Ping results!
+                                         )
             if(length(dataSubset$RTT.App) > 0) {
                cat(sep="", "\x1b[33mMeasurement #", measurementID, ":   \x1b[35m",
                   sourceIP, " <-> ", destinationIP, " via ", protocol, "   \x1b[32m",
