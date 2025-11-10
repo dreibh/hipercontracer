@@ -31,41 +31,69 @@
 source("HiPerConTracer.R")
 
 
+# ###### Print some RTT statistics ##########################################
+printRTT <- function(rtt)
+{
+   # Convert to ms, or NA if not available (-1)
+   rttInMS <- ifelse(rtt > 0, rtt / 1e6, NA)
+
+   cat(sprintf("\x1b[32mmin=%1.6fms   Q10%%=%1.6fms   \x1b[34mmean=%1.6fms   \x1b[35mQ90%%=%1.6fms   max=%1.6fms\x1b[0m\n",
+      min(rttInMS, na.rm = TRUE),
+      quantile(rttInMS, 0.10, na.rm = TRUE),
+      mean(rttInMS, na.rm = TRUE),
+      quantile(rttInMS, 0.90, na.rm = TRUE),
+      max(rttInMS, na.rm = TRUE)))
+   # print(rttInMS)
+}
+
+
 # ###### Main program #######################################################
 
 # ====== Handle arguments ===================================================
-if( (length(commandArgs()) >= 1) && ((commandArgs()[2] == "--slave") || (commandArgs()[2] == "--no-echo")) ) {
+args <- commandArgs(trailingOnly = TRUE)
+if (sys.nframe() == 0L) {
+   # Launched directly from shell:
    args <- commandArgs(trailingOnly = TRUE)
+   # ------ Command-line start with Rscript ---------------------------------
    if (length(args) < 1) {
      stop("Usage: r-ping-example ping-csv-file")
    }
    name <- args[1]
 } else {
-   # !!! NOTE: Set name here, for testing interactively in R! !!!
-   name <- "../ping.csv.gz"
+   # Launched via source(...) in R:
+   name <- "ping.csv.gz"
+   print(paste("Using default name", name))
 }
 
 # ====== Read input data ====================================================
 data <- readHiPerConTracerPingResultsFromCSV("", name)
+
+cat("\x1b[33mData columns:\x1b[0m\n")
 print(colnames(data))
 
 # ====== Processing example =================================================
 for(measurementID in levels(factor(data$MeasurementID))) {
    for(sourceIP in levels(factor(data$SourceIP))) {
       for(destinationIP in levels(factor(data$DestinationIP))) {
-         dataSubset <- subset(data,
-                              (data$MeasurementID == measurementID) &
-                              (data$SourceIP == sourceIP) &
-                              (data$DestinationIP == destinationIP))
-         if(length(dataSubset$RTT.App) > 0) {
-            cat(sep="", "Measurement #", measurementID, ":\t",
-                sourceIP, "-", destinationIP, "\t",
-                # Print time range:
-                as.character(anytime(min(dataSubset$Timestamp) / 1000000000)), " - ",
-                as.character(anytime(max(dataSubset$Timestamp) / 1000000000)), "\t",
-                # Print number of Pings:
-                length(dataSubset$RTT.App), " Pings",
-                "\n")
+         for(protocol in levels(factor(data$Protocol))) {
+            dataSubset <- data %>% filter( MeasurementID == measurementID,
+                                           SourceIP == sourceIP,
+                                           DestinationIP == destinationIP,
+                                           Protocol == protocol,
+                                           Status == 255 )
+            if(length(dataSubset$RTT.App) > 0) {
+               cat(sep="", "\x1b[33mMeasurement #", measurementID, ":   \x1b[35m",
+                  sourceIP, " <-> ", destinationIP, " via ", protocol, "   \x1b[32m",
+                  # Print time range:
+                  as.character(min(dataSubset$Timestamp)), " - ",
+                  as.character(max(dataSubset$Timestamp)), "\x1b[0m\n")
+               cat("\x1b[34mApplication: ")
+               printRTT(dataSubset$RTT.App)
+               cat("\x1b[34mSoftware:    ")
+               printRTT(dataSubset$RTT.SW)
+               cat("\x1b[34mHardware:    ")
+               printRTT(dataSubset$RTT.HW)
+            }
          }
       }
    }

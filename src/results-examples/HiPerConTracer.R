@@ -48,10 +48,14 @@ processHiPerConTracerPingResults <- function(dataTable)
    dataTable <- dataTable %>%
                    mutate(Timestamp    = anytime(as.numeric(paste(sep="", "0x", Timestamp)) / 1e9,
                                                  asUTC = TRUE),
-                          Protocol     = substr(Ping, 3, 1000000),
+                          Protocol     = recode(substr(Ping, 3, 1000000),
+                                                "i" = "ICMP",
+                                                "u" = "UDP",
+                                                "t" = "TCP"),
                           Checksum     = as.numeric(paste(sep="", "0x", Checksum)),
                           TrafficClass = as.numeric(paste(sep="", "0x", TrafficClass))) %>%
                    arrange(Timestamp, MeasurementID, SourceIP, DestinationIP, BurstSeq)
+print (dataTable$Protocol)
    return(dataTable)
 }
 
@@ -63,7 +67,10 @@ processHiPerConTracerTracerouteResults <- function(dataTable)
    dataTable <- dataTable %>%
                    mutate(Timestamp    = anytime(as.numeric(paste(sep="", "0x", Timestamp)) / 1e9,
                                                  asUTC = TRUE),
-                          Protocol     = substr(Traceroute, 3, 1000000),
+                          Protocol     = recode(substr(Traceroute, 3, 1000000),
+                                                "i" = "ICMP",
+                                                "u" = "UDP",
+                                                "t" = "TCP"),
                           IPVersion    = ifelse(is_ipv4(as_ip_address(DestinationIP)), 4, 6),
                           Checksum     = as.numeric(paste(sep="", "0x", Checksum)),
                           TrafficClass = as.numeric(paste(sep="", "0x", TrafficClass)),
@@ -89,7 +96,10 @@ processHiPerConTracerJitterResults <- function(dataTable)
    dataTable <- dataTable %>%
                    mutate(Timestamp    = anytime(as.numeric(paste(sep="", "0x", Timestamp)) / 1e9,
                                                  asUTC = TRUE),
-                          Protocol     = substr(Jitter, 3, 1000000),
+                          Protocol     = recode(substr(Jitter, 3, 1000000),
+                                                "i" = "ICMP",
+                                                "u" = "UDP",
+                                                "t" = "TCP"),
                           Checksum     = as.numeric(paste(sep="", "0x", Checksum)),
                           TrafficClass = as.numeric(paste(sep="", "0x", TrafficClass))) %>%
                    arrange(Timestamp, MeasurementID, SourceIP, DestinationIP, BurstSeq)
