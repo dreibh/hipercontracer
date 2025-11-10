@@ -34,38 +34,64 @@ source("HiPerConTracer.R")
 # ###### Main program #######################################################
 
 # ====== Handle arguments ===================================================
-if( (length(commandArgs()) >= 1) && ((commandArgs()[2] == "--slave") || (commandArgs()[2] == "--no-echo")) ) {
+args <- commandArgs(trailingOnly = TRUE)
+if(sys.nframe() == 0L) {
+   # Launched directly from shell:
    args <- commandArgs(trailingOnly = TRUE)
-   if (length(args) < 1) {
-     stop("Usage: r-traceroute-example traceroute-csv-file")
+   # ------ Command-line start with Rscript ---------------------------------
+   if(length(args) < 1) {
+     stop("Usage: r-traceroute-example traceroute-hpct-file|traceroute-csv-file|results-directory")
    }
    name <- args[1]
 } else {
-   # !!! NOTE: Set name here, for testing interactively in R! !!!
+   # Launched via source(...) in R:
    name <- "../traceroute.csv.gz"
+   cat(paste(sep="", "Using default name ", name, "\n"))
 }
 
+
 # ====== Read input data ====================================================
-data <- readHiPerConTracerTracerouteResultsFromCSV("", name)
+
+# ------ Name is a directory ------------------------------------------------
+if(dir.exists(name)) {
+   cat(sep="", "Reading all Traceroute results in directory ", name, " ...\n")
+   data <- readHiPerConTracerTracerouteResultsFromDirectory(name, "Traceroute-[^/]*(\\.hpct|\\.results)[^/]*")
+# ------ Name is a HiPerConTracer results file (.hpct*) ---------------------
+} else if(grepl("(\\.hpct[^/]*|\\.results[^/]*)$", name)) {
+   cat(sep="", "Reading from HiPerConTracer results file ", name, " ...\n")
+   data <- readHiPerConTracerTracerouteResults(name)
+# ------ Name is a CSV file -------------------------------------------------
+} else {
+   cat(sep="", "Reading from CSV file ", name, " ...\n")
+   data <- readHiPerConTracerTracerouteResultsFromCSV(name)
+}
+
+cat("\x1b[33mData columns:\x1b[0m\n")
 print(colnames(data))
+
 
 # ====== Processing example =================================================
 for(measurementID in levels(factor(data$MeasurementID))) {
    for(sourceIP in levels(factor(data$SourceIP))) {
       for(destinationIP in levels(factor(data$DestinationIP))) {
-         dataSubset <- subset(data,
-                              (data$MeasurementID == measurementID) &
-                              (data$SourceIP == sourceIP) &
-                              (data$DestinationIP == destinationIP))
-         if(length(dataSubset$RTT.App) > 0) {
-            cat(sep="", "Measurement #", measurementID, ":\t",
-                sourceIP, " - ", destinationIP, "\t",
-                # Print time range:
-                as.character(anytime(min(dataSubset$Timestamp) / 1000000000)), " - ",
-                as.character(anytime(max(dataSubset$Timestamp) / 1000000000)), "\t",
-                # Print number of Traceroutes:
-                length( subset(dataSubset, dataSubset$HopNumber == 1)$RTT.App ), " Traceroutes",
-                "\n")
+         for(protocol in levels(factor(data$Protocol))) {
+            dataSubset <- data %>% filter( MeasurementID == measurementID,
+                                           SourceIP == sourceIP,
+                                           DestinationIP == destinationIP,
+                                           Protocol == protocol
+                                         )
+
+            if(length(dataSubset$RTT.App) > 0) {
+               cat(sep="", "\x1b[33mMeasurement #", measurementID, ":   \x1b[35m",
+                  sourceIP, " <-> ", destinationIP, " via ", protocol, "   \x1b[32m",
+                  # Print time range:
+                  as.character(min(dataSubset$Timestamp)), " - ",
+                  as.character(max(dataSubset$Timestamp)), "\x1b[0m\n",
+                  # Print number of Traceroutes:
+                  length( subset(dataSubset, dataSubset$HopNumber == 1)$RTT.App ), " Traceroutes",
+                  "\x1b[0m\n")
+            }
+
          }
       }
    }

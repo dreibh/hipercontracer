@@ -83,6 +83,8 @@ if(dir.exists(name)) {
 }
 
 cat("\x1b[33mData columns:\x1b[0m\n")
+print(colnames(data))
+
 
 # ====== Processing example =================================================
 for(measurementID in levels(factor(data$MeasurementID))) {
