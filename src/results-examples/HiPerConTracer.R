@@ -55,7 +55,6 @@ processHiPerConTracerPingResults <- function(dataTable)
                           Checksum     = as.numeric(paste(sep="", "0x", Checksum)),
                           TrafficClass = as.numeric(paste(sep="", "0x", TrafficClass))) %>%
                    arrange(Timestamp, MeasurementID, SourceIP, DestinationIP, BurstSeq)
-print (dataTable$Protocol)
    return(dataTable)
 }
 
@@ -79,8 +78,8 @@ processHiPerConTracerTracerouteResults <- function(dataTable)
                    arrange(Timestamp, MeasurementID, SourceIP, DestinationIP, RoundNumber, HopNumber) %>%
                    mutate(# Link source, if available:
                           LinkDestinationIP = ifelse( (Status < 200) | (Status == 255),
-                                                     HopIP,
-                                                     NA ),
+                                                      HopIP,
+                                                      NA ),
                           # Link destination, if available:
                           LinkSourceIP = ifelse(HopNumber == 1,
                                                SourceIP,
