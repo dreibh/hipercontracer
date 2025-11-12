@@ -53,7 +53,7 @@ For ready-to-install Ubuntu Linux packages of HiPerConTracer, see [Launchpad PPA
 ```bash
 sudo apt-add-repository -sy ppa:dreibh/ppa
 sudo apt-get update
-sudo apt-get install hipercontracer
+sudo apt-get install hipercontracer-all
 ```
 
 ## Fedora Linux
@@ -62,7 +62,7 @@ For ready-to-install Fedora Linux packages of HiPerConTracer, see [COPR PPA for 
 
 ```bash
 sudo dnf copr enable -y dreibh/ppa
-sudo dnf install hipercontracer
+sudo dnf install hipercontracer-all
 ```
 
 ## FreeBSD
@@ -317,18 +317,93 @@ find data -maxdepth 1 -name "Traceroute*.hpct.*" | \
    hpct-results --input-file-names-from-stdin --separator=; -o traceroute.csv.xz
 ```
 
-## Processing Results from a CSV File
+## Processing Results
 
-See <tt>[src/results-examples](https://github.com/dreibh/hipercontracer/tree/master/src/results-examples)</tt> for some examples.
+See [`src/results-examples`](https://github.com/dreibh/hipercontracer/tree/master/src/results-examples) for some examples.
 
 ### GNU R
 
-See <tt>[src/results-examples/r-install-dependencies](https://github.com/dreibh/hipercontracer/blob/master/src/results-examples/r-install-dependencies)</tt> to get the necessary library packages installed!
+See [`src/results-examples/r-install-dependencies`](https://github.com/dreibh/hipercontracer/blob/master/src/results-examples/r-install-dependencies) to get the necessary library packages installed from the [Comprehensive R Archive Network&nbsp;(CRAN)](https://cran.stat.auckland.ac.nz/)!
 
-* Ping:
-  <tt>[r-ping-example](https://github.com/dreibh/hipercontracer/blob/master/src/results-examples/r-ping-example) ping.csv</tt>
-* Traceroute:
-  <tt>[r-traceroute-example](https://github.com/dreibh/hipercontracer/blob/master/src/results-examples/r-traceroute-example) traceroute.csv.gz</tt>
+Alternatively:
+
+* Ubuntu/Debian:
+  ```bash
+  sudo apt install -y r-cran-data.table r-cran-digest r-cran-dplyr r-cran-nanotime r-cran-xtable
+  ```
+* Fedora:
+  ```bash
+  sudo dnf install -y R-data.table R-digest R-dplyr R-nanotime R-xtable
+  ```
+* FreeBSD:
+  ```bash
+  sudo pkg install -y R-cran-data.table R-cran-digest R-cran-dplyr R-cran-xtable
+  ```
+  Note: `R-cran-nanotime` is missing in FreeBSD; it still needs to be installed from CRAN!
+
+#### Ping Example
+
+See [`r-ping-example`](https://github.com/dreibh/hipercontracer/blob/master/src/results-examples/r-ping-example) for the script, and [`src/results-examples`](https://github.com/dreibh/hipercontracer/tree/master/src/results-examples) for some examples results files! The Ping example creates a statistical summary table for each Measurement&nbsp;ID / Source&nbsp;IP / Destination&nbsp;IP / Protocol relation found in the given input results file(s).
+
+Usage:
+
+* With HiPerConTracer Ping results file:
+
+  ```bash
+  ./r-ping-example \
+     Ping-P13735-2001:700:4100:4::2-20221012T142120.713761-000003330.results.bz2 \
+     output
+  ```
+
+  Note: The script calls the [HiPerConTracer Results Tool](#-the-hipercontracer-results-tool) for processing of the input file. It therefore needs to be installed.
+
+  Outputs:
+  * `output.csv`: A summary table as CSV file.
+  * `output.tex`: A summary table as HTML file.
+  * `output.tex`: A summary table as LaTeX file, for inclusion into a LaTeX publication.
+
+* With all HiPerConTracer Ping results files in a directory:
+
+  ```bash
+  ./r-ping-example . output
+  ```
+
+  Note:
+  * The provided directory ("`.`", i.e.&nbsp;the current directory) is searched for all HiPerConTracer Ping results files.
+  * The script calls the [HiPerConTracer Results Tool](#-the-hipercontracer-results-tool) for processing of the input files. It therefore needs to be installed.
+
+* With a CSV file:
+
+  ```bash
+  ./r-ping-example ping.csv output
+  ```
+
+  Note: `ping.csv` has to be created in advance from HiPerConTracer Ping results, e.g.&nbsp;using the [HiPerConTracer Results Tool](#-the-hipercontracer-results-tool).
+
+#### Traceroute Example
+
+See [`r-traceroute-example`](https://github.com/dreibh/hipercontracer/blob/master/src/results-examples/r-traceroute-example) for the script, and [`src/results-examples`](https://github.com/dreibh/hipercontracer/tree/master/src/results-examples) for some examples results files! The Traceroute example simply counts the number of HiPerConTracer Traceroute runs for each Measurement&nbsp;ID / Source&nbsp;IP / Destination&nbsp;IP / Protocol relation found in the given input results file(s).
+
+Usage:
+
+* With HiPerConTracer Traceroute results file:
+
+  ```bash
+  ./r-traceroute-example \
+     Traceroute-UDP-#88888888-10.193.4.168-20231018T102656.814657-000000001.results.xz
+  ```
+* With all HiPerConTracer Traceroute results files in a directory:
+
+  ```bash
+  ./r-traceroute-example .
+  ```
+* With a CSV file:
+
+  ```bash
+  ./r-traceroute-example traceroute.csv
+  ```
+
+  Note: `traceroute.csv` has to be created in advance from HiPerConTracer Traceroute results, e.g.&nbsp;using the [HiPerConTracer Results Tool](#-the-hipercontracer-results-tool).
 
 ### LibreOffice (or any similar spreadsheet program)
 
@@ -337,7 +412,7 @@ Import CSV file into spreadsheet.
 Hints:
 
 * Use _English (US)_ language, to avoid strange number conversions.
-* Choose column separator (" ", ",", etc.), if not detected automatically.
+* Specify the used column separator (" ", ",", etc.), if not detected automatically.
 
 ## Further Details
 
