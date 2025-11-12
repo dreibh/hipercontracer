@@ -43,9 +43,12 @@ options(repos = "https://cran.uib.no/",   # https://cran.stat.auckland.ac.nz/
 update.packages(ask = FALSE, lib = Sys.getenv("R_LIBS_USER"))
 
 # Install required CRAN packages:
-install.packages("anytime",    lib = Sys.getenv("R_LIBS_USER"))
-install.packages("digest",     lib = Sys.getenv("R_LIBS_USER"))
+# Alternatives:
+# * Ubuntu/Debian: sudo apt install -y r-cran-data.table r-cran-digest r-cran-dplyr r-cran-nanotime r-cran-xtable
+# * Fedora: sudo dnf install -y R-data.table R-digest R-dplyr R-nanotime R-xtable
+# * FreeBSD: sudo pkg install -y R-cran-data.table R-cran-digest R-cran-dplyr R-cran-nanotime(MISSING!) R-cran-xtable
 install.packages("data.table", lib = Sys.getenv("R_LIBS_USER"))
+install.packages("digest",     lib = Sys.getenv("R_LIBS_USER"))
 install.packages("dplyr",      lib = Sys.getenv("R_LIBS_USER"))
-install.packages("ipaddress",  lib = Sys.getenv("R_LIBS_USER"))
+install.packages("nanotime",   lib = Sys.getenv("R_LIBS_USER"))
 install.packages("xtable",     lib = Sys.getenv("R_LIBS_USER"))

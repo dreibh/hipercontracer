@@ -27,12 +27,11 @@
 #
 # Contact: dreibh@simula.no
 
-library("anytime")
+library("nanotime")
 options(digits.secs = 9)
 library("digest")
 library("data.table", warn.conflicts = FALSE)
 library("dplyr",      warn.conflicts = FALSE)
-library("ipaddress")
 library("xtable")
 
 
@@ -77,12 +76,12 @@ processHiPerConTracerPingResults <- function(dataTable)
 {
    # print(colnames(dataTable))
    dataTable <- dataTable %>%
-                   mutate(Timestamp    = anytime(as.numeric(paste(sep="", "0x", Timestamp)) / 1e9,
-                                                 asUTC = TRUE),
+                   mutate(Timestamp    = as.nanotime(as.numeric(paste(sep="", "0x", Timestamp))),
                           Protocol     = recode(substr(Ping, 3, 1000000),
                                                 "i" = "ICMP",
                                                 "u" = "UDP",
                                                 "t" = "TCP"),
+                          IPVersion    = ifelse(grepl(":", DestinationIP), 6, 4),
                           Checksum     = as.numeric(paste(sep="", "0x", Checksum)),
                           TrafficClass = as.numeric(paste(sep="", "0x", TrafficClass))) %>%
                    arrange(Timestamp, MeasurementID, SourceIP, DestinationIP, BurstSeq)
@@ -95,13 +94,12 @@ processHiPerConTracerTracerouteResults <- function(dataTable)
 {
    # print(colnames(dataTable))
    dataTable <- dataTable %>%
-                   mutate(Timestamp    = anytime(as.numeric(paste(sep="", "0x", Timestamp)) / 1e9,
-                                                 asUTC = TRUE),
+                   mutate(Timestamp    = as.nanotime(as.numeric(paste(sep="", "0x", Timestamp))),
                           Protocol     = recode(substr(Traceroute, 3, 1000000),
                                                 "i" = "ICMP",
                                                 "u" = "UDP",
                                                 "t" = "TCP"),
-                          IPVersion    = ifelse(is_ipv4(as_ip_address(DestinationIP)), 4, 6),
+                          IPVersion    = ifelse(grepl(":", DestinationIP), 6, 4),
                           Checksum     = as.numeric(paste(sep="", "0x", Checksum)),
                           TrafficClass = as.numeric(paste(sep="", "0x", TrafficClass)),
                           PathHash     = as.numeric(paste(sep="", "0x", PathHash)),
@@ -124,12 +122,12 @@ processHiPerConTracerJitterResults <- function(dataTable)
 {
    # print(colnames(dataTable))
    dataTable <- dataTable %>%
-                   mutate(Timestamp    = anytime(as.numeric(paste(sep="", "0x", Timestamp)) / 1e9,
-                                                 asUTC = TRUE),
+                   mutate(Timestamp    = as.nanotime(as.numeric(paste(sep="", "0x", Timestamp))),
                           Protocol     = recode(substr(Jitter, 3, 1000000),
                                                 "i" = "ICMP",
                                                 "u" = "UDP",
                                                 "t" = "TCP"),
+                          IPVersion    = ifelse(grepl(":", DestinationIP), 6, 4),
                           Checksum     = as.numeric(paste(sep="", "0x", Checksum)),
                           TrafficClass = as.numeric(paste(sep="", "0x", TrafficClass))) %>%
                    arrange(Timestamp, MeasurementID, SourceIP, DestinationIP, BurstSeq)

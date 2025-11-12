@@ -108,8 +108,8 @@ summaryTable <- data %>%
    summarise(.groups      = "keep",
 
              # ------ Time range and number of samples ----------------------
-             MinTimestamp = as.character(min(Timestamp)),
-             MaxTimestamp = as.character(max(Timestamp)),
+             MinTimestamp = format(min(Timestamp), "%Y-%m-%d %H:%M:%E9S"),
+             MaxTimestamp = format(max(Timestamp), "%Y-%m-%d %H:%M:%E9S"),
              Samples      = n(),
 
              # ------ Application RTTs --------------------------------------
