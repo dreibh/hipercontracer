@@ -144,8 +144,8 @@ summaryTable <- data %>%
    filter(Status == 255) %>%
    # ------ Convert RTTs to ms ----------------------------------------------
    mutate(RTT.App = ifelse(RTT.App > 0, RTT.App / 1e6, NA),
-          RTT.SW = ifelse(RTT.SW > 0, RTT.SW / 1e6, NA),
-          RTT.HW = ifelse(RTT.HW > 0, RTT.HW / 1e6, NA)) %>%
+          RTT.SW  = ifelse(RTT.SW > 0, RTT.SW / 1e6, NA),
+          RTT.HW  = ifelse(RTT.HW > 0, RTT.HW / 1e6, NA)) %>%
    # ------ Grouping --------------------------------------------------------
    group_by(MeasurementID,
             SourceIP,
@@ -160,32 +160,44 @@ summaryTable <- data %>%
              Samples      = n(),
 
              # ------ Application RTTs --------------------------------------
-             RTT.App.Min  = min(RTT.App, na.rm = TRUE),
-             RTT.App.Q10  = quantile(RTT.App, 0.10, na.rm = TRUE),
-             RTT.App.Mean = mean(RTT.App, na.rm = TRUE),
-             RTT.App.Q90  = quantile(RTT.App, 0.90, na.rm = TRUE),
-             RTT.App.Max  = min(RTT.App, na.rm = TRUE),
+             # NOTE: If all values are NA, just return NA.
+             #       Otherwise, calculate statistics from the non-NA values.
+             RTT.App.Min  = if(all(is.na(RTT.App))) { NA } else { min(RTT.App, na.rm = TRUE) },
+             RTT.App.Q10  = if(all(is.na(RTT.App))) { NA } else { quantile(RTT.App, 0.10, na.rm = TRUE) },
+             RTT.App.Mean = if(all(is.na(RTT.App))) { NA } else { mean(RTT.App, na.rm = TRUE) },
+             RTT.App.Q90  = if(all(is.na(RTT.App))) { NA } else { quantile(RTT.App, 0.90, na.rm = TRUE) },
+             RTT.App.Max  = if(all(is.na(RTT.App))) { NA } else { min(RTT.App, na.rm = TRUE) },
 
              # ------ Software RTTs -----------------------------------------
-             RTT.SW.Min   = min(RTT.SW, na.rm = TRUE),
-             RTT.SW.Q10   = quantile(RTT.SW, 0.10, na.rm = TRUE),
-             RTT.SW.Mean  = mean(RTT.SW, na.rm = TRUE),
-             RTT.SW.Q90   = quantile(RTT.SW, 0.90, na.rm = TRUE),
-             RTT.SW.Max   = min(RTT.SW, na.rm = TRUE),
+             # NOTE: If all values are NA, just return NA.
+             #       Otherwise, calculate statistics from the non-NA values.
+             RTT.SW.Min  = if(all(is.na(RTT.SW))) { NA } else { min(RTT.SW, na.rm = TRUE) },
+             RTT.SW.Q10  = if(all(is.na(RTT.SW))) { NA } else { quantile(RTT.SW, 0.10, na.rm = TRUE) },
+             RTT.SW.Mean = if(all(is.na(RTT.SW))) { NA } else { mean(RTT.SW, na.rm = TRUE) },
+             RTT.SW.Q90  = if(all(is.na(RTT.SW))) { NA } else { quantile(RTT.SW, 0.90, na.rm = TRUE) },
+             RTT.SW.Max  = if(all(is.na(RTT.SW))) { NA } else { min(RTT.SW, na.rm = TRUE) },
 
              # ------ Hardware RTTs -----------------------------------------
-             RTT.HW.Min   = min(RTT.HW, na.rm = TRUE),
-             RTT.HW.Q10   = quantile(RTT.HW, 0.10, na.rm = TRUE),
-             RTT.HW.Mean  = mean(RTT.HW, na.rm = TRUE),
-             RTT.HW.Q90   = quantile(RTT.HW, 0.90, na.rm = TRUE),
-             RTT.HW.Max   = min(RTT.HW, na.rm = TRUE)
+             # NOTE: If all values are NA, just return NA.
+             #       Otherwise, calculate statistics from the non-NA values.
+             RTT.HW.Min  = if(all(is.na(RTT.HW))) { NA } else { min(RTT.HW, na.rm = TRUE) },
+             RTT.HW.Q10  = if(all(is.na(RTT.HW))) { NA } else { quantile(RTT.HW, 0.10, na.rm = TRUE) },
+             RTT.HW.Mean = if(all(is.na(RTT.HW))) { NA } else { mean(RTT.HW, na.rm = TRUE) },
+             RTT.HW.Q90  = if(all(is.na(RTT.HW))) { NA } else { quantile(RTT.HW, 0.90, na.rm = TRUE) },
+             RTT.HW.Max  = if(all(is.na(RTT.HW))) { NA } else { min(RTT.HW, na.rm = TRUE) }
             )
 # print(summaryTable)
+# print(dplyr::last_dplyr_warnings())
+
+
+# ====== Write CSV output ===================================================
+csvSummaryName <- paste(sep="", outputNamePrefix, ".csv")
+fwrite(summaryTable, csvSummaryName)
+cat(sep="", "\x1b[34mWrote ", csvSummaryName, "\x1b[0m\n")
 
 
 # ====== Write LaTeX and HTML output ========================================
 digits <- c(0, 0, 0, 0, 0,  0, 0, 0,  6, 6, 6, 6, 6,  6, 6, 6, 6, 6,   6, 6, 6, 6, 6)
-print(length(digits))
 latexSummaryTable <- xtable(summaryTable,
                             digits  = digits,
                             align   = getAlignment(summaryTable),
@@ -208,7 +220,7 @@ print(latexSummaryTable,
       NA.string            = "--",
       file                 = latexSummaryName,
       type                 = "latex")
-cat(sep="", "Wrote ", latexSummaryName, "\n")
+cat(sep="", "\x1b[34mWrote ", latexSummaryName, "\x1b[0m\n")
 
 htmlSummaryName <- paste(sep="", outputNamePrefix, ".html")
 print(htmlSummaryTable,
@@ -219,4 +231,4 @@ print(htmlSummaryTable,
       NA.string                  = "--",
       file                       = htmlSummaryName,
       type                       = "html")
-cat(sep="", "Wrote ", htmlSummaryName, "\n")
+cat(sep="", "\x1b[34mWrote ", htmlSummaryName, "\x1b[0m\n")
