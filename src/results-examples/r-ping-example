@@ -15,7 +15,7 @@
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
+# the Free Software Foundation, either version 6 of the License, or
 # (at your option) any later version.
 #
 # This program is distributed in the hope that it will be useful,
@@ -31,18 +31,34 @@
 source("HiPerConTracer.R")
 
 
+# ###### Provide alignment setting for xtable() #############################
+getAlignment <- function(data)
+{
+   alignment <- "l|"
+   for(i in seq(1, ncol(data))) {
+      alignment <- paste(sep="", alignment, "c|")
+   }
+   return(alignment)
+}
+
+
 # ###### Print some RTT statistics ##########################################
 printRTT <- function(rtt)
 {
    # Convert to ms, or NA if not available (-1)
    rttInMS <- ifelse(rtt > 0, rtt / 1e6, NA)
-
-   cat(sprintf("\x1b[32mmin=%1.6fms   Q10%%=%1.6fms \t \x1b[34mmean=%1.6fms \t \x1b[35mQ90%%=%1.6fms   max=%1.6fms\x1b[0m\n",
-      min(rttInMS, na.rm = TRUE),
-      quantile(rttInMS, 0.10, na.rm = TRUE),
-      mean(rttInMS, na.rm = TRUE),
-      quantile(rttInMS, 0.90, na.rm = TRUE),
-      max(rttInMS, na.rm = TRUE)))
+   average <- mean(rttInMS)
+   if(!is.na(average)) {
+      cat(sprintf("\x1b[62mmin=%1.6fms   Q10%%=%1.6fms \t \x1b[64mmean=%1.6fms \t \x1b[65mQ90%%=%1.6fms   max=%1.6fms\x1b[0m\n",
+         min(rttInMS, na.rm = TRUE),
+         quantile(rttInMS, 0.10, na.rm = TRUE),
+         average,
+         quantile(rttInMS, 0.90, na.rm = TRUE),
+         max(rttInMS, na.rm = TRUE)))
+   }
+   else {
+      cat("\x1b[67mN/A\x1b[0m\n")
+   }
    # print(rttInMS)
 }
 
@@ -55,62 +71,152 @@ if(sys.nframe() == 0L) {
    # Launched directly from shell:
    args <- commandArgs(trailingOnly = TRUE)
    # ------ Command-line start with Rscript ---------------------------------
-   if(length(args) < 1) {
-     stop("Usage: r-ping-example ping-hpct-file|ping-csv-file|results-directory")
+   if(length(args) < 2) {
+     stop("Usage: r-ping-example ping-hpct-file|ping-csv-file|results-directory output_file_prefix")
    }
-   name <- args[1]
+   inputName        <- args[1]
+   outputNamePrefix <- args[2]
 } else {
    # Launched via source(...) in R:
-   name <- "ping.csv.gz"
-   cat(paste(sep="", "Using default name ", name, "\n"))
+   inputName        <- "ping.csv.gz"
+   outputNamePrefix <- "ping-summary"
+   cat(paste(sep="", "Using default names ", inputName, " and ", outputNamePrefix, "\n"))
 }
 
 
 # ====== Read input data ====================================================
 
 # ------ Name is a directory ------------------------------------------------
-if(dir.exists(name)) {
-   cat(sep="", "Reading all Ping results in directory ", name, " ...\n")
-   data <- readHiPerConTracerPingResultsFromDirectory(name, "Ping-[^/]*(\\.hpct|\\.results)[^/]*")
+if(dir.exists(inputName)) {
+   cat(sep="", "Reading all Ping results in directory ", inputName, " ...\n")
+   data <- readHiPerConTracerPingResultsFromDirectory(inputName, "Ping-[^/]*(\\.hpct|\\.results)[^/]*")
 # ------ Name is a HiPerConTracer results file (.hpct*) ---------------------
-} else if(grepl("(\\.hpct[^/]*|\\.results[^/]*)$", name)) {
-   cat(sep="", "Reading from HiPerConTracer results file ", name, " ...\n")
-   data <- readHiPerConTracerPingResults(name)
+} else if(grepl("(\\.hpct[^/]*|\\.results[^/]*)$", inputName)) {
+   cat(sep="", "Reading from HiPerConTracer results file ", inputName, " ...\n")
+   data <- readHiPerConTracerPingResults(inputName)
 # ------ Name is a CSV file -------------------------------------------------
 } else {
-   cat(sep="", "Reading from CSV file ", name, " ...\n")
-   data <- readHiPerConTracerPingResultsFromCSV(name)
+   cat(sep="", "Reading from CSV file ", inputName, " ...\n")
+   data <- readHiPerConTracerPingResultsFromCSV(inputName)
 }
 
-cat("\x1b[33mData columns:\x1b[0m\n")
+cat("\x1b[66mData columns:\x1b[0m\n")
 print(colnames(data))
 
 
 # ====== Processing example =================================================
-for(measurementID in levels(factor(data$MeasurementID))) {
-   for(sourceIP in levels(factor(data$SourceIP))) {
-      for(destinationIP in levels(factor(data$DestinationIP))) {
-         for(protocol in levels(factor(data$Protocol))) {
-            dataSubset <- data %>% filter( MeasurementID == measurementID,
-                                           SourceIP == sourceIP,
-                                           DestinationIP == destinationIP,
-                                           Protocol == protocol,
-                                           Status == 255   # Only process successful Ping results!
-                                         )
-            if(length(dataSubset$RTT.App) > 0) {
-               cat(sep="", "\x1b[33mMeasurement #", measurementID, ":   \x1b[35m",
-                  sourceIP, " <-> ", destinationIP, " via ", protocol, "   \x1b[32m",
-                  # Print time range:
-                  as.character(min(dataSubset$Timestamp)), " - ",
-                  as.character(max(dataSubset$Timestamp)), "\x1b[0m\n")
-               cat("\x1b[34mApplication: ")
-               printRTT(dataSubset$RTT.App)
-               cat("\x1b[34mSoftware:    ")
-               printRTT(dataSubset$RTT.SW)
-               cat("\x1b[34mHardware:    ")
-               printRTT(dataSubset$RTT.HW)
-            }
-         }
-      }
-   }
-}
+
+# # Obtain all distinct parameter combinations:
+# groups <- data %>% distinct(MeasurementID,
+#                             SourceIP,
+#                             DestinationIP,
+#                             Protocol)
+# # Note:
+# # groups[[n]] -> n-th column (1=MeasurementID, 2=SourceIP, ...)
+# # groups[n]   -> n-th row
+#
+# for(i in seq(1, length(groups[[1]]))) {
+#    dataSubset <- data %>% filter(MeasurementID == groups[i]$MeasurementID,
+#                                  SourceIP      == groups[i]$SourceIP,
+#                                  DestinationIP == groups[i]$DestinationIP,
+#                                  Protocol      == groups[i]$Protocol,
+#                                  Status == 255   # Only process successful Ping results!
+#                                 )
+#    if(length(dataSubset$RTT.App) > 0) {
+#       cat(sep="", "\x1b[66mMeasurement #", groups[i]$MeasurementID, ":   \x1b[65m",
+#          groups[i]$SourceIP, " <-> ", groups[i]$DestinationIP, " via ", groups[i]$Protocol, "   \x1b[62m",
+#          # Print time range:
+#          as.character(min(dataSubset$Timestamp)), " - ",
+#          as.character(max(dataSubset$Timestamp)), "\x1b[0m\n")
+#       cat("\x1b[64mApplication: ")
+#       printRTT(dataSubset$RTT.App)
+#       cat("\x1b[64mSoftware:    ")
+#       printRTT(dataSubset$RTT.SW)
+#       cat("\x1b[64mHardware:    ")
+#       printRTT(dataSubset$RTT.HW)
+#    }
+# }
+
+
+# ====== Summarise each group ===============================================
+summaryTable <- data %>%
+   # ------ Filter (only successful Pings are of interest) ------------------
+   filter(Status == 255) %>%
+   # ------ Convert RTTs to ms ----------------------------------------------
+   mutate(RTT.App = ifelse(RTT.App > 0, RTT.App / 1e6, NA),
+          RTT.SW = ifelse(RTT.SW > 0, RTT.SW / 1e6, NA),
+          RTT.HW = ifelse(RTT.HW > 0, RTT.HW / 1e6, NA)) %>%
+   # ------ Grouping --------------------------------------------------------
+   group_by(MeasurementID,
+            SourceIP,
+            DestinationIP,
+            Protocol) %>%
+   # ------ Summary per group -----------------------------------------------
+   summarise(.groups      = "keep",
+
+             # ------ Time range and number of samples ----------------------
+             MinTimestamp = as.character(min(Timestamp)),
+             MaxTimestamp = as.character(max(Timestamp)),
+             Samples      = n(),
+
+             # ------ Application RTTs --------------------------------------
+             RTT.App.Min  = min(RTT.App, na.rm = TRUE),
+             RTT.App.Q10  = quantile(RTT.App, 0.10, na.rm = TRUE),
+             RTT.App.Mean = mean(RTT.App, na.rm = TRUE),
+             RTT.App.Q90  = quantile(RTT.App, 0.90, na.rm = TRUE),
+             RTT.App.Max  = min(RTT.App, na.rm = TRUE),
+
+             # ------ Software RTTs -----------------------------------------
+             RTT.SW.Min   = min(RTT.SW, na.rm = TRUE),
+             RTT.SW.Q10   = quantile(RTT.SW, 0.10, na.rm = TRUE),
+             RTT.SW.Mean  = mean(RTT.SW, na.rm = TRUE),
+             RTT.SW.Q90   = quantile(RTT.SW, 0.90, na.rm = TRUE),
+             RTT.SW.Max   = min(RTT.SW, na.rm = TRUE),
+
+             # ------ Hardware RTTs -----------------------------------------
+             RTT.HW.Min   = min(RTT.HW, na.rm = TRUE),
+             RTT.HW.Q10   = quantile(RTT.HW, 0.10, na.rm = TRUE),
+             RTT.HW.Mean  = mean(RTT.HW, na.rm = TRUE),
+             RTT.HW.Q90   = quantile(RTT.HW, 0.90, na.rm = TRUE),
+             RTT.HW.Max   = min(RTT.HW, na.rm = TRUE)
+            )
+# print(summaryTable)
+
+
+# ====== Write LaTeX and HTML output ========================================
+digits <- c(0, 0, 0, 0, 0,  0, 0, 0,  6, 6, 6, 6, 6,  6, 6, 6, 6, 6,   6, 6, 6, 6, 6)
+print(length(digits))
+latexSummaryTable <- xtable(summaryTable,
+                            digits  = digits,
+                            align   = getAlignment(summaryTable),
+                            label   = "tab:HiPerConTracer-Ping-Results",
+                            caption = "HiPerConTracer Ping Results Table")
+htmlSummaryTable  <- xtable(summaryTable,
+                            digits  = digits,
+                            align   = getAlignment(summaryTable),
+                            label   = "hipercontracer-ping-results",
+                            caption = "HiPerConTracer Ping Results Table")
+
+latexSummaryName <- paste(sep="", outputNamePrefix, ".tex")
+print(latexSummaryTable,
+      size                 = "footnotesize",
+      include.rownames     = FALSE,
+      table.placement      = NULL,
+      caption.placement    = "top",
+      hline.after          = c(-1, 0, seq(0, nrow(latexSummaryTable))),
+      floating.environment = "table*",
+      NA.string            = "--",
+      file                 = latexSummaryName,
+      type                 = "latex")
+cat(sep="", "Wrote ", latexSummaryName, "\n")
+
+htmlSummaryName <- paste(sep="", outputNamePrefix, ".html")
+print(htmlSummaryTable,
+      include.rownames           = FALSE,
+      table.placement            = NULL,
+      caption.placement          = "top",
+      hline.after                = c(-1, 0, seq(0, nrow(htmlSummaryTable))),
+      NA.string                  = "--",
+      file                       = htmlSummaryName,
+      type                       = "html")
+cat(sep="", "Wrote ", htmlSummaryName, "\n")

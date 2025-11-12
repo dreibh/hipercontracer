@@ -34,6 +34,7 @@ library("digest")
 library("data.table", warn.conflicts = FALSE)
 library("dplyr",      warn.conflicts = FALSE)
 library("ipaddress")
+library("xtable")
 
 
 # Path to HPCT Results:
