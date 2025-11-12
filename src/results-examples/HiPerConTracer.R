@@ -29,7 +29,6 @@
 
 library("anytime")
 options(digits.secs = 9)
-library("assert")
 library("digest")
 library("data.table", warn.conflicts = FALSE)
 library("dplyr",      warn.conflicts = FALSE)
