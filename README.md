@@ -317,13 +317,22 @@ find data -maxdepth 1 -name "Traceroute*.hpct.*" | \
    hpct-results --input-file-names-from-stdin --separator=; -o traceroute.csv.xz
 ```
 
-## Processing Results
+## Further Details
 
-See [`src/results-examples`](https://github.com/dreibh/hipercontracer/tree/master/src/results-examples) for some examples.
+See the [manpage of "hpct-results"](https://github.com/dreibh/hipercontracer/blob/master/src/hpct-results.1) for a detailed description of the available options:
 
-### GNU R
+```bash
+man hpct-results
+```
 
-See [`src/results-examples/r-install-dependencies`](https://github.com/dreibh/hipercontracer/blob/master/src/results-examples/r-install-dependencies) to get the necessary library packages installed from the [Comprehensive R Archive Network&nbsp;(CRAN)](https://cran.stat.auckland.ac.nz/)!
+
+# 📚 Processing Results for Analysis
+
+The directory [`src/results-examples`](https://github.com/dreibh/hipercontracer/tree/master/src/results-examples) contains some example results files, as well as some example scripts for reading them and computing some statistics.
+
+## GNU&nbsp;R
+
+The [GNU&nbsp;R](https://www.r-project.org/) examples need, in addition to GNU&nbsp;R, some libraries. See [`src/results-examples/r-install-dependencies`](https://github.com/dreibh/hipercontracer/blob/master/src/results-examples/r-install-dependencies) to get the necessary library packages installed from the [Comprehensive R Archive Network&nbsp;(CRAN)](https://cran.stat.auckland.ac.nz/)!
 
 Alternatively:
 
@@ -341,9 +350,9 @@ Alternatively:
   ```
   Note: `R-cran-nanotime` is missing in FreeBSD; it still needs to be installed from CRAN!
 
-#### Ping Example
+## Example for Ping Results Processing in R
 
-See [`r-ping-example`](https://github.com/dreibh/hipercontracer/blob/master/src/results-examples/r-ping-example) for the script, and [`src/results-examples`](https://github.com/dreibh/hipercontracer/tree/master/src/results-examples) for some examples results files! The Ping example creates a statistical summary table for each Measurement&nbsp;ID / Source&nbsp;IP / Destination&nbsp;IP / Protocol relation found in the given input results file(s).
+See [`r-ping-example`](https://github.com/dreibh/hipercontracer/blob/master/src/results-examples/r-ping-example) for the script, and [`src/results-examples`](https://github.com/dreibh/hipercontracer/tree/master/src/results-examples) for some example results files! The Ping example creates a statistical summary table for each Measurement&nbsp;ID / Source&nbsp;IP / Destination&nbsp;IP / Protocol relation found in the given input results file(s).
 
 Usage:
 
@@ -355,7 +364,7 @@ Usage:
      output
   ```
 
-  Note: The script calls the [HiPerConTracer Results Tool](#-the-hipercontracer-results-tool) for processing of the input file. It therefore needs to be installed.
+  Note: The script calls the [HiPerConTracer Results Tool](#-the-hipercontracer-results-tool) for processing of the input file. It therefore must to be installed.
 
   Outputs:
   * `output.csv`: A summary table as CSV file.
@@ -370,7 +379,7 @@ Usage:
 
   Note:
   * The provided directory ("`.`", i.e.&nbsp;the current directory) is searched for all HiPerConTracer Ping results files.
-  * The script calls the [HiPerConTracer Results Tool](#-the-hipercontracer-results-tool) for processing of the input files. It therefore needs to be installed.
+  * The script calls the [HiPerConTracer Results Tool](#-the-hipercontracer-results-tool) for processing of the input files. It therefore must to be installed.
 
 * With a CSV file:
 
@@ -380,9 +389,9 @@ Usage:
 
   Note: `ping.csv` has to be created in advance from HiPerConTracer Ping results, e.g.&nbsp;using the [HiPerConTracer Results Tool](#-the-hipercontracer-results-tool).
 
-#### Traceroute Example
+## Example for Traceroute Results Processing in R
 
-See [`r-traceroute-example`](https://github.com/dreibh/hipercontracer/blob/master/src/results-examples/r-traceroute-example) for the script, and [`src/results-examples`](https://github.com/dreibh/hipercontracer/tree/master/src/results-examples) for some examples results files! The Traceroute example simply counts the number of HiPerConTracer Traceroute runs for each Measurement&nbsp;ID / Source&nbsp;IP / Destination&nbsp;IP / Protocol relation found in the given input results file(s).
+See [`r-traceroute-example`](https://github.com/dreibh/hipercontracer/blob/master/src/results-examples/r-traceroute-example) for the script, and [`src/results-examples`](https://github.com/dreibh/hipercontracer/tree/master/src/results-examples) for some example results files! The Traceroute example simply counts the number of HiPerConTracer Traceroute runs for each Measurement&nbsp;ID / Source&nbsp;IP / Destination&nbsp;IP / Protocol relation found in the given input results file(s).
 
 Usage:
 
@@ -392,11 +401,17 @@ Usage:
   ./r-traceroute-example \
      Traceroute-UDP-#88888888-10.193.4.168-20231018T102656.814657-000000001.results.xz
   ```
+
+  Note: The script calls the [HiPerConTracer Results Tool](#-the-hipercontracer-results-tool) for processing of the input file. It therefore must to be installed.
+
 * With all HiPerConTracer Traceroute results files in a directory:
 
   ```bash
   ./r-traceroute-example .
   ```
+
+  Note: The script calls the [HiPerConTracer Results Tool](#-the-hipercontracer-results-tool) for processing of the input file. It therefore must to be installed.
+
 * With a CSV file:
 
   ```bash
@@ -405,7 +420,7 @@ Usage:
 
   Note: `traceroute.csv` has to be created in advance from HiPerConTracer Traceroute results, e.g.&nbsp;using the [HiPerConTracer Results Tool](#-the-hipercontracer-results-tool).
 
-### LibreOffice (or any similar spreadsheet program)
+## LibreOffice (or any similar spreadsheet program)
 
 Import CSV file into spreadsheet.
 
@@ -413,14 +428,6 @@ Hints:
 
 * Use _English (US)_ language, to avoid strange number conversions.
 * Specify the used column separator (" ", ",", etc.), if not detected automatically.
-
-## Further Details
-
-See the [manpage of "hpct-results"](https://github.com/dreibh/hipercontracer/blob/master/src/hpct-results.1) for a detailed description of the available options:
-
-```bash
-man hpct-results
-```
 
 
 # 🗃️ Setting Up a Database for Results Collection
