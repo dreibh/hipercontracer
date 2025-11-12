@@ -32,34 +32,16 @@ source("HiPerConTracer.R")
 
 
 # ###### Provide alignment setting for xtable() #############################
-getAlignment <- function(data)
+getAlignment <- function(data, doubleLineAfter = c())
 {
-   alignment <- "l|"
+   alignment <- "c|"
    for(i in seq(1, ncol(data))) {
       alignment <- paste(sep="", alignment, "c|")
+      if(i %in% doubleLineAfter) {
+         alignment <- paste(sep="", alignment, "|")
+      }
    }
    return(alignment)
-}
-
-
-# ###### Print some RTT statistics ##########################################
-printRTT <- function(rtt)
-{
-   # Convert to ms, or NA if not available (-1)
-   rttInMS <- ifelse(rtt > 0, rtt / 1e6, NA)
-   average <- mean(rttInMS)
-   if(!is.na(average)) {
-      cat(sprintf("\x1b[62mmin=%1.6fms   Q10%%=%1.6fms \t \x1b[64mmean=%1.6fms \t \x1b[65mQ90%%=%1.6fms   max=%1.6fms\x1b[0m\n",
-         min(rttInMS, na.rm = TRUE),
-         quantile(rttInMS, 0.10, na.rm = TRUE),
-         average,
-         quantile(rttInMS, 0.90, na.rm = TRUE),
-         max(rttInMS, na.rm = TRUE)))
-   }
-   else {
-      cat("\x1b[67mN/A\x1b[0m\n")
-   }
-   # print(rttInMS)
 }
 
 
@@ -104,41 +86,12 @@ cat("\x1b[66mData columns:\x1b[0m\n")
 print(colnames(data))
 
 
-# ====== Processing example =================================================
-
-# # Obtain all distinct parameter combinations:
-# groups <- data %>% distinct(MeasurementID,
-#                             SourceIP,
-#                             DestinationIP,
-#                             Protocol)
-# # Note:
-# # groups[[n]] -> n-th column (1=MeasurementID, 2=SourceIP, ...)
-# # groups[n]   -> n-th row
-#
-# for(i in seq(1, length(groups[[1]]))) {
-#    dataSubset <- data %>% filter(MeasurementID == groups[i]$MeasurementID,
-#                                  SourceIP      == groups[i]$SourceIP,
-#                                  DestinationIP == groups[i]$DestinationIP,
-#                                  Protocol      == groups[i]$Protocol,
-#                                  Status == 255   # Only process successful Ping results!
-#                                 )
-#    if(length(dataSubset$RTT.App) > 0) {
-#       cat(sep="", "\x1b[66mMeasurement #", groups[i]$MeasurementID, ":   \x1b[65m",
-#          groups[i]$SourceIP, " <-> ", groups[i]$DestinationIP, " via ", groups[i]$Protocol, "   \x1b[62m",
-#          # Print time range:
-#          as.character(min(dataSubset$Timestamp)), " - ",
-#          as.character(max(dataSubset$Timestamp)), "\x1b[0m\n")
-#       cat("\x1b[64mApplication: ")
-#       printRTT(dataSubset$RTT.App)
-#       cat("\x1b[64mSoftware:    ")
-#       printRTT(dataSubset$RTT.SW)
-#       cat("\x1b[64mHardware:    ")
-#       printRTT(dataSubset$RTT.HW)
-#    }
-# }
-
-
 # ====== Summarise each group ===============================================
+# Create a summary table:
+# - Filter for only process successful Pings (Status == 255).
+# - Convert RTTs to ms
+# - Group by MeasurementID / SourceIP / DestinationIP / Protocol
+# - Compute per-group statistics
 summaryTable <- data %>%
    # ------ Filter (only successful Pings are of interest) ------------------
    filter(Status == 255) %>%
@@ -162,29 +115,35 @@ summaryTable <- data %>%
              # ------ Application RTTs --------------------------------------
              # NOTE: If all values are NA, just return NA.
              #       Otherwise, calculate statistics from the non-NA values.
-             RTT.App.Min  = if(all(is.na(RTT.App))) { NA } else { min(RTT.App, na.rm = TRUE) },
-             RTT.App.Q10  = if(all(is.na(RTT.App))) { NA } else { quantile(RTT.App, 0.10, na.rm = TRUE) },
-             RTT.App.Mean = if(all(is.na(RTT.App))) { NA } else { mean(RTT.App, na.rm = TRUE) },
-             RTT.App.Q90  = if(all(is.na(RTT.App))) { NA } else { quantile(RTT.App, 0.90, na.rm = TRUE) },
-             RTT.App.Max  = if(all(is.na(RTT.App))) { NA } else { min(RTT.App, na.rm = TRUE) },
+             RTT.App.Min    = if(all(is.na(RTT.App))) { NA } else { min(RTT.App, na.rm = TRUE) },
+             RTT.App.Q10    = if(all(is.na(RTT.App))) { NA } else { quantile(RTT.App, 0.10, na.rm = TRUE) },
+             RTT.App.Mean   = if(all(is.na(RTT.App))) { NA } else { mean(RTT.App, na.rm = TRUE) },
+             RTT.App.Median = if(all(is.na(RTT.App))) { NA } else { median(RTT.App, na.rm = TRUE) },
+             RTT.App.Q90    = if(all(is.na(RTT.App))) { NA } else { quantile(RTT.App, 0.90, na.rm = TRUE) },
+             RTT.App.Max    = if(all(is.na(RTT.App))) { NA } else { min(RTT.App, na.rm = TRUE) },
+             RTT.App.StdDev = if(all(is.na(RTT.App))) { NA } else { sd(RTT.App, na.rm = TRUE) },
 
              # ------ Software RTTs -----------------------------------------
              # NOTE: If all values are NA, just return NA.
              #       Otherwise, calculate statistics from the non-NA values.
-             RTT.SW.Min  = if(all(is.na(RTT.SW))) { NA } else { min(RTT.SW, na.rm = TRUE) },
-             RTT.SW.Q10  = if(all(is.na(RTT.SW))) { NA } else { quantile(RTT.SW, 0.10, na.rm = TRUE) },
-             RTT.SW.Mean = if(all(is.na(RTT.SW))) { NA } else { mean(RTT.SW, na.rm = TRUE) },
-             RTT.SW.Q90  = if(all(is.na(RTT.SW))) { NA } else { quantile(RTT.SW, 0.90, na.rm = TRUE) },
-             RTT.SW.Max  = if(all(is.na(RTT.SW))) { NA } else { min(RTT.SW, na.rm = TRUE) },
+             RTT.SW.Min    = if(all(is.na(RTT.SW))) { NA } else { min(RTT.SW, na.rm = TRUE) },
+             RTT.SW.Q10    = if(all(is.na(RTT.SW))) { NA } else { quantile(RTT.SW, 0.10, na.rm = TRUE) },
+             RTT.SW.Mean   = if(all(is.na(RTT.SW))) { NA } else { mean(RTT.SW, na.rm = TRUE) },
+             RTT.SW.Median = if(all(is.na(RTT.SW))) { NA } else { median(RTT.SW, na.rm = TRUE) },
+             RTT.SW.Q90    = if(all(is.na(RTT.SW))) { NA } else { quantile(RTT.SW, 0.90, na.rm = TRUE) },
+             RTT.SW.Max    = if(all(is.na(RTT.SW))) { NA } else { min(RTT.SW, na.rm = TRUE) },
+             RTT.SW.StdDev = if(all(is.na(RTT.SW))) { NA } else { sd(RTT.SW, na.rm = TRUE) },
 
              # ------ Hardware RTTs -----------------------------------------
              # NOTE: If all values are NA, just return NA.
              #       Otherwise, calculate statistics from the non-NA values.
-             RTT.HW.Min  = if(all(is.na(RTT.HW))) { NA } else { min(RTT.HW, na.rm = TRUE) },
-             RTT.HW.Q10  = if(all(is.na(RTT.HW))) { NA } else { quantile(RTT.HW, 0.10, na.rm = TRUE) },
-             RTT.HW.Mean = if(all(is.na(RTT.HW))) { NA } else { mean(RTT.HW, na.rm = TRUE) },
-             RTT.HW.Q90  = if(all(is.na(RTT.HW))) { NA } else { quantile(RTT.HW, 0.90, na.rm = TRUE) },
-             RTT.HW.Max  = if(all(is.na(RTT.HW))) { NA } else { min(RTT.HW, na.rm = TRUE) }
+             RTT.HW.Min    = if(all(is.na(RTT.HW))) { NA } else { min(RTT.HW, na.rm = TRUE) },
+             RTT.HW.Q10    = if(all(is.na(RTT.HW))) { NA } else { quantile(RTT.HW, 0.10, na.rm = TRUE) },
+             RTT.HW.Mean   = if(all(is.na(RTT.HW))) { NA } else { mean(RTT.HW, na.rm = TRUE) },
+             RTT.HW.Median = if(all(is.na(RTT.HW))) { NA } else { median(RTT.HW, na.rm = TRUE) },
+             RTT.HW.Q90    = if(all(is.na(RTT.HW))) { NA } else { quantile(RTT.HW, 0.90, na.rm = TRUE) },
+             RTT.HW.Max    = if(all(is.na(RTT.HW))) { NA } else { min(RTT.HW, na.rm = TRUE) },
+             RTT.HW.StdDev = if(all(is.na(RTT.HW))) { NA } else { sd(RTT.HW, na.rm = TRUE) },
             )
 # print(summaryTable)
 # print(dplyr::last_dplyr_warnings())
@@ -193,14 +152,17 @@ summaryTable <- data %>%
 # ====== Write CSV output ===================================================
 csvSummaryName <- paste(sep="", outputNamePrefix, ".csv")
 fwrite(summaryTable, csvSummaryName)
-cat(sep="", "\x1b[34mWrote ", csvSummaryName, "\x1b[0m\n")
+cat(sep="", "Wrote ", csvSummaryName, "\n")
 
 
 # ====== Write LaTeX and HTML output ========================================
-digits <- c(0, 0, 0, 0, 0,  0, 0, 0,  6, 6, 6, 6, 6,  6, 6, 6, 6, 6,   6, 6, 6, 6, 6)
+digits <- c(0, 0, 0, 0, 0,  0, 0, 0,
+            3, 3, 3, 3, 3, 3, 3,  3, 3, 3, 3, 3, 3, 3,   3, 3, 3, 3, 3, 3, 3)
+doubleLineAfter <- c(5, 8, 15, 22)
+
 latexSummaryTable <- xtable(summaryTable,
                             digits  = digits,
-                            align   = getAlignment(summaryTable),
+                            align   = getAlignment(summaryTable, doubleLineAfter),
                             label   = "tab:HiPerConTracer-Ping-Results",
                             caption = "HiPerConTracer Ping Results Table")
 htmlSummaryTable  <- xtable(summaryTable,
@@ -220,7 +182,7 @@ print(latexSummaryTable,
       NA.string            = "--",
       file                 = latexSummaryName,
       type                 = "latex")
-cat(sep="", "\x1b[34mWrote ", latexSummaryName, "\x1b[0m\n")
+cat(sep="", "Wrote ", latexSummaryName, "\n")
 
 htmlSummaryName <- paste(sep="", outputNamePrefix, ".html")
 print(htmlSummaryTable,
@@ -231,4 +193,4 @@ print(htmlSummaryTable,
       NA.string                  = "--",
       file                       = htmlSummaryName,
       type                       = "html")
-cat(sep="", "\x1b[34mWrote ", htmlSummaryName, "\x1b[0m\n")
+cat(sep="", "Wrote ", htmlSummaryName, "\n")

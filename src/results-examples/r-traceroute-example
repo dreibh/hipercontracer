@@ -71,28 +71,31 @@ print(colnames(data))
 
 
 # ====== Processing example =================================================
-for(measurementID in levels(factor(data$MeasurementID))) {
-   for(sourceIP in levels(factor(data$SourceIP))) {
-      for(destinationIP in levels(factor(data$DestinationIP))) {
-         for(protocol in levels(factor(data$Protocol))) {
-            dataSubset <- data %>% filter( MeasurementID == measurementID,
-                                           SourceIP == sourceIP,
-                                           DestinationIP == destinationIP,
-                                           Protocol == protocol
-                                         )
 
-            if(length(dataSubset$RTT.App) > 0) {
-               cat(sep="", "\x1b[33mMeasurement #", measurementID, ":   \x1b[35m",
-                  sourceIP, " <-> ", destinationIP, " via ", protocol, "   \x1b[32m",
-                  # Print time range:
-                  as.character(min(dataSubset$Timestamp)), " - ",
-                  as.character(max(dataSubset$Timestamp)), "\x1b[0m\n",
-                  # Print number of Traceroutes:
-                  length( subset(dataSubset, dataSubset$HopNumber == 1)$RTT.App ), " Traceroutes",
-                  "\x1b[0m\n")
-            }
+# Obtain all distinct parameter combinations:
+groups <- data %>% distinct(MeasurementID,
+                            SourceIP,
+                            DestinationIP,
+                            Protocol)
+# Note:
+# groups[[n]] -> n-th column (1=MeasurementID, 2=SourceIP, ...)
+# groups[n]   -> n-th row
 
-         }
-      }
+for(i in seq(1, length(groups[[1]]))) {
+   dataSubset <- data %>% filter(MeasurementID == groups[i]$MeasurementID,
+                                 SourceIP      == groups[i]$SourceIP,
+                                 DestinationIP == groups[i]$DestinationIP,
+                                 Protocol      == groups[i]$Protocol
+                                )
+
+   if(length(dataSubset$RTT.App) > 0) {
+      cat(sep="", "\x1b[36mMeasurement #", groups[i]$MeasurementID, ":   \x1b[35m",
+         groups[i]$SourceIP, " <-> ", groups[i]$DestinationIP, " via ", groups[i]$Protocol, "   \x1b[32m",
+         # Print time range:
+         as.character(min(dataSubset$Timestamp)), " - ",
+         as.character(max(dataSubset$Timestamp)), "\x1b[0m\n",
+         # Print number of Traceroutes:
+         length( subset(dataSubset, dataSubset$HopNumber == 1)$RTT.App ), " Traceroutes",
+         "\x1b[0m\n")
    }
 }
