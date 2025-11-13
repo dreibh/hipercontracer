@@ -53,7 +53,7 @@ For ready-to-install Ubuntu Linux packages of HiPerConTracer, see [Launchpad PPA
 ```bash
 sudo apt-add-repository -sy ppa:dreibh/ppa
 sudo apt-get update
-sudo apt-get install hipercontracer
+sudo apt-get install hipercontracer-all
 ```
 
 ## Fedora Linux
@@ -62,7 +62,7 @@ For ready-to-install Fedora Linux packages of HiPerConTracer, see [COPR PPA for 
 
 ```bash
 sudo dnf copr enable -y dreibh/ppa
-sudo dnf install hipercontracer
+sudo dnf install hipercontracer-all
 ```
 
 ## FreeBSD
@@ -92,11 +92,15 @@ Please use the issue tracker at [https://github.com/dreibh/hipercontracer/issues
 
 The Git repository of the HiPerConTracer sources can be found at [https://github.com/dreibh/hipercontracer](https://github.com/dreibh/hipercontracer):
 
-<pre><code><span class="fu">git</span> clone <a href="https://github.com/dreibh/hipercontracer">https://github.com/dreibh/hipercontracer</a>
-<span class="bu">cd</span> hipercontracer
-<span class="fu">cmake</span> .
-<span class="fu">make</span>
-</code></pre>
+```bash
+git clone https://github.com/dreibh/hipercontracer
+cd hipercontracer
+sudo ci/get-dependencies --install
+cmake .
+make
+```
+
+Note: The script [`ci/get-dependencies`](https://github.com/dreibh/hipercontracer/blob/master/ci/get-dependencies) automatically  installs the build dependencies under Debian/Ubuntu Linux, Fedora Linux, and FreeBSD. For manual handling of the build dependencies, see the packaging configuration in [`debian/control`](https://github.com/dreibh/hipercontracer/blob/master/debian/control) (Debian/Ubuntu Linux), [`hipercontracer.spec`](https://github.com/dreibh/hipercontracer/blob/master/rpm/hipercontracer.spec) (Fedora Linux), and [`Makefile`](https://github.com/dreibh/hipercontracer/blob/master/freebsd/hipercontracer/Makefile) FreeBSD.
 
 Contributions:
 
@@ -260,8 +264,8 @@ Some simple results file examples (from <tt>[src/results-examples](https://githu
 Notes:
 
 * See the [manpage of "hipercontracer"](https://github.com/dreibh/hipercontracer/blob/master/src/hipercontracer.1) for a detailed description of the results file formats: ```bashman hipercontracer```
-* The HiPerConTracer Viewer Tool can be used to display results files, including uncompressed ones.
-* The HiPerConTracer Results Tool can be used to merge and/or convert the results files.
+* [HiPerConTracer Viewer Tool](#-the-hipercontracer-viewer-tool) can be used to display results files, including uncompressed ones.
+* [HiPerConTracer Results Tool](#-the-hipercontracer-results-tool) can be used to merge and/or convert the results files.
 
 ## Further Details
 
@@ -313,28 +317,6 @@ find data -maxdepth 1 -name "Traceroute*.hpct.*" | \
    hpct-results --input-file-names-from-stdin --separator=; -o traceroute.csv.xz
 ```
 
-## Processing Results from a CSV File
-
-See <tt>[src/results-examples](https://github.com/dreibh/hipercontracer/tree/master/src/results-examples)</tt> for some examples.
-
-### GNU R
-
-See <tt>[src/results-examples/r-install-dependencies](https://github.com/dreibh/hipercontracer/blob/master/src/results-examples/r-install-dependencies)</tt> to get the necessary library packages installed!
-
-* Ping:
-  <tt>[r-ping-example](https://github.com/dreibh/hipercontracer/blob/master/src/results-examples/r-ping-example) ping.csv</tt>
-* Traceroute:
-  <tt>[r-traceroute-example](https://github.com/dreibh/hipercontracer/blob/master/src/results-examples/r-traceroute-example) traceroute.csv.gz</tt>
-
-### LibreOffice (or any similar spreadsheet program)
-
-Import CSV file into spreadsheet.
-
-Hints:
-
-* Use _English (US)_ language, to avoid strange number conversions.
-* Choose column separator (" ", ",", etc.), if not detected automatically.
-
 ## Further Details
 
 See the [manpage of "hpct-results"](https://github.com/dreibh/hipercontracer/blob/master/src/hpct-results.1) for a detailed description of the available options:
@@ -342,6 +324,110 @@ See the [manpage of "hpct-results"](https://github.com/dreibh/hipercontracer/blo
 ```bash
 man hpct-results
 ```
+
+
+# 📚 Processing Results for Analysis
+
+The directory [`src/results-examples`](https://github.com/dreibh/hipercontracer/tree/master/src/results-examples) contains some example results files, as well as some example scripts for reading them and computing some statistics.
+
+## GNU&nbsp;R
+
+The [GNU&nbsp;R](https://www.r-project.org/) examples need, in addition to GNU&nbsp;R, some libraries. See [`src/results-examples/r-install-dependencies`](https://github.com/dreibh/hipercontracer/blob/master/src/results-examples/r-install-dependencies) to get the necessary library packages installed from the [Comprehensive R Archive Network&nbsp;(CRAN)](https://cran.stat.auckland.ac.nz/)!
+
+Alternatively:
+
+* Ubuntu/Debian:
+  ```bash
+  sudo apt install -y r-cran-data.table r-cran-digest r-cran-dplyr r-cran-nanotime r-cran-xtable
+  ```
+* Fedora:
+  ```bash
+  sudo dnf install -y R-data.table R-digest R-dplyr R-nanotime R-xtable
+  ```
+* FreeBSD:
+  ```bash
+  sudo pkg install -y R-cran-data.table R-cran-digest R-cran-dplyr R-cran-xtable
+  ```
+  Note: `R-cran-nanotime` is missing in FreeBSD; it still needs to be installed from CRAN!
+
+## Example for Ping Results Processing in R
+
+See [`r-ping-example`](https://github.com/dreibh/hipercontracer/blob/master/src/results-examples/r-ping-example) for the script, and [`src/results-examples`](https://github.com/dreibh/hipercontracer/tree/master/src/results-examples) for some example results files! The Ping example creates a statistical summary table for each Measurement&nbsp;ID / Source&nbsp;IP / Destination&nbsp;IP / Protocol relation found in the given input results file(s).
+
+Usage:
+
+* With HiPerConTracer Ping results file:
+
+  ```bash
+  ./r-ping-example \
+     Ping-P13735-2001:700:4100:4::2-20221012T142120.713761-000003330.results.bz2 \
+     output
+  ```
+
+  Note: The script calls the [HiPerConTracer Results Tool](#-the-hipercontracer-results-tool) for processing of the input file. It therefore must to be installed.
+
+  Outputs:
+  * `output.csv`: A summary table as CSV file.
+  * `output.tex`: A summary table as HTML file.
+  * `output.tex`: A summary table as LaTeX file, for inclusion into a LaTeX publication.
+
+* With all HiPerConTracer Ping results files in a directory:
+
+  ```bash
+  ./r-ping-example . output
+  ```
+
+  Note:
+  * The provided directory ("`.`", i.e.&nbsp;the current directory) is searched for all HiPerConTracer Ping results files.
+  * The script calls the [HiPerConTracer Results Tool](#-the-hipercontracer-results-tool) for processing of the input files. It therefore must to be installed.
+
+* With a CSV file:
+
+  ```bash
+  ./r-ping-example ping.csv output
+  ```
+
+  Note: `ping.csv` has to be created in advance from HiPerConTracer Ping results, e.g.&nbsp;using the [HiPerConTracer Results Tool](#-the-hipercontracer-results-tool).
+
+## Example for Traceroute Results Processing in R
+
+See [`r-traceroute-example`](https://github.com/dreibh/hipercontracer/blob/master/src/results-examples/r-traceroute-example) for the script, and [`src/results-examples`](https://github.com/dreibh/hipercontracer/tree/master/src/results-examples) for some example results files! The Traceroute example simply counts the number of HiPerConTracer Traceroute runs for each Measurement&nbsp;ID / Source&nbsp;IP / Destination&nbsp;IP / Protocol relation found in the given input results file(s).
+
+Usage:
+
+* With HiPerConTracer Traceroute results file:
+
+  ```bash
+  ./r-traceroute-example \
+     Traceroute-UDP-#88888888-10.193.4.168-20231018T102656.814657-000000001.results.xz
+  ```
+
+  Note: The script calls the [HiPerConTracer Results Tool](#-the-hipercontracer-results-tool) for processing of the input file. It therefore must to be installed.
+
+* With all HiPerConTracer Traceroute results files in a directory:
+
+  ```bash
+  ./r-traceroute-example .
+  ```
+
+  Note: The script calls the [HiPerConTracer Results Tool](#-the-hipercontracer-results-tool) for processing of the input file. It therefore must to be installed.
+
+* With a CSV file:
+
+  ```bash
+  ./r-traceroute-example traceroute.csv
+  ```
+
+  Note: `traceroute.csv` has to be created in advance from HiPerConTracer Traceroute results, e.g.&nbsp;using the [HiPerConTracer Results Tool](#-the-hipercontracer-results-tool).
+
+## LibreOffice (or any similar spreadsheet program)
+
+Import CSV file into spreadsheet.
+
+Hints:
+
+* Use _English (US)_ language, to avoid strange number conversions.
+* Specify the used column separator (" ", ",", etc.), if not detected automatically.
 
 
 # 🗃️ Setting Up a Database for Results Collection

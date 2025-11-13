@@ -15,7 +15,7 @@
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
+# the Free Software Foundation, either version 6 of the License, or
 # (at your option) any later version.
 #
 # This program is distributed in the hope that it will be useful,
@@ -31,42 +31,166 @@
 source("HiPerConTracer.R")
 
 
+# ###### Provide alignment setting for xtable() #############################
+getAlignment <- function(data, doubleLineAfter = c())
+{
+   alignment <- "c|"
+   for(i in seq(1, ncol(data))) {
+      alignment <- paste(sep="", alignment, "c|")
+      if(i %in% doubleLineAfter) {
+         alignment <- paste(sep="", alignment, "|")
+      }
+   }
+   return(alignment)
+}
+
+
 # ###### Main program #######################################################
 
 # ====== Handle arguments ===================================================
-if( (length(commandArgs()) >= 1) && ((commandArgs()[2] == "--slave") || (commandArgs()[2] == "--no-echo")) ) {
+args <- commandArgs(trailingOnly = TRUE)
+if(sys.nframe() == 0L) {
+   # Launched directly from shell:
    args <- commandArgs(trailingOnly = TRUE)
-   if (length(args) < 1) {
-     stop("Usage: r-ping-example ping-csv-file")
+   # ------ Command-line start with Rscript ---------------------------------
+   if(length(args) < 2) {
+     stop("Usage: r-ping-example ping-hpct-file|ping-csv-file|results-directory output_file_prefix")
    }
-   name <- args[1]
+   inputName        <- args[1]
+   outputNamePrefix <- args[2]
 } else {
-   # !!! NOTE: Set name here, for testing interactively in R! !!!
-   name <- "../ping.csv.gz"
+   # Launched via source(...) in R:
+   inputName        <- "ping.csv.gz"
+   outputNamePrefix <- "ping-summary"
+   cat(paste(sep="", "Using default names ", inputName, " and ", outputNamePrefix, "\n"))
 }
+
 
 # ====== Read input data ====================================================
-data <- readHiPerConTracerPingResultsFromCSV("", name)
+
+# ------ Name is a directory ------------------------------------------------
+if(dir.exists(inputName)) {
+   cat(sep="", "Reading all Ping results in directory ", inputName, " ...\n")
+   data <- readHiPerConTracerPingResultsFromDirectory(inputName, "Ping-[^/]*(\\.hpct|\\.results)[^/]*")
+# ------ Name is a HiPerConTracer results file (.hpct*) ---------------------
+} else if(grepl("(\\.hpct[^/]*|\\.results[^/]*)$", inputName)) {
+   cat(sep="", "Reading from HiPerConTracer results file ", inputName, " ...\n")
+   data <- readHiPerConTracerPingResults(inputName)
+# ------ Name is a CSV file -------------------------------------------------
+} else {
+   cat(sep="", "Reading from CSV file ", inputName, " ...\n")
+   data <- readHiPerConTracerPingResultsFromCSV(inputName)
+}
+
+cat("\x1b[66mData columns:\x1b[0m\n")
 print(colnames(data))
 
-# ====== Processing example =================================================
-for(measurementID in levels(factor(data$MeasurementID))) {
-   for(sourceIP in levels(factor(data$SourceIP))) {
-      for(destinationIP in levels(factor(data$DestinationIP))) {
-         dataSubset <- subset(data,
-                              (data$MeasurementID == measurementID) &
-                              (data$SourceIP == sourceIP) &
-                              (data$DestinationIP == destinationIP))
-         if(length(dataSubset$RTT.App) > 0) {
-            cat(sep="", "Measurement #", measurementID, ":\t",
-                sourceIP, "-", destinationIP, "\t",
-                # Print time range:
-                as.character(anytime(min(dataSubset$Timestamp) / 1000000000)), " - ",
-                as.character(anytime(max(dataSubset$Timestamp) / 1000000000)), "\t",
-                # Print number of Pings:
-                length(dataSubset$RTT.App), " Pings",
-                "\n")
-         }
-      }
-   }
-}
+
+# ====== Summarise each group ===============================================
+# Create a summary table:
+# - Filter for only process successful Pings (Status == 255).
+# - Convert RTTs to ms
+# - Group by MeasurementID / SourceIP / DestinationIP / Protocol
+# - Compute per-group statistics
+summaryTable <- data %>%
+   # ------ Filter (only successful Pings are of interest) ------------------
+   filter(Status == 255) %>%
+   # ------ Convert RTTs to ms ----------------------------------------------
+   mutate(RTT.App = ifelse(RTT.App > 0, RTT.App / 1e6, NA),
+          RTT.SW  = ifelse(RTT.SW > 0, RTT.SW / 1e6, NA),
+          RTT.HW  = ifelse(RTT.HW > 0, RTT.HW / 1e6, NA)) %>%
+   # ------ Grouping --------------------------------------------------------
+   group_by(MeasurementID,
+            SourceIP,
+            DestinationIP,
+            Protocol) %>%
+   # ------ Summary per group -----------------------------------------------
+   summarise(.groups      = "keep",
+
+             # ------ Time range and number of samples ----------------------
+             MinTimestamp = format(min(Timestamp), "%Y-%m-%d %H:%M:%E9S"),
+             MaxTimestamp = format(max(Timestamp), "%Y-%m-%d %H:%M:%E9S"),
+             Samples      = n(),
+
+             # ------ Application RTTs --------------------------------------
+             # NOTE: If all values are NA, just return NA.
+             #       Otherwise, calculate statistics from the non-NA values.
+             RTT.App.Min    = if(all(is.na(RTT.App))) { NA } else { min(RTT.App, na.rm = TRUE) },
+             RTT.App.Q10    = if(all(is.na(RTT.App))) { NA } else { quantile(RTT.App, 0.10, na.rm = TRUE) },
+             RTT.App.Mean   = if(all(is.na(RTT.App))) { NA } else { mean(RTT.App, na.rm = TRUE) },
+             RTT.App.Median = if(all(is.na(RTT.App))) { NA } else { median(RTT.App, na.rm = TRUE) },
+             RTT.App.Q90    = if(all(is.na(RTT.App))) { NA } else { quantile(RTT.App, 0.90, na.rm = TRUE) },
+             RTT.App.Max    = if(all(is.na(RTT.App))) { NA } else { min(RTT.App, na.rm = TRUE) },
+             RTT.App.StdDev = if(all(is.na(RTT.App))) { NA } else { sd(RTT.App, na.rm = TRUE) },
+
+             # ------ Software RTTs -----------------------------------------
+             # NOTE: If all values are NA, just return NA.
+             #       Otherwise, calculate statistics from the non-NA values.
+             RTT.SW.Min    = if(all(is.na(RTT.SW))) { NA } else { min(RTT.SW, na.rm = TRUE) },
+             RTT.SW.Q10    = if(all(is.na(RTT.SW))) { NA } else { quantile(RTT.SW, 0.10, na.rm = TRUE) },
+             RTT.SW.Mean   = if(all(is.na(RTT.SW))) { NA } else { mean(RTT.SW, na.rm = TRUE) },
+             RTT.SW.Median = if(all(is.na(RTT.SW))) { NA } else { median(RTT.SW, na.rm = TRUE) },
+             RTT.SW.Q90    = if(all(is.na(RTT.SW))) { NA } else { quantile(RTT.SW, 0.90, na.rm = TRUE) },
+             RTT.SW.Max    = if(all(is.na(RTT.SW))) { NA } else { min(RTT.SW, na.rm = TRUE) },
+             RTT.SW.StdDev = if(all(is.na(RTT.SW))) { NA } else { sd(RTT.SW, na.rm = TRUE) },
+
+             # ------ Hardware RTTs -----------------------------------------
+             # NOTE: If all values are NA, just return NA.
+             #       Otherwise, calculate statistics from the non-NA values.
+             RTT.HW.Min    = if(all(is.na(RTT.HW))) { NA } else { min(RTT.HW, na.rm = TRUE) },
+             RTT.HW.Q10    = if(all(is.na(RTT.HW))) { NA } else { quantile(RTT.HW, 0.10, na.rm = TRUE) },
+             RTT.HW.Mean   = if(all(is.na(RTT.HW))) { NA } else { mean(RTT.HW, na.rm = TRUE) },
+             RTT.HW.Median = if(all(is.na(RTT.HW))) { NA } else { median(RTT.HW, na.rm = TRUE) },
+             RTT.HW.Q90    = if(all(is.na(RTT.HW))) { NA } else { quantile(RTT.HW, 0.90, na.rm = TRUE) },
+             RTT.HW.Max    = if(all(is.na(RTT.HW))) { NA } else { min(RTT.HW, na.rm = TRUE) },
+             RTT.HW.StdDev = if(all(is.na(RTT.HW))) { NA } else { sd(RTT.HW, na.rm = TRUE) },
+            )
+# print(summaryTable)
+# print(dplyr::last_dplyr_warnings())
+
+
+# ====== Write CSV output ===================================================
+csvSummaryName <- paste(sep="", outputNamePrefix, ".csv")
+fwrite(summaryTable, csvSummaryName)
+cat(sep="", "Wrote ", csvSummaryName, "\n")
+
+
+# ====== Write LaTeX and HTML output ========================================
+digits <- c(0, 0, 0, 0, 0,  0, 0, 0,
+            3, 3, 3, 3, 3, 3, 3,  3, 3, 3, 3, 3, 3, 3,   3, 3, 3, 3, 3, 3, 3)
+doubleLineAfter <- c(5, 8, 15, 22)
+
+latexSummaryTable <- xtable(summaryTable,
+                            digits  = digits,
+                            align   = getAlignment(summaryTable, doubleLineAfter),
+                            label   = "tab:HiPerConTracer-Ping-Results",
+                            caption = "HiPerConTracer Ping Results Table")
+htmlSummaryTable  <- xtable(summaryTable,
+                            digits  = digits,
+                            align   = getAlignment(summaryTable),
+                            label   = "hipercontracer-ping-results",
+                            caption = "HiPerConTracer Ping Results Table")
+
+latexSummaryName <- paste(sep="", outputNamePrefix, ".tex")
+print(latexSummaryTable,
+      size                 = "footnotesize",
+      include.rownames     = FALSE,
+      table.placement      = NULL,
+      caption.placement    = "top",
+      hline.after          = c(-1, 0, seq(0, nrow(latexSummaryTable))),
+      floating.environment = "table*",
+      NA.string            = "--",
+      file                 = latexSummaryName,
+      type                 = "latex")
+cat(sep="", "Wrote ", latexSummaryName, "\n")
+
+htmlSummaryName <- paste(sep="", outputNamePrefix, ".html")
+print(htmlSummaryTable,
+      include.rownames           = FALSE,
+      table.placement            = NULL,
+      caption.placement          = "top",
+      hline.after                = c(-1, 0, seq(0, nrow(htmlSummaryTable))),
+      NA.string                  = "--",
+      file                       = htmlSummaryName,
+      type                       = "html")
+cat(sep="", "Wrote ", htmlSummaryName, "\n")
