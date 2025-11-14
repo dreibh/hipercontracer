@@ -1,6 +1,5 @@
 PORTNAME=	hipercontracer
 DISTVERSION=	2.1.4
-PORTREVISION=	1
 CATEGORIES=	benchmarks
 MASTER_SITES=	https://www.nntb.no/~dreibh/hipercontracer/download/
 
