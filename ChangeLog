@@ -1,3 +1,155 @@
+commit 2f83a6f4accbad9743f7690743e0c69916e84ab8
+Merge: 113caa03 7b8f5f9d
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Nov 13 13:42:10 2025 +0100
+
+    Merge branch 'master' of https://github.com/dreibh/hipercontracer
+
+commit 113caa0339328974f9d2d97e2569fd35de0e3409
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Nov 13 13:41:05 2025 +0100
+
+    Improved MongoDB installation test script: Allowing installation on non-LTS Ubuntu, by using the Ubuntu 24.04 repository.
+
+commit 7b8f5f9d60b29cc58645cd00cafa51a338e6d09c
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Nov 12 18:06:40 2025 +0100
+
+    Improved documentation.
+
+commit 26a525a4c69574d3a109ce30363f0099b43df99c
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Nov 12 17:44:29 2025 +0100
+
+    Improved documentation.
+
+commit f7726708dcf4573df839804d5857e259262ab473
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Nov 12 17:44:18 2025 +0100
+
+    Improved dependencies of the examples.
+
+commit 31e3c2a52233d82e026da986099d9c89bd2c7e9f
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Nov 12 16:35:38 2025 +0100
+
+    Further example improvements.
+
+commit 45130ba71414f49267de4a1b3beb052ba0754cd9
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Nov 12 16:26:49 2025 +0100
+
+    Further improvements of the R data processing examples.
+
+commit 9c0cb8e52e27be896009e82746f0176904a49341
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Nov 12 15:55:07 2025 +0100
+
+    Further improvement of the example.
+
+commit 81597a7c76173815e35c0f93f400cfb643ae0e7d
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Nov 12 11:57:54 2025 +0100
+
+    Further improvement of the Ping example script.
+
+commit ed96cecfb7b2d8c25fc0fac75e019d8b5a629334
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Mon Nov 10 17:15:19 2025 +0100
+
+    Improved Traceroute example as well.
+
+commit abedcc2c1ec8c48e7ea841394d3f61df452cf940
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Mon Nov 10 17:06:43 2025 +0100
+
+    Improved GNU R example to directly handle HPCT files and directories.
+
+commit 3a3067ba3395bde202dc436c66592a2adad81a35
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Mon Nov 10 16:06:59 2025 +0100
+
+    Minor clean-ups.
+
+commit 2b46fbc6e2902e42cba53bbf1e02b3a3dced2923
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Mon Nov 10 15:59:24 2025 +0100
+
+    Improved example.
+
+commit 90c1266e1330af4072aac3dcf8569c7608d63276
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Fri Nov 7 16:13:15 2025 +0100
+
+    Minor documentation update.
+
+commit 5d5ae9c9b598033b5cc7b1ffe027d2c438fdef2e
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Mon Nov 3 13:03:53 2025 +0100
+
+    Yet another documentation update.
+
+commit d4f8e5aca390ccb05748e6b44d0eba214909f390
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Mon Nov 3 12:49:49 2025 +0100
+
+    Minor documentation update.
+
+commit 6c92cb050b3ebdd6ea4f98cf12e8453388d6b483
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Mon Nov 3 12:40:02 2025 +0100
+
+    Improved documentation.
+
+commit 9fd878d3fa14bc548473b1e3096da20292476622
+Merge: 6cbaa687 95fcde0f
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Fri Oct 31 16:40:34 2025 +0100
+
+    Merge branch 'master' of github.com:dreibh/hipercontracer
+
+commit 95fcde0f122da7e81a7a6c506d903e06569b6530
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Fri Oct 31 16:40:00 2025 +0100
+
+    Updated script.
+
+commit 6cbaa6875cb0859cde4b4b20125e37a9cab9b51b
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Fri Oct 31 16:39:42 2025 +0100
+
+    A fix.
+
+commit 28bf801ef88f7a27b59d5d4f53681ce92c7fa21b
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Fri Oct 31 16:15:21 2025 +0100
+
+    Improved test scripts.
+
+commit 35e7688ccc16dcf87293c83bf7f98fc24cfb37fc
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Fri Oct 31 16:12:50 2025 +0100
+
+    Some clean-ups.
+
+commit 950f1b80fb1b448b81d5d5e6db15e2b5ee98e655
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Fri Oct 31 16:04:28 2025 +0100
+
+    DBShell: dry-run does not require check for installation of DB client.
+
+commit c9ef5ba0637ed3afd657d42a154dc4c9cb8054b1
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Fri Oct 31 16:01:38 2025 +0100
+
+    DBShell update to also use getopt for arguments handling.
+
+commit 83148151fbc2120991145a43b18cc53f80a1667e
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Fri Oct 24 12:20:25 2025 +0200
+
+    New release hipercontracer-2.1.3.
+
 commit d35c2ba379935b93790bed1350a0e16e9ebf9205
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Fri Oct 24 12:13:31 2025 +0200
