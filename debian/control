@@ -35,6 +35,7 @@ Depends: hipercontracer-common,
          ${misc:Depends},
          ${shlibs:Depends}
 Recommends: ethtool,
+            hipercontracer-examples,
             hipercontracer-viewer
 Suggests: hipercontracer-collector,
           hipercontracer-dbeaver-tools,
@@ -88,8 +89,6 @@ Architecture: all
 Depends: acl,
          passwd,
          ${misc:Depends}
-Suggests: python3,
-          r-base-core
 Description: HiPerConTracer common files
  High-Performance Connectivity Tracer (HiPerConTracer) is a Ping/Traceroute
  measurement framework. HiPerConTracer denotes the actual measurement
@@ -125,6 +124,52 @@ Description: HiPerConTracer common files
  .
  The package contains common files for HiPerConTracer and the HiPerConTracer
  Tools packages.
+
+Package: hipercontracer-examples
+Architecture: all
+Depends: python3,
+         python3-netifaces,
+         r-base-core,
+         r-cran-data.table,
+         r-cran-digest,
+         r-cran-dplyr,
+         r-cran-nanotime,
+         r-cran-xtable,
+         ${misc:Depends}
+Description: HiPerConTracer example scripts and results files
+ High-Performance Connectivity Tracer (HiPerConTracer) is a Ping/Traceroute
+ measurement framework. HiPerConTracer denotes the actual measurement
+ tool. It performs regular Ping and Traceroute runs among sites, featuring:
+ multi-transport-protocol support (ICMP, UDP); multi-homing and parallelism
+ support; handling of load balancing in the network; multi-platform
+ support (currently Linux and FreeBSD); high-precision (nanoseconds)
+ timing support (Linux timestamping, both software and hardware); a
+ library (shared/static) to integrate measurement functionality into other
+ software (libhipercontracer); open source and written in a performance-
+ and portability-focused programming language (C++) with only limited
+ dependencies.
+ .
+ Furthermore, the HiPerConTracer Framework furthermore provides additional
+ tools for helping to obtain, process, collect, store, and retrieve
+ measurement data: HiPerConTracer Viewer Tool for displaying the contents
+ of results files; Results Tool for merging and converting results files,
+ e.g. to create a Comma-Separated Value (CSV) file; Sync Tool for copying data
+ from a measurement node (vantage point) to a remote HiPerConTracer Collector
+ server (via RSync/SSH); Reverse Tunnel Tool for maintaining a reverse SSH
+ tunnel from a remote measurement node to a HiPerConTracer Collector server;
+ Collector/Node Tools for simplifying the setup of HiPerConTracer Nodes and a
+ HiPerConTracer Collector server; Trigger Tool for triggering HiPerConTracer
+ measurements in the reverse direction; Importer Tool for storing measurement
+ data from results files into SQL or NoSQL databases. Currently, database
+ backends for MariaDB/MySQL PostgreSQL, MongoDB) are provided; Query
+ Tool for querying data from a database and storing it into a results
+ file; Database Shell as simple command-line front-end for the underlying
+ database backends; Database Tools with some helper scripts to e.g. to join
+ HiPerConTracer database configurations into an existing DBeaver (a popular
+ SQL database GUI application) configuration; UDP Echo Server as UDP Echo
+ (RFC 862) protocol endpoint; Wireshark dissector for HiPerConTracer packets.
+ .
+ This package contains some HiPerConTracer example scripts and results files.
 
 Package: libhpctio2
 Section: libs
@@ -446,8 +491,8 @@ Depends: hipercontracer-common,
          openssh-client,
          rsync,
          ${misc:Depends}
-Recommends: hipercontracer,
-            hipercontracer-results
+Recommends: hipercontracer-results
+Suggests: hipercontracer
 Description: HiPerConTracer Sync Tool to synchronise results files to a server
  High-Performance Connectivity Tracer (HiPerConTracer) is a Ping/Traceroute
  measurement framework. HiPerConTracer denotes the actual measurement
@@ -622,14 +667,13 @@ Description: HiPerConTracer Collector Tools for collecting measurement results
 
 Package: hipercontracer-importer
 Architecture: any
-Depends: acl,
-         hipercontracer-common,
+Depends: hipercontracer-common,
          libuniversalimporter2 (= ${binary:Version}),
+         python3,
          ${misc:Depends},
          ${shlibs:Depends}
-Recommends: hipercontracer,
-            hipercontracer-dbshell
-Suggests: python3
+Recommends: hipercontracer-dbshell
+Suggests: hipercontracer
 Description: HiPerConTracer Importer for importing results into a database
  High-Performance Connectivity Tracer (HiPerConTracer) is a Ping/Traceroute
  measurement framework. HiPerConTracer denotes the actual measurement
@@ -675,10 +719,10 @@ Depends: hipercontracer-common,
          libuniversalimporter2 (= ${binary:Version}),
          ${misc:Depends},
          ${shlibs:Depends}
-Recommends: hipercontracer,
-            hipercontracer-dbshell,
+Recommends: hipercontracer-dbshell,
             hipercontracer-results,
             hipercontracer-viewer
+Suggests: hipercontracer
 Description: HiPerConTracer Query Tool to query results from a database
  High-Performance Connectivity Tracer (HiPerConTracer) is a Ping/Traceroute
  measurement framework. HiPerConTracer denotes the actual measurement
@@ -721,10 +765,10 @@ Provides: hipercontracer-results-tool
 Replaces: hipercontracer-results-tool
 Breaks: hipercontracer-results-tool (<< ${source:Version})
 Depends: hipercontracer-common,
-         hipercontracer-viewer,
          ${misc:Depends},
          ${shlibs:Depends}
-Recommends: hipercontracer
+Recommends: hipercontracer-viewer
+Suggests: hipercontracer
 Description: HiPerConTracer Results Tool to process results files
  High-Performance Connectivity Tracer (HiPerConTracer) is a Ping/Traceroute
  measurement framework. HiPerConTracer denotes the actual measurement
@@ -774,9 +818,9 @@ Depends: bzip2,
          zstd,
          ${misc:Depends},
          ${shlibs:Depends}
-Recommends: hipercontracer,
-            hipercontracer-results,
+Recommends: hipercontracer-results,
             tree
+Suggests: hipercontracer
 Description: HiPerConTracer Viewer Tool to display results files
  High-Performance Connectivity Tracer (HiPerConTracer) is a Ping/Traceroute
  measurement framework. HiPerConTracer denotes the actual measurement
@@ -817,7 +861,7 @@ Package: hipercontracer-udp-echo-server
 Architecture: any
 Depends: ${misc:Depends},
          ${shlibs:Depends}
-Recommends: hipercontracer
+Suggests: hipercontracer
 Description: HiPerConTracer UDP Echo server for responding to UDP Pings
  High-Performance Connectivity Tracer (HiPerConTracer) is a Ping/Traceroute
  measurement framework. HiPerConTracer denotes the actual measurement
@@ -856,8 +900,7 @@ Description: HiPerConTracer UDP Echo server for responding to UDP Pings
 Package: hipercontracer-dbshell
 Architecture: all
 Depends: ${misc:Depends}
-Recommends: hipercontracer,
-            hipercontracer-dbeaver-tools,
+Recommends: hipercontracer-dbeaver-tools,
             mariadb-client | default-mysql-client,
             mongodb-mongosh,
             postgresql-client,
@@ -946,15 +989,18 @@ Description: HiPerConTracer DBeaver Tools for configuring access to databases
 Package: hipercontracer-all
 Architecture: all
 Depends: hipercontracer,
+         hipercontracer-collector,
          hipercontracer-dbeaver-tools,
          hipercontracer-dbshell,
+         hipercontracer-examples,
          hipercontracer-importer,
-         hipercontracer-query-tool,
-         hipercontracer-results-tool,
-         hipercontracer-sync-tool,
+         hipercontracer-node,
+         hipercontracer-query,
+         hipercontracer-results,
+         hipercontracer-sync,
          hipercontracer-trigger,
          hipercontracer-udp-echo-server,
-         hipercontracer-viewer-tool,
+         hipercontracer-viewer,
          ${misc:Depends}
 Description: HiPerConTracer metapackage for all tools of the framework
  High-Performance Connectivity Tracer (HiPerConTracer) is a Ping/Traceroute

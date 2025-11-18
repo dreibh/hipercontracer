@@ -338,15 +338,15 @@ Alternatively:
 
 * Ubuntu/Debian:
   ```bash
-  sudo apt install -y r-cran-data.table r-cran-digest r-cran-dplyr r-cran-nanotime r-cran-xtable
+  sudo apt install -y r-base-core r-cran-data.table r-cran-digest r-cran-dplyr r-cran-nanotime r-cran-xtable
   ```
 * Fedora:
   ```bash
-  sudo dnf install -y R-data.table R-digest R-dplyr R-nanotime R-xtable
+  sudo dnf install -y R-core R-data.table R-digest R-dplyr R-nanotime R-xtable
   ```
 * FreeBSD:
   ```bash
-  sudo pkg install -y R-cran-data.table R-cran-digest R-cran-dplyr R-cran-xtable
+  sudo pkg install -y R R-cran-data.table R-cran-digest R-cran-dplyr R-cran-xtable
   ```
   Note: `R-cran-nanotime` is missing in FreeBSD; it still needs to be installed from CRAN!
 

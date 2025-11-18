@@ -1,5 +1,5 @@
 Name: hipercontracer
-Version: 2.1.4
+Version: 2.1.5~rc1
 Release: 1
 Summary: High-Performance Connectivity Tracer (HiPerConTracer)
 Group: Applications/Internet
@@ -28,9 +28,9 @@ BuildRequires: libzstd-devel
 BuildRoot: %{_tmppath}/%{name}-%{version}-build
 Requires: %{name}-common = %{version}-%{release}
 Requires: %{name}-libhipercontracer = %{version}-%{release}
-Requires: acl
 Requires: iproute
 Recommends: %{name}-viewer = %{version}-%{release}
+Recommends: %{name}-examples
 Recommends: ethtool
 Suggests: %{name}-collector = %{version}-%{release}
 Suggests: %{name}-dbeaver-tools = %{version}-%{release}
@@ -107,10 +107,6 @@ Group: Applications/File
 BuildArch: noarch
 Requires: acl
 Requires: shadow-utils
-Recommends: %{name} = %{version}-%{release}
-Recommends: %{name}-results = %{version}-%{release}
-Suggests: R-base
-Suggests: python3
 
 %description common
 High-Performance Connectivity Tracer (HiPerConTracer) is a Ping/Traceroute
@@ -201,10 +197,66 @@ rmdir /var/hipercontracer >/dev/null 2>&1 || true
 %{_datadir}/mime/packages/hipercontracer.xml
 
 
+%package examples
+Summary: HiPerConTracer example scripts and results files
+Group: Applications/File
+BuildArch: noarch
+Requires: R-core
+Requires: R-data.table
+Requires: R-digest
+Requires: R-dplyr
+Requires: R-nanotime
+Requires: R-xtable
+Recommends: python3
+Recommends: python3-netifaces
+
+%description examples
+High-Performance Connectivity Tracer (HiPerConTracer) is a Ping/Traceroute
+measurement framework. HiPerConTracer denotes the actual measurement
+tool. It performs regular Ping and Traceroute runs among sites, featuring:
+multi-transport-protocol support (ICMP, UDP); multi-homing and parallelism
+support; handling of load balancing in the network; multi-platform
+support (currently Linux and FreeBSD); high-precision (nanoseconds)
+timing support (Linux timestamping, both software and hardware); a
+library (shared/static) to integrate measurement functionality into other
+software (libhipercontracer); open source and written in a performance-
+and portability-focused programming language (C++) with only limited
+dependencies.
+Furthermore, the HiPerConTracer Framework furthermore provides additional
+tools for helping to obtain, process, collect, store, and retrieve
+measurement data: HiPerConTracer Viewer Tool for displaying the contents
+of results files; Results Tool for merging and converting results files,
+e.g. to create a Comma-Separated Value (CSV) file; Sync Tool for copying data
+from a measurement node (vantage point) to a remote HiPerConTracer Collector
+server (via RSync/SSH); Reverse Tunnel Tool for maintaining a reverse SSH
+tunnel from a remote measurement node to a HiPerConTracer Collector server;
+Collector/Node Tools for simplifying the setup of HiPerConTracer Nodes and a
+HiPerConTracer Collector server; Trigger Tool for triggering HiPerConTracer
+measurements in the reverse direction; Importer Tool for storing measurement
+data from results files into SQL or NoSQL databases. Currently, database
+backends for MariaDB/MySQL PostgreSQL, MongoDB) are provided; Query
+Tool for querying data from a database and storing it into a results
+file; Database Shell as simple command-line front-end for the underlying
+database backends; Database Tools with some helper scripts to e.g. to join
+HiPerConTracer database configurations into an existing DBeaver (a popular
+SQL database GUI application) configuration; UDP Echo Server as UDP Echo
+(RFC 862) protocol endpoint; Wireshark dissector for HiPerConTracer packets.
+This package contains some HiPerConTracer example scripts and results files.
+
+%files examples
+%{_datadir}/hipercontracer/results-examples/HiPerConTracer.R
+%{_datadir}/hipercontracer/results-examples/*-*.results.*
+%{_datadir}/hipercontracer/results-examples/*-*.hpct
+%{_datadir}/hipercontracer/results-examples/*-*.hpct.*
+%{_datadir}/hipercontracer/results-examples/README.md
+%{_datadir}/hipercontracer/results-examples/r-install-dependencies
+%{_datadir}/hipercontracer/results-examples/r-ping-example
+%{_datadir}/hipercontracer/results-examples/r-traceroute-example
+
+
 %package libhpctio
 Summary: I/O library of HiPerConTracer
 Group: System Environment/Libraries
-Requires: %{name}-libhpctio = %{version}-%{release}
 
 %description libhpctio
 High-Performance Connectivity Tracer (HiPerConTracer) is a Ping/Traceroute
@@ -439,8 +491,8 @@ package.
 %package libuniversalimporter-devel
 Summary: Development files for HiPerConTracer Universal Importer API library
 Group: Development/Libraries
-Requires: %{name}-libuniversalimporter = %{version}-%{release}
 Requires: %{name}-libhpctio-devel = %{version}-%{release}
+Requires: %{name}-libuniversalimporter = %{version}-%{release}
 Requires: boost-devel
 
 %description libuniversalimporter-devel
@@ -551,8 +603,8 @@ BuildArch: noarch
 Requires: %{name}-common = %{version}-%{release}
 Requires: openssh-clients
 Requires: rsync
-Recommends: %{name} = %{version}-%{release}
 Recommends: %{name}-results = %{version}-%{release}
+Suggests: %{name} = %{version}-%{release}
 
 %description sync
 High-Performance Connectivity Tracer (HiPerConTracer) is a Ping/Traceroute
@@ -758,9 +810,8 @@ Summary: HiPerConTracer Importer for importing results into a database
 Group: Applications/Database
 Requires: %{name}-common = %{version}-%{release}
 Requires: %{name}-libuniversalimporter = %{version}-%{release}
-Recommends: %{name} = %{version}-%{release}
 Recommends: %{name}-dbshell = %{version}-%{release}
-Suggests: python3
+Suggests: %{name} = %{version}-%{release}
 
 %description importer
 High-Performance Connectivity Tracer (HiPerConTracer) is a Ping/Traceroute
@@ -854,10 +905,10 @@ Summary: HiPerConTracer Query Tool to query results from a database
 Group: Applications/Database
 Requires: %{name}-common = %{version}-%{release}
 Requires: %{name}-libuniversalimporter = %{version}-%{release}
-Recommends: %{name} = %{version}-%{release}
 Recommends: %{name}-dbshell = %{version}-%{release}
 Recommends: %{name}-results = %{version}-%{release}
 Recommends: %{name}-viewer = %{version}-%{release}
+Suggests: %{name} = %{version}-%{release}
 
 %description query
 High-Performance Connectivity Tracer (HiPerConTracer) is a Ping/Traceroute
@@ -903,9 +954,8 @@ HiPerConTracer SQL or NoSQL database.
 Summary: HiPerConTracer Results Tool to process results files
 Group: Applications/File
 Requires: %{name}-common = %{version}-%{release}
-Requires: %{name}-libuniversalimporter = %{version}-%{release}
-Recommends: %{name} = %{version}-%{release}
 Recommends: %{name}-viewer = %{version}-%{release}
+Suggests: %{name} = %{version}-%{release}
 
 %description results
 High-Performance Connectivity Tracer (HiPerConTracer) is a Ping/Traceroute
@@ -956,14 +1006,14 @@ Summary: HiPerConTracer Viewer Tool to display results files
 Group: Applications/File
 BuildArch: noarch
 Requires: %{name}-common = %{version}-%{release}
-Requires: %{name}-libuniversalimporter = %{version}-%{release}
 Requires: bzip2
 Requires: gzip
 Requires: less
 Requires: xz
 Requires: zstd
-Recommends: %{name} = %{version}-%{release}
 Recommends: %{name}-results = %{version}-%{release}
+Recommends: tree
+Suggests: %{name} = %{version}-%{release}
 
 %description viewer
 High-Performance Connectivity Tracer (HiPerConTracer) is a Ping/Traceroute
@@ -1009,7 +1059,7 @@ HiPerConTracer results files.
 %package udp-echo-server
 Summary: HiPerConTracer UDP Echo server for responding to UDP Pings
 Group: Applications/Internet
-Recommends: %{name} = %{version}-%{release}
+Suggests: %{name} = %{version}-%{release}
 
 %description udp-echo-server
 High-Performance Connectivity Tracer (HiPerConTracer) is a Ping/Traceroute
@@ -1056,7 +1106,6 @@ This package contains a simple UDP Echo server to respond to UDP Pings.
 Summary: HiPerConTracer Database Shell for access testing to a database
 Group: Applications/Database
 BuildArch: noarch
-Recommends: %{name} = %{version}-%{release}
 Recommends: %{name}-dbeaver-tools = %{version}-%{release}
 Recommends: (mariadb or mysql)
 Recommends: mongodb-mongosh
@@ -1165,6 +1214,7 @@ Requires: %{name} = %{version}-%{release}
 Requires: %{name}-collector = %{version}-%{release}
 Requires: %{name}-dbeaver-tools = %{version}-%{release}
 Requires: %{name}-dbshell = %{version}-%{release}
+Requires: %{name}-examples  = %{version}-%{release}
 Requires: %{name}-importer = %{version}-%{release}
 Requires: %{name}-node = %{version}-%{release}
 Requires: %{name}-query = %{version}-%{release}
