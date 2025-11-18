@@ -315,8 +315,7 @@ EOF
    sudo touch ${MONGODB_CRT_KEY_FILE}
    sudo chmod 600 ${MONGODB_CRT_KEY_FILE}
    sudo cat /etc/ssl/${server}.${DOMAIN}/${server}.${DOMAIN}.key \
-            /etc/ssl/${server}.${DOMAIN}/${server}.${DOMAIN}.crt \
-            ${MONGODB_CA_FILE} | \
+            /etc/ssl/${server}.${DOMAIN}/${server}.${DOMAIN}.crt | \
       sudo tee ${MONGODB_CRT_KEY_FILE} >/dev/null
    if [ "${ID}" == "fedora" ] ; then
       sudo chown mongod:mongod ${MONGODB_CRT_KEY_FILE}
