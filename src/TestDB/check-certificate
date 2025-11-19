@@ -138,9 +138,9 @@ while [ $# -gt 0 ] ; do
    if [ "${OPENSSL}" != "" ] ; then
       crlOption=""
       if [ "${CRL}" != "" ] ; then
-         crlOption="-CRLfile \"${CRL}\" -crl_check"
+         crlOption="-crl_check -CRLfile \"${CRL}\""
       fi
-      command="\"${OPENSSL}\" verify -CAfile \"${CA_FILE}\" ${crlOption} --untrusted \"${CERTIFICATE_FILE}\" \"${CERTIFICATE_FILE}\""
+      command="\"${OPENSSL}\" verify -no-CApath -no-CAstore -CAfile \"${CA_FILE}\" ${crlOption} -untrusted \"${CERTIFICATE_FILE}\" \"${CERTIFICATE_FILE}\""
       if sh -c "${command}" >/dev/null 2>&1 ; then
          echo -e "\e[32;1m$(gettext "✓OKAY")\e[0m"
       else
@@ -201,7 +201,7 @@ while [ $# -gt 0 ] ; do
       "${CERTUTIL}" -A -n "My Certificate" -t ",," -e -d "${db}" -a -i "${CERTIFICATE_FILE}"
 
       # ------ Extract certificate and process each sub-CA individually -----
-      "${DIRNAME}/extract-pem" "${CERTIFICATE_FILE}" --skip-first-entry --skip-last-entry \
+      "${DIRNAME}/extract-pem" "${CERTIFICATE_FILE}" --skip-first-entry \
          --quiet --output-prefix "${db}/tmp/certificate-"
       subCA=0
       find "${db}/tmp" -name "certificate-[0-9]*.crt" | sort -r | \

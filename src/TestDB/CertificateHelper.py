@@ -506,6 +506,8 @@ subjectAltName         = ${ENV::SAN}
             cmd = 'openssl verify ' + \
                   ' -show_chain'    + \
                   ' -verbose'       + \
+                  ' -no-CApath'     + \
+                  ' -no-CAstore'    + \
                   ' -CAfile '       + self.RootCA.CertFileName
             if self.ParentCA:
                cmd += ' -untrusted ' + self.ParentCA.CertFileName
@@ -563,6 +565,8 @@ subjectAltName         = ${ENV::SAN}
                        ' -show_chain' +
                        ' -verbose'    +
                        ' -crl_check'  +
+                       ' -no-CApath'  +
+                       ' -no-CAstore' +
                        ' -CAfile '    + self.RootCA.CertFileName +
                        ' -untrusted ' + self.CertFileName +
                        ' -CRLfile '   + self.CRLFileName +
