@@ -1,3 +1,64 @@
+commit a1a703b85c17b6df4c346677dda64f9c4f3f13ba
+Merge: 4592a94d cc05bc4b
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Nov 18 17:34:54 2025 +0100
+
+    Merge branch 'master' of https://github.com/dreibh/hipercontracer
+
+commit 4592a94d221b5681afb9c66fa07565ba7b5903e5
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Nov 18 17:34:39 2025 +0100
+
+    MongoDB installation fix.
+
+commit cc05bc4be35ccf4e0fe2f5cac9e322a104073f65
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Nov 18 16:51:57 2025 +0100
+
+    Error handling fix.
+
+commit e7253f2a6d2704643ba7421734be9907720f5fa6
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Nov 18 15:30:32 2025 +0100
+
+    RPM spec fix.
+
+commit 6adf05b519c117c728823cd2d48a9bbc1f6e4055
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Nov 18 13:41:29 2025 +0100
+
+    Packaging improvements.
+
+commit 01d352bad8ed02b49a0e316f29a71775ba0e9b9a
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Nov 18 09:57:14 2025 +0100
+
+    A fix.
+
+commit 526759767a63a5fb4bca41cae9635f8936124726
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Nov 18 09:41:30 2025 +0100
+
+    Documentation improvements.
+
+commit 38f3d649069f490c485382c51a1620d77d318037
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Fri Nov 14 11:46:20 2025 +0100
+
+    Another update for the FreeBSD port.
+
+commit b11f2a0d4bf7b0a7ff022425fc7d71b22f2ba26c
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Fri Nov 14 11:36:44 2025 +0100
+
+    Updated FreeBSD port.
+
+commit 0a552146834d14c1af4a97d79d00fb34819b4592
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Fri Nov 14 11:09:10 2025 +0100
+
+    New release hipercontracer-2.1.4.
+
 commit 2f83a6f4accbad9743f7690743e0c69916e84ab8
 Merge: 113caa03 7b8f5f9d
 Author: Thomas Dreibholz <dreibh@simula.no>
