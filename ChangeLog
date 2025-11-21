@@ -1,3 +1,34 @@
+commit 5f9020656a98ea2ad0f2af38fdcbe423415381a6
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Fri Nov 21 11:29:31 2025 +0100
+
+    A small fix for the test script.
+
+commit 460859939bff82e39def8ceab08511f575cd7d86
+Merge: 38cf5c20 8d58ac25
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Nov 19 15:43:18 2025 +0100
+
+    Merge branch 'master' of github.com:dreibh/hipercontracer
+
+commit 38cf5c207bd7acaed2a0e8ab204b3ed6814ef01a
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Nov 19 15:42:59 2025 +0100
+
+    Updated test scripts.
+
+commit 8d58ac25426c5edca3ad33f7347a9bf00a0c00c0
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Nov 19 12:49:10 2025 +0100
+
+    Updated FreeBSD port.
+
+commit 25624552a1e942894a7153f041d51ab34cffc558
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Nov 19 12:40:27 2025 +0100
+
+    New release hipercontracer-2.1.5.
+
 commit a1a703b85c17b6df4c346677dda64f9c4f3f13ba
 Merge: 4592a94d cc05bc4b
 Author: Thomas Dreibholz <dreibh@simula.no>
