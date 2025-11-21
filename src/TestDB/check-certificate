@@ -211,6 +211,12 @@ while [ $# -gt 0 ] ; do
          done
       find "${db}/tmp" -name "certificate-[0-9]*.crl"
 
+      # If the Root CA is in the certificate bundle, trust was reset to ",,"
+      # => Set it as trusted again:
+      if [ "${CA_FILE}" != "${CERTIFICATE_FILE}" ] ; then
+         "${CERTUTIL}" -A -n "My Root CA" -t "CT,C,C" -e -d "${db}" -a -i "${CA_FILE}" -u L
+      fi
+
       # ------ Extract CRL file and process each CRL individually -----------
       if [ "${CRL}" != "" ] ; then
          "${DIRNAME}/extract-pem" "${CRL}" --quiet --output-prefix "${db}/tmp/crl-"
