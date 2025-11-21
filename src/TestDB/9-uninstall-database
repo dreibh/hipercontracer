@@ -118,7 +118,7 @@ elif [ "$1" == "mongodb" ] ; then
       sudo dnf remove -y 'mongodb-*'
    elif [ "${ID}" == "freebsd" ] ; then
       sudo service mongod stop || true
-      sudo pkg remove -y 'mongodb*' mongosh mongo-c-driver || true
+      sudo pkg remove -y 'mongodb*' mongosh || true
       sudo rm -f /usr/local/etc/mongodb.conf || true
    else
       echo >&2 "ERROR: Unknown ID ${ID} in /etc/os-release. The installation script may need an update for supporting this system!"
