@@ -779,7 +779,7 @@ HiPerConTracer BibTeX entries can be found in [hipercontracer.bib](https://githu
 * [NetPerfMeter – A TCP/MPTCP/UDP/SCTP/DCCP Network Performance Meter Tool](https://www.nntb.no/~dreibh/netperfmeter/)
 * [Dynamic Multi-Homing Setup (DynMHS)](https://www.nntb.no/~dreibh/dynmhs/)
 * [SubNetCalc – An IPv4/IPv6 Subnet Calculator](https://www.nntb.no/~dreibh/subnetcalc/)
-* [TSCTP – An SCTP test tool](https://www.nntb.no/~dreibh/tsctp/)
+* [TSCTP – An SCTP Test Tool](https://www.nntb.no/~dreibh/tsctp/)
 * [System-Tools – Tools for Basic System Management](https://www.nntb.no/~dreibh/system-tools/)
 * [Thomas Dreibholz's Multi-Path TCP (MPTCP) Page](https://www.nntb.no/~dreibh/mptcp/)
 * [Thomas Dreibholz's SCTP Page](https://www.nntb.no/~dreibh/sctp/)
