@@ -1,3 +1,46 @@
+commit 472e57d6fd1cc656370161b35afc20befa5b07b0
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Nov 26 15:40:13 2025 +0100
+
+    debian/control: Removed Vcs-* fields.
+
+commit 33576da98c95722025fa3cf226f38c9547998db3
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Nov 26 15:39:43 2025 +0100
+
+    debian/*.install: usr/lib/*/ -> usr/lib/${DEB_HOST_MULTIARCH}/.
+
+commit 917cbf4314282e1a4250f94afcc8739745aae2b6
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Nov 26 13:31:05 2025 +0100
+
+    Updated link.
+
+commit 351a78dc4481e763073074b049d7fb23730a27ec
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Nov 26 12:04:33 2025 +0100
+
+    Updated test scripts.
+
+commit cdaeba72c995006aa637d88dbed72577c63afd0d
+Merge: 21a8d926 70293062
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Fri Nov 21 15:50:09 2025 +0100
+
+    Merge branch 'master' of github.com:dreibh/hipercontracer
+
+commit 21a8d9266506316696ac443882f8d1168475ccba
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Fri Nov 21 15:48:11 2025 +0100
+
+    New release hipercontracer-2.1.6.
+
+commit 702930622bf159d7a7b0d6752331f6884a97edfa
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Fri Nov 21 13:30:07 2025 +0100
+
+    Improved FreeBSD test run.
+
 commit 5f9020656a98ea2ad0f2af38fdcbe423415381a6
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Fri Nov 21 11:29:31 2025 +0100

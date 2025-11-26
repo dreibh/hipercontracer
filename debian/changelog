@@ -1,3 +1,11 @@
+hipercontracer (2.1.7-1ubuntu1) unstable; urgency=medium
+
+  * New upstream release.
+  * debian/control: Removed Vcs-* fields.
+  * debian/*.install: usr/lib/*/ -> usr/lib/${DEB_HOST_MULTIARCH}/.
+
+ -- Thomas Dreibholz <dreibh@simula.no>  Wed, 26 Nov 2025 16:18:10 +0100
+
 hipercontracer (2.1.6-1ubuntu1) unstable; urgency=medium
 
   * New upstream release.
