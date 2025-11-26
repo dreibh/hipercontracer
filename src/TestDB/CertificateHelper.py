@@ -29,12 +29,23 @@
 # Contact: thomas.dreibholz@gmail.com
 
 import ipaddress
-import netifaces
 import os
 import re
 import shutil
 import socket
 import sys
+
+# This library needs at least Python 3.10:
+MIN_PYTHON = (3, 10)
+if sys.version_info < MIN_PYTHON:
+   sys.exit('Python %s.%s or later is required!' % MIN_PYTHON)
+
+# This library also requires the netifaces package:
+try:
+   import netifaces
+except ImportError:
+   sys.exit('The Python netifaces package is required!')
+
 from typing import Final
 from enum   import Enum
 
@@ -89,11 +100,11 @@ def prepareSubjectAltName(certType : CertificateType,
    if (certType == CertificateType.Server) or (certType == CertificateType.Client):
 
       # ====== Prepare subjectAltName: current hostname+all addresses =======
-      subjectAltName : str                      = 'DNS:' + name
-      addresses      : set[ipaddress.ipaddress] = set()
+      subjectAltName : str                                                = 'DNS:' + name
+      addresses      : set[ipaddress.IPv4Address | ipaddress.IPv6Address] = set()
 
       # ====== Get local addresses ==========================================
-      if (hint == None) or (hint == 'LOCAL'):
+      if (hint is None) or (hint == 'LOCAL'):
          # ------ Add FQDN of current hostname ------------------------------
          fqdn : str = socket.getfqdn()
          if ((fqdn != name) and (fqdn != 'localhost')):
@@ -123,7 +134,7 @@ def prepareSubjectAltName(certType : CertificateType,
             addresses.add(address)
 
       # ====== Append IP addresses to subjectAltName ========================
-      addresses = sorted(addresses, key = lambda item: (item.version, int(item)))
+      addresses = set(sorted(addresses, key = lambda item: (item.version, int(item))))
       for address in addresses:
          subjectAltName = subjectAltName + ',IP:' + str(address)
 
@@ -177,26 +188,26 @@ def prepareUserSubject(name : str) -> str:
 
 
 # ###### CA #################################################################
-GlobalCRLSet             : set[os.PathLike] = set([])
-DefaultGlobalCRLFileName : os.PathLike      = 'Test.crl'
+GlobalCRLSet             : set[str]   = set([])
+DefaultGlobalCRLFileName : Final[str] = 'Test.crl'
 
 class CA:
 
    # ###### Constructor #####################################################
    def __init__(self,
-                mainDirectory     : Final[os.PathLike],
-                name              : Final[str],
-                parentCA          : 'CA',
-                subject           : Final[str],
-                certType          : Final[CertificateType],
-                days              : Final[int]         = 10 * 365,
-                keyLength         : Final[int]         = DefaultCAKeyLength,
-                globalCRLFileName : Final[os.PathLike] = DefaultGlobalCRLFileName):
+                mainDirectory     : str,
+                name              : str,
+                parentCA          : 'CA | None',
+                subject           : str,
+                certType          : CertificateType,
+                days              : int = 10 * 365,
+                keyLength         : int = DefaultCAKeyLength,
+                globalCRLFileName : str = DefaultGlobalCRLFileName):
 
-      safeName               : Final[str] = re.sub(r'[^a-zA-Z0-9+-\.]', '_', name)
-      self.MainDirectory     : Final[os.PathLike]     = os.path.abspath(mainDirectory)
-      self.Directory         : Final[os.PathLike]     = os.path.join(self.MainDirectory, safeName)
-      self.GlobalCRLFileName : Final[os.PathLike]     = os.path.join(self.MainDirectory, globalCRLFileName)
+      safeName               : Final[str]             = re.sub(r'[^a-zA-Z0-9+-\.]', '_', name)
+      self.MainDirectory     : Final[str]             = os.path.abspath(mainDirectory)
+      self.Directory         : Final[str]             = os.path.join(self.MainDirectory, safeName)
+      self.GlobalCRLFileName : Final[str]             = os.path.join(self.MainDirectory, globalCRLFileName)
       self.Subject           : Final[str]             = subject
       self.CAName            : Final[str]             = name
       self.CertType          : Final[CertificateType] = certType
@@ -210,24 +221,24 @@ class CA:
       else:
          raise Exception('Invalid certificate type')
 
-      self.ParentCA          : 'CA'       = parentCA
-      self.DefaultDays       : Final[int] = days
-      self.KeyLength         : Final[int] = keyLength
+      self.ParentCA          : 'CA' | None = parentCA
+      self.DefaultDays       : Final[int]  = days
+      self.KeyLength         : Final[int]  = keyLength
 
-      self.CertsDirectory    : Final[os.PathLike] = os.path.join(self.Directory, 'certs')
-      self.NewCertsDirectory : Final[os.PathLike] = os.path.join(self.Directory, 'newcerts')
-      self.CRLDirectory      : Final[os.PathLike] = os.path.join(self.Directory, 'crl')
-      self.PrivateDirectory  : Final[os.PathLike] = os.path.join(self.Directory, 'private')
+      self.CertsDirectory    : Final[str] = os.path.join(self.Directory, 'certs')
+      self.NewCertsDirectory : Final[str] = os.path.join(self.Directory, 'newcerts')
+      self.CRLDirectory      : Final[str] = os.path.join(self.Directory, 'crl')
+      self.PrivateDirectory  : Final[str] = os.path.join(self.Directory, 'private')
 
-      self.IndexFileName     : Final[os.PathLike] = os.path.join(self.Directory, 'index.txt')
-      self.SerialFileName    : Final[os.PathLike] = os.path.join(self.Directory, 'serial')
-      self.CRLNumberFileName : Final[os.PathLike] = os.path.join(self.Directory, 'crlnumber')
-      self.ConfigFileName    : Final[os.PathLike] = os.path.join(self.Directory, safeName + '.conf')
+      self.IndexFileName     : Final[str] = os.path.join(self.Directory, 'index.txt')
+      self.SerialFileName    : Final[str] = os.path.join(self.Directory, 'serial')
+      self.CRLNumberFileName : Final[str] = os.path.join(self.Directory, 'crlnumber')
+      self.ConfigFileName    : Final[str] = os.path.join(self.Directory, safeName + '.conf')
 
-      self.KeyFileName       : Final[os.PathLike] = os.path.join(self.PrivateDirectory, safeName + '.key')
-      self.PasswordFileName  : Final[os.PathLike] = os.path.join(self.PrivateDirectory, safeName + '.password')
-      self.CertFileName      : Final[os.PathLike] = os.path.join(self.CertsDirectory,   safeName + '.crt')
-      self.CRLFileName       : Final[os.PathLike] = os.path.join(self.CRLDirectory,     safeName + '.crl')
+      self.KeyFileName       : Final[str] = os.path.join(self.PrivateDirectory, safeName + '.key')
+      self.PasswordFileName  : Final[str] = os.path.join(self.PrivateDirectory, safeName + '.password')
+      self.CertFileName      : Final[str] = os.path.join(self.CertsDirectory,   safeName + '.crt')
+      self.CRLFileName       : Final[str] = os.path.join(self.CRLDirectory,     safeName + '.crl')
 
       if VerboseMode or not os.path.isfile(self.CertFileName):
          sys.stdout.write('\x1b[34mCreating CA ' + name + ' ...\x1b[0m\n')
@@ -427,8 +438,8 @@ subjectAltName         = ${ENV::SAN}
 
 
       # ====== Generate self-signed root CA certificate =====================
-      self.RootCA : 'CA' = None
-      if parentCA == None:
+      self.RootCA : 'CA' | None = None
+      if parentCA is None:
          # ------ Set reference to root CA (i.e. to itself) -----------------
          self.RootCA = self
 
@@ -449,16 +460,19 @@ subjectAltName         = ${ENV::SAN}
       # ====== Generate CA certificate signed by parent CA ==================
       else:
          # ------ Set reference to root CA ----------------------------------
-         if self.ParentCA == None:
+         if self.ParentCA is None:
             self.RootCA = self
          else:
             self.RootCA = self.ParentCA
-            while self.RootCA.ParentCA != None:
+            while ( (self.RootCA is not None) and
+                    (self.RootCA.ParentCA is not None) ):
                self.RootCA = self.RootCA.ParentCA
 
          if not os.path.isfile(self.CertFileName):
+            assert self.ParentCA is not None
+
             # ------ Generate CSR -------------------------------------------
-            csrFileName : Final[os.PathLike] = self.CertFileName + '.csr'
+            csrFileName : Final[str] = self.CertFileName + '.csr'
             sys.stdout.write('\x1b[33mGenerating CSR ' + csrFileName + ' ...\x1b[0m\n')
             execute('SAN="" openssl req' +
                   ' -new'              +   # Not self-signed
@@ -531,7 +545,7 @@ subjectAltName         = ${ENV::SAN}
    # ###### Sign certificate ################################################
    def signCertificate(self,
                        certificate : 'Certificate',
-                       csrFileName : os.PathLike) -> None:
+                       csrFileName : str) -> None:
 
       # ------ Sign CSR -----------------------------------------------------
       sys.stdout.write('\x1b[33mGetting CSR ' + csrFileName + ' signed by ' + self.CAName + ' ...\x1b[0m\n')
@@ -559,8 +573,9 @@ subjectAltName         = ${ENV::SAN}
 
 
    # ###### Verify certificate ##############################################
-   def verifyCertificate(self, certificate : 'Certificate') -> int:
+   def verifyCertificate(self, certificate : 'Certificate') -> bool:
       sys.stdout.write('\x1b[33mVerifying certificate ' + certificate.CertFileName + ' ...\x1b[0m\n')
+      assert self.RootCA is not None
       result = execute('openssl verify ' +
                        ' -show_chain' +
                        ' -verbose'    +
@@ -600,7 +615,7 @@ subjectAltName         = ${ENV::SAN}
 
 
    # ###### Generate global CRL #############################################
-   def generateGlobalCRL(self, globalCRLFileName : os.PathLike) -> None:
+   def generateGlobalCRL(self, globalCRLFileName : str) -> None:
       if len(GlobalCRLSet) > 0:
          cmd = 'cat'
          for crlFileName in sorted(GlobalCRLSet):
@@ -615,20 +630,20 @@ class Certificate:
 
    # ###### Constructor #####################################################
    def __init__(self,
-                mainDirectory    : Final[os.PathLike],
-                name             : Final[str],
+                mainDirectory    : str,
+                name             : str,
                 ca               : CA,
-                subjectWithoutCN : Final[str],
-                subjectAltName   : Final[str],
-                certType         : Final[CertificateType] = CertificateType.Server,
-                keyLength        : Final[int]             = DefaultCertKeyLength,
-                revokeIfExisting : Final[bool]            = False):
+                subjectWithoutCN : str,
+                subjectAltName   : str,
+                certType         : CertificateType = CertificateType.Server,
+                keyLength        : int             = DefaultCertKeyLength,
+                revokeIfExisting : bool            = False):
 
       sys.stdout.write('\x1b[34mCreating certificate ' + name + ' ...\x1b[0m\n')
 
       safeName            : Final[str] = re.sub(r'[^a-zA-Z0-9+-\.]', '_', name)
       self.CA             : CA                     = ca
-      self.Directory      : Final[os.PathLike]     = os.path.join(os.path.abspath(mainDirectory), safeName)
+      self.Directory      : Final[str]             = os.path.join(os.path.abspath(mainDirectory), safeName)
       self.Subject        : Final[str]             = subjectWithoutCN + '/CN=' + name
       self.SubjectAltName : Final[str]             = subjectAltName
       self.CertType       : Final[CertificateType] = certType
@@ -643,9 +658,9 @@ class Certificate:
          raise Exception('Invalid certificate type')
 
 
-      self.KeyLength    : Final[os.PathLike] = keyLength
-      self.KeyFileName  : Final[os.PathLike] = os.path.join(self.Directory, safeName + '.key')
-      self.CertFileName : Final[os.PathLike] = os.path.join(self.Directory, safeName + '.crt')
+      self.KeyLength    : Final[int] = keyLength
+      self.KeyFileName  : Final[str] = os.path.join(self.Directory, safeName + '.key')
+      self.CertFileName : Final[str] = os.path.join(self.Directory, safeName + '.crt')
 
       os.makedirs(self.Directory, exist_ok = True)
 
@@ -669,7 +684,7 @@ class Certificate:
       # ====== Generate certificate signed by CA ============================
       if not os.path.isfile(self.CertFileName):
          # ------ Generate CSR ----------------------------------------------
-         csrFileName : Final[os.PathLike] = os.path.join(self.Directory, safeName + '.csr')
+         csrFileName : Final[str] = os.path.join(self.Directory, safeName + '.csr')
          sys.stdout.write('\x1b[33mGenerating CSR ' + csrFileName + ' ...\x1b[0m\n')
          execute('SAN="' + self.SubjectAltName + '" openssl req' +
                  ' -new'          +   # Not self-signed
