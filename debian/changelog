@@ -1,3 +1,40 @@
+hipercontracer (2.1.8~rc1-1ubuntu1) unstable; urgency=medium
+
+  * New upstream release.
+  * debian/*: Adapted the packaging, according to the tools description
+    in https://github.com/dreibh/hipercontracer/blob/master/README.md .
+    The split into sub-packages allows one to install a subset of the
+    HiPerConTracer tools, with their dependencies, without installing
+    the whole framework and all of its dependencies.
+
+ -- Thomas Dreibholz <dreibh@simula.no>  Fri, 28 Nov 2025 15:23:44 +0100
+
+hipercontracer (2.1.7-1ubuntu1) unstable; urgency=medium
+
+  * New upstream release.
+  * debian/control: Removed Vcs-* fields.
+  * debian/*.install: usr/lib/*/ -> usr/lib/${DEB_HOST_MULTIARCH}/.
+
+ -- Thomas Dreibholz <dreibh@simula.no>  Wed, 26 Nov 2025 16:18:10 +0100
+
+hipercontracer (2.1.6-1ubuntu1) unstable; urgency=medium
+
+  * New upstream release.
+
+ -- Thomas Dreibholz <dreibh@simula.no>  Fri, 21 Nov 2025 15:48:09 +0100
+
+hipercontracer (2.1.5-1ubuntu1) unstable; urgency=medium
+
+  * New upstream release.
+
+ -- Thomas Dreibholz <dreibh@simula.no>  Wed, 19 Nov 2025 12:40:20 +0100
+
+hipercontracer (2.1.4-1ubuntu1) noble; urgency=medium
+
+  * New upstream release.
+
+ -- Thomas Dreibholz <dreibh@simula.no>  Fri, 14 Nov 2025 11:08:35 +0100
+
 hipercontracer (2.1.3-1ubuntu1) noble; urgency=medium
 
   * New upstream release.

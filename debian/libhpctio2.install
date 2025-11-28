@@ -1,1 +1,1 @@
-usr/lib/*/libhpctio.so.*
+usr/lib/${DEB_HOST_MULTIARCH}/libhpctio.so.*
