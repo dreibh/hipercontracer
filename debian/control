@@ -820,8 +820,7 @@ Depends: bzip2,
          less,
          xz-utils,
          zstd,
-         ${misc:Depends},
-         ${shlibs:Depends}
+         ${misc:Depends}
 Recommends: hipercontracer-results,
             tree
 Suggests: hipercontracer
