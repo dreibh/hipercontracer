@@ -1292,7 +1292,20 @@ def makeSourceDeb(packageInfo        : dict[str,Any],
                   controlContents[i] = match.group(1) +  \
                                          'debhelper (>= ' + str(dhcompatVersion) + ')' + \
                                           match.group(3) + '\n'
+
+                  # Write debian/compat file:
                   writeTextFile(upstreamSourceDir + '/debian/compat', [ str(dhcompatVersion) + '\n' ])
+
+                  # Replace "${DEB_HOST_MULTIARCH}" -> "*" in *.install:
+                  installFiles : list[str] = glob.glob(upstreamSourceDir + '/debian/*.install')
+                  if len(installFiles) > 0:
+                     sedCommand = [ 'sed', '-e', 's#${DEB_HOST_MULTIARCH}#*#', '-i' ] + installFiles
+                     try:
+                        subprocess.run(sedCommand, check=True)
+                     except Exception as e:
+                        sys.stderr.write('ERROR: PBuilder run failed: ' + str(e) + '\n')
+                        sys.exit(1)
+
                   updatedDebhelperVersion = dhcompatVersion
                   break
 
