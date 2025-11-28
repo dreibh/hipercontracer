@@ -78,7 +78,8 @@ if [ $# -lt 1 ] ; then
 fi
 CONFIGURATION_FILE="$1"
 if [ ! -e "${CONFIGURATION_FILE}" ] ; then
-   echo >&2 "ERROR: Use configuration ${CONFIGURATION_FILE} does not exist!"
+   echo >&2 "ERROR: User configuration ${CONFIGURATION_FILE} does not exist!"
+   exit 1
 fi
 
 

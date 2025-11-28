@@ -31,6 +31,7 @@
 import getopt
 import sys
 
+from typing            import Any
 from CertificateHelper import *
 
 
@@ -46,7 +47,7 @@ caKeyLength   : int = DefaultCAKeyLength
 certKeyLength : int = DefaultCertKeyLength
 
 # ====== Handle command-line parameters =====================================
-certificatesToCreate : list[dict[str,str]] = []
+certificatesToCreate : list[dict[str,Any]] = []
 subjectAltName       : str | None          = None
 certType             : CertificateType     = CertificateType.Server
 revokeIfExisting     : bool                = True
