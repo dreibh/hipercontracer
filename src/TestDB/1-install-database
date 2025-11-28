@@ -248,9 +248,15 @@ elif [ "$1" == "mongodb" ] ; then
       . /etc/os-release
       (
          if [ "${ID}" == "ubuntu" ] ; then
+            codename="${UBUNTU_CODENAME}"
+            if [[ ! "${codename}" =~ ^(precise|trusty|xenial|bionic|focal|jammy|noble)$ ]] ; then
+               # MongoDB only provides repositories for LTS versions.
+               # Assuming the latest LTS version here, for testing on non-LTS Ubuntu:
+               codename="noble"
+            fi
             cat <<EOF
-deb [ signed-by=/usr/share/keyrings/mongodb-${MONGODB_KEY}.gpg ] https://repo.mongodb.org/apt/ubuntu ${UBUNTU_CODENAME}/mongodb-org/${MONGODB_VERSION} multiverse
-deb [ signed-by=/usr/share/keyrings/mongodb-dev.gpg ] https://repo.mongodb.org/apt/ubuntu ${UBUNTU_CODENAME}/mongodb-org/development multiverse
+deb [ signed-by=/usr/share/keyrings/mongodb-${MONGODB_KEY}.gpg ] https://repo.mongodb.org/apt/ubuntu ${codename}/mongodb-org/${MONGODB_VERSION} multiverse
+deb [ signed-by=/usr/share/keyrings/mongodb-dev.gpg ] https://repo.mongodb.org/apt/ubuntu ${codename}/mongodb-org/development multiverse
 EOF
          else
             cat <<EOF
@@ -309,8 +315,7 @@ EOF
    sudo touch ${MONGODB_CRT_KEY_FILE}
    sudo chmod 600 ${MONGODB_CRT_KEY_FILE}
    sudo cat /etc/ssl/${server}.${DOMAIN}/${server}.${DOMAIN}.key \
-            /etc/ssl/${server}.${DOMAIN}/${server}.${DOMAIN}.crt \
-            ${MONGODB_CA_FILE} | \
+            /etc/ssl/${server}.${DOMAIN}/${server}.${DOMAIN}.crt | \
       sudo tee ${MONGODB_CRT_KEY_FILE} >/dev/null
    if [ "${ID}" == "fedora" ] ; then
       sudo chown mongod:mongod ${MONGODB_CRT_KEY_FILE}
