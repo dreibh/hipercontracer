@@ -4,7 +4,7 @@ Priority: optional
 Maintainer: Thomas Dreibholz <dreibh@simula.no>
 Homepage: https://www.nntb.no/~dreibh/hipercontracer/
 Build-Depends: cmake (>= 3.10),
-               debhelper (>= 12),
+               debhelper-compat (= 13),
                ghostscript,
                graphicsmagick,
                libboost-date-time-dev,
@@ -172,6 +172,7 @@ Description: HiPerConTracer example scripts and results files
 Package: libhpctio2
 Section: libs
 Architecture: any
+Multi-Arch: same
 Depends: ${misc:Depends},
          ${shlibs:Depends}
 Description: I/O library of HiPerConTracer
@@ -213,6 +214,7 @@ Description: I/O library of HiPerConTracer
 Package: libhpctio-dev
 Section: libdevel
 Architecture: any
+Multi-Arch: same
 Breaks: libhipercontracer-dev (<< ${source:Version}),
         libuniversalimporter-dev (<< ${source:Version})
 Depends: libboost-date-time-dev,
@@ -261,6 +263,7 @@ Description: Development files for the HiPerConTracer I/O library
 Package: libhipercontracer2
 Section: libs
 Architecture: any
+Multi-Arch: same
 Depends: libhpctio2 (= ${binary:Version}),
          ${misc:Depends},
          ${shlibs:Depends}
@@ -302,6 +305,7 @@ Description: API library of HiPerConTracer
 Package: libhipercontracer-dev
 Section: libdevel
 Architecture: any
+Multi-Arch: same
 Depends: libboost-date-time-dev,
          libboost-filesystem-dev,
          libboost-iostreams-dev,
@@ -350,6 +354,7 @@ Description: Development files for HiPerConTracer API library
 Package: libuniversalimporter2
 Section: libs
 Architecture: any
+Multi-Arch: same
 Depends: libhpctio2 (= ${binary:Version}),
          ${misc:Depends},
          ${shlibs:Depends}
@@ -392,6 +397,7 @@ Description: API library of HiPerConTracer Universal Importer
 Package: libuniversalimporter-dev
 Section: libdevel
 Architecture: any
+Multi-Arch: same
 Depends: libboost-date-time-dev,
          libboost-filesystem-dev,
          libboost-iostreams-dev,

@@ -9,5 +9,5 @@ usr/include/hipercontracer/resultentry.h
 usr/include/hipercontracer/resultswriter.h
 usr/include/hipercontracer/service.h
 usr/include/hipercontracer/traceroute.h
-usr/lib/${DEB_HOST_MULTIARCH}/libhipercontracer*.so
-usr/lib/${DEB_HOST_MULTIARCH}/libhipercontracer.a
+usr/lib/*/libhipercontracer*.so
+usr/lib/*/libhipercontracer.a

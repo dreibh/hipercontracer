@@ -3,5 +3,5 @@ usr/include/hipercontracer/inputstream.h
 usr/include/hipercontracer/logger.h
 usr/include/hipercontracer/outputstream.h
 usr/include/hipercontracer/tools.h
-usr/lib/${DEB_HOST_MULTIARCH}/libhpctio*.so
-usr/lib/${DEB_HOST_MULTIARCH}/libhpctio.a
+usr/lib/*/libhpctio*.so
+usr/lib/*/libhpctio.a
