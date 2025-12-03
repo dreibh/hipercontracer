@@ -1,32 +1,76 @@
+#!/usr/bin/env Rscript
+# ==========================================================================
+#     _   _ _ ____            ____          _____
+#    | | | (_)  _ \ ___ _ __ / ___|___  _ _|_   _| __ __ _  ___ ___ _ __
+#    | |_| | | |_) / _ \ '__| |   / _ \| '_ \| || '__/ _` |/ __/ _ \ '__|
+#    |  _  | |  __/  __/ |  | |__| (_) | | | | || | | (_| | (_|  __/ |
+#    |_| |_|_|_|   \___|_|   \____\___/|_| |_|_||_|  \__,_|\___\___|_|
+#
+#       ---  High-Performance Connectivity Tracer (HiPerConTracer)  ---
+#                 https://www.nntb.no/~dreibh/hipercontracer/
+# ==========================================================================
+#
+# High-Performance Connectivity Tracer (HiPerConTracer)
+# Copyright (C) 2015-2025 by Thomas Dreibholz
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+# Contact: dreibh@simula.no
+
 library("data.table")
 library("ggplot2")
-library(gtable)
 
-data <- fread("results.data")
+
+results <- fread("results.data")
 
 
 cairo_pdf("compressor-tests.pdf", width=15, height=7.5, family="Helvetica", pointsize=24, onefile = TRUE)
 
 
-p1 <- ggplot(data, aes(x = Level, y = Size / 1024**2, color = Compression)) +
-  geom_line(linewidth = 2.5) +
-  facet_grid(cols = vars(Input)) +
-  scale_color_brewer(palette="Set1") +
-  scale_x_continuous("Compression Level Setting", breaks = seq(0, 19, 1)) +
-  scale_y_continuous("Compressed File Size [MiB]") +
-  labs(title = "Resulting File Size")
+# ====== Theme ==============================================================
+myTheme <- theme(title             = element_text(size=32),
+                 plot.title        = element_text(size=20, hjust = 0.5, face="bold"),
+                 axis.title        = element_text(size=20, face="bold"),
+                 strip.text        = element_text(size=18, face="bold"),
+                 axis.text.x       = element_text(size=16, angle=90, face="bold", colour="black"),
+                 axis.text.y       = element_text(size=16, angle=90, hjust=0.5, colour="black"),
+                 legend.box.just   = "center",
+                 legend.title      = element_text(size=18, hjust = 0.5, face="bold"),
+                 legend.text       = element_text(size=18, face="bold"),
+                 legend.background = element_rect(colour = "black",  fill = "#ffffaa55", linewidth=1),
+                )
 
+# ====== Plot of compressed file sizes ======================================
+p1 <- ggplot(results, aes(x = Level, y = Size / 1024**2, color = Compression)) +
+         myTheme +
+         geom_line(linewidth = 2.5) +
+         facet_grid(cols = vars(Input)) +
+         scale_color_brewer(palette="Set1") +
+         scale_x_continuous("Compression Level Setting", breaks = seq(0, 19, 1)) +
+         scale_y_continuous("Compressed File Size [MiB]") +
+         labs(title = "Resulting File Size")
 print(p1)
 
-
-p2 <- ggplot(data, aes(x = Level, y = Real, color = Compression)) +
-  geom_line(linewidth = 2.5) +
-  facet_grid(cols = vars(Input)) +
-  scale_color_brewer(palette="Set1") +
-  scale_x_continuous("Compression Level Setting", breaks = seq(0, 19, 1)) +
-  scale_y_continuous("Run-Time [s]") +
-  labs(title = "Real Run-Time")
-
+# ====== Plot of compression time ===========================================
+p2 <- ggplot(results, aes(x = Level, y = Real, color = Compression)) +
+         myTheme +
+         geom_line(linewidth = 2.5) +
+         facet_grid(cols = vars(Input)) +
+         scale_color_brewer(palette="Set1") +
+         scale_x_continuous("Compression Level Setting", breaks = seq(0, 19, 1)) +
+         scale_y_continuous("Run-Time [s]") +
+         labs(title = "Real Run-Time")
 print(p2)
 
 

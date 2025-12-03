@@ -1,6 +1,38 @@
-#!/bin/bash -e
+#!/usr/bin/bash
+# ==========================================================================
+#     _   _ _ ____            ____          _____
+#    | | | (_)  _ \ ___ _ __ / ___|___  _ _|_   _| __ __ _  ___ ___ _ __
+#    | |_| | | |_) / _ \ '__| |   / _ \| '_ \| || '__/ _` |/ __/ _ \ '__|
+#    |  _  | |  __/  __/ |  | |__| (_) | | | | || | | (_| | (_|  __/ |
+#    |_| |_|_|_|   \___|_|   \____\___/|_| |_|_||_|  \__,_|\___\___|_|
+#
+#       ---  High-Performance Connectivity Tracer (HiPerConTracer)  ---
+#                 https://www.nntb.no/~dreibh/hipercontracer/
+# ==========================================================================
+#
+# High-Performance Connectivity Tracer (HiPerConTracer)
+# Copyright (C) 2015-2025 by Thomas Dreibholz
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+# Contact: dreibh@simula.no
 
-IN="Traceroute-2015-10-16.results"
+# Bash options:
+set -eu
+
+
+INPUTS="test.hpct"
 LEVELS="0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19"
 ROUNDS="0"
 
@@ -10,37 +42,39 @@ COMPRESSORS["bz2"]="BZip2"
 COMPRESSORS["xz"]="XZ"
 COMPRESSORS["zz"]="ZLib"
 COMPRESSORS["lzma"]="LZMA"
-COMPRESSORS["zstd"]="ZStandard"
+COMPRESSORS["zst"]="ZStandard"
 
 
 # ====== Run tests ==========================================================
 echo -e "\x1b[34m$(date +"%F %H:%M:%S"): Running measurements\x1b[0m"
-for round in $ROUNDS ; do
-   mkdir -p $round
-   for level in $LEVELS ; do
-      echo -e "\x1b[34m$(date +"%F %H:%M:%S"): Running measurements: round $round, level $level\x1b[0m"
-      if [ $level -le 9 ] ; then
-         if [ ! -e $round/$IN.$level.xz ] ; then
-            /bin/time -p -o $round/$IN.$level.xz.time   xz -T 0 -$level -c $IN >$round/$IN.$level.xz.tmp && mv $round/$IN.$level.xz.tmp $round/$IN.$level.xz
+for round in ${ROUNDS} ; do
+   mkdir -p "${round}"
+   for input in ${INPUTS} ; do
+      for level in ${LEVELS} ; do
+         echo -e "\x1b[34m$(date +"%F %H:%M:%S"): Running measurements: round ${round}, level ${level}, input ${input}\x1b[0m"
+         if [ "${level}" -le 9 ] ; then
+            if [ ! -e "${round}/${input}.${level}.xz" ] ; then
+               /bin/time -p -o "${round}/${input}.${level}.xz.time"   xz -T 0 -"${level}" -c "${input}" >"${round}/${input}.${level}.xz.tmp" && mv "${round}/${input}.${level}.xz.tmp" "${round}/${input}.${level}.xz"
+            fi
+            if [ "${level}" -gt 0 ] ; then
+               if [ ! -e "${round}/${input}.${level}.gz" ] ; then
+                  /bin/time -p -o "${round}/${input}.${level}.gz.time"    gzip -"${level}" -c "${input}" >"${round}/${input}.${level}.gz.tmp" && mv "${round}/${input}.${level}.gz.tmp" "${round}/${input}.${level}.gz"
+               fi
+               if [ ! -e "${round}/${input}.${level}.bz2" ] ; then
+                  /bin/time -p -o "${round}/${input}.${level}.bz2.time"   bzip2 -"${level}" -c "${input}" >"${round}/${input}.${level}.bz2.tmp" && mv "${round}/${input}.${level}.bz2.tmp" "${round}/${input}.${level}.bz2"
+               fi
+               if [ ! -e "${round}/${input}.${level}.zz" ] ; then
+                  /bin/time -p -o "${round}/${input}.${level}.zz.time"    zlib-flate -compress="${level}" <${input} >"${round}/${input}.${level}.zz.tmp" && mv "${round}/${input}.${level}.zz.tmp" "${round}/${input}.${level}.zz"
+               fi
+               if [ ! -e "${round}/${input}.${level}.lzma" ] ; then
+                  /bin/time -p -o "${round}/${input}.${level}.lzma.time"   lzma -T 0 -"${level}" -c "${input}" >"${round}/${input}.${level}.lzma.tmp" && mv "${round}/${input}.${level}.lzma.tmp" "${round}/${input}.${level}.lzma"
+               fi
+            fi
          fi
-         if [ $level -gt 0 ] ; then
-            if [ ! -e $round/$IN.$level.gz ] ; then
-               /bin/time -p -o $round/$IN.$level.gz.time    gzip -$level -c $IN >$round/$IN.$level.gz.tmp && mv $round/$IN.$level.gz.tmp $round/$IN.$level.gz
-            fi
-            if [ ! -e $round/$IN.$level.bz2 ] ; then
-               /bin/time -p -o $round/$IN.$level.bz2.time   bzip2 -$level -c $IN >$round/$IN.$level.bz2.tmp && mv $round/$IN.$level.bz2.tmp $round/$IN.$level.bz2
-            fi
-            if [ ! -e $round/$IN.$level.zz ] ; then
-               /bin/time -p -o $round/$IN.$level.zz.time    zlib-flate -compress=$level <$IN >$round/$IN.$level.zz.tmp && mv $round/$IN.$level.zz.tmp $round/$IN.$level.zz
-            fi
-            if [ ! -e $round/$IN.$level.lzma ] ; then
-               /bin/time -p -o $round/$IN.$level.lzma.time   lzma -T 0 -$level -c $IN >$round/$IN.$level.lzma.tmp && mv $round/$IN.$level.lzma.tmp $round/$IN.$level.lzma
-            fi
+         if [ ! -e "${round}/${input}.${level}.zst" ] ; then
+            /bin/time -p -o "${round}/${input}.${level}.zst.time"   zstd -T0 -"${level}" ${input} -kfq -o "${round}/${input}.${level}.zst.tmp" && mv "${round}/${input}.${level}.zst.tmp" "${round}/${input}.${level}.zst"
          fi
-      fi
-      if [ ! -e $round/$IN.$level.zstd ] ; then
-         /bin/time -p -o $round/$IN.$level.zstd.time   zstd -T0 -$level $IN -kfq -o $round/$IN.$level.zstd.tmp && mv $round/$IN.$level.zstd.tmp $round/$IN.$level.zstd
-      fi
+      done
    done
 done
 
@@ -49,24 +83,27 @@ done
 echo -e "\x1b[34m$(date +"%F %H:%M:%S"): Collecting results\x1b[0m"
 (
    echo "Round Input OriginalSize Compression Level Size Real User Sys"
-   originalSize="$(wc -c $IN | cut -d' ' -f1)"
-   for round in $ROUNDS ; do
-      for level in $LEVELS ; do
-         for ext in ${!COMPRESSORS[@]} ; do
-            compressor="$ext"
-            if [ -e $round/$IN.$level.$ext ] && [ -e $round/$IN.$level.$ext.time ] ; then
-               size="$(wc -c $round/$IN.$level.$ext | cut -d' ' -f1)"
-               real="$(grep "^real" $round/$IN.$level.$ext.time | cut -d' ' -f2)"
-               user="$(grep "^user" $round/$IN.$level.$ext.time | cut -d' ' -f2)"
-               sys="$(grep "^sys" $round/$IN.$level.$ext.time | cut -d' ' -f2)"
-               echo "$round $IN $originalSize ${COMPRESSORS[$ext]} $level $size $real $user $sys"
-            fi
+   originalSize="$(wc -c "${input}" | cut -d' ' -f1)"
+   for round in ${ROUNDS} ; do
+      for input in ${INPUTS} ; do
+         for level in ${LEVELS} ; do
+            for ext in "${!COMPRESSORS[@]}" ; do
+               if [ -e "${round}/${input}.${level}.${ext}" ] && [ -e "${round}/${input}.${level}.${ext}.time" ] ; then
+                  size="$(wc -c "${round}/${input}.${level}.${ext}" | cut -d' ' -f1)"
+                  real="$(grep "^real" "${round}/${input}.${level}.${ext}.time" | cut -d' ' -f2)"
+                  user="$(grep "^user" "${round}/${input}.${level}.${ext}.time" | cut -d' ' -f2)"
+                  sys="$(grep "^sys"   "${round}/${input}.${level}.${ext}.time" | cut -d' ' -f2)"
+                  echo "${round} ${input} $originalSize ${COMPRESSORS[${ext}]} ${level} ${size} ${real} ${user} ${sys}"
+               fi
+            done
          done
       done
    done
 ) | tee results.data
 
+echo -e "\x1b[34m$(date +"%F %H:%M:%S"): Done!\x1b[0m"
+
 
 # for level in 1 2 3 ; do
-#    /bin/time -p -o $IN.$level.zz.time   zlib-flate -compress=$level <$IN >$IN.$level.zz
+#    /bin/time -p -o ${input}.${level}.zz.time   zlib-flate -compress=${level} <${input} >${input}.${level}.zz
 # done
