@@ -1,16 +1,16 @@
 #!/usr/bin/env python3
 # ==========================================================================
-#     _   _ _ ____            ____          _____
-#    | | | (_)  _ \ ___ _ __ / ___|___  _ _|_   _| __ __ _  ___ ___ _ __
-#    | |_| | | |_) / _ \ '__| |   / _ \| '_ \| || '__/ _` |/ __/ _ \ '__|
-#    |  _  | |  __/  __/ |  | |__| (_) | | | | || | | (_| | (_|  __/ |
-#    |_| |_|_|_|   \___|_|   \____\___/|_| |_|_||_|  \__,_|\___\___|_|
-#
-#       ---  High-Performance Connectivity Tracer (HiPerConTracer)  ---
-#                 https://www.nntb.no/~dreibh/hipercontracer/
+#         ____            _                     _____           _
+#        / ___| _   _ ___| |_ ___ _ __ ___     |_   _|__   ___ | |___
+#        \___ \| | | / __| __/ _ \ '_ ` _ \ _____| |/ _ \ / _ \| / __|
+#         ___) | |_| \__ \ ||  __/ | | | | |_____| | (_) | (_) | \__ \
+#        |____/ \__, |___/\__\___|_| |_| |_|     |_|\___/ \___/|_|___/
+#               |___/
+#                             --- System-Tools ---
+#                  https://www.nntb.no/~dreibh/system-tools/
 # ==========================================================================
 #
-# High-Performance Connectivity Tracer (HiPerConTracer)
+# X.509 CA and Certificate Test Setup Script
 # Copyright (C) 2015-2025 by Thomas Dreibholz
 #
 # This program is free software: you can redistribute it and/or modify
@@ -26,53 +26,81 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
-# Contact: dreibh@simula.no
+# Contact: thomas.dreibholz@gmail.com
 
+import getopt
 import sys
 
+from typing            import Any
 from CertificateHelper import *
+
+
+# ###### Print usage and exit ###############################################
+def usage(exitCode : int = 0) -> None:
+   sys.stderr.write('Usage: ' + sys.argv[0] + ' ssl_directory [-s|--server|-c|--client|-u|--user] [-x|--revoke-if-existing|-i|--ignore-if-existing] [-r|--revoke] [-S|--san|--subjectAltName subjectAltName|LOCAL|LOOKUP] [-K|--keylen-ca length] [-k|--keylen-cert length] name ...\n')
+   sys.exit(exitCode)
 
 
 # ###### Main program #######################################################
 
+caKeyLength   : int = DefaultCAKeyLength
+certKeyLength : int = DefaultCertKeyLength
+
 # ====== Handle command-line parameters =====================================
-if len(sys.argv) < 3:
-   sys.stderr.write('Usage: ' + sys.argv[0] + ' ssl_directory [--server|--client|--user] [--revoke-if-existing|--ignore-if-existing] [--revoke] [--san subjectAltName|LOCAL|LOOKUP] name ...\n')
-   sys.exit(1)
-mainDirectory        : str                 = sys.argv[1]
-certificatesToCreate : list[dict[str,str]] = []
+certificatesToCreate : list[dict[str,Any]] = []
 subjectAltName       : str | None          = None
 certType             : CertificateType     = CertificateType.Server
 revokeIfExisting     : bool                = True
 revoke               : bool                = False
-i = 2
-while i < len(sys.argv):
-   if sys.argv[i] == '--server':
-      certType = CertificateType.Server
-   elif sys.argv[i] == '--client':
-      certType = CertificateType.Client
-   elif sys.argv[i] == '--user':
-      certType = CertificateType.User
-   elif sys.argv[i] == '--revoke':
-      revoke = True
-   elif sys.argv[i] == '--revoke-if-existing':
-      revokeIfExisting = True
-   elif sys.argv[i] == '--ignore-if-existing':
-      revokeIfExisting = False
-   elif (sys.argv[i] == '--san') or (sys.argv[i] == '--subjectAltName'):
-      if i + 1 < len(sys.argv[i + 1]):
-         subjectAltName = sys.argv[i + 1]
-         i += 1
-   elif sys.argv[i][0:2] == '--':
-      sys.stderr.write('ERROR: Invalid parameter ' + sys.argv[i] + '!\n')
-      sys.exit(1)
-   else:
-      ( name,  san ) = prepareSubjectAltName(certType, sys.argv[i], subjectAltName)
-      certificatesToCreate.append({ 'name'             : name,
-                                    'type'             : certType,
-                                    'subjectAltName'   : san,
-                                    'revokeIfExisting' : revokeIfExisting })
-   i += 1
+
+# ====== Handle arguments ===================================================
+try:
+   options, args = getopt.gnu_getopt(
+      sys.argv[1:],
+      'scuxirS:K:k:',
+      [ 'server',
+        'client',
+        'user',
+        'revoke-if-existing',
+        'ignore-if-existing',
+        'revoke',
+        'san=',
+        'keylen-ca=',
+        'keylen-cert='
+      ])
+   for option, optarg in options:
+      if option in ( '-s', '--server' ):
+         certType = CertificateType.Server
+      elif option in ( '-c', '--client' ):
+         certType = CertificateType.Client
+      elif option in ( '-u', '--user' ):
+         certType = CertificateType.User
+      elif option in ( '-r', '--revoke' ):
+         revoke = True
+      elif option in ( '-x', '--revoke-if-existing' ):
+         revokeIfExisting = True
+      elif option in ( '-i', '--ignore-if-existing' ):
+         revokeIfExisting = False
+      elif option in ( '-S', '--san', '--subjectAltName' ):
+         subjectAltName = optarg
+      elif option in ( '-K', '--keylen-ca' ):
+         caKeyLength = int(optarg)
+      elif option in ( '-k', '--keylen-cert' ):
+         certKeyLength = int(optarg)
+except getopt.GetoptError as error:
+   sys.stderr.write('ERROR: ' + str(error) + '\n')
+   usage(1)
+if len(args) < 2:
+   usage(1)
+
+mainDirectory : str = args[0]
+for i in range(1, len(args)):
+   ( name,  san ) = prepareSubjectAltName(certType, args[i], subjectAltName)
+   certificatesToCreate.append({ 'name'             : name,
+                                 'type'             : certType,
+                                 'subjectAltName'   : san,
+                                 'revokeIfExisting' : revokeIfExisting })
+# print(certificatesToCreate)
 
 
 # ====== Create CA hierarchy, if not existing ===============================
@@ -81,20 +109,16 @@ while i < len(sys.argv):
 # Hierarchy to be created:
 # TestLevel1
 #    - TestLevel2
-#       - TestIntermediate
-#          - TestLeaf
-#             - Servers ...
-#          - TestCA
-#             - TestUserCA
-#                - Users ...
-#             - TestServerCA
+#       - TestIntermediate1
+#          - TestIntermediate2
+#             - TestLeaf
 #                - Servers ...
+#                - Clients ...
+#                - Users ...
 # ===========================================================================
 
 
 # ====== Create Test CAs ====================================================
-caKeyLength       = DefaultCAKeyLength
-certKeyLength     = DefaultCertKeyLength
 globalCRLFileName = "TestGlobal.crl"
 
 # Create Test Root Level-1 CA certificate (self-signed):
@@ -134,15 +158,19 @@ TestLeaf = CA(mainDirectory, 'TestLeaf',
 
 
 # ====== Create Test Servers ================================================
-subject = '/C=NO/ST=Oslo/L=Oslo/O=Simula Metropolitan Centre for Digital Engineering (SimulaMet)/OU=SimulaMet Interoperability Lab (SMIL)/streetAddress=Stensberggata 27/postalCode=0170'
+defaultSubjectWithoutCN = '/C=NO/ST=Oslo/L=Oslo/O=Simula Metropolitan Centre for Digital Engineering (SimulaMet)/OU=SimulaMet Interoperability Lab (SMIL)/streetAddress=Stensberggata 27/postalCode=0170'
 
 certificates = { }
 for certificateToCreate in certificatesToCreate:
    print(certificateToCreate)
 
    name = certificateToCreate['name']
+   if certificateToCreate['type'] != CertificateType.User:
+      subjectWithoutCN = defaultSubjectWithoutCN
+   else:
+      subjectWithoutCN = defaultSubjectWithoutCN + prepareUserSubject(name)
    certificates[name] = Certificate(mainDirectory, name, TestLeaf,
-                                    subject, certificateToCreate['subjectAltName'],
+                                    subjectWithoutCN, certificateToCreate['subjectAltName'],
                                     certificateToCreate['type'],
                                     keyLength        = certKeyLength,
                                     revokeIfExisting = revokeIfExisting)

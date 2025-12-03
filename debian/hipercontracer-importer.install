@@ -37,10 +37,13 @@ usr/share/hipercontracer/TestDB/6-perform-hpct-query-test
 usr/share/hipercontracer/TestDB/9-uninstall-database
 usr/share/hipercontracer/TestDB/CertificateHelper.py
 usr/share/hipercontracer/TestDB/README.md
+usr/share/hipercontracer/TestDB/check-certificate
+usr/share/hipercontracer/TestDB/extract-pem
 usr/share/hipercontracer/TestDB/generate-test-certificates
 usr/share/hipercontracer/TestDB/hpct-users.conf.example
 usr/share/hipercontracer/TestDB/name-in-etc-hosts
 usr/share/hipercontracer/TestDB/run-full-test
 usr/share/hipercontracer/TestDB/test-tls-connection
+usr/share/hipercontracer/TestDB/view-certificate
 usr/share/hipercontracer/hipercontracer-database.conf
 usr/share/hipercontracer/hipercontracer-importer.conf

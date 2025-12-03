@@ -28,8 +28,11 @@
 #
 # Contact: dreibh@simula.no
 
+# Bash options:
 set -eu
 
+
+# ###### Main program #######################################################
 
 # ====== Handle arguments ===================================================
 if [ $# -ne 1 ] ; then

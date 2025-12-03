@@ -27,18 +27,48 @@
 #
 # Contact: dreibh@simula.no
 
-library("anytime")
+library("nanotime")
 options(digits.secs = 9)
-library("assert")
 library("digest")
 library("data.table", warn.conflicts = FALSE)
 library("dplyr",      warn.conflicts = FALSE)
-library("ipaddress")
-library("vroom",      warn.conflicts = FALSE)
+library("xtable")
 
 
 # Path to HPCT Results:
 hpct_results_tool = 'hpct-results'
+
+
+# ###### Show table statistics ##############################################
+showTableStatistics <- function(table)
+{
+   firstColumn <- colnames(table)[1]
+   cat(sep="",
+       "\x1b[32mEntries: ", length(table[[firstColumn]]), ", ",
+       "Table Size: ", round(as.numeric(object.size(table)) / (1024*1024), 2), " MiB\x1b[0m\n")
+}
+
+
+# ###### Look up table from RDS file ########################################
+cacheLookup <- function(cacheName)
+{
+   dataTable <- NULL
+   if( (!is.na(cacheName)) && (file.exists(cacheName)) ) {
+      cat(sep="", "\x1b[34mLoading cached table from ", cacheName, " ...\x1b[0m\n")
+      dataTable <- readRDS(cacheName)
+   }
+   return(dataTable)
+}
+
+
+# ###### Store table as RDS file ############################################
+cacheStorage <- function(cacheName, dataTable)
+{
+   if(!is.na(cacheName)) {
+      cat(sep="", "\x1b[34mWriting data to cache file ", cacheName, " ...\x1b[0m\n")
+      saveRDS(dataTable, cacheName)
+   }
+}
 
 
 # ###### Process HiPerConTracer Ping results ################################
@@ -46,9 +76,12 @@ processHiPerConTracerPingResults <- function(dataTable)
 {
    # print(colnames(dataTable))
    dataTable <- dataTable %>%
-                   mutate(Timestamp    = anytime(as.numeric(paste(sep="", "0x", Timestamp)) / 1e9,
-                                                 asUTC = TRUE),
-                          Protocol     = substr(Ping, 3, 1000000),
+                   mutate(Timestamp    = as.nanotime(as.numeric(paste(sep="", "0x", Timestamp))),
+                          Protocol     = recode(substr(Ping, 3, 1000000),
+                                                "i" = "ICMP",
+                                                "u" = "UDP",
+                                                "t" = "TCP"),
+                          IPVersion    = ifelse(grepl(":", DestinationIP), 6, 4),
                           Checksum     = as.numeric(paste(sep="", "0x", Checksum)),
                           TrafficClass = as.numeric(paste(sep="", "0x", TrafficClass))) %>%
                    arrange(Timestamp, MeasurementID, SourceIP, DestinationIP, BurstSeq)
@@ -61,10 +94,12 @@ processHiPerConTracerTracerouteResults <- function(dataTable)
 {
    # print(colnames(dataTable))
    dataTable <- dataTable %>%
-                   mutate(Timestamp    = anytime(as.numeric(paste(sep="", "0x", Timestamp)) / 1e9,
-                                                 asUTC = TRUE),
-                          Protocol     = substr(Traceroute, 3, 1000000),
-                          IPVersion    = ifelse(is_ipv4(as_ip_address(DestinationIP)), 4, 6),
+                   mutate(Timestamp    = as.nanotime(as.numeric(paste(sep="", "0x", Timestamp))),
+                          Protocol     = recode(substr(Traceroute, 3, 1000000),
+                                                "i" = "ICMP",
+                                                "u" = "UDP",
+                                                "t" = "TCP"),
+                          IPVersion    = ifelse(grepl(":", DestinationIP), 6, 4),
                           Checksum     = as.numeric(paste(sep="", "0x", Checksum)),
                           TrafficClass = as.numeric(paste(sep="", "0x", TrafficClass)),
                           PathHash     = as.numeric(paste(sep="", "0x", PathHash)),
@@ -72,8 +107,8 @@ processHiPerConTracerTracerouteResults <- function(dataTable)
                    arrange(Timestamp, MeasurementID, SourceIP, DestinationIP, RoundNumber, HopNumber) %>%
                    mutate(# Link source, if available:
                           LinkDestinationIP = ifelse( (Status < 200) | (Status == 255),
-                                                     HopIP,
-                                                     NA ),
+                                                      HopIP,
+                                                      NA ),
                           # Link destination, if available:
                           LinkSourceIP = ifelse(HopNumber == 1,
                                                SourceIP,
@@ -87,9 +122,12 @@ processHiPerConTracerJitterResults <- function(dataTable)
 {
    # print(colnames(dataTable))
    dataTable <- dataTable %>%
-                   mutate(Timestamp    = anytime(as.numeric(paste(sep="", "0x", Timestamp)) / 1e9,
-                                                 asUTC = TRUE),
-                          Protocol     = substr(Jitter, 3, 1000000),
+                   mutate(Timestamp    = as.nanotime(as.numeric(paste(sep="", "0x", Timestamp))),
+                          Protocol     = recode(substr(Jitter, 3, 1000000),
+                                                "i" = "ICMP",
+                                                "u" = "UDP",
+                                                "t" = "TCP"),
+                          IPVersion    = ifelse(grepl(":", DestinationIP), 6, 4),
                           Checksum     = as.numeric(paste(sep="", "0x", Checksum)),
                           TrafficClass = as.numeric(paste(sep="", "0x", TrafficClass))) %>%
                    arrange(Timestamp, MeasurementID, SourceIP, DestinationIP, BurstSeq)
@@ -97,25 +135,108 @@ processHiPerConTracerJitterResults <- function(dataTable)
 }
 
 
-# ##### Read HiPerConTracer results from directory ##########################
-readHiPerConTracerResultsFromDirectory <- function(cacheLabel, path, pattern, processingFunction)
+# ###### Read HiPerConTracer results from HiPerConTracer file ###############
+readHiPerConTracerResults <- function(hpctFileName, processingFunction, cacheLabel = NA)
+{
+   cacheName <- NA
+   if(!is.na(cacheLabel)) {
+      cacheName <- paste(sep="", cacheLabel, "-cache-hpct-", digest(hpctFileName, "sha256"), ".rds")
+   }
+
+   # ====== Read data table =================================================
+   dataTable <- cacheLookup(cacheName)
+   if(is.null(dataTable)) {
+      cat(sep="", "\x1b[34mReading ", hpctFileName, " ...\x1b[0m\n")
+
+      inputCommand <- paste(sep=" ",
+                            hpct_results_tool, hpctFileName, "--unsorted")
+      dataTable <- fread(cmd = inputCommand)
+
+      # ====== Post-processing ==============================================
+      dataTable <- processingFunction(dataTable)
+
+      cacheStorage(cacheName, dataTable)
+   }
+   showTableStatistics(dataTable)
+   return(dataTable)
+}
+
+
+# ###### Read HiPerConTracer Ping results from HiPerConTracer file ##########
+readHiPerConTracerPingResults <- function(hpctFileName, cacheLabel = NA)
+{
+   return(readHiPerConTracerResults(hpctFileName,
+                                    processHiPerConTracerPingResults,
+                                    cacheLabel))
+}
+
+
+# ###### Read HiPerConTracer Traceroute results from HiPerConTracer file ####
+readHiPerConTracerTracerouteResults <- function(hpctFileName, cacheLabel = NA)
+{
+   return(readHiPerConTracerResults(hpctFileName,
+                                    processHiPerConTracerTracerouteResults,
+                                    cacheLabel))
+}
+
+
+# ###### Read HiPerConTracer results from CSV file ##########################
+readHiPerConTracerResultsFromCSV <- function(csvFileName, processingFunction, cacheLabel = NA)
+{
+   cacheName <- NA
+   if(!is.na(cacheLabel)) {
+      cacheName <- paste(sep="", cacheLabel, "-cache-csv-", digest(csvFileName, "sha256"), ".rds")
+   }
+
+   # ====== Read data table =================================================
+   dataTable <- cacheLookup(cacheName)
+   if(is.null(dataTable)) {
+      cat(sep="", "\x1b[34mReading ", csvFileName, " ...\x1b[0m\n")
+      dataTable <- fread(csvFileName)
+
+      # ====== Post-processing ==============================================
+      dataTable <- processingFunction(dataTable)
+
+      cacheStorage(cacheName, dataTable)
+   }
+   showTableStatistics(dataTable)
+   return(dataTable)
+}
+
+
+# ###### Read HiPerConTracer Ping results from CSV file ######################
+readHiPerConTracerPingResultsFromCSV <- function(csvFileName, cacheLabel = NA)
+{
+   return(readHiPerConTracerResultsFromCSV(csvFileName,
+                                           processHiPerConTracerPingResults,
+                                           cacheLabel))
+}
+
+
+# ###### Read HiPerConTracer Traceroute results from CSV file ################
+readHiPerConTracerTracerouteResultsFromCSV <- function(csvFileName, cacheLabel = NA)
+{
+   return(readHiPerConTracerResultsFromCSV(csvFileName,
+                                           processHiPerConTracerTracerouteResults,
+                                           cacheLabel))
+}
+
+
+# ###### Read HiPerConTracer results from directory #########################
+readHiPerConTracerResultsFromDirectory <- function(path, pattern, processingFunction, cacheLabel = NA)
 {
    files <- list.files(path = path, pattern = pattern, full.names=TRUE)
-
-   # !!!!!! TEST ONLY! !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-   # cat("****** TEST ONLY! ******\n")
-   # files <- sample(files, 128)
-   # files <- head(files, 16)
-   # !!!!!! TEST ONLY! !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-   # ====== Read data =======================================================
-   if(cacheLabel == "") {
-      cacheName <- ""
+   if(length(files) < 1) {
+      stop("No input files found!")
    }
-   else {
+   cacheName <- NA
+   if(!is.na(cacheLabel)) {
       cacheName <- paste(sep="", cacheLabel, "-cache-", digest(files, "sha256"), ".rds")
    }
-   if( (cacheName == "") || (!file.exists(cacheName)) ) {
+
+   # ====== Read data table =================================================
+   dataTable <- cacheLookup(cacheName)
+   if(is.null(dataTable)) {
       cat(sep="", "\x1b[34mReading ", length(files), " files ...\x1b[0m\n")
 
       # ====== Generate files with input file names =========================
@@ -125,113 +246,45 @@ readHiPerConTracerResultsFromDirectory <- function(cacheLabel, path, pattern, pr
       cat(file = filesNameFile, "\n")
       close(filesNameFile)
 
-      # ====== Read the input file ==========================================
-      t1 <- Sys.time()
-      inputPipe <- pipe(paste(sep=" ",
-                              hpct_results_tool,
-                              "--unsorted",
-                              "--input-file-names-from-file", filesName))
-      dataTable <- vroom(file = inputPipe,
-                         show_col_types = FALSE)
-      # NOTE: read.csv() is slow, vroom() is much faster!
-      # dataTable <- read.csv(file = inputPipe,
-      #                       sep  = " ")
-      setDT(dataTable)
-      t2 <- Sys.time()
-      print(t2 - t1)
+      inputCommand <- paste(sep=" ",
+                            hpct_results_tool,
+                            "--unsorted",
+                            "--input-file-names-from-file", filesName)
+      dataTable <- fread(cmd = inputCommand)
 
       # ====== Post-processing ==============================================
       dataTable <- processingFunction(dataTable)
 
-      if(cacheName != "") {
-         cat(sep="", "\x1b[34mWriting data to cache file ", cacheName, " ...\x1b[0m\n")
-         saveRDS(dataTable, cacheName)
-      }
-   } else {
-      cat(sep="", "\x1b[34mLoading cached table from ", cacheName, " ...\x1b[0m\n")
-      dataTable <- readRDS(cacheName)
+      cacheStorage(cacheName, dataTable)
    }
    showTableStatistics(dataTable)
    return(dataTable)
 }
 
 
-# ##### Read HiPerConTracer Ping results from directory #####################
-readHiPerConTracerPingResultsFromDirectory <- function(cacheLabel, path, pattern)
+# ###### Read HiPerConTracer Ping results from directory ####################
+readHiPerConTracerPingResultsFromDirectory <- function(path, pattern, cacheLabel = NA)
 {
-   return(readHiPerConTracerResultsFromDirectory(cacheLabel, path, pattern,
-                                                 processHiPerConTracerPingResults))
+   return(readHiPerConTracerResultsFromDirectory(path, pattern,
+                                                 processHiPerConTracerPingResults,
+                                                 cacheLabel))
 }
 
 
-# ##### Read HiPerConTracer Traceroute results from directory ###############
-readHiPerConTracerTracerouteResultsFromDirectory <- function(cacheLabel, path, pattern)
+# ###### Read HiPerConTracer Traceroute results from directory ##############
+readHiPerConTracerTracerouteResultsFromDirectory <- function(path, pattern, cacheLabel = NA)
 {
-   return(readHiPerConTracerResultsFromDirectory(cacheLabel, path, pattern,
-                                                 processHiPerConTracerTracerouteResults))
+   return(readHiPerConTracerResultsFromDirectory(path, pattern,
+                                                 processHiPerConTracerTracerouteResults,
+                                                 cacheLabel))
 }
 
 
-# ##### Read HiPerConTracer Jitter results from directory #####################
+# ###### Read HiPerConTracer Jitter results from directory ##################
 readHiPerConTracerJitterResultsFromDirectory <- function(cacheLabel, path, pattern)
 {
    return(readHiPerConTracerResultsFromDirectory(cacheLabel, path, pattern,
                                                  processHiPerConTracerJitterResults))
-}
-
-
-# ##### Read HiPerConTracer results from CSV file ###########################
-readHiPerConTracerResultsFromCSV <- function(cacheLabel, csvFileName, processingFunction)
-{
-   if(cacheLabel == "") {
-      cacheName <- ""
-   }
-   else {
-      cacheName <- paste(sep="", cacheLabel, "-cache-csv-", digest(csvFileName, "sha256"), ".rds")
-   }
-   if( (cacheName == "") || (!file.exists(cacheName)) ) {
-      cat(sep="", "\x1b[34mReading ", csvFileName, " ...\x1b[0m\n")
-      dataTable <- fread(csvFileName)
-
-      # ====== Post-processing ==============================================
-      dataTable <- processingFunction(dataTable)
-
-      if(cacheName != "") {
-         cat(sep="", "\x1b[34mWriting data to cache file ", cacheName, " ...\x1b[0m\n")
-         saveRDS(dataTable, cacheName)
-      }
-   } else {
-      cat(sep="", "\x1b[34mLoading cached table from ", cacheName, " ...\x1b[0m\n")
-      dataTable <- readRDS(cacheName)
-   }
-   showTableStatistics(dataTable)
-   return(dataTable)
-}
-
-
-# ##### Read HiPerConTracer Ping results from CSV file ######################
-readHiPerConTracerPingResultsFromCSV <- function(cacheLabel, csvFileName)
-{
-   return(readHiPerConTracerResultsFromCSV(cacheLabel, csvFileName,
-                                           processHiPerConTracerPingResults))
-}
-
-
-# ##### Read HiPerConTracer Traceroute results from CSV file ################
-readHiPerConTracerTracerouteResultsFromCSV <- function(cacheLabel, csvFileName)
-{
-   return(readHiPerConTracerResultsFromCSV(cacheLabel, csvFileName,
-                                           processHiPerConTracerTracerouteResults))
-}
-
-
-# ###### Show table statistics ##############################################
-showTableStatistics <- function(table)
-{
-   firstColumn <- colnames(table)[1]
-   cat(sep="",
-       "\x1b[32mEntries: ", length(table[[firstColumn]]), ", ",
-       "Table Size: ", round(as.numeric(object.size(table)) / (1024*1024), 2), " MiB\x1b[0m\n")
 }
 
 

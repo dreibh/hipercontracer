@@ -51,8 +51,8 @@ static std::set<ResultsWriter*>                              ResultsWriterSet;
 static std::set<Service*>                                    ServiceSet;
 static boost::asio::io_context                               IOContext;
 static boost::asio::signal_set                               Signals(IOContext, SIGINT, SIGTERM);
-static boost::posix_time::milliseconds                       CleanupTimerInterval(1000);
-static boost::asio::deadline_timer                           CleanupTimer(IOContext, CleanupTimerInterval);
+static std::chrono::milliseconds                             CleanupTimerInterval(1000);
+static boost::asio::steady_timer                             CleanupTimer(IOContext, CleanupTimerInterval);
 
 
 // ###### Signal handler ####################################################
@@ -176,7 +176,8 @@ static void tryCleanup(const boost::system::error_code& errorCode)
    }
 
    if(!finished) {
-      CleanupTimer.expires_at(CleanupTimer.expires_at() + CleanupTimerInterval);
+      CleanupTimer.expires_at(std::chrono::steady_clock::now() +
+                              CleanupTimerInterval);
       CleanupTimer.async_wait(tryCleanup);
    }
    else {

@@ -10,5 +10,5 @@ usr/include/universalimporter/reader-base.h
 usr/include/universalimporter/results-exception.h
 usr/include/universalimporter/universal-importer.h
 usr/include/universalimporter/worker.h
-usr/lib/*/libuniversalimporter*.so
-usr/lib/*/libuniversalimporter.a
+usr/lib/${DEB_HOST_MULTIARCH}/libuniversalimporter*.so
+usr/lib/${DEB_HOST_MULTIARCH}/libuniversalimporter.a

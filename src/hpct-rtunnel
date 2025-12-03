@@ -31,12 +31,16 @@
 set -eu
 
 
-# ====== Handle arguments ===================================================
+# ###### Usage ##############################################################
 usage () {
    echo >&2 "Usage: $0 [-h|--help] [--verbose|-v] [--quiet|-q] [--remote|-R remote_location] [--collector|-C collector] [--nodeid|-N node_id] [--key|-K ssh_private_key_file]"
    exit 1
 }
 
+
+# ###### Main program #######################################################
+
+# ====== Handle arguments ===================================================
 GETOPT="$(PATH=/usr/local/bin:$PATH which getopt)"
 options="$(${GETOPT} -o hN:R:C:K:H:vq --long help,nodeid:,remote:,collector:,key:,known-hosts:,verbose,quiet -a -- "$@")"
 # shellcheck disable=SC2181

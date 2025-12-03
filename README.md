@@ -53,7 +53,7 @@ For ready-to-install Ubuntu Linux packages of HiPerConTracer, see [Launchpad PPA
 ```bash
 sudo apt-add-repository -sy ppa:dreibh/ppa
 sudo apt-get update
-sudo apt-get install hipercontracer
+sudo apt-get install hipercontracer-all
 ```
 
 ## Fedora Linux
@@ -62,7 +62,7 @@ For ready-to-install Fedora Linux packages of HiPerConTracer, see [COPR PPA for 
 
 ```bash
 sudo dnf copr enable -y dreibh/ppa
-sudo dnf install hipercontracer
+sudo dnf install hipercontracer-all
 ```
 
 ## FreeBSD
@@ -92,11 +92,15 @@ Please use the issue tracker at [https://github.com/dreibh/hipercontracer/issues
 
 The Git repository of the HiPerConTracer sources can be found at [https://github.com/dreibh/hipercontracer](https://github.com/dreibh/hipercontracer):
 
-<pre><code><span class="fu">git</span> clone <a href="https://github.com/dreibh/hipercontracer">https://github.com/dreibh/hipercontracer</a>
-<span class="bu">cd</span> hipercontracer
-<span class="fu">cmake</span> .
-<span class="fu">make</span>
-</code></pre>
+```bash
+git clone https://github.com/dreibh/hipercontracer
+cd hipercontracer
+sudo ci/get-dependencies --install
+cmake .
+make
+```
+
+Note: The script [`ci/get-dependencies`](https://github.com/dreibh/hipercontracer/blob/master/ci/get-dependencies) automatically  installs the build dependencies under Debian/Ubuntu Linux, Fedora Linux, and FreeBSD. For manual handling of the build dependencies, see the packaging configuration in [`debian/control`](https://github.com/dreibh/hipercontracer/blob/master/debian/control) (Debian/Ubuntu Linux), [`hipercontracer.spec`](https://github.com/dreibh/hipercontracer/blob/master/rpm/hipercontracer.spec) (Fedora Linux), and [`Makefile`](https://github.com/dreibh/hipercontracer/blob/master/freebsd/hipercontracer/Makefile) FreeBSD.
 
 Contributions:
 
@@ -135,27 +139,27 @@ For a larger setup, particularly consisting of measurement nodes and/or database
 
 ## Directories and Permissions
 
-* <tt>/var/hipercontracer</tt> (ownership: _hipercontracer_:_hipercontracer_; permissions: 755 = rwxr-xr-x)
+* `/var/hipercontracer` (ownership: _hipercontracer_:_hipercontracer_; permissions: 755 = rwxr-xr-x)
 
-   * <tt>/var/hipercontracer/data</tt> (ownership: _hipercontracer_:_hpct-nodes_; permissions: 755 = rwxr-xr-x)
+   * `/var/hipercontracer/data` (ownership: _hipercontracer_:_hpct-nodes_; permissions: 755 = rwxr-xr-x)
 
      Storage for data recorded by [HiPerConTracer](#-running-a-hipercontracer-measurement).
 
-   * <tt>/var/hipercontracer/data/node<1-9999></tt>: (ownership: _node<1-9999>_:_hpct-nodes_; permissions: 755 = rwxr-xr-x)
+   * `/var/hipercontracer/data/node<1-9999>`: (ownership: _node<1-9999>_:_hpct-nodes_; permissions: 755 = rwxr-xr-x)
 
      Storage for data transferred from a remote Node using the [HiPerConTracer Sync Tool](#-the-hipercontracer-sync-tool). Each of these node directories corresponds to a Node.
 
      Data is stored as _node<1-9999>_:_node<1-9999>_. The permissions only allow the user itself to modify files in its own directory. A _node<1-9999>_ user is <b>not</b> able to modify data of another _node<1-9999>_ user!
 
-   * <tt>/var/hipercontracer/good</tt> (ownership: _hipercontracer_:_hpct-nodes_; permissions: 755 = rwxr-xr-x)
+   * `/var/hipercontracer/good` (ownership: _hipercontracer_:_hpct-nodes_; permissions: 755 = rwxr-xr-x)
 
-     Storage for data that was successfully imported into a database by using the [HiPerConTracer Importer Tool](#-the-hipercontracer-importer-tool). The Importer moves the data from <tt>/var/hipercontracer/data</tt> after import.
+     Storage for data that was successfully imported into a database by using the [HiPerConTracer Importer Tool](#-the-hipercontracer-importer-tool). The Importer moves the data from `/var/hipercontracer/data` after import.
 
-   * <tt>/var/hipercontracer/bad</tt> (ownership: _hipercontracer_:_hpct-nodes_; permissions: 755 = rwxr-xr-x)
+   * `/var/hipercontracer/bad` (ownership: _hipercontracer_:_hpct-nodes_; permissions: 755 = rwxr-xr-x)
 
-     Storage for data that was not successfully imported into a database by using the [HiPerConTracer Importer Tool](#-the-hipercontracer-importer-tool). The Importer moves the data from <tt>/var/hipercontracer/data</tt> after import failure.
+     Storage for data that was not successfully imported into a database by using the [HiPerConTracer Importer Tool](#-the-hipercontracer-importer-tool). The Importer moves the data from `/var/hipercontracer/data` after import failure.
 
-   * <tt>/etc/hipercontracer/ssh</tt> (ownership: _hipercontracer_:_hipercontracer_; permissions: 700 = rwx------)
+   * `/etc/hipercontracer/ssh` (ownership: _hipercontracer_:_hipercontracer_; permissions: 700 = rwx------)
 
      Storage for the SSH private/public key pair, as well as the known_hosts file, on a [HiPerConTracer Node](#-the-hipercontracer-collectornode-tools), to be used by [HiPerConTracer Sync Tool](#-the-hipercontracer-sync-tool) and [HiPerConTracer Reverse Tunnel Tool](#-the-hipercontracer-reverse-tunnel-tool).
 
@@ -172,13 +176,13 @@ For a larger setup, particularly consisting of measurement nodes and/or database
   sudo chown hipercontracer:hipercontracer /var/hipercontracer/ssh
   ```
 
-* <tt>/etc/hipercontracer</tt> (ownership: _root_:_root_; permissions: 755 = rwx------)
+* `/etc/hipercontracer` (ownership: _root_:_root_; permissions: 755 = rwx------)
 
   Configuration files, e.g.&nbsp;for importer or database.
 
 ## Access Control Lists (ACL)
 
-* <tt>/var/hipercontracer/data</tt>, <tt>/var/hipercontracer/good</tt>, and <tt>/var/hipercontracer/bad</tt>:
+* `/var/hipercontracer/data`, `/var/hipercontracer/good`, and `/var/hipercontracer/bad`:
 
    These directories must be <b>writable</b> for the [HiPerConTracer Importer Tool](#-the-hipercontracer-importer-tool), to allow it to move files owned by _node<1-9999>_:_hpct-nodes_ without superuser permissions, as well as <b>readable</b> for members of the group hpct-nodes, for reading the node status files:
 
@@ -211,7 +215,7 @@ sudo hipercontracer --destination www.heise.de --ping --verbose
 
 ## Example 2
 
-Run HiPerConTracer measurement #1000000, from arbitrary local IPv4 address to destination 193.99.144.80 ([www.heise.de](https://www.heise.de)), using Traceroute and Ping. Store data into sub-directory <tt>data</tt> in the current directory; run as current user $USER:
+Run HiPerConTracer measurement #1000000, from arbitrary local IPv4 address to destination 193.99.144.80 ([www.heise.de](https://www.heise.de)), using Traceroute and Ping. Store data into sub-directory `data` in the current directory; run as current user $USER:
 
 ```bash
 sudo hipercontracer \
@@ -224,8 +228,8 @@ sudo hipercontracer \
 
 Notes:
 
-* Run HiPerConTracer as a non-privileged user (<tt>-</tt><tt>-user</tt> option). HiPerConTracer only needs superuser permissions to create the raw sockets.
-* HiPerConTracer uses the sub-directory <tt>data</tt> (provided by <tt>-</tt><tt>-resultsdirectory</tt>) to write the results files to. This directory must be writable for the user $USER!
+* Run HiPerConTracer as a non-privileged user (`--user` option). HiPerConTracer only needs superuser permissions to create the raw sockets.
+* HiPerConTracer uses the sub-directory `data` (provided by `--resultsdirectory`) to write the results files to. This directory must be writable for the user $USER!
 * See the [manpage of "hipercontracer"](https://github.com/dreibh/hipercontracer/blob/master/src/hipercontracer.1) for various options to set Ping and Traceroute intervals, results file lengths, results file compression, etc.:
 
   ```bash
@@ -235,7 +239,7 @@ Notes:
 
 ## Example 3
 
-Run HiPerConTracer measurement #1000001, from arbitrary local IPv4 (0.0.0.0) and IPv6 (::) addresses to destinations 193.99.144.80 and 2a02:2e0:3fe:1001:302:: with Traceroute and Ping via ICMP (default). Store results files into sub-directory <tt>data</tt> in the current directory; run as current user $USER:
+Run HiPerConTracer measurement #1000001, from arbitrary local IPv4 (0.0.0.0) and IPv6 (::) addresses to destinations 193.99.144.80 and 2a02:2e0:3fe:1001:302:: with Traceroute and Ping via ICMP (default). Store results files into sub-directory `data` in the current directory; run as current user $USER:
 
 ```bash
 sudo hipercontracer \
@@ -250,7 +254,7 @@ sudo hipercontracer \
 
 ## Results File Examples
 
-Some simple results file examples (from <tt>[src/results-examples](https://github.com/dreibh/hipercontracer/tree/master/src/results-examples)</tt>):
+Some simple results file examples (from [`src/results-examples`](https://github.com/dreibh/hipercontracer/tree/master/src/results-examples)):
 
 * [HiPerConTracer ICMP Ping over IPv4](https://github.com/dreibh/hipercontracer/blob/master/src/results-examples/Ping-ICMP-%231000001-0.0.0.0-20241219T090830.364329-000000001.hpct)
 * [HiPerConTracer ICMP Ping over IPv6](https://github.com/dreibh/hipercontracer/blob/master/src/results-examples/Ping-ICMP-%231000001-%3A%3A-20241219T090830.364464-000000001.hpct)
@@ -260,8 +264,8 @@ Some simple results file examples (from <tt>[src/results-examples](https://githu
 Notes:
 
 * See the [manpage of "hipercontracer"](https://github.com/dreibh/hipercontracer/blob/master/src/hipercontracer.1) for a detailed description of the results file formats: ```bashman hipercontracer```
-* The HiPerConTracer Viewer Tool can be used to display results files, including uncompressed ones.
-* The HiPerConTracer Results Tool can be used to merge and/or convert the results files.
+* [HiPerConTracer Viewer Tool](#-the-hipercontracer-viewer-tool) can be used to display results files, including uncompressed ones.
+* [HiPerConTracer Results Tool](#-the-hipercontracer-results-tool) can be used to merge and/or convert the results files.
 
 ## Further Details
 
@@ -296,7 +300,7 @@ man hpct-viewer
 The HiPerConTracer Results Tool provides merging and converting data from results files, e.g.&nbsp;to create a Comma-Separated Value&nbsp;(CSV) file.
 
 ## Example 1
-Merge the data from all files matching the pattern <tt>Ping\*.hpct.\*</tt> into CSV file <tt>ping.csv.gz</tt>, with "," as separator:
+Merge the data from all files matching the pattern `Ping*.hpct.*` into CSV file `ping.csv.gz`, with "," as separator:
 
 ```bash
 find data -maxdepth 1 -name "Ping*.hpct.*" | \
@@ -306,34 +310,12 @@ find data -maxdepth 1 -name "Ping*.hpct.*" | \
 Hint: You can use the extension .gz for GZip, .bz for BZip2, .xz for XZ, .zst for ZSTD, or none for uncompressed output into the output CSV file!
 
 ## Example 2
-Merge the data from all files matching the pattern <tt>Traceroute\*.hpct.\*</tt> into CSV file <tt>traceroute.csv.xz</tt>, with ";" as separator:
+Merge the data from all files matching the pattern `Traceroute*.hpct.*` into CSV file `traceroute.csv.xz`, with ";" as separator:
 
 ```bash
 find data -maxdepth 1 -name "Traceroute*.hpct.*" | \
    hpct-results --input-file-names-from-stdin --separator=; -o traceroute.csv.xz
 ```
-
-## Processing Results from a CSV File
-
-See <tt>[src/results-examples](https://github.com/dreibh/hipercontracer/tree/master/src/results-examples)</tt> for some examples.
-
-### GNU R
-
-See <tt>[src/results-examples/r-install-dependencies](https://github.com/dreibh/hipercontracer/blob/master/src/results-examples/r-install-dependencies)</tt> to get the necessary library packages installed!
-
-* Ping:
-  <tt>[r-ping-example](https://github.com/dreibh/hipercontracer/blob/master/src/results-examples/r-ping-example) ping.csv</tt>
-* Traceroute:
-  <tt>[r-traceroute-example](https://github.com/dreibh/hipercontracer/blob/master/src/results-examples/r-traceroute-example) traceroute.csv.gz</tt>
-
-### LibreOffice (or any similar spreadsheet program)
-
-Import CSV file into spreadsheet.
-
-Hints:
-
-* Use _English (US)_ language, to avoid strange number conversions.
-* Choose column separator (" ", ",", etc.), if not detected automatically.
 
 ## Further Details
 
@@ -344,15 +326,119 @@ man hpct-results
 ```
 
 
+# 📚 Processing Results for Analysis
+
+The directory [`src/results-examples`](https://github.com/dreibh/hipercontracer/tree/master/src/results-examples) contains some example results files, as well as some example scripts for reading them and computing some statistics.
+
+## GNU&nbsp;R
+
+The [GNU&nbsp;R](https://www.r-project.org/) examples need, in addition to GNU&nbsp;R, some libraries. See [`src/results-examples/r-install-dependencies`](https://github.com/dreibh/hipercontracer/blob/master/src/results-examples/r-install-dependencies) to get the necessary library packages installed from the [Comprehensive R Archive Network&nbsp;(CRAN)](https://cran.stat.auckland.ac.nz/)!
+
+Alternatively:
+
+* Ubuntu/Debian:
+  ```bash
+  sudo apt install -y r-base-core r-cran-data.table r-cran-digest r-cran-dplyr r-cran-nanotime r-cran-xtable
+  ```
+* Fedora:
+  ```bash
+  sudo dnf install -y R-core R-data.table R-digest R-dplyr R-nanotime R-xtable
+  ```
+* FreeBSD:
+  ```bash
+  sudo pkg install -y R R-cran-data.table R-cran-digest R-cran-dplyr R-cran-xtable
+  ```
+  Note: `R-cran-nanotime` is missing in FreeBSD; it still needs to be installed from CRAN!
+
+## Example for Ping Results Processing in R
+
+See [`r-ping-example`](https://github.com/dreibh/hipercontracer/blob/master/src/results-examples/r-ping-example) for the script, and [`src/results-examples`](https://github.com/dreibh/hipercontracer/tree/master/src/results-examples) for some example results files! The Ping example creates a statistical summary table for each Measurement&nbsp;ID / Source&nbsp;IP / Destination&nbsp;IP / Protocol relation found in the given input results file(s).
+
+Usage:
+
+* With HiPerConTracer Ping results file:
+
+  ```bash
+  ./r-ping-example \
+     Ping-P13735-2001:700:4100:4::2-20221012T142120.713761-000003330.results.bz2 \
+     output
+  ```
+
+  Note: The script calls the [HiPerConTracer Results Tool](#-the-hipercontracer-results-tool) for processing of the input file. It therefore must to be installed.
+
+  Outputs:
+  * `output.csv`: A summary table as CSV file.
+  * `output.tex`: A summary table as HTML file.
+  * `output.tex`: A summary table as LaTeX file, for inclusion into a LaTeX publication.
+
+* With all HiPerConTracer Ping results files in a directory:
+
+  ```bash
+  ./r-ping-example . output
+  ```
+
+  Note:
+  * The provided directory ("`.`", i.e.&nbsp;the current directory) is searched for all HiPerConTracer Ping results files.
+  * The script calls the [HiPerConTracer Results Tool](#-the-hipercontracer-results-tool) for processing of the input files. It therefore must to be installed.
+
+* With a CSV file:
+
+  ```bash
+  ./r-ping-example ping.csv output
+  ```
+
+  Note: `ping.csv` has to be created in advance from HiPerConTracer Ping results, e.g.&nbsp;using the [HiPerConTracer Results Tool](#-the-hipercontracer-results-tool).
+
+## Example for Traceroute Results Processing in R
+
+See [`r-traceroute-example`](https://github.com/dreibh/hipercontracer/blob/master/src/results-examples/r-traceroute-example) for the script, and [`src/results-examples`](https://github.com/dreibh/hipercontracer/tree/master/src/results-examples) for some example results files! The Traceroute example simply counts the number of HiPerConTracer Traceroute runs for each Measurement&nbsp;ID / Source&nbsp;IP / Destination&nbsp;IP / Protocol relation found in the given input results file(s).
+
+Usage:
+
+* With HiPerConTracer Traceroute results file:
+
+  ```bash
+  ./r-traceroute-example \
+     Traceroute-UDP-#88888888-10.193.4.168-20231018T102656.814657-000000001.results.xz
+  ```
+
+  Note: The script calls the [HiPerConTracer Results Tool](#-the-hipercontracer-results-tool) for processing of the input file. It therefore must to be installed.
+
+* With all HiPerConTracer Traceroute results files in a directory:
+
+  ```bash
+  ./r-traceroute-example .
+  ```
+
+  Note: The script calls the [HiPerConTracer Results Tool](#-the-hipercontracer-results-tool) for processing of the input file. It therefore must to be installed.
+
+* With a CSV file:
+
+  ```bash
+  ./r-traceroute-example traceroute.csv
+  ```
+
+  Note: `traceroute.csv` has to be created in advance from HiPerConTracer Traceroute results, e.g.&nbsp;using the [HiPerConTracer Results Tool](#-the-hipercontracer-results-tool).
+
+## LibreOffice (or any similar spreadsheet program)
+
+Import CSV file into spreadsheet.
+
+Hints:
+
+* Use _English (US)_ language, to avoid strange number conversions.
+* Specify the used column separator (" ", ",", etc.), if not detected automatically.
+
+
 # 🗃️ Setting Up a Database for Results Collection
 
-See <tt>[src/SQL](https://github.com/dreibh/hipercontracer/tree/master/src/SQL)</tt> and <tt>[src/NoSQL](https://github.com/dreibh/hipercontracer/tree/master/src/NoSQL)</tt> for schema, user and permission setups. Create the database of your choice ([MariaDB](https://mariadb.com/)/[MySQL](https://www.mysql.com/), [PostgreSQL](https://www.postgresql.org/), or [MongoDB](https://www.mongodb.com/)).
+See [`src/SQL`](https://github.com/dreibh/hipercontracer/tree/master/src/SQL) and [`src/NoSQL`](https://github.com/dreibh/hipercontracer/tree/master/src/NoSQL) for schema, user and permission setups. Create the database of your choice ([MariaDB](https://mariadb.com/)/[MySQL](https://www.mysql.com/), [PostgreSQL](https://www.postgresql.org/), or [MongoDB](https://www.mongodb.com/)).
 
 Use separate users for importer (import access only), researcher (read-only access to the data) and maintainer (full access), for improved security.
 
 Hint: The HiPerConTracer tools support Transport Layer Security&nbsp;(TLS) configuration. It is **strongly** recommended to properly setup TLS for secure access to a database!
 
-See <tt>[src/TestDB](https://github.com/dreibh/hipercontracer/tree/master/src/TestDB)</tt> as example. This is the CI test, which includes a full database setup and test cycle with all supported database backends. Of course, this setup also includes proper TLS setup as well.
+See [`src/TestDB`](https://github.com/dreibh/hipercontracer/tree/master/src/TestDB) as example. This is the CI test, which includes a full database setup and test cycle with all supported database backends. Of course, this setup also includes proper TLS setup as well.
 
 
 # 📚 The HiPerConTracer Importer Tool
@@ -361,9 +447,9 @@ The HiPerConTracer Importer Tool provides the continuous storage of collected me
 
 ## Write Configuration Files for the Importer
 
-See <tt>[src/hipercontracer-importer.conf](src/hipercontracer-importer.conf)</tt> (importer configuration) and <tt>[src/hipercontracer-database.conf](src/hipercontracer-database.conf)</tt> (database configuration) for examples. Make sure that the database access details are correct, so that Importer Tool and Query Tool can connect to the right database and has the required permissions! See <tt>[src/SQL](https://github.com/dreibh/hipercontracer/tree/master/src/SQL)</tt> and <tt>[src/NoSQL](https://github.com/dreibh/hipercontracer/tree/master/src/NoSQL)</tt> for schema, user and permission setups. Use the [HiPerConTracer Database Shell](#-the-hipercontracer-database-shell) tool to verify and debug access.
+See [`src/hipercontracer-importer.conf`](src/hipercontracer-importer.conf) (importer configuration) and [`src/hipercontracer-database.conf`](src/hipercontracer-database.conf) (database configuration) for examples. Make sure that the database access details are correct, so that Importer Tool and Query Tool can connect to the right database and has the required permissions! See [`src/SQL`](https://github.com/dreibh/hipercontracer/tree/master/src/SQL) and [`src/NoSQL`](https://github.com/dreibh/hipercontracer/tree/master/src/NoSQL) for schema, user and permission setups. Use the [HiPerConTracer Database Shell](#-the-hipercontracer-database-shell) tool to verify and debug access.
 
-Note: Make sure the <tt>data</tt> directory, as well as the directory for <tt>good</tt> imports and the directory for <tt>bad</tt> (i.e.&nbsp;failed) imports are existing and accessible by the user running the importer!
+Note: Make sure the `data` directory, as well as the directory for `good` imports and the directory for `bad` (i.e.&nbsp;failed) imports are existing and accessible by the user running the importer!
 
 ## Run the Importer Tool
 
@@ -390,7 +476,7 @@ hpct-importer \
    --verbose
 ```
 
-Note: If running without <tt>-</tt><tt>-quit-when-idle</tt> (recommended), the importer keeps running and imports new files as soon as they appear in the results directory. The importer uses [INotify](https://en.wikipedia.org/wiki/Inotify)!
+Note: If running without `--quit-when-idle` (recommended), the importer keeps running and imports new files as soon as they appear in the results directory. The importer uses [INotify](https://en.wikipedia.org/wiki/Inotify)!
 
 ## Further Details
 
@@ -405,13 +491,13 @@ man hpct-importer
 
 ## Write a Configuration File for the Query Tool
 
-See <tt>[src/hipercontracer-database.conf](src/hipercontracer-database.conf)</tt> for an example. Make sure that the database access details are correct, so that the Query tool can connect to the right database and has the required permissions! See <tt>[src/SQL](https://github.com/dreibh/hipercontracer/tree/master/src/SQL)</tt> and <tt>[src/NoSQL](https://github.com/dreibh/hipercontracer/tree/master/src/NoSQL)</tt> for schema, user and permission setups. Use the [HiPerConTracer Database Shell](#-the-hipercontracer-database-shell) tool to verify and debug access.
+See [`src/hipercontracer-database.conf`](src/hipercontracer-database.conf) for an example. Make sure that the database access details are correct, so that the Query tool can connect to the right database and has the required permissions! See [`src/SQL`](https://github.com/dreibh/hipercontracer/tree/master/src/SQL) and [`src/NoSQL`](https://github.com/dreibh/hipercontracer/tree/master/src/NoSQL) for schema, user and permission setups. Use the [HiPerConTracer Database Shell](#-the-hipercontracer-database-shell) tool to verify and debug access.
 
 ## Run the Query Tool
 
 ### Example 1
 
-Export all Ping data to <tt>ping.hpct.gz</tt> (GZip-compressed data file):
+Export all Ping data to `ping.hpct.gz` (GZip-compressed data file):
 
 ```bash
 hpct-query ~/testdb-users-mariadb-researcher.conf ping -o ping.hpct.gz
@@ -425,7 +511,7 @@ Notes:
 
 ### Example 2
 
-Export all Ping data of Measurement ID #1000 to <tt>ping.hpct.gz</tt> (GZip-compressed data file):
+Export all Ping data of Measurement ID #1000 to `ping.hpct.gz` (GZip-compressed data file):
 
 ```bash
 hpct-query ~/testdb-users-mariadb-researcher.conf \
@@ -435,7 +521,7 @@ hpct-query ~/testdb-users-mariadb-researcher.conf \
 
 ### Example 3
 
-Export all Traceroute data of Measurement ID #1000 to <tt>traceroute.hpct.bz2</tt> (BZip2-compressed data file), with verbose logging:
+Export all Traceroute data of Measurement ID #1000 to `traceroute.hpct.bz2` (BZip2-compressed data file), with verbose logging:
 
 ```bash
 hpct-query ~/testdb-users-mariadb-researcher.conf \
@@ -445,7 +531,7 @@ hpct-query ~/testdb-users-mariadb-researcher.conf \
 
 ### Example 4
 
-Export all Traceroute data from 2023-09-22 00:00:00 to <tt>traceroute.hpct.xz</tt> (XZ-compressed data file), with verbose logging:
+Export all Traceroute data from 2023-09-22 00:00:00 to `traceroute.hpct.xz` (XZ-compressed data file), with verbose logging:
 
 ```bash
 hpct-query ~/testdb-users-mariadb-researcher.conf \
@@ -455,7 +541,7 @@ hpct-query ~/testdb-users-mariadb-researcher.conf \
 
 ### Example 5
 
-Export all Traceroute data from time interval [2023-09-22 00:00:00, 2023-09-23 00:00:00) to <tt>traceroute.hpct.xz</tt> (XZ-compressed data file):
+Export all Traceroute data from time interval [2023-09-22 00:00:00, 2023-09-23 00:00:00) to `traceroute.hpct.xz` (XZ-compressed data file):
 
 ```bash
 hpct-query ~/testdb-users-mariadb-researcher.conf \
@@ -486,11 +572,11 @@ Synchronise results files, with the following settings:
 
 * local node is Node 1000;
 * run as user _hipercontracer_;
-* from local directory <tt>/var/hipercontracer</tt>;
-* to remote server's directory <tt>/var/hipercontracer</tt> (here, the data is going to be stored in sub-directory "1000");
+* from local directory `/var/hipercontracer`;
+* to remote server's directory `/var/hipercontracer` (here, the data is going to be stored in sub-directory "1000");
 * remote server is sognsvann.domain.example (must be a resolvable hostname);
-* private key for logging into the remote server via SSH is in <tt>/var/hipercontracer/ssh/id_ed25519</tt>;
-* known_hosts file for SSH is <tt>/var/hipercontracer/ssh/known_hosts</tt>;
+* private key for logging into the remote server via SSH is in `/var/hipercontracer/ssh/id_ed25519`;
+* known_hosts file for SSH is `/var/hipercontracer/ssh/known_hosts`;
 * run with verbose output.
 
 ```bash
@@ -524,8 +610,8 @@ Establish a Reverse Tunnel, with the following settings:
 * local node is Node 1000;
 * run as user _hipercontracer_;
 * connect to Collector server 10.44.35.16;
-* using SSH private key from <tt>/var/hipercontracer/ssh/id_ed25519</tt>;
-* with SSH known_hosts file <tt>/var/hipercontracer/ssh/known_hosts</tt>.
+* using SSH private key from `/var/hipercontracer/ssh/id_ed25519`;
+* with SSH known_hosts file `/var/hipercontracer/ssh/known_hosts`.
 
 ```bash
 sudo -u hipercontracer hpct-rtunnel \
@@ -693,7 +779,7 @@ HiPerConTracer BibTeX entries can be found in [hipercontracer.bib](https://githu
 * [NetPerfMeter – A TCP/MPTCP/UDP/SCTP/DCCP Network Performance Meter Tool](https://www.nntb.no/~dreibh/netperfmeter/)
 * [Dynamic Multi-Homing Setup (DynMHS)](https://www.nntb.no/~dreibh/dynmhs/)
 * [SubNetCalc – An IPv4/IPv6 Subnet Calculator](https://www.nntb.no/~dreibh/subnetcalc/)
-* [TSCTP – An SCTP test tool](https://www.nntb.no/~dreibh/tsctp/)
+* [TSCTP – An SCTP Test Tool](https://www.nntb.no/~dreibh/tsctp/)
 * [System-Tools – Tools for Basic System Management](https://www.nntb.no/~dreibh/system-tools/)
 * [Virtual Machine Image Builder and System Installation Scripts](https://www.nntb.no/~dreibh/vmimage-builder-scripts/)
 * [Thomas Dreibholz's Multi-Path TCP (MPTCP) Page](https://www.nntb.no/~dreibh/mptcp/)
