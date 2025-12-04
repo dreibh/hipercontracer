@@ -3,5 +3,5 @@
 set -eu
 
 # Using data from the NorNet Core Dataset:
-hpct-results -o ~/Traceroute-2016-11-28.csv /ringnes/nnc-dataset/HiPerConTracer/2016/11/28/Traceroute*.hpct.xz
-hpct-results -o ~/Ping-2016-11-28.csv       /ringnes/nnc-dataset/HiPerConTracer/2016/11/28/Ping*.hpct.xz
+hpct-results -o Traceroute-2016-11-28.csv.xz /nnc-dataset/HiPerConTracer/2016/11/28/Traceroute*.hpct.xz
+hpct-results -o Ping-2016-11-28.csv.xz       /nnc-dataset/HiPerConTracer/2016/11/28/Ping*.hpct.xz
