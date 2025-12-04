@@ -48,7 +48,7 @@ COMPRESSORS["zst"]="ZStandard"
 # ====== Run tests ==========================================================
 echo -e "\x1b[34m$(date +"%F %H:%M:%S"): Running measurements\x1b[0m"
 for round in ${ROUNDS} ; do
-   mkdir -p "${round}"
+   mkdir -p "results/${round}"
    for input in ${INPUTS} ; do
       for level in ${LEVELS} ; do
          echo -e "\x1b[34m$(date +"%F %H:%M:%S"): Running measurements: round ${round}, level ${level}, input ${input}\x1b[0m"
