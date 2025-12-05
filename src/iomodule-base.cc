@@ -231,8 +231,9 @@ bool IOModuleBase::configureSocket(const int                      socketDescript
 
             ifreq hwTimestampRequest;
             memset(&hwTimestampRequest, 0, sizeof(hwTimestampRequest));
-            memcpy(&hwTimestampRequest.ifr_name,
-                   interfaceName.c_str(), interfaceName.size() + 1);
+            strncpy((char*)&hwTimestampRequest.ifr_name,
+                    interfaceName.c_str(),
+                    sizeof(hwTimestampRequest.ifr_name));
             hwTimestampRequest.ifr_data = (char*)&hwTimestampConfig;
 
             if(ioctl(socketDescriptor, SIOCSHWTSTAMP, &hwTimestampRequest) < 0) {
