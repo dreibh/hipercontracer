@@ -36,43 +36,99 @@ INPUTS="test.hpct"
 LEVELS="0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19"
 ROUNDS="0"
 
-declare -A COMPRESSORS
-COMPRESSORS["gz"]="GZip"
-COMPRESSORS["bz2"]="BZip2"
-COMPRESSORS["xz"]="XZ"
-COMPRESSORS["zz"]="ZLib"
-COMPRESSORS["lzma"]="LZMA"
-COMPRESSORS["zst"]="ZStandard"
+declare -A COMPRESSORS=(
+   ["gzip"]="GZip"
+   ["pigz"]="Parallel GZip"
+   ["bzip2"]="BZip2"
+   ["pbzip2"]="Parallel BZip2"
+   ["xz"]="XZ"
+   ["zlib-flate"]="ZLib-Flate"
+   ["lzma"]="LZMA"
+   ["zstd"]="ZStandard"
+)
+
+declare -A EXTENSIONS=(
+   ["gzip"]="gz"
+   ["pigz"]="gz"
+   ["bzip2"]="bz2"
+   ["pbzip2"]="bz2"
+   ["xz"]="xz"
+   ["zlib-flate"]="zz"
+   ["lzma"]="lzma"
+   ["zstd"]="zst"
+)
+
+
+# ====== Checks =============================================================
+check-program ()
+{
+   local name="$1"
+   if ! which "${name}" >/dev/null 2>&1 ; then
+      echo "ERROR: ${name} is not installed!"
+      exit 1
+   fi
+}
+
+check-program gzip
+check-program pigz
+check-program bzip2
+check-program pbzip2
+check-program xz
+check-program lzma
+check-program zlib-flate
+check-program zstd
 
 
 # ====== Run tests ==========================================================
 echo -e "\x1b[34m$(date +"%F %H:%M:%S"): Running measurements\x1b[0m"
 for round in ${ROUNDS} ; do
-   mkdir -p "results/${round}"
+   mkdir -p "${round}"
    for input in ${INPUTS} ; do
       for level in ${LEVELS} ; do
          echo -e "\x1b[34m$(date +"%F %H:%M:%S"): Running measurements: round ${round}, level ${level}, input ${input}\x1b[0m"
          if [ "${level}" -le 9 ] ; then
-            if [ ! -e "${round}/${input}.${level}.xz" ] ; then
-               /bin/time -p -o "${round}/${input}.${level}.xz.time"   xz -T 0 -"${level}" -c "${input}" >"${round}/${input}.${level}.xz.tmp" && mv "${round}/${input}.${level}.xz.tmp" "${round}/${input}.${level}.xz"
+            if [ ! -e "${round}/${input}.xz.${level}.xz" ] ; then
+               /bin/time -p -o "${round}/${input}.xz.${level}.xz.time" \
+                  xz -T 0 -"${level}" -c "${input}" >"${round}/${input}.xz.${level}.xz.tmp" && \
+                  mv "${round}/${input}.xz.${level}.xz.tmp" "${round}/${input}.xz.${level}.xz"
             fi
             if [ "${level}" -gt 0 ] ; then
-               if [ ! -e "${round}/${input}.${level}.gz" ] ; then
-                  /bin/time -p -o "${round}/${input}.${level}.gz.time"    gzip -"${level}" -c "${input}" >"${round}/${input}.${level}.gz.tmp" && mv "${round}/${input}.${level}.gz.tmp" "${round}/${input}.${level}.gz"
+               if [ ! -e "${round}/${input}.gzip.${level}.gz" ] ; then
+                  /bin/time -p -o "${round}/${input}.gzip.${level}.gz.time" \
+                     gzip -"${level}" -c "${input}" >"${round}/${input}.gzip.${level}.gz.tmp" && \
+                     mv "${round}/${input}.gzip.${level}.gz.tmp" "${round}/${input}.gzip.${level}.gz"
                fi
-               if [ ! -e "${round}/${input}.${level}.bz2" ] ; then
-                  /bin/time -p -o "${round}/${input}.${level}.bz2.time"   bzip2 -"${level}" -c "${input}" >"${round}/${input}.${level}.bz2.tmp" && mv "${round}/${input}.${level}.bz2.tmp" "${round}/${input}.${level}.bz2"
+               if [ ! -e "${round}/${input}.pigz.${level}.gz" ] ; then
+                  /bin/time -p -o "${round}/${input}.pigz.${level}.gz.time" \
+                     pigz -"${level}" -c "${input}" >"${round}/${input}.pigz.${level}.gz.tmp" && \
+                     mv "${round}/${input}.pigz.${level}.gz.tmp" "${round}/${input}.pigz.${level}.gz"
                fi
-               if [ ! -e "${round}/${input}.${level}.zz" ] ; then
-                  /bin/time -p -o "${round}/${input}.${level}.zz.time"    zlib-flate -compress="${level}" <${input} >"${round}/${input}.${level}.zz.tmp" && mv "${round}/${input}.${level}.zz.tmp" "${round}/${input}.${level}.zz"
+               if [ ! -e "${round}/${input}.bzip2.${level}.bz2" ] ; then
+                  /bin/time -p -o "${round}/${input}.bzip2.${level}.bz2.time" \
+                     bzip2 -"${level}" -c "${input}" >"${round}/${input}.bzip2.${level}.bz2.tmp" && \
+                     mv "${round}/${input}.bzip2.${level}.bz2.tmp" "${round}/${input}.bzip2.${level}.bz2"
                fi
-               if [ ! -e "${round}/${input}.${level}.lzma" ] ; then
-                  /bin/time -p -o "${round}/${input}.${level}.lzma.time"   lzma -T 0 -"${level}" -c "${input}" >"${round}/${input}.${level}.lzma.tmp" && mv "${round}/${input}.${level}.lzma.tmp" "${round}/${input}.${level}.lzma"
+               if [ ! -e "${round}/${input}.pbzip2.${level}.bz2" ] ; then
+                  /bin/time -p -o "${round}/${input}.pbzip2.${level}.bz2.time" \
+                     pbzip2 -"${level}" -c "${input}" >"${round}/${input}.pbzip2.${level}.bz2.tmp" && \
+                     mv "${round}/${input}.pbzip2.${level}.bz2.tmp" "${round}/${input}.pbzip2.${level}.bz2"
+               fi
+               if [ ! -e "${round}/${input}.zlib-flate.${level}.zz" ] ; then
+                  /bin/time -p -o "${round}/${input}.zlib-flate.${level}.zz.time" \
+                     zlib-flate -compress="${level}" <"${input}" >"${round}/${input}.zlib-flate.${level}.zz.tmp" && \
+                     mv "${round}/${input}.zlib-flate.${level}.zz.tmp" "${round}/${input}.zlib-flate.${level}.zz"
+               fi
+               if [ ! -e "${round}/${input}.lzma.${level}.lzma" ] ; then
+                  /bin/time -p -o "${round}/${input}.lzma.${level}.lzma.time" \
+                     lzma -T 0 -"${level}" -c "${input}" >"${round}/${input}.lzma.${level}.lzma.tmp" && \
+                     mv "${round}/${input}.lzma.${level}.lzma.tmp" "${round}/${input}.lzma.${level}.lzma"
                fi
             fi
          fi
-         if [ ! -e "${round}/${input}.${level}.zst" ] ; then
-            /bin/time -p -o "${round}/${input}.${level}.zst.time"   zstd -T0 -"${level}" ${input} -kfq -o "${round}/${input}.${level}.zst.tmp" && mv "${round}/${input}.${level}.zst.tmp" "${round}/${input}.${level}.zst"
+         if [ ! -e "${round}/${input}.zstd.${level}.zst" ] ; then
+            /bin/time -p -o "${round}/${input}.zstd.${level}.zst.time" \
+               zstd -T0 -"${level}" "${input}" -kfq -o "${round}/${input}.zstd.${level}.zst.tmp" && \
+               mv "${round}/${input}.zstd.${level}.zst.tmp" "${round}/${input}.zstd.${level}.zst"
          fi
       done
    done
@@ -82,18 +138,22 @@ done
 # ====== Collect results ====================================================
 echo -e "\x1b[34m$(date +"%F %H:%M:%S"): Collecting results\x1b[0m"
 (
-   echo "Round Input OriginalSize Compression Level Size Real User Sys"
+   echo "Round Input OriginalSize Program Compressor Extension Level Size Real User Sys"
    originalSize="$(wc -c "${input}" | cut -d' ' -f1)"
    for round in ${ROUNDS} ; do
       for input in ${INPUTS} ; do
          for level in ${LEVELS} ; do
-            for ext in "${!COMPRESSORS[@]}" ; do
-               if [ -e "${round}/${input}.${level}.${ext}" ] && [ -e "${round}/${input}.${level}.${ext}.time" ] ; then
-                  size="$(wc -c "${round}/${input}.${level}.${ext}" | cut -d' ' -f1)"
-                  real="$(grep "^real" "${round}/${input}.${level}.${ext}.time" | cut -d' ' -f2)"
-                  user="$(grep "^user" "${round}/${input}.${level}.${ext}.time" | cut -d' ' -f2)"
-                  sys="$(grep "^sys"   "${round}/${input}.${level}.${ext}.time" | cut -d' ' -f2)"
-                  echo "${round} ${input} $originalSize ${COMPRESSORS[${ext}]} ${level} ${size} ${real} ${user} ${sys}"
+            for program in "${!COMPRESSORS[@]}" ; do
+               compressor="${COMPRESSORS[${program}]}"
+               extension="${EXTENSIONS[${program}]}"
+               if [ -e "${round}/${input}.${program}.${level}.${extension}" ] && [ -e "${round}/${input}.${program}.${level}.${extension}.time" ] ; then
+                  size="$(wc -c "${round}/${input}.${program}.${level}.${extension}" | cut -d' ' -f1)"
+                  real="$(grep "^real" "${round}/${input}.${program}.${level}.${extension}.time" | cut -d' ' -f2)"
+                  user="$(grep "^user" "${round}/${input}.${program}.${level}.${extension}.time" | cut -d' ' -f2)"
+                  sys="$(grep "^sys"   "${round}/${input}.${program}.${level}.${extension}.time" | cut -d' ' -f2)"
+                  echo "${round} ${input} $originalSize \"${program}\" \"${compressor}\" \"${extension}\" ${level} ${size} ${real} ${user} ${sys}"
+               else
+                echo >&2 "N/A: ${round}/${input}.${program}.${level}.${extension}   ${round}/${input}.${program}.${level}.${extension}.time"
                fi
             done
          done
@@ -102,8 +162,3 @@ echo -e "\x1b[34m$(date +"%F %H:%M:%S"): Collecting results\x1b[0m"
 ) | tee results.data
 
 echo -e "\x1b[34m$(date +"%F %H:%M:%S"): Done!\x1b[0m"
-
-
-# for level in 1 2 3 ; do
-#    /bin/time -p -o ${input}.${level}.zz.time   zlib-flate -compress=${level} <${input} >${input}.${level}.zz
-# done

@@ -52,7 +52,7 @@ myTheme <- theme(title             = element_text(size=32),
                 )
 
 # ====== Plot of compressed file sizes ======================================
-p1 <- ggplot(results, aes(x = Level, y = Size / 1024**2, color = Compression)) +
+p1 <- ggplot(results, aes(x = Level, y = Size / 1024**2, color = Compressor)) +
          myTheme +
          geom_line(linewidth = 2.5) +
          facet_grid(cols = vars(Input)) +
@@ -63,7 +63,7 @@ p1 <- ggplot(results, aes(x = Level, y = Size / 1024**2, color = Compression)) +
 print(p1)
 
 # ====== Plot of compression time ===========================================
-p2 <- ggplot(results, aes(x = Level, y = Real, color = Compression)) +
+p2 <- ggplot(results, aes(x = Level, y = Real, color = Compressor)) +
          myTheme +
          geom_line(linewidth = 2.5) +
          facet_grid(cols = vars(Input)) +
