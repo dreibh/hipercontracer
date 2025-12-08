@@ -3,6 +3,8 @@ Section: net
 Priority: optional
 Maintainer: Thomas Dreibholz <dreibh@simula.no>
 Homepage: https://www.nntb.no/~dreibh/hipercontracer/
+Vcs-Git: https://github.com/dreibh/hipercontracer.git
+Vcs-Browser: https://github.com/dreibh/hipercontracer
 Build-Depends: cmake (>= 3.10),
                debhelper-compat (= 13),
                ghostscript,
