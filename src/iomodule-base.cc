@@ -10,7 +10,7 @@
 // ==========================================================================
 //
 // High-Performance Connectivity Tracer (HiPerConTracer)
-// Copyright (C) 2015-2025 by Thomas Dreibholz
+// Copyright (C) 2015-2026 by Thomas Dreibholz
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -231,8 +231,9 @@ bool IOModuleBase::configureSocket(const int                      socketDescript
 
             ifreq hwTimestampRequest;
             memset(&hwTimestampRequest, 0, sizeof(hwTimestampRequest));
-            memcpy(&hwTimestampRequest.ifr_name,
-                   interfaceName.c_str(), interfaceName.size() + 1);
+            strncpy((char*)&hwTimestampRequest.ifr_name,
+                    interfaceName.c_str(),
+                    sizeof(hwTimestampRequest.ifr_name));
             hwTimestampRequest.ifr_data = (char*)&hwTimestampConfig;
 
             if(ioctl(socketDescriptor, SIOCSHWTSTAMP, &hwTimestampRequest) < 0) {
