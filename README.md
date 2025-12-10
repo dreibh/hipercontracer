@@ -781,6 +781,7 @@ HiPerConTracer BibTeX entries can be found in [hipercontracer.bib](https://githu
 * [SubNetCalc – An IPv4/IPv6 Subnet Calculator](https://www.nntb.no/~dreibh/subnetcalc/)
 * [TSCTP – An SCTP Test Tool](https://www.nntb.no/~dreibh/tsctp/)
 * [System-Tools – Tools for Basic System Management](https://www.nntb.no/~dreibh/system-tools/)
+* [Virtual Machine Image Builder and System Installation Scripts](https://www.nntb.no/~dreibh/vmimage-builder-scripts/)
 * [Thomas Dreibholz's Multi-Path TCP (MPTCP) Page](https://www.nntb.no/~dreibh/mptcp/)
 * [Thomas Dreibholz's SCTP Page](https://www.nntb.no/~dreibh/sctp/)
 * [Michael Tüxen's SCTP page](https://www.sctp.de/)
