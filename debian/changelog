@@ -1,4 +1,4 @@
-hipercontracer (2.1.8~rc1-1ubuntu1) unstable; urgency=medium
+hipercontracer (2.1.8-1ubuntu1) unstable; urgency=medium
 
   * New upstream release.
   * debian/*: Adapted the packaging, according to the tools description
@@ -7,7 +7,7 @@ hipercontracer (2.1.8~rc1-1ubuntu1) unstable; urgency=medium
     HiPerConTracer tools, with their dependencies, without installing
     the whole framework and all of its dependencies.
 
- -- Thomas Dreibholz <dreibh@simula.no>  Fri, 28 Nov 2025 15:23:44 +0100
+ -- Thomas Dreibholz <dreibh@simula.no>  Tue, 09 Dec 2025 16:46:41 +0100
 
 hipercontracer (2.1.7-1ubuntu1) unstable; urgency=medium
 
