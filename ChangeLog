@@ -1,3 +1,166 @@
+commit da362827b8d1d432e847f3b4684e00a2e036ec53
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Dec 9 16:37:10 2025 +0100
+
+    Updated CI scripts
+
+commit cdabfcb0ba359e27bdd3981a13451986adcf1520
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Mon Dec 8 22:34:48 2025 +0100
+
+    Updated CI scripts
+
+commit 5ec9f69beb3f036bd849d763aea712b5b868998b
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Fri Dec 5 15:47:48 2025 +0100
+
+    Updated CI scripts
+
+commit fc9dbf9f5033f507ec6de508b8a7aac4591d420b
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Fri Dec 5 15:46:19 2025 +0100
+
+    Packaging update.
+
+commit 2c6fbf27b4512c18a825a10a8c7e56c1d954f5f2
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Fri Dec 5 14:13:08 2025 +0100
+
+    Length check for interface name initialisation in ifreq.
+
+commit 4504ceb4f1447b26f1ea0a0071b0f5097704d3e7
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Fri Dec 5 13:36:56 2025 +0100
+
+    Updated CI configuration
+
+commit 8b4622554e8ae5c22a13d7f55d55e9ff44b6988a
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Fri Dec 5 13:36:54 2025 +0100
+
+    Updated CI scripts
+
+commit 09c98e9ed65ffdc2d8102a078857e9076efbe511
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Fri Dec 5 11:37:10 2025 +0100
+
+    Updated build helper script.
+
+commit 371318cb4bc9946c30f289dc6dc6f390038bdc6b
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Fri Dec 5 11:34:32 2025 +0100
+
+    Updated CI configuration
+
+commit 6ad3b039e9bada27c2a790b3a16a8a0ce7ed83e5
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Fri Dec 5 11:34:19 2025 +0100
+
+    Updated CI scripts
+
+commit 64d4febdb9d47088c8c3e9bc7b1a9776beadaa9f
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Dec 4 17:57:59 2025 +0100
+
+    Updated CI scripts
+
+commit f472f64f9e89fadae5d5d46cf77c50d68a018301
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Dec 4 17:24:12 2025 +0100
+
+    Updated CI configuration
+
+commit de8876b199776b9a04e07d22af101650cb18e300
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Dec 4 15:30:48 2025 +0100
+
+    Updated CI scripts
+
+commit c3f9d6c0be8ed5898822e93ae3e7617241b96f25
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Dec 4 15:01:26 2025 +0100
+
+    Updated workflows.
+
+commit 963201562d143181b28e7d3261e7ccd36d8dc83d
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Dec 4 12:36:41 2025 +0100
+
+    Header updates.
+
+commit cf9945110b031404b0ddbe871592cefb8eb5e316
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Dec 4 12:31:20 2025 +0100
+
+    Updated CI configuration
+
+commit 3696946cc1f9f8a592e96f03a9c651d08d46b1a4
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Dec 4 12:31:18 2025 +0100
+
+    Updated CI scripts
+
+commit dd2030257b5d644e3f76f02161a583b9e63873ac
+Merge: 88fdddd7 46a63c95
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Dec 3 21:36:07 2025 +0100
+
+    Merge branch 'master' into dreibh/tls-setup
+
+commit 46a63c95b8e8d341d1f09e1fb94e7018bc2865e7
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Dec 3 15:46:40 2025 +0100
+
+    Updated CI scripts
+
+commit a35033083babd2a01ba871b139cf905c2dc76c98
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Fri Nov 28 15:45:02 2025 +0100
+
+    Updated CI scripts
+
+commit 793c43f8c893e86368497da0d207cbe8c897353a
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Fri Nov 28 15:44:23 2025 +0100
+
+    Packaging improvements.
+
+commit ff7c28e27ea3cfdbd1fc5c9733c683243b8937fa
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Fri Nov 28 15:04:23 2025 +0100
+
+    Updated CI scripts
+
+commit e0fcbddc8c1cebc5b744e9f052e5d59c5bf9c56f
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Fri Nov 28 14:56:30 2025 +0100
+
+    Further packaging improvements.
+
+commit a978918e5e2a28f889e334b2e1407595510b11b1
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Fri Nov 28 14:47:01 2025 +0100
+
+    Packaging improvements.
+
+commit 7a42f92011710482b10d56984f670316a9f66db6
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Fri Nov 28 11:27:04 2025 +0100
+
+    Updated CI scripts
+
+commit c001de73d780f7cd5a81b3ee528374ba4e6c6435
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Fri Nov 28 10:42:05 2025 +0100
+
+    Workflow update.
+
+commit d0ea65dca27af5d32baaab3b43d70f2472d8be72
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Nov 26 16:18:12 2025 +0100
+
+    New release hipercontracer-2.1.7.
+
 commit 472e57d6fd1cc656370161b35afc20befa5b07b0
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Wed Nov 26 15:40:13 2025 +0100
@@ -21,6 +184,12 @@ Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Wed Nov 26 12:04:33 2025 +0100
 
     Updated test scripts.
+
+commit 88fdddd7846372365d1d6249378ca9d4c42f2808
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Sun Nov 23 21:07:09 2025 +0100
+
+    Small documentation updates.
 
 commit cdaeba72c995006aa637d88dbed72577c63afd0d
 Merge: 21a8d926 70293062
