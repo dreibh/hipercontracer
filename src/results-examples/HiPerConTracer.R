@@ -27,12 +27,15 @@
 #
 # Contact: dreibh@simula.no
 
-library("nanotime")
-options(digits.secs = 9)
-library("digest")
-library("data.table", warn.conflicts = FALSE)
-library("dplyr",      warn.conflicts = FALSE)
-library("xtable")
+suppressPackageStartupMessages({
+   library("bit64")
+   library("nanotime")
+   options(digits.secs = 9)
+   library("digest")
+   library("data.table")
+   library("dplyr")
+   library("xtable")
+})
 
 
 # Path to HPCT Results:
@@ -281,10 +284,21 @@ readHiPerConTracerTracerouteResultsFromDirectory <- function(path, pattern, cach
 
 
 # ###### Read HiPerConTracer Jitter results from directory ##################
-readHiPerConTracerJitterResultsFromDirectory <- function(cacheLabel, path, pattern)
+readHiPerConTracerJitterResultsFromDirectory <- function(path, pattern, cacheLabel = NA)
 {
-   return(readHiPerConTracerResultsFromDirectory(cacheLabel, path, pattern,
-                                                 processHiPerConTracerJitterResults))
+   return(readHiPerConTracerResultsFromDirectory(path, pattern,
+                                                 processHiPerConTracerJitterResults,
+                                                 cacheLabel))
+}
+
+
+# ###### Map timestamps to bins of given size ###############################
+makeTimestampBins <- function(timestamp, binSizeInSeconds)
+{
+   binInNS   <- as.integer64(1e9) * as.integer64(binSizeInSeconds)
+   tseconds  <- (as.integer64(timestamp) / binInNS) * binInNS
+   timestamp <- nanotime(tseconds)
+   return(timestamp)
 }
 
 
