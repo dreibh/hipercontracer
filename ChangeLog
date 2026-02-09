@@ -1,3 +1,45 @@
+commit 693ff3d86f0a07cddd3d410e027ec08abd2cf8ad
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Mon Feb 9 15:18:52 2026 +0100
+
+    Debian/Ubuntu dependency update: removed obsolete libboost-system-dev dependency.
+
+commit 6167eba663b00deaeeae1cc837964c6c56ff3a5a
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Mon Feb 9 14:40:02 2026 +0100
+
+    Improved CertificateHelper.py.
+
+commit b1d1109e72aa7cbad362e51c1dd43a2ce6c1022f
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Sun Dec 14 21:21:43 2025 +0100
+
+    Improved HiPerConTracer.R library.
+
+commit 7b5ebb1990f3e239cd16316845ffb412da2be62c
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Fri Dec 12 18:55:32 2025 +0100
+
+    Updated documentation.
+
+commit e73a47427b8dab90394d855448bdff1d55e92fbd
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Dec 10 09:40:03 2025 +0100
+
+    Updated FreeBSD port.
+
+commit d5d038119aaf684f1cb56c9eede08f46594e032e
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Dec 9 17:33:13 2025 +0100
+
+    Configuration update.
+
+commit 0c4d0ee0e353b869caef21adcebb2071e2fd3e18
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Dec 9 16:46:43 2025 +0100
+
+    New release hipercontracer-2.1.8.
+
 commit da362827b8d1d432e847f3b4684e00a2e036ec53
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Tue Dec 9 16:37:10 2025 +0100
