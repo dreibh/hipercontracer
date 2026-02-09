@@ -589,6 +589,21 @@ subjectAltName         = ${ENV::SAN}
       return result == 0
 
 
+   # ###### Revoke CA #######################################################
+   def revokeCA(self, ca : 'CA') -> None:
+      sys.stdout.write('\x1b[33mRevoking CA ' + ca.CertFileName + ' ...\x1b[0m\n')
+      assert os.path.isfile(ca.CertFileName)
+      execute('SAN="" openssl ca' +
+              ' -revoke '      + ca.CertFileName  +
+              ' -config '      + self.ConfigFileName   +
+              ' -passin file:' + self.PasswordFileName)
+      self.generateCRL()
+
+      # Remove the now-invalid certificate file:
+      if os.path.exists(ca.CertFileName):
+         os.remove(ca.CertFileName)
+
+
    # ###### Revoke certificate ##############################################
    def revokeCertificate(self, certificate : 'Certificate') -> None:
       sys.stdout.write('\x1b[33mRevoking certificate ' + certificate.CertFileName + ' ...\x1b[0m\n')
@@ -598,6 +613,10 @@ subjectAltName         = ${ENV::SAN}
               ' -config '      + certificate.CA.ConfigFileName   +
               ' -passin file:' + certificate.CA.PasswordFileName)
       self.generateCRL()
+
+      # Remove the now-invalid certificate file:
+      if os.path.exists(certificate.CertFileName):
+         os.remove(certificate.CertFileName)
 
 
    # ###### Generate CRL ####################################################
@@ -722,10 +741,6 @@ class Certificate:
       self.CA.revokeCertificate(self)
       if self.verify() == False:
          sys.stdout.write('Successfully revoked!\n')
-
-      # Remove the now-invalid certificate file:
-      if os.path.exists(self.CertFileName):
-         os.remove(self.CertFileName)
 
 
    # ###### Verify certificate ##############################################
