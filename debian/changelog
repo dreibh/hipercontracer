@@ -1,7 +1,14 @@
+hipercontracer (2.1.10-1ubuntu1) unstable; urgency=medium
+
+  * New upstream release.
+
+ -- Thomas Dreibholz <dreibh@simula.no>  Wed, 25 Feb 2026 13:48:27 +0100
+
 hipercontracer (2.1.9-1ubuntu1) unstable; urgency=medium
 
   * New upstream release.
-  * debian/control: Removed obsolete libboost-system-dev dependency.
+  * debian/control: Removed obsolete libboost-system-dev dependency
+    (Closes: #1127210).
   * debian/control: Updated Debian standards version.
   * debian/control: Updated standards version to 4.7.3.
 
