@@ -1,3 +1,21 @@
+commit d8dfb14bab33fea76344f13c3e8d6e92cff40825
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Mar 5 10:17:49 2026 +0100
+
+    The latest libpqxx in the FreeBSD Ports needs C++20 and minor access updates.
+
+commit e9c1a7b43ed9b28d4cc8858515f2eeac98e276c1
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Feb 25 14:25:36 2026 +0100
+
+    Updated FreeBSD Port.
+
+commit 22798a1deb517986dd46e0f53c129df23b90b963
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Feb 25 13:48:28 2026 +0100
+
+    New release hipercontracer-2.1.10.
+
 commit fb14eb9b17e37497f50111025b7878155e717bbf
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Wed Feb 25 12:17:12 2026 +0100
