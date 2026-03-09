@@ -6,18 +6,23 @@ NOTE: This is a very brief overview of the steps to install, configure and prepa
 ## Basic Installation
 
 ### Ubuntu:
-```
+
+```bash
 sudo apt install postgresql-all postgresql-contrib
 ```
+
 ### Fedora:
-```
+
+```bash
 sudo dnf install postgresql-server postgresql-contrib
 sudo systemctl enable postgresql.service
 sudo systemctl start postgresql.service
 ```
+
 ### FreeBSD:
-```
-sudo pkg install -y postgresql16-server postgresql-libpqxx
+
+```bash
+sudo pkg install -y postgresql18-server postgresql18-client postgresql-libpqxx
 sudo sysrc postgresql_enable="YES"
 sudo /usr/local/etc/rc.d/postgresql initdb
 sudo service postgresql start
@@ -29,19 +34,22 @@ sudo service postgresql start
 ### Enable Network Access
 
 In /etc/postgresql/*/main/pg_hba.conf (**EXAMPLE ONLY** for 10.0.0.0/8, adapt to your setup!):
+
 ```
 hostssl        all        all        10.0.0.0/8        scram-sha-256
 ```
 
 In /etc/postgresql/*/main/postgresql.conf:
-```
+
+```ini
 listen_addresses = '*'
 ```
 
 ### Tuning
 
 In /etc/postgresql/*/main/postgresql.conf (**EXAMPLE ONLY**, adapt to your setup!):
-```
+
+```ini
 shared_buffers       = 2048MB   # 1/4 of RAM
 effective_cache_size = 4096MB   # 1/2 of RAM
 checkpoint_timeout   = 15min
@@ -54,7 +62,8 @@ maintenance_work_mem = 64MB
 ### Enable TLS
 
 Change in /etc/postgresql/*/main/postgresql.conf (**EXAMPLE ONLY**, adapt to your setup!):
-```
+
+```ini
 ssl = on
 ssl_ca_file = '/etc/ssl/TestCA/certs/TestCA-chain.pem'
 ssl_cert_file = '/etc/ssl/postgresql.domain.example/postgresql.domain.example.crt'
@@ -80,6 +89,7 @@ See [postgresql-schema.sql](postgresql-schema.sql). Apply the schema definition 
 ### Create Users and Roles
 
 Suggested setup with 3 users:
+
 - importer: write access to import results
 - researcher: read-only query access
 - maintainer: full access
@@ -87,12 +97,14 @@ Suggested setup with 3 users:
 See [postgresql-users.sql](postgresql-users.sql). NOTE: Replace the placeholders first!
 
 HINT: Create secure passwords, for example using pwgen:
-```
+
+```bash
 pwgen -s 128
 ```
 
 ### Test Connectivity
-```
+
+```bash
 PGPASSWORD="<PASSWORD>" \
      PGSSLMODE="verify-full" \
      PGSSLROOTCERT="/etc/ssl/RootCA/RootCA.crt" \

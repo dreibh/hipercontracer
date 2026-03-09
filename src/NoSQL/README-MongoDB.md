@@ -6,29 +6,34 @@ NOTE: This is a very brief overview of the steps to install, configure and prepa
 ## Basic Installation
 
 ### Ubuntu:
-```
+
+```bash
 sudo apt install -y mongodb-org mongodb-mongosh
 ```
+
 ### Fedora:
+
 NOTE: The MongoDB PPA has to be added first!
-```
-cat <<EOF
+
+```bash
+( cat <<EOF
 [mongodb-org]
 name=MongoDB 8.0 Repository
 baseurl=https://repo.mongodb.org/yum/redhat/9/mongodb-org/8.0/x86_64/
 gpgcheck=1
 enabled=1
 gpgkey=https://www.mongodb.org/static/pgp/server-8.0.asc
+EOF
 ) | sudo tee /etc/yum.repos.d/mongodb-org.repo
 sudo dnf install -y mongodb-org mongodb-mongosh-shared-openssl3
 sudo systemctl enable mongod.service
 sudo systemctl start mongod.service
 ```
+
 ### FreeBSD:
-NOTE: MongoSH is currently not in the Ports Collection, and needs to be installed by NPM!
-```
-sudo pkg install -y mongodb70 mongodb-tools npm
-sudo npm install -g mongosh
+
+```bash
+sudo pkg install -y mongodb80 mongodb-tools mongosh mongo-c-driver
 sudo sysrc mongod_enable="YES"
 sudo service mongod start
 ```
@@ -40,7 +45,8 @@ sudo service mongod start
 ### Basic Engine Configuration
 
 In /etc/mongod.conf:
-```
+
+```yaml
 storage:
   ...
   directoryPerDB: true
@@ -53,7 +59,7 @@ storage:
 ### Create Root User
 Choose a secure root password. Then:
 
-```
+```bash
 mongosh --quiet <<EOF
 use admin
 db.dropUser("root")
@@ -70,7 +76,8 @@ EOF
 ```
 
 HINT: Create secure passwords, for example using pwgen:
-```
+
+```bash
 pwgen -s 128
 ```
 
@@ -82,7 +89,8 @@ This step enables security.authorization.
 WARNING: Without enabling authorization, there would be full read/write access for everybody being able to connect to the server!
 
 In /etc/mongod.conf:
-```
+
+```yaml
 security:
   authorization: enabled
 ```
@@ -95,12 +103,13 @@ After the change, the database is only accessible for user root with the passwor
 WARNING: Do not perform this step without enabling authorization (see above) first!
 
 In /etc/mongod.conf:
-```
+
+```yaml
 net:
   port: 27017
   ipv6: true
   bindIpAll: true
-...
+  ...
 security:
   authorization: enabled
 ```
@@ -109,7 +118,8 @@ security:
 ### Enable TLS
 
 In /etc/mongod.conf (**EXAMPLE ONLY**, adapt to your setup!):
-```
+
+```yaml
 net:
   ...
   tls:
@@ -135,6 +145,7 @@ See [mongodb-schema.ms](mongodb-schema.ms). Apply the schema definition in the d
 ### Create Users and Roles
 
 Suggested setup with 3 users:
+
 - importer: write access to import results
 - researcher: read-only query access
 - maintainer: full access
@@ -142,12 +153,14 @@ Suggested setup with 3 users:
 See [mongodb-users.ms](mongodb-users.ms). NOTE: Replace the placeholders first!
 
 HINT: Create secure passwords, for example using pwgen:
-```
+
+```bash
 pwgen -s 128
 ```
 
 ### Test Connectivity
-```
+
+```bash
 mongosh \
  "mongodb://<SERVER>:27017/<DATABASE>" \
  --tls \
