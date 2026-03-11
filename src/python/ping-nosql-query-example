@@ -28,9 +28,8 @@
 #
 # Contact: dreibh@simula.no
 
-import csv
 import datetime
-import gzip
+import json
 import os
 import sys
 import time
@@ -69,10 +68,6 @@ if not startTimeStamp < endTimeStamp:
    sys.stderr.write('ERROR: start_timestamp must be less than end_timestamp!\n')
    sys.exit(1)
 
-# Try to open the output file here, to avoid querying but being unable to
-# create the file (e.g. permissions or invalid path):
-outputFile : TextIO = gzip.open(outputFileNameTmp, 'wt', encoding='utf-8')
-
 
 # ====== Connect to database ================================================
 configuration = QueryHelper.DatabaseConfiguration(sys.argv[1])
@@ -80,16 +75,30 @@ client        = configuration.createClient()
 
 
 # ====== Prepare query ======================================================
-query : Final[str] = """
-SELECT
-   *
-FROM
-   Ping p
-WHERE
-   p.SendTimeStamp >= {startTimeStamp} AND
-   p.SendTimeStamp <  {endTimeStamp}
-""".format(startTimeStamp = startTimeStamp,
-           endTimeStamp   = endTimeStamp)
+table : Final[str] = 'ping'
+query : Final[dict[str, Any]] =  {
+   "$and": [
+      {
+         "sendTimestamp": {
+            "$gte": startTimeStamp
+         }
+      },
+      {
+         "sendTimestamp": {
+            "$lt": endTimeStamp
+         }
+      }
+   ]
+}
+orderBy : Final[list[tuple[str, int]]] = [
+   ( "sendTimestamp", 1 ),
+   ( "measurementID", 1 ),
+   ( "sourceIP",      1 ),
+   ( "destinationIP", 1 ),
+   ( "protocol",      1 ),
+   ( "trafficClass",  1 ),
+   ( "burstSeq",      1 )
+]
 
 
 try:
@@ -97,23 +106,12 @@ try:
    log(f'Querying {startTimeStamp} - {endTimeStamp} ...')
 
    queryStartTime : Final[float] = time.perf_counter()
-   ( rows, description ) = configuration.query(query)
-   headers : Final[list[str]] = [ column[0] for column in description ]
+   cursor = configuration.queryMongoDB(table, query, orderBy = orderBy)
    queryFinishTime : Final[float] = time.perf_counter()
    queryRuntime    : Final[float] = queryFinishTime - queryStartTime
 
-   log(f'Got {len(rows)} rows in {queryRuntime:.1f}s')
-
-
-   # ====== Store result ====================================================
-   log(f'Storing results to {outputFileName} ...')
-
-   csvWriter = csv.writer(outputFile)
-   csvWriter.writerow(headers)
-   csvWriter.writerows(rows)
-
-   os.rename(outputFileNameTmp, outputFileName)
-   log(f'Done!')
+   for document in cursor:
+      print(json.dumps(document, indent=3, default = str))
 
 except KeyboardInterrupt:
    sys.stdout.write('\nSIGINT\n')
