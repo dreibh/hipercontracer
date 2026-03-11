@@ -36,23 +36,10 @@ import os
 import sys
 import time
 
+import HiPerConTracer
 import QueryHelper
 
 from typing import Any, Final, TextIO
-
-
-# ###### Convert Unix time in nanoseconds to string #########################
-def unix_time_to_string(unixTime : int) -> str:
-   timeStamp  = datetime.datetime.fromtimestamp(unixTime / 1000000000.0, tz=datetime.timezone.utc)
-   timeString = timeStamp.isoformat(timespec='nanoseconds')
-   return timeString
-
-
-# ###### Convert strong to Unix time in nanoseconds #########################
-def string_to_unix_time(timeString : str) -> int:
-   timeStamp = datetime.datetime.fromisoformat(timeString + '+00:00').replace(tzinfo=datetime.timezone.utc).timestamp()
-   unixTime  = int(1000000000.0 * timeStamp)
-   return unixTime
 
 
 # ###### Print log message ##################################################
@@ -77,8 +64,8 @@ endTimeStampString        : Final[str] = sys.argv[3]
 outputFileName            : Final[str] = sys.argv[4]
 outputFileNameTmp         : Final[str] = outputFileName + '.tmp'
 
-startTimeStamp : Final[int] = string_to_unix_time(startTimeStampString)
-endTimeStamp   : Final[int] = string_to_unix_time(endTimeStampString)
+startTimeStamp : Final[int] = HiPerConTracer.string_to_unix_time(startTimeStampString)
+endTimeStamp   : Final[int] = HiPerConTracer.string_to_unix_time(endTimeStampString)
 if not startTimeStamp < endTimeStamp:
    sys.stderr.write('ERROR: start_timestamp must be less than end_timestamp!\n')
    sys.exit(1)
