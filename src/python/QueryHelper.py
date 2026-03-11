@@ -32,6 +32,10 @@ import configparser
 import ipaddress
 import sys
 
+if sys.version_info < (3, 11):
+   sys.stderr.write('ERROR: ' + sys.argv[0] + ' requires Python 3.11 or later!\n')
+   sys.exit(1)
+
 from typing import Any, Final, TextIO, TYPE_CHECKING
 
 # Usually, a backend is imported only when needed. This avoids unnecessary
@@ -465,13 +469,16 @@ Try:
 
 
    # ###### Query MongoDB database ##########################################
-   def queryMongoDB(self, table : str, request : str) -> Any:
+   def queryMongoDB(self,
+                    table   : str,
+                    request : dict[str, Any],
+                    orderBy : list[tuple[str, int]] | None = None) -> Any:
 
       # ====== MongoDB ======================================================
       if not self.Configuration['dbBackend'] == 'MongoDB':
          raise Exception('This method only works for MongoDB!')
 
-      rows = self.database[table].find(request, batch_size=1000000).batch_size(1000000)
+      rows = self.database[table].find(request, sort = orderBy, batch_size=1000000).batch_size(1000000)
       return rows
 
 
