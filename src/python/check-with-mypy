@@ -31,6 +31,7 @@
 set -eu
 
 SCRIPTS="
+   ping-nosql-query-example
    ping-sql-query-example
 "
 
@@ -40,7 +41,7 @@ exit-failed ()
 {
    echo
    "${PRINT_UTF8}" -n -s "\e[1;31;5m█" "▀" "█\e[0m" ;
-   echo "CHECK FAILED!" | "${FIGLET}" -w 128 | "${PRINT_UTF8}" -n -C "\e[1;31;5m█\e[25m" "\e[5m█\e[0m" ;
+   echo "CHECK FAILED!" | "${FIGLET}" -w "${COLUMNS}" | "${PRINT_UTF8}" -n -C "\e[1;31;5m█\e[25m" "\e[5m█\e[0m" ;
    "${PRINT_UTF8}" -n -s "\e[1;31;5m█" "▄" "█\e[0m"
    exit 1
 }
@@ -51,7 +52,7 @@ exit-success ()
 {
    echo
    "${PRINT_UTF8}" -n -s "\e[1;32m█" "▀" "█\e[0m" ;
-   echo "ALL CHECKS SUCCEEDED!" | "${FIGLET}" -w 128 | "${PRINT_UTF8}" -n -C "\e[1;32m█\e[25m" "█\e[0m" ;
+   echo "ALL CHECKS SUCCEEDED!" | "${FIGLET}" -w "${COLUMNS}" | "${PRINT_UTF8}" -n -C "\e[1;32m█\e[25m" "█\e[0m" ;
    "${PRINT_UTF8}" -n -s "\e[1;32m█" "▄" "█\e[0m"
    exit 0
 }
@@ -63,7 +64,7 @@ show-script ()
    local script="$1"
 
    "${PRINT_UTF8}" -n -s "\e[1;36m█" "▀" "█\e[0m" ;
-   "${FIGLET}" -w 128 "$(basename "${script}")" | "${PRINT_UTF8}" -n -C "\e[1;36m█\e[25m" "█\e[0m" ;
+   "${FIGLET}" -w "${COLUMNS}" "$(basename "${script}")" | "${PRINT_UTF8}" -n -C "\e[1;36m█\e[25m" "█\e[0m" ;
    "${PRINT_UTF8}" -n -s "\e[1;36m█" "▄" "█\e[0m"
 }
 
