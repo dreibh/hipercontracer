@@ -85,17 +85,25 @@ def statusIsUnreachable(hopStatus : HopStatus) -> bool:
             (hopStatus.value < HopStatus.Timeout.value) )
 
 
+# ###### Convert Unix time in nanoseconds to datetime #######################
+def unix_time_to_datetime(unixTime : int) -> datetime.datetime:
+   return datetime.datetime.fromtimestamp(unixTime / 1e9,
+                                          tz = datetime.UTC)
+
+
 # ###### Convert Unix time in nanoseconds to string #########################
 def unix_time_to_string(unixTime : int) -> str:
-   timeStamp  : Final[datetime.datetime] = \
-      datetime.datetime.fromtimestamp(unixTime / 1000000000.0, tz=datetime.timezone.utc)
-   timeString = timeStamp.isoformat(timespec='nanoseconds')
-   return timeString
+   timeStamp : Final[datetime.datetime] = unix_time_to_datetime(unixTime)
+   return timeStamp.isoformat(timespec = 'nanoseconds')
+
+
+# ###### Convert strong to Unix time in nanoseconds #########################
+def datetime_to_unix_time(timeStamp : datetime.datetime) -> int:
+   return int(1e9 * timeStamp.timestamp())
 
 
 # ###### Convert strong to Unix time in nanoseconds #########################
 def string_to_unix_time(timeString : str) -> int:
-   timeStamp : float = \
-      datetime.datetime.fromisoformat(timeString + '+00:00').replace(tzinfo=datetime.timezone.utc).timestamp()
-   unixTime  = int(1000000000.0 * timeStamp)
-   return unixTime
+   timeStamp : Final[datetime.datetime] = \
+      datetime.datetime.fromisoformat(timeString + '+00:00').replace(tzinfo = datetime.UTC)
+   return datetime_to_unix_time(timeStamp)
