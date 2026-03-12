@@ -307,8 +307,8 @@ Ping fields, version 2:
 |  9     | checksum          | The checksum of the ICMP Echo Request packets (hexadecimal); 0x0000 for other protocols, 0xffff for unknown.         |
 | 10     | sourcePort        | Source port, 0 for ICMP (decimal).                                                                                   |
 | 11     | destinationPort   | Destination port, 0 for ICMP (decimal).                                                                              |
-| 12     | status            | Status code (decimal)                                                                                                |
-| 13     | timesource        | Source of the timing information (hexadecimal) as AAQQSSHH                                                           |
+| 12     | status            | Status code (decimal); see [Status Code and Status Flags](#status-code-and-status-flags)                             |
+| 13     | timesource        | Source of the timing information (hexadecimal) as AAQQSSHH; see [Time Source](#time-source)                          |
 | 14     | delay_app_send    | The measured application send delay (nanoseconds, decimal; -1 if not available).                                     |
 | 15     | delay_queuing     | The measured kernel software queuing delay (nanoseconds, decimal; -1 if not available).                              |
 | 16     | delay_app_receive | The measured application receive delay (nanoseconds, decimal; -1 if not available).                                  |
@@ -338,11 +338,11 @@ Ping format, version 1:
 |  2     | destinationIP   | Destination IP address.                                                                                          |
 |  3     | sendTimestamp   | Send Timestamp (nanoseconds since the UTC epoch, hexadecimal).                                                   |
 |  4     | checksum        | The checksum of the ICMP Echo Request packets (hexadecimal); 0x0000 for other protocols, 0xffff for unknown.     |
-|  5     | status          | Status code (decimal)                                                                                            |
+|  5     | status          | Status code (decimal); see [Status Code and Status Flags](#status-code-and-status-flags)                         |
 |  6     | rtt             | The measured RTT (microseconds, decimal).                                                                        |
 |  7     | traffic_class   | The IP Traffic Class/Type of Service value of the sent packets (hexadecimal).                                    |
 |  8     | packet_size     | The sent packet size (decimal, in bytes) including IPv4/IPv6 header, transport header and HiPerConTracer header. |
-|  9     | timesource      | Source of the timing information (hexadecimal) as AAQQSSHH                                                       |
+|  9     | timesource      | Source of the timing information (hexadecimal) as AAQQSSHH; see [Time Source](#time-source)                      |
 
 Notes:
 
@@ -383,7 +383,7 @@ Traceroute fields, version 2:
 |  9     | checksum          | The checksum of the ICMP Echo Request packets (hexadecimal); 0x0000 for other protocols, 0xffff for unknown          |
 | 10     | sourcePort        | Source port, 0 for ICMP (decimal)                                                                                    |
 | 11     | destinationPort   | Destination port, 0 for ICMP (decimal)                                                                               |
-| 12     | statusFlags       | Status flags including the status code for Ping above for the lower 8 bits (hexadecimal)                             |
+| 12     | statusFlags       | Status flags including the status code for Ping above for the lower 8 bits (hexadecimal); see [Status Code and Status Flags](#status-code-and-status-flags) |
 | 13     | pathHash          | Hash of the path (hexadecimal)                                                                                       |
 
 For each hop:
@@ -393,8 +393,8 @@ For each hop:
 |  1     | sendTimeStamp     | Timestamp (nanoseconds since the UTC epoch, hexadecimal) for the request to this hop                                 |
 |  2     | hopNumber         | Number of the hop                                                                                                    |
 |  3     | response_size     | The response packet size (decimal, in bytes) including IPv4/IPv6 header, transport header and HiPerConTracer header  |
-|  4     | status            | Status code (decimal; the values are the same as for Ping, see above)                                                |
-|  5     | timesource        | Source of the timing information (hexadecimal) as AAQQSSHH                                                           |
+|  4     | status            | Status code (decimal; the values are the same as for Ping, see see [Status Code and Status Flags](#status-code-and-status-flags)) |
+|  5     | timesource        | Source of the timing information (hexadecimal) as AAQQSSHH; see [Time Source](#time-source)                          |
 |  6     | delay_app_send    | The measured application send delay (nanoseconds, decimal; -1 if not available)                                      |
 |  7     | delay_queuing     | The measured kernel software queuing delay (nanoseconds, decimal; -1 if not available)                               |
 |  8     | delay_app_receive | The measured application receive delay (nanoseconds, decimal; -1 if not available)                                   |
@@ -455,7 +455,7 @@ For each hop:
 |  2     | status            | Status code (in **hexadecimal** here; )                                                                              |
 |  3     | rtt               | The measured RTT (microseconds, decimal).                                                                            |
 |  4     | hopIP             | Hop IP address                                                                                                       |
-|  5     | timesource        | Source of the timing information (hexadecimal) as AAQQSSHH                                                           |
+|  5     | timesource        | Source of the timing information (hexadecimal) as AAQQSSHH; see [Time Source](#time-source)                          |
 
 Notes:
 
@@ -485,7 +485,60 @@ Traceroute example, version 1:
 
 ### Status Code and Status Flags
 
+The status code provides the result of a Ping, i.e.&nbsp;whether the remote endpoint responded or there was a local or on-route error, as unsigned byte:
+
+| Status Code | Description                                                                                                                                        | Meaning of the Corresponding RTT Value      |
+| :---        | :---                                                                                                                                               | :---                                        |
+|    1        | [ICMP](https://www.rfc-editor.org/rfc/rfc792)/[ICMPv6](https://datatracker.ietf.org/doc/html/rfc4443) response: Time Exceeded                      | Response from router sending the ICMP error |
+|  100        | [ICMP](https://www.rfc-editor.org/rfc/rfc792)/[ICMPv6](https://datatracker.ietf.org/doc/html/rfc4443) response: Unreachable scope                  | Response from router sending the ICMP error |
+|  101        | [ICMP](https://www.rfc-editor.org/rfc/rfc792)/[ICMPv6](https://datatracker.ietf.org/doc/html/rfc4443) response: Unreachable network                | Response from router sending the ICMP error |
+|  102        | [ICMP](https://www.rfc-editor.org/rfc/rfc792)/[ICMPv6](https://datatracker.ietf.org/doc/html/rfc4443) response: Unreachable host                   | Response from router sending the ICMP error |
+|  103        | [ICMP](https://www.rfc-editor.org/rfc/rfc792)/[ICMPv6](https://datatracker.ietf.org/doc/html/rfc4443) response: Unreachable protocol               | Response from router sending the ICMP error |
+|  104        | [ICMP](https://www.rfc-editor.org/rfc/rfc792)/[ICMPv6](https://datatracker.ietf.org/doc/html/rfc4443) response: Unreachable port                   | Response from router sending the ICMP error |
+|  105        | [ICMP](https://www.rfc-editor.org/rfc/rfc792)/[ICMPv6](https://datatracker.ietf.org/doc/html/rfc4443) response: Unreachable, prohibited (firewall) | Response from router sending the ICMP error |
+|  110        | [ICMP](https://www.rfc-editor.org/rfc/rfc792)/[ICMPv6](https://datatracker.ietf.org/doc/html/rfc4443) response: Unreachable, unknown reason        | Response from router sending the ICMP error |
+|  200        | Timeout (no response from a router)                                                                                                                | Timeout value configured for HiPerConTracer |
+|  210        | sendto() call failed (generic error)                                                                                                               | RTT is set to 0                             |
+|  211        | sendto() error: tried to send to broadcast address ([EACCES](https://en.wikipedia.org/wiki/Errno.h#POSIX_errors))                                  | RTT is set to 0                             |
+|  212        | sendto() error: network unreachable ([ENETUNREACH](https://en.wikipedia.org/wiki/Errno.h#POSIX_errors))                                            | RTT is set to 0                             |
+|  213        | sendto() error: host unreachable ([HOSTUNREACH](https://en.wikipedia.org/wiki/Errno.h#POSIX_errors))                                              | RTT is set to 0                               |
+|  214        | sendto() error: address not available ([ADDRNOTAVAIL](https://en.wikipedia.org/wiki/Errno.h#POSIX_errors))                                         | RTT is set to 0                             |
+|  215        | sendto() error: invalid message size ([MSGSIZE](https://en.wikipedia.org/wiki/Errno.h#POSIX_errors))                                               | RTT is set to 0                             |
+|  216        | sendto() error: not enough buffer space ([NOBUFS](https://en.wikipedia.org/wiki/Errno.h#POSIX_errors))                                             | RTT is set to 0                             |
+|  255        | Success (destination has responded)                                                                                                                | The actual RTT to the destination           |
+
+The status flag extends the status code, by providing an overall result of a Traceroute run consisting of multiple Ping measurements. That is: StatusCode := (StatusFlags & 0xff).
+
+| Status Flag | Description                                        |
+| :---        | :---                                               |
+|  0x100      | Route with * (at least one router did not respond) |
+|  0x200      | Destination has responded                          |
+
 ### Time Source
+
+The time source provides the source of the recorded timing information as hexadecimal 4-byte unsigned integer AAQQSSHH:
+
+| Component   | Description                                                             |
+| :---        | :---                                                                    |
+| AA          | Application                                                             |
+| QQ          | Queuing (queuing packet until sending it by driver, in software)        |
+| SS          | Software (sending request by driver until receiving response by driver) |
+| HW          | Hardware (sending request by NIC until receiving response by NIC)       |
+
+Each byte AA, QQ, SS, HH provides the receive time source (upper nibble) and send time source (lower nibble):
+
+| Nibble      | Description                                                                               |
+| :---        | :---                                                                                      |
+| 0x0         | Not available                                                                             |
+| 0x1         | System clock                                                                              |
+| 0x2         | SO_TIMESTAMPING socket option, microseconds granularity                                   |
+| 0x3         | SO_TIMESTAMPINGNS socket option (or SO_TIMESTAMPING+SO_TS_CLOCK), nanoseconds granularity |
+| 0x4         | SIOCGSTAMP ioctl, microseconds granularity                                                |
+| 0x5         | SIOCGSTAMPNS ioctl, nanoseconds granularity                                               |
+| 0x6         | SO_TIMESTAMPING socket option, in software, nanoseconds granularity                       |
+| 0xa         | SO_TIMESTAMPING socket option, in hardware, nanoseconds granularity                       |
+
+For details, particularly also see: [Dreibholz, Thomas](https://www.nntb.no/~dreibh/): «[High-Precision Round-Trip Time Measurements in the Internet with HiPerConTracer](https://web-backend.simula.no/sites/default/files/2023-10/SoftCOM2023-Timestamping.pdf)» ([PDF](https://web-backend.simula.no/sites/default/files/2023-10/SoftCOM2023-Timestamping.pdf), 12474&nbsp;KiB, 7&nbsp;pages, 🇬🇧), in *Proceedings of the 31st International Conference on Software, Telecommunications and Computer Networks&nbsp;(SoftCOM)*, DOI&nbsp;[10.23919/SoftCOM58365.2023.10271612](https://dx.doi.org/10.23919/SoftCOM58365.2023.10271612), ISBN&nbsp;979-8-3503-0107-6, Split, Dalmacija/Croatia, September&nbsp;22, 2023.
 
 
 ## Results File Examples
