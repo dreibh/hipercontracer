@@ -32,7 +32,6 @@
 
 #include "databaseclient-base.h"
 
-// Ubuntu: libpqxx-dev
 #include <pqxx/pqxx>
 
 
