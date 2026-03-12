@@ -37,6 +37,9 @@ SET(BUILD_VERSION ${BUILD_MAJOR}.${BUILD_MINOR}.${BUILD_PATCH})
 
 # HiPerConTracer needs at least C++17!
 IF(NOT "${CMAKE_CXX_STANDARD}")
+   # FXIXME:
+   # HiPerConTracer also builds with C++2x, but libpqxx 7.x expects C++17 on
+   # Debian/Ubuntu => setting C++17 here, and C++20 later for FreeBSD!
    SET(CMAKE_CXX_STANDARD 17)
 ENDIF()
 
@@ -92,25 +95,28 @@ IF (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
     MESSAGE(STATUS ${CMAKE_SYSTEM_NAME} " supported")
 
 ELSEIF (${CMAKE_SYSTEM_NAME} MATCHES "FreeBSD")
-    MESSAGE(STATUS ${CMAKE_SYSTEM_NAME} " supported")
-    SET(CMAKE_REQUIRED_INCLUDES "/usr/local/include" "/usr/include")
-    SET(CMAKE_LIBRARY_PATH "/usr/local/lib" "/usr/local/lib/mariadb")
-    INCLUDE_DIRECTORIES("/usr/local/include")
+   MESSAGE(STATUS ${CMAKE_SYSTEM_NAME} " supported")
+   SET(CMAKE_REQUIRED_INCLUDES "/usr/local/include" "/usr/include")
+   SET(CMAKE_LIBRARY_PATH "/usr/local/lib" "/usr/local/lib/mariadb")
+   INCLUDE_DIRECTORIES("/usr/local/include")
+
+   # FreeBSD build needs C++2x for libpqxx-8.0!
+   SET(CMAKE_CXX_STANDARD 23)
 
 ELSEIF (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-    MESSAGE(STATUS ${CMAKE_SYSTEM_NAME} " supported")
-    SET(CMAKE_REQUIRED_INCLUDES "/usr/local/include" "/usr/include" "/usr/local/opt/openssl/include")
-    SET(CMAKE_LIBRARY_PATH "/usr/local/lib")
-    INCLUDE_DIRECTORIES("/usr/local/include" "/usr/local/opt/openssl/include")
+   MESSAGE(STATUS ${CMAKE_SYSTEM_NAME} " supported")
+   SET(CMAKE_REQUIRED_INCLUDES "/usr/local/include" "/usr/include" "/usr/local/opt/openssl/include")
+   SET(CMAKE_LIBRARY_PATH "/usr/local/lib")
+   INCLUDE_DIRECTORIES("/usr/local/include" "/usr/local/opt/openssl/include")
 
 ELSEIF (${CMAKE_SYSTEM_NAME} MATCHES "NetBSD")
-    MESSAGE(STATUS ${CMAKE_SYSTEM_NAME} " supported")
-    SET(CMAKE_REQUIRED_INCLUDES "/usr/pkg/include" "/usr/include" "/usr/local/include")
-    SET(CMAKE_LIBRARY_PATH "/usr/local/lib")
-    INCLUDE_DIRECTORIES("/usr/pkg/include" "/usr/local/include")
+   MESSAGE(STATUS ${CMAKE_SYSTEM_NAME} " supported")
+   SET(CMAKE_REQUIRED_INCLUDES "/usr/pkg/include" "/usr/include" "/usr/local/include")
+   SET(CMAKE_LIBRARY_PATH "/usr/local/lib")
+   INCLUDE_DIRECTORIES("/usr/pkg/include" "/usr/local/include")
 
 ELSE()
-    MESSAGE(FATAL_ERROR ${CMAKE_SYSTEM_NAME} " not supported (yet?)")
+   MESSAGE(FATAL_ERROR ${CMAKE_SYSTEM_NAME} " not supported (yet?)")
 
 ENDIF()
 
