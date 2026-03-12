@@ -1,3 +1,75 @@
+commit d8dfb14bab33fea76344f13c3e8d6e92cff40825
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Mar 5 10:17:49 2026 +0100
+
+    The latest libpqxx in the FreeBSD Ports needs C++20 and minor access updates.
+
+commit e9c1a7b43ed9b28d4cc8858515f2eeac98e276c1
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Feb 25 14:25:36 2026 +0100
+
+    Updated FreeBSD Port.
+
+commit 22798a1deb517986dd46e0f53c129df23b90b963
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Feb 25 13:48:28 2026 +0100
+
+    New release hipercontracer-2.1.10.
+
+commit fb14eb9b17e37497f50111025b7878155e717bbf
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Feb 25 12:17:12 2026 +0100
+
+    Minor clean-up.
+
+commit 15642b28119f05d13d84861789f424b2312923f8
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Mon Feb 9 15:19:41 2026 +0100
+
+    New release hipercontracer-2.1.9.
+
+commit 693ff3d86f0a07cddd3d410e027ec08abd2cf8ad
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Mon Feb 9 15:18:52 2026 +0100
+
+    Debian/Ubuntu dependency update: removed obsolete libboost-system-dev dependency.
+
+commit 6167eba663b00deaeeae1cc837964c6c56ff3a5a
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Mon Feb 9 14:40:02 2026 +0100
+
+    Improved CertificateHelper.py.
+
+commit b1d1109e72aa7cbad362e51c1dd43a2ce6c1022f
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Sun Dec 14 21:21:43 2025 +0100
+
+    Improved HiPerConTracer.R library.
+
+commit 7b5ebb1990f3e239cd16316845ffb412da2be62c
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Fri Dec 12 18:55:32 2025 +0100
+
+    Updated documentation.
+
+commit e73a47427b8dab90394d855448bdff1d55e92fbd
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Dec 10 09:40:03 2025 +0100
+
+    Updated FreeBSD port.
+
+commit d5d038119aaf684f1cb56c9eede08f46594e032e
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Dec 9 17:33:13 2025 +0100
+
+    Configuration update.
+
+commit 0c4d0ee0e353b869caef21adcebb2071e2fd3e18
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Dec 9 16:46:43 2025 +0100
+
+    New release hipercontracer-2.1.8.
+
 commit da362827b8d1d432e847f3b4684e00a2e036ec53
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Tue Dec 9 16:37:10 2025 +0100

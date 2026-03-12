@@ -1,0 +1,123 @@
+#!/usr/bin/env bash
+# ==========================================================================
+#     _   _ _ ____            ____          _____
+#    | | | (_)  _ \ ___ _ __ / ___|___  _ _|_   _| __ __ _  ___ ___ _ __
+#    | |_| | | |_) / _ \ '__| |   / _ \| '_ \| || '__/ _` |/ __/ _ \ '__|
+#    |  _  | |  __/  __/ |  | |__| (_) | | | | || | | (_| | (_|  __/ |
+#    |_| |_|_|_|   \___|_|   \____\___/|_| |_|_||_|  \__,_|\___\___|_|
+#
+#       ---  High-Performance Connectivity Tracer (HiPerConTracer)  ---
+#                 https://www.nntb.no/~dreibh/hipercontracer/
+# ==========================================================================
+#
+# High-Performance Connectivity Tracer (HiPerConTracer)
+# Copyright (C) 2015-2026 by Thomas Dreibholz
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+# Contact: dreibh@simula.no
+
+set -eu
+
+SCRIPTS="
+   ping-nosql-query-example
+   ping-sql-query-example
+"
+
+
+# ###### Helper function to show failure ####################################
+exit-failed ()
+{
+   echo
+   "${PRINT_UTF8}" -n -s "\e[1;31;5m█" "▀" "█\e[0m" ;
+   echo "CHECK FAILED!" | "${FIGLET}" -w "${COLUMNS}" | "${PRINT_UTF8}" -n -C "\e[1;31;5m█\e[25m" "\e[5m█\e[0m" ;
+   "${PRINT_UTF8}" -n -s "\e[1;31;5m█" "▄" "█\e[0m"
+   exit 1
+}
+
+
+# ###### Helper function to show success ####################################
+exit-success ()
+{
+   echo
+   "${PRINT_UTF8}" -n -s "\e[1;32m█" "▀" "█\e[0m" ;
+   echo "ALL CHECKS SUCCEEDED!" | "${FIGLET}" -w "${COLUMNS}" | "${PRINT_UTF8}" -n -C "\e[1;32m█\e[25m" "█\e[0m" ;
+   "${PRINT_UTF8}" -n -s "\e[1;32m█" "▄" "█\e[0m"
+   exit 0
+}
+
+
+# ###### Helper function to show script information #########################
+show-script ()
+{
+   local script="$1"
+
+   "${PRINT_UTF8}" -n -s "\e[1;36m█" "▀" "█\e[0m" ;
+   "${FIGLET}" -w "${COLUMNS}" "$(basename "${script}")" | "${PRINT_UTF8}" -n -C "\e[1;36m█\e[25m" "█\e[0m" ;
+   "${PRINT_UTF8}" -n -s "\e[1;36m█" "▄" "█\e[0m"
+}
+
+
+
+# ###### Main program #######################################################
+
+# ====== Find locations of Python interpreter, MyPy, and tools ==============
+PYTHON="$(which python 2>/dev/null || which python3 2>/dev/null || true)"
+if [ ! -x "${PYTHON}" ] ; then
+   echo >&2 "ERROR: Unable to identify Python executable!"
+   exit 1
+fi
+echo "Python: ${PYTHON}"
+# shellcheck disable=SC2001
+MYPY="$(echo "${PYTHON}" | sed -e 's#/[^/]*$#/mypy#')"
+if [ ! -x "${MYPY}" ] ; then
+   echo >&2 "ERROR: Unable to identify MyPy executable!"
+   echo >&2 "Try this (within the correct Python environment):"
+   echo >&2 "pip install mypy"
+   exit 1
+fi
+echo "MyPy: ${MYPY}"
+PRINT_UTF8="$(which print-utf8 2>/dev/null || true)"
+if [ ! -x "${PRINT_UTF8}" ] ; then
+   echo >&2 "ERROR: Print-UTF8 (from System-Tools) is not installed!"
+   echo >&2 "Try this:"
+   echo >&2 "* Ubuntu:  sudo apt-add-repository -sy ppa:dreibh/ppa"
+   echo >&2 "           sudo apt install -y td-system-tools"
+   echo >&2 "* Fedora:  sudo dnf copr enable -y dreibh/ppa"
+   echo >&2 "           sudo dnf install -y td-system-tools"
+   echo >&2 "* FreeBSD: sudo pkg install -y td-system-tools"
+   exit 1
+fi
+FIGLET="$(which figlet 2>/dev/null || true)"
+if [ ! -x "${FIGLET}" ] ; then
+   echo >&2 "ERROR: Figlet is not installed!"
+   echo >&2 "* Ubuntu:  sudo apt install -y figlet"
+   echo >&2 "* Fedora:  sudo dnf install -y figlet"
+   echo >&2 "* FreeBSD: sudo pkg install -y figlet"
+   exit 1
+fi
+
+
+# ====== Run MyPy ===========================================================
+for script in $SCRIPTS ; do
+   echo -e "\e[34mChecking ${script} ...\e[0m"
+   show-script "${script}"
+   "${MYPY}" --strict \
+      --install-types --non-interactive \
+      --ignore-missing-imports          \
+      --show-traceback                  \
+      --python-executable "${PYTHON}"   \
+      "${script}" || exit-failed
+done
+exit-success

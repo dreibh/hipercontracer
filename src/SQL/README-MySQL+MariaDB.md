@@ -6,18 +6,23 @@ NOTE: This is a very brief overview of the steps to install, configure and prepa
 ## Basic Installation
 
 ### Ubuntu:
-```
+
+```bash
 sudo apt install mariadb-server mariadb-backup mariadb-client libmariadb-dev
 ```
+
 ### Fedora:
-```
-sudo dnf install mariadb-server mariadb-backup mariadb-connector-c-devel openssl
+
+```bash
+sudo dnf install mariadb-server mariadb-backup mariadb-connector-c-devel
 sudo systemctl enable mariadb.service
 sudo systemctl start mariadb.service
 ```
+
 ### FreeBSD:
-```
-sudo dnf install mariadb106-server mariadb106-client
+
+```bash
+sudo dnf install mariadb118-server mariadb118-client
 sudo sysrc mysql_enable=YES
 sudo service mysql-server start
 ```
@@ -28,19 +33,22 @@ sudo service mysql-server start
 ### Enable Network Access
 
 In /etc/mysql/mariadb.conf.d/50-server.cnf (**EXAMPLE ONLY** for 10.0.0.0/8, adapt to your setup!):
+
 ```
 hostssl        all        all        10.0.0.0/8        scram-sha-256
 ```
 
 In /etc/mariadb/*/main/mariadb.conf:
-```
+
+```ini
 bind-address = *
 ```
 
 ### Enable TLS
 
 In /etc/mysql/mariadb.conf.d/50-server.cnf (**EXAMPLE ONLY**, adapt to your setup!):
-```
+
+```ini
 ssl-ca = /etc/ssl/TestCA/certs/TestCA-chain.pem
 ssl-cert = /etc/ssl/mariadb.domain.example/mariadb.domain.example.crt
 ssl-key = /etc/ssl/mariadb.domain.example/mariadb.domain.example.key
@@ -65,6 +73,7 @@ See [mariadb-schema.sql]([mariadb-schema.sql). Apply the schema definition in th
 ### Create Users and Roles
 
 Suggested setup with 3 users:
+
 - importer: write access to import results
 - researcher: read-only query access
 - maintainer: full access
@@ -72,12 +81,14 @@ Suggested setup with 3 users:
 See [mariadb-users.sql](mariadb-users.sql). NOTE: Replace the placeholders first!
 
 HINT: Create secure passwords, for example using pwgen:
-```
+
+```bash
 pwgen -s 128
 ```
 
 ### Test Connectivity
-```
+
+```bash
 mysql \
  --host=<SERVER> --port <PORT> --protocol=tcp \
  --ssl --ssl-verify-server-cert --ssl-ca=/etc/ssl/RootCA/RootCA.crt \

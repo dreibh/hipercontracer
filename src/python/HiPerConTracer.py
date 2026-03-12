@@ -28,7 +28,11 @@
 #
 # Contact: dreibh@simula.no
 
+import datetime
+
 from enum import Enum
+from typing import Any, Final, TextIO
+
 
 class HopStatus(Enum):
    # ====== Status byte ===================================
@@ -79,3 +83,27 @@ def statusIsUnreachable(hopStatus : HopStatus) -> bool:
    # a router on the way reported unreachability.
    return ( (hopStatus.value >= HopStatus.UnreachableScope.value) and
             (hopStatus.value < HopStatus.Timeout.value) )
+
+
+# ###### Convert Unix time in nanoseconds to datetime #######################
+def unix_time_to_datetime(unixTime : int) -> datetime.datetime:
+   return datetime.datetime.fromtimestamp(unixTime / 1e9,
+                                          tz = datetime.UTC)
+
+
+# ###### Convert Unix time in nanoseconds to string #########################
+def unix_time_to_string(unixTime : int) -> str:
+   timeStamp : Final[datetime.datetime] = unix_time_to_datetime(unixTime)
+   return timeStamp.isoformat(timespec = 'nanoseconds')
+
+
+# ###### Convert strong to Unix time in nanoseconds #########################
+def datetime_to_unix_time(timeStamp : datetime.datetime) -> int:
+   return int(1e9 * timeStamp.timestamp())
+
+
+# ###### Convert strong to Unix time in nanoseconds #########################
+def string_to_unix_time(timeString : str) -> int:
+   timeStamp : Final[datetime.datetime] = \
+      datetime.datetime.fromisoformat(timeString + '+00:00').replace(tzinfo = datetime.UTC)
+   return datetime_to_unix_time(timeStamp)

@@ -166,7 +166,7 @@ elif [ "$1" == "postgresql" ] ; then
       sudo systemctl enable postgresql.service
       sudo systemctl start postgresql.service
    elif [ "${ID}" == "freebsd" ] ; then
-      sudo pkg install -y postgresql17-server postgresql17-client postgresql-libpqxx openssl
+      sudo pkg install -y postgresql18-server postgresql18-client postgresql-libpqxx openssl
       sudo sysrc postgresql_enable="YES"
       sudo /usr/local/etc/rc.d/postgresql initdb
       sudo service postgresql start
