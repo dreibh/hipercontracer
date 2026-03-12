@@ -294,27 +294,27 @@ Ping format, version 2:
 
 Ping fields, version 2:
 
-| Column | Field             | Description                                                                                                          |
-| :-:    | :--:              | :----------------------                                                                                              |
-|  1     | measurementID     | Measurement identifier.                                                                                              |
-|  2     | sourceIP          | Source IP address.                                                                                                   |
-|  3     | destinationIP     | Destination IP address.                                                                                              |
-|  4     | sendTimestamp     | Send Timestamp (nanoseconds since the UTC epoch, hexadecimal).                                                       |
-|  5     | burstseq          | Sequence number within a burst (decimal), numbered from 0.                                                           |
-|  6     | traffic_class     | The IP Traffic Class/Type of Service value of the sent packets (hexadecimal).                                        |
-|  7     | packet_size       | The sent packet size (decimal, in bytes) including IPv4/IPv6 header, transport header and HiPerConTracer header.     |
-|  8     | response_size     | The response packet size (decimal, in bytes) including IPv4/IPv6 header, transport header and HiPerConTracer header. |
-|  9     | checksum          | The checksum of the ICMP Echo Request packets (hexadecimal); 0x0000 for other protocols, 0xffff for unknown.         |
-| 10     | sourcePort        | Source port, 0 for ICMP (decimal).                                                                                   |
-| 11     | destinationPort   | Destination port, 0 for ICMP (decimal).                                                                              |
-| 12     | status            | Status code (decimal); see [Status Code and Status Flags](#status-code-and-status-flags)                             |
-| 13     | timesource        | Source of the timing information (hexadecimal) as AAQQSSHH; see [Time Source](#time-source)                          |
-| 14     | delay_app_send    | The measured application send delay (nanoseconds, decimal; -1 if not available).                                     |
-| 15     | delay_queuing     | The measured kernel software queuing delay (nanoseconds, decimal; -1 if not available).                              |
-| 16     | delay_app_receive | The measured application receive delay (nanoseconds, decimal; -1 if not available).                                  |
-| 17     | rtt_app           | The measured application RTT (nanoseconds, decimal).                                                                 |
-| 18     | rtt_sw            | The measured kernel software RTT (nanoseconds, decimal; -1 if not available).                                        |
-| 19     | rtt_hw            | The measured kernel hardware RTT (nanoseconds, decimal; -1 if not available).                                        |
+| Column | Field             | Description                                                                                                         |
+| :-:    | :--:              | :----------------------                                                                                             |
+|  1     | measurementID     | Measurement identifier                                                                                              |
+|  2     | sourceIP          | Source IP address                                                                                                   |
+|  3     | destinationIP     | Destination IP address                                                                                              |
+|  4     | sendTimestamp     | Send Timestamp (nanoseconds since the UTC epoch, hexadecimal)                                                       |
+|  5     | burstseq          | Sequence number within a burst (decimal), numbered from 0                                                           |
+|  6     | traffic_class     | The IP Traffic Class/Type of Service value of the sent packets (hexadecimal)                                        |
+|  7     | packet_size       | The sent packet size (decimal, in bytes) including IPv4/IPv6 header, transport header and HiPerConTracer header     |
+|  8     | response_size     | The response packet size (decimal, in bytes) including IPv4/IPv6 header, transport header and HiPerConTracer header |
+|  9     | checksum          | The checksum of the ICMP Echo Request packets (hexadecimal); 0x0000 for other protocols, 0xffff for unknown         |
+| 10     | sourcePort        | Source port, 0 for ICMP (decimal)                                                                                   |
+| 11     | destinationPort   | Destination port, 0 for ICMP (decimal)                                                                              |
+| 12     | status            | Status code (decimal); see [Status Code and Status Flags](#status-code-and-status-flags)                            |
+| 13     | timesource        | Source of the timing information (hexadecimal) as AAQQSSHH; see [Time Source](#time-source)                         |
+| 14     | delay_app_send    | The measured application send delay (nanoseconds, decimal; -1 if not available)                                     |
+| 15     | delay_queuing     | The measured kernel software queuing delay (nanoseconds, decimal; -1 if not available)                              |
+| 16     | delay_app_receive | The measured application receive delay (nanoseconds, decimal; -1 if not available)                                  |
+| 17     | rtt_app           | The measured application RTT (nanoseconds, decimal)                                                                 |
+| 18     | rtt_sw            | The measured kernel software RTT (nanoseconds, decimal; -1 if not available)                                        |
+| 19     | rtt_hw            | The measured kernel hardware RTT (nanoseconds, decimal; -1 if not available)                                        |
 
 : Ping Fields (Version 2)
 
@@ -334,17 +334,17 @@ Ping format, version 1:
 #P<m> measurementID sourceIP destinationIP sendTimestamp checksum status rtt [traffic_class [packet_size [timesource]]]
 ```
 
-| Column | Field           | Description                                                                                                      |
-| :-:    | :--:            | :----------------------                                                                                          |
-|  1     | sourceIP        | Source IP address.                                                                                               |
-|  2     | destinationIP   | Destination IP address.                                                                                          |
-|  3     | sendTimestamp   | Send Timestamp (nanoseconds since the UTC epoch, hexadecimal).                                                   |
-|  4     | checksum        | The checksum of the ICMP Echo Request packets (hexadecimal); 0x0000 for other protocols, 0xffff for unknown.     |
-|  5     | status          | Status code (decimal); see [Status Code and Status Flags](#status-code-and-status-flags)                         |
-|  6     | rtt             | The measured RTT (microseconds, decimal).                                                                        |
-|  7     | traffic_class   | The IP Traffic Class/Type of Service value of the sent packets (hexadecimal).                                    |
-|  8     | packet_size     | The sent packet size (decimal, in bytes) including IPv4/IPv6 header, transport header and HiPerConTracer header. |
-|  9     | timesource      | Source of the timing information (hexadecimal) as AAQQSSHH; see [Time Source](#time-source)                      |
+| Column | Field           | Description                                                                                                     |
+| :-:    | :--:            | :----------------------                                                                                         |
+|  1     | sourceIP        | Source IP address                                                                                               |
+|  2     | destinationIP   | Destination IP address                                                                                          |
+|  3     | sendTimestamp   | Send Timestamp (nanoseconds since the UTC epoch, hexadecimal)                                                   |
+|  4     | checksum        | The checksum of the ICMP Echo Request packets (hexadecimal); 0x0000 for other protocols, 0xffff for unknown     |
+|  5     | status          | Status code (decimal); see [Status Code and Status Flags](#status-code-and-status-flags)                        |
+|  6     | rtt             | The measured RTT (microseconds, decimal)                                                                        |
+|  7     | traffic_class   | The IP Traffic Class/Type of Service value of the sent packets (hexadecimal)                                    |
+|  8     | packet_size     | The sent packet size (decimal, in bytes) including IPv4/IPv6 header, transport header and HiPerConTracer header |
+|  9     | timesource      | Source of the timing information (hexadecimal) as AAQQSSHH; see [Time Source](#time-source)                     |
 
 : Ping Fields (Version 1)
 
@@ -379,7 +379,7 @@ Traceroute fields, version 2:
 |  1     | measurementID     | Measurement identifier                                                                                               |
 |  2     | sourceIP          | Source IP address                                                                                                    |
 |  3     | destinationIP     | Destination IP address                                                                                               |
-|  4     | timestamp         | Timestamp (nanoseconds since the UTC epoch, hexadecimal) of the current run. Note: This timestamp is only an identifier for the Traceroute run | All Traceroute rounds of the same run use the same timestamp here! The actual send timestamp of the request to each hop can be found in sendTimeStamp of the corresponding hop! |
+|  4     | timestamp         | Timestamp (nanoseconds since the UTC epoch, hexadecimal) of the current run. Note: This timestamp is only an identifier for the Traceroute run | All Traceroute rounds of the same run use the same timestamp here! The actual send timestamp of the request to each hop can be found in sendTimeStamp of the corresponding hop!               |
 |  5     | round             | Round number (decimal)                                                                                               |
 |  6     | totalHops         | Total hops (decimal)                                                                                                 |
 |  7     | traffic_class     | The IP Traffic Class/Type of Service value of the sent packets (hexadecimal)                                         |
@@ -463,7 +463,7 @@ For each hop:
 | :-:    | :--:              | :--------------------                                                                                                |
 |  1     | hopNumber         | Number of the hop                                                                                                    |
 |  2     | status            | Status code (in **hexadecimal** here; )                                                                              |
-|  3     | rtt               | The measured RTT (microseconds, decimal).                                                                            |
+|  3     | rtt               | The measured RTT (microseconds, decimal)                                                                             |
 |  4     | hopIP             | Hop IP address                                                                                                       |
 |  5     | timesource        | Source of the timing information (hexadecimal) as AAQQSSHH; see [Time Source](#time-source)                          |
 
