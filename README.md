@@ -270,7 +270,7 @@ Header format:
 Header details:
 
 | Column | Field     | Description                                                                   |
-| :---   | :---      | :---                                                                          |
+| :-:    | :--:      | :---------                                                                    |
 |  1     | format    | Measurement identifier (e.g. Ping, Traceroute)                                |
 |  2     | version   | Version of the output data format (decimal)                                   |
 |  3     | programID | Identifier for the program generating the output (e.g. HiPerConTracer/2.1.12) |
@@ -295,7 +295,7 @@ Ping format, version 2:
 Ping fields, version 2:
 
 | Column | Field             | Description                                                                                                          |
-| :---   | :---              | :---                                                                                                                 |
+| :-:    | :--:              | :----------------------                                                                                              |
 |  1     | measurementID     | Measurement identifier.                                                                                              |
 |  2     | sourceIP          | Source IP address.                                                                                                   |
 |  3     | destinationIP     | Destination IP address.                                                                                              |
@@ -316,6 +316,8 @@ Ping fields, version 2:
 | 18     | rtt_sw            | The measured kernel software RTT (nanoseconds, decimal; -1 if not available).                                        |
 | 19     | rtt_hw            | The measured kernel hardware RTT (nanoseconds, decimal; -1 if not available).                                        |
 
+: Ping Fields (Version 2)
+
 Ping example, version 2:
 
 ```
@@ -333,7 +335,7 @@ Ping format, version 1:
 ```
 
 | Column | Field           | Description                                                                                                      |
-| :---   | :---            | :---                                                                                                             |
+| :-:    | :--:            | :----------------------                                                                                          |
 |  1     | sourceIP        | Source IP address.                                                                                               |
 |  2     | destinationIP   | Destination IP address.                                                                                          |
 |  3     | sendTimestamp   | Send Timestamp (nanoseconds since the UTC epoch, hexadecimal).                                                   |
@@ -343,6 +345,8 @@ Ping format, version 1:
 |  7     | traffic_class   | The IP Traffic Class/Type of Service value of the sent packets (hexadecimal).                                    |
 |  8     | packet_size     | The sent packet size (decimal, in bytes) including IPv4/IPv6 header, transport header and HiPerConTracer header. |
 |  9     | timesource      | Source of the timing information (hexadecimal) as AAQQSSHH; see [Time Source](#time-source)                      |
+
+: Ping Fields (Version 1)
 
 Notes:
 
@@ -371,7 +375,7 @@ Traceroute format, version 2:
 Traceroute fields, version 2:
 
 | Column | Field             | Description                                                                                                          |
-| :---   | :---              | :---                                                                                                                 |
+| :-:    | :--:              | :--------------------                                                                                                |
 |  1     | measurementID     | Measurement identifier                                                                                               |
 |  2     | sourceIP          | Source IP address                                                                                                    |
 |  3     | destinationIP     | Destination IP address                                                                                               |
@@ -386,10 +390,12 @@ Traceroute fields, version 2:
 | 12     | statusFlags       | Status flags including the status code for Ping above for the lower 8 bits (hexadecimal); see [Status Code and Status Flags](#status-code-and-status-flags) |
 | 13     | pathHash          | Hash of the path (hexadecimal)                                                                                       |
 
+: Traceroute Fields (Version 2)
+
 For each hop:
 
 | Column | Field             | Description                                                                                                          |
-| :---   | :---              | :---                                                                                                                 |
+| :-:    | :--:              | :--------------------                                                                                                |
 |  1     | sendTimeStamp     | Timestamp (nanoseconds since the UTC epoch, hexadecimal) for the request to this hop                                 |
 |  2     | hopNumber         | Number of the hop                                                                                                    |
 |  3     | response_size     | The response packet size (decimal, in bytes) including IPv4/IPv6 header, transport header and HiPerConTracer header  |
@@ -402,6 +408,8 @@ For each hop:
 | 10     | rtt_sw            | The measured kernel software RTT (nanoseconds, decimal; -1 if not available)                                         |
 | 11     | rtt_hw            | The measured kernel hardware RTT (nanoseconds, decimal; -1 if not available)                                         |
 | 12     | hopIP             | Hop IP address                                                                                                       |
+
+: Traceroute Hop Fields (Version 2)
 
 Traceroute example, version 2:
 
@@ -435,7 +443,7 @@ Traceroute format, version 1:
 Traceroute fields, version 1:
 
 | Column | Field             | Description                                                                                                          |
-| :---   | :---              | :---                                                                                                                 |
+| :-:    | :--:              | :--------------------                                                                                                |
 |  1     | sourceIP          | Source IP address                                                                                                    |
 |  2     | destinationIP     | Destination IP address                                                                                               |
 |  3     | timestamp         | Timestamp (microseconds since the UTC epoch, hexadecimal) of the current run. Note: This timestamp is only an identifier for the Traceroute run. All Traceroute rounds of the same run use the same timestamp here! |
@@ -447,15 +455,19 @@ Traceroute fields, version 1:
    9     | traffic_class     | The IP Traffic Class/Type of Service value of the sent packets (hexadecimal)                                         |
 | 10     | packet_size       | The sent packet size (decimal, in bytes) including IPv4/IPv6 header, transport header and HiPerConTracer header      |
 
+: Traceroute Fields (Version 1)
+
 For each hop:
 
 | Column | Field             | Description                                                                                                          |
-| :---   | :---              | :---                                                                                                                 |
+| :-:    | :--:              | :--------------------                                                                                                |
 |  1     | hopNumber         | Number of the hop                                                                                                    |
 |  2     | status            | Status code (in **hexadecimal** here; )                                                                              |
 |  3     | rtt               | The measured RTT (microseconds, decimal).                                                                            |
 |  4     | hopIP             | Hop IP address                                                                                                       |
 |  5     | timesource        | Source of the timing information (hexadecimal) as AAQQSSHH; see [Time Source](#time-source)                          |
+
+: Traceroute Hop Fields (Version 2)
 
 Notes:
 
@@ -488,7 +500,7 @@ Traceroute example, version 1:
 The status code provides the result of a Ping, i.e.&nbsp;whether the remote endpoint responded or there was a local or on-route error, as unsigned byte:
 
 | Status Code | Description                                                                                                                                        | Meaning of the Corresponding RTT Value      |
-| :---        | :---                                                                                                                                               | :---                                        |
+| :-:         | :---------                                                                                                                                         | :---------                                  |
 |    1        | [ICMP](https://www.rfc-editor.org/rfc/rfc792)/[ICMPv6](https://datatracker.ietf.org/doc/html/rfc4443) response: Time Exceeded                      | Response from router sending the ICMP error |
 |  100        | [ICMP](https://www.rfc-editor.org/rfc/rfc792)/[ICMPv6](https://datatracker.ietf.org/doc/html/rfc4443) response: Unreachable scope                  | Response from router sending the ICMP error |
 |  101        | [ICMP](https://www.rfc-editor.org/rfc/rfc792)/[ICMPv6](https://datatracker.ietf.org/doc/html/rfc4443) response: Unreachable network                | Response from router sending the ICMP error |
@@ -501,42 +513,50 @@ The status code provides the result of a Ping, i.e.&nbsp;whether the remote endp
 |  210        | sendto() call failed (generic error)                                                                                                               | RTT is set to 0                             |
 |  211        | sendto() error: tried to send to broadcast address ([EACCES](https://en.wikipedia.org/wiki/Errno.h#POSIX_errors))                                  | RTT is set to 0                             |
 |  212        | sendto() error: network unreachable ([ENETUNREACH](https://en.wikipedia.org/wiki/Errno.h#POSIX_errors))                                            | RTT is set to 0                             |
-|  213        | sendto() error: host unreachable ([HOSTUNREACH](https://en.wikipedia.org/wiki/Errno.h#POSIX_errors))                                              | RTT is set to 0                               |
+|  213        | sendto() error: host unreachable ([HOSTUNREACH](https://en.wikipedia.org/wiki/Errno.h#POSIX_errors))                                               | RTT is set to 0                             |
 |  214        | sendto() error: address not available ([ADDRNOTAVAIL](https://en.wikipedia.org/wiki/Errno.h#POSIX_errors))                                         | RTT is set to 0                             |
 |  215        | sendto() error: invalid message size ([MSGSIZE](https://en.wikipedia.org/wiki/Errno.h#POSIX_errors))                                               | RTT is set to 0                             |
 |  216        | sendto() error: not enough buffer space ([NOBUFS](https://en.wikipedia.org/wiki/Errno.h#POSIX_errors))                                             | RTT is set to 0                             |
 |  255        | Success (destination has responded)                                                                                                                | The actual RTT to the destination           |
 
+: Status Codes
+
 The status flag extends the status code, by providing an overall result of a Traceroute run consisting of multiple Ping measurements. That is: StatusCode := (StatusFlags & 0xff).
 
 | Status Flag | Description                                        |
-| :---        | :---                                               |
+| :-:         | :---------                                         |
 |  0x100      | Route with * (at least one router did not respond) |
 |  0x200      | Destination has responded                          |
+
+: Status Flags
 
 ### Time Source
 
 The time source provides the source of the recorded timing information as hexadecimal 4-byte unsigned integer AAQQSSHH:
 
-| Component   | Description                                                             |
-| :---        | :---                                                                    |
-| AA          | Application                                                             |
-| QQ          | Queuing (queuing packet until sending it by driver, in software)        |
-| SS          | Software (sending request by driver until receiving response by driver) |
-| HW          | Hardware (sending request by NIC until receiving response by NIC)       |
+| Component | Description                                                             |
+| :-:       | :--------------------                                                   |
+| AA        | Application                                                             |
+| QQ        | Queuing (queuing packet until sending it by driver, in software)        |
+| SS        | Software (sending request by driver until receiving response by driver) |
+| HW        | Hardware (sending request by NIC until receiving response by NIC)       |
+
+: Time Source Components
 
 Each byte AA, QQ, SS, HH provides the receive time source (upper nibble) and send time source (lower nibble):
 
-| Nibble      | Description                                                                               |
-| :---        | :---                                                                                      |
-| 0x0         | Not available                                                                             |
-| 0x1         | System clock                                                                              |
-| 0x2         | SO_TIMESTAMPING socket option, microseconds granularity                                   |
-| 0x3         | SO_TIMESTAMPINGNS socket option (or SO_TIMESTAMPING+SO_TS_CLOCK), nanoseconds granularity |
-| 0x4         | SIOCGSTAMP ioctl, microseconds granularity                                                |
-| 0x5         | SIOCGSTAMPNS ioctl, nanoseconds granularity                                               |
-| 0x6         | SO_TIMESTAMPING socket option, in software, nanoseconds granularity                       |
-| 0xa         | SO_TIMESTAMPING socket option, in hardware, nanoseconds granularity                       |
+| Nibble | Description                                                                               |
+| :-:    | :--------------------                                                                     |
+| 0x0    | Not available                                                                             |
+| 0x1    | System clock                                                                              |
+| 0x2    | SO_TIMESTAMPING socket option, microseconds granularity                                   |
+| 0x3    | SO_TIMESTAMPINGNS socket option (or SO_TIMESTAMPING+SO_TS_CLOCK), nanoseconds granularity |
+| 0x4    | SIOCGSTAMP ioctl, microseconds granularity                                                |
+| 0x5    | SIOCGSTAMPNS ioctl, nanoseconds granularity                                               |
+| 0x6    | SO_TIMESTAMPING socket option, in software, nanoseconds granularity                       |
+| 0xa    | SO_TIMESTAMPING socket option, in hardware, nanoseconds granularity                       |
+
+: Time Source Values
 
 For details, particularly also see: [Dreibholz, Thomas](https://www.nntb.no/~dreibh/): «[High-Precision Round-Trip Time Measurements in the Internet with HiPerConTracer](https://web-backend.simula.no/sites/default/files/2023-10/SoftCOM2023-Timestamping.pdf)» ([PDF](https://web-backend.simula.no/sites/default/files/2023-10/SoftCOM2023-Timestamping.pdf), 12474&nbsp;KiB, 7&nbsp;pages, 🇬🇧), in *Proceedings of the 31st International Conference on Software, Telecommunications and Computer Networks&nbsp;(SoftCOM)*, DOI&nbsp;[10.23919/SoftCOM58365.2023.10271612](https://dx.doi.org/10.23919/SoftCOM58365.2023.10271612), ISBN&nbsp;979-8-3503-0107-6, Split, Dalmacija/Croatia, September&nbsp;22, 2023.
 
@@ -552,7 +572,12 @@ Some simple results file examples (from [`src/results-examples`](https://github.
 
 Notes:
 
-* See the [manpage of "hipercontracer"](https://github.com/dreibh/hipercontracer/blob/master/src/hipercontracer.1) for a detailed description of the results file formats: ```bashman hipercontracer```
+* See the [manpage of "hipercontracer"](https://github.com/dreibh/hipercontracer/blob/master/src/hipercontracer.1) for a description of the results file formats:
+
+  ```bash
+  man hipercontracer
+  ```
+
 * [HiPerConTracer Viewer Tool](#-the-hipercontracer-viewer-tool) can be used to display results files, including uncompressed ones.
 * [HiPerConTracer Results Tool](#-the-hipercontracer-results-tool) can be used to merge and/or convert the results files.
 
