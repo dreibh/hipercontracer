@@ -680,7 +680,11 @@ See [`r-ping-example`](https://github.com/dreibh/hipercontracer/blob/master/src/
 
 Usage:
 
-* With HiPerConTracer Ping results file:
+```bash
+./r-ping-example <input> <output_prefix>
+```
+
+* With a HiPerConTracer Ping results file as input:
 
   ```bash
   ./r-ping-example \
@@ -690,12 +694,13 @@ Usage:
 
   Note: The script calls the [HiPerConTracer Results Tool](#-the-hipercontracer-results-tool) for processing of the input file. It therefore must to be installed.
 
-  The example crates 3&nbsp;output files:
+  The example script creates a set of 3&nbsp;output files:
+
   * `output.csv`: A summary table as CSV file.
   * `output.html`: A summary table as HTML file.
   * `output.tex`: A summary table as LaTeX file, for inclusion into a LaTeX publication.
 
-* With all HiPerConTracer Ping results files in a directory:
+* All HiPerConTracer Ping results files in a directory with a directory as input:
 
   ```bash
   ./r-ping-example . output
@@ -705,7 +710,7 @@ Usage:
   * The provided directory ("`.`", i.e.&nbsp;the current directory) is searched for all HiPerConTracer Ping results files.
   * The script calls the [HiPerConTracer Results Tool](#-the-hipercontracer-results-tool) for processing of the input files. It therefore must to be installed.
 
-* With a CSV file:
+* With a CSV file as input:
 
   ```bash
   ./r-ping-example ping.csv output
@@ -719,7 +724,11 @@ See [`r-traceroute-example`](https://github.com/dreibh/hipercontracer/blob/maste
 
 Usage:
 
-* With HiPerConTracer Traceroute results file:
+```bash
+./r-traceroute-example <input>
+```
+
+* With HiPerConTracer Traceroute results file as input:
 
   ```bash
   ./r-traceroute-example \
@@ -728,7 +737,7 @@ Usage:
 
   Note: The script calls the [HiPerConTracer Results Tool](#-the-hipercontracer-results-tool) for processing of the input file. It therefore must to be installed.
 
-* With all HiPerConTracer Traceroute results files in a directory:
+* All HiPerConTracer Traceroute results files in a directory with a directory as input:
 
   ```bash
   ./r-traceroute-example .
@@ -736,7 +745,7 @@ Usage:
 
   Note: The script calls the [HiPerConTracer Results Tool](#-the-hipercontracer-results-tool) for processing of the input file. It therefore must to be installed.
 
-* With a CSV file:
+* With a CSV file as input
 
   ```bash
   ./r-traceroute-example traceroute.csv
