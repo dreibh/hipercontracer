@@ -393,7 +393,7 @@ Notes:
 | 11     | sourcePort        | Source port, 0 for ICMP (decimal)                                                                                    |
 | 12     | destinationPort   | Destination port, 0 for ICMP (decimal)                                                                               |
 | 13     | statusFlags       | Status flags including the status code for Ping above for the lower 8 bits (hexadecimal); see [Status Code and Status Flags](#status-code-and-status-flags) |
-| 14     | pathHash          | Hash of the path (hexadecimal)                                                                                       |
+| 14     | pathHash          | Hash of the path (hexadecimal); see [Path Hash](#path-hash)                                                          |
 
 : Traceroute Fields (Version 2)
 
@@ -457,7 +457,7 @@ For each hop:
 |  6     | checksum          | The checksum of the ICMP Echo Request packets (hexadecimal); 0x0000 for other protocols, 0xffff for unknown          |
 |  7     | totalHops         | Total hops (decimal)                                                                                                 |
 |  8     | statusFlags       | Status flags including the status code for Ping above for the lower 8 bits (hexadecimal)                             |
-|  9     | pathHash          | Hash of the path (hexadecimal)                                                                                       |
+|  9     | pathHash          | Hash of the path (hexadecimal); see [Path Hash](#path-hash)                                                          |
 | 10     | traffic_class     | The IP Traffic Class/Type of Service value of the sent packets (hexadecimal)                                         |
 | 11     | packet_size       | The sent packet size (decimal, in bytes) including IPv4/IPv6 header, transport header and HiPerConTracer header      |
 
@@ -529,10 +529,10 @@ The status code provides the result of a Ping, i.e.&nbsp;whether the remote endp
 
 The status flag extends the status code, by providing an overall result of a Traceroute run consisting of multiple Ping measurements. That is: StatusCode := (StatusFlags & 0xff).
 
-| Status Flag | Description                                        |
-| :-:         | :---------                                         |
-|  0x100      | Route with * (at least one router did not respond) |
-|  0x200      | Destination has responded                          |
+| Status Flag | Description                                                                             |
+| :-:         | :---------                                                                              |
+|  0x100      | Route with "\*" (at least one router did not respond; see also [Path Hash](#path-hash)) |
+|  0x200      | Destination has responded                                                               |
 
 : Status Flags
 
@@ -565,6 +565,10 @@ Each byte AA, QQ, SS, HH provides the receive time source (upper nibble) and sen
 : Time Source Values
 
 For details, particularly also see: [Dreibholz, Thomas](https://www.nntb.no/~dreibh/): «[High-Precision Round-Trip Time Measurements in the Internet with HiPerConTracer](https://web-backend.simula.no/sites/default/files/2023-10/SoftCOM2023-Timestamping.pdf)» ([PDF](https://web-backend.simula.no/sites/default/files/2023-10/SoftCOM2023-Timestamping.pdf), 12474&nbsp;KiB, 7&nbsp;pages, 🇬🇧), in *Proceedings of the 31st International Conference on Software, Telecommunications and Computer Networks&nbsp;(SoftCOM)*, DOI&nbsp;[10.23919/SoftCOM58365.2023.10271612](https://dx.doi.org/10.23919/SoftCOM58365.2023.10271612), ISBN&nbsp;979-8-3503-0107-6, Split, Dalmacija/Croatia, September&nbsp;22, 2023.
+
+### Path Hash
+
+The path hash is an [SHA-1](https://www.rfc-editor.org/rfc/rfc3174.html) hash over the textual representation of a Traceroute run, i.e.&nbsp;SHA1("&lt;Source IP&gt;-&lt;Router 1 IP&gt;-&lt;...&gt;-&lt;Router *n* IP&gt;-&lt;Destination IP&gt;"), where the IP addresses correspond to source, destination, and routers. If a router is unknown, it is represented by "\*". The purpose of the path hash is to quickly identify identical paths. In this case, of course, routers must have consistently responded (non-"\*", i.e.&nbsp;revealing their IP address) or not responded ("\*") to lead to the same hash value.
 
 
 ## Results File Examples
