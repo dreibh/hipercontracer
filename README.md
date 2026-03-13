@@ -270,7 +270,7 @@ Header format:
 Header details:
 
 | Column | Field     | Description                                                                   |
-| :-:    | :--:      | :---------                                                                    |
+| :-:    | :--       | :---------                                                                    |
 |  1     | format    | Measurement identifier (e.g. Ping, Traceroute)                                |
 |  2     | version   | Version of the output data format (decimal)                                   |
 |  3     | programID | Identifier for the program generating the output (e.g. HiPerConTracer/2.1.12) |
@@ -286,16 +286,16 @@ Header example:
 
 ### Version 2
 
-Ping format, version 2:
+#### Ping format, version 2
 
 ```
 #P<io_module> measurementID sourceIP destinationIP timestamp burstseq traffic_class packetsize response_size checksum sourcePort destinationPort status timesource delay_app_send delay_queuing delay_app_receive rtt_app rtt_sw rtt_hw
 ```
 
-Ping fields, version 2:
+#### Ping fields, version 2
 
 | Column | Field             | Description                                                                                                         |
-| :-:    | :--:              | :----------------------                                                                                             |
+| :-:    | :--               | :----------------------                                                                                             |
 |  1     | ping              | #P&lt;io_module&gt;, with #Pi = ICMP Ping, #Pu = UDP Ping                                                           |
 |  2     | measurementID     | Measurement identifier (decimal)                                                                                    |
 |  3     | sourceIP          | Source IP address                                                                                                   |
@@ -319,7 +319,7 @@ Ping fields, version 2:
 
 : Ping Fields (Version 2)
 
-Ping example, version 2:
+#### Ping example, version 2
 
 ```
 #Pi 88888888 10.193.4.168 10.193.4.67 178f2cc6c7ea013a 0 0 44 44 7d61 0 0 255 11666600 36997 6983 50311 426999 332708 -1
@@ -329,14 +329,16 @@ Ping example, version 2:
 
 **Version 1 was used before HiPerConTracer&nbsp;2.0.0 and is now deprecated!** However, it can still be read and processed by the [HiPerConTracer Results Tool](#-the-hipercontracer-results-tool) and the [HiPerConTracer Importer Tool](#-the-hipercontracer-importer-tool). While [HiPerConTracer](#-running-a-hipercontracer-measurement) still can generate version&nbsp;1 output, this is strongly discouraged due to limitations of this format version!
 
-Ping format, version 1:
+#### Ping format, version 1
 
 ```
 #P sourceIP destinationIP sendTimestamp checksum status rtt [traffic_class [packet_size [timesource]]]
 ```
 
+#### Ping fields, version 1
+
 | Column | Field           | Description                                                                                                     |
-| :-:    | :--:            | :----------------------                                                                                         |
+| :-:    | :--             | :----------------------                                                                                         |
 |  1     | ping            | #P; HiPerConTracer &lt;2.0 only provided ICMP Ping                                                              |
 |  2     | sourceIP        | Source IP address                                                                                               |
 |  3     | destinationIP   | Destination IP address                                                                                          |
@@ -356,7 +358,7 @@ Notes:
 * `packet_size` was added in HiPerConTracer&nbsp;1.6.0.
 * `timesource` was added in HiPerConTracer&nbsp;2.0.0 development versions.
 
-Ping example, version 1:
+#### Ping example, version 1
 
 ```
 #P 2001:700:4100:4::2 2001:250:3801:71::149 5ed91fe263db1 9106 200 5000000 0 6
@@ -366,7 +368,7 @@ Ping example, version 1:
 
 ### Version 2
 
-Traceroute format, version 2:
+#### Traceroute format, version 2
 
 ```
 #T<io_module> measurementID sourceIP destinationIP timestamp round totalHops traffic_class packet_size checksum sourcePort destinationPort statusFlags pathHash
@@ -374,10 +376,10 @@ Traceroute format, version 2:
 ⇥...
 ```
 
-Traceroute fields, version 2:
+#### Traceroute fields, version 2
 
 | Column | Field             | Description                                                                                                          |
-| :-:    | :--:              | :--------------------                                                                                                |
+| :-:    | :--               | :--------------------                                                                                                |
 |  1     | traceroute        | #T&lt;io_module&gt;, with #Ti = ICMP Traceroute, #Tu = UDP Traceroute                                                |
 |  2     | measurementID     | Measurement identifier                                                                                               |
 |  3     | sourceIP          | Source IP address                                                                                                    |
@@ -398,7 +400,7 @@ Traceroute fields, version 2:
 For each hop:
 
 | Column | Field             | Description                                                                                                          |
-| :-:    | :--:              | :--------------------                                                                                                |
+| :-:    | :--               | :--------------------                                                                                                |
 |  1     | sendTimeStamp     | Timestamp (nanoseconds since the UTC epoch, hexadecimal) for the request to this hop                                 |
 |  2     | hopNumber         | Number of the hop                                                                                                    |
 |  3     | response_size     | The response packet size (decimal, in bytes) including IPv4/IPv6 header, transport header and HiPerConTracer header  |
@@ -414,7 +416,7 @@ For each hop:
 
 : Traceroute Hop Fields (Version 2)
 
-Traceroute example, version 2:
+#### Traceroute example, version 2
 
 ```
 #Ti 12345678 10.44.33.111 1.1.1.1 1795a9a23c629fbf 0 11 0 44 90e1 0 0 200 a7cfb997ef00d133
@@ -435,7 +437,7 @@ Traceroute example, version 2:
 
 **Version 1 was used before HiPerConTracer&nbsp;2.0.0 and is now deprecated!** However, it can still be read and processed by the [HiPerConTracer Results Tool](#-the-hipercontracer-results-tool) and the [HiPerConTracer Importer Tool](#-the-hipercontracer-importer-tool). While [HiPerConTracer](#-running-a-hipercontracer-measurement) still can generate version&nbsp;1 output, this is strongly discouraged due to limitations of this format version!
 
-Traceroute format, version 1:
+#### Traceroute format, version 1
 
 ```
 #T sourceIP destinationIP timestamp round checksum totalHops statusFlags pathHash [traffic_class [packet_size]]
@@ -443,10 +445,10 @@ Traceroute format, version 1:
 ⇥...
 ```
 
-Traceroute fields, version 1:
+#### Traceroute fields, version 1
 
 | Column | Field             | Description                                                                                                          |
-| :-:    | :--:              | :--------------------                                                                                                |
+| :-:    | :--               | :--------------------                                                                                                |
 |  1     | traceroute        | #T; HiPerConTracer &lt;2.0 only provided ICMP Traceroute                                                             |
 |  2     | sourceIP          | Source IP address                                                                                                    |
 |  3     | destinationIP     | Destination IP address                                                                                               |
@@ -464,14 +466,14 @@ Traceroute fields, version 1:
 For each hop:
 
 | Column | Field             | Description                                                                                                          |
-| :-:    | :--:              | :--------------------                                                                                                |
+| :-:    | :--               | :--------------------                                                                                                |
 |  1     | hopNumber         | Number of the hop                                                                                                    |
 |  2     | status            | Status code (in **hexadecimal** here)                                                                                |
 |  3     | rtt               | The measured RTT (microseconds, decimal)                                                                             |
 |  4     | hopIP             | Hop IP address                                                                                                       |
 |  5     | timesource        | Source of the timing information (hexadecimal) as AAQQSSHH; see [Time Source](#time-source)                          |
 
-: Traceroute Hop Fields (Version 2)
+: Traceroute Hop Fields (Version 1)
 
 Notes:
 
@@ -479,7 +481,7 @@ Notes:
 * `packet_size` was added in HiPerConTracer&nbsp;1.6.0.
 * `timesource` was added in HiPerConTracer&nbsp;2.0.0 development versions.
 
-Traceroute example, version 1:
+#### Traceroute example, version 1
 
 ```
 #T 192.168.0.88 8.8.8.8 5d2f2db8ecbb3 0 2be 12 200 ea86903f1fdb8faa 0 44
