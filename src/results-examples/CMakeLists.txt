@@ -35,9 +35,9 @@ FILE(GLOB_RECURSE EXAMPLE_RESULTS "*.hpct*")
 
 # This does not work with the tarball package:
 # EXECUTE_PROCESS(COMMAND         git ls-files .
-#                 COMMAND         grep -E "\\.(hpct|results)\\..*$"
+#                 COMMAND         grep -E "\\.hpct\\..*$"
 #                 OUTPUT_VARIABLE EXAMPLE_RESULTS)
-# FILE(GLOB_RECURSE EXAMPLE_RESULTS "*.hpct*" "*.results*")
+# FILE(GLOB_RECURSE EXAMPLE_RESULTS "*.hpct*")
 # MESSAGE("Example results files: ${EXAMPLE_RESULTS}")
 
 INSTALL(FILES HiPerConTracer.R
