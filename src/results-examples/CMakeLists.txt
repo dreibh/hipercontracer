@@ -31,7 +31,7 @@
 #### EXAMPLES                                                            ####
 #############################################################################
 
-FILE(GLOB_RECURSE EXAMPLE_RESULTS "*.hpct*" "*.results*")
+FILE(GLOB_RECURSE EXAMPLE_RESULTS "*.hpct*")
 
 # This does not work with the tarball package:
 # EXECUTE_PROCESS(COMMAND         git ls-files .

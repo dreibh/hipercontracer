@@ -184,14 +184,6 @@ rmdir /var/hipercontracer >/dev/null 2>&1 || true
 %{_datadir}/hipercontracer/hipercontracer.bib
 %{_datadir}/hipercontracer/hipercontracer.pdf
 %{_datadir}/hipercontracer/hipercontracer.png
-%{_datadir}/hipercontracer/results-examples/HiPerConTracer.R
-%{_datadir}/hipercontracer/results-examples/*-*.results.*
-%{_datadir}/hipercontracer/results-examples/*-*.hpct
-%{_datadir}/hipercontracer/results-examples/*-*.hpct.*
-%{_datadir}/hipercontracer/results-examples/README.md
-%{_datadir}/hipercontracer/results-examples/r-install-dependencies
-%{_datadir}/hipercontracer/results-examples/r-ping-example
-%{_datadir}/hipercontracer/results-examples/r-traceroute-example
 %{_datadir}/icons/hicolor/*x*/apps/hipercontracer.png
 %{_datadir}/icons/hicolor/scalable/apps/hipercontracer.svg
 %{_datadir}/mime/packages/hipercontracer.xml
@@ -245,7 +237,6 @@ This package contains some HiPerConTracer example scripts and results files.
 
 %files examples
 %{_datadir}/hipercontracer/results-examples/HiPerConTracer.R
-%{_datadir}/hipercontracer/results-examples/*-*.results.*
 %{_datadir}/hipercontracer/results-examples/*-*.hpct
 %{_datadir}/hipercontracer/results-examples/*-*.hpct.*
 %{_datadir}/hipercontracer/results-examples/README.md

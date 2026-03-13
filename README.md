@@ -607,7 +607,7 @@ The HiPerConTracer Viewer Tool displays the contents of a results file.
 ## Example
 
 ```bash
-hpct-viewer src/results-examples/Traceroute-UDP-#88888888-fdb6:6d27:be73:4::50-20231018T102656.821891-000000001.results.xz
+hpct-viewer src/results-examples/Traceroute-UDP-#88888888-fdb6:6d27:be73:4::50-20231018T102656.821891-000000001.hpct.xz
 ```
 
 ## Further Details
@@ -684,7 +684,7 @@ Usage:
 
   ```bash
   ./r-ping-example \
-     Ping-P13735-2001:700:4100:4::2-20221012T142120.713761-000003330.results.bz2 \
+     Ping-P13735-2001:700:4100:4::2-20221012T142120.713761-000003330.hpct.bz2 \
      output
   ```
 
@@ -692,7 +692,7 @@ Usage:
 
   Outputs:
   * `output.csv`: A summary table as CSV file.
-  * `output.tex`: A summary table as HTML file.
+  * `output.html`: A summary table as HTML file.
   * `output.tex`: A summary table as LaTeX file, for inclusion into a LaTeX publication.
 
 * With all HiPerConTracer Ping results files in a directory:
@@ -723,7 +723,7 @@ Usage:
 
   ```bash
   ./r-traceroute-example \
-     Traceroute-UDP-#88888888-10.193.4.168-20231018T102656.814657-000000001.results.xz
+     Traceroute-UDP-#88888888-10.193.4.168-20231018T102656.814657-000000001.hpct.xz
   ```
 
   Note: The script calls the [HiPerConTracer Results Tool](#-the-hipercontracer-results-tool) for processing of the input file. It therefore must to be installed.
