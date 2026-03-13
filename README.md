@@ -631,7 +631,7 @@ find data -maxdepth 1 -name "Ping*.hpct.*" | \
    hpct-results --input-file-names-from-stdin --separator=, -o ping.csv.gz
 ```
 
-Hint: You can use the extension .gz for GZip, .bz for BZip2, .xz for XZ, .zst for ZSTD, or none for uncompressed output into the output CSV file!
+Hint: You can use the extension .gz for GZip, .bz2 for BZip2, .xz for XZ, .zst for ZSTD, or none for uncompressed output into the output CSV file!
 
 ## Example 2
 Merge the data from all files matching the pattern `Traceroute*.hpct.*` into CSV file `traceroute.csv.xz`, with ";" as separator:
@@ -690,7 +690,7 @@ Usage:
 
   Note: The script calls the [HiPerConTracer Results Tool](#-the-hipercontracer-results-tool) for processing of the input file. It therefore must to be installed.
 
-  Outputs:
+  The example crates 3&nbsp;output files:
   * `output.csv`: A summary table as CSV file.
   * `output.html`: A summary table as HTML file.
   * `output.tex`: A summary table as LaTeX file, for inclusion into a LaTeX publication.
@@ -831,7 +831,7 @@ Notes:
 
 * Make sure to specify a Measurement ID range, or a time range. Otherwise, the Query tool will export **everything**!
 * The output is in the same format as the originally written HiPerConTracer results. See the [manpage of "hipercontracer"](https://github.com/dreibh/hipercontracer/blob/master/src/hipercontracer.1) for all options, including a description of the results file formats: ```bashman hipercontracer```
-* You can use the extension .gz for GZip, .bz for BZip2, .xz for XZ, .zst for ZSTD, or none for uncompressed output!
+* You can use the extension .gz for GZip, .bz2 for BZip2, .xz for XZ, .zst for ZSTD, or none for uncompressed output!
 
 ### Example 2
 
