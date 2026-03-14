@@ -41,7 +41,7 @@ export TEXTDOMAIN="check-certificate"
 
 # ###### Usage ##############################################################
 usage () {
-   gettext >&2 "$(gettext "Usage:") $0 ca_certificate_file certificate_file [...] [-C|--crl crl] [-n|--no-view-certificate] [-h|--help]"
+   echo >&2 "$(gettext "Usage:") $0 ca_certificate_file certificate_file [...] [-C|--crl crl] [-n|--no-view-certificate] [-h|--help]"
    exit 1
 }
 

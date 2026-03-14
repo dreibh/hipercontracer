@@ -516,7 +516,7 @@ void Traceroute::processResults()
       unsigned int currentHop         = 0;
       bool         completeTraceroute = true;   // all hops have responded
       bool         destinationReached = false;  // destination has responded
-      std::string pathString         = SourceAddress.to_string();
+      std::string pathString          = SourceAddress.to_string();
       for(ResultEntry* resultEntry : resultsVector) {
          if(resultEntry->roundNumber() == round) {
             assure(resultEntry->hopNumber() > totalHops);

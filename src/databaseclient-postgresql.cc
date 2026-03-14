@@ -262,7 +262,8 @@ int32_t PostgreSQLClient::getInteger(unsigned int column) const
 {
    assert(ResultIterator != ResultSet.end());
    assert(column > 0);
-   return ResultIterator[column - 1].as<int32_t>();
+
+   return (*ResultIterator)[column - 1].as<int32_t>();
 }
 
 
@@ -271,7 +272,7 @@ int64_t PostgreSQLClient::getBigInt(unsigned int column) const
 {
    assert(ResultIterator != ResultSet.end());
    assert(column > 0);
-   return ResultIterator[column - 1].as<int64_t>();
+   return (*ResultIterator)[column - 1].as<int64_t>();
 }
 
 
@@ -280,5 +281,5 @@ std::string PostgreSQLClient::getString(unsigned int column) const
 {
    assert(ResultIterator != ResultSet.end());
    assert(column > 0);
-   return ResultIterator[column - 1].as<std::string>();
+   return (*ResultIterator)[column - 1].as<std::string>();
 }

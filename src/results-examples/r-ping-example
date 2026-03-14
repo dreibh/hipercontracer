@@ -71,9 +71,9 @@ if(sys.nframe() == 0L) {
 # ------ Name is a directory ------------------------------------------------
 if(dir.exists(inputName)) {
    cat(sep="", "Reading all Ping results in directory ", inputName, " ...\n")
-   data <- readHiPerConTracerPingResultsFromDirectory(inputName, "Ping-[^/]*(\\.hpct|\\.results)[^/]*")
+   data <- readHiPerConTracerPingResultsFromDirectory(inputName, "Ping-[^/]*\\.hpct[^/]*")
 # ------ Name is a HiPerConTracer results file (.hpct*) ---------------------
-} else if(grepl("(\\.hpct[^/]*|\\.results[^/]*)$", inputName)) {
+} else if(grepl("(\\.hpct[^/]*)$", inputName)) {
    cat(sep="", "Reading from HiPerConTracer results file ", inputName, " ...\n")
    data <- readHiPerConTracerPingResults(inputName)
 # ------ Name is a CSV file -------------------------------------------------
