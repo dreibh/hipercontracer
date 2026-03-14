@@ -1,3 +1,196 @@
+commit 5d151f5fc14e5b8db3694f367ef47e1a9d7bb9ae
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Sat Mar 14 13:33:06 2026 +0100
+
+    Documentation improvements.
+
+commit 0fa369ee97ab38fe9ecdde3e33365c58cf930edb
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Sat Mar 14 11:31:26 2026 +0100
+
+    Formatting fix.
+
+commit 87807ab6f065951e348d9f8509893854b27a47f8
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Sat Mar 14 11:20:27 2026 +0100
+
+    Improved CMakeLists.txt.
+
+commit cde1897d0da4a3790449d6733baa033e3e0438bc
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Fri Mar 13 16:49:36 2026 +0100
+
+    Further improvements of the documentation.
+
+commit 4b0619952e3a912dc16c9c66c0e419aa25ec3941
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Fri Mar 13 16:17:02 2026 +0100
+
+    Improved examples.
+
+commit 7a0d8f596dcbc4d73ebceb771245cd7204151b11
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Fri Mar 13 16:10:28 2026 +0100
+
+    Small fixes and improvements in README.md.
+
+commit 4ad2c35750f88bad4889c4a492ebad835799a828
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Fri Mar 13 15:55:53 2026 +0100
+
+    Changed legacy naming of the example files from ".results.*" to ".hpct.*".
+
+commit 00afe5c397e8371d0937732eb1bfb399676516ec
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Fri Mar 13 12:07:08 2026 +0100
+
+    Updated manpage.
+
+commit 7c3649aebb4b20c7bb8d740d7dddef6563e98035
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Fri Mar 13 12:06:40 2026 +0100
+
+    Code formatting fix.
+
+commit 07d8acba2fa2f51c1341e6ddc320193d561da3fa
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Fri Mar 13 12:06:27 2026 +0100
+
+    Further documentation improvements.
+
+commit 3eb14e04af3d71f04bfc7caf28f93db9ae018168
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Fri Mar 13 11:49:53 2026 +0100
+
+    Further improvements.
+
+commit dde1028fa0a388c27e37ff23516e2f8a95d1470e
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Fri Mar 13 10:58:29 2026 +0100
+
+    Further improvements of README.md.
+
+commit e7c51bbb5a61a0901d7551c49f43dfe54166006c
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Mar 12 18:39:09 2026 +0100
+
+    Minor update.
+
+commit c3a28106c5fa44a158c6c58792b230a95451bef7
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Mar 12 18:36:52 2026 +0100
+
+    Improved documentation.
+
+commit 43afed2129384543b8f2cfd040380c1e06b59963
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Mar 12 17:41:31 2026 +0100
+
+    Improved README.md.
+
+commit e02d6ee3d87607c4261a429dd343dbb35692fa8e
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Mar 12 16:52:21 2026 +0100
+
+    Improved documentation.
+
+commit 5fc77d3af8cd327e74668ea2960c9904c3d86f96
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Mar 12 15:21:06 2026 +0100
+
+    Removed comment.
+
+commit 7bad29ce9a509403a99da5eedb15305c54572c5e
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Mar 12 15:17:39 2026 +0100
+
+    FreeBSD build fix.
+
+commit 35148a7827fa72398f3e8e57a54aa2bb57e4e5a6
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Mar 12 15:06:34 2026 +0100
+
+    Debian/Ubuntu build fix.
+
+commit 630ee8e2a4f0bf9bb0620c7bc3479758044b411c
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Mar 12 11:13:14 2026 +0100
+
+    Updated URLs.
+
+commit d1353d732af03326a07b1ac68901e4c98b85c354
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Mar 12 10:55:50 2026 +0100
+
+    Improved Python library.
+
+commit 22ffa4c81969b7e2c14dfca06dcffe0d444fcb6a
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Mar 11 15:07:08 2026 +0100
+
+    Updated helper script.
+
+commit 272e0ed01e6023855ce0395292fee3063ff40832
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Mar 11 15:06:56 2026 +0100
+
+    Improved QueryHelper.py library.
+
+commit 0fbdeb09d0db8202b2c658c24d413c910cccf21a
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Mar 11 15:06:39 2026 +0100
+
+    Improved examples.
+
+commit 3be70c2b27f13d3c6ac0a7ffadb2672d6547853f
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Mar 11 14:35:13 2026 +0100
+
+    Improved query example.
+
+commit 753bfedfb3b805205cf9664809b819490b8f4550
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Mar 11 14:30:13 2026 +0100
+
+    Added Python SQL query example.
+
+commit 0e362d6ab798a88c8429cb752cbc6c89aae40be9
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Mar 11 14:29:58 2026 +0100
+
+    Improved Python query helper library.
+
+commit 714509d485b6f895a98d23f849616e1d12ef2d5c
+Merge: 2146322a 156ac9e7
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Mon Mar 9 12:14:32 2026 +0100
+
+    Merge branch 'master' of github.com:dreibh/hipercontracer
+
+commit 2146322a2bd39f25826128e106994ac3e902156f
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Mon Mar 9 12:14:14 2026 +0100
+
+    Improved documentation.
+
+commit 156ac9e7d6548da0b852d0fba8953ff21e46ff7b
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Mon Mar 9 11:37:38 2026 +0100
+
+    FreeBSD PostgreSQL test update.
+
+commit c530918fe512121aadee3098d5097c4ae91f301f
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Mar 5 17:15:32 2026 +0100
+
+    Updated FreeBSD port.
+
+commit 19a9b396419d3f0aecdf19278f077c0408d792a2
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Mar 5 16:13:59 2026 +0100
+
+    New release hipercontracer-2.1.11.
+
 commit d8dfb14bab33fea76344f13c3e8d6e92cff40825
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Thu Mar 5 10:17:49 2026 +0100
