@@ -55,9 +55,9 @@ if(sys.nframe() == 0L) {
 # ------ Name is a directory ------------------------------------------------
 if(dir.exists(name)) {
    cat(sep="", "Reading all Traceroute results in directory ", name, " ...\n")
-   data <- readHiPerConTracerTracerouteResultsFromDirectory(name, "Traceroute-[^/]*(\\.hpct|\\.results)[^/]*")
+   data <- readHiPerConTracerTracerouteResultsFromDirectory(name, "Traceroute-[^/]*\\.hpct[^/]*")
 # ------ Name is a HiPerConTracer results file (.hpct*) ---------------------
-} else if(grepl("(\\.hpct[^/]*|\\.results[^/]*)$", name)) {
+} else if(grepl("(\\.hpct[^/]*)$", name)) {
    cat(sep="", "Reading from HiPerConTracer results file ", name, " ...\n")
    data <- readHiPerConTracerTracerouteResults(name)
 # ------ Name is a CSV file -------------------------------------------------
