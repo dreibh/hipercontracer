@@ -375,7 +375,7 @@ IF (WITH_IMPORTER)
       ENDIF()
 
       MESSAGE("Looking for MongoDB BSON library:")
-      FIND_LIBRARY(LIBBSON_LIBRARY  NAMES bson-1.0 bson2)
+      FIND_LIBRARY(LIBBSON_LIBRARY NAMES bson-1.0 bson2)
       MESSAGE(" * Library: ${LIBBSON_LIBRARY}")
       FILE(GLOB bsonSearchPaths
          "/usr/include/bson-*"       "/usr/include/libbson-*"
