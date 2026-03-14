@@ -257,7 +257,26 @@ sudo hipercontracer \
    --verbose
 ```
 
+
+## Further Details
+
+See the [manpage of "hipercontracer"](https://github.com/dreibh/hipercontracer/blob/master/src/hipercontracer.1) for all options, and [Results File Formats](#-results-file-formats) for a description of the results file formats.
+
+```bash
+man hipercontracer
+```
+
+
 # 📄 Results File Formats
+
+An uncompressed HiPerConTracer results file consists of:
+
+* [Header](#header)
+* The actual data, i.e.&nbsp;[Ping](#ping) or [Traceroute](#traceroute) measurement results.
+
+The measurement results within a results file only contain data entries of the same format (i.e.&nbsp;[Ping](#ping), [Traceroute](#traceroute)) and version (1 for HiPerConTracer &lt;2.0; 2 otherwise).
+
+See [Results File Examples](#results-file-examples) for some examples.
 
 ## Header
 
@@ -280,7 +299,6 @@ Header example:
 ```
 #? HPCT Ping 2 HiPerConTracer/2.1.12
 ```
-
 
 ## Ping
 
@@ -582,22 +600,9 @@ Some simple results file examples (from [`src/results-examples`](https://github.
 
 Notes:
 
-* See the [manpage of "hipercontracer"](https://github.com/dreibh/hipercontracer/blob/master/src/hipercontracer.1) for a description of the results file formats:
-
-  ```bash
-  man hipercontracer
-  ```
-
+* See [Results File Formats](#-results-file-formats) for a description of the results file formats.
 * [HiPerConTracer Viewer Tool](#-the-hipercontracer-viewer-tool) can be used to display results files, including uncompressed ones.
 * [HiPerConTracer Results Tool](#-the-hipercontracer-results-tool) can be used to merge and/or convert the results files.
-
-## Further Details
-
-See the [manpage of "hipercontracer"](https://github.com/dreibh/hipercontracer/blob/master/src/hipercontracer.1) for all options, including a description of the results file formats:
-
-```bash
-man hipercontracer
-```
 
 
 # 📚 The HiPerConTracer Viewer Tool
@@ -839,7 +844,7 @@ hpct-query ~/testdb-users-mariadb-researcher.conf ping -o ping.hpct.gz
 Notes:
 
 * Make sure to specify a Measurement ID range, or a time range. Otherwise, the Query tool will export **everything**!
-* The output is in the same format as the originally written HiPerConTracer results. See the [manpage of "hipercontracer"](https://github.com/dreibh/hipercontracer/blob/master/src/hipercontracer.1) for all options, including a description of the results file formats: ```bashman hipercontracer```
+* The output is in the same format as the originally written HiPerConTracer results. See [Results File Formats](#-results-file-formats) for a description of the results file formats.
 * You can use the extension .gz for GZip, .bz2 for BZip2, .xz for XZ, .zst for ZSTD, or none for uncompressed output!
 
 ### Example 2
