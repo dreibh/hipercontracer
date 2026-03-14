@@ -32,7 +32,7 @@ PROJECT(hipercontracer LANGUAGES C CXX)
 
 SET(BUILD_MAJOR "2")
 SET(BUILD_MINOR "1")
-SET(BUILD_PATCH "11")
+SET(BUILD_PATCH "12")
 SET(BUILD_VERSION ${BUILD_MAJOR}.${BUILD_MINOR}.${BUILD_PATCH})
 
 # HiPerConTracer needs at least C++17!
@@ -189,9 +189,14 @@ IF(CMAKE_VERSION VERSION_GREATER_EQUAL "3.30")
    # Use BoostConfig.cmake to find BOOST libraries, if possible.
    CMAKE_POLICY(SET CMP0167 NEW)
 ENDIF()
-FIND_PACKAGE(Boost REQUIRED COMPONENTS log date_time thread iostreams filesystem program_options)
+FIND_PACKAGE(Boost COMPONENTS log date_time thread iostreams filesystem program_options)
 IF (NOT Boost_FOUND)
-   MESSAGE(FATAL_ERROR "Cannot find Boost libraries!")
+   MESSAGE(FATAL_ERROR "Cannot find BOOST libraries! Try:\n"
+           " * Ubuntu/Debian: sudo apt install -y libboost-all-dev\n"
+           " * Fedora:        sudo dnf install -y boost-devel\n"
+           " * SuSE:          sudo zypper install -y boost-devel\n"
+           " * Alpine:        sudo apk add boost-dev\n"
+           " * FreeBSD:       sudo pkg install -y boost-libs")
 ELSE()
   INCLUDE_DIRECTORIES(${Boost_INCLUDE_DIRS})
 ENDIF()
@@ -218,7 +223,7 @@ IF (NOT Z_LIBRARY)
            " * Fedora:        sudo dnf install -y zlib-ng-compat-devel\n"
            " * SuSE:          sudo zypper install -y zlib-devel\n"
            " * Alpine:        sudo apk add zlib-ng-dev\n"
-           " * FreeBSD:       sudo pkg install -y ???")
+           " * FreeBSD:       (should be installed by default)")
 ENDIF()
 
 # ====== libbz2 =============================================================
@@ -293,6 +298,7 @@ IF (WITH_IMPORTER)
    IF (ENABLE_BACKEND_DEBUG)
       MESSAGE("Building with SQL/NoSQL Debug dummy backend (ENABLE_BACKEND_DEBUG=${ENABLE_BACKEND_DEBUG})")
    ELSE()
+      MESSAGE("Building without SQL/NoSQL Debug backend (ENABLE_BACKEND_DEBUG=${ENABLE_BACKEND_DEBUG})")
       MESSAGE("SQL/NoSQL Debug dummy backend disabled!")
    ENDIF()
 
@@ -316,6 +322,7 @@ IF (WITH_IMPORTER)
                  " * FreeBSD:       sudo pkg install -y mariadb-connector-c")
       ENDIF()
    ELSE()
+      MESSAGE("Building without MySQL/MariaDB backend (ENABLE_BACKEND_MARIADB=${ENABLE_BACKEND_MARIADB})")
       MESSAGE("MySQL/MariaDB backend disabled!")
    ENDIF()
 
@@ -335,10 +342,11 @@ IF (WITH_IMPORTER)
                  " * Ubuntu/Debian: sudo apt install -y libpqxx-dev\n"
                  " * Fedora:        sudo dnf install -y libpqxx-devel\n"
                  " * SuSE:          sudo zypper install -y libpqxx-devel\n"
-                 " * Alpine:        sudo apk add mariadb-connector-c\n"
+                 " * Alpine:        (needs PPA or installation from sources!)\n"
                  " * FreeBSD:       sudo pkg install -y postgresql-libpqxx")
       ENDIF()
    ELSE()
+      MESSAGE("Building without PostgreSQL backend (ENABLE_BACKEND_POSTGRESQL=${ENABLE_BACKEND_POSTGRESQL})")
       MESSAGE("PostgreSQL backend disabled!")
    ENDIF()
 
@@ -361,13 +369,13 @@ IF (WITH_IMPORTER)
                  " Cannot find MongoDB C Client Library! Try:\n"
                  " * Ubuntu/Debian: sudo apt install -y libmongoc-dev\n"
                  " * Fedora:        sudo dnf install -y mongo-c-driver-devel\n"
-                 " * SuSE:          (needs PPA!)\n"
+                 " * SuSE:          (needs PPA or installation from sources!)\n"
                  " * Alpine:        sudo apk add mongo-c-driver-dev\n"
                  " * FreeBSD:       sudo pkg install -y mongo-c-driver")
       ENDIF()
 
       MESSAGE("Looking for MongoDB BSON library:")
-      FIND_LIBRARY(LIBBSON_LIBRARY  NAMES bson-1.0 bson2)
+      FIND_LIBRARY(LIBBSON_LIBRARY NAMES bson-1.0 bson2)
       MESSAGE(" * Library: ${LIBBSON_LIBRARY}")
       FILE(GLOB bsonSearchPaths
          "/usr/include/bson-*"       "/usr/include/libbson-*"
@@ -380,11 +388,12 @@ IF (WITH_IMPORTER)
                  " Cannot find MongoDB BSON library! Try:\n"
                  " * Ubuntu/Debian: sudo apt install -y libbson-dev\n"
                  " * Fedora:        sudo dnf install -y libbson-devel\n"
-                 " * SuSE:          (needs PPA!)\n"
+                 " * SuSE:          (needs PPA or installation from sources!)\n"
                  " * Alpine:        sudo apk add libbson-dev\n"
                  " * FreeBSD:       sudo pkg install -y libbson")
       ENDIF()
    ELSE()
+      MESSAGE("Building without MongoDB backend (ENABLE_BACKEND_MONGODB=${ENABLE_BACKEND_MONGODB})")
       MESSAGE("MongoDB backend disabled!")
    ENDIF()
 
@@ -392,12 +401,16 @@ ENDIF()
 
 # ====== Graphics tools for icons and logo ==================================
 IF (WITH_ICONS)
+   MESSAGE("Building with icons (WITH_ICONS=${WITH_ICONS})")
+
    FIND_PROGRAM(GS gs PATHS /bin /usr/bin /usr/local/bin)
    IF(NOT GS)
       MESSAGE(FATAL_ERROR
             " Cannot find GhostScript! Try:\n"
             " * Ubuntu/Debian: sudo apt install -y ghostscript\n"
             " * Fedora:        sudo dnf install -y ghostscript\n"
+            " * SuSE:          sudo zypper install -y ghostscript\n"
+            " * Alpine:        sudo apk add ghostscript\n"
             " * FreeBSD:       sudo pkg install -y ghostscript10")
    ENDIF()
 
@@ -407,6 +420,8 @@ IF (WITH_ICONS)
             " Cannot find PDF2SVG! Try:\n"
             " * Ubuntu/Debian: sudo apt install -y pdf2svg\n"
             " * Fedora:        sudo dnf install -y pdf2svg\n"
+            " * SuSE:          sudo zypper install -y pdf2svg\n"
+            " * Alpine:        (needs PPA or installation from sources!)\n"
             " * FreeBSD:       sudo pkg install -y pdf2svg")
    ENDIF()
 
@@ -416,8 +431,12 @@ IF (WITH_ICONS)
             " Cannot find GraphicsMagick! Try:\n"
             " * Ubuntu/Debian: sudo apt install -y graphicsmagick\n"
             " * Fedora:        sudo dnf install -y GraphicsMagick\n"
+            " * SuSE:          sudo zypper install -y GraphicsMagick\n"
+            " * Alpine:        sudo apk add graphicsmagick\n"
             " * FreeBSD:       sudo pkg install -y GraphicsMagick")
    ENDIF()
+ELSE()
+   MESSAGE("Building without icons (WITH_ICONS=${WITH_ICONS})")
 ENDIF()
 
 

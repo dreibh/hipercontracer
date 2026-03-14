@@ -242,7 +242,6 @@ Notes:
   man hipercontracer
   ```
 
-
 ## Example 3
 
 Run HiPerConTracer measurement #1000001, from arbitrary local IPv4 (0.0.0.0) and IPv6 (::) addresses to destinations 193.99.144.80 and 2a02:2e0:3fe:1001:302:: with Traceroute and Ping via ICMP (default). Store results files into sub-directory `data` in the current directory; run as current user $USER:
@@ -258,6 +257,338 @@ sudo hipercontracer \
    --verbose
 ```
 
+
+## Further Details
+
+See the [manpage of "hipercontracer"](https://github.com/dreibh/hipercontracer/blob/master/src/hipercontracer.1) for all options, and [Results File Formats](#-results-file-formats) for a description of the results file formats.
+
+```bash
+man hipercontracer
+```
+
+
+# 📄 Results File Formats
+
+An uncompressed HiPerConTracer results file consists of:
+
+* [Header](#header)
+* The actual data, i.e.&nbsp;[Ping](#ping) or [Traceroute](#traceroute) measurement results.
+
+The measurement results within a results file only contain data entries of the same format (i.e.&nbsp;[Ping](#ping), [Traceroute](#traceroute)) and version (1 for HiPerConTracer &lt;2.0; 2 otherwise).
+
+See [Results File Examples](#results-file-examples) for some examples.
+
+## Header
+
+Header format:
+
+```
+#? HPCT format version programID
+```
+
+Header details:
+
+| Column | Field     | Description                                                                   |
+| :-:    | :--       | :---------                                                                    |
+|  1     | format    | Measurement identifier (e.g. Ping, Traceroute)                                |
+|  2     | version   | Version of the output data format (decimal)                                   |
+|  3     | programID | Identifier for the program generating the output (e.g. HiPerConTracer/2.1.12) |
+
+Header example:
+
+```
+#? HPCT Ping 2 HiPerConTracer/2.1.12
+```
+
+## Ping
+
+### Version 2
+
+#### Ping format, version 2
+
+```
+#P<io_module> measurementID sourceIP destinationIP timestamp burstseq traffic_class packetsize response_size checksum sourcePort destinationPort status timesource delay_app_send delay_queuing delay_app_receive rtt_app rtt_sw rtt_hw
+```
+
+#### Ping fields, version 2
+
+| Column | Field             | Description                                                                                                         |
+| :-:    | :--               | :----------------------                                                                                             |
+|  1     | ping              | #P&lt;io_module&gt;, with #Pi = ICMP Ping, #Pu = UDP Ping                                                           |
+|  2     | measurementID     | Measurement identifier (decimal)                                                                                    |
+|  3     | sourceIP          | Source IP address                                                                                                   |
+|  4     | destinationIP     | Destination IP address                                                                                              |
+|  5     | sendTimestamp     | Send Timestamp (nanoseconds since the UTC epoch, hexadecimal)                                                       |
+|  6     | burstseq          | Sequence number within a burst (decimal), numbered from 0                                                           |
+|  7     | traffic_class     | The IP Traffic Class/Type of Service value of the sent packets (hexadecimal)                                        |
+|  8     | packet_size       | The sent packet size (decimal, in bytes) including IPv4/IPv6 header, transport header and HiPerConTracer header     |
+|  9     | response_size     | The response packet size (decimal, in bytes) including IPv4/IPv6 header, transport header and HiPerConTracer header |
+| 10     | checksum          | The checksum of the ICMP Echo Request packets (hexadecimal); 0x0000 for other protocols, 0xffff for unknown         |
+| 11     | sourcePort        | Source port, 0 for ICMP (decimal)                                                                                   |
+| 12     | destinationPort   | Destination port, 0 for ICMP (decimal)                                                                              |
+| 13     | status            | Status code (decimal); see [Status Code and Status Flags](#status-code-and-status-flags)                            |
+| 14     | timesource        | Source of the timing information (hexadecimal) as AAQQSSHH; see [Time Source](#time-source)                         |
+| 15     | delay_app_send    | The measured application send delay (nanoseconds, decimal; -1 if not available)                                     |
+| 16     | delay_queuing     | The measured kernel software queuing delay (nanoseconds, decimal; -1 if not available)                              |
+| 17     | delay_app_receive | The measured application receive delay (nanoseconds, decimal; -1 if not available)                                  |
+| 18     | rtt_app           | The measured application RTT (nanoseconds, decimal)                                                                 |
+| 19     | rtt_sw            | The measured kernel software RTT (nanoseconds, decimal; -1 if not available)                                        |
+| 20     | rtt_hw            | The measured kernel hardware RTT (nanoseconds, decimal; -1 if not available)                                        |
+
+: Ping Fields (Version 2)
+
+#### Ping example, version 2
+
+```
+#Pi 88888888 10.193.4.168 10.193.4.67 178f2cc6c7ea013a 0 0 44 44 7d61 0 0 255 11666600 36997 6983 50311 426999 332708 -1
+```
+
+### Version 1
+
+**Version 1 was used before HiPerConTracer&nbsp;2.0.0 and is now deprecated!** However, it can still be read and processed by the [HiPerConTracer Results Tool](#-the-hipercontracer-results-tool) and the [HiPerConTracer Importer Tool](#-the-hipercontracer-importer-tool). While [HiPerConTracer](#-running-a-hipercontracer-measurement) still can generate version&nbsp;1 output, this is strongly discouraged due to limitations of this format version!
+
+#### Ping format, version 1
+
+```
+#P sourceIP destinationIP sendTimestamp checksum status rtt [traffic_class [packet_size [timesource]]]
+```
+
+#### Ping fields, version 1
+
+| Column | Field           | Description                                                                                                     |
+| :-:    | :--             | :----------------------                                                                                         |
+|  1     | ping            | #P; HiPerConTracer &lt;2.0 only provided ICMP Ping                                                              |
+|  2     | sourceIP        | Source IP address                                                                                               |
+|  3     | destinationIP   | Destination IP address                                                                                          |
+|  4     | sendTimestamp   | Send Timestamp (microseconds since the UTC epoch, hexadecimal)                                                  |
+|  5     | checksum        | The checksum of the ICMP Echo Request packets (hexadecimal); 0x0000 for other protocols, 0xffff for unknown     |
+|  6     | status          | Status code (decimal); see [Status Code and Status Flags](#status-code-and-status-flags)                        |
+|  7     | rtt             | The measured RTT (microseconds, decimal)                                                                        |
+|  8     | traffic_class   | The IP Traffic Class/Type of Service value of the sent packets (hexadecimal)                                    |
+|  9     | packet_size     | The sent packet size (decimal, in bytes) including IPv4/IPv6 header, transport header and HiPerConTracer header |
+| 10     | timesource      | Source of the timing information (hexadecimal) as AAQQSSHH; see [Time Source](#time-source)                     |
+
+: Ping Fields (Version 1)
+
+Notes:
+
+* `traffic_class` was added in HiPerConTracer&nbsp;1.4.0.
+* `packet_size` was added in HiPerConTracer&nbsp;1.6.0.
+* `timesource` was added in HiPerConTracer&nbsp;2.0.0 development versions.
+
+#### Ping example, version 1
+
+```
+#P 2001:700:4100:4::2 2001:250:3801:71::149 5ed91fe263db1 9106 200 5000000 0 6
+```
+
+## Traceroute
+
+### Version 2
+
+#### Traceroute format, version 2
+
+```
+#T<io_module> measurementID sourceIP destinationIP timestamp round totalHops traffic_class packet_size checksum sourcePort destinationPort statusFlags pathHash
+⇥sendTimeStamp hopNumber response_size status timesource delay_queuing delay_app_receive rtt_app rtt_app rtt_sw rtt_hw hopIP
+⇥...
+```
+
+#### Traceroute fields, version 2
+
+| Column | Field             | Description                                                                                                          |
+| :-:    | :--               | :--------------------                                                                                                |
+|  1     | traceroute        | #T&lt;io_module&gt;, with #Ti = ICMP Traceroute, #Tu = UDP Traceroute                                                |
+|  2     | measurementID     | Measurement identifier                                                                                               |
+|  3     | sourceIP          | Source IP address                                                                                                    |
+|  4     | destinationIP     | Destination IP address                                                                                               |
+|  5     | timestamp         | Timestamp (nanoseconds since the UTC epoch, hexadecimal) of the current run. Note: This timestamp is only an identifier for the Traceroute run | All Traceroute rounds of the same run use the same timestamp here! The actual send timestamp of the request to each hop can be found in sendTimeStamp of the corresponding hop!               |
+|  6     | round             | Round number (decimal)                                                                                               |
+|  7     | totalHops         | Total hops (decimal)                                                                                                 |
+|  8     | traffic_class     | The IP Traffic Class/Type of Service value of the sent packets (hexadecimal)                                         |
+|  9     | packet_size       | The sent packet size (decimal, in bytes) including IPv4/IPv6 header, transport header and HiPerConTracer header      |
+| 10     | checksum          | The checksum of the ICMP Echo Request packets (hexadecimal); 0x0000 for other protocols, 0xffff for unknown          |
+| 11     | sourcePort        | Source port, 0 for ICMP (decimal)                                                                                    |
+| 12     | destinationPort   | Destination port, 0 for ICMP (decimal)                                                                               |
+| 13     | statusFlags       | Status flags including the status code for Ping above for the lower 8 bits (hexadecimal); see [Status Code and Status Flags](#status-code-and-status-flags) |
+| 14     | pathHash          | Hash of the path (hexadecimal); see [Path Hash](#path-hash)                                                          |
+
+: Traceroute Fields (Version 2)
+
+For each hop:
+
+| Column | Field             | Description                                                                                                          |
+| :-:    | :--               | :--------------------                                                                                                |
+|  1     | sendTimeStamp     | Timestamp (nanoseconds since the UTC epoch, hexadecimal) for the request to this hop                                 |
+|  2     | hopNumber         | Number of the hop                                                                                                    |
+|  3     | response_size     | The response packet size (decimal, in bytes) including IPv4/IPv6 header, transport header and HiPerConTracer header  |
+|  4     | status            | Status code (decimal; the values are the same as for Ping, see see [Status Code and Status Flags](#status-code-and-status-flags)) |
+|  5     | timesource        | Source of the timing information (hexadecimal) as AAQQSSHH; see [Time Source](#time-source)                          |
+|  6     | delay_app_send    | The measured application send delay (nanoseconds, decimal; -1 if not available)                                      |
+|  7     | delay_queuing     | The measured kernel software queuing delay (nanoseconds, decimal; -1 if not available)                               |
+|  8     | delay_app_receive | The measured application receive delay (nanoseconds, decimal; -1 if not available)                                   |
+|  9     | rtt_app           | The measured application RTT (nanoseconds, decimal)                                                                  |
+| 10     | rtt_sw            | The measured kernel software RTT (nanoseconds, decimal; -1 if not available)                                         |
+| 11     | rtt_hw            | The measured kernel hardware RTT (nanoseconds, decimal; -1 if not available)                                         |
+| 12     | hopIP             | Hop IP address                                                                                                       |
+
+: Traceroute Hop Fields (Version 2)
+
+#### Traceroute example, version 2
+
+```
+#Ti 12345678 10.44.33.111 1.1.1.1 1795a9a23c629fbf 0 11 0 44 90e1 0 0 200 a7cfb997ef00d133
+⇥1795a9a23c629fbf 1 56 1 116666aa 117720 19410 40428729 57465605 16899746 16778688 10.44.32.1
+⇥1795a9a23c5919e1 2 56 1 116666aa 117473 18421 40878737 56759042 15744411 15665625 10.42.241.24
+⇥1795a9a23c28493f 3 56 1 116666aa 119417 19180 59070590 59398475 189288 132438 10.42.241.1
+⇥1795a9a23b66efe6 4 56 1 116666aa 569585 18709 67972981 69165724 604449 481875 158.36.144.49
+⇥1795a9a24305dce5 5 56 1 116666aa 74164 13164 10927655 12438014 1423031 1370062 10.42.240.11
+⇥1795a9a242fdee25 6 56 1 116666aa 74629 12132 11430786 12039303 521756 467438 158.36.84.53
+⇥1795a9a242f3ae6c 7 56 1 116666aa 74315 11634 11205225 13171634 1880460 1787750 128.39.230.22
+⇥1795a9a2426f70c5 8 96 1 116666aa 51574 9678 19737124 20904021 1105645 1060562 128.39.254.179
+⇥1795a9a244849c7e 9 56 1 116666aa 93468 16452 15676158 16511633 725555 687625 128.39.254.79
+⇥1795a9a2447bdf7e 10 56 1 116666aa 92733 15981 12837025 17723353 4777614 4718312 185.1.55.41
+⇥1795a9a2447335b4 11 44 255 116666aa 85299 13915 16096643 17068626 872769 802375 1.1.1.1
+```
+
+### Version 1
+
+**Version 1 was used before HiPerConTracer&nbsp;2.0.0 and is now deprecated!** However, it can still be read and processed by the [HiPerConTracer Results Tool](#-the-hipercontracer-results-tool) and the [HiPerConTracer Importer Tool](#-the-hipercontracer-importer-tool). While [HiPerConTracer](#-running-a-hipercontracer-measurement) still can generate version&nbsp;1 output, this is strongly discouraged due to limitations of this format version!
+
+#### Traceroute format, version 1
+
+```
+#T sourceIP destinationIP timestamp round checksum totalHops statusFlags pathHash [traffic_class [packet_size]]
+⇥hopNumber status rtt hopIP timesource [timesource]
+⇥...
+```
+
+#### Traceroute fields, version 1
+
+| Column | Field             | Description                                                                                                          |
+| :-:    | :--               | :--------------------                                                                                                |
+|  1     | traceroute        | #T; HiPerConTracer &lt;2.0 only provided ICMP Traceroute                                                             |
+|  2     | sourceIP          | Source IP address                                                                                                    |
+|  3     | destinationIP     | Destination IP address                                                                                               |
+|  4     | timestamp         | Timestamp (microseconds since the UTC epoch, hexadecimal) of the current run. Note: This timestamp is only an identifier for the Traceroute run. All Traceroute rounds of the same run use the same timestamp here! |
+|  5     | round             | Round number (decimal)                                                                                               |
+|  6     | checksum          | The checksum of the ICMP Echo Request packets (hexadecimal); 0x0000 for other protocols, 0xffff for unknown          |
+|  7     | totalHops         | Total hops (decimal)                                                                                                 |
+|  8     | statusFlags       | Status flags including the status code for Ping above for the lower 8 bits (hexadecimal)                             |
+|  9     | pathHash          | Hash of the path (hexadecimal); see [Path Hash](#path-hash)                                                          |
+| 10     | traffic_class     | The IP Traffic Class/Type of Service value of the sent packets (hexadecimal)                                         |
+| 11     | packet_size       | The sent packet size (decimal, in bytes) including IPv4/IPv6 header, transport header and HiPerConTracer header      |
+
+: Traceroute Fields (Version 1)
+
+For each hop:
+
+| Column | Field             | Description                                                                                                          |
+| :-:    | :--               | :--------------------                                                                                                |
+|  1     | hopNumber         | Number of the hop                                                                                                    |
+|  2     | status            | Status code (in **hexadecimal** here)                                                                                |
+|  3     | rtt               | The measured RTT (microseconds, decimal)                                                                             |
+|  4     | hopIP             | Hop IP address                                                                                                       |
+|  5     | timesource        | Source of the timing information (hexadecimal) as AAQQSSHH; see [Time Source](#time-source)                          |
+
+: Traceroute Hop Fields (Version 1)
+
+Notes:
+
+* `traffic_class` was added in HiPerConTracer&nbsp;1.4.0.
+* `packet_size` was added in HiPerConTracer&nbsp;1.6.0.
+* `timesource` was added in HiPerConTracer&nbsp;2.0.0 development versions.
+
+#### Traceroute example, version 1
+
+```
+#T 192.168.0.88 8.8.8.8 5d2f2db8ecbb3 0 2be 12 200 ea86903f1fdb8faa 0 44
+⇥1 1 9858 192.168.0.1
+⇥2 1 18552 10.248.0.1
+⇥3 1 18573 84.208.41.118
+⇥4 1 18595 109.163.76.161
+⇥5 1 18618 109.163.76.160
+⇥6 1 18641 62.115.175.156
+⇥7 1 24116 62.115.116.101
+⇥8 1 24135 62.115.142.219
+⇥9 1 24157 72.14.205.198
+⇥10 1 24179 142.251.67.181
+⇥11 1 18755 142.250.239.185
+⇥12 ff 18863 8.8.8.8
+```
+
+## Special Fields
+
+### Status Code and Status Flags
+
+The status code provides the result of a Ping, i.e.&nbsp;whether the remote endpoint responded or there was a local or on-route error, as unsigned byte:
+
+| Status Code | Description                                                                                                                                        | Meaning of the Corresponding RTT Value      |
+| :-:         | :---------                                                                                                                                         | :---------                                  |
+|    1        | [ICMP](https://www.rfc-editor.org/rfc/rfc792)/[ICMPv6](https://datatracker.ietf.org/doc/html/rfc4443) response: Time Exceeded                      | Response from router sending the ICMP error |
+|  100        | [ICMP](https://www.rfc-editor.org/rfc/rfc792)/[ICMPv6](https://datatracker.ietf.org/doc/html/rfc4443) response: Unreachable scope                  | Response from router sending the ICMP error |
+|  101        | [ICMP](https://www.rfc-editor.org/rfc/rfc792)/[ICMPv6](https://datatracker.ietf.org/doc/html/rfc4443) response: Unreachable network                | Response from router sending the ICMP error |
+|  102        | [ICMP](https://www.rfc-editor.org/rfc/rfc792)/[ICMPv6](https://datatracker.ietf.org/doc/html/rfc4443) response: Unreachable host                   | Response from router sending the ICMP error |
+|  103        | [ICMP](https://www.rfc-editor.org/rfc/rfc792)/[ICMPv6](https://datatracker.ietf.org/doc/html/rfc4443) response: Unreachable protocol               | Response from router sending the ICMP error |
+|  104        | [ICMP](https://www.rfc-editor.org/rfc/rfc792)/[ICMPv6](https://datatracker.ietf.org/doc/html/rfc4443) response: Unreachable port                   | Response from router sending the ICMP error |
+|  105        | [ICMP](https://www.rfc-editor.org/rfc/rfc792)/[ICMPv6](https://datatracker.ietf.org/doc/html/rfc4443) response: Unreachable, prohibited (firewall) | Response from router sending the ICMP error |
+|  110        | [ICMP](https://www.rfc-editor.org/rfc/rfc792)/[ICMPv6](https://datatracker.ietf.org/doc/html/rfc4443) response: Unreachable, unknown reason        | Response from router sending the ICMP error |
+|  200        | Timeout (no response from a router)                                                                                                                | Timeout value configured for HiPerConTracer |
+|  210        | sendto() call failed (generic error)                                                                                                               | RTT is set to 0                             |
+|  211        | sendto() error: tried to send to broadcast address ([EACCES](https://en.wikipedia.org/wiki/Errno.h#POSIX_errors))                                  | RTT is set to 0                             |
+|  212        | sendto() error: network unreachable ([ENETUNREACH](https://en.wikipedia.org/wiki/Errno.h#POSIX_errors))                                            | RTT is set to 0                             |
+|  213        | sendto() error: host unreachable ([HOSTUNREACH](https://en.wikipedia.org/wiki/Errno.h#POSIX_errors))                                               | RTT is set to 0                             |
+|  214        | sendto() error: address not available ([ADDRNOTAVAIL](https://en.wikipedia.org/wiki/Errno.h#POSIX_errors))                                         | RTT is set to 0                             |
+|  215        | sendto() error: invalid message size ([MSGSIZE](https://en.wikipedia.org/wiki/Errno.h#POSIX_errors))                                               | RTT is set to 0                             |
+|  216        | sendto() error: not enough buffer space ([NOBUFS](https://en.wikipedia.org/wiki/Errno.h#POSIX_errors))                                             | RTT is set to 0                             |
+|  255        | Success (destination has responded)                                                                                                                | The actual RTT to the destination           |
+
+: Status Codes
+
+The status flag extends the status code, by providing an overall result of a Traceroute run consisting of multiple Ping measurements. That is: StatusCode := (StatusFlags & 0xff).
+
+| Status Flag | Description                                                                             |
+| :-:         | :---------                                                                              |
+|  0x100      | Route with "\*" (at least one router did not respond; see also [Path Hash](#path-hash)) |
+|  0x200      | Destination has responded                                                               |
+
+: Status Flags
+
+### Time Source
+
+The time source provides the source of the recorded timing information as hexadecimal 4-byte unsigned integer AAQQSSHH:
+
+| Component | Description                                                             |
+| :-:       | :--------------------                                                   |
+| AA        | Application                                                             |
+| QQ        | Queuing (queuing packet until sending it by driver, in software)        |
+| SS        | Software (sending request by driver until receiving response by driver) |
+| HW        | Hardware (sending request by NIC until receiving response by NIC)       |
+
+: Time Source Components
+
+Each byte AA, QQ, SS, HH provides the receive time source (upper nibble) and send time source (lower nibble):
+
+| Nibble | Description                                                                               |
+| :-:    | :--------------------                                                                     |
+| 0x0    | Not available                                                                             |
+| 0x1    | System clock                                                                              |
+| 0x2    | SO_TIMESTAMPING socket option, microseconds granularity                                   |
+| 0x3    | SO_TIMESTAMPINGNS socket option (or SO_TIMESTAMPING+SO_TS_CLOCK), nanoseconds granularity |
+| 0x4    | SIOCGSTAMP ioctl, microseconds granularity                                                |
+| 0x5    | SIOCGSTAMPNS ioctl, nanoseconds granularity                                               |
+| 0x6    | SO_TIMESTAMPING socket option, in software, nanoseconds granularity                       |
+| 0xa    | SO_TIMESTAMPING socket option, in hardware, nanoseconds granularity                       |
+
+: Time Source Values
+
+For details, particularly also see: [Dreibholz, Thomas](https://www.nntb.no/~dreibh/): «[High-Precision Round-Trip Time Measurements in the Internet with HiPerConTracer](https://web-backend.simula.no/sites/default/files/2023-10/SoftCOM2023-Timestamping.pdf)» ([PDF](https://web-backend.simula.no/sites/default/files/2023-10/SoftCOM2023-Timestamping.pdf), 12474&nbsp;KiB, 7&nbsp;pages, 🇬🇧), in *Proceedings of the 31st International Conference on Software, Telecommunications and Computer Networks&nbsp;(SoftCOM)*, DOI&nbsp;[10.23919/SoftCOM58365.2023.10271612](https://dx.doi.org/10.23919/SoftCOM58365.2023.10271612), ISBN&nbsp;979-8-3503-0107-6, Split, Dalmacija/Croatia, September&nbsp;22, 2023.
+
+### Path Hash
+
+The path hash is an [SHA-1](https://www.rfc-editor.org/rfc/rfc3174.html) hash over the textual representation of a Traceroute run, i.e.&nbsp;SHA1("&lt;Source IP&gt;-&lt;Router 1 IP&gt;-&lt;...&gt;-&lt;Router *n* IP&gt;-&lt;Destination IP&gt;"), where the IP addresses correspond to source, destination, and routers. If a router is unknown, it is represented by "\*". The purpose of the path hash is to quickly identify identical paths. In this case, of course, routers must have consistently responded (non-"\*", i.e.&nbsp;revealing their IP address) or not responded ("\*") to lead to the same hash value.
+
+
 ## Results File Examples
 
 Some simple results file examples (from [`src/results-examples`](https://github.com/dreibh/hipercontracer/tree/master/src/results-examples)):
@@ -269,17 +600,9 @@ Some simple results file examples (from [`src/results-examples`](https://github.
 
 Notes:
 
-* See the [manpage of "hipercontracer"](https://github.com/dreibh/hipercontracer/blob/master/src/hipercontracer.1) for a detailed description of the results file formats: ```bashman hipercontracer```
+* See [Results File Formats](#-results-file-formats) for a description of the results file formats.
 * [HiPerConTracer Viewer Tool](#-the-hipercontracer-viewer-tool) can be used to display results files, including uncompressed ones.
 * [HiPerConTracer Results Tool](#-the-hipercontracer-results-tool) can be used to merge and/or convert the results files.
-
-## Further Details
-
-See the [manpage of "hipercontracer"](https://github.com/dreibh/hipercontracer/blob/master/src/hipercontracer.1) for all options, including a description of the results file formats:
-
-```bash
-man hipercontracer
-```
 
 
 # 📚 The HiPerConTracer Viewer Tool
@@ -289,7 +612,7 @@ The HiPerConTracer Viewer Tool displays the contents of a results file.
 ## Example
 
 ```bash
-hpct-viewer src/results-examples/Traceroute-UDP-#88888888-fdb6:6d27:be73:4::50-20231018T102656.821891-000000001.results.xz
+hpct-viewer src/results-examples/Traceroute-UDP-#88888888-fdb6:6d27:be73:4::50-20231018T102656.821891-000000001.hpct.xz
 ```
 
 ## Further Details
@@ -313,7 +636,7 @@ find data -maxdepth 1 -name "Ping*.hpct.*" | \
    hpct-results --input-file-names-from-stdin --separator=, -o ping.csv.gz
 ```
 
-Hint: You can use the extension .gz for GZip, .bz for BZip2, .xz for XZ, .zst for ZSTD, or none for uncompressed output into the output CSV file!
+Hint: You can use the extension .gz for GZip, .bz2 for BZip2, .xz for XZ, .zst for ZSTD, or none for uncompressed output into the output CSV file!
 
 ## Example 2
 Merge the data from all files matching the pattern `Traceroute*.hpct.*` into CSV file `traceroute.csv.xz`, with ";" as separator:
@@ -362,22 +685,27 @@ See [`r-ping-example`](https://github.com/dreibh/hipercontracer/blob/master/src/
 
 Usage:
 
-* With HiPerConTracer Ping results file:
+```bash
+./r-ping-example <input> <output_prefix>
+```
+
+* With a HiPerConTracer Ping results file as input:
 
   ```bash
   ./r-ping-example \
-     Ping-P13735-2001:700:4100:4::2-20221012T142120.713761-000003330.results.bz2 \
+     Ping-P13735-2001:700:4100:4::2-20221012T142120.713761-000003330.hpct.bz2 \
      output
   ```
 
   Note: The script calls the [HiPerConTracer Results Tool](#-the-hipercontracer-results-tool) for processing of the input file. It therefore must to be installed.
 
-  Outputs:
+  The example script creates a set of 3&nbsp;output files:
+
   * `output.csv`: A summary table as CSV file.
-  * `output.tex`: A summary table as HTML file.
+  * `output.html`: A summary table as HTML file.
   * `output.tex`: A summary table as LaTeX file, for inclusion into a LaTeX publication.
 
-* With all HiPerConTracer Ping results files in a directory:
+* All HiPerConTracer Ping results files in a directory with a directory as input:
 
   ```bash
   ./r-ping-example . output
@@ -387,7 +715,7 @@ Usage:
   * The provided directory ("`.`", i.e.&nbsp;the current directory) is searched for all HiPerConTracer Ping results files.
   * The script calls the [HiPerConTracer Results Tool](#-the-hipercontracer-results-tool) for processing of the input files. It therefore must to be installed.
 
-* With a CSV file:
+* With a CSV file as input:
 
   ```bash
   ./r-ping-example ping.csv output
@@ -401,16 +729,20 @@ See [`r-traceroute-example`](https://github.com/dreibh/hipercontracer/blob/maste
 
 Usage:
 
-* With HiPerConTracer Traceroute results file:
+```bash
+./r-traceroute-example <input>
+```
+
+* With HiPerConTracer Traceroute results file as input:
 
   ```bash
   ./r-traceroute-example \
-     Traceroute-UDP-#88888888-10.193.4.168-20231018T102656.814657-000000001.results.xz
+     Traceroute-UDP-#88888888-10.193.4.168-20231018T102656.814657-000000001.hpct.xz
   ```
 
   Note: The script calls the [HiPerConTracer Results Tool](#-the-hipercontracer-results-tool) for processing of the input file. It therefore must to be installed.
 
-* With all HiPerConTracer Traceroute results files in a directory:
+* All HiPerConTracer Traceroute results files in a directory with a directory as input:
 
   ```bash
   ./r-traceroute-example .
@@ -418,7 +750,7 @@ Usage:
 
   Note: The script calls the [HiPerConTracer Results Tool](#-the-hipercontracer-results-tool) for processing of the input file. It therefore must to be installed.
 
-* With a CSV file:
+* With a CSV file as input
 
   ```bash
   ./r-traceroute-example traceroute.csv
@@ -512,8 +844,8 @@ hpct-query ~/testdb-users-mariadb-researcher.conf ping -o ping.hpct.gz
 Notes:
 
 * Make sure to specify a Measurement ID range, or a time range. Otherwise, the Query tool will export **everything**!
-* The output is in the same format as the originally written HiPerConTracer results. See the [manpage of "hipercontracer"](https://github.com/dreibh/hipercontracer/blob/master/src/hipercontracer.1) for all options, including a description of the results file formats: ```bashman hipercontracer```
-* You can use the extension .gz for GZip, .bz for BZip2, .xz for XZ, .zst for ZSTD, or none for uncompressed output!
+* The output is in the same format as the originally written HiPerConTracer results. See [Results File Formats](#-results-file-formats) for a description of the results file formats.
+* You can use the extension .gz for GZip, .bz2 for BZip2, .xz for XZ, .zst for ZSTD, or none for uncompressed output!
 
 ### Example 2
 
