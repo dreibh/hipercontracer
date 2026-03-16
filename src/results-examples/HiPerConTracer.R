@@ -228,7 +228,7 @@ readHiPerConTracerTracerouteResultsFromCSV <- function(csvFileName, cacheLabel =
 # ###### Read HiPerConTracer results from directory #########################
 readHiPerConTracerResultsFromDirectory <- function(path, pattern, processingFunction, cacheLabel = NA)
 {
-   files <- list.files(path = path, pattern = pattern, full.names=TRUE)
+   files <- list.files(path = path, pattern = pattern, full.names=TRUE, recursive=TRUE)
    if(length(files) < 1) {
       stop("No input files found!")
    }
