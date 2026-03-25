@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+
+set -eu
+
+for file in colorfilters decode_as_entries dfilters ; do
+   cp "${HOME}/.config/wireshark/${file}" .
+done
+grep -v "^#" ~/.config/wireshark/preferences | sed -e '/^$/d' -e '/^\(gui.qt.font_name\|tls.keylog_file\):/d' >preferences

@@ -1,0 +1,7 @@
+# Open endpoint dialog tabs.
+# List of endpoint names, e.g. "TCP", "IPv6".
+gui.endpoint_tabs: 
+	"Ethernet", "DCCP",
+	"IPv4", "IPv6",
+	"MPTCP", "SCTP",
+	"TCP", "UDP"

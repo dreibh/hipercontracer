@@ -1102,6 +1102,10 @@ man udp-echo-server
 
 The [Wireshark](https://www.wireshark.org/) network protocol analyzer provides built-in support for the HiPerConTracer packet format. This support is already included upstream, i.e.&nbsp;Wireshark provides it out-of-the-box.
 
+To decode HiPerConTracer packets, particularly over UDP, it may be necessary to configure ["Decode As" rules](https://www.wireshark.org/docs/wsug_html_chunked/ChCustProtocolDissectionSection.html#ChAdvDecodeAs). Wireshark has to rely on heuristics for UDP. They may fail to recognise the HiPerConTracer payload. The "Decode As" rules configuration in the "Analyze" menu allows to set explicit rules for UDP ports (e.g.&nbsp;7, 10001) for decoding matching packets as HiPerConTracer payload.
+
+[Coloring rules](https://www.wireshark.org/docs/wsug_html_chunked/ChCustColorizationSection.html#ChCustColoringRulesDialog), [filters](https://www.wireshark.org/docs/wsug_html_chunked/ChWorkDefineFilterSection.html) and ["Decode As" rules](https://www.wireshark.org/docs/wsug_html_chunked/ChCustProtocolDissectionSection.html#ChAdvDecodeAs) can be found in the directory [`hipercontracer/src/wireshark`](https://github.com/dreibh/hipercontracer/tree/master/src/wireshark). Simply copy [`colorfilters`](https://github.com/dreibh/hipercontracer/blob/master/src/wireshark/colorfilters), [`dfilters`](https://github.com/dreibh/hipercontracer/blob/master/src/wireshark/dfilters), [`decode_as_entries`](https://github.com/dreibh/hipercontracer/blob/master/src/wireshark/decode_as_entries), and optionally [`preferences`](https://github.com/dreibh/hipercontracer/blob/master/src/wireshark/preferences) to `$HOME/.wireshark`.
+
 
 # 🖋️ Citing HiPerConTracer in Publications
 

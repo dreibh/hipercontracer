@@ -1,0 +1,14 @@
+# "Decode As" entries file for Wireshark 4.7.0.
+#
+# This file is regenerated each time "Decode As" preferences
+# are saved within Wireshark. Making manual changes should be safe,
+# however.
+decode_as_entry: tcp.port,4242,(none),HiPerConTracer
+decode_as_entry: tcp.port,80,HTTP,HiPerConTracer
+decode_as_entry: tcp.port,8999,(none),NetPerfMeter
+decode_as_entry: tcp.port,9000,S101,NetPerfMeter
+decode_as_entry: tcp.port,9001,(none),NetPerfMeter
+decode_as_entry: udp.port,10001,(none),HiPerConTracer
+decode_as_entry: udp.port,7,ECHO,HiPerConTracer
+decode_as_entry: udp.port,8999,(none),QUIC
+decode_as_entry: udp.port,9000,(none),NetPerfMeter
