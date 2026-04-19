@@ -21,7 +21,7 @@ Build-Depends: cmake (>= 3.10),
                libzstd-dev,
                pdf2svg,
                zlib1g-dev
-Standards-Version: 4.7.3
+Standards-Version: 4.7.4
 Rules-Requires-Root: no
 
 Package: hipercontracer

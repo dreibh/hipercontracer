@@ -1,3 +1,69 @@
+commit d5edad18470f4d08950bcc00134d022afb18675d
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Sun Apr 19 11:57:10 2026 +0200
+
+    Version bump.
+
+commit 45ba82a32cd460db77397406d51966abf362c421
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Sun Apr 19 11:02:30 2026 +0200
+
+    Updated test scripts.
+
+commit 9ec1f47d29f2cc55faea095747d8c51e26ba1752
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Fri Apr 17 17:19:47 2026 +0200
+
+    Updated CI scripts
+
+commit 7a05ae29f9064900335903d991cc829dacbf4387
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Fri Apr 17 16:42:28 2026 +0200
+
+    Updated CI scripts
+
+commit c5384ada4409a28456f259d19873ac8e73bae3ee
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Fri Apr 17 13:58:28 2026 +0200
+
+    Fixed Debian package conflict.
+
+commit 78bb05c64cb4d91cadfc57aa1bdd894797a841d6
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Mon Mar 23 13:33:49 2026 +0100
+
+    Minor update.
+
+commit f0e5a767654f6579b651396132431d1bbee3a31a
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Mon Mar 23 13:29:06 2026 +0100
+
+    Documentation improvements.
+
+commit 37961bff0718907a15654891fafded7dfa4f16b2
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Mon Mar 23 13:12:30 2026 +0100
+
+    Added Wireshark configuration example.
+
+commit 101596c4fb7edc294a24e0d972c0aebbc0e5418d
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Mar 19 13:49:54 2026 +0100
+
+    Updated FreeBSD port.
+
+commit 4a2dbb695dfbc951da5e0431c4ceb8444191f4a3
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Mon Mar 16 14:37:15 2026 +0100
+
+    Minor update of the example helper script.
+
+commit 48bd8c00d6f29dc6a449b713dea4641eef8261b1
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Sat Mar 14 15:26:51 2026 +0100
+
+    New release hipercontracer-2.1.12.
+
 commit 5d151f5fc14e5b8db3694f367ef47e1a9d7bb9ae
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Sat Mar 14 13:33:06 2026 +0100

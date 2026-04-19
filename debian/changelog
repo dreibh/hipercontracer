@@ -1,8 +1,9 @@
-hipercontracer (2.1.13~rc0-1ubuntu1) unstable; urgency=medium
+hipercontracer (2.1.13-1ubuntu1) unstable; urgency=medium
 
   * New upstream release.
+  * debian/control: Updated standards version to 4.7.4.
 
- -- Thomas Dreibholz <dreibh@simula.no>  Sun, 19 Apr 2026 11:57:00 +0200
+ -- Thomas Dreibholz <dreibh@simula.no>  Sun, 19 Apr 2026 12:39:11 +0200
 
 hipercontracer (2.1.12-1ubuntu1) unstable; urgency=medium
 
