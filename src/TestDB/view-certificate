@@ -87,8 +87,11 @@ while [ $# -gt 0 ] ; do
    # ====== Look for certificate ============================================
    CERTIFICATE_FILE="$1"
    shift
+   if [ "${CERTIFICATE_FILE}" == "-" ] ; then
+      CERTIFICATE_FILE="/dev/stdin"
+   fi
    if [ ! -e "${CERTIFICATE_FILE}" ] ; then
-      eval_gettext >&2 "ERROR: Unable to find certificate file ${CERTIFICATE_FILE}!"
+      eval_gettext >&2 "ERROR: Unable to find certificate file \${CERTIFICATE_FILE}!"
       echo >&2
       exit 1
    fi
@@ -113,9 +116,9 @@ while [ $# -gt 0 ] ; do
             # shellcheck disable=SC2001
             subject="$(echo "${BASH_REMATCH[2]}" | sed -e 's/\(CN = \)\([^,]*\)/\x1b[4m\1\2\x1b[24m/')"
          elif [[ "${line}" =~ ^(notBefore=)(.*)$ ]] ; then
-            validityFrom="${BASH_REMATCH[2]}"
+            validityFrom="$(TZ=UTC date -d "${BASH_REMATCH[2]}")"
          elif [[ "${line}" =~ ^(notAfter=)(.*)$ ]] ; then
-            validityTo="${BASH_REMATCH[2]}"
+            validityTo="$(TZ=UTC date -d "${BASH_REMATCH[2]}")"
          elif [[ "${line}" =~ ^([ \t]*)(X509v3 )(.*)(:[[:space:]]*)(.*)$ ]] ; then
             extension="${BASH_REMATCH[3]}"
             critical="${BASH_REMATCH[5]}"
