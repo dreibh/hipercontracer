@@ -84,7 +84,7 @@ if [ "$1" == "mariadb" ] ; then
       sudo systemctl enable mariadb.service
       sudo systemctl start mariadb.service
    elif [ "${ID}" == "freebsd" ] ; then
-      MARIADB_CONFIG_DIRECTORY="/usr/local/etc"
+      MARIADB_CONFIG_DIRECTORY="/usr/local/etc/mysql"
       sudo pkg install -y mariadb118-server mariadb118-client openssl
       sudo sysrc mysql_enable=YES
       sudo service mysql-server start
