@@ -147,7 +147,7 @@ EOF
    elif [ "${ID}" == "fedora" ] ; then
       sudo sed \
          -e '/^event_scheduler[ \t]*=.*$/d' -e 's/\(^\[mysqld\].*\)$/\1\nevent_scheduler = ON/' \
-         -e "s%^#bind-address[ \t]*=.*%max_allowed_packet = 1G\nbind-address = *\nssl-ca = ${MARIADB_CA_FILE}\nssl-crl = ${MARIADB_CRL_FILE}\nssl-cert = ${MARIADB_CRT_FILE}\nssl-key = ${MARIADB_KEY_FILE}\nrequire-secure-transport = on\ntls_version = TLSv1.3%g" \
+         -e "s%^#bind-address[ \t]*=.*%max_allowed_packet = 1G\nbind-address = *\nssl-ca = ${MARIADB_CONFIG_DIRECTORY}/${MARIADB_CA_FILE}\nssl-crl = ${MARIADB_CONFIG_DIRECTORY}/${MARIADB_CRL_FILE}\nssl-cert = ${MARIADB_CONFIG_DIRECTORY}/${MARIADB_CRT_FILE}\nssl-key = ${MARIADB_CONFIG_DIRECTORY}/${MARIADB_KEY_FILE}\nrequire-secure-transport = on\ntls_version = TLSv1.3%g" \
          "${MARIADB_CONFIG_DIRECTORY}/mariadb-server.cnf" | sudo tee "${MARIADB_CONFIG_DIRECTORY}/mariadb-server.cnf.new" && \
       sudo diff --color "${MARIADB_CONFIG_DIRECTORY}/mariadb-server.cnf" "${MARIADB_CONFIG_DIRECTORY}/mariadb-server.cnf.new" || true && \
       sudo mv "${MARIADB_CONFIG_DIRECTORY}/mariadb-server.cnf.new" "${MARIADB_CONFIG_DIRECTORY}/mariadb-server.cnf"
@@ -155,7 +155,7 @@ EOF
    elif [ "${ID}" == "freebsd" ] ; then
       sudo sed \
          -e '/^event_scheduler[ \t]*=.*$/d' -e 's/\(^\[mysqld\].*\)$/\1\nevent_scheduler = ON/' \
-         -e "s%^bind-address[ \t]*=.*%max_allowed_packet = 1G\nbind-address = *\nssl-ca = ${MARIADB_CA_FILE}\nssl-crl = ${MARIADB_CRL_FILE}\nssl-cert = ${MARIADB_CRT_FILE}\nssl-key = ${MARIADB_KEY_FILE}\nrequire-secure-transport = on\ntls_version = TLSv1.3%g" \
+         -e "s%^bind-address[ \t]*=.*%max_allowed_packet = 1G\nbind-address = *\nssl-ca = ${MARIADB_CONFIG_DIRECTORY}/${MARIADB_CA_FILE}\nssl-crl = ${MARIADB_CONFIG_DIRECTORY}/${MARIADB_CRL_FILE}\nssl-cert = ${MARIADB_CONFIG_DIRECTORY}/${MARIADB_CRT_FILE}\nssl-key = ${MARIADB_CONFIG_DIRECTORY}/${MARIADB_KEY_FILE}\nrequire-secure-transport = on\ntls_version = TLSv1.3%g" \
          "${MARIADB_CONFIG_DIRECTORY}/conf.d/server.cnf" | sudo tee "${MARIADB_CONFIG_DIRECTORY}/conf.d/server.cnf.new" && \
       sudo diff --color "${MARIADB_CONFIG_DIRECTORY}/conf.d/server.cnf" "${MARIADB_CONFIG_DIRECTORY}/conf.d/server.cnf.new" || true && \
       sudo mv "${MARIADB_CONFIG_DIRECTORY}/conf.d/server.cnf.new" "${MARIADB_CONFIG_DIRECTORY}/conf.d/server.cnf"
@@ -261,7 +261,6 @@ elif [ "$1" == "mongodb" ] ; then
       for key in ${MONGODB_VERSION} dev ; do
          wget -qO - "https://www.mongodb.org/static/pgp/server-${key}.asc" | gpg --dearmor | sudo tee "/usr/share/keyrings/mongodb-${key}.gpg" >/dev/null
       done
-      . /etc/os-release
       (
          if [ "${ID}" == "ubuntu" ] ; then
             codename="${UBUNTU_CODENAME}"
