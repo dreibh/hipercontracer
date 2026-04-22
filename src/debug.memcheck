@@ -1,4 +1,6 @@
-#!/bin/sh -e
+#!/bin/sh -eu
 
-echo "valgrind $@"
+echo "valgrind --tool=memcheck $*"
+
+# shellcheck disable=SC2068
 G_SLICE=always-malloc valgrind  -v --tool=memcheck --leak-check=yes --show-reachable=no --leak-resolution=high --num-callers=40 --freelist-vol=4000000 $@
