@@ -350,13 +350,13 @@ EOF
       mongodConf=/etc/mongod.conf
    fi
 
-   cp ${mongodConf} /tmp/
+   cp "${mongodConf}" /tmp/
    sudo sed \
       -e "s!#  engine:!  directoryPerDB: true!" \
       -e "s!#  wiredTiger:!  wiredTiger:\n    engineConfig:\n      directoryForIndexes: true!" \
-      ${mongodConf} | sudo tee ${mongodConf}.new
+      "${mongodConf}" | sudo tee "${mongodConf}.new"
    sudo service mongod stop
-   sudo mv ${mongodConf}.new ${mongodConf}
+   sudo mv "${mongodConf}.new" "${mongodConf}"
    sudo service mongod start
    sleep 5
 
@@ -378,15 +378,15 @@ EOF
    # ====== Configure MongoDB ===============================================
    # The following settings enable authorization check, restricting access
    # to the configured user (root):
-   cp ${mongodConf} /tmp/
+   cp "${mongodConf}" /tmp/
    sudo sed \
       -e "s!^  bindIp: 127.0.0.1.*!  ipv6: true\n  bindIpAll: true\n  tls:\n    mode: requireTLS\n    CAFile: ${MONGODB_CA_FILE}\n    CRLFile: ${MONGODB_CRL_FILE}\n    certificateKeyFile: ${MONGODB_CRT_KEY_FILE}\n    disabledProtocols: TLS1_0,TLS1_1,TLS1_2\n    allowConnectionsWithoutCertificates: true!" \
       -e "s!#security:!security:\n  authorization: enabled!" \
       -e "s!#  engine:!  directoryPerDB: true!" \
       -e "s!#  wiredTiger:!  wiredTiger:\n    engineConfig:\n      directoryForIndexes: true!" \
-      ${mongodConf} | sudo tee ${mongodConf}.new
+      "${mongodConf}" | sudo tee "${mongodConf}.new"
    sudo service mongod stop
-   sudo mv ${mongodConf}.new ${mongodConf}
+   sudo mv "${mongodConf}.new" "${mongodConf}"
    sudo service mongod start
    sleep 5
 
