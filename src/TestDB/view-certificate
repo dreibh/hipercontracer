@@ -46,6 +46,24 @@ usage () {
 }
 
 
+# ###### Print date in current locale and current time zone #################
+print-date ()
+{
+   local input="$1"
+   local unixTS
+   local datetime
+   if date --version >/dev/null 2>&1; then
+      unixTS="$(date -d "${input}" +"%s")"
+      datetime="$(date -d "@${unixTS}" +"%c %Z")"
+   else
+      unixTS="$(LC_ALL=C.UTF-8 date -j -f "%b %d %T %Y %Z" "${input}" +"%s")"
+      datetime="$(date -r "${unixTS}" +"%c %Z")"
+   fi
+   echo "${datetime}"
+}
+
+
+
 # ###### Main program #######################################################
 
 # ====== Handle arguments ===================================================
@@ -116,9 +134,9 @@ while [ $# -gt 0 ] ; do
             # shellcheck disable=SC2001
             subject="$(echo "${BASH_REMATCH[2]}" | sed -e 's/\(CN = \)\([^,]*\)/\x1b[4m\1\2\x1b[24m/')"
          elif [[ "${line}" =~ ^(notBefore=)(.*)$ ]] ; then
-            validityFrom="$(TZ=UTC date -d "${BASH_REMATCH[2]}")"
+            validityFrom="$(print-date "${BASH_REMATCH[2]}")"
          elif [[ "${line}" =~ ^(notAfter=)(.*)$ ]] ; then
-            validityTo="$(TZ=UTC date -d "${BASH_REMATCH[2]}")"
+            validityTo="$(print-date "${BASH_REMATCH[2]}")"
          elif [[ "${line}" =~ ^([ \t]*)(X509v3 )(.*)(:[[:space:]]*)(.*)$ ]] ; then
             extension="${BASH_REMATCH[3]}"
             critical="${BASH_REMATCH[5]}"
