@@ -185,7 +185,7 @@ elif [ "$1" == "postgresql" ] ; then
    elif [ "${ID}" == "freebsd" ] ; then
       sudo pkg install -y postgresql18-server postgresql18-client postgresql-libpqxx openssl
       sudo sysrc postgresql_enable="YES"
-      sudo "/etc/rc.d/postgresql" initdb
+      sudo service postgresql initdb
       sudo service postgresql start
    else
       echo >&2 "ERROR: Unknown ID ${ID} in /etc/os-release. The installation script may need an update for supporting this system!"
