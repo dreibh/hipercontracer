@@ -1,3 +1,11 @@
+hipercontracer (2.1.14~rc0-1ubuntu1) unstable; urgency=medium
+
+  * New upstream release.
+  * debian/control: Only the examples of hipercontracer-importer need
+    Python3 -> using "Recommends" instead of "Requires".
+
+ -- Thomas Dreibholz <dreibh@simula.no>  Wed, 22 Apr 2026 21:07:28 +0200
+
 hipercontracer (2.1.13-1ubuntu1) unstable; urgency=medium
 
   * New upstream release.

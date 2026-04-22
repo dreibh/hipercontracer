@@ -1,5 +1,5 @@
 Name: hipercontracer
-Version: 2.1.13
+Version: 2.1.14~rc0
 Release: 1
 Summary: High-Performance Connectivity Tracer (HiPerConTracer)
 Group: Applications/Internet
@@ -199,8 +199,8 @@ Requires: R-digest
 Requires: R-dplyr
 Requires: R-nanotime
 Requires: R-xtable
-Recommends: python3
-Recommends: python3-netifaces
+Requires: python3
+Requires: python3-netifaces
 
 %description examples
 High-Performance Connectivity Tracer (HiPerConTracer) is a Ping/Traceroute
@@ -802,6 +802,8 @@ Group: Applications/Database
 Requires: %{name}-common = %{version}-%{release}
 Requires: %{name}-libuniversalimporter = %{version}-%{release}
 Recommends: %{name}-dbshell = %{version}-%{release}
+Recommends: python3
+Recommends: python3-netifaces
 Suggests: %{name} = %{version}-%{release}
 
 %description importer
