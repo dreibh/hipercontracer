@@ -29,7 +29,7 @@
 # Contact: dreibh@simula.no
 
 # Bash options:
-set -eu
+set -eux
 
 
 if [ $# -ne 2 ] ; then
@@ -74,13 +74,17 @@ if [ "$1" == "mariadb" ] ; then
    # ====== Install MariaDB =================================================
    echo -e "\x1b[34m$(date +"%F %H:%M:%S"): Installing MariaDB ...\x1b[0m"
 
+   MARIADB_CONFIG_DIRECTORY=""
    if [ "${ID}" == "ubuntu" ] || [ "${ID}" == "debian" ] ; then
+      MARIADB_CONFIG_DIRECTORY="/etc/mysql"
       sudo DEBIAN_FRONTEND=noninteractive apt install -y -o APT::Keep-Downloaded-Packages=true mariadb-server mariadb-backup mariadb-client libmariadb-dev openssl
    elif [ "${ID}" == "fedora" ] ; then
+      MARIADB_CONFIG_DIRECTORY="/etc/my.cnf.d"
       sudo dnf install -y mariadb-server mariadb-backup mariadb-connector-c-devel openssl
       sudo systemctl enable mariadb.service
       sudo systemctl start mariadb.service
    elif [ "${ID}" == "freebsd" ] ; then
+      MARIADB_CONFIG_DIRECTORY="/usr/local/etc"
       sudo pkg install -y mariadb118-server mariadb118-client openssl
       sudo sysrc mysql_enable=YES
       sudo service mysql-server start
@@ -96,13 +100,25 @@ if [ "$1" == "mariadb" ] ; then
    # MariaDB needs separate certificate and key files.
    # The chain is in the CA file, it must not be in the certificate file!
    # Details: https://mariadb.com/kb/en/securing-connections-for-client-and-server/
-   MARIADB_CA_FILE="/etc/ssl/TestLevel1/certs/TestLevel1.crt"
-   MARIADB_CRL_FILE="/etc/ssl/TestGlobal.crl"
-   MARIADB_CRT_FILE="/etc/ssl/${server}.${DOMAIN}/${server}.${DOMAIN}.crt"
-   MARIADB_KEY_FILE="/etc/ssl/${server}.${DOMAIN}/${server}.${DOMAIN}.key"
-   sudo chown mysql:mysql ${MARIADB_KEY_FILE}
+   MARIADB_CA_FILE="TestLevel1.crt"
+   MARIADB_CRL_FILE="TestGlobal.crl"
+   MARIADB_CRT_FILE="${server}.${DOMAIN}.crt"
+   MARIADB_KEY_FILE="${server}.${DOMAIN}.key"
+   sudo cp "/etc/ssl/TestLevel1/certs/${MARIADB_CA_FILE}" \
+      "/etc/ssl/${MARIADB_CRL_FILE}" \
+      "/etc/ssl/${server}.${DOMAIN}/${MARIADB_CRT_FILE}" \
+      "/etc/ssl/${server}.${DOMAIN}/${MARIADB_KEY_FILE}" \
+      "${MARIADB_CONFIG_DIRECTORY}"
+   sudo chown mysql:mysql \
+      "${MARIADB_CONFIG_DIRECTORY}/${MARIADB_CA_FILE}" \
+      "${MARIADB_CONFIG_DIRECTORY}/${MARIADB_CRL_FILE}" \
+      "${MARIADB_CONFIG_DIRECTORY}/${MARIADB_CRT_FILE}" \
+      "${MARIADB_CONFIG_DIRECTORY}/${MARIADB_KEY_FILE}"
+   sudo chmod 600 "${MARIADB_CONFIG_DIRECTORY}/${MARIADB_KEY_FILE}"
 
    # Set root password, and remove test user and database.
+   sudo -u mysql mariadb-install-db || true
+   sudo service mariadb start || true
    (
       cat <<EOF
 ALTER USER 'root'@'localhost' IDENTIFIED BY '${ROOT_PASSWORD}';
@@ -120,29 +136,29 @@ EOF
          -e '/^event_scheduler[ \t]*=.*$/d' -e 's/\(^\[mysqld\].*\)$/\1\nevent_scheduler = ON/' \
          -e 's/^\([#]\|\)\(max_allowed_packet[ \t]*\)=.*$/\2= 1G/g' \
          -e 's/^\(bind-address[ \t]*\)=.*$/\1= */g' \
-         -e "s%\([#][ \t]*\|\)ssl-ca[ ]*=[ ]*.*%ssl-ca = ${MARIADB_CA_FILE}\nssl-crl = ${MARIADB_CRL_FILE}%" \
-         -e "s%\([#][ \t]*\|\)ssl-cert[ ]*=[ ]*.*%ssl-cert = ${MARIADB_CRT_FILE}%" \
-         -e "s%\([#][ \t]*\|\)ssl-key[ ]*=[ ]*.*%ssl-key = ${MARIADB_KEY_FILE}%" \
+         -e "s%\([#][ \t]*\|\)ssl-ca[ ]*=[ ]*.*%ssl-ca = ${MARIADB_CONFIG_DIRECTORY}/${MARIADB_CA_FILE}\nssl-crl = ${MARIADB_CONFIG_DIRECTORY}/${MARIADB_CRL_FILE}%" \
+         -e "s%\([#][ \t]*\|\)ssl-cert[ ]*=[ ]*.*%ssl-cert = ${MARIADB_CONFIG_DIRECTORY}/${MARIADB_CRT_FILE}%" \
+         -e "s%\([#][ \t]*\|\)ssl-key[ ]*=[ ]*.*%ssl-key = ${MARIADB_CONFIG_DIRECTORY}/${MARIADB_KEY_FILE}%" \
          -e "s%\([#][ \t]*\|\)require-secure-transport[ ]*=[ ]*.*%require-secure-transport = on\ntls_version = TLSv1.3%" \
-         /etc/mysql/mariadb.conf.d/50-server.cnf | sudo tee /etc/mysql/mariadb.conf.d/50-server.cnf.new >/dev/null && \
-      sudo diff --color /etc/mysql/mariadb.conf.d/50-server.cnf /etc/mysql/mariadb.conf.d/50-server.cnf.new || true && \
-      sudo mv /etc/mysql/mariadb.conf.d/50-server.cnf.new /etc/mysql/mariadb.conf.d/50-server.cnf
+         "${MARIADB_CONFIG_DIRECTORY}/mariadb.conf.d/50-server.cnf" | sudo tee "${MARIADB_CONFIG_DIRECTORY}/mariadb.conf.d/50-server.cnf.new" >/dev/null && \
+      sudo diff --color "${MARIADB_CONFIG_DIRECTORY}/mariadb.conf.d/50-server.cnf" "${MARIADB_CONFIG_DIRECTORY}/mariadb.conf.d/50-server.cnf.new" || true && \
+      sudo mv "${MARIADB_CONFIG_DIRECTORY}/mariadb.conf.d/50-server.cnf.new" ${MARIADB_CONFIG_DIRECTORY}/mariadb.conf.d/50-server.cnf
       sudo service mariadb restart
    elif [ "${ID}" == "fedora" ] ; then
       sudo sed \
          -e '/^event_scheduler[ \t]*=.*$/d' -e 's/\(^\[mysqld\].*\)$/\1\nevent_scheduler = ON/' \
          -e "s%^#bind-address[ \t]*=.*%max_allowed_packet = 1G\nbind-address = *\nssl-ca = ${MARIADB_CA_FILE}\nssl-crl = ${MARIADB_CRL_FILE}\nssl-cert = ${MARIADB_CRT_FILE}\nssl-key = ${MARIADB_KEY_FILE}\nrequire-secure-transport = on\ntls_version = TLSv1.3%g" \
-         /etc/my.cnf.d/mariadb-server.cnf | sudo tee /etc/my.cnf.d/mariadb-server.cnf.new && \
-      sudo diff --color /etc/my.cnf.d/mariadb-server.cnf /etc/my.cnf.d/mariadb-server.cnf.new || true && \
-      sudo mv /etc/my.cnf.d/mariadb-server.cnf.new /etc/my.cnf.d/mariadb-server.cnf
+         ${MARIADB_CONFIG_DIRECTORY}/mariadb-server.cnf | sudo tee ${MARIADB_CONFIG_DIRECTORY}/mariadb-server.cnf.new && \
+      sudo diff --color ${MARIADB_CONFIG_DIRECTORY}/mariadb-server.cnf ${MARIADB_CONFIG_DIRECTORY}/mariadb-server.cnf.new || true && \
+      sudo mv ${MARIADB_CONFIG_DIRECTORY}/mariadb-server.cnf.new ${MARIADB_CONFIG_DIRECTORY}/mariadb-server.cnf
       sudo service mariadb restart
    elif [ "${ID}" == "freebsd" ] ; then
       sudo sed \
          -e '/^event_scheduler[ \t]*=.*$/d' -e 's/\(^\[mysqld\].*\)$/\1\nevent_scheduler = ON/' \
          -e "s%^bind-address[ \t]*=.*%max_allowed_packet = 1G\nbind-address = *\nssl-ca = ${MARIADB_CA_FILE}\nssl-crl = ${MARIADB_CRL_FILE}\nssl-cert = ${MARIADB_CRT_FILE}\nssl-key = ${MARIADB_KEY_FILE}\nrequire-secure-transport = on\ntls_version = TLSv1.3%g" \
-         /usr/local/etc/mysql/conf.d/server.cnf | sudo tee /usr/local/etc/mysql/conf.d/server.cnf.new && \
-      sudo diff --color /usr/local/etc/mysql/conf.d/server.cnf /usr/local/etc/mysql/conf.d/server.cnf.new || true && \
-      sudo mv /usr/local/etc/mysql/conf.d/server.cnf.new /usr/local/etc/mysql/conf.d/server.cnf
+         /usr/local${MARIADB_CONFIG_DIRECTORY}/conf.d/server.cnf | sudo tee /usr/local${MARIADB_CONFIG_DIRECTORY}/conf.d/server.cnf.new && \
+      sudo diff --color /usr/local${MARIADB_CONFIG_DIRECTORY}/conf.d/server.cnf /usr/local${MARIADB_CONFIG_DIRECTORY}/conf.d/server.cnf.new || true && \
+      sudo mv /usr/local${MARIADB_CONFIG_DIRECTORY}/conf.d/server.cnf.new /usr/local${MARIADB_CONFIG_DIRECTORY}/conf.d/server.cnf
       sudo service mysql-server restart
    fi
 
@@ -168,7 +184,7 @@ elif [ "$1" == "postgresql" ] ; then
    elif [ "${ID}" == "freebsd" ] ; then
       sudo pkg install -y postgresql18-server postgresql18-client postgresql-libpqxx openssl
       sudo sysrc postgresql_enable="YES"
-      sudo /usr/local/etc/rc.d/postgresql initdb
+      sudo "${MARIADB_CONFIG_DIRECTORY}/rc.d/postgresql" initdb
       sudo service postgresql start
    else
       echo >&2 "ERROR: Unknown ID ${ID} in /etc/os-release. The installation script may need an update for supporting this system!"
@@ -329,7 +345,7 @@ EOF
    # The following settings enable authorization check, restricting access
    # to the configured user (root).
    if [ "${ID}" == "freebsd" ] ; then
-      mongodConf=/usr/local/etc/mongodb.conf
+      mongodConf=${MARIADB_CONFIG_DIRECTORY}/mongodb.conf
    else
       mongodConf=/etc/mongod.conf
    fi
