@@ -54,5 +54,5 @@ while [ $# -gt 0 ] ;do
       -e "/${name}\.${domain}/d" \
       -e "s/^\(${HEADER}.*\)$/\1\n127.0.0.1 ${name}.${domain} ${name}\n::1       ${name}.${domain} ${name}/" \
       </etc/hosts >/etc/hosts.new && \
-   mv /etc/hosts.new /etc/hosts
+   cat /etc/hosts.new >/etc/hosts
 done
