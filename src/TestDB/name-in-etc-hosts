@@ -47,7 +47,9 @@ fi
 while [ $# -gt 0 ] ;do
    NAME="$1"
    shift
+   # shellcheck disable=SC2001
    name="$(echo "${NAME}" | sed -e "s/\..*$//g")"
+   # shellcheck disable=SC2001
    domain="$(echo "${NAME}" | sed -e "s/^[^\.]*\.//g")"
    echo "${name}.${domain}"
    sed \
