@@ -242,6 +242,7 @@ elif [ "$1" == "postgresql" ] ; then
 
    sudo -u postgres sed -r \
       -e "s%#listen_addresses = 'localhost'%listen_addresses = '*'        %" \
+      -e "s/port = .*$/port = 5432/" \
       -e "s%^(#ssl|ssl) =.*%ssl = on%" \
       -e "s%^(#ssl|ssl)_ca_file = '.*'%ssl_ca_file = '${POSTGRES_CONFIG_DIRECTORY}/${POSTGRES_CA_FILE}'%" \
       -e "s%^(#ssl|ssl)_crl_file = '.*'%ssl_crl_file = '${POSTGRES_CONFIG_DIRECTORY}/${POSTGRES_CRL_FILE}'%" \
