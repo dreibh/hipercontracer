@@ -78,6 +78,9 @@ if [ "$1" == "mariadb" ] ; then
    if [ "${ID}" == "ubuntu" ] || [ "${ID}" == "debian" ] ; then
       MARIADB_CONFIG_DIRECTORY="/etc/mysql"
       sudo DEBIAN_FRONTEND=noninteractive apt install -y -o APT::Keep-Downloaded-Packages=true mariadb-server mariadb-backup mariadb-client libmariadb-dev openssl
+      # FIXME: This seems to be necessary for Ubuntu 26.04:
+      sudo -u mysql mariadb-install-db || true
+      sudo service mariadb start || true
    elif [ "${ID}" == "fedora" ] ; then
       MARIADB_CONFIG_DIRECTORY="/etc/my.cnf.d"
       sudo dnf install -y mariadb-server mariadb-backup mariadb-connector-c-devel openssl
@@ -117,8 +120,6 @@ if [ "$1" == "mariadb" ] ; then
    sudo chmod 600 "${MARIADB_CONFIG_DIRECTORY}/${MARIADB_KEY_FILE}"
 
    # Set root password, and remove test user and database.
-   sudo -u mysql mariadb-install-db || true
-   sudo service mariadb start || true
    (
       cat <<EOF
 ALTER USER 'root'@'localhost' IDENTIFIED BY '${ROOT_PASSWORD}';
@@ -184,7 +185,7 @@ elif [ "$1" == "postgresql" ] ; then
    elif [ "${ID}" == "freebsd" ] ; then
       sudo pkg install -y postgresql18-server postgresql18-client postgresql-libpqxx openssl
       sudo sysrc postgresql_enable="YES"
-      sudo "${MARIADB_CONFIG_DIRECTORY}/rc.d/postgresql" initdb
+      sudo "/etc/rc.d/postgresql" initdb
       sudo service postgresql start
    else
       echo >&2 "ERROR: Unknown ID ${ID} in /etc/os-release. The installation script may need an update for supporting this system!"
@@ -344,7 +345,7 @@ EOF
    # The following settings enable authorization check, restricting access
    # to the configured user (root).
    if [ "${ID}" == "freebsd" ] ; then
-      mongodConf=${MARIADB_CONFIG_DIRECTORY}/mongodb.conf
+      mongodConf=/usr/local/etc/mongodb.conf
    else
       mongodConf=/etc/mongod.conf
    fi
