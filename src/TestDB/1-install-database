@@ -334,43 +334,66 @@ EOF
       exit 1
    fi
 
+   MONGODB_CONFIG_DIRECTORY=""
+   MONGODB_CONFIG_FILE=""
+   if [ -e /etc/mongod.conf ] ; then
+      MONGODB_CONFIG_DIRECTORY="/etc"
+      MONGODB_CONFIG_FILE="mongod.conf"
+   elif [ -e /usr/local/etc/mongodb.conf ] ; then
+      MONGODB_CONFIG_DIRECTORY="/usr/local/etc"
+      MONGODB_CONFIG_FILE="mongodb.conf"
+   fi
+   if [ "${MONGODB_CONFIG_DIRECTORY}" == "" ] || \
+      [ "${MONGODB_CONFIG_FILE}" == "" ]  ; then
+      echo >&2 "ERROR: Cannot find the MongoDB configuration directory and file!"
+      exit 1
+   fi
+   echo "Using MongoDB settings in ${MONGODB_CONFIG_DIRECTORY}/${MONGODB_CONFIG_FILE}!"
+
    # ====== Basic configuration =============================================
    sudo ./name-in-etc-hosts "${server}.${DOMAIN}"
    sudo ./generate-test-certificates /etc/ssl "${server}.${DOMAIN}"
 
    # MongoDB wants key + certificate + chain (in this order!) in the PEM file:
-   MONGODB_CA_FILE="/etc/ssl/TestLevel1/certs/TestLevel1.crt"
-   MONGODB_CRL_FILE="/etc/ssl/TestGlobal.crl"
-   MONGODB_CRT_KEY_FILE="/etc/ssl/${server}.${DOMAIN}/${server}.${DOMAIN}.key+crt"
-   sudo touch ${MONGODB_CRT_KEY_FILE}
-   sudo chmod 600 ${MONGODB_CRT_KEY_FILE}
-   sudo cat /etc/ssl/${server}.${DOMAIN}/${server}.${DOMAIN}.key \
-            /etc/ssl/${server}.${DOMAIN}/${server}.${DOMAIN}.crt | \
-      sudo tee ${MONGODB_CRT_KEY_FILE} >/dev/null
+   MONGODB_CA_FILE="TestLevel1.crt"
+   MONGODB_CRL_FILE="TestGlobal.crl"
+   MONGODB_CRT_FILE="${server}.${DOMAIN}.crt"
+   MONGODB_CRT_KEY_FILE="${server}.${DOMAIN}/${server}.${DOMAIN}.key+crt"
+   sudo cp "/etc/ssl/TestLevel1/certs/${MONGODB_CA_FILE}" \
+      "/etc/ssl/${MONGODB_CRL_FILE}" \
+      "/etc/ssl/${server}.${DOMAIN}/${MONGODB_CRT_FILE}" \
+      "/etc/ssl/${server}.${DOMAIN}/${MONGODB_KEY_FILE}" \
+      "${MONGODB_CONFIG_DIRECTORY}"
+   sudo cat "/etc/ssl/${server}.${DOMAIN}/${server}.${DOMAIN}.key" \
+            "/etc/ssl/${server}.${DOMAIN}/${server}.${DOMAIN}.crt" \
+      sudo tee "${MONGODB_CRT_KEY_FILE}" >/dev/null
+
    if [ "${ID}" == "fedora" ] ; then
-      sudo chown mongod:mongod ${MONGODB_CRT_KEY_FILE}
+      sudo chown mongod:mongod \
+         "${MONGODB_CONFIG_DIRECTORY}/${MONGODB_CA_FILE}" \
+         "${MONGODB_CONFIG_DIRECTORY}/${MONGODB_CRL_FILE}" \
+         "${MONGODB_CONFIG_DIRECTORY}/${MONGODB_CRT_FILE}" \
+         "${MONGODB_CRT_KEY_FILE}"
    else
-      sudo chown mongodb:mongodb ${MONGODB_CRT_KEY_FILE}
+      sudo chown mongodb:mongodb \
+         "${MONGODB_CONFIG_DIRECTORY}/${MONGODB_CA_FILE}" \
+         "${MONGODB_CONFIG_DIRECTORY}/${MONGODB_CRL_FILE}" \
+         "${MONGODB_CONFIG_DIRECTORY}/${MONGODB_CRT_FILE}" \
+         "${MONGODB_CRT_KEY_FILE}"
    fi
+   sudo chmod 600 "${MONGODB_CONFIG_DIRECTORY}/${MONGODB_CONFIG_FILE}"
 
 
    # WARNING: After installation, MongoDB gives everybody on 127.0.0.1
    #          full access!
    # The following settings enable authorization check, restricting access
    # to the configured user (root).
-   if [ "${ID}" == "freebsd" ] ; then
-      mongodConf=/usr/local/etc/mongodb.conf
-   else
-      mongodConf=/etc/mongod.conf
-   fi
-
-   cp "${mongodConf}" /tmp/
    sudo sed \
       -e "s!#  engine:!  directoryPerDB: true!" \
       -e "s!#  wiredTiger:!  wiredTiger:\n    engineConfig:\n      directoryForIndexes: true!" \
-      "${mongodConf}" | sudo tee "${mongodConf}.new"
+      "${MONGODB_CONFIG_DIRECTORY}/${MONGODB_CONFIG_FILE}" | sudo tee "${MONGODB_CONFIG_DIRECTORY}/${MONGODB_CONFIG_FILE}.new"
    sudo service mongod stop
-   sudo mv "${mongodConf}.new" "${mongodConf}"
+   sudo mv "${MONGODB_CONFIG_DIRECTORY}/${MONGODB_CONFIG_FILE}.new" "${MONGODB_CONFIG_DIRECTORY}/${MONGODB_CONFIG_FILE}"
    sudo service mongod start
    sleep 5
 
@@ -392,15 +415,14 @@ EOF
    # ====== Configure MongoDB ===============================================
    # The following settings enable authorization check, restricting access
    # to the configured user (root):
-   cp "${mongodConf}" /tmp/
    sudo sed \
-      -e "s!^  bindIp: 127.0.0.1.*!  ipv6: true\n  bindIpAll: true\n  tls:\n    mode: requireTLS\n    CAFile: ${MONGODB_CA_FILE}\n    CRLFile: ${MONGODB_CRL_FILE}\n    certificateKeyFile: ${MONGODB_CRT_KEY_FILE}\n    disabledProtocols: TLS1_0,TLS1_1,TLS1_2\n    allowConnectionsWithoutCertificates: true!" \
+      -e "s!^  bindIp: 127.0.0.1.*!  ipv6: true\n  bindIpAll: true\n  tls:\n    mode: requireTLS\n    CAFile: ${MONGODB_CONFIG_DIRECTORY}/${MONGODB_CA_FILE}\n    CRLFile: ${MONGODB_CONFIG_DIRECTORY}/${MONGODB_CRL_FILE}\n    certificateKeyFile: ${MONGODB_CONFIG_DIRECTORY}/${MONGODB_CRT_CONFIG_FILE}\n    disabledProtocols: TLS1_0,TLS1_1,TLS1_2\n    allowConnectionsWithoutCertificates: true!" \
       -e "s!#security:!security:\n  authorization: enabled!" \
       -e "s!#  engine:!  directoryPerDB: true!" \
       -e "s!#  wiredTiger:!  wiredTiger:\n    engineConfig:\n      directoryForIndexes: true!" \
-      "${mongodConf}" | sudo tee "${mongodConf}.new"
+      "${MONGODB_CONFIG_DIRECTORY}/${MONGODB_CONFIG_FILE}" | sudo tee "${MONGODB_CONFIG_DIRECTORY}/${MONGODB_CONFIG_FILE}.new"
    sudo service mongod stop
-   sudo mv "${mongodConf}.new" "${mongodConf}"
+   sudo mv "${MONGODB_CONFIG_DIRECTORY}/${MONGODB_CONFIG_FILE}.new" "${MONGODB_CONFIG_DIRECTORY}/${MONGODB_CONFIG_FILE}"
    sudo service mongod start
    sleep 5
 
