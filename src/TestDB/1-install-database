@@ -269,8 +269,8 @@ elif [ "$1" == "mongodb" ] ; then
    # ====== Install MongoDB =================================================
    echo -e "\x1b[34m$(date +"%F %H:%M:%S"): Installing MongoDB ...\x1b[0m"
 
-   MONGODB_VERSION="8.0"
-   MONGODB_KEY="${MONGODB_VERSION}"
+   MONGODB_VERSION="8.2"   # Current version
+   MONGODB_KEY="8.0"       # NOTE: Minor releases use the major version's key!
 
    if [ "${ID}" == "ubuntu" ] || [ "${ID}" == "debian" ] ; then
       for key in ${MONGODB_VERSION} dev ; do
@@ -411,7 +411,7 @@ EOF
    # The following settings enable authorization check, restricting access
    # to the configured user (root):
    sudo sed \
-      -e "s!^  bindIp: 127.0.0.1.*!  ipv6: true\n  bindIpAll: true\n  tls:\n    mode: requireTLS\n    CAFile: ${MONGODB_CONFIG_DIRECTORY}/${MONGODB_CA_FILE}\n    CRLFile: ${MONGODB_CONFIG_DIRECTORY}/${MONGODB_CRL_FILE}\n    certificateKeyFile: ${MONGODB_CONFIG_DIRECTORY}/${MONGODB_KEY_CRT_FILE}\n    disabledProtocols: TLS1_0,TLS1_1,TLS1_2\n    allowConnectionsWithoutCertificates: true!" \
+      -e "s!^  bindIp: 127.0.0.1.*!  ipv6: true\n  bindIpAll: true\n  tls:\n    mode: requireTLS\n    CAFile: ${MONGODB_CONFIG_DIRECTORY}/${MONGODB_CA_FILE}\n    CRLFile: ${MONGODB_CONFIG_DIRECTORY}/${MONGODB_CRL_FILE}\n    certificateKeyFile: ${MONGODB_CONFIG_DIRECTORY}/${MONGODB_KEY_CRT_FILE}\n    disabledProtocols: TLS1_0,TLS1_1,TLS1_2\n    allowConnectionsWithoutCertificates: true\n\nsetParameter:\n  opensslCipherSuiteConfig: TLS_AES_256_GCM_SHA384!" \
       -e "s!#security:!security:\n  authorization: enabled!" \
       -e "s!#  engine:!  directoryPerDB: true!" \
       -e "s!#  wiredTiger:!  wiredTiger:\n    engineConfig:\n      directoryForIndexes: true!" \
