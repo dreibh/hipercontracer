@@ -357,29 +357,24 @@ EOF
    # MongoDB wants key + certificate + chain (in this order!) in the PEM file:
    MONGODB_CA_FILE="TestLevel1.crt"
    MONGODB_CRL_FILE="TestGlobal.crl"
-   MONGODB_CRT_FILE="${server}.${DOMAIN}.crt"
-   MONGODB_CRT_KEY_FILE="${server}.${DOMAIN}/${server}.${DOMAIN}.key+crt"
+   MONGODB_KEY_CRT_FILE="${server}.${DOMAIN}.key+crt"
    sudo cp "/etc/ssl/TestLevel1/certs/${MONGODB_CA_FILE}" \
       "/etc/ssl/${MONGODB_CRL_FILE}" \
-      "/etc/ssl/${server}.${DOMAIN}/${MONGODB_CRT_FILE}" \
-      "/etc/ssl/${server}.${DOMAIN}/${MONGODB_KEY_FILE}" \
       "${MONGODB_CONFIG_DIRECTORY}"
    sudo cat "/etc/ssl/${server}.${DOMAIN}/${server}.${DOMAIN}.key" \
-            "/etc/ssl/${server}.${DOMAIN}/${server}.${DOMAIN}.crt" \
-      sudo tee "${MONGODB_CRT_KEY_FILE}" >/dev/null
+            "/etc/ssl/${server}.${DOMAIN}/${server}.${DOMAIN}.crt" | \
+      sudo tee "${MONGODB_CONFIG_DIRECTORY}/${MONGODB_KEY_CRT_FILE}" >/dev/null
 
    if [ "${ID}" == "fedora" ] ; then
       sudo chown mongod:mongod \
          "${MONGODB_CONFIG_DIRECTORY}/${MONGODB_CA_FILE}" \
          "${MONGODB_CONFIG_DIRECTORY}/${MONGODB_CRL_FILE}" \
-         "${MONGODB_CONFIG_DIRECTORY}/${MONGODB_CRT_FILE}" \
-         "${MONGODB_CRT_KEY_FILE}"
+         "${MONGODB_KEY_CRT_FILE}"
    else
       sudo chown mongodb:mongodb \
          "${MONGODB_CONFIG_DIRECTORY}/${MONGODB_CA_FILE}" \
          "${MONGODB_CONFIG_DIRECTORY}/${MONGODB_CRL_FILE}" \
-         "${MONGODB_CONFIG_DIRECTORY}/${MONGODB_CRT_FILE}" \
-         "${MONGODB_CRT_KEY_FILE}"
+         "${MONGODB_KEY_CRT_FILE}"
    fi
    sudo chmod 600 "${MONGODB_CONFIG_DIRECTORY}/${MONGODB_CONFIG_FILE}"
 
@@ -416,7 +411,7 @@ EOF
    # The following settings enable authorization check, restricting access
    # to the configured user (root):
    sudo sed \
-      -e "s!^  bindIp: 127.0.0.1.*!  ipv6: true\n  bindIpAll: true\n  tls:\n    mode: requireTLS\n    CAFile: ${MONGODB_CONFIG_DIRECTORY}/${MONGODB_CA_FILE}\n    CRLFile: ${MONGODB_CONFIG_DIRECTORY}/${MONGODB_CRL_FILE}\n    certificateKeyFile: ${MONGODB_CONFIG_DIRECTORY}/${MONGODB_CRT_CONFIG_FILE}\n    disabledProtocols: TLS1_0,TLS1_1,TLS1_2\n    allowConnectionsWithoutCertificates: true!" \
+      -e "s!^  bindIp: 127.0.0.1.*!  ipv6: true\n  bindIpAll: true\n  tls:\n    mode: requireTLS\n    CAFile: ${MONGODB_CONFIG_DIRECTORY}/${MONGODB_CA_FILE}\n    CRLFile: ${MONGODB_CONFIG_DIRECTORY}/${MONGODB_CRL_FILE}\n    certificateKeyFile: ${MONGODB_CONFIG_DIRECTORY}/${MONGODB_KEY_CRT_FILE}\n    disabledProtocols: TLS1_0,TLS1_1,TLS1_2\n    allowConnectionsWithoutCertificates: true!" \
       -e "s!#security:!security:\n  authorization: enabled!" \
       -e "s!#  engine:!  directoryPerDB: true!" \
       -e "s!#  wiredTiger:!  wiredTiger:\n    engineConfig:\n      directoryForIndexes: true!" \
