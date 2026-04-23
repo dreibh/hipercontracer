@@ -142,9 +142,10 @@ EOF
          -e '/^event_scheduler[ \t]*=.*$/d' -e 's/\(^\[mysqld\].*\)$/\1\nevent_scheduler = ON/' \
          -e 's/^\([#]\|\)\(max_allowed_packet[ \t]*\)=.*$/\2= 1G/g' \
          -e 's/^\(bind-address[ \t]*\)=.*$/\1= */g' \
-         -e "s%\([#][ \t]*\|\)ssl-ca[ ]*=[ ]*.*%ssl-ca = ${MARIADB_CONFIG_DIRECTORY}/${MARIADB_CA_FILE}\nssl-crl = ${MARIADB_CONFIG_DIRECTORY}/${MARIADB_CRL_FILE}%" \
-         -e "s%\([#][ \t]*\|\)ssl-cert[ ]*=[ ]*.*%ssl-cert = ${MARIADB_CONFIG_DIRECTORY}/${MARIADB_CRT_FILE}%" \
-         -e "s%\([#][ \t]*\|\)ssl-key[ ]*=[ ]*.*%ssl-key = ${MARIADB_CONFIG_DIRECTORY}/${MARIADB_KEY_FILE}%" \
+         -e '/\([#][ \t]*\|\)ssl[-_]cipher.*$/d' \
+         -e "s%\([#][ \t]*\|\)ssl[-_]ca[ ]*=[ ]*.*%ssl-ca = ${MARIADB_CONFIG_DIRECTORY}/${MARIADB_CA_FILE}\nssl-crl = ${MARIADB_CONFIG_DIRECTORY}/${MARIADB_CRL_FILE}%" \
+         -e "s%\([#][ \t]*\|\)ssl[-_]cert[ ]*=[ ]*.*%ssl-cert = ${MARIADB_CONFIG_DIRECTORY}/${MARIADB_CRT_FILE}%" \
+         -e "s%\([#][ \t]*\|\)ssl[-_]key[ ]*=[ ]*.*%ssl-key = ${MARIADB_CONFIG_DIRECTORY}/${MARIADB_KEY_FILE}\nssl-cipher = TLS_AES_256_GCM_SHA384%" \
          -e "s%\([#][ \t]*\|\)require-secure-transport[ ]*=[ ]*.*%require-secure-transport = on\ntls_version = TLSv1.3%" \
          "${MARIADB_CONFIG_DIRECTORY}/mariadb.conf.d/50-server.cnf" | sudo tee "${MARIADB_CONFIG_DIRECTORY}/mariadb.conf.d/50-server.cnf.new" >/dev/null && \
       sudo diff --color "${MARIADB_CONFIG_DIRECTORY}/mariadb.conf.d/50-server.cnf" "${MARIADB_CONFIG_DIRECTORY}/mariadb.conf.d/50-server.cnf.new" || true && \
