@@ -1,3 +1,159 @@
+commit c2228d7cf9fdda271153584aeb3e1370337f630f
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Apr 23 12:16:55 2026 +0200
+
+    MongoDB/Debian configuration fix.
+
+commit d54a94b6b2791375b93b4c555b8c55a3aca7a932
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Apr 23 11:57:33 2026 +0200
+
+    MongoDB configuration fix.
+
+commit 681dae67d07d434ff3a50894e0a124796ce3b445
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Apr 23 11:48:39 2026 +0200
+
+    Commented out debug output.
+
+commit 5c1e50f9cbb78ce71b1d869c55eb8d144d45a410
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Apr 23 11:35:12 2026 +0200
+
+    Further PostgreSQL configuration enhancements.
+
+commit 95eac644fa9092905b61baf6c27a72eec178e127
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Apr 23 11:11:36 2026 +0200
+
+    Further MariaDB configuration enhancements.
+
+commit af37a536332e9772fdee632345543cf6753bae06
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Apr 23 10:57:40 2026 +0200
+
+    Further MongoDB configuration enhancements.
+
+commit 3c0283fc1f0e20488f0a74f46f4dcabe597c7745
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Apr 23 10:41:51 2026 +0200
+
+    MongoDB configuration improvements.
+
+commit 006ad98dd8e7117c5a24ca3bf5f12003380ff9d2
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Apr 23 10:17:49 2026 +0200
+
+    Improved MongoDB configuration.
+
+commit 6d485140ddbe270c9629a33dfde3e91fea4c91ea
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Apr 22 21:56:50 2026 +0200
+
+    PostgreSQL configuration improvement.
+
+commit 1986e2d00ae117db95c1f5d42cd78733f06c8171
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Apr 22 21:36:09 2026 +0200
+
+    Some more ShellCheck clean-ups.
+
+commit 34fd5fbd3536a6757854d3b5585dc612226683ba
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Apr 22 21:25:45 2026 +0200
+
+    Packaging improvements.
+
+commit 760414f81915568adf3ab94da14bdd8a55348272
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Apr 22 21:25:16 2026 +0200
+
+    Removed obsolete files.
+
+commit 3d70d41534681f31a35a29b04e785506b341c43b
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Apr 22 21:25:08 2026 +0200
+
+    ShellCheck clean-ups.
+
+commit 56704cc65bdd5f243273887de99f494e71cc6f2c
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Apr 22 21:10:30 2026 +0200
+
+    Improved test run in containers.
+
+commit 28f486497c4f2eabd4d9dca9d9053dd9d874bcc2
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Apr 22 20:42:37 2026 +0200
+
+    PostgreSQL configuration improvements.
+
+commit 58f226c7676815acd7c8aa04c7608ea799899d18
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Apr 22 18:11:59 2026 +0200
+
+    FreeBSD PostgreSQL test fix.
+
+commit 28fa21ecfee1465ac5c88323884f15e0ede6ec38
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Apr 22 18:07:31 2026 +0200
+
+    Moved Ubuntu-specific configuration.
+
+commit c9efe69acb968c6a92fc11126c8d502fa960af4f
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Apr 22 18:03:32 2026 +0200
+
+    Minor fix.
+
+commit 59062c60bb40c4f6812b7e7d97a0b0218cd79531
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Apr 22 17:55:27 2026 +0200
+
+    Further improvements.
+
+commit 659a737a89fd8e92de278d438382326859428388
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Apr 22 17:43:28 2026 +0200
+
+    Fixed typo.
+
+commit 79833081941df923ef2a15db907315efa01a2e46
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Apr 22 17:38:37 2026 +0200
+
+    ShellCheck clean-ups.
+
+commit 092b4fb01eea0d806f93f6e804f8af0894547b69
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Apr 22 17:37:36 2026 +0200
+
+    Another update.
+
+commit 4980e04db4b3f26e5d088eb4d6342c30f95fa770
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Apr 22 17:33:08 2026 +0200
+
+    Improved test script to work with MariaDB and AppArmor under Ubuntu 26.04.
+
+commit f995b3cf62ee507f3fcd568d3a34ef6896e64ae9
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Apr 22 16:55:31 2026 +0200
+
+    Improved test script.
+
+commit 62c931555aa19dbfc88f73c60b2b6920bfe1c04e
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Apr 22 15:20:14 2026 +0200
+
+    Bugfix: "date -d" does not work under FreeBSD.
+
+commit 02f38300fa4180d6fc8e5f4105c30be149f42d47
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Sun Apr 19 12:39:15 2026 +0200
+
+    New release hipercontracer-2.1.13.
+
 commit d5edad18470f4d08950bcc00134d022afb18675d
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Sun Apr 19 11:57:10 2026 +0200
