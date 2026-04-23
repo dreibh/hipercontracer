@@ -3,8 +3,6 @@ Section: net
 Priority: optional
 Maintainer: Thomas Dreibholz <dreibh@simula.no>
 Homepage: https://www.nntb.no/~dreibh/hipercontracer/
-Vcs-Git: https://github.com/dreibh/hipercontracer.git
-Vcs-Browser: https://github.com/dreibh/hipercontracer
 Build-Depends: cmake (>= 3.10),
                debhelper-compat (= 13),
                ghostscript,
@@ -23,7 +21,7 @@ Build-Depends: cmake (>= 3.10),
                libzstd-dev,
                pdf2svg,
                zlib1g-dev
-Standards-Version: 4.7.3
+Standards-Version: 4.7.4
 Rules-Requires-Root: no
 
 Package: hipercontracer
@@ -218,6 +216,7 @@ Architecture: any
 Multi-Arch: same
 Breaks: libhipercontracer-dev (<< ${source:Version}),
         libuniversalimporter-dev (<< ${source:Version})
+Replaces: libhipercontracer-dev (<< 2.1.12-1)
 Depends: libboost-date-time-dev,
          libboost-filesystem-dev,
          libboost-iostreams-dev,
@@ -671,10 +670,11 @@ Package: hipercontracer-importer
 Architecture: any
 Depends: hipercontracer-common,
          libuniversalimporter2 (= ${binary:Version}),
-         python3,
          ${misc:Depends},
          ${shlibs:Depends}
-Recommends: hipercontracer-dbshell
+Recommends: hipercontracer-dbshell,
+            python3,
+            python3-netifaces
 Suggests: hipercontracer
 Description: HiPerConTracer Importer for importing results into a database
  High-Performance Connectivity Tracer (HiPerConTracer) is a Ping/Traceroute

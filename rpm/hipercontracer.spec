@@ -1,5 +1,5 @@
 Name: hipercontracer
-Version: 2.1.12
+Version: 2.1.14
 Release: 1
 Summary: High-Performance Connectivity Tracer (HiPerConTracer)
 Group: Applications/Internet
@@ -199,8 +199,8 @@ Requires: R-digest
 Requires: R-dplyr
 Requires: R-nanotime
 Requires: R-xtable
-Recommends: python3
-Recommends: python3-netifaces
+Requires: python3
+Requires: python3-netifaces
 
 %description examples
 High-Performance Connectivity Tracer (HiPerConTracer) is a Ping/Traceroute
@@ -802,6 +802,8 @@ Group: Applications/Database
 Requires: %{name}-common = %{version}-%{release}
 Requires: %{name}-libuniversalimporter = %{version}-%{release}
 Recommends: %{name}-dbshell = %{version}-%{release}
+Recommends: python3
+Recommends: python3-netifaces
 Suggests: %{name} = %{version}-%{release}
 
 %description importer
@@ -1252,6 +1254,10 @@ This metapackage installs all sub-packages of the HiPerConTracer Framework.
 
 
 %changelog
+* Thu Apr 23 2026 Thomas Dreibholz <dreibh@simula.no> - 2.1.14-1
+- New upstream release.
+* Sun Apr 19 2026 Thomas Dreibholz <dreibh@simula.no> - 2.1.13-1
+- New upstream release.
 * Sat Mar 14 2026 Thomas Dreibholz <dreibh@simula.no> - 2.1.12-1
 - New upstream release.
 * Thu Mar 05 2026 Thomas Dreibholz <dreibh@simula.no> - 2.1.11-1
