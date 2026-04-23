@@ -61,7 +61,7 @@ if [ "$1" == "mariadb" ] ; then
    echo -e "\x1b[34m$(date +"%F %H:%M:%S"): Uninstalling MariaDB ...\x1b[0m"
 
    if [ "${ID}" == "ubuntu" ] || [ "${ID}" == "debian" ] ; then
-      sudo DEBIAN_FRONTEND=noninteractive apt purge -y mariadb-client mariadb-server mariadb-backup
+      sudo DEBIAN_FRONTEND=noninteractive apt purge -y mariadb-client* mariadb-server* mariadb-common mariadb-backup
    elif [ "${ID}" == "fedora" ] ; then
       sudo dnf remove -y 'mariadb-*'
    elif [ "${ID}" == "freebsd" ] ; then
@@ -75,6 +75,9 @@ if [ "$1" == "mariadb" ] ; then
 
    if [ -d /var/lib/mysql ] ; then
       sudo rm -rf /var/lib/mysql
+   fi
+   if [ -d /var/lib/mariadb ] ; then
+      sudo rm -rf /var/lib/mariadb
    fi
    if [ -d /var/db/mysql ] ; then
       sudo rm -rf /var/db/mysql

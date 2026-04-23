@@ -1,0 +1,28 @@
+"NetPerfMeter Traffic" netperfmeter
+"NetPerfMeter Control Traffic" netperfmeter && (netperfmeter.message_type != 0x04) && (netperfmeter.message_type != 0x05)
+"NetPerfMeter Data Traffic" (netperfmeter.message_type == 0x04) || (netperfmeter.message_type == 0x05)
+"HiPerConTracer Traffic" hipercontracer
+"HiPerConTracer Traffic over ICMP" hipercontracer && (icmp || icmpv6)
+"HiPerConTracer Traffic over UDP" hipercontracer && udp
+"MariaDB/MySQL" mysql
+"PostgreSQL" pgsql
+"MongoDB" mongo
+"RSerPool Traffic" asap||enrp
+"RSerPool Traffic via SCTP + SCTP Control, without Monitoring" (sctp&&enrp&&(!((enrp.message_type==0x01)&&(!enrp.message_flags&0x01))))||(sctp&&(asap&&(((asap.message_type!=0x07)&&(asap.message_type!=0x08)&&(asap.message_type!=0x0b))||((asap.message_type==0x07)&&(asap.message_flags&0x01)))))||((!(asap||enrp))&&(sctp.chunk_type != 3)&&(sctp.chunk_type != 4)&&(sctp.chunk_type != 5))
+"RSerPool Traffic via SCTP, without Monitoring" (sctp&&enrp&&(!((enrp.message_type==0x01)&&(!enrp.message_flags&0x01))))||(sctp&&(asap&&(((asap.message_type!=0x07)&&(asap.message_type!=0x08)&&(asap.message_type!=0x0b))||((asap.message_type==0x07)&&(asap.message_flags&0x01)))))
+"RSerPool Traffic via SCTP" sctp&&(asap||enrp)
+"RSerPool Control Channel Traffic" (asap.message_type == 0x0b) || (asap.message_type == 0x0c) || (asap.message_type == 0x0d)
+"RSerPool Pool Element Traffic" (asap.message_type == 0x01) || (asap.message_type == 0x02) || (asap.message_type == 0x03) || (asap.message_type == 0x04)
+"RSerPool Pool User Traffic" (asap.message_type == 0x05) || (asap.message_type == 0x06) || (asap.message_type == 0x09)
+"RSerPool ASAP Traffic via SCTP, without Monitoring" sctp&&(asap&&(((asap.message_type!=0x07)&&(asap.message_type!=0x08)&&(asap.message_type!=0x0b))||((asap.message_type==0x07)&&(asap.message_flags&0x01))))
+"RSerPool ASAP Traffic via SCTP" sctp&&asap
+"RSerPool ENRP Traffic via SCTP, without Monitoring" sctp&&enrp&&(!((enrp.message_type==0x01)&&(!enrp.message_flags&0x01)))
+"RSerPool ENRP Traffic via SCTP" sctp&&enrp
+"RSerPool Home-Registrar Changes" sctp&&(asap&&(asap.message_type==0x07)&&(asap.message_flags&0x01))
+"RSerPool Registrar Takeovers" sctp&&((enrp&&((enrp.message_type==0x07)||(enrp.message_type==0x08)||(enrp.message_type==0x09))) || (asap&&(asap.message_type==0x07)&&(asap.message_flags&0x01)))
+"RSerPool Registrar Synchronizations" sctp&&enrp&&((enrp.message_type==0x02)||(enrp.message_type==0x03)||(enrp.message_type==0x05)||(enrp.message_type==0x06))
+"RSerPool Registrar Failure Handling" sctp&&((enrp&&((enrp.message_type==0x07)||(enrp.message_type==0x08)||(enrp.message_type==0x09)||(enrp.message_type==0x02)||(enrp.message_type==0x03))) || (asap&&(asap.message_type==0x07)&&(asap.message_flags&0x01)))
+"RSerPool Application CalcAppProtocol" calcappprotocol || (asap.message_type == 0x0b) || (asap.message_type == 0x0c)
+"RSerPool Application FractalGeneratorProtocol" fractalgeneratorprotocol || (asap.message_type == 0x0b) || (asap.message_type == 0x0c)
+"RSerPool Application PingPongProtocol" pingpongprotocol || (asap.message_type == 0x0b) || (asap.message_type == 0x0c)
+"RSerPool Application ScriptingServiceProtocol" ssp || (asap.message_type == 0x0b) || (asap.message_type == 0x0c)
