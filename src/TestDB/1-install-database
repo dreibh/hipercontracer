@@ -371,12 +371,12 @@ EOF
       sudo chown mongod:mongod \
          "${MONGODB_CONFIG_DIRECTORY}/${MONGODB_CA_FILE}" \
          "${MONGODB_CONFIG_DIRECTORY}/${MONGODB_CRL_FILE}" \
-         "${MONGODB_KEY_CRT_FILE}"
+         "${MONGODB_CONFIG_DIRECTORY}/${MONGODB_KEY_CRT_FILE}"
    else
       sudo chown mongodb:mongodb \
          "${MONGODB_CONFIG_DIRECTORY}/${MONGODB_CA_FILE}" \
          "${MONGODB_CONFIG_DIRECTORY}/${MONGODB_CRL_FILE}" \
-         "${MONGODB_KEY_CRT_FILE}"
+         "${MONGODB_CONFIG_DIRECTORY}/${MONGODB_KEY_CRT_FILE}"
    fi
    sudo chmod 600 "${MONGODB_CONFIG_DIRECTORY}/${MONGODB_CONFIG_FILE}"
 
