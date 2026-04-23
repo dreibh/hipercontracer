@@ -291,9 +291,15 @@ deb [ signed-by=/usr/share/keyrings/mongodb-${MONGODB_KEY}.gpg ] https://repo.mo
 deb [ signed-by=/usr/share/keyrings/mongodb-dev.gpg ] https://repo.mongodb.org/apt/ubuntu ${codename}/mongodb-org/development multiverse
 EOF
          else
+            codename="${VERSION_CODENAME}"
+            if [[ ! "${codename}" =~ ^(buster|bullseye|bookworm)$ ]] ; then
+               # MongoDB only provides repositories for some Debian versions.
+               # Assuming the latest version here:
+               codename="bookworm"
+            fi
             cat <<EOF
-deb [ signed-by=/usr/share/keyrings/mongodb-${MONGODB_KEY}.gpg ] https://repo.mongodb.org/apt/debian ${VERSION_CODENAME}/mongodb-org/${MONGODB_VERSION} main
-deb [ signed-by=/usr/share/keyrings/mongodb-dev.gpg ] https://repo.mongodb.org/apt/debian ${VERSION_CODENAME}/mongodb-org/development main
+deb [ signed-by=/usr/share/keyrings/mongodb-${MONGODB_KEY}.gpg ] https://repo.mongodb.org/apt/debian ${codename}/mongodb-org/${MONGODB_VERSION} main
+deb [ signed-by=/usr/share/keyrings/mongodb-dev.gpg ] https://repo.mongodb.org/apt/debian ${codename}/mongodb-org/development main
 EOF
          fi
       ) | sudo tee /etc/apt/sources.list.d/mongodb-org.list >/dev/null
