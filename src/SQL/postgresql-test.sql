@@ -28,7 +28,7 @@
 -- Contact: dreibh@simula.no
 
 
-# ###### Basic database features test #######################################
+-- ###### Basic database features test ######################################
 SELECT COUNT(*) FROM Ping;
 SELECT * FROM Ping LIMIT 10;
 SELECT COUNT(*) FROM Traceroute;
@@ -37,7 +37,7 @@ SELECT COUNT(*) FROM Jitter;
 SELECT * FROM Jitter LIMIT 5;
 
 
-# ###### Test helper functions ##############################################
+-- ###### Test helper functions #############################################
 SELECT UTCDateTime2UnixTimestamp('2014-09-29 11:22:33.789123');
 SELECT UnixTimestamp2UTCDateTime(1411989753789123000);
 
