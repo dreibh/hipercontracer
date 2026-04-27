@@ -1,0 +1,123 @@
+#!/usr/bin/env bash
+# ==========================================================================
+#         ____            _                     _____           _
+#        / ___| _   _ ___| |_ ___ _ __ ___     |_   _|__   ___ | |___
+#        \___ \| | | / __| __/ _ \ '_ ` _ \ _____| |/ _ \ / _ \| / __|
+#         ___) | |_| \__ \ ||  __/ | | | | |_____| | (_) | (_) | \__ \
+#        |____/ \__, |___/\__\___|_| |_| |_|     |_|\___/ \___/|_|___/
+#               |___/
+#                             --- System-Tools ---
+#                  https://www.nntb.no/~dreibh/system-tools/
+# ==========================================================================
+#
+# Run ShellCheck
+# Copyright (C) 2024-2026 by Thomas Dreibholz
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+# Contact: thomas.dreibholz@gmail.com
+
+# Bash options:
+set -euo pipefail
+
+# Automatically find all shell scripts in subdirectories:
+SCRIPTS="$(
+(
+   find . -type f -executable -and -not -name "*~"
+   find . -name "*.bash-completion" -and -not -name "*~"
+) | while read -r name ; do
+   if [[ "$(head -n1 "${name}" | strings)" =~ (bash|/bin/sh) ]] ; then
+      echo "${name}"
+   fi
+done
+)"
+
+
+# ###### Helper function to show failure ####################################
+exit-failed ()
+{
+   echo
+   "${PRINT_UTF8}" -n -s "\e[1;31;5m█" "▀" "█\e[0m" ;
+   echo "CHECK FAILED!" | "${FIGLET}" -w "${COLUMNS}" | "${PRINT_UTF8}" -n -C "\e[1;31;5m█\e[25m" "\e[5m█\e[0m" ;
+   "${PRINT_UTF8}" -n -s "\e[1;31;5m█" "▄" "█\e[0m"
+   exit 1
+}
+
+
+# ###### Helper function to show success ####################################
+exit-success ()
+{
+   echo
+   "${PRINT_UTF8}" -n -s "\e[1;32m█" "▀" "█\e[0m" ;
+   echo "ALL CHECKS SUCCEEDED!" | "${FIGLET}" -w "${COLUMNS}" | "${PRINT_UTF8}" -n -C "\e[1;32m█\e[25m" "█\e[0m" ;
+   "${PRINT_UTF8}" -n -s "\e[1;32m█" "▄" "█\e[0m"
+   exit 0
+}
+
+
+# ###### Helper function to show script information #########################
+show-script ()
+{
+   local script="$1"
+
+   "${PRINT_UTF8}" -n -s "\e[1;36m█" "▀" "█\e[0m" ;
+   "${FIGLET}" -w "${COLUMNS}" "$(basename "${script}")" | "${PRINT_UTF8}" -n -C "\e[1;36m█\e[25m" "█\e[0m" ;
+   "${PRINT_UTF8}" -n -s "\e[1;36m█" "▄" "█\e[0m"
+}
+
+
+
+# ###### Main program #######################################################
+
+# ====== Find locations of Python interpreter, MyPy, and tools ==============
+SHELLCHECK="$(which shellcheck 2>/dev/null)"
+if [ ! -x "${SHELLCHECK}" ] ; then
+   echo >&2 "ERROR: ShellCheck is not installed!"
+   echo >&2 "Try this:"
+   echo >&2 "* Ubuntu:  sudo apt install -y shellcheck"
+   echo >&2 "* Fedora:  sudo dnf install -y ShellCheck"
+   echo >&2 "* FreeBSD: sudo pkg install -y hs-ShellCheck"
+   exit 1
+fi
+echo "Python: ${SHELLCHECK}"
+PRINT_UTF8="$(which print-utf8 2>/dev/null || true)"
+if [ ! -x "${PRINT_UTF8}" ] ; then
+   echo >&2 "ERROR: Print-UTF8 (from System-Tools) is not installed!"
+   echo >&2 "Try this:"
+   echo >&2 "* Ubuntu:  sudo apt-add-repository -sy ppa:dreibh/ppa"
+   echo >&2 "           sudo apt install -y td-system-tools"
+   echo >&2 "* Fedora:  sudo dnf copr enable -y dreibh/ppa"
+   echo >&2 "           sudo dnf install -y td-system-tools"
+   echo >&2 "* FreeBSD: sudo pkg install -y td-system-tools"
+   exit 1
+fi
+FIGLET="$(which figlet 2>/dev/null || true)"
+if [ ! -x "${FIGLET}" ] ; then
+   echo >&2 "ERROR: Figlet is not installed!"
+   echo >&2 "* Ubuntu:  sudo apt install -y figlet"
+   echo >&2 "* Fedora:  sudo dnf install -y figlet"
+   echo >&2 "* FreeBSD: sudo pkg install -y figlet"
+   exit 1
+fi
+
+
+# ====== Run ShellCheck =====================================================
+for script in $SCRIPTS ; do
+   echo -e "\e[34mChecking ${script} ...\e[0m"
+   show-script "${script}"
+   "${SHELLCHECK}" \
+      -x --color \
+      "${script}" || exit-failed
+done
+exit-success
