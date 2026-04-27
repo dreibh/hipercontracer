@@ -62,8 +62,7 @@ _hpct_node_removal()
 -r
 --remove-data
 "
-   # shellcheck disable=SC2207
-   COMPREPLY=( $( compgen -W "${opts}" -- "${cur}" ) )
+   mapfile -t COMPREPLY < <(compgen -W "${opts}" -- "${cur}" )
    return 0
 }
 

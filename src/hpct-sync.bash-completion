@@ -79,8 +79,7 @@ _hpct_sync()
          ;;
       # ====== Special case: on/off =========================================
       -Z | --logcolor)
-         # shellcheck disable=SC2207
-         COMPREPLY=( $(compgen -W "on off" --  "${cur}") )
+         mapfile -t COMPREPLY < <(compgen -W "on off" --  "${cur}")
          return
          ;;
    esac
@@ -106,8 +105,7 @@ _hpct_sync()
 -H
 --known-hosts
 "
-   # shellcheck disable=SC2207
-   COMPREPLY=( $( compgen -W "${opts}" -- "${cur}" ) )
+   mapfile -t COMPREPLY < <(compgen -W "${opts}" -- "${cur}" )
    return 0
 }
 
