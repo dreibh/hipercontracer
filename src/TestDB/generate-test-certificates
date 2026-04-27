@@ -162,7 +162,7 @@ defaultSubjectWithoutCN = '/C=NO/ST=Oslo/L=Oslo/O=Simula Metropolitan Centre for
 
 certificates = { }
 for certificateToCreate in certificatesToCreate:
-   print(certificateToCreate)
+   # print(certificateToCreate)
 
    name = certificateToCreate['name']
    if certificateToCreate['type'] != CertificateType.User:

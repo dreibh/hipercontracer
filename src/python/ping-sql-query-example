@@ -1,0 +1,120 @@
+#!/usr/bin/env python3
+# ==========================================================================
+#     _   _ _ ____            ____          _____
+#    | | | (_)  _ \ ___ _ __ / ___|___  _ _|_   _| __ __ _  ___ ___ _ __
+#    | |_| | | |_) / _ \ '__| |   / _ \| '_ \| || '__/ _` |/ __/ _ \ '__|
+#    |  _  | |  __/  __/ |  | |__| (_) | | | | || | | (_| | (_|  __/ |
+#    |_| |_|_|_|   \___|_|   \____\___/|_| |_|_||_|  \__,_|\___\___|_|
+#
+#       ---  High-Performance Connectivity Tracer (HiPerConTracer)  ---
+#                 https://www.nntb.no/~dreibh/hipercontracer/
+# ==========================================================================
+#
+# High-Performance Connectivity Tracer (HiPerConTracer)
+# Copyright (C) 2015-2026 by Thomas Dreibholz
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+# Contact: dreibh@simula.no
+
+import csv
+import datetime
+import gzip
+import os
+import sys
+import time
+
+import HiPerConTracer
+import QueryHelper
+
+from typing import Any, Final, TextIO
+
+
+# ###### Print log message ##################################################
+def log(logstring : str) -> None:
+   sys.stdout.write('\x1b[34m' +
+                    datetime.datetime.now().strftime('%Y-%m-%dT%H:%M:%S') + ': ' +
+                    logstring +
+                    '\x1b[0m\n')
+
+
+
+# ###### Main program #######################################################
+
+# ====== Handle arguments ===================================================
+if len(sys.argv) != 5:
+   sys.stderr.write('Usage: ' + sys.argv[0] + ' database_configuration start_timestamp end_timestamp output_file\n')
+   sys.stderr.write('Example: ' + sys.argv[0] + ' ~/test4hpct-researcher-postgresql.conf "2020-01-01 00:00:00" "2025-01-01 00:00:00" output.csv.gz\n')
+   sys.exit(1)
+databaseConfigurationFile : Final[str] = sys.argv[1]
+startTimeStampString      : Final[str] = sys.argv[2]
+endTimeStampString        : Final[str] = sys.argv[3]
+outputFileName            : Final[str] = sys.argv[4]
+outputFileNameTmp         : Final[str] = outputFileName + '.tmp'
+
+startTimeStamp : Final[int] = HiPerConTracer.string_to_unix_time(startTimeStampString)
+endTimeStamp   : Final[int] = HiPerConTracer.string_to_unix_time(endTimeStampString)
+if not startTimeStamp < endTimeStamp:
+   sys.stderr.write('ERROR: start_timestamp must be less than end_timestamp!\n')
+   sys.exit(1)
+
+# Try to open the output file here, to avoid querying but being unable to
+# create the file (e.g. permissions or invalid path):
+outputFile : TextIO = gzip.open(outputFileNameTmp, 'wt', encoding='utf-8')
+
+
+# ====== Connect to database ================================================
+configuration = QueryHelper.DatabaseConfiguration(sys.argv[1])
+client        = configuration.createClient()
+
+
+# ====== Prepare query ======================================================
+query : Final[str] = """
+SELECT
+   *
+FROM
+   Ping p
+WHERE
+   p.SendTimeStamp >= {startTimeStamp} AND
+   p.SendTimeStamp <  {endTimeStamp}
+""".format(startTimeStamp = startTimeStamp,
+           endTimeStamp   = endTimeStamp)
+
+
+try:
+   # ====== Run query =======================================================
+   log(f'Querying {startTimeStamp} - {endTimeStamp} ...')
+
+   queryStartTime : Final[float] = time.perf_counter()
+   ( rows, description ) = configuration.query(query)
+   headers : Final[list[str]] = [ column[0] for column in description ]
+   queryFinishTime : Final[float] = time.perf_counter()
+   queryRuntime    : Final[float] = queryFinishTime - queryStartTime
+
+   log(f'Got {len(rows)} rows in {queryRuntime:.1f}s')
+
+
+   # ====== Store result ====================================================
+   log(f'Storing results to {outputFileName} ...')
+
+   csvWriter = csv.writer(outputFile)
+   csvWriter.writerow(headers)
+   csvWriter.writerows(rows)
+
+   os.rename(outputFileNameTmp, outputFileName)
+   log(f'Done!')
+
+except KeyboardInterrupt:
+   sys.stdout.write('\nSIGINT\n')
+   sys.exit(1)

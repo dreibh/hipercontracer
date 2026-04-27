@@ -76,7 +76,7 @@ VerboseMode : bool = False
 
 # ###### Execute command ####################################################
 def execute(command : str, mayFail : bool = False) -> int:
-   result = 1
+   result : int = 1
    try:
       if VerboseMode:
          sys.stdout.write('\x1b[37m' + command + '\x1b[0m\n')
@@ -90,7 +90,7 @@ def execute(command : str, mayFail : bool = False) -> int:
 
 
 # ###### Make "subjectAltName" string #######################################
-RE_USEREMAIL : re.Pattern = \
+RE_USEREMAIL : Final[re.Pattern[str]] = \
    re.compile(r'^(.*)( <)([a-zA-Z0–9. _%+-]+@[a-zA-Z0–9. -]+\.[a-zA-Z]{2,})(>)$')
 def prepareSubjectAltName(certType : CertificateType,
                           name     : str,
@@ -153,8 +153,8 @@ def prepareSubjectAltName(certType : CertificateType,
 
 
 # ###### Make subject string for user #######################################
-RE_TITLE : re.Pattern = re.compile(r'^([A-Z][a-z]+\.)$')
-RE_EMAIL : re.Pattern = re.compile(r'^<[^<>]+@[^<>]+>$')
+RE_TITLE : Final[re.Pattern[str]] = re.compile(r'^([A-Z][a-z]+\.)$')
+RE_EMAIL : Final[re.Pattern[str]] = re.compile(r'^<[^<>]+@[^<>]+>$')
 def prepareUserSubject(name : str) -> str:
    parts    : list[str] = name.split(' ')
    titles   : list[str] = [ ]
@@ -188,8 +188,8 @@ def prepareUserSubject(name : str) -> str:
 
 
 # ###### CA #################################################################
-GlobalCRLSet             : set[str]   = set([])
-DefaultGlobalCRLFileName : Final[str] = 'Test.crl'
+GlobalCRLDictionary      : dict[str, int] = { }
+DefaultGlobalCRLFileName : Final[str]     = 'Test-Combined-CRLs.crl'
 
 class CA:
 
@@ -530,7 +530,7 @@ subjectAltName         = ${ENV::SAN}
 
 
       # ====== Generate initial CRL =========================================
-      GlobalCRLSet.add(self.CRLFileName)
+      self.addToGlobalCRLDictionary(self)
       self.generateCRL()
 
 
@@ -589,6 +589,21 @@ subjectAltName         = ${ENV::SAN}
       return result == 0
 
 
+   # ###### Revoke CA #######################################################
+   def revokeCA(self, ca : 'CA') -> None:
+      sys.stdout.write('\x1b[33mRevoking CA ' + ca.CertFileName + ' ...\x1b[0m\n')
+      assert os.path.isfile(ca.CertFileName)
+      execute('SAN="" openssl ca' +
+              ' -revoke '      + ca.CertFileName  +
+              ' -config '      + self.ConfigFileName   +
+              ' -passin file:' + self.PasswordFileName)
+      self.generateCRL()
+
+      # Remove the now-invalid certificate file:
+      if os.path.exists(ca.CertFileName):
+         os.remove(ca.CertFileName)
+
+
    # ###### Revoke certificate ##############################################
    def revokeCertificate(self, certificate : 'Certificate') -> None:
       sys.stdout.write('\x1b[33mRevoking certificate ' + certificate.CertFileName + ' ...\x1b[0m\n')
@@ -598,6 +613,10 @@ subjectAltName         = ${ENV::SAN}
               ' -config '      + certificate.CA.ConfigFileName   +
               ' -passin file:' + certificate.CA.PasswordFileName)
       self.generateCRL()
+
+      # Remove the now-invalid certificate file:
+      if os.path.exists(certificate.CertFileName):
+         os.remove(certificate.CertFileName)
 
 
    # ###### Generate CRL ####################################################
@@ -614,11 +633,22 @@ subjectAltName         = ${ENV::SAN}
       self.generateGlobalCRL(self.GlobalCRLFileName)
 
 
+   # ###### Add CA to global CRL dictionary #################################
+   def addToGlobalCRLDictionary(self, ca : 'CA') -> None:
+      level : int         = 1
+      currentCA    : 'CA' = ca
+      while currentCA.ParentCA is not None:
+         level = level + 1
+         currentCA = currentCA.ParentCA
+      GlobalCRLDictionary[ca.CRLFileName] = level
+
+
    # ###### Generate global CRL #############################################
    def generateGlobalCRL(self, globalCRLFileName : str) -> None:
-      if len(GlobalCRLSet) > 0:
+      if len(GlobalCRLDictionary) > 0:
          cmd = 'cat'
-         for crlFileName in sorted(GlobalCRLSet):
+         for crlFileName, level in sorted(GlobalCRLDictionary.items(),
+                                          key = lambda item : ( item[1], item[0] ) ):
             cmd = cmd + ' ' + crlFileName
          cmd = cmd + ' >' + globalCRLFileName
          execute(cmd)
@@ -722,10 +752,6 @@ class Certificate:
       self.CA.revokeCertificate(self)
       if self.verify() == False:
          sys.stdout.write('Successfully revoked!\n')
-
-      # Remove the now-invalid certificate file:
-      if os.path.exists(self.CertFileName):
-         os.remove(self.CertFileName)
 
 
    # ###### Verify certificate ##############################################

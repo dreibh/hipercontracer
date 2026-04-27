@@ -86,8 +86,7 @@ _hpct_results()
             ;;
          # ====== Special case: on/off ======================================
          -Z | --logcolor)
-            # shellcheck disable=SC2207
-            COMPREPLY=( $(compgen -W "on off" --  "${cur}") )
+            mapfile -t COMPREPLY < <(compgen -W "on off" --  "${cur}")
             return
             ;;
       esac
@@ -125,8 +124,7 @@ _hpct_results()
 --help
 --version
 "
-   # shellcheck disable=SC2207
-   COMPREPLY=( $( compgen -W "${opts}" -- "${cur}" ) )
+   mapfile -t COMPREPLY < <(compgen -W "${opts}" -- "${cur}" )
    return 0
 }
 

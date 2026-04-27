@@ -1,7 +1,9 @@
-#!/bin/sh
+#!/bin/sh -eu
 
-make -j8 hipercontracer && \
-rm -f core && \
+make -j8 hipercontracer
+rm -f core
+
+# shellcheck disable=SC2068
 sudo ./hipercontracer \
    -# 88888888 \
    --resultsdirectory results \
@@ -16,10 +18,10 @@ sudo ./hipercontracer \
    --tracerouteinitialmaxttl 4 \
    --traceroutefinalmaxttl 32 \
    --tracerouteincrementmaxttl 4 \
+   --tracerouteudpdestinationport 10000 \
    --pinginterval 1000 \
    --pingexpiration 7500 \
    --pingttl 56 \
    --pingburst 4 \
-   --jitterinterval 300000 \
-   --udpdestinationport 10000 \
+   --pingudpdestinationport 10000 \
    $@

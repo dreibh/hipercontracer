@@ -28,7 +28,7 @@
 .\" Contact: dreibh@simula.no
 .\"
 .\" ###### Setup ############################################################
-.Dd June 10, 2025
+.Dd March 13, 2026
 .Dt hipercontracer 1
 .Os hipercontracer
 .\" ###### Name #############################################################
@@ -254,11 +254,11 @@ The format is as follows, depending on the measurement type:
 .\" ====== Format identifier ================================================
 .It Format identifier in first line
 .Bl -tag -width indent
-.It #? HPCT format version programID
+.It #? HPCT format version program
 .Bl -tag -width indent
 .It * format: Format of the output data (Ping, Traceroute, etc.).
-.It * version: Version of the output data (decimal).
-.It * programID: Identifier for the program generating the output (e.g. HiPerConTracer/2.0.0).
+.It * version: Version of the output data format (decimal).
+.It * program: Identifier for the program generating the output (e.g. HiPerConTracer/2.1.12).
 .El
 .El
 .\" ====== Ping, version 2 ==================================================
@@ -270,7 +270,7 @@ Each Ping entry consists of a #P<m> line, with m=i for ICMP and m=u for UDP (acc
 .It * measurementID: Measurement identifier.
 .It * sourceIP: Source IP address.
 .It * destinationIP: Destination IP address.
-.It * timestamp: Timestamp (nanoseconds since the UTC epoch, hexadecimal).
+.It * sendTimestamp: Send Timestamp (nanoseconds since the UTC epoch, hexadecimal).
 .It * burstseq: Sequence number within a burst (decimal), numbered from 0.
 .It * traffic_class: The IP Traffic Class/Type of Service value of the sent packets (hexadecimal).
 .It * packet_size: The sent packet size (decimal, in bytes) including IPv4/IPv6 header, transport header and HiPerConTracer header.
@@ -330,7 +330,7 @@ Each byte AA, QQ, SS, HH provides the receive time source (upper nibble) and sen
 .It Ping (version 1, SUPERSEDED!)
 Each Ping entry consists of a #P line.
 .Bl -tag -width indent
-.It #P sourceIP destinationIP timestamp checksum status rtt traffic_class timesource
+.It #P sourceIP destinationIP timestamp checksum status rtt [traffic_class [packet_size [timesource]]]
 .Bl -tag -width indent
 .It * sourceIP: Source IP address.
 .It * destinationIP: Destination IP address.
@@ -343,7 +343,7 @@ This entry has been added with HiPerConTracer 1.4.0!
 .It * packet_size: The sent packet size (decimal, in bytes) including IPv4/IPv6 header, transport header and HiPerConTracer header.
 This entry has been added with HiPerConTracer 1.6.0!
 .It * timesource: Source of the timing information (hexadecimal) as: AA (same as for Ping, see above).
-This entry has been added with HiPerConTracer 2.0.0!
+This entry has been added with HiPerConTracer 2.0.0 development versions!
 .El
 .El
 .\" ====== Traceroute, version 2 ============================================
@@ -395,7 +395,7 @@ See the status code for Ping above for the lower 8 bits. Additionally:
 Each Traceroute entry begins with a #T line.
 This is followed with one TAB-started line per each hop.
 .Bl -tag -width indent
-.It #T sourceIP destinationIP timestamp round checksum totalHops statusFlags pathHash traffic_class packet_size
+.It #T sourceIP destinationIP timestamp round checksum totalHops statusFlags pathHash [traffic_class [packet_size [timesource]]]
 .Bl -tag -width indent
 .It * sourceIP: Source IP address.
 .It * destinationIP: Destination IP address.
@@ -418,7 +418,7 @@ This entry has been added with HiPerConTracer 1.6.0!
 .It * rtt: The measured RTT (microseconds, decimal).
 .It * hopIP: Hop IP address.
 .It * timesource: Source of the timing information (hexadecimal) as: AA (same as for Ping, see above).
-This entry has been added with HiPerConTracer 2.0.0!
+This entry has been added with HiPerConTracer 2.0.0 development versions!
 .El
 .El
 .\" .\" ====== Jitter, version 2 ================================================

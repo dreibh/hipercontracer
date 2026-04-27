@@ -86,14 +86,12 @@ _hpct_trigger()
          ;;
       # ====== Special case: compression ====================================
       -C | --resultscompression)
-         # shellcheck disable=SC2207
-         COMPREPLY=( $(compgen -W "none XZ BZip2 GZip" -- "${cur}") )
+         mapfile -t COMPREPLY < <(compgen -W "none XZ BZip2 GZip" -- "${cur}")
          return
          ;;
       # ====== Special case: IO Module ======================================
       -M | --iomodule)
-         # shellcheck disable=SC2207
-         COMPREPLY=( $(compgen -W "ICMP UDP" -- "${cur}") )
+         mapfile -t COMPREPLY < <(compgen -W "ICMP UDP" -- "${cur}")
          return
          ;;
       # ====== Special case: log file =======================================
@@ -105,14 +103,12 @@ _hpct_trigger()
       # ====== Special case: source address =================================
       -S | --source)
          # Obtain addresses with default route by using "get-default-ips":
-         # shellcheck disable=SC2207
-         COMPREPLY=( $( compgen -W "$(get-default-ips)" -- "${cur}" ) )
+         mapfile -t COMPREPLY < <(compgen -W "$(get-default-ips)" -- "${cur}" )
          return
          ;;
       # ====== Special case: on/off =========================================
       -Z | --logcolor)
-         # shellcheck disable=SC2207
-         COMPREPLY=( $(compgen -W "on off" --  "${cur}") )
+         mapfile -t COMPREPLY < <(compgen -W "on off" --  "${cur}")
          return
          ;;
       # ====== Special case: file ===========================================
@@ -194,8 +190,7 @@ _hpct_trigger()
 --help
 --version
 "
-   # shellcheck disable=SC2207
-   COMPREPLY=( $( compgen -W "${opts}" -- "${cur}" ) )
+   mapfile -t COMPREPLY < <(compgen -W "${opts}" -- "${cur}" )
    return 0
 }
 

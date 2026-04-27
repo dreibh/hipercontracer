@@ -1,5 +1,5 @@
 Name: hipercontracer
-Version: 2.1.8~rc1
+Version: 2.1.14
 Release: 1
 Summary: High-Performance Connectivity Tracer (HiPerConTracer)
 Group: Applications/Internet
@@ -184,14 +184,6 @@ rmdir /var/hipercontracer >/dev/null 2>&1 || true
 %{_datadir}/hipercontracer/hipercontracer.bib
 %{_datadir}/hipercontracer/hipercontracer.pdf
 %{_datadir}/hipercontracer/hipercontracer.png
-%{_datadir}/hipercontracer/results-examples/HiPerConTracer.R
-%{_datadir}/hipercontracer/results-examples/*-*.results.*
-%{_datadir}/hipercontracer/results-examples/*-*.hpct
-%{_datadir}/hipercontracer/results-examples/*-*.hpct.*
-%{_datadir}/hipercontracer/results-examples/README.md
-%{_datadir}/hipercontracer/results-examples/r-install-dependencies
-%{_datadir}/hipercontracer/results-examples/r-ping-example
-%{_datadir}/hipercontracer/results-examples/r-traceroute-example
 %{_datadir}/icons/hicolor/*x*/apps/hipercontracer.png
 %{_datadir}/icons/hicolor/scalable/apps/hipercontracer.svg
 %{_datadir}/mime/packages/hipercontracer.xml
@@ -207,8 +199,8 @@ Requires: R-digest
 Requires: R-dplyr
 Requires: R-nanotime
 Requires: R-xtable
-Recommends: python3
-Recommends: python3-netifaces
+Requires: python3
+Requires: python3-netifaces
 
 %description examples
 High-Performance Connectivity Tracer (HiPerConTracer) is a Ping/Traceroute
@@ -245,7 +237,6 @@ This package contains some HiPerConTracer example scripts and results files.
 
 %files examples
 %{_datadir}/hipercontracer/results-examples/HiPerConTracer.R
-%{_datadir}/hipercontracer/results-examples/*-*.results.*
 %{_datadir}/hipercontracer/results-examples/*-*.hpct
 %{_datadir}/hipercontracer/results-examples/*-*.hpct.*
 %{_datadir}/hipercontracer/results-examples/README.md
@@ -811,6 +802,8 @@ Group: Applications/Database
 Requires: %{name}-common = %{version}-%{release}
 Requires: %{name}-libuniversalimporter = %{version}-%{release}
 Recommends: %{name}-dbshell = %{version}-%{release}
+Recommends: python3
+Recommends: python3-netifaces
 Suggests: %{name} = %{version}-%{release}
 
 %description importer
@@ -1261,6 +1254,20 @@ This metapackage installs all sub-packages of the HiPerConTracer Framework.
 
 
 %changelog
+* Thu Apr 23 2026 Thomas Dreibholz <dreibh@simula.no> - 2.1.14-1
+- New upstream release.
+* Sun Apr 19 2026 Thomas Dreibholz <dreibh@simula.no> - 2.1.13-1
+- New upstream release.
+* Sat Mar 14 2026 Thomas Dreibholz <dreibh@simula.no> - 2.1.12-1
+- New upstream release.
+* Thu Mar 05 2026 Thomas Dreibholz <dreibh@simula.no> - 2.1.11-1
+- New upstream release.
+* Wed Feb 25 2026 Thomas Dreibholz <dreibh@simula.no> - 2.1.10-1
+- New upstream release.
+* Mon Feb 09 2026 Thomas Dreibholz <dreibh@simula.no> - 2.1.9-1
+- New upstream release.
+* Tue Dec 09 2025 Thomas Dreibholz <dreibh@simula.no> - 2.1.8-1
+- New upstream release.
 * Wed Nov 26 2025 Thomas Dreibholz <dreibh@simula.no> - 2.1.7-1
 - New upstream release.
 * Fri Nov 21 2025 Thomas Dreibholz <dreibh@simula.no> - 2.1.6-1
