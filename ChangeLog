@@ -1,3 +1,63 @@
+commit acbe066dca482c8c0dda9d351f3b64a4bf8e4716
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Apr 29 09:03:24 2026 +0200
+
+    Set pipefail option in scripts.
+
+commit 2373f63bea17bd97199de51601409790e459c020
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Mon Apr 27 14:25:39 2026 +0200
+
+    Minor clean-up.
+
+commit 809b159093244a782e21446bb148261fd5034c0d
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Mon Apr 27 14:24:09 2026 +0200
+
+    Added helper script.
+
+commit 10864f7ef3211134953f5150a1dfe7855fd3243c
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Mon Apr 27 11:48:32 2026 +0200
+
+    ShellCheck clean-up for shell completions.
+
+commit cff891bba7e8910f9e6eb1c05b7da7936e03949a
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Mon Apr 27 11:44:12 2026 +0200
+
+    Updated build script.
+
+commit 4bdac1e17b0901516e5a85399b535d5d0af36a0e
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Mon Apr 27 11:41:58 2026 +0200
+
+    Updated CI configuration
+
+commit bee4a38e99506a6d4ecda22d100fb0164376de22
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Mon Apr 27 11:41:57 2026 +0200
+
+    Updated CI scripts
+
+commit fca7b46e4b9435334e4e99fe31cf702cc3306d4d
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Fri Apr 24 14:51:45 2026 +0200
+
+    Using SQL comments ("--") in SQL code, instead of ("#").
+
+commit 6e086ca9143105b41041e849cd9380e063d71a0a
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Apr 23 16:16:27 2026 +0200
+
+    Updated FreeBSD port.
+
+commit 2863f0c7a59d22765790f57db1b228ce24a56791
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Apr 23 15:42:24 2026 +0200
+
+    New release hipercontracer-2.1.14.
+
 commit c2228d7cf9fdda271153584aeb3e1370337f630f
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Thu Apr 23 12:16:55 2026 +0200
