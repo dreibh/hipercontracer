@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-set -eu
+set -euo pipefail
 
 for file in colorfilters decode_as_entries dfilters ; do
    cp "${HOME}/.config/wireshark/${file}" .

@@ -28,7 +28,7 @@
 #
 # Contact: dreibh@simula.no
 
-set -eu
+set -euo pipefail
 
 SCRIPTS="
    ping-nosql-query-example

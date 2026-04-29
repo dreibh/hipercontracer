@@ -24,7 +24,7 @@
 # Contact: dreibh@simula.no
 
 # Bash options:
-set -eu
+set -euo pipefail
 
 HIPERCONTRACER_DIRECTORY="/var/hipercontracer"
 UNAME="$(uname)"

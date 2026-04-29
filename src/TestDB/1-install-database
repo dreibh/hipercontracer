@@ -29,7 +29,7 @@
 # Contact: dreibh@simula.no
 
 # Bash options:
-set -eux
+set -euxo pipefail
 
 
 if [ $# -ne 2 ] ; then
