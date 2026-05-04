@@ -85,6 +85,7 @@ if [ ! -e "${template}" ] ; then
    exit
 fi
 echo "Template is: ${template}"
+# shellcheck disable=SC1090
 . "${template}"
 if [ "${DATABASE}" == "" ] ; then
    echo >&2 "ERROR: No database name given!"

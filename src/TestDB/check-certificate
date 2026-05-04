@@ -190,8 +190,9 @@ while [ $# -gt 0 ] ; do
       # necessary to extract each CA, and then process them individually!
 
       # ------ Create temporary directory for database ----------------------
-      trap 'rm -rf "${db}"' EXIT
-      db=$(mktemp --tmpdir -d "check-certificate-nss.XXXXXXXXXX")
+      db=""
+      trap 'rm -rf "${db}"' EXIT INT TERM HUP
+      db="$(mktemp -d -t "check-certificate-nss.XXXXXXXXXX")"
       mkdir -p "${db}/tmp"
 
       "${CERTUTIL}" --empty-password -N -d "${db}"
@@ -209,13 +210,12 @@ while [ $# -gt 0 ] ; do
             subCA=$((subCA + 1))
             "${CERTUTIL}" -A -n "My Sub CA ${subCA}" -t ",," -e -d "${db}" -a -i "${name}" -u L
          done
-      find "${db}/tmp" -name "certificate-[0-9]*.crl"
 
       # If the Root CA is in the certificate bundle, trust was reset to ",,"
       # => Set it as trusted again:
-      if [ "${CA_FILE}" != "${CERTIFICATE_FILE}" ] ; then
          "${CERTUTIL}" -A -n "My Root CA" -t "CT,C,C" -e -d "${db}" -a -i "${CA_FILE}" -u L
-      fi
+
+      # "${CERTUTIL}" -L -d "${db}"
 
       # ------ Extract CRL file and process each CRL individually -----------
       if [ "${CRL}" != "" ] ; then
@@ -223,14 +223,17 @@ while [ $# -gt 0 ] ; do
 
          # NSS wants the CRL in DER instead of PEM format, i.e. it needs
          # to be converted first. Finally, it can be imported by NSS.
-         find "${db}/tmp" -name "crl-*.crl" | \
+         find "${db}/tmp" -name "crl-*.crl" | sort | \
             while read -r crl ; do
                "${OPENSSL}" crl -outform der -in "${crl}" -out "${crl}.der"
-               "${CRLUTIL}" -I -d "${db}" -a -i "${crl}.der"
+               # "${OPENSSL}" crl -in "${crl}.der" -text -noout | grep Issuer
+
+               # NOTE: This may fail, if this is a CRL for an unrelated CA:
+               # "crlutil: unable to import CRL: SEC_ERROR_UNKNOWN_ISSUER: Peer's Certificate issuer is not recognized."
+               "${CRLUTIL}" -I -d "${db}" -a -i "${crl}.der" 2>/dev/null || true
             done
       fi
 
-      # "${CERTUTIL}" -L -d "${db}"
       # "${CRLUTIL}" -L -d "${db}"
 
       # ------ Finally, it is possible to verify the validity chain ---------
@@ -254,8 +257,8 @@ while [ $# -gt 0 ] ; do
          errors=$((errors + 1))
          echo -e "\e[31;1m$(gettext "$(gettext "❌FAILED!")")\e[0m"
          sh -c "${command}" || true
-         # "${CERTUTIL}" -L -d "${db}"
-         # "${CRLUTIL}" -L -d "${db}"
+         "${CERTUTIL}" -L -d "${db}"
+         "${CRLUTIL}" -L -d "${db}"
       fi
    else
       gettext "(NSS CertUtil is not installed)"

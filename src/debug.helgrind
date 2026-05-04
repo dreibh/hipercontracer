@@ -1,4 +1,6 @@
-#!/bin/sh -e
+#!/bin/sh -eu
 
-echo "valgrind $@"
+echo "valgrind --tool=helgrind $*"
+
+# shellcheck disable=SC2068
 G_SLICE=always-malloc valgrind --tool=helgrind $@
