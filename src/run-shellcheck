@@ -48,9 +48,9 @@ done
 exit-failed ()
 {
    echo
-   "${PRINT_UTF8}" -n -s "\e[1;31;5m█" "▀" "█\e[0m" ;
-   echo "CHECK FAILED!" | "${FIGLET}" -w "${COLUMNS}" | "${PRINT_UTF8}" -n -C "\e[1;31;5m█\e[25m" "\e[5m█\e[0m" ;
-   "${PRINT_UTF8}" -n -s "\e[1;31;5m█" "▄" "█\e[0m"
+   print-utf8 -n -s "\e[1;31;5m█" "▀" "█\e[0m" ;
+   echo "CHECK FAILED!" | figlet -w "${COLUMNS}" | print-utf8 -n -C "\e[1;31;5m█\e[25m" "\e[5m█\e[0m" ;
+   print-utf8 -n -s "\e[1;31;5m█" "▄" "█\e[0m"
    exit 1
 }
 
@@ -59,9 +59,9 @@ exit-failed ()
 exit-success ()
 {
    echo
-   "${PRINT_UTF8}" -n -s "\e[1;32m█" "▀" "█\e[0m" ;
-   echo "ALL CHECKS SUCCEEDED!" | "${FIGLET}" -w "${COLUMNS}" | "${PRINT_UTF8}" -n -C "\e[1;32m█\e[25m" "█\e[0m" ;
-   "${PRINT_UTF8}" -n -s "\e[1;32m█" "▄" "█\e[0m"
+   print-utf8 -n -s "\e[1;32m█" "▀" "█\e[0m" ;
+   echo "ALL CHECKS SUCCEEDED!" | figlet -w "${COLUMNS}" | print-utf8 -n -C "\e[1;32m█\e[25m" "█\e[0m" ;
+   print-utf8 -n -s "\e[1;32m█" "▄" "█\e[0m"
    exit 0
 }
 
@@ -71,9 +71,9 @@ show-script ()
 {
    local script="$1"
 
-   "${PRINT_UTF8}" -n -s "\e[1;36m█" "▀" "█\e[0m" ;
-   "${FIGLET}" -w "${COLUMNS}" "$(basename "${script}")" | "${PRINT_UTF8}" -n -C "\e[1;36m█\e[25m" "█\e[0m" ;
-   "${PRINT_UTF8}" -n -s "\e[1;36m█" "▄" "█\e[0m"
+   print-utf8 -n -s "\e[1;36m█" "▀" "█\e[0m" ;
+   figlet -w "${COLUMNS}" "$(basename "${script}")" | print-utf8 -n -C "\e[1;36m█\e[25m" "█\e[0m" ;
+   print-utf8 -n -s "\e[1;36m█" "▄" "█\e[0m"
 }
 
 
@@ -81,8 +81,7 @@ show-script ()
 # ###### Main program #######################################################
 
 # ====== Find locations of Python interpreter, MyPy, and tools ==============
-SHELLCHECK="$(which shellcheck 2>/dev/null)"
-if [ ! -x "${SHELLCHECK}" ] ; then
+if ! command -v shellcheck 2>/dev/null ; then
    echo >&2 "ERROR: ShellCheck is not installed!"
    echo >&2 "Try this:"
    echo >&2 "* Ubuntu:  sudo apt install -y shellcheck"
@@ -90,9 +89,7 @@ if [ ! -x "${SHELLCHECK}" ] ; then
    echo >&2 "* FreeBSD: sudo pkg install -y hs-ShellCheck"
    exit 1
 fi
-echo "Python: ${SHELLCHECK}"
-PRINT_UTF8="$(which print-utf8 2>/dev/null || true)"
-if [ ! -x "${PRINT_UTF8}" ] ; then
+if ! command -v print-utf8 2>/dev/null ; then
    echo >&2 "ERROR: Print-UTF8 (from System-Tools) is not installed!"
    echo >&2 "Try this:"
    echo >&2 "* Ubuntu:  sudo apt-add-repository -sy ppa:dreibh/ppa"
@@ -102,8 +99,7 @@ if [ ! -x "${PRINT_UTF8}" ] ; then
    echo >&2 "* FreeBSD: sudo pkg install -y td-system-tools"
    exit 1
 fi
-FIGLET="$(which figlet 2>/dev/null || true)"
-if [ ! -x "${FIGLET}" ] ; then
+if ! command -v figlet 2>/dev/null ; then
    echo >&2 "ERROR: Figlet is not installed!"
    echo >&2 "* Ubuntu:  sudo apt install -y figlet"
    echo >&2 "* Fedora:  sudo dnf install -y figlet"
@@ -116,7 +112,7 @@ fi
 for script in $SCRIPTS ; do
    echo -e "\e[34mChecking ${script} ...\e[0m"
    show-script "${script}"
-   "${SHELLCHECK}" \
+   shellcheck \
       -x --color \
       "${script}" || exit-failed
 done
