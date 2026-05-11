@@ -29,42 +29,42 @@
 .\"
 .\" ###### Setup ############################################################
 .Dd May 11, 2026
-.Dt hpct-importer 1
-.Os hpct-importer
+.Dt hpct\-importer 1
+.Os hpct\-importer
 .\" ###### Name #############################################################
 .Sh NAME
-.Nm hpct-importer
+.Nm hpct\-importer
 .Nd HiPerConTracer Trace Data Importer
 .\" ###### Synopsis #########################################################
 .Sh SYNOPSIS
-.Nm hpct-importer
-.Op Fl C Ar importer_\%configuration | Fl Fl importer-\%config Ar importer_\%configuration
-.Op Fl D Ar database_\%configuration | Fl Fl database-\%config Ar database_\%configuration
+.Nm hpct\-importer
+.Op Fl C Ar importer\_\%configuration | Fl Fl importer\-\%config Ar importer\_\%configuration
+.Op Fl D Ar database\_\%configuration | Fl Fl database\-\%config Ar database\_\%configuration
 .Op Fl L Ar level | Fl Fl loglevel Ar level
 .Op Fl Z Ar on|off | Fl Fl logcolor Ar on|off
 .Op Fl O Ar file | Fl Fl logfile Ar file
 .Op Fl q | Fl Fl quiet
 .Op Fl w | Fl Fl verbose
-.Op Fl X Ar mode | Fl Fl import-mode Ar mode
-.Op Fl Y Ar depth | Fl Fl import-max-depth Ar depth
-.Op Fl I Ar path | Fl Fl import-file-path Ar path
-.Op Fl B Ar path | Fl Fl bad-file-path Ar path
-.Op Fl G Ar path | Fl Fl good-file-path Ar path
-.Op Fl F Ar filter_\%regexp | Fl Fl import-\%file-\%path-\%filter Ar filter_\%regexp
-.Op Fl Q | Fl Fl quit-when-idle
-.Op Fl Fl ping-workers Ar number
-.Op Fl Fl ping-files Ar number
-.Op Fl Fl traceroute-workers Ar number
-.Op Fl Fl traceroute-files Ar number
+.Op Fl X Ar mode | Fl Fl import\-mode Ar mode
+.Op Fl Y Ar depth | Fl Fl import\-max\-depth Ar depth
+.Op Fl I Ar path | Fl Fl import\-file\-path Ar path
+.Op Fl B Ar path | Fl Fl bad\-file\-path Ar path
+.Op Fl G Ar path | Fl Fl good\-file\-path Ar path
+.Op Fl F Ar filter\_\%regexp | Fl Fl import\-\%file\-\%path\-\%filter Ar filter\_\%regexp
+.Op Fl Q | Fl Fl quit\-when\-idle
+.Op Fl Fl ping\-workers Ar number
+.Op Fl Fl ping\-files Ar number
+.Op Fl Fl traceroute\-workers Ar number
+.Op Fl Fl traceroute\-files Ar number
 .\" .Op Fl Fl jitter-workers Ar number
 .\" .Op Fl Fl jitter-files Ar number
-.Nm hpct-importer
+.Nm hpct\-importer
 .Op Fl h | Fl Fl help
-.Nm hpct-importer
+.Nm hpct\-importer
 .Op Fl Fl version
 .\" ###### Description ######################################################
 .Sh DESCRIPTION
-.Nm hpct-importer
+.Nm hpct\-importer
 imports HiPerConTracer results into an SQL or NoSQL database. Currently, the
 following database backends are supported:
 MySQL/MariaDB (SQL),
@@ -72,7 +72,7 @@ PostgreSQL (SQL),
 MongoDB (NoSQL).
 .br
 Results files imported successfully can be moved into a "good" directory,
-deleted or kept as-in (for debugging only!).
+deleted or kept as\-in (for debugging only!).
 Results files which failed to import a re moved into a "bad" directory.
 .br
 The input of multiple input files can be combined into a single database
@@ -81,7 +81,7 @@ error, each file is imported sequentially to identify faulty ones.
 .Pp
 .\" ###### Arguments ########################################################
 .Sh ARGUMENTS
-The following argument may be provided:
+The following arguments may be provided:
 .Bl -tag -width indent
 .It Fl L Ar level | Fl Fl loglevel Ar level
 Sets the minimum logging level to the provided value: 0=trace, 1=debug, 2=info, 3=warning, 4=error, 5=fatal.
@@ -94,59 +94,59 @@ Otherwise, all log output will be written to the console.
 Sets the minimum logging level to 3 (warning).
 .It Fl w | Fl Fl verbose
 Sets the minimum logging level to 0 (trace).
-.It Fl C Ar importer_configuration | Fl Fl importer-config Ar importer_configuration
+.It Fl C Ar importer\_configuration | Fl Fl importer\-config Ar importer\_configuration
 Sets the name of the importer configuration file. This option must be provided!
 .br
-See /usr/share/hipercontracer/hipercontracer-importer.conf for an example.
-.It Fl D Ar database_configuration | Fl Fl database-config Ar database_configuration
+See /usr/share/hipercontracer/hipercontracer\-importer.conf for an example.
+.It Fl D Ar database\_configuration | Fl Fl database\-config Ar database\_configuration
 Sets the name of the database configuration file. This option must be provided!
 .br
-See /usr/share/hipercontracer/hipercontracer-database.conf for an example.
-.It Fl X Ar mode | Fl Fl import-mode Ar mode
+See /usr/share/hipercontracer/hipercontracer\-database.conf for an example.
+.It Fl X Ar mode | Fl Fl import\-mode Ar mode
 Specifies the import mode,
 overriding the mode read from the database configuration file:
 DeleteImportedFiles (delete successfully imported files)
 MoveImportedFiles (move successfully imported files into "good" directory),
 KeepImportedFiles (keep successfully imported files where they are).
-Do not use KeepImportedFiles execpt for testing. Otherwise, the next re-run of
-hpct-importer tries to import them again! They may create duplicates when the
+Do not use KeepImportedFiles execpt for testing. Otherwise, the next re\-run of
+hpct\-importer tries to import them again! They may create duplicates when the
 underlying database system (e.g. NoSQL without unique indices) does not ensure
 uniqueness!
-.It Fl Y Ar depth | Fl Fl import-max-depth Ar depth
+.It Fl Y Ar depth | Fl Fl import\-max\-depth Ar depth
 Specifies the import directory traversal depth,
 overriding the mode read from the database configuration file.
-.It Fl I Ar path | Fl Fl import-file-path Ar path
+.It Fl I Ar path | Fl Fl import\-file\-path Ar path
 Specifies the import file path,
 overriding the mode read from the database configuration file.
 This path is used to look for files to import.
-.It Fl B Ar path | Fl Fl bad-file-path Ar path
+.It Fl B Ar path | Fl Fl bad\-file\-path Ar path
 Specifies the "good" file path,
 overriding the mode read from the database configuration file.
 This path is used to move successfully imported files to, when
 the import mode is set to KeepImportedFiles.
-.It Fl G Ar path | Fl Fl good-file-path Ar path
+.It Fl G Ar path | Fl Fl good\-file\-path Ar path
 Specifies the "bad" file path,
 overriding the mode read from the database configuration file.
 This path is used to move files to which failed to import.
-.It Fl F Ar filter_regexp | Fl Fl import-file-path-filter Ar filter_regexp
+.It Fl F Ar filter\_regexp | Fl Fl import\-file\-path\-filter Ar filter\_regexp
 Specifies the import path filter,
 overriding the mode read from the database configuration file.
 This filter can be used to only import a subset of the import files for
 testing. The filter expression is an std::regex regular expression.
-.It Fl Q | Fl Fl quit-when-idle
+.It Fl Q | Fl Fl quit\-when\-idle
 Quit importer when all workers are idle. This will perform only one import
 round.
-.It Fl Fl ping-workers Ar number
+.It Fl Fl ping\-workers Ar number
 Sets the number of Ping import workers. Default: 1.
 An import file is distributed to a worker by hashing the source address
 given in the file name.
-.It Fl Fl ping-files Ar number
+.It Fl Fl ping\-files Ar number
 Sets the number of Ping import files per database transaction. Default: 1.
-.It Fl Fl traceroute-workers Ar number
+.It Fl Fl traceroute\-workers Ar number
 Sets the number of Traceroute import workers. Default: 1.
 An import file is distributed to a worker by hashing the source address
 given in the file name.
-.It Fl Fl traceroute-files Ar number
+.It Fl Fl traceroute\-files Ar number
 Sets the number of Traceroute import files per database transaction. Default: 1.
 .\" .It Fl Fl jitter-workers Ar number
 .\" Sets the number of Jitter import workers. Default: 1.
@@ -167,11 +167,11 @@ tool exits with 0 on success, and >0 in case of an error.
 .\" ###### Examples #########################################################
 .Sh EXAMPLES
 .Bl -tag -width indent
-.It hpct-importer -C hipercontracer-importer.conf -D hipercontracer-database.conf
-.It hpct-importer --importer-config hipercontracer-importer.conf --database-config hipercontracer-database.conf --verbose
-.It hpct-importer -C hipercontracer-importer.conf -D hipercontracer-database.conf -F "1234/.*"
-.It hpct-importer --version
-.It hpct-importer -h
+.It hpct\-importer \-C hipercontracer\-importer.conf \-D hipercontracer\-database.conf
+.It hpct\-importer \--importer\-config hipercontracer\-importer.conf \--database\-config hipercontracer\-database.conf \--verbose
+.It hpct\-importer \-C hipercontracer\-importer.conf \-D hipercontracer\-database.conf \-F "1234/.*"
+.It hpct\-importer \-\-version
+.It hpct\-importer \-h
 .El
 .\" ###### Notes ############################################################
 .Sh NOTES

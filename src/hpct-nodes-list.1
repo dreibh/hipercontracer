@@ -29,28 +29,28 @@
 .\"
 .\" ###### Setup ############################################################
 .Dd May 11, 2026
-.Dt hpct-nodes-list 1
-.Os hpct-nodes-list
+.Dt hpct\-nodes\-list 1
+.Os hpct\-nodes\-list
 .\" ###### Name #############################################################
 .Sh NAME
-.Nm hpct-nodes-list
+.Nm hpct\-nodes\-list
 .Nd Get HiPerConTracer Nodes List on the Collector
 .\" ###### Synopsis #########################################################
 .Sh SYNOPSIS
-.Nm hpct-nodes-list
-.Nm hpct-nodes-list
+.Nm hpct\-nodes\-list
+.Nm hpct\-nodes\-list
 .Op Fl h | Fl Fl help
-.Nm hpct-nodes-list
+.Nm hpct\-nodes\-list
 .Op Fl v | Fl Fl version
 .\" ###### Description ######################################################
 .Sh DESCRIPTION
-.Nm hpct-nodes-list
+.Nm hpct\-nodes\-list
 lists the HiPerConTracer configured on the Collector, as well as
 their connectivity (RTunnel) and data synchronisation (Sync) status.
 .br
 Note that reading the last status of nodes needs access of the user to the nodes' data
 directories (usually: /var/hipercontracer/data/node<NODE>/). The status is
-read from last-seen.txt and last-sync.txt.
+read from last\-seen.txt and last\-sync.txt.
 .Pp
 .\" ###### Exit status ######################################################
 .Sh EXIT STATUS
@@ -60,12 +60,12 @@ tool exits with 0 on success, and >0 in case of an error.
 .\" ###### Examples #########################################################
 .Sh EXAMPLES
 .Bl -tag -width indent
-.It hpct-nodes-list
-.It watch --color -n300 hpct-nodes-list
-.It hpct-nodes-list --version
-.It hpct-nodes-list -h
-.It hpct-nodes-list --version
-.It hpct-nodes-list -h
+.It hpct\-nodes\-list
+.It watch \--color \-n300 hpct\-nodes\-list
+.It hpct\-nodes\-list \--version
+.It hpct\-nodes\-list \-h
+.It hpct\-nodes\-list \-\-version
+.It hpct\-nodes\-list \-h
 .El
 .\" ###### Notes ############################################################
 .Sh NOTES

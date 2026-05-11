@@ -59,9 +59,9 @@ Join with existing DBeaver configuration. The existing configuration is
 searched in the following directories:
 .Bl -bullet
 .It
-.Pa ~/.local/share/DBeaverData/workspace6/General/.dbeaver
+.Pa $HOME/.local/share/DBeaverData/workspace6/General/.dbeaver
 .It
-.Pa ~/\%snap/\%dbeaver\-ce/\%current/\%.local/\%share/\%DBeaverData/\%workspace6/\%General/\%.dbeaver
+.Pa $HOME/\%snap/\%dbeaver\-ce/\%current/\%.local/\%share/\%DBeaverData/\%workspace6/\%General/\%.dbeaver
 .El
 .It Fl h | Fl Fl help
 Prints command help.
@@ -77,7 +77,7 @@ tool exits with 0 on success, and >0 in case of an error.
 .Sh EXAMPLES
 .Bl -tag -width indent
 .It make\-dbeaver\-configuration hipercontracer\-database.conf
-.It make\-dbeaver\-configuration ~/test4hpct\-*\-*.conf \-\-join
+.It make\-dbeaver\-configuration $HOME/test4hpct\-*\-*.conf \-\-join
 .It make\-dbeaver\-configuration hipercontracer\-database.conf \-\-join
 .It make\-dbeaver\-configuration project1\-database.conf project2\-database.conf project3\-database.conf \--join
 .It make\-dbeaver\-configuration \-\-version

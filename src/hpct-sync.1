@@ -29,30 +29,30 @@
 .\"
 .\" ###### Setup ############################################################
 .Dd May 11, 2026
-.Dt hpct-sync 1
-.Os hpct-sync
+.Dt hpct\-sync 1
+.Os hpct\-sync
 .\" ###### Name #############################################################
 .Sh NAME
-.Nm hpct-sync
+.Nm hpct\-sync
 .Nd HiPerConTracer Synchroniser
 .\" ###### Synopsis #########################################################
 .Sh SYNOPSIS
-.Nm hpct-sync
+.Nm hpct\-sync
 .Op Fl w | Fl Fl verbose
 .Op Fl q | Fl Fl quiet
-.Op Fl N Ar node_id | Fl Fl nodeid Ar node_id
-.Op Fl L Ar local_directory | Fl Fl local Ar local_directory
-.Op Fl R Ar remote_location | Fl Fl remote Ar remote_location
+.Op Fl N Ar node\_id | Fl Fl nodeid Ar node\_id
+.Op Fl L Ar local\_directory | Fl Fl local Ar local\_directory
+.Op Fl R Ar remote\_location | Fl Fl remote Ar remote\_location
 .Op Fl C | Fl Fl collector collector
-.Op Fl K Ar ssh_\%private_\%key_\%file | Fl Fl key Ar ssh_\%private_\%key_\%file
-.Op Fl H Ar ssh_\%known_\%hosts_\%file | Fl Fl known-hosts Ar ssh_\%known_\%hosts_\%file
-.Nm hpct-sync
+.Op Fl K Ar ssh\_\%private\_\%key\_\%file | Fl Fl key Ar ssh\_\%private\_\%key\_\%file
+.Op Fl H Ar ssh\_\%known\_\%hosts\_\%file | Fl Fl known\-hosts Ar ssh\_\%known\_\%hosts\_\%file
+.Nm hpct\-sync
 .Op Fl h | Fl Fl help
-.Nm hpct-sync
+.Nm hpct\-sync
 .Op Fl v | Fl Fl version
 .\" ###### Description ######################################################
 .Sh DESCRIPTION
-.Nm hpct-sync
+.Nm hpct\-sync
 is the HiPerConTracer synchroniser application.
 .Pp
 .\" ###### Arguments ########################################################
@@ -61,16 +61,16 @@ The following arguments may be provided:
 .Bl -tag -width indent
 .It Fl h | Fl Fl help
 Prints command help.
-.It Fl N Ar node_id | Fl Fl nodeid Ar node_id
+.It Fl N Ar node\_id | Fl Fl nodeid Ar node\_id
 Sets the node ID, a number from 1 to 9999.
-.It Fl L Ar local_directory | Fl Fl local Ar local_directory
+.It Fl L Ar local\_directory | Fl Fl local Ar local\_directory
 Sets the local data directory. Default: /var/hipercontracer/data.
-.It Fl R Ar remote_location | Fl Fl remote Ar remote_location
+.It Fl R Ar remote\_location | Fl Fl remote Ar remote\_location
 Sets the remote data directory on the collector. Default: /var/hipercontracer/data.
-.It Fl K Ar ssh_private_key_file | Fl Fl key Ar ssh_private_key_file
-Sets the SSH private key file used for authentication. Default: /var/hipercontracer/ssh/id_ed25519.
-.It Fl H Ar ssh_known_hosts_file | Fl Fl known-hosts Ar ssh_known_hosts_file
-Sets the SSH known hosts file. Default: /var/hipercontracer/ssh/known_hosts.
+.It Fl K Ar ssh\_private\_key\_file | Fl Fl key Ar ssh\_private\_key\_file
+Sets the SSH private key file used for authentication. Default: /var/hipercontracer/ssh/id\_ed25519.
+.It Fl H Ar ssh\_known\_hosts\_file | Fl Fl known\-hosts Ar ssh\_known\_hosts\_file
+Sets the SSH known hosts file. Default: /var/hipercontracer/ssh/known\_hosts.
 .It Fl q | Fl Fl quiet
 Turns off status output.
 .It Fl w | Fl Fl verbose
@@ -88,11 +88,11 @@ tool exits with 0 on success, and >0 in case of an error.
 .\" ###### Examples #########################################################
 .Sh EXAMPLES
 .Bl -tag -width indent
-.It sudo -u hipercontracer   hpct-sync --nodeid 1000 --local /var/hipercontracer --remote /var/hipercontracer --collector sognsvann.example --key /var/hipercontracer/ssh/id_ed25519 --known-hosts /var/hipercontracer/ssh/known_hosts --verbose
-.It sudo -u hipercontracer   hpct-sync --nodeid 1 --local /var/hipercontracer --remote /var/hipercontracer --collector sognsvann.example --key /var/hipercontracer/ssh/id_ed25519 --known-hosts /var/hipercontracer/ssh/known_hosts --quiet
-.It sudo -u hipercontracer   hpct-sync --nodeid 2 --collector sognsvann.example
-.It hpct-sync --version
-.It hpct-sync -h
+.It sudo \-u hipercontracer   hpct\-sync \--nodeid 1000 \--local /var/hipercontracer \--remote /var/hipercontracer \--collector sognsvann.example \--key /var/hipercontracer/ssh/id\_ed25519 \--known\-hosts /var/hipercontracer/ssh/known\_hosts \--verbose
+.It sudo \-u hipercontracer   hpct\-sync \--nodeid 1 \--local /var/hipercontracer \--remote /var/hipercontracer \--collector sognsvann.example \--key /var/hipercontracer/ssh/id\_ed25519 \--known\-hosts /var/hipercontracer/ssh/known\_hosts \--quiet
+.It sudo \-u hipercontracer   hpct\-sync \--nodeid 2 \--collector sognsvann.example
+.It hpct\-sync \--version
+.It hpct\-sync \-h
 .El
 .\" ###### Notes ############################################################
 .Sh NOTES

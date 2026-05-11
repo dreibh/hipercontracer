@@ -29,15 +29,15 @@
 .\"
 .\" ###### Setup ############################################################
 .Dd May 11, 2026
-.Dt udp-echo-server 1
-.Os udp-echo-server
+.Dt udp\-echo\-server 1
+.Os udp\-echo\-server
 .\" ###### Name #############################################################
 .Sh NAME
-.Nm udp-echo-server
+.Nm udp\-echo\-server
 .Nd Simple UDP Echo Server
 .\" ###### Synopsis #########################################################
 .Sh SYNOPSIS
-.Nm udp-echo-server
+.Nm udp\-echo\-server
 .Op Fl L Ar level | Fl Fl loglevel Ar level
 .Op Fl Z | Fl Fl logcolor Ar on|off
 .Op Fl O Ar file | Fl Fl logfile Ar file
@@ -46,18 +46,18 @@
 .Op Fl U Ar user|uid | Fl Fl user Ar user|uid
 .Op Fl A Ar address | Fl Fl address Ar address
 .Op Fl P Ar port | Fl Fl port Ar port
-.Op Fl f Ar port | Fl Fl from-port Ar port
-.Op Fl t Ar port | Fl Fl to-port Ar port
-.Nm udp-echo-server
+.Op Fl f Ar port | Fl Fl from\-port Ar port
+.Op Fl t Ar port | Fl Fl to\-port Ar port
+.Nm udp\-echo\-server
 .Op Fl h | Fl Fl help
-.Nm udp-echo-server
+.Nm udp\-echo\-server
 .Op Fl Fl version
 .\" ###### Description ######################################################
 .Sh DESCRIPTION
-.Nm udp-echo-server
+.Nm udp\-echo\-server
 is a simple UDP Echo server. It can be used as endpoint for HiPerConTracer
 UDP Ping/Traceroute.
-Note, for security reasons, udp-echo-server only responds to source ports
+Note, for security reasons, udp\-echo\-server only responds to source ports
 >= 1024, to avoid using the server in attacks, like spoofing a packet from
 another Echo server (port 7) to create a flooding loop. Also, packets
 from the same port as the listening port are ignored.
@@ -82,9 +82,9 @@ After startup, the server uses UID and GID of the given user (by name or GID).
 Sets the local address (default: ::).
 .It Fl P Ar port | Fl Fl port Ar port
 Sets the local port (default: 7).
-.It Fl P Ar port | Fl Fl from-port Ar port
+.It Fl P Ar port | Fl Fl from\-port Ar port
 Sets the first local port of a range (default: 7).
-.It Fl P Ar port | Fl Fl to-port Ar port
+.It Fl P Ar port | Fl Fl to\-port Ar port
 Sets the last local port of a range (default: 0; 0 uses the "from" port).
 .It Fl h | Fl Fl help
 Prints command help.
@@ -99,13 +99,13 @@ tool exits with 0 on success, and >0 in case of an error.
 .\" ###### Examples #########################################################
 .Sh EXAMPLES
 .Bl -tag -width indent
-.It udp-echo-server
-.It udp-echo-server --address 192.168.1.1 --port 7777
-.It udp-echo-server --address 3ffe::1:2:3 --port 7777
-.It udp-echo-server --address :: --user nornetpp
-.It udp-echo-server --address 3ffe::1:2:3 --from-port 10000 --to-port 10999
-.It udp-echo-server --version
-.It udp-echo-server -h
+.It udp\-echo\-server
+.It udp\-echo\-server \--address 192.168.1.1 \--port 7777
+.It udp\-echo\-server \--address 3ffe::1:2:3 \--port 7777
+.It udp\-echo\-server \--address :: \--user nornetpp
+.It udp\-echo\-server \--address 3ffe::1:2:3 \--from\-port 10000 \--to\-port 10999
+.It udp\-echo\-server \--version
+.It udp\-echo\-server \-h
 .El
 .\" ###### Notes ############################################################
 .Sh NOTES

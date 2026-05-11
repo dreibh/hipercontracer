@@ -29,16 +29,16 @@
 .\"
 .\" ###### Setup ############################################################
 .Dd May 11, 2026
-.Dt hpct-query 1
-.Os hpct-query
+.Dt hpct\-query 1
+.Os hpct\-query
 .\" ###### Name #############################################################
 .Sh NAME
-.Nm hpct-query
+.Nm hpct\-query
 .Nd HiPerConTracer Query Tool
 .\" ###### Synopsis #########################################################
 .Sh SYNOPSIS
-.Nm hpct-query
-database_configuration
+.Nm hpct\-query
+database\_configuration
 ping|traceroute
 .Op Fl L Ar level | Fl Fl loglevel Ar level
 .Op Fl Z Ar on|off | Fl Fl logcolor Ar on|off
@@ -46,21 +46,21 @@ ping|traceroute
 .Op Fl q | Fl Fl quiet
 .Op Fl w | Fl Fl verbose
 .Op Fl o Ar filename | Fl Fl output Ar filename
-.Op Fl T Ar table_name | Fl Fl table Ar table_name
-.Op Fl V Ar version | Fl Fl table-version Ar version
-.Op Fl M Ar mapping_file | Fl Fl address-to-measurementid Ar mapping_file
+.Op Fl T Ar table\_name | Fl Fl table Ar table\_name
+.Op Fl V Ar version | Fl Fl table\-version Ar version
+.Op Fl M Ar mapping\_file | Fl Fl address\-to\-measurementid Ar mapping\_file
 .Op Fl Fl deduplication Ar on|off
-.Op Fl Fl from-time Ar timestamp
-.Op Fl Fl to-time Ar timestamp
-.Op Fl Fl from-measurement-id Ar measurement_identifier
-.Op Fl Fl to-measurement-id Ar measurement_identifier
-.Nm hpct-query
+.Op Fl Fl from\-time Ar timestamp
+.Op Fl Fl to\-time Ar timestamp
+.Op Fl Fl from\-measurement\-id Ar measurement\_identifier
+.Op Fl Fl to\-measurement\-id Ar measurement\_identifier
+.Nm hpct\-query
 .Op Fl h | Fl Fl help
-.Nm hpct-query
+.Nm hpct\-query
 .Op Fl Fl version
 .\" ###### Description ######################################################
 .Sh DESCRIPTION
-.Nm hpct-query
+.Nm hpct\-query
 provides a simple query command to query a HiPerConTracer database for
 Ping or Traceroute results within a given time range. The output format is
 that same as the uncompressed HiPerConTracer results formant. See the
@@ -68,7 +68,7 @@ HiPerConTracer manpage for the format description.
 .Pp
 .\" ###### Arguments ########################################################
 .Sh ARGUMENTS
-The following argument may be provided:
+The following arguments may be provided:
 .Bl -tag -width indent
 .It Fl L Ar level | Fl Fl loglevel Ar level
 Sets the minimum logging level to the provided value: 0=trace, 1=debug, 2=info, 3=warning, 4=error, 5=fatal.
@@ -83,12 +83,12 @@ Sets the minimum logging level to 3 (warning).
 Sets the minimum logging level to 0 (trace).
 .It Fl o Ar filename | Fl Fl output Ar filename
 Sets the specified filename as output file. Extensions \.gz, \.bz2, and \.xz are recognised to enable compression.
-.It Fl T Ar table_name | Fl Fl table Ar table_name
+.It Fl T Ar table\_name | Fl Fl table Ar table\_name
 Sets a custom table name to query from.
-.It Fl V Ar version | Fl Fl tabl-version Ar version
+.It Fl V Ar version | Fl Fl tabl\-version Ar version
 Sets the table version (default is: 2). This option is to be used to read a table from on older HiPerConTracer schema version.
-.It Fl M Ar mapping_file | Fl Fl address-to-measurementid Ar mapping_file
-Sets a mapping file, containing space-separated IP address to measurement ID mappings with one mapping per line. Where measurement ID is zero, the measurement ID is looked up from the mappings. This option can be used to later map measurements to a useful measurement ID for export.
+.It Fl M Ar mapping\_file | Fl Fl address\-to\-measurementid Ar mapping\_file
+Sets a mapping file, containing space\-separated IP address to measurement ID mappings with one mapping per line. Where measurement ID is zero, the measurement ID is looked up from the mappings. This option can be used to later map measurements to a useful measurement ID for export.
 Example mapping file contents:
 .br
 1.2.3.4 1000
@@ -101,18 +101,18 @@ Example mapping file contents:
 .br
  ...
 .It Fl Fl deduplication Ar on|off
-Perform deduplication of the output. This option is for debugging, or to handle badly misconfigured database schemata where there primary index is non-unique. In almost all cases, this option is unnecessary and should be turned off. Default: off.
-.It Fl Fl from-time Ar timestamp
-Set the beginning of the time range as string in format "%Y-%m-%d %H:%M:%S.%F".
+Perform deduplication of the output. This option is for debugging, or to handle badly misconfigured database schemata where there primary index is non\-unique. In almost all cases, this option is unnecessary and should be turned off. Default: off.
+.It Fl Fl from\-time Ar timestamp
+Set the beginning of the time range as string in format "%Y\-%m\-%d %H:%M:%S.%F".
 If not provided, all results will be queried.
-.It Fl Fl to-time Ar timestamp
-Set the end of the time range as string in format "%Y-%m-%d %H:%M:%S.%F".
-If not provided, all results after a given from-time will be queried.
-Note: data at to-time timestamp is not included in the export, only time stamps less than to-time! That is, the time interval for export is [from-timestamp, to-timestamp). This ensures the possibility to for example export daily batches without having the same value included in two files!
-.It Fl Fl from-measurement-id Ar measurement_identifier
+.It Fl Fl to\-time Ar timestamp
+Set the end of the time range as string in format "%Y\-%m\-%d %H:%M:%S.%F".
+If not provided, all results after a given from\-time will be queried.
+Note: data at to\-time timestamp is not included in the export, only time stamps less than to\-time! That is, the time interval for export is [from\-timestamp, to\-timestamp). This ensures the possibility to for example export daily batches without having the same value included in two files!
+.It Fl Fl from\-measurement\-id Ar measurement\_identifier
 Set the beginning of the measurement identifier range.
 If not provided, all results will be queried.
-.It Fl Fl to-measurement-id Ar measurement_identifier
+.It Fl Fl to\-measurement\-id Ar measurement\_identifier
 Set the end of the measurement identifier range.
 If not provided, all results will be queried.
 .It Fl h | Fl Fl help
@@ -128,16 +128,16 @@ tool exits with 0 on success, and >0 in case of an error.
 .\" ###### Examples #########################################################
 .Sh EXAMPLES
 .Bl -tag -width indent
-.It hpct-query hipercontracer-database.conf ping
-.It hpct-query hipercontracer-database.conf traceroute
-.It hpct-query hipercontracer-database.conf ping --from-time "2022-09-29 13:00:00"
-.It hpct-query hipercontracer-database.conf traceroute --from-time "2022-09-29 00:00:00" --to-time "2022-09-29 12:00:00"
-.It hpct-query hipercontracer-database.conf traceroute --from-measurement-id 1000 --to-measurement-id 2000
-.It hpct-query hipercontracer-database.conf traceroute --from-measurement-id 1000 --to-measurement-id 2000 --output results.xz
-.It hpct-query hipercontracer-database.conf ping --table test_ping_table
-.It hpct-query hipercontracer-database.conf traceroute -T Traceroute_v1 -V 1 --from-time 2015-10-16 --to-time 2015-10-17 -o "Traceroute-2015-10-16.hpct.xz" -M addressmappings.txt
-.It hpct-query --version
-.It hpct-query -h
+.It hpct\-query hipercontracer\-database.conf ping
+.It hpct\-query hipercontracer\-database.conf traceroute
+.It hpct\-query hipercontracer\-database.conf ping \--from\-time "2022\-09\-29 13:00:00"
+.It hpct\-query hipercontracer\-database.conf traceroute \--from\-time "2022\-09\-29 00:00:00" \--to\-time "2022\-09\-29 12:00:00"
+.It hpct\-query hipercontracer\-database.conf traceroute \--from\-measurement\-id 1000 \--to\-measurement\-id 2000
+.It hpct\-query hipercontracer\-database.conf traceroute \--from\-measurement\-id 1000 \--to\-measurement\-id 2000 \--output results.xz
+.It hpct\-query hipercontracer\-database.conf ping \--table test\_ping\_table
+.It hpct\-query hipercontracer\-database.conf traceroute \-T Traceroute\_v1 \-V 1 \--from\-time 2015\-10\-16 \--to\-time 2015\-10\-17 \-o "Traceroute\-2015\-10\-16.hpct.xz" \-M addressmappings.txt
+.It hpct\-query \-\-version
+.It hpct\-query \-h
 .El
 .\" ###### Notes ############################################################
 .Sh NOTES

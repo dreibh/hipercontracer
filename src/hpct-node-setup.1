@@ -29,31 +29,31 @@
 .\"
 .\" ###### Setup ############################################################
 .Dd May 11, 2026
-.Dt hpct-node-setup 1
-.Os hpct-node-setup
+.Dt hpct\-node\-setup 1
+.Os hpct\-node\-setup
 .\" ###### Name #############################################################
 .Sh NAME
-.Nm hpct-node-setup
+.Nm hpct\-node\-setup
 .Nd HiPerConTracer Node
 .\" ###### Synopsis #########################################################
 .Sh SYNOPSIS
-.Nm hpct-node-setup USER@COLLECTOR NODE_ID
+.Nm hpct\-node\-setup USER@COLLECTOR NODE\_ID
 .Op Fl q | Fl Fl quiet
 .Op Fl w | Fl Fl verbose
-.Nm hpct-node-setup
+.Nm hpct\-node\-setup
 .Op Fl h | Fl Fl help
-.Nm hpct-node-setup
+.Nm hpct\-node\-setup
 .Op Fl v | Fl Fl version
 .\" ###### Description ######################################################
 .Sh DESCRIPTION
-.Nm hpct-node-setup
+.Nm hpct\-node\-setup
 is the HiPerConTracer node setup script. It is run on a node, in order to:
 .Bl -tag -width indent
-.It 1. Create an SSH key pair (for public/private key-based authentication to collector);
+.It 1. Create an SSH key pair (for public/private key\-based authentication to collector);
 .It 2. Upload the public key to the collector;
-.It 3. Configure SSH public/private key-based authentication on the collector (for SSH node->collector; Note: this configures password-less login to the node user node<NODE_ID> on the collector!);
-.It 4. Update known_hosts on the collector with node's server key (for SSH collector->node via Reverse Tunnel; Note: this direction is *not* configured, for security!).
-.It 5. Update /etc/hipercontracer/hpct-sync.conf with the given ID and collector.
+.It 3. Configure SSH public/private key\-based authentication on the collector (for SSH node\->collector; Note: this configures password\-less login to the node user node<NODE\_ID> on the collector!);
+.It 4. Update known\_hosts on the collector with node's server key (for SSH collector\->node via Reverse Tunnel; Note: this direction is *not* configured, for security!).
+.It 5. Update /etc/hipercontracer/hpct\-sync.conf with the given ID and collector.
 .El
 .Pp
 .\" ###### Arguments ########################################################
@@ -62,7 +62,7 @@ The following arguments must be provided:
 .Bl -tag -width indent
 .It USER@COLLECTOR
 Sets the SSH location of the collector, i.e. USER@HOST.EXAMPLE.
-.It NODE_ID
+.It NODE\_ID
 Sets the node ID, a number from 1 to 9999.
 .It Fl q | Fl Fl quiet
 Turns off status output.
@@ -81,12 +81,12 @@ tool exits with 0 on success, and >0 in case of an error.
 .\" ###### Examples #########################################################
 .Sh EXAMPLES
 .Bl -tag -width indent
-.It sudo hpct-node-setup nornetpp@hpct-collector.example 1
-.It sudo hpct-node-setup nornetpp@hpct-collector.example 1000
-.It sudo hpct-node-setup nornetpp@hpct-collector.example 2000 --verbose
-.It sudo hpct-node-setup nornetpp@hpct-collector.example 2001 -v
-.It hpct-node-setup --version
-.It hpct-node-setup -h
+.It sudo hpct\-node\-setup nornetpp@hpct\-collector.example 1
+.It sudo hpct\-node\-setup nornetpp@hpct\-collector.example 1000
+.It sudo hpct\-node\-setup nornetpp@hpct\-collector.example 2000 \--verbose
+.It sudo hpct\-node\-setup nornetpp@hpct\-collector.example 2001 \-v
+.It hpct\-node\-setup \-\-version
+.It hpct\-node\-setup \-h
 .El
 .\" ###### Notes ############################################################
 .Sh NOTES

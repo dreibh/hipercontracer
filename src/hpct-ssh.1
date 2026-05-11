@@ -29,27 +29,27 @@
 .\"
 .\" ###### Setup ############################################################
 .Dd May 11, 2026
-.Dt hpct-ssh 1
-.Os hpct-ssh
+.Dt hpct\-ssh 1
+.Os hpct\-ssh
 .\" ###### Name #############################################################
 .Sh NAME
-.Nm hpct-ssh
+.Nm hpct\-ssh
 .Nd HiPerConTracer SSH via Reverse Tunnel
 .\" ###### Synopsis #########################################################
 .Sh SYNOPSIS
-.Nm hpct-ssh USER@NODE_ID
-.Op Fl c | Fl Fl copy-id
+.Nm hpct\-ssh USER@NODE\_ID
+.Op Fl c | Fl Fl copy\-id
 .Op Fl q | Fl Fl quiet
 .Op Fl w | Fl Fl verbose
 .Op Fl Fl
-SSH_ARGUMENTS ...
-.Nm hpct-ssh
+SSH\_ARGUMENTS ...
+.Nm hpct\-ssh
 .Op Fl h | Fl Fl help
-.Nm hpct-ssh
+.Nm hpct\-ssh
 .Op Fl v | Fl Fl version
 .\" ###### Description ######################################################
 .Sh DESCRIPTION
-.Nm hpct-ssh
+.Nm hpct\-ssh
 is the HiPerConTracer Reverse Tunnel SSH script. It is to be run
 on the Collector and provides SSH login via reverse tunnel to a given node.
 .Pp
@@ -63,12 +63,12 @@ Prints command help.
 Turns off status output.
 .It Fl w | Fl Fl verbose
 Turns on status output.
-.It Fl c | Fl Fl copy-id
-Calls ssh-copy-id first, in order to configure public/private key-based
+.It Fl c | Fl Fl copy\-id
+Calls ssh\-copy\-id first, in order to configure public/private key\-based
 authentication to the remote node. If successful, SSH is tried. This should
-provide a password-less login.
+provide a password\-less login.
 .It Fl Fl
-All arguments after -- are provided to the SSH call.
+All arguments after \-- are provided to the SSH call.
 .It Fl h | Fl Fl help
 Prints command help.
 .It Fl v | Fl Fl version
@@ -82,12 +82,12 @@ tool exits with 0 on success, and >0 in case of an error.
 .\" ###### Examples #########################################################
 .Sh EXAMPLES
 .Bl -tag -width indent
-.It hpct-ssh user@1000
-.It hpct-ssh user@1000 --verbose
-.It hpct-ssh user@1000 --copy-id --verbose
-.It hpct-ssh user@1000 --quiet -- 'hostname ; pactl list sources'
-.It hpct-ssh --version
-.It hpct-ssh -h
+.It hpct\-ssh user@1000
+.It hpct\-ssh user@1000 \--verbose
+.It hpct\-ssh user@1000 \--copy\-id \--verbose
+.It hpct\-ssh user@1000 \--quiet \-- 'hostname ; pactl list sources'
+.It hpct\-ssh \--version
+.It hpct\-ssh \-h
 .El
 .\" ###### Notes ############################################################
 .Sh NOTES

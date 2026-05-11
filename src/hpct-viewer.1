@@ -29,24 +29,24 @@
 .\"
 .\" ###### Setup ############################################################
 .Dd May 11, 2026
-.Dt hpct-viewer 1
-.Os hpct-viewer
+.Dt hpct\-viewer 1
+.Os hpct\-viewer
 .\" ###### Name #############################################################
 .Sh NAME
-.Nm hpct-viewer
+.Nm hpct\-viewer
 .Nd View HiPerConTracer Results File
 .\" ###### Synopsis #########################################################
 .Sh SYNOPSIS
-.Nm hpct-viewer
-results_file
+.Nm hpct\-viewer
+results\_file
 .\" ###### Description ######################################################
 .Sh DESCRIPTION
-.Nm hpct-viewer
+.Nm hpct\-viewer
 displays the contents of a HiPerConTracer results file.
 .Pp
 .\" ###### Arguments ########################################################
 .Sh ARGUMENTS
-The following argument may be provided:
+The following arguments may be provided:
 .Bl -tag -width indent
 .It Fl h | Fl Fl help
 Prints command help.
@@ -61,13 +61,13 @@ tool exits with 0 on success, and >0 in case of an error.
 .\" ###### Examples #########################################################
 .Sh EXAMPLES
 .Bl -tag -width indent
-.It hpct-viewer Traceroute-\%UDP-\%#88888888-\%fdb6:6d27:be73:4::50-\%20231018T102656.821891-\%000000001.hpct.xz
-.It hpct-viewer Traceroute-\%ICMP-\%#12345678-\%::-\%20231108T134229.533947-\%000000001.hpct.gz
-.It hpct-viewer Ping-\%P13735-\%2001:700:4100:4::2-\%20221012T142120.713761-\%000003330.hpct.bz2
-.It hpct-viewer Traceroute-\%ICMP-\%#12345678-\%0.0.0.0-\%20231108T134228.409798-\%000000001.hpct.gz
-.It hpct-viewer results.hpct
-.It hpct-viewer --version
-.It hpct-viewer -h
+.It hpct\-viewer Traceroute\-\%UDP\-\%#88888888\-\%fdb6:6d27:be73:4::50\-\%20231018T102656.821891\-\%000000001.hpct.xz
+.It hpct\-viewer Traceroute\-\%ICMP\-\%#12345678\-\%::\-\%20231108T134229.533947\-\%000000001.hpct.gz
+.It hpct\-viewer Ping\-\%P13735\-\%2001:700:4100:4::2\-\%20221012T142120.713761\-\%000003330.hpct.bz2
+.It hpct\-viewer Traceroute\-\%ICMP\-\%#12345678\-\%0.0.0.0\-\%20231108T134228.409798\-\%000000001.hpct.gz
+.It hpct\-viewer results.hpct
+.It hpct\-viewer \--version
+.It hpct\-viewer \-h
 .El
 .\" ###### Notes ############################################################
 .Sh NOTES

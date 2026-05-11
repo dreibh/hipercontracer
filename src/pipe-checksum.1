@@ -29,28 +29,28 @@
 .\"
 .\" ###### Setup ############################################################
 .Dd May 11, 2026
-.Dt pipe-checksum 1
-.Os pipe-checksum
+.Dt pipe\-checksum 1
+.Os pipe\-checksum
 .\" ###### Name #############################################################
 .Sh NAME
-.Nm pipe-checksum
+.Nm pipe\-checksum
 .Nd Write stdin to file and create a file with the checksum of the data
 .\" ###### Synopsis #########################################################
 .Sh SYNOPSIS
-.Nm pipe-checksum
+.Nm pipe\-checksum
 file
 .Op Fl D Ar MD5|\%SHA1|\%SHA256|\%SHA384|\%SHA512|\%... |\% Fl Fl digest Ar MD5|\%SHA1|\%SHA256|\%SHA384|\%SHA512|\%...
-.Nm pipe-checksum
+.Nm pipe\-checksum
 .Op Fl h | Fl Fl help
-.Nm pipe-checksum
+.Nm pipe\-checksum
 .Op Fl Fl version
 .\" ###### Description ######################################################
 .Sh DESCRIPTION
-.Nm pipe-checksum
+.Nm pipe\-checksum
 writes all data from standard input into a given file "<file>". Furthermore, it
 computes the checksum of the data and writes it to a new file "<file>.checksum".
 The used message digest algorithm can be configured, it defaults to SHA256.
-The checksum format is BSD-style checksum format, as written for example by
+The checksum format is BSD\-style checksum format, as written for example by
 the sha256sum tool. Therefore, any tool supporting this format can be used
 for comparison.
 .Pp
@@ -60,7 +60,7 @@ The following arguments may be provided:
 .Bl -tag -width indent
 .It Fl D Ar MD5|SHA1|SHA256|SHA384|SHA512|... | Fl Fl digest Ar MD5|SHA1|SHA256|SHA384|SHA512|...
 Sets the message digest. Any digest supported by the underlying libcrypto
-library is possible. Calling pipe-checksum with no options, or with invalid digest, provides the list of all supported digests. Default: SHA256.
+library is possible. Calling pipe\-checksum with no options, or with invalid digest, provides the list of all supported digests. Default: SHA256.
 .It Fl h | Fl Fl help
 Prints command help.
 .It Fl Fl version
@@ -74,14 +74,14 @@ tool exits with 0 on success, and >0 in case of an error.
 .\" ###### Examples #########################################################
 .Sh EXAMPLES
 .Bl -tag -width indent
-.It date | pipe-checksum date.txt
-.It sha256sum --check date.txt.checksum
-.It date | pipe-checksum date.txt --digest SHA384
-.It dd if=/dev/urandom bs=12345 count=67 | hexdump | pipe-checksum random.txt
-.It dd if=/dev/urandom bs=12345 count=67 | pipe-checksum random.txt --digest SHA512
-.It sha512sum --check random.txt.checksum
-.It pipe-checksum --version
-.It pipe-checksum -h
+.It date | pipe\-checksum date.txt
+.It sha256sum \--check date.txt.checksum
+.It date | pipe\-checksum date.txt \--digest SHA384
+.It dd if=/dev/urandom bs=12345 count=67 | hexdump | pipe\-checksum random.txt
+.It dd if=/dev/urandom bs=12345 count=67 | pipe\-checksum random.txt \--digest SHA512
+.It sha512sum \--check random.txt.checksum
+.It pipe\-checksum \--version
+.It pipe\-checksum \-h
 .El
 .\" ###### Notes ############################################################
 .Sh NOTES
