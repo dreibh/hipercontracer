@@ -100,7 +100,7 @@ if [[ "${INPUT_FILE}" =~ \.xz$ ]] ; then
    if [ "${uname}" == "Linux" ] ; then
       if [ "$(stat -c "%s" "${INPUT_FILE}")" == "32" ] ; then
          echo "" | less
-         return
+         exit 0
       fi
    fi
    xzless "${INPUT_FILE}"

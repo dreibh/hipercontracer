@@ -84,7 +84,7 @@ _udp_echo_server()
 --logfile
 -q
 --quiet
--v
+-w
 --verbose
 -U
 --user

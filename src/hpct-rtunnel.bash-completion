@@ -71,7 +71,7 @@ _hpct_rtunnel()
    local opts="
 -h
 --help
--v
+-w
 --verbose
 -q
 --quiet

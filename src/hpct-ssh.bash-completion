@@ -59,7 +59,7 @@ _hpct_ssh()
    local opts="
 -h
 --help
--v
+-w
 --verbose
 -q
 --quiet

@@ -45,13 +45,22 @@
 .\" ###### Description ######################################################
 .Sh DESCRIPTION
 .Nm hpct\-nodes\-list
-lists the HiPerConTracer configured on the Collector, as well as
+lists the HiPerConTracer nodes configured on the Collector, as well as
 their connectivity (RTunnel) and data synchronisation (Sync) status.
 .br
 Note that reading the last status of nodes needs access of the user to the nodes' data
 directories (usually: /var/hipercontracer/data/node<NODE>/). The status is
 read from last\-seen.txt and last\-sync.txt.
 .Pp
+.\" ###### Arguments ########################################################
+.Sh ARGUMENTS
+The following arguments may be provided:
+.Bl -tag -width indent
+.It Fl h | Fl Fl help
+Prints command help.
+.It Fl v | Fl Fl version
+Prints program version.
+.El
 .\" ###### Exit status ######################################################
 .Sh EXIT STATUS
 The
@@ -62,8 +71,6 @@ tool exits with 0 on success, and >0 in case of an error.
 .Bl -tag -width indent
 .It hpct\-nodes\-list
 .It watch \-\-color \-n300 hpct\-nodes\-list
-.It hpct\-nodes\-list \-\-version
-.It hpct\-nodes\-list \-h
 .It hpct\-nodes\-list \-\-version
 .It hpct\-nodes\-list \-h
 .El

@@ -105,7 +105,7 @@ _hpct_importer()
 --logfile
 -q
 --quiet
--v
+-w
 --verbose
 -X
 --import-mode

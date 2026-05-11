@@ -37,8 +37,11 @@
 .Nd View HiPerConTracer Results File
 .\" ###### Synopsis #########################################################
 .Sh SYNOPSIS
+.Nm hpct\-viewer Ar results\_file
 .Nm hpct\-viewer
-results\_file
+.Op Fl h | Fl Fl help
+.Nm hpct\-viewer
+.Op Fl v | Fl Fl version
 .\" ###### Description ######################################################
 .Sh DESCRIPTION
 .Nm hpct\-viewer
@@ -48,6 +51,8 @@ displays the contents of a HiPerConTracer results file.
 .Sh ARGUMENTS
 The following arguments may be provided:
 .Bl -tag -width indent
+.It Ar results\_file
+Specifies the HiPerConTracer results file to show.
 .It Fl h | Fl Fl help
 Prints command help.
 .It Fl v | Fl Fl version
