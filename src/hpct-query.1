@@ -130,12 +130,12 @@ tool exits with 0 on success, and >0 in case of an error.
 .Bl -tag -width indent
 .It hpct\-query hipercontracer\-database.conf ping
 .It hpct\-query hipercontracer\-database.conf traceroute
-.It hpct\-query hipercontracer\-database.conf ping \--from\-time "2022\-09\-29 13:00:00"
-.It hpct\-query hipercontracer\-database.conf traceroute \--from\-time "2022\-09\-29 00:00:00" \--to\-time "2022\-09\-29 12:00:00"
-.It hpct\-query hipercontracer\-database.conf traceroute \--from\-measurement\-id 1000 \--to\-measurement\-id 2000
-.It hpct\-query hipercontracer\-database.conf traceroute \--from\-measurement\-id 1000 \--to\-measurement\-id 2000 \--output results.xz
-.It hpct\-query hipercontracer\-database.conf ping \--table test\_ping\_table
-.It hpct\-query hipercontracer\-database.conf traceroute \-T Traceroute\_v1 \-V 1 \--from\-time 2015\-10\-16 \--to\-time 2015\-10\-17 \-o "Traceroute\-2015\-10\-16.hpct.xz" \-M addressmappings.txt
+.It hpct\-query hipercontracer\-database.conf ping \-\-from\-time "2022\-09\-29 13:00:00"
+.It hpct\-query hipercontracer\-database.conf traceroute \-\-from\-time "2022\-09\-29 00:00:00" \-\-to\-time "2022\-09\-29 12:00:00"
+.It hpct\-query hipercontracer\-database.conf traceroute \-\-from\-measurement\-id 1000 \-\-to\-measurement\-id 2000
+.It hpct\-query hipercontracer\-database.conf traceroute \-\-from\-measurement\-id 1000 \-\-to\-measurement\-id 2000 \-\-output results.xz
+.It hpct\-query hipercontracer\-database.conf ping \-\-table test\_ping\_table
+.It hpct\-query hipercontracer\-database.conf traceroute \-T Traceroute\_v1 \-V 1 \-\-from\-time 2015\-10\-16 \-\-to\-time 2015\-10\-17 \-o "Traceroute\-2015\-10\-16.hpct.xz" \-M addressmappings.txt
 .It hpct\-query \-\-version
 .It hpct\-query \-h
 .El

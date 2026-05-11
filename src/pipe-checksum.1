@@ -75,12 +75,12 @@ tool exits with 0 on success, and >0 in case of an error.
 .Sh EXAMPLES
 .Bl -tag -width indent
 .It date | pipe\-checksum date.txt
-.It sha256sum \--check date.txt.checksum
-.It date | pipe\-checksum date.txt \--digest SHA384
+.It sha256sum \-\-check date.txt.checksum
+.It date | pipe\-checksum date.txt \-\-digest SHA384
 .It dd if=/dev/urandom bs=12345 count=67 | hexdump | pipe\-checksum random.txt
-.It dd if=/dev/urandom bs=12345 count=67 | pipe\-checksum random.txt \--digest SHA512
-.It sha512sum \--check random.txt.checksum
-.It pipe\-checksum \--version
+.It dd if=/dev/urandom bs=12345 count=67 | pipe\-checksum random.txt \-\-digest SHA512
+.It sha512sum \-\-check random.txt.checksum
+.It pipe\-checksum \-\-version
 .It pipe\-checksum \-h
 .El
 .\" ###### Notes ############################################################

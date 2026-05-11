@@ -127,8 +127,8 @@ tool exits with 0 on success, and >0 in case of an error.
 .It hpct\-trigger \-\-source=10.1.1.51 \-\-traceroute \-\-resultsdirectory=/tmp/results \-\-resultstransactionlength=60 \-\-resultstimestampdepth 3
 .It hpct\-trigger \-\-source=172.16.1.2,BE,EF \-\-source=172.17.1.2,BE,AF11,AF21 \-\-triggerpingage=1800 \-\-ping \-\-verbose
 .It hpct\-trigger \-\-source 10.1.1.51 \-\-triggerpingage 1800 \-\-ping \-\-traceroute \-\-iomodule ICMP \-\-iomodule UDP
-.It hipercontracer \-S 0.0.0.0 \-S :: \-D <TARGET> \--ping \--pingpacketsize 67 \--iterations 3 \--verbose
-.It hipercontracer \-S 0.0.0.0 \-S :: \-D <TARGET> \-P \--pingpacketsize 88 \-I 3 \-v
+.It hipercontracer \-S 0.0.0.0 \-S :: \-D <TARGET> \-\-ping \-\-pingpacketsize 67 \-\-iterations 3 \-\-verbose
+.It hipercontracer \-S 0.0.0.0 \-S :: \-D <TARGET> \-P \-\-pingpacketsize 88 \-I 3 \-v
 .El
 .\" ###### Notes ############################################################
 .Sh NOTES

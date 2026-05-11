@@ -88,10 +88,10 @@ tool exits with 0 on success, and >0 in case of an error.
 .\" ###### Examples #########################################################
 .Sh EXAMPLES
 .Bl -tag -width indent
-.It sudo \-u hipercontracer   hpct\-sync \--nodeid 1000 \--local /var/hipercontracer \--remote /var/hipercontracer \--collector sognsvann.example \--key /var/hipercontracer/ssh/id\_ed25519 \--known\-hosts /var/hipercontracer/ssh/known\_hosts \--verbose
-.It sudo \-u hipercontracer   hpct\-sync \--nodeid 1 \--local /var/hipercontracer \--remote /var/hipercontracer \--collector sognsvann.example \--key /var/hipercontracer/ssh/id\_ed25519 \--known\-hosts /var/hipercontracer/ssh/known\_hosts \--quiet
-.It sudo \-u hipercontracer   hpct\-sync \--nodeid 2 \--collector sognsvann.example
-.It hpct\-sync \--version
+.It sudo \-u hipercontracer   hpct\-sync \-\-nodeid 1000 \-\-local /var/hipercontracer \-\-remote /var/hipercontracer \-\-collector sognsvann.example \-\-key /var/hipercontracer/ssh/id\_ed25519 \-\-known\-hosts /var/hipercontracer/ssh/known\_hosts \-\-verbose
+.It sudo \-u hipercontracer   hpct\-sync \-\-nodeid 1 \-\-local /var/hipercontracer \-\-remote /var/hipercontracer \-\-collector sognsvann.example \-\-key /var/hipercontracer/ssh/id\_ed25519 \-\-known\-hosts /var/hipercontracer/ssh/known\_hosts \-\-quiet
+.It sudo \-u hipercontracer   hpct\-sync \-\-nodeid 2 \-\-collector sognsvann.example
+.It hpct\-sync \-\-version
 .It hpct\-sync \-h
 .El
 .\" ###### Notes ############################################################

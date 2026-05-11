@@ -113,11 +113,11 @@ tool exits with 0 on success, and >0 in case of an error.
 .\" ###### Examples #########################################################
 .Sh EXAMPLES
 .Bl -tag -width indent
-.It hpct\-results results/Ping* \--output ping.csv.xz \--sorted \--separator ';'
-.It hpct\-results results/Traceroute* \--output traceroute.csv.bz2 \--unsorted
-.It hpct\-results results/Traceroute* \--sorted | head \-n 64
-.It find results/ \-name 'Traceroute\-*.hpct.*' | hpct\-results \--input\-file\-names\-from\-stdin \-o results.csv.gz
-.It hpct\-results \--input\-file\-names\-from\-file results\-files.list \-o results.csv.xz
+.It hpct\-results results/Ping* \-\-output ping.csv.xz \-\-sorted \-\-separator ';'
+.It hpct\-results results/Traceroute* \-\-output traceroute.csv.bz2 \-\-unsorted
+.It hpct\-results results/Traceroute* \-\-sorted | head \-n 64
+.It find results/ \-name 'Traceroute\-*.hpct.*' | hpct\-results \-\-input\-file\-names\-from\-stdin \-o results.csv.gz
+.It hpct\-results \-\-input\-file\-names\-from\-file results\-files.list \-o results.csv.xz
 .It hpct\-results \-\-version
 .It hpct\-results \-h
 .El

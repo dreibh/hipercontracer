@@ -68,7 +68,7 @@ Calls ssh\-copy\-id first, in order to configure public/private key\-based
 authentication to the remote node. If successful, SSH is tried. This should
 provide a password\-less login.
 .It Fl Fl
-All arguments after \-- are provided to the SSH call.
+All arguments after \-\- are provided to the SSH call.
 .It Fl h | Fl Fl help
 Prints command help.
 .It Fl v | Fl Fl version
@@ -83,10 +83,10 @@ tool exits with 0 on success, and >0 in case of an error.
 .Sh EXAMPLES
 .Bl -tag -width indent
 .It hpct\-ssh user@1000
-.It hpct\-ssh user@1000 \--verbose
-.It hpct\-ssh user@1000 \--copy\-id \--verbose
-.It hpct\-ssh user@1000 \--quiet \-- 'hostname ; pactl list sources'
-.It hpct\-ssh \--version
+.It hpct\-ssh user@1000 \-\-verbose
+.It hpct\-ssh user@1000 \-\-copy\-id \-\-verbose
+.It hpct\-ssh user@1000 \-\-quiet \-\- 'hostname ; pactl list sources'
+.It hpct\-ssh \-\-version
 .It hpct\-ssh \-h
 .El
 .\" ###### Notes ############################################################
