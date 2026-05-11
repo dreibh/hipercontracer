@@ -29,32 +29,36 @@
 .\"
 .\" ###### Setup ############################################################
 .Dd May 11, 2026
-.Dt decrypt-dbeaver-configuration 1
-.Os decrypt-dbeaver-configuration
+.Dt decrypt\-dbeaver\-configuration 1
+.Os decrypt\-dbeaver\-configuration
 .\" ###### Name #############################################################
 .Sh NAME
-.Nm decrypt-dbeaver-configuration
+.Nm decrypt\-dbeaver\-configuration
 .Nd Decrypt DBeaver Credentials Configuration File
 .\" ###### Synopsis #########################################################
 .Sh SYNOPSIS
-.Nm decrypt-dbeaver-configuration Ar encrypted_dbeaver_credentials_config_json Ar plain_dbeaver_credentials_config_json
+.Nm decrypt\-dbeaver\-configuration Ar encrypted\_dbeaver\_credentials\_config\_json Ar plain\_dbeaver\_credentials\_config\_json
+.Nm decrypt\-dbeaver\-configuration
+.Op Fl h | Fl Fl help
+.Nm decrypt\-dbeaver\-configuration
+.Op Fl v | Fl Fl version
 .\" ###### Description ######################################################
 .Sh DESCRIPTION
-.Nm decrypt-dbeaver-configuration
-decrypts a plain-text DBeaver credentials configuration file.
-"-" can be used as placeholder for /dev/stdin, to read the input file from
+.Nm decrypt\-dbeaver\-configuration
+decrypts an encrypted DBeaver credentials configuration file.
+"\-" can be used as placeholder for /dev/stdin, to read the input file from
 standard input.
-"-" can be used as placeholder for /dev/stdout, to write the output file to
-stdandard output.
+"\-" can be used as placeholder for /dev/stdout, to write the output file to
+standard output.
 .Pp
 .\" ###### Arguments ########################################################
 .Sh ARGUMENTS
-The following argument may be provided:
+The following arguments may be provided:
 .Bl -tag -width indent
-.It Ar encrypted_dbeaver_credentials_config_json
-The input encrypted DBeaver credentials configuration JSON file, or "-" for /dev/stdin.
-.It Ar plain_dbeaver_credentials_config_json
-The output plain-text DBeaver credentials configuration JSON file, or "-" for /dev/stdout.
+.It Ar encrypted\_dbeaver\_credentials\_config\_json
+The input encrypted DBeaver credentials configuration JSON file, or "\-" for /dev/stdin.
+.It Ar plain\_dbeaver\_credentials\_config\_json
+The output plain\-text DBeaver credentials configuration JSON file, or "\-" for /dev/stdout.
 .It Fl h | Fl Fl help
 Prints command help.
 .It Fl v | Fl Fl version
@@ -68,11 +72,11 @@ tool exits with 0 on success, and >0 in case of an error.
 .\" ###### Examples #########################################################
 .Sh EXAMPLES
 .Bl -tag -width indent
-.It decrypt-dbeaver-configuration $DBEAVER_DIR/credentials-config.json /dev/stdout
-.It decrypt-dbeaver-configuration $DBEAVER_DIR/credentials-config.json -
-.It decrypt-dbeaver-configuration $DBEAVER_DIR/credentials-config.json plaintext-credentials-config.json
-.It decrypt-dbeaver-configuration --version
-.It decrypt-dbeaver-configuration -h
+.It decrypt\-dbeaver\-configuration $DBEAVER\_DIR/credentials\-config.json /dev/stdout
+.It decrypt\-dbeaver\-configuration $DBEAVER\_DIR/credentials\-config.json \-
+.It decrypt\-dbeaver\-configuration $DBEAVER\_DIR/credentials\-config.json plaintext\-credentials\-config.json
+.It decrypt\-dbeaver\-configuration \-\-version
+.It decrypt\-dbeaver\-configuration \-h
 .El
 .\" ###### Notes ############################################################
 .Sh NOTES
