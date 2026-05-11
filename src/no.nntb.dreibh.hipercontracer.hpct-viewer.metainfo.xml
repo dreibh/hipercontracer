@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <component type="desktop-application">
-  <id>no.nntb.dreibh.hpct-viewer</id>
+  <id>no.nntb.dreibh.hipercontracer.hpct-viewer</id>
 
   <name>HiPerConTracer Viewer</name>
   <summary>Viewer for HiPerConTracer results</summary>
