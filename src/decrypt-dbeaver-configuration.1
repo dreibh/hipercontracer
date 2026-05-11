@@ -46,19 +46,23 @@
 .Sh DESCRIPTION
 .Nm decrypt\-dbeaver\-configuration
 decrypts an encrypted DBeaver credentials configuration file.
-"\-" can be used as placeholder for /dev/stdin, to read the input file from
-standard input.
-"\-" can be used as placeholder for /dev/stdout, to write the output file to
-standard output.
+"\-" can be used as placeholder for
+.Pa /dev/stdin ,
+to read the input file from standard input.
+"\-" can be used as placeholder for
+.Pa /dev/stdout ,
+to write the output file to standard output.
 .Pp
 .\" ###### Arguments ########################################################
 .Sh ARGUMENTS
 The following arguments may be provided:
 .Bl -tag -width indent
 .It Ar encrypted\_dbeaver\_credentials\_config\_json
-The input encrypted DBeaver credentials configuration JSON file, or "\-" for /dev/stdin.
+The input encrypted DBeaver credentials configuration JSON file, or "\-" for
+.Pa /dev/stdin .
 .It Ar plain\_dbeaver\_credentials\_config\_json
-The output plain\-text DBeaver credentials configuration JSON file, or "\-" for /dev/stdout.
+The output plain\-text DBeaver credentials configuration JSON file, or "\-" for
+.Pa /dev/stdout .
 .It Fl h | Fl Fl help
 Prints command help.
 .It Fl v | Fl Fl version
