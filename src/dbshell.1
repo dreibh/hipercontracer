@@ -39,6 +39,7 @@
 .Sh SYNOPSIS
 .Nm dbshell Ar database_configuration
 .Op Fl q | Fl Fl quiet
+.Op Fl v | Fl Fl verbose
 .Op Fl d | Fl Fl dry-run
 .Op Fl B Ar file_prefix  | Fl Fl write-dbeaver-config Ar file_prefix
 .Nm dbshell
@@ -60,6 +61,8 @@ The following argument may be provided:
 Sets the name of the database configuration file.
 .It Fl q | Fl Fl quiet
 Quiet mode.
+.It Fl v | Fl Fl verbose
+Verbose mode.
 .It Fl d | Fl Fl dry-run
 Just shows the command-line call to start the database shell, but does not
 execute it.
@@ -67,7 +70,7 @@ execute it.
 Write DBeaver configuration files (the configuration file itself, as well as a credentials file) with the given file name prefix.
 .It Fl h | Fl Fl help
 Prints command help.
-.It Fl Fl version
+.It Fl v | Fl Fl version
 Prints program version.
 .El
 .\" ###### Exit status ######################################################

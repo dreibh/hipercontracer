@@ -71,10 +71,15 @@ _dbshell()
    local opts="
 -q
 --quiet
+-v
+--verbose
 -d
 --dry-run
 -B
 --write-dbeaver-config
+-h
+--help
+--version
 "
    mapfile -t COMPREPLY < <(compgen -W "${opts}" -- "${cur}" )
    return 0

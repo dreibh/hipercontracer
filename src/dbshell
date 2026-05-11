@@ -141,9 +141,6 @@ fi
 if [ "${dbcertkeyfile}" == "NONE" ] ; then
    dbcertkeyfile=""
 fi
-if [ "${dbcertfile}" == "NONE" ] ; then
-   dbcertfile=""
-fi
 tls_enabled=1
 tls_check_certificate=1
 tls_check_hostname=1
@@ -270,7 +267,7 @@ elif [ "${dbbackend}" == "MongoDB" ] ; then
 
 else
 
-   echo >&2 "ERROR: Invalid dbbackend setting \"${dbbackend}!\""
+   echo >&2 "ERROR: Invalid dbbackend setting \"${dbbackend}\"!"
    exit 1
 
 fi
@@ -450,7 +447,7 @@ if [ ${QUIET} -eq 0 ] ; then
       export | grep "PGPASSWORD=\|PGSSL[A-Z]*=" | sort || true
    fi
    echo "${command} ${parameters}"
-   fi
+fi
 
 if [ ${DRY_RUN} -eq 0 ] ; then
    if [ ${QUIET} -eq 0 ] ; then
