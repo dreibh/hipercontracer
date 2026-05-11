@@ -32,27 +32,77 @@
 set -euo pipefail
 
 
+# ###### Usage ##############################################################
+usage () {
+   local exitCode="$1"
+   echo >&2 "Usage: $0 plain_dbeaver_credentials_config_json encrypted_dbeaver_credentials_config_json [-h|--help] [-v|--version]"
+   exit "${exitCode}"
+}
+
+
+# ###### Version ############################################################
+version () {
+   echo "Encrypt-DBeaver-Configuration @BUILD_MAJOR@.@BUILD_MINOR@.@BUILD_PATCH@"
+   exit 0
+}
+
+
+
 # ###### Main program #######################################################
 
 # ====== Handle arguments ===================================================
-if [ $# -ne 2 ] ; then
-   echo >&2 "Usage: $0 plain_dbeaver_credentials_config_json encrypted_dbeaver_credentials_config_json"
+if (( BASH_VERSINFO[0] < 4 )) || (( (BASH_VERSINFO[0] == 4) && (BASH_VERSINFO[1] < 4) )) ; then
+   echo "ERROR: Bash 4.4 or higher is required, but Bash ${BASH_VERSINFO[0]}.${BASH_VERSINFO[1]} installed!"
    exit 1
 fi
-
-inputFile="$1"
-if [ "${inputFile}" == "-" ] ; then
-   inputFile="/dev/stdin"
+GETOPT="$(PATH="/usr/local/bin:${PATH}" command -v getopt)"
+if "${GETOPT}" -T >/dev/null 2>&1 || [[ $? -ne 4 ]]; then
+   echo >&2 "ERROR: Enhanced/GNU getopt is required!"
+   exit 1
 fi
-outputFile="$2"
-if [ "${outputFile}" == "-" ] ; then
-   outputFile="/dev/stdout"
+options="$(${GETOPT} -o hv --long help,version -a -- "$@")"
+# shellcheck disable=SC2181
+if [[ $? -ne 0 ]]; then
+   usage 1
+fi
+
+eval set -- "${options}"
+while [ $# -gt 0 ] ; do
+   case "$1" in
+      -h | --help)
+         usage 0
+         ;;
+      -v | --version)
+         version
+         ;;
+      --)
+         shift
+         break
+         ;;
+      *)
+         # This should not happen: wrong getopt parameters, or missing case?
+         echo >&2 "INTERNAL ERROR: Unhandled option $1!"
+         exit 1
+         ;;
+  esac
+done
+if [ $# -ne 2 ] ; then
+   usage 1
+fi
+
+INPUT_FILE="$1"
+if [ "${INPUT_FILE}" == "-" ] ; then
+   INPUT_FILE="/dev/stdin"
+fi
+OUTPUT_FILE="$2"
+if [ "${OUTPUT_FILE}" == "-" ] ; then
+   OUTPUT_FILE="/dev/stdout"
 fi
 
 # ====== Process file =======================================================
 (
    dd if=/dev/urandom of="/dev/stdout" bs=16 count=1 status=none 2>/dev/null   # 16 bytes random number
-   cat "${inputFile}"
+   cat "${INPUT_FILE}"
 ) | openssl aes-128-cbc \
    -K babb4a9f774ab853c96c2d653dfe544a -iv 00000000000000000000000000000000 \
-   -in /dev/stdin >"${outputFile}"
+   -in /dev/stdin >"${OUTPUT_FILE}"

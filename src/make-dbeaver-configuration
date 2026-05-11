@@ -32,42 +32,86 @@
 set -euo pipefail
 
 
+# ###### Usage ##############################################################
+usage () {
+   local exitCode="$1"
+   echo >&2 "Usage: $0 database_configuration_file ... [--join] [-h|--help] [-v|--version]"
+   exit "${exitCode}"
+}
+
+
+# ###### Version ############################################################
+version () {
+   echo "Make-DBeaver-Configuration @BUILD_MAJOR@.@BUILD_MINOR@.@BUILD_PATCH@"
+   exit 0
+}
+
+
+
 # ###### Main program #######################################################
 
 # ====== Handle arguments ===================================================
-if [ $# -lt 1 ] ; then
-   echo >&2 "Usage: $0 database_configuration_file ... [--join]"
+if (( BASH_VERSINFO[0] < 4 )) || (( (BASH_VERSINFO[0] == 4) && (BASH_VERSINFO[1] < 4) )) ; then
+   echo "ERROR: Bash 4.4 or higher is required, but Bash ${BASH_VERSINFO[0]}.${BASH_VERSINFO[1]} installed!"
    exit 1
+fi
+GETOPT="$(PATH="/usr/local/bin:${PATH}" command -v getopt)"
+if "${GETOPT}" -T >/dev/null 2>&1 || [[ $? -ne 4 ]]; then
+   echo >&2 "ERROR: Enhanced/GNU getopt is required!"
+   exit 1
+fi
+options="$(${GETOPT} -o jhv --long join,help,version -a -- "$@")"
+# shellcheck disable=SC2181
+if [[ $? -ne 0 ]]; then
+   usage 1
+fi
+
+JOIN=0
+eval set -- "${options}"
+while [ $# -gt 0 ] ; do
+   case "$1" in
+      -j | --join)
+         JOIN=1
+         ;;
+      -h | --help)
+         usage 0
+         ;;
+      -v | --version)
+         version
+         ;;
+      --)
+         shift
+         break
+         ;;
+      *)
+         # This should not happen: wrong getopt parameters, or missing case?
+         echo >&2 "INTERNAL ERROR: Unhandled option $1!"
+         exit 1
+         ;;
+  esac
+done
+if [ $# -lt 1 ] ; then
+   usage 1
 fi
 DIRNAME="$(dirname "$0")"
 
 
-# ====== Generate DBeaver configuration files ===============================
+# ====== Process configuration files ========================================
 echo -e "\x1b[34m$(date +"%F %H:%M:%S"): Generating DBeaver configuration ...\x1b[0m"
 tempDirectory="$(mktemp -d -t "make-dbeaver-configuration-XXXXXX")"
 trap 'rm -rf "${tempDirectory}"' EXIT
 
-join=0
 dbeaverConfig=""
 dbeaverCredentials=""
 while [ $# -gt 0 ] ; do
-   if [[ "$1" =~ ^-- ]] ; then
-      if [ "$1" == "--join"  ] ; then
-         join=1
-      else
-         echo >&2 "ERROR: Invalid option $1!"
-         exit 1
-      fi
-   else
-      echo -e "\x1b[37mProcessing $(basename "$1") ...\x1b[0m"
-      "$(dirname "$0")"/dbshell "$1" --dry-run -q -B "${tempDirectory}/$(basename "${1//.conf/}")"
-   fi
+   echo -e "\x1b[37mProcessing $(basename "$1") ...\x1b[0m"
+   "${DIRNAME}/dbshell" "$1" --dry-run --quiet --write-dbeaver-config "${tempDirectory}/$(basename "${1//.conf/}")"
    shift
 done
 
 
 # ====== Read existing configuration ========================================
-if [ ${join} -eq 1 ] ; then
+if [ ${JOIN} -eq 1 ] ; then
    echo -e "\x1b[37mLooking for existing DBeaver configuration ...\x1b[0m"
    for dbeaverDirectory in \
       "${HOME}/snap/dbeaver-ce/current/.local/share/DBeaverData/workspace6/General/.dbeaver" \
@@ -80,7 +124,7 @@ if [ ${join} -eq 1 ] ; then
          if [ -e "${dbeaverDirectory}/credentials-config.json" ] ; then
             dbeaverCredentials="${tempDirectory}/credentials-config.json"
             echo -e "\x1b[37mJoining credentials in ${dbeaverDirectory}/credentials-config.json\x1b[0m"
-            "${DIRNAME}"/decrypt-dbeaver-configuration \
+            "${DIRNAME}/decrypt-dbeaver-configuration" \
                "${dbeaverDirectory}/credentials-config.json" \
                "${dbeaverCredentials}"
          fi
@@ -102,13 +146,13 @@ jq --sort-keys --slurp 'reduce .[] as $item ({}; . * $item)' ${dbeaverConfig}   
 jq --sort-keys --slurp 'reduce .[] as $item ({}; . * $item)' ${dbeaverCredentials} "${tempDirectory}"/*-credentials-config.json >"${tempDirectory}/credentials-config.json.plaintext"
 
 # Encrypt the new credentials files:
-"${DIRNAME}"/encrypt-dbeaver-configuration \
+"${DIRNAME}/encrypt-dbeaver-configuration" \
    "${tempDirectory}/credentials-config.json.plaintext" \
    "${tempDirectory}/credentials-config.json"
 
 
 # ====== Join with existing configuration ===================================
-if [ ${join} -eq 1 ] ; then
+if [ ${JOIN} -eq 1 ] ; then
    if [ "${dbeaverConfig}" != "" ] ; then
       if ! diff "${tempDirectory}/data-sources.json" "${dbeaverDirectory}/data-sources.json" >/dev/null ; then
          dbeaverConfigBackup="${dbeaverConfig}.backup-$(date +"%F-%H:%M:%S")"

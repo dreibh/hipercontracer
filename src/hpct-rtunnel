@@ -33,19 +33,34 @@ set -euo pipefail
 
 # ###### Usage ##############################################################
 usage () {
-   echo >&2 "Usage: $0 [-h|--help] [--verbose|-v] [--quiet|-q] [--remote|-R remote_location] [--collector|-C collector] [--nodeid|-N node_id] [--key|-K ssh_private_key_file]"
+   echo >&2 "Usage: $0 [--remote|-R remote_location] [--collector|-C collector] [--nodeid|-N node_id] [--key|-K ssh_private_key_file] [--quiet|-q] [--verbose|-v] [-h|--help] [-v|--version]"
    exit 1
+}
+
+
+# ###### Version ############################################################
+version () {
+   echo "HiPerConTracer-RTunnel @BUILD_MAJOR@.@BUILD_MINOR@.@BUILD_PATCH@"
+   exit 0
 }
 
 
 # ###### Main program #######################################################
 
 # ====== Handle arguments ===================================================
-GETOPT="$(PATH=/usr/local/bin:$PATH which getopt)"
-options="$(${GETOPT} -o hN:R:C:K:H:vq --long help,nodeid:,remote:,collector:,key:,known-hosts:,verbose,quiet -a -- "$@")"
+if (( BASH_VERSINFO[0] < 4 )) || (( (BASH_VERSINFO[0] == 4) && (BASH_VERSINFO[1] < 4) )) ; then
+   echo "ERROR: Bash 4.4 or higher is required, but Bash ${BASH_VERSINFO[0]}.${BASH_VERSINFO[1]} installed!"
+   exit 1
+fi
+GETOPT="$(PATH="/usr/local/bin:${PATH}" command -v getopt)"
+if "${GETOPT}" -T >/dev/null 2>&1 || [[ $? -ne 4 ]]; then
+   echo >&2 "ERROR: Enhanced/GNU getopt is required!"
+   exit 1
+fi
+options="$(${GETOPT} -o hN:R:C:K:H:qwhv --long help,nodeid:,remote:,collector:,key:,known-hosts:,quiet,verbose,help,version -a -- "$@")"
 # shellcheck disable=SC2181
 if [[ $? -ne 0 ]]; then
-   usage
+   usage 1
 fi
 
 NODE_ID=
@@ -60,41 +75,51 @@ while [ $# -gt 0 ] ; do
    case "$1" in
       -N | --nodeid)
          NODE_ID="$2"
-         shift 2
+         shift
          ;;
       -R | --remote)
          REMOTE="$2"
-         shift 2
+         shift
          ;;
       -C | --collector)
          COLLECTOR="$2"
-         shift 2
+         shift
          ;;
       -K | --key)
          KEY="$2"
-         shift 2
+         shift
          ;;
       -H | --known-hosts)
          KNOWN_HOSTS="$2"
-         shift 2
-         ;;
-      -h | --help)
-         usage
-         ;;
-      -v | --verbose)
-         VERBOSE=1
          shift
          ;;
       -q | --quiet)
          VERBOSE=0
-         shift
+         ;;
+      -w | --verbose)
+         VERBOSE=1
+         ;;
+      -h | --help)
+         usage 0
+         ;;
+      -v | --version)
+         version
          ;;
       --)
          shift
          break
          ;;
+      *)
+         # This should not happen: wrong getopt parameters, or missing case?
+         echo >&2 "INTERNAL ERROR: Unhandled option $1!"
+         exit 1
+         ;;
   esac
+  shift
 done
+if [ $# -ne 0 ] ; then
+   usage 1
+fi
 
 if [ "${COLLECTOR}" == ""  ] ; then
    usage

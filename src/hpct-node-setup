@@ -34,16 +34,67 @@ set -euo pipefail
 
 # ###### Usage ##############################################################
 usage () {
-   echo >&2 "Usage: $0 user@collector node_id [-h|--help] [--verbose|-v] [--quiet|-q]"
+   echo >&2 "Usage: $0 user@collector node_id [--quiet|-q] [--verbose|-w] [-h|--help] [-v|--version]"
    exit 1
 }
+
+
+# ###### Version ############################################################
+version () {
+   echo "HiPerConTracer-Node-Setup @BUILD_MAJOR@.@BUILD_MINOR@.@BUILD_PATCH@"
+   exit 0
+}
+
 
 
 # ###### Main program #######################################################
 
 # ====== Handle arguments ===================================================
-if [ $# -lt 2 ] ; then
-   usage
+if (( BASH_VERSINFO[0] < 4 )) || (( (BASH_VERSINFO[0] == 4) && (BASH_VERSINFO[1] < 4) )) ; then
+   echo "ERROR: Bash 4.4 or higher is required, but Bash ${BASH_VERSINFO[0]}.${BASH_VERSINFO[1]} installed!"
+   exit 1
+fi
+GETOPT="$(PATH="/usr/local/bin:${PATH}" command -v getopt)"
+if "${GETOPT}" -T >/dev/null 2>&1 || [[ $? -ne 4 ]]; then
+   echo >&2 "ERROR: Enhanced/GNU getopt is required!"
+   exit 1
+fi
+options="$(${GETOPT} -o hv --long help,version -a -- "$@")"
+# shellcheck disable=SC2181
+if [[ $? -ne 0 ]]; then
+   usage 1
+fi
+eval set -- "${options}"
+
+VERBOSE=0
+while [ $# -gt 0 ] ; do
+   case "$1" in
+      -q | --quiet)
+         VERBOSE=0
+         ;;
+      -w | --verbose)
+         VERBOSE=1
+         ;;
+      -h | --help)
+         usage 0
+         ;;
+      -v | --version)
+         version
+         ;;
+      --)
+         shift
+         break
+         ;;
+      *)
+         # This should not happen: wrong getopt parameters, or missing case?
+         echo >&2 "INTERNAL ERROR: Unhandled option $1!"
+         exit 1
+         ;;
+  esac
+  shift
+done
+if [ $# -ne 2 ] ; then
+   usage 1
 fi
 
 COLLECTOR="$1"
@@ -77,35 +128,6 @@ if [ "${COLLECTOR}" == "" ] ; then
    exit 1
 fi
 
-GETOPT="$(PATH=/usr/local/bin:$PATH which getopt)"
-options="$(${GETOPT} -o hqvc --long help,quiet,verbose,copy-id -a -- "$@")"
-# shellcheck disable=SC2181
-if [[ $? -ne 0 ]] ; then
-   usage
-fi
-
-VERBOSE=0
-eval set -- "${options}"
-while [ $# -gt 0 ] ; do
-   case "$1" in
-      -h | --help)
-         usage
-         ;;
-      -v | --verbose)
-         VERBOSE=1
-         shift
-         ;;
-      -q | --quiet)
-         VERBOSE=0
-         shift
-         ;;
-      --)
-         shift
-         break
-         ;;
-  esac
-done
-
 
 # ====== Create server key ==================================================
 if [ ! -e "${SERVER_KEY}" ] ; then
@@ -113,8 +135,6 @@ if [ ! -e "${SERVER_KEY}" ] ; then
    exit 1
 fi
 
-# ====== Create key pair ====================================================
-# if [ "${VERBOSE}" -eq 1 ] ; then set -eux ; else set -eu ; fi
 echo -e "\x1b[34m$(date +"%Y-%m-%d %H:%M:%S") Checking local key pair ${PRIVATE_KEY} / ${PUBLIC_KEY} of Node ${NODE_ID} ...\x1b[0m"
 directory="$(dirname ${PRIVATE_KEY})"
 if sudo -u "${NODE_HIPERCONTRACER_USER}" test ! -d "${directory}" ; then
