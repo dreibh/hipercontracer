@@ -1,10 +1,10 @@
-hipercontracer (2.1.16~rc0-1ubuntu1) unstable; urgency=medium
+hipercontracer (2.1.16-1ubuntu1) unstable; urgency=medium
 
   * New upstream release.
   * debian/control: Relaxed dependencies for R-examples.
   * debian/copyright: updated to include MetaInfo file.
 
- -- Thomas Dreibholz <dreibh@simula.no>  Mon, 11 May 2026 15:37:31 +0200
+ -- Thomas Dreibholz <dreibh@simula.no>  Mon, 11 May 2026 16:51:29 +0200
 
 hipercontracer (2.1.15-1ubuntu1) unstable; urgency=medium
 
