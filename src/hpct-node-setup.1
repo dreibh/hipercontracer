@@ -28,7 +28,7 @@
 .\" Contact: dreibh@simula.no
 .\"
 .\" ###### Setup ############################################################
-.Dd May 12, 2025
+.Dd May 11, 2026
 .Dt hpct-node-setup 1
 .Os hpct-node-setup
 .\" ###### Name #############################################################
@@ -38,9 +38,12 @@
 .\" ###### Synopsis #########################################################
 .Sh SYNOPSIS
 .Nm hpct-node-setup USER@COLLECTOR NODE_ID
-.Op Fl h | Fl Fl help
-.Op Fl v | Fl Fl verbose
 .Op Fl q | Fl Fl quiet
+.Op Fl w | Fl Fl verbose
+.Nm hpct-node-setup
+.Op Fl h | Fl Fl help
+.Nm hpct-node-setup
+.Op Fl v | Fl Fl version
 .\" ###### Description ######################################################
 .Sh DESCRIPTION
 .Nm hpct-node-setup
@@ -61,13 +64,20 @@ The following arguments must be provided:
 Sets the SSH location of the collector, i.e. USER@HOST.EXAMPLE.
 .It NODE_ID
 Sets the node ID, a number from 1 to 9999.
+.It Fl q | Fl Fl quiet
+Turns off status output.
+.It Fl w | Fl Fl verbose
+Turns on status output.
 .It Fl h | Fl Fl help
 Prints command help.
-.It Fl q |\--quiet
-Turns off status output.
-.It Fl v |\--verbose
-Turns on status output.
+.It Fl v | Fl Fl version
+Prints program version.
 .El
+.\" ###### Exit status ######################################################
+.Sh EXIT STATUS
+The
+.Nm
+tool exits with 0 on success, and >0 in case of an error.
 .\" ###### Examples #########################################################
 .Sh EXAMPLES
 .Bl -tag -width indent
@@ -75,12 +85,14 @@ Turns on status output.
 .It sudo hpct-node-setup nornetpp@hpct-collector.example 1000
 .It sudo hpct-node-setup nornetpp@hpct-collector.example 2000 --verbose
 .It sudo hpct-node-setup nornetpp@hpct-collector.example 2001 -v
+.It hpct-node-setup --version
+.It hpct-node-setup -h
 .El
+.\" ###### Notes ############################################################
+.Sh NOTES
+This program is part of HiPerConTracer. The latest version of HiPerConTracer can be found on the HiPerConTracer Homepage at
+.Lk https://www.nntb.no/\(tidreibh/hipercontracer/ "HiPerConTracer Homepage" .
 .\" ###### Authors ##########################################################
 .Sh AUTHORS
-Thomas Dreibholz
-.br
-https://www.simula.no/people/dreibh
-.br
-mailto://dreibh@simula.no
-.br
+Thomas Dreibholz,
+.Lk https://www.nntb.no/\(tidreibh "Homepage"

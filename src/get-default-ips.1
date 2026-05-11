@@ -28,7 +28,7 @@
 .\" Contact: dreibh@simula.no
 .\"
 .\" ###### Setup ############################################################
-.Dd May 12, 2025
+.Dd May 11, 2026
 .Dt get-default-ips 1
 .Os get-default-ips
 .\" ###### Name #############################################################
@@ -52,16 +52,21 @@ link-local addresses, IPv6-autoconfigured addresses, etc. are omitted.
 .\" .It ...
 .\" ...
 .\" .El
-.\" ###### Arguments ########################################################
+.\" ###### Exit status ######################################################
+.Sh EXIT STATUS
+The
+.Nm
+tool exits with 0 on success, and >0 in case of an error.
+.\" ###### Examples #########################################################
 .Sh EXAMPLES
 .Bl -tag -width indent
 .It get-default-ips
 .El
+.\" ###### Notes ############################################################
+.Sh NOTES
+This program is part of HiPerConTracer. The latest version of HiPerConTracer can be found on the HiPerConTracer Homepage at
+.Lk https://www.nntb.no/\(tidreibh/hipercontracer/ "HiPerConTracer Homepage" .
 .\" ###### Authors ##########################################################
 .Sh AUTHORS
-Thomas Dreibholz
-.br
-https://www.nntb.no/~dreibh/hipercontracer
-.br
-mailto://dreibh@simula.no
-.br
+Thomas Dreibholz,
+.Lk https://www.nntb.no/\(tidreibh "Homepage"

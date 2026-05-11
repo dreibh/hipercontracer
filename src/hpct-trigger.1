@@ -28,7 +28,7 @@
 .\" Contact: dreibh@simula.no
 .\"
 .\" ###### Setup ############################################################
-.Dd May 12, 2025
+.Dd May 11, 2026
 .Dt hpct-trigger 1
 .Os hpct-trigger
 .\" ###### Name #############################################################
@@ -48,7 +48,7 @@
 .Op Fl Z Ar on|off | Fl Fl logcolor Ar on|off
 .Op Fl O Ar file | Fl Fl logfile Ar file
 .Op Fl q | Fl Fl quiet
-.Op Fl v | Fl Fl verbose
+.Op Fl w | Fl Fl verbose
 .Op Fl U Ar user|uid |  Fl Fl user Ar user|uid
 .Op Fl # Ar identifier |  Fl Fl measurement-id Ar identifier
 .Op Fl S Ar address|\%hostname[,traffic_class[,...]] |\% Fl Fl source Ar address|\%hostname[,traffic_class[,...]]
@@ -114,6 +114,11 @@ Sets the number of observed "Ping" packets before triggering HiPerConTracer
 .El
 See the manual page of HiPerConTracer for the other arguments and the output
 format.
+.\" ###### Exit status ######################################################
+.Sh EXIT STATUS
+The
+.Nm
+tool exits with 0 on success, and >0 in case of an error.
 .\" ###### Examples #########################################################
 .Sh EXAMPLES
 .Bl -tag -width indent
@@ -125,11 +130,11 @@ format.
 .It hipercontracer -S 0.0.0.0 -S :: -D <TARGET> --ping --pingpacketsize 67 --iterations 3 --verbose
 .It hipercontracer -S 0.0.0.0 -S :: -D <TARGET> -P --pingpacketsize 88 -I 3 -v
 .El
+.\" ###### Notes ############################################################
+.Sh NOTES
+This program is part of HiPerConTracer. The latest version of HiPerConTracer can be found on the HiPerConTracer Homepage at
+.Lk https://www.nntb.no/\(tidreibh/hipercontracer/ "HiPerConTracer Homepage" .
 .\" ###### Authors ##########################################################
 .Sh AUTHORS
-Thomas Dreibholz
-.br
-https://www.nntb.no/~dreibh/hipercontracer
-.br
-mailto://dreibh@simula.no
-.br
+Thomas Dreibholz,
+.Lk https://www.nntb.no/\(tidreibh "Homepage"

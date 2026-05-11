@@ -28,7 +28,7 @@
 .\" Contact: dreibh@simula.no
 .\"
 .\" ###### Setup ############################################################
-.Dd May 12, 2025
+.Dd May 11, 2026
 .Dt udp-echo-server 1
 .Os udp-echo-server
 .\" ###### Name #############################################################
@@ -42,7 +42,7 @@
 .Op Fl Z | Fl Fl logcolor Ar on|off
 .Op Fl O Ar file | Fl Fl logfile Ar file
 .Op Fl q | Fl Fl quiet
-.Op Fl v | Fl Fl verbose
+.Op Fl w | Fl Fl verbose
 .Op Fl U Ar user|uid | Fl Fl user Ar user|uid
 .Op Fl A Ar address | Fl Fl address Ar address
 .Op Fl P Ar port | Fl Fl port Ar port
@@ -70,7 +70,7 @@ The following arguments may be provided:
 Sets the minimum logging level to the provided value: 0=trace, 1=debug, 2=info, 3=warning, 4=error, 5=fatal.
 .It Fl q | Fl Fl quiet
 Sets the minimum logging level to 3 (warning).
-.It Fl v | Fl Fl verbose
+.It Fl w | Fl Fl verbose
 Sets the minimum logging level to 0 (trace).
 .It Fl Z Ar on|off| Fl Fl logcolor Ar on|off
 Enables (on) or disables (off) the usage of ANSI color escape sequences to colorise the log output according to its level.
@@ -91,6 +91,11 @@ Prints command help.
 .It Fl Fl version
 Prints program version.
 .El
+.\" ###### Exit status ######################################################
+.Sh EXIT STATUS
+The
+.Nm
+tool exits with 0 on success, and >0 in case of an error.
 .\" ###### Examples #########################################################
 .Sh EXAMPLES
 .Bl -tag -width indent
@@ -100,13 +105,13 @@ Prints program version.
 .It udp-echo-server --address :: --user nornetpp
 .It udp-echo-server --address 3ffe::1:2:3 --from-port 10000 --to-port 10999
 .It udp-echo-server --version
-.It udp-echo-server --h
+.It udp-echo-server -h
 .El
+.\" ###### Notes ############################################################
+.Sh NOTES
+This program is part of HiPerConTracer. The latest version of HiPerConTracer can be found on the HiPerConTracer Homepage at
+.Lk https://www.nntb.no/\(tidreibh/hipercontracer/ "HiPerConTracer Homepage" .
 .\" ###### Authors ##########################################################
 .Sh AUTHORS
-Thomas Dreibholz
-.br
-https://www.nntb.no/~dreibh/hipercontracer
-.br
-mailto://dreibh@simula.no
-.br
+Thomas Dreibholz,
+.Lk https://www.nntb.no/\(tidreibh "Homepage"

@@ -28,7 +28,7 @@
 .\" Contact: dreibh@simula.no
 .\"
 .\" ###### Setup ############################################################
-.Dd May 12, 2025
+.Dd May 11, 2026
 .Dt hpct-results 1
 .Os hpct-results
 .\" ###### Name #############################################################
@@ -43,7 +43,7 @@ input_file ...
 .Op Fl Z Ar on|off | Fl Fl logcolor Ar on|off
 .Op Fl O Ar file | Fl Fl logfile Ar file
 .Op Fl q | Fl Fl quiet
-.Op Fl v | Fl Fl verbose
+.Op Fl w | Fl Fl verbose
 .Op Fl o Ar filename | Fl Fl output Ar filename
 .Op Fl s Ar character | Fl Fl separator Ar character
 .Op Fl A | Fl Fl sorted
@@ -81,7 +81,7 @@ Sets a file name for appending the log output to. If a file is set, no log outpu
 Otherwise, all log output will be written to the console.
 .It Fl q | Fl Fl quiet
 Sets the minimum logging level to 3 (warning).
-.It Fl v | Fl Fl verbose
+.It Fl w | Fl Fl verbose
 Sets the minimum logging level to 0 (trace).
 .It Fl o Ar filename | Fl Fl output Ar filename
 Sets the specified filename as output file. Extensions \.gz, \.bz2, and \.xz are recognised to enable compression.
@@ -105,7 +105,12 @@ Prints command help.
 .It Fl Fl version
 Prints program version.
 .El
-.\" ###### Arguments ########################################################
+.\" ###### Exit status ######################################################
+.Sh EXIT STATUS
+The
+.Nm
+tool exits with 0 on success, and >0 in case of an error.
+.\" ###### Examples #########################################################
 .Sh EXAMPLES
 .Bl -tag -width indent
 .It hpct-results results/Ping* --output ping.csv.xz --sorted --separator ';'
@@ -114,13 +119,13 @@ Prints program version.
 .It find results/ -name 'Traceroute-*.hpct.*' | hpct-results --input-file-names-from-stdin -o results.csv.gz
 .It hpct-results --input-file-names-from-file results-files.list -o results.csv.xz
 .It hpct-results --version
-.It hpct-results --h
+.It hpct-results -h
 .El
+.\" ###### Notes ############################################################
+.Sh NOTES
+This program is part of HiPerConTracer. The latest version of HiPerConTracer can be found on the HiPerConTracer Homepage at
+.Lk https://www.nntb.no/\(tidreibh/hipercontracer/ "HiPerConTracer Homepage" .
 .\" ###### Authors ##########################################################
 .Sh AUTHORS
-Thomas Dreibholz
-.br
-https://www.nntb.no/~dreibh/hipercontracer
-.br
-mailto://dreibh@simula.no
-.br
+Thomas Dreibholz,
+.Lk https://www.nntb.no/\(tidreibh "Homepage"

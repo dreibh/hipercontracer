@@ -28,7 +28,7 @@
 .\" Contact: dreibh@simula.no
 .\"
 .\" ###### Setup ############################################################
-.Dd May 12, 2025
+.Dd May 11, 2026
 .Dt hpct-ssh 1
 .Os hpct-ssh
 .\" ###### Name #############################################################
@@ -38,12 +38,15 @@
 .\" ###### Synopsis #########################################################
 .Sh SYNOPSIS
 .Nm hpct-ssh USER@NODE_ID
-.Op Fl h | Fl Fl help
-.Op Fl v | Fl Fl verbose
-.Op Fl q | Fl Fl quiet
 .Op Fl c | Fl Fl copy-id
+.Op Fl q | Fl Fl quiet
+.Op Fl w | Fl Fl verbose
 .Op Fl Fl
 SSH_ARGUMENTS ...
+.Nm hpct-ssh
+.Op Fl h | Fl Fl help
+.Nm hpct-ssh
+.Op Fl v | Fl Fl version
 .\" ###### Description ######################################################
 .Sh DESCRIPTION
 .Nm hpct-ssh
@@ -56,9 +59,9 @@ The following arguments must be provided:
 .Bl -tag -width indent
 .It Fl h | Fl Fl help
 Prints command help.
-.It Fl q |\--quiet
+.It Fl q | Fl Fl quiet
 Turns off status output.
-.It Fl v |\--verbose
+.It Fl w | Fl Fl verbose
 Turns on status output.
 .It Fl c | Fl Fl copy-id
 Calls ssh-copy-id first, in order to configure public/private key-based
@@ -66,7 +69,16 @@ authentication to the remote node. If successful, SSH is tried. This should
 provide a password-less login.
 .It Fl Fl
 All arguments after -- are provided to the SSH call.
+.It Fl h | Fl Fl help
+Prints command help.
+.It Fl v | Fl Fl version
+Prints program version.
 .El
+.\" ###### Exit status ######################################################
+.Sh EXIT STATUS
+The
+.Nm
+tool exits with 0 on success, and >0 in case of an error.
 .\" ###### Examples #########################################################
 .Sh EXAMPLES
 .Bl -tag -width indent
@@ -74,12 +86,14 @@ All arguments after -- are provided to the SSH call.
 .It hpct-ssh user@1000 --verbose
 .It hpct-ssh user@1000 --copy-id --verbose
 .It hpct-ssh user@1000 --quiet -- 'hostname ; pactl list sources'
+.It hpct-ssh --version
+.It hpct-ssh -h
 .El
+.\" ###### Notes ############################################################
+.Sh NOTES
+This program is part of HiPerConTracer. The latest version of HiPerConTracer can be found on the HiPerConTracer Homepage at
+.Lk https://www.nntb.no/\(tidreibh/hipercontracer/ "HiPerConTracer Homepage" .
 .\" ###### Authors ##########################################################
 .Sh AUTHORS
-Thomas Dreibholz
-.br
-https://www.simula.no/people/dreibh
-.br
-mailto://dreibh@simula.no
-.br
+Thomas Dreibholz,
+.Lk https://www.nntb.no/\(tidreibh "Homepage"

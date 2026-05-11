@@ -28,7 +28,7 @@
 .\" Contact: dreibh@simula.no
 .\"
 .\" ###### Setup ############################################################
-.Dd May 12, 2025
+.Dd May 11, 2026
 .Dt pipe-checksum 1
 .Os pipe-checksum
 .\" ###### Name #############################################################
@@ -66,6 +66,11 @@ Prints command help.
 .It Fl Fl version
 Prints program version.
 .El
+.\" ###### Exit status ######################################################
+.Sh EXIT STATUS
+The
+.Nm
+tool exits with 0 on success, and >0 in case of an error.
 .\" ###### Examples #########################################################
 .Sh EXAMPLES
 .Bl -tag -width indent
@@ -76,13 +81,13 @@ Prints program version.
 .It dd if=/dev/urandom bs=12345 count=67 | pipe-checksum random.txt --digest SHA512
 .It sha512sum --check random.txt.checksum
 .It pipe-checksum --version
-.It pipe-checksum --h
+.It pipe-checksum -h
 .El
+.\" ###### Notes ############################################################
+.Sh NOTES
+This program is part of HiPerConTracer. The latest version of HiPerConTracer can be found on the HiPerConTracer Homepage at
+.Lk https://www.nntb.no/\(tidreibh/hipercontracer/ "HiPerConTracer Homepage" .
 .\" ###### Authors ##########################################################
 .Sh AUTHORS
-Thomas Dreibholz
-.br
-https://www.nntb.no/~dreibh/hipercontracer
-.br
-mailto://dreibh@simula.no
-.br
+Thomas Dreibholz,
+.Lk https://www.nntb.no/\(tidreibh "Homepage"

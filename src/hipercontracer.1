@@ -28,7 +28,7 @@
 .\" Contact: dreibh@simula.no
 .\"
 .\" ###### Setup ############################################################
-.Dd March 13, 2026
+.Dd May 11, 2026
 .Dt hipercontracer 1
 .Os hipercontracer
 .\" ###### Name #############################################################
@@ -45,7 +45,7 @@
 .Op Fl Z Ar on|off | Fl Fl logcolor Ar on|off
 .Op Fl O Ar file | Fl Fl logfile Ar file
 .Op Fl q | Fl Fl quiet
-.Op Fl v | Fl Fl verbose
+.Op Fl w | Fl Fl verbose
 .Op Fl U Ar user|uid | Fl Fl user Ar user|uid
 .Op Fl # Ar identifier | Fl Fl measurement-id Ar identifier
 .Op Fl S Ar address|\%hostname[,traffic_class[,...]] |\% Fl Fl source Ar address|\%hostname[,traffic_class[,...]]
@@ -118,7 +118,7 @@ Sets a file name for appending the log output to. If a file is set, no log outpu
 Otherwise, all log output will be written to the console.
 .It Fl q | Fl Fl quiet
 Sets the minimum logging level to 3 (warning).
-.It Fl v | Fl Fl verbose
+.It Fl w | Fl Fl verbose
 Sets the minimum logging level to 0 (trace).
 .It Fl U Ar user|uid | Fl Fl user Ar user|uid
 After startup, HiPerConTracer uses UID and GID of the given user (by name or GID).
@@ -468,6 +468,11 @@ This entry has been added with HiPerConTracer 2.0.0 development versions!
 .\" If recording of raw Ping results is enabled (\-\-jitterrecordraw), a Jitter entry is followed by the underlying Ping measurement entries (see Ping version 2 format above).
 .\" .El
 .El
+.\" ###### Exit status ######################################################
+.Sh EXIT STATUS
+The
+.Nm
+tool exits with 0 on success, and >0 in case of an error.
 .\" ###### Examples #########################################################
 .Sh EXAMPLES
 .Bl -tag -width indent
@@ -480,13 +485,13 @@ This entry has been added with HiPerConTracer 2.0.0 development versions!
 .It hipercontracer \-\-user=hipercontracer \-\-source=0.0.0.0 \-\-source=::\-\-destination=www.ietf.org \-\-iomodule ICMP \-\-ping \-\-verbose
 .It hipercontracer \-\-user=hipercontracer \-\-source=10.193.4.64 \-\-destination 1.2.3.4 \-\-iomodule ICMP \-\-iomodule UDP \-\-ping \-\-traceroute
 .It hipercontracer --version
-.It hipercontracer --h
+.It hipercontracer -h
 .El
+.\" ###### Notes ############################################################
+.Sh NOTES
+This program is part of HiPerConTracer. The latest version of HiPerConTracer can be found on the HiPerConTracer Homepage at
+.Lk https://www.nntb.no/\(tidreibh/hipercontracer/ "HiPerConTracer Homepage" .
 .\" ###### Authors ##########################################################
 .Sh AUTHORS
-Thomas Dreibholz
-.br
-https://www.nntb.no/~dreibh/hipercontracer
-.br
-mailto://dreibh@simula.no
-.br
+Thomas Dreibholz,
+.Lk https://www.nntb.no/\(tidreibh "Homepage"

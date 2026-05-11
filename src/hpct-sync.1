@@ -28,7 +28,7 @@
 .\" Contact: dreibh@simula.no
 .\"
 .\" ###### Setup ############################################################
-.Dd May 12, 2025
+.Dd May 11, 2026
 .Dt hpct-sync 1
 .Os hpct-sync
 .\" ###### Name #############################################################
@@ -38,8 +38,7 @@
 .\" ###### Synopsis #########################################################
 .Sh SYNOPSIS
 .Nm hpct-sync
-.Op Fl h | Fl Fl help
-.Op Fl v | Fl Fl verbose
+.Op Fl w | Fl Fl verbose
 .Op Fl q | Fl Fl quiet
 .Op Fl N Ar node_id | Fl Fl nodeid Ar node_id
 .Op Fl L Ar local_directory | Fl Fl local Ar local_directory
@@ -47,6 +46,10 @@
 .Op Fl C | Fl Fl collector collector
 .Op Fl K Ar ssh_\%private_\%key_\%file | Fl Fl key Ar ssh_\%private_\%key_\%file
 .Op Fl H Ar ssh_\%known_\%hosts_\%file | Fl Fl known-hosts Ar ssh_\%known_\%hosts_\%file
+.Nm hpct-sync
+.Op Fl h | Fl Fl help
+.Nm hpct-sync
+.Op Fl v | Fl Fl version
 .\" ###### Description ######################################################
 .Sh DESCRIPTION
 .Nm hpct-sync
@@ -58,10 +61,6 @@ The following arguments may be provided:
 .Bl -tag -width indent
 .It Fl h | Fl Fl help
 Prints command help.
-.It Fl q | Fl Fl quiet
-Turns off status output.
-.It Fl v | Fl Fl verbose
-Turns on status output.
 .It Fl N Ar node_id | Fl Fl nodeid Ar node_id
 Sets the node ID, a number from 1 to 9999.
 .It Fl L Ar local_directory | Fl Fl local Ar local_directory
@@ -72,19 +71,34 @@ Sets the remote data directory on the collector. Default: /var/hipercontracer/da
 Sets the SSH private key file used for authentication. Default: /var/hipercontracer/ssh/id_ed25519.
 .It Fl H Ar ssh_known_hosts_file | Fl Fl known-hosts Ar ssh_known_hosts_file
 Sets the SSH known hosts file. Default: /var/hipercontracer/ssh/known_hosts.
+.It Fl q | Fl Fl quiet
+Turns off status output.
+.It Fl w | Fl Fl verbose
+Turns on status output.
+.It Fl h | Fl Fl help
+Prints command help.
+.It Fl v | Fl Fl version
+Prints program version.
 .El
+.\" ###### Exit status ######################################################
+.Sh EXIT STATUS
+The
+.Nm
+tool exits with 0 on success, and >0 in case of an error.
 .\" ###### Examples #########################################################
 .Sh EXAMPLES
 .Bl -tag -width indent
 .It sudo -u hipercontracer   hpct-sync --nodeid 1000 --local /var/hipercontracer --remote /var/hipercontracer --collector sognsvann.example --key /var/hipercontracer/ssh/id_ed25519 --known-hosts /var/hipercontracer/ssh/known_hosts --verbose
 .It sudo -u hipercontracer   hpct-sync --nodeid 1 --local /var/hipercontracer --remote /var/hipercontracer --collector sognsvann.example --key /var/hipercontracer/ssh/id_ed25519 --known-hosts /var/hipercontracer/ssh/known_hosts --quiet
 .It sudo -u hipercontracer   hpct-sync --nodeid 2 --collector sognsvann.example
+.It hpct-sync --version
+.It hpct-sync -h
 .El
+.\" ###### Notes ############################################################
+.Sh NOTES
+This program is part of HiPerConTracer. The latest version of HiPerConTracer can be found on the HiPerConTracer Homepage at
+.Lk https://www.nntb.no/\(tidreibh/hipercontracer/ "HiPerConTracer Homepage" .
 .\" ###### Authors ##########################################################
 .Sh AUTHORS
-Thomas Dreibholz
-.br
-https://www.simula.no/people/dreibh
-.br
-mailto://dreibh@simula.no
-.br
+Thomas Dreibholz,
+.Lk https://www.nntb.no/\(tidreibh "Homepage"

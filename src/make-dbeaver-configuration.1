@@ -28,7 +28,7 @@
 .\" Contact: dreibh@simula.no
 .\"
 .\" ###### Setup ############################################################
-.Dd May 12, 2025
+.Dd May 11, 2026
 .Dt make-dbeaver-configuration 1
 .Os make-dbeaver-configuration
 .\" ###### Name #############################################################
@@ -57,20 +57,31 @@ searched in the following directories:
 .It ~/.local/share/DBeaverData/workspace6/General/.dbeaver
 .It ~/\%snap/\%dbeaver-ce/\%current/\%.local/\%share/\%DBeaverData/\%workspace6/\%General/\%.dbeaver
 .El
+.It Fl h | Fl Fl help
+Prints command help.
+.It Fl v | Fl Fl version
+Prints program version.
 .El
-.\" ###### Arguments ########################################################
+.\" ###### Exit status ######################################################
+.Sh EXIT STATUS
+The
+.Nm
+tool exits with 0 on success, and >0 in case of an error.
+.\" ###### Examples #########################################################
 .Sh EXAMPLES
 .Bl -tag -width indent
 .It make-dbeaver-configuration hipercontracer-database.conf
 .It make-dbeaver-configuration ~/test4hpct-*-*.conf --join
 .It make-dbeaver-configuration hipercontracer-database.conf --join
 .It make-dbeaver-configuration project1-database.conf project2-database.conf project3-database.conf --join
+.It make-dbeaver-configuration --version
+.It make-dbeaver-configuration -h
 .El
+.\" ###### Notes ############################################################
+.Sh NOTES
+This program is part of HiPerConTracer. The latest version of HiPerConTracer can be found on the HiPerConTracer Homepage at
+.Lk https://www.nntb.no/\(tidreibh/hipercontracer/ "HiPerConTracer Homepage" .
 .\" ###### Authors ##########################################################
 .Sh AUTHORS
-Thomas Dreibholz
-.br
-https://www.nntb.no/~dreibh/hipercontracer
-.br
-mailto://dreibh@simula.no
-.br
+Thomas Dreibholz,
+.Lk https://www.nntb.no/\(tidreibh "Homepage"

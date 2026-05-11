@@ -28,7 +28,7 @@
 .\" Contact: dreibh@simula.no
 .\"
 .\" ###### Setup ############################################################
-.Dd May 12, 2025
+.Dd May 11, 2026
 .Dt hpct-query 1
 .Os hpct-query
 .\" ###### Name #############################################################
@@ -44,7 +44,7 @@ ping|traceroute
 .Op Fl Z Ar on|off | Fl Fl logcolor Ar on|off
 .Op Fl O Ar file | Fl Fl logfile Ar file
 .Op Fl q | Fl Fl quiet
-.Op Fl v | Fl Fl verbose
+.Op Fl w | Fl Fl verbose
 .Op Fl o Ar filename | Fl Fl output Ar filename
 .Op Fl T Ar table_name | Fl Fl table Ar table_name
 .Op Fl V Ar version | Fl Fl table-version Ar version
@@ -79,7 +79,7 @@ Sets a file name for appending the log output to. If a file is set, no log outpu
 Otherwise, all log output will be written to the console.
 .It Fl q | Fl Fl quiet
 Sets the minimum logging level to 3 (warning).
-.It Fl v | Fl Fl verbose
+.It Fl w | Fl Fl verbose
 Sets the minimum logging level to 0 (trace).
 .It Fl o Ar filename | Fl Fl output Ar filename
 Sets the specified filename as output file. Extensions \.gz, \.bz2, and \.xz are recognised to enable compression.
@@ -120,7 +120,12 @@ Prints command help.
 .It Fl Fl version
 Prints program version.
 .El
-.\" ###### Arguments ########################################################
+.\" ###### Exit status ######################################################
+.Sh EXIT STATUS
+The
+.Nm
+tool exits with 0 on success, and >0 in case of an error.
+.\" ###### Examples #########################################################
 .Sh EXAMPLES
 .Bl -tag -width indent
 .It hpct-query hipercontracer-database.conf ping
@@ -132,13 +137,13 @@ Prints program version.
 .It hpct-query hipercontracer-database.conf ping --table test_ping_table
 .It hpct-query hipercontracer-database.conf traceroute -T Traceroute_v1 -V 1 --from-time 2015-10-16 --to-time 2015-10-17 -o "Traceroute-2015-10-16.hpct.xz" -M addressmappings.txt
 .It hpct-query --version
-.It hpct-query --h
+.It hpct-query -h
 .El
+.\" ###### Notes ############################################################
+.Sh NOTES
+This program is part of HiPerConTracer. The latest version of HiPerConTracer can be found on the HiPerConTracer Homepage at
+.Lk https://www.nntb.no/\(tidreibh/hipercontracer/ "HiPerConTracer Homepage" .
 .\" ###### Authors ##########################################################
 .Sh AUTHORS
-Thomas Dreibholz
-.br
-https://www.nntb.no/~dreibh/hipercontracer
-.br
-mailto://dreibh@simula.no
-.br
+Thomas Dreibholz,
+.Lk https://www.nntb.no/\(tidreibh "Homepage"
