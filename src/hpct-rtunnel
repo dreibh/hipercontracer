@@ -34,7 +34,7 @@ set -euo pipefail
 # ###### Usage ##############################################################
 usage () {
    local exitCode="$1"
-   echo >&2 "Usage: $0 [--remote|-R remote_location] [--collector|-C collector] [--nodeid|-N node_id] [--key|-K ssh_private_key_file] [--quiet|-q] [--verbose|-v] [-h|--help] [-v|--version]"
+   echo >&2 "Usage: $0 [-R|--remote remote_location] [-C|--collector collector] [-N|--nodeid node_id] [-K|--key ssh_private_key_file] [-q|--quiet] [-w|--verbose] [-h|--help] [-v|--version]"
    exit "${exitCode}"
 }
 
@@ -58,7 +58,7 @@ if "${GETOPT}" -T >/dev/null 2>&1 || [[ $? -ne 4 ]]; then
    echo >&2 "ERROR: Enhanced/GNU getopt is required!"
    exit 1
 fi
-options="$(${GETOPT} -o hN:R:C:K:H:qwhv --long help,nodeid:,remote:,collector:,key:,known-hosts:,quiet,verbose,help,version -a -- "$@")"
+options="$(${GETOPT} -o N:R:C:K:H:qwhv --long nodeid:,remote:,collector:,key:,known-hosts:,quiet,verbose,help,version -a -- "$@")"
 # shellcheck disable=SC2181
 if [[ $? -ne 0 ]]; then
    usage 1
@@ -123,7 +123,7 @@ if [ $# -ne 0 ] ; then
 fi
 
 if [ "${COLLECTOR}" == ""  ] ; then
-   usage
+   usage 1
 fi
 if [ ! -e "${KEY}" ] ; then
    echo >&2 "ERROR: SSH private key file ${KEY} does not exist!"

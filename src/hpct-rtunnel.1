@@ -40,7 +40,7 @@
 .Nm hpct\-rtunnel
 .Op Fl N | Fl Fl nodeid node\_id
 .Op Fl R Ar remote\_location | Fl Fl remote Ar remote\_location
-.Op Fl C | Fl Fl collector collector
+.Op Fl C Ar collector | Fl Fl collector Ar collector
 .Op Fl K Ar ssh\_\%private\_\%key\_\%file | Fl Fl key Ar ssh\_\%private\_\%key\_\%file
 .Op Fl H Ar ssh\_\%known\_\%hosts\_\%file | Fl Fl known\-hosts Ar ssh\_\%known\_\%hosts\_\%file
 .Op Fl q | Fl Fl quiet
@@ -52,7 +52,7 @@
 .\" ###### Description ######################################################
 .Sh DESCRIPTION
 .Nm hpct\-rtunnel
-is the HiPerConTracer remote tunnel script. It establishes an
+is the HiPerConTracer reverse tunnel script. It establishes an
 SSH tunnel from a node to a collected, allowing SSH forwarding to the node
 from port 10000+NodeID on the collector. It is intended to be used with the
 hpct\-rtunnel service, to automatically establish the tunnel from a node with
@@ -62,16 +62,12 @@ NAT'ed IP address for remote maintenance.
 .Sh ARGUMENTS
 The following arguments may be provided:
 .Bl -tag -width indent
-.\" .It Fl O | Fl -option
-.\" Enter description here!
-.It Fl h | Fl Fl help
-Prints command help.
 .It Fl N | Fl Fl nodeid node\_id
 Sets the node ID, a number from 1 to 9999.
 .It Fl R Ar remote\_location | Fl Fl remote Ar remote\_location
 Sets the remote data directory on the collector. Default: /var/hipercontracer/data.
-.It Fl R | Fl Fl collector collector
-Sets the remote data location for RSync. Format: HOST:DIRECTORY.
+.It Fl C Ar collector | Fl Fl collector Ar collector
+Specifies SSH server hostname or address of the collector.
 .It Fl K Ar ssh\_private\_key\_file | Fl Fl key Ar ssh\_private\_key\_file
 Sets the SSH private key file used for authentication. Default: /var/hipercontracer/ssh/id\_ed25519.
 .It Fl H Ar ssh\_known\_hosts\_file | Fl Fl known\-hosts Ar ssh\_known\_hosts\_file

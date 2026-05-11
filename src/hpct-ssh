@@ -35,7 +35,7 @@ set -euo pipefail
 # ###### Usage ##############################################################
 usage () {
    local exitCode="$1"
-   echo >&2 "Usage: $0 user@node_id [--copy-id|-c] [--quiet|-q] [--verbose|-v] [-h|--help] [-v|--version] -- [ssh_arguments ...]"
+   echo >&2 "Usage: $0 user@node_id [-c|--copy-id] [-q|--quiet] [-w|--verbose] [-h|--help] [-v|--version] -- [ssh_arguments ...]"
    exit "${exitCode}"
 }
 
@@ -60,12 +60,14 @@ if "${GETOPT}" -T >/dev/null 2>&1 || [[ $? -ne 4 ]]; then
    echo >&2 "ERROR: Enhanced/GNU getopt is required!"
    exit 1
 fi
-options="$(${GETOPT} -o cqwvh --long copy-id,quiet,verbose,copy-id -a -- "$@")"
+options="$(${GETOPT} -o cqwhv --long copy-id,quiet,verbose,help,version -a -- "$@")"
 # shellcheck disable=SC2181
 if [[ $? -ne 0 ]] ; then
    usage 1
 fi
 
+VERBOSE=1
+COPY_ID=0
 eval set -- "${options}"
 while [ $# -gt 0 ] ; do
    case "$1" in
@@ -102,16 +104,13 @@ fi
 
 # shellcheck disable=SC2001
 SSH_USER="$(echo "$1" | sed -e "s/@.*$//")"
-# shellcheck disable=SC2001
-NODE_ID="$(echo "$1" | sed -e "s/^.*@//")"
-VERBOSE=1
-COPY_ID=0
-shift
-
 if [[ ! "${SSH_USER}" =~ ^[a-zA-Z0-9]+$ ]] ; then
    echo >&2 "ERROR: Invalid user ${SSH_USER}!"
    exit 1
 fi
+
+# shellcheck disable=SC2001
+NODE_ID="$(echo "$1" | sed -e "s/^.*@//")"
 if [[ ! "${NODE_ID}" =~ ^[0-9]+$ ]] ; then
    echo >&2 "ERROR: Invalid Node ID ${NODE_ID}!"
    exit 1
@@ -138,8 +137,7 @@ if [ ${VERBOSE} -ne 0 ] ; then
    # shellcheck disable=SC2145
    echo -e "\x1b[34m$(date +"%Y-%m-%d %H:%M:%S") Running SSH: ssh -p ${port} ${SSH_USER}@localhost $@\x1b[0m"
 fi
-# shellcheck disable=SC2068
-ssh -p ${port} "${SSH_USER}"@localhost $@ && status=0 || status=$?
+ssh -p ${port} "${SSH_USER}"@localhost "$@" && status=0 || status=$?
 if [ "${status}" -ne 0 ] ; then
    if [ $# -eq 0 ] ; then
       error="SSH failed with exit code ${status}."

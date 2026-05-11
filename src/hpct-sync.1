@@ -43,7 +43,7 @@
 .Op Fl N Ar node\_id | Fl Fl nodeid Ar node\_id
 .Op Fl L Ar local\_directory | Fl Fl local Ar local\_directory
 .Op Fl R Ar remote\_location | Fl Fl remote Ar remote\_location
-.Op Fl C | Fl Fl collector collector
+.Op Fl C Ar collector | Fl Fl collector Ar collector
 .Op Fl K Ar ssh\_\%private\_\%key\_\%file | Fl Fl key Ar ssh\_\%private\_\%key\_\%file
 .Op Fl H Ar ssh\_\%known\_\%hosts\_\%file | Fl Fl known\-hosts Ar ssh\_\%known\_\%hosts\_\%file
 .Nm hpct\-sync
@@ -59,14 +59,14 @@ is the HiPerConTracer synchroniser application.
 .Sh ARGUMENTS
 The following arguments may be provided:
 .Bl -tag -width indent
-.It Fl h | Fl Fl help
-Prints command help.
 .It Fl N Ar node\_id | Fl Fl nodeid Ar node\_id
 Sets the node ID, a number from 1 to 9999.
 .It Fl L Ar local\_directory | Fl Fl local Ar local\_directory
 Sets the local data directory. Default: /var/hipercontracer/data.
 .It Fl R Ar remote\_location | Fl Fl remote Ar remote\_location
 Sets the remote data directory on the collector. Default: /var/hipercontracer/data.
+.It Fl C Ar collector | Fl Fl collector Ar collector
+Specifies SSH server hostname or address of the collector.
 .It Fl K Ar ssh\_private\_key\_file | Fl Fl key Ar ssh\_private\_key\_file
 Sets the SSH private key file used for authentication. Default: /var/hipercontracer/ssh/id\_ed25519.
 .It Fl H Ar ssh\_known\_hosts\_file | Fl Fl known\-hosts Ar ssh\_known\_hosts\_file
