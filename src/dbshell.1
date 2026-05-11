@@ -37,15 +37,15 @@
 .Nd HiPerConTracer Database Shell
 .\" ###### Synopsis #########################################################
 .Sh SYNOPSIS
-.Nm dbshell Ar database_configuration
+.Nm dbshell Ar database\_configuration
+.Op Fl d | Fl Fl dry\-run
+.Op Fl B Ar file\_prefix  | Fl Fl write\-dbeaver\-config Ar file\_prefix
 .Op Fl q | Fl Fl quiet
-.Op Fl v | Fl Fl verbose
-.Op Fl d | Fl Fl dry-run
-.Op Fl B Ar file_prefix  | Fl Fl write-dbeaver-config Ar file_prefix
+.Op Fl w | Fl Fl verbose
 .Nm dbshell
 .Op Fl h | Fl Fl help
 .Nm dbshell
-.Op Fl Fl version
+.Op Fl v | Fl Fl version
 .\" ###### Description ######################################################
 .Sh DESCRIPTION
 .Nm dbshell
@@ -55,19 +55,19 @@ access using the configuration files for HPCT Importer and HPCT Query Tool.
 .Pp
 .\" ###### Arguments ########################################################
 .Sh ARGUMENTS
-The following argument may be provided:
+The following arguments may be provided:
 .Bl -tag -width indent
-.It Ar database_configuration
+.It Ar database\_configuration
 Sets the name of the database configuration file.
-.It Fl q | Fl Fl quiet
-Quiet mode.
-.It Fl v | Fl Fl verbose
-Verbose mode.
-.It Fl d | Fl Fl dry-run
-Just shows the command-line call to start the database shell, but does not
+.It Fl d | Fl Fl dry\-run
+Just shows the command\-line call to start the database shell, but does not
 execute it.
-.It Fl B Ar file_prefix  | Fl Fl write-dbeaver-config Ar file_prefix
+.It Fl B Ar file\_prefix  | Fl Fl write\-dbeaver\-config Ar file\_prefix
 Write DBeaver configuration files (the configuration file itself, as well as a credentials file) with the given file name prefix.
+.It Fl q | Fl Fl quiet
+Turns off status output.
+.It Fl v | Fl Fl verbose
+Turns on status output.
 .It Fl h | Fl Fl help
 Prints command help.
 .It Fl v | Fl Fl version
@@ -81,11 +81,11 @@ tool exits with 0 on success, and >0 in case of an error.
 .\" ###### Arguments ########################################################
 .Sh EXAMPLES
 .Bl -tag -width indent
-.It dbshell hipercontracer-importer.conf
-.It dbshell hipercontracer-database.conf \-q
-.It dbshell hipercontracer-importer.conf \-d
-.It dbshell hipercontracer-database.conf \-\-dry-run
-.It dbshell hipercontracer-database.conf \-\-dry-run \-q \-B dbeaver-config
+.It dbshell hipercontracer\-importer.conf
+.It dbshell hipercontracer\-database.conf \-q
+.It dbshell hipercontracer\-importer.conf \-d
+.It dbshell hipercontracer\-database.conf \-\-dry\-run
+.It dbshell hipercontracer\-database.conf \-\-dry\-run \-q \-B dbeaver\-config
 .El
 .\" ###### Notes ############################################################
 .Sh NOTES

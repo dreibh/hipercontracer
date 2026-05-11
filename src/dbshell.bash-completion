@@ -52,7 +52,7 @@ _dbshell()
    fi
 
    # ====== Database configuration file =====================================
-   if [ "${cword}" -eq 1 ] ; then
+   if [[ "${cur}" != -* && "${prev}" != "-B" && "${prev}" != "--write-dbeaver-config" ]]; then
       # Files with extension .conf:
       _filedir '@(conf)'
       return
@@ -69,16 +69,17 @@ _dbshell()
 
    # ====== All options =====================================================
    local opts="
--q
---quiet
--v
---verbose
 -d
 --dry-run
 -B
 --write-dbeaver-config
+-q
+--quiet
+-w
+--verbose
 -h
 --help
+-v
 --version
 "
    mapfile -t COMPREPLY < <(compgen -W "${opts}" -- "${cur}" )
