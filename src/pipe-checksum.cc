@@ -78,7 +78,7 @@ int main(int argc, char** argv)
    visibleOptions.add_options()
       ( "help,h",
            "Print help message" )
-      ( "version",
+      ( "version,v",
            "Show program version" )
       ( "digest,D",
            boost::program_options::value<std::string>(&digestName),

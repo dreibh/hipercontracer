@@ -230,7 +230,7 @@ int main(int argc, char** argv)
    commandLineOptions.add_options()
       ( "help,h",
            "Print help message" )
-      ( "version",
+      ( "version,v",
            "Show program version" )
       ( "check",
            "Check environment" )
