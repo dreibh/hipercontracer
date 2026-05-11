@@ -57,10 +57,14 @@ _hpct_node_setup()
 
    # ====== All options =====================================================
    local opts="
+-q
+--quiet
+-w
+--verbose
 -h
 --help
--r
---remove-data
+-v
+--version
 "
    mapfile -t COMPREPLY < <(compgen -W "${opts}" -- "${cur}" )
    return 0

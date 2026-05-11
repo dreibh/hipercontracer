@@ -33,8 +33,9 @@ set -euo pipefail
 
 # ###### Usage ##############################################################
 usage () {
+   local exitCode="$1"
    echo >&2 "Usage: $0 [--remote|-R remote_location] [--collector|-C collector] [--nodeid|-N node_id] [--key|-K ssh_private_key_file] [--quiet|-q] [--verbose|-v] [-h|--help] [-v|--version]"
-   exit 1
+   exit "${exitCode}"
 }
 
 

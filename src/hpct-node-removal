@@ -34,8 +34,9 @@ set -euo pipefail
 
 # ###### Usage ##############################################################
 usage () {
+   local exitCode="$1"
    echo >&2 "Usage: $0 node_id [-r|--remove-data] [-h|--help] [-v|--version]"
-   exit 1
+   exit "${exitCode}"
 }
 
 
@@ -90,7 +91,7 @@ while [ $# -gt 0 ] ; do
   shift
 done
 if [ $# -ne 1 ] ; then
-   usage
+   usage 1
 fi
 
 NODE_ID="$1"

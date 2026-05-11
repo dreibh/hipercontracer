@@ -34,8 +34,9 @@ set -euo pipefail
 
 # ###### Usage ##############################################################
 usage () {
+   local exitCode="$1"
    echo >&2 "Usage: $0 user@collector node_id [--quiet|-q] [--verbose|-w] [-h|--help] [-v|--version]"
-   exit 1
+   exit "${exitCode}"
 }
 
 
@@ -59,7 +60,7 @@ if "${GETOPT}" -T >/dev/null 2>&1 || [[ $? -ne 4 ]]; then
    echo >&2 "ERROR: Enhanced/GNU getopt is required!"
    exit 1
 fi
-options="$(${GETOPT} -o hv --long help,version -a -- "$@")"
+options="$(${GETOPT} -o qwhv --long quiet,verbose,help,version -a -- "$@")"
 # shellcheck disable=SC2181
 if [[ $? -ne 0 ]]; then
    usage 1
