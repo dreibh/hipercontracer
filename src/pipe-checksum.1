@@ -34,16 +34,15 @@
 .\" ###### Name #############################################################
 .Sh NAME
 .Nm pipe\-checksum
-.Nd Write stdin to file and create a file with the checksum of the data
+.Nd Write Stdin to File and Create a File with the Checksum of the Data
 .\" ###### Synopsis #########################################################
 .Sh SYNOPSIS
-.Nm pipe\-checksum
-file
+.Nm pipe\-checksum Ar file
 .Op Fl D Ar MD5|\%SHA1|\%SHA256|\%SHA384|\%SHA512|\%... |\% Fl Fl digest Ar MD5|\%SHA1|\%SHA256|\%SHA384|\%SHA512|\%...
 .Nm pipe\-checksum
 .Op Fl h | Fl Fl help
 .Nm pipe\-checksum
-.Op Fl Fl version
+.Op Fl v | Fl Fl version
 .\" ###### Description ######################################################
 .Sh DESCRIPTION
 .Nm pipe\-checksum
@@ -58,12 +57,14 @@ for comparison.
 .Sh ARGUMENTS
 The following arguments may be provided:
 .Bl -tag -width indent
+.It Ar file
+Specifies the output file name.
 .It Fl D Ar MD5|SHA1|SHA256|SHA384|SHA512|... | Fl Fl digest Ar MD5|SHA1|SHA256|SHA384|SHA512|...
 Sets the message digest. Any digest supported by the underlying libcrypto
-library is possible. Calling pipe\-checksum with no options, or with invalid digest, provides the list of all supported digests. Default: SHA256.
+library is possible. Calling pipe\-checksum with no options, or with an invalid digest, provides the list of all supported digests. Default: SHA256.
 .It Fl h | Fl Fl help
 Prints command help.
-.It Fl Fl version
+.It Fl v | Fl Fl version
 Prints program version.
 .El
 .\" ###### Exit status ######################################################

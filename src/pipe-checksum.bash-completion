@@ -51,6 +51,11 @@ _pipe_checksum()
       cword="${COMP_CWORD}"
    fi
 
+   if [[ "${cur}" != -* && "${prev}" != "-D" && "${prev}" != "--digest" ]]; then
+      _filedir
+      return
+   fi
+
    case "${prev}" in
       # ====== Special case: on/off =========================================
       -D | --digest)
@@ -65,6 +70,7 @@ _pipe_checksum()
 --digest
 -h
 --help
+-v
 --version
 "
    mapfile -t COMPREPLY < <(compgen -W "${opts}" -- "${cur}" )

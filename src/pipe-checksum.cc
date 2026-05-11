@@ -44,7 +44,7 @@
 // ###### Print digest algorithm ############################################
 static void printDigest(const OBJ_NAME *obj, void* arg)
 {
-  std::cout << obj->name << " ";
+  std::cerr << obj->name << " ";
 }
 
 
@@ -64,7 +64,7 @@ int main(int argc, char** argv)
 {
    // ====== Handle arguments ===============================================
    if(argc < 2) {
-      std::cerr << "Usage: " << argv[0] << " file [--digest=SHA256|...]\n";
+      std::cerr << "Usage: " << argv[0] << " file [-D|--digest SHA256|...] [-h|--help] [-v|--version]\n";
       listDigests();
       return 1;
    }
