@@ -1,5 +1,5 @@
 Name: hipercontracer
-Version: 2.1.15
+Version: 2.1.16~rc0
 Release: 1
 Summary: High-Performance Connectivity Tracer (HiPerConTracer)
 Group: Applications/Internet
@@ -194,13 +194,13 @@ Summary: HiPerConTracer example scripts and results files
 Group: Applications/File
 BuildArch: noarch
 Requires: R-core
-Requires: R-data.table
-Requires: R-digest
-Requires: R-dplyr
-Requires: R-nanotime
-Requires: R-xtable
 Requires: python3
 Requires: python3-netifaces
+Recommends: R-data.table
+Recommends: R-digest
+Recommends: R-dplyr
+Recommends: R-nanotime
+Recommends: R-xtable
 
 %description examples
 High-Performance Connectivity Tracer (HiPerConTracer) is a Ping/Traceroute
@@ -1047,6 +1047,7 @@ HiPerConTracer results files.
 %{_datadir}/applications/hpct-viewer.desktop
 %{_datadir}/bash-completion/completions/hpct-viewer
 %{_mandir}/man1/hpct-viewer.1.gz
+%{_datadir}/metainfo/no.nntb.dreibh.hipercontracer.hpct-viewer.metainfo.xml
 
 
 %package udp-echo-server

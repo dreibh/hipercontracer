@@ -1,3 +1,4 @@
 usr/bin/hpct-viewer
 usr/share/applications/hpct-viewer.desktop
 usr/share/bash-completion/completions/hpct-viewer
+usr/share/metainfo/no.nntb.dreibh.hipercontracer.hpct-viewer.metainfo.xml
