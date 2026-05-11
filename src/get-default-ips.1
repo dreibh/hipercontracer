@@ -34,10 +34,14 @@
 .\" ###### Name #############################################################
 .Sh NAME
 .Nm get\-default\-ips
-.Nd List all IP source addresses of interfaces with default routes.
+.Nd List all IP source addresses of interfaces with default routes
 .\" ###### Synopsis #########################################################
 .Sh SYNOPSIS
 .Nm get\-default\-ips
+.Nm get\-default\-ips
+.Op Fl h | Fl Fl help
+.Nm get\-default\-ips
+.Op Fl v | Fl Fl version
 .\" ###### Description ######################################################
 .Sh DESCRIPTION
 .Nm get\-default\-ips
@@ -45,13 +49,15 @@ lists all IP source addresses of interfaces with default routes. Only
 non\-dynamic, global\-scoped addresses are returned. That is, 127.0.0.1, ::1,
 link\-local addresses, IPv6\-autoconfigured addresses, etc. are omitted.
 .Pp
-.\" .\" ###### Arguments ########################################################
-.\" .Sh ARGUMENTS
-.\" The following argument has to be provided:
-.\" .Bl -tag -width indent
-.\" .It ...
-.\" ...
-.\" .El
+.\" ###### Arguments ########################################################
+.Sh ARGUMENTS
+The following arguments may be provided:
+.Bl -tag -width indent
+.It Fl h | Fl Fl help
+Prints command help.
+.It Fl v | Fl Fl version
+Prints program version.
+.El
 .\" ###### Exit status ######################################################
 .Sh EXIT STATUS
 The

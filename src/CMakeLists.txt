@@ -440,8 +440,10 @@ IF (WITH_UDP_ECHO_SERVER)
 ENDIF()
 
 # ====== Scripts ============================================================
-INSTALL(PROGRAMS get-default-ips
-        DESTINATION ${CMAKE_INSTALL_BINDIR})
+CONFIGURE_FILE(get-default-ips get-default-ips.versioned @ONLY)
+INSTALL(PROGRAMS    get-default-ips.versioned
+         DESTINATION ${CMAKE_INSTALL_BINDIR}
+         RENAME      get-default-ips)
 INSTALL(FILES get-default-ips.1
         DESTINATION ${CMAKE_INSTALL_MANDIR}/man1)
 
