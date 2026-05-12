@@ -51,13 +51,6 @@ _dbshell()
       cword="${COMP_CWORD}"
    fi
 
-   # ====== Database configuration file =====================================
-   if [[ "${cur}" != -* && "${prev}" != "-B" && "${prev}" != "--write-dbeaver-config" ]]; then
-      # Files with extension .conf:
-      _filedir '@(conf)'
-      return
-   fi
-
    case "${prev}" in
       # ====== Special case: file ===========================================
       -B | --write-dbeaver-config)
@@ -66,6 +59,13 @@ _dbshell()
          return
          ;;
    esac
+
+   # ====== Database configuration file =====================================
+   if [[ "${cur}" != -* ]]; then
+      # Files with extension .conf:
+      _filedir '@(conf)'
+      return
+   fi
 
    # ====== All options =====================================================
    local opts="

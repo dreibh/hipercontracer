@@ -73,7 +73,7 @@ MongoDB (NoSQL).
 .br
 Results files imported successfully can be moved into a "good" directory,
 deleted or kept as\-in (for debugging only!).
-Results files which failed to import a re moved into a "bad" directory.
+Results files which failed to import are moved into a "bad" directory.
 .br
 The input of multiple input files can be combined into a single database
 transaction, to improve performance on short files. In case of an import
@@ -108,7 +108,7 @@ overriding the mode read from the database configuration file:
 DeleteImportedFiles (delete successfully imported files)
 MoveImportedFiles (move successfully imported files into "good" directory),
 KeepImportedFiles (keep successfully imported files where they are).
-Do not use KeepImportedFiles execpt for testing. Otherwise, the next re\-run of
+Do not use KeepImportedFiles except for testing. Otherwise, the next re\-run of
 hpct\-importer tries to import them again! They may create duplicates when the
 underlying database system (e.g. NoSQL without unique indices) does not ensure
 uniqueness!

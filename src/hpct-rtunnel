@@ -175,7 +175,7 @@ fi
 # ping -c1 ${COLLECTOR} || true
 
 # shellcheck disable=SC2086
-ssh -tt -R "${port}:localhost:22" ${sshOptions} "${user}"@"${COLLECTOR}" "while [ true ] ; do ( date -u +\"%Y-%m-%d %H:%M:%S\" ; echo \"${nodeStatus}\" ) >${lastSeen}.tmp && mv ${lastSeen}.tmp ${lastSeen} ; sleep 255 ; done" \
+ssh -tt -R "${port}:localhost:22" ${sshOptions} "${user}"@"${COLLECTOR}" "while true ; do ( date -u +\"%Y-%m-%d %H:%M:%S\" ; echo \"${nodeStatus}\" ) >${lastSeen}.tmp && mv ${lastSeen}.tmp ${lastSeen} ; sleep 255 ; done" \
    </dev/null >/dev/null 2>&1 && status=0 || status=$?
 if [ "${status}" -ne 0 ] ; then
    echo -e "\x1b[34m$(date +"%Y-%m-%d %H:%M:%S") SSH failed!\x1b[0m"
