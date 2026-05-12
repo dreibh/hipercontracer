@@ -54,10 +54,10 @@ _hpct_trigger()
    case "${prev}" in
       #  ====== Generic value ===============================================
       --triggerpingage                | \
-      --triggerpingpacketsize             | \
+      --triggerpingpacketsize         | \
       --triggerpingsbeforequeuing     | \
       -L | --loglevel                 | \
-      -U | --userid                   | \
+      -U | --user                     | \
       -# | --measurement-id           | \
       -D | --destination              | \
       --iterations                    | \
@@ -86,7 +86,7 @@ _hpct_trigger()
          ;;
       # ====== Special case: compression ====================================
       -C | --resultscompression)
-         mapfile -t COMPREPLY < <(compgen -W "none XZ BZip2 GZip" -- "${cur}")
+         mapfile -t COMPREPLY < <(compgen -W "none XZ BZip2 GZip ZLIB ZSTD" -- "${cur}")
          return
          ;;
       # ====== Special case: IO Module ======================================
@@ -146,7 +146,9 @@ _hpct_trigger()
 -w
 --verbose
 -U
+--user
 -#
+--measurement-id
 -S
 --source
 -D
@@ -188,6 +190,7 @@ _hpct_trigger()
 --check
 -h
 --help
+-v
 --version
 "
    mapfile -t COMPREPLY < <(compgen -W "${opts}" -- "${cur}" )
