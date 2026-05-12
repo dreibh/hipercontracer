@@ -184,6 +184,7 @@ _hipercontracer()
 --check
 -h
 --help
+-v
 --version
 "
    mapfile -t COMPREPLY < <(compgen -W "${opts}" -- "${cur}" )
