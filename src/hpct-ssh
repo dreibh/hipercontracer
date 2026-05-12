@@ -104,7 +104,7 @@ fi
 
 # shellcheck disable=SC2001
 SSH_USER="$(echo "$1" | sed -e "s/@.*$//")"
-if [[ ! "${SSH_USER}" =~ ^[a-zA-Z0-9]+$ ]] ; then
+if [[ ! "${SSH_USER}" =~ ^[a-zA-Z0-9_.-]+$ ]] ; then
    echo >&2 "ERROR: Invalid user ${SSH_USER}!"
    exit 1
 fi
