@@ -38,14 +38,20 @@
 .\" ###### Synopsis #########################################################
 .Sh SYNOPSIS
 .Nm hpct\-sync
+.Op Fl N Ar node\_id | Fl Fl nodeid Ar node\_id
+.br
+.Op Fl L Ar local\_directory | Fl Fl local Ar local\_directory
+.br
+.Op Fl R Ar remote\_location | Fl Fl remote Ar remote\_location
+.br
+.Op Fl C Ar collector | Fl Fl collector Ar collector
+.br
+.Op Fl K Ar ssh\_\%private\_\%key\_\%file | Fl Fl key Ar ssh\_\%private\_\%key\_\%file
+.br
+.Op Fl H Ar ssh\_\%known\_\%hosts\_\%file | Fl Fl known\-hosts Ar ssh\_\%known\_\%hosts\_\%file
+.br
 .Op Fl w | Fl Fl verbose
 .Op Fl q | Fl Fl quiet
-.Op Fl N Ar node\_id | Fl Fl nodeid Ar node\_id
-.Op Fl L Ar local\_directory | Fl Fl local Ar local\_directory
-.Op Fl R Ar remote\_location | Fl Fl remote Ar remote\_location
-.Op Fl C Ar collector | Fl Fl collector Ar collector
-.Op Fl K Ar ssh\_\%private\_\%key\_\%file | Fl Fl key Ar ssh\_\%private\_\%key\_\%file
-.Op Fl H Ar ssh\_\%known\_\%hosts\_\%file | Fl Fl known\-hosts Ar ssh\_\%known\_\%hosts\_\%file
 .Nm hpct\-sync
 .Op Fl h | Fl Fl help
 .Nm hpct\-sync

@@ -37,20 +37,30 @@
 .Nd HiPerConTracer Results Tool
 .\" ###### Synopsis #########################################################
 .Sh SYNOPSIS
-.Nm hpct\-results
-input\_file ...
+.Nm hpct\-results Ar input\_file Ar ...
+.br
 .Op Fl L Ar level | Fl Fl loglevel Ar level
+.br
 .Op Fl Z Ar on|off | Fl Fl logcolor Ar on|off
+.br
 .Op Fl O Ar file | Fl Fl logfile Ar file
+.br
 .Op Fl q | Fl Fl quiet
 .Op Fl w | Fl Fl verbose
+.br
 .Op Fl o Ar filename | Fl Fl output Ar filename
+.br
 .Op Fl s Ar character | Fl Fl separator Ar character
+.br
 .Op Fl A | Fl Fl sorted
 .Op Fl U | Fl Fl unsorted
+.br
 .Op Fl T Ar threads | Fl Fl maxthreads Ar threads
+.br
 .Op Fl R | Fl Fl input\-results\-from\-stdin
+.br
 .Op Fl N | Fl Fl input\-file\-names\-from\-stdin
+.br
 .Op Fl F Ar filename | Fl Fl input\-file\-names\-from\-file Ar filename
 .Nm hpct\-results
 .Op Fl h | Fl Fl help
@@ -64,13 +74,14 @@ is multi\-threaded. The output can be to standard output, or a file. Compression
 using GZip, BZip2 and XZ is supported. Multi\-threading is supported, reading
 files in parallel.
 The results can be sorted (to ensure a deterministic order; requires ample of
-memory) or unsorted (non\-deterministic order in case of parallel processing).
+memory) or unsorted (which reduces memory usage but yields a non-deterministic
+order in case of parallel processing). The results are sorted by default.
 .Pp
 .\" ###### Arguments ########################################################
 .Sh ARGUMENTS
 The following arguments may be provided:
 .Bl -tag -width indent
-.It input\_file ...
+.It Ar input\_file Ar ...
 A HiPerConTracer results file. Multiple files may be provided, they results will be joined.
 .It Fl L Ar level | Fl Fl loglevel Ar level
 Sets the minimum logging level to the provided value: 0=trace, 1=debug, 2=info, 3=warning, 4=error, 5=fatal.

@@ -37,21 +37,30 @@
 .Nd HiPerConTracer Query Tool
 .\" ###### Synopsis #########################################################
 .Sh SYNOPSIS
-.Nm hpct\-query
-database\_configuration
-ping|traceroute
+.Nm hpct\-query Ar database\_configuration Ar ping|traceroute
+.br
 .Op Fl L Ar level | Fl Fl loglevel Ar level
+.br
 .Op Fl Z Ar on|off | Fl Fl logcolor Ar on|off
+.br
 .Op Fl O Ar file | Fl Fl logfile Ar file
+.br
 .Op Fl q | Fl Fl quiet
 .Op Fl w | Fl Fl verbose
+.br
 .Op Fl o Ar filename | Fl Fl output Ar filename
+.br
 .Op Fl T Ar table\_name | Fl Fl table Ar table\_name
+.br
 .Op Fl V Ar version | Fl Fl table\-version Ar version
+.br
 .Op Fl M Ar mapping\_file | Fl Fl address\-to\-measurementid Ar mapping\_file
+.br
 .Op Fl Fl deduplication Ar on|off
+.br
 .Op Fl Fl from\-time Ar timestamp
 .Op Fl Fl to\-time Ar timestamp
+.br
 .Op Fl Fl from\-measurement\-id Ar measurement\_identifier
 .Op Fl Fl to\-measurement\-id Ar measurement\_identifier
 .Nm hpct\-query
@@ -70,6 +79,10 @@ HiPerConTracer manpage for the format description.
 .Sh ARGUMENTS
 The following arguments may be provided:
 .Bl -tag -width indent
+.It Ar database\_configuration
+The database configuration file.
+.It ping|traceroute
+The type of data to be queried: traceroute or ping.
 .It Fl L Ar level | Fl Fl loglevel Ar level
 Sets the minimum logging level to the provided value: 0=trace, 1=debug, 2=info, 3=warning, 4=error, 5=fatal.
 .It Fl Z Ar on|off | Fl Fl logcolor Ar on|off

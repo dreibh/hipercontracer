@@ -37,10 +37,13 @@
 .Nd HiPerConTracer SSH via Reverse Tunnel
 .\" ###### Synopsis #########################################################
 .Sh SYNOPSIS
-.Nm hpct\-ssh USER@NODE\_ID
+.Nm hpct\-ssh Ar USER@NODE\_ID
+.br
 .Op Fl c | Fl Fl copy\-id
+.br
 .Op Fl q | Fl Fl quiet
 .Op Fl w | Fl Fl verbose
+.br
 .Op Fl Fl
 SSH\_ARGUMENTS ...
 .Nm hpct\-ssh
@@ -50,13 +53,15 @@ SSH\_ARGUMENTS ...
 .\" ###### Description ######################################################
 .Sh DESCRIPTION
 .Nm hpct\-ssh
-is the HiPerConTracer Reverse Tunnel SSH script. It is to be run
-on the Collector and provides SSH login via reverse tunnel to a given node.
+is the HiPerConTracer SSH script. It is to be run on the Collector and
+provides SSH login via reverse tunnel to a given node.
 .Pp
 .\" ###### Arguments ########################################################
 .Sh ARGUMENTS
-The following arguments must be provided:
+The following arguments can be provided:
 .Bl -tag -width indent
+.It Ar USER@NODE\_ID
+SSH user name, and node ID of the node to establish a SSH connection to.
 .It Fl q | Fl Fl quiet
 Turns off status output.
 .It Fl w | Fl Fl verbose
