@@ -1,3 +1,39 @@
+commit ef6d72e8b7aaf7e6bb92d6bc9bf303437622e940
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Mon May 11 16:21:49 2026 +0200
+
+    Packaging updates.
+
+commit 01c436cc03e615c03ff181382704e6f2d4d8fbe7
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Mon May 11 16:21:24 2026 +0200
+
+    Improved MetaInfo file.
+
+commit ef9f9be23636116d78a1be8d8a377c00934fcccd
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Mon May 11 15:53:25 2026 +0200
+
+    Added missing MetaInfo file.
+
+commit 1e42d8bda986e690c1bccd6b4475efa92ab085b3
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Mon May 11 15:53:11 2026 +0200
+
+    Updated desktop file.
+
+commit 3f215491313d34ea875c72ce0e30066f109d3b4a
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Mon May 11 14:43:57 2026 +0200
+
+    Improved documentation.
+
+commit be46e1d1b5d6dc8969bb570413e413e0607f620d
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Apr 29 17:14:45 2026 +0200
+
+    New release hipercontracer-2.1.15.
+
 commit acbe066dca482c8c0dda9d351f3b64a4bf8e4716
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Wed Apr 29 09:03:24 2026 +0200

@@ -1,5 +1,5 @@
 Name: hipercontracer
-Version: 2.1.15
+Version: 2.1.16
 Release: 1
 Summary: High-Performance Connectivity Tracer (HiPerConTracer)
 Group: Applications/Internet
@@ -48,36 +48,42 @@ Suggests: td-system-info
 
 %description
 High-Performance Connectivity Tracer (HiPerConTracer) is a Ping/Traceroute
-measurement framework. HiPerConTracer denotes the actual measurement
-tool. It performs regular Ping and Traceroute runs among sites, featuring:
-multi-transport-protocol support (ICMP, UDP); multi-homing and parallelism
-support; handling of load balancing in the network; multi-platform
-support (currently Linux and FreeBSD); high-precision (nanoseconds)
-timing support (Linux timestamping, both software and hardware); a
-library (shared/static) to integrate measurement functionality into other
-software (libhipercontracer); open source and written in a performance-
-and portability-focused programming language (C++) with only limited
-dependencies.
-Furthermore, the HiPerConTracer Framework furthermore provides additional
-tools for helping to obtain, process, collect, store, and retrieve
-measurement data: HiPerConTracer Viewer Tool for displaying the contents
-of results files; Results Tool for merging and converting results files,
-e.g. to create a Comma-Separated Value (CSV) file; Sync Tool for copying data
-from a measurement node (vantage point) to a remote HiPerConTracer Collector
-server (via RSync/SSH); Reverse Tunnel Tool for maintaining a reverse SSH
-tunnel from a remote measurement node to a HiPerConTracer Collector server;
-Collector/Node Tools for simplifying the setup of HiPerConTracer Nodes and a
-HiPerConTracer Collector server; Trigger Tool for triggering HiPerConTracer
-measurements in the reverse direction; Importer Tool for storing measurement
-data from results files into SQL or NoSQL databases. Currently, database
-backends for MariaDB/MySQL PostgreSQL, MongoDB) are provided; Query
-Tool for querying data from a database and storing it into a results
-file; Database Shell as simple command-line front-end for the underlying
-database backends; Database Tools with some helper scripts to e.g. to join
-HiPerConTracer database configurations into an existing DBeaver (a popular
-SQL database GUI application) configuration; UDP Echo Server as UDP Echo
-(RFC 862) protocol endpoint; Wireshark dissector for HiPerConTracer packets.
-This package contains the actual HiPerConTracer program.
+measurement framework. HiPerConTracer refers to the core measurement tool,
+which performs regular Ping and Traceroute runs among sites.
+Key features include:
+- Multi-transport-protocol support (ICMP, UDP);
+- Multi-homing and parallelism support;
+- Handling of network load balancing;
+- Multi-platform support (currently Linux and FreeBSD);
+- High-precision (nanosecond) timing (Linux software and hardware
+   timestamping);
+- Integrated library (shared/static) for third-party software
+   (libhipercontracer);
+- Open-source C++ codebase focused on performance and portability with
+   only a small number of dependencies.
+
+Furthermore, the HiPerConTracer framework provides additional tools for
+obtaining, processing, collecting, storing, and retrieving measurement
+data:
+- Viewer Tool: Displays the contents of results files.
+- Results Tool: Merges and converts results files (e.g., to CSV format).
+- Sync Tool: Copies data from a measurement node (vantage point) to a
+   remote collector server via RSync/SSH.
+- Reverse Tunnel Tool: Maintains a reverse SSH tunnel from a remote
+   measurement node to a collector server.
+- Collector/Node Tools: Simplify the setup of nodes and collectors.
+- Trigger Tool: Triggers measurements in the reverse direction.
+- Importer Tool: Stores measurement data into SQL (MariaDB/MySQL,
+   PostgreSQL) or NoSQL (MongoDB) databases.
+- Query Tool: Queries data from a database and stores it into a results
+   file.
+- Database Shell: A simple command-line front-end for the underlying
+   database backends.
+- Database Tools: Helper scripts to join database configurations into
+   an existing DBeaver configuration.
+- UDP Echo Server: A UDP Echo (RFC 862) protocol endpoint.
+
+This package contains the core HiPerConTracer measurement program.
 
 %prep
 %setup -q
@@ -110,37 +116,43 @@ Requires: shadow-utils
 
 %description common
 High-Performance Connectivity Tracer (HiPerConTracer) is a Ping/Traceroute
-measurement framework. HiPerConTracer denotes the actual measurement
-tool. It performs regular Ping and Traceroute runs among sites, featuring:
-multi-transport-protocol support (ICMP, UDP); multi-homing and parallelism
-support; handling of load balancing in the network; multi-platform
-support (currently Linux and FreeBSD); high-precision (nanoseconds)
-timing support (Linux timestamping, both software and hardware); a
-library (shared/static) to integrate measurement functionality into other
-software (libhipercontracer); open source and written in a performance-
-and portability-focused programming language (C++) with only limited
-dependencies.
-Furthermore, the HiPerConTracer Framework furthermore provides additional
-tools for helping to obtain, process, collect, store, and retrieve
-measurement data: HiPerConTracer Viewer Tool for displaying the contents
-of results files; Results Tool for merging and converting results files,
-e.g. to create a Comma-Separated Value (CSV) file; Sync Tool for copying data
-from a measurement node (vantage point) to a remote HiPerConTracer Collector
-server (via RSync/SSH); Reverse Tunnel Tool for maintaining a reverse SSH
-tunnel from a remote measurement node to a HiPerConTracer Collector server;
-Collector/Node Tools for simplifying the setup of HiPerConTracer Nodes and a
-HiPerConTracer Collector server; Trigger Tool for triggering HiPerConTracer
-measurements in the reverse direction; Importer Tool for storing measurement
-data from results files into SQL or NoSQL databases. Currently, database
-backends for MariaDB/MySQL PostgreSQL, MongoDB) are provided; Query
-Tool for querying data from a database and storing it into a results
-file; Database Shell as simple command-line front-end for the underlying
-database backends; Database Tools with some helper scripts to e.g. to join
-HiPerConTracer database configurations into an existing DBeaver (a popular
-SQL database GUI application) configuration; UDP Echo Server as UDP Echo
-(RFC 862) protocol endpoint; Wireshark dissector for HiPerConTracer packets.
-The package contains common files for HiPerConTracer and the HiPerConTracer
-Tools packages.
+measurement framework. HiPerConTracer refers to the core measurement tool,
+which performs regular Ping and Traceroute runs among sites.
+Key features include:
+- Multi-transport-protocol support (ICMP, UDP);
+- Multi-homing and parallelism support;
+- Handling of network load balancing;
+- Multi-platform support (currently Linux and FreeBSD);
+- High-precision (nanosecond) timing (Linux software and hardware
+   timestamping);
+- Integrated library (shared/static) for third-party software
+   (libhipercontracer);
+- Open-source C++ codebase focused on performance and portability with
+   only a small number of dependencies.
+
+Furthermore, the HiPerConTracer framework provides additional tools for
+obtaining, processing, collecting, storing, and retrieving measurement
+data:
+- Viewer Tool: Displays the contents of results files.
+- Results Tool: Merges and converts results files (e.g., to CSV format).
+- Sync Tool: Copies data from a measurement node (vantage point) to a
+   remote collector server via RSync/SSH.
+- Reverse Tunnel Tool: Maintains a reverse SSH tunnel from a remote
+   measurement node to a collector server.
+- Collector/Node Tools: Simplify the setup of nodes and collectors.
+- Trigger Tool: Triggers measurements in the reverse direction.
+- Importer Tool: Stores measurement data into SQL (MariaDB/MySQL,
+   PostgreSQL) or NoSQL (MongoDB) databases.
+- Query Tool: Queries data from a database and stores it into a results
+   file.
+- Database Shell: A simple command-line front-end for the underlying
+   database backends.
+- Database Tools: Helper scripts to join database configurations into
+   an existing DBeaver configuration.
+- UDP Echo Server: A UDP Echo (RFC 862) protocol endpoint.
+
+This package contains common files for HiPerConTracer and the
+HiPerConTracer Tools packages.
 
 %pre common
 # Make sure the administrative user exists
@@ -194,46 +206,52 @@ Summary: HiPerConTracer example scripts and results files
 Group: Applications/File
 BuildArch: noarch
 Requires: R-core
-Requires: R-data.table
-Requires: R-digest
-Requires: R-dplyr
-Requires: R-nanotime
-Requires: R-xtable
 Requires: python3
 Requires: python3-netifaces
+Recommends: R-data.table
+Recommends: R-digest
+Recommends: R-dplyr
+Recommends: R-nanotime
+Recommends: R-xtable
 
 %description examples
 High-Performance Connectivity Tracer (HiPerConTracer) is a Ping/Traceroute
-measurement framework. HiPerConTracer denotes the actual measurement
-tool. It performs regular Ping and Traceroute runs among sites, featuring:
-multi-transport-protocol support (ICMP, UDP); multi-homing and parallelism
-support; handling of load balancing in the network; multi-platform
-support (currently Linux and FreeBSD); high-precision (nanoseconds)
-timing support (Linux timestamping, both software and hardware); a
-library (shared/static) to integrate measurement functionality into other
-software (libhipercontracer); open source and written in a performance-
-and portability-focused programming language (C++) with only limited
-dependencies.
-Furthermore, the HiPerConTracer Framework furthermore provides additional
-tools for helping to obtain, process, collect, store, and retrieve
-measurement data: HiPerConTracer Viewer Tool for displaying the contents
-of results files; Results Tool for merging and converting results files,
-e.g. to create a Comma-Separated Value (CSV) file; Sync Tool for copying data
-from a measurement node (vantage point) to a remote HiPerConTracer Collector
-server (via RSync/SSH); Reverse Tunnel Tool for maintaining a reverse SSH
-tunnel from a remote measurement node to a HiPerConTracer Collector server;
-Collector/Node Tools for simplifying the setup of HiPerConTracer Nodes and a
-HiPerConTracer Collector server; Trigger Tool for triggering HiPerConTracer
-measurements in the reverse direction; Importer Tool for storing measurement
-data from results files into SQL or NoSQL databases. Currently, database
-backends for MariaDB/MySQL PostgreSQL, MongoDB) are provided; Query
-Tool for querying data from a database and storing it into a results
-file; Database Shell as simple command-line front-end for the underlying
-database backends; Database Tools with some helper scripts to e.g. to join
-HiPerConTracer database configurations into an existing DBeaver (a popular
-SQL database GUI application) configuration; UDP Echo Server as UDP Echo
-(RFC 862) protocol endpoint; Wireshark dissector for HiPerConTracer packets.
-This package contains some HiPerConTracer example scripts and results files.
+measurement framework. HiPerConTracer refers to the core measurement tool,
+which performs regular Ping and Traceroute runs among sites.
+Key features include:
+- Multi-transport-protocol support (ICMP, UDP);
+- Multi-homing and parallelism support;
+- Handling of network load balancing;
+- Multi-platform support (currently Linux and FreeBSD);
+- High-precision (nanosecond) timing (Linux software and hardware
+   timestamping);
+- Integrated library (shared/static) for third-party software
+   (libhipercontracer);
+- Open-source C++ codebase focused on performance and portability with
+   only a small number of dependencies.
+
+Furthermore, the HiPerConTracer framework provides additional tools for
+obtaining, processing, collecting, storing, and retrieving measurement
+data:
+- Viewer Tool: Displays the contents of results files.
+- Results Tool: Merges and converts results files (e.g., to CSV format).
+- Sync Tool: Copies data from a measurement node (vantage point) to a
+   remote collector server via RSync/SSH.
+- Reverse Tunnel Tool: Maintains a reverse SSH tunnel from a remote
+   measurement node to a collector server.
+- Collector/Node Tools: Simplify the setup of nodes and collectors.
+- Trigger Tool: Triggers measurements in the reverse direction.
+- Importer Tool: Stores measurement data into SQL (MariaDB/MySQL,
+   PostgreSQL) or NoSQL (MongoDB) databases.
+- Query Tool: Queries data from a database and stores it into a results
+   file.
+- Database Shell: A simple command-line front-end for the underlying
+   database backends.
+- Database Tools: Helper scripts to join database configurations into
+   an existing DBeaver configuration.
+- UDP Echo Server: A UDP Echo (RFC 862) protocol endpoint.
+
+This package contains example scripts and result files.
 
 %files examples
 %{_datadir}/hipercontracer/results-examples/HiPerConTracer.R
@@ -251,37 +269,43 @@ Group: System Environment/Libraries
 
 %description libhpctio
 High-Performance Connectivity Tracer (HiPerConTracer) is a Ping/Traceroute
-measurement framework. HiPerConTracer denotes the actual measurement
-tool. It performs regular Ping and Traceroute runs among sites, featuring:
-multi-transport-protocol support (ICMP, UDP); multi-homing and parallelism
-support; handling of load balancing in the network; multi-platform
-support (currently Linux and FreeBSD); high-precision (nanoseconds)
-timing support (Linux timestamping, both software and hardware); a
-library (shared/static) to integrate measurement functionality into other
-software (libhpctio); open source and written in a performance-
-and portability-focused programming language (C++) with only limited
-dependencies.
-Furthermore, the HiPerConTracer Framework furthermore provides additional
-tools for helping to obtain, process, collect, store, and retrieve
-measurement data: HiPerConTracer Viewer Tool for displaying the contents
-of results files; Results Tool for merging and converting results files,
-e.g. to create a Comma-Separated Value (CSV) file; Sync Tool for copying data
-from a measurement node (vantage point) to a remote HiPerConTracer Collector
-server (via RSync/SSH); Reverse Tunnel Tool for maintaining a reverse SSH
-tunnel from a remote measurement node to a HiPerConTracer Collector server;
-Collector/Node Tools for simplifying the setup of HiPerConTracer Nodes and a
-HiPerConTracer Collector server; Trigger Tool for triggering HiPerConTracer
-measurements in the reverse direction; Importer Tool for storing measurement
-data from results files into SQL or NoSQL databases. Currently, database
-backends for MariaDB/MySQL PostgreSQL, MongoDB) are provided; Query
-Tool for querying data from a database and storing it into a results
-file; Database Shell as simple command-line front-end for the underlying
-database backends; Database Tools with some helper scripts to e.g. to join
-HiPerConTracer database configurations into an existing DBeaver (a popular
-SQL database GUI application) configuration; UDP Echo Server as UDP Echo
-(RFC 862) protocol endpoint; Wireshark dissector for HiPerConTracer packets.
-This library shares I/O functions commonly used by libhipercontracer and
-libuniversalimporter.
+measurement framework. HiPerConTracer refers to the core measurement tool,
+which performs regular Ping and Traceroute runs among sites.
+Key features include:
+- Multi-transport-protocol support (ICMP, UDP);
+- Multi-homing and parallelism support;
+- Handling of network load balancing;
+- Multi-platform support (currently Linux and FreeBSD);
+- High-precision (nanosecond) timing (Linux software and hardware
+   timestamping);
+- Integrated library (shared/static) for third-party software
+   (libhipercontracer);
+- Open-source C++ codebase focused on performance and portability with
+   only a small number of dependencies.
+
+Furthermore, the HiPerConTracer framework provides additional tools for
+obtaining, processing, collecting, storing, and retrieving measurement
+data:
+- Viewer Tool: Displays the contents of results files.
+- Results Tool: Merges and converts results files (e.g., to CSV format).
+- Sync Tool: Copies data from a measurement node (vantage point) to a
+   remote collector server via RSync/SSH.
+- Reverse Tunnel Tool: Maintains a reverse SSH tunnel from a remote
+   measurement node to a collector server.
+- Collector/Node Tools: Simplify the setup of nodes and collectors.
+- Trigger Tool: Triggers measurements in the reverse direction.
+- Importer Tool: Stores measurement data into SQL (MariaDB/MySQL,
+   PostgreSQL) or NoSQL (MongoDB) databases.
+- Query Tool: Queries data from a database and stores it into a results
+   file.
+- Database Shell: A simple command-line front-end for the underlying
+   database backends.
+- Database Tools: Helper scripts to join database configurations into
+   an existing DBeaver configuration.
+- UDP Echo Server: A UDP Echo (RFC 862) protocol endpoint.
+
+This package provides the I/O library shared by HiPerConTracer
+components.
 
 %files libhpctio
 %{_libdir}/libhpctio.so.*
@@ -295,37 +319,42 @@ Requires: boost-devel
 
 %description libhpctio-devel
 High-Performance Connectivity Tracer (HiPerConTracer) is a Ping/Traceroute
-measurement framework. HiPerConTracer denotes the actual measurement
-tool. It performs regular Ping and Traceroute runs among sites, featuring:
-multi-transport-protocol support (ICMP, UDP); multi-homing and parallelism
-support; handling of load balancing in the network; multi-platform
-support (currently Linux and FreeBSD); high-precision (nanoseconds)
-timing support (Linux timestamping, both software and hardware); a
-library (shared/static) to integrate measurement functionality into other
-software (libhpctio); open source and written in a performance-
-and portability-focused programming language (C++) with only limited
-dependencies.
-Furthermore, the HiPerConTracer Framework furthermore provides additional
-tools for helping to obtain, process, collect, store, and retrieve
-measurement data: HiPerConTracer Viewer Tool for displaying the contents
-of results files; Results Tool for merging and converting results files,
-e.g. to create a Comma-Separated Value (CSV) file; Sync Tool for copying data
-from a measurement node (vantage point) to a remote HiPerConTracer Collector
-server (via RSync/SSH); Reverse Tunnel Tool for maintaining a reverse SSH
-tunnel from a remote measurement node to a HiPerConTracer Collector server;
-Collector/Node Tools for simplifying the setup of HiPerConTracer Nodes and a
-HiPerConTracer Collector server; Trigger Tool for triggering HiPerConTracer
-measurements in the reverse direction; Importer Tool for storing measurement
-data from results files into SQL or NoSQL databases. Currently, database
-backends for MariaDB/MySQL PostgreSQL, MongoDB) are provided; Query
-Tool for querying data from a database and storing it into a results
-file; Database Shell as simple command-line front-end for the underlying
-database backends; Database Tools with some helper scripts to e.g. to join
-HiPerConTracer database configurations into an existing DBeaver (a popular
-SQL database GUI application) configuration; UDP Echo Server as UDP Echo
-(RFC 862) protocol endpoint; Wireshark dissector for HiPerConTracer packets.
-This package provides header files for the HiPerConTracer library. You need
-them to integrate HiPerConTracer into own programs.
+measurement framework. HiPerConTracer refers to the core measurement tool,
+which performs regular Ping and Traceroute runs among sites.
+Key features include:
+- Multi-transport-protocol support (ICMP, UDP);
+- Multi-homing and parallelism support;
+- Handling of network load balancing;
+- Multi-platform support (currently Linux and FreeBSD);
+- High-precision (nanosecond) timing (Linux software and hardware
+   timestamping);
+- Integrated library (shared/static) for third-party software
+   (libhipercontracer);
+- Open-source C++ codebase focused on performance and portability with
+   only a small number of dependencies.
+
+Furthermore, the HiPerConTracer framework provides additional tools for
+obtaining, processing, collecting, storing, and retrieving measurement
+data:
+- Viewer Tool: Displays the contents of results files.
+- Results Tool: Merges and converts results files (e.g., to CSV format).
+- Sync Tool: Copies data from a measurement node (vantage point) to a
+   remote collector server via RSync/SSH.
+- Reverse Tunnel Tool: Maintains a reverse SSH tunnel from a remote
+   measurement node to a collector server.
+- Collector/Node Tools: Simplify the setup of nodes and collectors.
+- Trigger Tool: Triggers measurements in the reverse direction.
+- Importer Tool: Stores measurement data into SQL (MariaDB/MySQL,
+   PostgreSQL) or NoSQL (MongoDB) databases.
+- Query Tool: Queries data from a database and stores it into a results
+   file.
+- Database Shell: A simple command-line front-end for the underlying
+   database backends.
+- Database Tools: Helper scripts to join database configurations into
+   an existing DBeaver configuration.
+- UDP Echo Server: A UDP Echo (RFC 862) protocol endpoint.
+
+This package provides header files for the HiPerConTracer I/O library.
 
 %files libhpctio-devel
 %{_includedir}/hipercontracer/compressortype.h
@@ -344,36 +373,42 @@ Requires: %{name}-libhpctio = %{version}-%{release}
 
 %description libhipercontracer
 High-Performance Connectivity Tracer (HiPerConTracer) is a Ping/Traceroute
-measurement framework. HiPerConTracer denotes the actual measurement
-tool. It performs regular Ping and Traceroute runs among sites, featuring:
-multi-transport-protocol support (ICMP, UDP); multi-homing and parallelism
-support; handling of load balancing in the network; multi-platform
-support (currently Linux and FreeBSD); high-precision (nanoseconds)
-timing support (Linux timestamping, both software and hardware); a
-library (shared/static) to integrate measurement functionality into other
-software (libhipercontracer); open source and written in a performance-
-and portability-focused programming language (C++) with only limited
-dependencies.
-Furthermore, the HiPerConTracer Framework furthermore provides additional
-tools for helping to obtain, process, collect, store, and retrieve
-measurement data: HiPerConTracer Viewer Tool for displaying the contents
-of results files; Results Tool for merging and converting results files,
-e.g. to create a Comma-Separated Value (CSV) file; Sync Tool for copying data
-from a measurement node (vantage point) to a remote HiPerConTracer Collector
-server (via RSync/SSH); Reverse Tunnel Tool for maintaining a reverse SSH
-tunnel from a remote measurement node to a HiPerConTracer Collector server;
-Collector/Node Tools for simplifying the setup of HiPerConTracer Nodes and a
-HiPerConTracer Collector server; Trigger Tool for triggering HiPerConTracer
-measurements in the reverse direction; Importer Tool for storing measurement
-data from results files into SQL or NoSQL databases. Currently, database
-backends for MariaDB/MySQL PostgreSQL, MongoDB) are provided; Query
-Tool for querying data from a database and storing it into a results
-file; Database Shell as simple command-line front-end for the underlying
-database backends; Database Tools with some helper scripts to e.g. to join
-HiPerConTracer database configurations into an existing DBeaver (a popular
-SQL database GUI application) configuration; UDP Echo Server as UDP Echo
-(RFC 862) protocol endpoint; Wireshark dissector for HiPerConTracer packets.
-The HiPerConTracer library is provided by this package.
+measurement framework. HiPerConTracer refers to the core measurement tool,
+which performs regular Ping and Traceroute runs among sites.
+Key features include:
+- Multi-transport-protocol support (ICMP, UDP);
+- Multi-homing and parallelism support;
+- Handling of network load balancing;
+- Multi-platform support (currently Linux and FreeBSD);
+- High-precision (nanosecond) timing (Linux software and hardware
+   timestamping);
+- Integrated library (shared/static) for third-party software
+   (libhipercontracer);
+- Open-source C++ codebase focused on performance and portability with
+   only a small number of dependencies.
+
+Furthermore, the HiPerConTracer framework provides additional tools for
+obtaining, processing, collecting, storing, and retrieving measurement
+data:
+- Viewer Tool: Displays the contents of results files.
+- Results Tool: Merges and converts results files (e.g., to CSV format).
+- Sync Tool: Copies data from a measurement node (vantage point) to a
+   remote collector server via RSync/SSH.
+- Reverse Tunnel Tool: Maintains a reverse SSH tunnel from a remote
+   measurement node to a collector server.
+- Collector/Node Tools: Simplify the setup of nodes and collectors.
+- Trigger Tool: Triggers measurements in the reverse direction.
+- Importer Tool: Stores measurement data into SQL (MariaDB/MySQL,
+   PostgreSQL) or NoSQL (MongoDB) databases.
+- Query Tool: Queries data from a database and stores it into a results
+   file.
+- Database Shell: A simple command-line front-end for the underlying
+   database backends.
+- Database Tools: Helper scripts to join database configurations into
+   an existing DBeaver configuration.
+- UDP Echo Server: A UDP Echo (RFC 862) protocol endpoint.
+
+This package provides the HiPerConTracer API library.
 
 %files libhipercontracer
 %{_libdir}/libhipercontracer.so.*
@@ -388,37 +423,43 @@ Requires: boost-devel
 
 %description libhipercontracer-devel
 High-Performance Connectivity Tracer (HiPerConTracer) is a Ping/Traceroute
-measurement framework. HiPerConTracer denotes the actual measurement
-tool. It performs regular Ping and Traceroute runs among sites, featuring:
-multi-transport-protocol support (ICMP, UDP); multi-homing and parallelism
-support; handling of load balancing in the network; multi-platform
-support (currently Linux and FreeBSD); high-precision (nanoseconds)
-timing support (Linux timestamping, both software and hardware); a
-library (shared/static) to integrate measurement functionality into other
-software (libhipercontracer); open source and written in a performance-
-and portability-focused programming language (C++) with only limited
-dependencies.
-Furthermore, the HiPerConTracer Framework furthermore provides additional
-tools for helping to obtain, process, collect, store, and retrieve
-measurement data: HiPerConTracer Viewer Tool for displaying the contents
-of results files; Results Tool for merging and converting results files,
-e.g. to create a Comma-Separated Value (CSV) file; Sync Tool for copying data
-from a measurement node (vantage point) to a remote HiPerConTracer Collector
-server (via RSync/SSH); Reverse Tunnel Tool for maintaining a reverse SSH
-tunnel from a remote measurement node to a HiPerConTracer Collector server;
-Collector/Node Tools for simplifying the setup of HiPerConTracer Nodes and a
-HiPerConTracer Collector server; Trigger Tool for triggering HiPerConTracer
-measurements in the reverse direction; Importer Tool for storing measurement
-data from results files into SQL or NoSQL databases. Currently, database
-backends for MariaDB/MySQL PostgreSQL, MongoDB) are provided; Query
-Tool for querying data from a database and storing it into a results
-file; Database Shell as simple command-line front-end for the underlying
-database backends; Database Tools with some helper scripts to e.g. to join
-HiPerConTracer database configurations into an existing DBeaver (a popular
-SQL database GUI application) configuration; UDP Echo Server as UDP Echo
-(RFC 862) protocol endpoint; Wireshark dissector for HiPerConTracer packets.
+measurement framework. HiPerConTracer refers to the core measurement tool,
+which performs regular Ping and Traceroute runs among sites.
+Key features include:
+- Multi-transport-protocol support (ICMP, UDP);
+- Multi-homing and parallelism support;
+- Handling of network load balancing;
+- Multi-platform support (currently Linux and FreeBSD);
+- High-precision (nanosecond) timing (Linux software and hardware
+   timestamping);
+- Integrated library (shared/static) for third-party software
+   (libhipercontracer);
+- Open-source C++ codebase focused on performance and portability with
+   only a small number of dependencies.
+
+Furthermore, the HiPerConTracer framework provides additional tools for
+obtaining, processing, collecting, storing, and retrieving measurement
+data:
+- Viewer Tool: Displays the contents of results files.
+- Results Tool: Merges and converts results files (e.g., to CSV format).
+- Sync Tool: Copies data from a measurement node (vantage point) to a
+   remote collector server via RSync/SSH.
+- Reverse Tunnel Tool: Maintains a reverse SSH tunnel from a remote
+   measurement node to a collector server.
+- Collector/Node Tools: Simplify the setup of nodes and collectors.
+- Trigger Tool: Triggers measurements in the reverse direction.
+- Importer Tool: Stores measurement data into SQL (MariaDB/MySQL,
+   PostgreSQL) or NoSQL (MongoDB) databases.
+- Query Tool: Queries data from a database and stores it into a results
+   file.
+- Database Shell: A simple command-line front-end for the underlying
+   database backends.
+- Database Tools: Helper scripts to join database configurations into
+   an existing DBeaver configuration.
+- UDP Echo Server: A UDP Echo (RFC 862) protocol endpoint.
+
 This package provides header files for the HiPerConTracer library. You need
-them to integrate HiPerConTracer into own programs.
+them to integrate HiPerConTracer into your own programs.
 
 %files libhipercontracer-devel
 %{_includedir}/hipercontracer/check.h
@@ -443,37 +484,42 @@ Requires: %{name}-libhpctio = %{version}-%{release}
 
 %description libuniversalimporter
 High-Performance Connectivity Tracer (HiPerConTracer) is a Ping/Traceroute
-measurement framework. HiPerConTracer denotes the actual measurement
-tool. It performs regular Ping and Traceroute runs among sites, featuring:
-multi-transport-protocol support (ICMP, UDP); multi-homing and parallelism
-support; handling of load balancing in the network; multi-platform
-support (currently Linux and FreeBSD); high-precision (nanoseconds)
-timing support (Linux timestamping, both software and hardware); a
-library (shared/static) to integrate measurement functionality into other
-software (libhipercontracer); open source and written in a performance-
-and portability-focused programming language (C++) with only limited
-dependencies.
-Furthermore, the HiPerConTracer Framework furthermore provides additional
-tools for helping to obtain, process, collect, store, and retrieve
-measurement data: HiPerConTracer Viewer Tool for displaying the contents
-of results files; Results Tool for merging and converting results files,
-e.g. to create a Comma-Separated Value (CSV) file; Sync Tool for copying data
-from a measurement node (vantage point) to a remote HiPerConTracer Collector
-server (via RSync/SSH); Reverse Tunnel Tool for maintaining a reverse SSH
-tunnel from a remote measurement node to a HiPerConTracer Collector server;
-Collector/Node Tools for simplifying the setup of HiPerConTracer Nodes and a
-HiPerConTracer Collector server; Trigger Tool for triggering HiPerConTracer
-measurements in the reverse direction; Importer Tool for storing measurement
-data from results files into SQL or NoSQL databases. Currently, database
-backends for MariaDB/MySQL PostgreSQL, MongoDB) are provided; Query
-Tool for querying data from a database and storing it into a results
-file; Database Shell as simple command-line front-end for the underlying
-database backends; Database Tools with some helper scripts to e.g. to join
-HiPerConTracer database configurations into an existing DBeaver (a popular
-SQL database GUI application) configuration; UDP Echo Server as UDP Echo
-(RFC 862) protocol endpoint; Wireshark dissector for HiPerConTracer packets.
-The HiPerConTracer Universal Importer library is provided by this
-package.
+measurement framework. HiPerConTracer refers to the core measurement tool,
+which performs regular Ping and Traceroute runs among sites.
+Key features include:
+- Multi-transport-protocol support (ICMP, UDP);
+- Multi-homing and parallelism support;
+- Handling of network load balancing;
+- Multi-platform support (currently Linux and FreeBSD);
+- High-precision (nanosecond) timing (Linux software and hardware
+   timestamping);
+- Integrated library (shared/static) for third-party software
+   (libhipercontracer);
+- Open-source C++ codebase focused on performance and portability with
+   only a small number of dependencies.
+
+Furthermore, the HiPerConTracer framework provides additional tools for
+obtaining, processing, collecting, storing, and retrieving measurement
+data:
+- Viewer Tool: Displays the contents of results files.
+- Results Tool: Merges and converts results files (e.g., to CSV format).
+- Sync Tool: Copies data from a measurement node (vantage point) to a
+   remote collector server via RSync/SSH.
+- Reverse Tunnel Tool: Maintains a reverse SSH tunnel from a remote
+   measurement node to a collector server.
+- Collector/Node Tools: Simplify the setup of nodes and collectors.
+- Trigger Tool: Triggers measurements in the reverse direction.
+- Importer Tool: Stores measurement data into SQL (MariaDB/MySQL,
+   PostgreSQL) or NoSQL (MongoDB) databases.
+- Query Tool: Queries data from a database and stores it into a results
+   file.
+- Database Shell: A simple command-line front-end for the underlying
+   database backends.
+- Database Tools: Helper scripts to join database configurations into
+   an existing DBeaver configuration.
+- UDP Echo Server: A UDP Echo (RFC 862) protocol endpoint.
+
+This package provides the Universal Importer API library.
 
 %files libuniversalimporter
 %{_libdir}/libuniversalimporter.so.*
@@ -488,38 +534,43 @@ Requires: boost-devel
 
 %description libuniversalimporter-devel
 High-Performance Connectivity Tracer (HiPerConTracer) is a Ping/Traceroute
-measurement framework. HiPerConTracer denotes the actual measurement
-tool. It performs regular Ping and Traceroute runs among sites, featuring:
-multi-transport-protocol support (ICMP, UDP); multi-homing and parallelism
-support; handling of load balancing in the network; multi-platform
-support (currently Linux and FreeBSD); high-precision (nanoseconds)
-timing support (Linux timestamping, both software and hardware); a
-library (shared/static) to integrate measurement functionality into other
-software (libhipercontracer); open source and written in a performance-
-and portability-focused programming language (C++) with only limited
-dependencies.
-Furthermore, the HiPerConTracer Framework furthermore provides additional
-tools for helping to obtain, process, collect, store, and retrieve
-measurement data: HiPerConTracer Viewer Tool for displaying the contents
-of results files; Results Tool for merging and converting results files,
-e.g. to create a Comma-Separated Value (CSV) file; Sync Tool for copying data
-from a measurement node (vantage point) to a remote HiPerConTracer Collector
-server (via RSync/SSH); Reverse Tunnel Tool for maintaining a reverse SSH
-tunnel from a remote measurement node to a HiPerConTracer Collector server;
-Collector/Node Tools for simplifying the setup of HiPerConTracer Nodes and a
-HiPerConTracer Collector server; Trigger Tool for triggering HiPerConTracer
-measurements in the reverse direction; Importer Tool for storing measurement
-data from results files into SQL or NoSQL databases. Currently, database
-backends for MariaDB/MySQL PostgreSQL, MongoDB) are provided; Query
-Tool for querying data from a database and storing it into a results
-file; Database Shell as simple command-line front-end for the underlying
-database backends; Database Tools with some helper scripts to e.g. to join
-HiPerConTracer database configurations into an existing DBeaver (a popular
-SQL database GUI application) configuration; UDP Echo Server as UDP Echo
-(RFC 862) protocol endpoint; Wireshark dissector for HiPerConTracer packets.
-This package provides header files for the HiPerConTracer Universal Importer
-library. You need them to integrate HiPerConTracer Universal Importer into
-own programs.
+measurement framework. HiPerConTracer refers to the core measurement tool,
+which performs regular Ping and Traceroute runs among sites.
+Key features include:
+- Multi-transport-protocol support (ICMP, UDP);
+- Multi-homing and parallelism support;
+- Handling of network load balancing;
+- Multi-platform support (currently Linux and FreeBSD);
+- High-precision (nanosecond) timing (Linux software and hardware
+   timestamping);
+- Integrated library (shared/static) for third-party software
+   (libhipercontracer);
+- Open-source C++ codebase focused on performance and portability with
+   only a small number of dependencies.
+
+Furthermore, the HiPerConTracer framework provides additional tools for
+obtaining, processing, collecting, storing, and retrieving measurement
+data:
+- Viewer Tool: Displays the contents of results files.
+- Results Tool: Merges and converts results files (e.g., to CSV format).
+- Sync Tool: Copies data from a measurement node (vantage point) to a
+   remote collector server via RSync/SSH.
+- Reverse Tunnel Tool: Maintains a reverse SSH tunnel from a remote
+   measurement node to a collector server.
+- Collector/Node Tools: Simplify the setup of nodes and collectors.
+- Trigger Tool: Triggers measurements in the reverse direction.
+- Importer Tool: Stores measurement data into SQL (MariaDB/MySQL,
+   PostgreSQL) or NoSQL (MongoDB) databases.
+- Query Tool: Queries data from a database and stores it into a results
+   file.
+- Database Shell: A simple command-line front-end for the underlying
+   database backends.
+- Database Tools: Helper scripts to join database configurations into
+   an existing DBeaver configuration.
+- UDP Echo Server: A UDP Echo (RFC 862) protocol endpoint.
+
+This package provides header files for the Universal Importer library.
+You need them to integrate Universal Importer into your own programs.
 
 %files libuniversalimporter-devel
 %{_includedir}/universalimporter/database-configuration.h
@@ -547,36 +598,43 @@ Recommends: %{name} = %{version}-%{release}
 
 %description trigger
 High-Performance Connectivity Tracer (HiPerConTracer) is a Ping/Traceroute
-measurement framework. HiPerConTracer denotes the actual measurement
-tool. It performs regular Ping and Traceroute runs among sites, featuring:
-multi-transport-protocol support (ICMP, UDP); multi-homing and parallelism
-support; handling of load balancing in the network; multi-platform
-support (currently Linux and FreeBSD); high-precision (nanoseconds)
-timing support (Linux timestamping, both software and hardware); a
-library (shared/static) to integrate measurement functionality into other
-software (libhipercontracer); open source and written in a performance-
-and portability-focused programming language (C++) with only limited
-dependencies.
-Furthermore, the HiPerConTracer Framework furthermore provides additional
-tools for helping to obtain, process, collect, store, and retrieve
-measurement data: HiPerConTracer Viewer Tool for displaying the contents
-of results files; Results Tool for merging and converting results files,
-e.g. to create a Comma-Separated Value (CSV) file; Sync Tool for copying data
-from a measurement node (vantage point) to a remote HiPerConTracer Collector
-server (via RSync/SSH); Reverse Tunnel Tool for maintaining a reverse SSH
-tunnel from a remote measurement node to a HiPerConTracer Collector server;
-Collector/Node Tools for simplifying the setup of HiPerConTracer Nodes and a
-HiPerConTracer Collector server; Trigger Tool for triggering HiPerConTracer
-measurements in the reverse direction; Importer Tool for storing measurement
-data from results files into SQL or NoSQL databases. Currently, database
-backends for MariaDB/MySQL PostgreSQL, MongoDB) are provided; Query
-Tool for querying data from a database and storing it into a results
-file; Database Shell as simple command-line front-end for the underlying
-database backends; Database Tools with some helper scripts to e.g. to join
-HiPerConTracer database configurations into an existing DBeaver (a popular
-SQL database GUI application) configuration; UDP Echo Server as UDP Echo
-(RFC 862) protocol endpoint; Wireshark dissector for HiPerConTracer packets.
-This tool triggers HiPerConTracer measurements by incoming "Ping" packets.
+measurement framework. HiPerConTracer refers to the core measurement tool,
+which performs regular Ping and Traceroute runs among sites.
+Key features include:
+- Multi-transport-protocol support (ICMP, UDP);
+- Multi-homing and parallelism support;
+- Handling of network load balancing;
+- Multi-platform support (currently Linux and FreeBSD);
+- High-precision (nanosecond) timing (Linux software and hardware
+   timestamping);
+- Integrated library (shared/static) for third-party software
+   (libhipercontracer);
+- Open-source C++ codebase focused on performance and portability with
+   only a small number of dependencies.
+
+Furthermore, the HiPerConTracer framework provides additional tools for
+obtaining, processing, collecting, storing, and retrieving measurement
+data:
+- Viewer Tool: Displays the contents of results files.
+- Results Tool: Merges and converts results files (e.g., to CSV format).
+- Sync Tool: Copies data from a measurement node (vantage point) to a
+   remote collector server via RSync/SSH.
+- Reverse Tunnel Tool: Maintains a reverse SSH tunnel from a remote
+   measurement node to a collector server.
+- Collector/Node Tools: Simplify the setup of nodes and collectors.
+- Trigger Tool: Triggers measurements in the reverse direction.
+- Importer Tool: Stores measurement data into SQL (MariaDB/MySQL,
+   PostgreSQL) or NoSQL (MongoDB) databases.
+- Query Tool: Queries data from a database and stores it into a results
+   file.
+- Database Shell: A simple command-line front-end for the underlying
+   database backends.
+- Database Tools: Helper scripts to join database configurations into
+   an existing DBeaver configuration.
+- UDP Echo Server: A UDP Echo (RFC 862) protocol endpoint.
+
+This package contains the tool to trigger measurements via incoming
+"Ping" packets.
 
 %files trigger
 %{_bindir}/hpct-trigger
@@ -599,35 +657,41 @@ Suggests: %{name} = %{version}-%{release}
 
 %description sync
 High-Performance Connectivity Tracer (HiPerConTracer) is a Ping/Traceroute
-measurement framework. HiPerConTracer denotes the actual measurement
-tool. It performs regular Ping and Traceroute runs among sites, featuring:
-multi-transport-protocol support (ICMP, UDP); multi-homing and parallelism
-support; handling of load balancing in the network; multi-platform
-support (currently Linux and FreeBSD); high-precision (nanoseconds)
-timing support (Linux timestamping, both software and hardware); a
-library (shared/static) to integrate measurement functionality into other
-software (libhipercontracer); open source and written in a performance-
-and portability-focused programming language (C++) with only limited
-dependencies.
-Furthermore, the HiPerConTracer Framework furthermore provides additional
-tools for helping to obtain, process, collect, store, and retrieve
-measurement data: HiPerConTracer Viewer Tool for displaying the contents
-of results files; Results Tool for merging and converting results files,
-e.g. to create a Comma-Separated Value (CSV) file; Sync Tool for copying data
-from a measurement node (vantage point) to a remote HiPerConTracer Collector
-server (via RSync/SSH); Reverse Tunnel Tool for maintaining a reverse SSH
-tunnel from a remote measurement node to a HiPerConTracer Collector server;
-Collector/Node Tools for simplifying the setup of HiPerConTracer Nodes and a
-HiPerConTracer Collector server; Trigger Tool for triggering HiPerConTracer
-measurements in the reverse direction; Importer Tool for storing measurement
-data from results files into SQL or NoSQL databases. Currently, database
-backends for MariaDB/MySQL PostgreSQL, MongoDB) are provided; Query
-Tool for querying data from a database and storing it into a results
-file; Database Shell as simple command-line front-end for the underlying
-database backends; Database Tools with some helper scripts to e.g. to join
-HiPerConTracer database configurations into an existing DBeaver (a popular
-SQL database GUI application) configuration; UDP Echo Server as UDP Echo
-(RFC 862) protocol endpoint; Wireshark dissector for HiPerConTracer packets.
+measurement framework. HiPerConTracer refers to the core measurement tool,
+which performs regular Ping and Traceroute runs among sites.
+Key features include:
+- Multi-transport-protocol support (ICMP, UDP);
+- Multi-homing and parallelism support;
+- Handling of network load balancing;
+- Multi-platform support (currently Linux and FreeBSD);
+- High-precision (nanosecond) timing (Linux software and hardware
+   timestamping);
+- Integrated library (shared/static) for third-party software
+   (libhipercontracer);
+- Open-source C++ codebase focused on performance and portability with
+   only a small number of dependencies.
+
+Furthermore, the HiPerConTracer framework provides additional tools for
+obtaining, processing, collecting, storing, and retrieving measurement
+data:
+- Viewer Tool: Displays the contents of results files.
+- Results Tool: Merges and converts results files (e.g., to CSV format).
+- Sync Tool: Copies data from a measurement node (vantage point) to a
+   remote collector server via RSync/SSH.
+- Reverse Tunnel Tool: Maintains a reverse SSH tunnel from a remote
+   measurement node to a collector server.
+- Collector/Node Tools: Simplify the setup of nodes and collectors.
+- Trigger Tool: Triggers measurements in the reverse direction.
+- Importer Tool: Stores measurement data into SQL (MariaDB/MySQL,
+   PostgreSQL) or NoSQL (MongoDB) databases.
+- Query Tool: Queries data from a database and stores it into a results
+   file.
+- Database Shell: A simple command-line front-end for the underlying
+   database backends.
+- Database Tools: Helper scripts to join database configurations into
+   an existing DBeaver configuration.
+- UDP Echo Server: A UDP Echo (RFC 862) protocol endpoint.
+
 This package contains the HiPerConTracer Sync Tool for running RSync
 synchronisation of data to a central HiPerConTracer Collector server.
 
@@ -649,37 +713,43 @@ BuildArch: noarch
 
 %description rtunnel
 High-Performance Connectivity Tracer (HiPerConTracer) is a Ping/Traceroute
-measurement framework. HiPerConTracer denotes the actual measurement
-tool. It performs regular Ping and Traceroute runs among sites, featuring:
-multi-transport-protocol support (ICMP, UDP); multi-homing and parallelism
-support; handling of load balancing in the network; multi-platform
-support (currently Linux and FreeBSD); high-precision (nanoseconds)
-timing support (Linux timestamping, both software and hardware); a
-library (shared/static) to integrate measurement functionality into other
-software (libhipercontracer); open source and written in a performance-
-and portability-focused programming language (C++) with only limited
-dependencies.
-Furthermore, the HiPerConTracer Framework furthermore provides additional
-tools for helping to obtain, process, collect, store, and retrieve
-measurement data: HiPerConTracer Viewer Tool for displaying the contents
-of results files; Results Tool for merging and converting results files,
-e.g. to create a Comma-Separated Value (CSV) file; Sync Tool for copying data
-from a measurement node (vantage point) to a remote HiPerConTracer Collector
-server (via RSync/SSH); Reverse Tunnel Tool for maintaining a reverse SSH
-tunnel from a remote measurement node to a HiPerConTracer Collector server;
-Collector/Node Tools for simplifying the setup of HiPerConTracer Nodes and a
-HiPerConTracer Collector server; Trigger Tool for triggering HiPerConTracer
-measurements in the reverse direction; Importer Tool for storing measurement
-data from results files into SQL or NoSQL databases. Currently, database
-backends for MariaDB/MySQL PostgreSQL, MongoDB) are provided; Query
-Tool for querying data from a database and storing it into a results
-file; Database Shell as simple command-line front-end for the underlying
-database backends; Database Tools with some helper scripts to e.g. to join
-HiPerConTracer database configurations into an existing DBeaver (a popular
-SQL database GUI application) configuration; UDP Echo Server as UDP Echo
-(RFC 862) protocol endpoint; Wireshark dissector for HiPerConTracer packets.
-This is the HiPerConTracer Reverse Tunnel Tool. It maintains an SSH
-reverse tunnel from a measurement node to a HiPerConTracer Collector server.
+measurement framework. HiPerConTracer refers to the core measurement tool,
+which performs regular Ping and Traceroute runs among sites.
+Key features include:
+- Multi-transport-protocol support (ICMP, UDP);
+- Multi-homing and parallelism support;
+- Handling of network load balancing;
+- Multi-platform support (currently Linux and FreeBSD);
+- High-precision (nanosecond) timing (Linux software and hardware
+   timestamping);
+- Integrated library (shared/static) for third-party software
+   (libhipercontracer);
+- Open-source C++ codebase focused on performance and portability with
+   only a small number of dependencies.
+
+Furthermore, the HiPerConTracer framework provides additional tools for
+obtaining, processing, collecting, storing, and retrieving measurement
+data:
+- Viewer Tool: Displays the contents of results files.
+- Results Tool: Merges and converts results files (e.g., to CSV format).
+- Sync Tool: Copies data from a measurement node (vantage point) to a
+   remote collector server via RSync/SSH.
+- Reverse Tunnel Tool: Maintains a reverse SSH tunnel from a remote
+   measurement node to a collector server.
+- Collector/Node Tools: Simplify the setup of nodes and collectors.
+- Trigger Tool: Triggers measurements in the reverse direction.
+- Importer Tool: Stores measurement data into SQL (MariaDB/MySQL,
+   PostgreSQL) or NoSQL (MongoDB) databases.
+- Query Tool: Queries data from a database and stores it into a results
+   file.
+- Database Shell: A simple command-line front-end for the underlying
+   database backends.
+- Database Tools: Helper scripts to join database configurations into
+   an existing DBeaver configuration.
+- UDP Echo Server: A UDP Echo (RFC 862) protocol endpoint.
+
+This package contains the tool to maintain a reverse SSH tunnel for
+remote node maintenance.
 
 %files rtunnel
 %{_bindir}/hpct-rtunnel
@@ -700,37 +770,43 @@ BuildArch: noarch
 
 %description node
 High-Performance Connectivity Tracer (HiPerConTracer) is a Ping/Traceroute
-measurement framework. HiPerConTracer denotes the actual measurement
-tool. It performs regular Ping and Traceroute runs among sites, featuring:
-multi-transport-protocol support (ICMP, UDP); multi-homing and parallelism
-support; handling of load balancing in the network; multi-platform
-support (currently Linux and FreeBSD); high-precision (nanoseconds)
-timing support (Linux timestamping, both software and hardware); a
-library (shared/static) to integrate measurement functionality into other
-software (libhipercontracer); open source and written in a performance-
-and portability-focused programming language (C++) with only limited
-dependencies.
-Furthermore, the HiPerConTracer Framework furthermore provides additional
-tools for helping to obtain, process, collect, store, and retrieve
-measurement data: HiPerConTracer Viewer Tool for displaying the contents
-of results files; Results Tool for merging and converting results files,
-e.g. to create a Comma-Separated Value (CSV) file; Sync Tool for copying data
-from a measurement node (vantage point) to a remote HiPerConTracer Collector
-server (via RSync/SSH); Reverse Tunnel Tool for maintaining a reverse SSH
-tunnel from a remote measurement node to a HiPerConTracer Collector server;
-Collector/Node Tools for simplifying the setup of HiPerConTracer Nodes and a
-HiPerConTracer Collector server; Trigger Tool for triggering HiPerConTracer
-measurements in the reverse direction; Importer Tool for storing measurement
-data from results files into SQL or NoSQL databases. Currently, database
-backends for MariaDB/MySQL PostgreSQL, MongoDB) are provided; Query
-Tool for querying data from a database and storing it into a results
-file; Database Shell as simple command-line front-end for the underlying
-database backends; Database Tools with some helper scripts to e.g. to join
-HiPerConTracer database configurations into an existing DBeaver (a popular
-SQL database GUI application) configuration; UDP Echo Server as UDP Echo
-(RFC 862) protocol endpoint; Wireshark dissector for HiPerConTracer packets.
-This is the HiPerConTracer Node package. It contains helper scripts to attach a
-HiPerConTracer Node to a HiPerConTracer Collector server.
+measurement framework. HiPerConTracer refers to the core measurement tool,
+which performs regular Ping and Traceroute runs among sites.
+Key features include:
+- Multi-transport-protocol support (ICMP, UDP);
+- Multi-homing and parallelism support;
+- Handling of network load balancing;
+- Multi-platform support (currently Linux and FreeBSD);
+- High-precision (nanosecond) timing (Linux software and hardware
+   timestamping);
+- Integrated library (shared/static) for third-party software
+   (libhipercontracer);
+- Open-source C++ codebase focused on performance and portability with
+   only a small number of dependencies.
+
+Furthermore, the HiPerConTracer framework provides additional tools for
+obtaining, processing, collecting, storing, and retrieving measurement
+data:
+- Viewer Tool: Displays the contents of results files.
+- Results Tool: Merges and converts results files (e.g., to CSV format).
+- Sync Tool: Copies data from a measurement node (vantage point) to a
+   remote collector server via RSync/SSH.
+- Reverse Tunnel Tool: Maintains a reverse SSH tunnel from a remote
+   measurement node to a collector server.
+- Collector/Node Tools: Simplify the setup of nodes and collectors.
+- Trigger Tool: Triggers measurements in the reverse direction.
+- Importer Tool: Stores measurement data into SQL (MariaDB/MySQL,
+   PostgreSQL) or NoSQL (MongoDB) databases.
+- Query Tool: Queries data from a database and stores it into a results
+   file.
+- Database Shell: A simple command-line front-end for the underlying
+   database backends.
+- Database Tools: Helper scripts to join database configurations into
+   an existing DBeaver configuration.
+- UDP Echo Server: A UDP Echo (RFC 862) protocol endpoint.
+
+This package provides helper scripts to manage and attach a measurement
+node.
 
 %files node
 %{_bindir}/hpct-node-setup
@@ -751,37 +827,43 @@ Requires: sudo
 
 %description collector
 High-Performance Connectivity Tracer (HiPerConTracer) is a Ping/Traceroute
-measurement framework. HiPerConTracer denotes the actual measurement
-tool. It performs regular Ping and Traceroute runs among sites, featuring:
-multi-transport-protocol support (ICMP, UDP); multi-homing and parallelism
-support; handling of load balancing in the network; multi-platform
-support (currently Linux and FreeBSD); high-precision (nanoseconds)
-timing support (Linux timestamping, both software and hardware); a
-library (shared/static) to integrate measurement functionality into other
-software (libhipercontracer); open source and written in a performance-
-and portability-focused programming language (C++) with only limited
-dependencies.
-Furthermore, the HiPerConTracer Framework furthermore provides additional
-tools for helping to obtain, process, collect, store, and retrieve
-measurement data: HiPerConTracer Viewer Tool for displaying the contents
-of results files; Results Tool for merging and converting results files,
-e.g. to create a Comma-Separated Value (CSV) file; Sync Tool for copying data
-from a measurement node (vantage point) to a remote HiPerConTracer Collector
-server (via RSync/SSH); Reverse Tunnel Tool for maintaining a reverse SSH
-tunnel from a remote measurement node to a HiPerConTracer Collector server;
-Collector/Node Tools for simplifying the setup of HiPerConTracer Nodes and a
-HiPerConTracer Collector server; Trigger Tool for triggering HiPerConTracer
-measurements in the reverse direction; Importer Tool for storing measurement
-data from results files into SQL or NoSQL databases. Currently, database
-backends for MariaDB/MySQL PostgreSQL, MongoDB) are provided; Query
-Tool for querying data from a database and storing it into a results
-file; Database Shell as simple command-line front-end for the underlying
-database backends; Database Tools with some helper scripts to e.g. to join
-HiPerConTracer database configurations into an existing DBeaver (a popular
-SQL database GUI application) configuration; UDP Echo Server as UDP Echo
-(RFC 862) protocol endpoint; Wireshark dissector for HiPerConTracer packets.
-This is the HiPerConTracer Collector Tools package. It contains helper scripts
-to set up and maintain a HiPerConTracer Collector server.
+measurement framework. HiPerConTracer refers to the core measurement tool,
+which performs regular Ping and Traceroute runs among sites.
+Key features include:
+- Multi-transport-protocol support (ICMP, UDP);
+- Multi-homing and parallelism support;
+- Handling of network load balancing;
+- Multi-platform support (currently Linux and FreeBSD);
+- High-precision (nanosecond) timing (Linux software and hardware
+   timestamping);
+- Integrated library (shared/static) for third-party software
+   (libhipercontracer);
+- Open-source C++ codebase focused on performance and portability with
+   only a small number of dependencies.
+
+Furthermore, the HiPerConTracer framework provides additional tools for
+obtaining, processing, collecting, storing, and retrieving measurement
+data:
+- Viewer Tool: Displays the contents of results files.
+- Results Tool: Merges and converts results files (e.g., to CSV format).
+- Sync Tool: Copies data from a measurement node (vantage point) to a
+   remote collector server via RSync/SSH.
+- Reverse Tunnel Tool: Maintains a reverse SSH tunnel from a remote
+   measurement node to a collector server.
+- Collector/Node Tools: Simplify the setup of nodes and collectors.
+- Trigger Tool: Triggers measurements in the reverse direction.
+- Importer Tool: Stores measurement data into SQL (MariaDB/MySQL,
+   PostgreSQL) or NoSQL (MongoDB) databases.
+- Query Tool: Queries data from a database and stores it into a results
+   file.
+- Database Shell: A simple command-line front-end for the underlying
+   database backends.
+- Database Tools: Helper scripts to join database configurations into
+   an existing DBeaver configuration.
+- UDP Echo Server: A UDP Echo (RFC 862) protocol endpoint.
+
+This package provides helper scripts to set up and maintain a collector
+server.
 
 %files collector
 %{_bindir}/hpct-node-removal
@@ -808,37 +890,43 @@ Suggests: %{name} = %{version}-%{release}
 
 %description importer
 High-Performance Connectivity Tracer (HiPerConTracer) is a Ping/Traceroute
-measurement framework. HiPerConTracer denotes the actual measurement
-tool. It performs regular Ping and Traceroute runs among sites, featuring:
-multi-transport-protocol support (ICMP, UDP); multi-homing and parallelism
-support; handling of load balancing in the network; multi-platform
-support (currently Linux and FreeBSD); high-precision (nanoseconds)
-timing support (Linux timestamping, both software and hardware); a
-library (shared/static) to integrate measurement functionality into other
-software (libhipercontracer); open source and written in a performance-
-and portability-focused programming language (C++) with only limited
-dependencies.
-Furthermore, the HiPerConTracer Framework furthermore provides additional
-tools for helping to obtain, process, collect, store, and retrieve
-measurement data: HiPerConTracer Viewer Tool for displaying the contents
-of results files; Results Tool for merging and converting results files,
-e.g. to create a Comma-Separated Value (CSV) file; Sync Tool for copying data
-from a measurement node (vantage point) to a remote HiPerConTracer Collector
-server (via RSync/SSH); Reverse Tunnel Tool for maintaining a reverse SSH
-tunnel from a remote measurement node to a HiPerConTracer Collector server;
-Collector/Node Tools for simplifying the setup of HiPerConTracer Nodes and a
-HiPerConTracer Collector server; Trigger Tool for triggering HiPerConTracer
-measurements in the reverse direction; Importer Tool for storing measurement
-data from results files into SQL or NoSQL databases. Currently, database
-backends for MariaDB/MySQL PostgreSQL, MongoDB) are provided; Query
-Tool for querying data from a database and storing it into a results
-file; Database Shell as simple command-line front-end for the underlying
-database backends; Database Tools with some helper scripts to e.g. to join
-HiPerConTracer database configurations into an existing DBeaver (a popular
-SQL database GUI application) configuration; UDP Echo Server as UDP Echo
-(RFC 862) protocol endpoint; Wireshark dissector for HiPerConTracer packets.
-This package contains the HiPerConTracer Importer Tool to import data from
-HiPerConTracer results files into an SQL or NoSQL database.
+measurement framework. HiPerConTracer refers to the core measurement tool,
+which performs regular Ping and Traceroute runs among sites.
+Key features include:
+- Multi-transport-protocol support (ICMP, UDP);
+- Multi-homing and parallelism support;
+- Handling of network load balancing;
+- Multi-platform support (currently Linux and FreeBSD);
+- High-precision (nanosecond) timing (Linux software and hardware
+   timestamping);
+- Integrated library (shared/static) for third-party software
+   (libhipercontracer);
+- Open-source C++ codebase focused on performance and portability with
+   only a small number of dependencies.
+
+Furthermore, the HiPerConTracer framework provides additional tools for
+obtaining, processing, collecting, storing, and retrieving measurement
+data:
+- Viewer Tool: Displays the contents of results files.
+- Results Tool: Merges and converts results files (e.g., to CSV format).
+- Sync Tool: Copies data from a measurement node (vantage point) to a
+   remote collector server via RSync/SSH.
+- Reverse Tunnel Tool: Maintains a reverse SSH tunnel from a remote
+   measurement node to a collector server.
+- Collector/Node Tools: Simplify the setup of nodes and collectors.
+- Trigger Tool: Triggers measurements in the reverse direction.
+- Importer Tool: Stores measurement data into SQL (MariaDB/MySQL,
+   PostgreSQL) or NoSQL (MongoDB) databases.
+- Query Tool: Queries data from a database and stores it into a results
+   file.
+- Database Shell: A simple command-line front-end for the underlying
+   database backends.
+- Database Tools: Helper scripts to join database configurations into
+   an existing DBeaver configuration.
+- UDP Echo Server: A UDP Echo (RFC 862) protocol endpoint.
+
+This package contains the Importer Tool to import results into SQL or
+NoSQL databases.
 
 %files importer
 %{_bindir}/hpct-importer
@@ -905,37 +993,42 @@ Suggests: %{name} = %{version}-%{release}
 
 %description query
 High-Performance Connectivity Tracer (HiPerConTracer) is a Ping/Traceroute
-measurement framework. HiPerConTracer denotes the actual measurement
-tool. It performs regular Ping and Traceroute runs among sites, featuring:
-multi-transport-protocol support (ICMP, UDP); multi-homing and parallelism
-support; handling of load balancing in the network; multi-platform
-support (currently Linux and FreeBSD); high-precision (nanoseconds)
-timing support (Linux timestamping, both software and hardware); a
-library (shared/static) to integrate measurement functionality into other
-software (libhipercontracer); open source and written in a performance-
-and portability-focused programming language (C++) with only limited
-dependencies.
-Furthermore, the HiPerConTracer Framework furthermore provides additional
-tools for helping to obtain, process, collect, store, and retrieve
-measurement data: HiPerConTracer Viewer Tool for displaying the contents
-of results files; Results Tool for merging and converting results files,
-e.g. to create a Comma-Separated Value (CSV) file; Sync Tool for copying data
-from a measurement node (vantage point) to a remote HiPerConTracer Collector
-server (via RSync/SSH); Reverse Tunnel Tool for maintaining a reverse SSH
-tunnel from a remote measurement node to a HiPerConTracer Collector server;
-Collector/Node Tools for simplifying the setup of HiPerConTracer Nodes and a
-HiPerConTracer Collector server; Trigger Tool for triggering HiPerConTracer
-measurements in the reverse direction; Importer Tool for storing measurement
-data from results files into SQL or NoSQL databases. Currently, database
-backends for MariaDB/MySQL PostgreSQL, MongoDB) are provided; Query
-Tool for querying data from a database and storing it into a results
-file; Database Shell as simple command-line front-end for the underlying
-database backends; Database Tools with some helper scripts to e.g. to join
-HiPerConTracer database configurations into an existing DBeaver (a popular
-SQL database GUI application) configuration; UDP Echo Server as UDP Echo
-(RFC 862) protocol endpoint; Wireshark dissector for HiPerConTracer packets.
-This package contains HiPerConTracer Query Tool to retrieve results from a
-HiPerConTracer SQL or NoSQL database.
+measurement framework. HiPerConTracer refers to the core measurement tool,
+which performs regular Ping and Traceroute runs among sites.
+Key features include:
+- Multi-transport-protocol support (ICMP, UDP);
+- Multi-homing and parallelism support;
+- Handling of network load balancing;
+- Multi-platform support (currently Linux and FreeBSD);
+- High-precision (nanosecond) timing (Linux software and hardware
+   timestamping);
+- Integrated library (shared/static) for third-party software
+   (libhipercontracer);
+- Open-source C++ codebase focused on performance and portability with
+   only a small number of dependencies.
+
+Furthermore, the HiPerConTracer framework provides additional tools for
+obtaining, processing, collecting, storing, and retrieving measurement
+data:
+- Viewer Tool: Displays the contents of results files.
+- Results Tool: Merges and converts results files (e.g., to CSV format).
+- Sync Tool: Copies data from a measurement node (vantage point) to a
+   remote collector server via RSync/SSH.
+- Reverse Tunnel Tool: Maintains a reverse SSH tunnel from a remote
+   measurement node to a collector server.
+- Collector/Node Tools: Simplify the setup of nodes and collectors.
+- Trigger Tool: Triggers measurements in the reverse direction.
+- Importer Tool: Stores measurement data into SQL (MariaDB/MySQL,
+   PostgreSQL) or NoSQL (MongoDB) databases.
+- Query Tool: Queries data from a database and stores it into a results
+   file.
+- Database Shell: A simple command-line front-end for the underlying
+   database backends.
+- Database Tools: Helper scripts to join database configurations into
+   an existing DBeaver configuration.
+- UDP Echo Server: A UDP Echo (RFC 862) protocol endpoint.
+
+This package contains the Query Tool to retrieve results from a database.
 
 %files query
 %{_bindir}/hpct-query
@@ -952,38 +1045,43 @@ Suggests: %{name} = %{version}-%{release}
 
 %description results
 High-Performance Connectivity Tracer (HiPerConTracer) is a Ping/Traceroute
-measurement framework. HiPerConTracer denotes the actual measurement
-tool. It performs regular Ping and Traceroute runs among sites, featuring:
-multi-transport-protocol support (ICMP, UDP); multi-homing and parallelism
-support; handling of load balancing in the network; multi-platform
-support (currently Linux and FreeBSD); high-precision (nanoseconds)
-timing support (Linux timestamping, both software and hardware); a
-library (shared/static) to integrate measurement functionality into other
-software (libhipercontracer); open source and written in a performance-
-and portability-focused programming language (C++) with only limited
-dependencies.
-Furthermore, the HiPerConTracer Framework furthermore provides additional
-tools for helping to obtain, process, collect, store, and retrieve
-measurement data: HiPerConTracer Viewer Tool for displaying the contents
-of results files; Results Tool for merging and converting results files,
-e.g. to create a Comma-Separated Value (CSV) file; Sync Tool for copying data
-from a measurement node (vantage point) to a remote HiPerConTracer Collector
-server (via RSync/SSH); Reverse Tunnel Tool for maintaining a reverse SSH
-tunnel from a remote measurement node to a HiPerConTracer Collector server;
-Collector/Node Tools for simplifying the setup of HiPerConTracer Nodes and a
-HiPerConTracer Collector server; Trigger Tool for triggering HiPerConTracer
-measurements in the reverse direction; Importer Tool for storing measurement
-data from results files into SQL or NoSQL databases. Currently, database
-backends for MariaDB/MySQL PostgreSQL, MongoDB) are provided; Query
-Tool for querying data from a database and storing it into a results
-file; Database Shell as simple command-line front-end for the underlying
-database backends; Database Tools with some helper scripts to e.g. to join
-HiPerConTracer database configurations into an existing DBeaver (a popular
-SQL database GUI application) configuration; UDP Echo Server as UDP Echo
-(RFC 862) protocol endpoint; Wireshark dissector for HiPerConTracer packets.
-This package contains the HiPerConTracer Results Tool to process
-HiPerConTracer results files, particularly for converting them to CSV files
-for reading them into spreadsheets, analysis tools, etc.
+measurement framework. HiPerConTracer refers to the core measurement tool,
+which performs regular Ping and Traceroute runs among sites.
+Key features include:
+- Multi-transport-protocol support (ICMP, UDP);
+- Multi-homing and parallelism support;
+- Handling of network load balancing;
+- Multi-platform support (currently Linux and FreeBSD);
+- High-precision (nanosecond) timing (Linux software and hardware
+   timestamping);
+- Integrated library (shared/static) for third-party software
+   (libhipercontracer);
+- Open-source C++ codebase focused on performance and portability with
+   only a small number of dependencies.
+
+Furthermore, the HiPerConTracer framework provides additional tools for
+obtaining, processing, collecting, storing, and retrieving measurement
+data:
+- Viewer Tool: Displays the contents of results files.
+- Results Tool: Merges and converts results files (e.g., to CSV format).
+- Sync Tool: Copies data from a measurement node (vantage point) to a
+   remote collector server via RSync/SSH.
+- Reverse Tunnel Tool: Maintains a reverse SSH tunnel from a remote
+   measurement node to a collector server.
+- Collector/Node Tools: Simplify the setup of nodes and collectors.
+- Trigger Tool: Triggers measurements in the reverse direction.
+- Importer Tool: Stores measurement data into SQL (MariaDB/MySQL,
+   PostgreSQL) or NoSQL (MongoDB) databases.
+- Query Tool: Queries data from a database and stores it into a results
+   file.
+- Database Shell: A simple command-line front-end for the underlying
+   database backends.
+- Database Tools: Helper scripts to join database configurations into
+   an existing DBeaver configuration.
+- UDP Echo Server: A UDP Echo (RFC 862) protocol endpoint.
+
+This package contains the Results Tool to process, merge, and convert
+result files.
 
 %files results
 %{_bindir}/hpct-results
@@ -1010,43 +1108,49 @@ Suggests: %{name} = %{version}-%{release}
 
 %description viewer
 High-Performance Connectivity Tracer (HiPerConTracer) is a Ping/Traceroute
-measurement framework. HiPerConTracer denotes the actual measurement
-tool. It performs regular Ping and Traceroute runs among sites, featuring:
-multi-transport-protocol support (ICMP, UDP); multi-homing and parallelism
-support; handling of load balancing in the network; multi-platform
-support (currently Linux and FreeBSD); high-precision (nanoseconds)
-timing support (Linux timestamping, both software and hardware); a
-library (shared/static) to integrate measurement functionality into other
-software (libhipercontracer); open source and written in a performance-
-and portability-focused programming language (C++) with only limited
-dependencies.
-Furthermore, the HiPerConTracer Framework furthermore provides additional
-tools for helping to obtain, process, collect, store, and retrieve
-measurement data: HiPerConTracer Viewer Tool for displaying the contents
-of results files; Results Tool for merging and converting results files,
-e.g. to create a Comma-Separated Value (CSV) file; Sync Tool for copying data
-from a measurement node (vantage point) to a remote HiPerConTracer Collector
-server (via RSync/SSH); Reverse Tunnel Tool for maintaining a reverse SSH
-tunnel from a remote measurement node to a HiPerConTracer Collector server;
-Collector/Node Tools for simplifying the setup of HiPerConTracer Nodes and a
-HiPerConTracer Collector server; Trigger Tool for triggering HiPerConTracer
-measurements in the reverse direction; Importer Tool for storing measurement
-data from results files into SQL or NoSQL databases. Currently, database
-backends for MariaDB/MySQL PostgreSQL, MongoDB) are provided; Query
-Tool for querying data from a database and storing it into a results
-file; Database Shell as simple command-line front-end for the underlying
-database backends; Database Tools with some helper scripts to e.g. to join
-HiPerConTracer database configurations into an existing DBeaver (a popular
-SQL database GUI application) configuration; UDP Echo Server as UDP Echo
-(RFC 862) protocol endpoint; Wireshark dissector for HiPerConTracer packets.
-This package contains the HiPerConTracer Viewer Tool to display
-HiPerConTracer results files.
+measurement framework. HiPerConTracer refers to the core measurement tool,
+which performs regular Ping and Traceroute runs among sites.
+Key features include:
+- Multi-transport-protocol support (ICMP, UDP);
+- Multi-homing and parallelism support;
+- Handling of network load balancing;
+- Multi-platform support (currently Linux and FreeBSD);
+- High-precision (nanosecond) timing (Linux software and hardware
+   timestamping);
+- Integrated library (shared/static) for third-party software
+   (libhipercontracer);
+- Open-source C++ codebase focused on performance and portability with
+   only a small number of dependencies.
+
+Furthermore, the HiPerConTracer framework provides additional tools for
+obtaining, processing, collecting, storing, and retrieving measurement
+data:
+- Viewer Tool: Displays the contents of results files.
+- Results Tool: Merges and converts results files (e.g., to CSV format).
+- Sync Tool: Copies data from a measurement node (vantage point) to a
+   remote collector server via RSync/SSH.
+- Reverse Tunnel Tool: Maintains a reverse SSH tunnel from a remote
+   measurement node to a collector server.
+- Collector/Node Tools: Simplify the setup of nodes and collectors.
+- Trigger Tool: Triggers measurements in the reverse direction.
+- Importer Tool: Stores measurement data into SQL (MariaDB/MySQL,
+   PostgreSQL) or NoSQL (MongoDB) databases.
+- Query Tool: Queries data from a database and stores it into a results
+   file.
+- Database Shell: A simple command-line front-end for the underlying
+   database backends.
+- Database Tools: Helper scripts to join database configurations into
+   an existing DBeaver configuration.
+- UDP Echo Server: A UDP Echo (RFC 862) protocol endpoint.
+
+This package contains the Viewer Tool to display results files.
 
 %files viewer
 %{_bindir}/hpct-viewer
 %{_datadir}/applications/hpct-viewer.desktop
 %{_datadir}/bash-completion/completions/hpct-viewer
 %{_mandir}/man1/hpct-viewer.1.gz
+%{_datadir}/metainfo/no.nntb.dreibh.hipercontracer.hpct-viewer.metainfo.xml
 
 
 %package udp-echo-server
@@ -1056,35 +1160,41 @@ Suggests: %{name} = %{version}-%{release}
 
 %description udp-echo-server
 High-Performance Connectivity Tracer (HiPerConTracer) is a Ping/Traceroute
-measurement framework. HiPerConTracer denotes the actual measurement
-tool. It performs regular Ping and Traceroute runs among sites, featuring:
-multi-transport-protocol support (ICMP, UDP); multi-homing and parallelism
-support; handling of load balancing in the network; multi-platform
-support (currently Linux and FreeBSD); high-precision (nanoseconds)
-timing support (Linux timestamping, both software and hardware); a
-library (shared/static) to integrate measurement functionality into other
-software (libhipercontracer); open source and written in a performance-
-and portability-focused programming language (C++) with only limited
-dependencies.
-Furthermore, the HiPerConTracer Framework furthermore provides additional
-tools for helping to obtain, process, collect, store, and retrieve
-measurement data: HiPerConTracer Viewer Tool for displaying the contents
-of results files; Results Tool for merging and converting results files,
-e.g. to create a Comma-Separated Value (CSV) file; Sync Tool for copying data
-from a measurement node (vantage point) to a remote HiPerConTracer Collector
-server (via RSync/SSH); Reverse Tunnel Tool for maintaining a reverse SSH
-tunnel from a remote measurement node to a HiPerConTracer Collector server;
-Collector/Node Tools for simplifying the setup of HiPerConTracer Nodes and a
-HiPerConTracer Collector server; Trigger Tool for triggering HiPerConTracer
-measurements in the reverse direction; Importer Tool for storing measurement
-data from results files into SQL or NoSQL databases. Currently, database
-backends for MariaDB/MySQL PostgreSQL, MongoDB) are provided; Query
-Tool for querying data from a database and storing it into a results
-file; Database Shell as simple command-line front-end for the underlying
-database backends; Database Tools with some helper scripts to e.g. to join
-HiPerConTracer database configurations into an existing DBeaver (a popular
-SQL database GUI application) configuration; UDP Echo Server as UDP Echo
-(RFC 862) protocol endpoint; Wireshark dissector for HiPerConTracer packets.
+measurement framework. HiPerConTracer refers to the core measurement tool,
+which performs regular Ping and Traceroute runs among sites.
+Key features include:
+- Multi-transport-protocol support (ICMP, UDP);
+- Multi-homing and parallelism support;
+- Handling of network load balancing;
+- Multi-platform support (currently Linux and FreeBSD);
+- High-precision (nanosecond) timing (Linux software and hardware
+   timestamping);
+- Integrated library (shared/static) for third-party software
+   (libhipercontracer);
+- Open-source C++ codebase focused on performance and portability with
+   only a small number of dependencies.
+
+Furthermore, the HiPerConTracer framework provides additional tools for
+obtaining, processing, collecting, storing, and retrieving measurement
+data:
+- Viewer Tool: Displays the contents of results files.
+- Results Tool: Merges and converts results files (e.g., to CSV format).
+- Sync Tool: Copies data from a measurement node (vantage point) to a
+   remote collector server via RSync/SSH.
+- Reverse Tunnel Tool: Maintains a reverse SSH tunnel from a remote
+   measurement node to a collector server.
+- Collector/Node Tools: Simplify the setup of nodes and collectors.
+- Trigger Tool: Triggers measurements in the reverse direction.
+- Importer Tool: Stores measurement data into SQL (MariaDB/MySQL,
+   PostgreSQL) or NoSQL (MongoDB) databases.
+- Query Tool: Queries data from a database and stores it into a results
+   file.
+- Database Shell: A simple command-line front-end for the underlying
+   database backends.
+- Database Tools: Helper scripts to join database configurations into
+   an existing DBeaver configuration.
+- UDP Echo Server: A UDP Echo (RFC 862) protocol endpoint.
+
 This package contains a simple UDP Echo server to respond to UDP Pings.
 
 %files udp-echo-server
@@ -1107,39 +1217,43 @@ Recommends: pwgen
 
 %description dbshell
 High-Performance Connectivity Tracer (HiPerConTracer) is a Ping/Traceroute
-measurement framework. HiPerConTracer denotes the actual measurement
-tool. It performs regular Ping and Traceroute runs among sites, featuring:
-multi-transport-protocol support (ICMP, UDP); multi-homing and parallelism
-support; handling of load balancing in the network; multi-platform
-support (currently Linux and FreeBSD); high-precision (nanoseconds)
-timing support (Linux timestamping, both software and hardware); a
-library (shared/static) to integrate measurement functionality into other
-software (libhipercontracer); open source and written in a performance-
-and portability-focused programming language (C++) with only limited
-dependencies.
-Furthermore, the HiPerConTracer Framework furthermore provides additional
-tools for helping to obtain, process, collect, store, and retrieve
-measurement data: HiPerConTracer Viewer Tool for displaying the contents
-of results files; Results Tool for merging and converting results files,
-e.g. to create a Comma-Separated Value (CSV) file; Sync Tool for copying data
-from a measurement node (vantage point) to a remote HiPerConTracer Collector
-server (via RSync/SSH); Reverse Tunnel Tool for maintaining a reverse SSH
-tunnel from a remote measurement node to a HiPerConTracer Collector server;
-Collector/Node Tools for simplifying the setup of HiPerConTracer Nodes and a
-HiPerConTracer Collector server; Trigger Tool for triggering HiPerConTracer
-measurements in the reverse direction; Importer Tool for storing measurement
-data from results files into SQL or NoSQL databases. Currently, database
-backends for MariaDB/MySQL PostgreSQL, MongoDB) are provided; Query
-Tool for querying data from a database and storing it into a results
-file; Database Shell as simple command-line front-end for the underlying
-database backends; Database Tools with some helper scripts to e.g. to join
-HiPerConTracer database configurations into an existing DBeaver (a popular
-SQL database GUI application) configuration; UDP Echo Server as UDP Echo
-(RFC 862) protocol endpoint; Wireshark dissector for HiPerConTracer packets.
-This package contains a simple tool to start a database shell, based on the
-settings from a given database configuration file. It is mainly intended to
-test database access using the configuration files for HiPerConTracer Importer
-and HiPerConTracer Query Tool.
+measurement framework. HiPerConTracer refers to the core measurement tool,
+which performs regular Ping and Traceroute runs among sites.
+Key features include:
+- Multi-transport-protocol support (ICMP, UDP);
+- Multi-homing and parallelism support;
+- Handling of network load balancing;
+- Multi-platform support (currently Linux and FreeBSD);
+- High-precision (nanosecond) timing (Linux software and hardware
+   timestamping);
+- Integrated library (shared/static) for third-party software
+   (libhipercontracer);
+- Open-source C++ codebase focused on performance and portability with
+   only a small number of dependencies.
+
+Furthermore, the HiPerConTracer framework provides additional tools for
+obtaining, processing, collecting, storing, and retrieving measurement
+data:
+- Viewer Tool: Displays the contents of results files.
+- Results Tool: Merges and converts results files (e.g., to CSV format).
+- Sync Tool: Copies data from a measurement node (vantage point) to a
+   remote collector server via RSync/SSH.
+- Reverse Tunnel Tool: Maintains a reverse SSH tunnel from a remote
+   measurement node to a collector server.
+- Collector/Node Tools: Simplify the setup of nodes and collectors.
+- Trigger Tool: Triggers measurements in the reverse direction.
+- Importer Tool: Stores measurement data into SQL (MariaDB/MySQL,
+   PostgreSQL) or NoSQL (MongoDB) databases.
+- Query Tool: Queries data from a database and stores it into a results
+   file.
+- Database Shell: A simple command-line front-end for the underlying
+   database backends.
+- Database Tools: Helper scripts to join database configurations into
+   an existing DBeaver configuration.
+- UDP Echo Server: A UDP Echo (RFC 862) protocol endpoint.
+
+This tool provides a command-line interface to test database
+configurations.
 
 %files dbshell
 %{_bindir}/dbshell
@@ -1157,38 +1271,42 @@ Requires: openssl
 
 %description dbeaver-tools
 High-Performance Connectivity Tracer (HiPerConTracer) is a Ping/Traceroute
-measurement framework. HiPerConTracer denotes the actual measurement
-tool. It performs regular Ping and Traceroute runs among sites, featuring:
-multi-transport-protocol support (ICMP, UDP); multi-homing and parallelism
-support; handling of load balancing in the network; multi-platform
-support (currently Linux and FreeBSD); high-precision (nanoseconds)
-timing support (Linux timestamping, both software and hardware); a
-library (shared/static) to integrate measurement functionality into other
-software (libhipercontracer); open source and written in a performance-
-and portability-focused programming language (C++) with only limited
-dependencies.
-Furthermore, the HiPerConTracer Framework furthermore provides additional
-tools for helping to obtain, process, collect, store, and retrieve
-measurement data: HiPerConTracer Viewer Tool for displaying the contents
-of results files; Results Tool for merging and converting results files,
-e.g. to create a Comma-Separated Value (CSV) file; Sync Tool for copying data
-from a measurement node (vantage point) to a remote HiPerConTracer Collector
-server (via RSync/SSH); Reverse Tunnel Tool for maintaining a reverse SSH
-tunnel from a remote measurement node to a HiPerConTracer Collector server;
-Collector/Node Tools for simplifying the setup of HiPerConTracer Nodes and a
-HiPerConTracer Collector server; Trigger Tool for triggering HiPerConTracer
-measurements in the reverse direction; Importer Tool for storing measurement
-data from results files into SQL or NoSQL databases. Currently, database
-backends for MariaDB/MySQL PostgreSQL, MongoDB) are provided; Query
-Tool for querying data from a database and storing it into a results
-file; Database Shell as simple command-line front-end for the underlying
-database backends; Database Tools with some helper scripts to e.g. to join
-HiPerConTracer database configurations into an existing DBeaver (a popular
-SQL database GUI application) configuration; UDP Echo Server as UDP Echo
-(RFC 862) protocol endpoint; Wireshark dissector for HiPerConTracer packets.
-This package contains helper scripts to merge HiPerConTracer database
-configurations into DBeaver configurations, for maintaining databases
-in DBeaver.
+measurement framework. HiPerConTracer refers to the core measurement tool,
+which performs regular Ping and Traceroute runs among sites.
+Key features include:
+- Multi-transport-protocol support (ICMP, UDP);
+- Multi-homing and parallelism support;
+- Handling of network load balancing;
+- Multi-platform support (currently Linux and FreeBSD);
+- High-precision (nanosecond) timing (Linux software and hardware
+   timestamping);
+- Integrated library (shared/static) for third-party software
+   (libhipercontracer);
+- Open-source C++ codebase focused on performance and portability with
+   only a small number of dependencies.
+
+Furthermore, the HiPerConTracer framework provides additional tools for
+obtaining, processing, collecting, storing, and retrieving measurement
+data:
+- Viewer Tool: Displays the contents of results files.
+- Results Tool: Merges and converts results files (e.g., to CSV format).
+- Sync Tool: Copies data from a measurement node (vantage point) to a
+   remote collector server via RSync/SSH.
+- Reverse Tunnel Tool: Maintains a reverse SSH tunnel from a remote
+   measurement node to a collector server.
+- Collector/Node Tools: Simplify the setup of nodes and collectors.
+- Trigger Tool: Triggers measurements in the reverse direction.
+- Importer Tool: Stores measurement data into SQL (MariaDB/MySQL,
+   PostgreSQL) or NoSQL (MongoDB) databases.
+- Query Tool: Queries data from a database and stores it into a results
+   file.
+- Database Shell: A simple command-line front-end for the underlying
+   database backends.
+- Database Tools: Helper scripts to join database configurations into
+   an existing DBeaver configuration.
+- UDP Echo Server: A UDP Echo (RFC 862) protocol endpoint.
+
+This package contains tools to integrate database settings into DBeaver.
 
 %files dbeaver-tools
 %{_bindir}/decrypt-dbeaver-configuration
@@ -1219,41 +1337,49 @@ Requires: %{name}-viewer = %{version}-%{release}
 
 %description all
 High-Performance Connectivity Tracer (HiPerConTracer) is a Ping/Traceroute
-measurement framework. HiPerConTracer denotes the actual measurement
-tool. It performs regular Ping and Traceroute runs among sites, featuring:
-multi-transport-protocol support (ICMP, UDP); multi-homing and parallelism
-support; handling of load balancing in the network; multi-platform
-support (currently Linux and FreeBSD); high-precision (nanoseconds)
-timing support (Linux timestamping, both software and hardware); a
-library (shared/static) to integrate measurement functionality into other
-software (libhipercontracer); open source and written in a performance-
-and portability-focused programming language (C++) with only limited
-dependencies.
-Furthermore, the HiPerConTracer Framework furthermore provides additional
-tools for helping to obtain, process, collect, store, and retrieve
-measurement data: HiPerConTracer Viewer Tool for displaying the contents
-of results files; Results Tool for merging and converting results files,
-e.g. to create a Comma-Separated Value (CSV) file; Sync Tool for copying data
-from a measurement node (vantage point) to a remote HiPerConTracer Collector
-server (via RSync/SSH); Reverse Tunnel Tool for maintaining a reverse SSH
-tunnel from a remote measurement node to a HiPerConTracer Collector server;
-Collector/Node Tools for simplifying the setup of HiPerConTracer Nodes and a
-HiPerConTracer Collector server; Trigger Tool for triggering HiPerConTracer
-measurements in the reverse direction; Importer Tool for storing measurement
-data from results files into SQL or NoSQL databases. Currently, database
-backends for MariaDB/MySQL PostgreSQL, MongoDB) are provided; Query
-Tool for querying data from a database and storing it into a results
-file; Database Shell as simple command-line front-end for the underlying
-database backends; Database Tools with some helper scripts to e.g. to join
-HiPerConTracer database configurations into an existing DBeaver (a popular
-SQL database GUI application) configuration; UDP Echo Server as UDP Echo
-(RFC 862) protocol endpoint; Wireshark dissector for HiPerConTracer packets.
+measurement framework. HiPerConTracer refers to the core measurement tool,
+which performs regular Ping and Traceroute runs among sites.
+Key features include:
+- Multi-transport-protocol support (ICMP, UDP);
+- Multi-homing and parallelism support;
+- Handling of network load balancing;
+- Multi-platform support (currently Linux and FreeBSD);
+- High-precision (nanosecond) timing (Linux software and hardware
+   timestamping);
+- Integrated library (shared/static) for third-party software
+   (libhipercontracer);
+- Open-source C++ codebase focused on performance and portability with
+   only a small number of dependencies.
+
+Furthermore, the HiPerConTracer framework provides additional tools for
+obtaining, processing, collecting, storing, and retrieving measurement
+data:
+- Viewer Tool: Displays the contents of results files.
+- Results Tool: Merges and converts results files (e.g., to CSV format).
+- Sync Tool: Copies data from a measurement node (vantage point) to a
+   remote collector server via RSync/SSH.
+- Reverse Tunnel Tool: Maintains a reverse SSH tunnel from a remote
+   measurement node to a collector server.
+- Collector/Node Tools: Simplify the setup of nodes and collectors.
+- Trigger Tool: Triggers measurements in the reverse direction.
+- Importer Tool: Stores measurement data into SQL (MariaDB/MySQL,
+   PostgreSQL) or NoSQL (MongoDB) databases.
+- Query Tool: Queries data from a database and stores it into a results
+   file.
+- Database Shell: A simple command-line front-end for the underlying
+   database backends.
+- Database Tools: Helper scripts to join database configurations into
+   an existing DBeaver configuration.
+- UDP Echo Server: A UDP Echo (RFC 862) protocol endpoint.
+
 This metapackage installs all sub-packages of the HiPerConTracer Framework.
 
 %files all
 
 
 %changelog
+* Mon May 11 2026 Thomas Dreibholz <dreibh@simula.no> - 2.1.16-1
+- New upstream release.
 * Wed Apr 29 2026 Thomas Dreibholz <dreibh@simula.no> - 2.1.15-1
 - New upstream release.
 * Thu Apr 23 2026 Thomas Dreibholz <dreibh@simula.no> - 2.1.14-1
