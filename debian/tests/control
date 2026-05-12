@@ -10,6 +10,7 @@ Depends: hipercontracer,
 Tests: 20-hpct-results
 Restrictions: allow-stderr
 Depends: hipercontracer-common,
+         hipercontracer-examples,
          hipercontracer-results
 
 Tests: 30-dbeaver-tools
