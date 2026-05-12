@@ -121,6 +121,7 @@ while [ $# -gt 0 ] ; do
          exit 1
          ;;
   esac
+  shift
 done
 if [ $# -ne 0 ] ; then
    usage 1
