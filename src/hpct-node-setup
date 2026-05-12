@@ -145,10 +145,13 @@ fi
 if sudo -u "${NODE_HIPERCONTRACER_USER}" test ! -e ${PRIVATE_KEY} || \
    sudo -u "${NODE_HIPERCONTRACER_USER}" test ! -e ${PUBLIC_KEY} ; then
    echo "Generating key pair ${PRIVATE_KEY} / ${PUBLIC_KEY} ..."
-   sudo -u "${NODE_HIPERCONTRACER_USER}" ssh-keygen -f ${PRIVATE_KEY} -t ${KEY_TYPE} -P ""
+   if ! sudo -u "${NODE_HIPERCONTRACER_USER}" ssh-keygen -f ${PRIVATE_KEY} -t ${KEY_TYPE} -P "" ; then
+      echo >&2 "ERROR: Failed to create key pair!"
+      exit 1
+   fi
    if sudo -u "${NODE_HIPERCONTRACER_USER}" test ! -e ${PRIVATE_KEY} || \
       sudo -u "${NODE_HIPERCONTRACER_USER}" test ! -e ${PUBLIC_KEY} ; then
-      echo >&2 "ERROR: Failed to create key pair"
+      echo >&2 "ERROR: Key pair files missing after generation"
       exit 1
    fi
    sudo -u "${NODE_HIPERCONTRACER_USER}" chmod 600 ${PRIVATE_KEY} ${PUBLIC_KEY}
