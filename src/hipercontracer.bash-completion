@@ -54,7 +54,7 @@ _hipercontracer()
    case "${prev}" in
       #  ====== Generic value ===============================================
       -L | --loglevel                 | \
-      -U | --userid                   | \
+      -U | --user                     | \
       -# | --measurement-id           | \
       -D | --destination              | \
       --iterations                    | \
@@ -83,7 +83,7 @@ _hipercontracer()
          ;;
       # ====== Special case: compression ====================================
       -C | --resultscompression)
-         mapfile -t COMPREPLY < <(compgen -W "none XZ BZip2 GZip" -- "${cur}")
+         mapfile -t COMPREPLY < <(compgen -W "none XZ BZip2 GZip ZLIB ZSTD" -- "${cur}")
          return
          ;;
       # ====== Special case: IO Module ======================================
