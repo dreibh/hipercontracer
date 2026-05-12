@@ -251,6 +251,7 @@ ENDIF()
 # ====== HiPerConTracer Sync Tool ===========================================
 IF (WITH_SYNC)
    CONFIGURE_FILE(hpct-sync hpct-sync.versioned @ONLY)
+   SET_PROPERTY(DIRECTORY APPEND PROPERTY ADDITIONAL_CLEAN_FILES hpct-sync.versioned)
    INSTALL(PROGRAMS    hpct-sync.versioned
            DESTINATION ${CMAKE_INSTALL_BINDIR}
            RENAME      hpct-sync)
@@ -269,6 +270,7 @@ ENDIF()
 # ====== HiPerConTracer Reverse Tunnel Tool =================================
 IF (WITH_RTUNNEL)
    CONFIGURE_FILE(hpct-rtunnel hpct-rtunnel.versioned @ONLY)
+   SET_PROPERTY(DIRECTORY APPEND PROPERTY ADDITIONAL_CLEAN_FILES hpct-rtunnel.versioned)
    INSTALL(PROGRAMS    hpct-rtunnel.versioned
            DESTINATION ${CMAKE_INSTALL_BINDIR}
            RENAME      hpct-rtunnel)
@@ -285,6 +287,7 @@ ENDIF()
 # ====== HiPerConTracer Node Tools ==========================================
 IF (WITH_NODE)
    CONFIGURE_FILE(hpct-node-setup hpct-node-setup.versioned @ONLY)
+   SET_PROPERTY(DIRECTORY APPEND PROPERTY ADDITIONAL_CLEAN_FILES hpct-node-setup.versioned)
    INSTALL(PROGRAMS    hpct-node-setup.versioned
            DESTINATION ${CMAKE_INSTALL_BINDIR}
            RENAME      hpct-node-setup)
@@ -298,6 +301,7 @@ ENDIF()
 # ====== HiPerConTracer Collector Tools =====================================
 IF (WITH_COLLECTOR)
    CONFIGURE_FILE(hpct-node-removal hpct-node-removal.versioned @ONLY)
+   SET_PROPERTY(DIRECTORY APPEND PROPERTY ADDITIONAL_CLEAN_FILES hpct-node-removal.versioned)
    INSTALL(PROGRAMS    hpct-node-removal.versioned
            DESTINATION ${CMAKE_INSTALL_BINDIR}
            RENAME      hpct-node-removal)
@@ -307,12 +311,14 @@ IF (WITH_COLLECTOR)
            RENAME      hpct-node-removal)
 
    CONFIGURE_FILE(hpct-nodes-list hpct-nodes-list.versioned @ONLY)
+   SET_PROPERTY(DIRECTORY APPEND PROPERTY ADDITIONAL_CLEAN_FILES hpct-nodes-list.versioned)
    INSTALL(PROGRAMS    hpct-nodes-list.versioned
            DESTINATION ${CMAKE_INSTALL_BINDIR}
            RENAME      hpct-nodes-list)
    INSTALL(FILES       hpct-nodes-list.1 DESTINATION ${CMAKE_INSTALL_MANDIR}/man1)
 
    CONFIGURE_FILE(hpct-ssh hpct-ssh.versioned @ONLY)
+   SET_PROPERTY(DIRECTORY APPEND PROPERTY ADDITIONAL_CLEAN_FILES hpct-ssh.versioned)
    INSTALL(PROGRAMS    hpct-ssh.versioned
            DESTINATION ${CMAKE_INSTALL_BINDIR}
            RENAME      hpct-ssh)
@@ -368,6 +374,7 @@ ENDIF()
 # ====== HiPerConTracer Viewer Tool =========================================
 IF (WITH_VIEWER)
    CONFIGURE_FILE(hpct-viewer hpct-viewer.versioned @ONLY)
+   SET_PROPERTY(DIRECTORY APPEND PROPERTY ADDITIONAL_CLEAN_FILES hpct-viewer.versioned)
    INSTALL(PROGRAMS    hpct-viewer.versioned
            DESTINATION ${CMAKE_INSTALL_BINDIR}
            RENAME      hpct-viewer)
@@ -383,6 +390,7 @@ ENDIF()
 # ====== HiPerConTracer Database Shell ======================================
 IF (WITH_DBSHELL)
    CONFIGURE_FILE(dbshell dbshell.versioned @ONLY)
+   SET_PROPERTY(DIRECTORY APPEND PROPERTY ADDITIONAL_CLEAN_FILES dbshell.versioned)
    INSTALL(PROGRAMS    dbshell.versioned
            DESTINATION ${CMAKE_INSTALL_BINDIR}
            RENAME      dbshell)
@@ -395,23 +403,24 @@ ENDIF()
 # ====== HiPerConTracer DBeaver Tools =======================================
 IF (WITH_DBEAVER_TOOLS)
    CONFIGURE_FILE(make-dbeaver-configuration make-dbeaver-configuration.versioned @ONLY)
+   SET_PROPERTY(DIRECTORY APPEND PROPERTY ADDITIONAL_CLEAN_FILES make-dbeaver-configuration.versioned)
    INSTALL(PROGRAMS    make-dbeaver-configuration.versioned
            DESTINATION ${CMAKE_INSTALL_BINDIR}
            RENAME      make-dbeaver-configuration)
    INSTALL(FILES    make-dbeaver-configuration.1    DESTINATION ${CMAKE_INSTALL_MANDIR}/man1)
 
    CONFIGURE_FILE(decrypt-dbeaver-configuration decrypt-dbeaver-configuration.versioned @ONLY)
+   SET_PROPERTY(DIRECTORY APPEND PROPERTY ADDITIONAL_CLEAN_FILES decrypt-dbeaver-configuration.versioned)
    INSTALL(PROGRAMS    decrypt-dbeaver-configuration.versioned
            DESTINATION ${CMAKE_INSTALL_BINDIR}
            RENAME      decrypt-dbeaver-configuration)
-   INSTALL(PROGRAMS decrypt-dbeaver-configuration   DESTINATION ${CMAKE_INSTALL_BINDIR})
    INSTALL(FILES    decrypt-dbeaver-configuration.1 DESTINATION ${CMAKE_INSTALL_MANDIR}/man1)
 
    CONFIGURE_FILE(encrypt-dbeaver-configuration encrypt-dbeaver-configuration.versioned @ONLY)
+   SET_PROPERTY(DIRECTORY APPEND PROPERTY ADDITIONAL_CLEAN_FILES encrypt-dbeaver-configuration.versioned)
    INSTALL(PROGRAMS    encrypt-dbeaver-configuration.versioned
            DESTINATION ${CMAKE_INSTALL_BINDIR}
            RENAME      encrypt-dbeaver-configuration)
-   INSTALL(PROGRAMS encrypt-dbeaver-configuration   DESTINATION ${CMAKE_INSTALL_BINDIR})
    INSTALL(FILES    encrypt-dbeaver-configuration.1 DESTINATION ${CMAKE_INSTALL_MANDIR}/man1)
 ENDIF()
 
@@ -443,6 +452,7 @@ ENDIF()
 
 # ====== Scripts ============================================================
 CONFIGURE_FILE(get-default-ips get-default-ips.versioned @ONLY)
+SET_PROPERTY(DIRECTORY APPEND PROPERTY ADDITIONAL_CLEAN_FILES get-default-ips.versioned)
 INSTALL(PROGRAMS    get-default-ips.versioned
          DESTINATION ${CMAKE_INSTALL_BINDIR}
          RENAME      get-default-ips)
