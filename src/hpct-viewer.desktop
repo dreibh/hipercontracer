@@ -30,7 +30,7 @@
 [Desktop Entry]
 Version=1.0
 Name=HiPerConTracer Viewer
-GenericName=Results Viewer
+GenericName=HiPerConTracer Results Viewer
 Comment=View HiPerConTracer results files
 MimeType=application/x-hipercontracer
 Exec=hpct-viewer %F

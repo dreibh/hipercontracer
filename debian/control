@@ -135,12 +135,12 @@ Architecture: all
 Depends: python3,
          python3-netifaces,
          r-base-core,
-         r-cran-data.table,
-         r-cran-digest,
-         r-cran-dplyr,
-         r-cran-nanotime,
-         r-cran-xtable,
          ${misc:Depends}
+Recommends: r-cran-data.table,
+            r-cran-digest,
+            r-cran-dplyr,
+            r-cran-nanotime,
+            r-cran-xtable
 Description: HiPerConTracer example scripts and results files
  High-Performance Connectivity Tracer (HiPerConTracer) is a Ping/Traceroute
  measurement framework. HiPerConTracer refers to the core measurement tool,
