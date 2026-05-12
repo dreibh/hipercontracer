@@ -41,8 +41,16 @@ export TEXTDOMAIN="check-certificate"
 
 # ###### Usage ##############################################################
 usage () {
-   echo >&2 "$(gettext "Usage:") $0 ca_certificate_file certificate_file [...] [-C|--crl crl] [-n|--no-view-certificate] [-h|--help]"
-   exit 1
+   local exitCode="$1"
+   echo >&2 "$(gettext "Usage:") $0 ca_certificate_file certificate_file [...] [-C|--crl crl] [-n|--no-view-certificate] [-h|--help] [-v|--version]"
+   exit "${exitCode}"
+}
+
+
+# ###### Version ############################################################
+version () {
+   echo "check-certificate 2.6.1"
+   exit 0
 }
 
 
@@ -50,47 +58,62 @@ usage () {
 
 # ====== Handle arguments ===================================================
 DIRNAME="$(dirname "$0")"
-GETOPT="$(PATH=/usr/local/bin:${PATH} which getopt)"
-options="$(${GETOPT} -o C:nh --long crl:,no-view-certificate,help -a -- "$@")"
+if (( BASH_VERSINFO[0] < 4 )) || (( (BASH_VERSINFO[0] == 4) && (BASH_VERSINFO[1] < 4) )) ; then
+   echo "ERROR: Bash 4.4 or higher is required, but Bash ${BASH_VERSINFO[0]}.${BASH_VERSINFO[1]} is installed!"
+   exit 1
+fi
+GETOPT="$(PATH="/usr/local/bin:${PATH}" command -v getopt)"
+if "${GETOPT}" -T >/dev/null 2>&1 || [[ $? -ne 4 ]]; then
+   echo >&2 "ERROR: Enhanced/GNU getopt is required!"
+   exit 1
+fi
+options="$(${GETOPT} -o C:nhv --long crl:,no-view-certificate,help,version -a -- "$@")"
 # shellcheck disable=SC2181
 if [[ $? -ne 0 ]]; then
-   usage
+   usage 1
 fi
+eval set -- "${options}"
 
 CRL=""
 VIEW_CERTIFICATE=1
-eval set -- "${options}"
 while [ $# -gt 0 ] ; do
    case "$1" in
       -C | --crl)
          CRL="$2"
-         shift 2
+         shift
          ;;
       -n | --no-view-certificate)
          VIEW_CERTIFICATE=0
-         shift
          ;;
       -h | --help)
-         usage
-         # shift
+         usage 0
+         ;;
+      -v | --version)
+         version
          ;;
       --)
          shift
          break
          ;;
+      *)
+         # This should not happen: wrong getopt parameters, or missing case?
+         echo >&2 "INTERNAL ERROR: Unhandled option $1!"
+         exit 1
+         ;;
   esac
+  shift
 done
 if [ $# -lt 1 ] ; then
-   usage
+   usage 1
 fi
 CA_FILE="$1"
 shift
 
 # ====== Check availability of tools ========================================
-OPENSSL="$(which openssl || true)"
-CCERTTOOL="$(which certtool || true)"
-CERTUTIL="$(which certutil || true)"
-CRLUTIL="$(which crlutil || true)"
+OPENSSL="$(command -v openssl || true)"
+CCERTTOOL="$(command -v certtool || true)"
+CERTUTIL="$(command -v certutil || true)"
+CRLUTIL="$(command -v crlutil || true)"
 
 # ====== Look for CA certificate ============================================
 if [ ! -e "${CA_FILE}" ] ; then
@@ -226,7 +249,7 @@ while [ $# -gt 0 ] ; do
          find "${db}/tmp" -name "crl-*.crl" | sort | \
             while read -r crl ; do
                "${OPENSSL}" crl -outform der -in "${crl}" -out "${crl}.der"
-               # "${OPENSSL}" crl -in "${crl}.der" -text -noout | grep Issuer
+               # "${OPENSSL}" crl -in "${crl}.der" -text -noout | grep Issuer || true
 
                # NOTE: This may fail, if this is a CRL for an unrelated CA:
                # "crlutil: unable to import CRL: SEC_ERROR_UNKNOWN_ISSUER: Peer's Certificate issuer is not recognized."
@@ -255,7 +278,7 @@ while [ $# -gt 0 ] ; do
       echo
       if [ ${good} -eq 0 ] ; then
          errors=$((errors + 1))
-         echo -e "\e[31;1m$(gettext "$(gettext "❌FAILED!")")\e[0m"
+         echo -e "\e[31;1m$(gettext "❌FAILED!")\e[0m"
          sh -c "${command}" || true
          "${CERTUTIL}" -L -d "${db}"
          "${CRLUTIL}" -L -d "${db}"
