@@ -22,7 +22,8 @@ Depends: hipercontracer,
 
 Tests: 50-full-database-test
 Restrictions: isolation-machine, breaks-testbed, needs-sudo, needs-internet, allow-stderr
-Depends: hipercontracer-dbeaver-tools,
+Depends: gettext-base,
+         hipercontracer-dbeaver-tools,
          hipercontracer-dbshell,
          hipercontracer-importer,
          hipercontracer-query,

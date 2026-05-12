@@ -1,3 +1,10 @@
+hipercontracer (2.1.17~rc0-1ubuntu1) unstable; urgency=medium
+
+  * New upstream release.
+  * debian/tests: Fixed test scripts and their dependencies.
+
+ -- Thomas Dreibholz <dreibh@simula.no>  Tue, 12 May 2026 15:48:10 +0200
+
 hipercontracer (2.1.16-1ubuntu1) unstable; urgency=medium
 
   * New upstream release.
