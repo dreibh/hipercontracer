@@ -41,8 +41,16 @@ export TEXTDOMAIN="test-tls-connection"
 
 # ###### Usage ##############################################################
 usage () {
-   echo >&2 "$(gettext "Usage:") $0 host:port cafile [-s|--save-certificate certificate_file] [-n|--no-view-certificate] [-c|--no-check-certificate] [-- openssl_args ...]"
-   exit 1
+   local exitCode="$1"
+   echo >&2 "$(gettext "Usage:") $0 host:port cafile [-s|--save-certificate certificate_file] [-n|--no-view-certificate] [-c|--no-check-certificate] [-- openssl_args ...] [-h|--help] [-v|--version]"
+   exit "${exitCode}"
+}
+
+
+# ###### Version ############################################################
+version () {
+   echo "test-tls-connection 2.6.1"
+   exit 0
 }
 
 
@@ -50,45 +58,62 @@ usage () {
 
 # ====== Handle arguments ===================================================
 DIRNAME="$(dirname "$0")"
-GETOPT="$(PATH=/usr/local/bin:${PATH} which getopt)"
-options="$(${GETOPT} -o s:nch --long save-certificate:,no-view-certificate,no-check-certificate,help -a -- "$@")"
+if (( BASH_VERSINFO[0] < 4 )) || (( (BASH_VERSINFO[0] == 4) && (BASH_VERSINFO[1] < 4) )) ; then
+   echo "ERROR: Bash 4.4 or higher is required, but Bash ${BASH_VERSINFO[0]}.${BASH_VERSINFO[1]} is installed!"
+   exit 1
+fi
+GETOPT="$(PATH="/usr/local/bin:${PATH}" command -v getopt)"
+if "${GETOPT}" -T >/dev/null 2>&1 || [[ $? -ne 4 ]]; then
+   echo >&2 "ERROR: Enhanced/GNU getopt is required!"
+   exit 1
+fi
+options="$(${GETOPT} -o s:nchv --long save-certificate:,no-view-certificate,no-check-certificate,help,version -a -- "$@")"
 # shellcheck disable=SC2181
 if [[ $? -ne 0 ]]; then
-   usage
+   usage 1
 fi
+eval set -- "${options}"
 
 VIEW_CERTIFICATE=1
 CHECK_CERTIFICATE=1
 CERTIFICATE_FILE=""
-eval set -- "${options}"
 while [ $# -gt 0 ] ; do
    case "$1" in
       -s | --save-certificate)
          CERTIFICATE_FILE="$2"
-         shift 2
+         shift
          ;;
       -n | --no-view-certificate)
          VIEW_CERTIFICATE=0
-         shift
          ;;
       -c | --no-check-certificate)
          CHECK_CERTIFICATE=0
-         shift
          ;;
       -h | --help)
-         usage
-         # shift
+         usage 0
+         ;;
+      -v | --version)
+         version
          ;;
       --)
          shift
          break
          ;;
+      *)
+         # This should not happen: wrong getopt parameters, or missing case?
+         echo >&2 "INTERNAL ERROR: Unhandled option $1!"
+         exit 1
+         ;;
   esac
+  shift
 done
 if [ $# -lt 2 ] ; then
-   usage
+   usage 1
 fi
 ENDPOINT="$1"
+if [[ ! "${ENDPOINT}" =~ :[a-zA-Z0-9]+$ ]] ; then
+   ENDPOINT="${ENDPOINT}:443"
+fi
 CA_FILE="$2"
 shift 2
 if [ ! -e "${CA_FILE}" ] ; then
@@ -108,8 +133,7 @@ if [ "${CERTIFICATE_FILE}" == "" ] ; then
    CERTIFICATE_FILE="${tempCertFile}"
 fi
 
-# shellcheck disable=SC2068
-echo "" | openssl s_client -showcerts -connect "${ENDPOINT}" -no-CApath -no-CAstore -CAfile "${CA_FILE}" $@ >"${tempOutputFile}"
+echo "" | openssl s_client -showcerts -connect "${ENDPOINT}" -no-CApath -no-CAstore -CAfile "${CA_FILE}" "$@" >"${tempOutputFile}"
 
 text-block --extract \
            --begin-tag '-----BEGIN CERTIFICATE-----'  \
