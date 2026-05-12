@@ -93,7 +93,8 @@ _hpct_query()
             return
             ;;
          # ====== Special case: on/off ======================================
-         -Z | --logcolor)
+         -Z | --logcolor | \
+         --deduplication)
             mapfile -t COMPREPLY < <(compgen -W "on off" --  "${cur}")
             return
             ;;
