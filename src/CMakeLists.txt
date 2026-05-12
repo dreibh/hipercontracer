@@ -316,6 +316,9 @@ IF (WITH_COLLECTOR)
            DESTINATION ${CMAKE_INSTALL_BINDIR}
            RENAME      hpct-nodes-list)
    INSTALL(FILES       hpct-nodes-list.1 DESTINATION ${CMAKE_INSTALL_MANDIR}/man1)
+   INSTALL(FILES       hpct-nodes-list.bash-completion
+           DESTINATION ${CMAKE_INSTALL_DATADIR}/bash-completion/completions
+           RENAME      hpct-nodes-list)
 
    CONFIGURE_FILE(hpct-ssh hpct-ssh.versioned @ONLY)
    SET_PROPERTY(DIRECTORY APPEND PROPERTY ADDITIONAL_CLEAN_FILES hpct-ssh.versioned)
