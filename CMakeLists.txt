@@ -35,6 +35,8 @@ SET(BUILD_MINOR "1")
 SET(BUILD_PATCH "17~rc0")
 SET(BUILD_VERSION ${BUILD_MAJOR}.${BUILD_MINOR}.${BUILD_PATCH})
 
+SET(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake/modules)
+
 # HiPerConTracer needs at least C++17!
 IF(NOT "${CMAKE_CXX_STANDARD}")
    # FXIXME:
@@ -332,11 +334,11 @@ IF (WITH_IMPORTER)
       MESSAGE("Building with PostgreSQL backend (ENABLE_BACKEND_POSTGRESQL=${ENABLE_BACKEND_POSTGRESQL})")
 
       MESSAGE("Looking for PostgreSQL C++ Client library:")
-      FIND_LIBRARY(LIBPQXX_LIBRARY NAMES pqxx)
-      MESSAGE(" * Library: ${LIBPQXX_LIBRARY}")
-      FIND_PATH(LIBPQXX_INCLUDE_DIR NAMES pqxx PATH_SUFFIXES pqxx)
-      MESSAGE(" * Includes: ${LIBPQXX_INCLUDE_DIR}")
-      IF ((NOT LIBPQXX_INCLUDE_DIR) OR (NOT LIBPQXX_LIBRARY))
+      FIND_PACKAGE(PQXX REQUIRED)
+      MESSAGE(" * Version: ${PQXX_VERSION}")
+      MESSAGE(" * Library: ${PQXX_LIBRARIES}")
+      MESSAGE(" * Includes: ${PQXX_INCLUDE_DIRS}")
+      IF ((NOT PQXX_INCLUDE_DIRS) OR (NOT PQXX_LIBRARIES))
          MESSAGE(FATAL_ERROR
                  " Cannot find PostgreSQL C++ Client Library! Try:\n"
                  " * Ubuntu/Debian: sudo apt install -y libpqxx-dev\n"
@@ -344,6 +346,12 @@ IF (WITH_IMPORTER)
                  " * SuSE:          sudo zypper install -y libpqxx-devel\n"
                  " * Alpine:        (needs PPA or installation from sources!)\n"
                  " * FreeBSD:       sudo pkg install -y postgresql-libpqxx")
+      ENDIF()
+
+      IF (PQXX_VERSION VERSION_GREATER 8.0)
+         SET(CMAKE_CXX_STANDARD 20)
+      ELSE()
+         SET(CMAKE_CXX_STANDARD 17)
       ENDIF()
    ELSE()
       MESSAGE("Building without PostgreSQL backend (ENABLE_BACKEND_POSTGRESQL=${ENABLE_BACKEND_POSTGRESQL})")
