@@ -39,11 +39,6 @@ from typing            import Any
 from CertificateHelper import *
 
 
-# ###### Print usage and exit ###############################################
-def usage(exitCode : int = 0) -> None:
-   sys.stderr.write('Usage: ' + sys.argv[0] + ' ssl_directory [-s|--server|-c|--client|-u|--user] [-x|--revoke-if-existing|-i|--ignore-if-existing] [-r|--revoke] [-S|--san|--subjectAltName subjectAltName|LOCAL|LOOKUP] [-K|--keylen-ca length] [-k|--keylen-cert length] name ...\n')
-   sys.exit(exitCode)
-
 
 # ###### Main program #######################################################
 
@@ -58,7 +53,7 @@ revokeIfExisting     : bool                = True
 revoke               : bool                = False
 
 # ====== Handle arguments ===================================================
-parser = argparse.ArgumentParser(
+parser : Final[argparse.ArgumentParser] = argparse.ArgumentParser(
    description     = 'X.509 CA and Certificate Test Setup Script',
    formatter_class = argparse.ArgumentDefaultsHelpFormatter
 )
@@ -97,10 +92,14 @@ parser.add_argument('-k', '--keylen-cert', type = int, default = DefaultCertKeyL
 
 args = parser.parse_args()
 
-mainDirectory : Final[str] = args.ssl_directory
+mainDirectory        : Final[str]           = args.ssl_directory
+certificatesToCreate : list[dict[str, Any]] = [ ]
+name                 : str
 for name in args.names:
-   ( name,  san ) = prepareSubjectAltName(args.cert_type, name, args.subjectAltName)
-   certificatesToCreate.append({ 'name'             : name,
+   parsedName : str
+   san        : str
+   ( parsedName,  san ) = prepareSubjectAltName(args.cert_type, name, args.subjectAltName)
+   certificatesToCreate.append({ 'name'             : parsedName,
                                  'type'             : args.cert_type,
                                  'subjectAltName'   : san,
                                  'revokeIfExisting' : args.revoke_if_existing })
@@ -123,64 +122,72 @@ for name in args.names:
 
 
 # ====== Create Test CAs ====================================================
-globalCRLFileName = "TestGlobal.crl"
+globalCRLFileName : Final[str] = "TestGlobal.crl"
 
 # Create Test Root Level-1 CA certificate (self-signed):
-TestLevel1 = CA(mainDirectory, 'TestLevel1',
-                parentCA  = None,
-                subject   = '/C=NO/ST=Oslo/L=Oslo/O=Simula Research Laboratory/streetAddress=Kristian Augusts gate 23/postalCode=0164/CN=Test Level-1 CA Certificate',
-                certType  = CertificateType.RootCA,
-                keyLength = caKeyLength, globalCRLFileName = globalCRLFileName)
+TestLevel1 : Final[CA] = \
+   CA(mainDirectory, 'TestLevel1',
+      parentCA  = None,
+      subject   = '/C=NO/ST=Oslo/L=Oslo/O=Simula Research Laboratory/streetAddress=Kristian Augusts gate 23/postalCode=0164/CN=Test Level-1 CA Certificate',
+      certType  = CertificateType.RootCA,
+      keyLength = caKeyLength, globalCRLFileName = globalCRLFileName)
 
 # Create Test Root Level-2 CA certificate (signed by Test Root Level-1):
-TestLevel2 = CA(mainDirectory, 'TestLevel2',
-                parentCA  = TestLevel1,
-                subject   = '/C=NO/ST=Oslo/L=Oslo/O=Simula Research Laboratory/streetAddress=Kristian Augusts gate 23/postalCode=0164/CN=Test Level-2 CA Certificate',
-                certType  = CertificateType.IntermediateCA,
-                keyLength = caKeyLength, globalCRLFileName = globalCRLFileName)
+TestLevel2 : Final[CA] = \
+   CA(mainDirectory, 'TestLevel2',
+      parentCA  = TestLevel1,
+      subject   = '/C=NO/ST=Oslo/L=Oslo/O=Simula Research Laboratory/streetAddress=Kristian Augusts gate 23/postalCode=0164/CN=Test Level-2 CA Certificate',
+      certType  = CertificateType.IntermediateCA,
+      keyLength = caKeyLength, globalCRLFileName = globalCRLFileName)
 
 # Create Test Intermediate CA certificate (signed by Test Root Level-2):
-TestIntermediate1 = CA(mainDirectory, 'TestIntermediate1',
-                       parentCA  = TestLevel2,
-                       subject   = '/C=NO/ST=Oslo/L=Oslo/O=Simula Metropolitan Centre for Digital Engineering (SimulaMet)/streetAddress=Stensberggata 27/postalCode=0170/CN=*',
-                       certType  = CertificateType.IntermediateCA,
-                       keyLength = caKeyLength, globalCRLFileName = globalCRLFileName)
+TestIntermediate1 : Final[CA] = \
+   CA(mainDirectory, 'TestIntermediate1',
+      parentCA  = TestLevel2,
+      subject   = '/C=NO/ST=Oslo/L=Oslo/O=Simula Metropolitan Centre for Digital Engineering (SimulaMet)/streetAddress=Stensberggata 27/postalCode=0170/CN=*',
+      certType  = CertificateType.IntermediateCA,
+      keyLength = caKeyLength, globalCRLFileName = globalCRLFileName)
 
 # Create Test Intermediate CA certificate (signed by Test Root Level-2):
-TestIntermediate2 = CA(mainDirectory, 'TestIntermediate2',
-                       parentCA  = TestIntermediate1,
-                       subject   = '/C=NO/ST=Oslo/L=Oslo/O=Simula Metropolitan Centre for Digital Engineering (SimulaMet)/OU=Centre for Resilient Networks and Applications (CRNA)/streetAddress=Stensberggata 27/postalCode=0170/CN=*',
-                       certType  = CertificateType.IntermediateCA,
-                       keyLength = caKeyLength, globalCRLFileName = globalCRLFileName)
+TestIntermediate2 : Final[CA] = \
+   CA(mainDirectory, 'TestIntermediate2',
+      parentCA  = TestIntermediate1,
+      subject   = '/C=NO/ST=Oslo/L=Oslo/O=Simula Metropolitan Centre for Digital Engineering (SimulaMet)/OU=Centre for Resilient Networks and Applications (CRNA)/streetAddress=Stensberggata 27/postalCode=0170/CN=*',
+      certType  = CertificateType.IntermediateCA,
+      keyLength = caKeyLength, globalCRLFileName = globalCRLFileName)
 
 # Create Test Leaf CA certificate (signed by Test Intermediate):
-TestLeaf = CA(mainDirectory, 'TestLeaf',
-              parentCA  = TestIntermediate2,
-              subject   = '/C=NO/ST=Oslo/L=Oslo/O=Simula Metropolitan Centre for Digital Engineering (SimulaMet)/OU=SimulaMet Interoperability Lab (SMIL)/streetAddress=Stensberggata 27/postalCode=0170/CN=*/',
-              certType  = CertificateType.LeafCA,
-              keyLength = caKeyLength, globalCRLFileName = globalCRLFileName)
+TestLeaf : Final[CA] = \
+   CA(mainDirectory, 'TestLeaf',
+      parentCA  = TestIntermediate2,
+      subject   = '/C=NO/ST=Oslo/L=Oslo/O=Simula Metropolitan Centre for Digital Engineering (SimulaMet)/OU=SimulaMet Interoperability Lab (SMIL)/streetAddress=Stensberggata 27/postalCode=0170/CN=*/',
+      certType  = CertificateType.LeafCA,
+      keyLength = caKeyLength, globalCRLFileName = globalCRLFileName)
 
 
 # ====== Create Test Servers ================================================
 defaultSubjectWithoutCN = '/C=NO/ST=Oslo/L=Oslo/O=Simula Metropolitan Centre for Digital Engineering (SimulaMet)/OU=SimulaMet Interoperability Lab (SMIL)/streetAddress=Stensberggata 27/postalCode=0170'
 
-certificates = { }
+certificates        : dict[str, Certificate] = {}
+certificateToCreate : dict[str, Any]
 for certificateToCreate in certificatesToCreate:
    # print(certificateToCreate)
 
-   name = certificateToCreate['name']
+   certificateName = certificateToCreate['name']
+   subjectWithoutCN : str
    if certificateToCreate['type'] != CertificateType.User:
       subjectWithoutCN = defaultSubjectWithoutCN
    else:
-      subjectWithoutCN = defaultSubjectWithoutCN + prepareUserSubject(name)
-   certificates[name] = Certificate(mainDirectory, name, TestLeaf,
-                                    subjectWithoutCN, certificateToCreate['subjectAltName'],
-                                    certificateToCreate['type'],
-                                    keyLength        = certKeyLength,
-                                    revokeIfExisting = revokeIfExisting)
+      subjectWithoutCN = defaultSubjectWithoutCN + prepareUserSubject(certificateName)
+   certificates[certificateName] = \
+      Certificate(mainDirectory, certificateName, TestLeaf,
+                  subjectWithoutCN, certificateToCreate['subjectAltName'],
+                  certificateToCreate['type'],
+                  keyLength        = certKeyLength,
+                  revokeIfExisting = revokeIfExisting)
 
    if revoke:
-      certificates[name].revoke()
+      certificates[certificateName].revoke()
 
 
 # ====== Finally, force regeneration of the CRL to ensure it is up-to-date ==

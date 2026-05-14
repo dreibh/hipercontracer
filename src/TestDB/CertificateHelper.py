@@ -62,13 +62,13 @@ class CertificateType(Enum):
    User            = 6
 
 # Some defaults:
-# DefaultCAKeyLength   : Final[int] = 16384
-# DefaultCertKeyLength : Final[int] = 16384
+DefaultCAKeyLength   : Final[int] = 16384
+DefaultCertKeyLength : Final[int] = 16384
 
 # ***** TEST ONLY *******************************
 # These settings are for fast testing only:
-DefaultCAKeyLength   : Final[int] = 1024
-DefaultCertKeyLength : Final[int] = 1024
+# DefaultCAKeyLength   : Final[int] = 1024
+# DefaultCertKeyLength : Final[int] = 1024
 # ***********************************************
 
 # Enable verbose logging for debugging here:
