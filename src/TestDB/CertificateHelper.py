@@ -31,8 +31,10 @@
 import ipaddress
 import os
 import re
+import shlex
 import shutil
 import socket
+import subprocess
 import sys
 
 # This library needs at least Python 3.10:
@@ -60,38 +62,38 @@ class CertificateType(Enum):
    User            = 6
 
 # Some defaults:
-DefaultCAKeyLength   : Final[int] = 16384
-DefaultCertKeyLength : Final[int] = 16384
+# DefaultCAKeyLength   : Final[int] = 16384
+# DefaultCertKeyLength : Final[int] = 16384
 
 # ***** TEST ONLY *******************************
 # These settings are for fast testing only:
-# DefaultCAKeyLength   : Final[int] = 1024
-# DefaultCertKeyLength : Final[int] = 1024
+DefaultCAKeyLength   : Final[int] = 1024
+DefaultCertKeyLength : Final[int] = 1024
 # ***********************************************
 
 # Enable verbose logging for debugging here:
-VerboseMode : bool = False
+VerboseMode : bool = True
 
 
 
 # ###### Execute command ####################################################
 def execute(command : str, mayFail : bool = False) -> int:
-   result : int = 1
+   result : subprocess.CompletedProcess[bytes]
    try:
       if VerboseMode:
          sys.stdout.write('\x1b[37m' + command + '\x1b[0m\n')
-      result = os.system(command)
+      result = subprocess.run(command, shell = True)
    except Exception as e:
       sys.stderr.write('FAILED COMMAND:\n' + command + '\n')
       sys.exit(1)
    if not mayFail:
-      assert result == 0
-   return result
+      assert result.returncode == 0
+   return result.returncode
 
 
 # ###### Make "subjectAltName" string #######################################
 RE_USEREMAIL : Final[re.Pattern[str]] = \
-   re.compile(r'^(.*)( <)([a-zA-Z0–9. _%+-]+@[a-zA-Z0–9. -]+\.[a-zA-Z]{2,})(>)$')
+   re.compile(r'^(.*)( <)([a-zA-Z0-9. _%+-]+@[a-zA-Z0-9. -]+\.[a-zA-Z]{2,})(>)$')
 def prepareSubjectAltName(certType : CertificateType,
                           name     : str,
                           hint     : str | None) -> tuple[str,str]:
@@ -418,8 +420,8 @@ subjectAltName         = ${ENV::SAN}
       if not os.path.isfile(self.PasswordFileName):
          sys.stdout.write('\x1b[33mGenerating CA password ' + self.PasswordFileName + ' ...\x1b[0m\n')
          execute(f"""\
-pwgen -sy 128 >\"{self.PasswordFileName}.tmp\" && \
-mv \"{self.PasswordFileName}.tmp\" \"{self.PasswordFileName}\"""")
+pwgen -sy 128 >{shlex.quote(self.PasswordFileName + '.tmp')} && \
+mv {shlex.quote(self.PasswordFileName + '.tmp')} {shlex.quote(self.PasswordFileName)}""")
          assert os.path.isfile(self.PasswordFileName)
 
 
@@ -429,10 +431,10 @@ mv \"{self.PasswordFileName}.tmp\" \"{self.PasswordFileName}\"""")
          execute(f"""\
 openssl genrsa \
    -aes256 \
-   -out \"{self.KeyFileName}.tmp\" \
-   -passout \"file:{self.PasswordFileName}\" \
+   -out {shlex.quote(self.KeyFileName + '.tmp')} \
+   -passout file:{shlex.quote(self.PasswordFileName)} \
    {str(self.KeyLength)} && \
-mv \"{self.KeyFileName}.tmp\" \"{self.KeyFileName}\"""")
+mv {shlex.quote(self.KeyFileName + '.tmp')} {shlex.quote(self.KeyFileName)}""")
          assert os.path.isfile(self.KeyFileName)
 
          # Make sure invalid files are removed:
@@ -450,16 +452,16 @@ mv \"{self.KeyFileName}.tmp\" \"{self.KeyFileName}\"""")
          if not os.path.isfile(self.CertFileName):
             sys.stdout.write('\x1b[33mGenerating self-signed root CA certificate ' + self.CertFileName + ' ...\x1b[0m\n')
             execute(f"""\
-SAN=\"\" openssl req \
+SAN="" openssl req \
    -x509 \
-   -config \"{self.ConfigFileName}\" \
+   -config {shlex.quote(self.ConfigFileName)} \
    -extensions v3_ca \
-   -utf8 -subj \"{self.Subject}\" \
-   -days \"{self.DefaultDays}\" \
-   -key \"{self.KeyFileName}\" \
-   -passin \"file:{self.PasswordFileName}\" \
-   -out \"{self.CertFileName}.tmp\" && \
-mv \"{self.CertFileName}.tmp\" \"{self.CertFileName}\"""")
+   -utf8 -subj {shlex.quote(self.Subject)} \
+   -days {str(self.DefaultDays)} \
+   -key {shlex.quote(self.KeyFileName)} \
+   -passin file:{shlex.quote(self.PasswordFileName)} \
+   -out {shlex.quote(self.CertFileName + '.tmp')} && \
+mv {shlex.quote(self.CertFileName + '.tmp')} {shlex.quote(self.CertFileName)}""")
             assert os.path.isfile(self.CertFileName)
 
 
@@ -481,15 +483,15 @@ mv \"{self.CertFileName}.tmp\" \"{self.CertFileName}\"""")
             csrFileName : Final[str] = self.CertFileName + '.csr'
             sys.stdout.write('\x1b[33mGenerating CSR ' + csrFileName + ' ...\x1b[0m\n')
             execute(f"""\
-SAN=\"\" openssl req \
+SAN="" openssl req \
    -new \
-   -config \"{self.ConfigFileName}\" \
+   -config {shlex.quote(self.ConfigFileName)} \
    -extensions v3_ca \
-   -utf8 -subj \"{self.Subject}\" \
-   -key \"{self.KeyFileName}\" \
-   -passin \"file:{self.PasswordFileName}\" \
-   -out \"{csrFileName}.tmp\" && \
-mv \"{csrFileName}.tmp\" \"{csrFileName}\"""")
+   -utf8 -subj {shlex.quote(self.Subject)} \
+   -key {shlex.quote(self.KeyFileName)} \
+   -passin file:{shlex.quote(self.PasswordFileName)} \
+   -out {shlex.quote(csrFileName + '.tmp')} && \
+mv {shlex.quote(csrFileName + '.tmp')} {shlex.quote(csrFileName)}""")
             assert os.path.isfile(csrFileName)
 
             # ------ Get CSR signed by parent CA ----------------------------
@@ -497,16 +499,16 @@ mv \"{csrFileName}.tmp\" \"{csrFileName}\"""")
 
             tmpCertFileName = self.CertFileName + '.tmp'
             execute(f"""\
-SAN=\"\" openssl ca \
+SAN="" openssl ca \
    -batch \
    -notext \
-   -config \"{parentCA.ConfigFileName}\" \
-   -extensions \"{self.Extension}\" \
-   -utf8 -subj \"{self.Subject}\" \
-   -days \"{str(parentCA.DefaultDays)}\" \
-   -passin \"file:{parentCA.PasswordFileName}\" \
-   -in \"{csrFileName}\" \
-   -out \"{tmpCertFileName}\"""")
+   -config {shlex.quote(parentCA.ConfigFileName)} \
+   -extensions {shlex.quote(self.Extension)} \
+   -utf8 -subj {shlex.quote(self.Subject)} \
+   -days {str(parentCA.DefaultDays)} \
+   -passin file:{shlex.quote(parentCA.PasswordFileName)} \
+   -in {shlex.quote(csrFileName)} \
+   -out {shlex.quote(tmpCertFileName)}""")
             assert os.path.isfile(tmpCertFileName)
 
             # ------ Add the whole certificate chain ------------------------
@@ -532,9 +534,9 @@ openssl verify \
  -verbose \
  -no-CApath \
  -no-CAstore \
- -CAfile \"{self.RootCA.CertFileName}\""""
+ -CAfile {shlex.quote(self.RootCA.CertFileName)}"""
             if self.ParentCA:
-               command += f' -untrusted "{self.ParentCA.CertFileName}'
+               command += f' -untrusted {self.ParentCA.CertFileName}'
             command +=' ' + self.CertFileName
             execute(command)
 
@@ -550,7 +552,7 @@ openssl verify \
 openssl x509 \
  -noout \
  -subject -ext subjectAltName \
- -in \"{self.CertFileName}\"""")
+ -in {shlex.quote(self.CertFileName)}""")
 
 
    # ###### Sign certificate ################################################
@@ -564,16 +566,16 @@ openssl x509 \
 
       tmpCertFileName = certificate.CertFileName + '.tmp'
       execute(f"""\
-SAN="{certificate.SubjectAltName}" openssl ca \
+SAN={shlex.quote(certificate.SubjectAltName)} openssl ca \
  -batch \
  -notext \
- -config \"{self.ConfigFileName}\" \
- -extensions \"{certificate.Extension}\" \
- -utf8 -subj \"{certificate.Subject}\" \
- -days \"{str(self.DefaultDays)}\" \
- -passin \"file:{self.PasswordFileName}\" \
- -in \"{csrFileName}\" \
- -out "{tmpCertFileName}\"""")
+ -config {shlex.quote(self.ConfigFileName)} \
+ -extensions {shlex.quote(certificate.Extension)} \
+ -utf8 -subj {shlex.quote(certificate.Subject)} \
+ -days {shlex.quote(str(self.DefaultDays))} \
+ -passin file:{shlex.quote(self.PasswordFileName)} \
+ -in {shlex.quote(csrFileName)} \
+ -out {shlex.quote(tmpCertFileName)}""")
       assert os.path.isfile(tmpCertFileName)
 
       # ------ Add the whole chain ------------------------------------------
@@ -595,10 +597,10 @@ openssl verify \
  -crl_check \
  -no-CApath \
  -no-CAstore \
- -CAfile \"{self.RootCA.CertFileName}\" \
- -untrusted \"{self.CertFileName}\" \
- -CRLfile \"{self.CRLFileName}\" \
-"{certificate.CertFileName}\"""", mayFail=True)
+ -CAfile {shlex.quote(self.RootCA.CertFileName)} \
+ -untrusted {shlex.quote(self.CertFileName)} \
+ -CRLfile {shlex.quote(self.CRLFileName)} \
+ {shlex.quote(certificate.CertFileName)}""", mayFail=True)
       return result == 0
 
 
@@ -608,9 +610,9 @@ openssl verify \
       assert os.path.isfile(ca.CertFileName)
       result = execute(f"""\
 openssl ca \
- -revoke \"{ca.CertFileName}\" \
- -config \"{self.ConfigFileName}\" \
- -passin \"file:{self.PasswordFileName}\"""")
+ -revoke {shlex.quote(ca.CertFileName)} \
+ -config {shlex.quote(self.ConfigFileName)} \
+ -passin file:{shlex.quote(self.PasswordFileName)}""")
       self.generateCRL()
 
       # Remove the now-invalid certificate file:
@@ -624,9 +626,9 @@ openssl ca \
       assert os.path.isfile(self.CertFileName)
       result = execute(f"""\
 SAN="" openssl ca \
- -revoke \"{certificate.CertFileName}\" \
- -config \"{certificate.CA.ConfigFileName}\" \
- -passin \"file:{certificate.CA.PasswordFileName}\"""")
+ -revoke {shlex.quote(certificate.CertFileName)} \
+ -config {shlex.quote(certificate.CA.ConfigFileName)} \
+ -passin file:{shlex.quote(certificate.CA.PasswordFileName)}""")
       self.generateCRL()
 
       # Remove the now-invalid certificate file:
@@ -640,10 +642,10 @@ SAN="" openssl ca \
       execute(f"""\
 SAN="" openssl ca \
  -gencrl \
- -config \"{self.ConfigFileName}\" \
- -passin \"file:{self.PasswordFileName}\" \
- -out \"{self.CRLFileName}.tmp\" && \
-mv \"{self.CRLFileName}.tmp\" \"{self.CRLFileName}\"""")
+ -config {shlex.quote(self.ConfigFileName)} \
+ -passin file:{shlex.quote(self.PasswordFileName)} \
+ -out {shlex.quote(self.CRLFileName + '.tmp')} && \
+mv {shlex.quote(self.CRLFileName + '.tmp')} {shlex.quote(self.CRLFileName)}""")
       assert(os.path.isfile(self.CRLFileName))
 
       # ====== Update global CRL ============================================
@@ -719,12 +721,13 @@ class Certificate:
       # ====== Generate key =================================================
       if not os.path.isfile(self.KeyFileName):
          sys.stdout.write('\x1b[33mGenerating key ' + self.KeyFileName + ' ...\x1b[0m\n')
+         keyFileName : str = os.path.join(self.Directory, self.KeyFileName)
          execute(f"""\
 openssl genrsa \
- -out \"{os.path.join(self.Directory, self.KeyFileName)}.tmp\" \
+ -out {shlex.quote(keyFileName + '.tmp')} \
  {str(self.KeyLength)} && \
-mv \"{os.path.join(self.Directory, self.KeyFileName)}.tmp\" \"{os.path.join(self.Directory, self.KeyFileName)}\"""")
-         assert os.path.isfile(self.KeyFileName)
+mv {shlex.quote(keyFileName + '.tmp')} {shlex.quote(keyFileName)}""")
+         assert os.path.isfile(keyFileName)
 
          #  Make sure that an invalid cerfificate file is removed:
          if os.path.exists(self.CertFileName):
@@ -736,14 +739,14 @@ mv \"{os.path.join(self.Directory, self.KeyFileName)}.tmp\" \"{os.path.join(self
          csrFileName : Final[str] = os.path.join(self.Directory, safeName + '.csr')
          sys.stdout.write('\x1b[33mGenerating CSR ' + csrFileName + ' ...\x1b[0m\n')
          execute(f"""\
-SAN="{self.SubjectAltName}" openssl req \
+SAN={shlex.quote(self.SubjectAltName)} openssl req \
  -new \
- -config \"{self.CA.ConfigFileName}\" \
- -extensions \"{self.Extension}\" \
- -utf8 -subj \"{self.Subject}\" \
- -key \"{self.KeyFileName}\" \
- -out \"{csrFileName}.tmp\" && \
-mv \"{csrFileName}.tmp\" \"{csrFileName}\"""")
+ -config {shlex.quote(self.CA.ConfigFileName)} \
+ -extensions {shlex.quote(self.Extension)} \
+ -utf8 -subj {shlex.quote(self.Subject)} \
+ -key {shlex.quote(self.KeyFileName)} \
+ -out {shlex.quote(csrFileName + '.tmp')} && \
+mv {shlex.quote(csrFileName + '.tmp')} {shlex.quote(csrFileName)}""")
          assert os.path.isfile(csrFileName)
 
          # ------ Get CSR signed by CA --------------------------------------
@@ -763,7 +766,7 @@ mv \"{csrFileName}.tmp\" \"{csrFileName}\"""")
 openssl x509 \
  -noout \
  -subject -ext subjectAltName \
- -in \"{self.CertFileName}\"""")
+ -in {shlex.quote(self.CertFileName)}""")
 
 
    # ###### Revoke certificate ##############################################

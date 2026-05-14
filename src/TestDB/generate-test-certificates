@@ -31,6 +31,10 @@
 import getopt
 import sys
 
+if sys.version_info < (3, 10):
+   sys.stderr.write('ERROR: ' + sys.argv[0] + ' requires Python 3.10 or later!\n')
+   sys.exit(1)
+
 from typing            import Any
 from CertificateHelper import *
 
