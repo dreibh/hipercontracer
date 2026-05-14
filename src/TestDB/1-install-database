@@ -32,6 +32,21 @@
 set -euxo pipefail
 
 
+ ###### Helper function to show script information #########################
+show-script ()
+{
+   local script="$1"
+
+   print-utf8 -n -s "\e[1;36m█" "▀" "█\e[0m" ;
+   figlet -w "${COLUMNS}" "$(basename "${script}")" | print-utf8 -n -C "\e[1;36m█\e[25m" "█\e[0m" ;
+   print-utf8 -n -s "\e[1;36m█" "▄" "█\e[0m"
+}
+
+
+
+# ##### Main program ########################################################
+
+# ====== Handle arguments ===================================================
 if [ $# -ne 2 ] ; then
    echo >&2 "Usage: $0 mariadb|mongodb|mysql|postgresql users.conf"
    exit 1
@@ -39,14 +54,6 @@ fi
 if [ ! -e "$2" ] ; then
    echo >&2 "ERROR: Use configuration $2 does not exist!"
 fi
-
-
-# ====== Check/set environment variables ====================================
-if [ ! -e /etc/os-release ] ; then
-   echo >&2 "ERROR: /etc/os-release does not exist!"
-   exit 1
-fi
-. /etc/os-release
 
 DOMAIN="test.local"
 ROOT_PASSWORD="!root!"
@@ -64,6 +71,16 @@ if [ "${ROOT_PASSWORD}"       == "!root!"       ] || \
    echo >&2 "DO NOT USE THE EXAMPLE PASSWORDS!"
    exit 1
 fi
+
+show-script "$(basename "$0")"
+
+
+# ====== Check/set environment variables ====================================
+if [ ! -e /etc/os-release ] ; then
+   echo >&2 "ERROR: /etc/os-release does not exist!"
+   exit 1
+fi
+. /etc/os-release
 
 
 # ###### MariaDB ############################################################

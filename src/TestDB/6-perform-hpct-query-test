@@ -32,6 +32,21 @@
 set -euo pipefail
 
 
+ ###### Helper function to show script information #########################
+show-script ()
+{
+   local script="$1"
+
+   print-utf8 -n -s "\e[1;36m█" "▀" "█\e[0m" ;
+   figlet -w "${COLUMNS}" "$(basename "${script}")" | print-utf8 -n -C "\e[1;36m█\e[25m" "█\e[0m" ;
+   print-utf8 -n -s "\e[1;36m█" "▄" "█\e[0m"
+}
+
+
+
+# ##### Main program ########################################################
+
+# ====== Handle arguments ===================================================
 if [ $# -ne 2 ] ; then
    echo >&2 "Usage: $0 mariadb|mongodb|mysql|postgresql users.conf"
    exit 1
@@ -50,6 +65,8 @@ DATABASE_CONFIG="${HOME}/${DATABASE}-researcher-${DBMS}.conf"
 if [ ! -v VALGRIND_CMD ] ; then
    VALGRIND_CMD=""
 fi
+
+show-script "$(basename "$0")"
 
 
 # ###### Run test ###########################################################

@@ -90,6 +90,7 @@ if ! command -v check-certificate || \
 fi
 show-script "$(basename "$0")"
 
+
 # ====== Generate secure test user passwords ================================
 if [ ! -e "${CONFIG}" ] ; then
    echo -e "\x1b[34m$(date +"%F %H:%M:%S"): Generating ${CONFIG} ...\x1b[0m"
