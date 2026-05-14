@@ -418,8 +418,8 @@ subjectAltName         = ${ENV::SAN}
       if not os.path.isfile(self.PasswordFileName):
          sys.stdout.write('\x1b[33mGenerating CA password ' + self.PasswordFileName + ' ...\x1b[0m\n')
          execute(f"""\
-pwgen -sy 128 >{self.PasswordFileName}.tmp && \\
-mv {self.PasswordFileName}.tmp {self.PasswordFileName}""")
+pwgen -sy 128 >\"{self.PasswordFileName}.tmp\" && \
+mv \"{self.PasswordFileName}.tmp\" \"{self.PasswordFileName}\"""")
          assert os.path.isfile(self.PasswordFileName)
 
 
@@ -427,12 +427,12 @@ mv {self.PasswordFileName}.tmp {self.PasswordFileName}""")
       if not os.path.isfile(self.KeyFileName):
          sys.stdout.write('\x1b[33mGenerating CA key ' + self.KeyFileName + ' ...\x1b[0m\n')
          execute(f"""\
-openssl genrsa                           \\
-   -aes256                               \\
-   -out {self.KeyFileName}.tmp           \\
-   -passout file:{self.PasswordFileName} \\
-   {str(self.KeyLength)} &&              \\
-mv {self.KeyFileName}.tmp {self.KeyFileName}""")
+openssl genrsa \
+   -aes256 \
+   -out \"{self.KeyFileName}.tmp\" \
+   -passout \"file:{self.PasswordFileName}\" \
+   {str(self.KeyLength)} && \
+mv \"{self.KeyFileName}.tmp\" \"{self.KeyFileName}\"""")
          assert os.path.isfile(self.KeyFileName)
 
          # Make sure invalid files are removed:
@@ -450,16 +450,16 @@ mv {self.KeyFileName}.tmp {self.KeyFileName}""")
          if not os.path.isfile(self.CertFileName):
             sys.stdout.write('\x1b[33mGenerating self-signed root CA certificate ' + self.CertFileName + ' ...\x1b[0m\n')
             execute(f"""\
-SAN="" openssl req                      \\
-   -x509                                \\
-   -config {self.ConfigFileName}        \\
-   -extensions v3_ca                    \\
-   -utf8 -subj {self.Subject}           \\
-   -days {self.DefaultDays}             \\
-   -key {self.KeyFileName}              \\
-   -passin file:{self.PasswordFileName} \\
-   -out {self.CertFileName}.tmp &&      \\
-mv {self.CertFileName}.tmp {self.CertFileName}""")
+SAN=\"\" openssl req \
+   -x509 \
+   -config \"{self.ConfigFileName}\" \
+   -extensions v3_ca \
+   -utf8 -subj \"{self.Subject}\" \
+   -days \"{self.DefaultDays}\" \
+   -key \"{self.KeyFileName}\" \
+   -passin \"file:{self.PasswordFileName}\" \
+   -out \"{self.CertFileName}.tmp\" && \
+mv \"{self.CertFileName}.tmp\" \"{self.CertFileName}\"""")
             assert os.path.isfile(self.CertFileName)
 
 
@@ -480,30 +480,33 @@ mv {self.CertFileName}.tmp {self.CertFileName}""")
             # ------ Generate CSR -------------------------------------------
             csrFileName : Final[str] = self.CertFileName + '.csr'
             sys.stdout.write('\x1b[33mGenerating CSR ' + csrFileName + ' ...\x1b[0m\n')
-            execute('SAN="" openssl req' +
-                  ' -new'              +   # Not self-signed
-                  ' -config '          + self.ConfigFileName     +
-                  ' -extensions v3_ca' +
-                  ' -utf8 -subj "'     + str(self.Subject) + '"' +
-                  ' -key '             + self.KeyFileName        +
-                  ' -passin file:'     + self.PasswordFileName   +
-                  ' -out '             + csrFileName)
+            execute(f"""\
+SAN=\"\" openssl req \
+   -new \
+   -config \"{self.ConfigFileName}\" \
+   -extensions v3_ca \
+   -utf8 -subj \"{self.Subject}\" \
+   -key \"{self.KeyFileName}\" \
+   -passin \"file:{self.PasswordFileName}\" \
+   -out \"{csrFileName}.tmp\" && \
+mv \"{csrFileName}.tmp\" \"{csrFileName}\"""")
             assert os.path.isfile(csrFileName)
 
             # ------ Get CSR signed by parent CA ----------------------------
             sys.stdout.write('\x1b[33mGetting CSR ' + csrFileName + ' signed by ' + parentCA.CAName + ' ...\x1b[0m\n')
 
             tmpCertFileName = self.CertFileName + '.tmp'
-            execute('SAN="" openssl ca' +
-                    ' -batch'            +
-                    ' -notext'           +
-                    ' -config '          + parentCA.ConfigFileName    +
-                    ' -extensions '      + self.Extension             +
-                    ' -utf8 -subj "'     + str(self.Subject) + '"'    +
-                    ' -days '            + str(parentCA.DefaultDays)  +
-                    ' -passin file:'     + parentCA.PasswordFileName  +
-                    ' -in '              + csrFileName           +
-                    ' -out '             + tmpCertFileName)
+            execute(f"""\
+SAN=\"\" openssl ca \
+   -batch \
+   -notext \
+   -config \"{parentCA.ConfigFileName}\" \
+   -extensions \"{self.Extension}\" \
+   -utf8 -subj \"{self.Subject}\" \
+   -days \"{str(parentCA.DefaultDays)}\" \
+   -passin \"file:{parentCA.PasswordFileName}\" \
+   -in \"{csrFileName}\" \
+   -out \"{tmpCertFileName}\"""")
             assert os.path.isfile(tmpCertFileName)
 
             # ------ Add the whole certificate chain ------------------------
@@ -523,16 +526,17 @@ mv {self.CertFileName}.tmp {self.CertFileName}""")
             #       works! The CAfile is always trusted, and OpenSSL will verify
             #       all certificates of the chain.
             #       -> https://stackoverflow.com/questions/25482199/verify-a-certificate-chain-using-openssl-verify
-            cmd = 'openssl verify ' + \
-                  ' -show_chain'    + \
-                  ' -verbose'       + \
-                  ' -no-CApath'     + \
-                  ' -no-CAstore'    + \
-                  ' -CAfile '       + self.RootCA.CertFileName
+            command : str = f"""\
+openssl verify \
+ -show_chain \
+ -verbose \
+ -no-CApath \
+ -no-CAstore \
+ -CAfile \"{self.RootCA.CertFileName}\""""
             if self.ParentCA:
-               cmd += ' -untrusted ' + self.ParentCA.CertFileName
-            cmd +=' ' + self.CertFileName
-            execute(cmd)
+               command += f' -untrusted "{self.ParentCA.CertFileName}'
+            command +=' ' + self.CertFileName
+            execute(command)
 
 
       # ====== Generate initial CRL =========================================
@@ -542,10 +546,11 @@ mv {self.CertFileName}.tmp {self.CertFileName}""")
 
       # ====== Print certificate ============================================
       if VerboseMode:
-         execute('openssl x509 '                  +
-               ' -noout'                        +   # Do not dump the encoded certificate
-               ' -subject -ext subjectAltName ' +   # Print basic information
-               ' -in ' + self.CertFileName)
+         execute(f"""\
+openssl x509 \
+ -noout \
+ -subject -ext subjectAltName \
+ -in \"{self.CertFileName}\"""")
 
 
    # ###### Sign certificate ################################################
@@ -558,16 +563,17 @@ mv {self.CertFileName}.tmp {self.CertFileName}""")
       assert os.path.isfile(csrFileName)
 
       tmpCertFileName = certificate.CertFileName + '.tmp'
-      execute('SAN="' + certificate.SubjectAltName + '" openssl ca' +
-              ' -batch'            +
-              ' -notext'           +
-              ' -config '          + self.ConfigFileName            +
-              ' -extensions '      + certificate.Extension          +
-              ' -utf8 -subj "'     + str(certificate.Subject) + '"' +
-              ' -days '            + str(self.DefaultDays)          +
-              ' -passin file:'     + self.PasswordFileName          +
-              ' -in '              + csrFileName                    +
-              ' -out '             + tmpCertFileName)
+      execute(f"""\
+SAN="{certificate.SubjectAltName}" openssl ca \
+ -batch \
+ -notext \
+ -config \"{self.ConfigFileName}\" \
+ -extensions \"{certificate.Extension}\" \
+ -utf8 -subj \"{certificate.Subject}\" \
+ -days \"{str(self.DefaultDays)}\" \
+ -passin \"file:{self.PasswordFileName}\" \
+ -in \"{csrFileName}\" \
+ -out "{tmpCertFileName}\"""")
       assert os.path.isfile(tmpCertFileName)
 
       # ------ Add the whole chain ------------------------------------------
@@ -582,16 +588,17 @@ mv {self.CertFileName}.tmp {self.CertFileName}""")
    def verifyCertificate(self, certificate : 'Certificate') -> bool:
       sys.stdout.write('\x1b[33mVerifying certificate ' + certificate.CertFileName + ' ...\x1b[0m\n')
       assert self.RootCA is not None
-      result = execute('openssl verify ' +
-                       ' -show_chain' +
-                       ' -verbose'    +
-                       ' -crl_check'  +
-                       ' -no-CApath'  +
-                       ' -no-CAstore' +
-                       ' -CAfile '    + self.RootCA.CertFileName +
-                       ' -untrusted ' + self.CertFileName +
-                       ' -CRLfile '   + self.CRLFileName +
-                       ' ' + certificate.CertFileName, mayFail = True)
+      result = execute(f"""\
+openssl verify \
+ -show_chain \
+ -verbose \
+ -crl_check \
+ -no-CApath \
+ -no-CAstore \
+ -CAfile \"{self.RootCA.CertFileName}\" \
+ -untrusted \"{self.CertFileName}\" \
+ -CRLfile \"{self.CRLFileName}\" \
+"{certificate.CertFileName}\"""", mayFail=True)
       return result == 0
 
 
@@ -599,10 +606,11 @@ mv {self.CertFileName}.tmp {self.CertFileName}""")
    def revokeCA(self, ca : 'CA') -> None:
       sys.stdout.write('\x1b[33mRevoking CA ' + ca.CertFileName + ' ...\x1b[0m\n')
       assert os.path.isfile(ca.CertFileName)
-      execute('SAN="" openssl ca' +
-              ' -revoke '      + ca.CertFileName  +
-              ' -config '      + self.ConfigFileName   +
-              ' -passin file:' + self.PasswordFileName)
+      result = execute(f"""\
+openssl ca \
+ -revoke \"{ca.CertFileName}\" \
+ -config \"{self.ConfigFileName}\" \
+ -passin \"file:{self.PasswordFileName}\"""")
       self.generateCRL()
 
       # Remove the now-invalid certificate file:
@@ -614,10 +622,11 @@ mv {self.CertFileName}.tmp {self.CertFileName}""")
    def revokeCertificate(self, certificate : 'Certificate') -> None:
       sys.stdout.write('\x1b[33mRevoking certificate ' + certificate.CertFileName + ' ...\x1b[0m\n')
       assert os.path.isfile(self.CertFileName)
-      execute('SAN="" openssl ca' +
-              ' -revoke '      + certificate.CertFileName  +
-              ' -config '      + certificate.CA.ConfigFileName   +
-              ' -passin file:' + certificate.CA.PasswordFileName)
+      result = execute(f"""\
+SAN="" openssl ca \
+ -revoke \"{certificate.CertFileName}\" \
+ -config \"{certificate.CA.ConfigFileName}\" \
+ -passin \"file:{certificate.CA.PasswordFileName}\"""")
       self.generateCRL()
 
       # Remove the now-invalid certificate file:
@@ -628,11 +637,13 @@ mv {self.CertFileName}.tmp {self.CertFileName}""")
    # ###### Generate CRL ####################################################
    def generateCRL(self) -> None:
       sys.stdout.write('\x1b[33mGenerating CRL ' + self.CRLFileName + ' ...\x1b[0m\n')
-      execute('SAN="" openssl ca'     +
-              ' -gencrl'       +
-              ' -config '      + self.ConfigFileName     +
-              ' -passin file:' + self.PasswordFileName +
-              ' -out '         + self.CRLFileName)
+      execute(f"""\
+SAN="" openssl ca \
+ -gencrl \
+ -config \"{self.ConfigFileName}\" \
+ -passin \"file:{self.PasswordFileName}\" \
+ -out \"{self.CRLFileName}.tmp\" && \
+mv \"{self.CRLFileName}.tmp\" \"{self.CRLFileName}\"""")
       assert(os.path.isfile(self.CRLFileName))
 
       # ====== Update global CRL ============================================
@@ -641,8 +652,8 @@ mv {self.CertFileName}.tmp {self.CertFileName}""")
 
    # ###### Add CA to global CRL dictionary #################################
    def addToGlobalCRLDictionary(self, ca : 'CA') -> None:
-      level : int         = 1
-      currentCA    : 'CA' = ca
+      level     : int  = 1
+      currentCA : 'CA' = ca
       while currentCA.ParentCA is not None:
          level = level + 1
          currentCA = currentCA.ParentCA
@@ -708,9 +719,11 @@ class Certificate:
       # ====== Generate key =================================================
       if not os.path.isfile(self.KeyFileName):
          sys.stdout.write('\x1b[33mGenerating key ' + self.KeyFileName + ' ...\x1b[0m\n')
-         execute('openssl genrsa'  +
-                 ' -out '          + os.path.join(self.Directory, self.KeyFileName) + '.tmp'
-                 ' ' + str(self.KeyLength))
+         execute(f"""\
+openssl genrsa \
+ -out \"{os.path.join(self.Directory, self.KeyFileName)}.tmp\" \
+ {str(self.KeyLength)} && \
+mv \"{os.path.join(self.Directory, self.KeyFileName)}.tmp\" \"{os.path.join(self.Directory, self.KeyFileName)}\"""")
          assert os.path.isfile(self.KeyFileName)
 
          #  Make sure that an invalid cerfificate file is removed:
@@ -722,13 +735,15 @@ class Certificate:
          # ------ Generate CSR ----------------------------------------------
          csrFileName : Final[str] = os.path.join(self.Directory, safeName + '.csr')
          sys.stdout.write('\x1b[33mGenerating CSR ' + csrFileName + ' ...\x1b[0m\n')
-         execute('SAN="' + self.SubjectAltName + '" openssl req' +
-                 ' -new'          +   # Not self-signed
-                 ' -config '      + self.CA.ConfigFileName   +
-                 ' -extensions '  + self.Extension           +
-                 ' -utf8 -subj "' + str(self.Subject) + '"'  +
-                 ' -key '         + self.KeyFileName         +
-                 ' -out '         + csrFileName)
+         execute(f"""\
+SAN="{self.SubjectAltName}" openssl req \
+ -new \
+ -config \"{self.CA.ConfigFileName}\" \
+ -extensions \"{self.Extension}\" \
+ -utf8 -subj \"{self.Subject}\" \
+ -key \"{self.KeyFileName}\" \
+ -out \"{csrFileName}.tmp\" && \
+mv \"{csrFileName}.tmp\" \"{csrFileName}\"""")
          assert os.path.isfile(csrFileName)
 
          # ------ Get CSR signed by CA --------------------------------------
@@ -744,10 +759,11 @@ class Certificate:
 
       # ====== Verify certificate ===========================================
       # Print certificate:
-      execute('openssl x509 '                  +
-              ' -noout'                        +   # Do not dump the encoded certificate
-              ' -subject -ext subjectAltName ' +   # Print basic information
-              ' -in ' + self.CertFileName)
+      execute(f"""\
+openssl x509 \
+ -noout \
+ -subject -ext subjectAltName \
+ -in \"{self.CertFileName}\"""")
 
 
    # ###### Revoke certificate ##############################################
