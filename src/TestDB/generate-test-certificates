@@ -28,7 +28,7 @@
 #
 # Contact: thomas.dreibholz@gmail.com
 
-import getopt
+import argparse
 import sys
 
 if sys.version_info < (3, 10):
@@ -58,52 +58,52 @@ revokeIfExisting     : bool                = True
 revoke               : bool                = False
 
 # ====== Handle arguments ===================================================
-try:
-   options, args = getopt.gnu_getopt(
-      sys.argv[1:],
-      'scuxirS:K:k:',
-      [ 'server',
-        'client',
-        'user',
-        'revoke-if-existing',
-        'ignore-if-existing',
-        'revoke',
-        'san=',
-        'keylen-ca=',
-        'keylen-cert='
-      ])
-   for option, optarg in options:
-      if option in ( '-s', '--server' ):
-         certType = CertificateType.Server
-      elif option in ( '-c', '--client' ):
-         certType = CertificateType.Client
-      elif option in ( '-u', '--user' ):
-         certType = CertificateType.User
-      elif option in ( '-r', '--revoke' ):
-         revoke = True
-      elif option in ( '-x', '--revoke-if-existing' ):
-         revokeIfExisting = True
-      elif option in ( '-i', '--ignore-if-existing' ):
-         revokeIfExisting = False
-      elif option in ( '-S', '--san', '--subjectAltName' ):
-         subjectAltName = optarg
-      elif option in ( '-K', '--keylen-ca' ):
-         caKeyLength = int(optarg)
-      elif option in ( '-k', '--keylen-cert' ):
-         certKeyLength = int(optarg)
-except getopt.GetoptError as error:
-   sys.stderr.write('ERROR: ' + str(error) + '\n')
-   usage(1)
-if len(args) < 2:
-   usage(1)
+parser = argparse.ArgumentParser(
+   description     = 'X.509 CA and Certificate Test Setup Script',
+   formatter_class = argparse.ArgumentDefaultsHelpFormatter
+)
 
-mainDirectory : str = args[0]
-for i in range(1, len(args)):
-   ( name,  san ) = prepareSubjectAltName(certType, args[i], subjectAltName)
+# Positional arguments:
+parser.add_argument('ssl_directory',      help = 'The main directory for SSL certificates')
+parser.add_argument('names', nargs = '+', help='One or more names for the certificates')
+
+# Certificate Type (mutually exclusive):
+type_group = parser.add_mutually_exclusive_group()
+type_group.add_argument('-s', '--server', action = 'store_const', dest = 'cert_type',
+                        const=CertificateType.Server, help = 'Create a server certificate')
+type_group.add_argument('-c', '--client', action = 'store_const', dest = 'cert_type',
+                        const=CertificateType.Client, help = 'Create a client certificate')
+type_group.add_argument('-u', '--user',   action = 'store_const', dest = 'cert_type',
+                        const=CertificateType.User,   help = 'Create a user certificate')
+parser.set_defaults(cert_type= CertificateType.Server)
+
+# Existing Certificate Behavior (mutually exclusive):
+existing_group = parser.add_mutually_exclusive_group()
+existing_group.add_argument('-x', '--revoke-if-existing', action = 'store_true', default = True,
+                              help = 'Revoke the certificate if it already exists')
+existing_group.add_argument('-i', '--ignore-if-existing', action = 'store_false',
+                              dest = 'revoke_if_existing',
+                              help = 'Ignore and do not revoke if the certificate exists')
+
+# Other Options:
+parser.add_argument('-r', '--revoke', action = 'store_true',
+                     help = 'Revoke the generated certificate(s) immediately')
+parser.add_argument('-S', '--san', '--subjectAltName', dest = 'subjectAltName', default=None,
+                     help = 'Subject Alternative Name (subjectAltName|LOCAL|LOOKUP)')
+parser.add_argument('-K', '--keylen-ca', type = int, default = DefaultCAKeyLength,
+                     help = 'Key length for the CA')
+parser.add_argument('-k', '--keylen-cert', type = int, default = DefaultCertKeyLength,
+                     help = 'Key length for the certificates')
+
+args = parser.parse_args()
+
+mainDirectory : Final[str] = args.ssl_directory
+for name in args.names:
+   ( name,  san ) = prepareSubjectAltName(args.cert_type, name, args.subjectAltName)
    certificatesToCreate.append({ 'name'             : name,
-                                 'type'             : certType,
+                                 'type'             : args.cert_type,
                                  'subjectAltName'   : san,
-                                 'revokeIfExisting' : revokeIfExisting })
+                                 'revokeIfExisting' : args.revoke_if_existing })
 # print(certificatesToCreate)
 
 
