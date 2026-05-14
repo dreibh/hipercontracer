@@ -417,18 +417,22 @@ subjectAltName         = ${ENV::SAN}
       # ====== Generate CA password =========================================
       if not os.path.isfile(self.PasswordFileName):
          sys.stdout.write('\x1b[33mGenerating CA password ' + self.PasswordFileName + ' ...\x1b[0m\n')
-         execute('pwgen -sy 128 >' + self.PasswordFileName)
+         execute(f"""\
+pwgen -sy 128 >{self.PasswordFileName}.tmp && \\
+mv {self.PasswordFileName}.tmp {self.PasswordFileName}""")
          assert os.path.isfile(self.PasswordFileName)
 
 
       # ====== Generate CA key ==============================================
       if not os.path.isfile(self.KeyFileName):
          sys.stdout.write('\x1b[33mGenerating CA key ' + self.KeyFileName + ' ...\x1b[0m\n')
-         execute('openssl genrsa'  +
-                 ' -aes256 '       +   # Use AES-256 encryption
-                 ' -out '          + self.KeyFileName      +
-                 ' -passout file:' + self.PasswordFileName +
-                 ' ' + str(self.KeyLength))
+         execute(f"""\
+openssl genrsa                           \\
+   -aes256                               \\
+   -out {self.KeyFileName}.tmp           \\
+   -passout file:{self.PasswordFileName} \\
+   {str(self.KeyLength)} &&              \\
+mv {self.KeyFileName}.tmp {self.KeyFileName}""")
          assert os.path.isfile(self.KeyFileName)
 
          # Make sure invalid files are removed:
@@ -445,15 +449,17 @@ subjectAltName         = ${ENV::SAN}
 
          if not os.path.isfile(self.CertFileName):
             sys.stdout.write('\x1b[33mGenerating self-signed root CA certificate ' + self.CertFileName + ' ...\x1b[0m\n')
-            execute('SAN="" openssl req' +
-                    ' -x509'             +   # Self-signed
-                    ' -config '          + self.ConfigFileName      +
-                    ' -extensions v3_ca' +
-                    ' -utf8 -subj "'     + str(self.Subject) + '"'  +
-                    ' -days '            + str(self.DefaultDays)    +
-                    ' -key '             + self.KeyFileName         +
-                    ' -passin file:'     + self.PasswordFileName    +
-                    ' -out '             + self.CertFileName)
+            execute(f"""\
+SAN="" openssl req                      \\
+   -x509                                \\
+   -config {self.ConfigFileName}        \\
+   -extensions v3_ca                    \\
+   -utf8 -subj {self.Subject}           \\
+   -days {self.DefaultDays}             \\
+   -key {self.KeyFileName}              \\
+   -passin file:{self.PasswordFileName} \\
+   -out {self.CertFileName}.tmp &&      \\
+mv {self.CertFileName}.tmp {self.CertFileName}""")
             assert os.path.isfile(self.CertFileName)
 
 
@@ -703,7 +709,7 @@ class Certificate:
       if not os.path.isfile(self.KeyFileName):
          sys.stdout.write('\x1b[33mGenerating key ' + self.KeyFileName + ' ...\x1b[0m\n')
          execute('openssl genrsa'  +
-                 ' -out '          + os.path.join(self.Directory, self.KeyFileName) +
+                 ' -out '          + os.path.join(self.Directory, self.KeyFileName) + '.tmp'
                  ' ' + str(self.KeyLength))
          assert os.path.isfile(self.KeyFileName)
 

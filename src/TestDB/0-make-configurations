@@ -61,8 +61,9 @@ fi
 
 # ====== Dependencies =======================================================
 # These scripts need the X.509-Tools of the System-Tools software suite!
-if ! command -v check-certificate || \
-   ! command -v print-utf8        || \
+if ! command -v check-certificate   || \
+   ! command -v print-utf8          || \
+   ! command -v test-tls-connection || \
    ! command -v view-certificate  ; then
    if [ "${ID}" == "ubuntu" ] ; then
       sudo apt-add-repository -sy ppa:dreibh/ppa
@@ -70,6 +71,7 @@ if ! command -v check-certificate || \
       sudo DEBIAN_FRONTEND=noninteractive apt install -y
          figlet td-print-utf8 td-x509-tools
    elif [ "${ID}" == "fedora" ] ; then
+      sudo dnf copr enable -y dreibh/ppa
       sudo dnf install -y \
          figlet td-system-tools-print-utf8 td-system-tools-x509-tools
    elif [ "${ID}" == "freebsd" ] ; then
