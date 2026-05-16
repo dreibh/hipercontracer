@@ -61,9 +61,19 @@ class CertificateType(Enum):
    Client          = 5
    User            = 6
 
+# Key algorithm:
+class KeyAlgorithm(Enum):
+   RSA     = 1,
+   EC      = 2,
+   ED25519 = 3,
+   ED448   = 4
+
 # Some defaults:
-DefaultCAKeyLength   : Final[int] = 16384
-DefaultCertKeyLength : Final[int] = 16384
+DefaultKeyAlgorithm  : Final[KeyAlgorithm] = KeyAlgorithm.RSA
+DefaultCAKeyLength   : Final[int] = 16384               # RSA only!
+DefaultCertKeyLength : Final[int] = 16384               # RSA only!
+DefaultECCurve       : Final[str] = 'brainpoolP512r1'   # EC only!
+
 
 # ***** TEST ONLY *******************************
 # These settings are for fast testing only:
@@ -203,7 +213,9 @@ class CA:
                 subject           : str,
                 certType          : CertificateType,
                 days              : int = 10 * 365,
+                keyAlgorithm      : KeyAlgorithm = DefaultKeyAlgorithm,
                 keyLength         : int = DefaultCAKeyLength,
+                ecCurve           : str = DefaultECCurve,
                 globalCRLFileName : str = DefaultGlobalCRLFileName):
 
       safeName               : Final[str]             = re.sub(r'[^a-zA-Z0-9+-\.]', '_', name)
@@ -223,9 +235,12 @@ class CA:
       else:
          raise Exception('Invalid certificate type')
 
-      self.ParentCA          : 'CA' | None = parentCA
-      self.DefaultDays       : Final[int]  = days
-      self.KeyLength         : Final[int]  = keyLength
+      self.ParentCA          : 'CA' | None         = parentCA
+      self.DefaultDays       : Final[int]          = days
+
+      self.KeyAlgorithm      : Final[KeyAlgorithm] = keyAlgorithm
+      self.KeyLength         : Final[int]          = keyLength
+      self.ECCurve           : Final[str]          = ecCurve
 
       self.CertsDirectory    : Final[str] = os.path.join(self.Directory, 'certs')
       self.NewCertsDirectory : Final[str] = os.path.join(self.Directory, 'newcerts')
@@ -428,12 +443,25 @@ mv {shlex.quote(self.PasswordFileName + '.tmp')} {shlex.quote(self.PasswordFileN
       # ====== Generate CA key ==============================================
       if not os.path.isfile(self.KeyFileName):
          sys.stdout.write('\x1b[33mGenerating CA key ' + self.KeyFileName + ' ...\x1b[0m\n')
+
+         algorithmOptions : str
+         if self.KeyAlgorithm == KeyAlgorithm.RSA:
+            algorithmOptions = f'-algorithm RSA -pkeyopt rsa_keygen_bits:{self.KeyLength}'
+         elif self.KeyAlgorithm == KeyAlgorithm.EC:
+            algorithmOptions = f'-algorithm EC -pkeyopt ec_paramgen_curve:{self.ECCurve}'
+         elif self.KeyAlgorithm == KeyAlgorithm.ED25519:
+             algorithmOptions = "-algorithm ED25519"
+         elif self.KeyAlgorithm == KeyAlgorithm.ED448:
+             algorithmOptions = "-algorithm ED448"
+         else:
+            raise Exception('Unsupported key algorithm!')
+
          execute(f"""\
-openssl genrsa \
+openssl genpkey \
+   {algorithmOptions} \
    -aes256 \
    -out {shlex.quote(self.KeyFileName + '.tmp')} \
-   -passout file:{shlex.quote(self.PasswordFileName)} \
-   {str(self.KeyLength)} && \
+   -pass file:{shlex.quote(self.PasswordFileName)} && \
 mv {shlex.quote(self.KeyFileName + '.tmp')} {shlex.quote(self.KeyFileName)}""")
          assert os.path.isfile(self.KeyFileName)
 
@@ -685,7 +713,9 @@ class Certificate:
                 subjectWithoutCN : str,
                 subjectAltName   : str,
                 certType         : CertificateType = CertificateType.Server,
+                keyAlgorithm     : KeyAlgorithm    = DefaultKeyAlgorithm,
                 keyLength        : int             = DefaultCertKeyLength,
+                ecCurve          : str             = DefaultECCurve,
                 revokeIfExisting : bool            = False):
 
       sys.stdout.write('\x1b[34mCreating certificate ' + name + ' ...\x1b[0m\n')
@@ -707,7 +737,9 @@ class Certificate:
          raise Exception('Invalid certificate type')
 
 
+      self.KeyAlgorithm : Final[KeyAlgorithm] = keyAlgorithm
       self.KeyLength    : Final[int] = keyLength
+      self.ECCurve      : Final[str] = ecCurve
       self.KeyFileName  : Final[str] = os.path.join(self.Directory, safeName + '.key')
       self.CertFileName : Final[str] = os.path.join(self.Directory, safeName + '.crt')
 
@@ -721,11 +753,24 @@ class Certificate:
       # ====== Generate key =================================================
       if not os.path.isfile(self.KeyFileName):
          sys.stdout.write('\x1b[33mGenerating key ' + self.KeyFileName + ' ...\x1b[0m\n')
-         keyFileName : str = os.path.join(self.Directory, self.KeyFileName)
+
+         keyFileName      : str = os.path.join(self.Directory, self.KeyFileName)
+         algorithmOptions : str
+         if self.KeyAlgorithm == KeyAlgorithm.RSA:
+            algorithmOptions = f'-algorithm RSA -pkeyopt rsa_keygen_bits:{self.KeyLength}'
+         elif self.KeyAlgorithm == KeyAlgorithm.EC:
+            algorithmOptions = f'-algorithm EC -pkeyopt ec_paramgen_curve:{self.ECCurve}'
+         elif self.KeyAlgorithm == KeyAlgorithm.ED25519:
+             algorithmOptions = "-algorithm ED25519"
+         elif self.KeyAlgorithm == KeyAlgorithm.ED448:
+             algorithmOptions = "-algorithm ED448"
+         else:
+            raise Exception('Unsupported key algorithm!')
+
          execute(f"""\
-openssl genrsa \
- -out {shlex.quote(keyFileName + '.tmp')} \
- {str(self.KeyLength)} && \
+openssl genpkey \
+ {algorithmOptions} \
+ -out {shlex.quote(keyFileName + '.tmp')} && \
 mv {shlex.quote(keyFileName + '.tmp')} {shlex.quote(keyFileName)}""")
          assert os.path.isfile(keyFileName)
 

@@ -35,22 +35,18 @@ if sys.version_info < (3, 10):
    sys.stderr.write('ERROR: ' + sys.argv[0] + ' requires Python 3.10 or later!\n')
    sys.exit(1)
 
-from typing            import Any
+from typing            import Any, Final
 from CertificateHelper import *
 
 
 
 # ###### Main program #######################################################
 
-caKeyLength   : int = DefaultCAKeyLength
-certKeyLength : int = DefaultCertKeyLength
-
 # ====== Handle command-line parameters =====================================
-certificatesToCreate : list[dict[str,Any]] = []
-subjectAltName       : str | None          = None
-certType             : CertificateType     = CertificateType.Server
-revokeIfExisting     : bool                = True
-revoke               : bool                = False
+subjectAltName   : str | None      = None
+certType         : CertificateType = CertificateType.Server
+revokeIfExisting : bool            = True
+revoke           : bool            = False
 
 # ====== Handle arguments ===================================================
 parser : Final[argparse.ArgumentParser] = argparse.ArgumentParser(
@@ -85,13 +81,23 @@ parser.add_argument('-r', '--revoke', action = 'store_true',
                      help = 'Revoke the generated certificate(s) immediately')
 parser.add_argument('-S', '--san', '--subjectAltName', dest = 'subjectAltName', default=None,
                      help = 'Subject Alternative Name (subjectAltName|LOCAL|LOOKUP)')
+
+parser.add_argument('-a', '--algorithm', type = str, default = 'RSA',
+                    choices = [ 'RSA', 'EC', 'ED25519', 'ED448' ],
+                    help = 'The key algorithm to use')
+parser.add_argument('-C', '--curve', type=str, default=DefaultECCurve,
+                    help = 'The elliptic curve to use (only applicable if algorithm is EC)')
 parser.add_argument('-K', '--keylen-ca', type = int, default = DefaultCAKeyLength,
-                     help = 'Key length for the CA')
+                     help = 'Key length for the CA (only applicable if algorithm is RSA)')
 parser.add_argument('-k', '--keylen-cert', type = int, default = DefaultCertKeyLength,
-                     help = 'Key length for the certificates')
+                     help = 'Key length for the certificates (only applicable if algorithm is RSA)')
 
 args = parser.parse_args()
 
+keyAlgorithm         : Final[KeyAlgorithm]  = KeyAlgorithm[args.algorithm]
+caKeyLength          : Final[int]           = args.keylen_ca
+certKeyLength        : Final[int]           = args.keylen_cert
+ecCurve              : Final[str]           = args.curve
 mainDirectory        : Final[str]           = args.ssl_directory
 certificatesToCreate : list[dict[str, Any]] = [ ]
 name                 : str
@@ -130,7 +136,8 @@ TestLevel1 : Final[CA] = \
       parentCA  = None,
       subject   = '/C=NO/ST=Oslo/L=Oslo/O=Simula Research Laboratory/streetAddress=Kristian Augusts gate 23/postalCode=0164/CN=Test Level-1 CA Certificate',
       certType  = CertificateType.RootCA,
-      keyLength = caKeyLength, globalCRLFileName = globalCRLFileName)
+      keyAlgorithm = keyAlgorithm, keyLength = caKeyLength, ecCurve = ecCurve,
+      globalCRLFileName = globalCRLFileName)
 
 # Create Test Root Level-2 CA certificate (signed by Test Root Level-1):
 TestLevel2 : Final[CA] = \
@@ -138,7 +145,8 @@ TestLevel2 : Final[CA] = \
       parentCA  = TestLevel1,
       subject   = '/C=NO/ST=Oslo/L=Oslo/O=Simula Research Laboratory/streetAddress=Kristian Augusts gate 23/postalCode=0164/CN=Test Level-2 CA Certificate',
       certType  = CertificateType.IntermediateCA,
-      keyLength = caKeyLength, globalCRLFileName = globalCRLFileName)
+      keyAlgorithm = keyAlgorithm, keyLength = caKeyLength, ecCurve = ecCurve,
+      globalCRLFileName = globalCRLFileName)
 
 # Create Test Intermediate CA certificate (signed by Test Root Level-2):
 TestIntermediate1 : Final[CA] = \
@@ -146,7 +154,8 @@ TestIntermediate1 : Final[CA] = \
       parentCA  = TestLevel2,
       subject   = '/C=NO/ST=Oslo/L=Oslo/O=Simula Metropolitan Centre for Digital Engineering (SimulaMet)/streetAddress=Stensberggata 27/postalCode=0170/CN=*',
       certType  = CertificateType.IntermediateCA,
-      keyLength = caKeyLength, globalCRLFileName = globalCRLFileName)
+      keyAlgorithm = keyAlgorithm, keyLength = caKeyLength, ecCurve = ecCurve,
+      globalCRLFileName = globalCRLFileName)
 
 # Create Test Intermediate CA certificate (signed by Test Root Level-2):
 TestIntermediate2 : Final[CA] = \
@@ -154,7 +163,8 @@ TestIntermediate2 : Final[CA] = \
       parentCA  = TestIntermediate1,
       subject   = '/C=NO/ST=Oslo/L=Oslo/O=Simula Metropolitan Centre for Digital Engineering (SimulaMet)/OU=Centre for Resilient Networks and Applications (CRNA)/streetAddress=Stensberggata 27/postalCode=0170/CN=*',
       certType  = CertificateType.IntermediateCA,
-      keyLength = caKeyLength, globalCRLFileName = globalCRLFileName)
+      keyAlgorithm = keyAlgorithm, keyLength = caKeyLength, ecCurve = ecCurve,
+      globalCRLFileName = globalCRLFileName)
 
 # Create Test Leaf CA certificate (signed by Test Intermediate):
 TestLeaf : Final[CA] = \
@@ -162,7 +172,8 @@ TestLeaf : Final[CA] = \
       parentCA  = TestIntermediate2,
       subject   = '/C=NO/ST=Oslo/L=Oslo/O=Simula Metropolitan Centre for Digital Engineering (SimulaMet)/OU=SimulaMet Interoperability Lab (SMIL)/streetAddress=Stensberggata 27/postalCode=0170/CN=*/',
       certType  = CertificateType.LeafCA,
-      keyLength = caKeyLength, globalCRLFileName = globalCRLFileName)
+      keyAlgorithm = keyAlgorithm, keyLength = caKeyLength, ecCurve = ecCurve,
+      globalCRLFileName = globalCRLFileName)
 
 
 # ====== Create Test Servers ================================================
@@ -183,7 +194,7 @@ for certificateToCreate in certificatesToCreate:
       Certificate(mainDirectory, certificateName, TestLeaf,
                   subjectWithoutCN, certificateToCreate['subjectAltName'],
                   certificateToCreate['type'],
-                  keyLength        = certKeyLength,
+                  keyAlgorithm = keyAlgorithm, keyLength = certKeyLength, ecCurve = ecCurve,
                   revokeIfExisting = revokeIfExisting)
 
    if revoke:
