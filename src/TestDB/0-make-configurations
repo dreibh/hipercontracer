@@ -87,9 +87,9 @@ if ! command -v check-certificate   || \
       # Install from sources:
       if [ ! -e system-tools ] ; then
          git clone https://dreibh@github.com/dreibh/system-tools.git
-         pushd system-tools >2/dev/null
+         pushd system-tools 2>/dev/null
       else
-         pushd system-tools >2/dev/null
+         pushd system-tools 2>/dev/null
          git pull
       fi
       ci/get-dependencies -i
