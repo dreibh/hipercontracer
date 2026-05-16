@@ -26,6 +26,7 @@ Restrictions: isolation-machine, breaks-testbed, needs-sudo, needs-internet, all
 Depends: gettext-base,
          hipercontracer-dbeaver-tools,
          hipercontracer-dbshell,
+         hipercontracer-examples,
          hipercontracer-importer,
          hipercontracer-query,
          hipercontracer-results,
