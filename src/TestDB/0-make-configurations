@@ -92,6 +92,7 @@ if ! command -v check-certificate   || \
          pushd system-tools 2>/dev/null
          git pull
       fi
+      popd 2>/dev/null
       ci/get-dependencies -i
       ./autogen.sh
       sudo make install

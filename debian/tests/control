@@ -32,5 +32,6 @@ Depends: gettext-base,
          hipercontracer-query,
          hipercontracer-results,
          pwgen,
+         python3-distro,
          python3-netifaces,
          rsync
