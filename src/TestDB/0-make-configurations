@@ -59,6 +59,13 @@ if [[ ! "${CONFIG}" =~ (-users\.conf)$ ]] ; then
    exit 1
 fi
 
+# ====== Check/set environment variables ====================================
+if [ ! -e /etc/os-release ] ; then
+   echo >&2 "ERROR: /etc/os-release does not exist!"
+   exit 1
+fi
+. /etc/os-release
+
 # ====== Dependencies =======================================================
 # These scripts need the X.509-Tools of the System-Tools software suite!
 if ! command -v check-certificate   || \
@@ -90,6 +97,7 @@ if ! command -v check-certificate   || \
       sudo make install
    fi
 fi
+
 show-script "$(basename "$0")"
 
 
