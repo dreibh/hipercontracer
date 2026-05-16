@@ -95,7 +95,7 @@ if ! command -v check-certificate   || \
          pushd system-tools 2>/dev/null
          git pull
       fi
-      ci/get-dependencies -i
+      sudo ci/get-dependencies -i
       ./autogen.sh
       sudo make install
       popd 2>/dev/null
