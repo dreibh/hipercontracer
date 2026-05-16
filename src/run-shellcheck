@@ -47,9 +47,14 @@ done
 # ###### Helper function to show failure ####################################
 exit-failed ()
 {
+   local columns
+   columns="$(print-utf8 -t 2>/dev/null || echo "80")"
+   columns="${columns/ */}"
+   columns=$((columns - 2))
+
    echo
    print-utf8 -n -s "\e[1;31;5m█" "▀" "█\e[0m" ;
-   echo "CHECK FAILED!" | figlet -w "${COLUMNS}" | print-utf8 -n -C "\e[1;31;5m█\e[25m" "\e[5m█\e[0m" ;
+   echo "CHECK FAILED!" | figlet -w "${columns}" | print-utf8 -n -C "\e[1;31;5m█\e[25m" "\e[5m█\e[0m" ;
    print-utf8 -n -s "\e[1;31;5m█" "▄" "█\e[0m"
    exit 1
 }
@@ -58,9 +63,14 @@ exit-failed ()
 # ###### Helper function to show success ####################################
 exit-success ()
 {
+   local columns
+   columns="$(print-utf8 -t 2>/dev/null || echo "80")"
+   columns="${columns/ */}"
+   columns=$((columns - 2))
+
    echo
    print-utf8 -n -s "\e[1;32m█" "▀" "█\e[0m" ;
-   echo "ALL CHECKS SUCCEEDED!" | figlet -w "${COLUMNS}" | print-utf8 -n -C "\e[1;32m█\e[25m" "█\e[0m" ;
+   echo "ALL CHECKS SUCCEEDED!" | figlet -w "${columns}" | print-utf8 -n -C "\e[1;32m█\e[25m" "█\e[0m" ;
    print-utf8 -n -s "\e[1;32m█" "▄" "█\e[0m"
    exit 0
 }
@@ -70,9 +80,13 @@ exit-success ()
 show-script ()
 {
    local script="$1"
+   local columns
+   columns="$(print-utf8 -t 2>/dev/null || echo "80")"
+   columns="${columns/ */}"
+   columns=$((columns - 2))
 
    print-utf8 -n -s "\e[1;36m█" "▀" "█\e[0m" ;
-   figlet -w "${COLUMNS}" "$(basename "${script}")" | print-utf8 -n -C "\e[1;36m█\e[25m" "█\e[0m" ;
+   figlet -w "${columns}" "$(basename "${script}")" | print-utf8 -n -C "\e[1;36m█\e[25m" "█\e[0m" ;
    print-utf8 -n -s "\e[1;36m█" "▄" "█\e[0m"
 }
 

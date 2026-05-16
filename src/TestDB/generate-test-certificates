@@ -82,7 +82,7 @@ parser.add_argument('-r', '--revoke', action = 'store_true',
 parser.add_argument('-S', '--san', '--subjectAltName', dest = 'subjectAltName', default=None,
                      help = 'Subject Alternative Name (subjectAltName|LOCAL|LOOKUP)')
 
-parser.add_argument('-a', '--algorithm', type = str, default = 'RSA',
+parser.add_argument('-A', '--algorithm', type = str, default = 'RSA',
                     choices = [ 'RSA', 'EC', 'ED25519', 'ED448' ],
                     help = 'The key algorithm to use')
 parser.add_argument('-C', '--curve', type=str, default=DefaultECCurve,

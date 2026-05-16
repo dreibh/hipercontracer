@@ -32,13 +32,16 @@
 set -euxo pipefail
 
 
- ###### Helper function to show script information #########################
+# ###### Helper function to show script information #########################
 show-script ()
 {
    local script="$1"
-
+   local columns
+   columns="$(print-utf8 -t 2>/dev/null || echo "80")"
+   columns="${columns/ */}"
+   columns=$((columns - 2))
    print-utf8 -n -s "\e[1;36m█" "▀" "█\e[0m" ;
-   figlet -w "${COLUMNS}" "$(basename "${script}")" | print-utf8 -n -C "\e[1;36m█\e[25m" "█\e[0m" ;
+   figlet -w "${columns}" "$(basename "${script}")" | print-utf8 -n -C "\e[1;36m█\e[25m" "█\e[0m" ;
    print-utf8 -n -s "\e[1;36m█" "▄" "█\e[0m"
 }
 
