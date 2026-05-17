@@ -29,9 +29,27 @@
 # Contact: dreibh@simula.no
 
 # Bash options:
-set -eux
+set -euxo pipefail
 
 
+# ###### Helper function to show script information #########################
+show-script ()
+{
+   local script="$1"
+   local columns
+   columns="$(print-utf8 -t 2>/dev/null || echo "80")"
+   columns="${columns/ */}"
+   columns=$((columns - 2))
+   print-utf8 -n -s "\e[1;36m█" "▀" "█\e[0m" ;
+   figlet -w "${columns}" "$(basename "${script}")" | print-utf8 -n -C "\e[1;36m█\e[25m" "█\e[0m" ;
+   print-utf8 -n -s "\e[1;36m█" "▄" "█\e[0m"
+}
+
+
+
+# ##### Main program ########################################################
+
+# ====== Handle arguments ===================================================
 if [ $# -ne 2 ] ; then
    echo >&2 "Usage: $0 mariadb|mongodb|mysql|postgresql users.conf"
    exit 1
@@ -39,14 +57,6 @@ fi
 if [ ! -e "$2" ] ; then
    echo >&2 "ERROR: Use configuration $2 does not exist!"
 fi
-
-
-# ====== Check/set environment variables ====================================
-if [ ! -e /etc/os-release ] ; then
-   echo >&2 "ERROR: /etc/os-release does not exist!"
-   exit 1
-fi
-. /etc/os-release
 
 DOMAIN="test.local"
 ROOT_PASSWORD="!root!"
@@ -64,6 +74,16 @@ if [ "${ROOT_PASSWORD}"       == "!root!"       ] || \
    echo >&2 "DO NOT USE THE EXAMPLE PASSWORDS!"
    exit 1
 fi
+
+show-script "$(basename "$0")"
+
+
+# ====== Check/set environment variables ====================================
+if [ ! -e /etc/os-release ] ; then
+   echo >&2 "ERROR: /etc/os-release does not exist!"
+   exit 1
+fi
+. /etc/os-release
 
 
 # ###### MariaDB ############################################################
@@ -103,7 +123,14 @@ if [ "$1" == "mariadb" ] ; then
 
    # ====== Basic configuration =============================================
    sudo ./name-in-etc-hosts "${server}.${DOMAIN}"
-   sudo ./generate-test-certificates /etc/ssl "${server}.${DOMAIN}"
+   if [ -x /usr/share/system-tools/generate-test-certificates ] ; then
+      sudo /usr/share/system-tools/generate-test-certificates /etc/ssl "${server}.${DOMAIN}"
+   elif [ -x /usr/local/share/system-tools/generate-test-certificates ] ; then
+      sudo /usr/local/share/system-tools/generate-test-certificates /etc/ssl "${server}.${DOMAIN}"
+   else
+      echo >&2 "ERROR: generate-test-certificates (part of the System-Tools package) is not installed!"
+      exit 1
+   fi
 
    # MariaDB needs separate certificate and key files.
    # The chain is in the CA file, it must not be in the certificate file!
@@ -170,7 +197,7 @@ EOF
    fi
 
    # ====== Test configuration ==============================================
-   ./test-tls-connection "${server}.${DOMAIN}:3306" /etc/ssl/TestLevel1/certs/TestLevel1.crt -- -starttls mysql
+   test-tls-connection "${server}.${DOMAIN}:3306" /etc/ssl/TestLevel1/certs/TestLevel1.crt -- -starttls mysql
 
 
 # ###### PostgreSQL #########################################################
@@ -261,7 +288,7 @@ elif [ "$1" == "postgresql" ] ; then
    sleep 5
 
    # ====== Test configuration ==============================================
-   ./test-tls-connection "${server}.${DOMAIN}:5432" /etc/ssl/TestLevel1/certs/TestLevel1.crt -- -starttls postgres
+   test-tls-connection "${server}.${DOMAIN}:5432" /etc/ssl/TestLevel1/certs/TestLevel1.crt -- -starttls postgres
 
 
 # ###### MongoDB ############################################################
@@ -430,7 +457,7 @@ EOF
    sleep 5
 
    # ====== Test configuration ==============================================
-   ./test-tls-connection "${server}.${DOMAIN}:27017" /etc/ssl/TestLevel1/certs/TestLevel1.crt
+   test-tls-connection "${server}.${DOMAIN}:27017" /etc/ssl/TestLevel1/certs/TestLevel1.crt
 
 
 # ###### Error ##############################################################

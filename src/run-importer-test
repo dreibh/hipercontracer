@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-set -eu
+set -euo pipefail
 
 # NOTE:
 # This script runs a simple importer test, by importing the example data files
