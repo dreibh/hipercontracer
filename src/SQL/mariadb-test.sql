@@ -28,7 +28,7 @@
 -- Contact: dreibh@simula.no
 
 
-# ###### Basic database features test #######################################
+-- ###### Basic database features test ######################################
 SELECT COUNT(*) FROM Ping;
 SELECT * FROM Ping LIMIT 10;
 SELECT COUNT(*) FROM Traceroute;
@@ -37,7 +37,7 @@ SELECT COUNT(*) FROM Jitter;
 SELECT * FROM Jitter LIMIT 5;
 
 
-# ###### Test helper functions ##############################################
+-- ###### Test helper functions #############################################
 SELECT UTCDateTime2UnixTimestamp('2014-09-29 11:22:33.789123');
 SELECT UnixTimestamp2UTCDateTime(1411989753789123000);
 
@@ -50,7 +50,8 @@ SELECT TimeStamp FROM Ping_v1 ORDER BY TimeStamp LIMIT 10;
 SELECT UnixTimestamp2UTCDateTime(Timestamp), Timestamp FROM Traceroute ORDER BY Timestamp LIMIT 10;
 SELECT TimeStamp FROM Traceroute_v1 ORDER BY Timestamp LIMIT 10;
 
-# ###### Advanced database features test ####################################
+
+-- ###### Advanced database features test ###################################
 -- The Event Scheduler will run the procedures daily.
 -- For testing, make sure they run immediately:
 CALL CreateDailyPartitionsForTable("test4hpct", "Ping", "SendTimestamp");

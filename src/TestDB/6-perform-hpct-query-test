@@ -29,9 +29,27 @@
 # Contact: dreibh@simula.no
 
 # Bash options:
-set -eu
+set -euo pipefail
 
 
+# ###### Helper function to show script information #########################
+show-script ()
+{
+   local script="$1"
+   local columns
+   columns="$(print-utf8 -t 2>/dev/null || echo "80")"
+   columns="${columns/ */}"
+   columns=$((columns - 2))
+   print-utf8 -n -s "\e[1;36m█" "▀" "█\e[0m" ;
+   figlet -w "${columns}" "$(basename "${script}")" | print-utf8 -n -C "\e[1;36m█\e[25m" "█\e[0m" ;
+   print-utf8 -n -s "\e[1;36m█" "▄" "█\e[0m"
+}
+
+
+
+# ##### Main program ########################################################
+
+# ====== Handle arguments ===================================================
 if [ $# -ne 2 ] ; then
    echo >&2 "Usage: $0 mariadb|mongodb|mysql|postgresql users.conf"
    exit 1
@@ -50,6 +68,8 @@ DATABASE_CONFIG="${HOME}/${DATABASE}-researcher-${DBMS}.conf"
 if [ ! -v VALGRIND_CMD ] ; then
    VALGRIND_CMD=""
 fi
+
+show-script "$(basename "$0")"
 
 
 # ###### Run test ###########################################################

@@ -29,9 +29,27 @@
 # Contact: dreibh@simula.no
 
 # Bash options:
-set -eu
+set -euo pipefail
 
 
+# ###### Helper function to show script information #########################
+show-script ()
+{
+   local script="$1"
+   local columns
+   columns="$(print-utf8 -t 2>/dev/null || echo "80")"
+   columns="${columns/ */}"
+   columns=$((columns - 2))
+   print-utf8 -n -s "\e[1;36m█" "▀" "█\e[0m" ;
+   figlet -w "${columns}" "$(basename "${script}")" | print-utf8 -n -C "\e[1;36m█\e[25m" "█\e[0m" ;
+   print-utf8 -n -s "\e[1;36m█" "▄" "█\e[0m"
+}
+
+
+
+# ##### Main program ########################################################
+
+# ====== Handle arguments ===================================================
 if [ $# -lt 1 ] ; then
    echo >&2 "Usage: $0 mariadb|mongodb|mysql|postgresql [--force-removal-without-confirmation]"
    exit 1
@@ -46,6 +64,8 @@ if [ $# -lt 2 ] || [ "$2" != "--force-removal-without-confirmation" ] ; then
    fi
 fi
 
+show-script "$(basename "$0")"
+
 
 # ====== Check/set environment variables ====================================
 if [ ! -e /etc/os-release ] ; then
@@ -55,13 +75,12 @@ fi
 . /etc/os-release
 
 
-
 # ###### MariaDB ############################################################
 if [ "$1" == "mariadb" ] ; then
    echo -e "\x1b[34m$(date +"%F %H:%M:%S"): Uninstalling MariaDB ...\x1b[0m"
 
    if [ "${ID}" == "ubuntu" ] || [ "${ID}" == "debian" ] ; then
-      sudo DEBIAN_FRONTEND=noninteractive apt purge -y mariadb-client* mariadb-server* mariadb-common mariadb-backup
+      sudo DEBIAN_FRONTEND=noninteractive apt autopurge -y mariadb-client* mariadb-server* mariadb-backup
    elif [ "${ID}" == "fedora" ] ; then
       sudo dnf remove -y 'mariadb-*'
    elif [ "${ID}" == "freebsd" ] ; then
@@ -89,7 +108,7 @@ elif [ "$1" == "postgresql" ] ; then
    echo -e "\x1b[34m$(date +"%F %H:%M:%S"): Uninstalling PostgreSQL ...\x1b[0m"
 
    if [ "${ID}" == "ubuntu" ] || [ "${ID}" == "debian" ] ; then
-      sudo DEBIAN_FRONTEND=noninteractive apt purge -y 'postgresql-*'
+      sudo DEBIAN_FRONTEND=noninteractive apt autopurge -y 'postgresql-*'
    elif [ "${ID}" == "fedora" ] ; then
       sudo dnf remove -y 'postgresql-*'
    elif [ "${ID}" == "freebsd" ] ; then
@@ -116,7 +135,7 @@ elif [ "$1" == "mongodb" ] ; then
    echo -e "\x1b[34m$(date +"%F %H:%M:%S"): Uninstalling MongoDB ...\x1b[0m"
 
    if [ "${ID}" == "ubuntu" ] || [ "${ID}" == "debian" ] ; then
-      sudo DEBIAN_FRONTEND=noninteractive apt purge -y 'mongodb-*'
+      sudo DEBIAN_FRONTEND=noninteractive apt autopurge -y 'mongodb-*'
    elif [ "${ID}" == "fedora" ] ; then
       sudo dnf remove -y 'mongodb-*'
    elif [ "${ID}" == "freebsd" ] ; then

@@ -265,7 +265,7 @@ $$
 DELIMITER ;
 
 
-# ###### Add events to create partitions ####################################
+-- ###### Add events to create partitions ###################################
 DROP EVENT IF EXISTS PingMaintenance;
 DROP EVENT IF EXISTS TracerouteMaintenance;
 DROP EVENT IF EXISTS JitterMaintenance;

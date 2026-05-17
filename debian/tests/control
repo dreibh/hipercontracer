@@ -10,6 +10,7 @@ Depends: hipercontracer,
 Tests: 20-hpct-results
 Restrictions: allow-stderr
 Depends: hipercontracer-common,
+         hipercontracer-examples,
          hipercontracer-results
 
 Tests: 30-dbeaver-tools
@@ -22,11 +23,17 @@ Depends: hipercontracer,
 
 Tests: 50-full-database-test
 Restrictions: isolation-machine, breaks-testbed, needs-sudo, needs-internet, allow-stderr
-Depends: hipercontracer-dbeaver-tools,
+Depends: figlet,
+         g++,
+         gettext-base,
+         git,
+         hipercontracer-dbeaver-tools,
          hipercontracer-dbshell,
+         hipercontracer-examples,
          hipercontracer-importer,
          hipercontracer-query,
          hipercontracer-results,
          pwgen,
+         python3-distro,
          python3-netifaces,
          rsync

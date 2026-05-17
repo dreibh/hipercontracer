@@ -29,7 +29,7 @@
 # Contact: dreibh@simula.no
 
 # Bash options:
-set -eu
+set -euo pipefail
 
 
 # ###### Usage ##############################################################

@@ -58,8 +58,7 @@ _hpct_query()
 
    # ====== Measurement type ================================================
    elif [ "${cword}" -eq 2 ] ; then
-      # shellcheck disable=SC2207
-      COMPREPLY=( $(compgen -W "ping traceroute" --  "${cur}") )
+      mapfile -t COMPREPLY < <(compgen -W "ping traceroute" --  "${cur}")
       return
 
    # ====== Options =========================================================
@@ -95,8 +94,7 @@ _hpct_query()
             ;;
          # ====== Special case: on/off ======================================
          -Z | --logcolor)
-            # shellcheck disable=SC2207
-            COMPREPLY=( $(compgen -W "on off" --  "${cur}") )
+            mapfile -t COMPREPLY < <(compgen -W "on off" --  "${cur}")
             return
             ;;
       esac
@@ -131,8 +129,7 @@ _hpct_query()
 --help
 --version
 "
-   # shellcheck disable=SC2207
-   COMPREPLY=( $( compgen -W "${opts}" -- "${cur}" ) )
+   mapfile -t COMPREPLY < <(compgen -W "${opts}" -- "${cur}" )
    return 0
 }
 
