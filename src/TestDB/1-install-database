@@ -123,7 +123,14 @@ if [ "$1" == "mariadb" ] ; then
 
    # ====== Basic configuration =============================================
    sudo ./name-in-etc-hosts "${server}.${DOMAIN}"
-   sudo ./generate-test-certificates /etc/ssl "${server}.${DOMAIN}"
+   if [ -x /usr/share/system-tools/generate-test-certificates ] ; then
+      sudo /usr/share/system-tools/generate-test-certificates /etc/ssl "${server}.${DOMAIN}"
+   elif [ -x /usr/local/share/system-tools/generate-test-certificates ] ; then
+      sudo /usr/local/share/system-tools/generate-test-certificates /etc/ssl "${server}.${DOMAIN}"
+   else
+      echo >&2 "ERROR: generate-test-certificates (part of the System-Tools package) is not installed!"
+      exit 1
+   fi
 
    # MariaDB needs separate certificate and key files.
    # The chain is in the CA file, it must not be in the certificate file!

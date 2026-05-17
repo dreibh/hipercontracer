@@ -10,3 +10,5 @@ This directory contains scripts to install, configure and prepare a test databas
 - [5-perform-hpct-importer-test](5-perform-hpct-importer-test)
 - [6-perform-hpct-query-test](6-perform-hpct-query-test)
 - [9-uninstall-database](9-uninstall-database)
+
+These scripts use some of the [X.509-Tools](https://www.nntb.no/~dreibh/system-tools/#x.509-tools), which are distributed as part of the [System-Tools](https://www.nntb.no/~dreibh/system-tools/) package, for creating a CA and test certificates, as well as checking the TLS configuration of the database.
