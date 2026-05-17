@@ -360,6 +360,8 @@ IF (WITH_VIEWER)
    INSTALL(FILES       hpct-viewer.bash-completion
            DESTINATION ${CMAKE_INSTALL_DATADIR}/bash-completion/completions
            RENAME      hpct-viewer)
+   INSTALL(FILES       no.nntb.dreibh.hipercontracer.hpct-viewer.metainfo.xml
+           DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/metainfo)
 ENDIF()
 
 # ====== HiPerConTracer Database Shell ======================================

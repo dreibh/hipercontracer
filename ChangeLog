@@ -1,3 +1,268 @@
+commit 14e32fd5a246303c5f9354044592cdaffebccd0c
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Sun May 17 10:12:46 2026 +0200
+
+    Yet another set of test script improvements. This update removes redundant X.509-Tools files. Now, the upstream X.509-Tools are used to create the test database TLS configuration.
+
+commit dba5fd7b39a31687c9e7720c463999c66f69dadb
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Sat May 16 21:30:40 2026 +0200
+
+    Another set of test script clean-ups.
+
+commit 0de651db96ce7884fc7d0596bfc26b49eb800f6f
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Sat May 16 20:18:19 2026 +0200
+
+    Further improvements of the test scripts.
+
+commit fd38b2e314e667391bff77d22be0bc745b737e2a
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Sat May 16 15:27:22 2026 +0200
+
+    Yet another test update.
+
+commit 62eda61069659476a971cf13b7becd7149281e65
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Sat May 16 15:13:22 2026 +0200
+
+    Added missing backslash.
+
+commit a44264a4b3bbc4b9cc6c5f331111df7ff746a804
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Sat May 16 14:40:50 2026 +0200
+
+    Improved test script.
+
+commit 1030dc2044d7100b697ae1775e46f92eb6f443cf
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Sat May 16 13:48:49 2026 +0200
+
+    Updated test script.
+
+commit f5bbeda9f7580efb3cbaad94280a594f0620a398
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Sat May 16 13:29:15 2026 +0200
+
+    Test dependency fix.
+
+commit 9427dcead3ffe03df3c7aa35be48be88f0daa7b7
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Sat May 16 13:12:14 2026 +0200
+
+    Packaging update.
+
+commit 4d2d78ea45ad9eb13e6f93d89ff7e37f2811a18a
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Sat May 16 13:12:05 2026 +0200
+
+    Improved test scripts.
+
+commit 8c060560ec38b109d4bed662c528b054ed868bfa
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu May 14 21:38:18 2026 +0200
+
+    Python typing improvements.
+
+commit 8a8878f0548e20790f31cb34c8e1e5c2fa4563c3
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu May 14 21:25:19 2026 +0200
+
+    Further improvements of the test script.
+
+commit b8980a95901eff113b706d8c4faddde8dd95dd21
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu May 14 21:16:05 2026 +0200
+
+    Further improvements of the test helper scripts.
+
+commit 810b1d3528baaf73b36f2e9bf25d8921acd55be5
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu May 14 20:27:32 2026 +0200
+
+    Improved test script.
+
+commit d88fe7b524f4cc914b0d163f3bb8679d715d185d
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu May 14 11:19:14 2026 +0200
+
+    Further clean-ups.
+
+commit e1cbeeaae852a467a3255d6d0532ddcf8d565b8e
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu May 14 10:45:39 2026 +0200
+
+    Path fix.
+
+commit 48c2147907fbc2ff4e88a77bb303291737bf0936
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu May 14 10:42:56 2026 +0200
+
+    Some improvements and clean-ups for the test scripts.
+
+commit b13849881936913216173fe1746dda7ba7232161
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu May 14 10:32:31 2026 +0200
+
+    Improved test script.
+
+commit 3586b56975c9effca5a794b7e0d37286db9f8eb4
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue May 12 21:22:32 2026 +0200
+
+    Updated test script.
+
+commit 49c479eae813e6522741840d430d37b6037f5747
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue May 12 15:55:00 2026 +0200
+
+    Test dependency fix.
+
+commit 63198c220f9ddf5ac4b765fce88c64eef14f47b6
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue May 12 15:48:42 2026 +0200
+
+    Fixed Debian test scripts.
+
+commit 5d7ed9a28c7bd55ee81b877b324fed92967a8d08
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue May 12 15:38:50 2026 +0200
+
+    Fixed test script.
+
+commit e5dc21363e547d427573e6dd8a4ad751c934d284
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue May 12 11:11:46 2026 +0200
+
+    Updated test scripts.
+
+commit 5a9b6b6e89f34e490876617f91f32ed3695e01d0
+Merge: 033cb7ae 84c15fdc
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue May 12 11:03:59 2026 +0200
+
+    Merge branch 'master' of github.com:dreibh/hipercontracer
+
+commit 84c15fdc647b7832880311a2db638fb31a0e5ff4
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue May 12 11:00:54 2026 +0200
+
+    Updated RPM spec and FreeBSD port description.
+
+commit 3dc64d3ab91e7a27ad8dd8bce1991f451877003d
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue May 12 10:41:16 2026 +0200
+
+    Improved package descriptions.
+
+commit 18f3bccff1669c04670830551a178d89cd3ab35e
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Mon May 11 16:51:31 2026 +0200
+
+    New release hipercontracer-2.1.16.
+
+commit ef6d72e8b7aaf7e6bb92d6bc9bf303437622e940
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Mon May 11 16:21:49 2026 +0200
+
+    Packaging updates.
+
+commit 01c436cc03e615c03ff181382704e6f2d4d8fbe7
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Mon May 11 16:21:24 2026 +0200
+
+    Improved MetaInfo file.
+
+commit ef9f9be23636116d78a1be8d8a377c00934fcccd
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Mon May 11 15:53:25 2026 +0200
+
+    Added missing MetaInfo file.
+
+commit 1e42d8bda986e690c1bccd6b4475efa92ab085b3
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Mon May 11 15:53:11 2026 +0200
+
+    Updated desktop file.
+
+commit 3f215491313d34ea875c72ce0e30066f109d3b4a
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Mon May 11 14:43:57 2026 +0200
+
+    Improved documentation.
+
+commit 033cb7ae7e7608ea2c9f8dc2df26c7bdbe13231b
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Mon May 11 11:43:53 2026 +0200
+
+    Improved helper script.
+
+commit be46e1d1b5d6dc8969bb570413e413e0607f620d
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Apr 29 17:14:45 2026 +0200
+
+    New release hipercontracer-2.1.15.
+
+commit acbe066dca482c8c0dda9d351f3b64a4bf8e4716
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Apr 29 09:03:24 2026 +0200
+
+    Set pipefail option in scripts.
+
+commit 2373f63bea17bd97199de51601409790e459c020
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Mon Apr 27 14:25:39 2026 +0200
+
+    Minor clean-up.
+
+commit 809b159093244a782e21446bb148261fd5034c0d
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Mon Apr 27 14:24:09 2026 +0200
+
+    Added helper script.
+
+commit 10864f7ef3211134953f5150a1dfe7855fd3243c
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Mon Apr 27 11:48:32 2026 +0200
+
+    ShellCheck clean-up for shell completions.
+
+commit cff891bba7e8910f9e6eb1c05b7da7936e03949a
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Mon Apr 27 11:44:12 2026 +0200
+
+    Updated build script.
+
+commit 4bdac1e17b0901516e5a85399b535d5d0af36a0e
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Mon Apr 27 11:41:58 2026 +0200
+
+    Updated CI configuration
+
+commit bee4a38e99506a6d4ecda22d100fb0164376de22
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Mon Apr 27 11:41:57 2026 +0200
+
+    Updated CI scripts
+
+commit fca7b46e4b9435334e4e99fe31cf702cc3306d4d
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Fri Apr 24 14:51:45 2026 +0200
+
+    Using SQL comments ("--") in SQL code, instead of ("#").
+
+commit 6e086ca9143105b41041e849cd9380e063d71a0a
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Apr 23 16:16:27 2026 +0200
+
+    Updated FreeBSD port.
+
+commit 2863f0c7a59d22765790f57db1b228ce24a56791
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Apr 23 15:42:24 2026 +0200
+
+    New release hipercontracer-2.1.14.
+
 commit c2228d7cf9fdda271153584aeb3e1370337f630f
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Thu Apr 23 12:16:55 2026 +0200

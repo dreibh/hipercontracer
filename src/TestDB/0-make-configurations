@@ -29,16 +29,19 @@
 # Contact: dreibh@simula.no
 
 # Bash options:
-set -eu
+set -euo pipefail
 
 
- ###### Helper function to show script information #########################
+# ###### Helper function to show script information #########################
 show-script ()
 {
    local script="$1"
-
+   local columns
+   columns="$(print-utf8 -t 2>/dev/null || echo "80")"
+   columns="${columns/ */}"
+   columns=$((columns - 2))
    print-utf8 -n -s "\e[1;36m█" "▀" "█\e[0m" ;
-   figlet -w "${COLUMNS}" "$(basename "${script}")" | print-utf8 -n -C "\e[1;36m█\e[25m" "█\e[0m" ;
+   figlet -w "${columns}" "$(basename "${script}")" | print-utf8 -n -C "\e[1;36m█\e[25m" "█\e[0m" ;
    print-utf8 -n -s "\e[1;36m█" "▄" "█\e[0m"
 }
 
@@ -59,17 +62,26 @@ if [[ ! "${CONFIG}" =~ (-users\.conf)$ ]] ; then
    exit 1
 fi
 
+# ====== Check/set environment variables ====================================
+if [ ! -e /etc/os-release ] ; then
+   echo >&2 "ERROR: /etc/os-release does not exist!"
+   exit 1
+fi
+. /etc/os-release
+
 # ====== Dependencies =======================================================
 # These scripts need the X.509-Tools of the System-Tools software suite!
-if ! command -v check-certificate || \
-   ! command -v print-utf8        || \
+if ! command -v check-certificate   || \
+   ! command -v print-utf8          || \
+   ! command -v test-tls-connection || \
    ! command -v view-certificate  ; then
    if [ "${ID}" == "ubuntu" ] ; then
       sudo apt-add-repository -sy ppa:dreibh/ppa
       sudo apt update
-      sudo DEBIAN_FRONTEND=noninteractive apt install -y
+      sudo DEBIAN_FRONTEND=noninteractive apt install -y \
          figlet td-print-utf8 td-x509-tools
    elif [ "${ID}" == "fedora" ] ; then
+      sudo dnf copr enable -y dreibh/ppa
       sudo dnf install -y \
          figlet td-system-tools-print-utf8 td-system-tools-x509-tools
    elif [ "${ID}" == "freebsd" ] ; then
@@ -78,17 +90,20 @@ if ! command -v check-certificate || \
       # Install from sources:
       if [ ! -e system-tools ] ; then
          git clone https://dreibh@github.com/dreibh/system-tools.git
-         pushd system-tools >2/dev/null
+         pushd system-tools 2>/dev/null
       else
-         pushd system-tools >2/dev/null
+         pushd system-tools 2>/dev/null
          git pull
       fi
-      ci/get-dependencies -i
+      sudo ci/get-dependencies -i
       ./autogen.sh
       sudo make install
+      popd 2>/dev/null
    fi
 fi
+
 show-script "$(basename "$0")"
+
 
 # ====== Generate secure test user passwords ================================
 if [ ! -e "${CONFIG}" ] ; then
