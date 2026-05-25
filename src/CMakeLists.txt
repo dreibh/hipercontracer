@@ -135,7 +135,7 @@ IF (WITH_HIPERCONTRACER)
 ENDIF()
 
 # ====== libuniversalimporter ==================================================
-IF (WITH_IMPORTER)
+IF ((WITH_IMPORTER) OR (WITH_QUERY) OR (WITH_RESULTS))
    LIST(APPEND libuniversalimporter_headers
       database-configuration.h
       database-statement.h

@@ -206,18 +206,20 @@ IF (${CMAKE_SYSTEM_NAME} MATCHES "FreeBSD")
 ENDIF()
 
 # ====== INotify ============================================================
-IF(CMAKE_SYSTEM_NAME MATCHES "Linux")
-   # Linux provides INotify without need for any library!
-   SET(INotify_FOUND TRUE)
-   SET(INotify_LIBRARIES "")
-   SET(INotify_INCLUDE_DIRS "")
-ELSE()
-   FIND_LIBRARY(INotify_LIBRARIES NAMES inotify)
-   FIND_PATH(INotify_INCLUDE_DIRS NAMES sys/inotify.h)
-   IF ((NOT INotify_LIBRARIES) OR (NOT INotify_INCLUDE_DIRS))
-      MESSAGE(FATAL_ERROR
-              " Cannot find INotify library! Try:\n"
-              " * FreeBSD: sudo pkg install -y libinotify")
+IF ((WITH_IMPORTER) OR (WITH_QUERY) OR (WITH_RESULTS))
+   IF(CMAKE_SYSTEM_NAME MATCHES "Linux")
+      # Linux provides INotify without need for any library!
+      SET(INotify_FOUND TRUE)
+      SET(INotify_LIBRARIES "")
+      SET(INotify_INCLUDE_DIRS "")
+   ELSE()
+      FIND_LIBRARY(INotify_LIBRARIES NAMES inotify)
+      FIND_PATH(INotify_INCLUDE_DIRS NAMES sys/inotify.h)
+      IF ((NOT INotify_LIBRARIES) OR (NOT INotify_INCLUDE_DIRS))
+         MESSAGE(FATAL_ERROR
+               " Cannot find INotify library! Try:\n"
+               " * FreeBSD: sudo pkg install -y libinotify")
+      ENDIF()
    ENDIF()
 ENDIF()
 
