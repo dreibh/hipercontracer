@@ -196,7 +196,8 @@ IF (NOT Boost_FOUND)
            " * Fedora:        sudo dnf install -y boost-devel\n"
            " * SuSE:          sudo zypper install -y boost-devel\n"
            " * Alpine:        sudo apk add boost-dev\n"
-           " * FreeBSD:       sudo pkg install -y boost-libs")
+           " * FreeBSD:       sudo pkg install -y boost-libs\n"
+           " * Apple:         brew install boost")
 ELSE()
   INCLUDE_DIRECTORIES(${Boost_INCLUDE_DIRS})
 ENDIF()
@@ -206,12 +207,18 @@ ENDIF()
 
 # ====== INotify ============================================================
 IF(CMAKE_SYSTEM_NAME MATCHES "Linux")
+   # Linux provides INotify without need for any library!
    SET(INotify_FOUND TRUE)
    SET(INotify_LIBRARIES "")
    SET(INotify_INCLUDE_DIRS "")
 ELSE()
    FIND_LIBRARY(INotify_LIBRARIES NAMES inotify)
    FIND_PATH(INotify_INCLUDE_DIRS NAMES sys/inotify.h)
+   IF ((NOT INotify_LIBRARIES) OR (NOT INotify_INCLUDE_DIRS))
+      MESSAGE(FATAL_ERROR
+              " Cannot find INotify library! Try:\n"
+              " * FreeBSD: sudo pkg install -y libinotify")
+   ENDIF()
 ENDIF()
 
 # ====== libz ===============================================================
@@ -223,7 +230,8 @@ IF (NOT Z_LIBRARY)
            " * Fedora:        sudo dnf install -y zlib-ng-compat-devel\n"
            " * SuSE:          sudo zypper install -y zlib-devel\n"
            " * Alpine:        sudo apk add zlib-ng-dev\n"
-           " * FreeBSD:       (should be installed by default)")
+           " * FreeBSD:       (should be installed by default)\n"
+           " * Apple:         brew install zlib")
 ENDIF()
 
 # ====== libbz2 =============================================================
@@ -235,7 +243,8 @@ IF (NOT BZ2_LIBRARY)
            " * Fedora:        sudo dnf install -y bzip2-devel\n"
            " * SuSE:          sudo zypper install -y libbz2-devel\n"
            " * Alpine:        sudo apk add bzip2-dev\n"
-           " * FreeBSD:       sudo pkg install -y bzip2")
+           " * FreeBSD:       sudo pkg install -y bzip2\n"
+           " * Apple:         brew install bzip2")
 ENDIF()
 
 # ====== liblzma ============================================================
@@ -247,7 +256,8 @@ IF (NOT LZMA_LIBRARY)
            " * Fedora:        sudo dnf install -y xz-devel\n"
            " * SuSE:          sudo zypper install -y xz-devel\n"
            " * Alpine:        sudo apk add xz-dev\n"
-           " * FreeBSD:       sudo pkg install -y lzmalib")
+           " * FreeBSD:       sudo pkg install -y lzmalib\n"
+           " * Apple:         brew install xz")
 ENDIF()
 
 # ====== libzstd ============================================================
@@ -259,7 +269,8 @@ IF (NOT ZSTD_LIBRARY)
            " * Fedora:        sudo dnf install -y libzstd-devel\n"
            " * SuSE:          sudo zypper install -y libzstd-devel\n"
            " * Alpine:        sudo apk add libzstd-devel\n"
-           " * FreeBSD:       sudo pkg install -y zstd")
+           " * FreeBSD:       sudo pkg install -y zstd\n"
+           " * Apple:         brew install zsdt")
 ENDIF()
 
 # ====== C-ARES =============================================================
@@ -272,7 +283,8 @@ ENDIF()
 #             " * Fedora:        sudo dnf install -y c-ares-devel\n"
 #             " * SuSE:          sudo zypper install -y c-ares-devel\n"
 #             " * Alpine:        sudo apk add c-ares-dev\n"
-#             " * FreeBSD:       sudo pkg install -y c-ares")
+#             " * FreeBSD:       sudo pkg install -y c-ares\n"
+#             " * Apple:         brew install c-ares")
 #    ENDIF()
 # ENDIF()
 
@@ -286,7 +298,8 @@ IF (WITH_PIPE_CHECKSUM)
               " * Fedora:        sudo dnf install -y openssl-devel\n"
               " * SuSE:          sudo zypper install -y openssl-devel\n"
               " * Alpine:        sudo apk add openssl-dev\n"
-              " * FreeBSD:       sudo pkg install -y openssl")
+              " * FreeBSD:       sudo pkg install -y openssl\n"
+              " * Apple:         brew install openssl")
    ENDIF()
 ENDIF()
 
@@ -319,7 +332,8 @@ IF (WITH_IMPORTER)
                  " * Fedora:        sudo dnf install -y mariadb-connector-c-devel\n"
                  " * SuSE:          sudo zypper install -y libmariadb-devel\n"
                  " * Alpine:        sudo apk add mariadb-connector-c-dev\n"
-                 " * FreeBSD:       sudo pkg install -y mariadb-connector-c")
+                 " * FreeBSD:       sudo pkg install -y mariadb-connector-c\n"
+                 " * Apple:         brew install mariadb-connector-c")
       ENDIF()
    ELSE()
       MESSAGE("Building without MySQL/MariaDB backend (ENABLE_BACKEND_MARIADB=${ENABLE_BACKEND_MARIADB})")
@@ -343,7 +357,8 @@ IF (WITH_IMPORTER)
                  " * Fedora:        sudo dnf install -y libpqxx-devel\n"
                  " * SuSE:          sudo zypper install -y libpqxx-devel\n"
                  " * Alpine:        (needs PPA or installation from sources!)\n"
-                 " * FreeBSD:       sudo pkg install -y postgresql-libpqxx")
+                 " * FreeBSD:       sudo pkg install -y postgresql-libpqxx\n"
+                 " * Apple:         brew install libpqxx")
       ENDIF()
    ELSE()
       MESSAGE("Building without PostgreSQL backend (ENABLE_BACKEND_POSTGRESQL=${ENABLE_BACKEND_POSTGRESQL})")
@@ -371,7 +386,8 @@ IF (WITH_IMPORTER)
                  " * Fedora:        sudo dnf install -y mongo-c-driver-devel\n"
                  " * SuSE:          (needs PPA or installation from sources!)\n"
                  " * Alpine:        sudo apk add mongo-c-driver-dev\n"
-                 " * FreeBSD:       sudo pkg install -y mongo-c-driver")
+                 " * FreeBSD:       sudo pkg install -y mongo-c-driver\n"
+                 " * Apple:         brew install mongo-c-driver")
       ENDIF()
 
       MESSAGE("Looking for MongoDB BSON library:")
@@ -390,7 +406,8 @@ IF (WITH_IMPORTER)
                  " * Fedora:        sudo dnf install -y libbson-devel\n"
                  " * SuSE:          (needs PPA or installation from sources!)\n"
                  " * Alpine:        sudo apk add libbson-dev\n"
-                 " * FreeBSD:       sudo pkg install -y libbson")
+                 " * FreeBSD:       sudo pkg install -y libbson\n"
+                 " * Apple:         brew install mongo-c-driver")
       ENDIF()
    ELSE()
       MESSAGE("Building without MongoDB backend (ENABLE_BACKEND_MONGODB=${ENABLE_BACKEND_MONGODB})")
@@ -411,7 +428,8 @@ IF (WITH_ICONS)
             " * Fedora:        sudo dnf install -y ghostscript\n"
             " * SuSE:          sudo zypper install -y ghostscript\n"
             " * Alpine:        sudo apk add ghostscript\n"
-            " * FreeBSD:       sudo pkg install -y ghostscript10")
+            " * FreeBSD:       sudo pkg install -y ghostscript10\n"
+            " * Apple:         brew install ghostscript")
    ENDIF()
 
    FIND_PROGRAM(PDF2SVG pdf2svg PATHS /bin /usr/bin /usr/local/bin)
@@ -422,7 +440,8 @@ IF (WITH_ICONS)
             " * Fedora:        sudo dnf install -y pdf2svg\n"
             " * SuSE:          sudo zypper install -y pdf2svg\n"
             " * Alpine:        (needs PPA or installation from sources!)\n"
-            " * FreeBSD:       sudo pkg install -y pdf2svg")
+            " * FreeBSD:       sudo pkg install -y pdf2svg\n"
+            " * Apple:         brew install pdf2svg")
    ENDIF()
 
    FIND_PROGRAM(GM gm PATHS /bin /usr/bin /usr/local/bin)
@@ -433,7 +452,8 @@ IF (WITH_ICONS)
             " * Fedora:        sudo dnf install -y GraphicsMagick\n"
             " * SuSE:          sudo zypper install -y GraphicsMagick\n"
             " * Alpine:        sudo apk add graphicsmagick\n"
-            " * FreeBSD:       sudo pkg install -y GraphicsMagick")
+            " * FreeBSD:       sudo pkg install -y GraphicsMagick\n"
+            " * Apple:         brew install graphicsmagick")
    ENDIF()
 ELSE()
    MESSAGE("Building without icons (WITH_ICONS=${WITH_ICONS})")
