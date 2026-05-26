@@ -250,7 +250,11 @@ ENDIF()
 
 # ====== HiPerConTracer Sync Tool ===========================================
 IF (WITH_SYNC)
-   INSTALL(PROGRAMS hpct-sync DESTINATION ${CMAKE_INSTALL_BINDIR})
+   CONFIGURE_FILE(hpct-sync hpct-sync.versioned @ONLY)
+   SET_PROPERTY(DIRECTORY APPEND PROPERTY ADDITIONAL_CLEAN_FILES hpct-sync.versioned)
+   INSTALL(PROGRAMS    hpct-sync.versioned
+           DESTINATION ${CMAKE_INSTALL_BINDIR}
+           RENAME      hpct-sync)
    INSTALL(FILES hpct-sync.1  DESTINATION ${CMAKE_INSTALL_MANDIR}/man1)
    INSTALL(FILES       hpct-sync.bash-completion
            DESTINATION ${CMAKE_INSTALL_DATADIR}/bash-completion/completions
@@ -265,7 +269,11 @@ ENDIF()
 
 # ====== HiPerConTracer Reverse Tunnel Tool =================================
 IF (WITH_RTUNNEL)
-   INSTALL(PROGRAMS    hpct-rtunnel   DESTINATION ${CMAKE_INSTALL_BINDIR})
+   CONFIGURE_FILE(hpct-rtunnel hpct-rtunnel.versioned @ONLY)
+   SET_PROPERTY(DIRECTORY APPEND PROPERTY ADDITIONAL_CLEAN_FILES hpct-rtunnel.versioned)
+   INSTALL(PROGRAMS    hpct-rtunnel.versioned
+           DESTINATION ${CMAKE_INSTALL_BINDIR}
+           RENAME      hpct-rtunnel)
    INSTALL(FILES       hpct-rtunnel.1 DESTINATION ${CMAKE_INSTALL_MANDIR}/man1)
    INSTALL(FILES       hpct-rtunnel.bash-completion
            DESTINATION ${CMAKE_INSTALL_DATADIR}/bash-completion/completions
@@ -278,7 +286,11 @@ ENDIF()
 
 # ====== HiPerConTracer Node Tools ==========================================
 IF (WITH_NODE)
-   INSTALL(PROGRAMS    hpct-node-setup   DESTINATION ${CMAKE_INSTALL_BINDIR})
+   CONFIGURE_FILE(hpct-node-setup hpct-node-setup.versioned @ONLY)
+   SET_PROPERTY(DIRECTORY APPEND PROPERTY ADDITIONAL_CLEAN_FILES hpct-node-setup.versioned)
+   INSTALL(PROGRAMS    hpct-node-setup.versioned
+           DESTINATION ${CMAKE_INSTALL_BINDIR}
+           RENAME      hpct-node-setup)
    INSTALL(FILES       hpct-node-setup.1 DESTINATION ${CMAKE_INSTALL_MANDIR}/man1)
    INSTALL(FILES       hpct-node-setup.bash-completion
            DESTINATION ${CMAKE_INSTALL_DATADIR}/bash-completion/completions
@@ -288,16 +300,31 @@ ENDIF()
 
 # ====== HiPerConTracer Collector Tools =====================================
 IF (WITH_COLLECTOR)
-   INSTALL(PROGRAMS    hpct-node-removal  DESTINATION ${CMAKE_INSTALL_BINDIR})
+   CONFIGURE_FILE(hpct-node-removal hpct-node-removal.versioned @ONLY)
+   SET_PROPERTY(DIRECTORY APPEND PROPERTY ADDITIONAL_CLEAN_FILES hpct-node-removal.versioned)
+   INSTALL(PROGRAMS    hpct-node-removal.versioned
+           DESTINATION ${CMAKE_INSTALL_BINDIR}
+           RENAME      hpct-node-removal)
    INSTALL(FILES       hpct-node-removal.1 DESTINATION ${CMAKE_INSTALL_MANDIR}/man1)
    INSTALL(FILES       hpct-node-removal.bash-completion
            DESTINATION ${CMAKE_INSTALL_DATADIR}/bash-completion/completions
            RENAME      hpct-node-removal)
 
-   INSTALL(PROGRAMS    hpct-nodes-list   DESTINATION ${CMAKE_INSTALL_BINDIR})
+   CONFIGURE_FILE(hpct-nodes-list hpct-nodes-list.versioned @ONLY)
+   SET_PROPERTY(DIRECTORY APPEND PROPERTY ADDITIONAL_CLEAN_FILES hpct-nodes-list.versioned)
+   INSTALL(PROGRAMS    hpct-nodes-list.versioned
+           DESTINATION ${CMAKE_INSTALL_BINDIR}
+           RENAME      hpct-nodes-list)
    INSTALL(FILES       hpct-nodes-list.1 DESTINATION ${CMAKE_INSTALL_MANDIR}/man1)
+   INSTALL(FILES       hpct-nodes-list.bash-completion
+           DESTINATION ${CMAKE_INSTALL_DATADIR}/bash-completion/completions
+           RENAME      hpct-nodes-list)
 
-   INSTALL(PROGRAMS    hpct-ssh          DESTINATION ${CMAKE_INSTALL_BINDIR})
+   CONFIGURE_FILE(hpct-ssh hpct-ssh.versioned @ONLY)
+   SET_PROPERTY(DIRECTORY APPEND PROPERTY ADDITIONAL_CLEAN_FILES hpct-ssh.versioned)
+   INSTALL(PROGRAMS    hpct-ssh.versioned
+           DESTINATION ${CMAKE_INSTALL_BINDIR}
+           RENAME      hpct-ssh)
    INSTALL(FILES       hpct-ssh.1        DESTINATION ${CMAKE_INSTALL_MANDIR}/man1)
    INSTALL(FILES       hpct-ssh.bash-completion
            DESTINATION ${CMAKE_INSTALL_DATADIR}/bash-completion/completions
@@ -349,7 +376,11 @@ ENDIF()
 
 # ====== HiPerConTracer Viewer Tool =========================================
 IF (WITH_VIEWER)
-   INSTALL(PROGRAMS    hpct-viewer         DESTINATION ${CMAKE_INSTALL_BINDIR})
+   CONFIGURE_FILE(hpct-viewer hpct-viewer.versioned @ONLY)
+   SET_PROPERTY(DIRECTORY APPEND PROPERTY ADDITIONAL_CLEAN_FILES hpct-viewer.versioned)
+   INSTALL(PROGRAMS    hpct-viewer.versioned
+           DESTINATION ${CMAKE_INSTALL_BINDIR}
+           RENAME      hpct-viewer)
    INSTALL(FILES       hpct-viewer.1       DESTINATION ${CMAKE_INSTALL_MANDIR}/man1)
    INSTALL(FILES       hpct-viewer.desktop DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/applications)
    INSTALL(FILES       hpct-viewer.bash-completion
@@ -361,7 +392,11 @@ ENDIF()
 
 # ====== HiPerConTracer Database Shell ======================================
 IF (WITH_DBSHELL)
-   INSTALL(PROGRAMS    dbshell   DESTINATION ${CMAKE_INSTALL_BINDIR})
+   CONFIGURE_FILE(dbshell dbshell.versioned @ONLY)
+   SET_PROPERTY(DIRECTORY APPEND PROPERTY ADDITIONAL_CLEAN_FILES dbshell.versioned)
+   INSTALL(PROGRAMS    dbshell.versioned
+           DESTINATION ${CMAKE_INSTALL_BINDIR}
+           RENAME      dbshell)
    INSTALL(FILES       dbshell.1 DESTINATION ${CMAKE_INSTALL_MANDIR}/man1)
    INSTALL(FILES       dbshell.bash-completion
            DESTINATION ${CMAKE_INSTALL_DATADIR}/bash-completion/completions
@@ -370,11 +405,25 @@ ENDIF()
 
 # ====== HiPerConTracer DBeaver Tools =======================================
 IF (WITH_DBEAVER_TOOLS)
-   INSTALL(PROGRAMS make-dbeaver-configuration      DESTINATION ${CMAKE_INSTALL_BINDIR})
+   CONFIGURE_FILE(make-dbeaver-configuration make-dbeaver-configuration.versioned @ONLY)
+   SET_PROPERTY(DIRECTORY APPEND PROPERTY ADDITIONAL_CLEAN_FILES make-dbeaver-configuration.versioned)
+   INSTALL(PROGRAMS    make-dbeaver-configuration.versioned
+           DESTINATION ${CMAKE_INSTALL_BINDIR}
+           RENAME      make-dbeaver-configuration)
    INSTALL(FILES    make-dbeaver-configuration.1    DESTINATION ${CMAKE_INSTALL_MANDIR}/man1)
-   INSTALL(PROGRAMS decrypt-dbeaver-configuration   DESTINATION ${CMAKE_INSTALL_BINDIR})
+
+   CONFIGURE_FILE(decrypt-dbeaver-configuration decrypt-dbeaver-configuration.versioned @ONLY)
+   SET_PROPERTY(DIRECTORY APPEND PROPERTY ADDITIONAL_CLEAN_FILES decrypt-dbeaver-configuration.versioned)
+   INSTALL(PROGRAMS    decrypt-dbeaver-configuration.versioned
+           DESTINATION ${CMAKE_INSTALL_BINDIR}
+           RENAME      decrypt-dbeaver-configuration)
    INSTALL(FILES    decrypt-dbeaver-configuration.1 DESTINATION ${CMAKE_INSTALL_MANDIR}/man1)
-   INSTALL(PROGRAMS encrypt-dbeaver-configuration   DESTINATION ${CMAKE_INSTALL_BINDIR})
+
+   CONFIGURE_FILE(encrypt-dbeaver-configuration encrypt-dbeaver-configuration.versioned @ONLY)
+   SET_PROPERTY(DIRECTORY APPEND PROPERTY ADDITIONAL_CLEAN_FILES encrypt-dbeaver-configuration.versioned)
+   INSTALL(PROGRAMS    encrypt-dbeaver-configuration.versioned
+           DESTINATION ${CMAKE_INSTALL_BINDIR}
+           RENAME      encrypt-dbeaver-configuration)
    INSTALL(FILES    encrypt-dbeaver-configuration.1 DESTINATION ${CMAKE_INSTALL_MANDIR}/man1)
 ENDIF()
 
@@ -405,8 +454,11 @@ IF (WITH_UDP_ECHO_SERVER)
 ENDIF()
 
 # ====== Scripts ============================================================
-INSTALL(PROGRAMS get-default-ips
-        DESTINATION ${CMAKE_INSTALL_BINDIR})
+CONFIGURE_FILE(get-default-ips get-default-ips.versioned @ONLY)
+SET_PROPERTY(DIRECTORY APPEND PROPERTY ADDITIONAL_CLEAN_FILES get-default-ips.versioned)
+INSTALL(PROGRAMS    get-default-ips.versioned
+         DESTINATION ${CMAKE_INSTALL_BINDIR}
+         RENAME      get-default-ips)
 INSTALL(FILES get-default-ips.1
         DESTINATION ${CMAKE_INSTALL_MANDIR}/man1)
 

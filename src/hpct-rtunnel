@@ -33,19 +33,35 @@ set -euo pipefail
 
 # ###### Usage ##############################################################
 usage () {
-   echo >&2 "Usage: $0 [-h|--help] [--verbose|-v] [--quiet|-q] [--remote|-R remote_location] [--collector|-C collector] [--nodeid|-N node_id] [--key|-K ssh_private_key_file]"
-   exit 1
+   local exitCode="$1"
+   echo >&2 "Usage: $0 [-R|--remote remote_location] [-C|--collector collector] [-N|--nodeid node_id] [-K|--key ssh_private_key_file] [-q|--quiet] [-w|--verbose] [-h|--help] [-v|--version]"
+   exit "${exitCode}"
+}
+
+
+# ###### Version ############################################################
+version () {
+   echo "HiPerConTracer-RTunnel @BUILD_MAJOR@.@BUILD_MINOR@.@BUILD_PATCH@"
+   exit 0
 }
 
 
 # ###### Main program #######################################################
 
 # ====== Handle arguments ===================================================
-GETOPT="$(PATH=/usr/local/bin:$PATH which getopt)"
-options="$(${GETOPT} -o hN:R:C:K:H:vq --long help,nodeid:,remote:,collector:,key:,known-hosts:,verbose,quiet -a -- "$@")"
+if (( BASH_VERSINFO[0] < 4 )) || (( (BASH_VERSINFO[0] == 4) && (BASH_VERSINFO[1] < 4) )) ; then
+   echo "ERROR: Bash 4.4 or higher is required, but Bash ${BASH_VERSINFO[0]}.${BASH_VERSINFO[1]} is installed!"
+   exit 1
+fi
+GETOPT="$(PATH="/usr/local/bin:${PATH}" command -v getopt)"
+if "${GETOPT}" -T >/dev/null 2>&1 || [[ $? -ne 4 ]]; then
+   echo >&2 "ERROR: Enhanced/GNU getopt is required!"
+   exit 1
+fi
+options="$(${GETOPT} -o N:R:C:K:H:qwhv --long nodeid:,remote:,collector:,key:,known-hosts:,quiet,verbose,help,version -a -- "$@")"
 # shellcheck disable=SC2181
 if [[ $? -ne 0 ]]; then
-   usage
+   usage 1
 fi
 
 NODE_ID=
@@ -60,44 +76,54 @@ while [ $# -gt 0 ] ; do
    case "$1" in
       -N | --nodeid)
          NODE_ID="$2"
-         shift 2
+         shift
          ;;
       -R | --remote)
          REMOTE="$2"
-         shift 2
+         shift
          ;;
       -C | --collector)
          COLLECTOR="$2"
-         shift 2
+         shift
          ;;
       -K | --key)
          KEY="$2"
-         shift 2
+         shift
          ;;
       -H | --known-hosts)
          KNOWN_HOSTS="$2"
-         shift 2
-         ;;
-      -h | --help)
-         usage
-         ;;
-      -v | --verbose)
-         VERBOSE=1
          shift
          ;;
       -q | --quiet)
          VERBOSE=0
-         shift
+         ;;
+      -w | --verbose)
+         VERBOSE=1
+         ;;
+      -h | --help)
+         usage 0
+         ;;
+      -v | --version)
+         version
          ;;
       --)
          shift
          break
          ;;
+      *)
+         # This should not happen: wrong getopt parameters, or missing case?
+         echo >&2 "INTERNAL ERROR: Unhandled option $1!"
+         exit 1
+         ;;
   esac
+  shift
 done
+if [ $# -ne 0 ] ; then
+   usage 1
+fi
 
 if [ "${COLLECTOR}" == ""  ] ; then
-   usage
+   usage 1
 fi
 if [ ! -e "${KEY}" ] ; then
    echo >&2 "ERROR: SSH private key file ${KEY} does not exist!"
@@ -149,7 +175,7 @@ fi
 # ping -c1 ${COLLECTOR} || true
 
 # shellcheck disable=SC2086
-ssh -tt -R "${port}:localhost:22" ${sshOptions} "${user}"@"${COLLECTOR}" "while [ true ] ; do ( date -u +\"%Y-%m-%d %H:%M:%S\" ; echo \"${nodeStatus}\" ) >${lastSeen}.tmp && mv ${lastSeen}.tmp ${lastSeen} ; sleep 255 ; done" \
+ssh -tt -R "${port}:localhost:22" ${sshOptions} "${user}"@"${COLLECTOR}" "while true ; do ( date -u +\"%Y-%m-%d %H:%M:%S\" ; echo \"${nodeStatus}\" ) >${lastSeen}.tmp && mv ${lastSeen}.tmp ${lastSeen} ; sleep 255 ; done" \
    </dev/null >/dev/null 2>&1 && status=0 || status=$?
 if [ "${status}" -ne 0 ] ; then
    echo -e "\x1b[34m$(date +"%Y-%m-%d %H:%M:%S") SSH failed!\x1b[0m"

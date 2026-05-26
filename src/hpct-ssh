@@ -1,12 +1,17 @@
 #!/usr/bin/env bash
-#  ____        ____     ____      _ _           _
-# / ___|  ___ |  _ \   / ___|___ | | | ___  ___| |_ ___  _ __
-# \___ \ / _ \| |_) | | |   / _ \| | |/ _ \/ __| __/ _ \| '__|
-#  ___) | (_) |  __/  | |__| (_) | | |  __/ (__| || (_) | |
-# |____/ \___/|_|      \____\___/|_|_|\___|\___|\__\___/|_|
+# ==========================================================================
+#     _   _ _ ____            ____          _____
+#    | | | (_)  _ \ ___ _ __ / ___|___  _ _|_   _| __ __ _  ___ ___ _ __
+#    | |_| | | |_) / _ \ '__| |   / _ \| '_ \| || '__/ _` |/ __/ _ \ '__|
+#    |  _  | |  __/  __/ |  | |__| (_) | | | | || | | (_| | (_|  __/ |
+#    |_| |_|_|_|   \___|_|   \____\___/|_| |_|_||_|  \__,_|\___\___|_|
 #
-# HiPerConTracer Collector
-# Copyright (C) 2022-2026 by Thomas Dreibholz
+#       ---  High-Performance Connectivity Tracer (HiPerConTracer)  ---
+#                 https://www.nntb.no/~dreibh/hipercontracer/
+# ==========================================================================
+#
+# High-Performance Connectivity Tracer (HiPerConTracer)
+# Copyright (C) 2015-2026 by Thomas Dreibholz
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -29,30 +34,83 @@ set -euo pipefail
 
 # ###### Usage ##############################################################
 usage () {
-   echo >&2 "Usage: $0 user@node_id [-h|--help] [--verbose|-v] [--quiet|-q] [--copy-id|-c] -- [ssh_arguments ...]"
-   exit 1
+   local exitCode="$1"
+   echo >&2 "Usage: $0 user@node_id [-c|--copy-id] [-q|--quiet] [-w|--verbose] [-h|--help] [-v|--version] -- [ssh_arguments ...]"
+   exit "${exitCode}"
 }
+
+
+# ###### Version ############################################################
+version () {
+   echo "HiPerConTracer-SSH @BUILD_MAJOR@.@BUILD_MINOR@.@BUILD_PATCH@"
+   exit 0
+}
+
 
 
 # ###### Main program #######################################################
 
 # ====== Handle arguments ===================================================
-if [ $# -lt 1 ] ; then
-   usage
+if (( BASH_VERSINFO[0] < 4 )) || (( (BASH_VERSINFO[0] == 4) && (BASH_VERSINFO[1] < 4) )) ; then
+   echo "ERROR: Bash 4.4 or higher is required, but Bash ${BASH_VERSINFO[0]}.${BASH_VERSINFO[1]} is installed!"
+   exit 1
+fi
+GETOPT="$(PATH="/usr/local/bin:${PATH}" command -v getopt)"
+if "${GETOPT}" -T >/dev/null 2>&1 || [[ $? -ne 4 ]]; then
+   echo >&2 "ERROR: Enhanced/GNU getopt is required!"
+   exit 1
+fi
+options="$(${GETOPT} -o cqwhv --long copy-id,quiet,verbose,help,version -a -- "$@")"
+# shellcheck disable=SC2181
+if [[ $? -ne 0 ]] ; then
+   usage 1
+fi
+
+VERBOSE=1
+COPY_ID=0
+eval set -- "${options}"
+while [ $# -gt 0 ] ; do
+   case "$1" in
+      -c | --copy-id)
+         COPY_ID=1
+         ;;
+      -q | --quiet)
+         VERBOSE=0
+         ;;
+      -w | --verbose)
+         VERBOSE=1
+         ;;
+      -h | --help)
+         usage 0
+         ;;
+      -v | --version)
+         version
+         ;;
+      --)
+         shift
+         break
+         ;;
+      *)
+         # This should not happen: wrong getopt parameters, or missing case?
+         echo >&2 "INTERNAL ERROR: Unhandled option $1!"
+         exit 1
+         ;;
+  esac
+  shift
+done
+if [ $# -ne 1 ] ; then
+   usage 1
 fi
 
 # shellcheck disable=SC2001
 SSH_USER="$(echo "$1" | sed -e "s/@.*$//")"
-# shellcheck disable=SC2001
-NODE_ID="$(echo "$1" | sed -e "s/^.*@//")"
-VERBOSE=1
-COPY_ID=0
-shift
-
-if [[ ! "${SSH_USER}" =~ ^[a-zA-Z0-9]+$ ]] ; then
+if [[ ! "${SSH_USER}" =~ ^[a-zA-Z0-9_.-]+$ ]] ; then
    echo >&2 "ERROR: Invalid user ${SSH_USER}!"
    exit 1
 fi
+
+# shellcheck disable=SC2001
+NODE_ID="$(echo "$1" | sed -e "s/^.*@//")"
 if [[ ! "${NODE_ID}" =~ ^[0-9]+$ ]] ; then
    echo >&2 "ERROR: Invalid Node ID ${NODE_ID}!"
    exit 1
@@ -61,38 +119,6 @@ if [ "${NODE_ID}" -lt 1 ] || [ "${NODE_ID}" -gt 9999 ] ; then
    echo >&2 "ERROR: Invalid number for Node ID: ${NODE_ID}!"
    exit 1
 fi
-
-GETOPT="$(PATH=/usr/local/bin:$PATH which getopt)"
-options="$(${GETOPT} -o hqvc --long help,quiet,verbose,copy-id -a -- "$@")"
-# shellcheck disable=SC2181
-if [[ $? -ne 0 ]] ; then
-   usage
-fi
-
-eval set -- "${options}"
-while [ $# -gt 0 ] ; do
-   case "$1" in
-      -c | --copy-id)
-         COPY_ID=1
-         shift 2
-         ;;
-      -h | --help)
-         usage
-         ;;
-      -v | --verbose)
-         VERBOSE=1
-         shift
-         ;;
-      -q | --quiet)
-         VERBOSE=0
-         shift
-         ;;
-      --)
-         shift
-         break
-         ;;
-  esac
-done
 
 
 # ====== SSH to node via Reverse Tunnel =====================================
@@ -111,8 +137,7 @@ if [ ${VERBOSE} -ne 0 ] ; then
    # shellcheck disable=SC2145
    echo -e "\x1b[34m$(date +"%Y-%m-%d %H:%M:%S") Running SSH: ssh -p ${port} ${SSH_USER}@localhost $@\x1b[0m"
 fi
-# shellcheck disable=SC2068
-ssh -p ${port} "${SSH_USER}"@localhost $@ && status=0 || status=$?
+ssh -p ${port} "${SSH_USER}"@localhost "$@" && status=0 || status=$?
 if [ "${status}" -ne 0 ] ; then
    if [ $# -eq 0 ] ; then
       error="SSH failed with exit code ${status}."

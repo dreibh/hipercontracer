@@ -28,37 +28,57 @@
 .\" Contact: dreibh@simula.no
 .\"
 .\" ###### Setup ############################################################
-.Dd May 12, 2025
-.Dt hpct-nodes-list 1
-.Os hpct-nodes-list
+.Dd May 11, 2026
+.Dt hpct\-nodes\-list 1
+.Os hpct\-nodes\-list
 .\" ###### Name #############################################################
 .Sh NAME
-.Nm hpct-nodes-list
+.Nm hpct\-nodes\-list
 .Nd Get HiPerConTracer Nodes List on the Collector
 .\" ###### Synopsis #########################################################
 .Sh SYNOPSIS
-.Nm hpct-nodes-list
+.Nm hpct\-nodes\-list
+.Nm hpct\-nodes\-list
+.Op Fl h | Fl Fl help
+.Nm hpct\-nodes\-list
+.Op Fl v | Fl Fl version
 .\" ###### Description ######################################################
 .Sh DESCRIPTION
-.Nm hpct-nodes-list
-lists the HiPerConTracer configured on the Collector, as well as
+.Nm hpct\-nodes\-list
+lists the HiPerConTracer nodes configured on the Collector, as well as
 their connectivity (RTunnel) and data synchronisation (Sync) status.
 .br
 Note that reading the last status of nodes needs access of the user to the nodes' data
 directories (usually: /var/hipercontracer/data/node<NODE>/). The status is
-read from last-seen.txt and last-sync.txt.
+read from last\-seen.txt and last\-sync.txt.
 .Pp
+.\" ###### Arguments ########################################################
+.Sh ARGUMENTS
+The following arguments may be provided:
+.Bl -tag -width indent
+.It Fl h | Fl Fl help
+Prints command help.
+.It Fl v | Fl Fl version
+Prints program version.
+.El
+.\" ###### Exit status ######################################################
+.Sh EXIT STATUS
+The
+.Nm
+tool exits with 0 on success, and >0 in case of an error.
 .\" ###### Examples #########################################################
 .Sh EXAMPLES
 .Bl -tag -width indent
-.It hpct-nodes-list
-.It watch --color -n300 hpct-nodes-list
+.It hpct\-nodes\-list
+.It watch \-\-color \-n300 hpct\-nodes\-list
+.It hpct\-nodes\-list \-\-version
+.It hpct\-nodes\-list \-h
 .El
+.\" ###### Notes ############################################################
+.Sh NOTES
+This program is part of HiPerConTracer. The latest version of HiPerConTracer can be found on the HiPerConTracer Homepage at
+.Lk https://www.nntb.no/\(tidreibh/hipercontracer/ "HiPerConTracer Homepage" .
 .\" ###### Authors ##########################################################
 .Sh AUTHORS
-Thomas Dreibholz
-.br
-https://www.simula.no/people/dreibh
-.br
-mailto://dreibh@simula.no
-.br
+Thomas Dreibholz,
+.Lk https://www.nntb.no/\(tidreibh "Homepage"

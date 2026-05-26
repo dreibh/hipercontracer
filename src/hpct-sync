@@ -34,19 +34,36 @@ set -euo pipefail
 
 # ###### Usage ##############################################################
 usage () {
-   echo >&2 "Usage: $0 [-h|--help] [--verbose|-v] [--quiet|-q] [--local|-L local_directory] [--remote|-R remote_location] [--collector|-C collector] [--key|-K ssh_private_key_file]"
-   exit 1
+   local exitCode="$1"
+   echo >&2 "Usage: $0 [-N|--nodeid node_id] [-L|--local local_directory] [-R|--remote remote_location] [-C|--collector collector] [-K|--key ssh_private_key_file] [-H|--known-hosts known_hosts_file] [-q|--quiet] [-w|--verbose] [-h|--help] [-v|--version]"
+   exit "${exitCode}"
 }
+
+
+# ###### Version ############################################################
+version () {
+   echo "HiPerConTracer-Sync @BUILD_MAJOR@.@BUILD_MINOR@.@BUILD_PATCH@"
+   exit 0
+}
+
 
 
 # ###### Main program #######################################################
 
 # ====== Handle arguments ===================================================
-GETOPT="$(PATH=/usr/local/bin:$PATH which getopt)"
-options="$(${GETOPT} -o hN:L:R:C:K:H:vq --long help,nodeid:,local:,remote:,collector:,key:,known-hosts:,verbose,quiet -a -- "$@")"
+if (( BASH_VERSINFO[0] < 4 )) || (( (BASH_VERSINFO[0] == 4) && (BASH_VERSINFO[1] < 4) )) ; then
+   echo "ERROR: Bash 4.4 or higher is required, but Bash ${BASH_VERSINFO[0]}.${BASH_VERSINFO[1]} is installed!"
+   exit 1
+fi
+GETOPT="$(PATH="/usr/local/bin:${PATH}" command -v getopt)"
+if "${GETOPT}" -T >/dev/null 2>&1 || [[ $? -ne 4 ]]; then
+   echo >&2 "ERROR: Enhanced/GNU getopt is required!"
+   exit 1
+fi
+options="$(${GETOPT} -o N:L:R:C:K:H:qwhv --long nodeid:,local:,remote:,collector:,key:,known-hosts:,quiet,verbose,help,version -a -- "$@")"
 # shellcheck disable=SC2181
 if [[ $? -ne 0 ]]; then
-   usage
+   usage 1
 fi
 
 NODE_ID=
@@ -62,48 +79,55 @@ while [ $# -gt 0 ] ; do
    case "$1" in
       -N | --nodeid)
          NODE_ID="$2"
-         shift 2
+         shift
          ;;
       -L | --local)
          LOCAL="$2"
-         shift 2
+         shift
          ;;
       -R | --remote)
          REMOTE="$2"
-         shift 2
+         shift
          ;;
       -C | --collector)
          COLLECTOR="$2"
-         shift 2
+         shift
          ;;
       -K | --key)
          KEY="$2"
-         shift 2
+         shift
          ;;
       -H | --known-hosts)
          KNOWN_HOSTS="$2"
-         shift 2
-         ;;
-      -h | --help)
-         usage
-         ;;
-      -v | --verbose)
-         VERBOSE=1
          shift
+         ;;
+      -w | --verbose)
+         VERBOSE=1
          ;;
       -q | --quiet)
          VERBOSE=0
-         shift
+         ;;
+      -h | --help)
+         usage 0
+         ;;
+      -v | --version)
+         version
          ;;
       --)
          shift
          break
          ;;
+      *)
+         # This should not happen: wrong getopt parameters, or missing case?
+         echo >&2 "INTERNAL ERROR: Unhandled option $1!"
+         exit 1
+         ;;
   esac
+  shift
 done
 
 if [ "${LOCAL}" == "" ] || [ "${REMOTE}" == "" ] || [ "${COLLECTOR}" == "" ] ; then
-   usage
+   usage 1
 fi
 if [ ! -d "${LOCAL}" ] ; then
    echo >&2 "ERROR: Local directory ${LOCAL} does not exist!"
@@ -118,7 +142,7 @@ if [[ ! "${NODE_ID}" =~ [0-9]+ ]] ; then
    echo >&2 "ERROR: No or invalid Node ID specified!"
    exit 1
 fi
-if [ "${NODE_ID}" -lt 1 ] || [ "${NODE_ID}" -gt 999999999 ] ; then
+if [ "${NODE_ID}" -lt 1 ] || [ "${NODE_ID}" -gt 9999 ] ; then
    echo >&2 "ERROR: Invalid number for Node ID: ${NODE_ID}!"
    exit 1
 fi

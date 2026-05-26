@@ -870,6 +870,7 @@ server.
 %{_bindir}/hpct-nodes-list
 %{_bindir}/hpct-ssh
 %{_datadir}/bash-completion/completions/hpct-node-removal
+%{_datadir}/bash-completion/completions/hpct-nodes-list
 %{_datadir}/bash-completion/completions/hpct-ssh
 %{_mandir}/man1/hpct-node-removal.1.gz
 %{_mandir}/man1/hpct-nodes-list.1.gz

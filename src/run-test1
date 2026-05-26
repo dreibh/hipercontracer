@@ -1,9 +1,11 @@
-#!/bin/sh -eu
+#!/usr/bin/bash
+
+set -euo pipefail
+
 
 make -j8 hipercontracer
 rm -f core
 
-# shellcheck disable=SC2068
 sudo ./hipercontracer \
    -# 12345678 \
    --resultsdirectory results \
@@ -35,4 +37,4 @@ sudo ./hipercontracer \
    --pingexpiration 7500 \
    --pingttl 56 \
    --pingburst 2 \
-   $@
+   "$@"

@@ -28,45 +28,61 @@
 .\" Contact: dreibh@simula.no
 .\"
 .\" ###### Setup ############################################################
-.Dd May 12, 2025
-.Dt hpct-node-removal 1
-.Os hpct-node-removal
+.Dd May 11, 2026
+.Dt hpct\-node\-removal 1
+.Os hpct\-node\-removal
 .\" ###### Name #############################################################
 .Sh NAME
-.Nm hpct-node-removal
-.Nd HiPerConTracer Node
+.Nm hpct\-node\-removal
+.Nd Remove a HiPerConTracer Node
 .\" ###### Synopsis #########################################################
 .Sh SYNOPSIS
-.Nm hpct-node-removal NODE_ID
-.Op Fl r | Fl Fl remove-data
+.Nm hpct\-node\-removal NODE\_ID
+.br
+.Op Fl r | Fl Fl remove\-data
+.Nm hpct\-node\-removal
+.Op Fl h | Fl Fl help
+.Nm hpct\-node\-removal
+.Op Fl v | Fl Fl version
 .\" ###### Description ######################################################
 .Sh DESCRIPTION
-.Nm hpct-node-removal
+.Nm hpct\-node\-removal
 is the HiPerConTracer node removal script. It is run on the
 collector to remove a given node (i.e. delete the corresponding user).
 .Pp
 .\" ###### Arguments ########################################################
 .Sh ARGUMENTS
-The following arguments must be provided:
+The following arguments may be provided:
 .Bl -tag -width indent
-.It NODE_ID
+.It NODE\_ID
 Sets the node ID, a number from 1 to 9999.
-.It Fl r | Fl Fl remove-data
+.It Fl r | Fl Fl remove\-data
 Also remove the data of the node. Default: Keep the data.
+.It Fl h | Fl Fl help
+Prints command help.
+.It Fl v | Fl Fl version
+Prints program version.
 .El
+.\" ###### Exit status ######################################################
+.Sh EXIT STATUS
+The
+.Nm
+tool exits with 0 on success, and >0 in case of an error.
 .\" ###### Examples #########################################################
 .Sh EXAMPLES
 .Bl -tag -width indent
-.It hpct-node-removal ./hpct-node-removal 1000
-.It hpct-node-removal ./hpct-node-removal 1
-.It hpct-node-removal ./hpct-node-removal 2 --remove-data
-.It hpct-node-removal ./hpct-node-removal 3 -r
+.It hpct\-node\-removal 1000
+.It hpct\-node\-removal 1
+.It hpct\-node\-removal 2 \-\-remove\-data
+.It hpct\-node\-removal 3 \-r
+.It hpct\-node\-removal \-\-version
+.It hpct\-node\-removal \-h
 .El
+.\" ###### Notes ############################################################
+.Sh NOTES
+This program is part of HiPerConTracer. The latest version of HiPerConTracer can be found on the HiPerConTracer Homepage at
+.Lk https://www.nntb.no/\(tidreibh/hipercontracer/ "HiPerConTracer Homepage" .
 .\" ###### Authors ##########################################################
 .Sh AUTHORS
-Thomas Dreibholz
-.br
-https://www.simula.no/people/dreibh
-.br
-mailto://dreibh@simula.no
-.br
+Thomas Dreibholz,
+.Lk https://www.nntb.no/\(tidreibh "Homepage"

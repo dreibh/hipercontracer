@@ -718,7 +718,7 @@ int main(int argc, char** argv)
    commandLineOptions.add_options()
       ( "help,h",
            "Print help message" )
-      ( "version",
+      ( "version,v",
            "Show program version" )
 
       ( "loglevel,L",
@@ -730,7 +730,7 @@ int main(int argc, char** argv)
       ( "logcolor,Z",
            boost::program_options::value<bool>(&logColor)->default_value(true),
            "Use ANSI color escape sequences for log output" )
-      ( "verbose,v",
+      ( "verbose,w",
            boost::program_options::value<unsigned int>(&logLevel)->implicit_value(boost::log::trivial::severity_level::trace),
            "Verbose logging level" )
       ( "quiet,q",

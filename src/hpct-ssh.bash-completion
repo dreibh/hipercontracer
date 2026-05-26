@@ -57,14 +57,17 @@ _hpct_ssh()
 
    # ====== All options =====================================================
    local opts="
+-c
+--copy-id
+-q
+--quiet
+-w
+--verbose
 -h
 --help
 -v
---verbose
--q
---quiet
--c
---copy-id
+--version
+--
 "
    mapfile -t COMPREPLY < <(compgen -W "${opts}" -- "${cur}" )
    return 0

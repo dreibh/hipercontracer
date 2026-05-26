@@ -28,44 +28,63 @@
 .\" Contact: dreibh@simula.no
 .\"
 .\" ###### Setup ############################################################
-.Dd May 12, 2025
-.Dt encrypt-dbeaver-configuration 1
-.Os encrypt-dbeaver-configuration
+.Dd May 11, 2026
+.Dt encrypt\-dbeaver\-configuration 1
+.Os encrypt\-dbeaver\-configuration
 .\" ###### Name #############################################################
 .Sh NAME
-.Nm encrypt-dbeaver-configuration
+.Nm encrypt\-dbeaver\-configuration
 .Nd Encrypt DBeaver Credentials Configuration File
 .\" ###### Synopsis #########################################################
 .Sh SYNOPSIS
-.Nm encrypt-dbeaver-configuration
-plain_dbeaver_credentials_config_json
-encrypted_dbeaver_credentials_config_json
+.Nm encrypt\-dbeaver\-configuration Ar plain\_dbeaver\_credentials\_config\_json Ar encrypted\_dbeaver\_credentials\_config\_json
+.Nm encrypt\-dbeaver\-configuration
+.Op Fl h | Fl Fl help
+.Nm encrypt\-dbeaver\-configuration
+.Op Fl v | Fl Fl version
 .\" ###### Description ######################################################
 .Sh DESCRIPTION
-.Nm encrypt-dbeaver-configuration
-encrypts a plain-text DBeaver credentials configuration file.
-"-" can be used as placeholder for /dev/stdin, to read the input file from
-standard input.
-"-" can be used as placeholder for /dev/stdout, to write the output file to
-stdandard output.
+.Nm encrypt\-dbeaver\-configuration
+encrypts a plain\-text DBeaver credentials configuration file.
+"\-" can be used as placeholder for
+.Pa /dev/stdin ,
+to read the input file from standard input.
+"\-" can be used as placeholder for
+.Pa /dev/stdout ,
+to write the output file to standard output.
 .Pp
 .\" ###### Arguments ########################################################
-.\" .Sh ARGUMENTS
-.\" The following argument may be provided:
-.\" .Bl -tag -width indent
-.\" .It ...
-.\" ...
-.\" .El
-.\" ###### Arguments ########################################################
+.Sh ARGUMENTS
+The following arguments may be provided:
+.Bl -tag -width indent
+.It Ar plain\_dbeaver\_credentials\_config\_json
+The input plain\-text DBeaver credentials configuration JSON file, or "\-" for
+.Pa /dev/stdin .
+.It Ar encrypted\_dbeaver\_credentials\_config\_json
+The output encrypted DBeaver credentials configuration JSON file, or "\-" for
+.Pa /dev/stdout .
+.It Fl h | Fl Fl help
+Prints command help.
+.It Fl v | Fl Fl version
+Prints program version.
+.El
+.\" ###### Exit status ######################################################
+.Sh EXIT STATUS
+The
+.Nm
+tool exits with 0 on success, and >0 in case of an error.
+.\" ###### Examples #########################################################
 .Sh EXAMPLES
 .Bl -tag -width indent
-.It encrypt-dbeaver-configuration plaintext.json $DBEAVER_DIR/credentials-config.json
+.It encrypt\-dbeaver\-configuration plaintext.json $DBEAVER\_DIR/credentials\-config.json
+.It encrypt\-dbeaver\-configuration \-\-version
+.It encrypt\-dbeaver\-configuration \-h
 .El
+.\" ###### Notes ############################################################
+.Sh NOTES
+This program is part of HiPerConTracer. The latest version of HiPerConTracer can be found on the HiPerConTracer Homepage at
+.Lk https://www.nntb.no/\(tidreibh/hipercontracer/ "HiPerConTracer Homepage" .
 .\" ###### Authors ##########################################################
 .Sh AUTHORS
-Thomas Dreibholz
-.br
-https://www.nntb.no/~dreibh/hipercontracer
-.br
-mailto://dreibh@simula.no
-.br
+Thomas Dreibholz,
+.Lk https://www.nntb.no/\(tidreibh "Homepage"

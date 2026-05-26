@@ -71,24 +71,11 @@ _hpct_sync()
          _filedir
          return
          ;;
-      # ====== Special case: log file =======================================
-      -O | --logfile)
-         # Files with extension .log:
-         _filedir '@(log)'
-         return
-         ;;
-      # ====== Special case: on/off =========================================
-      -Z | --logcolor)
-         mapfile -t COMPREPLY < <(compgen -W "on off" --  "${cur}")
-         return
-         ;;
    esac
 
    # ====== All options =====================================================
    local opts="
--h
---help
--v
+-w
 --verbose
 -q
 --quiet
@@ -104,6 +91,10 @@ _hpct_sync()
 --key
 -H
 --known-hosts
+-h
+--help
+-v
+--version
 "
    mapfile -t COMPREPLY < <(compgen -W "${opts}" -- "${cur}" )
    return 0

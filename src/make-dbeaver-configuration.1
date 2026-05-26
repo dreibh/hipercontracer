@@ -28,49 +28,67 @@
 .\" Contact: dreibh@simula.no
 .\"
 .\" ###### Setup ############################################################
-.Dd May 12, 2025
-.Dt make-dbeaver-configuration 1
-.Os make-dbeaver-configuration
+.Dd May 11, 2026
+.Dt make\-dbeaver\-configuration 1
+.Os make\-dbeaver\-configuration
 .\" ###### Name #############################################################
 .Sh NAME
-.Nm make-dbeaver-configuration
+.Nm make\-dbeaver\-configuration
 .Nd Make DBeaver Configuration from HiPerConTracer Database Configuration Files
 .\" ###### Synopsis #########################################################
 .Sh SYNOPSIS
-.Nm make-dbeaver-configuration
-database_configuration_file ...
-.Op Fl Fl join
+.Nm make\-dbeaver\-configuration Ar database\_configuration\_file Ar ...
+.br
+.Op Fl j | Fl Fl join
+.Nm make\-dbeaver\-configuration
+.Op Fl h | Fl Fl help
+.Nm make\-dbeaver\-configuration
+.Op Fl v | Fl Fl version
 .\" ###### Description ######################################################
 .Sh DESCRIPTION
-.Nm make-dbeaver-configuration
-takes HiPerConTracer configuration files and merges them into the DBeaver
-configuration file.
+.Nm make\-dbeaver\-configuration
+takes HiPerConTracer database configuration files and merges them into the DBeaver configuration file.
 .Pp
-###### Arguments ########################################################
+.\" ###### Arguments ########################################################
 .Sh ARGUMENTS
-The following argument may be provided:
+The following arguments may be provided:
 .Bl -tag -width indent
-.It Fl Fl join
+.It Ar database\_configuration\_file Ar ...
+Specifies one or more HiPerConTracer database configuration files as input.
+.It Fl j | Fl Fl join
 Join with existing DBeaver configuration. The existing configuration is
 searched in the following directories:
-.Bl -tag
-.It ~/.local/share/DBeaverData/workspace6/General/.dbeaver
-.It ~/\%snap/\%dbeaver-ce/\%current/\%.local/\%share/\%DBeaverData/\%workspace6/\%General/\%.dbeaver
+.Bl -bullet
+.It
+.Pa $HOME/.local/share/DBeaverData/workspace6/General/.dbeaver
+.It
+.Pa $HOME/\%snap/\%dbeaver\-ce/\%current/\%.local/\%share/\%DBeaverData/\%workspace6/\%General/\%.dbeaver
 .El
+.It Fl h | Fl Fl help
+Prints command help.
+.It Fl v | Fl Fl version
+Prints program version.
 .El
-.\" ###### Arguments ########################################################
+.\" ###### Exit status ######################################################
+.Sh EXIT STATUS
+The
+.Nm
+tool exits with 0 on success, and >0 in case of an error.
+.\" ###### Examples #########################################################
 .Sh EXAMPLES
 .Bl -tag -width indent
-.It make-dbeaver-configuration hipercontracer-database.conf
-.It make-dbeaver-configuration ~/test4hpct-*-*.conf --join
-.It make-dbeaver-configuration hipercontracer-database.conf --join
-.It make-dbeaver-configuration project1-database.conf project2-database.conf project3-database.conf --join
+.It make\-dbeaver\-configuration hipercontracer\-database.conf
+.It make\-dbeaver\-configuration $HOME/test4hpct\-*\-*.conf \-\-join
+.It make\-dbeaver\-configuration hipercontracer\-database.conf \-\-join
+.It make\-dbeaver\-configuration project1\-database.conf project2\-database.conf project3\-database.conf \-\-join
+.It make\-dbeaver\-configuration \-\-version
+.It make\-dbeaver\-configuration \-h
 .El
+.\" ###### Notes ############################################################
+.Sh NOTES
+This program is part of HiPerConTracer. The latest version of HiPerConTracer can be found on the HiPerConTracer Homepage at
+.Lk https://www.nntb.no/\(tidreibh/hipercontracer/ "HiPerConTracer Homepage" .
 .\" ###### Authors ##########################################################
 .Sh AUTHORS
-Thomas Dreibholz
-.br
-https://www.nntb.no/~dreibh/hipercontracer
-.br
-mailto://dreibh@simula.no
-.br
+Thomas Dreibholz,
+.Lk https://www.nntb.no/\(tidreibh "Homepage"

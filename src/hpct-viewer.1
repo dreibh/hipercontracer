@@ -28,43 +28,57 @@
 .\" Contact: dreibh@simula.no
 .\"
 .\" ###### Setup ############################################################
-.Dd March 13, 2026
-.Dt hpct-viewer 1
-.Os hpct-viewer
+.Dd May 11, 2026
+.Dt hpct\-viewer 1
+.Os hpct\-viewer
 .\" ###### Name #############################################################
 .Sh NAME
-.Nm hpct-viewer
+.Nm hpct\-viewer
 .Nd View HiPerConTracer Results File
 .\" ###### Synopsis #########################################################
 .Sh SYNOPSIS
-.Nm hpct-viewer
-results_file
+.Nm hpct\-viewer Ar results\_file
+.Nm hpct\-viewer
+.Op Fl h | Fl Fl help
+.Nm hpct\-viewer
+.Op Fl v | Fl Fl version
 .\" ###### Description ######################################################
 .Sh DESCRIPTION
-.Nm hpct-viewer
+.Nm hpct\-viewer
 displays the contents of a HiPerConTracer results file.
 .Pp
 .\" ###### Arguments ########################################################
-.\" .Sh ARGUMENTS
-.\" The following argument may be provided:
-.\" .Bl -tag -width indent
-.\" .It ...
-.\" ...
-.\" .El
-.\" ###### Arguments ########################################################
+.Sh ARGUMENTS
+The following arguments may be provided:
+.Bl -tag -width indent
+.It Ar results\_file
+Specifies the HiPerConTracer results file to show.
+.It Fl h | Fl Fl help
+Prints command help.
+.It Fl v | Fl Fl version
+Prints program version.
+.El
+.\" ###### Exit status ######################################################
+.Sh EXIT STATUS
+The
+.Nm
+tool exits with 0 on success, and >0 in case of an error.
+.\" ###### Examples #########################################################
 .Sh EXAMPLES
 .Bl -tag -width indent
-.It hpct-\%viewer Traceroute-\%UDP-\%#88888888-\%fdb6:6d27:be73:4::50-\%20231018T102656.821891-\%000000001.hpct.xz
-.It hpct-\%viewer Traceroute-\%ICMP-\%#12345678-\%::-\%20231108T134229.533947-\%000000001.hpct.gz
-.It hpct-\%viewer Ping-\%P13735-\%2001:700:4100:4::2-\%20221012T142120.713761-\%000003330.hpct.bz2
-.It hpct-\%viewer Traceroute-\%ICMP-\%#12345678-\%0.0.0.0-\%20231108T134228.409798-\%000000001.hpct.gz
-.It hpct-\%viewer results.hpct
+.It hpct\-viewer Traceroute\-\%UDP\-\%#88888888\-\%fdb6:6d27:be73:4::50\-\%20231018T102656.821891\-\%000000001.hpct.xz
+.It hpct\-viewer Traceroute\-\%ICMP\-\%#12345678\-\%::\-\%20231108T134229.533947\-\%000000001.hpct.gz
+.It hpct\-viewer Ping\-\%P13735\-\%2001:700:4100:4::2\-\%20221012T142120.713761\-\%000003330.hpct.bz2
+.It hpct\-viewer Traceroute\-\%ICMP\-\%#12345678\-\%0.0.0.0\-\%20231108T134228.409798\-\%000000001.hpct.gz
+.It hpct\-viewer results.hpct
+.It hpct\-viewer \-\-version
+.It hpct\-viewer \-h
 .El
+.\" ###### Notes ############################################################
+.Sh NOTES
+This program is part of HiPerConTracer. The latest version of HiPerConTracer can be found on the HiPerConTracer Homepage at
+.Lk https://www.nntb.no/\(tidreibh/hipercontracer/ "HiPerConTracer Homepage" .
 .\" ###### Authors ##########################################################
 .Sh AUTHORS
-Thomas Dreibholz
-.br
-https://www.nntb.no/~dreibh/hipercontracer
-.br
-mailto://dreibh@simula.no
-.br
+Thomas Dreibholz,
+.Lk https://www.nntb.no/\(tidreibh "Homepage"
