@@ -28,7 +28,7 @@
 .\" Contact: dreibh@simula.no
 .\"
 .\" ###### Setup ############################################################
-.Dd May 11, 2026
+.Dd May 26, 2026
 .Dt hpct\-rtunnel 1
 .Os hpct\-rtunnel
 .\" ###### Name #############################################################
@@ -38,22 +38,22 @@
 .\" ###### Synopsis #########################################################
 .Sh SYNOPSIS
 .Nm hpct\-rtunnel
-.Op Fl N | Fl Fl nodeid node\_id
+.Op Fl N | Fl \-nodeid node\_id
 .br
-.Op Fl R Ar remote\_location | Fl Fl remote Ar remote\_location
+.Op Fl R Ar remote\_location | Fl \-remote Ar remote\_location
 .br
-.Op Fl C Ar collector | Fl Fl collector Ar collector
+.Op Fl C Ar collector | Fl \-collector Ar collector
 .br
-.Op Fl K Ar ssh\_\%private\_\%key\_\%file | Fl Fl key Ar ssh\_\%private\_\%key\_\%file
+.Op Fl K Ar ssh\_\%private\_\%key\_\%file | Fl \-key Ar ssh\_\%private\_\%key\_\%file
 .br
-.Op Fl H Ar ssh\_\%known\_\%hosts\_\%file | Fl Fl known\-hosts Ar ssh\_\%known\_\%hosts\_\%file
+.Op Fl H Ar ssh\_\%known\_\%hosts\_\%file | Fl \-known\-hosts Ar ssh\_\%known\_\%hosts\_\%file
 .br
-.Op Fl q | Fl Fl quiet
-.Op Fl w | Fl Fl verbose
+.Op Fl q | Fl \-quiet
+.Op Fl w | Fl \-verbose
 .Nm hpct\-rtunnel
-.Op Fl h | Fl Fl help
+.Op Fl h | Fl \-help
 .Nm hpct\-rtunnel
-.Op Fl v | Fl Fl version
+.Op Fl v | Fl \-version
 .\" ###### Description ######################################################
 .Sh DESCRIPTION
 .Nm hpct\-rtunnel
@@ -67,23 +67,23 @@ NAT'ed IP address for remote maintenance.
 .Sh ARGUMENTS
 The following arguments may be provided:
 .Bl -tag -width indent
-.It Fl N | Fl Fl nodeid node\_id
+.It Fl N | Fl \-nodeid node\_id
 Sets the node ID, a number from 1 to 9999.
-.It Fl R Ar remote\_location | Fl Fl remote Ar remote\_location
+.It Fl R Ar remote\_location | Fl \-remote Ar remote\_location
 Sets the remote data directory on the collector. Default: /var/hipercontracer/data.
-.It Fl C Ar collector | Fl Fl collector Ar collector
+.It Fl C Ar collector | Fl \-collector Ar collector
 Specifies SSH server hostname or address of the collector.
-.It Fl K Ar ssh\_private\_key\_file | Fl Fl key Ar ssh\_private\_key\_file
+.It Fl K Ar ssh\_private\_key\_file | Fl \-key Ar ssh\_private\_key\_file
 Sets the SSH private key file used for authentication. Default: /var/hipercontracer/ssh/id\_ed25519.
-.It Fl H Ar ssh\_known\_hosts\_file | Fl Fl known\-hosts Ar ssh\_known\_hosts\_file
+.It Fl H Ar ssh\_known\_hosts\_file | Fl \-known\-hosts Ar ssh\_known\_hosts\_file
 Sets the SSH known hosts file. Default: /var/hipercontracer/ssh/known\_hosts.
-.It Fl q | Fl Fl quiet
+.It Fl q | Fl \-quiet
 Turns off status output.
-.It Fl w | Fl Fl verbose
+.It Fl w | Fl \-verbose
 Turns on status output.
-.It Fl h | Fl Fl help
+.It Fl h | Fl \-help
 Prints command help.
-.It Fl v | Fl Fl version
+.It Fl v | Fl \-version
 Prints program version.
 .El
 .\" ###### Exit status ######################################################

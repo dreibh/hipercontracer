@@ -28,7 +28,7 @@
 .\" Contact: dreibh@simula.no
 .\"
 .\" ###### Setup ############################################################
-.Dd May 11, 2026
+.Dd May 26, 2026
 .Dt decrypt\-dbeaver\-configuration 1
 .Os decrypt\-dbeaver\-configuration
 .\" ###### Name #############################################################
@@ -39,9 +39,9 @@
 .Sh SYNOPSIS
 .Nm decrypt\-dbeaver\-configuration Ar encrypted\_dbeaver\_credentials\_config\_json Ar plain\_dbeaver\_credentials\_config\_json
 .Nm decrypt\-dbeaver\-configuration
-.Op Fl h | Fl Fl help
+.Op Fl h | Fl \-help
 .Nm decrypt\-dbeaver\-configuration
-.Op Fl v | Fl Fl version
+.Op Fl v | Fl \-version
 .\" ###### Description ######################################################
 .Sh DESCRIPTION
 .Nm decrypt\-dbeaver\-configuration
@@ -63,9 +63,9 @@ The input encrypted DBeaver credentials configuration JSON file, or "\-" for
 .It Ar plain\_dbeaver\_credentials\_config\_json
 The output plain\-text DBeaver credentials configuration JSON file, or "\-" for
 .Pa /dev/stdout .
-.It Fl h | Fl Fl help
+.It Fl h | Fl \-help
 Prints command help.
-.It Fl v | Fl Fl version
+.It Fl v | Fl \-version
 Prints program version.
 .El
 .\" ###### Exit status ######################################################

@@ -28,7 +28,7 @@
 .\" Contact: dreibh@simula.no
 .\"
 .\" ###### Setup ############################################################
-.Dd May 11, 2026
+.Dd May 26, 2026
 .Dt dbshell 1
 .Os dbshell
 .\" ###### Name #############################################################
@@ -38,14 +38,14 @@
 .\" ###### Synopsis #########################################################
 .Sh SYNOPSIS
 .Nm dbshell Ar database\_configuration
-.Op Fl d | Fl Fl dry\-run
-.Op Fl B Ar file\_prefix  | Fl Fl write\-dbeaver\-config Ar file\_prefix
-.Op Fl q | Fl Fl quiet
-.Op Fl w | Fl Fl verbose
+.Op Fl d | Fl \-dry\-run
+.Op Fl B Ar file\_prefix  | Fl \-write\-dbeaver\-config Ar file\_prefix
+.Op Fl q | Fl \-quiet
+.Op Fl w | Fl \-verbose
 .Nm dbshell
-.Op Fl h | Fl Fl help
+.Op Fl h | Fl \-help
 .Nm dbshell
-.Op Fl v | Fl Fl version
+.Op Fl v | Fl \-version
 .\" ###### Description ######################################################
 .Sh DESCRIPTION
 .Nm dbshell
@@ -59,18 +59,18 @@ The following arguments may be provided:
 .Bl -tag -width indent
 .It Ar database\_configuration
 Sets the name of the database configuration file.
-.It Fl d | Fl Fl dry\-run
+.It Fl d | Fl \-dry\-run
 Just shows the command\-line call to start the database shell, but does not
 execute it.
-.It Fl B Ar file\_prefix  | Fl Fl write\-dbeaver\-config Ar file\_prefix
+.It Fl B Ar file\_prefix  | Fl \-write\-dbeaver\-config Ar file\_prefix
 Write DBeaver configuration files (the configuration file itself, as well as a credentials file) with the given file name prefix.
-.It Fl q | Fl Fl quiet
+.It Fl q | Fl \-quiet
 Turns off status output.
-.It Fl w | Fl Fl verbose
+.It Fl w | Fl \-verbose
 Turns on status output.
-.It Fl h | Fl Fl help
+.It Fl h | Fl \-help
 Prints command help.
-.It Fl v | Fl Fl version
+.It Fl v | Fl \-version
 Prints program version.
 .El
 .\" ###### Exit status ######################################################

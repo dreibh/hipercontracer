@@ -28,7 +28,7 @@
 .\" Contact: dreibh@simula.no
 .\"
 .\" ###### Setup ############################################################
-.Dd May 11, 2026
+.Dd May 26, 2026
 .Dt hpct\-trigger 1
 .Os hpct\-trigger
 .\" ###### Name #############################################################
@@ -38,75 +38,75 @@
 .\" ###### Synopsis #########################################################
 .Sh SYNOPSIS
 .Nm hpct\-trigger
-.Op Fl Fl triggerpingage Ar seconds
+.Op Fl \-triggerpingage Ar seconds
 .br
-.Op Fl Fl triggerpingpacketsize Ar payload\_length
+.Op Fl \-triggerpingpacketsize Ar payload\_length
 .br
-.Op Fl Fl triggerpingsbeforequeuing Ar count
+.Op Fl \-triggerpingsbeforequeuing Ar count
 .br
-.Op Fl P | Fl Fl ping
+.Op Fl P | Fl \-ping
 .br
-.Op Fl T | Fl Fl traceroute
+.Op Fl T | Fl \-traceroute
 .\" .Op Fl J | Fl Fl jitter
 .\" .br
-.Op Fl L Ar level | Fl Fl loglevel Ar level
-.Op Fl Z Ar on|off | Fl Fl logcolor Ar on|off
-.Op Fl O Ar file | Fl Fl logfile Ar file
+.Op Fl L Ar level | Fl \-loglevel Ar level
+.Op Fl Z Ar on|off | Fl \-logcolor Ar on|off
+.Op Fl O Ar file | Fl \-logfile Ar file
 .br
-.Op Fl q | Fl Fl quiet
-.Op Fl w | Fl Fl verbose
+.Op Fl q | Fl \-quiet
+.Op Fl w | Fl \-verbose
 .br
-.Op Fl U Ar user|uid | Fl Fl user Ar user|uid
+.Op Fl U Ar user|uid | Fl \-user Ar user|uid
 .br
-.Op Fl # Ar identifier | Fl Fl measurement\-id Ar identifier
+.Op Fl # Ar identifier | Fl \-measurement\-id Ar identifier
 .br
-.Op Fl S Ar address|\%hostname[,traffic\_class[,...]] | Fl Fl source Ar address|\%hostname[,traffic\_class[,...]]
+.Op Fl S Ar address|\%hostname[,traffic\_class[,...]] | Fl \-source Ar address|\%hostname[,traffic\_class[,...]]
 .br
-.Op Fl D Ar address|hostname | Fl Fl destination Ar address|hostname
+.Op Fl D Ar address|hostname | Fl \-destination Ar address|hostname
 .br
-.Op Fl Fl sources\-from\-file Ar file
+.Op Fl \-sources\-from\-file Ar file
 .br
-.Op Fl Fl destinations\-from\-file Ar file
+.Op Fl \-destinations\-from\-file Ar file
 .br
-.Op Fl M Ar ICMP|UDP | Fl Fl iomodule Ar ICMP|UDP
+.Op Fl M Ar ICMP|UDP | Fl \-iomodule Ar ICMP|UDP
 .br
-.Op Fl I Ar number\_\%of\_\%iterations | Fl Fl iterations Ar number\_\%of\_\%iterations
+.Op Fl I Ar number\_\%of\_\%iterations | Fl \-iterations Ar number\_\%of\_\%iterations
 .br
-.Op Fl Fl tracerouteinterval Ar milliseconds
+.Op Fl \-tracerouteinterval Ar milliseconds
 .br
-.Op Fl Fl tracerouteintervaldeviation Ar fraction
+.Op Fl \-tracerouteintervaldeviation Ar fraction
 .br
-.Op Fl Fl tracerouteduration Ar milliseconds
+.Op Fl \-tracerouteduration Ar milliseconds
 .br
-.Op Fl Fl tracerouterounds Ar rounds
+.Op Fl \-tracerouterounds Ar rounds
 .br
-.Op Fl Fl tracerouteinitialmaxttl Ar value
+.Op Fl \-tracerouteinitialmaxttl Ar value
 .br
-.Op Fl Fl traceroutefinalmaxttl Ar value
+.Op Fl \-traceroutefinalmaxttl Ar value
 .br
-.Op Fl Fl tracerouteincrementmaxttl Ar value
+.Op Fl \-tracerouteincrementmaxttl Ar value
 .br
-.Op Fl Fl traceroutepacketsize Ar bytes
+.Op Fl \-traceroutepacketsize Ar bytes
 .br
-.Op Fl Fl tracerouteudpsourceport Ar port
+.Op Fl \-tracerouteudpsourceport Ar port
 .br
-.Op Fl Fl tracerouteudpdestinationport Ar port
+.Op Fl \-tracerouteudpdestinationport Ar port
 .br
-.Op Fl Fl pinginterval Ar milliseconds
+.Op Fl \-pinginterval Ar milliseconds
 .br
-.Op Fl Fl pingintervaldeviation Ar fraction
+.Op Fl \-pingintervaldeviation Ar fraction
 .br
-.Op Fl Fl pingexpiration Ar milliseconds
+.Op Fl \-pingexpiration Ar milliseconds
 .br
-.Op Fl Fl pingburst Ar packets
+.Op Fl \-pingburst Ar packets
 .br
-.Op Fl Fl pingttl Ar value
+.Op Fl \-pingttl Ar value
 .br
-.Op Fl Fl pingpacketsize Ar bytes
+.Op Fl \-pingpacketsize Ar bytes
 .br
-.Op Fl Fl pingudpsourceport Ar port
+.Op Fl \-pingudpsourceport Ar port
 .br
-.Op Fl Fl pingudpdestinationport Ar port
+.Op Fl \-pingudpdestinationport Ar port
 .br
 .\" .Op Fl Fl jitterinterval Ar milliseconds
 .\" .br
@@ -126,21 +126,21 @@
 .\" .br
 .\" .Op Fl Fl jitterudpdestinationport Ar port
 .\" .br
-.Op Fl R Ar directory | Fl Fl resultsdirectory Ar directory
+.Op Fl R Ar directory | Fl \-resultsdirectory Ar directory
 .br
-.Op Fl x Ar seconds | Fl Fl resultstransactionlength Ar seconds
+.Op Fl x Ar seconds | Fl \-resultstransactionlength Ar seconds
 .br
-.Op Fl C Ar none|\%XZ|\%BZip2|\%GZip|\%ZLIB|\%ZSTD | Fl Fl resultscompression Ar none|\%XZ|\%BZip2|\%GZip|\%ZLIB|\%ZSTD
+.Op Fl C Ar none|\%XZ|\%BZip2|\%GZip|\%ZLIB|\%ZSTD | Fl \-resultscompression Ar none|\%XZ|\%BZip2|\%GZip|\%ZLIB|\%ZSTD
 .br
-.Op Fl F Ar version | Fl Fl resultsformat Ar version
+.Op Fl F Ar version | Fl \-resultsformat Ar version
 .br
-.Op Fl z Ar depth | Fl Fl resultstimestampdepth Ar depth
+.Op Fl z Ar depth | Fl \-resultstimestampdepth Ar depth
 .Nm hipercontracer
-.Op Fl Fl check
+.Op Fl \-check
 .Nm hipercontracer
-.Op Fl h | Fl Fl help
+.Op Fl h | Fl \-help
 .Nm hipercontracer
-.Op Fl v | Fl Fl version
+.Op Fl v | Fl \-version
 .\" ###### Description ######################################################
 .Sh DESCRIPTION
 .Nm hpct\-trigger
@@ -150,11 +150,11 @@ is a tool to trigger HiPerConTracer measurement, based on observed incoming ICMP
 .Sh ARGUMENTS
 The following arguments may be provided:
 .Bl -tag -width indent
-.It Fl Fl triggerpingage Ar seconds
+.It Fl \-triggerpingage Ar seconds
 Sets the maximum number of seconds between two trigger "Pings" (default: 300).
-.It Fl Fl triggerpingpacketsize Ar payload\_length
+.It Fl \-triggerpingpacketsize Ar payload\_length
 Sets the "Ping" total length (IP header + ICMP header + HiPerConTracer header) to trigger a HiPerConTracer measurement (default: 67).
-.It Fl Fl triggerpingsbeforequeuing Ar count
+.It Fl \-triggerpingsbeforequeuing Ar count
 Sets the number of observed "Ping" packets before triggering HiPerConTracer
 (default: 3).
 .El

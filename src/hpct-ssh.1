@@ -28,7 +28,7 @@
 .\" Contact: dreibh@simula.no
 .\"
 .\" ###### Setup ############################################################
-.Dd May 11, 2026
+.Dd May 26, 2026
 .Dt hpct\-ssh 1
 .Os hpct\-ssh
 .\" ###### Name #############################################################
@@ -39,17 +39,17 @@
 .Sh SYNOPSIS
 .Nm hpct\-ssh Ar USER@NODE\_ID
 .br
-.Op Fl c | Fl Fl copy\-id
+.Op Fl c | Fl \-copy\-id
 .br
-.Op Fl q | Fl Fl quiet
-.Op Fl w | Fl Fl verbose
+.Op Fl q | Fl \-quiet
+.Op Fl w | Fl \-verbose
 .br
 .Op Fl Fl
 SSH\_ARGUMENTS ...
 .Nm hpct\-ssh
-.Op Fl h | Fl Fl help
+.Op Fl h | Fl \-help
 .Nm hpct\-ssh
-.Op Fl v | Fl Fl version
+.Op Fl v | Fl \-version
 .\" ###### Description ######################################################
 .Sh DESCRIPTION
 .Nm hpct\-ssh
@@ -62,19 +62,19 @@ The following arguments can be provided:
 .Bl -tag -width indent
 .It Ar USER@NODE\_ID
 SSH user name, and node ID of the node to establish a SSH connection to.
-.It Fl q | Fl Fl quiet
+.It Fl q | Fl \-quiet
 Turns off status output.
-.It Fl w | Fl Fl verbose
+.It Fl w | Fl \-verbose
 Turns on status output.
-.It Fl c | Fl Fl copy\-id
+.It Fl c | Fl \-copy\-id
 Calls ssh\-copy\-id first, in order to configure public/private key\-based
 authentication to the remote node. If successful, SSH is tried. This should
 provide a password\-less login.
 .It Fl Fl
 All arguments after \-\- are provided to the SSH call.
-.It Fl h | Fl Fl help
+.It Fl h | Fl \-help
 Prints command help.
-.It Fl v | Fl Fl version
+.It Fl v | Fl \-version
 Prints program version.
 .El
 .\" ###### Exit status ######################################################

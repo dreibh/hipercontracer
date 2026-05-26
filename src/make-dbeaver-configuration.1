@@ -28,7 +28,7 @@
 .\" Contact: dreibh@simula.no
 .\"
 .\" ###### Setup ############################################################
-.Dd May 11, 2026
+.Dd May 26, 2026
 .Dt make\-dbeaver\-configuration 1
 .Os make\-dbeaver\-configuration
 .\" ###### Name #############################################################
@@ -39,11 +39,11 @@
 .Sh SYNOPSIS
 .Nm make\-dbeaver\-configuration Ar database\_configuration\_file Ar ...
 .br
-.Op Fl j | Fl Fl join
+.Op Fl j | Fl \-join
 .Nm make\-dbeaver\-configuration
-.Op Fl h | Fl Fl help
+.Op Fl h | Fl \-help
 .Nm make\-dbeaver\-configuration
-.Op Fl v | Fl Fl version
+.Op Fl v | Fl \-version
 .\" ###### Description ######################################################
 .Sh DESCRIPTION
 .Nm make\-dbeaver\-configuration
@@ -55,7 +55,7 @@ The following arguments may be provided:
 .Bl -tag -width indent
 .It Ar database\_configuration\_file Ar ...
 Specifies one or more HiPerConTracer database configuration files as input.
-.It Fl j | Fl Fl join
+.It Fl j | Fl \-join
 Join with existing DBeaver configuration. The existing configuration is
 searched in the following directories:
 .Bl -bullet
@@ -64,9 +64,9 @@ searched in the following directories:
 .It
 .Pa $HOME/\%snap/\%dbeaver\-ce/\%current/\%.local/\%share/\%DBeaverData/\%workspace6/\%General/\%.dbeaver
 .El
-.It Fl h | Fl Fl help
+.It Fl h | Fl \-help
 Prints command help.
-.It Fl v | Fl Fl version
+.It Fl v | Fl \-version
 Prints program version.
 .El
 .\" ###### Exit status ######################################################

@@ -28,7 +28,7 @@
 .\" Contact: dreibh@simula.no
 .\"
 .\" ###### Setup ############################################################
-.Dd May 11, 2026
+.Dd May 26, 2026
 .Dt hpct\-node\-setup 1
 .Os hpct\-node\-setup
 .\" ###### Name #############################################################
@@ -39,12 +39,12 @@
 .Sh SYNOPSIS
 .Nm hpct\-node\-setup USER@COLLECTOR NODE\_ID
 .br
-.Op Fl q | Fl Fl quiet
-.Op Fl w | Fl Fl verbose
+.Op Fl q | Fl \-quiet
+.Op Fl w | Fl \-verbose
 .Nm hpct\-node\-setup
-.Op Fl h | Fl Fl help
+.Op Fl h | Fl \-help
 .Nm hpct\-node\-setup
-.Op Fl v | Fl Fl version
+.Op Fl v | Fl \-version
 .\" ###### Description ######################################################
 .Sh DESCRIPTION
 .Nm hpct\-node\-setup
@@ -65,13 +65,13 @@ The following arguments may be provided:
 Sets the SSH location of the collector, i.e. USER@HOST.EXAMPLE.
 .It NODE\_ID
 Sets the node ID, a number from 1 to 9999.
-.It Fl q | Fl Fl quiet
+.It Fl q | Fl \-quiet
 Turns off status output.
-.It Fl w | Fl Fl verbose
+.It Fl w | Fl \-verbose
 Turns on status output.
-.It Fl h | Fl Fl help
+.It Fl h | Fl \-help
 Prints command help.
-.It Fl v | Fl Fl version
+.It Fl v | Fl \-version
 Prints program version.
 .El
 .\" ###### Exit status ######################################################
