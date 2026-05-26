@@ -218,7 +218,12 @@ IF ((WITH_IMPORTER) OR (WITH_QUERY) OR (WITH_RESULTS))
       IF ((NOT INotify_LIBRARIES) OR (NOT INotify_INCLUDE_DIRS))
          MESSAGE(FATAL_ERROR
                " Cannot find INotify library! Try:\n"
-               " * FreeBSD: sudo pkg install -y libinotify")
+               " * Ubuntu/Debian: (always included as part of libc)\n"
+               " * Fedora:        (always included as part of libc)\n"
+               " * SuSE:          (always included as part of libc)\n"
+               " * Alpine:        (always included as part of libc)\n"
+               " * FreeBSD:       sudo pkg install -y libinotify\n"
+               " * Apple:         --- N/A ---")
       ENDIF()
    ENDIF()
 ENDIF()
