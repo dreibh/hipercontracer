@@ -38,69 +38,69 @@
 .\" ###### Synopsis #########################################################
 .Sh SYNOPSIS
 .Nm hipercontracer
-.Op Fl P | Fl Fl ping
+.Op Fl P | Fl \-ping
 .br
-.Op Fl T | Fl Fl traceroute
+.Op Fl T | Fl \-traceroute
 .\" .Op Fl J | Fl Fl jitter
 .\" .br
-.Op Fl L Ar level | Fl Fl loglevel Ar level
-.Op Fl Z Ar on|off | Fl Fl logcolor Ar on|off
-.Op Fl O Ar file | Fl Fl logfile Ar file
+.Op Fl L Ar level | Fl \-loglevel Ar level
+.Op Fl Z Ar on|off | Fl \-logcolor Ar on|off
+.Op Fl O Ar file | Fl \-logfile Ar file
 .br
-.Op Fl q | Fl Fl quiet
-.Op Fl w | Fl Fl verbose
+.Op Fl q | Fl \-quiet
+.Op Fl w | Fl \-verbose
 .br
-.Op Fl U Ar user|uid | Fl Fl user Ar user|uid
+.Op Fl U Ar user|uid | Fl \-user Ar user|uid
 .br
-.Op Fl # Ar identifier | Fl Fl measurement\-id Ar identifier
+.Op Fl # Ar identifier | Fl \-measurement\-id Ar identifier
 .br
-.Op Fl S Ar address|\%hostname[,traffic\_class[,...]] | Fl Fl source Ar address|\%hostname[,traffic\_class[,...]]
+.Op Fl S Ar address|\%hostname[,traffic\_class[,...]] | Fl \-source Ar address|\%hostname[,traffic\_class[,...]]
 .br
-.Op Fl D Ar address|hostname | Fl Fl destination Ar address|hostname
+.Op Fl D Ar address|hostname | Fl \-destination Ar address|hostname
 .br
-.Op Fl Fl sources\-from\-file Ar file
+.Op Fl \-sources\-from\-file Ar file
 .br
-.Op Fl Fl destinations\-from\-file Ar file
+.Op Fl \-destinations\-from\-file Ar file
 .br
-.Op Fl M Ar ICMP|UDP | Fl Fl iomodule Ar ICMP|UDP
+.Op Fl M Ar ICMP|UDP | Fl \-iomodule Ar ICMP|UDP
 .br
-.Op Fl I Ar number\_\%of\_\%iterations | Fl Fl iterations Ar number\_\%of\_\%iterations
+.Op Fl I Ar number\_\%of\_\%iterations | Fl \-iterations Ar number\_\%of\_\%iterations
 .br
-.Op Fl Fl tracerouteinterval Ar milliseconds
+.Op Fl \-tracerouteinterval Ar milliseconds
 .br
-.Op Fl Fl tracerouteintervaldeviation Ar fraction
+.Op Fl \-tracerouteintervaldeviation Ar fraction
 .br
-.Op Fl Fl tracerouteduration Ar milliseconds
+.Op Fl \-tracerouteduration Ar milliseconds
 .br
-.Op Fl Fl tracerouterounds Ar rounds
+.Op Fl \-tracerouterounds Ar rounds
 .br
-.Op Fl Fl tracerouteinitialmaxttl Ar value
+.Op Fl \-tracerouteinitialmaxttl Ar value
 .br
-.Op Fl Fl traceroutefinalmaxttl Ar value
+.Op Fl \-traceroutefinalmaxttl Ar value
 .br
-.Op Fl Fl tracerouteincrementmaxttl Ar value
+.Op Fl \-tracerouteincrementmaxttl Ar value
 .br
-.Op Fl Fl traceroutepacketsize Ar bytes
+.Op Fl \-traceroutepacketsize Ar bytes
 .br
-.Op Fl Fl tracerouteudpsourceport Ar port
+.Op Fl \-tracerouteudpsourceport Ar port
 .br
-.Op Fl Fl tracerouteudpdestinationport Ar port
+.Op Fl \-tracerouteudpdestinationport Ar port
 .br
-.Op Fl Fl pinginterval Ar milliseconds
+.Op Fl \-pinginterval Ar milliseconds
 .br
-.Op Fl Fl pingintervaldeviation Ar fraction
+.Op Fl \-pingintervaldeviation Ar fraction
 .br
-.Op Fl Fl pingexpiration Ar milliseconds
+.Op Fl \-pingexpiration Ar milliseconds
 .br
-.Op Fl Fl pingburst Ar packets
+.Op Fl \-pingburst Ar packets
 .br
-.Op Fl Fl pingttl Ar value
+.Op Fl \-pingttl Ar value
 .br
-.Op Fl Fl pingpacketsize Ar bytes
+.Op Fl \-pingpacketsize Ar bytes
 .br
-.Op Fl Fl pingudpsourceport Ar port
+.Op Fl \-pingudpsourceport Ar port
 .br
-.Op Fl Fl pingudpdestinationport Ar port
+.Op Fl \-pingudpdestinationport Ar port
 .br
 .\" .Op Fl Fl jitterinterval Ar milliseconds
 .\" .br
@@ -120,21 +120,21 @@
 .\" .br
 .\" .Op Fl Fl jitterudpdestinationport Ar port
 .\" .br
-.Op Fl R Ar directory | Fl Fl resultsdirectory Ar directory
+.Op Fl R Ar directory | Fl \-resultsdirectory Ar directory
 .br
-.Op Fl x Ar seconds | Fl Fl resultstransactionlength Ar seconds
+.Op Fl x Ar seconds | Fl \-resultstransactionlength Ar seconds
 .br
-.Op Fl C Ar none|\%XZ|\%BZip2|\%GZip|\%ZLIB|\%ZSTD | Fl Fl resultscompression Ar none|\%XZ|\%BZip2|\%GZip|\%ZLIB|\%ZSTD
+.Op Fl C Ar none|\%XZ|\%BZip2|\%GZip|\%ZLIB|\%ZSTD | Fl \-resultscompression Ar none|\%XZ|\%BZip2|\%GZip|\%ZLIB|\%ZSTD
 .br
-.Op Fl F Ar version | Fl Fl resultsformat Ar version
+.Op Fl F Ar version | Fl \-resultsformat Ar version
 .br
-.Op Fl z Ar depth | Fl Fl resultstimestampdepth Ar depth
+.Op Fl z Ar depth | Fl \-resultstimestampdepth Ar depth
 .Nm hipercontracer
-.Op Fl Fl check
+.Op Fl \-check
 .Nm hipercontracer
-.Op Fl h | Fl Fl help
+.Op Fl h | Fl \-help
 .Nm hipercontracer
-.Op Fl v | Fl Fl version
+.Op Fl v | Fl \-version
 .\" ###### Description ######################################################
 .Sh DESCRIPTION
 .Nm hipercontracer
@@ -146,102 +146,102 @@ a database.
 .Sh ARGUMENTS
 The following arguments may be provided:
 .Bl -tag -width indent
-.It Fl P | Fl Fl ping
+.It Fl P | Fl \-ping
 Start the Ping service.
-.It Fl T | Fl Fl traceroute
+.It Fl T | Fl \-traceroute
 Start the Traceroute service.
 .\" .It Fl J | Fl Fl jitter
 .\" Start the Jitter service.
-.It Fl L Ar level | Fl Fl loglevel Ar level
+.It Fl L Ar level | Fl \-loglevel Ar level
 Sets the minimum logging level to the provided value: 0=trace, 1=debug, 2=info, 3=warning, 4=error, 5=fatal.
-.It Fl Z Ar on|off | Fl Fl logcolor Ar on|off
+.It Fl Z Ar on|off | Fl \-logcolor Ar on|off
 Enables (on) or disables (off) the usage of ANSI color escape sequences to colorise the log output according to its level.
-.It Fl O Ar file | Fl Fl logfile Ar file
+.It Fl O Ar file | Fl \-logfile Ar file
 Sets a file name for appending the log output to. If a file is set, no log output is made to the console.
 Otherwise, all log output will be written to the console.
-.It Fl q | Fl Fl quiet
+.It Fl q | Fl \-quiet
 Sets the minimum logging level to 3 (warning).
-.It Fl w | Fl Fl verbose
+.It Fl w | Fl \-verbose
 Sets the minimum logging level to 0 (trace).
-.It Fl U Ar user|uid | Fl Fl user Ar user|uid
+.It Fl U Ar user|uid | Fl \-user Ar user|uid
 After startup, HiPerConTracer uses UID and GID of the given user (by name or GID).
 The output directory's ownership as well as the ownership of the created results
 files will be set accordingly.
-.It Fl # Ar identifier | Fl Fl measurement\-id Ar identifier
+.It Fl # Ar identifier | Fl \-measurement\-id Ar identifier
 Sets a unique measurement identifier for the measurement. All output files will have this identifier in their file name (#<ID>).
 It can be used to set a setup\-wide unique identifier to identify the vantage point. If no measurement identifier is specified,
 the files will contain the process ID instead (P<ID>). Range: 0\-2147483647.
 Default: 0 (using process ID instead).
-.It Fl S Ar address|hostname[,traffic\_class[,...]] | Fl Fl source Ar address|hostname[,traffic\_class[,...]]
+.It Fl S Ar address|hostname[,traffic\_class[,...]] | Fl \-source Ar address|hostname[,traffic\_class[,...]]
 Adds the given source address or hostname. It is possible to use the ANY address (0.0.0.0 or ::), in order to just use the default route.
 If no traffic class is given, Best Effort (00) is used. Otherwise, the list of given traffic classes (in hexadecimal) is used. Alternatively, a traffic class can be specified by PHB name (BE, EF, AF11, AF12, AF13, AF21, AF22, AF23, AF31, AF32, AF33, AF41, AF42, AF43, CS1, CS2, CS3, CS4, CS5, CS6, CS7). In this case, the corresponding traffic class with ECN bits set to 0 is used.
 Note: use lower\-case hexadecimal letters to avoid ambiguities with PHB name (e.g. be for 0xbe instead of BE PHB)!
 If a hostname is provided, a DNS resolution is performed and all returned addresses are added.
 If no source address is provided, HiPerConTracer automatically adds 0.0.0.0 if there is an IPv4 destination, and :: if there is an IPv6 destination given.
-.It Fl D Ar address|hostname | Fl Fl destination Ar address|hostname
+.It Fl D Ar address|hostname | Fl \-destination Ar address|hostname
 Adds the given destination address or hostname.
 If a hostname is provided, a DNS resolution is performed and all returned addresses are added.
-.It Fl Fl sources\-from\-file Ar file
+.It Fl \-sources\-from\-file Ar file
 Read sources from given file. This option may be used multiple times, to read from multiple files.
-.It Fl Fl destinations\-from\-file Ar file
+.It Fl \-destinations\-from\-file Ar file
 Read destinations from given file. This option may be used multiple times, to read from multiple files.
-.It Fl M Ar ICMP|UDP | Fl Fl iomodule Ar ICMP|UDP
+.It Fl M Ar ICMP|UDP | Fl \-iomodule Ar ICMP|UDP
 Adds an I/O module: ICMP or UDP. The option may be specified multiple times with different modules.
-.It Fl I Ar number\_of\_iterations | Fl Fl iterations Ar number\_of\_iterations
+.It Fl I Ar number\_of\_iterations | Fl \-iterations Ar number\_of\_iterations
 Limit the number of measurement iterations (measurement for all source/destination
 pairs) to the given number of iterations. The default 0 lets HiPerConTracer run
 continuously.
-.It Fl Fl tracerouteinterval Ar milliseconds
+.It Fl \-tracerouteinterval Ar milliseconds
 Sets the Traceroute interval (time for each full round of destinations).
-.It Fl Fl tracerouteintervaldeviation Ar fraction
+.It Fl \-tracerouteintervaldeviation Ar fraction
 Randomly deviate the Traceroute interval by the given fraction (as 0.0 to 1.0), that is to chose out of [interval \- fraction * interval, interval + fraction * interval], in order to avoid synchronisation effects.
 Default is 0.1 (10%).
-.It Fl Fl tracerouteduration Ar milliseconds
+.It Fl \-tracerouteduration Ar milliseconds
 Sets the Traceroute duration (timeout for each destination).
-.It Fl Fl tracerouterounds Ar rounds
+.It Fl \-tracerouterounds Ar rounds
 For each Traceroute measurement, perform the given number of rounds simultaneously.
 Default is 1 round. Range: 1\-64.
 Each TTL test of a round will have the same ICMP checksum value ("Oslo Traceroute"),
 in order to deal with load balancing in the Internet.
 Different rounds will have different checksums. That is, different rounds may
 experience different paths in the network.
-.It Fl Fl tracerouteinitialmaxttl Ar value
+.It Fl \-tracerouteinitialmaxttl Ar value
 Start with the given maximum TTL.
 Default is 6.
-.It Fl Fl traceroutefinalmaxttl Ar value
+.It Fl \-traceroutefinalmaxttl Ar value
 Finish with the given maximum TTL (when destination is not reached with current TTL setting).
 Default is 36.
-.It Fl Fl tracerouteincrementmaxttl Ar value
+.It Fl \-tracerouteincrementmaxttl Ar value
 Increase the maximum TTL by the given value (when destination is not reached with current TTL setting).
 Default is 6.
-.It Fl Fl traceroutepacketsize Ar bytes
+.It Fl \-traceroutepacketsize Ar bytes
 Sets the Traceroute packet size, that is IP header (20 for IPv4/40 for IPv6) + ICMP header (8)/UDP header (8) + HiPerConTracer header (16) + payload, in bytes.
 The actually sent packet size always covers at least the headers for IPv4/IPv6, ICMP and HiPerConTracer. Maximum packet size is 65535.
-.It Fl Fl tracerouteudpsourceport Ar port
+.It Fl \-tracerouteudpsourceport Ar port
 Sets the Traceroute source port for the UDP module (default: 0, for automatic allocation). Note: If using a fixed UDP port for Traceroute, different UDP source ports must be used for any other services!
-.It Fl Fl tracerouteudpdestinationport Ar port
+.It Fl \-tracerouteudpdestinationport Ar port
 Sets the Traceroute destination port for the UDP module (default: 7, for Echo).
-.It Fl Fl pinginterval Ar milliseconds
+.It Fl \-pinginterval Ar milliseconds
 Sets the Ping interval (time for each full round of destinations).
 Default is 5000 ms.
-.It Fl Fl pingintervaldeviation Ar fraction
+.It Fl \-pingintervaldeviation Ar fraction
 Randomly deviate the Ping interval by the given fraction (as 0.0 to 1.0), that is to chose out of [interval \- fraction * interval, interval + fraction * interval], in order to avoid synchronisation effects.
 Default is 0.1 (10%).
-.It Fl Fl pingexpiration Ar milliseconds
+.It Fl \-pingexpiration Ar milliseconds
 Sets the Ping duration (timeout for each destination).
 Default is 10000 ms.
-.It Fl Fl pingburst Ar packets
+.It Fl \-pingburst Ar packets
 For each Ping measurement, send a burst of the given number of packets.
 Default is 1 packet. Range: 1\-1024.
-.It Fl Fl pingttl Ar value
+.It Fl \-pingttl Ar value
 Sets the Ping TTL value.
 Default is 64. Range: 1\-255.
-.It Fl Fl pingpacketsize Ar bytes
+.It Fl \-pingpacketsize Ar bytes
 Sets the Ping packet size, that is IP header (20 for IPv4/40 for IPv6) + ICMP header (8)/UDP header (8) + HiPerConTracer header (16) + payload, in bytes.
 The actually sent packet size always covers at least the headers for IPv4/IPv6, transport protocol and HiPerConTracer. Default is 0 (use minimum possible value). Range: 0\-65535.
-.It Fl Fl pingudpsourceport Ar port
+.It Fl \-pingudpsourceport Ar port
 Sets the Ping source port for the UDP module (default: 0, for automatic allocation). Note: If using a fixed UDP port for Ping, different UDP source ports must be used for any other services!
-.It Fl Fl pingudpdestinationport Ar port
+.It Fl \-pingudpdestinationport Ar port
 Sets the Ping destination port for the UDP module (default: 7, for Echo).
 .\" .It Fl Fl jitterinterval Ar milliseconds
 .\" Sets the Jitter interval (time for each full round of destinations).
@@ -268,25 +268,25 @@ Sets the Ping destination port for the UDP module (default: 7, for Echo).
 .\" Sets the Jitter destination port for the UDP module (default: 7, for Echo).
 .\" .It Fl Fl jitterrecordraw
 .\" Also record raw Ping results used for jitter computation.
-.It Fl R Ar directory | Fl Fl resultsdirectory Ar directory
+.It Fl R Ar directory | Fl \-resultsdirectory Ar directory
 Sets the results files directory. The results will be stored there. If not specified, to results will be stored.
-.It Fl x Ar seconds | Fl Fl resultstransactionlength Ar seconds
+.It Fl x Ar seconds | Fl \-resultstransactionlength Ar seconds
 After a given number of seconds, begin a new results file.
-.It Fl C Ar none|XZ|BZip2|GZip|ZLIB|ZSTD | Fl Fl resultscompression Ar none|XZ|BZip2|GZip|ZLIB|ZSTD
+.It Fl C Ar none|XZ|BZip2|GZip|ZLIB|ZSTD | Fl \-resultscompression Ar none|XZ|BZip2|GZip|ZLIB|ZSTD
 Sets the compression for the output files.
 Default: XZ.
-.It Fl F Ar version | Fl Fl resultsformat Ar version
+.It Fl F Ar version | Fl \-resultsformat Ar version
 Sets the results file format version.
 Default: 2 (current version). Range (currently): 1\-2.
 Note: A future version of HiPerConTracer may increase this default setting!
-.It Fl z Ar depth | Fl Fl resultstimestampdepth Ar depth
+.It Fl z Ar depth | Fl \-resultstimestampdepth Ar depth
 Create a timestamp\-based directory hierarchy for the results, of given depth (default: 0).
 0 = none, 1 = year, 2 = year/month, 3 = year/month/day, 4 = year/month/day/hour:00, 5 = year/month/day/hour:00/hour:minute.
-.It Fl Fl check
+.It Fl \-check
 Print build environment information for debugging.
-.It Fl h | Fl Fl help
+.It Fl h | Fl \-help
 Prints command help.
-.It Fl v | Fl Fl version
+.It Fl v | Fl \-version
 Prints program version.
 .El
 .\" ###### Output format ####################################################
