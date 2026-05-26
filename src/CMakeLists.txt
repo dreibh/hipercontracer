@@ -252,7 +252,7 @@ ENDIF()
 IF (WITH_SYNC)
    CONFIGURE_FILE(hpct-sync hpct-sync.versioned @ONLY)
    SET_PROPERTY(DIRECTORY APPEND PROPERTY ADDITIONAL_CLEAN_FILES hpct-sync.versioned)
-   INSTALL(PROGRAMS    hpct-sync.versioned
+   INSTALL(PROGRAMS    ${CMAKE_CURRENT_BINARY_DIR}/hpct-sync.versioned
            DESTINATION ${CMAKE_INSTALL_BINDIR}
            RENAME      hpct-sync)
    INSTALL(FILES hpct-sync.1  DESTINATION ${CMAKE_INSTALL_MANDIR}/man1)
@@ -271,7 +271,7 @@ ENDIF()
 IF (WITH_RTUNNEL)
    CONFIGURE_FILE(hpct-rtunnel hpct-rtunnel.versioned @ONLY)
    SET_PROPERTY(DIRECTORY APPEND PROPERTY ADDITIONAL_CLEAN_FILES hpct-rtunnel.versioned)
-   INSTALL(PROGRAMS    hpct-rtunnel.versioned
+   INSTALL(PROGRAMS    ${CMAKE_CURRENT_BINARY_DIR}/hpct-rtunnel.versioned
            DESTINATION ${CMAKE_INSTALL_BINDIR}
            RENAME      hpct-rtunnel)
    INSTALL(FILES       hpct-rtunnel.1 DESTINATION ${CMAKE_INSTALL_MANDIR}/man1)
@@ -279,7 +279,7 @@ IF (WITH_RTUNNEL)
            DESTINATION ${CMAKE_INSTALL_DATADIR}/bash-completion/completions
            RENAME      hpct-rtunnel)
    IF (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
-      INSTALL(FILES hpct-rtunnel.service  DESTINATION ${CMAKE_INSTALL_PREFIX}/lib/systemd/system)
+      INSTALL(FILES hpct-rtunnel.service DESTINATION ${CMAKE_INSTALL_PREFIX}/lib/systemd/system)
    ENDIF()
 ENDIF()
 
@@ -288,7 +288,7 @@ ENDIF()
 IF (WITH_NODE)
    CONFIGURE_FILE(hpct-node-setup hpct-node-setup.versioned @ONLY)
    SET_PROPERTY(DIRECTORY APPEND PROPERTY ADDITIONAL_CLEAN_FILES hpct-node-setup.versioned)
-   INSTALL(PROGRAMS    hpct-node-setup.versioned
+   INSTALL(PROGRAMS    ${CMAKE_CURRENT_BINARY_DIR}/hpct-node-setup.versioned
            DESTINATION ${CMAKE_INSTALL_BINDIR}
            RENAME      hpct-node-setup)
    INSTALL(FILES       hpct-node-setup.1 DESTINATION ${CMAKE_INSTALL_MANDIR}/man1)
@@ -302,7 +302,7 @@ ENDIF()
 IF (WITH_COLLECTOR)
    CONFIGURE_FILE(hpct-node-removal hpct-node-removal.versioned @ONLY)
    SET_PROPERTY(DIRECTORY APPEND PROPERTY ADDITIONAL_CLEAN_FILES hpct-node-removal.versioned)
-   INSTALL(PROGRAMS    hpct-node-removal.versioned
+   INSTALL(PROGRAMS    ${CMAKE_CURRENT_BINARY_DIR}/hpct-node-removal.versioned
            DESTINATION ${CMAKE_INSTALL_BINDIR}
            RENAME      hpct-node-removal)
    INSTALL(FILES       hpct-node-removal.1 DESTINATION ${CMAKE_INSTALL_MANDIR}/man1)
@@ -312,7 +312,7 @@ IF (WITH_COLLECTOR)
 
    CONFIGURE_FILE(hpct-nodes-list hpct-nodes-list.versioned @ONLY)
    SET_PROPERTY(DIRECTORY APPEND PROPERTY ADDITIONAL_CLEAN_FILES hpct-nodes-list.versioned)
-   INSTALL(PROGRAMS    hpct-nodes-list.versioned
+   INSTALL(PROGRAMS    ${CMAKE_CURRENT_BINARY_DIR}/hpct-nodes-list.versioned
            DESTINATION ${CMAKE_INSTALL_BINDIR}
            RENAME      hpct-nodes-list)
    INSTALL(FILES       hpct-nodes-list.1 DESTINATION ${CMAKE_INSTALL_MANDIR}/man1)
@@ -322,7 +322,7 @@ IF (WITH_COLLECTOR)
 
    CONFIGURE_FILE(hpct-ssh hpct-ssh.versioned @ONLY)
    SET_PROPERTY(DIRECTORY APPEND PROPERTY ADDITIONAL_CLEAN_FILES hpct-ssh.versioned)
-   INSTALL(PROGRAMS    hpct-ssh.versioned
+   INSTALL(PROGRAMS    ${CMAKE_CURRENT_BINARY_DIR}/hpct-ssh.versioned
            DESTINATION ${CMAKE_INSTALL_BINDIR}
            RENAME      hpct-ssh)
    INSTALL(FILES       hpct-ssh.1        DESTINATION ${CMAKE_INSTALL_MANDIR}/man1)
@@ -378,7 +378,7 @@ ENDIF()
 IF (WITH_VIEWER)
    CONFIGURE_FILE(hpct-viewer hpct-viewer.versioned @ONLY)
    SET_PROPERTY(DIRECTORY APPEND PROPERTY ADDITIONAL_CLEAN_FILES hpct-viewer.versioned)
-   INSTALL(PROGRAMS    hpct-viewer.versioned
+   INSTALL(PROGRAMS    ${CMAKE_CURRENT_BINARY_DIR}/hpct-viewer.versioned
            DESTINATION ${CMAKE_INSTALL_BINDIR}
            RENAME      hpct-viewer)
    INSTALL(FILES       hpct-viewer.1       DESTINATION ${CMAKE_INSTALL_MANDIR}/man1)
@@ -394,7 +394,7 @@ ENDIF()
 IF (WITH_DBSHELL)
    CONFIGURE_FILE(dbshell dbshell.versioned @ONLY)
    SET_PROPERTY(DIRECTORY APPEND PROPERTY ADDITIONAL_CLEAN_FILES dbshell.versioned)
-   INSTALL(PROGRAMS    dbshell.versioned
+   INSTALL(PROGRAMS    ${CMAKE_CURRENT_BINARY_DIR}/dbshell.versioned
            DESTINATION ${CMAKE_INSTALL_BINDIR}
            RENAME      dbshell)
    INSTALL(FILES       dbshell.1 DESTINATION ${CMAKE_INSTALL_MANDIR}/man1)
@@ -407,21 +407,21 @@ ENDIF()
 IF (WITH_DBEAVER_TOOLS)
    CONFIGURE_FILE(make-dbeaver-configuration make-dbeaver-configuration.versioned @ONLY)
    SET_PROPERTY(DIRECTORY APPEND PROPERTY ADDITIONAL_CLEAN_FILES make-dbeaver-configuration.versioned)
-   INSTALL(PROGRAMS    make-dbeaver-configuration.versioned
+   INSTALL(PROGRAMS    ${CMAKE_CURRENT_BINARY_DIR}/make-dbeaver-configuration.versioned
            DESTINATION ${CMAKE_INSTALL_BINDIR}
            RENAME      make-dbeaver-configuration)
    INSTALL(FILES    make-dbeaver-configuration.1    DESTINATION ${CMAKE_INSTALL_MANDIR}/man1)
 
    CONFIGURE_FILE(decrypt-dbeaver-configuration decrypt-dbeaver-configuration.versioned @ONLY)
    SET_PROPERTY(DIRECTORY APPEND PROPERTY ADDITIONAL_CLEAN_FILES decrypt-dbeaver-configuration.versioned)
-   INSTALL(PROGRAMS    decrypt-dbeaver-configuration.versioned
+   INSTALL(PROGRAMS    ${CMAKE_CURRENT_BINARY_DIR}/decrypt-dbeaver-configuration.versioned
            DESTINATION ${CMAKE_INSTALL_BINDIR}
            RENAME      decrypt-dbeaver-configuration)
    INSTALL(FILES    decrypt-dbeaver-configuration.1 DESTINATION ${CMAKE_INSTALL_MANDIR}/man1)
 
    CONFIGURE_FILE(encrypt-dbeaver-configuration encrypt-dbeaver-configuration.versioned @ONLY)
    SET_PROPERTY(DIRECTORY APPEND PROPERTY ADDITIONAL_CLEAN_FILES encrypt-dbeaver-configuration.versioned)
-   INSTALL(PROGRAMS    encrypt-dbeaver-configuration.versioned
+   INSTALL(PROGRAMS    ${CMAKE_CURRENT_BINARY_DIR}/encrypt-dbeaver-configuration.versioned
            DESTINATION ${CMAKE_INSTALL_BINDIR}
            RENAME      encrypt-dbeaver-configuration)
    INSTALL(FILES    encrypt-dbeaver-configuration.1 DESTINATION ${CMAKE_INSTALL_MANDIR}/man1)
@@ -456,9 +456,9 @@ ENDIF()
 # ====== Scripts ============================================================
 CONFIGURE_FILE(get-default-ips get-default-ips.versioned @ONLY)
 SET_PROPERTY(DIRECTORY APPEND PROPERTY ADDITIONAL_CLEAN_FILES get-default-ips.versioned)
-INSTALL(PROGRAMS    get-default-ips.versioned
-         DESTINATION ${CMAKE_INSTALL_BINDIR}
-         RENAME      get-default-ips)
+INSTALL(PROGRAMS    ${CMAKE_CURRENT_BINARY_DIR}/get-default-ips.versioned
+        DESTINATION ${CMAKE_INSTALL_BINDIR}
+        RENAME      get-default-ips)
 INSTALL(FILES get-default-ips.1
         DESTINATION ${CMAKE_INSTALL_MANDIR}/man1)
 
