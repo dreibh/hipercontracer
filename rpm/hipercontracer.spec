@@ -477,10 +477,117 @@ them to integrate HiPerConTracer into your own programs.
 %{_libdir}/libhipercontracer.a
 
 
+%package libhpctdb
+Summary: Database access library of HiPerConTracer
+Group: System Environment/Libraries
+Requires: %{name}-libhpctio = %{version}-%{release}
+
+%description libhpctdb
+High-Performance Connectivity Tracer (HiPerConTracer) is a Ping/Traceroute
+measurement framework. HiPerConTracer refers to the core measurement tool,
+which performs regular Ping and Traceroute runs among sites.
+Key features include:
+- Multi-transport-protocol support (ICMP, UDP);
+- Multi-homing and parallelism support;
+- Handling of network load balancing;
+- Multi-platform support (currently Linux and FreeBSD);
+- High-precision (nanosecond) timing (Linux software and hardware
+   timestamping);
+- Integrated library (shared/static) for third-party software
+   (libhipercontracer);
+- Open-source C++ codebase focused on performance and portability with
+   only a small number of dependencies.
+
+Furthermore, the HiPerConTracer framework provides additional tools for
+obtaining, processing, collecting, storing, and retrieving measurement
+data:
+- Viewer Tool: Displays the contents of results files.
+- Results Tool: Merges and converts results files (e.g., to CSV format).
+- Sync Tool: Copies data from a measurement node (vantage point) to a
+   remote collector server via RSync/SSH.
+- Reverse Tunnel Tool: Maintains a reverse SSH tunnel from a remote
+   measurement node to a collector server.
+- Collector/Node Tools: Simplify the setup of nodes and collectors.
+- Trigger Tool: Triggers measurements in the reverse direction.
+- Importer Tool: Stores measurement data into SQL (MariaDB/MySQL,
+   PostgreSQL) or NoSQL (MongoDB) databases.
+- Query Tool: Queries data from a database and stores it into a results
+   file.
+- Database Shell: A simple command-line front-end for the underlying
+   database backends.
+- Database Tools: Helper scripts to join database configurations into
+   an existing DBeaver configuration.
+- UDP Echo Server: A UDP Echo (RFC 862) protocol endpoint.
+
+This package provides the database access library shared by
+HiPerConTracer components.
+
+%files libhpctdb
+%{_libdir}/libhpctdb.so.*
+
+
+%package libhpctdb-devel
+Summary: Development files for the HiPerConTracer database access library
+Group: Development/Libraries
+Requires: %{name}-libhpctdb = %{version}-%{release}
+Requires: %{name}-libhpctio-devel = %{version}-%{release}
+
+%description libhpctdb-devel
+High-Performance Connectivity Tracer (HiPerConTracer) is a Ping/Traceroute
+measurement framework. HiPerConTracer refers to the core measurement tool,
+which performs regular Ping and Traceroute runs among sites.
+Key features include:
+- Multi-transport-protocol support (ICMP, UDP);
+- Multi-homing and parallelism support;
+- Handling of network load balancing;
+- Multi-platform support (currently Linux and FreeBSD);
+- High-precision (nanosecond) timing (Linux software and hardware
+   timestamping);
+- Integrated library (shared/static) for third-party software
+   (libhipercontracer);
+- Open-source C++ codebase focused on performance and portability with
+   only a small number of dependencies.
+
+Furthermore, the HiPerConTracer framework provides additional tools for
+obtaining, processing, collecting, storing, and retrieving measurement
+data:
+- Viewer Tool: Displays the contents of results files.
+- Results Tool: Merges and converts results files (e.g., to CSV format).
+- Sync Tool: Copies data from a measurement node (vantage point) to a
+   remote collector server via RSync/SSH.
+- Reverse Tunnel Tool: Maintains a reverse SSH tunnel from a remote
+   measurement node to a collector server.
+- Collector/Node Tools: Simplify the setup of nodes and collectors.
+- Trigger Tool: Triggers measurements in the reverse direction.
+- Importer Tool: Stores measurement data into SQL (MariaDB/MySQL,
+   PostgreSQL) or NoSQL (MongoDB) databases.
+- Query Tool: Queries data from a database and stores it into a results
+   file.
+- Database Shell: A simple command-line front-end for the underlying
+   database backends.
+- Database Tools: Helper scripts to join database configurations into
+   an existing DBeaver configuration.
+- UDP Echo Server: A UDP Echo (RFC 862) protocol endpoint.
+
+This package provides header files for the HiPerConTracer
+database access library.
+
+%files libhpctdb-devel
+%{_includedir}/hipercontracer/database-configuration.h
+%{_includedir}/hipercontracer/database-statement.h
+%{_includedir}/hipercontracer/databaseclient-base.h
+%{_includedir}/hipercontracer/databaseclient-debug.h
+%{_includedir}/hipercontracer/databaseclient-mariadb.h
+%{_includedir}/hipercontracer/databaseclient-mongodb.h
+%{_includedir}/hipercontracer/databaseclient-postgresql.h
+%{_libdir}/libhpctdb*.so
+%{_libdir}/libhpctdb.a
+
+
 %package libuniversalimporter
 Summary: API library of HiPerConTracer Universal Importer
 Group: System Environment/Libraries
-Requires: %{name}-libhpctio = %{version}-%{release}
+Requires: %{name}-libhpctdb = %{version}-%{release}
 
 %description libuniversalimporter
 High-Performance Connectivity Tracer (HiPerConTracer) is a Ping/Traceroute
