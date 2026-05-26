@@ -58,7 +58,8 @@ LIST(APPEND libhpctio_sources
    tools.cc
 )
 
-INSTALL(FILES ${libhpctio_headers} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/hipercontracer)
+INSTALL(FILES       ${libhpctio_headers}
+        DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/hipercontracer)
 
 IF (WITH_STATIC_LIBRARIES)
    ADD_LIBRARY(libhpctio-static STATIC ${libhpctio_sources})
@@ -69,13 +70,20 @@ ENDIF()
 FOREACH(TYPE shared;static)
    IF ( (("${TYPE}" STREQUAL "static") AND (WITH_STATIC_LIBRARIES)) OR
       (("${TYPE}" STREQUAL "shared") AND (WITH_SHARED_LIBRARIES)) )
-      SET_TARGET_PROPERTIES(libhpctio-${TYPE} PROPERTIES OUTPUT_NAME hpctio CLEAN_DIRECT_OUTPUT 1)
       SET_TARGET_PROPERTIES(libhpctio-${TYPE} PROPERTIES
-         VERSION   ${BUILD_VERSION}
-         SOVERSION ${BUILD_MAJOR}
+         OUTPUT_NAME         hpctio
+         CLEAN_DIRECT_OUTPUT 1
+         VERSION             ${BUILD_VERSION}
+         SOVERSION           ${BUILD_MAJOR}
       )
-      TARGET_LINK_LIBRARIES (libhpctio-${TYPE} ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} ${LZMA_LIBRARY} ${BZ2_LIBRARY} ${Z_LIBRARY})
-      INSTALL(TARGETS libhpctio-${TYPE} DESTINATION ${CMAKE_INSTALL_LIBDIR})
+      TARGET_LINK_LIBRARIES(libhpctio-${TYPE}
+                            ${Boost_LIBRARIES}
+                            ${CMAKE_THREAD_LIBS_INIT}
+                            ${LZMA_LIBRARY}
+                            ${BZ2_LIBRARY}
+                            ${Z_LIBRARY})
+      INSTALL(TARGETS     libhpctio-${TYPE}
+              DESTINATION ${CMAKE_INSTALL_LIBDIR})
    ENDIF()
 ENDFOREACH()
 
@@ -112,7 +120,8 @@ IF (WITH_HIPERCONTRACER)
       traceserviceheader.cc
    )
 
-   INSTALL(FILES ${libhipercontracer_headers} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/hipercontracer)
+   INSTALL(FILES       ${libhipercontracer_headers}
+           DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/hipercontracer)
 
    IF (WITH_STATIC_LIBRARIES)
       ADD_LIBRARY(libhipercontracer-static STATIC ${libhipercontracer_sources})
@@ -123,23 +132,95 @@ IF (WITH_HIPERCONTRACER)
    FOREACH(TYPE shared;static)
       IF ( (("${TYPE}" STREQUAL "static") AND (WITH_STATIC_LIBRARIES)) OR
          (("${TYPE}" STREQUAL "shared") AND (WITH_SHARED_LIBRARIES)) )
-         SET_TARGET_PROPERTIES(libhipercontracer-${TYPE} PROPERTIES OUTPUT_NAME hipercontracer CLEAN_DIRECT_OUTPUT 1)
          SET_TARGET_PROPERTIES(libhipercontracer-${TYPE} PROPERTIES
-            VERSION   ${BUILD_VERSION}
-            SOVERSION ${BUILD_MAJOR}
+            OUTPUT_NAME         hipercontracer
+            CLEAN_DIRECT_OUTPUT 1
+            VERSION             ${BUILD_VERSION}
+            SOVERSION           ${BUILD_MAJOR}
          )
-         TARGET_LINK_LIBRARIES (libhipercontracer-${TYPE} libhpctio-${TYPE} ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
-         INSTALL(TARGETS libhipercontracer-${TYPE} DESTINATION ${CMAKE_INSTALL_LIBDIR})
+         TARGET_LINK_LIBRARIES(libhipercontracer-${TYPE}
+                               libhpctio-${TYPE}
+                               ${Boost_LIBRARIES}
+                               ${CMAKE_THREAD_LIBS_INIT})
+         INSTALL(TARGETS     libhipercontracer-${TYPE}
+                 DESTINATION ${CMAKE_INSTALL_LIBDIR})
+      ENDIF()
+   ENDFOREACH()
+ENDIF()
+
+# ====== libhpctdb ==========================================================
+IF ((WITH_IMPORTER) OR (WITH_QUERY) OR (WITH_RESULTS))
+   LIST(APPEND libhpctdb_headers
+      database-configuration.h
+      database-statement.h
+      databaseclient-base.h
+   )
+   LIST(APPEND libhpctdb_sources
+      database-configuration.cc
+      database-statement.cc
+      databaseclient-base.cc
+   )
+
+   IF (ENABLE_BACKEND_DEBUG)
+      LIST(APPEND libhpctdb_headers databaseclient-debug.h)
+      LIST(APPEND libhpctdb_sources databaseclient-debug.cc)
+      SET_PROPERTY(SOURCE database-configuration.cc
+                   APPEND PROPERTY COMPILE_DEFINITIONS ENABLE_BACKEND_DEBUG)
+   ENDIF()
+   IF (ENABLE_BACKEND_MARIADB)
+      LIST(APPEND libhpctdb_headers databaseclient-mariadb.h)
+      LIST(APPEND libhpctdb_sources databaseclient-mariadb.cc)
+      SET_PROPERTY(SOURCE database-configuration.cc
+                   APPEND PROPERTY COMPILE_DEFINITIONS ENABLE_BACKEND_MARIADB)
+   ENDIF()
+   IF (ENABLE_BACKEND_POSTGRESQL)
+      LIST(APPEND libhpctdb_headers databaseclient-postgresql.h)
+      LIST(APPEND libhpctdb_sources databaseclient-postgresql.cc)
+      SET_PROPERTY(SOURCE database-configuration.cc
+                   APPEND PROPERTY COMPILE_DEFINITIONS ENABLE_BACKEND_POSTGRESQL)
+   ENDIF()
+   IF (ENABLE_BACKEND_MONGODB)
+      LIST(APPEND libhpctdb_headers databaseclient-mongodb.h)
+      LIST(APPEND libhpctdb_sources databaseclient-mongodb.cc)
+      SET_PROPERTY(SOURCE database-configuration.cc
+                   APPEND PROPERTY COMPILE_DEFINITIONS ENABLE_BACKEND_MONGODB)
+   ENDIF()
+
+   INSTALL(FILES ${libhpctdb_headers} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/hipercontracer)
+
+   IF (WITH_STATIC_LIBRARIES)
+      ADD_LIBRARY(libhpctdb-static STATIC ${libhpctdb_sources})
+   ENDIF()
+   IF (WITH_SHARED_LIBRARIES)
+      ADD_LIBRARY(libhpctdb-shared SHARED ${libhpctdb_sources})
+   ENDIF()
+   FOREACH(TYPE shared;static)
+      IF ( (("${TYPE}" STREQUAL "static") AND (WITH_STATIC_LIBRARIES)) OR
+         (("${TYPE}" STREQUAL "shared") AND (WITH_SHARED_LIBRARIES)) )
+         SET_TARGET_PROPERTIES(libhpctdb-${TYPE} PROPERTIES
+            UTPUT_NAME          hpctdb
+            CLEAN_DIRECT_OUTPUT 1
+            VERSION             ${BUILD_VERSION}
+            SOVERSION           ${BUILD_MAJOR}
+         )
+         TARGET_INCLUDE_DIRECTORIES(libhpctdb-${TYPE} PUBLIC
+                                    ${LIBMARIADB_INCLUDE_DIR}
+                                    ${LIBMONGOC_INCLUDE_DIR}
+                                    ${LIBBSON_INCLUDE_DIR})
+         TARGET_LINK_LIBRARIES(libhpctdb-${TYPE}
+                               libhpctio-${TYPE}
+                               ${LIBMARIADB_LIBRARY}
+                               ${LIBPQXX_LIBRARY}
+                               ${LIBMONGOC_LIBRARY}
+                               ${LIBBSON_LIBRARY})
+         INSTALL(TARGETS libhpctdb-${TYPE} DESTINATION ${CMAKE_INSTALL_LIBDIR})
       ENDIF()
    ENDFOREACH()
 ENDIF()
 
 # ====== libuniversalimporter ==================================================
-IF ((WITH_IMPORTER) OR (WITH_QUERY) OR (WITH_RESULTS))
+IF (WITH_IMPORTER)
    LIST(APPEND libuniversalimporter_headers
-      database-configuration.h
-      database-statement.h
-      databaseclient-base.h
       importer-configuration.h
       reader-base.h
       results-exception.h
@@ -147,38 +228,14 @@ IF ((WITH_IMPORTER) OR (WITH_QUERY) OR (WITH_RESULTS))
       worker.h
    )
    LIST(APPEND libuniversalimporter_sources
-      database-configuration.cc
-      database-statement.cc
-      databaseclient-base.cc
       importer-configuration.cc
       reader-base.cc
       universal-importer.cc
       worker.cc
    )
 
-   IF (ENABLE_BACKEND_DEBUG)
-      LIST(APPEND libuniversalimporter_headers databaseclient-debug.h)
-      LIST(APPEND libuniversalimporter_sources databaseclient-debug.cc)
-      SET_PROPERTY(SOURCE database-configuration.cc APPEND PROPERTY COMPILE_DEFINITIONS ENABLE_BACKEND_DEBUG)
-   ENDIF()
-   IF (ENABLE_BACKEND_MARIADB)
-      LIST(APPEND libuniversalimporter_headers databaseclient-mariadb.h)
-      LIST(APPEND libuniversalimporter_sources databaseclient-mariadb.cc)
-      SET_PROPERTY(SOURCE database-configuration.cc APPEND PROPERTY COMPILE_DEFINITIONS ENABLE_BACKEND_MARIADB)
-   ENDIF()
-   IF (ENABLE_BACKEND_POSTGRESQL)
-      LIST(APPEND libuniversalimporter_headers databaseclient-postgresql.h)
-      LIST(APPEND libuniversalimporter_sources databaseclient-postgresql.cc)
-      SET_PROPERTY(SOURCE database-configuration.cc APPEND PROPERTY COMPILE_DEFINITIONS ENABLE_BACKEND_POSTGRESQL)
-   ENDIF()
-   IF (ENABLE_BACKEND_MONGODB)
-      LIST(APPEND libuniversalimporter_headers databaseclient-mongodb.h)
-      LIST(APPEND libuniversalimporter_sources databaseclient-mongodb.cc)
-      SET_PROPERTY(SOURCE database-configuration.cc APPEND PROPERTY COMPILE_DEFINITIONS ENABLE_BACKEND_MONGODB)
-   ENDIF()
-
-
-   INSTALL(FILES ${libuniversalimporter_headers} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/universalimporter)
+   INSTALL(FILES       ${libuniversalimporter_headers}
+           DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/universalimporter)
 
    IF (WITH_STATIC_LIBRARIES)
       ADD_LIBRARY(libuniversalimporter-static STATIC ${libuniversalimporter_sources})
@@ -189,13 +246,13 @@ IF ((WITH_IMPORTER) OR (WITH_QUERY) OR (WITH_RESULTS))
    FOREACH(TYPE shared;static)
       IF ( (("${TYPE}" STREQUAL "static") AND (WITH_STATIC_LIBRARIES)) OR
            (("${TYPE}" STREQUAL "shared") AND (WITH_SHARED_LIBRARIES)) )
-         SET_TARGET_PROPERTIES(libuniversalimporter-${TYPE} PROPERTIES OUTPUT_NAME universalimporter CLEAN_DIRECT_OUTPUT 1)
          SET_TARGET_PROPERTIES(libuniversalimporter-${TYPE} PROPERTIES
-            VERSION   ${BUILD_VERSION}
-            SOVERSION ${BUILD_MAJOR}
+            OUTPUT_NAME         universalimporter
+            CLEAN_DIRECT_OUTPUT 1
+            VERSION             ${BUILD_VERSION}
+            SOVERSION           ${BUILD_MAJOR}
          )
-         TARGET_INCLUDE_DIRECTORIES(libuniversalimporter-${TYPE} PUBLIC ${LIBMARIADB_INCLUDE_DIR} ${LIBMONGOC_INCLUDE_DIR} ${LIBBSON_INCLUDE_DIR} ${INotify_INCLUDE_DIRS})
-         TARGET_LINK_LIBRARIES(libuniversalimporter-${TYPE} libhpctio-${TYPE} ${Boost_LIBRARIES} ${LIBMARIADB_LIBRARY} ${LIBPQXX_LIBRARY} ${LIBMONGOC_LIBRARY} ${LIBBSON_LIBRARY} ${INotify_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
+         TARGET_LINK_LIBRARIES(libuniversalimporter-${TYPE} libhpctdb-${TYPE} ${INotify_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
          INSTALL(TARGETS libuniversalimporter-${TYPE} DESTINATION ${CMAKE_INSTALL_LIBDIR})
       ENDIF()
    ENDFOREACH()
