@@ -1,0 +1,2 @@
+# libhpctdb is a C++ library =>  symbols file is not recommended
+libhpctdb2: no-symbols-control-file

@@ -186,7 +186,8 @@ IF ((WITH_IMPORTER) OR (WITH_QUERY) OR (WITH_RESULTS))
                    APPEND PROPERTY COMPILE_DEFINITIONS ENABLE_BACKEND_MONGODB)
    ENDIF()
 
-   INSTALL(FILES ${libhpctdb_headers} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/hipercontracer)
+   INSTALL(FILES       ${libhpctdb_headers}
+           DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/hipercontracer)
 
    IF (WITH_STATIC_LIBRARIES)
       ADD_LIBRARY(libhpctdb-static STATIC ${libhpctdb_sources})
@@ -198,7 +199,7 @@ IF ((WITH_IMPORTER) OR (WITH_QUERY) OR (WITH_RESULTS))
       IF ( (("${TYPE}" STREQUAL "static") AND (WITH_STATIC_LIBRARIES)) OR
          (("${TYPE}" STREQUAL "shared") AND (WITH_SHARED_LIBRARIES)) )
          SET_TARGET_PROPERTIES(libhpctdb-${TYPE} PROPERTIES
-            UTPUT_NAME          hpctdb
+            OUTPUT_NAME         hpctdb
             CLEAN_DIRECT_OUTPUT 1
             VERSION             ${BUILD_VERSION}
             SOVERSION           ${BUILD_MAJOR}
@@ -213,7 +214,8 @@ IF ((WITH_IMPORTER) OR (WITH_QUERY) OR (WITH_RESULTS))
                                ${LIBPQXX_LIBRARY}
                                ${LIBMONGOC_LIBRARY}
                                ${LIBBSON_LIBRARY})
-         INSTALL(TARGETS libhpctdb-${TYPE} DESTINATION ${CMAKE_INSTALL_LIBDIR})
+         INSTALL(TARGETS     libhpctdb-${TYPE}
+                 DESTINATION ${CMAKE_INSTALL_LIBDIR})
       ENDIF()
    ENDFOREACH()
 ENDIF()
