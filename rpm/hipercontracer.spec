@@ -680,13 +680,6 @@ This package provides header files for the Universal Importer library.
 You need them to integrate Universal Importer into your own programs.
 
 %files libuniversalimporter-devel
-%{_includedir}/universalimporter/database-configuration.h
-%{_includedir}/universalimporter/database-statement.h
-%{_includedir}/universalimporter/databaseclient-base.h
-%{_includedir}/universalimporter/databaseclient-debug.h
-%{_includedir}/universalimporter/databaseclient-mariadb.h
-%{_includedir}/universalimporter/databaseclient-mongodb.h
-%{_includedir}/universalimporter/databaseclient-postgresql.h
 %{_includedir}/universalimporter/importer-configuration.h
 %{_includedir}/universalimporter/reader-base.h
 %{_includedir}/universalimporter/results-exception.h
