@@ -1,5 +1,5 @@
 Name: hipercontracer
-Version: 2.2.0
+Version: 2.2.1~rc0
 Release: 1
 Summary: High-Performance Connectivity Tracer (HiPerConTracer)
 Group: Applications/Internet
@@ -1207,9 +1207,9 @@ Group: Applications/Database
 BuildArch: noarch
 Recommends: %{name}-dbeaver-tools = %{version}-%{release}
 Recommends: (mariadb or mysql)
-Recommends: mongodb-mongosh
 Recommends: postgresql
 Recommends: pwgen
+Suggests: mongodb-mongosh
 
 %description dbshell
 High-Performance Connectivity Tracer (HiPerConTracer) is a Ping/Traceroute

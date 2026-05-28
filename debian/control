@@ -975,9 +975,9 @@ Architecture: all
 Depends: ${misc:Depends}
 Recommends: hipercontracer-dbeaver-tools,
             mariadb-client | default-mysql-client,
-            mongodb-mongosh,
             postgresql-client,
             pwgen
+Suggests: mongodb-mongosh
 Description: HiPerConTracer Database Shell for access testing to a database
  High-Performance Connectivity Tracer (HiPerConTracer) is a Ping/Traceroute
  measurement framework. HiPerConTracer refers to the core measurement tool,
