@@ -1,3 +1,109 @@
+commit de70a4c77c2f0b3d44cbf80f6c30f053613d70dd
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu May 28 12:38:30 2026 +0200
+
+    libpqxx build is fixed now.
+
+commit 7d04258a72168f0989256b802c6c88c14495da55
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu May 28 12:34:56 2026 +0200
+
+    Improved CPack ignore files list.
+
+commit 0c23fc50c0e5363e9cfb2209e7446199d56571dd
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu May 28 11:48:36 2026 +0200
+
+    Dependency update: Suggest instead of recommend mongodb-mongosh for hipercontracer-dbshell, since it is provided by the MongoDB PPA only.
+
+commit 19d653e0bc0813130e91812edbe97c3e56961084
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu May 28 11:47:03 2026 +0200
+
+    Minor test script improvement.
+
+commit bc56c8522ef0d4a88cbeaf76772ddefb43db526b
+Merge: 40c82961 abc7be5b
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu May 28 10:40:01 2026 +0200
+
+    Merge remote-tracking branch 'adrianbunk/master'
+
+commit 40c82961d3d75894228a841ee0a905a9ee18b10d
+Merge: 2a49a3e9 d54b2f55
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu May 28 10:28:38 2026 +0200
+
+    Merge remote-tracking branch 'bradfordboyle/fix-debian-pqxx-cxx-standard'
+
+commit abc7be5b0db0452453625b980a67dd44e5091f82
+Author: Adrian Bunk <bunk@debian.org>
+Date:   Thu May 28 09:14:51 2026 +0300
+
+    Require C++20
+
+commit 2a49a3e916fa008e52ebcc6c770b9171a1ec8ea5
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed May 27 00:05:20 2026 +0200
+
+    CMakeLists.txt path fix.
+
+commit 5111af83cfd6af6c1fd5280f1b9f9ff6b0cd7185
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue May 26 22:30:45 2026 +0200
+
+    Improved build error message.
+
+commit 2f1cb81597f4ec2a89da2b9c4c2b1aa09438c883
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue May 26 16:40:31 2026 +0200
+
+    Further manpage updates.
+
+commit 194207330a6b8af9b144a948ecb918b5c2f2db97
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue May 26 16:39:46 2026 +0200
+
+    Improved manpage.
+
+commit 9245940e1fd52efe6647e1101729de6ef5a88ad0
+Merge: f7431778 98e3c4bc
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue May 26 16:36:14 2026 +0200
+
+    Merge branch 'dreibh/options-handling-improvements'
+
+commit f7431778fc7574e4a2157d8e05b6014c5914ab78
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Mon May 25 23:09:39 2026 +0200
+
+    Improved CMakeLists.txt.
+
+commit d5b9a1b9ca89a458f3fea1991d604db475227176
+Merge: 4885c7a4 6bb47bbc
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Mon May 25 23:01:57 2026 +0200
+
+    Merge branch 'master' of github.com:dreibh/hipercontracer
+
+commit 4885c7a4615ede6063fb783ef26ffb59a851064d
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Mon May 25 23:01:34 2026 +0200
+
+    Improved CMakeLists.txt.
+
+commit 6bb47bbcb788a8586510e23b7fc749493d2fa3d1
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Sun May 24 20:34:15 2026 +0200
+
+    Updated FreeBSD port.
+
+commit c3c3bb42f0da113d5fed6c087050bd973a1eec13
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Sun May 17 18:07:12 2026 +0200
+
+    New release hipercontracer-2.2.0.
+
 commit 14e32fd5a246303c5f9354044592cdaffebccd0c
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Sun May 17 10:12:46 2026 +0200
@@ -112,6 +218,18 @@ Date:   Tue May 12 21:22:32 2026 +0200
 
     Updated test script.
 
+commit 98e3c4bcf1bb4a05643fb0368c6241f3c0fe6618
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue May 12 16:58:25 2026 +0200
+
+    Added shell completion for hpct-nodes-list.
+
+commit 6e3a574b2b77b6b3b1f344cd6a81978406614f4c
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue May 12 16:52:14 2026 +0200
+
+    Improved error handling.
+
 commit 49c479eae813e6522741840d430d37b6037f5747
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Tue May 12 15:55:00 2026 +0200
@@ -130,11 +248,85 @@ Date:   Tue May 12 15:38:50 2026 +0200
 
     Fixed test script.
 
+commit b1a0e548161304a2bddddf7c8f04f4a34b4acedb
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue May 12 15:38:50 2026 +0200
+
+    Fixed test script.
+
+commit d0cdf3af90beea4594ec076b8488e26fe7cff442
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue May 12 14:19:07 2026 +0200
+
+    Another set of clean-ups.
+
+commit e9d05c6ec33c1bcef03204a6a9e8ee4e81f03292
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue May 12 14:14:59 2026 +0200
+
+    Further small clean-ups.
+
+commit 66db223473a6e334c902034b063210fd48b5d54e
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue May 12 12:57:37 2026 +0200
+
+    Further clean-ups.
+
+commit df7b7c3bf221807dd3bfd8384f3575d9e11bf9d9
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue May 12 12:47:30 2026 +0200
+
+    Manpage clean-ups.
+
+commit 812182bd32098e4d1e9d3fadec91796c7200879d
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue May 12 12:47:12 2026 +0200
+
+    Minor improvements.
+
+commit 53b9c36486ebc07fb95fce1dfa8cb9bd4c48b701
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue May 12 12:46:58 2026 +0200
+
+    Manpage improvements.
+
+commit aeeab5e94d60018a8a4cde264563b0bf09734cad
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue May 12 12:18:53 2026 +0200
+
+    Minor clean-ups.
+
+commit 4ed49e7dadde37cf16ab7fbbd42d1d4de69a6895
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue May 12 11:28:41 2026 +0200
+
+    Parameter handling fixes.
+
+commit a7f5dc6026337f014b0a321e75d06ab8a893f6da
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue May 12 11:28:30 2026 +0200
+
+    Improved CMakeLists.txt.
+
+commit e58a660b661377fea40e343803c6dc80df788050
+Merge: c8cdd563 e5dc2136
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue May 12 11:12:19 2026 +0200
+
+    Merge branch 'master' into dreibh/options-handling-improvements
+
 commit e5dc21363e547d427573e6dd8a4ad751c934d284
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Tue May 12 11:11:46 2026 +0200
 
     Updated test scripts.
+
+commit c8cdd56323f28a967d3f80819e7fbba7cc3f81aa
+Merge: 3cf7996e 5a9b6b6e
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue May 12 11:04:16 2026 +0200
+
+    Merge branch 'master' into dreibh/options-handling-improvements
 
 commit 5a9b6b6e89f34e490876617f91f32ed3695e01d0
 Merge: 033cb7ae 84c15fdc
@@ -155,11 +347,124 @@ Date:   Tue May 12 10:41:16 2026 +0200
 
     Improved package descriptions.
 
+commit 3cf7996e8a1a9a25ca77efeda121734dcbc96006
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue May 12 11:00:54 2026 +0200
+
+    Updated RPM spec and FreeBSD port description.
+
+commit 711d37d61882e4d6d2688a4fe957c6b54f0ed933
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue May 12 10:41:16 2026 +0200
+
+    Improved package descriptions.
+
+commit d54b2f55dd526a76169f8f96943c8516ca3fed34
+Author: Bradford D. Boyle <bradford.d.boyle@gmail.com>
+Date:   Tue May 12 03:19:18 2026 +0000
+
+    Updatae build to set CXX standard based on PQXX version
+    
+    This commit adds logic to inspect the version of libpqxx being built
+    against and setting the appropriate C++ standard. The logic for finding
+    and setting the version of libpqxx is borrowed from the similarily
+    licensed sqlsmith project.
+
+commit 4411a9c4d537a0d258452f373268bc6f85496c2b
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Mon May 11 18:49:37 2026 +0200
+
+    Yet another set of clean-ups.
+
+commit 24233296041f73f3608c6d0b2fda8a9889ba4a86
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Mon May 11 18:13:16 2026 +0200
+
+    Yet another set of options handling clean-ups.
+
+commit 5de47729cdfc67f1982ae6e10848e2ee6257c049
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Mon May 11 18:00:56 2026 +0200
+
+    Header updates.
+
+commit 9cd44b218463e7f08ab0be13ee830b35a0aa5e7b
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Mon May 11 17:58:04 2026 +0200
+
+    Updated shell completions, and some manpage clean-ups.
+
+commit bc58cfcca1f8e6683ad9e570d4d2eaed0c48351a
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Mon May 11 17:37:32 2026 +0200
+
+    Manpage updates.
+
+commit f697d4762f9db19b68f44d51a6245775290d70bc
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Mon May 11 17:37:04 2026 +0200
+
+    Minor improvements and clean-ups.
+
+commit 7ea7c615e563af6f16e75fabb4a352c4f52faf6c
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Mon May 11 17:21:32 2026 +0200
+
+    Options fix: -v is short version of --version.
+
+commit f31ec20f8bca39fd6addae67beb66db1eb910e55
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Mon May 11 17:14:53 2026 +0200
+
+    Further manpage clean-ups.
+
+commit 2553671fb8432706a0eb0d5807ec2a2e927ec26b
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Mon May 11 17:14:34 2026 +0200
+
+    Added support for version and help arguments.
+
+commit 7ee3f2507502feae048b0b82729e07f79613043c
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Mon May 11 17:04:15 2026 +0200
+
+    Another set of manpage improvements.
+
+commit 1ec4349f47e932a0f4610676bf9b3ebeb42778b6
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Mon May 11 17:00:48 2026 +0200
+
+    Further manpage improvements.
+
 commit 18f3bccff1669c04670830551a178d89cd3ab35e
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Mon May 11 16:51:31 2026 +0200
 
     New release hipercontracer-2.1.16.
+
+commit bf11606a720a7144afd2bbf3188db000a51c0ebc
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Mon May 11 16:49:52 2026 +0200
+
+    Manpage clean-ups.
+
+commit 3b54ef3ece15d3723f6e449a355b79d5795042d9
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Mon May 11 16:36:23 2026 +0200
+
+    Options handling improvements in the scripts.
+
+commit 19076dde0e5706b4834a9e9a6fe93a97a4c45707
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Mon May 11 16:36:04 2026 +0200
+
+    Another set of manpage improvements.
+
+commit aec9e7f20a6aa6a9a9b4b25b44bbd780663d6d95
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Mon May 11 16:35:12 2026 +0200
+
+    Changed short name of --verbose to -w, to avoid inconsistency with --version/-v.
 
 commit ef6d72e8b7aaf7e6bb92d6bc9bf303437622e940
 Author: Thomas Dreibholz <dreibh@simula.no>
@@ -185,11 +490,47 @@ Date:   Mon May 11 15:53:11 2026 +0200
 
     Updated desktop file.
 
+commit 84bf273330687648131b7ca6c19a61b820149875
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Mon May 11 15:31:39 2026 +0200
+
+    Further improvements.
+
+commit a235e2f1e32f6d0ccc83a31741dce081af6799dd
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Mon May 11 15:04:42 2026 +0200
+
+    Further clean-ups.
+
+commit 1e11550d3ff2a7f9d1c975bd7c006628c10ad9f3
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Mon May 11 15:04:09 2026 +0200
+
+    Improved example configuration.
+
 commit 3f215491313d34ea875c72ce0e30066f109d3b4a
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Mon May 11 14:43:57 2026 +0200
 
     Improved documentation.
+
+commit 6d0854b4ec5c57ece37d51370db94ad48361ec23
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Mon May 11 14:43:57 2026 +0200
+
+    Improved documentation.
+
+commit cf0207f2250c20a4514b76be61645d37c4aabbb9
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Mon May 11 13:49:24 2026 +0200
+
+    Updated manpage.
+
+commit 96ed4e44f4f68e1da23a45f4b2a58dc5d035c441
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Mon May 11 13:43:56 2026 +0200
+
+    First part of options handling improvements.
 
 commit 033cb7ae7e7608ea2c9f8dc2df26c7bdbe13231b
 Author: Thomas Dreibholz <dreibh@simula.no>

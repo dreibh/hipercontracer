@@ -1,11 +1,11 @@
-hipercontracer (2.2.1~rc0-1ubuntu1) unstable; urgency=medium
+hipercontracer (2.2.1-1ubuntu1) unstable; urgency=medium
 
   * New upstream release (Closes: #1138081).
   * debian/control: suggest instead of recommend mongodb-mongosh for
                     hipercontracer-dbshell, since it is provided by
                     the MongoDB PPA only (Closes: #1137619).
 
- -- Thomas Dreibholz <dreibh@simula.no>  Thu, 28 May 2026 11:44:29 +0200
+ -- Thomas Dreibholz <dreibh@simula.no>  Thu, 28 May 2026 16:13:47 +0200
 
 hipercontracer (2.2.0-1ubuntu1) unstable; urgency=medium
 
