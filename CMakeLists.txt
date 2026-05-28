@@ -35,12 +35,9 @@ SET(BUILD_MINOR "2")
 SET(BUILD_PATCH "0")
 SET(BUILD_VERSION ${BUILD_MAJOR}.${BUILD_MINOR}.${BUILD_PATCH})
 
-# HiPerConTracer needs at least C++17!
 IF(NOT "${CMAKE_CXX_STANDARD}")
-   # FXIXME:
-   # HiPerConTracer also builds with C++2x, but libpqxx 7.x expects C++17 on
-   # Debian/Ubuntu => setting C++17 here, and C++20 later for FreeBSD!
-   SET(CMAKE_CXX_STANDARD 17)
+   # HiPerConTracer also builds with C++17, but libpqxx 8.x expects C++20
+   SET(CMAKE_CXX_STANDARD 20)
 ENDIF()
 
 
@@ -99,9 +96,6 @@ ELSEIF (${CMAKE_SYSTEM_NAME} MATCHES "FreeBSD")
    SET(CMAKE_REQUIRED_INCLUDES "/usr/local/include" "/usr/include")
    SET(CMAKE_LIBRARY_PATH "/usr/local/lib" "/usr/local/lib/mariadb")
    INCLUDE_DIRECTORIES("/usr/local/include")
-
-   # FreeBSD build needs C++2x for libpqxx-8.0!
-   SET(CMAKE_CXX_STANDARD 23)
 
 ELSEIF (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
    MESSAGE(STATUS ${CMAKE_SYSTEM_NAME} " supported")
