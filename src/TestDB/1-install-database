@@ -29,7 +29,7 @@
 # Contact: dreibh@simula.no
 
 # Bash options:
-set -euxo pipefail
+set -euo pipefail
 
 
 # ###### Helper function to show script information #########################
@@ -76,6 +76,8 @@ if [ "${ROOT_PASSWORD}"       == "!root!"       ] || \
 fi
 
 show-script "$(basename "$0")"
+
+set -e
 
 
 # ====== Check/set environment variables ====================================
