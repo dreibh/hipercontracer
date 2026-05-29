@@ -230,7 +230,7 @@ IF (${CMAKE_SYSTEM_NAME} MATCHES "FreeBSD")
 ENDIF()
 
 # ====== INotify ============================================================
-IF ((WITH_IMPORTER) OR (WITH_QUERY) OR (WITH_RESULTS))
+IF (WITH_LIBUNIVERSALIMPORTER)
    IF(CMAKE_SYSTEM_NAME MATCHES "Linux")
       # Linux provides INotify without need for any library!
       SET(INotify_FOUND TRUE)

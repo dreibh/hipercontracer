@@ -224,7 +224,7 @@ IF (WITH_LIBHPCTDB)
 ENDIF()
 
 # ====== libuniversalimporter ==================================================
-IF (WITH_IMPORTER)
+IF (WITH_LIBUNIVERSALIMPORTER)
    LIST(APPEND libuniversalimporter_headers
       importer-configuration.h
       reader-base.h
@@ -292,6 +292,14 @@ IF (WITH_HIPERCONTRACER)
       INSTALL(FILES hipercontracer@.service      DESTINATION ${CMAKE_INSTALL_PREFIX}/lib/systemd/system)
       INSTALL(FILES hipercontracer-12345678.conf DESTINATION /etc/hipercontracer)
    ENDIF()
+
+   CONFIGURE_FILE(get-default-ips get-default-ips.versioned @ONLY)
+   SET_PROPERTY(DIRECTORY APPEND PROPERTY ADDITIONAL_CLEAN_FILES get-default-ips.versioned)
+   INSTALL(PROGRAMS    ${CMAKE_CURRENT_BINARY_DIR}/get-default-ips.versioned
+         DESTINATION ${CMAKE_INSTALL_BINDIR}
+         RENAME      get-default-ips)
+   INSTALL(FILES get-default-ips.1
+         DESTINATION ${CMAKE_INSTALL_MANDIR}/man1)
 ENDIF()
 
 # ====== HiPerConTracer Trigger =============================================
@@ -516,15 +524,6 @@ IF (WITH_UDP_ECHO_SERVER)
    ENDIF()
 ENDIF()
 
-# ====== Scripts ============================================================
-CONFIGURE_FILE(get-default-ips get-default-ips.versioned @ONLY)
-SET_PROPERTY(DIRECTORY APPEND PROPERTY ADDITIONAL_CLEAN_FILES get-default-ips.versioned)
-INSTALL(PROGRAMS    ${CMAKE_CURRENT_BINARY_DIR}/get-default-ips.versioned
-        DESTINATION ${CMAKE_INSTALL_BINDIR}
-        RENAME      get-default-ips)
-INSTALL(FILES get-default-ips.1
-        DESTINATION ${CMAKE_INSTALL_MANDIR}/man1)
-
 
 # ====== TEST ONLY ==========================================================
 # ADD_EXECUTABLE(t1 t1.cc)
@@ -555,7 +554,7 @@ ENDIF()
 
 ADD_SUBDIRECTORY(logo)
 ADD_SUBDIRECTORY(results-examples)
-IF (WITH_IMPORTER OR WITH_QUERY)
+IF (WITH_IMPORTER)
    ADD_SUBDIRECTORY(SQL)
    ADD_SUBDIRECTORY(NoSQL)
    ADD_SUBDIRECTORY(TestDB)
