@@ -128,9 +128,10 @@ INCLUDE(CheckIncludeFile)
 INCLUDE(CheckStructHasMember)
 INCLUDE(CheckCCompilerFlag)
 
-OPTION(WITH_STATIC_LIBRARIES "Build static libraries"              0)
-OPTION(WITH_SHARED_LIBRARIES "Build shared libraries"              1)
-OPTION(STATIC_BUILD          "Build statically-linked executables" 0)
+OPTION(WITH_STATIC_LIBRARIES "Build static libraries"              OFF)
+OPTION(WITH_SHARED_LIBRARIES "Build shared libraries"              ON)
+OPTION(STATIC_BUILD          "Build statically-linked executables" OFF)
+
 IF ((NOT WITH_STATIC_LIBRARIES) AND (NOT WITH_SHARED_LIBRARIES))
    MESSAGE(FATAL_ERROR "Static (WITH_STATIC_LIBRARIES) or shared (WITH_SHARED_LIBRARIES) libraries must be enabled!")
 ENDIF()
@@ -149,21 +150,43 @@ ELSE()
    ENDIF()
 ENDIF()
 
-OPTION(WITH_HIPERCONTRACER  "Build HiPerConTracer"                      1)
-OPTION(WITH_TRIGGER         "Build HiPerConTracer Trigger"              1)
-OPTION(WITH_IMPORTER        "Build HiPerConTracer Importer"             1)
-OPTION(WITH_SYNC            "Build HiPerConTracer Synchronisation Tool" 1)
-OPTION(WITH_RTUNNEL         "Build HiPerConTracer Reverse Tunnel Tool"  1)
-OPTION(WITH_NODE            "Build HiPerConTracer Node Tools"           1)
-OPTION(WITH_COLLECTOR       "Build HiPerConTracer Collector Tools"      1)
-OPTION(WITH_QUERY           "Build HiPerConTracer Query Tool"           1)
-OPTION(WITH_RESULTS         "Build HiPerConTracer Results Tool"         1)
-OPTION(WITH_VIEWER          "Build HiPerConTracer Viewer Tool"          1)
-OPTION(WITH_DBSHELL         "Build HiPerConTracer Database Shell"       1)
-OPTION(WITH_DBEAVER_TOOLS   "Build HiPerConTracer DBeaver Tools"        1)
-OPTION(WITH_PIPE_CHECKSUM   "Build Pipe Checksum Tool"                  1)
-OPTION(WITH_UDP_ECHO_SERVER "Build UDP Echo Server"                     1)
-OPTION(WITH_ICONS           "Build HiPerConTracer icons and logo files" 1)
+OPTION(WITH_HIPERCONTRACER       "Build HiPerConTracer"                                        ON)
+OPTION(WITH_TRIGGER              "Build HiPerConTracer Trigger"                                ON)
+OPTION(WITH_IMPORTER             "Build HiPerConTracer Importer"                               ON)
+OPTION(WITH_SYNC                 "Build HiPerConTracer Synchronisation Tool"                   ON)
+OPTION(WITH_RTUNNEL              "Build HiPerConTracer Reverse Tunnel Tool"                    ON)
+OPTION(WITH_NODE                 "Build HiPerConTracer Node Tools"                             ON)
+OPTION(WITH_COLLECTOR            "Build HiPerConTracer Collector Tools"                        ON)
+OPTION(WITH_QUERY                "Build HiPerConTracer Query Tool"                             ON)
+OPTION(WITH_RESULTS              "Build HiPerConTracer Results Tool"                           ON)
+OPTION(WITH_VIEWER               "Build HiPerConTracer Viewer Tool"                            ON)
+OPTION(WITH_DBSHELL              "Build HiPerConTracer Database Shell"                         ON)
+OPTION(WITH_DBEAVER_TOOLS        "Build HiPerConTracer DBeaver Tools"                          ON)
+OPTION(WITH_PIPE_CHECKSUM        "Build Pipe Checksum Tool"                                    ON)
+OPTION(WITH_UDP_ECHO_SERVER      "Build UDP Echo Server"                                       ON)
+OPTION(WITH_ICONS                "Build HiPerConTracer icons and logo files"                   ON)
+
+OPTION(WITH_LIBUNIVERSALIMPORTER "Build Universal Importer Library (libuniversalimporter)"     OFF)
+OPTION(WITH_LIBHIPERCONTRACER    "Build HiPerConTracer Library (libhipercontracer)"            OFF)
+OPTION(WITH_LIBHPCTIO            "Build HiPerConTracer I/O Library (libhpctio)"                OFF)
+OPTION(WITH_LIBHPCTDB            "Build HiPerConTracer Database Backend Library (libhpctdb)"   OFF)
+
+IF ((WITH_HIPERCONTRACER) OR (WITH_TRIGGER))
+   SET(WITH_LIBHIPERCONTRACER ON)
+ENDIF()
+
+IF (WITH_IMPORTER)
+   SET(WITH_LIBUNIVERSALIMPORTER ON)
+ENDIF()
+
+IF ((WITH_LIBHIPERCONTRACER) OR (WITH_QUERY) OR (WITH_RESULTS))
+   SET(WITH_LIBHPCTIO ON)
+ENDIF()
+
+IF ((WITH_LIBUNIVERSALIMPORTER) OR (WITH_QUERY) OR (WITH_RESULTS))
+   SET(WITH_LIBHPCTDB ON)
+ENDIF()
+
 
 
 #############################################################################
@@ -313,7 +336,7 @@ ENDIF()
 IF (WITH_IMPORTER)
 
    # ------ Debug backend ---------------------------------------------------
-   OPTION(ENABLE_BACKEND_DEBUG "Enable SQL/NoSQL Debug dummy backed" 1)
+   OPTION(ENABLE_BACKEND_DEBUG "Enable SQL/NoSQL Debug dummy backed" ON)
    IF (ENABLE_BACKEND_DEBUG)
       MESSAGE("Building with SQL/NoSQL Debug dummy backend (ENABLE_BACKEND_DEBUG=${ENABLE_BACKEND_DEBUG})")
    ELSE()
@@ -322,7 +345,7 @@ IF (WITH_IMPORTER)
    ENDIF()
 
    # ------ MariaDB/MySQL ---------------------------------------------------
-   OPTION(ENABLE_BACKEND_MARIADB "Enable MySQL/MariaDB backed" 1)
+   OPTION(ENABLE_BACKEND_MARIADB "Enable MySQL/MariaDB backed" ON)
    IF (ENABLE_BACKEND_MARIADB)
       MESSAGE("Building with MySQL/MariaDB backend (ENABLE_BACKEND_MARIADB=${ENABLE_BACKEND_MARIADB})")
 
@@ -347,7 +370,7 @@ IF (WITH_IMPORTER)
    ENDIF()
 
    # ------ PostgreSQL ------------------------------------------------------
-   OPTION(ENABLE_BACKEND_POSTGRESQL "Enable PostgreSQL backed" 1)
+   OPTION(ENABLE_BACKEND_POSTGRESQL "Enable PostgreSQL backed" ON)
    IF (ENABLE_BACKEND_POSTGRESQL)
       MESSAGE("Building with PostgreSQL backend (ENABLE_BACKEND_POSTGRESQL=${ENABLE_BACKEND_POSTGRESQL})")
 
@@ -378,7 +401,7 @@ IF (WITH_IMPORTER)
    ENDIF()
 
    # ------ MongoDB ---------------------------------------------------------
-   OPTION(ENABLE_BACKEND_MONGODB "Enable MongoDB backed" 1)
+   OPTION(ENABLE_BACKEND_MONGODB "Enable MongoDB backed" ON)
    IF (ENABLE_BACKEND_MONGODB)
       MESSAGE("Building with MongoDB backend (ENABLE_BACKEND_MONGODB=${ENABLE_BACKEND_MONGODB})")
 

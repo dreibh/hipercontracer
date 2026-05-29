@@ -43,44 +43,46 @@ INCLUDE_DIRECTORIES(${CMAKE_CURRENT_BINARY_DIR})
 #############################################################################
 
 # ====== libhpctio ==========================================================
-LIST(APPEND libhpctio_headers
-   compressortype.h
-   inputstream.h
-   logger.h
-   outputstream.h
-   tools.h
-)
-LIST(APPEND libhpctio_sources
-   compressortype.cc
-   inputstream.cc
-   logger.cc
-   outputstream.cc
-   tools.cc
-)
+IF (WITH_LIBHPCTIO)
+   LIST(APPEND libhpctio_headers
+      compressortype.h
+      inputstream.h
+      logger.h
+      outputstream.h
+      tools.h
+   )
+   LIST(APPEND libhpctio_sources
+      compressortype.cc
+      inputstream.cc
+      logger.cc
+      outputstream.cc
+      tools.cc
+   )
 
-INSTALL(FILES ${libhpctio_headers} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/hipercontracer)
+   INSTALL(FILES ${libhpctio_headers} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/hipercontracer)
 
-IF (WITH_STATIC_LIBRARIES)
-   ADD_LIBRARY(libhpctio-static STATIC ${libhpctio_sources})
-ENDIF()
-IF (WITH_SHARED_LIBRARIES)
-   ADD_LIBRARY(libhpctio-shared SHARED ${libhpctio_sources})
-ENDIF()
-FOREACH(TYPE shared;static)
-   IF ( (("${TYPE}" STREQUAL "static") AND (WITH_STATIC_LIBRARIES)) OR
-      (("${TYPE}" STREQUAL "shared") AND (WITH_SHARED_LIBRARIES)) )
-      SET_TARGET_PROPERTIES(libhpctio-${TYPE} PROPERTIES OUTPUT_NAME hpctio CLEAN_DIRECT_OUTPUT 1)
-      SET_TARGET_PROPERTIES(libhpctio-${TYPE} PROPERTIES
-         VERSION   ${BUILD_VERSION}
-         SOVERSION ${BUILD_MAJOR}
-      )
-      TARGET_LINK_LIBRARIES (libhpctio-${TYPE} ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} ${LZMA_LIBRARY} ${BZ2_LIBRARY} ${Z_LIBRARY})
-      INSTALL(TARGETS libhpctio-${TYPE} DESTINATION ${CMAKE_INSTALL_LIBDIR})
+   IF (WITH_STATIC_LIBRARIES)
+      ADD_LIBRARY(libhpctio-static STATIC ${libhpctio_sources})
    ENDIF()
-ENDFOREACH()
+   IF (WITH_SHARED_LIBRARIES)
+      ADD_LIBRARY(libhpctio-shared SHARED ${libhpctio_sources})
+   ENDIF()
+   FOREACH(TYPE shared;static)
+      IF ( (("${TYPE}" STREQUAL "static") AND (WITH_STATIC_LIBRARIES)) OR
+         (("${TYPE}" STREQUAL "shared") AND (WITH_SHARED_LIBRARIES)) )
+         SET_TARGET_PROPERTIES(libhpctio-${TYPE} PROPERTIES OUTPUT_NAME hpctio CLEAN_DIRECT_OUTPUT 1)
+         SET_TARGET_PROPERTIES(libhpctio-${TYPE} PROPERTIES
+            VERSION   ${BUILD_VERSION}
+            SOVERSION ${BUILD_MAJOR}
+         )
+         TARGET_LINK_LIBRARIES (libhpctio-${TYPE} ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} ${LZMA_LIBRARY} ${BZ2_LIBRARY} ${Z_LIBRARY})
+         INSTALL(TARGETS libhpctio-${TYPE} DESTINATION ${CMAKE_INSTALL_LIBDIR})
+      ENDIF()
+   ENDFOREACH()
+ENDIF()
 
 # ====== libhipercontracer ==================================================
-IF (WITH_HIPERCONTRACER)
+IF (WITH_LIBHIPERCONTRACER)
    LIST(APPEND libhipercontracer_headers
       check.h
       destinationinfo.h
