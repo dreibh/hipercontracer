@@ -18,8 +18,14 @@ LIB_DEPENDS=	libboost_date_time.so:devel/boost-libs \
 		libboost_thread.so:devel/boost-libs
 RUN_DEPENDS=	getopt>=0:misc/getopt
 
-USES=		cmake compiler:c++20-lang python \
-		shared-mime-info shebangfix ssl tar:xz
+USES=		cmake \
+		compiler:c++20-lang \
+		pkgconfig \
+		python \
+		shared-mime-info \
+		shebangfix \
+		ssl \
+		tar:xz
 USE_LDCONFIG=	yes
 
 SHEBANG_FILES=	src/results-examples/r-install-dependencies \
@@ -116,8 +122,8 @@ LIBHPCTDB_CMAKE_BOOL=				WITH_LIBHPCTDB
 LIBHPCTDB_IMPLIES=				LIBHPCTIO
 
 LIBHPCTDB_BACKEND_MARIADB_CMAKE_BOOL=		ENABLE_BACKEND_MARIADB
-# LIBHPCTDB_BACKEND_MARIADB_LIB_DEPENDS=	libmariadb.so:databases/mariadb118-client
-LIBHPCTDB_BACKEND_MARIADB_USES=			mysql
+LIBHPCTDB_BACKEND_MARIADB_LIB_DEPENDS=		libmariadb.so:databases/mariadb118-client
+# LIBHPCTDB_BACKEND_MARIADB_USES=			mysql
 LIBHPCTDB_BACKEND_MARIADB_IMPLIES=		LIBHPCTDB
 
 LIBHPCTDB_BACKEND_MONGODB_CMAKE_BOOL=		ENABLE_BACKEND_MONGODB
