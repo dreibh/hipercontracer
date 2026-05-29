@@ -151,6 +151,9 @@ ELSE()
 ENDIF()
 
 OPTION(WITH_HIPERCONTRACER       "Build HiPerConTracer"                                        ON)
+OPTION(WITH_EXAMPLE_SCRIPTS      "Include example scripts"                                     ON)
+OPTION(WITH_EXAMPLE_RESULTS      "Include example results"                                     ON)
+
 OPTION(WITH_TRIGGER              "Build HiPerConTracer Trigger"                                ON)
 OPTION(WITH_IMPORTER             "Build HiPerConTracer Importer"                               ON)
 OPTION(WITH_SYNC                 "Build HiPerConTracer Synchronisation Tool"                   ON)
@@ -333,7 +336,7 @@ IF (WITH_PIPE_CHECKSUM)
 ENDIF()
 
 # ====== Database client libraries ==========================================
-IF (WITH_IMPORTER)
+IF (WITH_LIBHPCTDB)
 
    # ------ Debug backend ---------------------------------------------------
    OPTION(ENABLE_BACKEND_DEBUG "Enable SQL/NoSQL Debug dummy backed" ON)
