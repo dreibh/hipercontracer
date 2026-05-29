@@ -169,10 +169,10 @@ OPTION(WITH_PIPE_CHECKSUM        "Build Pipe Checksum Tool"                     
 OPTION(WITH_UDP_ECHO_SERVER      "Build UDP Echo Server"                                       ON)
 OPTION(WITH_ICONS                "Build HiPerConTracer icons and logo files"                   ON)
 
-OPTION(WITH_LIBUNIVERSALIMPORTER "Build Universal Importer Library (libuniversalimporter)"     OFF)
 OPTION(WITH_LIBHIPERCONTRACER    "Build HiPerConTracer Library (libhipercontracer)"            OFF)
 OPTION(WITH_LIBHPCTIO            "Build HiPerConTracer I/O Library (libhpctio)"                OFF)
 OPTION(WITH_LIBHPCTDB            "Build HiPerConTracer Database Backend Library (libhpctdb)"   OFF)
+OPTION(WITH_LIBUNIVERSALIMPORTER "Build Universal Importer Library (libuniversalimporter)"     OFF)
 
 IF ((WITH_HIPERCONTRACER) OR (WITH_TRIGGER))
    SET(WITH_LIBHIPERCONTRACER ON)
