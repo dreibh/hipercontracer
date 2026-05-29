@@ -1,3 +1,59 @@
+commit 4e1462194ad0c9e074884e29de2d968afe3a5417
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Fri May 29 16:05:50 2026 +0200
+
+    Further options handling improvements.
+
+commit 7abde2ddcc7252dbdfc12a0cea7fcaeb4e9ab7f5
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Fri May 29 15:32:22 2026 +0200
+
+    Further configuration improvements.
+
+commit 52717b85a72659b93010f2469d1acf2c6475c5cc
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Fri May 29 15:11:29 2026 +0200
+
+    Configuration improvements.
+
+commit 1e0f8c3bff06cf6aeb192d88e4637e74775c87c4
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Fri May 29 15:03:01 2026 +0200
+
+    Improved FreeBSD port.
+
+commit 2899d62329de76cc55a0fe853b2c0145caed70f0
+Merge: 6dec8df9 793863d8
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Fri May 29 14:31:33 2026 +0200
+
+    Merge branch 'master' of github.com:dreibh/hipercontracer
+
+commit 6dec8df95cd45e79d17975c7c9da597b9c19ca23
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Fri May 29 14:01:28 2026 +0200
+
+    FreeBSD port options improvements.
+
+commit 793863d8abb5e80665693cdab5de7cfa7b7718a6
+Merge: 7c7b21f1 492eba09
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Fri May 29 14:00:28 2026 +0200
+
+    Merge branch 'dreibh/libhpctdb'
+
+commit 90c144465bb384303d3cba1f11ff8789b62e2cbb
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Fri May 29 13:28:20 2026 +0200
+
+    Improving the FreeBSD port.
+
+commit 7c7b21f18ade46c044f20926670a924cc6ae3938
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu May 28 16:13:49 2026 +0200
+
+    New release hipercontracer-2.2.1.
+
 commit de70a4c77c2f0b3d44cbf80f6c30f053613d70dd
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Thu May 28 12:38:30 2026 +0200
@@ -72,6 +128,30 @@ Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Tue May 26 16:36:14 2026 +0200
 
     Merge branch 'dreibh/options-handling-improvements'
+
+commit 492eba0933e45db15184543fdb7b2a85f1ffd547
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue May 26 16:25:35 2026 +0200
+
+    RPM spec update.
+
+commit 3534b9f383886cf97ccf3e87c7030b39d81502a5
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue May 26 16:19:28 2026 +0200
+
+    RPM spec update.
+
+commit c15d9bc27eb03802ddfdb380882093862685d7bc
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue May 26 16:12:13 2026 +0200
+
+    Packaging improvements.
+
+commit 0d77e1e8fe27ccaf05e05746e77be2ec1b8bf32a
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue May 26 15:40:04 2026 +0200
+
+    Towards better distribution of functions into shared libraries.
 
 commit f7431778fc7574e4a2157d8e05b6014c5914ab78
 Author: Thomas Dreibholz <dreibh@simula.no>
