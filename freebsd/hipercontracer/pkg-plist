@@ -90,7 +90,6 @@
 %%ICONS%%share/icons/hicolor/scalable/apps/hipercontracer.svg
 %%ICONS%%share/mime/packages/hipercontracer.xml
 %%IMPORTER%%bin/hpct-importer
-%%IMPORTER%%%%DATADIR%%/hipercontracer-database.conf
 %%IMPORTER%%%%DATADIR%%/hipercontracer-importer.conf
 %%IMPORTER%%%%DATADIR%%/NoSQL/mongodb-database.ms
 %%IMPORTER%%%%DATADIR%%/NoSQL/mongodb-schema.ms
@@ -145,6 +144,7 @@
 %%LIBHIPERCONTRACER%%lib/libhipercontracer.so
 %%LIBHIPERCONTRACER%%lib/libhipercontracer.so.2
 %%LIBHIPERCONTRACER%%lib/libhipercontracer.so.%%DISTVERSION%%
+%%LIBHPCTDB%%%%DATADIR%%/hipercontracer-database.conf
 %%LIBHPCTDB%%include/hipercontracer/databaseclient-base.h
 %%LIBHPCTDB%%include/hipercontracer/databaseclient-debug.h
 %%LIBHPCTDB%%include/hipercontracer/databaseclient-mariadb.h

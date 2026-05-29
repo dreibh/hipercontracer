@@ -539,10 +539,14 @@ INSTALL(FILES get-default-ips.1
 #### EXAMPLES                                                            ####
 #############################################################################
 
-INSTALL(FILES hipercontracer-importer.conf
-        DESTINATION ${CMAKE_INSTALL_DATADIR}/hipercontracer)
-INSTALL(FILES hipercontracer-database.conf
-        DESTINATION ${CMAKE_INSTALL_DATADIR}/hipercontracer)
+IF (WITH_IMPORTER)
+   INSTALL(FILES hipercontracer-importer.conf
+           DESTINATION ${CMAKE_INSTALL_DATADIR}/hipercontracer)
+ENDIF()
+IF (WITH_LIBHPCTDB)
+   INSTALL(FILES hipercontracer-database.conf
+           DESTINATION ${CMAKE_INSTALL_DATADIR}/hipercontracer)
+ENDIF()
 
 
 #############################################################################

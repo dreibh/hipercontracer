@@ -523,6 +523,7 @@ This package provides the database access library shared by
 HiPerConTracer components.
 
 %files libhpctdb
+%{_datadir}/hipercontracer/hipercontracer-database.conf
 %{_libdir}/libhpctdb.so.*
 
 
@@ -1071,7 +1072,6 @@ NoSQL databases.
 %{_datadir}/hipercontracer/TestDB/hpct-users.conf.example
 %{_datadir}/hipercontracer/TestDB/name-in-etc-hosts
 %{_datadir}/hipercontracer/TestDB/run-full-test
-%{_datadir}/hipercontracer/hipercontracer-database.conf
 %{_datadir}/hipercontracer/hipercontracer-importer.conf
 %{_sysconfdir}/hipercontracer/hpct-importer.conf
 %{_prefix}/lib/systemd/system/hpct-importer.service

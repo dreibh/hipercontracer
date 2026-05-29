@@ -40,5 +40,4 @@ usr/share/hipercontracer/TestDB/README.md
 usr/share/hipercontracer/TestDB/hpct-users.conf.example
 usr/share/hipercontracer/TestDB/name-in-etc-hosts
 usr/share/hipercontracer/TestDB/run-full-test
-usr/share/hipercontracer/hipercontracer-database.conf
 usr/share/hipercontracer/hipercontracer-importer.conf
