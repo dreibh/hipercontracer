@@ -1,3 +1,9 @@
+hipercontracer (2.2.2-2ubuntu1) unstable; urgency=medium
+
+  * debian/control: Fixed conflict with upgrade from older libhpctio-dev.
+
+ -- Thomas Dreibholz <dreibh@simula.no>  Fri, 29 May 2026 17:01:36 +0200
+
 hipercontracer (2.2.2-1ubuntu1) unstable; urgency=medium
 
   * New upstream release.

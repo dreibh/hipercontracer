@@ -429,8 +429,10 @@ Section: libdevel
 Architecture: any
 Multi-Arch: same
 Breaks: libhipercontracer-dev (<< ${source:Version}),
+        libhpctio-dev (<< 2.2.2),
         libuniversalimporter-dev (<< ${source:Version})
-Replaces: libhipercontracer-dev (<< 2.1.12-1)
+Replaces: libhipercontracer-dev (<< 2.1.12-1),
+          libhpctio-dev (<< 2.2.2)
 Depends: libboost-date-time-dev,
          libboost-filesystem-dev,
          libboost-iostreams-dev,
