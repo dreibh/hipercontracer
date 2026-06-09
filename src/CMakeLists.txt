@@ -287,7 +287,7 @@ IF (WITH_HIPERCONTRACER)
    INSTALL(FILES       hipercontracer.bash-completion
            DESTINATION ${CMAKE_INSTALL_DATADIR}/bash-completion/completions
            RENAME      hipercontracer)
-   IF (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+   IF (CMAKE_SYSTEM_NAME MATCHES "Linux")
       INSTALL(FILES hipercontracer.service       DESTINATION ${CMAKE_INSTALL_PREFIX}/lib/systemd/system)
       INSTALL(FILES hipercontracer@.service      DESTINATION ${CMAKE_INSTALL_PREFIX}/lib/systemd/system)
       INSTALL(FILES hipercontracer-12345678.conf DESTINATION /etc/hipercontracer)
@@ -311,7 +311,7 @@ IF (WITH_TRIGGER)
    INSTALL(FILES       hpct-trigger.bash-completion
            DESTINATION ${CMAKE_INSTALL_DATADIR}/bash-completion/completions
            RENAME      hpct-trigger)
-   IF (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+   IF (CMAKE_SYSTEM_NAME MATCHES "Linux")
       INSTALL(FILES hpct-trigger.service       DESTINATION ${CMAKE_INSTALL_PREFIX}/lib/systemd/system)
       INSTALL(FILES hpct-trigger@.service      DESTINATION ${CMAKE_INSTALL_PREFIX}/lib/systemd/system)
       INSTALL(FILES hpct-trigger-87654321.conf DESTINATION /etc/hipercontracer)
@@ -330,7 +330,7 @@ IF (WITH_SYNC)
    INSTALL(FILES       hpct-sync.bash-completion
            DESTINATION ${CMAKE_INSTALL_DATADIR}/bash-completion/completions
            RENAME      hpct-sync)
-   IF (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+   IF (CMAKE_SYSTEM_NAME MATCHES "Linux")
       INSTALL(FILES hpct-sync.service DESTINATION ${CMAKE_INSTALL_PREFIX}/lib/systemd/system)
       INSTALL(FILES hpct-sync.timer   DESTINATION ${CMAKE_INSTALL_PREFIX}/lib/systemd/system)
       INSTALL(FILES hpct-sync.conf    DESTINATION /etc/hipercontracer)
@@ -349,7 +349,7 @@ IF (WITH_RTUNNEL)
    INSTALL(FILES       hpct-rtunnel.bash-completion
            DESTINATION ${CMAKE_INSTALL_DATADIR}/bash-completion/completions
            RENAME      hpct-rtunnel)
-   IF (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+   IF (CMAKE_SYSTEM_NAME MATCHES "Linux")
       INSTALL(FILES hpct-rtunnel.service DESTINATION ${CMAKE_INSTALL_PREFIX}/lib/systemd/system)
    ENDIF()
 ENDIF()
@@ -417,7 +417,7 @@ IF (WITH_IMPORTER)
    INSTALL(FILES       hpct-importer.bash-completion
            DESTINATION ${CMAKE_INSTALL_DATADIR}/bash-completion/completions
            RENAME      hpct-importer)
-   IF (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+   IF (CMAKE_SYSTEM_NAME MATCHES "Linux")
       INSTALL(FILES hpct-importer.service DESTINATION ${CMAKE_INSTALL_PREFIX}/lib/systemd/system)
       INSTALL(FILES hpct-importer.conf    DESTINATION /etc/hipercontracer)
    ENDIF()
@@ -518,7 +518,7 @@ IF (WITH_UDP_ECHO_SERVER)
    INSTALL(FILES   udp-echo-server.bash-completion
            DESTINATION ${CMAKE_INSTALL_DATADIR}/bash-completion/completions
            RENAME      udp-echo-server)
-   IF (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+   IF (CMAKE_SYSTEM_NAME MATCHES "Linux")
       INSTALL(FILES udp-echo-server.service DESTINATION ${CMAKE_INSTALL_PREFIX}/lib/systemd/system)
       INSTALL(FILES udp-echo-server.conf    DESTINATION /etc/hipercontracer)
    ENDIF()
