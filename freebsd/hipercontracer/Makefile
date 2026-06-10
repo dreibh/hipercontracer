@@ -1,5 +1,5 @@
 PORTNAME=	hipercontracer
-DISTVERSION=	2.2.2
+DISTVERSION=	2.2.3~rc0
 CATEGORIES=	benchmarks
 MASTER_SITES=	https://www.nntb.no/~dreibh/hipercontracer/download/
 
@@ -107,7 +107,7 @@ HIPERCONTRACER_IMPLIES=				LIBHIPERCONTRACER
 
 ICONS_CMAKE_BOOL=				WITH_ICONS
 ICONS_BUILD_DEPENDS=				gm:graphics/GraphicsMagick \
-						pdf2svg:graphics/pdf2svg
+						pdftocairo:graphics/poppler-utils
 ICONS_USES=					ghostscript shared-mime-info
 
 IMPORTER_CMAKE_BOOL=				WITH_IMPORTER

@@ -1,5 +1,5 @@
 Name: hipercontracer
-Version: 2.2.2
+Version: 2.2.3~rc0
 Release: 1
 Summary: High-Performance Connectivity Tracer (HiPerConTracer)
 Group: Applications/Internet
@@ -21,7 +21,7 @@ BuildRequires: libpqxx-devel
 BuildRequires: mariadb-connector-c-devel
 BuildRequires: mongo-c-driver-devel
 BuildRequires: openssl-devel
-BuildRequires: pdf2svg
+BuildRequires: poppler-utils
 BuildRequires: xz-devel
 BuildRequires: zlib-devel
 BuildRequires: libzstd-devel

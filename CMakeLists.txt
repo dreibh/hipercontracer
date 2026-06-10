@@ -32,7 +32,7 @@ PROJECT(hipercontracer LANGUAGES C CXX)
 
 SET(BUILD_MAJOR "2")
 SET(BUILD_MINOR "2")
-SET(BUILD_PATCH "2")
+SET(BUILD_PATCH "3~rc0")
 SET(BUILD_VERSION ${BUILD_MAJOR}.${BUILD_MINOR}.${BUILD_PATCH})
 
 SET(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake/modules)
@@ -444,32 +444,36 @@ ENDIF()
 IF (WITH_ICONS)
    MESSAGE("Building with icons (WITH_ICONS=${WITH_ICONS})")
 
-   FIND_PROGRAM(GS gs PATHS /bin /usr/bin /usr/local/bin)
-   IF(NOT GS)
+   # ------ Ghostscript -----------------------------------------------------
+   FIND_PROGRAM(GS gs HINTS /usr/pkg/bin)
+   IF(GS)
+      EXECUTE_PROCESS(COMMAND ${GS} --version
+                      OUTPUT_VARIABLE GS_OUTPUT
+                      ERROR_QUIET OUTPUT_STRIP_TRAILING_WHITESPACE)
+      STRING(REGEX MATCH "([0-9]+\\.[0-9]+\\.[0-9]+|[0-9]+\\.[0-9]+)" GS_VERSION "${GS_OUTPUT}")
+      MESSAGE(STATUS "Ghostscript found: ${GS} (version ${GS_VERSION})")
+   ELSE()
       MESSAGE(FATAL_ERROR
-            " Cannot find GhostScript! Try:\n"
+            " Cannot find Ghostscript! Try:\n"
             " * Ubuntu/Debian: sudo apt install -y ghostscript\n"
             " * Fedora:        sudo dnf install -y ghostscript\n"
             " * SuSE:          sudo zypper install -y ghostscript\n"
             " * Alpine:        sudo apk add ghostscript\n"
             " * FreeBSD:       sudo pkg install -y ghostscript10\n"
+            " * NetBSD:        sudo -y pkgin install -y ghostscript\n"
+            " * OpenBSD:       sudo pkg_add ghostscript\n"
             " * Apple:         brew install ghostscript")
    ENDIF()
 
-   FIND_PROGRAM(PDF2SVG pdf2svg PATHS /bin /usr/bin /usr/local/bin)
-   IF(NOT PDF2SVG)
-      MESSAGE(FATAL_ERROR
-            " Cannot find PDF2SVG! Try:\n"
-            " * Ubuntu/Debian: sudo apt install -y pdf2svg\n"
-            " * Fedora:        sudo dnf install -y pdf2svg\n"
-            " * SuSE:          sudo zypper install -y pdf2svg\n"
-            " * Alpine:        (needs PPA or installation from sources!)\n"
-            " * FreeBSD:       sudo pkg install -y pdf2svg\n"
-            " * Apple:         brew install pdf2svg")
-   ENDIF()
-
-   FIND_PROGRAM(GM gm PATHS /bin /usr/bin /usr/local/bin)
-   IF(NOT GM)
+   # ------ GraphicsMagick --------------------------------------------------
+   FIND_PROGRAM(GM gm HINTS /usr/pkg/bin)
+   IF(GM)
+      EXECUTE_PROCESS(COMMAND ${GM} version | head -n1
+                      OUTPUT_VARIABLE GM_OUTPUT
+                      ERROR_QUIET OUTPUT_STRIP_TRAILING_WHITESPACE)
+      STRING(REGEX MATCH "([0-9]+\\.[0-9]+\\.[0-9]+|[0-9]+\\.[0-9]+)" GM_VERSION "${GM_OUTPUT}")
+      MESSAGE(STATUS "GraphicsMagick found: ${GM} (version ${GM_VERSION})")
+   ELSE()
       MESSAGE(FATAL_ERROR
             " Cannot find GraphicsMagick! Try:\n"
             " * Ubuntu/Debian: sudo apt install -y graphicsmagick\n"
@@ -477,8 +481,32 @@ IF (WITH_ICONS)
             " * SuSE:          sudo zypper install -y GraphicsMagick\n"
             " * Alpine:        sudo apk add graphicsmagick\n"
             " * FreeBSD:       sudo pkg install -y GraphicsMagick\n"
+            " * NetBSD:        sudo -y pkgin install -y GraphicsMagick\n"
+            " * OpenBSD:       sudo pkg_add GraphicsMagick\n"
             " * Apple:         brew install graphicsmagick")
    ENDIF()
+
+   # ------ pdftocairo ------------------------------------------------------
+   FIND_PROGRAM(PDFTOCAIRO pdftocairo HINTS /usr/pkg/bin)
+   IF(PDFTOCAIRO)
+      EXECUTE_PROCESS(COMMAND ${PDFTOCAIRO} -v 2>&1 | head -n1
+                      ERROR_VARIABLE PDFTOCAIRO_OUTPUT
+                      OUTPUT_QUIET ERROR_STRIP_TRAILING_WHITESPACE)
+      STRING(REGEX MATCH "([0-9]+\\.[0-9]+\\.[0-9]+|[0-9]+\\.[0-9]+)" PDFTOCAIRO_VERSION "${PDFTOCAIRO_OUTPUT}")
+      MESSAGE(STATUS "pdftocairo found: ${PDFTOCAIRO} (version ${PDFTOCAIRO_VERSION})")
+   ELSE()
+      MESSAGE(FATAL_ERROR
+            " Cannot find pdftocairo! Try:\n"
+            " * Ubuntu/Debian: sudo apt install -y poppler-utils\n"
+            " * Fedora:        sudo dnf install -y poppler-utils\n"
+            " * SuSE:          sudo zypper install -y poppler-utils\n"
+            " * Alpine:        sudo apk add ghostscript\n"
+            " * FreeBSD:       sudo pkg install -y poppler-utils\n"
+            " * NetBSD:        sudo -y pkgin install -y poppler-utils\n"
+            " * OpenBSD:       (needs installation from sources!)\n"
+            " * Apple:         brew install poppler")
+   ENDIF()
+
 ELSE()
    MESSAGE("Building without icons (WITH_ICONS=${WITH_ICONS})")
 ENDIF()
