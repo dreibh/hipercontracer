@@ -201,16 +201,22 @@ IF(CMAKE_VERSION VERSION_GREATER_EQUAL "3.30")
    CMAKE_POLICY(SET CMP0167 NEW)
 ENDIF()
 FIND_PACKAGE(Boost COMPONENTS log date_time thread iostreams filesystem program_options)
-IF (NOT Boost_FOUND)
+IF (Boost_FOUND)
+   MESSAGE(STATUS "BOOST libraries found:")
+   MESSAGE(STATUS " Boost_VERSION:      ${Boost_VERSION}")
+   MESSAGE(STATUS " Boost_LIBRARY_DIRS: ${Boost_LIBRARY_DIRS}")
+   MESSAGE(STATUS " Boost_INCLUDE_DIRS: ${Boost_INCLUDE_DIRS}")
+   MESSAGE(STATUS " Boost_LIBRARIES:    ${Boost_LIBRARIES}")
+ELSE()
    MESSAGE(FATAL_ERROR "Cannot find BOOST libraries! Try:\n"
            " * Ubuntu/Debian: sudo apt install -y libboost-all-dev\n"
            " * Fedora:        sudo dnf install -y boost-devel\n"
            " * SuSE:          sudo zypper install -y boost-devel\n"
            " * Alpine:        sudo apk add boost-dev\n"
-           " * FreeBSD:       sudo pkg install -y boost-libs\n"
+           " * FreeBSD:       sudo pkg install -y boost\n"
+           " * NetBSD:        sudo pkgin -y install boost\n"
+           " * OpenBSD:       sudo pkg_add boost\n"
            " * Apple:         brew install boost")
-ELSE()
-  INCLUDE_DIRECTORIES(${Boost_INCLUDE_DIRS})
 ENDIF()
 IF (CMAKE_SYSTEM_NAME MATCHES "FreeBSD")
    ADD_DEFINITIONS(-DBOOST_ALL_DYN_LINK)   # <<-- Required to handle BOOST Log link problem!
@@ -234,6 +240,8 @@ IF (WITH_LIBUNIVERSALIMPORTER)
                " * SuSE:          (always included as part of libc)\n"
                " * Alpine:        (always included as part of libc)\n"
                " * FreeBSD:       sudo pkg install -y libinotify\n"
+               " * NetBSD:        sudo pkgin -y install libinotify\n"
+               " * OpenBSD:       sudo pkg_add libinotify\n"
                " * Apple:         --- N/A ---")
       ENDIF()
    ENDIF()
@@ -241,7 +249,12 @@ ENDIF()
 
 # ====== libz ===============================================================
 FIND_LIBRARY(Z_LIBRARY NAMES z)
-IF (NOT Z_LIBRARY)
+FIND_PATH(Z_INCLUDE_DIR NAMES zlib.h)
+IF (Z_LIBRARY AND Z_INCLUDE_DIR)
+   MESSAGE(STATUS "GZip library found:")
+   MESSAGE(STATUS " Z_LIBRARY:     ${Z_LIBRARY}")
+   MESSAGE(STATUS " Z_INCLUDE_DIR: ${Z_INCLUDE_DIR}")
+ELSE()
    MESSAGE(FATAL_ERROR
            " Cannot find Z library! Try:\n"
            " * Ubuntu/Debian: sudo apt install -y zlib1g-dev\n"
@@ -249,25 +262,39 @@ IF (NOT Z_LIBRARY)
            " * SuSE:          sudo zypper install -y zlib-devel\n"
            " * Alpine:        sudo apk add zlib-ng-dev\n"
            " * FreeBSD:       (should be installed by default)\n"
+           " * NetBSD:        (should be installed by default)\n"
+           " * OpenBSD:       (should be installed by default)\n"
            " * Apple:         brew install zlib")
 ENDIF()
 
 # ====== libbz2 =============================================================
 FIND_LIBRARY(BZ2_LIBRARY NAMES bz2)
-IF (NOT BZ2_LIBRARY)
+FIND_PATH(BZ2_INCLUDE_DIR NAMES bzlib.h)
+IF (BZ2_LIBRARY AND BZ2_INCLUDE_DIR)
+   MESSAGE(STATUS "BZip2 library found:")
+   MESSAGE(STATUS " BZ2_LIBRARY:     ${BZ2_LIBRARY}")
+   MESSAGE(STATUS " BZ2_INCLUDE_DIR: ${BZ2_INCLUDE_DIR}")
+ELSE()
    MESSAGE(FATAL_ERROR
-           " Cannot find BZ2 library! Try:\n"
+           " Cannot find BZip2 library! Try:\n"
            " * Ubuntu/Debian: sudo apt install -y libbz2-dev\n"
            " * Fedora:        sudo dnf install -y bzip2-devel\n"
            " * SuSE:          sudo zypper install -y libbz2-devel\n"
            " * Alpine:        sudo apk add bzip2-dev\n"
            " * FreeBSD:       sudo pkg install -y bzip2\n"
+           " * NetBSD:        (should be installed by default)\n"
+           " * OpenBSD:       (should be installed by default)\n"
            " * Apple:         brew install bzip2")
 ENDIF()
 
 # ====== liblzma ============================================================
 FIND_LIBRARY(LZMA_LIBRARY NAMES lzma)
-IF (NOT LZMA_LIBRARY)
+FIND_PATH(LZMA_INCLUDE_DIR NAMES lzma.h)
+IF (LZMA_LIBRARY AND LZMA_INCLUDE_DIR)
+   MESSAGE(STATUS "LZMA library found:")
+   MESSAGE(STATUS " LZMA_LIBRARY:     ${LZMA_LIBRARY}")
+   MESSAGE(STATUS " LZMA_INCLUDE_DIR: ${LZMA_INCLUDE_DIR}")
+ELSE()
    MESSAGE(FATAL_ERROR
            " Cannot find LZMA library! Try:\n"
            " * Ubuntu/Debian: sudo apt install -y liblzma-dev\n"
@@ -275,12 +302,19 @@ IF (NOT LZMA_LIBRARY)
            " * SuSE:          sudo zypper install -y xz-devel\n"
            " * Alpine:        sudo apk add xz-dev\n"
            " * FreeBSD:       sudo pkg install -y lzmalib\n"
+           " * NetBSD:        sudo pkgin -y install lzmalib\n"
+           " * OpenBSD:       sudo pkg_add xz\n"
            " * Apple:         brew install xz")
 ENDIF()
 
 # ====== libzstd ============================================================
 FIND_LIBRARY(ZSTD_LIBRARY NAMES zstd)
-IF (NOT ZSTD_LIBRARY)
+FIND_PATH(ZSTD_INCLUDE_DIR NAMES zstd.h)
+IF (ZSTD_LIBRARY AND ZSTD_INCLUDE_DIR)
+   MESSAGE(STATUS "ZSTD library found:")
+   MESSAGE(STATUS " ZSTD_LIBRARY:     ${ZSTD_LIBRARY}")
+   MESSAGE(STATUS " ZSTD_INCLUDE_DIR: ${ZSTD_INCLUDE_DIR}")
+ELSE()
    MESSAGE(FATAL_ERROR
            " Cannot find ZSTD library! Try:\n"
            " * Ubuntu/Debian: sudo apt install -y libzstd-dev\n"
@@ -288,13 +322,20 @@ IF (NOT ZSTD_LIBRARY)
            " * SuSE:          sudo zypper install -y libzstd-devel\n"
            " * Alpine:        sudo apk add libzstd-devel\n"
            " * FreeBSD:       sudo pkg install -y zstd\n"
+           " * NetBSD:        sudo pkgin -y install zstd\n"
+           " * OpenBSD:       sudo pkg_add zstd\n"
            " * Apple:         brew install zsdt")
 ENDIF()
 
 # ====== C-ARES =============================================================
 # IF (WITH_HIPERCONTRACER)
 #    FIND_LIBRARY(CARES_LIBRARY NAMES cares libcares)
-#    IF (NOT CARES_LIBRARY)
+#    FIND_PATH(CARES_INCLUDE_DIR NAMES ares.h)
+#    IF (CARES_LIBRARY AND CARES_INCLUDE_DIR)
+#       MESSAGE(STATUS "C-ARES library found:")
+#       MESSAGE(STATUS " CARES_LIBRARY:     ${CARES_LIBRARY}")
+#       MESSAGE(STATUS " CARES_INCLUDE_DIR: ${CARES_INCLUDE_DIR}")
+#    ELSE()
 #       MESSAGE(FATAL_ERROR
 #             " Cannot find C-ARES DNS resolver library! Try:\n"
 #             " * Ubuntu/Debian: sudo apt install -y libc-ares-dev\n"
@@ -302,6 +343,8 @@ ENDIF()
 #             " * SuSE:          sudo zypper install -y c-ares-devel\n"
 #             " * Alpine:        sudo apk add c-ares-dev\n"
 #             " * FreeBSD:       sudo pkg install -y c-ares\n"
+#             " * NetBSD:        sudo pkgin -y install libcares\n"
+#             " * OpenBSD:       sudo pkg_add libcares\n"
 #             " * Apple:         brew install c-ares")
 #    ENDIF()
 # ENDIF()
@@ -309,7 +352,12 @@ ENDIF()
 # ====== libcrypto ==========================================================
 IF (WITH_PIPE_CHECKSUM)
    FIND_LIBRARY(CRYPTO_LIBRARY crypto libcrypto)
-   IF (NOT CRYPTO_LIBRARY)
+   FIND_PATH(CRYPTO_INCLUDE_DIR NAMES openssl/sha.h)
+   IF (CRYPTO_LIBRARY AND CRYPTO_INCLUDE_DIR)
+      MESSAGE(STATUS "libcrypto library found:")
+      MESSAGE(STATUS " CRYPTO_LIBRARY:     ${CRYPTO_LIBRARY}")
+      MESSAGE(STATUS " CRYPTO_INCLUDE_DIR: ${CRYPTO_INCLUDE_DIR}")
+   ELSE()
       MESSAGE(FATAL_ERROR
               " Cannot find libcrypto library! Try:\n"
               " * Ubuntu/Debian: sudo apt install -y libssl-dev\n"
@@ -317,6 +365,8 @@ IF (WITH_PIPE_CHECKSUM)
               " * SuSE:          sudo zypper install -y openssl-devel\n"
               " * Alpine:        sudo apk add openssl-dev\n"
               " * FreeBSD:       sudo pkg install -y openssl\n"
+              " * NetBSD:        sudo pkgin -y install openssl\n"
+              " * OpenBSD:       sudo pkg_add openssl\n"
               " * Apple:         brew install openssl")
    ENDIF()
 ENDIF()
@@ -460,7 +510,7 @@ IF (WITH_ICONS)
             " * SuSE:          sudo zypper install -y ghostscript\n"
             " * Alpine:        sudo apk add ghostscript\n"
             " * FreeBSD:       sudo pkg install -y ghostscript10\n"
-            " * NetBSD:        sudo -y pkgin install -y ghostscript\n"
+            " * NetBSD:        sudo pkgin -y install ghostscript\n"
             " * OpenBSD:       sudo pkg_add ghostscript\n"
             " * Apple:         brew install ghostscript")
    ENDIF()
@@ -481,7 +531,7 @@ IF (WITH_ICONS)
             " * SuSE:          sudo zypper install -y GraphicsMagick\n"
             " * Alpine:        sudo apk add graphicsmagick\n"
             " * FreeBSD:       sudo pkg install -y GraphicsMagick\n"
-            " * NetBSD:        sudo -y pkgin install -y GraphicsMagick\n"
+            " * NetBSD:        sudo pkgin -y install GraphicsMagick\n"
             " * OpenBSD:       sudo pkg_add GraphicsMagick\n"
             " * Apple:         brew install graphicsmagick")
    ENDIF()
@@ -502,7 +552,7 @@ IF (WITH_ICONS)
             " * SuSE:          sudo zypper install -y poppler-utils\n"
             " * Alpine:        sudo apk add ghostscript\n"
             " * FreeBSD:       sudo pkg install -y poppler-utils\n"
-            " * NetBSD:        sudo -y pkgin install -y poppler-utils\n"
+            " * NetBSD:        sudo pkgin -y install poppler-utils\n"
             " * OpenBSD:       (needs installation from sources!)\n"
             " * Apple:         brew install poppler")
    ENDIF()

@@ -77,12 +77,13 @@ IF (WITH_LIBHPCTIO)
             VERSION             ${BUILD_VERSION}
             SOVERSION           ${BUILD_MAJOR}
          )
+         TARGET_INCLUDE_DIRECTORIES(libhpctio-${TYPE} PRIVATE ${Boost_INCLUDE_DIRS})
          TARGET_LINK_LIBRARIES(libhpctio-${TYPE}
-                              ${Boost_LIBRARIES}
-                              ${CMAKE_THREAD_LIBS_INIT}
-                              ${LZMA_LIBRARY}
-                              ${BZ2_LIBRARY}
-                              ${Z_LIBRARY})
+                               ${Boost_LIBRARIES}
+                               ${CMAKE_THREAD_LIBS_INIT}
+                               ${LZMA_LIBRARY}
+                               ${BZ2_LIBRARY}
+                               ${Z_LIBRARY})
          INSTALL(TARGETS     libhpctio-${TYPE}
                DESTINATION ${CMAKE_INSTALL_LIBDIR})
       ENDIF()
@@ -140,6 +141,7 @@ IF (WITH_LIBHIPERCONTRACER)
             VERSION             ${BUILD_VERSION}
             SOVERSION           ${BUILD_MAJOR}
          )
+         TARGET_INCLUDE_DIRECTORIES(libhipercontracer-${TYPE} PRIVATE ${Boost_INCLUDE_DIRS})
          TARGET_LINK_LIBRARIES(libhipercontracer-${TYPE}
                                libhpctio-${TYPE}
                                ${Boost_LIBRARIES}
@@ -206,11 +208,12 @@ IF (WITH_LIBHPCTDB)
             VERSION             ${BUILD_VERSION}
             SOVERSION           ${BUILD_MAJOR}
          )
-         TARGET_INCLUDE_DIRECTORIES(libhpctdb-${TYPE} PUBLIC
+         TARGET_INCLUDE_DIRECTORIES(libhpctdb-${TYPE} PRIVATE
                                     ${LIBMARIADB_INCLUDE_DIR}
                                     ${PQXX_INCLUDE_DIRS}
                                     ${LIBMONGOC_INCLUDE_DIR}
-                                    ${LIBBSON_INCLUDE_DIR})
+                                    ${LIBBSON_INCLUDE_DIR}
+                                    ${Boost_INCLUDE_DIRS})
          TARGET_LINK_LIBRARIES(libhpctdb-${TYPE}
                                libhpctio-${TYPE}
                                ${LIBMARIADB_LIBRARY}
@@ -257,7 +260,9 @@ IF (WITH_LIBUNIVERSALIMPORTER)
             VERSION             ${BUILD_VERSION}
             SOVERSION           ${BUILD_MAJOR}
          )
-         TARGET_INCLUDE_DIRECTORIES(libuniversalimporter-${TYPE} PUBLIC ${LIBMARIADB_INCLUDE_DIR} ${PQXX_INCLUDE_DIRS} ${LIBMONGOC_INCLUDE_DIR} ${LIBBSON_INCLUDE_DIR} ${INotify_INCLUDE_DIRS})
+         TARGET_INCLUDE_DIRECTORIES(libuniversalimporter-${TYPE} PRIVATE
+                                    ${INotify_INCLUDE_DIRS}
+                                    ${Boost_INCLUDE_DIRS})
          TARGET_LINK_LIBRARIES(libuniversalimporter-${TYPE} libhpctdb-${TYPE} ${Boost_LIBRARIES} ${LIBMARIADB_LIBRARY} ${PQXX_LIBRARIES} ${LIBMONGOC_LIBRARY} ${LIBBSON_LIBRARY} ${INotify_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
          INSTALL(TARGETS libuniversalimporter-${TYPE} DESTINATION ${CMAKE_INSTALL_LIBDIR})
       ENDIF()
@@ -278,6 +283,7 @@ ENDIF()
 # ====== HiPerConTracer =====================================================
 IF (WITH_HIPERCONTRACER)
    ADD_EXECUTABLE(hipercontracer hipercontracer.cc)
+   TARGET_INCLUDE_DIRECTORIES(hipercontracer PRIVATE ${Boost_INCLUDE_DIRS})
    TARGET_LINK_LIBRARIES(hipercontracer libhipercontracer-${libraryType} ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
    INSTALL(TARGETS     hipercontracer     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
    INSTALL(FILES       hipercontracer.1   DESTINATION         ${CMAKE_INSTALL_MANDIR}/man1)
@@ -305,6 +311,7 @@ ENDIF()
 # ====== HiPerConTracer Trigger =============================================
 IF (WITH_TRIGGER)
    ADD_EXECUTABLE(hpct-trigger hpct-trigger.cc)
+   TARGET_INCLUDE_DIRECTORIES(hpct-trigger PRIVATE ${Boost_INCLUDE_DIRS})
    TARGET_LINK_LIBRARIES(hpct-trigger libhipercontracer-${libraryType} ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
    INSTALL(TARGETS hpct-trigger RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
    INSTALL(FILES       hpct-trigger.1 DESTINATION   ${CMAKE_INSTALL_MANDIR}/man1)
@@ -411,6 +418,7 @@ IF (WITH_IMPORTER)
       reader-ping.cc
       reader-traceroute.cc
    )
+   TARGET_INCLUDE_DIRECTORIES(hpct-importer PRIVATE ${Boost_INCLUDE_DIRS})
    TARGET_LINK_LIBRARIES(hpct-importer libuniversalimporter-${libraryType} ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
    INSTALL(TARGETS hpct-importer RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
    INSTALL(FILES hpct-importer.1 DESTINATION         ${CMAKE_INSTALL_MANDIR}/man1)
@@ -426,6 +434,7 @@ ENDIF()
 # ====== HiPerConTracer Query Tool ==========================================
 IF (WITH_QUERY)
    ADD_EXECUTABLE(hpct-query hpct-query.cc)
+   TARGET_INCLUDE_DIRECTORIES(hpct-query PRIVATE ${Boost_INCLUDE_DIRS})
    TARGET_LINK_LIBRARIES(hpct-query libhpctdb-${libraryType} ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
    INSTALL(TARGETS hpct-query RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
    INSTALL(FILES hpct-query.1 DESTINATION         ${CMAKE_INSTALL_MANDIR}/man1)
@@ -437,6 +446,7 @@ ENDIF()
 # ====== HiPerConTracer Results Tool ========================================
 IF (WITH_RESULTS)
    ADD_EXECUTABLE(hpct-results hpct-results.cc conversions.cc)
+   TARGET_INCLUDE_DIRECTORIES(hpct-results PRIVATE ${Boost_INCLUDE_DIRS})
    TARGET_LINK_LIBRARIES(hpct-results libhpctio-${libraryType} ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
    INSTALL(TARGETS hpct-results RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
    INSTALL(FILES hpct-results.1 DESTINATION         ${CMAKE_INSTALL_MANDIR}/man1)
@@ -501,6 +511,7 @@ ENDIF()
 # ====== Pipe Checksum Tool =================================================
 IF (WITH_PIPE_CHECKSUM)
    ADD_EXECUTABLE(pipe-checksum pipe-checksum.cc)
+   TARGET_INCLUDE_DIRECTORIES(pipe-checksum PRIVATE ${Boost_INCLUDE_DIRS} ${CRYPTO_INCLUDE_DIR})
    TARGET_LINK_LIBRARIES(pipe-checksum ${Boost_LIBRARIES} ${CRYPTO_LIBRARY})
    INSTALL(TARGETS pipe-checksum   RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
    INSTALL(FILES   pipe-checksum.1 DESTINATION         ${CMAKE_INSTALL_MANDIR}/man1)
@@ -512,6 +523,7 @@ ENDIF()
 # ====== UDP Echo Server ====================================================
 IF (WITH_UDP_ECHO_SERVER)
    ADD_EXECUTABLE(udp-echo-server udp-echo-server.cc logger.cc tools.cc)
+   TARGET_INCLUDE_DIRECTORIES(udp-echo-server PRIVATE ${Boost_INCLUDE_DIRS})
    TARGET_LINK_LIBRARIES(udp-echo-server ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
    INSTALL(TARGETS udp-echo-server   RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
    INSTALL(FILES   udp-echo-server.1 DESTINATION         ${CMAKE_INSTALL_MANDIR}/man1)
