@@ -93,7 +93,7 @@ IF (WITH_ICONS)
 
    # Scalable SVG icon:
    ADD_CUSTOM_COMMAND(OUTPUT  ${CMAKE_CURRENT_BINARY_DIR}/${LOGO}.svg
-                      COMMAND ${PDF2SVG} ${CMAKE_CURRENT_SOURCE_DIR}/${LOGO}.pdf ${LOGO}.svg)
+                      COMMAND ${PDFTOCAIRO} -svg ${CMAKE_CURRENT_SOURCE_DIR}/${LOGO}.pdf ${LOGO}.svg)
    ADD_CUSTOM_TARGET(generate_${LOGO}_svg ALL DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/${LOGO}.svg)
    INSTALL(FILES       ${CMAKE_CURRENT_BINARY_DIR}/${LOGO}.svg
            DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/icons/hicolor/scalable/apps)
