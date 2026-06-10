@@ -230,8 +230,8 @@ IF (WITH_LIBUNIVERSALIMPORTER)
       SET(INotify_LIBRARIES "")
       SET(INotify_INCLUDE_DIRS "")
    ELSE()
-      FIND_LIBRARY(INotify_LIBRARIES NAMES inotify)
-      FIND_PATH(INotify_INCLUDE_DIRS NAMES sys/inotify.h)
+      FIND_LIBRARY(INotify_LIBRARIES NAMES inotify       HINTS /usr/local/lib/inotify)
+      FIND_PATH(INotify_INCLUDE_DIRS NAMES sys/inotify.h HINTS /usr/local/include/inotify)
       IF ((NOT INotify_LIBRARIES) OR (NOT INotify_INCLUDE_DIRS))
          MESSAGE(FATAL_ERROR
                " Cannot find INotify library! Try:\n"
