@@ -75,7 +75,7 @@ void JitterRFC3550::process(const uint8_t            timeSource,
 
 
 #if 0
-#include <stdio.h>
+#include <cstdio>
 
 int main(int argc, char *argv[])
 {

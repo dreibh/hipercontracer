@@ -30,13 +30,13 @@
 #ifndef TOOLS_H
 #define TOOLS_H
 
-#include <math.h>
+#include <cmath>
+#include <ctime>
 #include <pwd.h>
-#include <time.h>
 
+#include <cstring>
 #include <chrono>
 #include <filesystem>
-#include <cstring>
 #include <iomanip>
 #include <map>
 #include <set>

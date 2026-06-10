@@ -29,9 +29,9 @@
 
 #include "package-version.h"
 
+#include <cstdio>
+#include <cstdlib>
 #include <fcntl.h>
-#include <stdio.h>
-#include <stdlib.h>
 #include <openssl/evp.h>
 
 #include <chrono>

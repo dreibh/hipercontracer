@@ -30,7 +30,7 @@
 #ifndef JITTER_RFC3550_H
 #define JITTER_RFC3550_H
 
-#include <math.h>
+#include <cmath>
 #include <stdint.h>
 
 

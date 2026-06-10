@@ -30,10 +30,9 @@
 #include "tools.h"
 #include "logger.h"
 
-#include <string.h>
-#include <unistd.h>
-
+#include <cstring>
 #include <fstream>
+#include <unistd.h>
 #include <boost/algorithm/string.hpp>
 
 
