@@ -405,7 +405,13 @@ void IOModuleBase::recordResult(const ReceivedData&  receivedData,
             }
             else if(icmpType == ICMP_UNREACH) {
                switch(icmpCode) {
+#if defined(ICMP_UNREACH_FILTER_PROHIB)
                   case ICMP_UNREACH_FILTER_PROHIB:
+#elif defined(ICMP_UNREACH_ADMIN_PROHIBIT)
+                  case ICMP_UNREACH_ADMIN_PROHIBIT:
+#else
+#error Neither ICMP_UNREACH_FILTER_PROHIB nor ICMP_UNREACH_ADMIN_PROHIBIT is defined!
+#endif
                      status = UnreachableProhibited;
                   break;
                   case ICMP_UNREACH_NET:
