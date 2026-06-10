@@ -401,6 +401,8 @@ IF (WITH_LIBHPCTDB)
                  " * SuSE:          sudo zypper install -y libmariadb-devel\n"
                  " * Alpine:        sudo apk add mariadb-connector-c-dev\n"
                  " * FreeBSD:       sudo pkg install -y mariadb-connector-c\n"
+                 " * NetBSD:        sudo pkgin -y install mariadb-client\n"
+                 " * OpenBSD:       sudo pkg_add mariadb-client\n"
                  " * Apple:         brew install mariadb-connector-c")
       ENDIF()
    ELSE()
@@ -426,6 +428,8 @@ IF (WITH_LIBHPCTDB)
                  " * SuSE:          sudo zypper install -y libpqxx-devel\n"
                  " * Alpine:        (needs PPA or installation from sources!)\n"
                  " * FreeBSD:       sudo pkg install -y postgresql-libpqxx\n"
+                 " * NetBSD:        sudo pkgin -y install libpqxx\n"
+                 " * OpenBSD:       sudo pkg_add libpqxx\n"
                  " * Apple:         brew install libpqxx")
       ENDIF()
 
@@ -461,6 +465,8 @@ IF (WITH_LIBHPCTDB)
                  " * SuSE:          (needs PPA or installation from sources!)\n"
                  " * Alpine:        sudo apk add mongo-c-driver-dev\n"
                  " * FreeBSD:       sudo pkg install -y mongo-c-driver\n"
+                 " * NetBSD:        sudo pkgin -y install mongo-c-driver\n"
+                 " * OpenBSD:       sudo pkg_add ????????\n"
                  " * Apple:         brew install mongo-c-driver")
       ENDIF()
 
@@ -481,6 +487,8 @@ IF (WITH_LIBHPCTDB)
                  " * SuSE:          (needs PPA or installation from sources!)\n"
                  " * Alpine:        sudo apk add libbson-dev\n"
                  " * FreeBSD:       sudo pkg install -y libbson\n"
+                 " * NetBSD:        sudo pkgin -y install ????????\n"
+                 " * OpenBSD:       sudo pkg_add ????????\n"
                  " * Apple:         brew install mongo-c-driver")
       ENDIF()
    ELSE()
