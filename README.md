@@ -586,7 +586,7 @@ For details, particularly also see: [Dreibholz, Thomas](https://www.nntb.no/~dre
 
 ### Path Hash
 
-The path hash is an [SHA-1](https://www.rfc-editor.org/rfc/rfc3174.html) hash over the textual representation of a Traceroute run, i.e.&nbsp;SHA1("&lt;Source IP&gt;-&lt;Router 1 IP&gt;-&lt;...&gt;-&lt;Router *n* IP&gt;-&lt;Destination IP&gt;"), where the IP addresses correspond to source, destination, and routers. If a router is unknown, it is represented by "\*". The purpose of the path hash is to quickly identify identical paths. In this case, of course, routers must have consistently responded (non-"\*", i.e.&nbsp;revealing their IP address) or not responded ("\*") to lead to the same hash value.
+The path hash is an [SHA-1](https://www.rfc-editor.org/info/rfc3174/) hash over the textual representation of a Traceroute run, i.e.&nbsp;SHA1("&lt;Source IP&gt;-&lt;Router 1 IP&gt;-&lt;...&gt;-&lt;Router *n* IP&gt;-&lt;Destination IP&gt;"), where the IP addresses correspond to source, destination, and routers. If a router is unknown, it is represented by "\*". The purpose of the path hash is to quickly identify identical paths. In this case, of course, routers must have consistently responded (non-"\*", i.e.&nbsp;revealing their IP address) or not responded ("\*") to lead to the same hash value.
 
 
 ## Results File Examples
