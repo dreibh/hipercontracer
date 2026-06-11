@@ -46,7 +46,7 @@ for figure in $FIGURES ; do
    # colordiff tmp1.qdf tmp2.qdf || true
 
    # ====== Make SVG, with transparent background ===========================
-   pdf2svg "$figure.pdf" "$figure.svg"
+   pdftocairo -svg "$figure.pdf" "$figure.svg"
 
    # Should be unnecessary, since the background has already been removed:
    # pdf2svg "$figure.pdf" tmp1.svg
