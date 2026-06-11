@@ -235,7 +235,7 @@ IF (WITH_LIBUNIVERSALIMPORTER)
       FIND_PATH(INotify_INCLUDE_DIRS NAMES sys/inotify.h HINTS /usr/local/include/inotify)
       IF ((NOT INotify_LIBRARIES) OR (NOT INotify_INCLUDE_DIRS))
          MESSAGE(FATAL_ERROR
-               " Cannot find INotify library! Try:\n"
+               "Cannot find INotify library! Try:\n"
                " * Ubuntu/Debian: (always included as part of libc)\n"
                " * Fedora:        (always included as part of libc)\n"
                " * SuSE:          (always included as part of libc)\n"
@@ -257,7 +257,7 @@ IF (Z_LIBRARY AND Z_INCLUDE_DIR)
    MESSAGE(STATUS " Z_INCLUDE_DIR: ${Z_INCLUDE_DIR}")
 ELSE()
    MESSAGE(FATAL_ERROR
-           " Cannot find Z library! Try:\n"
+           "Cannot find Z library! Try:\n"
            " * Ubuntu/Debian: sudo apt install -y zlib1g-dev\n"
            " * Fedora:        sudo dnf install -y zlib-ng-compat-devel\n"
            " * SuSE:          sudo zypper install -y zlib-devel\n"
@@ -277,7 +277,7 @@ IF (BZ2_LIBRARY AND BZ2_INCLUDE_DIR)
    MESSAGE(STATUS " BZ2_INCLUDE_DIR: ${BZ2_INCLUDE_DIR}")
 ELSE()
    MESSAGE(FATAL_ERROR
-           " Cannot find BZip2 library! Try:\n"
+           "Cannot find BZip2 library! Try:\n"
            " * Ubuntu/Debian: sudo apt install -y libbz2-dev\n"
            " * Fedora:        sudo dnf install -y bzip2-devel\n"
            " * SuSE:          sudo zypper install -y libbz2-devel\n"
@@ -297,7 +297,7 @@ IF (LZMA_LIBRARY AND LZMA_INCLUDE_DIR)
    MESSAGE(STATUS " LZMA_INCLUDE_DIR: ${LZMA_INCLUDE_DIR}")
 ELSE()
    MESSAGE(FATAL_ERROR
-           " Cannot find LZMA library! Try:\n"
+           "Cannot find LZMA library! Try:\n"
            " * Ubuntu/Debian: sudo apt install -y liblzma-dev\n"
            " * Fedora:        sudo dnf install -y xz-devel\n"
            " * SuSE:          sudo zypper install -y xz-devel\n"
@@ -317,7 +317,7 @@ IF (ZSTD_LIBRARY AND ZSTD_INCLUDE_DIR)
    MESSAGE(STATUS " ZSTD_INCLUDE_DIR: ${ZSTD_INCLUDE_DIR}")
 ELSE()
    MESSAGE(FATAL_ERROR
-           " Cannot find ZSTD library! Try:\n"
+           "Cannot find ZSTD library! Try:\n"
            " * Ubuntu/Debian: sudo apt install -y libzstd-dev\n"
            " * Fedora:        sudo dnf install -y libzstd-devel\n"
            " * SuSE:          sudo zypper install -y libzstd-devel\n"
@@ -338,7 +338,7 @@ ENDIF()
 #       MESSAGE(STATUS " CARES_INCLUDE_DIR: ${CARES_INCLUDE_DIR}")
 #    ELSE()
 #       MESSAGE(FATAL_ERROR
-#             " Cannot find C-ARES DNS resolver library! Try:\n"
+#             "Cannot find C-ARES DNS resolver library! Try:\n"
 #             " * Ubuntu/Debian: sudo apt install -y libc-ares-dev\n"
 #             " * Fedora:        sudo dnf install -y c-ares-devel\n"
 #             " * SuSE:          sudo zypper install -y c-ares-devel\n"
@@ -360,7 +360,7 @@ IF (WITH_PIPE_CHECKSUM)
       MESSAGE(STATUS " CRYPTO_INCLUDE_DIR: ${CRYPTO_INCLUDE_DIR}")
    ELSE()
       MESSAGE(FATAL_ERROR
-              " Cannot find libcrypto library! Try:\n"
+              "Cannot find libcrypto library! Try:\n"
               " * Ubuntu/Debian: sudo apt install -y libssl-dev\n"
               " * Fedora:        sudo dnf install -y openssl-devel\n"
               " * SuSE:          sudo zypper install -y openssl-devel\n"
@@ -396,7 +396,7 @@ IF (WITH_LIBHPCTDB)
       MESSAGE(" * Includes: ${LIBMARIADB_INCLUDE_DIR}")
       IF ((NOT LIBMARIADB_INCLUDE_DIR) OR (NOT LIBMARIADB_LIBRARY))
          MESSAGE(FATAL_ERROR
-                 " Cannot find MySQL/MariaDB C Client Library! Try:\n"
+                 "Cannot find MySQL/MariaDB C Client Library! Try:\n"
                  " * Ubuntu/Debian: sudo apt install -y libmariadb-dev\n"
                  " * Fedora:        sudo dnf install -y mariadb-connector-c-devel\n"
                  " * SuSE:          sudo zypper install -y libmariadb-devel\n"
@@ -423,7 +423,7 @@ IF (WITH_LIBHPCTDB)
       MESSAGE(" * Includes: ${PQXX_INCLUDE_DIRS}")
       IF ((NOT PQXX_INCLUDE_DIRS) OR (NOT PQXX_LIBRARIES))
          MESSAGE(FATAL_ERROR
-                 " Cannot find PostgreSQL C++ Client Library! Try:\n"
+                 "Cannot find PostgreSQL C++ Client Library! Try:\n"
                  " * Ubuntu/Debian: sudo apt install -y libpqxx-dev\n"
                  " * Fedora:        sudo dnf install -y libpqxx-devel\n"
                  " * SuSE:          sudo zypper install -y libpqxx-devel\n"
@@ -460,7 +460,7 @@ IF (WITH_LIBHPCTDB)
       MESSAGE(" * Includes: ${LIBMONGOC_INCLUDE_DIR}")
       IF ((NOT LIBMONGOC_INCLUDE_DIR) OR (NOT LIBMONGOC_LIBRARY))
          MESSAGE(FATAL_ERROR
-                 " Cannot find MongoDB C Client Library! Try:\n"
+                 "Cannot find MongoDB C Client Library! Try:\n"
                  " * Ubuntu/Debian: sudo apt install -y libmongoc-dev\n"
                  " * Fedora:        sudo dnf install -y mongo-c-driver-devel\n"
                  " * SuSE:          (needs PPA or installation from sources!)\n"
@@ -482,7 +482,7 @@ IF (WITH_LIBHPCTDB)
       MESSAGE(" * Includes: ${LIBBSON_INCLUDE_DIR}")
       IF ((NOT LIBBSON_INCLUDE_DIR) OR (NOT LIBBSON_LIBRARY))
          MESSAGE(FATAL_ERROR
-                 " Cannot find MongoDB BSON library! Try:\n"
+                 "Cannot find MongoDB BSON library! Try:\n"
                  " * Ubuntu/Debian: sudo apt install -y libbson-dev\n"
                  " * Fedora:        sudo dnf install -y libbson-devel\n"
                  " * SuSE:          (needs PPA or installation from sources!)\n"
@@ -513,7 +513,7 @@ IF (WITH_ICONS)
       MESSAGE(STATUS "Ghostscript found: ${GS} (version ${GS_VERSION})")
    ELSE()
       MESSAGE(FATAL_ERROR
-            " Cannot find Ghostscript! Try:\n"
+            "Cannot find Ghostscript! Try:\n"
             " * Ubuntu/Debian: sudo apt install -y ghostscript\n"
             " * Fedora:        sudo dnf install -y ghostscript\n"
             " * SuSE:          sudo zypper install -y ghostscript\n"
@@ -534,7 +534,7 @@ IF (WITH_ICONS)
       MESSAGE(STATUS "GraphicsMagick found: ${GM} (version ${GM_VERSION})")
    ELSE()
       MESSAGE(FATAL_ERROR
-            " Cannot find GraphicsMagick! Try:\n"
+            "Cannot find GraphicsMagick! Try:\n"
             " * Ubuntu/Debian: sudo apt install -y graphicsmagick\n"
             " * Fedora:        sudo dnf install -y GraphicsMagick\n"
             " * SuSE:          sudo zypper install -y GraphicsMagick\n"
@@ -555,7 +555,7 @@ IF (WITH_ICONS)
       MESSAGE(STATUS "pdftocairo found: ${PDFTOCAIRO} (version ${PDFTOCAIRO_VERSION})")
    ELSE()
       MESSAGE(FATAL_ERROR
-            " Cannot find pdftocairo! Try:\n"
+            "Cannot find pdftocairo! Try:\n"
             " * Ubuntu/Debian: sudo apt install -y poppler-utils\n"
             " * Fedora:        sudo dnf install -y poppler-utils\n"
             " * SuSE:          sudo zypper install -y poppler-utils\n"
