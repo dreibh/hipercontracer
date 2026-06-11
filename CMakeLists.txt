@@ -46,10 +46,14 @@ ENDIF()
 
 
 #############################################################################
-#### INSTALLATION_DIRECTORIES                                            ####
+#### CMAKE INCLUDES                                                      ####
 #############################################################################
 
-# See: https://cmake.org/cmake/help/v3.0/module/GNUInstallDirs.html
+INCLUDE(CheckCCompilerFlag)
+INCLUDE(CheckCSourceCompiles)
+INCLUDE(CheckCSourceRuns)
+INCLUDE(CheckIncludeFile)
+INCLUDE(CheckStructHasMember)
 INCLUDE(GNUInstallDirs)
 
 
@@ -111,10 +115,6 @@ ENDIF()
 #############################################################################
 #### OPTIONS                                                             ####
 #############################################################################
-
-INCLUDE(CheckIncludeFile)
-INCLUDE(CheckStructHasMember)
-INCLUDE(CheckCCompilerFlag)
 
 OPTION(WITH_STATIC_LIBRARIES "Build static libraries"              OFF)
 OPTION(WITH_SHARED_LIBRARIES "Build shared libraries"              ON)
