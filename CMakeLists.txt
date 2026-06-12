@@ -545,25 +545,26 @@ IF (WITH_ICONS)
             " * Apple:         brew install graphicsmagick")
    ENDIF()
 
-   # ------ pdftocairo ------------------------------------------------------
-   FIND_PROGRAM(PDFTOCAIRO pdftocairo HINTS /usr/pkg/bin)
-   IF(PDFTOCAIRO)
-      EXECUTE_PROCESS(COMMAND ${PDFTOCAIRO} -v 2>&1 | head -n1
-                      ERROR_VARIABLE PDFTOCAIRO_OUTPUT
-                      OUTPUT_QUIET ERROR_STRIP_TRAILING_WHITESPACE)
-      STRING(REGEX MATCH "([0-9]+\\.[0-9]+\\.[0-9]+|[0-9]+\\.[0-9]+)" PDFTOCAIRO_VERSION "${PDFTOCAIRO_OUTPUT}")
-      MESSAGE(STATUS "pdftocairo found: ${PDFTOCAIRO} (version ${PDFTOCAIRO_VERSION})")
+   # ------ MuPDF mutool ----------------------------------------------------
+   FIND_PROGRAM(MUTOOL mutool HINTS /usr/pkg/bin)
+   IF(MUTOOL)
+      EXECUTE_PROCESS(COMMAND ${MUTOOL} -v
+                      ERROR_VARIABLE  MUTOOL_OUTPUT
+                      OUTPUT_VARIABLE MUTOOL_OUTPUT
+                      OUTPUT_STRIP_TRAILING_WHITESPACE)
+      STRING(REGEX MATCH "([0-9]+\\.[0-9]+\\.[0-9]+|[0-9]+\\.[0-9]+)" MUTOOL_VERSION "${MUTOOL_OUTPUT}")
+      MESSAGE(STATUS "MuPDF mutool found: ${MUTOOL} (version ${MUTOOL_VERSION})")
    ELSE()
       MESSAGE(FATAL_ERROR
-            "Cannot find pdftocairo! Try:\n"
-            " * Ubuntu/Debian: sudo apt install -y poppler-utils\n"
-            " * Fedora:        sudo dnf install -y poppler-utils\n"
-            " * SuSE:          sudo zypper install -y poppler-utils\n"
-            " * Alpine:        sudo apk add ghostscript\n"
-            " * FreeBSD:       sudo pkg install -y poppler-utils\n"
-            " * NetBSD:        sudo pkgin -y install poppler-utils\n"
-            " * OpenBSD:       (needs installation from sources!)\n"
-            " * Apple:         brew install poppler")
+            "Cannot find mupdf! Try:\n"
+            " * Ubuntu/Debian: sudo apt install -y mupdf-tools\n"
+            " * Fedora:        sudo dnf install -y mupdf\n"
+            " * SuSE:          sudo zypper install -y mupdf\n"
+            " * Alpine:        sudo apk add mupdf-tools\n"
+            " * FreeBSD:       sudo pkg install -y mupdf\n"
+            " * NetBSD:        sudo pkgin -y install mupdf\n"
+            " * OpenBSD:       sudo pkg_add mupdf\n"
+            " * Apple:         brew install mupdf-tools")
    ENDIF()
 
 ELSE()

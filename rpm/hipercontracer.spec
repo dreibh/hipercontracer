@@ -20,8 +20,8 @@ BuildRequires: libbson-devel
 BuildRequires: libpqxx-devel
 BuildRequires: mariadb-connector-c-devel
 BuildRequires: mongo-c-driver-devel
+BuildRequires: mupdf
 BuildRequires: openssl-devel
-BuildRequires: poppler-utils
 BuildRequires: xz-devel
 BuildRequires: zlib-devel
 BuildRequires: libzstd-devel

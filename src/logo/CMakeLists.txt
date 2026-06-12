@@ -31,50 +31,53 @@
 #### LOGO                                                                ####
 #############################################################################
 
-SET(LOGO "hipercontracer")
-
-# To check the system's icon sizes available:
-# find /usr/share/icons/hicolor/ -maxdepth 1 -type d -printf "%f\n" | grep -E "^[0-9]+" | sort | cut -dx -f1 | sort -n
-SET(ICON_LENGTHS
-   8
-   16
-   20
-   22
-   24
-   32
-   36
-   40
-   42
-   44
-   48
-   64
-   72
-   96
-   128
-   150
-   192
-   256
-   310
-   512
-)
-SET(LOGO_LENGTH 1920)
+SET(LOGO      "hipercontracer")
+SET(DIRECTORY "hipercontracer")   # in ${CMAKE_INSTALL_DATAROOTDIR}
 
 IF (WITH_ICONS)
+
+   # To check the system's icon sizes available:
+   # find /usr/share/icons/hicolor/ -maxdepth 1 -type d -printf "%f\n" | grep -E "^[0-9]+" | sort | cut -dx -f1 | sort -n
+   SET(ICON_LENGTHS
+      8
+      16
+      20
+      22
+      24
+      32
+      36
+      40
+      42
+      44
+      48
+      64
+      72
+      96
+      128
+      150
+      192
+      256
+      310
+      512
+   )
+   SET(LOGO_LENGTH 1920)
+
    FOREACH(iconLength IN ITEMS ${ICON_LENGTHS};${LOGO_LENGTH})
       # PNG with fixed width, height as necessary:
       ADD_CUSTOM_COMMAND(OUTPUT  ${CMAKE_CURRENT_BINARY_DIR}/${LOGO}-${iconLength}x.png
                          COMMAND ${GS} -dNOSAFER -dQUIET -dBATCH -dNOPAUSE -dNOPROMPT -dEPSCrop -dAlignToPixels=0 -dGridFitTT=2 -sDEVICE=pngalpha -r${iconLength}x -sOUTPUTFILE="${CMAKE_CURRENT_BINARY_DIR}/${LOGO}-${iconLength}x-tmp.png" "${CMAKE_CURRENT_SOURCE_DIR}/${LOGO}.pdf"
                          COMMAND ${GM} convert "${CMAKE_CURRENT_BINARY_DIR}/${LOGO}-${iconLength}x-tmp.png" -resize ${iconLength}x "${CMAKE_CURRENT_BINARY_DIR}/${LOGO}-${iconLength}x.png"
-                         COMMAND rm -f "${CMAKE_CURRENT_BINARY_DIR}/${LOGO}-${iconLength}x.png.tmp")
+                         COMMAND rm -f "${CMAKE_CURRENT_BINARY_DIR}/${LOGO}-${iconLength}x-tmp.png")
       ADD_CUSTOM_TARGET(generate_${LOGO}_${iconLength}x_png ALL DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/${LOGO}-${iconLength}x.png)
 
       # PNG with fixed, same width and height:
-      IF(NOT ${iconLength} STREQUAL "1920")
+      IF(NOT iconLength STREQUAL LOGO_LENGTH)
          ADD_CUSTOM_COMMAND(OUTPUT  ${CMAKE_CURRENT_BINARY_DIR}/${LOGO}-${iconLength}x${iconLength}.png
                             COMMAND ${GM} convert ${LOGO}-${iconLength}x.png -resize ${iconLength}x -background none -gravity center -extent ${iconLength}x${iconLength} ${LOGO}-${iconLength}x${iconLength}.png
-                            DEPENDS generate_${LOGO}_${iconLength}x_png
-                                    ${CMAKE_CURRENT_BINARY_DIR}/${LOGO}-${iconLength}x.png)
-         ADD_CUSTOM_TARGET(generate_${LOGO}_${iconLength}x${iconLength}_png ALL DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/${LOGO}-${iconLength}x${iconLength}.png)
+                            DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/${LOGO}-${iconLength}x.png)
+         ADD_CUSTOM_TARGET(generate_${LOGO}_${iconLength}x${iconLength}_png
+                           ALL DEPENDS generate_${LOGO}_${iconLength}x_png
+                                       ${CMAKE_CURRENT_BINARY_DIR}/${LOGO}-${iconLength}x${iconLength}.png)
 
          # PNG icon of dimension ${iconLength}x${iconLength}:
          INSTALL(FILES       ${CMAKE_CURRENT_BINARY_DIR}/${LOGO}-${iconLength}x${iconLength}.png
@@ -85,16 +88,23 @@ IF (WITH_ICONS)
 
    # A high-resolution logo PNG file:
    INSTALL(FILES       ${CMAKE_CURRENT_BINARY_DIR}/${LOGO}-${LOGO_LENGTH}x.png
-           DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/hipercontracer
+           DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/${DIRECTORY}
            RENAME      ${LOGO}.png)
 
    # Scalable logo PDF file:
-   INSTALL(FILES ${LOGO}.pdf DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/hipercontracer)
+   INSTALL(FILES ${LOGO}.pdf DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/${DIRECTORY})
 
    # Scalable SVG icon:
    ADD_CUSTOM_COMMAND(OUTPUT  ${CMAKE_CURRENT_BINARY_DIR}/${LOGO}.svg
-                      COMMAND ${PDFTOCAIRO} -svg ${CMAKE_CURRENT_SOURCE_DIR}/${LOGO}.pdf ${LOGO}.svg)
+                      COMMAND ${MUTOOL} convert
+                                  -o ${CMAKE_CURRENT_BINARY_DIR}/${LOGO}.svg
+                                     ${CMAKE_CURRENT_SOURCE_DIR}/${LOGO}.pdf 1
+                      COMMAND ${CMAKE_COMMAND} -E rename
+                                  ${CMAKE_CURRENT_BINARY_DIR}/${LOGO}1.svg
+                                  ${CMAKE_CURRENT_BINARY_DIR}/${LOGO}.svg
+                      DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/${LOGO}.pdf)
    ADD_CUSTOM_TARGET(generate_${LOGO}_svg ALL DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/${LOGO}.svg)
    INSTALL(FILES       ${CMAKE_CURRENT_BINARY_DIR}/${LOGO}.svg
            DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/icons/hicolor/scalable/apps)
+
 ENDIF()
