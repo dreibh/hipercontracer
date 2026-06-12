@@ -1,3 +1,159 @@
+commit 9855c168fa4e09f833e47305e19f56ea9ba9aa31
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Fri Jun 12 17:24:54 2026 +0200
+
+    Changed pdftocairo to mutool, due to bugs in Fedora.
+
+commit 84cc3e53210bc5ebe97373eb4cdd11506f2b8513
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Jun 11 18:28:29 2026 +0200
+
+    Updated build helper script.
+
+commit 9cc0a49539498358df7a92e8ad76d036b86b4c54
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Jun 11 14:54:22 2026 +0200
+
+    URL updates.
+
+commit dd7a5a46148e4b2000a7abf4b54879b1374c1146
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Jun 11 11:27:13 2026 +0200
+
+    Improved documentation.
+
+commit 164ee0e21d343a4740de97f3b5f0f247e377a812
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Jun 11 11:19:01 2026 +0200
+
+    CMakeLists.txt clean-ups.
+
+commit 47f638596def9b25e09a003c6d32a29ac87e6c96
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Jun 11 10:29:48 2026 +0200
+
+    Improved error messages in CMakeLists.txt.
+
+commit 86357d3d50195f243f45a8cd55427193c12485a2
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Jun 11 09:34:03 2026 +0200
+
+    CPACK_SOURCE_IGNORE_FILES fix.
+
+commit 5f7c711dedd6671636cdcace3bd4e0d063855714
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Jun 11 08:56:18 2026 +0200
+
+    Improved lookup of getopt command in scripts.
+
+commit 648eb04b6b3ea313dc2b85804d2d98e5d514f682
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Jun 11 08:49:08 2026 +0200
+
+    Also changed pdf2svg to pdftocairo in figure helper script.
+
+commit 4cc3539a13cbec4f8046245672a0efa77f20fb44
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Jun 10 23:48:41 2026 +0200
+
+    Improved INotify library detection in CMakeLists.txt.
+
+commit e38c666e9a95a5aba260e7e32032f69b07052446
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Jun 10 23:29:23 2026 +0200
+
+    NetBSD build fix: ICMP_UNREACH_ADMIN_PROHIBIT instead of ICMP_UNREACH_FILTER_PROHIB.
+
+commit fca2092caa6c9e320d0ccb1c9ae10cb34ced96d0
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Jun 10 23:22:13 2026 +0200
+
+    Minor include clean-ups.
+
+commit 4cb53b478ff1523d5a69b5e61048ea38ea7fc366
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Jun 10 23:16:41 2026 +0200
+
+    Added some more dependency installation hints.
+
+commit 73041ca8189538faf03a1a8f9ebac59745bf14b3
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Jun 10 22:58:12 2026 +0200
+
+    Another CMakeLists.txt update.
+
+commit b34909877fe1302ce673fd150f7fa391596aa7ca
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Jun 10 22:54:35 2026 +0200
+
+    Improved CMakeLists.txt.
+
+commit d678cd736a970b65afce65e996699029e6dc3cef
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Jun 10 22:12:02 2026 +0200
+
+    Replaced dependency pdf2svg by pdftocairo, which is available in more distributions.
+
+commit 6731041d16ec255f63425ddbfc33995e317b1251
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Jun 9 08:46:27 2026 +0200
+
+    CMakeLists.txt clean-ups.
+
+commit 13d5cf8c4a883111962e9f1c9f9f38bcd4a81ddc
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Jun 9 08:37:35 2026 +0200
+
+    Updated build script.
+
+commit 533fb32faf244d98487b2acbe1a776f4aadf1743
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Jun 9 08:36:55 2026 +0200
+
+    Updated CI scripts
+
+commit 4cb9ac7b1f0e0b3dde68b828c3d45a5c11c95e85
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Jun 9 08:36:10 2026 +0200
+
+    CMakeLists.txt clean-ups.
+
+commit fd29614eb297cb0e08302a38f2d1f8cd6039d272
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Mon Jun 8 12:09:47 2026 +0200
+
+    Minor CMakeLists.txt clean-ups.
+
+commit 84d14cef9d92c8f3b2c4e4387e31b6acd78909f3
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Mon Jun 1 13:30:12 2026 +0200
+
+    Dependency fix.
+
+commit 9a1a1ee9b7485b4954f7a3fbefac3135dca67d1f
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Fri May 29 18:06:28 2026 +0200
+
+    Improved dependencies in the FreeBSD port.
+
+commit 15386b41fecc6ad2a5849e98fa4215b2c79a97f4
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Fri May 29 17:46:18 2026 +0200
+
+    Minor clean-up.
+
+commit 37b044b37a6f79d76d15bb05b00f278c5bc969c9
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Fri May 29 17:40:34 2026 +0200
+
+    Improved FreeBSD port.
+
+commit a4c3b9b465911fdba37747691d508165185640ed
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Fri May 29 17:01:38 2026 +0200
+
+    New release hipercontracer-2.2.2.
+
 commit 4e1462194ad0c9e074884e29de2d968afe3a5417
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Fri May 29 16:05:50 2026 +0200
