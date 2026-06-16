@@ -10,12 +10,7 @@ WWW=		https://www.nntb.no/~dreibh/hipercontracer/
 LICENSE=	GPLv3+
 LICENSE_FILE=	${WRKSRC}/COPYING
 
-LIB_DEPENDS=	libboost_date_time.so:devel/boost-libs \
-		libboost_filesystem.so:devel/boost-libs \
-		libboost_iostreams.so:devel/boost-libs \
-		libboost_log.so:devel/boost-libs \
-		libboost_program_options.so:devel/boost-libs \
-		libboost_thread.so:devel/boost-libs
+LIB_DEPENDS=	libboost_thread.so:devel/boost-libs
 RUN_DEPENDS=	getopt>=0:misc/getopt
 
 USES=		cmake \
@@ -35,11 +30,10 @@ MAKE_ENV=	OMP_NUM_THREADS=1
 
 PLIST_SUB=	DISTVERSION=${DISTVERSION}
 
-OPTIONS_DEFINE=
-OPTIONS_DEFAULT=				${OPTIONS_MULTI_COMPONENTS}
+OPTIONS_DEFAULT=				${OPTIONS_MULTI_MODULES}
 
-OPTIONS_MULTI=					COMPONENTS
-OPTIONS_MULTI_COMPONENTS=			COLLECTOR \
+OPTIONS_MULTI=					MODULES
+OPTIONS_MULTI_MODULES=				COLLECTOR \
 						DBEAVER_TOOLS \
 						DBSHELL \
 						EXAMPLE_SCRIPTS \
@@ -111,7 +105,8 @@ HIPERCONTRACER_CMAKE_BOOL=			WITH_HIPERCONTRACER
 
 ICONS_BUILD_DEPENDS=				gm:graphics/GraphicsMagick \
 						mutool:graphics/mupdf
-ICONS_USES=					ghostscript shared-mime-info
+ICONS_USES=					ghostscript \
+						shared-mime-info
 ICONS_CMAKE_BOOL=				WITH_ICONS
 
 IMPORTER_IMPLIES=				LIBUNIVERSALIMPORTER
