@@ -1042,6 +1042,7 @@ NoSQL databases.
 %{_bindir}/hpct-importer
 %{_datadir}/bash-completion/completions/hpct-importer
 %{_mandir}/man1/hpct-importer.1.gz
+%dir %attr(0755, root, root) %{_datadir}/hipercontracer/NoSQL
 %{_datadir}/hipercontracer/NoSQL/R-query-example.R
 %{_datadir}/hipercontracer/NoSQL/README-MongoDB.md
 %{_datadir}/hipercontracer/NoSQL/mongodb-database.ms
@@ -1049,6 +1050,7 @@ NoSQL databases.
 %{_datadir}/hipercontracer/NoSQL/mongodb-test.ms
 %{_datadir}/hipercontracer/NoSQL/mongodb-users.ms
 %{_datadir}/hipercontracer/NoSQL/nornet-tools.R
+%dir %attr(0755, root, root) %{_datadir}/hipercontracer/SQL
 %{_datadir}/hipercontracer/SQL/README-MySQL+MariaDB.md
 %{_datadir}/hipercontracer/SQL/README-PostgreSQL.md
 %{_datadir}/hipercontracer/SQL/mariadb-database.sql
@@ -1067,6 +1069,7 @@ NoSQL databases.
 %{_datadir}/hipercontracer/SQL/postgresql-test.sql
 %{_datadir}/hipercontracer/SQL/postgresql-users.sql
 %{_datadir}/hipercontracer/SQL/postgresql-views.sql
+%dir %attr(0755, root, root) %{_datadir}/hipercontracer/TestDB
 %{_datadir}/hipercontracer/TestDB/0-make-configurations
 %{_datadir}/hipercontracer/TestDB/1-install-database
 %{_datadir}/hipercontracer/TestDB/2-initialise-database
