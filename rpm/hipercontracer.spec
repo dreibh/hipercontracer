@@ -9,7 +9,7 @@ Source: https://www.nntb.no/~dreibh/hipercontracer/download/%{name}-%{version}.t
 Packager: Thomas Dreibholz <dreibh@simula.no>
 
 AutoReqProv: on
-BuildRequires: boost-devel
+BuildRequires: ((libboost_log-devel and libboost_date_time-devel and libboost_thread-devel and libboost_iostreams-devel and libboost_filesystem-devel and libboost_program_options-devel) or (boost-devel and boost-log and boost-date-time and boost-thread and boost-iostreams and boost-filesystem and boost-program-options))
 BuildRequires: (bzip2-devel or libbz2-devel)
 BuildRequires: cmake
 BuildRequires: ghostscript
@@ -193,6 +193,8 @@ done
 rmdir /var/hipercontracer >/dev/null 2>&1 || true
 
 %files common
+%dir %attr(0755, root, root) %{_sysconfdir}/hipercontracer
+%dir %attr(0755, root, root) %{_datadir}/hipercontracer
 %{_datadir}/hipercontracer/hipercontracer.bib
 %{_datadir}/hipercontracer/hipercontracer.pdf
 %{_datadir}/hipercontracer/hipercontracer.png
@@ -257,6 +259,7 @@ data:
 This package contains example scripts and result files.
 
 %files examples
+%dir %attr(0755, root, root) %{_datadir}/hipercontracer/results-examples
 %{_datadir}/hipercontracer/results-examples/HiPerConTracer.R
 %{_datadir}/hipercontracer/results-examples/*-*.hpct
 %{_datadir}/hipercontracer/results-examples/*-*.hpct.*
@@ -465,6 +468,7 @@ This package provides header files for the HiPerConTracer library. You need
 them to integrate HiPerConTracer into your own programs.
 
 %files libhipercontracer-devel
+%dir %attr(0755, root, root) %{_includedir}/hipercontracer
 %{_includedir}/hipercontracer/check.h
 %{_includedir}/hipercontracer/destinationinfo.h
 %{_includedir}/hipercontracer/iomodule-base.h
@@ -684,6 +688,7 @@ This package provides header files for the Universal Importer library.
 You need them to integrate Universal Importer into your own programs.
 
 %files libuniversalimporter-devel
+%dir %attr(0755, root, root) %{_includedir}/universalimporter
 %{_includedir}/universalimporter/importer-configuration.h
 %{_includedir}/universalimporter/reader-base.h
 %{_includedir}/universalimporter/results-exception.h
