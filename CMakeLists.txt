@@ -463,7 +463,7 @@ IF (WITH_LIBHPCTDB)
                  "Cannot find MongoDB C Client Library! Try:\n"
                  " * Ubuntu/Debian: sudo apt install -y libmongoc-dev\n"
                  " * Fedora:        sudo dnf install -y mongo-c-driver-devel\n"
-                 " * SuSE:          (needs PPA or installation from sources!)\n"
+                 " * SuSE:          sudo zypper install -y mongo-c-driver-devel\n"
                  " * Alpine:        sudo apk add mongo-c-driver-dev\n"
                  " * FreeBSD:       sudo pkg install -y mongo-c-driver\n"
                  " * NetBSD:        sudo pkgin -y install mongo-c-driver\n"

@@ -10,15 +10,15 @@ Packager: Thomas Dreibholz <dreibh@simula.no>
 
 AutoReqProv: on
 BuildRequires: boost-devel
-BuildRequires: bzip2-devel
+BuildRequires: (bzip2-devel or libbz2-devel)
 BuildRequires: cmake
 BuildRequires: ghostscript
 BuildRequires: GraphicsMagick
 BuildRequires: gcc
 BuildRequires: gcc-c++
-BuildRequires: libbson-devel
+BuildRequires: (libbson-devel or bson-devel)
 BuildRequires: libpqxx-devel
-BuildRequires: mariadb-connector-c-devel
+BuildRequires: (mariadb-connector-c-devel or libmariadb-devel)
 BuildRequires: mongo-c-driver-devel
 BuildRequires: mupdf
 BuildRequires: openssl-devel
