@@ -32,6 +32,7 @@
 
 #include <cstring>
 #include <fstream>
+#include <grp.h>
 #include <unistd.h>
 #include <boost/algorithm/string.hpp>
 
@@ -131,6 +132,11 @@ bool reducePrivileges(const passwd* pw)
    // ====== Reduce permissions =============================================
    if((pw != nullptr) && (pw->pw_uid != 0)) {
       HPCT_LOG(info) << "Using UID " << pw->pw_uid << ", GID " << pw->pw_gid;
+      if(setgroups(1, &pw->pw_gid) != 0) {
+         HPCT_LOG(error) << "setgroups(1,{" << pw->pw_gid << "}) failed: "
+                         << strerror(errno);
+         return false;
+      }
       if(setgid(pw->pw_gid) != 0) {
          HPCT_LOG(error) << "setgid(" << pw->pw_gid << ") failed: " << strerror(errno);
          return false;

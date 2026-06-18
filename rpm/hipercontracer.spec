@@ -1,5 +1,5 @@
 Name: hipercontracer
-Version: 2.2.3
+Version: 2.2.4~rc0
 Release: 1
 Summary: High-Performance Connectivity Tracer (HiPerConTracer)
 Group: Applications/Internet
@@ -9,23 +9,29 @@ Source: https://www.nntb.no/~dreibh/hipercontracer/download/%{name}-%{version}.t
 Packager: Thomas Dreibholz <dreibh@simula.no>
 
 AutoReqProv: on
-BuildRequires: boost-devel
-BuildRequires: bzip2-devel
+BuildRequires: acl
+# Fedora and OpenSuSE use different BOOST packaging:
+BuildRequires: ((libboost_log-devel and libboost_date_time-devel and libboost_thread-devel and libboost_iostreams-devel and libboost_filesystem-devel and libboost_program_options-devel) or (boost-devel and boost-log and boost-date-time and boost-thread and boost-iostreams and boost-filesystem and boost-program-options))
+# Fedora and OpenSuSE use different libbz2 development packaging:
+BuildRequires: (bzip2-devel or libbz2-devel)
 BuildRequires: cmake
 BuildRequires: ghostscript
 BuildRequires: GraphicsMagick
 BuildRequires: gcc
 BuildRequires: gcc-c++
-BuildRequires: libbson-devel
+# Fedora and OpenSuSE use different libbson development packaging:
+BuildRequires: (libbson-devel or bson-devel)
 BuildRequires: libpqxx-devel
-BuildRequires: mariadb-connector-c-devel
+# Fedora and OpenSuSE use different MariaDB client development packaging:
+BuildRequires: (mariadb-connector-c-devel or libmariadb-devel)
 BuildRequires: mongo-c-driver-devel
 BuildRequires: mupdf
 BuildRequires: openssl-devel
 BuildRequires: xz-devel
 BuildRequires: zlib-devel
 BuildRequires: libzstd-devel
-BuildRoot: %{_tmppath}/%{name}-%{version}-build
+
+
 Requires: %{name}-common = %{version}-%{release}
 Requires: %{name}-libhipercontracer = %{version}-%{release}
 Requires: iproute
@@ -89,6 +95,9 @@ This package contains the core HiPerConTracer measurement program.
 %setup -q
 
 %build
+export CFLAGS="%{optflags} -ffat-lto-objects"
+export CXXFLAGS="%{optflags} -ffat-lto-objects"
+export LDFLAGS="%{build_ldflags}"
 # NOTE: CMAKE_VERBOSE_MAKEFILE=OFF for reduced log output!
 %cmake -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_VERBOSE_MAKEFILE=OFF -DWITH_STATIC_LIBRARIES=ON -DWITH_SHARED_LIBRARIES=ON .
 %cmake_build
@@ -96,15 +105,37 @@ This package contains the core HiPerConTracer measurement program.
 %install
 %cmake_install
 
+# Apply shebang fix for Bash and Rscript:
+for directory in %{_bindir} %{_datadir}/hipercontracer/results-examples %{_datadir}/hipercontracer/TestDB ; do
+   find "%{buildroot}/$directory" -type f -exec sed -i \
+      -e 's|^#!/usr/bin/env bash|#!/usr/bin/bash|' \
+      -e 's|^#!/usr/bin/env python3|#!/usr/bin/python3|' \
+      -e 's|^#!/usr/bin/env Rscript|#!/usr/bin/Rscript|' \
+      {} +
+done
+
 %files
 %{_bindir}/get-default-ips
 %{_bindir}/hipercontracer
 %{_datadir}/bash-completion/completions/hipercontracer
 %{_mandir}/man1/get-default-ips.1.gz
 %{_mandir}/man1/hipercontracer.1.gz
+%config(noreplace) %{_sysconfdir}/hipercontracer/hipercontracer-12345678.conf
 %{_sysconfdir}/hipercontracer/hipercontracer-12345678.conf
 %{_prefix}/lib/systemd/system/hipercontracer.service
 %{_prefix}/lib/systemd/system/hipercontracer@.service
+
+%pre
+%service_add_pre hipercontracer.service
+
+%post
+%service_add_post hipercontracer.service
+
+%preun
+%service_del_preun hipercontracer.service
+
+%postun
+%service_del_postun hipercontracer.service
 
 
 %package common
@@ -193,9 +224,14 @@ done
 rmdir /var/hipercontracer >/dev/null 2>&1 || true
 
 %files common
+%dir %attr(0755, root, root) %{_sysconfdir}/hipercontracer
+%dir %attr(0755, root, root) %{_datadir}/hipercontracer
 %{_datadir}/hipercontracer/hipercontracer.bib
 %{_datadir}/hipercontracer/hipercontracer.pdf
 %{_datadir}/hipercontracer/hipercontracer.png
+%dir %attr(0755, root, root) %{_datadir}/icons/hicolor
+%dir %attr(0755, root, root) %{_datadir}/icons/hicolor/*
+%dir %attr(0755, root, root) %{_datadir}/icons/hicolor/*/apps
 %{_datadir}/icons/hicolor/*x*/apps/hipercontracer.png
 %{_datadir}/icons/hicolor/scalable/apps/hipercontracer.svg
 %{_datadir}/mime/packages/hipercontracer.xml
@@ -254,6 +290,7 @@ data:
 This package contains example scripts and result files.
 
 %files examples
+%dir %attr(0755, root, root) %{_datadir}/hipercontracer/results-examples
 %{_datadir}/hipercontracer/results-examples/HiPerConTracer.R
 %{_datadir}/hipercontracer/results-examples/*-*.hpct
 %{_datadir}/hipercontracer/results-examples/*-*.hpct.*
@@ -309,6 +346,12 @@ components.
 
 %files libhpctio
 %{_libdir}/libhpctio.so.*
+
+%post libhpctio
+ldconfig
+
+%postun libhpctio
+ldconfig
 
 
 %package libhpctio-devel
@@ -413,6 +456,12 @@ This package provides the HiPerConTracer API library.
 %files libhipercontracer
 %{_libdir}/libhipercontracer.so.*
 
+%post libhipercontracer
+ldconfig
+
+%postun libhipercontracer
+ldconfig
+
 
 %package libhipercontracer-devel
 Summary: Development files for HiPerConTracer API library
@@ -462,12 +511,13 @@ This package provides header files for the HiPerConTracer library. You need
 them to integrate HiPerConTracer into your own programs.
 
 %files libhipercontracer-devel
+%dir %attr(0755, root, root) %{_includedir}/hipercontracer
 %{_includedir}/hipercontracer/check.h
 %{_includedir}/hipercontracer/destinationinfo.h
 %{_includedir}/hipercontracer/iomodule-base.h
 %{_includedir}/hipercontracer/iomodule-icmp.h
 %{_includedir}/hipercontracer/iomodule-udp.h
-# %{_includedir}/hipercontracer/jitter.h
+# {_includedir}/hipercontracer/jitter.h
 %{_includedir}/hipercontracer/ping.h
 %{_includedir}/hipercontracer/resultentry.h
 %{_includedir}/hipercontracer/resultswriter.h
@@ -525,6 +575,12 @@ HiPerConTracer components.
 %files libhpctdb
 %{_datadir}/hipercontracer/hipercontracer-database.conf
 %{_libdir}/libhpctdb.so.*
+
+%post libhpctdb
+ldconfig
+
+%postun libhpctdb
+ldconfig
 
 
 %package libhpctdb-devel
@@ -632,6 +688,12 @@ This package provides the Universal Importer API library.
 %files libuniversalimporter
 %{_libdir}/libuniversalimporter.so.*
 
+%post libuniversalimporter
+ldconfig
+
+%postun libuniversalimporter
+ldconfig
+
 
 %package libuniversalimporter-devel
 Summary: Development files for HiPerConTracer Universal Importer API library
@@ -681,6 +743,7 @@ This package provides header files for the Universal Importer library.
 You need them to integrate Universal Importer into your own programs.
 
 %files libuniversalimporter-devel
+%dir %attr(0755, root, root) %{_includedir}/universalimporter
 %{_includedir}/universalimporter/importer-configuration.h
 %{_includedir}/universalimporter/reader-base.h
 %{_includedir}/universalimporter/results-exception.h
@@ -741,9 +804,22 @@ This package contains the tool to trigger measurements via incoming
 %{_bindir}/hpct-trigger
 %{_datadir}/bash-completion/completions/hpct-trigger
 %{_mandir}/man1/hpct-trigger.1.gz
+%config(noreplace) %{_sysconfdir}/hipercontracer/hpct-trigger-87654321.conf
 %{_sysconfdir}/hipercontracer/hpct-trigger-87654321.conf
 %{_prefix}/lib/systemd/system/hpct-trigger.service
 %{_prefix}/lib/systemd/system/hpct-trigger@.service
+
+%pre trigger
+%service_add_pre hpct-trigger.service
+
+%post trigger
+%service_add_post hpct-trigger.service
+
+%preun trigger
+%service_del_preun hpct-trigger.service
+
+%postun trigger
+%service_del_postun hpct-trigger.service
 
 
 %package sync
@@ -800,17 +876,30 @@ synchronisation of data to a central HiPerConTracer Collector server.
 %{_bindir}/hpct-sync
 %{_mandir}/man1/hpct-sync.1.gz
 %{_datadir}/bash-completion/completions/hpct-sync
+%config(noreplace)%{_sysconfdir}/hipercontracer/hpct-sync.conf
 %{_sysconfdir}/hipercontracer/hpct-sync.conf
 %{_prefix}/lib/systemd/system/hpct-sync.service
 %{_prefix}/lib/systemd/system/hpct-sync.timer
 
+%pre sync
+%service_add_pre hpct-sync.service
+
+%post sync
+%service_add_post hpct-sync.service
+
+%preun sync
+%service_del_preun hpct-sync.service
+
+%postun sync
+%service_del_postun hpct-sync.service
+
 
 %package rtunnel
 Summary: HiPerConTracer Reverse Tunnel Tool for reverse SSH tunnel setup
+BuildArch: noarch
 Requires: %{name}-common = %{version}-%{release}
 Requires: %{name}-sync = %{version}-%{release}
 Requires: openssh-server
-BuildArch: noarch
 
 %description rtunnel
 High-Performance Connectivity Tracer (HiPerConTracer) is a Ping/Traceroute
@@ -858,16 +947,28 @@ remote node maintenance.
 %{_mandir}/man1/hpct-rtunnel.1.gz
 %{_prefix}/lib/systemd/system/hpct-rtunnel.service
 
+%pre rtunnel
+%service_add_pre hpct-rtunnel.service
+
+%post rtunnel
+%service_add_post hpct-rtunnel.service
+
+%preun rtunnel
+%service_del_preun hpct-rtunnel.service
+
+%postun rtunnel
+%service_del_postun hpct-rtunnel.service
+
 
 %package node
 Summary: HiPerConTracer Node Tools for maintaining a measurement node
+BuildArch: noarch
 Requires: %{name} = %{version}-%{release}
 Requires: %{name}-rtunnel = %{version}-%{release}
 Requires: %{name}-sync = %{version}-%{release}
 Requires: sudo
 Recommends: td-system-tools-system-info
 Recommends: td-system-tools-system-maintenance
-BuildArch: noarch
 
 %description node
 High-Performance Connectivity Tracer (HiPerConTracer) is a Ping/Traceroute
@@ -913,12 +1014,15 @@ node.
 %{_bindir}/hpct-node-setup
 %{_datadir}/bash-completion/completions/hpct-node-setup
 %{_mandir}/man1/hpct-node-setup.1.gz
-# %{_sysconfdir}/system-info.d/30-hpct-node
-# %{_sysconfdir}/system-maintenance.d/30-hpct-node
+# {_sysconfdir}/system-info.d/30-hpct-node
+# config(noreplace) {_sysconfdir}/system-info.d/30-hpct-node
+# {_sysconfdir}/system-maintenance.d/30-hpct-node
+# config(noreplace) {_sysconfdir}/system-maintenance.d/30-hpct-node
 
 
 %package collector
 Summary: HiPerConTracer Collector Tools for collecting measurement results
+BuildArch: noarch
 Requires: %{name}-common = %{version}-%{release}
 Requires: openssh-clients
 Requires: iproute
@@ -976,8 +1080,10 @@ server.
 %{_mandir}/man1/hpct-node-removal.1.gz
 %{_mandir}/man1/hpct-nodes-list.1.gz
 %{_mandir}/man1/hpct-ssh.1.gz
-# %{_sysconfdir}/system-info.d/35-hpct-collector
-# %{_sysconfdir}/system-maintenance.d/35-hpct-collector
+# {_sysconfdir}/system-info.d/35-hpct-collector
+# config(noreplace) {_sysconfdir}/system-info.d/35-hpct-collector
+# {_sysconfdir}/system-maintenance.d/35-hpct-collector
+# config(noreplace) {_sysconfdir}/system-maintenance.d/35-hpct-collector
 
 
 %package importer
@@ -1034,6 +1140,7 @@ NoSQL databases.
 %{_bindir}/hpct-importer
 %{_datadir}/bash-completion/completions/hpct-importer
 %{_mandir}/man1/hpct-importer.1.gz
+%dir %attr(0755, root, root) %{_datadir}/hipercontracer/NoSQL
 %{_datadir}/hipercontracer/NoSQL/R-query-example.R
 %{_datadir}/hipercontracer/NoSQL/README-MongoDB.md
 %{_datadir}/hipercontracer/NoSQL/mongodb-database.ms
@@ -1041,6 +1148,7 @@ NoSQL databases.
 %{_datadir}/hipercontracer/NoSQL/mongodb-test.ms
 %{_datadir}/hipercontracer/NoSQL/mongodb-users.ms
 %{_datadir}/hipercontracer/NoSQL/nornet-tools.R
+%dir %attr(0755, root, root) %{_datadir}/hipercontracer/SQL
 %{_datadir}/hipercontracer/SQL/README-MySQL+MariaDB.md
 %{_datadir}/hipercontracer/SQL/README-PostgreSQL.md
 %{_datadir}/hipercontracer/SQL/mariadb-database.sql
@@ -1059,6 +1167,7 @@ NoSQL databases.
 %{_datadir}/hipercontracer/SQL/postgresql-test.sql
 %{_datadir}/hipercontracer/SQL/postgresql-users.sql
 %{_datadir}/hipercontracer/SQL/postgresql-views.sql
+%dir %attr(0755, root, root) %{_datadir}/hipercontracer/TestDB
 %{_datadir}/hipercontracer/TestDB/0-make-configurations
 %{_datadir}/hipercontracer/TestDB/1-install-database
 %{_datadir}/hipercontracer/TestDB/2-initialise-database
@@ -1073,8 +1182,21 @@ NoSQL databases.
 %{_datadir}/hipercontracer/TestDB/name-in-etc-hosts
 %{_datadir}/hipercontracer/TestDB/run-full-test
 %{_datadir}/hipercontracer/hipercontracer-importer.conf
+%config(noreplace) %{_sysconfdir}/hipercontracer/hpct-importer.conf
 %{_sysconfdir}/hipercontracer/hpct-importer.conf
 %{_prefix}/lib/systemd/system/hpct-importer.service
+
+%pre importer
+%service_add_pre hpct-importer.service
+
+%post importer
+%service_add_post hpct-importer.service
+
+%preun importer
+%service_del_preun hpct-importer.service
+
+%postun importer
+%service_del_postun hpct-importer.service
 
 
 %package query
@@ -1297,8 +1419,21 @@ This package contains a simple UDP Echo server to respond to UDP Pings.
 %{_bindir}/udp-echo-server
 %{_datadir}/bash-completion/completions/udp-echo-server
 %{_mandir}/man1/udp-echo-server.1.gz
+%config(noreplace) %{_sysconfdir}/hipercontracer/udp-echo-server.conf
 %{_sysconfdir}/hipercontracer/udp-echo-server.conf
 %{_prefix}/lib/systemd/system/udp-echo-server.service
+
+%pre udp-echo-server
+%service_add_pre hpct-udp-echo-server.service
+
+%post udp-echo-server
+%service_add_post hpct-udp-echo-server.service
+
+%preun udp-echo-server
+%service_del_preun hpct-udp-echo-server.service
+
+%postun udp-echo-server
+%service_del_postun hpct-udp-echo-server.service
 
 
 %package dbshell

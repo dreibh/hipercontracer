@@ -32,7 +32,7 @@ PROJECT(hipercontracer LANGUAGES C CXX)
 
 SET(BUILD_MAJOR "2")
 SET(BUILD_MINOR "2")
-SET(BUILD_PATCH "3")
+SET(BUILD_PATCH "4~rc0")
 SET(BUILD_VERSION ${BUILD_MAJOR}.${BUILD_MINOR}.${BUILD_PATCH})
 
 SET(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake/modules)
@@ -208,6 +208,7 @@ IF (Boost_FOUND)
    MESSAGE(STATUS " Boost_LIBRARY_DIRS: ${Boost_LIBRARY_DIRS}")
    MESSAGE(STATUS " Boost_INCLUDE_DIRS: ${Boost_INCLUDE_DIRS}")
    MESSAGE(STATUS " Boost_LIBRARIES:    ${Boost_LIBRARIES}")
+   FIND_PACKAGE(Boost REQUIRED COMPONENTS log date_time thread iostreams filesystem program_options)
 ELSE()
    MESSAGE(FATAL_ERROR "Cannot find BOOST libraries! Try:\n"
            " * Ubuntu/Debian: sudo apt install -y libboost-all-dev\n"
@@ -463,7 +464,7 @@ IF (WITH_LIBHPCTDB)
                  "Cannot find MongoDB C Client Library! Try:\n"
                  " * Ubuntu/Debian: sudo apt install -y libmongoc-dev\n"
                  " * Fedora:        sudo dnf install -y mongo-c-driver-devel\n"
-                 " * SuSE:          (needs PPA or installation from sources!)\n"
+                 " * SuSE:          sudo zypper install -y mongo-c-driver-devel\n"
                  " * Alpine:        sudo apk add mongo-c-driver-dev\n"
                  " * FreeBSD:       sudo pkg install -y mongo-c-driver\n"
                  " * NetBSD:        sudo pkgin -y install mongo-c-driver\n"
