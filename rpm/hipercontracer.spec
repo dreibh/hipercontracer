@@ -106,14 +106,13 @@ export LDFLAGS="%{build_ldflags}"
 %cmake_install
 
 # Apply shebang fix for Bash and Rscript:
-for directory in %{_bindir} %{_datadir}/hipercontracer/TestDB; do
+for directory in %{_bindir} %{_datadir}/hipercontracer/results-examples %{_datadir}/hipercontracer/TestDB; do
    find "%{buildroot}/$directory" -type f -exec sed -i \
       -e 's|^#!/usr/bin/env bash|#!/usr/bin/bash|' \
-      -e 's|^#!/usr/bin/env Rscript|#!/usr/bin/Rscript|' {} +
+      -e 's|^#!/usr/bin/env python3|#!/usr/bin/python3|' \
+      -e 's|^#!/usr/bin/env Rscript|#!/usr/bin/Rscript|' \
+      {} +
 done
-
-# Apply shebang fix for Python:
-%python3_fix_shebang
 
 %files
 %{_bindir}/get-default-ips
