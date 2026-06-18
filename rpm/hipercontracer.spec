@@ -1,5 +1,5 @@
 Name: hipercontracer
-Version: 2.2.3
+Version: 2.2.4~rc0
 Release: 1
 Summary: High-Performance Connectivity Tracer (HiPerConTracer)
 Group: Applications/Internet
@@ -106,7 +106,7 @@ export LDFLAGS="%{build_ldflags}"
 %cmake_install
 
 # Apply shebang fix for Bash and Rscript:
-for directory in %{_bindir} %{_datadir}/hipercontracer/results-examples %{_datadir}/hipercontracer/TestDB; do
+for directory in %{_bindir} %{_datadir}/hipercontracer/results-examples %{_datadir}/hipercontracer/TestDB ; do
    find "%{buildroot}/$directory" -type f -exec sed -i \
       -e 's|^#!/usr/bin/env bash|#!/usr/bin/bash|' \
       -e 's|^#!/usr/bin/env python3|#!/usr/bin/python3|' \
