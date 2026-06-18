@@ -95,6 +95,9 @@ This package contains the core HiPerConTracer measurement program.
 %setup -q
 
 %build
+export CFLAGS="%{optflags} -ffat-lto-objects"
+export CXXFLAGS="%{optflags} -ffat-lto-objects"
+export LDFLAGS="%{build_ldflags}"
 # NOTE: CMAKE_VERBOSE_MAKEFILE=OFF for reduced log output!
 %cmake -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_VERBOSE_MAKEFILE=OFF -DWITH_STATIC_LIBRARIES=ON -DWITH_SHARED_LIBRARIES=ON .
 %cmake_build
@@ -102,9 +105,15 @@ This package contains the core HiPerConTracer measurement program.
 %install
 %cmake_install
 
-# Apply shebang fix:
-find %{buildroot}%{_bindir} -type f -exec sed -i '1s|^#!/usr/bin/env bash|#!/bin/bash|' {} +
+# Apply shebang fix for Bash and Rscript:
+for directory in %{_bindir} %{_datadir}/hipercontracer/TestDB; do
+   find "%{buildroot}/$directory" -type f -exec sed -i \
+      -e 's|^#!/usr/bin/env bash|#!/usr/bin/bash|' \
+      -e 's|^#!/usr/bin/env Rscript|#!/usr/bin/Rscript|' {} +
+done
 
+# Apply shebang fix for Python:
+%python3_fix_shebang
 
 %files
 %{_bindir}/get-default-ips
@@ -339,6 +348,12 @@ components.
 %files libhpctio
 %{_libdir}/libhpctio.so.*
 
+%post libhpctio
+ldconfig
+
+%postun libhpctio
+ldconfig
+
 
 %package libhpctio-devel
 Summary: Development files for the HiPerConTracer I/O library
@@ -441,6 +456,12 @@ This package provides the HiPerConTracer API library.
 
 %files libhipercontracer
 %{_libdir}/libhipercontracer.so.*
+
+%post libhipercontracer
+ldconfig
+
+%postun libhipercontracer
+ldconfig
 
 
 %package libhipercontracer-devel
@@ -556,6 +577,12 @@ HiPerConTracer components.
 %{_datadir}/hipercontracer/hipercontracer-database.conf
 %{_libdir}/libhpctdb.so.*
 
+%post libhpctdb
+ldconfig
+
+%postun libhpctdb
+ldconfig
+
 
 %package libhpctdb-devel
 Summary: Development files for the HiPerConTracer database access library
@@ -661,6 +688,12 @@ This package provides the Universal Importer API library.
 
 %files libuniversalimporter
 %{_libdir}/libuniversalimporter.so.*
+
+%post libuniversalimporter
+ldconfig
+
+%postun libuniversalimporter
+ldconfig
 
 
 %package libuniversalimporter-devel
