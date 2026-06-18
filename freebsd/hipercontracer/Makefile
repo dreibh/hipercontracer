@@ -105,8 +105,7 @@ HIPERCONTRACER_CMAKE_BOOL=			WITH_HIPERCONTRACER
 
 ICONS_BUILD_DEPENDS=				gm:graphics/GraphicsMagick \
 						mutool:graphics/mupdf
-ICONS_USES=					ghostscript \
-						shared-mime-info
+ICONS_USES=					ghostscript shared-mime-info
 ICONS_CMAKE_BOOL=				WITH_ICONS
 
 IMPORTER_IMPLIES=				LIBUNIVERSALIMPORTER
