@@ -105,7 +105,7 @@ export LDFLAGS="%{build_ldflags}"
 %install
 %cmake_install
 
-# Apply shebang fix for Bash and Rscript:
+# ====== Apply shebang fix for scripts ======================================
 for directory in %{_bindir} %{_datadir}/hipercontracer/results-examples %{_datadir}/hipercontracer/TestDB ; do
    find "%{buildroot}/$directory" -type f -exec sed -i \
       -e 's|^#!/usr/bin/env bash|#!/usr/bin/bash|' \
@@ -113,6 +113,7 @@ for directory in %{_bindir} %{_datadir}/hipercontracer/results-examples %{_datad
       -e 's|^#!/usr/bin/env Rscript|#!/usr/bin/Rscript|' \
       {} +
 done
+# ===========================================================================
 
 %files
 %{_bindir}/get-default-ips
