@@ -213,7 +213,7 @@ ELSE()
    MESSAGE(FATAL_ERROR "Cannot find BOOST libraries! Try:\n"
            " * Ubuntu/Debian: sudo apt install -y libboost-all-dev\n"
            " * Fedora:        sudo dnf install -y boost-devel\n"
-           " * SuSE:          sudo zypper install -y boost-devel\n"
+           " * OpenSUSE:      sudo zypper install -y boost-devel\n"
            " * Alpine:        sudo apk add boost-dev\n"
            " * FreeBSD:       sudo pkg install -y boost\n"
            " * NetBSD:        sudo pkgin -y install boost\n"
