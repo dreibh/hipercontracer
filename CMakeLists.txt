@@ -502,49 +502,49 @@ IF (WITH_ICONS)
    MESSAGE("Building with icons (WITH_ICONS=${WITH_ICONS})")
 
    # ------ Ghostscript -----------------------------------------------------
-   FIND_PROGRAM(GS gs HINTS /usr/pkg/bin)
+   FIND_PROGRAM(GS gs HINTS /bin /usr/bin /usr/local/bin /usr/pkg/bin)
    IF(GS)
-      EXECUTE_PROCESS(COMMAND ${GS} --version
+      EXECUTE_PROCESS(COMMAND ${GS} -version
                       OUTPUT_VARIABLE GS_OUTPUT
                       ERROR_QUIET OUTPUT_STRIP_TRAILING_WHITESPACE)
       STRING(REGEX MATCH "([0-9]+\\.[0-9]+\\.[0-9]+|[0-9]+\\.[0-9]+)" GS_VERSION "${GS_OUTPUT}")
       MESSAGE(STATUS "Ghostscript found: ${GS} (version ${GS_VERSION})")
    ELSE()
       MESSAGE(FATAL_ERROR
-            "Cannot find Ghostscript! Try:\n"
-            " * Ubuntu/Debian: sudo apt install -y ghostscript\n"
-            " * Fedora:        sudo dnf install -y ghostscript\n"
-            " * SuSE:          sudo zypper install -y ghostscript\n"
-            " * Alpine:        sudo apk add ghostscript\n"
-            " * FreeBSD:       sudo pkg install -y ghostscript10\n"
-            " * NetBSD:        sudo pkgin -y install ghostscript\n"
-            " * OpenBSD:       sudo pkg_add ghostscript\n"
-            " * Apple:         brew install ghostscript")
+              "Cannot find Ghostscript! Try:\n"
+              " * Ubuntu/Debian: sudo apt install -y ghostscript\n"
+              " * Fedora:        sudo dnf install -y ghostscript\n"
+              " * OpenSUSE:      sudo zypper install -y ghostscript\n"
+              " * Alpine:        sudo apk add ghostscript\n"
+              " * FreeBSD:       sudo pkg install -y ghostscript10\n"
+              " * NetBSD:        sudo pkgin -y install ghostscript\n"
+              " * OpenBSD:       sudo pkg_add ghostscript\n"
+              " * Apple:         brew install ghostscript")
    ENDIF()
 
-   # ------ GraphicsMagick --------------------------------------------------
-   FIND_PROGRAM(GM gm HINTS /usr/pkg/bin)
+   # ------ GraphicsMagick or ImageMagick -----------------------------------
+   FIND_PROGRAM(GM gm magick HINTS /bin /usr/bin /usr/local/bin /usr/pkg/bin)
    IF(GM)
-      EXECUTE_PROCESS(COMMAND ${GM} version | head -n1
+      EXECUTE_PROCESS(COMMAND ${GM} -version | head -n1
                       OUTPUT_VARIABLE GM_OUTPUT
                       ERROR_QUIET OUTPUT_STRIP_TRAILING_WHITESPACE)
       STRING(REGEX MATCH "([0-9]+\\.[0-9]+\\.[0-9]+|[0-9]+\\.[0-9]+)" GM_VERSION "${GM_OUTPUT}")
       MESSAGE(STATUS "GraphicsMagick found: ${GM} (version ${GM_VERSION})")
    ELSE()
       MESSAGE(FATAL_ERROR
-            "Cannot find GraphicsMagick! Try:\n"
-            " * Ubuntu/Debian: sudo apt install -y graphicsmagick\n"
-            " * Fedora:        sudo dnf install -y GraphicsMagick\n"
-            " * SuSE:          sudo zypper install -y GraphicsMagick\n"
-            " * Alpine:        sudo apk add graphicsmagick\n"
-            " * FreeBSD:       sudo pkg install -y GraphicsMagick\n"
-            " * NetBSD:        sudo pkgin -y install GraphicsMagick\n"
-            " * OpenBSD:       sudo pkg_add GraphicsMagick\n"
-            " * Apple:         brew install graphicsmagick")
+              "Cannot find GraphicsMagick! Try:\n"
+              " * Ubuntu/Debian: sudo apt install -y graphicsmagick\n"
+              " * Fedora:        sudo dnf install -y GraphicsMagick\n"
+              " * OpenSUSE:      sudo zypper install -y GraphicsMagick\n"
+              " * Alpine:        sudo apk add graphicsmagick\n"
+              " * FreeBSD:       sudo pkg install -y GraphicsMagick\n"
+              " * NetBSD:        sudo pkgin -y install GraphicsMagick\n"
+              " * OpenBSD:       sudo pkg_add GraphicsMagick\n"
+              " * Apple:         brew install graphicsmagick")
    ENDIF()
 
    # ------ MuPDF mutool ----------------------------------------------------
-   FIND_PROGRAM(MUTOOL mutool HINTS /usr/pkg/bin)
+   FIND_PROGRAM(MUTOOL mutool HINTS /bin /usr/bin /usr/local/bin /usr/pkg/bin)
    IF(MUTOOL)
       EXECUTE_PROCESS(COMMAND ${MUTOOL} -v
                       ERROR_VARIABLE  MUTOOL_OUTPUT
@@ -554,15 +554,15 @@ IF (WITH_ICONS)
       MESSAGE(STATUS "MuPDF mutool found: ${MUTOOL} (version ${MUTOOL_VERSION})")
    ELSE()
       MESSAGE(FATAL_ERROR
-            "Cannot find mupdf! Try:\n"
-            " * Ubuntu/Debian: sudo apt install -y mupdf-tools\n"
-            " * Fedora:        sudo dnf install -y mupdf\n"
-            " * SuSE:          sudo zypper install -y mupdf\n"
-            " * Alpine:        sudo apk add mupdf-tools\n"
-            " * FreeBSD:       sudo pkg install -y mupdf\n"
-            " * NetBSD:        sudo pkgin -y install mupdf\n"
-            " * OpenBSD:       sudo pkg_add mupdf\n"
-            " * Apple:         brew install mupdf-tools")
+              "Cannot find mupdf! Try:\n"
+              " * Ubuntu/Debian: sudo apt install -y mupdf-tools\n"
+              " * Fedora:        sudo dnf install -y mupdf\n"
+              " * OpenSUSE:      sudo zypper install -y mupdf\n"
+              " * Alpine:        sudo apk add mupdf-tools\n"
+              " * FreeBSD:       sudo pkg install -y mupdf\n"
+              " * NetBSD:        sudo pkgin -y install mupdf\n"
+              " * OpenBSD:       sudo pkg_add mupdf\n"
+              " * Apple:         brew install mupdf-tools")
    ENDIF()
 
 ELSE()
