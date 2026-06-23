@@ -1,20 +1,19 @@
-# Contributor: Your Name <youremail@domain.com>
 # Maintainer: Thomas Dreibholz <dreibh@simula.no>
 pkgname=hipercontracer
-pkgver=2.2.3
+pkgver=2.2.4
 pkgrel=1
 pkgdesc="High-Performance Connectivity Tracer (HiPerConTracer) measurement framework"
 url="https://www.nntb.no/~dreibh/hipercontracer/"
 arch="all"
 license="GPL-3.0-or-later"
-depends="$pkgname-common=$pkgver-r$pkgrel libhipercontracer=$pkgver-r$pkgrel iproute2"
+depends="iproute2"
 makedepends="
 	cmake
 	acl-dev
 	boost-dev
 	bzip2-dev
 	ghostscript
-	graphicsmagick-dev
+	imagemagick
 	libbson-dev
 	mariadb-connector-c-dev
 	mongo-c-driver-dev
@@ -300,5 +299,5 @@ hipercontracer_all() {
 }
 
 sha512sums="
-b1ab0c91bed8e1f94b708987fbf7a44685c822c4d4d6cc5e171c89a694bc1231519cffa5ffb79f03e59c93f7d9034bb0be2ae2b680b82fbc3d35d85f8c225e11  hipercontracer-2.2.3.tar.xz
+8e2d0bde058902d7901d7fa90f2b7065695c56fa21e377358d4c83b1f3841c88e81c7e9b7ec6af3f90e47d4b3fbf7690246469ca20ff3017058090e01b1045b7  hipercontracer-2.2.4.tar.xz
 "
