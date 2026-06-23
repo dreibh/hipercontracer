@@ -1,8 +1,8 @@
-hipercontracer (2.2.4~rc0-1ubuntu1) unstable; urgency=medium
+hipercontracer (2.2.4-1ubuntu1) unstable; urgency=medium
 
   * New upstream release.
 
- -- Thomas Dreibholz <dreibh@simula.no>  Thu, 18 Jun 2026 11:25:38 +0200
+ -- Thomas Dreibholz <dreibh@simula.no>  Tue, 23 Jun 2026 17:12:39 +0200
 
 hipercontracer (2.2.3-1ubuntu1) unstable; urgency=medium
 
