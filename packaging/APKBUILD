@@ -15,13 +15,10 @@ makedepends="
 	bzip2-dev
 	ghostscript
 	graphicsmagick-dev
-	gcc
-	g++
 	libbson-dev
-	libpqxx-dev
 	mariadb-connector-c-dev
 	mongo-c-driver-dev
-	mupdf-dev
+	mupdf-tools
 	ninja
 	openssl-dev
 	xz-dev
@@ -69,7 +66,8 @@ build() {
 		-DCMAKE_INSTALL_PREFIX=/usr \
 		-DCMAKE_VERBOSE_MAKEFILE=OFF \
 		-DWITH_STATIC_LIBRARIES=ON \
-		-DWITH_SHARED_LIBRARIES=ON
+		-DWITH_SHARED_LIBRARIES=ON \
+		-D ENABLE_BACKEND_POSTGRESQL=OFF
 	cmake --build build
 }
 
