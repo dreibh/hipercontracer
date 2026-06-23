@@ -1,0 +1,306 @@
+# Contributor: Your Name <youremail@domain.com>
+# Maintainer: Thomas Dreibholz <dreibh@simula.no>
+pkgname=hipercontracer
+pkgver=2.2.3
+pkgrel=1
+pkgdesc="High-Performance Connectivity Tracer (HiPerConTracer) measurement framework"
+url="https://www.nntb.no/~dreibh/hipercontracer/"
+arch="all"
+license="GPL-3.0-or-later"
+depends="$pkgname-common=$pkgver-r$pkgrel libhipercontracer=$pkgver-r$pkgrel iproute2"
+makedepends="
+	cmake
+	acl-dev
+	boost-dev
+	bzip2-dev
+	ghostscript
+	graphicsmagick-dev
+	gcc
+	g++
+	libbson-dev
+	libpqxx-dev
+	mariadb-connector-c-dev
+	mongo-c-driver-dev
+	mupdf-dev
+	ninja
+	openssl-dev
+	xz-dev
+	zlib-dev
+	zstd-dev
+"
+subpackages="
+	libhpctio
+	libhpctio-dev:libhpctio_dev
+	libhipercontracer
+	libhipercontracer-dev:libhipercontracer_dev
+	libhpctdb
+	libhpctdb-dev:libhpctdb_dev
+	libuniversalimporter
+	libuniversalimporter-dev:libuniversalimporter_dev
+	$pkgname-common:hipercontracer_common:noarch
+	$pkgname-examples:hipercontracer_examples:noarch
+	$pkgname-trigger:hipercontracer_trigger
+	$pkgname-sync:hipercontracer_sync:noarch
+	$pkgname-rtunnel:hipercontracer_rtunnel:noarch
+	$pkgname-node:hipercontracer_node:noarch
+	$pkgname-collector:hipercontracer_collector:noarch
+	$pkgname-importer:hipercontracer_importer
+	$pkgname-query:hipercontracer_query
+	$pkgname-results:hipercontracer_results
+	$pkgname-viewer:hipercontracer_viewer:noarch
+	$pkgname-udp-echo-server:hipercontracer_udp_echo_server
+	$pkgname-dbshell:hipercontracer_dbshell:noarch
+	$pkgname-dbeaver-tools:hipercontracer_dbeaver_tools:noarch
+	$pkgname-all:hipercontracer_all:noarch
+"
+source="https://www.nntb.no/~dreibh/hipercontracer/download/$pkgname-$pkgver.tar.xz"
+builddir="$srcdir/$pkgname-$pkgver"
+
+prepare() {
+	default_prepare
+}
+
+build() {
+	export CFLAGS="$CFLAGS -ffat-lto-objects"
+	export CXXFLAGS="$CXXFLAGS -ffat-lto-objects"
+
+	cmake -B build -G Ninja \
+		-DCMAKE_BUILD_TYPE=None \
+		-DCMAKE_INSTALL_PREFIX=/usr \
+		-DCMAKE_VERBOSE_MAKEFILE=OFF \
+		-DWITH_STATIC_LIBRARIES=ON \
+		-DWITH_SHARED_LIBRARIES=ON
+	cmake --build build
+}
+
+package() {
+	DESTDIR="$pkgdir" cmake --install build
+
+	# Fixing shebangs for Alpine environment
+	local directory
+	for directory in usr/bin usr/share/hipercontracer/results-examples usr/share/hipercontracer/TestDB; do
+		if [ -d "$pkgdir/$directory" ]; then
+			find "$pkgdir/$directory" -type f -exec sed -i \
+				-e 's|^#!/usr/bin/env bash|#!/bin/bash|' \
+				-e 's|^#!/usr/bin/env python3|#!/usr/bin/python3|' \
+				-e 's|^#!/usr/bin/env Rscript|#!/usr/bin/Rscript|' \
+				{} +
+		fi
+	done
+}
+
+_move_tool() {
+	local bins="$1"
+	local confs="$2"
+
+	mkdir -p "$subpkgdir"/usr/bin "$subpkgdir"/usr/share/man/man1 "$subpkgdir"/usr/share/bash-completion/completions
+
+	for b in $bins; do
+		[ -f "$pkgdir"/usr/bin/$b ] && mv "$pkgdir"/usr/bin/$b "$subpkgdir"/usr/bin/
+		mv "$pkgdir"/usr/share/man/man1/$b.1* "$subpkgdir"/usr/share/man/man1/ 2>/dev/null || true
+		mv "$pkgdir"/usr/share/bash-completion/completions/$b "$subpkgdir"/usr/share/bash-completion/completions/ 2>/dev/null || true
+	done
+
+	if [ -n "$confs" ]; then
+		mkdir -p "$subpkgdir"/etc/hipercontracer
+		for c in $confs; do
+			mv "$pkgdir"/etc/hipercontracer/$c "$subpkgdir"/etc/hipercontracer/
+		done
+	fi
+
+	if [ -d "$pkgdir"/usr/lib/systemd/system ]; then
+		mkdir -p "$subpkgdir"/usr/lib/systemd/system
+		for b in $bins; do
+			mv "$pkgdir"/usr/lib/systemd/system/$b.service "$subpkgdir"/usr/lib/systemd/system/ 2>/dev/null || true
+			mv "$pkgdir"/usr/lib/systemd/system/$b@.service "$subpkgdir"/usr/lib/systemd/system/ 2>/dev/null || true
+			mv "$pkgdir"/usr/lib/systemd/system/$b.timer "$subpkgdir"/usr/lib/systemd/system/ 2>/dev/null || true
+		done
+	fi
+}
+
+libhpctio() {
+	pkgdesc="I/O library of HiPerConTracer"
+	mkdir -p "$subpkgdir"/usr/lib
+	mv "$pkgdir"/usr/lib/libhpctio.so.* "$subpkgdir"/usr/lib/
+}
+
+libhpctio_dev() {
+	pkgdesc="Development files for the HiPerConTracer I/O library"
+	depends="boost-dev"
+	mkdir -p "$subpkgdir"/usr/include/hipercontracer "$subpkgdir"/usr/lib
+	for f in compressortype.h inputstream.h logger.h outputstream.h tools.h; do
+		mv "$pkgdir"/usr/include/hipercontracer/$f "$subpkgdir"/usr/include/hipercontracer/
+	done
+	mv "$pkgdir"/usr/lib/libhpctio.so "$pkgdir"/usr/lib/libhpctio.a "$subpkgdir"/usr/lib/
+}
+
+libhipercontracer() {
+	pkgdesc="API library of HiPerConTracer"
+	depends="libhpctio=$pkgver-r$pkgrel"
+	mkdir -p "$subpkgdir"/usr/lib
+	mv "$pkgdir"/usr/lib/libhipercontracer.so.* "$subpkgdir"/usr/lib/
+}
+
+libhipercontracer_dev() {
+	pkgdesc="Development files for HiPerConTracer API library"
+	depends="libhipercontracer=$pkgver-r$pkgrel libhpctio-dev=$pkgver-r$pkgrel boost-dev"
+	mkdir -p "$subpkgdir"/usr/include/hipercontracer "$subpkgdir"/usr/lib
+	for f in check.h destinationinfo.h iomodule-base.h iomodule-icmp.h iomodule-udp.h ping.h resultentry.h resultswriter.h service.h traceroute.h; do
+		mv "$pkgdir"/usr/include/hipercontracer/$f "$subpkgdir"/usr/include/hipercontracer/
+	done
+	mv "$pkgdir"/usr/lib/libhipercontracer.so "$pkgdir"/usr/lib/libhipercontracer.a "$subpkgdir"/usr/lib/
+}
+
+libhpctdb() {
+	pkgdesc="Database access library of HiPerConTracer"
+	depends="libhpctio=$pkgver-r$pkgrel"
+	mkdir -p "$subpkgdir"/usr/lib "$subpkgdir"/usr/share/hipercontracer
+	mv "$pkgdir"/usr/lib/libhpctdb.so.* "$subpkgdir"/usr/lib/
+	mv "$pkgdir"/usr/share/hipercontracer/hipercontracer-database.conf "$subpkgdir"/usr/share/hipercontracer/
+}
+
+libhpctdb_dev() {
+	pkgdesc="Development files for the HiPerConTracer database access library"
+	depends="libhpctdb=$pkgver-r$pkgrel libhpctio-dev=$pkgver-r$pkgrel"
+	mkdir -p "$subpkgdir"/usr/include/hipercontracer "$subpkgdir"/usr/lib
+	for f in database-configuration.h database-statement.h databaseclient-base.h databaseclient-debug.h databaseclient-mariadb.h databaseclient-mongodb.h databaseclient-postgresql.h; do
+		mv "$pkgdir"/usr/include/hipercontracer/$f "$subpkgdir"/usr/include/hipercontracer/
+	done
+	mv "$pkgdir"/usr/lib/libhpctdb.so "$pkgdir"/usr/lib/libhpctdb.a "$subpkgdir"/usr/lib/
+}
+
+libuniversalimporter() {
+	pkgdesc="API library of HiPerConTracer Universal Importer"
+	depends="libhpctdb=$pkgver-r$pkgrel"
+	mkdir -p "$subpkgdir"/usr/lib
+	mv "$pkgdir"/usr/lib/libuniversalimporter.so.* "$subpkgdir"/usr/lib/
+}
+
+libuniversalimporter_dev() {
+	pkgdesc="Development files for HiPerConTracer Universal Importer API library"
+	depends="libuniversalimporter=$pkgver-r$pkgrel libhpctio-dev=$pkgver-r$pkgrel boost-dev"
+	mkdir -p "$subpkgdir"/usr/include "$subpkgdir"/usr/lib
+	mv "$pkgdir"/usr/include/universalimporter "$subpkgdir"/usr/include/
+	mv "$pkgdir"/usr/lib/libuniversalimporter.so "$pkgdir"/usr/lib/libuniversalimporter.a "$subpkgdir"/usr/lib/
+}
+
+hipercontracer_common() {
+	pkgdesc="HiPerConTracer common files"
+	mkdir -p "$subpkgdir"/usr/share/hipercontracer "$subpkgdir"/usr/share/icons "$subpkgdir"/usr/share/mime
+	mv "$pkgdir"/usr/share/hipercontracer/hipercontracer.bib \
+		"$pkgdir"/usr/share/hipercontracer/hipercontracer.pdf \
+		"$pkgdir"/usr/share/hipercontracer/hipercontracer.png \
+		"$subpkgdir"/usr/share/hipercontracer/
+	mv "$pkgdir"/usr/share/icons/* "$subpkgdir"/usr/share/icons/ 2>/dev/null || true
+	mv "$pkgdir"/usr/share/mime/* "$subpkgdir"/usr/share/mime/ 2>/dev/null || true
+}
+
+hipercontracer_examples() {
+	pkgdesc="HiPerConTracer example scripts and results files"
+	depends="R-core python3"
+	mkdir -p "$subpkgdir"/usr/share/hipercontracer
+	mv "$pkgdir"/usr/share/hipercontracer/results-examples "$subpkgdir"/usr/share/hipercontracer/
+}
+
+hipercontracer_trigger() {
+	pkgdesc="Triggered HiPerConTracer service"
+	depends="hipercontracer-common=$pkgver-r$pkgrel libhipercontracer=$pkgver-r$pkgrel"
+	_move_tool "hpct-trigger" "hpct-trigger-87654321.conf"
+}
+
+hipercontracer_sync() {
+	pkgdesc="HiPerConTracer Sync Tool to synchronise results files to a server"
+	depends="hipercontracer-common=$pkgver-r$pkgrel openssh-client rsync"
+	_move_tool "hpct-sync" "hpct-sync.conf"
+}
+
+hipercontracer_rtunnel() {
+	pkgdesc="HiPerConTracer Reverse Tunnel Tool for reverse SSH tunnel setup"
+	depends="hipercontracer-common=$pkgver-r$pkgrel hipercontracer-sync=$pkgver-r$pkgrel openssh-server"
+	_move_tool "hpct-rtunnel" ""
+}
+
+hipercontracer_node() {
+	pkgdesc="HiPerConTracer Node Tools for maintaining a measurement node"
+	depends="hipercontracer=$pkgver-r$pkgrel hipercontracer-rtunnel=$pkgver-r$pkgrel hipercontracer-sync=$pkgver-r$pkgrel sudo"
+	_move_tool "hpct-node-setup" ""
+}
+
+hipercontracer_collector() {
+	pkgdesc="HiPerConTracer Collector Tools for collecting measurement results"
+	depends="hipercontracer-common=$pkgver-r$pkgrel openssh-client iproute2 openssh-server rsync sudo"
+	_move_tool "hpct-node-removal hpct-nodes-list hpct-ssh" ""
+}
+
+hipercontracer_importer() {
+	pkgdesc="HiPerConTracer Importer for importing results into a database"
+	depends="hipercontracer-common=$pkgver-r$pkgrel libuniversalimporter=$pkgver-r$pkgrel"
+	_move_tool "hpct-importer" "hpct-importer.conf"
+	mkdir -p "$subpkgdir"/usr/share/hipercontracer
+	mv "$pkgdir"/usr/share/hipercontracer/NoSQL \
+		"$pkgdir"/usr/share/hipercontracer/SQL \
+		"$pkgdir"/usr/share/hipercontracer/TestDB \
+		"$pkgdir"/usr/share/hipercontracer/hipercontracer-importer.conf \
+		"$subpkgdir"/usr/share/hipercontracer/
+}
+
+hipercontracer_query() {
+	pkgdesc="HiPerConTracer Query Tool to query results from a database"
+	depends="hipercontracer-common=$pkgver-r$pkgrel libuniversalimporter=$pkgver-r$pkgrel"
+	_move_tool "hpct-query" ""
+}
+
+hipercontracer_results() {
+	pkgdesc="HiPerConTracer Results Tool to process results files"
+	depends="hipercontracer-common=$pkgver-r$pkgrel"
+	_move_tool "hpct-results pipe-checksum" ""
+}
+
+hipercontracer_viewer() {
+	pkgdesc="HiPerConTracer Viewer Tool to display results files"
+	depends="hipercontracer-common=$pkgver-r$pkgrel bzip2 gzip less xz zstd"
+	_move_tool "hpct-viewer" ""
+	mkdir -p "$subpkgdir"/usr/share/applications "$subpkgdir"/usr/share/metainfo
+	mv "$pkgdir"/usr/share/applications/hpct-viewer.desktop "$subpkgdir"/usr/share/applications/
+	mv "$pkgdir"/usr/share/metainfo/* "$subpkgdir"/usr/share/metainfo/ 2>/dev/null || true
+}
+
+hipercontracer_udp_echo_server() {
+	pkgdesc="HiPerConTracer UDP Echo server for responding to UDP Pings"
+	_move_tool "udp-echo-server" "udp-echo-server.conf"
+}
+
+hipercontracer_dbshell() {
+	pkgdesc="HiPerConTracer Database Shell for access testing to a database"
+	_move_tool "dbshell" ""
+}
+
+hipercontracer_dbeaver_tools() {
+	pkgdesc="HiPerConTracer DBeaver Tools for configuring access to databases"
+	depends="jq openssl"
+	_move_tool "decrypt-dbeaver-configuration encrypt-dbeaver-configuration make-dbeaver-configuration" ""
+}
+
+hipercontracer_all() {
+	pkgdesc="HiPerConTracer meta-package for all tools of the framework"
+	depends="
+		hipercontracer=$pkgver-r$pkgrel
+		hipercontracer-collector=$pkgver-r$pkgrel
+		hipercontracer-dbeaver-tools=$pkgver-r$pkgrel
+		hipercontracer-dbshell=$pkgver-r$pkgrel
+		hipercontracer-examples=$pkgver-r$pkgrel
+		hipercontracer-importer=$pkgver-r$pkgrel
+		hipercontracer-node=$pkgver-r$pkgrel
+		hipercontracer-query=$pkgver-r$pkgrel
+		hipercontracer-results=$pkgver-r$pkgrel
+		hipercontracer-sync=$pkgver-r$pkgrel
+		hipercontracer-trigger=$pkgver-r$pkgrel
+		hipercontracer-udp-echo-server=$pkgver-r$pkgrel
+		hipercontracer-viewer=$pkgver-r$pkgrel
+	"
+	mkdir -p "$subpkgdir"
+}
+
+sha512sums="
+b1ab0c91bed8e1f94b708987fbf7a44685c822c4d4d6cc5e171c89a694bc1231519cffa5ffb79f03e59c93f7d9034bb0be2ae2b680b82fbc3d35d85f8c225e11  hipercontracer-2.2.3.tar.xz
+"
