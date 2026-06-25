@@ -126,18 +126,6 @@ done
 %{_prefix}/lib/systemd/system/hipercontracer.service
 %{_prefix}/lib/systemd/system/hipercontracer@.service
 
-%pre
-%service_add_pre hipercontracer.service
-
-%post
-%service_add_post hipercontracer.service
-
-%preun
-%service_del_preun hipercontracer.service
-
-%postun
-%service_del_postun hipercontracer.service
-
 
 %package common
 Summary: HiPerConTracer common files
@@ -810,18 +798,6 @@ This package contains the tool to trigger measurements via incoming
 %{_prefix}/lib/systemd/system/hpct-trigger.service
 %{_prefix}/lib/systemd/system/hpct-trigger@.service
 
-%pre trigger
-%service_add_pre hpct-trigger.service
-
-%post trigger
-%service_add_post hpct-trigger.service
-
-%preun trigger
-%service_del_preun hpct-trigger.service
-
-%postun trigger
-%service_del_postun hpct-trigger.service
-
 
 %package sync
 Summary: HiPerConTracer Sync Tool to synchronise results files to a server
@@ -882,18 +858,6 @@ synchronisation of data to a central HiPerConTracer Collector server.
 %{_prefix}/lib/systemd/system/hpct-sync.service
 %{_prefix}/lib/systemd/system/hpct-sync.timer
 
-%pre sync
-%service_add_pre hpct-sync.service
-
-%post sync
-%service_add_post hpct-sync.service
-
-%preun sync
-%service_del_preun hpct-sync.service
-
-%postun sync
-%service_del_postun hpct-sync.service
-
 
 %package rtunnel
 Summary: HiPerConTracer Reverse Tunnel Tool for reverse SSH tunnel setup
@@ -947,18 +911,6 @@ remote node maintenance.
 %{_datadir}/bash-completion/completions/hpct-rtunnel
 %{_mandir}/man1/hpct-rtunnel.1.gz
 %{_prefix}/lib/systemd/system/hpct-rtunnel.service
-
-%pre rtunnel
-%service_add_pre hpct-rtunnel.service
-
-%post rtunnel
-%service_add_post hpct-rtunnel.service
-
-%preun rtunnel
-%service_del_preun hpct-rtunnel.service
-
-%postun rtunnel
-%service_del_postun hpct-rtunnel.service
 
 
 %package node
@@ -1187,18 +1139,6 @@ NoSQL databases.
 %{_sysconfdir}/hipercontracer/hpct-importer.conf
 %{_prefix}/lib/systemd/system/hpct-importer.service
 
-%pre importer
-%service_add_pre hpct-importer.service
-
-%post importer
-%service_add_post hpct-importer.service
-
-%preun importer
-%service_del_preun hpct-importer.service
-
-%postun importer
-%service_del_postun hpct-importer.service
-
 
 %package query
 Summary: HiPerConTracer Query Tool to query results from a database
@@ -1423,18 +1363,6 @@ This package contains a simple UDP Echo server to respond to UDP Pings.
 %config(noreplace) %{_sysconfdir}/hipercontracer/udp-echo-server.conf
 %{_sysconfdir}/hipercontracer/udp-echo-server.conf
 %{_prefix}/lib/systemd/system/udp-echo-server.service
-
-%pre udp-echo-server
-%service_add_pre hpct-udp-echo-server.service
-
-%post udp-echo-server
-%service_add_post hpct-udp-echo-server.service
-
-%preun udp-echo-server
-%service_del_preun hpct-udp-echo-server.service
-
-%postun udp-echo-server
-%service_del_postun hpct-udp-echo-server.service
 
 
 %package dbshell
