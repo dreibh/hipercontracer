@@ -33,6 +33,8 @@ subpackages="
 	libhpctdb-dev:libhpctdb_dev
 	libuniversalimporter
 	libuniversalimporter-dev:libuniversalimporter_dev
+	$pkgname-bash-completion
+	$pkgname-doc
 	$pkgname-common:hipercontracer_common:noarch
 	$pkgname-examples:hipercontracer_examples:noarch
 	$pkgname-trigger:hipercontracer_trigger
@@ -63,6 +65,7 @@ build() {
 	cmake -B build -G Ninja \
 		-DCMAKE_BUILD_TYPE=None \
 		-DCMAKE_INSTALL_PREFIX=/usr \
+		-DCMAKE_INSTALL_LIBDIR=lib \
 		-DCMAKE_VERBOSE_MAKEFILE=OFF \
 		-DWITH_STATIC_LIBRARIES=ON \
 		-DWITH_SHARED_LIBRARIES=ON \
@@ -90,12 +93,11 @@ _move_tool() {
 	local bins="$1"
 	local confs="$2"
 
-	mkdir -p "$subpkgdir"/usr/bin "$subpkgdir"/usr/share/man/man1 "$subpkgdir"/usr/share/bash-completion/completions
+	mkdir -p "$subpkgdir"/usr/bin
 
 	for b in $bins; do
 		[ -f "$pkgdir"/usr/bin/$b ] && mv "$pkgdir"/usr/bin/$b "$subpkgdir"/usr/bin/
 		mv "$pkgdir"/usr/share/man/man1/$b.1* "$subpkgdir"/usr/share/man/man1/ 2>/dev/null || true
-		mv "$pkgdir"/usr/share/bash-completion/completions/$b "$subpkgdir"/usr/share/bash-completion/completions/ 2>/dev/null || true
 	done
 
 	if [ -n "$confs" ]; then
@@ -125,7 +127,12 @@ libhpctio_dev() {
 	pkgdesc="Development files for the HiPerConTracer I/O library"
 	depends="boost-dev"
 	mkdir -p "$subpkgdir"/usr/include/hipercontracer "$subpkgdir"/usr/lib
-	for f in compressortype.h inputstream.h logger.h outputstream.h tools.h; do
+	for f in compressortype.h \
+		inputstream.h            \
+		logger.h                 \
+		outputstream.h           \
+		tools.h                  \
+		; do
 		mv "$pkgdir"/usr/include/hipercontracer/$f "$subpkgdir"/usr/include/hipercontracer/
 	done
 	mv "$pkgdir"/usr/lib/libhpctio.so "$pkgdir"/usr/lib/libhpctio.a "$subpkgdir"/usr/lib/
@@ -142,7 +149,16 @@ libhipercontracer_dev() {
 	pkgdesc="Development files for HiPerConTracer API library"
 	depends="libhipercontracer=$pkgver-r$pkgrel libhpctio-dev=$pkgver-r$pkgrel boost-dev"
 	mkdir -p "$subpkgdir"/usr/include/hipercontracer "$subpkgdir"/usr/lib
-	for f in check.h destinationinfo.h iomodule-base.h iomodule-icmp.h iomodule-udp.h ping.h resultentry.h resultswriter.h service.h traceroute.h; do
+	for f in check.h   \
+		destinationinfo.h \
+		iomodule-base.h   \
+		iomodule-icmp.h   \
+		iomodule-udp.h    \
+		ping.h            \
+		resultentry.h     \
+		resultswriter.h   \
+		service.h         \
+		traceroute.h; do
 		mv "$pkgdir"/usr/include/hipercontracer/$f "$subpkgdir"/usr/include/hipercontracer/
 	done
 	mv "$pkgdir"/usr/lib/libhipercontracer.so "$pkgdir"/usr/lib/libhipercontracer.a "$subpkgdir"/usr/lib/
@@ -160,7 +176,13 @@ libhpctdb_dev() {
 	pkgdesc="Development files for the HiPerConTracer database access library"
 	depends="libhpctdb=$pkgver-r$pkgrel libhpctio-dev=$pkgver-r$pkgrel"
 	mkdir -p "$subpkgdir"/usr/include/hipercontracer "$subpkgdir"/usr/lib
-	for f in database-configuration.h database-statement.h databaseclient-base.h databaseclient-debug.h databaseclient-mariadb.h databaseclient-mongodb.h databaseclient-postgresql.h; do
+	for f in database-configuration.h \
+		database-statement.h             \
+		databaseclient-base.h            \
+		databaseclient-debug.h           \
+		databaseclient-mariadb.h         \
+		databaseclient-mongodb.h         \
+		; do
 		mv "$pkgdir"/usr/include/hipercontracer/$f "$subpkgdir"/usr/include/hipercontracer/
 	done
 	mv "$pkgdir"/usr/lib/libhpctdb.so "$pkgdir"/usr/lib/libhpctdb.a "$subpkgdir"/usr/lib/
