@@ -402,7 +402,8 @@ IF (WITH_LIBHPCTDB)
                  " * FreeBSD:       sudo pkg install -y mariadb-connector-c\n"
                  " * NetBSD:        sudo pkgin -y install mariadb-client\n"
                  " * OpenBSD:       sudo pkg_add mariadb-client\n"
-                 " * Apple:         brew install mariadb-connector-c")
+                 " * Apple:         brew install mariadb-connector-c\n"
+                 "If MySQL/MariaDB support is not required, it can be disabled by setting ENABLE_BACKEND_MARIADB=OFF (add -DENABLE_BACKEND_MARIADB=OFF to CMake options)!")
       ENDIF()
    ELSE()
       MESSAGE("Building without MySQL/MariaDB backend (ENABLE_BACKEND_MARIADB=${ENABLE_BACKEND_MARIADB})")
@@ -429,7 +430,8 @@ IF (WITH_LIBHPCTDB)
                  " * FreeBSD:       sudo pkg install -y postgresql-libpqxx\n"
                  " * NetBSD:        sudo pkgin -y install libpqxx\n"
                  " * OpenBSD:       sudo pkg_add libpqxx\n"
-                 " * Apple:         brew install libpqxx")
+                 " * Apple:         brew install libpqxx\n"
+                 "If PostgreSQL support is not required, it can be disabled by setting ENABLE_BACKEND_POSTGRESQL=OFF (add -DENABLE_BACKEND_POSTGRESQL=OFF to CMake options)!")
       ENDIF()
 
       IF (PQXX_VERSION VERSION_GREATER_EQUAL 8.0)
@@ -466,7 +468,8 @@ IF (WITH_LIBHPCTDB)
                  " * FreeBSD:       sudo pkg install -y mongo-c-driver\n"
                  " * NetBSD:        sudo pkgin -y install mongo-c-driver\n"
                  " * OpenBSD:       sudo pkg_add ????????\n"
-                 " * Apple:         brew install mongo-c-driver")
+                 " * Apple:         brew install mongo-c-driver\n"
+                 "If MongoDB support is not required, it can be disabled by setting ENABLE_BACKEND_MONGODB=OFF (add -DENABLE_BACKEND_MONGODB=OFF to CMake options)!")
       ENDIF()
 
       MESSAGE("Looking for MongoDB BSON library:")
@@ -488,7 +491,8 @@ IF (WITH_LIBHPCTDB)
                  " * FreeBSD:       sudo pkg install -y libbson\n"
                  " * NetBSD:        sudo pkgin -y install ????????\n"
                  " * OpenBSD:       sudo pkg_add ????????\n"
-                 " * Apple:         brew install mongo-c-driver")
+                 " * Apple:         brew install mongo-c-driver\n"
+                 "If MongoDB support is not required, it can be disabled by setting ENABLE_BACKEND_MONGODB=OFF (add -DENABLE_BACKEND_MONGODB=OFF to CMake options)!")
       ENDIF()
    ELSE()
       MESSAGE("Building without MongoDB backend (ENABLE_BACKEND_MONGODB=${ENABLE_BACKEND_MONGODB})")
