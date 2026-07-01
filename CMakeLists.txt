@@ -453,8 +453,9 @@ IF (WITH_LIBHPCTDB)
       FIND_LIBRARY(LIBMONGOC_LIBRARY NAMES mongoc-1.0 mongoc2)
       MESSAGE(" * Library: ${LIBMONGOC_LIBRARY}")
       FILE(GLOB mongoSearchPaths
-         "/usr/include/mongoc-*"       "/usr/include/libmongoc*"
-         "/usr/local/include/mongoc-*" "/usr/local/include/libmongoc*"
+         "/usr/include/mongoc-*"         "/usr/include/libmongoc*"
+         "/usr/local/include/mongoc-*"   "/usr/local/include/libmongoc*"
+         "/usr/pkg/include/mongoc-*"     "/usr/pkg/include/libmongoc-*"
       )
       FIND_PATH(LIBMONGOC_INCLUDE_DIR NAMES mongoc/mongoc.h HINTS ${mongoSearchPaths})
       MESSAGE(" * Includes: ${LIBMONGOC_INCLUDE_DIR}")
@@ -476,8 +477,9 @@ IF (WITH_LIBHPCTDB)
       FIND_LIBRARY(LIBBSON_LIBRARY NAMES bson-1.0 bson2)
       MESSAGE(" * Library: ${LIBBSON_LIBRARY}")
       FILE(GLOB bsonSearchPaths
-         "/usr/include/bson-*"       "/usr/include/libbson-*"
-         "/usr/local/include/bson-*" "/usr/local/include/libbson-*"
+         "/usr/include/bson-*"         "/usr/include/libbson-*"
+         "/usr/local/include/bson-*"   "/usr/local/include/libbson-*"
+         "/usr/pkg/include/bson-*"     "/usr/pkg/include/libbson-*"
       )
       FIND_PATH(LIBBSON_INCLUDE_DIR NAMES bson/bson.h HINTS ${bsonSearchPaths})
       MESSAGE(" * Includes: ${LIBBSON_INCLUDE_DIR}")
@@ -489,7 +491,7 @@ IF (WITH_LIBHPCTDB)
                  " * SuSE:          (needs PPA or installation from sources!)\n"
                  " * Alpine:        sudo apk add libbson-dev\n"
                  " * FreeBSD:       sudo pkg install -y libbson\n"
-                 " * NetBSD:        sudo pkgin -y install ????????\n"
+                 " * NetBSD:        sudo pkgin -y install mongo-c-driver\n"
                  " * OpenBSD:       sudo pkg_add ????????\n"
                  " * Apple:         brew install mongo-c-driver\n"
                  "If MongoDB support is not required, it can be disabled by setting ENABLE_BACKEND_MONGODB=OFF (add -DENABLE_BACKEND_MONGODB=OFF to CMake options)!")
