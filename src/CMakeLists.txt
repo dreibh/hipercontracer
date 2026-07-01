@@ -81,6 +81,7 @@ IF (WITH_LIBHPCTIO)
          TARGET_LINK_LIBRARIES(libhpctio-${TYPE}
                                ${Boost_LIBRARIES}
                                ${CMAKE_THREAD_LIBS_INIT}
+                               ${ZSTD_LIBRARY}
                                ${LZMA_LIBRARY}
                                ${BZ2_LIBRARY}
                                ${Z_LIBRARY})
