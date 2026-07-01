@@ -1,3 +1,89 @@
+commit f0c2f3ba5425b1f02b047ad9025b8f6f544751ef
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Jul 1 17:18:27 2026 +0200
+
+    Minor CMakeLists.txt update.
+
+commit 77a309a1521c8d73182f275d2e210f9fd6f3716d
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Jul 1 17:16:25 2026 +0200
+
+    Minor dependency hint updates.
+
+commit 00a88befd67d58d74c2e3235aba8a8fc9cb8cae5
+Merge: b5efe4bd 43ccdc25
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Jul 1 17:10:27 2026 +0200
+
+    Merge branch 'master' of github.com:dreibh/hipercontracer
+
+commit b5efe4bdd1c62ee32265bd14b2447fc51afbaefa
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Jul 1 17:10:14 2026 +0200
+
+    Improved dependency hints in CMakeLists.txt.
+
+commit 43ccdc25d47bd668930a03888ad540efc963172e
+Merge: 9404a00b 3b44dddc
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Jul 1 17:09:28 2026 +0200
+
+    Merge branch 'master' of https://github.com/dreibh/hipercontracer
+
+commit 9404a00b3eee3e7fd2b85561a5170807231704cf
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Jul 1 17:09:12 2026 +0200
+
+    Improved dependency hints for NetBSD.
+
+commit 3b44dddc126c66184edd178213c377e13cf581c2
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Jul 1 11:47:49 2026 +0200
+
+    Improved detection of GNU getopt, to provide a useful error message when it is missing.
+
+commit 937b7ef710b94e0d85f7e5c11e8cc6bad75a336c
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Mon Jun 29 15:42:24 2026 +0200
+
+    Updated CI configuration
+
+commit b3d592532152614aadf8eb5a5c855a3995700e01
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Mon Jun 29 15:42:23 2026 +0200
+
+    Updated CI scripts
+
+commit 28954e09dff2439d06e773189bac7ab4bdc701b0
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Mon Jun 29 15:41:27 2026 +0200
+
+    Updated FreeBSD workflow.
+
+commit 05a3d9c53707f4f261a0d02528ee43c9e5ac4f52
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Fri Jun 26 13:02:11 2026 +0200
+
+    Improved APKBUILD file.
+
+commit 7d34bdaad78b75954f7b5e9c167ec38da497679a
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Jun 25 14:18:18 2026 +0200
+
+    RPM spec fix.
+
+commit 46f2a105e828fe43c30dec01dcbd6a49482e52ce
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Jun 23 17:44:20 2026 +0200
+
+    Updated APKBUILD file.
+
+commit 9cbadbc6231f8b5c948327d48cf6977ee59f884c
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Jun 23 17:12:41 2026 +0200
+
+    New release hipercontracer-2.2.4.
+
 commit bf14355a844b23c316554681d31c6a20ffdcb0ad
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Tue Jun 23 15:09:14 2026 +0000
