@@ -57,19 +57,19 @@ fi
 UNAME="$(uname)"
 case "${UNAME}" in
    FreeBSD)
-      GETOPT="$(PATH="/usr/local/bin:${PATH}" command -v getopt)"
+      GETOPT="$(PATH="/usr/local/bin:${PATH}" command -v getopt || true)"
       ;;
    NetBSD)
-      GETOPT="$(PATH="/usr/pkg/bin:${PATH}" command -v getopt)"
+      GETOPT="$(PATH="/usr/pkg/bin:${PATH}" command -v getopt || true)"
       ;;
    OpenBSD)
-      GETOPT="$(command -v gnugetopt)"
+      GETOPT="$(command -v gnugetopt || true)"
       ;;
    Darwin)
-      GETOPT="$(env PATH="/opt/homebrew/opt/gnu-getopt/bin:${PATH}" command -v getopt)"
+      GETOPT="$(env PATH="/opt/homebrew/opt/gnu-getopt/bin:${PATH}" command -v getopt || true)"
       ;;
    *)
-      GETOPT="$(command -v getopt)"
+      GETOPT="$(command -v getopt || true)"
       ;;
 esac
 if "${GETOPT}" -T >/dev/null 2>&1 || [[ $? -ne 4 ]]; then
