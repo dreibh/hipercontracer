@@ -32,7 +32,7 @@ PROJECT(hipercontracer LANGUAGES C CXX)
 
 SET(BUILD_MAJOR "2")
 SET(BUILD_MINOR "2")
-SET(BUILD_PATCH "3~rc0")
+SET(BUILD_PATCH "4")
 SET(BUILD_VERSION ${BUILD_MAJOR}.${BUILD_MINOR}.${BUILD_PATCH})
 
 SET(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake/modules)
@@ -208,19 +208,17 @@ IF (Boost_FOUND)
    MESSAGE(STATUS " Boost_LIBRARY_DIRS: ${Boost_LIBRARY_DIRS}")
    MESSAGE(STATUS " Boost_INCLUDE_DIRS: ${Boost_INCLUDE_DIRS}")
    MESSAGE(STATUS " Boost_LIBRARIES:    ${Boost_LIBRARIES}")
+   FIND_PACKAGE(Boost REQUIRED COMPONENTS log date_time thread iostreams filesystem program_options)
 ELSE()
    MESSAGE(FATAL_ERROR "Cannot find BOOST libraries! Try:\n"
            " * Ubuntu/Debian: sudo apt install -y libboost-all-dev\n"
            " * Fedora:        sudo dnf install -y boost-devel\n"
-           " * SuSE:          sudo zypper install -y boost-devel\n"
+           " * OpenSUSE:      sudo zypper install -y boost-devel\n"
            " * Alpine:        sudo apk add boost-dev\n"
            " * FreeBSD:       sudo pkg install -y boost\n"
            " * NetBSD:        sudo pkgin -y install boost\n"
            " * OpenBSD:       sudo pkg_add boost\n"
            " * Apple:         brew install boost")
-ENDIF()
-IF (CMAKE_SYSTEM_NAME MATCHES "FreeBSD")
-   ADD_DEFINITIONS(-DBOOST_ALL_DYN_LINK)   # <<-- Required to handle BOOST Log link problem!
 ENDIF()
 
 # ====== INotify ============================================================
@@ -464,7 +462,7 @@ IF (WITH_LIBHPCTDB)
                  "Cannot find MongoDB C Client Library! Try:\n"
                  " * Ubuntu/Debian: sudo apt install -y libmongoc-dev\n"
                  " * Fedora:        sudo dnf install -y mongo-c-driver-devel\n"
-                 " * SuSE:          (needs PPA or installation from sources!)\n"
+                 " * SuSE:          sudo zypper install -y mongo-c-driver-devel\n"
                  " * Alpine:        sudo apk add mongo-c-driver-dev\n"
                  " * FreeBSD:       sudo pkg install -y mongo-c-driver\n"
                  " * NetBSD:        sudo pkgin -y install mongo-c-driver\n"
@@ -506,66 +504,67 @@ IF (WITH_ICONS)
    MESSAGE("Building with icons (WITH_ICONS=${WITH_ICONS})")
 
    # ------ Ghostscript -----------------------------------------------------
-   FIND_PROGRAM(GS gs HINTS /usr/pkg/bin)
+   FIND_PROGRAM(GS gs HINTS /bin /usr/bin /usr/local/bin /usr/pkg/bin)
    IF(GS)
-      EXECUTE_PROCESS(COMMAND ${GS} --version
+      EXECUTE_PROCESS(COMMAND ${GS} -version
                       OUTPUT_VARIABLE GS_OUTPUT
                       ERROR_QUIET OUTPUT_STRIP_TRAILING_WHITESPACE)
       STRING(REGEX MATCH "([0-9]+\\.[0-9]+\\.[0-9]+|[0-9]+\\.[0-9]+)" GS_VERSION "${GS_OUTPUT}")
       MESSAGE(STATUS "Ghostscript found: ${GS} (version ${GS_VERSION})")
    ELSE()
       MESSAGE(FATAL_ERROR
-            "Cannot find Ghostscript! Try:\n"
-            " * Ubuntu/Debian: sudo apt install -y ghostscript\n"
-            " * Fedora:        sudo dnf install -y ghostscript\n"
-            " * SuSE:          sudo zypper install -y ghostscript\n"
-            " * Alpine:        sudo apk add ghostscript\n"
-            " * FreeBSD:       sudo pkg install -y ghostscript10\n"
-            " * NetBSD:        sudo pkgin -y install ghostscript\n"
-            " * OpenBSD:       sudo pkg_add ghostscript\n"
-            " * Apple:         brew install ghostscript")
+              "Cannot find Ghostscript! Try:\n"
+              " * Ubuntu/Debian: sudo apt install -y ghostscript\n"
+              " * Fedora:        sudo dnf install -y ghostscript\n"
+              " * OpenSUSE:      sudo zypper install -y ghostscript\n"
+              " * Alpine:        sudo apk add ghostscript\n"
+              " * FreeBSD:       sudo pkg install -y ghostscript10\n"
+              " * NetBSD:        sudo pkgin -y install ghostscript\n"
+              " * OpenBSD:       sudo pkg_add ghostscript\n"
+              " * Apple:         brew install ghostscript")
    ENDIF()
 
-   # ------ GraphicsMagick --------------------------------------------------
-   FIND_PROGRAM(GM gm HINTS /usr/pkg/bin)
+   # ------ GraphicsMagick or ImageMagick -----------------------------------
+   FIND_PROGRAM(GM gm magick HINTS /bin /usr/bin /usr/local/bin /usr/pkg/bin)
    IF(GM)
-      EXECUTE_PROCESS(COMMAND ${GM} version | head -n1
+      EXECUTE_PROCESS(COMMAND ${GM} -version | head -n1
                       OUTPUT_VARIABLE GM_OUTPUT
                       ERROR_QUIET OUTPUT_STRIP_TRAILING_WHITESPACE)
       STRING(REGEX MATCH "([0-9]+\\.[0-9]+\\.[0-9]+|[0-9]+\\.[0-9]+)" GM_VERSION "${GM_OUTPUT}")
       MESSAGE(STATUS "GraphicsMagick found: ${GM} (version ${GM_VERSION})")
    ELSE()
       MESSAGE(FATAL_ERROR
-            "Cannot find GraphicsMagick! Try:\n"
-            " * Ubuntu/Debian: sudo apt install -y graphicsmagick\n"
-            " * Fedora:        sudo dnf install -y GraphicsMagick\n"
-            " * SuSE:          sudo zypper install -y GraphicsMagick\n"
-            " * Alpine:        sudo apk add graphicsmagick\n"
-            " * FreeBSD:       sudo pkg install -y GraphicsMagick\n"
-            " * NetBSD:        sudo pkgin -y install GraphicsMagick\n"
-            " * OpenBSD:       sudo pkg_add GraphicsMagick\n"
-            " * Apple:         brew install graphicsmagick")
+              "Cannot find GraphicsMagick! Try:\n"
+              " * Ubuntu/Debian: sudo apt install -y graphicsmagick\n"
+              " * Fedora:        sudo dnf install -y GraphicsMagick\n"
+              " * OpenSUSE:      sudo zypper install -y GraphicsMagick\n"
+              " * Alpine:        sudo apk add graphicsmagick\n"
+              " * FreeBSD:       sudo pkg install -y GraphicsMagick\n"
+              " * NetBSD:        sudo pkgin -y install GraphicsMagick\n"
+              " * OpenBSD:       sudo pkg_add GraphicsMagick\n"
+              " * Apple:         brew install graphicsmagick")
    ENDIF()
 
-   # ------ pdftocairo ------------------------------------------------------
-   FIND_PROGRAM(PDFTOCAIRO pdftocairo HINTS /usr/pkg/bin)
-   IF(PDFTOCAIRO)
-      EXECUTE_PROCESS(COMMAND ${PDFTOCAIRO} -v 2>&1 | head -n1
-                      ERROR_VARIABLE PDFTOCAIRO_OUTPUT
-                      OUTPUT_QUIET ERROR_STRIP_TRAILING_WHITESPACE)
-      STRING(REGEX MATCH "([0-9]+\\.[0-9]+\\.[0-9]+|[0-9]+\\.[0-9]+)" PDFTOCAIRO_VERSION "${PDFTOCAIRO_OUTPUT}")
-      MESSAGE(STATUS "pdftocairo found: ${PDFTOCAIRO} (version ${PDFTOCAIRO_VERSION})")
+   # ------ MuPDF mutool ----------------------------------------------------
+   FIND_PROGRAM(MUTOOL mutool HINTS /bin /usr/bin /usr/local/bin /usr/pkg/bin)
+   IF(MUTOOL)
+      EXECUTE_PROCESS(COMMAND ${MUTOOL} -v
+                      ERROR_VARIABLE  MUTOOL_OUTPUT
+                      OUTPUT_VARIABLE MUTOOL_OUTPUT
+                      OUTPUT_STRIP_TRAILING_WHITESPACE)
+      STRING(REGEX MATCH "([0-9]+\\.[0-9]+\\.[0-9]+|[0-9]+\\.[0-9]+)" MUTOOL_VERSION "${MUTOOL_OUTPUT}")
+      MESSAGE(STATUS "MuPDF mutool found: ${MUTOOL} (version ${MUTOOL_VERSION})")
    ELSE()
       MESSAGE(FATAL_ERROR
-            "Cannot find pdftocairo! Try:\n"
-            " * Ubuntu/Debian: sudo apt install -y poppler-utils\n"
-            " * Fedora:        sudo dnf install -y poppler-utils\n"
-            " * SuSE:          sudo zypper install -y poppler-utils\n"
-            " * Alpine:        sudo apk add ghostscript\n"
-            " * FreeBSD:       sudo pkg install -y poppler-utils\n"
-            " * NetBSD:        sudo pkgin -y install poppler-utils\n"
-            " * OpenBSD:       (needs installation from sources!)\n"
-            " * Apple:         brew install poppler")
+              "Cannot find mupdf! Try:\n"
+              " * Ubuntu/Debian: sudo apt install -y mupdf-tools\n"
+              " * Fedora:        sudo dnf install -y mupdf\n"
+              " * OpenSUSE:      sudo zypper install -y mupdf\n"
+              " * Alpine:        sudo apk add mupdf-tools\n"
+              " * FreeBSD:       sudo pkg install -y mupdf\n"
+              " * NetBSD:        sudo pkgin -y install mupdf\n"
+              " * OpenBSD:       sudo pkg_add mupdf\n"
+              " * Apple:         brew install mupdf-tools")
    ENDIF()
 
 ELSE()

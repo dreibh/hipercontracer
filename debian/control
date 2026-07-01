@@ -19,7 +19,7 @@ Build-Depends: cmake (>= 3.10),
                libmongoc-dev,
                libpqxx-dev,
                libzstd-dev,
-               poppler-utils,
+                             mupdf-tools,
                zlib1g-dev
 Standards-Version: 4.7.4
 Rules-Requires-Root: no

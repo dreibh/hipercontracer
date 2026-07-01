@@ -1,10 +1,16 @@
-hipercontracer (2.2.3~rc0-1ubuntu1) unstable; urgency=medium
+hipercontracer (2.2.4-1ubuntu1) unstable; urgency=medium
 
   * New upstream release.
-  * debian/control: Replaced dependency pdf2svg by pdftocairo,
+
+ -- Thomas Dreibholz <dreibh@simula.no>  Tue, 23 Jun 2026 17:12:39 +0200
+
+hipercontracer (2.2.3-1ubuntu1) unstable; urgency=medium
+
+  * New upstream release.
+  * debian/control: Replaced dependency pdf2svg by mupdf-tools,
                     which is available in more distributions.
 
- -- Thomas Dreibholz <dreibh@simula.no>  Wed, 10 Jun 2026 22:08:49 +0200
+ -- Thomas Dreibholz <dreibh@simula.no>  Fri, 12 Jun 2026 18:18:40 +0200
 
 hipercontracer (2.2.2-2ubuntu1) unstable; urgency=medium
 
