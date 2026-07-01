@@ -402,7 +402,7 @@ IF (WITH_LIBHPCTDB)
                  " * FreeBSD:       sudo pkg install -y mariadb-connector-c\n"
                  " * NetBSD:        sudo pkgin -y install mariadb-client\n"
                  " * OpenBSD:       sudo pkg_add mariadb-client\n"
-                 " * Apple:         brew install mariadb-connector-c\n"
+                 " * Apple:         brew install mariadb-connector-c && brew link --force mariadb-connector-c\n"
                  "If MySQL/MariaDB support is not required, it can be disabled by setting ENABLE_BACKEND_MARIADB=OFF (add -DENABLE_BACKEND_MARIADB=OFF to CMake options)!")
       ENDIF()
    ELSE()
@@ -430,7 +430,7 @@ IF (WITH_LIBHPCTDB)
                  " * FreeBSD:       sudo pkg install -y postgresql-libpqxx\n"
                  " * NetBSD:        sudo pkgin -y install libpqxx\n"
                  " * OpenBSD:       sudo pkg_add libpqxx\n"
-                 " * Apple:         brew install libpqxx\n"
+                 " * Apple:         brew install libpqxx && brew link --force libpqxx\n"
                  "If PostgreSQL support is not required, it can be disabled by setting ENABLE_BACKEND_POSTGRESQL=OFF (add -DENABLE_BACKEND_POSTGRESQL=OFF to CMake options)!")
       ENDIF()
 
@@ -468,8 +468,8 @@ IF (WITH_LIBHPCTDB)
                  " * Alpine:        sudo apk add mongo-c-driver-dev\n"
                  " * FreeBSD:       sudo pkg install -y mongo-c-driver\n"
                  " * NetBSD:        sudo pkgin -y install mongo-c-driver\n"
-                 " * OpenBSD:       sudo pkg_add (needs PPA or installation from sources!)\n"
-                 " * Apple:         brew install mongo-c-driver\n"
+                 " * OpenBSD:       (needs PPA or installation from sources!)\n"
+                 " * Apple:         brew install mongo-c-driver && brew link --force mongo-c-driver\n"
                  "If MongoDB support is not required, it can be disabled by setting ENABLE_BACKEND_MONGODB=OFF (add -DENABLE_BACKEND_MONGODB=OFF to CMake options)!")
       ENDIF()
 
@@ -488,11 +488,11 @@ IF (WITH_LIBHPCTDB)
                  "Cannot find MongoDB BSON library! Try:\n"
                  " * Ubuntu/Debian: sudo apt install -y libbson-dev\n"
                  " * Fedora:        sudo dnf install -y libbson-devel\n"
-                 " * SuSE:          (needs PPA or installation from sources!)\n"
+                 " * SuSE:          sudo zypper install -y bson-devel\n"
                  " * Alpine:        sudo apk add libbson-dev\n"
                  " * FreeBSD:       sudo pkg install -y libbson\n"
                  " * NetBSD:        sudo pkgin -y install mongo-c-driver\n"
-                 " * OpenBSD:       sudo pkg_add (needs PPA or installation from sources!)\n"
+                 " * OpenBSD:       (needs PPA or installation from sources!)\n"
                  " * Apple:         brew install mongo-c-driver\n"
                  "If MongoDB support is not required, it can be disabled by setting ENABLE_BACKEND_MONGODB=OFF (add -DENABLE_BACKEND_MONGODB=OFF to CMake options)!")
       ENDIF()
