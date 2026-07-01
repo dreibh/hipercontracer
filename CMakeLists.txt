@@ -468,7 +468,7 @@ IF (WITH_LIBHPCTDB)
                  " * Alpine:        sudo apk add mongo-c-driver-dev\n"
                  " * FreeBSD:       sudo pkg install -y mongo-c-driver\n"
                  " * NetBSD:        sudo pkgin -y install mongo-c-driver\n"
-                 " * OpenBSD:       sudo pkg_add ????????\n"
+                 " * OpenBSD:       sudo pkg_add (needs PPA or installation from sources!)\n"
                  " * Apple:         brew install mongo-c-driver\n"
                  "If MongoDB support is not required, it can be disabled by setting ENABLE_BACKEND_MONGODB=OFF (add -DENABLE_BACKEND_MONGODB=OFF to CMake options)!")
       ENDIF()
@@ -492,7 +492,7 @@ IF (WITH_LIBHPCTDB)
                  " * Alpine:        sudo apk add libbson-dev\n"
                  " * FreeBSD:       sudo pkg install -y libbson\n"
                  " * NetBSD:        sudo pkgin -y install mongo-c-driver\n"
-                 " * OpenBSD:       sudo pkg_add ????????\n"
+                 " * OpenBSD:       sudo pkg_add (needs PPA or installation from sources!)\n"
                  " * Apple:         brew install mongo-c-driver\n"
                  "If MongoDB support is not required, it can be disabled by setting ENABLE_BACKEND_MONGODB=OFF (add -DENABLE_BACKEND_MONGODB=OFF to CMake options)!")
       ENDIF()
