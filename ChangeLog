@@ -1,3 +1,34 @@
+commit aa1a9fe07fd8d5faf5d44d16e1b87cabe706d862
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Jul 2 12:30:26 2026 +0200
+
+    * Fixed FindPQXX.cmake to handle cases where PC_PQXX_VERSION is empty.
+    * Further CMakeLists.txt improvements.
+
+commit e128aa8becc91402f80823e4ef912c57d65a5917
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Jul 2 11:37:16 2026 +0200
+
+    Further CMakeLists.txt improvements.
+
+commit 32dc1a31a0674556629f688ade92fb4b8a867eb6
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Jul 1 18:11:52 2026 +0200
+
+    Some more dependency installation hints.
+
+commit 466a8b9a3df58e5f4e4abbc5f5804231d5325958
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Jul 1 17:53:16 2026 +0200
+
+    Updated APKBUILD file.
+
+commit 434494f73274cff6570381aeaf38d7b81245d18c
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Jul 1 17:38:08 2026 +0200
+
+    New release hipercontracer-2.2.5.
+
 commit f0c2f3ba5425b1f02b047ad9025b8f6f544751ef
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Wed Jul 1 17:18:27 2026 +0200
