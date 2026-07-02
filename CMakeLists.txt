@@ -233,15 +233,16 @@ IF (WITH_LIBUNIVERSALIMPORTER)
       FIND_PATH(INotify_INCLUDE_DIRS NAMES sys/inotify.h HINTS /usr/local/include/inotify)
       IF ((NOT INotify_LIBRARIES) OR (NOT INotify_INCLUDE_DIRS))
          MESSAGE(FATAL_ERROR
-               "Cannot find INotify library! Try:\n"
-               " * Ubuntu/Debian: (always included as part of libc)\n"
-               " * Fedora:        (always included as part of libc)\n"
-               " * SuSE:          (always included as part of libc)\n"
-               " * Alpine:        (always included as part of libc)\n"
-               " * FreeBSD:       sudo pkg install -y libinotify\n"
-               " * NetBSD:        sudo pkgin -y install libinotify\n"
-               " * OpenBSD:       sudo pkg_add libinotify\n"
-               " * Apple:         --- N/A ---")
+                 "Cannot find INotify library! Try:\n"
+                 " * Ubuntu/Debian: (always included as part of libc)\n"
+                 " * Fedora:        (always included as part of libc)\n"
+                 " * SuSE:          (always included as part of libc)\n"
+                 " * Alpine:        (always included as part of libc)\n"
+                 " * FreeBSD:       sudo pkg install -y libinotify\n"
+                 " * NetBSD:        sudo pkgin -y install libinotify\n"
+                 " * OpenBSD:       sudo pkg_add libinotify\n"
+                 " * Apple:         --- N/A ---\n"
+                 "If the Importer is not required, it can be disabled by setting ENABLE_IMPORTER=OFF (add -DENABLE_IMPORTER=OFF to CMake options)!")
       ENDIF()
    ENDIF()
 ENDIF()
@@ -388,9 +389,14 @@ IF (WITH_LIBHPCTDB)
       MESSAGE("Building with MySQL/MariaDB backend (ENABLE_BACKEND_MARIADB=${ENABLE_BACKEND_MARIADB})")
 
       MESSAGE("Looking for MySQL/MariaDB C Client library:")
-      FIND_LIBRARY(LIBMARIADB_LIBRARY NAMES mariadb  PATH_SUFFIXES mariadb mysql)
+      FIND_LIBRARY(LIBMARIADB_LIBRARY NAMES mariadb
+                   PATH_SUFFIXES            mariadb mysql
+                   HINTS                    /opt/homebrew/opt/mariadb-connector-c/lib
+                                            /usr/local/opt/mariadb-connector-c/lib)
       MESSAGE(" * Library: ${LIBMARIADB_LIBRARY}")
-      FIND_PATH(LIBMARIADB_INCLUDE_DIR NAMES mysql.h PATH_SUFFIXES mariadb mysql)
+      FIND_PATH(LIBMARIADB_INCLUDE_DIR NAMES mysql.h PATH_SUFFIXES mariadb mysql
+                HINTS /opt/homebrew/opt/mariadb-connector-c/include
+                      /usr/local/opt/mariadb-connector-c/include)
       MESSAGE(" * Includes: ${LIBMARIADB_INCLUDE_DIR}")
       IF ((NOT LIBMARIADB_INCLUDE_DIR) OR (NOT LIBMARIADB_LIBRARY))
          MESSAGE(FATAL_ERROR
