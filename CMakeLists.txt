@@ -242,7 +242,7 @@ IF (WITH_LIBUNIVERSALIMPORTER)
                  " * NetBSD:        sudo pkgin -y install libinotify\n"
                  " * OpenBSD:       sudo pkg_add libinotify\n"
                  " * Apple:         --- N/A ---\n"
-                 "If the Importer is not required, it can be disabled by setting ENABLE_IMPORTER=OFF (add -DENABLE_IMPORTER=OFF to CMake options)!")
+                 "If the Importer is not required, it can be disabled by setting WITH_IMPORTER=OFF (add -DWITH_IMPORTER=OFF to CMake options)!")
       ENDIF()
    ENDIF()
 ENDIF()
@@ -408,7 +408,7 @@ IF (WITH_LIBHPCTDB)
                  " * FreeBSD:       sudo pkg install -y mariadb-connector-c\n"
                  " * NetBSD:        sudo pkgin -y install mariadb-client\n"
                  " * OpenBSD:       sudo pkg_add mariadb-client\n"
-                 " * Apple:         brew install mariadb-connector-c && brew link --force mariadb-connector-c\n"
+                 " * Apple:         brew install mariadb-connector-c\n"
                  "If MySQL/MariaDB support is not required, it can be disabled by setting ENABLE_BACKEND_MARIADB=OFF (add -DENABLE_BACKEND_MARIADB=OFF to CMake options)!")
       ENDIF()
    ELSE()
@@ -422,6 +422,8 @@ IF (WITH_LIBHPCTDB)
       MESSAGE("Building with PostgreSQL backend (ENABLE_BACKEND_POSTGRESQL=${ENABLE_BACKEND_POSTGRESQL})")
 
       MESSAGE("Looking for PostgreSQL C++ Client library:")
+      LIST(APPEND CMAKE_PREFIX_PATH "/opt/homebrew/opt/libpqxx"
+                                    "/usr/local/opt/libpqxx")
       FIND_PACKAGE(PQXX)
       MESSAGE(" * Version:  ${PQXX_VERSION}")
       MESSAGE(" * Library:  ${PQXX_LIBRARIES}")
@@ -436,7 +438,7 @@ IF (WITH_LIBHPCTDB)
                  " * FreeBSD:       sudo pkg install -y postgresql-libpqxx\n"
                  " * NetBSD:        sudo pkgin -y install libpqxx\n"
                  " * OpenBSD:       sudo pkg_add libpqxx\n"
-                 " * Apple:         brew install libpqxx && brew link --force libpqxx\n"
+                 " * Apple:         brew install libpqxx\n"
                  "If PostgreSQL support is not required, it can be disabled by setting ENABLE_BACKEND_POSTGRESQL=OFF (add -DENABLE_BACKEND_POSTGRESQL=OFF to CMake options)!")
       ENDIF()
 
@@ -456,13 +458,14 @@ IF (WITH_LIBHPCTDB)
       MESSAGE("Building with MongoDB backend (ENABLE_BACKEND_MONGODB=${ENABLE_BACKEND_MONGODB})")
 
       MESSAGE("Looking for MongoDB C Client library:")
-      FIND_LIBRARY(LIBMONGOC_LIBRARY NAMES mongoc-1.0 mongoc2)
-      MESSAGE(" * Library: ${LIBMONGOC_LIBRARY}")
       FILE(GLOB mongoSearchPaths
-         "/usr/include/mongoc-*"         "/usr/include/libmongoc*"
-         "/usr/local/include/mongoc-*"   "/usr/local/include/libmongoc*"
-         "/usr/pkg/include/mongoc-*"     "/usr/pkg/include/libmongoc-*"
+         "/usr/include/mongoc-*"            "/usr/include/libmongoc*"
+         "/usr/local/include/mongoc-*"      "/usr/local/include/libmongoc*"
+         "/usr/pkg/include/mongoc-*"        "/usr/pkg/include/libmongoc-*"
+         "/opt/homebrew/include/mongoc-*"   "/opt/homebrew/include/libmongoc*"
       )
+      FIND_LIBRARY(LIBMONGOC_LIBRARY NAMES mongoc-1.0 mongoc2 HINTS ${mongoSearchPaths})
+      MESSAGE(" * Library: ${LIBMONGOC_LIBRARY}")
       FIND_PATH(LIBMONGOC_INCLUDE_DIR NAMES mongoc/mongoc.h HINTS ${mongoSearchPaths})
       MESSAGE(" * Includes: ${LIBMONGOC_INCLUDE_DIR}")
       IF ((NOT LIBMONGOC_INCLUDE_DIR) OR (NOT LIBMONGOC_LIBRARY))
@@ -475,18 +478,19 @@ IF (WITH_LIBHPCTDB)
                  " * FreeBSD:       sudo pkg install -y mongo-c-driver\n"
                  " * NetBSD:        sudo pkgin -y install mongo-c-driver\n"
                  " * OpenBSD:       (needs PPA or installation from sources!)\n"
-                 " * Apple:         brew install mongo-c-driver && brew link --force mongo-c-driver\n"
+                 " * Apple:         brew install mongo-c-driver\n"
                  "If MongoDB support is not required, it can be disabled by setting ENABLE_BACKEND_MONGODB=OFF (add -DENABLE_BACKEND_MONGODB=OFF to CMake options)!")
       ENDIF()
 
       MESSAGE("Looking for MongoDB BSON library:")
-      FIND_LIBRARY(LIBBSON_LIBRARY NAMES bson-1.0 bson2)
-      MESSAGE(" * Library: ${LIBBSON_LIBRARY}")
       FILE(GLOB bsonSearchPaths
-         "/usr/include/bson-*"         "/usr/include/libbson-*"
-         "/usr/local/include/bson-*"   "/usr/local/include/libbson-*"
-         "/usr/pkg/include/bson-*"     "/usr/pkg/include/libbson-*"
+         "/usr/include/bson-*"            "/usr/include/libbson-*"
+         "/usr/local/include/bson-*"      "/usr/local/include/libbson-*"
+         "/usr/pkg/include/bson-*"        "/usr/pkg/include/libbson-*"
+         "/opt/homebrew/include/bson-*"   "/opt/homebrew/include/libbson*"
       )
+      FIND_LIBRARY(LIBBSON_LIBRARY NAMES bson-1.0 bson2 HINTS ${bsonSearchPaths})
+      MESSAGE(" * Library: ${LIBBSON_LIBRARY}")
       FIND_PATH(LIBBSON_INCLUDE_DIR NAMES bson/bson.h HINTS ${bsonSearchPaths})
       MESSAGE(" * Includes: ${LIBBSON_INCLUDE_DIR}")
       IF ((NOT LIBBSON_INCLUDE_DIR) OR (NOT LIBBSON_LIBRARY))
