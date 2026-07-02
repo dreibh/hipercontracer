@@ -1,4 +1,3 @@
-@dir %%DATADIR%%
 %%DBSHELL%%bin/dbshell
 %%DBEAVER_TOOLS%%bin/decrypt-dbeaver-configuration
 %%DBEAVER_TOOLS%%bin/encrypt-dbeaver-configuration
@@ -24,9 +23,9 @@
 %%LIBHPCTDB%%include/hipercontracer/database-statement.h
 %%LIBHPCTDB%%include/hipercontracer/databaseclient-base.h
 %%LIBHPCTDB%%include/hipercontracer/databaseclient-debug.h
-%%LIBHPCTDB%%include/hipercontracer/databaseclient-mariadb.h
-%%LIBHPCTDB%%include/hipercontracer/databaseclient-mongodb.h
-%%LIBHPCTDB%%include/hipercontracer/databaseclient-postgresql.h
+%%LIBHPCTDB_MARIADB%%include/hipercontracer/databaseclient-mariadb.h
+%%LIBHPCTDB_MONGODB%%include/hipercontracer/databaseclient-mongodb.h
+%%LIBHPCTDB_POSTGRESQL%%include/hipercontracer/databaseclient-postgresql.h
 %%LIBHIPERCONTRACER%%include/hipercontracer/destinationinfo.h
 %%LIBHPCTIO%%include/hipercontracer/inputstream.h
 %%LIBHIPERCONTRACER%%include/hipercontracer/iomodule-base.h
@@ -114,8 +113,8 @@
 %%LIBHPCTDB%%%%DATADIR%%/hipercontracer-database.conf
 %%IMPORTER%%%%DATADIR%%/hipercontracer-importer.conf
 %%HIPERCONTRACER%%%%DATADIR%%/hipercontracer.bib
-%%HIPERCONTRACER%%%%DATADIR%%/hipercontracer.pdf
-%%HIPERCONTRACER%%%%DATADIR%%/hipercontracer.png
+%%ICONS%%%%DATADIR%%/hipercontracer.pdf
+%%ICONS%%%%DATADIR%%/hipercontracer.png
 %%EXAMPLE_SCRIPTS%%%%DATADIR%%/results-examples/HiPerConTracer.R
 %%EXAMPLE_RESULTS%%%%DATADIR%%/results-examples/Jitter-ICMP-#12345678-0.0.0.0-20231201T095247.519807-000000008.hpct.xz
 %%EXAMPLE_RESULTS%%%%DATADIR%%/results-examples/Jitter-ICMP-#12345678-::-20231201T095248.178124-000000007.hpct.xz
@@ -200,4 +199,4 @@
 %%PIPE_CHECKSUM%%share/man/man1/pipe-checksum.1.gz
 %%UDPECHO%%share/man/man1/udp-echo-server.1.gz
 %%VIEWER%%share/metainfo/no.nntb.dreibh.hipercontracer.hpct-viewer.metainfo.xml
-%%ICONS%%share/mime/packages/hipercontracer.xml
+%%HIPERCONTRACER%%share/mime/packages/hipercontracer.xml
