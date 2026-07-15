@@ -133,7 +133,7 @@ Description: HiPerConTracer common files
 Package: hipercontracer-examples
 Architecture: all
 Depends: python3,
-         python3-netifaces,
+         python3-psutil,
          r-base-core,
          ${misc:Depends}
 Recommends: r-cran-data.table,
@@ -833,7 +833,7 @@ Depends: hipercontracer-common,
          ${shlibs:Depends}
 Recommends: hipercontracer-dbshell,
             python3,
-            python3-netifaces
+            python3-psutil
 Suggests: hipercontracer
 Description: HiPerConTracer Importer for importing results into a database
  High-Performance Connectivity Tracer (HiPerConTracer) is a Ping/Traceroute

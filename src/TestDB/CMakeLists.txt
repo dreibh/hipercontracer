@@ -32,7 +32,6 @@
 #############################################################################
 
 INSTALL(FILES
-           CertificateHelper.py
            README.md
            hpct-users.conf.example
         DESTINATION ${CMAKE_INSTALL_DATADIR}/hipercontracer/TestDB)

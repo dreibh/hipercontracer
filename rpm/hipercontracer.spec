@@ -232,7 +232,7 @@ Group: Applications/File
 BuildArch: noarch
 Requires: R-core
 Requires: python3
-Requires: python3-netifaces
+Requires: python3-psutil
 Recommends: R-data.table
 Recommends: R-digest
 Recommends: R-dplyr
@@ -1046,7 +1046,7 @@ Requires: %{name}-common = %{version}-%{release}
 Requires: %{name}-libuniversalimporter = %{version}-%{release}
 Recommends: %{name}-dbshell = %{version}-%{release}
 Recommends: python3
-Recommends: python3-netifaces
+Recommends: python3-psutil
 Suggests: %{name} = %{version}-%{release}
 
 %description importer
@@ -1129,7 +1129,6 @@ NoSQL databases.
 %{_datadir}/hipercontracer/TestDB/5-perform-hpct-importer-test
 %{_datadir}/hipercontracer/TestDB/6-perform-hpct-query-test
 %{_datadir}/hipercontracer/TestDB/9-uninstall-database
-%{_datadir}/hipercontracer/TestDB/CertificateHelper.py
 %{_datadir}/hipercontracer/TestDB/README.md
 %{_datadir}/hipercontracer/TestDB/hpct-users.conf.example
 %{_datadir}/hipercontracer/TestDB/name-in-etc-hosts
