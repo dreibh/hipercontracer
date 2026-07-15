@@ -1,3 +1,27 @@
+commit 592c020828bc5564bd0e04349538b536d4aa07a3
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Jul 15 16:36:49 2026 +0200
+
+    Python netifaces is unmaintained since a long time -> replaced by psutil.
+
+commit 0da02898ff844c5e536054354a1cf50160f10b37
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Jul 2 17:26:26 2026 +0200
+
+    Updated FreeBSD port.
+
+commit 75e2336a6416de59928a1c05664bc4fdcd34e21c
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Jul 2 16:05:26 2026 +0200
+
+    Updated APKBUILD file.
+
+commit 56c2662715f1e2b6a047b2e3bc3da4d9e7c24b1b
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Jul 2 15:57:13 2026 +0200
+
+    New release hipercontracer-2.2.6.
+
 commit aa1a9fe07fd8d5faf5d44d16e1b87cabe706d862
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Thu Jul 2 12:30:26 2026 +0200

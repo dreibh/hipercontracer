@@ -1,3 +1,11 @@
+hipercontracer (2.2.7-1ubuntu1) unstable; urgency=medium
+
+  * New upstream release.
+  * debian/control, debian/test/control: Python netifaces is unmaintained
+    since a long time -> replaced by psutil.
+
+ -- Thomas Dreibholz <dreibh@simula.no>  Wed, 15 Jul 2026 17:05:55 +0200
+
 hipercontracer (2.2.6-1ubuntu1) unstable; urgency=medium
 
   * New upstream release.
