@@ -44,7 +44,7 @@ void checkEnvironment(const char* programName)
    std::cout << programName << " " << HPCT_VERSION << "\n";
 
    // ====== System information =============================================
-   utsname sysInfo;
+   struct utsname sysInfo;
    if(uname(&sysInfo) == 0) {
       std::cout << "System Information:\n"
                 << "* System: \t" << sysInfo.sysname  << "\n"
