@@ -240,7 +240,7 @@ ELSE()
            " * FreeBSD:       sudo pkg install -y boost\n"
            " * NetBSD:        sudo pkgin -y install boost\n"
            " * OpenBSD:       sudo pkg_add boost\n"
-           " * Solaris:       sudo pkg install boost\n"
+           " * Solaris:       sudo pkg install library/boost\n"
            " * Apple:         brew install boost")
 ENDIF()
 
@@ -309,7 +309,7 @@ ELSE()
            " * FreeBSD:       sudo pkg install -y bzip2\n"
            " * NetBSD:        (should be installed by default)\n"
            " * OpenBSD:       (should be installed by default)\n"
-           " * Solaris    :   sudo pkg install bzip2\n"
+           " * Solaris:       sudo pkg install bzip2\n"
            " * Apple:         brew install bzip2")
 ENDIF()
 
@@ -330,7 +330,7 @@ ELSE()
            " * FreeBSD:       sudo pkg install -y lzmalib\n"
            " * NetBSD:        sudo pkgin -y install lzmalib\n"
            " * OpenBSD:       sudo pkg_add xz\n"
-           " * Solaris    :   sudo pkg install liblzma\n"
+           " * Solaris:       sudo pkg install compress/xz\n"
            " * Apple:         brew install xz")
 ENDIF()
 
@@ -351,7 +351,7 @@ ELSE()
            " * FreeBSD:       sudo pkg install -y zstd\n"
            " * NetBSD:        sudo pkgin -y install zstd\n"
            " * OpenBSD:       sudo pkg_add zstd\n"
-           " * Solaris    :   sudo pkg install zstd\n"
+           " * Solaris:       sudo pkg install compress/zstd\n"
            " * Apple:         brew install zsdt")
 ENDIF()
 
