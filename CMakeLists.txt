@@ -109,6 +109,18 @@ ELSEIF (CMAKE_SYSTEM_NAME MATCHES "NetBSD")
    SET(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_FULL_LIBDIR}")
 ELSEIF (CMAKE_SYSTEM_NAME MATCHES "OpenBSD")
    MESSAGE(STATUS "${CMAKE_SYSTEM_NAME} supported")
+ELSEIF (CMAKE_SYSTEM_NAME MATCHES "SunOS")
+   MESSAGE(STATUS "${CMAKE_SYSTEM_NAME} supported")
+   ADD_COMPILE_OPTIONS(-pthreads)
+   ADD_COMPILE_DEFINITIONS(_REENTRANT)
+   # Necessary for correctly detecting BOOST libraries:
+   IF (CMAKE_SYSTEM_PROCESSOR MATCHES "i.86|x86_64|amd64|AMD64")
+      SET(CMAKE_LIBRARY_ARCHITECTURE "amd64")
+   ELSEIF (CMAKE_SYSTEM_PROCESSOR MATCHES "sparc")
+      SET(CMAKE_LIBRARY_ARCHITECTURE "sparcv9")
+   ELSEIF (CMAKE_SYSTEM_PROCESSOR MATCHES "aarch64|arm64|ARM64")
+      SET(CMAKE_LIBRARY_ARCHITECTURE "aarch64")
+   ENDIF()
 ELSEIF (CMAKE_SYSTEM_NAME MATCHES "Darwin")
    MESSAGE(STATUS "${CMAKE_SYSTEM_NAME} supported")
 ELSE()
@@ -200,6 +212,12 @@ ENDIF()
 # ====== Threads ============================================================
 FIND_PACKAGE(Threads REQUIRED)
 
+# ====== Solaris: libsocket and libnsl ======================================
+IF (CMAKE_SYSTEM_NAME MATCHES "SunOS")
+   FIND_LIBRARY(SOCKET_LIBRARY socket REQUIRED)
+   FIND_LIBRARY(NSL_LIBRARY    nsl    REQUIRED)
+ENDIF()
+
 # ====== Boost ==============================================================
 IF(CMAKE_VERSION VERSION_GREATER_EQUAL "3.30")
    # Use BoostConfig.cmake to find BOOST libraries, if possible.
@@ -212,7 +230,7 @@ IF (Boost_FOUND)
    MESSAGE(STATUS " Boost_LIBRARY_DIRS: ${Boost_LIBRARY_DIRS}")
    MESSAGE(STATUS " Boost_INCLUDE_DIRS: ${Boost_INCLUDE_DIRS}")
    MESSAGE(STATUS " Boost_LIBRARIES:    ${Boost_LIBRARIES}")
-   FIND_PACKAGE(Boost REQUIRED COMPONENTS log date_time thread iostreams filesystem program_options)
+   FIND_PACKAGE(Boost COMPONENTS log date_time thread iostreams filesystem program_options REQUIRED)
 ELSE()
    MESSAGE(FATAL_ERROR "Cannot find BOOST libraries! Try:\n"
            " * Ubuntu/Debian: sudo apt install -y libboost-all-dev\n"
@@ -222,6 +240,7 @@ ELSE()
            " * FreeBSD:       sudo pkg install -y boost\n"
            " * NetBSD:        sudo pkgin -y install boost\n"
            " * OpenBSD:       sudo pkg_add boost\n"
+           " * Solaris:       sudo pkg install boost\n"
            " * Apple:         brew install boost")
 ENDIF()
 
@@ -245,6 +264,7 @@ IF (WITH_LIBUNIVERSALIMPORTER)
                  " * FreeBSD:       sudo pkg install -y libinotify\n"
                  " * NetBSD:        sudo pkgin -y install libinotify\n"
                  " * OpenBSD:       sudo pkg_add libinotify\n"
+                 " * Solaris:       --- N/A ---\n"
                  " * Apple:         --- N/A ---\n"
                  "If the Importer is not required, it can be disabled by setting WITH_IMPORTER=OFF (add -DWITH_IMPORTER=OFF to CMake options)!")
       ENDIF()
@@ -268,6 +288,7 @@ ELSE()
            " * FreeBSD:       (should be installed by default)\n"
            " * NetBSD:        (should be installed by default)\n"
            " * OpenBSD:       (should be installed by default)\n"
+           " * Solaris:       sudo pkg install zlib\n"
            " * Apple:         brew install zlib")
 ENDIF()
 
@@ -288,6 +309,7 @@ ELSE()
            " * FreeBSD:       sudo pkg install -y bzip2\n"
            " * NetBSD:        (should be installed by default)\n"
            " * OpenBSD:       (should be installed by default)\n"
+           " * Solaris    :   sudo pkg install bzip2\n"
            " * Apple:         brew install bzip2")
 ENDIF()
 
@@ -308,6 +330,7 @@ ELSE()
            " * FreeBSD:       sudo pkg install -y lzmalib\n"
            " * NetBSD:        sudo pkgin -y install lzmalib\n"
            " * OpenBSD:       sudo pkg_add xz\n"
+           " * Solaris    :   sudo pkg install liblzma\n"
            " * Apple:         brew install xz")
 ENDIF()
 
@@ -328,6 +351,7 @@ ELSE()
            " * FreeBSD:       sudo pkg install -y zstd\n"
            " * NetBSD:        sudo pkgin -y install zstd\n"
            " * OpenBSD:       sudo pkg_add zstd\n"
+           " * Solaris    :   sudo pkg install zstd\n"
            " * Apple:         brew install zsdt")
 ENDIF()
 
@@ -349,6 +373,7 @@ ENDIF()
 #             " * FreeBSD:       sudo pkg install -y c-ares\n"
 #             " * NetBSD:        sudo pkgin -y install libcares\n"
 #             " * OpenBSD:       sudo pkg_add libcares\n"
+#             " * Solaris:       sudo pkg install ?????\n"
 #             " * Apple:         brew install c-ares")
 #    ENDIF()
 # ENDIF()
@@ -371,6 +396,7 @@ IF (WITH_PIPE_CHECKSUM)
               " * FreeBSD:       sudo pkg install -y openssl\n"
               " * NetBSD:        sudo pkgin -y install openssl\n"
               " * OpenBSD:       sudo pkg_add openssl\n"
+              " * Solaris:       sudo pkg install openssl-3\n"
               " * Apple:         brew install openssl")
    ENDIF()
 ENDIF()
@@ -393,14 +419,19 @@ IF (WITH_LIBHPCTDB)
       MESSAGE("Building with MySQL/MariaDB backend (ENABLE_BACKEND_MARIADB=${ENABLE_BACKEND_MARIADB})")
 
       MESSAGE("Looking for MySQL/MariaDB C Client library:")
-      FIND_LIBRARY(LIBMARIADB_LIBRARY NAMES mariadb
+      FIND_LIBRARY(LIBMARIADB_LIBRARY NAMES mariadb mysqlclient
                    PATH_SUFFIXES            mariadb mysql
                    HINTS                    /opt/homebrew/opt/mariadb-connector-c/lib
-                                            /usr/local/opt/mariadb-connector-c/lib)
+                                            /usr/local/opt/mariadb-connector-c/lib
+                                            /usr/mariadb/11.4/lib/amd64
+                                            /usr/mariadb/10.6/lib/amd64)
       MESSAGE(" * Library: ${LIBMARIADB_LIBRARY}")
-      FIND_PATH(LIBMARIADB_INCLUDE_DIR NAMES mysql.h PATH_SUFFIXES mariadb mysql
+      FIND_PATH(LIBMARIADB_INCLUDE_DIR NAMES mysql.h
+                PATH_SUFFIXES mariadb mysql
                 HINTS /opt/homebrew/opt/mariadb-connector-c/include
-                      /usr/local/opt/mariadb-connector-c/include)
+                      /usr/local/opt/mariadb-connector-c/include
+                      /usr/mariadb/11.4/include
+                      /usr/mariadb/10.6/include)
       MESSAGE(" * Includes: ${LIBMARIADB_INCLUDE_DIR}")
       IF ((NOT LIBMARIADB_INCLUDE_DIR) OR (NOT LIBMARIADB_LIBRARY))
          MESSAGE(FATAL_ERROR
@@ -412,6 +443,7 @@ IF (WITH_LIBHPCTDB)
                  " * FreeBSD:       sudo pkg install -y mariadb-connector-c\n"
                  " * NetBSD:        sudo pkgin -y install mariadb-client\n"
                  " * OpenBSD:       sudo pkg_add mariadb-client\n"
+                 " * Solaris:       sudo pkg install mariadb-114\n"
                  " * Apple:         brew install mariadb-connector-c\n"
                  "If MySQL/MariaDB support is not required, it can be disabled by setting ENABLE_BACKEND_MARIADB=OFF (add -DENABLE_BACKEND_MARIADB=OFF to CMake options)!")
       ENDIF()
@@ -442,6 +474,7 @@ IF (WITH_LIBHPCTDB)
                  " * FreeBSD:       sudo pkg install -y postgresql-libpqxx\n"
                  " * NetBSD:        sudo pkgin -y install libpqxx\n"
                  " * OpenBSD:       sudo pkg_add libpqxx\n"
+                 " * Solaris:       sudo pkg install libpqxx\n"
                  " * Apple:         brew install libpqxx\n"
                  "If PostgreSQL support is not required, it can be disabled by setting ENABLE_BACKEND_POSTGRESQL=OFF (add -DENABLE_BACKEND_POSTGRESQL=OFF to CMake options)!")
       ENDIF()
@@ -482,6 +515,7 @@ IF (WITH_LIBHPCTDB)
                  " * FreeBSD:       sudo pkg install -y mongo-c-driver\n"
                  " * NetBSD:        sudo pkgin -y install mongo-c-driver\n"
                  " * OpenBSD:       (needs PPA or installation from sources!)\n"
+                 " * Solaris:       (needs PPA or installation from sources!)\n"
                  " * Apple:         brew install mongo-c-driver\n"
                  "If MongoDB support is not required, it can be disabled by setting ENABLE_BACKEND_MONGODB=OFF (add -DENABLE_BACKEND_MONGODB=OFF to CMake options)!")
       ENDIF()
@@ -507,6 +541,7 @@ IF (WITH_LIBHPCTDB)
                  " * FreeBSD:       sudo pkg install -y libbson\n"
                  " * NetBSD:        sudo pkgin -y install mongo-c-driver\n"
                  " * OpenBSD:       (needs PPA or installation from sources!)\n"
+                 " * Solaris:       (needs PPA or installation from sources!)\n"
                  " * Apple:         brew install mongo-c-driver\n"
                  "If MongoDB support is not required, it can be disabled by setting ENABLE_BACKEND_MONGODB=OFF (add -DENABLE_BACKEND_MONGODB=OFF to CMake options)!")
       ENDIF()
@@ -539,7 +574,9 @@ IF (WITH_ICONS)
               " * FreeBSD:       sudo pkg install -y ghostscript10\n"
               " * NetBSD:        sudo pkgin -y install ghostscript\n"
               " * OpenBSD:       sudo pkg_add ghostscript\n"
-              " * Apple:         brew install ghostscript")
+              " * Solaris:       sudo pkg install ghostscript\n"
+              " * Apple:         brew install ghostscript\n"
+              "If desktop icons are not required, they can be disabled by setting WITH_ICONS=OFF (add -DWITH_ICONS=OFF to CMake options)!")
    ENDIF()
 
    # ------ GraphicsMagick or ImageMagick -----------------------------------
@@ -560,7 +597,9 @@ IF (WITH_ICONS)
               " * FreeBSD:       sudo pkg install -y GraphicsMagick\n"
               " * NetBSD:        sudo pkgin -y install GraphicsMagick\n"
               " * OpenBSD:       sudo pkg_add GraphicsMagick\n"
-              " * Apple:         brew install graphicsmagick")
+              " * Solaris:       sudo pkg install graphicsmagick\n"
+              " * Apple:         brew install graphicsmagick\n"
+              "If desktop icons are not required, they can be disabled by setting WITH_ICONS=OFF (add -DWITH_ICONS=OFF to CMake options)!")
    ENDIF()
 
    # ------ MuPDF mutool ----------------------------------------------------
@@ -582,7 +621,9 @@ IF (WITH_ICONS)
               " * FreeBSD:       sudo pkg install -y mupdf\n"
               " * NetBSD:        sudo pkgin -y install mupdf\n"
               " * OpenBSD:       sudo pkg_add mupdf\n"
-              " * Apple:         brew install mupdf-tools")
+              " * Solaris:       (needs PPA or installation from sources!)\n"
+              " * Apple:         brew install mupdf-tools\n"
+              "If desktop icons are not required, they can be disabled by setting WITH_ICONS=OFF (add -DWITH_ICONS=OFF to CMake options)!")
    ENDIF()
 
 ELSE()

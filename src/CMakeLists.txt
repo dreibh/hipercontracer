@@ -80,11 +80,12 @@ IF (WITH_LIBHPCTIO)
          TARGET_INCLUDE_DIRECTORIES(libhpctio-${TYPE} PRIVATE ${Boost_INCLUDE_DIRS})
          TARGET_LINK_LIBRARIES(libhpctio-${TYPE}
                                ${Boost_LIBRARIES}
-                               ${CMAKE_THREAD_LIBS_INIT}
                                ${ZSTD_LIBRARY}
                                ${LZMA_LIBRARY}
                                ${BZ2_LIBRARY}
-                               ${Z_LIBRARY})
+                               ${Z_LIBRARY}
+                               ${SOCKET_LIBRARY}
+                               ${CMAKE_THREAD_LIBS_INIT})
          INSTALL(TARGETS     libhpctio-${TYPE}
                DESTINATION ${CMAKE_INSTALL_LIBDIR})
       ENDIF()
@@ -264,7 +265,16 @@ IF (WITH_LIBUNIVERSALIMPORTER)
          TARGET_INCLUDE_DIRECTORIES(libuniversalimporter-${TYPE} PRIVATE
                                     ${INotify_INCLUDE_DIRS}
                                     ${Boost_INCLUDE_DIRS})
-         TARGET_LINK_LIBRARIES(libuniversalimporter-${TYPE} libhpctdb-${TYPE} ${Boost_LIBRARIES} ${LIBMARIADB_LIBRARY} ${PQXX_LIBRARIES} ${LIBMONGOC_LIBRARY} ${LIBBSON_LIBRARY} ${INotify_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
+         TARGET_LINK_LIBRARIES(libuniversalimporter-${TYPE}
+                               libhpctdb-${TYPE}
+                               ${Boost_LIBRARIES}
+                               ${LIBMARIADB_LIBRARY}
+                               ${PQXX_LIBRARIES}
+                               ${LIBMONGOC_LIBRARY}
+                               ${LIBBSON_LIBRARY}
+                               ${INotify_LIBRARIES}
+                               ${SOCKET_LIBRARY}
+                               ${CMAKE_THREAD_LIBS_INIT})
          INSTALL(TARGETS libuniversalimporter-${TYPE} DESTINATION ${CMAKE_INSTALL_LIBDIR})
       ENDIF()
    ENDFOREACH()
@@ -525,7 +535,7 @@ ENDIF()
 IF (WITH_UDP_ECHO_SERVER)
    ADD_EXECUTABLE(udp-echo-server udp-echo-server.cc logger.cc tools.cc)
    TARGET_INCLUDE_DIRECTORIES(udp-echo-server PRIVATE ${Boost_INCLUDE_DIRS})
-   TARGET_LINK_LIBRARIES(udp-echo-server ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
+   TARGET_LINK_LIBRARIES(udp-echo-server ${Boost_LIBRARIES} ${SOCKET_LIBRARY} ${CMAKE_THREAD_LIBS_INIT})
    INSTALL(TARGETS udp-echo-server   RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
    INSTALL(FILES   udp-echo-server.1 DESTINATION         ${CMAKE_INSTALL_MANDIR}/man1)
    INSTALL(FILES   udp-echo-server.bash-completion
