@@ -517,6 +517,7 @@ void ICMPModule::handleResponse(const boost::system::error_code& errorCode,
                // ------ Linux: get reception time via SIOCGSTAMPNS ---------
                timespec ts;
                timeval  tv;
+#if defined (SIOCGSTAMPNS)
                if(ioctl(socketDescriptor, SIOCGSTAMPNS, &ts) == 0) {
                   // Got reception time from kernel via SIOCGSTAMPNS
                   receivedData.ReceiveSWSource = TimeSourceType::TST_SIOCGSTAMPNS;
@@ -525,7 +526,9 @@ void ICMPModule::handleResponse(const boost::system::error_code& errorCode,
                                                     std::chrono::nanoseconds(ts.tv_nsec));
                }
                // ------ Linux: get reception time via SIOCGSTAMP -----------
-               else if(ioctl(socketDescriptor, SIOCGSTAMP, &tv) == 0) {
+               else
+#endif
+               if(ioctl(socketDescriptor, SIOCGSTAMP, &tv) == 0) {
                   // Got reception time from kernel via SIOCGSTAMP
                   receivedData.ReceiveSWSource = TimeSourceType::TST_SIOCGSTAMP;
                   receivedData.ReceiveSWTime   = ResultTimePoint(
