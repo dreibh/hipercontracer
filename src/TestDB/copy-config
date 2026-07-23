@@ -48,9 +48,4 @@ echo -e "\x1b[34mCopying database access configuration from test server ...\x1b[
 
 rsync -v "${USER}@${SERVER}":*.{conf,crt,crl,pem} "${HOME}/" || true
 
-# -e "s/^\(dbserver[ \t]*\)=.*\$/\1= ${SERVER}/g"
-sed -e "s#^\(dbcafile[ \t]*\)=[[:space:]]*/home/${USER}/\(.*\)#\1= ${HOME}/\2#g" \
-    -e "s#^\(dbcrlfile[ \t]*\)=[[:space:]]*/home/${USER}/\(.*\)#\1= ${HOME}/\2#g" \
-    -i "${HOME}"/*.conf
-
 echo -e "\x1b[34mDone!\x1b[0m"
