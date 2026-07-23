@@ -311,7 +311,7 @@ elif [ "$1" == "mongodb" ] ; then
    MONGODB_KEY="8.0"       # NOTE: Minor releases use the major version's key!
 
    if [ "${ID}" == "ubuntu" ] || [ "${ID}" == "debian" ] ; then
-      for key in ${MONGODB_VERSION} dev ; do
+      for key in ${MONGODB_KEY} dev ; do
          wget -qO - "https://pgp.mongodb.com/server-${key}.asc" | gpg --dearmor | sudo tee "/usr/share/keyrings/mongodb-${key}.gpg" >/dev/null
       done
       (
