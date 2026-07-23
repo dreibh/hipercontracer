@@ -64,6 +64,9 @@ case "${UNAME}" in
    OpenBSD)
       GETOPT="$(command -v gnugetopt || true)"
       ;;
+   SunOS)
+      GETOPT="$(PATH="/usr/gnu/bin:${PATH}" command -v getopt || true)"
+      ;;
    Darwin)
       GETOPT="$(env PATH="/opt/homebrew/opt/gnu-getopt/bin:${PATH}" command -v getopt || true)"
       ;;
