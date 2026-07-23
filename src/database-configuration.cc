@@ -31,6 +31,7 @@
 #include "logger.h"
 
 #include <fstream>
+#include <iostream>
 #include <boost/algorithm/string.hpp>
 
 
@@ -95,10 +96,32 @@ DatabaseConfiguration::~DatabaseConfiguration()
 }
 
 
+// ###### Make absolute path name of file relative to directory #############
+static inline std::filesystem::path checkFile(const std::string&           file,
+                                              const std::filesystem::path& directory,
+                                              const char*                  label)
+{
+   if(boost::iequals(file, "NONE") || boost::iequals(file, "IGNORE")) {
+      return std::string();
+   }
+   else if(!file.empty()) {
+      const std::filesystem::path absPath =
+         std::filesystem::absolute(directory / file);
+      if(!std::filesystem::is_regular_file(absPath)) {
+         HPCT_LOG(fatal) << "Unable to find " << label << " " << absPath;
+         exit(1);
+      }
+      return absPath;
+   }
+   return file;
+}
+
+
 // ###### Read database configuration #######################################
 bool DatabaseConfiguration::readConfiguration(const std::filesystem::path& configurationFile)
 {
-   std::ifstream configurationInputStream(configurationFile);
+   const std::filesystem::path configurationDirectory = configurationFile.parent_path();
+   std::ifstream               configurationInputStream(configurationFile);
 
    if(!configurationInputStream.good()) {
       HPCT_LOG(error) << "Unable to read database configuration from " << configurationFile;
@@ -116,25 +139,14 @@ bool DatabaseConfiguration::readConfiguration(const std::filesystem::path& confi
    }
 
    // ====== Check options ==================================================
-   if(!setBackend(BackendName))           return false;
-   if(!setConnectionFlags(FlagNames))     return false;
+   if(!setBackend(BackendName))       return false;
+   if(!setConnectionFlags(FlagNames)) return false;
 
-   // Legacy parameter settings:
-   if(boost::iequals(CAFile, "NONE") || boost::iequals(CAFile, "IGNORE")) {
-      CAFile = std::string();
-   }
-   if(boost::iequals(CRLFile, "NONE") || boost::iequals(CRLFile, "IGNORE")) {
-      CRLFile = std::string();
-   }
-   if(boost::iequals(CertFile, "NONE") || boost::iequals(CertFile, "IGNORE")) {
-      CertFile = std::string();
-   }
-   if(boost::iequals(KeyFile, "NONE") || boost::iequals(KeyFile, "IGNORE")) {
-      KeyFile = std::string();
-   }
-   if(boost::iequals(CertKeyFile, "NONE") || boost::iequals(CertKeyFile, "IGNORE")) {
-      CertKeyFile = std::string();
-   }
+   CAFile      = checkFile(CAFile,      configurationDirectory, "CA certificate file (dbcafile setting)");
+   CRLFile     = checkFile(CRLFile,     configurationDirectory, "CRL file (dbcrlfile setting)");
+   KeyFile     = checkFile(KeyFile,     configurationDirectory, "key file (dbkeyfile setting)");
+   CertFile    = checkFile(CertFile,    configurationDirectory, "certificertte file (dbcertfile setting)");
+   CertKeyFile = checkFile(CertKeyFile, configurationDirectory, "certificertkeyte+key file (dbcertkeyfile setting)");
 
    return true;
 }
