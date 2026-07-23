@@ -312,7 +312,7 @@ elif [ "$1" == "mongodb" ] ; then
 
    if [ "${ID}" == "ubuntu" ] || [ "${ID}" == "debian" ] ; then
       for key in ${MONGODB_VERSION} dev ; do
-         wget -qO - "https://www.mongodb.org/static/pgp/server-${key}.asc" | gpg --dearmor | sudo tee "/usr/share/keyrings/mongodb-${key}.gpg" >/dev/null
+         wget -qO - "https://pgp.mongodb.com/server-${key}.asc" | gpg --dearmor | sudo tee "/usr/share/keyrings/mongodb-${key}.gpg" >/dev/null
       done
       (
          if [ "${ID}" == "ubuntu" ] ; then
