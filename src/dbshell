@@ -32,6 +32,18 @@
 set -euo pipefail
 
 
+# ###### Get absolute path name of file relative to directory ###############
+make-abspath () {
+   local file="$1"
+   local directory="$2"
+   if [[ "${file}" =~ ^(/) ]] ; then
+      echo "${file}"
+   else
+      echo "${directory}/${file}"
+   fi
+}
+
+
 # ###### Usage ##############################################################
 usage () {
    local exitCode="$1"
@@ -128,6 +140,7 @@ if [ ! -e "${CONFIGURATION_FILE}" ] ; then
    echo >&2 "ERROR: User configuration ${CONFIGURATION_FILE} does not exist!"
    exit 1
 fi
+CONFIGURATION_DIRECTORY="$(cd -P -- "$(dirname -- "${CONFIGURATION_FILE}")" && pwd -P)"
 
 
 # ====== Read configuration file ============================================
@@ -147,18 +160,28 @@ configContent=$(sed -r '/[^=#]+=[^=]+/!d' <"${CONFIGURATION_FILE}" | sed -r "s/[
 eval "${configContent}"
 if [ "${dbcafile}" == "NONE" ] ; then
    dbcafile=""
+else
+   dbcafile="$(make-abspath "${dbcafile}" "${CONFIGURATION_DIRECTORY}")"
 fi
 if [ "${dbcrlfile}" == "NONE" ] ; then
    dbcrlfile=""
+else
+   dbcrlfile="$(make-abspath "${dbcrlfile}" "${CONFIGURATION_DIRECTORY}")"
 fi
 if [ "${dbkeyfile}" == "NONE" ] ; then
    dbkeyfile=""
+else
+   dbkeyfile="$(make-abspath "${dbkeyfile}" "${CONFIGURATION_DIRECTORY}")"
 fi
 if [ "${dbcertfile}" == "NONE" ] ; then
    dbcertfile=""
+else
+   dbcertfile="$(make-abspath "${dbcertfile}" "${CONFIGURATION_DIRECTORY}")"
 fi
 if [ "${dbcertkeyfile}" == "NONE" ] ; then
    dbcertkeyfile=""
+else
+   dbcertkeyfile="$(make-abspath "${dbcertkeyfile}" "${CONFIGURATION_DIRECTORY}")"
 fi
 tls_enabled=1
 tls_check_certificate=1
