@@ -77,7 +77,7 @@ _hpct_query()
          # ====== Special case: file ========================================
          -o | --output)
             # HiPerConTracer results file names:
-            _filedir '@(hpct\.xz|hpct\.bz2|hpct\.gz|hpct|results\.xz|results\.bz2|results\.gz|results)'
+            _filedir '@(hpct\.xz|hpct\.bz2|hpct\.gz|hpct\.zst|hpct|results\.xz|results\.bz2|results\.gz|results\.zst|results)'
             return
             ;;
          # ====== Special case: file ========================================
@@ -93,7 +93,8 @@ _hpct_query()
             return
             ;;
          # ====== Special case: on/off ======================================
-         -Z | --logcolor)
+         -Z | --logcolor | \
+         --deduplication)
             mapfile -t COMPREPLY < <(compgen -W "on off" --  "${cur}")
             return
             ;;
@@ -110,7 +111,7 @@ _hpct_query()
 --logfile
 -q
 --quiet
--v
+-w
 --verbose
 -o
 --output
@@ -127,6 +128,7 @@ _hpct_query()
 --to-measurement-id
 -h
 --help
+-v
 --version
 "
    mapfile -t COMPREPLY < <(compgen -W "${opts}" -- "${cur}" )

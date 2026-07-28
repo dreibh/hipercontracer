@@ -51,13 +51,6 @@ _dbshell()
       cword="${COMP_CWORD}"
    fi
 
-   # ====== Database configuration file =====================================
-   if [ "${cword}" -eq 1 ] ; then
-      # Files with extension .conf:
-      _filedir '@(conf)'
-      return
-   fi
-
    case "${prev}" in
       # ====== Special case: file ===========================================
       -B | --write-dbeaver-config)
@@ -67,14 +60,27 @@ _dbshell()
          ;;
    esac
 
+   # ====== Database configuration file =====================================
+   if [[ "${cur}" != -* ]]; then
+      # Files with extension .conf:
+      _filedir '@(conf)'
+      return
+   fi
+
    # ====== All options =====================================================
    local opts="
--q
---quiet
 -d
 --dry-run
 -B
 --write-dbeaver-config
+-q
+--quiet
+-w
+--verbose
+-h
+--help
+-v
+--version
 "
    mapfile -t COMPREPLY < <(compgen -W "${opts}" -- "${cur}" )
    return 0

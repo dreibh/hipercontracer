@@ -51,12 +51,20 @@ _hpct_viewer()
       cword="${COMP_CWORD}"
    fi
 
-   if [ "${cword}" -eq 1 ] ; then
+   if [[ "${cur}" != -* ]]; then
       # HiPerConTracer results file names:
-      _filedir '@(hpct\.xz|hpct\.bz2|hpct\.gz|hpct|results\.xz|results\.bz2|results\.gz|results)'
+      _filedir '@(hpct\.xz|hpct\.bz2|hpct\.gz|hpct\.zst|hpct|results\.xz|results\.bz2|results\.gz|results\.zst|results)'
       return
    fi
 
+   # ====== All options =====================================================
+   local opts="
+-h
+--help
+-v
+--version
+"
+   mapfile -t COMPREPLY < <(compgen -W "${opts}" -- "${cur}" )
    return 0
 }
 

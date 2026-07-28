@@ -29,8 +29,8 @@
 # Contact: dreibh@simula.no
 
 
-# ###### Bash completion for pipe-checksum ######################################
-_pipe_checksum()
+# ###### Bash completion for hpct-nodes-list ################################
+_hpct_nodes_list()
 {
    # Based on: https://www.benningtons.net/index.php/bash-completion/
    local cur prev words cword
@@ -51,23 +51,8 @@ _pipe_checksum()
       cword="${COMP_CWORD}"
    fi
 
-   if [[ "${cur}" != -* && "${prev}" != "-D" && "${prev}" != "--digest" ]]; then
-      _filedir
-      return
-   fi
-
-   case "${prev}" in
-      # ====== Special case: on/off =========================================
-      -D | --digest)
-         mapfile -t COMPREPLY < <(compgen -W "$(pipe-checksum 2>&1 | grep '^Supported digests:' | sed -e 's/.*://')" --  "${cur}")
-         return
-         ;;
-   esac
-
    # ====== All options =====================================================
    local opts="
--D
---digest
 -h
 --help
 -v
@@ -77,4 +62,4 @@ _pipe_checksum()
    return 0
 }
 
-complete -F _pipe_checksum pipe-checksum
+complete -F _hpct_nodes_list hpct-nodes-list
