@@ -126,7 +126,9 @@ bool TCPModule::prepareSocket()
    }
 
    // ====== Await incoming message or error ================================
+#if defined (MSG_ERRQUEUE)
    expectNextReply(RawTCPSocket.native_handle(), true);
+#endif
    expectNextReply(RawTCPSocket.native_handle(), false);
 
    return true;
@@ -139,8 +141,10 @@ void TCPModule::expectNextReply(const int  socketDescriptor,
 {
    if(socketDescriptor == TCPSocket.native_handle()) {
       TCPSocket.async_wait(
+#if defined (MSG_ERRQUEUE)
          (readFromErrorQueue == true) ?
             boost::asio::ip::tcp::socket::wait_error :
+#endif
             boost::asio::ip::tcp::socket::wait_read,
          std::bind(&ICMPModule::handleResponse, this,
                    std::placeholders::_1,
@@ -149,8 +153,10 @@ void TCPModule::expectNextReply(const int  socketDescriptor,
    }
    else if(socketDescriptor == RawTCPSocket.native_handle()) {
       RawTCPSocket.async_wait(
+#if defined (MSG_ERRQUEUE)
          (readFromErrorQueue == true) ?
             boost::asio::ip::tcp::socket::wait_error :
+#endif
             boost::asio::ip::tcp::socket::wait_read,
          std::bind(&ICMPModule::handleResponse, this,
                    std::placeholders::_1,
