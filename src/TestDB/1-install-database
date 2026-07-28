@@ -307,7 +307,7 @@ elif [ "$1" == "mongodb" ] ; then
    # ====== Install MongoDB =================================================
    echo -e "\x1b[34m$(date +"%F %H:%M:%S"): Installing MongoDB ...\x1b[0m"
 
-   MONGODB_VERSION="8.2"   # Current version
+   MONGODB_VERSION="8.3"   # Current version
    MONGODB_KEY="8.0"       # NOTE: Minor releases use the major version's key!
 
    if [ "${ID}" == "ubuntu" ] || [ "${ID}" == "debian" ] ; then
