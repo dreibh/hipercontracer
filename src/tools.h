@@ -173,7 +173,7 @@ template <typename TimePoint> std::string timePointToString(
    ss << std::put_time(&tm, format);
    if(precision > 0) {
       ss << '.' << std::setw(precision) << std::setfill('0')
-         << (unsigned int)floor(fseconds * pow(10.0, precision));
+         << (unsigned int)floor(fseconds * pow(10.0, (int)precision));
    }
 
    return ss.str();
