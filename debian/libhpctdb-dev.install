@@ -1,0 +1,9 @@
+usr/include/hipercontracer/database-configuration.h
+usr/include/hipercontracer/database-statement.h
+usr/include/hipercontracer/databaseclient-base.h
+usr/include/hipercontracer/databaseclient-debug.h
+usr/include/hipercontracer/databaseclient-mariadb.h
+usr/include/hipercontracer/databaseclient-mongodb.h
+usr/include/hipercontracer/databaseclient-postgresql.h
+usr/lib/${DEB_HOST_MULTIARCH}/libhpctdb*.so
+usr/lib/${DEB_HOST_MULTIARCH}/libhpctdb.a

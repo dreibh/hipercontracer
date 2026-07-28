@@ -32,21 +32,80 @@
 set -euo pipefail
 
 
+# ###### Make absolute path name of file, and check its existence ###########
+check-file () {
+   local file="$1"
+   local directory="$2"
+   local label="$3"
+
+   if [[ "${file^^}" =~ ^(NONE|IGNORE|)$ ]] ; then
+      file=""
+   else
+      if [[ ! "${file}" =~ ^(/) ]] ; then
+         file="${directory}/${file}"
+      fi
+      if [ ! -f "${file}" ] ; then
+         echo >&2 "ERROR: Unable to find ${label} ${file}!"
+         exit 1
+      fi
+   fi
+
+   echo "${file}"
+}
+
+
 # ###### Usage ##############################################################
 usage () {
-   echo >&2 "Usage: $0 configuration_file [-h|--help] [-d|--dry-run] [-q|--quiet] [-B|--write-dbeaver-config file_prefix]"
-   exit 1
+   local exitCode="$1"
+   echo >&2 "Usage: $0 configuration_file [-d|--dry-run] [-q|--quiet] [-w|--verbose] [-B|--write-dbeaver-config file_prefix] [-h|--help] [-v|--version]"
+   exit "${exitCode}"
 }
+
+
+# ###### Version ############################################################
+version () {
+   echo "DBShell @BUILD_MAJOR@.@BUILD_MINOR@.@BUILD_PATCH@"
+   exit 0
+}
+
 
 
 # ###### Main program #######################################################
 
 # ====== Handle arguments ===================================================
-GETOPT="$(PATH=/usr/local/bin:$PATH which getopt)"
-options="$(${GETOPT} -o hdqB: --long help,dry-run,quiet,write-dbeaver-config: -a -- "$@")"
+if (( BASH_VERSINFO[0] < 4 )) || (( (BASH_VERSINFO[0] == 4) && (BASH_VERSINFO[1] < 4) )) ; then
+   echo >&2 "ERROR: Bash 4.4 or higher is required!"
+   exit 1
+fi
+UNAME="$(uname)"
+case "${UNAME}" in
+   FreeBSD)
+      GETOPT="$(PATH="/usr/local/bin:${PATH}" command -v getopt || true)"
+      ;;
+   NetBSD)
+      GETOPT="$(PATH="/usr/pkg/bin:${PATH}" command -v getopt || true)"
+      ;;
+   OpenBSD)
+      GETOPT="$(command -v gnugetopt || true)"
+      ;;
+   SunOS)
+      GETOPT="$(PATH="/usr/gnu/bin:${PATH}" command -v getopt || true)"
+      ;;
+   Darwin)
+      GETOPT="$(env PATH="/opt/homebrew/opt/gnu-getopt/bin:${PATH}" command -v getopt || true)"
+      ;;
+   *)
+      GETOPT="$(command -v getopt || true)"
+      ;;
+esac
+if "${GETOPT}" -T >/dev/null 2>&1 || [[ $? -ne 4 ]]; then
+   echo >&2 "ERROR: Enhanced/GNU getopt is required!"
+   exit 1
+fi
+options="$(${GETOPT} -o dqwB:hv --long dry-run,quiet,verbose,write-dbeaver-config:,help,version -a -- "$@")"
 # shellcheck disable=SC2181
 if [[ $? -ne 0 ]]; then
-   usage
+   usage 1
 fi
 
 DRY_RUN=0
@@ -57,30 +116,44 @@ while [ $# -gt 0 ] ; do
    case "$1" in
       -B | --write-dbeaver-config)
          DBEAVER_CONFIG_PREFIX="$2"
-         shift 2
+         shift
          ;;
       -d | --dry-run)
          DRY_RUN=1
-         shift
          ;;
       -q | --quiet)
          QUIET=1
-         shift
+         ;;
+      -w | --verbose)
+         QUIET=0
+         ;;
+      -h | --help)
+         usage 0
+         ;;
+      -v | --version)
+         version
          ;;
       --)
          shift
          break
          ;;
+      *)
+         # This should not happen: wrong getopt parameters, or missing case?
+         echo >&2 "INTERNAL ERROR: Unhandled option $1!"
+         exit 1
+         ;;
   esac
+  shift
 done
-if [ $# -lt 1 ] ; then
-   usage
+if [ $# -ne 1 ] ; then
+   usage 1
 fi
 CONFIGURATION_FILE="$1"
 if [ ! -e "${CONFIGURATION_FILE}" ] ; then
    echo >&2 "ERROR: User configuration ${CONFIGURATION_FILE} does not exist!"
    exit 1
 fi
+CONFIGURATION_DIRECTORY="$(cd -P -- "$(dirname -- "${CONFIGURATION_FILE}")" && pwd -P)"
 
 
 # ====== Read configuration file ============================================
@@ -98,24 +171,13 @@ dbpassword=""
 database=""
 configContent=$(sed -r '/[^=#]+=[^=]+/!d' <"${CONFIGURATION_FILE}" | sed -r "s/[[:space:]]*=[[:space:]]*(.*)[[:space:]]*/='\1'/g")
 eval "${configContent}"
-if [ "${dbcafile}" == "NONE" ] ; then
-   dbcafile=""
-fi
-if [ "${dbcrlfile}" == "NONE" ] ; then
-   dbcrlfile=""
-fi
-if [ "${dbkeyfile}" == "NONE" ] ; then
-   dbkeyfile=""
-fi
-if [ "${dbcertfile}" == "NONE" ] ; then
-   dbcertfile=""
-fi
-if [ "${dbcertkeyfile}" == "NONE" ] ; then
-   dbcertkeyfile=""
-fi
-if [ "${dbcertfile}" == "NONE" ] ; then
-   dbcertfile=""
-fi
+
+dbcafile="$(check-file "${dbcafile}" "${CONFIGURATION_DIRECTORY}" "CA certificate file (dbcafile setting)")"
+dbcrlfile="$(check-file "${dbcrlfile}" "${CONFIGURATION_DIRECTORY}" "CRL file (dbcrlfile setting)")"
+dbkeyfile="$(check-file "${dbkeyfile}" "${CONFIGURATION_DIRECTORY}" "key file (dbkeyfile setting)")"
+dbcertfile="$(check-file "${dbcertfile}" "${CONFIGURATION_DIRECTORY}" "certificertte file (dbcertfile setting)")"
+dbcertkeyfile="$(check-file "${dbcertkeyfile}" "${CONFIGURATION_DIRECTORY}" "certificertkeyte+key file (dbcertkeyfile setting)")"
+
 tls_enabled=1
 tls_check_certificate=1
 tls_check_hostname=1
@@ -242,7 +304,7 @@ elif [ "${dbbackend}" == "MongoDB" ] ; then
 
 else
 
-   echo >&2 "ERROR: Invalid dbbackend setting \"${dbbackend}!\""
+   echo >&2 "ERROR: Invalid dbbackend setting \"${dbbackend}\"!"
    exit 1
 
 fi
@@ -422,7 +484,7 @@ if [ ${QUIET} -eq 0 ] ; then
       export | grep "PGPASSWORD=\|PGSSL[A-Z]*=" | sort || true
    fi
    echo "${command} ${parameters}"
-   fi
+fi
 
 if [ ${DRY_RUN} -eq 0 ] ; then
    if [ ${QUIET} -eq 0 ] ; then

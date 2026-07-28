@@ -535,12 +535,12 @@ The status code provides the result of a Ping, i.e.&nbsp;whether the remote endp
 |  110        | [ICMP](https://www.rfc-editor.org/rfc/rfc792)/[ICMPv6](https://datatracker.ietf.org/doc/html/rfc4443) response: Unreachable, unknown reason        | Response from router sending the ICMP error |
 |  200        | Timeout (no response from a router)                                                                                                                | Timeout value configured for HiPerConTracer |
 |  210        | sendto() call failed (generic error)                                                                                                               | RTT is set to 0                             |
-|  211        | sendto() error: tried to send to broadcast address ([EACCES](https://en.wikipedia.org/wiki/Errno.h#POSIX_errors))                                  | RTT is set to 0                             |
-|  212        | sendto() error: network unreachable ([ENETUNREACH](https://en.wikipedia.org/wiki/Errno.h#POSIX_errors))                                            | RTT is set to 0                             |
-|  213        | sendto() error: host unreachable ([HOSTUNREACH](https://en.wikipedia.org/wiki/Errno.h#POSIX_errors))                                               | RTT is set to 0                             |
-|  214        | sendto() error: address not available ([ADDRNOTAVAIL](https://en.wikipedia.org/wiki/Errno.h#POSIX_errors))                                         | RTT is set to 0                             |
-|  215        | sendto() error: invalid message size ([MSGSIZE](https://en.wikipedia.org/wiki/Errno.h#POSIX_errors))                                               | RTT is set to 0                             |
-|  216        | sendto() error: not enough buffer space ([NOBUFS](https://en.wikipedia.org/wiki/Errno.h#POSIX_errors))                                             | RTT is set to 0                             |
+|  211        | sendto() error: tried to send to broadcast address ([EACCES](https://man7.org/linux/man-pages/man3/errno.3.html))                                  | RTT is set to 0                             |
+|  212        | sendto() error: network unreachable ([ENETUNREACH](https://man7.org/linux/man-pages/man3/errno.3.html))                                            | RTT is set to 0                             |
+|  213        | sendto() error: host unreachable ([HOSTUNREACH](https://man7.org/linux/man-pages/man3/errno.3.html))                                               | RTT is set to 0                             |
+|  214        | sendto() error: address not available ([ADDRNOTAVAIL](https://man7.org/linux/man-pages/man3/errno.3.html))                                         | RTT is set to 0                             |
+|  215        | sendto() error: invalid message size ([MSGSIZE](https://man7.org/linux/man-pages/man3/errno.3.html))                                               | RTT is set to 0                             |
+|  216        | sendto() error: not enough buffer space ([NOBUFS](https://man7.org/linux/man-pages/man3/errno.3.html))                                             | RTT is set to 0                             |
 |  255        | Success (destination has responded)                                                                                                                | The actual RTT to the destination           |
 
 : Status Codes
@@ -586,7 +586,7 @@ For details, particularly also see: [Dreibholz, Thomas](https://www.nntb.no/~dre
 
 ### Path Hash
 
-The path hash is an [SHA-1](https://www.rfc-editor.org/rfc/rfc3174.html) hash over the textual representation of a Traceroute run, i.e.&nbsp;SHA1("&lt;Source IP&gt;-&lt;Router 1 IP&gt;-&lt;...&gt;-&lt;Router *n* IP&gt;-&lt;Destination IP&gt;"), where the IP addresses correspond to source, destination, and routers. If a router is unknown, it is represented by "\*". The purpose of the path hash is to quickly identify identical paths. In this case, of course, routers must have consistently responded (non-"\*", i.e.&nbsp;revealing their IP address) or not responded ("\*") to lead to the same hash value.
+The path hash is an [SHA-1](https://www.rfc-editor.org/info/rfc3174/) hash over the textual representation of a Traceroute run, i.e.&nbsp;SHA1("&lt;Source IP&gt;-&lt;Router 1 IP&gt;-&lt;...&gt;-&lt;Router *n* IP&gt;-&lt;Destination IP&gt;"), where the IP addresses correspond to source, destination, and routers. If a router is unknown, it is represented by "\*". The purpose of the path hash is to quickly identify identical paths. In this case, of course, routers must have consistently responded (non-"\*", i.e.&nbsp;revealing their IP address) or not responded ("\*") to lead to the same hash value.
 
 
 ## Results File Examples
@@ -814,7 +814,7 @@ hpct-importer \
    --verbose
 ```
 
-Note: If running without `--quit-when-idle` (recommended), the importer keeps running and imports new files as soon as they appear in the results directory. The importer uses [INotify](https://en.wikipedia.org/wiki/Inotify)!
+Note: If running without `--quit-when-idle` (recommended), the importer keeps running and imports new files as soon as they appear in the results directory. The importer uses [INotify](https://man7.org/linux/man-pages/man7/inotify.7.html)!
 
 ## Further Details
 

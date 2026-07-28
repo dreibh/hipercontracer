@@ -31,20 +31,26 @@
 #### EXAMPLES                                                            ####
 #############################################################################
 
-FILE(GLOB_RECURSE EXAMPLE_RESULTS "*.hpct*")
+IF (WITH_EXAMPLE_RESULTS)
+   FILE(GLOB_RECURSE EXAMPLE_RESULTS "*.hpct*")
 
-# This does not work with the tarball package:
-# EXECUTE_PROCESS(COMMAND         git ls-files .
-#                 COMMAND         grep -E "\\.hpct\\..*$"
-#                 OUTPUT_VARIABLE EXAMPLE_RESULTS)
-# FILE(GLOB_RECURSE EXAMPLE_RESULTS "*.hpct*")
-# MESSAGE("Example results files: ${EXAMPLE_RESULTS}")
+   # This does not work with the tarball package:
+   # EXECUTE_PROCESS(COMMAND         git ls-files .
+   #                 COMMAND         grep -E "\\.hpct\\..*$"
+   #                 OUTPUT_VARIABLE EXAMPLE_RESULTS)
+   # FILE(GLOB_RECURSE EXAMPLE_RESULTS "*.hpct*")
+   # MESSAGE("Example results files: ${EXAMPLE_RESULTS}")
 
-INSTALL(FILES HiPerConTracer.R
-              ${EXAMPLE_RESULTS}
-              README.md
-        DESTINATION ${CMAKE_INSTALL_DATADIR}/hipercontracer/results-examples)
-INSTALL(PROGRAMS r-install-dependencies
-                 r-ping-example
-                 r-traceroute-example
-        DESTINATION ${CMAKE_INSTALL_DATADIR}/hipercontracer/results-examples)
+   INSTALL(FILES ${EXAMPLE_RESULTS}
+           DESTINATION ${CMAKE_INSTALL_DATADIR}/hipercontracer/results-examples)
+ENDIF()
+
+IF (WITH_EXAMPLE_SCRIPTS)
+   INSTALL(FILES HiPerConTracer.R
+                 README.md
+           DESTINATION ${CMAKE_INSTALL_DATADIR}/hipercontracer/results-examples)
+   INSTALL(PROGRAMS r-install-dependencies
+                    r-ping-example
+                    r-traceroute-example
+           DESTINATION ${CMAKE_INSTALL_DATADIR}/hipercontracer/results-examples)
+ENDIF()

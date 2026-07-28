@@ -1,6 +1,8 @@
-#!/bin/sh -eu
+#!/usr/bin/bash
+
+set -euo pipefail
+
 
 echo "valgrind --tool=helgrind $*"
 
-# shellcheck disable=SC2068
-G_SLICE=always-malloc valgrind --tool=helgrind $@
+G_SLICE=always-malloc valgrind --tool=helgrind "$@"

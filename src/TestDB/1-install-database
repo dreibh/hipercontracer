@@ -29,7 +29,7 @@
 # Contact: dreibh@simula.no
 
 # Bash options:
-set -euxo pipefail
+set -euo pipefail
 
 
 # ###### Helper function to show script information #########################
@@ -76,6 +76,8 @@ if [ "${ROOT_PASSWORD}"       == "!root!"       ] || \
 fi
 
 show-script "$(basename "$0")"
+
+set -e
 
 
 # ====== Check/set environment variables ====================================
@@ -154,7 +156,7 @@ if [ "$1" == "mariadb" ] ; then
    # Set root password, and remove test user and database.
    (
       cat <<EOF
-ALTER USER 'root'@'localhost' IDENTIFIED BY '${ROOT_PASSWORD}';
+ALTER USER 'root'@'localhost' IDENTIFIED VIA unix_socket OR mysql_native_password USING PASSWORD('${ROOT_PASSWORD}');
 DELETE FROM mysql.user WHERE User='';
 DELETE FROM mysql.user WHERE User='root' AND Host NOT IN ('localhost', '127.0.0.1', '::1');
 DROP DATABASE IF EXISTS ${DATABASE};
@@ -240,7 +242,14 @@ elif [ "$1" == "postgresql" ] ; then
 
    # ====== Basic configuration =============================================
    sudo ./name-in-etc-hosts "${server}.${DOMAIN}"
-   sudo ./generate-test-certificates /etc/ssl "${server}.${DOMAIN}"
+   if [ -x /usr/share/system-tools/generate-test-certificates ] ; then
+      sudo /usr/share/system-tools/generate-test-certificates /etc/ssl "${server}.${DOMAIN}"
+   elif [ -x /usr/local/share/system-tools/generate-test-certificates ] ; then
+      sudo /usr/local/share/system-tools/generate-test-certificates /etc/ssl "${server}.${DOMAIN}"
+   else
+      echo >&2 "ERROR: generate-test-certificates (part of the System-Tools package) is not installed!"
+      exit 1
+   fi
 
    # PostgreSQL needs separate certificate and key files.
    # The chain is in the CA file, it must not be in the certificate file!
@@ -298,12 +307,12 @@ elif [ "$1" == "mongodb" ] ; then
    # ====== Install MongoDB =================================================
    echo -e "\x1b[34m$(date +"%F %H:%M:%S"): Installing MongoDB ...\x1b[0m"
 
-   MONGODB_VERSION="8.2"   # Current version
+   MONGODB_VERSION="8.3"   # Current version
    MONGODB_KEY="8.0"       # NOTE: Minor releases use the major version's key!
 
    if [ "${ID}" == "ubuntu" ] || [ "${ID}" == "debian" ] ; then
-      for key in ${MONGODB_VERSION} dev ; do
-         wget -qO - "https://www.mongodb.org/static/pgp/server-${key}.asc" | gpg --dearmor | sudo tee "/usr/share/keyrings/mongodb-${key}.gpg" >/dev/null
+      for key in ${MONGODB_KEY} dev ; do
+         wget -qO - "https://pgp.mongodb.com/server-${key}.asc" | gpg --dearmor | sudo tee "/usr/share/keyrings/mongodb-${key}.gpg" >/dev/null
       done
       (
          if [ "${ID}" == "ubuntu" ] ; then
@@ -387,7 +396,14 @@ EOF
 
    # ====== Basic configuration =============================================
    sudo ./name-in-etc-hosts "${server}.${DOMAIN}"
-   sudo ./generate-test-certificates /etc/ssl "${server}.${DOMAIN}"
+   if [ -x /usr/share/system-tools/generate-test-certificates ] ; then
+      sudo /usr/share/system-tools/generate-test-certificates /etc/ssl "${server}.${DOMAIN}"
+   elif [ -x /usr/local/share/system-tools/generate-test-certificates ] ; then
+      sudo /usr/local/share/system-tools/generate-test-certificates /etc/ssl "${server}.${DOMAIN}"
+   else
+      echo >&2 "ERROR: generate-test-certificates (part of the System-Tools package) is not installed!"
+      exit 1
+   fi
 
    # MongoDB wants key + certificate + chain (in this order!) in the PEM file:
    MONGODB_CA_FILE="TestLevel1.crt"

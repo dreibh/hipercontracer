@@ -69,12 +69,6 @@ _hpct_rtunnel()
 
    # ====== All options =====================================================
    local opts="
--h
---help
--v
---verbose
--q
---quiet
 -N
 --nodeid
 -R
@@ -85,6 +79,14 @@ _hpct_rtunnel()
 --key
 -H
 --known-hosts
+-q
+--quiet
+-w
+--verbose
+-h
+--help
+-v
+--version
 "
    mapfile -t COMPREPLY < <(compgen -W "${opts}" -- "${cur}" )
    return 0

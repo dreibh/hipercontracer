@@ -200,8 +200,8 @@ for backend in MariaDB PostgreSQL MongoDB ; do
 dbbackend         = ${backend}
 dbserver          = ${server}
 dbport            = 0
-dbcafile          = ${HOME}/TestLevel1.crt
-dbcrlfile         = ${HOME}/TestGlobal.crl
+dbcafile          = TestLevel1.crt
+dbcrlfile         = TestGlobal.crl
 dbcertfile        = NONE
 dbkeyfile         = NONE
 dbconnectionflags = NONE

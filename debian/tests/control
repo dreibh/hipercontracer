@@ -35,5 +35,5 @@ Depends: figlet,
          hipercontracer-results,
          pwgen,
          python3-distro,
-         python3-netifaces,
+         python3-psutil,
          rsync

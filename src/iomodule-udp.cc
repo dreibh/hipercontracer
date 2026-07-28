@@ -123,9 +123,11 @@ bool UDPModule::prepareSocket()
    }
 
    // ====== Await incoming message or error ================================
+#if defined (MSG_ERRQUEUE)
    expectNextReply(UDPSocket.native_handle(), true);
-   expectNextReply(UDPSocket.native_handle(), false);
    expectNextReply(RawUDPSocket.native_handle(), true);
+#endif
+   expectNextReply(UDPSocket.native_handle(), false);
    expectNextReply(RawUDPSocket.native_handle(), false);
 
    return true;
@@ -138,8 +140,10 @@ void UDPModule::expectNextReply(const int  socketDescriptor,
 {
    if(socketDescriptor == UDPSocket.native_handle()) {
       UDPSocket.async_wait(
+#if defined (MSG_ERRQUEUE)
          (readFromErrorQueue == true) ?
             boost::asio::ip::udp::socket::wait_error :
+#endif
             boost::asio::ip::udp::socket::wait_read,
          std::bind(&ICMPModule::handleResponse, this,
                    std::placeholders::_1,
@@ -148,8 +152,10 @@ void UDPModule::expectNextReply(const int  socketDescriptor,
    }
    else if(socketDescriptor == RawUDPSocket.native_handle()) {
       RawUDPSocket.async_wait(
+#if defined (MSG_ERRQUEUE)
          (readFromErrorQueue == true) ?
             boost::asio::ip::udp::socket::wait_error :
+#endif
             boost::asio::ip::udp::socket::wait_read,
          std::bind(&ICMPModule::handleResponse, this,
                    std::placeholders::_1,
