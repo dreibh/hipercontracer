@@ -68,7 +68,9 @@ ICMPModule::ICMPModule(boost::asio::io_context&                 ioContext,
                                   (ssize_t)((SourceAddress.is_v6() == true) ? 40 : 20) - 8);
    ActualPacketSize = ((SourceAddress.is_v6() == true) ? 40 : 20) + 8 + PayloadSize;
    ExpectingReply   = false;
+#if defined (MSG_ERRQUEUE)
    ExpectingError   = false;
+#endif
 }
 
 
@@ -148,7 +150,9 @@ bool ICMPModule::prepareSocket()
 #endif
 
    // ====== Await incoming message or error ================================
+#if defined (MSG_ERRQUEUE)
    expectNextReply(ICMPSocket.native_handle(), true);
+#endif
    expectNextReply(ICMPSocket.native_handle(), false);
 
    return true;
@@ -160,6 +164,7 @@ void ICMPModule::expectNextReply(const int  socketDescriptor,
                                  const bool readFromErrorQueue)
 {
    if(socketDescriptor == ICMPSocket.native_handle()) {
+#if defined (MSG_ERRQUEUE)
       if(readFromErrorQueue == true) {
          assure(ExpectingError == false);
          ICMPSocket.async_wait(
@@ -170,6 +175,9 @@ void ICMPModule::expectNextReply(const int  socketDescriptor,
          ExpectingError = true;
       }
       else {
+#else
+         assert(readFromErrorQueue == false);
+#endif
          assure(ExpectingReply == false);
          ICMPSocket.async_wait(
             boost::asio::ip::icmp::socket::wait_read,
@@ -178,7 +186,9 @@ void ICMPModule::expectNextReply(const int  socketDescriptor,
          );
          ExpectingReply = true;
       }
+#if defined (MSG_ERRQUEUE)
    }
+#endif
 }
 
 
@@ -368,7 +378,11 @@ void ICMPModule::handleResponse(const boost::system::error_code& errorCode,
             ExpectingReply = false;   // Need to call expectNextReply() to get next message!
          }
          else {
+#if defined (MSG_ERRQUEUE)
             ExpectingError = false;   // Need to call expectNextReply() to get next error!
+#else
+            assert(readFromErrorQueue == false);
+#endif
          }
       }
 

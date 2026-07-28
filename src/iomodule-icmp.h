@@ -99,7 +99,9 @@ class ICMPModule : public IOModuleBase
 
    private:
    bool                           ExpectingReply;
+#if defined (MSG_ERRQUEUE)
    bool                           ExpectingError;
+#endif
 };
 
 #endif
