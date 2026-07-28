@@ -57,10 +57,12 @@ _hpct_node_removal()
 
    # ====== All options =====================================================
    local opts="
--h
---help
 -r
 --remove-data
+-h
+--help
+-v
+--version
 "
    mapfile -t COMPREPLY < <(compgen -W "${opts}" -- "${cur}" )
    return 0

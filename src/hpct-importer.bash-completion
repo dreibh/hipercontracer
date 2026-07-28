@@ -53,20 +53,20 @@ _hpct_importer()
 
    case "${prev}" in
       #  ====== Generic value ===============================================
-      -L | --loglevel           | \
-      -X | --import-mode        | \
-      -Y | --import-max-depth   | \
-      --import-file-path-filter | \
-      --ping-workers            | \
-      --ping-files              | \
-      --traceroute-workers      | \
+      -L | --loglevel                | \
+      -X | --import-mode             | \
+      -Y | --import-max-depth        | \
+      -F | --import-file-path-filter | \
+      --ping-workers                 | \
+      --ping-files                   | \
+      --traceroute-workers           | \
       --traceroute-files)
          return
          ;;
       # ====== Special case: directory ======================================
       -I | --import-file-path | \
-      --bad-file-path  | -G   | \
-      --good-file-path | -F)
+      -B | --bad-file-path    | \
+      -G | --good-file-path)
          # Arbitrary directories:
          _filedir -d
          return
@@ -105,7 +105,7 @@ _hpct_importer()
 --logfile
 -q
 --quiet
--v
+-w
 --verbose
 -X
 --import-mode
