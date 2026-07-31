@@ -1,3 +1,176 @@
+commit f7435eb99161da1de649674b0b60459fdf2aef89
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Jul 28 15:51:07 2026 +0200
+
+    No need for error-queue handling on systems without error queue.
+
+commit ac418bef0298813a0b4241388d6568cd5d385427
+Merge: ad8baeb3 4eb5452f
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Jul 28 14:47:56 2026 +0200
+
+    Merge branch 'master' of github.com:dreibh/hipercontracer
+
+commit ad8baeb3d9febb1b9943c5175be99dec1dd155ac
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Jul 28 14:47:28 2026 +0200
+
+    Improved checks for Bash version and enhanced getopt.
+
+commit 4eb5452f6e509d7ab26301101ab0265a45e81e80
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Sat Jul 25 12:09:26 2026 +0000
+
+    Solaris build fix: added explicit type-cast.
+
+commit e933c14ad80c0d898e05701fa4f9eef30c83ed4c
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Jul 23 13:38:45 2026 +0200
+
+    Updated MongoDB repository key URL.
+
+commit 30b4caad12a94b313ebd723bcfa316fefe107d4b
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Jul 23 13:36:31 2026 +0200
+
+    Updated MongoDB repository key URL.
+
+commit 606a695d591975c80988f785197da5e3fc4c536e
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Jul 23 12:44:31 2026 +0200
+
+    Simplified test scripts.
+
+commit 4aae74fce7a14fbe57e9020c11703ccbea7ac4df
+Merge: 7b5f708c 4c138b46
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Jul 23 12:39:53 2026 +0200
+
+    Merge branch 'master' of github.com:dreibh/hipercontracer
+
+commit 7b5f708cd9b2ae8f733ce51f63f2225710eb4cbd
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Jul 23 12:38:42 2026 +0200
+
+    Added Solaris case to getopt detection in the scripts.
+
+commit 4c138b46b768e36810349354e4bd2bd1e21c38b4
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Jul 23 12:32:18 2026 +0200
+
+    Also supporting relative paths in the C++ library as well.
+
+commit 3a385f5aedcfe897ab9511c284d2007d08822a59
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Jul 23 12:26:22 2026 +0200
+
+    Further configuration improvements.
+
+commit 6c8eb7ed0e68d1cf8c0d994874f519f4c723c166
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Jul 23 10:44:14 2026 +0200
+
+    Improved DBShell path handling: Relative paths of TLS files are now supported as well.
+
+commit a9958111a1083ee7d2bfec8b4c6915a27219a602
+Merge: ff0c9d4a 36e17941
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Jul 23 10:17:34 2026 +0200
+
+    Merge branch 'master' of github.com:dreibh/hipercontracer
+
+commit ff0c9d4a72bd37c8b90cd08af94debe4662030ad
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Jul 23 10:17:27 2026 +0200
+
+    Improved test script.
+
+commit 36e17941a89525eebaa7590117c6f3f2981f96a2
+Merge: 7421a400 ea7d5ce4
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Jul 21 15:17:11 2026 +0200
+
+    Merge branch 'master' of https://github.com/dreibh/hipercontracer
+
+commit 7421a400fd91cb55b55b423177445cfc65b101bb
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Jul 21 15:17:06 2026 +0200
+
+    Improved test script.
+
+commit ea7d5ce4b6791528e430ab21017342c4097e22b3
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Jul 21 15:02:49 2026 +0200
+
+    CMakeLists.txt clean-ups.
+
+commit 3f9a6b475797dcfc9f8c130ee4210c6db5123e33
+Merge: 93730a88 6f6ba4b6
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Jul 21 14:34:33 2026 +0200
+
+    Merge branch 'master' of https://github.com/dreibh/hipercontracer
+
+commit 93730a889da87aa3427f7ca528b5b3a3669b62d4
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Jul 21 14:33:53 2026 +0200
+
+    Improved CMakeLists.txt to support build under Solaris.
+
+commit 4ee5048b26f26ba8b116b277a8f535c327196ff6
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Jul 21 11:26:55 2026 +0200
+
+    Added check whether symbol SIOCGSTAMPNS is defined before using it.
+
+commit fcd81651a7aeee2ba1eaf2e209b5f6c873b1e42a
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Jul 21 11:04:13 2026 +0200
+
+    Solaris build fix.
+
+commit 6f6ba4b6ffe7026b316edef220fd0bbfce0efd9f
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Mon Jul 20 10:44:07 2026 +0200
+
+    Removed obsolete files.
+
+commit 09c2958e306bd54c6c809183025ff745dea407b4
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Sun Jul 19 14:10:26 2026 +0200
+
+    CMakeLists.txt dependency fix: No need to set WITH_LIBHPCTDB for WITH_RESULTS.
+
+commit a4d7c5e519bd9b51dae17dbfe24859f601d2a565
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Sat Jul 18 16:44:15 2026 +0200
+
+    Updated build helper script.
+
+commit fbaacf9cf7b3c73ae247aa21886201a4ee685740
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Sat Jul 18 15:26:50 2026 +0200
+
+    Further NetBSD improvements in CMakeLists.txt.
+
+commit 5b956bb6a6365059ffb565f0818c90000e0f114c
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Sat Jul 18 15:13:07 2026 +0200
+
+    Updated build helper script.
+
+commit 1fc485cc7e8d8ba3aab8adf2c08499e17ae0ac50
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Sat Jul 18 15:00:58 2026 +0200
+
+    CMakeLists.txt fix for NetBSD: need to set CMAKE_INSTALL_RPATH_USE_LINK_PATH if necessary.
+
+commit aaa4c1ca542749d6bd82a01fda56afe3a15c9af7
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Jul 15 17:05:58 2026 +0200
+
+    New release hipercontracer-2.2.7.
+
 commit 592c020828bc5564bd0e04349538b536d4aa07a3
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Wed Jul 15 16:36:49 2026 +0200
