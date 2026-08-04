@@ -1,5 +1,6 @@
 PORTNAME=	hipercontracer
 DISTVERSION=	2.2.8
+PORTREVISION=	1
 CATEGORIES=	benchmarks
 MASTER_SITES=	https://www.nntb.no/~dreibh/hipercontracer/download/
 
@@ -18,8 +19,7 @@ USE_LDCONFIG=	yes
 
 SHEBANG_FILES=	src/results-examples/r-install-dependencies \
 		src/results-examples/r-ping-example \
-		src/results-examples/r-traceroute-example \
-		src/TestDB/generate-test-certificates
+		src/results-examples/r-traceroute-example
 
 # Work-around for build issue on ARM (https://bugs.freebsd.org/285706):
 MAKE_ENV=	OMP_NUM_THREADS=1
@@ -75,6 +75,7 @@ EXAMPLE_SCRIPTS_USES=		python
 EXAMPLE_SCRIPTS_CMAKE_BOOL=	WITH_EXAMPLE_SCRIPTS
 
 HIPERCONTRACER_IMPLIES=		LIBHIPERCONTRACER
+HIPERCONTRACER_LIB_DEPENDS=	libzstd.so:archivers/zstd
 HIPERCONTRACER_USES=		shared-mime-info
 HIPERCONTRACER_CMAKE_BOOL=	WITH_HIPERCONTRACER
 
@@ -97,8 +98,8 @@ LIBHPCTDB_MARIADB_LIB_DEPENDS=	libmariadb.so:databases/mariadb118-client
 LIBHPCTDB_MARIADB_CMAKE_BOOL=	ENABLE_BACKEND_MARIADB
 
 LIBHPCTDB_MONGODB_IMPLIES=	LIBHPCTDB
-LIBHPCTDB_MONGODB_LIB_DEPENDS=	libbson-1.0.so:devel/libbson \
-				libmongoc-1.0.so:devel/mongo-c-driver
+LIBHPCTDB_MONGODB_LIB_DEPENDS=	libbson2.so:devel/libbson \
+				libmongoc2.so:devel/mongo-c-driver
 LIBHPCTDB_MONGODB_CMAKE_BOOL=	ENABLE_BACKEND_MONGODB
 
 LIBHPCTDB_POSTGRESQL_IMPLIES=		LIBHPCTDB
