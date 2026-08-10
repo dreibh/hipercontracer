@@ -446,7 +446,7 @@ IF (WITH_LIBHPCTDB)
                  " * FreeBSD:       sudo pkg install -y mariadb-connector-c\n"
                  " * NetBSD:        sudo pkgin -y install mariadb-client\n"
                  " * OpenBSD:       sudo pkg_add mariadb-client\n"
-                 " * Solaris:       sudo pkg install mariadb-114\n"
+                 " * Solaris:       sudo pkg install mariadb-114/library\n"
                  " * Apple:         brew install mariadb-connector-c\n"
                  "If MySQL/MariaDB support is not required, it can be disabled by setting ENABLE_BACKEND_MARIADB=OFF (add -DENABLE_BACKEND_MARIADB=OFF to CMake options)!")
       ENDIF()
