@@ -555,20 +555,20 @@ ENDIF()
 # TARGET_LINK_LIBRARIES(t1 PRIVATE ${Boost_LIBRARIES} libhpctio-${libraryType} ${CMAKE_THREAD_LIBS_INIT})
 # ADD_EXECUTABLE(t2 t2.cc)
 # TARGET_LINK_LIBRARIES(t2 PRIVATE ${Boost_LIBRARIES} libhpctio-${libraryType} ${CMAKE_THREAD_LIBS_INIT})
-ADD_EXECUTABLE(dbtest dbtest.cc)
-TARGET_INCLUDE_DIRECTORIES(dbtest PRIVATE
-                           ${LIBMARIADB_INCLUDE_DIR}
-                           ${PQXX_INCLUDE_DIRS}
-                           ${LIBMONGOC_INCLUDE_DIR} ${LIBBSON_INCLUDE_DIR}
-                           ${Boost_INCLUDE_DIRS})
-TARGET_LINK_LIBRARIES(dbtest PRIVATE
-                      libuniversalimporter-${libraryType}
-                      libhpctdb-${libraryType}
-                      ${Boost_LIBRARIES}
-                      ${LIBMARIADB_LIBRARY}
-                      ${PQXX_LIBRARIES}
-                      ${LIBMONGOC_LIBRARY} ${LIBBSON_LIBRARY}
-                      ${CMAKE_THREAD_LIBS_INIT})
+# ADD_EXECUTABLE(dbtest dbtest.cc)
+# TARGET_INCLUDE_DIRECTORIES(dbtest PRIVATE
+#                            ${LIBMARIADB_INCLUDE_DIR}
+#                            ${PQXX_INCLUDE_DIRS}
+#                            ${LIBMONGOC_INCLUDE_DIR} ${LIBBSON_INCLUDE_DIR}
+#                            ${Boost_INCLUDE_DIRS})
+# TARGET_LINK_LIBRARIES(dbtest PRIVATE
+#                       libuniversalimporter-${libraryType}
+#                       libhpctdb-${libraryType}
+#                       ${Boost_LIBRARIES}
+#                       ${LIBMARIADB_LIBRARY}
+#                       ${PQXX_LIBRARIES}
+#                       ${LIBMONGOC_LIBRARY} ${LIBBSON_LIBRARY}
+#                       ${CMAKE_THREAD_LIBS_INIT})
 
 
 #############################################################################
