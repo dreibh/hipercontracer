@@ -71,7 +71,7 @@ IF (WITH_ICONS)
       ADD_CUSTOM_TARGET(generate_${LOGO}_${iconLength}x_png ALL DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/${LOGO}-${iconLength}x.png)
 
       # PNG with fixed, same width and height:
-      IF(NOT iconLength STREQUAL LOGO_LENGTH)
+      IF (NOT iconLength STREQUAL LOGO_LENGTH)
          ADD_CUSTOM_COMMAND(OUTPUT  ${CMAKE_CURRENT_BINARY_DIR}/${LOGO}-${iconLength}x${iconLength}.png
                             COMMAND ${GM} convert ${LOGO}-${iconLength}x.png -resize ${iconLength}x -background none -gravity center -extent ${iconLength}x${iconLength} ${LOGO}-${iconLength}x${iconLength}.png
                             DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/${LOGO}-${iconLength}x.png)
@@ -95,14 +95,28 @@ IF (WITH_ICONS)
    INSTALL(FILES ${LOGO}.pdf DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/${DIRECTORY})
 
    # Scalable SVG icon:
-   ADD_CUSTOM_COMMAND(OUTPUT  ${CMAKE_CURRENT_BINARY_DIR}/${LOGO}.svg
-                      COMMAND ${MUTOOL} convert
-                                  -o ${CMAKE_CURRENT_BINARY_DIR}/${LOGO}.svg
-                                     ${CMAKE_CURRENT_SOURCE_DIR}/${LOGO}.pdf 1
-                      COMMAND ${CMAKE_COMMAND} -E rename
-                                  ${CMAKE_CURRENT_BINARY_DIR}/${LOGO}1.svg
-                                  ${CMAKE_CURRENT_BINARY_DIR}/${LOGO}.svg
-                      DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/${LOGO}.pdf)
+   IF (INKSCAPE)
+      ADD_CUSTOM_COMMAND(OUTPUT  ${CMAKE_CURRENT_BINARY_DIR}/${LOGO}.svg
+                         COMMAND ${INKSCAPE}
+                                    ${CMAKE_CURRENT_SOURCE_DIR}/${LOGO}.pdf
+                                    --pdf-poppler -o ${CMAKE_CURRENT_BINARY_DIR}/${LOGO}.svg)
+   ELSEIF (PDF2SVG)
+      ADD_CUSTOM_COMMAND(OUTPUT  ${CMAKE_CURRENT_BINARY_DIR}/${LOGO}.svg
+                         COMMAND ${PDF2SVG}
+                                    ${CMAKE_CURRENT_SOURCE_DIR}/${LOGO}.pdf
+                                    ${CMAKE_CURRENT_BINARY_DIR}/${LOGO}.svg)
+   ELSEIF (MUTOOL)
+      ADD_CUSTOM_COMMAND(OUTPUT  ${CMAKE_CURRENT_BINARY_DIR}/${LOGO}.svg
+                         COMMAND ${MUTOOL} convert
+                                    -o ${CMAKE_CURRENT_BINARY_DIR}/${LOGO}.svg
+                                       ${CMAKE_CURRENT_SOURCE_DIR}/${LOGO}.pdf 1
+                         COMMAND ${CMAKE_COMMAND} -E rename
+                                    ${CMAKE_CURRENT_BINARY_DIR}/${LOGO}1.svg
+                                    ${CMAKE_CURRENT_BINARY_DIR}/${LOGO}.svg
+                         DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/${LOGO}.pdf)
+   ELSE()
+      MESSAGE(FATAL_ERROR "No PDF to SVG conversion tool configured!")
+   ENDIF()
    ADD_CUSTOM_TARGET(generate_${LOGO}_svg ALL DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/${LOGO}.svg)
    INSTALL(FILES       ${CMAKE_CURRENT_BINARY_DIR}/${LOGO}.svg
            DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/icons/hicolor/scalable/apps)

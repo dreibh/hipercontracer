@@ -25,8 +25,8 @@ BuildRequires: libpqxx-devel
 # Fedora and OpenSuSE use different MariaDB client development packaging:
 BuildRequires: (mariadb-connector-c-devel or libmariadb-devel)
 BuildRequires: mongo-c-driver-devel
-BuildRequires: mupdf
 BuildRequires: openssl-devel
+BuildRequires: pdf2svg
 BuildRequires: xz-devel
 BuildRequires: zlib-devel
 BuildRequires: libzstd-devel
