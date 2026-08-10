@@ -577,7 +577,7 @@ IF (WITH_ICONS)
               " * FreeBSD:       sudo pkg install -y ghostscript10\n"
               " * NetBSD:        sudo pkgin -y install ghostscript\n"
               " * OpenBSD:       sudo pkg_add ghostscript\n"
-              " * Solaris:       sudo pkg install ghostscript\n"
+              " * Solaris:       sudo pkg install ghostscript gnu-gs-fonts-std gnu-gs-fonts-other dejavu\n"
               " * Apple:         brew install ghostscript\n"
               "If desktop icons are not required, they can be disabled by setting WITH_ICONS=OFF (add -DWITH_ICONS=OFF to CMake options)!")
    ENDIF()
