@@ -37,7 +37,19 @@
 #include <boost/asio.hpp>
 #include <boost/bimap.hpp>
 
+#if defined(__sun__)
+#include <port.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <unistd.h>
+#elif defined(__APPLE__)
+#include <sys/event.h>
+#include <sys/time.h>
+#include <fcntl.h>
+#include <unistd.h>
+#else
 #include <sys/inotify.h>
+#endif
 
 
 class Worker;
@@ -64,10 +76,13 @@ class UniversalImporter
                                    const UniversalImporter& importer);
 
    private:
+   int addDirectoryWatch(const std::filesystem::path& directoryPath);
+   void removeDirectoryWatch(int                          watchHandle,
+                             const std::filesystem::path& directoryPath);
    void handleSignalEvent(const boost::system::error_code& errorCode,
                           const int                        signalNumber);
-   void handleINotifyEvent(const boost::system::error_code& errorCode,
-                           const std::size_t                length);
+   void handleWatchEvent(const boost::system::error_code& errorCode,
+                         const std::size_t                length);
    unsigned long long lookForFiles(const std::filesystem::path& importFilePath,
                                    const unsigned int           currentDepth,
                                    const unsigned int           maxDepth);
@@ -105,12 +120,16 @@ class UniversalImporter
    boost::asio::steady_timer                GarbageCollectionTimer;
    const std::chrono::seconds               GarbageCollectionTimerInterval;
    const std::chrono::seconds               GarbageCollectionMaxAge;
-   int                                      INotifyFD;
-   boost::bimap<int, std::filesystem::path> INotifyWatchDescriptors;
+
+   int                                      WatchFD;
+   boost::bimap<int, std::filesystem::path> WatchDescriptors;
    std::map<const std::filesystem::path,
-            SystemTimePoint>                INotifyWatchLastWrite;
-   boost::asio::posix::stream_descriptor    INotifyStream;
-   char                                     INotifyEventBuffer[65536 * sizeof(inotify_event)];
+            SystemTimePoint>                WatchLastWrite;
+   boost::asio::posix::stream_descriptor    WatchStream;
+   char                                     WatchEventBuffer[65536];
+#if defined(__sun__)
+   std::map<int, file_obj_t>                SolarisFileObjects;
+#endif
 };
 
 #endif

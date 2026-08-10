@@ -69,9 +69,9 @@ UniversalImporter::UniversalImporter(boost::asio::io_context&     ioContext,
    GarbageCollectionTimer(IOContext),
    GarbageCollectionTimerInterval(std::chrono::seconds(importerConfiguration.getGarbageCollectionInterval())),
    GarbageCollectionMaxAge(std::chrono::seconds(importerConfiguration.getGarbageCollectionMaxAge())),
-   INotifyStream(IOContext)
+   WatchStream(IOContext)
 {
-   INotifyFD = -1;
+   WatchFD = -1;
    StatusTimer.expires_at(std::chrono::steady_clock::now() + +
                           StatusTimerInterval);
    StatusTimer.async_wait(std::bind(&UniversalImporter::handleStatusTimer, this,
@@ -90,6 +90,75 @@ UniversalImporter::~UniversalImporter()
 }
 
 
+// ###### Add directory watch ###############################################
+int UniversalImporter::addDirectoryWatch(const std::filesystem::path& directoryPath)
+{
+#if defined(__sun__)
+   static int sunWatchIdCounter = 1;
+   int handle = sunWatchIdCounter++;
+
+   file_obj_t fileObject{};
+   fileObject.fo_name = strdup(directoryPath.c_str());
+   struct stat dirStat;
+   if(stat(fileObject.fo_name, &dirStat) == 0) {
+      fileObject.fo_atime = dirStat.st_atim;
+      fileObject.fo_mtime = dirStat.st_mtim;
+      fileObject.fo_ctime = dirStat.st_ctim;
+   }
+
+   SolarisFileObjects[handle] = fileObject;
+   if(port_associate(WatchFD, PORT_SOURCE_FILE, (uintptr_t)&SolarisFileObjects[handle],
+                     FILE_MODIFIED | FILE_ATTRIB, (void*)(uintptr_t)handle) < 0) {
+      free(fileObject.fo_name);
+      SolarisFileObjects.erase(handle);
+      return -1;
+   }
+   return handle;
+
+#elif defined(__APPLE__)
+   const int dirFD = open(directoryPath.c_str(), O_EVTONLY | O_CLOEXEC);
+   if(dirFD < 0) {
+      return -1;
+   }
+
+   struct kevent kEvent;
+   EV_SET(&kEvent, dirFD, EVFILT_VNODE, EV_ADD | EV_CLEAR | EV_ENABLE,
+          NOTE_WRITE | NOTE_EXTEND | NOTE_ATTRIB | NOTE_DELETE | NOTE_LINK, 0, NULL);
+
+   if(kevent(WatchFD, &kEvent, 1, NULL, 0, NULL) < 0) {
+      close(dirFD);
+      return -1;
+   }
+   return dirFD;
+
+#else
+   return inotify_add_watch(WatchFD, directoryPath.c_str(),
+                            IN_CREATE | IN_DELETE | IN_CLOSE_WRITE | IN_MOVED_TO);
+#endif
+}
+
+
+// ###### Remove Directory Watch (Platform Abstraction) #####################
+void UniversalImporter::removeDirectoryWatch(int                          watchHandle,
+                                             const std::filesystem::path& directoryPath)
+{
+#if defined(__sun__)
+   std::map<int, file_obj_t>::iterator iterator = SolarisFileObjects.find(watchHandle);
+   if(iterator != SolarisFileObjects.end()) {
+      port_dissociate(WatchFD, PORT_SOURCE_FILE, (uintptr_t)&iterator->second);
+      free(iterator->second.fo_name);
+      SolarisFileObjects.erase(iterator);
+   }
+
+#elif defined(__APPLE__)
+   close(watchHandle);
+
+#else
+   inotify_rm_watch(WatchFD, watchHandle);
+#endif
+}
+
+
 // ###### Start importer ####################################################
 bool UniversalImporter::start(const bool quitWhenIdle)
 {
@@ -98,22 +167,32 @@ bool UniversalImporter::start(const bool quitWhenIdle)
                                 std::placeholders::_1,
                                 std::placeholders::_2));
 
-   // ====== Set up INotify =================================================
-   INotifyFD = inotify_init1(IN_NONBLOCK|IN_CLOEXEC);
-   assert(INotifyFD > 0);
-   INotifyStream.assign(INotifyFD);
-   int wd = inotify_add_watch(INotifyFD, ImporterConfig.getImportFilePath().c_str(),
-                              IN_CREATE | IN_DELETE | IN_CLOSE_WRITE | IN_MOVED_TO);
+   // ====== Set up Watch =================================================
+#if defined(__sun__)
+   WatchFD = port_create();
+   assert(WatchFD > 0);
+   fcntl(WatchFD, F_SETFD, FD_CLOEXEC);
+#elif defined(__APPLE__)
+   WatchFD = kqueue();
+   assert(WatchFD > 0);
+   fcntl(WatchFD, F_SETFD, FD_CLOEXEC);
+#else
+   WatchFD = inotify_init1(IN_NONBLOCK|IN_CLOEXEC);
+   assert(WatchFD > 0);
+#endif
+
+   WatchStream.assign(WatchFD);
+   const int wd = addDirectoryWatch(ImporterConfig.getImportFilePath());
    if(wd < 0) {
-      HPCT_LOG(error) << "Adding INotify watch for " << ImporterConfig.getImportFilePath()
+      HPCT_LOG(error) << "Adding watch for " << ImporterConfig.getImportFilePath()
                       << " failed: " << strerror(errno);
       return false;
    }
-   INotifyWatchDescriptors.insert(boost::bimap<int, std::filesystem::path>::value_type(
+   WatchDescriptors.insert(boost::bimap<int, std::filesystem::path>::value_type(
                                   wd, ImporterConfig.getImportFilePath()));
 
-   INotifyStream.async_read_some(boost::asio::buffer(&INotifyEventBuffer, sizeof(INotifyEventBuffer)),
-                                 std::bind(&UniversalImporter::handleINotifyEvent, this,
+   WatchStream.async_read_some(boost::asio::buffer(&WatchEventBuffer, sizeof(WatchEventBuffer)),
+                                 std::bind(&UniversalImporter::handleWatchEvent, this,
                                            std::placeholders::_1,
                                            std::placeholders::_2));
 
@@ -132,7 +211,7 @@ bool UniversalImporter::start(const bool quitWhenIdle)
 
    // ====== Quit when idle? ================================================
    if(quitWhenIdle) {
-      INotifyStream.cancel();
+      WatchStream.cancel();
       StatusTimer.cancel();
       GarbageCollectionTimer.cancel();
       Signals.cancel();
@@ -147,19 +226,19 @@ void UniversalImporter::stop()
 {
    StatusTimer.cancel();
 
-   // ====== Remove INotify =================================================
-   if(INotifyFD >= 0) {
-      boost::bimap<int, std::filesystem::path>::iterator iterator = INotifyWatchDescriptors.begin();
-      while(iterator != INotifyWatchDescriptors.end()) {
-         inotify_rm_watch(INotifyFD, iterator->left);
+   // ====== Remove Watch =================================================
+   if(WatchFD >= 0) {
+      boost::bimap<int, std::filesystem::path>::iterator iterator = WatchDescriptors.begin();
+      while(iterator != WatchDescriptors.end()) {
+         removeDirectoryWatch(iterator->left, iterator->right);
          removeLastWriteTimePoint(iterator->right);
-         INotifyWatchDescriptors.erase(iterator);
-         iterator = INotifyWatchDescriptors.begin();
+         WatchDescriptors.erase(iterator);
+         iterator = WatchDescriptors.begin();
       }
-      close(INotifyFD);
-      INotifyFD = -1;
+      close(WatchFD);
+      WatchFD = -1;
    }
-   assert(INotifyWatchDescriptors.size() == INotifyWatchLastWrite.size());   // == 0!
+   assert(WatchDescriptors.size() == WatchLastWrite.size());   // == 0!
 
    // ====== Remove readers =================================================
    for(std::list<ReaderBase*>::iterator readerIterator = ReaderList.begin(); readerIterator != ReaderList.end(); ) {
@@ -196,16 +275,71 @@ void UniversalImporter::handleSignalEvent(const boost::system::error_code& error
 
 
 // ###### Handle signal #####################################################
-void UniversalImporter::handleINotifyEvent(const boost::system::error_code& errorCode,
+void UniversalImporter::handleWatchEvent(const boost::system::error_code& errorCode,
                                            const std::size_t                length)
 {
    if(errorCode != boost::asio::error::operation_aborted) {
-      // ====== Handle events ===============================================
+
+#if defined(__sun__)
+      // ====== Solaris FEN Handling ========================================
+      port_event_t events[16];
+      uint_t       numEvents     = 16;
+      timespec     nullTimestamp = { 0, 0 };
+      if(port_getn(WatchFD, events, 16, &numEvents, &nullTimestamp) == 0) {
+         for(uint_t i = 0; i < numEvents; i++) {
+            if(events[i].portev_source == PORT_SOURCE_FILE) {
+               int handle = (int)(uintptr_t)events[i].portev_user;
+               boost::bimap<int, std::filesystem::path>::left_map::const_iterator found =
+                  WatchDescriptors.left.find(handle);
+               if(found != WatchDescriptors.left.end()) {
+                  const std::filesystem::path& directory = found->second;
+
+                  // Solaris FEN is one-shot => re-associate immediately:
+                  std::map<int, file_obj_t>::iterator fileObjectIterator = SolarisFileObjects.find(handle);
+                  if(fileObjectIterator != SolarisFileObjects.end()) {
+                     struct stat s;
+                     if(stat(fileObjectIterator->second.fo_name, &s) == 0) {
+                        fileObjectIterator->second.fo_atime = s.st_atim;
+                        fileObjectIterator->second.fo_mtime = s.st_mtim;
+                        fileObjectIterator->second.fo_ctime = s.st_ctim;
+                     }
+                     port_associate(WatchFD, PORT_SOURCE_FILE, (uintptr_t)&fileObjectIterator->second,
+                                    FILE_MODIFIED | FILE_ATTRIB, (void*)(uintptr_t)handle);
+                  }
+
+                  // Rescan directory for modified/added files:
+                  const unsigned int currentDepth = subDirectoryOf(directory, ImporterConfig.getImportFilePath());
+                  lookForFiles(directory, currentDepth > 0 ? currentDepth : 1, ImporterConfig.getImportMaxDepth());
+               }
+            }
+         }
+      }
+
+#elif defined(__APPLE__)
+      // ====== Apple kqueue Handling =======================================
+      struct kevent   events[16];
+      struct timespec nullTimestamp = { 0, 0 };
+      int numEvents = kevent(WatchFD, NULL, 0, events, 16, &nullTimestamp);
+
+      for(int i = 0; i < numEvents; i++) {
+         int dirFD = (int)events[i].ident;
+         boost::bimap<int, std::filesystem::path>::left_map::const_iterator found =
+            WatchDescriptors.left.find(dirFD);
+         if(found != WatchDescriptors.left.end()) {
+            const std::filesystem::path& directory = found->second;
+            // MacOS kqueue does not provide individual child filenames for
+            // directory changes => execute directory traversal:
+            const unsigned int currentDepth = subDirectoryOf(directory, ImporterConfig.getImportFilePath());
+            lookForFiles(directory, currentDepth > 0 ? currentDepth : 1, ImporterConfig.getImportMaxDepth());
+         }
+      }
+
+#else
       unsigned long p = 0;
       while(p < length) {
-         const inotify_event* event = (const inotify_event*)&INotifyEventBuffer[p];
-         boost::bimap<int, std::filesystem::path>::left_map::const_iterator found = INotifyWatchDescriptors.left.find(event->wd);
-         if(found != INotifyWatchDescriptors.left.end()) {
+         const inotify_event* event = (const inotify_event*)&WatchEventBuffer[p];
+         boost::bimap<int, std::filesystem::path>::left_map::const_iterator found = WatchDescriptors.left.find(event->wd);
+         if(found != WatchDescriptors.left.end()) {
             if(event->name[0] != '.') {   // Ignore hidden file or directory (starting with '.').
                const std::filesystem::path& directory = found->second;
 
@@ -213,16 +347,16 @@ void UniversalImporter::handleINotifyEvent(const boost::system::error_code& erro
                if(event->mask & IN_ISDIR) {
                   const std::filesystem::path dataDirectory = directory / std::string(event->name);
                   if(event->mask & IN_CREATE) {
-                     HPCT_LOG(trace) << "INotify event for new directory: " << dataDirectory;
-                     const int wd = inotify_add_watch(INotifyFD, dataDirectory.c_str(),
+                     HPCT_LOG(trace) << "Watch event for new directory: " << dataDirectory;
+                     const int wd = inotify_add_watch(WatchFD, dataDirectory.c_str(),
                                                       IN_CREATE | IN_DELETE | IN_CLOSE_WRITE | IN_MOVED_TO);
                      if(wd >= 0) {
-                        INotifyWatchDescriptors.insert(boost::bimap<int, std::filesystem::path>::value_type(wd, dataDirectory));
+                        WatchDescriptors.insert(boost::bimap<int, std::filesystem::path>::value_type(wd, dataDirectory));
                         addOrUpdateLastWriteTimePoint(dataDirectory);
 
                         // A directory traversal is necessary in this new
                         // directory, since files/directories may have been
-                        // created before adding the INotify watch!
+                        // created before adding the watch!
                         const unsigned int currentDepth = subDirectoryOf(dataDirectory, ImporterConfig.getImportFilePath());
                         if(currentDepth > 0) {
                            HPCT_LOG(debug) << "Looking for input files in new directory " << dataDirectory
@@ -236,16 +370,17 @@ void UniversalImporter::handleINotifyEvent(const boost::system::error_code& erro
                         }
                      }
                      else {
-                        HPCT_LOG(error) << "Adding INotify watch for " << dataDirectory
+                        HPCT_LOG(error) << "Adding watch for " << dataDirectory
                                        << " failed: " << strerror(errno);
                      }
                   }
                   else if(event->mask & IN_DELETE) {
-                     HPCT_LOG(trace) << "INotify event for deleted directory: " << dataDirectory;
-                     boost::bimap<int, std::filesystem::path>::right_map::const_iterator wdToDelete = INotifyWatchDescriptors.right.find(dataDirectory);
-                     if(wdToDelete != INotifyWatchDescriptors.right.end()) {
+                     HPCT_LOG(trace) << "Watch event for deleted directory: " << dataDirectory;
+                     boost::bimap<int, std::filesystem::path>::right_map::const_iterator wdToDelete = WatchDescriptors.right.find(dataDirectory);
+                     if(wdToDelete != WatchDescriptors.right.end()) {
                         removeLastWriteTimePoint(dataDirectory);
-                        INotifyWatchDescriptors.left.erase(wdToDelete->second);
+                        removeDirectoryWatch(wdToDelete->second, dataDirectory);
+                        WatchDescriptors.left.erase(wdToDelete->second);
                      }
                   }
                }
@@ -254,11 +389,11 @@ void UniversalImporter::handleINotifyEvent(const boost::system::error_code& erro
                else {
                   const std::filesystem::path dataFile = directory / std::string(event->name);
                   if(event->mask & (IN_CLOSE_WRITE | IN_MOVED_TO)) {
-                     HPCT_LOG(trace) << "INotify event for new file " << dataFile;
+                     HPCT_LOG(trace) << "Watch event for new file " << dataFile;
                      addFile(dataFile);
                   }
                   else if(event->mask & IN_DELETE) {
-                     HPCT_LOG(trace) << "INotify event for deleted file " << dataFile;
+                     HPCT_LOG(trace) << "Watch event for deleted file " << dataFile;
                      removeFile(dataFile);
                   }
                }
@@ -266,10 +401,11 @@ void UniversalImporter::handleINotifyEvent(const boost::system::error_code& erro
          }
          p += sizeof(inotify_event) + event->len;
       }
+#endif
 
       // ====== Wait for more events ========================================
-      INotifyStream.async_read_some(boost::asio::buffer(&INotifyEventBuffer, sizeof(INotifyEventBuffer)),
-                                    std::bind(&UniversalImporter::handleINotifyEvent, this,
+      WatchStream.async_read_some(boost::asio::buffer(&WatchEventBuffer, sizeof(WatchEventBuffer)),
+                                    std::bind(&UniversalImporter::handleWatchEvent, this,
                                               std::placeholders::_1,
                                               std::placeholders::_2));
    }
@@ -359,16 +495,19 @@ unsigned long long UniversalImporter::lookForFiles(const std::filesystem::path& 
 
       // ====== Add directory ===============================================
       else if(dirEntry.is_directory()) {
-         // ------ Create INotify watch -------------------------------------
-         const int wd = inotify_add_watch(INotifyFD, dirEntry.path().c_str(),
-                                          IN_CREATE | IN_DELETE | IN_CLOSE_WRITE | IN_MOVED_TO);
-         if(wd >= 0) {
-            INotifyWatchDescriptors.insert(boost::bimap<int, std::filesystem::path>::value_type(wd, dirEntry.path()));
-            addOrUpdateLastWriteTimePoint(dirEntry.path());
-         }
-         else {
-            HPCT_LOG(error) << "Adding INotify watch for " << dirEntry.path()
-                            << " failed: " << strerror(errno);
+         // Check if directory is already watched to prevent FD leaks:
+         boost::bimap<int, std::filesystem::path>::right_map::const_iterator existingWatch =
+            WatchDescriptors.right.find(dirEntry.path());
+         if(existingWatch == WatchDescriptors.right.end()) {
+            const int wd = addDirectoryWatch(dirEntry.path());
+            if(wd >= 0) {
+               WatchDescriptors.insert(boost::bimap<int, std::filesystem::path>::value_type(wd, dirEntry.path()));
+               addOrUpdateLastWriteTimePoint(dirEntry.path());
+            }
+            else {
+               HPCT_LOG(error) << "Adding watch for " << dirEntry.path()
+                               << " failed: " << strerror(errno);
+            }
          }
 
          // ------ Recursive directory traversal ----------------------------
@@ -446,12 +585,12 @@ void UniversalImporter::addOrUpdateLastWriteTimePoint(const std::filesystem::pat
    SystemTimePoint lastWriteTimePoint;
    if(getLastWriteTimePoint(directory, lastWriteTimePoint)) {
       std::map<const std::filesystem::path, SystemTimePoint>::iterator found =
-         INotifyWatchLastWrite.find(directory);
-      if(found != INotifyWatchLastWrite.end()) {
+         WatchLastWrite.find(directory);
+      if(found != WatchLastWrite.end()) {
          found->second = lastWriteTimePoint;
       }
       else {
-         INotifyWatchLastWrite.insert(std::pair<const std::filesystem::path, SystemTimePoint>(
+         WatchLastWrite.insert(std::pair<const std::filesystem::path, SystemTimePoint>(
                               directory, lastWriteTimePoint));
       }
    }
@@ -462,9 +601,9 @@ void UniversalImporter::addOrUpdateLastWriteTimePoint(const std::filesystem::pat
 void UniversalImporter::removeLastWriteTimePoint(const std::filesystem::path directory)
 {
    std::map<const std::filesystem::path, SystemTimePoint>::iterator found =
-      INotifyWatchLastWrite.find(directory);
-   if(found != INotifyWatchLastWrite.end()) {
-      INotifyWatchLastWrite.erase(found);
+      WatchLastWrite.find(directory);
+   if(found != WatchLastWrite.end()) {
+      WatchLastWrite.erase(found);
    }
 }
 
@@ -479,8 +618,8 @@ void UniversalImporter::performDirectoryCleanUp()
 
    size_t n = 0;
    std::map<const std::filesystem::path, SystemTimePoint>::reverse_iterator iterator =
-      INotifyWatchLastWrite.rbegin();
-   while(iterator != INotifyWatchLastWrite.rend()) {
+      WatchLastWrite.rbegin();
+   while(iterator != WatchLastWrite.rend()) {
       const std::filesystem::path& directory = iterator->first;
 
       // ====== Check directory =============================================
@@ -508,7 +647,7 @@ void UniversalImporter::performDirectoryCleanUp()
                             << ", last activity was "
                             << std::chrono::duration_cast<std::chrono::seconds>(now - iterator->second).count() << " s ago";
             // NOTE: No need to erase the iterator here. It will be removed
-            // after the INotify notification of the directory removal!
+            // after the Watch notification of the directory removal!
          }
          else {
             HPCT_LOG(trace) << "Still in-use directory "

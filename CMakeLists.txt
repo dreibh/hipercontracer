@@ -252,21 +252,24 @@ IF (WITH_LIBUNIVERSALIMPORTER)
       SET(INotify_LIBRARIES "")
       SET(INotify_INCLUDE_DIRS "")
    ELSE()
-      FIND_LIBRARY(INotify_LIBRARIES NAMES inotify       HINTS /usr/local/lib/inotify)
-      FIND_PATH(INotify_INCLUDE_DIRS NAMES sys/inotify.h HINTS /usr/local/include/inotify)
-      IF ((NOT INotify_LIBRARIES) OR (NOT INotify_INCLUDE_DIRS))
-         MESSAGE(FATAL_ERROR
-                 "Cannot find INotify library! Try:\n"
-                 " * Ubuntu/Debian: (always included as part of libc)\n"
-                 " * Fedora:        (always included as part of libc)\n"
-                 " * SuSE:          (always included as part of libc)\n"
-                 " * Alpine:        (always included as part of libc)\n"
-                 " * FreeBSD:       sudo pkg install -y libinotify\n"
-                 " * NetBSD:        sudo pkgin -y install libinotify\n"
-                 " * OpenBSD:       sudo pkg_add libinotify\n"
-                 " * Solaris:       --- N/A ---\n"
-                 " * Apple:         --- N/A ---\n"
-                 "If the Importer is not required, it can be disabled by setting WITH_IMPORTER=OFF (add -DWITH_IMPORTER=OFF to CMake options)!")
+      IF ( (NOT CMAKE_SYSTEM_NAME MATCHES "SunOS") AND
+           (NOT CMAKE_SYSTEM_NAME MATCHES "Darwin") )
+         FIND_LIBRARY(INotify_LIBRARIES NAMES inotify       HINTS /usr/local/lib/inotify)
+         FIND_PATH(INotify_INCLUDE_DIRS NAMES sys/inotify.h HINTS /usr/local/include/inotify)
+         IF ((NOT INotify_LIBRARIES) OR (NOT INotify_INCLUDE_DIRS))
+            MESSAGE(FATAL_ERROR
+                  "Cannot find INotify library! Try:\n"
+                  " * Ubuntu/Debian: (always included as part of libc)\n"
+                  " * Fedora:        (always included as part of libc)\n"
+                  " * SuSE:          (always included as part of libc)\n"
+                  " * Alpine:        (always included as part of libc)\n"
+                  " * FreeBSD:       sudo pkg install -y libinotify\n"
+                  " * NetBSD:        sudo pkgin -y install libinotify\n"
+                  " * OpenBSD:       sudo pkg_add libinotify\n"
+                  " * Solaris:       --- N/A ---\n"
+                  " * Apple:         --- N/A ---\n"
+                  "If the Importer is not required, it can be disabled by setting WITH_IMPORTER=OFF (add -DWITH_IMPORTER=OFF to CMake options)!")
+         ENDIF()
       ENDIF()
    ENDIF()
 ENDIF()
