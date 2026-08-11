@@ -269,6 +269,7 @@ IF (WITH_LIBUNIVERSALIMPORTER)
                                     ${Boost_INCLUDE_DIRS})
          TARGET_LINK_LIBRARIES(libuniversalimporter-${TYPE} PRIVATE
                                libhpctdb-${TYPE}
+                               libhpctio-${TYPE}
                                ${Boost_LIBRARIES}
                                ${LIBMARIADB_LIBRARY}
                                ${PQXX_LIBRARIES}
