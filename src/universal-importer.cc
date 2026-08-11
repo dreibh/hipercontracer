@@ -508,12 +508,12 @@ unsigned long long UniversalImporter::lookForFiles(const std::filesystem::path& 
                HPCT_LOG(error) << "Adding watch for " << dirEntry.path()
                                << " failed: " << strerror(errno);
             }
-         }
 
-         // ------ Recursive directory traversal ----------------------------
-         if(currentDepth < maxDepth) {
-            const unsigned long long m = lookForFiles(dirEntry.path(), currentDepth + 1, maxDepth);
-            n += m;
+            // ------ Recursive directory traversal for new directory -------
+            if(currentDepth < maxDepth) {
+               const unsigned long long m = lookForFiles(dirEntry.path(), currentDepth + 1, maxDepth);
+               n += m;
+            }
          }
       }
    }
