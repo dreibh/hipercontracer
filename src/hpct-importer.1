@@ -28,7 +28,7 @@
 .\" Contact: dreibh@simula.no
 .\"
 .\" ###### Setup ############################################################
-.Dd May 26, 2026
+.Dd August 31, 2026
 .Dt hpct\-importer 1
 .Os hpct\-importer
 .\" ###### Name #############################################################
@@ -39,23 +39,38 @@
 .Sh SYNOPSIS
 .Nm hpct\-importer
 .Op Fl C Ar importer\_\%configuration | Fl \-importer\-\%config Ar importer\_\%configuration
+.br
 .Op Fl D Ar database\_\%configuration | Fl \-database\-\%config Ar database\_\%configuration
+.br
 .Op Fl L Ar level | Fl \-loglevel Ar level
+.br
 .Op Fl Z Ar on|off | Fl \-logcolor Ar on|off
+.br
 .Op Fl O Ar file | Fl \-logfile Ar file
+.br
 .Op Fl q | Fl \-quiet
 .Op Fl w | Fl \-verbose
+.br
 .Op Fl X Ar mode | Fl \-import\-mode Ar mode
+.br
 .Op Fl Y Ar depth | Fl \-import\-max\-depth Ar depth
+.br
 .Op Fl I Ar path | Fl \-import\-file\-path Ar path
+.br
 .Op Fl B Ar path | Fl \-bad\-file\-path Ar path
+.br
 .Op Fl G Ar path | Fl \-good\-file\-path Ar path
+.br
 .Op Fl F Ar filter\_\%regexp | Fl \-import\-\%file\-\%path\-\%filter Ar filter\_\%regexp
+.br
 .Op Fl Q | Fl \-quit\-when\-idle
+.br
 .Op Fl \-ping\-workers Ar number
 .Op Fl \-ping\-files Ar number
+.br
 .Op Fl \-traceroute\-workers Ar number
 .Op Fl \-traceroute\-files Ar number
+.\" .br
 .\" .Op Fl Fl jitter-workers Ar number
 .\" .Op Fl Fl jitter-files Ar number
 .Nm hpct\-importer

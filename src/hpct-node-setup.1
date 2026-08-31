@@ -28,7 +28,7 @@
 .\" Contact: dreibh@simula.no
 .\"
 .\" ###### Setup ############################################################
-.Dd May 26, 2026
+.Dd August 31, 2026
 .Dt hpct\-node\-setup 1
 .Os hpct\-node\-setup
 .\" ###### Name #############################################################
@@ -37,7 +37,7 @@
 .Nd Setup a HiPerConTracer Node
 .\" ###### Synopsis #########################################################
 .Sh SYNOPSIS
-.Nm hpct\-node\-setup USER@COLLECTOR NODE\_ID
+.Nm hpct\-node\-setup Ar USER@COLLECTOR NODE\_ID
 .br
 .Op Fl q | Fl \-quiet
 .Op Fl w | Fl \-verbose
@@ -61,9 +61,9 @@ is the HiPerConTracer node setup script. It is run on a node, in order to:
 .Sh ARGUMENTS
 The following arguments may be provided:
 .Bl -tag -width indent
-.It USER@COLLECTOR
+.It Ar USER@COLLECTOR
 Sets the SSH location of the collector, i.e. USER@HOST.EXAMPLE.
-.It NODE\_ID
+.It Ar NODE\_ID
 Sets the node ID, a number from 1 to 9999.
 .It Fl q | Fl \-quiet
 Turns off status output.

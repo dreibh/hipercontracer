@@ -28,7 +28,7 @@
 .\" Contact: dreibh@simula.no
 .\"
 .\" ###### Setup ############################################################
-.Dd May 26, 2026
+.Dd August 31, 2026
 .Dt hpct\-node\-removal 1
 .Os hpct\-node\-removal
 .\" ###### Name #############################################################
@@ -37,7 +37,7 @@
 .Nd Remove a HiPerConTracer Node
 .\" ###### Synopsis #########################################################
 .Sh SYNOPSIS
-.Nm hpct\-node\-removal NODE\_ID
+.Nm hpct\-node\-removal Ar NODE\_ID
 .br
 .Op Fl r | Fl \-remove\-data
 .Nm hpct\-node\-removal
@@ -54,7 +54,7 @@ collector to remove a given node (i.e. delete the corresponding user).
 .Sh ARGUMENTS
 The following arguments may be provided:
 .Bl -tag -width indent
-.It NODE\_ID
+.It Ar NODE\_ID
 Sets the node ID, a number from 1 to 9999.
 .It Fl r | Fl \-remove\-data
 Also remove the data of the node. Default: Keep the data.
