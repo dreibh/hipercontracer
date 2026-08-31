@@ -7,24 +7,29 @@ set -euo pipefail
 # under examples/. The result can be checked by run-query-test, which generates
 # HiPerConTracer data statements as in the input files.
 
-if [ $# -ne 1 ] ; then
-   echo >&2 "Usage: $0 configuration_file"
+if [ $# -ne 2 ] ; then
+   echo >&2 "Usage: $0 database_configuration_file importer_configuration_file"
    exit 1
 fi
-CONFIGURATION_FILE="$1"
-if [ ! -e "${CONFIGURATION_FILE}" ] ; then
-   echo >&2 "ERROR: Use configuration $1 does not exist!"
+DATABASE_CONFIGURATION_FILE="$1"
+if [ ! -e "${DATABASE_CONFIGURATION_FILE}" ] ; then
+   echo >&2 "ERROR: Use database configuration ${DATABASE_CONFIGURATION_FILE} does not exist!"
+fi
+IMPORTER_CONFIGURATION_FILE="$2"
+if [ ! -e "${IMPORTER_CONFIGURATION_FILE}" ] ; then
+   echo >&2 "ERROR: Use importer configuration ${IMPORTER_CONFIGURATION_FILE} does not exist!"
 fi
 
 mkdir -p data/ good/ bad/
 rm -rf good/*
 rm -rf bad/*
-cp examples/*.bz2 data/
+cp results-examples/*.hpct* data/
 
 make hpct-importer && \
 rm -f core &&  \
 ./hpct-importer \
-   -c "${CONFIGURATION_FILE}" \
+   -C "${IMPORTER_CONFIGURATION_FILE}" \
+   -D "${DATABASE_CONFIGURATION_FILE}" \
    --traceroute-workers 1 \
    --ping-workers 1 \
    --loglevel 0 \

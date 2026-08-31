@@ -8,24 +8,24 @@ set -euo pipefail
 # Limitation: only the headers #T, #P are compared, not the Traceroute hops!!
 
 if [ $# -ne 1 ] ; then
-   echo >&2 "Usage: $0 configuration_file"
+   echo >&2 "Usage: $0 database_configuration_file"
    exit 1
 fi
-CONFIGURATION_FILE="$1"
-if [ ! -e "${CONFIGURATION_FILE}" ] ; then
-   echo >&2 "ERROR: Use configuration $1 does not exist!"
+DATABASE_CONFIGURATION_FILE="$1"
+if [ ! -e "${DATABASE_CONFIGURATION_FILE}" ] ; then
+   echo >&2 "ERROR: Use database configuration ${DATABASE_CONFIGURATION_FILE} does not exist!"
 fi
 
 
 for type in Ping Traceroute ; do
 
    echo "Obtaining ${type} data from good/ directory ..."
-   find good/ -name "${type}-*.bz2" | sort | xargs -r bzcat | tee imported-raw-${type,,}.txt | grep "^#" | sort -k4 >imported-${type,,}.txt
+   find good/ -name "${type}-*.hpct*" | sort | xargs -r less | tee imported-raw-${type,,}.txt | grep "^#" | sort -k4 >imported-${type,,}.txt
    # ls -l imported-raw-${type,,}.txt imported-${type,,}.txt
 
 
    echo "Querying ${type} data from database ..."
-   ./hpct-query "${CONFIGURATION_FILE}" ${type,,} | tee queried-raw-${type,,}.txt | grep "^#" | sort -k4 >queried-${type,,}.txt
+   ./hpct-query "${DATABASE_CONFIGURATION_FILE}" ${type,,} | tee queried-raw-${type,,}.txt | grep "^#" | sort -k4 >queried-${type,,}.txt
    # ls -l queried-raw-${type,,}.txt queried-${type,,}.txt
 
    echo "Differences for ${type}:"
@@ -33,6 +33,6 @@ for type in Ping Traceroute ; do
       ls -l imported-raw-${type,,}.txt
       ls -l queried-raw-${type,,}.txt
    fi
-   colordiff imported-${type,,}.txt queried-${type,,}.txt
+   diff --color imported-${type,,}.txt queried-${type,,}.txt
 
 done
