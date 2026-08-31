@@ -1,10 +1,10 @@
-hipercontracer (2.2.9~rc0-1ubuntu1) unstable; urgency=medium
+hipercontracer (2.2.9-1ubuntu1) unstable; urgency=medium
 
   * New upstream release.
   * debian/control: changed mupdf-tools dependency back to pdf2svg
     (prevents issues with #1145008).
 
- -- Thomas Dreibholz <dreibh@simula.no>  Mon, 31 Aug 2026 16:17:27 +0200
+ -- Thomas Dreibholz <dreibh@simula.no>  Mon, 31 Aug 2026 16:32:50 +0200
 
 hipercontracer (2.2.8-1ubuntu1) unstable; urgency=medium
 

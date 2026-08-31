@@ -1,3 +1,118 @@
+commit b9f4f55dab00295fc3c299777a4718b630170651
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Mon Aug 31 16:29:16 2026 +0200
+
+    Version bump.
+
+commit 1847ee70e030bc1c5fff9c9a0256b83af48a0ad2
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Mon Aug 31 15:28:13 2026 +0200
+
+    Updated test scripts.
+
+commit 269f102483fea833bfd2aae28e8b9036ab180e89
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Mon Aug 31 14:51:17 2026 +0200
+
+    Manpage fix.
+
+commit cebc281513d0e5ee95bae5eec470356485305c1a
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Mon Aug 31 14:49:31 2026 +0200
+
+    Improved manpages.
+
+commit c3cc031b9c8a3363ab2ddbc2af3a028163a1ee72
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Aug 11 15:43:18 2026 +0200
+
+    Improved directory traversal: only necessary if directory is new.
+
+commit 4da7a3d024aef676ce233f95b48d1f60299a4bd9
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Aug 11 11:32:50 2026 +0200
+
+    Updated build helper script.
+
+commit 887eb8c93bfa99f86cacd95c4524dd7622cbf3af
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Aug 11 11:31:52 2026 +0200
+
+    Dependency fix.
+
+commit 7bc817dae47371f71cb56972ae96d77b698afd61
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Mon Aug 10 23:19:28 2026 +0200
+
+    Another CMakeLists.txt clean-up.
+
+commit b53c84dae294e22da3feca9ed7b95d9f9ba55275
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Mon Aug 10 21:16:53 2026 +0000
+
+    Further CMakeLists.txt clean-ups.
+
+commit 08c77917760ab7f15be084485effcc2946afee01
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Mon Aug 10 22:43:14 2026 +0200
+
+    Improved dependency hint.
+
+commit 31d88787e97449c73558e782eeccf06d64c7159c
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Mon Aug 10 22:28:25 2026 +0200
+
+    Improved CMakeLists.txt: PDF to SVG can now be processed by pdf2svg, mutool, or Inkscape.
+
+commit 090c63cfe587db895d50f5e6cf8e83cf51fea670
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Mon Aug 10 14:40:37 2026 +0000
+
+    Improved dependency hint.
+
+commit 3046d6df902447aa261d05a8a46c7b3691d1ce56
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Mon Aug 10 15:33:31 2026 +0200
+
+    Importer directory watch improvements.
+
+commit 0d47a1bd30e74ea72b965229434104780f98cb40
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Aug 6 16:29:00 2026 +0200
+
+    Improved CI script.
+
+commit bda51db8b37721676ca5b2ec021aa07fa7ab94eb
+Merge: 6b1e02ad d71b0c46
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Aug 5 12:03:10 2026 +0200
+
+    Merge branch 'master' of github.com:dreibh/hipercontracer
+
+commit 6b1e02ad1811bac49ed57fc938576f93b0521410
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Wed Aug 5 12:03:06 2026 +0200
+
+    Updated CI scripts
+
+commit d71b0c46acd3512f0eae14dc9fa7ef80ddd5499a
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Aug 4 15:31:24 2026 +0200
+
+    Updated FreeBSD port.
+
+commit c235cbe161012401dfc3dcdba51d60eec1cc7afb
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Fri Jul 31 13:21:45 2026 +0200
+
+    Updated APKBUILD file.
+
+commit 32e81e90c7caba8b14f14e4c20ffe07fc339df1a
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Fri Jul 31 12:49:42 2026 +0200
+
+    New release hipercontracer-2.2.8.
+
 commit f7435eb99161da1de649674b0b60459fdf2aef89
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Tue Jul 28 15:51:07 2026 +0200
