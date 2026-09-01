@@ -28,10 +28,15 @@
 #
 # Contact: dreibh@simula.no
 
+import bz2
 import datetime
+import gzip
+import io
+import lzma
+import zstandard
 
-from enum import Enum
-from typing import Any, Final, TextIO
+from enum   import Enum
+from typing import Any, BinaryIO, Final, TextIO
 
 
 class HopStatus(Enum):
@@ -93,8 +98,11 @@ def unix_time_to_datetime(unixTime : int) -> datetime.datetime:
 
 # ###### Convert Unix time in nanoseconds to string #########################
 def unix_time_to_string(unixTime : int) -> str:
-   timeStamp : Final[datetime.datetime] = unix_time_to_datetime(unixTime)
-   return timeStamp.isoformat(timespec = 'nanoseconds')
+   seconds     : Final[int] = unixTime // 1_000_000_000
+   nanoseconds : Final[int] = unixTime % 1_000_000_000
+   dt      : Final[datetime.datetime] = \
+      datetime.datetime.fromtimestamp(seconds, tz=datetime.UTC)
+   return dt.strftime(f'%Y-%m-%dT%H:%M:%S.{nanoseconds:09d}+00:00')
 
 
 # ###### Convert strong to Unix time in nanoseconds #########################
@@ -107,3 +115,26 @@ def string_to_unix_time(timeString : str) -> int:
    timeStamp : Final[datetime.datetime] = \
       datetime.datetime.fromisoformat(timeString + '+00:00').replace(tzinfo = datetime.UTC)
    return datetime_to_unix_time(timeStamp)
+
+
+# ###### Open HiPerConTracer results file ###################################
+def openHiPerConTracerFile(hpctFileName : str) -> TextIO:
+   # ====== Identify compression ============================================
+   magic : bytes
+   fh    : BinaryIO
+   with open(hpctFileName, 'rb') as fh:
+      magic = fh.read(6)
+
+   # ====== Open file and provide uncompressed input stream =================
+   if magic.startswith(b'\x1f\x8b'):
+      return gzip.open(hpctFileName, 'rt', encoding='utf-8')
+   elif magic.startswith(b'\xfd7zXZ'):
+      return lzma.open(hpctFileName, 'rt', encoding='utf-8')
+   elif magic.startswith(b'BZh'):
+      return bz2.open(hpctFileName, 'rt', encoding='utf-8')
+   elif magic.startswith(b'\x28\xb5\x2f\xfd'):
+      fh = open(hpctFileName, 'rb')
+      dc = zstandard.ZstdDecompressor()
+      return io.TextIOWrapper(dc.stream_reader(fh), encoding='utf-8')
+   else:
+      return open(hpctFileName, 'rt', encoding='utf-8')
