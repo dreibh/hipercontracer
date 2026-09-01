@@ -52,7 +52,7 @@ def formatTimestamp(timestampHex      : str,
 
 # ====== Handle arguments ===================================================
 parser : Final[argparse.ArgumentParser] = argparse.ArgumentParser(
-   description='Convert HiPerConTracer Traceroute results files to JSON format.'
+   description='Convert HiPerConTracer Ping results files to JSON format.'
 )
 parser.add_argument(
    '-T', '--timestamp-as-string',
@@ -62,17 +62,16 @@ parser.add_argument(
 )
 parser.add_argument(
    'hpctInputFileNames',
-   metavar = 'traceroute_hpct_file',
+   metavar = 'ping_hpct_file',
    nargs   = '+',
-   help    = 'HiPerConTracer Traceroute result file(s)'
+   help    = 'HiPerConTracer Ping result file(s)'
 )
 args               : Final[argparse.Namespace] = parser.parse_args()
 timestampAsString  : Final[bool]               = args.timestampAsString
 hpctInputFileNames : Final[List[str]]          = args.hpctInputFileNames
 
 # ====== Process files ======================================================
-traceroutes       : List[Dict[str, Any]]     = []
-currentTraceroute : Optional[Dict[str, Any]] = None
+pings : List[Dict[str, Any]] = []
 for hpctInputFileName in hpctInputFileNames:
    # ====== Open file =======================================================
    try:
@@ -82,62 +81,43 @@ for hpctInputFileName in hpctInputFileNames:
       sys.stderr.write(f'ERROR: Unable to open input file {hpctInputFileName}: {e}\n')
       sys.exit(1)
 
-   # ====== Parse Traceroute ================================================
+   # ====== Parse Ping ======================================================
    line : str
    for line in hpctInputFile:
       line = line.rstrip('\n')
-      # print(line)
 
       tag : str = line.split(maxsplit=1)[0]
-      if tag.startswith('#T') and len(tag) == 3:
-         if currentTraceroute is not None:
-            traceroutes.append(currentTraceroute)
-            currentTraceroute = None
+      if tag.startswith('#P') and len(tag) == 3:
          fields : List[str] = line.split()
-         if len(fields) >= 14:
+         if len(fields) >= 20:
             protoKey  : str = fields[0][2]
             protoType : str = \
                HiPerConTracer.PROTOCOL_MAP.get(protoKey, protoKey.upper())
-            currentTraceroute = {
+            pingData  : Dict[str, Any] = {
                'type':               protoType,
                'measurementId':      int(fields[1]),
                'sourceAddress':      fields[2],
                'destinationAddress': fields[3],
                'timestamp':          formatTimestamp(fields[4], timestampAsString),
-               'round':              int(fields[5]),
-               'totalHops':          int(fields[6]),
-               'trafficClass':       int(fields[7], 16),
-               'packetSize':         int(fields[8]),
+               'burstSeq':           int(fields[5]),
+               'trafficClass':       int(fields[6], 16),
+               'packetSize':         int(fields[7]),
+               'responseSize':       int(fields[8]),
                'checksum':           int(fields[9], 16),
                'sourcePort':         int(fields[10]),
                'destinationPort':    int(fields[11]),
-               'statusFlags':        int(fields[12]),
-               'pathHash':           int(fields[13], 16),
-               'hops':               []
+               'status':             int(fields[12]),
+               'timeSource':         int(fields[13], 16),
+               'delayAppSend':       int(fields[14]),
+               'delayQueuing':       int(fields[15]),
+               'delayAppReceive':    int(fields[16]),
+               'rttApp':             int(fields[17]),
+               'rttSw':              int(fields[18]),
+               'rttHw':              int(fields[19])
             }
-      elif line.startswith('\t') and currentTraceroute is not None:
-         hopFields : List[str] = line.lstrip('\t').split()
-         if len(hopFields) >= 12:
-            currentHop : Dict[str, Any] = {
-               'sendTimestamp':   formatTimestamp(hopFields[0], timestampAsString),
-               'hopNumber':       int(hopFields[1]),
-               'responseSize':    int(hopFields[2]),
-               'status':          int(hopFields[3]),
-               'timeSource':      int(hopFields[4], 16),
-               'delayAppSend':    int(hopFields[5]),
-               'delayQueuing':    int(hopFields[6]),
-               'delayAppReceive': int(hopFields[7]),
-               'rttApp':          int(hopFields[8]),
-               'rttSw':           int(hopFields[9]),
-               'rttHw':           int(hopFields[10]),
-               'hopAddress':      hopFields[11]
-            }
-            currentTraceroute['hops'].append(currentHop)
+            pings.append(pingData)
 
-   if currentTraceroute is not None:
-      traceroutes.append(currentTraceroute)
-      currentTraceroute = None
    hpctInputFile.close()
 
 # ====== Output JSON ====================================================
-print(json.dumps(traceroutes, indent=3))
+print(json.dumps(pings, indent=3))

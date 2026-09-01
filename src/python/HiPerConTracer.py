@@ -36,7 +36,7 @@ import lzma
 import zstandard
 
 from enum   import Enum
-from typing import Any, BinaryIO, Final, List, TextIO
+from typing import Any, BinaryIO, Dict, Final, List, TextIO
 
 
 class HopStatus(Enum):
@@ -80,6 +80,13 @@ class HopStatus(Enum):
    # ------ Response received -----------------------------
    Flag_StarredRoute         = (1 << 8)   # Route with * (router did not respond)
    Flag_DestinationReached   = (1 << 9)   # Destination has responded
+
+
+PROTOCOL_MAP : Final[Dict[str, str]] = {
+   'i': 'ICMP',
+   'u': 'UDP',
+   't': 'TCP'
+}
 
 
 # ###### Is destination not reachable? ######################################
