@@ -63,8 +63,8 @@ endTimeStampString        : Final[str] = sys.argv[3]
 outputFileName            : Final[str] = sys.argv[4]
 outputFileNameTmp         : Final[str] = outputFileName + '.tmp'
 
-startTimeStamp : Final[int] = HiPerConTracer.string_to_unix_time(startTimeStampString)
-endTimeStamp   : Final[int] = HiPerConTracer.string_to_unix_time(endTimeStampString)
+startTimeStamp : Final[int] = HiPerConTracer.string_to_unixtime(startTimeStampString)
+endTimeStamp   : Final[int] = HiPerConTracer.string_to_unixtime(endTimeStampString)
 if not startTimeStamp < endTimeStamp:
    sys.stderr.write('ERROR: start_timestamp must be less than end_timestamp!\n')
    sys.exit(1)
@@ -98,9 +98,9 @@ try:
 
    queryStartTime : Final[float] = time.perf_counter()
    ( rows, description ) = configuration.query(query)
-   headers : Final[list[str]] = [ column[0] for column in description ]
-   queryFinishTime : Final[float] = time.perf_counter()
-   queryRuntime    : Final[float] = queryFinishTime - queryStartTime
+   headers         : Final[list[str]] = [ column[0] for column in description ]
+   queryFinishTime : Final[float]     = time.perf_counter()
+   queryRuntime    : Final[float]     = queryFinishTime - queryStartTime
 
    log(f'Got {len(rows)} rows in {queryRuntime:.1f}s')
 

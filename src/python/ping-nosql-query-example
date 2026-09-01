@@ -62,8 +62,8 @@ endTimeStampString        : Final[str] = sys.argv[3]
 outputFileName            : Final[str] = sys.argv[4]
 outputFileNameTmp         : Final[str] = outputFileName + '.tmp'
 
-startTimeStamp : Final[int] = HiPerConTracer.string_to_unix_time(startTimeStampString)
-endTimeStamp   : Final[int] = HiPerConTracer.string_to_unix_time(endTimeStampString)
+startTimeStamp : Final[int] = HiPerConTracer.string_to_unixtime(startTimeStampString)
+endTimeStamp   : Final[int] = HiPerConTracer.string_to_unixtime(endTimeStampString)
 if not startTimeStamp < endTimeStamp:
    sys.stderr.write('ERROR: start_timestamp must be less than end_timestamp!\n')
    sys.exit(1)

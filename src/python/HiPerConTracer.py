@@ -36,7 +36,7 @@ import lzma
 import zstandard
 
 from enum   import Enum
-from typing import Any, BinaryIO, Final, TextIO
+from typing import Any, BinaryIO, Final, List, TextIO
 
 
 class HopStatus(Enum):
@@ -91,30 +91,39 @@ def statusIsUnreachable(hopStatus : HopStatus) -> bool:
 
 
 # ###### Convert Unix time in nanoseconds to datetime #######################
-def unix_time_to_datetime(unixTime : int) -> datetime.datetime:
-   return datetime.datetime.fromtimestamp(unixTime / 1e9,
-                                          tz = datetime.UTC)
+def unixtime_to_datetime(unixTime : int) -> datetime.datetime:
+   seconds : Final[int] = unixTime // 1_000_000_000
+   dt      : Final[datetime.datetime] = \
+      datetime.datetime.fromtimestamp(seconds, tz=datetime.UTC)
+   return dt
 
 
 # ###### Convert Unix time in nanoseconds to string #########################
-def unix_time_to_string(unixTime : int) -> str:
-   seconds     : Final[int] = unixTime // 1_000_000_000
+def unixtime_to_string(unixTime : int) -> str:
    nanoseconds : Final[int] = unixTime % 1_000_000_000
-   dt      : Final[datetime.datetime] = \
-      datetime.datetime.fromtimestamp(seconds, tz=datetime.UTC)
-   return dt.strftime(f'%Y-%m-%dT%H:%M:%S.{nanoseconds:09d}+00:00')
+   dt          : Final[datetime.datetime] = unixtime_to_datetime(unixTime)
+   return dt.strftime(f'%Y-%m-%d %H:%M:%S.{nanoseconds:09d}')
 
 
-# ###### Convert strong to Unix time in nanoseconds #########################
-def datetime_to_unix_time(timeStamp : datetime.datetime) -> int:
-   return int(1e9 * timeStamp.timestamp())
+# ###### Convert datetime to Unix time in nanoseconds #######################
+def datetime_to_unixtime(timeStamp : datetime.datetime) -> int:
+   seconds : Final[int] = int(timeStamp.timestamp())
+   return seconds * 1_000_000_000 + timeStamp.microsecond * 1_000
 
 
-# ###### Convert strong to Unix time in nanoseconds #########################
-def string_to_unix_time(timeString : str) -> int:
-   timeStamp : Final[datetime.datetime] = \
-      datetime.datetime.fromisoformat(timeString + '+00:00').replace(tzinfo = datetime.UTC)
-   return datetime_to_unix_time(timeStamp)
+# ###### Convert string to Unix time in nanoseconds #########################
+def string_to_unixtime(timeString : str) -> int:
+   # Split base date/time from sub-second fraction:
+   parts : Final[List[str]] = timeString.strip().split('.')
+   dt    : Final[datetime.datetime] = \
+      datetime.datetime.fromisoformat(parts[0] + '+00:00').replace(tzinfo = datetime.UTC)
+   seconds     : Final[int] = int(dt.timestamp())
+   nanoseconds : int        = 0
+   if len(parts) > 1:
+      # Normalize subsecond string to 9 digits (nanoseconds):
+      nanosecondsString : Final[str] = parts[1].ljust(9, '0')[:9]
+      nanoseconds = int(nanosecondsString)
+   return seconds * 1_000_000_000 + nanoseconds
 
 
 # ###### Open HiPerConTracer results file ###################################
