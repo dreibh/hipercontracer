@@ -86,7 +86,6 @@ for hpctInputFileName in hpctInputFileNames:
    line : str
    for line in hpctInputFile:
       line = line.rstrip('\n')
-      # print(line)
 
       tag : str = line.split(maxsplit=1)[0]
       if tag.startswith('#T') and len(tag) == 3:

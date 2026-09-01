@@ -1,0 +1,13 @@
+#!/usr/bin/env python3
+
+from HiPerConTracer import *
+
+t0 = 1788258897516035018
+print(t0)
+
+s = unixtime_to_string(t0)
+print(s)
+t = string_to_unixtime(s)
+print(t)
+
+assert (t == t0)
