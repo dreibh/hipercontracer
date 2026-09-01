@@ -1,6 +1,6 @@
 # Maintainer: Thomas Dreibholz <dreibh@simula.no>
 pkgname=hipercontracer
-pkgver=2.2.8
+pkgver=2.2.9
 pkgrel=1
 pkgdesc="High-Performance Connectivity Tracer (HiPerConTracer) measurement framework"
 url="https://www.nntb.no/~dreibh/hipercontracer/"
@@ -321,5 +321,5 @@ hipercontracer_all() {
 }
 
 sha512sums="
-8903e4c6f1579ba56e91487cb7ef432767809e5049d844862481ac8d3eb347b78c81c452f57636fe6087cb662fed5ee906c3f3694609f51e80860f4649988909  hipercontracer-2.2.8.tar.xz
+d21393daf7ea036c30ac7106779135972ad9c5a2872b1f07833fca4fe8c46f2b8bd566dab203dffd47827cc32418f539b281bf514c764bae1eebdc5e9a9ad224  hipercontracer-2.2.9.tar.xz
 "
