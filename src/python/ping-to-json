@@ -116,6 +116,9 @@ for hpctInputFileName in hpctInputFileNames:
                'rttHw':              int(fields[19])
             }
             pings.append(pingData)
+      elif not tag.startswith('#?'):
+         sys.stderr.write(f'ERROR: Syntax error in input file {hpctInputFileName}: {line}\n')
+         sys.exit(1)
 
    hpctInputFile.close()
 

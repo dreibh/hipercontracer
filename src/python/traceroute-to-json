@@ -132,6 +132,9 @@ for hpctInputFileName in hpctInputFileNames:
                'hopAddress':      hopFields[11]
             }
             currentTraceroute['hops'].append(currentHop)
+      elif not tag.startswith('#?'):
+         sys.stderr.write(f'ERROR: Syntax error in input file {hpctInputFileName}: {line}\n')
+         sys.exit(1)
 
    if currentTraceroute is not None:
       traceroutes.append(currentTraceroute)
