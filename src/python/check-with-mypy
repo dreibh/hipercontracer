@@ -33,6 +33,7 @@ set -euo pipefail
 SCRIPTS="
    ping-nosql-query-example
    ping-sql-query-example
+   traceroute-to-json
 "
 
 

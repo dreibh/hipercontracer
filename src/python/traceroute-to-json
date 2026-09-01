@@ -64,13 +64,13 @@ parser.add_argument(
    '-T', '--timestamp-as-string',
    action = 'store_true',
    dest   = 'timestampAsString',
-   help   = 'Format timestamps as ISO 8601 strings instead of nanosecond integers'
+   help   = 'Format timestamps as strings instead of nanosecond integers'
 )
 parser.add_argument(
    'hpctInputFileNames',
-   metavar='traceroute_hpct_file',
-   nargs='+',
-   help='HiPerConTracer result file(s)'
+   metavar = 'traceroute_hpct_file',
+   nargs   = '+',
+   help    = 'HiPerConTracer result file(s)'
 )
 args               : Final[argparse.Namespace] = parser.parse_args()
 timestampAsString  : Final[bool]               = args.timestampAsString
@@ -102,7 +102,7 @@ for hpctInputFileName in hpctInputFileNames:
          fields : List[str] = line.split()
          if len(fields) >= 14:
             protoKey  : str = fields[0][2]
-            protoType : str  = PROTOCOL_MAP.get(protoKey, protoKey.upper())
+            protoType : str = PROTOCOL_MAP.get(protoKey, protoKey.upper())
             currentTraceroute = {
                'type':               protoType,
                'measurementId':      int(fields[1]),
