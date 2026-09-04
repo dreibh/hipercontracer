@@ -1,3 +1,69 @@
+commit e2318e7c008132ecf89cb3391c9906a92d3962a7
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Fri Sep 4 15:10:01 2026 +0200
+
+    Fix for Debian test 30-dbeaver-tools.
+
+commit 813403b8077be2520460d15674cd634399ec11db
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Sep 1 16:23:32 2026 +0200
+
+    Updated APKBUILD file.
+
+commit 5c3c467cccde4b0e0fb78868650085f2fd890c94
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Sep 1 15:08:02 2026 +0200
+
+    Improved example scripts.
+
+commit bb7d3cbfe79dc06f3c4b2a5fc3687cbb2d5b1c80
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Sep 1 14:57:44 2026 +0200
+
+    Updated script.
+
+commit 25c5684be31fec6f4c923e94461509b4c71552ae
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Sep 1 14:54:06 2026 +0200
+
+    Added test script.
+
+commit bb15335db526f34f8322d27270d63064eed58e3f
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Sep 1 14:51:51 2026 +0200
+
+    Added Ping example script as well.
+
+commit f2cdf7327f20c5328b9b075839ce913bd83a56de
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Sep 1 14:46:11 2026 +0200
+
+    Further clean-ups.
+
+commit b29a86abd30967b176eb5266098e2e16039d24e4
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Sep 1 14:39:31 2026 +0200
+
+    Further improvements of the examples, and some function name clean-ups.
+
+commit 14334a09f1948fa48c0648274b11b13839ef9da9
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Sep 1 12:53:25 2026 +0200
+
+    Added another Python example.
+
+commit 3269229394f112f1196d532d39992d2e344201a3
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Sep 1 12:53:17 2026 +0200
+
+    Improved Python library.
+
+commit 3444d978211dfbab34ca19ced5eec21c350dd822
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Mon Aug 31 16:33:02 2026 +0200
+
+    New release hipercontracer-2.2.9.
+
 commit b9f4f55dab00295fc3c299777a4718b630170651
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Mon Aug 31 16:29:16 2026 +0200
