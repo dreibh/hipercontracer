@@ -31,12 +31,15 @@
 # Bash options:
 set -eu
 
+# Create dummy files (they only have to exist, no actual contents needed):
+touch /tmp/TestCA.crt /tmp/TestCRL.crl
+
 cat >database1.conf <<EOF
 dbbackend         = MariaDB
 dbserver          = mariadb.hipercontracer.example
 dbport            = 12345
-dbcafile          = /just/a/test/TestCA.crt
-dbcrlfile         = /just/a/test/TestCRL.crl
+dbcafile          = /tmp/TestCA.crt
+dbcrlfile         = /tmp/TestCRL.crl
 dbcertfile        = NONE
 dbkeyfile         = NONE
 dbconnectionflags = NONE
@@ -50,8 +53,8 @@ cat >database2.conf <<EOF
 dbbackend         = PostgreSQL
 dbserver          = postgresql.hipercontracer.example
 dbport            = 11111
-dbcafile          = /just/a/test/TestCA.crt
-dbcrlfile         = /just/a/test/TestCRL.crl
+dbcafile          = /tmp/TestCA.crt
+dbcrlfile         = /tmp/TestCRL.crl
 dbcertfile        = NONE
 dbkeyfile         = NONE
 dbconnectionflags = NONE
