@@ -257,6 +257,22 @@ sudo hipercontracer \
    --verbose
 ```
 
+## Example 4
+
+Under Linux, it is possible to utilise capabilities to allow HiPerConTracer to use raw sockets without superuser permissions:
+
+```bash
+sudo setcap cap_net_raw=+ep /usr/bin/hipercontracer
+```
+
+After enabling the `cap_net_raw` capability, HiPerConTracer can run as unprivileged (i.e.&nbsp;non-root) user:
+
+```bash
+hipercontracer www.ietf.org --ping
+```
+
+See [capabilities(7) — Linux manual page](https://man7.org/linux/man-pages/man7/capabilities.7.html) for details!
+
 
 ## Further Details
 

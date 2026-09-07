@@ -1,11 +1,12 @@
 # Maintainer: Thomas Dreibholz <dreibh@simula.no>
 pkgname=hipercontracer
-pkgver=2.2.10
+pkgver=2.2.11
 pkgrel=1
 pkgdesc="High-Performance Connectivity Tracer (HiPerConTracer) measurement framework"
 url="https://www.nntb.no/~dreibh/hipercontracer/"
 arch="all"
 license="GPL-3.0-or-later"
+options="setcap"
 depends="iproute2"
 makedepends="
 	cmake
@@ -15,6 +16,7 @@ makedepends="
 	ghostscript
 	imagemagick
 	libbson-dev
+	libcap-dev
 	mariadb-connector-c-dev
 	mongo-c-driver-dev
 	mupdf-tools
@@ -75,6 +77,9 @@ build() {
 
 package() {
 	DESTDIR="$pkgdir" cmake --install build
+
+	setcap cap_net_raw=+ep "$pkgdir"/usr/bin/hipercontracer
+	setcap cap_net_raw=+ep "$pkgdir"/usr/bin/hpct-trigger
 
 	# Fixing shebangs for Alpine environment
 	local directory
