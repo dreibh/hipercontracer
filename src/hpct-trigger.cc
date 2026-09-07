@@ -440,13 +440,16 @@ int main(int argc, char** argv)
 
 
    // ====== Handle command-line arguments ==================================
-   boost::program_options::variables_map vm;
+   boost::program_options::variables_map                  vm;
+   boost::program_options::positional_options_description positionalOptions;
+   positionalOptions.add("destination", -1);
    try {
       boost::program_options::store(boost::program_options::command_line_parser(argc, argv).
                                        style(
                                           boost::program_options::command_line_style::style_t::unix_style
                                        ).
                                        options(commandLineOptions).
+                                       positional(positionalOptions).
                                        run(), vm);
       boost::program_options::notify(vm);
    }
@@ -557,16 +560,16 @@ int main(int argc, char** argv)
                     (!logFile.empty()) ? logFile.string().c_str() : nullptr);
    const passwd* pw = getUser(user.c_str());
    if(pw == nullptr) {
-      HPCT_LOG(fatal) << "Cannot find user \"" << user << "\"!";
+      std::cerr << "Cannot find user \"" << user << "\"!\n";
       return 1;
    }
-   if(SourceArray.size() < 1) {
-      HPCT_LOG(fatal) << "At least one source is needed!";
+   if( (SourceArray.size() < 1) || (DestinationArray.size() < 1) ) {
+      std::cerr << "At least one source and one destination are needed!\n";
       return 1;
    }
    if( /* (serviceJitter == false) && */ (servicePing == false) && (serviceTraceroute == false) ) {
-      HPCT_LOG(fatal) << "Enable at least on service (Traceroute, Ping, Jitter)!";
-      return 1;
+      std::cerr << "NOTE: No service (Traceroute, Ping, Jitter) enabled, assuming Ping as default!\n";
+      servicePing = true;
    }
 
    std::srand(std::time(nullptr));
