@@ -28,6 +28,7 @@ Package: hipercontracer
 Architecture: any
 Depends: hipercontracer-common,
          iproute2,
+         libcap2-bin,
          libhipercontracer2 (= ${binary:Version}),
          ${misc:Depends},
          ${shlibs:Depends}
@@ -582,6 +583,7 @@ Description: Development files for HiPerConTracer Universal Importer API library
 Package: hipercontracer-trigger
 Architecture: any
 Depends: hipercontracer-common,
+         libcap2-bin,
          libhipercontracer2 (= ${binary:Version}),
          ${misc:Depends},
          ${shlibs:Depends}

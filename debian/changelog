@@ -1,3 +1,13 @@
+hipercontracer (2.2.11~rc0-1ubuntu1) unstable; urgency=medium
+
+  * New upstream release.
+  * debian/hipercontracer.postinst: setcap cap_net_raw=ep to allow
+    running HiPerConTracer without root permissions.
+  * debian/hipercontracer-trigger.postinst: setcap cap_net_raw=ep to allow
+    running HiPerConTracer Trigger without root permissions.
+
+ -- Thomas Dreibholz <dreibh@simula.no>  Mon, 07 Sep 2026 16:33:55 +0200
+
 hipercontracer (2.2.10-1ubuntu1) unstable; urgency=medium
 
   * New upstream release.

@@ -1,5 +1,5 @@
 Name: hipercontracer
-Version: 2.2.10
+Version: 2.2.11~rc0
 Release: 1
 Summary: High-Performance Connectivity Tracer (HiPerConTracer)
 Group: Applications/Internet
@@ -35,6 +35,7 @@ BuildRequires: libzstd-devel
 Requires: %{name}-common = %{version}-%{release}
 Requires: %{name}-libhipercontracer = %{version}-%{release}
 Requires: iproute
+Requires: libcap
 Recommends: %{name}-viewer = %{version}-%{release}
 Recommends: %{name}-examples
 Recommends: ethtool
@@ -125,6 +126,9 @@ done
 %{_sysconfdir}/hipercontracer/hipercontracer-12345678.conf
 %{_prefix}/lib/systemd/system/hipercontracer.service
 %{_prefix}/lib/systemd/system/hipercontracer@.service
+
+%post
+setcap cap_net_raw=+ep %{_bindir}/hipercontracer || true
 
 
 %package common
@@ -747,6 +751,7 @@ Summary: Triggered HiPerConTracer service
 Group: Applications/Internet
 Requires: %{name}-common = %{version}-%{release}
 Requires: %{name}-libhipercontracer = %{version}-%{release}
+Requires: libcap
 Recommends: %{name} = %{version}-%{release}
 
 %description trigger
@@ -797,6 +802,9 @@ This package contains the tool to trigger measurements via incoming
 %{_sysconfdir}/hipercontracer/hpct-trigger-87654321.conf
 %{_prefix}/lib/systemd/system/hpct-trigger.service
 %{_prefix}/lib/systemd/system/hpct-trigger@.service
+
+%post trigger
+setcap cap_net_raw=+ep %{_bindir}/hpct-trigger || true
 
 
 %package sync

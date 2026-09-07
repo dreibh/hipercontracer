@@ -1,0 +1,9 @@
+#!/bin/sh
+
+set -eu
+
+if [ "$1" = "configure" ]; then
+   setcap cap_net_raw=+ep /usr/bin/hipercontracer || true
+fi
+
+#DEBHELPER#
