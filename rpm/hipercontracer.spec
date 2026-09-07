@@ -123,7 +123,6 @@ done
 %{_mandir}/man1/get-default-ips.1.gz
 %{_mandir}/man1/hipercontracer.1.gz
 %config(noreplace) %{_sysconfdir}/hipercontracer/hipercontracer-12345678.conf
-%{_sysconfdir}/hipercontracer/hipercontracer-12345678.conf
 %{_prefix}/lib/systemd/system/hipercontracer.service
 %{_prefix}/lib/systemd/system/hipercontracer@.service
 
@@ -799,7 +798,6 @@ This package contains the tool to trigger measurements via incoming
 %{_datadir}/bash-completion/completions/hpct-trigger
 %{_mandir}/man1/hpct-trigger.1.gz
 %config(noreplace) %{_sysconfdir}/hipercontracer/hpct-trigger-87654321.conf
-%{_sysconfdir}/hipercontracer/hpct-trigger-87654321.conf
 %{_prefix}/lib/systemd/system/hpct-trigger.service
 %{_prefix}/lib/systemd/system/hpct-trigger@.service
 
@@ -862,7 +860,6 @@ synchronisation of data to a central HiPerConTracer Collector server.
 %{_mandir}/man1/hpct-sync.1.gz
 %{_datadir}/bash-completion/completions/hpct-sync
 %config(noreplace)%{_sysconfdir}/hipercontracer/hpct-sync.conf
-%{_sysconfdir}/hipercontracer/hpct-sync.conf
 %{_prefix}/lib/systemd/system/hpct-sync.service
 %{_prefix}/lib/systemd/system/hpct-sync.timer
 
@@ -1143,7 +1140,6 @@ NoSQL databases.
 %{_datadir}/hipercontracer/TestDB/run-full-test
 %{_datadir}/hipercontracer/hipercontracer-importer.conf
 %config(noreplace) %{_sysconfdir}/hipercontracer/hpct-importer.conf
-%{_sysconfdir}/hipercontracer/hpct-importer.conf
 %{_prefix}/lib/systemd/system/hpct-importer.service
 
 
@@ -1368,7 +1364,6 @@ This package contains a simple UDP Echo server to respond to UDP Pings.
 %{_datadir}/bash-completion/completions/udp-echo-server
 %{_mandir}/man1/udp-echo-server.1.gz
 %config(noreplace) %{_sysconfdir}/hipercontracer/udp-echo-server.conf
-%{_sysconfdir}/hipercontracer/udp-echo-server.conf
 %{_prefix}/lib/systemd/system/udp-echo-server.service
 
 
