@@ -129,6 +129,8 @@
 .Op Fl F Ar version | Fl \-resultsformat Ar version
 .br
 .Op Fl z Ar depth | Fl \-resultstimestampdepth Ar depth
+.br
+.Op Ar destination Ar ...
 .Nm hipercontracer
 .Op Fl \-check
 .Nm hipercontracer
@@ -147,7 +149,7 @@ a database.
 The following arguments may be provided:
 .Bl -tag -width indent
 .It Fl P | Fl \-ping
-Start the Ping service.
+Start the Ping service. If no service is explicitly enabled, Ping is used as default.
 .It Fl T | Fl \-traceroute
 Start the Traceroute service.
 .\" .It Fl J | Fl Fl jitter
@@ -288,6 +290,9 @@ Print build environment information for debugging.
 Prints command help.
 .It Fl v | Fl \-version
 Prints program version.
+.It Ar destination Ar ...
+For convenience, any positional parameters are handled as additional \-\-destination options.
+See the \-\-destination option description for details.
 .El
 .\" ###### Output format ####################################################
 .Sh OUTPUT FORMAT
@@ -519,6 +524,8 @@ tool exits with 0 on success, and >0 in case of an error.
 .\" ###### Examples #########################################################
 .Sh EXAMPLES
 .Bl -tag -width indent
+.It hipercontracer www.ietf.org --ping
+.It hipercontracer www.ietf.org --traceroute
 .It hipercontracer \-S 10.1.1.51 \-D 10.1.1.6 \-D 10.1.1.7 \-D 10.1.1.8 \-T \-\-tracerouteinterval 10000 \-\-tracerouteduration 1000 \-v
 .It hipercontracer \-\-source 10.1.1.51 \-\-destination 10.1.1.6 \-\-destination 10.1.1.7 \-\-destination 10.1.1.8 \-\-traceroute \-\-tracerouteinterval 10000 \-\-tracerouteduration 1000
 .It hipercontracer \-\-source 172.16.0.127 \-\-destination 8.8.8.8 \-\-destination 193.99.144.80 \-\-destination 132.252.181.87 \-\-destination 10.254.254.254 \-\-destination 91.189.93.5 \-\-destination 128.112.139.90 \-\-destination 4.31.198.44 \-\-destination 136.186.1.10 \-\-destination 101.4.112.170 \-\-destination 77.36.144.2 \-\-source 2a02:270:2014:40:92e2:baff:fe48:bde1 \-\-destination 2400:cb00:2048:1::6814:155 \-\-destination 2a02:2e0:3fe:1001:7777:772e:2:85 \-\-destination 2a00:1450:400f:805::2004 \-\-traceroute \-\-ping \-\-tracerouteduration 1000 \-\-tracerouteinitialmaxttl 4 \-\-traceroutefinalmaxttl 32 \-\-tracerouteincrementmaxttl 4 \-\-pinginterval 1000 \-\-pingexpiration 7500 \-\-pingttl 56 \-\-resultsdirectory results \-\-resultstimestampdepth 3
