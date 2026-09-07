@@ -130,27 +130,29 @@ bool set_last_write_time(const std::filesystem::path& path,
 bool reducePrivileges(const passwd* pw)
 {
    // ====== Reduce permissions =============================================
-   if((pw != nullptr) && (pw->pw_uid != 0)) {
-      HPCT_LOG(info) << "Using UID " << pw->pw_uid << ", GID " << pw->pw_gid;
-      if(setgroups(1, &pw->pw_gid) != 0) {
-         HPCT_LOG(error) << "setgroups(1,{" << pw->pw_gid << "}) failed: "
-                         << strerror(errno);
-         return false;
+   if(getuid() == 0) {
+      // Running as root -> switch to given user/group
+      if((pw != nullptr) && (pw->pw_uid != 0)) {
+         HPCT_LOG(info) << "Using UID " << pw->pw_uid << ", GID " << pw->pw_gid;
+         if(setgroups(1, &pw->pw_gid) != 0) {
+            HPCT_LOG(error) << "setgroups(1,{" << pw->pw_gid << "}) failed: "
+                           << strerror(errno);
+            return false;
+         }
+         if(setgid(pw->pw_gid) != 0) {
+            HPCT_LOG(error) << "setgid(" << pw->pw_gid << ") failed: " << strerror(errno);
+            return false;
+         }
+         if(setuid(pw->pw_uid) != 0) {
+            HPCT_LOG(error) << "setuid(" << pw->pw_uid << ") failed: " << strerror(errno);
+            return false;
+         }
       }
-      if(setgid(pw->pw_gid) != 0) {
-         HPCT_LOG(error) << "setgid(" << pw->pw_gid << ") failed: " << strerror(errno);
-         return false;
-      }
-      if(setuid(pw->pw_uid) != 0) {
-         HPCT_LOG(error) << "setuid(" << pw->pw_uid << ") failed: " << strerror(errno);
-         return false;
+      else {
+         HPCT_LOG(warning) << "Working as root (uid 0). This is not recommended!";
+         return true;
       }
    }
-   else {
-      HPCT_LOG(warning) << "Working as root (uid 0). This is not recommended!";
-      return true;
-   }
-
    return true;
 }
 
