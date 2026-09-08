@@ -88,6 +88,6 @@ class Hipercontracer < Formula
   end
 
   test do
-    assert_match version.to_s, shell_output("#{bin}/hipercontracer --version")
+    assert_match version.to_s, shell_output("#{bin}/hipercontracer --version 2>&1")
   end
 end
