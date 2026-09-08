@@ -1,3 +1,112 @@
+commit c2586671eedee0068fc623622fe59f058b1e40c2
+Merge: b00a9968 1c3000d6
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Sep 8 11:59:49 2026 +0200
+
+    Merge branch 'dreibh/homebrew' of github.com:dreibh/hipercontracer into dreibh/homebrew
+
+commit b00a9968e3a706ba6c4b79e7fd74d51753cc3ba1
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Sep 8 11:58:41 2026 +0200
+
+    Removed exit() call from library. DatabaseConfiguration::readConfiguration() returns false in case of a path error.
+
+commit 1c3000d647dae82789040f95ff5a1b8b3853a65c
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Sep 8 11:55:16 2026 +0200
+
+    Updated RPM spec file.
+
+commit a2188f7125d634ff6e0d0ede00c527730536205e
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Sep 8 11:47:00 2026 +0200
+
+    Using CMAKE_INSTALL_SYSCONFDIR for configuration file installation instead of hard-coding /etc.
+
+commit 52ac9bc09bb4165923d0e3b2781497cab9d9f3fb
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Sep 8 11:30:42 2026 +0200
+
+    Improved Homebrow path handling in CMakeLists.txt.
+
+commit 2be6cc58880f261804db093b06920e4f13522ecb
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Sep 8 11:10:01 2026 +0200
+
+    Some progress with the Homebrew port.
+
+commit 21a740847032ad7e2b86da2571211a37e641d2bc
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Mon Sep 7 22:57:47 2026 +0200
+
+    Some improvements.
+
+commit f8a3f894156a3938dc44c7e3015ee4b50ab2142d
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Mon Sep 7 22:43:15 2026 +0200
+
+    Initial homebrew packaging. Not working, yet!
+
+commit 112761ee05490e780af98b8b80b29d4667c3ac86
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Mon Sep 7 17:07:58 2026 +0200
+
+    Improved RPM spec file.
+
+commit 4ab4e15001f36985d99663396bf93af46bd22056
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Mon Sep 7 16:57:57 2026 +0200
+
+    Improved documentation.
+
+commit 2f71eef68655e24b53083325c2bf7b6c569f3cd0
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Mon Sep 7 16:38:42 2026 +0200
+
+    Setting capabilities (setcap cap_net_raw=ep) for Debian/Ubuntu and Fedora package.
+
+commit 669311cc09b610fab6a00f170830bd9535d05980
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Mon Sep 7 16:37:25 2026 +0200
+
+    Linux: Allow HiPerConTracer to run with capabilities (setcap cap_net_raw=ep) instead of startup with root permissions.
+
+commit ef1049418431815e5674099d26b8d55f69770031
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Mon Sep 7 16:00:14 2026 +0200
+
+    Another set of manpage improvements.
+
+commit 3763e8cea0b34be3a7d0b76bc70b7e320f27f2f9
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Mon Sep 7 15:54:43 2026 +0200
+
+    Further manpage improvements.
+
+commit b0f30cc37b8ad936594ea882a6a80d07f05d9a9c
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Mon Sep 7 15:37:42 2026 +0200
+
+    Updated manpages.
+
+commit f2ddd54b04e55f370bf96964937d7586b93abcad
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Mon Sep 7 15:37:23 2026 +0200
+
+    Use positional parameters as destinations.
+
+commit b701a523bb3e3177283a1254527dfb63f121b216
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Fri Sep 4 18:22:15 2026 +0200
+
+    Updated APKBUILD file.
+
+commit cc74111202cfbc62d05470f40a9f4fd29b1b0d1c
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Fri Sep 4 18:07:12 2026 +0200
+
+    New release hipercontracer-2.2.10.
+
 commit e2318e7c008132ecf89cb3391c9906a92d3962a7
 Author: Thomas Dreibholz <dreibh@simula.no>
 Date:   Fri Sep 4 15:10:01 2026 +0200
