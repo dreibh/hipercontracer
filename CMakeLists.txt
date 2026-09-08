@@ -425,6 +425,7 @@ IF (WITH_LIBHPCTDB)
       FIND_LIBRARY(LIBMARIADB_LIBRARY NAMES mariadb mysqlclient
                    PATH_SUFFIXES            mariadb mysql
                    HINTS                    /opt/homebrew/opt/mariadb-connector-c/lib
+                                            /home/linuxbrew/.linuxbrew/opt/mariadb-connector-c/lib
                                             /usr/local/opt/mariadb-connector-c/lib
                                             /usr/mariadb/11.4/lib/amd64
                                             /usr/mariadb/10.6/lib/amd64)
@@ -432,6 +433,7 @@ IF (WITH_LIBHPCTDB)
       FIND_PATH(LIBMARIADB_INCLUDE_DIR NAMES mysql.h
                 PATH_SUFFIXES mariadb mysql
                 HINTS /opt/homebrew/opt/mariadb-connector-c/include
+                      /home/linuxbrew/.linuxbrew/opt/mariadb-connector-c/include
                       /usr/local/opt/mariadb-connector-c/include
                       /usr/mariadb/11.4/include
                       /usr/mariadb/10.6/include)
@@ -461,8 +463,9 @@ IF (WITH_LIBHPCTDB)
       MESSAGE("Building with PostgreSQL backend (ENABLE_BACKEND_POSTGRESQL=${ENABLE_BACKEND_POSTGRESQL})")
 
       MESSAGE("Looking for PostgreSQL C++ Client library:")
-      LIST(APPEND CMAKE_PREFIX_PATH "/opt/homebrew/opt/libpqxx"
-                                    "/usr/local/opt/libpqxx")
+      LIST(APPEND CMAKE_PREFIX_PATH /opt/homebrew/opt/libpqxx
+                                    /home/linuxbrew/.linuxbrew/opt/libpqxx
+                                    /usr/local/opt/libpqxx)
       FIND_PACKAGE(PQXX)
       MESSAGE(" * Version:  ${PQXX_VERSION}")
       MESSAGE(" * Library:  ${PQXX_LIBRARIES}")
@@ -499,10 +502,11 @@ IF (WITH_LIBHPCTDB)
 
       MESSAGE("Looking for MongoDB C Client library:")
       FILE(GLOB mongoSearchPaths
-         "/usr/include/mongoc-*"            "/usr/include/libmongoc*"
-         "/usr/local/include/mongoc-*"      "/usr/local/include/libmongoc*"
-         "/usr/pkg/include/mongoc-*"        "/usr/pkg/include/libmongoc-*"
-         "/opt/homebrew/include/mongoc-*"   "/opt/homebrew/include/libmongoc*"
+         "/opt/homebrew/include/mongoc-*"                "/opt/homebrew/include/libmongoc*"
+         "/home/linuxbrew/.linuxbrew/include/mongoc-*"   "/home/linuxbrew/.linuxbrew/include/libmongoc*"
+         "/usr/include/mongoc-*"                         "/usr/include/libmongoc*"
+         "/usr/local/include/mongoc-*"                   "/usr/local/include/libmongoc*"
+         "/usr/pkg/include/mongoc-*"                     "/usr/pkg/include/libmongoc-*"
       )
       FIND_LIBRARY(LIBMONGOC_LIBRARY NAMES mongoc-1.0 mongoc2 HINTS ${mongoSearchPaths})
       MESSAGE(" * Library: ${LIBMONGOC_LIBRARY}")
@@ -525,10 +529,11 @@ IF (WITH_LIBHPCTDB)
 
       MESSAGE("Looking for MongoDB BSON library:")
       FILE(GLOB bsonSearchPaths
-         "/usr/include/bson-*"            "/usr/include/libbson-*"
-         "/usr/local/include/bson-*"      "/usr/local/include/libbson-*"
-         "/usr/pkg/include/bson-*"        "/usr/pkg/include/libbson-*"
-         "/opt/homebrew/include/bson-*"   "/opt/homebrew/include/libbson*"
+         "/opt/homebrew/include/bson-*"                "/opt/homebrew/include/libbson*"
+         "/home/linuxbrew/.linuxbrew/include/bson-*"   "/home/linuxbrew/.linuxbrew/include/libbson*"
+         "/usr/include/bson-*"                         "/usr/include/libbson-*"
+         "/usr/local/include/bson-*"                   "/usr/local/include/libbson-*"
+         "/usr/pkg/include/bson-*"                     "/usr/pkg/include/libbson-*"
       )
       FIND_LIBRARY(LIBBSON_LIBRARY NAMES bson-1.0 bson2 HINTS ${bsonSearchPaths})
       MESSAGE(" * Library: ${LIBBSON_LIBRARY}")
