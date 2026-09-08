@@ -99,7 +99,8 @@ DatabaseConfiguration::~DatabaseConfiguration()
 // ###### Make absolute path name of file relative to directory #############
 static inline std::filesystem::path checkFile(const std::string&           file,
                                               const std::filesystem::path& directory,
-                                              const char*                  label)
+                                              const char*                  label,
+                                              bool&                        success)
 {
    if(boost::iequals(file, "NONE") || boost::iequals(file, "IGNORE")) {
       return std::string();
@@ -108,8 +109,8 @@ static inline std::filesystem::path checkFile(const std::string&           file,
       const std::filesystem::path absPath =
          std::filesystem::absolute(directory / file);
       if(!std::filesystem::is_regular_file(absPath)) {
-         HPCT_LOG(fatal) << "Unable to find " << label << " " << absPath;
-         exit(1);
+         HPCT_LOG(error) << "Unable to find " << label << " " << absPath;
+         success = false;
       }
       return absPath;
    }
@@ -142,13 +143,14 @@ bool DatabaseConfiguration::readConfiguration(const std::filesystem::path& confi
    if(!setBackend(BackendName))       return false;
    if(!setConnectionFlags(FlagNames)) return false;
 
-   CAFile      = checkFile(CAFile,      configurationDirectory, "CA certificate file (dbcafile setting)");
-   CRLFile     = checkFile(CRLFile,     configurationDirectory, "CRL file (dbcrlfile setting)");
-   KeyFile     = checkFile(KeyFile,     configurationDirectory, "key file (dbkeyfile setting)");
-   CertFile    = checkFile(CertFile,    configurationDirectory, "certificertte file (dbcertfile setting)");
-   CertKeyFile = checkFile(CertKeyFile, configurationDirectory, "certificertkeyte+key file (dbcertkeyfile setting)");
-
-   return true;
+   bool success = true;
+   // The following calls may set success=false in case of an error
+   CAFile      = checkFile(CAFile,      configurationDirectory, "CA certificate file (dbcafile setting)", success);
+   CRLFile     = checkFile(CRLFile,     configurationDirectory, "CRL file (dbcrlfile setting)", success);
+   KeyFile     = checkFile(KeyFile,     configurationDirectory, "key file (dbkeyfile setting)", success);
+   CertFile    = checkFile(CertFile,    configurationDirectory, "certificertte file (dbcertfile setting)", success);
+   CertKeyFile = checkFile(CertKeyFile, configurationDirectory, "certificertkeyte+key file (dbcertkeyfile setting)", success);
+   return success;
 }
 
 
