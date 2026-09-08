@@ -16,7 +16,7 @@ makedepends="
 	ghostscript
 	imagemagick
 	libbson-dev
-	libcap-dev
+	libcap-setcap
 	mariadb-connector-c-dev
 	mongo-c-driver-dev
 	mupdf-tools
@@ -326,5 +326,5 @@ hipercontracer_all() {
 }
 
 sha512sums="
-514cec3e513463380fd4c303d0aa3ae6c5a30b16cfc02e2fbca10dd5bdc3c78ec49a0e3df3191d3fa303724b7b83a8a819c30e7e8e9d7aed7972ef84dc1e7c7f  hipercontracer-2.2.10.tar.xz
+a7734f674ae23911f826f81c93587c49ea71bc02ee22da039f8429321369323acf33f103c28e0ed24aca9f20d8582adb31ccb92f1c6007f4d0c03285ba549816  hipercontracer-2.2.11.tar.xz
 "

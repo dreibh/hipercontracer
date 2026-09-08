@@ -1,8 +1,8 @@
 class Hipercontracer < Formula
   desc "High-Performance Connectivity Tracer measurement framework"
   homepage "https://www.nntb.no/~dreibh/hipercontracer/"
-  url "https://www.nntb.no/~dreibh/hipercontracer/download/hipercontracer-2.2.10.tar.xz"
-  sha256 "f38380da91b78ed350de99afc73cfd42344c99dbafe5d827ebc15b115e3ead03"
+  url "https://www.nntb.no/~dreibh/hipercontracer/download/hipercontracer-2.2.11.tar.xz"
+  sha256 "6668949a5d27284c2d813eb10a5df0ff1642f89c7f8b65376c48d886e57721e0"
   license "GPL-3.0-or-later"
 
   option "without-collector", "Build without Collector Tools"
