@@ -5,6 +5,7 @@ class Hipercontracer < Formula
   sha256 "6668949a5d27284c2d813eb10a5df0ff1642f89c7f8b65376c48d886e57721e0"
   license "GPL-3.0-or-later"
 
+  # Feature options (ON by default, matching FreeBSD OPTIONS_DEFAULT)
   option "without-collector", "Build without Collector Tools"
   option "without-dbeaver-tools", "Build without DBeaver Tools"
   option "without-dbshell", "Build without DBShell"
@@ -17,41 +18,46 @@ class Hipercontracer < Formula
   option "without-libhpctdb", "Build without Database Backend Library"
   option "without-libhpctio", "Build without I/O Library"
   option "without-libuniversalimporter", "Build without Universal Importer Library"
+  option "without-mariadb", "Build without MariaDB/MySQL database backend"
+  option "without-mongodb", "Build without MongoDB database backend"
   option "without-node", "Build without HiPerConTracer Node Tools"
   option "without-pipe-checksum", "Build without Pipe Checksum Tool"
+  option "without-postgresql", "Build without PostgreSQL database backend"
   option "without-query", "Build without HiPerConTracer Query Tool"
   option "without-results", "Build without HiPerConTracer Results Tool"
   option "without-rtunnel", "Build without Reverse Tunnel Tool"
+  option "without-sync", "Build without Synchronisation Tool"
   option "without-trigger", "Build without HiPerConTracer Trigger Tool"
   option "without-udp-echo-server", "Build without UDP Echo Server"
   option "without-viewer", "Build without Viewer Tool"
 
+  # Build-time dependencies
   depends_on "cmake" => :build
   depends_on "ninja" => :build
   depends_on "pkg-config" => :build
 
+  # Mandatory runtime dependencies
   depends_on "boost"
   depends_on "bzip2"
   depends_on "openssl@3"
   depends_on "xz"
   depends_on "zstd"
 
-  depends_on "ghostscript" => :recommended
-  depends_on "graphicsmagick" => :recommended
-  depends_on "libpqxx" => :recommended
-  depends_on "mariadb-connector-c" => :recommended
-  depends_on "mongo-c-driver" => :recommended
-  depends_on "mupdf" => :recommended
-  depends_on "rsync" => :recommended
+  # Feature-driven dependencies
+  depends_on "ghostscript" if build.with? "icons"
+  depends_on "graphicsmagick" if build.with? "icons"
+  depends_on "pdf2svg" if build.with? "icons"
+
+  depends_on "mariadb-connector-c" if build.with? "mariadb"
+  depends_on "mongo-c-driver" if build.with? "mongodb"
+  depends_on "libpqxx" if build.with? "postgresql"
+
+  depends_on "rsync" if build.with? "sync"
 
   def install
-    build_icons = build.with?("icons") &&
-                  build.with?("ghostscript") &&
-                  build.with?("graphicsmagick") &&
-                  build.with?("mupdf")
-
     args = std_cmake_args + %W[
       -GNinja
+      -DCMAKE_INSTALL_RPATH=#{rpath}
       -DWITH_STATIC_LIBRARIES=OFF
       -DWITH_SHARED_LIBRARIES=ON
       -DSTATIC_BUILD=OFF
@@ -61,7 +67,7 @@ class Hipercontracer < Formula
       -DWITH_EXAMPLE_RESULTS=#{build.with?("example-results") ? "ON" : "OFF"}
       -DWITH_EXAMPLE_SCRIPTS=#{build.with?("example-scripts") ? "ON" : "OFF"}
       -DWITH_HIPERCONTRACER=#{build.with?("hipercontracer") ? "ON" : "OFF"}
-      -DWITH_ICONS=#{build_icons ? "ON" : "OFF"}
+      -DWITH_ICONS=#{build.with?("icons") ? "ON" : "OFF"}
       -DWITH_IMPORTER=#{build.with?("importer") ? "ON" : "OFF"}
       -DWITH_LIBHIPERCONTRACER=#{build.with?("libhipercontracer") ? "ON" : "OFF"}
       -DWITH_LIBHPCTDB=#{build.with?("libhpctdb") ? "ON" : "OFF"}
@@ -72,14 +78,14 @@ class Hipercontracer < Formula
       -DWITH_QUERY=#{build.with?("query") ? "ON" : "OFF"}
       -DWITH_RESULTS=#{build.with?("results") ? "ON" : "OFF"}
       -DWITH_RTUNNEL=#{build.with?("rtunnel") ? "ON" : "OFF"}
-      -DWITH_SYNC=#{build.with?("rsync") ? "ON" : "OFF"}
+      -DWITH_SYNC=#{build.with?("sync") ? "ON" : "OFF"}
       -DWITH_TRIGGER=#{build.with?("trigger") ? "ON" : "OFF"}
       -DWITH_UDP_ECHO_SERVER=#{build.with?("udp-echo-server") ? "ON" : "OFF"}
       -DWITH_VIEWER=#{build.with?("viewer") ? "ON" : "OFF"}
       -DENABLE_BACKEND_DEBUG=ON
-      -DENABLE_BACKEND_MARIADB=#{build.with?("mariadb-connector-c") ? "ON" : "OFF"}
-      -DENABLE_BACKEND_POSTGRESQL=#{build.with?("libpqxx") ? "ON" : "OFF"}
-      -DENABLE_BACKEND_MONGODB=#{build.with?("mongo-c-driver") ? "ON" : "OFF"}
+      -DENABLE_BACKEND_MARIADB=#{build.with?("mariadb") ? "ON" : "OFF"}
+      -DENABLE_BACKEND_POSTGRESQL=#{build.with?("postgresql") ? "ON" : "OFF"}
+      -DENABLE_BACKEND_MONGODB=#{build.with?("mongodb") ? "ON" : "OFF"}
     ]
 
     system "cmake", "-S", ".", "-B", "build", *args
