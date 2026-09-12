@@ -22,9 +22,9 @@
 set -euo pipefail
 
 
-cmakeOptions=""
-makePrefix=""
-cores=0
+CMAKE_OPTIONS=""
+COMMAND=""
+CORES=0
 while [ $# -gt 0 ] ; do
    if [[ "$1" =~ ^(-|--)use-clang$ ]] ; then
       # Use these settings for CLang:
@@ -36,7 +36,7 @@ while [ $# -gt 0 ] ; do
       export CC=clang
       # Ensure build with CLang Static Analyzer
       mkdir -p scan-build-reports
-      makePrefix="scan-build -o scan-build-reports"
+      COMMAND="scan-build -o scan-build-reports"
    elif [[ "$1" =~ ^(-|--)use-gcc$ ]] ; then
       # Use these settings for GCC:
       export CXX=g++
@@ -47,25 +47,25 @@ while [ $# -gt 0 ] ; do
       export CC=gcc
       export CFLAGS=-fanalyzer
       export CXXFLAGS=-fanalyzer
-      cmakeOptions="${cmakeOptions} -DCMAKE_VERBOSE_MAKEFILE=ON"
+      CMAKE_OPTIONS="${CMAKE_OPTIONS} -DCMAKE_VERBOSE_MAKEFILE=ON"
    elif [[ "$1" =~ ^(-|--)debug$ ]] ; then
       # Enable debugging build:
-      cmakeOptions="${cmakeOptions} -DCMAKE_BUILD_TYPE=Debug"
+      CMAKE_OPTIONS="${CMAKE_OPTIONS} -DCMAKE_BUILD_TYPE=Debug"
    elif [[ "$1" =~ ^(-|--)release$ ]] ; then
       # Enable debugging build:
-      cmakeOptions="${cmakeOptions} -DCMAKE_BUILD_TYPE=Release"
+      CMAKE_OPTIONS="${CMAKE_OPTIONS} -DCMAKE_BUILD_TYPE=Release"
    elif [[ "$1" =~ ^(-|--)release-with-debinfo$ ]] ; then
       # Enable debugging build:
-      cmakeOptions="${cmakeOptions} -DCMAKE_BUILD_TYPE=RelWithDebInfo"
+      CMAKE_OPTIONS="${CMAKE_OPTIONS} -DCMAKE_BUILD_TYPE=RelWithDebInfo"
    elif [[ "$1" =~ ^(-|--)verbose$ ]] ; then
       # Enable verbose Makefile:
-      cmakeOptions="${cmakeOptions} -DCMAKE_VERBOSE_MAKEFILE=ON"
+      CMAKE_OPTIONS="${CMAKE_OPTIONS} -DCMAKE_VERBOSE_MAKEFILE=ON"
    elif [[ "$1" =~ ^(-|--)cores ]] ; then
       if [[ ! "$2" =~ ^[0-9]+$ ]] ; then
          echo >&2 "ERROR: Number of cores must be an integer number!"
          exit 1
       fi
-      cores="$2"
+      CORES="$2"
       shift
    elif [ "$1" == "--" ] ; then
       shift
@@ -77,11 +77,9 @@ while [ $# -gt 0 ] ; do
    shift
 done
 
-
-# ====== Obtain installation path prefix ====================================
-uname="$(uname)"
-case "${uname}" in
-   Linux|SunOS)
+UNAME="$(uname)"
+case "${UNAME}" in
+   Linux|SunOS|GNU)
       installPrefix="/usr"
       ;;
    NetBSD)
@@ -93,44 +91,15 @@ case "${uname}" in
 esac
 
 
-# ====== Obtain number of cores =============================================
-if [ "${cores}" -lt 1 ] ; then
-   uname="$(uname)"
-   case "${uname}" in
-      Linux)
-         cores="$(getconf _NPROCESSORS_ONLN 2>/dev/null || echo "1")"
-         ;;
-      FreeBSD)
-         cores="$(sysctl -n hw.ncpu 2>/dev/null || echo "1")"
-         ;;
-      NetBSD|OpenBSD)
-         cores="$(/sbin/sysctl -n hw.ncpuonline 2>/dev/null || echo "1")"
-         ;;
-      SunOS)
-         cores="$(getconf NPROCESSORS_ONLN 2>/dev/null || echo "1")"
-         ;;
-      Darwin)
-         cores="$(sysctl -n hw.logicalcpu 2>/dev/null || echo "1")"
-         ;;
-      *)
-         cores=1
-         ;;
-   esac
-fi
-if [ "${cores}" -lt 1 ] ; then
-   cores="1"
-fi
-
-
 # ====== Configure with CMake ===============================================
 if [ -e CMakeLists.txt ] ; then
    rm -f CMakeCache.txt
    if [ $# -gt 0 ] ; then
-      cmakeOptions="${cmakeOptions} $*"
+      CMAKE_OPTIONS="${CMAKE_OPTIONS} $*"
    fi
-   echo "CMake options:${cmakeOptions} . -DCMAKE_INSTALL_PREFIX=\"${installPrefix}\""
+   echo "CMake options:${CMAKE_OPTIONS} . -DCMAKE_INSTALL_PREFIX=\"${installPrefix}\""
    # shellcheck disable=SC2048,SC2086
-   ${makePrefix} cmake ${cmakeOptions} . -DCMAKE_INSTALL_PREFIX="${installPrefix}"
+   ${COMMAND} cmake ${CMAKE_OPTIONS} . -DCMAKE_INSTALL_PREFIX="${installPrefix}"
 
 # ====== Configure with AutoConf/AutoMake ===================================
 elif [ -e bootstrap ] ; then
@@ -144,6 +113,25 @@ else
 fi
 
 
+# ====== Obtain number of cores =============================================
+if [ "${CORES}" -lt 1 ] ; then
+   if [ "${UNAME}" == "Linux" ] ; then
+      CORES="$(getconf _NPROCESSORS_ONLN 2>/dev/null || echo "1")"
+   elif [ "${UNAME}" == "FreeBSD" ] ; then
+      CORES="$(sysctl -n hw.ncpu || echo "1")"
+   elif [ "${UNAME}" == "NetBSD" ] || [ "${UNAME}" == "OpenBSD" ] ; then
+      CORES="$(/sbin/sysctl -n hw.ncpuonline || echo "1")"
+   elif [ "${UNAME}" == "SunOS" ] ; then
+      CORES="$(psrinfo -t)"
+   elif [ "${UNAME}" == "Darwin" ] ; then
+      CORES="$(sysctl -n machdep.cpu.core_count)"
+   else
+      CORES=1
+   fi
+   echo "This system has ${CORES} cores!"
+fi
+
+
 # ====== Build ==============================================================
-echo "Starting build using up to ${cores} cores ..."
-${makePrefix} make -j "${cores}"
+echo "Starting build using up to ${CORES} cores ..."
+${COMMAND} make -j "${CORES}"
