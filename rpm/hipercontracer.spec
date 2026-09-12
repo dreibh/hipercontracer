@@ -35,7 +35,8 @@ BuildRequires: libzstd-devel
 Requires: %{name}-common = %{version}-%{release}
 Requires: %{name}-libhipercontracer = %{version}-%{release}
 Requires: iproute
-Requires: libcap
+# Fedora and OpenSuSE use different libcap programs (e.g. setcap) packaging:
+Requires: (libcap or libcap-progs)
 Recommends: %{name}-viewer = %{version}-%{release}
 Recommends: %{name}-examples
 Recommends: ethtool
