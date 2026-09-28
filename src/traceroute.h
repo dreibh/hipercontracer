@@ -129,6 +129,7 @@ class Traceroute : public Service
 
    const std::string                       TracerouteInstanceName;
    const bool                              RemoveDestinationAfterRun;
+   std::string                             JSONEntry;   // JSON object of current traceroute run
    const TracerouteParameters              Parameters;
    boost::asio::io_context                 IOContext;
    boost::asio::ip::address                SourceAddress;

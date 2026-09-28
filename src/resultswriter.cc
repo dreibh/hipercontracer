@@ -35,6 +35,8 @@
 
 #include <unistd.h>
 
+#include <iostream>
+
 #include <boost/format.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/iostreams/filtering_streambuf.hpp>
@@ -53,7 +55,9 @@ ResultsWriter::ResultsWriter(const std::string&   programID,
                              const unsigned int   timestampDepth,
                              const uid_t          uid,
                              const gid_t          gid,
-                             const CompressorType compressor)
+                             const CompressorType compressor,
+                             const ResultsEncodingType encoding,
+                             const bool           console)
    : ProgramID(programID),
      MeasurementID(measurementID),
      Directory(directory),
@@ -63,6 +67,8 @@ ResultsWriter::ResultsWriter(const std::string&   programID,
      UID(uid),
      GID(gid),
      Compressor(compressor),
+     Encoding(encoding),
+     Console(console),
      UniqueID(uniqueID)
 {
    Inserts   = 0;
@@ -89,6 +95,11 @@ void ResultsWriter::specifyOutputFormat(const std::string& outputFormatName,
 // ###### Prepare directories ###############################################
 bool ResultsWriter::prepare()
 {
+   if(Console) {
+      // The console writer is shared by all services: open stdout only once!
+      std::lock_guard<std::mutex> lock(Mutex);
+      return (Output.is_complete()) ? true : Output.openStream(std::cout);
+   }
    try {
       std::filesystem::create_directory(Directory);
    }
@@ -105,7 +116,16 @@ bool ResultsWriter::changeFile(const bool createNewFile)
 {
    // ====== Close current file =============================================
    try {
-      Output.closeStream( (Inserts > 0) );
+      if( (Encoding == RET_JSON) && (Output.is_complete()) ) {
+         // Terminate the JSON array. The console always gets a valid array.
+         if(Inserts > 0) {
+            Output << "\n]\n";
+         }
+         else if(Console) {
+            Output << "[]\n";
+         }
+      }
+      Output.closeStream( (Inserts > 0) || ((Console) && (Output.is_complete())) );
    }
    catch(std::exception const& e) {
       HPCT_LOG(error) << "Failed to close output file "
@@ -119,8 +139,9 @@ bool ResultsWriter::changeFile(const bool createNewFile)
       try {
          // ------ Prepare directory hierachy -------------------------------
          const std::string name = UniqueID +
-            str(boost::format("-%09d.hpct%s")
+            str(boost::format("-%09d%s%s")
                    % SeqNumber
+                   % ((Encoding == RET_JSON) ? ".json" : ".hpct")
                    % getExtensionForCompressor(Compressor));
          std::filesystem::path targetPath = Directory /
             makeDirectoryHierarchy<std::chrono::system_clock::time_point>(
@@ -154,6 +175,9 @@ bool ResultsWriter::changeFile(const bool createNewFile)
 // ###### Start new transaction, if transaction length has been reached #####
 bool ResultsWriter::mayStartNewTransaction()
 {
+   if(Console) {
+      return true;   // The console output is never rotated.
+   }
    const std::chrono::steady_clock::time_point now = std::chrono::steady_clock::now();
    if(std::chrono::duration_cast<std::chrono::seconds>(now - OutputCreationTime).count() > TransactionLength) {
       return changeFile();
@@ -165,16 +189,26 @@ bool ResultsWriter::mayStartNewTransaction()
 // ###### Generate INSERT statement #########################################
 void ResultsWriter::insert(const std::string& tuple)
 {
-   if(__builtin_expect(Inserts == 0, 0)) {
-      if(!OutputFormatName.empty()) {
-         // Write header
-         Output << "#? HPCT "
-                       << OutputFormatName    << " "
-                       << OutputFormatVersion << " "
-                       << ProgramID           << "\n";
-      }
+   std::lock_guard<std::mutex> lock(Mutex);
+   if(Encoding == RET_JSON) {
+      // Each tuple is one JSON object, as element of a JSON array
+      Output << ((Inserts == 0) ? "[\n" : ",\n") << tuple;
    }
-   Output << tuple << "\n";
+   else {
+      if(__builtin_expect(Inserts == 0, 0)) {
+         if(!OutputFormatName.empty()) {
+            // Write header
+            Output << "#? HPCT "
+                          << OutputFormatName    << " "
+                          << OutputFormatVersion << " "
+                          << ProgramID           << "\n";
+         }
+      }
+      Output << tuple << "\n";
+   }
+   if(Console) {
+      Output.flush();
+   }
    Inserts++;
 }
 
@@ -191,8 +225,25 @@ ResultsWriter* ResultsWriter::makeResultsWriter(
    const unsigned int              resultsTimestampDepth,
    const uid_t                     uid,
    const gid_t                     gid,
-   const CompressorType            compressor)
+   const CompressorType            compressor,
+   const ResultsEncodingType       encoding,
+   const bool                      console)
 {
+   if(console) {
+      // All services share one console writer, so that stdout gets
+      // one JSON array (and no interleaved lines)
+      for(ResultsWriter* resultsWriter : resultsWriterSet) {
+         if(resultsWriter->Console) {
+            return resultsWriter;
+         }
+      }
+      ResultsWriter* resultsWriter =
+         new ResultsWriter(programID, measurementID, std::string(), std::string(),
+                           resultsPrefix, 0, 0, uid, gid, compressor, encoding, true);
+      assure(resultsWriter != nullptr);
+      resultsWriterSet.insert(resultsWriter);
+      return resultsWriter;
+   }
    if(!resultsDirectory.empty()) {
       std::string uniqueID =
          resultsPrefix + "-" +
@@ -206,7 +257,7 @@ ResultsWriter* ResultsWriter::makeResultsWriter(
       ResultsWriter* resultsWriter =
          new ResultsWriter(programID, measurementID, resultsDirectory, uniqueID,
                            resultsPrefix, resultsTransactionLength, resultsTimestampDepth,
-                           uid, gid, compressor);
+                           uid, gid, compressor, encoding);
       assure(resultsWriter != nullptr);
       resultsWriterSet.insert(resultsWriter);
       return resultsWriter;
