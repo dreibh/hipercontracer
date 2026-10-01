@@ -94,26 +94,27 @@ for hpctInputFileName in hpctInputFileNames:
             protoType : str = \
                HiPerConTracer.PROTOCOL_MAP.get(protoKey, protoKey.upper())
             pingData  : Dict[str, Any] = {
-               'type':               protoType,
-               'measurementId':      int(fields[1]),
-               'sourceAddress':      fields[2],
-               'destinationAddress': fields[3],
-               'timestamp':          formatTimestamp(fields[4], timestampAsString),
-               'burstSeq':           int(fields[5]),
-               'trafficClass':       int(fields[6], 16),
-               'packetSize':         int(fields[7]),
-               'responseSize':       int(fields[8]),
-               'checksum':           int(fields[9], 16),
-               'sourcePort':         int(fields[10]),
-               'destinationPort':    int(fields[11]),
-               'status':             int(fields[12]),
-               'timeSource':         int(fields[13], 16),
-               'delayAppSend':       int(fields[14]),
-               'delayQueuing':       int(fields[15]),
-               'delayAppReceive':    int(fields[16]),
-               'rttApp':             int(fields[17]),
-               'rttSw':              int(fields[18]),
-               'rttHw':              int(fields[19])
+               'service':            'Ping',
+               'type':                protoType,
+               'measurement_id':      int(fields[1]),
+               'source_address':      fields[2],
+               'destination_address': fields[3],
+               'timestamp':           formatTimestamp(fields[4], timestampAsString),
+               'burst_seq':           int(fields[5]),
+               'traffic_class':       int(fields[6], 16),
+               'packet_size':         int(fields[7]),
+               'response_size':       int(fields[8]),
+               'checksum':            int(fields[9], 16),
+               'source_port':         int(fields[10]),
+               'destination_port':    int(fields[11]),
+               'status':              int(fields[12]),
+               'time_source':         int(fields[13], 16),
+               'delay_app_send':      int(fields[14]),
+               'delay_queuing':       int(fields[15]),
+               'delay_app_receive':   int(fields[16]),
+               'rtt_app':             int(fields[17]),
+               'rtt_sw':              int(fields[18]),
+               'rtt_hw':              int(fields[19])
             }
             pings.append(pingData)
       elif not tag.startswith('#?'):
