@@ -28,7 +28,7 @@
 .\" Contact: dreibh@simula.no
 .\"
 .\" ###### Setup ############################################################
-.Dd September 7, 2026
+.Dd October 1, 2026
 .Dt hipercontracer 1
 .Os hipercontracer
 .\" ###### Name #############################################################
@@ -129,6 +129,10 @@
 .Op Fl F Ar version | Fl \-resultsformat Ar version
 .br
 .Op Fl z Ar depth | Fl \-resultstimestampdepth Ar depth
+.br
+.Op Fl \-resultsencoding Ar HPCT|\%JSON
+.br
+.Op Fl \-resultsoutput Ar FILE|\%CONSOLE
 .br
 .Op Ar destination Ar ...
 .Nm hipercontracer
@@ -284,6 +288,10 @@ Note: A future version of HiPerConTracer may increase this default setting!
 .It Fl z Ar depth | Fl \-resultstimestampdepth Ar depth
 Create a timestamp\-based directory hierarchy for the results, of given depth (default: 0).
 0 = none, 1 = year, 2 = year/month, 3 = year/month/day, 4 = year/month/day/hour:00, 5 = year/month/day/hour:00/hour:minute.
+.It Fl \-resultsencoding Ar HPCT|\%JSON
+Sets the encoding for the results. Default: HPCT (HiPerConTracer format). The setting JSON generates JSON output. Note that JSON is for custom processing only; the HiPerConTracer tools expect HPTC format.
+.It Fl \-resultsoutput Ar FILE|\%CONSOLE
+Sets the output for the results. Default: FILE (write to files). The setting CONSOLE writes the output to the console instead.
 .It Fl \-check
 Print build environment information for debugging.
 .It Fl h | Fl \-help
