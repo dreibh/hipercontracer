@@ -30,6 +30,7 @@
 #include <iostream>
 #include <vector>
 
+#include <boost/algorithm/string/case_conv.hpp>
 #include <boost/asio/ip/address.hpp>
 #include <boost/program_options.hpp>
 
@@ -261,6 +262,8 @@ int main(int argc, char** argv)
    std::filesystem::path              resultsDirectory;
    std::string                        resultsCompressionString;
    unsigned int                       resultsFormatVersion;
+   std::string                        resultsEncodingString;
+   std::string                        resultsOutputString;
    unsigned int                       resultsTimestampDepth;
 
    boost::program_options::options_description commandLineOptions;
@@ -433,7 +436,13 @@ int main(int argc, char** argv)
       ( "resultsformat,F",
            boost::program_options::value<unsigned int>(&resultsFormatVersion)->default_value(OutputFormatVersionType::OFT_HiPerConTracer_Version2),
            "Results format version" )
-      ( "resultstimestampdepth,z",
+      ( "resultsencoding",
+           boost::program_options::value<std::string>(&resultsEncodingString)->default_value(std::string("HPCT")),
+           "Results encoding (HPCT or JSON)" )
+      ( "resultsoutput",
+           boost::program_options::value<std::string>(&resultsOutputString)->default_value(std::string("FILE")),
+           "Results output (FILE or CONSOLE)" )
+       ( "resultstimestampdepth,z",
            boost::program_options::value<unsigned int>(&resultsTimestampDepth)->default_value(0),
            "Results timestamp depth" )
     ;
@@ -553,6 +562,19 @@ int main(int argc, char** argv)
       std::cerr << "ERROR: Invalid results compression: " << resultsCompressionString << "\n";
       return 1;
    }
+   boost::algorithm::to_upper(resultsEncodingString);
+   boost::algorithm::to_upper(resultsOutputString);
+   if( (resultsEncodingString != "HPCT") && (resultsEncodingString != "JSON") ) {
+      std::cerr << "ERROR: Invalid results encoding: " << resultsEncodingString << "\n";
+      return 1;
+   }
+   if( (resultsOutputString != "FILE") && (resultsOutputString != "CONSOLE") ) {
+      std::cerr << "ERROR: Invalid results output: " << resultsOutputString << "\n";
+      return 1;
+   }
+   const ResultsEncodingType resultsEncoding =
+      (resultsEncodingString == "JSON") ? RET_JSON : RET_HPCT;
+   const bool resultsConsole = (resultsOutputString == "CONSOLE");
 
 
    // ====== Initialize =====================================================
@@ -600,9 +622,10 @@ int main(int argc, char** argv)
    tracerouteParameters.PacketSize      = std::min(65535U, tracerouteParameters.PacketSize);
    tracerouteParameters.Rounds          = std::min(std::max(1U, tracerouteParameters.Rounds),          64U);
 
-   if(!resultsDirectory.empty()) {
+   if( (!resultsDirectory.empty()) || (resultsConsole) ) {
       HPCT_LOG(info) << "Results Output:" << "\n"
                      << "* MeasurementID      = " << measurementID            << "\n"
+                     << "* Output             = " << resultsEncodingString    << "\n"
                      << "* Results Directory  = " << resultsDirectory         << "\n"
                      << "* Transaction Length = " << resultsTransactionLength << " s";
    }
@@ -683,13 +706,14 @@ int main(int argc, char** argv)
          if(serviceJitter) {
             try {
                ResultsWriter* resultsWriter = nullptr;
-               if(!resultsDirectory.empty()) {
+               if( (!resultsDirectory.empty()) || (resultsConsole) ) {
+
                   resultsWriter = ResultsWriter::makeResultsWriter(
                                      ResultsWriterSet, ProgramID, measurementID,
                                      sourceAddress, "Jitter-" + ioModule,
                                      resultsDirectory, resultsTransactionLength, resultsTimestampDepth,
                                      (pw != nullptr) ? pw->pw_uid : 0, (pw != nullptr) ? pw->pw_gid : 0,
-                                     resultsCompression);
+                                     resultsCompression, resultsEncoding, resultsConsole);
                   assert(resultsWriter != nullptr);
                }
                if(ioModule == "UDP") {
@@ -715,13 +739,14 @@ int main(int argc, char** argv)
          if(servicePing) {
             try {
                ResultsWriter* resultsWriter = nullptr;
-               if(!resultsDirectory.empty()) {
+               if( (!resultsDirectory.empty()) || (resultsConsole) ) {
+
                   resultsWriter = ResultsWriter::makeResultsWriter(
                                      ResultsWriterSet, ProgramID, measurementID,
                                      sourceAddress, "Ping-" + ioModule,
                                      resultsDirectory, resultsTransactionLength, resultsTimestampDepth,
                                      (pw != nullptr) ? pw->pw_uid : 0, (pw != nullptr) ? pw->pw_gid : 0,
-                                     resultsCompression);
+                                     resultsCompression, resultsEncoding, resultsConsole);
                   assert(resultsWriter != nullptr);
                }
                if(ioModule == "UDP") {
@@ -746,13 +771,14 @@ int main(int argc, char** argv)
          if(serviceTraceroute) {
             try {
                ResultsWriter* resultsWriter = nullptr;
-               if(!resultsDirectory.empty()) {
+               if( (!resultsDirectory.empty()) || (resultsConsole) ) {
+
                   resultsWriter = ResultsWriter::makeResultsWriter(
                                      ResultsWriterSet, ProgramID, measurementID,
                                      sourceAddress, "Traceroute-" + ioModule,
                                      resultsDirectory, resultsTransactionLength, resultsTimestampDepth,
                                      (pw != nullptr) ? pw->pw_uid : 0, (pw != nullptr) ? pw->pw_gid : 0,
-                                     resultsCompression);
+                                     resultsCompression, resultsEncoding, resultsConsole);
                   assert(resultsWriter != nullptr);
                }
                if(ioModule == "UDP") {
