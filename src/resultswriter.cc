@@ -115,6 +115,9 @@ bool ResultsWriter::prepare()
 bool ResultsWriter::changeFile(const bool createNewFile)
 {
    // ====== Close current file =============================================
+   if(Console) {
+      Mutex.lock();
+   }
    try {
       if( (Encoding == RET_JSON) && (Output.is_complete()) ) {
          // Terminate the JSON array. The console always gets a valid array.
@@ -130,6 +133,9 @@ bool ResultsWriter::changeFile(const bool createNewFile)
    catch(std::exception const& e) {
       HPCT_LOG(error) << "Failed to close output file "
                       << TargetFileName << ": " << e.what();
+   }
+   if(Console) {
+      Mutex.unlock();
    }
 
    // ====== Create new file ================================================
@@ -189,25 +195,28 @@ bool ResultsWriter::mayStartNewTransaction()
 // ###### Generate INSERT statement #########################################
 void ResultsWriter::insert(const std::string& tuple)
 {
-   std::lock_guard<std::mutex> lock(Mutex);
+   if(Console) {
+      Mutex.lock();
+   }
    if(Encoding == RET_JSON) {
       // Each tuple is one JSON object, as element of a JSON array
-      Output << ((Inserts == 0) ? "[\n" : ",\n") << tuple;
+      Output << (__builtin_expect(Inserts == 0, 0) ? "[\n" : ",\n") << tuple;
    }
    else {
       if(__builtin_expect(Inserts == 0, 0)) {
          if(!OutputFormatName.empty()) {
             // Write header
             Output << "#? HPCT "
-                          << OutputFormatName    << " "
-                          << OutputFormatVersion << " "
-                          << ProgramID           << "\n";
+                   << OutputFormatName    << " "
+                   << OutputFormatVersion << " "
+                   << ProgramID           << "\n";
          }
       }
       Output << tuple << "\n";
    }
    if(Console) {
       Output.flush();
+      Mutex.unlock();
    }
    Inserts++;
 }
