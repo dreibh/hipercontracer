@@ -590,7 +590,7 @@ void Traceroute::processResults()
          }
       }
       if(!JSONEntry.empty()) {
-         ResultsOutput->insert(JSONEntry + "\n      ]\n   }");
+         ResultsOutput->insert(JSONEntry + "\n\t\t]\n\t}");
          JSONEntry.clear();
       }
    }

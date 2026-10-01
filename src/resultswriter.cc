@@ -46,18 +46,18 @@
 
 
 // ###### Constructor #######################################################
-ResultsWriter::ResultsWriter(const std::string&   programID,
-                             const unsigned int   measurementID,
-                             const std::string&   directory,
-                             const std::string&   uniqueID,
-                             const std::string&   prefix,
-                             const unsigned int   transactionLength,
-                             const unsigned int   timestampDepth,
-                             const uid_t          uid,
-                             const gid_t          gid,
-                             const CompressorType compressor,
+ResultsWriter::ResultsWriter(const std::string&        programID,
+                             const unsigned int        measurementID,
+                             const std::string&        directory,
+                             const std::string&        uniqueID,
+                             const std::string&        prefix,
+                             const unsigned int        transactionLength,
+                             const unsigned int        timestampDepth,
+                             const uid_t               uid,
+                             const gid_t               gid,
+                             const CompressorType      compressor,
                              const ResultsEncodingType encoding,
-                             const bool           console)
+                             const bool                console)
    : ProgramID(programID),
      MeasurementID(measurementID),
      Directory(directory),

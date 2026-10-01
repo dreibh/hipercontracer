@@ -53,18 +53,18 @@ enum ResultsEncodingType {
 class ResultsWriter
 {
    public:
-   ResultsWriter(const std::string&   programID,
-                 const unsigned int   measurementID,
-                 const std::string&   directory,
-                 const std::string&   uniqueID,
-                 const std::string&   prefix,
-                 const unsigned int   transactionLength,
-                 const unsigned int   timestampDepth,
-                 const uid_t          uid,
-                 const gid_t          gid,
-                 const CompressorType compressor,
+   ResultsWriter(const std::string&        programID,
+                 const unsigned int        measurementID,
+                 const std::string&        directory,
+                 const std::string&        uniqueID,
+                 const std::string&        prefix,
+                 const unsigned int        transactionLength,
+                 const unsigned int        timestampDepth,
+                 const uid_t               uid,
+                 const gid_t               gid,
+                 const CompressorType      compressor,
                  const ResultsEncodingType encoding = RET_HPCT,
-                 const bool           console  = false);
+                 const bool                console  = false);
    virtual ~ResultsWriter();
 
    void specifyOutputFormat(const std::string& outputFormatName,
