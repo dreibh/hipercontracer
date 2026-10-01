@@ -624,23 +624,23 @@ void Traceroute::writeTracerouteResultEntry(const ResultEntry* resultEntry,
          // ====== JSON output format ====================================
          if(json) {
             JSONEntry = str(boost::format(
-               "   {\n"
-               "      \"service\": \"%s\",\n"
-               "      \"type\": \"%s\",\n"
-               "      \"measurement_id\": %d,\n"
-               "      \"source_address\": \"%s\",\n"
-               "      \"destination_address\": \"%s\",\n"
-               "      \"timestamp\": %d,\n"
-               "      \"round\": %d,\n"
-               "      \"total_hops\": %d,\n"
-               "      \"traffic_class\": %d,\n"
-               "      \"packet_size\": %d,\n"
-               "      \"checksum\": %d,\n"
-               "      \"source_port\": %d,\n"
-               "      \"destination_port\": %d,\n"
-               "      \"status_flags\": %d,\n"
-               "      \"path_hash\": %d,\n"
-               "      \"hops\": [\n")
+               "\t{\n"
+               "\t\t\"service\": \"%s\",\n"
+               "\t\t\"type\": \"%s\",\n"
+               "\t\t\"measurement_id\": %d,\n"
+               "\t\t\"source_address\": \"%s\",\n"
+               "\t\t\"destination_address\": \"%s\",\n"
+               "\t\t\"timestamp\": %d,\n"
+               "\t\t\"round\": %d,\n"
+               "\t\t\"total_hops\": %d,\n"
+               "\t\t\"traffic_class\": %d,\n"
+               "\t\t\"packet_size\": %d,\n"
+               "\t\t\"checksum\": %d,\n"
+               "\t\t\"source_port\": %d,\n"
+               "\t\t\"destination_port\": %d,\n"
+               "\t\t\"status_flags\": %d,\n"
+               "\t\t\"path_hash\": %d,\n"
+               "\t\t\"hops\": [\n")
                % OutputFormatName
                % IOModule->getProtocolName()
                % ResultsOutput->measurementID()
@@ -724,20 +724,20 @@ void Traceroute::writeTracerouteResultEntry(const ResultEntry* resultEntry,
          if(json) {
             JSONEntry += str(boost::format(
                "%s"
-               "         {\n"
-               "            \"send_timestamp\": %d,\n"
-               "            \"hop_number\": %d,\n"
-               "            \"response_size\": %d,\n"
-               "            \"status\": %d,\n"
-               "            \"time_source\": %d,\n"
-               "            \"delay_app_send\": %d,\n"
-               "            \"delay_queuing\": %d,\n"
-               "            \"delay_app_receive\": %d,\n"
-               "            \"rtt_app\": %d,\n"
-               "            \"rtt_sw\": %d,\n"
-               "            \"rtt_hw\": %d,\n"
-               "            \"hop_address\": \"%s\"\n"
-               "         }")
+               "\t\t\t{\n"
+               "\t\t\t\t\"send_timestamp\": %d,\n"
+               "\t\t\t\t\"hop_number\": %d,\n"
+               "\t\t\t\t\"response_size\": %d,\n"
+               "\t\t\t\t\"status\": %d,\n"
+               "\t\t\t\t\"time_source\": %d,\n"
+               "\t\t\t\t\"delay_app_send\": %d,\n"
+               "\t\t\t\t\"delay_queuing\": %d,\n"
+               "\t\t\t\t\"delay_app_receive\": %d,\n"
+               "\t\t\t\t\"rtt_app\": %d,\n"
+               "\t\t\t\t\"rtt_sw\": %d,\n"
+               "\t\t\t\t\"rtt_hw\": %d,\n"
+               "\t\t\t\t\"hop_address\": \"%s\"\n"
+               "\t\t\t}")
                % ((firstEntry) ? "" : ",\n")
                % sendTimeStamp
                % resultEntry->hopNumber()
