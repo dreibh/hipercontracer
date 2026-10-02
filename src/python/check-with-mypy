@@ -108,19 +108,19 @@ PRINT_UTF8="$(which print-utf8 2>/dev/null || true)"
 if [ ! -x "${PRINT_UTF8}" ] ; then
    echo >&2 "ERROR: Print-UTF8 (from System-Tools) is not installed!"
    echo >&2 "Try this:"
-   echo >&2 "* Ubuntu:  sudo apt-add-repository -sy ppa:dreibh/ppa"
+   echo >&2 " * Ubuntu:  sudo apt-add-repository -sy ppa:dreibh/ppa"
    echo >&2 "           sudo apt install -y td-system-tools"
-   echo >&2 "* Fedora:  sudo dnf copr enable -y dreibh/ppa"
+   echo >&2 " * Fedora:  sudo dnf copr enable -y dreibh/ppa"
    echo >&2 "           sudo dnf install -y td-system-tools"
-   echo >&2 "* FreeBSD: sudo pkg install -y td-system-tools"
+   echo >&2 " * FreeBSD: sudo pkg install -y td-system-tools"
    exit 1
 fi
 FIGLET="$(which figlet 2>/dev/null || true)"
 if [ ! -x "${FIGLET}" ] ; then
    echo >&2 "ERROR: Figlet is not installed!"
-   echo >&2 "* Ubuntu:  sudo apt install -y figlet"
-   echo >&2 "* Fedora:  sudo dnf install -y figlet"
-   echo >&2 "* FreeBSD: sudo pkg install -y figlet"
+   echo >&2 " * Ubuntu:  sudo apt install -y figlet"
+   echo >&2 " * Fedora:  sudo dnf install -y figlet"
+   echo >&2 " * FreeBSD: sudo pkg install -y figlet"
    exit 1
 fi
 

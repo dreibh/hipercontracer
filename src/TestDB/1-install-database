@@ -309,7 +309,7 @@ elif [ "$1" == "mongodb" ] ; then
 
    MONGODB_VERSION="9.0"      # Current version
    MONGODB_KEY="9"            # NOTE: Minor releases use the major version's key!
-   MONGOSH_VERSION="2.3.10"
+   # MONGOSH_VERSION="2.3.10"
 
    if [ "${ID}" == "ubuntu" ] || [ "${ID}" == "debian" ] ; then
       for key in ${MONGODB_KEY} dev ; do
