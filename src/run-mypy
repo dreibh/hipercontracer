@@ -10,7 +10,7 @@
 #                https://www.nntb.no/~dreibh/build-tools/
 # ==========================================================================
 #
-# Run ShellCheck
+# Run MyPy for Python Scripts
 # Copyright (C) 2024-2026 by Thomas Dreibholz
 #
 # This program is free software: you can redistribute it and/or modify
@@ -31,16 +31,17 @@
 # Bash options:
 set -euo pipefail
 
-# Automatically find all shell scripts in subdirectories:
+
+# Automatically find all Python scripts in subdirectories:
 SCRIPTS="$(
 (
    find . -path '*/.*' -type d -prune \
       -o \( \
             \( -type f -perm -100 ! -name "*~" \) \
-            -o -name "*.bash-completion" \
+            -o -name "*.py" \
          \) -print
 ) | while read -r name ; do
-   if [[ "$(head -n1 "${name}" | strings)" =~ (bash|/bin/sh) ]] ; then
+   if [[ "$(head -n1 "${name}" | strings)" =~ (python) ]] ; then
       echo "${name}"
    fi
 done
@@ -98,6 +99,21 @@ show-script ()
 # ###### Main program #######################################################
 
 # ====== Find locations of Python interpreter, MyPy, and tools ==============
+PYTHON="$(command -v python || command -v python3 || true)"
+if [ ! -x "${PYTHON}" ] ; then
+   echo >&2 "ERROR: Unable to identify Python executable!"
+   exit 1
+fi
+echo "Python: ${PYTHON}"
+# shellcheck disable=SC2001
+MYPY="$(echo "${PYTHON}" | sed -e 's#/[^/]*$#/mypy#')"
+if [ ! -x "${MYPY}" ] ; then
+   echo >&2 "ERROR: Unable to identify MyPy executable!"
+   echo >&2 "Try this (within the correct Python environment):"
+   echo >&2 "pip install mypy"
+   exit 1
+fi
+echo "MyPy: ${MYPY}"
 if ! command -v print-utf8 2>/dev/null ; then
    echo >&2 "ERROR: Print-UTF8 (from System-Tools) is not installed! Try:"
    echo >&2 " * Ubuntu:  sudo apt-add-repository -sy ppa:dreibh/ppa"
@@ -121,27 +137,17 @@ if ! command -v figlet >/dev/null ; then
    echo >&2 " * Apple:         brew install figlet"
    exit 1
 fi
-if ! command -v shellcheck 2>/dev/null ; then
-   echo >&2 "ERROR: ShellCheck is not installed! Try:"
-   echo >&2 " * Ubuntu/Debian: sudo apt install -y shellcheck"
-   echo >&2 " * Fedora:        sudo dnf install -y ShellCheck"
-   echo >&2 " * OpenSUSE:      sudo zypper install -y ShellCheck"
-   echo >&2 " * Alpine:        sudo apk add shellcheck"
-   echo >&2 " * FreeBSD:       sudo pkg install -y hs-ShellCheck"
-   echo >&2 " * NetBSD:        sudo pkgin -y install shellcheck"
-   echo >&2 " * OpenBSD:       sudo pkg_add shellcheck"
-   echo >&2 " * Solaris:       (install from sources)"
-   echo >&2 " * Apple:         brew install shellcheck"
-   exit 1
-fi
 
 
-# ====== Run ShellCheck =====================================================
+# ====== Run MyPy ===========================================================
 for script in $SCRIPTS ; do
    echo -e "\e[34mChecking ${script} ...\e[0m"
    show-script "${script}"
-   shellcheck \
-      -x --color \
+   "${MYPY}" --strict \
+      --install-types --non-interactive \
+      --ignore-missing-imports          \
+      --show-traceback                  \
+      --python-executable "${PYTHON}"   \
       "${script}" || exit-failed
 done
 exit-success
