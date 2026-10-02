@@ -43,7 +43,7 @@ def formatTimestamp(timestampHex      : str,
                     timestampAsString : bool) -> Union[int, str]:
    unixTime : Final[int] = int(timestampHex, 16)
    if timestampAsString:
-      return HiPerConTracer.unixtime_to_string(unixTime)
+      return str(HiPerConTracer.unixtime_to_string(unixTime))
    return unixTime
 
 
