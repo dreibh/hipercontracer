@@ -236,8 +236,15 @@ unsigned int ICMPModule::sendRequest(const DestinationInfo& destination,
    }
    if(setsockopt(ICMPSocket.native_handle(), level, option,
                  &trafficClass, sizeof(trafficClass)) < 0) {
+#if defined(__GNU__)
+      // FIXME: Check for GNU Hurd update!
+      if(trafficClass != 0x00) {
+         HPCT_LOG(warning) << "GNU Hurd does not yet support traffic class setting on ICMPv6 sockets!";
+      }
+#else
       HPCT_LOG(warning) << "Unable to set Traffic Class!";
       return 0;
+#endif
    }
 
    // ====== Prepare TraceService header ====================================
