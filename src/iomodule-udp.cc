@@ -27,6 +27,14 @@
 //
 // Contact: dreibh@simula.no
 
+#if defined(__GNU__)
+// FIXME: Work-around for GNU Hurd issue with MSG_NOSIGNAL handling:
+// https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=1149853
+#include <sys/socket.h>
+#undef MSG_NOSIGNAL
+#define MSG_NOSIGNAL 0
+#endif
+
 #include "iomodule-udp.h"
 #include "assure.h"
 #include "tools.h"
