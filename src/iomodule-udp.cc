@@ -27,7 +27,7 @@
 //
 // Contact: dreibh@simula.no
 
-#if defined(__GNU__)
+#if defined(__gnu_hurd__)
 // FIXME: Work-around for GNU Hurd issue with MSG_NOSIGNAL handling:
 // https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=1149853
 #include <sys/socket.h>

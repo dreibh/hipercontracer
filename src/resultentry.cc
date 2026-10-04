@@ -248,8 +248,10 @@ bool ResultEntry::obtainSendReceiveTime(const RXTimeStampType rxTimeStampType,
    if(SendTime[rxTimeStampType] > ReceiveTime[rxTimeStampType]) {
       // Time went backwards -> clock issue (may be NTP)?
       HPCT_LOG(warning) << "Send/receive time jump detected! May be NTP is adjusting the system clock?"
-                        << " s=" << timePointToString<ResultTimePoint>(SendTime[rxTimeStampType], 9) << ", "
-                        << " r=" << timePointToString<ResultTimePoint>(ReceiveTime[rxTimeStampType], 9);
+                        << " s=" << timePointToString<ResultTimePoint>(SendTime[rxTimeStampType], 9) << ","
+                        << " r=" << timePointToString<ResultTimePoint>(ReceiveTime[rxTimeStampType], 9) << ","
+                        << " type=" << rxTimeStampType << ","
+                        << " ts=" << str(boost::format("%08x") % timeSource);
       goto not_available;
    }
 
