@@ -585,16 +585,16 @@ The time source provides the source of the recorded timing information as hexade
 
 Each byte AA, QQ, SS, HH provides the receive time source (upper nibble) and send time source (lower nibble):
 
-| Nibble | Description                                                                               |
-| :-:    | :--------------------                                                                     |
-| 0x0    | Not available                                                                             |
-| 0x1    | System clock                                                                              |
-| 0x2    | SO_TIMESTAMPING socket option, microseconds granularity                                   |
-| 0x3    | SO_TIMESTAMPINGNS socket option (or SO_TIMESTAMPING+SO_TS_CLOCK), nanoseconds granularity |
-| 0x4    | SIOCGSTAMP ioctl, microseconds granularity                                                |
-| 0x5    | SIOCGSTAMPNS ioctl, nanoseconds granularity                                               |
-| 0x6    | SO_TIMESTAMPING socket option, in software, nanoseconds granularity                       |
-| 0xa    | SO_TIMESTAMPING socket option, in hardware, nanoseconds granularity                       |
+| Nibble | Description                                                                         |
+| :-:    | :--------------------                                                               |
+| 0x0    | Not available                                                                       |
+| 0x1    | System clock                                                                        |
+| 0x2    | SO_TIMESTAMP socket option, microseconds granularity                                |
+| 0x3    | SO_TIMESTAMPNS socket option (or SO_TIMESTAMP+SO_TS_CLOCK), nanoseconds granularity |
+| 0x4    | SIOCGSTAMP ioctl, microseconds granularity                                          |
+| 0x5    | SIOCGSTAMPNS ioctl, nanoseconds granularity                                         |
+| 0x6    | SO_TIMESTAMPING socket option, in software, nanoseconds granularity                 |
+| 0xa    | SO_TIMESTAMPING socket option, in hardware, nanoseconds granularity                 |
 
 : Time Source Values
 
