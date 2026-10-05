@@ -255,6 +255,7 @@ IF (WITH_LIBUNIVERSALIMPORTER)
       SET(INotify_INCLUDE_DIRS "")
    ELSE()
       IF ( (NOT CMAKE_SYSTEM_NAME MATCHES "SunOS") AND
+           (NOT CMAKE_SYSTEM_NAME MATCHES "GNU")   AND
            (NOT CMAKE_SYSTEM_NAME MATCHES "Darwin") )
          FIND_LIBRARY(INotify_LIBRARIES NAMES inotify       HINTS /usr/local/lib/inotify)
          FIND_PATH(INotify_INCLUDE_DIRS NAMES sys/inotify.h HINTS /usr/local/include/inotify)

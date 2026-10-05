@@ -37,10 +37,12 @@
 #include <boost/asio.hpp>
 #include <boost/bimap.hpp>
 
-#if defined(__sun__)
+#if defined(__sun)
 #include <port.h>
 #include <sys/stat.h>
 #include <fcntl.h>
+#include <unistd.h>
+#elif defined(__GNU__)
 #include <unistd.h>
 #elif defined(__APPLE__)
 #include <sys/event.h>
@@ -127,7 +129,7 @@ class UniversalImporter
             SystemTimePoint>                WatchLastWrite;
    boost::asio::posix::stream_descriptor    WatchStream;
    char                                     WatchEventBuffer[65536];
-#if defined(__sun__)
+#if defined(__sun)
    std::map<int, file_obj_t>                SolarisFileObjects;
 #endif
 };

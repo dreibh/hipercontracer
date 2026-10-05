@@ -49,7 +49,15 @@ ImporterConfiguration::ImporterConfiguration()
       ("good_file_path",       boost::program_options::value<std::filesystem::path>(&GoodFilePath),                         "path for good files")
       ("status_interval",      boost::program_options::value<unsigned int>(&StatusInterval)->default_value(60),             "status interval (s)")
       ("gc_interval",          boost::program_options::value<unsigned int>(&GarbageCollectionInterval)->default_value(275), "garbage collection interval (s)")
-      ("gc_max_age",           boost::program_options::value<unsigned int>(&GarbageCollectionMaxAge)->default_value(3600),  "garbage collection max age (s)")
+      ("gc_max_age",           boost::program_options::value<unsigned int>(&GarbageCollectionMaxAge)->default_value(
+#if defined(__GNU__)
+            // For GNU Hurd, the garbage collection timer also calls
+            // lookForFiles(), since there is no INotify!
+            60     // 1 min
+#else
+            3600   // 1 hour
+#endif
+         ),  "garbage collection max age (s)")
       ("table",                boost::program_options::value<std::vector<std::string>>(&Tables),                            "mapping of reader:table");
 
    ImportModeName = "KeepImportedFiles";
