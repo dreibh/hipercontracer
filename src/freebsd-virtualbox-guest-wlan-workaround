@@ -5,6 +5,7 @@
 import ipaddress
 import netifaces
 import subprocess
+import sys
 
 
 queryDefaultRoute = subprocess.run('netstat -rn | grep "^default .* fe80::" | sed -r "s/[ ]+/ /g" | head -n1', shell=True, check=True, capture_output=True)

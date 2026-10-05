@@ -124,6 +124,16 @@ _hpct_trigger()
          _filedir -d
          return
          ;;
+      # ====== Special case: results encoding ===============================
+      --resultsencoding)
+         mapfile -t COMPREPLY < <(compgen -W "HPCT JSON" --  "${cur}")
+         return
+         ;;
+      # ====== Special case: results output =================================
+      --resultsoutput)
+         mapfile -t COMPREPLY < <(compgen -W "CONSOLE FILE" --  "${cur}")
+         return
+         ;;
    esac
 
    # ====== All options =====================================================
@@ -187,6 +197,8 @@ _hpct_trigger()
 --resultsformat
 -z
 --resultstimestampdepth
+--resultsencoding
+--resultsoutput
 --check
 -h
 --help

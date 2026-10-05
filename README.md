@@ -25,7 +25,7 @@ High-Performance Connectivity Tracer&nbsp;(HiPerConTracer) is a Ping/Traceroute 
 Furthermore, the HiPerConTracer Framework provides additional tools for helping to obtain, process, collect, store, and retrieve measurement data:
 
 * [HiPerConTracer Viewer Tool](#-the-hipercontracer-viewer-tool) for displaying the contents of results files;
-* [HiPerConTracer Results Tool](#-the-hipercontracer-results-tool) for merging and converting results files, e.g.&nbsp;to create a Comma-Separated Value&nbsp;(CSV) file;
+* [HiPerConTracer Results Tool](#-the-hipercontracer-results-tool) for merging and converting results files, e.g., to create a Comma-Separated Value&nbsp;(CSV) file;
 * [HiPerConTracer Sync Tool](#-the-hipercontracer-sync-tool) for copying data from a measurement node (vantage point) to a remote HiPerConTracer Collector server (via [RSync](https://rsync.samba.org/)/[SSH](https://www.openssh.com/));
 * [HiPerConTracer Reverse Tunnel Tool](#-the-hipercontracer-reverse-tunnel-tool) for maintaining a reverse [SSH](https://www.openssh.com/) tunnel from a remote measurement node to a HiPerConTracer Collector server;
 * [HiPerConTracer Collector/Node Tools](#-the-hipercontracer-collectornode-tools) for simplifying the setup of HiPerConTracer Nodes and a HiPerConTracer Collector server;
@@ -33,7 +33,7 @@ Furthermore, the HiPerConTracer Framework provides additional tools for helping 
 * [HiPerConTracer Importer Tool](#-the-hipercontracer-importer-tool) for storing measurement data from results files into SQL or NoSQL databases. Currently, database backends for [MariaDB](https://mariadb.com/)/[MySQL](https://www.mysql.com/), [PostgreSQL](https://www.postgresql.org/) and [MongoDB](https://www.mongodb.com/) are provided;
 * [HiPerConTracer Query Tool](#-the-hipercontracer-query-tool) for querying data from a database and storing it into a results file;
 * [HiPerConTracer Database Shell](#-the-hipercontracer-database-shell) as a simple command-line front-end for the underlying database backends;
-* [HiPerConTracer Database Tools](#-the-hipercontracer-database-tools) with some helper scripts to e.g.&nbsp;join HiPerConTracer database configurations into an existing [DBeaver](https://dbeaver.io/) (a popular SQL database GUI application) configuration;
+* [HiPerConTracer Database Tools](#-the-hipercontracer-database-tools) with some helper scripts to e.g., join HiPerConTracer database configurations into an existing [DBeaver](https://dbeaver.io/) (a popular SQL database GUI application) configuration;
 * [HiPerConTracer UDP Echo Server](#-the-hipercontracer-udp-echo-server) as UDP Echo ([RFC&nbsp;862](https://datatracker.ietf.org/doc/html/rfc862)) protocol endpoint;
 * [Wireshark Dissector for HiPerConTracer Packets](#-wireshark-dissector-for-hipercontracer-packets).
 
@@ -67,7 +67,7 @@ sudo dnf install hipercontracer-all
 
 ## FreeBSD
 
-For ready-to-install FreeBSD packages of HiPerConTracer, it is included in the ports collection, see [FreeBSD ports tree index of benchmarks/hipercontracer/](https://cgit.freebsd.org/ports/tree/benchmarks/hipercontracer/)!
+For ready-to-install FreeBSD packages of HiPerConTracer, it is included in the ports collection; see [FreeBSD ports tree index of benchmarks/hipercontracer/](https://cgit.freebsd.org/ports/tree/benchmarks/hipercontracer/)!
 
 ```bash
 sudo pkg install hipercontracer
@@ -106,7 +106,13 @@ Optionally, for installation to the standard paths (usually under `/usr/local`):
 sudo make install
 ```
 
-Note: The script [`ci/get-dependencies`](https://github.com/dreibh/hipercontracer/blob/master/ci/get-dependencies) automatically installs the build dependencies under Debian/Ubuntu Linux, Fedora Linux, and FreeBSD. For manual handling of the build dependencies, see the packaging configuration in [`debian/control`](https://github.com/dreibh/hipercontracer/blob/master/debian/control) (Debian/Ubuntu Linux), [`hipercontracer.spec`](https://github.com/dreibh/hipercontracer/blob/master/rpm/hipercontracer.spec) (Fedora Linux), and [`Makefile`](https://github.com/dreibh/hipercontracer/blob/master/freebsd/hipercontracer/Makefile) for FreeBSD.
+Note: The script [`ci/get-dependencies`](https://github.com/dreibh/hipercontracer/blob/master/ci/get-dependencies) automatically installs the build dependencies under Debian/Ubuntu Linux, Fedora Linux, OpenSUSE Linux, Alpine Linux, FreeBSD, and Debian GNU/Hurd. For manual handling of the build dependencies, take a look at the packaging configuration files:
+
+* [`debian/control`](https://github.com/dreibh/hipercontracer/blob/master/debian/control) (Debian/Ubuntu Linux, Debian GNU/Hurd),
+* [`hipercontracer.spec`](https://github.com/dreibh/hipercontracer/blob/master/rpm/hipercontracer.spec) (Fedora Linux, OpenSUSE Linux),
+* [`APKBUILD`](https://github.com/dreibh/hipercontracer/blob/master/packaging/APKBUILD) (Alpine Linux),
+* [`Makefile`](https://github.com/dreibh/hipercontracer/blob/master/freebsd/hipercontracer/Makefile) (FreeBSD), and
+* [`hipercontracer.rb`](https://github.com/dreibh/hipercontracer/blob/master/packaging/hipercontracer.rb) (Homebrew).
 
 Contributions:
 
@@ -165,7 +171,7 @@ For a larger setup, particularly consisting of measurement nodes and/or database
 
      Storage for data that was not successfully imported into a database by using the [HiPerConTracer Importer Tool](#-the-hipercontracer-importer-tool). The Importer moves the data from `/var/hipercontracer/data` after import failure.
 
-   * `/etc/hipercontracer/ssh` (ownership: _hipercontracer_:_hipercontracer_; permissions: 700 = rwx------)
+   * `/var/hipercontracer/ssh` (ownership: _hipercontracer_:_hipercontracer_; permissions: 700 = rwx------)
 
      Storage for the SSH private/public key pair, as well as the known_hosts file, on a [HiPerConTracer Node](#-the-hipercontracer-collectornode-tools), to be used by the [HiPerConTracer Sync Tool](#-the-hipercontracer-sync-tool) and the [HiPerConTracer Reverse Tunnel Tool](#-the-hipercontracer-reverse-tunnel-tool).
 
@@ -182,9 +188,9 @@ For a larger setup, particularly consisting of measurement nodes and/or database
   sudo chown hipercontracer:hipercontracer /var/hipercontracer/ssh
   ```
 
-* `/etc/hipercontracer` (ownership: _root_:_root_; permissions: 755 = rwx------)
+* `/etc/hipercontracer` (ownership: _root_:_root_; permissions: 755 = rwxr-xr-x)
 
-  Configuration files, e.g.&nbsp;for importer or database.
+  Configuration files, e.g., for importer or database.
 
 ## Access Control Lists (ACL)
 
@@ -304,11 +310,11 @@ Header format:
 
 Header details:
 
-| Column | Field     | Description                                                                   |
-| :-:    | :--       | :---------                                                                    |
-|  1     | format    | Measurement identifier (e.g. Ping, Traceroute)                                |
-|  2     | version   | Version of the output data format (decimal)                                   |
-|  3     | programID | Identifier for the program generating the output (e.g. HiPerConTracer/2.1.12) |
+| Column | Field     | Description                                                                    |
+| :-:    | :--       | :---------                                                                     |
+|  1     | format    | Measurement identifier (e.g., Ping, Traceroute)                                |
+|  2     | version   | Version of the output data format (decimal)                                    |
+|  3     | programID | Identifier for the program generating the output (e.g., HiPerConTracer/2.1.12) |
 
 Header example:
 
@@ -642,7 +648,7 @@ man hpct-viewer
 
 # 📚 The HiPerConTracer Results Tool
 
-The HiPerConTracer Results Tool allows merging and converting data from results files, e.g.&nbsp;to create a Comma-Separated Value&nbsp;(CSV) file.
+The HiPerConTracer Results Tool allows merging and converting data from results files, e.g., to create a Comma-Separated Value&nbsp;(CSV) file.
 
 ## Example 1
 Merge the data from all files matching the pattern `Ping*.hpct.*` into CSV file `ping.csv.gz`, with "," as separator:
@@ -737,7 +743,7 @@ Usage:
   ./r-ping-example ping.csv output
   ```
 
-  Note: `ping.csv` has to be created in advance from HiPerConTracer Ping results, e.g.&nbsp;using the [HiPerConTracer Results Tool](#-the-hipercontracer-results-tool).
+  Note: `ping.csv` has to be created in advance from HiPerConTracer Ping results, e.g., using the [HiPerConTracer Results Tool](#-the-hipercontracer-results-tool).
 
 ## Example for Traceroute Results Processing in R
 
@@ -772,7 +778,7 @@ Usage:
   ./r-traceroute-example traceroute.csv
   ```
 
-  Note: `traceroute.csv` has to be created in advance from HiPerConTracer Traceroute results, e.g.&nbsp;using the [HiPerConTracer Results Tool](#-the-hipercontracer-results-tool).
+  Note: `traceroute.csv` has to be created in advance from HiPerConTracer Traceroute results, e.g., using the [HiPerConTracer Results Tool](#-the-hipercontracer-results-tool).
 
 ## LibreOffice (or any similar spreadsheet program)
 
@@ -903,7 +909,7 @@ hpct-query ~/testdb-users-mariadb-researcher.conf \
    --from-time "2023-09-22 00:00:00" --to-time "2023-09-23 00:00:00"
 ```
 
-Note: Data for time stamp 2023-09-23 00:00:00 will **not** be included, only data for time stamps **less than** 2023-09-23 00:00:00, i.e.&nbsp;data within the time interval [to-time, from-time). This ensures the possibility to e.g.&nbsp;export daily batches without having the same value included in two files!
+Note: Data for time stamp 2023-09-23 00:00:00 will **not** be included, only data for time stamps **less than** 2023-09-23 00:00:00, i.e.&nbsp;data within the time interval [from-time, to-time). This ensures the possibility to e.g., export daily batches without having the same value included in two files!
 
 ## Further Details
 
@@ -953,7 +959,7 @@ man hpct-sync
 
 # 📚 The HiPerConTracer Reverse Tunnel Tool
 
-The HiPerConTracer Reverse Tunnel (RTunnel) Tool maintains a reverse [SSH](https://www.openssh.com/) tunnel from a remote HiPerConTracer Node to a HiPerConTracer Collector server. The purpose is to allow for SSH login from the Collector server to the Node, via this reverse tunnel. Then, the Node does not need a publicly reachable IP address (e.g.&nbsp;a Node only having a private IP address behind a NAT/PAT firewall).
+The HiPerConTracer Reverse Tunnel (RTunnel) Tool maintains a reverse [SSH](https://www.openssh.com/) tunnel from a remote HiPerConTracer Node to a HiPerConTracer Collector server. The purpose is to allow for SSH login from the Collector server to the Node, via this reverse tunnel. Then, the Node does not need a publicly reachable IP address (e.g., a Node only having a private IP address behind a NAT/PAT firewall).
 
 For information about the necessary underlying directory structure and file permissions, see
 [Recommended Directory Structure and File Permissions](#-recommended-directory-structure-and-file-permissions). In case of problems, a misconfiguration of these is the most likely issue!
@@ -1065,7 +1071,7 @@ man dbshell
 
 # 📚 The HiPerConTracer Database Tools
 
-The HiPerConTracer Database Tools are some helper scripts to e.g.&nbsp;join HiPerConTracer database configurations into an existing [DBeaver](https://dbeaver.io/) configuration:
+The HiPerConTracer Database Tools are some helper scripts to e.g., join HiPerConTracer database configurations into an existing [DBeaver](https://dbeaver.io/) configuration:
 
 * [make-dbeaver-configuration](https://github.com/dreibh/hipercontracer/blob/master/src/make-dbeaver-configuration): Make DBeaver configuration from HiPerConTracer database configuration files, with the possibility to join with an existing DBeaver configuration;
 * [encrypt-dbeaver-configuration](https://github.com/dreibh/hipercontracer/blob/master/src/encrypt-dbeaver-configuration): Encrypt DBeaver credentials configuration file;
@@ -1118,7 +1124,7 @@ man udp-echo-server
 
 The [Wireshark](https://www.wireshark.org/) network protocol analyzer provides built-in support for the HiPerConTracer packet format. This support is already included upstream, i.e.&nbsp;Wireshark provides it out-of-the-box.
 
-To decode HiPerConTracer packets, particularly over UDP, it may be necessary to configure ["Decode As" rules](https://www.wireshark.org/docs/wsug_html_chunked/ChCustProtocolDissectionSection.html#ChAdvDecodeAs). Wireshark has to rely on heuristics for UDP. They may fail to recognise the HiPerConTracer payload. The "Decode As" rules configuration in the "Analyze" menu allows users to set explicit rules for UDP ports (e.g.&nbsp;7, 10001) for decoding matching packets as HiPerConTracer payload.
+To decode HiPerConTracer packets, particularly over UDP, it may be necessary to configure ["Decode As" rules](https://www.wireshark.org/docs/wsug_html_chunked/ChCustProtocolDissectionSection.html#ChAdvDecodeAs). Wireshark has to rely on heuristics for UDP. They may fail to recognise the HiPerConTracer payload. The "Decode As" rules configuration in the "Analyze" menu allows users to set explicit rules for UDP ports (e.g., 7, 10001) for decoding matching packets as HiPerConTracer payload.
 
 [Coloring rules](https://www.wireshark.org/docs/wsug_html_chunked/ChCustColorizationSection.html#ChCustColoringRulesDialog), [filters](https://www.wireshark.org/docs/wsug_html_chunked/ChWorkDefineFilterSection.html) and ["Decode As" rules](https://www.wireshark.org/docs/wsug_html_chunked/ChCustProtocolDissectionSection.html#ChAdvDecodeAs) can be found in the directory [`hipercontracer/src/wireshark`](https://github.com/dreibh/hipercontracer/tree/master/src/wireshark). Simply copy [`colorfilters`](https://github.com/dreibh/hipercontracer/blob/master/src/wireshark/colorfilters), [`dfilters`](https://github.com/dreibh/hipercontracer/blob/master/src/wireshark/dfilters), [`decode_as_entries`](https://github.com/dreibh/hipercontracer/blob/master/src/wireshark/decode_as_entries), and optionally [`preferences`](https://github.com/dreibh/hipercontracer/blob/master/src/wireshark/preferences) to `$HOME/.wireshark`.
 

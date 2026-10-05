@@ -254,8 +254,9 @@ void Ping::writePingResultEntry(const ResultEntry* resultEntry,
    // ====== Write to results file ==========================================
    if(ResultsOutput) {
 
-      // ====== Current output format =======================================
-      if(OutputFormatVersion >= OFT_HiPerConTracer_Version2) {
+      // ====== Current output format / JSON ================================
+      if( (ResultsOutput->encoding() == RET_JSON) ||
+          (OutputFormatVersion >= OFT_HiPerConTracer_Version2) ) {
          const unsigned long long sendTimeStamp = nsSinceEpoch<ResultTimePoint>(
             resultEntry->sendTime(TXTimeStampType::TXTST_Application));
 
@@ -270,6 +271,57 @@ void Ping::writePingResultEntry(const ResultEntry* resultEntry,
          resultEntry->obtainResultsValues(timeSource,
                                           rttApplication, rttSoftware, rttHardware,
                                           delayQueuing, delayAppSend, delayAppReceive);
+
+         if(ResultsOutput->encoding() == RET_JSON) {
+            ResultsOutput->insert(
+               str(boost::format(
+                  "\t{\n"
+                  "\t\t\"service\": \"%s\",\n"
+                  "\t\t\"type\": \"%s\",\n"
+                  "\t\t\"measurement_id\": %d,\n"
+                  "\t\t\"source_address\": \"%s\",\n"
+                  "\t\t\"destination_address\": \"%s\",\n"
+                  "\t\t\"timestamp\": %d,\n"
+                  "\t\t\"burst_seq\": %d,\n"
+                  "\t\t\"traffic_class\": %d,\n"
+                  "\t\t\"packet_size\": %d,\n"
+                  "\t\t\"response_size\": %d,\n"
+                  "\t\t\"checksum\": %d,\n"
+                  "\t\t\"source_port\": %d,\n"
+                  "\t\t\"destination_port\": %d,\n"
+                  "\t\t\"status\": %d,\n"
+                  "\t\t\"time_source\": %d,\n"
+                  "\t\t\"delay_app_send\": %d,\n"
+                  "\t\t\"delay_queuing\": %d,\n"
+                  "\t\t\"delay_app_receive\": %d,\n"
+                  "\t\t\"rtt_app\": %d,\n"
+                  "\t\t\"rtt_sw\": %d,\n"
+                  "\t\t\"rtt_hw\": %d\n"
+                  "\t}")
+                  % OutputFormatName
+                  % IOModule->getProtocolName()
+                  % ResultsOutput->measurementID()
+                  % resultEntry->sourceAddress().to_string()
+                  % resultEntry->destinationAddress().to_string()
+                  % sendTimeStamp
+                  % resultEntry->roundNumber()
+                  % (unsigned int)resultEntry->destination().trafficClass()
+                  % resultEntry->packetSize()
+                  % resultEntry->responseSize()
+                  % resultEntry->checksum()
+                  % resultEntry->sourcePort()
+                  % resultEntry->destinationPort()
+                  % (unsigned int)resultEntry->status()
+                  % timeSource
+                  % std::chrono::duration_cast<std::chrono::nanoseconds>(delayAppSend).count()
+                  % std::chrono::duration_cast<std::chrono::nanoseconds>(delayQueuing).count()
+                  % std::chrono::duration_cast<std::chrono::nanoseconds>(delayAppReceive).count()
+                  % std::chrono::duration_cast<std::chrono::nanoseconds>(rttApplication).count()
+                  % std::chrono::duration_cast<std::chrono::nanoseconds>(rttSoftware).count()
+                  % std::chrono::duration_cast<std::chrono::nanoseconds>(rttHardware).count()
+            ));
+            return;
+         }
 
          ResultsOutput->insert(
             str(boost::format("%s#P%c %d %s %s %x %d %x %d %d %x %d %d %d %08x %d %d %d %d %d %d")

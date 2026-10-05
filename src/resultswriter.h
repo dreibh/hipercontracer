@@ -36,6 +36,7 @@
 #include <chrono>
 #include <filesystem>
 #include <fstream>
+#include <mutex>
 #include <set>
 #include <string>
 
@@ -43,19 +44,27 @@
 #include <boost/iostreams/filtering_stream.hpp>
 
 
+enum ResultsEncodingType {
+   RET_HPCT = 0,
+   RET_JSON = 1
+};
+
+
 class ResultsWriter
 {
    public:
-   ResultsWriter(const std::string&   programID,
-                 const unsigned int   measurementID,
-                 const std::string&   directory,
-                 const std::string&   uniqueID,
-                 const std::string&   prefix,
-                 const unsigned int   transactionLength,
-                 const unsigned int   timestampDepth,
-                 const uid_t          uid,
-                 const gid_t          gid,
-                 const CompressorType compressor);
+   ResultsWriter(const std::string&        programID,
+                 const unsigned int        measurementID,
+                 const std::string&        directory,
+                 const std::string&        uniqueID,
+                 const std::string&        prefix,
+                 const unsigned int        transactionLength,
+                 const unsigned int        timestampDepth,
+                 const uid_t               uid,
+                 const gid_t               gid,
+                 const CompressorType      compressor,
+                 const ResultsEncodingType encoding = RET_HPCT,
+                 const bool                console  = false);
    virtual ~ResultsWriter();
 
    void specifyOutputFormat(const std::string& outputFormatName,
@@ -63,6 +72,9 @@ class ResultsWriter
 
    inline unsigned int measurementID() const {
       return MeasurementID;
+   }
+   inline ResultsEncodingType encoding() const {
+      return Encoding;
    }
 
    bool prepare();
@@ -81,7 +93,9 @@ class ResultsWriter
       const unsigned int              resultsTimestampDepth,
       const uid_t                     uid,
       const gid_t                     gid,
-      const CompressorType            compressor = CT_XZ);
+      const CompressorType            compressor = CT_XZ,
+      const ResultsEncodingType       encoding   = RET_HPCT,
+      const bool                      console    = false);
 
    protected:
    const std::string                     ProgramID;
@@ -93,6 +107,9 @@ class ResultsWriter
    const uid_t                           UID;
    const gid_t                           GID;
    const CompressorType                  Compressor;
+   const ResultsEncodingType             Encoding;
+   const bool                            Console;
+   std::mutex                            Mutex;
 
    std::string                           UniqueID;
    std::filesystem::path                 TempFileName;

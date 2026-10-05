@@ -28,7 +28,7 @@
 .\" Contact: dreibh@simula.no
 .\"
 .\" ###### Setup ############################################################
-.Dd September 7, 2026
+.Dd October 1, 2026
 .Dt hpct\-trigger 1
 .Os hpct\-trigger
 .\" ###### Name #############################################################
@@ -135,6 +135,10 @@
 .Op Fl F Ar version | Fl \-resultsformat Ar version
 .br
 .Op Fl z Ar depth | Fl \-resultstimestampdepth Ar depth
+.br
+.Op Fl \-resultsencoding Ar HPCT|\%JSON
+.br
+.Op Fl \-resultsoutput Ar FILE|\%CONSOLE
 .br
 .Op Ar destination Ar ...
 .Nm hipercontracer

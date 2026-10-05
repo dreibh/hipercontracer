@@ -307,8 +307,9 @@ elif [ "$1" == "mongodb" ] ; then
    # ====== Install MongoDB =================================================
    echo -e "\x1b[34m$(date +"%F %H:%M:%S"): Installing MongoDB ...\x1b[0m"
 
-   MONGODB_VERSION="8.3"   # Current version
-   MONGODB_KEY="8.0"       # NOTE: Minor releases use the major version's key!
+   MONGODB_VERSION="9.0"      # Current version
+   MONGODB_KEY="9"            # NOTE: Minor releases use the major version's key!
+   # MONGOSH_VERSION="2.3.10"
 
    if [ "${ID}" == "ubuntu" ] || [ "${ID}" == "debian" ] ; then
       for key in ${MONGODB_KEY} dev ; do
@@ -340,8 +341,12 @@ EOF
          fi
       ) | sudo tee /etc/apt/sources.list.d/mongodb-org.list >/dev/null
       sudo apt update -qq
-      sudo DEBIAN_FRONTEND=noninteractive apt install -y -o APT::Keep-Downloaded-Packages=true mongodb-org mongodb-mongosh openssl
+      sudo DEBIAN_FRONTEND=noninteractive apt install -y -o APT::Keep-Downloaded-Packages=true mongodb-org mongodb-mongosh
       sudo systemctl enable mongod.service
+
+      # arch="$(dpkg-architecture -q DEB_HOST_ARCH)"
+      # wget -qO "/tmp/mongodb-mongosh_${MONGOSH_VERSION}_${arch}.deb" "https://downloads.mongodb.com/compass/mongodb-mongosh_${MONGOSH_VERSION}_${arch}.deb"
+      # sudo dpkg -i "/tmp/mongodb-mongosh_${MONGOSH_VERSION}_${arch}.deb"
 
    elif [ "${ID}" == "fedora" ] ; then
       (

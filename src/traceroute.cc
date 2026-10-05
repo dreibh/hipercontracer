@@ -589,6 +589,10 @@ void Traceroute::processResults()
             }
          }
       }
+      if(!JSONEntry.empty()) {
+         ResultsOutput->insert(JSONEntry + "\n\t\t]\n\t}");
+         JSONEntry.clear();
+      }
    }
 }
 
@@ -613,10 +617,50 @@ void Traceroute::writeTracerouteResultEntry(const ResultEntry* resultEntry,
    }
 
    if(ResultsOutput) {
+      const bool json       = (ResultsOutput->encoding() == RET_JSON);
+      const bool firstEntry = writeHeader;
 
       if(writeHeader) {
+         // ====== JSON output format ====================================
+         if(json) {
+            JSONEntry = str(boost::format(
+               "\t{\n"
+               "\t\t\"service\": \"%s\",\n"
+               "\t\t\"type\": \"%s\",\n"
+               "\t\t\"measurement_id\": %d,\n"
+               "\t\t\"source_address\": \"%s\",\n"
+               "\t\t\"destination_address\": \"%s\",\n"
+               "\t\t\"timestamp\": %d,\n"
+               "\t\t\"round\": %d,\n"
+               "\t\t\"total_hops\": %d,\n"
+               "\t\t\"traffic_class\": %d,\n"
+               "\t\t\"packet_size\": %d,\n"
+               "\t\t\"checksum\": %d,\n"
+               "\t\t\"source_port\": %d,\n"
+               "\t\t\"destination_port\": %d,\n"
+               "\t\t\"status_flags\": %d,\n"
+               "\t\t\"path_hash\": %d,\n"
+               "\t\t\"hops\": [\n")
+               % OutputFormatName
+               % IOModule->getProtocolName()
+               % ResultsOutput->measurementID()
+               % resultEntry->sourceAddress().to_string()
+               % resultEntry->destinationAddress().to_string()
+               % timeStamp
+               % resultEntry->roundNumber()
+               % totalHops
+               % (unsigned int)(*DestinationIterator).trafficClass()
+               % resultEntry->packetSize()
+               % resultEntry->checksum()
+               % resultEntry->sourcePort()
+               % resultEntry->destinationPort()
+               % statusFlags
+               % pathHash
+            );
+         }
+
          // ====== Current output format =================================
-         if(OutputFormatVersion >= OFT_HiPerConTracer_Version2) {
+         else if(OutputFormatVersion >= OFT_HiPerConTracer_Version2) {
             ResultsOutput->insert(
                str(boost::format("#T%c %d %s %s %x %d %d %x %d %x %d %d %x %x")
                   % (unsigned char)IOModule->getProtocolType()
@@ -661,8 +705,8 @@ void Traceroute::writeTracerouteResultEntry(const ResultEntry* resultEntry,
          checksumCheck = resultEntry->checksum();
       }
 
-      // ====== Current output format =================================
-      if(OutputFormatVersion >= OFT_HiPerConTracer_Version2) {
+      // ====== Current output format / JSON ==========================
+      if( (json) || (OutputFormatVersion >= OFT_HiPerConTracer_Version2) ) {
          unsigned int   timeSource;
          ResultDuration rttApplication;
          ResultDuration rttSoftware;
@@ -676,6 +720,41 @@ void Traceroute::writeTracerouteResultEntry(const ResultEntry* resultEntry,
                                           delayQueuing, delayAppSend, delayAppReceive);
          const unsigned long long sendTimeStamp = nsSinceEpoch<ResultTimePoint>(
             resultEntry->sendTime(TXTimeStampType::TXTST_Application));
+
+         if(json) {
+            JSONEntry += str(boost::format(
+               "%s"
+               "\t\t\t{\n"
+               "\t\t\t\t\"send_timestamp\": %d,\n"
+               "\t\t\t\t\"hop_number\": %d,\n"
+               "\t\t\t\t\"response_size\": %d,\n"
+               "\t\t\t\t\"status\": %d,\n"
+               "\t\t\t\t\"time_source\": %d,\n"
+               "\t\t\t\t\"delay_app_send\": %d,\n"
+               "\t\t\t\t\"delay_queuing\": %d,\n"
+               "\t\t\t\t\"delay_app_receive\": %d,\n"
+               "\t\t\t\t\"rtt_app\": %d,\n"
+               "\t\t\t\t\"rtt_sw\": %d,\n"
+               "\t\t\t\t\"rtt_hw\": %d,\n"
+               "\t\t\t\t\"hop_address\": \"%s\"\n"
+               "\t\t\t}")
+               % ((firstEntry) ? "" : ",\n")
+               % sendTimeStamp
+               % resultEntry->hopNumber()
+               % resultEntry->responseSize()
+               % (unsigned int)resultEntry->status()
+               % timeSource
+               % std::chrono::duration_cast<std::chrono::nanoseconds>(delayAppSend).count()
+               % std::chrono::duration_cast<std::chrono::nanoseconds>(delayQueuing).count()
+               % std::chrono::duration_cast<std::chrono::nanoseconds>(delayAppReceive).count()
+               % std::chrono::duration_cast<std::chrono::nanoseconds>(rttApplication).count()
+               % std::chrono::duration_cast<std::chrono::nanoseconds>(rttSoftware).count()
+               % std::chrono::duration_cast<std::chrono::nanoseconds>(rttHardware).count()
+               % resultEntry->hopAddress().to_string()
+            );
+            assure(resultEntry->checksum() == checksumCheck);
+            return;
+         }
 
          ResultsOutput->insert(
             str(boost::format("\t%x %d %d %d %08x %d %d %d %d %d %d %s")

@@ -43,7 +43,7 @@ def formatTimestamp(timestampHex      : str,
                     timestampAsString : bool) -> Union[int, str]:
    unixTime : Final[int] = int(timestampHex, 16)
    if timestampAsString:
-      return HiPerConTracer.unixtime_to_string(unixTime)
+      return str(HiPerConTracer.unixtime_to_string(unixTime))
    return unixTime
 
 
@@ -98,38 +98,39 @@ for hpctInputFileName in hpctInputFileNames:
             protoType : str = \
                HiPerConTracer.PROTOCOL_MAP.get(protoKey, protoKey.upper())
             currentTraceroute = {
-               'type':               protoType,
-               'measurementId':      int(fields[1]),
-               'sourceAddress':      fields[2],
-               'destinationAddress': fields[3],
-               'timestamp':          formatTimestamp(fields[4], timestampAsString),
-               'round':              int(fields[5]),
-               'totalHops':          int(fields[6]),
-               'trafficClass':       int(fields[7], 16),
-               'packetSize':         int(fields[8]),
-               'checksum':           int(fields[9], 16),
-               'sourcePort':         int(fields[10]),
-               'destinationPort':    int(fields[11]),
-               'statusFlags':        int(fields[12]),
-               'pathHash':           int(fields[13], 16),
-               'hops':               []
+               'service':            'Traceroute',
+               'type':                protoType,
+               'measurement_id':      int(fields[1]),
+               'source_address':      fields[2],
+               'destination_address': fields[3],
+               'timestamp':           formatTimestamp(fields[4], timestampAsString),
+               'round':               int(fields[5]),
+               'total_hops':          int(fields[6]),
+               'traffic_class':       int(fields[7], 16),
+               'packet_size':         int(fields[8]),
+               'checksum':            int(fields[9], 16),
+               'source_port':         int(fields[10]),
+               'destination_port':    int(fields[11]),
+               'status_flags':        int(fields[12]),
+               'path_hash':           int(fields[13], 16),
+               'hops':                [ ]
             }
       elif line.startswith('\t') and currentTraceroute is not None:
          hopFields : List[str] = line.lstrip('\t').split()
          if len(hopFields) >= 12:
             currentHop : Dict[str, Any] = {
-               'sendTimestamp':   formatTimestamp(hopFields[0], timestampAsString),
-               'hopNumber':       int(hopFields[1]),
-               'responseSize':    int(hopFields[2]),
-               'status':          int(hopFields[3]),
-               'timeSource':      int(hopFields[4], 16),
-               'delayAppSend':    int(hopFields[5]),
-               'delayQueuing':    int(hopFields[6]),
-               'delayAppReceive': int(hopFields[7]),
-               'rttApp':          int(hopFields[8]),
-               'rttSw':           int(hopFields[9]),
-               'rttHw':           int(hopFields[10]),
-               'hopAddress':      hopFields[11]
+               'send_timestamp':    formatTimestamp(hopFields[0], timestampAsString),
+               'hop_number':        int(hopFields[1]),
+               'response_size':     int(hopFields[2]),
+               'status':            int(hopFields[3]),
+               'time_source':       int(hopFields[4], 16),
+               'delay_app_send':    int(hopFields[5]),
+               'delay_queuing':     int(hopFields[6]),
+               'delay_app_receive': int(hopFields[7]),
+               'rtt_app':           int(hopFields[8]),
+               'rtt_sw':            int(hopFields[9]),
+               'rtt_hw':            int(hopFields[10]),
+               'hop_address':       hopFields[11]
             }
             currentTraceroute['hops'].append(currentHop)
       elif not tag.startswith('#?'):

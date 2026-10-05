@@ -121,6 +121,16 @@ _hipercontracer()
          _filedir -d
          return
          ;;
+      # ====== Special case: results encoding ===============================
+      --resultsencoding)
+         mapfile -t COMPREPLY < <(compgen -W "HPCT JSON" --  "${cur}")
+         return
+         ;;
+      # ====== Special case: results output =================================
+      --resultsoutput)
+         mapfile -t COMPREPLY < <(compgen -W "CONSOLE FILE" --  "${cur}")
+         return
+         ;;
    esac
 
    # ====== All options =====================================================
@@ -181,6 +191,8 @@ _hipercontracer()
 --resultsformat
 -z
 --resultstimestampdepth
+--resultsencoding
+--resultsoutput
 --check
 -h
 --help

@@ -151,8 +151,7 @@ class Traceroute : public Service
    unsigned int                            MaxTTL;
    std::chrono::steady_clock::time_point   RunStartTimeStamp;
    uint32_t*                               TargetChecksumArray;
-
-   private:
+   std::string                             JSONEntry;
 };
 
 #endif
