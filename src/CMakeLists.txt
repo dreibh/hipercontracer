@@ -265,7 +265,7 @@ IF (WITH_LIBUNIVERSALIMPORTER)
             SOVERSION           ${BUILD_MAJOR}
          )
          TARGET_INCLUDE_DIRECTORIES(libuniversalimporter-${TYPE} PRIVATE
-                                    ${INotify_INCLUDE_DIRS}
+                                    ${INOTIFY_INCLUDE_DIR}
                                     ${Boost_INCLUDE_DIRS})
          TARGET_LINK_LIBRARIES(libuniversalimporter-${TYPE} PRIVATE
                                libhpctdb-${TYPE}
@@ -275,7 +275,7 @@ IF (WITH_LIBUNIVERSALIMPORTER)
                                ${PQXX_LIBRARIES}
                                ${LIBMONGOC_LIBRARY}
                                ${LIBBSON_LIBRARY}
-                               ${INotify_LIBRARIES}
+                               ${INOTIFY_LIBRARY}
                                ${SOCKET_LIBRARY}
                                ${CMAKE_THREAD_LIBS_INIT})
          INSTALL(TARGETS libuniversalimporter-${TYPE} DESTINATION ${CMAKE_INSTALL_LIBDIR})
@@ -432,7 +432,9 @@ IF (WITH_IMPORTER)
       reader-ping.cc
       reader-traceroute.cc
    )
-   TARGET_INCLUDE_DIRECTORIES(hpct-importer PRIVATE ${Boost_INCLUDE_DIRS})
+   TARGET_INCLUDE_DIRECTORIES(hpct-importer PRIVATE
+                              ${INOTIFY_INCLUDE_DIR}
+                              ${Boost_INCLUDE_DIRS})
    TARGET_LINK_LIBRARIES(hpct-importer PRIVATE libuniversalimporter-${libraryType} libhpctdb-${libraryType} libhpctio-${libraryType} ${Boost_LIBRARIES} ${SOCKET_LIBRARY} ${CMAKE_THREAD_LIBS_INIT})
    INSTALL(TARGETS hpct-importer RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
    INSTALL(FILES hpct-importer.1 DESTINATION         ${CMAKE_INSTALL_MANDIR}/man1)

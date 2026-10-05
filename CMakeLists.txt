@@ -251,15 +251,19 @@ IF (WITH_LIBUNIVERSALIMPORTER)
    IF (CMAKE_SYSTEM_NAME MATCHES "Linux")
       # Linux provides INotify without need for any library!
       SET(INotify_FOUND TRUE)
-      SET(INotify_LIBRARIES "")
-      SET(INotify_INCLUDE_DIRS "")
+      SET(INOTIFY_LIBRARY "")
+      SET(INOTIFY_INCLUDE_DIR "")
    ELSE()
       IF ( (NOT CMAKE_SYSTEM_NAME MATCHES "SunOS") AND
            (NOT CMAKE_SYSTEM_NAME MATCHES "GNU")   AND
            (NOT CMAKE_SYSTEM_NAME MATCHES "Darwin") )
-         FIND_LIBRARY(INotify_LIBRARIES NAMES inotify       HINTS /usr/local/lib/inotify)
-         FIND_PATH(INotify_INCLUDE_DIRS NAMES sys/inotify.h HINTS /usr/local/include/inotify)
-         IF ((NOT INotify_LIBRARIES) OR (NOT INotify_INCLUDE_DIRS))
+         FIND_LIBRARY(INOTIFY_LIBRARY NAMES inotify HINTS /usr/local/lib/inotify)
+         FIND_PATH(INOTIFY_INCLUDE_DIR NAMES sys/inotify.h HINTS /usr/local/include/inotify)
+         IF ((INOTIFY_LIBRARY) AND (INOTIFY_INCLUDE_DIR))
+            MESSAGE(STATUS "INotify library found:")
+            MESSAGE(STATUS " INOTIFY_LIBRARY:     ${INOTIFY_LIBRARY}")
+            MESSAGE(STATUS " INOTIFY_INCLUDE_DIR: ${INOTIFY_INCLUDE_DIR}")
+         ELSE()
             MESSAGE(FATAL_ERROR
                   "Cannot find INotify library! Try:\n"
                   " * Ubuntu/Debian: (always included as part of libc)\n"
