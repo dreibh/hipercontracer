@@ -38,11 +38,11 @@ Requires: iproute
 # Fedora and OpenSuSE use different libcap programs (e.g. setcap) packaging:
 Requires: (libcap or libcap-progs)
 Recommends: %{name}-viewer = %{version}-%{release}
-Recommends: %{name}-examples
 Recommends: ethtool
 Suggests: %{name}-collector = %{version}-%{release}
 Suggests: %{name}-dbeaver-tools = %{version}-%{release}
 Suggests: %{name}-dbshell = %{version}-%{release}
+Suggests: %{name}-examples = %{version}-%{release}
 Suggests: %{name}-importer = %{version}-%{release}
 Suggests: %{name}-node = %{version}-%{release}
 Suggests: %{name}-query = %{version}-%{release}
@@ -983,8 +983,9 @@ node.
 Summary: HiPerConTracer Collector Tools for collecting measurement results
 BuildArch: noarch
 Requires: %{name}-common = %{version}-%{release}
-Requires: openssh-clients
+Requires: findutils
 Requires: iproute
+Requires: openssh-clients
 Requires: openssh-server
 Requires: rsync
 Requires: sudo
