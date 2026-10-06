@@ -48,26 +48,137 @@ Please use the issue tracker at [https://github.com/dreibh/hipercontracer/issues
 
 ## Ubuntu Linux
 
-For ready-to-install Ubuntu Linux packages of HiPerConTracer, see [Launchpad PPA for Thomas Dreibholz](https://launchpad.net/~dreibh/+archive/ubuntu/ppa/+packages?field.name_filter=hipercontracer&field.status_filter=published&field.series_filter=)!
+For ready-to-install [Ubuntu Linux](https://ubuntu.com/) packages of HiPerConTracer, see the [Launchpad PPA for Thomas Dreibholz](https://launchpad.net/~dreibh/+archive/ubuntu/ppa/+packages?field.name_filter=hipercontracer&field.status_filter=published&field.series_filter=)!
+
+Add the PPA repository:
 
 ```bash
 sudo apt-add-repository -sy ppa:dreibh/ppa
 sudo apt-get update
+```
+
+For the basic HiPerConTracer only (the [HiPerConTracer](#-running-a-hipercontracer-measurement) measurement tool itself, as well as the [HiPerConTracer Viewer Tool](#-the-hipercontracer-viewer-tool)):
+
+```bash
+sudo apt-get install hipercontracer
+```
+
+For the complete [HiPerConTracer framework](#-what-is-high-performance-connectivity-tracer-hipercontracer) (all tools, including [HiPerConTracer Database Tools](#-the-hipercontracer-database-tools), Collector and Node management tools, as well as the dependency-heavy example scripts):
+
+```bash
+sudo apt-get install hipercontracer-all
+```
+
+## Debian Linux
+
+For ready-to-install [Debian Linux](https://www.debian.org/) packages of HiPerConTracer, see the [Open Build Service PPA for Thomas Dreibholz](https://build.opensuse.org/project/show/home:dreibh)!
+
+Add the PPA repository:
+
+```bash
+. /etc/os-release
+DISTRIBUTION="Debian_${VERSION_ID:-$([ "${VERSION_CODENAME:-}" = sid ] && echo Unstable || echo Testing)}"
+URL="https://download.opensuse.org/repositories/home:/dreibh/${DISTRIBUTION}"
+KEY="/etc/apt/keyrings/dreibh-obs.gpg"
+
+curl -fsSL "${URL}/Release.key" | sudo gpg --batch --yes --dearmor -o "${KEY}"
+printf "deb [signed-by=%s] %s/ /\ndeb-src [signed-by=%s] %s/ /\n" "${KEY}" "${URL}" "${KEY}" "${URL}" | \
+   sudo tee /etc/apt/sources.list.d/obs-dreibh.list
+sudo apt update
+```
+
+For the basic HiPerConTracer only (the [HiPerConTracer](#-running-a-hipercontracer-measurement) measurement tool itself, as well as the [HiPerConTracer Viewer Tool](#-the-hipercontracer-viewer-tool)):
+
+```bash
+sudo apt-get install hipercontracer
+```
+
+For the complete [HiPerConTracer framework](#-what-is-high-performance-connectivity-tracer-hipercontracer) (all tools, including [HiPerConTracer Database Tools](#-the-hipercontracer-database-tools), Collector and Node management tools, as well as the dependency-heavy example scripts):
+
+```bash
 sudo apt-get install hipercontracer-all
 ```
 
 ## Fedora Linux
 
-For ready-to-install Fedora Linux packages of HiPerConTracer, see [COPR PPA for Thomas Dreibholz](https://copr.fedorainfracloud.org/coprs/dreibh/ppa/package/hipercontracer/)!
+For ready-to-install [Fedora Linux](https://fedoraproject.org/) packages of HiPerConTracer, see the [COPR PPA for Thomas Dreibholz](https://copr.fedorainfracloud.org/coprs/dreibh/ppa/package/hipercontracer/)!
+
+Add the PPA repository:
 
 ```bash
 sudo dnf copr enable -y dreibh/ppa
+```
+
+For the basic HiPerConTracer only (the [HiPerConTracer](#-running-a-hipercontracer-measurement) measurement tool itself, as well as the [HiPerConTracer Viewer Tool](#-the-hipercontracer-viewer-tool)):
+
+```bash
+sudo dnf install hipercontracer
+```
+
+For the complete [HiPerConTracer framework](#-what-is-high-performance-connectivity-tracer-hipercontracer) (all tools, including [HiPerConTracer Database Tools](#-the-hipercontracer-database-tools), Collector and Node management tools, as well as the dependency-heavy example scripts):
+
+```bash
 sudo dnf install hipercontracer-all
+```
+
+## OpenSUSE Linux
+
+For ready-to-install [OpenSUSE Linux](https://www.opensuse.org/) packages of HiPerConTracer, see the [Open Build Service PPA for Thomas Dreibholz](https://build.opensuse.org/project/show/home:dreibh)!
+
+Add the PPA repository:
+
+```bash
+. /etc/os-release
+[[ $VERSION_ID =~ ^[0-9]+\.[0-9]+$ ]] && DISTRIBUTION="${VERSION_ID}" || DISTRIBUTION="${NAME// /_}"
+URL="https://download.opensuse.org/repositories/home:/dreibh/${DISTRIBUTION}"
+rpm --import "${URL}/repodata/repomd.xml.key"
+zypper addrepo -f "${URL}/" dreibh-obs
+```
+
+For the basic HiPerConTracer only (the [HiPerConTracer](#-running-a-hipercontracer-measurement) measurement tool itself, as well as the [HiPerConTracer Viewer Tool](#-the-hipercontracer-viewer-tool)):
+
+```bash
+sudo zypper install hipercontracer
+```
+
+For the complete [HiPerConTracer framework](#-what-is-high-performance-connectivity-tracer-hipercontracer) (all tools, including [HiPerConTracer Database Tools](#-the-hipercontracer-database-tools), Collector and Node management tools, as well as the dependency-heavy example scripts):
+
+```bash
+sudo zypper install hipercontracer-all
+```
+
+## Alpine Linux
+
+For ready-to-install [Alpine Linux](https://alpinelinux.org/) packages of HiPerConTracer, see the [Open Build Service PPA for Thomas Dreibholz](https://build.opensuse.org/project/show/home:dreibh)!
+
+Add the PPA repository:
+
+```bash
+DISTRIBUTION="Alpine_Latest_community"
+URL="https://download.opensuse.org/repositories/home:/dreibh"
+wget -O \
+   /etc/apk/keys/home:dreibh@build.opensuse.org-527a4e72.rsa.pub \
+   "${URL}/${DISTRIBUTION}/x86_64/home:dreibh%40build.opensuse.org-527a4e72.rsa.pub"
+if ! grep -q "^${URL}/${DISTRIBUTION}" /etc/apk/repositories ; then
+   echo "${URL}/${DISTRIBUTION}" | sudo tee -a /etc/apk/repositories
+fi
+```
+
+For the basic HiPerConTracer only (the [HiPerConTracer](#-running-a-hipercontracer-measurement) measurement tool itself, as well as the [HiPerConTracer Viewer Tool](#-the-hipercontracer-viewer-tool)):
+
+```bash
+sudo apk add hipercontracer
+```
+
+For the complete [HiPerConTracer framework](#-what-is-high-performance-connectivity-tracer-hipercontracer) (all tools, including [HiPerConTracer Database Tools](#-the-hipercontracer-database-tools), Collector and Node management tools, as well as the dependency-heavy example scripts):
+
+```bash
+sudo apk add hipercontracer-all
 ```
 
 ## FreeBSD
 
-For ready-to-install FreeBSD packages of HiPerConTracer, it is included in the ports collection; see [FreeBSD ports tree index of benchmarks/hipercontracer/](https://cgit.freebsd.org/ports/tree/benchmarks/hipercontracer/)!
+For ready-to-install [FreeBSD](https://www.freebsd.org/) packages of HiPerConTracer, it is included in the ports collection; see [FreeBSD ports tree index of net/hipercontracer/](https://cgit.freebsd.org/ports/tree/benchmarks/hipercontracer/)!
 
 ```bash
 sudo pkg install hipercontracer
@@ -79,6 +190,39 @@ Alternatively, to compile it from the ports sources:
 cd /usr/ports/benchmarks/hipercontracer
 make
 sudo make install
+```
+
+## NetBSD
+
+HiPerConTracer supports [NetBSD](https://netbsd.org/). However, there is no NetBSD packaging yet. Just build from sources!
+
+## OpenBSD
+
+HiPerConTracer supports [OpenBSD](https://www.openbsd.org/). However, there is no OpenBSD packaging yet. Just build from sources!
+
+## Solaris (OpenIndiana)
+
+HiPerConTracer supports [Solaris (OpenIndiana)](https://www.openindiana.org/). However, there is no Solaris packaging yet. Just build from sources!
+
+## GNU Hurd
+
+HiPerConTracer supports [GNU Hurd](https://www.gnu.org/software/hurd/) ([Debian GNU/Hurd](https://www.debian.org/ports/hurd/)). However, there is no Debian GNU/Hurd PPA on Open Build Service available yet. Just build from sources!
+
+## Homebrew (Apple, Linux)
+
+For the [Homebrew](https://brew.sh/) formula of HiPerConTracer, see [Thomas Dreibholz's Homebrew Tap](https://github.com/dreibh/homebrew-tap)!
+
+Add tap:
+
+```bash
+brew tap dreibh/tap
+brew trust dreibh/tap
+```
+
+For the complete [HiPerConTracer framework](#-what-is-high-performance-connectivity-tracer-hipercontracer) (all tools, including [HiPerConTracer Database Tools](#-the-hipercontracer-database-tools), Collector and Node management tools, as well as the dependency-heavy example scripts):
+
+```bash
+brew install hipercontracer
 ```
 
 
@@ -196,7 +340,7 @@ For a larger setup, particularly consisting of measurement nodes and/or database
 
 * `/var/hipercontracer/data`, `/var/hipercontracer/good`, and `/var/hipercontracer/bad`:
 
-   These directories must be *writable* for the [HiPerConTracer Importer Tool](#-the-hipercontracer-importer-tool), to allow it to move files owned by _node<1-9999>_:_hpct-nodes_ without superuser permissions, as well as *readable* for members of the group hpct-nodes, for reading the node status files:
+   These directories must be *writable* for the [HiPerConTracer Importer Tool](#-the-hipercontracer-importer-tool), to allow it to move files owned by _node<1-9999>_:_hpct-nodes_ without superuser permissions, as well as *readable* for members of the group _hpct-nodes_, for reading the node status files:
 
    * Linux (POSIX ACLs):
 
@@ -271,7 +415,7 @@ Under Linux, it is possible to utilise capabilities to allow HiPerConTracer to u
 sudo setcap cap_net_raw=+ep /usr/bin/hipercontracer
 ```
 
-After enabling the `cap_net_raw` capability, HiPerConTracer can run as unprivileged (i.e.&nbsp;non-root) user:
+After enabling the `cap_net_raw` capability, HiPerConTracer can run as an unprivileged (i.e., non-root) user:
 
 ```bash
 hipercontracer www.ietf.org --ping
@@ -294,9 +438,9 @@ man hipercontracer
 An uncompressed HiPerConTracer results file consists of:
 
 * [Header](#header)
-* The actual data, i.e.&nbsp;[Ping](#ping) or [Traceroute](#traceroute) measurement results.
+* The actual data, i.e., [Ping](#ping) or [Traceroute](#traceroute) measurement results.
 
-The measurement results within a results file only contain data entries of the same format (i.e.&nbsp;[Ping](#ping), [Traceroute](#traceroute)) and version (1 for HiPerConTracer &lt;2.0; 2 otherwise).
+The measurement results within a results file only contain data entries of the same format (i.e., [Ping](#ping), [Traceroute](#traceroute)) and version (1 for HiPerConTracer &lt;2.0; 2 otherwise).
 
 See [Results File Examples](#results-file-examples) for some examples.
 
@@ -543,7 +687,7 @@ Notes:
 
 ### Status Code and Status Flags
 
-The status code provides the result of a Ping, i.e.&nbsp;whether the remote endpoint responded or there was a local or on-route error, as an unsigned byte:
+The status code provides the result of a Ping, i.e., whether the remote endpoint responded or there was a local or on-route error, as an unsigned byte:
 
 | Status Code | Description                                                                                                                                        | Meaning of the Corresponding RTT Value      |
 | :-:         | :---------                                                                                                                                         | :---------                                  |
@@ -608,7 +752,7 @@ For details, particularly also see: [Dreibholz, Thomas](https://www.nntb.no/~dre
 
 ### Path Hash
 
-The path hash is an [SHA-1](https://www.rfc-editor.org/info/rfc3174/) hash over the textual representation of a Traceroute run, i.e.&nbsp;SHA1("&lt;Source IP&gt;-&lt;Router 1 IP&gt;-&lt;...&gt;-&lt;Router *n* IP&gt;-&lt;Destination IP&gt;"), where the IP addresses correspond to source, destination, and routers. If a router is unknown, it is represented by "\*". The purpose of the path hash is to quickly identify identical paths. In this case, of course, routers must have consistently responded (non-"\*", i.e.&nbsp;revealing their IP address) or not responded ("\*") to lead to the same hash value.
+The path hash is an [SHA-1](https://www.rfc-editor.org/info/rfc3174/) hash over the textual representation of a Traceroute run, i.e., SHA1("&lt;Source IP&gt;-&lt;Router 1 IP&gt;-&lt;...&gt;-&lt;Router *n* IP&gt;-&lt;Destination IP&gt;"), where the IP addresses correspond to source, destination, and routers. If a router is unknown, it is represented by "\*". The purpose of the path hash is to quickly identify identical paths. In this case, of course, routers must have consistently responded (non-"\*", i.e., revealing their IP address) or not responded ("\*") to lead to the same hash value.
 
 
 ## Results File Examples
@@ -734,7 +878,7 @@ Usage:
   ```
 
   Note:
-  * The provided directory ("`.`", i.e.&nbsp;the current directory) is searched for all HiPerConTracer Ping results files.
+  * The provided directory ("`.`", i.e., the current directory) is searched for all HiPerConTracer Ping results files.
   * The script calls the [HiPerConTracer Results Tool](#-the-hipercontracer-results-tool) for processing of the input files. It therefore must be installed.
 
 * With a CSV file as input:
@@ -809,7 +953,7 @@ The HiPerConTracer Importer Tool provides the continuous storage of collected me
 
 See [`src/hipercontracer-importer.conf`](src/hipercontracer-importer.conf) (importer configuration) and [`src/hipercontracer-database.conf`](src/hipercontracer-database.conf) (database configuration) for examples. Make sure that the database access details are correct, so that the Importer Tool and the Query Tool can connect to the right database and have the required permissions! See [`src/SQL`](https://github.com/dreibh/hipercontracer/tree/master/src/SQL) and [`src/NoSQL`](https://github.com/dreibh/hipercontracer/tree/master/src/NoSQL) for schema, user and permission setups. Use the [HiPerConTracer Database Shell](#-the-hipercontracer-database-shell) tool to verify and debug access.
 
-Note: Make sure the `data` directory, as well as the directory for `good` imports and the directory for `bad` (i.e.&nbsp;failed) imports exist and are accessible by the user running the importer!
+Note: Make sure the `data` directory, as well as the directory for `good` imports and the directory for `bad` (i.e., failed) imports exist and are accessible by the user running the importer!
 
 ## Run the Importer Tool
 
@@ -909,7 +1053,7 @@ hpct-query ~/testdb-users-mariadb-researcher.conf \
    --from-time "2023-09-22 00:00:00" --to-time "2023-09-23 00:00:00"
 ```
 
-Note: Data for time stamp 2023-09-23 00:00:00 will **not** be included, only data for time stamps **less than** 2023-09-23 00:00:00, i.e.&nbsp;data within the time interval [from-time, to-time). This ensures the possibility to e.g., export daily batches without having the same value included in two files!
+Note: Data for time stamp 2023-09-23 00:00:00 will **not** be included, only data for time stamps **less than** 2023-09-23 00:00:00, i.e., data within the time interval [from-time, to-time). This ensures the possibility to e.g., export daily batches without having the same value included in two files!
 
 ## Further Details
 
@@ -1122,7 +1266,7 @@ man udp-echo-server
 
 # 🦈 Wireshark Dissector for HiPerConTracer Packets
 
-The [Wireshark](https://www.wireshark.org/) network protocol analyzer provides built-in support for the HiPerConTracer packet format. This support is already included upstream, i.e.&nbsp;Wireshark provides it out-of-the-box.
+The [Wireshark](https://www.wireshark.org/) network protocol analyzer provides built-in support for the HiPerConTracer packet format. This support is already included upstream, i.e., Wireshark provides it out-of-the-box.
 
 To decode HiPerConTracer packets, particularly over UDP, it may be necessary to configure ["Decode As" rules](https://www.wireshark.org/docs/wsug_html_chunked/ChCustProtocolDissectionSection.html#ChAdvDecodeAs). Wireshark has to rely on heuristics for UDP. They may fail to recognise the HiPerConTracer payload. The "Decode As" rules configuration in the "Analyze" menu allows users to set explicit rules for UDP ports (e.g., 7, 10001) for decoding matching packets as HiPerConTracer payload.
 
