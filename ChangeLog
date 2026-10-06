@@ -1,3 +1,247 @@
+commit 28dd8a99ba1155d32c21e7c7feeb6368c826334b
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Oct 6 14:26:45 2026 +0200
+
+    Minor CMakeLists.txt improvements.
+
+commit d81e0c708c430bda379bdbd828064951bdd5d2a1
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Oct 6 13:52:57 2026 +0200
+
+    Minor documentation update.
+
+commit 66fd3332efc4fccab5714dd1a7cd9e5fd041953b
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Oct 6 11:53:06 2026 +0200
+
+    Improved documentation.
+
+commit 9dcae89721061f15856f2a91ae30d2b038c1e3e1
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Oct 6 10:50:17 2026 +0200
+
+    CMakeLists.txt improvement.
+
+commit ea43db171223a6120ccd7de80f67052a1f68a4e0
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Mon Oct 5 22:44:40 2026 +0200
+
+    CMakeLists.txt improvements.
+
+commit 5ccf3cd7e446f62bd8c1ef866ebab7f62b329645
+Merge: 35e47926 fc0c96dd
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Mon Oct 5 16:28:52 2026 +0200
+
+    Merge branch 'dreibh/json-output'
+
+commit 35e47926c9839061cfa70c40e248f6d3ef5c4d81
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Mon Oct 5 15:25:24 2026 +0100
+
+    Added missing non-inotify importer part for GNU Hurd.
+
+commit fc0c96dd29914b49aeb7d6e841bd57473981bc60
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Mon Oct 5 14:02:47 2026 +0200
+
+    Packaging improvement for Debian/Ubuntu/Fedora/OpenSuSE: Moved hipercontracer-examples from "Recommends" to "Suggests", to avoid dependency-heavy R installation by default when just installing "hipercontracer".
+
+commit 0c67b7959488df8fdc6f503463f0f72921504a17
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Mon Oct 5 11:29:54 2026 +0200
+
+    Improved documentation.
+
+commit 0eb15d0f21b183e6e0f855632951a31f2ae92ce9
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Mon Oct 5 11:17:18 2026 +0200
+
+    Minor documentation update.
+
+commit c160585c31654172bb26dc284c78c3db062d1185
+Merge: 465e2366 69e7a3c7
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Mon Oct 5 11:12:18 2026 +0200
+
+    Merge branch 'master' into dreibh/json-output
+
+commit 6c2d531b99fbe48b4e7fd64bb33992af03f4f669
+Merge: c6bec153 69e7a3c7
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Sun Oct 4 20:08:12 2026 +0100
+
+    Merge branch 'master' into dreibh/hurd
+
+commit c6bec153452db5c51e93ecdf5641e8993a9d27df
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Sun Oct 4 20:07:21 2026 +0100
+
+    Minor GNU Hurd improvements and clean-ups.
+
+commit 69e7a3c7ff316a5f45c037135386501b54155018
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Sun Oct 4 21:00:58 2026 +0200
+
+    Typo fixes.
+
+commit 3affa18fb8e5efd16d52d85eba8fcd673082de4b
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Sat Oct 3 20:30:07 2026 +0100
+
+    GNU Hurd does not support IPV6_TCLASS, yet.
+
+commit ab2a97aa70ab47827e3b910e8223803d106be3b7
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Sat Oct 3 20:05:26 2026 +0100
+
+    Added experimental support for GNU Hurd.
+
+commit 465e236613e90e296072c92a9cfb61640d7435be
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Fri Oct 2 17:35:23 2026 +0200
+
+    Updated build helper script.
+
+commit ae94c4a5efbbc77538fa1b6b9f78d912baad033c
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Fri Oct 2 15:35:23 2026 +0200
+
+    Type-hinting fixes in the Python examples.
+
+commit b1389d3f9fc54c8e7646909e474394a6bccf1cef
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Fri Oct 2 15:35:14 2026 +0200
+
+    Updated helper scripts.
+
+commit 1255362e24b7b08621b5c9f98dd1fd8aa9de7cfe
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Fri Oct 2 15:20:25 2026 +0200
+
+    Improved dependency installation hints.
+
+commit 2dbb4766604bb15625251fe1be93646b39cd062b
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Oct 1 16:25:19 2026 +0200
+
+    Improved script.
+
+commit 1d17f11ec6b367f1e14a75e8041bdc416daaa5f4
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Oct 1 14:04:28 2026 +0200
+
+    Updated HPCT-Trigger tool.
+
+commit 83b26f7c0e24ca86ad4d7099fdcbb9972b8c9c78
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Oct 1 13:51:25 2026 +0200
+
+    Updated shell completion.
+
+commit 4b0700fd0aa54c59a1a25e9079992f270b1bfe06
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Oct 1 13:51:14 2026 +0200
+
+    Updated manpage.
+
+commit 7090f0e4f83c61d0e181c6ad35375e9e7bf6da36
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Oct 1 13:13:48 2026 +0200
+
+    Improved mutex handling.
+
+commit 85876b461fe12a598f4548ec79ec2d28e9da40a1
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Oct 1 13:13:36 2026 +0200
+
+    Updated examples.
+
+commit 7ea1421068192ff648b94072cb18e7d5bbf753ad
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Oct 1 12:35:02 2026 +0200
+
+    Some clean-ups.
+
+commit ee71ffa56969e54f681a5539c44d991c60ebf96b
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Thu Oct 1 12:23:37 2026 +0200
+
+    Changed JSON output from 3-spaces indentation to tab indentation.
+
+commit 0387c29c81749744f7ae63a893a08449798cf4ee
+Author: Alojz Gomola <alojz@simula.no>
+Date:   Mon Sep 28 13:31:30 2026 +0200
+
+    Change Request: Hipercontracer outputing to json -> targetting console/file.
+
+commit c7fd5a68cea45b9e39438935d3f353edbf559048
+Author: Alojz Gomola <alojz@simula.no>
+Date:   Mon Sep 28 13:25:11 2026 +0200
+
+    Added JSON results encoding and console output.
+    
+    - New options: --resultsencoding HPCT|JSON, --resultsoutput FILE|CONSOLE.
+    - JSON (snake_case fields) for Ping and Traceroute.
+    - Default output (HPCT files) unchanged.
+    
+    Co-Authored-By: Claude Opus 5.5 (1M context) <noreply@anthropic.com>
+
+commit bf77b7a9345393cb60d709dd1a90f5033f99b615
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Sat Sep 12 22:44:00 2026 +0200
+
+    OpenSUSE RPM spec fix.
+
+commit b4a614fe26ce63b25ea73cfb9c626e29ac7bc88b
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Sat Sep 12 16:41:30 2026 +0100
+
+    Updated build helper script.
+
+commit b61b6e900bbccaccf422b53929fa921d395d31ba
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Sep 8 14:47:06 2026 +0200
+
+    Updated FreeBSD port.
+
+commit 8adfc7fbfdcfb309f5d895d7d97625cbd96eed26
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Sep 8 13:29:05 2026 +0200
+
+    Updated Homebrew build file.
+
+commit 4ef8b3de531bfd990cf737c12c9c9e67445fa3b3
+Merge: 12ae726c 3461907b
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Sep 8 13:28:31 2026 +0200
+
+    Merge branch 'master' of github.com:dreibh/hipercontracer
+
+commit 12ae726c64715acd5182e2293f101055cdc4fc61
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Sep 8 12:47:24 2026 +0200
+
+    Updated APKBUILD file.
+
+commit 3461907bb7e6054e4acaec68886729d9a0fd3944
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Sep 8 12:28:36 2026 +0200
+
+    Minor update.
+
+commit e830a1639845e5ee11a621a3ab856d818df5fd3c
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Sep 8 12:19:13 2026 +0200
+
+    Packaging improvements.
+
+commit 8c762e60cf3c5e130e2c99dbbb6e662141bc2ebe
+Author: Thomas Dreibholz <dreibh@simula.no>
+Date:   Tue Sep 8 12:06:13 2026 +0200
+
+    New release hipercontracer-2.2.11.
+
 commit c2586671eedee0068fc623622fe59f058b1e40c2
 Merge: b00a9968 1c3000d6
 Author: Thomas Dreibholz <dreibh@simula.no>
