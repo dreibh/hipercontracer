@@ -178,7 +178,7 @@ sudo apk add hipercontracer-all
 
 ## FreeBSD
 
-For ready-to-install [FreeBSD](https://www.freebsd.org/) packages of HiPerConTracer, it is included in the ports collection; see [FreeBSD ports tree index of net/hipercontracer/](https://cgit.freebsd.org/ports/tree/benchmarks/hipercontracer/)!
+For ready-to-install [FreeBSD](https://www.freebsd.org/) packages of HiPerConTracer, it is included in the ports collection; see [FreeBSD ports tree index of benchmarks/hipercontracer/](https://cgit.freebsd.org/ports/tree/benchmarks/hipercontracer/)!
 
 ```bash
 sudo pkg install hipercontracer
