@@ -646,7 +646,7 @@ IF (WITH_ICONS)
               " * Ubuntu/Debian: sudo apt install -y inkscape\n"
               " * Fedora:        sudo dnf install -y inkscape\n"
               " * OpenSUSE:      sudo zypper install -y inkscape\n"
-              " * Alpine:        sudo apk add inkscape\n"
+              " * Alpine:        sudo apk add inkscape font-dejavu\n"
               " * FreeBSD:       sudo pkg install -y inkscape\n"
               " * NetBSD:        sudo pkgin -y install inkscape\n"
               " * OpenBSD:       sudo pkg_add inkscape\n"
