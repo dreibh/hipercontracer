@@ -111,7 +111,7 @@ jobs:
   # #########################################################################
   Package:
     name: Ubuntu Packaging
-    runs-on: ubuntu-latest
+    runs-on: ubuntu:resolute
     steps:
       - uses: actions/checkout@v7
       - name: Packaging
@@ -120,4 +120,4 @@ jobs:
           sudo CC=gcc CXX=g++ OS=ubuntu DIST=resolute ARCH= ci/ci-setup   package
           sudo CC=gcc CXX=g++ OS=ubuntu DIST=resolute ARCH= ci/ci-install package
           sudo CC=gcc CXX=g++ OS=ubuntu DIST=resolute ARCH= ci/ci-build   package
-          sudo ci/ci-test
+          sudo ci/ci-test   # Ensure that "runs-on" matches "DIST" distrobution!
