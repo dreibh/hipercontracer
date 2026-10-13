@@ -70,7 +70,7 @@ IF (WITH_LIBHPCTIO)
    ENDIF()
    FOREACH(TYPE shared;static)
       IF ( (("${TYPE}" STREQUAL "static") AND (WITH_STATIC_LIBRARIES)) OR
-         (("${TYPE}" STREQUAL "shared") AND (WITH_SHARED_LIBRARIES)) )
+           (("${TYPE}" STREQUAL "shared") AND (WITH_SHARED_LIBRARIES)) )
          SET_TARGET_PROPERTIES(libhpctio-${TYPE} PROPERTIES
             OUTPUT_NAME         hpctio
             CLEAN_DIRECT_OUTPUT 1
@@ -136,7 +136,7 @@ IF (WITH_LIBHIPERCONTRACER)
    ENDIF()
    FOREACH(TYPE shared;static)
       IF ( (("${TYPE}" STREQUAL "static") AND (WITH_STATIC_LIBRARIES)) OR
-         (("${TYPE}" STREQUAL "shared") AND (WITH_SHARED_LIBRARIES)) )
+           (("${TYPE}" STREQUAL "shared") AND (WITH_SHARED_LIBRARIES)) )
          SET_TARGET_PROPERTIES(libhipercontracer-${TYPE} PROPERTIES
             OUTPUT_NAME         hipercontracer
             CLEAN_DIRECT_OUTPUT 1
@@ -204,7 +204,7 @@ IF (WITH_LIBHPCTDB)
    ENDIF()
    FOREACH(TYPE shared;static)
       IF ( (("${TYPE}" STREQUAL "static") AND (WITH_STATIC_LIBRARIES)) OR
-         (("${TYPE}" STREQUAL "shared") AND (WITH_SHARED_LIBRARIES)) )
+           (("${TYPE}" STREQUAL "shared") AND (WITH_SHARED_LIBRARIES)) )
          SET_TARGET_PROPERTIES(libhpctdb-${TYPE} PROPERTIES
             OUTPUT_NAME         hpctdb
             CLEAN_DIRECT_OUTPUT 1
