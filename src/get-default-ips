@@ -42,7 +42,7 @@ usage () {
 
 # ###### Version ############################################################
 version () {
-   echo "get-default-ips @BUILD_MAJOR@.@BUILD_MINOR@.@BUILD_PATCH@"
+   echo "get-default-ips @PROJECT_VERSION_MAJOR@.@PROJECT_VERSION_MINOR@.@PROJECT_VERSION_PATCH@"
    exit 0
 }
 

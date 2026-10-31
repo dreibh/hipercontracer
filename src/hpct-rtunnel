@@ -41,7 +41,7 @@ usage () {
 
 # ###### Version ############################################################
 version () {
-   echo "HiPerConTracer-RTunnel @BUILD_MAJOR@.@BUILD_MINOR@.@BUILD_PATCH@"
+   echo "HiPerConTracer-RTunnel @PROJECT_VERSION_MAJOR@.@PROJECT_VERSION_MINOR@.@PROJECT_VERSION_PATCH@"
    exit 0
 }
 

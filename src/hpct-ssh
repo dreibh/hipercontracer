@@ -42,7 +42,7 @@ usage () {
 
 # ###### Version ############################################################
 version () {
-   echo "HiPerConTracer-SSH @BUILD_MAJOR@.@BUILD_MINOR@.@BUILD_PATCH@"
+   echo "HiPerConTracer-SSH @PROJECT_VERSION_MAJOR@.@PROJECT_VERSION_MINOR@.@PROJECT_VERSION_PATCH@"
    exit 0
 }
 

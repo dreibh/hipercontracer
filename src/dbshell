@@ -64,7 +64,7 @@ usage () {
 
 # ###### Version ############################################################
 version () {
-   echo "DBShell @BUILD_MAJOR@.@BUILD_MINOR@.@BUILD_PATCH@"
+   echo "DBShell @PROJECT_VERSION_MAJOR@.@PROJECT_VERSION_MINOR@.@PROJECT_VERSION_PATCH@"
    exit 0
 }
 

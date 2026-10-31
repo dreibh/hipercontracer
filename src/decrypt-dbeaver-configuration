@@ -42,7 +42,7 @@ usage () {
 
 # ###### Version ############################################################
 version () {
-   echo "Decrypt-DBeaver-Configuration @BUILD_MAJOR@.@BUILD_MINOR@.@BUILD_PATCH@"
+   echo "Decrypt-DBeaver-Configuration @PROJECT_VERSION_MAJOR@.@PROJECT_VERSION_MINOR@.@PROJECT_VERSION_PATCH@"
    exit 0
 }
 

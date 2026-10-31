@@ -45,7 +45,7 @@ usage () {
 
 # ###### Version ############################################################
 version () {
-   echo "HiPerConTracer-Nodes-List @BUILD_MAJOR@.@BUILD_MINOR@.@BUILD_PATCH@"
+   echo "HiPerConTracer-Nodes-List @PROJECT_VERSION_MAJOR@.@PROJECT_VERSION_MINOR@.@PROJECT_VERSION_PATCH@"
    exit 0
 }
 

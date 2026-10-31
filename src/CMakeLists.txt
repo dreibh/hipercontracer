@@ -74,8 +74,8 @@ IF (WITH_LIBHPCTIO)
          SET_TARGET_PROPERTIES(libhpctio-${TYPE} PROPERTIES
             OUTPUT_NAME         hpctio
             CLEAN_DIRECT_OUTPUT 1
-            VERSION             ${BUILD_VERSION}
-            SOVERSION           ${BUILD_MAJOR}
+            VERSION             ${PROJECT_VERSION}
+            SOVERSION           ${PROJECT_VERSION_MAJOR}
          )
          TARGET_INCLUDE_DIRECTORIES(libhpctio-${TYPE} PRIVATE ${Boost_INCLUDE_DIRS})
          TARGET_LINK_LIBRARIES(libhpctio-${TYPE} PRIVATE
@@ -140,8 +140,8 @@ IF (WITH_LIBHIPERCONTRACER)
          SET_TARGET_PROPERTIES(libhipercontracer-${TYPE} PROPERTIES
             OUTPUT_NAME         hipercontracer
             CLEAN_DIRECT_OUTPUT 1
-            VERSION             ${BUILD_VERSION}
-            SOVERSION           ${BUILD_MAJOR}
+            VERSION             ${PROJECT_VERSION}
+            SOVERSION           ${PROJECT_VERSION_MAJOR}
          )
          TARGET_INCLUDE_DIRECTORIES(libhipercontracer-${TYPE} PRIVATE ${Boost_INCLUDE_DIRS})
          TARGET_LINK_LIBRARIES(libhipercontracer-${TYPE} PRIVATE
@@ -208,8 +208,8 @@ IF (WITH_LIBHPCTDB)
          SET_TARGET_PROPERTIES(libhpctdb-${TYPE} PROPERTIES
             OUTPUT_NAME         hpctdb
             CLEAN_DIRECT_OUTPUT 1
-            VERSION             ${BUILD_VERSION}
-            SOVERSION           ${BUILD_MAJOR}
+            VERSION             ${PROJECT_VERSION}
+            SOVERSION           ${PROJECT_VERSION_MAJOR}
          )
          TARGET_INCLUDE_DIRECTORIES(libhpctdb-${TYPE} PRIVATE
                                     ${LIBMARIADB_INCLUDE_DIR}
@@ -261,8 +261,8 @@ IF (WITH_LIBUNIVERSALIMPORTER)
          SET_TARGET_PROPERTIES(libuniversalimporter-${TYPE} PROPERTIES
             OUTPUT_NAME         universalimporter
             CLEAN_DIRECT_OUTPUT 1
-            VERSION             ${BUILD_VERSION}
-            SOVERSION           ${BUILD_MAJOR}
+            VERSION             ${PROJECT_VERSION}
+            SOVERSION           ${PROJECT_VERSION_MAJOR}
          )
          TARGET_INCLUDE_DIRECTORIES(libuniversalimporter-${TYPE} PRIVATE
                                     ${INOTIFY_INCLUDE_DIR}

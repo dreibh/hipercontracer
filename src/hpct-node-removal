@@ -42,7 +42,7 @@ usage () {
 
 # ###### Version ############################################################
 version () {
-   echo "HiPerConTracer-Node-Removal @BUILD_MAJOR@.@BUILD_MINOR@.@BUILD_PATCH@"
+   echo "HiPerConTracer-Node-Removal @PROJECT_VERSION_MAJOR@.@PROJECT_VERSION_MINOR@.@PROJECT_VERSION_PATCH@"
    exit 0
 }
 
